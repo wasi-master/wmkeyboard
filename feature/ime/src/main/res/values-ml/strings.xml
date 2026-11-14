@@ -176,6 +176,7 @@
     <string name="ime_ai_error_no_text">പ്രവർത്തിക്കാൻ ഒന്നുമില്ല. ആദ്യം കുറച്ച് വാചകം ടൈപ്പ് ചെയ്യുക.</string>
     <string name="ime_ai_error_only_reasoning">മോഡൽ മുഴുവൻ പ്രതികരണവും യുക്തിക്കായി ഉപയോഗിച്ചു. വീണ്ടും ശ്രമിക്കുക, അല്ലെങ്കിൽ ക്രമീകരണങ്ങളിൽ “Show reasoning” ഓണാക്കുക.</string>
     <string name="ime_ai_error_request_failed">അഭ്യർത്ഥന പ്രവർത്തിച്ചില്ല</string>
+    <string name="ime_ai_error_stopped_hidden">കീബോർഡ് അടച്ചതിനാൽ നിർത്തിവച്ചു. ഇത് വീണ്ടും പ്രവർത്തിപ്പിക്കാൻ വീണ്ടും ശ്രമിക്കുക.</string>
     <string name="ime_ai_idle_body">പ്രവർത്തനങ്ങൾ തിരഞ്ഞെടുത്ത ടെക്സ്റ്റിലോ അല്ലെങ്കിൽ മുഴുവൻ ഫീൽഡിലോ പ്രവർത്തിക്കുന്നു. അവ %1$s ഉപയോഗിക്കുന്നു.</string>
     <string name="ime_ai_idle_empty_body">ഈ പ്രവർത്തനങ്ങൾ ഉപയോഗിക്കാൻ എന്തെങ്കിലും ടെക്സ്റ്റ് ടൈപ്പ് ചെയ്യുകയോ തിരഞ്ഞെടുക്കുകയോ ചെയ്യുക. പുതിയ ടെക്സ്റ്റ് എഴുതാൻ %1$s അമർത്തുക.</string>
     <string name="ime_ai_idle_empty_no_writer_body">ഈ പ്രവർത്തനങ്ങൾ ഉപയോഗിക്കാൻ വാചകം ടൈപ്പ് ചെയ്യുകയോ തിരഞ്ഞെടുക്കുകയോ ചെയ്യുക.</string>
@@ -307,9 +308,11 @@
     <string name="ime_app_colors_none">ഈ ആപ്പിൽ നിറങ്ങളൊന്നും കണ്ടെത്തിയില്ല</string>
     <string name="ime_app_colors_off_desc">ഈ ആപ്പിന്റെ നിറങ്ങൾ ഉപയോഗിക്കരുത്</string>
     <string name="ime_app_colors_pick_desc">ആപ്പ് നിറം %1$d</string>
+    <string name="ime_applet_back">തിരികെ</string>
     <string name="ime_applet_close">ബോക്സ് അടയ്ക്കുക</string>
     <string name="ime_applet_copied">പകർത്തി</string>
     <string name="ime_applet_open_in_keyboard">കീബോർഡിൽ തുറക്കുക</string>
+    <string name="ime_applet_pop_out">ഒരു ഫ്ലോട്ടിംഗ് ബോക്സിൽ തുറക്കുക</string>
     <string name="ime_applet_resize">വലുപ്പം മാറ്റാൻ വലിച്ചിടുക</string>
     <string name="ime_applet_tuck">അരികിലേക്ക് ഒതുക്കുക</string>
     <string name="ime_applet_untuck">%1$s തിരികെ കൊണ്ടുവരുക</string>
@@ -319,6 +322,33 @@
     <string name="ime_ask_ai_label_vocab">പദാവലി: %1$s</string>
     <string name="ime_ask_ai_label_wiki">വിക്കിപീഡിയ: %1$s</string>
     <string name="ime_autofill_dismiss_desc">ഓട്ടോഫിൽ നിർദ്ദേശങ്ങൾ മറയ്ക്കുക</string>
+    <string name="ime_board_copy_desc">ഈ ഫോണിലേക്ക് പകർത്തുക</string>
+    <string name="ime_board_delete_body">ബോർഡ് ഉപയോഗിക്കുന്ന എല്ലാ ഉപകരണങ്ങളിൽ നിന്നും ഇത് ഇല്ലാതാകും. ഫോണിന്റെ സ്വന്തം ക്ലിപ്പർബോർഡിൽ ഇതിനകം ഉള്ള പകർപ്പുകൾ നിലനിൽക്കും.</string>
+    <string name="ime_board_delete_desc">ബോർഡ് നീക്കം ചെയ്യുക</string>
+    <string name="ime_board_delete_no">റദ്ദാക്കുക</string>
+    <string name="ime_board_delete_title">ഈ ക്ലിപ്പ് ബോർഡിൽ നിന്ന് നീക്കം ചെയ്യണോ?</string>
+    <string name="ime_board_delete_yes">എടുക്കുക</string>
+    <string name="ime_board_edit_desc">എഡിറ്റ് ചെയ്യുക</string>
+    <string name="ime_board_empty_body">ഇവിടെ അയയ്‌ക്കുന്ന ക്ലിപ്പുകൾ അതേ ഫോൾഡർ ഉപയോഗിക്കുന്ന നിങ്ങളുടെ മറ്റ് ഉപകരണങ്ങളിൽ കാണിക്കും, ഇപ്പോൾ ഓഫ്‌ലൈനിലുള്ളവയിൽ പോലും.</string>
+    <string name="ime_board_empty_title">ബോർഡിൽ ഒന്നുമില്ല</string>
+    <string name="ime_board_notice_copied">പകർത്തി</string>
+    <string name="ime_board_notice_deleted">ബോർഡിൽ നിന്ന് നീക്കം ചെയ്തു</string>
+    <string name="ime_board_notice_refused">മറച്ചുപിടിക്കാത്ത ടെക്സ്റ്റ് ക്ലിപ്പുകൾ മാത്രമേ ബോർഡിൽ സ്ഥാപിക്കാൻ കഴിയൂ</string>
+    <string name="ime_board_notice_sent">ബോർഡിലേക്ക് അയച്ചു</string>
+    <string name="ime_board_send_desc">ഒരു ക്ലിപ്പ് അയക്കുക</string>
+    <string name="ime_board_send_done">ചെയ്തു</string>
+    <string name="ime_board_send_empty">അ അയയ്ക്കാൻ ടെക്സ്റ്റ് ക്ലിപ്പുകൾ ഒന്നുമില്ല. ചിത്രങ്ങളും ഫയലുകളും മറഞ്ഞിരിക്കുന്ന ക്ലിപ്പുകളും ഈ ഫോണിൽ തുടരും.</string>
+    <string name="ime_board_send_one_desc">അയയ്ക്കുക</string>
+    <string name="ime_board_send_title">ബോർഡിലേക്ക് അയക്കുക</string>
+    <string name="ime_board_sent_desc">അയച്ചു</string>
+    <string name="ime_board_status_failed">ബോർഡിൽ എത്തിച്ചേരാനാകില്ല</string>
+    <string name="ime_board_status_never">ഇതുവരെ പരിശോധിച്ചിട്ടില്ല</string>
+    <string name="ime_board_status_synced">%1$s പരിശോധിച്ചു</string>
+    <string name="ime_board_status_syncing">ബോർഡ് പരിശോധിക്കുന്നു...</string>
+    <string name="ime_board_status_waiting">ബോർഡിൽ എത്തിച്ചേരാൻ കാത്തിരിക്കുന്നു</string>
+    <string name="ime_board_status_waiting_offline">ബോർഡിൽ എത്താൻ കഴിയുന്നില്ല. കണക്റ്റ് ചെയ്യുമ്പോൾ നിങ്ങളുടെ മാറ്റങ്ങൾ അയക്കപ്പെടും</string>
+    <string name="ime_board_sync_desc">ബോർഡ് ഇപ്പോൾ പരിശോധിക്കുക</string>
+    <string name="ime_board_title">പങ്കിട്ട ബോർഡ്</string>
     <string name="ime_calc_degrees_label">ഡിഗ്രി</string>
     <string name="ime_calc_insert_action">ഇൻസേർട്ട് ചെയ്യുക</string>
     <string name="ime_calc_radians_label">റേഡിയൻ</string>
@@ -471,7 +501,9 @@
     </plurals>
     <string name="ime_calendar_untitled">(തലക്കെട്ടില്ല)</string>
     <string name="ime_calendar_view_agenda">അജണ്ട</string>
+    <string name="ime_calendar_view_day">ദിവസം</string>
     <string name="ime_calendar_view_month">മാസം</string>
+    <string name="ime_calendar_weather_desc">%3$s-ൽ %1$s, %2$s. ഓരോ മണിക്കൂറിലെയും പ്രവചനം തുറക്കുന്നു</string>
     <string name="ime_calendar_yesterday_label">ഇന്നലെ</string>
     <string name="ime_calendar_zone_note">%1$s-ലെ സമയം</string>
     <string name="ime_camera_captured_photo_desc">നിങ്ങൾ എടുത്ത ഫോട്ടോ</string>
@@ -543,6 +575,7 @@
         <item quantity="one">%1$d ക്ലിപ്പ് സംയോജിപ്പിക്കുക</item>
         <item quantity="other">%1$d ക്ലിപ്പുകൾ സംയോജിപ്പിക്കുക</item>
     </plurals>
+    <string name="ime_clip_compose_email">ഇമെയിൽ രചിക്കുക</string>
     <string name="ime_clip_delete_pinned_question">പിൻ ചെയ്ത ഈ ക്ലിപ്പ് ഇല്ലാതാക്കണോ?</string>
     <plurals name="ime_clip_deleted">
         <item quantity="one">ക്ലിപ്പ് നീക്കം ചെയ്തു</item>
@@ -563,6 +596,7 @@
         <item quantity="other">നിങ്ങളുടെ ക്ലിപ്പുകളിൽ നിന്ന് കണ്ടെത്തിയ %1$d ഭാഗങ്ങൾ കാണിക്കുക</item>
     </plurals>
     <string name="ime_clip_extract_codes">ഒറ്റത്തവണ ഉപയോഗിക്കാവുന്ന കോഡുകൾ</string>
+    <string name="ime_clip_extract_emails">ഇമെയിൽ വിലാസങ്ങൾ</string>
     <string name="ime_clip_extract_links">ലിങ്കുകൾ</string>
     <string name="ime_clip_extract_parts">എക്സ്ട്രാക്റ്റ് ചെയ്യുക</string>
     <string name="ime_clip_extract_phones">ഫോൺ നമ്പറുകൾ</string>
@@ -589,6 +623,7 @@
         <item quantity="one">മറച്ചു · %1$d അക്ഷരം</item>
         <item quantity="other">മറച്ചു · %1$d അക്ഷരങ്ങൾ</item>
     </plurals>
+    <string name="ime_clip_image_pasted_toast">ക്ലിപ്പ്ബോർഡിൽ നിന്ന് ഒട്ടിച്ചു. ഒന്നും വന്നില്ലെങ്കിൽ, ഈ ആപ്പ് ചിത്രങ്ങളൊന്നും എടുക്കുന്നില്ല: ഇത് പങ്കിടാൻ ക്ലിപ്പ് പിടിക്കുക</string>
     <string name="ime_clip_info_copied">പകർത്തി</string>
     <string name="ime_clip_info_edited">എഡിറ്റ് ചെയ്തു</string>
     <string name="ime_clip_info_from">ഇതിൽ നിന്ന്</string>
@@ -642,7 +677,12 @@
         <item quantity="other">%1$d എണ്ണം തിരഞ്ഞെടുത്തു</item>
     </plurals>
     <string name="ime_clip_send_as_sticker">സ്റ്റിക്കറായി അയക്കുക</string>
+    <string name="ime_clip_shape_code">കോഡ്</string>
+    <string name="ime_clip_shape_markdown">മാർക്ക്ഡൗൺ</string>
+    <string name="ime_clip_share_image">പങ്കിടുക</string>
+    <string name="ime_clip_show_formatted">ഫോർമാറ്റ് ചെയ്തത് കാണിക്കുക</string>
     <string name="ime_clip_show_in_history">ഹിസ്റ്ററിയിൽ കാണിക്കുക</string>
+    <string name="ime_clip_show_raw">റോ കാണിക്കുക</string>
     <string name="ime_clip_tags">ടാഗുകൾ</string>
     <string name="ime_clip_tags_placeholder">ടാഗുകൾ, കോമ ഉപയോഗിച്ച് വേർതിരിക്കുക</string>
     <string name="ime_clip_tags_title">ടാഗുകൾ</string>
@@ -909,6 +949,7 @@
     <string name="ime_conversion_pack_offer">അക്ഷരങ്ങൾ ടൈപ്പ് ചെയ്യാൻ %1$s ഡൗൺലോഡ് ചെയ്യുക</string>
     <string name="ime_conversion_pack_offer_dismiss_desc">ഒഴിവാക്കുക</string>
     <string name="ime_converter_from_label">ഇതിൽ നിന്ന്</string>
+    <string name="ime_converter_tab_units">യൂണിറ്റുകൾ</string>
     <string name="ime_converter_to_label">ലേക്ക്</string>
     <string name="ime_currency_insert_action">ഇൻസേർട്ട് ചെയ്യുക</string>
     <string name="ime_currency_progress">വിനിമയ നിരക്കുകൾ ഡൗൺലോഡ് ചെയ്യുന്നു...</string>
@@ -917,6 +958,32 @@
     <string name="ime_currency_section_crypto">ക്രിപ്‌റ്റോ</string>
     <string name="ime_currency_section_popular">സാധാരണ</string>
     <string name="ime_currency_swap_desc">കറൻസികൾ മാറ്റുക</string>
+    <string name="ime_custom_button_desc">%1$s തുറക്കുക</string>
+    <string name="ime_custom_button_label">ചട്ടക്കൂട് ബട്ടൺ</string>
+    <string name="ime_custom_button_shortcut_failed">ആ കുറുക്ക് വഴി തുറക്കാൻ കഴിയില്ല. ആപ്പ് ഇല്ലാതായിരിക്കാം, അല്ലെങ്കിൽ ഹോം സ്ക്രീനെ മാത്രമേ അത് തുറക്കാൻ അനുവദിക്കുന്നുള്ളൂ.</string>
+    <string name="ime_custom_page_clipboard">ക്ലിപ്പ്ബോർഡ് ക്രമീകരണങ്ങൾ</string>
+    <string name="ime_custom_page_custom_buttons">ഇഷ്ടാനുസൃത ബട്ടണുകൾ</string>
+    <string name="ime_custom_page_dictionary">നിഘണ്ടു</string>
+    <string name="ime_custom_page_favourites">പ്രിയപ്പെട്ടവ</string>
+    <string name="ime_custom_page_home">ക്രമീകരണങ്ങൾ</string>
+    <string name="ime_custom_page_keypress">ശബ്ദവും വൈബ്രേഷനും</string>
+    <string name="ime_custom_page_languages">ഭാഷകൾ</string>
+    <string name="ime_custom_page_search">തിരയൽ ക്രമീകരണങ്ങൾ</string>
+    <string name="ime_custom_page_themes">തീമുകൾ</string>
+    <string name="ime_custom_page_toolbar">ടൂൾബാർ ക്രമീകരണങ്ങൾ</string>
+    <string name="ime_custom_page_tools">ഉപകരണങ്ങൾ</string>
+    <string name="ime_custom_page_typing">ടൈപ്പ് ചെയ്യുന്നു</string>
+    <string name="ime_custom_toggle_auto_caps">യാന്ത്രിക വലിയക്ഷരങ്ങൾ</string>
+    <string name="ime_custom_toggle_glide">ഗ്ലൈഡ് ടൈപ്പിംഗ്</string>
+    <string name="ime_custom_toggle_key_hints">കീ സൂചനകൾ</string>
+    <string name="ime_custom_toggle_key_popup">കീ പോപ്പ്-അപ്പ്</string>
+    <string name="ime_custom_toggle_number_row">നമ്പർ നിര</string>
+    <string name="ime_custom_toggle_reduce_motion">ചലനം കുറയ്ക്കുക</string>
+    <string name="ime_custom_toggle_sound">കീ സൗണ്ട്</string>
+    <string name="ime_custom_toggle_suggestions">നിർദ്ദേശങ്ങൾ</string>
+    <string name="ime_custom_toggle_symbol_row">ചിഹ്ന നിര</string>
+    <string name="ime_custom_toggle_toolbar_labels">ടൂൾബാർ പേരുകൾ</string>
+    <string name="ime_custom_toggle_vibration">വൈബ്രേഷൻ</string>
     <string name="ime_delete_redo_chip">“%1$s” വീണ്ടും ചെയ്യുക</string>
     <string name="ime_delete_redo_plain">വീണ്ടും ഇല്ലാതാക്കുക</string>
     <string name="ime_delete_undo_chip">“%1$s” പൂർവ്വസ്ഥിതമാക്കുക</string>
@@ -954,6 +1021,7 @@
     <string name="ime_disabled_correction_invalid">തിരുത്താൻ മറ്റൊരു വാക്ക് ടൈപ്പ് ചെയ്യുക. തിരുത്തേണ്ട വാക്കിന് കുറഞ്ഞത് 3 അക്ഷരങ്ങളെങ്കിലും ഉണ്ടായിരിക്കണം, കൂടാതെ തിരുത്തൽ ഒരു വാക്കാകാം, അല്ലെങ്കിൽ നഷ്ടപ്പെട്ട സ്പേസിനായി രണ്ട് വാക്കുകളാകാം.</string>
     <string name="ime_disabled_media_app_blocks">പ്ലേ ചെയ്യുന്ന ആപ്പ് ഇതിനെ അനുവദിക്കുന്നില്ല.</string>
     <string name="ime_disabled_spell_unchanged">ആദ്യം സ്പെല്ലിംഗ് മാറ്റുക. ശൂന്യമായതോ മാറ്റമില്ലാത്തതോ ആയ സ്പെല്ലിംഗിൽ പ്രയോഗിക്കാൻ ഒന്നുമില്ല.</string>
+    <string name="ime_disabled_translate_empty_box">ബോക്സ് ശൂന്യമാണ്, അല്ലെങ്കിൽ അതിന്റെ വിവർത്തനം ഇനിയും വരാനിരിക്കുന്നതേയുള്ളൂ.</string>
     <string name="ime_disabled_translate_nothing">ഒന്നും ഇതുവരെ വിവർത്തനം ചെയ്തിട്ടില്ല. വിവർത്തനം ചെയ്യുന്നതിനായി ആദ്യം ടെക്സ്റ്റ് ടൈപ്പ് ചെയ്യുകയോ പേസ്റ്റ് ചെയ്യുകയോ ചെയ്യുക.</string>
     <string name="ime_disabled_translate_same_language">ടെക്സ്റ്റ് ഇതിനകം നിങ്ങൾ വിവർത്തനം ചെയ്യുന്ന ഭാഷയിലാണ്.</string>
     <string name="ime_disabled_voice_undo">ഇതുവരെ പഴയപടിയാക്കാൻ ഒന്നുമില്ല. നിങ്ങൾ അവസാനം പറഞ്ഞ വാചകം പഴയപടിയാക്കാൻ അൺഡൂ സഹായിക്കുന്നു.</string>
@@ -983,6 +1051,10 @@
     <string name="ime_docscan_next">ക്രോപ്പ് ചെയ്യുക</string>
     <string name="ime_docscan_open_settings">ക്രമീകരണങ്ങൾ തുറക്കുക</string>
     <string name="ime_docscan_page_number">പേജ് %1$d</string>
+    <plurals name="ime_docscan_pages_album">
+        <item quantity="one">പേജ് ആപ്പിന്റെ ഷെയർ സ്ക്രീനിൽ തുറക്കുന്നു</item>
+        <item quantity="other">ഈ ആപ്പ് ഇവിടെ ഒരേ സമയം ഒരു ചിത്രം വീതം എടുക്കുന്നു, അതിനാൽ ഒരു ആൽബമായി അയക്കാൻ %d പേജുകൾ അതിന്റെ ഷെയർ സ്ക്രീനിൽ ഒരുമിച്ച് തുറക്കുന്നു</item>
+    </plurals>
     <plurals name="ime_docscan_pages_shared">
         <item quantity="one">ആപ്പ് അവസാന പേജ് ഇവിടെ എടുത്തിട്ടില്ല, അതിനാൽ അത് ആപ്പിന്റെ ഷെയർ സ്ക്രീനിൽ തുറക്കുന്നു</item>
         <item quantity="other">ആപ്പ് %d പേജുകൾ ഇവിടെ എടുത്തിട്ടില്ല, അതിനാൽ അവ ആപ്പിന്റെ ഷെയർ സ്ക്രീനിൽ ഒരുമിച്ച് തുറക്കുന്നു</item>
@@ -1065,10 +1137,15 @@
     <string name="ime_files_access_pick">ആൻഡ്രോയിഡിന്റെ പിക്കർ</string>
     <string name="ime_files_access_title">കീബോർഡ് വിടാതെ ഫയലുകൾ തിരഞ്ഞെടുക്കുക</string>
     <string name="ime_files_add">ചേർക്കുക</string>
+    <string name="ime_files_add_tree">ഒരു ഫോൾഡർ ചേർക്കുക</string>
+    <string name="ime_files_add_tree_detail">ഒരു USB ഡ്രൈവ്, ഒരു SD കാർഡ്, അല്ലെങ്കിൽ നെറ്റ്‌വർക്ക് ഡ്രൈവ് പോലുള്ള മറ്റൊരു ആപ്പ് പങ്കിടുന്ന ഫോൾഡർ</string>
+    <string name="ime_files_allow_all">ഫോണിന്റെ മുഴുവൻ സ്റ്റോറേജ്</string>
+    <string name="ime_files_allow_all_detail">ആൻഡ്രോയിഡിന്റെ എല്ലാ ഫയലുകളിലേക്കുള്ള ആക്സസ് ആവശ്യമാണ്</string>
     <string name="ime_files_camera">കാമറ</string>
     <string name="ime_files_clear_desc">തിരഞ്ഞെടുക്കൽ മായ്ക്കുക</string>
     <string name="ime_files_collapse_desc">ചെറുതാക്കുക</string>
     <string name="ime_files_copy_desc">പകർത്തുക</string>
+    <string name="ime_files_copy_to">%1$s-ലേക്ക് പകർത്തുക</string>
     <string name="ime_files_delete_body">ഫോൾഡറുകൾ അവയിലുള്ള എല്ലാറ്റിനോടൊപ്പം പോകും. ഇത് ശാശ്വതമാണ്: ഫയലുകൾക്കായി ആൻഡ്രോയിഡിന് റീസൈക്കിൾ ബിൻ ഇല്ല.</string>
     <string name="ime_files_delete_desc">ഇല്ലാതാക്കുക</string>
     <string name="ime_files_delete_no">റദ്ദാക്കുക</string>
@@ -1085,8 +1162,11 @@
     <string name="ime_files_expand_desc">ഉയരം കൂട്ടുക</string>
     <string name="ime_files_hide_hidden">숨김 파일 숨기기 (ചില മലയാളം ഡിവൈസുകൾക്കായി ഇത് ഉപയോഗിക്കുന്നു: മറഞ്ഞിരിക്കുന്ന ഫയലുകൾ മറയ്ക്കുക)</string>
     <string name="ime_files_kde_unreadable">അയയ്ക്കാൻ ആ ഫയൽ വായിക്കാനായില്ല</string>
+    <string name="ime_files_locked_body">ലോക്ക് സ്ക്രീനിന് മുകളിൽ ഫയൽ മാനേജർ തുറക്കില്ല.</string>
+    <string name="ime_files_locked_title">നിങ്ങളുടെ ഫയലുകൾ കാണാൻ അൺലോക്ക് ചെയ്യുക</string>
     <string name="ime_files_more_desc">കൂടുതൽ</string>
     <string name="ime_files_move_desc">നീക്കുക</string>
+    <string name="ime_files_move_to">%1$s-ലേക്ക് നീക്കുക</string>
     <string name="ime_files_movies">ചിത്രങ്ങൾ</string>
     <string name="ime_files_music">संगीत</string>
     <string name="ime_files_new_folder">പുതിയ ഫോൾഡർ</string>
@@ -1112,6 +1192,8 @@
         <item quantity="one">%d ഇനം മാറ്റി</item>
         <item quantity="other">%d ഇനങ്ങൾ മാറ്റി</item>
     </plurals>
+    <string name="ime_files_notice_tree_removed">ഫോൾഡർ പട്ടികയിൽ നിന്ന് നീക്കം ചെയ്തു</string>
+    <string name="ime_files_one_pane_desc">ഒരു ലിസ്റ്റ്</string>
     <string name="ime_files_op_cancel">നിർത്തുക</string>
     <string name="ime_files_op_copy">%2$d ൽ %1$d പകർത്തുന്നു</string>
     <string name="ime_files_op_delete">%2$d-ൽ %1$d ഇല്ലാതാക്കുന്നു</string>
@@ -1128,6 +1210,9 @@
     <string name="ime_files_pictures">ചിത്രങ്ങൾ</string>
     <string name="ime_files_places">സ്ഥലങ്ങൾ</string>
     <string name="ime_files_recent">സമീപകാലത്തുള്ളത്</string>
+    <string name="ime_files_remove_tree_body">ഫോൾഡറും അതിന്റെ ഫയലുകളും അവയുടെ സ്ഥാനത്ത് തുടരും. നിങ്ങൾക്ക് എപ്പോൾ വേണമെങ്കിലും ഇത് വീണ്ടും ചേർക്കാം.</string>
+    <string name="ime_files_remove_tree_title">ലിസ്റ്റിൽ നിന്ന് “%1$s” നീക്കം ചെയ്യണോ?</string>
+    <string name="ime_files_remove_tree_yes">എടുത്ത് മാറ്റുക</string>
     <string name="ime_files_rename_desc">പേരുമാറ്റുക</string>
     <string name="ime_files_rename_hint">പുതിയ പേര്</string>
     <string name="ime_files_search_clear_desc">തിരച്ചിൽ അവസാനിപ്പിക്കുക</string>
@@ -1146,6 +1231,7 @@
     <string name="ime_files_title_many">ഫയലുകൾ തിരഞ്ഞെടുക്കുക</string>
     <string name="ime_files_title_one">ഒരു ഫയൽ തിരഞ്ഞെടുക്കുക</string>
     <string name="ime_files_title_picture">ഒരു ചിത്രം തിരഞ്ഞെടുക്കുക</string>
+    <string name="ime_files_two_panes_desc">രണ്ട് ലിസ്റ്റുകൾ അടുത്തടുത്തായി</string>
     <string name="ime_files_unreadable">ഈ ഫോൾഡർ തുറക്കാൻ കീബോർഡിനെ ആൻഡ്രോയിഡ് അനുവദിക്കുന്നില്ല</string>
     <string name="ime_find_case_desc">കേസ് പൊരുത്തപ്പെടുത്തുക</string>
     <string name="ime_find_clear_desc">%1$s മായ്‌ക്കുക</string>
@@ -1177,6 +1263,24 @@
     <string name="ime_floating_category_empty">ഈ വിഭാഗം ശൂന്യമാണ്. ഫ്ലോട്ടിംഗ് ബട്ടൺ ക്രമീകരണങ്ങളിൽ ഇതിലേക്ക് പ്രവർത്തനങ്ങൾ ചേർക്കുക.</string>
     <string name="ime_floating_category_label">വിഭാഗം</string>
     <string name="ime_floating_close_menu">മെനു അടയ്ക്കുക</string>
+    <string name="ime_floating_device_bluetooth">\'\'\'ബ്ലൂടൂത്ത്\'\'\'</string>
+    <string name="ime_floating_device_bluetooth_desc">ബ്ലൂടൂത്ത് ഓണാക്കുകയോ ഓഫാക്കുകയോ ചെയ്യുന്നു</string>
+    <string name="ime_floating_device_bluetooth_page_desc">ആൻഡ്രോയിഡിന്റെ ബ്ലൂടൂത്ത് പേജ് തുറക്കുന്നു</string>
+    <string name="ime_floating_device_data">മൊബൈൽ ഡാറ്റ</string>
+    <string name="ime_floating_device_data_desc">മൊബൈൽ ഡാറ്റ ഓൺ അല്ലെങ്കിൽ ഓഫ് ചെയ്യുന്നു</string>
+    <string name="ime_floating_device_data_panel_desc">ആൻഡ്രോയിഡിന്റെ ഇന്റർനെറ്റ് പാനൽ തുറക്കുന്നു</string>
+    <string name="ime_floating_device_failed">ആൻഡ്രോയിഡ് അത് അനുവദിച്ചില്ല</string>
+    <string name="ime_floating_device_hotspot">ഹോട്ട്സ്പോട്ട്</string>
+    <string name="ime_floating_device_hotspot_desc">ആൻഡ്രോയിഡിന്റെ ഹോട്ട്‌സ്‌പോട്ട് പേജ് തുറക്കുന്നു</string>
+    <string name="ime_floating_device_off">%1$s ഓഫ് ചെയ്തു</string>
+    <string name="ime_floating_device_on">%1$s ഓൺ</string>
+    <string name="ime_floating_device_ringer">" റിംഗർ മോഡ്"</string>
+    <string name="ime_floating_device_ringer_desc">റിംഗ്, വൈബ്രേറ്റ്, സൈലന്റ് എന്നിവ മാറിമാറി വരും</string>
+    <string name="ime_floating_device_volume">വോളിയം പാനൽ</string>
+    <string name="ime_floating_device_volume_desc">Android-ന്റെ വോളിയം പാനൽ എല്ലാ വോളിയം സ്ലൈഡറുകളോടും കൂടി തുറക്കുന്നു</string>
+    <string name="ime_floating_device_wifi">വൈ-ഫൈ</string>
+    <string name="ime_floating_device_wifi_desc">വൈഫൈ ഓൺ അല്ലെങ്കിൽ ഓഫ് ചെയ്യുന്നു</string>
+    <string name="ime_floating_device_wifi_panel_desc">ആൻഡ്രോയിഡിന്റെ വൈഫൈ പാനൽ തുറക്കുന്നു</string>
     <string name="ime_floating_dismiss_target">ബട്ടൺ മറയ്ക്കാൻ ഇവിടെ ഇടുക</string>
     <string name="ime_floating_dock_desc">കീബോർഡ് ഡോക്ക് ചെയ്യുക</string>
     <string name="ime_floating_hide_label">ബട്ടൺ മറയ്ക്കുക</string>
@@ -1187,7 +1291,11 @@
     <string name="ime_floating_pair_label">ഒരു ആപ്പ് ജോടി തുറക്കുക</string>
     <string name="ime_floating_pair_missing">രണ്ട് ആപ്പുകളിൽ ഒരെണ്ണം ഇനി ഇൻസ്റ്റാൾ ചെയ്തിട്ടില്ല</string>
     <string name="ime_floating_pair_name">%1$s + %2$s</string>
+    <string name="ime_floating_plugin_label">പ്ലഗിൻ</string>
     <string name="ime_floating_resize_desc">കീബോർഡിന്റെ വലിപ്പം മാറ്റുക</string>
+    <string name="ime_floating_ringer_ring">റിംഗ്</string>
+    <string name="ime_floating_ringer_silent">സൈലന്റ്</string>
+    <string name="ime_floating_ringer_vibrate">വൈബ്രേറ്റ് ചെയ്യുക</string>
     <string name="ime_floating_system_app_drawer">ആപ്പ് ഡ്രോയർ</string>
     <string name="ime_floating_system_back">പിന്നോട്ട്</string>
     <string name="ime_floating_system_notifications">അറിയിപ്പുകൾ</string>
@@ -1245,6 +1353,7 @@
     <string name="ime_gallery_album_camera">ക്യാമറ</string>
     <string name="ime_gallery_album_favorites">പ്രിയപ്പെട്ടവ</string>
     <string name="ime_gallery_album_gifs">GIF-കൾ</string>
+    <string name="ime_gallery_album_immich">ഇമ്മിച്ച്</string>
     <string name="ime_gallery_album_recents">സമീപകാലത്തുള്ളവ</string>
     <string name="ime_gallery_album_screenshots">സ്ക്രീൻഷോട്ടുകൾ</string>
     <string name="ime_gallery_album_sent">കീബോർഡിൽ നിന്ന് അയച്ചു</string>
@@ -1336,6 +1445,10 @@
     <string name="ime_gallery_info_taken">എടുത്തത്</string>
     <string name="ime_gallery_layer_delete">ഇല്ലാതാക്കുക</string>
     <string name="ime_gallery_more_desc">കൂടുതൽ ഗാലറി ഓപ്ഷനുകൾ</string>
+    <plurals name="ime_gallery_notice_already_uploaded">
+        <item quantity="one">Immich-ൽ ഇതിനകം %d ചിത്രം ഉണ്ടായിരുന്നു</item>
+        <item quantity="other">Immich-ൽ ഇതിനകം എല്ലാ %d ചിത്രങ്ങളും ഉണ്ടായിരുന്നു</item>
+    </plurals>
     <plurals name="ime_gallery_notice_copied">
         <item quantity="one">%d ഇനം പകർത്തി</item>
         <item quantity="other">%d ഇനങ്ങൾ പകർത്തി</item>
@@ -1344,6 +1457,8 @@
         <item quantity="one">%d ഇനം വായിക്കാൻ കഴിഞ്ഞില്ല</item>
         <item quantity="other">%d ഇനങ്ങൾ വായിക്കാൻ കഴിഞ്ഞില്ല</item>
     </plurals>
+    <string name="ime_gallery_notice_immich_failed">നിങ്ങളുടെ ഇമ്മിച്ച് സെർവറിൽ എത്താൻ കഴിഞ്ഞില്ല</string>
+    <string name="ime_gallery_notice_immich_refused">Immich API കീ നിരസിച്ചു; അതിന്റെ അനുമതികൾ പരിശോധിക്കുക</string>
     <plurals name="ime_gallery_notice_limit">
         <item quantity="one">നിങ്ങൾക്ക് ഒരു സമയം %d ഇനം തിരഞ്ഞെടുക്കാം</item>
         <item quantity="other">നിങ്ങൾക്ക് ഒരു സമയം %d ഇനങ്ങൾ വരെ തിരഞ്ഞെടുക്കാം</item>
@@ -1364,6 +1479,14 @@
     <plurals name="ime_gallery_notice_shared">
         <item quantity="one">%d ഇനത്തിനായുള്ള പങ്കിടൽ സ്‌ക്രീൻ തുറന്നു</item>
         <item quantity="other">%d ഇനങ്ങൾക്കായുള്ള പങ്കിടൽ സ്‌ക്രീൻ തുറന്നു</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_upload_failed">
+        <item quantity="one">%d ചിത്രം അപ്‌ലോഡ് ചെയ്തില്ല</item>
+        <item quantity="other">%d ചിത്രങ്ങൾ അപ്‌ലോഡ് ചെയ്തില്ല</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_uploaded">
+        <item quantity="one">ഇമ്മിச்சിലേക്ക് %d ചിത്രം അപ്‌ലോഡ് ചെയ്തു</item>
+        <item quantity="other">ഇമ്മിச்சിലേക്ക് %d ചിത്രങ്ങൾ അപ്‌ലോഡ് ചെയ്തു</item>
     </plurals>
     <string name="ime_gallery_partial_action">കൂടുതൽ തിരഞ്ഞെടുക്കുക</string>
     <string name="ime_gallery_partial_body">ചില ഫോട്ടോകൾക്ക് മാത്രമാണ് നിങ്ങൾ അനുമതി നൽകിയത്.</string>
@@ -1407,6 +1530,7 @@
     <string name="ime_gallery_tool_stickers">സ്റ്റിക്കറുകൾ</string>
     <string name="ime_gallery_tool_text">ടെക്സ്റ്റ്</string>
     <string name="ime_gallery_tool_upscale">അപ്‌സ്‌കെയിൽ</string>
+    <string name="ime_gallery_upload_immich">ഇമ്മിச்சിലേക്ക് അപ്‌ലോഡ് ചെയ്യുക</string>
     <string name="ime_gallery_upscale_art">ഡ്രോയിംഗ് അല്ലെങ്കിൽ ടെക്സ്റ്റ്</string>
     <string name="ime_gallery_upscale_done">അപ്‌സ്‌കെയിൽ ചെയ്തു ×%1$d: %2$d × %3$d</string>
     <string name="ime_gallery_upscale_downloading">ആപ്പ് അപ്‌സ്‌കെയിലർ ഡൗൺലോഡ് ചെയ്യുന്നു…</string>
@@ -1665,6 +1789,9 @@
     <string name="ime_handwriting_unsupported_info">ഈ ആപ്പ് പതിപ്പ് ചൈനീസ്, ജാപ്പനീസ് ഭാഷകളിലെ കൈയക്ഷരം മാത്രമേ വായിക്കൂ. ഇവിടെ എഴുതാൻ ഭാഷകളിൽ (Languages) അവയിലൊന്ന് ചേർക്കുക.</string>
     <string name="ime_hardware_keys_hide_desc">കീകൾ മറയ്ക്കുക</string>
     <string name="ime_hardware_keys_show_desc">കീകൾ കാണിക്കുക</string>
+    <string name="ime_homophones_finish">ആദ്യം നിങ്ങൾ ടൈപ്പ് ചെയ്യുന്ന വാക്ക് പൂർത്തിയാക്കുക</string>
+    <string name="ime_homophones_none">ഈ ഫോണിൽ %1$s പോലെ ശബ്ദിക്കുന്ന ഒന്നുമില്ല. ഒരു ഭാഷാ പായ്ക്കോ RIME സ്കീമോ വായനകൾ ചേർക്കുന്നു.</string>
+    <string name="ime_homophones_none_before">ആദ്യം ഒരു ചൈനീസ് അല്ലെങ്കിൽ ജാപ്പനീസ് പ്രതീകം ടൈപ്പ് ചെയ്യുക</string>
     <string name="ime_hw_pick_mode_off_toast">പിക്ക് മോഡ് ഓഫ് ചെയ്തു</string>
     <string name="ime_hw_pick_mode_on_toast">പിക്ക് മോഡ് ഓണാണ്: നമ്പർ കീകൾ നിർദ്ദേശങ്ങൾ തിരഞ്ഞെടുക്കുന്നു, ഷിഫ്റ്റ് നമ്പർ ടൈപ്പ് ചെയ്യുന്നു</string>
     <string name="ime_icons_builtin_label">ബിൽറ്റ്-ഇൻ</string>
@@ -1679,6 +1806,45 @@
     <string name="ime_image_search_need_key_body">ഇമേജ് സെർച്ചിന് ബ്രേവ് സെർച്ചിൽ (Brave Search) നിന്നുള്ള ഒരു API കീ ആവശ്യമാണ്. ഈ ടൂളിന്റെ ക്രമീകരണങ്ങളിൽ ഒരു കീ ചേർക്കുക.</string>
     <string name="ime_incognito_on_desc">ഇൻകോഗ്നിറ്റോ ഓണാണ്</string>
     <string name="ime_insert_action">ഇൻസേർട്ട് ചെയ്യുക</string>
+    <string name="ime_invite_about_hint">ഒരു വിവരണം ചേർക്കുക</string>
+    <string name="ime_invite_action">ഓൺലൈനായി ക്ഷണിക്കുക</string>
+    <string name="ime_invite_add_title">തലക്കെട്ട് ചേർക്കുക</string>
+    <string name="ime_invite_error_address">ക്രമീകരണങ്ങളിലെ %1$s വിലാസം ഒരു വെബ് വിലാസമല്ല.</string>
+    <string name="ime_invite_error_bad_token">%1$s API ടോക്കൺ സ്വീകരിച്ചില്ല.</string>
+    <string name="ime_invite_error_data_saver">ഡാറ്റ സേവർ ഓണാണ്. പ്രസിദ്ധീകരിക്കുമ്പോൾ കുറച്ച് കിലോബൈറ്റുകൾ അയയ്ക്കുന്നു.</string>
+    <string name="ime_invite_error_network">%1$s പ്രതികരിച്ചില്ല.</string>
+    <string name="ime_invite_error_no_title">ക്ഷണത്തിന് ഒരു തലക്കെട്ട് ആവശ്യമാണ്.</string>
+    <string name="ime_invite_error_offline">കണക്ഷൻ ഇല്ല. കണക്റ്റ് ചെയ്ത് വീണ്ടും ശ്രമിക്കുക.</string>
+    <string name="ime_invite_error_refused">ഈ അക്കൗണ്ടിന് അവിടെ ഇവന്റുകൾ സൃഷ്ടിക്കാൻ കഴിയില്ലെന്ന് %1$s പറയുന്നു.</string>
+    <string name="ime_invite_error_rejected">%1$s ഇവന്റ് നിരസിച്ചു.</string>
+    <string name="ime_invite_error_signed_out">%1$s നിങ്ങളെ സൈൻ ഔട്ട് ചെയ്തു. ക്രമീകരണങ്ങളിൽ വീണ്ടും സൈൻ ഇൻ ചെയ്യുക.</string>
+    <string name="ime_invite_fix_in_pretix">പ്രീറ്റിക്സ് തുറക്കുക</string>
+    <string name="ime_invite_go_ahead">തുടരുക</string>
+    <string name="ime_invite_insert_link">ലിങ്ക് ചേർക്കുക</string>
+    <string name="ime_invite_insert_message">ക്ഷണം ചേർക്കുക</string>
+    <string name="ime_invite_link_only">ലിങ്ക് ഉള്ള ആളുകൾക്ക് മാത്രം</string>
+    <string name="ime_invite_listed">പൊതുവായി പട്ടികപ്പെടുത്തിയിരിക്കുന്നു</string>
+    <string name="ime_invite_made">%1$s-ൽ നിർമ്മിച്ചത്, സൈൻ-അപ്പുകൾ ഇതുവരെ തുറന്നിട്ടില്ല</string>
+    <string name="ime_invite_not_live">Pretix ഇവന്റ് ഉണ്ടാക്കി എന്നാല്‍ സൈന്‍-അപ്പുകള്‍ തുറക്കില്ല. %1$s</string>
+    <string name="ime_invite_not_set_up_body">ആദ്യം മൊബിലിസോണിൽ സൈൻ ഇൻ ചെയ്യുക അല്ലെങ്കിൽ കലണ്ടർ ടൂളിന്റെ ക്രമീകരണങ്ങളിൽ ഒരു പ്രെറ്റിക്സ് സെർവർ ചേർക്കുക.</string>
+    <string name="ime_invite_not_set_up_title">ഇതുവരെ ഇവന്റ് സേവനമില്ല</string>
+    <string name="ime_invite_note_mobilizon">ആളുകൾ ഇവന്റിന്റെ പേജിൽ സൈൻ അപ്പ് ചെയ്യുന്നു. അവർ ചെയ്യുമ്പോൾ മൊബിലിസോൺ നിങ്ങൾക്ക് ഇമെയിൽ അയയ്ക്കും.</string>
+    <string name="ime_invite_note_pretix">ഈ ഇവന്റിന് ഒരു സൗജന്യ ടിക്കറ്റ് ലഭിക്കുന്നു, അതിനാൽ ആളുകൾ അവരുടെ ഇമെയിൽ വിലാസം ഉപയോഗിച്ച് അതിന്റെ പേജിൽ സൈൻ അപ്പ് ചെയ്യുന്നു.</string>
+    <string name="ime_invite_open_page">പേജ് തുറക്കുക</string>
+    <string name="ime_invite_open_settings">ക്രമീകരണങ്ങൾ</string>
+    <string name="ime_invite_place_hint">ഒരു സ്ഥലമോ ലിങ്കോ ചേർക്കുക</string>
+    <string name="ime_invite_places_any">പരിധിയില്ല</string>
+    <string name="ime_invite_places_label">സ്ഥലങ്ങൾ</string>
+    <string name="ime_invite_post_as">%1$s ആയി പോസ്റ്റ് ചെയ്യുക</string>
+    <string name="ime_invite_post_as_default">നിങ്ങളുടെ പ്രൊഫൈലായി പോസ്റ്റ് ചെയ്യുക</string>
+    <string name="ime_invite_post_as_loading">നിങ്ങളുടെ പ്രൊഫൈലുകൾ ലോഡ് ചെയ്യുന്നു…</string>
+    <string name="ime_invite_publish">പ്രസിദ്ധീകരിക്കുക</string>
+    <string name="ime_invite_published">%1$s-ൽ പ്രസിദ്ധീകരിച്ചു</string>
+    <string name="ime_invite_publishing">പ്രസിദ്ധീകരിക്കുന്നു…</string>
+    <string name="ime_invite_publishing_to">%1$s-ലേക്ക് പ്രസിദ്ധീകരിക്കുന്നു</string>
+    <string name="ime_invite_ticket_name">സൈൻ-അപ്പ്</string>
+    <string name="ime_invite_title">ഓൺലൈനായി ക്ഷണിക്കുക</string>
+    <string name="ime_invite_try_again">വീണ്ടും ശ്രമിക്കുക</string>
     <string name="ime_kaomoji_add">ഒരു കാമോജി ചേർക്കുക</string>
     <string name="ime_kaomoji_all">എല്ലാം</string>
     <string name="ime_kaomoji_cancel">റദ്ദാക്കുക</string>
@@ -1966,6 +2132,7 @@
     <string name="ime_learn_text_action">ടെക്സ്റ്റ് പഠിക്കുക</string>
     <string name="ime_learn_word_never_desc">%1$s ഒരിക്കലും പഠിക്കരുത്</string>
     <string name="ime_learn_word_offer">\"%1$s\" ചേർക്കണോ?</string>
+    <string name="ime_legacy_font_output">പഴയ ഫോണ്ട് ഔട്ട്പുട്ട്</string>
     <string name="ime_level_no_sensor_empty">നിങ്ങളുടെ ഉപകരണത്തിൽ ആക്സിലറോമീറ്റർ ഇല്ല.</string>
     <string name="ime_location_address_failed">ഇവിടെ വിലാസമില്ല. കോർഡിനേറ്റുകൾ ഇപ്പോഴും പ്രവർത്തിക്കുന്നു.</string>
     <string name="ime_location_address_looking">വിലാസം തിരയുന്നു...</string>
@@ -2138,6 +2305,29 @@
         <item quantity="other">%d കുറിപ്പുകൾ ആർക്കൈവ് ചെയ്തു</item>
     </plurals>
     <string name="ime_notes_archived_badge">ആർക്കൈവ് ചെയ്തു</string>
+    <string name="ime_notes_assist_deck_action">ഒരു പഠന ഡെക്ക് ഉണ്ടാക്കുക</string>
+    <plurals name="ime_notes_assist_deck_action_count">
+        <item quantity="one">ഒരു പഠന ഡെക്ക് ഉണ്ടാക്കുക (%d കാർഡ്)</item>
+        <item quantity="other">ഒരു പഠന ഡെക്ക് ഉണ്ടാക്കുക (%d കാർഡുകൾ)</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_empty_toast">കാർഡുകൾ നിർമ്മിക്കാൻ അർത്ഥങ്ങളുള്ള പദങ്ങളൊന്നുമില്ല</string>
+    <plurals name="ime_notes_assist_deck_made_toast">
+        <item quantity="one">%1$d കാർഡ് ഉപയോഗിച്ച് നിർമ്മിച്ച \"%2$s\" സ്റ്റഡി ഡെക്ക്. ഇത് വൊക്കാബുലറിയിൽ കണ്ടെത്തുക.</item>
+        <item quantity="other">%1$d കാർഡുകൾ ഉപയോഗിച്ച് നിർമ്മിച്ച \"%2$s\" സ്റ്റഡി ഡെക്ക്. ഇത് വൊക്കാബുലറിയിൽ കണ്ടെത്തുക.</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_working_toast">ഒരു പഠന ഡെക്ക് തയ്യാറാക്കുന്നു…</string>
+    <string name="ime_notes_assist_details_label">പ്രധാന വിവരങ്ങൾ</string>
+    <string name="ime_notes_assist_heading_busy">ഒരു തലക്കെട്ടിനെക്കുറിച്ച് ചിന്തിക്കുന്നു…</string>
+    <string name="ime_notes_assist_heading_dismiss_desc">ഈ തലക്കെട്ടല്ല</string>
+    <string name="ime_notes_assist_heading_suggestion">തലക്കെട്ട്: %1$s</string>
+    <string name="ime_notes_assist_heading_use_action">ഉപയോഗിക്കുക</string>
+    <string name="ime_notes_assist_related_label">ബന്ധപ്പെട്ടത്</string>
+    <string name="ime_notes_assist_remind_chip">ഓർമ്മിപ്പിക്കുക: %1$s · %2$s</string>
+    <string name="ime_notes_assist_reminders_label">വരാനിരിക്കുന്നവ</string>
+    <string name="ime_notes_assist_summarize_action">ചുരുക്കുക</string>
+    <string name="ime_notes_assist_summarize_again_action">വീണ്ടും</string>
+    <string name="ime_notes_assist_summary_busy">നിങ്ങളുടെ ഫോണിൽ സംഗ്രഹിക്കുന്നു...</string>
+    <string name="ime_notes_assist_summary_label">ചുരുക്കം</string>
     <string name="ime_notes_body_hint">ഒരു കുറിപ്പ് എഴുതുക... മാർക്ക്ഡൗൺ പ്രവർത്തിക്കുന്നു: **ബോൾഡ്**, - ലിസ്റ്റുകൾ, - [ ] ടാസ്ക്കുകൾ</string>
     <string name="ime_notes_collapse_desc">കീബോർഡ് ഉയരത്തിലേക്ക് മടങ്ങുക</string>
     <string name="ime_notes_confirm_action">സ്ഥിരീകരിക്കാൻ വീണ്ടും ടാപ്പ് ചെയ്യുക</string>
@@ -2186,6 +2376,7 @@
     <string name="ime_notes_no_match">“%1$s” എന്നതിനോട് പൊരുത്തപ്പെടുന്ന കുറിപ്പുകളൊന്നുമില്ല.</string>
     <string name="ime_notes_passage_desc">%1$s-ൽ നിന്ന്. ചേർക്കാൻ ടാപ്പ് ചെയ്യുക, കുറിപ്പ് തുറക്കാൻ അമർത്തിപ്പിടിക്കുക.</string>
     <string name="ime_notes_passages_section">ഭാഗങ്ങൾ</string>
+    <string name="ime_notes_paste_desc">ഒട്ടിക്കുക</string>
     <string name="ime_notes_pin_action">പിൻ ചെയ്യുക</string>
     <string name="ime_notes_pinned_section">പിൻ ചെയ്തത്</string>
     <string name="ime_notes_restore_action">പുനഃസ്ഥാപിക്കുക</string>
@@ -2219,6 +2410,29 @@
     <string name="ime_otp_chip_dismiss_desc">കോഡ് മറയ്ക്കുക</string>
     <string name="ime_panel_back_desc">കീബോർഡിലേക്ക് മടങ്ങുക</string>
     <string name="ime_panel_over_keys_height_desc">കീകൾക്ക് മുകളിലുള്ള പാനൽ ഉയരം. മുകളിലേക്കോ താഴേക്കോ വലിച്ചിടുക</string>
+    <string name="ime_paperless_card_also_field">പേജുകൾ ടെക്സ്റ്റ് ബോക്സിലും ഇടുക</string>
+    <string name="ime_paperless_card_correspondent">\'\'\'കറസ്പോണ്ടന്റ്\'\'\'</string>
+    <string name="ime_paperless_card_field_only">ടെക്സ്റ്റ് ബോക്സ് മാത്രം</string>
+    <string name="ime_paperless_card_loading">സെർവറിൽ നിന്ന് നിങ്ങളുടെ ടാഗുകൾ ലഭ്യമാക്കുന്നു…</string>
+    <string name="ime_paperless_card_name">തലക്കെട്ട്</string>
+    <string name="ime_paperless_card_name_hint">ഓപ്ഷണൽ. ശൂന്യമായി വിട്ടാൽ, പേപ്പർലെസ് ഇത് പേര് നൽകും.</string>
+    <string name="ime_paperless_card_none">\'\'\'ഒന്നുമില്ല\'\'\'</string>
+    <string name="ime_paperless_card_offline">ഇപ്പോൾ സെർവറുമായി ബന്ധപ്പെടാൻ കഴിയുന്നില്ല. നിങ്ങളുടെ ഡിഫോൾട്ട് ടാഗുകൾ ഉപയോഗിച്ച് സ്കാൻ ഫോണിൽ കാത്തിരിക്കുന്നു, സാധ്യമാകുമ്പോൾ അപ്‌ലോഡ് ചെയ്യും.</string>
+    <string name="ime_paperless_card_offline_cached">സെർവറുമായി ഇപ്പോൾ ബന്ധപ്പെടാൻ കഴിയില്ല; ഇവ മുൻപത്തെ ലിസ്റ്റുകളാണ്. കണക്ഷൻ ലഭിക്കുമ്പോൾ സ്കാൻ അപ്‌ലോഡ് ചെയ്യപ്പെടും.</string>
+    <string name="ime_paperless_card_one_pdf">എല്ലാ പേജുകളും ഒരൊറ്റ PDF-ൽ</string>
+    <plurals name="ime_paperless_card_pages">
+        <item quantity="one">%d പേജ്</item>
+        <item quantity="other">%d പേജുകൾ</item>
+    </plurals>
+    <string name="ime_paperless_card_send">അയക്കുക</string>
+    <string name="ime_paperless_card_tags">ടാഗുകൾ</string>
+    <string name="ime_paperless_card_title">പേപ്പർലെസ്സിലേക്ക് അയക്കുക</string>
+    <string name="ime_paperless_card_type">പ്രമാണ തരം</string>
+    <string name="ime_paperless_queue_failed">പേപ്പർലെസ്സിനായുള്ള സ്കാൻ സൂക്ഷിക്കാൻ കഴിഞ്ഞില്ല</string>
+    <plurals name="ime_paperless_queued">
+        <item quantity="one">പേപ്പർലെസ്സിലേക്ക് പോകുന്ന വഴியில் %d രേഖയുണ്ട്. കണക്ഷൻ ലഭിച്ചയുടൻ അത് അപ്‌ലോഡ് ചെയ്യപ്പെടും.</item>
+        <item quantity="other">പേപ്പർലെസ്സിലേക്ക് പോകുന്ന വഴியில் %d രേഖകളുണ്ട്. കണക്ഷൻ ലഭിച്ചയുടൻ അവ അപ്‌ലോഡ് ചെയ്യപ്പെടും.</item>
+    </plurals>
     <string name="ime_password_add_digit_label">ഒരു അക്കം ചേർക്കുക</string>
     <string name="ime_password_capitalize_label">വലിയക്ഷരങ്ങൾ</string>
     <string name="ime_password_copied_toast">ക്ലിപ്പ്ബോർഡിലേക്ക് പകർത്തി</string>
@@ -2237,11 +2451,27 @@
     <string name="ime_password_tab_pin">PIN</string>
     <string name="ime_password_words_label">വാക്കുകൾ</string>
     <string name="ime_phonetic_word_list_offer">മികച്ച വാക്കുകൾക്കായി %1$s വേഡ് ലിസ്റ്റ് നേടുക</string>
+    <string name="ime_plugin_access_mark">ഈ പ്ലഗിൻ ഇന്റർനെറ്റ് ഉപയോഗിക്കാനോ നിങ്ങൾ എഴുതുന്നത് വായിക്കാനോ കഴിയും</string>
+    <string name="ime_plugin_action_settings">ക്രമീകരണങ്ങำളും അനുമതികളുമ്</string>
+    <string name="ime_plugin_action_toolbar_add">ടൂൾബാറിലേക്ക് ചേർക്കുക</string>
+    <string name="ime_plugin_action_toolbar_remove">ടൂൾബാറിൽ നിന്ന് നീക്കം ചെയ്യുക</string>
+    <string name="ime_plugin_action_toolbox_add">ടൂൾബോക്സിലേക്ക് ചേർക്കുക</string>
+    <string name="ime_plugin_action_toolbox_remove">ടൂൾബോക്സിൽ നിന്ന് നീക്കം ചെയ്യുക</string>
+    <string name="ime_plugin_action_turn_off">ഓഫ് ചെയ്യുക</string>
+    <string name="ime_plugin_action_turn_on">ഓൺ ചെയ്യുക</string>
+    <string name="ime_plugin_clock_alarm_set">%1$s ക്ലോക്കിൽ %2$s-നായി ഒരു അലാറം സജ്ജീകരിച്ചു</string>
+    <string name="ime_plugin_clock_timer_set">%1$s ക്ലോക്കിൽ ഒരു %2$s ടൈമർ ആരംഭിച്ചു</string>
     <string name="ime_plugin_empty_body">ഒരു പ്ലഗിൻ എന്നത് ഒരു സാൻഡ്‌ബോക്സിലെ ചെറിയൊരു ടൂളാണ്. നിങ്ങൾക്ക് ഒരു ആഡ്-ഓൺ റിപ്പോസിറ്ററിയിൽ നിന്നോ .wmplugin ഫയലിൽ നിന്നോ പ്ലഗിനുകൾ ചേർക്കാം. നിങ്ങൾ ടൈപ്പ് ചെയ്യുന്നത് കാണാൻ ഒരു പ്ലഗിന്നിന് കഴിയില്ല.</string>
     <string name="ime_plugin_empty_title">പ്ലഗിനുകളൊന്നുമില്ല</string>
     <string name="ime_plugin_manage_action">പ്ലഗിനുകൾ നിയന്ത്രിക്കുക</string>
+    <string name="ime_plugin_more">%1$s-ന്റെ കൂടുതൽ ഓപ്ഷനുകൾ</string>
+    <string name="ime_plugin_permission_allow">അവദാനിക്കുക</string>
+    <string name="ime_plugin_permission_deny">അനുവദിക്കരുത്</string>
+    <string name="ime_plugin_permission_risky_note">ഇത് പ്ലഗിനുകൾക്കായുള്ള റിസ്കുള്ള അനുമതികളും ഓണാക്കുന്നു. ക്രമീകരണങ്ങളിലെ പ്ലഗിന്റെ പേജിൽ നിങ്ങൾക്ക് ഇവയിൽ ഏതും വീണ്ടും ഓഫ് ചെയ്യാം.</string>
+    <string name="ime_plugin_permission_title">%1$s-നെ ഇതിന് അനുവദിക്കുക:</string>
     <string name="ime_plugin_version_label">പതിപ്പ് %1$s</string>
     <string name="ime_power_saving_on_desc">പവർ സേവിംഗ് ഓണാണ്</string>
+    <string name="ime_privacy_shade_hint">അവസാന വരികൾ കാണാൻ ഹാൻഡിൽ മുകളിലേക്ക് വലിക്കുക</string>
     <string name="ime_provider_choose_desc">ദാതാവിനെ തിരഞ്ഞെടുക്കുക</string>
     <string name="ime_punct_ampersand">ആംപേഴ്സാൻഡ്</string>
     <string name="ime_punct_apostrophe">അപ്പോസ്ട്രോഫി</string>
@@ -2375,6 +2605,8 @@
     <string name="ime_resize_move_desc">കീബോർഡ് മുകളിലേക്കോ താഴേക്കോ നീക്കാൻ വലിച്ചിടുക</string>
     <string name="ime_resize_reset">റീസെറ്റ് ചെയ്യുക</string>
     <string name="ime_resize_right_handle_desc">കീബോർഡിന്റെ വലതുവശത്തുള്ള സ്ഥലം മാറ്റാൻ വലിച്ചിടുക</string>
+    <string name="ime_resize_toolbar_handle">ടൂൾബാർ</string>
+    <string name="ime_resize_toolbar_handle_desc">ടൂൾബാറിന്റെ ഉയരം മാറ്റാൻ മുകളിലേക്കോ താഴേക്കോ വലിക്കുക</string>
     <string name="ime_retype_button">വീണ്ടും ടൈപ്പ് ചെയ്യുക</string>
     <string name="ime_retype_button_desc">കർസറിലെ വാക്ക് വീണ്ടും ടൈപ്പ് ചെയ്യുക</string>
     <string name="ime_retype_button_nothing">വീണ്ടും ടൈപ്പ് ചെയ്യാൻ വാക്കുകളൊന്നുമില്ല. ഒരു വാക്കിന് തൊട്ടുപിന്നിൽ കർസർ വെക്കുക.</string>
@@ -2429,8 +2661,10 @@
     <string name="ime_scanner_torch_desc">ടോർച്ച്</string>
     <string name="ime_scanner_translate_action">വിവർത്തനം ചെയ്യുക</string>
     <string name="ime_screen_capture_desc">സ്ക്രീൻ ക്യാപ്ചർ ചെയ്യുക</string>
+    <string name="ime_screen_capture_progress">സ്ക്രീൻ ക്യാപ്ചർ ചെയ്യുന്നു...</string>
     <string name="ime_search_attribution_brave">Brave വഴി</string>
     <string name="ime_search_attribution_left">%1$s · %2$s ശേഷിക്കുന്നു</string>
+    <string name="ime_search_attribution_mwmbl">Mwmbl വഴി</string>
     <string name="ime_search_attribution_tavily">Tavily വഴി</string>
     <string name="ime_search_in_browser_desc">ബ്രൗസറിൽ തിരയുക</string>
     <string name="ime_search_menu_copy_link">ലിങ്ക് പകർത്തുക</string>
@@ -2440,6 +2674,7 @@
     <string name="ime_search_no_more">കൂടുതൽ ഫലങ്ങളില്ല</string>
     <string name="ime_search_tab_all">എല്ലാം</string>
     <string name="ime_search_tab_images">ചിത്രങ്ങൾ</string>
+    <string name="ime_second_toolbar_empty">ടൂൾബോക്സിൽ നിന്നോ ടൂൾബാറിൽ നിന്നോ ഒരു ടൂൾ ഇവിടെ വലിച്ചിടുക</string>
     <string name="ime_selection_ask_ai">AI-യോട് ചോദിക്കുക</string>
     <string name="ime_selection_macro_ai_translate_label">AI വിവർത്തനം</string>
     <string name="ime_selection_macro_back_desc">തിരഞ്ഞെടുക്കൽ പ്രവർത്തനങ്ങളിലേക്ക് മടങ്ങുക</string>
@@ -2738,6 +2973,8 @@
     <string name="ime_service_incognito_off_toast">ഇൻകോഗ്നിറ്റോ ഓഫാണ്</string>
     <string name="ime_service_incognito_on_toast">ഇൻകോഗ്നിറ്റോ ഓണാണ്. നിങ്ങൾ ടൈപ്പ് ചെയ്യുന്നത് കീബോർഡ് പഠിക്കുന്നില്ല.</string>
     <string name="ime_service_incognito_switch_toast">ഇൻകോഗ്നിറ്റോ ഓണാണ്. അത് ഓഫാക്കാൻ ഇൻകോഗ്നിറ്റോ ടൂളിൽ ടാപ്പ് ചെയ്യുക</string>
+    <string name="ime_service_legacy_font_off_toast">യൂണിക്കോഡ് എഴുതുന്നു</string>
+    <string name="ime_service_legacy_font_on_toast">%1$s ഫോണ്ടിനായി എഴുതുന്നു</string>
     <string name="ime_service_media_download_error_toast">ഡൗൺലോഡ് പ്രവർത്തിച്ചില്ല. നിങ്ങളുടെ കണക്ഷൻ പരിശോധിക്കുക.</string>
     <string name="ime_service_media_fetch_error">കീബോർഡിന് ഫലങ്ങൾ ലഭിക്കുന്നില്ല</string>
     <string name="ime_service_mode_tool_order_toast">%1$s മോഡിനായി കീബോർഡ് ടൂൾ ക്രമം സംരക്ഷിച്ചു. മറ്റ് ആപ്പുകൾ അവരുടേതായ ക്രമം നിലനിർത്തുന്നു.</string>
@@ -2761,6 +2998,7 @@
     <string name="ime_service_power_saving_on_empty_toast">പവർ സേവിംഗ് ഓണാണ്. ഒരു ഫീച്ചറും നിർത്താൻ സജ്ജീകരിച്ചിട്ടില്ല.</string>
     <string name="ime_service_power_saving_on_toast">പവർ സേവിംഗ് ഓണാണ്</string>
     <string name="ime_service_power_saving_still_on_toast">പവർ സേവിംഗ് ഓണായി തുടരുന്നു. ബാറ്ററി ട്രിഗർ ഓണാണ്.</string>
+    <string name="ime_service_privacy_shade_floating_toast">പ്രൈവസി ഷെയ്ഡ് ഡോക്ക് ചെയ്ത കീബോർഡിൽ പ്രവർത്തിക്കുന്നു. ആദ്യം കീബോർഡ് ഡോക്ക് ചെയ്യുക.</string>
     <string name="ime_service_qr_error">കീബോർഡിന് QR കോഡ് നിർമ്മിക്കാൻ കഴിയില്ല</string>
     <string name="ime_service_resize_floating_toast">കീബോർഡ് വലുപ്പം മാറ്റാൻ അത് ഡോക്ക് ചെയ്യുക</string>
     <string name="ime_service_search_error">തിരയൽ പ്രവർത്തിച്ചില്ല</string>
@@ -2821,6 +3059,7 @@
     <string name="ime_smart_repeat_count">×%1$s</string>
     <string name="ime_smart_repeat_offer">“%1$s” ആവർത്തിക്കുക</string>
     <string name="ime_smart_replies_dismiss_desc">സ്മാർട്ട് മറുപടികൾ മറയ്ക്കുക</string>
+    <string name="ime_smart_search_offer">%1$s: \"%2$s\"</string>
     <string name="ime_smart_send_link">ഫയൽ സ്വീകരിക്കുക</string>
     <string name="ime_smart_translate_offer">വിവർത്തനം ചെയ്യുക</string>
     <string name="ime_smart_vocab_daily">ഇന്നത്തെ വാക്ക്: %1$s ›</string>
@@ -2830,6 +3069,12 @@
     <string name="ime_smart_vocab_word">%1$s ›</string>
     <string name="ime_smart_weather_tap">കാലാവസ്ഥാ പ്രവചനം നേടുക</string>
     <string name="ime_smart_wiki_word">വിക്കിപീഡിയയിൽ “%1$s”</string>
+    <string name="ime_snippet_ask_cancel_desc">സ്നിപ്പെറ്റ് റദ്ദാക്കുക</string>
+    <string name="ime_snippet_ask_done_desc">സ്നിപ്പറ്റ് ചേർക്കുക</string>
+    <string name="ime_snippet_ask_hint">%1$s ടൈപ്പ് ചെയ്യുക</string>
+    <string name="ime_snippet_ask_next_desc">അടുത്ത ഫീൽഡ്</string>
+    <string name="ime_snippet_ask_step_label">%1$s %2$d/%3$d</string>
+    <string name="ime_snippet_image_desc">ചിത്ര സ്നിപ്പെറ്റ് %1$s</string>
     <string name="ime_snippet_offer_back_desc">%1$s-ലേക്ക് മടങ്ങുക</string>
     <string name="ime_snippet_offer_desc">%1$s എന്ന സ്നിപ്പറ്റ് ചേർക്കുക</string>
     <string name="ime_snippet_offer_more_desc">%1$s-ൽ നിന്നുള്ള കൂടുതൽ കാര്യങ്ങൾ</string>
@@ -2940,6 +3185,7 @@
     <string name="ime_suggestion_hold_label">വാക്ക് ഓപ്ഷനുകൾ</string>
     <string name="ime_suggestion_never_suggest">\"%1$s\" ഒരിക്കലും നിർദ്ദേശിക്കരുത്</string>
     <string name="ime_suggestion_pages_close">കീകളിലേക്ക് മടങ്ങുക</string>
+    <string name="ime_suggestion_pattern_still_hides">ഒരു ബ്ലാക്ക്‌ലിസ്റ്റ് പാറ്റേൺ ഇപ്പോഴും \"%1$s\" മറയ്ക്കുന്നു. നിർദ്ദേശ ബ്ലാക്ക്‌ലിസ്റ്റിന് കീഴിൽ ഇത് എഡിറ്റ് ചെയ്യുക.</string>
     <string name="ime_suggestion_rank_badge">\"%1$s\" റാങ്ക് %2$s</string>
     <string name="ime_suggestion_rank_unchanged">\"%1$s\" മാറ്റമില്ലാതെ തുടരുന്നു</string>
     <string name="ime_suggestions_show_desc">നിർദ്ദേശ സ്ട്രിപ്പ് കാണിക്കുക</string>
@@ -2969,6 +3215,8 @@
     <string name="ime_synonyms_title">\"%1$s\" എന്നതിനായുള്ള പര്യായങ്ങൾ</string>
     <string name="ime_textedit_delete_line_desc">വരി ഇല്ലാതാക്കുക</string>
     <string name="ime_textedit_delete_line_forward_desc">മുന്നോട്ടുള്ള വരി ഇല്ലാതാക്കുക</string>
+    <string name="ime_textedit_delete_to_end_desc">അവസാനം வரை ഇല്ലാതാക്കുക</string>
+    <string name="ime_textedit_delete_to_start_desc">തുടക്കത്തിലേക്ക് ഇല്ലാതാക്കുക</string>
     <string name="ime_textedit_delete_word_desc">വാക്ക് ഇല്ലാതാക്കുക</string>
     <string name="ime_textedit_delete_word_forward_desc">മുന്നിലുള്ള വാക്ക് ഇല്ലാതാക്കുക</string>
     <string name="ime_textedit_doc_end_desc">വാചകത്തിന്റെ അവസാനത്തിലേക്ക് നീങ്ങുക</string>
@@ -2987,6 +3235,7 @@
     <string name="ime_textedit_select_label">തിരഞ്ഞെടുക്കുക</string>
     <string name="ime_textedit_select_line_desc">വരി തിരഞ്ഞെടുക്കുക</string>
     <string name="ime_textedit_select_word_desc">വാക്ക് തിരഞ്ഞെടുക്കുക</string>
+    <string name="ime_textedit_type_clipboard_desc">ക്ലിപ്പ്ബോർഡ് ടൈപ്പ് ചെയ്യുക</string>
     <string name="ime_textedit_up_desc">മുകളിലേക്ക് നീക്കുക</string>
     <string name="ime_textedit_word_left_desc">ഒരു വാക്ക് ഇടത്തേക്ക് നീക്കുക</string>
     <string name="ime_textedit_word_right_desc">ഒരു വാക്ക് വലത്തോട്ട് നീക്കുക</string>
@@ -3064,6 +3313,7 @@
     <string name="ime_tool_calculator">കാൽക്കുലേറ്റർ</string>
     <string name="ime_tool_calendar">കലണ്ടർ</string>
     <string name="ime_tool_camera">ക്യാമറ</string>
+    <string name="ime_tool_clear_field">എല്ലാം ഇല്ലാതാക്കുക</string>
     <string name="ime_tool_clipboard">ക്ലിപ്പ്ബോർഡ്</string>
     <string name="ime_tool_clipboard_search">ക്ലിപ്പ്ബോർഡ് തിരയൽ</string>
     <string name="ime_tool_clock">ക്ലോക്ക്</string>
@@ -3080,11 +3330,13 @@
     <string name="ime_tool_cursor_word_right">വലതുവശത്തെ വാക്ക്</string>
     <string name="ime_tool_custom_layout">ഇഷ്‌ടാനുസൃത ലേഔട്ട്</string>
     <string name="ime_tool_cut">മുറിക്കുക</string>
+    <string name="ime_tool_debug_info">ഡീബഗ് വിവരം</string>
     <string name="ime_tool_dictionary">നിഘണ്ടു</string>
     <string name="ime_tool_doc_scan">ഡോക് സ്കാൻ</string>
     <string name="ime_tool_emoji">ഇമോജി</string>
     <string name="ime_tool_emoji_mix">ഇമോജി മിക്സുകൾ</string>
     <string name="ime_tool_fancy">ഫാൻസി ടെക്സ്റ്റ്</string>
+    <string name="ime_tool_files">ഫയലുകൾ</string>
     <string name="ime_tool_find_replace">കണ്ടെത്തി മാറ്റിസ്ഥാപിക്കുക</string>
     <string name="ime_tool_flashlight">ഫ്ലാഷ്‌ലൈറ്റ്</string>
     <string name="ime_tool_floating">ഫ്ലോട്ടിംഗ്</string>
@@ -3094,6 +3346,7 @@
     <string name="ime_tool_handwriting">കൈയക്ഷരം</string>
     <string name="ime_tool_hide_keyboard">മറയ്ക്കുക</string>
     <string name="ime_tool_home_assistant">സ്മാർട്ട് ഹോം</string>
+    <string name="ime_tool_homophones">ഒരേ ശബ്ദം</string>
     <string name="ime_tool_image_search">ചിത്രങ്ങൾ</string>
     <string name="ime_tool_incognito">ഇൻകോഗ്നിറ്റോ</string>
     <string name="ime_tool_language">ഭാഷ</string>
@@ -3120,6 +3373,7 @@
     <string name="ime_tool_picker_leader">%1$s, തുടർന്ന്:</string>
     <string name="ime_tool_plugins">പ്ലഗിനുകൾ</string>
     <string name="ime_tool_power_saving">പവർ സേവിംഗ്</string>
+    <string name="ime_tool_privacy_shade">സ്വകാര്യത ഷെയ്ഡ്</string>
     <string name="ime_tool_qr_gen">QR കോഡ്</string>
     <string name="ime_tool_qr_scan">QR സ്കാൻ</string>
     <string name="ime_tool_quick_note">ദ്രുത കുറിപ്പ്</string>
@@ -3144,6 +3398,7 @@
     <string name="ime_tool_text_edit">ടെക്സ്റ്റ് എഡിറ്റിംഗ്</string>
     <string name="ime_tool_text_repeat">ആവർത്തിക്കുക</string>
     <string name="ime_tool_themes">തീമുകൾ</string>
+    <string name="ime_tool_timestamp">ടൈംസ്റ്റാമ്പ്</string>
     <string name="ime_tool_todo">ടു-ഡൂ ലിസ്റ്റ്</string>
     <string name="ime_tool_trackpad">ട്രാക്ക്പാഡ്</string>
     <string name="ime_tool_translate">വിവർത്തനം ചെയ്യുക</string>
@@ -3201,12 +3456,14 @@
     <string name="ime_translate_engine_online_info">ഓൺലൈൻ സേവനം ഉപയോഗിക്കുന്നു.</string>
     <string name="ime_translate_hint">വിവർത്തനം ചെയ്യാനുള്ള വാചകം ടൈപ്പ് ചെയ്യുക...</string>
     <string name="ime_translate_idle">നിങ്ങൾ ടൈപ്പ് ചെയ്യുമ്പോൾ വിവർത്തനം ഇവിടെ കാണിക്കും.</string>
+    <string name="ime_translate_idle_manual">മുഴുവൻ വാചകവും ടൈപ്പ് ചെയ്യുക, തുടർന്ന് വിവർത്തനം ചെയ്യുക എന്നതിൽ ടാപ്പ് ചെയ്യുക. അതിനുമുമ്പ് ഒന്നും അയക്കില്ല.</string>
     <string name="ime_translate_module_failed_error">ഗൂഗിൾ പ്ലേ ഡൗൺലോഡ് നൽകിയില്ല. കണക്ഷൻ പരിശോധിച്ച് വീണ്ടും ശ്രമിക്കുക. വീണ്ടും പരാജയപ്പെട്ടാൽ, ക്രമീകരണങ്ങൾ, ടൂളുകൾ, വിവർത്തനം എന്നിവയിൽ നിന്ന് ഡൗൺലോഡ് ചെയ്യുക.</string>
     <string name="ime_translate_module_installing_action">ഡൗൺലോഡ് ചെയ്യുന്നു…</string>
     <string name="ime_translate_module_missing_body">ഗൂഗിൾ പ്ലേയിൽ നിന്ന് ലഭിക്കുന്ന കീബോർഡിന്റെ ഒരു അധിക ഭാഗമാണ് ഓൺ-ഡിവൈസ് വിവർത്തനം. കണക്ഷൻ ഇല്ലാതെ വിവർത്തനം ചെയ്യാൻ ഇത് ഡൗൺലോഡ് ചെയ്യുക.</string>
     <string name="ime_translate_need_models_body">ഉപകരണത്തിൽ വിവർത്തനം ചെയ്യാൻ, ഡൗൺലോഡ് ചെയ്യുക: %1$s. ഏകദേശം %2$s.</string>
     <string name="ime_translate_nllb_licence_accept_action">അംഗീകരിച്ച് ഡൗൺലോഡ് ചെയ്യുക</string>
     <string name="ime_translate_nllb_licence_body">NLLB-200 മെറ്റയുടെ ലൈസൻസിന് കീഴിൽ ഹഗ്ഗിംഗ് ഫെയ്‌സിൽ നിന്നുള്ളതാണ്, ക്രിയേറ്റീവ് കോമൺസ് ആട്രിബ്യൂഷൻ-നോൺ-കൊമേഴ്‌സ്യൽ 4.0: വാണിജ്യേതര ഉപയോഗത്തിന് മാത്രമായി, വാറന്റി ഒന്നുമില്ല. അംഗീകരിക്കാനും ഡൗൺലോഡ് ചെയ്യാനും വീണ്ടും അമർത്തുക.</string>
+    <string name="ime_translate_now_action">വിവർത്തനം ചെയ്യുക</string>
     <string name="ime_translate_offline_build_error">ഈ ഫോണിൽ ഈ ഓഫ്‌ലൈൻ ബിൽഡിന് വിവർത്തനം ചെയ്യാൻ കഴിയില്ല: ഇതിന്റെ ഒരു എഞ്ചിനായ ഫയർഫോക്സ് ട്രാൻസ്ലേഷൻസിന് ആൻഡ്രോയിഡ് 9 അല്ലെങ്കിൽ അതിനുശേഷമുള്ള 64-ബിറ്റ് ഫോൺ ആവശ്യമാണ്. വിവർത്തനം ചെയ്യാൻ, സ്റ്റാൻഡേർഡ് ബിൽഡ് ഇൻസ്റ്റാൾ ചെയ്യുക.</string>
     <string name="ime_translate_offline_failed_error">ഓൺ-ഡിവൈസ് വിവർത്തനം ആരംഭിച്ചില്ല. വീണ്ടും ശ്രമിക്കുക, അല്ലെങ്കിൽ ഓൺലൈൻ എഞ്ചിൻ തിരഞ്ഞെടുക്കുക.</string>
     <string name="ime_translate_offline_import_body">ഈ ഓഫ്‌ലൈൻ ബിൽഡിന് ഡൗൺലോഡ് ചെയ്യാനാകില്ല. ഇത് വിവർത്തനം ചെയ്യാൻ, മറ്റൊരു ഉപകരണത്തിൽ ഇവ ശേഖരിച്ച് ഇറക്കുമതി ചെയ്യുക: %1$s. ക്രമീകരണങ്ങൾ › ടൂളുകൾ › വിവർത്തനം ചെയ്യുക › ദാതാക്കൾ › ഉപകരണത്തിൽ (ഫയർഫോക്സ് വിവർത്തനങ്ങൾ) തുറക്കുക.</string>
@@ -3222,6 +3479,7 @@
     <string name="ime_translate_select_source_desc">ഉറവിട ഭാഷ തിരഞ്ഞെടുക്കുക</string>
     <string name="ime_translate_server_label">നിങ്ങളുടെ സെർവർ</string>
     <string name="ime_translate_source_guessed_label">%1$s?</string>
+    <string name="ime_translate_speak_desc">വിവർത്തനം ഉറക്കെ വായിക്കുക</string>
     <string name="ime_translate_swap_desc">ഭാഷകൾ മാറ്റുക</string>
     <string name="ime_typing_accuracy_label">കൃത്യത</string>
     <string name="ime_typing_accuracy_short_label">കൃത്യത</string>
@@ -3342,6 +3600,10 @@
     <string name="ime_voice_model_get_language_action">ഓഫ്‌ലൈൻ വോയ്‌സ് ടൈപ്പിംഗിനായി %1$s നേടുക</string>
     <string name="ime_voice_permission_action">മൈക്രോഫോൺ അനുവദിക്കുക</string>
     <string name="ime_voice_permission_body">വോയ്‌സ് ടൈപ്പിംഗിന് മൈക്രോഫോൺ ഉപയോഗിക്കാൻ അനുമതി ആവശ്യമാണ്. നിങ്ങൾ സംസാരിക്കുമ്പോൾ മാത്രമേ ആപ്പ് ഓഡിയോ റെക്കോർഡ് ചെയ്യുകയുള്ളൂ.</string>
+    <string name="ime_voice_prompt_fix_custom">വോയ്‌സ് ടൈപ്പിംഗ് ക്രമീകരണങ്ങളിൽ കേൾക്കാനുള്ള കൂടുതൽ വാക്കുകളിൽ ചിലത് നീക്കം ചെയ്യുക അല്ലെങ്കിൽ പ്രോംപ്റ്റ് ചെറുതാക്കുക.</string>
+    <string name="ime_voice_prompt_fix_personal">ശബ്ദ ടൈപ്പിംഗ് ക്രമീകരണങ്ങളിൽ എന്റെ വാക്കുകൾ കേൾക്കുക എന്നത് ഓഫാക്കുക, അല്ലെങ്കിൽ പ്രോംപ്റ്റ് ചെറുതാക്കുക.</string>
+    <string name="ime_voice_prompt_fix_prompt">ശബ്ദ ടൈപ്പിംഗ് ക്രമീകരണങ്ങളിലെ സെർവറിന്റെ സ്ക്രീനിൽ, പ്രോംപ്റ്റ് %1$d അക്ഷരങ്ങളിൽ താഴെയായി ചെറുതാക്കുക.</string>
+    <string name="ime_voice_prompt_too_long">ഈ സെർവർ പരമാവധി %2$d പ്രതീകങ്ങളുള്ള പ്രോംപ്റ്റ് സ്വീകരിക്കുന്നു, ഇതിൽ %1$d പ്രതീകങ്ങളുണ്ട്: പ്രോംപ്റ്റ് %3$d, ശ്രദ്ധിക്കേണ്ട കൂടുതൽ വാക്കുകൾ %4$d, എന്റെ വാക്കുകൾ ശ്രദ്ധിക്കുക %5$d.</string>
     <string name="ime_voice_secure_field_notice">പാസ്‌വേഡ് ഫീൽഡുകളിൽ വോയ്‌സ് ടൈപ്പിംഗ് പ്രവർത്തിക്കില്ല.</string>
     <string name="ime_voice_server_metered_ask">ഡാറ്റ സേവർ ഓണാണ്. മൊബൈൽ ഡാറ്റ വഴി നിങ്ങളുടെ ശബ്ദം അയക്കാൻ മൈക്രോഫോൺ വീണ്ടും അമർത്തുക.</string>
     <string name="ime_voice_server_metered_blocked">നിങ്ങൾ മൊബൈൽ ഡാറ്റയിലായിരിക്കുമ്പോൾ ട്രാൻസ്ക്രിപ്ഷൻ സെർവർ ഓഫാകും. ക്രമീകരണങ്ങളിൽ, ഡാറ്റ സേവർ എന്നതിന് കീഴിൽ നിങ്ങൾക്ക് ഇത് മാറ്റാം.</string>
@@ -3381,6 +3643,12 @@
     <string name="ime_voice_use_system_action">സിസ്റ്റം റെക്കഗ്നൈസർ ഉപയോഗിക്കുക</string>
     <string name="ime_weather_clouds_label">മേഘങ്ങൾ</string>
     <string name="ime_weather_error">ആപ്പിന് കാലാവസ്ഥ ഡൗൺലോഡ് ചെയ്യാൻ കഴിഞ്ഞില്ല. നിങ്ങളുടെ നെറ്റ്‌വർക്ക് പരിശോധിക്കുക.</string>
+    <string name="ime_weather_event_back_desc">കലണ്ടറിലേക്ക് മടങ്ങുക</string>
+    <string name="ime_weather_event_home_place">%1$s (നിങ്ങളുടെ കാലാവസ്ഥാ സ്ഥാനം)</string>
+    <string name="ime_weather_event_home_unnamed">നിങ്ങളുടെ കാലാവസ്ഥാ സ്ഥാനം</string>
+    <string name="ime_weather_event_hour_desc">%1$s: %2$s, %3$s, മഴയ്ക്കുള്ള സാധ്യത %4$s</string>
+    <string name="ime_weather_event_no_hours">പ്രവചനം ഇതുവരെ ഈ ദിവസത്തില്‍ എത്തിയിട്ടില്ല.</string>
+    <string name="ime_weather_event_rain_info">%1$d%% മഴയ്ക്ക് സാധ്യതയുണ്ട്</string>
     <string name="ime_weather_feels_like_label">അനുഭവപ്പെടുന്നത്</string>
     <string name="ime_weather_high_low_info">ഉയർന്നത് %1$d° കുറഞ്ഞത് %2$d°</string>
     <string name="ime_weather_humidity_label">ഈർപ്പം</string>
@@ -3496,6 +3764,7 @@
     <string name="ime_wmpass_no_password">WM Pass ഒരു പാസ്‌വേഡ് ഉണ്ടാക്കിയിട്ടില്ല. വോൾട്ട് ലോക്ക് ആയിട്ടുണ്ടാകാം.</string>
     <string name="ime_wmpass_no_username">ഈ ലോഗിനിൽ പൂരിപ്പിക്കാൻ ഉപയോക്തൃനാമം ഇല്ല.</string>
     <string name="ime_wmpass_no_vault">ഡബ്ല്യു.എം പാസിൽ ഇതുവരെ വോൾട്ട് ഇല്ല. ആദ്യം അവിടെ ഒരെണ്ണം ഉണ്ടാക്കുക.</string>
+    <string name="ime_wmpass_not_released">ഡബ്ല്യുഎം പാസ് ഇതുവരെ പുറത്തിറങ്ങിയിട്ടില്ല. ഇത് പുറത്തിറങ്ങി ഇൻസ്റ്റാൾ ചെയ്തുകഴിഞ്ഞാൽ ഈ ടൂൾ പ്രവർത്തിച്ചു തുടങ്ങും.</string>
     <string name="ime_wmpass_not_set">സജ്ജീകരിച്ചിട്ടില്ല</string>
     <string name="ime_wmpass_off">ഇത് ഉപയോഗിക്കാൻ, ക്രമീകരണങ്ങൾ, സുരക്ഷ എന്നതിന് കീഴിലുള്ള \'Let WM Keyboard fill in WM Pass\' ഓണാക്കുക.</string>
     <string name="ime_wmpass_open">WM പാസ് തുറക്കുക</string>

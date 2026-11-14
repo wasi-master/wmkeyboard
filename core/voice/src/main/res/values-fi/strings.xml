@@ -9,11 +9,16 @@
     <string name="core_voice_model_base_multi_body">Tämä malli tasapainottaa tarkkuuden ja nopeuden. Se kattaa jokaisen kielen, jonka Whisper tuntee. Valitse tämä, jos Small-malli on liian hidas.</string>
     <string name="core_voice_model_base_world_body">Tämä malli käyttää kirjoittamaasi kieltä arvaamisen sijaan. Lyhyet ilmaisut muuttuvat paljon luotettavammiksi. Valitse tämä, kun luettelossa on kielesi.</string>
     <string name="core_voice_model_cpp_base_body">Tämä malli tasapainottaa tarkkuuden ja nopeuden. Se käyttää kieltä, jolla sanelua teet, millä tahansa Whisperin tuntemalla 99 kielellä, ja se kuuntelee omia sanojasi. Valitse tämä, jos Small-malli on liian hidas.</string>
+    <string name="core_voice_model_cpp_fine_tune_body">%1$s koulutti tätä Turbo-mallia edelleen tämän yhden kielen puheessa. Se käsittelee vain kyseistä kieltä.</string>
+    <string name="core_voice_model_cpp_hinglish_body">Oriserve koulutti tämän mallin hindiksi ja englanniksi sekoitetulla hindillä. Se kirjoittaa sanomasi latinalaisilla kirjaimilla eli niin kuin hinglishiä kirjoitetaan, ja pitää englanninkieliset sanat englanninkielisinä. Se ei kirjoita devanagaria, joten se sopii paremmin hinglishille kuin hindille. Se on pieni ja nopea.</string>
+    <string name="core_voice_model_cpp_kb_body">Ruotsin kansalliskirjasto koulutti tämän mallin ruotsinkielisellä puheella. Se käsittelee vain ruotsia ja on sille tarkempi kuin samankokoinen Whisper-yleismalli.</string>
+    <string name="core_voice_model_cpp_kotoba_body">Kotoba Technologies loi tämän japanilaisen mallin Whisper Large v3 -mallista. Sen dekooderi on paljon pienempi, joten se toimii suurin piirtein Turbo-mallin nopeudella. Se tukee vain japania.</string>
     <string name="core_voice_model_cpp_large_body">Tämä on tarkin Whisper-malli. Latauskoko on 1,1 Gt. Vain laite, jossa on paljon muistia, voi ladata sen. Turbo-malli on lähes yhtä tarkka ja puolet pienempi.</string>
     <string name="core_voice_model_cpp_medium_body">Tämä malli tarjoaa lähes työpöytätarkkuuden. Jokainen lause vie useita sekunteja. Malli käyttää lähes gigatavun muistia toimiessaan.</string>
     <string name="core_voice_model_cpp_small_body">Tämä malli tarjoaa parhaan tarkkuuden, joka toimii silti hyvin puhelimella. Se käyttää kieltä, jolla sanelu tapahtuu, millä tahansa Whisperin tuntemalla 99 kielellä, ja se kuuntelee omia sanojasi.</string>
     <string name="core_voice_model_cpp_tiny_body">Tämä on nopein malli. Se toimii hyvin selkeän puheen kanssa, mutta melu heikentää tarkkuutta. Se käyttää kieltä, jolla sanelu tapahtuu, ja kuuntelee omia sanojasi.</string>
     <string name="core_voice_model_cpp_turbo_body">Tämä malli on lähes yhtä tarkka kuin suurin malli, mutta puolet pienempi. Jokainen lause vie useita sekunteja, eikä se voi kääntää.</string>
+    <string name="core_voice_model_custom_body">Tõid tämän whisper.cpp-mallin tiedostosta. Näppäimistö ei tiedä, miten sitä on koulutettu, joten valitse se sitä varten tehdyille kielille kohdasta Malli kielen mukaan.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d kieli</item>
         <item quantity="other">%1$d kieltä</item>

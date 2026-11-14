@@ -9,11 +9,16 @@
     <string name="core_voice_model_base_multi_body">Mô hình này cân bằng giữa độ chính xác và tốc độ. Nó bao phủ mọi ngôn ngữ mà Whisper biết. Hãy chọn nó nếu mô hình Nhỏ quá chậm.</string>
     <string name="core_voice_model_base_world_body">Mô hình này sử dụng ngôn ngữ bạn nhập thay vì dự đoán. Các cụm từ ngắn trở nên đáng tin cậy hơn nhiều. Hãy chọn nó khi danh sách hiển thị ngôn ngữ của bạn.</string>
     <string name="core_voice_model_cpp_base_body">Mô hình này cân bằng giữa độ chính xác và tốc độ. Nó sử dụng ngôn ngữ bạn đọc chính tả, trong bất kỳ ngôn ngữ nào trong số 99 ngôn ngữ mà Whisper biết và nó lắng nghe chính từ ngữ của bạn. Hãy chọn mô hình này nếu mô hình Nhỏ quá chậm.</string>
+    <string name="core_voice_model_cpp_fine_tune_body">%1$s đã huấn luyện thêm mô hình Turbo này về giọng nói trong ngôn ngữ duy nhất này. Mô hình này chỉ xử lý ngôn ngữ đó.</string>
+    <string name="core_voice_model_cpp_hinglish_body">Oriserve đã huấn luyện mô hình này bằng tiếng Hindi và tiếng Hindi pha tiếng Anh. Nó viết những gì bạn nói bằng chữ cái Latinh, theo cách gõ tiếng Hinglish, và giữ các từ tiếng Anh bằng tiếng Anh. Nó không bao giờ viết chữ Devanagari, vì vậy nó phù hợp với tiếng Hinglish hơn là tiếng Hindi. Nó nhỏ và nhanh.</string>
+    <string name="core_voice_model_cpp_kb_body">Thư viện Quốc gia Thụy Điển đã huấn luyện mô hình này dựa trên giọng nói tiếng Thụy Điển. Mô hình này chỉ xử lý tiếng Thụy Điển và xử lý chính xác hơn so với mô hình Whisper chung có cùng kích thước.</string>
+    <string name="core_voice_model_cpp_kotoba_body">Kotoba Technologies đã tạo mô hình tiếng Nhật này từ Whisper Large v3. Bộ giải mã của nó nhỏ hơn rất nhiều, vì vậy nó chạy với tốc độ xấp xỉ mô hình Turbo. Mô hình này chỉ hỗ trợ tiếng Nhật.</string>
     <string name="core_voice_model_cpp_large_body">Đây là mô hình Whisper chính xác nhất. Bản tải xuống là 1.1 GB. Chỉ thiết bị có dung lượng bộ nhớ lớn mới có thể tải nó. Mô hình Turbo gần như chính xác tương đương và có kích thước bằng một nửa.</string>
     <string name="core_voice_model_cpp_medium_body">Mô hình này mang lại độ chính xác gần như máy tính để bàn. Mỗi cụm từ mất vài giây. Mô hình sử dụng gần một gigabyte bộ nhớ khi chạy.</string>
     <string name="core_voice_model_cpp_small_body">Mô hình này mang lại độ chính xác tốt nhất mà vẫn chạy tốt trên điện thoại. Nó sử dụng ngôn ngữ bạn đọc chính tả, trong bất kỳ 99 ngôn ngữ nào mà Whisper biết và nó lắng nghe chính lời nói của bạn.</string>
     <string name="core_voice_model_cpp_tiny_body">Đây là mô hình nhanh nhất. Nó hoạt động tốt với giọng nói rõ ràng, nhưng tiếng ồn làm giảm độ chính xác. Nó sử dụng ngôn ngữ bạn đọc chính tả và lắng nghe các từ của riêng bạn.</string>
     <string name="core_voice_model_cpp_turbo_body">Mô hình này có độ chính xác gần bằng mô hình lớn nhất, với kích thước chỉ bằng một nửa. Mỗi cụm từ mất vài giây để xử lý và không thể dịch được.</string>
+    <string name="core_voice_model_custom_body">Bạn đã nhập mô hình whisper.cpp này từ một tệp. Bàn phím không biết nó được huấn luyện như thế nào, vì vậy hãy chọn nó cho các ngôn ngữ mà nó được tạo ra trong mục Mô hình theo ngôn ngữ.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d ngôn ngữ</item>
         <item quantity="other">%1$d ngôn ngữ</item>

@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Şerit, hap ve tuşlar</string>
     <string name="core_settings_glide_commit_scope_pill_label">Ayır ve hap</string>
     <string name="core_settings_glide_commit_scope_strip_label">Şerit</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">Geri almadan sonra</string>
+    <string name="core_settings_glide_drawn_letters_off_label">Kapalı</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">Emin değilken</string>
     <string name="core_settings_glide_engine_built_in_label">Dahili</string>
     <string name="core_settings_glide_engine_futo_label">FUTO Kaydırma (İngilizce, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Google\'ın hareket kütüphanesi (içe aktarıldı)</string>

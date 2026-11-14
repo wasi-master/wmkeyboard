@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">ہیلو</string>
     <string name="core_tools_media_category_laugh">ہنسی</string>
     <string name="core_tools_media_category_love">محبت</string>
+    <string name="core_tools_media_category_memes">میمز</string>
     <string name="core_tools_media_category_no">نہیں</string>
     <string name="core_tools_media_category_party">پارٹی</string>
     <string name="core_tools_media_category_reactions">ردعمل</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">ایک Mozhi سرور: Google، DeepL، DuckDuckGo، Yandex اور Reverso کے لیے ایک مفت فرنٹ اینڈ۔ انجن کا انتخاب کریں۔ DeepL اور Reverso کو ماخذ زبان کی ضرورت ہوتی ہے۔</string>
     <string name="core_tools_provider_music_server">آپ کا اپنا شناخت کا سرور</string>
     <string name="core_tools_provider_music_server_desc">ایک سرور جسے آپ چلاتے ہیں جو AudD کی طرح جواب دیتا ہے: کلپ ایک فائل کے طور پر پوسٹ کیا جاتا ہے اور گانا JSON کے طور پر واپس آتا ہے۔ اس کے پیچھے Panako یا Olaf جیسا فنگر پرنٹر لگائیں۔</string>
+    <string name="core_tools_provider_mwmbl_desc">اپنے انڈیکس کے ساتھ ایک مفت، غیر منافع بخش سرچ انجن۔ کوئی کلید نہیں۔ صرف ویب کے نتائج، کوئی تصاویر نہیں۔</string>
     <string name="core_tools_provider_nllb">ڈیوائس پر (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">یہ Meta کے NLLB-200 ماڈل برائے CTranslate2 کے ساتھ فون پر ہی ترجمہ کرتا ہے: 200 زبانیں، ان کے درمیان کسی بھی دو کا، ان جوڑوں کے لیے جنہیں دوسرے انجن نہیں کر سکتے۔ 630 ایم بی کا ایک ڈاؤن لوڈ، اور ایک جملے میں چند سیکنڈ لگتے ہیں۔ آپ کا ٹیکسٹ فون پر ہی رہتا ہے۔ ماڈل صرف غیر تجارتی استعمال (CC BY-NC 4.0) کے لیے لائسنس یافتہ ہے۔ 6 جی بی یا اس سے زیادہ میموری والے 64 بٹ فون کی ضرورت ہے۔</string>
     <string name="core_tools_provider_none_on">کوئی پرووائیڈر آن نہیں ہے۔ اس ٹول کی سیٹنگز میں جا کر ایک آن کریں۔</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">یہ فہرست</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">کلیدیں دکھائیں یا چھپائیں</string>
     <string name="core_tools_shortcut_leader_double_tap">%1$s کو دو بار دبائیں</string>
+    <string name="core_tools_speak_no_voice">اس فون میں اسے پڑھنے کے لیے کوئی %1$s آواز موجود نہیں ہے۔ اینڈرائیڈ کی ٹیکسٹ ٹو اسپیچ کی ترتیبات میں ایک شامل کریں، یا ٹولز › ریڈ بیک کے تحت آف لائن آواز ڈاؤن لوڈ کریں۔</string>
     <string name="core_tools_symbol_category_arrows_label">تیر</string>
     <string name="core_tools_symbol_category_currency_label">کرنسی</string>
     <string name="core_tools_symbol_category_fractions_label">کسر</string>
     <string name="core_tools_symbol_category_greek_label">یونانی</string>
     <string name="core_tools_symbol_category_math_label">ریاضی</string>
+    <string name="core_tools_symbol_category_music_label">میوزک</string>
     <string name="core_tools_symbol_category_other_label">دیگر</string>
     <string name="core_tools_symbol_category_punctuation_label">رموزِ اوقاف</string>
     <string name="core_tools_symbol_category_shapes_label">شکلیں اور ستارے</string>
+    <string name="core_tools_symbol_category_stars_label">ستارے</string>
     <string name="core_tools_symbol_category_superscript_label">اوپری اسکرپٹ</string>
+    <string name="core_tools_symbol_category_technical_label">تکنیکی</string>
+    <string name="core_tools_symbol_category_weather_label">موسم</string>
     <string name="core_tools_symbol_set_coding_label">کوڈنگ</string>
     <string name="core_tools_symbol_set_email_label">ای میل</string>
     <string name="core_tools_symbol_set_math_label">ریاضی</string>

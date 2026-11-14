@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Nedavni model srednje veličine koji razmišlja prije nego što odgovori. Potreban mu je uređaj srednjeg ranga.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Mali i brz. Dobar je za brza prepisivanja na osnovnom uređaju.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Vrlo mali model koji može čitati slike. Opisuje sliku, ali često pogrešno čita tekst na snimci zaslona.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">NVIDIA-ino ponovno treniranje modela Gemma 4 E4B za praćenje uputa i korištenje alata. Samo tekst, i potreban mu je moćan uređaj.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Model opće namjene koji još uvijek stane na osnovni uređaj.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Jasno pametniji od modela ispod 1B. Potreban je uređaj srednjeg ranga.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Nedavni mali model. Kvaliteta je visoka za njegovu veličinu.</string>

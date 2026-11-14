@@ -23,6 +23,34 @@
         <item quantity="one">ਇੱਕ ਕੁੰਜੀ \'ਤੇ %1$d ਸਵਾਈਪ ਦੀ ਇੱਥੇ ਕੋਈ ਥਾਂ ਨਹੀਂ ਹੈ, ਕਿਉਂਕਿ ਇਹ ਕੀਬੋਰਡ ਉਸ ਸਵਾਈਪ ਨੂੰ ਕਿਸੇ ਹੋਰ ਕੰਮ ਲਈ ਵਰਤਦਾ ਹੈ। ਐਪ ਨੇ ਇਸਨੂੰ ਹਟਾ ਦਿੱਤਾ ਹੈ।</item>
         <item quantity="other">ਕੁੰਜੀਆਂ \'ਤੇ %1$d ਸਵਾਈਪ ਦੀ ਇੱਥੇ ਕੋਈ ਥਾਂ ਨਹੀਂ ਹੈ, ਕਿਉਂਕਿ ਇਹ ਕੀਬੋਰਡ ਉਹਨਾਂ ਸਵਾਈਪਾਂ ਨੂੰ ਹੋਰ ਕੰਮਾਂ ਲਈ ਵਰਤਦਾ ਹੈ। ਐਪ ਨੇ ਉਹਨਾਂ ਨੂੰ ਹਟਾ ਦਿੱਤਾ ਹੈ।</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">ਐਪ ਨੇ %1$d ਨਿਯਮ ਛੱਡ ਦਿੱਤਾ ਹੈ ਜੋ ਇਸ ਗੱਲ ਨੂੰ ਬਦਲਦਾ ਹੈ ਕਿ ਮਿਟਾਓ ਕੀ ਹਟਾਉਂਦਾ ਹੈ। ਮਿਟਾਓ ਉਸ ਤਰ੍ਹਾਂ ਕੰਮ ਕਰਦਾ ਹੈ ਜਿਵੇਂ ਇਹ ਇੱਥੇ ਹਰ ਇੱਕ ਲੇਆਉਟ \'ਤੇ ਕਰਦਾ ਹੈ।</item>
+        <item quantity="other">ਐਪ ਨੇ %1$d ਨਿਯਮ ਛੱਡ ਦਿੱਤੇ ਹਨ ਜੋ ਇਸ ਗੱਲ ਨੂੰ ਬਦਲਦੇ ਹਨ ਕਿ ਮਿਟਾਓ ਕੀ ਹਟਾਉਂਦਾ ਹੈ। ਮਿਟਾਓ ਉਸ ਤਰ੍ਹਾਂ ਕੰਮ ਕਰਦਾ ਹੈ ਜਿਵੇਂ ਇਹ ਇੱਥੇ ਹਰ ਇੱਕ ਲੇਆਉਟ \'ਤੇ ਕਰਦਾ ਹੈ।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">ਐਪ ਨੇ %1$d ਸਵਾਈਪ ਹਟਾ ਦਿੱਤਾ ਹੈ ਜੋ ਦਿਸ਼ਾ ਬਦਲਦਾ ਹੈ। ਇਸ ਕੀਬੋਰਡ ਉੱਤੇ ਸਵਾਈਪ ਇੱਕ ਪਾਸੇ ਜਾਂਦੇ ਹਨ।</item>
+        <item quantity="other">ਐਪ ਨੇ %1$d ਸਵਾਈਪ ਹਟਾ ਦਿੱਤੇ ਹਨ ਜੋ ਦਿਸ਼ਾ ਬਦਲਦੇ ਹਨ। ਇਸ ਕੀਬੋਰਡ ਉੱਤੇ ਸਵਾਈਪ ਇੱਕ ਪਾਸੇ ਜਾਂਦੇ ਹਨ।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">ਐਪ ਨੇ Caps Lock ਜਾਂ Ctrl ਵਰਗੀ ਕੁੰਜੀ ਲਈ %1$d ਪੰਨਾ ਛੱਡ ਦਿੱਤਾ ਹੈ। ਇਸ ਕੀਬੋਰਡ ਕੋਲ ਉਸ ਕੁੰਜੀ ਲਈ ਕੋਈ ਪੰਨਾ ਨਹੀਂ ਹੈ।</item>
+        <item quantity="other">ਐਪ ਨੇ Caps Lock ਜਾਂ Ctrl ਵਰਗੀਆਂ ਕੁੰਜੀਆਂ ਲਈ %1$d ਪੰਨੇ ਛੱਡ ਦਿੱਤੇ ਹਨ। ਇਸ ਕੀਬੋਰਡ ਕੋਲ ਉਹਨਾਂ ਕੁੰਜੀਆਂ ਲਈ ਕੋਈ ਪੰਨਾ ਨਹੀਂ ਹੈ।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">ਐਪ ਨੇ %1$d ਨਿਯਮ ਛੱਡ ਦਿੱਤਾ ਹੈ ਜੋ ਮਾਰਕਾਂ ਨੂੰ ਉਨ੍ਹਾਂ ਦੇ ਲਿਖਣ ਦੇ ਕ੍ਰਮ ਵਿੱਚ ਰੱਖਦਾ ਹੈ। ਇਹ ਕੀਬੋਰਡ ਮਾਰਕਾਂ ਨੂੰ ਉਸ ਕ੍ਰਮ ਵਿੱਚ ਲਿਖਦਾ ਹੈ ਜਿਸ ਕ੍ਰਮ ਵਿੱਚ ਤੁਸੀਂ ਉਨ੍ਹਾਂ ਨੂੰ ਟਾਈਪ ਕਰਦੇ ਹੋ।</item>
+        <item quantity="other">ਐਪ ਨੇ %1$d ਨਿਯਮ ਛੱਡ ਦਿੱਤੇ ਹਨ ਜੋ ਮਾਰਕਾਂ ਨੂੰ ਉਨ੍ਹਾਂ ਦੇ ਲਿਖਣ ਦੇ ਕ੍ਰਮ ਵਿੱਚ ਰੱਖਦੇ ਹਨ। ਇਹ ਕੀਬੋਰਡ ਮਾਰਕਾਂ ਨੂੰ ਉਸ ਕ੍ਰਮ ਵਿੱਚ ਲਿਖਦਾ ਹੈ ਜਿਸ ਕ੍ਰਮ ਵਿੱਚ ਤੁਸੀਂ ਉਨ੍ਹਾਂ ਨੂੰ ਟਾਈਪ ਕਰਦੇ ਹੋ।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d ਨਿਯਮ ਅਗਲੇ ਅੱਖਰ \'ਤੇ ਲਹਿਜ਼ਾ ਪਾਉਂਦਾ ਹੈ। ਇੱਥੇ, ਇਸ ਨੂੰ ਸ਼ੁਰੂ ਕਰਨ ਵਾਲੀ ਕੁੰਜੀ ਇੱਕ ਡੈੱਡ ਕੁੰਜੀ ਹੈ।</item>
+        <item quantity="other">%1$d ਨਿਯਮ ਅਗਲੇ ਅੱਖਰ \'ਤੇ ਲਹਿਜ਼ਾ ਪਾਉਂਦੇ ਹਨ। ਇੱਥੇ, ਉਹਨਾਂ ਨੂੰ ਸ਼ੁਰੂ ਕਰਨ ਵਾਲੀਆਂ ਕੁੰਜੀਆਂ ਡੈੱਡ ਕੁੰਜੀਆਂ ਹਨ।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">अणनर सलगर %1$d नरण कींतरी हुनण नु देवल करण हुंत है।</item>
+        <item quantity="other">अणनर सलगर %1$d नरण कींतरीआं हुनण नु देवल करण हुंत हन।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d ਨਿਯਮ ਇੱਕ ਕੁੰਜੀ ਅਤੇ ਅਗਲੀ ਕੁੰਜੀ ਨੂੰ ਕਿਸੇ ਹੋਰ ਅੱਖਰ ਵਿੱਚ ਬਦਲਦਾ ਹੈ। ਇੱਥੇ, ਉਹ ਅੱਖਰ ਪਹਿਲੀ ਕੁੰਜੀ ਨੂੰ ਦਬਾ ਕੇ ਰੱਖਣ \'ਤੇ ਹੁੰਦਾ ਹੈ।</item>
+        <item quantity="other">%1$d ਨਿਯਮ ਇੱਕ ਕੁੰਜੀ ਅਤੇ ਅਗਲੀ ਕੁੰਜੀ ਨੂੰ ਕਿਸੇ ਹੋਰ ਅੱਖਰ ਵਿੱਚ ਬਦਲਦੇ ਹਨ। ਇੱਥੇ, ਉਹ ਅੱਖਰ ਪਹਿਲੀ ਕੁੰਜੀ ਨੂੰ ਦਬਾ ਕੇ ਰੱਖਣ \'ਤੇ ਹੁੰਦੇ ਹਨ।</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">ਐਪ ਨੇ %1$d ਕੁੰਜੀ ਨੂੰ ਇਸਦੇ ਸਭ ਤੋਂ ਨਜ਼ਦੀਕੀ ਕੁੰਜੀ ਵਿੱਚ ਬਦਲ ਦਿੱਤਾ ਹੈ।</item>
         <item quantity="other">ਐਪ ਨੇ %1$d ਕੁੰਜੀਆਂ ਨੂੰ ਉਹਨਾਂ ਦੀਆਂ ਸਭ ਤੋਂ ਨਜ਼ਦੀਕੀ ਕੁੰਜੀਆਂ ਵਿੱਚ ਬਦਲ ਦਿੱਤਾ ਹੈ।</item>

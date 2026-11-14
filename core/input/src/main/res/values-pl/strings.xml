@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">Odczyty furigana</string>
     <string name="core_input_cjk_pack_hanja_subtitle">Słowa w języku Hangul i ich znaki Hanja, 300 000 wpisów. Klawiatura potrzebuje tego pakietu, aby oferować Hanja na pasku podpowiedzi.</string>
     <string name="core_input_cjk_pack_hanja_title">Słownik Hanja (漢字)</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, dzięki czemu słowo z prefiksami i sufiksami jest znane, a literówki w nim są naprawiane.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">Arabski słownik ortograficzny</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, dzięki czemu słowa z dowolnymi przyrostkami są rozpoznawane, a błędy w nich są poprawiane.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">Zasady pisowni tureckiej</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">Odczyty Kana z mozc, 1,08 miliona wpisów, około 42 MB. Klawiatura potrzebuje tego pakietu do konwersji języka japońskiego.</string>

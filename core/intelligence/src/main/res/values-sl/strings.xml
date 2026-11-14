@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Nedavni model srednje velikosti, ki razmišlja, preden odgovori. Potrebuje napravo srednjega razreda.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Majhen in hiter. Dober je za hitro prepisovanje na osnovni napravi.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Zelo majhen model, ki zna brati slike. Opiše sliko, vendar pogosto napačno prebere besedilo na posnetku zaslona.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">NVIDIA-ino ponovno urjenje modela Gemma 4 E4B za sledenje navodilom in uporabo orodij. Samo besedilo, zanj pa je potrebna zmogljiva naprava.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Model za splošno uporabo, ki še vedno deluje na osnovni napravi.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Očitno pametnejši od modelov pod 1B. Potrebuje napravo srednjega razreda.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Nedavni majhen model. Kakovost je glede na velikost visoka.</string>

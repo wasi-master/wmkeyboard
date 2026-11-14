@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">نوار، کپسول و کلیدها</string>
     <string name="core_settings_glide_commit_scope_pill_label">نوار و قرص</string>
     <string name="core_settings_glide_commit_scope_strip_label">نوار</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">پس از لغو</string>
+    <string name="core_settings_glide_drawn_letters_off_label">خاموش</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">در صورت عدم اطمینان</string>
     <string name="core_settings_glide_engine_built_in_label">داخلی</string>
     <string name="core_settings_glide_engine_futo_label">FUTO Swipe (انگلیسی، QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">کتابخانه حرکتی گوگل (وارد شده)</string>

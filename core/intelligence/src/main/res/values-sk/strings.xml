@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Novší stredne veľký model, ktorý pred odpoveďou premýšľa. Vyžaduje zariadenie strednej triedy.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Malý a rýchly. Je vhodný na rýchle prepisy na základnom zariadení.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Veľmi malý model, ktorý dokáže čítať obrázky. Opisuje obrázok, ale často nesprávne prečíta text na snímke obrazovky.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">Opätovné trénovanie modelu Gemma 4 E4B od spoločnosti NVIDIA na dodržiavanie pokynov a používanie nástrojov. Iba text a vyžaduje výkonné zariadenie.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Všeobecný model, ktorý sa stále zmestí na základné zariadenie.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Jasne inteligentnejší ako modely pod 1B. Vyžaduje zariadenie strednej triedy.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Nedávny malý model. Kvalita je na svoju veľkosť vysoká.</string>

@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">قراءات فوريغانا</string>
     <string name="core_input_cjk_pack_hanja_subtitle">كلمات هانغول وما يقابلها بالهانجا، 300,000 إدخال. تحتاج لوحة المفاتيح إلى هذه الحزمة لتوفير الهانجا في شريط الاقتراحات.</string>
     <string name="core_input_cjk_pack_hanja_title">قاموس هانجا (漢字)</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell، بحيث يتم التعرف على الكلمة مع سوابقها ولاحقاتها ويتم إصلاح الأخطاء الإملائية فيها.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">قاموس التدقيق الإملائي العربي</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr، بحيث تكون الكلمات ذات اللاحقة معروفة ويتم إصلاح الأخطاء الإملائية فيها.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">قواعد الإملاء باللغة التركية</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">قراءات الكانا من mozc، 1.08 مليون إدخال، حوالي 42 ميجابايت. تحتاج لوحة المفاتيح إلى هذه الحزمة للتحويل الياباني.</string>

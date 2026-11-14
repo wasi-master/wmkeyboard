@@ -135,6 +135,8 @@
     <string name="common_special_access_accessibility_title">키보드 제스처를 위한 접근성 서비스</string>
     <string name="common_special_access_all_files_body">Android에는 파일 탐색을 위한 더 좁은 범위의 권한이 없으므로, 이 권한을 통해 키보드가 휴대폰의 공유 저장소에 있는 모든 파일을 읽고 변경할 수 있습니다. 키보드는 현재 사용 중인 앱을 벗어나지 않고도 도구에 사용할 파일을 선택할 수 있는 파일 관리자에만 이 권한을 사용합니다. 사용자가 여는 폴더와 검색하는 이름만 확인하며, 파일 이름을 변경, 이동, 복사 또는 삭제할 때만 파일을 변경합니다. 도구를 통해 전송하지 않는 한 어떠한 파일도 기기를 벗어나지 않습니다. 거부할 수도 있고, 나중에 Android 설정에서 이를 끌 수도 있습니다. 이 권한이 없으면 파일을 선택할 때 Android 자체 선택 도구가 열립니다.</string>
     <string name="common_special_access_all_files_title">파일 관리자를 위한 모든 파일 액세스 권한</string>
+    <string name="common_special_access_do_not_disturb_body">플로팅 버튼의 벨소리 모드 작업은 벨소리를 벨소리, 진동, 무음 사이에서 전환합니다. Android에서는 무음과 방해 금지 모드가 내부적으로 하나의 스위치를 공유하기 때문에 방해 금지 권한이 있어야만 앱에서 무음을 켜거나 끌 수 있습니다. 키보드는 이 권한을 오직 그 용도로만 사용합니다. 버튼을 누를 때 벨소리를 설정하고 방해 금지 일정이나 예외를 읽거나 변경하거나 켜지 않습니다. 이 권한이 없으면 작업이 벨소리와 진동 사이에서만 전환됩니다.</string>
+    <string name="common_special_access_do_not_disturb_title">벨소리에 대한 방해 금지 액세스</string>
     <string name="common_special_access_exact_alarms_body">이 권한이 있으면 시계 도구에서 설정한 알람이나 타이머가 정확한 분에 울립니다. 권한이 없으면 알람은 울리지만 휴대폰이 절전 모드일 때 Android가 몇 분 정도 지연시킬 수 있습니다. 키보드는 사용자가 설정한 알람 및 타이머에 대해서만 이 권한을 사용합니다. 데이터를 읽거나 수집하지 않습니다. 언제든지 다시 끌 수 있습니다.</string>
     <string name="common_special_access_exact_alarms_title">시계 도구의 정확한 알람</string>
     <string name="common_special_access_full_screen_body">이 권한이 있으면 알람이나 타이머가 울릴 때 잠금 화면 위에 \'다시 알림\' 및 \'해제\' 버튼이 포함된 전체 화면이 표시됩니다. 권한이 없으면 알람은 계속 울리지만 알림으로 표시됩니다. 키보드는 알람이나 타이머가 울리는 동안에만 이 권한을 사용합니다.</string>

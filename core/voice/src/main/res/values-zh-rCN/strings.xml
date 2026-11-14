@@ -9,11 +9,16 @@
     <string name="core_voice_model_base_multi_body">此模型平衡了准确性和速度。它涵盖了 Whisper 所知的所有语言。如果小型模型太慢，请选择此模型。</string>
     <string name="core_voice_model_base_world_body">此模型使用您输入的语言，而不是进行猜测。短语会变得更加可靠。当列表中包含您的语言时，请选择它。</string>
     <string name="core_voice_model_cpp_base_body">此模型在准确性和速度之间取得了平衡。它使用您口述的语言（Whisper 支持的 99 种语言中的任意一种），并识别您自己的话语。如果“小型”模型太慢，请选择此模型。</string>
+    <string name="core_voice_model_cpp_fine_tune_body">%1$s 对该 Turbo 模型在此单一语言的语音方面进行了进一步训练。它仅处理该语言。</string>
+    <string name="core_voice_model_cpp_hinglish_body">Oriserve 基于印地语以及印地语与英语混合的语料训练了此模型。它用拉丁字母记录你所说的话（类似于印地英语的输入方式），并保留英语单词为英文。它从不书写梵文，因此更适合印地英语而非印地语。它体积小且速度快。</string>
+    <string name="core_voice_model_cpp_kb_body">瑞典国家图书馆使用瑞典语语音训练了此模型。它仅处理瑞典语，并且比相同大小的通用 Whisper 模型更准确。</string>
+    <string name="core_voice_model_cpp_kotoba_body">Kotoba Technologies 基于 Whisper Large v3 制作了此日语模型。其解码器要小得多，因此运行速度大约与 Turbo 模型相当。它仅支持日语。</string>
     <string name="core_voice_model_cpp_large_body">这是最准确的 Whisper 模型。下载大小为 1.1 GB。只有内存充足的设备才能加载它。Turbo 模型几乎同样准确，且体积只有它的一半。</string>
     <string name="core_voice_model_cpp_medium_body">此模型可提供接近桌面级的准确度。每个短语需要几秒钟处理。运行时该模型占用约 1GB 内存。</string>
     <string name="core_voice_model_cpp_small_body">此模型在手机上运行良好，同时提供最佳准确度。它使用您口述的语言（Whisper 支持的 99 种语言中的任意一种），并能识别您自己的词汇。</string>
     <string name="core_voice_model_cpp_tiny_body">这是最快的模型。它在语音清晰时效果很好，但噪音会降低准确性。它使用您听写的语言，并识别您自己的词汇。</string>
     <string name="core_voice_model_cpp_turbo_body">该模型的大小仅为最大模型的一半，但准确度几乎相当。每个短语需要几秒钟处理，且不支持翻译。</string>
+    <string name="core_voice_model_custom_body">您是从文件导入的此 whisper.cpp 模型。键盘无法获知其训练方式，因此请在“每个语言的模型”下为其选择适用的语言。</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d 种语言</item>
         <item quantity="other">%1$d 种语言</item>

@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">Sveiki</string>
     <string name="core_tools_media_category_laugh">Smiekli</string>
     <string name="core_tools_media_category_love">Mīlestība</string>
+    <string name="core_tools_media_category_memes">Mēmi</string>
     <string name="core_tools_media_category_no">Nē</string>
     <string name="core_tools_media_category_party">Ballīte</string>
     <string name="core_tools_media_category_reactions">Reakcijas</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">Mozhi serveris: bezmaksas saskarne Google, DeepL, DuckDuckGo, Yandex un Reverso. Izvēlieties dzinēju. DeepL un Reverso nepieciešama avota valoda.</string>
     <string name="core_tools_provider_music_server">Jūsu pašu atpazīšanas serveris</string>
     <string name="core_tools_provider_music_server_desc">Serveris, kuru jūs darbināt un kas atbild kā AudD: klips tiek publicēts kā fails, un dziesma atgriežas kā JSON. Ievietojiet aiz tā pirkstu nospiedumu atpazīšanas rīku, piemēram, Panako vai Olaf.</string>
+    <string name="core_tools_provider_mwmbl_desc">Bezmaksas, bezpeļņas meklētājprogramma ar savu indeksu. Nav atslēgas. Tikai tīmekļa rezultāti, bez attēliem.</string>
     <string name="core_tools_provider_nllb">Ierīcē (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">Tulko tālrunī, izmantojot Meta NLLB-200 modeli uz CTranslate2: 200 valodas, starp jebkurām divām no tām, pāriem, kurus citi dzinēji nevar veikt. Viena 630 MB lejupielāde, un teikums aizņem dažas sekundes. Jūsu teksts paliek tālrunī. Modelis ir licencēts tikai nekomerciālai lietošanai (CC BY-NC 4.0). Nepieciešams 64 bitu tālrunis ar 6 GB vai vairāk atmiņas.</string>
     <string name="core_tools_provider_none_on">Nav ieslēgts neviens pakalpojumu sniedzējs. Ieslēdziet kādu no tiem šī rīka iestatījumos.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">Šis saraksts</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">Rādīt vai paslēpt taustiņus</string>
     <string name="core_tools_shortcut_leader_double_tap">Nospiediet %1$s divas reizes</string>
+    <string name="core_tools_speak_no_voice">Šim tālrunim nav %1$s balss, ar ko to nolasīt. Pievienojiet to Android teksta pārvēršanas runā iestatījumos vai lejupielādējiet bezsaistes balsi sadaļā Rīki › Nolasīt.</string>
     <string name="core_tools_symbol_category_arrows_label">Bultiņas</string>
     <string name="core_tools_symbol_category_currency_label">Valūta</string>
     <string name="core_tools_symbol_category_fractions_label">Daļskaitļi</string>
     <string name="core_tools_symbol_category_greek_label">Grieķu</string>
     <string name="core_tools_symbol_category_math_label">Matemātika</string>
+    <string name="core_tools_symbol_category_music_label">Mūzika</string>
     <string name="core_tools_symbol_category_other_label">Cits</string>
     <string name="core_tools_symbol_category_punctuation_label">Pieturzīmes</string>
     <string name="core_tools_symbol_category_shapes_label">Formas un zvaigznes</string>
+    <string name="core_tools_symbol_category_stars_label">Zvaigznes</string>
     <string name="core_tools_symbol_category_superscript_label">Augšraksts</string>
+    <string name="core_tools_symbol_category_technical_label">Tehnisks</string>
+    <string name="core_tools_symbol_category_weather_label">Laikapstākļi</string>
     <string name="core_tools_symbol_set_coding_label">Kodēšana</string>
     <string name="core_tools_symbol_set_email_label">E-pasts</string>
     <string name="core_tools_symbol_set_math_label">Matemātika</string>

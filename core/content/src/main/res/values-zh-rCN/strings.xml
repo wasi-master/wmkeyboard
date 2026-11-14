@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">电子邮件地址</string>
+    <string name="core_content_clip_entity_email_tag">电子邮件</string>
     <string name="core_content_clip_entity_otp_label">一次性验证码</string>
     <string name="core_content_clip_entity_otp_tag">验证码</string>
     <string name="core_content_clip_entity_phone_label">电话号码</string>
@@ -38,6 +40,10 @@
         <item quantity="one">应用跳过了 %1$d 个没有内容可插入的代码片段。</item>
         <item quantity="other">应用跳过了 %1$d 个没有内容可插入的代码片段。</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d 个表单字段提供供选择的列表。应用程序要求将其作为键入的答案，并填入第一个选项。</item>
+        <item quantity="other">%1$d 个表单字段提供供选择的列表。应用程序要求将每个字段作为键入的答案，并填入第一个选项。</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">应用跳过了 %1$d 个插入图片的片段。</item>
         <item quantity="other">应用跳过了 %1$d 个插入图片的片段。</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d 个片段使用了 Espanso 没有对应项的值。它将按原样写出。</item>
         <item quantity="other">%1$d 个片段使用了 Espanso 没有对应项的值。它们将按原样写出。</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d 个代码片段插入了一张图片。文本文件无法保存图片，因此仅导出了其中的文字。</item>
+        <item quantity="other">%1$d 个代码片段插入了图片。文本文件无法保存图片，因此仅导出了其中的文字。</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">应用已从 %1$d 个片段中移除了该模式。应用无法运行此类形状的模式。该片段将保留在列表中。</item>
@@ -197,17 +207,34 @@
         <item quantity="one">应用移除了 1 个键盘无法监视的触发器。其片段保留在列表中。</item>
         <item quantity="other">应用移除了 %1$d 个键盘无法监视的触发器。它们的片段保留在列表中。</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_pattern">无法使用此模式：%1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s 不能是 %2$s</string>
+    <string name="core_content_snippet_text_before_header">第一个 === 触发 === 行之前的文本。以一个触发器开始区块，或以 # 开始行</string>
+    <string name="core_content_snippet_text_no_text">此片段没有文本</string>
+    <string name="core_content_snippet_text_no_trigger">=== 标记之间没有内容的文本片段需要有一行 @label 或 @pattern</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">有 %1$d 个图片片段作为文本导入：文本文件不包含图片</item>
+        <item quantity="other">有 %1$d 个图片片段作为文本导入：文本文件不包含图片</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">已跳过第 %1$d 行的片段，该行包含错误</string>
+    <string name="core_content_snippet_text_unknown_link">\@link 命名为 %1$s，且此处没有任何片段具有该触发器</string>
+    <string name="core_content_snippet_text_unknown_picture">\@picture 命名了 %1$s，但没有任何代码片段使用它。请在代码片段自己的编辑器中添加图片</string>
+    <string name="core_content_snippet_text_unknown_setting">键盘不识别设置 %1$s。要以 @ 开头编写代码段文本，请改写为 \@</string>
     <string name="core_content_snippet_var_app_info">您正在输入的应用名称</string>
+    <string name="core_content_snippet_var_battery_info">电池电量，例如 85%</string>
     <string name="core_content_snippet_var_clip_info">最新的剪贴板条目</string>
     <string name="core_content_snippet_var_cursor_info">光标落下的位置</string>
     <string name="core_content_snippet_var_date_info">今天的日期</string>
     <string name="core_content_snippet_var_datetime_info">日期和时间</string>
     <string name="core_content_snippet_var_day_info">月份中的某一天</string>
+    <string name="core_content_snippet_var_greeting_info">根据键盘语言的当前时间显示早上好、下午好或晚上好</string>
     <string name="core_content_snippet_var_isodate_info">ISO 格式的日期，例如 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">ISO 格式的日期和时间</string>
+    <string name="core_content_snippet_var_language_info">您键入时使用的键盘语言</string>
     <string name="core_content_snippet_var_month_info">月份名称</string>
     <string name="core_content_snippet_var_package_info">该应用的软件包名称</string>
     <string name="core_content_snippet_var_selection_info">您在字段中选择的文本</string>
+    <string name="core_content_snippet_var_tab_info">制表符</string>
     <string name="core_content_snippet_var_time12_info">当前 12 小时制时间</string>
     <string name="core_content_snippet_var_time_info">当前时间（24小时制）</string>
     <string name="core_content_snippet_var_timestamp_info">以 Unix 秒为单位的时间</string>

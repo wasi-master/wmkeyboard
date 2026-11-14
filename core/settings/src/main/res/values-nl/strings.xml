@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Strip, pil en toetsen</string>
     <string name="core_settings_glide_commit_scope_pill_label">Strip en pil</string>
     <string name="core_settings_glide_commit_scope_strip_label">Strip</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">Na ongedaan maken</string>
+    <string name="core_settings_glide_drawn_letters_off_label">Uit</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">Bij twijfel</string>
     <string name="core_settings_glide_engine_built_in_label">Ingebouwd</string>
     <string name="core_settings_glide_engine_futo_label">FUTO Swipe (Engels, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Google\'s gebarenbibliotheek (geïmporteerd)</string>

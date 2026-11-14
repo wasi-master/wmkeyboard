@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">ਫੂਰੀਗਾਨਾ ਰੀਡਿੰਗਜ਼</string>
     <string name="core_input_cjk_pack_hanja_subtitle">ਹਾਂਗੁਲ ਸ਼ਬਦ ਅਤੇ ਉਨ੍ਹਾਂ ਦੇ ਹੰਜਾ, 300,000 ਐਂਟਰੀਆਂ। ਕੀਬੋਰਡ ਨੂੰ ਸੁਝਾਅ ਸਟ੍ਰਿਪ \'ਤੇ ਹੰਜਾ ਦੀ ਪੇਸ਼ਕਸ਼ ਕਰਨ ਲਈ ਇਸ ਪੈਕ ਦੀ ਲੋੜ ਹੈ।</string>
     <string name="core_input_cjk_pack_hanja_title">Hanja (漢字) ਸ਼ਬਦਕੋਸ਼</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">ਆਯਾਸਪੈਲ, ਇਸਲਈ ਇਸਦੇ উপসর্গਾਂ ਅਤੇ ਪਿਛੇਤਰਾਂ ਵਾਲਾ ਇੱਕ ਸ਼ਬਦ ਜਾਣਿਆ ਜਾਂਦਾ ਹੈ ਅਤੇ ਇਸ ਵਿੱਚ ਇੱਕ ਟਾਈਪੋ ਠੀਕ ਹੋ ਜਾਂਦਾ ਹੈ।</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">ਅਰਬੀ ਸਪੈਲਿੰਗ ਡਿਕਸ਼ਨਰੀ</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, ਤਾਂ ਜੋ ਕਿਸੇ ਵੀ ਪਿਛਤਰ ਵਾਲੇ ਸ਼ਬਦ ਜਾਣੇ ਜਾਣ ਅਤੇ ਉਹਨਾਂ ਵਿੱਚ ਟਾਈਪੋਜ਼ ਠੀਕ ਹੋ ਜਾਣ।</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">ਤੁਰਕੀ ਸ਼ਜਾਬਦਾਰੀ ਨਿਯਮ</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">mozc ਤੋਂ ਕਾਨਾ ਰੀਡਿੰਗ, 1.08 ਮਿਲੀਅਨ ਐਂਟਰੀਆਂ, ਲਗਭਗ 42 MB। ਜਾਪਾਨੀ ਰੂਪਾਂਤਰਣ ਲਈ ਕੀਬੋਰਡ ਨੂੰ ਇਸ ਪੈਕ ਦੀ ਲੋੜ ਹੈ।</string>

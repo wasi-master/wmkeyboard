@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">نموذج حديث متوسط الحجم يفكر قبل الإجابة. يحتاج إلى جهاز متوسط الأداء.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">صغير وسريع. إنه جيد لإعادة الكتابة السريعة على جهاز أساسي.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">نموذج صغير جداً يمكنه قراءة الصور. يصف الصورة، لكنه غالباً ما يسيء قراءة النص الموجود في لقطة الشاشة.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">إعادة تدريب NVIDIA لنموذج Gemma 4 E4B لمتابعة التعليمات واستخدام الأدوات. للنصوص فقط، ويتطلب جهازاً قوياً.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">نموذج متعدد الأغراض يناسب الأجهزة الأساسية.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">أذكى بوضوح من النماذج الأقل من 1 مليار. يتطلب جهازاً متوسط الأداء.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">نموذج صغير حديث. الجودة عالية بالنسبة لحجمه.</string>

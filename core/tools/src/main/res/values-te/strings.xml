@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">హలో</string>
     <string name="core_tools_media_category_laugh">నవ్వు</string>
     <string name="core_tools_media_category_love">ప్రేమ</string>
+    <string name="core_tools_media_category_memes">మీమ్స్</string>
     <string name="core_tools_media_category_no">వద్దు</string>
     <string name="core_tools_media_category_party">పార్టీ</string>
     <string name="core_tools_media_category_reactions">రియాక్షన్‌లు</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">ఒక Mozhi సర్వర్: Google, DeepL, DuckDuckGo, Yandex మరియు Reversoలకు ఉచిత ఫ్రంట్ ఎండ్. ఇంజిన్‌ను ఎంచుకోండి. DeepL మరియు Reversoలకు మూల భాష అవసరం.</string>
     <string name="core_tools_provider_music_server">మీ స్వంత గుర్తింపు సర్వర్</string>
     <string name="core_tools_provider_music_server_desc">AudD వలె సమాధానమిచ్చే మీరు నడిపే సర్వర్: క్లిప్ ఫైల్‌గా పోస్ట్ చేయబడుతుంది మరియు పాట JSON రూపంలో తిరిగి వస్తుంది. దాని వెనుక Panako లేదా Olaf వంటి ఫింగర్‌ప్రింటర్‌ను ఉంచండి.</string>
+    <string name="core_tools_provider_mwmbl_desc">ఇది దాని స్వంత ఇండెక్స్‌తో కూడిన ఉచిత, లాభాపేక్ష లేని సెర్చ్ ఇంజిన్. కీ లేదు. వెబ్ ఫలితాలు మాత్రమే, చిత్రాలు లేవు.</string>
     <string name="core_tools_provider_nllb">పరికరంలో (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">CTranslate2లో Meta యొక్క NLLB-200 మోడల్‌తో ఫోన్‌లోనే అనువదిస్తుంది: 200 భాషలు, వాటిలో ఏ రెండింటి మధ్యనైనా, ఇతర ఇంజిన్‌లు చేయలేని జతల కోసం. 630 MB డౌన్‌లోడ్, ఒక వాక్యం అనువదించడానికి కొన్ని సెకన్లు పడుతుంది. మీ టెక్స్ట్ ఫోన్‌లోనే ఉంటుంది. ఈ మోడల్ వాణిజ్యేతర ఉపయోగం కోసం మాత్రమే లైసెన్స్ పొందింది (CC BY-NC 4.0). 6 GB లేదా అంతకంటే ఎక్కువ మెమరీ ఉన్న 64-బిట్ ఫోన్ అవసరం.</string>
     <string name="core_tools_provider_none_on">ఏ ప్రొవైడర్ ఆన్‌లో లేదు. ఈ టూల్ సెట్టింగ్‌లలో ఒకదాన్ని ఆన్ చేయండి.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">ఈ జాబితా</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">కీలను చూపించు లేదా దాచు</string>
     <string name="core_tools_shortcut_leader_double_tap">%1$sని రెండుసార్లు నొక్కండి</string>
+    <string name="core_tools_speak_no_voice">దీన్ని చదవడానికి ఈ ఫోన్‌లో %1$s వాయిస్ లేదు. ఆండ్రాయిడ్ టెక్స్ట్-టు-స్పీచ్ సెట్టింగ్‌లలో ఒకదాన్ని జోడించండి లేదా సాధనాలు › తిరిగి చదువు కింద ఆఫ్‌లైన్ వాయిస్‌ని డౌన్‌లోడ్ చేయండి.</string>
     <string name="core_tools_symbol_category_arrows_label">బాణాలు</string>
     <string name="core_tools_symbol_category_currency_label">కరెన్సీ</string>
     <string name="core_tools_symbol_category_fractions_label">భిన్నాలు</string>
     <string name="core_tools_symbol_category_greek_label">గ్రీక్</string>
     <string name="core_tools_symbol_category_math_label">గణితం</string>
+    <string name="core_tools_symbol_category_music_label">సంగీతం</string>
     <string name="core_tools_symbol_category_other_label">ఇతర</string>
     <string name="core_tools_symbol_category_punctuation_label">విరామ చిహ్నాలు</string>
     <string name="core_tools_symbol_category_shapes_label">ఆకారాలు మరియు నక్షత్రాలు</string>
+    <string name="core_tools_symbol_category_stars_label">నక్షత్రాలు</string>
     <string name="core_tools_symbol_category_superscript_label">సూపర్‌స్క్రిప్ట్</string>
+    <string name="core_tools_symbol_category_technical_label">సాంకేతిక</string>
+    <string name="core_tools_symbol_category_weather_label">వాతావరణం</string>
     <string name="core_tools_symbol_set_coding_label">కోడింగ్</string>
     <string name="core_tools_symbol_set_email_label">ఈమెయిల్</string>
     <string name="core_tools_symbol_set_math_label">గణితం</string>

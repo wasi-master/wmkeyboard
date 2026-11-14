@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">مرحباً</string>
     <string name="core_tools_media_category_laugh">ضحك</string>
     <string name="core_tools_media_category_love">حب</string>
+    <string name="core_tools_media_category_memes">الميمز</string>
     <string name="core_tools_media_category_no">لا</string>
     <string name="core_tools_media_category_party">حفلة</string>
     <string name="core_tools_media_category_reactions">تفاعلات</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">خادم Mozhi: واجهة مجانية لخدمات Google وDeepL وDuckDuckGo وYandex وReverso. اختر المحرك. تتطلب خدمات DeepL وReverso لغة مصدر.</string>
     <string name="core_tools_provider_music_server">خادم التعرف الخاص بك</string>
     <string name="core_tools_provider_music_server_desc">خادم تقوم بتشغيله يستجيب مثل AudD: يتم نشر المقطع كملف وتعود الأغنية كـ JSON. ضع أداة بصمة صوتية مثل Panako أو Olaf خلفه.</string>
+    <string name="core_tools_provider_mwmbl_desc">محرك بحث مجاني غير ربحي له فهرسه الخاص. بدون مفتاح. نتائج الويب فقط، بدون صور.</string>
     <string name="core_tools_provider_nllb">على الجهاز (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">يترجم على الهاتف باستخدام نموذج NLLB-200 من Meta على CTranslate2: 200 لغة، بين أي زوج منها، للأزواج التي لا تستطيع المحركات الأخرى القيام بها. تنزيل واحد بحجم 630 ميجابايت، وتستغرق الجملة بضع ثوانٍ. يبقى نصك على الهاتف. النموذج مرخص للاستخدام غير التجاري فقط (CC BY-NC 4.0). يحتاج إلى هاتف 64 بت بذاكرة 6 جيجابايت أو أكثر.</string>
     <string name="core_tools_provider_none_on">لا يوجد مزود قيد التشغيل. قم بتشغيل أحدهم في إعدادات هذه الأداة.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">هذه القائمة</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">إظهار أو إخفاء المفاتيح</string>
     <string name="core_tools_shortcut_leader_double_tap">اضغط على %1$s مرتين</string>
+    <string name="core_tools_speak_no_voice">لا يحتوي هذا الهاتف على صوت %1$s لقراءته به. أضف واحداً في إعدادات تحويل النص إلى كلام في أندرويد، أو قم بتنزيل صوت بلا اتصال بالإنترنت ضمن الأدوات › قراءة الخلف.</string>
     <string name="core_tools_symbol_category_arrows_label">الأسهم</string>
     <string name="core_tools_symbol_category_currency_label">العملة</string>
     <string name="core_tools_symbol_category_fractions_label">الكسور</string>
     <string name="core_tools_symbol_category_greek_label">اليونانية</string>
     <string name="core_tools_symbol_category_math_label">رياضيات</string>
+    <string name="core_tools_symbol_category_music_label">الموسيقى</string>
     <string name="core_tools_symbol_category_other_label">أخرى</string>
     <string name="core_tools_symbol_category_punctuation_label">علامات الترقيم</string>
     <string name="core_tools_symbol_category_shapes_label">الأشكال والنجوم</string>
+    <string name="core_tools_symbol_category_stars_label">النجوم</string>
     <string name="core_tools_symbol_category_superscript_label">مرتفع</string>
+    <string name="core_tools_symbol_category_technical_label">تقني</string>
+    <string name="core_tools_symbol_category_weather_label">الطقس</string>
     <string name="core_tools_symbol_set_coding_label">البرمجة</string>
     <string name="core_tools_symbol_set_email_label">البريد الإلكتروني</string>
     <string name="core_tools_symbol_set_math_label">رياضيات</string>

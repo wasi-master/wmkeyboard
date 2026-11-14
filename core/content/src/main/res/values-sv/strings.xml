@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">E-postadress</string>
+    <string name="core_content_clip_entity_email_tag">E-POST</string>
     <string name="core_content_clip_entity_otp_label">Engångskod</string>
     <string name="core_content_clip_entity_otp_tag">KOD</string>
     <string name="core_content_clip_entity_phone_label">Telefonnummer</string>
@@ -38,6 +40,10 @@
         <item quantity="one">Appen hoppade över %1$d kodavsnitt som inte har något att infoga.</item>
         <item quantity="other">Appen hoppade över %1$d kodavsnitt som inte har något att infoga.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d fält i formuläret erbjuder en lista att välja från. Appen frågar efter det som ett inskrivet svar, med det första valet förifyllt.</item>
+        <item quantity="other">%1$d fält i formuläret erbjuder en lista att välja från. Appen frågar efter varje som ett inskrivet svar, med det första valet förifyllt.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Appen hoppade över %1$d kodavsnitt som infogar en bild.</item>
         <item quantity="other">Appen hoppade över %1$d kodavsnitt som infogar bilder.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d kodavsnitt använder ett värde som Espanso inte har någon motsvarighet för. Det skrivs ut som det står.</item>
         <item quantity="other">%1$d kodavsnitt använder värden som Espanso inte har någon motsvarighet för. De skrivs ut som de står.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d textsnutt infogar en bild. En textfil kan inte innehålla bilden, så endast dess ord togs med.</item>
+        <item quantity="other">%1$d textsnuttar infogar bilder. En textfil kan inte innehålla bilderna, så endast deras ord togs med.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">Appen tog bort mönstret från %1$d kodavsnitt. Appen kör inte mönster av den formen. Kodavsnittet stannar kvar i listan.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">Appen tog bort %1$d utlösare som tangentbordet inte kan bevaka. Dess utdrag stannar kvar i listan.</item>
         <item quantity="other">Appen tog bort %1$d utlösare som tangentbordet inte kan bevaka. Deras utdrag stannar kvar i listan.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">Börjar med === men är inte en hel === utlösare === rad. För att starta en rad text med ===, skriv \=== istället</string>
+    <string name="core_content_snippet_text_bad_pattern">Mönstret kan inte användas: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s kan inte vara %2$s</string>
+    <string name="core_content_snippet_text_before_header">Text före den första 3d3d3d-utlösarlinjen 3d3d3d. Starta ett block med en, eller börja raden med #</string>
+    <string name="core_content_snippet_text_no_text">Det här utdraget har ingen text</string>
+    <string name="core_content_snippet_text_no_trigger">En textsnutt utan något mellan tecknen === behöver en @label- eller en @pattern-rad</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d bildsnutt kom in som text: en textfil innehåller inga bilder</item>
+        <item quantity="other">%1$d bildsnuttar kom in som text: en textfil innehåller inga bilder</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">Hoppade över textsnutten på rad %1$d, som innehåller ett fel</string>
+    <string name="core_content_snippet_text_unknown_link">\@link heter %1$s, och ingen textsnutt här har den utlösaren</string>
+    <string name="core_content_snippet_text_unknown_picture">\@picture heter %1$s, vilket ingen snutt använder. Lägg till bilder i snuttens egna redigerare</string>
+    <string name="core_content_snippet_text_unknown_setting">Tangentbordet känner inte till inställningen %1$s. För att börja en textsnutt med @, skriv \@ istället</string>
     <string name="core_content_snippet_var_app_info">Namnet på appen du skriver i</string>
+    <string name="core_content_snippet_var_battery_info">Batteriladdningen, till exempel 85%</string>
     <string name="core_content_snippet_var_clip_info">Det senaste urklippet</string>
     <string name="core_content_snippet_var_cursor_info">Platsen där markören landar</string>
     <string name="core_content_snippet_var_date_info">Dagens datum</string>
     <string name="core_content_snippet_var_datetime_info">Datum och tid</string>
     <string name="core_content_snippet_var_day_info">Dagen i månaden</string>
+    <string name="core_content_snippet_var_greeting_info">God morgon, eftermiddag eller kväll beroende på tid, på tangentbordsspråket</string>
     <string name="core_content_snippet_var_isodate_info">Datum i ISO-format, till exempel 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">Datum och tid i ISO-format</string>
+    <string name="core_content_snippet_var_language_info">Det tangentbordsspråk du skriver på</string>
     <string name="core_content_snippet_var_month_info">Namnet på månaden</string>
     <string name="core_content_snippet_var_package_info">Paketnamnet för den appen</string>
     <string name="core_content_snippet_var_selection_info">Texten du markerar i fältet</string>
+    <string name="core_content_snippet_var_tab_info">Ett tabbtecken</string>
     <string name="core_content_snippet_var_time12_info">Tiden nu i 12-timmarsformat</string>
     <string name="core_content_snippet_var_time_info">Tiden just nu i 24-timmarsformat</string>
     <string name="core_content_snippet_var_timestamp_info">Tiden i Unix-sekunder</string>

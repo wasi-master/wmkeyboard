@@ -23,6 +23,34 @@
         <item quantity="one">%1$d balayage sur une touche n\'a pas sa place ici, car ce clavier utilise ce balayage pour une autre fonction. L\'application l\'a supprimé.</item>
         <item quantity="other">%1$d balayages sur des touches n\'ont pas leur place ici, car ce clavier utilise ces balayages pour d\'autres fonctions. L\'application les a supprimés.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">L\'application a omis %1$d règle qui modifie ce que la suppression efface. La suppression fonctionne comme sur toutes les dispositions ici.</item>
+        <item quantity="other">L\'application a omis %1$d règles qui modifient ce que la suppression efface. La suppression fonctionne comme sur toutes les dispositions ici.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">L\'application a supprimé %1$d balayage qui change de direction. Les balayages sur ce clavier vont dans une seule direction.</item>
+        <item quantity="other">L\'application a supprimé %1$d balayages qui changent de direction. Les balayages sur ce clavier vont dans une seule direction.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">L\'application a omis %1$d page pour une touche telle que Verr. Maj. ou Ctrl. Ce clavier n\'a pas de page pour cette touche.</item>
+        <item quantity="other">L\'application a omis %1$d pages pour des touches telles que Verr. Maj. ou Ctrl. Ce clavier n\'a pas de page pour ces touches.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">L\'application a omis %1$d r&amp;#232;gle qui place les signes dans leur ordre d\'&amp;#233;criture. Ce clavier inscrit les signes dans l\'ordre o&amp;#249; vous les tapez.</item>
+        <item quantity="other">L\'application a omis %1$d r&amp;#232;gles qui placent les signes dans leur ordre d\'&amp;#233;criture. Ce clavier inscrit les signes dans l\'ordre o&amp;#249; vous les tapez.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d règle ajoute un accent sur la lettre suivante. Ici, la touche qui l\'initialise est une touche morte.</item>
+        <item quantity="other">%1$d règles ajoutent un accent sur la lettre suivante. Ici, les touches qui les initialisent sont des touches mortes.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">L\'application a omis %1$d règle qui modifie le texte lors de la saisie. Aucune touche ici ne l\'active, ou elle correspond à plus de texte qu\'une touche ne peut en saisir.</item>
+        <item quantity="other">L\'application a omis %1$d règles qui modifient le texte lors de la saisie. Aucune touche ici ne les active, ou elles correspondent à plus de texte qu\'une touche ne peut en saisir.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d règle transforme une touche et la suivante en un autre caractère. Ici, ce caractère s\'obtient en appuyant de manière prolongée sur la première touche.</item>
+        <item quantity="other">%1$d règles transforment une touche et la suivante en un autre caractère. Ici, ces caractères s\'obtiennent en appuyant de manière prolongée sur la première touche.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">L\'application a remplacé %1$d touche par la touche la plus proche disponible.</item>
         <item quantity="other">L\'application a remplacé %1$d touches par les touches les plus proches disponibles.</item>

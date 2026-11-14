@@ -23,6 +23,34 @@
         <item quantity="one">%1$d przesunięcie na klawiszu nie ma tutaj zastosowania, ponieważ ta klawiatura używa tego gestu do innego zadania. Aplikacja je usunęła.</item>
         <item quantity="other">%1$d przesunięć na klawiszach nie ma tutaj zastosowania, ponieważ ta klawiatura używa tych gestów do innych zadań. Aplikacja je usunęła.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">Aplikacja pominęła %1$d regułę, która zmienia działanie usuwania. Usuwanie działa tak samo jak w każdym innym układzie tutaj.</item>
+        <item quantity="other">Aplikacja pominęła %1$d reguły, które zmieniają działanie usuwania. Usuwanie działa tak samo jak w każdym innym układzie tutaj.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">Aplikacja usunęła %1$d przesuśnięcie, które zmienia kierunek. Przesuśnięcia na tej klawiaturze odbywają się w jednym kierunku.</item>
+        <item quantity="other">Aplikacja usunęła %1$d przesuśnięć, które zmieniają kierunek. Przesuśnięcia na tej klawiaturze odbywają się w jednym kierunku.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">Aplikacja pominęła %1$d stronę dla klawisza takiego jak Caps Lock lub Ctrl. Ta klawiatura nie ma strony dla tego klawisza.</item>
+        <item quantity="other">Aplikacja pominęła %1$d strony dla klawiszy takich jak Caps Lock lub Ctrl. Ta klawiatura nie ma stron dla tych klawiszy.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">Aplikacja pominęła %1$d regułę umieszczającą znaki w ich zapisanej kolejności. Ta klawiatura pisze znaki w kolejności ich wprowadzania.</item>
+        <item quantity="other">Aplikacja pominęła %1$d reguł umieszczających znaki w ich zapisanej kolejności. Ta klawiatura pisze znaki w kolejności ich wprowadzania.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d reguła dodaje akcent do następnej litery. Tutaj klawisz, który ją uruchamia, to klawisz martwy.</item>
+        <item quantity="other">%1$d reguły dodają akcent do następnej litery. Tutaj klawisze, które je uruchamiają, to klawisze martwe.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">Aplikacja pominęła %1$d regułę zmieniającą tekst podczas pisania. Żaden klawisz tutaj jej nie uruchamia lub pasuje ona do większego tekstu, niż klawisz może wpisać.</item>
+        <item quantity="other">Aplikacja pominęła %1$d reguł zmieniających tekst podczas pisania. Żaden klawisz tutaj ich nie uruchamia lub pasują one do większego tekstu, niż klawisz może wpisać.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d reguła zamienia klucz i następny w inny znak. Tutaj ten znak znajduje się po naciśnięciu i przytrzymaniu pierwszego klawisza.</item>
+        <item quantity="other">%1$d reguły zamieniają klucz i następny w inny znak. Tutaj te znaki znajdują się po naciśnięciu i przytrzymaniu pierwszego klawisza.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Aplikacja zmieniła %1$d klawisz na najbliższy dostępny.</item>
         <item quantity="other">Aplikacja zmieniła %1$d klawiszy na najbliższe dostępne.</item>

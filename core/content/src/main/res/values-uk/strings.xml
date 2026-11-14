@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">Адреса електронної пошти</string>
+    <string name="core_content_clip_entity_email_tag">ЕЛ. ПОШТА</string>
     <string name="core_content_clip_entity_otp_label">Одноразовий код</string>
     <string name="core_content_clip_entity_otp_tag">КОД</string>
     <string name="core_content_clip_entity_phone_label">Номер телефону</string>
@@ -38,6 +40,10 @@
         <item quantity="one">Додаток пропустив %1$d фрагмент, якому нічого вставити.</item>
         <item quantity="other">Додаток пропустив %1$d фрагментів, яким нічого вставити.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d поле форми пропонує список на вибір. Додаток запитує його як введену відповідь із заповненим першим варіантом.</item>
+        <item quantity="other">%1$d полів форми пропонують список на вибір. Додаток запитує кожне з них як введену відповідь із заповненим першим варіантом.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Додаток пропустив %1$d фрагмент, який вставляє зображення.</item>
         <item quantity="other">Додаток пропустив %1$d фрагментів, які вставляють зображення.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d фрагмент використовує значення, для якого в Espanso немає еквівалента. Воно записується як є.</item>
         <item quantity="other">%1$d фрагментів використовують значення, для яких в Espanso немає еквівалента. Вони записуються як є.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d фрагмент вставляє зображення. Текстовий файл не може містити зображення, тому були виведені лише його слова.</item>
+        <item quantity="other">%1$d фрагментів вставляють зображення. Текстовий файл не може містити зображення, тому були виведені лише їхні слова.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">Додаток видалив шаблон з %1$d фрагмента. Додаток не запускає шаблони такого типу. Фрагмент залишається у списку.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">Додаток видалив %1$d тригер, який клавіатура не може відстежувати. Його фрагмент залишається у списку.</item>
         <item quantity="other">Додаток видалив %1$d тригерів, які клавіатура не може відстежувати. Їхні фрагменти залишаються у списку.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">Починається з ===, але не є повним рядком тригера ===. Щоб почати рядок тексту з ===, натомість напишіть \===</string>
+    <string name="core_content_snippet_text_bad_pattern">Шаблон неможливо використати: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s не може бути %2$s</string>
+    <string name="core_content_snippet_text_before_header">Текст перед першим рядком тригера === === ===. Почніть блок з одного або почніть рядок з #</string>
+    <string name="core_content_snippet_text_no_text">Цей фрагмент не містить тексту</string>
+    <string name="core_content_snippet_text_no_trigger">Фрагмент без нічого між позначками 999 потребує рядка @label або @pattern</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">Фрагмент %1$d зображення надійшов як його текст: текстовий файл не містить зображень</item>
+        <item quantity="other">Фрагменти %1$d зображень надійшли як їхній текст: текстовий файл не містить зображень</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">Пропущено фрагмент у рядку %1$d, який містить помилку</string>
+    <string name="core_content_snippet_text_unknown_link">\@link має назву %1$s, і тут немає жодного фрагмента з таким тригером</string>
+    <string name="core_content_snippet_text_unknown_picture">Зображення @picture має назву %1$s, яку не використовує жоден фрагмент. Додайте зображення у власному редакторі фрагмента</string>
+    <string name="core_content_snippet_text_unknown_setting">Клавіатура не знає налаштування %1$s. Щоб розпочати текст фрагмента з @, натомість напишіть \@</string>
     <string name="core_content_snippet_var_app_info">Назва програми, у якій ви вводите текст</string>
+    <string name="core_content_snippet_var_battery_info">Заряд батареї, наприклад 85%</string>
     <string name="core_content_snippet_var_clip_info">Останній запис буфера обміну</string>
     <string name="core_content_snippet_var_cursor_info">Місце, де зупиняється курсор</string>
     <string name="core_content_snippet_var_date_info">Сьогоднішня дата</string>
     <string name="core_content_snippet_var_datetime_info">Дата та час</string>
     <string name="core_content_snippet_var_day_info">День місяця</string>
+    <string name="core_content_snippet_var_greeting_info">Доброго ранку, дня або вечора залежно від часу, мовою клавіатури</string>
     <string name="core_content_snippet_var_isodate_info">Дата у форматі ISO, наприклад 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">Дата та час у форматі ISO</string>
+    <string name="core_content_snippet_var_language_info">Девайс виведе бійсе</string>
     <string name="core_content_snippet_var_month_info">Назва місяця</string>
     <string name="core_content_snippet_var_package_info">Назва пакета цієї програми</string>
     <string name="core_content_snippet_var_selection_info">Текст, який ви виділяєте в полі</string>
+    <string name="core_content_snippet_var_tab_info">Символ табуляції</string>
     <string name="core_content_snippet_var_time12_info">Час зараз у 12-годинному форматі</string>
     <string name="core_content_snippet_var_time_info">Поточний час у 24-годинному форматі</string>
     <string name="core_content_snippet_var_timestamp_info">Час у секундах Unix</string>

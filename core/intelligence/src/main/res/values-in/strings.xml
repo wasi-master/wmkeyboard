@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Model ukuran menengah terbaru yang berpikir sebelum menjawab. Memerlukan perangkat kelas menengah.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Kecil dan cepat. Ini bagus untuk penulisan ulang cepat pada perangkat dasar.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Model yang sangat kecil yang dapat membaca gambar. Model ini mendeskripsikan gambar, tetapi sering kali salah membaca teks dalam tangkapan layar.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">Pelatihan ulang Gemma 4 E4B oleh NVIDIA untuk mengikuti instruksi dan menggunakan alat. Hanya teks, dan memerlukan perangkat yang bertenaga.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Model serbaguna yang tetap muat di perangkat dasar.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Jelas lebih cerdas daripada model di bawah 1B. Membutuhkan perangkat kelas menengah.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Model kecil terbaru. Kualitasnya tinggi untuk ukurannya.</string>

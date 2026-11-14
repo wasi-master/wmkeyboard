@@ -176,6 +176,7 @@
     <string name="ime_ai_error_no_text">வேலை செய்ய எதுவும் இல்லை. முதலில் சில டெக்ஸ்ட்டை டைப் செய்யவும்.</string>
     <string name="ime_ai_error_only_reasoning">மாதிரி முழு பதிலையும் பகுத்தறியப் பயன்படுத்தியது. மீண்டும் முயற்சிக்கவும் அல்லது அமைப்புகளில் “பகுத்தறிவைக் காட்டு” என்பதை இயக்கவும்.</string>
     <string name="ime_ai_error_request_failed">கோரிக்கை வேலை செய்யவில்லை</string>
+    <string name="ime_ai_error_stopped_hidden">விசைப்பலகை மூடப்பட்டதால் நிறுத்தப்பட்டது. அதை மீண்டும் இயக்க முயற்சிக்கவும்.</string>
     <string name="ime_ai_idle_body">செயல்கள் தேர்ந்தெடுக்கப்பட்ட உரையிலோ அல்லது முழு புலத்திலோ இயங்கும். அவை %1$s-ஐப் பயன்படுத்துகின்றன.</string>
     <string name="ime_ai_idle_empty_body">இந்தச் செயல்களைப் பயன்படுத்த உரையைத் தட்டச்சு செய்யவும் அல்லது தேர்ந்தெடுக்கவும். புதிய உரையை எழுத %1$s என்பதை அழுத்தவும்.</string>
     <string name="ime_ai_idle_empty_no_writer_body">இந்தச் செயல்களைப் பயன்படுத்த உரையைத் தட்டச்சு செய்யவும் அல்லது தேர்ந்தெடுக்கவும்.</string>
@@ -307,9 +308,11 @@
     <string name="ime_app_colors_none">இந்தச் செயலியில் வண்ணங்கள் எதுவும் கண்டறியப்படவில்லை</string>
     <string name="ime_app_colors_off_desc">இந்தச் செயலியின் வண்ணங்களைப் பயன்படுத்த வேண்டாம்</string>
     <string name="ime_app_colors_pick_desc">ஆப் நிறம் %1$d</string>
+    <string name="ime_applet_back">பின்னால்</string>
     <string name="ime_applet_close">பெட்டியை மூடு</string>
     <string name="ime_applet_copied">நகலெடுக்கப்பட்டது</string>
     <string name="ime_applet_open_in_keyboard">விசைப்பலகையில் திறக்கவும்</string>
+    <string name="ime_applet_pop_out">மிதக்கும் பெட்டியில் திறக்கவும்</string>
     <string name="ime_applet_resize">அளவை மாற்ற இழுக்கவும்</string>
     <string name="ime_applet_tuck">விளிம்பில் சொருகவும்</string>
     <string name="ime_applet_untuck">%1$s ஐத் திரும்பக் கொண்டு வா</string>
@@ -319,6 +322,33 @@
     <string name="ime_ask_ai_label_vocab">சொற்களஞ்சியம்: %1$s</string>
     <string name="ime_ask_ai_label_wiki">விக்கிப்பீடியா: %1$s</string>
     <string name="ime_autofill_dismiss_desc">தானியங்கி நிரப்புதல் பரிந்துரைகளை மறைக்கவும்</string>
+    <string name="ime_board_copy_desc">இந்த தொலைபேசிக்கு நகலெடு</string>
+    <string name="ime_board_delete_body">பலகையைப் பயன்படுத்தும் ஒவ்வொரு சாதனத்திலிருந்தும் இது நீக்கப்படும். தொலைபேசியின் சொந்த கிளிப்போர்டில் ஏற்கனவே உள்ள நகல்கள் இருக்கும்.</string>
+    <string name="ime_board_delete_desc">பலகையை அகற்று</string>
+    <string name="ime_board_delete_no">ரத்துசெய்</string>
+    <string name="ime_board_delete_title">இந்த கிளிப்பை பலகையிலிருந்து அகற்றவா?</string>
+    <string name="ime_board_delete_yes">அகற்று</string>
+    <string name="ime_board_edit_desc">திருத்து</string>
+    <string name="ime_board_empty_body">இங்கு அனுப்பப்படும் கிளிப்புகள், ஆஃப்லைனில் இருக்கும் சாதனங்கள் உட்பட, ஒரே கோப்புறையைப் பயன்படுத்தும் உங்களது பிற சாதனங்களில் தோன்றும்.</string>
+    <string name="ime_board_empty_title">பலகையில் எதுவும் இல்லை</string>
+    <string name="ime_board_notice_copied">நகலெடுக்கப்பட்டது</string>
+    <string name="ime_board_notice_deleted">பலகையிலிருந்து அகற்றப்பட்டது</string>
+    <string name="ime_board_notice_refused">மறைக்கப்படாத உரை கிளிப்புகள் மட்டுமே பலகையில் செல்ல முடியும்</string>
+    <string name="ime_board_notice_sent">பலகைக்கு அனுப்பப்பட்டது</string>
+    <string name="ime_board_send_desc">கிளிப்பை அனுப்பு</string>
+    <string name="ime_board_send_done">முடிந்தது</string>
+    <string name="ime_board_send_empty">அனுப்ப உரை கிளிப்புகள் எதுவும் இல்லை. படங்கள், கோப்புகள் மற்றும் மறைக்கப்பட்ட கிளிப்புகள் இந்தத் தொலைபேசியில் இருக்கும்.</string>
+    <string name="ime_board_send_one_desc">அனுப்பு</string>
+    <string name="ime_board_send_title">பலகைக்கு அனுப்பவும்</string>
+    <string name="ime_board_sent_desc">அனுப்பப்பட்டது</string>
+    <string name="ime_board_status_failed">பலகையை அடைய முடியவில்லை</string>
+    <string name="ime_board_status_never">இன்னும் சரிபார்க்கப்படவில்லை</string>
+    <string name="ime_board_status_synced">%1$s சரிபார்க்கப்பட்டது</string>
+    <string name="ime_board_status_syncing">பலகையைச் சரிபார்க்கிறது…</string>
+    <string name="ime_board_status_waiting">பலகையை அடையக் காத்திருக்கிறது</string>
+    <string name="ime_board_status_waiting_offline">பலகையை அடைய முடியாது. உங்களால் முடிந்தவுடன் உங்கள் மாற்றங்கள் வெளியிடப்படும்</string>
+    <string name="ime_board_sync_desc">பலகையை இப்போதே சரிபார்க்கவும்</string>
+    <string name="ime_board_title">பகிரப்பட்ட பலகை</string>
     <string name="ime_calc_degrees_label">பாகை</string>
     <string name="ime_calc_insert_action">செருகு</string>
     <string name="ime_calc_radians_label">ரேடியன்</string>
@@ -471,7 +501,9 @@
     </plurals>
     <string name="ime_calendar_untitled">(தலைப்பு இல்லை)</string>
     <string name="ime_calendar_view_agenda">நிகழ்ச்சி நிரல்</string>
+    <string name="ime_calendar_view_day">நாள்</string>
     <string name="ime_calendar_view_month">மாதம்</string>
+    <string name="ime_calendar_weather_desc">%3$s இல் %1$s, %2$s. ஒவ்வொரு மணி நேரத்திற்கான முன்னறிவிப்பைத் திறக்கிறது</string>
     <string name="ime_calendar_yesterday_label">நேற்று</string>
     <string name="ime_calendar_zone_note">%1$s-ல் உள்ள நேரங்கள்</string>
     <string name="ime_camera_captured_photo_desc">நீங்கள் எடுத்த புகைப்படம்</string>
@@ -543,6 +575,7 @@
         <item quantity="one">%1$d கிளிப்பை இணைக்கவும்</item>
         <item quantity="other">%1$d கிளிப்களை இணைக்கவும்</item>
     </plurals>
+    <string name="ime_clip_compose_email">மின்னஞ்சல் எழுது</string>
     <string name="ime_clip_delete_pinned_question">இந்த பின் செய்யப்பட்ட கிளிப்பை நீக்கவா?</string>
     <plurals name="ime_clip_deleted">
         <item quantity="one">கிளிப் நீக்கப்பட்டது</item>
@@ -563,6 +596,7 @@
         <item quantity="other">உங்கள் கிளிப்களில் கண்டறியப்பட்ட %1$d பகுதிகளை காட்டு</item>
     </plurals>
     <string name="ime_clip_extract_codes">ஒருமுறை பயன்படுத்தும் குறியீடுகள்</string>
+    <string name="ime_clip_extract_emails">மின்னஞ்சல் முகவரிகள்</string>
     <string name="ime_clip_extract_links">இணைப்புகள்</string>
     <string name="ime_clip_extract_parts">பிரித்தெடு</string>
     <string name="ime_clip_extract_phones">தொலைபேசி எண்கள்</string>
@@ -589,6 +623,7 @@
         <item quantity="one">மறைக்கப்பட்டது · %1$d எழுத்து</item>
         <item quantity="other">மறைக்கப்பட்டது · %1$d எழுத்துகள்</item>
     </plurals>
+    <string name="ime_clip_image_pasted_toast">கிளிப்ஆர்ட்டிலிருந்து ஒட்டப்பட்டது. எதுவும் வரவில்லை என்றால், இந்தப் பயன்பாடு படங்கள் எடுக்காது: அதைப் பகிர கிளிப்பைப் பிடிக்கவும்</string>
     <string name="ime_clip_info_copied">நகலெடுக்கப்பட்டது</string>
     <string name="ime_clip_info_edited">திருத்தப்பட்டது</string>
     <string name="ime_clip_info_from">இருந்து</string>
@@ -642,7 +677,12 @@
         <item quantity="other">%1$d தேர்ந்தெடுக்கப்பட்டது</item>
     </plurals>
     <string name="ime_clip_send_as_sticker">ஸ்டிக்கராக அனுப்பவும்</string>
+    <string name="ime_clip_shape_code">குறியீடு</string>
+    <string name="ime_clip_shape_markdown">மார்க் டவுன்</string>
+    <string name="ime_clip_share_image">பகிர்</string>
+    <string name="ime_clip_show_formatted">வடிவமைக்கப்பட்டதைக் காட்டு</string>
     <string name="ime_clip_show_in_history">வரலாற்றில் காட்டு</string>
+    <string name="ime_clip_show_raw">இயல்பானதைக் காட்டு</string>
     <string name="ime_clip_tags">குறிச்சொற்கள்</string>
     <string name="ime_clip_tags_placeholder">குறிச்சொற்கள், அவற்றுக்கிடையே கமாவைப் பயன்படுத்தவும்</string>
     <string name="ime_clip_tags_title">குறிச்சொற்கள்</string>
@@ -911,6 +951,7 @@
     <string name="ime_conversion_pack_offer">எழுத்துகளைத் தட்டச்சு செய்ய %1$s-ஐப் பதிவிறக்கவும்</string>
     <string name="ime_conversion_pack_offer_dismiss_desc">நீக்கு</string>
     <string name="ime_converter_from_label">இருந்து</string>
+    <string name="ime_converter_tab_units">அலகுகள்</string>
     <string name="ime_converter_to_label">இதற்கு</string>
     <string name="ime_currency_insert_action">உட்செருகு</string>
     <string name="ime_currency_progress">பரிமாற்ற விகிதங்களைப் பதிவிறக்குகிறது…</string>
@@ -919,6 +960,32 @@
     <string name="ime_currency_section_crypto">கிரிப்டோ</string>
     <string name="ime_currency_section_popular">பொதுவானவை</string>
     <string name="ime_currency_swap_desc">நாணயங்களை மாற்றவும்</string>
+    <string name="ime_custom_button_desc">%1$s திற</string>
+    <string name="ime_custom_button_label">தனிப்பயன் பொத்தான்</string>
+    <string name="ime_custom_button_shortcut_failed">அந்த குறுக்குவழியை திறக்க முடியாது. செயலி நீக்கப்பட்டிருக்கலாம் அல்லது முகப்புத் திரையை மட்டுமே அதைத் திறக்க அனுமதிக்கலாம்.</string>
+    <string name="ime_custom_page_clipboard">கிளிப்போர்டு அமைப்புகள்</string>
+    <string name="ime_custom_page_custom_buttons">தனிப்பயன் பொத்தான்கள்</string>
+    <string name="ime_custom_page_dictionary">அகராதி</string>
+    <string name="ime_custom_page_favourites">விருப்பமானவை</string>
+    <string name="ime_custom_page_home">அமைப்புகள்</string>
+    <string name="ime_custom_page_keypress">ஒலி மற்றும் அதிர்வு</string>
+    <string name="ime_custom_page_languages">மொழிகள்</string>
+    <string name="ime_custom_page_search">அமைப்புகளைத் தேடு</string>
+    <string name="ime_custom_page_themes">தீம்கள்</string>
+    <string name="ime_custom_page_toolbar">கருவிப்பட்டை அமைப்புகள்</string>
+    <string name="ime_custom_page_tools">கருவிகள்</string>
+    <string name="ime_custom_page_typing">தட்டச்சு செய்தல்</string>
+    <string name="ime_custom_toggle_auto_caps">தானியங்கு முதலெழுத்துகள்</string>
+    <string name="ime_custom_toggle_glide">சறுக்கு தட்டச்சு</string>
+    <string name="ime_custom_toggle_key_hints">விசை குறிப்புகள்</string>
+    <string name="ime_custom_toggle_key_popup">விசை பாப்-அப்</string>
+    <string name="ime_custom_toggle_number_row">எண் வரிசை</string>
+    <string name="ime_custom_toggle_reduce_motion">இயக்கத்தைக் குறை</string>
+    <string name="ime_custom_toggle_sound">விசை ஒலி</string>
+    <string name="ime_custom_toggle_suggestions">பரிந்துரைகள்</string>
+    <string name="ime_custom_toggle_symbol_row">சின்ன வரிசை</string>
+    <string name="ime_custom_toggle_toolbar_labels">கருவிப்பட்டை பெயர்கள்</string>
+    <string name="ime_custom_toggle_vibration">அதிர்வு</string>
     <string name="ime_delete_redo_chip">“%1$s” என்பதை மீண்டும் செய்</string>
     <string name="ime_delete_redo_plain">மீண்டும் நீக்கு</string>
     <string name="ime_delete_undo_chip">“%1$s” என்பதைத் தவிர்</string>
@@ -956,6 +1023,7 @@
     <string name="ime_disabled_correction_invalid">திருத்துவதற்கு வேறு சொல்லை உள்ளிடவும். திருத்தப்படும் சொல்லில் குறைந்தது 3 எழுத்துகள் இருக்க வேண்டும், மேலும் திருத்தம் ஒரு சொல்லாக இருக்கலாம் அல்லது விடுபட்ட இடைவெளிக்கு இரண்டு சொற்களாக இருக்கலாம்.</string>
     <string name="ime_disabled_media_app_blocks">இயங்கிக்கொண்டிருக்கும் ஆப் இதை அனுமதிக்கவில்லை.</string>
     <string name="ime_disabled_spell_unchanged">முதலில் எழுத்துப்பிழையை மாற்றவும். காலியாக அல்லது மாற்றப்படாத எழுத்துப்பிழைக்கு எதையும் பயன்படுத்த முடியாது.</string>
+    <string name="ime_disabled_translate_empty_box">பெட்டி காலியாக உள்ளது, அல்லது அதன் மொழிபெயர்ப்பு இன்னும் வழியில் உள்ளது.</string>
     <string name="ime_disabled_translate_nothing">இதுவரை எதுவும் மொழிபெயர்க்கப்படவில்லை. முதலில் மொழிபெயர்க்க வேண்டிய உரையைத் தட்டச்சு செய்யவும் அல்லது ஒட்டவும்.</string>
     <string name="ime_disabled_translate_same_language">நீங்கள் மொழிபெயர்க்க விரும்பும் மொழியிலேயே உரை ஏற்கனவே உள்ளது.</string>
     <string name="ime_disabled_voice_undo">மீட்க எதுவும் இல்லை. நீங்கள் கடைசியாகப் பேசிய சொற்றொடரை மீட்க இந்த அம்சம் உதவும்.</string>
@@ -985,6 +1053,10 @@
     <string name="ime_docscan_next">செதுக்கு</string>
     <string name="ime_docscan_open_settings">அமைப்புகளைத் திற</string>
     <string name="ime_docscan_page_number">பக்கம் %1$d</string>
+    <plurals name="ime_docscan_pages_album">
+        <item quantity="one">பக்கம் செயலியின் பகிர்வுத் திரையில் திறக்கும்</item>
+        <item quantity="other">இந்தச் செயலி இங்கே ஒரு நேரத்தில் ஒரு படத்தை எடுக்கும், எனவே %d பக்கங்களும் அதன் பகிர்வுத் திரையில் ஒன்றாகத் திறக்கப்பட்டு, ஒற்றை ஆல்பமாக அனுப்பப்படும்</item>
+    </plurals>
     <plurals name="ime_docscan_pages_shared">
         <item quantity="one">ஆப்ஸ் கடைசிப் பக்கத்தை இங்கே எடுக்கவில்லை, எனவே அது ஆப்ஸின் பகிர்வுத் திரையில் திறக்கும்</item>
         <item quantity="other">ஆப்ஸ் %d பக்கங்களை இங்கே எடுக்கவில்லை, எனவே அவை ஆப்ஸின் பகிர்வுத் திரையில் ஒன்றாகத் திறக்கும்</item>
@@ -1067,10 +1139,15 @@
     <string name="ime_files_access_pick">ஆண்ட்ராய்டின் தேர்வி</string>
     <string name="ime_files_access_title">விசையகத்தை விட்டு வெளியேறாமல் கோப்புகளைத் தேர்ந்தெடுக்கவும்</string>
     <string name="ime_files_add">சேர்</string>
+    <string name="ime_files_add_tree">கோப்புறையைச் சேர்</string>
+    <string name="ime_files_add_tree_detail">யூ.எஸ்பி டிரைவ், எஸ்டி கார்டு அல்லது நெட்வொர்க் டிரைவ் போன்ற மற்றொரு பயன்பாடு பகிரும் கோப்புறை</string>
+    <string name="ime_files_allow_all">தொலைபேசியின் அனைத்து சேமிப்பகமும்</string>
+    <string name="ime_files_allow_all_detail">Android இன் அனைத்து கோப்புகளுக்கான அணுகல் தேவைப்படுகிறது</string>
     <string name="ime_files_camera">கேமரா</string>
     <string name="ime_files_clear_desc">தேர்வை அழிக்கவும்</string>
     <string name="ime_files_collapse_desc">சுருக்கமாக்கு</string>
     <string name="ime_files_copy_desc">நகலெடு</string>
+    <string name="ime_files_copy_to">%1$s க்கு நகலெடு</string>
     <string name="ime_files_delete_body">கோப்புறைகள் அவற்றுடன் உள்ள அனைத்தையும் எடுத்துச் செல்லும். இது நிரந்தரமானது: கோப்புகளுக்கு ஆண்ட்ராய்டில் மறுசுழற்சி தொட்டி இல்லை.</string>
     <string name="ime_files_delete_desc">நீக்கு</string>
     <string name="ime_files_delete_no">ரத்துசெய்</string>
@@ -1087,8 +1164,11 @@
     <string name="ime_files_expand_desc">நீளமாக்கு</string>
     <string name="ime_files_hide_hidden">மறைக்கப்பட்ட கோப்புகளை மறை</string>
     <string name="ime_files_kde_unreadable">அனுப்புவதற்கு அந்த கோப்பைப் படிக்க முடியவில்லை</string>
+    <string name="ime_files_locked_body">பூட்டுத் திரையின் மீது கோப்பு மேலாளர் திறக்கப்படாது.</string>
+    <string name="ime_files_locked_title">உங்கள் கோப்புகளைப் பார்க்க திறக்கவும்</string>
     <string name="ime_files_more_desc">மேலும்</string>
     <string name="ime_files_move_desc">நகர்த்து</string>
+    <string name="ime_files_move_to">%1$s-க்கு நகர்த்து</string>
     <string name="ime_files_movies">திரைப்படங்கள்</string>
     <string name="ime_files_music">இசை</string>
     <string name="ime_files_new_folder">புதிய கோப்புறை</string>
@@ -1114,6 +1194,8 @@
         <item quantity="one">%d உருப்படி நகர்த்தப்பட்டது</item>
         <item quantity="other">%d உருப்படிகள் நகர்த்தப்பட்டன</item>
     </plurals>
+    <string name="ime_files_notice_tree_removed">கோப்புறை பட்டியலிலிருந்து அகற்றப்பட்டது</string>
+    <string name="ime_files_one_pane_desc">ஒரு பட்டியல்</string>
     <string name="ime_files_op_cancel">நிறுத்து</string>
     <string name="ime_files_op_copy">%2$d இல் %1$d நகலெடுக்கப்படுகிறது</string>
     <string name="ime_files_op_delete">%2$d இல் %1$d நீக்கப்படுகிறது</string>
@@ -1130,6 +1212,9 @@
     <string name="ime_files_pictures">படங்கள்</string>
     <string name="ime_files_places">இடங்கள்</string>
     <string name="ime_files_recent">சமீபத்தியவை</string>
+    <string name="ime_files_remove_tree_body">கோப்புறையும் அதன் கோப்புகளும் இருக்கும் இடத்திலேயே இருக்கும். நீங்கள் அதை எப்போது வேண்டுமானாலும் மீண்டும் சேர்க்கலாம்.</string>
+    <string name="ime_files_remove_tree_title">பட்டியலில் இருந்து \"%1$s\" ஐ அகற்றவா?</string>
+    <string name="ime_files_remove_tree_yes">நீக்கு</string>
     <string name="ime_files_rename_desc">மறுபெயரிடு</string>
     <string name="ime_files_rename_hint">புதிய பெயர்</string>
     <string name="ime_files_search_clear_desc">தேடலை முடிவுக்குக் கொண்டு வா</string>
@@ -1148,6 +1233,7 @@
     <string name="ime_files_title_many">கோப்புகளைத் தேர்ந்தெடு</string>
     <string name="ime_files_title_one">கோப்பைத் தேர்ந்தெடுக்கவும்</string>
     <string name="ime_files_title_picture">ஒரு படத்தைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="ime_files_two_panes_desc">அருகருகே இரண்டு பட்டியல்கள்</string>
     <string name="ime_files_unreadable">இந்தக் கோப்புறையைத் திறக்க ஆண்ட்ராய்டு விசைப்பலகையை அனுமதிக்காது</string>
     <string name="ime_find_case_desc">எழுத்து வகை பொருத்தம்</string>
     <string name="ime_find_clear_desc">%1$s என்பதை அழி</string>
@@ -1179,6 +1265,24 @@
     <string name="ime_floating_category_empty">இந்த வகை காலியாக உள்ளது. மிதக்கும் பொத்தான் அமைப்புகளில் இதில் செயல்களைச் சேர்க்கவும்.</string>
     <string name="ime_floating_category_label">வகை</string>
     <string name="ime_floating_close_menu">மெனுவை மூடு</string>
+    <string name="ime_floating_device_bluetooth">புளூடூத்</string>
+    <string name="ime_floating_device_bluetooth_desc">ப்ளூடூத்தை ஆன் அல்லது ஆஃப் செய்யும்</string>
+    <string name="ime_floating_device_bluetooth_page_desc">ஆண்ட்ராய்டின் புளூடூத் பக்கத்தைத் திறக்கிறது</string>
+    <string name="ime_floating_device_data">மொபைல் டேட்டா</string>
+    <string name="ime_floating_device_data_desc">மொபைல் டேட்டாவை ஆன் அல்லது ஆஃப் செய்யும்</string>
+    <string name="ime_floating_device_data_panel_desc">ஆண்ட்ராய்டின் இணையப் பலகத்தைத் திறக்கிறது</string>
+    <string name="ime_floating_device_failed">Android அதை அனுமதிக்கவில்லை</string>
+    <string name="ime_floating_device_hotspot">ஹாட்ஸ்பாட்</string>
+    <string name="ime_floating_device_hotspot_desc">ஆண்ட்ராய்டின் ஹாட்ஸ்பாட் பக்கத்தைத் திறக்கிறது</string>
+    <string name="ime_floating_device_off">%1$s அணைக்கப்பட்டுள்ளது</string>
+    <string name="ime_floating_device_on">%1$s இயக்கப்பட்டுள்ளது</string>
+    <string name="ime_floating_device_ringer">ரிங்கர் முறை</string>
+    <string name="ime_floating_device_ringer_desc">ரிங், வைபரேட் மற்றும் சைலண்ட், வரிசையாக</string>
+    <string name="ime_floating_device_volume">ஒலி அளவு பேனல்</string>
+    <string name="ime_floating_device_volume_desc">ஒவ்வொரு ஒலி ஸ்லைடருடன் ஆண்ட்ராய்டின் ஒலி பலகையைத் திறக்கிறது</string>
+    <string name="ime_floating_device_wifi">Wi-Fi</string>
+    <string name="ime_floating_device_wifi_desc">Wi-Fi ஐ ஆன் அல்லது ஆஃப் செய்யும்</string>
+    <string name="ime_floating_device_wifi_panel_desc">Android-இன் Wi-Fi பலகத்தைத் திறக்கிறது</string>
     <string name="ime_floating_dismiss_target">பொத்தானை மறைக்க இங்கே விடவும்</string>
     <string name="ime_floating_dock_desc">விசைப்பலகையை டாக் செய்யவும்</string>
     <string name="ime_floating_hide_label">பொத்தானை மறைக்கவும்</string>
@@ -1189,7 +1293,11 @@
     <string name="ime_floating_pair_label">செயலி ஜோடியைத் திற</string>
     <string name="ime_floating_pair_missing">இரண்டு செயலிகளில் ஒன்று இனி நிறுவப்படவில்லை</string>
     <string name="ime_floating_pair_name">%1$s + %2$s</string>
+    <string name="ime_floating_plugin_label">செருகுநிரல்</string>
     <string name="ime_floating_resize_desc">விசைப்பலகையின் அளவை மாற்று</string>
+    <string name="ime_floating_ringer_ring">ரிங்</string>
+    <string name="ime_floating_ringer_silent">அமைதி</string>
+    <string name="ime_floating_ringer_vibrate">அதிர்</string>
     <string name="ime_floating_system_app_drawer">செயலி தராசு</string>
     <string name="ime_floating_system_back">பின் செல்</string>
     <string name="ime_floating_system_notifications">அறிவிப்புகள்</string>
@@ -1247,6 +1355,7 @@
     <string name="ime_gallery_album_camera">கேமரா</string>
     <string name="ime_gallery_album_favorites">பிடித்தவை</string>
     <string name="ime_gallery_album_gifs">GIF-கள்</string>
+    <string name="ime_gallery_album_immich">Immich</string>
     <string name="ime_gallery_album_recents">சமீபத்தியவை</string>
     <string name="ime_gallery_album_screenshots">ஸ்கிரீன்ஷாட்கள்</string>
     <string name="ime_gallery_album_sent">விசைப்பலகையிலிருந்து அனுப்பப்பட்டது</string>
@@ -1338,6 +1447,10 @@
     <string name="ime_gallery_info_taken">எடுக்கப்பட்டது</string>
     <string name="ime_gallery_layer_delete">நீக்கு</string>
     <string name="ime_gallery_more_desc">மேலும் கேலரி விருப்பங்கள்</string>
+    <plurals name="ime_gallery_notice_already_uploaded">
+        <item quantity="one">இம்மிச்சில் ஏற்கனவே %d படம் இருந்தது</item>
+        <item quantity="other">இம்மிச்சில் ஏற்கனவே அனைத்து %d படங்களும் இருந்தன</item>
+    </plurals>
     <plurals name="ime_gallery_notice_copied">
         <item quantity="one">%d உருப்படி நகலெடுக்கப்பட்டது</item>
         <item quantity="other">%d உருப்படிகள் நகலெடுக்கப்பட்டன</item>
@@ -1346,6 +1459,8 @@
         <item quantity="one">%d உருப்படியைப் படிக்க முடியவில்லை</item>
         <item quantity="other">%d உருப்படிகளைப் படிக்க முடியவில்லை</item>
     </plurals>
+    <string name="ime_gallery_notice_immich_failed">உங்கள் Immich சேவையகத்தை அடைய முடியவில்லை</string>
+    <string name="ime_gallery_notice_immich_refused">Immich API விசையை நிராகரித்தது; அதன் அனுமதிகளைச் சரிபார்க்கவும்</string>
     <plurals name="ime_gallery_notice_limit">
         <item quantity="one">நீங்கள் ஒரே நேரத்தில் %d உருப்படியைத் தேர்ந்தெடுக்கலாம்</item>
         <item quantity="other">நீங்கள் ஒரே நேரத்தில் %d உருப்படிகள் வரை தேர்ந்தெடுக்கலாம்</item>
@@ -1366,6 +1481,14 @@
     <plurals name="ime_gallery_notice_shared">
         <item quantity="one">%d உருப்படிக்கான பகிர்வுத் திரையைத் திறந்தது</item>
         <item quantity="other">%d உருப்படிகளுக்கான பகிர்வுத் திரையைத் திறந்தது</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_upload_failed">
+        <item quantity="one">%d படம் பதிவேற்றப்படவில்லை</item>
+        <item quantity="other">%d படங்கள் பதிவேற்றப்படவில்லை</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_uploaded">
+        <item quantity="one">%d படம் Immich க்கு பதிவேற்றப்பட்டது</item>
+        <item quantity="other">%d படங்கள் Immich க்கு பதிவேற்றப்பட்டன</item>
     </plurals>
     <string name="ime_gallery_partial_action">மேலும் தேர்ந்தெடுக்கவும்</string>
     <string name="ime_gallery_partial_body">நீங்கள் சில புகைப்படங்களுக்கு மட்டுமே அனுமதி அளித்துள்ளீர்கள்.</string>
@@ -1409,6 +1532,7 @@
     <string name="ime_gallery_tool_stickers">ஸ்டிக்கர்கள்</string>
     <string name="ime_gallery_tool_text">உரை</string>
     <string name="ime_gallery_tool_upscale">தரம் உயர்த்துதல்</string>
+    <string name="ime_gallery_upload_immich">Immich-க்கு பதிவேற்று</string>
     <string name="ime_gallery_upscale_art">வரைபடம் அல்லது உரை</string>
     <string name="ime_gallery_upscale_done">அப்கேல் செய்யப்பட்டது ×%1$d: %2$d × %3$d</string>
     <string name="ime_gallery_upscale_downloading">ஆப் அப்ஸ்கேலரைப் பெறுகிறது…</string>
@@ -1667,6 +1791,9 @@
     <string name="ime_handwriting_unsupported_info">இந்த ஆப்ஸ் பதிப்பு சீனம் மற்றும் ஜப்பானிய மொழிகளில் கையெழுத்தை மட்டுமே படிக்கும். இங்கே எழுத மொழிகளில் அவற்றில் ஒன்றைச் சேர்க்கவும்.</string>
     <string name="ime_hardware_keys_hide_desc">விசைகளை மறைக்கவும்</string>
     <string name="ime_hardware_keys_show_desc">விசைகளைக் காட்டு</string>
+    <string name="ime_homophones_finish">முதலில் நீங்கள் தட்டச்சு செய்யும் சொத்தை முடிக்கவும்</string>
+    <string name="ime_homophones_none">இந்தப் போனில் %1$s போன்ற ஒலிப்புடன் எதுவும் இல்லை. மொழிப் பொதி அல்லது RIME ஸ்கீமா வாசிப்புகளைச் சேர்க்கிறது.</string>
+    <string name="ime_homophones_none_before">முதலில் ஒரு சீன அல்லது ஜப்பானிய எழுத்தை உள்ளிடவும்</string>
     <string name="ime_hw_pick_mode_off_toast">தேர்வு முறை முடக்கப்பட்டது</string>
     <string name="ime_hw_pick_mode_on_toast">தேர்வு முறை ஆன் செய்யப்பட்டுள்ளது: எண் விசைகள் பரிந்துரைகளைத் தேர்ந்தெடுக்கும், Shift விசையை அழுத்தினால் எண்கள் தட்டச்சு செய்யப்படும்</string>
     <string name="ime_icons_builtin_label">உள்ளமைக்கப்பட்டவை</string>
@@ -1681,6 +1808,45 @@
     <string name="ime_image_search_need_key_body">படத் தேடலுக்கு Brave Search-இலிருந்து ஒரு API சாவி (key) தேவை. இந்த கருவிக்கான அமைப்புகளில் சாவியைச் சேர்க்கவும்.</string>
     <string name="ime_incognito_on_desc">இன்காக்னிட்டோ ஆன் செய்யப்பட்டுள்ளது</string>
     <string name="ime_insert_action">உட்செருகு</string>
+    <string name="ime_invite_about_hint">ஒரு விளக்கத்தைச் சேர்க்கவும்</string>
+    <string name="ime_invite_action">ஆன்லைனில் அழைக்கவும்</string>
+    <string name="ime_invite_add_title">தலைப்பைச் சேர்</string>
+    <string name="ime_invite_error_address">அமைப்புகளில் உள்ள %1$s முகவரி ஒரு வலை முகவரி அல்ல.</string>
+    <string name="ime_invite_error_bad_token">%1$s API டோக்கனை ஏற்கவில்லை.</string>
+    <string name="ime_invite_error_data_saver">டேட்டா சேமிப்பான் இயக்கப்பட்டுள்ளது. வெளியிடுவது சில கிலோபைட்களை அனுப்புகிறது.</string>
+    <string name="ime_invite_error_network">%1$s பதிலளிக்கவில்லை.</string>
+    <string name="ime_invite_error_no_title">அழைப்பிதழுக்கு ஒரு தலைப்பு தேவை.</string>
+    <string name="ime_invite_error_offline">இணைப்பு இல்லை. இணைத்து மீண்டும் முயற்சிக்கவும்.</string>
+    <string name="ime_invite_error_refused">இந்தக் கணக்கு அங்கு நிகழ்வுகளை உருவாக்க முடியாது என்று %1$s கூறுகிறது.</string>
+    <string name="ime_invite_error_rejected">%1$s நிகழ்வை நிராகரித்தார்.</string>
+    <string name="ime_invite_error_signed_out">%1$s உங்களை வெளியேற்றியது. அமைப்புகளில் மீண்டும் உள்நுழையவும்.</string>
+    <string name="ime_invite_fix_in_pretix">ப்ரீடிக்ஸைத் திறக்கவும்</string>
+    <string name="ime_invite_go_ahead">தொடரவும்</string>
+    <string name="ime_invite_insert_link">இணைப்பைச் செருகு</string>
+    <string name="ime_invite_insert_message">அழைப்பிதத்தைச் செருகவும்</string>
+    <string name="ime_invite_link_only">இணைப்பு உள்ளவர்கள் மட்டுமே</string>
+    <string name="ime_invite_listed">பொதுவில் பட்டியலிடப்பட்டது</string>
+    <string name="ime_invite_made">%1$s அன்று உருவாக்கப்பட்டது, பதிவுசெய்தல் இன்னும் திறக்கப்படவில்லை</string>
+    <string name="ime_invite_not_live">Pretix நிகழ்வை உருவாக்கியது ஆனால் பதிவு செய்வதைத் திறக்காது. %1$s</string>
+    <string name="ime_invite_not_set_up_body">முதலில் மொபிலிசானில் உள்நுழைக அல்லது காலண்டர் கருவியின் அமைப்புகளில் பிரெட்டிக்ஸ் சேவையகத்தைச் சேர்க்கவும்.</string>
+    <string name="ime_invite_not_set_up_title">இதுவரை நிகழ்வுச் சேவை இல்லை</string>
+    <string name="ime_invite_note_mobilizon">மக்கள் நிகழ்வுப் பக்கத்தில் பதிவு செய்கிறார்கள். அவர்கள் அவ்வாறு செய்யும்போது Mobilizon உங்களுக்கு மின்னஞ்சல் அனுப்புகிறது.</string>
+    <string name="ime_invite_note_pretix">நிகழ்வு ஒரு இலவச டிக்கெட் பெறுகிறது, எனவே மக்கள் தங்கள் மின்னஞ்சல் முகவரியுடன் அதன் பக்கத்தில் பதிவு செய்கிறார்கள்.</string>
+    <string name="ime_invite_open_page">பக்கத்தைத் திற</string>
+    <string name="ime_invite_open_settings">அமைப்புகள்</string>
+    <string name="ime_invite_place_hint">ஒரு இடத்தை அல்லது இணைப்பைச் சேர்க்கவும்</string>
+    <string name="ime_invite_places_any">வரம்பு இல்லை</string>
+    <string name="ime_invite_places_label">இடங்கள்</string>
+    <string name="ime_invite_post_as">%1$s ஆக இடுகையிடு</string>
+    <string name="ime_invite_post_as_default">உங்கள் சுயவிவரமாக இடுகையிடவும்</string>
+    <string name="ime_invite_post_as_loading">உங்கள் சுயவிவரங்களை ஏற்றுகிறது…</string>
+    <string name="ime_invite_publish">வெளியிடு</string>
+    <string name="ime_invite_published">%1$s இல் வெளியிடப்பட்டது</string>
+    <string name="ime_invite_publishing">வெளியிடப்படுகிறது…</string>
+    <string name="ime_invite_publishing_to">%1$s இல் வெளியிடுகிறது</string>
+    <string name="ime_invite_ticket_name">பதிவுபெறு</string>
+    <string name="ime_invite_title">ஆன்லைனில் அழைக்கவும்</string>
+    <string name="ime_invite_try_again">மீண்டும் முயற்சிக்கவும்</string>
     <string name="ime_kaomoji_add">ஒரு காமோஜியைச் சேர்க்கவும்</string>
     <string name="ime_kaomoji_all">அனைத்தும்</string>
     <string name="ime_kaomoji_cancel">ரத்துசெய்</string>
@@ -1968,6 +2134,7 @@
     <string name="ime_learn_text_action">உரையை அறியவும்</string>
     <string name="ime_learn_word_never_desc">%1$s என்பதை ஒருபோதும் கற்க வேண்டாம்</string>
     <string name="ime_learn_word_offer">\"%1$s\" என்பதைச் சேர்க்கவா?</string>
+    <string name="ime_legacy_font_output">பழைய எழுத்துரு வெளியீடு</string>
     <string name="ime_level_no_sensor_empty">உங்கள் சாதனத்தில் முடுக்கமானி (accelerometer) இல்லை.</string>
     <string name="ime_location_address_failed">இங்கே முகவரி இல்லை. ஆயத்தொலைவுகள் இன்னும் வேலை செய்கின்றன.</string>
     <string name="ime_location_address_looking">முகவரியைத் தேடுகிறது…</string>
@@ -2140,6 +2307,29 @@
         <item quantity="other">%d குறிப்புகள் காப்பகப்படுத்தப்பட்டன</item>
     </plurals>
     <string name="ime_notes_archived_badge">காப்பகப்படுத்தப்பட்டது</string>
+    <string name="ime_notes_assist_deck_action">படிப்புத் தொகுப்பை உருவாக்கு</string>
+    <plurals name="ime_notes_assist_deck_action_count">
+        <item quantity="one">படிப்புத் தொகுப்பை உருவாக்கு (%d அட்டை)</item>
+        <item quantity="other">படிப்புத் தொகுப்பை உருவாக்கு (%d அட்டைகள்)</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_empty_toast">அட்டைகளை உருவாக்க அர்த்தங்களுடன் கூடிய சொற்கள் இல்லை</string>
+    <plurals name="ime_notes_assist_deck_made_toast">
+        <item quantity="one">%1$d அட்டையுடன் \"%2$s\" ஆய்வு டெக் உருவாக்கப்பட்டது. அதை சொற்களஞ்சியத்தில் காண்க.</item>
+        <item quantity="other">%1$d அட்டைகளுடன் \"%2$s\" ஆய்வு டெக் உருவாக்கப்பட்டது. அதை சொற்களஞ்சியத்தில் காண்க.</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_working_toast">படிப்புத் தொகுப்பை உருவாக்குகிறது…</string>
+    <string name="ime_notes_assist_details_label">முக்கிய விவரங்கள்</string>
+    <string name="ime_notes_assist_heading_busy">தலைப்பை யோசிக்கிறது…</string>
+    <string name="ime_notes_assist_heading_dismiss_desc">இந்தத் தலைப்பு அல்ல</string>
+    <string name="ime_notes_assist_heading_suggestion">தலைப்பு: %1$s</string>
+    <string name="ime_notes_assist_heading_use_action">பயன்படுத்து</string>
+    <string name="ime_notes_assist_related_label">தொடர்புடையவை</string>
+    <string name="ime_notes_assist_remind_chip">எனக்கு நினைவூட்டு: %1$s · %2$s</string>
+    <string name="ime_notes_assist_reminders_label">வரவிருக்கிறது</string>
+    <string name="ime_notes_assist_summarize_action">சுருக்கு</string>
+    <string name="ime_notes_assist_summarize_again_action">மீண்டும்</string>
+    <string name="ime_notes_assist_summary_busy">உங்கள் தொலைபேசியில் சுருக்கமளிக்கிறது…</string>
+    <string name="ime_notes_assist_summary_label">சுருக்கம்</string>
     <string name="ime_notes_body_hint">ஒரு குறிப்பை எழுதவும்... மார்க் டவுன் வேலை செய்யும்: **தடித்த எழுத்து**, - பட்டியல்கள், - [ ] பணிகள்</string>
     <string name="ime_notes_collapse_desc">விசைப்பலகை உயரத்திற்குத் திரும்பவும்</string>
     <string name="ime_notes_confirm_action">உறுதிப்படுத்த மீண்டும் தட்டவும்</string>
@@ -2188,6 +2378,7 @@
     <string name="ime_notes_no_match">“%1$s” உடன் எந்தக் குறிப்பும் பொருந்தவில்லை.</string>
     <string name="ime_notes_passage_desc">%1$s லிருந்து. செருக தட்டவும், குறிப்பைத் திறக்க அழுத்திப் பிடிக்கவும்.</string>
     <string name="ime_notes_passages_section">பத்திகள்</string>
+    <string name="ime_notes_paste_desc">ஒட்டு</string>
     <string name="ime_notes_pin_action">பின் செய்யவும்</string>
     <string name="ime_notes_pinned_section">Pin செய்யப்பட்டது</string>
     <string name="ime_notes_restore_action">மீட்டமை</string>
@@ -2221,6 +2412,29 @@
     <string name="ime_otp_chip_dismiss_desc">குறியீட்டை மறைக்கவும்</string>
     <string name="ime_panel_back_desc">விசைப்பலகைக்குத் திரும்பவும்</string>
     <string name="ime_panel_over_keys_height_desc">விசைகளுக்கு மேலே உள்ள பேனலின் உயரம். மேலே அல்லது கீழே இழுக்கவும்</string>
+    <string name="ime_paperless_card_also_field">உரை பெட்டியிலும் பக்கங்களை வைக்கவும்</string>
+    <string name="ime_paperless_card_correspondent">தொடர்பாளர்</string>
+    <string name="ime_paperless_card_field_only">உரைப் பெட்டி மட்டும்</string>
+    <string name="ime_paperless_card_loading">சேவையகத்திலிருந்து உங்கள் குறிச்சொற்களைப் பெறுகிறது…</string>
+    <string name="ime_paperless_card_name">தலைப்பு</string>
+    <string name="ime_paperless_card_name_hint">விருப்பத்தேர்வு. காலியாக விட்டால், பேப்பர்லெஸ் இதற்கு பெயரிடும்.</string>
+    <string name="ime_paperless_card_none">எதுவுமில்லை</string>
+    <string name="ime_paperless_card_offline">சேவையகத்தை இப்போது அடைய முடியாது. ஸ்கேன் உங்கள் இயல்புநிலை குறிச்சொற்களுடன் தொலைபேசியில் காத்திருக்கும் மற்றும் முடிந்ததும் பதிவேற்றும்.</string>
+    <string name="ime_paperless_card_offline_cached">சேவையகத்தை இப்போது அடைய முடியாது; இவை முன்பிருந்த அதன் பட்டியல்களாகும். ஸ்கேன் செய்தவுடன் அது பதிவேற்றப்படும்.</string>
+    <string name="ime_paperless_card_one_pdf">அனைத்து பக்கங்களும் ஒரே PDF-ல்</string>
+    <plurals name="ime_paperless_card_pages">
+        <item quantity="one">%d பக்கம்</item>
+        <item quantity="other">%d பக்கங்கள்</item>
+    </plurals>
+    <string name="ime_paperless_card_send">அனுப்பு</string>
+    <string name="ime_paperless_card_tags">டேகுகள்</string>
+    <string name="ime_paperless_card_title">காகிதமற்றவற்றுக்கு அனுப்பு</string>
+    <string name="ime_paperless_card_type">ஆவண வகை</string>
+    <string name="ime_paperless_queue_failed">பேப்பర్‌லெஸ் ஸ்கேன் வைத்திருக்க முடியவில்லை</string>
+    <plurals name="ime_paperless_queued">
+        <item quantity="one">பேப்பర్‌லெஸ்க்கு செல்லும் வழியில் %d ஆவணம் உள்ளது. இணைப்பு கிடைத்தவுடன் இது பதிவேற்றப்படும்.</item>
+        <item quantity="other">பேப்பర్‌லெஸ்க்கு செல்லும் வழியில் %d ஆவணங்கள் உள்ளன. இணைப்பு கிடைத்தவுடன் இவை பதிவேற்றப்படும்.</item>
+    </plurals>
     <string name="ime_password_add_digit_label">எண்ணைச் சேர்க்கவும்</string>
     <string name="ime_password_capitalize_label">பெரிய எழுத்துகள்</string>
     <string name="ime_password_copied_toast">கிளிப்போர்டுக்கு நகலெடுக்கப்பட்டது</string>
@@ -2239,11 +2453,27 @@
     <string name="ime_password_tab_pin">PIN</string>
     <string name="ime_password_words_label">சொற்கள்</string>
     <string name="ime_phonetic_word_list_offer">சிறந்த சொற்களுக்கு %1$s சொல் பட்டியலைப் பெறவும்</string>
+    <string name="ime_plugin_access_mark">இந்த செருகுநிரல் இணையத்தைப் பயன்படுத்தலாம் அல்லது நீங்கள் எழுதுவதைப் படிக்கலாம்</string>
+    <string name="ime_plugin_action_settings">அமைப்புகளும் அனுமதிகளும்</string>
+    <string name="ime_plugin_action_toolbar_add">கருவிப்பட்டையில் சேர்</string>
+    <string name="ime_plugin_action_toolbar_remove">கருவிப்பட்டையிலிருந்து அகற்று</string>
+    <string name="ime_plugin_action_toolbox_add">கருவிப்பெட்டியில் சேர்</string>
+    <string name="ime_plugin_action_toolbox_remove">கருவிப்பெட்டியிலிருந்து அகற்று</string>
+    <string name="ime_plugin_action_turn_off">அணை</string>
+    <string name="ime_plugin_action_turn_on">இயக்கு</string>
+    <string name="ime_plugin_clock_alarm_set">%1$s கடிகாரத்தில் %2$s மணிக்கு அலாரம் அமைத்தது</string>
+    <string name="ime_plugin_clock_timer_set">%1$s கடிகாரத்தில் %2$s டைமரைத் தொடங்கியது</string>
     <string name="ime_plugin_empty_body">செருகுநிரல் என்பது சாண்ட்பாக்ஸில் உள்ள ஒரு சிறிய கருவியாகும். நீங்கள் ஆட்-ஆன் களஞ்சியத்திலிருந்தோ அல்லது .wmplugin கோப்பிலிருந்தோ செருகுநிரல்களைச் சேர்க்கலாம். ஒரு செருகுநிரலால் நீங்கள் தட்டச்சு செய்வதைப் பார்க்க முடியாது.</string>
     <string name="ime_plugin_empty_title">இதுவரை செருகுநிரல்கள் இல்லை</string>
     <string name="ime_plugin_manage_action">செருகுநிரல்களை நிர்வகிக்கவும்</string>
+    <string name="ime_plugin_more">%1$s க்கான கூடுதல் விருப்பங்கள்</string>
+    <string name="ime_plugin_permission_allow">அனுமதி</string>
+    <string name="ime_plugin_permission_deny">அமதிக்க வேண்டாம்</string>
+    <string name="ime_plugin_permission_risky_note">இது செருகுநிரல்களுக்கான ஆபத்தான அனுமதிகளையும் இயக்குகிறது. அமைப்புகளில் உள்ள செருகுநிரலின் பக்கத்தில் எதை வேண்டுமானாலும் மீண்டும் அணைக்கலாம்.</string>
+    <string name="ime_plugin_permission_title">%1$s அனுமதிக்க:</string>
     <string name="ime_plugin_version_label">பதிப்பு %1$s</string>
     <string name="ime_power_saving_on_desc">மின் சேமிப்பு ஆன் செய்யப்பட்டுள்ளது</string>
+    <string name="ime_privacy_shade_hint">கடைசி வரிகளைக் காண கைப்பிடியை மேலே இழுக்கவும்</string>
     <string name="ime_provider_choose_desc">வழங்குநரைத் தேர்ந்தெடுக்கவும்</string>
     <string name="ime_punct_ampersand">ஆம்பெர்சண்ட் (&amp;)</string>
     <string name="ime_punct_apostrophe">அபோஸ்ட்ரோபி</string>
@@ -2377,6 +2607,8 @@
     <string name="ime_resize_move_desc">விசைப்பலகையை மேலே அல்லது கீழே நகர்த்த இழுக்கவும்</string>
     <string name="ime_resize_reset">மீட்டமை</string>
     <string name="ime_resize_right_handle_desc">விசைப்பலகையின் வலதுபுறத்தில் உள்ள இடைவெளியை மாற்ற இழுக்கவும்</string>
+    <string name="ime_resize_toolbar_handle">கருவிப்பட்டை</string>
+    <string name="ime_resize_toolbar_handle_desc">கருவிப்பட்டையின் உயரத்தை மாற்ற மேலே அல்லது கீழே இழுக்கவும்</string>
     <string name="ime_retype_button">மீண்டும் தட்டச்சு செய்க</string>
     <string name="ime_retype_button_desc">கர்சரில் உள்ள சொல்லை மீண்டும் தட்டச்சு செய்யவும்</string>
     <string name="ime_retype_button_nothing">மறு தட்டச்சு செய்ய வார்த்தைகள் இல்லை. ஒரு வார்த்தைக்குப் பிறகு கர்சரை வைக்கவும்.</string>
@@ -2431,8 +2663,10 @@
     <string name="ime_scanner_torch_desc">டார்ச்</string>
     <string name="ime_scanner_translate_action">மொழிபெயர்க்கவும்</string>
     <string name="ime_screen_capture_desc">திரையைப் படம்பிடிக்கவும்</string>
+    <string name="ime_screen_capture_progress">திரையைப் படம்பிடிக்கிறது…</string>
     <string name="ime_search_attribution_brave">Brave வழியாக</string>
     <string name="ime_search_attribution_left">%1$s · %2$s 왼쪽</string>
+    <string name="ime_search_attribution_mwmbl">Mwmbl மூலம்</string>
     <string name="ime_search_attribution_tavily">Tavily வழியாக</string>
     <string name="ime_search_in_browser_desc">உலாவியில் தேடு</string>
     <string name="ime_search_menu_copy_link">இணைப்பை நகலெடு</string>
@@ -2442,6 +2676,7 @@
     <string name="ime_search_no_more">மேலும் முடிவுகள் இல்லை</string>
     <string name="ime_search_tab_all">அனைத்தும்</string>
     <string name="ime_search_tab_images">படங்கள்</string>
+    <string name="ime_second_toolbar_empty">கருவிப்பெட்டி அல்லது கருவிப்பட்டையிலிருந்து ஒரு கருவியை இங்கே இழுக்கவும்</string>
     <string name="ime_selection_ask_ai">AI-யிடம் கேள்</string>
     <string name="ime_selection_macro_ai_translate_label">AI மொழிபெயர்ப்பு</string>
     <string name="ime_selection_macro_back_desc">தேர்வுச் செயல்களுக்குத் திரும்பவும்</string>
@@ -2740,6 +2975,8 @@
     <string name="ime_service_incognito_off_toast">இன்காக்னிட்டோ முடக்கப்பட்டுள்ளது</string>
     <string name="ime_service_incognito_on_toast">இன்காக்னிட்டோ பயன்முறையில் உள்ளது. நீங்கள் தட்டச்சு செய்வதை விசைப்பலகை கற்றுக்கொள்ளாது.</string>
     <string name="ime_service_incognito_switch_toast">இன்காக்னிட்டோ பயன்முறையில் உள்ளது. அதை அணைக்க இன்காக்னிட்டோ கருவியைத் தட்டவும்</string>
+    <string name="ime_service_legacy_font_off_toast">யூனிகோட் எழுதப்படுகிறது</string>
+    <string name="ime_service_legacy_font_on_toast">%1$s எழுத்துருவிற்காக எழுதுகிறது</string>
     <string name="ime_service_media_download_error_toast">பதிவிறக்கம் வேலை செய்யவில்லை. உங்கள் இணைப்பைச் சரிபார்க்கவும்.</string>
     <string name="ime_service_media_fetch_error">விசைப்பலகையால் முடிவுகளைப் பெற முடியவில்லை</string>
     <string name="ime_service_mode_tool_order_toast">விசைப்பலகை %1$s பயன்முறைக்கான கருவி வரிசையைச் சேமித்தது. பிற செயலிகள் அவற்றின் சொந்த வரிசையைப் பராமரிக்கின்றன.</string>
@@ -2763,6 +3000,7 @@
     <string name="ime_service_power_saving_on_empty_toast">மின் சேமிப்பு ஆன் செய்யப்பட்டுள்ளது. நிறுத்த எந்த அம்சமும் அமைக்கப்படவில்லை.</string>
     <string name="ime_service_power_saving_on_toast">மின் சேமிப்பு ஆன் செய்யப்பட்டுள்ளது</string>
     <string name="ime_service_power_saving_still_on_toast">மின் சேமிப்பு ஆன் செய்யப்பட்டுள்ளது. பேட்டரி தூண்டுதல் ஆன் செய்யப்பட்டுள்ளது.</string>
+    <string name="ime_service_privacy_shade_floating_toast">தனியுரிமை நிழல் நங்கூரமிடப்பட்ட விசைப்பலகையுடன் வேலை செய்கிறது. முதலில் விசைப்பலகையை நங்கூரமிடவும்.</string>
     <string name="ime_service_qr_error">விசைப்பலகையால் QR குறியீட்டை உருவாக்க முடியாது</string>
     <string name="ime_service_resize_floating_toast">விசைப்பலகையை மறுஅளவிட அதை இணைக்கவும்</string>
     <string name="ime_service_search_error">தேடல் வேலை செய்யவில்லை</string>
@@ -2823,6 +3061,7 @@
     <string name="ime_smart_repeat_count">×%1$s</string>
     <string name="ime_smart_repeat_offer">“%1$s” என்பதை மீண்டும் செய்யவும்</string>
     <string name="ime_smart_replies_dismiss_desc">ஸ்மார்ட் பதில்களை மறைக்கவும்</string>
+    <string name="ime_smart_search_offer">%1$s: “%2$s”</string>
     <string name="ime_smart_send_link">கோப்பை பெறு</string>
     <string name="ime_smart_translate_offer">மொழிபெயர்க்கவும்</string>
     <string name="ime_smart_vocab_daily">இன்றைய சொல்: %1$s ›</string>
@@ -2832,6 +3071,12 @@
     <string name="ime_smart_vocab_word">%1$s ›</string>
     <string name="ime_smart_weather_tap">முன்னறிவிப்பைப் பெறுங்கள்</string>
     <string name="ime_smart_wiki_word">விக்கிப்பீடியாவில் “%1$s”</string>
+    <string name="ime_snippet_ask_cancel_desc">துணுக்கு ரத்துசெய்</string>
+    <string name="ime_snippet_ask_done_desc">துணுக்கு செருகவும்</string>
+    <string name="ime_snippet_ask_hint">%1$s ஐ தட்டச்சு செய்யவும்</string>
+    <string name="ime_snippet_ask_next_desc">அடுத்த புலம்</string>
+    <string name="ime_snippet_ask_step_label">%1$s %2$d/%3$d</string>
+    <string name="ime_snippet_image_desc">படத் துணுக்கு %1$s</string>
     <string name="ime_snippet_offer_back_desc">%1$s-க்குத் திரும்பவும்</string>
     <string name="ime_snippet_offer_desc">துணுக்கைச் செருகவும் %1$s</string>
     <string name="ime_snippet_offer_more_desc">%1$s-லிருந்து மேலும்</string>
@@ -2942,6 +3187,7 @@
     <string name="ime_suggestion_hold_label">சொல் விருப்பங்கள்</string>
     <string name="ime_suggestion_never_suggest">\"%1$s\" என்பதை ஒருபோதும் பரிந்துரைக்க வேண்டாம்</string>
     <string name="ime_suggestion_pages_close">விசைகளுக்குத் திரும்பு</string>
+    <string name="ime_suggestion_pattern_still_hides">கறுப்புப்பட்டியல் மாதிரி \"%1$s\" ஐ இன்னும் மறைக்கிறது. பரிந்துரை கறுப்புப்பட்டியலின் கீழ் அதைத் திருத்தவும்.</string>
     <string name="ime_suggestion_rank_badge">\"%1$s\" தரம் %2$s</string>
     <string name="ime_suggestion_rank_unchanged">\"%1$s\" மாற்றப்படவில்லை</string>
     <string name="ime_suggestions_show_desc">பரிந்துரை பட்டையைக் காட்டு</string>
@@ -2971,6 +3217,8 @@
     <string name="ime_synonyms_title">\"%1$s\"-க்கான ஒத்த சொற்கள்</string>
     <string name="ime_textedit_delete_line_desc">வரியை நீக்கு</string>
     <string name="ime_textedit_delete_line_forward_desc">முன்னோக்கிய வரியை நீக்கு</string>
+    <string name="ime_textedit_delete_to_end_desc">முடிவுவரை நீக்கு</string>
+    <string name="ime_textedit_delete_to_start_desc">தொடக்கம் வரை நீக்கு</string>
     <string name="ime_textedit_delete_word_desc">சொற்களை நீக்கு</string>
     <string name="ime_textedit_delete_word_forward_desc">முன்னால் உள்ள சொல்லை நீக்கு</string>
     <string name="ime_textedit_doc_end_desc">உரையின் முடிவிற்குச் செல்லவும்</string>
@@ -2989,6 +3237,7 @@
     <string name="ime_textedit_select_label">தேர்ந்தெடு</string>
     <string name="ime_textedit_select_line_desc">வரியைத் தேர்ந்தெடுக்கவும்</string>
     <string name="ime_textedit_select_word_desc">சொல்லைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="ime_textedit_type_clipboard_desc">கிளிப்வார்டைத் தட்டச்சு செய்க</string>
     <string name="ime_textedit_up_desc">மேலே நகர்த்தவும்</string>
     <string name="ime_textedit_word_left_desc">ஒரு வார்த்தையை இடதுபுறம் நகர்த்தவும்</string>
     <string name="ime_textedit_word_right_desc">ஒரு சொல் வலதுபுறம் நகர்த்தவும்</string>
@@ -3066,6 +3315,7 @@
     <string name="ime_tool_calculator">கணக்கீட்டுக் கருவி</string>
     <string name="ime_tool_calendar">காலண்டர்</string>
     <string name="ime_tool_camera">கேமரா</string>
+    <string name="ime_tool_clear_field">அனைத்தையும் நீக்கு</string>
     <string name="ime_tool_clipboard">கிளிப்போர்டு</string>
     <string name="ime_tool_clipboard_search">கிளிப்போர்டு தேடல்</string>
     <string name="ime_tool_clock">கடிகாரம்</string>
@@ -3082,11 +3332,13 @@
     <string name="ime_tool_cursor_word_right">சொல் வலதுபுறம்</string>
     <string name="ime_tool_custom_layout">தனிப்பயன் தளவமைப்பு</string>
     <string name="ime_tool_cut">வெட்டு</string>
+    <string name="ime_tool_debug_info">பிழைத்திருத்தத் தகவல்</string>
     <string name="ime_tool_dictionary">அகராதி</string>
     <string name="ime_tool_doc_scan">ஆவண ஸ்கேன்</string>
     <string name="ime_tool_emoji">ஈமோஜி</string>
     <string name="ime_tool_emoji_mix">ஈமோஜி கலவைகள்</string>
     <string name="ime_tool_fancy">அலங்கார உரை</string>
+    <string name="ime_tool_files">கோப்புகள்</string>
     <string name="ime_tool_find_replace">கண்டுபிடித்து மாற்றவும்</string>
     <string name="ime_tool_flashlight">பிளாஷ்லைட்</string>
     <string name="ime_tool_floating">மிதக்கும்</string>
@@ -3096,6 +3348,7 @@
     <string name="ime_tool_handwriting">கையெழுத்து</string>
     <string name="ime_tool_hide_keyboard">மறை</string>
     <string name="ime_tool_home_assistant">ஸ்மார்ட் ஹோம்</string>
+    <string name="ime_tool_homophones">ஒரே ஒலி</string>
     <string name="ime_tool_image_search">படங்கள்</string>
     <string name="ime_tool_incognito">இன்காக்னிட்டோ</string>
     <string name="ime_tool_language">மொழி</string>
@@ -3122,6 +3375,7 @@
     <string name="ime_tool_picker_leader">%1$s, பிறகு:</string>
     <string name="ime_tool_plugins">செருகுநிரல்கள்</string>
     <string name="ime_tool_power_saving">மின் சேமிப்பு</string>
+    <string name="ime_tool_privacy_shade">தனியுரிமை நிழல்</string>
     <string name="ime_tool_qr_gen">QR குறியீடு</string>
     <string name="ime_tool_qr_scan">QR ஸ்கேன்</string>
     <string name="ime_tool_quick_note">விரைவு குறிப்பு</string>
@@ -3146,6 +3400,7 @@
     <string name="ime_tool_text_edit">உரை திருத்தம்</string>
     <string name="ime_tool_text_repeat">மீண்டும் செய்</string>
     <string name="ime_tool_themes">தீம்கள்</string>
+    <string name="ime_tool_timestamp">நேர முத்திரை</string>
     <string name="ime_tool_todo">செய்ய வேண்டியவை பட்டியல்</string>
     <string name="ime_tool_trackpad">ட்ராக்பேட்</string>
     <string name="ime_tool_translate">மொழிபெயர்</string>
@@ -3203,12 +3458,14 @@
     <string name="ime_translate_engine_online_info">ஆன்லைன் சேவையைப் பயன்படுத்துகிறது.</string>
     <string name="ime_translate_hint">மொழிபெயர்க்க வேண்டிய உரையைத் தட்டச்சு செய்யவும்…</string>
     <string name="ime_translate_idle">நீங்கள் தட்டச்சு செய்யும்போது மொழிபெயர்ப்பு இங்கே தோன்றும்.</string>
+    <string name="ime_translate_idle_manual">முழு உரையையும் தட்டச்சு செய்து, மொழிபெயர் என்பதைத் தட்டவும். அதற்கு முன் எதுவும் அனுப்பப்படாது.</string>
     <string name="ime_translate_module_failed_error">Google Play பதிவிறக்கத்தை வழங்கவில்லை. இணைப்பைச் சரிபார்த்து, மீண்டும் முயற்சிக்கவும். மீண்டும் தோல்வியுற்றால், அமைப்புகள், கருவிகள், மொழிபெயர்ப்பு என்பதிலிருந்து பதிவிறக்கவும்.</string>
     <string name="ime_translate_module_installing_action">பதிவிறக்குகிறது…</string>
     <string name="ime_translate_module_missing_body">சாதனத்திலேயே மொழிபெயர்த்தல் என்பது Google Play-லிருந்து வரும் விசைப்பலகையின் கூடுதல் பகுதியாகும். இணைப்பு இல்லாமலேயே மொழிபெயர்க்க இதைப் பதிவிறக்கவும்.</string>
     <string name="ime_translate_need_models_body">சாதனத்தில் மொழிபெயர்க்க, இதைத் தரவிறக்கவும்: %1$s. சுமார் %2$s.</string>
     <string name="ime_translate_nllb_licence_accept_action">ஏற்றுக்கொண்டு பதிவிறக்கவும்</string>
     <string name="ime_translate_nllb_licence_body">NLLB-200, மெட்டாவின் உரிமத்தின் கீழ் ஹக்கிங் ஃபேஸிலிருந்து (Hugging Face) வருகிறது, கிரியேட்டிவ் காமன்ஸ் அட்ரிபியூஷன்-நான்-கமர்ஷியல் 4.0: வணிக நோக்கமற்ற பயன்பாட்டிற்கு மட்டுமே, உத்தரவாதம் ஏதுமில்லை. இதை ஏற்றுக்கொண்டு பதிவிறக்க மீண்டும் அழுத்தவும்.</string>
+    <string name="ime_translate_now_action">மொழிபெயர்</string>
     <string name="ime_translate_offline_build_error">இந்த ஆஃப்லைன் உருவாக்கத்தால் இந்தப் போனில் மொழிபெயர்க்க முடியாது: இதன் ஒரு இன்ஜினான Firefox Translations-க்கு Android 9 அல்லது அதற்குப் பிந்தைய பதிப்புள்ள 64-பிட் போன் தேவைப்படுகிறது. மொழிபெயர்க்க, நிலையான உருவாக்கத்தை நிறுவவும்.</string>
     <string name="ime_translate_offline_failed_error">சாதனத்திலேயான மொழிபெயர்ப்பு தொடங்கவில்லை. மீண்டும் முயற்சிக்கவும் அல்லது ஆன்லைன் இன்ஜினைத் தேர்ந்தெடுக்கவும்.</string>
     <string name="ime_translate_offline_import_body">இந்த ஆஃப்லைன் உருவாக்கத்தால் பதிவிறக்க முடியாது. இதை மொழிபெயர்க்க, இவற்றை மற்றொரு சாதனத்தில் பெற்று இறக்குமதி செய்யவும்: %1$s. அமைப்புகள் › கருவிகள் › மொழிபெயர் › வழங்குநர்கள் › சாதனத்தில் (பயர்பாக்ஸ் மொழிபெயர்ப்புகள்) என்பதைத் திறக்கவும்.</string>
@@ -3224,6 +3481,7 @@
     <string name="ime_translate_select_source_desc">மூல மொழியைத் தேர்ந்தெடுக்கவும்</string>
     <string name="ime_translate_server_label">உங்கள் சர்வர்</string>
     <string name="ime_translate_source_guessed_label">%1$s?</string>
+    <string name="ime_translate_speak_desc">மொழிபெயர்ப்பை உரக்கப் படிக்கவும்</string>
     <string name="ime_translate_swap_desc">மொழிகளை மாற்றவும்</string>
     <string name="ime_typing_accuracy_label">துல்லியம்</string>
     <string name="ime_typing_accuracy_short_label">துல்லியம்</string>
@@ -3344,6 +3602,10 @@
     <string name="ime_voice_model_get_language_action">ஆஃப்லைனில் குரல் மூலம் தட்டச்சு செய்ய %1$s-ஐப் பெறவும்</string>
     <string name="ime_voice_permission_action">மைக்ரோஃபோனை அனுமதிக்கவும்</string>
     <string name="ime_voice_permission_body">குரல் தட்டச்சுக்கு மைக்ரோஃபோனைப் பயன்படுத்த அனுமதி தேவை. நீங்கள் பேசும்போது மட்டுமே ஆப்ஸ் ஆடியோவை பதிவு செய்யும்.</string>
+    <string name="ime_voice_prompt_fix_custom">குரல் தட்டச்சு அமைப்புகளில் கேட்க வேண்டிய கூடுதல் வார்த்தைகளில் சிலவற்றை அகற்றவும் அல்லது தூண்டுதலைக் குறைக்கவும்.</string>
+    <string name="ime_voice_prompt_fix_personal">குரல் தட்டச்சு அமைப்புகளில் எனது சொற்களைக் கேட்கும் வசதியை அணைக்கவும் அல்லது ப்ராம்ப்ட்டைக் குறைக்கவும.</string>
+    <string name="ime_voice_prompt_fix_prompt">குரல் தட்டச்சு அமைப்புகளில் சேவையகத்தின் திரையில் உள்ள உடனடிச் செய்தியை %1$d எழுத்துகளுக்குக் குறைவாகக் குறைக்கவும்.</string>
+    <string name="ime_voice_prompt_too_long">இந்தச் சேவையகம் %2$d எழுத்துகள் வரை உள்ள ப்ராம்ப்ட்டை ஏற்கும், இது %1$d ஆகும்: ப்ராம்ப்ட் %3$d, கேட்க வேண்டிய கூடுதல் சொற்கள் %4$d, என் சொற்களைக் கேட்கவும் %5$d.</string>
     <string name="ime_voice_secure_field_notice">கடவுச்சொல் புலங்களில் குரல் தட்டச்சு வேலை செய்யாது.</string>
     <string name="ime_voice_server_metered_ask">தரவுச் சேமிப்பு (Data saver) ஆன் செய்யப்பட்டுள்ளது. உங்கள் குரலை மொபைல் டேட்டா மூலம் அனுப்ப மீண்டும் மைக்ரோஃபோனை அழுத்தவும்.</string>
     <string name="ime_voice_server_metered_blocked">நீங்கள் மொபைல் டேட்டாவில் இருக்கும்போது உரைமாற்ற சர்வர் அணைக்கப்படும். இதை அமைப்புகளில், டேட்டா சேவர் பிரிவில் மாற்றலாம்.</string>
@@ -3383,6 +3645,12 @@
     <string name="ime_voice_use_system_action">சிஸ்டம் ரெகக்னைசரைப் பயன்படுத்தவும்</string>
     <string name="ime_weather_clouds_label">மேகமூட்டம்</string>
     <string name="ime_weather_error">ஆப்ஸால் வானிலையைப் பதிவிறக்க முடியவில்லை. உங்கள் நெட்வொர்க்கைச் சரிபார்க்கவும்.</string>
+    <string name="ime_weather_event_back_desc">காலண்டருக்குத் திரும்பு</string>
+    <string name="ime_weather_event_home_place">%1$s (உங்கள் வானிலை இருப்பிடம்)</string>
+    <string name="ime_weather_event_home_unnamed">உங்கள் வானிலை இருப்பிடம்</string>
+    <string name="ime_weather_event_hour_desc">%1$s: %2$s, %3$s, மழைக்கான வாய்ப்பү %4$s</string>
+    <string name="ime_weather_event_no_hours">வானிலை முன்னறிவிப்பு இந்த நாளை இன்னும் அடையவில்லை.</string>
+    <string name="ime_weather_event_rain_info">%1$d%% மழை பெய்ய வாய்ப்புள்ளது</string>
     <string name="ime_weather_feels_like_label">உணரப்படும் வெப்பநிலை</string>
     <string name="ime_weather_high_low_info">அதிகபட்சம் %1$d° குறைந்தபட்சம் %2$d°</string>
     <string name="ime_weather_humidity_label">ஈரப்பதம்</string>
@@ -3498,6 +3766,7 @@
     <string name="ime_wmpass_no_password">WM பாஸ் கடவுச்சொல்லை உருவாக்கவில்லை. பெட்டகம் பூட்டப்பட்டிருக்கலாம்.</string>
     <string name="ime_wmpass_no_username">இந்த உள்நுழைவுக்கு நிரப்ப பயனர் பெயர் இல்லை.</string>
     <string name="ime_wmpass_no_vault">WM Pass இல் இன்னும் பெட்டகம் இல்லை. முதலில் அங்கு ஒன்றை உருவாக்கவும்.</string>
+    <string name="ime_wmpass_not_released">WM Pass இன்னும் வெளியிடப்படவில்லை. வெளியிடப்பட்டு நிறுவப்பட்டதும் இந்த கருவி வேலை செய்யத் தொடங்கும்.</string>
     <string name="ime_wmpass_not_set">அமைக்கப்படவில்லை</string>
     <string name="ime_wmpass_off">இதைப் பயன்படுத்த, அமைப்புகள், பாதுகாப்பின் கீழ் WM Pass-ஐ நிரப்ப WM விசைப்பலகையை அனுமதி என்பதை இயக்கவும்.</string>
     <string name="ime_wmpass_open">WM பாஸைத் திற</string>

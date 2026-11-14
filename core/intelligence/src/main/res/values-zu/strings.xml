@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Imodeli yosayizi ophakathi nendawo ecabanga ngaphambi kokuphendula. Idinga idivayisi esezingeni eliphakathi.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Incane futhi iyashesha. Ilungele ukubhala kabusha okusheshayo kudivayisi eyisisekelo.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Imodeli encane kakhulu engakwazi ukufunda izithombe. Ichaza isithombe, kodwa ivame ukufunda kabi umbhalo osesithombeni-skrini.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">Ukuqeqeshwa kabusha kwe-NVIDIA kwe-Gemma 4 E4B yokulandela imiyalelo nokusebenzisa amathuluzi. Umbhalo kuphela, futhi udinga idivayisi enamandla.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Imodeli ejwayelekile esangena kudivayisi eyisisekelo.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Ihlakaniphe ngokusobala kunezinhlobo ezingaphansi kuka-1B. Idinga idivayisi esezingeni eliphakathi.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Imodeli encane yakamuva. Izinga liphezulu kakhulu ngosayizi wayo.</string>

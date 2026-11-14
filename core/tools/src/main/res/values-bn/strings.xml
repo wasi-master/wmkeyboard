@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">হ্যালো</string>
     <string name="core_tools_media_category_laugh">হাসি</string>
     <string name="core_tools_media_category_love">ভালোবাসা</string>
+    <string name="core_tools_media_category_memes">মিমস</string>
     <string name="core_tools_media_category_no">না</string>
     <string name="core_tools_media_category_party">পার্টি</string>
     <string name="core_tools_media_category_reactions">রিঅ্যাকশন</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">একটি মোঝি সার্ভার: গুগল, ডিপএল, ডাকডাকগো, ইয়ানডেক্স এবং রিভার্সোর জন্য একটি ফ্রি ফ্রন্ট এন্ড। ইঞ্জিন নির্বাচন করুন। ডিপএল এবং রিভার্সোর জন্য একটি সোর্স ল্যাঙ্গুয়েজ প্রয়োজন।</string>
     <string name="core_tools_provider_music_server">আপনার নিজস্ব রিকগনিশন সার্ভার</string>
     <string name="core_tools_provider_music_server_desc">আপনার চালানো একটি সার্ভার যা AudD-এর মতো উত্তর দেয়: ক্লিপটি একটি ফাইল হিসেবে পোস্ট করা হয় এবং গানটি JSON হিসেবে ফিরে আসে। এর পেছনে Panako বা Olaf-এর মতো ফিঙ্গারপ্রিন্টার ব্যবহার করুন।</string>
+    <string name="core_tools_provider_mwmbl_desc">নিজস্ব ইনডেক্স সহ একটি বিনামূল্যে, অলাভজনক সার্চ ইঞ্জিন। কোনো কি নেই। শুধুমাত্র ওয়েব ফলাফল, কোনো ছবি নেই।</string>
     <string name="core_tools_provider_nllb">ডিভাইসে (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">CTranslate2-এ মেটার NLLB-200 মডেল ব্যবহার করে ফোনে অনুবাদ করে: ২০০টি ভাষা, যেকোনো দুটির মধ্যে, যে জোড়াগুলো অন্য ইঞ্জিন করতে পারে না। ৬৩০ এমবি-র একটি ডাউনলোড, এবং একটি বাক্য অনুবাদ করতে কয়েক সেকেন্ড সময় লাগে। আপনার টেক্সট ফোনেই থাকে। মডেলটি শুধুমাত্র অ-বাণিজ্যিক ব্যবহারের জন্য লাইসেন্সপ্রাপ্ত (CC BY-NC 4.0)। ৬ জিবি বা তার বেশি মেমরিযুক্ত ৬৪-বিট ফোন প্রয়োজন।</string>
     <string name="core_tools_provider_none_on">কোনো প্রোভাইডার চালু নেই। এই টুলের সেটিংসে গিয়ে একটি চালু করুন।</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">এই তালিকা</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">কীগুলো দেখান বা লুকান</string>
     <string name="core_tools_shortcut_leader_double_tap">%1$s দুইবার চাপুন</string>
+    <string name="core_tools_speak_no_voice">এটি পড়ার জন্য এই ফোনে কোনো %1$s ভয়েস নেই। অ্যান্ড্রয়েডের টেক্সট-টু-স্পিচ সেটিংসে একটি যোগ করুন, অথবা Tools › Read back-এর অধীনে একটি অফলাইন ভয়েস ডাউনলোড করুন।</string>
     <string name="core_tools_symbol_category_arrows_label">তীর চিহ্ন</string>
     <string name="core_tools_symbol_category_currency_label">মুদ্রা</string>
     <string name="core_tools_symbol_category_fractions_label">ভগ্নাংশ</string>
     <string name="core_tools_symbol_category_greek_label">গ্রিক</string>
     <string name="core_tools_symbol_category_math_label">গণিত</string>
+    <string name="core_tools_symbol_category_music_label">সঙ্গীত</string>
     <string name="core_tools_symbol_category_other_label">অন্যান্য</string>
     <string name="core_tools_symbol_category_punctuation_label">বিরামচিহ্ন</string>
     <string name="core_tools_symbol_category_shapes_label">আকৃতি এবং তারা</string>
+    <string name="core_tools_symbol_category_stars_label">তারা</string>
     <string name="core_tools_symbol_category_superscript_label">সুপারস্ক্রিপ্ট</string>
+    <string name="core_tools_symbol_category_technical_label">প্রযুক্তিগত</string>
+    <string name="core_tools_symbol_category_weather_label">আবহাওয়া</string>
     <string name="core_tools_symbol_set_coding_label">কোডিং</string>
     <string name="core_tools_symbol_set_email_label">ইমেইল</string>
     <string name="core_tools_symbol_set_math_label">গণিত</string>

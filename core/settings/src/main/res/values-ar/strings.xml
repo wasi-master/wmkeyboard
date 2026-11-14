@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">الشريط، والكبسولة، والمفاتيح</string>
     <string name="core_settings_glide_commit_scope_pill_label">شريط وفقاعة</string>
     <string name="core_settings_glide_commit_scope_strip_label">شريط</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">بعد التراجع</string>
+    <string name="core_settings_glide_drawn_letters_off_label">إيقاف</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">عند عدم التأكد</string>
     <string name="core_settings_glide_engine_built_in_label">مدمج</string>
     <string name="core_settings_glide_engine_futo_label">FUTO Swipe (الإنجليزية، QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">مكتبة الإيماءات الخاصة بـ Google (مستوردة)</string>

@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">ਈਮੇਲ ਪਤਾ</string>
+    <string name="core_content_clip_entity_email_tag">ਈਮੇਲ</string>
     <string name="core_content_clip_entity_otp_label">ਵਨ-ਟਾਈਮ ਕੋਡ</string>
     <string name="core_content_clip_entity_otp_tag">ਕੋਡ</string>
     <string name="core_content_clip_entity_phone_label">ਫੋਨ ਨੰਬਰ</string>
@@ -38,6 +40,9 @@
         <item quantity="one">ਐਪ ਨੇ %1$d ਸਨਿੱਪਟ ਛੱਡ ਦਿੱਤਾ ਜਿਸ ਵਿੱਚ ਪਾਉਣ ਲਈ ਕੁਝ ਨਹੀਂ ਹੈ।</item>
         <item quantity="other">ਐਪ ਨੇ %1$d ਸਨਿੱਪਟ ਛੱਡ ਦਿੱਤੇ ਜਿਨ੍ਹਾਂ ਵਿੱਚ ਪਾਉਣ ਲਈ ਕੁਝ ਨਹੀਂ ਹੈ।</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d ਫਾਰਮ ਫੀਲਡ ਚੁਣਨ ਲਈ ਇੱਕ ਸੂਚੀ ਪ੍ਰਦਾਨ ਕਰਦਾ ਹੈ। ਐਪ ਇਸਨੂੰ ਟਾਈਪ ਕੀਤੇ ਜਵਾਬ ਵਜੋਂ ਮੰਗਦੀ ਹੈ, ਜਿਸ ਵਿੱਚ ਪਹਿਲੀ ਪਸੰਦ ਭਰੀ ਹੁੰਦੀ ਹੈ।</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">ਐਪ ਨੇ %1$d ਸਨਿੱਪਟ ਨੂੰ ਛੱਡ ਦਿੱਤਾ ਹੈ ਜੋ ਇੱਕ ਤਸਵੀਰ ਪਾਉਂਦਾ ਹੈ।</item>
         <item quantity="other">ਐਪ ਨੇ %1$d ਸਨਿੱਪਟਾਂ ਨੂੰ ਛੱਡ ਦਿੱਤਾ ਹੈ ਜੋ ਤਸਵੀਰਾਂ ਪਾਉਂਦੇ ਹਨ।</item>
@@ -57,6 +62,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d ਸਨਿੱਪਟ ਇੱਕ ਅਜਿਹੇ ਮੁੱਲ ਦੀ ਵਰਤੋਂ ਕਰਦਾ ਹੈ ਜਿਸਦਾ Espanso ਕੋਲ ਕੋਈ ਬਰਾਬਰ ਨਹੀਂ ਹੈ। ਇਸਨੂੰ ਜਿਵੇਂ ਹੈ ਉਵੇਂ ਹੀ ਲਿਖਿਆ ਗਿਆ ਹੈ।</item>
         <item quantity="other">%1$d ਸਨਿੱਪਟ ਅਜਿਹੇ ਮੁੱਲਾਂ ਦੀ ਵਰਤੋਂ ਕਰਦੇ ਹਨ ਜਿਨ੍ਹਾਂ ਦਾ Espanso ਕੋਲ ਕੋਈ ਬਰਾਬਰ ਨਹੀਂ ਹੈ। ਉਹ ਜਿਵੇਂ ਹਨ ਉਵੇਂ ਹੀ ਲਿਖੇ ਗਏ ਹਨ।</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d ਸਨਿਪਟ ਇੱਕ ਤਸਵੀਰ ਪਾਉਂਦੀ ਹੈ। ਇੱਕ ਟੈਕਸਟ ਫ਼ाइल ਤਸਵੀਰ ਨੂੰ ਨਹੀਂ ਰੱਖ ਸਕਦੀ, ਇਸ ਲਈ ਸਿਰਫ਼ ਇਸ ਦੇ ਸ਼ਬਦ ਬਾਹਰ ਗਏ।</item>
+        <item quantity="other">%1$d ਸਨਿਪਟ ਤਸਵੀਰਾਂ ਪਾਉਂਦੀਆਂ ਹਨ। ਇੱਕ ਟੈਕਸਟ ਫ਼ाइल ਤਸਵੀਰਾਂ ਨੂੰ ਨਹੀਂ ਰੱਖ ਸਕਦੀ, ਇਸ ਲਈ ਸਿਰਫ਼ ਉਨ੍ਹਾਂ ਦੇ ਸ਼ਬਦ ਬਾਹਰ ਗਏ।</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">ਐਪ ਨੇ %1$d ਸਨਿੱਪਟ ਤੋਂ ਪੈਟਰਨ ਹਟਾ ਦਿੱਤਾ ਹੈ। ਐਪ ਉਸ ਆਕਾਰ ਦੇ ਪੈਟਰਨ ਨਹੀਂ ਚਲਾਉਂਦੀ। ਸਨਿੱਪਟ ਸੂਚੀ ਵਿੱਚ ਰਹਿੰਦਾ ਹੈ।</item>
@@ -197,17 +206,35 @@
         <item quantity="one">ਐਪ ਨੇ %1$d ਟ੍ਰਿਗਰ ਹਟਾ ਦਿੱਤਾ ਹੈ ਜਿਸਨੂੰ ਕੀਬੋਰਡ ਨਹੀਂ ਦੇਖ ਸਕਦਾ। ਇਸਦਾ ਸਨਿੱਪਟ ਸੂਚੀ ਵਿੱਚ ਰਹਿੰਦਾ ਹੈ।</item>
         <item quantity="other">ਐਪ ਨੇ %1$d ਟ੍ਰਿਗਰ ਹਟਾ ਦਿੱਤੇ ਹਨ ਜਿਨ੍ਹਾਂ ਨੂੰ ਕੀਬੋਰਡ ਨਹੀਂ ਦੇਖ ਸਕਦਾ। ਉਹਨਾਂ ਦੇ ਸਨਿੱਪਟ ਸੂਚੀ ਵਿੱਚ ਰਹਿੰਦੇ ਹਨ।</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">=== ਨਾਲ ਸ਼ੁਰੂ ਹੁੰਦਾ ਹੈ ਪਰ ਇੱਕ ਪੂਰਾ === ਟਰਿਗਰ === ਲਾਈਨ ਨਹੀਂ ਹੈ। ਟੈਕਸਟ ਦੀ ਲਾਈਨ ਨੂੰ === ਨਾਲ ਸ਼ੁਰੂ ਕਰਨ ਲਈ, ਇਸ ਦੀ ਬਜਾਏ \=== ਲਿਖੋ</string>
+    <string name="core_content_snippet_text_bad_pattern">ਪੈਟਰਨ ਦੀ ਵਰਤੋਂ ਨਹੀਂ ਕੀਤੀ ਜਾ ਸਕਦੀ: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s %2$s ਨਹੀਂ ਹੋ ਸਕਦਾ</string>
+    <string name="core_content_snippet_text_before_header">सलगर दा सरवनल संदेश</string>
+    <string name="core_content_snippet_text_no_text">ਇਸ ਸਨੀਪਟ ਵਿੱਚ ਕੋਈ ਟੈਕਸਟ ਨਹੀਂ ਹੈ</string>
+    <string name="core_content_snippet_text_no_trigger">=== ਨਿਸ਼ਾਨਾਂ ਵਿਚਕਾਰ ਬਿਨਾਂ ਕਿਸੇ ਚੀਜ਼ ਵਾਲੇ ਸਨਿੱਪਟ ਨੂੰ @label ਜਾਂ @pattern ਲਾਈਨ ਦੀ ਲੋੜ ਹੁੰਦੀ ਹੈ</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d ਤਸਵੀਰ ਸਨਿੱਪਟ ਇਸਦੇ ਟੈਕਸਟ ਵਜੋਂ ਆਈ: ਇੱਕ ਟੈਕਸਟ ਫਾਈਲ ਵਿੱਚ ਕੋਈ ਤਸਵੀਰ ਨਹੀਂ ਹੁੰਦੀ</item>
+        <item quantity="other">%1$d ਤਸਵੀਰ ਸਨਿੱਪਟਾਂ ਉਹਨਾਂ ਦੇ ਟੈਕਸਟ ਵਜੋਂ ਆਈਆਂ: ਇੱਕ ਟੈਕਸਟ ਫਾਈਲ ਵਿੱਚ ਕੋਈ ਤਸਵੀਰ ਨਹੀਂ ਹੁੰਦੀ</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">ਲਾਈਨ %1$d \'ਤੇ ਸਨੀਪਟ ਛੱਡ ਦਿੱਤੀ ਗਈ ਹੈ, ਜਿਸ ਵਿੱਚ ਇੱਕ ਗਲਤੀ ਹੈ</string>
+    <string name="core_content_snippet_text_unknown_link">\@link ਦਾ ਨਾਮ %1$s ਹੈ, ਅਤੇ ਇੱਥੇ ਕਿਸੇ ਵੀ ਸਨਿਪਟ ਕੋਈ ਟ੍ਰਿਗਰ ਨਹੀਂ ਹੈ</string>
+    <string name="core_content_snippet_text_unknown_picture">\@picture ਦਾ ਨਾਮ %1$s ਹੈ, ਜਿਸਦੀ ਵਰਤੋਂ ਕੋਈ ਵੀ ਸਨਿਪਟ ਨਹੀਂ ਕਰਦੀ ਹੈ। ਸਨਿਪਟ ਦੇ ਆਪਣੇ ਸੰਪਾਦਕ ਵਿੱਚ ਤਸਵੀਰਾਂ ਸ਼ਾਮਲ ਕਰੋ</string>
+    <string name="core_content_snippet_text_unknown_setting">ਕੀਬੋਰਡ ਨੂੰ %1$s ਸੈਟਿੰਗ ਨਹੀਂ ਪਤਾ। ਕਿਸੇ ਸਨਿਪਟ ਦੇ ਟੈਕਸਟ ਨੂੰ @ ਨਾਲ ਸ਼ੁਰੂ ਕਰਨ ਲਈ, ਇਸ ਦੀ ਬਜਾਏ \@ ਲਿਖੋ</string>
     <string name="core_content_snippet_var_app_info">ਉਸ ਐਪ ਦਾ ਨਾਮ ਜਿਸ ਵਿੱਚ ਤੁਸੀਂ ਟਾਈਪ ਕਰਦੇ ਹੋ</string>
+    <string name="core_content_snippet_var_battery_info">ਬੈਟਰੀ ਚਾਰਜ, ਉਦਾਹਰਣ ਵਜੋਂ 85%</string>
     <string name="core_content_snippet_var_clip_info">ਸਭ ਤੋਂ ਨਵੀਂ ਕਲਿੱਪਬੋਰਡ ਐਂਟਰੀ</string>
     <string name="core_content_snippet_var_cursor_info">ਉਹ ਥਾਂ ਜਿੱਥੇ ਕਰਸਰ ਰੁਕਦਾ ਹੈ</string>
     <string name="core_content_snippet_var_date_info">ਅੱਜ ਦੀ ਮਿਤੀ</string>
     <string name="core_content_snippet_var_datetime_info">ਮਿਤੀ ਅਤੇ ਸਮਾਂ</string>
     <string name="core_content_snippet_var_day_info">ਮਹੀਨੇ ਦਾ ਦਿਨ</string>
+    <string name="core_content_snippet_var_greeting_info">ਕੀਬੋਰਡ ਦੀ ਭਾਸ਼ਾ ਵਿੱਚ, ਸਮੇਂ ਦੇ ਹਿਸਾਬ ਨਾਲ ਸ਼ੁਭ ਸਵੇਰ, ਦੁਪਹਿਰ ਜਾਂ ਸ਼ਾਮ</string>
     <string name="core_content_snippet_var_isodate_info">ISO ਰੂਪ ਵਿੱਚ ਮਿਤੀ, ਉਦਾਹਰਨ ਲਈ 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">ISO ਰੂਪ ਵਿੱਚ ਮਿਤੀ ਅਤੇ ਸਮਾਂ</string>
+    <string name="core_content_snippet_var_language_info">ਕੀਬੋਰਡ ਦੀ ਭਾਸ਼ਾ ਜਿਸ ਵਿੱਚ ਤੁਸੀਂ ਟਾਈਪ ਕਰਦੇ ਹੋ</string>
     <string name="core_content_snippet_var_month_info">ਮਹੀਨੇ ਦਾ ਨਾਮ</string>
     <string name="core_content_snippet_var_package_info">ਉਸ ਐਪ ਦਾ ਪੈਕੇਜ ਨਾਮ</string>
     <string name="core_content_snippet_var_selection_info">ਫੀਲਡ ਵਿੱਚ ਤੁਹਾਡੇ ਦੁਆਰਾ ਚੁਣਿਆ ਗਿਆ ਟੈਕਸਟ</string>
+    <string name="core_content_snippet_var_tab_info">ਇੱਕ ਟੈਬ ਅੱਖਰ</string>
     <string name="core_content_snippet_var_time12_info">12-ਘੰਟੇ ਦੇ ਰੂਪ ਵਿੱਚ ਹੁਣ ਦਾ ਸਮਾਂ</string>
     <string name="core_content_snippet_var_time_info">24-ਘੰਟੇ ਦੇ ਰੂਪ ਵਿੱਚ ਹੁਣ ਦਾ ਸਮਾਂ</string>
     <string name="core_content_snippet_var_timestamp_info">Unix ਸਕਿੰਟਾਂ ਵਿੱਚ ਸਮਾਂ</string>

@@ -176,6 +176,7 @@
     <string name="ime_ai_error_no_text">Pole midagi, millega töötada. Sisesta esmalt teksti.</string>
     <string name="ime_ai_error_only_reasoning">Mudel kasutas kogu vastust arutlemiseks. Proovi uuesti või lülita seadetes sisse „Näita arutluskäiku“.</string>
     <string name="ime_ai_error_request_failed">Päring ei õnnestunud</string>
+    <string name="ime_ai_error_stopped_hidden">Peatatud, kuna klaviatuur suleti. Uuesti käivitamiseks proovi uuesti.</string>
     <string name="ime_ai_idle_body">Toimingud käivitatakse valitud tekstil või kogu väljal. Need kasutavad %1$s.</string>
     <string name="ime_ai_idle_empty_body">Nende toimingute kasutamiseks tippige või valige tekst. Vajutage %1$s uue teksti kirjutamiseks.</string>
     <string name="ime_ai_idle_empty_no_writer_body">Nende toimingute kasutamiseks tippige või valige tekst.</string>
@@ -307,9 +308,11 @@
     <string name="ime_app_colors_none">Selles rakenduses värve ei leitud</string>
     <string name="ime_app_colors_off_desc">Ära kasuta selle rakenduse värve</string>
     <string name="ime_app_colors_pick_desc">Rakenduse värv %1$d</string>
+    <string name="ime_applet_back">Tagasi</string>
     <string name="ime_applet_close">Sulge kast</string>
     <string name="ime_applet_copied">Kopeeritud</string>
     <string name="ime_applet_open_in_keyboard">Ava klaviatuuris</string>
+    <string name="ime_applet_pop_out">Ava ujuvas aknas</string>
     <string name="ime_applet_resize">Suuruse muutmiseks lohista</string>
     <string name="ime_applet_tuck">Paiguta serva</string>
     <string name="ime_applet_untuck">Tooge tagasi %1$s</string>
@@ -319,6 +322,33 @@
     <string name="ime_ask_ai_label_vocab">Sõnavara: %1$s</string>
     <string name="ime_ask_ai_label_wiki">Vikipeedia: %1$s</string>
     <string name="ime_autofill_dismiss_desc">Peida automaatse täitmise soovitused</string>
+    <string name="ime_board_copy_desc">Kopeeri sellesse telefoni</string>
+    <string name="ime_board_delete_body">See eemaldatakse igast seadmest, mis tahvlit kasutab. Telefoni enda lõikelaual olevad koopiad jäävad alles.</string>
+    <string name="ime_board_delete_desc">Eemalda tahvel</string>
+    <string name="ime_board_delete_no">Tühista</string>
+    <string name="ime_board_delete_title">Kas eemaldada see lõige tahvlilt?</string>
+    <string name="ime_board_delete_yes">Võta maha</string>
+    <string name="ime_board_edit_desc">Muuda</string>
+    <string name="ime_board_empty_body">Siia saadetud lõikepuhvri kirjed kuvatakse teie teistes seadmetes, mis kasutavad sama kausta, isegi kui need on praegu võrguühenduseta.</string>
+    <string name="ime_board_empty_title">Tahvlil pole midagi</string>
+    <string name="ime_board_notice_copied">Kopeeritud</string>
+    <string name="ime_board_notice_deleted">Tahvlilt eemaldatud</string>
+    <string name="ime_board_notice_refused">Tahvlile saab lisada ainult peitmata tekstilõike</string>
+    <string name="ime_board_notice_sent">Saadetud tahvlile</string>
+    <string name="ime_board_send_desc">Saada lõigatud osa</string>
+    <string name="ime_board_send_done">Valmis</string>
+    <string name="ime_board_send_empty">Saadetavaid tekstiväljalõikeid pole. Pildid, failid ja peidetud väljalõiked jäävad sellesse telefoni.</string>
+    <string name="ime_board_send_one_desc">Saada</string>
+    <string name="ime_board_send_title">Saada tahvlile</string>
+    <string name="ime_board_sent_desc">Saadetud</string>
+    <string name="ime_board_status_failed">Tahvlile ei pääse ligi</string>
+    <string name="ime_board_status_never">Pole veel kontrollitud</string>
+    <string name="ime_board_status_synced">Kontrollitud %1$s</string>
+    <string name="ime_board_status_syncing">Tahvli kontrollimine…</string>
+    <string name="ime_board_status_waiting">Oodatakse tahvlile jõudmist</string>
+    <string name="ime_board_status_waiting_offline">Tahvliga ei saa ühendust. Teie muudatused saadetakse teele, kui ühendus taastub</string>
+    <string name="ime_board_sync_desc">Kontrolli tahvlit kohe</string>
+    <string name="ime_board_title">Jagatud tahvel</string>
     <string name="ime_calc_degrees_label">kraadi</string>
     <string name="ime_calc_insert_action">Sisesta</string>
     <string name="ime_calc_radians_label">rad</string>
@@ -471,7 +501,9 @@
     </plurals>
     <string name="ime_calendar_untitled">(Pealkirjata)</string>
     <string name="ime_calendar_view_agenda">Päevakava</string>
+    <string name="ime_calendar_view_day">Päev</string>
     <string name="ime_calendar_view_month">Kuu</string>
+    <string name="ime_calendar_weather_desc">%1$s, %2$s kohas %3$s. Avab prognoosi iga tunni kohta</string>
     <string name="ime_calendar_yesterday_label">Eile</string>
     <string name="ime_calendar_zone_note">Ajad ajavööndis %1$s</string>
     <string name="ime_camera_captured_photo_desc">Teie tehtud foto</string>
@@ -543,6 +575,7 @@
         <item quantity="one">Ühenda %1$d lõik</item>
         <item quantity="other">Ühenda %1$d lõiku</item>
     </plurals>
+    <string name="ime_clip_compose_email">Koosta e-kiri</string>
     <string name="ime_clip_delete_pinned_question">Kustutada see kinnitatud lõik?</string>
     <plurals name="ime_clip_deleted">
         <item quantity="one">Lõige kustutatud</item>
@@ -563,6 +596,7 @@
         <item quantity="other">Kuva %1$d osa, mis leiti teie lõikudest</item>
     </plurals>
     <string name="ime_clip_extract_codes">Ühekordsed koodid</string>
+    <string name="ime_clip_extract_emails">E-posti aadressid</string>
     <string name="ime_clip_extract_links">Lingid</string>
     <string name="ime_clip_extract_parts">Eralda</string>
     <string name="ime_clip_extract_phones">Telefoninumbrid</string>
@@ -589,6 +623,7 @@
         <item quantity="one">Peidetud · %1$d märk</item>
         <item quantity="other">Peidetud · %1$d märki</item>
     </plurals>
+    <string name="ime_clip_image_pasted_toast">Kleebitud lõikelaualt. Kui midagi ei tulnud, ei tee see rakendus pilte: klipi jagamiseks hoidke seda all</string>
     <string name="ime_clip_info_copied">Kopeeritud</string>
     <string name="ime_clip_info_edited">Muudetud</string>
     <string name="ime_clip_info_from">Allikas</string>
@@ -642,7 +677,12 @@
         <item quantity="other">%1$d valitud</item>
     </plurals>
     <string name="ime_clip_send_as_sticker">Saada kleebisena</string>
+    <string name="ime_clip_shape_code">Kood</string>
+    <string name="ime_clip_shape_markdown">Markdown</string>
+    <string name="ime_clip_share_image">Jaga</string>
+    <string name="ime_clip_show_formatted">Kuva vormindatud</string>
     <string name="ime_clip_show_in_history">Kuva ajaloos</string>
+    <string name="ime_clip_show_raw">Kuva toorandmed</string>
     <string name="ime_clip_tags">Sildid</string>
     <string name="ime_clip_tags_placeholder">Sildid, komadega eraldatud</string>
     <string name="ime_clip_tags_title">Sildid</string>
@@ -912,6 +952,7 @@
     <string name="ime_conversion_pack_offer">Laadi alla %1$s märkide sisestamiseks</string>
     <string name="ime_conversion_pack_offer_dismiss_desc">Loobu</string>
     <string name="ime_converter_from_label">Alates</string>
+    <string name="ime_converter_tab_units">Ühikud</string>
     <string name="ime_converter_to_label">Kuhu</string>
     <string name="ime_currency_insert_action">Sisesta</string>
     <string name="ime_currency_progress">Laadin valuutakursse alla…</string>
@@ -920,6 +961,32 @@
     <string name="ime_currency_section_crypto">Krüpto</string>
     <string name="ime_currency_section_popular">Levinud</string>
     <string name="ime_currency_swap_desc">Vaheta valuutad</string>
+    <string name="ime_custom_button_desc">Ava %1$s</string>
+    <string name="ime_custom_button_label">Kohandatud nupp</string>
+    <string name="ime_custom_button_shortcut_failed">Seda otseteed ei saa avada. Rakendus võib olla eemaldatud või lubab seda avada ainult avakuvalt.</string>
+    <string name="ime_custom_page_clipboard">Lõikelaua seaded</string>
+    <string name="ime_custom_page_custom_buttons">Kohandatud nupud</string>
+    <string name="ime_custom_page_dictionary">Sõnastik</string>
+    <string name="ime_custom_page_favourites">Lemmikud</string>
+    <string name="ime_custom_page_home">Seaded</string>
+    <string name="ime_custom_page_keypress">Heli ja vibratsioon</string>
+    <string name="ime_custom_page_languages">Keeled</string>
+    <string name="ime_custom_page_search">Otsi seadeid</string>
+    <string name="ime_custom_page_themes">Teemad</string>
+    <string name="ime_custom_page_toolbar">Tööriistariba seaded</string>
+    <string name="ime_custom_page_tools">Tööriistad</string>
+    <string name="ime_custom_page_typing">Kirjutamine</string>
+    <string name="ime_custom_toggle_auto_caps">Automaatsed suurtähed</string>
+    <string name="ime_custom_toggle_glide">Libistades kirjutamine</string>
+    <string name="ime_custom_toggle_key_hints">Klaviatuuri vihjed</string>
+    <string name="ime_custom_toggle_key_popup">Klahvi hüpikaken</string>
+    <string name="ime_custom_toggle_number_row">Numbririda</string>
+    <string name="ime_custom_toggle_reduce_motion">Vähenda liikumist</string>
+    <string name="ime_custom_toggle_sound">Klahviheli</string>
+    <string name="ime_custom_toggle_suggestions">Soovitused</string>
+    <string name="ime_custom_toggle_symbol_row">Sümbolite rida</string>
+    <string name="ime_custom_toggle_toolbar_labels">Tööriistariba nimed</string>
+    <string name="ime_custom_toggle_vibration">Vibratsioon</string>
     <string name="ime_delete_redo_chip">Tee uuesti „%1$s“</string>
     <string name="ime_delete_redo_plain">Kustuta uuesti</string>
     <string name="ime_delete_undo_chip">Võta tagasi „%1$s“</string>
@@ -957,6 +1024,7 @@
     <string name="ime_disabled_correction_invalid">Sisesta parandamiseks teine sõna. Parandataval sõnal peab olema vähemalt 3 tähte ja parandus võib olla üks sõna või vahelejäänud tühiku korral kaks sõna.</string>
     <string name="ime_disabled_media_app_blocks">Praegu mängiv rakendus ei luba seda teha.</string>
     <string name="ime_disabled_spell_unchanged">Muuda esmalt õigekirja. Tühja või muutmata õigekirja puhul pole midagi rakendada.</string>
+    <string name="ime_disabled_translate_empty_box">Kast on tühi või selle tõlge on veel teel.</string>
     <string name="ime_disabled_translate_nothing">Midagi pole veel tõlgitud. Kõigepealt kirjutage või kleepige tekst, mida soovite tõlkida.</string>
     <string name="ime_disabled_translate_same_language">Tekst on juba selles keeles, kuhu tõlgid.</string>
     <string name="ime_disabled_voice_undo">Pole veel midagi tagasi võtta. Tagasivõtmine tühistab viimase öeldud fraasi.</string>
@@ -986,6 +1054,10 @@
     <string name="ime_docscan_next">Kärbi</string>
     <string name="ime_docscan_open_settings">Ava seaded</string>
     <string name="ime_docscan_page_number">Lk %1$d</string>
+    <plurals name="ime_docscan_pages_album">
+        <item quantity="one">Leht avaneb rakenduse jagamiskuval</item>
+        <item quantity="other">See rakendus teeb siin ühe pildi korraga, nii et %d lehte avanevad koos selle jagamiskuval, et saata ühe albumina</item>
+    </plurals>
     <plurals name="ime_docscan_pages_shared">
         <item quantity="one">Rakendus ei võtnud siin viimast lehekülge, seega avaneb see rakenduse jagamiskuval</item>
         <item quantity="other">Rakendus ei võtnud siin %d lehekülge, seega avanevad need koos rakenduse jagamiskuval</item>
@@ -1068,10 +1140,15 @@
     <string name="ime_files_access_pick">Androidi valija</string>
     <string name="ime_files_access_title">Vali faile klaviatuurilt lahkumata</string>
     <string name="ime_files_add">Lisa</string>
+    <string name="ime_files_add_tree">Lisa kaust</string>
+    <string name="ime_files_add_tree_detail">USB-draiv, SD-kaart või mõni muu rakenduse jagatud kaust, näiteks võrgudraiv</string>
+    <string name="ime_files_allow_all">Kogu telefoni salvestusruum</string>
+    <string name="ime_files_allow_all_detail">Vajab Androidi kõigi failide juurdepääsuõigust</string>
     <string name="ime_files_camera">Kaamera</string>
     <string name="ime_files_clear_desc">Tühjenda valik</string>
     <string name="ime_files_collapse_desc">Tee lühemaks</string>
     <string name="ime_files_copy_desc">Kopeeri</string>
+    <string name="ime_files_copy_to">Kopeeri kausta %1$s</string>
     <string name="ime_files_delete_body">Kaustad lähevad kaasa koos kõigega, mis neis on. See on jääv: Androidil pole failide jaoks prügikasti.</string>
     <string name="ime_files_delete_desc">Kustuta</string>
     <string name="ime_files_delete_no">Loobu</string>
@@ -1088,8 +1165,11 @@
     <string name="ime_files_expand_desc">Tee kõrgemaks</string>
     <string name="ime_files_hide_hidden">Peida peidetud failid</string>
     <string name="ime_files_kde_unreadable">Seda faili ei saadetud faili saatmiseks lugeda</string>
+    <string name="ime_files_locked_body">Failihaldur ei avane lukustuskuva peal.</string>
+    <string name="ime_files_locked_title">Failide nägemiseks ava lukustus</string>
     <string name="ime_files_more_desc">Veel</string>
     <string name="ime_files_move_desc">Teisalda</string>
+    <string name="ime_files_move_to">Teisalda asukohta %1$s</string>
     <string name="ime_files_movies">Filmid</string>
     <string name="ime_files_music">Muusika</string>
     <string name="ime_files_new_folder">Uus kaust</string>
@@ -1115,6 +1195,8 @@
         <item quantity="one">Teisaldati %d üksus</item>
         <item quantity="other">Teisaldati %d üksust</item>
     </plurals>
+    <string name="ime_files_notice_tree_removed">Kaust on loendist eemaldatud</string>
+    <string name="ime_files_one_pane_desc">Üks loend</string>
     <string name="ime_files_op_cancel">Peata</string>
     <string name="ime_files_op_copy">Kopeerimine: %1$d / %2$d</string>
     <string name="ime_files_op_delete">Kustutatakse %1$d / %2$d</string>
@@ -1131,6 +1213,9 @@
     <string name="ime_files_pictures">Pildid</string>
     <string name="ime_files_places">Kohad</string>
     <string name="ime_files_recent">Hiljutised</string>
+    <string name="ime_files_remove_tree_body">Kaust ja selle failid jäävad oma kohale. Saate selle igal ajal uuesti lisada.</string>
+    <string name="ime_files_remove_tree_title">Kas eemaldada „%1$s“ loendist?</string>
+    <string name="ime_files_remove_tree_yes">Eemalda</string>
     <string name="ime_files_rename_desc">Nimeta ümber</string>
     <string name="ime_files_rename_hint">Uus nimi</string>
     <string name="ime_files_search_clear_desc">Lõpeta otsing</string>
@@ -1149,6 +1234,7 @@
     <string name="ime_files_title_many">Vali failid</string>
     <string name="ime_files_title_one">Valige fail</string>
     <string name="ime_files_title_picture">Valige pilt</string>
+    <string name="ime_files_two_panes_desc">Kaks loendit kõrvuti</string>
     <string name="ime_files_unreadable">Android ei luba klaviatuuril seda kausta avada</string>
     <string name="ime_find_case_desc">Tõstutundlik</string>
     <string name="ime_find_clear_desc">Tühjenda %1$s</string>
@@ -1180,6 +1266,24 @@
     <string name="ime_floating_category_empty">See kategooria on tühi. Lisa sellesse toiminguid ujuvnupu sätetes.</string>
     <string name="ime_floating_category_label">Kategooria</string>
     <string name="ime_floating_close_menu">Sulge menüü</string>
+    <string name="ime_floating_device_bluetooth">Bluetooth</string>
+    <string name="ime_floating_device_bluetooth_desc">Lülitab Bluetoothi sisse või välja</string>
+    <string name="ime_floating_device_bluetooth_page_desc">Avab Androidi Bluetoothi lehe</string>
+    <string name="ime_floating_device_data">Mobiilne internet</string>
+    <string name="ime_floating_device_data_desc">Lülitab mobiilse andmeside sisse või välja</string>
+    <string name="ime_floating_device_data_panel_desc">Avab Androidi internetipaneeli</string>
+    <string name="ime_floating_device_failed">Android ei lubanud seda</string>
+    <string name="ime_floating_device_hotspot">Pöördpunkt</string>
+    <string name="ime_floating_device_hotspot_desc">Ava Androidi leviala leht</string>
+    <string name="ime_floating_device_off">%1$s väljas</string>
+    <string name="ime_floating_device_on">%1$s sees</string>
+    <string name="ime_floating_device_ringer">Helina režiim</string>
+    <string name="ime_floating_device_ringer_desc">Helin, vibreerimine ja hääletu režiim kordamööda</string>
+    <string name="ime_floating_device_volume">Helitugevuse paneel</string>
+    <string name="ime_floating_device_volume_desc">Avab Androidi helitugevuse paneeli kõigi helitugevuse liuguritega</string>
+    <string name="ime_floating_device_wifi">Wi-Fi</string>
+    <string name="ime_floating_device_wifi_desc">Lülitab Wi-Fi sisse või välja</string>
+    <string name="ime_floating_device_wifi_panel_desc">Ava Androidi Wi-Fi paneel</string>
     <string name="ime_floating_dismiss_target">Nupu peitmiseks lohista siia</string>
     <string name="ime_floating_dock_desc">Kinnita klaviatuur</string>
     <string name="ime_floating_hide_label">Peida nupp</string>
@@ -1190,7 +1294,11 @@
     <string name="ime_floating_pair_label">Ava rakenduste paar</string>
     <string name="ime_floating_pair_missing">Üks kahest rakendusest pole enam installitud</string>
     <string name="ime_floating_pair_name">%1$s + %2$s</string>
+    <string name="ime_floating_plugin_label">Plugin</string>
     <string name="ime_floating_resize_desc">Muuda klaviatuuri suurust</string>
+    <string name="ime_floating_ringer_ring">Helin</string>
+    <string name="ime_floating_ringer_silent">Hääletu</string>
+    <string name="ime_floating_ringer_vibrate">Vibreeri</string>
     <string name="ime_floating_system_app_drawer">Rakenduste sahtel</string>
     <string name="ime_floating_system_back">Tagasi</string>
     <string name="ime_floating_system_notifications">Teated</string>
@@ -1248,6 +1356,7 @@
     <string name="ime_gallery_album_camera">Kaamera</string>
     <string name="ime_gallery_album_favorites">Lemmikud</string>
     <string name="ime_gallery_album_gifs">GIF-id</string>
+    <string name="ime_gallery_album_immich">Immich</string>
     <string name="ime_gallery_album_recents">Hiljutised</string>
     <string name="ime_gallery_album_screenshots">Ekraanipildid</string>
     <string name="ime_gallery_album_sent">Saadetud klaviatuurilt</string>
@@ -1339,6 +1448,10 @@
     <string name="ime_gallery_info_taken">Tehtud</string>
     <string name="ime_gallery_layer_delete">Kustuta</string>
     <string name="ime_gallery_more_desc">Rohkem galerii valikuid</string>
+    <plurals name="ime_gallery_notice_already_uploaded">
+        <item quantity="one">Immichis oli juba %d pilt</item>
+        <item quantity="other">Immichis olid juba kõik %d pilti</item>
+    </plurals>
     <plurals name="ime_gallery_notice_copied">
         <item quantity="one">Kopeeritud %d üksus</item>
         <item quantity="other">Kopeeritud %d üksust</item>
@@ -1347,6 +1460,8 @@
         <item quantity="one">%d üksuse lugemine ebaõnnestus</item>
         <item quantity="other">%d üksuse lugemine ebaõnnestus</item>
     </plurals>
+    <string name="ime_gallery_notice_immich_failed">Teie Immichi serverini ei õnnestunud jõuda</string>
+    <string name="ime_gallery_notice_immich_refused">Immich lükkas API võtme tagasi; kontrollige selle õigusi</string>
     <plurals name="ime_gallery_notice_limit">
         <item quantity="one">Saad valida korraga %d üksuse</item>
         <item quantity="other">Saad valida korraga kuni %d üksust</item>
@@ -1367,6 +1482,14 @@
     <plurals name="ime_gallery_notice_shared">
         <item quantity="one">Avati %d üksuse jagamise kuva</item>
         <item quantity="other">Avati %d üksuse jagamise kuva</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_upload_failed">
+        <item quantity="one">%d pilt jäi üles laadimata</item>
+        <item quantity="other">%d pilti jäi üles laadimata</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_uploaded">
+        <item quantity="one">Immichi laaditi üles %d pilt</item>
+        <item quantity="other">Immichi laaditi üles %d pilti</item>
     </plurals>
     <string name="ime_gallery_partial_action">Vali rohkem</string>
     <string name="ime_gallery_partial_body">Lubasid ainult mõned fotod.</string>
@@ -1410,6 +1533,7 @@
     <string name="ime_gallery_tool_stickers">Kleebised</string>
     <string name="ime_gallery_tool_text">Tekst</string>
     <string name="ime_gallery_tool_upscale">Suurenda eraldusvõimet</string>
+    <string name="ime_gallery_upload_immich">Laadi üles Immichi</string>
     <string name="ime_gallery_upscale_art">Joonis või tekst</string>
     <string name="ime_gallery_upscale_done">Suurendatud ×%1$d: %2$d × %3$d</string>
     <string name="ime_gallery_upscale_downloading">Rakendus hangib suurendusmootorit...</string>
@@ -1668,6 +1792,9 @@
     <string name="ime_handwriting_unsupported_info">See rakenduse versioon loeb käekirja ainult hiina ja jaapani keeles. Lisage üks neist keelte hulka, et siin kirjutada.</string>
     <string name="ime_hardware_keys_hide_desc">Peida klahvid</string>
     <string name="ime_hardware_keys_show_desc">Kuva klahvid</string>
+    <string name="ime_homophones_finish">Lõpeta kõigepealt kirjutatav sõna</string>
+    <string name="ime_homophones_none">Miski selles telefonis ei kõla nagu %1$s. Keelepakett või RIME skeem lisab hääldused.</string>
+    <string name="ime_homophones_none_before">Sisestage esmalt hiina või jaapani märk</string>
     <string name="ime_hw_pick_mode_off_toast">Valikurežiim väljas</string>
     <string name="ime_hw_pick_mode_on_toast">Valikurežiim sees: numbriklahvid valivad soovitusi, Shift sisestab numbri</string>
     <string name="ime_icons_builtin_label">Sisseehitatud</string>
@@ -1682,6 +1809,45 @@
     <string name="ime_image_search_need_key_body">Pildiotsing vajab Brave Searchi API-võtit. Lisa selle tööriista jaoks seadetes võti.</string>
     <string name="ime_incognito_on_desc">Inkognito režiim on sees</string>
     <string name="ime_insert_action">Sisesta</string>
+    <string name="ime_invite_about_hint">Lisa kirjeldus</string>
+    <string name="ime_invite_action">Kutsu veebis</string>
+    <string name="ime_invite_add_title">Lisa pealkiri</string>
+    <string name="ime_invite_error_address">Seadetes olev %1$s aadress ei ole veebiaadress.</string>
+    <string name="ime_invite_error_bad_token">%1$s ei aktsepteerinud API-luba.</string>
+    <string name="ime_invite_error_data_saver">Andmesäästja on sisse lülitatud. Avaldamine saadab paar kilobaiti.</string>
+    <string name="ime_invite_error_network">%1$s ei vastanud.</string>
+    <string name="ime_invite_error_no_title">Kutse vajab pealkirja.</string>
+    <string name="ime_invite_error_offline">Ühendus puudub. Looge ühendus ja proovige uuesti.</string>
+    <string name="ime_invite_error_refused">%1$s ütleb, et see konto ei saa seal sündmusi luua.</string>
+    <string name="ime_invite_error_rejected">%1$s lükkas ürituse tagasi.</string>
+    <string name="ime_invite_error_signed_out">%1$s logis teid välja. Logige seadetes uuesti sisse.</string>
+    <string name="ime_invite_fix_in_pretix">Ava Pretix</string>
+    <string name="ime_invite_go_ahead">Jätka</string>
+    <string name="ime_invite_insert_link">Lisa link</string>
+    <string name="ime_invite_insert_message">Lisa kutse</string>
+    <string name="ime_invite_link_only">Ainult lingiga inimesed</string>
+    <string name="ime_invite_listed">Avalikult loetletud</string>
+    <string name="ime_invite_made">Loodud %1$s, registreerumine pole veel avatud</string>
+    <string name="ime_invite_not_live">Pretix lõi ürituse, kuid ei avanud registreerumist. %1$s</string>
+    <string name="ime_invite_not_set_up_body">Logige esmalt sisse Mobilizoni või lisage kalendritööriista seadetes Pretixi server.</string>
+    <string name="ime_invite_not_set_up_title">Sündmusteenust veel pole</string>
+    <string name="ime_invite_note_mobilizon">Inimesed registreeruvad sündmuse lehel. Mobilizon saadab teile selle kohta e-kirja.</string>
+    <string name="ime_invite_note_pretix">Sündmus saab ühe tasuta pileti, nii et inimesed registreeruvad selle lehel oma e-posti aadressiga.</string>
+    <string name="ime_invite_open_page">Ava leht</string>
+    <string name="ime_invite_open_settings">Seaded</string>
+    <string name="ime_invite_place_hint">Lisa koht või link</string>
+    <string name="ime_invite_places_any">Piirangut pole</string>
+    <string name="ime_invite_places_label">Kohad</string>
+    <string name="ime_invite_post_as">Postita nimega %1$s</string>
+    <string name="ime_invite_post_as_default">Postita oma profiilina</string>
+    <string name="ime_invite_post_as_loading">Profiilide laadimine…</string>
+    <string name="ime_invite_publish">Avalda</string>
+    <string name="ime_invite_published">Avaldatud %1$s</string>
+    <string name="ime_invite_publishing">Avaldamine...</string>
+    <string name="ime_invite_publishing_to">Avaldamine: %1$s</string>
+    <string name="ime_invite_ticket_name">Registreerumine</string>
+    <string name="ime_invite_title">Kutsu veebis</string>
+    <string name="ime_invite_try_again">Proovi uuesti</string>
     <string name="ime_kaomoji_add">Lisa kaomoji</string>
     <string name="ime_kaomoji_all">Kõik</string>
     <string name="ime_kaomoji_cancel">Loobu</string>
@@ -1969,6 +2135,7 @@
     <string name="ime_learn_text_action">Õpi teksti</string>
     <string name="ime_learn_word_never_desc">Ära kunagi õpi %1$s</string>
     <string name="ime_learn_word_offer">Kas lisada \"%1$s\"?</string>
+    <string name="ime_legacy_font_output">Pärandfondi väljund</string>
     <string name="ime_level_no_sensor_empty">Teie seadmel pole kiirendusmõõturit.</string>
     <string name="ime_location_address_failed">Siin aadressi pole. Koordinaadid töötavad endiselt.</string>
     <string name="ime_location_address_looking">Otsin aadressi...</string>
@@ -2141,6 +2308,29 @@
         <item quantity="other">%d märget arhiveeritud</item>
     </plurals>
     <string name="ime_notes_archived_badge">Arhiveeritud</string>
+    <string name="ime_notes_assist_deck_action">Loo õpipakk</string>
+    <plurals name="ime_notes_assist_deck_action_count">
+        <item quantity="one">Tee õpipakk (%d kaart)</item>
+        <item quantity="other">Tee õpipakk (%d kaarti)</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_empty_toast">Pole tähendustega termineid, millest kaarte teha</string>
+    <plurals name="ime_notes_assist_deck_made_toast">
+        <item quantity="one">Õpipakk „%2$s“ on tehtud %1$d kaardiga. Leia see jaotisest Sõnavara.</item>
+        <item quantity="other">Õpipakk „%2$s“ on tehtud %1$d kaardiga. Leia see jaotisest Sõnavara.</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_working_toast">Õpipaki loomine...</string>
+    <string name="ime_notes_assist_details_label">Klahvi üksikasjad</string>
+    <string name="ime_notes_assist_heading_busy">Pealkirja mõtlemine...</string>
+    <string name="ime_notes_assist_heading_dismiss_desc">Mitte see pealkiri</string>
+    <string name="ime_notes_assist_heading_suggestion">Pealkiri: %1$s</string>
+    <string name="ime_notes_assist_heading_use_action">Kasuta</string>
+    <string name="ime_notes_assist_related_label">Seotud</string>
+    <string name="ime_notes_assist_remind_chip">Tuleta meelde: %1$s · %2$s</string>
+    <string name="ime_notes_assist_reminders_label">Tulemas</string>
+    <string name="ime_notes_assist_summarize_action">Tee kokkuvõte</string>
+    <string name="ime_notes_assist_summarize_again_action">Uuesti</string>
+    <string name="ime_notes_assist_summary_busy">Kokkuvõtte tegemine telefonis…</string>
+    <string name="ime_notes_assist_summary_label">Kokkuvõte</string>
     <string name="ime_notes_body_hint">Kirjutage märge... Markdown töötab: **paks kiri**, - loendid, - [ ] ülesanded</string>
     <string name="ime_notes_collapse_desc">Tagasi klaviatuuri kõrguse juurde</string>
     <string name="ime_notes_confirm_action">Kinnitamiseks puudutage uuesti</string>
@@ -2189,6 +2379,7 @@
     <string name="ime_notes_no_match">Ükski märge ei vasta otsingule „%1$s”.</string>
     <string name="ime_notes_passage_desc">Allikast %1$s. Puuduta sisestamiseks, hoia all märkme avamiseks.</string>
     <string name="ime_notes_passages_section">Lõigud</string>
+    <string name="ime_notes_paste_desc">Kleebi</string>
     <string name="ime_notes_pin_action">Kinnita</string>
     <string name="ime_notes_pinned_section">Kinnitatud</string>
     <string name="ime_notes_restore_action">Taasta</string>
@@ -2222,6 +2413,29 @@
     <string name="ime_otp_chip_dismiss_desc">Peida kood</string>
     <string name="ime_panel_back_desc">Tagasi klaviatuuri juurde</string>
     <string name="ime_panel_over_keys_height_desc">Paneeli kõrgus klahvide kohal. Lohista üles või alla</string>
+    <string name="ime_paperless_card_also_field">Asetage leheküljed ka tekstikasti</string>
+    <string name="ime_paperless_card_correspondent">Kirjavahetaja</string>
+    <string name="ime_paperless_card_field_only">Ainult tekstikast</string>
+    <string name="ime_paperless_card_loading">Siltide hankimine serverist…</string>
+    <string name="ime_paperless_card_name">Pealkiri</string>
+    <string name="ime_paperless_card_name_hint">Valikuline. Kui jätta tühjaks, paneb Paperless sellele nime.</string>
+    <string name="ime_paperless_card_none">Puudub</string>
+    <string name="ime_paperless_card_offline">Serveriga ei saa praegu ühendust. Skannimine ootab telefonis teie vaikimisi siltidega ja laadib üles kohe, kui võimalik.</string>
+    <string name="ime_paperless_card_offline_cached">Serveriga ei saa praegu ühendust; need on selle varasemad loendid. Skannimine laaditakse üles kohe, kui see on võimalik.</string>
+    <string name="ime_paperless_card_one_pdf">Kõik lehed ühes PDF-is</string>
+    <plurals name="ime_paperless_card_pages">
+        <item quantity="one">%d lehekülg</item>
+        <item quantity="other">%d lehekülge</item>
+    </plurals>
+    <string name="ime_paperless_card_send">Saada</string>
+    <string name="ime_paperless_card_tags">Sildid</string>
+    <string name="ime_paperless_card_title">Saada paberivabasse</string>
+    <string name="ime_paperless_card_type">Dokumendi tüüp</string>
+    <string name="ime_paperless_queue_failed">Skannimist ei õnnestunud Paperlessi jaoks säilitada</string>
+    <plurals name="ime_paperless_queued">
+        <item quantity="one">%d dokument on teel Paperlessi. See laaditakse üles kohe, kui ühendus tekib.</item>
+        <item quantity="other">%d dokumenti on teel Paperlessi. Need laaditakse üles kohe, kui ühendus tekib.</item>
+    </plurals>
     <string name="ime_password_add_digit_label">Lisa number</string>
     <string name="ime_password_capitalize_label">Suurtähed</string>
     <string name="ime_password_copied_toast">Kopeeritud lõikelauale</string>
@@ -2240,11 +2454,27 @@
     <string name="ime_password_tab_pin">PIN-kood</string>
     <string name="ime_password_words_label">Sõnad</string>
     <string name="ime_phonetic_word_list_offer">Hangi %1$s sõnaloend paremate sõnade jaoks</string>
+    <string name="ime_plugin_access_mark">See plugin võib kasutada internetti või lugeda seda, mida kirjutate</string>
+    <string name="ime_plugin_action_settings">Seaded ja load</string>
+    <string name="ime_plugin_action_toolbar_add">Lisa tööriistaribale</string>
+    <string name="ime_plugin_action_toolbar_remove">Eemalda tööriistaribalt</string>
+    <string name="ime_plugin_action_toolbox_add">Lisa tööriistakasti</string>
+    <string name="ime_plugin_action_toolbox_remove">Eemalda tööriistakastist</string>
+    <string name="ime_plugin_action_turn_off">Lülita välja</string>
+    <string name="ime_plugin_action_turn_on">Lülita sisse</string>
+    <string name="ime_plugin_clock_alarm_set">%1$s määras kellas äratuse ajale %2$s</string>
+    <string name="ime_plugin_clock_timer_set">%1$s käivitas Kellas %2$s taimeri</string>
     <string name="ime_plugin_empty_body">Plugin on väike tööriist liivakastis. Saate lisada pluginaid lisandmoodulite hoidlast või .wmplugin-failist. Plugin ei näe, mida te kirjutate.</string>
     <string name="ime_plugin_empty_title">Pistikprogramme veel pole</string>
     <string name="ime_plugin_manage_action">Halda pluginaid</string>
+    <string name="ime_plugin_more">Rohkem valikuid %1$s jaoks</string>
+    <string name="ime_plugin_permission_allow">Luba</string>
+    <string name="ime_plugin_permission_deny">Ära luba</string>
+    <string name="ime_plugin_permission_risky_note">See lülitab sisse ka pistikprogrammide riskantsed õigused. Sa saad mõlemad seadetes pistikprogrammi lehel uuesti välja lülitada.</string>
+    <string name="ime_plugin_permission_title">Luba rakendusel %1$s:</string>
     <string name="ime_plugin_version_label">Versioon %1$s</string>
     <string name="ime_power_saving_on_desc">Energiasääst on sisse lülitatud</string>
+    <string name="ime_privacy_shade_hint">Viimaste ridade nägemiseks lohista käepidet üles.</string>
     <string name="ime_provider_choose_desc">Valige pakkuja</string>
     <string name="ime_punct_ampersand">Et-märk</string>
     <string name="ime_punct_apostrophe">Ülakoma</string>
@@ -2378,6 +2608,8 @@
     <string name="ime_resize_move_desc">Lohista klaviatuuri üles või alla liigutamiseks</string>
     <string name="ime_resize_reset">Lähtesta</string>
     <string name="ime_resize_right_handle_desc">Lohistage, et muuta klaviatuurist paremal olevat ruumi</string>
+    <string name="ime_resize_toolbar_handle">Tööriistariba</string>
+    <string name="ime_resize_toolbar_handle_desc">Tööriistariba kõrguse muutmiseks lohistage üles või alla</string>
     <string name="ime_retype_button">Sisesta uuesti</string>
     <string name="ime_retype_button_desc">Kirjuta kursoril olev sõna uuesti</string>
     <string name="ime_retype_button_nothing">Ümberkirjutatavat sõna pole. Asetage kursor otse sõna järele.</string>
@@ -2432,8 +2664,10 @@
     <string name="ime_scanner_torch_desc">Taskulamp</string>
     <string name="ime_scanner_translate_action">Tõlgi</string>
     <string name="ime_screen_capture_desc">Jäädvusta ekraan</string>
+    <string name="ime_screen_capture_progress">Ekraanipildi tegemine…</string>
     <string name="ime_search_attribution_brave">Brave\'i kaudu</string>
     <string name="ime_search_attribution_left">%1$s · %2$s vasakul</string>
+    <string name="ime_search_attribution_mwmbl">kaudu Mwmbl</string>
     <string name="ime_search_attribution_tavily">Tavily kaudu</string>
     <string name="ime_search_in_browser_desc">Otsi brauserist</string>
     <string name="ime_search_menu_copy_link">Kopeeri link</string>
@@ -2443,6 +2677,7 @@
     <string name="ime_search_no_more">Rohkem tulemusi pole</string>
     <string name="ime_search_tab_all">Kõik</string>
     <string name="ime_search_tab_images">Pildid</string>
+    <string name="ime_second_toolbar_empty">Lohista tööriist siia tööriistakastist või tööriistaribalt</string>
     <string name="ime_selection_ask_ai">Küsi tehisintellektilt</string>
     <string name="ime_selection_macro_ai_translate_label">AI-tõlge</string>
     <string name="ime_selection_macro_back_desc">Tagasi valikutoimingute juurde</string>
@@ -2741,6 +2976,8 @@
     <string name="ime_service_incognito_off_toast">Inkognito on väljas</string>
     <string name="ime_service_incognito_on_toast">Inkognito režiim on sees. Klaviatuur ei õpi seda, mida kirjutate.</string>
     <string name="ime_service_incognito_switch_toast">Inkognito on sisse lülitatud. Väljalülitamiseks puuduta inkognito tööriista</string>
+    <string name="ime_service_legacy_font_off_toast">Unicode\'i kirjutamine</string>
+    <string name="ime_service_legacy_font_on_toast">Kirjutamine %1$s fondiga</string>
     <string name="ime_service_media_download_error_toast">Allalaadimine ei õnnestunud. Kontrolli oma ühendust.</string>
     <string name="ime_service_media_fetch_error">Klaviatuur ei saa tulemusi hankida</string>
     <string name="ime_service_mode_tool_order_toast">Klaviatuur salvestas tööriistade järjestuse ainult %1$s režiimi jaoks. Teised rakendused säilitavad oma järjestuse.</string>
@@ -2764,6 +3001,7 @@
     <string name="ime_service_power_saving_on_empty_toast">Energiasääst on sisse lülitatud. Ühtegi funktsiooni pole veel peatatud.</string>
     <string name="ime_service_power_saving_on_toast">Energiasäästurežiim on sisse lülitatud</string>
     <string name="ime_service_power_saving_still_on_toast">Energiasääst on endiselt sisse lülitatud. Aku käivitus on aktiivne.</string>
+    <string name="ime_service_privacy_shade_floating_toast">Privaatsusvari töötab dokitud klaviatuuriga. Dokkige klaviatuur esmalt.</string>
     <string name="ime_service_qr_error">Klaviatuur ei saa QR-koodi luua</string>
     <string name="ime_service_resize_floating_toast">Klaviatuuri suuruse muutmiseks dokkige see</string>
     <string name="ime_service_search_error">Otsing ei töötanud</string>
@@ -2824,6 +3062,7 @@
     <string name="ime_smart_repeat_count">×%1$s</string>
     <string name="ime_smart_repeat_offer">Korda „%1$s“</string>
     <string name="ime_smart_replies_dismiss_desc">Peida nutikad vastused</string>
+    <string name="ime_smart_search_offer">%1$s: „%2$s“</string>
     <string name="ime_smart_send_link">Võta fail vastu</string>
     <string name="ime_smart_translate_offer">Tõlgi</string>
     <string name="ime_smart_vocab_daily">Päeva sõna: %1$s ›</string>
@@ -2833,6 +3072,12 @@
     <string name="ime_smart_vocab_word">%1$s ›</string>
     <string name="ime_smart_weather_tap">Vaata ilmaprognoosi</string>
     <string name="ime_smart_wiki_word">„%1$s” Wikipedias</string>
+    <string name="ime_snippet_ask_cancel_desc">Tühista katke</string>
+    <string name="ime_snippet_ask_done_desc">Sisesta katkend</string>
+    <string name="ime_snippet_ask_hint">Sisestage %1$s</string>
+    <string name="ime_snippet_ask_next_desc">Järgmine väli</string>
+    <string name="ime_snippet_ask_step_label">%1$s %2$d/%3$d</string>
+    <string name="ime_snippet_image_desc">Pildikatke %1$s</string>
     <string name="ime_snippet_offer_back_desc">Tagasi %1$s</string>
     <string name="ime_snippet_offer_desc">Sisesta väljavõte %1$s</string>
     <string name="ime_snippet_offer_more_desc">Veel rakendusest %1$s</string>
@@ -2943,6 +3188,7 @@
     <string name="ime_suggestion_hold_label">Sõnavalikud</string>
     <string name="ime_suggestion_never_suggest">Ära kunagi soovita \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Tagasi klahvide juurde</string>
+    <string name="ime_suggestion_pattern_still_hides">Mustsõnamuster peidab endiselt teksti „%1$s“. Muutke seda soovituste mustsõnade loendis.</string>
     <string name="ime_suggestion_rank_badge">\"%1$s\" asetus %2$s</string>
     <string name="ime_suggestion_rank_unchanged">\"%1$s\" muutmata</string>
     <string name="ime_suggestions_show_desc">Kuva soovituste riba</string>
@@ -2972,6 +3218,8 @@
     <string name="ime_synonyms_title">Sõna \"%1$s\" sünonüümid</string>
     <string name="ime_textedit_delete_line_desc">Kustuta rida</string>
     <string name="ime_textedit_delete_line_forward_desc">Kustuta rida edasi</string>
+    <string name="ime_textedit_delete_to_end_desc">Kustuta lõpuni</string>
+    <string name="ime_textedit_delete_to_start_desc">Kustuta alguseni</string>
     <string name="ime_textedit_delete_word_desc">Kustuta sõna</string>
     <string name="ime_textedit_delete_word_forward_desc">Kustuta sõna edaspidi</string>
     <string name="ime_textedit_doc_end_desc">Liigu teksti lõppu</string>
@@ -2990,6 +3238,7 @@
     <string name="ime_textedit_select_label">Vali</string>
     <string name="ime_textedit_select_line_desc">Vali rida</string>
     <string name="ime_textedit_select_word_desc">Vali sõna</string>
+    <string name="ime_textedit_type_clipboard_desc">Sisestage lõikelaua sisu</string>
     <string name="ime_textedit_up_desc">Liiguta üles</string>
     <string name="ime_textedit_word_left_desc">Liiguta üks sõna vasakule</string>
     <string name="ime_textedit_word_right_desc">Liiguta üks sõna paremale</string>
@@ -3067,6 +3316,7 @@
     <string name="ime_tool_calculator">Kalkulaator</string>
     <string name="ime_tool_calendar">Kalender</string>
     <string name="ime_tool_camera">Kaamera</string>
+    <string name="ime_tool_clear_field">Kustuta kõik</string>
     <string name="ime_tool_clipboard">Lõikelaud</string>
     <string name="ime_tool_clipboard_search">Lõikelaua otsing</string>
     <string name="ime_tool_clock">Kell</string>
@@ -3083,11 +3333,13 @@
     <string name="ime_tool_cursor_word_right">Sõna paremale</string>
     <string name="ime_tool_custom_layout">Teisene paigutus</string>
     <string name="ime_tool_cut">Lõika</string>
+    <string name="ime_tool_debug_info">Silumisteave</string>
     <string name="ime_tool_dictionary">Sõnastik</string>
     <string name="ime_tool_doc_scan">Dokumendi skannimine</string>
     <string name="ime_tool_emoji">" इमोजी"</string>
     <string name="ime_tool_emoji_mix">Emoji segud</string>
     <string name="ime_tool_fancy">Uhke tekst</string>
+    <string name="ime_tool_files">Failid</string>
     <string name="ime_tool_find_replace">Otsi ja asenda</string>
     <string name="ime_tool_flashlight">Taskulamp</string>
     <string name="ime_tool_floating">Ujuv</string>
@@ -3097,6 +3349,7 @@
     <string name="ime_tool_handwriting">Käekiri</string>
     <string name="ime_tool_hide_keyboard">Peida</string>
     <string name="ime_tool_home_assistant">Tark kodu</string>
+    <string name="ime_tool_homophones">Samakõlalised</string>
     <string name="ime_tool_image_search">Pildid</string>
     <string name="ime_tool_incognito">Inkognito</string>
     <string name="ime_tool_language">Keel</string>
@@ -3123,6 +3376,7 @@
     <string name="ime_tool_picker_leader">%1$s, seejärel:</string>
     <string name="ime_tool_plugins">Pluginad</string>
     <string name="ime_tool_power_saving">Energiasääst</string>
+    <string name="ime_tool_privacy_shade">Privaatsuse varjund</string>
     <string name="ime_tool_qr_gen">QR-kood</string>
     <string name="ime_tool_qr_scan">QR-skannimine</string>
     <string name="ime_tool_quick_note">Kiirmärge</string>
@@ -3147,6 +3401,7 @@
     <string name="ime_tool_text_edit">Teksti redigeerimine</string>
     <string name="ime_tool_text_repeat">Korda</string>
     <string name="ime_tool_themes">Välimus</string>
+    <string name="ime_tool_timestamp">Ajatempel</string>
     <string name="ime_tool_todo">Ülesannete loend</string>
     <string name="ime_tool_trackpad">Puuteplaat</string>
     <string name="ime_tool_translate">Tõlgi</string>
@@ -3204,12 +3459,14 @@
     <string name="ime_translate_engine_online_info">Kasutab veebiteenust.</string>
     <string name="ime_translate_hint">Sisesta tõlgitav tekst…</string>
     <string name="ime_translate_idle">Tõlge kuvatakse siin tippimise ajal.</string>
+    <string name="ime_translate_idle_manual">Kirjutage kogu tekst ja puudutage seejärel nuppu Tõlgi. Enne seda ei saadeta midagi.</string>
     <string name="ime_translate_module_failed_error">Google Play ei edastanud allalaadimist. Kontrollige ühendust ja proovige uuesti. Kui see ikka ebaõnnestub, laadige see alla jaotisest Seaded, Tööriistad, Tõlkimine.</string>
     <string name="ime_translate_module_installing_action">Allalaadimine…</string>
     <string name="ime_translate_module_missing_body">Seadmesisene tõlkimine on klaviatuuri lisakomponent, mis pärineb Google Playst. Laadige see alla, et tõlkida ilma ühenduseta.</string>
     <string name="ime_translate_need_models_body">Seadmes tõlkimiseks laadige alla: %1$s. Umbes %2$s.</string>
     <string name="ime_translate_nllb_licence_accept_action">Nõustu ja laadi alla</string>
     <string name="ime_translate_nllb_licence_body">NLLB-200 pärineb Hugging Face\'ist Meta litsentsi alusel, Creative Commons Attribution-NonCommercial 4.0: ainult mitteäriliseks kasutamiseks, ilma garantiita. Vajutage uuesti, et nõustuda ja alla laadida.</string>
+    <string name="ime_translate_now_action">Tõlgi</string>
     <string name="ime_translate_offline_build_error">See võrguühenduseta versioon ei saa selles telefonis tõlkida: selle ainus mootor Firefox Translations vajab 64-bittist Android 9 või uuemat telefoni. Tõlkimiseks installige standardversioon.</string>
     <string name="ime_translate_offline_failed_error">Seadmesisene tõlkimine ei käivitunud. Proovi uuesti või vali veebipõhine mootor.</string>
     <string name="ime_translate_offline_import_body">Seda võrguühenduseta versiooni ei saa alla laadida. Selle tõlkimiseks tooge need teisest seadmest ja importige: %1$s. Avage Seaded › Tööriistad › Tõlkimine › Pakkujad › Seadmes (Firefox Translations).</string>
@@ -3225,6 +3482,7 @@
     <string name="ime_translate_select_source_desc">Vali lähtekeel</string>
     <string name="ime_translate_server_label">Teie server</string>
     <string name="ime_translate_source_guessed_label">%1$s?</string>
+    <string name="ime_translate_speak_desc">Loe tõlge ette</string>
     <string name="ime_translate_swap_desc">Vaheta keeled</string>
     <string name="ime_typing_accuracy_label">täpsus</string>
     <string name="ime_typing_accuracy_short_label">täps</string>
@@ -3345,6 +3603,10 @@
     <string name="ime_voice_model_get_language_action">Hangi %1$s võrguühenduseta häälsisestuseks</string>
     <string name="ime_voice_permission_action">Luba mikrofon</string>
     <string name="ime_voice_permission_body">Häälsisestus vajab mikrofoni kasutamise luba. Rakendus salvestab heli ainult siis, kui te räägite.</string>
+    <string name="ime_voice_prompt_fix_custom">Eemalda häälsisestuse sätetest mõned valikust \"Veel kuulatavaid sõnu\" või lühenda viipa.</string>
+    <string name="ime_voice_prompt_fix_personal">Lülitage häälkirjutamise seadetes välja valik „Kuula minu sõnu“ või lühendage viipa.</string>
+    <string name="ime_voice_prompt_fix_prompt">Lühenda häälestussisestuse seadetes serveri ekraanil olevat viipa alla %1$d tähemärgi.</string>
+    <string name="ime_voice_prompt_too_long">See server aktsepteerib viipa kuni %2$d tähemärki ja see on %1$d: viip %3$d, rohkem otsitavaid sõnu %4$d, kuula minu sõnu %5$d.</string>
     <string name="ime_voice_secure_field_notice">Häälsisestus ei tööta parooliväljadel.</string>
     <string name="ime_voice_server_metered_ask">Andmesäästja on sisse lülitatud. Vajutage uuesti mikrofoni, et saata oma hääl üle mobiilse andmeside.</string>
     <string name="ime_voice_server_metered_blocked">Transkriptsiooniserver on mobiilse andmeside kasutamise ajal välja lülitatud. Saate seda muuta seadetes, jaotises Andmesäästja.</string>
@@ -3384,6 +3646,12 @@
     <string name="ime_voice_use_system_action">Kasuta süsteemi tuvastajat</string>
     <string name="ime_weather_clouds_label">pilves</string>
     <string name="ime_weather_error">Rakendus ei saa ilmaennustust alla laadida. Kontrollige oma võrguühendust.</string>
+    <string name="ime_weather_event_back_desc">Tagasi kalendrisse</string>
+    <string name="ime_weather_event_home_place">%1$s (teie ilmateate asukoht)</string>
+    <string name="ime_weather_event_home_unnamed">Teie ilmaasukoht</string>
+    <string name="ime_weather_event_hour_desc">%1$s: %2$s, %3$s, vihmatõenäosus %4$s</string>
+    <string name="ime_weather_event_no_hours">Prognoos ei ulatu veel selle päevani.</string>
+    <string name="ime_weather_event_rain_info">Vihma tõenäosus %1$d%%</string>
     <string name="ime_weather_feels_like_label">tundub nagu</string>
     <string name="ime_weather_high_low_info">K %1$d° M %2$d°</string>
     <string name="ime_weather_humidity_label">õhuniiskus</string>
@@ -3499,6 +3767,7 @@
     <string name="ime_wmpass_no_password">WM Pass ei loonud parooli. Hoidla võib olla lukustatud.</string>
     <string name="ime_wmpass_no_username">Sellel sisselogimisel pole täidetavat kasutajanime.</string>
     <string name="ime_wmpass_no_vault">WM Passil pole veel hoidlat. Loo see esmalt seal.</string>
+    <string name="ime_wmpass_not_released">WM Pass pole veel väljas. See tööriist hakkab tööle pärast selle avaldamist ja installimist.</string>
     <string name="ime_wmpass_not_set">Määramata</string>
     <string name="ime_wmpass_off">Selle kasutamiseks lülita sisse \"Luba WM-klaviatuuril täita WM-parool\" (Seaded &gt; Turvalisus).</string>
     <string name="ime_wmpass_open">Ava WM Pass</string>

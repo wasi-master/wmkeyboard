@@ -23,6 +23,34 @@
         <item quantity="one">%1$d veegbeweging op een toets heeft hier geen plek, omdat dit toetsenbord die veegbeweging voor een andere taak gebruikt. De app heeft deze verwijderd.</item>
         <item quantity="other">%1$d veegbewegingen op toetsen hebben hier geen plek, omdat dit toetsenbord die veegbewegingen voor andere taken gebruikt. De app heeft deze verwijderd.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">De app heeft %1$d regel weggelaten die verandert wat wissen weghaalt. Wissen werkt hier zoals op elke indeling.</item>
+        <item quantity="other">De app heeft %1$d regels weggelaten die veranderen wat wissen weghaalt. Wissen werkt hier zoals op elke indeling.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">De app heeft %1$d veegbeweging verwijderd die van richting veranderd. Veegbewegingen op dit toetsenbord gaan één kant op.</item>
+        <item quantity="other">De app heeft %1$d veegbewegingen verwijderd die van richting veranderen. Veegbewegingen op dit toetsenbord gaan één kant op.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">De app heeft %1$d pagina weggelaten voor een toets zoals Caps Lock of Ctrl. Dit toetsenbord heeft daar geen pagina voor.</item>
+        <item quantity="other">De app heeft %1$d pagina\'s weggelaten voor toetsen zoals Caps Lock of Ctrl. Dit toetsenbord heeft daar geen pagina\'s voor.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">De app heeft %1$d regel weggelaten die tekens in hun schrijfvolgorde plaatst. Dit toetsenbord schrijft tekens in de volgorde waarin je ze typt.</item>
+        <item quantity="other">De app heeft %1$d regels weggelaten die tekens in hun schrijfvolgorde plaatsen. Dit toetsenbord schrijft tekens in de volgorde waarin je ze typt.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d regel plaatst een accent op de volgende letter. Hier is de toets die dit start een dode toets.</item>
+        <item quantity="other">%1$d regels plaatsen een accent op de volgende letter. Hier zijn de toetsen die dit starten dode toetsen.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">De app heeft %1$d regel weggelaten die tekst wijzigt terwijl je typt. Geen enkele toets hier start deze, of deze komt overeen met meer tekst dan een toets kan typen.</item>
+        <item quantity="other">De app heeft %1$d regels weggelaten die tekst wijzigen terwijl je typt. Geen enkele toets hier start deze, of ze komen overeen met meer tekst dan een toets kan typen.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d regel verandert een toets en de volgende in een ander teken. Hier bevindt dat teken zich onder ingedrukt houden van de eerste toets.</item>
+        <item quantity="other">%1$d regels veranderen een toets en de volgende in een ander teken. Hier bevinden die tekens zich onder ingedrukt houden van de eerste toets.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">De app heeft %1$d toets gewijzigd naar de dichtstbijzijnde toets die beschikbaar is.</item>
         <item quantity="other">De app heeft %1$d toetsen gewijzigd naar de dichtstbijzijnde toetsen die beschikbaar zijn.</item>

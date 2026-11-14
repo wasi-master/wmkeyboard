@@ -23,6 +23,34 @@
         <item quantity="one">%1$d sveip på en tast har ingen plass her, fordi dette tastaturet bruker det sveipet til en annen oppgave. Appen fjernet det.</item>
         <item quantity="other">%1$d sveip på taster har ingen plass her, fordi dette tastaturet bruker de sveipene til andre oppgaver. Appen fjernet dem.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">Appen utelot %1$d regel som endrer hva sletting fjerner. Sletting fungerer slik den gjør på alle oppsett her.</item>
+        <item quantity="other">Appen utelot %1$d regler som endrer hva sletting fjerner. Sletting fungerer slik den gjør på alle oppsett her.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">Appen fjernet %1$d sveip som endrer retning. Sveip på dette tastaturet går én vei.</item>
+        <item quantity="other">Appen fjernet %1$d sveip som endrer retning. Sveip på dette tastaturet går én vei.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">Appen utelot %1$d side for en tast som Caps Lock eller Ctrl. Dette tastaturet har ingen side for den tasten.</item>
+        <item quantity="other">Appen utelot %1$d sider for taster som Caps Lock eller Ctrl. Dette tastaturet har ingen sider for de tastene.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">Appen utelot %1$d regel som setter tegn i deres skrevne rekkefølge. Dette tastaturet skriver tegn i den rekkefølgen du skriver dem.</item>
+        <item quantity="other">Appen utelot %1$d regler som setter tegn i deres skrevne rekkefølge. Dette tastaturet skriver tegn i den rekkefølgen du skriver dem.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d regel setter en aksent på neste bokstav. Her er tasten som starter den en død tast.</item>
+        <item quantity="other">%1$d regler setter en aksent på neste bokstav. Her er tastene som starter dem døde taster.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">Appen utelot %1$d regel som endrer tekst mens du skriver. Ingen tast her starter den, eller den matcher mer tekst enn en tast kan skrive.</item>
+        <item quantity="other">Appen utelot %1$d regler som endrer tekst mens du skriver. Ingen tast her starter dem, eller de matcher mer tekst enn en tast kan skrive.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d regel gjør en tast og den neste om til et annet tegn. Her er det tegnet på trykk og hold av den første tasten.</item>
+        <item quantity="other">%1$d regler gjør en tast og den neste om til et annet tegn. Her er de tegnene på trykk og hold av den første tasten.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Appen endret %1$d tast til den nærmeste tasten den har.</item>
         <item quantity="other">Appen endret %1$d taster til de nærmeste tastene den har.</item>

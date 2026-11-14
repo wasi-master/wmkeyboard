@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Лента, лента с предложения и клавиши</string>
     <string name="core_settings_glide_commit_scope_pill_label">Лента и хапче</string>
     <string name="core_settings_glide_commit_scope_strip_label">Лента</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">След отмяна</string>
+    <string name="core_settings_glide_drawn_letters_off_label">Изключено</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">При несигурност</string>
     <string name="core_settings_glide_engine_built_in_label">Вграден</string>
     <string name="core_settings_glide_engine_futo_label">FUTO плъзгане (английски, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Библиотека с жестове на Google (импортирана)</string>

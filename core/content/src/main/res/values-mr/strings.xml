@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">ईमेल पत्ता</string>
+    <string name="core_content_clip_entity_email_tag">ईमेल</string>
     <string name="core_content_clip_entity_otp_label">वन-टाइम कोड</string>
     <string name="core_content_clip_entity_otp_tag">कोड</string>
     <string name="core_content_clip_entity_phone_label">फोन नंबर</string>
@@ -38,6 +40,10 @@
         <item quantity="one">ॲपने %1$d स्निपेट वगळले ज्यामध्ये समाविष्ट करण्यासाठी काहीही नाही.</item>
         <item quantity="other">ॲपने %1$d स्निपेट्स वगळले ज्यामध्ये समाविष्ट करण्यासाठी काहीही नाही.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d केलरे.</item>
+        <item quantity="other">%1$d केलरे.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">ॲपने %1$d स्निपेट वगळले जे चित्र समाविष्ट करते.</item>
         <item quantity="other">ॲपने %1$d स्निपेट्स वगळले जे चित्रे समाविष्ट करतात.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d स्निपेट अशा मूल्याचा वापर करते ज्यासाठी Espanso कडे कोणताही पर्याय नाही. ते जसे आहे तसे लिहिले आहे.</item>
         <item quantity="other">%1$d स्निपेट्स अशा मूल्यांचा वापर करतात ज्यासाठी Espanso कडे कोणतेही पर्याय नाहीत. ते जसे आहेत तसे लिहिले आहेत.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d स्निपेट चित्र समाविष्ट करतो. मजकूर फाइल चित्र ठेवू शकत नाही, त्यामुळे केवळ त्याचे शब्द बाहेर गेले.</item>
+        <item quantity="other">%1$d स्निपेट्स चित्रे समाविष्ट करतात. मजकूर फाइल चित्रे ठेवू शकत नाही, त्यामुळे केवळ त्यांचे शब्द बाहेर गेले.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">ॲपने %1$d स्निपेटमधून पॅटर्न काढला. ॲप त्या आकाराचे पॅटर्न चालवत नाही. स्निपेट सूचीमध्ये राहते.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">ॲपने %1$d ट्रिगर काढला आहे ज्यावर कीबोर्ड लक्ष ठेवू शकत नाही. त्याचे स्निपेट लिस्टमध्येच राहील.</item>
         <item quantity="other">ॲपने %1$d ट्रिगर्स काढले आहेत ज्यावर कीबोर्ड लक्ष ठेवू शकत नाही. त्यांची स्निपेट्स लिस्टमध्येच राहतील.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">=== ने सुरू होते पण संपूर्ण === ट्रिगर === ओळ नाही. मजकुराची ओळ === ने सुरू करण्यासाठी, त्याऐवजी \=== लिहा</string>
+    <string name="core_content_snippet_text_bad_pattern">हा पॅटर्न वापरता येत नाही: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s %2$s असू शकत नाही</string>
+    <string name="core_content_snippet_text_before_header">पहिल्या === ट्रिगर === ओळीपूर्वीचा मजकूर. एकाने ब्लॉक सुरू करा किंवा ओळ # ने सुरू करा</string>
+    <string name="core_content_snippet_text_no_text">या स्निपेटमध्ये कोणताही मजकूर नाही</string>
+    <string name="core_content_snippet_text_no_trigger">==333 चिन्हांच्या दरम्यान काहीही नसलेल्या स्निपेटला @label किंवा @pattern ओळ आवश्यक आहे</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d चित्राचा स्निपेट त्याच्या मजकुरासारखा आला: मजकूर फाइलमध्ये कोणतीही चित्रे नसतात</item>
+        <item quantity="other">%1$d चित्राचे स्निपेट्स त्यांच्या मजकुरासारखे आले: मजकूर फाइलमध्ये कोणतीही चित्रे नसतात</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">ओळ %1$d वरील स्निपेट वगळले, ज्यामध्ये चूक आहे</string>
+    <string name="core_content_snippet_text_unknown_link">\@link चे नाव %1$s आहे, आणि येथे कोणत्याही स्निपेटमध्ये तो ट्रिगर नाही</string>
+    <string name="core_content_snippet_text_unknown_picture">%1$s नावाची @picture, जी कोणतीही स्निपेट वापरत नाही. स्निपेटच्या स्वतःच्या एडिटरमध्ये चित्रे जोडा</string>
+    <string name="core_content_snippet_text_unknown_setting">कीबोर्डला %1$s सेटिंग माहित नाही. @ ने स्निपेटचा मजकूर सुरू करण्यासाठी, त्याऐवजी \@ लिहा</string>
     <string name="core_content_snippet_var_app_info">तुम्ही ज्या ॲपमध्ये टाईप करत आहात त्याचे नाव</string>
+    <string name="core_content_snippet_var_battery_info">बॅटरी चार्ज, उदाहरणार्थ 85%</string>
     <string name="core_content_snippet_var_clip_info">क्लिपबोर्डवरील सर्वात नवीन एन्ट्री</string>
     <string name="core_content_snippet_var_cursor_info">जिथे कर्सर थांबतो ती जागा</string>
     <string name="core_content_snippet_var_date_info">आजची तारीख</string>
     <string name="core_content_snippet_var_datetime_info">तारीख आणि वेळ</string>
     <string name="core_content_snippet_var_day_info">महिन्याचा दिवस</string>
+    <string name="core_content_snippet_var_greeting_info">वेळेनुसार शुभ प्रभात, दुपार किंवा संध्याकाळ, कीबोर्डच्या भाषेत</string>
     <string name="core_content_snippet_var_isodate_info">ISO स्वरूपातील तारीख, उदाहरणार्थ 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">ISO फॉरमॅटमधील तारीख आणि वेळ</string>
+    <string name="core_content_snippet_var_language_info">तुम्ही ज्या कीबोर्ड भाषेत टाइप करता</string>
     <string name="core_content_snippet_var_month_info">महिन्याचे नाव</string>
     <string name="core_content_snippet_var_package_info">त्या ॲपचे पॅकेज नाव</string>
     <string name="core_content_snippet_var_selection_info">तुम्ही फील्डमध्ये निवडलेला मजकूर</string>
+    <string name="core_content_snippet_var_tab_info">एक टॅब वर्ण</string>
     <string name="core_content_snippet_var_time12_info">आताची वेळ १२-तास स्वरूपात</string>
     <string name="core_content_snippet_var_time_info">२४-तास स्वरूपात सध्याची वेळ</string>
     <string name="core_content_snippet_var_timestamp_info">युनिक्स सेकंदांमधील वेळ</string>

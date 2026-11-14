@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">Hola</string>
     <string name="core_tools_media_category_laugh">Risa</string>
     <string name="core_tools_media_category_love">Amor</string>
+    <string name="core_tools_media_category_memes">Memes</string>
     <string name="core_tools_media_category_no">No</string>
     <string name="core_tools_media_category_party">Fiesta</string>
     <string name="core_tools_media_category_reactions">Reacciones</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">Un servidor Mozhi: una interfaz gratuita para Google, DeepL, DuckDuckGo, Yandex y Reverso. Elige el motor. DeepL y Reverso necesitan un idioma de origen.</string>
     <string name="core_tools_provider_music_server">Tu propio servidor de reconocimiento</string>
     <string name="core_tools_provider_music_server_desc">Un servidor que ejecutas y que responde como AudD: el clip se publica como un archivo y la canción se devuelve como JSON. Coloca un generador de huellas digitales como Panako u Olaf detrás de él.</string>
+    <string name="core_tools_provider_mwmbl_desc">Un buscador gratuito y sin fines de lucro con su propio índice. Sin clave. Solo resultados web, sin imágenes.</string>
     <string name="core_tools_provider_nllb">En el dispositivo (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">Traduce en el teléfono con el modelo NLLB-200 de Meta en CTranslate2: 200 idiomas, entre cualquiera de ellos, para los pares que otros motores no pueden hacer. Una descarga de 630 MB, y una oración toma unos segundos. Tu texto permanece en el teléfono. El modelo tiene licencia solo para uso no comercial (CC BY-NC 4.0). Requiere un teléfono de 64 bits con 6 GB de memoria o más.</string>
     <string name="core_tools_provider_none_on">No hay ningún proveedor activo. Activa uno en la configuración de esta herramienta.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">Esta lista</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">Mostrar u ocultar las teclas</string>
     <string name="core_tools_shortcut_leader_double_tap">Presiona %1$s dos veces</string>
+    <string name="core_tools_speak_no_voice">Este teléfono no tiene una voz en %1$s para leerlo. Añada una en la configuración de conversión de texto a voz de Android o descargue una voz sin conexión en Herramientas › Leer.</string>
     <string name="core_tools_symbol_category_arrows_label">Flechas</string>
     <string name="core_tools_symbol_category_currency_label">Moneda</string>
     <string name="core_tools_symbol_category_fractions_label">Fracciones</string>
     <string name="core_tools_symbol_category_greek_label">Griego</string>
     <string name="core_tools_symbol_category_math_label">Matemáticas</string>
+    <string name="core_tools_symbol_category_music_label">Música</string>
     <string name="core_tools_symbol_category_other_label">Otro</string>
     <string name="core_tools_symbol_category_punctuation_label">Puntuación</string>
     <string name="core_tools_symbol_category_shapes_label">Formas y estrellas</string>
+    <string name="core_tools_symbol_category_stars_label">Estrellas</string>
     <string name="core_tools_symbol_category_superscript_label">Superíndice</string>
+    <string name="core_tools_symbol_category_technical_label">Técnico</string>
+    <string name="core_tools_symbol_category_weather_label">Clima</string>
     <string name="core_tools_symbol_set_coding_label">Programación</string>
     <string name="core_tools_symbol_set_email_label">Correo electrónico</string>
     <string name="core_tools_symbol_set_math_label">Matemáticas</string>

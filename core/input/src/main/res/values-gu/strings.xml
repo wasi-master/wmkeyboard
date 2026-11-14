@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">ફુરીગાના રીડિંગ્સ</string>
     <string name="core_input_cjk_pack_hanja_subtitle">હંગુલ શબ્દો અને તેમના હાંજા, ૩૦૦,૦૦૦ એન્ટ્રીઓ. સૂચન પટ્ટી પર હાંજા ઓફર કરવા માટે કીબોર્ડને આ પેકની જરૂર છે.</string>
     <string name="core_input_cjk_pack_hanja_title">હાંજા (漢字) શબ્દકોશ</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, જેથી તેના ઉપસર્ગ અને પ્રત્યય સાથેનો શબ્દ જાણી શકાય અને તેમાં રહેલી જોડણીની ભૂલ સુધારી શકાય.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">અરબી જોડણી શબ્દકોશ</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, જેથી કોઈપણ પ્રત્યય વાળા શબ્દો જાણીતા બને અને તેમાં રહેલી ટાઈપિંગની ભૂલો સુધરી જાય.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">તુર્કી સ્પેલિંગ નિયમો</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">mozc તરફથી કાના રીડિંગ્સ, 1.08 મિલિયન એન્ટ્રીઓ, લગભગ 42 MB. જાપાનીઝ કન્વર્ઝન માટે કીબોર્ડને આ પેકની જરૂર છે.</string>

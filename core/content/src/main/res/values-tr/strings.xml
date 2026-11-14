@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">E-posta adresi</string>
+    <string name="core_content_clip_entity_email_tag">E-POSTA</string>
     <string name="core_content_clip_entity_otp_label">Tek kullanımlık kod</string>
     <string name="core_content_clip_entity_otp_tag">KOD</string>
     <string name="core_content_clip_entity_phone_label">Telefon numarası</string>
@@ -38,6 +40,10 @@
         <item quantity="one">Uygulama, eklenecek hiçbir şeyi olmayan %1$d snippet\'i atladı.</item>
         <item quantity="other">Uygulama, eklenecek hiçbir şeyi olmayan %1$d snippet\'i atladı.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d form alanı seçim için bir liste sunar. Uygulama, ilk seçenek doldurulmuş olarak bunu yazılı bir cevap olarak ister.</item>
+        <item quantity="other">%1$d form alanı seçim için listeler sunar. Uygulama, ilk seçenek doldurulmuş olarak her biri için yazılı bir cevap ister.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Uygulama, resim ekleyen %1$d snippet\'i atladı.</item>
         <item quantity="other">Uygulama, resim ekleyen %1$d snippet\'i atladı.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d metin parçacığı, Espanso\'nun eşdeğerine sahip olmadığı bir değer kullanıyor. Olduğu gibi yazılır.</item>
         <item quantity="other">%1$d metin parçacığı, Espanso\'nun eşdeğerine sahip olmadığı değerler kullanıyor. Oldukları gibi yazılırlar.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d parça bir resim ekler. Bir metin dosyası resmi tutamaz, bu yüzden sadece kelimeleri dışarı aktarıldı.</item>
+        <item quantity="other">%1$d parça resim ekler. Bir metin dosyası resimleri tutamaz, bu yüzden sadece kelimeleri dışarı aktarıldı.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">Uygulama, %1$d snippet\'ten deseni kaldırdı. Uygulama bu şekildeki desenleri çalıştırmaz. Snippet listede kalır.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">Uygulama, klavyenin izleyemediği %1$d tetikleyiciyi kaldırdı. Parçası listede kalmaya devam ediyor.</item>
         <item quantity="other">Uygulama, klavyenin izleyemediği %1$d tetikleyiciyi kaldırdı. Parçaları listede kalmaya devam ediyor.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">=== ile başlar ancak eksiksiz bir === tetikleyici === satırı değildir. Bir metin satırına === ile başlamak için bunun yerine \=== yazın</string>
+    <string name="core_content_snippet_text_bad_pattern">Bu desen kullanılamaz: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s, %2$s olamaz</string>
+    <string name="core_content_snippet_text_before_header">İlk 777 tetikleyici 777 satırından önceki metin. Bir blok başlatmak için bir tane kullanın veya satırı # ile başlatın</string>
+    <string name="core_content_snippet_text_no_text">Bu pasajda metin yok</string>
+    <string name="core_content_snippet_text_no_trigger">=== işaretleri arasında hiçbir şey olmayan bir metin parçasının @label veya @pattern satırına ihtiyacı vardır</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">Metin olarak %1$d resim parçası geldi: bir metin dosyası resim barındırmaz</item>
+        <item quantity="other">Metin olarak %1$d resim parçası geldi: bir metin dosyası resim barındırmaz</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">İçinde hata bulunan %1$d numaralı satırdaki parça atlandı</string>
+    <string name="core_content_snippet_text_unknown_link">\@link, %1$s adını veriyor ve burada hiçbir parça bu tetikleyiciye sahip değil</string>
+    <string name="core_content_snippet_text_unknown_picture">\@picture, hiçbir kod parçasının kullanmadığı %1$s öğesini adlandırıyor. Kod parçasının kendi düzenleyicisine resim ekleyin</string>
+    <string name="core_content_snippet_text_unknown_setting">Klavye %1$s ayarını tanımıyor. Bir metin parçasının (snippet) metnini @ ile başlatmak için bunun yerine \@ yazın</string>
     <string name="core_content_snippet_var_app_info">Yazdığınız uygulamanın adı</string>
+    <string name="core_content_snippet_var_battery_info">Pil şarjı, örneğin %85</string>
     <string name="core_content_snippet_var_clip_info">En yeni pano girişi</string>
     <string name="core_content_snippet_var_cursor_info">İmlecin konumlandığı yer</string>
     <string name="core_content_snippet_var_date_info">Bugünün tarihi</string>
     <string name="core_content_snippet_var_datetime_info">Tarih ve saat</string>
     <string name="core_content_snippet_var_day_info">Ayın günü</string>
+    <string name="core_content_snippet_var_greeting_info">Klavye dilinde zamana göre günaydın, iyi günler veya iyi akşamlar</string>
     <string name="core_content_snippet_var_isodate_info">ISO formatında tarih, örneğin 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">ISO biçiminde tarih ve saat</string>
+    <string name="core_content_snippet_var_language_info">Üzerinde yazdığınız klavye dili</string>
     <string name="core_content_snippet_var_month_info">Ayın adı</string>
     <string name="core_content_snippet_var_package_info">O uygulamanın paket adı</string>
     <string name="core_content_snippet_var_selection_info">Alanda seçtiğiniz metin</string>
+    <string name="core_content_snippet_var_tab_info">Sekme karakteri</string>
     <string name="core_content_snippet_var_time12_info">12 saatlik biçimde şu anki zaman</string>
     <string name="core_content_snippet_var_time_info">24 saatlik biçimde şu anki zaman</string>
     <string name="core_content_snippet_var_timestamp_info">Unix saniyesi cinsinden zaman</string>

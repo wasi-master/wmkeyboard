@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">Hei</string>
     <string name="core_tools_media_category_laugh">Nauru</string>
     <string name="core_tools_media_category_love">Rakkaus</string>
+    <string name="core_tools_media_category_memes">Meemit</string>
     <string name="core_tools_media_category_no">Ei</string>
     <string name="core_tools_media_category_party">Juhlat</string>
     <string name="core_tools_media_category_reactions">Reaktiot</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">Mozhi-palvelin: ilmainen käyttöliittymä Googlelle, DeepL:lle, DuckDuckGolle, Yandexille ja Reversolle. Valitse moottori. DeepL ja Reverso vaativat lähdekielen.</string>
     <string name="core_tools_provider_music_server">Oma tunnistuspalvelimesi</string>
     <string name="core_tools_provider_music_server_desc">Palvelin, jota ajat ja joka vastaa kuten AudD: leike lähetetään tiedostona ja kappale palautuu JSON-muodossa. Aseta sen taakse sormenjälkityökalu, kuten Panako tai Olaf.</string>
+    <string name="core_tools_provider_mwmbl_desc">Ilmainen, voittoa tavoittelematon hakukone omalla indeksillä. Ei avainta. Vain verkkotuloksia, ei kuvia.</string>
     <string name="core_tools_provider_nllb">Laitteella (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">Kääntää puhelimessa Metan NLLB-200-mallilla CTranslate2-ympäristössä: 200 kieltä ja käännökset minkä tahansa kieliparin välillä, myös sellaisten, joita muut moottorit eivät tue. Latauskoko 630 MB, lauseen kääntäminen kestää muutaman sekunnin. Teksti pysyy puhelimessa. Malli on lisensoitu vain ei-kaupalliseen käyttöön (CC BY-NC 4.0). Vaatii 64-bittisen puhelimen, jossa on vähintään 6 Gt muistia.</string>
     <string name="core_tools_provider_none_on">Yksikään palveluntarjoaja ei ole päällä. Kytke yksi päälle tämän työkalun asetuksista.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">Tämä luettelo</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">Näytä tai piilota näppäimet</string>
     <string name="core_tools_shortcut_leader_double_tap">Paina %1$s kahdesti</string>
+    <string name="core_tools_speak_no_voice">Tässä puhelimessa ei ole %1$s-ääntä lukemiseen. Lisää sellainen Androidin tekstistä puheeksi -asetuksista tai lataa offline-ääni kohdasta Työkalut › Lue takaisin.</string>
     <string name="core_tools_symbol_category_arrows_label">Nuolet</string>
     <string name="core_tools_symbol_category_currency_label">Valuutta</string>
     <string name="core_tools_symbol_category_fractions_label">Murtoluvut</string>
     <string name="core_tools_symbol_category_greek_label">Kreikka</string>
     <string name="core_tools_symbol_category_math_label">Matematiikka</string>
+    <string name="core_tools_symbol_category_music_label">Musiikki</string>
     <string name="core_tools_symbol_category_other_label">Muu</string>
     <string name="core_tools_symbol_category_punctuation_label">Välimerkit</string>
     <string name="core_tools_symbol_category_shapes_label">Muodot ja tähdet</string>
+    <string name="core_tools_symbol_category_stars_label">Tähdet</string>
     <string name="core_tools_symbol_category_superscript_label">Yläindeksi</string>
+    <string name="core_tools_symbol_category_technical_label">Tekninen</string>
+    <string name="core_tools_symbol_category_weather_label">Sää</string>
     <string name="core_tools_symbol_set_coding_label">Koodaus</string>
     <string name="core_tools_symbol_set_email_label">Sähköposti</string>
     <string name="core_tools_symbol_set_math_label">Matematiikka</string>

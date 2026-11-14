@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">Xin chào</string>
     <string name="core_tools_media_category_laugh">Cười</string>
     <string name="core_tools_media_category_love">Tình yêu</string>
+    <string name="core_tools_media_category_memes">Ảnh chế</string>
     <string name="core_tools_media_category_no">Không</string>
     <string name="core_tools_media_category_party">Tiệc tùng</string>
     <string name="core_tools_media_category_reactions">Phản ứng</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">Máy chủ Mozhi: một giao diện miễn phí cho Google, DeepL, DuckDuckGo, Yandex và Reverso. Chọn công cụ. DeepL và Reverso cần ngôn ngữ nguồn.</string>
     <string name="core_tools_provider_music_server">Máy chủ nhận dạng của riêng bạn</string>
     <string name="core_tools_provider_music_server_desc">Một máy chủ bạn chạy phản hồi giống như AudD: clip được đăng dưới dạng tệp và bài hát được trả về dưới dạng JSON. Đặt một trình nhận dạng dấu vân tay như Panako hoặc Olaf phía sau nó.</string>
+    <string name="core_tools_provider_mwmbl_desc">Một công cụ tìm kiếm phi lợi nhuận, miễn phí với chỉ mục riêng. Không cần khóa. Chỉ có kết quả web, không có hình ảnh.</string>
     <string name="core_tools_provider_nllb">Trên thiết bị (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">Dịch trên điện thoại bằng mô hình NLLB-200 của Meta trên CTranslate2: 200 ngôn ngữ, giữa bất kỳ cặp ngôn ngữ nào, dành cho các cặp mà các công cụ khác không thể thực hiện. Tải xuống một lần 630 MB và một câu mất vài giây để dịch. Văn bản của bạn vẫn nằm trên điện thoại. Mô hình chỉ được cấp phép cho mục đích phi thương mại (CC BY-NC 4.0). Cần điện thoại 64-bit với bộ nhớ 6 GB trở lên.</string>
     <string name="core_tools_provider_none_on">Không có nhà cung cấp nào được bật. Hãy bật một nhà cung cấp trong cài đặt của công cụ này.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">Danh sách này</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">Hiện hoặc ẩn các phím</string>
     <string name="core_tools_shortcut_leader_double_tap">Nhấn %1$s hai lần</string>
+    <string name="core_tools_speak_no_voice">Điện thoại này không có giọng nói %1$s để đọc. Hãy thêm giọng nói trong cài đặt chuyển văn bản thành giọng nói của Android, hoặc tải xuống giọng nói ngoại tuyến trong Công cụ › Đọc lại.</string>
     <string name="core_tools_symbol_category_arrows_label">Mũi tên</string>
     <string name="core_tools_symbol_category_currency_label">Tiền tệ</string>
     <string name="core_tools_symbol_category_fractions_label">Phân số</string>
     <string name="core_tools_symbol_category_greek_label">Tiếng Hy Lạp</string>
     <string name="core_tools_symbol_category_math_label">Toán học</string>
+    <string name="core_tools_symbol_category_music_label">Nhạc</string>
     <string name="core_tools_symbol_category_other_label">Khác</string>
     <string name="core_tools_symbol_category_punctuation_label">Dấu câu</string>
     <string name="core_tools_symbol_category_shapes_label">Hình dạng và ngôi sao</string>
+    <string name="core_tools_symbol_category_stars_label">Ngôi sao</string>
     <string name="core_tools_symbol_category_superscript_label">Chỉ số trên</string>
+    <string name="core_tools_symbol_category_technical_label">Kỹ thuật</string>
+    <string name="core_tools_symbol_category_weather_label">Thời tiết</string>
     <string name="core_tools_symbol_set_coding_label">Lập trình</string>
     <string name="core_tools_symbol_set_email_label">Email</string>
     <string name="core_tools_symbol_set_math_label">Toán học</string>

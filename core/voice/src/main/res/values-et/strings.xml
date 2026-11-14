@@ -9,11 +9,16 @@
     <string name="core_voice_model_base_multi_body">See mudel tasakaalustab täpsuse ja kiiruse. See hõlmab kõiki keeli, mida Whisper tunneb. Vali see, kui väike mudel on liiga aeglane.</string>
     <string name="core_voice_model_base_world_body">See mudel kasutab oletamise asemel keelt, milles kirjutad. Lühikesed fraasid muutuvad palju usaldusväärsemaks. Vali see, kui selle loendis on sinu keeled.</string>
     <string name="core_voice_model_cpp_base_body">See mudel tasakaalustab täpsuse ja kiiruse. See kasutab keelt, milles dikteerite, mis tahes 99 keelest, mida Whisper tunneb, ja kuulab teie enda sõnu. Valige see, kui väike mudel on liiga aeglane.</string>
+    <string name="core_voice_model_cpp_fine_tune_body">%1$s treenis seda Turbo mudelit selles ühes keeles kõne peal edasi. See käsitleb ainult seda keelt.</string>
+    <string name="core_voice_model_cpp_hinglish_body">Oriserve treenis selle mudeli hindi keele ning hindi ja inglise keele segu põhjal. See kirjutab teie öeldu ladina tähtedega, nagu hinglish\'it kirjutatakse, ja jätab ingliskeelsed sõnad inglise keelde. See ei kirjuta kunagi devanaagaris, mistõttu sobib see hindi asemel pigem hinglish\'ile. See on väike ja kiire.</string>
+    <string name="core_voice_model_cpp_kb_body">Rootsi Rahvusraamatukogu treenis selle mudeli rootsi keele kõne peal. See käsitleb ainult rootsi keelt ja on selle jaoks täpsem kui sama suur üldine Whisperi mudel.</string>
+    <string name="core_voice_model_cpp_kotoba_body">Kotoba Technologies lõi selle jaapanikeelse mudeli mudelist Whisper Large v3. Selle dekooder on palju väiksem, mistõttu töötab see umbes Turbo mudeli kiirusega. See toetab ainult jaapani keelt.</string>
     <string name="core_voice_model_cpp_large_body">See on kõige täpsem Whisperi mudel. Allalaadimine on 1,1 GB. Ainult suure mälumahuga seade suudab selle laadida. Turbo-mudel on peaaegu sama täpne ja poole väiksem.</string>
     <string name="core_voice_model_cpp_medium_body">See mudel annab peaaegu lauaarvuti täpsuse. Iga fraas võtab mitu sekundit. Mudel kasutab töötades peaaegu ühe gigabaidi mälu.</string>
     <string name="core_voice_model_cpp_small_body">See mudel pakub parimat täpsust, mis telefonis hästi töötab. See kasutab keelt, milles dikteerid, mis tahes 99 keelest, mida Whisper tunneb, ja kuulab sinu enda sõnu.</string>
     <string name="core_voice_model_cpp_tiny_body">See on kõige kiirem mudel. See töötab hästi selge kõnega, kuid müra vähendab täpsust. See kasutab keelt, milles dikteerite, ja kuulab teie enda sõnu.</string>
     <string name="core_voice_model_cpp_turbo_body">See mudel on peaaegu sama täpne kui suurim mudel, olles poole väiksem. Iga fraas võtab mitu sekundit ja see ei saa tõlkida.</string>
+    <string name="core_voice_model_custom_body">Impordisite selle whisper.cpp mudeli failist. Klaviatuur ei tea, kuidas seda treeniti, seega valige see keelte jaoks, mille jaoks see loodi, jaotises „Mudel keele kohta“.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d keel</item>
         <item quantity="other">%1$d keelt</item>

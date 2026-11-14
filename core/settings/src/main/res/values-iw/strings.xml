@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">פס, כפתור ומקשים</string>
     <string name="core_settings_glide_commit_scope_pill_label">רצועה וכדורית</string>
     <string name="core_settings_glide_commit_scope_strip_label">פס</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">לאחר ביטול פעולה</string>
+    <string name="core_settings_glide_drawn_letters_off_label">כבוי</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">במקרה של ספק</string>
     <string name="core_settings_glide_engine_built_in_label">מובנה</string>
     <string name="core_settings_glide_engine_futo_label">FUTO Swipe (אנגלית, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">ספריית המחוות של גוגל (מיובא)</string>

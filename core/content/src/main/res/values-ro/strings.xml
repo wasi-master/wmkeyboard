@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">Adresă de e-mail</string>
+    <string name="core_content_clip_entity_email_tag">E-MAIL</string>
     <string name="core_content_clip_entity_otp_label">Cod unic</string>
     <string name="core_content_clip_entity_otp_tag">COD</string>
     <string name="core_content_clip_entity_phone_label">Număr de telefon</string>
@@ -38,6 +40,10 @@
         <item quantity="one">Aplicația a omis %1$d fragment care nu are nimic de inserat.</item>
         <item quantity="other">Aplicația a omis %1$d fragmente care nu au nimic de inserat.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d câmp de formular oferă o listă din care să alegi. Aplicația solicită acest lucru ca un răspuns introdus de la tastatură, cu prima opțiune completată.</item>
+        <item quantity="other">%1$d câmpuri de formular oferă o listă din care să alegi. Aplicația solicită fiecare dintre ele ca un răspuns introdus de la tastatură, cu prima opțiune completată.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Aplicația a omis %1$d fragment care inserează o imagine.</item>
         <item quantity="other">Aplicația a omis %1$d fragmente care inserează imagini.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d fragment folosește o valoare pentru care Espanso nu are echivalent. Este scris așa cum este.</item>
         <item quantity="other">%1$d fragmente folosesc valori pentru care Espanso nu are echivalent. Sunt scrise așa cum sunt.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d șablon introduce o imagine. Un fișier text nu poate conține imaginea, așa că doar cuvintele sale au fost exportate.</item>
+        <item quantity="other">%1$d șabloane introduc imagini. Un fișier text nu poate conține imaginile, așa că doar cuvintele lor au fost exportate.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">Aplicația a eliminat modelul din %1$d fragment. Aplicația nu rulează modele de acea formă. Fragmentul rămâne în listă.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">Aplicația a eliminat %1$d declanșator pe care tastatura nu îl poate monitoriza. Fragmentul său rămâne în listă.</item>
         <item quantity="other">Aplicația a eliminat %1$d declanșatoare pe care tastatura nu le poate monitoriza. Fragmentele lor rămân în listă.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">Începe cu === dar nu este o linie de declanșare === întreagă ===. Pentru a începe o linie de text cu ===, scrieți \=== în schimb</string>
+    <string name="core_content_snippet_text_bad_pattern">Modelul nu poate fi utilizat: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s nu poate fi %2$s</string>
+    <string name="core_content_snippet_text_before_header">Text ánainte de prima linie declanțatoare ===. Începeți un bloc cu una sau începeți linia cu #</string>
+    <string name="core_content_snippet_text_no_text">Acest fragment nu are text</string>
+    <string name="core_content_snippet_text_no_trigger">Un fragment care nu conține nimic între semnele === are nevoie de o linie @label sau @pattern</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d fragment imagine a sosit ca text: un fișier text nu conține imagini</item>
+        <item quantity="other">%1$d fragmente imagine au sosit ca text: un fișier text nu conține imagini</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">S-a omis fragmentul de la linia %1$d, care conține o eroare</string>
+    <string name="core_content_snippet_text_unknown_link">\@link denumește %1$s, și niciun fragment de aici nu are acest declanșator</string>
+    <string name="core_content_snippet_text_unknown_picture">\@picture numește %1$s, pe care niciun fragment nu îl folosește. Adăugați imagini în propriul editor al fragmentului</string>
+    <string name="core_content_snippet_text_unknown_setting">Tastatura nu cunoaște setarea %1$s. Pentru a începe textul unui fragment cu @, scrieți \@ în schimb</string>
     <string name="core_content_snippet_var_app_info">Numele aplicației în care scrii</string>
+    <string name="core_content_snippet_var_battery_info">Încărcarea bateriei, de exemplu 85%</string>
     <string name="core_content_snippet_var_clip_info">Cea mai recentă intrare din clipboard</string>
     <string name="core_content_snippet_var_cursor_info">Locul unde ajunge cursorul</string>
     <string name="core_content_snippet_var_date_info">Data de astăzi</string>
     <string name="core_content_snippet_var_datetime_info">Data și ora</string>
     <string name="core_content_snippet_var_day_info">Ziua lunii</string>
+    <string name="core_content_snippet_var_greeting_info">Bună dimineața, ziua sau seara în funcție de oră, în limba tastaturii</string>
     <string name="core_content_snippet_var_isodate_info">Data în format ISO, de exemplu 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">Data și ora în format ISO</string>
+    <string name="core_content_snippet_var_language_info">Limba tastaturii în care tastați</string>
     <string name="core_content_snippet_var_month_info">Numele lunii</string>
     <string name="core_content_snippet_var_package_info">Numele pachetului acelei aplicații</string>
     <string name="core_content_snippet_var_selection_info">Textul pe care îl selectați în câmp</string>
+    <string name="core_content_snippet_var_tab_info">Un caracter de tabulare</string>
     <string name="core_content_snippet_var_time12_info">Ora curentă în format de 12 ore</string>
     <string name="core_content_snippet_var_time_info">Ora curentă în format de 24 de ore</string>
     <string name="core_content_snippet_var_timestamp_info">Timpul în secunde Unix</string>

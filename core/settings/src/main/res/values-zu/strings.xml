@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Strip, pill kanye nezinkinobho</string>
     <string name="core_settings_glide_commit_scope_pill_label">Umugqa nephilisi</string>
     <string name="core_settings_glide_commit_scope_strip_label">Umugqa</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">Ngemva kokuhoxisa</string>
+    <string name="core_settings_glide_drawn_letters_off_label">Cishiwe</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">Uma ungaqinisekile</string>
     <string name="core_settings_glide_engine_built_in_label">Okwakhelwe ngaphakathi</string>
     <string name="core_settings_glide_engine_futo_label">FUTO Swipe (IsiNgisi, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Umtapo wezincwadi wokuthinta we-Google (ongenisiwe)</string>

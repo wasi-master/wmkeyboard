@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">வணக்கம்</string>
     <string name="core_tools_media_category_laugh">சிரிப்பு</string>
     <string name="core_tools_media_category_love">அன்பு</string>
+    <string name="core_tools_media_category_memes">மீம்ஸ்கள்</string>
     <string name="core_tools_media_category_no">இல்லை</string>
     <string name="core_tools_media_category_party">பார்ட்டி</string>
     <string name="core_tools_media_category_reactions">எதிர்வினைகள்</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">ஒரு Mozhi சர்வர்: Google, DeepL, DuckDuckGo, Yandex மற்றும் Reverso ஆகியவற்றிற்கான இலவச முன் முனை. இன்ஜினைத் தேர்ந்தெடுக்கவும். DeepL மற்றும் Reverso-விற்கு மூல மொழி தேவை.</string>
     <string name="core_tools_provider_music_server">உங்கள் சொந்த அங்கீகார சேவையகம்</string>
     <string name="core_tools_provider_music_server_desc">AudD போல பதிலளிக்கும் நீங்கள் இயக்கும் சர்வர்: கிளிப் ஒரு கோப்பாகப் பதிவேற்றப்பட்டு, பாடல் JSON ஆகத் திரும்ப வரும். அதற்குப் பின்னால் Panako அல்லது Olaf போன்ற பிங்கர்பிரிண்டரை வைக்கவும்.</string>
+    <string name="core_tools_provider_mwmbl_desc">சொந்த குறியீட்டைக் கொண்ட இலவச, இலாப நோக்கற்ற தேடுபொறி. விசை இல்லை. வலை முடிவுகள் மட்டுமே, படங்கள் இல்லை.</string>
     <string name="core_tools_provider_nllb">சாதனத்தில் (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">CTranslate2-இல் மெட்டாவின் NLLB-200 மாதிரியைப் பயன்படுத்தி தொலைபேசியிலேயே மொழிபெயர்க்கிறது: 200 மொழிகள், அவற்றுக்கிடையே எந்த இரண்டு மொழிகளுக்கும், மற்ற இன்ஜின்களால் செய்ய முடியாத ஜோடிகளுக்கு. 630 MB பதிவிறக்கம், ஒரு வாக்கியத்திற்கு சில நொடிகள் ஆகும். உங்கள் உரை தொலைபேசியிலேயே இருக்கும். இந்த மாதிரி வணிக நோக்கமற்ற பயன்பாட்டிற்கு மட்டுமே உரிமம் பெற்றது (CC BY-NC 4.0). 6 GB அல்லது அதற்கு மேற்பட்ட நினைவகம் கொண்ட 64-பிட் தொலைபேசி தேவை.</string>
     <string name="core_tools_provider_none_on">எந்த வழங்குநரும் ஆன் செய்யப்படவில்லை. இந்த கருவியின் அமைப்புகளில் ஒன்றை ஆன் செய்யவும்.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">இந்தப் பட்டியல்</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">விசைகளைக் காட்டு அல்லது மறை</string>
     <string name="core_tools_shortcut_leader_double_tap">%1$s-ஐ இரண்டு முறை அழுத்தவும்</string>
+    <string name="core_tools_speak_no_voice">இதை வாசிக்க இந்த தொலைபேசியில் %1$s குரல் இல்லை. ஆண்ட்ராய்டின் டெக்ஸ்ட்-டு-ஸ்பீச் அமைப்புகளில் ஒன்றைச் சேர்க்கவும் அல்லது \'கருவிகள் › திரும்ப வாசி\' என்பதன் கீழ் ஆஃப்லைன் குரலைப் பதிவிறக்கவும்.</string>
     <string name="core_tools_symbol_category_arrows_label">அம்புக்குறிகள்</string>
     <string name="core_tools_symbol_category_currency_label">நாணயம்</string>
     <string name="core_tools_symbol_category_fractions_label">பின்னங்கள்</string>
     <string name="core_tools_symbol_category_greek_label">கிரேக்கம்</string>
     <string name="core_tools_symbol_category_math_label">கணிதம்</string>
+    <string name="core_tools_symbol_category_music_label">இசை</string>
     <string name="core_tools_symbol_category_other_label">பிற</string>
     <string name="core_tools_symbol_category_punctuation_label">நிறுத்தற்குறிகள்</string>
     <string name="core_tools_symbol_category_shapes_label">வடிவங்கள் மற்றும் நட்சத்திரங்கள்</string>
+    <string name="core_tools_symbol_category_stars_label">நட்சத்திரங்கள்</string>
     <string name="core_tools_symbol_category_superscript_label">மேலெழுத்து</string>
+    <string name="core_tools_symbol_category_technical_label">தொழில்நுட்பம்</string>
+    <string name="core_tools_symbol_category_weather_label">வானிலை</string>
     <string name="core_tools_symbol_set_coding_label">கோடிங்</string>
     <string name="core_tools_symbol_set_email_label">மின்னஞ்சல்</string>
     <string name="core_tools_symbol_set_math_label">கணிதம்</string>

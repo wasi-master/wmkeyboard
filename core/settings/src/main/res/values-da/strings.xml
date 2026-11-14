@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Stribe, pille og taster</string>
     <string name="core_settings_glide_commit_scope_pill_label">Stribe og pille</string>
     <string name="core_settings_glide_commit_scope_strip_label">Stribe</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">Efter en annullering</string>
+    <string name="core_settings_glide_drawn_letters_off_label">Fra</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">Når det er usikkert</string>
     <string name="core_settings_glide_engine_built_in_label">Indbygget</string>
     <string name="core_settings_glide_engine_futo_label">FUTO Swipe (engelsk, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Googles gestusbibliotek (importeret)</string>

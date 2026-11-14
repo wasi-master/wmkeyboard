@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">ਹੈਲੋ</string>
     <string name="core_tools_media_category_laugh">ਹੱਸਣਾ</string>
     <string name="core_tools_media_category_love">ਪਿਆਰ</string>
+    <string name="core_tools_media_category_memes">ਮੀਮਸ</string>
     <string name="core_tools_media_category_no">ਨਹੀਂ</string>
     <string name="core_tools_media_category_party">ਪਾਰਟੀ</string>
     <string name="core_tools_media_category_reactions">ਪ੍ਰਤੀਕਿਰਿਆਵਾਂ</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">ਇੱਕ Mozhi ਸਰਵਰ: Google, DeepL, DuckDuckGo, Yandex ਅਤੇ Reverso ਲਈ ਇੱਕ ਮੁਫਤ ਫਰੰਟ ਐਂਡ। ਇੰਜਣ ਚੁਣੋ। DeepL ਅਤੇ Reverso ਨੂੰ ਇੱਕ ਸਰੋਤ ਭਾਸ਼ਾ ਦੀ ਲੋੜ ਹੁੰਦੀ ਹੈ।</string>
     <string name="core_tools_provider_music_server">ਤੁਹਾਡਾ ਆਪਣਾ ਪਛਾਣ ਸਰਵਰ</string>
     <string name="core_tools_provider_music_server_desc">ਇੱਕ ਸਰਵਰ ਜੋ ਤੁਸੀਂ ਚਲਾਉਂਦੇ ਹੋ ਜੋ AudD ਵਾਂਗ ਜਵਾਬ ਦਿੰਦਾ ਹੈ: ਕਲਿੱਪ ਨੂੰ ਇੱਕ ਫਾਈਲ ਵਜੋਂ ਪੋਸਟ ਕੀਤਾ ਜਾਂਦਾ ਹੈ ਅਤੇ ਗਾਣਾ JSON ਵਜੋਂ ਵਾਪਸ ਆਉਂਦਾ ਹੈ। ਇਸਦੇ ਪਿੱਛੇ Panako ਜਾਂ Olaf ਵਰਗਾ ਫਿੰਗਰਪ੍ਰਿੰਟਰ ਲਗਾਓ।</string>
+    <string name="core_tools_provider_mwmbl_desc">ਆਪਣੇ ਖੁਦ ਦੇ ਸੂਚਕਾਂਕ ਵਾਲਾ ਇੱਕ ਮੁਫਤ, ਗੈਰ-ਲਾਭਕਾਰੀ ਖੋਜ ਇੰਜਣ। ਕੋਈ ਕੁੰਜੀ ਨਹੀਂ। ਸਿਰਫ ਵੈੱਬ ਨਤੀਜੇ, ਕੋਈ ਚਿੱਤਰ ਨਹੀਂ।</string>
     <string name="core_tools_provider_nllb">ਡਿਵਾਈਸ \'ਤੇ (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">CTranslate2 \'ਤੇ Meta ਦੇ NLLB-200 ਮਾਡਲ ਨਾਲ ਫ਼ੋਨ \'ਤੇ ਅਨੁਵਾਦ ਕਰਦਾ ਹੈ: 200 ਭਾਸ਼ਾਵਾਂ, ਉਹਨਾਂ ਵਿੱਚੋਂ ਕਿਸੇ ਵੀ ਦੋ ਵਿਚਕਾਰ, ਉਹਨਾਂ ਜੋੜਿਆਂ ਲਈ ਜੋ ਹੋਰ ਇੰਜਣ ਨਹੀਂ ਕਰ ਸਕਦੇ। 630 MB ਦੀ ਇੱਕ ਡਾਊਨਲੋਡ, ਅਤੇ ਇੱਕ ਵਾਕ ਵਿੱਚ ਕੁਝ ਸਕਿੰਟ ਲੱਗਦੇ ਹਨ। ਤੁਹਾਡਾ ਟੈਕਸਟ ਫ਼ੋਨ \'ਤੇ ਹੀ ਰਹਿੰਦਾ ਹੈ। ਮਾਡਲ ਸਿਰਫ਼ ਗੈਰ-ਵਪਾਰਕ ਵਰਤੋਂ (CC BY-NC 4.0) ਲਈ ਲਾਇਸੰਸਸ਼ੁਦਾ ਹੈ। 6 GB ਜਾਂ ਵੱਧ ਮੈਮੋਰੀ ਵਾਲੇ 64-ਬਿੱਟ ਫ਼ੋਨ ਦੀ ਲੋੜ ਹੈ।</string>
     <string name="core_tools_provider_none_on">ਕੋਈ ਪ੍ਰੋਵਾਈਡਰ ਚਾਲੂ ਨਹੀਂ ਹੈ। ਇਸ ਟੂਲ ਦੀਆਂ ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਇੱਕ ਨੂੰ ਚਾਲੂ ਕਰੋ।</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">ਇਹ ਸੂਚੀ</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">ਕੁੰਜੀਆਂ ਦਿਖਾਓ ਜਾਂ ਲੁਕਾਓ</string>
     <string name="core_tools_shortcut_leader_double_tap">%1$s ਨੂੰ ਦੋ ਵਾਰ ਦਬਾਓ</string>
+    <string name="core_tools_speak_no_voice">ਇਸ ਫ਼ੋਨ ਵਿੱਚ ਇਸਨੂੰ ਪੜ੍ਹਨ ਲਈ ਕੋਈ %1$s ਆਵਾਜ਼ ਨਹੀਂ ਹੈ। ਐਂਡਰਾਇਡ ਦੀ ਟੈਕਸਟ-ਟੂ-ਸਪੀਚ ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਇੱਕ ਜੋੜੋ, ਜਾਂ ਟੂਲ › ਪੜ੍ਹੋ ਵਾਪਸ ਦੇ ਤਹਿਤ ਇੱਕ ਔਫਲਾਈਨ ਆਵਾਜ਼ ਡਾਊਨਲੋਡ ਕਰੋ।</string>
     <string name="core_tools_symbol_category_arrows_label">ਤੀਰ</string>
     <string name="core_tools_symbol_category_currency_label">ਮੁਦਰਾ</string>
     <string name="core_tools_symbol_category_fractions_label">ਭਿੰਨਾਂ</string>
     <string name="core_tools_symbol_category_greek_label">ਯੂਨਾਨੀ</string>
     <string name="core_tools_symbol_category_math_label">ਗਣਿਤ</string>
+    <string name="core_tools_symbol_category_music_label">ਸੰਗੀਤ</string>
     <string name="core_tools_symbol_category_other_label">ਹੋਰ</string>
     <string name="core_tools_symbol_category_punctuation_label">ਵਿਰਾਮ ਚਿੰਨ੍ਹ</string>
     <string name="core_tools_symbol_category_shapes_label">ਆਕਾਰ ਅਤੇ ਤਾਰੇ</string>
+    <string name="core_tools_symbol_category_stars_label">ਤਾਰੇ</string>
     <string name="core_tools_symbol_category_superscript_label">ਸੁਪਰਸਕ੍ਰਿਪਟ</string>
+    <string name="core_tools_symbol_category_technical_label">ਤਕਨੀਕੀ</string>
+    <string name="core_tools_symbol_category_weather_label">ਮੌਸਮ</string>
     <string name="core_tools_symbol_set_coding_label">ਕੋਡਿੰਗ</string>
     <string name="core_tools_symbol_set_email_label">ਈਮੇਲ</string>
     <string name="core_tools_symbol_set_math_label">ਗਣਿਤ</string>

@@ -23,6 +23,30 @@
         <item quantity="one">Ukuswayipha okungu-%1$d okhiye akunawo umsebenzi lapha, ngoba le khibhodi isebenzisa lokho kuswayipha komunye umsebenzi. Uhlelo lokusebenza lukuqede.</item>
         <item quantity="other">Ukuswayipha okungu-%1$d okhiye akunawo umsebenzi lapha, ngoba le khibhodi isebenzisa lokho kuswayipha kweminye imisebenzi. Uhlelo lokusebenza lukuqede.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">Uhlelo lokusebenza lushiye umthetho ongu-%1$d oshintsha ukuthi ukucisha kwenza ini. Ukucisha kusebenza ngendlela okuyiyo kunoma iyiphi i-layowuthi lapha.</item>
+        <item quantity="other">Uhlelo lokusebenza lushiye imithetho engu-%1$d eshintsha ukuthi ukucisha kwenza ini. Ukucisha kusebenza ngendlela okuyiyo kunoma iyiphi i-layowuthi lapha.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">Uhlelo lokusebenza lususile ukuswayipha okungu-%1$d okushintsha indlela. Ukuswayipha kule khibhodi kuhamba ngendlela eyodwa.</item>
+        <item quantity="other">Uhlelo lokusebenza lususile ukuswayipha okungu-%1$d okushintsha indlela. Ukuswayipha kule khibhodi kuhamba ngendlela eyodwa.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">Uhlelo lokusebenza lushiye ikhasi elingu-%1$d lekhiyi efana ne-Caps Lock noma i-Ctrl. Le khibhodi ayinalo ikhasi laleyo khiye.</item>
+        <item quantity="other">Uhlelo lokusebenza lushiye amakhasi angu-%1$d ezinkinobho ezifana ne-Caps Lock noma i-Ctrl. Le khibhodi ayinalo ikhasi lalezo zinkinobho.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">Uhlelo lokusebenza lushiye ngaphandle umthetho ongu-%1$d obeka amakaka ngokulandelana kwawo kokubhala. Le khhibhodi ibhala amakaka ngendlela owathayipha ngayo.</item>
+        <item quantity="other">Uhlelo lokusebenza lushiye ngaphandle imithetho engu-%1$d ebeka amakaka ngokulandelana kwawo kokubhala. Le khhibhodi ibhala amakaka ngendlela owathayipha ngayo.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">Umthetho ka-%1$d ubeka ugcizelelo encwadini elandelayo. Lapha, ukhiye oqala ngayo uwukhiye ofile.</item>
+        <item quantity="other">Imithetho ka-%1$d ibeka ugcizelelo encwadini elandelayo. Lapha, okhiye abayiqalayo bangokhiye abafile.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">Umthetho oyi-%1$d uphendula ukhiye kanye nomunye olandelayo ube wuphawu oluhlukile. Lapha, lolu phawu lungokucindezela nokubamba kokhiye wokuqala.</item>
+        <item quantity="other">Imithetho eyi-%1$d iphendula ukhiye kanye nomunye olandelayo ube wuphawu oluhlukile. Lapha, lezo zimpawu zingokucindezela nokubamba kokhiye wokuqala.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Uhlelo lokusebenza lushintshe ukhiye ongu-%1$d uba ukhiye oseduze onawo.</item>
         <item quantity="other">Uhlelo lokusebenza lushintshe okhiye abangu-%1$d baba okhiye abaseduze onawo.</item>

@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">日语抱音标注</string>
     <string name="core_input_cjk_pack_hanja_subtitle">韩文词汇及其汉字对应项，包含 30万 条目。键盘需要此数据包才能在候选栏中提供汉字建议。</string>
     <string name="core_input_cjk_pack_hanja_title">汉字 (漢字) 字典</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell，因此带有前缀和后缀的词语会被识别，其中的拼写错误也会被修正。</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">阿拉伯语拼写字典</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr，以便识别带有任何后缀的词并修复其中的拼写错误。</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">土耳其语拼写规则</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">来自 mozc 的假名读音，108 万个条目，约 42 MB。键盘需要此包进行日语转换。</string>

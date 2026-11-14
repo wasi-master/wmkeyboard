@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Современная модель среднего размера, которая «думает» перед ответом. Требует устройство среднего уровня.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Маленькая и быстрая модель. Подходит для оперативного переписывания текста на базовом устройстве.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Очень маленькая модель, которая умеет «читать» изображения. Она описывает картинку, но часто неправильно считывает текст на скриншотах.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">Переобучение NVIDIA для Gemma 4 E4B для следования инструкциям и использования инструментов. Только текст, требуется мощное устройство.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Универсальная модель, которая помещается даже на базовом устройстве.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Заметно умнее моделей меньше 1B. Требует устройство среднего уровня.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Недавняя небольшая модель. Качество высокое для ее размера.</string>

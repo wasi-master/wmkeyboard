@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">ای میل پتہ</string>
+    <string name="core_content_clip_entity_email_tag">ای میل</string>
     <string name="core_content_clip_entity_otp_label">ایک بار استعمال ہونے والا کوڈ</string>
     <string name="core_content_clip_entity_otp_tag">کوڈ</string>
     <string name="core_content_clip_entity_phone_label">فون نمبر</string>
@@ -38,6 +40,10 @@
         <item quantity="one">ایپ نے %1$d اسنیپٹ کو چھوڑ دیا جس میں داخل کرنے کے لیے کچھ نہیں ہے۔</item>
         <item quantity="other">ایپ نے %1$d اسنیپٹس کو چھوڑ دیا جن میں داخل کرنے کے لیے کچھ نہیں ہے۔</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d فارم فیلڈ منتخب کرنے کے لیے ایک فہرست پیش کرتا ہے۔ ایپ اسے ایک ٹائپ شدہ جواب کے طور پر مانگتی ہے، جس میں پہلا انتخاب بھرا ہوتا ہے۔</item>
+        <item quantity="other">%1$d فارم فیلڈز منتخب کرنے کے لیے ایک فہرست پیش کرتے ہیں۔ ایپ ہر ایک کو ٹائپ شدہ جواب کے طور پر مانگتی ہے، جس میں پہلا انتخاب بھرا ہوتا ہے۔</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">ایپ نے %1$d اسنیپٹ کو چھوڑ دیا جو تصویر داخل کرتا ہے۔</item>
         <item quantity="other">ایپ نے %1$d اسنیپٹس کو چھوڑ دیا جو تصاویر داخل کرتے ہیں۔</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d سنیپٹ ایک ایسی قدر استعمال کرتا ہے جس کا Espanso میں کوئی متبادل نہیں ہے۔ اسے ویسا ہی لکھا جاتا ہے جیسا کہ یہ ہے۔</item>
         <item quantity="other">%1$d سنیپٹس ایسی اقدار استعمال کرتے ہیں جن کا Espanso میں کوئی متبادل نہیں ہے۔ انہیں ویسا ہی لکھا جاتا ہے جیسے وہ ہیں۔</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d سنپٹ ایک تصویر داخل کرتا ہے۔ ایک ٹیکسٹ فائل تصویر کو نہیں رکھ سکتی، اس لیے صرف اس کے الفاظ باہر گئے۔</item>
+        <item quantity="other">%1$d سنپٹس تصاویر داخل کرتے ہیں۔ ایک ٹیکسٹ فائل تصاویر کو نہیں رکھ سکتی، اس لیے صرف ان کے الفاظ باہر گئے۔</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">ایپ نے %1$d اسنیپٹ سے پیٹرن ہٹا دیا ہے۔ ایپ اس شکل کے پیٹرن نہیں چلاتی۔ اسنیپٹ فہرست میں موجود ہے۔</item>
@@ -197,17 +207,35 @@
         <item quantity="one">ایپ نے %1$d ٹرگر ہٹا دیا ہے جس پر کی بورڈ نظر نہیں رکھ سکتا۔ اس کا اسنیپٹ فہرست میں موجود ہے۔</item>
         <item quantity="other">ایپ نے %1$d ٹرگرز ہٹا دیے ہیں جن پر کی بورڈ نظر نہیں رکھ سکتا۔ ان کے اسنیپٹس فہرست میں موجود ہیں۔</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">ٵـ ٵـ ٵـ</string>
+    <string name="core_content_snippet_text_bad_pattern">یہ پیٹرن استعمال نہیں کیا جا سکتا: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s %2$s نہیں ہو سکتا</string>
+    <string name="core_content_snippet_text_before_header">پہلے === ٹرिガー === لائن سے پہلے کا متن۔ ایک کے ساتھ بلاک شروع کریں، یا # کے ساتھ لائن شروع کریں</string>
+    <string name="core_content_snippet_text_no_text">اس اقتباس میں کوئی متن نہیں ہے</string>
+    <string name="core_content_snippet_text_no_trigger">== marks کے درمیان بغیر کسی چیز کے ایک اقتباس کو @label یا @pattern لائن کی ضرورت ہوتی ہے</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d تصویر کا اسنیپ ٹیسٹ کے طور پر آیا: ٹیکسٹ فائل میں کوئی تصویر نہیں ہوتی</item>
+        <item quantity="other">%1$d تصویر کے اسنیپٹس ٹیکسٹ کے طور پر آئے: ٹیکسٹ فائل میں کوئی تصویر نہیں ہوتی</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">لائن %1$d پر موجود اسنیپ کو چھوڑ دیا گیا، جس میں ایک غلطی تھی</string>
+    <string name="core_content_snippet_text_unknown_link">\@link کا نام %1$s ہے، اور یہاں کوئی اقتباس اس ٹرگر کا حامل نہیں ہے</string>
+    <string name="core_content_snippet_text_unknown_picture">\@picture کا نام %1$s ہے، جسے کوئی بھی سنپٹ استعمال نہیں کرتا۔ سنپٹ کے اپنے ایڈیٹر میں تصاویر شامل کریں</string>
+    <string name="core_content_snippet_text_unknown_setting">کی بورڈ سیٹنگ %1$s کو نہیں جانتا۔ اقتباس کے متن کو @ سے شروع کرنے کے لیے، اس کے بجائے \@ لکھیں</string>
     <string name="core_content_snippet_var_app_info">اس ایپ کا نام جس میں آپ ٹائپ کرتے ہیں</string>
+    <string name="core_content_snippet_var_battery_info">بیٹری کا چارج، مثال کے طور پر 85%</string>
     <string name="core_content_snippet_var_clip_info">کلپ بورڈ کا تازہ ترین اندراج</string>
     <string name="core_content_snippet_var_cursor_info">وہ جگہ جہاں کرسر رکتا ہے</string>
     <string name="core_content_snippet_var_date_info">آج کی تاریخ</string>
     <string name="core_content_snippet_var_datetime_info">تاریخ اور وقت</string>
     <string name="core_content_snippet_var_day_info">مہینے کا دن</string>
+    <string name="core_content_snippet_var_greeting_info">کی بورڈ کی زبان میں، وقت کے حساب سے صبح، دوپہر یا شام کی سلامی</string>
     <string name="core_content_snippet_var_isodate_info">ISO شکل میں تاریخ، مثال کے طور پر 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">ISO شکل میں تاریخ اور وقت</string>
+    <string name="core_content_snippet_var_language_info">کی بورڈ کی زبان جس میں آپ ٹائپ کرتے ہیں</string>
     <string name="core_content_snippet_var_month_info">مہینے کا نام</string>
     <string name="core_content_snippet_var_package_info">اس ایپ کا پیکیج نام</string>
     <string name="core_content_snippet_var_selection_info">وہ متن جو آپ فیلڈ میں منتخب کرتے ہیں</string>
+    <string name="core_content_snippet_var_tab_info">ایک ٹیب کیریکٹر</string>
     <string name="core_content_snippet_var_time12_info">اب وقت 12 گھنٹے کی شکل میں</string>
     <string name="core_content_snippet_var_time_info">اب وقت 24 گھنٹے کی شکل میں</string>
     <string name="core_content_snippet_var_timestamp_info">Unix سیکنڈز میں وقت</string>

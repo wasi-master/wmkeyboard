@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">Διεύθυνση email</string>
+    <string name="core_content_clip_entity_email_tag">EMAIL</string>
     <string name="core_content_clip_entity_otp_label">Κωδικός μίας χρήσης</string>
     <string name="core_content_clip_entity_otp_tag">ΚΩΔΙΚΟΣ</string>
     <string name="core_content_clip_entity_phone_label">Αριθμός τηλεφώνου</string>
@@ -38,6 +40,10 @@
         <item quantity="one">Η εφαρμογή παρέλειψε %1$d απόσπασμα που δεν έχει τίποτα να εισάγει.</item>
         <item quantity="other">Η εφαρμογή παρέλειψε %1$d αποσπάσματα που δεν έχουν τίποτα να εισάγουν.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">Το %1$d πεδίο φόρμας προσφέρει μια λίστα για επιλογή. Η εφαρμογή το ζητάει ως απάντηση με πληκτρολόγηση, με τη πρώτη επιλογή συμπληρωμένη.</item>
+        <item quantity="other">Τα %1$d πεδία φόρμας προσφέρουν μια λίστα για επιλογή. Η εφαρμογή τα ζητάει το καθένα ως απάντηση με πληκτρολόγηση, με τη πρώτη επιλογή συμπληρωμένη.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Η εφαρμογή παρέλειψε %1$d απόσπασμα που εισάγει μια εικόνα.</item>
         <item quantity="other">Η εφαρμογή παρέλειψε %1$d αποσπάσματα που εισάγουν εικόνες.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d απόσπασμα χρησιμοποιεί μια τιμή για την οποία το Espanso δεν έχει αντίστοιχο. Γράφεται ως έχει.</item>
         <item quantity="other">%1$d αποσπάσματα χρησιμοποιούν τιμές για τις οποίες το Espanso δεν έχει αντίστοιχο. Γράφονται ως έχουν.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">Το απόσπασμα %1$d εισάγει μια εικόνα. Ένα αρχείο κειμένου δεν μπορεί να περιέχει την εικόνα, επομένως εξήχθησαν μόνο οι λέξεις της.</item>
+        <item quantity="other">Τα αποσπάσματα %1$d εισάγουν εικόνες. Ένα αρχείο κειμένου δεν μπορεί να περιέχει τις εικόνες, επομένως εξήχθησαν μόνο οι λέξεις τους.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">Η εφαρμογή αφαίρεσε το μοτίβο από %1$d απόσπασμα. Η εφαρμογή δεν εκτελεί μοτίβα αυτού του σχήματος. Το απόσπασμα παραμένει στη λίστα.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">Η εφαρμογή αφαίρεσε %1$d έναυσμα που το πληκτρολόγιο δεν μπορεί να παρακολουθήσει. Το απόσπασμά του παραμένει στη λίστα.</item>
         <item quantity="other">Η εφαρμογή αφαίρεσε %1$d εναύσματα που το πληκτρολόγιο δεν μπορεί να παρακολουθήσει. Τα αποσπάσματά τους παραμένουν στη λίστα.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">Ξεκινά με === αλλά δεν είναι μια ολόκληρη γραμμή ενεργοποίησης ===. Για να ξεκινήσετε μια γραμμή κειμένου με ===, γράψτε \=== αντί αυτού</string>
+    <string name="core_content_snippet_text_bad_pattern">Το μοτίβο δεν μπορεί να χρησιμοποιηθεί: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">Το %1$s δεν μπορεί να είναι %2$s</string>
+    <string name="core_content_snippet_text_before_header">Κείμενο πριν από την πρώτη γραμμή ενεργοποίησης 111. Ξεκινήστε ένα μπλοκ με μία, ή αρχίστε τη γραμμή με #</string>
+    <string name="core_content_snippet_text_no_text">Αυτό το απόσπασμα δεν έχει κείμενο</string>
+    <string name="core_content_snippet_text_no_trigger">Ένα απόσπασμα χωρίς τίποτα μεταξύ των σημείων 222 χρειάζεται μια γραμμή @label ή @pattern</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d απόσπασμα εικόνας εμφανίστηκε ως κείμενό του: ένα αρχείο κειμένου δεν περιέχει εικόνες</item>
+        <item quantity="other">%1$d αποσπάσματα εικόνων εμφανίστηκαν ως κείμενά τους: ένα αρχείο κειμένου δεν περιέχει εικόνες</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">Παραλείφθηκε το απόσπασμα στη γραμμή %1$d, το οποίο περιέχει ένα σφάλμα</string>
+    <string name="core_content_snippet_text_unknown_link">Το @link ονομάζει %1$s και κανένα απόσπασμα εδώ δεν έχει αυτήν την ενεργοποίηση</string>
+    <string name="core_content_snippet_text_unknown_picture">Το @picture ονομάζει %1$s, το οποίο δεν χρησιμοποιείται από κανένα απόσπασμα. Προσθέστε εικόνες στο πρόγραμμα επεξεργασίας του αποσπάσματος</string>
+    <string name="core_content_snippet_text_unknown_setting">Το πληκτρολόγιο δεν γνωρίζει τη ρύθμιση %1$s. Για να ξεκινήσει το κείμενο ενός αποσπάσματος με @, γράψτε \@ αντί αυτού</string>
     <string name="core_content_snippet_var_app_info">Το όνομα της εφαρμογής στην οποία πληκτρολογείτε</string>
+    <string name="core_content_snippet_var_battery_info">Η φόρτιση της μπαταρίας, για παράδειγμα 85%</string>
     <string name="core_content_snippet_var_clip_info">Η νεότερη καταχώρηση στο πρόχειρο</string>
     <string name="core_content_snippet_var_cursor_info">Το σημείο όπου προσγειώνεται ο κέρσορας</string>
     <string name="core_content_snippet_var_date_info">Η σημερινή ημερομηνία</string>
     <string name="core_content_snippet_var_datetime_info">Η ημερομηνία και η ώρα</string>
     <string name="core_content_snippet_var_day_info">Η ημέρα του μήνα</string>
+    <string name="core_content_snippet_var_greeting_info">Καλημέρα, καλησπέρα ή καληνύχτα ανάλογα με την ώρα, στη γλώσσα του πληκτρολογίου</string>
     <string name="core_content_snippet_var_isodate_info">Η ημερομηνία σε μορφή ISO, για παράδειγμα 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">Η ημερομηνία και η ώρα σε μορφή ISO</string>
+    <string name="core_content_snippet_var_language_info">Η γλώσσα πληκτρολογίου που χρησιμοποιείτε</string>
     <string name="core_content_snippet_var_month_info">Το όνομα του μήνα</string>
     <string name="core_content_snippet_var_package_info">Το όνομα πακέτου αυτής της εφαρμογής</string>
     <string name="core_content_snippet_var_selection_info">Το κείμενο που επιλέγετε στο πεδίο</string>
+    <string name="core_content_snippet_var_tab_info">Ένας χαρακτήρας στηλοθέτησης (tab)</string>
     <string name="core_content_snippet_var_time12_info">Η τρέχουσα ώρα σε 12ωρη μορφή</string>
     <string name="core_content_snippet_var_time_info">Η τρέχουσα ώρα σε μορφή 24 ωρών</string>
     <string name="core_content_snippet_var_timestamp_info">Η ώρα σε δευτερόλεπτα Unix</string>

@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Un modello di medie dimensioni recente che riflette prima di rispondere. Richiede un dispositivo di fascia media.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Piccolo e veloce. È utile per riscritture rapide su un dispositivo di base.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Un modello molto piccolo in grado di leggere immagini. Descrive un\'immagine, ma spesso legge male il testo in uno screenshot.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">Riadattamento da parte di NVIDIA di Gemma 4 E4B per seguire le istruzioni e utilizzare gli strumenti. Solo testo, richiede un dispositivo potente.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Un modello multiuso che si adatta ancora a un dispositivo di base.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Chiaramente più intelligente dei modelli sotto 1B. Richiede un dispositivo di fascia media.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Un piccolo modello recente. La qualità è elevata per le sue dimensioni.</string>

@@ -23,6 +23,34 @@
         <item quantity="one">ל-%1$d החלקה על מקש אין מקום כאן, מכיוון שהמקלדת משתמשת בהחלקה זו למשימה אחרת. האפליקציה הסירה אותה.</item>
         <item quantity="other">ל-%1$d החלקות על מקשים אין מקום כאן, מכיוון שהמקלדת משתמשת בהחלקות אלו למשימות אחרות. האפליקציה הסירה אותן.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">האפליקציה השמיטה כלל %1$d שמשנה את מה שמחיקה מסירה. מחיקה פועלת בדיוק כפי שהיא פועלת בכל פריסה כאן.</item>
+        <item quantity="other">האפליקציה השמיטה %1$d כללים שמשנים את מה שמחיקה מסירה. מחיקה פועלת בדיוק כפי שהיא פועלת בכל פריסה כאן.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">האפליקציה הסירה החלקה אחת המשנה כיוון. ההחלקות במקלדת זו הולכות לכיוון אחד.</item>
+        <item quantity="other">האפליקציה הסירה %1$d החלקות המשנות כיוון. ההחלקות במקלדת זו הולכות לכיוון אחד.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">האפליקציה השמיטה עמוד %1$d עבור מקש כגון Caps Lock או Ctrl. למקלדת זו אין עמוד עבור מקש זה.</item>
+        <item quantity="other">האפליקציה השמיטה %1$d עמודים עבור מקשים כגון Caps Lock או Ctrl. למקלדת זו אין עמוד עבור מקשים אלה.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">האפליקציה השמיטה כלל %1$d אחד ששם סימנים בסדר הכתיבה שלהם. מקלדת זו כותבת סימנים בסדר שבו תקליד אותם.</item>
+        <item quantity="other">האפליקציה השמיטה %1$d כללים ששמים סימנים בסדר הכתיבה שלהם. מקלדת זו כותבת סימנים בסדר שבו תקליד אותם.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">כלל %1$d מוסיף סימן פיסוק על האות הבאה. כאן, המקש שמתחיל זאת הוא מקש מת.</item>
+        <item quantity="other">כללים %1$d מוסיפים סימן פיסוק על האות הבאה. כאן, המקשים שמתחילים זאת הם מקשים מתים.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">האפליקציה השמיטה כלל %1$d שמשנה טקסט תוך כדי הקלדה. אין מקש כאן שמתחיל אותו, או שהוא תואם יותר טקסט ממה שמקש יכול להקליד.</item>
+        <item quantity="other">האפליקציה השמיטה %1$d כללים שמשנים טקסט תוך כדי הקלדה. אין מקש כאן שמתחיל אותם, או שהם תואמים יותר טקסט ממה שמקש יכול להקליד.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">כלל %1$d הופך מקש ואת הבא בתור לתו אחר. כאן, התו נמצא בלחיצה ארוכה על המקש הראשון.</item>
+        <item quantity="other">כללים %1$d הופכים מקש ואת הבא בתור לתו אחר. כאן, אותם תווים נמצאים בלחיצה ארוכה על המקש הראשון.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">האפליקציה שינתה מקש %1$d למקש הקרוב ביותר שיש לה.</item>
         <item quantity="other">האפליקציה שינתה %1$d מקשים למקשים הקרובים ביותר שיש לה.</item>

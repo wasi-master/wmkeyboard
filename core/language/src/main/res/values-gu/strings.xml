@@ -23,6 +23,34 @@
         <item quantity="one">કી પર %1$d સ્વાઇપ અહીં કામ કરતું નથી, કારણ કે આ કીબોર્ડ તે સ્વાઇપનો ઉપયોગ બીજા કામ માટે કરે છે. એપ દ્વારા તેને દૂર કરવામાં આવ્યું છે.</item>
         <item quantity="other">કી પર %1$d સ્વાઇપ અહીં કામ કરતા નથી, કારણ કે આ કીબોર્ડ તે સ્વાઇપનો ઉપયોગ બીજા કામ માટે કરે છે. એપ દ્વારા તેને દૂર કરવામાં આવ્યા છે.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">એપે %1$d નિયમ છોડી દીધો છે જે ડિલીટ શું દૂર કરે છે તે બદલે છે. ડિલીટ અહીં દરેક લેઆઉટ પર જે રીતે કામ કરે છે તે જ રીતે કામ કરે છે.</item>
+        <item quantity="other">એપે %1$d નિયમો છોડી દીધા છે જે ડિલીટ શું દૂર કરે છે તે બદલે છે. ડિલીટ અહીં દરેક લેઆઉટ પર જે રીતે કામ કરે છે તે જ રીતે કામ કરે છે.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">ઍપે દિશા બદલતી %1$d સ્વાઇપ હટાવી દીધી છે. આ કીબોર્ડ પર સ્વાઇપ એક જ દિશામાં જાય છે.</item>
+        <item quantity="other">ઍપે દિશા બદલતી %1$d સ્વાઇપ હટાવી દીધી છે. આ કીબોર્ડ પર સ્વાઇપ એક જ દિશામાં જાય છે.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">એપ્લિકેશને Caps Lock અથવા Ctrl જેવી કી માટે %1$d પેજ છોડી દીધું. આ કીબોર્ડ પાસે તે કી માટે કોઈ પેજ નથી.</item>
+        <item quantity="other">એપ્લિકેશને Caps Lock અથવા Ctrl જેવી કી માટે %1$d પેજ છોડી દીધા. આ કીબોર્ડ પાસે તે કીઓ માટે કોઈ પેજ નથી.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">એપ્લિકેશને %1$d નિયમ છોડી દીધો છે જે ચિહ્નોને તેમના લખાયેલા ક્રમમાં મૂકે છે. આ કીબોર્ડ તમે જે ક્રમમાં લખો છો તે ક્રમમાં ચિહ્નો લખે છે.</item>
+        <item quantity="other">એપ્લિકેશને %1$d નિયમો છોડી દીધા છે જે ચિહ્નોને તેમના લખાયેલા ક્રમમાં મૂકે છે. આ કીબોર્ડ તમે જે ક્રમમાં લખો છો તે ક્રમમાં ચિહ્નો લખે છે.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d નિયમ આગામી અક્ષર પર ઉચ્ચાર મૂકે છે. અહીં, તેની શરૂઆત કરનાર કી ડેટ કી છે.</item>
+        <item quantity="other">%1$d નિયમો આગામી અક્ષર પર ઉચ્ચાર મૂકે છે. અહીં, તેમની શરૂઆત કરનાર કીઓ ડેટ કીઓ છે.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">એપે %1$d નિયમ છોડી દીધો છે જે તમે ટાઇપ કરો છો તેમ લખાણ બદલે છે. અહીં કોઈ કી તેને શરૂ કરતી નથી, અથવા તે કી ટાઇપ કરી શકે તેના કરતાં વધુ લખાણ સાથે મેચ થાય છે.</item>
+        <item quantity="other">એપે %1$d નિયમો છોડી દીધા છે જે તમે ટાઇપ કરો છો તેમ લખાણ બદલે છે. અહીં કોઈ કી તેમને શરૂ કરતી નથી, અથવા તે કી ટાઇપ કરી શકે તેના કરતાં વધુ લખાણ સાથે મેચ થાય છે.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d નિયમ કી અને આગામી કીને બીજા અક્ષરમાં ફેરવે છે. અહીં, તે અક્ષર પ્રથમ કી દબાવીને રાખવાથી આવે છે.</item>
+        <item quantity="other">%1$d નિયમો કી અને આગામી કીને બીજા અક્ષરમાં ફેરવે છે. અહીં, તે અક્ષરો પ્રથમ કી દબાવીને રાખવાથી આવે છે.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">એપે %1$d કીને તેની પાસેની સૌથી નજીકની કીમાં બદલી છે.</item>
         <item quantity="other">એપે %1$d કીને તેની પાસેની સૌથી નજીકની કીઓમાં બદલી છે.</item>

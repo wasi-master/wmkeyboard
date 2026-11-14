@@ -176,6 +176,7 @@
     <string name="ime_ai_error_no_text">Není na čem pracovat. Nejprve napište nějaký text.</string>
     <string name="ime_ai_error_only_reasoning">Model použil k úvaze celou odpověď. Zkuste to znovu nebo v nastavení zapněte „Zobrazit úvahu“.</string>
     <string name="ime_ai_error_request_failed">Požadavek se nezdařil</string>
+    <string name="ime_ai_error_stopped_hidden">Zastaveno, protože klávesnice byla zavřena. Zkuste to spustit znovu.</string>
     <string name="ime_ai_idle_body">Akce se provádějí na vybraném textu nebo na celém poli. Používají %1$s.</string>
     <string name="ime_ai_idle_empty_body">Chcete-li použít tyto akce, napište nebo vyberte text. Stisknutím %1$s napíšete nový text.</string>
     <string name="ime_ai_idle_empty_no_writer_body">Pro použití těchto akcí napište nebo vyberte text.</string>
@@ -307,9 +308,11 @@
     <string name="ime_app_colors_none">V této aplikaci nebyly nalezeny žádné barvy</string>
     <string name="ime_app_colors_off_desc">Nepoužívat barvy této aplikace</string>
     <string name="ime_app_colors_pick_desc">Barva aplikace %1$d</string>
+    <string name="ime_applet_back">Zpět</string>
     <string name="ime_applet_close">Zavřít pole</string>
     <string name="ime_applet_copied">Zkopírováno</string>
     <string name="ime_applet_open_in_keyboard">Otevřít v klávesnici</string>
+    <string name="ime_applet_pop_out">Otevřít v plovoucím okně</string>
     <string name="ime_applet_resize">Tažením změňte velikost</string>
     <string name="ime_applet_tuck">Zasunout k okraji</string>
     <string name="ime_applet_untuck">Vrátit zpět %1$s</string>
@@ -319,6 +322,33 @@
     <string name="ime_ask_ai_label_vocab">Slovní zásoba: %1$s</string>
     <string name="ime_ask_ai_label_wiki">Wikipedia: %1$s</string>
     <string name="ime_autofill_dismiss_desc">Skrýt návrhy automatického doplňování</string>
+    <string name="ime_board_copy_desc">Kopírovat do tohoto telefonu</string>
+    <string name="ime_board_delete_body">Bude odstraněno ze všech zařízení, která tuto nástěnku používají. Kopie v telefonu v schránce zůstanou.</string>
+    <string name="ime_board_delete_desc">Odstranit z desky</string>
+    <string name="ime_board_delete_no">Zrušit</string>
+    <string name="ime_board_delete_title">Odstranit tento klip z tabule?</string>
+    <string name="ime_board_delete_yes">Odstranit</string>
+    <string name="ime_board_edit_desc">Upravit</string>
+    <string name="ime_board_empty_body">Klipy odeslané sem se objeví na vašich dalších zařízeních, která používají stejnou složku, a to i na těch, která jsou právě offline.</string>
+    <string name="ime_board_empty_title">Na desce nic není</string>
+    <string name="ime_board_notice_copied">Zkopírováno</string>
+    <string name="ime_board_notice_deleted">Odstraněno z tabule</string>
+    <string name="ime_board_notice_refused">Na tabuli se dostanou pouze textové klipy, které nejsou skryté</string>
+    <string name="ime_board_notice_sent">Odesláno na tabuli</string>
+    <string name="ime_board_send_desc">Odeslat výstřižek</string>
+    <string name="ime_board_send_done">Hotovo</string>
+    <string name="ime_board_send_empty">Žádné textové klipy k odeslání. Obrázky, soubory a skryté klipy zůstávají v tomto telefonu.</string>
+    <string name="ime_board_send_one_desc">Odeslat</string>
+    <string name="ime_board_send_title">Odeslat na tabuli</string>
+    <string name="ime_board_sent_desc">Odesláno</string>
+    <string name="ime_board_status_failed">Nelze se připojit k tabuli</string>
+    <string name="ime_board_status_never">Zatím nekontrolováno</string>
+    <string name="ime_board_status_synced">Zkontrolováno %1$s</string>
+    <string name="ime_board_status_syncing">Kontroluje se panel…</string>
+    <string name="ime_board_status_waiting">Čeká se na spojení s klávesnicí</string>
+    <string name="ime_board_status_waiting_offline">Nelze se připojit k tabuli. Změny se odešlou, jakmile to bude možné</string>
+    <string name="ime_board_sync_desc">Zkontrolovat tabuli</string>
+    <string name="ime_board_title">Sdílená tabule</string>
     <string name="ime_calc_degrees_label">stup.</string>
     <string name="ime_calc_insert_action">Vložit</string>
     <string name="ime_calc_radians_label">rad</string>
@@ -471,7 +501,9 @@
     </plurals>
     <string name="ime_calendar_untitled">(Bez názvu)</string>
     <string name="ime_calendar_view_agenda">Agenda</string>
+    <string name="ime_calendar_view_day">Den</string>
     <string name="ime_calendar_view_month">Měsíc</string>
+    <string name="ime_calendar_weather_desc">%1$s, %2$s v %3$s. Otevře předpověď pro každou hodinu</string>
     <string name="ime_calendar_yesterday_label">Včera</string>
     <string name="ime_calendar_zone_note">Časy v %1$s</string>
     <string name="ime_camera_captured_photo_desc">Fotografie, kterou jste pořídili</string>
@@ -543,6 +575,7 @@
         <item quantity="one">Sloučit %1$d klip</item>
         <item quantity="other">Sloučit %1$d klipy</item>
     </plurals>
+    <string name="ime_clip_compose_email">Napsat e-mail</string>
     <string name="ime_clip_delete_pinned_question">Smazat tento připnutý klip?</string>
     <plurals name="ime_clip_deleted">
         <item quantity="one">Výstřižek odstraněn</item>
@@ -563,6 +596,7 @@
         <item quantity="other">Zobrazit %1$d částí nalezených ve vašich klipech</item>
     </plurals>
     <string name="ime_clip_extract_codes">Jednorázové kódy</string>
+    <string name="ime_clip_extract_emails">E-mailové adresy</string>
     <string name="ime_clip_extract_links">Odkazy</string>
     <string name="ime_clip_extract_parts">Extrahovat</string>
     <string name="ime_clip_extract_phones">Telefonní čísla</string>
@@ -589,6 +623,7 @@
         <item quantity="one">Skryto · %1$d znak</item>
         <item quantity="other">Skryto · %1$d znaků</item>
     </plurals>
+    <string name="ime_clip_image_pasted_toast">Vloženo ze schránky. Pokud nic nepřišlo, tato aplikace nepořizuje žádné snímky: podržením klipu jej sdílíte</string>
     <string name="ime_clip_info_copied">Zkopírováno</string>
     <string name="ime_clip_info_edited">Upraveno</string>
     <string name="ime_clip_info_from">Od</string>
@@ -642,7 +677,12 @@
         <item quantity="other">%1$d vybráno</item>
     </plurals>
     <string name="ime_clip_send_as_sticker">Odeslat jako nálepku</string>
+    <string name="ime_clip_shape_code">Kód</string>
+    <string name="ime_clip_shape_markdown">Markdown</string>
+    <string name="ime_clip_share_image">Sdílet</string>
+    <string name="ime_clip_show_formatted">Zobrazit formátované</string>
     <string name="ime_clip_show_in_history">Zobrazit v historii</string>
+    <string name="ime_clip_show_raw">Zobrazit surová data</string>
     <string name="ime_clip_tags">Štítky</string>
     <string name="ime_clip_tags_placeholder">Štítky oddělené čárkou</string>
     <string name="ime_clip_tags_title">Štítky</string>
@@ -912,6 +952,7 @@
     <string name="ime_conversion_pack_offer">Stáhněte si %1$s pro psaní znaků</string>
     <string name="ime_conversion_pack_offer_dismiss_desc">Zahodit</string>
     <string name="ime_converter_from_label">Z</string>
+    <string name="ime_converter_tab_units">Jednotky</string>
     <string name="ime_converter_to_label">Na</string>
     <string name="ime_currency_insert_action">Vložit</string>
     <string name="ime_currency_progress">Stahuji směnné kurzy…</string>
@@ -920,6 +961,32 @@
     <string name="ime_currency_section_crypto">Kryptoměny</string>
     <string name="ime_currency_section_popular">Běžné</string>
     <string name="ime_currency_swap_desc">Zaměnit měny</string>
+    <string name="ime_custom_button_desc">Otevřít %1$s</string>
+    <string name="ime_custom_button_label">Vlastní tlačítko</string>
+    <string name="ime_custom_button_shortcut_failed">Tuto zkratku nelze otevřít. Aplikace možná neexistuje nebo umožňuje její otevření pouze z domovské obrazovky.</string>
+    <string name="ime_custom_page_clipboard">Nastavení schránky</string>
+    <string name="ime_custom_page_custom_buttons">Vlastní tlačítka</string>
+    <string name="ime_custom_page_dictionary">Slovník</string>
+    <string name="ime_custom_page_favourites">Oblíbené</string>
+    <string name="ime_custom_page_home">Nastavení</string>
+    <string name="ime_custom_page_keypress">Zvuk a vibrace</string>
+    <string name="ime_custom_page_languages">Jazyky</string>
+    <string name="ime_custom_page_search">Nastavení vyhledávání</string>
+    <string name="ime_custom_page_themes">Motivy</string>
+    <string name="ime_custom_page_toolbar">Nastavení panelu nástrojů</string>
+    <string name="ime_custom_page_tools">Nastroje</string>
+    <string name="ime_custom_page_typing">Psaní</string>
+    <string name="ime_custom_toggle_auto_caps">Automatická velká písmena</string>
+    <string name="ime_custom_toggle_glide">Psaní tahem</string>
+    <string name="ime_custom_toggle_key_hints">Tipy pro klávesy</string>
+    <string name="ime_custom_toggle_key_popup">Vyskakovací okno klávesy</string>
+    <string name="ime_custom_toggle_number_row">Řada čísel</string>
+    <string name="ime_custom_toggle_reduce_motion">Omezit pohyb</string>
+    <string name="ime_custom_toggle_sound">Zvuk klávesy</string>
+    <string name="ime_custom_toggle_suggestions">Návrhy</string>
+    <string name="ime_custom_toggle_symbol_row">Řádek symbolů</string>
+    <string name="ime_custom_toggle_toolbar_labels">Názvy panelu nástrojů</string>
+    <string name="ime_custom_toggle_vibration">Vibrace</string>
     <string name="ime_delete_redo_chip">Opakovat „%1$s“</string>
     <string name="ime_delete_redo_plain">Smazat znovu</string>
     <string name="ime_delete_undo_chip">Vrátit „%1$s“</string>
@@ -957,6 +1024,7 @@
     <string name="ime_disabled_correction_invalid">Napište jiné slovo, které chcete opravit. Opravované slovo musí mít alespoň 3 písmena a oprava může být jedním slovem nebo dvěma pro vynechanou mezeru.</string>
     <string name="ime_disabled_media_app_blocks">Aplikace, která je právě přehrávána, to nepovoluje.</string>
     <string name="ime_disabled_spell_unchanged">Nejprve změňte pravopis. Prázdný nebo nezměněný pravopis nelze použít.</string>
+    <string name="ime_disabled_translate_empty_box">Pole je prázdné nebo se jeho překlad stále připravuje.</string>
     <string name="ime_disabled_translate_nothing">Zatím není nic přeloženo. Nejprve napište nebo vložte text k překladu.</string>
     <string name="ime_disabled_translate_same_language">Text je již v jazyce, do kterého překládáte.</string>
     <string name="ime_disabled_voice_undo">Zatím není co vrátit. Zpět vrátí poslední frázi, kterou jste vyslovili.</string>
@@ -986,6 +1054,10 @@
     <string name="ime_docscan_next">Oříznout</string>
     <string name="ime_docscan_open_settings">Otevřít nastavení</string>
     <string name="ime_docscan_page_number">Stránka %1$d</string>
+    <plurals name="ime_docscan_pages_album">
+        <item quantity="one">Stránka se otevře na obrazovce sdílení aplikace</item>
+        <item quantity="other">Tato aplikace zde pořizuje vždy jeden snímek, takže se %d stránek otevře společně na obrazovce sdílení, aby je bylo možné odeslat jako jedno album</item>
+    </plurals>
     <plurals name="ime_docscan_pages_shared">
         <item quantity="one">Aplikace zde nepřevzala poslední stránku, takže se otevře na obrazovce sdílení aplikace</item>
         <item quantity="other">Aplikace zde nepřevzala %d stránek, takže se otevřou společně na obrazovce sdílení aplikace</item>
@@ -1068,10 +1140,15 @@
     <string name="ime_files_access_pick">Výběr systému Android</string>
     <string name="ime_files_access_title">Vybírejte soubory bez opuštění klávesnice</string>
     <string name="ime_files_add">Přidat</string>
+    <string name="ime_files_add_tree">Pridat slozku</string>
+    <string name="ime_files_add_tree_detail">Jednotka USB, karta SD nebo složka sdílená jinou aplikací, například síťová jednotka</string>
+    <string name="ime_files_allow_all">Celé úložiště telefonu</string>
+    <string name="ime_files_allow_all_detail">Vyžaduje přístup k zařízení pro všechny soubory v systému Android</string>
     <string name="ime_files_camera">Fotoaparát</string>
     <string name="ime_files_clear_desc">Vymazat výběr</string>
     <string name="ime_files_collapse_desc">Zkrátit</string>
     <string name="ime_files_copy_desc">Kopírovat</string>
+    <string name="ime_files_copy_to">Kopírovat do %1$s</string>
     <string name="ime_files_delete_body">Složky se smažou včetně všeho obsahu. Toto je trvalé: Android nemá pro soubory koš.</string>
     <string name="ime_files_delete_desc">Smazat</string>
     <string name="ime_files_delete_no">Zrušit</string>
@@ -1088,8 +1165,11 @@
     <string name="ime_files_expand_desc">Zvětšit na výšku</string>
     <string name="ime_files_hide_hidden">Skrýt skryté soubory</string>
     <string name="ime_files_kde_unreadable">Soubor se nepodařilo přečíst k odeslání</string>
+    <string name="ime_files_locked_body">Správce souborů se neotevře nad obrazovkou uzamčení.</string>
+    <string name="ime_files_locked_title">Odemknutím zobrazíte své soubory</string>
     <string name="ime_files_more_desc">Více</string>
     <string name="ime_files_move_desc">Přesunout</string>
+    <string name="ime_files_move_to">Přesunout do %1$s</string>
     <string name="ime_files_movies">Filmy</string>
     <string name="ime_files_music">Hudba</string>
     <string name="ime_files_new_folder">Nová složka</string>
@@ -1115,6 +1195,8 @@
         <item quantity="one">Přesunuta %d položka</item>
         <item quantity="other">Přesunuto %d položek</item>
     </plurals>
+    <string name="ime_files_notice_tree_removed">Složka byla odstraněna ze seznamu</string>
+    <string name="ime_files_one_pane_desc">Jeden seznam</string>
     <string name="ime_files_op_cancel">Zastavit</string>
     <string name="ime_files_op_copy">Kopírování položky %1$d z %2$d</string>
     <string name="ime_files_op_delete">Odstraňuje se %1$d z %2$d</string>
@@ -1131,6 +1213,9 @@
     <string name="ime_files_pictures">Obrázky</string>
     <string name="ime_files_places">Místa</string>
     <string name="ime_files_recent">Nedávné</string>
+    <string name="ime_files_remove_tree_body">Složka a její soubory zůstanou tam, kde jsou. Kdykoli ji můžete přidat znovu.</string>
+    <string name="ime_files_remove_tree_title">Odebrat „%1$s“ ze seznamu?</string>
+    <string name="ime_files_remove_tree_yes">Odstranit</string>
     <string name="ime_files_rename_desc">Přejmenovat</string>
     <string name="ime_files_rename_hint">Nový název</string>
     <string name="ime_files_search_clear_desc">Ukončit hledání</string>
@@ -1149,6 +1234,7 @@
     <string name="ime_files_title_many">Vybrat soubory</string>
     <string name="ime_files_title_one">Vybrat soubor</string>
     <string name="ime_files_title_picture">Vybrat obrázek</string>
+    <string name="ime_files_two_panes_desc">Dva seznamy vedle sebe</string>
     <string name="ime_files_unreadable">Android nedovoluje klávesnici otevřít tuto složku</string>
     <string name="ime_find_case_desc">Rozlišovat malá a velká písmena</string>
     <string name="ime_find_clear_desc">Vymazat %1$s</string>
@@ -1180,6 +1266,24 @@
     <string name="ime_floating_category_empty">Tato kategorie je prázdná. Přidejte do ní akce v nastavení plovoucího tlačítka.</string>
     <string name="ime_floating_category_label">Kategorie</string>
     <string name="ime_floating_close_menu">Zavřít nabídku</string>
+    <string name="ime_floating_device_bluetooth">Bluetooth</string>
+    <string name="ime_floating_device_bluetooth_desc">Zapne nebo vypne Bluetooth</string>
+    <string name="ime_floating_device_bluetooth_page_desc">Otevře stránku Bluetooth v systému Android</string>
+    <string name="ime_floating_device_data">Mobilní data</string>
+    <string name="ime_floating_device_data_desc">Zapne nebo vypne mobilní data</string>
+    <string name="ime_floating_device_data_panel_desc">Otevře internetový panel systému Android</string>
+    <string name="ime_floating_device_failed">Systém Android to nepovolil</string>
+    <string name="ime_floating_device_hotspot">Aktivní bod</string>
+    <string name="ime_floating_device_hotspot_desc">Otevře stránku hotspotu systému Android</string>
+    <string name="ime_floating_device_off">%1$s vypnuto</string>
+    <string name="ime_floating_device_on">%1$s zapnuto</string>
+    <string name="ime_floating_device_ringer">Režim zvonění</string>
+    <string name="ime_floating_device_ringer_desc">Vyzvánění, vibrace a tichý režim postupně</string>
+    <string name="ime_floating_device_volume">Panel hlasitosti</string>
+    <string name="ime_floating_device_volume_desc">Otevře panel hlasitosti systému Android se všemi posuvníky hlasitosti</string>
+    <string name="ime_floating_device_wifi">Wi-Fi</string>
+    <string name="ime_floating_device_wifi_desc">Zapne nebo vypne Wi-Fi</string>
+    <string name="ime_floating_device_wifi_panel_desc">Otevře panel Wi-Fi v systému Android</string>
     <string name="ime_floating_dismiss_target">Přetáhněte sem pro skrytí tlačítka</string>
     <string name="ime_floating_dock_desc">Ukotvit klávesnici</string>
     <string name="ime_floating_hide_label">Skrýt tlačítko</string>
@@ -1190,7 +1294,11 @@
     <string name="ime_floating_pair_label">Otevřít pár aplikací</string>
     <string name="ime_floating_pair_missing">Jedna ze dvou aplikací již není nainstalována</string>
     <string name="ime_floating_pair_name">%1$s + %2$s</string>
+    <string name="ime_floating_plugin_label">Modul</string>
     <string name="ime_floating_resize_desc">Změnit velikost klávesnice</string>
+    <string name="ime_floating_ringer_ring">Vyzvánění</string>
+    <string name="ime_floating_ringer_silent">Tichý</string>
+    <string name="ime_floating_ringer_vibrate">Vibrovat</string>
     <string name="ime_floating_system_app_drawer">Seznam aplikací</string>
     <string name="ime_floating_system_back">Zpět</string>
     <string name="ime_floating_system_notifications">Oznámení</string>
@@ -1248,6 +1356,7 @@
     <string name="ime_gallery_album_camera">Fotoaparát</string>
     <string name="ime_gallery_album_favorites">Oblíbené</string>
     <string name="ime_gallery_album_gifs">GIFy</string>
+    <string name="ime_gallery_album_immich">Immich</string>
     <string name="ime_gallery_album_recents">Nedávné</string>
     <string name="ime_gallery_album_screenshots">Snímky obrazovky</string>
     <string name="ime_gallery_album_sent">Odesláno z klávesnice</string>
@@ -1339,6 +1448,10 @@
     <string name="ime_gallery_info_taken">Pořízeno</string>
     <string name="ime_gallery_layer_delete">Smazat</string>
     <string name="ime_gallery_more_desc">Více možností galerie</string>
+    <plurals name="ime_gallery_notice_already_uploaded">
+        <item quantity="one">Immich již měl %d obrázek</item>
+        <item quantity="other">Immich již měl všech %d obrázků</item>
+    </plurals>
     <plurals name="ime_gallery_notice_copied">
         <item quantity="one">Zkopírována %d položka</item>
         <item quantity="other">Zkopírováno %d položek</item>
@@ -1347,6 +1460,8 @@
         <item quantity="one">Nepodařilo se přečíst %d položku</item>
         <item quantity="other">Nepodařilo se přečíst %d položek</item>
     </plurals>
+    <string name="ime_gallery_notice_immich_failed">Nepodařilo se připojit k vašemu serveru Immich</string>
+    <string name="ime_gallery_notice_immich_refused">Immich odmítl klíč API; zkontrolujte jeho oprávnění.</string>
     <plurals name="ime_gallery_notice_limit">
         <item quantity="one">Můžete vybrat %d položku najednou</item>
         <item quantity="other">Můžete vybrat až %d položek najednou</item>
@@ -1367,6 +1482,14 @@
     <plurals name="ime_gallery_notice_shared">
         <item quantity="one">Otevřena obrazovka sdílení pro %d položku</item>
         <item quantity="other">Otevřena obrazovka sdílení pro %d položek</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_upload_failed">
+        <item quantity="one">%d obrázek se nepodařilo nahrát</item>
+        <item quantity="other">%d obrázků se nepodařilo nahrát</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_uploaded">
+        <item quantity="one">Do služby Immich byl odeslán %d obrázek</item>
+        <item quantity="other">Do služby Immich bylo odesláno %d obrázků</item>
     </plurals>
     <string name="ime_gallery_partial_action">Vybrat více</string>
     <string name="ime_gallery_partial_body">Povolili jste pouze některé fotografie.</string>
@@ -1410,6 +1533,7 @@
     <string name="ime_gallery_tool_stickers">Nálepky</string>
     <string name="ime_gallery_tool_text">Text</string>
     <string name="ime_gallery_tool_upscale">Zvětšit rozlišení</string>
+    <string name="ime_gallery_upload_immich">Nahrát do Immich</string>
     <string name="ime_gallery_upscale_art">Kresba nebo text</string>
     <string name="ime_gallery_upscale_done">Zvětšeno ×%1$d: %2$d × %3$d</string>
     <string name="ime_gallery_upscale_downloading">Aplikace stahuje upscaler…</string>
@@ -1668,6 +1792,9 @@
     <string name="ime_handwriting_unsupported_info">Tato verze aplikace čte ručně psaný text pouze v čínštině a japonštině. Pokud zde chcete psát, přidejte jeden z těchto jazyků do nastavení jazyků.</string>
     <string name="ime_hardware_keys_hide_desc">Skrýt klávesy</string>
     <string name="ime_hardware_keys_show_desc">Zobrazit klávesy</string>
+    <string name="ime_homophones_finish">Nejprve dokončete slovo, které píšete</string>
+    <string name="ime_homophones_none">V tomto telefonu nic zní jako %1$s. Čtení doplňuje jazykový balíček nebo schéma RIME.</string>
+    <string name="ime_homophones_none_before">Nejprve zadejte čínský nebo japonský znak</string>
     <string name="ime_hw_pick_mode_off_toast">Režim výběru vypnut</string>
     <string name="ime_hw_pick_mode_on_toast">Režim výběru zapnut: číselné klávesy vybírají návrhy, Shift píše číslo</string>
     <string name="ime_icons_builtin_label">Vestavěné</string>
@@ -1682,6 +1809,45 @@
     <string name="ime_image_search_need_key_body">Vyhledávání obrázků vyžaduje klíč API od Brave Search. Přidejte klíč v nastavení tohoto nástroje.</string>
     <string name="ime_incognito_on_desc">Režim inkognito je zapnutý</string>
     <string name="ime_insert_action">Vložit</string>
+    <string name="ime_invite_about_hint">Přidat popis</string>
+    <string name="ime_invite_action">Pozvat online</string>
+    <string name="ime_invite_add_title">Přidat název</string>
+    <string name="ime_invite_error_address">Adresa %1$s v nastavení není webová adresa.</string>
+    <string name="ime_invite_error_bad_token">%1$s nepřijal token rozhraní API.</string>
+    <string name="ime_invite_error_data_saver">Úspora dat je zapnutá. Publikování odešle několik kilobajtů.</string>
+    <string name="ime_invite_error_network">%1$s neodpověděl.</string>
+    <string name="ime_invite_error_no_title">Pozvánka potřebuje název.</string>
+    <string name="ime_invite_error_offline">Žádné připojení. Připojte se a zkuste to znovu.</string>
+    <string name="ime_invite_error_refused">%1$s říká, že tento účet zde nemůže vytvářet události.</string>
+    <string name="ime_invite_error_rejected">%1$s událost odmítl(a).</string>
+    <string name="ime_invite_error_signed_out">%1$s vás odhlásil. Přihlaste se znovu v nastavení.</string>
+    <string name="ime_invite_fix_in_pretix">Otevřít Pretix</string>
+    <string name="ime_invite_go_ahead">Pokračovat</string>
+    <string name="ime_invite_insert_link">Vložit odkaz</string>
+    <string name="ime_invite_insert_message">Vložit pozvánku</string>
+    <string name="ime_invite_link_only">Pouze lidé s odkazem</string>
+    <string name="ime_invite_listed">Veřejně uvedeno</string>
+    <string name="ime_invite_made">Vytvořeno na %1$s, registrace ještě nejsou otevřeny</string>
+    <string name="ime_invite_not_live">Služba Pretix vytvořila událost, ale neotevřela registrace. %1$s</string>
+    <string name="ime_invite_not_set_up_body">Nejprve se přihlaste do Mobilizonu nebo přidejte server Pretix v nastavení nástroje Kalendář.</string>
+    <string name="ime_invite_not_set_up_title">Zatím žádná služba událostí</string>
+    <string name="ime_invite_note_mobilizon">Lidé se registrují na stránce události. Mobilizon vám pošle e-mail, když tak učiní.</string>
+    <string name="ime_invite_note_pretix">Událost získává jednu vstupenku zdarma, takže se lidé registrují na její stránce pomocí své e-mailové adresy.</string>
+    <string name="ime_invite_open_page">Otevřít stránku</string>
+    <string name="ime_invite_open_settings">Nastavení</string>
+    <string name="ime_invite_place_hint">Přidat místo nebo odkaz</string>
+    <string name="ime_invite_places_any">Bez omezení</string>
+    <string name="ime_invite_places_label">Místa</string>
+    <string name="ime_invite_post_as">Zveřejnit jako %1$s</string>
+    <string name="ime_invite_post_as_default">Zveřejnit jako svůj profil</string>
+    <string name="ime_invite_post_as_loading">Načítají se vaše profily…</string>
+    <string name="ime_invite_publish">Zveřejnit</string>
+    <string name="ime_invite_published">Publikováno dne %1$s</string>
+    <string name="ime_invite_publishing">Zveřejňování…</string>
+    <string name="ime_invite_publishing_to">Publikuje se do %1$s</string>
+    <string name="ime_invite_ticket_name">Registrace</string>
+    <string name="ime_invite_title">Pozvat online</string>
+    <string name="ime_invite_try_again">Zkusit znovu</string>
     <string name="ime_kaomoji_add">Přidat kaomoji</string>
     <string name="ime_kaomoji_all">Vše</string>
     <string name="ime_kaomoji_cancel">Zrušit</string>
@@ -1969,6 +2135,7 @@
     <string name="ime_learn_text_action">Učit se text</string>
     <string name="ime_learn_word_never_desc">Nikdy se neučit %1$s</string>
     <string name="ime_learn_word_offer">Přidat „%1$s“?</string>
+    <string name="ime_legacy_font_output">Výstup starého písma</string>
     <string name="ime_level_no_sensor_empty">Vaše zařízení nemá akcelerometr.</string>
     <string name="ime_location_address_failed">Zde není žádná adresa. Souřadnice stále fungují.</string>
     <string name="ime_location_address_looking">Vyhledávání adresy…</string>
@@ -2141,6 +2308,29 @@
         <item quantity="other">%d poznámek archivováno</item>
     </plurals>
     <string name="ime_notes_archived_badge">Archivováno</string>
+    <string name="ime_notes_assist_deck_action">Vytvořit studijní balíček</string>
+    <plurals name="ime_notes_assist_deck_action_count">
+        <item quantity="one">Vytvořit studijní balíček (%d karta)</item>
+        <item quantity="other">Vytvořit studijní balíček (%d karty)</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_empty_toast">Žádné výrazy s významy pro vytvoření karet</string>
+    <plurals name="ime_notes_assist_deck_made_toast">
+        <item quantity="one">Studijní balíček „%2$s“ vytvořen s %1$d kartou. Najdete ho ve Slovníčku.</item>
+        <item quantity="other">Studijní balíček „%2$s“ vytvořen s %1$d kartami. Najdete ho ve Slovníčku.</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_working_toast">Vytvářím studijní balíček…</string>
+    <string name="ime_notes_assist_details_label">Klíčové podrobnosti</string>
+    <string name="ime_notes_assist_heading_busy">Vymýšlí se nadpis…</string>
+    <string name="ime_notes_assist_heading_dismiss_desc">Tento nadpis ne</string>
+    <string name="ime_notes_assist_heading_suggestion">Nadpis: %1$s</string>
+    <string name="ime_notes_assist_heading_use_action">Použít</string>
+    <string name="ime_notes_assist_related_label">Související</string>
+    <string name="ime_notes_assist_remind_chip">Připomenout: %1$s · %2$s</string>
+    <string name="ime_notes_assist_reminders_label">Nadcházející</string>
+    <string name="ime_notes_assist_summarize_action">Shrnout</string>
+    <string name="ime_notes_assist_summarize_again_action">Znovu</string>
+    <string name="ime_notes_assist_summary_busy">Vytváření shrnutí v telefonu…</string>
+    <string name="ime_notes_assist_summary_label">Shrnutí</string>
     <string name="ime_notes_body_hint">Napište poznámku… Markdown funguje: **tučně**, - seznamy, - [ ] úkoly</string>
     <string name="ime_notes_collapse_desc">Zpět na výšku klávesnice</string>
     <string name="ime_notes_confirm_action">Potvrďte klepnutím znovu</string>
@@ -2189,6 +2379,7 @@
     <string name="ime_notes_no_match">Žádné poznámky neodpovídají „%1$s“.</string>
     <string name="ime_notes_passage_desc">Z %1$s. Klepnutím vložte, podržením otevřete poznámku.</string>
     <string name="ime_notes_passages_section">Pasáže</string>
+    <string name="ime_notes_paste_desc">Vložit</string>
     <string name="ime_notes_pin_action">Připnout</string>
     <string name="ime_notes_pinned_section">Připnuto</string>
     <string name="ime_notes_restore_action">Obnovit</string>
@@ -2222,6 +2413,29 @@
     <string name="ime_otp_chip_dismiss_desc">Skrýt kód</string>
     <string name="ime_panel_back_desc">Zpět na klávesnici</string>
     <string name="ime_panel_over_keys_height_desc">Výška panelu nad klávesami. Přetáhněte nahoru nebo dolů</string>
+    <string name="ime_paperless_card_also_field">Vložit stránky také do textového pole</string>
+    <string name="ime_paperless_card_correspondent">Korespondent</string>
+    <string name="ime_paperless_card_field_only">Pouze textové pole</string>
+    <string name="ime_paperless_card_loading">Načítání štítků ze serveru…</string>
+    <string name="ime_paperless_card_name">Název</string>
+    <string name="ime_paperless_card_name_hint">Volitelne. Pokud zustane prazdne, Paperless jej pojmenuje.</string>
+    <string name="ime_paperless_card_none">Ž dný</string>
+    <string name="ime_paperless_card_offline">Server je nyní nedostupný. Sken zůstane uložen v telefonu s vašimi výchozími štítky a nahraje se, jakmile to bude možné.</string>
+    <string name="ime_paperless_card_offline_cached">Server je nyní nedostupný; toto jsou jeho dřívější seznamy. Skenování se odesle, jakmile to bude možné.</string>
+    <string name="ime_paperless_card_one_pdf">Všechny stránky v jednom PDF</string>
+    <plurals name="ime_paperless_card_pages">
+        <item quantity="one">%d strana</item>
+        <item quantity="other">%d stran</item>
+    </plurals>
+    <string name="ime_paperless_card_send">Odeslat</string>
+    <string name="ime_paperless_card_tags">Štítky</string>
+    <string name="ime_paperless_card_title">Odeslat do Paperless</string>
+    <string name="ime_paperless_card_type">Typ dokumentu</string>
+    <string name="ime_paperless_queue_failed">Sken pro Paperless se nepodařilo uchovat</string>
+    <plurals name="ime_paperless_queued">
+        <item quantity="one">%d dokument míří do systému Paperless. Odešle se, jakmile bude k dispozici připojení.</item>
+        <item quantity="other">%d dokumenty míří do systému Paperless. Odešlou se, jakmile bude k dispozici připojení.</item>
+    </plurals>
     <string name="ime_password_add_digit_label">Přidat číslici</string>
     <string name="ime_password_capitalize_label">Velká písmena</string>
     <string name="ime_password_copied_toast">Zkopírováno do schránky</string>
@@ -2240,11 +2454,27 @@
     <string name="ime_password_tab_pin">PIN</string>
     <string name="ime_password_words_label">Slova</string>
     <string name="ime_phonetic_word_list_offer">Získejte seznam slov %1$s pro lepší slova</string>
+    <string name="ime_plugin_access_mark">Tento plugin může používat internet nebo číst to, co píšete</string>
+    <string name="ime_plugin_action_settings">Nastavení a oprávnění</string>
+    <string name="ime_plugin_action_toolbar_add">Přidat na panel nástrojů</string>
+    <string name="ime_plugin_action_toolbar_remove">Odstranit z panelu nástrojů</string>
+    <string name="ime_plugin_action_toolbox_add">Přidat do sady nástrojů</string>
+    <string name="ime_plugin_action_toolbox_remove">Odebrat z panelu nástrojů</string>
+    <string name="ime_plugin_action_turn_off">Vypnout</string>
+    <string name="ime_plugin_action_turn_on">Zapnout</string>
+    <string name="ime_plugin_clock_alarm_set">%1$s nastavil budík na %2$s v Hodinách</string>
+    <string name="ime_plugin_clock_timer_set">%1$s spustil(a) %2$s časovač v aplikaci Hodiny</string>
     <string name="ime_plugin_empty_body">Plugin je malý nástroj v izolovaném prostředí. Pluginy můžete přidat z repozitáře doplňků nebo ze souboru .wmplugin. Plugin nevidí, co píšete.</string>
     <string name="ime_plugin_empty_title">Zatím žádné pluginy</string>
     <string name="ime_plugin_manage_action">Správa pluginů</string>
+    <string name="ime_plugin_more">Další možnosti pro %1$s</string>
+    <string name="ime_plugin_permission_allow">Povolit</string>
+    <string name="ime_plugin_permission_deny">Nepovolit</string>
+    <string name="ime_plugin_permission_risky_note">Tím se také zapnou riziková oprávnění pro pluginy. Obě můžete opět vypnout na stránce pluginu v Nastavení.</string>
+    <string name="ime_plugin_permission_title">Povolit aplikaci %1$s:</string>
     <string name="ime_plugin_version_label">Verze %1$s</string>
     <string name="ime_power_saving_on_desc">Úspora energie je zapnutá</string>
+    <string name="ime_privacy_shade_hint">Tažením úchytu nahoru zobraziíte poslední řádky</string>
     <string name="ime_provider_choose_desc">Vyberte poskytovatele</string>
     <string name="ime_punct_ampersand">Ampersand</string>
     <string name="ime_punct_apostrophe">Apostrof</string>
@@ -2378,6 +2608,8 @@
     <string name="ime_resize_move_desc">Tažením posunete klávesnici nahoru nebo dolů</string>
     <string name="ime_resize_reset">Obnovit</string>
     <string name="ime_resize_right_handle_desc">Přetažením změníte prostor napravo od klávesnice</string>
+    <string name="ime_resize_toolbar_handle">Panel nástrojů</string>
+    <string name="ime_resize_toolbar_handle_desc">Tažením nahoru nebo dolů změňte výšku panelu nástrojů</string>
     <string name="ime_retype_button">Přepsat</string>
     <string name="ime_retype_button_desc">Přejmenovat slovo na pozici kurzoru</string>
     <string name="ime_retype_button_nothing">Žádné slovo k přepsání. Umístěte kurzor hned za slovo.</string>
@@ -2432,8 +2664,10 @@
     <string name="ime_scanner_torch_desc">Svítilna</string>
     <string name="ime_scanner_translate_action">Přeložit</string>
     <string name="ime_screen_capture_desc">Zachytit obrazovku</string>
+    <string name="ime_screen_capture_progress">Pořizuje se snímek obrazovky…</string>
     <string name="ime_search_attribution_brave">přes Brave</string>
     <string name="ime_search_attribution_left">Zbývá %1$s · %2$s</string>
+    <string name="ime_search_attribution_mwmbl">přes Mwmbl</string>
     <string name="ime_search_attribution_tavily">přes Tavily</string>
     <string name="ime_search_in_browser_desc">Hledat v prohlížeči</string>
     <string name="ime_search_menu_copy_link">Kopírovat odkaz</string>
@@ -2443,6 +2677,7 @@
     <string name="ime_search_no_more">Žádné další výsledky</string>
     <string name="ime_search_tab_all">Vše</string>
     <string name="ime_search_tab_images">Obrázky</string>
+    <string name="ime_second_toolbar_empty">Přetáhněte sem nástroj z panelu nástrojů nebo sady nástrojů</string>
     <string name="ime_selection_ask_ai">Zeptat se AI</string>
     <string name="ime_selection_macro_ai_translate_label">AI překlad</string>
     <string name="ime_selection_macro_back_desc">Zpět k akcím výběru</string>
@@ -2741,6 +2976,8 @@
     <string name="ime_service_incognito_off_toast">Anonymní režim je vypnutý</string>
     <string name="ime_service_incognito_on_toast">Anonymní režim je zapnutý. Klávesnice se neučí, co píšete.</string>
     <string name="ime_service_incognito_switch_toast">Anonymní režim je zapnutý. Vypnete jej klepnutím na anonymní nástroj</string>
+    <string name="ime_service_legacy_font_off_toast">Zápis Unicode</string>
+    <string name="ime_service_legacy_font_on_toast">Psaní pro písmo %1$s</string>
     <string name="ime_service_media_download_error_toast">Stahování se nezdařilo. Zkontrolujte připojení.</string>
     <string name="ime_service_media_fetch_error">Klávesnice nemůže získat výsledky</string>
     <string name="ime_service_mode_tool_order_toast">Klávesnice uložila pořadí nástrojů pouze pro režim %1$s. Ostatní aplikace si udržují vlastní pořadí.</string>
@@ -2764,6 +3001,7 @@
     <string name="ime_service_power_saving_on_empty_toast">Úspora energie je zapnutá. Zatím není nastavena žádná funkce, která by se měla zastavit.</string>
     <string name="ime_service_power_saving_on_toast">Úspora energie je zapnutá</string>
     <string name="ime_service_power_saving_still_on_toast">Úspora energie zůstává zapnutá. Spouštěč baterie je aktivní.</string>
+    <string name="ime_service_privacy_shade_floating_toast">Opona soukromí funguje s ukotvenou klávesnicí. Nejprve klávesnici ukotvěte.</string>
     <string name="ime_service_qr_error">Klávesnice nemůže vytvořit QR kód</string>
     <string name="ime_service_resize_floating_toast">Ukotvěte klávesnici pro změnu její velikosti</string>
     <string name="ime_service_search_error">Vyhledávání nefungovalo</string>
@@ -2824,6 +3062,7 @@
     <string name="ime_smart_repeat_count">×%1$s</string>
     <string name="ime_smart_repeat_offer">Opakovat „%1$s“</string>
     <string name="ime_smart_replies_dismiss_desc">Skrýt chytré odpovědi</string>
+    <string name="ime_smart_search_offer">%1$s: „%2$s“</string>
     <string name="ime_smart_send_link">Přijmout soubor</string>
     <string name="ime_smart_translate_offer">Přeložit</string>
     <string name="ime_smart_vocab_daily">Slovo dne: %1$s ›</string>
@@ -2833,6 +3072,12 @@
     <string name="ime_smart_vocab_word">%1$s ›</string>
     <string name="ime_smart_weather_tap">Zobrazit předpověď</string>
     <string name="ime_smart_wiki_word">„%1$s“ na Wikipedii</string>
+    <string name="ime_snippet_ask_cancel_desc">Zrušit úryvek</string>
+    <string name="ime_snippet_ask_done_desc">Vložit úryvek</string>
+    <string name="ime_snippet_ask_hint">Napište %1$s</string>
+    <string name="ime_snippet_ask_next_desc">Další pole</string>
+    <string name="ime_snippet_ask_step_label">%1$s %2$d/%3$d</string>
+    <string name="ime_snippet_image_desc">Úryvek obrázku %1$s</string>
     <string name="ime_snippet_offer_back_desc">Zpět na %1$s</string>
     <string name="ime_snippet_offer_desc">Vložit úryvek %1$s</string>
     <string name="ime_snippet_offer_more_desc">Více z %1$s</string>
@@ -2943,6 +3188,7 @@
     <string name="ime_suggestion_hold_label">Možnosti slova</string>
     <string name="ime_suggestion_never_suggest">Nikdy nenavrhovat „%1$s“</string>
     <string name="ime_suggestion_pages_close">Zpět ke klávesám</string>
+    <string name="ime_suggestion_pattern_still_hides">Vzor černé listiny stále skrývá \"%1$s\". Upravte jej v černé listině návrhů.</string>
     <string name="ime_suggestion_rank_badge">Pořadí \"%1$s\" %2$s</string>
     <string name="ime_suggestion_rank_unchanged">\"%1$s\" beze změny</string>
     <string name="ime_suggestions_show_desc">Zobrazit pruh s návrhy</string>
@@ -2972,6 +3218,8 @@
     <string name="ime_synonyms_title">Synonyma pro \"%1$s\"</string>
     <string name="ime_textedit_delete_line_desc">Smazat řádek</string>
     <string name="ime_textedit_delete_line_forward_desc">Smazat řádek vpřed</string>
+    <string name="ime_textedit_delete_to_end_desc">Smazat do konce</string>
+    <string name="ime_textedit_delete_to_start_desc">Smazat na začátek</string>
     <string name="ime_textedit_delete_word_desc">Smazat slovo</string>
     <string name="ime_textedit_delete_word_forward_desc">Smazat slovo vpřed</string>
     <string name="ime_textedit_doc_end_desc">Přejít na konec textu</string>
@@ -2990,6 +3238,7 @@
     <string name="ime_textedit_select_label">Vybrat</string>
     <string name="ime_textedit_select_line_desc">Vybrat řádek</string>
     <string name="ime_textedit_select_word_desc">Vybrat slovo</string>
+    <string name="ime_textedit_type_clipboard_desc">Napsat schránku</string>
     <string name="ime_textedit_up_desc">Posunout nahoru</string>
     <string name="ime_textedit_word_left_desc">Posunout o slovo doleva</string>
     <string name="ime_textedit_word_right_desc">Posunout o slovo doprava</string>
@@ -3067,6 +3316,7 @@
     <string name="ime_tool_calculator">Kalkulačka</string>
     <string name="ime_tool_calendar">Kalendář</string>
     <string name="ime_tool_camera">Fotoaparát</string>
+    <string name="ime_tool_clear_field">Smazat vše</string>
     <string name="ime_tool_clipboard">Schránka</string>
     <string name="ime_tool_clipboard_search">Hledání ve schránce</string>
     <string name="ime_tool_clock">Hodiny</string>
@@ -3083,11 +3333,13 @@
     <string name="ime_tool_cursor_word_right">Slovo vpravo</string>
     <string name="ime_tool_custom_layout">Sekundární rozložení</string>
     <string name="ime_tool_cut">Vyjmout</string>
+    <string name="ime_tool_debug_info">Ladicí informace</string>
     <string name="ime_tool_dictionary">Slovník</string>
     <string name="ime_tool_doc_scan">Skenování dokumentů</string>
     <string name="ime_tool_emoji">Emoji</string>
     <string name="ime_tool_emoji_mix">Kombinace emotikonů</string>
     <string name="ime_tool_fancy">Ozdobný text</string>
+    <string name="ime_tool_files">Soubory</string>
     <string name="ime_tool_find_replace">Najít a nahradit</string>
     <string name="ime_tool_flashlight">Svítilna</string>
     <string name="ime_tool_floating">Plovoucí</string>
@@ -3097,6 +3349,7 @@
     <string name="ime_tool_handwriting">Psaní rukou</string>
     <string name="ime_tool_hide_keyboard">Skrýt</string>
     <string name="ime_tool_home_assistant">Chytrá domácnost</string>
+    <string name="ime_tool_homophones">Stejný zvuk</string>
     <string name="ime_tool_image_search">Obrázky</string>
     <string name="ime_tool_incognito">Anonymní</string>
     <string name="ime_tool_language">Jazyk</string>
@@ -3123,6 +3376,7 @@
     <string name="ime_tool_picker_leader">%1$s, poté:</string>
     <string name="ime_tool_plugins">Pluginy</string>
     <string name="ime_tool_power_saving">Úspora energie</string>
+    <string name="ime_tool_privacy_shade">Clona soukromí</string>
     <string name="ime_tool_qr_gen">QR kód</string>
     <string name="ime_tool_qr_scan">Skenování QR</string>
     <string name="ime_tool_quick_note">Rychlá poznámka</string>
@@ -3147,6 +3401,7 @@
     <string name="ime_tool_text_edit">Úprava textu</string>
     <string name="ime_tool_text_repeat">Opakovat</string>
     <string name="ime_tool_themes">Vzhled</string>
+    <string name="ime_tool_timestamp">Časové razítko</string>
     <string name="ime_tool_todo">Seznam úkolů</string>
     <string name="ime_tool_trackpad">Trackpad</string>
     <string name="ime_tool_translate">Přeložit</string>
@@ -3204,12 +3459,14 @@
     <string name="ime_translate_engine_online_info">Používá online službu.</string>
     <string name="ime_translate_hint">Zadejte text k překladu…</string>
     <string name="ime_translate_idle">Překlad se zobrazí zde, jakmile začnete psát.</string>
+    <string name="ime_translate_idle_manual">Napište celý text a potom klepněte na Přeložit. Předtím se nic neodesílá.</string>
     <string name="ime_translate_module_failed_error">Služba Google Play stahování nedokončila. Zkontrolujte připojení a zkuste to znovu. Pokud to opět selže, stáhněte jej v Nastavení, Nástroje, Překlad.</string>
     <string name="ime_translate_module_installing_action">Stahování…</string>
     <string name="ime_translate_module_missing_body">Překlad v zařízení je doplňková součást klávesnice, která pochází z obchodu Google Play. Stáhněte si ji pro překlad bez připojení.</string>
     <string name="ime_translate_need_models_body">Pro překlad v zařízení stáhněte: %1$s. Přibližně %2$s.</string>
     <string name="ime_translate_nllb_licence_accept_action">Přijmout a stáhnout</string>
     <string name="ime_translate_nllb_licence_body">NLLB-200 pochází z Hugging Face pod licencí Meta, Creative Commons Attribution-NonCommercial 4.0: pouze pro nekomerční použití, bez záruky. Stiskněte znovu pro přijetí a stažení.</string>
+    <string name="ime_translate_now_action">Přeložit</string>
     <string name="ime_translate_offline_build_error">Tato offline verze nedokáže překládat v tomto telefonu: její jediný engine, Firefox Translations, vyžaduje 64bitový telefon se systémem Android 9 nebo novějším. Chcete-li překládat, nainstalujte standardní verzi.</string>
     <string name="ime_translate_offline_failed_error">Překlad v zařízení se nespustil. Zkuste to znovu nebo vyberte online modul.</string>
     <string name="ime_translate_offline_import_body">Tato offline sestava nemůže provést stažení. Pro překlad je stáhněte do jiného zařízení a importujte je: %1$s. Otevřete Nastavení › Nástroje › Překlad › Poskytovatelé › V zařízení (Firefox Translations).</string>
@@ -3225,6 +3482,7 @@
     <string name="ime_translate_select_source_desc">Vyberte zdrojový jazyk</string>
     <string name="ime_translate_server_label">Váš server</string>
     <string name="ime_translate_source_guessed_label">%1$s?</string>
+    <string name="ime_translate_speak_desc">Přečíst překlad nahlas</string>
     <string name="ime_translate_swap_desc">Prohodit jazyky</string>
     <string name="ime_typing_accuracy_label">přesnost</string>
     <string name="ime_typing_accuracy_short_label">přes</string>
@@ -3345,6 +3603,10 @@
     <string name="ime_voice_model_get_language_action">Získat %1$s pro hlasové psaní offline</string>
     <string name="ime_voice_permission_action">Povolit mikrofon</string>
     <string name="ime_voice_permission_body">Hlasové psaní vyžaduje oprávnění k používání mikrofonu. Aplikace nahrává zvuk pouze v době, kdy mluvíte.</string>
+    <string name="ime_voice_prompt_fix_custom">Odeberte některá \"Další slova k poslechu\" v nastavení hlasového psaní, nebo zkraťte Výzvu.</string>
+    <string name="ime_voice_prompt_fix_personal">V nastavení hlasového psaní vypněte možnost Naslouchat mým slovům nebo zkraťte výzvu.</string>
+    <string name="ime_voice_prompt_fix_prompt">Zkraťte text výzvy v nastavení hlasového psaní na obrazovce serveru na méně než %1$d znaků.</string>
+    <string name="ime_voice_prompt_too_long">Tento server přijímá výzvu o délce až %2$d znaků a tato má %1$d: Výzva %3$d, Další slova k poslechovému sledování %4$d, Poslouchat moje slova %5$d.</string>
     <string name="ime_voice_secure_field_notice">Hlasové psaní nefunguje v polích pro hesla.</string>
     <string name="ime_voice_server_metered_ask">Spořič dat je zapnutý. Stiskněte mikrofon znovu pro odeslání hlasu přes mobilní data.</string>
     <string name="ime_voice_server_metered_blocked">Server pro přepis je vypnutý, když používáte mobilní data. Můžete to změnit v Nastavení pod položkou Spořič dat.</string>
@@ -3384,6 +3646,12 @@
     <string name="ime_voice_use_system_action">Použít systémový rozpoznávač</string>
     <string name="ime_weather_clouds_label">oblačno</string>
     <string name="ime_weather_error">Aplikace nemůže stáhnout počasí. Zkontrolujte své síťové připojení.</string>
+    <string name="ime_weather_event_back_desc">Zpět do kalendáře</string>
+    <string name="ime_weather_event_home_place">%1$s (vaše poloha pro počasí)</string>
+    <string name="ime_weather_event_home_unnamed">Vaše poloha počasí</string>
+    <string name="ime_weather_event_hour_desc">%1$s: %2$s, %3$s, pravděpodobnost deště %4$s</string>
+    <string name="ime_weather_event_no_hours">Předpověď ještě pro tento den nesahá.</string>
+    <string name="ime_weather_event_rain_info">%1$d%% pravděpodobnost deště</string>
     <string name="ime_weather_feels_like_label">pocitová teplota</string>
     <string name="ime_weather_high_low_info">Max %1$d° Min %2$d°</string>
     <string name="ime_weather_humidity_label">vlhkost</string>
@@ -3499,6 +3767,7 @@
     <string name="ime_wmpass_no_password">Aplikace WM Pass nevytvořila heslo. Úschovna mohla být uzamčena.</string>
     <string name="ime_wmpass_no_username">Toto přihlášení nemá k dispozici žádné uživatelské jméno k vyplnění.</string>
     <string name="ime_wmpass_no_vault">WM Pass zatím nemá žádný trezor. Nejprve jej tam vytvořte.</string>
+    <string name="ime_wmpass_not_released">WM Pass ještě není vydán. Tento nástroj začne fungovat po svém vydání a instalaci.</string>
     <string name="ime_wmpass_not_set">Nenastaveno</string>
     <string name="ime_wmpass_off">Chcete-li to použít, zapněte v Nastavení -&gt; Zabezpečení možnost Povolit klávesnici WM vyplňovat hesla WM.</string>
     <string name="ime_wmpass_open">Otevřít WM Pass</string>

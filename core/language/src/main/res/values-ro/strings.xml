@@ -23,6 +23,34 @@
         <item quantity="one">%1$d glisare pe o tastă nu are loc aici, deoarece această tastatură folosește acea glisare pentru o altă sarcină. Aplicația a eliminat-o.</item>
         <item quantity="other">%1$d glisări pe taste nu au loc aici, deoarece această tastatură folosește acele glisări pentru alte sarcini. Aplicația le-a eliminat.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">Aplicatia a omis %1$d regula care schimba ceea ce sterge tasta de stergere. Tasta de stergere functioneaza asa cum o face pe fiecare aranjament de aici.</item>
+        <item quantity="other">Aplicatia a omis %1$d reguli care schimba ceea ce sterge tasta de stergere. Tasta de stergere functioneaza asa cum o face pe fiecare aranjament de aici.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">Aplicația a eliminat %1$d glisare care își schimbă direcția. Glisările de pe această tastatură merg într-o singură direcție.</item>
+        <item quantity="other">Aplicația a eliminat %1$d glisări care își schimbă direcția. Glisările de pe această tastatură merg într-o singură direcție.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">Aplicația a omis %1$d pagină pentru o tastă precum Caps Lock sau Ctrl. Această tastatură nu are nicio pagină pentru tasta respectivă.</item>
+        <item quantity="other">Aplicația a omis %1$d pagini pentru taste precum Caps Lock sau Ctrl. Această tastatură nu are nicio pagină pentru tastele respective.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">Aplicația a omis %1$d regulă care plasează semnele în ordinea lor scrisă. Această tastatură scrie semnele în ordinea în care le tastați.</item>
+        <item quantity="other">Aplicația a omis %1$d reguli care plasează semnele în ordinea lor scrisă. Această tastatură scrie semnele în ordinea în care le tastați.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d regulă pune un accent pe litera următoare. Aici, tasta care o pornește este o tastă moartă.</item>
+        <item quantity="other">%1$d reguli pun un accent pe litera următoare. Aici, tastele care le pornesc sunt taste morte.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">Aplicația a omis %1$d regulă care modifică textul în timp ce tastați. Nicio tastă de aici nu o pornește sau se potrivește cu mai mult text decât poate tasta o tastă.</item>
+        <item quantity="other">Aplicația a omis %1$d reguli care modifică textul în timp ce tastați. Nicio tastă de aici nu le pornește sau se potrivesc cu mai mult text decât poate tasta o tastă.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d regulă transformă o tastă și pe următoarea într-un alt caracter. Aici, acel caracter este la ținerea apăsată a primei taste.</item>
+        <item quantity="other">%1$d reguli transformă o tastă și pe următoarea într-un alt caracter. Aici, acele caractere sunt la ținerea apăsată a primei taste.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Aplicația a schimbat %1$d tastă cu cea mai apropiată tastă disponibilă.</item>
         <item quantity="other">Aplicația a schimbat %1$d taste cu cele mai apropiate taste disponibile.</item>

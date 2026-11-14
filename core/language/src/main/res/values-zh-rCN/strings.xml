@@ -23,6 +23,34 @@
         <item quantity="one">按键上的 %1$d 次滑动在此处无效，因为此键盘已将该滑动用于其他操作。应用已将其移除。</item>
         <item quantity="other">按键上的 %1$d 次滑动在此处无效，因为此键盘已将这些滑动用于其他操作。应用已将其移除。</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">应用遗漏了 %1$d 条用于更改删除键移除内容的规则。删除键在此处的每个布局中均按常规方式工作。</item>
+        <item quantity="other">应用遗漏了 %1$d 条用于更改删除键移除内容的规则。删除键在此处的每个布局中均按常规方式工作。</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">应用移除了 %1$d 个改变方向的滑动。此键盘上的滑动只有一个方向。</item>
+        <item quantity="other">应用移除了 %1$d 个改变方向的滑动。此键盘上的滑动只有一个方向。</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">应用遗漏了诸如大小写锁定 (Caps Lock) 或 Ctrl 等按键的 %1$d 个页面。此键盘没有该按键的页面。</item>
+        <item quantity="other">应用遗漏了诸如大小写锁定 (Caps Lock) 或 Ctrl 等按键的 %1$d 个页面。此键盘没有这些按键的页面。</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">应用漏掉了 %1$d 条按书写顺序放置符号的规则。此键盘会按照您输入的顺序写入符号。</item>
+        <item quantity="other">应用漏掉了 %1$d 条按书写顺序放置符号的规则。此键盘会按照您输入的顺序写入符号。</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d 条规则为下一个字母添加重音符号。此处，启动该规则的按键是死键。</item>
+        <item quantity="other">%1$d 条规则为下一个字母添加重音符号。此处，启动这些规则的按键是死键。</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">应用忽略了 %1$d 条在输入时更改文本的规则。此处没有按键触发它，或者它匹配的文本超出了按键可输入的范围。</item>
+        <item quantity="other">应用忽略了 %1$d 条在输入时更改文本的规则。此处没有按键触发它们，或者它们匹配的文本超出了按键可输入的范围。</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d条规则将一个键及下一个键转换为另一个字符。此处，该字符通过长按第一个键触发。</item>
+        <item quantity="other">%1$d条规则将一个键及下一个键转换为另一个字符。此处，这些字符通过长按第一个键触发。</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">应用已将 %1$d 个按键更改为它所拥有的最接近的按键。</item>
         <item quantity="other">应用已将 %1$d 个按键更改为它所拥有的最接近的按键。</item>

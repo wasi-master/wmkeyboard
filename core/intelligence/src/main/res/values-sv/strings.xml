@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">En modern modell i mellanstorlek som tänker innan den svarar. Den kräver en enhet i mellanklassen.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Liten och snabb. Den är bra för snabba omskrivningar på en enkel enhet.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">En mycket liten modell som kan läsa bilder. Den beskriver en bild, men läser ofta fel på text i skärmdumpar.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">NVIDIA:s omträning av Gemma 4 E4B för att följa instruktioner och använda verktyg. Endast text, och det kräver en kraftfull enhet.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">En allmän modell som får plats på en enkel enhet.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Helt klart smartare än modellerna under 1B. Den kräver en enhet i mellanklassen.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">En nyare liten modell. Kvaliteten är hög för sin storlek.</string>

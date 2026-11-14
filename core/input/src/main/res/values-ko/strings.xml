@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">후리가나 읽기</string>
     <string name="core_input_cjk_pack_hanja_subtitle">한글 단어와 한자 30만 개가 포함되어 있습니다. 추천 바에서 한자를 표시하려면 이 팩이 필요합니다.</string>
     <string name="core_input_cjk_pack_hanja_title">ᡠᢃ ᢅᢘᡦ</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell을 사용하여 접두사 및 접미사가 포함된 단어를 인식하고 오탈자를 교정합니다.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">아랍어 맞춤법 사전</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr을 사용하여 접미사가 있는 단어를 인식하고 오탈자를 수정합니다.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">튀르키예어 맞춤법 규칙</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">mozc의 가나 읽기, 108만 개 항목, 약 42MB. 키보드에서 일본어 변환을 위해 이 팩이 필요합니다.</string>

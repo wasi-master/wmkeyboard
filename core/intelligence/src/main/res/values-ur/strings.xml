@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">ایک جدید درمیانے درجے کا ماڈل جو جواب دینے سے پہلے سوچتا ہے۔ اسے درمیانے درجے کے ڈیوائس کی ضرورت ہے۔</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">چھوٹا اور تیز۔ یہ بنیادی ڈیوائس پر فوری دوبارہ لکھنے کے لیے اچھا ہے۔</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">ایک بہت چھوٹا ماڈل جو تصاویر پڑھ سکتا ہے۔ یہ تصویر کی وضاحت کرتا ہے، لیکن اکثر اسکرین شاٹ میں موجود متن کو غلط پڑھتا ہے۔</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">ہدایات پر عمل کرنے اور ٹولز کے استعمال کے لیے Gemma 4 E4B کی NVIDIA کی دوبارہ تربیت۔ صرف متن، اور اس کے لیے ایک طاقتور ڈیوائس کی ضرورت ہے۔</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">ایک عمومی مقصد کا ماڈل جو بنیادی ڈیوائس پر بھی فٹ ہو جاتا ہے۔</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B سے کم ماڈلز سے واضح طور پر زیادہ ہوشیار۔ اسے درمیانی رینج کے ڈیوائس کی ضرورت ہے۔</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">ایک حالیہ چھوٹا ماڈل۔ اس کے سائز کے لحاظ سے معیار اعلیٰ ہے۔</string>

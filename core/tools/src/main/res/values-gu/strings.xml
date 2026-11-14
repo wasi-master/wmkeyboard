@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">હેલો</string>
     <string name="core_tools_media_category_laugh">હસવું</string>
     <string name="core_tools_media_category_love">પ્રેમ</string>
+    <string name="core_tools_media_category_memes">મીમ્સ</string>
     <string name="core_tools_media_category_no">ના</string>
     <string name="core_tools_media_category_party">પાર્ટી</string>
     <string name="core_tools_media_category_reactions">પ્રતિક્રિયાઓ</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">એક મોઝી સર્વર: ગૂગલ, ડીપએલ, ડકડકગો, યાનડેક્સ અને રિવર્સો માટે એક મફત ફ્રન્ટ એન્ડ. એન્જિન પસંદ કરો. ડીપએલ અને રિવર્સો માટે સ્ત્રોત ભાષાની જરૂર છે.</string>
     <string name="core_tools_provider_music_server">તમારું પોતાનું ઓળખ સર્વર</string>
     <string name="core_tools_provider_music_server_desc">તમે ચલાવો છો તે સર્વર જે AudD ની જેમ જવાબ આપે છે: ક્લિપ ફાઇલ તરીકે પોસ્ટ કરવામાં આવે છે અને ગીત JSON તરીકે પાછું આવે છે. તેની પાછળ Panako અથવા Olaf જેવું ફિંગરપ્રિન્ટર મૂકો.</string>
+    <string name="core_tools_provider_mwmbl_desc">તેના પોતાના ઇન્ડેક્સ સાથેનું મફત, બિન-નફાકારક શોધ ઇંજન. કોઈ કી નથી. માત્ર વેબ પરિણામો, કોઈ છબીઓ નથી.</string>
     <string name="core_tools_provider_nllb">ડિવાઇસ પર (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">CTranslate2 પર Meta ના NLLB-200 મોડલ સાથે ફોન પર ભાષાંતર કરે છે: 200 ભાષાઓ, કોઈપણ બે વચ્ચે, એવી જોડીઓ માટે જે અન્ય એન્જિન કરી શકતા નથી. 630 MB નો એક ડાઉનલોડ, અને એક વાક્યમાં થોડી સેકન્ડ લાગે છે. તમારું લખાણ ફોન પર જ રહે છે. આ મોડલ ફક્ત બિન-વ્યાપારી ઉપયોગ (CC BY-NC 4.0) માટે લાઇસન્સ પ્રાપ્ત છે. 6 GB અથવા તેથી વધુ મેમરી ધરાવતા 64-બીટ ફોનની જરૂર છે.</string>
     <string name="core_tools_provider_none_on">કોઈ પ્રોવાઈડર ચાલુ નથી. આ ટૂલના સેટિંગ્સમાં એક ચાલુ કરો.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">આ સૂચિ</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">કી બતાવો અથવા છુપાવો</string>
     <string name="core_tools_shortcut_leader_double_tap">%1$s બે વાર દબાવો</string>
+    <string name="core_tools_speak_no_voice">આ ફોનમાં તેને વાંચવા માટે કોઈ %1$s અવાજ નથી. Android ની ટેક્સ્ટ-ટુ-સ્પીચ સેટિંગ્સમાં એક ઉમેરો, અથવા ટૂલ્સ › રીડ બેક હેઠળ ઑફલાઇન વૉઇસ ડાઉનલોડ કરો.</string>
     <string name="core_tools_symbol_category_arrows_label">તીર</string>
     <string name="core_tools_symbol_category_currency_label">ચલણ</string>
     <string name="core_tools_symbol_category_fractions_label">અપૂર્ણાંક</string>
     <string name="core_tools_symbol_category_greek_label">ગ્રીક</string>
     <string name="core_tools_symbol_category_math_label">ગણિત</string>
+    <string name="core_tools_symbol_category_music_label">સંગીત</string>
     <string name="core_tools_symbol_category_other_label">અન્ય</string>
     <string name="core_tools_symbol_category_punctuation_label">વિરામચિહ્નો</string>
     <string name="core_tools_symbol_category_shapes_label">આકારો અને તારાઓ</string>
+    <string name="core_tools_symbol_category_stars_label">તારાઓ</string>
     <string name="core_tools_symbol_category_superscript_label">સુપરસ્ક્રિપ્ટ</string>
+    <string name="core_tools_symbol_category_technical_label">ટેકનિકલ</string>
+    <string name="core_tools_symbol_category_weather_label">હવામાન</string>
     <string name="core_tools_symbol_set_coding_label">કોડિંગ</string>
     <string name="core_tools_symbol_set_email_label">ઈમેલ</string>
     <string name="core_tools_symbol_set_math_label">ગણિત</string>

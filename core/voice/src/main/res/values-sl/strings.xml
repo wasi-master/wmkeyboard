@@ -9,11 +9,16 @@
     <string name="core_voice_model_base_multi_body">Ta model uravnoteži natančnost in hitrost. Pokriva vse jezike, ki jih pozna Whisper. Izberite ga, če je model Small prepočasen.</string>
     <string name="core_voice_model_base_world_body">Ta model uporablja jezik, v katerem tipkate, namesto ugibanja. Kratke fraze postanejo veliko bolj zanesljive. Izberite ga, ko je na seznamu vaš jezik.</string>
     <string name="core_voice_model_cpp_base_body">Ta model uravnoteži natančnost in hitrost. Uporablja jezik, v katerem narekujete, v katerem koli od 99 jezikov, ki jih Whisper pozna, in posluša vaše besede. Izberite ga, če je majhen model prepočasen.</string>
+    <string name="core_voice_model_cpp_fine_tune_body">%1$s je dodatno usposobil ta model Turbo za govor v tem enem jeziku. Obdeluje samo ta jezik.</string>
+    <string name="core_voice_model_cpp_hinglish_body">Oriserve je usposobil ta model v hindujščini in v hindujščini, pomešani z angleščino. Piše to, kar izgovorite, v latinici, tako kot se tipka hinglish, in ohranja angleške besede v angleščini. Nikoli ne piše devanagarija, zato bolj ustreza hinglishu kot hindujščini. Je majhen in hiter.</string>
+    <string name="core_voice_model_cpp_kb_body">Švedska narodna knjižnica je usposobila ta model za švedski govor. Obravnava samo švedščino in je zanj natančnejši kot splošni model Whisper iste velikosti.</string>
+    <string name="core_voice_model_cpp_kotoba_body">Družba Kotoba Technologies je ustvarila ta japonski model iz sistema Whisper Large v3. Njegov dekodirnik je precej manjši, zato deluje s približno hitrostjo modela Turbo. Obvlada samo japonščino.</string>
     <string name="core_voice_model_cpp_large_body">To je najbolj natančen model Whisper. Prenos je velik 1,1 GB. Naloži ga lahko samo naprava z veliko količino pomnilnika. Model Turbo je skoraj tako natančen in je pol manjši.</string>
     <string name="core_voice_model_cpp_medium_body">Ta model zagotavlja skoraj namizno natančnost. Vsaka fraza traja nekaj sekund. Model med delovanjem porabi skoraj en gigabajt pomnilnika.</string>
     <string name="core_voice_model_cpp_small_body">Ta model zagotavlja najboljšo natančnost, ki še vedno dobro deluje na telefonu. Uporablja jezik, v katerem narekujete, v katerem koli od 99 jezikov, ki jih Whisper pozna, in posluša vaše lastne besede.</string>
     <string name="core_voice_model_cpp_tiny_body">To je najhitrejši model. Dobro deluje pri jasnem govoru, vendar hrup zmanjša natančnost. Uporablja jezik, v katerem narekujete, in posluša vaše besede.</string>
     <string name="core_voice_model_cpp_turbo_body">Ta model je skoraj tako natančen kot največji model, pri polovični velikosti. Vsaka fraza traja nekaj sekund in ne more prevajati.</string>
+    <string name="core_voice_model_custom_body">Ta model whisper.cpp ste uvozili iz datoteke. Tipkovnica ne ve, kako je bil usposobljen, zato ga izberite za jezike, za katere je bil narejen, pod Model za posamezen jezik.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d jezik</item>
         <item quantity="other">%1$d jezikov</item>

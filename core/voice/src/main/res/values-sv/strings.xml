@@ -9,11 +9,16 @@
     <string name="core_voice_model_base_multi_body">Denna modell balanserar noggrannhet och hastighet. Den täcker alla språk som Whisper känner till. Välj den om Small-modellen är för långsam.</string>
     <string name="core_voice_model_base_world_body">Denna modell använder språket du skriver på istället för en gissning. Korta fraser blir mycket mer tillförlitliga. Välj den när dess lista innehåller dina språk.</string>
     <string name="core_voice_model_cpp_base_body">Denna modell balanserar noggrannhet och hastighet. Den använder språket du dikterar på, av de 99 språk som Whisper känner till, och den lyssnar efter dina egna ord. Välj den om den lilla modellen är för långsam.</string>
+    <string name="core_voice_model_cpp_fine_tune_body">%1$s tränade denna Turbo-modell ytterligare på tal på detta enda språk. Den stöder endast det språket.</string>
+    <string name="core_voice_model_cpp_hinglish_body">Oriserve har tränat den här modellen på hindi och hindi blandat med engelska. Den skriver det du säger med latinska bokstäver, precis som hinglish skrivs, och behåller engelska ord på engelska. Den skriver aldrig med devanagari, så den passar bättre för hinglish än hindi. Den är liten och snabb.</string>
+    <string name="core_voice_model_cpp_kb_body">Kungliga biblioteket har tränat den här modellen på svenskt tal. Den hanterar endast svenska och är mer exakt för detta än den allmänna Whisper-modellen av samma storlek.</string>
+    <string name="core_voice_model_cpp_kotoba_body">Kotoba Technologies skapade denna japanska modell från Whisper Large v3. Dess avkodare är mycket mindre, så den körs ungefär i Turbo-modellens hastighet. Den stöder endast japanska.</string>
     <string name="core_voice_model_cpp_large_body">Detta är den mest exakta Whisper-modellen. Nedladdningen är 1,1 GB. Endast en enhet med en stor mängd minne kan ladda den. Turbo-modellen är nästan lika exakt och är hälften så stor.</string>
     <string name="core_voice_model_cpp_medium_body">Denna modell ger nästan skrivbordsnoggrannhet. Varje fras tar flera sekunder. Modellen använder nästan en gigabyte minne när den körs.</string>
     <string name="core_voice_model_cpp_small_body">Denna modell ger bäst noggrannhet som fortfarande körs bra på en telefon. Den använder språket du dikterar på, av de 99 språk som Whisper känner till, och den lyssnar efter dina egna ord.</string>
     <string name="core_voice_model_cpp_tiny_body">Detta är den snabbaste modellen. Den fungerar bra vid tydligt tal, men brus försämrar noggrannheten. Den använder språket du dikterar på och lyssnar efter dina egna ord.</string>
     <string name="core_voice_model_cpp_turbo_body">Denna modell är nästan lika exakt som den största modellen, till hälften av storleken. Varje fras tar flera sekunder, och den kan inte översätta.</string>
+    <string name="core_voice_model_custom_body">Du importerade den här whisper.cpp-modellen från en fil. Tangentbordet vet inte hur den tränades, så välj den för de språk den gjordes för under Modell per språk.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d språk</item>
         <item quantity="other">%1$d språk</item>

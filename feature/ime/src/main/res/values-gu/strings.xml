@@ -176,6 +176,7 @@
     <string name="ime_ai_error_no_text">કામ કરવા માટે કંઈ નથી. પહેલા થોડું લખાણ ટાઈપ કરો.</string>
     <string name="ime_ai_error_only_reasoning">મોડેલે તર્ક કરવા માટે સંપૂર્ણ પ્રતિસાદનો ઉપયોગ કર્યો છે. ફરી પ્રયાસ કરો, અથવા સેટિંગ્સમાં “તર્ક બતાવો” ચાલુ કરો.</string>
     <string name="ime_ai_error_request_failed">વિનંતી કામ કરી રહી નથી</string>
+    <string name="ime_ai_error_stopped_hidden">કીબોર્ડ બંધ હોવાને કારણે અટકી ગયું છે. તેને ફરીથી ચલાવવા માટે પુનઃપ્રયાસ કરો.</string>
     <string name="ime_ai_idle_body">ક્રિયાઓ પસંદ કરેલા ટેક્સ્ટ પર અથવા આખા ફીલ્ડ પર ચાલે છે. તેઓ %1$s નો ઉપયોગ કરે છે.</string>
     <string name="ime_ai_idle_empty_body">આ ક્રિયાઓનો ઉપયોગ કરવા માટે કંઈક ટાઈપ કરો અથવા પસંદ કરો. નવું લખાણ લખવા માટે %1$s દબાવો.</string>
     <string name="ime_ai_idle_empty_no_writer_body">આ ક્રિયાઓનો ઉપયોગ કરવા માટે કંઈક ટાઇપ કરો અથવા પસંદ કરો.</string>
@@ -307,9 +308,11 @@
     <string name="ime_app_colors_none">આ એપમાં કોઈ રંગો મળ્યા નથી</string>
     <string name="ime_app_colors_off_desc">આ એપ્લિકેશનના રંગોનો ઉપયોગ કરશો નહીં</string>
     <string name="ime_app_colors_pick_desc">એપ રંગ %1$d</string>
+    <string name="ime_applet_back">પાછા જાઓ</string>
     <string name="ime_applet_close">બોક્સ બંધ કરો</string>
     <string name="ime_applet_copied">કૉપિ કર્યું</string>
     <string name="ime_applet_open_in_keyboard">કીબોર્ડમાં ખોલો</string>
+    <string name="ime_applet_pop_out">ફ્લોટિંગ બૉક્સમાં ખોલો</string>
     <string name="ime_applet_resize">માપ બદલવા માટે ખેંચો</string>
     <string name="ime_applet_tuck">ધારમાં વળેલું</string>
     <string name="ime_applet_untuck">%1$s પાછું લાવો</string>
@@ -319,6 +322,33 @@
     <string name="ime_ask_ai_label_vocab">શબ્દભંડોળ: %1$s</string>
     <string name="ime_ask_ai_label_wiki">વિકિપીડિયા: %1$s</string>
     <string name="ime_autofill_dismiss_desc">ઓટોફિલ સૂચનો છુપાવો</string>
+    <string name="ime_board_copy_desc">આ ફોનમાં કૉપી કરો</string>
+    <string name="ime_board_delete_body">તે બોર્ડનો ઉપયોગ કરતા દરેક ઉપકરણમાંથી જાય છે. ફોનના પોતાના ક્લિપબોર્ડ પર પહેલેથી જ નકલો રહે છે.</string>
+    <string name="ime_board_delete_desc">બોર્ડ દૂર કરો</string>
+    <string name="ime_board_delete_no">રદ કરો</string>
+    <string name="ime_board_delete_title">આ ક્લિપને બોર્ડ પરથી હટાવી દઈએ?</string>
+    <string name="ime_board_delete_yes">ઉતારી લો</string>
+    <string name="ime_board_edit_desc">ફેરફાર કરો</string>
+    <string name="ime_board_empty_body">અહીં મોકલવામાં આવેલી ક્લિપ્સ તમારા અન્ય ઉપકરણો પર દેખાય છે જે સમાન ફોલ્ડરનો ઉપયોગ કરે છે, તે પણ જે હવે ઑફલાઇન છે.</string>
+    <string name="ime_board_empty_title">બોર્ડ પર કંઈ નથી</string>
+    <string name="ime_board_notice_copied">કોપી કર્યું</string>
+    <string name="ime_board_notice_deleted">બોર્ડ પરથી હટાવી લેવામાં આવ્યું</string>
+    <string name="ime_board_notice_refused">ફક્ત છુપાયેલા ન હોય તેવા ટેક્સ્ટ ક્લિપ્સ જ બોર્ડ પર જઈ શકે છે</string>
+    <string name="ime_board_notice_sent">બોર્ડ પર મોકલવામાં આવ્યું</string>
+    <string name="ime_board_send_desc">ક્લિપ મોકલો</string>
+    <string name="ime_board_send_done">પૂર્ણ</string>
+    <string name="ime_board_send_empty">મોકલવા માટે કોઈ ટેક્સ્ટ ક્લિપ્સ નથી. ચિત્રો, ફાઇલો અને છુપાયેલી ક્લિપ્સ આ ફોન પર જ રહે છે.</string>
+    <string name="ime_board_send_one_desc">મોકલો</string>
+    <string name="ime_board_send_title">બોર્ડ પર મોકલો</string>
+    <string name="ime_board_sent_desc">મોકલાયું</string>
+    <string name="ime_board_status_failed">બોર્ડ સુધી પહોંચી શકાતું નથી</string>
+    <string name="ime_board_status_never">હજી ચકાસવામાં આવ્યું નથી</string>
+    <string name="ime_board_status_synced">%1$s ચકાસાયેલ છે</string>
+    <string name="ime_board_status_syncing">બોર્ડ ચકાસી રહ્યું છે...</string>
+    <string name="ime_board_status_waiting">બોર્ડ સુધી પહોંચવાની રાહ જોઈ રહ્યા છીએ</string>
+    <string name="ime_board_status_waiting_offline">બોર્ડ સુધી પહોંચી શકાતું નથી. જ્યારે તે સક્ષમ થશે ત્યારે તમારા ફેરફારો બહાર જશે</string>
+    <string name="ime_board_sync_desc">હવે બોર્ડ તપાસો</string>
+    <string name="ime_board_title">શેર કરેલું બોર્ડ</string>
     <string name="ime_calc_degrees_label">ડિગ્રી</string>
     <string name="ime_calc_insert_action">દાખલ કરો</string>
     <string name="ime_calc_radians_label">રેડિયન</string>
@@ -471,7 +501,9 @@
     </plurals>
     <string name="ime_calendar_untitled">(કોઈ શીર્ષક નથી)</string>
     <string name="ime_calendar_view_agenda">એજન્ડા</string>
+    <string name="ime_calendar_view_day">દિવસ</string>
     <string name="ime_calendar_view_month">મહિનો</string>
+    <string name="ime_calendar_weather_desc">%3$s માં %1$s, %2$s. દરેક કલાક માટે પૂર્વાનુમાન ખોલે છે</string>
     <string name="ime_calendar_yesterday_label">ગઈકાલે</string>
     <string name="ime_calendar_zone_note">%1$s માં સમય</string>
     <string name="ime_camera_captured_photo_desc">તમે લીધેલો ફોટો</string>
@@ -543,6 +575,7 @@
         <item quantity="one">%1$d ક્લિપ જોડો</item>
         <item quantity="other">%1$d ક્લિપ્સ જોડો</item>
     </plurals>
+    <string name="ime_clip_compose_email">ઇમેઇલ લખો</string>
     <string name="ime_clip_delete_pinned_question">શું આ પિન કરેલી ક્લિપ ડિલીટ કરવી છે?</string>
     <plurals name="ime_clip_deleted">
         <item quantity="one">ક્લિપ ડિલીટ થઈ ગઈ</item>
@@ -563,6 +596,7 @@
         <item quantity="other">તમારી ક્લિપ્સમાં મળેલા %1$d ભાગ બતાવો</item>
     </plurals>
     <string name="ime_clip_extract_codes">વન-ટાઇમ કોડ્સ</string>
+    <string name="ime_clip_extract_emails">ઇમેઇલ સરનામાં</string>
     <string name="ime_clip_extract_links">લિંક્સ</string>
     <string name="ime_clip_extract_parts">અર્ક કાઢો</string>
     <string name="ime_clip_extract_phones">ફોન નંબરો</string>
@@ -589,6 +623,7 @@
         <item quantity="one">છુપાયેલ · %1$d અક્ષર</item>
         <item quantity="other">છુપાયેલ · %1$d અક્ષરો</item>
     </plurals>
+    <string name="ime_clip_image_pasted_toast">ક્લિપબોર્ડમાંથી પેસ્ટ કર્યું. જો કંઈ ન આવ્યું હોય, તો આ એપ્લિકેશન કોઈ ચિત્રો લેતી નથી: તેને શેર કરવા માટે ક્લિપને પકડી રાખો</string>
     <string name="ime_clip_info_copied">કોપી કરેલ</string>
     <string name="ime_clip_info_edited">સંપાદિત</string>
     <string name="ime_clip_info_from">માંથી</string>
@@ -642,7 +677,12 @@
         <item quantity="other">%1$d પસંદ કરેલ</item>
     </plurals>
     <string name="ime_clip_send_as_sticker">સ્ટીકર તરીકે મોકલો</string>
+    <string name="ime_clip_shape_code">કોડ</string>
+    <string name="ime_clip_shape_markdown">માર્કડાઉન</string>
+    <string name="ime_clip_share_image">શેર કરો</string>
+    <string name="ime_clip_show_formatted">ફોર્મેટ કરેલ બતાવો</string>
     <string name="ime_clip_show_in_history">ઇતિહાસમાં બતાવો</string>
+    <string name="ime_clip_show_raw">કાચું બતાવો</string>
     <string name="ime_clip_tags">ટૅગ્સ</string>
     <string name="ime_clip_tags_placeholder">ટેગ્સ, તેમની વચ્ચે અલ્પવિરામ સાથે</string>
     <string name="ime_clip_tags_title">ટૅગ્સ</string>
@@ -913,6 +953,7 @@
     <string name="ime_conversion_pack_offer">અક્ષરો ટાઈપ કરવા માટે %1$s ડાઉનલોડ કરો</string>
     <string name="ime_conversion_pack_offer_dismiss_desc">રદ કરો</string>
     <string name="ime_converter_from_label">માંથી</string>
+    <string name="ime_converter_tab_units">એકમો</string>
     <string name="ime_converter_to_label">સુધી</string>
     <string name="ime_currency_insert_action">દાખલ કરો</string>
     <string name="ime_currency_progress">વિનિમય દરો ડાઉનલોડ થઈ રહ્યા છે…</string>
@@ -921,6 +962,32 @@
     <string name="ime_currency_section_crypto">ક્રિપ્ટો</string>
     <string name="ime_currency_section_popular">સામાન્ય</string>
     <string name="ime_currency_swap_desc">ચલણની અદલાબદલી કરો</string>
+    <string name="ime_custom_button_desc">%1$s ખોલો</string>
+    <string name="ime_custom_button_label">કસ્ટમ બટન</string>
+    <string name="ime_custom_button_shortcut_failed">તે શોર્ટકટ ખોલી શકાતો નથી. એપ્લિકેશન ગઈ હોઈ શકે છે, અથવા માત્ર હોમ સ્ક્રીનને તેને ખોલવા દે છે.</string>
+    <string name="ime_custom_page_clipboard">ક્લિપબોર્ડ સેટિંગ્સ</string>
+    <string name="ime_custom_page_custom_buttons">કસ્ટમ બટનો</string>
+    <string name="ime_custom_page_dictionary">શબ્દકોશ</string>
+    <string name="ime_custom_page_favourites">મનપસંદ</string>
+    <string name="ime_custom_page_home">સેટિંગ્સ</string>
+    <string name="ime_custom_page_keypress">ધ્વનિ અને વાઇબ્રેશન</string>
+    <string name="ime_custom_page_languages">ભાષાઓ</string>
+    <string name="ime_custom_page_search">સેટિંગ્સ શોધો</string>
+    <string name="ime_custom_page_themes">થીમ્સ</string>
+    <string name="ime_custom_page_toolbar">टुलबार সেটিংস</string>
+    <string name="ime_custom_page_tools">સાધનો</string>
+    <string name="ime_custom_page_typing">ટાઈપિંગ</string>
+    <string name="ime_custom_toggle_auto_caps">आतणतली तरलली</string>
+    <string name="ime_custom_toggle_glide">ગ્લાઇડ ટાઇપિંગ</string>
+    <string name="ime_custom_toggle_key_hints">કી સંકેતો</string>
+    <string name="ime_custom_toggle_key_popup">કી પોપઅપ</string>
+    <string name="ime_custom_toggle_number_row">નંબર હરોળ</string>
+    <string name="ime_custom_toggle_reduce_motion">હાલચાલ ઘટાડો</string>
+    <string name="ime_custom_toggle_sound">કી સાઉન્ડ</string>
+    <string name="ime_custom_toggle_suggestions">સૂચનો</string>
+    <string name="ime_custom_toggle_symbol_row">પ્રતીક પંક્તિ</string>
+    <string name="ime_custom_toggle_toolbar_labels">ટૂલબાર નામો</string>
+    <string name="ime_custom_toggle_vibration">વાઇબ્રેશન</string>
     <string name="ime_delete_redo_chip">“%1$s” ફરીથી કરો</string>
     <string name="ime_delete_redo_plain">ફરીથી ડિલીટ કરો</string>
     <string name="ime_delete_undo_chip">“%1$s” પૂર્વવત કરો</string>
@@ -958,6 +1025,7 @@
     <string name="ime_disabled_correction_invalid">જેમાં સુધારવું છે તે માટે અલગ શબ્દ લખો. સુધારી રહેલા શબ્દમાં ઓછામાં ઓછા 3 અક્ષરો હોવા જોઈએ, અને સુધારો એક શબ્દ હોઈ શકે છે, અથવા ચૂકી ગયેલી જગ્યા માટે બે હોઈ શકે છે.</string>
     <string name="ime_disabled_media_app_blocks">જે એપ ચાલી રહી છે તે આની પરવાનગી આપતી નથી.</string>
     <string name="ime_disabled_spell_unchanged">પહેલા સ્પેલિંગ બદલો. ખાલી અથવા બદલાયા વગરના સ્પેલિંગમાં લાગુ કરવા માટે કંઈ નથી.</string>
+    <string name="ime_disabled_translate_empty_box">બૉક્સ ખાલી છે, અથવા તેનું ભાષાંતર હજુ રસ્તામાં છે.</string>
     <string name="ime_disabled_translate_nothing">હજુ સુધી કંઈપણ અનુવાદિત થયું નથી. પહેલા અનુવાદ કરવા માટે ટેક્સ્ટ ટાઈપ કરો અથવા પેસ્ટ કરો.</string>
     <string name="ime_disabled_translate_same_language">ટેક્સ્ટ પહેલેથી જ એ જ ભાષામાં છે જેમાં તમે અનુવાદ કરી રહ્યા છો.</string>
     <string name="ime_disabled_voice_undo">હજુ સુધી અનડૂ કરવા માટે કંઈ નથી. અનડૂ તમે બોલેલા છેલ્લા વાક્યને પાછું ખેંચે છે.</string>
@@ -987,6 +1055,10 @@
     <string name="ime_docscan_next">ક્રોપ કરો</string>
     <string name="ime_docscan_open_settings">સેટિંગ્સ ખોલો</string>
     <string name="ime_docscan_page_number">પૃષ્ઠ %1$d</string>
+    <plurals name="ime_docscan_pages_album">
+        <item quantity="one">પૃષ્ઠ એપ્લિકેશનની શેર સ્ક્રીનમાં ખુલે છે</item>
+        <item quantity="other">આ એપ્લિકેશન અહીં એક સમયે એક જ ચિત્ર લે છે, તેથી %d પૃષ્ઠો એક άλબום તરીકે મોકલવા માટે તેની શેર સ્ક્રીનમાં એકસાથે ખુલે છે</item>
+    </plurals>
     <plurals name="ime_docscan_pages_shared">
         <item quantity="one">એપ્લિકેશને અહીં છેલ્લું પેજ લીધું નથી, તેથી તે એપ્લિકેશનની શેર સ્ક્રીનમાં ખુલે છે</item>
         <item quantity="other">એપ્લિકેશને અહીં %d પેજ લીધા નથી, તેથી તે એપ્લિકેશનની શેર સ્ક્રીનમાં સાથે ખુલે છે</item>
@@ -1069,10 +1141,15 @@
     <string name="ime_files_access_pick">Android નું પીકર</string>
     <string name="ime_files_access_title">કીબોર્ડ છોડ્યા વગર ફાઇલો પસંદ કરો</string>
     <string name="ime_files_add">ઉમેરો</string>
+    <string name="ime_files_add_tree">ફોલ્ડર ઉમેરો</string>
+    <string name="ime_files_add_tree_detail">USB ડ્રાઇવ, SD કાર્ડ અથવા અન્ય ઍપ દ્વારા શેર કરાયેલું ફોલ્ડર, જેમ કે નેટવર્ક ડ્રાઇવ</string>
+    <string name="ime_files_allow_all">ફોનનો તમામ સંગ્રહ</string>
+    <string name="ime_files_allow_all_detail">Android ની તમામ ફાઇલોની ઍક્સેસ જરૂરી છે</string>
     <string name="ime_files_camera">કેમેરા</string>
     <string name="ime_files_clear_desc">પસંદગી સાફ કરો</string>
     <string name="ime_files_collapse_desc">ટૂંકું કરો</string>
     <string name="ime_files_copy_desc">ককক</string>
+    <string name="ime_files_copy_to">%1$s માં કૉપિ કરો</string>
     <string name="ime_files_delete_body">ફોલ્ડર્સ તેમની અંદરની દરેક વસ્તુ સાથે જાય છે. આ કાયમી છે: Android પાસે ફાઇલો માટે રિસાયકલ બિન નથી.</string>
     <string name="ime_files_delete_desc">ડિલીટ કરો</string>
     <string name="ime_files_delete_no">રદ કરો</string>
@@ -1089,8 +1166,11 @@
     <string name="ime_files_expand_desc">ઊંચું બનાવો</string>
     <string name="ime_files_hide_hidden">છુપાયેલી ફાઇલો છુપાવો</string>
     <string name="ime_files_kde_unreadable">મોકલવા માટે તે ફાઇલ વાંચી શકાઈ નહીં</string>
+    <string name="ime_files_locked_body">ફાઇલ મેનેજર લૉક સ્ક્રીન પર ખુલતું નથી.</string>
+    <string name="ime_files_locked_title">તમારી ફાઇલો જોવા માટે અનલૉક કરો</string>
     <string name="ime_files_more_desc">વધુ</string>
     <string name="ime_files_move_desc">ખસેડો</string>
+    <string name="ime_files_move_to">%1$s પર ખસેડો</string>
     <string name="ime_files_movies">મૂવીઝ</string>
     <string name="ime_files_music">સંગીત</string>
     <string name="ime_files_new_folder">નવું ફોલ્ડર</string>
@@ -1116,6 +1196,8 @@
         <item quantity="one">%d આઇટમ ખસેડી</item>
         <item quantity="other">%d આઇટમ્સ ખસેડી</item>
     </plurals>
+    <string name="ime_files_notice_tree_removed">સૂચિમાંથી ફોલ્ડર દૂર કરવામાં આવ્યું</string>
+    <string name="ime_files_one_pane_desc">એક સૂચિ</string>
     <string name="ime_files_op_cancel">બંધ કરો</string>
     <string name="ime_files_op_copy">%2$d માંથી %1$d કૉપિ કરી રહ્યું છે</string>
     <string name="ime_files_op_delete">%2$d માંથી %1$d કાઢી રહ્યા છીએ</string>
@@ -1132,6 +1214,9 @@
     <string name="ime_files_pictures">ચિત્રો</string>
     <string name="ime_files_places">સ્થળો</string>
     <string name="ime_files_recent">તાજેતરના</string>
+    <string name="ime_files_remove_tree_body">ફોલ્ડર અને તેની ફાઇલો જ્યાં છે ત્યાં જ રહે છે. તમે તેને કોઈપણ સમયે ફરીથી ઉમેરી શકો છો.</string>
+    <string name="ime_files_remove_tree_title">યાદીમાંથી “%1$s” દૂર કરવું છે?</string>
+    <string name="ime_files_remove_tree_yes">કાઢી નાખો</string>
     <string name="ime_files_rename_desc">નામ બદલો</string>
     <string name="ime_files_rename_hint">ককক</string>
     <string name="ime_files_search_clear_desc">શોધ સમાપ્ત કરો</string>
@@ -1150,6 +1235,7 @@
     <string name="ime_files_title_many">ફાઇલો પસંદ કરો</string>
     <string name="ime_files_title_one">એક ફાઇલ પસંદ કરો</string>
     <string name="ime_files_title_picture">ওক ককক</string>
+    <string name="ime_files_two_panes_desc">બે યાદીઓ બાજુ બાજુમાં</string>
     <string name="ime_files_unreadable">Android કીબોર્ડને આ ફોલ્ડર ખોલવાની મંજૂરી આપતું નથી</string>
     <string name="ime_find_case_desc">કેસ મેચ કરો</string>
     <string name="ime_find_clear_desc">%1$s સાફ કરો</string>
@@ -1181,6 +1267,24 @@
     <string name="ime_floating_category_empty">આ શ્રેણી ખાલી છે. ફ્લોટિંગ બટન સેટિંગ્સમાં તેમાં ક્રિયાઓ ઉમેરો.</string>
     <string name="ime_floating_category_label">શ્રેણી</string>
     <string name="ime_floating_close_menu">મેનુ બંધ કરો</string>
+    <string name="ime_floating_device_bluetooth">બ્લૂટૂથ</string>
+    <string name="ime_floating_device_bluetooth_desc">બ્લૂટૂથ ચાલુ અથવા બંધ કરે છે</string>
+    <string name="ime_floating_device_bluetooth_page_desc">Android નું બ્લૂટૂથ પૃષ્ઠ ખોલે છે</string>
+    <string name="ime_floating_device_data">મોબાઇલ ડેટા</string>
+    <string name="ime_floating_device_data_desc">મોબાઇલ ડેટા ચાલુ કે બંધ કરે છે</string>
+    <string name="ime_floating_device_data_panel_desc">Android નું ઇન્ટરનેટ પેનલ ખોલે છે</string>
+    <string name="ime_floating_device_failed">Android એ તેની મંજૂરી આપી નથી</string>
+    <string name="ime_floating_device_hotspot">હોટસ્પોટ</string>
+    <string name="ime_floating_device_hotspot_desc">એન્ડ્રોઇડનું હોટસ્પોટ પૃષ્ઠ ખોલે છે</string>
+    <string name="ime_floating_device_off">%1$s બંધ</string>
+    <string name="ime_floating_device_on">%1$s ચાલુ</string>
+    <string name="ime_floating_device_ringer">રિંગર મોડ</string>
+    <string name="ime_floating_device_ringer_desc">વારાફરતી રિંગ, વાઇબ્રેટ અને સાયલન્ટ કરો</string>
+    <string name="ime_floating_device_volume">વોલ્યુમ પેનલ</string>
+    <string name="ime_floating_device_volume_desc">દરેક વોલ્યુમ સ્લાઇડર સાથે એન્ડ્રોઇડનું વોલ્યુમ પેનલ ખોલે છે</string>
+    <string name="ime_floating_device_wifi">વાઇ-ફાઇ</string>
+    <string name="ime_floating_device_wifi_desc">Wi-Fi ચાલુ કે બંધ કરે છે</string>
+    <string name="ime_floating_device_wifi_panel_desc">Androidનું Wi-Fi પેનલ ખોલે છે</string>
     <string name="ime_floating_dismiss_target">બટન છુપાવવા માટે અહીં મૂકો</string>
     <string name="ime_floating_dock_desc">કીબોર્ડને ડોક કરો</string>
     <string name="ime_floating_hide_label">બટન છુપાવો</string>
@@ -1191,7 +1295,11 @@
     <string name="ime_floating_pair_label">એપ જોડી ખોલો</string>
     <string name="ime_floating_pair_missing">બે એપ્સમાંથી એક હવે ઇન્સ્ટોલ કરેલી નથી</string>
     <string name="ime_floating_pair_name">%1$s + %2$s</string>
+    <string name="ime_floating_plugin_label">પ્લગઇન</string>
     <string name="ime_floating_resize_desc">કીબોર્ડનું કદ બદલો</string>
+    <string name="ime_floating_ringer_ring">રિંગ</string>
+    <string name="ime_floating_ringer_silent">मूगुं</string>
+    <string name="ime_floating_ringer_vibrate">વાઇબ્રેટ કરો</string>
     <string name="ime_floating_system_app_drawer">એપ ડ્રોઅર</string>
     <string name="ime_floating_system_back">પાછા જાઓ</string>
     <string name="ime_floating_system_notifications">સૂચનાઓ</string>
@@ -1249,6 +1357,7 @@
     <string name="ime_gallery_album_camera">કેમેરા</string>
     <string name="ime_gallery_album_favorites">મનપસંદ</string>
     <string name="ime_gallery_album_gifs">GIFs</string>
+    <string name="ime_gallery_album_immich">Immich</string>
     <string name="ime_gallery_album_recents">તાજેતરના</string>
     <string name="ime_gallery_album_screenshots">સ્ક્રીનશોટ</string>
     <string name="ime_gallery_album_sent">કીબોર્ડ પરથી મોકલેલ</string>
@@ -1340,6 +1449,10 @@
     <string name="ime_gallery_info_taken">લીધેલું</string>
     <string name="ime_gallery_layer_delete">ડિલીટ કરો</string>
     <string name="ime_gallery_more_desc">વધુ ગેલેરી વિકલ્પો</string>
+    <plurals name="ime_gallery_notice_already_uploaded">
+        <item quantity="one">Immich પાસે પહેલેથી જ %d ચિત્ર હતું</item>
+        <item quantity="other">Immich પાસે પહેલેથી જ બધાં %d ચિત્રો હતાં</item>
+    </plurals>
     <plurals name="ime_gallery_notice_copied">
         <item quantity="one">%d આઇટમ કોપી કરી</item>
         <item quantity="other">%d આઇટમ્સ કોપી કરી</item>
@@ -1348,6 +1461,8 @@
         <item quantity="one">%d આઈટમ વાંચી શકાઈ નથી</item>
         <item quantity="other">%d આઈટમ્સ વાંચી શકાઈ નથી</item>
     </plurals>
+    <string name="ime_gallery_notice_immich_failed">તમારા Immich સર્વર સુધી પહોંચી શકાયું નહીં</string>
+    <string name="ime_gallery_notice_immich_refused">Immich એ API કી નામંજૂર કરી; તેની પરવાનગીઓ તપાસો</string>
     <plurals name="ime_gallery_notice_limit">
         <item quantity="one">તમે એક સમયે %d આઇટમ પસંદ કરી શકો છો</item>
         <item quantity="other">તમે એક સમયે %d આઇટમ સુધી પસંદ કરી શકો છો</item>
@@ -1368,6 +1483,14 @@
     <plurals name="ime_gallery_notice_shared">
         <item quantity="one">%d આઇટમ માટે શેર સ્ક્રીન ખોલી</item>
         <item quantity="other">%d આઇટમ્સ માટે શેર સ્ક્રીન ખોલી</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_upload_failed">
+        <item quantity="one">%d ચિત્ર અપલોડ થયું નથી</item>
+        <item quantity="other">%d ચિત્રો અપલોડ થયા નથી</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_uploaded">
+        <item quantity="one">Immich પર %d ચિત્ર અપલોડ કર્યું</item>
+        <item quantity="other">Immich પર %d ચિત્રો અપલોડ કર્યા</item>
     </plurals>
     <string name="ime_gallery_partial_action">વધુ પસંદ કરો</string>
     <string name="ime_gallery_partial_body">તમે ફક્ત કેટલાક ફોટાઓને જ મંજૂરી આપી છે.</string>
@@ -1411,6 +1534,7 @@
     <string name="ime_gallery_tool_stickers">સ્ટીકરો</string>
     <string name="ime_gallery_tool_text">લખાણ</string>
     <string name="ime_gallery_tool_upscale">અપસ્કેલ</string>
+    <string name="ime_gallery_upload_immich">Immich પર અપલોડ કરો</string>
     <string name="ime_gallery_upscale_art">ડ્રોઇંગ અથવા લખાણ</string>
     <string name="ime_gallery_upscale_done">અપસ્કેલ કર્યું ×%1$d: %2$d × %3$d</string>
     <string name="ime_gallery_upscale_downloading">એપ અપસ્કેલર મેળવી રહી છે…</string>
@@ -1669,6 +1793,9 @@
     <string name="ime_handwriting_unsupported_info">એપનું આ સંસ્કરણ ફક્ત ચાઇનીઝ અને જાપાનીઝમાં હસ્તલેખન વાંચે છે. અહીં લખવા માટે ભાષાઓમાં તેમાંથી એક ઉમેરો.</string>
     <string name="ime_hardware_keys_hide_desc">કી છુપાવો</string>
     <string name="ime_hardware_keys_show_desc">કી બતાવો</string>
+    <string name="ime_homophones_finish">તમે ટાઈપ કરી રહ્યા છો તે શબ્દ પહેલા પૂરો કરો</string>
+    <string name="ime_homophones_none">આ ફોન પર કંઈપણ %1$s જેવું અવાજ કરતું નથી. ભાષા પેક અથવા RIME સ્કીમા રીડિંગ્સ ઉમેરે છે.</string>
+    <string name="ime_homophones_none_before">પહેલાં ચાઈનીઝ અથવા જાપાનીઝ અક્ષર ટાઈપ કરો</string>
     <string name="ime_hw_pick_mode_off_toast">પિક મોડ બંધ છે</string>
     <string name="ime_hw_pick_mode_on_toast">પિક મોડ ચાલુ: નંબર કી સૂચનો પસંદ કરે છે, શિફ્ટ નંબર ટાઈપ કરે છે</string>
     <string name="ime_icons_builtin_label">બિલ્ટ-ઇન</string>
@@ -1683,6 +1810,45 @@
     <string name="ime_image_search_need_key_body">ઇમેજ સર્ચ માટે બ્રેવ સર્ચ (Brave Search) તરફથી API કીની જરૂર છે. આ ટૂલ માટે સેટિંગ્સમાં કી ઉમેરો.</string>
     <string name="ime_incognito_on_desc">ઇન્કોગ્નિટો ચાલુ છે</string>
     <string name="ime_insert_action">દાખલ કરો</string>
+    <string name="ime_invite_about_hint">વર્ણન ઉમેરો</string>
+    <string name="ime_invite_action">ઓનલાઇન આમંત્રિત કરો</string>
+    <string name="ime_invite_add_title">શીર્ષક ઉમેરો</string>
+    <string name="ime_invite_error_address">સેટિંગ્સમાં %1$s સરનામું વેબ સરનામું નથી.</string>
+    <string name="ime_invite_error_bad_token">%1$s એ API ટૉકન સ્વીકાર્યું નથી.</string>
+    <string name="ime_invite_error_data_saver">ડેટા સેવર ચાલુ છે. પબ્લિશ કરવાથી થોડા કિલોબાઇટ્સ વપરાય છે.</string>
+    <string name="ime_invite_error_network">%1$s એ જવાબ આપ્યો નથી.</string>
+    <string name="ime_invite_error_no_title">આમંત્રણ માટે શીર્ષક આવશ્યક છે.</string>
+    <string name="ime_invite_error_offline">કોઈ જોડાણ નથી. કનેક્ટ કરો અને ફરી પ્રયાસ કરો.</string>
+    <string name="ime_invite_error_refused">%1$s કહે છે કે આ એકાઉન્ટ ત્યાં ઇવેન્ટ્સ બનાવી શકતું નથી.</string>
+    <string name="ime_invite_error_rejected">%1$s એ ઇવેન્ટ ફગાવી દીધી.</string>
+    <string name="ime_invite_error_signed_out">%1$s એ તમને સાઇન આઉટ કર્યા છે. સેટિંગ્સમાં ફરીથી સાઇન ઇન કરો.</string>
+    <string name="ime_invite_fix_in_pretix">Pretix ખોલો</string>
+    <string name="ime_invite_go_ahead">आगे वधॉ</string>
+    <string name="ime_invite_insert_link">લિંક દાખલ કરો</string>
+    <string name="ime_invite_insert_message">આમંત્રણ દાખલ કરો</string>
+    <string name="ime_invite_link_only">ફક્ત લિંક ધરાવતા લોકો</string>
+    <string name="ime_invite_listed">જાહેર રૂપે સૂચિબદ્ધ</string>
+    <string name="ime_invite_made">%1$s પર બનાવેલ, સાઇન-અપ હજુ ખુલ્લા નથી</string>
+    <string name="ime_invite_not_live">Pretix એ ઇવેન્ટ બનાવી પરંતુ સાઇન-અપ ખોલશે નહીં. %1$s</string>
+    <string name="ime_invite_not_set_up_body">મોબિલીઝોનમાં સાઇન ઇન કરો અથવા કેલેન્ડર ટૂલની સેટિંગ્સમાં પહેલા Pretix સર્વર ઉમેરો.</string>
+    <string name="ime_invite_not_set_up_title">હજી સુધી કોઈ ઇવેન્ટ સેવા નથી</string>
+    <string name="ime_invite_note_mobilizon">લોકો ઇવેન્ટના પૃષ્ઠ પર સાઇન અપ કરે છે. જ્યારે તેઓ કરે ત્યારે મોબિલીઝન તમને ઇમેઇલ કરે છે.</string>
+    <string name="ime_invite_note_pretix">ઇવેન્ટને એક મફત ટિકિટ મળે છે, જેથી લોકો તેના ઇમેઇલ સરનામાં સાથે તેના પૃષ્ઠ પર સાઇન અપ કરે છે.</string>
+    <string name="ime_invite_open_page">પૃષ્ઠ ખોલો</string>
+    <string name="ime_invite_open_settings">સેટિંગ્સ</string>
+    <string name="ime_invite_place_hint">સ્થળ અથવા લિંક ઉમેરો</string>
+    <string name="ime_invite_places_any">કોઈ મર્યાદા નથી</string>
+    <string name="ime_invite_places_label">સ્થળો</string>
+    <string name="ime_invite_post_as">%1$s તરીકે પૉસ્ટ કરો</string>
+    <string name="ime_invite_post_as_default">તમારી પ્રોફાઇલ તરીકે પોસ્ટ કરો</string>
+    <string name="ime_invite_post_as_loading">તમારી પ્રોફાઇલ્સ લોડ થઈ રહી છે…</string>
+    <string name="ime_invite_publish">પ્રકાશિત કરો</string>
+    <string name="ime_invite_published">%1$s પર પ્રકાશિત થયેલ</string>
+    <string name="ime_invite_publishing">પ્રકાશિત થઈ રહ્યું છે...</string>
+    <string name="ime_invite_publishing_to">%1$s પર પ્રકાશિત કરી રહ્યું છે</string>
+    <string name="ime_invite_ticket_name">સાઇન-અપ</string>
+    <string name="ime_invite_title">ઓનલાઈન આમંત્રિત કરો</string>
+    <string name="ime_invite_try_again">ફરી પ્રયાસ કરો</string>
     <string name="ime_kaomoji_add">કાઓમોજી ઉમેરો</string>
     <string name="ime_kaomoji_all">બધું</string>
     <string name="ime_kaomoji_cancel">રદ કરો</string>
@@ -1970,6 +2136,7 @@
     <string name="ime_learn_text_action">ટેક્સ્ટ શીખો</string>
     <string name="ime_learn_word_never_desc">%1$s ક્યારેય શીખશો નહીં</string>
     <string name="ime_learn_word_offer">\"%1$s\" ઉમેરવું છે?</string>
+    <string name="ime_legacy_font_output">લેગસી ફોન્ટ આઉટપુટ</string>
     <string name="ime_level_no_sensor_empty">તમારા ઉપકરણમાં એક્સિલરોમીટર નથી.</string>
     <string name="ime_location_address_failed">અહીં કોઈ સરનામું નથી. કોઓર્ડિનેટ્સ હજુ પણ કામ કરે છે.</string>
     <string name="ime_location_address_looking">સરનામું શોધી રહ્યા છીએ...</string>
@@ -2142,6 +2309,29 @@
         <item quantity="other">%d નોંધો આર્કાઇવ કરી</item>
     </plurals>
     <string name="ime_notes_archived_badge">આર્કાઇવ કરેલ</string>
+    <string name="ime_notes_assist_deck_action">અભ્યાસ ડેક બનાવો</string>
+    <plurals name="ime_notes_assist_deck_action_count">
+        <item quantity="one">અભ્યાસ ડેક બનાવો (%d કાર્ડ)</item>
+        <item quantity="other">અભ્યાસ ડેક બનાવો (%d કાર્ડ્સ)</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_empty_toast">કાર્ડ બનાવવા માટે અર્થ સાથેના કોઈ શબ્દો નથી</string>
+    <plurals name="ime_notes_assist_deck_made_toast">
+        <item quantity="one">%1$d કાર્ડ સાથે બનાવેલ અભ્યાસ ડેક \"%2$s\". તેને શબ્દભંડોળમાં શોધો.</item>
+        <item quantity="other">%1$d કાર્ડ્સ સાથે બનાવેલ અભ્યાસ ડેક \"%2$s\". તેને શબ્દભંડોળમાં શોધો.</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_working_toast">અભ્યાસ માટેનું ડેક બનાવી રહ્યા છીએ…</string>
+    <string name="ime_notes_assist_details_label">મુખ્ય વિગતો</string>
+    <string name="ime_notes_assist_heading_busy">હેડિંગ વિશે વિચારી રહ્યા છીએ...</string>
+    <string name="ime_notes_assist_heading_dismiss_desc">આ હેડિંગ નથી</string>
+    <string name="ime_notes_assist_heading_suggestion">શીર્ષક: %1$s</string>
+    <string name="ime_notes_assist_heading_use_action">વાપરો</string>
+    <string name="ime_notes_assist_related_label">સંબંધિત</string>
+    <string name="ime_notes_assist_remind_chip">મને યાદ અપાવો: %1$s · %2$s</string>
+    <string name="ime_notes_assist_reminders_label">આગામી</string>
+    <string name="ime_notes_assist_summarize_action">સારાંશ આપો</string>
+    <string name="ime_notes_assist_summarize_again_action">ફરીથી</string>
+    <string name="ime_notes_assist_summary_busy">તમારા ફોન પર સારાંશ આપી રહ્યા છીએ…</string>
+    <string name="ime_notes_assist_summary_label">સારાંશ</string>
     <string name="ime_notes_body_hint">નોંધ લખો... માર્કડાઉન કામ કરે છે: **ઘાટું**, - યાદીઓ, - [ ] કાર્યો</string>
     <string name="ime_notes_collapse_desc">કીબોર્ડની ઊંચાઈ પર પાછા ફરો</string>
     <string name="ime_notes_confirm_action">પુષ્ટિ કરવા માટે ફરીથી ટેપ કરો</string>
@@ -2190,6 +2380,7 @@
     <string name="ime_notes_no_match">કોઈ નોંધ “%1$s” સાથે મેળ ખાતી નથી.</string>
     <string name="ime_notes_passage_desc">%1$s થી. દાખલ કરવા માટે ટેપ કરો, નોંધ ખોલવા માટે પકડી રાખો.</string>
     <string name="ime_notes_passages_section">ફકરાઓ</string>
+    <string name="ime_notes_paste_desc">પેસ્ટ કરો</string>
     <string name="ime_notes_pin_action">પિન કરો</string>
     <string name="ime_notes_pinned_section">પિન કરેલ</string>
     <string name="ime_notes_restore_action">પુનઃસ્થાપિત કરો</string>
@@ -2223,6 +2414,29 @@
     <string name="ime_otp_chip_dismiss_desc">કોડ છુપાવો</string>
     <string name="ime_panel_back_desc">કીબોર્ડ પર પાછા જાઓ</string>
     <string name="ime_panel_over_keys_height_desc">કી ઉપર પેનલની ઊંચાઈ. ઉપર અથવા નીચે ડ્રેગ કરો</string>
+    <string name="ime_paperless_card_also_field">ટેક્સ્ટ બૉક્સમાં પૃષ્ઠો પણ મૂકો</string>
+    <string name="ime_paperless_card_correspondent">પત્રવ્યવહાર કરનાર</string>
+    <string name="ime_paperless_card_field_only">ફક્ત ટેક્સ્ટ બોક્સ</string>
+    <string name="ime_paperless_card_loading">સર્વર પરથી તમારા ટૅગ્સ મેળવી રહ્યા છીએ...</string>
+    <string name="ime_paperless_card_name">શીર્ષક</string>
+    <string name="ime_paperless_card_name_hint">વૈકલ્પિક. ખાલી રાખ્યું, પેપરલેસ તેનું નામ આપે છે.</string>
+    <string name="ime_paperless_card_none">કોઈ નહીં</string>
+    <string name="ime_paperless_card_offline">હમણાં સર્વર સુધી પહોંચી શકાતું નથી. સ્કેન તમારા ડિફોલ્ટ ટૅગ્સ સાથે ફોનમાં જ રહે છે અને જેવા પહોંચી શકાય કે તરત જ અપલોડ થઈ જાય છે.</string>
+    <string name="ime_paperless_card_offline_cached">હમણાં સર્વર સુધી પહોંચી શકાતું નથી; આ અગાઉની તેની યાદીઓ છે. એકવાર સ્કેન થઈ શકે એટલે તે અપલોડ થાય છે.</string>
+    <string name="ime_paperless_card_one_pdf">બધા પૃષ્ઠો એક જ PDF માં</string>
+    <plurals name="ime_paperless_card_pages">
+        <item quantity="one">%d પૃષ્ઠ</item>
+        <item quantity="other">%d પૃષ્ઠો</item>
+    </plurals>
+    <string name="ime_paperless_card_send">મોકલો</string>
+    <string name="ime_paperless_card_tags">ટૅગ્સ</string>
+    <string name="ime_paperless_card_title">પેપરલેસ પર મોકલો</string>
+    <string name="ime_paperless_card_type">દસ્તાવેજનો પ્રકાર</string>
+    <string name="ime_paperless_queue_failed">Paperless માટે સ્કેન સાચવી શકાયું નહીં</string>
+    <plurals name="ime_paperless_queued">
+        <item quantity="one">%d દસ્તાવેજ Paperless તરફ જઈ રહ્યો છે. કનેક્શન મળતા જ તે અપલોડ થઈ જાય છે.</item>
+        <item quantity="other">%d દસ્તાવેજો Paperless તરફ જઈ રહ્યા છે. કનેક્શન મળતા જ તે અપલોડ થઈ જાય છે.</item>
+    </plurals>
     <string name="ime_password_add_digit_label">અંક ઉમેરો</string>
     <string name="ime_password_capitalize_label">કેપિટલ અક્ષરો</string>
     <string name="ime_password_copied_toast">ક્લિપબોર્ડ પર કોપી કર્યું</string>
@@ -2241,11 +2455,27 @@
     <string name="ime_password_tab_pin">PIN</string>
     <string name="ime_password_words_label">શબ્દો</string>
     <string name="ime_phonetic_word_list_offer">વધુ સારા શબ્દો માટે %1$s શબ્દ સૂચિ મેળવો</string>
+    <string name="ime_plugin_access_mark">આ પ્લગઇન ઇન્ટરનેટનો ઉપયોગ કરી શકે છે અથવા તમે જે લખો છો તે વાંચી શકે છે</string>
+    <string name="ime_plugin_action_settings">સેટિંગ્સ અને પરવાનગીઓ</string>
+    <string name="ime_plugin_action_toolbar_add">ટૂલબારમાં ઉમેરો</string>
+    <string name="ime_plugin_action_toolbar_remove">ટૂલબારમાંથી દૂર કરો</string>
+    <string name="ime_plugin_action_toolbox_add">ટૂલબોક્સમાં ઉમેરો</string>
+    <string name="ime_plugin_action_toolbox_remove">ટૂલબોક્સમાંથી દૂર કરો</string>
+    <string name="ime_plugin_action_turn_off">બંધ કરો</string>
+    <string name="ime_plugin_action_turn_on">ચાલુ કરો</string>
+    <string name="ime_plugin_clock_alarm_set">%1$s એ ઘડિયાળમાં %2$s માટે અલાર્મ સેટ કર્યું</string>
+    <string name="ime_plugin_clock_timer_set">%1$s એ ક્લોકમાં %2$s નો ટાઈમર શરૂ કર્યો</string>
     <string name="ime_plugin_empty_body">પ્લગિન એ સેન્ડબોક્સમાં એક નાનું સાધન છે. તમે એડ-ઓન રિપોઝિટરીમાંથી અથવા .wmplugin ફાઇલમાંથી પ્લગિન ઉમેરી શકો છો. પ્લગિન તમે શું ટાઇપ કરો છો તે જોઈ શકતું નથી.</string>
     <string name="ime_plugin_empty_title">હજુ સુધી કોઈ પ્લગઈન નથી</string>
     <string name="ime_plugin_manage_action">પ્લગઈન્સ મેનેજ કરો</string>
+    <string name="ime_plugin_more">%1$s માટે વધુ વિકલ્પો</string>
+    <string name="ime_plugin_permission_allow">મંજૂરી આપો</string>
+    <string name="ime_plugin_permission_deny">મંજૂરી આપશો નહીં</string>
+    <string name="ime_plugin_permission_risky_note">આ પ્લગઇન્સ માટે જોખમી પરવાનગીઓ પણ ચાલુ કરે છે. તમે સેટિંગ્સમાં પ્લગઇનના પૃષ્ઠ પર કોઈપણ સમયે આ બંધ કરી શકો છો.</string>
+    <string name="ime_plugin_permission_title">%1$s ને આ કરવાની મંજૂરી આપો:</string>
     <string name="ime_plugin_version_label">આવૃત્તિ %1$s</string>
     <string name="ime_power_saving_on_desc">પાવર સેવિંગ ચાલુ છે</string>
+    <string name="ime_privacy_shade_hint">છેલ્લી લીટીઓ જોવા માટે હેન્ડલને ઉપર ખેંચો</string>
     <string name="ime_provider_choose_desc">પ્રોવાઇડર પસંદ કરો</string>
     <string name="ime_punct_ampersand">એમ્પરસેન્ડ</string>
     <string name="ime_punct_apostrophe">એપોસ્ટ્રોફી</string>
@@ -2379,6 +2609,8 @@
     <string name="ime_resize_move_desc">કીબોર્ડને ઉપર કે નીચે ખસેડવા માટે ખેંચો</string>
     <string name="ime_resize_reset">રીસેટ કરો</string>
     <string name="ime_resize_right_handle_desc">કીબોર્ડની જમણી બાજુની જગ્યા બદલવા માટે ખેંચો</string>
+    <string name="ime_resize_toolbar_handle">ટૂલબાર</string>
+    <string name="ime_resize_toolbar_handle_desc">ટૂલબારની ઊંચાઈ બદલવા માટે ઉપર અથવા નીચે ખેંચો</string>
     <string name="ime_retype_button">ફરીથી ટાઈપ કરો</string>
     <string name="ime_retype_button_desc">કર્સર પરના શબ્દને ફરીથી ટાઈપ કરો</string>
     <string name="ime_retype_button_nothing">ફરીથી લખવા માટે કોઈ શબ્દ નથી. કર્સરને કોઈ શબ્દની બરાબર પછી મૂકો.</string>
@@ -2433,8 +2665,10 @@
     <string name="ime_scanner_torch_desc">ટોર્ચ</string>
     <string name="ime_scanner_translate_action">અનુવાદ કરો</string>
     <string name="ime_screen_capture_desc">સ્ક્રીન કેપ્ચર કરો</string>
+    <string name="ime_screen_capture_progress">સ્ક્રીન કેપ્ચર કરી રહ્યાં છીએ…</string>
     <string name="ime_search_attribution_brave">Brave દ્વારા</string>
     <string name="ime_search_attribution_left">%1$s · %2$s બાકી</string>
+    <string name="ime_search_attribution_mwmbl">Mwmbl દ્વારા</string>
     <string name="ime_search_attribution_tavily">Tavily દ્વારા</string>
     <string name="ime_search_in_browser_desc">બ્રાઉઝરમાં શોધો</string>
     <string name="ime_search_menu_copy_link">લિંકની નકલ કરો</string>
@@ -2444,6 +2678,7 @@
     <string name="ime_search_no_more">વધુ પરિણામો નથી</string>
     <string name="ime_search_tab_all">બધું</string>
     <string name="ime_search_tab_images">છબીઓ</string>
+    <string name="ime_second_toolbar_empty">ટૂલબોક્સ અથવા ટૂલબારમાંથી અહીં એક ટૂલ ખેંચો</string>
     <string name="ime_selection_ask_ai">AI ને પૂછો</string>
     <string name="ime_selection_macro_ai_translate_label">AI અનુવાદ</string>
     <string name="ime_selection_macro_back_desc">પસંદગીની ક્રિયાઓ પર પાછા જાઓ</string>
@@ -2742,6 +2977,8 @@
     <string name="ime_service_incognito_off_toast">ઇન્કોગ્નિટો બંધ છે</string>
     <string name="ime_service_incognito_on_toast">ઇન્કોગ્નિટો મોડ ચાલુ છે. તમે શું ટાઈપ કરો છો તે કીબોર્ડ શીખતું નથી.</string>
     <string name="ime_service_incognito_switch_toast">ઇન્કોગ્નિટો ચાલુ છે. તેને બંધ કરવા માટે ઇન્કોગ્નિટો ટૂલ પર ટેપ કરો</string>
+    <string name="ime_service_legacy_font_off_toast">યુનિકોડ લખી રહ્યું છે</string>
+    <string name="ime_service_legacy_font_on_toast">%1$s ફૉન્ટ માટે લખી રહ્યા છીએ</string>
     <string name="ime_service_media_download_error_toast">ડાઉનલોડ કામ કરતું નથી. તમારું કનેક્શન તપાસો.</string>
     <string name="ime_service_media_fetch_error">કીબોર્ડ પરિણામો મેળવી શકતું નથી</string>
     <string name="ime_service_mode_tool_order_toast">કીબોર્ડે %1$s મોડ માટે ટૂલ ઓર્ડર સાચવ્યો છે. અન્ય એપ્સ તેમનો પોતાનો ઓર્ડર રાખે છે.</string>
@@ -2765,6 +3002,7 @@
     <string name="ime_service_power_saving_on_empty_toast">પાવર સેવિંગ ચાલુ છે. હજુ સુધી કોઈ ફીચર બંધ કરવા માટે સેટ નથી.</string>
     <string name="ime_service_power_saving_on_toast">પાવર સેવિંગ ચાલુ છે</string>
     <string name="ime_service_power_saving_still_on_toast">પાવર સેવિંગ ચાલુ રહે છે. બેટરી ટ્રિગર ચાલુ છે.</string>
+    <string name="ime_service_privacy_shade_floating_toast">ગોપનીયતા શેડ ડોક્ડ કીબોર્ડ સાથે કામ કરે છે. પહેલા કીબોર્ડ ડોક કરો.</string>
     <string name="ime_service_qr_error">કીબોર્ડ QR કોડ બનાવી શકતું નથી</string>
     <string name="ime_service_resize_floating_toast">કીબોર્ડનું કદ બદલવા માટે તેને ડોક કરો</string>
     <string name="ime_service_search_error">શોધ કામ કરી રહી નથી</string>
@@ -2825,6 +3063,7 @@
     <string name="ime_smart_repeat_count">×%1$s</string>
     <string name="ime_smart_repeat_offer">“%1$s” રિપીટ કરો</string>
     <string name="ime_smart_replies_dismiss_desc">સ્માર્ટ રિપ્લાય છુપાવો</string>
+    <string name="ime_smart_search_offer">%1$s: “%2$s”</string>
     <string name="ime_smart_send_link">ફાઈલ મેળવો</string>
     <string name="ime_smart_translate_offer">અનુવાદ કરો</string>
     <string name="ime_smart_vocab_daily">આજનો શબ્દ: %1$s ›</string>
@@ -2834,6 +3073,12 @@
     <string name="ime_smart_vocab_word">%1$s ›</string>
     <string name="ime_smart_weather_tap">આગાહી મેળવો</string>
     <string name="ime_smart_wiki_word">વિકિપીડિયા પર “%1$s”</string>
+    <string name="ime_snippet_ask_cancel_desc">સ્નિપેટ રદ કરો</string>
+    <string name="ime_snippet_ask_done_desc">સ્નિપેટ દાખલ કરો</string>
+    <string name="ime_snippet_ask_hint">%1$s લખો</string>
+    <string name="ime_snippet_ask_next_desc">આગળનું ક્ષેત્ર</string>
+    <string name="ime_snippet_ask_step_label">%1$s %2$d/%3$d</string>
+    <string name="ime_snippet_image_desc">ચિત્ર સ્નિપેટ %1$s</string>
     <string name="ime_snippet_offer_back_desc">%1$s પર પાછા જાઓ</string>
     <string name="ime_snippet_offer_desc">સ્નિપેટ %1$s દાખલ કરો</string>
     <string name="ime_snippet_offer_more_desc">%1$s તરફથી વધુ</string>
@@ -2944,6 +3189,7 @@
     <string name="ime_suggestion_hold_label">શબ્દ વિકલ્પો</string>
     <string name="ime_suggestion_never_suggest">\"%1$s\" ક્યારેય સૂચવશો નહીં</string>
     <string name="ime_suggestion_pages_close">કી પર પાછા જાઓ</string>
+    <string name="ime_suggestion_pattern_still_hides">બ્લેકલિસ્ટ પેટર્ન હજુ પણ \"%1$s\" છુપાવે છે. સૂચન બ્લેકલિસ્ટ હેઠળ તેને સંપાદિત કરો.</string>
     <string name="ime_suggestion_rank_badge">\"%1$s\" રેન્ક %2$s</string>
     <string name="ime_suggestion_rank_unchanged">\"%1$s\" બદલાયેલ નથી</string>
     <string name="ime_suggestions_show_desc">સૂચન પટ્ટી બતાવો</string>
@@ -2973,6 +3219,8 @@
     <string name="ime_synonyms_title">\"%1$s\" માટે સમાનાર્થી</string>
     <string name="ime_textedit_delete_line_desc">લીટી કાઢી નાખો</string>
     <string name="ime_textedit_delete_line_forward_desc">આગળની લાઇન ડિલીટ કરો</string>
+    <string name="ime_textedit_delete_to_end_desc">છેડા સુધી કાઢી નાખો</string>
+    <string name="ime_textedit_delete_to_start_desc">શરૂઆત સુધી કાઢી નાખો</string>
     <string name="ime_textedit_delete_word_desc">શબ્દ ડિલીટ કરો</string>
     <string name="ime_textedit_delete_word_forward_desc">આગળનો શબ્દ ડિલીટ કરો</string>
     <string name="ime_textedit_doc_end_desc">ટેક્સ્ટના અંતે જાઓ</string>
@@ -2991,6 +3239,7 @@
     <string name="ime_textedit_select_label">પસંદ કરો</string>
     <string name="ime_textedit_select_line_desc">લાઈન પસંદ કરો</string>
     <string name="ime_textedit_select_word_desc">શબ્દ પસંદ કરો</string>
+    <string name="ime_textedit_type_clipboard_desc">ક્લિપબોર્ડ લખો</string>
     <string name="ime_textedit_up_desc">ઉપર ખસેડો</string>
     <string name="ime_textedit_word_left_desc">એક શબ્દ ડાબે ખસેડો</string>
     <string name="ime_textedit_word_right_desc">એક શબ્દ જમણી તરફ ખસેડો</string>
@@ -3068,6 +3317,7 @@
     <string name="ime_tool_calculator">કેલ્ક્યુલેટર</string>
     <string name="ime_tool_calendar">કેલેન્ડર</string>
     <string name="ime_tool_camera">કેમેરા</string>
+    <string name="ime_tool_clear_field">બધું કાઢી નાખો</string>
     <string name="ime_tool_clipboard">ક્લિપબોર્ડ</string>
     <string name="ime_tool_clipboard_search">ક્લિપબોર્ડ શોધ</string>
     <string name="ime_tool_clock">ઘડિયાળ</string>
@@ -3084,11 +3334,13 @@
     <string name="ime_tool_cursor_word_right">શબ્દ જમણી તરફ</string>
     <string name="ime_tool_custom_layout">કસ્ટમ લેઆઉટ</string>
     <string name="ime_tool_cut">કાપો</string>
+    <string name="ime_tool_debug_info">ડિબગ માહિતી</string>
     <string name="ime_tool_dictionary">શબ્દકોશ</string>
     <string name="ime_tool_doc_scan">દસ્તાવેજ સ્કેન</string>
     <string name="ime_tool_emoji">ઇમોજી</string>
     <string name="ime_tool_emoji_mix">ઇમોજી મિક્સ</string>
     <string name="ime_tool_fancy">ફેન્સી ટેક્સ્ટ</string>
+    <string name="ime_tool_files">ફાઇલો</string>
     <string name="ime_tool_find_replace">શોધો અને બદલો</string>
     <string name="ime_tool_flashlight">ફ્લેશલાઇટ</string>
     <string name="ime_tool_floating">ફ્લોટિંગ</string>
@@ -3098,6 +3350,7 @@
     <string name="ime_tool_handwriting">હસ્તલેખન</string>
     <string name="ime_tool_hide_keyboard">છુપાવો</string>
     <string name="ime_tool_home_assistant">સ્માર્ટ હોમ</string>
+    <string name="ime_tool_homophones">સમાન અવાજ</string>
     <string name="ime_tool_image_search">છબીઓ</string>
     <string name="ime_tool_incognito">ઇન્કોગ્નિટો</string>
     <string name="ime_tool_language">ભાષા</string>
@@ -3124,6 +3377,7 @@
     <string name="ime_tool_picker_leader">%1$s, પછી:</string>
     <string name="ime_tool_plugins">પ્લગિન્સ</string>
     <string name="ime_tool_power_saving">પાવર સેવિંગ</string>
+    <string name="ime_tool_privacy_shade">ગોપનીયતા શેડ</string>
     <string name="ime_tool_qr_gen">QR કોડ</string>
     <string name="ime_tool_qr_scan">QR સ્કેન</string>
     <string name="ime_tool_quick_note">ઝડપી નોંધ</string>
@@ -3148,6 +3402,7 @@
     <string name="ime_tool_text_edit">ટેક્સ્ટ એડિટિંગ</string>
     <string name="ime_tool_text_repeat">પુનરાવર્તન કરો</string>
     <string name="ime_tool_themes">થીમ્સ</string>
+    <string name="ime_tool_timestamp">ટાઇમસ્ટેમ્પ</string>
     <string name="ime_tool_todo">ટુ-ડૂ લિસ્ટ</string>
     <string name="ime_tool_trackpad">ટ્રેકપેડ</string>
     <string name="ime_tool_translate">અનુવાદ કરો</string>
@@ -3205,12 +3460,14 @@
     <string name="ime_translate_engine_online_info">ઓનલાઇન સેવાનો ઉપયોગ કરે છે.</string>
     <string name="ime_translate_hint">અનુવાદ કરવા માટે ટેક્સ્ટ ટાઈપ કરો...</string>
     <string name="ime_translate_idle">તમે ટાઇપ કરો તેમ અનુવાદ અહીં દેખાય છે.</string>
+    <string name="ime_translate_idle_manual">આખું લખાણ ટાઈપ કરો, પછી અનુવાદ કરો પર ટેપ કરો. તે પહેલાં કંઈપણ મોકલવામાં આવતું નથી.</string>
     <string name="ime_translate_module_failed_error">Google Play એ ડાઉનલોડ પૂરું પાડ્યું નથી. કનેક્શન તપાસો, પછી ફરી પ્રયાસ કરો. જો તે ફરીથી નિષ્ફળ જાય, તો તેને સેટિંગ્સ, ટૂલ્સ, ટ્રાન્સલેટમાંથી ડાઉનલોડ કરો.</string>
     <string name="ime_translate_module_installing_action">ડાઉનલોડ થઈ રહ્યું છે...</string>
     <string name="ime_translate_module_missing_body">ઓન-ડિવાઇસ અનુવાદ એ કીબોર્ડનો એક વધારાનો ભાગ છે જે ગૂગલ પ્લે પરથી આવે છે. કનેક્શન વગર અનુવાદ કરવા માટે તેને ડાઉનલોડ કરો.</string>
     <string name="ime_translate_need_models_body">ઉપકરણ પર અનુવાદ કરવા માટે, ડાઉનલોડ કરો: %1$s. લગભગ %2$s.</string>
     <string name="ime_translate_nllb_licence_accept_action">સ્વીકારો અને ડાઉનલોડ કરો</string>
     <string name="ime_translate_nllb_licence_body">NLLB-200 એ Meta ના લાયસન્સ હેઠળ Hugging Face તરફથી આવે છે, Creative Commons Attribution-NonCommercial 4.0: ફક્ત બિન-વ્યાવસાયિક ઉપયોગ માટે, કોઈ વોરંટી વગર. સ્વીકારવા અને ડાઉનલોડ કરવા માટે ફરીથી દબાવો.</string>
+    <string name="ime_translate_now_action">ભાષાંતર કરો</string>
     <string name="ime_translate_offline_build_error">આ ઑફલાઇન બિલ્ડ આ ફોન પર અનુવાદ કરી શકતું નથી: તેનું એક એન્જિન, ફાયરફોક્સ ટ્રાન્સલેશન્સને Android 9 અથવા પછીના સંસ્કરણવાળા 64-બિટ ફોનની જરૂર છે. અનુવાદ કરવા માટે, પ્રમાણભૂત બિલ્ડ ઇન્સ્ટોલ કરો.</string>
     <string name="ime_translate_offline_failed_error">ઑન-ડિવાઇસ અનુવાદ શરૂ થયો નથી. ફરી પ્રયાસ કરો અથવા ઓનલાઇન એન્જિન પસંદ કરો.</string>
     <string name="ime_translate_offline_import_body">આ ઑફલાઇન બિલ્ડ ડાઉનલોડ કરી શકતું નથી. આનું ભાષાંતર કરવા માટે, બીજા ઉપકરણ પર આ મેળવો અને આયાત કરો: %1$s. સેટિંગ્સ › ટૂલ્સ › ભાષાંતર કરો › પ્રદાતાઓ › ઉપકરણ પર (ફાયરફોક્સ ભાષાંતરો) ખોલો.</string>
@@ -3226,6 +3483,7 @@
     <string name="ime_translate_select_source_desc">સ્ત્રોત ભાષા પસંદ કરો</string>
     <string name="ime_translate_server_label">તમારું સર્વર</string>
     <string name="ime_translate_source_guessed_label">%1$s?</string>
+    <string name="ime_translate_speak_desc">અનુવાદ મોટેથી વાંચો</string>
     <string name="ime_translate_swap_desc">ભાષાઓની અદલાબદલી કરો</string>
     <string name="ime_typing_accuracy_label">ચોકસાઈ</string>
     <string name="ime_typing_accuracy_short_label">ચોકસાઈ</string>
@@ -3346,6 +3604,10 @@
     <string name="ime_voice_model_get_language_action">ઓફલાઇન વૉઇસ ટાઇપિંગ માટે %1$s મેળવો</string>
     <string name="ime_voice_permission_action">માઇક્રોફોનને મંજૂરી આપો</string>
     <string name="ime_voice_permission_body">વોઇસ ટાઇપિંગ માટે માઇક્રોફોનનો ઉપયોગ કરવાની પરવાનગી જરૂરી છે. એપ તમે બોલો ત્યારે જ ઓડિયો રેકોર્ડ કરે છે.</string>
+    <string name="ime_voice_prompt_fix_custom">વૉઇસ ટાઇપિંગ સેટિંગ્સમાં સાંભળવા માટેના વધુ શબ્દોમાંથી કેટલાકને દૂર કરો, અથવા પ્રોમ્પ્ટ ટૂંકું કરો.</string>
+    <string name="ime_voice_prompt_fix_personal">વૉઇસ ટાઇપિંગ સેટિંગ્સમાં મારા શબ્દો માટે સાંભળો બંધ કરો, અથવા પ્રોમ્પ્ટ ટૂંકો કરો.</string>
+    <string name="ime_voice_prompt_fix_prompt">વૉઇસ ટાઇપિંગ સેટિંગ્સમાં સર્વરની સ્ક્રીન પર પ્રોમ્પ્ટને %1$d અક્ષરો કરતાં નાનો કરો.</string>
+    <string name="ime_voice_prompt_too_long">આ સર્વર મહત્તમ %2$d કેરેક્ટર સુધીનું પ્રોમ્પ્ટ લે છે, અને આ %1$d છે: પ્રોમ્પ્ટ %3$d, સાંભળવા માટે વધુ શબ્દો %4$d, મારા શબ્દો સાંભળો %5$d.</string>
     <string name="ime_voice_secure_field_notice">પાસવર્ડ ફીલ્ડમાં વૉઇસ ટાઇપિંગ કામ કરતું નથી.</string>
     <string name="ime_voice_server_metered_ask">ડેટા સેવર ચાલુ છે. મોબાઇલ ડેટા પર તમારો અવાજ મોકલવા માટે ફરીથી માઇક્રોફોન દબાવો.</string>
     <string name="ime_voice_server_metered_blocked">જ્યારે તમે મોબાઈલ ડેટા પર હોવ ત્યારે ટ્રાન્સક્રિપ્શન સર્વર બંધ હોય છે. તમે આને સેટિંગ્સમાં, ડેટા સેવર હેઠળ બદલી શકો છો.</string>
@@ -3385,6 +3647,12 @@
     <string name="ime_voice_use_system_action">સિસ્ટમ રેકગ્નાઇઝરનો ઉપયોગ કરો</string>
     <string name="ime_weather_clouds_label">વાદળો</string>
     <string name="ime_weather_error">એપ હવામાન ડાઉનલોડ કરી શકતી નથી. તમારું નેટવર્ક તપાસો.</string>
+    <string name="ime_weather_event_back_desc">કેલેન્ડર પર પાછા જાઓ</string>
+    <string name="ime_weather_event_home_place">%1$s (તમારું હવામાન સ્થાન)</string>
+    <string name="ime_weather_event_home_unnamed">તમારું હવામાન સ્થાન</string>
+    <string name="ime_weather_event_hour_desc">%1$s: %2$s, %3$s, वरसादनी शक्यता %4$s</string>
+    <string name="ime_weather_event_no_hours">આગાહી હજુ સુધી આ દિવસ સુધી પહોંચતી નથી.</string>
+    <string name="ime_weather_event_rain_info">વરસાદ પડવાની %1$d%% શક્યતા છે</string>
     <string name="ime_weather_feels_like_label">અનુભવાય છે</string>
     <string name="ime_weather_high_low_info">મહત્તમ %1$d° ન્યૂનતમ %2$d°</string>
     <string name="ime_weather_humidity_label">ભેજ</string>
@@ -3500,6 +3768,7 @@
     <string name="ime_wmpass_no_password">WM Pass એ પાસવર્ડ બનાવ્યો નથી. વૉલ્ટ લૉક થઈ ગઈ હશે.</string>
     <string name="ime_wmpass_no_username">આ લૉગિનમાં ભરવા માટે કોઈ યુઝરનેમ નથી.</string>
     <string name="ime_wmpass_no_vault">WM પાસ પાસે હજુ સુધી કોઈ વૉલ્ટ નથી. પહેલા ત્યાં એક બનાવો.</string>
+    <string name="ime_wmpass_not_released">WM Pass હજુ બહાર આવ્યો નથી. આ ટૂંક સમયમાં રિલીઝ થયા પછી અને ઇન્સ્ટોલ થયા પછી કામ કરવાનું શરૂ કરે છે.</string>
     <string name="ime_wmpass_not_set">સેટ નથી</string>
     <string name="ime_wmpass_off">આનો ઉપયોગ કરવા માટે, સેેટિંગ્સ, સુરક્ષા હેઠળ, Let WM Keyboard fill in WM Pass ચાલુ કરો.</string>
     <string name="ime_wmpass_open">WM Pass ખોલો</string>

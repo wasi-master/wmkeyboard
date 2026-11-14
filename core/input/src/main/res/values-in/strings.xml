@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">Pembacaan furigana</string>
     <string name="core_input_cjk_pack_hanja_subtitle">Kata-kata Hangul dan Hanja-nya, 300.000 entri. Keyboard memerlukan paket ini untuk menawarkan Hanja pada strip saran.</string>
     <string name="core_input_cjk_pack_hanja_title">Kamus Hanja (漢字)</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, sehingga kata dengan prefiks dan sufiksnya dikenal dan salah ketik di dalamnya diperbaiki.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">Kamus ejaan bahasa Arab</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, sehingga kata dengan akhiran apa pun dikenali dan salah ketik di dalamnya diperbaiki.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">Aturan ejaan bahasa Turki</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">Pembacaan Kana dari mozc, 1,08 juta entri, sekitar 42 MB. Papan ketik memerlukan paket ini untuk konversi bahasa Jepang.</string>

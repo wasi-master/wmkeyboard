@@ -23,6 +23,34 @@
         <item quantity="one">%1$d lliscament en una tecla no té lloc aquí, perquè aquest teclat utilitza aquest lliscament per a una altra tasca. L\'aplicació l\'ha eliminat.</item>
         <item quantity="other">%1$d lliscaments en tecles no tenen lloc aquí, perquè aquest teclat utilitza aquests lliscaments per a altres tasques. L\'aplicació els ha eliminat.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">L\'aplicació ha omès %1$d regla que canvia el que elimina la supressió. La supressió funciona tal com ho fa en tots els dissenys d\'aquí.</item>
+        <item quantity="other">L\'aplicació ha omès %1$d regles que canvien el que elimina la supressió. La supressió funciona tal com ho fa en tots els dissenys d\'aquí.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">L\'aplicació ha eliminat %1$d lliscament que canvia de direcció. Els lliscaments d\'aquest teclat van en una sola direcció.</item>
+        <item quantity="other">L\'aplicació ha eliminat %1$d lliscaments que canvien de direcció. Els lliscaments d\'aquest teclat van en una sola direcció.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">L\'aplicació ha omès %1$d pàgina per a una tecla com ara Bloq Maj o Ctrl. Aquest teclat no té cap pàgina per a aquesta tecla.</item>
+        <item quantity="other">L\'aplicació ha omès %1$d pàgines per a tecles com ara Bloq Maj o Ctrl. Aquest teclat no té cap pàgina per a aquestes tecles.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">L\'aplicació ha omès %1$d regla que col·loca les marques en el seu ordre escrit. Aquest teclat escriu les marques en l\'ordre en què les tapeu.</item>
+        <item quantity="other">L\'aplicació ha omès %1$d regles que col·loquen les marques en el seu ordre escrit. Aquest teclat escriu les marques en l\'ordre en què les tapeu.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d regla posa un accent a la lletra següent. Aquí, la tecla que la inicia és una tecla morta.</item>
+        <item quantity="other">%1$d regles posen un accent a la lletra següent. Aquí, les tecles que les inicien són tecles mortes.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">L\'aplicació ha omès %1$d regla que canvia el text a mesura que escriviu. Cap tecla d\'aquí la inicia, o coincideix amb més text del que pot escriure una tecla.</item>
+        <item quantity="other">L\'aplicació ha omès %1$d regles que canvien el text a mesura que escriviu. Cap tecla d\'aquí les inicia, o coincideixen amb més text del que pot escriure una tecla.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d regla transforma una tecla i la següent en un altre caràcter. Aquí, aquest caràcter s\'obté mantinguent premuda la primera tecla.</item>
+        <item quantity="other">%1$d regles transformen una tecla i la següent en un altre caràcter. Aquí, aquests caràcters s\'obtenen mantinguent premuda la primera tecla.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">L\'aplicació ha canviat %1$d tecla per la més propera que té.</item>
         <item quantity="other">L\'aplicació ha canviat %1$d tecles per les més properes que té.</item>

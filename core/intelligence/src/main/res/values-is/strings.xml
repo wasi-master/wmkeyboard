@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Nýlegt meðalstórt líkan sem hugsar áður en það svarar. Þarf meðal-öflugt tæki.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Lítið og hratt. Það er gott fyrir fljótlegar endurskrifanir á einföldum tækjum.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Mjög lítið líkan sem getur lesið myndir. Það lýsir mynd, en misskilur oft texta á skjámyndum.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">Endurþjálfun NVIDIA á Gemma 4 E4B til að fylgja fyrirmælum og nota verkfæri. Aðeins texti og krefst öflugs tækis.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Almennt líkan sem passar enn á einföld tæki.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Greinilega snjallari en gerðir undir 1B. Þarfnast tækis í milliflokki.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Nýleg lítið líkan. Gæðin eru mikil miðað við stærð.</string>

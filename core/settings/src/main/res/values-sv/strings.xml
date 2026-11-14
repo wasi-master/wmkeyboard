@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">List, pill och tangenter</string>
     <string name="core_settings_glide_commit_scope_pill_label">Remsa och piller</string>
     <string name="core_settings_glide_commit_scope_strip_label">Ta bort</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">Efter en ångra</string>
+    <string name="core_settings_glide_drawn_letters_off_label">Av</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">Vid osäkerhet</string>
     <string name="core_settings_glide_engine_built_in_label">Inbyggd</string>
     <string name="core_settings_glide_engine_futo_label">FUTO-svep (engelska, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Googles gestbibliotek (importerat)</string>

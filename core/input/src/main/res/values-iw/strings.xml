@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">קריאות פוריגאנה</string>
     <string name="core_input_cjk_pack_hanja_subtitle">מילות האנגול וסימניות ההנג\'ה שלהן, 300,000 רשומות. המקלדת זקוקה לחבילה זו כדי להציע הנג\'ה בסרגל ההצעות.</string>
     <string name="core_input_cjk_pack_hanja_title">מילון Hanja (漢字)</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, כך שמילה יחד עם קידומות וסיומות מוכרת ושגיאות כתיב בה מתוקנות.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">מילון איות ערבית</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, כך שמילים עם כל סיומת מוכרות ושגיאות כתיב בהן מתוקנות.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">כללי איות בטורקית</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">קריאות קאנה מ-mozc, 1.08 מיליון ערכים, כ-42 MB. המקלדת זקוקה לחבילה זו עבור המרה ליפנית.</string>

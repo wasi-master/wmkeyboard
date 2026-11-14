@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Nedávný středně velký model, který před odpovědí přemýšlí. Vyžaduje zařízení střední třídy.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Malý a rychlý. Je vhodný pro rychlé přepisy na základním zařízení.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Velmi malý model, který umí číst obrázky. Popisuje obrázek, ale často chybně čte text na snímku obrazovky.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">Přeučení modelu Gemma 4 E4B od NVIDIE pro dodržování pokynů a používání nástrojů. Pouze text a vyžaduje výkonné zařízení.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Univerzální model, který se stále vejde na základní zařízení.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Jasně chytřejší než modely pod 1B. Vyžaduje zařízení střední třídy.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Nedávný malý model. Kvalita je na svou velikost vysoká.</string>

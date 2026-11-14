@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">Anwani ya barua pepe</string>
+    <string name="core_content_clip_entity_email_tag">BARUA PEPE</string>
     <string name="core_content_clip_entity_otp_label">Msimbo wa mara moja</string>
     <string name="core_content_clip_entity_otp_tag">MSIMBO</string>
     <string name="core_content_clip_entity_phone_label">Nambari ya simu</string>
@@ -38,6 +40,10 @@
         <item quantity="one">Programu iliruka kijisehemu %1$d ambacho hakina cha kuingiza.</item>
         <item quantity="other">Programu iliruka vijisehemu %1$d ambavyo havina cha kuingiza.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">Uga wa fomu %1$d unatoa orodha ya kuchagua. Programu inaomba kama jibu lililoandikwa, huku chaguo la kwanza likiwa limejazwa.</item>
+        <item quantity="other">Nga za fomu %1$d zinatoa orodha ya kuchagua. Programu inaomba kila moja kama jibu lililoandikwa, huku chaguo la kwanza likiwa limejazwa.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Programu imeruka kijisehemu %1$d kinachoingiza picha.</item>
         <item quantity="other">Programu imeruka vijisehemu %1$d vinavyoingiza picha.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">Kipande %1$d kinatumia thamani ambayo Espanso haina sawa nayo. Imeandikwa kama ilivyo.</item>
         <item quantity="other">Vipande %1$d vinatumia thamani ambazo Espanso haina sawa nazo. Zimeandikwa kama zilivyo.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">Kipande %1$d kinaingiza picha. Faili ya maandishi haiwezi kushikilia picha hiyo, kwa hivyo maneno yake pekee ndiyo yaliyotoka.</item>
+        <item quantity="other">Vipande %1$d vinaingiza picha. Faili ya maandishi haiwezi kushikilia picha hizo, kwa hivyo maneno yake pekee ndiyo yaliyotoka.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">Programu imeondoa muundo kutoka kwa kijisehemu %1$d. Programu haiendeshi miundo ya aina hiyo. Kijisehemu kinabaki kwenye orodha.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">Programu imeondoa kichochezi %1$d ambacho kibodi haiwezi kukifuatilia. Snippet yake inabaki kwenye orodha.</item>
         <item quantity="other">Programu imeondoa vichochezi %1$d ambavyo kibodi haiwezi kuvifuatilia. Snippet zake zinabaki kwenye orodha.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">Inaanza na === lakini sio mstari kamili wa kianzishi ===. Ili kuanzisha mstari wa maandishi na ===, andika \=== badala yake</string>
+    <string name="core_content_snippet_text_bad_pattern">Muundo hauwezi kutumika: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s haiwezi kuwa %2$s</string>
+    <string name="core_content_snippet_text_before_header">Maandishi kabla ya mstari wa kwanza wa kichochezi cha ===. Anzisha kizuizi na moja, au anza mstari na #</string>
+    <string name="core_content_snippet_text_no_text">Kipande hiki hakina maandishi</string>
+    <string name="core_content_snippet_text_no_trigger">Kipande kisicho na chochote kati ya alama za === kinahitaji mstari wa @label au @pattern</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">Kipande 1 cha picha kimeingia kama maandishi yake: faili la maandishi halina picha</item>
+        <item quantity="other">Vipande %1$d vya picha vimeingia kama maandishi yao: faili la maandishi halina picha</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">Imeruka kijisehemu katika mstari %1$d, ambacho kina kosa ndani yake</string>
+    <string name="core_content_snippet_text_unknown_link">\@link inataja %1$s, na hakuna kijisehemu hapa kilicho na kichochezi hicho</string>
+    <string name="core_content_snippet_text_unknown_picture">Jina la @picture ni %1$s, ambalo hakuna kijisehemu kinachotumia. Ongeza picha katika kihariri cha kijisehemu chenyewe</string>
+    <string name="core_content_snippet_text_unknown_setting">Kibodi haijui mpangilio %1$s. Ili kuanzisha maandishi ya kipande kwa @, andika \@ badala yake</string>
     <string name="core_content_snippet_var_app_info">Jina la programu unayochapa ndani yake</string>
+    <string name="core_content_snippet_var_battery_info">Chaji ya betri, kwa mfano 85%</string>
     <string name="core_content_snippet_var_clip_info">Ingizo jipya zaidi la ubao wa kunakili</string>
     <string name="core_content_snippet_var_cursor_info">Mahali ambapo kishale kinatua</string>
     <string name="core_content_snippet_var_date_info">Tarehe ya leo</string>
     <string name="core_content_snippet_var_datetime_info">Tarehe na saa</string>
     <string name="core_content_snippet_var_day_info">Siku ya mwezi</string>
+    <string name="core_content_snippet_var_greeting_info">Habari za asubuhi, mchana au jioni kulingana na wakati na lugha ya kibodi</string>
     <string name="core_content_snippet_var_isodate_info">Tarehe katika umbo la ISO, kwa mfano 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">Tarehe na saa katika mfumo wa ISO</string>
+    <string name="core_content_snippet_var_language_info">Lugha ya kibodi unayoandikia</string>
     <string name="core_content_snippet_var_month_info">Jina la mwezi</string>
     <string name="core_content_snippet_var_package_info">Jina la kifurushi cha programu hiyo</string>
     <string name="core_content_snippet_var_selection_info">Maandishi uliyochagua kwenye sehemu hiyo</string>
+    <string name="core_content_snippet_var_tab_info">Herufi ya kichupo</string>
     <string name="core_content_snippet_var_time12_info">Wakati sasa katika mfumo wa saa 12</string>
     <string name="core_content_snippet_var_time_info">Wakati sasa katika mfumo wa saa 24</string>
     <string name="core_content_snippet_var_timestamp_info">Muda katika sekunde za Unix</string>

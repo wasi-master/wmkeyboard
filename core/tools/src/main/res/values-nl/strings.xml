@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">Hallo</string>
     <string name="core_tools_media_category_laugh">Lachen</string>
     <string name="core_tools_media_category_love">Liefde</string>
+    <string name="core_tools_media_category_memes">Memes</string>
     <string name="core_tools_media_category_no">Nee</string>
     <string name="core_tools_media_category_party">Feest</string>
     <string name="core_tools_media_category_reactions">Reacties</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">Een Mozhi-server: een gratis front-end voor Google, DeepL, DuckDuckGo, Yandex en Reverso. Kies de engine. DeepL en Reverso hebben een brontaal nodig.</string>
     <string name="core_tools_provider_music_server">Je eigen herkenningsserver</string>
     <string name="core_tools_provider_music_server_desc">Een server die je draait en die antwoordt zoals AudD: het fragment wordt als bestand gepost en het nummer komt terug als JSON. Plaats er een vingerprinter zoals Panako of Olaf achter.</string>
+    <string name="core_tools_provider_mwmbl_desc">Een gratis, non-profit zoekmachine met een eigen index. Geen sleutel. Alleen webresultaten, geen afbeeldingen.</string>
     <string name="core_tools_provider_nllb">Op apparaat (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">Vertaalt op de telefoon met Meta\'s NLLB-200-model op CTranslate2: 200 talen, tussen elke twee daarvan, voor de paren die de andere engines niet kunnen. Eén download van 630 MB, en een zin duurt een paar seconden. Uw tekst blijft op de telefoon. Het model is alleen gelicentieerd voor niet-commercieel gebruik (CC BY-NC 4.0). Vereist een 64-bits telefoon met 6 GB geheugen of meer.</string>
     <string name="core_tools_provider_none_on">Geen provider is ingeschakeld. Schakel er een in via de instellingen van deze tool.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">Deze lijst</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">Toetsen tonen of verbergen</string>
     <string name="core_tools_shortcut_leader_double_tap">Druk twee keer op %1$s</string>
+    <string name="core_tools_speak_no_voice">Deze telefoon heeft geen %1$s-stem om dit mee voor te lezen. Voeg er een toe in de tekst-naar-spraak-instellingen van Android, of download een offline stem via Gereedschap › Terlezen.</string>
     <string name="core_tools_symbol_category_arrows_label">Pijlen</string>
     <string name="core_tools_symbol_category_currency_label">Valuta</string>
     <string name="core_tools_symbol_category_fractions_label">Breuken</string>
     <string name="core_tools_symbol_category_greek_label">Grieks</string>
     <string name="core_tools_symbol_category_math_label">Wiskunde</string>
+    <string name="core_tools_symbol_category_music_label">Muziek</string>
     <string name="core_tools_symbol_category_other_label">Overig</string>
     <string name="core_tools_symbol_category_punctuation_label">Leestekens</string>
     <string name="core_tools_symbol_category_shapes_label">Vormen en sterren</string>
+    <string name="core_tools_symbol_category_stars_label">Sterren</string>
     <string name="core_tools_symbol_category_superscript_label">Superscript</string>
+    <string name="core_tools_symbol_category_technical_label">Technisch</string>
+    <string name="core_tools_symbol_category_weather_label">Weer</string>
     <string name="core_tools_symbol_set_coding_label">Coderen</string>
     <string name="core_tools_symbol_set_email_label">E-mail</string>
     <string name="core_tools_symbol_set_math_label">Wiskunde</string>

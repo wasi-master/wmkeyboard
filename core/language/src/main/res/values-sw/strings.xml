@@ -23,6 +23,34 @@
         <item quantity="one">kutelezesha kidole mara %1$d kwenye kitufe hakufai hapa, kwa sababu kibodi hii hutumia kutelezesha huko kwa kazi nyingine. Programu imeiondoa.</item>
         <item quantity="other">kutelezesha kidole mara %1$d kwenye vitufe hakufai hapa, kwa sababu kibodi hii hutumia kutelezesha huko kwa kazi nyingine. Programu imeiondoa.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">Programu iliacha sheria %1$d inayobadilisha kile ambacho kitufe cha kufuta huondoa. Kufuta kunafanya kazi jinsi ilivyo kwenye kila mpangilio hapa.</item>
+        <item quantity="other">Programu iliacha sheria %1$d zinazobadilisha kile ambacho kitufe cha kufuta huondoa. Kufuta kunafanya kazi jinsi ilivyo kwenye kila mpangilio hapa.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">Programu iliondoa swipe %1$d inayobadilisha mwelekeo. Swipe kwenye kibodi hii huenda upande mmoja tu.</item>
+        <item quantity="other">Programu iliondoa swipe %1$d zinazobadilisha mwelekeo. Swipe kwenye kibodi hii huenda upande mmoja tu.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">Programu imeacha ukurasa %1$d kwa ajili ya kitufe kama vile Caps Lock au Ctrl. Kibodi hii haina ukurasa wa kitufe hicho.</item>
+        <item quantity="other">Programu imeacha kurasa %1$d kwa ajili ya vifungo kama vile Caps Lock au Ctrl. Kibodi hii haina kurasa za vifungo hivyo.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">Programu iliacha sheria %1$d inayoweka alama katika mpangilio wake wa uandishi. Kibodi hii huandika alama kwa mpangilio unaozichapa.</item>
+        <item quantity="other">Programu iliacha sheria %1$d zinazoweka alama katika mpangilio wao wa uandishi. Kibodi hii huandika alama kwa mpangilio unaozichapa.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">Sheria %1$d inaweka mkazo kwenye herufi inayofuata. Hapa, kitufe kinachoianzisha ni kitufe kisichofanya kazi.</item>
+        <item quantity="other">Sheria %1$d zinaweka mkazo kwenye herufi inayofuata. Hapa, vitufe vinavyoanza ni vitufe visivyofanya kazi.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">Programu iliacha sheria %1$d inayobadilisha maandishi unapoandika. Hakuna ufunguo hapa unaoanzisha, au unalingana na maandishi zaidi kuliko ufunguo unavyoweza kuandika.</item>
+        <item quantity="other">Programu iliacha sheria %1$d zinazobadilisha maandishi unapoandika. Hakuna ufunguo hapa unaozianzisha, au zinalingana na maandishi zaidi kuliko ufunguo unavyoweza kuandika.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">Kanuni %1$d inageuza kitufe na kinachofuata kuwa herufi nyingine. Hapa, herufi hiyo iko kwenye kubonyeza na kushikilia kitufe cha kwanza.</item>
+        <item quantity="other">Kanuni %1$d zinageuza kitufe na kinachofuata kuwa herufi nyingine. Hapa, herufi hizo ziko kwenye kubonyeza na kushikilia kitufe cha kwanza.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Programu imebadilisha ufunguo %1$d kuwa ufunguo wa karibu zaidi ilionao.</item>
         <item quantity="other">Programu imebadilisha funguo %1$d kuwa funguo za karibu zaidi ilizonazo.</item>

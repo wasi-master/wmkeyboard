@@ -176,6 +176,7 @@
     <string name="ime_ai_error_no_text">Det finns inget att arbeta med. Skriv lite text först.</string>
     <string name="ime_ai_error_only_reasoning">Modellen använde hela svaret för att resonera. Försök igen eller aktivera \"Visa resonemang\" i inställningarna.</string>
     <string name="ime_ai_error_request_failed">Begäran fungerade inte</string>
+    <string name="ime_ai_error_stopped_hidden">Stoppades eftersom tangentbordet stängdes. Försök igen för att köra det igen.</string>
     <string name="ime_ai_idle_body">Åtgärderna körs på den markerade texten eller på hela fältet. De använder %1$s.</string>
     <string name="ime_ai_idle_empty_body">Skriv eller markera text för att använda dessa åtgärder. Tryck på %1$s för att skriva ny text.</string>
     <string name="ime_ai_idle_empty_no_writer_body">Skriv eller markera text för att använda dessa åtgärder.</string>
@@ -307,9 +308,11 @@
     <string name="ime_app_colors_none">Inga färger hittades i denna app</string>
     <string name="ime_app_colors_off_desc">Använd inte den här appens färger</string>
     <string name="ime_app_colors_pick_desc">Appfärg %1$d</string>
+    <string name="ime_applet_back">Tillbaka</string>
     <string name="ime_applet_close">Stäng rutan</string>
     <string name="ime_applet_copied">Kopierad</string>
     <string name="ime_applet_open_in_keyboard">Öppna i tangentbordet</string>
+    <string name="ime_applet_pop_out">Öppna i en flytande ruta</string>
     <string name="ime_applet_resize">Dra för att ändra storlek</string>
     <string name="ime_applet_tuck">Tryck in i kanten</string>
     <string name="ime_applet_untuck">Ta tillbaka %1$s</string>
@@ -319,6 +322,33 @@
     <string name="ime_ask_ai_label_vocab">Ordförråd: %1$s</string>
     <string name="ime_ask_ai_label_wiki">Wikipedia: %1$s</string>
     <string name="ime_autofill_dismiss_desc">Dölj förslag för autofyll</string>
+    <string name="ime_board_copy_desc">Kopiera till den här telefonen</string>
+    <string name="ime_board_delete_body">Den tas bort från alla enheter som använder urklippstavlan. Kopior som redan finns på en telefons egna urklippstavla behålls.</string>
+    <string name="ime_board_delete_desc">Ta bort anslagstavlan</string>
+    <string name="ime_board_delete_no">Avbryt</string>
+    <string name="ime_board_delete_title">Ta bort det här klippet från anslagstavlan?</string>
+    <string name="ime_board_delete_yes">Ta bort</string>
+    <string name="ime_board_edit_desc">Redigera</string>
+    <string name="ime_board_empty_body">Klipp som skickas hit visas på dina andra enheter som använder samma mapp, även de som är offline nu.</string>
+    <string name="ime_board_empty_title">Ingenting på tavlan</string>
+    <string name="ime_board_notice_copied">Kopierad</string>
+    <string name="ime_board_notice_deleted">Borttagen från tavlan</string>
+    <string name="ime_board_notice_refused">Endast textklipp som inte är dolda kan placeras på tavlan</string>
+    <string name="ime_board_notice_sent">Skickat till anslagstavlan</string>
+    <string name="ime_board_send_desc">Skicka ett urklipp</string>
+    <string name="ime_board_send_done">Klar</string>
+    <string name="ime_board_send_empty">Inga textklipp att skicka. Bilder, filer och dolda klipp finns kvar på den här telefonen.</string>
+    <string name="ime_board_send_one_desc">Skicka</string>
+    <string name="ime_board_send_title">Skicka till tavlan</string>
+    <string name="ime_board_sent_desc">Skickat</string>
+    <string name="ime_board_status_failed">Kan inte nå brädet</string>
+    <string name="ime_board_status_never">Inte kontrollerad ännu</string>
+    <string name="ime_board_status_synced">Kontrollerade %1$s</string>
+    <string name="ime_board_status_syncing">Kontrollerar brädan…</string>
+    <string name="ime_board_status_waiting">Väntar på att nå brädan</string>
+    <string name="ime_board_status_waiting_offline">Kan inte nå tavlan. Dina ändringar skickas iväg när det är möjligt</string>
+    <string name="ime_board_sync_desc">Kontrollera anslagstavlan nu</string>
+    <string name="ime_board_title">Delad tavla</string>
     <string name="ime_calc_degrees_label">grader</string>
     <string name="ime_calc_insert_action">Infoga</string>
     <string name="ime_calc_radians_label">rad</string>
@@ -471,7 +501,9 @@
     </plurals>
     <string name="ime_calendar_untitled">(Ingen titel)</string>
     <string name="ime_calendar_view_agenda">Agenda</string>
+    <string name="ime_calendar_view_day">Dag</string>
     <string name="ime_calendar_view_month">Månad</string>
+    <string name="ime_calendar_weather_desc">%1$s, %2$s i %3$s. Öppnar prognosen för varje timme</string>
     <string name="ime_calendar_yesterday_label">Igår</string>
     <string name="ime_calendar_zone_note">Tider i %1$s</string>
     <string name="ime_camera_captured_photo_desc">Fotot du tog</string>
@@ -543,6 +575,7 @@
         <item quantity="one">Kombinera %1$d klipp</item>
         <item quantity="other">Kombinera %1$d klipp</item>
     </plurals>
+    <string name="ime_clip_compose_email">Skriv e-post</string>
     <string name="ime_clip_delete_pinned_question">Radera detta fästa klipp?</string>
     <plurals name="ime_clip_deleted">
         <item quantity="one">Klipp borttaget</item>
@@ -563,6 +596,7 @@
         <item quantity="other">Visa %1$d delar hittade i dina klipp</item>
     </plurals>
     <string name="ime_clip_extract_codes">Engångskoder</string>
+    <string name="ime_clip_extract_emails">E-postadresser</string>
     <string name="ime_clip_extract_links">Länkar</string>
     <string name="ime_clip_extract_parts">Extrahera</string>
     <string name="ime_clip_extract_phones">Telefonnummer</string>
@@ -589,6 +623,7 @@
         <item quantity="one">Dold · %1$d tecken</item>
         <item quantity="other">Dold · %1$d tecken</item>
     </plurals>
+    <string name="ime_clip_image_pasted_toast">Klistrades in från urklipp. Om inget kom in tar den här appen inga bilder: håll kvar klippet för att dela det</string>
     <string name="ime_clip_info_copied">Kopierat</string>
     <string name="ime_clip_info_edited">Redigerad</string>
     <string name="ime_clip_info_from">Från</string>
@@ -642,7 +677,12 @@
         <item quantity="other">%1$d valda</item>
     </plurals>
     <string name="ime_clip_send_as_sticker">Skicka som klistermärke</string>
+    <string name="ime_clip_shape_code">Kod</string>
+    <string name="ime_clip_shape_markdown">Markdown</string>
+    <string name="ime_clip_share_image">Dela</string>
+    <string name="ime_clip_show_formatted">Visa formaterad</string>
     <string name="ime_clip_show_in_history">Visa i historik</string>
+    <string name="ime_clip_show_raw">Visa rådata</string>
     <string name="ime_clip_tags">Taggar</string>
     <string name="ime_clip_tags_placeholder">Taggar, med kommatecken mellan dem</string>
     <string name="ime_clip_tags_title">Taggar</string>
@@ -912,6 +952,7 @@
     <string name="ime_conversion_pack_offer">Ladda ner %1$s för att skriva tecken</string>
     <string name="ime_conversion_pack_offer_dismiss_desc">Avvisa</string>
     <string name="ime_converter_from_label">Från</string>
+    <string name="ime_converter_tab_units">Enheter</string>
     <string name="ime_converter_to_label">Till</string>
     <string name="ime_currency_insert_action">Infoga</string>
     <string name="ime_currency_progress">Laddar ner växelkurser…</string>
@@ -920,6 +961,32 @@
     <string name="ime_currency_section_crypto">Krypto</string>
     <string name="ime_currency_section_popular">Vanliga</string>
     <string name="ime_currency_swap_desc">Växla valutorna</string>
+    <string name="ime_custom_button_desc">Öppna %1$s</string>
+    <string name="ime_custom_button_label">Anpassad knapp</string>
+    <string name="ime_custom_button_shortcut_failed">Den genvägen kan inte öppnas. Appen kanske har tagits bort, eller tillåter endast startskärmen att öppna den.</string>
+    <string name="ime_custom_page_clipboard">Urklippsinställningar</string>
+    <string name="ime_custom_page_custom_buttons">Anpassade knappar</string>
+    <string name="ime_custom_page_dictionary">Ordbok</string>
+    <string name="ime_custom_page_favourites">Favoriter</string>
+    <string name="ime_custom_page_home">Inställningar</string>
+    <string name="ime_custom_page_keypress">Ljud och vibration</string>
+    <string name="ime_custom_page_languages">Språk</string>
+    <string name="ime_custom_page_search">Sökinställningar</string>
+    <string name="ime_custom_page_themes">Teman</string>
+    <string name="ime_custom_page_toolbar">Verktygsfältsinställningar</string>
+    <string name="ime_custom_page_tools">Verktyg</string>
+    <string name="ime_custom_page_typing">Skrivning</string>
+    <string name="ime_custom_toggle_auto_caps">Automatiska stora bokstäver</string>
+    <string name="ime_custom_toggle_glide">Glidskrivning</string>
+    <string name="ime_custom_toggle_key_hints">Tangettips</string>
+    <string name="ime_custom_toggle_key_popup">Tangentpopup</string>
+    <string name="ime_custom_toggle_number_row">Nummerrad</string>
+    <string name="ime_custom_toggle_reduce_motion">Minska rörelse</string>
+    <string name="ime_custom_toggle_sound">Tangentljud</string>
+    <string name="ime_custom_toggle_suggestions">Förslag</string>
+    <string name="ime_custom_toggle_symbol_row">Symbolrad</string>
+    <string name="ime_custom_toggle_toolbar_labels">Verktygsfältsnamn</string>
+    <string name="ime_custom_toggle_vibration">Vibration</string>
     <string name="ime_delete_redo_chip">Gör om \"%1$s\"</string>
     <string name="ime_delete_redo_plain">Radera igen</string>
     <string name="ime_delete_undo_chip">Ångra ”%1$s”</string>
@@ -957,6 +1024,7 @@
     <string name="ime_disabled_correction_invalid">Skriv ett annat ord att korrigera till. Ordet som korrigeras behöver minst 3 bokstäver, och rättelsen kan vara ett ord, eller två för ett missat mellanslag.</string>
     <string name="ime_disabled_media_app_blocks">Appen som spelas upp tillåter inte detta.</string>
     <string name="ime_disabled_spell_unchanged">Ändra stavningen först. En tom eller oförändrad stavning har inget att tillämpa.</string>
+    <string name="ime_disabled_translate_empty_box">Rutan är tom, eller så är dess översättning på väg.</string>
     <string name="ime_disabled_translate_nothing">Ingenting har översatts än. Skriv eller klistra in texten som ska översättas först.</string>
     <string name="ime_disabled_translate_same_language">Texten är redan på språket du översätter till.</string>
     <string name="ime_disabled_voice_undo">Ingenting att ångra än. Ångra tar tillbaka den senaste frasen du talade.</string>
@@ -986,6 +1054,10 @@
     <string name="ime_docscan_next">Beskär</string>
     <string name="ime_docscan_open_settings">Öppna inställningar</string>
     <string name="ime_docscan_page_number">Sida %1$d</string>
+    <plurals name="ime_docscan_pages_album">
+        <item quantity="one">Sidan öppnas i appens delningsskärm</item>
+        <item quantity="other">Denna app tar en bild i taget här, så de %d sidorna öppnas tillsammans i dess delningsskärm, för att skickas som ett album</item>
+    </plurals>
     <plurals name="ime_docscan_pages_shared">
         <item quantity="one">Appen tog inte den sista sidan här, så den öppnas i appens delningsskärm</item>
         <item quantity="other">Appen tog inte %d sidor här, så de öppnas tillsammans i appens delningsskärm</item>
@@ -1068,10 +1140,15 @@
     <string name="ime_files_access_pick">Androids väljare</string>
     <string name="ime_files_access_title">Välj filer utan att lämna tangentbordet</string>
     <string name="ime_files_add">Lägg till</string>
+    <string name="ime_files_add_tree">Lägg till en mapp</string>
+    <string name="ime_files_add_tree_detail">En USB-enhet, ett SD-kort eller en mapp som en annan app delar, till exempel en nätverksenhet</string>
+    <string name="ime_files_allow_all">Allt utrymme på telefonen</string>
+    <string name="ime_files_allow_all_detail">Kräver behörighet till alla filer i Android</string>
     <string name="ime_files_camera">Kamera</string>
     <string name="ime_files_clear_desc">Rensa markeringen</string>
     <string name="ime_files_collapse_desc">Gör kortare</string>
     <string name="ime_files_copy_desc">Kopiera</string>
+    <string name="ime_files_copy_to">Kopiera till %1$s</string>
     <string name="ime_files_delete_body">Mappar försvinner med allt innehåll. Detta är permanent: Android saknar papperskorg för filer.</string>
     <string name="ime_files_delete_desc">Radera</string>
     <string name="ime_files_delete_no">Avbryt</string>
@@ -1088,8 +1165,11 @@
     <string name="ime_files_expand_desc">Gör högre</string>
     <string name="ime_files_hide_hidden">Dölj dolda filer</string>
     <string name="ime_files_kde_unreadable">Kunde inte läsa filen för att skicka den</string>
+    <string name="ime_files_locked_body">Filhanteraren öppnas inte över låsskärmen.</string>
+    <string name="ime_files_locked_title">Lås upp för att se dina filer</string>
     <string name="ime_files_more_desc">Mer</string>
     <string name="ime_files_move_desc">Flytta</string>
+    <string name="ime_files_move_to">Flytta till %1$s</string>
     <string name="ime_files_movies">Filmer</string>
     <string name="ime_files_music">Musik</string>
     <string name="ime_files_new_folder">Ny mapp</string>
@@ -1115,6 +1195,8 @@
         <item quantity="one">Flyttade %d objekt</item>
         <item quantity="other">Flyttade %d objekt</item>
     </plurals>
+    <string name="ime_files_notice_tree_removed">Mapp borttagen från listan</string>
+    <string name="ime_files_one_pane_desc">En lista</string>
     <string name="ime_files_op_cancel">Stoppa</string>
     <string name="ime_files_op_copy">Kopierar %1$d av %2$d</string>
     <string name="ime_files_op_delete">Tar bort %1$d av %2$d</string>
@@ -1131,6 +1213,9 @@
     <string name="ime_files_pictures">Bilder</string>
     <string name="ime_files_places">Platser</string>
     <string name="ime_files_recent">Senaste</string>
+    <string name="ime_files_remove_tree_body">Mappen och dess filer ligger kvar där de är. Du kan lägga till den igen när som helst.</string>
+    <string name="ime_files_remove_tree_title">Ta bort \"%1$s\" från listan?</string>
+    <string name="ime_files_remove_tree_yes">Ta bort</string>
     <string name="ime_files_rename_desc">Byt namn</string>
     <string name="ime_files_rename_hint">Nytt namn</string>
     <string name="ime_files_search_clear_desc">Avsluta sökningen</string>
@@ -1149,6 +1234,7 @@
     <string name="ime_files_title_many">V&amp;auml;lj filer</string>
     <string name="ime_files_title_one">V&amp;auml;lj en fil</string>
     <string name="ime_files_title_picture">Välj en bild</string>
+    <string name="ime_files_two_panes_desc">Två listor sida vid sida</string>
     <string name="ime_files_unreadable">Android tillåter inte att tangentbordet öppnar den här mappen</string>
     <string name="ime_find_case_desc">Matcha skiftläge</string>
     <string name="ime_find_clear_desc">Rensa %1$s</string>
@@ -1180,6 +1266,24 @@
     <string name="ime_floating_category_empty">Den här kategorin är tom. Lägg till åtgärder i den via inställningarna för den flytande knappen.</string>
     <string name="ime_floating_category_label">Kategori</string>
     <string name="ime_floating_close_menu">Stäng meny</string>
+    <string name="ime_floating_device_bluetooth">Bluetooth</string>
+    <string name="ime_floating_device_bluetooth_desc">Slår på eller av Bluetooth</string>
+    <string name="ime_floating_device_bluetooth_page_desc">Öppnar Androids Bluetooth-sida</string>
+    <string name="ime_floating_device_data">Mobildata</string>
+    <string name="ime_floating_device_data_desc">Slår på eller av mobildata</string>
+    <string name="ime_floating_device_data_panel_desc">Öppnar Androids internetpanel</string>
+    <string name="ime_floating_device_failed">Android tillät inte det</string>
+    <string name="ime_floating_device_hotspot">Hotspot</string>
+    <string name="ime_floating_device_hotspot_desc">Öppnar Androids hotspot-sida</string>
+    <string name="ime_floating_device_off">%1$s av</string>
+    <string name="ime_floating_device_on">%1$s på</string>
+    <string name="ime_floating_device_ringer">Ringsignalläge</string>
+    <string name="ime_floating_device_ringer_desc">Ringsignal, vibration och tyst läge i tur och ordning</string>
+    <string name="ime_floating_device_volume">Volympanel</string>
+    <string name="ime_floating_device_volume_desc">Öppnar Androids volympanel med alla volymreglage</string>
+    <string name="ime_floating_device_wifi">Wi-Fi</string>
+    <string name="ime_floating_device_wifi_desc">Slår på eller av Wi-Fi</string>
+    <string name="ime_floating_device_wifi_panel_desc">Öppnar Androids Wi-Fi-panel</string>
     <string name="ime_floating_dismiss_target">Släpp här för att dölja knappen</string>
     <string name="ime_floating_dock_desc">Docka tangentbordet</string>
     <string name="ime_floating_hide_label">Dölj knappen</string>
@@ -1190,7 +1294,11 @@
     <string name="ime_floating_pair_label">Öppna ett app-par</string>
     <string name="ime_floating_pair_missing">En av de två apparna är inte längre installerad</string>
     <string name="ime_floating_pair_name">%1$s + %2$s</string>
+    <string name="ime_floating_plugin_label">Tillägg</string>
     <string name="ime_floating_resize_desc">Ändra storlek på tangentbordet</string>
+    <string name="ime_floating_ringer_ring">Ring</string>
+    <string name="ime_floating_ringer_silent">Tyst</string>
+    <string name="ime_floating_ringer_vibrate">Vibrera</string>
     <string name="ime_floating_system_app_drawer">App-låda</string>
     <string name="ime_floating_system_back">Tillbaka</string>
     <string name="ime_floating_system_notifications">Aviseringar</string>
@@ -1248,6 +1356,7 @@
     <string name="ime_gallery_album_camera">Kamera</string>
     <string name="ime_gallery_album_favorites">Favoriter</string>
     <string name="ime_gallery_album_gifs">GIF-filer</string>
+    <string name="ime_gallery_album_immich">Immich</string>
     <string name="ime_gallery_album_recents">Senaste</string>
     <string name="ime_gallery_album_screenshots">Skärmbilder</string>
     <string name="ime_gallery_album_sent">Skickat från tangentbordet</string>
@@ -1339,6 +1448,10 @@
     <string name="ime_gallery_info_taken">Tagen</string>
     <string name="ime_gallery_layer_delete">Ta bort</string>
     <string name="ime_gallery_more_desc">Fler gallerialternativ</string>
+    <plurals name="ime_gallery_notice_already_uploaded">
+        <item quantity="one">Immich hade redan %d bild</item>
+        <item quantity="other">Immich hade redan alla %d bilder</item>
+    </plurals>
     <plurals name="ime_gallery_notice_copied">
         <item quantity="one">Kopierade %d objekt</item>
         <item quantity="other">Kopierade %d objekt</item>
@@ -1347,6 +1460,8 @@
         <item quantity="one">Kunde inte läsa %d objekt</item>
         <item quantity="other">Kunde inte läsa %d objekt</item>
     </plurals>
+    <string name="ime_gallery_notice_immich_failed">Kunde inte nå din Immich-server</string>
+    <string name="ime_gallery_notice_immich_refused">Immich avvisade API-nyckeln; kontrollera dess behörigheter</string>
     <plurals name="ime_gallery_notice_limit">
         <item quantity="one">Du kan välja %d objekt åt gången</item>
         <item quantity="other">Du kan välja upp till %d objekt åt gången</item>
@@ -1367,6 +1482,14 @@
     <plurals name="ime_gallery_notice_shared">
         <item quantity="one">Öppnade delningsskärmen för %d objekt</item>
         <item quantity="other">Öppnade delningsskärmen för %d objekt</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_upload_failed">
+        <item quantity="one">%d bild kunde inte laddas upp</item>
+        <item quantity="other">%d bilder kunde inte laddas upp</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_uploaded">
+        <item quantity="one">Laddade upp %d bild till Immich</item>
+        <item quantity="other">Laddade upp %d bilder till Immich</item>
     </plurals>
     <string name="ime_gallery_partial_action">Välj fler</string>
     <string name="ime_gallery_partial_body">Du tillät endast vissa foton.</string>
@@ -1410,6 +1533,7 @@
     <string name="ime_gallery_tool_stickers">Dekaler</string>
     <string name="ime_gallery_tool_text">Text</string>
     <string name="ime_gallery_tool_upscale">Uppskala</string>
+    <string name="ime_gallery_upload_immich">Ladda upp till Immich</string>
     <string name="ime_gallery_upscale_art">Teckning eller text</string>
     <string name="ime_gallery_upscale_done">Uppskalad ×%1$d: %2$d × %3$d</string>
     <string name="ime_gallery_upscale_downloading">Appen hämtar uppskalaren…</string>
@@ -1668,6 +1792,9 @@
     <string name="ime_handwriting_unsupported_info">Denna version av appen läser endast handstil på kinesiska och japanska. Lägg till en av dem under Språk för att skriva här.</string>
     <string name="ime_hardware_keys_hide_desc">Dölj tangenter</string>
     <string name="ime_hardware_keys_show_desc">Visa tangenter</string>
+    <string name="ime_homophones_finish">Skriv klart ordet du håller på med först</string>
+    <string name="ime_homophones_none">Inget på den här telefonen låter som %1$s. Ett språkpaket eller ett RIME-schema lägger till läsningarna.</string>
+    <string name="ime_homophones_none_before">Skriv ett kinesiskt eller japanskt tecken först</string>
     <string name="ime_hw_pick_mode_off_toast">Valläge avstängt</string>
     <string name="ime_hw_pick_mode_on_toast">Valläge på: siffertangenter väljer förslag, Shift skriver siffran</string>
     <string name="ime_icons_builtin_label">Inbyggd</string>
@@ -1682,6 +1809,45 @@
     <string name="ime_image_search_need_key_body">Bildsökning kräver en API-nyckel från Brave Search. Lägg till en nyckel i inställningarna för detta verktyg.</string>
     <string name="ime_incognito_on_desc">Inkognitoläge är på</string>
     <string name="ime_insert_action">Infoga</string>
+    <string name="ime_invite_about_hint">Lägg till en beskrivning</string>
+    <string name="ime_invite_action">Bjud in online</string>
+    <string name="ime_invite_add_title">Lägg till titel</string>
+    <string name="ime_invite_error_address">%1$s-adressen i inställningarna är inte en webbadress.</string>
+    <string name="ime_invite_error_bad_token">%1$s accepterade inte API-tokenen.</string>
+    <string name="ime_invite_error_data_saver">Datsnåla är på. Publicering skickar några kilobyte.</string>
+    <string name="ime_invite_error_network">%1$s svarade inte.</string>
+    <string name="ime_invite_error_no_title">Inbjudan behöver en titel.</string>
+    <string name="ime_invite_error_offline">Ingen anslutning. Anslut och försök igen.</string>
+    <string name="ime_invite_error_refused">%1$s säger att det här kontot inte kan skapa händelser där.</string>
+    <string name="ime_invite_error_rejected">%1$s tackade nej till händelsen.</string>
+    <string name="ime_invite_error_signed_out">%1$s loggade ut dig. Logga in igen i inställningarna.</string>
+    <string name="ime_invite_fix_in_pretix">Öppna Pretix</string>
+    <string name="ime_invite_go_ahead">Sätt igång</string>
+    <string name="ime_invite_insert_link">Infoga länk</string>
+    <string name="ime_invite_insert_message">Infoga inbjudan</string>
+    <string name="ime_invite_link_only">Endast personer med länken</string>
+    <string name="ime_invite_listed">Listad offentligt</string>
+    <string name="ime_invite_made">Skapad på %1$s, registrering har inte öppnat än</string>
+    <string name="ime_invite_not_live">Pretix skapade evenemanget men öppnade inte anmälningarna. %1$s</string>
+    <string name="ime_invite_not_set_up_body">Logga in på Mobilizon eller lägg till en Pretix-server i kalenderverktygets inställningar först.</string>
+    <string name="ime_invite_not_set_up_title">Ingen händelsetjänst än</string>
+    <string name="ime_invite_note_mobilizon">Folk anmäler sig på händelsens sida. Mobilizon skickar e-post till dig när de gör det.</string>
+    <string name="ime_invite_note_pretix">Evenemanget får en gratis biljett, så att folk registrerar sig på dess sida med sin e-postadress.</string>
+    <string name="ime_invite_open_page">Öppna sida</string>
+    <string name="ime_invite_open_settings">Inställningar</string>
+    <string name="ime_invite_place_hint">Lägg till en plats eller länk</string>
+    <string name="ime_invite_places_any">Ingen begränsning</string>
+    <string name="ime_invite_places_label">Platser</string>
+    <string name="ime_invite_post_as">Publicera som %1$s</string>
+    <string name="ime_invite_post_as_default">Publicera som din profil</string>
+    <string name="ime_invite_post_as_loading">Laddar dina profiler…</string>
+    <string name="ime_invite_publish">Publicera</string>
+    <string name="ime_invite_published">Publicerad den %1$s</string>
+    <string name="ime_invite_publishing">Publicerar…</string>
+    <string name="ime_invite_publishing_to">Publicerar till %1$s</string>
+    <string name="ime_invite_ticket_name">Registrera dig</string>
+    <string name="ime_invite_title">Bjud in online</string>
+    <string name="ime_invite_try_again">Försök igen</string>
     <string name="ime_kaomoji_add">Lägg till en kaomoji</string>
     <string name="ime_kaomoji_all">Alla</string>
     <string name="ime_kaomoji_cancel">Avbryt</string>
@@ -1969,6 +2135,7 @@
     <string name="ime_learn_text_action">Lär dig text</string>
     <string name="ime_learn_word_never_desc">Lär dig aldrig %1$s</string>
     <string name="ime_learn_word_offer">Lägg till \"%1$s\"?</string>
+    <string name="ime_legacy_font_output">Äldre teckensnittsutmatning</string>
     <string name="ime_level_no_sensor_empty">Din enhet har ingen accelerometer.</string>
     <string name="ime_location_address_failed">Ingen adress här. Koordinaterna fungerar fortfarande.</string>
     <string name="ime_location_address_looking">Söker efter adressen…</string>
@@ -2141,6 +2308,29 @@
         <item quantity="other">%d anteckningar arkiverade</item>
     </plurals>
     <string name="ime_notes_archived_badge">Arkiverad</string>
+    <string name="ime_notes_assist_deck_action">Skapa en studielek</string>
+    <plurals name="ime_notes_assist_deck_action_count">
+        <item quantity="one">Skapa en studiekortlek (%d kort)</item>
+        <item quantity="other">Skapa en studiekortlek (%d kort)</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_empty_toast">Inga termer med betydelser att göra kort av</string>
+    <plurals name="ime_notes_assist_deck_made_toast">
+        <item quantity="one">Studiekortlek \"%2$s\" skapad med %1$d kort. Hitta den i Ordförråd.</item>
+        <item quantity="other">Studiekortlek \"%2$s\" skapad med %1$d kort. Hitta den i Ordförråd.</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_working_toast">Skapar en studielek…</string>
+    <string name="ime_notes_assist_details_label">Viktiga detaljer</string>
+    <string name="ime_notes_assist_heading_busy">Funderar ut en rubrik…</string>
+    <string name="ime_notes_assist_heading_dismiss_desc">Inte den här rubriken</string>
+    <string name="ime_notes_assist_heading_suggestion">Rubrik: %1$s</string>
+    <string name="ime_notes_assist_heading_use_action">Använd</string>
+    <string name="ime_notes_assist_related_label">Relaterat</string>
+    <string name="ime_notes_assist_remind_chip">Påminn mig: %1$s · %2$s</string>
+    <string name="ime_notes_assist_reminders_label">Kommer snart</string>
+    <string name="ime_notes_assist_summarize_action">Sammanfatta</string>
+    <string name="ime_notes_assist_summarize_again_action">Igen</string>
+    <string name="ime_notes_assist_summary_busy">Sammanfattar på din telefon…</string>
+    <string name="ime_notes_assist_summary_label">Sammanfattning</string>
     <string name="ime_notes_body_hint">Skriv en anteckning… Markdown fungerar: **fetstil**, - listor, - [ ] uppgifter</string>
     <string name="ime_notes_collapse_desc">Tillbaka till tangentbordshöjd</string>
     <string name="ime_notes_confirm_action">Tryck igen för att bekräfta</string>
@@ -2189,6 +2379,7 @@
     <string name="ime_notes_no_match">Inga anteckningar matchar ”%1$s”.</string>
     <string name="ime_notes_passage_desc">Från %1$s. Tryck för att infoga, håll kvar för att öppna anteckningen.</string>
     <string name="ime_notes_passages_section">Stycken</string>
+    <string name="ime_notes_paste_desc">Klistra in</string>
     <string name="ime_notes_pin_action">Fäst</string>
     <string name="ime_notes_pinned_section">Fästade</string>
     <string name="ime_notes_restore_action">Återställ</string>
@@ -2222,6 +2413,29 @@
     <string name="ime_otp_chip_dismiss_desc">Dölj koden</string>
     <string name="ime_panel_back_desc">Tillbaka till tangentbordet</string>
     <string name="ime_panel_over_keys_height_desc">Panelhöjd över tangenterna. Dra uppåt eller nedåt</string>
+    <string name="ime_paperless_card_also_field">Lägg även sidorna i textrutan</string>
+    <string name="ime_paperless_card_correspondent">Korrespondent</string>
+    <string name="ime_paperless_card_field_only">Endast textruta</string>
+    <string name="ime_paperless_card_loading">Hämtar dina taggar från servern…</string>
+    <string name="ime_paperless_card_name">Titel</string>
+    <string name="ime_paperless_card_name_hint">Valfritt. Om den lämnas tom namnger Paperless den.</string>
+    <string name="ime_paperless_card_none">Ingen</string>
+    <string name="ime_paperless_card_offline">Det går inte att nå servern just nu. Skanningen väntar på telefonen med dina standardtaggar och laddas upp så snart det går.</string>
+    <string name="ime_paperless_card_offline_cached">Det går inte att nå servern just nu; detta är dess listor från tidigare. Skanningen laddas upp när den kan.</string>
+    <string name="ime_paperless_card_one_pdf">Alla sidor i en PDF</string>
+    <plurals name="ime_paperless_card_pages">
+        <item quantity="one">%d sida</item>
+        <item quantity="other">%d sidor</item>
+    </plurals>
+    <string name="ime_paperless_card_send">Skicka</string>
+    <string name="ime_paperless_card_tags">Taggar</string>
+    <string name="ime_paperless_card_title">Skicka till Paperless</string>
+    <string name="ime_paperless_card_type">Dokumenttyp</string>
+    <string name="ime_paperless_queue_failed">Kunde inte spara skanningen för Paperless</string>
+    <plurals name="ime_paperless_queued">
+        <item quantity="one">%d dokument är på väg till Paperless. Det laddas upp så snart det finns en anslutning.</item>
+        <item quantity="other">%d dokument är på väg till Paperless. De laddas upp så snart det finns en anslutning.</item>
+    </plurals>
     <string name="ime_password_add_digit_label">Lägg till en siffra</string>
     <string name="ime_password_capitalize_label">Stora bokstäver</string>
     <string name="ime_password_copied_toast">Kopierat till urklipp</string>
@@ -2240,11 +2454,27 @@
     <string name="ime_password_tab_pin">PIN-kod</string>
     <string name="ime_password_words_label">Ord</string>
     <string name="ime_phonetic_word_list_offer">Hämta ordlistan %1$s för bättre ord</string>
+    <string name="ime_plugin_access_mark">Detta tillägg kan använda internet eller läsa det du skriver</string>
+    <string name="ime_plugin_action_settings">Inst&amp;auml;llningar och beh&amp;ouml;righeter</string>
+    <string name="ime_plugin_action_toolbar_add">Lägg till i verktygsfältet</string>
+    <string name="ime_plugin_action_toolbar_remove">Ta bort från verktygsfältet</string>
+    <string name="ime_plugin_action_toolbox_add">Lägg till i verktygslådan</string>
+    <string name="ime_plugin_action_toolbox_remove">Ta bort från verktygslådan</string>
+    <string name="ime_plugin_action_turn_off">Stäng av</string>
+    <string name="ime_plugin_action_turn_on">Slå på</string>
+    <string name="ime_plugin_clock_alarm_set">%1$s ställde in ett larm på %2$s i Klocka</string>
+    <string name="ime_plugin_clock_timer_set">%1$s startade en %2$s-timer i Klocka</string>
     <string name="ime_plugin_empty_body">Ett plugin är ett litet verktyg i en sandlåda. Du kan lägga till plugins från ett tilläggsarkiv eller från en .wmplugin-fil. Ett plugin kan inte se vad du skriver.</string>
     <string name="ime_plugin_empty_title">Inga insticksprogram ännu</string>
     <string name="ime_plugin_manage_action">Hantera insticksprogram</string>
+    <string name="ime_plugin_more">Fler alternativ för %1$s</string>
+    <string name="ime_plugin_permission_allow">Tillåt</string>
+    <string name="ime_plugin_permission_deny">Tillåt inte</string>
+    <string name="ime_plugin_permission_risky_note">Detta aktiverar även riskabla behörigheter för insticksprogram. Du kan stänga av dem igen på insticksprogrammets sida i Inställningar.</string>
+    <string name="ime_plugin_permission_title">Tillåt att %1$s:</string>
     <string name="ime_plugin_version_label">Version %1$s</string>
     <string name="ime_power_saving_on_desc">Energisparläge är på</string>
+    <string name="ime_privacy_shade_hint">Dra handtaget uppåt för att se de sista raderna</string>
     <string name="ime_provider_choose_desc">Välj leverantör</string>
     <string name="ime_punct_ampersand">Et-tecken</string>
     <string name="ime_punct_apostrophe">Apostrof</string>
@@ -2378,6 +2608,8 @@
     <string name="ime_resize_move_desc">Dra för att flytta tangentbordet uppåt eller nedåt</string>
     <string name="ime_resize_reset">Återställ</string>
     <string name="ime_resize_right_handle_desc">Dra för att ändra utrymmet till höger om tangentbordet</string>
+    <string name="ime_resize_toolbar_handle">Verktygsfält</string>
+    <string name="ime_resize_toolbar_handle_desc">Dra uppåt eller nedåt för att ändra verktygsfältets höjd</string>
     <string name="ime_retype_button">Skriv om</string>
     <string name="ime_retype_button_desc">Skriv om ordet vid markören</string>
     <string name="ime_retype_button_nothing">Inget ord att skriva om. Placera markören direkt efter ett ord.</string>
@@ -2432,8 +2664,10 @@
     <string name="ime_scanner_torch_desc">Ficklampa</string>
     <string name="ime_scanner_translate_action">Översätt</string>
     <string name="ime_screen_capture_desc">Ta en skärmdump</string>
+    <string name="ime_screen_capture_progress">Tar skärmdump...</string>
     <string name="ime_search_attribution_brave">via Brave</string>
     <string name="ime_search_attribution_left">%1$s · %2$s kvar</string>
+    <string name="ime_search_attribution_mwmbl">via Mwmbl</string>
     <string name="ime_search_attribution_tavily">via Tavily</string>
     <string name="ime_search_in_browser_desc">Sök i webbläsaren</string>
     <string name="ime_search_menu_copy_link">Kopiera länken</string>
@@ -2443,6 +2677,7 @@
     <string name="ime_search_no_more">Inga fler resultat</string>
     <string name="ime_search_tab_all">Alla</string>
     <string name="ime_search_tab_images">Bilder</string>
+    <string name="ime_second_toolbar_empty">Dra ett verktyg hit från verktygslådan eller verktygsfältet</string>
     <string name="ime_selection_ask_ai">Fråga AI</string>
     <string name="ime_selection_macro_ai_translate_label">AI-översättning</string>
     <string name="ime_selection_macro_back_desc">Tillbaka till markeringsåtgärderna</string>
@@ -2741,6 +2976,8 @@
     <string name="ime_service_incognito_off_toast">Inkognitoläge är avstängt</string>
     <string name="ime_service_incognito_on_toast">Inkognitoläge är på. Tangentbordet lär sig inte vad du skriver.</string>
     <string name="ime_service_incognito_switch_toast">Inkognitoläge är på. Tryck på Inkognitoverktyget för att stänga av det</string>
+    <string name="ime_service_legacy_font_off_toast">Skriver Unicode</string>
+    <string name="ime_service_legacy_font_on_toast">Skriver för teckensnittet %1$s</string>
     <string name="ime_service_media_download_error_toast">Nedladdningen fungerade inte. Kontrollera din anslutning.</string>
     <string name="ime_service_media_fetch_error">Tangentbordet kan inte hämta resultat</string>
     <string name="ime_service_mode_tool_order_toast">Tangentbordet sparade verktygsordningen endast för läget %1$s. Andra appar behåller sin egen ordning.</string>
@@ -2764,6 +3001,7 @@
     <string name="ime_service_power_saving_on_empty_toast">Energisparläge är på. Ingen funktion är inställd på att stoppas än.</string>
     <string name="ime_service_power_saving_on_toast">Energisparläge är på</string>
     <string name="ime_service_power_saving_still_on_toast">Energisparläge förblir på. Batteriutlösaren är aktiverad.</string>
+    <string name="ime_service_privacy_shade_floating_toast">Integritetsskärmen fungerar med det dockade tangentbordet. Docka tangentbordet först.</string>
     <string name="ime_service_qr_error">Tangentbordet kan inte skapa QR-koden</string>
     <string name="ime_service_resize_floating_toast">Docka tangentbordet för att ändra storlek på det</string>
     <string name="ime_service_search_error">Sökningen fungerade inte</string>
@@ -2824,6 +3062,7 @@
     <string name="ime_smart_repeat_count">×%1$s</string>
     <string name="ime_smart_repeat_offer">Upprepa ”%1$s”</string>
     <string name="ime_smart_replies_dismiss_desc">Dölj smarta svar</string>
+    <string name="ime_smart_search_offer">%1$s: \"%2$s\"</string>
     <string name="ime_smart_send_link">Ta emot filen</string>
     <string name="ime_smart_translate_offer">Översätt</string>
     <string name="ime_smart_vocab_daily">Dagens ord: %1$s ›</string>
@@ -2833,6 +3072,12 @@
     <string name="ime_smart_vocab_word">%1$s ›</string>
     <string name="ime_smart_weather_tap">Hämta väderprognosen</string>
     <string name="ime_smart_wiki_word">”%1$s” på Wikipedia</string>
+    <string name="ime_snippet_ask_cancel_desc">Avbryt snippeten</string>
+    <string name="ime_snippet_ask_done_desc">Infoga utdraget</string>
+    <string name="ime_snippet_ask_hint">Skriv %1$s</string>
+    <string name="ime_snippet_ask_next_desc">Nästa fält</string>
+    <string name="ime_snippet_ask_step_label">%1$s %2$d/%3$d</string>
+    <string name="ime_snippet_image_desc">Bildsnutt %1$s</string>
     <string name="ime_snippet_offer_back_desc">Tillbaka till %1$s</string>
     <string name="ime_snippet_offer_desc">Infoga kodsnutten %1$s</string>
     <string name="ime_snippet_offer_more_desc">Mer från %1$s</string>
@@ -2943,6 +3188,7 @@
     <string name="ime_suggestion_hold_label">Ordalternativ</string>
     <string name="ime_suggestion_never_suggest">Föreslå aldrig \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Tillbaka till tangenterna</string>
+    <string name="ime_suggestion_pattern_still_hides">Ett svartlistmönster döljer fortfarande \"%1$s\". Redigera det under Svartlista för förslag.</string>
     <string name="ime_suggestion_rank_badge">\"%1$s\" rank %2$s</string>
     <string name="ime_suggestion_rank_unchanged">\"%1$s\" oförändrad</string>
     <string name="ime_suggestions_show_desc">Visa förslagsfältet</string>
@@ -2972,6 +3218,8 @@
     <string name="ime_synonyms_title">Synonymer för \"%1$s\"</string>
     <string name="ime_textedit_delete_line_desc">Radera rad</string>
     <string name="ime_textedit_delete_line_forward_desc">Radera rad framåt</string>
+    <string name="ime_textedit_delete_to_end_desc">Radera till slutet</string>
+    <string name="ime_textedit_delete_to_start_desc">Radera till början</string>
     <string name="ime_textedit_delete_word_desc">Radera ord</string>
     <string name="ime_textedit_delete_word_forward_desc">Ta bort ord framåt</string>
     <string name="ime_textedit_doc_end_desc">Gå till slutet av texten</string>
@@ -2990,6 +3238,7 @@
     <string name="ime_textedit_select_label">Markera</string>
     <string name="ime_textedit_select_line_desc">Markera raden</string>
     <string name="ime_textedit_select_word_desc">Markera ordet</string>
+    <string name="ime_textedit_type_clipboard_desc">Skriv urklipp</string>
     <string name="ime_textedit_up_desc">Flytta upp</string>
     <string name="ime_textedit_word_left_desc">Flytta ett ord åt vänster</string>
     <string name="ime_textedit_word_right_desc">Flytta ett ord åt höger</string>
@@ -3067,6 +3316,7 @@
     <string name="ime_tool_calculator">Kalkylator</string>
     <string name="ime_tool_calendar">Kalender</string>
     <string name="ime_tool_camera">Kamera</string>
+    <string name="ime_tool_clear_field">Radera allt</string>
     <string name="ime_tool_clipboard">Urklipp</string>
     <string name="ime_tool_clipboard_search">Sök i urklipp</string>
     <string name="ime_tool_clock">Klocka</string>
@@ -3083,11 +3333,13 @@
     <string name="ime_tool_cursor_word_right">Ord till höger</string>
     <string name="ime_tool_custom_layout">Sekundär layout</string>
     <string name="ime_tool_cut">Klipp ut</string>
+    <string name="ime_tool_debug_info">Felsökningsinfo</string>
     <string name="ime_tool_dictionary">Ordbok</string>
     <string name="ime_tool_doc_scan">Dokumentskanning</string>
     <string name="ime_tool_emoji">Emoji</string>
     <string name="ime_tool_emoji_mix">Emojimixar</string>
     <string name="ime_tool_fancy">Snygg text</string>
+    <string name="ime_tool_files">Filer</string>
     <string name="ime_tool_find_replace">Sök och ersätt</string>
     <string name="ime_tool_flashlight">Ficklampa</string>
     <string name="ime_tool_floating">Flytande</string>
@@ -3097,6 +3349,7 @@
     <string name="ime_tool_handwriting">Handskrift</string>
     <string name="ime_tool_hide_keyboard">Dölj</string>
     <string name="ime_tool_home_assistant">Smart hem</string>
+    <string name="ime_tool_homophones">Samma ljud</string>
     <string name="ime_tool_image_search">Bilder</string>
     <string name="ime_tool_incognito">Inkognito</string>
     <string name="ime_tool_language">Språk</string>
@@ -3123,6 +3376,7 @@
     <string name="ime_tool_picker_leader">%1$s, sedan:</string>
     <string name="ime_tool_plugins">Insticksprogram</string>
     <string name="ime_tool_power_saving">Energisparläge</string>
+    <string name="ime_tool_privacy_shade">Sekretesskydd</string>
     <string name="ime_tool_qr_gen">QR-kod</string>
     <string name="ime_tool_qr_scan">QR-skanning</string>
     <string name="ime_tool_quick_note">Snabbanteckning</string>
@@ -3147,6 +3401,7 @@
     <string name="ime_tool_text_edit">Textredigering</string>
     <string name="ime_tool_text_repeat">Upprepa</string>
     <string name="ime_tool_themes">Utseende</string>
+    <string name="ime_tool_timestamp">Tidsstämpel</string>
     <string name="ime_tool_todo">Att göra-lista</string>
     <string name="ime_tool_trackpad">Styrplatta</string>
     <string name="ime_tool_translate">Översätt</string>
@@ -3204,12 +3459,14 @@
     <string name="ime_translate_engine_online_info">Använder onlinetjänsten.</string>
     <string name="ime_translate_hint">Skriv texten som ska översättas…</string>
     <string name="ime_translate_idle">Översättningen visas här när du skriver.</string>
+    <string name="ime_translate_idle_manual">Skriv hela texten och tryck sedan på Översätt. Ingenting skickas innan dess.</string>
     <string name="ime_translate_module_failed_error">Google Play levererade inte nedladdningen. Kontrollera anslutningen och försök igen. Om det misslyckas igen, ladda ner den från Inställningar, Verktyg, Översätt.</string>
     <string name="ime_translate_module_installing_action">Laddar ner…</string>
     <string name="ime_translate_module_missing_body">Översättning på enheten är en extra del av tangentbordet som kommer från Google Play. Ladda ner den för att översätta utan anslutning.</string>
     <string name="ime_translate_need_models_body">För att översätta på enheten, ladda ner: %1$s. Cirka %2$s.</string>
     <string name="ime_translate_nllb_licence_accept_action">Acceptera och ladda ner</string>
     <string name="ime_translate_nllb_licence_body">NLLB-200 kommer från Hugging Face under Metas licens för den, Creative Commons Attribution-NonCommercial 4.0: endast för icke-kommersiell användning, utan garanti. Tryck igen för att acceptera och ladda ner.</string>
+    <string name="ime_translate_now_action">Översätt</string>
     <string name="ime_translate_offline_build_error">Den h&amp;auml;r offline-versionen kan inte &amp;ouml;vers&amp;auml;tta p&amp;aring; den h&amp;auml;r telefonen: dess ena motor, Firefox Translations, beh&amp;ouml;ver en 64-bitars telefon med Android 9 eller senare. Installera standardversionen f&amp;ouml;r att &amp;ouml;vers&amp;auml;tta.</string>
     <string name="ime_translate_offline_failed_error">Översättning på enheten startade inte. Försök igen eller välj onlinemotorn.</string>
     <string name="ime_translate_offline_import_body">Den här offlineversionen kan inte ladda ner. För att översätta detta, hämta dem på en annan enhet och importera dem: %1$s. Öppna Inställningar › Verktyg › Översätt › Leverantörer › På enheten (Firefox Translations).</string>
@@ -3225,6 +3482,7 @@
     <string name="ime_translate_select_source_desc">Välj källspråk</string>
     <string name="ime_translate_server_label">Din server</string>
     <string name="ime_translate_source_guessed_label">%1$s?</string>
+    <string name="ime_translate_speak_desc">Läs upp översättningen högt</string>
     <string name="ime_translate_swap_desc">Byt språk</string>
     <string name="ime_typing_accuracy_label">noggrannhet</string>
     <string name="ime_typing_accuracy_short_label">noggr</string>
@@ -3345,6 +3603,10 @@
     <string name="ime_voice_model_get_language_action">Hämta %1$s för röstinmatning offline</string>
     <string name="ime_voice_permission_action">Tillåt mikrofon</string>
     <string name="ime_voice_permission_body">Röstinmatning kräver tillåtelse att använda mikrofonen. Appen spelar endast in ljud när du talar.</string>
+    <string name="ime_voice_prompt_fix_custom">Ta bort några ord under Fler ord att lyssna efter i inställningarna för röstinmatning, eller korta ner uppmaningen.</string>
+    <string name="ime_voice_prompt_fix_personal">Stäng av Lyssna efter mina ord i inställningarna för röstinmatning, eller korta ner uppmaningen.</string>
+    <string name="ime_voice_prompt_fix_prompt">Korta ned Uppmaning, på serverns skärm i inställningar för röstinmatning, till under %1$d tecken.</string>
+    <string name="ime_voice_prompt_too_long">Den här servern accepterar en prompt på upp till %2$d tecken, och den här är %1$d: Prompt %3$d, Fler ord att lyssna efter %4$d, Lyssna efter mina ord %5$d.</string>
     <string name="ime_voice_secure_field_notice">Röstinmatning fungerar inte i lösenordsfält.</string>
     <string name="ime_voice_server_metered_ask">Datasparläge är på. Tryck på mikrofonen igen för att skicka din röst via mobildata.</string>
     <string name="ime_voice_server_metered_blocked">Transkriberingsservern är avstängd när du använder mobildata. Du kan ändra detta i Inställningar under Datasparläge.</string>
@@ -3384,6 +3646,12 @@
     <string name="ime_voice_use_system_action">Använd systemets röstigenkänning</string>
     <string name="ime_weather_clouds_label">molnigt</string>
     <string name="ime_weather_error">Appen kan inte ladda ner vädret. Kontrollera ditt nätverk.</string>
+    <string name="ime_weather_event_back_desc">Tillbaka till kalendern</string>
+    <string name="ime_weather_event_home_place">%1$s (din väderplats)</string>
+    <string name="ime_weather_event_home_unnamed">Din väderplats</string>
+    <string name="ime_weather_event_hour_desc">%1$s: %2$s, %3$s, regnrisk %4$s</string>
+    <string name="ime_weather_event_no_hours">Prognosen når inte den här dagen än.</string>
+    <string name="ime_weather_event_rain_info">%1$d%% risk för regn</string>
     <string name="ime_weather_feels_like_label">känns som</string>
     <string name="ime_weather_high_low_info">H %1$d° L %2$d°</string>
     <string name="ime_weather_humidity_label">luftfuktighet</string>
@@ -3499,6 +3767,7 @@
     <string name="ime_wmpass_no_password">WM Pass skapade inget lösenord. Valvet kan ha låsts.</string>
     <string name="ime_wmpass_no_username">Denna inloggning har inget användarnamn att fylla i.</string>
     <string name="ime_wmpass_no_vault">WM Pass har inget valv än. Skapa ett där först.</string>
+    <string name="ime_wmpass_not_released">WM Pass har inte släppts än. Det här verktyget börjar fungera när det har släppts och installerats.</string>
     <string name="ime_wmpass_not_set">Ej inställd</string>
     <string name="ime_wmpass_off">För att använda detta aktiverar du Låt WM-tangentbordet fylla i WM Pass under Inställningar, Säkerhet.</string>
     <string name="ime_wmpass_open">Öppna WM Pass</string>

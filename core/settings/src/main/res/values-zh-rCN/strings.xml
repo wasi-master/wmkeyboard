@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">剥离、胶囊和按键</string>
     <string name="core_settings_glide_commit_scope_pill_label">剥离并组合</string>
     <string name="core_settings_glide_commit_scope_strip_label">建议栏</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">撤销后</string>
+    <string name="core_settings_glide_drawn_letters_off_label">关闭</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">不确定时</string>
     <string name="core_settings_glide_engine_built_in_label">内置</string>
     <string name="core_settings_glide_engine_futo_label">FUTO 滑动输入（英语，QWERTY）</string>
     <string name="core_settings_glide_engine_google_label">Google 手势库（已导入）</string>

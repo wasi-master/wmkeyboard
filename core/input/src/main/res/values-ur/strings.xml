@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">فوریگانا ریڈنگز</string>
     <string name="core_input_cjk_pack_hanja_subtitle">ہنگول کے الفاظ اور ان کے ہانجا، 300,000 اندراجات۔ تجویز کی پٹی پر ہانجا پیش کرنے کے لیے کی بورڈ کو اس پیک کی ضرورت ہے۔</string>
     <string name="core_input_cjk_pack_hanja_title">ہانجا (漢字) لغت</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">آیاسپیل، تاکہ اس کے لاحقے اور سابقے کے ساتھ ایک لفظ معلوم ہو اور اس میں موجود غلطی کو درست کیا جا سکے۔</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">عربی ہجے کی لغت</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr، تاکہ کسی بھی لاحقے والے الفاظ معلوم ہوں اور ان میں موجود غلطیاں درست ہو جائیں۔</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">ترکی ہجے کے اصول</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">mozc سے کانا ریڈنگز، 1.08 ملین اندراجات، تقریباً 42 MB۔ جاپانی کنورژن کے لیے کی بورڈ کو اس پیک کی ضرورت ہے۔</string>

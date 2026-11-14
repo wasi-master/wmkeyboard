@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">फुरिगाना वाचन</string>
     <string name="core_input_cjk_pack_hanja_subtitle">हंगुल शब्द आणि त्यांचे हांजा, ३००,००० नोंदी. सूचना पट्टीवर हांजा ऑफर करण्यासाठी कीबोर्डला या पॅकची आवश्यकता आहे.</string>
     <string name="core_input_cjk_pack_hanja_title">Hanja (漢字) शब्दकोश</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">आयस्पेल, त्यामुळे उपसर्ग आणि प्रत्यय असलेला शब्द ओळखला जातो आणि त्यातील टायपो सुधारला जातो.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">अरबी स्पेलिंग शब्दकोश</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, जेणेकरून कोणत्याही प्रत्यया असलेले शब्द ज्ञात असतील आणि त्यातील चुका दुरुस्त केल्या जातील.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">तुर्की वर्तनी नियम</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">mozc कडून काना वाचन, १.०८ दशलक्ष नोंदी, सुमारे ४२ MB. जपानी रूपांतरणासाठी कीबोर्डला या पॅकची आवश्यकता आहे.</string>

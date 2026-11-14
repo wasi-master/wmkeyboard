@@ -23,6 +23,34 @@
         <item quantity="one">%1$d pyyhkäisy näppäimellä ei sovi tähän, koska tämä näppäimistö käyttää kyseistä pyyhkäisyä toiseen tehtävään. Sovellus poisti sen.</item>
         <item quantity="other">%1$d pyyhkäisyä näppäimillä eivät sovi tähän, koska tämä näppäimistö käyttää kyseisiä pyyhkäisyjä muihin tehtäviin. Sovellus poisti ne.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">Sovellus jätti pois %1$d säännön, joka muuttaa sitä, mitä poisto poistaa. Poisto toimii samalla tavalla kuin kaikissa muissakin asetteluissa täällä.</item>
+        <item quantity="other">Sovellus jätti pois %1$d sääntöä, jotka muuttavat sitä, mitä poisto poistaa. Poisto toimii samalla tavalla kuin kaikissa muissakin asetteluissa täällä.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">Sovellus poisti %1$d pyyhkäisyn, joka muuttaa suuntaa. Tämän näppäimistön pyyhkäisyt menevät yhteen suuntaan.</item>
+        <item quantity="other">Sovellus poisti %1$d pyyhkäisyä, jotka muuttavat suuntaa. Tämän näppäimistön pyyhkäisyt menevät yhteen suuntaan.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">Sovellus jätti pois %1$d sivun sellaiselle näppäimelle kuin Caps Lock tai Ctrl. Tällä näppäimistöllä ei ole sivua kyseiselle näppäimelle.</item>
+        <item quantity="other">Sovellus jätti pois %1$d sivua sellaisille näppäimille kuin Caps Lock tai Ctrl. Tällä näppäimistöllä ei ole sivua kyseisille näppäimille.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">Sovellus jätti pois %1$d säännön, joka asettaa merkit kirjoitusjärjestykseen. Tämä näppäimistö kirjoittaa merkit siinä järjestyksessä kuin kirjoitat ne.</item>
+        <item quantity="other">Sovellus jätti pois %1$d sääntöä, jotka asettavat merkit kirjoitusjärjestykseen. Tämä näppäimistö kirjoittaa merkit siinä järjestyksessä kuin kirjoitat ne.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d sääntö lisää aksentin seuraavaan kirjaimeen. Tässä sitä aloittava näppäin on kuollut näppäin.</item>
+        <item quantity="other">%1$d sääntöä lisäävät aksentin seuraavaan kirjaimeen. Tässä niitä aloittavat näppäimet ovat kuolleita näppäimiä.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">Sovellus jätti pois %1$d säännön, joka muuttaa tekstiä kirjoittaessasi. Mikään näppäin täällä ei käynnistä sitä, tai se vastaa useampaa tekstiä kuin mikään näppäin voi kirjoittaa.</item>
+        <item quantity="other">Sovellus jätti pois %1$d sääntöä, jotka muuttavat tekstiä kirjoittaessasi. Mikään näppäin täällä ei käynnistä niitä, tai ne vastaavat useampaa tekstiä kuin mikään näppäin voi kirjoittaa.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d sääntö muuttaa näppäimen ja sitä seuraavan toiseksi merkiksi. Tässä kyseinen merkki tulee näppäintä pitkään painamalla.</item>
+        <item quantity="other">%1$d sääntöä muuttavat näppäimen ja sitä seuraavan toiseksi merkiksi. Tässä kyseiset merkit tulevat ensimmäistä näppäintä pitkään painamalla.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Sovellus vaihtoi %1$d näppäimen lähimpään käytettävissä olevaan näppäimeen.</item>
         <item quantity="other">Sovellus vaihtoi %1$d näppäintä lähimpiin käytettävissä oleviin näppäimiin.</item>

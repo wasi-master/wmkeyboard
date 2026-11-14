@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">خوانش‌های فوریگانا</string>
     <string name="core_input_cjk_pack_hanja_subtitle">کلمات هانگول و هانجاهای آن‌ها، ۳۰۰ هزار ورودی. صفحه کلید برای ارائه هانجا در نوار پیشنهاد به این بسته نیاز دارد.</string>
     <string name="core_input_cjk_pack_hanja_title">فرهنگ لغت هانجا (漢字)</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell، بنابراین کلمه‌ای با پیشوندها و پسوندهای آن شناخته می‌شود و خطای تایپی در آن اصلاح می‌شود.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">فرهنگ لغت املا به زبان عربی</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr، بنابراین کلمات با هر پسوندی شناخته می‌شوند و خطاهای املایی آن‌ها اصلاح می‌شود.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">قوانین املای ترکی</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">خوانش‌های کانا از mozc، با ۱.۰۸ میلیون ورودی، حدود ۴۲ مگابایت. صفحه‌کلید برای تبدیل ژاپنی به این بسته نیاز دارد.</string>

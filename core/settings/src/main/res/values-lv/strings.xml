@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Josla, tablete un taustiņi</string>
     <string name="core_settings_glide_commit_scope_pill_label">Josla un kapsula</string>
     <string name="core_settings_glide_commit_scope_strip_label">Svītra</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">Pēc atsaukšanas</string>
+    <string name="core_settings_glide_drawn_letters_off_label">Izslēgts</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">Ja neesat pārliecināts</string>
     <string name="core_settings_glide_engine_built_in_label">Iebūvēts</string>
     <string name="core_settings_glide_engine_futo_label">FUTO Swipe (angļu, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Google žestu bibliotēka (importēta)</string>

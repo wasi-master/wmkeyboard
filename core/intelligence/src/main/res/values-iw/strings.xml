@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">מודל בינוני עדכני שחושב לפני שהוא עונה. דורש מכשיר בדרגת ביניים.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">קטן ומהיר. טוב לשכתובים מהירים במכשיר בסיסי.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">מודל קטן מאוד שיכול לקרוא תמונות. הוא מתאר תמונה, אך לעיתים קרובות קורא לא נכון את הטקסט בצילום מסך.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">ההכשרה מחדש של NVIDIA עבור Gemma 4 E4B למעקב אחר הוראות ושימוש בכלים. טקסט בלבד, והוא דורש מכשיר חזק.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">מודל לשימוש כללי שעדיין מתאים למכשיר בסיסי.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">חכם משמעותית מהמודלים מתחת ל-1B. הוא דורש מכשיר בטווח ביניים.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">מודל קטן וחדש. האיכות גבוהה ביחס לגודלו.</string>

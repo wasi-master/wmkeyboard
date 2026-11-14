@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">답변하기 전에 생각하는 최신 중형 모델입니다. 중급 사양의 기기가 필요합니다.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">작고 빠릅니다. 기본 기기에서 빠르게 다시 작성하는 데 적합합니다.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">사진을 읽을 수 있는 매우 작은 모델입니다. 사진을 설명하지만 스크린샷의 텍스트를 잘못 읽는 경우가 많습니다.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">지시 따르기 및 도구 사용을 위해 Gemma 4 E4B를 NVIDIA에서 재훈련한 모델입니다. 텍스트 전용이며 사양이 좋은 기기가 필요합니다.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">기본 기기에서도 실행 가능한 범용 모델입니다.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B 미만 모델보다 확실히 똑똑합니다. 중급 사양의 기기가 필요합니다.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">최근에 나온 소형 모델입니다. 크기 대비 품질이 높습니다.</string>

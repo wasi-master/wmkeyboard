@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">כתובת דוא\"ל</string>
+    <string name="core_content_clip_entity_email_tag">אימייל</string>
     <string name="core_content_clip_entity_otp_label">קוד חד-פעמי</string>
     <string name="core_content_clip_entity_otp_tag">קוד</string>
     <string name="core_content_clip_entity_phone_label">מספר טלפון</string>
@@ -38,6 +40,10 @@
         <item quantity="one">האפליקציה דילגה על קטע קוד %1$d שאין לו מה להוסיף.</item>
         <item quantity="other">האפליקציה דילגה על %1$d קטעי קוד שאין להם מה להוסיף.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">שדה טופס %1$d מציע רשימה לבחירה מתוכה. האפליקציה מבקשת זאת כתשובה מוקלדת, כאשר הבחירה הראשונה ממולאת מראש.</item>
+        <item quantity="other">%1$d שדות טופס מציעים רשימה לבחירה מתוכה. האפליקציה מבקשת את כל אחד מהם כתשובה מוקלדת, כאשר הבחירה הראשונה ממולאת מראש.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">האפליקציה דילגה על %1$d קטע קוד שמכניס תמונה.</item>
         <item quantity="other">האפליקציה דילגה על %1$d קטעי קוד שמכניסים תמונות.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">קטע קוד %1$d משתמש בערך שאין לו שווה ערך ב-Espanso. הוא נכתב כפי שהוא.</item>
         <item quantity="other">%1$d קטעי קוד משתמשים בערכים שאין להם שווה ערך ב-Espanso. הם נכתבים כפי שהם.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">קטע טקסט %1$d מוסיף תמונה. קובץ טקסט אינו יכול להכיל את התמונה, ולכן רק המילים שלה יוצאו.</item>
+        <item quantity="other">קטעי טקסט %1$d מוסיפים תמונות. קובץ טקסט אינו יכול להכיל את התמונות, ולכן רק המילים שלהן יוצאו.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">האפליקציה הסירה את התבנית מ-%1$d קטע קוד. האפליקציה לא מריצה תבניות בצורה זו. קטע הקוד נשאר ברשימה.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">האפליקציה הסירה %1$d טריגר שהמקלדת אינה יכולה לנטר. הקטע שלו נשאר ברשימה.</item>
         <item quantity="other">האפליקציה הסירה %1$d טריגרים שהמקלדת אינה יכולה לנטר. הקטעים שלהם נשארים ברשימה.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">מתחיל ב-=== אך אינו שורת טריגר === מלאה. כדי להתחיל שורת טריגר עם ===, יש לכתוב \=== במקום זאת</string>
+    <string name="core_content_snippet_text_bad_pattern">לא ניתן להשתמש בתבנית: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s לא יכול להיות %2$s</string>
+    <string name="core_content_snippet_text_before_header">טקסט לפני טריגר ראשון === שורה ===. התחל בלוק עם אחד, או התחל את השורה עם #</string>
+    <string name="core_content_snippet_text_no_text">לקטע זה אין טקסט</string>
+    <string name="core_content_snippet_text_no_trigger">קטע טקסט שאין בינו לבין סימני ה-=== כלום חייב לכלול שורה עם תגית @label או דפוס @pattern</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">קטע טקסט של תמונה %1$d הגיע כטקסט שלו: קובץ טקסט אינו מכיל תמונות</item>
+        <item quantity="other">קטעי טקסט של תמונות %1$d הגיעו כטקסט שלהם: קובץ טקסט אינו מכיל תמונות</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">הקטע בשורה %1$d דולג, מכיוון שיש בו שגיאה</string>
+    <string name="core_content_snippet_text_unknown_link">הקישור @link נקרא %1$s, ולאף קטע כאן אין את הטריגר הזה</string>
+    <string name="core_content_snippet_text_unknown_picture">ה-@picture מציין את %1$s, ששום קטע טקסט אינו משתמש בו. הוסף תמונות בעורך של קטע הטקסט עצמו</string>
+    <string name="core_content_snippet_text_unknown_setting">המקלדת אינה מזהה את ההגדרה %1$s. כדי להתחיל טקסט של קטע עם @, כתוב \@ במקום זאת</string>
     <string name="core_content_snippet_var_app_info">שם האפליקציה שבה אתה מקליד</string>
+    <string name="core_content_snippet_var_battery_info">טעינת הסוללה, לדוגמה 85%</string>
     <string name="core_content_snippet_var_clip_info">הפריט החדש ביותר בלוח הגזירים</string>
     <string name="core_content_snippet_var_cursor_info">המקום שבו הסמן נוחת</string>
     <string name="core_content_snippet_var_date_info">התאריך של היום</string>
     <string name="core_content_snippet_var_datetime_info">התאריך והשעה</string>
     <string name="core_content_snippet_var_day_info">יום בחודש</string>
+    <string name="core_content_snippet_var_greeting_info">בוקר טוב, צהריים טובים או ערב טוב בהתאם לשעה, בשפת המקלדת</string>
     <string name="core_content_snippet_var_isodate_info">התאריך בפורמט ISO, לדוגמה 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">התאריך והשעה בפורמט ISO</string>
+    <string name="core_content_snippet_var_language_info">שפת המקלדת שבה אתה הקלדת</string>
     <string name="core_content_snippet_var_month_info">שם החודש</string>
     <string name="core_content_snippet_var_package_info">שם החבילה של אותה אפליקציה</string>
     <string name="core_content_snippet_var_selection_info">הטקסט שבחרת בשדה</string>
+    <string name="core_content_snippet_var_tab_info">תו טאב</string>
     <string name="core_content_snippet_var_time12_info">השעה הנוכחית בפורמט של 12 שעות</string>
     <string name="core_content_snippet_var_time_info">השעה כעת בפורמט של 24 שעות</string>
     <string name="core_content_snippet_var_timestamp_info">הזמן בשניות Unix</string>

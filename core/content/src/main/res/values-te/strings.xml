@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">ఇమెయిల్ చిరునామా</string>
+    <string name="core_content_clip_entity_email_tag">ఇమెయిల్</string>
     <string name="core_content_clip_entity_otp_label">వన్-టైమ్ కోడ్</string>
     <string name="core_content_clip_entity_otp_tag">కోడ్</string>
     <string name="core_content_clip_entity_phone_label">ఫోన్ నంబర్</string>
@@ -38,6 +40,10 @@
         <item quantity="one">యాప్ ఇన్సర్ట్ చేయడానికి ఏమీ లేని %1$d స్నిప్పెట్‌ను దాటవేసింది.</item>
         <item quantity="other">యాప్ ఇన్సర్ట్ చేయడానికి ఏమీ లేని %1$d స్నిప్పెట్‌లను దాటవేసింది.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d ఫారం ఫీల్డ్ ఎంచుకోవడానికి ఒక జాబితాను అందిస్తుంది. మొదటి ఎంపిక నింపబడి, యాప్ దీన్ని టైప్ చేసిన సమాధానంగా అడుగుతుంది.</item>
+        <item quantity="other">%1$d ఫారం ఫీల్డ్‌లు ఎంచుకోవడానికి జాబితాలను అందిస్తాయి. మొదటి ఎంపిక నింపబడి, యాప్ వీటిలో ప్రతీదాన్ని టైప్ చేసిన సమాధానంగా అడుగుతుంది.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">యాప్ చిత్రాన్ని ఇన్సర్ట్ చేసే %1$d స్నిప్పెట్‌ను దాటవేసింది.</item>
         <item quantity="other">యాప్ చిత్రాలను ఇన్సర్ట్ చేసే %1$d స్నిప్పెట్‌లను దాటవేసింది.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d స్నిప్పెట్ ఎస్పన్సోలో సమానమైన విలువ లేని ఒక విలువను ఉపయోగిస్తుంది. అది ఉన్నది ఉన్నట్లుగా వ్రాయబడుతుంది.</item>
         <item quantity="other">%1$d స్నిప్పెట్లు ఎస్పన్సోలో సమానమైన విలువ లేని విలువలను ఉపయోగిస్తాయి. అవి ఉన్నవి ఉన్నట్లుగా వ్రాయబడతాయి.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d స్నిప్పెట్ ఒక చిత్రాన్ని చొప్పిస్తుంది. టెక్స్ట్ ఫైల్ చిత్రాన్ని ఉంచలేదు, కాబట్టి దాని పదాలు మాత్రమే బయటికి వెళ్ళాయి.</item>
+        <item quantity="other">%1$d స్నిప్పెట్లు చిత్రాలను చొప్పిస్తాయి. టెక్స్ట్ ఫైల్ చిత్రాలను ఉంచలేదు, కాబట్టి వాటి పదాలు మాత్రమే బయటికి వెళ్ళాయి.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">యాప్ %1$d స్నిప్పెట్ నుండి ప్యాటర్న్‌ను తొలగించింది. యాప్ ఆ ఆకృతి గల ప్యాటర్న్‌లను రన్ చేయదు. స్నిప్పెట్ జాబితాలోనే ఉంటుంది.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">కీబోర్డ్ పర్యవేక్షించలేని %1$d ట్రిగ్గర్‌ను యాప్ తొలగించింది. దాని స్నిప్పెట్ జాబితాలోనే ఉంటుంది.</item>
         <item quantity="other">కీబోర్డ్ పర్యవేక్షించలేని %1$d ట్రిగ్గర్‌లను యాప్ తొలగించింది. వాటి స్నిప్పెట్‌లు జాబితాలోనే ఉంటాయి.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">=== తో ప్రారంభమవుతుంది కానీ పూర్తి === ట్రిగ్గర్ === లైన్ కాదు. === తో పాఠ్య వరుసను ప్రారంభించడానికి, బదులుగా \=== అని వ్రాయండి</string>
+    <string name="core_content_snippet_text_bad_pattern">ఈ నమూనాను ఉపయోగించలేము: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s %2$sగా ఉండలేదు</string>
+    <string name="core_content_snippet_text_before_header">మొదటి === ట్రిగ్గర్ === పంక్తికి ముందు టెక్స్ట్. ఒకదానితో బ్లాక్‌ను ప్రారంభించండి లేదా #తో పంక్తిని ప్రారంభించండి</string>
+    <string name="core_content_snippet_text_no_text">ఈ స్నిప్పెట్‌లో టెక్స్ట్ లేదు</string>
+    <string name="core_content_snippet_text_no_trigger">=== గుర్తుల మధ్య ఏదీ లేని ఒక స్నిప్పెట్‌కి @label లేదా @pattern లైన్ అవసరం</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d చిత్ర స్నిప్పెట్ దాని టెక్స్ట్‌గా వచ్చింది: టెక్స్ట్ ఫైల్ ఎలాంటి చిత్రాలను ఉంచదు</item>
+        <item quantity="other">%1$d చిత్ర స్నిప్పెట్‌లు వాటి టెక్స్ట్‌గా వచ్చాయి: టెక్స్ట్ ఫైల్ ఎలాంటి చిత్రాలను ఉంచదు</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">తప్పు ఉన్న %1$dవ పంక్తిలోని స్నిప్పెట్ దాటవేయబడింది</string>
+    <string name="core_content_snippet_text_unknown_link">\@link %1$s అని పేరు పెట్టింది, మరియు ఇక్కడ ఏ స్నిప్పెట్‌కు ఆ ట్రిగ్గర్ లేదు</string>
+    <string name="core_content_snippet_text_unknown_picture">\@picture పేరు %1$s, దీన్ని ఏ స్నిప్పెట్ ఉపయోగించదు. స్నిప్పెట్ స్వంత ఎడిటర్‌లో చిత్రాలను జోడించండి</string>
+    <string name="core_content_snippet_text_unknown_setting">కీబోర్డ్‌కు %1$s సెట్టింగ్ తెలుసుకోలేదు. స్నిప్పెట్ టెక్స్ట్‌ను @ తో ప్రారంభించడానికి, బదులుగా \@ అని వ్రాయండి</string>
     <string name="core_content_snippet_var_app_info">మీరు టైప్ చేస్తున్న యాప్ పేరు</string>
+    <string name="core_content_snippet_var_battery_info">బ్యాటరీ ఛార్జ్, ఉదాహరణకు 85%</string>
     <string name="core_content_snippet_var_clip_info">అత్యంత కొత్త క్లిప్‌బోర్డ్ ఎంట్రీ</string>
     <string name="core_content_snippet_var_cursor_info">కర్సర్ ఆగే ప్రదేశం</string>
     <string name="core_content_snippet_var_date_info">ఈరోజు తేదీ</string>
     <string name="core_content_snippet_var_datetime_info">తేదీ మరియు సమయం</string>
     <string name="core_content_snippet_var_day_info">నెలలోని రోజు</string>
+    <string name="core_content_snippet_var_greeting_info">కీబోర్డ్ భాషలో, సమయాన్ని బట్టి శుభోదయం, మధ్యాహ్నం లేదా సాయంత్రం అని చూపుతుంది</string>
     <string name="core_content_snippet_var_isodate_info">ISO రూపంలో తేదీ, ఉదాహరణకు 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">ISO ఫార్మాట్‌లో తేదీ మరియు సమయం</string>
+    <string name="core_content_snippet_var_language_info">మీరు టైప్ చేసే కీబోర్డ్ భాష</string>
     <string name="core_content_snippet_var_month_info">నెల పేరు</string>
     <string name="core_content_snippet_var_package_info">ఆ యాప్ యొక్క ప్యాకేజీ పేరు</string>
     <string name="core_content_snippet_var_selection_info">ఫీల్డ్‌లో మీరు ఎంచుకున్న టెక్స్ట్</string>
+    <string name="core_content_snippet_var_tab_info">ఒక ట్యాబ్ క్యారెక్టర్</string>
     <string name="core_content_snippet_var_time12_info">ప్రస్తుత సమయం 12-గంటల ఫార్మాట్‌లో</string>
     <string name="core_content_snippet_var_time_info">ప్రస్తుత సమయం 24-గంటల ఫార్మాట్‌లో</string>
     <string name="core_content_snippet_var_timestamp_info">Unix సెకన్లలో సమయం</string>

@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">E-mailová adresa</string>
+    <string name="core_content_clip_entity_email_tag">E-MAIL</string>
     <string name="core_content_clip_entity_otp_label">Jednorázový kód</string>
     <string name="core_content_clip_entity_otp_tag">KÓD</string>
     <string name="core_content_clip_entity_phone_label">Telefonní číslo</string>
@@ -38,6 +40,10 @@
         <item quantity="one">Aplikace přeskočila %1$d úryvek, který nemá co vložit.</item>
         <item quantity="other">Aplikace přeskočila %1$d úryvků, které nemají co vložit.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d pole formuláře nabízí seznam na výběr. Aplikace si o něj žádá jako o zadanou odpověď s předvyplněnou první volbou.</item>
+        <item quantity="other">%1$d pole formuláře nabízejí seznam na výběr. Aplikace si o každé žádá jako o zadanou odpověď s předvyplněnou první volbou.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Aplikace přeskočila %1$d úryvek, který vkládá obrázek.</item>
         <item quantity="other">Aplikace přeskočila %1$d úryvků, které vkládají obrázky.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d úryvek používá hodnotu, pro kterou Espanso nemá ekvivalent. Je vypsán tak, jak je.</item>
         <item quantity="other">%1$d úryvků používá hodnoty, pro které Espanso nemá ekvivalent. Jsou vypsány tak, jak jsou.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d úryvek vkládá obrázek. Textový soubor nemůže obrázek obsahovat, proto byla vyexportována pouze jeho slova.</item>
+        <item quantity="other">%1$d úryvků vkládá obrázky. Textový soubor nemůže obrázky obsahovat, proto byla vyexportována pouze jejich slova.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">Aplikace odstranila vzor z %1$d úryvku. Aplikace nespouští vzory tohoto tvaru. Úryvek zůstává v seznamu.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">Aplikace odebrala %1$d spouštěč, který klávesnice nemůže sledovat. Jeho úryvek zůstává v seznamu.</item>
         <item quantity="other">Aplikace odebrala %1$d spouštěčů, které klávesnice nemůže sledovat. Jejich úryvky zůstávají v seznamu.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">Začíná na ===, ale nejedná se o celý řádek spouštěče === ===. Chcete-li začít řádek textu pomocí ===, napište místo toho \===</string>
+    <string name="core_content_snippet_text_bad_pattern">Vzor nelze použít: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s nemůže být %2$s</string>
+    <string name="core_content_snippet_text_before_header">Text před prvním řádkem spouštěče ===. Začněte blok jedním nebo začněte řádek znakem #</string>
+    <string name="core_content_snippet_text_no_text">Tento úryvek neobsahuje žádný text</string>
+    <string name="core_content_snippet_text_no_trigger">Úryvek bez obsahu mezi značkami === vyžaduje řádek @label nebo @pattern</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">Jako text dorazil %1$d úryvek s obrázkem: textový soubor neobsahuje žádné obrázky</item>
+        <item quantity="other">Jako text dorazilo %1$d úryvků s obrázky: textový soubor neobsahuje žádné obrázky</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">Úryvek na řádku %1$d byl vynechán, protože obsahuje chybu</string>
+    <string name="core_content_snippet_text_unknown_link">Odkaz @link pojmenovává %1$s a žádný zdejší úryvek takový spouštěč nemá</string>
+    <string name="core_content_snippet_text_unknown_picture">Prvek @picture se jmenuje %1$s, což žádný úryvek nepoužívá. Přidejte obrázky v editoru samotného úryvku.</string>
+    <string name="core_content_snippet_text_unknown_setting">Klávesnice nezná nastavení %1$s. Chcete-li začít text úryvku znakem @, napište místo toho \@</string>
     <string name="core_content_snippet_var_app_info">Název aplikace, ve které píšete</string>
+    <string name="core_content_snippet_var_battery_info">Stav nabití baterie, například 85 %</string>
     <string name="core_content_snippet_var_clip_info">Nejnovější položka schránky</string>
     <string name="core_content_snippet_var_cursor_info">Místo, kde se nachází kurzor</string>
     <string name="core_content_snippet_var_date_info">Dnešní datum</string>
     <string name="core_content_snippet_var_datetime_info">Datum a čas</string>
     <string name="core_content_snippet_var_day_info">Den v měsíci</string>
+    <string name="core_content_snippet_var_greeting_info">Dobré ráno, odpoledne nebo večer podle času v jazyce klávesnice</string>
     <string name="core_content_snippet_var_isodate_info">Datum ve formátu ISO, například 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">Datum a čas ve formátu ISO</string>
+    <string name="core_content_snippet_var_language_info">Jazyk klávesnice, ve kterém píšete</string>
     <string name="core_content_snippet_var_month_info">Název měsíce</string>
     <string name="core_content_snippet_var_package_info">Název balíčku dané aplikace</string>
     <string name="core_content_snippet_var_selection_info">Text, který vyberete v poli</string>
+    <string name="core_content_snippet_var_tab_info">Znak tabulátoru</string>
     <string name="core_content_snippet_var_time12_info">Aktuální čas ve 12hodinovém formátu</string>
     <string name="core_content_snippet_var_time_info">Aktuální čas ve 24hodinovém formátu</string>
     <string name="core_content_snippet_var_timestamp_info">Čas v sekundách Unixu</string>

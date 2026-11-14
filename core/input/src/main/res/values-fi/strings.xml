@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">Furigana-lukemat</string>
     <string name="core_input_cjk_pack_hanja_subtitle">Hangul-sanat ja niiden Hanja, 300 000 kohdetta. Näppäimistö tarvitsee tämän paketin tarjotakseen Hanjat ehdotuspalkissa.</string>
     <string name="core_input_cjk_pack_hanja_title">Hanja (漢字) -sanakirja</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, joten sana etu- ja jälkiliitteineen tunnistetaan ja siinä olevat kirjoitusvirheet korjataan.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">Arabian oikolukusanasto</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, joten sanat, joissa on mikä tahansa pääte, tunnetaan ja niissä olevat kirjoitusvirheet korjataan.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">Turkin oikeinkirjoitussäännöt</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">Kana-luennat mozcista, 1,08 miljoonaa merkintää, noin 42 Mt. Näppäimistö tarvitsee tämän paketin japanin kielen muuntamiseen.</string>

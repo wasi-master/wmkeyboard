@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">En nyere mellemstor model, der tænker, før den svarer. Den kræver en enhed i mellemklassen.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Lille og hurtig. Den er god til hurtige omskrivninger på en basisenhed.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">En meget lille model, der kan læse billeder. Den beskriver et billede, men læser ofte teksten i et screenshot forkert.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">NVIDIAs genoplæring af Gemma 4 E4B til at følge instruktioner og bruge værktøjer. Kun tekst, og den kræver en kraftfuld enhed.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">En generel model, der stadig passer på en basisenhed.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Helt klart smartere end modellerne under 1B. Den kræver en enhed i mellemklassen.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">En nyere lille model. Kvaliteten er høj i forhold til dens størrelse.</string>

@@ -23,6 +23,34 @@
         <item quantity="one">%1$d scorrimento su un tasto non ha posto qui, perché questa tastiera usa quello scorrimento per un altro compito. L\'app lo ha rimosso.</item>
         <item quantity="other">%1$d scorrimenti su tasti non hanno posto qui, perché questa tastiera usa quegli scorrimenti per altri compiti. L\'app li ha rimossi.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">L\'app ha omesso %1$d regola che modifica ciò che il tasto cancella. Il tasto elimina funziona come in ogni altro layout qui presente.</item>
+        <item quantity="other">L\'app ha omesso %1$d regole che modificano ciò che il tasto cancella. Il tasto elimina funziona come in ogni altro layout qui presente.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">L\'app ha rimosso %1$d scorrimento che cambia direzione. Gli scorrimenti su questa tastiera vanno in una sola direzione.</item>
+        <item quantity="other">L\'app ha rimosso %1$d scorrimenti che cambiano direzione. Gli scorrimenti su questa tastiera vanno in una sola direzione.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">L\'app ha escluso %1$d pagina per un tasto come Bloc Maiusc o Ctrl. Questa tastiera non ha alcuna pagina per quel tasto.</item>
+        <item quantity="other">L\'app ha escluso %1$d pagine per tasti come Bloc Maiusc o Ctrl. Questa tastiera non ha alcuna pagina per quei tasti.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">L\'app ha omesso %1$d regola che posiziona i segni nel loro ordine di scrittura. Questa tastiera scrive i segni nell\'ordine in cui li digiti.</item>
+        <item quantity="other">L\'app ha omesso %1$d regole che posizionano i segni nel loro ordine di scrittura. Questa tastiera scrive i segni nell\'ordine in cui li digiti.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d regola applica un accento alla lettera successiva. Qui, il tasto che la avvia $ un tasto morto.</item>
+        <item quantity="other">%1$d regole applicano un accento alla lettera successiva. Qui, i tasti che le avviano sono tasti morti.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">L\'app ha tralasciato %1$d regola che modifica il testo durante la digitazione. Nessun tasto qui la avvia, oppure corrisponde a più testo di quanto un tasto possa digitare.</item>
+        <item quantity="other">L\'app ha tralasciato %1$d regole che modificano il testo durante la digitazione. Nessun tasto qui le avvia, oppure corrispondono a più testo di quanto un tasto possa digitare.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d regola trasforma un tasto e quello successivo in un altro carattere. Qui, quel carattere si ottiene tenendo premuto il primo tasto.</item>
+        <item quantity="other">%1$d regole trasformano un tasto e quello successivo in un altro carattere. Qui, quei caratteri si ottengono tenendo premuto il primo tasto.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">L\'app ha modificato %1$d tasto con quello più simile disponibile.</item>
         <item quantity="other">L\'app ha modificato %1$d tasti con quelli più simili disponibili.</item>

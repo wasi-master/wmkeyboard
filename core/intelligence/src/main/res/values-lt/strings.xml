@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Naujas vidutinio dydžio modelis, kuris apgalvoja atsakymą prieš jį pateikdamas. Jam reikalingas vidutinės klasės įrenginys.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Mažas ir greitas. Puikiai tinka greitam perrašymui pagrindiniame įrenginyje.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Labai mažas modelis, galintis skaityti paveikslėlius. Jis aprašo paveikslėlį, bet dažnai neteisingai nuskaito tekstą ekrano kopijoje.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">„NVIDIA“ atliktas „Gemma 4 E4B“ pritaikymas instrukcijų vykdymui ir įrankių naudojimui. Tik tekstas, reikalingas galingas įrenginys.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Bendrosios paskirties modelis, kuris vis dar telpa pagrindiniame įrenginyje.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Akivaizdžiai protingesnis už mažesnius nei 1B modelius. Reikalingas vidutinės klasės įrenginys.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Naujas nedidelis modelis. Kokybė yra aukšta, atsižvelgiant į jo dydį.</string>

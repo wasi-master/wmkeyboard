@@ -23,6 +23,34 @@
         <item quantity="one">%1$d gesto přejetí po klávese zde nemá místo, protože tato klávesnice toto gesto používá pro jinou úlohu. Aplikace jej odstranila.</item>
         <item quantity="other">%1$d gest přejetí po klávesách zde nemá místo, protože tato klávesnice tato gesta používá pro jiné úlohy. Aplikace je odstranila.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">Aplikace vynechala %1$d pravidlo, které mění chování mazání. Smazání funguje tak, jak je obvyklé pro všechna zdejší rozvržení.</item>
+        <item quantity="other">Aplikace vynechala %1$d pravidla, která mění chování mazání. Smazání funguje tak, jak je obvyklé pro všechna zdejší rozvržení.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">Aplikace odstranila %1$d přejetí, které mění směr. Přejetí na této klávesnici vedou jedním směrem.</item>
+        <item quantity="other">Aplikace odstranila %1$d přejetí, která mění směr. Přejetí na této klávesnici vedou jedním směrem.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">Aplikace vynechala %1$d stranu pro klávesu, jako je Caps Lock nebo Ctrl. Tato klávesnice pro ni nemá žádnou stranu.</item>
+        <item quantity="other">Aplikace vynechala %1$d stran pro klávesy, jako je Caps Lock nebo Ctrl. Tato klávesnice pro tyto klávesy nemá žádné strany.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">Aplikace vynechala %1$d pravidlo, které umisťuje značky v jejich psaném pořadí. Tato klávesnice píše značky v pořadí, v jakém je píšete.</item>
+        <item quantity="other">Aplikace vynechala %1$d pravidel, která umisťují značky v jejich psaném pořadí. Tato klávesnice píše značky v pořadí, v jakém je píšete.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d pravidlo přidává na další písmeno diakritické znaménko. Klávesa, která to spouští, je tzv. mrtvá klávesa.</item>
+        <item quantity="other">%1$d pravidla přidávají na další písmena diakritická znaménka. Klávesy, které je spouští, jsou tzv. mrtvé klávesy.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">Aplikace vynechala %1$d pravidlo, které mění text při psaní. Žádná zdejší klávesa jej nespouští, nebo odpovídá většímu množství textu, než kolik dokáže klávesa napsat.</item>
+        <item quantity="other">Aplikace vynechala %1$d pravidel, která mění text při psaní. Žádná zdejší klávesa je nespouští, nebo odpovídají většímu množství textu, než kolik dokáže klávesa napsat.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d pravidlo změní klávesu a následující klávesu v jiný znak. Zde je tento znak při podržení první klávesy.</item>
+        <item quantity="other">%1$d pravidla změní klávesu a následující klávesu v jiný znak. Zde jsou tyto znaky při podržení první klávesy.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Aplikace změnila %1$d klávesu na nejbližší dostupnou.</item>
         <item quantity="other">Aplikace změnila %1$d kláves na nejbližší dostupné.</item>

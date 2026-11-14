@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">Hej</string>
     <string name="core_tools_media_category_laugh">Skratt</string>
     <string name="core_tools_media_category_love">Kärlek</string>
+    <string name="core_tools_media_category_memes">Memes</string>
     <string name="core_tools_media_category_no">Nej</string>
     <string name="core_tools_media_category_party">Fest</string>
     <string name="core_tools_media_category_reactions">Reaktioner</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">En Mozhi-server: ett gratis gränssnitt till Google, DeepL, DuckDuckGo, Yandex och Reverso. Välj motor. DeepL och Reverso kräver ett källspråk.</string>
     <string name="core_tools_provider_music_server">Din egen igenkänningsserver</string>
     <string name="core_tools_provider_music_server_desc">En server du kör som svarar som AudD: klippet postas som en fil och låten kommer tillbaka som JSON. Placera en fingeravtrycksläsare som Panako eller Olaf bakom den.</string>
+    <string name="core_tools_provider_mwmbl_desc">En kostnadsfri, ideell sökmotor med eget index. Ingen nyckel. Endast webbresultat, inga bilder.</string>
     <string name="core_tools_provider_nllb">På enheten (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">Översätter på telefonen med Metas NLLB-200-modell på CTranslate2: 200 språk, mellan vilka två som helst, för de par som andra motorer inte klarar av. En nedladdning på 630 MB, och en mening tar några sekunder. Din text stannar på telefonen. Modellen är licensierad endast för icke-kommersiell användning (CC BY-NC 4.0). Kräver en 64-bitars telefon med 6 GB minne eller mer.</string>
     <string name="core_tools_provider_none_on">Ingen leverantör är påslagen. Slå på en i verktygets inställningar.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">Denna lista</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">Visa eller dölj tangenterna</string>
     <string name="core_tools_shortcut_leader_double_tap">Tryck på %1$s två gånger</string>
+    <string name="core_tools_speak_no_voice">Den här telefonen har ingen %1$s-röst för att läsa upp den. Lägg till en i Androids text-till-tal-inställningar, eller ladda ner en offline-röst under Verktyg › Läs upp.</string>
     <string name="core_tools_symbol_category_arrows_label">Pilar</string>
     <string name="core_tools_symbol_category_currency_label">Valuta</string>
     <string name="core_tools_symbol_category_fractions_label">Bråktal</string>
     <string name="core_tools_symbol_category_greek_label">Grekiska</string>
     <string name="core_tools_symbol_category_math_label">Matematik</string>
+    <string name="core_tools_symbol_category_music_label">Musik</string>
     <string name="core_tools_symbol_category_other_label">Annat</string>
     <string name="core_tools_symbol_category_punctuation_label">Skiljetecken</string>
     <string name="core_tools_symbol_category_shapes_label">Former och stjärnor</string>
+    <string name="core_tools_symbol_category_stars_label">Stjärnor</string>
     <string name="core_tools_symbol_category_superscript_label">Upphöjd text</string>
+    <string name="core_tools_symbol_category_technical_label">Teknisk</string>
+    <string name="core_tools_symbol_category_weather_label">Väder</string>
     <string name="core_tools_symbol_set_coding_label">Kodning</string>
     <string name="core_tools_symbol_set_email_label">E-post</string>
     <string name="core_tools_symbol_set_math_label">Matematik</string>

@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">ഉത്തരം നൽകുന്നതിന് മുൻപ് ചിന്തിക്കുന്ന സമീപകാലത്തെ ഇടത്തരം വലിപ്പമുള്ള മോഡൽ. ഇതിന് ഒരു ഇടത്തരം ശേഷിയുള്ള ഉപകരണം ആവശ്യമാണ്.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">ചെറുതും വേഗതയേറിയതും. അടിസ്ഥാനപരമായ ഉപകരണങ്ങളിൽ വേഗത്തിൽ മാറ്റിയെഴുതാൻ ഇത് അനുയോജ്യമാണ്.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">ചിത്രങ്ങൾ വായിക്കാൻ കഴിയുന്ന വളരെ ചെറിയൊരു മോഡൽ. ഇത് ഒരു ചിത്രത്തെ വിവരിക്കുന്നു, എന്നാൽ പലപ്പോഴും സ്ക്രീൻഷോട്ടിലെ വാചകം തെറ്റായി വായിക്കാറുണ്ട്.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">നിർദ്ദേശങ്ങൾ പാലിക്കുന്നതിനും ടൂളുകൾ ഉപയോഗിക്കുന്നതിനുമായി ജെമ്മ 4 E4B-യുടെ എൻവിഡിയയുടെ പുനഃപരിശീലനം. വാചകം മാത്രം, ഇതിന് ശക്തമായ ഒരു ഉപകരണം ആവശ്യമാണ്.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">അടിസ്ഥാന ഉപകരണങ്ങളിലും പ്രവർത്തിക്കുന്ന ഒരു പൊതു ആവശ്യത്തിനുള്ള മോഡൽ.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B-ൽ താഴെയുള്ള മോഡലുകളേക്കാൾ വ്യക്തമായി മികച്ചതാണ്. ഇതിന് മിഡ്-റേഞ്ച് ഉപകരണം ആവശ്യമാണ്.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">സമീപകാലത്തെ ഒരു ചെറിയ മോഡൽ. അതിന്റെ വലുപ്പത്തിന് അനുസരിച്ച് ഉയർന്ന നിലവാരമുള്ളതാണ്.</string>

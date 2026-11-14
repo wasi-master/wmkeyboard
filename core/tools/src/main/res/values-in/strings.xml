@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">Halo</string>
     <string name="core_tools_media_category_laugh">Tertawa</string>
     <string name="core_tools_media_category_love">Cinta</string>
+    <string name="core_tools_media_category_memes">Meme</string>
     <string name="core_tools_media_category_no">Tidak</string>
     <string name="core_tools_media_category_party">Pesta</string>
     <string name="core_tools_media_category_reactions">Reaksi</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">Server Mozhi: antarmuka gratis untuk Google, DeepL, DuckDuckGo, Yandex, dan Reverso. Pilih mesinnya. DeepL dan Reverso memerlukan bahasa sumber.</string>
     <string name="core_tools_provider_music_server">Server pengenalan Anda sendiri</string>
     <string name="core_tools_provider_music_server_desc">Server yang Anda jalankan yang merespons seperti AudD: klip diposting sebagai file dan lagu dikembalikan sebagai JSON. Letakkan fingerprinter seperti Panako atau Olaf di belakangnya.</string>
+    <string name="core_tools_provider_mwmbl_desc">Mesin pencari nirlaba gratis dengan indeksnya sendiri. Tanpa kunci. Hanya hasil web, tanpa gambar.</string>
     <string name="core_tools_provider_nllb">Di perangkat (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">Menerjemahkan di ponsel dengan model NLLB-200 Meta pada CTranslate2: 200 bahasa, di antara keduanya, untuk pasangan bahasa yang tidak dapat dilakukan mesin lain. Sekali unduh sebesar 630 MB, dan satu kalimat memerlukan beberapa detik. Teks Anda tetap di ponsel. Model ini dilisensikan hanya untuk penggunaan non-komersial (CC BY-NC 4.0). Memerlukan ponsel 64-bit dengan memori 6 GB atau lebih.</string>
     <string name="core_tools_provider_none_on">Tidak ada penyedia yang aktif. Aktifkan salah satu di pengaturan alat ini.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">Daftar ini</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">Tampilkan atau sembunyikan tombol</string>
     <string name="core_tools_shortcut_leader_double_tap">Tekan %1$s dua kali</string>
+    <string name="core_tools_speak_no_voice">Ponsel ini tidak memiliki suara %1$s untuk membacanya. Tambahkan di pengaturan text-to-speech Android, atau unduh suara offline di Alat › Baca ulang.</string>
     <string name="core_tools_symbol_category_arrows_label">Panah</string>
     <string name="core_tools_symbol_category_currency_label">Mata uang</string>
     <string name="core_tools_symbol_category_fractions_label">Pecahan</string>
     <string name="core_tools_symbol_category_greek_label">Yunani</string>
     <string name="core_tools_symbol_category_math_label">Matematika</string>
+    <string name="core_tools_symbol_category_music_label">Musik</string>
     <string name="core_tools_symbol_category_other_label">Lainnya</string>
     <string name="core_tools_symbol_category_punctuation_label">Tanda baca</string>
     <string name="core_tools_symbol_category_shapes_label">Bentuk dan bintang</string>
+    <string name="core_tools_symbol_category_stars_label">Bintang</string>
     <string name="core_tools_symbol_category_superscript_label">Superskrip</string>
+    <string name="core_tools_symbol_category_technical_label">Teknis</string>
+    <string name="core_tools_symbol_category_weather_label">Cuaca</string>
     <string name="core_tools_symbol_set_coding_label">Coding</string>
     <string name="core_tools_symbol_set_email_label">Email</string>
     <string name="core_tools_symbol_set_math_label">Matematika</string>

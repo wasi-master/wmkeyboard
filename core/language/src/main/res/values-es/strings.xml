@@ -23,6 +23,34 @@
         <item quantity="one">%1$d deslizamiento en una tecla no tiene lugar aquí, porque este teclado usa ese deslizamiento para otra función. La aplicación lo eliminó.</item>
         <item quantity="other">%1$d deslizamientos en teclas no tienen lugar aquí, porque este teclado usa esos deslizamientos para otras funciones. La aplicación los eliminó.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">La aplicación omitió %1$d regla que cambia lo que elimina la tecla de borrar. Borrar funciona igual que en cualquier diseño aquí.</item>
+        <item quantity="other">La aplicación omitió %1$d reglas que cambian lo que elimina la tecla de borrar. Borrar funciona igual que en cualquier diseño aquí.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">La aplicación eliminó %1$d deslizamiento que cambia de dirección. Los deslizamientos en este teclado van en una dirección.</item>
+        <item quantity="other">La aplicación eliminó %1$d deslizamientos que cambian de dirección. Los deslizamientos en este teclado van en una dirección.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">La aplicación omitió %1$d página para una tecla como Bloq Mayús o Ctrl. Este teclado no tiene ninguna página para esa tecla.</item>
+        <item quantity="other">La aplicación omitió %1$d páginas para teclas como Bloq Mayús o Ctrl. Este teclado no tiene páginas para esas teclas.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">La aplicación omitió %1$d regla que coloca las marcas en su orden escrito. Este teclado escribe las marcas en el orden en que las escribes.</item>
+        <item quantity="other">La aplicación omitió %1$d reglas que colocan las marcas en su orden escrito. Este teclado escribe las marcas en el orden en que las escribes.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d regla pone un acento en la siguiente letra. Aquí, la tecla que la inicia es una tecla muerta.</item>
+        <item quantity="other">%1$d reglas ponen un acento en la siguiente letra. Aquí, las teclas que las inician son teclas muertas.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">La aplicación omitió %1$d regla que cambia el texto mientras escribes. Ninguna tecla aquí la inicia, o coincide con más texto del que una tecla puede escribir.</item>
+        <item quantity="other">La aplicación omitió %1$d reglas que cambian el texto mientras escribes. Ninguna tecla aquí las inicia, o coinciden con más texto del que una tecla puede escribir.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d regla convierte una tecla y la siguiente en otro carácter. Aquí, ese carácter se obtiene al mantener presionada la primera tecla.</item>
+        <item quantity="other">%1$d reglas convierten una tecla y la siguiente en otro carácter. Aquí, esos caracteres se obtienen al mantener presionada la primera tecla.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">La aplicación cambió %1$d tecla por la más cercana que tiene.</item>
         <item quantity="other">La aplicación cambió %1$d teclas por las más cercanas que tiene.</item>

@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">Furigana olvasatok</string>
     <string name="core_input_cjk_pack_hanja_subtitle">Hangul szavak és a hanja változatuk, 300 000 bejegyzés. A billentyűzetnek szüksége van erre a csomagra, hogy hanja szavakat ajánljon fel a javaslatsávon.</string>
     <string name="core_input_cjk_pack_hanja_title">Hanja (漢字) szótár</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, így a szavak előtagjaikkal és utótagjaikkal együtt ismertek, és az elírások kijavításra kerülnek.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">Arab helyesírási szótár</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, így a tetszőleges ragos szavak is ismertek, és az elírások kijavításra kerülnek.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">Török helyesírási szabályok</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">Kana olvasatok a mozc-tól, 1,08 millió bejegyzés, körülbelül 42 MB. A billentyűzetnek szüksége van erre a csomagra a japán konverzióhoz.</string>

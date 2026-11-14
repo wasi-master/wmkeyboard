@@ -23,6 +23,34 @@
         <item quantity="one">لا مكان هنا لـ %1$d سحبة على مفتاح، لأن لوحة المفاتيح هذه تستخدم تلك السحبة لوظيفة أخرى. قام التطبيق بإزالتها.</item>
         <item quantity="other">لا مكان هنا لـ %1$d سحبات على مفاتيح، لأن لوحة المفاتيح هذه تستخدم تلك السحبات لوظائف أخرى. قام التطبيق بإزالتها.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">أغفل التطبيق قاعدة واحدة %1$d تغير ما يزيله الحذف. يعمل الحذف بالطريقة نفسها كما في كل تخطيط هنا.</item>
+        <item quantity="other">أغفل التطبيق قواعد %1$d تغير ما يزيله الحذف. يعمل الحذف بالطريقة نفسها كما في كل تخطيط هنا.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">أزال التطبيق سحبةً واحدةً (%1$d) تغير اتجاهها. السحبات على لوحة المفاتيح هذه تسير في اتجاه واحد.</item>
+        <item quantity="other">أزال التطبيق %1$d سحبات تغير اتجاهها. السحبات على لوحة المفاتيح هذه تسير في اتجاه واحد.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">استبعد التطبيق صفحة واحدة (%1$d) لمفتاح مثل Caps Lock أو Ctrl. لا تحتوي لوحة المفاتيح هذه على صفحة لهذا المفتاح.</item>
+        <item quantity="other">استبعد التطبيق %1$d صفحات لمفاتيح مثل Caps Lock أو Ctrl. لا تحتوي لوحة المفاتيح هذه على صفحات لتلك المفاتيح.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">تجاهل التطبيق قاعدة واحدة (%1$d) تضع الحركات بترتيب كتابتها. تكتب لوحة المفاتيح هذه الحركات بالترتيب الذي تكتبها به.</item>
+        <item quantity="other">تجاهل التطبيق %1$d قواعد تضع الحركات بترتيب كتابتها. تكتب لوحة المفاتيح هذه الحركات بالترتيب الذي تكتبها به.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">قاعدة واحدة (%1$d) تضع علامة تشكيل على الحرف التالي. هنا، المفتاح الذي يبدأها هو مفتاح ميت.</item>
+        <item quantity="other">تضع القواعد (%1$d) علامة تشكيل على الحرف التالي. هنا، المفاتيح التي تبدأها هي مفاتيح ميتة.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">استبعد التطبيق قاعدة واحدة (%1$d) لتغيير النص أثناء الكتابة. لا يوجد مفتاح هنا يبدأها، أو أنها تطابق نصًا أكثر مما يمكن لمفتاح كتابته.</item>
+        <item quantity="other">استبعد التطبيق %1$d قواعد لتغيير النص أثناء الكتابة. لا يوجد مفتاح هنا يبدأها، أو أنها تطابق نصًا أكثر مما يمكن لمفتاح كتابته.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">تؤدي %1$d قاعدة إلى تحويل مفتاح والمفتاح الذي يليه إلى حرف آخر. وهنا، يظهر هذا الحرف عند الضغط مع الاستمرار على المفتاح الأول.</item>
+        <item quantity="other">تؤدي %1$d قاعدة إلى تحويل مفتاح والمفتاح الذي يليه إلى حرف آخر. وهنا، تظهر هذه الحروف عند الضغط مع الاستمرار على المفتاح الأول.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">قام التطبيق بتغيير مفتاح واحد (%1$d) إلى أقرب مفتاح لديه.</item>
         <item quantity="other">قام التطبيق بتغيير %1$d مفاتيح إلى أقرب مفاتيح لديه.</item>

@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">你好</string>
     <string name="core_tools_media_category_laugh">笑声</string>
     <string name="core_tools_media_category_love">爱</string>
+    <string name="core_tools_media_category_memes">表情包</string>
     <string name="core_tools_media_category_no">无</string>
     <string name="core_tools_media_category_party">派对</string>
     <string name="core_tools_media_category_reactions">反应</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">Mozhi 服务器：Google、DeepL、DuckDuckGo、Yandex 和 Reverso 的免费前端。请选择引擎。DeepL 和 Reverso 需要源语言。</string>
     <string name="core_tools_provider_music_server">您自己的识别服务器</string>
     <string name="core_tools_provider_music_server_desc">一个由您运行的服务器，其响应方式类似于 AudD：将音频片段作为文件发布，并以 JSON 格式返回歌曲信息。在其后端配置如 Panako 或 Olaf 等指纹识别工具。</string>
+    <string name="core_tools_provider_mwmbl_desc">一个带有自己索引的免费非营利搜索引擎。无密钥。仅网页结果，无图片。</string>
     <string name="core_tools_provider_nllb">设备端 (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">使用 Meta 的 NLLB-200 模型在 CTranslate2 上进行手机端翻译：支持 200 种语言，可在任意两种语言间互译，适用于其他引擎无法处理的语言对。下载一次需 630 MB，翻译一个句子只需几秒钟。您的文本将保留在手机上。该模型仅限非商业用途（CC BY-NC 4.0）。需要 64 位手机且内存至少 6 GB。</string>
     <string name="core_tools_provider_none_on">没有开启的服务提供商。请在此工具的设置中开启一个。</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">此列表</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">显示或隐藏按键</string>
     <string name="core_tools_shortcut_leader_double_tap">连按两次 %1$s</string>
+    <string name="core_tools_speak_no_voice">此手机没有用于朗读的 %1$s 语音。请在 Android 的文字转语音设置中添加一个，或在“工具 › 朗读”下下载离线语音。</string>
     <string name="core_tools_symbol_category_arrows_label">箭头</string>
     <string name="core_tools_symbol_category_currency_label">货币</string>
     <string name="core_tools_symbol_category_fractions_label">分数</string>
     <string name="core_tools_symbol_category_greek_label">希腊语</string>
     <string name="core_tools_symbol_category_math_label">数学</string>
+    <string name="core_tools_symbol_category_music_label">音乐</string>
     <string name="core_tools_symbol_category_other_label">其他</string>
     <string name="core_tools_symbol_category_punctuation_label">标点符号</string>
     <string name="core_tools_symbol_category_shapes_label">形状和星号</string>
+    <string name="core_tools_symbol_category_stars_label">星标</string>
     <string name="core_tools_symbol_category_superscript_label">上标</string>
+    <string name="core_tools_symbol_category_technical_label">技术</string>
+    <string name="core_tools_symbol_category_weather_label">天气</string>
     <string name="core_tools_symbol_set_coding_label">编码</string>
     <string name="core_tools_symbol_set_email_label">电子邮件</string>
     <string name="core_tools_symbol_set_math_label">数学</string>

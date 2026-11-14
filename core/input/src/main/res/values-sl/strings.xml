@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">Bralne oznake Furigana</string>
     <string name="core_input_cjk_pack_hanja_subtitle">Besede Hangul in njihova hanja, 300.000 vnosov. Tipkovnica potrebuje ta paket za ponujanje hanje v vrstici s predlogi.</string>
     <string name="core_input_cjk_pack_hanja_title">Slovar Hanja (漢字)</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, tako da je beseda s svojimi predponami in priponami znana in se tipkarska napaka v njej popravi.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">Arabski slovar črkovanja</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, tako da so besede s poljubno pripono znane in se napake v njih odpravijo.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">Turška pravopisna pravila</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">Branja Kana iz mozc, 1,08 milijona vnosov, približno 42 MB. Tipkovnica potrebuje ta paket za pretvorbo japonščine.</string>

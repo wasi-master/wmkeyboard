@@ -23,6 +23,34 @@
         <item quantity="one">%1$d Wischgeste auf einer Taste hat hier keinen Platz, da diese Tastatur diese Geste für eine andere Aufgabe verwendet. Die App hat sie entfernt.</item>
         <item quantity="other">%1$d Wischgesten auf Tasten haben hier keinen Platz, da diese Tastatur diese Gesten für andere Aufgaben verwendet. Die App hat sie entfernt.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">Die App hat %1$d Regel ausgelassen, die ändert, was Löschen entfernt. Löschen funktioniert hier wie auf jedem Layout.</item>
+        <item quantity="other">Die App hat %1$d Regeln ausgelassen, die ändern, was Löschen entfernt. Löschen funktioniert hier wie auf jedem Layout.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">Die App hat %1$d Wischgeste entfernt, die die Richtung ändert. Wischgesten auf dieser Tastatur verlaufen in eine Richtung.</item>
+        <item quantity="other">Die App hat %1$d Wischgesten entfernt, die die Richtung ändern. Wischgesten auf dieser Tastatur verlaufen in eine Richtung.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">Die App hat %1$d Seite für eine Taste wie Caps Lock oder Strg ausgelassen. Diese Tastatur hat keine Seite für diese Taste.</item>
+        <item quantity="other">Die App hat %1$d Seiten für Tasten wie Caps Lock oder Strg ausgelassen. Diese Tastatur hat keine Seite für diese Tasten.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">Die App hat %1$d Regel ausgelassen, die Zeichen in ihrer Schreibreihenfolge anordnet. Diese Tastatur schreibt Zeichen in der Reihenfolge, in der Sie sie eingeben.</item>
+        <item quantity="other">Die App hat %1$d Regeln ausgelassen, die Zeichen in ihrer Schreibreihenfolge anordnen. Diese Tastatur schreibt Zeichen in der Reihenfolge, in der Sie sie eingeben.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d Regel versieht den nächsten Buchstaben mit einem Akzent. Hierbei ist die Taste, die dies auslöst, eine Totaste.</item>
+        <item quantity="other">%1$d Regeln versehen den nächsten Buchstaben mit einem Akzent. Hierbei sind die Tasten, die dies auslösen, Totasten.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">Die App hat %1$d Regel weggelassen, die Text bei der Eingabe ändert. Keine Taste hier startet sie, oder sie stimmt mit mehr Text überein, als eine Taste tippen kann.</item>
+        <item quantity="other">Die App hat %1$d Regeln weggelassen, die Text bei der Eingabe ändern. Keine Taste hier startet sie, oder sie stimmen mit mehr Text überein, als eine Taste tippen kann.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d Regel macht aus einer Taste und der nächsten ein anderes Zeichen. Hier befindet sich dieses Zeichen auf dem Gedrückthalten der ersten Taste.</item>
+        <item quantity="other">%1$d Regeln machen aus einer Taste und der nächsten ein anderes Zeichen. Hier befinden sich diese Zeichen auf dem Gedrückthalten der ersten Taste.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Die App hat %1$d Taste durch die nächstgelegene verfügbare ersetzt.</item>
         <item quantity="other">Die App hat %1$d Tasten durch die nächstgelegenen verfügbaren ersetzt.</item>

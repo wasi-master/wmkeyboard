@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">Merhaba</string>
     <string name="core_tools_media_category_laugh">Gülme</string>
     <string name="core_tools_media_category_love">Aşk</string>
+    <string name="core_tools_media_category_memes">Memler</string>
     <string name="core_tools_media_category_no">Hayır</string>
     <string name="core_tools_media_category_party">Parti</string>
     <string name="core_tools_media_category_reactions">Tepkiler</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">Bir Mozhi sunucusu: Google, DeepL, DuckDuckGo, Yandex ve Reverso için ücretsiz bir arayüz. Motoru seçin. DeepL ve Reverso kaynak dili gerektirir.</string>
     <string name="core_tools_provider_music_server">Kendi tanıma sunucunuz</string>
     <string name="core_tools_provider_music_server_desc">AudD gibi yanıt veren, çalıştırdığınız bir sunucu: klip dosya olarak gönderilir ve şarkı JSON olarak geri döner. Arkasına Panako veya Olaf gibi bir parmak izi okuyucu yerleştirin.</string>
+    <string name="core_tools_provider_mwmbl_desc">Kendi dizinine sahip, kâr amacı gütmeyen ücretsiz bir arama motoru. Anahtar yok. Yalnızca web sonuçları, resim yok.</string>
     <string name="core_tools_provider_nllb">Cihaz üzerinde (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">Meta\'nın CTranslate2 üzerindeki NLLB-200 modeli ile telefonda çeviri yapar: Diğer motorların yapamadığı çiftler için 200 dil arasında çeviri. 630 MB\'lık tek bir indirme ile bir cümle birkaç saniyede çevrilir. Metniniz telefonda kalır. Model yalnızca ticari olmayan kullanım için lisanslanmıştır (CC BY-NC 4.0). 6 GB veya daha fazla belleğe sahip 64 bit bir telefon gerektirir.</string>
     <string name="core_tools_provider_none_on">Hiçbir sağlayıcı açık değil. Bu aracın ayarlarından birini açın.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">Bu liste</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">Tuşları göster veya gizle</string>
     <string name="core_tools_shortcut_leader_double_tap">%1$s tuşuna iki kez basın</string>
+    <string name="core_tools_speak_no_voice">Bu telefonda bunu okuyacak %1$s ses yok. Android\'in metin okuma ayarlarından bir tane ekleyin veya Araçlar › Geri oku bölümünden çevrimdışı bir ses indirin.</string>
     <string name="core_tools_symbol_category_arrows_label">Oklar</string>
     <string name="core_tools_symbol_category_currency_label">Para birimi</string>
     <string name="core_tools_symbol_category_fractions_label">Kesirler</string>
     <string name="core_tools_symbol_category_greek_label">Yunanca</string>
     <string name="core_tools_symbol_category_math_label">Matematik</string>
+    <string name="core_tools_symbol_category_music_label">Müzik</string>
     <string name="core_tools_symbol_category_other_label">Diğer</string>
     <string name="core_tools_symbol_category_punctuation_label">Noktalama işaretleri</string>
     <string name="core_tools_symbol_category_shapes_label">Şekiller ve yıldızlar</string>
+    <string name="core_tools_symbol_category_stars_label">Yıldızlar</string>
     <string name="core_tools_symbol_category_superscript_label">Üst simge</string>
+    <string name="core_tools_symbol_category_technical_label">Teknik</string>
+    <string name="core_tools_symbol_category_weather_label">Hava durumu</string>
     <string name="core_tools_symbol_set_coding_label">Kodlama</string>
     <string name="core_tools_symbol_set_email_label">E-posta</string>
     <string name="core_tools_symbol_set_math_label">Matematik</string>

@@ -23,6 +23,34 @@
         <item quantity="one">%1$d billentyűn végzett húzásnak itt nincs helye, mert ez a billentyűzet azt a húzást más feladatra használja. Az alkalmazás eltávolította.</item>
         <item quantity="other">%1$d billentyűn végzett húzásnak itt nincs helye, mert ez a billentyűzet azokat a húzásokat más feladatokra használja. Az alkalmazás eltávolította őket.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">Az alkalmazás kihagyott %1$d szabályt, amely megváltoztatja, hogy a törlés mit távolít el. A törlés úgy működik, mint itt minden elrendezésben.</item>
+        <item quantity="other">Az alkalmazás kihagyott %1$d szabályt, amelyek megváltoztatják, hogy a törlés mit távolít el. A törlés úgy működik, mint itt minden elrendezésben.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">Az alkalmazás eltávolított %1$d irányt váltó legyintést. Ezen a billentyűzeten a legyintések egy irányba mennek.</item>
+        <item quantity="other">Az alkalmazás eltávolított %1$d irányt váltó legyintést. Ezen a billentyűzeten a legyintések egy irányba mennek.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">Az alkalmazás kihagyott %1$d oldalt egy olyan billentyűhöz, mint a Caps Lock vagy a Ctrl. Ez a billentyűzet nem tartalmaz oldalt az adott billentyűhöz.</item>
+        <item quantity="other">Az alkalmazás kihagyott %1$d oldalt olyan billentyűkhöz, mint a Caps Lock vagy a Ctrl. Ez a billentyűzet nem tartalmaz oldalt az adott billentyűkhöz.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">Az alkalmazás kihagyott %1$d szabályt, amely a jeleket a leírt sorrendbe teszi. Ez a billentyűzet a jeleket abban a sorrendben írja, ahogy gépeli őket.</item>
+        <item quantity="other">Az alkalmazás kihagyott %1$d szabályt, amelyek a jeleket a leírt sorrendbe teszik. Ez a billentyűzet a jeleket abban a sorrendben írja, ahogy gépeli őket.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d szabály tesz ékezetet a következő betűre. Itt az azt elindító billentyű egy holt billentyű.</item>
+        <item quantity="other">%1$d szabály tesz ékezetet a következő betűre. Itt az azokat elindító billentyűk holt billentyűk.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">Az alkalmazás kihagyott %1$d olyan szabályt, amely gépelés közben módosítja a szöveget. Egyik gomb sem indítja el, vagy több szöveggel egyezik, mint amit egy gomb be tud írni.</item>
+        <item quantity="other">Az alkalmazás kihagyott %1$d olyan szabályt, amely gépelés közben módosítja a szöveget. Egyik gomb sem indítja el őket, vagy több szöveggel egyeznek, mint amit egy gomb be tud írni.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d szabály egy gombot és a következőt egy másik karakterré alakítja át. Itt ez a karakter az első gomb hosszan tartó lenyomásával érhető el.</item>
+        <item quantity="other">%1$d szabály egy gombot és a következőt egy másik karakterré alakítja át. Itt ezek a karakterek az első gomb hosszan tartó lenyomásával érhetők el.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Az alkalmazás %1$d billentyűt a legközelebbi elérhető billentyűre cserélt.</item>
         <item quantity="other">Az alkalmazás %1$d billentyűt a legközelebbi elérhető billentyűkre cserélt.</item>

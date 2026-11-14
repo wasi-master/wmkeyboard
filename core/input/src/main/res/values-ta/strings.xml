@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">புரிகானா வாசிப்புகள்</string>
     <string name="core_input_cjk_pack_hanja_subtitle">ஹங்குல் சொற்கள் மற்றும் அவற்றின் ஹான்ஜா, 300,000 உள்ளீடுகள். பரிந்துரைப் பட்டையில் ஹான்ஜாவை வழங்க விசைப்பலகைக்கு இந்தப் பொதி தேவைப்படுகிறது.</string>
     <string name="core_input_cjk_pack_hanja_title">ஹான்ஜா (漢字) அகராதி</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, எனவே அதன் முன்னொட்டுகள் மற்றும் பின்னொட்டுகளைக் கொண்ட ஒரு சொல் அறியப்படுகிறது மற்றும் அதில் உள்ள எழுத்துப்பிழை சரி செய்யப்படுகிறது.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">அரபு எழுத்துக்கூட்டு அகராதி</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, எனவே எந்தவொரு பின்னொட்டுடன் கூடிய சொற்களும் அறியப்படும் மற்றும் அவற்றுள் உள்ள எழுத்துப்பிழைகள் சரிசெய்யப்படும்.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">துருக்கிய எழுத்துப்பிழை விதிகள்</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">மோஸ்க்கிலிருந்து (mozc) கானா வாசிப்புகள், 1.08 மில்லியன் உள்ளீடுகள், சுமார் 42 எம்பி. ஜப்பானிய மொழி மாற்றத்திற்கு விசைப்பலகைக்கு இந்த பேக் தேவை.</string>

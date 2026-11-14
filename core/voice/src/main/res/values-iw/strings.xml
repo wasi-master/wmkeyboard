@@ -9,11 +9,16 @@
     <string name="core_voice_model_base_multi_body">מודל זה מאזן בין דיוק למהירות. הוא מכסה כל שפה ש-Whisper מכיר. בחר בו אם המודל הקטן איטי מדי.</string>
     <string name="core_voice_model_base_world_body">מודל זה משתמש בשפה שבה אתה מקליד במקום לנחש. ביטויים קצרים הופכים לאמינים הרבה יותר. בחר בו כאשר הרשימה שלו כוללת את השפות שלך.</string>
     <string name="core_voice_model_cpp_base_body">מודל זה מאזן בין דיוק למהירות. הוא משתמש בשפה שבה אתה מכתיב, בכל אחת מ-99 השפות ש-Whisper מכיר, והוא מאזין למילים שלך. בחר בו אם המודל הקטן איטי מדי.</string>
+    <string name="core_voice_model_cpp_fine_tune_body">%1$s אימן את מודל ה-Turbo הזה עוד יותר על דיבור בשפה אחת זו. הוא מטפל בשפה זו בלבד.</string>
+    <string name="core_voice_model_cpp_hinglish_body">Oriserve אימנה מודל זה על הינדי ועל הינדי מעורב באנגלית. הוא כותב את מה שאתה אומר באותיות לטיניות, כפי שמקובל להקליד הינגליש, ושומר על מילים באנגלית באנגלית. הוא לעולם אינו כותב בדוונאגרי, כך שהוא מתאים להינגליש יותר מאשר להינדי. הוא קטן ומהיר.</string>
+    <string name="core_voice_model_cpp_kb_body">הספרייה הלאומית של שוודיה אומנה על דיבור בשוודית. היא מטפלת בשוודית בלבד, ומדויקת יותר עבורה מאשר מודל Whisper הכללי באותו גודל.</string>
+    <string name="core_voice_model_cpp_kotoba_body">חברת Kotoba Technologies יצרה מודל יפני זה מ-Whisper Large v3. המפענח שלה קטן בהרבה, ולכן הוא פועל בערך במהירות של מודל ה-Turbo. הוא מטפל ביפנית בלבד.</string>
     <string name="core_voice_model_cpp_large_body">זהו מודל Whisper המדויק ביותר. ההורדה היא בגודל 1.1 ג\'יגה-בייט. רק מכשיר עם כמות גדולה של זיכרון יכול לטעון אותו. מודל ה-Turbo מדויק כמעט באותה מידה והוא חצי מהגודל.</string>
     <string name="core_voice_model_cpp_medium_body">מודל זה מספק דיוק כמעט כמו במחשב שולחני. כל ביטוי לוקח מספר שניות. המודל משתמש בכמעט גיגה-בייט אחד של זיכרון בזמן שהוא פועל.</string>
     <string name="core_voice_model_cpp_small_body">מודל זה מספק את הדיוק הטוב ביותר שעדיין פועל היטב בטלפון. הוא משתמש בשפה שבה אתה מכתיב, בכל אחת מ-99 השפות ש-Whisper מכיר, והוא מאזין למילים שלך.</string>
     <string name="core_voice_model_cpp_tiny_body">זהו המודל המהיר ביותר. הוא עובד היטב עם דיבור ברור, אך רעש מפחית את הדיוק. הוא משתמש בשפה שבה אתה מכתיב ומקשיב למילים שלך.</string>
     <string name="core_voice_model_cpp_turbo_body">מודל זה מדויק כמעט כמו המודל הגדול ביותר, בחצי מהגודל. כל משפט לוקח מספר שניות, והוא אינו יכול לתרגם.</string>
+    <string name="core_voice_model_custom_body">ייבאת מודל whisper.cpp זה מקובץ. המקלדת אינה יודעת כיצד הוא אומן, לכן בחר בו עבור השפות שעבורן נוצר תחת מודל לפי שפה.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d שפה</item>
         <item quantity="other">%1$d שפות</item>

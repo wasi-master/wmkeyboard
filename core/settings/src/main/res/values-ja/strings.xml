@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">ストリップ、ピル、キー</string>
     <string name="core_settings_glide_commit_scope_pill_label">ストリップとピル</string>
     <string name="core_settings_glide_commit_scope_strip_label">ストリップ</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">元に戻すの後</string>
+    <string name="core_settings_glide_drawn_letters_off_label">オフ</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">不明な場合</string>
     <string name="core_settings_glide_engine_built_in_label">組み込み</string>
     <string name="core_settings_glide_engine_futo_label">FUTOスワイプ（英語、QWERTY）</string>
     <string name="core_settings_glide_engine_google_label">Googleのジェスチャーライブラリ（インポート済み）</string>

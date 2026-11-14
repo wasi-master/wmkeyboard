@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">স্ট্রিপ, পিল এবং কি</string>
     <string name="core_settings_glide_commit_scope_pill_label">স্ট্রিপ এবং পিল</string>
     <string name="core_settings_glide_commit_scope_strip_label">স্ট্রিপ</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">আনডু করার পরে</string>
+    <string name="core_settings_glide_drawn_letters_off_label">বন্ধ</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">অনিশ্চিত হলে</string>
     <string name="core_settings_glide_engine_built_in_label">বিল্ট-ইন</string>
     <string name="core_settings_glide_engine_futo_label">FUTO সোয়াইপ (ইংরেজি, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Google-এর জেসচার লাইব্রেরি (আমদানি করা)</string>

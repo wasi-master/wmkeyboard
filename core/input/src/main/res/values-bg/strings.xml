@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">Четене на фуригана</string>
     <string name="core_input_cjk_pack_hanja_subtitle">Думи на хангъл и техните ханджа, 300 000 записи. Клавиатурата се нуждае от този пакет, за да предлага ханджа на лентата с предложения.</string>
     <string name="core_input_cjk_pack_hanja_title">Речник на Hanja (漢字)</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, така че думата с нейните представки и наставки да е известна и печатна грешка в нея да бъде поправена.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">Речник за правопис на арабски</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, така че думите с всякакви наставки да са познати и печатните грешки в тях да се коригират.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">Турски правила за правопис</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">Kana четения от mozc, 1.08 милиона записа, около 42 MB. Клавиатурата се нуждае от този пакет за японска конверсия.</string>

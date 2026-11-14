@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">ಇಮೇಲ್ ವಿಳಾಸ</string>
+    <string name="core_content_clip_entity_email_tag">ಇಮೇಲ್</string>
     <string name="core_content_clip_entity_otp_label">ಒನ್-ಟೈಮ್ ಕೋಡ್</string>
     <string name="core_content_clip_entity_otp_tag">ಕೋಡ್</string>
     <string name="core_content_clip_entity_phone_label">ಫೋನ್ ಸಂಖ್ಯೆ</string>
@@ -38,6 +40,10 @@
         <item quantity="one">ಆ್ಯಪ್ ಸೇರಿಸಲು ಏನೂ ಇಲ್ಲದ %1$d ಸ್ನಿಪ್ಪೆಟ್ ಅನ್ನು ಬಿಟ್ಟುಬಿಟ್ಟಿದೆ.</item>
         <item quantity="other">ಆ್ಯಪ್ ಸೇರಿಸಲು ಏನೂ ಇಲ್ಲದ %1$d ಸ್ನಿಪ್ಪೆಟ್‌ಗಳನ್ನು ಬಿಟ್ಟುಬಿಟ್ಟಿದೆ.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d ಫಾರ್ಮ್ ಕ್ಷೇತ್ರವು ಆಯ್ಕೆ ಮಾಡಲು ಪಟ್ಟಿಯನ್ನು ನೀಡುತ್ತದೆ. ಅಪ್ಲಿಕೇಶನ್ ಮೊದಲ ಆಯ್ಕೆಯನ್ನು ಭರ್ತಿ ಮಾಡುವ ಮೂಲಕ ಟೈಪ್ ಮಾಡಿದ ಉತ್ತರದಂತೆ ಕೇಳುತ್ತದೆ.</item>
+        <item quantity="other">%1$d ಫಾರ್ಮ್ ಕ್ಷೇತ್ರಗಳು ಆಯ್ಕೆ ಮಾಡಲು ಪಟ್ಟಿಯನ್ನು ನೀಡುತ್ತವೆ. ಅಪ್ಲಿಕೇಶನ್ ಮೊದಲ ಆಯ್ಕೆಯನ್ನು ಭರ್ತಿ ಮಾಡುವ ಮೂಲಕ ಪ್ರತಿಯೊಂದನ್ನು ಟೈಪ್ ಮಾಡಿದ ಉತ್ತರದಂತೆ ಕೇಳುತ್ತದೆ.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">ಅಪ್ಲಿಕೇಶನ್ ಚಿತ್ರವನ್ನು ಸೇರಿಸುವ %1$d ಸ್ನಿಪ್ಪೆಟ್ ಅನ್ನು ಬಿಟ್ಟುಬಿಟ್ಟಿದೆ.</item>
         <item quantity="other">ಅಪ್ಲಿಕೇಶನ್ ಚಿತ್ರಗಳನ್ನು ಸೇರಿಸುವ %1$d ಸ್ನಿಪ್ಪೆಟ್‌ಗಳನ್ನು ಬಿಟ್ಟುಬಿಟ್ಟಿದೆ.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d ಸ್ನಿಪ್ಪೆಟ್ Espanso ಯಾವುದೇ ಸಮಾನತೆಯನ್ನು ಹೊಂದಿರದ ಮೌಲ್ಯವನ್ನು ಬಳಸುತ್ತದೆ. ಅದು ಇರುವಂತೆಯೇ ಬರೆಯಲ್ಪಟ್ಟಿದೆ.</item>
         <item quantity="other">%1$d ಸ್ನಿಪ್ಪೆಟ್‌ಗಳು Espanso ಯಾವುದೇ ಸಮಾನತೆಯನ್ನು ಹೊಂದಿರದ ಮೌಲ್ಯಗಳನ್ನು ಬಳಸುತ್ತವೆ. ಅವು ಇರುವಂತೆಯೇ ಬರೆಯಲ್ಪಟ್ಟಿವೆ.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d ಸ್ನಿಪೆಟ್ ಚಿತ್ರವನ್ನು ಸೇರಿಸುತ್ತದೆ. ಪಠ್ಯ ಫೈಲ್ ಚಿತ್ರವನ್ನು ಹಿಡಿದಿಟ್ಟುಕೊಳ್ಳಲು ಸಾಧ್ಯವಿಲ್ಲ, ಆದ್ದರಿಂದ ಅದರ ಪದಗಳು ಮಾತ್ರ ಹೊರಹೋದವು.</item>
+        <item quantity="other">%1$d ಸ್ನಿಪೆಟ್‌ಗಳು ಚಿತ್ರಗಳನ್ನು ಸೇರಿಸುತ್ತವೆ. ಪಠ್ಯ ಫೈಲ್ ಚಿತ್ರಗಳನ್ನು ಹಿಡಿದಿಟ್ಟುಕೊಳ್ಳಲು ಸಾಧ್ಯವಿಲ್ಲ, ಆದ್ದರಿಂದ ಅವುಗಳ ಪದಗಳು ಮಾತ್ರ ಹೊರಹೋದವು.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">ಅಪ್ಲಿಕೇಶನ್ %1$d ಸ್ನಿಪ್ಪೆಟ್‌ನಿಂದ ಮಾದರಿಯನ್ನು ತೆಗೆದುಹಾಕಿದೆ. ಅಪ್ಲಿಕೇಶನ್ ಆ ಆಕಾರದ ಮಾದರಿಗಳನ್ನು ಚಲಾಯಿಸುವುದಿಲ್ಲ. ಸ್ನಿಪ್ಪೆಟ್ ಪಟ್ಟಿಯಲ್ಲಿ ಉಳಿಯುತ್ತದೆ.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">ಅಪ್ಲಿಕೇಶನ್ ಕೀಬೋರ್ಡ್ ವೀಕ್ಷಿಸಲು ಸಾಧ್ಯವಾಗದ %1$d ಟ್ರಿಗರ್ ಅನ್ನು ತೆಗೆದುಹಾಕಿದೆ. ಅದರ ಸ್ನಿಪ್ಪೆಟ್ ಪಟ್ಟಿಯಲ್ಲಿ ಉಳಿದಿದೆ.</item>
         <item quantity="other">ಅಪ್ಲಿಕೇಶನ್ ಕೀಬೋರ್ಡ್ ವೀಕ್ಷಿಸಲು ಸಾಧ್ಯವಾಗದ %1$d ಟ್ರಿಗರ್‌ಗಳನ್ನು ತೆಗೆದುಹಾಕಿದೆ. ಅವುಗಳ ಸ್ನಿಪ್ಪೆಟ್‌ಗಳು ಪಟ್ಟಿಯಲ್ಲಿ ಉಳಿದಿವೆ.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">==_ನೊಂದಿಗೆ ಪ್ರಾರಂಭವಾಗುತ್ತದೆ ಆದರೆ ಸಂಪೂರ್ಣ ==_ ಟ್ರಿಗರ್ ==_ ಸಾಲು ಅಲ್ಲ. ==_ ನೊಂದಿಗೆ ಪಠ್ಯದ ಸಾಲನ್ನು ಪ್ರಾರಂಭಿಸಲು, ಬದಲಿಗೆ \==_ ಅನ್ನು ಬರೆಯಿರಿ</string>
+    <string name="core_content_snippet_text_bad_pattern">ಮಾದರಿಯನ್ನು ಬಳಸಲಾಗುವುದಿಲ್ಲ: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s %2$s ಆಗಲು ಸಾಧ್ಯವಿಲ್ಲ</string>
+    <string name="core_content_snippet_text_before_header">ಮೊದಲ === ಟ್ರಿಗ್ಗರ್ === ಸಾಲಿನ ಮೊದಲು ಪಠ್ಯ. ಒಂದರೊಂದಿಗೆ ಬ್ಲಾಕ್ ಅನ್ನು ಪ್ರಾರಂಭಿಸಿ ಅಥವಾ ಸಾಲನ್ನು # ನಿಂದ ಪ್ರಾರಂಭಿಸಿ</string>
+    <string name="core_content_snippet_text_no_text">ಈ ತುಣುಕಿನಲ್ಲಿ ಯಾವುದೇ ಪಠ್ಯವಿಲ್ಲ</string>
+    <string name="core_content_snippet_text_no_trigger">=== ಗುರುತುಗಳ ನಡುವೆ ಏನೂ ಇಲ್ಲದ ಸ್ನಿಪೆಟ್‌ಗೆ @label ಅಥವಾ @pattern ಸಾಲಿನ ಅಗತ್ಯವಿದೆ</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d ಚಿತ್ರ ಸ್ನಿಪ್ಪೆಟ್ ಅದರ ಪಠ್ಯವಾಗಿ ಬಂದಿದೆ: ಪಠ್ಯ ಫೈಲ್ ಯಾವುದೇ ಚಿತ್ರಗಳನ್ನು ಹೊಂದಿಲ್ಲ</item>
+        <item quantity="other">%1$d ಚಿತ್ರ ಸ್ನಿಪ್ಪೆಟ್‌ಗಳು ಅವುಗಳ ಪಠ್ಯವಾಗಿ ಬಂದಿವೆ: ಪಠ್ಯ ಫೈಲ್ ಯಾವುದೇ ಚಿತ್ರಗಳನ್ನು ಹೊಂದಿಲ್ಲ</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">%%1$ನೇ ಸಾಲಿನಲ್ಲಿರುವ ತುಣುಕನ್ನು ಬಿಟ್ಟುಬಿಡಲಾಗಿದೆ, ಅದರಲ್ಲಿ ತಪ್ಪು ಇದೆ</string>
+    <string name="core_content_snippet_text_unknown_link">\@link %1$s ಅನ್ನು ಹೆಸರಿಸುತ್ತದೆ, ಮತ್ತು ಇಲ್ಲಿ ಯಾವುದೇ ಸ್ನಿಪ್ಪೆಟ್ ಆ ಟ್ರಿಗ್ಗರ್ ಅನ್ನು ಹೊಂದಿಲ್ಲ</string>
+    <string name="core_content_snippet_text_unknown_picture">" @picture ಹೆಸರುಗಳು %1$s, ಇದನ್ನು ಯಾವುದೇ ಸ್ನಿಪ್ಪೆಟ್ ಬಳಸುವುದಿಲ್ಲ. ಸ್ನಿಪ್ಪೆಟ್‌ನ ಸ್ವಂತ ಸಂಪಾದಕದಲ್ಲಿ ಚಿತ್ರಗಳನ್ನು ಸೇರಿಸಿ"</string>
+    <string name="core_content_snippet_text_unknown_setting">ಕೀಬೋರ್ಡ್‌ಗೆ %1$s ಸೆಟ್ಟಿಂಗ್ ತಿಳಿದಿಲ್ಲ. ಸ್ನಿಪ್ಪೆಟ್‌ನ ಪಠ್ಯವನ್ನು @ ನಿಂದ ಪ್ರಾರಂಭಿಸಲು, ಬದಲಿಗೆ \@ ಬರೆಯಿರಿ</string>
     <string name="core_content_snippet_var_app_info">ನೀವು ಟೈಪ್ ಮಾಡುವ ಅಪ್ಲಿಕೇಶನ್‌ನ ಹೆಸರು</string>
+    <string name="core_content_snippet_var_battery_info">ಬ್ಯಾಟರಿ ಚಾರ್ಜ್, ಉದಾಹರಣೆಗೆ 85%</string>
     <string name="core_content_snippet_var_clip_info">ಅತ್ಯಂತ ಹೊಸ ಕ್ಲಿಪ್‌ಬೋರ್ಡ್ ನಮೂದು</string>
     <string name="core_content_snippet_var_cursor_info">ಕರ್ಸರ್ ಬಂದು ನಿಲ್ಲುವ ಸ್ಥಳ</string>
     <string name="core_content_snippet_var_date_info">ಇಂದಿನ ದಿನಾಂಕ</string>
     <string name="core_content_snippet_var_datetime_info">ದಿನಾಂಕ ಮತ್ತು ಸಮಯ</string>
     <string name="core_content_snippet_var_day_info">ತಿಂಗಳ ದಿನ</string>
+    <string name="core_content_snippet_var_greeting_info">ಕೀಬೋರ್ಡ್ ಭಾಷೆಯಲ್ಲಿ ಸಮಯಕ್ಕೆ ತಕ್ಕಂತೆ ಶುಭೋದಯ, ಶುಭ ಅಪರಾಹ್ನ ಅಥವಾ ಶುಭ ಸಂಜೆ</string>
     <string name="core_content_snippet_var_isodate_info">ISO ರೂಪದಲ್ಲಿ ದಿನಾಂಕ, ಉದಾಹರಣೆಗೆ 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">ISO ರೂಪದಲ್ಲಿ ದಿನಾಂಕ ಮತ್ತು ಸಮಯ</string>
+    <string name="core_content_snippet_var_language_info">ನೀವು ಟೈಪ್ ಮಾಡುವ ಕೀಬೋರ್ಡ್ ಭಾಷೆ</string>
     <string name="core_content_snippet_var_month_info">ತಿಂಗಳ ಹೆಸರು</string>
     <string name="core_content_snippet_var_package_info">ಆ ಆ್ಯಪ್‌ನ ಪ್ಯಾಕೇಜ್ ಹೆಸರು</string>
     <string name="core_content_snippet_var_selection_info">ನೀವು ಕ್ಷೇತ್ರದಲ್ಲಿ ಆಯ್ಕೆ ಮಾಡುವ ಪಠ್ಯ</string>
+    <string name="core_content_snippet_var_tab_info">ಒಂದು ඟ್ರನ್ಥ ಕ್ಲೇತಿಂಗ್</string>
     <string name="core_content_snippet_var_time12_info">12-ಗಂಟೆಯ ರೂಪದಲ್ಲಿ ಈಗಿನ ಸಮಯ</string>
     <string name="core_content_snippet_var_time_info">24-ಗಂಟೆಯ ಸ್ವರೂಪದಲ್ಲಿ ಈಗಿನ ಸಮಯ</string>
     <string name="core_content_snippet_var_timestamp_info">Unix ಸೆಕೆಂಡುಗಳಲ್ಲಿ ಸಮಯ</string>

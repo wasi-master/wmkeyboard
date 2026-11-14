@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">안녕하세요</string>
     <string name="core_tools_media_category_laugh">웃음</string>
     <string name="core_tools_media_category_love">사랑</string>
+    <string name="core_tools_media_category_memes">밈</string>
     <string name="core_tools_media_category_no">아니요</string>
     <string name="core_tools_media_category_party">파티</string>
     <string name="core_tools_media_category_reactions">반응</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">Mozhi 서버: Google, DeepL, DuckDuckGo, Yandex 및 Reverso를 위한 무료 프런트 엔드입니다. 엔진을 선택하세요. DeepL과 Reverso는 원본 언어가 필요합니다.</string>
     <string name="core_tools_provider_music_server">사용자 지정 인식 서버</string>
     <string name="core_tools_provider_music_server_desc">AudD처럼 응답하는 직접 실행 서버입니다. 클립이 파일로 게시되고 노래가 JSON으로 반환됩니다. Panako나 Olaf 같은 핑거프린터를 뒤에 배치하세요.</string>
+    <string name="core_tools_provider_mwmbl_desc">" 자체 인덱스를 가진 무료 비영리 검색 엔진입니다. 키가 필요 없습니다. 웹 결과만 제공하며 이미지는 제공하지 않습니다."</string>
     <string name="core_tools_provider_nllb">기기 내 (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">CTranslate2에서 Meta의 NLLB-200 모델을 사용하여 휴대폰에서 번역합니다. 다른 엔진이 처리할 수 없는 쌍을 포함하여 200개 언어 간 번역을 지원합니다. 630MB를 한 번 다운로드하면 문장 번역에 몇 초가 걸립니다. 텍스트는 휴대폰에 유지됩니다. 이 모델은 비상업적 용도로만 라이선스가 부여됩니다(CC BY-NC 4.0). 6GB 이상의 메모리를 갖춘 64비트 휴대폰이 필요합니다.</string>
     <string name="core_tools_provider_none_on">활성화된 제공업체가 없습니다. 이 도구의 설정에서 하나를 활성화하세요.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">이 목록</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">키 표시 또는 숨기기</string>
     <string name="core_tools_shortcut_leader_double_tap">%1$s 두 번 누르기</string>
+    <string name="core_tools_speak_no_voice">이 휴대전화에는 읽어줄 %1$s 음성이 없습니다. Android 텍스트 음성 변환 설정에서 추가하거나 도구 › 다시 읽기에서 오프라인 음성을 다운로드하세요.</string>
     <string name="core_tools_symbol_category_arrows_label">화살표</string>
     <string name="core_tools_symbol_category_currency_label">통화</string>
     <string name="core_tools_symbol_category_fractions_label">분수</string>
     <string name="core_tools_symbol_category_greek_label">그리스어</string>
     <string name="core_tools_symbol_category_math_label">수학</string>
+    <string name="core_tools_symbol_category_music_label">음악</string>
     <string name="core_tools_symbol_category_other_label">기타</string>
     <string name="core_tools_symbol_category_punctuation_label">문장 부호</string>
     <string name="core_tools_symbol_category_shapes_label">도형 및 별</string>
+    <string name="core_tools_symbol_category_stars_label">별</string>
     <string name="core_tools_symbol_category_superscript_label">위첨자</string>
+    <string name="core_tools_symbol_category_technical_label">기술</string>
+    <string name="core_tools_symbol_category_weather_label">ሀረሀረ</string>
     <string name="core_tools_symbol_set_coding_label">코딩</string>
     <string name="core_tools_symbol_set_email_label">이메일</string>
     <string name="core_tools_symbol_set_math_label">수학</string>

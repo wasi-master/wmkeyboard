@@ -135,6 +135,8 @@
     <string name="common_special_access_accessibility_title">键盘手势辅助功能服务</string>
     <string name="common_special_access_all_files_body">此权限允许键盘读取和更改您手机共享存储空间中的每个文件，因为 Android 没有更细粒度的文件浏览权限。键盘仅将其用于文件管理器，该管理器可让您在不离开当前应用的情况下为工具选择文件。它仅会查看您打开的文件夹和搜索的名称，并且仅在您重命名、移动、复制或删除文件时才会对其进行更改。除非您使用工具发送文件，否则任何文件都不会离开您的设备。您可以拒绝此权限，或者稍后在 Android 设置中将其关闭。如果没有此权限，选择文件将打开 Android 自带的选择器。</string>
     <string name="common_special_access_all_files_title">所有文件访问权限，供文件管理器使用</string>
+    <string name="common_special_access_do_not_disturb_body">悬浮按钮的“响铃模式”操作可在响铃、振动和静音之间切换。由于静音和“免打扰”在底层共用一个开关，Android 仅允许应用在获得“免打扰”访问权限时开启或关闭静音。键盘仅将其用于此功能：在您按下按钮时设置响铃模式，不会读取、更改或开启您的“免打扰”日程或例外规则。若无此权限，该操作将仅在响铃和振动之间切换。</string>
+    <string name="common_special_access_do_not_disturb_title">响铃模式的“勿扰”访问权限</string>
     <string name="common_special_access_exact_alarms_body">拥有此权限后，您在时钟工具中设置的闹钟或计时器会在准确时间响起。如果没有该权限，闹钟仍会响，但安卓系统可能会在手机进入休眠状态时将其推迟几分钟。输入法仅会将此权限用于您设置的闹钟和计时器。它不会读取任何内容，也不会收集任何数据。您可以随时将其关闭。</string>
     <string name="common_special_access_exact_alarms_title">时钟工具的精确闹钟</string>
     <string name="common_special_access_full_screen_body">获得此权限后，响铃的闹钟或计时器将以全屏形式显示在锁屏界面上方，并提供“小睡”和“关闭”选项。若无此权限，闹钟仍会响铃，但会以通知形式显示。键盘仅在您的闹钟或计时器响铃时使用此权限。</string>

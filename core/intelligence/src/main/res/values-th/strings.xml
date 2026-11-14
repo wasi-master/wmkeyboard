@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">โมเดลขนาดกลางรุ่นใหม่ที่คิดก่อนตอบ จำเป็นต้องใช้อุปกรณ์ระดับกลาง</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">ขนาดเล็กและรวดเร็ว เหมาะสำหรับการเขียนใหม่แบบรวดเร็วบนอุปกรณ์พื้นฐาน</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">โมเดลขนาดเล็กมากที่สามารถอ่านรูปภาพได้ สามารถบรรยายรูปภาพได้ แต่อาจอ่านข้อความในภาพแคปหน้าจอผิดพลาดบ่อยครั้ง</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">การฝึกอบรม Gemma 4 E4B ของ NVIDIA ใหม่สำหรับการปฏิบัติตามคำสั่งและการใช้เครื่องมือ รองรับเฉพาะข้อความและต้องใช้อุปกรณ์ที่มีประสิทธิภาพสูง</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">โมเดลอเนกประสงค์ที่ยังคงใช้งานได้บนอุปกรณ์พื้นฐาน</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">ฉลาดกว่าโมเดลที่ต่ำกว่า 1B อย่างเห็นได้ชัด จำเป็นต้องใช้อุปกรณ์ระดับกลาง</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">โมเดลขนาดเล็กตัวใหม่ล่าสุด ให้คุณภาพสูงเมื่อเทียบกับขนาด</string>

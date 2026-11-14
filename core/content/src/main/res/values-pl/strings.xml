@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">Adres e-mail</string>
+    <string name="core_content_clip_entity_email_tag">E-MAIL</string>
     <string name="core_content_clip_entity_otp_label">Kod jednorazowy</string>
     <string name="core_content_clip_entity_otp_tag">KOD</string>
     <string name="core_content_clip_entity_phone_label">Numer telefonu</string>
@@ -38,6 +40,10 @@
         <item quantity="one">Aplikacja pominęła %1$d fragment, który nie ma nic do wstawienia.</item>
         <item quantity="other">Aplikacja pominęła %1$d fragmentów, które nie mają nic do wstawienia.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d pole formularza oferuje listę do wyboru. Aplikacja pyta o nie jako o odpowiedź tekstową z wprowadzonym pierwszym wyborem.</item>
+        <item quantity="other">%1$d pól formularza oferuje listę do wyboru. Aplikacja pyta o każde z nich jako o odpowiedź tekstową z wprowadzonym pierwszym wyborem.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Aplikacja pominęła %1$d fragment, który wstawia obraz.</item>
         <item quantity="other">Aplikacja pominęła %1$d fragmentów, które wstawiają obrazy.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d snippet używa wartości, dla której Espanso nie ma odpowiednika. Jest zapisany tak, jak jest.</item>
         <item quantity="other">%1$d snippetów używa wartości, dla których Espanso nie ma odpowiednika. Są zapisane tak, jak są.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d fragment wstawia obraz. Plik tekstowy nie moŵe pomieścić obrazu, więc wyeksportowano tylko jego słowa.</item>
+        <item quantity="other">%1$d fragmenty wstawiają obrazy. Plik tekstowy nie moŵe pomieścić obraz³w, więc wyeksportowano tylko ich słowa.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">Aplikacja usunęła wzorzec z %1$d fragmentu. Aplikacja nie uruchamia wzorców o takim kształcie. Fragment pozostaje na liście.</item>
@@ -197,17 +207,34 @@
         <item quantity="one">Aplikacja usunęła %1$d wyzwalacz, którego klawiatura nie może monitorować. Jego fragment pozostaje na liście.</item>
         <item quantity="other">Aplikacja usunęła %1$d wyzwalaczy, których klawiatura nie może monitorować. Ich fragmenty pozostają na liście.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">Zaczyna się od 888, ale nie jest całą linią wyzwalającą 888 888. Aby rozpocząć linię tekstu od 888, napisz zamiast tego \888</string>
+    <string name="core_content_snippet_text_bad_pattern">Nie można użyć wzorca: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s nie może być %2$s</string>
+    <string name="core_content_snippet_text_before_header">Tekst przed pierwszą linią wyzwalającą ===. Rozpocznij blok jednym lub zacznij linię od #</string>
+    <string name="core_content_snippet_text_no_text">Ten fragment nie zawiera tekstu</string>
+    <string name="core_content_snippet_text_no_trigger">Wycinek z niczym między znakami === wymaga linii @label lub @pattern</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">Wpłynął %1$d fragment obrazu jako jego tekst: plik tekstowy nie zawiera obrazów</item>
+        <item quantity="other">Wpłynęło %1$d fragmentów obrazów jako ich tekst: plik tekstowy nie zawiera obrazów</item>
+    </plurals>
+    <string name="core_content_snippet_text_unknown_link">\@link nazywa się %1$s i żaden szablon tutaj nie ma takiego wyzwalacza</string>
+    <string name="core_content_snippet_text_unknown_picture">\@picture wskazuje %1$s, z którego nie korzysta żaden fragment. Dodaj zdjęcia we własnym edytorze fragmentu</string>
+    <string name="core_content_snippet_text_unknown_setting">Klawiatura nie zna ustawienia %1$s. Aby rozpocząć tekst fragmentu od @, napisz zamiast tego \@</string>
     <string name="core_content_snippet_var_app_info">Nazwa aplikacji, w której piszesz</string>
+    <string name="core_content_snippet_var_battery_info">Naładowanie baterii, na przykład 85%</string>
     <string name="core_content_snippet_var_clip_info">Najnowszy wpis w schowku</string>
     <string name="core_content_snippet_var_cursor_info">Miejsce, w którym ląduje kursor</string>
     <string name="core_content_snippet_var_date_info">Dzisiejsza data</string>
     <string name="core_content_snippet_var_datetime_info">Data i godzina</string>
     <string name="core_content_snippet_var_day_info">Dzień miesiąca</string>
+    <string name="core_content_snippet_var_greeting_info">Dzień dobry, popołudnie lub wieczór w zależności od czasu, w języku klawiatury</string>
     <string name="core_content_snippet_var_isodate_info">Data w formacie ISO, na przykład 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">Data i godzina w formacie ISO</string>
+    <string name="core_content_snippet_var_language_info">Język klawiatury, w którym piszesz</string>
     <string name="core_content_snippet_var_month_info">Nazwa miesiąca</string>
     <string name="core_content_snippet_var_package_info">Nazwa pakietu tej aplikacji</string>
     <string name="core_content_snippet_var_selection_info">Tekst zaznaczony w polu</string>
+    <string name="core_content_snippet_var_tab_info">Znak tabulacji</string>
     <string name="core_content_snippet_var_time12_info">Aktualny czas w formacie 12-godzinnym</string>
     <string name="core_content_snippet_var_time_info">Aktualny czas w formacie 24-godzinnym</string>
     <string name="core_content_snippet_var_timestamp_info">Czas w sekundach Unix</string>

@@ -176,6 +176,7 @@
     <string name="ime_ai_error_no_text">Nav nekā, ar ko strādāt. Vispirms ievadiet tekstu.</string>
     <string name="ime_ai_error_only_reasoning">Modelis izmantoja visu atbildi pamatošanai. Mēģiniet vēlreiz vai iestatījumos ieslēdziet “Rādīt pamatojumu”.</string>
     <string name="ime_ai_error_request_failed">Pieprasījums neizdevās</string>
+    <string name="ime_ai_error_stopped_hidden">Apturēts, jo tastatūra tika aizvērta. Mēģiniet vēlreiz to palaist.</string>
     <string name="ime_ai_idle_body">Darbības tiek izpildītas atlasītajā tekstā vai visā laukā. Tās izmanto %1$s.</string>
     <string name="ime_ai_idle_empty_body">Ierakstiet vai atlasiet tekstu, lai izmantotu šīs darbības. Nospiediet %1$s, lai rakstītu jaunu tekstu.</string>
     <string name="ime_ai_idle_empty_no_writer_body">Ievadiet vai atlasiet tekstu, lai izmantotu šīs darbības.</string>
@@ -307,9 +308,11 @@
     <string name="ime_app_colors_none">Šajā lietotnē krāsas nav atrastas</string>
     <string name="ime_app_colors_off_desc">Neizmantot šīs lietotnes krāsas</string>
     <string name="ime_app_colors_pick_desc">Lietotnes krāsa %1$d</string>
+    <string name="ime_applet_back">Atpakaļ</string>
     <string name="ime_applet_close">Aizvērt lodziņu</string>
     <string name="ime_applet_copied">Nokopēts</string>
     <string name="ime_applet_open_in_keyboard">Atvērt tastatūrā</string>
+    <string name="ime_applet_pop_out">Atvērt peldošā logā</string>
     <string name="ime_applet_resize">Velciet, lai mainītu izmēru</string>
     <string name="ime_applet_tuck">Pārvietot malā</string>
     <string name="ime_applet_untuck">Atgriezt atpakaļ %1$s</string>
@@ -319,6 +322,33 @@
     <string name="ime_ask_ai_label_vocab">Vārdnīca: %1$s</string>
     <string name="ime_ask_ai_label_wiki">Vikipēdija: %1$s</string>
     <string name="ime_autofill_dismiss_desc">Paslēpt automātiskās aizpildīšanas ieteikumus</string>
+    <string name="ime_board_copy_desc">Kopēt uz šo tālruni</string>
+    <string name="ime_board_delete_body">Tas tiek dzēsts no visam ierģĦēm, kas izmanto šo starpliktuvi. Kopijas, kas jau atrodas tālruűa starpliktuvē, paliek.</string>
+    <string name="ime_board_delete_desc">Noņemt dēli</string>
+    <string name="ime_board_delete_no">Atcelt</string>
+    <string name="ime_board_delete_title">Noņemt šo klipu no dēļa?</string>
+    <string name="ime_board_delete_yes">Noņemt</string>
+    <string name="ime_board_edit_desc">Rediģēt</string>
+    <string name="ime_board_empty_body">Šeit nosūtītie klipi parādīsies jūsu citās ierīcēs, kas izmanto to pašu mapi, pat tajās, kuras pašlaik ir bezsaistē.</string>
+    <string name="ime_board_empty_title">Tāfele ir tukša</string>
+    <string name="ime_board_notice_copied">Nokopēts</string>
+    <string name="ime_board_notice_deleted">Noņemts no tāfeles</string>
+    <string name="ime_board_notice_refused">Uz tāfeles var novietot tikai teksta klipus, kas nav paslēpti</string>
+    <string name="ime_board_notice_sent">Nosūtīts uz tāfeli</string>
+    <string name="ime_board_send_desc">Sūtīt klipu</string>
+    <string name="ime_board_send_done">Gatavs</string>
+    <string name="ime_board_send_empty">Nav teksta klipu, ko nosūtīt. Attēli, faili un slēptie klipi paliek šajā tālrunī.</string>
+    <string name="ime_board_send_one_desc">Sūtīt</string>
+    <string name="ime_board_send_title">Nosūtīt uz dēli</string>
+    <string name="ime_board_sent_desc">Nosūtīts</string>
+    <string name="ime_board_status_failed">Nevar sasniegt tāfeli</string>
+    <string name="ime_board_status_never">Vēl nav pārbaudīts</string>
+    <string name="ime_board_status_synced">Pārbaudīts %1$s</string>
+    <string name="ime_board_status_syncing">Pārbauda tastatūru…</string>
+    <string name="ime_board_status_waiting">Gaida, lai sasniegtu dēli</string>
+    <string name="ime_board_status_waiting_offline">Nevar sasniegt tastatūru. Jūsu izmaiņas tiks nosūtītas, tiklīdz tas būs iespējams</string>
+    <string name="ime_board_sync_desc">Pārbaudīt dēli tūlīt</string>
+    <string name="ime_board_title">Koplietots dēlis</string>
     <string name="ime_calc_degrees_label">grādi</string>
     <string name="ime_calc_insert_action">Ievietot</string>
     <string name="ime_calc_radians_label">rad</string>
@@ -471,7 +501,9 @@
     </plurals>
     <string name="ime_calendar_untitled">(Bez nosaukuma)</string>
     <string name="ime_calendar_view_agenda">Darba kārtība</string>
+    <string name="ime_calendar_view_day">Diena</string>
     <string name="ime_calendar_view_month">Mēnesis</string>
+    <string name="ime_calendar_weather_desc">%1$s, %2$s vietā %3$s. Atver katras stundas prognozi</string>
     <string name="ime_calendar_yesterday_label">Vakar</string>
     <string name="ime_calendar_zone_note">Laiks %1$s</string>
     <string name="ime_camera_captured_photo_desc">Jūsu uzņemtā fotogrāfija</string>
@@ -543,6 +575,7 @@
         <item quantity="one">Apvienot %1$d klipu</item>
         <item quantity="other">Apvienot %1$d klipus</item>
     </plurals>
+    <string name="ime_clip_compose_email">Rakstīt e-pastu</string>
     <string name="ime_clip_delete_pinned_question">Dzēst šo piesprausto klipu?</string>
     <plurals name="ime_clip_deleted">
         <item quantity="one">Izgriezums dzēsts</item>
@@ -563,6 +596,7 @@
         <item quantity="other">Rādīt %1$d daļas, kas atrastas jūsu klipos</item>
     </plurals>
     <string name="ime_clip_extract_codes">Vienreizējie kodi</string>
+    <string name="ime_clip_extract_emails">E-pasta adreses</string>
     <string name="ime_clip_extract_links">Saites</string>
     <string name="ime_clip_extract_parts">Izvilkt</string>
     <string name="ime_clip_extract_phones">Tālruņu numuri</string>
@@ -589,6 +623,7 @@
         <item quantity="one">Paslēpts · %1$d rakstzīme</item>
         <item quantity="other">Paslēpts · %1$d rakstzīmes</item>
     </plurals>
+    <string name="ime_clip_image_pasted_toast">Ielīmēts no starpliktuves. Ja nekas netika saņemts, šī lietotne neuzņem fotoattēlus: turiet klipu, lai to kopīgotu</string>
     <string name="ime_clip_info_copied">Kopēts</string>
     <string name="ime_clip_info_edited">Rediģēts</string>
     <string name="ime_clip_info_from">No</string>
@@ -642,7 +677,12 @@
         <item quantity="other">Atlasīti %1$d</item>
     </plurals>
     <string name="ime_clip_send_as_sticker">Sūtīt kā uzlīmi</string>
+    <string name="ime_clip_shape_code">Kods</string>
+    <string name="ime_clip_shape_markdown">Markdown</string>
+    <string name="ime_clip_share_image">Kopīgot</string>
+    <string name="ime_clip_show_formatted">Rādģt formatētu</string>
     <string name="ime_clip_show_in_history">Rādīt vēsturē</string>
+    <string name="ime_clip_show_raw">Rādīt neapstrādāto</string>
     <string name="ime_clip_tags">Tagi</string>
     <string name="ime_clip_tags_placeholder">Birkas, atdalītas ar komatu</string>
     <string name="ime_clip_tags_title">Tagi</string>
@@ -913,6 +953,7 @@
     <string name="ime_conversion_pack_offer">Lejupielādējiet %1$s, lai rakstītu rakstzīmes</string>
     <string name="ime_conversion_pack_offer_dismiss_desc">Noraidīt</string>
     <string name="ime_converter_from_label">No</string>
+    <string name="ime_converter_tab_units">Vienības</string>
     <string name="ime_converter_to_label">Uz</string>
     <string name="ime_currency_insert_action">Ievietot</string>
     <string name="ime_currency_progress">Notiek valūtas kursu lejupielāde…</string>
@@ -921,6 +962,32 @@
     <string name="ime_currency_section_crypto">Kriptovalūta</string>
     <string name="ime_currency_section_popular">Biežāk lietotās</string>
     <string name="ime_currency_swap_desc">Mainīt valūtas vietām</string>
+    <string name="ime_custom_button_desc">Atvērt %1$s</string>
+    <string name="ime_custom_button_label">Pielāgota poga</string>
+    <string name="ime_custom_button_shortcut_failed">Šo īsceļu nevar atvērt. Lietotne varbūt ir dzēsta vai ļauj to atvērt tikai sākuma ekrānā.</string>
+    <string name="ime_custom_page_clipboard">Starpliktuves iestatījumi</string>
+    <string name="ime_custom_page_custom_buttons">Pielāgotas pogas</string>
+    <string name="ime_custom_page_dictionary">Vārdnīca</string>
+    <string name="ime_custom_page_favourites">Izlase</string>
+    <string name="ime_custom_page_home">Iestatījumi</string>
+    <string name="ime_custom_page_keypress">Skaņa un vibrācija</string>
+    <string name="ime_custom_page_languages">Valodas</string>
+    <string name="ime_custom_page_search">Meklēt iestatījumus</string>
+    <string name="ime_custom_page_themes">Tēmas</string>
+    <string name="ime_custom_page_toolbar">Rīkjoslas iestatījumi</string>
+    <string name="ime_custom_page_tools">Rīki</string>
+    <string name="ime_custom_page_typing">Rakstīšana</string>
+    <string name="ime_custom_toggle_auto_caps">Automātiskie lielie burti</string>
+    <string name="ime_custom_toggle_glide">Slīdināšanas rakstīšana</string>
+    <string name="ime_custom_toggle_key_hints">Taustiņu ieteikumi</string>
+    <string name="ime_custom_toggle_key_popup">Taustiņa uznirstošais logs</string>
+    <string name="ime_custom_toggle_number_row">Ciparu rinda</string>
+    <string name="ime_custom_toggle_reduce_motion">Samazināt kustību</string>
+    <string name="ime_custom_toggle_sound">Taustiņa skaņa</string>
+    <string name="ime_custom_toggle_suggestions">Ieteikumi</string>
+    <string name="ime_custom_toggle_symbol_row">Simbolu rinda</string>
+    <string name="ime_custom_toggle_toolbar_labels">Rīkjoslas nosaukumi</string>
+    <string name="ime_custom_toggle_vibration">Vibrācija</string>
     <string name="ime_delete_redo_chip">Atcelt atsaukšanu “%1$s”</string>
     <string name="ime_delete_redo_plain">Dzēst vēlreiz</string>
     <string name="ime_delete_undo_chip">Atsaukt “%1$s”</string>
@@ -958,6 +1025,7 @@
     <string name="ime_disabled_correction_invalid">Ievadiet citu vārdu, uz kuru labot. Labojamajam vārdam ir jābūt vismaz 3 burtiem, un labojums var būt viens vārds vai divi, ja ir izlaista atstarpe.</string>
     <string name="ime_disabled_media_app_blocks">Lietotne, kas atskaņo, to neatļauj.</string>
     <string name="ime_disabled_spell_unchanged">Vispirms mainiet pareizrakstību. Tukšai vai nemainītai pareizrakstībai nav ko piemērot.</string>
+    <string name="ime_disabled_translate_empty_box">Lodziņš ir tukšs vai tā tulkojums joprojām tiek gatavots.</string>
     <string name="ime_disabled_translate_nothing">Nekas vēl nav iztulkots. Vispirms ierakstiet vai ielīmējiet tekstu, ko tulkot.</string>
     <string name="ime_disabled_translate_same_language">Teksts jau ir valodā, uz kuru tulkojat.</string>
     <string name="ime_disabled_voice_undo">Vēl nav ko atsaukt. Atsaukšana atceļ pēdējo teikto frāzi.</string>
@@ -987,6 +1055,10 @@
     <string name="ime_docscan_next">Apgriezt</string>
     <string name="ime_docscan_open_settings">Atvērt iestatījumus</string>
     <string name="ime_docscan_page_number">Lappuse %1$d</string>
+    <plurals name="ime_docscan_pages_album">
+        <item quantity="one">Lapa atveras lietotnes kopīgošanas ekrānā</item>
+        <item quantity="other">Šī lietotne šeit uzņem pa vienam attēlam, tāpēc %d lapas atveras kopā tās kopīgošanas ekrānā, lai nosūtītu kā vienu albumu</item>
+    </plurals>
     <plurals name="ime_docscan_pages_shared">
         <item quantity="one">Lietotne šeit nepaņēma pēdējo lapu, tāpēc tā atveras lietotnes kopīgošanas ekrānā</item>
         <item quantity="other">Lietotne šeit nepaņēma %d lapas, tāpēc tās kopā atveras lietotnes kopīgošanas ekrānā</item>
@@ -1069,10 +1141,15 @@
     <string name="ime_files_access_pick">Android atlasītājs</string>
     <string name="ime_files_access_title">Izvēlieties failus, neizejot no tastatūras</string>
     <string name="ime_files_add">Pievienot</string>
+    <string name="ime_files_add_tree">Pievienot mapti</string>
+    <string name="ime_files_add_tree_detail">USB diskdzinis, SD karte vai mape, ko koplieto cita lietotne, piemēram, tīkla disks</string>
+    <string name="ime_files_allow_all">Visa tālruņa atmiņa</string>
+    <string name="ime_files_allow_all_detail">Nepieciešama piekļuve visiem Android failiem</string>
     <string name="ime_files_camera">Kamera</string>
     <string name="ime_files_clear_desc">Notīrīt atlasi</string>
     <string name="ime_files_collapse_desc">Padarīt īsāku</string>
     <string name="ime_files_copy_desc">Kopēt</string>
+    <string name="ime_files_copy_to">Kopēt uz %1$s</string>
     <string name="ime_files_delete_body">Mapes tiek dzēstas kopā ar visu tajās esošo saturu. Šī darbība ir neatgriezeniska: Android nav failu atkritnes.</string>
     <string name="ime_files_delete_desc">Dzēst</string>
     <string name="ime_files_delete_no">Atcelt</string>
@@ -1089,8 +1166,11 @@
     <string name="ime_files_expand_desc">Padarīt augstāku</string>
     <string name="ime_files_hide_hidden">Slēpt slēptos failus</string>
     <string name="ime_files_kde_unreadable">Nevarēja nolasīt šo failu tā nosūtīšanai</string>
+    <string name="ime_files_locked_body">Failu pārvaldnieks neatveras virs bloķēšanas ekrāna.</string>
+    <string name="ime_files_locked_title">Atbloķējiet, lai redzētu savus failus</string>
     <string name="ime_files_more_desc">Vairāk</string>
     <string name="ime_files_move_desc">Pārvietot</string>
+    <string name="ime_files_move_to">Pārvietot uz %1$s</string>
     <string name="ime_files_movies">Filmas</string>
     <string name="ime_files_music">Mūzika</string>
     <string name="ime_files_new_folder">Jauna mape</string>
@@ -1116,6 +1196,8 @@
         <item quantity="one">Pārvietots %d vienums</item>
         <item quantity="other">Pārvietoti %d vienumi</item>
     </plurals>
+    <string name="ime_files_notice_tree_removed">Mape noņemta no saraksta</string>
+    <string name="ime_files_one_pane_desc">Viens saraksts</string>
     <string name="ime_files_op_cancel">Apturēt</string>
     <string name="ime_files_op_copy">Kopē %1$d no %2$d</string>
     <string name="ime_files_op_delete">Dzēš %1$d no %2$d</string>
@@ -1132,6 +1214,9 @@
     <string name="ime_files_pictures">Attēli</string>
     <string name="ime_files_places">Vietas</string>
     <string name="ime_files_recent">Nesenie</string>
+    <string name="ime_files_remove_tree_body">Mape un tās faili paliek tur, kur tie ir. Varat to pievienot vēlreiz jebkurā laikā.</string>
+    <string name="ime_files_remove_tree_title">Noņemt “%1$s” no saraksta?</string>
+    <string name="ime_files_remove_tree_yes">Noņemt</string>
     <string name="ime_files_rename_desc">Pārdēvēt</string>
     <string name="ime_files_rename_hint">Jauns nosaukums</string>
     <string name="ime_files_search_clear_desc">Beigt meklēšanu</string>
@@ -1150,6 +1235,7 @@
     <string name="ime_files_title_many">Izvēlēties failus</string>
     <string name="ime_files_title_one">Izvēlieties failu</string>
     <string name="ime_files_title_picture">Izvēlēties attēlu</string>
+    <string name="ime_files_two_panes_desc">Divi saraksti blakus</string>
     <string name="ime_files_unreadable">Android neļauj tastatūrai atvērt šo mapni</string>
     <string name="ime_find_case_desc">Atbilst reģistram</string>
     <string name="ime_find_clear_desc">Notīrīt %1$s</string>
@@ -1181,6 +1267,24 @@
     <string name="ime_floating_category_empty">Šī kategorija ir tukša. Pievienojiet tai darbības peldošās pogas iestatījumos.</string>
     <string name="ime_floating_category_label">Kategorija</string>
     <string name="ime_floating_close_menu">Aizvērt izvēlni</string>
+    <string name="ime_floating_device_bluetooth">Bluetooth</string>
+    <string name="ime_floating_device_bluetooth_desc">Ieslēdz vai izslēdz Bluetooth</string>
+    <string name="ime_floating_device_bluetooth_page_desc">Atver Android Bluetooth lapu</string>
+    <string name="ime_floating_device_data">Mobilie dati</string>
+    <string name="ime_floating_device_data_desc">Ieslēdz vai izslēdz mobilos datus</string>
+    <string name="ime_floating_device_data_panel_desc">Atver Android interneta paneli</string>
+    <string name="ime_floating_device_failed">Android to neļāva</string>
+    <string name="ime_floating_device_hotspot">Karstais punkts</string>
+    <string name="ime_floating_device_hotspot_desc">Atver Android piekļuves punkta lapu</string>
+    <string name="ime_floating_device_off">%1$s izslēgts</string>
+    <string name="ime_floating_device_on">%1$s ieslēgts</string>
+    <string name="ime_floating_device_ringer">Zvana režīms</string>
+    <string name="ime_floating_device_ringer_desc">Zvanīt, vibrēt un klusā režīmā, pēc kārtas</string>
+    <string name="ime_floating_device_volume">Skaļuma panelis</string>
+    <string name="ime_floating_device_volume_desc">Atver Android skaļuma paneli ar katru skaļuma slīdni</string>
+    <string name="ime_floating_device_wifi">Wi-Fi</string>
+    <string name="ime_floating_device_wifi_desc">Ieslēdz vai izslēdz Wi-Fi</string>
+    <string name="ime_floating_device_wifi_panel_desc">Atver Android Wi-Fi paneli</string>
     <string name="ime_floating_dismiss_target">Nometiet šeit, lai paslēptu pogu</string>
     <string name="ime_floating_dock_desc">Piestiprināt tastatūru</string>
     <string name="ime_floating_hide_label">Paslēpt pogu</string>
@@ -1191,7 +1295,11 @@
     <string name="ime_floating_pair_label">Atvērt lietotņu pāri</string>
     <string name="ime_floating_pair_missing">Viena no abām lietotnēm vairs nav instalēta</string>
     <string name="ime_floating_pair_name">%1$s + %2$s</string>
+    <string name="ime_floating_plugin_label">Spraudnis</string>
     <string name="ime_floating_resize_desc">Mainīt tastatūras izmēru</string>
+    <string name="ime_floating_ringer_ring">Zvanīt</string>
+    <string name="ime_floating_ringer_silent">Klusējuma režīms</string>
+    <string name="ime_floating_ringer_vibrate">Vibrēt</string>
     <string name="ime_floating_system_app_drawer">Lietotņu atvilktne</string>
     <string name="ime_floating_system_back">Atpakaļ</string>
     <string name="ime_floating_system_notifications">Paziņojumi</string>
@@ -1249,6 +1357,7 @@
     <string name="ime_gallery_album_camera">Kamera</string>
     <string name="ime_gallery_album_favorites">Izlase</string>
     <string name="ime_gallery_album_gifs">GIF</string>
+    <string name="ime_gallery_album_immich">Immich</string>
     <string name="ime_gallery_album_recents">Nesenie</string>
     <string name="ime_gallery_album_screenshots">Ekrānuzņēmumi</string>
     <string name="ime_gallery_album_sent">Nosūtīts no tastatūras</string>
@@ -1340,6 +1449,10 @@
     <string name="ime_gallery_info_taken">Uzņemts</string>
     <string name="ime_gallery_layer_delete">Dzēst</string>
     <string name="ime_gallery_more_desc">Citas galerijas opcijas</string>
+    <plurals name="ime_gallery_notice_already_uploaded">
+        <item quantity="one">Lietotnē Immich jau bija %d attēls</item>
+        <item quantity="other">Lietotnē Immich jau bija visi %d attēli</item>
+    </plurals>
     <plurals name="ime_gallery_notice_copied">
         <item quantity="one">Kopēts %d vienums</item>
         <item quantity="other">Kopēti %d vienumi</item>
@@ -1348,6 +1461,8 @@
         <item quantity="one">Neizdevās nolasīt %d vienumu</item>
         <item quantity="other">Neizdevās nolasīt %d vienumus</item>
     </plurals>
+    <string name="ime_gallery_notice_immich_failed">Neizdevās sasniegt jūsu Immich serveri</string>
+    <string name="ime_gallery_notice_immich_refused">Immich noraidīja API atslēgu; pārbaudiet tās atļaujas</string>
     <plurals name="ime_gallery_notice_limit">
         <item quantity="one">Vienlaikus varat atlasīt %d vienumu</item>
         <item quantity="other">Vienlaikus varat atlasīt līdz %d vienumiem</item>
@@ -1368,6 +1483,14 @@
     <plurals name="ime_gallery_notice_shared">
         <item quantity="one">Atvērts kopīgošanas ekrāns %d vienumam</item>
         <item quantity="other">Atvērts kopīgošanas ekrāns %d vienumiem</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_upload_failed">
+        <item quantity="one">%d attēls netika augšupielādēts</item>
+        <item quantity="other">%d attēli netika augšupielādēti</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_uploaded">
+        <item quantity="one">Augšupielādēts %d attēls pakalpojumā Immich</item>
+        <item quantity="other">Augšupielādēti %d attēli pakalpojumā Immich</item>
     </plurals>
     <string name="ime_gallery_partial_action">Izvēlēties vairāk</string>
     <string name="ime_gallery_partial_body">Jūs atļāvāt tikai dažas fotogrāfijas.</string>
@@ -1411,6 +1534,7 @@
     <string name="ime_gallery_tool_stickers">Uzlīmes</string>
     <string name="ime_gallery_tool_text">Teksts</string>
     <string name="ime_gallery_tool_upscale">Palielināt izšķirtspēju</string>
+    <string name="ime_gallery_upload_immich">Augšupielādēt pakalpojumā Immich</string>
     <string name="ime_gallery_upscale_art">Zīmējums vai teksts</string>
     <string name="ime_gallery_upscale_done">Mērogots ×%1$d: %2$d × %3$d</string>
     <string name="ime_gallery_upscale_downloading">Lietotne lejupielādē mērogotāju…</string>
@@ -1669,6 +1793,9 @@
     <string name="ime_handwriting_unsupported_info">Šī lietotnes versija nolasa rokrakstu tikai ķīniešu un japāņu valodā. Pievienojiet vienu no tām sadaļā Valodas, lai rakstītu šeit.</string>
     <string name="ime_hardware_keys_hide_desc">Paslēpt taustiņus</string>
     <string name="ime_hardware_keys_show_desc">Rādīt taustiņus</string>
+    <string name="ime_homophones_finish">Vispirms pabeidziet rakstāmo vārdu</string>
+    <string name="ime_homophones_none">Nekas šajā tālrunī neizklausās kā %1$s. Valodas pakotne vai RIME shēma pievieno lasījumus.</string>
+    <string name="ime_homophones_none_before">Vispirms ierakstiet ķīniešu vai japāņu rakstzīmi</string>
     <string name="ime_hw_pick_mode_off_toast">Atlasīšanas režīms izslēgts</string>
     <string name="ime_hw_pick_mode_on_toast">Izvēles režīms ieslēgts: ciparu taustiņi atlasa ieteikumus, Shift ievada ciparu</string>
     <string name="ime_icons_builtin_label">Iebūvēts</string>
@@ -1684,6 +1811,45 @@
     <string name="ime_image_search_need_key_body">Attēlu meklēšanai ir nepieciešama API atslēga no Brave Search. Pievienojiet atslēgu šī rīka iestatījumos.</string>
     <string name="ime_incognito_on_desc">Inkognito režīms ir ieslēgts</string>
     <string name="ime_insert_action">Ievietot</string>
+    <string name="ime_invite_about_hint">Pievienot aprakstu</string>
+    <string name="ime_invite_action">Uzaicināt tiešsaistē</string>
+    <string name="ime_invite_add_title">Pievienot nosaukumu</string>
+    <string name="ime_invite_error_address">%1$s adrese iestatījumos nav tīmekļa adrese.</string>
+    <string name="ime_invite_error_bad_token">%1$s nepieņēma API pilnvaru.</string>
+    <string name="ime_invite_error_data_saver">Datu taupīšana ir ieslēgta. Publicēšana nosūta dažus kilobaitus.</string>
+    <string name="ime_invite_error_network">%1$s neatbildēja.</string>
+    <string name="ime_invite_error_no_title">Ielūgumam ir nepieciešams nosaukums.</string>
+    <string name="ime_invite_error_offline">Nav savienojuma. Izveidojiet savienojumu un mēģiniet vēlreiz.</string>
+    <string name="ime_invite_error_refused">%1$s saka, ka šis konts tur nevar izveidot notikumus.</string>
+    <string name="ime_invite_error_rejected">%1$s noraidīja notikumu.</string>
+    <string name="ime_invite_error_signed_out">%1$s jūs izrakstīja. Pierakstieties vēlreiz iestatījumos.</string>
+    <string name="ime_invite_fix_in_pretix">Atvērt Pretix</string>
+    <string name="ime_invite_go_ahead">Uz priekšu</string>
+    <string name="ime_invite_insert_link">Ievietot saiti</string>
+    <string name="ime_invite_insert_message">Ievietot uzaicinājumu</string>
+    <string name="ime_invite_link_only">Tikai cilvēki ar saiti</string>
+    <string name="ime_invite_listed">Publiski norādīts</string>
+    <string name="ime_invite_made">Izveidots %1$s, reģistrācija vēl nav atvērta</string>
+    <string name="ime_invite_not_live">Pretix izveidoja pasākumu, bet neatvēra reģistrāciju. %1$s</string>
+    <string name="ime_invite_not_set_up_body">Vispirms pierakstieties Mobilizon vai kalendāra rīka iestatījumos pievienojiet Pretix serveri.</string>
+    <string name="ime_invite_not_set_up_title">Vēl nav notikumu pakalpojuma</string>
+    <string name="ime_invite_note_mobilizon">Cilvēki reģistrējas pasākuma lapā. Mobilizon nosūta jums e-pastu, kad viņi to izdara.</string>
+    <string name="ime_invite_note_pretix">Pasākums saņem vienu bezmaksas biļeti, tāpēc cilvēki reģistrējas tā lapā ar savu e-pasta adresi.</string>
+    <string name="ime_invite_open_page">Atvērt lapu</string>
+    <string name="ime_invite_open_settings">Iestatījumi</string>
+    <string name="ime_invite_place_hint">Pievienot vietu vai saiti</string>
+    <string name="ime_invite_places_any">Bez ierobežojumiem</string>
+    <string name="ime_invite_places_label">Vietas</string>
+    <string name="ime_invite_post_as">Publicēt kā %1$s</string>
+    <string name="ime_invite_post_as_default">Publicēt kā savu profilu</string>
+    <string name="ime_invite_post_as_loading">Ielādē jūsu profilus…</string>
+    <string name="ime_invite_publish">Publicēt</string>
+    <string name="ime_invite_published">Publicēts %1$s</string>
+    <string name="ime_invite_publishing">Publicē…</string>
+    <string name="ime_invite_publishing_to">Publicēšana uz %1$s</string>
+    <string name="ime_invite_ticket_name">Reģistrēties</string>
+    <string name="ime_invite_title">Uzaicināt tiešsaistē</string>
+    <string name="ime_invite_try_again">Mēģināt vēlreiz</string>
     <string name="ime_kaomoji_add">Pievienot kaomoji</string>
     <string name="ime_kaomoji_all">Visi</string>
     <string name="ime_kaomoji_cancel">Atcelt</string>
@@ -1971,6 +2137,7 @@
     <string name="ime_learn_text_action">Apgūt tekstu</string>
     <string name="ime_learn_word_never_desc">Nekad nemācīties %1$s</string>
     <string name="ime_learn_word_offer">Pievienot \"%1$s\"?</string>
+    <string name="ime_legacy_font_output">Mantotā fonta izvade</string>
     <string name="ime_level_no_sensor_empty">Jūsu ierīcei nav akselerometra.</string>
     <string name="ime_location_address_failed">Šeit nav adreses. Koordinātas joprojām darbojas.</string>
     <string name="ime_location_address_looking">Meklē adresi…</string>
@@ -2143,6 +2310,29 @@
         <item quantity="other">%d piezīmes arhivētas</item>
     </plurals>
     <string name="ime_notes_archived_badge">Arhivēts</string>
+    <string name="ime_notes_assist_deck_action">Izveidot mācību komplektu</string>
+    <plurals name="ime_notes_assist_deck_action_count">
+        <item quantity="one">Izveidot mācību komplektu (%d kartīte)</item>
+        <item quantity="other">Izveidot mācību komplektu (%d kartītes)</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_empty_toast">Nav terminu ar nozīmēm, no kuriem izveidot kartītes</string>
+    <plurals name="ime_notes_assist_deck_made_toast">
+        <item quantity="one">Mācību kāršu kopa \"%2$s\" izveidota ar %1$d kartīti. To var atrast sadaļā Vārdnīca.</item>
+        <item quantity="other">Mācību kāršu kopa \"%2$s\" izveidota ar %1$d kartītēm. To var atrast sadaļā Vārdnīca.</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_working_toast">Izveido mācību komplektu…</string>
+    <string name="ime_notes_assist_details_label">Galvenā informācija</string>
+    <string name="ime_notes_assist_heading_busy">Domā virsrakstu…</string>
+    <string name="ime_notes_assist_heading_dismiss_desc">Ne šis virsraksts</string>
+    <string name="ime_notes_assist_heading_suggestion">Virsraksts: %1$s</string>
+    <string name="ime_notes_assist_heading_use_action">Izmantot</string>
+    <string name="ime_notes_assist_related_label">Saistītie</string>
+    <string name="ime_notes_assist_remind_chip">Atgādināt man: %1$s · %2$s</string>
+    <string name="ime_notes_assist_reminders_label">Drīzumā</string>
+    <string name="ime_notes_assist_summarize_action">Kopsavilkums</string>
+    <string name="ime_notes_assist_summarize_again_action">Vēlreiz</string>
+    <string name="ime_notes_assist_summary_busy">Apkopo tālrunī…</string>
+    <string name="ime_notes_assist_summary_label">Kopsavilkums</string>
     <string name="ime_notes_body_hint">Uzrakstiet piezīmi… Markdown darbojas: **treknraksts**, - saraksti, - [ ] uzdevumi</string>
     <string name="ime_notes_collapse_desc">Atpakaļ uz tastatūras augstumu</string>
     <string name="ime_notes_confirm_action">Pieskarieties vēlreiz, lai apstiprinātu</string>
@@ -2191,6 +2381,7 @@
     <string name="ime_notes_no_match">Neviena piezīme neatbilst “%1$s”.</string>
     <string name="ime_notes_passage_desc">No %1$s. Pieskarieties, lai ievietotu, turiet, lai atvērtu piezīmi.</string>
     <string name="ime_notes_passages_section">Fragmenti</string>
+    <string name="ime_notes_paste_desc">Ielīmēt</string>
     <string name="ime_notes_pin_action">Piespraust</string>
     <string name="ime_notes_pinned_section">Piespraustie</string>
     <string name="ime_notes_restore_action">Atjaunot</string>
@@ -2224,6 +2415,29 @@
     <string name="ime_otp_chip_dismiss_desc">Paslēpt kodu</string>
     <string name="ime_panel_back_desc">Atpakaļ uz tastatūru</string>
     <string name="ime_panel_over_keys_height_desc">Paneļa augstums virs taustiņiem. Velciet uz augšu vai uz leju</string>
+    <string name="ime_paperless_card_also_field">Ievietot lapas arī teksta laukā</string>
+    <string name="ime_paperless_card_correspondent">Korespondents</string>
+    <string name="ime_paperless_card_field_only">Tikai teksta lauks</string>
+    <string name="ime_paperless_card_loading">Iegūst jūsu birkas no servera…</string>
+    <string name="ime_paperless_card_name">Nosaukums</string>
+    <string name="ime_paperless_card_name_hint">Neobligāti. Ja atstāts tukšs, Paperless to nosauks.</string>
+    <string name="ime_paperless_card_none">Nav</string>
+    <string name="ime_paperless_card_offline">Pašlaik nevar izveidot savienojumu ar serveri. Skenējums gaidīs tālrunī ar jūsu noklusējuma tagiem un tiks augšupielādēts, tiklīdz tas būs iespējams.</string>
+    <string name="ime_paperless_card_offline_cached">Pašlaik nav iespējams sasniegt serveri; šie ir tā agrākie saraksti. Skenējums tiek augšupielādēts, tiklīdz tas būs iespējams.</string>
+    <string name="ime_paperless_card_one_pdf">Visas lapas vienā PDF failā</string>
+    <plurals name="ime_paperless_card_pages">
+        <item quantity="one">%d lapa</item>
+        <item quantity="other">%d lapas</item>
+    </plurals>
+    <string name="ime_paperless_card_send">Sūtīt</string>
+    <string name="ime_paperless_card_tags">Atzīmes</string>
+    <string name="ime_paperless_card_title">Nosūtīt uz Paperless</string>
+    <string name="ime_paperless_card_type">Dokumenta veids</string>
+    <string name="ime_paperless_queue_failed">Neizdevās saglabāt skenējumu priekš Paperless</string>
+    <plurals name="ime_paperless_queued">
+        <item quantity="one">%d dokuments ceļā uz Paperless. Tas tiks augšupielādēts, tiklīdz būs savienojums.</item>
+        <item quantity="other">%d dokumenti ceļā uz Paperless. Tie tiks augšupielādēti, tiklīdz būs savienojums.</item>
+    </plurals>
     <string name="ime_password_add_digit_label">Pievienot ciparu</string>
     <string name="ime_password_capitalize_label">Lielie burti</string>
     <string name="ime_password_copied_toast">Nokopēts starpliktuvē</string>
@@ -2242,11 +2456,27 @@
     <string name="ime_password_tab_pin">PIN</string>
     <string name="ime_password_words_label">Vārdi</string>
     <string name="ime_phonetic_word_list_offer">Iegūstiet %1$s vārdu sarakstu labākiem vārdiem</string>
+    <string name="ime_plugin_access_mark">Šis spraudnis var izmantot internetu vai lasīt to, ko rakstāt</string>
+    <string name="ime_plugin_action_settings">Iestatījumi un atļaujas</string>
+    <string name="ime_plugin_action_toolbar_add">Pievienot rīkjoslai</string>
+    <string name="ime_plugin_action_toolbar_remove">Noņemt no rīkjoslas</string>
+    <string name="ime_plugin_action_toolbox_add">Pievienot rīkjoslai</string>
+    <string name="ime_plugin_action_toolbox_remove">Noņemt no rīkkopas</string>
+    <string name="ime_plugin_action_turn_off">Izslēgt</string>
+    <string name="ime_plugin_action_turn_on">Ieslēgt</string>
+    <string name="ime_plugin_clock_alarm_set">%1$s iestatīja modinātāju uz %2$s pulkstenī</string>
+    <string name="ime_plugin_clock_timer_set">%1$s sāka %2$s taimeri pulkstenī</string>
     <string name="ime_plugin_empty_body">Spraudnis ir neliels rīks smilškastē. Varat pievienot spraudņus no papildinājumu krātuves vai no .wmplugin faila. Spraudnis nevar redzēt, ko jūs rakstāt.</string>
     <string name="ime_plugin_empty_title">Pagaidām nav spraudņu</string>
     <string name="ime_plugin_manage_action">Pārvaldīt spraudņus</string>
+    <string name="ime_plugin_more">Papildu opcijas priekš %1$s</string>
+    <string name="ime_plugin_permission_allow">Atļaut</string>
+    <string name="ime_plugin_permission_deny">Neļaut</string>
+    <string name="ime_plugin_permission_risky_note">Šis arī iespējo riskantas atļaujas spraudņiem. Jebkuru no tām varat atkal izslēgt spraudņa lapā Iestatījumos.</string>
+    <string name="ime_plugin_permission_title">Atļaut %1$s:</string>
     <string name="ime_plugin_version_label">Versija %1$s</string>
     <string name="ime_power_saving_on_desc">Enerģijas taupīšana ir ieslēgta</string>
+    <string name="ime_privacy_shade_hint">Velciet rokturi uz augšu, lai redzētu pēdējās rindas</string>
     <string name="ime_provider_choose_desc">Izvēlieties pakalpojumu sniedzēju</string>
     <string name="ime_punct_ampersand">Et zīme</string>
     <string name="ime_punct_apostrophe">Apostrofs</string>
@@ -2380,6 +2610,8 @@
     <string name="ime_resize_move_desc">Velciet, lai pārvietotu tastatūru uz augšu vai uz leju</string>
     <string name="ime_resize_reset">Atiestatīt</string>
     <string name="ime_resize_right_handle_desc">Velciet, lai mainītu vietu pa labi no tastatūras</string>
+    <string name="ime_resize_toolbar_handle">Rīkjosla</string>
+    <string name="ime_resize_toolbar_handle_desc">Velciet uz augšu vai uz leju, lai mainītu rīkjoslas augstumu</string>
     <string name="ime_retype_button">Pārrakstīt</string>
     <string name="ime_retype_button_desc">Pārrakstīt vārdu pie kursora</string>
     <string name="ime_retype_button_nothing">Nav vārda, ko pārrakstīt. Novietojiet kursoru tieši aiz vārda.</string>
@@ -2434,8 +2666,10 @@
     <string name="ime_scanner_torch_desc">Lukturītis</string>
     <string name="ime_scanner_translate_action">Tulkot</string>
     <string name="ime_screen_capture_desc">Uzņemt ekrānuzņēmumu</string>
+    <string name="ime_screen_capture_progress">Uzņem ekrānuzņēmumu…</string>
     <string name="ime_search_attribution_brave">izmantojot Brave</string>
     <string name="ime_search_attribution_left">%1$s · atlicis %2$s</string>
+    <string name="ime_search_attribution_mwmbl">izmantojot Mwmbl</string>
     <string name="ime_search_attribution_tavily">izmantojot Tavily</string>
     <string name="ime_search_in_browser_desc">Meklēt pārlūkprogrammā</string>
     <string name="ime_search_menu_copy_link">Kopēt saiti</string>
@@ -2445,6 +2679,7 @@
     <string name="ime_search_no_more">Vairāk rezultātu nav</string>
     <string name="ime_search_tab_all">Viss</string>
     <string name="ime_search_tab_images">Attēli</string>
+    <string name="ime_second_toolbar_empty">Velciet rīku šeit no rīkkopas vai rīkjoslas</string>
     <string name="ime_selection_ask_ai">Jautāt AI</string>
     <string name="ime_selection_macro_ai_translate_label">AI tulkojums</string>
     <string name="ime_selection_macro_back_desc">Atpakaļ uz atlases darbībām</string>
@@ -2743,6 +2978,8 @@
     <string name="ime_service_incognito_off_toast">Inkognito režīms ir izslēgts</string>
     <string name="ime_service_incognito_on_toast">Inkognito režīms ir ieslēgts. Tastatūra nemācās to, ko rakstāt.</string>
     <string name="ime_service_incognito_switch_toast">Inkognito režīms ir ieslēgts. Pieskarieties inkognito rīkam, lai to izslēgtu</string>
+    <string name="ime_service_legacy_font_off_toast">Raksta Unicode</string>
+    <string name="ime_service_legacy_font_on_toast">Rakstīšana %1$s fontam</string>
     <string name="ime_service_media_download_error_toast">Lejupielāde neizdevās. Pārbaudiet savienojumu.</string>
     <string name="ime_service_media_fetch_error">Tastatūra nevar iegūt rezultātus</string>
     <string name="ime_service_mode_tool_order_toast">Tastatūra saglabāja rīku secību tikai %1$s režīmam. Citas lietotnes saglabā savu secību.</string>
@@ -2766,6 +3003,7 @@
     <string name="ime_service_power_saving_on_empty_toast">Enerģijas taupīšana ir ieslēgta. Neviena funkcija vēl nav iestatīta apturēšanai.</string>
     <string name="ime_service_power_saving_on_toast">Enerģijas taupīšanas režīms ir ieslēgts</string>
     <string name="ime_service_power_saving_still_on_toast">Enerģijas taupīšana paliek ieslēgta. Akumulatora aktivizētājs ir ieslēgts.</string>
+    <string name="ime_service_privacy_shade_floating_toast">Konfidencialitātes tonis darbojas ar dokā ievietotu tastatūru. Vispirms ievietojiet tastatūru dokā.</string>
     <string name="ime_service_qr_error">Tastatūra nevar izveidot QR kodu</string>
     <string name="ime_service_resize_floating_toast">Pievienojiet tastatūru, lai mainītu tās izmēru</string>
     <string name="ime_service_search_error">Meklēšana nedarbojās</string>
@@ -2826,6 +3064,7 @@
     <string name="ime_smart_repeat_count">×%1$s</string>
     <string name="ime_smart_repeat_offer">Atkārtot “%1$s”</string>
     <string name="ime_smart_replies_dismiss_desc">Paslēpt viedās atbildes</string>
+    <string name="ime_smart_search_offer">%1$s: “%2$s”</string>
     <string name="ime_smart_send_link">Saņemt failu</string>
     <string name="ime_smart_translate_offer">Tulkot</string>
     <string name="ime_smart_vocab_daily">Dienas vārds: %1$s ›</string>
@@ -2835,6 +3074,12 @@
     <string name="ime_smart_vocab_word">%1$s ›</string>
     <string name="ime_smart_weather_tap">Saņemt prognozi</string>
     <string name="ime_smart_wiki_word">“%1$s” Vikipēdijā</string>
+    <string name="ime_snippet_ask_cancel_desc">Atcelt fragmentu</string>
+    <string name="ime_snippet_ask_done_desc">Ievietot fragmentu</string>
+    <string name="ime_snippet_ask_hint">Ierakstiet %1$s</string>
+    <string name="ime_snippet_ask_next_desc">Nākamais lauks</string>
+    <string name="ime_snippet_ask_step_label">%1$s %2$d/%3$d</string>
+    <string name="ime_snippet_image_desc">Attēla fragments %1$s</string>
     <string name="ime_snippet_offer_back_desc">Atpakaļ uz %1$s</string>
     <string name="ime_snippet_offer_desc">Ievietot fragmentu %1$s</string>
     <string name="ime_snippet_offer_more_desc">Vairāk no %1$s</string>
@@ -2945,6 +3190,7 @@
     <string name="ime_suggestion_hold_label">Vārdu opcijas</string>
     <string name="ime_suggestion_never_suggest">Nekad neieteikt \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Atpakaļ pie taustiņiem</string>
+    <string name="ime_suggestion_pattern_still_hides">Melno sarakstu šablons joprojām slēpj \"%1$s\". Rediģējiet to sadaļā Ieteikumu melnais saraksts.</string>
     <string name="ime_suggestion_rank_badge">\"%1$s\" rangs %2$s</string>
     <string name="ime_suggestion_rank_unchanged">\"%1$s\" nemainīts</string>
     <string name="ime_suggestions_show_desc">Rādīt ieteikumu joslu</string>
@@ -2974,6 +3220,8 @@
     <string name="ime_synonyms_title">Sinonīmi vārdam \"%1$s\"</string>
     <string name="ime_textedit_delete_line_desc">Dzēst rindu</string>
     <string name="ime_textedit_delete_line_forward_desc">Dzēst rindiņu uz priekšu</string>
+    <string name="ime_textedit_delete_to_end_desc">Dzēst līdz beigām</string>
+    <string name="ime_textedit_delete_to_start_desc">Dzēst līdz sākumam</string>
     <string name="ime_textedit_delete_word_desc">Dzēst vārdu</string>
     <string name="ime_textedit_delete_word_forward_desc">Dzēst vārdu uz priekšu</string>
     <string name="ime_textedit_doc_end_desc">Pāriet uz teksta beigām</string>
@@ -2992,6 +3240,7 @@
     <string name="ime_textedit_select_label">Atlasīt</string>
     <string name="ime_textedit_select_line_desc">Atlasīt rindu</string>
     <string name="ime_textedit_select_word_desc">Atlasīt vārdu</string>
+    <string name="ime_textedit_type_clipboard_desc">Ierakstiet starpliktuvi</string>
     <string name="ime_textedit_up_desc">Pārvietot uz augšu</string>
     <string name="ime_textedit_word_left_desc">Pārvietot vienu vārdu pa kreisi</string>
     <string name="ime_textedit_word_right_desc">Pārvietot vienu vārdu pa labi</string>
@@ -3069,6 +3318,7 @@
     <string name="ime_tool_calculator">Kalkulators</string>
     <string name="ime_tool_calendar">Kalendārs</string>
     <string name="ime_tool_camera">Kamera</string>
+    <string name="ime_tool_clear_field">Dzēst visu</string>
     <string name="ime_tool_clipboard">Starpliktuve</string>
     <string name="ime_tool_clipboard_search">Starpliktuves meklēšana</string>
     <string name="ime_tool_clock">Pulkstenis</string>
@@ -3085,11 +3335,13 @@
     <string name="ime_tool_cursor_word_right">Vārds pa labi</string>
     <string name="ime_tool_custom_layout">Sekundārais izkārtojums</string>
     <string name="ime_tool_cut">Izgriezt</string>
+    <string name="ime_tool_debug_info">Atkļūdošanas informācija</string>
     <string name="ime_tool_dictionary">Vārdnīca</string>
     <string name="ime_tool_doc_scan">Dokumentu skenēšana</string>
     <string name="ime_tool_emoji">Emoji</string>
     <string name="ime_tool_emoji_mix">Emoji miksi</string>
     <string name="ime_tool_fancy">Izsmalcināts teksts</string>
+    <string name="ime_tool_files">Faili</string>
     <string name="ime_tool_find_replace">Atrast un aizstāt</string>
     <string name="ime_tool_flashlight">Lukturītis</string>
     <string name="ime_tool_floating">Peldošā</string>
@@ -3099,6 +3351,7 @@
     <string name="ime_tool_handwriting">Rokraksts</string>
     <string name="ime_tool_hide_keyboard">Paslēpt</string>
     <string name="ime_tool_home_assistant">Viedā māja</string>
+    <string name="ime_tool_homophones">Vienāda skaņa</string>
     <string name="ime_tool_image_search">Attēli</string>
     <string name="ime_tool_incognito">Inkognito</string>
     <string name="ime_tool_language">Valoda</string>
@@ -3125,6 +3378,7 @@
     <string name="ime_tool_picker_leader">%1$s, tad:</string>
     <string name="ime_tool_plugins">Spraudņi</string>
     <string name="ime_tool_power_saving">Enerģijas taupīšana</string>
+    <string name="ime_tool_privacy_shade">Privātuma aizēnojums</string>
     <string name="ime_tool_qr_gen">QR kods</string>
     <string name="ime_tool_qr_scan">QR skenēšana</string>
     <string name="ime_tool_quick_note">Ātra piezīme</string>
@@ -3149,6 +3403,7 @@
     <string name="ime_tool_text_edit">Teksta rediģēšana</string>
     <string name="ime_tool_text_repeat">Atkārtot</string>
     <string name="ime_tool_themes">Izskats</string>
+    <string name="ime_tool_timestamp">Laika zīmogs</string>
     <string name="ime_tool_todo">Darāmo darbu saraksts</string>
     <string name="ime_tool_trackpad">Skārienpaliktnis</string>
     <string name="ime_tool_translate">Tulkot</string>
@@ -3206,12 +3461,14 @@
     <string name="ime_translate_engine_online_info">Izmanto tiešsaistes pakalpojumu.</string>
     <string name="ime_translate_hint">Ievadiet tekstu tulkošanai…</string>
     <string name="ime_translate_idle">Tulkojums parādīsies šeit, kad sāksiet rakstīt.</string>
+    <string name="ime_translate_idle_manual">Ierakstiet visu tekstu, pēc tam pieskarieties Tulkot. Pirms tam nekas netiek sūtīts.</string>
     <string name="ime_translate_module_failed_error">Google Play neizdevās veikt lejupielādi. Pārbaudiet savienojumu un mēģiniet vēlreiz. Ja neizdodas atkal, lejupielādējiet to no Iestatījumi, Rīki, Tulkot.</string>
     <string name="ime_translate_module_installing_action">Lejupielādē...</string>
     <string name="ime_translate_module_missing_body">Tulkošana ierīcē ir papildu tastatūras daļa, kas nāk no Google Play. Lejupielādējiet to, lai tulkotu bez savienojuma.</string>
     <string name="ime_translate_need_models_body">Lai tulkotu ierīcē, lejupielādējiet: %1$s. Aptuveni %2$s.</string>
     <string name="ime_translate_nllb_licence_accept_action">Pieņemt un lejupielādēt</string>
     <string name="ime_translate_nllb_licence_body">NLLB-200 nāk no Hugging Face saskaņā ar Meta licenci, Creative Commons Attribution-NonCommercial 4.0: tikai nekomerciālai lietošanai, bez garantijas. Nospiediet vēlreiz, lai to pieņemtu un lejupielādētu.</string>
+    <string name="ime_translate_now_action">Tulkot</string>
     <string name="ime_translate_offline_build_error">Šī bezsaistes versija nevar tulkot šajā tālrunī: tās vienīgajam dzinim, Firefox Translations, ir nepieciešams 64 bitu tālrunis ar Android 9 vai jaunāku versiju. Lai tulkotu, instalējiet standarta versiju.</string>
     <string name="ime_translate_offline_failed_error">Tulkošana ierīcē netika sākta. Mēģiniet vēlreiz vai atlasiet tiešsaistes dzinēju.</string>
     <string name="ime_translate_offline_import_body">Šo bezsaistes versiju nevar lejupielādēt. Lai to tulkotu, iegūstiet tos citā ierīcē un importējiet: %1$s. Atveriet Iestatījumi › Rīki › Tulkot › Nodrošinātāji › Ierīcē (Firefox Translations).</string>
@@ -3227,6 +3484,7 @@
     <string name="ime_translate_select_source_desc">Atlasiet avota valodu</string>
     <string name="ime_translate_server_label">Jūsu serveris</string>
     <string name="ime_translate_source_guessed_label">%1$s?</string>
+    <string name="ime_translate_speak_desc">Lasīt tulkojumu skaļi</string>
     <string name="ime_translate_swap_desc">Mainīt valodas vietām</string>
     <string name="ime_typing_accuracy_label">precizitāte</string>
     <string name="ime_typing_accuracy_short_label">prec.</string>
@@ -3347,6 +3605,10 @@
     <string name="ime_voice_model_get_language_action">Iegūt %1$s balss ievadei bezsaistē</string>
     <string name="ime_voice_permission_action">Atļaut mikrofonu</string>
     <string name="ime_voice_permission_body">Balss ievadei ir nepieciešama atļauja izmantot mikrofonu. Lietotne ieraksta audio tikai tad, kad runājat.</string>
+    <string name="ime_voice_prompt_fix_custom">Noņemiet dažus no papildu vārdiem, ko klausīties balss rakstīšanas iestatījumos, vai saīsiniet uzvedni.</string>
+    <string name="ime_voice_prompt_fix_personal">Balss ievades iestatījumos izslēdziet opciju \"Klausīties manus vārdus\" vai saīsiniet uzvedni.</string>
+    <string name="ime_voice_prompt_fix_prompt">Saīsiniet uzvedni Balss rakstīšanas iestatījumos uz servera ekrāna līdz mazāk nekā %1$d rakstzīmēm.</string>
+    <string name="ime_voice_prompt_too_long">Šis serveris pieņem uzvedni līdz %2$d rakstzīmēm, un šī ir %1$d: Uzvedne %3$d, Vairāk vārdu, ko klausīties %4$d, Klausīties manus vārdus %5$d.</string>
     <string name="ime_voice_secure_field_notice">Balss ievade nedarbojas paroļu laukos.</string>
     <string name="ime_voice_server_metered_ask">Datu taupīšanas režīms ir ieslēgts. Nospiediet mikrofonu vēlreiz, lai nosūtītu savu balsi, izmantojot mobilos datus.</string>
     <string name="ime_voice_server_metered_blocked">Transkripcijas serveris ir izslēgts, kamēr izmantojat mobilos datus. To varat mainīt iestatījumos, sadaļā Datu saglabāšana.</string>
@@ -3386,6 +3648,12 @@
     <string name="ime_voice_use_system_action">Izmantot sistēmas atpazīšanas rīku</string>
     <string name="ime_weather_clouds_label">mākoņi</string>
     <string name="ime_weather_error">Lietotne nevar lejupielādēt laika ziņas. Pārbaudiet tīkla savienojumu.</string>
+    <string name="ime_weather_event_back_desc">Atpakaļ uz kalendāru</string>
+    <string name="ime_weather_event_home_place">%1$s (jūsu laikapstākļu atrašanās vieta)</string>
+    <string name="ime_weather_event_home_unnamed">Jūsu laikapstākļu atrašanās vieta</string>
+    <string name="ime_weather_event_hour_desc">%1$s: %2$s, %3$s, lietus iespējamība %4$s</string>
+    <string name="ime_weather_event_no_hours">Laika prognoze šai dienai vēl nav pieejama.</string>
+    <string name="ime_weather_event_rain_info">%1$d%% lietus varbūtība</string>
     <string name="ime_weather_feels_like_label">jūtas kā</string>
     <string name="ime_weather_high_low_info">A %1$d° Z %2$d°</string>
     <string name="ime_weather_humidity_label">mitrums</string>
@@ -3501,6 +3769,7 @@
     <string name="ime_wmpass_no_password">WM Pass neizveidoja paroli. Seifs varētu būt bloķēts.</string>
     <string name="ime_wmpass_no_username">Šai pieteikšanās reizei nav aizpildāma lietotājvārda.</string>
     <string name="ime_wmpass_no_vault">WM Pass vēl nav krātuves. Vispirms izveidojiet to tur.</string>
+    <string name="ime_wmpass_not_released">WM Pass vēl nav iznācis. Šis rīks sāk darboties, kad tas ir izlaists un instalēts.</string>
     <string name="ime_wmpass_not_set">Nav iestatīts</string>
     <string name="ime_wmpass_off">Lai to izmantotu, ieslēdziet WM Keyboard atļauju aizpildīt WM Pass sadaļā Iestatījumi &gt; Drošība.</string>
     <string name="ime_wmpass_open">Atvērt WM Pass</string>

@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">E-poštni naslov</string>
+    <string name="core_content_clip_entity_email_tag">E-POŠTA</string>
     <string name="core_content_clip_entity_otp_label">Enkratna koda</string>
     <string name="core_content_clip_entity_otp_tag">KODA</string>
     <string name="core_content_clip_entity_phone_label">Telefonska številka</string>
@@ -38,6 +40,10 @@
         <item quantity="one">Aplikacija je preskočila %1$d izrezek, ki nima ničesar za vstavljanje.</item>
         <item quantity="other">Aplikacija je preskočila %1$d izrezkov, ki nimajo ničesar za vstavljanje.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d polje obrazca ponuja seznam za izbiro. Aplikacija to zahteva kot vtipkan odgovor, s pritrjeno prvo izbiro.</item>
+        <item quantity="other">%1$d polj obrazca ponuja seznam za izbiro. Aplikacija zahteva vsako posebej kot vtipkan odgovor, s pritrjeno prvo izbiro.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Aplikacija je preskočila %1$d izrezek, ki vstavi sliko.</item>
         <item quantity="other">Aplikacija je preskočila %1$d izrezkov, ki vstavijo slike.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d izrezka uporablja vrednost, za katero Espanso nima enakovredne. Zapisano je tako, kot je.</item>
         <item quantity="other">%1$d izrezkov uporablja vrednosti, za katere Espanso nima enakovrednih. Zapisani so tako, kot so.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d izsek vstavlja sliko. Besedilna datoteka ne more vsebovati slike, zato so bile izvozne le besede.</item>
+        <item quantity="other">%1$d izseki vstavljajo slike. Besedilna datoteka ne more vsebovati slik, zato so bile izvozne le besede.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">Aplikacija je odstranila vzorec iz %1$d izrezka. Aplikacija ne izvaja vzorcev te oblike. Izrezek ostane na seznamu.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">Aplikacija je odstranila %1$d sprožilec, ki ga tipkovnica ne more spremljati. Njegov izrez ostane na seznamu.</item>
         <item quantity="other">Aplikacija je odstranila %1$d sprožilcev, ki jih tipkovnica ne more spremljati. Njihovi izrezki ostanejo na seznamu.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">Se začne z ===, vendar ni celotna sprožilna vrstica ===. Če želite začeti vrstico besedila z ===, namesto tega napišite \===</string>
+    <string name="core_content_snippet_text_bad_pattern">Vzorca ni mogoče uporabiti: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s ne more biti %2$s</string>
+    <string name="core_content_snippet_text_before_header">Besedilo pred prvo vrstico sprožilca 222 222. Začnite blok z enim ali začnite vrstico z #</string>
+    <string name="core_content_snippet_text_no_text">Ta izsek nima besedila</string>
+    <string name="core_content_snippet_text_no_trigger">Izsek, v katerem med oznakami 777 ni ničesar, potrebuje vrstico @label ali @pattern</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d izrezek s sliko je prispel kot besedilo: besedilna datoteka ne vsebuje slik</item>
+        <item quantity="other">%1$d izrezkov s slikami je prispelo kot besedilo: besedilna datoteka ne vsebuje slik</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">Preskočen izrezek v vrstici %1$d, ki vsebuje napako</string>
+    <string name="core_content_snippet_text_unknown_link">Povezava @link imenuje %1$s in noben izrez tukaj nima tega sprožilca</string>
+    <string name="core_content_snippet_text_unknown_picture">Slika @picture ima ime %1$s, ki je ne uporablja noben izrezek. Dodajte slike v lastnem urejevalniku izrezka</string>
+    <string name="core_content_snippet_text_unknown_setting">Tipkovnica ne pozna nastavitve %1$s. Če želite besedilo izrezka začeti z znakiem @, namesto tega napišite \@</string>
     <string name="core_content_snippet_var_app_info">Ime aplikacije, v kateri tipkate</string>
+    <string name="core_content_snippet_var_battery_info">Stanje napolnjenosti baterije, na primer 85 %</string>
     <string name="core_content_snippet_var_clip_info">Najnovejši vnos v odložišču</string>
     <string name="core_content_snippet_var_cursor_info">Mesto, kjer se ustavi kazalec</string>
     <string name="core_content_snippet_var_date_info">Današnji datum</string>
     <string name="core_content_snippet_var_datetime_info">Datum in čas</string>
     <string name="core_content_snippet_var_day_info">Dan v mesecu</string>
+    <string name="core_content_snippet_var_greeting_info">Dobro jutro, dober dan ali dober večer glede na čas v jeziku tipkovnice</string>
     <string name="core_content_snippet_var_isodate_info">Datum v obliki ISO, na primer 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">Datum in čas v obliki ISO</string>
+    <string name="core_content_snippet_var_language_info">Jezik tipkovnice, v katerem tipkate</string>
     <string name="core_content_snippet_var_month_info">Ime meseca</string>
     <string name="core_content_snippet_var_package_info">Ime paketa te aplikacije</string>
     <string name="core_content_snippet_var_selection_info">Besedilo, ki ga izberete v polju</string>
+    <string name="core_content_snippet_var_tab_info">Znak tabulatorja</string>
     <string name="core_content_snippet_var_time12_info">Trenutni čas v 12-urnem formatu</string>
     <string name="core_content_snippet_var_time_info">Trenutni čas v 24-urnem formatu</string>
     <string name="core_content_snippet_var_timestamp_info">Čas v Unix sekundah</string>

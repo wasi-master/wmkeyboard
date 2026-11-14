@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Utepe, kidonge na funguo</string>
     <string name="core_settings_glide_commit_scope_pill_label">Vua na kidonge</string>
     <string name="core_settings_glide_commit_scope_strip_label">Utepe</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">Baada ya kutengua</string>
+    <string name="core_settings_glide_drawn_letters_off_label">Imezimwa</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">Unapokuwa huna hakika</string>
     <string name="core_settings_glide_engine_built_in_label">Iliyojengewa ndani</string>
     <string name="core_settings_glide_engine_futo_label">FUTO Swipe (Kiingereza, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Maktaba ya ishara ya Google (iliyotumiwa)</string>

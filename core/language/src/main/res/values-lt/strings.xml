@@ -23,6 +23,34 @@
         <item quantity="one">%1$d perbraukimas klavišu čia netinka, nes ši klaviatūra tą perbraukimą naudoja kitam veiksmui. Programa jį pašalino.</item>
         <item quantity="other">%1$d perbraukimai klavišais čia netinka, nes ši klaviatūra tuos perbraukimus naudoja kitiems veiksmams. Programa juos pašalino.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">Programėlė praleido %1$d taisyklę, keičiančią, ką pašalina trynimas. Trynimas čia veikia taip pat, kaip ir kiekviename makete.</item>
+        <item quantity="other">Programėlė praleido %1$d taisykles(-ių), keičiančias(-ių), ką pašalina trynimas. Trynimas čia veikia taip pat, kaip ir kiekviename makete.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">Programėlė pašalino %1$d perbraukimą, kuris keičia kryptį. Perbraukimai šioje klaviatūroje vyksta viena kryptimi.</item>
+        <item quantity="other">Programėlė pašalino %1$d perbraukimus, kurie keičia kryptį. Perbraukimai šioje klaviatūroje vyksta viena kryptimi.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">Programėlė praleido %1$d puslapį klavišui, pavyzdžiui, „Caps Lock“ arba „Ctrl“. Šioje klaviatūroje nėra puslapio tam klavišui.</item>
+        <item quantity="other">Programėlė praleido %1$d puslapius klavišams, pavyzdžiui, „Caps Lock“ arba „Ctrl“. Šioje klaviatūroje nėra puslapių tiems klavišams.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">Programėlė praleido %1$d taisyklę, nustatančią ženklus jų rašymo tvarka. Ši klaviatūra rašo ženklus tokia tvarka, kokia juos įvedate.</item>
+        <item quantity="other">Programėlė praleido %1$d taisykles, nustatančias ženklus jų rašymo tvarka. Ši klaviatūra rašo ženklus tokia tvarka, kokia juos įvedate.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d taisyklė uždeda kirčio ženklą ant kitos raidės. Čia klavišas, kuris ją pradeda, yra neaktyvus klavišas.</item>
+        <item quantity="other">%1$d taisyklės uždeda kirčio ženklą ant kitos raidės. Čia klavišai, kurie jas pradeda, yra neaktyvūs klavišai.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">Programa praleido %1$d taisyklę, kuri keičia tekstą renkant. Joks klavišas jos neinicijuoja arba ji atitinka daugiau teksto, nei klavišas gali įvesti.</item>
+        <item quantity="other">Programa praleido %1$d taisykles, kurios keičia tekstą renkant. Jokie klavišai jų neinicijuoja arba jos atitinka daugiau teksto, nei klavišas gali įvesti.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d taisyklė paverčia klavišą ir kitą klavišą kitu simboliu. Čia šis simbolis gaunamas nuspaudus ir palaikius pirmąjį klavišą.</item>
+        <item quantity="other">%1$d taisyklės paverčia klavišą ir kitą klavišą kitu simboliu. Čia šie simboliai gaunami nuspaudus ir palaikius pirmąjį klavišą.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Programa pakeitė %1$d klavišą į artimiausią turimą.</item>
         <item quantity="other">Programa pakeitė %1$d klavišų į artimiausius turimus.</item>

@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Juosta, burbuliukas ir klavišai</string>
     <string name="core_settings_glide_commit_scope_pill_label">Juosta ir piliulė</string>
     <string name="core_settings_glide_commit_scope_strip_label">Pašalinti</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">Atšaukus</string>
+    <string name="core_settings_glide_drawn_letters_off_label">Išjungta</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">Kai abejojama</string>
     <string name="core_settings_glide_engine_built_in_label">Integruotas</string>
     <string name="core_settings_glide_engine_futo_label">„FUTO Swipe“ (anglų kalba, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">„Google“ gestų biblioteka (importuota)</string>

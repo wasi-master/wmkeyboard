@@ -23,6 +23,34 @@
         <item quantity="one">%1$d thao tác vuốt trên phím không có tác dụng ở đây, vì bàn phím này sử dụng thao tác vuốt đó cho một công việc khác. Ứng dụng đã xóa nó.</item>
         <item quantity="other">%1$d thao tác vuốt trên phím không có tác dụng ở đây, vì bàn phím này sử dụng các thao tác vuốt đó cho các công việc khác. Ứng dụng đã xóa chúng.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">Ứng dụng đã bỏ qua %1$d quy tắc thay đổi nội dung phím xóa bỏ. Phím xóa hoạt động giống như trên mọi bố cục ở đây.</item>
+        <item quantity="other">Ứng dụng đã bỏ qua %1$d quy tắc thay đổi nội dung phím xóa bỏ. Phím xóa hoạt động giống như trên mọi bố cục ở đây.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">Ứng dụng đã xóa %1$d lượt vuốt thay đổi hướng. Các lượt vuốt trên bàn phím này chỉ đi theo một hướng.</item>
+        <item quantity="other">Ứng dụng đã xóa %1$d lượt vuốt thay đổi hướng. Các lượt vuốt trên bàn phím này chỉ đi theo một hướng.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">Ứng dụng đã bỏ lại %1$d trang cho phím như Caps Lock hoặc Ctrl. Bàn phím này không có trang cho phím đó.</item>
+        <item quantity="other">Ứng dụng đã bỏ lại %1$d trang cho các phím như Caps Lock hoặc Ctrl. Bàn phím này không có trang cho các phím đó.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">Ứng dụng đã bỏ qua %1$d quy tắc đặt dấu theo thứ tự viết. Bàn phím này viết dấu theo thứ tự bạn gõ.</item>
+        <item quantity="other">Ứng dụng đã bỏ qua %1$d quy tắc đặt dấu theo thứ tự viết. Bàn phím này viết dấu theo thứ tự bạn gõ.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d quy tắc thêm dấu vào chữ cái tiếp theo. Ở đây, phím bắt đầu quy tắc đó là phím chết.</item>
+        <item quantity="other">%1$d quy tắc thêm dấu vào chữ cái tiếp theo. Ở đây, các phím bắt đầu quy tắc đó là phím chết.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">Ứng dụng đã bỏ qua %1$d quy tắc thay đổi văn bản khi bạn gõ. Không có phím nào ở đây khởi chạy nó, hoặc nó khớp với nhiều văn bản hơn mức một phím có thể gõ.</item>
+        <item quantity="other">Ứng dụng đã bỏ qua %1$d quy tắc thay đổi văn bản khi bạn gõ. Không có phím nào ở đây khởi chạy chúng, hoặc chúng khớp với nhiều văn bản hơn mức một phím có thể gõ.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d quy tắc biến đổi một phím và phím tiếp theo thành một ký tự khác. Ở đây, ký tự đó xuất hiện khi nhấn và giữ phím đầu tiên.</item>
+        <item quantity="other">%1$d quy tắc biến đổi một phím và phím tiếp theo thành một ký tự khác. Ở đây, các ký tự đó xuất hiện khi nhấn và giữ phím đầu tiên.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Ứng dụng đã thay đổi %1$d phím thành phím gần nhất mà nó có.</item>
         <item quantity="other">Ứng dụng đã thay đổi %1$d phím thành các phím gần nhất mà nó có.</item>

@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">Hola</string>
     <string name="core_tools_media_category_laugh">Rialles</string>
     <string name="core_tools_media_category_love">Amor</string>
+    <string name="core_tools_media_category_memes">Memes</string>
     <string name="core_tools_media_category_no">No</string>
     <string name="core_tools_media_category_party">Festa</string>
     <string name="core_tools_media_category_reactions">Reaccions</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">Un servidor Mozhi: una interfície gratuïta per a Google, DeepL, DuckDuckGo, Yandex i Reverso. Tria el motor. DeepL i Reverso necessiten un idioma d\'origen.</string>
     <string name="core_tools_provider_music_server">El teu propi servidor de reconeixement</string>
     <string name="core_tools_provider_music_server_desc">Un servidor que executes que respon com AudD: el clip es publica com un fitxer i la cançó torna en format JSON. Posa un processador d\'empremta digital musical com Panako o Olaf al darrere.</string>
+    <string name="core_tools_provider_mwmbl_desc">Un motor de cerca gratuït i sense ànim de lucre amb el seu propi índex. Sense clau. Només resultats web, sense imatges.</string>
     <string name="core_tools_provider_nllb">Al dispositiu (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">Tradueix al telèfon amb el model NLLB-200 de Meta a CTranslate2: 200 idiomes, entre qualsevol parella, per a les combinacions que altres motors no poden fer. Una descàrrega de 630 MB, i una frase triga uns segons. El text es queda al telèfon. El model té llicència només per a ús no comercial (CC BY-NC 4.0). Requereix un telèfon de 64 bits amb 6 GB de memòria o més.</string>
     <string name="core_tools_provider_none_on">No hi ha cap proveïdor activat. Activeu-ne un a la configuració d\'aquesta eina.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">Aquesta llista</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">Mostra o amaga les tecles</string>
     <string name="core_tools_shortcut_leader_double_tap">Prem %1$s dues vegades</string>
+    <string name="core_tools_speak_no_voice">Aquest telèfon no té cap veu %1$s per llegir-ho. Afegiu-ne una a la configuració de text a veu d\'Android o descarregueu una veu fora de línia a Eines › Llegir en veu alta.</string>
     <string name="core_tools_symbol_category_arrows_label">Fletxes</string>
     <string name="core_tools_symbol_category_currency_label">Moneda</string>
     <string name="core_tools_symbol_category_fractions_label">Fraccions</string>
     <string name="core_tools_symbol_category_greek_label">Grec</string>
     <string name="core_tools_symbol_category_math_label">Matemàtiques</string>
+    <string name="core_tools_symbol_category_music_label">Música</string>
     <string name="core_tools_symbol_category_other_label">Altres</string>
     <string name="core_tools_symbol_category_punctuation_label">Puntuació</string>
     <string name="core_tools_symbol_category_shapes_label">Formes i estrelles</string>
+    <string name="core_tools_symbol_category_stars_label">Estores</string>
     <string name="core_tools_symbol_category_superscript_label">Superíndex</string>
+    <string name="core_tools_symbol_category_technical_label">Tècnic</string>
+    <string name="core_tools_symbol_category_weather_label">Temps</string>
     <string name="core_tools_symbol_set_coding_label">Programació</string>
     <string name="core_tools_symbol_set_email_label">Correu electrònic</string>
     <string name="core_tools_symbol_set_math_label">Matemàtiques</string>

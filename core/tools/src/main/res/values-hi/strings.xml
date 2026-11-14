@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">नमस्ते</string>
     <string name="core_tools_media_category_laugh">हंसी</string>
     <string name="core_tools_media_category_love">प्रेम</string>
+    <string name="core_tools_media_category_memes">मीम्स</string>
     <string name="core_tools_media_category_no">नहीं</string>
     <string name="core_tools_media_category_party">पार्टी</string>
     <string name="core_tools_media_category_reactions">प्रतिक्रियाएं</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">एक Mozhi सर्वर: Google, DeepL, DuckDuckGo, Yandex और Reverso के लिए एक मुफ्त फ्रंट एंड। इंजन चुनें। DeepL और Reverso को स्रोत भाषा की आवश्यकता होती है।</string>
     <string name="core_tools_provider_music_server">आपका अपना पहचान सर्वर</string>
     <string name="core_tools_provider_music_server_desc">आपके द्वारा चलाया गया सर्वर जो AudD की तरह जवाब देता है: क्लिप को एक फ़ाइल के रूप में पोस्ट किया जाता है और गाना JSON के रूप में वापस आता है। इसके पीछे Panako या Olaf जैसा फ़िंगरप्रिन्टर लगाएँ।</string>
+    <string name="core_tools_provider_mwmbl_desc">अपने स्वयं के इंडेक्स के साथ एक मुफ्त, गैर-लाभकारी खोज इंजन। कोई कुंजी नहीं। केवल वेब परिणाम, कोई छवियां नहीं।</string>
     <string name="core_tools_provider_nllb">डिवाइस पर (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">CTranslate2 पर मेटा के NLLB-200 मॉडल के साथ फ़ोन पर अनुवाद करता है: 200 भाषाएँ, उनमें से किन्हीं दो के बीच, उन जोड़ियों के लिए जिन्हें अन्य इंजन नहीं कर सकते। 630 MB का एक डाउनलोड, और एक वाक्य में कुछ सेकंड लगते हैं। आपका टेक्स्ट फ़ोन पर ही रहता है। मॉडल केवल गैर-व्यावसायिक उपयोग (CC BY-NC 4.0) के लिए लाइसेंस प्राप्त है। 6 GB या अधिक मेमोरी वाले 64-बिट फ़ोन की आवश्यकता है।</string>
     <string name="core_tools_provider_none_on">कोई प्रदाता चालू नहीं है। इस टूल की सेटिंग में एक चालू करें।</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">यह सूची</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">कुंजियों को दिखाएं या छिपाएं</string>
     <string name="core_tools_shortcut_leader_double_tap">%1$s को दो बार दबाएं</string>
+    <string name="core_tools_speak_no_voice">इस फोन में इसे पढ़ने के लिए कोई %1$s आवाज़ नहीं है। एंड्रॉइड की टेक्स्ट-टू-स्पीच सेटिंग में एक जोड़ें, या टूल्स › रीड बैक के तहत ऑफ़लाइन आवाज़ डाउनलोड करें।</string>
     <string name="core_tools_symbol_category_arrows_label">तीर</string>
     <string name="core_tools_symbol_category_currency_label">मुद्रा</string>
     <string name="core_tools_symbol_category_fractions_label">भिन्न</string>
     <string name="core_tools_symbol_category_greek_label">ग्रीक</string>
     <string name="core_tools_symbol_category_math_label">गणित</string>
+    <string name="core_tools_symbol_category_music_label">संगीत</string>
     <string name="core_tools_symbol_category_other_label">अन्य</string>
     <string name="core_tools_symbol_category_punctuation_label">विराम चिह्न</string>
     <string name="core_tools_symbol_category_shapes_label">आकृतियाँ और तारे</string>
+    <string name="core_tools_symbol_category_stars_label">तारे</string>
     <string name="core_tools_symbol_category_superscript_label">सुपरस्क्रिप्ट</string>
+    <string name="core_tools_symbol_category_technical_label">तकनीकी</string>
+    <string name="core_tools_symbol_category_weather_label">मौसम</string>
     <string name="core_tools_symbol_set_coding_label">कोडिंग</string>
     <string name="core_tools_symbol_set_email_label">ईमेल</string>
     <string name="core_tools_symbol_set_math_label">गणित</string>

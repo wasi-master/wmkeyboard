@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">שלום</string>
     <string name="core_tools_media_category_laugh">צחוק</string>
     <string name="core_tools_media_category_love">אהבה</string>
+    <string name="core_tools_media_category_memes">ממים</string>
     <string name="core_tools_media_category_no">לא</string>
     <string name="core_tools_media_category_party">מסיבה</string>
     <string name="core_tools_media_category_reactions">תגובות</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">שרת Mozhi: ממשק חינמי ל-Google, DeepL, DuckDuckGo, Yandex ו-Reverso. בחר את המנוע. DeepL ו-Reverso דורשים שפת מקור.</string>
     <string name="core_tools_provider_music_server">שרת זיהוי משלך</string>
     <string name="core_tools_provider_music_server_desc">שרת שאתה מריץ שמגיב כמו AudD: הקטע מועלה כקובץ והשיר חוזר בפורמט JSON. הצב מאחוריו כלי לזיהוי טביעת אצבע קולית כמו Panako או Olaf.</string>
+    <string name="core_tools_provider_mwmbl_desc">מנוע חיפוש חופשי וללא מטרות רווח עם אינדקס משלו. ללא מפתח. תוצאות אינטרנט בלבד, ללא תמונות.</string>
     <string name="core_tools_provider_nllb">על המכשיר (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">מתרגם בטלפון באמצעות המודל NLLB-200 של Meta על גבי CTranslate2: 200 שפות, בין כל שתיים מהן, עבור זוגות שמנועים אחרים אינם יכולים לבצע. הורדה אחת של 630 MB, ומשפט לוקח כמה שניות. הטקסט שלך נשאר בטלפון. המודל מורשה לשימוש לא מסחרי בלבד (CC BY-NC 4.0). דורש טלפון 64-ביט עם 6 GB זיכרון או יותר.</string>
     <string name="core_tools_provider_none_on">אף ספק אינו פעיל. הפעל אחד בהגדרות הכלי הזה.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">רשימה זו</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">הצג או הסתר את המקשים</string>
     <string name="core_tools_shortcut_leader_double_tap">לחץ על %1$s פעמיים</string>
+    <string name="core_tools_speak_no_voice">בטלפון זה אין קול מסוג %1$s לקריאת הטקסט. הוסף קול בהגדרות טקסט-לדיבור של Android, או הורד קול לא מקוון תחת כלים › קריאה חוזרת.</string>
     <string name="core_tools_symbol_category_arrows_label">חצים</string>
     <string name="core_tools_symbol_category_currency_label">מטבע</string>
     <string name="core_tools_symbol_category_fractions_label">שברים</string>
     <string name="core_tools_symbol_category_greek_label">יוונית</string>
     <string name="core_tools_symbol_category_math_label">מתמטיקה</string>
+    <string name="core_tools_symbol_category_music_label">מוזיקה</string>
     <string name="core_tools_symbol_category_other_label">אחר</string>
     <string name="core_tools_symbol_category_punctuation_label">סימני פיסוק</string>
     <string name="core_tools_symbol_category_shapes_label">צורות וכוכבים</string>
+    <string name="core_tools_symbol_category_stars_label">כוכבים</string>
     <string name="core_tools_symbol_category_superscript_label">כתב עילי</string>
+    <string name="core_tools_symbol_category_technical_label">טכני</string>
+    <string name="core_tools_symbol_category_weather_label">מזג אוויר</string>
     <string name="core_tools_symbol_set_coding_label">תכנות</string>
     <string name="core_tools_symbol_set_email_label">אימייל</string>
     <string name="core_tools_symbol_set_math_label">מתמטיקה</string>

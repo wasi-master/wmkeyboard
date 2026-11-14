@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Banda, píldora y teclas</string>
     <string name="core_settings_glide_commit_scope_pill_label">Banda y píldora</string>
     <string name="core_settings_glide_commit_scope_strip_label">Franja</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">Después de deshacer</string>
+    <string name="core_settings_glide_drawn_letters_off_label">Desactivado</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">En caso de duda</string>
     <string name="core_settings_glide_engine_built_in_label">Integrado</string>
     <string name="core_settings_glide_engine_futo_label">FUTO Swipe (inglés, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Biblioteca de gestos de Google (importada)</string>

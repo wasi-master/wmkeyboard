@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">ਇੱਕ ਹਾਲੀਆ ਦਰਮਿਆਨੇ ਆਕਾਰ ਦਾ ਮਾਡਲ ਜੋ ਜਵਾਬ ਦੇਣ ਤੋਂ ਪਹਿਲਾਂ ਸੋਚਦਾ ਹੈ। ਇਸ ਲਈ ਇੱਕ ਦਰਮਿਆਨੇ ਪੱਧਰ ਦੀ ਡਿਵਾਈਸ ਦੀ ਲੋੜ ਹੁੰਦੀ ਹੈ।</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">ਛੋਟਾ ਅਤੇ ਤੇਜ਼। ਇਹ ਇੱਕ ਬੁਨਿਆਦੀ ਡਿਵਾਈਸ \'ਤੇ ਤੇਜ਼ੀ ਨਾਲ ਦੁਬਾਰਾ ਲਿਖਣ ਲਈ ਵਧੀਆ ਹੈ।</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">ਇੱਕ ਬਹੁਤ ਛੋਟਾ ਮਾਡਲ ਜੋ ਤਸਵੀਰਾਂ ਪੜ੍ਹ ਸਕਦਾ ਹੈ। ਇਹ ਇੱਕ ਤਸਵੀਰ ਦਾ ਵਰਣਨ ਕਰਦਾ ਹੈ, ਪਰ ਅਕਸਰ ਸਕ੍ਰੀਨਸ਼ੌਟ ਵਿੱਚ ਲਿਖੇ ਟੈਕਸਟ ਨੂੰ ਗਲਤ ਪੜ੍ਹ ਲੈਂਦਾ ਹੈ।</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">ਹਦਾਇਤਾਂ ਦੀ ਪਾਲਣਾ ਕਰਨ ਅਤੇ ਟੂਲ ਵਰਤਣ ਲਈ ਜੇਮਾ 4 E4B ਦੀ ਐਨਵੀਡੀਆ (NVIDIA) ਦੀ ਮੁੜ-ਸਿਖਲਾਈ। ਸਿਰਫ਼ ਟੈਕਸਟ, ਅਤੇ ਇਸ ਲਈ ਇੱਕ ਸ਼ਕਤੀਸ਼ਾਲੀ ਡਿਵਾਈਸ ਦੀ ਲੋੜ ਹੈ।</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">ਇੱਕ ਆਮ-ਉਦੇਸ਼ ਵਾਲਾ ਮਾਡਲ ਜੋ ਅਜੇ ਵੀ ਇੱਕ ਬੁਨਿਆਦੀ ਡਿਵਾਈਸ \'ਤੇ ਫਿੱਟ ਬੈਠਦਾ ਹੈ।</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B ਤੋਂ ਹੇਠਾਂ ਦੇ ਮਾਡਲਾਂ ਨਾਲੋਂ ਸਪੱਸ਼ਟ ਤੌਰ \'ਤੇ ਚੁਸਤ। ਇਸ ਨੂੰ ਮੱਧ-ਰੇਂਜ ਵਾਲੀ ਡਿਵਾਈਸ ਦੀ ਲੋੜ ਹੈ।</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">ਇੱਕ ਹਾਲੀਆ ਛੋਟਾ ਮਾਡਲ। ਇਸਦੇ ਆਕਾਰ ਲਈ ਗੁਣਵੱਤਾ ਉੱਚੀ ਹੈ।</string>

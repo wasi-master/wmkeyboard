@@ -9,11 +9,16 @@
     <string name="core_voice_model_base_multi_body">Šis modelis līdzsvaro precizitāti un ātrumu. Tas aptver visas valodas, kuras atpazīst Whisper. Izvēlieties to, ja mazais (Small) modelis ir pārāk lēns.</string>
     <string name="core_voice_model_base_world_body">Šis modelis izmanto valodu, kurā rakstāt, nevis minējumu. Īsas frāzes kļūst daudz uzticamākas. Atlasiet to, kad sarakstā ir jūsu valodas.</string>
     <string name="core_voice_model_cpp_base_body">Šis modelis līdzsvaro precizitāti un ātrumu. Tas izmanto valodu, kurā diktējat, jebkurā no 99 valodām, ko Whisper atpazīst, un tas klausās jūsu vārdus. Izvēlieties to, ja mazais modelis ir pārāk lēns.</string>
+    <string name="core_voice_model_cpp_fine_tune_body">%1$s tālāk apmācīja šo Turbo modeli runai šajā vienā valodā. Tas apstrādā tikai šo valodu.</string>
+    <string name="core_voice_model_cpp_hinglish_body">Oriserve apmācīja šo modeli hindi valodā un hindi valodā, kas sajaukta ar angļu valodu. Tas raksta to, ko jūs sakāt latīņu alfabēta burta, kā tiek rakstīts hinglish, un saglabā angļu vārdus angļu valodā. Tas nekad neraksta devanagari, tāpēc tas ir piemērots hinglish, nevis hindi valodai. Tas ir mazs un ātrs.</string>
+    <string name="core_voice_model_cpp_kb_body">Zviedrijas Nacionālā bibliotēka apmācīja šo modeli zviedru valodas runai. Tas apstrādā tikai zviedru valodu un ir precīzāks nekā tāda paša izmēra vispārīgais Whisper modelis.</string>
+    <string name="core_voice_model_cpp_kotoba_body">Kotoba Technologies izveidoja šo japāņu valodas modeli no Whisper Large v3. Tā dekodētājs ir daudz mazāks, tāpēc tas darbojas aptuveni ar Turbo modeļa ātrumu. Tas apstrādā tikai japāņu valodu.</string>
     <string name="core_voice_model_cpp_large_body">Šis ir visprecīzākais Whisper modelis. Lejupielādes lielums ir 1,1 GB. To var ielādēt tikai ierīce ar lielu atmiņas apjomu. Turbo modelis ir gandrīz tikpat precīzs un ir uz pusi mazāks.</string>
     <string name="core_voice_model_cpp_medium_body">Šis modelis nodrošina gandrīz galddatora precizitāti. Katra frāze aizņem vairākas sekundes. Modelis darbības laikā izmanto gandrīz vienu gigabaitu atmiņas.</string>
     <string name="core_voice_model_cpp_small_body">Šis modelis nodrošina vislabāko precizitāti, kas joprojām labi darbojas tālrunī. Tas izmanto valodu, kurā diktējat, jebkurā no 99 valodām, ko atpazīst Whisper, un tas klausās jūsu vārdus.</string>
     <string name="core_voice_model_cpp_tiny_body">Šis ir ātrākais modelis. Tas labi darbojas ar skaidru runu, bet troksnis samazina precizitāti. Tas izmanto valodu, kurā diktējat, un klausās jūsu vārdus.</string>
     <string name="core_voice_model_cpp_turbo_body">Šis modelis ir gandrīz tikpat precīzs kā lielākais modelis, taču uz pusi mazāks. Katra frāze aizņem vairākas sekundes, un tas nevar tulkot.</string>
+    <string name="core_voice_model_custom_body">Jţ importējāt šo whisper.cpp modeli no faila. Tastatţra nezina, kā tas tika apmācģts, tāpēc izvēlieties to valodām, kurām tas tika izveidots, sadaıjā Modelis katrai valodai.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d valoda</item>
         <item quantity="other">%1$d valodas</item>

@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">ที่อยู่อีเมล</string>
+    <string name="core_content_clip_entity_email_tag">อีเมล</string>
     <string name="core_content_clip_entity_otp_label">รหัสผ่านใช้ครั้งเดียว</string>
     <string name="core_content_clip_entity_otp_tag">รหัส</string>
     <string name="core_content_clip_entity_phone_label">หมายเลขโทรศัพท์</string>
@@ -38,6 +40,10 @@
         <item quantity="one">แอปข้ามสนิปเปต %1$d รายการที่ไม่มีอะไรให้แทรก</item>
         <item quantity="other">แอปข้ามสนิปเปต %1$d รายการที่ไม่มีอะไรให้แทรก</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d ฟิลด์ฟอร์มมีรายการให้เลือก แอปจะขอเป็นคำตอบที่พิมพ์ โดยกรอกตัวเลือกแรกไว้ล่วงหน้า</item>
+        <item quantity="other">%1$d ฟิลด์ฟอร์มมีรายการให้เลือก แอปจะขอแต่ละรายการเป็นคำตอบที่พิมพ์ โดยกรอกตัวเลือกแรกไว้ล่วงหน้า</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">แอปข้ามสนิปเพ็ต %1$d รายการที่แทรกรูปภาพ</item>
         <item quantity="other">แอปข้ามสนิปเพ็ต %1$d รายการที่แทรกรูปภาพ</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">มีข้อความสั้น %1$d รายการที่ใช้ค่าที่ Espanso ไม่มีค่าเทียบเท่า จึงแสดงผลตามที่เขียนไว้</item>
         <item quantity="other">มีข้อความสั้น %1$d รายการที่ใช้ค่าที่ Espanso ไม่มีค่าเทียบเท่า จึงแสดงผลตามที่เขียนไว้</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d ข้อความสั้นแทรกรูปภาพ ไฟล์ข้อความไม่สามารถเก็บรูปภาพได้ ส่งออกได้เฉพาะข้อความเท่านั้น</item>
+        <item quantity="other">%1$d ข้อความสั้นแทรกรูปภาพ ไฟล์ข้อความไม่สามารถเก็บรูปภาพได้ ส่งออกได้เฉพาะข้อความเท่านั้น</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">แอปได้ลบรูปแบบออกจากสนิปเป็ต %1$d รายการ แอปไม่รองรับรูปแบบในลักษณะนี้ สนิปเป็ตจะยังคงอยู่ในรายการ</item>
@@ -197,17 +207,35 @@
         <item quantity="one">แอปได้ลบตัวกระตุ้น %1$d รายการที่แป้นพิมพ์ไม่สามารถตรวจสอบได้ ข้อความสั้นของมันยังคงอยู่ในรายการ</item>
         <item quantity="other">แอปได้ลบตัวกระตุ้น %1$d รายการที่แป้นพิมพ์ไม่สามารถตรวจสอบได้ ข้อความสั้นของพวกมันยังคงอยู่ในรายการ</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">เริ่มต้นด้วย 333 แต่ไม่ใช่บรรทัดทริกเกอร์ 333 ทั้งหมด หากต้องการเริ่มต้นบรรทัดข้อความด้วย 333 ให้เขียนเป็น \333 แทน</string>
+    <string name="core_content_snippet_text_bad_pattern">ไม่สามารถใช้รูปแบบนี้ได้: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s ไม่สามารถเป็น %2$s ได้</string>
+    <string name="core_content_snippet_text_before_header">ข้อความก่อนบรรทัดทริกเกอร์ === แรก เริ่มต้นบล็อกด้วยเครื่องหมายหนึ่ง หรือเริ่มบรรทัดด้วย #</string>
+    <string name="core_content_snippet_text_no_text">ข้อมูลนี้ไม่มีข้อความ</string>
+    <string name="core_content_snippet_text_no_trigger">ข้อความสั้นที่ไม่มีอะไรอยู่ระหว่างเครื่องหมาย === จำเป็นต้องมีบรรทัด @label หรือ @pattern</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">ส่วนย่อยรูปภาพ %1$d รายการเข้ามาเป็นข้อความ เนื่องจากไฟล์ข้อความไม่มีรูปภาพ</item>
+        <item quantity="other">ส่วนย่อยรูปภาพ %1$d รายการเข้ามาเป็นข้อความ เนื่องจากไฟล์ข้อความไม่มีรูปภาพ</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">ข้ามข้อความสัเน็ปที่บริเวณบรุท %1$d ซิ่งมีข้อผิดพลิด</string>
+    <string name="core_content_snippet_text_unknown_link">\@link ตั้งชื่อว่า %1$s และไม่มีสนิปเป็ตใดที่นี่ที่มีทริกเกอร์นั้น</string>
+    <string name="core_content_snippet_text_unknown_picture">\@picture มีชื่อว่า %1$s ซึ่งไม่มีข้อความสั้นใดใช้งาน เพิ่มรูปภาพในตัวแก้ไขข้อความสั้น</string>
+    <string name="core_content_snippet_text_unknown_setting">แป้นพิมพ์ไม่รู้จักการตั้งค่า %1$s หากต้องการเริ่มต้นข้อความข้อความสั้นด้วย @ ให้เขียนเป็น \@ แทน</string>
     <string name="core_content_snippet_var_app_info">ชื่อของแอปที่คุณกำลังพิมพ์อยู่</string>
+    <string name="core_content_snippet_var_battery_info">ประจุแบตเตอรี่ เช่น 85%</string>
     <string name="core_content_snippet_var_clip_info">รายการคลิปบอร์ดล่าสุด</string>
     <string name="core_content_snippet_var_cursor_info">ตำแหน่งที่เคอร์เซอร์วางอยู่</string>
     <string name="core_content_snippet_var_date_info">วันที่วันนี้</string>
     <string name="core_content_snippet_var_datetime_info">วันที่และเวลา</string>
     <string name="core_content_snippet_var_day_info">วันที่ของเดือน</string>
+    <string name="core_content_snippet_var_greeting_info">อรุณสวัสดิ์ สวัสดีตอนบ่าย หรือสวัสดีตอนเย็นตามเวลา ในภาษาของแป้นพิมพ์</string>
     <string name="core_content_snippet_var_isodate_info">วันที่ในรูปแบบ ISO เช่น 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">วันที่และเวลาในรูปแบบ ISO</string>
+    <string name="core_content_snippet_var_language_info">ภาษาของแป้นพิมพ์ที่คุณพิมพ์</string>
     <string name="core_content_snippet_var_month_info">ชื่อของเดือน</string>
     <string name="core_content_snippet_var_package_info">ชื่อแพ็กเกจของแอปนั้น</string>
     <string name="core_content_snippet_var_selection_info">ข้อความที่คุณเลือกในช่อง</string>
+    <string name="core_content_snippet_var_tab_info">อักขระแท็บ</string>
     <string name="core_content_snippet_var_time12_info">เวลาปัจจุบันในรูปแบบ 12 ชั่วโมง</string>
     <string name="core_content_snippet_var_time_info">เวลาปัจจุบันในรูปแบบ 24 ชั่วโมง</string>
     <string name="core_content_snippet_var_timestamp_info">เวลาในหน่วยวินาทีแบบ Unix</string>

@@ -176,6 +176,7 @@
     <string name="ime_ai_error_no_text">Không có gì để xử lý. Hãy nhập văn bản trước.</string>
     <string name="ime_ai_error_only_reasoning">Mô hình đã sử dụng toàn bộ phản hồi để suy luận. Hãy thử lại hoặc bật “Hiển thị suy luận” trong phần cài đặt.</string>
     <string name="ime_ai_error_request_failed">Yêu cầu không thực hiện được</string>
+    <string name="ime_ai_error_stopped_hidden">Đã dừng vì bàn phím đã đóng. Thử lại để chạy lại.</string>
     <string name="ime_ai_idle_body">Các hành động chạy trên văn bản đã chọn hoặc trên toàn bộ trường. Chúng sử dụng %1$s.</string>
     <string name="ime_ai_idle_empty_body">Nhập hoặc chọn một số văn bản để sử dụng các hành động này. Nhấn %1$s để viết văn bản mới.</string>
     <string name="ime_ai_idle_empty_no_writer_body">Nhập hoặc chọn một đoạn văn bản để sử dụng các hành động này.</string>
@@ -307,9 +308,11 @@
     <string name="ime_app_colors_none">Không tìm thấy màu sắc nào trong ứng dụng này</string>
     <string name="ime_app_colors_off_desc">Không sử dụng màu sắc của ứng dụng này</string>
     <string name="ime_app_colors_pick_desc">Màu ứng dụng %1$d</string>
+    <string name="ime_applet_back">Quay lại</string>
     <string name="ime_applet_close">Đóng hộp</string>
     <string name="ime_applet_copied">Đã sao chép</string>
     <string name="ime_applet_open_in_keyboard">Mở trong bàn phím</string>
+    <string name="ime_applet_pop_out">Mở trong hộp nổi</string>
     <string name="ime_applet_resize">Kéo để thay đổi kích thước</string>
     <string name="ime_applet_tuck">Thu gọn vào cạnh</string>
     <string name="ime_applet_untuck">Mang lại %1$s</string>
@@ -319,6 +322,33 @@
     <string name="ime_ask_ai_label_vocab">Từ vựng: %1$s</string>
     <string name="ime_ask_ai_label_wiki">Wikipedia: %1$s</string>
     <string name="ime_autofill_dismiss_desc">Ẩn các gợi ý tự động điền</string>
+    <string name="ime_board_copy_desc">Sao chép vào điện thoại này</string>
+    <string name="ime_board_delete_body">Thao tác này xóa trên mọi thiết bị sử dụng bảng này. Các bản sao đã có sẵn trên khay nhớ tạm của điện thoại sẽ được giữ lại.</string>
+    <string name="ime_board_delete_desc">Gỡ bỏ bảng</string>
+    <string name="ime_board_delete_no">Hủy</string>
+    <string name="ime_board_delete_title">Gỡ đoạn này khỏi bảng?</string>
+    <string name="ime_board_delete_yes">Gỡ bỏ</string>
+    <string name="ime_board_edit_desc">Chỉnh sửa</string>
+    <string name="ime_board_empty_body">Các đoạn được gửi đến đây sẽ xuất hiện trên các thiết bị khác của bạn sử dụng cùng thư mục, kể cả những thiết bị hiện đang ngoại tuyến.</string>
+    <string name="ime_board_empty_title">Không có gì trên bảng</string>
+    <string name="ime_board_notice_copied">Đã sao chép</string>
+    <string name="ime_board_notice_deleted">Đã gỡ khỏi bảng</string>
+    <string name="ime_board_notice_refused">Chỉ các đoạn văn bản không bị ẩn mới có thể đưa lên bảng</string>
+    <string name="ime_board_notice_sent">Đã gửi lên bảng</string>
+    <string name="ime_board_send_desc">Gửi một đoạn clip</string>
+    <string name="ime_board_send_done">Hoàn tất</string>
+    <string name="ime_board_send_empty">Không có đoạn văn bản nào để gửi. Hình ảnh, tệp và các đoạn ẩn vẫn được giữ trên điện thoại này.</string>
+    <string name="ime_board_send_one_desc">Gửi</string>
+    <string name="ime_board_send_title">Gửi đến bảng</string>
+    <string name="ime_board_sent_desc">Đã gửi</string>
+    <string name="ime_board_status_failed">Không thể kết nối với bảng</string>
+    <string name="ime_board_status_never">Chưa kiểm tra</string>
+    <string name="ime_board_status_synced">Đã kiểm tra %1$s</string>
+    <string name="ime_board_status_syncing">Đang kiểm tra bảng…</string>
+    <string name="ime_board_status_waiting">Đang đợi kết nối với bảng</string>
+    <string name="ime_board_status_waiting_offline">Không thể kết nối với bảng. Các thay đổi của bạn sẽ được gửi đi khi có thể</string>
+    <string name="ime_board_sync_desc">Kiểm tra bảng ngay</string>
+    <string name="ime_board_title">Bảng được chia sẻ</string>
     <string name="ime_calc_degrees_label">độ</string>
     <string name="ime_calc_insert_action">Chèn</string>
     <string name="ime_calc_radians_label">rad</string>
@@ -471,7 +501,9 @@
     </plurals>
     <string name="ime_calendar_untitled">(Không có tiêu đề)</string>
     <string name="ime_calendar_view_agenda">Chương trình nghị sự</string>
+    <string name="ime_calendar_view_day">Ngày</string>
     <string name="ime_calendar_view_month">Tháng</string>
+    <string name="ime_calendar_weather_desc">%1$s, %2$s ở %3$s. Mở dự báo thời tiết cho từng giờ</string>
     <string name="ime_calendar_yesterday_label">Hôm qua</string>
     <string name="ime_calendar_zone_note">Thời gian theo %1$s</string>
     <string name="ime_camera_captured_photo_desc">Ảnh bạn đã chụp</string>
@@ -543,6 +575,7 @@
         <item quantity="one">Kết hợp %1$d clip</item>
         <item quantity="other">Kết hợp %1$d clip</item>
     </plurals>
+    <string name="ime_clip_compose_email">Soạn email</string>
     <string name="ime_clip_delete_pinned_question">Xóa clip đã ghim này?</string>
     <plurals name="ime_clip_deleted">
         <item quantity="one">Đã xóa clip</item>
@@ -563,6 +596,7 @@
         <item quantity="other">Hiển thị %1$d phần được tìm thấy trong các clip của bạn</item>
     </plurals>
     <string name="ime_clip_extract_codes">Mã dùng một lần</string>
+    <string name="ime_clip_extract_emails">Địa chỉ email</string>
     <string name="ime_clip_extract_links">Liên kết</string>
     <string name="ime_clip_extract_parts">Trích xuất</string>
     <string name="ime_clip_extract_phones">Số điện thoại</string>
@@ -589,6 +623,7 @@
         <item quantity="one">Ẩn · %1$d ký tự</item>
         <item quantity="other">Ẩn · %1$d ký tự</item>
     </plurals>
+    <string name="ime_clip_image_pasted_toast">Đã dán từ khay nhớ tạm. Nếu không có gì xuất hiện, ứng dụng này không chụp ảnh nào: giữ đoạn clip để chia sẻ</string>
     <string name="ime_clip_info_copied">Đã sao chép</string>
     <string name="ime_clip_info_edited">Đã chỉnh sửa</string>
     <string name="ime_clip_info_from">Từ</string>
@@ -642,7 +677,12 @@
         <item quantity="other">Đã chọn %1$d mục</item>
     </plurals>
     <string name="ime_clip_send_as_sticker">Gửi dưới dạng nhãn dán</string>
+    <string name="ime_clip_shape_code">Mã</string>
+    <string name="ime_clip_shape_markdown">Markdown</string>
+    <string name="ime_clip_share_image">Chia sẻ</string>
+    <string name="ime_clip_show_formatted">Hiển thị có định dạng</string>
     <string name="ime_clip_show_in_history">Hiển thị trong lịch sử</string>
+    <string name="ime_clip_show_raw">Hiển thị thô</string>
     <string name="ime_clip_tags">Thẻ</string>
     <string name="ime_clip_tags_placeholder">Thẻ, cách nhau bằng dấu phẩy</string>
     <string name="ime_clip_tags_title">Thẻ</string>
@@ -907,6 +947,7 @@
     <string name="ime_conversion_pack_offer">Tải xuống %1$s để gõ ký tự</string>
     <string name="ime_conversion_pack_offer_dismiss_desc">Bỏ qua</string>
     <string name="ime_converter_from_label">Từ</string>
+    <string name="ime_converter_tab_units">Đơn vị</string>
     <string name="ime_converter_to_label">Đến</string>
     <string name="ime_currency_insert_action">Chèn</string>
     <string name="ime_currency_progress">Đang tải xuống tỷ giá hối đoái…</string>
@@ -915,6 +956,32 @@
     <string name="ime_currency_section_crypto">Tiền điện tử</string>
     <string name="ime_currency_section_popular">Phổ biến</string>
     <string name="ime_currency_swap_desc">Hoán đổi các loại tiền tệ</string>
+    <string name="ime_custom_button_desc">Mở %1$s</string>
+    <string name="ime_custom_button_label">Nút tùy chỉnh</string>
+    <string name="ime_custom_button_shortcut_failed">Không thể mở lối tắt đó. Ứng dụng có thể đã bị gỡ, hoặc chỉ cho phép màn hình chính mở ứng dụng.</string>
+    <string name="ime_custom_page_clipboard">Cài đặt bộ nhớ tạm</string>
+    <string name="ime_custom_page_custom_buttons">Nút tùy chỉnh</string>
+    <string name="ime_custom_page_dictionary">Từ điển</string>
+    <string name="ime_custom_page_favourites">Yêu thích</string>
+    <string name="ime_custom_page_home">Cài đặt</string>
+    <string name="ime_custom_page_keypress">Âm thanh và rung</string>
+    <string name="ime_custom_page_languages">Ngôn ngữ</string>
+    <string name="ime_custom_page_search">Cài đặt tìm kiếm</string>
+    <string name="ime_custom_page_themes">Giao diện</string>
+    <string name="ime_custom_page_toolbar">Cài đặt thanh công cụ</string>
+    <string name="ime_custom_page_tools">Công cụ</string>
+    <string name="ime_custom_page_typing">Đang gõ</string>
+    <string name="ime_custom_toggle_auto_caps">Viết hoa tự động</string>
+    <string name="ime_custom_toggle_glide">Nhập lướt</string>
+    <string name="ime_custom_toggle_key_hints">Gợi ý phím</string>
+    <string name="ime_custom_toggle_key_popup">Phím bật lên</string>
+    <string name="ime_custom_toggle_number_row">Hàng số</string>
+    <string name="ime_custom_toggle_reduce_motion">Giảm chuyển động</string>
+    <string name="ime_custom_toggle_sound">Âm thanh phím</string>
+    <string name="ime_custom_toggle_suggestions">Gợi ý</string>
+    <string name="ime_custom_toggle_symbol_row">Hàng ký tự</string>
+    <string name="ime_custom_toggle_toolbar_labels">Tên thanh công cụ</string>
+    <string name="ime_custom_toggle_vibration">Rung</string>
     <string name="ime_delete_redo_chip">Làm lại “%1$s”</string>
     <string name="ime_delete_redo_plain">Xóa lần nữa</string>
     <string name="ime_delete_undo_chip">Hoàn tác “%1$s”</string>
@@ -952,6 +1019,7 @@
     <string name="ime_disabled_correction_invalid">Hãy nhập một từ khác để sửa. Từ được sửa cần có ít nhất 3 chữ cái và bản sửa lỗi có thể là một từ hoặc hai từ nếu bị thiếu khoảng trắng.</string>
     <string name="ime_disabled_media_app_blocks">Ứng dụng đang phát không cho phép điều này.</string>
     <string name="ime_disabled_spell_unchanged">Thay đổi cách viết trước. Cách viết trống hoặc không thay đổi sẽ không có gì để áp dụng.</string>
+    <string name="ime_disabled_translate_empty_box">Ô này trống hoặc bản dịch vẫn đang được chuẩn bị.</string>
     <string name="ime_disabled_translate_nothing">Chưa có nội dung nào được dịch. Hãy nhập hoặc dán văn bản cần dịch trước.</string>
     <string name="ime_disabled_translate_same_language">Văn bản này đã có sẵn trong ngôn ngữ mà bạn đang chuyển đổi sang.</string>
     <string name="ime_disabled_voice_undo">Chưa có gì để hoàn tác. Hoàn tác sẽ lấy lại cụm từ cuối cùng bạn đã nói.</string>
@@ -981,6 +1049,10 @@
     <string name="ime_docscan_next">Cắt</string>
     <string name="ime_docscan_open_settings">Mở cài đặt</string>
     <string name="ime_docscan_page_number">Trang %1$d</string>
+    <plurals name="ime_docscan_pages_album">
+        <item quantity="one">Trang mở trong màn hình chia sẻ của ứng dụng</item>
+        <item quantity="other">Ứng dụng này chụp từng ảnh một tại đây, vì vậy %d trang sẽ mở cùng nhau trong màn hình chia sẻ để gửi dưới dạng một album</item>
+    </plurals>
     <plurals name="ime_docscan_pages_shared">
         <item quantity="one">Ứng dụng không lấy được trang cuối cùng ở đây, vì vậy nó sẽ mở trong màn hình chia sẻ của ứng dụng</item>
         <item quantity="other">Ứng dụng không lấy được %d trang ở đây, vì vậy chúng sẽ mở cùng nhau trong màn hình chia sẻ của ứng dụng</item>
@@ -1063,10 +1135,15 @@
     <string name="ime_files_access_pick">Trình chọn của Android</string>
     <string name="ime_files_access_title">Chọn tệp mà không cần rời khỏi bàn phím</string>
     <string name="ime_files_add">Thêm</string>
+    <string name="ime_files_add_tree">Thêm một thư mục</string>
+    <string name="ime_files_add_tree_detail">Ổ đĩa USB, thẻ nhớ SD, hoặc thư mục được chia sẻ bởi ứng dụng khác như ổ đĩa mạng</string>
+    <string name="ime_files_allow_all">Tất cả bộ nhớ của điện thoại</string>
+    <string name="ime_files_allow_all_detail">Cần quyền truy cập Tất cả tệp của Android</string>
     <string name="ime_files_camera">Máy ảnh</string>
     <string name="ime_files_clear_desc">Xóa lựa chọn</string>
     <string name="ime_files_collapse_desc">Thu gọn lại</string>
     <string name="ime_files_copy_desc">Sao chép</string>
+    <string name="ime_files_copy_to">Sao chép đến %1$s</string>
     <string name="ime_files_delete_body">Thư mục sẽ đi kèm với mọi thứ bên trong chúng. Hành động này là vĩnh viễn: Android không có thùng rác cho các tệp.</string>
     <string name="ime_files_delete_desc">Xóa</string>
     <string name="ime_files_delete_no">Hủy</string>
@@ -1083,8 +1160,11 @@
     <string name="ime_files_expand_desc">Làm cao hơn</string>
     <string name="ime_files_hide_hidden">Ẩn tệp ẩn</string>
     <string name="ime_files_kde_unreadable">Không thể đọc tệp đó để gửi</string>
+    <string name="ime_files_locked_body">Trình quản lý tệp không mở trên màn hình khóa.</string>
+    <string name="ime_files_locked_title">Mở khóa để xem tệp của bạn</string>
     <string name="ime_files_more_desc">Thêm</string>
     <string name="ime_files_move_desc">Di chuyển</string>
+    <string name="ime_files_move_to">Chuyển đến %1$s</string>
     <string name="ime_files_movies">Phim</string>
     <string name="ime_files_music">Nhạc</string>
     <string name="ime_files_new_folder">Thư mục mới</string>
@@ -1110,6 +1190,8 @@
         <item quantity="one">Đã di chuyển %d mục</item>
         <item quantity="other">Đã di chuyển %d mục</item>
     </plurals>
+    <string name="ime_files_notice_tree_removed">Đã xóa thư mục khỏi danh sách</string>
+    <string name="ime_files_one_pane_desc">Một danh sách</string>
     <string name="ime_files_op_cancel">Dừng</string>
     <string name="ime_files_op_copy">Đang sao chép %1$d trên %2$d</string>
     <string name="ime_files_op_delete">Đang xóa %1$d trong tổng số %2$d</string>
@@ -1126,6 +1208,9 @@
     <string name="ime_files_pictures">Hình ảnh</string>
     <string name="ime_files_places">Địa điểm</string>
     <string name="ime_files_recent">Gần đây</string>
+    <string name="ime_files_remove_tree_body">Thư mục và các tệp của thư mục đó vẫn ở nguyên vị trí. Bạn có thể thêm lại bất cứ lúc nào.</string>
+    <string name="ime_files_remove_tree_title">Xóa “%1$s” khỏi danh sách?</string>
+    <string name="ime_files_remove_tree_yes">Gỡ bỏ</string>
     <string name="ime_files_rename_desc">Đổi tên</string>
     <string name="ime_files_rename_hint">Tên mới</string>
     <string name="ime_files_search_clear_desc">Kết thúc tìm kiếm</string>
@@ -1144,6 +1229,7 @@
     <string name="ime_files_title_many">Chọn tệp</string>
     <string name="ime_files_title_one">Chọn một tệp</string>
     <string name="ime_files_title_picture">Chọn một hình ảnh</string>
+    <string name="ime_files_two_panes_desc">Hai danh sách đặt cạnh nhau</string>
     <string name="ime_files_unreadable">Android không cho phép bàn phím mở thư mục này</string>
     <string name="ime_find_case_desc">Khớp chữ hoa/thường</string>
     <string name="ime_find_clear_desc">Xóa %1$s</string>
@@ -1175,6 +1261,24 @@
     <string name="ime_floating_category_empty">Danh mục này trống. Hãy thêm các hành động vào đó trong cài đặt nút nổi.</string>
     <string name="ime_floating_category_label">Danh mục</string>
     <string name="ime_floating_close_menu">Đóng menu</string>
+    <string name="ime_floating_device_bluetooth">Bluetooth</string>
+    <string name="ime_floating_device_bluetooth_desc">Bật hoặc tắt Bluetooth</string>
+    <string name="ime_floating_device_bluetooth_page_desc">Mở trang Bluetooth của Android</string>
+    <string name="ime_floating_device_data">Dữ liệu di động</string>
+    <string name="ime_floating_device_data_desc">Bật hoặc tắt dữ liệu di động</string>
+    <string name="ime_floating_device_data_panel_desc">Mở bảng điều khiển internet của Android</string>
+    <string name="ime_floating_device_failed">Android không cho phép điều đó</string>
+    <string name="ime_floating_device_hotspot">Điểm phát sóng</string>
+    <string name="ime_floating_device_hotspot_desc">Mở trang điểm phát sóng (hotspot) của Android</string>
+    <string name="ime_floating_device_off">Đã tắt %1$s</string>
+    <string name="ime_floating_device_on">%1$s bật</string>
+    <string name="ime_floating_device_ringer">Chế độ chuông</string>
+    <string name="ime_floating_device_ringer_desc">Đổ chuông, rung và im lặng lần lượt</string>
+    <string name="ime_floating_device_volume">Bảng âm lượng</string>
+    <string name="ime_floating_device_volume_desc">Mở bảng điều khiển âm lượng của Android, hiển thị tất cả các thanh trượt âm lượng</string>
+    <string name="ime_floating_device_wifi">Wi-Fi</string>
+    <string name="ime_floating_device_wifi_desc">Bật hoặc tắt Wi-Fi</string>
+    <string name="ime_floating_device_wifi_panel_desc">Mở bảng điều khiển Wi-Fi của Android</string>
     <string name="ime_floating_dismiss_target">Thả vào đây để ẩn nút</string>
     <string name="ime_floating_dock_desc">Gắn bàn phím</string>
     <string name="ime_floating_hide_label">Ẩn nút</string>
@@ -1185,7 +1289,11 @@
     <string name="ime_floating_pair_label">Mở một cặp ứng dụng</string>
     <string name="ime_floating_pair_missing">Một trong hai ứng dụng không còn được cài đặt nữa</string>
     <string name="ime_floating_pair_name">%1$s + %2$s</string>
+    <string name="ime_floating_plugin_label">Plugin</string>
     <string name="ime_floating_resize_desc">Thay đổi kích thước bàn phím</string>
+    <string name="ime_floating_ringer_ring">Đổ chuông</string>
+    <string name="ime_floating_ringer_silent">Im lặng</string>
+    <string name="ime_floating_ringer_vibrate">Rung</string>
     <string name="ime_floating_system_app_drawer">Ngăn ứng dụng</string>
     <string name="ime_floating_system_back">Quay lại</string>
     <string name="ime_floating_system_notifications">Thông báo</string>
@@ -1243,6 +1351,7 @@
     <string name="ime_gallery_album_camera">Máy ảnh</string>
     <string name="ime_gallery_album_favorites">Mục ưa thích</string>
     <string name="ime_gallery_album_gifs">GIF</string>
+    <string name="ime_gallery_album_immich">Immich</string>
     <string name="ime_gallery_album_recents">Gần đây</string>
     <string name="ime_gallery_album_screenshots">Ảnh chụp màn hình</string>
     <string name="ime_gallery_album_sent">Đã gửi từ bàn phím</string>
@@ -1334,6 +1443,10 @@
     <string name="ime_gallery_info_taken">Đã chụp</string>
     <string name="ime_gallery_layer_delete">Xóa</string>
     <string name="ime_gallery_more_desc">Thêm tùy chọn thư viện</string>
+    <plurals name="ime_gallery_notice_already_uploaded">
+        <item quantity="one">Immich đã có %d hình ảnh</item>
+        <item quantity="other">Immich đã có tất cả %d hình ảnh</item>
+    </plurals>
     <plurals name="ime_gallery_notice_copied">
         <item quantity="one">Đã sao chép %d mục</item>
         <item quantity="other">Đã sao chép %d mục</item>
@@ -1342,6 +1455,8 @@
         <item quantity="one">Không thể đọc %d mục</item>
         <item quantity="other">Không thể đọc %d mục</item>
     </plurals>
+    <string name="ime_gallery_notice_immich_failed">Không thể kết nối vốn máy chủ Immich của bạn</string>
+    <string name="ime_gallery_notice_immich_refused">Immich đã từ chối khóa API; hãy kiểm tra quyền của khóa</string>
     <plurals name="ime_gallery_notice_limit">
         <item quantity="one">Bạn có thể chọn %d mục mỗi lần</item>
         <item quantity="other">Bạn có thể chọn tối đa %d mục mỗi lần</item>
@@ -1362,6 +1477,14 @@
     <plurals name="ime_gallery_notice_shared">
         <item quantity="one">Đã mở màn hình chia sẻ cho %d mục</item>
         <item quantity="other">Đã mở màn hình chia sẻ cho %d mục</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_upload_failed">
+        <item quantity="one">%d ảnh chưa được tải lên</item>
+        <item quantity="other">%d ảnh chưa được tải lên</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_uploaded">
+        <item quantity="one">Đã tải lên %d hình ảnh lên Immich</item>
+        <item quantity="other">Đã tải lên %d hình ảnh lên Immich</item>
     </plurals>
     <string name="ime_gallery_partial_action">Chọn thêm</string>
     <string name="ime_gallery_partial_body">Bạn chỉ cho phép truy cập một số ảnh.</string>
@@ -1405,6 +1528,7 @@
     <string name="ime_gallery_tool_stickers">Nhãn dán</string>
     <string name="ime_gallery_tool_text">Văn bản</string>
     <string name="ime_gallery_tool_upscale">Nâng cấp độ phân giải</string>
+    <string name="ime_gallery_upload_immich">Tải lên Immich</string>
     <string name="ime_gallery_upscale_art">Vẽ hoặc văn bản</string>
     <string name="ime_gallery_upscale_done">Đã nâng cấp ×%1$d: %2$d × %3$d</string>
     <string name="ime_gallery_upscale_downloading">Ứng dụng đang tải trình nâng cấp hình ảnh…</string>
@@ -1663,6 +1787,9 @@
     <string name="ime_handwriting_unsupported_info">Phiên bản ứng dụng này chỉ đọc chữ viết tay bằng tiếng Trung và tiếng Nhật. Hãy thêm một trong các ngôn ngữ đó vào phần Ngôn ngữ để viết tại đây.</string>
     <string name="ime_hardware_keys_hide_desc">Ẩn phím</string>
     <string name="ime_hardware_keys_show_desc">Hiển thị các phím</string>
+    <string name="ime_homophones_finish">Hoàn thành từ bạn đang nhập trước</string>
+    <string name="ime_homophones_none">Không có gì trên điện thoại này phát âm giống %1$s. Gói ngôn ngữ hoặc lược đồ RIME sẽ thêm phần phát âm.</string>
+    <string name="ime_homophones_none_before">Hãy gõ một ký tự tiếng Trung hoặc tiếng Nhật trước</string>
     <string name="ime_hw_pick_mode_off_toast">Đã tắt chế độ chọn</string>
     <string name="ime_hw_pick_mode_on_toast">Đã bật chế độ chọn: phím số chọn gợi ý, phím Shift nhập số</string>
     <string name="ime_icons_builtin_label">Tích hợp sẵn</string>
@@ -1677,6 +1804,45 @@
     <string name="ime_image_search_need_key_body">Tìm kiếm hình ảnh cần có khóa API từ Brave Search. Hãy thêm khóa trong phần cài đặt cho công cụ này.</string>
     <string name="ime_incognito_on_desc">Chế độ ẩn danh đang bật</string>
     <string name="ime_insert_action">Chèn</string>
+    <string name="ime_invite_about_hint">Thêm mô tả</string>
+    <string name="ime_invite_action">Mời trực tuyến</string>
+    <string name="ime_invite_add_title">Thêm tiêu đề</string>
+    <string name="ime_invite_error_address">Địa chỉ %1$s trong phần cài đặt không phải là một địa chỉ web.</string>
+    <string name="ime_invite_error_bad_token">%1$s không chấp nhận mã thông báo API.</string>
+    <string name="ime_invite_error_data_saver">Trình tiết kiệm dữ liệu đang bật. Quá trình xuất bản sẽ gửi vài kilobyte.</string>
+    <string name="ime_invite_error_network">%1$s không trả lời.</string>
+    <string name="ime_invite_error_no_title">Lời mời cần có tiêu đề.</string>
+    <string name="ime_invite_error_offline">Không có kết nối. Hãy kết nối và thử lại.</string>
+    <string name="ime_invite_error_refused">%1$s cho biết tài khoản này không thể tạo sự kiện ở đó.</string>
+    <string name="ime_invite_error_rejected">%1$s đã từ chối sự kiện.</string>
+    <string name="ime_invite_error_signed_out">%1$s đã đăng xuất bạn. Đăng nhập lại trong phần cài đặt.</string>
+    <string name="ime_invite_fix_in_pretix">Mở Pretix</string>
+    <string name="ime_invite_go_ahead">Tiếp tục đi</string>
+    <string name="ime_invite_insert_link">Chèn liên kết</string>
+    <string name="ime_invite_insert_message">Chèn lời mời</string>
+    <string name="ime_invite_link_only">Chỉ những người có liên kết</string>
+    <string name="ime_invite_listed">Được liệt kê công khai</string>
+    <string name="ime_invite_made">Được tạo vào %1$s, chưa mở đăng ký</string>
+    <string name="ime_invite_not_live">Pretix đã tạo sự kiện nhưng không mở đăng ký. %1$s</string>
+    <string name="ime_invite_not_set_up_body">Đăng nhập vào Mobilizon hoặc thêm máy chủ Pretix trong cài đặt của công cụ Lịch trước.</string>
+    <string name="ime_invite_not_set_up_title">Chưa có dịch vụ sự kiện nào</string>
+    <string name="ime_invite_note_mobilizon">Mọi người đăng ký trên trang của sự kiện. Mobilizon sẽ gửi email cho bạn khi họ đăng ký.</string>
+    <string name="ime_invite_note_pretix">Sự kiện có một vé miễn phí, vì vậy mọi người đăng ký trên trang của sự kiện bằng địa chỉ email của họ.</string>
+    <string name="ime_invite_open_page">Mở trang</string>
+    <string name="ime_invite_open_settings">Cài đặt</string>
+    <string name="ime_invite_place_hint">Thêm địa điểm hoặc liên kết</string>
+    <string name="ime_invite_places_any">Không giới hạn</string>
+    <string name="ime_invite_places_label">Địa điểm</string>
+    <string name="ime_invite_post_as">Đăng với tư cách %1$s</string>
+    <string name="ime_invite_post_as_default">Đăng dưới dạng hồ sơ của bạn</string>
+    <string name="ime_invite_post_as_loading">Đang tải hồ sơ của bạn…</string>
+    <string name="ime_invite_publish">Xuất bản</string>
+    <string name="ime_invite_published">Đã xuất bản vào %1$s</string>
+    <string name="ime_invite_publishing">Đang xuất bản…</string>
+    <string name="ime_invite_publishing_to">Đang xuất bản lên %1$s</string>
+    <string name="ime_invite_ticket_name">Đăng ký</string>
+    <string name="ime_invite_title">Mời trực tuyến</string>
+    <string name="ime_invite_try_again">Thử lại</string>
     <string name="ime_kaomoji_add">Thêm một kaomoji</string>
     <string name="ime_kaomoji_all">Tất cả</string>
     <string name="ime_kaomoji_cancel">Hủy</string>
@@ -1964,6 +2130,7 @@
     <string name="ime_learn_text_action">Học văn bản</string>
     <string name="ime_learn_word_never_desc">Không bao giờ học %1$s</string>
     <string name="ime_learn_word_offer">Thêm \"%1$s\"?</string>
+    <string name="ime_legacy_font_output">Đầu ra phông chữ cũ</string>
     <string name="ime_level_no_sensor_empty">Thiết bị của bạn không có gia tốc kế.</string>
     <string name="ime_location_address_failed">Không có địa chỉ ở đây. Tọa độ vẫn hoạt động.</string>
     <string name="ime_location_address_looking">Đang tìm địa chỉ…</string>
@@ -2136,6 +2303,29 @@
         <item quantity="other">Đã lưu trữ %d ghi chú</item>
     </plurals>
     <string name="ime_notes_archived_badge">Đã lưu trữ</string>
+    <string name="ime_notes_assist_deck_action">Tạo bộ thẻ học tập</string>
+    <plurals name="ime_notes_assist_deck_action_count">
+        <item quantity="one">Tạo bộ thẻ học tập (%d thẻ)</item>
+        <item quantity="other">Tạo bộ thẻ học tập (%d thẻ)</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_empty_toast">Không có thuật ngữ nào kèm nghĩa để tạo thẻ</string>
+    <plurals name="ime_notes_assist_deck_made_toast">
+        <item quantity="one">Đã tạo bộ thẻ học tập \"%2$s\" với %1$d thẻ. Tìm thấy trong Từ vựng.</item>
+        <item quantity="other">Đã tạo bộ thẻ học tập \"%2$s\" với %1$d thẻ. Tìm thấy trong Từ vựng.</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_working_toast">Đang tạo bộ thẻ học tập…</string>
+    <string name="ime_notes_assist_details_label">Chi tiết chính</string>
+    <string name="ime_notes_assist_heading_busy">Đang nghĩ tiêu đề…</string>
+    <string name="ime_notes_assist_heading_dismiss_desc">Không phải tiêu đề này</string>
+    <string name="ime_notes_assist_heading_suggestion">Tiêu đề: %1$s</string>
+    <string name="ime_notes_assist_heading_use_action">Sử dụng</string>
+    <string name="ime_notes_assist_related_label">Liên quan</string>
+    <string name="ime_notes_assist_remind_chip">Nhắc tôi: %1$s · %2$s</string>
+    <string name="ime_notes_assist_reminders_label">Sắp tới</string>
+    <string name="ime_notes_assist_summarize_action">Tóm tắt</string>
+    <string name="ime_notes_assist_summarize_again_action">Lại</string>
+    <string name="ime_notes_assist_summary_busy">Đang tóm tắt trên điện thoại của bạn…</string>
+    <string name="ime_notes_assist_summary_label">Tóm tắt</string>
     <string name="ime_notes_body_hint">Viết ghi chú… Markdown hoạt động: **in đậm**, - danh sách, - [ ] tác vụ</string>
     <string name="ime_notes_collapse_desc">Trở lại chiều cao bàn phím</string>
     <string name="ime_notes_confirm_action">Nhấn lần nữa để xác nhận</string>
@@ -2184,6 +2374,7 @@
     <string name="ime_notes_no_match">Không có ghi chú nào khớp với “%1$s”.</string>
     <string name="ime_notes_passage_desc">Từ %1$s. Nhấn để chèn, giữ để mở ghi chú.</string>
     <string name="ime_notes_passages_section">Đoạn văn</string>
+    <string name="ime_notes_paste_desc">Dán</string>
     <string name="ime_notes_pin_action">Ghim</string>
     <string name="ime_notes_pinned_section">Đã ghim</string>
     <string name="ime_notes_restore_action">Khôi phục</string>
@@ -2217,6 +2408,29 @@
     <string name="ime_otp_chip_dismiss_desc">Ẩn mã</string>
     <string name="ime_panel_back_desc">Quay lại bàn phím</string>
     <string name="ime_panel_over_keys_height_desc">Chiều cao bảng phía trên các phím. Kéo lên hoặc xuống</string>
+    <string name="ime_paperless_card_also_field">Đồng thời đặt các trang vào ô văn bản</string>
+    <string name="ime_paperless_card_correspondent">Người liên hệ thư tín</string>
+    <string name="ime_paperless_card_field_only">Chỉ hộp văn bản</string>
+    <string name="ime_paperless_card_loading">Đang lấy thẻ của bạn từ máy chủ…</string>
+    <string name="ime_paperless_card_name">Tiêu đề</string>
+    <string name="ime_paperless_card_name_hint">Không bắt buộc. Nếu để trống, Paperless sẽ đặt tên.</string>
+    <string name="ime_paperless_card_none">Không có</string>
+    <string name="ime_paperless_card_offline">Hiện không thể kết nối với máy chủ. Bản quét sẽ được lưu tạm trên điện thoại với các thẻ mặc định của bạn và sẽ được tải lên khi có kết nối.</string>
+    <string name="ime_paperless_card_offline_cached">Hiện không thể kết nối với máy chủ; đây là danh sách trước đó của máy chủ. Bản quét sẽ được tải lên ngay khi có thể.</string>
+    <string name="ime_paperless_card_one_pdf">Tất cả các trang trong một tệp PDF</string>
+    <plurals name="ime_paperless_card_pages">
+        <item quantity="one">%d trang</item>
+        <item quantity="other">%d trang</item>
+    </plurals>
+    <string name="ime_paperless_card_send">Gửi</string>
+    <string name="ime_paperless_card_tags">Thẻ</string>
+    <string name="ime_paperless_card_title">Gửi tới Paperless</string>
+    <string name="ime_paperless_card_type">Loại tài liệu</string>
+    <string name="ime_paperless_queue_failed">Không thể lưu bản quét cho Paperless</string>
+    <plurals name="ime_paperless_queued">
+        <item quantity="one">%d tài liệu đang được gửi tới Paperless. Quá trình tải lên sẽ diễn ra ngay khi có kết nối.</item>
+        <item quantity="other">%d tài liệu đang được gửi tới Paperless. Quá trình tải lên sẽ diễn ra ngay khi có kết nối.</item>
+    </plurals>
     <string name="ime_password_add_digit_label">Thêm một chữ số</string>
     <string name="ime_password_capitalize_label">Chữ in hoa</string>
     <string name="ime_password_copied_toast">Đã sao chép vào khay nhớ tạm</string>
@@ -2235,11 +2449,27 @@
     <string name="ime_password_tab_pin">Mã PIN</string>
     <string name="ime_password_words_label">Từ</string>
     <string name="ime_phonetic_word_list_offer">Tải danh sách từ %1$s để có các từ tốt hơn</string>
+    <string name="ime_plugin_access_mark">Plugin này có thể sử dụng internet hoặc đọc những gì bạn viết</string>
+    <string name="ime_plugin_action_settings">Cài đặt và quyền</string>
+    <string name="ime_plugin_action_toolbar_add">Thêm vào thanh công cụ</string>
+    <string name="ime_plugin_action_toolbar_remove">Xóa khỏi thanh công cụ</string>
+    <string name="ime_plugin_action_toolbox_add">Thêm vào hộp công cụ</string>
+    <string name="ime_plugin_action_toolbox_remove">Xóa khỏi hộp công cụ</string>
+    <string name="ime_plugin_action_turn_off">Tắt</string>
+    <string name="ime_plugin_action_turn_on">Bật</string>
+    <string name="ime_plugin_clock_alarm_set">%1$s đã đặt báo thức lúc %2$s trong ứng dụng Đồng hồ</string>
+    <string name="ime_plugin_clock_timer_set">%1$s đã bắt đầu hẹn giờ %2$s trong ứng dụng Đồng hồ</string>
     <string name="ime_plugin_empty_body">Plugin là một công cụ nhỏ trong môi trường sandbox. Bạn có thể thêm plugin từ kho lưu trữ tiện ích bổ sung hoặc từ tệp .wmplugin. Plugin không thể thấy những gì bạn nhập.</string>
     <string name="ime_plugin_empty_title">Chưa có plugin nào</string>
     <string name="ime_plugin_manage_action">Quản lý plugin</string>
+    <string name="ime_plugin_more">Thêm tùy chọn cho %1$s</string>
+    <string name="ime_plugin_permission_allow">Cho phép</string>
+    <string name="ime_plugin_permission_deny">Không cho phép</string>
+    <string name="ime_plugin_permission_risky_note">Thao tác này cũng bật các quyền rủi ro cho plugin. Bạn có thể tắt lại quyền này trên trang của plugin trong phần Cài đặt.</string>
+    <string name="ime_plugin_permission_title">Cho phép %1$s thực hiện:</string>
     <string name="ime_plugin_version_label">Phiên bản %1$s</string>
     <string name="ime_power_saving_on_desc">Chế độ tiết kiệm pin đang bật</string>
+    <string name="ime_privacy_shade_hint">Kéo thanh điều khiển lên để xem các dòng cuối cùng</string>
     <string name="ime_provider_choose_desc">Chọn nhà cung cấp</string>
     <string name="ime_punct_ampersand">Dấu và</string>
     <string name="ime_punct_apostrophe">Dấu nháy đơn</string>
@@ -2373,6 +2603,8 @@
     <string name="ime_resize_move_desc">Kéo để di chuyển bàn phím lên hoặc xuống</string>
     <string name="ime_resize_reset">Đặt lại</string>
     <string name="ime_resize_right_handle_desc">Kéo để thay đổi khoảng trống bên phải bàn phím</string>
+    <string name="ime_resize_toolbar_handle">Thanh công cụ</string>
+    <string name="ime_resize_toolbar_handle_desc">Kéo lên hoặc xuống để thay đổi chiều cao của thanh công cụ</string>
     <string name="ime_retype_button">Nhập lại</string>
     <string name="ime_retype_button_desc">Nhập lại từ tại con trỏ</string>
     <string name="ime_retype_button_nothing">Không có từ nào để gõ lại. Hãy đặt con trỏ ngay sau một từ.</string>
@@ -2427,8 +2659,10 @@
     <string name="ime_scanner_torch_desc">Đèn pin</string>
     <string name="ime_scanner_translate_action">Dịch</string>
     <string name="ime_screen_capture_desc">Chụp màn hình</string>
+    <string name="ime_screen_capture_progress">Đang chụp màn hình…</string>
     <string name="ime_search_attribution_brave">thông qua Brave</string>
     <string name="ime_search_attribution_left">Còn lại %1$s · %2$s</string>
+    <string name="ime_search_attribution_mwmbl">thông qua Mwmbl</string>
     <string name="ime_search_attribution_tavily">thông qua Tavily</string>
     <string name="ime_search_in_browser_desc">Tìm kiếm trong trình duyệt</string>
     <string name="ime_search_menu_copy_link">Sao chép liên kết</string>
@@ -2438,6 +2672,7 @@
     <string name="ime_search_no_more">Không còn kết quả nào nữa</string>
     <string name="ime_search_tab_all">Tất cả</string>
     <string name="ime_search_tab_images">Hình ảnh</string>
+    <string name="ime_second_toolbar_empty">Kéo một công cụ vào đây từ hộp công cụ hoặc thanh công cụ</string>
     <string name="ime_selection_ask_ai">Hỏi AI</string>
     <string name="ime_selection_macro_ai_translate_label">Dịch bằng AI</string>
     <string name="ime_selection_macro_back_desc">Quay lại các hành động lựa chọn</string>
@@ -2736,6 +2971,8 @@
     <string name="ime_service_incognito_off_toast">Chế độ ẩn danh đã tắt</string>
     <string name="ime_service_incognito_on_toast">Chế độ ẩn danh đang bật. Bàn phím không học những gì bạn nhập.</string>
     <string name="ime_service_incognito_switch_toast">Chế độ ẩn danh đang bật. Nhấn vào công cụ Ẩn danh để tắt</string>
+    <string name="ime_service_legacy_font_off_toast">Đang viết Unicode</string>
+    <string name="ime_service_legacy_font_on_toast">Đang viết cho phông chữ %1$s</string>
     <string name="ime_service_media_download_error_toast">Quá trình tải xuống không thành công. Vui lòng kiểm tra kết nối của bạn.</string>
     <string name="ime_service_media_fetch_error">Bàn phím không thể lấy kết quả</string>
     <string name="ime_service_mode_tool_order_toast">Bàn phím đã lưu thứ tự công cụ cho chế độ %1$s. Các ứng dụng khác giữ thứ tự riêng của chúng.</string>
@@ -2759,6 +2996,7 @@
     <string name="ime_service_power_saving_on_empty_toast">Chế độ tiết kiệm pin đang bật. Chưa có tính năng nào được thiết lập để dừng.</string>
     <string name="ime_service_power_saving_on_toast">Chế độ tiết kiệm pin đang bật</string>
     <string name="ime_service_power_saving_still_on_toast">Chế độ tiết kiệm pin vẫn bật. Trình kích hoạt pin đang bật.</string>
+    <string name="ime_service_privacy_shade_floating_toast">Màn che quyền riêng tư hoạt động với bàn phím được gắn. Hãy gắn bàn phím trước.</string>
     <string name="ime_service_qr_error">Bàn phím không thể tạo mã QR</string>
     <string name="ime_service_resize_floating_toast">Gắn bàn phím để thay đổi kích thước</string>
     <string name="ime_service_search_error">Tìm kiếm không hoạt động</string>
@@ -2819,6 +3057,7 @@
     <string name="ime_smart_repeat_count">×%1$s</string>
     <string name="ime_smart_repeat_offer">Lặp lại “%1$s”</string>
     <string name="ime_smart_replies_dismiss_desc">Ẩn các câu trả lời thông minh</string>
+    <string name="ime_smart_search_offer">%1$s: “%2$s”</string>
     <string name="ime_smart_send_link">Nhận tệp</string>
     <string name="ime_smart_translate_offer">Dịch</string>
     <string name="ime_smart_vocab_daily">Từ của ngày: %1$s ›</string>
@@ -2828,6 +3067,12 @@
     <string name="ime_smart_vocab_word">%1$s ›</string>
     <string name="ime_smart_weather_tap">Xem dự báo thời tiết</string>
     <string name="ime_smart_wiki_word">“%1$s” trên Wikipedia</string>
+    <string name="ime_snippet_ask_cancel_desc">Hủy đoạn mã</string>
+    <string name="ime_snippet_ask_done_desc">Chèn đoạn mã</string>
+    <string name="ime_snippet_ask_hint">Nhập %1$s</string>
+    <string name="ime_snippet_ask_next_desc">Trường tiếp theo</string>
+    <string name="ime_snippet_ask_step_label">%1$s %2$d/%3$d</string>
+    <string name="ime_snippet_image_desc">Đoạn hình ảnh %1$s</string>
     <string name="ime_snippet_offer_back_desc">Quay lại %1$s</string>
     <string name="ime_snippet_offer_desc">Chèn đoạn mã %1$s</string>
     <string name="ime_snippet_offer_more_desc">Xem thêm từ %1$s</string>
@@ -2938,6 +3183,7 @@
     <string name="ime_suggestion_hold_label">Tùy chọn từ</string>
     <string name="ime_suggestion_never_suggest">Không bao giờ gợi ý \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Quay lại các phím</string>
+    <string name="ime_suggestion_pattern_still_hides">Mẫu danh sách đen vẫn ẩn \"%1$s\". Chỉnh sửa mẫu đó trong mục Danh sách đen gợi ý.</string>
     <string name="ime_suggestion_rank_badge">\"%1$s\" hạng %2$s</string>
     <string name="ime_suggestion_rank_unchanged">\"%1$s\" không thay đổi</string>
     <string name="ime_suggestions_show_desc">Hiển thị thanh gợi ý</string>
@@ -2967,6 +3213,8 @@
     <string name="ime_synonyms_title">Từ đồng nghĩa với \"%1$s\"</string>
     <string name="ime_textedit_delete_line_desc">Xóa dòng</string>
     <string name="ime_textedit_delete_line_forward_desc">Xóa dòng ở phía trước</string>
+    <string name="ime_textedit_delete_to_end_desc">Xóa đến cuối</string>
+    <string name="ime_textedit_delete_to_start_desc">Xóa đến đầu</string>
     <string name="ime_textedit_delete_word_desc">Xóa từ</string>
     <string name="ime_textedit_delete_word_forward_desc">Xóa từ phía trước</string>
     <string name="ime_textedit_doc_end_desc">Di chuyển đến cuối văn bản</string>
@@ -2985,6 +3233,7 @@
     <string name="ime_textedit_select_label">Chọn</string>
     <string name="ime_textedit_select_line_desc">Chọn dòng</string>
     <string name="ime_textedit_select_word_desc">Chọn từ</string>
+    <string name="ime_textedit_type_clipboard_desc">Nhập nội dung khay nhớ tạm</string>
     <string name="ime_textedit_up_desc">Di chuyển lên</string>
     <string name="ime_textedit_word_left_desc">Di chuyển một từ sang trái</string>
     <string name="ime_textedit_word_right_desc">Di chuyển một từ sang phải</string>
@@ -3062,6 +3311,7 @@
     <string name="ime_tool_calculator">Máy tính</string>
     <string name="ime_tool_calendar">Lịch</string>
     <string name="ime_tool_camera">Máy ảnh</string>
+    <string name="ime_tool_clear_field">Xóa tất cả</string>
     <string name="ime_tool_clipboard">Khay nhớ tạm</string>
     <string name="ime_tool_clipboard_search">Tìm kiếm khay nhớ tạm</string>
     <string name="ime_tool_clock">Đồng hồ</string>
@@ -3078,11 +3328,13 @@
     <string name="ime_tool_cursor_word_right">Từ bên phải</string>
     <string name="ime_tool_custom_layout">Bố cục tùy chỉnh</string>
     <string name="ime_tool_cut">Cắt</string>
+    <string name="ime_tool_debug_info">Thông tin gỡ lỗi</string>
     <string name="ime_tool_dictionary">Từ điển</string>
     <string name="ime_tool_doc_scan">Quét tài liệu</string>
     <string name="ime_tool_emoji">Biểu tượng cảm xúc</string>
     <string name="ime_tool_emoji_mix">Kết hợp biểu tượng cảm xúc</string>
     <string name="ime_tool_fancy">Văn bản kiểu cách</string>
+    <string name="ime_tool_files">Tệp</string>
     <string name="ime_tool_find_replace">Tìm &amp; thay thế</string>
     <string name="ime_tool_flashlight">Đèn pin</string>
     <string name="ime_tool_floating">Nổi</string>
@@ -3092,6 +3344,7 @@
     <string name="ime_tool_handwriting">Viết tay</string>
     <string name="ime_tool_hide_keyboard">Ẩn</string>
     <string name="ime_tool_home_assistant">Nhà thông minh</string>
+    <string name="ime_tool_homophones">Đồng âm</string>
     <string name="ime_tool_image_search">Hình ảnh</string>
     <string name="ime_tool_incognito">Ẩn danh</string>
     <string name="ime_tool_language">Ngôn ngữ</string>
@@ -3118,6 +3371,7 @@
     <string name="ime_tool_picker_leader">%1$s, sau đó:</string>
     <string name="ime_tool_plugins">Plugin</string>
     <string name="ime_tool_power_saving">Tiết kiệm năng lượng</string>
+    <string name="ime_tool_privacy_shade">Màn che quyền riêng tư</string>
     <string name="ime_tool_qr_gen">Mã QR</string>
     <string name="ime_tool_qr_scan">Quét mã QR</string>
     <string name="ime_tool_quick_note">Ghi chú nhanh</string>
@@ -3142,6 +3396,7 @@
     <string name="ime_tool_text_edit">Chỉnh sửa văn bản</string>
     <string name="ime_tool_text_repeat">Lặp lại</string>
     <string name="ime_tool_themes">Chủ đề</string>
+    <string name="ime_tool_timestamp">Dấu thời gian</string>
     <string name="ime_tool_todo">Danh sách việc cần làm</string>
     <string name="ime_tool_trackpad">Bàn di chuột</string>
     <string name="ime_tool_translate">Dịch</string>
@@ -3199,12 +3454,14 @@
     <string name="ime_translate_engine_online_info">Sử dụng dịch vụ trực tuyến.</string>
     <string name="ime_translate_hint">Nhập văn bản để dịch…</string>
     <string name="ime_translate_idle">Bản dịch sẽ hiển thị ở đây khi bạn nhập.</string>
+    <string name="ime_translate_idle_manual">Nhập toàn bộ văn bản, sau đó nhấn Dịch. Không có gì được gửi đi trước đó.</string>
     <string name="ime_translate_module_failed_error">Google Play không thực hiện được quá trình tải xuống. Hãy kiểm tra kết nối rồi thử lại. Nếu vẫn thất bại, hãy tải xuống từ Cài đặt, Công cụ, Dịch.</string>
     <string name="ime_translate_module_installing_action">Đang tải xuống…</string>
     <string name="ime_translate_module_missing_body">Tính năng dịch trên thiết bị là một phần bổ sung của bàn phím từ Google Play. Hãy tải xuống để dịch mà không cần kết nối mạng.</string>
     <string name="ime_translate_need_models_body">Để dịch trên thiết bị, hãy tải xuống: %1$s. Khoảng %2$s.</string>
     <string name="ime_translate_nllb_licence_accept_action">Chấp nhận và tải xuống</string>
     <string name="ime_translate_nllb_licence_body">NLLB-200 đến từ Hugging Face theo giấy phép của Meta dành cho nó, Creative Commons Attribution-NonCommercial 4.0: chỉ dành cho mục đích phi thương mại, không có bảo hành. Nhấn lại để chấp nhận và tải xuống.</string>
+    <string name="ime_translate_now_action">Dịch</string>
     <string name="ime_translate_offline_build_error">Bản dựng ngoại tuyến này không thể dịch trên điện thoại này: công cụ duy nhất của nó, Firefox Translations, cần điện thoại 64-bit chạy Android 9 trở lên. Để dịch, hãy cài đặt bản dựng tiêu chuẩn.</string>
     <string name="ime_translate_offline_failed_error">Dịch trên thiết bị không khởi động được. Hãy thử lại hoặc chọn công cụ dịch trực tuyến.</string>
     <string name="ime_translate_offline_import_body">Bản dựng ngoại tuyến này không thể tải xuống. Để dịch văn bản này, hãy tải chúng trên thiết bị khác và nhập vào: %1$s. Mở Cài đặt › Công cụ › Dịch › Nhà cung cấp › Trên thiết bị (Bản dịch của Firefox).</string>
@@ -3220,6 +3477,7 @@
     <string name="ime_translate_select_source_desc">Chọn ngôn ngữ nguồn</string>
     <string name="ime_translate_server_label">Máy chủ của bạn</string>
     <string name="ime_translate_source_guessed_label">%1$s?</string>
+    <string name="ime_translate_speak_desc">Đọc bản dịch thành tiếng</string>
     <string name="ime_translate_swap_desc">Hoán đổi ngôn ngữ</string>
     <string name="ime_typing_accuracy_label">độ chính xác</string>
     <string name="ime_typing_accuracy_short_label">độ chính xác</string>
@@ -3340,6 +3598,10 @@
     <string name="ime_voice_model_get_language_action">Tải %1$s để nhập liệu bằng giọng nói ngoại tuyến</string>
     <string name="ime_voice_permission_action">Cho phép sử dụng micrô</string>
     <string name="ime_voice_permission_body">Nhập liệu bằng giọng nói cần quyền sử dụng micrô. Ứng dụng chỉ ghi âm khi bạn đang nói.</string>
+    <string name="ime_voice_prompt_fix_custom">Xóa bớt mục \"Từ bổ sung để lắng nghe\" trong cài đặt Nhập bằng giọng nói, hoặc rút ngắn Lời nhắc.</string>
+    <string name="ime_voice_prompt_fix_personal">Tắt tính năng Lắng nghe từ ngữ của tôi trong cài đặt Gõ bằng giọng nói hoặc rút ngắn Lời nhắc.</string>
+    <string name="ime_voice_prompt_fix_prompt">Rút ngắn Lời nhắc, trên màn hình của máy chủ trong cài đặt Gõ giọng nói, xuống dưới %1$d ký tự.</string>
+    <string name="ime_voice_prompt_too_long">Máy chủ này nhận câu lệnh tối đa %2$d ký tự, và câu lệnh này có %1$d: Câu lệnh %3$d, Thêm từ để lắng nghe %4$d, Lắng nghe từ của tôi %5$d.</string>
     <string name="ime_voice_secure_field_notice">Nhập liệu bằng giọng nói không hoạt động trong các trường mật khẩu.</string>
     <string name="ime_voice_server_metered_ask">Trình tiết kiệm dữ liệu đang bật. Nhấn lại vào micrô để gửi giọng nói của bạn qua dữ liệu di động.</string>
     <string name="ime_voice_server_metered_blocked">Máy chủ phiên âm bị tắt khi bạn đang sử dụng dữ liệu di động. Bạn có thể thay đổi điều này trong Cài đặt, mục Trình tiết kiệm dữ liệu.</string>
@@ -3379,6 +3641,12 @@
     <string name="ime_voice_use_system_action">Sử dụng trình nhận dạng của hệ thống</string>
     <string name="ime_weather_clouds_label">nhiều mây</string>
     <string name="ime_weather_error">Ứng dụng không thể tải thời tiết. Hãy kiểm tra mạng của bạn.</string>
+    <string name="ime_weather_event_back_desc">Quay lại lịch</string>
+    <string name="ime_weather_event_home_place">%1$s (vị trí thời tiết của bạn)</string>
+    <string name="ime_weather_event_home_unnamed">Vị trí thời tiết của bạn</string>
+    <string name="ime_weather_event_hour_desc">%1$s: %2$s, %3$s, khả năng có mưa %4$s</string>
+    <string name="ime_weather_event_no_hours">Dự báo chưa cập nhật đến ngày này.</string>
+    <string name="ime_weather_event_rain_info">%1$d%% khả năng có mưa</string>
     <string name="ime_weather_feels_like_label">cảm giác như</string>
     <string name="ime_weather_high_low_info">C %1$d° T %2$d°</string>
     <string name="ime_weather_humidity_label">độ ẩm</string>
@@ -3495,6 +3763,7 @@
     <string name="ime_wmpass_no_password">WM Pass không tạo mật khẩu. Kho lưu trữ có thể đã bị khóa.</string>
     <string name="ime_wmpass_no_username">Thông tin đăng nhập này không có tên người dùng để điền.</string>
     <string name="ime_wmpass_no_vault">WM Pass chưa có kho lưu trữ nào. Hãy tạo một cái ở đó trước.</string>
+    <string name="ime_wmpass_not_released">WM Pass chưa ra mắt. Công cụ này sẽ hoạt động sau khi được phát hành và cài đặt.</string>
     <string name="ime_wmpass_not_set">Chưa đặt</string>
     <string name="ime_wmpass_off">Để sử dụng tính năng này, hãy bật \'Cho phép Bàn phím WM điền vào WM Pass\' trong Cài đặt, Bảo mật.</string>
     <string name="ime_wmpass_open">Mở WM Pass</string>

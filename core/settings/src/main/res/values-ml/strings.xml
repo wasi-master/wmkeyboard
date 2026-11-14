@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">സ്ട്രിപ്പ്, പിൽ, കീകൾ</string>
     <string name="core_settings_glide_commit_scope_pill_label">സ്ട്രിപ്പും പില്ലും</string>
     <string name="core_settings_glide_commit_scope_strip_label">സ്ട്രിപ്പ്</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">ഒരു റദ്ദാക്കലിന് ശേഷം</string>
+    <string name="core_settings_glide_drawn_letters_off_label">ഓഫ്</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">ഉറപ്പില്ലാത്തപ്പോൾ</string>
     <string name="core_settings_glide_engine_built_in_label">ഇൻ-ബിൽറ്റ്</string>
     <string name="core_settings_glide_engine_futo_label">FUTO സ്വൈപ്പ് (ഇംഗ്ലീഷ്, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">ഗൂഗിളിന്റെ ജെസ്റ്റർ ലൈബ്രറി (ഇറക്കുമതി ചെയ്തത്)</string>

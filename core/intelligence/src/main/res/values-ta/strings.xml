@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">பதில் அளிக்கும் முன் சிந்திக்கும் ஒரு நவீன நடுத்தர அளவு மாதிரி. இதற்கு நடுத்தர வகைச் சாதனம் தேவை.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">சிறியது மற்றும் வேகமானது. அடிப்படை சாதனத்தில் விரைவான மாற்றங்களுக்கு இது சிறந்தது.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">படங்களைப் படிக்கக்கூடிய மிகச்சிறிய மாதிரி. இது ஒரு படத்தை விவரிக்கிறது, ஆனால் பெரும்பாலும் ஸ்கிரீன்ஷாட்டில் உள்ள உரையை தவறாகப் படிக்கிறது.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">NVIDIA இன் ஜெம்மா 4 E4B இன் மறுபயிற்சி, வழிமுறைகளைப் பின்பற்றுவதற்கும் கருவிகளைப் பயன்படுத்துவதற்கும். உரை மட்டும், இதற்கு சக்திவாய்ந்த சாதனம் தேவை.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">அடிப்படை சாதனத்திலும் இயங்கக்கூடிய பொதுவான பயன்பாட்டு மாதிரி.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B-க்கும் குறைவான மாடல்களை விட தெளிவாக புத்திசாலித்தனமானது. இதற்கு நடுத்தர ரக சாதனம் தேவை.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">சமீபத்திய சிறிய மாடல். அதன் அளவிற்கு தரம் அதிகமாக உள்ளது.</string>

@@ -23,6 +23,34 @@
         <item quantity="one">%1$d libistamine klahvil ei sobi siia, sest see klaviatuur kasutab seda libistamist muuks otstarbeks. Rakendus eemaldas selle.</item>
         <item quantity="other">%1$d libistamist klahvidel ei sobi siia, sest see klaviatuur kasutab neid libistamisi muuks otstarbeks. Rakendus eemaldas need.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">Rakendus jättis vahele %1$d reegli, mis muudab seda, mida kustutamine eemaldab. Kustutamine toimib siin igal paigutusel tavapäraselt.</item>
+        <item quantity="other">Rakendus jättis vahele %1$d reeglit, mis muudavad seda, mida kustutamine eemaldab. Kustutamine toimib siin igal paigutusel tavapäraselt.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">Rakendus eemaldas %1$d suunda muutva pühke. Selle klaviatuuri pühked liiguvad ühes suunas.</item>
+        <item quantity="other">Rakendus eemaldas %1$d suunda muutvat pühki. Selle klaviatuuri pühked liiguvad ühes suunas.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">Rakendus jättis välja %1$d lehe sellise klahvi jaoks nagu Caps Lock või Ctrl. Sellel klaviatuuril pole selle klahvi jaoks lehte.</item>
+        <item quantity="other">Rakendus jättis välja %1$d lehte selliste klahvide jaoks nagu Caps Lock või Ctrl. Sellel klaviatuuril pole nende klahvide jaoks lehte.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">Rakendus jättis vahele %1$d reegli, mis paigutab märgid nende kirjutamisjärjekorras. See klaviatuur kirjutab märgid sisestusjärjekorras.</item>
+        <item quantity="other">Rakendus jättis vahele %1$d reeglit, mis paigutavad märgid nende kirjutamisjärjekorras. See klaviatuur kirjutab märgid sisestusjärjekorras.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d reegel lisab järgmisele tähele diakriitilise märgi. Siin on seda alustav klahv umbklahv.</item>
+        <item quantity="other">%1$d reeglit lisavad järgmisele tähele diakriitilise märgi. Siin on neid alustavad klahvid umbklahvid.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">Rakendus jättis välja %1$d reegli, mis muudab teksti tippimise ajal. Ükski klahv siin ei käivita seda või see vastab suuremale hulgale tekstile, kui klahv suudab sisestada.</item>
+        <item quantity="other">Rakendus jättis välja %1$d reeglit, mis muudavad teksti tippimise ajal. Ükski klahv siin ei käivita neid või need vastavad suuremale hulgale tekstile, kui klahv suudab sisestada.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d reegel muudab klahvi ja järgmise klahvi teiseks märgiks. Siin on see märgi saamiseks esimese klahvi pika vajutuse all.</item>
+        <item quantity="other">%1$d reeglit muudavad klahvi ja järgmise klahvi teisteks märkideks. Siin on need märgid esimese klahvi pika vajutuse all.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Rakendus muutis %1$d klahvi lähimaks olemasolevaks klahviks.</item>
         <item quantity="other">Rakendus muutis %1$d klahvi lähimateks olemasolevateks klahvideks.</item>

@@ -9,11 +9,16 @@
     <string name="core_voice_model_base_multi_body">Ten model równoważy dokładność i szybkość. Obsługuje każdy język znany Whisperowi. Wybierz go, jeśli model Small jest zbyt wolny.</string>
     <string name="core_voice_model_base_world_body">Ten model używa języka, w którym piszesz, zamiast zgadywać. Krótkie frazy stają się znacznie bardziej niezawodne. Wybierz go, gdy na liście znajdą się Twoje języki.</string>
     <string name="core_voice_model_cpp_base_body">Ten model równoważy dokładność i szybkość. Wykorzystuje język, w którym dyktujesz, spośród 99 języków rozpoznawanych przez Whisper i nasłuchuje Twoich słów. Wybierz go, jeśli model Small jest zbyt wolny.</string>
+    <string name="core_voice_model_cpp_fine_tune_body">%1$s dodatkowo trenował ten model Turbo na mowie w tym jednym języku. Obsługuje on wyłącznie ten język.</string>
+    <string name="core_voice_model_cpp_hinglish_body">Firma Oriserve trenowała ten model na języku hindi oraz hindi wymieszanym z angielskim. Zapisuje on to, co mówisz, literami łacińskimi w taki sposób, jak pisze się w języku hinglish, zachowując angielskie słowa po angielsku. Nigdy nie używa dewanagari, więc bardziej pasuje do hinglish niż do hindi. Jest mały i szybki.</string>
+    <string name="core_voice_model_cpp_kb_body">Szwedzka Biblioteka Narodowa trenowała ten model na szwedzkiej mowie. Obsługuje on tylko język szwedzki i jest dla niego dokładniejszy niż ogólny model Whisper tej samej wielkości.</string>
+    <string name="core_voice_model_cpp_kotoba_body">Ten japoński model został stworzony przez firmę Kotoba Technologies na bazie Whisper Large v3. Jego dekoder jest znacznie mniejszy, dzięki czemu działa z prędkością zbliżoną do modelu Turbo. Obsługuje wyłącznie język japoński.</string>
     <string name="core_voice_model_cpp_large_body">To najdokładniejszy model Whisper. Pobieranie zajmuje 1,1 GB. Tylko urządzenie z dużą ilością pamięci może go załadować. Model Turbo jest prawie tak samo dokładny i ma połowę rozmiaru.</string>
     <string name="core_voice_model_cpp_medium_body">Ten model zapewnia dokładność niemal jak na komputerze stacjonarnym. Każda fraza zajmuje kilka sekund. Model zużywa prawie jeden gigabajt pamięci podczas działania.</string>
     <string name="core_voice_model_cpp_small_body">Ten model zapewnia najlepszą dokładność, która nadal dobrze działa na telefonie. Używa języka, w którym dyktujesz, w dowolnym z 99 języków, które zna Whisper, i nasłuchuje Twoich własnych słów.</string>
     <string name="core_voice_model_cpp_tiny_body">To najszybszy model. Działa dobrze przy wyraźnej mowie, ale hałas zmniejsza dokładność. Używa języka, w którym dyktujesz, i nasłuchuje Twoich własnych słów.</string>
     <string name="core_voice_model_cpp_turbo_body">Ten model jest prawie tak dokładny jak największy model, przy połowie rozmiaru. Każda fraza zajmuje kilka sekund i nie może tłumaczyć.</string>
+    <string name="core_voice_model_custom_body">Ten model whisper.cpp zostal zaimportowany z pliku. Klawiatura nie wie, jak byl trenowany, dlatego wybierz go dla jezykow, dla ktorych zostal stworzony, w sekcji Model dla jezyka.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d język</item>
         <item quantity="other">%1$d języków</item>

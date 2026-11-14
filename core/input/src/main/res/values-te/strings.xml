@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">ఫురిగనా రీడింగ్‌లు</string>
     <string name="core_input_cjk_pack_hanja_subtitle">హంగుల్ పదాలు మరియు వాటి హంజా, 300,000 ఎంట్రీలు. సూచన స్ట్రిప్‌లో హంజాను అందించడానికి కీబోర్డ్‌కు ఈ ప్యాక్ అవసరం.</string>
     <string name="core_input_cjk_pack_hanja_title">హాంజా (漢字) నిఘంటువు</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">అయాస్పెల్, కాబట్టి దాని ఉపసర్గలు మరియు ప్రత్యయాలతో కూడిన పదం తెలుస్తుంది మరియు అందులోని టైపో ఫిక్స్ చేయబడుతుంది.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">అరబిక్ స్పెల్లింగ్ నిఘంటువు</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, కాబట్టి ఏ ప్రత్యయం ఉన్న పదాలైనా తెలుసు మరియు వాటిలోని టైపోలు సవరించబడతాయి.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">టర్కిష్ స్పెల్లింగ్ నియమాలు</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">మోజ్క్ నుండి కానా రీడింగ్‌లు, 1.08 మిలియన్ ఎంట్రీలు, సుమారు 42 MB. జపనీస్ మార్పిడి కోసం కీబోర్డ్‌కు ఈ ప్యాక్ అవసరం.</string>

@@ -176,6 +176,7 @@
     <string name="ime_ai_error_no_text">کام کرنے کے لیے کچھ نہیں ہے۔ پہلے کچھ متن ٹائپ کریں۔</string>
     <string name="ime_ai_error_only_reasoning">ماڈل نے استدلال کے لیے پورے جواب کا استعمال کیا۔ دوبارہ کوشش کریں، یا ترتیبات میں \"استدلال دکھائیں\" کو آن کریں۔</string>
     <string name="ime_ai_error_request_failed">درخواست کام نہیں کر سکی</string>
+    <string name="ime_ai_error_stopped_hidden">کی بورڈ بند ہونے کی وجہ سے رک گیا۔ اسے دوبارہ چلانے کے لیے کوشش کریں۔</string>
     <string name="ime_ai_idle_body">یہ اعمال منتخب کردہ ٹیکسٹ پر، یا پورے فیلڈ پر چلتے ہیں۔ وہ %1$s استعمال کرتے ہیں۔</string>
     <string name="ime_ai_idle_empty_body">ان کارروائیوں کو استعمال کرنے کے لیے کچھ متن ٹائپ کریں یا منتخب کریں۔ نیا متن لکھنے کے لیے %1$s دبائیں۔</string>
     <string name="ime_ai_idle_empty_no_writer_body">ان اعمال کو استعمال کرنے کے لیے کچھ ٹیکسٹ ٹائپ کریں یا منتخب کریں۔</string>
@@ -307,9 +308,11 @@
     <string name="ime_app_colors_none">اس ایپ میں کوئی رنگ نہیں ملا</string>
     <string name="ime_app_colors_off_desc">اس ایپ کے رنگ استعمال نہ کریں</string>
     <string name="ime_app_colors_pick_desc">ایپ کا رنگ %1$d</string>
+    <string name="ime_applet_back">واپس</string>
     <string name="ime_applet_close">باکس بند کریں</string>
     <string name="ime_applet_copied">کاپی ہو گیا</string>
     <string name="ime_applet_open_in_keyboard">کی بورڈ میں کھولیں</string>
+    <string name="ime_applet_pop_out">ایک تیرتے ہوئے باکس میں کھولیں</string>
     <string name="ime_applet_resize">سائز تبدیل کرنے کے لیے گھسیٹیں</string>
     <string name="ime_applet_tuck">کنارے میں گھسائیں</string>
     <string name="ime_applet_untuck">%1$s واپس لائیں</string>
@@ -319,6 +322,33 @@
     <string name="ime_ask_ai_label_vocab">ذخیرہ الفاظ: %1$s</string>
     <string name="ime_ask_ai_label_wiki">ویکیپیڈیا: %1$s</string>
     <string name="ime_autofill_dismiss_desc">آٹو فل تجاویز کو چھپائیں</string>
+    <string name="ime_board_copy_desc">اس فون میں کاپی کریں</string>
+    <string name="ime_board_delete_body">یہ کی بورڈ استعمال کرنے والے ہر ڈیوائس سے ہٹ جاتا ہے۔ فون کے اپنے کلپ بورڈ پر پہلے سے موجود کاپیاں باقی رہتی ہیں۔</string>
+    <string name="ime_board_delete_desc">بورڈ ہٹائیں</string>
+    <string name="ime_board_delete_no">منسوخ کریں</string>
+    <string name="ime_board_delete_title">کیا اس کلپ کو بورڈ سے ہٹا دیں؟</string>
+    <string name="ime_board_delete_yes">ہٹا دیں</string>
+    <string name="ime_board_edit_desc">ترمیم کریں</string>
+    <string name="ime_board_empty_body">یہاں بھیجے گئے کلپس آپ کے دوسرے آلات پر ظاہر ہوتے ہیں جو ایک ہی فولڈر استعمال کرتے ہیں، یہاں تک کہ وہ بھی جو اب آف لائن ہیں۔</string>
+    <string name="ime_board_empty_title">بورڈ پر کچھ نہیں ہے</string>
+    <string name="ime_board_notice_copied">کاپی ہو گیا</string>
+    <string name="ime_board_notice_deleted">بورڈ سے ہٹا دیا گیا</string>
+    <string name="ime_board_notice_refused">صرف وہ ٹیکسٹ کلپس جو چھپے ہوئے نہیں ہیں بورڈ پر جا سکتے ہیں</string>
+    <string name="ime_board_notice_sent">بورڈ کو بھیج دیا گیا</string>
+    <string name="ime_board_send_desc">ایک کلپ بھیجیں</string>
+    <string name="ime_board_send_done">ہو گیا</string>
+    <string name="ime_board_send_empty">بھیجنے کے لیے کوئی ٹیکسٹ کلپس نہیں ہیں۔ تصاویر، فائلیں اور چھپے ہوئے کلپس اس فون پر رہتے ہیں۔</string>
+    <string name="ime_board_send_one_desc">بھیجیں</string>
+    <string name="ime_board_send_title">بورڈ پر بھیجیں</string>
+    <string name="ime_board_sent_desc">بھیج دیا گیا</string>
+    <string name="ime_board_status_failed">بورڈ تک رسائی حاصل نہیں کی جا سکتی</string>
+    <string name="ime_board_status_never">ابھی تک چیک نہیں کیا گیا</string>
+    <string name="ime_board_status_synced">چیک کیا گیا %1$s</string>
+    <string name="ime_board_status_syncing">بورڈ چیک کیا جا رہا ہے…</string>
+    <string name="ime_board_status_waiting">بورڈ تک پہنچنے کا انتظار کیا جا رہا ہے</string>
+    <string name="ime_board_status_waiting_offline">بورड تک نہیں پہنچ سکتے۔ جب یہ ممکن ہو گا تو آپ کی تبدیلیاں چلی جائیں گی</string>
+    <string name="ime_board_sync_desc">ابھی بورڈ چیک کریں</string>
+    <string name="ime_board_title">مشترک بورڈ</string>
     <string name="ime_calc_degrees_label">ڈگری</string>
     <string name="ime_calc_insert_action">داخل کریں</string>
     <string name="ime_calc_radians_label">ریڈین</string>
@@ -471,7 +501,9 @@
     </plurals>
     <string name="ime_calendar_untitled">(کوئی عنوان نہیں)</string>
     <string name="ime_calendar_view_agenda">ایجنڈا</string>
+    <string name="ime_calendar_view_day">دن</string>
     <string name="ime_calendar_view_month">مہینہ</string>
+    <string name="ime_calendar_weather_desc">%3$s میں %1$s، %2$s۔ ہر گھنٹے کی پیشگوئی کھولتا ہے</string>
     <string name="ime_calendar_yesterday_label">گزشتہ کل</string>
     <string name="ime_calendar_zone_note">%1$s میں اوقات</string>
     <string name="ime_camera_captured_photo_desc">وہ تصویر جو آپ نے لی</string>
@@ -543,6 +575,7 @@
         <item quantity="one">%1$d کلپ کو یکجا کریں</item>
         <item quantity="other">%1$d کلپس کو یکجا کریں</item>
     </plurals>
+    <string name="ime_clip_compose_email">ای میل لکھیں</string>
     <string name="ime_clip_delete_pinned_question">کیا اس پن شدہ کلپ کو حذف کریں؟</string>
     <plurals name="ime_clip_deleted">
         <item quantity="one">کلپ حذف ہو گیا</item>
@@ -563,6 +596,7 @@
         <item quantity="other">آپ کے کلپس میں پائے گئے %1$d حصے دکھائیں</item>
     </plurals>
     <string name="ime_clip_extract_codes">ایک بار استعمال ہونے والے کوڈز</string>
+    <string name="ime_clip_extract_emails">ای میل پتے</string>
     <string name="ime_clip_extract_links">لنکس</string>
     <string name="ime_clip_extract_parts">نکالیں</string>
     <string name="ime_clip_extract_phones">فون نمبرز</string>
@@ -589,6 +623,7 @@
         <item quantity="one">پوشیدہ · %1$d حرف</item>
         <item quantity="other">پوشیدہ · %1$d حروف</item>
     </plurals>
+    <string name="ime_clip_image_pasted_toast">کلپ بورڈ سے پیسٹ کیا گیا۔ اگر کچھ نہیں آیا، تو یہ ایپ کوئی تصویر نہیں لیتی: اسے شیئر کرنے کے لیے کلپ کو ہولڈ کریں</string>
     <string name="ime_clip_info_copied">کاپی کر لیا گیا</string>
     <string name="ime_clip_info_edited">ترمیم شدہ</string>
     <string name="ime_clip_info_from">سے</string>
@@ -642,7 +677,12 @@
         <item quantity="other">%1$d منتخب کردہ</item>
     </plurals>
     <string name="ime_clip_send_as_sticker">اسٹیکر کے طور پر بھیجیں</string>
+    <string name="ime_clip_shape_code">کوڈ</string>
+    <string name="ime_clip_shape_markdown">مارک ڈاؤن</string>
+    <string name="ime_clip_share_image">شیئر کریں</string>
+    <string name="ime_clip_show_formatted">فارمیٹ شدہ دکھائیں</string>
     <string name="ime_clip_show_in_history">ہسٹری میں دکھائیں</string>
+    <string name="ime_clip_show_raw">خام دکھائیں</string>
     <string name="ime_clip_tags">ٹیگز</string>
     <string name="ime_clip_tags_placeholder">ٹیگز، ان کے درمیان کوما کے ساتھ</string>
     <string name="ime_clip_tags_title">ٹیگز</string>
@@ -911,6 +951,7 @@
     <string name="ime_conversion_pack_offer">حروف ٹائپ کرنے کے لیے %1$s ڈاؤن لوڈ کریں</string>
     <string name="ime_conversion_pack_offer_dismiss_desc">خارج کریں</string>
     <string name="ime_converter_from_label">سے</string>
+    <string name="ime_converter_tab_units">کائیں</string>
     <string name="ime_converter_to_label">تک</string>
     <string name="ime_currency_insert_action">درج کریں</string>
     <string name="ime_currency_progress">زر مبادلہ کی شرحیں ڈاؤن لوڈ ہو رہی ہیں…</string>
@@ -919,6 +960,32 @@
     <string name="ime_currency_section_crypto">کرپٹو</string>
     <string name="ime_currency_section_popular">عام</string>
     <string name="ime_currency_swap_desc">کرنسیوں کا تبادلہ کریں</string>
+    <string name="ime_custom_button_desc">%1$s کھولیں</string>
+    <string name="ime_custom_button_label">حسب ضرورت بٹن</string>
+    <string name="ime_custom_button_shortcut_failed">یہ شارٹ کٹ نہیں کھولا جا سکتا۔ ہو سکتا ہے ایپ غائب ہو گئی ہو، یا صرف ہوم اسکرین ہی اسے کھول سکتی ہو۔</string>
+    <string name="ime_custom_page_clipboard">کلپ بورڈ کی ترتیبات</string>
+    <string name="ime_custom_page_custom_buttons">حسب ضرورت بٹن</string>
+    <string name="ime_custom_page_dictionary">لغت</string>
+    <string name="ime_custom_page_favourites">پسندیدہ</string>
+    <string name="ime_custom_page_home">ترتیبات</string>
+    <string name="ime_custom_page_keypress">آواز اور وائبریشن</string>
+    <string name="ime_custom_page_languages">زبانیں</string>
+    <string name="ime_custom_page_search">ترتیبات تلاش کریں</string>
+    <string name="ime_custom_page_themes">تھیمز</string>
+    <string name="ime_custom_page_toolbar">ٹول بار کی ترتیبات</string>
+    <string name="ime_custom_page_tools">ٹولز</string>
+    <string name="ime_custom_page_typing">ٹائپنگ</string>
+    <string name="ime_custom_toggle_auto_caps">خودکار بڑے حروف</string>
+    <string name="ime_custom_toggle_glide">گلائیڈ ٹائپنگ</string>
+    <string name="ime_custom_toggle_key_hints">کلید کے اشارے</string>
+    <string name="ime_custom_toggle_key_popup">کلید کا پاپ اپ</string>
+    <string name="ime_custom_toggle_number_row">نمبر رو</string>
+    <string name="ime_custom_toggle_reduce_motion">حرکت کم کریں</string>
+    <string name="ime_custom_toggle_sound">کلیدی آواز</string>
+    <string name="ime_custom_toggle_suggestions">تجاویز</string>
+    <string name="ime_custom_toggle_symbol_row">علامات کی قطار</string>
+    <string name="ime_custom_toggle_toolbar_labels">ٹول بار کے نام</string>
+    <string name="ime_custom_toggle_vibration">وائبریشن</string>
     <string name="ime_delete_redo_chip">“%1$s” دوبارہ کریں</string>
     <string name="ime_delete_redo_plain">دوبارہ حذف کریں</string>
     <string name="ime_delete_undo_chip">“%1$s” کالعدم کریں</string>
@@ -956,6 +1023,7 @@
     <string name="ime_disabled_correction_invalid">درست کرنے کے لیے کوئی دوسرا لفظ ٹائپ کریں۔ درست کیے جانے والے لفظ میں کم از کم 3 حروف ہونے چاہیے، اور اصلاح ایک لفظ ہو سکتی ہے، یا چھوٹی ہوئی جگہ کے لیے دو ہو سکتی ہے۔</string>
     <string name="ime_disabled_media_app_blocks">جو ایپ چل رہی ہے وہ اس کی اجازت نہیں دیتی۔</string>
     <string name="ime_disabled_spell_unchanged">پہلے ہجے تبدیل کریں۔ خالی یا غیر تبدیل شدہ ہجے پر کچھ بھی لاگو نہیں ہوتا ہے۔</string>
+    <string name="ime_disabled_translate_empty_box">باکڲ خالی ہے، یا اس کا ترڬمہ جاری ہے۔</string>
     <string name="ime_disabled_translate_nothing">ابھی کچھ بھی ترجمہ نہیں ہوا ہے۔ ترجمہ کرنے کے لیے پہلے ٹیکسٹ ٹائپ یا پیسٹ کریں۔</string>
     <string name="ime_disabled_translate_same_language">متن پہلے ہی اسی زبان میں ہے جس میں آپ ترجمہ کر رہے ہیں۔</string>
     <string name="ime_disabled_voice_undo">ابھی تک واپس کرنے کے لیے کچھ نہیں ہے۔ کالعدم آپ کی بولی گئی آخری عبارت کو واپس لے لیتا ہے۔</string>
@@ -985,6 +1053,10 @@
     <string name="ime_docscan_next">کراپ کریں</string>
     <string name="ime_docscan_open_settings">ترتیبات کھولیں</string>
     <string name="ime_docscan_page_number">صفحہ %1$d</string>
+    <plurals name="ime_docscan_pages_album">
+        <item quantity="one">صفحہ ایپ کی شیئر اسکرین میں کھلتا ہے</item>
+        <item quantity="other">یہ ایپ یہاں ایک وقت میں ایک تصویر لیتی ہے، لہذا %d صفحات ایک البم کے طور پر بھیجنے کے لیے اس کی شیئر اسکرین میں ایک ساتھ کھلتے ہیں</item>
+    </plurals>
     <plurals name="ime_docscan_pages_shared">
         <item quantity="one">ایپ نے یہاں آخری صفحہ نہیں لیا، اس لیے یہ ایپ کی شیئر اسکرین میں کھلتا ہے</item>
         <item quantity="other">ایپ نے یہاں %d صفحات نہیں لیے، اس لیے وہ ایپ کی شیئر اسکرین میں ایک ساتھ کھلتے ہیں</item>
@@ -1067,10 +1139,15 @@
     <string name="ime_files_access_pick">اینڈرائیڈ کا پِکر</string>
     <string name="ime_files_access_title">کی بورڈ چھوڑے بغیر فائلیں چنیں</string>
     <string name="ime_files_add">شامل کریں</string>
+    <string name="ime_files_add_tree">ایک فولڈر شامل کریں</string>
+    <string name="ime_files_add_tree_detail">یو ایس بی ڈرائیو، ایس ڈی کارڈ، یا کوئی فولڈر جو دوسری ایپ شیئر کرتی ہے، جیسے کہ نیٹ ورک ڈرائیو</string>
+    <string name="ime_files_allow_all">فون کی تمام اسٹوریج</string>
+    <string name="ime_files_allow_all_detail">Android کی تمام فائلوں تک رسائی درکار ہے</string>
     <string name="ime_files_camera">کیمرہ</string>
     <string name="ime_files_clear_desc">انتخاب صاف کریں</string>
     <string name="ime_files_collapse_desc">چھوٹا بنائیں</string>
     <string name="ime_files_copy_desc">کاپی کریں</string>
+    <string name="ime_files_copy_to">%1$s میں کاپی کریں</string>
     <string name="ime_files_delete_body">فولڈرز اپنے اندر موجود ہر چیز کے ساتھ چلے جاتے ہیں۔ یہ مستقل ہے: اینڈرائیڈ میں فائلوں کے لیے کوئی ری سائیکل بن نہیں ہے۔</string>
     <string name="ime_files_delete_desc">حذف کریں</string>
     <string name="ime_files_delete_no">منسوخ کریں</string>
@@ -1087,8 +1164,11 @@
     <string name="ime_files_expand_desc">لمبا کریں</string>
     <string name="ime_files_hide_hidden">پوشیدہ فائلیں چھپائیں</string>
     <string name="ime_files_kde_unreadable">بھیجنے کے لیے وہ فائل نہیں پڑھی جا سکی</string>
+    <string name="ime_files_locked_body">فائل مینیجر لاک اسکرین پر نہیں کھلتا۔</string>
+    <string name="ime_files_locked_title">اپنی فائلیں دیکھنے کے لیے انلاک کریں</string>
     <string name="ime_files_more_desc">مزید</string>
     <string name="ime_files_move_desc">منتقل کریں</string>
+    <string name="ime_files_move_to">%1$s پر منتقل کریں</string>
     <string name="ime_files_movies">فلمیں</string>
     <string name="ime_files_music">موسیقی</string>
     <string name="ime_files_new_folder">نیا فولڈر</string>
@@ -1114,6 +1194,8 @@
         <item quantity="one">%d آئٹم منتقل کر دی گئی</item>
         <item quantity="other">%d آئٹمز منتقل کر دی گئیں</item>
     </plurals>
+    <string name="ime_files_notice_tree_removed">فولڈر کو فہرست سے ہٹا دیا گیا</string>
+    <string name="ime_files_one_pane_desc">ایک فہرست</string>
     <string name="ime_files_op_cancel">روکیں</string>
     <string name="ime_files_op_copy">%2$d میں سے %1$d کاپی ہو رہا ہے</string>
     <string name="ime_files_op_delete">%2$d میں سے %1$d حذف ہو رہا ہے</string>
@@ -1130,6 +1212,9 @@
     <string name="ime_files_pictures">تصاویر</string>
     <string name="ime_files_places">مقامات</string>
     <string name="ime_files_recent">حالیہ</string>
+    <string name="ime_files_remove_tree_body">فولڈر اور اس کی فائلیں وہیں موجود رہیں گی۔ آپ اسے کسی بھی وقت دوبارہ شامل کر سکتے ہیں۔</string>
+    <string name="ime_files_remove_tree_title">فہرست سے \"%1$s\" ہٹا دیں؟</string>
+    <string name="ime_files_remove_tree_yes">ہٹا دیں</string>
     <string name="ime_files_rename_desc">نام تبدیل کریں</string>
     <string name="ime_files_rename_hint">نیا نام</string>
     <string name="ime_files_search_clear_desc">تلاش ختم کریں</string>
@@ -1148,6 +1233,7 @@
     <string name="ime_files_title_many">فائلیں منتخب کریں</string>
     <string name="ime_files_title_one">فائل منتخب کریں</string>
     <string name="ime_files_title_picture">تصویر منتخب کریں</string>
+    <string name="ime_files_two_panes_desc">دو فہرستیں برابر میں</string>
     <string name="ime_files_unreadable">اینڈرائیڈ کی بورڈ کو اس فولڈر کو کھولنے کی اجازت نہیں دیتا</string>
     <string name="ime_find_case_desc">کیس سے مماثلت</string>
     <string name="ime_find_clear_desc">صاف کریں %1$s</string>
@@ -1179,6 +1265,24 @@
     <string name="ime_floating_category_empty">یہ زمرہ خالی ہے۔ فلوٹنگ بٹن کی ترتیبات میں اس میں ایکشنز شامل کریں۔</string>
     <string name="ime_floating_category_label">زمرہ</string>
     <string name="ime_floating_close_menu">مینو بند کریں</string>
+    <string name="ime_floating_device_bluetooth">بلوٹوتھ</string>
+    <string name="ime_floating_device_bluetooth_desc">بلوٹوتھ کو آن یا آف کرتا ہے</string>
+    <string name="ime_floating_device_bluetooth_page_desc">اینڈرائیڈ کا بلوٹوتھ صفحہ کھولتا ہے</string>
+    <string name="ime_floating_device_data">موبাইল ڈیٹا</string>
+    <string name="ime_floating_device_data_desc">موبائل ڈیٹا کو آن یا آف کرتا ہے</string>
+    <string name="ime_floating_device_data_panel_desc">اینڈرائیڈ کا انٹرنیٹ پینل کھولتا ہے</string>
+    <string name="ime_floating_device_failed">اینڈرائیڈ نے اس کی اجازت نہیں دی</string>
+    <string name="ime_floating_device_hotspot">ہاٹ اسپاٹ</string>
+    <string name="ime_floating_device_hotspot_desc">اینڈرائیڈ کا ہاٹ اسپاٹ صفحہ کھولتا ہے</string>
+    <string name="ime_floating_device_off">%1$s بند</string>
+    <string name="ime_floating_device_on">%1$s آن</string>
+    <string name="ime_floating_device_ringer">رنگر موڈ</string>
+    <string name="ime_floating_device_ringer_desc">باری باری گھنٹی، وائبریٹ اور سائلنٹ</string>
+    <string name="ime_floating_device_volume">والیوم پینل</string>
+    <string name="ime_floating_device_volume_desc">ہر والیوم سلائیڈر کے ساتھ اینڈرائیڈ کا والیوم پینل کھولتا ہے</string>
+    <string name="ime_floating_device_wifi">وائی ​​فائی</string>
+    <string name="ime_floating_device_wifi_desc">وائی ​​فائی کو آن یا آف کرتا ہے</string>
+    <string name="ime_floating_device_wifi_panel_desc">اینڈرائیڈ کا وائی فائی پینل کھولتا ہے</string>
     <string name="ime_floating_dismiss_target">بٹن چھپانے کے لیے یہاں چھوڑیں</string>
     <string name="ime_floating_dock_desc">کی بورڈ کو ڈاک کریں</string>
     <string name="ime_floating_hide_label">بٹن چھپائیں</string>
@@ -1189,7 +1293,11 @@
     <string name="ime_floating_pair_label">ایپ جوڑا کھولیں</string>
     <string name="ime_floating_pair_missing">دونوں میں سے ایک ایپ اب انسٹال نہیں ہے</string>
     <string name="ime_floating_pair_name">%1$s + %2$s</string>
+    <string name="ime_floating_plugin_label">پلگ ان</string>
     <string name="ime_floating_resize_desc">کی بورڈ کا سائز تبدیل کریں</string>
+    <string name="ime_floating_ringer_ring">رنگ</string>
+    <string name="ime_floating_ringer_silent">خاموش</string>
+    <string name="ime_floating_ringer_vibrate">وائبریٹ</string>
     <string name="ime_floating_system_app_drawer">ایپ دراز</string>
     <string name="ime_floating_system_back">پیچھے</string>
     <string name="ime_floating_system_notifications">نوٹیفیکیشنز</string>
@@ -1247,6 +1355,7 @@
     <string name="ime_gallery_album_camera">کیمرہ</string>
     <string name="ime_gallery_album_favorites">پسندیدہ</string>
     <string name="ime_gallery_album_gifs">GIFs</string>
+    <string name="ime_gallery_album_immich">Immich</string>
     <string name="ime_gallery_album_recents">حالیہ</string>
     <string name="ime_gallery_album_screenshots">اسکرین شاٹس</string>
     <string name="ime_gallery_album_sent">کی بورڈ سے بھیجا گیا</string>
@@ -1338,6 +1447,10 @@
     <string name="ime_gallery_info_taken">لی گئی</string>
     <string name="ime_gallery_layer_delete">حذف کریں</string>
     <string name="ime_gallery_more_desc">مزید گیلری کے اختیارات</string>
+    <plurals name="ime_gallery_notice_already_uploaded">
+        <item quantity="one">Immich میں پہلے سے %d تصویر تھی</item>
+        <item quantity="other">Immich میں پہلے سے تمام %d تصاویر موجود تھیں</item>
+    </plurals>
     <plurals name="ime_gallery_notice_copied">
         <item quantity="one">%d آئٹم کاپی کیا گیا</item>
         <item quantity="other">%d آئٹمز کاپی کیے گئے</item>
@@ -1346,6 +1459,8 @@
         <item quantity="one">%d آئٹم کو پڑھا نہیں جا سکا</item>
         <item quantity="other">%d آئٹمز کو پڑھا نہیں جا سکا</item>
     </plurals>
+    <string name="ime_gallery_notice_immich_failed">آپ کے Immich سرور تک رسائی حاصل نہیں ہو سکی</string>
+    <string name="ime_gallery_notice_immich_refused">Immich نے API کی مسترد کر دی؛ اس کی اجازتیں چیک کریں</string>
     <plurals name="ime_gallery_notice_limit">
         <item quantity="one">آپ ایک وقت میں %d آئٹم منتخب کر سکتے ہیں</item>
         <item quantity="other">آپ ایک وقت میں %d آئٹمز تک منتخب کر سکتے ہیں</item>
@@ -1366,6 +1481,14 @@
     <plurals name="ime_gallery_notice_shared">
         <item quantity="one">%d آئٹم کے لیے شیئر اسکرین کھولی گئی</item>
         <item quantity="other">%d آئٹمز کے لیے شیئر اسکرین کھولی گئی</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_upload_failed">
+        <item quantity="one">%d تصویر اپ لوڈ نہیں ہوئی</item>
+        <item quantity="other">%d تصاویر اپ لوڈ نہیں ہوئیں</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_uploaded">
+        <item quantity="one">Immich پر %d تصویر اپ لوڈ کی گئی</item>
+        <item quantity="other">Immich پر %d تصاویر اپ لوڈ کی گئیں</item>
     </plurals>
     <string name="ime_gallery_partial_action">مزید منتخب کریں</string>
     <string name="ime_gallery_partial_body">آپ نے صرف کچھ تصاویر کی اجازت دی ہے۔</string>
@@ -1409,6 +1532,7 @@
     <string name="ime_gallery_tool_stickers">اسٹیکرز</string>
     <string name="ime_gallery_tool_text">متن</string>
     <string name="ime_gallery_tool_upscale">اپ اسکیل</string>
+    <string name="ime_gallery_upload_immich">Immich پر اپ لوڈ کریں</string>
     <string name="ime_gallery_upscale_art">ڈرائنگ یا ٹیکسٹ</string>
     <string name="ime_gallery_upscale_done">اپ اسکیل شدہ ×%1$d: %2$d × %3$d</string>
     <string name="ime_gallery_upscale_downloading">ایپ اپ اسکیلر حاصل کر رہی ہے...</string>
@@ -1667,6 +1791,9 @@
     <string name="ime_handwriting_unsupported_info">ایپ کا یہ ورژن صرف چینی اور جاپانی زبانوں میں لکھائی کو پڑھتا ہے۔ یہاں لکھنے کے لیے زبانوں میں سے ایک کا اضافہ کریں۔</string>
     <string name="ime_hardware_keys_hide_desc">کلیدیں چھپائیں</string>
     <string name="ime_hardware_keys_show_desc">کلیدیں دکھائیں</string>
+    <string name="ime_homophones_finish">پہلے وہ لفظ مکمل کریں جو آپ ٹائپ کر رہے ہیں</string>
+    <string name="ime_homophones_none">اس فون پر %1$s جیسی آواز دینے والا کوئی لفظ نہیں۔ زبان کا پیک یا RIME سکیم ریڈنگز کا اضافہ کرتی ہے۔</string>
+    <string name="ime_homophones_none_before">پہلے چینی یا جاپانی حرف ٹائپ کریں</string>
     <string name="ime_hw_pick_mode_off_toast">پک موڈ بند ہے</string>
     <string name="ime_hw_pick_mode_on_toast">پک موڈ آن: نمبر کیز تجاویز منتخب کرتی ہیں، شفٹ نمبر ٹائپ کرتا ہے</string>
     <string name="ime_icons_builtin_label">بلٹ ان</string>
@@ -1681,6 +1808,45 @@
     <string name="ime_image_search_need_key_body">امیج سرچ کو Brave Search سے API کلید کی ضرورت ہے۔ اس ٹول کی ترتیبات میں ایک کلید شامل کریں۔</string>
     <string name="ime_incognito_on_desc">انکوگنیٹو آن ہے</string>
     <string name="ime_insert_action">داخل کریں</string>
+    <string name="ime_invite_about_hint">ایک تفصیل شامل کریں</string>
+    <string name="ime_invite_action">آن لائن مدعو کریں</string>
+    <string name="ime_invite_add_title">عنوان شامل کریں</string>
+    <string name="ime_invite_error_address">ترتیبات میں %1$s کا پتہ ویب کا پتہ نہیں ہے۔</string>
+    <string name="ime_invite_error_bad_token">%1$s نے API ٹوکن قبول نہیں کیا۔</string>
+    <string name="ime_invite_error_data_saver">ڈیٹا سیور آن ہے۔ شائع کرنے سے چند کلو بائٹس خرچ ہوتے ہیں۔</string>
+    <string name="ime_invite_error_network">%1$s نے جواب نہیں دیا۔</string>
+    <string name="ime_invite_error_no_title">دعوت نامے کا عنوان ہونا ضروری ہے۔</string>
+    <string name="ime_invite_error_offline">کوئی کنکشن نہیں۔ کنیکٹ کریں اور دوبارہ کوشش کریں۔</string>
+    <string name="ime_invite_error_refused">%1$s کا کہنا ہے کہ یہ اکاؤنٹ وہاں ایونٹس نہیں بنا سکتا۔</string>
+    <string name="ime_invite_error_rejected">%1$s نے ایونٹ کو مسترد کر دیا۔</string>
+    <string name="ime_invite_error_signed_out">%1$s نے آپ کو سائن آؤٹ کر دیا۔ ترتیبات میں دوبارہ سائن ان کریں۔</string>
+    <string name="ime_invite_fix_in_pretix">پریٹکس کھولیں</string>
+    <string name="ime_invite_go_ahead">آگے بڑھیں</string>
+    <string name="ime_invite_insert_link">لنک درج کریں</string>
+    <string name="ime_invite_insert_message">دعوت نامہ درج کریں</string>
+    <string name="ime_invite_link_only">صرف لنک والے لوگ</string>
+    <string name="ime_invite_listed">عوامی طور پر درج ہے</string>
+    <string name="ime_invite_made">%1$s پر بنایا گیا، سائن اپ ابھی شروع نہیں ہوئے</string>
+    <string name="ime_invite_not_live">Pretix نے ایونٹ بنایا لیکن سائن اپس نہیں کھولے گا۔ %1$s</string>
+    <string name="ime_invite_not_set_up_body">سب سے پہلے موبلیزون (Mobilizon) میں سائن ان کریں یا کیلنڈر ٹول کی ترتیبات میں پریٹکس (Pretix) سرور شامل کریں۔</string>
+    <string name="ime_invite_not_set_up_title">ابھی تک کوئی ایونٹ سروس نہیں ہے</string>
+    <string name="ime_invite_note_mobilizon">لوگ ایونٹ کے صفحے پر سائن اپ کرتے ہیں۔ جب وہ ایسا کرتے ہیں تو Mobilizon آپ کو ای میل کرتا ہے۔</string>
+    <string name="ime_invite_note_pretix">ایونٹ کو ایک مفت ٹکٹ ملتا ہے، لہذا لوگ اپنے ای میل ایڈریس کے ساتھ اس کے صفحے پر سائن اپ کرتے ہیں۔</string>
+    <string name="ime_invite_open_page">صفحہ کھولیں</string>
+    <string name="ime_invite_open_settings">ترتیبات</string>
+    <string name="ime_invite_place_hint">کوئی جگہ یا لنک شامل کریں</string>
+    <string name="ime_invite_places_any">کوئی حد نہیں</string>
+    <string name="ime_invite_places_label">مقامات</string>
+    <string name="ime_invite_post_as">%1$s کے طور پر پوسٹ کریں</string>
+    <string name="ime_invite_post_as_default">بطور پروفائل پوسٹ کریں</string>
+    <string name="ime_invite_post_as_loading">آپ کے پروفائلز لوڈ ہو رہے ہیں…</string>
+    <string name="ime_invite_publish">شائع کریں</string>
+    <string name="ime_invite_published">%1$s پر شائع کیا گیا</string>
+    <string name="ime_invite_publishing">شائع کیا جا رہا ہے…</string>
+    <string name="ime_invite_publishing_to">%1$s پر شائع کیا جا رہا ہے</string>
+    <string name="ime_invite_ticket_name">سائن اپ</string>
+    <string name="ime_invite_title">آن لائن مدعو کریں</string>
+    <string name="ime_invite_try_again">دوبارہ کوشش کریں</string>
     <string name="ime_kaomoji_add">کاؤموجی شامل کریں</string>
     <string name="ime_kaomoji_all">سب</string>
     <string name="ime_kaomoji_cancel">منسوخ کریں</string>
@@ -1968,6 +2134,7 @@
     <string name="ime_learn_text_action">متن سیکھیں</string>
     <string name="ime_learn_word_never_desc">%1$s کو کبھی نہ سیکھیں</string>
     <string name="ime_learn_word_offer">\"%1$s\" شامل کریں؟</string>
+    <string name="ime_legacy_font_output">لیگیسی فونٹ آؤٹ پٹ</string>
     <string name="ime_level_no_sensor_empty">آپ کے آلے میں ایکسلرومیٹر نہیں ہے۔</string>
     <string name="ime_location_address_failed">یہاں کوئی پتہ نہیں ہے۔ کوآرڈینیٹس اب بھی کام کرتے ہیں۔</string>
     <string name="ime_location_address_looking">پتہ تلاش کیا جا رہا ہے...</string>
@@ -2140,6 +2307,29 @@
         <item quantity="other">%d نوٹس آرکائیو کیے گئے</item>
     </plurals>
     <string name="ime_notes_archived_badge">آرکائیو شدہ</string>
+    <string name="ime_notes_assist_deck_action">مطالعہ کا ڈیک بنائیں</string>
+    <plurals name="ime_notes_assist_deck_action_count">
+        <item quantity="one">مطالعہ کا ڈیک بنائیں (%d کارڈ)</item>
+        <item quantity="other">مطالعہ کا ڈیک بنائیں (%d کارڈز)</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_empty_toast">کارڈ بنانے کے لئے کوئی معنی والے الفاظ موکد نہیں ہیں</string>
+    <plurals name="ime_notes_assist_deck_made_toast">
+        <item quantity="one">مطالعہ کا ڈیک \"%2$s\" %1$d کارڈ کے ساتھ بنایا گیا۔ اسے الفاظ (Vocabulary) میں تلاش کریں۔</item>
+        <item quantity="other">مطالعہ کا ڈیک \"%2$s\" %1$d کارڈز کے ساتھ بنایا گیا۔ اسے الفاظ (Vocabulary) میں تلاش کریں۔</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_working_toast">مطالعہ کا ڈیک بنایا جا رہا ہے…</string>
+    <string name="ime_notes_assist_details_label">اہم تفصیلات</string>
+    <string name="ime_notes_assist_heading_busy">سرخی کے بارے میں سوچ رہا ہے...</string>
+    <string name="ime_notes_assist_heading_dismiss_desc">یہ سرخی نہیں</string>
+    <string name="ime_notes_assist_heading_suggestion">سرخی: %1$s</string>
+    <string name="ime_notes_assist_heading_use_action">استعمال کریں</string>
+    <string name="ime_notes_assist_related_label">متعلقہ</string>
+    <string name="ime_notes_assist_remind_chip">مجھے یاد دلائیں: %1$s · %2$s</string>
+    <string name="ime_notes_assist_reminders_label">آنے والا ہے</string>
+    <string name="ime_notes_assist_summarize_action">خلاصہ کریں</string>
+    <string name="ime_notes_assist_summarize_again_action">دوبارہ</string>
+    <string name="ime_notes_assist_summary_busy">آپ کے فون پر خلاصہ کیا جا رہا ہے...</string>
+    <string name="ime_notes_assist_summary_label">خلاصہ</string>
     <string name="ime_notes_body_hint">ایک نوٹ لکھیں... مارک ڈاؤن کام کرتا ہے: **بولڈ**، - فہرستیں، - [ ] ٹاسک</string>
     <string name="ime_notes_collapse_desc">کی بورڈ کی اونچائی پر واپس جائیں</string>
     <string name="ime_notes_confirm_action">تصدیق کے لیے دوبارہ تھپتھپائیں</string>
@@ -2188,6 +2378,7 @@
     <string name="ime_notes_no_match">“%1$s” سے کوئی نوٹ مماثل نہیں ہے۔</string>
     <string name="ime_notes_passage_desc">%1$s سے۔ درج کرنے کے لیے تھپتھپائیں، نوٹ کھولنے کے لیے دبا کر رکھیں۔</string>
     <string name="ime_notes_passages_section">عبارات</string>
+    <string name="ime_notes_paste_desc">پیسٹ کریں</string>
     <string name="ime_notes_pin_action">پن کریں</string>
     <string name="ime_notes_pinned_section">پن شدہ</string>
     <string name="ime_notes_restore_action">بحال کریں</string>
@@ -2221,6 +2412,29 @@
     <string name="ime_otp_chip_dismiss_desc">کوڈ چھپائیں</string>
     <string name="ime_panel_back_desc">کی بورڈ پر واپس جائیں</string>
     <string name="ime_panel_over_keys_height_desc">کیز کے اوپر پینل کی اونچائی۔ اوپر یا نیچے ڈریگ کریں۔</string>
+    <string name="ime_paperless_card_also_field">صفحات کو ٹیکسٹ باکس میں بھی رکھیں</string>
+    <string name="ime_paperless_card_correspondent">نامہ نگار</string>
+    <string name="ime_paperless_card_field_only">صرف متن کا خانہ</string>
+    <string name="ime_paperless_card_loading">سرور سے آپ کے ٹیگز حاصل کیے جا رہے ہیں…</string>
+    <string name="ime_paperless_card_name">عنوان</string>
+    <string name="ime_paperless_card_name_hint">اختیاری۔ خالی چھوڑنے پر، پیپرلیس اس کا نام رکھتا ہے۔</string>
+    <string name="ime_paperless_card_none">کوئی نہیں</string>
+    <string name="ime_paperless_card_offline">اس وقت سرور تک رسائی حاصل نہیں کی جا سکتی۔ اسکین آپ کے ڈیفالٹ ٹیگز کے ساتھ فون پر انتظار کرتا ہے اور ایک بار جب یہ ہو سکے تو اپ لوڈ ہوجاتا ہے۔</string>
+    <string name="ime_paperless_card_offline_cached">اس وقت سرور تک رسائی نہیں ہو سکتی؛ یہ اس کی پچھلی فہرستیں ہیں۔ سکین ہوتے ہی اپ لوڈ ہو جائے گا۔</string>
+    <string name="ime_paperless_card_one_pdf">تمام صفحات ایک پی ڈی ایف میں</string>
+    <plurals name="ime_paperless_card_pages">
+        <item quantity="one">%d صفحہ</item>
+        <item quantity="other">%d صفحات</item>
+    </plurals>
+    <string name="ime_paperless_card_send">بھیجیں</string>
+    <string name="ime_paperless_card_tags">ٹیگز</string>
+    <string name="ime_paperless_card_title">پیپر لیس کو بھیجیں</string>
+    <string name="ime_paperless_card_type">دستاویز کی قسم</string>
+    <string name="ime_paperless_queue_failed">Paperless کے لیے اسکین نہیں رکھا جا سکا</string>
+    <plurals name="ime_paperless_queued">
+        <item quantity="one">پپرلیس کی طرف %d دستاویز جا رہی ہے۔ کنکشن ملتے ہی یہ اپ لوڈ ہو جائے گی۔</item>
+        <item quantity="other">پپرلیس کی طرف %d دستاویزات جا رہی ہیں۔ کنکشن ملتے ہی یہ اپ لوڈ ہو جائیں گی۔</item>
+    </plurals>
     <string name="ime_password_add_digit_label">ایک ہندسہ شامل کریں</string>
     <string name="ime_password_capitalize_label">بڑے حروف</string>
     <string name="ime_password_copied_toast">کلپ بورڈ پر کاپی کیا گیا</string>
@@ -2239,11 +2453,27 @@
     <string name="ime_password_tab_pin">پن (PIN)</string>
     <string name="ime_password_words_label">الفاظ</string>
     <string name="ime_phonetic_word_list_offer">بہتر الفاظ کے لیے %1$s ورڈ لسٹ حاصل کریں</string>
+    <string name="ime_plugin_access_mark">یہ پلگ ان انٹرنیٹ استعمال کر سکتا ہے یا جو آپ لکھتے ہیں اسے پڑھ سکتا ہے</string>
+    <string name="ime_plugin_action_settings">ترتیبات اور اجازتیں</string>
+    <string name="ime_plugin_action_toolbar_add">ٹول بار میں شامل کریں</string>
+    <string name="ime_plugin_action_toolbar_remove">ٹول بار سے ہٹائیں</string>
+    <string name="ime_plugin_action_toolbox_add">ٹول باکس میں شامل کریں</string>
+    <string name="ime_plugin_action_toolbox_remove">ٹول باکس سے ہٹائیں</string>
+    <string name="ime_plugin_action_turn_off">بند کریں</string>
+    <string name="ime_plugin_action_turn_on">آن کریں</string>
+    <string name="ime_plugin_clock_alarm_set">%1$s نے کلاک میں %2$s کے لیے الارم سیٹ کیا</string>
+    <string name="ime_plugin_clock_timer_set">%1$s نے گھڑی میں %2$s کا ٹائمر شروع کیا</string>
     <string name="ime_plugin_empty_body">پلگ ان سینڈ باکس میں ایک چھوٹا ٹول ہے۔ آپ ایڈ آن ریپوزٹری یا .wmplugin فائل سے پلگ ان شامل کر سکتے ہیں۔ پلگ ان یہ نہیں دیکھ سکتا کہ آپ کیا ٹائپ کر رہے ہیں۔</string>
     <string name="ime_plugin_empty_title">ابھی تک کوئی پلگ ان نہیں</string>
     <string name="ime_plugin_manage_action">پلگ انز کا نظم کریں</string>
+    <string name="ime_plugin_more">%1$s کے لیے مزید اختیارات</string>
+    <string name="ime_plugin_permission_allow">اجازت دیں</string>
+    <string name="ime_plugin_permission_deny">اجازت نہ دیں</string>
+    <string name="ime_plugin_permission_risky_note">یہ پلگ انز کے لیے خطرناک اجازتوں کو بھی آن کرتا ہے۔ آپ سیٹنگز میں پلگ ان کے صفحہ پر جا کر ان میں سے کسی کو بھی دوبارہ آف کر سکتے ہیں۔</string>
+    <string name="ime_plugin_permission_title">%1$s کو اجازت دیں کہ:</string>
     <string name="ime_plugin_version_label">ورژن %1$s</string>
     <string name="ime_power_saving_on_desc">پاور سیونگ آن ہے</string>
+    <string name="ime_privacy_shade_hint">آخری سطریں دیکھنے کے لیے ہینڈل کو اوپر گھسیٹیں</string>
     <string name="ime_provider_choose_desc">پرووائیڈر منتخب کریں</string>
     <string name="ime_punct_ampersand">ایمپر سینڈ</string>
     <string name="ime_punct_apostrophe">اپوسٹروف</string>
@@ -2377,6 +2607,8 @@
     <string name="ime_resize_move_desc">کی بورڈ کو اوپر یا نیچے منتقل کرنے کے لیے گھسیٹیں</string>
     <string name="ime_resize_reset">ری سیٹ کریں</string>
     <string name="ime_resize_right_handle_desc">کی بورڈ کے دائیں جانب جگہ تبدیل کرنے کے لیے گھسیٹیں</string>
+    <string name="ime_resize_toolbar_handle">ٹول بار</string>
+    <string name="ime_resize_toolbar_handle_desc">ٹول بار کی اونچائی تبدیل کرنے کے لیے اوپر یا نیچے گھسیٹیں</string>
     <string name="ime_retype_button">دوبارہ ٹائپ کریں</string>
     <string name="ime_retype_button_desc">کرسر پر موجود لفظ کو دوبارھ ٹائپ کریں</string>
     <string name="ime_retype_button_nothing">دوبارہ ٹائپ کرنے کے لیے کوئی لفظ نہیں ہے۔ کرسر کو کسی لفظ کے بالکل بعد رکھیں۔</string>
@@ -2431,8 +2663,10 @@
     <string name="ime_scanner_torch_desc">ٹارچ</string>
     <string name="ime_scanner_translate_action">ترجمہ کریں</string>
     <string name="ime_screen_capture_desc">اسکرین کیپچر کریں</string>
+    <string name="ime_screen_capture_progress">اسکرین کیپچر کی جا رہی ہے…</string>
     <string name="ime_search_attribution_brave">Brave کے ذریعے</string>
     <string name="ime_search_attribution_left">%1$s · %2$s باقی</string>
+    <string name="ime_search_attribution_mwmbl">Mwmbl کے ذریعے</string>
     <string name="ime_search_attribution_tavily">Tavily کے ذریعے</string>
     <string name="ime_search_in_browser_desc">براؤزر میں تلاش کریں</string>
     <string name="ime_search_menu_copy_link">لنک کاپی کریں</string>
@@ -2442,6 +2676,7 @@
     <string name="ime_search_no_more">مزید نتائج نہیں ہیں</string>
     <string name="ime_search_tab_all">سب</string>
     <string name="ime_search_tab_images">تصاویر</string>
+    <string name="ime_second_toolbar_empty">ٹول باکس یا ٹول بار سے یہاں کوئی ٹول گھسیٹ کر لائیں</string>
     <string name="ime_selection_ask_ai">AI سے پوچھیں</string>
     <string name="ime_selection_macro_ai_translate_label">AI ترجمہ</string>
     <string name="ime_selection_macro_back_desc">انتخابی اعمال پر واپس جائیں</string>
@@ -2740,6 +2975,8 @@
     <string name="ime_service_incognito_off_toast">انکوگنیٹو بند ہے</string>
     <string name="ime_service_incognito_on_toast">انکوگنیٹو آن ہے۔ کی بورڈ یہ نہیں سیکھتا کہ آپ کیا ٹائپ کر رہے ہیں۔</string>
     <string name="ime_service_incognito_switch_toast">پوشیدہ (Incognito) موڈ آن ہے۔ اسے بند کرنے کے لیے پوشیدہ ٹول پر ٹیپ کریں۔</string>
+    <string name="ime_service_legacy_font_off_toast">یونی کوڈ لکھ رہا ہے</string>
+    <string name="ime_service_legacy_font_on_toast">%1$s فونٹ کے لیے لکھنا</string>
     <string name="ime_service_media_download_error_toast">ڈاؤن لوڈ کام نہیں کر سکا۔ اپنا کنکشن چیک کریں۔</string>
     <string name="ime_service_media_fetch_error">کی بورڈ نتائج حاصل نہیں کر سکتا</string>
     <string name="ime_service_mode_tool_order_toast">کی بورڈ نے %1$s موڈ کے لیے ٹول آرڈر محفوظ کر لیا ہے۔ دوسری ایپس اپنا آرڈر برقرار رکھتی ہیں۔</string>
@@ -2763,6 +3000,7 @@
     <string name="ime_service_power_saving_on_empty_toast">پاور سیونگ آن ہے۔ ابھی کوئی فیچر رکنے کے لیے سیٹ نہیں ہے۔</string>
     <string name="ime_service_power_saving_on_toast">پاور سیونگ آن ہے</string>
     <string name="ime_service_power_saving_still_on_toast">پاور سیونگ آن ہے۔ بیٹری ٹرگر آن ہے۔</string>
+    <string name="ime_service_privacy_shade_floating_toast">پرائیویسی شیڈ ڈاکڈ کی بورڈ کے ساتھ کام کرتا ہے۔ پہلے کی بورڈ ڈاک کریں۔</string>
     <string name="ime_service_qr_error">کی بورڈ QR کوڈ نہیں بنا سکتا</string>
     <string name="ime_service_resize_floating_toast">کی بورڈ کو ری سائز کرنے کے لیے اسے ڈاک کریں</string>
     <string name="ime_service_search_error">تلاش کام نہیں کر سکی</string>
@@ -2823,6 +3061,7 @@
     <string name="ime_smart_repeat_count">×%1$s</string>
     <string name="ime_smart_repeat_offer">“%1$s” دہرائیں</string>
     <string name="ime_smart_replies_dismiss_desc">اسمارٹ جوابات چھپائیں</string>
+    <string name="ime_smart_search_offer">%1$s: ‘%2$s’</string>
     <string name="ime_smart_send_link">فائل وصول کریں</string>
     <string name="ime_smart_translate_offer">ترجمہ کریں</string>
     <string name="ime_smart_vocab_daily">آج کا لفظ: %1$s ›</string>
@@ -2832,6 +3071,12 @@
     <string name="ime_smart_vocab_word">%1$s ›</string>
     <string name="ime_smart_weather_tap">موسم کی پیش گوئی حاصل کریں</string>
     <string name="ime_smart_wiki_word">ویکیپیڈیا پر ”%1$s“</string>
+    <string name="ime_snippet_ask_cancel_desc">اسنیپیٹ منسوخ کریں</string>
+    <string name="ime_snippet_ask_done_desc">سنپیٹ داخل کریں</string>
+    <string name="ime_snippet_ask_hint">%1$s ٹائپ کریں</string>
+    <string name="ime_snippet_ask_next_desc">اگلا فیلڈ</string>
+    <string name="ime_snippet_ask_step_label">%1$s %2$d/%3$d</string>
+    <string name="ime_snippet_image_desc">تصویر کا ٹکڑا %1$s</string>
     <string name="ime_snippet_offer_back_desc">%1$s پر واپس جائیں</string>
     <string name="ime_snippet_offer_desc">سنیپٹ %1$s داخل کریں</string>
     <string name="ime_snippet_offer_more_desc">%1$s سے مزید</string>
@@ -2942,6 +3187,7 @@
     <string name="ime_suggestion_hold_label">لفظ کے اختیارات</string>
     <string name="ime_suggestion_never_suggest">کبھی تجویز نہ کریں \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">کلیدوں پر واپس جائیں</string>
+    <string name="ime_suggestion_pattern_still_hides">ایک بلیک لسٹ پیٹرن اب بھی \"%1$s\" کو چھپا رہا ہے۔ اسے تجویز کی بلیک لسٹ کے تحت ایڈٹ کریں۔</string>
     <string name="ime_suggestion_rank_badge">\"%1$s\" درجہ %2$s</string>
     <string name="ime_suggestion_rank_unchanged">\"%1$s\" غیر تبدیل شدہ</string>
     <string name="ime_suggestions_show_desc">تجویز کی پٹی دکھائیں</string>
@@ -2971,6 +3217,8 @@
     <string name="ime_synonyms_title">\"%1$s\" کے مترادفات</string>
     <string name="ime_textedit_delete_line_desc">لائن حذف کریں</string>
     <string name="ime_textedit_delete_line_forward_desc">لائن کو آگے سے حذف کریں</string>
+    <string name="ime_textedit_delete_to_end_desc">آخر تک حذف کریں</string>
+    <string name="ime_textedit_delete_to_start_desc">آغاز تک حذف کریں</string>
     <string name="ime_textedit_delete_word_desc">لفظ حذف کریں</string>
     <string name="ime_textedit_delete_word_forward_desc">آگے موجود لفظ حذف کریں</string>
     <string name="ime_textedit_doc_end_desc">متن کے آخر میں جائیں</string>
@@ -2989,6 +3237,7 @@
     <string name="ime_textedit_select_label">منتخب کریں</string>
     <string name="ime_textedit_select_line_desc">لائن منتخب کریں</string>
     <string name="ime_textedit_select_word_desc">لفظ منتخب کریں</string>
+    <string name="ime_textedit_type_clipboard_desc">کلپ بورڈ ٹائپ کریں</string>
     <string name="ime_textedit_up_desc">اوپر جائیں</string>
     <string name="ime_textedit_word_left_desc">ایک لفظ بائیں طرف منتقل کریں</string>
     <string name="ime_textedit_word_right_desc">ایک لفظ دائیں منتقل کریں</string>
@@ -3066,6 +3315,7 @@
     <string name="ime_tool_calculator">کیلکولیٹر</string>
     <string name="ime_tool_calendar">کیلنڈر</string>
     <string name="ime_tool_camera">کیمرہ</string>
+    <string name="ime_tool_clear_field">سب کچھ حذف کریں</string>
     <string name="ime_tool_clipboard">کلپ بورڈ</string>
     <string name="ime_tool_clipboard_search">کلپ بورڈ تلاش</string>
     <string name="ime_tool_clock">گھڑی</string>
@@ -3082,11 +3332,13 @@
     <string name="ime_tool_cursor_word_right">لفظ دائیں</string>
     <string name="ime_tool_custom_layout">کسٹم لے آؤٹ</string>
     <string name="ime_tool_cut">کٹ کریں</string>
+    <string name="ime_tool_debug_info">ڈی بگ کی معلومات</string>
     <string name="ime_tool_dictionary">لغت</string>
     <string name="ime_tool_doc_scan">دستاویز اسکین</string>
     <string name="ime_tool_emoji">ایموجی</string>
     <string name="ime_tool_emoji_mix">ایموجی مکس</string>
     <string name="ime_tool_fancy">فینسی ٹیکسٹ</string>
+    <string name="ime_tool_files">فائلس</string>
     <string name="ime_tool_find_replace">تلاش اور تبدیل کریں</string>
     <string name="ime_tool_flashlight">ٹارچ</string>
     <string name="ime_tool_floating">فلوٹنگ</string>
@@ -3096,6 +3348,7 @@
     <string name="ime_tool_handwriting">ہینڈ رائٹنگ</string>
     <string name="ime_tool_hide_keyboard">چھپائیں</string>
     <string name="ime_tool_home_assistant">اسمارٹ ہوم</string>
+    <string name="ime_tool_homophones">ایک جیسی آواز</string>
     <string name="ime_tool_image_search">تصاویر</string>
     <string name="ime_tool_incognito">پوشیدہ (Incognito)</string>
     <string name="ime_tool_language">زبان</string>
@@ -3122,6 +3375,7 @@
     <string name="ime_tool_picker_leader">%1$s، پھر:</string>
     <string name="ime_tool_plugins">پلگ انز</string>
     <string name="ime_tool_power_saving">پاور سیونگ</string>
+    <string name="ime_tool_privacy_shade">پرائیویسی شیڈ</string>
     <string name="ime_tool_qr_gen">QR کوڈ</string>
     <string name="ime_tool_qr_scan">QR اسکین</string>
     <string name="ime_tool_quick_note">فوری نوٹ</string>
@@ -3146,6 +3400,7 @@
     <string name="ime_tool_text_edit">متن کی تدوین</string>
     <string name="ime_tool_text_repeat">دہرائیں</string>
     <string name="ime_tool_themes">تھیمز</string>
+    <string name="ime_tool_timestamp">ٹائم اسٹیمپ</string>
     <string name="ime_tool_todo">ٹو ڈو لسٹ</string>
     <string name="ime_tool_trackpad">ٹریک پیڈ</string>
     <string name="ime_tool_translate">ترجمہ کریں</string>
@@ -3203,12 +3458,14 @@
     <string name="ime_translate_engine_online_info">آن لائن سروس کا استعمال کرتا ہے۔</string>
     <string name="ime_translate_hint">ترجمہ کرنے کے لیے متن ٹائپ کریں...</string>
     <string name="ime_translate_idle">جیسے جیسے آپ ٹائپ کرتے ہیں، ترجمہ یہاں ظاہر ہوتا ہے۔</string>
+    <string name="ime_translate_idle_manual">پورا متن ٹائپ کریں، پھر ترجمہ کریں پر ٹیپ کریں۔ اس سے پہلے کچھ بھی نہیں بھیجا جاتا۔</string>
     <string name="ime_translate_module_failed_error">گوگل پلے نے ڈاؤن لوڈ فراہم نہیں کیا۔ کنکشن چیک کریں، پھر دوبارہ کوشش کریں۔ اگر یہ دوبارہ ناکام ہو جائے تو اسے ترتیبات، ٹولز، ترجمہ سے ڈاؤن لوڈ کریں۔</string>
     <string name="ime_translate_module_installing_action">ڈاؤن لوڈ ہو رہا ہے...</string>
     <string name="ime_translate_module_missing_body">آن ڈیوائس ترجمہ کی بورڈ کا ایک اضافی حصہ ہے جو گوگل پلے سے آتا ہے۔ بغیر کنکشن کے ترجمہ کرنے کے لیے اسے ڈاؤن لوڈ کریں۔</string>
     <string name="ime_translate_need_models_body">ڈیوائس پر ترجمہ کرنے کے لیے، ڈاؤن لوڈ کریں: %1$s۔ تقریباً %2$s۔</string>
     <string name="ime_translate_nllb_licence_accept_action">قبول کریں اور ڈاؤن لوڈ کریں</string>
     <string name="ime_translate_nllb_licence_body">NLLB-200، Hugging Face سے Meta کے لائسنس کے تحت آتا ہے، Creative Commons Attribution-NonCommercial 4.0: صرف غیر تجارتی استعمال کے لیے، بغیر کسی وارنٹی کے۔ اسے قبول کرنے اور ڈاؤن لوڈ کرنے کے لیے دوبارہ دبائیں۔</string>
+    <string name="ime_translate_now_action">ترجمہ کریں</string>
     <string name="ime_translate_offline_build_error">یہ آف لائن بلڈ اس فون پر ترجمہ نہیں کر سکتا: اس کا واحد انجن، فائر فاکس ٹرانسلیشنز، کو اینڈرائیڈ 9 یا اس کے بعد کے 64 بٹ فون کی ضرورت ہے۔ ترجمہ کرنے کے لیے، معیاری بلڈ انسٹال کریں۔</string>
     <string name="ime_translate_offline_failed_error">آلہ پر ترجمہ شروع نہیں ہوا۔ دوبارہ کوشش کریں، یا آن لائن انجن منتخب کریں۔</string>
     <string name="ime_translate_offline_import_body">یہ آف لائن بلڈ ڈاؤن لوڈ نہیں ہو سکتا۔ اس کا ترجمہ کرنے کے لیے، انہیں کسی دوسرے ڈیوائس پر حاصل کریں اور درآمد کریں: %1$s۔ سیٹنگز › ٹولز › ترجمہ › فراہم کنندگان › ڈیوائس پر (فائر فاکس ٹرانسلیشنز) کھولیں۔</string>
@@ -3224,6 +3481,7 @@
     <string name="ime_translate_select_source_desc">ماخذ کی زبان منتخب کریں</string>
     <string name="ime_translate_server_label">آپ کا سرور</string>
     <string name="ime_translate_source_guessed_label">%1$s؟</string>
+    <string name="ime_translate_speak_desc">ترجمہ بلند آواز سے پڑھیں</string>
     <string name="ime_translate_swap_desc">زبانوں کو تبدیل کریں</string>
     <string name="ime_typing_accuracy_label">درستگی</string>
     <string name="ime_typing_accuracy_short_label">درستگی</string>
@@ -3344,6 +3602,9 @@
     <string name="ime_voice_model_get_language_action">آف لائن وائس ٹائپنگ کے لیے %1$s حاصل کریں</string>
     <string name="ime_voice_permission_action">مائکروفون کی اجازت دیں</string>
     <string name="ime_voice_permission_body">وائس ٹائپنگ کے لیے مائکروفون استعمال کرنے کی اجازت درکار ہے۔ ایپ صرف اس وقت آڈیو ریکارڈ کرتی ہے جب آپ بولتے ہیں۔</string>
+    <string name="ime_voice_prompt_fix_custom">وائس ٹائپنگ کی ترتیبات میں سننے کے لیے مزید الفاظ میں سے کچھ ہٹا دیں، یا پرامپٹ کو چھوٹا کریں۔</string>
+    <string name="ime_voice_prompt_fix_personal">وائس ٹائپنگ کی ترتیبات میں \'Listen for my words\' بند کریں، یا پرامپٹ کو مختصر کریں۔</string>
+    <string name="ime_voice_prompt_too_long">یہ سرور زیادہ سے زیادہ %2$d حروف کا پرامپٹ قبول کرتا ہے، اور یہ %1$d ہے: پرامپٹ %3$d، سننے کے لیے مزید الفاظ %4$d، میرے الفاظ سنیں %5$d۔</string>
     <string name="ime_voice_secure_field_notice">وائس ٹائپنگ پاس ورڈ فیلڈز میں کام نہیں کرتی ہے۔</string>
     <string name="ime_voice_server_metered_ask">ڈیٹا سیور آن ہے۔ اپنی آواز موبائل ڈیٹا پر بھیجنے کے لیے مائکروفون کو دوبارہ دبائیں۔</string>
     <string name="ime_voice_server_metered_blocked">جب آپ موبائل ڈیٹا پر ہوتے ہیں تو ٹرانسکرپشن سرور بند کر دیا جاتا ہے۔ آپ اسے ترتیبات میں، ڈیٹا سیور کے تحت تبدیل کر سکتے ہیں۔</string>
@@ -3383,6 +3644,12 @@
     <string name="ime_voice_use_system_action">سسٹم ریکوگنائزر استعمال کریں</string>
     <string name="ime_weather_clouds_label">بادل</string>
     <string name="ime_weather_error">ایپ موسم ڈاؤن لوڈ نہیں کر سکتی۔ اپنے نیٹ ورک کو چیک کریں۔</string>
+    <string name="ime_weather_event_back_desc">کیلنڈر پر واپس جائیں</string>
+    <string name="ime_weather_event_home_place">%1$s (آپ کا موسمی مقام)</string>
+    <string name="ime_weather_event_home_unnamed">آپ کا موسم کا مقام</string>
+    <string name="ime_weather_event_hour_desc">%1$s: %2$s, %3$s, بارش کا امکان %4$s</string>
+    <string name="ime_weather_event_no_hours">پیش گوئی ابھی اس دن تک نہیں پہنچی ہے۔</string>
+    <string name="ime_weather_event_rain_info">بارش کا %1$d%% امکان ہے</string>
     <string name="ime_weather_feels_like_label">محسوس ہوتا ہے</string>
     <string name="ime_weather_high_low_info">زیادہ %1$d° کم %2$d°</string>
     <string name="ime_weather_humidity_label">نمی</string>
@@ -3498,6 +3765,7 @@
     <string name="ime_wmpass_no_password">WM پاس نے پاس ورڈ نہیں بنایا۔ والٹ مقفل ہو سکتا ہے۔</string>
     <string name="ime_wmpass_no_username">اس لاگ ان میں بھرنے کے لیے کوئی یوزر نام نہیں ہے۔</string>
     <string name="ime_wmpass_no_vault">WM Pass میں ابھی تک کوئی والٹ نہیں ہے۔ پہلے وہاں ایک بنائیں۔</string>
+    <string name="ime_wmpass_not_released">WM Pass ابھی جاری نہیں ہوا۔ یہ ٹول جاری ہونے اور انسٹال ہونے کے بعد کام کرنا شروع کرتا ہے۔</string>
     <string name="ime_wmpass_not_set">سیٹ نہیں ہے</string>
     <string name="ime_wmpass_off">اس کو استعمال کرنے کے لیے، ترتیبات، سیکیورٹی کے تحت، Let WM Keyboard fill in WM Pass کو آن کریں۔</string>
     <string name="ime_wmpass_open">WM Pass کھولیں</string>

@@ -9,11 +9,16 @@
     <string name="core_voice_model_base_multi_body">Bu model doğruluk ve hız arasında denge kurar. Whisper\'ın bildiği her dili kapsar. Küçük model çok yavaşsa bunu seçin.</string>
     <string name="core_voice_model_base_world_body">Bu model, tahmin yerine yazdığınız dili kullanır. Kısa ifadeler çok daha güvenilir hale gelir. Listesinde dilleriniz olduğunda bunu seçin.</string>
     <string name="core_voice_model_cpp_base_body">Bu model doğruluk ve hız arasında denge sağlar. Whisper\'ın bildiği 99 dilden herhangi birinde dikte ettiğiniz dili kullanır ve kendi kelimelerinizi dinler. Küçük model çok yavaşsa bunu seçin.</string>
+    <string name="core_voice_model_cpp_fine_tune_body">%1$s, bu Turbo modelini bu tek dildeki konuşma üzerinde daha fazla eğitti. Yalnızca bu dili işler.</string>
+    <string name="core_voice_model_cpp_hinglish_body">Oriserve bu modeli Hintçe ve Hintçe ile İngilizce karışımı üzerinde eğitti. Hinglish yazıldığı gibi söylediklerinizi Latin harfleriyle yazar ve İngilizce kelimeleri İngilizce tutar. Asla Devanagari yazmaz, bu yüzden Hintçe yerine Hinglish\'e uygundur. Küçük ve hızlıdır.</string>
+    <string name="core_voice_model_cpp_kb_body">İsveç Ulusal Kütüphanesi bu modeli İsveççe konuşma üzerinde eğitti. Yalnızca İsveççe destekler ve aynı boyuttaki genel Whisper modeline göre İsveççe için daha doğrudur.</string>
+    <string name="core_voice_model_cpp_kotoba_body">Kotoba Technologies, Whisper Large v3\'ten bu Japonca modeli oluşturdu. Kod çözücüsü çok daha küçüktür, bu nedenle Turbo modelinin hızına yakın çalışır. Yalnızca Japoncayı destekler.</string>
     <string name="core_voice_model_cpp_large_body">Bu en doğru Whisper modelidir. İndirme boyutu 1.1 GB\'tır. Sadece yüksek bellek kapasitesine sahip cihazlar bunu yükleyebilir. Turbo modeli neredeyse aynı doğruluktadır ve boyutu yarı yarıyadır.</string>
     <string name="core_voice_model_cpp_medium_body">Bu model neredeyse masaüstü doğruluğu sağlar. Her ifade birkaç saniye sürer. Model çalışırken yaklaşık bir gigabayt bellek kullanır.</string>
     <string name="core_voice_model_cpp_small_body">Bu model, bir telefonda hala iyi çalışan en iyi doğruluğu sağlar. Whisper\'ın bildiği 99 dilden herhangi birinde dikte ettiğiniz dili kullanır ve kendi kelimelerinizi dinler.</string>
     <string name="core_voice_model_cpp_tiny_body">Bu en hızlı modeldir. Net konuşmalarla iyi çalışır ancak gürültü doğruluğu azaltır. Dikte ettiğiniz dili kullanır ve kendi kelimelerinizi dinler.</string>
     <string name="core_voice_model_cpp_turbo_body">Bu model, en büyük model kadar doğru olmasa da, onun yarısı boyutundadır. Her ifade birkaç saniye sürer ve çeviri yapamaz.</string>
+    <string name="core_voice_model_custom_body">Bu whisper.cpp modelini bir dosyadan içe aktardınız. Klavye nasıl eğitildiğini bilmediğinden, Dil başına model altında hazırlandığı diller için bu modeli seçin.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d dil</item>
         <item quantity="other">%1$d dil</item>

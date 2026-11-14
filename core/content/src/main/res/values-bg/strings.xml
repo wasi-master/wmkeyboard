@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">Имейл адрес</string>
+    <string name="core_content_clip_entity_email_tag">ИМЕЙЛ</string>
     <string name="core_content_clip_entity_otp_label">Еднократен код</string>
     <string name="core_content_clip_entity_otp_tag">КОД</string>
     <string name="core_content_clip_entity_phone_label">Телефонен номер</string>
@@ -38,6 +40,10 @@
         <item quantity="one">Приложението пропусна %1$d фрагмент, който няма какво да вмъкне.</item>
         <item quantity="other">Приложението пропусна %1$d фрагмента, които нямат какво да вмъкнат.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d поле на форма предлага списък за избор. Приложението го изисква като въведен отговор, с попълнен първи избор.</item>
+        <item quantity="other">%1$d полета на форми предлагат списък за избор. Приложението изисква всяко от тях като въведен отговор, с попълнен първи избор.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Приложението пропусна %1$d фрагмент, който вмъква картина.</item>
         <item quantity="other">Приложението пропусна %1$d фрагмента, които вмъкват картини.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d фрагмент използва стойност, за която Espanso няма еквивалент. Той се изписва такъв, какъвто е.</item>
         <item quantity="other">%1$d фрагмента използват стойности, за които Espanso няма еквивалент. Те се изписват такива, каквито са.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d фрагмент вкарва снимка. Текстов файл не може да побере снимката, така че бяха изведени само думите към нея.</item>
+        <item quantity="other">%1$d фрагмента вкарват снимки. Текстов файл не може да побере снимките, така че бяха изведени само думите към тях.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">Приложението премахна шаблона от %1$d фрагмент. Приложението не изпълнява шаблони с такъв формат. Фрагментът остава в списъка.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">Приложението премахна %1$d тригер, който клавиатурата не може да следи. Неговият фрагмент остава в списъка.</item>
         <item quantity="other">Приложението премахна %1$d тригера, които клавиатурата не може да следи. Техните фрагменти остават в списъка.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">Започва с 999, но не е цял ред за задействане 999. За да започнете ред текст с 999, напишете \999 вместо това</string>
+    <string name="core_content_snippet_text_bad_pattern">Шаблонът не може да бъде използван: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s не може да бъде %2$s</string>
+    <string name="core_content_snippet_text_before_header">Текст преди първия ред за задействане 999. Започнете блок с едно или започнете реда с #</string>
+    <string name="core_content_snippet_text_no_text">Този фрагмент няма текст</string>
+    <string name="core_content_snippet_text_no_trigger">Фрагмент без нищо между знаците === се нуждае от ред с @label или @pattern</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">1 фрагмент със снимка беше получен като текст: текстовият файл не съдържа снимки</item>
+        <item quantity="other">%1$d фрагмента със снимки бяха получени като техен текст: текстовият файл не съдържа снимки</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">Пропуснат е откъсът на ред %1$d, който съдържа грешка</string>
+    <string name="core_content_snippet_text_unknown_link">Връзката @link назовава %1$s и никой фрагмент тук няма този задействащ механизъм</string>
+    <string name="core_content_snippet_text_unknown_picture">Името на @picture е %1$s, което никой фрагмент не използва. Добавете снимки в собствения редактор на фрагмента</string>
+    <string name="core_content_snippet_text_unknown_setting">Клавиатурата не разпознава настройката %1$s. За да започнете текста на откъса с @, напишете \@ вместо това</string>
     <string name="core_content_snippet_var_app_info">Името на приложението, в което пишете</string>
+    <string name="core_content_snippet_var_battery_info">Зарядът на батерията, например 85%</string>
     <string name="core_content_snippet_var_clip_info">Най-новият запис в клипборда</string>
     <string name="core_content_snippet_var_cursor_info">Мястото, където се позиционира курсорът</string>
     <string name="core_content_snippet_var_date_info">Днешната дата</string>
     <string name="core_content_snippet_var_datetime_info">Датата и часът</string>
     <string name="core_content_snippet_var_day_info">Денят от месеца</string>
+    <string name="core_content_snippet_var_greeting_info">Добро утро, добър ден или добра вечер според времето, на езика на клавиатурата</string>
     <string name="core_content_snippet_var_isodate_info">Датата в ISO формат, например 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">Датата и часът в ISO формат</string>
+    <string name="core_content_snippet_var_language_info">Езикът на клавиатурата, на който пишете</string>
     <string name="core_content_snippet_var_month_info">Името на месеца</string>
     <string name="core_content_snippet_var_package_info">Името на пакета на това приложение</string>
     <string name="core_content_snippet_var_selection_info">Текстът, който избирате в полето</string>
+    <string name="core_content_snippet_var_tab_info">Зна</string>
     <string name="core_content_snippet_var_time12_info">Текущото време в 12-часов формат</string>
     <string name="core_content_snippet_var_time_info">Текущото време в 24-часов формат</string>
     <string name="core_content_snippet_var_timestamp_info">Времето в Unix секунди</string>

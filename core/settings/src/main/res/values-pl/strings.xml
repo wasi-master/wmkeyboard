@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Pasek, dymek i klawisze</string>
     <string name="core_settings_glide_commit_scope_pill_label">Pasek i pigułka</string>
     <string name="core_settings_glide_commit_scope_strip_label">Usuń</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">Po cofnięciu</string>
+    <string name="core_settings_glide_drawn_letters_off_label">Wyłączone</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">W razie wątpliwości</string>
     <string name="core_settings_glide_engine_built_in_label">Wbudowany</string>
     <string name="core_settings_glide_engine_futo_label">FUTO Swipe (angielski, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Biblioteka gestów Google (zaimportowana)</string>

@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">メールアドレス</string>
+    <string name="core_content_clip_entity_email_tag">メール</string>
     <string name="core_content_clip_entity_otp_label">ワンタイムコード</string>
     <string name="core_content_clip_entity_otp_tag">コード</string>
     <string name="core_content_clip_entity_phone_label">電話番号</string>
@@ -38,6 +40,10 @@
         <item quantity="one">挿入内容がないため、スニペットを1件スキップしました。</item>
         <item quantity="other">挿入内容がないため、スニペットを%1$d件スキップしました。</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d個のフォームフィールドが選択肢を提供しています。アプリは入力形式の回答としてこれを要求し、最初の選択肢が入力されます。</item>
+        <item quantity="other">%1$d個のフォームフィールドが選択肢を提供しています。アプリはそれぞれを入力形式の回答として要求し、最初の選択肢が入力されます。</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">アプリは画像を挿入するスニペットを%1$d個スキップしました。</item>
         <item quantity="other">アプリは画像を挿入するスニペットを%1$d個スキップしました。</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d個のスニペットが、Espansoに相当する値のない変数を使用しています。そのままの形で書き出されます。</item>
         <item quantity="other">%1$d個のスニペットが、Espansoに相当する値のない変数を使用しています。そのままの形で書き出されます。</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d 個のスニペットが画像を挿入します。テキストファイルには画像を保持できないため、テキストのみが出力されました。</item>
+        <item quantity="other">%1$d 個のスニペットが画像を挿入します。テキストファイルには画像を保持できないため、テキストのみが出力されました。</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">アプリが%1$d個のスニペットからパターンを削除しました。この形式のパターンは実行できません。スニペットはリストに残ります。</item>
@@ -197,17 +207,35 @@
         <item quantity="one">キーボードが監視できないトリガーが%1$dつ削除されました。そのスニペットはリストに残ります。</item>
         <item quantity="other">キーボードが監視できないトリガーが%1$dつ削除されました。それらのスニペットはリストに残ります。</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">"　　"</string>
+    <string name="core_content_snippet_text_bad_pattern">このパターンは使用できません: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s を %2$s にすることはできません</string>
+    <string name="core_content_snippet_text_before_header">最初の === トリガー === 行の前のテキスト。1つでブロックを開始するか、行を # で始めます</string>
+    <string name="core_content_snippet_text_no_text">このスニペットにはテキストがありません</string>
+    <string name="core_content_snippet_text_no_trigger">=== マークの間に何もないスニペットには、@label または @pattern 行が必要です</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d 個の写真スニペットがテキストとして入力されました。テキストファイルには写真を保存できません</item>
+        <item quantity="other">%1$d 個の写真スニペットがテキストとして入力されました。テキストファイルには写真を保存できません</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">エラーが含まれているため、%1$d 行目のスニペットをスキップしました</string>
+    <string name="core_content_snippet_text_unknown_link">\@link は %1$s という名前ですが、ここにあるスニペットにはそのトリガーがありません</string>
+    <string name="core_content_snippet_text_unknown_picture">\@pictureは%1$sの名前を指定していますが、どのスニペットも使用していません。スニペットのエディタ内で画像を追加してください</string>
+    <string name="core_content_snippet_text_unknown_setting">キーボードは設定 %1$s を認識していません。スニペットのテキストを @ で始めるには、代わりに \@ と記述してください</string>
     <string name="core_content_snippet_var_app_info">入力中のアプリ名</string>
+    <string name="core_content_snippet_var_battery_info">バッテリー残量（例：85%）</string>
     <string name="core_content_snippet_var_clip_info">最新のクリップボードエントリ</string>
     <string name="core_content_snippet_var_cursor_info">カーソルが配置される場所</string>
     <string name="core_content_snippet_var_date_info">今日の日付</string>
     <string name="core_content_snippet_var_datetime_info">日付と時刻</string>
     <string name="core_content_snippet_var_day_info">日付</string>
+    <string name="core_content_snippet_var_greeting_info">キーボードの言語で、時間帯に応じた「おはようございます」「こんにちは」「こんばんは」</string>
     <string name="core_content_snippet_var_isodate_info">ISO形式の日付（例: 2026-07-19）</string>
     <string name="core_content_snippet_var_isotime_info">ISO形式の日時</string>
+    <string name="core_content_snippet_var_language_info">入力するキーボードの言語</string>
     <string name="core_content_snippet_var_month_info">月名</string>
     <string name="core_content_snippet_var_package_info">そのアプリのパッケージ名</string>
     <string name="core_content_snippet_var_selection_info">フィールドで選択したテキスト</string>
+    <string name="core_content_snippet_var_tab_info">タブ文字</string>
     <string name="core_content_snippet_var_time12_info">現在の時刻（12時間制）</string>
     <string name="core_content_snippet_var_time_info">24時間形式の現在の時刻</string>
     <string name="core_content_snippet_var_timestamp_info">Unix秒単位の時刻</string>

@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Nowoczesny model średniej wielkości, który przemyśli odpowiedź przed jej udzieleniem. Wymaga urządzenia klasy średniej.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Mały i szybki. Dobry do szybkich poprawek na podstawowym urządzeniu.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Bardzo mały model potrafiący czytać zdjęcia. Opisuje obraz, ale często błędnie odczytuje tekst na zrzutach ekranu.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">Ponowne trenowanie modelu Gemma 4 E4B przez NVIDIA w celu podążania za instrukcjami i używania narzędzi. Tylko tekst, wymaga wydajnego urządzenia.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Model ogólnego przeznaczenia, który mieści się na podstawowym urządzeniu.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Wyraźnie inteligentniejszy niż modele poniżej 1 mld parametrów. Wymaga urządzenia ze średniej półki.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Nowy, mały model. Jakość jest wysoka jak na jego rozmiar.</string>

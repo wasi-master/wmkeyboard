@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">ফুরিগানা পাঠ</string>
     <string name="core_input_cjk_pack_hanja_subtitle">হাঙ্গুল শব্দ এবং তাদের হাঞ্জা, ৩,০০,০০০ এন্ট্রি। পরামর্শ স্ট্রিপে হাঞ্জা অফার করার জন্য কীবোর্ডের এই প্যাকটি প্রয়োজন।</string>
     <string name="core_input_cjk_pack_hanja_title">হাঞ্জা (漢字) অভিধান</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, তাই এর উপসর্গ এবং প্রত্যয়সহ একটি শব্দ পরিচিত এবং এর বানান ভুল ঠিক হয়ে যায়।</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">আরবি বানান অভিধান</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, তাই যেকোনো প্রত্যয়যুক্ত শব্দ পরিচিত এবং সেগুলির টাইপো ঠিক করা হয়।</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">তুর্কি বানান নিয়ম</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">mozc থেকে কানা রিডিং, ১.০৮ মিলিয়ন এন্ট্রি, প্রায় ৪২ এমবি। জাপানি রূপান্তরের জন্য কীবোর্ডের এই প্যাকটি প্রয়োজন।</string>

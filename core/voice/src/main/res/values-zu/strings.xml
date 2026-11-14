@@ -9,11 +9,16 @@
     <string name="core_voice_model_base_multi_body">Le modeli ilinganisa ukunemba nesivinini. Ihlanganisa zonke izilimi ezaziwa yi-Whisper. Yikhethe uma imodeli encane ihamba kancane kakhulu.</string>
     <string name="core_voice_model_base_world_body">Le modeli isebenzisa ulimi oluthayiphayo esikhundleni sokuqagela. Imishwana emifushane iba ethembeke kakhulu. Yikhethe uma uhlu lwayo lunolimi lwakho.</string>
     <string name="core_voice_model_cpp_base_body">Le modeli ilinganisa ukunemba nesivinini. Isebenzisa ulimi okhuluma ngalo, kunoma yiziphi izilimi ezingama-99 ezaziwa yi-Whisper, futhi ilalela amagama akho. Yikhethe uma imodeli encane ihamba kancane kakhulu.</string>
+    <string name="core_voice_model_cpp_fine_tune_body">%1$s uqeqeshe le modeli ye-Turbo nakakhulu ekukhulumeni ngale lulimi olulodwa. Isebenza ngalolo limi kuphela.</string>
+    <string name="core_voice_model_cpp_hinglish_body">I-Oriserve iqeqeshe le modeli ngesi-Hindi nangesi-Hindi esixutshwe nesiNgisi. Ibhala lokho okushoyo ngezinhlamvu zesi-Latin, indlela obhalwa ngayo uHinglish, futhi igcina amagama esiNgisi ngesiNgisi. Ayibhaleli neze isi-Devanagari, ngakho ifanele uHinglish kunesi-Hindi. Incane futhi iyashesha.</string>
+    <string name="core_voice_model_cpp_kb_body">Umtapo Wezincwadi Kazwelonke WaseSweden uqeqeshe lesi sibonelo ngezinkulumo zesiSweden. Iphatha isiSweden kuphela, futhi inembile kakhulu kuso kune-model ejwayelekile ye-Whisper enosayizi ofanayo.</string>
+    <string name="core_voice_model_cpp_kotoba_body">I-Kotoba Technologies yenze le modeli yesi-Japanese isuka ku-Whisper Large v3. Isilandeli sayo sincane kakhulu, ngakho isebenza cishe ngejubane lemodeli ye-Turbo. Iphendula isi-Japanese kuphela.</string>
     <string name="core_voice_model_cpp_large_body">Le yimodeli ye-Whisper enembe kakhulu. Ukulanda kungu-1.1 GB. Idivayisi enenani elikhulu lenkumbulo kuphela engayilayisha. Imodeli ye-Turbo icishe ibe nembe ngokufanayo futhi inguhhafu wosayizi.</string>
     <string name="core_voice_model_cpp_medium_body">Le modeli inikeza ukunemba okucishe kufane nokwekhompyutha. Umusho ngamunye uthatha imizuzwana embalwa. Le modeli isebenzisa cishe i-gigabyte eyodwa yememori ngenkathi isebenza.</string>
     <string name="core_voice_model_cpp_small_body">Le modeli inikeza ukunemba okungcono kakhulu okusasebenza kahle ocingweni. Isebenzisa ulimi okhuluma ngalo, kunoma yiziphi izilimi ezingama-99 ezaziwa yi-Whisper, futhi ilalela amagama akho.</string>
     <string name="core_voice_model_cpp_tiny_body">Lesi yimodeli eshesha kakhulu. Isebenza kahle ngokukhuluma okucacile, kodwa umsindo unciphisa ukunemba. Isebenzisa ulimi okhuluma ngalo futhi ilalela amagama akho.</string>
     <string name="core_voice_model_cpp_turbo_body">Le modeli icishe ibe neqiniso njengemodeli enkulu kunazo zonke, ngesigamu sosayizi. Umusho ngamunye uthatha imizuzwana embalwa, futhi awukwazi ukuhumusha.</string>
+    <string name="core_voice_model_custom_body">Ungenise le modeli ye-whisper.cpp evela efayeleni. Ikhibhodi ayazi ukuthi yaqeqeshwa kanjani, ngakho yikhethe ngezilimi eyenzelwe zona ngaphansi kweModeli ngolimi ngalunye.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">Ulimi olungu-%1$d</item>
         <item quantity="other">Izilimi ezingu-%1$d</item>

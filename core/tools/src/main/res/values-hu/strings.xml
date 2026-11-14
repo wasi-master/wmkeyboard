@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">Helló</string>
     <string name="core_tools_media_category_laugh">Nevetés</string>
     <string name="core_tools_media_category_love">Szerelem</string>
+    <string name="core_tools_media_category_memes">Mémek</string>
     <string name="core_tools_media_category_no">Nem</string>
     <string name="core_tools_media_category_party">Buli</string>
     <string name="core_tools_media_category_reactions">Reakciók</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">Egy Mozhi szerver: ingyenes felület a Google, DeepL, DuckDuckGo, Yandex és Reverso szolgáltatásokhoz. Válassza ki a motort. A DeepL és a Reverso forrásnyelvet igényel.</string>
     <string name="core_tools_provider_music_server">Saját felismerő szerver</string>
     <string name="core_tools_provider_music_server_desc">Egy általad futtatott szerver, amely az AudD-hez hasonlóan válaszol: a klipet fájlként töltöd fel, a dal pedig JSON formátumban érkezik vissza. Helyezz mögé egy ujjlenyomat-készítőt, például Panakót vagy Olafot.</string>
+    <string name="core_tools_provider_mwmbl_desc">Ingyenes, non-profit keresőmotor saját indexszel. Kulcs nélkül. Csak webes találatok, képek nélkül.</string>
     <string name="core_tools_provider_nllb">Eszközön (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">Fordítás a telefonon a Meta NLLB-200 modelljével, CTranslate2 alapon: 200 nyelv, bármelyik kettő között, olyan párokhoz, amelyeket más motorok nem tudnak. Egy 630 MB-os letöltés, és egy mondat fordítása néhány másodpercet vesz igénybe. A szöveg a telefonon marad. A modell csak nem kereskedelmi használatra licencelt (CC BY-NC 4.0). Legalább 6 GB memóriával rendelkező 64 bites telefon szükséges hozzá.</string>
     <string name="core_tools_provider_none_on">Nincs bekapcsolt szolgáltató. Kapcsolj be egyet az eszköz beállításaiban.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">Ez a lista</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">Billentyűk megjelenítése vagy elrejtése</string>
     <string name="core_tools_shortcut_leader_double_tap">Nyomja meg a(z) %1$s billentyűt kétszer</string>
+    <string name="core_tools_speak_no_voice">Ennek a telefonnak nincs %1$s hangja a felolvasáshoz. Adjon hozzá egyet az Android szövegfelolvasási beállításaiban, vagy töltsön le egy offline hangot az Eszközök › Visszaolvasás menüpontban.</string>
     <string name="core_tools_symbol_category_arrows_label">Nyilak</string>
     <string name="core_tools_symbol_category_currency_label">Pénznem</string>
     <string name="core_tools_symbol_category_fractions_label">Törtek</string>
     <string name="core_tools_symbol_category_greek_label">Görög</string>
     <string name="core_tools_symbol_category_math_label">Matematika</string>
+    <string name="core_tools_symbol_category_music_label">Zene</string>
     <string name="core_tools_symbol_category_other_label">Egyéb</string>
     <string name="core_tools_symbol_category_punctuation_label">Írásjelek</string>
     <string name="core_tools_symbol_category_shapes_label">Formák és csillagok</string>
+    <string name="core_tools_symbol_category_stars_label">Csillagok</string>
     <string name="core_tools_symbol_category_superscript_label">Felső index</string>
+    <string name="core_tools_symbol_category_technical_label">Műszaki</string>
+    <string name="core_tools_symbol_category_weather_label">Időjárás</string>
     <string name="core_tools_symbol_set_coding_label">Programozás</string>
     <string name="core_tools_symbol_set_email_label">E-mail</string>
     <string name="core_tools_symbol_set_math_label">Matematika</string>

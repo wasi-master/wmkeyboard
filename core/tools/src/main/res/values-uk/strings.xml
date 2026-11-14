@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">Привіт</string>
     <string name="core_tools_media_category_laugh">Сміх</string>
     <string name="core_tools_media_category_love">Кохання</string>
+    <string name="core_tools_media_category_memes">Меми</string>
     <string name="core_tools_media_category_no">Ні</string>
     <string name="core_tools_media_category_party">Вечірка</string>
     <string name="core_tools_media_category_reactions">Реакції</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">Сервер Mozhi: безкоштовний інтерфейс для Google, DeepL, DuckDuckGo, Yandex та Reverso. Виберіть рушій. DeepL та Reverso потребують вихідної мови.</string>
     <string name="core_tools_provider_music_server">Ваш власний сервер розпізнавання</string>
     <string name="core_tools_provider_music_server_desc">Сервер, який ви запускаєте і який відповідає подібно до AudD: кліп надсилається як файл, а назва пісні повертається у форматі JSON. Додайте до нього інструмент для створення відбитків, наприклад Panako або Olaf.</string>
+    <string name="core_tools_provider_mwmbl_desc">Безкоштовна некомерційна пошукова система з власним індексом. Без ключа. Тільки веб-результати, без зображень.</string>
     <string name="core_tools_provider_nllb">На пристрої (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">Переклад на телефоні за допомогою моделі NLLB-200 від Meta на CTranslate2: 200 мов, між будь-якими двома з них, для пар, з якими не можуть впоратися інші механізми. Одне завантаження розміром 630 МБ, і речення обробляється за кілька секунд. Ваш текст залишається на телефоні. Модель ліцензована лише для некомерційного використання (CC BY-NC 4.0). Потребує 64-розрядного телефона з 6 ГБ оперативної пам\'яті або більше.</string>
     <string name="core_tools_provider_none_on">Жоден провайдер не увімкнений. Увімкніть один у налаштуваннях цього інструменту.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">Цей список</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">Показати або приховати клавіші</string>
     <string name="core_tools_shortcut_leader_double_tap">Натисніть %1$s двічі</string>
+    <string name="core_tools_speak_no_voice">На цьому телефоні немає голосу %1$s, щоб прочитати це. Додайте його в налаштуваннях синтезу мовлення Android або завантажте автономний голос у розділі «Інструменти › Озвучування».</string>
     <string name="core_tools_symbol_category_arrows_label">Стрілки</string>
     <string name="core_tools_symbol_category_currency_label">Валюта</string>
     <string name="core_tools_symbol_category_fractions_label">Дроби</string>
     <string name="core_tools_symbol_category_greek_label">Грецька</string>
     <string name="core_tools_symbol_category_math_label">Математика</string>
+    <string name="core_tools_symbol_category_music_label">Музика</string>
     <string name="core_tools_symbol_category_other_label">Інше</string>
     <string name="core_tools_symbol_category_punctuation_label">Пунктуація</string>
     <string name="core_tools_symbol_category_shapes_label">Фігури та зірки</string>
+    <string name="core_tools_symbol_category_stars_label">Зірки</string>
     <string name="core_tools_symbol_category_superscript_label">Верхній індекс</string>
+    <string name="core_tools_symbol_category_technical_label">Технічні</string>
+    <string name="core_tools_symbol_category_weather_label">Погода</string>
     <string name="core_tools_symbol_set_coding_label">Програмування</string>
     <string name="core_tools_symbol_set_email_label">Електронна пошта</string>
     <string name="core_tools_symbol_set_math_label">Математика</string>

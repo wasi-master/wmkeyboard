@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">Habari</string>
     <string name="core_tools_media_category_laugh">Cheka</string>
     <string name="core_tools_media_category_love">Mapenzi</string>
+    <string name="core_tools_media_category_memes">Memes</string>
     <string name="core_tools_media_category_no">Hapana</string>
     <string name="core_tools_media_category_party">Sherehe</string>
     <string name="core_tools_media_category_reactions">Miitikio</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">Seva ya Mozhi: kiolesura cha bure cha Google, DeepL, DuckDuckGo, Yandex na Reverso. Chagua injini. DeepL na Reverso zinahitaji lugha chanzo.</string>
     <string name="core_tools_provider_music_server">Seva yako mwenyewe ya utambuzi</string>
     <string name="core_tools_provider_music_server_desc">Seva unayoendesha inayojibu kama AudD: klipu hutumwa kama faili na wimbo hurudi kama JSON. Weka kifaa cha kutambua vidole kama Panako au Olaf nyuma yake.</string>
+    <string name="core_tools_provider_mwmbl_desc">Injini ya utafutaji ya bure, isiyo ya faida yenye faharasa yake yenyewe. Hakuna ufunguo. Matokeo ya wavuti pekee, hakuna picha.</string>
     <string name="core_tools_provider_nllb">Kwenye kifaa (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">Hutafsiri kwenye simu kwa kutumia modeli ya NLLB-200 ya Meta kwenye CTranslate2: lugha 200, kati ya zozote mbili kati ya hizo, kwa jozi ambazo injini nyingine haziwezi kufanya. Upakuaji mmoja wa MB 630, na sentensi inachukua sekunde chache. Maandishi yako yanabaki kwenye simu. Modeli ina leseni ya matumizi yasiyo ya kibiashara pekee (CC BY-NC 4.0). Inahitaji simu ya 64-bit yenye GB 6 za kumbukumbu au zaidi.</string>
     <string name="core_tools_provider_none_on">Hakuna mtoa huduma aliyewashwa. Washa mmoja katika mipangilio ya zana hii.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">Orodha hii</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">Onyesha au ficha funguo</string>
     <string name="core_tools_shortcut_leader_double_tap">Bonyeza %1$s mara mbili</string>
+    <string name="core_tools_speak_no_voice">Simu hii haina sauti ya %1$s ya kusomea. Ongeza moja katika mipangilio ya maandishi hadi hotuba ya Android, au pakua sauti ya nje ya mtandao chini ya Zana › Soma tena.</string>
     <string name="core_tools_symbol_category_arrows_label">Vishale</string>
     <string name="core_tools_symbol_category_currency_label">Sarafu</string>
     <string name="core_tools_symbol_category_fractions_label">Sehemu</string>
     <string name="core_tools_symbol_category_greek_label">Kigiriki</string>
     <string name="core_tools_symbol_category_math_label">Hisabati</string>
+    <string name="core_tools_symbol_category_music_label">Muziki</string>
     <string name="core_tools_symbol_category_other_label">Nyingine</string>
     <string name="core_tools_symbol_category_punctuation_label">Alama za uakifishaji</string>
     <string name="core_tools_symbol_category_shapes_label">Maumbo na nyota</string>
+    <string name="core_tools_symbol_category_stars_label">Nyota</string>
     <string name="core_tools_symbol_category_superscript_label">Hati ya juu</string>
+    <string name="core_tools_symbol_category_technical_label">Ya kiufundi</string>
+    <string name="core_tools_symbol_category_weather_label">Hali ya Hewa</string>
     <string name="core_tools_symbol_set_coding_label">Usimbaji</string>
     <string name="core_tools_symbol_set_email_label">Barua pepe</string>
     <string name="core_tools_symbol_set_math_label">Hisabati</string>

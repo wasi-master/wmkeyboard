@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">이메일 주소</string>
+    <string name="core_content_clip_entity_email_tag">이메일</string>
     <string name="core_content_clip_entity_otp_label">일회용 코드</string>
     <string name="core_content_clip_entity_otp_tag">코드</string>
     <string name="core_content_clip_entity_phone_label">전화번호</string>
@@ -38,6 +40,10 @@
         <item quantity="one">삽입할 내용이 없는 스니펫 %1$d개를 건너뛰었습니다.</item>
         <item quantity="other">삽입할 내용이 없는 스니펫 %1$d개를 건너뛰었습니다.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d개의 양식 필드가 선택할 수 있는 목록을 제공합니다. 앱은 첫 번째 선택 항목이 입력된 상태로 입력된 답변을 요청합니다.</item>
+        <item quantity="other">%1$d개의 양식 필드가 선택할 수 있는 목록을 제공합니다. 앱은 첫 번째 선택 항목이 입력된 상태로 각각 입력된 답변을 요청합니다.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">앱이 사진을 삽입하는 스니펫 %1$d개를 건너뛰었습니다.</item>
         <item quantity="other">앱이 사진을 삽입하는 스니펫 %1$d개를 건너뛰었습니다.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">Espanso에 대응하는 값이 없는 스니펫이 %1$d개 있습니다. 그대로 작성됩니다.</item>
         <item quantity="other">Espanso에 대응하는 값이 없는 스니펫이 %1$d개 있습니다. 그대로 작성됩니다.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d개의 스니펫이 사진을 삽입합니다. 텍스트 파일에는 사진을 담을 수 없으므로 단어만 내보내졌습니다.</item>
+        <item quantity="other">%1$d개의 스니펫이 사진을 삽입합니다. 텍스트 파일에는 사진을 담을 수 없으므로 단어들만 내보내졌습니다.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">앱이 %1$d개의 스니펫에서 패턴을 제거했습니다. 앱은 해당 형태의 패턴을 실행하지 않습니다. 스니펫은 목록에 유지됩니다.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">앱이 키보드에서 감시할 수 없는 트리거 %1$d개를 제거했습니다. 스니펫은 목록에 유지됩니다.</item>
         <item quantity="other">앱이 키보드에서 감시할 수 없는 트리거 %1$d개를 제거했습니다. 스니펫은 목록에 유지됩니다.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">===2로 시작하지만 전체 === 트리거 === 줄이 아닙니다. ===로 텍스트 줄을 시작하려면 대신 \2===2을(를) 작성하세요</string>
+    <string name="core_content_snippet_text_bad_pattern">이 패턴을 사용할 수 없습니다: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s은(는) %2$s일 수 없습니다</string>
+    <string name="core_content_snippet_text_before_header">첫 번째 === 트리거 === 줄 앞의 텍스트입니다. 블록을 하나로 시작하거나 줄을 #으로 시작하세요.</string>
+    <string name="core_content_snippet_text_no_text">이 스니펫에는 텍스트가 없습니다.</string>
+    <string name="core_content_snippet_text_no_trigger">=== 표시 사이에 내용이 없는 스니펫에는 @label 또는 @pattern 줄이 필요합니다.</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d개의 사진 스니펫이 텍스트로 들어왔습니다. 텍스트 파일에는 사진이 포함되지 않습니다.</item>
+        <item quantity="other">%1$d개의 사진 스니펫이 텍스트로 들어왔습니다. 텍스트 파일에는 사진이 포함되지 않습니다.</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">오류가 있는 %1$d행의 스니펫을 건너뛰었습니다</string>
+    <string name="core_content_snippet_text_unknown_link">\@link의 이름은 %1$s이며, 여기에 해당 트리거가 있는 스니펫이 없습니다</string>
+    <string name="core_content_snippet_text_unknown_picture">\@picture은(는) 스니펫에서 사용하지 않는 %1$s을(를) 참조합니다. 스니펫 자체 편집기에서 사진을 추가하세요.</string>
+    <string name="core_content_snippet_text_unknown_setting">키보드가 %1$s 설정을 알지 못합니다. 스니펫 텍스트를 @로 시작하려면 대신 \@를 입력하세요.</string>
     <string name="core_content_snippet_var_app_info">입력 중인 앱 이름</string>
+    <string name="core_content_snippet_var_battery_info">배터리 잔량 (예: 85%)</string>
     <string name="core_content_snippet_var_clip_info">가장 최근 클립보드 항목</string>
     <string name="core_content_snippet_var_cursor_info">커서가 위치할 곳</string>
     <string name="core_content_snippet_var_date_info">오늘 날짜</string>
     <string name="core_content_snippet_var_datetime_info">날짜와 시간</string>
     <string name="core_content_snippet_var_day_info">일(날짜)</string>
+    <string name="core_content_snippet_var_greeting_info">ሀረሀረሀረ ሀረሀረሀረ ሀረሀረሀረ</string>
     <string name="core_content_snippet_var_isodate_info">ISO 형식의 날짜(예: 2026-07-19)</string>
     <string name="core_content_snippet_var_isotime_info">ISO 형식의 날짜 및 시간</string>
+    <string name="core_content_snippet_var_language_info">입력하는 키보드 언어</string>
     <string name="core_content_snippet_var_month_info">월 이름</string>
     <string name="core_content_snippet_var_package_info">해당 앱의 패키지 이름</string>
     <string name="core_content_snippet_var_selection_info">필드에서 선택한 텍스트</string>
+    <string name="core_content_snippet_var_tab_info">탭 문자</string>
     <string name="core_content_snippet_var_time12_info">현재 시간을 12시간 형식으로 표시</string>
     <string name="core_content_snippet_var_time_info">24시간 형식의 현재 시간</string>
     <string name="core_content_snippet_var_timestamp_info">Unix 시간(초)</string>

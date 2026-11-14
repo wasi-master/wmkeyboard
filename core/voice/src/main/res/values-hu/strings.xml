@@ -9,11 +9,16 @@
     <string name="core_voice_model_base_multi_body">Ez a modell egyensúlyt teremt a pontosság és a sebesség között. Lefedi a Whisper által ismert összes nyelvet. Válaszd ezt, ha a Small modell túl lassú.</string>
     <string name="core_voice_model_base_world_body">Ez a modell a beírt nyelvet használja találgatás helyett. A rövid kifejezések sokkal megbízhatóbbak lesznek. Akkor válassza, ha a listája tartalmazza az Ön nyelveit.</string>
     <string name="core_voice_model_cpp_base_body">Ez a modell egyensúlyt teremt a pontosság és a sebesség között. A diktálás nyelvét használja a Whisper által ismert 99 nyelv bármelyikén, és figyeli a saját szavaidat. Válaszd ezt, ha a Kicsi modell túl lassú.</string>
+    <string name="core_voice_model_cpp_fine_tune_body">%1$s tovább képezte ezt a Turbo modellt az ezen az egy nyelven elhangzott beszéd alapján. Csak ezt a nyelvet kezeli.</string>
+    <string name="core_voice_model_cpp_hinglish_body">Az Oriserve ezt a modellt hindi és angollal kevert hindi nyelven tanította be. Latin betűkkel írja le, amit mond, ahogyan a hinglish-t gépelik, az angol szavakat pedig angolul hagyja. Soha nem ír dévanágari írással, így jobban illik a hinglishhez, mint a hindihez. Kicsi és gyors.</string>
+    <string name="core_voice_model_cpp_kb_body">A Svéd Nemzeti Könyvtár ezt a modellt svéd beszéd alapján tanította be. Csak a svéd nyelvet kezeli, és pontosabb hozzá, mint azonos méretű általános Whisper modell.</string>
+    <string name="core_voice_model_cpp_kotoba_body">A Kotoba Technologies készítette ezt a japán modellt a Whisper Large v3 alapján. A dekódere sokkal kisebb, így nagyjából a Turbo modell sebességével fut. Csak a japán nyelvet kezeli.</string>
     <string name="core_voice_model_cpp_large_body">Ez a legpontosabb Whisper modell. A letöltés 1,1 GB. Csak nagy memóriával rendelkező eszköz tudja betölteni. A Turbo modell majdnem ilyen pontos, és feleakkora méretű.</string>
     <string name="core_voice_model_cpp_medium_body">Ez a modell majdnem asztali pontosságot biztosít. Minden kifejezés több másodpercet vesz igénybe. A modell futás közben majdnem egy gigabájt memóriát használ.</string>
     <string name="core_voice_model_cpp_small_body">Ez a modell a legjobb pontosságot nyújtja, amely még jól fut egy telefonon. A diktálás nyelvét használja a Whisper által ismert 99 nyelv bármelyikén, és figyeli az Ön által kimondott szavakat.</string>
     <string name="core_voice_model_cpp_tiny_body">Ez a leggyorsabb modell. Jól működik tiszta beszéd esetén, de a zaj csökkenti a pontosságot. Azt a nyelvet használja, amelyen diktál, és a saját szavait figyeli.</string>
     <string name="core_voice_model_cpp_turbo_body">Ez a modell majdnem olyan pontos, mint a legnagyobb modell, feleakkora méretben. Minden kifejezés több másodpercet vesz igénybe, és nem tud fordítani.</string>
+    <string name="core_voice_model_custom_body">Ezt a whisper.cpp modult egy fájlból importáltad. A billentyűzet nem tudja, hogyan lett tanítva, ezért a Modell nyelvenként menüpont alatt válaszd ki a számára megfelelő nyelveket.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d nyelv</item>
         <item quantity="other">%1$d nyelv</item>

@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">பட்டை, மாத்திரை மற்றும் விசைகள்</string>
     <string name="core_settings_glide_commit_scope_pill_label">ஸ்ட்ரிப் மற்றும் பில்</string>
     <string name="core_settings_glide_commit_scope_strip_label">ஸ்ட்ரிப்</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">செயல்தவிர்த்த பிறகு</string>
+    <string name="core_settings_glide_drawn_letters_off_label">முடக்கு</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">உறுதியாகத் தெரியாதபோது</string>
     <string name="core_settings_glide_engine_built_in_label">உள்ளமைக்கப்பட்டவை</string>
     <string name="core_settings_glide_engine_futo_label">FUTO Swipe (ஆங்கிலம், QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Google-இன் சைகை லைப்ரரி (இறக்குமதி செய்யப்பட்டது)</string>

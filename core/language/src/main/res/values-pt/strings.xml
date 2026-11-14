@@ -23,6 +23,30 @@
         <item quantity="one">%1$d deslize em uma tecla não tem lugar aqui, porque este teclado usa esse deslize para outra função. O aplicativo removeu-o.</item>
         <item quantity="other">%1$d deslizes em teclas não têm lugar aqui, porque este teclado usa esses deslizes para outras funções. O aplicativo removeu-os.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">O aplicativo omitiu %1$d regra que altera o que a exclusão remove. A exclusão funciona da mesma forma que em qualquer layout aqui.</item>
+        <item quantity="other">O aplicativo omitiu %1$d regras que alteram o que a exclusão remove. A exclusão funciona da mesma forma que em qualquer layout aqui.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">O aplicativo removeu %1$d deslize que muda de direção. Os deslizes neste teclado seguem uma direção.</item>
+        <item quantity="other">O aplicativo removeu %1$d deslizes que mudam de direção. Os deslizes neste teclado seguem uma direção.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">O aplicativo omitiu %1$d página para uma tecla como Caps Lock ou Ctrl. Este teclado não possui uma página para essa tecla.</item>
+        <item quantity="other">O aplicativo omitiu %1$d páginas para teclas como Caps Lock ou Ctrl. Este teclado não possui páginas para essas teclas.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">O aplicativo omitiu %1$d regra que coloca as marcas na ordem em que são escritas. Este teclado escreve as marcas na ordem em que você as digita.</item>
+        <item quantity="other">O aplicativo omitiu %1$d regras que colocam as marcas na ordem em que são escritas. Este teclado escreve as marcas na ordem em que você as digita.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d regra coloca um acento na próxima letra. Aqui, a tecla que a inicia é uma tecla morta.</item>
+        <item quantity="other">%1$d regras colocam um acento na próxima letra. Aqui, as teclas que as iniciam são teclas mortas.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d regra transforma uma tecla e a próxima em outro caractere. Aqui, esse caractere é obtido ao pressionar e segurar a primeira tecla.</item>
+        <item quantity="other">%1$d regras transformam uma tecla e a próxima em outro caractere. Aqui, esses caracteres são obtidos ao pressionar e segurar a primeira tecla.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">O aplicativo alterou %1$d tecla para a tecla mais próxima que possui.</item>
         <item quantity="other">O aplicativo alterou %1$d teclas para as teclas mais próximas que possui.</item>

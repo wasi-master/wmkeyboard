@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">こんにちは</string>
     <string name="core_tools_media_category_laugh">笑い</string>
     <string name="core_tools_media_category_love">ラブ</string>
+    <string name="core_tools_media_category_memes">ミーム</string>
     <string name="core_tools_media_category_no">いいえ</string>
     <string name="core_tools_media_category_party">パーティー</string>
     <string name="core_tools_media_category_reactions">リアクション</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">Mozhiサーバー：Google、DeepL、DuckDuckGo、Yandex、Reversoの無料フロントエンド。エンジンを選択してください。DeepLとReversoにはソース言語が必要です。</string>
     <string name="core_tools_provider_music_server">独自の認識サーバー</string>
     <string name="core_tools_provider_music_server_desc">AudDのように応答する自分で実行可能なサーバーです。音声クリップをファイルとして送信し、曲情報をJSONで受け取ります。背後にPanakoやOlafといったフィンガープリンターを設置してください。</string>
+    <string name="core_tools_provider_mwmbl_desc">独自のインデックスを持つ無料の非営利検索エンジン。キーなし。ウェブ結果のみで、画像はありません。</string>
     <string name="core_tools_provider_nllb">デバイス上 (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">Meta の NLLB-200 モデルと CTranslate2 を使用して、スマートフォン上で翻訳します。他のエンジンでは対応できないペアを含め、200言語間で翻訳可能です。630MB のダウンロードが必要で、1文の翻訳に数秒かかります。テキストはスマートフォン内に留まります。このモデルは非商用目的でのみライセンスされています (CC BY-NC 4.0)。6GB 以上のメモリを搭載した 64ビットのスマートフォンが必要です。</string>
     <string name="core_tools_provider_none_on">有効なプロバイダーがありません。このツールの設定でいずれかをオンにしてください。</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">このリスト</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">キーを表示または非表示にする</string>
     <string name="core_tools_shortcut_leader_double_tap">%1$s を2回押す</string>
+    <string name="core_tools_speak_no_voice">このスマートフォンには、読み上げに使用できる%1$sの音声がありません。Androidのテキスト読み上げ設定で追加するか、「ツール › 読み上げ」からオフライン音声をダウンロードしてください。</string>
     <string name="core_tools_symbol_category_arrows_label">矢印</string>
     <string name="core_tools_symbol_category_currency_label">通貨</string>
     <string name="core_tools_symbol_category_fractions_label">分数</string>
     <string name="core_tools_symbol_category_greek_label">ギリシャ文字</string>
     <string name="core_tools_symbol_category_math_label">数学</string>
+    <string name="core_tools_symbol_category_music_label">音楽</string>
     <string name="core_tools_symbol_category_other_label">その他</string>
     <string name="core_tools_symbol_category_punctuation_label">句読点</string>
     <string name="core_tools_symbol_category_shapes_label">図形と星</string>
+    <string name="core_tools_symbol_category_stars_label">スター</string>
     <string name="core_tools_symbol_category_superscript_label">上付き文字</string>
+    <string name="core_tools_symbol_category_technical_label">技術的</string>
+    <string name="core_tools_symbol_category_weather_label">天気</string>
     <string name="core_tools_symbol_set_coding_label">コーディング</string>
     <string name="core_tools_symbol_set_email_label">メール</string>
     <string name="core_tools_symbol_set_math_label">数学</string>

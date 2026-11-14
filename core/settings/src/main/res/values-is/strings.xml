@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Ræma, pillur og lyklar</string>
     <string name="core_settings_glide_commit_scope_pill_label">Ræma og pill</string>
     <string name="core_settings_glide_commit_scope_strip_label">Fjarlægja</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">Eftir afturköllun</string>
+    <string name="core_settings_glide_drawn_letters_off_label">Slökkt</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">Þegar ekki er viss um</string>
     <string name="core_settings_glide_engine_built_in_label">Innbyggt</string>
     <string name="core_settings_glide_engine_futo_label">FUTO Swipe (enska, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Bendilssafn Google (innflutt)</string>

@@ -23,6 +23,34 @@
         <item quantity="one">%1$d potiahnutie na klávese tu nemá miesto, pretože táto klávesnica používa toto potiahnutie na inú úlohu. Aplikácia ho odstránila.</item>
         <item quantity="other">%1$d potiahnutí na klávesoch tu nemá miesto, pretože táto klávesnica používa tieto potiahnutia na iné úlohy. Aplikácia ich odstránila.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">Aplikácia vynechala %1$d pravidlo, ktoré mení správanie vymazávania. Vymazávanie funguje tak isto ako na každom inom rozložení tu.</item>
+        <item quantity="other">Aplikácia vynechala %1$d pravidlá, ktoré menia správanie vymazávania. Vymazávanie funguje tak isto ako na každom inom rozložení tu.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">Aplikácia odstránila %1$d potiahnutie, ktoré mení smer. Potiahnutia na tejto klávesnici idú jedným smerom.</item>
+        <item quantity="other">Aplikácia odstránila %1$d potiahnutí, ktoré menia smer. Potiahnutia na tejto klávesnici idú jedným smerom.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">Aplikácia vynechala %1$d stranu pre kláves, akým je Caps Lock alebo Ctrl. Táto klávesnica nemá stranu pre tento kláves.</item>
+        <item quantity="other">Aplikácia vynechala %1$d strán pre klávesy, akými sú Caps Lock alebo Ctrl. Táto klávesnica nemá stranu pre tieto klávesy.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">Aplikácia vynechala %1$d pravidlo, ktoré umiestňuje značky v ich písanom poradí. Táto klávesnica píše značky v poradí, v akom ich píšete.</item>
+        <item quantity="other">Aplikácia vynechala %1$d pravidlá, ktoré umiestňujú značky v ich písanom poradí. Táto klávesnica píše značky v poradí, v akom ich píšete.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d pravidlo pridáva prízvuk na nasledujúce písmeno. Tu je kláves, ktorý ho spúšťa, mŕtvy kláves.</item>
+        <item quantity="other">%1$d pravidiel pridáva prízvuk na nasledujúce písmeno. Tu sú klávesy, ktoré ich spúšťajú, mŕtve klávesy.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">Aplikácia vynechala %1$d pravidlo, ktoré mení text pri písaní. Žiadna klávesa ho nespúšťame, alebo sa zhoduje s viacerými textami, než dokáže klávesa napísať.</item>
+        <item quantity="other">Aplikácia vynechala %1$d pravidlá, ktoré menia text pri písaní. Žiadna klávesa ich nespúšťame, alebo sa zhodujú s viacerými textami, než dokáže klávesa napísať.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d pravidlo premeni klávesu a nasledujúcu na iný znak. Tu sa tento znak nachádza pri podržaní prvej klávesy.</item>
+        <item quantity="other">%1$d pravidlá premenia klávesu a nasledujúcu na iný znak. Tu sa tieto znaky nachádzajú pri podržaní prvej klávesy.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Aplikácia zmenila %1$d kláves na najbližší, ktorý má.</item>
         <item quantity="other">Aplikácia zmenila %1$d klávesov na najbližšie, ktoré má.</item>

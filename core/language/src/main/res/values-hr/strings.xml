@@ -23,6 +23,34 @@
         <item quantity="one">%1$d potez na tipki ovdje nema mjesta, jer ova tipkovnica koristi taj potez za drugi zadatak. Aplikacija ga je uklonila.</item>
         <item quantity="other">%1$d poteza na tipkama ovdje nemaju mjesta, jer ova tipkovnica koristi te poteze za druge zadatke. Aplikacija ih je uklonila.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">Aplikacija je izostavila %1$d pravilo koje mijenja ono što brisanje uklanja. Brisanje radi onako kako radi na svakom rasporedu ovdje.</item>
+        <item quantity="other">Aplikacija je izostavila %1$d pravila koja mijenjaju ono što brisanje uklanja. Brisanje radi onako kako radi na svakom rasporedu ovdje.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">Aplikacija je uklonila %1$d prevlačenje koje mijenja smjer. Prevlačenja na ovoj tipkovnici idu u jednom smjeru.</item>
+        <item quantity="other">Aplikacija je uklonila %1$d prevlačenja koja mijenjaju smjer. Prevlačenja na ovoj tipkovnici idu u jednom smjeru.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">Aplikacija je izostavila %1$d stranicu za tipku kao što je Caps Lock ili Ctrl. Ova tipkovnica nema stranicu za tu tipku.</item>
+        <item quantity="other">Aplikacija je izostavila %1$d stranica za tipke kao što su Caps Lock ili Ctrl. Ova tipkovnica nema stranice za te tipke.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">Aplikacija je izostavila %1$d pravilo koje postavlja oznake njihovim pisanim redoslijedom. Ova tipkovnica piše oznake redoslijedom kojim ih tipkate.</item>
+        <item quantity="other">Aplikacija je izostavila %1$d pravila koja postavljaju oznake njihovim pisanim redoslijedom. Ova tipkovnica piše oznake redoslijedom kojim ih tipkate.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d pravilo stavlja naglasak na sljedeće slovo. Ovdje je tipka koja to pokreće mrtva tipka.</item>
+        <item quantity="other">%1$d pravila stavljaju naglasak na sljedeće slovo. Ovdje su tipke koje ih pokreću mrtve tipke.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">Aplikacija je izostavila %1$d pravilo koje mijenja tekst dok tipkate. Nijedna tipka ovdje ga ne pokreće ili se podudara s više teksta nego što tipka može upisati.</item>
+        <item quantity="other">Aplikacija je izostavila %1$d pravila koja mijenjaju tekst dok tipkate. Nijedna tipka ovdje ih ne pokreće ili se podudaraju s više teksta nego što tipka može upisati.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d pravilo pretvara tipku i sljedeću u drugi znak. Ovdje je taj znak dostupan dugim pritiskom na prvu tipku.</item>
+        <item quantity="other">%1$d pravila pretvaraju tipku i sljedeću u drugi znak. Ovdje su ti znakovi dostupni dugim pritiskom na prvu tipku.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Aplikacija je promijenila %1$d tipku u najbližu tipku koju ima.</item>
         <item quantity="other">Aplikacija je promijenila %1$d tipki u najbliže tipke koje ima.</item>

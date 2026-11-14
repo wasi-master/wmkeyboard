@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">一款在回答前会进行思考的近期中型模型。需要中端设备。</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">小巧且快速。适合在基础设备上进行快速重写。</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">一个可以读取图片的小型模型。它可以描述图片，但经常无法正确识别截图中的文字。</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">NVIDIA 对 Gemma 4 E4B 的重新训练，用于遵循指令和使用工具。仅支持文本，且需要性能强大的设备。</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">一种通用模型，仍适用于基础设备。</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">明显比 1B 以下的模型更智能。它需要中端设备。</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">一款近期推出的小型模型。其质量与其尺寸相比非常出色。</string>

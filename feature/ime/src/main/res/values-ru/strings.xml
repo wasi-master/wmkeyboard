@@ -176,6 +176,7 @@
     <string name="ime_ai_error_no_text">Не с чем работать. Сначала введите текст.</string>
     <string name="ime_ai_error_only_reasoning">Модель использовала весь ответ для рассуждения. Попробуйте еще раз или включите «Показывать рассуждения» в настройках.</string>
     <string name="ime_ai_error_request_failed">Запрос не сработал</string>
+    <string name="ime_ai_error_stopped_hidden">Остановлено, так как клавиатура была закрыта. Повторите попытку.</string>
     <string name="ime_ai_idle_body">Действия выполняются над выделенным текстом или над всем полем. Они используют %1$s.</string>
     <string name="ime_ai_idle_empty_body">Введите или выберите текст, чтобы использовать эти действия. Нажмите %1$s, чтобы написать новый текст.</string>
     <string name="ime_ai_idle_empty_no_writer_body">Введите или выберите текст, чтобы использовать эти действия.</string>
@@ -307,9 +308,11 @@
     <string name="ime_app_colors_none">В этом приложении не найдено цветов</string>
     <string name="ime_app_colors_off_desc">Не использовать цвета этого приложения</string>
     <string name="ime_app_colors_pick_desc">Цвет приложения %1$d</string>
+    <string name="ime_applet_back">Назад</string>
     <string name="ime_applet_close">Закрыть поле</string>
     <string name="ime_applet_copied">Скопировано</string>
     <string name="ime_applet_open_in_keyboard">Открыть в клавиатуре</string>
+    <string name="ime_applet_pop_out">Открыть в плавающем окне</string>
     <string name="ime_applet_resize">Перетащите для изменения размера</string>
     <string name="ime_applet_tuck">Свернуть к краю</string>
     <string name="ime_applet_untuck">Вернуть %1$s</string>
@@ -319,6 +322,33 @@
     <string name="ime_ask_ai_label_vocab">Словарный запас: %1$s</string>
     <string name="ime_ask_ai_label_wiki">Википедия: %1$s</string>
     <string name="ime_autofill_dismiss_desc">Скрыть подсказки автозаполнения</string>
+    <string name="ime_board_copy_desc">Скопировать на этот телефон</string>
+    <string name="ime_board_delete_body">Оно удаляется со всех устройств, использующих эту клавиатуру. Копии, уже находящиеся в буфере обмена телефона, сохраняются.</string>
+    <string name="ime_board_delete_desc">Убрать доску</string>
+    <string name="ime_board_delete_no">Отмена</string>
+    <string name="ime_board_delete_title">Удалить этот фрагмент с доски?</string>
+    <string name="ime_board_delete_yes">Удалить</string>
+    <string name="ime_board_edit_desc">Редактировать</string>
+    <string name="ime_board_empty_body">Клипы, отправленные сюда, появятся на других ваших устройствах, использующих ту же папку, даже на тех, которые сейчас не в сети.</string>
+    <string name="ime_board_empty_title">На доске ничего нет</string>
+    <string name="ime_board_notice_copied">Скопировано</string>
+    <string name="ime_board_notice_deleted">Удалено с доски</string>
+    <string name="ime_board_notice_refused">На доску могут попадать только текстовые фрагменты, которые не скрыты</string>
+    <string name="ime_board_notice_sent">Отправлено на доску</string>
+    <string name="ime_board_send_desc">Отправить фрагмент</string>
+    <string name="ime_board_send_done">Готово</string>
+    <string name="ime_board_send_empty">Нет текстовых фрагментов для отправки. Картинки, файлы и скрытые фрагменты остаются на этом телефоне.</string>
+    <string name="ime_board_send_one_desc">Отправить</string>
+    <string name="ime_board_send_title">Отправить на доску</string>
+    <string name="ime_board_sent_desc">Отправлено</string>
+    <string name="ime_board_status_failed">Не удается подключиться к доске</string>
+    <string name="ime_board_status_never">Еще не проверялось</string>
+    <string name="ime_board_status_synced">Проверено %1$s</string>
+    <string name="ime_board_status_syncing">Проверка доски…</string>
+    <string name="ime_board_status_waiting">Ожидание подключения к клавиатуре</string>
+    <string name="ime_board_status_waiting_offline">Не удается подключиться к доске. Ваши изменения будут отправлены, когда это станет возможно</string>
+    <string name="ime_board_sync_desc">Проверить доску сейчас</string>
+    <string name="ime_board_title">Общая доска</string>
     <string name="ime_calc_degrees_label">град.</string>
     <string name="ime_calc_insert_action">Вставить</string>
     <string name="ime_calc_radians_label">рад</string>
@@ -473,7 +503,9 @@
     </plurals>
     <string name="ime_calendar_untitled">(Без названия)</string>
     <string name="ime_calendar_view_agenda">Повестка дня</string>
+    <string name="ime_calendar_view_day">День</string>
     <string name="ime_calendar_view_month">Месяц</string>
+    <string name="ime_calendar_weather_desc">%1$s, %2$s в %3$s. Открывает прогноз погоды на каждый час</string>
     <string name="ime_calendar_yesterday_label">Вчера</string>
     <string name="ime_calendar_zone_note">Время в %1$s</string>
     <string name="ime_camera_captured_photo_desc">Сделанная вами фотография</string>
@@ -545,6 +577,7 @@
         <item quantity="one">Объединить %1$d фрагмент</item>
         <item quantity="other">Объединить %1$d фрагментов</item>
     </plurals>
+    <string name="ime_clip_compose_email">Написать письмо</string>
     <string name="ime_clip_delete_pinned_question">Удалить этот закрепленный фрагмент?</string>
     <plurals name="ime_clip_deleted">
         <item quantity="one">Клип удален</item>
@@ -565,6 +598,7 @@
         <item quantity="other">Показать %1$d частей, найденных в ваших клипах</item>
     </plurals>
     <string name="ime_clip_extract_codes">Одноразовые коды</string>
+    <string name="ime_clip_extract_emails">Адреса электронной почты</string>
     <string name="ime_clip_extract_links">Ссылки</string>
     <string name="ime_clip_extract_parts">Извлечь</string>
     <string name="ime_clip_extract_phones">Номера телефонов</string>
@@ -591,6 +625,7 @@
         <item quantity="one">Скрыто · %1$d символ</item>
         <item quantity="other">Скрыто · %1$d символов</item>
     </plurals>
+    <string name="ime_clip_image_pasted_toast">Вставлено из буфера обмена. Если ничего не появилось, это приложение не сохраняет изображения: удерживайте фрагмент, чтобы поделиться им</string>
     <string name="ime_clip_info_copied">Скопировано</string>
     <string name="ime_clip_info_edited">Изменено</string>
     <string name="ime_clip_info_from">От</string>
@@ -644,7 +679,12 @@
         <item quantity="other">Выбрано: %1$d</item>
     </plurals>
     <string name="ime_clip_send_as_sticker">Отправить как стикер</string>
+    <string name="ime_clip_shape_code">Код</string>
+    <string name="ime_clip_shape_markdown">Markdown</string>
+    <string name="ime_clip_share_image">Поделиться</string>
+    <string name="ime_clip_show_formatted">Показать с форматированием</string>
     <string name="ime_clip_show_in_history">Показать в истории</string>
+    <string name="ime_clip_show_raw">Показать исходный</string>
     <string name="ime_clip_tags">Теги</string>
     <string name="ime_clip_tags_placeholder">Теги, разделенные запятыми</string>
     <string name="ime_clip_tags_title">Теги</string>
@@ -914,6 +954,7 @@
     <string name="ime_conversion_pack_offer">Скачайте %1$s для ввода символов</string>
     <string name="ime_conversion_pack_offer_dismiss_desc">Отклонить</string>
     <string name="ime_converter_from_label">Из</string>
+    <string name="ime_converter_tab_units">Единицы</string>
     <string name="ime_converter_to_label">В</string>
     <string name="ime_currency_insert_action">Вставить</string>
     <string name="ime_currency_progress">Загрузка курсов валют…</string>
@@ -922,6 +963,32 @@
     <string name="ime_currency_section_crypto">Криптовалюта</string>
     <string name="ime_currency_section_popular">Общие</string>
     <string name="ime_currency_swap_desc">Поменять валюты местами</string>
+    <string name="ime_custom_button_desc">Открыть %1$s</string>
+    <string name="ime_custom_button_label">Своя кнопка</string>
+    <string name="ime_custom_button_shortcut_failed">Не удалось открыть этот ярлык. Возможно, приложение было удалено или его запуск разрешен только с главного экрана.</string>
+    <string name="ime_custom_page_clipboard">Настройки буфера обмена</string>
+    <string name="ime_custom_page_custom_buttons">Свои кнопки</string>
+    <string name="ime_custom_page_dictionary">Словарь</string>
+    <string name="ime_custom_page_favourites">Избранное</string>
+    <string name="ime_custom_page_home">Настройки</string>
+    <string name="ime_custom_page_keypress">Звук и вибрация</string>
+    <string name="ime_custom_page_languages">Языки</string>
+    <string name="ime_custom_page_search">Настройки поиска</string>
+    <string name="ime_custom_page_themes">Темы</string>
+    <string name="ime_custom_page_toolbar">Настройки панели инструментов</string>
+    <string name="ime_custom_page_tools">Инструменты</string>
+    <string name="ime_custom_page_typing">Ввод</string>
+    <string name="ime_custom_toggle_auto_caps">Автоматические заглавные</string>
+    <string name="ime_custom_toggle_glide">Ввод жестами</string>
+    <string name="ime_custom_toggle_key_hints">Подсказки клавиш</string>
+    <string name="ime_custom_toggle_key_popup">Всплывающая подсказка клавиши</string>
+    <string name="ime_custom_toggle_number_row">Цифровой ряд</string>
+    <string name="ime_custom_toggle_reduce_motion">Уменьшить движение</string>
+    <string name="ime_custom_toggle_sound">Звук клавиш</string>
+    <string name="ime_custom_toggle_suggestions">Подсказки</string>
+    <string name="ime_custom_toggle_symbol_row">Ряд символов</string>
+    <string name="ime_custom_toggle_toolbar_labels">Названия панели инструментов</string>
+    <string name="ime_custom_toggle_vibration">Вибрация</string>
     <string name="ime_delete_redo_chip">Повторить “%1$s”</string>
     <string name="ime_delete_redo_plain">Удалить снова</string>
     <string name="ime_delete_undo_chip">Отменить «%1$s»</string>
@@ -959,6 +1026,7 @@
     <string name="ime_disabled_correction_invalid">Введите другое слово для исправления. Исправляемое слово должно содержать не менее 3 букв, а исправление может состоять из одного слова или из двух при пропуске пробела.</string>
     <string name="ime_disabled_media_app_blocks">Воспроизводящее приложение не разрешает это.</string>
     <string name="ime_disabled_spell_unchanged">Сначала измените написание. Пустое или неизмененное написание не к чему применять.</string>
+    <string name="ime_disabled_translate_empty_box">Поле пустое или перевод еще в процессе.</string>
     <string name="ime_disabled_translate_nothing">Ничего еще не переведено. Сначала введите или вставьте текст для перевода.</string>
     <string name="ime_disabled_translate_same_language">Текст уже на том языке, на который вы переводите.</string>
     <string name="ime_disabled_voice_undo">Пока нечего отменять. Отмена возвращает последнюю произнесенную вами фразу.</string>
@@ -988,6 +1056,10 @@
     <string name="ime_docscan_next">Обрезать</string>
     <string name="ime_docscan_open_settings">Открыть настройки</string>
     <string name="ime_docscan_page_number">Страница %1$d</string>
+    <plurals name="ime_docscan_pages_album">
+        <item quantity="one">Страница открывается на экране отправки приложения</item>
+        <item quantity="other">Это приложение делает по одному снимку за раз, поэтому %d страниц открываются вместе на его экране отправки для отправки в виде одного альбома</item>
+    </plurals>
     <plurals name="ime_docscan_pages_shared">
         <item quantity="one">Приложение не взяло последнюю страницу, поэтому она откроется на экране общего доступа приложения</item>
         <item quantity="other">Приложение не взяло %d страниц, поэтому они откроются вместе на экране общего доступа приложения</item>
@@ -1070,10 +1142,15 @@
     <string name="ime_files_access_pick">Выбор файлов Android</string>
     <string name="ime_files_access_title">Выбирайте файлы, не покидая клавиатуру</string>
     <string name="ime_files_add">Добавить</string>
+    <string name="ime_files_add_tree">Добавить папку</string>
+    <string name="ime_files_add_tree_detail">USB-накопитель, SD-карта или папка, к которой открыт доступ из другого приложения, например сетевой диск</string>
+    <string name="ime_files_allow_all">Вся память телефона</string>
+    <string name="ime_files_allow_all_detail">Требуется доступ Android ко всем файлам</string>
     <string name="ime_files_camera">Камера</string>
     <string name="ime_files_clear_desc">Очистить выбор</string>
     <string name="ime_files_collapse_desc">Сделать короче</string>
     <string name="ime_files_copy_desc">Копировать</string>
+    <string name="ime_files_copy_to">Копировать в %1$s</string>
     <string name="ime_files_delete_body">Папки удаляются вместе со всем их содержимым. Это необратимо: в Android нет корзины для файлов.</string>
     <string name="ime_files_delete_desc">Удалить</string>
     <string name="ime_files_delete_no">Отмена</string>
@@ -1090,8 +1167,11 @@
     <string name="ime_files_expand_desc">Сделать выше</string>
     <string name="ime_files_hide_hidden">Скрывать скрытые файлы</string>
     <string name="ime_files_kde_unreadable">Не удалось прочитать этот файл для отправки</string>
+    <string name="ime_files_locked_body">Файловый менеджер не открывается поверх экрана блокировки.</string>
+    <string name="ime_files_locked_title">Разблокируйте, чтобы увидеть свои файлы</string>
     <string name="ime_files_more_desc">Ещё</string>
     <string name="ime_files_move_desc">Переместить</string>
+    <string name="ime_files_move_to">Перенести в %1$s</string>
     <string name="ime_files_movies">Видео</string>
     <string name="ime_files_music">Музыка</string>
     <string name="ime_files_new_folder">Новая папка</string>
@@ -1119,6 +1199,8 @@
         <item quantity="one">Перемещен %d элемент</item>
         <item quantity="other">Перемещено %d элементов</item>
     </plurals>
+    <string name="ime_files_notice_tree_removed">Папка удалена из списка</string>
+    <string name="ime_files_one_pane_desc">Один список</string>
     <string name="ime_files_op_cancel">Остановить</string>
     <string name="ime_files_op_copy">Копирование: %1$d из %2$d</string>
     <string name="ime_files_op_delete">Удаление: %1$d из %2$d</string>
@@ -1135,6 +1217,9 @@
     <string name="ime_files_pictures">Изображения</string>
     <string name="ime_files_places">Места</string>
     <string name="ime_files_recent">Недавние</string>
+    <string name="ime_files_remove_tree_body">Папка и ее файлы остаются на своих местах. Вы можете добавить ее снова в любое время.</string>
+    <string name="ime_files_remove_tree_title">Удалить «%1$s» из списка?</string>
+    <string name="ime_files_remove_tree_yes">Убрать</string>
     <string name="ime_files_rename_desc">Переименовать</string>
     <string name="ime_files_rename_hint">Новое имя</string>
     <string name="ime_files_search_clear_desc">Завершить поиск</string>
@@ -1155,6 +1240,7 @@
     <string name="ime_files_title_many">Выбрать файлы</string>
     <string name="ime_files_title_one">Выберите файл</string>
     <string name="ime_files_title_picture">Выберите картинку</string>
+    <string name="ime_files_two_panes_desc">Два списка бок о бок</string>
     <string name="ime_files_unreadable">Android не позволяет клавиатуре открыть эту папку</string>
     <string name="ime_find_case_desc">Учитывать регистр</string>
     <string name="ime_find_clear_desc">Очистить %1$s</string>
@@ -1186,6 +1272,24 @@
     <string name="ime_floating_category_empty">Эта категория пуста. Добавьте в нее действия в настройках плавающей кнопки.</string>
     <string name="ime_floating_category_label">Категория</string>
     <string name="ime_floating_close_menu">Закрыть меню</string>
+    <string name="ime_floating_device_bluetooth">Bluetooth</string>
+    <string name="ime_floating_device_bluetooth_desc">Включает или выключает Bluetooth</string>
+    <string name="ime_floating_device_bluetooth_page_desc">Открывает страницу Bluetooth Android</string>
+    <string name="ime_floating_device_data">Мобильные данные</string>
+    <string name="ime_floating_device_data_desc">Включает или выключает мобильный интернет</string>
+    <string name="ime_floating_device_data_panel_desc">Открывает интернет-панель Android</string>
+    <string name="ime_floating_device_failed">Android не разрешил это действие</string>
+    <string name="ime_floating_device_hotspot">Точка доступа</string>
+    <string name="ime_floating_device_hotspot_desc">Открывает страницу точки доступа Android</string>
+    <string name="ime_floating_device_off">%1$s выкл.</string>
+    <string name="ime_floating_device_on">%1$s: вкл</string>
+    <string name="ime_floating_device_ringer">Режим звонка</string>
+    <string name="ime_floating_device_ringer_desc">Звонок, вибрация и беззвучный режим по очереди</string>
+    <string name="ime_floating_device_volume">Панель громкости</string>
+    <string name="ime_floating_device_volume_desc">Открывает панель громкости Android со всеми ползунками громкости</string>
+    <string name="ime_floating_device_wifi">Wi-Fi</string>
+    <string name="ime_floating_device_wifi_desc">Включение или выключение Wi-Fi</string>
+    <string name="ime_floating_device_wifi_panel_desc">Открывает панель Wi-Fi в Android</string>
     <string name="ime_floating_dismiss_target">Перетащите сюда, чтобы скрыть кнопку</string>
     <string name="ime_floating_dock_desc">Закрепить клавиатуру</string>
     <string name="ime_floating_hide_label">Скрыть кнопку</string>
@@ -1196,7 +1300,11 @@
     <string name="ime_floating_pair_label">Открыть пару приложений</string>
     <string name="ime_floating_pair_missing">Одно из двух приложений больше не установлено</string>
     <string name="ime_floating_pair_name">%1$s + %2$s</string>
+    <string name="ime_floating_plugin_label">Плагин</string>
     <string name="ime_floating_resize_desc">Изменить размер клавиатуры</string>
+    <string name="ime_floating_ringer_ring">Звонок</string>
+    <string name="ime_floating_ringer_silent">Без звука</string>
+    <string name="ime_floating_ringer_vibrate">Вибрация</string>
     <string name="ime_floating_system_app_drawer">Меню приложений</string>
     <string name="ime_floating_system_back">Назад</string>
     <string name="ime_floating_system_notifications">Уведомления</string>
@@ -1254,6 +1362,7 @@
     <string name="ime_gallery_album_camera">Камера</string>
     <string name="ime_gallery_album_favorites">Избранное</string>
     <string name="ime_gallery_album_gifs">GIF-файлы</string>
+    <string name="ime_gallery_album_immich">Immich</string>
     <string name="ime_gallery_album_recents">Недавние</string>
     <string name="ime_gallery_album_screenshots">Скриншоты</string>
     <string name="ime_gallery_album_sent">Отправлено с клавиатуры</string>
@@ -1345,6 +1454,10 @@
     <string name="ime_gallery_info_taken">Снято</string>
     <string name="ime_gallery_layer_delete">Удалить</string>
     <string name="ime_gallery_more_desc">Дополнительные параметры галереи</string>
+    <plurals name="ime_gallery_notice_already_uploaded">
+        <item quantity="one">В Immich уже была %d фотография</item>
+        <item quantity="other">В Immich уже были все фотографии (%d шт.)</item>
+    </plurals>
     <plurals name="ime_gallery_notice_copied">
         <item quantity="one">Скопирован %d элемент</item>
         <item quantity="other">Скопировано %d элементов</item>
@@ -1353,6 +1466,8 @@
         <item quantity="one">Не удалось прочитать %d элемент</item>
         <item quantity="other">Не удалось прочитать %d элементов</item>
     </plurals>
+    <string name="ime_gallery_notice_immich_failed">Не удалось связаться с вашим сервером Immich</string>
+    <string name="ime_gallery_notice_immich_refused">Immich отклонил ключ API; проверьте его разрешения</string>
     <plurals name="ime_gallery_notice_limit">
         <item quantity="one">Вы можете выбрать %d элемент за раз</item>
         <item quantity="other">Вы можете выбрать до %d элементов за раз</item>
@@ -1373,6 +1488,16 @@
     <plurals name="ime_gallery_notice_shared">
         <item quantity="one">Открыт экран общего доступа для %d элемента</item>
         <item quantity="other">Открыт экран общего доступа для %d элементов</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_upload_failed">
+        <item quantity="one">Не удалось загрузить %d изображение</item>
+        <item quantity="few">Не удалось загрузить %d изображения</item>
+        <item quantity="many">Не удалось загрузить %d изображений</item>
+        <item quantity="other">Не удалось загрузить %d изображения</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_uploaded">
+        <item quantity="one">В Immich загружена %d фотография</item>
+        <item quantity="other">В Immich загружено %d фотографий</item>
     </plurals>
     <string name="ime_gallery_partial_action">Выбрать еще</string>
     <string name="ime_gallery_partial_body">Вы предоставили доступ только к некоторым фотографиям.</string>
@@ -1416,6 +1541,7 @@
     <string name="ime_gallery_tool_stickers">Стикеры</string>
     <string name="ime_gallery_tool_text">Текст</string>
     <string name="ime_gallery_tool_upscale">Увеличить масштаб</string>
+    <string name="ime_gallery_upload_immich">Загрузить в Immich</string>
     <string name="ime_gallery_upscale_art">Рисунок или текст</string>
     <string name="ime_gallery_upscale_done">Масштабирование ×%1$d: %2$d × %3$d</string>
     <string name="ime_gallery_upscale_downloading">Приложение загружает апскейлер…</string>
@@ -1674,6 +1800,9 @@
     <string name="ime_handwriting_unsupported_info">Эта версия приложения распознает рукописный ввод только на китайском и японском языках. Добавьте один из них в разделе «Языки», чтобы писать здесь.</string>
     <string name="ime_hardware_keys_hide_desc">Скрыть клавиши</string>
     <string name="ime_hardware_keys_show_desc">Показать клавиши</string>
+    <string name="ime_homophones_finish">Сначала завершите слово, которое вы вводите</string>
+    <string name="ime_homophones_none">На этом телефоне нет слов, звучащих как %1$s. Чтения добавляются языковым пакетом или схемой RIME.</string>
+    <string name="ime_homophones_none_before">Сначала введите китайский или японский иероглиф</string>
     <string name="ime_hw_pick_mode_off_toast">Режим выбора выключен</string>
     <string name="ime_hw_pick_mode_on_toast">Режим выбора включен: цифровые клавиши выбирают варианты, Shift вводит цифру</string>
     <string name="ime_icons_builtin_label">Встроенный</string>
@@ -1688,6 +1817,45 @@
     <string name="ime_image_search_need_key_body">Для поиска изображений требуется API-ключ от Brave Search. Добавьте ключ в настройках этого инструмента.</string>
     <string name="ime_incognito_on_desc">Режим инкогнито включен</string>
     <string name="ime_insert_action">Вставить</string>
+    <string name="ime_invite_about_hint">Добавьте описание</string>
+    <string name="ime_invite_action">Пригласить онлайн</string>
+    <string name="ime_invite_add_title">Добавить название</string>
+    <string name="ime_invite_error_address">Адрес %1$s в настройках не является веб-адресом.</string>
+    <string name="ime_invite_error_bad_token">%1$s не принял токен API.</string>
+    <string name="ime_invite_error_data_saver">Включена экономия трафика. Публикация отправляет несколько килобайт.</string>
+    <string name="ime_invite_error_network">%1$s не ответил.</string>
+    <string name="ime_invite_error_no_title">Приглашение должно содержать название.</string>
+    <string name="ime_invite_error_offline">Нет подключения. Подключитесь и повторите попытку.</string>
+    <string name="ime_invite_error_refused">%1$s сообщает, что эта учетная запись не может создавать там события.</string>
+    <string name="ime_invite_error_rejected">%1$s отклонил мероприятие.</string>
+    <string name="ime_invite_error_signed_out">%1$s выполнил выход из учетной записи. Войдите снова в настройках.</string>
+    <string name="ime_invite_fix_in_pretix">Открыть Pretix</string>
+    <string name="ime_invite_go_ahead">Вперед</string>
+    <string name="ime_invite_insert_link">Вставить ссылку</string>
+    <string name="ime_invite_insert_message">Вставить приглашение</string>
+    <string name="ime_invite_link_only">Только люди с ссылкой</string>
+    <string name="ime_invite_listed">В публичном списке</string>
+    <string name="ime_invite_made">Создано на %1$s, регистрация еще не открыта</string>
+    <string name="ime_invite_not_live">Pretix создал мероприятие, но не открыл регистрацию. %1$s</string>
+    <string name="ime_invite_not_set_up_body">Сначала войдите в Mobilizon или добавьте сервер Pretix в настройках инструмента «Календарь».</string>
+    <string name="ime_invite_not_set_up_title">Служба мероприятий еще не настроена</string>
+    <string name="ime_invite_note_mobilizon">Люди регистрируются на странице мероприятия. Mobilizon отправит вам электронное письмо, когда они это сделают.</string>
+    <string name="ime_invite_note_pretix">На мероприятие полагается один бесплатный билет, поэтому люди регистрируются на его странице со своим адресом электронной почты.</string>
+    <string name="ime_invite_open_page">Открыть страницу</string>
+    <string name="ime_invite_open_settings">Настройки</string>
+    <string name="ime_invite_place_hint">Добавьте место или ссылку</string>
+    <string name="ime_invite_places_any">Без ограничений</string>
+    <string name="ime_invite_places_label">Места</string>
+    <string name="ime_invite_post_as">Опубликовать как %1$s</string>
+    <string name="ime_invite_post_as_default">Опубликовать от имени вашего профиля</string>
+    <string name="ime_invite_post_as_loading">Загрузка ваших профилей…</string>
+    <string name="ime_invite_publish">Опубликовать</string>
+    <string name="ime_invite_published">Опубликовано %1$s</string>
+    <string name="ime_invite_publishing">Публикация…</string>
+    <string name="ime_invite_publishing_to">Публикация в %1$s</string>
+    <string name="ime_invite_ticket_name">Регистрация</string>
+    <string name="ime_invite_title">Пригласить онлайн</string>
+    <string name="ime_invite_try_again">Повторить попытку</string>
     <string name="ime_kaomoji_add">Добавить каомодзи</string>
     <string name="ime_kaomoji_all">Все</string>
     <string name="ime_kaomoji_cancel">Отмена</string>
@@ -1975,6 +2143,7 @@
     <string name="ime_learn_text_action">Изучить текст</string>
     <string name="ime_learn_word_never_desc">Никогда не учить %1$s</string>
     <string name="ime_learn_word_offer">Добавить \"%1$s\"?</string>
+    <string name="ime_legacy_font_output">Вывод устаревшего шрифта</string>
     <string name="ime_level_no_sensor_empty">На вашем устройстве нет акселерометра.</string>
     <string name="ime_location_address_failed">Здесь нет адреса. Координаты по-прежнему работают.</string>
     <string name="ime_location_address_looking">Поиск адреса…</string>
@@ -2147,6 +2316,29 @@
         <item quantity="other">Архивировано заметок: %d</item>
     </plurals>
     <string name="ime_notes_archived_badge">В архиве</string>
+    <string name="ime_notes_assist_deck_action">Создать учебную колоду</string>
+    <plurals name="ime_notes_assist_deck_action_count">
+        <item quantity="one">Создать учебную колоду (%d карточка)</item>
+        <item quantity="other">Создать учебную колоду (%d карточек)</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_empty_toast">Нет терминов со значениями для создания карточек</string>
+    <plurals name="ime_notes_assist_deck_made_toast">
+        <item quantity="one">Учебный набор \"%2$s\" создан с %1$d карточкой. Найдите его в разделе \"Словарь\".</item>
+        <item quantity="other">Учебный набор \"%2$s\" создан с %1$d карточками. Найдите его в разделе \"Словарь\".</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_working_toast">Создание учебной колоды…</string>
+    <string name="ime_notes_assist_details_label">Ключевые детали</string>
+    <string name="ime_notes_assist_heading_busy">Создание заголовка…</string>
+    <string name="ime_notes_assist_heading_dismiss_desc">Не этот заголовок</string>
+    <string name="ime_notes_assist_heading_suggestion">Заголовок: %1$s</string>
+    <string name="ime_notes_assist_heading_use_action">Использовать</string>
+    <string name="ime_notes_assist_related_label">Похожие</string>
+    <string name="ime_notes_assist_remind_chip">Напомнить: %1$s · %2$s</string>
+    <string name="ime_notes_assist_reminders_label">Предстоящие</string>
+    <string name="ime_notes_assist_summarize_action">Сделать краткое содержание</string>
+    <string name="ime_notes_assist_summarize_again_action">Еще раз</string>
+    <string name="ime_notes_assist_summary_busy">Создание сводки на телефоне…</string>
+    <string name="ime_notes_assist_summary_label">Сводка</string>
     <string name="ime_notes_body_hint">Напишите заметку… Поддерживается Markdown: **жирный**, - списки, - [ ] задачи</string>
     <string name="ime_notes_collapse_desc">Вернуться к высоте клавиатуры</string>
     <string name="ime_notes_confirm_action">Нажмите еще раз для подтверждения</string>
@@ -2195,6 +2387,7 @@
     <string name="ime_notes_no_match">Нет заметок, соответствующих «%1$s».</string>
     <string name="ime_notes_passage_desc">Из %1$s. Нажмите для вставки, удерживайте для открытия заметки.</string>
     <string name="ime_notes_passages_section">Отрывки</string>
+    <string name="ime_notes_paste_desc">Вставить</string>
     <string name="ime_notes_pin_action">Закрепить</string>
     <string name="ime_notes_pinned_section">Закрепленные</string>
     <string name="ime_notes_restore_action">Восстановить</string>
@@ -2228,6 +2421,29 @@
     <string name="ime_otp_chip_dismiss_desc">Скрыть код</string>
     <string name="ime_panel_back_desc">Назад к клавиатуре</string>
     <string name="ime_panel_over_keys_height_desc">Высота панели над клавишами. Перетащите вверх или вниз</string>
+    <string name="ime_paperless_card_also_field">Также поместить страницы в текстовое поле</string>
+    <string name="ime_paperless_card_correspondent">Корреспондент</string>
+    <string name="ime_paperless_card_field_only">Только текстовое поле</string>
+    <string name="ime_paperless_card_loading">Получение тегов с сервера…</string>
+    <string name="ime_paperless_card_name">Название</string>
+    <string name="ime_paperless_card_name_hint">Необязательно. Если оставить пустым, Paperless присвоит название.</string>
+    <string name="ime_paperless_card_none">Нет</string>
+    <string name="ime_paperless_card_offline">Сервер сейчас недоступен. Сканирование сохранится на телефоне с вашими тегами по умолчанию и загрузится, как только появится связь.</string>
+    <string name="ime_paperless_card_offline_cached">Сервер сейчас недоступен; показаны его предыдущие списки. Сканирование будет загружено, как только появится связь.</string>
+    <string name="ime_paperless_card_one_pdf">Все страницы в одном PDF</string>
+    <plurals name="ime_paperless_card_pages">
+        <item quantity="one">%d страница</item>
+        <item quantity="other">%d страниц</item>
+    </plurals>
+    <string name="ime_paperless_card_send">Отправить</string>
+    <string name="ime_paperless_card_tags">Теги</string>
+    <string name="ime_paperless_card_title">Отправить в Paperless</string>
+    <string name="ime_paperless_card_type">Тип документа</string>
+    <string name="ime_paperless_queue_failed">Не удалось сохранить сканирование для Paperless</string>
+    <plurals name="ime_paperless_queued">
+        <item quantity="one">%d документ отправляется в Paperless. Он будет загружен, как только появится подключение.</item>
+        <item quantity="other">%d документов отправляются в Paperless. Они будут загружены, как только появится подключение.</item>
+    </plurals>
     <string name="ime_password_add_digit_label">Добавить цифру</string>
     <string name="ime_password_capitalize_label">Заглавные буквы</string>
     <string name="ime_password_copied_toast">Скопировано в буфер обмена</string>
@@ -2246,11 +2462,27 @@
     <string name="ime_password_tab_pin">PIN-код</string>
     <string name="ime_password_words_label">Слова</string>
     <string name="ime_phonetic_word_list_offer">Получите список слов %1$s для лучших слов</string>
+    <string name="ime_plugin_access_mark">Этот плагин может использовать интернет или читать то, что вы пишете</string>
+    <string name="ime_plugin_action_settings">Настройки и разрешения</string>
+    <string name="ime_plugin_action_toolbar_add">Добавить на панель инструментов</string>
+    <string name="ime_plugin_action_toolbar_remove">Удалить с панели инструментов</string>
+    <string name="ime_plugin_action_toolbox_add">Добавить в панель инструментов</string>
+    <string name="ime_plugin_action_toolbox_remove">Удалить из панели инструментов</string>
+    <string name="ime_plugin_action_turn_off">Отключить</string>
+    <string name="ime_plugin_action_turn_on">Включить</string>
+    <string name="ime_plugin_clock_alarm_set">%1$s: будильник на %2$s установлен в приложении «Часы»</string>
+    <string name="ime_plugin_clock_timer_set">%1$s запустил таймер на %2$s в Часах</string>
     <string name="ime_plugin_empty_body">Плагин — это небольшой инструмент в «песочнице». Вы можете добавлять плагины из репозитория дополнений или из файла .wmplugin. Плагин не может видеть, что вы печатаете.</string>
     <string name="ime_plugin_empty_title">Плагинов пока нет</string>
     <string name="ime_plugin_manage_action">Управление плагинами</string>
+    <string name="ime_plugin_more">Другие параметры для %1$s</string>
+    <string name="ime_plugin_permission_allow">Разрешить</string>
+    <string name="ime_plugin_permission_deny">Не разрешать</string>
+    <string name="ime_plugin_permission_risky_note">Это также включает рискованные разрешения для плагинов. Вы можете отключить любое из них на странице плагина в Настройках.</string>
+    <string name="ime_plugin_permission_title">Разрешить %1$s:</string>
     <string name="ime_plugin_version_label">Версия %1$s</string>
     <string name="ime_power_saving_on_desc">Энергосбережение включено</string>
+    <string name="ime_privacy_shade_hint">Перетащите ручку вверх, чтобы увидеть последние строки</string>
     <string name="ime_provider_choose_desc">Выберите провайдера</string>
     <string name="ime_punct_ampersand">Амперсанд</string>
     <string name="ime_punct_apostrophe">Апостроф</string>
@@ -2384,6 +2616,8 @@
     <string name="ime_resize_move_desc">Перетащите, чтобы переместить клавиатуру вверх или вниз</string>
     <string name="ime_resize_reset">Сбросить</string>
     <string name="ime_resize_right_handle_desc">Перетащите, чтобы изменить пространство справа от клавиатуры</string>
+    <string name="ime_resize_toolbar_handle">Панель инструментов</string>
+    <string name="ime_resize_toolbar_handle_desc">Перетащите вверх или вниз, чтобы изменить высоту панели инструментов</string>
     <string name="ime_retype_button">Повторить ввод</string>
     <string name="ime_retype_button_desc">Повторить ввод слова под курсором</string>
     <string name="ime_retype_button_nothing">Нет слова для повторного ввода. Поместите курсор сразу после слова.</string>
@@ -2438,8 +2672,10 @@
     <string name="ime_scanner_torch_desc">Фонарик</string>
     <string name="ime_scanner_translate_action">Перевести</string>
     <string name="ime_screen_capture_desc">Сделать снимок экрана</string>
+    <string name="ime_screen_capture_progress">Создание снимка экрана…</string>
     <string name="ime_search_attribution_brave">через Brave</string>
     <string name="ime_search_attribution_left">%1$s · %2$s слева</string>
+    <string name="ime_search_attribution_mwmbl">через Mwmbl</string>
     <string name="ime_search_attribution_tavily">через Tavily</string>
     <string name="ime_search_in_browser_desc">Поиск в браузере</string>
     <string name="ime_search_menu_copy_link">Скопировать ссылку</string>
@@ -2449,6 +2685,7 @@
     <string name="ime_search_no_more">Результатов больше нет</string>
     <string name="ime_search_tab_all">Все</string>
     <string name="ime_search_tab_images">Изображения</string>
+    <string name="ime_second_toolbar_empty">Перетащите сюда инструмент из панели инструментов или меню</string>
     <string name="ime_selection_ask_ai">Спросить ИИ</string>
     <string name="ime_selection_macro_ai_translate_label">AI-перевод</string>
     <string name="ime_selection_macro_back_desc">Назад к действиям выбора</string>
@@ -2749,6 +2986,8 @@
     <string name="ime_service_incognito_off_toast">Режим инкогнито выключен</string>
     <string name="ime_service_incognito_on_toast">Режим инкогнито включен. Клавиатура не запоминает то, что вы печатаете.</string>
     <string name="ime_service_incognito_switch_toast">Режим инкогнито включен. Нажмите на инструмент «Инкогнито», чтобы выключить его</string>
+    <string name="ime_service_legacy_font_off_toast">Запись Юникода</string>
+    <string name="ime_service_legacy_font_on_toast">Написание для шрифта %1$s</string>
     <string name="ime_service_media_download_error_toast">Ошибка загрузки. Проверьте подключение к сети.</string>
     <string name="ime_service_media_fetch_error">Клавиатура не может получить результаты</string>
     <string name="ime_service_mode_tool_order_toast">Клавиатура сохранила порядок инструментов для режима %1$s. Другие приложения сохраняют свой собственный порядок.</string>
@@ -2772,6 +3011,7 @@
     <string name="ime_service_power_saving_on_empty_toast">Энергосбережение включено. Пока не задано ни одной функции для остановки.</string>
     <string name="ime_service_power_saving_on_toast">Энергосбережение включено</string>
     <string name="ime_service_power_saving_still_on_toast">Энергосбережение остается включенным. Триггер батареи активен.</string>
+    <string name="ime_service_privacy_shade_floating_toast">Шторка конфиденциальности работает с закрепленной клавиатурой. Сначала закрепите клавиатуру.</string>
     <string name="ime_service_qr_error">Клавиатура не может создать QR-код</string>
     <string name="ime_service_resize_floating_toast">Прикрепите клавиатуру, чтобы изменить ее размер</string>
     <string name="ime_service_search_error">Поиск не сработал</string>
@@ -2832,6 +3072,7 @@
     <string name="ime_smart_repeat_count">×%1$s</string>
     <string name="ime_smart_repeat_offer">Повторить «%1$s»</string>
     <string name="ime_smart_replies_dismiss_desc">Скрыть умные ответы</string>
+    <string name="ime_smart_search_offer">%1$s: «%2$s»</string>
     <string name="ime_smart_send_link">Получить файл</string>
     <string name="ime_smart_translate_offer">Перевести</string>
     <string name="ime_smart_vocab_daily">Слово дня: %1$s ›</string>
@@ -2841,6 +3082,12 @@
     <string name="ime_smart_vocab_word">%1$s ›</string>
     <string name="ime_smart_weather_tap">Узнать прогноз</string>
     <string name="ime_smart_wiki_word">«%1$s» в Википедии</string>
+    <string name="ime_snippet_ask_cancel_desc">Отменить сниппет</string>
+    <string name="ime_snippet_ask_done_desc">Вставить сниппет</string>
+    <string name="ime_snippet_ask_hint">Введите %1$s</string>
+    <string name="ime_snippet_ask_next_desc">Следующее поле</string>
+    <string name="ime_snippet_ask_step_label">%1$s %2$d/%3$d</string>
+    <string name="ime_snippet_image_desc">Фрагмент изображения %1$s</string>
     <string name="ime_snippet_offer_back_desc">Назад к %1$s</string>
     <string name="ime_snippet_offer_desc">Вставить фрагмент %1$s</string>
     <string name="ime_snippet_offer_more_desc">Еще от %1$s</string>
@@ -2951,6 +3198,7 @@
     <string name="ime_suggestion_hold_label">Параметры слова</string>
     <string name="ime_suggestion_never_suggest">Никогда не предлагать \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Назад к клавишам</string>
+    <string name="ime_suggestion_pattern_still_hides">Шаблон черного списка все еще скрывает «%1$s». Отредактируйте его в разделе «Черный список предложений».</string>
     <string name="ime_suggestion_rank_badge">«%1$s» ранг %2$s</string>
     <string name="ime_suggestion_rank_unchanged">\"%1$s\" без изменений</string>
     <string name="ime_suggestions_show_desc">Показывать панель подсказок</string>
@@ -2980,6 +3228,8 @@
     <string name="ime_synonyms_title">Синонимы для \"%1$s\"</string>
     <string name="ime_textedit_delete_line_desc">Удалить строку</string>
     <string name="ime_textedit_delete_line_forward_desc">Удалить строку вперед</string>
+    <string name="ime_textedit_delete_to_end_desc">Удалить до конца</string>
+    <string name="ime_textedit_delete_to_start_desc">Удалить до начала</string>
     <string name="ime_textedit_delete_word_desc">Удалить слово</string>
     <string name="ime_textedit_delete_word_forward_desc">Удалить слово впереди</string>
     <string name="ime_textedit_doc_end_desc">Перейти в конец текста</string>
@@ -2998,6 +3248,7 @@
     <string name="ime_textedit_select_label">Выбрать</string>
     <string name="ime_textedit_select_line_desc">Выбрать строку</string>
     <string name="ime_textedit_select_word_desc">Выбрать слово</string>
+    <string name="ime_textedit_type_clipboard_desc">Ввести текст из буфера обмена</string>
     <string name="ime_textedit_up_desc">Переместить вверх</string>
     <string name="ime_textedit_word_left_desc">Переместить на слово влево</string>
     <string name="ime_textedit_word_right_desc">Переместить на одно слово вправо</string>
@@ -3075,6 +3326,7 @@
     <string name="ime_tool_calculator">Калькулятор</string>
     <string name="ime_tool_calendar">Календарь</string>
     <string name="ime_tool_camera">Камера</string>
+    <string name="ime_tool_clear_field">Удалить все</string>
     <string name="ime_tool_clipboard">Буфер обмена</string>
     <string name="ime_tool_clipboard_search">Поиск по буферу обмена</string>
     <string name="ime_tool_clock">Часы</string>
@@ -3091,11 +3343,13 @@
     <string name="ime_tool_cursor_word_right">Слово вправо</string>
     <string name="ime_tool_custom_layout">Пользовательская раскладка</string>
     <string name="ime_tool_cut">Вырезать</string>
+    <string name="ime_tool_debug_info">Отладочная информация</string>
     <string name="ime_tool_dictionary">Словарь</string>
     <string name="ime_tool_doc_scan">Сканирование документа</string>
     <string name="ime_tool_emoji">Эмодзи</string>
     <string name="ime_tool_emoji_mix">Миксы эмодзи</string>
     <string name="ime_tool_fancy">Красивый текст</string>
+    <string name="ime_tool_files">Файлы</string>
     <string name="ime_tool_find_replace">Найти и заменить</string>
     <string name="ime_tool_flashlight">Фонарик</string>
     <string name="ime_tool_floating">Плавающая</string>
@@ -3105,6 +3359,7 @@
     <string name="ime_tool_handwriting">Рукописный ввод</string>
     <string name="ime_tool_hide_keyboard">Скрыть</string>
     <string name="ime_tool_home_assistant">Умный дом</string>
+    <string name="ime_tool_homophones">Омофоны</string>
     <string name="ime_tool_image_search">Изображения</string>
     <string name="ime_tool_incognito">Инкогнито</string>
     <string name="ime_tool_language">Язык</string>
@@ -3131,6 +3386,7 @@
     <string name="ime_tool_picker_leader">%1$s, затем:</string>
     <string name="ime_tool_plugins">Плагины</string>
     <string name="ime_tool_power_saving">Энергосбережение</string>
+    <string name="ime_tool_privacy_shade">Шторка конфиденциальности</string>
     <string name="ime_tool_qr_gen">QR-код</string>
     <string name="ime_tool_qr_scan">Сканирование QR</string>
     <string name="ime_tool_quick_note">Быстрая заметка</string>
@@ -3155,6 +3411,7 @@
     <string name="ime_tool_text_edit">Редактирование текста</string>
     <string name="ime_tool_text_repeat">Повторить</string>
     <string name="ime_tool_themes">Темы</string>
+    <string name="ime_tool_timestamp">Метка времени</string>
     <string name="ime_tool_todo">Список дел</string>
     <string name="ime_tool_trackpad">Трекпад</string>
     <string name="ime_tool_translate">Перевод</string>
@@ -3212,12 +3469,14 @@
     <string name="ime_translate_engine_online_info">Использует онлайн-сервис.</string>
     <string name="ime_translate_hint">Введите текст для перевода…</string>
     <string name="ime_translate_idle">Перевод будет отображаться здесь по мере ввода.</string>
+    <string name="ime_translate_idle_manual">Введите весь текст, а затем нажмите «Перевести». До этого ничего не отправляется.</string>
     <string name="ime_translate_module_failed_error">Google Play не выполнил загрузку. Проверьте соединение и попробуйте снова. Если ошибка повторится, загрузите его через Настройки, Инструменты, Перевод.</string>
     <string name="ime_translate_module_installing_action">Загрузка…</string>
     <string name="ime_translate_module_missing_body">Перевод на устройстве — это дополнительный компонент клавиатуры, доступный в Google Play. Загрузите его, чтобы переводить без подключения к сети.</string>
     <string name="ime_translate_need_models_body">Для перевода на устройстве скачайте: %1$s. Около %2$s.</string>
     <string name="ime_translate_nllb_licence_accept_action">Принять и скачать</string>
     <string name="ime_translate_nllb_licence_body">Модель NLLB-200 предоставляется через Hugging Face по лицензии Meta «Creative Commons Attribution-NonCommercial 4.0»: только для некоммерческого использования и без каких-либо гарантий. Нажмите еще раз, чтобы принять условия и начать загрузку.</string>
+    <string name="ime_translate_now_action">Перевести</string>
     <string name="ime_translate_offline_build_error">Эта автономная сборка не может выполнять перевод на этом телефоне: её единственный движок, Firefox Translations, требует 64-битный телефон с Android 9 или новее. Для перевода установите стандартную сборку.</string>
     <string name="ime_translate_offline_failed_error">Локальный перевод не был запущен. Попробуйте еще раз или выберите онлайн-движок.</string>
     <string name="ime_translate_offline_import_body">Эта автономная сборка не может выполнять загрузку. Чтобы перевести это, загрузите их на другом устройстве и импортируйте: %1$s. Откройте «Настройки» › «Инструменты» › «Перевод» › «Поставщики» › «На устройстве (Переводчики Firefox)».</string>
@@ -3233,6 +3492,7 @@
     <string name="ime_translate_select_source_desc">Выберите исходный язык</string>
     <string name="ime_translate_server_label">Ваш сервер</string>
     <string name="ime_translate_source_guessed_label">%1$s?</string>
+    <string name="ime_translate_speak_desc">Прочитать перевод вслух</string>
     <string name="ime_translate_swap_desc">Поменять языки местами</string>
     <string name="ime_typing_accuracy_label">точность</string>
     <string name="ime_typing_accuracy_short_label">точн.</string>
@@ -3353,6 +3613,10 @@
     <string name="ime_voice_model_get_language_action">Получить %1$s для автономного голосового ввода</string>
     <string name="ime_voice_permission_action">Разрешить доступ к микрофону</string>
     <string name="ime_voice_permission_body">Для голосового ввода требуется разрешение на использование микрофона. Приложение записывает звук только во время вашей речи.</string>
+    <string name="ime_voice_prompt_fix_custom">Удалите некоторые элементы из списка \"Дополнительные слова для распознавания\" в настройках голосового ввода или сократите запрос.</string>
+    <string name="ime_voice_prompt_fix_personal">Отключите параметр «Слушать мои слова» в настройках голосового ввода или сократите подсказку.</string>
+    <string name="ime_voice_prompt_fix_prompt">Сократите подсказку на экране сервера в настройках голосового ввода до %1$d символов.</string>
+    <string name="ime_voice_prompt_too_long">Этот сервер принимает подсказку длиной до %2$d символов, а эта содержит %1$d: подсказка — %3$d, дополнительные слова для распознавания — %4$d, слушать мои слова — %5$d.</string>
     <string name="ime_voice_secure_field_notice">Голосовой ввод не работает в полях для паролей.</string>
     <string name="ime_voice_server_metered_ask">Включена экономия трафика. Нажмите на микрофон еще раз, чтобы отправить голос через мобильную сеть.</string>
     <string name="ime_voice_server_metered_blocked">Сервер транскрипции отключен, пока вы используете мобильные данные. Вы можете изменить это в Настройках, в разделе Экономия трафика.</string>
@@ -3392,6 +3656,12 @@
     <string name="ime_voice_use_system_action">Использовать системный распознаватель</string>
     <string name="ime_weather_clouds_label">облачно</string>
     <string name="ime_weather_error">Приложение не может загрузить погоду. Проверьте подключение к сети.</string>
+    <string name="ime_weather_event_back_desc">Назад к календарю</string>
+    <string name="ime_weather_event_home_place">%1$s (местоположение погоды)</string>
+    <string name="ime_weather_event_home_unnamed">Ваше местоположение погоды</string>
+    <string name="ime_weather_event_hour_desc">%1$s: %2$s, %3$s, вероятность дождя %4$s</string>
+    <string name="ime_weather_event_no_hours">Прогноз погоды на этот день пока недоступен.</string>
+    <string name="ime_weather_event_rain_info">Вероятность дождя: %1$d%%</string>
     <string name="ime_weather_feels_like_label">ощущается как</string>
     <string name="ime_weather_high_low_info">Макс. %1$d° Мин. %2$d°</string>
     <string name="ime_weather_humidity_label">влажность</string>
@@ -3507,6 +3777,7 @@
     <string name="ime_wmpass_no_password">WM Pass не создал пароль. Возможно, хранилище заблокировано.</string>
     <string name="ime_wmpass_no_username">Для этого входа нет имени пользователя для заполнения.</string>
     <string name="ime_wmpass_no_vault">В WM Pass пока нет хранилища. Сначала создайте его там.</string>
+    <string name="ime_wmpass_not_released">WM Pass еще не вышел. Этот инструмент начнет работать после его выпуска и установки.</string>
     <string name="ime_wmpass_not_set">Не задано</string>
     <string name="ime_wmpass_off">Чтобы использовать это, включите «Разрешить клавиатуре WM заполнять WM Pass» в разделе «Настройки» &gt; «Безопасность».</string>
     <string name="ime_wmpass_open">Открыть WM Pass</string>

@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">फुरिगाना पठन</string>
     <string name="core_input_cjk_pack_hanja_subtitle">हांगुल शब्द और उनके हान्जा, 300,000 प्रविष्टियाँ। सुझाव पट्टी पर हान्जा की पेशकश करने के लिए कीबोर्ड को इस पैक की आवश्यकता है।</string>
     <string name="core_input_cjk_pack_hanja_title">हांजा (漢字) शब्दकोश</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, ताकि उपसर्गों और प्रत्ययों वाले शब्द की पहचान हो सके और उसमें मौजूद टाइपिंग की गलती ठीक हो सके।</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">अरबी वर्तनी शब्दकोश</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, ताकि किसी भी प्रत्यय वाले शब्द ज्ञात हों और उनमें टाइपिंग की अशुद्धियां ठीक हो जाएं।</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">तुर्की वर्तनी नियम</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">mozc से काना रीडिंग, 1.08 मिलियन प्रविष्टियाँ, लगभग 42 MB। जापानी रूपांतरण के लिए कीबोर्ड को इस पैक की आवश्यकता है।</string>

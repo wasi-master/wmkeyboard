@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">ಉತ್ತರಿಸುವ ಮುನ್ನ ಯೋಚಿಸುವ ಇತ್ತೀಚಿನ ಮಧ್ಯಮ ಗಾತ್ರದ ಮಾದರಿ. ಇದಕ್ಕೆ ಮಧ್ಯಮ ಶ್ರೇಣಿಯ ಸಾಧನದ ಅಗತ್ಯವಿದೆ.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">ಚಿಕ್ಕದು ಮತ್ತು ವೇಗವಾದುದು. ಇದು ಮೂಲಭೂತ ಸಾಧನಗಳಲ್ಲಿ ತ್ವರಿತವಾಗಿ ಮರುಬರೆಯಲು ಉತ್ತಮವಾಗಿದೆ.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">ಚಿತ್ರಗಳನ್ನು ಓದಬಲ್ಲ ಅತ್ಯಂತ ಸಣ್ಣ ಮಾಡೆಲ್. ಇದು ಚಿತ್ರವನ್ನು ವಿವರಿಸುತ್ತದೆ, ಆದರೆ ಸ್ಕ್ರೀನ್‌ಶಾಟ್‌ನಲ್ಲಿರುವ ಪಠ್ಯವನ್ನು ಆಗಾಗ್ಗೆ ತಪ್ಪಾಗಿ ಓದುತ್ತದೆ.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">ಸೂಚನೆಗಳನ್ನು ಅನುಸರಿಸಲು ಮತ್ತು ಪರಿಕರಗಳನ್ನು ಬಳಸಲು ಜೆಮ್ಮಾ 4 E4B ನ NVIDIA ಮರುತರಬೇತಿ. ಪಠ್ಯ ಮಾತ್ರ, ಮತ್ತು ಇದಕ್ಕೆ ಶಕ್ತಿಶಾಲಿ ಸಾಧನದ ಅಗತ್ಯವಿದೆ.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">ಮೂಲ ಸಾಧನದಲ್ಲಿಯೂ ಹೊಂದಿಕೊಳ್ಳುವ ಸಾಮಾನ್ಯ ಉದ್ದೇಶದ ಮಾದರಿ.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B ಗಿಂತ ಕಡಿಮೆ ಇರುವ ಮಾದರಿಗಳಿಗಿಂತ ಸ್ಪಷ್ಟವಾಗಿ ಬುದ್ಧಿವಂತವಾಗಿದೆ. ಇದಕ್ಕೆ ಮಧ್ಯಮ ಶ್ರೇಣಿಯ ಸಾಧನದ ಅಗತ್ಯವಿದೆ.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">ಇತ್ತೀಚಿನ ಸಣ್ಣ ಮಾದರಿ. ಅದರ ಗಾತ್ರಕ್ಕೆ ಅನುಗುಣವಾಗಿ ಗುಣಮಟ್ಟವು ಹೆಚ್ಚಾಗಿದೆ.</string>

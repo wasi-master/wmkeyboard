@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">Furigana-Lesungen</string>
     <string name="core_input_cjk_pack_hanja_subtitle">Hangul-Wörter und deren Hanja, 300.000 Einträge. Die Tastatur benötigt dieses Paket, um Hanja in der Vorschlagsleiste anzubieten.</string>
     <string name="core_input_cjk_pack_hanja_title">Hanja-Wörterbuch (漢字)</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, sodass ein Wort mit seinen Vor- und Nachsilben bekannt ist und Tippfehler darin korrigiert werden.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">Arabisches Rechtschreibwörterbuch</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, sodass Wörter mit beliebigen Suffixen bekannt sind und Tippfehler darin korrigiert werden.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">Türkische Rechtschreibregeln</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">Kana-Lesungen von mozc, 1,08 Millionen Einträge, ca. 42 MB. Die Tastatur benötigt dieses Paket für die japanische Konvertierung.</string>

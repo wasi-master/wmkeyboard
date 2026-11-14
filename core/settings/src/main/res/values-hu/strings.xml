@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Sáv, buborék és billentyűk</string>
     <string name="core_settings_glide_commit_scope_pill_label">Sáv és kapszula</string>
     <string name="core_settings_glide_commit_scope_strip_label">Sáv</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">Visszavonás után</string>
+    <string name="core_settings_glide_drawn_letters_off_label">Ki</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">Bizonytalanság esetén</string>
     <string name="core_settings_glide_engine_built_in_label">Beépített</string>
     <string name="core_settings_glide_engine_futo_label">FUTO Swipe (angol, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">A Google gesztuskönyvtára (importált)</string>

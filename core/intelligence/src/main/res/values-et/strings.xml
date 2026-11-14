@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Hiljutine keskmise suurusega mudel, mis mõtleb enne vastamist. Vajab keskklassi seadet.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Väike ja kiire. Sobib hästi kiireteks ümberkirjutusteks lihtsamates seadmetes.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Väga väike mudel, mis oskab pilte lugeda. See kirjeldab pilti, kuid loeb ekraanitõmmistel olevat teksti sageli valesti.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">NVIDIA ümberõpe mudelile Gemma 4 E4B juhiste järgimiseks ja tööriistade kasutamiseks. Ainult tekst ja see vajab võimsat seadet.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Üldotstarbeline mudel, mis mahub endiselt lihtsasse seadmesse.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Selgelt nutikam kui alla 1B mudelid. See vajab keskklassi seadet.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Hiljutine väike mudel. Kvaliteet on oma suuruse kohta kõrge.</string>

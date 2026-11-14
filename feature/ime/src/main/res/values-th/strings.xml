@@ -176,6 +176,7 @@
     <string name="ime_ai_error_no_text">ไม่มีข้อความให้ประมวลผล โปรดพิมพ์ข้อความก่อน</string>
     <string name="ime_ai_error_only_reasoning">โมเดลใช้การตอบสนองทั้งหมดในการให้เหตุผล โปรดลองอีกครั้ง หรือเปิด “แสดงการให้เหตุผล” ในการตั้งค่า</string>
     <string name="ime_ai_error_request_failed">คำขอล้มเหลว</string>
+    <string name="ime_ai_error_stopped_hidden">หยุดการทำงานเนื่องจากแป้นพิมพ์ถูกปิด ลองใหม่อีกครั้งเพื่อเรียกใช้</string>
     <string name="ime_ai_idle_body">การดำเนินการจะทำงานกับข้อความที่เลือกหรือทั้งฟิลด์ โดยใช้ %1$s</string>
     <string name="ime_ai_idle_empty_body">พิมพ์หรือเลือกข้อความเพื่อใช้คำสั่งเหล่านี้ กด %1$s เพื่อเขียนข้อความใหม่</string>
     <string name="ime_ai_idle_empty_no_writer_body">พิมพ์หรือเลือกข้อความเพื่อใช้การดำเนินการเหล่านี้</string>
@@ -307,9 +308,11 @@
     <string name="ime_app_colors_none">ไม่พบสีในแอปนี้</string>
     <string name="ime_app_colors_off_desc">ไม่ต้องใช้สีของแอปนี้</string>
     <string name="ime_app_colors_pick_desc">สีแอป %1$d</string>
+    <string name="ime_applet_back">ย้อนกลับ</string>
     <string name="ime_applet_close">ปิดกล่อง</string>
     <string name="ime_applet_copied">คัดลอกแล้ว</string>
     <string name="ime_applet_open_in_keyboard">เปิดในแป้นพิมพ์</string>
+    <string name="ime_applet_pop_out">เปิดในหน้าต่างลอย</string>
     <string name="ime_applet_resize">ลากเพื่อปรับขนาด</string>
     <string name="ime_applet_tuck">พับเข้าที่ขอบ</string>
     <string name="ime_applet_untuck">นำ %1$s กลับมา</string>
@@ -319,6 +322,33 @@
     <string name="ime_ask_ai_label_vocab">คำศัพท์: %1$s</string>
     <string name="ime_ask_ai_label_wiki">วิกิพีเดีย: %1$s</string>
     <string name="ime_autofill_dismiss_desc">ซ่อนคำแนะนำการป้อนอัตโนมัติ</string>
+    <string name="ime_board_copy_desc">คัดลอกไปยังโทรศัพท์เครื่องนี้</string>
+    <string name="ime_board_delete_body">มันจะหายไปจากทุกอุปกรณ์ที่ใช้บอร์ดนี้ สำเนาที่อยู่ในคลิปบอร์ดของโทรศัพท์เองจะยังคงอยู่</string>
+    <string name="ime_board_delete_desc">นำกระดานออก</string>
+    <string name="ime_board_delete_no">ยกเลิก</string>
+    <string name="ime_board_delete_title">นำคลิปนี้ออกจากกระดานหรือไม่</string>
+    <string name="ime_board_delete_yes">ถอดออก</string>
+    <string name="ime_board_edit_desc">แก้ไข</string>
+    <string name="ime_board_empty_body">คลิปที่ส่งมาที่นี่จะแสดงบนอุปกรณ์อื่นๆ ของคุณที่ใช้โฟลเดอร์เดียวกัน แม้แต่อุปกรณ์ที่ออฟไลน์อยู่ตอนนี้</string>
+    <string name="ime_board_empty_title">ไม่มีอะไรบนกระดาน</string>
+    <string name="ime_board_notice_copied">คัดลอกแล้ว</string>
+    <string name="ime_board_notice_deleted">นำออกจากบอร์ดแล้ว</string>
+    <string name="ime_board_notice_refused">เฉพาะคลิปข้อความที่ไม่ถูกซ่อนเท่านั้นที่สามารถวางบนกระดานได้</string>
+    <string name="ime_board_notice_sent">ส่งไปยังกระดานแล้ว</string>
+    <string name="ime_board_send_desc">ส่งคลิป</string>
+    <string name="ime_board_send_done">เสร็จสิ้น</string>
+    <string name="ime_board_send_empty">ไม่มีคลิปข้อความที่จะส่ง รูปภาพ ไฟล์ และคลิปที่ซ่อนอยู่จะยังคงอยู่บนโทรศัพท์เครื่องนี้</string>
+    <string name="ime_board_send_one_desc">ส่ง</string>
+    <string name="ime_board_send_title">ส่งไปยังกระดาน</string>
+    <string name="ime_board_sent_desc">ส่งแล้ว</string>
+    <string name="ime_board_status_failed">ไม่สามารถเชื่อมต่อกับบอร์ดได้</string>
+    <string name="ime_board_status_never">ยังไม่ได้ตรวจสอบ</string>
+    <string name="ime_board_status_synced">ตรวจสอบแล้ว %1$s</string>
+    <string name="ime_board_status_syncing">กำลังตรวจสอบกระดาน…</string>
+    <string name="ime_board_status_waiting">กำลังรอเชื่อมต่อกับบอร์ด</string>
+    <string name="ime_board_status_waiting_offline">ไม่สามารถเชื่อมต่อกับกระดานได้ การเปลี่ยนแปลงของคุณจะถูกส่งออกไปเมื่อเชื่อมต่อได้</string>
+    <string name="ime_board_sync_desc">ตรวจสอบกระดานตอนนี้</string>
+    <string name="ime_board_title">กระดานที่แชร์</string>
     <string name="ime_calc_degrees_label">องศา</string>
     <string name="ime_calc_insert_action">แทรก</string>
     <string name="ime_calc_radians_label">เรเดียน</string>
@@ -471,7 +501,9 @@
     </plurals>
     <string name="ime_calendar_untitled">(ไม่มีชื่อ)</string>
     <string name="ime_calendar_view_agenda">วาระการประชุม</string>
+    <string name="ime_calendar_view_day">วัน</string>
     <string name="ime_calendar_view_month">เดือน</string>
+    <string name="ime_calendar_weather_desc">%1$s, %2$s ใน %3$s เปิดพยากรณ์อากาศรายชั่วโมง</string>
     <string name="ime_calendar_yesterday_label">เมื่อวานนี้</string>
     <string name="ime_calendar_zone_note">เวลาใน %1$s</string>
     <string name="ime_camera_captured_photo_desc">รูปภาพที่คุณถ่าย</string>
@@ -543,6 +575,7 @@
         <item quantity="one">รวม %1$d คลิป</item>
         <item quantity="other">รวม %1$d คลิป</item>
     </plurals>
+    <string name="ime_clip_compose_email">เขียนอีเมล</string>
     <string name="ime_clip_delete_pinned_question">ลบคลิปที่ปักหมุดนี้หรือไม่?</string>
     <plurals name="ime_clip_deleted">
         <item quantity="one">ลบคลิปแล้ว</item>
@@ -563,6 +596,7 @@
         <item quantity="other">แสดงรายการที่พบ %1$d รายการในคลิปของคุณ</item>
     </plurals>
     <string name="ime_clip_extract_codes">รหัสใช้ครั้งเดียว</string>
+    <string name="ime_clip_extract_emails">ที่อยู่อีเมล</string>
     <string name="ime_clip_extract_links">ลิงก์</string>
     <string name="ime_clip_extract_parts">แยก</string>
     <string name="ime_clip_extract_phones">หมายเลขโทรศัพท์</string>
@@ -589,6 +623,7 @@
         <item quantity="one">ซ่อนอยู่ · %1$d ตัวอักษร</item>
         <item quantity="other">ซ่อนอยู่ · %1$d ตัวอักษร</item>
     </plurals>
+    <string name="ime_clip_image_pasted_toast">วางจากคลิปบอร์ดแล้ว หากไม่มีอะไรเข้ามา แอปนี้จะไม่ถ่ายรูป: ค้างคลิปไว้เพื่อแชร์</string>
     <string name="ime_clip_info_copied">คัดลอกแล้ว</string>
     <string name="ime_clip_info_edited">แก้ไขแล้ว</string>
     <string name="ime_clip_info_from">จาก</string>
@@ -642,7 +677,12 @@
         <item quantity="other">เลือกแล้ว %1$d รายการ</item>
     </plurals>
     <string name="ime_clip_send_as_sticker">ส่งเป็นสติกเกอร์</string>
+    <string name="ime_clip_shape_code">รหัส</string>
+    <string name="ime_clip_shape_markdown">มาร์กดาวน์</string>
+    <string name="ime_clip_share_image">แชร์</string>
+    <string name="ime_clip_show_formatted">แสดงรูปแบบ</string>
     <string name="ime_clip_show_in_history">แสดงในประวัติ</string>
+    <string name="ime_clip_show_raw">แสดงแบบดิบ</string>
     <string name="ime_clip_tags">แท็ก</string>
     <string name="ime_clip_tags_placeholder">แท็ก โดยคั่นด้วยเครื่องหมายจุลภาค</string>
     <string name="ime_clip_tags_title">แท็ก</string>
@@ -905,6 +945,7 @@
     <string name="ime_conversion_pack_offer">ดาวน์โหลด %1$s เพื่อพิมพ์ตัวอักษร</string>
     <string name="ime_conversion_pack_offer_dismiss_desc">ปิด</string>
     <string name="ime_converter_from_label">จาก</string>
+    <string name="ime_converter_tab_units">หน่วย</string>
     <string name="ime_converter_to_label">ถึง</string>
     <string name="ime_currency_insert_action">แทรก</string>
     <string name="ime_currency_progress">กำลังดาวน์โหลดอัตราแลกเปลี่ยน...</string>
@@ -913,6 +954,32 @@
     <string name="ime_currency_section_crypto">คริปโต</string>
     <string name="ime_currency_section_popular">ทั่วไป</string>
     <string name="ime_currency_swap_desc">สลับสกุลเงิน</string>
+    <string name="ime_custom_button_desc">เปิด %1$s</string>
+    <string name="ime_custom_button_label">ปุ่มกำหนดเอง</string>
+    <string name="ime_custom_button_shortcut_failed">ไม่สามารถเปิดทางลัดนั้นได้ แอปอาจถูกลบไปแล้ว หรืออนุญาตให้เปิดได้เฉพาะจากหน้าจอหลักเท่านั้น</string>
+    <string name="ime_custom_page_clipboard">การตั้งค่าคลิปบอร์ด</string>
+    <string name="ime_custom_page_custom_buttons">ปุ่มกำหนดเอง</string>
+    <string name="ime_custom_page_dictionary">พจนานุกรม</string>
+    <string name="ime_custom_page_favourites">รายการโปรด</string>
+    <string name="ime_custom_page_home">การตั้งค่า</string>
+    <string name="ime_custom_page_keypress">เสียงและการสั่น</string>
+    <string name="ime_custom_page_languages">ภาษา</string>
+    <string name="ime_custom_page_search">การตั้งค่าการค้นหา</string>
+    <string name="ime_custom_page_themes">ธีม</string>
+    <string name="ime_custom_page_toolbar">การตั้งค่าแถบเครื่องมือ</string>
+    <string name="ime_custom_page_tools">เครื่องมือ</string>
+    <string name="ime_custom_page_typing">การพิมพ์</string>
+    <string name="ime_custom_toggle_auto_caps">ตัวพิมพ์ใหญ่อัตโนมัติ</string>
+    <string name="ime_custom_toggle_glide">การพิมพ์แบบลากนิ้ว</string>
+    <string name="ime_custom_toggle_key_hints">คำใบ้ปุ่ม</string>
+    <string name="ime_custom_toggle_key_popup">ป๊อปอัปปุ่ม</string>
+    <string name="ime_custom_toggle_number_row">แถวตัวเลข</string>
+    <string name="ime_custom_toggle_reduce_motion">ลัดการเฉลียงการเคลื่อนหรือ</string>
+    <string name="ime_custom_toggle_sound">เสียงปุ่ม</string>
+    <string name="ime_custom_toggle_suggestions">คำแนะนำ</string>
+    <string name="ime_custom_toggle_symbol_row">แถวสัญลักษณ์</string>
+    <string name="ime_custom_toggle_toolbar_labels">ชื่อแถบเครื่องมือ</string>
+    <string name="ime_custom_toggle_vibration">การสั่น</string>
     <string name="ime_delete_redo_chip">ทำซ้ำ “%1$s”</string>
     <string name="ime_delete_redo_plain">ลบอีกครั้ง</string>
     <string name="ime_delete_undo_chip">เลิกทำ “%1$s”</string>
@@ -950,6 +1017,7 @@
     <string name="ime_disabled_correction_invalid">พิมพ์คำอื่นเพื่อแก้ไข คำที่กำลังแก้ไขต้องมีอย่างน้อย 3 ตัวอักษร และการแก้ไขอาจเป็นหนึ่งคำ หรือสองคำในกรณีที่เว้นวรรคผิด</string>
     <string name="ime_disabled_media_app_blocks">แอปที่กำลังเล่นอยู่ไม่อนุญาตให้ทำเช่นนี้</string>
     <string name="ime_disabled_spell_unchanged">โปรดเปลี่ยนการสะกดคำก่อน เนื่องจากไม่มีการสะกดคำหรือการสะกดที่ไม่มีการเปลี่ยนแปลงจึงไม่มีสิ่งใดให้ใช้</string>
+    <string name="ime_disabled_translate_empty_box">กล่องข้อความว่างเปล่า หรือการแปลยังไม่เสร็จสิ้น</string>
     <string name="ime_disabled_translate_nothing">ยังไม่มีการแปลข้อความใด โปรดพิมพ์หรือวางข้อความเพื่อทำการแปลก่อน</string>
     <string name="ime_disabled_translate_same_language">ข้อความเป็นภาษาเดียวกับที่คุณต้องการแปลอยู่แล้ว</string>
     <string name="ime_disabled_voice_undo">ยังไม่มีสิ่งให้เลิกทำ การเลิกทำจะเป็นการย้อนกลับวลีล่าสุดที่คุณพูด</string>
@@ -979,6 +1047,10 @@
     <string name="ime_docscan_next">ครอบตัด</string>
     <string name="ime_docscan_open_settings">เปิดการตั้งค่า</string>
     <string name="ime_docscan_page_number">หน้า %1$d</string>
+    <plurals name="ime_docscan_pages_album">
+        <item quantity="one">หน้านี้จะเปิดขึ้นในหน้าจอแชร์ของแอป</item>
+        <item quantity="other">แอปนี้จะถ่ายภาพทีละภาพที่นี่ ดังนั้น %d หน้าจะเปิดขึ้นพร้อมกันในหน้าจอแชร์ เพื่อส่งเป็นอัลบั้มเดียว</item>
+    </plurals>
     <plurals name="ime_docscan_pages_shared">
         <item quantity="one">แอปไม่ได้รับหน้าสุดท้ายที่นี่ จึงเปิดในหน้าจอแชร์ของแอป</item>
         <item quantity="other">แอปไม่ได้รับ %d หน้าที่นี่ จึงเปิดพร้อมกันในหน้าจอแชร์ของแอป</item>
@@ -1061,10 +1133,15 @@
     <string name="ime_files_access_pick">เครื่องมือเลือกของ Android</string>
     <string name="ime_files_access_title">เลือกไฟล์โดยไม่ต้องออกจากแป้นพิมพ์</string>
     <string name="ime_files_add">เพิ่ม</string>
+    <string name="ime_files_add_tree">เพิ่มโฟลเดอร์</string>
+    <string name="ime_files_add_tree_detail">ไดรฟ์ USB, การ์ด SD หรือโฟลเดอร์ที่แอปอื่นแชร์ เช่น เน็ตเวิร์กไดรฟ์</string>
+    <string name="ime_files_allow_all">พื้นที่เก็บข้อมูลทั้งหมดของโทรศัพท์</string>
+    <string name="ime_files_allow_all_detail">ต้องใช้สิทธิ์เข้าถึงไฟล์ทั้งหมดของ Android</string>
     <string name="ime_files_camera">กล้อง</string>
     <string name="ime_files_clear_desc">ล้างการเลือก</string>
     <string name="ime_files_collapse_desc">ทำให้สั้นลง</string>
     <string name="ime_files_copy_desc">คัดลอก</string>
+    <string name="ime_files_copy_to">คัดลอกไปยัง %1$s</string>
     <string name="ime_files_delete_body">โฟลเดอร์จะหายไปพร้อมกับทุกสิ่งที่อยู่ข้างใน การดำเนินการนี้ถาวร: Android ไม่มีถังรีไซเคิลสำหรับไฟล์</string>
     <string name="ime_files_delete_desc">ลบ</string>
     <string name="ime_files_delete_no">ยกเลิก</string>
@@ -1081,8 +1158,11 @@
     <string name="ime_files_expand_desc">ทำให้สูงขึ้น</string>
     <string name="ime_files_hide_hidden">ซ่อนไฟล์ที่ซ่อนอยู่</string>
     <string name="ime_files_kde_unreadable">ไม่สามารถอ่านไฟล์นั้นเพื่อส่งได้</string>
+    <string name="ime_files_locked_body">ตัวจัดการไฟล์จะไม่เปิดทับหน้าจอล็อก</string>
+    <string name="ime_files_locked_title">ปลดล็อกเพื่อดูไฟล์ของคุณ</string>
     <string name="ime_files_more_desc">เพิ่มเติม</string>
     <string name="ime_files_move_desc">ย้าย</string>
+    <string name="ime_files_move_to">ย้ายไปที่ %1$s</string>
     <string name="ime_files_movies">ภาพยนตร์</string>
     <string name="ime_files_music">เพลง</string>
     <string name="ime_files_new_folder">โฟลเดอร์ใหม่</string>
@@ -1108,6 +1188,8 @@
         <item quantity="one">ย้ายแล้ว %d รายการ</item>
         <item quantity="other">ย้ายแล้ว %d รายการ</item>
     </plurals>
+    <string name="ime_files_notice_tree_removed">นำโฟลเดอร์ออกจากรายการแล้ว</string>
+    <string name="ime_files_one_pane_desc">รายการเดียว</string>
     <string name="ime_files_op_cancel">หยุด</string>
     <string name="ime_files_op_copy">กำลังคัดลอก %1$d จาก %2$d</string>
     <string name="ime_files_op_delete">กำลังลบ %1$d จาก %2$d</string>
@@ -1124,6 +1206,9 @@
     <string name="ime_files_pictures">รูปภาพ</string>
     <string name="ime_files_places">สถานที่</string>
     <string name="ime_files_recent">รายการล่าสุด</string>
+    <string name="ime_files_remove_tree_body">โฟลเดอร์และไฟล์จะยังคงอยู่ คุณสามารถเพิ่มใหม่ได้ตลอดเวลา</string>
+    <string name="ime_files_remove_tree_title">นำ “%1$s” ออกจากรายการไหม</string>
+    <string name="ime_files_remove_tree_yes">นำออก</string>
     <string name="ime_files_rename_desc">เปลี่ยนชื่อ</string>
     <string name="ime_files_rename_hint">ชื่อใหม่</string>
     <string name="ime_files_search_clear_desc">สิ้นสุดการค้นหา</string>
@@ -1142,6 +1227,7 @@
     <string name="ime_files_title_many">เลีอกไฟล์</string>
     <string name="ime_files_title_one">เลือกไฟล์</string>
     <string name="ime_files_title_picture">เลือกรูปภาพ</string>
+    <string name="ime_files_two_panes_desc">สองรายการเคียงข้างกัน</string>
     <string name="ime_files_unreadable">Android ไม่อนุญาตให้คีย์บอร์ดเปิดโฟลเดอร์นี้</string>
     <string name="ime_find_case_desc">จับคู่ตัวพิมพ์เล็ก-ใหญ่</string>
     <string name="ime_find_clear_desc">ล้าง %1$s</string>
@@ -1173,6 +1259,24 @@
     <string name="ime_floating_category_empty">หมวดหมู่นี้ว่างเปล่า เพิ่มการดำเนินการในหมวดหมู่นี้ได้ในการตั้งค่าปุ่มลอย</string>
     <string name="ime_floating_category_label">หมวดหมู่</string>
     <string name="ime_floating_close_menu">ปิดเมนู</string>
+    <string name="ime_floating_device_bluetooth">บลูทูธ</string>
+    <string name="ime_floating_device_bluetooth_desc">เปิดหรือปิดบลูทูธ</string>
+    <string name="ime_floating_device_bluetooth_page_desc">เปิดหน้าบลูทูธของ Android</string>
+    <string name="ime_floating_device_data">ข้อมูลมือถือ</string>
+    <string name="ime_floating_device_data_desc">เปิดหรือปิดข้อมูลมือถือ</string>
+    <string name="ime_floating_device_data_panel_desc">เปิดแผงอินเทอร์เน็ตของ Android</string>
+    <string name="ime_floating_device_failed">Android ไม่อนุญาตให้ดำเนินการดังกล่าว</string>
+    <string name="ime_floating_device_hotspot">ฮอตสปอต</string>
+    <string name="ime_floating_device_hotspot_desc">เปิดหน้าฮอตสปอตของ Android</string>
+    <string name="ime_floating_device_off">%1$s ปิดอยู่</string>
+    <string name="ime_floating_device_on">%1$s เปิดอยู่</string>
+    <string name="ime_floating_device_ringer">โหมดเสียงกริ่ง</string>
+    <string name="ime_floating_device_ringer_desc">เสียงเรียกเข้า, สั่น และปิดเสียง สลับกันไป</string>
+    <string name="ime_floating_device_volume">แผงระดับเสียง</string>
+    <string name="ime_floating_device_volume_desc">เปิดแผงระดับเสียงของ Android พร้อมกับแถบเลื่อนระดับเสียงทั้งหมด</string>
+    <string name="ime_floating_device_wifi">Wi-Fi</string>
+    <string name="ime_floating_device_wifi_desc">เปิดหรือปิด Wi-Fi</string>
+    <string name="ime_floating_device_wifi_panel_desc">เปิดแผง Wi-Fi ของ Android</string>
     <string name="ime_floating_dismiss_target">วางที่นี่เพื่อซ่อนปุ่ม</string>
     <string name="ime_floating_dock_desc">ยึดแป้นพิมพ์</string>
     <string name="ime_floating_hide_label">ซ่อนปุ่ม</string>
@@ -1183,7 +1287,11 @@
     <string name="ime_floating_pair_label">เปิดคู่แอป</string>
     <string name="ime_floating_pair_missing">แอปพลิเคชันหนึ่งในสองแอปนี้ไม่ได้ติดตั้งอยู่อีกต่อไป</string>
     <string name="ime_floating_pair_name">%1$s + %2$s</string>
+    <string name="ime_floating_plugin_label">ปลั๊กอิน</string>
     <string name="ime_floating_resize_desc">ปรับขนาดแป้นพิมพ์</string>
+    <string name="ime_floating_ringer_ring">เสียงเรียกเข้า</string>
+    <string name="ime_floating_ringer_silent">ปิดเสียง</string>
+    <string name="ime_floating_ringer_vibrate">สั่น</string>
     <string name="ime_floating_system_app_drawer">ลิ้นชักแอป</string>
     <string name="ime_floating_system_back">ย้อนกลับ</string>
     <string name="ime_floating_system_notifications">การแจ้งเตือน</string>
@@ -1241,6 +1349,7 @@
     <string name="ime_gallery_album_camera">กล้อง</string>
     <string name="ime_gallery_album_favorites">รายการโปรด</string>
     <string name="ime_gallery_album_gifs">GIF</string>
+    <string name="ime_gallery_album_immich">Immich</string>
     <string name="ime_gallery_album_recents">ล่าสุด</string>
     <string name="ime_gallery_album_screenshots">ภาพหน้าจอ</string>
     <string name="ime_gallery_album_sent">ส่งจากคีย์บอร์ดแล้ว</string>
@@ -1332,6 +1441,10 @@
     <string name="ime_gallery_info_taken">ถ่ายเมื่อ</string>
     <string name="ime_gallery_layer_delete">ลบ</string>
     <string name="ime_gallery_more_desc">ตัวเลือกแกลเลอรีเพิ่มเติม</string>
+    <plurals name="ime_gallery_notice_already_uploaded">
+        <item quantity="one">Immich มีรูปภาพ %d รูปอยู่แล้ว</item>
+        <item quantity="other">Immich มีรูปภาพทั้งสิ้น %d รูปอยู่แล้ว</item>
+    </plurals>
     <plurals name="ime_gallery_notice_copied">
         <item quantity="one">คัดลอกแล้ว %d รายการ</item>
         <item quantity="other">คัดลอกแล้ว %d รายการ</item>
@@ -1340,6 +1453,8 @@
         <item quantity="one">ไม่สามารถอ่าน %d รายการ</item>
         <item quantity="other">ไม่สามารถอ่าน %d รายการ</item>
     </plurals>
+    <string name="ime_gallery_notice_immich_failed">ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ Immich ของคุณได้</string>
+    <string name="ime_gallery_notice_immich_refused">Immich ปฏิเสธคีย์ API โปรดตรวจสอบสิทธิ์</string>
     <plurals name="ime_gallery_notice_limit">
         <item quantity="one">คุณสามารถเลือกได้ครั้งละ %d รายการ</item>
         <item quantity="other">คุณสามารถเลือกได้สูงสุดครั้งละ %d รายการ</item>
@@ -1360,6 +1475,14 @@
     <plurals name="ime_gallery_notice_shared">
         <item quantity="one">เปิดหน้าจอแชร์สำหรับ %d รายการ</item>
         <item quantity="other">เปิดหน้าจอแชร์สำหรับ %d รายการ</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_upload_failed">
+        <item quantity="one">อัปโหลดรูปภาพ %d รูปไม่สำเร็จ</item>
+        <item quantity="other">อัปโหลดรูปภาพ %d รูปไม่สำเร็จ</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_uploaded">
+        <item quantity="one">อัปโหลดรูปภาพ %d รูปไปยัง Immich แล้ว</item>
+        <item quantity="other">อัปโหลดรูปภาพ %d รูปไปยัง Immich แล้ว</item>
     </plurals>
     <string name="ime_gallery_partial_action">เลือกเพิ่ม</string>
     <string name="ime_gallery_partial_body">คุณอนุญาตให้เข้าถึงรูปภาพได้เพียงบางส่วน</string>
@@ -1403,6 +1526,7 @@
     <string name="ime_gallery_tool_stickers">สติกเกอร์</string>
     <string name="ime_gallery_tool_text">ข้อความ</string>
     <string name="ime_gallery_tool_upscale">ขยายภาพ</string>
+    <string name="ime_gallery_upload_immich">อัปโหลดไปยัง Immich</string>
     <string name="ime_gallery_upscale_art">ภาพวาดหรือข้อความ</string>
     <string name="ime_gallery_upscale_done">ขยายขนาด ×%1$d: %2$d × %3$d</string>
     <string name="ime_gallery_upscale_downloading">แอปกำลังดาวน์โหลดตัวขยายภาพ...</string>
@@ -1661,6 +1785,9 @@
     <string name="ime_handwriting_unsupported_info">แอปเวอร์ชันนี้รองรับการเขียนด้วยลายมือภาษาจีนและภาษาญี่ปุ่นเท่านั้น โปรดเพิ่มภาษาใดภาษาหนึ่งในส่วนภาษาเพื่อเขียนที่นี่</string>
     <string name="ime_hardware_keys_hide_desc">ซ่อนคีย์</string>
     <string name="ime_hardware_keys_show_desc">แสดงปุ่ม</string>
+    <string name="ime_homophones_finish">พิมพ์คำที่คุณกำลังพิมพ์อยู่ให้เสร็จก่อน</string>
+    <string name="ime_homophones_none">ไม่มีคำใดในโทรศัพท์เครื่องนี้ที่มีเสียงคล้ายกับ %1$s ชุดภาษาหรือสคีมา RIME จะเป็นตัวเพิ่มการอ่านออกเสียง</string>
+    <string name="ime_homophones_none_before">พิมฎ์ตัวอะไรอย่างก่อน</string>
     <string name="ime_hw_pick_mode_off_toast">ปิดโหมดเลือก</string>
     <string name="ime_hw_pick_mode_on_toast">เปิดโหมดเลือก: ปุ่มตัวเลขใช้เลือกคำแนะนำ, Shift ใช้พิมพ์ตัวเลข</string>
     <string name="ime_icons_builtin_label">ที่มีมาให้ในตัว</string>
@@ -1675,6 +1802,45 @@
     <string name="ime_image_search_need_key_body">การค้นหารูปภาพต้องใช้คีย์ API จาก Brave Search โปรดเพิ่มคีย์ในการตั้งค่าสำหรับเครื่องมือนี้</string>
     <string name="ime_incognito_on_desc">เปิดโหมดไม่ระบุตัวตนแล้ว</string>
     <string name="ime_insert_action">แทรก</string>
+    <string name="ime_invite_about_hint">เพิ่มคำอธิบาย</string>
+    <string name="ime_invite_action">เชิญออนไลน์</string>
+    <string name="ime_invite_add_title">เพิ่มชื่อ</string>
+    <string name="ime_invite_error_address">ที่อยู่ %1$s ในการตั้งค่าไม่ใช่ที่อยู่เว็บ</string>
+    <string name="ime_invite_error_bad_token">%1$s ไม่ยอมรับโทเค็น API</string>
+    <string name="ime_invite_error_data_saver">เปิดโหมดประหยัดข้อมูลอยู่ การเผยแพร่จะใช้ปริมาณข้อมูลเพียงไม่กี่กิโลไบต์</string>
+    <string name="ime_invite_error_network">%1$s ไม่ตอบสนอง</string>
+    <string name="ime_invite_error_no_title">คำเชิญต้องมีชื่อ</string>
+    <string name="ime_invite_error_offline">ไม่มีการเชื่อมต่อ เชื่อมต่อแล้วลองใหม่อีกครั้ง</string>
+    <string name="ime_invite_error_refused">%1$s ระบุว่าบัญชีนี้ไม่สามารถสร้างเหตุการณ์ที่นั่นได้</string>
+    <string name="ime_invite_error_rejected">%1$s ปฏิเสธกิจกรรมแล้ว</string>
+    <string name="ime_invite_error_signed_out">%1$s ลงชื่อคุณออกแล้ว ลงชื่อเข้าใช้อีกครั้งในการตั้งค่า</string>
+    <string name="ime_invite_fix_in_pretix">เปิด Pretix</string>
+    <string name="ime_invite_go_ahead">ดำเนินการต่อ</string>
+    <string name="ime_invite_insert_link">แทรก 1 ลิงก์</string>
+    <string name="ime_invite_insert_message">แทรกคำเชิญ</string>
+    <string name="ime_invite_link_only">เฉพาะผู้ที่มีลิงก์เท่านั้น</string>
+    <string name="ime_invite_listed">แสดงรายการสาธารณะ</string>
+    <string name="ime_invite_made">สร้างเมื่อ %1$s ยังไม่เปิดให้ลงทะเบียน</string>
+    <string name="ime_invite_not_live">Pretix สร้างอีเวนต์แล้วแต่ยังไม่เปิดให้ลงทะเบียน %1$s</string>
+    <string name="ime_invite_not_set_up_body">ลงชื่อเข้าใช้ Mobilizon หรือเพิ่มเซิร์ฟเวอร์ Pretix ในการตั้งค่าเครื่องมือปฏิทินก่อน</string>
+    <string name="ime_invite_not_set_up_title">ยังไม่มีบริการกิจกรรม</string>
+    <string name="ime_invite_note_mobilizon">ผู้คนลงทะเบียนบนหน้ากิจกรรม Mobilizon จะส่งอีเมลหาคุณเมื่อมีผู้ลงทะเบียน</string>
+    <string name="ime_invite_note_pretix">งานนี้จะได้รับตั๋วฟรีหนึ่งใบ เพื่อให้ผู้คนลงทะเบียนในหน้าของงานด้วยที่อยู่อีเมล</string>
+    <string name="ime_invite_open_page">เปิดหน้า</string>
+    <string name="ime_invite_open_settings">การตั้งค่า</string>
+    <string name="ime_invite_place_hint">เพิ่มสถานที่หรือลิงก์</string>
+    <string name="ime_invite_places_any">ไม่จำกำก</string>
+    <string name="ime_invite_places_label">สถานที่</string>
+    <string name="ime_invite_post_as">โพสต์ในฐานะ %1$s</string>
+    <string name="ime_invite_post_as_default">โพสต์เป็นโปรไฟล์ของคุณ</string>
+    <string name="ime_invite_post_as_loading">กำลังโหลดโปรไฟล์ของคุณ...</string>
+    <string name="ime_invite_publish">เผยแพร่</string>
+    <string name="ime_invite_published">เผยแพร่เมื่อ %1$s</string>
+    <string name="ime_invite_publishing">กำลังเผยแพร่...</string>
+    <string name="ime_invite_publishing_to">กำลังเผยแพร่ไปยัง %1$s</string>
+    <string name="ime_invite_ticket_name">ลงทะเบียน</string>
+    <string name="ime_invite_title">เชิญออนไลน์</string>
+    <string name="ime_invite_try_again">ลองใหม่อีกครั้ง</string>
     <string name="ime_kaomoji_add">เพิ่มคาโอโมจิ</string>
     <string name="ime_kaomoji_all">ทั้งหมด</string>
     <string name="ime_kaomoji_cancel">ยกเลิก</string>
@@ -1962,6 +2128,7 @@
     <string name="ime_learn_text_action">เรียนรู้ข้อความ</string>
     <string name="ime_learn_word_never_desc">ไม่เรียนรู้ %1$s</string>
     <string name="ime_learn_word_offer">เพิ่ม \"%1$s\" หรือไม่</string>
+    <string name="ime_legacy_font_output">เอาต์พุตแบบอักษรรุ่นเก่า</string>
     <string name="ime_level_no_sensor_empty">อุปกรณ์ของคุณไม่มีมาตรความเร่ง</string>
     <string name="ime_location_address_failed">ไม่พบที่อยู่ที่นี่ แต่พิกัดยังคงใช้งานได้</string>
     <string name="ime_location_address_looking">กำลังค้นหาที่อยู่...</string>
@@ -2134,6 +2301,29 @@
         <item quantity="other">เก็บถาวรโน้ตแล้ว %d รายการ</item>
     </plurals>
     <string name="ime_notes_archived_badge">เก็บถาวรแล้ว</string>
+    <string name="ime_notes_assist_deck_action">สร้างสำรับการศึกษา</string>
+    <plurals name="ime_notes_assist_deck_action_count">
+        <item quantity="one">สร้างสำรับเรียน (%d การ์ด)</item>
+        <item quantity="other">สร้างสำรับเรียน (%d การ์ด)</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_empty_toast">ไม่มีคำศัพท์ที่มีความหมายสำหรับสร้างการ์ด</string>
+    <plurals name="ime_notes_assist_deck_made_toast">
+        <item quantity="one">สร้างสำรับการเรียน \"%2$s\" ด้วยการ์ด %1$d ใบแล้ว ค้นหาได้ในคำศัพท์</item>
+        <item quantity="other">สร้างสำรับการเรียน \"%2$s\" ด้วยการ์ด %1$d ใบแล้ว ค้นหาได้ในคำศัพท์</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_working_toast">กำลังสร้างกลั่วศึกษา...</string>
+    <string name="ime_notes_assist_details_label">รายละเอียดสำคัญ</string>
+    <string name="ime_notes_assist_heading_busy">กำลังคิดหัวข้อ...</string>
+    <string name="ime_notes_assist_heading_dismiss_desc">ไม่ใช่หัวข้อนี้</string>
+    <string name="ime_notes_assist_heading_suggestion">หัวข้อ: %1$s</string>
+    <string name="ime_notes_assist_heading_use_action">ใช้</string>
+    <string name="ime_notes_assist_related_label">ที่เกี่ยวข้อง</string>
+    <string name="ime_notes_assist_remind_chip">เตือนฉัน: %1$s · %2$s</string>
+    <string name="ime_notes_assist_reminders_label">กำลังจะมาถึง</string>
+    <string name="ime_notes_assist_summarize_action">สรุป</string>
+    <string name="ime_notes_assist_summarize_again_action">อีกครั้ง</string>
+    <string name="ime_notes_assist_summary_busy">กำลังสรุปผลในโทรศัพท์ของคุณ...</string>
+    <string name="ime_notes_assist_summary_label">สรุป</string>
     <string name="ime_notes_body_hint">เขียนบันทึก... รองรับ Markdown: **ตัวหนา**, - รายการ, - [ ] งาน</string>
     <string name="ime_notes_collapse_desc">กลับไปที่ความสูงของคีย์บอร์ด</string>
     <string name="ime_notes_confirm_action">แตะอีกครั้งเพื่อยืนยัน</string>
@@ -2182,6 +2372,7 @@
     <string name="ime_notes_no_match">ไม่พบบันทึกที่ตรงกับ “%1$s”</string>
     <string name="ime_notes_passage_desc">จาก %1$s แตะเพื่อแทรก ค้างไว้เพื่อเปิดบันทึก</string>
     <string name="ime_notes_passages_section">ข้อความ</string>
+    <string name="ime_notes_paste_desc">วาง</string>
     <string name="ime_notes_pin_action">ปักหมุด</string>
     <string name="ime_notes_pinned_section">ปักหมุดแล้ว</string>
     <string name="ime_notes_restore_action">กู้คืน</string>
@@ -2215,6 +2406,29 @@
     <string name="ime_otp_chip_dismiss_desc">ซ่อนรหัส</string>
     <string name="ime_panel_back_desc">กลับไปที่คีย์บอร์ด</string>
     <string name="ime_panel_over_keys_height_desc">ความสูงของแผงเหนือปุ่มกด ลากขึ้นหรือลง</string>
+    <string name="ime_paperless_card_also_field">ใส่หน้าต่างๆ ลงในช่องข้อความด้วย</string>
+    <string name="ime_paperless_card_correspondent">คู่สัญญา</string>
+    <string name="ime_paperless_card_field_only">ช่องข้อความเท่านั้น</string>
+    <string name="ime_paperless_card_loading">กำลังดึงแท็กของคุณจากเซิร์ฟเวอร์...</string>
+    <string name="ime_paperless_card_name">ชื่อเรื่อง</string>
+    <string name="ime_paperless_card_name_hint">ไม่บังคับ หากเว้นว่างไว้ Paperless จะตั้งชื่อให้</string>
+    <string name="ime_paperless_card_none">ไม่มี</string>
+    <string name="ime_paperless_card_offline">ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ในขณะนี้ การสแกนจะรออยู่บนโทรศัพท์พร้อมแท็กเริ่มต้นของคุณและจะอัปโหลดเมื่อเชื่อมต่อได้</string>
+    <string name="ime_paperless_card_offline_cached">ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ในขณะนี้ นี่คือรายการก่อนหน้าของเซิร์ฟเวอร์ การสแกนจะอัปโหลดทันทีที่ทำได้</string>
+    <string name="ime_paperless_card_one_pdf">ทุกหน้าใน PDF เดียว</string>
+    <plurals name="ime_paperless_card_pages">
+        <item quantity="one">%d หน้า</item>
+        <item quantity="other">%d หน้า</item>
+    </plurals>
+    <string name="ime_paperless_card_send">ส่ง</string>
+    <string name="ime_paperless_card_tags">แท็ก</string>
+    <string name="ime_paperless_card_title">ส่งไปยัง Paperless</string>
+    <string name="ime_paperless_card_type">ประเภทเอกสาร</string>
+    <string name="ime_paperless_queue_failed">ไม่สามารถเก็บบันทึกการสแกนสำหรับ Paperless ไว้ได้</string>
+    <plurals name="ime_paperless_queued">
+        <item quantity="one">%d เอกสารกำลังส่งไปยัง Paperless จะอัปโหลดทันทีที่มีการเชื่อมต่อ</item>
+        <item quantity="other">%d เอกสารกำลังส่งไปยัง Paperless จะอัปโหลดทันทีที่มีการเชื่อมต่อ</item>
+    </plurals>
     <string name="ime_password_add_digit_label">เพิ่มตัวเลข</string>
     <string name="ime_password_capitalize_label">ตัวอักษรพิมพ์ใหญ่</string>
     <string name="ime_password_copied_toast">คัดลอกไปยังคลิปบอร์ดแล้ว</string>
@@ -2233,11 +2447,27 @@
     <string name="ime_password_tab_pin">PIN</string>
     <string name="ime_password_words_label">คำ</string>
     <string name="ime_phonetic_word_list_offer">รับรายการคำศัพท์ %1$s เพื่อคำที่ดียิ่งขึ้น</string>
+    <string name="ime_plugin_access_mark">ปลั๊กอินนี้สามารถใช้งานอินเทอร์เน็ตหรืออ่านสิ่งที่คุณเขียนได้</string>
+    <string name="ime_plugin_action_settings">การตั้งค่าและสิทธิ์</string>
+    <string name="ime_plugin_action_toolbar_add">เพิ่มลงในแถบเครื่องมือ</string>
+    <string name="ime_plugin_action_toolbar_remove">นำออกจากแถบเครื่องมือ</string>
+    <string name="ime_plugin_action_toolbox_add">เพิ่มลงในกล่องเครื่องมือ</string>
+    <string name="ime_plugin_action_toolbox_remove">นำออกจากกล่องเครื่องมือ</string>
+    <string name="ime_plugin_action_turn_off">ปิด</string>
+    <string name="ime_plugin_action_turn_on">เปิด</string>
+    <string name="ime_plugin_clock_alarm_set">%1$s ตั้งปลุกเวลา %2$s ในนาฬิกา</string>
+    <string name="ime_plugin_clock_timer_set">%1$s เริ่มต้นตัวจับเวลา %2$s ในนาฬิกา</string>
     <string name="ime_plugin_empty_body">ปลั๊กอินเป็นเครื่องมือขนาดเล็กที่ทำงานในแซนด์บ็อกซ์ คุณสามารถเพิ่มปลั๊กอินจากที่เก็บส่วนเสริมหรือจากไฟล์ .wmplugin ปลั๊กอินไม่สามารถมองเห็นสิ่งที่คุณพิมพ์ได้</string>
     <string name="ime_plugin_empty_title">ยังไม่มีปลั๊กอิน</string>
     <string name="ime_plugin_manage_action">จัดการปลั๊กอิน</string>
+    <string name="ime_plugin_more">ตัวเลือกเพิ่มเติมสำหรับ %1$s</string>
+    <string name="ime_plugin_permission_allow">อนุญาต</string>
+    <string name="ime_plugin_permission_deny">ไม่อนุญาต</string>
+    <string name="ime_plugin_permission_risky_note">การดำเนินการนี้จะเปิดสิทธิ์ที่มีความเสี่ยงสำหรับปลั๊กอินด้วย คุณสามารถปิดสิทธิ์อย่างใดอย่างหนึ่งได้อีกครั้งในหน้าของปลั๊กอินในการตั้งค่า</string>
+    <string name="ime_plugin_permission_title">อนุญาตให้ %1$s:</string>
     <string name="ime_plugin_version_label">เวอร์ชัน %1$s</string>
     <string name="ime_power_saving_on_desc">เปิดโหมดประหยัดพลังงานอยู่</string>
+    <string name="ime_privacy_shade_hint">ลากที่จับขึ้นเพื่อดูบรรทัดล่าสุด</string>
     <string name="ime_provider_choose_desc">เลือกผู้ให้บริการ</string>
     <string name="ime_punct_ampersand">เครื่องหมายแอมเพอร์แซนด์</string>
     <string name="ime_punct_apostrophe">อะพอสทรอฟี</string>
@@ -2371,6 +2601,8 @@
     <string name="ime_resize_move_desc">ลากเพื่อเลื่อนแป้นพิมพ์ขึ้นหรือลง</string>
     <string name="ime_resize_reset">รีเซ็ต</string>
     <string name="ime_resize_right_handle_desc">ลากเพื่อเปลี่ยนพื้นที่ทางด้านขวาของแป้นพิมพ์</string>
+    <string name="ime_resize_toolbar_handle">แถบเครื่องมือ</string>
+    <string name="ime_resize_toolbar_handle_desc">ลากขึ้นหรือลงเพื่อเปลี่ยนความสูงของแถบเครื่องมือ</string>
     <string name="ime_retype_button">พิมพ์ใหม่</string>
     <string name="ime_retype_button_desc">พิมพ์คำที่เส้นกระพิลเสีย</string>
     <string name="ime_retype_button_nothing">ไม่มีคำให้พิมพ์ใหม่ วางเคอร์เซอร์ไว้หลังคำทันที</string>
@@ -2425,8 +2657,10 @@
     <string name="ime_scanner_torch_desc">ไฟฉาย</string>
     <string name="ime_scanner_translate_action">แปล</string>
     <string name="ime_screen_capture_desc">บันทึกหน้าจอ</string>
+    <string name="ime_screen_capture_progress">กำลังจับภาพหน้าจอ…</string>
     <string name="ime_search_attribution_brave">ผ่าน Brave</string>
     <string name="ime_search_attribution_left">%1$s · เหลือ %2$s</string>
+    <string name="ime_search_attribution_mwmbl">ผ่าน Mwmbl</string>
     <string name="ime_search_attribution_tavily">ผ่าน Tavily</string>
     <string name="ime_search_in_browser_desc">ค้นหาในเบราว์เซอร์</string>
     <string name="ime_search_menu_copy_link">คัดลอกลิงก์</string>
@@ -2436,6 +2670,7 @@
     <string name="ime_search_no_more">ไม่มีผลลัพธ์เพิ่มเติม</string>
     <string name="ime_search_tab_all">ทั้งหมด</string>
     <string name="ime_search_tab_images">รูปภาพ</string>
+    <string name="ime_second_toolbar_empty">ลากเครื่องมือมาที่นี่จากกล่องเครื่องมือหรือแถบเครื่องมือ</string>
     <string name="ime_selection_ask_ai">ถาม AI</string>
     <string name="ime_selection_macro_ai_translate_label">แปลภาษาด้วย AI</string>
     <string name="ime_selection_macro_back_desc">กลับไปที่การดำเนินการเลือก</string>
@@ -2734,6 +2969,8 @@
     <string name="ime_service_incognito_off_toast">โหมดไม่ระบุตัวตนปิดอยู่</string>
     <string name="ime_service_incognito_on_toast">เปิดใช้งานโหมดไม่ระบุตัวตนอยู่ คีย์บอร์ดจะไม่เรียนรู้สิ่งที่คุณพิมพ์</string>
     <string name="ime_service_incognito_switch_toast">โหมดไม่ระบุตัวตนเปิดอยู่ แตะเครื่องมือไม่ระบุตัวตนเพื่อปิด</string>
+    <string name="ime_service_legacy_font_off_toast">กำลังเขียนยูนิโค้ด</string>
+    <string name="ime_service_legacy_font_on_toast">กำลังเขียนสำหรับฟอนต์ %1$s</string>
     <string name="ime_service_media_download_error_toast">การดาวน์โหลดไม่ทำงาน โปรดตรวจสอบการเชื่อมต่อของคุณ</string>
     <string name="ime_service_media_fetch_error">คีย์บอร์ดไม่สามารถดึงผลลัพธ์ได้</string>
     <string name="ime_service_mode_tool_order_toast">แป้นพิมพ์บันทึกลำดับเครื่องมือสำหรับโหมด %1$s แล้ว แอปอื่นจะคงลำดับของตนเองไว้</string>
@@ -2757,6 +2994,7 @@
     <string name="ime_service_power_saving_on_empty_toast">เปิดโหมดประหยัดพลังงานอยู่ ยังไม่มีฟีเจอร์ใดที่ถูกตั้งค่าให้หยุดทำงาน</string>
     <string name="ime_service_power_saving_on_toast">เปิดโหมดประหยัดพลังงานอยู่</string>
     <string name="ime_service_power_saving_still_on_toast">โหมดประหยัดพลังงานยังคงเปิดอยู่ เนื่องจากตัวกระตุ้นแบตเตอรี่ยังทำงานอยู่</string>
+    <string name="ime_service_privacy_shade_floating_toast">ม่านความเป็นส่วนตัวทำงานร่วมกับแป้นพิมพ์ที่เทียบท่า โปรดเทียบท่าแป้นพิมพ์ก่อน</string>
     <string name="ime_service_qr_error">คีย์บอร์ดไม่สามารถสร้างรหัส QR ได้</string>
     <string name="ime_service_resize_floating_toast">ยึดแป้นพิมพ์เพื่อปรับขนาด</string>
     <string name="ime_service_search_error">การค้นหาไม่ทำงาน</string>
@@ -2817,6 +3055,7 @@
     <string name="ime_smart_repeat_count">×%1$s</string>
     <string name="ime_smart_repeat_offer">ทำซ้ำ “%1$s”</string>
     <string name="ime_smart_replies_dismiss_desc">ซ่อนการตอบกลับอัจฉริยะ</string>
+    <string name="ime_smart_search_offer">%1$s: “%2$s”</string>
     <string name="ime_smart_send_link">รับไฟล์</string>
     <string name="ime_smart_translate_offer">แปลภาษา</string>
     <string name="ime_smart_vocab_daily">คำศัพท์ประจำวัน: %1$s ›</string>
@@ -2826,6 +3065,12 @@
     <string name="ime_smart_vocab_word">%1$s ›</string>
     <string name="ime_smart_weather_tap">ดูพยากรณ์อากาศ</string>
     <string name="ime_smart_wiki_word">“%1$s” บน Wikipedia</string>
+    <string name="ime_snippet_ask_cancel_desc">ยกเลิกข้อความสั้น</string>
+    <string name="ime_snippet_ask_done_desc">แทรกข้อความสั้น</string>
+    <string name="ime_snippet_ask_hint">พิมพ์ %1$s</string>
+    <string name="ime_snippet_ask_next_desc">ช่องถัดไป</string>
+    <string name="ime_snippet_ask_step_label">%1$s %2$d/%3$d</string>
+    <string name="ime_snippet_image_desc">ข้อมูลส่วนย่อยรูปภาพ %1$s</string>
     <string name="ime_snippet_offer_back_desc">กลับไปที่ %1$s</string>
     <string name="ime_snippet_offer_desc">แทรกข้อความสั้น %1$s</string>
     <string name="ime_snippet_offer_more_desc">เพิ่มเติมจาก %1$s</string>
@@ -2936,6 +3181,7 @@
     <string name="ime_suggestion_hold_label">ตัวเลือกคำ</string>
     <string name="ime_suggestion_never_suggest">ไม่ต้องแนะนำ \"%1$s\" อีก</string>
     <string name="ime_suggestion_pages_close">กลับไปที่ปุ่มกด</string>
+    <string name="ime_suggestion_pattern_still_hides">รูปแบบบัญชีดำยังคงซ่อน \"%1$s\" อยู่ แก้ไขได้ที่บัญชีดำคำแนะนำ</string>
     <string name="ime_suggestion_rank_badge">\"%1$s\" อันดับ %2$s</string>
     <string name="ime_suggestion_rank_unchanged">\"%1$s\" ไม่เปลี่ยนแปลง</string>
     <string name="ime_suggestions_show_desc">แสดงแถบคำแนะนำ</string>
@@ -2965,6 +3211,8 @@
     <string name="ime_synonyms_title">คำพ้องความหมายสำหรับ \"%1$s\"</string>
     <string name="ime_textedit_delete_line_desc">ลบบรรทัด</string>
     <string name="ime_textedit_delete_line_forward_desc">ลบบรรทัดไปข้างหน้า</string>
+    <string name="ime_textedit_delete_to_end_desc">ลบจนถึงสิ้นสุด</string>
+    <string name="ime_textedit_delete_to_start_desc">ลบไปที่จุดเริ่มต้น</string>
     <string name="ime_textedit_delete_word_desc">ลบคำ</string>
     <string name="ime_textedit_delete_word_forward_desc">ลบคำถัดไป</string>
     <string name="ime_textedit_doc_end_desc">ย้ายไปที่ท้ายข้อความ</string>
@@ -2983,6 +3231,7 @@
     <string name="ime_textedit_select_label">เลือก</string>
     <string name="ime_textedit_select_line_desc">เลือกบรรทัด</string>
     <string name="ime_textedit_select_word_desc">เลือกคำ</string>
+    <string name="ime_textedit_type_clipboard_desc">พิมพ์คลิปบอร์ด</string>
     <string name="ime_textedit_up_desc">เลื่อนขึ้น</string>
     <string name="ime_textedit_word_left_desc">เลื่อนไปทางซ้ายหนึ่งคำ</string>
     <string name="ime_textedit_word_right_desc">เลื่อนไปทางขวาหนึ่งคำ</string>
@@ -3060,6 +3309,7 @@
     <string name="ime_tool_calculator">เครื่องคิดเลข</string>
     <string name="ime_tool_calendar">ปฏิทิน</string>
     <string name="ime_tool_camera">กล้อง</string>
+    <string name="ime_tool_clear_field">ลบทั้งหมด</string>
     <string name="ime_tool_clipboard">คลิปบอร์ด</string>
     <string name="ime_tool_clipboard_search">ค้นหาคลิปบอร์ด</string>
     <string name="ime_tool_clock">นาฬิกา</string>
@@ -3076,11 +3326,13 @@
     <string name="ime_tool_cursor_word_right">เลื่อนเคอร์เซอร์ไปทางขวาทีละคำ</string>
     <string name="ime_tool_custom_layout">เค้าโครงแบบกำหนดเอง</string>
     <string name="ime_tool_cut">ตัด</string>
+    <string name="ime_tool_debug_info">ข้อมูลการดีบัก</string>
     <string name="ime_tool_dictionary">พจนานุกรม</string>
     <string name="ime_tool_doc_scan">สแกนเอกสาร</string>
     <string name="ime_tool_emoji">อีโมจิ</string>
     <string name="ime_tool_emoji_mix">ผสมอีโมจิ</string>
     <string name="ime_tool_fancy">ข้อความแฟนซี</string>
+    <string name="ime_tool_files">ไฟล์</string>
     <string name="ime_tool_find_replace">ค้นหาและแทนที่</string>
     <string name="ime_tool_flashlight">ไฟฉาย</string>
     <string name="ime_tool_floating">ลอย</string>
@@ -3090,6 +3342,7 @@
     <string name="ime_tool_handwriting">ลายมือ</string>
     <string name="ime_tool_hide_keyboard">ซ่อน</string>
     <string name="ime_tool_home_assistant">บ้านอัจฉริยะ</string>
+    <string name="ime_tool_homophones">เสียงเดียวกัน</string>
     <string name="ime_tool_image_search">รูปภาพ</string>
     <string name="ime_tool_incognito">ไม่ระบุตัวตน</string>
     <string name="ime_tool_language">ภาษา</string>
@@ -3116,6 +3369,7 @@
     <string name="ime_tool_picker_leader">%1$s จากนั้น:</string>
     <string name="ime_tool_plugins">ปลั๊กอิน</string>
     <string name="ime_tool_power_saving">ประหยัดพลังงาน</string>
+    <string name="ime_tool_privacy_shade">ม่านความเป็นส่วนตัว</string>
     <string name="ime_tool_qr_gen">คิวอาร์โค้ด</string>
     <string name="ime_tool_qr_scan">สแกน QR</string>
     <string name="ime_tool_quick_note">บันทึกย่อด่วน</string>
@@ -3140,6 +3394,7 @@
     <string name="ime_tool_text_edit">การแก้ไขข้อความ</string>
     <string name="ime_tool_text_repeat">ทำซ้ำ</string>
     <string name="ime_tool_themes">ธีม</string>
+    <string name="ime_tool_timestamp">ประทับเวลา</string>
     <string name="ime_tool_todo">รายการสิ่งที่ต้องทำ</string>
     <string name="ime_tool_trackpad">แทร็กแพด</string>
     <string name="ime_tool_translate">แปลภาษา</string>
@@ -3197,12 +3452,14 @@
     <string name="ime_translate_engine_online_info">ใช้บริการออนไลน์</string>
     <string name="ime_translate_hint">พิมพ์ข้อความที่ต้องการแปล...</string>
     <string name="ime_translate_idle">คำแปลจะแสดงที่นี่ในขณะที่คุณพิมพ์</string>
+    <string name="ime_translate_idle_manual">พิมพ์ข้อความทั้งหมด จากนั้นแตะแปล ไม่มีอะไรถูกส่งไปก่อนหน้านั้น</string>
     <string name="ime_translate_module_failed_error">Google Play ไม่สามารถดาวน์โหลดได้ โปรดตรวจสอบการเชื่อมต่อแล้วลองใหม่อีกครั้ง หากยังไม่สำเร็จ ให้ดาวน์โหลดจาก การตั้งค่า &gt; เครื่องมือ &gt; แปลภาษา</string>
     <string name="ime_translate_module_installing_action">กำลังดาวน์โหลด...</string>
     <string name="ime_translate_module_missing_body">การแปลบนอุปกรณ์เป็นส่วนเสริมของคีย์บอร์ดที่มาจาก Google Play โปรดดาวน์โหลดเพื่อแปลโดยไม่ต้องเชื่อมต่ออินเทอร์เน็ต</string>
     <string name="ime_translate_need_models_body">หากต้องการแปลบนอุปกรณ์ โปรดดาวน์โหลด: %1$s ขนาดประมาณ %2$s</string>
     <string name="ime_translate_nllb_licence_accept_action">ยอมรับและดาวน์โหลด</string>
     <string name="ime_translate_nllb_licence_body">NLLB-200 มาจาก Hugging Face ภายใต้ใบอนุญาตของ Meta คือ Creative Commons Attribution-NonCommercial 4.0: สำหรับการใช้งานที่ไม่ใช่เชิงพาณิชย์เท่านั้น โดยไม่มีการรับประกัน กดอีกครั้งเพื่อยอมรับและดาวน์โหลด</string>
+    <string name="ime_translate_now_action">แปล</string>
     <string name="ime_translate_offline_build_error">บิลด์แบบออฟไลน์นี้ไม่สามารถแปลบนโทรศัพท์เครื่องนี้ได้ เนื่องจากเครื่องมือเดียวของมันคือ Firefox Translations จำเป็นต้องใช้โทรศัพท์ 64 บิตที่ใช้ Android 9 หรือใหม่กว่า หากต้องการแปล ให้ติดตั้งบิลด์มาตรฐาน</string>
     <string name="ime_translate_offline_failed_error">การแปลบนอุปกรณ์ไม่เริ่มทำงาน โปรดลองอีกครั้ง หรือเลือกเครื่องมือแปลแบบออนไลน์</string>
     <string name="ime_translate_offline_import_body">รุ่นออฟไลน์นี้ไม่สามารถดาวน์โหลดได้ หากต้องการแปล ให้ดึงข้อมูลเหล่านี้บนอุปกรณ์อื่นและนำเข้า: %1$s เปิด การตั้งค่า › เครื่องมือ › แปลภาษา › ผู้ให้บริการ › บนอุปกรณ์ (Firefox Translations)</string>
@@ -3218,6 +3475,7 @@
     <string name="ime_translate_select_source_desc">เลือกภาษาต้นทาง</string>
     <string name="ime_translate_server_label">เซิร์ฟเวอร์ของคุณ</string>
     <string name="ime_translate_source_guessed_label">%1$s?</string>
+    <string name="ime_translate_speak_desc">อ่านคำแปลออกเสียง</string>
     <string name="ime_translate_swap_desc">สลับภาษา</string>
     <string name="ime_typing_accuracy_label">ความแม่นยำ</string>
     <string name="ime_typing_accuracy_short_label">ความแม่นยำ</string>
@@ -3338,6 +3596,10 @@
     <string name="ime_voice_model_get_language_action">รับ %1$s สำหรับการพิมพ์ด้วยเสียงแบบออฟไลน์</string>
     <string name="ime_voice_permission_action">อนุญาตให้ใช้ไมโครโฟน</string>
     <string name="ime_voice_permission_body">การพิมพ์ด้วยเสียงจำเป็นต้องได้รับอนุญาตให้ใช้ไมโครโฟน แอปจะบันทึกเสียงเฉพาะในขณะที่คุณพูดเท่านั้น</string>
+    <string name="ime_voice_prompt_fix_custom">นำคำว่า \"คำเพิ่มเติมที่จะรอฟัง\" บางส่วนออกในการตั้งค่าการพิมพ์ด้วยเสียง หรือทำให้ข้อความแจ้งสั้นลง</string>
+    <string name="ime_voice_prompt_fix_personal">ปิด \"ฟังคำพูดของฉัน\" ในการตั้งค่าการพิมพ์ด้วยเสียง หรือทำให้พรอมต์สั้นลง</string>
+    <string name="ime_voice_prompt_fix_prompt">ยเออะหมายเลขอยินตลาว, บนหน้าจอเศลเวอร์ในการตังคาเสียงพิมษ์, ใหเล็กกวา %1$d กัวระ</string>
+    <string name="ime_voice_prompt_too_long">เซิร์ฟเวอร์นี้รองรับข้อความแจ้งสูงสุด %2$d ตัวอักษร และข้อความนี้มี %1$d: ข้อความแจ้ง %3$d คำที่ต้องฟังเพิ่มเติม %4$d ฟังคำพูดของฉัน %5$d</string>
     <string name="ime_voice_secure_field_notice">การพิมพ์ด้วยเสียงไม่สามารถใช้งานได้ในช่องรหัสผ่าน</string>
     <string name="ime_voice_server_metered_ask">โหมดประหยัดข้อมูลเปิดอยู่ กดไมโครโฟนอีกครั้งเพื่อส่งเสียงของคุณผ่านข้อมูลมือถือ</string>
     <string name="ime_voice_server_metered_blocked">เซิร์ฟเวอร์ถอดความถูกปิดใช้งานขณะที่คุณใช้ข้อมูลมือถือ คุณสามารถเปลี่ยนการตั้งค่านี้ได้ใน การตั้งค่า &gt; การประหยัดข้อมูล</string>
@@ -3377,6 +3639,12 @@
     <string name="ime_voice_use_system_action">ใช้ตัวจดจำของระบบ</string>
     <string name="ime_weather_clouds_label">เมฆ</string>
     <string name="ime_weather_error">แอปไม่สามารถดาวน์โหลดข้อมูลสภาพอากาศได้ โปรดตรวจสอบเครือข่ายของคุณ</string>
+    <string name="ime_weather_event_back_desc">กลับไปยังปฏิทิน</string>
+    <string name="ime_weather_event_home_place">%1$s (ตำแหน่งสภาพอากาศของคุณ)</string>
+    <string name="ime_weather_event_home_unnamed">ตำแหน่งสภาพอากาศของคุณ</string>
+    <string name="ime_weather_event_hour_desc">%1$s: %2$s, %3$s, โอกาสฝนตก %4$s</string>
+    <string name="ime_weather_event_no_hours">พยากรณ์อากาศยังไม่ครอบคลุมถึงวันนี้</string>
+    <string name="ime_weather_event_rain_info">โอกาสฝนตก %1$d%%</string>
     <string name="ime_weather_feels_like_label">อุณหภูมิที่รู้สึกได้</string>
     <string name="ime_weather_high_low_info">สูง %1$d° ต่ำ %2$d°</string>
     <string name="ime_weather_humidity_label">ความชื้น</string>
@@ -3492,6 +3760,7 @@
     <string name="ime_wmpass_no_password">WM Pass ไม่ได้สร้างรหัสผ่าน ห้องนิรภัยอาจถูกล็อกอยู่</string>
     <string name="ime_wmpass_no_username">การเข้าสู่ระบบนี้ไม่มีชื่อผู้ใช้ให้กรอก</string>
     <string name="ime_wmpass_no_vault">WM Pass ยังไม่มีห้องนิรภัย สร้างที่นั่นก่อน</string>
+    <string name="ime_wmpass_not_released">WM Pass ยังไม่วางจำหน่าย เครื่องมือนี้จะเริ่มทำงานเมื่อมีการเปิดตัวและติดตั้งแล้ว</string>
     <string name="ime_wmpass_not_set">ไม่ได้ตั้งค่า</string>
     <string name="ime_wmpass_off">หากต้องการใช้งาน ให้เปิด \"อนุญาตให้แป้นพิมพ์ WM กรอกข้อมูลใน WM Pass\" ใต้การตั้งค่า &gt; ความปลอดภัย</string>
     <string name="ime_wmpass_open">เปิด WM Pass</string>

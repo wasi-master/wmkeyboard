@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Modeli ya hivi karibuni ya ukubwa wa kati inayofikiri kabla ya kujibu. Inahitaji kifaa cha kiwango cha kati.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Ndogo na ya haraka. Inafaa kwa kufanya marekebisho ya haraka kwenye kifaa cha msingi.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Mfano mdogo sana unaoweza kusoma picha. Unaelezea picha, lakini mara nyingi husoma vibaya maandishi yaliyo kwenye picha ya skrini.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">Mafunzo upya ya NVIDIA ya Gemma 4 E4B kwa ajili ya kufuata maagizo na kutumia zana. Maandishi pekee, na inahitaji kifaa chenye nguvu.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Muundo wa madhumuni ya jumla ambao bado unafaa kwenye kifaa cha msingi.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Ina akili zaidi kuliko miundo iliyo chini ya 1B. Inahitaji kifaa cha kiwango cha kati.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Muundo mdogo wa hivi karibuni. Ubora ni wa juu kwa ukubwa wake.</string>

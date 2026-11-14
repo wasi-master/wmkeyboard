@@ -23,6 +23,34 @@
         <item quantity="one">%1$d usapan pada tombol tidak memiliki tempat di sini, karena papan ketik ini menggunakan usapan tersebut untuk tugas lain. Aplikasi telah menghapusnya.</item>
         <item quantity="other">%1$d usapan pada tombol tidak memiliki tempat di sini, karena papan ketik ini menggunakan usapan tersebut untuk tugas lain. Aplikasi telah menghapusnya.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">Aplikasi mengabaikan %1$d aturan yang mengubah fungsi tombol hapus. Tombol hapus bekerja seperti biasa pada setiap tata letak di sini.</item>
+        <item quantity="other">Aplikasi mengabaikan %1$d aturan yang mengubah fungsi tombol hapus. Tombol hapus bekerja seperti biasa pada setiap tata letak di sini.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">Aplikasi menghapus %1$d geseran yang mengubah arah. Geseran pada keyboard ini berjalan satu arah.</item>
+        <item quantity="other">Aplikasi menghapus %1$d geseran yang mengubah arah. Geseran pada keyboard ini berjalan satu arah.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">Aplikasi melewatkan %1$d halaman untuk tombol seperti Caps Lock atau Ctrl. Papan tombol ini tidak memiliki halaman untuk tombol tersebut.</item>
+        <item quantity="other">Aplikasi melewatkan %1$d halaman untuk tombol seperti Caps Lock atau Ctrl. Papan tombol ini tidak memiliki halaman untuk tombol-tombol tersebut.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">Aplikasi menghilangkan %1$d aturan yang menempatkan tanda dalam urutan penulisannya. Keyboard ini menulis tanda sesuai urutan Anda mengetiknya.</item>
+        <item quantity="other">Aplikasi menghilangkan %1$d aturan yang menempatkan tanda dalam urutan penulisannya. Keyboard ini menulis tanda sesuai urutan Anda mengetiknya.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d aturan menambahkan aksen pada huruf berikutnya. Di sini, tombol yang memulainya adalah dead key.</item>
+        <item quantity="other">%1$d aturan menambahkan aksen pada huruf berikutnya. Di sini, tombol-tombol yang memulainya adalah dead key.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">Aplikasi mengabaikan %1$d aturan yang mengubah teks saat Anda mengetik. Tidak ada tombol di sini yang memicunya, atau aturan tersebut mencocokkan lebih banyak teks daripada yang dapat diketik oleh satu tombol.</item>
+        <item quantity="other">Aplikasi mengabaikan %1$d aturan yang mengubah teks saat Anda mengetik. Tidak ada tombol di sini yang memicunya, atau aturan tersebut mencocokkan lebih banyak teks daripada yang dapat diketik oleh satu tombol.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d aturan mengubah sebuah tombol dan tombol berikutnya menjadi karakter lain. Di sini, karakter tersebut berada pada fungsi tekan dan tahan tombol pertama.</item>
+        <item quantity="other">%1$d aturan mengubah sebuah tombol dan tombol berikutnya menjadi karakter lain. Di sini, karakter-karakter tersebut berada pada fungsi tekan dan tahan tombol pertama.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Aplikasi mengubah %1$d tombol ke tombol terdekat yang dimilikinya.</item>
         <item quantity="other">Aplikasi mengubah %1$d tombol ke tombol terdekat yang dimilikinya.</item>

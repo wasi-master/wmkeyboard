@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">سلام</string>
     <string name="core_tools_media_category_laugh">خنده</string>
     <string name="core_tools_media_category_love">عشق</string>
+    <string name="core_tools_media_category_memes">میم‌ها</string>
     <string name="core_tools_media_category_no">خیر</string>
     <string name="core_tools_media_category_party">مهمانی</string>
     <string name="core_tools_media_category_reactions">واکنش‌ها</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">یک سرور Mozhi: یک رابط کاربری رایگان برای Google، DeepL، DuckDuckGo، Yandex و Reverso. موتور را انتخاب کنید. DeepL و Reverso به زبان مبدأ نیاز دارند.</string>
     <string name="core_tools_provider_music_server">سرور تشخیص اختصاصی شما</string>
     <string name="core_tools_provider_music_server_desc">سروری که شما اجرا می‌کنید و مانند AudD پاسخ می‌دهد: کلیپ به عنوان یک فایل ارسال می‌شود و آهنگ به صورت JSON بازمی‌گردد. یک اثر انگشت‌گیر مانند Panako یا Olaf را پشت آن قرار دهید.</string>
+    <string name="core_tools_provider_mwmbl_desc">یک موتور جستجوی رایگان و غیرانتفاعی با نمایه خود. بدون کلید. فقط نتایج وب، بدون تصویر.</string>
     <string name="core_tools_provider_nllb">روی دستگاه (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">ترجمه روی گوشی با استفاده از مدل NLLB-200 متا بر روی CTranslate2: ۲۰۰ زبان، بین هر دو جفت زبانی که موتورهای دیگر قادر به انجام آن نیستند. یک دانلود ۶۳۰ مگابایتی، و هر جمله چند ثانیه زمان می‌برد. متن شما در گوشی باقی می‌ماند. این مدل فقط برای استفاده غیرتجاری مجوز دارد (CC BY-NC 4.0). به گوشی ۶۴ بیتی با ۶ گیگابایت حافظه یا بیشتر نیاز دارد.</string>
     <string name="core_tools_provider_none_on">هیچ ارائه‌دهنده‌ای روشن نیست. یکی را در تنظیمات این ابزار روشن کنید.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">این لیست</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">نمایش یا پنهان کردن کلیدها</string>
     <string name="core_tools_shortcut_leader_double_tap">کلید %1$s را دو بار فشار دهید</string>
+    <string name="core_tools_speak_no_voice">این گوشی هیچ صدای %1$sی برای خواندن آن ندارد. یکی را در تنظیمات متن‌به‌گفتار اندروید اضافه کنید، یا یک صدای آفلاین را در مسیر ابزارها › خواندن بارگیری کنید.</string>
     <string name="core_tools_symbol_category_arrows_label">فلش‌ها</string>
     <string name="core_tools_symbol_category_currency_label">ارز</string>
     <string name="core_tools_symbol_category_fractions_label">کسرها</string>
     <string name="core_tools_symbol_category_greek_label">یونانی</string>
     <string name="core_tools_symbol_category_math_label">ریاضی</string>
+    <string name="core_tools_symbol_category_music_label">موسیقی</string>
     <string name="core_tools_symbol_category_other_label">سایر</string>
     <string name="core_tools_symbol_category_punctuation_label">نشانه‌گذاری</string>
     <string name="core_tools_symbol_category_shapes_label">شکل‌ها و ستاره‌ها</string>
+    <string name="core_tools_symbol_category_stars_label">ستاره‌ها</string>
     <string name="core_tools_symbol_category_superscript_label">بالانویس</string>
+    <string name="core_tools_symbol_category_technical_label">فنی</string>
+    <string name="core_tools_symbol_category_weather_label">آب و هوا</string>
     <string name="core_tools_symbol_set_coding_label">کدنویسی</string>
     <string name="core_tools_symbol_set_email_label">ایمیل</string>
     <string name="core_tools_symbol_set_math_label">ریاضی</string>

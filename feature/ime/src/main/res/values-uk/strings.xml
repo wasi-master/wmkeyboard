@@ -176,6 +176,7 @@
     <string name="ime_ai_error_no_text">Немає тексту для обробки. Спочатку введіть текст.</string>
     <string name="ime_ai_error_only_reasoning">Модель використала всю відповідь для міркування. Спробуйте ще раз або увімкніть «Показувати міркування» в налаштуваннях.</string>
     <string name="ime_ai_error_request_failed">Запит не спрацював</string>
+    <string name="ime_ai_error_stopped_hidden">Зупинено, оскільки клавіатуру було закрито. Повторіть спробу, щоб запустити її знову.</string>
     <string name="ime_ai_idle_body">Дії виконуються над виділеним текстом або над усім полем. Вони використовують %1$s.</string>
     <string name="ime_ai_idle_empty_body">Введіть або виберіть текст, щоб використовувати ці дії. Натисніть %1$s, щоб написати новий текст.</string>
     <string name="ime_ai_idle_empty_no_writer_body">Введіть або виберіть текст, щоб використовувати ці дії.</string>
@@ -307,9 +308,11 @@
     <string name="ime_app_colors_none">У цьому додатку не знайдено кольорів</string>
     <string name="ime_app_colors_off_desc">Не використовувати кольори цієї програми</string>
     <string name="ime_app_colors_pick_desc">Колір додатка %1$d</string>
+    <string name="ime_applet_back">Назад</string>
     <string name="ime_applet_close">Закрити вікно</string>
     <string name="ime_applet_copied">Скопійовано</string>
     <string name="ime_applet_open_in_keyboard">Відкрити на клавіатурі</string>
+    <string name="ime_applet_pop_out">Відкрити в плаваючому вікні</string>
     <string name="ime_applet_resize">Перетягніть, щоб змінити розмір</string>
     <string name="ime_applet_tuck">Заховати до краю</string>
     <string name="ime_applet_untuck">Повернути %1$s</string>
@@ -319,6 +322,33 @@
     <string name="ime_ask_ai_label_vocab">Словник: %1$s</string>
     <string name="ime_ask_ai_label_wiki">Вікіпедія: %1$s</string>
     <string name="ime_autofill_dismiss_desc">Приховати пропозиції автозаповнення</string>
+    <string name="ime_board_copy_desc">Скопіювати на цей телефон</string>
+    <string name="ime_board_delete_body">Він видаляється з кожного пристрою, який використовує цю дошку. Копії, які вже є в буфері обміну самого телефону, залишаються.</string>
+    <string name="ime_board_delete_desc">Прибрати дошку</string>
+    <string name="ime_board_delete_no">Скасувати</string>
+    <string name="ime_board_delete_title">Видалити цей елемент з дошки?</string>
+    <string name="ime_board_delete_yes">Зняти</string>
+    <string name="ime_board_edit_desc">Редагувати</string>
+    <string name="ime_board_empty_body">Надіслані сюди фрагменти з\'являються на ваших інших пристроях, які використовують ту саму папку, навіть на тих, які зараз офлайн.</string>
+    <string name="ime_board_empty_title">На дошці нічого немає</string>
+    <string name="ime_board_notice_copied">Скопійовано</string>
+    <string name="ime_board_notice_deleted">Видалено з дошки</string>
+    <string name="ime_board_notice_refused">На дошку можна помістити лише не приховані текстові фрагменти</string>
+    <string name="ime_board_notice_sent">Надіслано на дошку</string>
+    <string name="ime_board_send_desc">Надіслати фрагмент</string>
+    <string name="ime_board_send_done">Готово</string>
+    <string name="ime_board_send_empty">Немає текстових кліпів для надсилання. Зображення, файли та приховані кліпи залишаються на цьому телефоні.</string>
+    <string name="ime_board_send_one_desc">Надіслати</string>
+    <string name="ime_board_send_title">Надіслати на дошку</string>
+    <string name="ime_board_sent_desc">Надіслано</string>
+    <string name="ime_board_status_failed">Не вдалося зв\'язатися з дошкою</string>
+    <string name="ime_board_status_never">Ще не перевірено</string>
+    <string name="ime_board_status_synced">Перевірено %1$s</string>
+    <string name="ime_board_status_syncing">Перевірка дошки…</string>
+    <string name="ime_board_status_waiting">Очікування підключення до дошки</string>
+    <string name="ime_board_status_waiting_offline">Не вдається підключитися до дошки. Ваші зміни надіולшляться, щойно з\'явиться зв\'язок</string>
+    <string name="ime_board_sync_desc">Перевірити дошку зараз</string>
+    <string name="ime_board_title">Спільна дошка</string>
     <string name="ime_calc_degrees_label">град</string>
     <string name="ime_calc_insert_action">Вставити</string>
     <string name="ime_calc_radians_label">рад</string>
@@ -473,7 +503,9 @@
     </plurals>
     <string name="ime_calendar_untitled">(Без назви)</string>
     <string name="ime_calendar_view_agenda">Порядок денний</string>
+    <string name="ime_calendar_view_day">День</string>
     <string name="ime_calendar_view_month">Місяць</string>
+    <string name="ime_calendar_weather_desc">%1$s, %2$s у %3$s. Відкриває прогноз на кожну годину</string>
     <string name="ime_calendar_yesterday_label">Вчора</string>
     <string name="ime_calendar_zone_note">Час у %1$s</string>
     <string name="ime_camera_captured_photo_desc">Зроблена вами фотографія</string>
@@ -545,6 +577,7 @@
         <item quantity="one">Об\'єднати %1$d кліп</item>
         <item quantity="other">Об\'єднати %1$d кліпів</item>
     </plurals>
+    <string name="ime_clip_compose_email">Створити електронний лист</string>
     <string name="ime_clip_delete_pinned_question">Видалити цей закріплений кліп?</string>
     <plurals name="ime_clip_deleted">
         <item quantity="one">Кліп видалено</item>
@@ -565,6 +598,7 @@
         <item quantity="other">Показати %1$d частин, знайдених у ваших кліпах</item>
     </plurals>
     <string name="ime_clip_extract_codes">Одноразові коди</string>
+    <string name="ime_clip_extract_emails">Адреси електронної пошти</string>
     <string name="ime_clip_extract_links">Посилання</string>
     <string name="ime_clip_extract_parts">Витягти</string>
     <string name="ime_clip_extract_phones">Номери телефонів</string>
@@ -591,6 +625,7 @@
         <item quantity="one">Приховано · %1$d символ</item>
         <item quantity="other">Приховано · %1$d символів</item>
     </plurals>
+    <string name="ime_clip_image_pasted_toast">Вставлено з буфера обміну. Якщо нічого не з\'явилося, ця програма не робить знімків: утримуйте кліп, щоб поділитися ним</string>
     <string name="ime_clip_info_copied">Скопійовано</string>
     <string name="ime_clip_info_edited">Відредаговано</string>
     <string name="ime_clip_info_from">З</string>
@@ -644,7 +679,12 @@
         <item quantity="other">Вибрано %1$d</item>
     </plurals>
     <string name="ime_clip_send_as_sticker">Надіслати як стікер</string>
+    <string name="ime_clip_shape_code">Код</string>
+    <string name="ime_clip_shape_markdown">Markdown</string>
+    <string name="ime_clip_share_image">Поділитися</string>
+    <string name="ime_clip_show_formatted">Показати відформатований текст</string>
     <string name="ime_clip_show_in_history">Показувати в історії</string>
+    <string name="ime_clip_show_raw">Показати вихідні дані</string>
     <string name="ime_clip_tags">Теги</string>
     <string name="ime_clip_tags_placeholder">Теги, розділені комою</string>
     <string name="ime_clip_tags_title">Теги</string>
@@ -914,6 +954,7 @@
     <string name="ime_conversion_pack_offer">Завантажте %1$s, щоб вводити символи</string>
     <string name="ime_conversion_pack_offer_dismiss_desc">Відхилити</string>
     <string name="ime_converter_from_label">З</string>
+    <string name="ime_converter_tab_units">Одиниці</string>
     <string name="ime_converter_to_label">До</string>
     <string name="ime_currency_insert_action">Вставити</string>
     <string name="ime_currency_progress">Завантаження курсів валют…</string>
@@ -922,6 +963,32 @@
     <string name="ime_currency_section_crypto">Криптовалюта</string>
     <string name="ime_currency_section_popular">Поширені</string>
     <string name="ime_currency_swap_desc">Поміняти валюти місцями</string>
+    <string name="ime_custom_button_desc">Відкрити %1$s</string>
+    <string name="ime_custom_button_label">Користувацька кнопка</string>
+    <string name="ime_custom_button_shortcut_failed">Цей ярлик не вдалося відкрити. Додаток може бути видалений або дозволяє відкривати його лише з головного екрана.</string>
+    <string name="ime_custom_page_clipboard">Налаштування буфера обміну</string>
+    <string name="ime_custom_page_custom_buttons">Користувацькі кнопки</string>
+    <string name="ime_custom_page_dictionary">Словник</string>
+    <string name="ime_custom_page_favourites">Обране</string>
+    <string name="ime_custom_page_home">Налаштування</string>
+    <string name="ime_custom_page_keypress">Звук і вібрація</string>
+    <string name="ime_custom_page_languages">Мови</string>
+    <string name="ime_custom_page_search">Налаштування пошуку</string>
+    <string name="ime_custom_page_themes">Теми</string>
+    <string name="ime_custom_page_toolbar">Налаштування панелі інструментів</string>
+    <string name="ime_custom_page_tools">Інструменти</string>
+    <string name="ime_custom_page_typing">Введення</string>
+    <string name="ime_custom_toggle_auto_caps">Автоматичні великі літери</string>
+    <string name="ime_custom_toggle_glide">Введення ковзанням</string>
+    <string name="ime_custom_toggle_key_hints">Підказки клавіш</string>
+    <string name="ime_custom_toggle_key_popup">Спливаюче вікно клавіші</string>
+    <string name="ime_custom_toggle_number_row">Рядок цифр</string>
+    <string name="ime_custom_toggle_reduce_motion">Зменшити рух</string>
+    <string name="ime_custom_toggle_sound">Звук клавіш</string>
+    <string name="ime_custom_toggle_suggestions">Підказки</string>
+    <string name="ime_custom_toggle_symbol_row">Рядок символів</string>
+    <string name="ime_custom_toggle_toolbar_labels">Назви панелі інструментів</string>
+    <string name="ime_custom_toggle_vibration">Вібрація</string>
     <string name="ime_delete_redo_chip">Повторити \"%1$s\"</string>
     <string name="ime_delete_redo_plain">Видалити ще раз</string>
     <string name="ime_delete_undo_chip">Скасувати \"%1$s\"</string>
@@ -959,6 +1026,7 @@
     <string name="ime_disabled_correction_invalid">Введіть інше слово для виправлення. Слово, яке виправляється, повинно мати принаймні 3 літери, а виправлення може складатися з одного слова або з двох у разі пропущеного пробілу.</string>
     <string name="ime_disabled_media_app_blocks">Додаток, що відтворює медіа, не дозволяє це робити.</string>
     <string name="ime_disabled_spell_unchanged">Спочатку змініть написання. Порожнє або незмінене написання не має нічого, що можна застосувати.</string>
+    <string name="ime_disabled_translate_empty_box">Поле порожнє або його переклад ще завантажується.</string>
     <string name="ime_disabled_translate_nothing">Ще нічого не перекладено. Спочатку введіть або вставте текст для перекладу.</string>
     <string name="ime_disabled_translate_same_language">Текст уже цією мовою, на яку ви перекладаєте.</string>
     <string name="ime_disabled_voice_undo">Поки що нічого скасовувати. Скасування повертає останню фразу, яку ви виголосили.</string>
@@ -988,6 +1056,10 @@
     <string name="ime_docscan_next">Обрізати</string>
     <string name="ime_docscan_open_settings">Відкрити налаштування</string>
     <string name="ime_docscan_page_number">Сторінка %1$d</string>
+    <plurals name="ime_docscan_pages_album">
+        <item quantity="one">Сторінка відкриється в екрані поширення додатка</item>
+        <item quantity="other">Цей додаток робить по одній фотографії за раз, тому %d сторінок відкриваються разом у його екрані поширення для відправки як один альбом</item>
+    </plurals>
     <plurals name="ime_docscan_pages_shared">
         <item quantity="one">Додаток не зміг отримати останню сторінку, тому вона відкривається на екрані спільного доступу додатка</item>
         <item quantity="other">Додаток не зміг отримати %d сторінок, тому вони відкриваються разом на екрані спільного доступу додатка</item>
@@ -1070,10 +1142,15 @@
     <string name="ime_files_access_pick">Засіб вибору Android</string>
     <string name="ime_files_access_title">Вибирайте файли, не залишаючи клавіатуру</string>
     <string name="ime_files_add">Додати</string>
+    <string name="ime_files_add_tree">Додати папку</string>
+    <string name="ime_files_add_tree_detail">USB-накопичувач, SD-карта або папка, якою ділиться інший додаток, наприклад мережевий диск</string>
+    <string name="ime_files_allow_all">Усе сховище телефону</string>
+    <string name="ime_files_allow_all_detail">Потрібен доступ Android до всіх файлів</string>
     <string name="ime_files_camera">Камера</string>
     <string name="ime_files_clear_desc">Очистити виділення</string>
     <string name="ime_files_collapse_desc">Зробити коротшим</string>
     <string name="ime_files_copy_desc">Копіювати</string>
+    <string name="ime_files_copy_to">Копіювати в %1$s</string>
     <string name="ime_files_delete_body">Папки видаляються разом із усім вмістом. Це остаточно: Android не має кошика для файлів.</string>
     <string name="ime_files_delete_desc">Видалити</string>
     <string name="ime_files_delete_no">Скасувати</string>
@@ -1090,8 +1167,11 @@
     <string name="ime_files_expand_desc">Зробити вищим</string>
     <string name="ime_files_hide_hidden">Приховати приховані файли</string>
     <string name="ime_files_kde_unreadable">Не вдалося прочитати цей файл для надсилання</string>
+    <string name="ime_files_locked_body">Файловий менеджер не відкривається поверх екрана блокування.</string>
+    <string name="ime_files_locked_title">Розблокуйте, щоб побачити ваші файли</string>
     <string name="ime_files_more_desc">Більше</string>
     <string name="ime_files_move_desc">Перемістити</string>
+    <string name="ime_files_move_to">Перемістити до %1$s</string>
     <string name="ime_files_movies">Фільми</string>
     <string name="ime_files_music">Музика</string>
     <string name="ime_files_new_folder">Нова папка</string>
@@ -1117,6 +1197,8 @@
         <item quantity="one">Переміщено %d елемент</item>
         <item quantity="other">Переміщено %d елементів</item>
     </plurals>
+    <string name="ime_files_notice_tree_removed">Папку видалено зі списку</string>
+    <string name="ime_files_one_pane_desc">Один список</string>
     <string name="ime_files_op_cancel">Зупинити</string>
     <string name="ime_files_op_copy">Зведаеге</string>
     <string name="ime_files_op_delete">Видалення %1$d з %2$d</string>
@@ -1133,6 +1215,9 @@
     <string name="ime_files_pictures">Зображення</string>
     <string name="ime_files_places">Місця</string>
     <string name="ime_files_recent">Недавні</string>
+    <string name="ime_files_remove_tree_body">Папка та її файли залишаються на своїх місцях. Ви можете додати її знову в будь-який час.</string>
+    <string name="ime_files_remove_tree_title">Видалити \"%1$s\" зі списку?</string>
+    <string name="ime_files_remove_tree_yes">Зняти</string>
     <string name="ime_files_rename_desc">Перейменувати</string>
     <string name="ime_files_rename_hint">Нова назва</string>
     <string name="ime_files_search_clear_desc">Завершити пошук</string>
@@ -1151,6 +1236,7 @@
     <string name="ime_files_title_many">Вибрати файли</string>
     <string name="ime_files_title_one">Виберіть файл</string>
     <string name="ime_files_title_picture">Вибрати зображення</string>
+    <string name="ime_files_two_panes_desc">Два списки поруч</string>
     <string name="ime_files_unreadable">Android не дозволяє клавіатурі відкривати цю папку</string>
     <string name="ime_find_case_desc">Враховувати регістр</string>
     <string name="ime_find_clear_desc">Очистити %1$s</string>
@@ -1182,6 +1268,24 @@
     <string name="ime_floating_category_empty">Ця категорія порожня. Додайте до неї дії в налаштуваннях плаваючої кнопки.</string>
     <string name="ime_floating_category_label">Категорія</string>
     <string name="ime_floating_close_menu">Закрити меню</string>
+    <string name="ime_floating_device_bluetooth">Bluetooth</string>
+    <string name="ime_floating_device_bluetooth_desc">Вмикає або вимикає Bluetooth</string>
+    <string name="ime_floating_device_bluetooth_page_desc">Відкриває сторінку Bluetooth в Android</string>
+    <string name="ime_floating_device_data">Мобільні дані</string>
+    <string name="ime_floating_device_data_desc">Вмикає або вимикає мобільні дані</string>
+    <string name="ime_floating_device_data_panel_desc">Відкриває панель інтернету Android</string>
+    <string name="ime_floating_device_failed">Android не дозволив цього</string>
+    <string name="ime_floating_device_hotspot">Точка доступу</string>
+    <string name="ime_floating_device_hotspot_desc">Відкриває сторінку точки доступу Android</string>
+    <string name="ime_floating_device_off">%1$s вимкнено</string>
+    <string name="ime_floating_device_on">%1$s увімкнено</string>
+    <string name="ime_floating_device_ringer">Режим дзвінка</string>
+    <string name="ime_floating_device_ringer_desc">Дзвінок, вібрація та без звуку, по черзі</string>
+    <string name="ime_floating_device_volume">Панель гучності</string>
+    <string name="ime_floating_device_volume_desc">Відкриває панель гучності Android з усіма повзунками гучності</string>
+    <string name="ime_floating_device_wifi">Wi-Fi</string>
+    <string name="ime_floating_device_wifi_desc">Вмикає або вимикає Wi-Fi</string>
+    <string name="ime_floating_device_wifi_panel_desc">Відкриває панель Wi-Fi в Android</string>
     <string name="ime_floating_dismiss_target">Перетягніть сюди, щоб приховати кнопку</string>
     <string name="ime_floating_dock_desc">Закріпити клавіатуру</string>
     <string name="ime_floating_hide_label">Приховати кнопку</string>
@@ -1192,7 +1296,11 @@
     <string name="ime_floating_pair_label">Відкрити пару додатків</string>
     <string name="ime_floating_pair_missing">Одна з двох програм більше не встановлена</string>
     <string name="ime_floating_pair_name">%1$s + %2$s</string>
+    <string name="ime_floating_plugin_label">Плагін</string>
     <string name="ime_floating_resize_desc">Змінити розмір клавіатури</string>
+    <string name="ime_floating_ringer_ring">Дзвінок</string>
+    <string name="ime_floating_ringer_silent">Без звуку</string>
+    <string name="ime_floating_ringer_vibrate">Вібрація</string>
     <string name="ime_floating_system_app_drawer">Меню додатків</string>
     <string name="ime_floating_system_back">Назад</string>
     <string name="ime_floating_system_notifications">Сповіщення</string>
@@ -1250,6 +1358,7 @@
     <string name="ime_gallery_album_camera">Камера</string>
     <string name="ime_gallery_album_favorites">Вибране</string>
     <string name="ime_gallery_album_gifs">GIF-файли</string>
+    <string name="ime_gallery_album_immich">Immich</string>
     <string name="ime_gallery_album_recents">Нещодавні</string>
     <string name="ime_gallery_album_screenshots">Знімки екрана</string>
     <string name="ime_gallery_album_sent">Надіслано з клавіатури</string>
@@ -1341,6 +1450,10 @@
     <string name="ime_gallery_info_taken">Знято</string>
     <string name="ime_gallery_layer_delete">Видалити</string>
     <string name="ime_gallery_more_desc">Більше параметрів галереї</string>
+    <plurals name="ime_gallery_notice_already_uploaded">
+        <item quantity="one">Immich уже мав %d зображення</item>
+        <item quantity="other">Immich уже мав усі %d зображення</item>
+    </plurals>
     <plurals name="ime_gallery_notice_copied">
         <item quantity="one">Скопійовано %d елемент</item>
         <item quantity="other">Скопійовано %d елементів</item>
@@ -1349,6 +1462,8 @@
         <item quantity="one">Не вдалося прочитати %d елемент</item>
         <item quantity="other">Не вдалося прочитати %d елементів</item>
     </plurals>
+    <string name="ime_gallery_notice_immich_failed">Не вдалося з\'єднатися з сервером Immich</string>
+    <string name="ime_gallery_notice_immich_refused">Immich відхилив ключ API; перевірте його дозволи</string>
     <plurals name="ime_gallery_notice_limit">
         <item quantity="one">Ви можете вибрати %d елемент за раз</item>
         <item quantity="other">Ви можете вибрати до %d елементів за раз</item>
@@ -1369,6 +1484,14 @@
     <plurals name="ime_gallery_notice_shared">
         <item quantity="one">Відкрито екран спільного доступу для %d елемента</item>
         <item quantity="other">Відкрито екран спільного доступу для %d елементів</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_upload_failed">
+        <item quantity="one">Не вдалося завантажити %d зображення</item>
+        <item quantity="other">Не вдалося завантажити %d зображень</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_uploaded">
+        <item quantity="one">Завантажено %d зображення в Immich</item>
+        <item quantity="other">Завантажено %d зображень в Immich</item>
     </plurals>
     <string name="ime_gallery_partial_action">Вибрати більше</string>
     <string name="ime_gallery_partial_body">Ви надали доступ лише до деяких фотографій.</string>
@@ -1412,6 +1535,7 @@
     <string name="ime_gallery_tool_stickers">Стікери</string>
     <string name="ime_gallery_tool_text">Текст</string>
     <string name="ime_gallery_tool_upscale">Масштабувати</string>
+    <string name="ime_gallery_upload_immich">Завантажити в Immich</string>
     <string name="ime_gallery_upscale_art">Малюнок або текст</string>
     <string name="ime_gallery_upscale_done">Масштабовано ×%1$d: %2$d × %3$d</string>
     <string name="ime_gallery_upscale_downloading">Програма завантажує апскейлер…</string>
@@ -1670,6 +1794,9 @@
     <string name="ime_handwriting_unsupported_info">Ця версія програми розпізнає рукописний ввід лише китайською та японською мовами. Додайте одну з них у розділі «Мови», щоб писати тут.</string>
     <string name="ime_hardware_keys_hide_desc">Приховати клавіші</string>
     <string name="ime_hardware_keys_show_desc">Показати клавіші</string>
+    <string name="ime_homophones_finish">Спочатку допишіть слово, яке ви вводите</string>
+    <string name="ime_homophones_none">На цьому телефоні ніщо не звучить як %1$s. Мовний пакет або схема RIME додає читання.</string>
+    <string name="ime_homophones_none_before">Спочатку введіть китайський чи японський символ</string>
     <string name="ime_hw_pick_mode_off_toast">Режим вибору вимкнено</string>
     <string name="ime_hw_pick_mode_on_toast">Режим вибору ввімкнено: цифрові клавіші вибирають підказки, Shift вводить цифру</string>
     <string name="ime_icons_builtin_label">Вбудовані</string>
@@ -1684,6 +1811,45 @@
     <string name="ime_image_search_need_key_body">Для пошуку зображень потрібен ключ API від Brave Search. Додайте ключ у налаштуваннях цього інструмента.</string>
     <string name="ime_incognito_on_desc">Режим інкогніто ввімкнено</string>
     <string name="ime_insert_action">Вставити</string>
+    <string name="ime_invite_about_hint">Додати опис</string>
+    <string name="ime_invite_action">Запросити онлайн</string>
+    <string name="ime_invite_add_title">Додати назву</string>
+    <string name="ime_invite_error_address">Адреса %1$s у налаштуваннях не є веб-адресою.</string>
+    <string name="ime_invite_error_bad_token">%1$s не прийняв токен API.</string>
+    <string name="ime_invite_error_data_saver">Увімкнено економію трафіку. Публікація надсилає кілька кілобайтів.</string>
+    <string name="ime_invite_error_network">%1$s не відповів(-ла).</string>
+    <string name="ime_invite_error_no_title">Запрошення повинне мати назву.</string>
+    <string name="ime_invite_error_offline">Немає підключення. Підключіться та повторіть спробу.</string>
+    <string name="ime_invite_error_refused">%1$s повідомляє, що цей обліковий запис не може створювати події тут.</string>
+    <string name="ime_invite_error_rejected">%1$s відхилив(-ла) подію.</string>
+    <string name="ime_invite_error_signed_out">%1$s вивів вас із системи. Увійдіть знову в налаштуваннях.</string>
+    <string name="ime_invite_fix_in_pretix">Відкрити Pretix</string>
+    <string name="ime_invite_go_ahead">Давайте</string>
+    <string name="ime_invite_insert_link">Вставити посилання</string>
+    <string name="ime_invite_insert_message">Вставити запрошення</string>
+    <string name="ime_invite_link_only">Лише люди з посиланням</string>
+    <string name="ime_invite_listed">У публічному списку</string>
+    <string name="ime_invite_made">Створено %1$s, реєстрація ще не відкрита</string>
+    <string name="ime_invite_not_live">Pretix створив подію, але не відкрив реєстрацію. %1$s</string>
+    <string name="ime_invite_not_set_up_body">Спочатку увійдіть у Mobilizon або додайте сервер Pretix у налаштуваннях інструмента Календар.</string>
+    <string name="ime_invite_not_set_up_title">Служби подій ще немає</string>
+    <string name="ime_invite_note_mobilizon">Люди реєструються на сторінці події. Mobilizon надішле вам сповіщення електронною поштою, коли вони це зроблять.</string>
+    <string name="ime_invite_note_pretix">Подія отримує один безплатний квиток, тому люди реєструються на її сторінці зі своєю електронною адресою.</string>
+    <string name="ime_invite_open_page">Відкрити сторінку</string>
+    <string name="ime_invite_open_settings">Налаштування</string>
+    <string name="ime_invite_place_hint">Додайте місце або посилання</string>
+    <string name="ime_invite_places_any">Без обмежень</string>
+    <string name="ime_invite_places_label">Місця</string>
+    <string name="ime_invite_post_as">Опублікувати як %1$s</string>
+    <string name="ime_invite_post_as_default">Опублікувати від свого профілю</string>
+    <string name="ime_invite_post_as_loading">Завантаження ваших профілів…</string>
+    <string name="ime_invite_publish">Опублікувати</string>
+    <string name="ime_invite_published">Опубліковано %1$s</string>
+    <string name="ime_invite_publishing">Публікація…</string>
+    <string name="ime_invite_publishing_to">Публікація в %1$s</string>
+    <string name="ime_invite_ticket_name">Реєстрація</string>
+    <string name="ime_invite_title">Запросити онлайн</string>
+    <string name="ime_invite_try_again">Спробувати знову</string>
     <string name="ime_kaomoji_add">Додати каомодзі</string>
     <string name="ime_kaomoji_all">Усі</string>
     <string name="ime_kaomoji_cancel">Скасувати</string>
@@ -1971,6 +2137,7 @@
     <string name="ime_learn_text_action">Вивчити текст</string>
     <string name="ime_learn_word_never_desc">Ніколи не вивчати %1$s</string>
     <string name="ime_learn_word_offer">Додати \"%1$s\"?</string>
+    <string name="ime_legacy_font_output">Вивід застарілого шрифту</string>
     <string name="ime_level_no_sensor_empty">Ваш пристрій не має акселерометра.</string>
     <string name="ime_location_address_failed">Тут немає адреси. Координати все одно працюють.</string>
     <string name="ime_location_address_looking">Пошук адреси…</string>
@@ -2143,6 +2310,29 @@
         <item quantity="other">Нотаток архівовано: %d</item>
     </plurals>
     <string name="ime_notes_archived_badge">Архівовано</string>
+    <string name="ime_notes_assist_deck_action">Створити навчальну колоду</string>
+    <plurals name="ime_notes_assist_deck_action_count">
+        <item quantity="one">Створити навчальну колоду (%d картка)</item>
+        <item quantity="other">Створити навчальну колоду (%d карток)</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_empty_toast">Немає термінів із тлумаченнями для створення карток</string>
+    <plurals name="ime_notes_assist_deck_made_toast">
+        <item quantity="one">Навчальну колоду \"%2$s\" створено з %1$d карткою. Знайдіть її у Словнику.</item>
+        <item quantity="other">Навчальну колоду \"%2$s\" створено з %1$d картками. Знайдіть її у Словнику.</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_working_toast">Створення колоди для навчання…</string>
+    <string name="ime_notes_assist_details_label">Основні деталі</string>
+    <string name="ime_notes_assist_heading_busy">Вибираємо заголовок…</string>
+    <string name="ime_notes_assist_heading_dismiss_desc">Не цей заголовок</string>
+    <string name="ime_notes_assist_heading_suggestion">Заголовок: %1$s</string>
+    <string name="ime_notes_assist_heading_use_action">Використати</string>
+    <string name="ime_notes_assist_related_label">Пов\'язані</string>
+    <string name="ime_notes_assist_remind_chip">Нагадати: %1$s · %2$s</string>
+    <string name="ime_notes_assist_reminders_label">Незабаром</string>
+    <string name="ime_notes_assist_summarize_action">Підсумувати</string>
+    <string name="ime_notes_assist_summarize_again_action">Знову</string>
+    <string name="ime_notes_assist_summary_busy">Створення підсумку на вашому телефоні…</string>
+    <string name="ime_notes_assist_summary_label">Підсумок</string>
     <string name="ime_notes_body_hint">Напишіть нотатку… Працює Markdown: **жирний**, - списки, - [ ] завдання</string>
     <string name="ime_notes_collapse_desc">Повернутися до висоти клавіатури</string>
     <string name="ime_notes_confirm_action">Натисніть ще раз для підтвердження</string>
@@ -2191,6 +2381,7 @@
     <string name="ime_notes_no_match">Немає нотаток, що відповідають «%1$s».</string>
     <string name="ime_notes_passage_desc">З %1$s. Торкніться, щоб вставити, утримуйте, щоб відкрити нотатку.</string>
     <string name="ime_notes_passages_section">Уривки</string>
+    <string name="ime_notes_paste_desc">Вставити</string>
     <string name="ime_notes_pin_action">Закріпити</string>
     <string name="ime_notes_pinned_section">Закріплені</string>
     <string name="ime_notes_restore_action">Відновити</string>
@@ -2224,6 +2415,29 @@
     <string name="ime_otp_chip_dismiss_desc">Приховати код</string>
     <string name="ime_panel_back_desc">Назад до клавіатури</string>
     <string name="ime_panel_over_keys_height_desc">Висота панелі над клавішами. Перетягніть вгору або вниз</string>
+    <string name="ime_paperless_card_also_field">Також помістіть сторінки в текстове поле</string>
+    <string name="ime_paperless_card_correspondent">Кореспондент</string>
+    <string name="ime_paperless_card_field_only">Лише текстове поле</string>
+    <string name="ime_paperless_card_loading">Отримання ваших тегів із сервера…</string>
+    <string name="ime_paperless_card_name">Назва</string>
+    <string name="ime_paperless_card_name_hint">Необов\'язково. Якщо залишити порожнім, Paperless назве її.</string>
+    <string name="ime_paperless_card_none">Немає</string>
+    <string name="ime_paperless_card_offline">Зараз неможливо зв\'язатися з сервером. Сканування очікує на телефоні з вашими типовими мітками та буде завантажено щойно з\'явиться зв\'язок.</string>
+    <string name="ime_paperless_card_offline_cached">Зараз неможливо зв\'язатися з сервером; це його списки з попереднього часу. Сканування буде завантажено, щойно з\'явиться зв\'язок.</string>
+    <string name="ime_paperless_card_one_pdf">Усі сторінки в одному PDF</string>
+    <plurals name="ime_paperless_card_pages">
+        <item quantity="one">%d сторінка</item>
+        <item quantity="other">%d сторінки</item>
+    </plurals>
+    <string name="ime_paperless_card_send">Надіслати</string>
+    <string name="ime_paperless_card_tags">Теги</string>
+    <string name="ime_paperless_card_title">Надіслати до Paperless</string>
+    <string name="ime_paperless_card_type">Тип документа</string>
+    <string name="ime_paperless_queue_failed">Не вдалося зберегти сканування для Paperless</string>
+    <plurals name="ime_paperless_queued">
+        <item quantity="one">%d документ вирушає до Paperless. Він завантажиться, щойно з\'явиться підключення.</item>
+        <item quantity="other">%d документів вирушають до Paperless. Вони завантажаться, щойно з\'явиться підключення.</item>
+    </plurals>
     <string name="ime_password_add_digit_label">Додати цифру</string>
     <string name="ime_password_capitalize_label">Великі літери</string>
     <string name="ime_password_copied_toast">Скопійовано в буфер обміну</string>
@@ -2242,11 +2456,27 @@
     <string name="ime_password_tab_pin">PIN-код</string>
     <string name="ime_password_words_label">Слова</string>
     <string name="ime_phonetic_word_list_offer">Отримайте список слів %1$s для кращих варіантів</string>
+    <string name="ime_plugin_access_mark">Цей плагін може використовувати інтернет або читати те, що ви пишете</string>
+    <string name="ime_plugin_action_settings">Налаштування та дозволи</string>
+    <string name="ime_plugin_action_toolbar_add">Додати на панель інструментів</string>
+    <string name="ime_plugin_action_toolbar_remove">Видалити з панелі інструментів</string>
+    <string name="ime_plugin_action_toolbox_add">Додати до панелі інструментів</string>
+    <string name="ime_plugin_action_toolbox_remove">Видалити з панелі інструментів</string>
+    <string name="ime_plugin_action_turn_off">Вимкнути</string>
+    <string name="ime_plugin_action_turn_on">Увімкнути</string>
+    <string name="ime_plugin_clock_alarm_set">%1$s встановив будильник на %2$s у Годиннику</string>
+    <string name="ime_plugin_clock_timer_set">%1$s запустив(ла) таймер на %2$s у Годиннику</string>
     <string name="ime_plugin_empty_body">Плагін — це невеликий інструмент у пісочниці. Ви можете додавати плагіни з репозиторію доповнень або з файлу .wmplugin. Плагін не може бачити, що ви вводите.</string>
     <string name="ime_plugin_empty_title">Плагінів поки немає</string>
     <string name="ime_plugin_manage_action">Керування плагінами</string>
+    <string name="ime_plugin_more">Більше параметрів для %1$s</string>
+    <string name="ime_plugin_permission_allow">Дозволити</string>
+    <string name="ime_plugin_permission_deny">Не дозволяти</string>
+    <string name="ime_plugin_permission_risky_note">Це також увімкне ризиковані дозволи для плагінів. Ви можете знову вимкнути будь-який із них на сторінці плагіна в Налаштуваннях.</string>
+    <string name="ime_plugin_permission_title">Дозволити %1$s:</string>
     <string name="ime_plugin_version_label">Версія %1$s</string>
     <string name="ime_power_saving_on_desc">Енергозбереження увімкнено</string>
+    <string name="ime_privacy_shade_hint">Перетягніть ручку вгору, щоб побачити останні рядки</string>
     <string name="ime_provider_choose_desc">Виберіть постачальника</string>
     <string name="ime_punct_ampersand">Амперсанд</string>
     <string name="ime_punct_apostrophe">Апостроф</string>
@@ -2380,6 +2610,8 @@
     <string name="ime_resize_move_desc">Перетягніть, щоб перемістити клавіатуру вгору або вниз</string>
     <string name="ime_resize_reset">Скинути</string>
     <string name="ime_resize_right_handle_desc">Перетягніть, щоб змінити простір праворуч від клавіатури</string>
+    <string name="ime_resize_toolbar_handle">Панель інструментів</string>
+    <string name="ime_resize_toolbar_handle_desc">Перетягніть угору чи вниз, щоб змінити висоту панелі інструментів</string>
     <string name="ime_retype_button">Повторити введення</string>
     <string name="ime_retype_button_desc">Повторно ввести слово під курсором</string>
     <string name="ime_retype_button_nothing">Немає слова для перенабору. Помістіть курсор одразу після слова.</string>
@@ -2434,8 +2666,10 @@
     <string name="ime_scanner_torch_desc">Ліхтарик</string>
     <string name="ime_scanner_translate_action">Перекласти</string>
     <string name="ime_screen_capture_desc">Зробити знімок екрана</string>
+    <string name="ime_screen_capture_progress">Створення знімка екрана…</string>
     <string name="ime_search_attribution_brave">через Brave</string>
     <string name="ime_search_attribution_left">%1$s · залишилося %2$s</string>
+    <string name="ime_search_attribution_mwmbl">через Mwmbl</string>
     <string name="ime_search_attribution_tavily">через Tavily</string>
     <string name="ime_search_in_browser_desc">Пошук у браузері</string>
     <string name="ime_search_menu_copy_link">Копіювати посилання</string>
@@ -2445,6 +2679,7 @@
     <string name="ime_search_no_more">Більше результатів немає</string>
     <string name="ime_search_tab_all">Усі</string>
     <string name="ime_search_tab_images">Зображення</string>
+    <string name="ime_second_toolbar_empty">Перетягніть сюди інструмент з панелі інструментів</string>
     <string name="ime_selection_ask_ai">Запитати ШІ</string>
     <string name="ime_selection_macro_ai_translate_label">ШІ-переклад</string>
     <string name="ime_selection_macro_back_desc">Назад до дій з виділеним</string>
@@ -2743,6 +2978,8 @@
     <string name="ime_service_incognito_off_toast">Режим інкогніто вимкнено</string>
     <string name="ime_service_incognito_on_toast">Режим інкогніто увімкнено. Клавіатура не вивчає те, що ви вводите.</string>
     <string name="ime_service_incognito_switch_toast">Режим інкогніто ввімкнено. Торкніться інструмента «Інкогніто», щоб вимкнути його</string>
+    <string name="ime_service_legacy_font_off_toast">Написання Unicode</string>
+    <string name="ime_service_legacy_font_on_toast">Написання для шрифту %1$s</string>
     <string name="ime_service_media_download_error_toast">Завантаження не вдалося. Перевірте підключення.</string>
     <string name="ime_service_media_fetch_error">Клавіатура не може отримати результати</string>
     <string name="ime_service_mode_tool_order_toast">Клавіатура зберегла порядок інструментів для режиму %1$s. Інші програми зберігають власний порядок.</string>
@@ -2766,6 +3003,7 @@
     <string name="ime_service_power_saving_on_empty_toast">Енергозбереження ввімкнено. Жодна функція ще не налаштована на зупинку.</string>
     <string name="ime_service_power_saving_on_toast">Енергозбереження ввімкнено</string>
     <string name="ime_service_power_saving_still_on_toast">Енергозбереження залишається увімкненим. Тригер заряду акумулятора активний.</string>
+    <string name="ime_service_privacy_shade_floating_toast">Шторка конфіденційності працює з закріпленою клавіатурою. Спочатку закріпіть клавіатуру.</string>
     <string name="ime_service_qr_error">Клавіатура не може створити QR-код</string>
     <string name="ime_service_resize_floating_toast">Закріпіть клавіатуру, щоб змінити її розмір</string>
     <string name="ime_service_search_error">Пошук не спрацював</string>
@@ -2826,6 +3064,7 @@
     <string name="ime_smart_repeat_count">×%1$s</string>
     <string name="ime_smart_repeat_offer">Повторити “%1$s”</string>
     <string name="ime_smart_replies_dismiss_desc">Приховати розумні відповіді</string>
+    <string name="ime_smart_search_offer">%1$s: “%2$s”</string>
     <string name="ime_smart_send_link">Отримати файл</string>
     <string name="ime_smart_translate_offer">Перекласти</string>
     <string name="ime_smart_vocab_daily">Слово дня: %1$s ›</string>
@@ -2835,6 +3074,12 @@
     <string name="ime_smart_vocab_word">%1$s ›</string>
     <string name="ime_smart_weather_tap">Отримати прогноз</string>
     <string name="ime_smart_wiki_word">“%1$s” у Вікіпедії</string>
+    <string name="ime_snippet_ask_cancel_desc">Скасувати фрагмент</string>
+    <string name="ime_snippet_ask_done_desc">Вставити фрагмент</string>
+    <string name="ime_snippet_ask_hint">Введіть %1$s</string>
+    <string name="ime_snippet_ask_next_desc">Наступне поле</string>
+    <string name="ime_snippet_ask_step_label">%1$s %2$d/%3$d</string>
+    <string name="ime_snippet_image_desc">Фрагмент зображення %1$s</string>
     <string name="ime_snippet_offer_back_desc">Назад до %1$s</string>
     <string name="ime_snippet_offer_desc">Вставити фрагмент %1$s</string>
     <string name="ime_snippet_offer_more_desc">Більше від %1$s</string>
@@ -2945,6 +3190,7 @@
     <string name="ime_suggestion_hold_label">Параметри слова</string>
     <string name="ime_suggestion_never_suggest">Ніколи не пропонувати \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Назад до клавіш</string>
+    <string name="ime_suggestion_pattern_still_hides">Шаблон чорного списку все ще приховує \"%1$s\". Змініть його в чорному списку підказок.</string>
     <string name="ime_suggestion_rank_badge">\"%1$s\" ранг %2$s</string>
     <string name="ime_suggestion_rank_unchanged">\"%1$s\" без змін</string>
     <string name="ime_suggestions_show_desc">Показувати рядок підказок</string>
@@ -2974,6 +3220,8 @@
     <string name="ime_synonyms_title">Синоніми до «%1$s»</string>
     <string name="ime_textedit_delete_line_desc">Видалити рядок</string>
     <string name="ime_textedit_delete_line_forward_desc">Видалити рядок вперед</string>
+    <string name="ime_textedit_delete_to_end_desc">Видалити до кінця</string>
+    <string name="ime_textedit_delete_to_start_desc">Видалити до початку</string>
     <string name="ime_textedit_delete_word_desc">Видалити слово</string>
     <string name="ime_textedit_delete_word_forward_desc">Видалити слово попереду</string>
     <string name="ime_textedit_doc_end_desc">Перейти в кінець тексту</string>
@@ -2992,6 +3240,7 @@
     <string name="ime_textedit_select_label">Вибрати</string>
     <string name="ime_textedit_select_line_desc">Вибрати рядок</string>
     <string name="ime_textedit_select_word_desc">Вибрати слово</string>
+    <string name="ime_textedit_type_clipboard_desc">Ввести текст із буфера обміну</string>
     <string name="ime_textedit_up_desc">Перемістити вгору</string>
     <string name="ime_textedit_word_left_desc">Перемістити на одне слово ліворуч</string>
     <string name="ime_textedit_word_right_desc">Перемістити на одне слово праворуч</string>
@@ -3069,6 +3318,7 @@
     <string name="ime_tool_calculator">Калькулятор</string>
     <string name="ime_tool_calendar">Календар</string>
     <string name="ime_tool_camera">Камера</string>
+    <string name="ime_tool_clear_field">Видалити все</string>
     <string name="ime_tool_clipboard">Буфер обміну</string>
     <string name="ime_tool_clipboard_search">Пошук у буфері обміну</string>
     <string name="ime_tool_clock">Годинник</string>
@@ -3085,11 +3335,13 @@
     <string name="ime_tool_cursor_word_right">Слово праворуч</string>
     <string name="ime_tool_custom_layout">Власна розкладка</string>
     <string name="ime_tool_cut">Вирізати</string>
+    <string name="ime_tool_debug_info">Інформація для налагодження</string>
     <string name="ime_tool_dictionary">Словник</string>
     <string name="ime_tool_doc_scan">Сканування документів</string>
     <string name="ime_tool_emoji">Емодзі</string>
     <string name="ime_tool_emoji_mix">Мікси емодзі</string>
     <string name="ime_tool_fancy">Незвичайний текст</string>
+    <string name="ime_tool_files">Файли</string>
     <string name="ime_tool_find_replace">Знайти та замінити</string>
     <string name="ime_tool_flashlight">Ліхтарик</string>
     <string name="ime_tool_floating">Плаваюча</string>
@@ -3099,6 +3351,7 @@
     <string name="ime_tool_handwriting">Рукописне введення</string>
     <string name="ime_tool_hide_keyboard">Приховати</string>
     <string name="ime_tool_home_assistant">Розумний дім</string>
+    <string name="ime_tool_homophones">Однаковий звук</string>
     <string name="ime_tool_image_search">Зображення</string>
     <string name="ime_tool_incognito">Анонімний режим</string>
     <string name="ime_tool_language">Мова</string>
@@ -3125,6 +3378,7 @@
     <string name="ime_tool_picker_leader">%1$s, потім:</string>
     <string name="ime_tool_plugins">Плагіни</string>
     <string name="ime_tool_power_saving">Енергозбереження</string>
+    <string name="ime_tool_privacy_shade">Захисна шторка</string>
     <string name="ime_tool_qr_gen">QR-код</string>
     <string name="ime_tool_qr_scan">Сканування QR</string>
     <string name="ime_tool_quick_note">Швидка нотатка</string>
@@ -3149,6 +3403,7 @@
     <string name="ime_tool_text_edit">Редагування тексту</string>
     <string name="ime_tool_text_repeat">Повторити</string>
     <string name="ime_tool_themes">Теми</string>
+    <string name="ime_tool_timestamp">Мітка часу</string>
     <string name="ime_tool_todo">Список справ</string>
     <string name="ime_tool_trackpad">Трекпад</string>
     <string name="ime_tool_translate">Перекласти</string>
@@ -3206,12 +3461,14 @@
     <string name="ime_translate_engine_online_info">Використовує онлайн-сервіс.</string>
     <string name="ime_translate_hint">Введіть текст для перекладу…</string>
     <string name="ime_translate_idle">Переклад відображатиметься тут під час введення тексту.</string>
+    <string name="ime_translate_idle_manual">Введіть увесь текст і натисніть «Перекласти». До цього нічого не надсилається.</string>
     <string name="ime_translate_module_failed_error">Google Play не виконав завантаження. Перевірте з\'єднання та спробуйте ще раз. Якщо помилка повториться, завантажте його через Налаштування, Інструменти, Переклад.</string>
     <string name="ime_translate_module_installing_action">Завантаження…</string>
     <string name="ime_translate_module_missing_body">Переклад на пристрої — це додатковий компонент клавіатури, який завантажується з Google Play. Завантажте його, щоб перекладати без підключення до мережі.</string>
     <string name="ime_translate_need_models_body">Щоб перекладати на пристрої, завантажте: %1$s. Приблизно %2$s.</string>
     <string name="ime_translate_nllb_licence_accept_action">Прийняти та завантажити</string>
     <string name="ime_translate_nllb_licence_body">NLLB-200 надається Hugging Face згідно з ліцензією Meta, Creative Commons Attribution-NonCommercial 4.0: тільки для некомерційного використання, без жодних гарантій. Натисніть ще раз, щоб прийняти умови та завантажити.</string>
+    <string name="ime_translate_now_action">Перекласти</string>
     <string name="ime_translate_offline_build_error">Ця офлайн-збірка не може перекладати на цьому телефоні: її єдиний механізм, Firefox Translations, вимагає 64-розрядного телефону з Android 9 або новішої версії. Щоб перекладати, встановіть стандартну збірку.</string>
     <string name="ime_translate_offline_failed_error">Локальний переклад не запустився. Спробуйте ще раз або виберіть онлайн-рушій.</string>
     <string name="ime_translate_offline_import_body">Цю автономну збірку не вдається завантажити. Щоб перекласти це, завантажте їх на іншому пристрої та імпортуйте: %1$s. Відкрийте Налаштування › Інструменти › Переклад › Постачальники › На пристрої (Переклади Firefox).</string>
@@ -3227,6 +3484,7 @@
     <string name="ime_translate_select_source_desc">Виберіть мову оригіналу</string>
     <string name="ime_translate_server_label">Ваш сервер</string>
     <string name="ime_translate_source_guessed_label">%1$s?</string>
+    <string name="ime_translate_speak_desc">Прочитати переклад вголос</string>
     <string name="ime_translate_swap_desc">Поміняти мови місцями</string>
     <string name="ime_typing_accuracy_label">точність</string>
     <string name="ime_typing_accuracy_short_label">точн.</string>
@@ -3347,6 +3605,10 @@
     <string name="ime_voice_model_get_language_action">Отримати %1$s для офлайн-голосового введення</string>
     <string name="ime_voice_permission_action">Дозволити мікрофон</string>
     <string name="ime_voice_permission_body">Для голосового введення потрібен дозвіл на використання мікрофона. Додаток записує аудіо лише під час вашого мовлення.</string>
+    <string name="ime_voice_prompt_fix_custom">Видаліть деякі з додаткових слів для прослуховування в налаштуваннях голосового введення або вкоротіть підказку.</string>
+    <string name="ime_voice_prompt_fix_personal">Вимкніть параметр \"Слухати мої слова\" в налаштуваннях голосового введення або вкоротіть підказку.</string>
+    <string name="ime_voice_prompt_fix_prompt">Скоротіть підказку на екрані сервера в налаштуваннях голосового введення до менш ніж %1$d символів.</string>
+    <string name="ime_voice_prompt_too_long">Цей сервер приймає підказку довжиною до %2$d символів, а ця має %1$d: Підказка %3$d, Додаткові слова для прослуховування %4$d, Прослуховування моїх слів %5$d.</string>
     <string name="ime_voice_secure_field_notice">Голосове введення не працює в полях для паролів.</string>
     <string name="ime_voice_server_metered_ask">Увімкнено режим економії трафіку. Натисніть мікрофон ще раз, щоб надіслати голос через мобільні дані.</string>
     <string name="ime_voice_server_metered_blocked">Сервер транскрипції вимкнено під час використання мобільних даних. Ви можете змінити це в Налаштуваннях у розділі \"Економія даних\".</string>
@@ -3386,6 +3648,12 @@
     <string name="ime_voice_use_system_action">Використовувати системний розпізнавач</string>
     <string name="ime_weather_clouds_label">хмарність</string>
     <string name="ime_weather_error">Додаток не може завантажити погоду. Перевірте мережу.</string>
+    <string name="ime_weather_event_back_desc">Повернутися до календаря</string>
+    <string name="ime_weather_event_home_place">%1$s (місцезнаходження вашої погоди)</string>
+    <string name="ime_weather_event_home_unnamed">Ваше місце розташування для погоди</string>
+    <string name="ime_weather_event_hour_desc">%1$s: %2$s, %3$s, ймовірність дощу %4$s</string>
+    <string name="ime_weather_event_no_hours">Прогноз поки що не охоплює цей день.</string>
+    <string name="ime_weather_event_rain_info">Ймовірність дощу %1$d%%</string>
     <string name="ime_weather_feels_like_label">відчувається як</string>
     <string name="ime_weather_high_low_info">Макс. %1$d° Мін. %2$d°</string>
     <string name="ime_weather_humidity_label">вологість</string>
@@ -3501,6 +3769,7 @@
     <string name="ime_wmpass_no_password">WM Pass не створив пароль. Сховище може бути заблоковане.</string>
     <string name="ime_wmpass_no_username">Цей логін не має імені користувача для заповнення.</string>
     <string name="ime_wmpass_no_vault">У WM Pass ще немає сховища. Спочатку створіть його там.</string>
+    <string name="ime_wmpass_not_released">WM Pass ще не випущено. Цей інструмент почне працювати після його випуску та встановлення.</string>
     <string name="ime_wmpass_not_set">Не встановлено</string>
     <string name="ime_wmpass_off">Щоб використовувати це, увімкніть «Дозволити WM Keyboard заповнювати WM Pass» у розділі «Налаштування» -&gt; «Безпека».</string>
     <string name="ime_wmpass_open">Відкрити WM Pass</string>

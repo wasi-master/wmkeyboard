@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">E-postadresse</string>
+    <string name="core_content_clip_entity_email_tag">E-POST</string>
     <string name="core_content_clip_entity_otp_label">Engangskode</string>
     <string name="core_content_clip_entity_otp_tag">KODE</string>
     <string name="core_content_clip_entity_phone_label">Telefonnummer</string>
@@ -38,6 +40,10 @@
         <item quantity="one">Appen hoppet over %1$d tekstbit som ikke har noe å sette inn.</item>
         <item quantity="other">Appen hoppet over %1$d tekstbiter som ikke har noe å sette inn.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d skjema-felt tilbyr en liste å velge fra. Appen ber om det som et skrevet svar, med første valg fylt ut.</item>
+        <item quantity="other">%1$d skjema-felt tilbyr en liste å velge fra. Appen ber om hver enkelt som et skrevet svar, med første valg fylt ut.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Appen hoppet over %1$d tekstsnutt som setter inn et bilde.</item>
         <item quantity="other">Appen hoppet over %1$d tekstsnutter som setter inn bilder.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d tekstsnutt bruker en verdi Espanso ikke har noen ekvivalent for. Den skrives ut som den står.</item>
         <item quantity="other">%1$d tekstsnutter bruker verdier Espanso ikke har noen ekvivalent for. De skrives ut som de står.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d snutt setter inn et bilde. En tekstfil kan ikke inneholde bildet, så bare ordene ble sendt ut.</item>
+        <item quantity="other">%1$d snutter setter inn bilder. En tekstfil kan ikke inneholde bildene, så bare ordene deres ble sendt ut.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">Appen fjernet mønsteret fra %1$d tekstsnutt. Appen kjører ikke mønstre med den formen. Tekstsnutten forblir i listen.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">Appen fjernet %1$d utløser som tastaturet ikke kan overvåke. Snippet-en blir værende i listen.</item>
         <item quantity="other">Appen fjernet %1$d utløsere som tastaturet ikke kan overvåke. Snippet-ene blir værende i listen.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">Starter med ===, men er ikke en hel === utløser === linje. For å starte en tekstlinje med ===, skriv \=== i stedet</string>
+    <string name="core_content_snippet_text_bad_pattern">Mønsteret kan ikke brukes: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s kan ikke være %2$s</string>
+    <string name="core_content_snippet_text_before_header">Tekst før den første 222-utløserlinjen 222. Start en blokk med én, eller begynn linjen med #</string>
+    <string name="core_content_snippet_text_no_text">Dette utdraget har ingen tekst</string>
+    <string name="core_content_snippet_text_no_trigger">Et utdrag uten noe mellom ===-merkene trenger en @label- eller en @pattern-linje</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d bildeutklipp kom inn som tekst: en tekstfil inneholder ingen bilder</item>
+        <item quantity="other">%1$d bildeutklipp kom inn som tekst: en tekstfil inneholder ingen bilder</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">Hoppet over utdraget på linje %1$d, som inneholder en feil</string>
+    <string name="core_content_snippet_text_unknown_link">\@link har navnet %1$s, og ingen snutt her har den utløseren</string>
+    <string name="core_content_snippet_text_unknown_picture">\@picture navngir %1$s, som ingen snutt bruker. Legg til bilder i snuttens egne redigeringsverktøy</string>
+    <string name="core_content_snippet_text_unknown_setting">Tastaturet kjenner ikke innstillingen %1$s. For å starte en tekstbit med @, skriv \@ i stedet</string>
     <string name="core_content_snippet_var_app_info">Navnet på appen du skriver i</string>
+    <string name="core_content_snippet_var_battery_info">Batteriladningen, for eksempel 85 %</string>
     <string name="core_content_snippet_var_clip_info">Den nyeste utklippstavleoppføringen</string>
     <string name="core_content_snippet_var_cursor_info">Stedet der markøren lander</string>
     <string name="core_content_snippet_var_date_info">Dagens dato</string>
     <string name="core_content_snippet_var_datetime_info">Dato og klokkeslett</string>
     <string name="core_content_snippet_var_day_info">Dagen i måneden</string>
+    <string name="core_content_snippet_var_greeting_info">God morgen, ettermiddag eller kveld avhengig av tidspunktet, på tastaturspråket</string>
     <string name="core_content_snippet_var_isodate_info">Datoen i ISO-format, for eksempel 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">Dato og klokkeslett i ISO-format</string>
+    <string name="core_content_snippet_var_language_info">Tastaturspråket du skriver på</string>
     <string name="core_content_snippet_var_month_info">Navnet på måneden</string>
     <string name="core_content_snippet_var_package_info">Pakkenavnet til den appen</string>
     <string name="core_content_snippet_var_selection_info">Teksten du velger i feltet</string>
+    <string name="core_content_snippet_var_tab_info">Et tabulatortegn</string>
     <string name="core_content_snippet_var_time12_info">Tiden nå i 12-timersformat</string>
     <string name="core_content_snippet_var_time_info">Tiden nå i 24-timersformat</string>
     <string name="core_content_snippet_var_timestamp_info">Tiden i Unix-sekunder</string>

@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Traka, pilula i tipke</string>
     <string name="core_settings_glide_commit_scope_pill_label">Traka i pilula</string>
     <string name="core_settings_glide_commit_scope_strip_label">Traka</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">Nakon poništavanja</string>
+    <string name="core_settings_glide_drawn_letters_off_label">Isključeno</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">Kad niste sigurni</string>
     <string name="core_settings_glide_engine_built_in_label">Ugrađeno</string>
     <string name="core_settings_glide_engine_futo_label">FUTO klizanje (engleski, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Googleova biblioteka gesti (uvezeno)</string>

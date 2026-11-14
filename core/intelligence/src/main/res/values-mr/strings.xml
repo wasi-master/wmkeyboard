@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">एक अलीकडील मध्यम आकाराचे मॉडेल जे उत्तर देण्यापूर्वी विचार करते. यासाठी मध्यम-श्रेणीच्या उपकरणाची आवश्यकता आहे.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">लहान आणि वेगवान. हे मूलभूत उपकरणावर त्वरित पुनर्लेखनासाठी चांगले आहे.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">एक अतिशय लहान मॉडेल जे चित्रे वाचू शकते. हे चित्राचे वर्णन करते, परंतु अनेकदा स्क्रीनशॉटमधील मजकूर चुकीच्या पद्धतीने वाचते.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">सूचनांचे पालन करण्यासाठी आणि साधने वापरण्यासाठी NVIDIA चे Gemma 4 E4B चे पुनर्शिक्षण. फक्त मजकूर, आणि यासाठी शक्तिशाली डिव्हाइस आवश्यक आहे.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">एक सामान्य-उद्देशीय मॉडेल जे मूलभूत डिव्हाइसवर देखील बसते.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">१B पेक्षा कमी मॉडेल्सपेक्षा स्पष्टपणे हुशार. याला मध्यम-श्रेणीच्या डिव्हाइसची आवश्यकता आहे.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">एक अलीकडील लहान मॉडेल. त्याच्या आकारानुसार गुणवत्ता उच्च आहे.</string>

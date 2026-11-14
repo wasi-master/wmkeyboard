@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">ઇમેઇલ સરનામું</string>
+    <string name="core_content_clip_entity_email_tag">ઈમેલ</string>
     <string name="core_content_clip_entity_otp_label">વન-ટાઇમ કોડ</string>
     <string name="core_content_clip_entity_otp_tag">કોડ</string>
     <string name="core_content_clip_entity_phone_label">ફોન નંબર</string>
@@ -38,6 +40,10 @@
         <item quantity="one">એપે %1$d સ્નિપેટ છોડી દીધું છે જેમાં દાખલ કરવા માટે કંઈ નથી.</item>
         <item quantity="other">એપે %1$d સ્નિપેટ્સ છોડી દીધા છે જેમાં દાખલ કરવા માટે કંઈ નથી.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d ફોર્મ ફિલ્ડ પસંદ કરવા માટે યાદી આપે છે. એપ તેને ટાઈપ કરેલા જવાબ તરીકે માંગે છે, જેમાં પહેલી પસંદગી ભરેલી હોય છે.</item>
+        <item quantity="other">%1$d ફોર્મ ફિલ્ડ્સ પસંદ કરવા માટે યાદી આપે છે. એપ દરેકને ટાઈપ કરેલા જવાબ તરીકે માંગે છે, જેમાં પહેલી પસંદગી ભરેલી હોય છે.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">એપે %1$d સ્નિપેટ છોડી દીધું જે ચિત્ર દાખલ કરે છે.</item>
         <item quantity="other">એપે %1$d સ્નિપેટ્સ છોડી દીધા જે ચિત્રો દાખલ કરે છે.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d સ્નિપેટ એવી કિંમતનો ઉપયોગ કરે છે જેના માટે Espanso પાસે કોઈ સમકક્ષ નથી. તે જેવું છે તેવું જ લખવામાં આવે છે.</item>
         <item quantity="other">%1$d સ્નિપેટ્સ એવી કિંમતોનો ઉપયોગ કરે છે જેના માટે Espanso પાસે કોઈ સમકક્ષ નથી. તે જેવી છે તેવી જ લખવામાં આવે છે.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d સ્નિપેટ ચિત્ર દાખલ કરે છે. ટેક્સ્ટ ફાઇલ ચિત્રને પકડી શકતી નથી, તેથી ફક્ત તેના શબ્દો બહાર ગયા.</item>
+        <item quantity="other">%1$d સ્નિપેટ્સ ચિત્રો દાખલ કરે છે. ટેક્સ્ટ ફાઇલ ચિત્રોને પકડી શકતી નથી, તેથી ફક્ત તેમના શબ્દો બહાર ગયા.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">એપે %1$d સ્નિપેટમાંથી પેટર્ન દૂર કરી છે. એપ તે આકારની પેટર્ન ચલાવતી નથી. સ્નિપેટ સૂચિમાં રહે છે.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">એપ્લિકેશને %1$d ટ્રિગર દૂર કર્યું છે જે કીબોર્ડ જોઈ શકતું નથી. તેનો સ્નિપેટ સૂચિમાં રહે છે.</item>
         <item quantity="other">એપ્લિકેશને %1$d ટ્રિગર્સ દૂર કર્યા છે જે કીબોર્ડ જોઈ શકતું નથી. તેમના સ્નિપેટ્સ સૂચિમાં રહે છે.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">=== થી શરૂ થાય છે પરંતુ આખો === ટ્રિગર === લાઇન નથી. લખાણની લાઇન === થી શરૂ કરવા માટે, તેના બદલે \=== લખો</string>
+    <string name="core_content_snippet_text_bad_pattern">આ પૅટર્નનો ઉપયોગ કરી શકાતો નથી: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s %2$s હોઈ શકે નહીં</string>
+    <string name="core_content_snippet_text_before_header">પ્રથમ 111 ટ્રિગર 111 લાઇન પહેલાંનું લખાણ. એક સાથે બ્લોક શરૂ કરો, અથવા # થી લાઇન શરૂ કરો</string>
+    <string name="core_content_snippet_text_no_text">આ સ્નિપેટમાં કોઈ લખાણ નથી</string>
+    <string name="core_content_snippet_text_no_trigger">111 નિશાનો વચ્ચે કશું ન હોય તેવા સ્નિપેટને @label અથવા @pattern લાઇન રજૂ છે</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d ચિત્ર સ્નિપેટ તેના ટેક્સ્ટ તરીકે આવી: ટેક્સ્ટ ફાઇલમાં કોઈ ચિત્રો હોતા નથી</item>
+        <item quantity="other">%1$d ચિત્ર સ્નિપેટ્સ તેમના ટેક્સ્ટ તરીકે આવી: ટેક્સ્ટ ફાઇલમાં કોઈ ચિત્રો હોતા નથી</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">લાઈન %1$d પરનો સ્નિપેટ છોડી દીધો, જેમાં ભૂલ છે</string>
+    <string name="core_content_snippet_text_unknown_link">\@link %1$s નામ આપે છે, અને અહીં કોઈ સ્નિપેટમાં તે ટ્રીગર નથી</string>
+    <string name="core_content_snippet_text_unknown_picture">\@picture %1$s ના નામ આપે છે, જેનો કોઈ સ્નિપેટ ઉપયોગ કરતો નથી. સ્નિપેટના પોતાના સંપાદકમાં ચિત્રો ઉમેરો</string>
+    <string name="core_content_snippet_text_unknown_setting">કીબોર્ડ સેટિંગ %1$s ઓળખતું નથી. સ્નિપેટના ટેક્સ્ટની શરૂઆત @ થી કરવા માટે, તેના બદલે \@ લખો</string>
     <string name="core_content_snippet_var_app_info">તમે જે એપમાં ટાઈપ કરો છો તેનું નામ</string>
+    <string name="core_content_snippet_var_battery_info">બેટરી ચાર્જ, ઉદાહરણ તરીકે 85%</string>
     <string name="core_content_snippet_var_clip_info">સૌથી નવી ક્લિપબોર્ડ એન્ટ્રી</string>
     <string name="core_content_snippet_var_cursor_info">જ્યાં કર્સર ઉતરે છે તે જગ્યા</string>
     <string name="core_content_snippet_var_date_info">આજની તારીખ</string>
     <string name="core_content_snippet_var_datetime_info">તારીખ અને સમય</string>
     <string name="core_content_snippet_var_day_info">મહિનાનો દિવસ</string>
+    <string name="core_content_snippet_var_greeting_info">કીબોર્ડ ભાષામાં સમય અનુસાર શુભ સવાર, બપોર કે સાંજ</string>
     <string name="core_content_snippet_var_isodate_info">ISO ફોર્મમાં તારીખ, ઉદાહરણ તરીકે 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">ISO ફોર્મમાં તારીખ અને સમય</string>
+    <string name="core_content_snippet_var_language_info">તમે જે કીબોર્ડ ભાષામાં ટાઈપ કરો છો</string>
     <string name="core_content_snippet_var_month_info">મહિનાનું નામ</string>
     <string name="core_content_snippet_var_package_info">તે એપનું પેકેજ નામ</string>
     <string name="core_content_snippet_var_selection_info">તમે ફીલ્ડમાં જે ટેક્સ્ટ પસંદ કરો છો</string>
+    <string name="core_content_snippet_var_tab_info">એક ટેબ કેરેક્ટર</string>
     <string name="core_content_snippet_var_time12_info">૧૨-કલાકના ફોર્મેટમાં અત્યારનો સમય</string>
     <string name="core_content_snippet_var_time_info">અત્યારનો સમય 24-કલાકના ફોર્મેટમાં</string>
     <string name="core_content_snippet_var_timestamp_info">યુનિક્સ સેકન્ડમાં સમય</string>

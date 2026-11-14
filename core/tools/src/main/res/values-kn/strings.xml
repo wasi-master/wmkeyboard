@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">ಹಲೋ</string>
     <string name="core_tools_media_category_laugh">ನಗು</string>
     <string name="core_tools_media_category_love">ಪ್ರೀತಿ</string>
+    <string name="core_tools_media_category_memes">ಮೀಮ್ಸ್</string>
     <string name="core_tools_media_category_no">ಇಲ್ಲ</string>
     <string name="core_tools_media_category_party">ಪಾರ್ಟಿ</string>
     <string name="core_tools_media_category_reactions">ಪ್ರತಿಕ್ರಿಯೆಗಳು</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">ಒಂದು ಮೋಜಿ ಸರ್ವರ್: ಗೂಗಲ್, ಡೀಪ್‌ಎಲ್, ಡಕ್‌ಡಕ್‌ಗೋ, ಯಾಂಡೆಕ್ಸ್ ಮತ್ತು ರಿವರ್ಸೊಗೆ ಉಚಿತ ಫ್ರಂಟ್ ಎಂಡ್. ಎಂಜಿನ್ ಅನ್ನು ಆಯ್ಕೆಮಾಡಿ. ಡೀಪ್‌ಎಲ್ ಮತ್ತು ರಿವರ್ಸೊಗೆ ಮೂಲ ಭಾಷೆಯ ಅಗತ್ಯವಿದೆ.</string>
     <string name="core_tools_provider_music_server">ನಿಮ್ಮ ಸ್ವಂತ ಗುರುತಿಸುವಿಕೆ ಸರ್ವರ್</string>
     <string name="core_tools_provider_music_server_desc">AudD ನಂತೆ ಉತ್ತರಿಸುವ ನೀವು ರನ್ ಮಾಡುವ ಸರ್ವರ್: ಕ್ಲಿಪ್ ಅನ್ನು ಫೈಲ್ ಆಗಿ ಪೋಸ್ಟ್ ಮಾಡಲಾಗುತ್ತದೆ ಮತ್ತು ಹಾಡು JSON ಆಗಿ ಹಿಂತಿರುಗುತ್ತದೆ. ಅದರ ಹಿಂದೆ Panako ಅಥವಾ Olaf ನಂತಹ ಫಿಂಗರ್‌ಪ್ರಿಂಟರ್ ಅನ್ನು ಇರಿಸಿ.</string>
+    <string name="core_tools_provider_mwmbl_desc">ತನ್ನದೇ ಆದ ಸೂಚ್ಯಂಕವನ್ನು ಹೊಂದಿರುವ ಉಚಿತ, ಲಾಭರಹಿತ ಹುಡುಕಾಟ ಎಂಜಿನ್. ಯಾವುದೇ ಕೀ ಇಲ್ಲ. ವೆಬ್ ಫಲಿತಾಂಶಗಳು ಮಾತ್ರ, ಚಿತ್ರಗಳಿಲ್ಲ.</string>
     <string name="core_tools_provider_nllb">ಸಾಧನದಲ್ಲಿ (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">CTranslate2 ನಲ್ಲಿ ಮೆಟಾದ NLLB-200 ಮಾದರಿಯೊಂದಿಗೆ ಫೋನ್‌ನಲ್ಲಿ ಅನುವಾದಿಸುತ್ತದೆ: 200 ಭಾಷೆಗಳು, ಅವುಗಳಲ್ಲಿ ಯಾವುದೇ ಎರಡರ ನಡುವೆ, ಇತರ ಎಂಜಿನ್‌ಗಳಿಗೆ ಸಾಧ್ಯವಾಗದ ಜೋಡಿಗಳಿಗೆ. 630 MB ಯ ಒಂದು ಡೌನ್‌ಲೋಡ್, ಮತ್ತು ಒಂದು ವಾಕ್ಯಕ್ಕೆ ಕೆಲವು ಸೆಕೆಂಡುಗಳು ಬೇಕಾಗುತ್ತದೆ. ನಿಮ್ಮ ಪಠ್ಯ ಫೋನ್‌ನಲ್ಲಿಯೇ ಇರುತ್ತದೆ. ಮಾದರಿಯು ವಾಣಿಜ್ಯೇತರ ಬಳಕೆಗೆ ಮಾತ್ರ ಪರವಾನಗಿ ಪಡೆದಿದೆ (CC BY-NC 4.0). 6 GB ಅಥವಾ ಅದಕ್ಕಿಂತ ಹೆಚ್ಚಿನ ಮೆಮೊರಿ ಹೊಂದಿರುವ 64-ಬಿಟ್ ಫೋನ್ ಅಗತ್ಯವಿದೆ.</string>
     <string name="core_tools_provider_none_on">ಯಾವುದೇ ಪ್ರೊವೈಡರ್ ಆನ್ ಆಗಿಲ್ಲ. ಈ ಟೂಲ್‌ನ ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಒಂದನ್ನು ಆನ್ ಮಾಡಿ.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">ಈ ಪಟ್ಟಿ</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">ಕೀಗಳನ್ನು ತೋರಿಸಿ ಅಥವಾ ಮರೆಮಾಡಿ</string>
     <string name="core_tools_shortcut_leader_double_tap">%1$s ಅನ್ನು ಎರಡು ಬಾರಿ ಒತ್ತಿರಿ</string>
+    <string name="core_tools_speak_no_voice">ಈ ಫೋನ್‌ನಲ್ಲಿ ಇದನ್ನು ಓದಲು ಯಾವುದೇ %1$s ಧ್ವನಿ ಇಲ್ಲ. Android ನ text-to-speech ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಒಂದನ್ನು ಸೇರಿಸಿ, ಅಥವಾ Tools › Read back ಅಡಿಯಲ್ಲಿ ಆಫ್‌ಲೈನ್ ಧ್ವನಿಯನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ.</string>
     <string name="core_tools_symbol_category_arrows_label">ಬಾಣದ ಗುರುತುಗಳು</string>
     <string name="core_tools_symbol_category_currency_label">ಕರೆನ್ಸಿ</string>
     <string name="core_tools_symbol_category_fractions_label">ಭಿನ್ನರಾಶಿಗಳು</string>
     <string name="core_tools_symbol_category_greek_label">ಗ್ರೀಕ್</string>
     <string name="core_tools_symbol_category_math_label">ಗಣಿತ</string>
+    <string name="core_tools_symbol_category_music_label">ಸಂಗೀತ</string>
     <string name="core_tools_symbol_category_other_label">ಇತರೆ</string>
     <string name="core_tools_symbol_category_punctuation_label">ವಿರಾಮಚಿಹ್ನೆಗಳು</string>
     <string name="core_tools_symbol_category_shapes_label">ಆಕಾರಗಳು ಮತ್ತು ನಕ್ಷತ್ರಗಳು</string>
+    <string name="core_tools_symbol_category_stars_label">ನಕ್ಷತ್ರಗಳು</string>
     <string name="core_tools_symbol_category_superscript_label">ಸೂಪರ್‌ಸ್ಕ್ರಿಪ್ಟ್</string>
+    <string name="core_tools_symbol_category_technical_label">ತಾಂತ್ರಿಕ</string>
+    <string name="core_tools_symbol_category_weather_label">ಹವಾಮಾನ</string>
     <string name="core_tools_symbol_set_coding_label">ಕೋಡಿಂಗ್</string>
     <string name="core_tools_symbol_set_email_label">ಇಮೇಲ್</string>
     <string name="core_tools_symbol_set_math_label">ಗಣಿತ</string>

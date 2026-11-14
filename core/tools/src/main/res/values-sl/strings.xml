@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">Pozdravljeni</string>
     <string name="core_tools_media_category_laugh">Smeh</string>
     <string name="core_tools_media_category_love">Ljubezen</string>
+    <string name="core_tools_media_category_memes">Memi</string>
     <string name="core_tools_media_category_no">Ne</string>
     <string name="core_tools_media_category_party">Zabava</string>
     <string name="core_tools_media_category_reactions">Reakcije</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">Strežnik Mozhi: brezplačen vmesnik za Google, DeepL, DuckDuckGo, Yandex in Reverso. Izberite pogon. DeepL in Reverso potrebujeta izvorni jezik.</string>
     <string name="core_tools_provider_music_server">Vaš lasten strežnik za prepoznavanje</string>
     <string name="core_tools_provider_music_server_desc">Strežnik, ki ga zaženete in se odziva kot AudD: posnetek je objavljen kot datoteka, skladba pa se vrne v formatu JSON. Za njim namestite prstni odtis, kot sta Panako ali Olaf.</string>
+    <string name="core_tools_provider_mwmbl_desc">Brezplačni nepristranski iskalnik z lastnim indeksom. Brez ključ. Samo spletni rezultati, brez slik.</string>
     <string name="core_tools_provider_nllb">V napravi (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">Prevaaja v telefonu z Metinim modelom NLLB-200 na CTranslate2: 200 jezikov, med katerimikoli dvema, za pare, ki jih drugi mehanizmi ne zmorejo. Prenos v velikosti 630 MB, stavek pa se prevede v nekaj sekundah. Vaše besedilo ostane v telefonu. Model je licenciran samo za nekomercialno uporabo (CC BY-NC 4.0). Potrebuje 64-bitni telefon s 6 GB pomnilnika ali več.</string>
     <string name="core_tools_provider_none_on">Noben ponudnik ni vklopljen. Vklopite ga v nastavitvah tega orodja.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">Ta seznam</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">Prikaži ali skrij tipke</string>
     <string name="core_tools_shortcut_leader_double_tap">Pritisnite %1$s dvakrat</string>
+    <string name="core_tools_speak_no_voice">Ta telefon nima glasu %1$s za branje. Dodajte ga v Androidovih nastavitvah za pretvorbo besedila v govor ali prenesite glas brez povezave pod Orodja › Branje.</string>
     <string name="core_tools_symbol_category_arrows_label">Puščice</string>
     <string name="core_tools_symbol_category_currency_label">Valuta</string>
     <string name="core_tools_symbol_category_fractions_label">Ulomki</string>
     <string name="core_tools_symbol_category_greek_label">Grščina</string>
     <string name="core_tools_symbol_category_math_label">Matematika</string>
+    <string name="core_tools_symbol_category_music_label">Glasba</string>
     <string name="core_tools_symbol_category_other_label">Drugo</string>
     <string name="core_tools_symbol_category_punctuation_label">Ločila</string>
     <string name="core_tools_symbol_category_shapes_label">Oblike in zvezde</string>
+    <string name="core_tools_symbol_category_stars_label">Zvezdice</string>
     <string name="core_tools_symbol_category_superscript_label">Nadpisano</string>
+    <string name="core_tools_symbol_category_technical_label">Tehnično</string>
+    <string name="core_tools_symbol_category_weather_label">Vreme</string>
     <string name="core_tools_symbol_set_coding_label">Programiranje</string>
     <string name="core_tools_symbol_set_email_label">E-pošta</string>
     <string name="core_tools_symbol_set_math_label">Matematika</string>

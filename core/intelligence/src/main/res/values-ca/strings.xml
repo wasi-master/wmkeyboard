@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Un model recent de grandària mitjana que pensa abans de respondre. Necessita un dispositiu de gamma mitjana.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Petit i ràpid. És bo per a reescriptures ràpides en un dispositiu bàsic.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Un model molt petit que pot llegir imatges. Descriu una imatge, però sovint llegeix malament el text d\'una captura de pantalla.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">Reentrenament de Gemma 4 E4B per part d\'NVIDIA per seguir instruccions i utilitzar eines. Només text, i requereix un dispositiu potent.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Un model d\'ús general que encara cap en un dispositiu bàsic.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Clarament més intel·ligent que els models inferiors a 1B. Necessita un dispositiu de gamma mitjana.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Un model petit recent. La qualitat és alta per a la seva mida.</string>

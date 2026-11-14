@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Barre, pilule et touches</string>
     <string name="core_settings_glide_commit_scope_pill_label">Supprimer et pilule</string>
     <string name="core_settings_glide_commit_scope_strip_label">Supprimer</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">Après une annulation</string>
+    <string name="core_settings_glide_drawn_letters_off_label">Désactivé</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">En cas de doute</string>
     <string name="core_settings_glide_engine_built_in_label">Intégré</string>
     <string name="core_settings_glide_engine_futo_label">FUTO Swipe (Anglais, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Bibliothèque de gestes de Google (importée)</string>

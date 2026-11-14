@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">سٹرپ، پل اور کیز</string>
     <string name="core_settings_glide_commit_scope_pill_label">اسٹرپ اور پل</string>
     <string name="core_settings_glide_commit_scope_strip_label">اسٹرپ</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">انڈو کے بعد</string>
+    <string name="core_settings_glide_drawn_letters_off_label">بند</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">یقین نہ ہونے پر</string>
     <string name="core_settings_glide_engine_built_in_label">بلٹ ان</string>
     <string name="core_settings_glide_engine_futo_label">FUTO سوائپ (انگریزی، QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">گوگل کی جیسچر لائبریری (درآمد شدہ)</string>

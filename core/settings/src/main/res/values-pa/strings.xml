@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">ਸਟ੍ਰਿਪ, ਪਿਲ ਅਤੇ ਕੁੰਜੀਆਂ</string>
     <string name="core_settings_glide_commit_scope_pill_label">ਸਟ੍ਰਿਪ ਅਤੇ ਪਿਲ</string>
     <string name="core_settings_glide_commit_scope_strip_label">ਸਟ੍ਰਿਪ</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">ਅਣਕੀਤਾ (undo) ਕਰਨ ਤੋਂ ਬਾਅਦ</string>
+    <string name="core_settings_glide_drawn_letters_off_label">ਬੰਦ</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">ਜਦੋਂ ਯਕੀਨ ਨਾ ਹੋਵੇ</string>
     <string name="core_settings_glide_engine_built_in_label">ਬਿਲਟ-ਇਨ</string>
     <string name="core_settings_glide_engine_futo_label">FUTO ਸਵਾਈਪ (ਅੰਗਰੇਜ਼ੀ, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Google ਦੀ ਸੰਕੇਤ ਲਾਇਬ੍ਰੇਰੀ (ਆਯਾਤ ਕੀਤੀ ਗਈ)</string>

@@ -9,11 +9,16 @@
     <string name="core_voice_model_base_multi_body">Muundo huu unasawazisha usahihi na kasi. Unashughulikia kila lugha inayojulikana na Whisper. Chagua huu ikiwa muundo mdogo ni wa polepole sana.</string>
     <string name="core_voice_model_base_world_body">Muundo huu unatumia lugha unayoandika badala ya kubahatisha. Misemo mifupi inakuwa ya kutegemewa zaidi. Iteue wakati orodha yake ina lugha zako.</string>
     <string name="core_voice_model_cpp_base_body">Mtindo huu unasawazisha usahihi na kasi. Unatumia lugha unayoiongea, katika lugha yoyote kati ya 99 ambazo Whisper inajua, na inasikiliza maneno yako mwenyewe. Chagua hiki ikiwa mtindo Mdogo ni wa polepole sana.</string>
+    <string name="core_voice_model_cpp_fine_tune_body">%1$s amefundisha mtindo huu wa Turbo zaidi kuhusu hotuba katika lugha hii moja. Inashughulikia lugha hiyo pekee.</string>
+    <string name="core_voice_model_cpp_hinglish_body">Oriserve ilifunza mtindo huu kwa Kihindi na kwa Kihindi kilichochanganywa na Kiingereza. Inaandika kile unachosema kwa herufi za Kilatini, jinsi Hinglish inavyoandikwa, na kuweka maneno ya Kiingereza kwa Kiingereza. Haiandiki kamwe Devanagari, kwa hivyo inafaa Hinglish badala ya Kihindi. Ni ndogo na ya haraka.</string>
+    <string name="core_voice_model_cpp_kb_body">Maktaba ya Taifa ya Uswidi ilifunza mtindo huu kwa hotuba ya Kiswahili. Inashughulikia Kiswahili pekee, na ni sahihi zaidi kwake kuliko mtindo wa jumla wa Whisper wa ukubwa sawa.</string>
+    <string name="core_voice_model_cpp_kotoba_body">Kotoba Technologies walitengeneza modeli hii ya Kijapani kutoka kwa Whisper Large v3. Kisimbuzi chake ni kidogo zaidi, kwa hivyo inafanya kazi kwa kasi ya takriban modeli ya Turbo. Inashughulikia Kijapani pekee.</string>
     <string name="core_voice_model_cpp_large_body">Hili ndilo mfano sahihi zaidi wa Whisper. Upakuaji ni 1.1 GB. Kifaa chenye kiasi kikubwa cha kumbukumbu pekee ndicho kinaweza kuipakia. Mfano wa Turbo ni sahihi karibu sawa na ni nusu ya ukubwa.</string>
     <string name="core_voice_model_cpp_medium_body">Muundo huu unatoa usahihi karibu sawa na wa kompyuta ya mezani. Kila kirai huchukua sekunde kadhaa. Muundo huu hutumia karibu gigabaiti moja ya kumbukumbu wakati unapoendesha.</string>
     <string name="core_voice_model_cpp_small_body">Muundo huu unatoa usahihi bora zaidi ambao bado unafanya kazi vizuri kwenye simu. Unatumia lugha unayozungumza, katika mojawapo ya lugha 99 ambazo Whisper inajua, na inasikiliza maneno yako mwenyewe.</string>
     <string name="core_voice_model_cpp_tiny_body">Hili ndilo muundo wa kasi zaidi. Hufanya kazi vizuri na matamshi yaliyo wazi, lakini kelele hupunguza usahihi. Inatumia lugha unayotumia kuamuru na husikiliza maneno yako mwenyewe.</string>
     <string name="core_voice_model_cpp_turbo_body">Modeli hii ni sahihi karibu kama modeli kubwa zaidi, kwa nusu ya ukubwa. Kila kirai huchukua sekunde kadhaa, na haiwezi kutafsiri.</string>
+    <string name="core_voice_model_custom_body">" Umeleta mtindo huu wa whisper.cpp kutoka kwenye faili. Kibodi haijui jinsi ilivyofunzwa, kwa hivyo ichague kwa lugha iliyotengenezewa chini ya Mtindo kwa kila lugha."</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">lugha %1$d</item>
         <item quantity="other">lugha %1$d</item>

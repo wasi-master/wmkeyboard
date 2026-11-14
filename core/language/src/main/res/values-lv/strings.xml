@@ -23,6 +23,34 @@
         <item quantity="one">%1$d vilciens pa taustiņu šeit nav piemērots, jo šī tastatūra šo vilcienu izmanto citam darbam. Lietotne to noņēma.</item>
         <item quantity="other">%1$d vilcieni pa taustiņiem šeit nav piemēroti, jo šī tastatūra šos vilcienus izmanto citiem darbiem. Lietotne tos noņēma.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">Lietotne izlaida %1$d noteikumu, kas maina to, ko dzēšana noņem. Dzēšana darbojas tāpat kā jebkurā citā izkārtojumā.</item>
+        <item quantity="other">Lietotne izlaida %1$d noteikumus, kas maina to, ko dzēšana noņem. Dzēšana darbojas tāpat kā jebkurā citā izkārtojumā.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">Lietotne noņēma %1$d vilcienu, kas maina virzienu. Vilcieni uz šīs tastatūras iet vienā virzienā.</item>
+        <item quantity="other">Lietotne noņēma %1$d vilcienus, kas maina virzienu. Vilcieni uz šīs tastatūras iet vienā virzienā.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">Lietotne izlaida %1$d lapu tādam taustiņam kā Caps Lock vai Ctrl. Šai tastatūrai nav lapas šim taustiņam.</item>
+        <item quantity="other">Lietotne izlaida %1$d lapas tādiem taustiņiem kā Caps Lock vai Ctrl. Šai tastatūrai nav lapu šiem taustiņiem.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">Lietotne izlaida %1$d likumu, kas sakārto zīmes rakstītā secībā. Šī tastatūra raksta zīmes tādā secībā, kādā tās ierakstāt.</item>
+        <item quantity="other">Lietotne izlaida %1$d likumus, kas sakārto zīmes rakstītā secībā. Šī tastatūra raksta zīmes tādā secībā, kādā tās ierakstāt.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d likums uzliek akcentu uz nākamo burtu. Šeit taustiņš, kas to sāk, ir neaktīvs taustiņš.</item>
+        <item quantity="other">%1$d likumi uzliek akcentu uz nākamo burtu. Šeit taustiņi, kas tos sāk, ir neaktīvi taustiņi.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">Lietotne izlaida %1$d likumu, kas maina tekstu rakstīšanas laikā. Neviens šeit esošais taustiņš to neaktivizē, vai arī tas atbilst lielākam teksta apjomam, nekā taustiņš var ierakstīt.</item>
+        <item quantity="other">Lietotne izlaida %1$d likumus, kas maina tekstu rakstīšanas laikā. Neviens šeit esošais taustiņš tos neaktivizē, vai arī tie atbilst lielākam teksta apjomam, nekā taustiņš var ierakstīt.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d likums pārvērš vienu taustiņu un nākamo par citu rakstzīmi. Šeit šī rakstzīme ir pieejama, turot nospiestu pirmo taustiņu.</item>
+        <item quantity="other">%1$d likumi pārvērš vienu taustiņu un nākamo par citu rakstzīmi. Šeit šīs rakstzīmes ir pieejamas, turot nospiestu pirmo taustiņu.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Lietotne nomainīja %1$d taustiņu uz tuvāko pieejamo taustiņu.</item>
         <item quantity="other">Lietotne nomainīja %1$d taustiņus uz tuvākajiem pieejamajiem taustiņiem.</item>

@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">Γεια</string>
     <string name="core_tools_media_category_laugh">Γέλιο</string>
     <string name="core_tools_media_category_love">Αγάπη</string>
+    <string name="core_tools_media_category_memes">Meme</string>
     <string name="core_tools_media_category_no">Όχι</string>
     <string name="core_tools_media_category_party">Πάρτι</string>
     <string name="core_tools_media_category_reactions">Αντιδράσεις</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">Ένας διακομιστής Mozhi: ένα δωρεάν front end για τα Google, DeepL, DuckDuckGo, Yandex και Reverso. Επιλέξτε τη μηχανή. Τα DeepL και Reverso απαιτούν γλώσσα προέλευσης.</string>
     <string name="core_tools_provider_music_server">Ο δικός σας διακομιστής αναγνώρισης</string>
     <string name="core_tools_provider_music_server_desc">Ένας διακομιστής που εκτελείτε και απαντά όπως το AudD: το κλιπ αποστέλλεται ως αρχείο και το τραγούδι επιστρέφεται ως JSON. Τοποθετήστε έναν ανιχνευτή αποτυπωμάτων όπως το Panako ή το Olaf πίσω από αυτόν.</string>
+    <string name="core_tools_provider_mwmbl_desc">Μια δωρεάν, μη κερδοσκοπική μηχανή αναζήτησης με το δικό της ευρετήριο. Χωρίς κλειδί. Μόνο αποτελέσματα ιστού, χωρίς εικόνες.</string>
     <string name="core_tools_provider_nllb">Στη συσκευή (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">Μεταφράζει στο τηλέφωνο με το μοντέλο NLLB-200 της Meta στο CTranslate2: 200 γλώσσες, μεταξύ οποιωνδήποτε δύο από αυτές, για τα ζεύγη που δεν μπορούν να κάνουν οι άλλες μηχανές. Μία λήψη 630 MB, και μια πρόταση χρειάζεται λίγα δευτερόλεπτα. Το κείμενό σας παραμένει στο τηλέφωνο. Το μοντέλο διατίθεται μόνο για μη εμπορική χρήση (CC BY-NC 4.0). Απαιτεί τηλέφωνο 64-bit με μνήμη 6 GB ή περισσότερο.</string>
     <string name="core_tools_provider_none_on">Δεν υπάρχει ενεργός πάροχος. Ενεργοποιήστε έναν στις ρυθμίσεις αυτού του εργαλείου.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">Αυτή η λίστα</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">Εμφάνιση ή απόκρυψη των πλήκτρων</string>
     <string name="core_tools_shortcut_leader_double_tap">Πατήστε %1$s δύο φορές</string>
+    <string name="core_tools_speak_no_voice">Αυτό το τηλέφωνο δεν διαθέτει φωνή %1$s για να το διαβάσει. Προσθέστε μία στις ρυθμίσεις κειμένου σε ομιλία του Android ή κατεβάστε μια φωνή εκτός σύνδεσης στην ενότητα Εργαλεία › Ανάγνωση.</string>
     <string name="core_tools_symbol_category_arrows_label">Βέλη</string>
     <string name="core_tools_symbol_category_currency_label">Νόμισμα</string>
     <string name="core_tools_symbol_category_fractions_label">Κλάσματα</string>
     <string name="core_tools_symbol_category_greek_label">Ελληνικά</string>
     <string name="core_tools_symbol_category_math_label">Μαθηματικά</string>
+    <string name="core_tools_symbol_category_music_label">Μουσική</string>
     <string name="core_tools_symbol_category_other_label">Άλλο</string>
     <string name="core_tools_symbol_category_punctuation_label">Στίξη</string>
     <string name="core_tools_symbol_category_shapes_label">Σχήματα και αστέρια</string>
+    <string name="core_tools_symbol_category_stars_label">Αστέρια</string>
     <string name="core_tools_symbol_category_superscript_label">Εκθέτης</string>
+    <string name="core_tools_symbol_category_technical_label">Τεχνική</string>
+    <string name="core_tools_symbol_category_weather_label">Καιρός</string>
     <string name="core_tools_symbol_set_coding_label">Κωδικοποίηση</string>
     <string name="core_tools_symbol_set_email_label">Email</string>
     <string name="core_tools_symbol_set_math_label">Μαθηματικά</string>

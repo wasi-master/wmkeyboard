@@ -176,6 +176,7 @@
     <string name="ime_ai_error_no_text">작업할 내용이 없습니다. 먼저 텍스트를 입력하세요.</string>
     <string name="ime_ai_error_only_reasoning">모델이 전체 응답을 추론에 사용했습니다. 다시 시도하거나 설정에서 \'추론 표시\'를 켜세요.</string>
     <string name="ime_ai_error_request_failed">요청이 작동하지 않았습니다</string>
+    <string name="ime_ai_error_stopped_hidden">키보드가 닫혀서 중지되었습니다. 다시 실행하려면 재시도하세요.</string>
     <string name="ime_ai_idle_body">작업은 선택한 텍스트나 전체 필드에 실행됩니다. %1$s을(를) 사용합니다.</string>
     <string name="ime_ai_idle_empty_body">이 작업을 사용하려면 텍스트를 입력하거나 선택하세요. 새 텍스트를 작성하려면 %1$s를 누르세요.</string>
     <string name="ime_ai_idle_empty_no_writer_body">이 작업을 사용하려면 텍스트를 입력하거나 선택하세요.</string>
@@ -307,9 +308,11 @@
     <string name="ime_app_colors_none">이 앱에서 찾은 색상이 없습니다</string>
     <string name="ime_app_colors_off_desc">이 앱의 색상 사용 안 함</string>
     <string name="ime_app_colors_pick_desc">앱 색상 %1$d</string>
+    <string name="ime_applet_back">뒤로</string>
     <string name="ime_applet_close">상자 닫기</string>
     <string name="ime_applet_copied">복사됨</string>
     <string name="ime_applet_open_in_keyboard">키보드에서 열기</string>
+    <string name="ime_applet_pop_out">플로팅 창으로 열기</string>
     <string name="ime_applet_resize">크기를 조절하려면 드래그하세요</string>
     <string name="ime_applet_tuck">가장자리로 숨기기</string>
     <string name="ime_applet_untuck">%1$s 가져오기</string>
@@ -319,6 +322,33 @@
     <string name="ime_ask_ai_label_vocab">어휘: %1$s</string>
     <string name="ime_ask_ai_label_wiki">위키백과: %1$s</string>
     <string name="ime_autofill_dismiss_desc">자동 완성 제안 숨기기</string>
+    <string name="ime_board_copy_desc">이 휴대전화로 복사</string>
+    <string name="ime_board_delete_body">보드를 사용하는 모든 기기에서 삭제됩니다. 휴대폰 자체 클립보드에 이미 있는 복사본은 유지됩니다.</string>
+    <string name="ime_board_delete_desc">보드 제거</string>
+    <string name="ime_board_delete_no">취소</string>
+    <string name="ime_board_delete_title">보드에서 이 클립을 삭제하시겠습니까?</string>
+    <string name="ime_board_delete_yes">제거</string>
+    <string name="ime_board_edit_desc">편집</string>
+    <string name="ime_board_empty_body">여기에 전송된 클립은 동일한 폴더를 사용하는 다른 기기(지금 오프라인 상태인 기기 포함)에 표시됩니다.</string>
+    <string name="ime_board_empty_title">보드에 내용이 없습니다.</string>
+    <string name="ime_board_notice_copied">복사됨</string>
+    <string name="ime_board_notice_deleted">보드에서 제거됨</string>
+    <string name="ime_board_notice_refused">숨겨지지 않은 텍스트 클립만 보드에 추가할 수 있습니다.</string>
+    <string name="ime_board_notice_sent">보드로 전송됨</string>
+    <string name="ime_board_send_desc">클립 보내기</string>
+    <string name="ime_board_send_done">ሠረሀረ</string>
+    <string name="ime_board_send_empty">보낼 텍스트 클립이 없습니다. 사진, 파일 및 숨겨진 클립은 이 휴대폰에 유지됩니다.</string>
+    <string name="ime_board_send_one_desc">보내기</string>
+    <string name="ime_board_send_title">보드에 보내기</string>
+    <string name="ime_board_sent_desc">보냄</string>
+    <string name="ime_board_status_failed">보드에 연결할 수 없습니다.</string>
+    <string name="ime_board_status_never">아직 확인되지 않음</string>
+    <string name="ime_board_status_synced">%1$s 확인됨</string>
+    <string name="ime_board_status_syncing">보드 확인 중...</string>
+    <string name="ime_board_status_waiting">보드 연결 대기 중</string>
+    <string name="ime_board_status_waiting_offline">보드에 연결할 수 없습니다. 연결되면 변경 사항이 반영됩니다.</string>
+    <string name="ime_board_sync_desc">지금 보드 확인</string>
+    <string name="ime_board_title">공유 보드</string>
     <string name="ime_calc_degrees_label">도</string>
     <string name="ime_calc_insert_action">삽입</string>
     <string name="ime_calc_radians_label">rad</string>
@@ -471,7 +501,9 @@
     </plurals>
     <string name="ime_calendar_untitled">(제목 없음)</string>
     <string name="ime_calendar_view_agenda">일정</string>
+    <string name="ime_calendar_view_day">일</string>
     <string name="ime_calendar_view_month">월</string>
+    <string name="ime_calendar_weather_desc">%3$s의 %1$s, %2$s. 시간별 예보를 엽니다.</string>
     <string name="ime_calendar_yesterday_label">어제</string>
     <string name="ime_calendar_zone_note">%1$s 기준 시간</string>
     <string name="ime_camera_captured_photo_desc">촬영한 사진</string>
@@ -543,6 +575,7 @@
         <item quantity="one">클립 %1$d개 결합</item>
         <item quantity="other">클립 %1$d개 결합</item>
     </plurals>
+    <string name="ime_clip_compose_email">이메일 작성</string>
     <string name="ime_clip_delete_pinned_question">고정된 클립을 삭제하시겠습니까?</string>
     <plurals name="ime_clip_deleted">
         <item quantity="one">클립 삭제됨</item>
@@ -563,6 +596,7 @@
         <item quantity="other">클립에서 찾은 부분 %1$d개 표시</item>
     </plurals>
     <string name="ime_clip_extract_codes">일회용 코드</string>
+    <string name="ime_clip_extract_emails">이메일 주소</string>
     <string name="ime_clip_extract_links">링크</string>
     <string name="ime_clip_extract_parts">추출</string>
     <string name="ime_clip_extract_phones">전화번호</string>
@@ -589,6 +623,7 @@
         <item quantity="one">숨김 · %1$d자</item>
         <item quantity="other">숨김 · %1$d자</item>
     </plurals>
+    <string name="ime_clip_image_pasted_toast">클립보드에서 붙여넣었습니다. 아무것도 가져오지 못한 경우, 이 앱은 사진을 가져오지 않습니다: 클립을 길게 눌러 공유하세요</string>
     <string name="ime_clip_info_copied">복사됨</string>
     <string name="ime_clip_info_edited">수정됨</string>
     <string name="ime_clip_info_from">출처</string>
@@ -642,7 +677,12 @@
         <item quantity="other">%1$d개 선택됨</item>
     </plurals>
     <string name="ime_clip_send_as_sticker">스티커로 보내기</string>
+    <string name="ime_clip_shape_code">코드</string>
+    <string name="ime_clip_shape_markdown">마크다운</string>
+    <string name="ime_clip_share_image">공유</string>
+    <string name="ime_clip_show_formatted">서식 표시</string>
     <string name="ime_clip_show_in_history">기록에 표시</string>
+    <string name="ime_clip_show_raw">원본 표시</string>
     <string name="ime_clip_tags">태그</string>
     <string name="ime_clip_tags_placeholder">태그 (쉼표로 구분)</string>
     <string name="ime_clip_tags_title">태그</string>
@@ -903,6 +943,7 @@
     <string name="ime_conversion_pack_offer">문자를 입력하려면 %1$s을(를) 다운로드하세요</string>
     <string name="ime_conversion_pack_offer_dismiss_desc">닫기</string>
     <string name="ime_converter_from_label">시작</string>
+    <string name="ime_converter_tab_units">단위</string>
     <string name="ime_converter_to_label">대상</string>
     <string name="ime_currency_insert_action">삽입</string>
     <string name="ime_currency_progress">환율 다운로드 중…</string>
@@ -911,6 +952,32 @@
     <string name="ime_currency_section_crypto">암호화폐</string>
     <string name="ime_currency_section_popular">일반</string>
     <string name="ime_currency_swap_desc">통화 교환</string>
+    <string name="ime_custom_button_desc">%1$s 열기</string>
+    <string name="ime_custom_button_label">사용자 지정 버튼</string>
+    <string name="ime_custom_button_shortcut_failed">해당 바로 가기를 열 수 없습니다. 앱이 삭제되었거나 홈 화면에서만 열 수 있습니다.</string>
+    <string name="ime_custom_page_clipboard">클립보드 설정</string>
+    <string name="ime_custom_page_custom_buttons">사용자 지정 버튼</string>
+    <string name="ime_custom_page_dictionary">사전</string>
+    <string name="ime_custom_page_favourites">즐겨찾기</string>
+    <string name="ime_custom_page_home">설정</string>
+    <string name="ime_custom_page_keypress">소리 및 진동</string>
+    <string name="ime_custom_page_languages">언어</string>
+    <string name="ime_custom_page_search">설정 검색</string>
+    <string name="ime_custom_page_themes">테마</string>
+    <string name="ime_custom_page_toolbar">도구 모음 설정</string>
+    <string name="ime_custom_page_tools">도구</string>
+    <string name="ime_custom_page_typing">입력 중</string>
+    <string name="ime_custom_toggle_auto_caps">자동 대문자 변환</string>
+    <string name="ime_custom_toggle_glide">제스처 타이핑</string>
+    <string name="ime_custom_toggle_key_hints">키 힌트</string>
+    <string name="ime_custom_toggle_key_popup">키 팝업</string>
+    <string name="ime_custom_toggle_number_row">숫자 행</string>
+    <string name="ime_custom_toggle_reduce_motion">동작 줄이기</string>
+    <string name="ime_custom_toggle_sound">키 소리</string>
+    <string name="ime_custom_toggle_suggestions">추천</string>
+    <string name="ime_custom_toggle_symbol_row">기호 행</string>
+    <string name="ime_custom_toggle_toolbar_labels">도구 모음 이름</string>
+    <string name="ime_custom_toggle_vibration">진동</string>
     <string name="ime_delete_redo_chip">“%1$s” 다시 실행</string>
     <string name="ime_delete_redo_plain">다시 삭제</string>
     <string name="ime_delete_undo_chip">“%1$s” 실행 취소</string>
@@ -948,6 +1015,7 @@
     <string name="ime_disabled_correction_invalid">수정할 다른 단어를 입력하세요. 수정할 단어는 최소 3글자 이상이어야 하며, 수정어는 한 단어이거나 공백을 놓친 경우 두 단어일 수 있습니다.</string>
     <string name="ime_disabled_media_app_blocks">재생 중인 앱에서 이를 허용하지 않습니다.</string>
     <string name="ime_disabled_spell_unchanged">먼저 철자를 변경하세요. 비어 있거나 변경되지 않은 철자에는 적용할 내용이 없습니다.</string>
+    <string name="ime_disabled_translate_empty_box">상자가 비어 있거나 번역이 아직 진행 중입니다.</string>
     <string name="ime_disabled_translate_nothing">아직 번역된 내용이 없습니다. 먼저 번역할 텍스트를 입력하거나 붙여넣으세요.</string>
     <string name="ime_disabled_translate_same_language">이미 번역하려는 언어와 동일한 텍스트입니다.</string>
     <string name="ime_disabled_voice_undo">아직 취소할 내용이 없습니다. 실행 취소는 마지막으로 말한 문구를 되돌립니다.</string>
@@ -977,6 +1045,10 @@
     <string name="ime_docscan_next">자르기</string>
     <string name="ime_docscan_open_settings">설정 열기</string>
     <string name="ime_docscan_page_number">%1$d페이지</string>
+    <plurals name="ime_docscan_pages_album">
+        <item quantity="one">페이지가 앱의 공유 화면에서 열립니다</item>
+        <item quantity="other">이 앱은 여기서 한 번에 사진을 한 장씩 촬영하므로 %d개의 페이지가 공유 화면에서 함께 열려 하나의 앨범으로 전송됩니다</item>
+    </plurals>
     <plurals name="ime_docscan_pages_shared">
         <item quantity="one">앱이 마지막 페이지를 가져오지 못했으므로 앱의 공유 화면에서 엽니다.</item>
         <item quantity="other">앱이 %d 페이지를 가져오지 못했으므로 앱의 공유 화면에서 함께 엽니다.</item>
@@ -1059,10 +1131,15 @@
     <string name="ime_files_access_pick">Android 선택기</string>
     <string name="ime_files_access_title">키보드를 떠나지 않고 파일 선택</string>
     <string name="ime_files_add">추가</string>
+    <string name="ime_files_add_tree">폴더 추가</string>
+    <string name="ime_files_add_tree_detail">USB 드라이브, SD 카드 또는 네트워크 드라이브와 같이 다른 앱이 공유하는 폴더</string>
+    <string name="ime_files_allow_all">휴대폰의 모든 저장소</string>
+    <string name="ime_files_allow_all_detail">안드로이드의 \'모든 파일 액세스\' 권한이 필요합니다.</string>
     <string name="ime_files_camera">카메라</string>
     <string name="ime_files_clear_desc">선택 해제</string>
     <string name="ime_files_collapse_desc">간단히 보기</string>
     <string name="ime_files_copy_desc">복사</string>
+    <string name="ime_files_copy_to">%1$s(으)로 복사</string>
     <string name="ime_files_delete_body">폴더와 그 안의 모든 것이 삭제됩니다. 이 작업은 되돌릴 수 없습니다. Android에는 파일용 휴지통이 없습니다.</string>
     <string name="ime_files_delete_desc">삭제</string>
     <string name="ime_files_delete_no">취소</string>
@@ -1079,8 +1156,11 @@
     <string name="ime_files_expand_desc">높이 늘리기</string>
     <string name="ime_files_hide_hidden">숨김 파일 숨기기</string>
     <string name="ime_files_kde_unreadable">보낼 파일을 읽을 수 없습니다.</string>
+    <string name="ime_files_locked_body">파일 관리자는 잠금 화면 위에 열리지 않습니다.</string>
+    <string name="ime_files_locked_title">잠금을 해제하여 파일 보기</string>
     <string name="ime_files_more_desc">더보기</string>
     <string name="ime_files_move_desc">이동</string>
+    <string name="ime_files_move_to">%1$s(으)로 이동</string>
     <string name="ime_files_movies">동영상</string>
     <string name="ime_files_music">ᡠᢃ ᢅᢘᡦ</string>
     <string name="ime_files_new_folder">새 폴더</string>
@@ -1106,6 +1186,8 @@
         <item quantity="one">항목 %d개 이동됨</item>
         <item quantity="other">항목 %d개 이동됨</item>
     </plurals>
+    <string name="ime_files_notice_tree_removed">목록에서 제거된 폴더</string>
+    <string name="ime_files_one_pane_desc">단일 목록</string>
     <string name="ime_files_op_cancel">중지</string>
     <string name="ime_files_op_copy">%2$d개 중 %1$d개 복사 중</string>
     <string name="ime_files_op_delete">%2$d개 중 %1$d개 삭제 중</string>
@@ -1122,6 +1204,9 @@
     <string name="ime_files_pictures">사진</string>
     <string name="ime_files_places">장소</string>
     <string name="ime_files_recent">최근 항목</string>
+    <string name="ime_files_remove_tree_body">폴더와 파일은 그대로 유지됩니다. 언제든지 다시 추가할 수 있습니다.</string>
+    <string name="ime_files_remove_tree_title">“%1$s”을(를) 목록에서 제거하시겠습니까?</string>
+    <string name="ime_files_remove_tree_yes">제거</string>
     <string name="ime_files_rename_desc">이름 변경</string>
     <string name="ime_files_rename_hint">새 이름</string>
     <string name="ime_files_search_clear_desc">검색 종료</string>
@@ -1140,6 +1225,7 @@
     <string name="ime_files_title_many">파일 선택</string>
     <string name="ime_files_title_one">파일 선택</string>
     <string name="ime_files_title_picture">사진 선택</string>
+    <string name="ime_files_two_panes_desc">나란히 있는 두 개의 목록</string>
     <string name="ime_files_unreadable">안드로이드에서 키보드가 이 폴더를 여는 것을 허용하지 않습니다</string>
     <string name="ime_find_case_desc">대소문자 구분</string>
     <string name="ime_find_clear_desc">%1$s 지우기</string>
@@ -1171,6 +1257,24 @@
     <string name="ime_floating_category_empty">이 카테고리는 비어 있습니다. 플로팅 버튼 설정에서 작업을 추가하세요.</string>
     <string name="ime_floating_category_label">카테고리</string>
     <string name="ime_floating_close_menu">메뉴 닫기</string>
+    <string name="ime_floating_device_bluetooth">블루투스</string>
+    <string name="ime_floating_device_bluetooth_desc">Bluetooth 켜기 또는 끄기</string>
+    <string name="ime_floating_device_bluetooth_page_desc">안드로이드 블루투스 페이지를 엽니다.</string>
+    <string name="ime_floating_device_data">모바일 데이터</string>
+    <string name="ime_floating_device_data_desc">모바일 데이터를 켜거나 끕니다</string>
+    <string name="ime_floating_device_data_panel_desc">안드로이드 인터넷 패널 열기</string>
+    <string name="ime_floating_device_failed">Android에서 허용하지 않습니다.</string>
+    <string name="ime_floating_device_hotspot">핫스팟</string>
+    <string name="ime_floating_device_hotspot_desc">Android 핫스팟 페이지를 엽니다</string>
+    <string name="ime_floating_device_off">%1$s 끄기</string>
+    <string name="ime_floating_device_on">%1$s 켜짐</string>
+    <string name="ime_floating_device_ringer">벨소리 모드</string>
+    <string name="ime_floating_device_ringer_desc">벨소리, 진동, 무음으로 차례대로 전환합니다</string>
+    <string name="ime_floating_device_volume">볼륨 패널</string>
+    <string name="ime_floating_device_volume_desc">모든 볼륨 슬라이더가 포함된 Android 볼륨 패널을 엽니다.</string>
+    <string name="ime_floating_device_wifi">Wi-Fi</string>
+    <string name="ime_floating_device_wifi_desc">Wi-Fi를 켜거나 끕니다.</string>
+    <string name="ime_floating_device_wifi_panel_desc">안드로이드 Wi-Fi 패널을 엽니다.</string>
     <string name="ime_floating_dismiss_target">여기에 놓으면 버튼이 숨겨집니다</string>
     <string name="ime_floating_dock_desc">키보드 도킹</string>
     <string name="ime_floating_hide_label">버튼 숨기기</string>
@@ -1181,7 +1285,11 @@
     <string name="ime_floating_pair_label">앱 쌍 열기</string>
     <string name="ime_floating_pair_missing">두 앱 중 하나가 더 이상 설치되어 있지 않습니다.</string>
     <string name="ime_floating_pair_name">%1$s + %2$s</string>
+    <string name="ime_floating_plugin_label">플러그인</string>
     <string name="ime_floating_resize_desc">키보드 크기 조절</string>
+    <string name="ime_floating_ringer_ring">벨소리</string>
+    <string name="ime_floating_ringer_silent">무음</string>
+    <string name="ime_floating_ringer_vibrate">진동</string>
     <string name="ime_floating_system_app_drawer">앱 서랍</string>
     <string name="ime_floating_system_back">뒤로</string>
     <string name="ime_floating_system_notifications">알림</string>
@@ -1239,6 +1347,7 @@
     <string name="ime_gallery_album_camera">카메라</string>
     <string name="ime_gallery_album_favorites">즐겨찾기</string>
     <string name="ime_gallery_album_gifs">GIF</string>
+    <string name="ime_gallery_album_immich">Immich</string>
     <string name="ime_gallery_album_recents">최근 항목</string>
     <string name="ime_gallery_album_screenshots">스크린샷</string>
     <string name="ime_gallery_album_sent">키보드에서 전송됨</string>
@@ -1330,6 +1439,10 @@
     <string name="ime_gallery_info_taken">촬영일</string>
     <string name="ime_gallery_layer_delete">삭제</string>
     <string name="ime_gallery_more_desc">더 많은 갤러리 옵션</string>
+    <plurals name="ime_gallery_notice_already_uploaded">
+        <item quantity="one">Immich에 이미 %d장의 사진이 있습니다.</item>
+        <item quantity="other">Immich에 이미 모든 사진 %d장이 있습니다.</item>
+    </plurals>
     <plurals name="ime_gallery_notice_copied">
         <item quantity="one">항목 %d개 복사됨</item>
         <item quantity="other">항목 %d개 복사됨</item>
@@ -1338,6 +1451,8 @@
         <item quantity="one">%d개 항목을 읽을 수 없습니다</item>
         <item quantity="other">%d개 항목을 읽을 수 없습니다</item>
     </plurals>
+    <string name="ime_gallery_notice_immich_failed">Immich 서버에 연결할 수 없습니다.</string>
+    <string name="ime_gallery_notice_immich_refused">Immich가 API 키를 거부했습니다. 권한을 확인하세요.</string>
     <plurals name="ime_gallery_notice_limit">
         <item quantity="one">한 번에 %d개 항목을 선택할 수 있습니다</item>
         <item quantity="other">한 번에 최대 %d개 항목까지 선택할 수 있습니다</item>
@@ -1358,6 +1473,14 @@
     <plurals name="ime_gallery_notice_shared">
         <item quantity="one">항목 %d개의 공유 화면을 열었습니다.</item>
         <item quantity="other">항목 %d개의 공유 화면을 열었습니다.</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_upload_failed">
+        <item quantity="one">사진 %d장이 업로드되지 않았습니다</item>
+        <item quantity="other">사진 %d장이 업로드되지 않았습니다</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_uploaded">
+        <item quantity="one">Immich에 사진 %d장 업로드됨</item>
+        <item quantity="other">Immich에 사진 %d장 업로드됨</item>
     </plurals>
     <string name="ime_gallery_partial_action">더 선택하기</string>
     <string name="ime_gallery_partial_body">일부 사진만 허용했습니다.</string>
@@ -1401,6 +1524,7 @@
     <string name="ime_gallery_tool_stickers">스티커</string>
     <string name="ime_gallery_tool_text">텍스트</string>
     <string name="ime_gallery_tool_upscale">업스케일</string>
+    <string name="ime_gallery_upload_immich">Immich에 업로드</string>
     <string name="ime_gallery_upscale_art">그림 또는 텍스트</string>
     <string name="ime_gallery_upscale_done">업스케일링 ×%1$d: %2$d × %3$d</string>
     <string name="ime_gallery_upscale_downloading">앱이 업스케일러를 가져오는 중입니다…</string>
@@ -1659,6 +1783,9 @@
     <string name="ime_handwriting_unsupported_info">이 앱 버전은 중국어와 일본어 필기만 읽을 수 있습니다. 여기에서 쓰려면 언어 설정에 해당 언어를 추가하세요.</string>
     <string name="ime_hardware_keys_hide_desc">키 숨기기</string>
     <string name="ime_hardware_keys_show_desc">키 표시</string>
+    <string name="ime_homophones_finish">먼저 입력 중인 단어를 완성하세요</string>
+    <string name="ime_homophones_none">이 휴대전화에는 %1$s과(와) 발음이 비슷한 단어가 없습니다. 언어 팩이나 RIME 스키마를 추가하면 독음이 추가됩니다.</string>
+    <string name="ime_homophones_none_before">먼저 중국어 또는 일본어 문자를 입력하세요</string>
     <string name="ime_hw_pick_mode_off_toast">선택 모드 꺼짐</string>
     <string name="ime_hw_pick_mode_on_toast">선택 모드 켜짐: 숫자 키로 추천 단어를 선택하고, Shift 키로 숫자를 입력합니다.</string>
     <string name="ime_icons_builtin_label">내장</string>
@@ -1673,6 +1800,45 @@
     <string name="ime_image_search_need_key_body">이미지 검색을 하려면 Brave Search의 API 키가 필요합니다. 이 도구의 설정에서 키를 추가하세요.</string>
     <string name="ime_incognito_on_desc">시크릿 모드 켜짐</string>
     <string name="ime_insert_action">삽입</string>
+    <string name="ime_invite_about_hint">설명 추가</string>
+    <string name="ime_invite_action">온라인 초대</string>
+    <string name="ime_invite_add_title">제목 추가</string>
+    <string name="ime_invite_error_address">설정의 %1$s 주소가 웹 주소가 아닙니다.</string>
+    <string name="ime_invite_error_bad_token">%1$s이(가) API 토큰을 거부했습니다.</string>
+    <string name="ime_invite_error_data_saver">데이터 세이버가 켜져 있습니다. 게시하는 동안 몇 킬로바이트가 전송됩니다.</string>
+    <string name="ime_invite_error_network">%1$s님이 응답하지 않았습니다.</string>
+    <string name="ime_invite_error_no_title">초대에는 제목이 필요합니다.</string>
+    <string name="ime_invite_error_offline">연결되어 있지 않습니다. 연결 후 다시 시도하세요.</string>
+    <string name="ime_invite_error_refused">%1$s님이 이 계정으로는 해당 위치에 일정을 생성할 수 없다고 전했습니다.</string>
+    <string name="ime_invite_error_rejected">%1$s님이 이벤트를 거절했습니다.</string>
+    <string name="ime_invite_error_signed_out">%1$s님이 로그아웃시켰습니다. 설정에서 다시 로그인하세요.</string>
+    <string name="ime_invite_fix_in_pretix">Pretix 열기</string>
+    <string name="ime_invite_go_ahead">계속 진행</string>
+    <string name="ime_invite_insert_link">링크 삽입</string>
+    <string name="ime_invite_insert_message">초대 삽입</string>
+    <string name="ime_invite_link_only">링크가 있는 사람만</string>
+    <string name="ime_invite_listed">공개 목록에 등록됨</string>
+    <string name="ime_invite_made">%1$s에 제작됨, 아직 가입이 열리지 않음</string>
+    <string name="ime_invite_not_live">Pretix에서 이벤트를 생성했지만 가입을 열 수 없습니다. %1$s</string>
+    <string name="ime_invite_not_set_up_body">먼저 캘린더 도구 설정에서 Mobilizon에 로그인하거나 Pretix 서버를 추가하세요.</string>
+    <string name="ime_invite_not_set_up_title">아직 이벤트 서비스가 설정되지 않았습니다.</string>
+    <string name="ime_invite_note_mobilizon">사용자가 이벤트 페이지에 등록합니다. 등록 시 Mobilizon이 이메일을 보냅니다.</string>
+    <string name="ime_invite_note_pretix">이벤트에는 무료 티켓이 1장 제공되므로 참여자는 페이지에서 이메일 주소로 가입할 수 있습니다.</string>
+    <string name="ime_invite_open_page">페이지 열기</string>
+    <string name="ime_invite_open_settings">설정</string>
+    <string name="ime_invite_place_hint">장소 또는 링크 추가</string>
+    <string name="ime_invite_places_any">제한 없음</string>
+    <string name="ime_invite_places_label">장소</string>
+    <string name="ime_invite_post_as">%1$s(으)로 게시</string>
+    <string name="ime_invite_post_as_default">내 프로필로 게시</string>
+    <string name="ime_invite_post_as_loading">프로필을 불러오는 중…</string>
+    <string name="ime_invite_publish">게시</string>
+    <string name="ime_invite_published">%1$s에 게시됨</string>
+    <string name="ime_invite_publishing">게시 중…</string>
+    <string name="ime_invite_publishing_to">%1$s에 게시하는 중</string>
+    <string name="ime_invite_ticket_name">가입</string>
+    <string name="ime_invite_title">온라인으로 초대</string>
+    <string name="ime_invite_try_again">다시 시도</string>
     <string name="ime_kaomoji_add">카오모지 추가</string>
     <string name="ime_kaomoji_all">모두</string>
     <string name="ime_kaomoji_cancel">취소</string>
@@ -1960,6 +2126,7 @@
     <string name="ime_learn_text_action">텍스트 학습</string>
     <string name="ime_learn_word_never_desc">%1$s 학습 안 함</string>
     <string name="ime_learn_word_offer">\"%1$s\"을(를) 추가할까요?</string>
+    <string name="ime_legacy_font_output">레거시 글꼴 출력</string>
     <string name="ime_level_no_sensor_empty">기기에 가속도계가 없습니다.</string>
     <string name="ime_location_address_failed">여기에 주소가 없습니다. 좌표는 여전히 작동합니다.</string>
     <string name="ime_location_address_looking">주소를 찾는 중…</string>
@@ -2132,6 +2299,29 @@
         <item quantity="other">메모 %d개가 보관되었습니다</item>
     </plurals>
     <string name="ime_notes_archived_badge">보관됨</string>
+    <string name="ime_notes_assist_deck_action">학습 덱 만들기</string>
+    <plurals name="ime_notes_assist_deck_action_count">
+        <item quantity="one">학습 덱 만들기(카드 %d장)</item>
+        <item quantity="other">학습 덱 만들기(카드 %d장)</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_empty_toast">카드를 만들 의미가 있는 용어가 없습니다.</string>
+    <plurals name="ime_notes_assist_deck_made_toast">
+        <item quantity="one">%1$d개의 카드로 구성된 학습 덱 \"%2$s\"이(가) 생성되었습니다. 단어장에서 확인하세요.</item>
+        <item quantity="other">%1$d개의 카드로 구성된 학습 덱 \"%2$s\"이(가) 생성되었습니다. 단어장에서 확인하세요.</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_working_toast">학습 덱을 만드는 중...</string>
+    <string name="ime_notes_assist_details_label">핵심 세부정보</string>
+    <string name="ime_notes_assist_heading_busy">제목을 생각하는 중...</string>
+    <string name="ime_notes_assist_heading_dismiss_desc">이 제목 아님</string>
+    <string name="ime_notes_assist_heading_suggestion">제목: %1$s</string>
+    <string name="ime_notes_assist_heading_use_action">사용</string>
+    <string name="ime_notes_assist_related_label">관련</string>
+    <string name="ime_notes_assist_remind_chip">알림: %1$s · %2$s</string>
+    <string name="ime_notes_assist_reminders_label">다가오는 일정</string>
+    <string name="ime_notes_assist_summarize_action">요약</string>
+    <string name="ime_notes_assist_summarize_again_action">다시</string>
+    <string name="ime_notes_assist_summary_busy">휴대폰에서 요약하는 중…</string>
+    <string name="ime_notes_assist_summary_label">요약</string>
     <string name="ime_notes_body_hint">메모 작성… 마크다운 지원: **굵게**, - 목록, - [ ] 할 일</string>
     <string name="ime_notes_collapse_desc">키보드 높이로 돌아가기</string>
     <string name="ime_notes_confirm_action">확인하려면 다시 탭하세요</string>
@@ -2180,6 +2370,7 @@
     <string name="ime_notes_no_match">“%1$s”와(과) 일치하는 메모가 없습니다.</string>
     <string name="ime_notes_passage_desc">%1$s에서 가져왔습니다. 탭하여 삽입하고, 길게 눌러 메모를 엽니다.</string>
     <string name="ime_notes_passages_section">구절</string>
+    <string name="ime_notes_paste_desc">붙여넣기</string>
     <string name="ime_notes_pin_action">고정</string>
     <string name="ime_notes_pinned_section">고정됨</string>
     <string name="ime_notes_restore_action">복원</string>
@@ -2213,6 +2404,29 @@
     <string name="ime_otp_chip_dismiss_desc">코드 숨기기</string>
     <string name="ime_panel_back_desc">키보드로 돌아가기</string>
     <string name="ime_panel_over_keys_height_desc">키 위의 패널 높이입니다. 위나 아래로 드래그하세요.</string>
+    <string name="ime_paperless_card_also_field">텍스트 상자에도 페이지 넣기</string>
+    <string name="ime_paperless_card_correspondent">발신자/수신자</string>
+    <string name="ime_paperless_card_field_only">텍스트 상자 전용</string>
+    <string name="ime_paperless_card_loading">서버에서 태그를 가져오는 중…</string>
+    <string name="ime_paperless_card_name">제목</string>
+    <string name="ime_paperless_card_name_hint">선택사항입니다. 비워두면 Paperless에서 이름을 지정합니다.</string>
+    <string name="ime_paperless_card_none">없음</string>
+    <string name="ime_paperless_card_offline">현재 서버에 연결할 수 없습니다. 스캔은 기본 태그와 함께 휴대폰에 대기 상태로 유지되며 연결되는 즉시 업로드됩니다.</string>
+    <string name="ime_paperless_card_offline_cached">현재 서버에 연결할 수 없어 이전 목록을 표시합니다. 연결이 가능해지면 스캔 결과가 업로드됩니다.</string>
+    <string name="ime_paperless_card_one_pdf">모든 페이지를 하나의 PDF로</string>
+    <plurals name="ime_paperless_card_pages">
+        <item quantity="one">%d페이지</item>
+        <item quantity="other">%d페이지</item>
+    </plurals>
+    <string name="ime_paperless_card_send">보내기</string>
+    <string name="ime_paperless_card_tags">태그</string>
+    <string name="ime_paperless_card_title">페이퍼리스로 보내기</string>
+    <string name="ime_paperless_card_type">문서 유형</string>
+    <string name="ime_paperless_queue_failed">Paperless용 스캔을 유지할 수 없습니다.</string>
+    <plurals name="ime_paperless_queued">
+        <item quantity="one">Paperless로 전송 중인 문서 %d개. 연결되는 대로 업로드됩니다.</item>
+        <item quantity="other">Paperless로 전송 중인 문서 %d개. 연결되는 대로 업로드됩니다.</item>
+    </plurals>
     <string name="ime_password_add_digit_label">숫자 추가</string>
     <string name="ime_password_capitalize_label">대문자</string>
     <string name="ime_password_copied_toast">클립보드에 복사됨</string>
@@ -2231,11 +2445,27 @@
     <string name="ime_password_tab_pin">PIN</string>
     <string name="ime_password_words_label">단어</string>
     <string name="ime_phonetic_word_list_offer">더 나은 단어 추천을 위해 %1$s 단어 목록을 받으세요</string>
+    <string name="ime_plugin_access_mark">이 플러그인은 인터넷을 사용하거나 작성 중인 내용을 읽을 수 있습니다.</string>
+    <string name="ime_plugin_action_settings">설정 및 권한</string>
+    <string name="ime_plugin_action_toolbar_add">도구 모음에 추가</string>
+    <string name="ime_plugin_action_toolbar_remove">도구 모음에서 제거</string>
+    <string name="ime_plugin_action_toolbox_add">도구 상자에 추가</string>
+    <string name="ime_plugin_action_toolbox_remove">도구 상자에서 제거</string>
+    <string name="ime_plugin_action_turn_off">끄기</string>
+    <string name="ime_plugin_action_turn_on">켜기</string>
+    <string name="ime_plugin_clock_alarm_set">%1$s(이)가 시계 앱에서 %2$s에 알람을 설정했습니다.</string>
+    <string name="ime_plugin_clock_timer_set">%1$s님이 시계에서 %2$s 타이머를 시작했습니다.</string>
     <string name="ime_plugin_empty_body">플러그인은 샌드박스 내의 작은 도구입니다. 추가 기능 저장소나 .wmplugin 파일에서 플러그인을 추가할 수 있습니다. 플러그인은 사용자가 입력하는 내용을 볼 수 없습니다.</string>
     <string name="ime_plugin_empty_title">플러그인이 없습니다</string>
     <string name="ime_plugin_manage_action">플러그인 관리</string>
+    <string name="ime_plugin_more">%1$s에 대한 추가 옵션</string>
+    <string name="ime_plugin_permission_allow">허용</string>
+    <string name="ime_plugin_permission_deny">허용 안 함</string>
+    <string name="ime_plugin_permission_risky_note">이 설정은 플러그인의 위험한 권한도 활성화합니다. 설정의 플러그인 페이지에서 언제든지 다시 비활성화할 수 있습니다.</string>
+    <string name="ime_plugin_permission_title">%1$s 권한 부여:</string>
     <string name="ime_plugin_version_label">버전 %1$s</string>
     <string name="ime_power_saving_on_desc">절전 모드가 켜져 있습니다</string>
+    <string name="ime_privacy_shade_hint">핸들을 위로 드래그하여 마지막 줄을 확인하세요.</string>
     <string name="ime_provider_choose_desc">제공업체 선택</string>
     <string name="ime_punct_ampersand">앰퍼샌드</string>
     <string name="ime_punct_apostrophe">아포스트로피</string>
@@ -2369,6 +2599,8 @@
     <string name="ime_resize_move_desc">드래그하여 키보드를 위아래로 이동</string>
     <string name="ime_resize_reset">재설정</string>
     <string name="ime_resize_right_handle_desc">드래그하여 키보드 오른쪽 공간 변경</string>
+    <string name="ime_resize_toolbar_handle">도구 모음</string>
+    <string name="ime_resize_toolbar_handle_desc">위나 아래로 드래그하여 도구 모음 높이 변경</string>
     <string name="ime_retype_button">다시 입력</string>
     <string name="ime_retype_button_desc">커서 위치의 단어 다시 입력</string>
     <string name="ime_retype_button_nothing">다시 입력할 단어가 없습니다. 단어 바로 뒤에 커서를 놓으세요.</string>
@@ -2423,8 +2655,10 @@
     <string name="ime_scanner_torch_desc">손전등</string>
     <string name="ime_scanner_translate_action">번역</string>
     <string name="ime_screen_capture_desc">화면 캡처</string>
+    <string name="ime_screen_capture_progress">화면을 캡처하는 중…</string>
     <string name="ime_search_attribution_brave">Brave를 통해</string>
     <string name="ime_search_attribution_left">%1$s · %2$s 남음</string>
+    <string name="ime_search_attribution_mwmbl">Mwmbl 제공</string>
     <string name="ime_search_attribution_tavily">Tavily 제공</string>
     <string name="ime_search_in_browser_desc">브라우저에서 검색</string>
     <string name="ime_search_menu_copy_link">링크 복사</string>
@@ -2434,6 +2668,7 @@
     <string name="ime_search_no_more">더 이상 결과가 없습니다</string>
     <string name="ime_search_tab_all">전체</string>
     <string name="ime_search_tab_images">이미지</string>
+    <string name="ime_second_toolbar_empty">도구 상자나 도구 모음에서 여기에 도구를 드래그하세요.</string>
     <string name="ime_selection_ask_ai">AI에게 질문하기</string>
     <string name="ime_selection_macro_ai_translate_label">AI 번역</string>
     <string name="ime_selection_macro_back_desc">선택 작업으로 돌아가기</string>
@@ -2732,6 +2967,8 @@
     <string name="ime_service_incognito_off_toast">시크릿 모드가 꺼졌습니다</string>
     <string name="ime_service_incognito_on_toast">시크릿 모드가 켜져 있습니다. 키보드가 입력 내용을 학습하지 않습니다.</string>
     <string name="ime_service_incognito_switch_toast">시크릿 모드가 켜져 있습니다. 시크릿 도구를 탭하여 끄세요.</string>
+    <string name="ime_service_legacy_font_off_toast">유니코드 작성 중</string>
+    <string name="ime_service_legacy_font_on_toast">%1$s 글꼴로 작성 중</string>
     <string name="ime_service_media_download_error_toast">다운로드에 실패했습니다. 연결 상태를 확인하세요.</string>
     <string name="ime_service_media_fetch_error">키보드가 결과를 가져올 수 없습니다</string>
     <string name="ime_service_mode_tool_order_toast">키보드가 %1$s 모드의 도구 순서를 저장했습니다. 다른 앱은 각자의 순서를 유지합니다.</string>
@@ -2755,6 +2992,7 @@
     <string name="ime_service_power_saving_on_empty_toast">절전 모드가 켜져 있습니다. 아직 중지하도록 설정된 기능이 없습니다.</string>
     <string name="ime_service_power_saving_on_toast">절전 모드가 켜져 있습니다.</string>
     <string name="ime_service_power_saving_still_on_toast">절전 모드가 계속 켜져 있습니다. 배터리 트리거가 활성화되어 있습니다.</string>
+    <string name="ime_service_privacy_shade_floating_toast">개인정보 보호 셰이드는 도킹된 키보드에서 작동합니다. 먼저 키보드를 도킹하세요.</string>
     <string name="ime_service_qr_error">키보드에서 QR 코드를 생성할 수 없습니다</string>
     <string name="ime_service_resize_floating_toast">키보드를 도킹하여 크기를 조정하세요</string>
     <string name="ime_service_search_error">검색이 작동하지 않았습니다</string>
@@ -2815,6 +3053,7 @@
     <string name="ime_smart_repeat_count">×%1$s</string>
     <string name="ime_smart_repeat_offer">“%1$s” 반복</string>
     <string name="ime_smart_replies_dismiss_desc">스마트 답장 숨기기</string>
+    <string name="ime_smart_search_offer">%1$s: “%2$s”</string>
     <string name="ime_smart_send_link">파일 받기</string>
     <string name="ime_smart_translate_offer">번역</string>
     <string name="ime_smart_vocab_daily">오늘의 단어: %1$s ›</string>
@@ -2824,6 +3063,12 @@
     <string name="ime_smart_vocab_word">%1$s ›</string>
     <string name="ime_smart_weather_tap">일기 예보 확인</string>
     <string name="ime_smart_wiki_word">위키백과의 “%1$s”</string>
+    <string name="ime_snippet_ask_cancel_desc">스니펫 취소</string>
+    <string name="ime_snippet_ask_done_desc">스니픲트 삽입</string>
+    <string name="ime_snippet_ask_hint">%1$s 입력</string>
+    <string name="ime_snippet_ask_next_desc">다음 필드</string>
+    <string name="ime_snippet_ask_step_label">%1$s %2$d/%3$d</string>
+    <string name="ime_snippet_image_desc">사진 스니펫 %1$s</string>
     <string name="ime_snippet_offer_back_desc">%1$s(으)로 돌아가기</string>
     <string name="ime_snippet_offer_desc">스니펫 %1$s 삽입</string>
     <string name="ime_snippet_offer_more_desc">%1$s의 더 많은 항목</string>
@@ -2934,6 +3179,7 @@
     <string name="ime_suggestion_hold_label">단어 옵션</string>
     <string name="ime_suggestion_never_suggest">\"%1$s\" 제안 안 함</string>
     <string name="ime_suggestion_pages_close">키로 돌아가기</string>
+    <string name="ime_suggestion_pattern_still_hides">블랙리스트 패턴이 여전히 \"%1$s\"을(를) 숨기고 있습니다. 제안 블랙리스트에서 편집하세요.</string>
     <string name="ime_suggestion_rank_badge">\"%1$s\" 순위 %2$s</string>
     <string name="ime_suggestion_rank_unchanged">\"%1$s\" 변경되지 않음</string>
     <string name="ime_suggestions_show_desc">제안 바 표시</string>
@@ -2963,6 +3209,8 @@
     <string name="ime_synonyms_title">\"%1$s\"의 유의어</string>
     <string name="ime_textedit_delete_line_desc">줄 삭제</string>
     <string name="ime_textedit_delete_line_forward_desc">앞쪽 줄 삭제</string>
+    <string name="ime_textedit_delete_to_end_desc">끝까지 삭제</string>
+    <string name="ime_textedit_delete_to_start_desc">시작 부분까지 삭제</string>
     <string name="ime_textedit_delete_word_desc">단어 삭제</string>
     <string name="ime_textedit_delete_word_forward_desc">다음 단어 삭제</string>
     <string name="ime_textedit_doc_end_desc">텍스트 끝으로 이동</string>
@@ -2981,6 +3229,7 @@
     <string name="ime_textedit_select_label">선택</string>
     <string name="ime_textedit_select_line_desc">줄 선택</string>
     <string name="ime_textedit_select_word_desc">단어 선택</string>
+    <string name="ime_textedit_type_clipboard_desc">클립보드 내용 입력</string>
     <string name="ime_textedit_up_desc">위로 이동</string>
     <string name="ime_textedit_word_left_desc">한 단어 왼쪽으로 이동</string>
     <string name="ime_textedit_word_right_desc">한 단어 오른쪽으로 이동</string>
@@ -3058,6 +3307,7 @@
     <string name="ime_tool_calculator">계산기</string>
     <string name="ime_tool_calendar">캘린더</string>
     <string name="ime_tool_camera">카메라</string>
+    <string name="ime_tool_clear_field">모두 삭제</string>
     <string name="ime_tool_clipboard">클립보드</string>
     <string name="ime_tool_clipboard_search">클립보드 검색</string>
     <string name="ime_tool_clock">시계</string>
@@ -3074,11 +3324,13 @@
     <string name="ime_tool_cursor_word_right">단어 오른쪽으로 이동</string>
     <string name="ime_tool_custom_layout">사용자 지정 레이아웃</string>
     <string name="ime_tool_cut">잘라내기</string>
+    <string name="ime_tool_debug_info">디버그 정보</string>
     <string name="ime_tool_dictionary">사전</string>
     <string name="ime_tool_doc_scan">문서 스캔</string>
     <string name="ime_tool_emoji">이모지</string>
     <string name="ime_tool_emoji_mix">이모지 믹스</string>
     <string name="ime_tool_fancy">멋진 텍스트</string>
+    <string name="ime_tool_files">파일</string>
     <string name="ime_tool_find_replace">찾기 및 바꾸기</string>
     <string name="ime_tool_flashlight">손전등</string>
     <string name="ime_tool_floating">플로팅</string>
@@ -3088,6 +3340,7 @@
     <string name="ime_tool_handwriting">필기</string>
     <string name="ime_tool_hide_keyboard">숨기기</string>
     <string name="ime_tool_home_assistant">스마트 홈</string>
+    <string name="ime_tool_homophones">동음이의어</string>
     <string name="ime_tool_image_search">이미지</string>
     <string name="ime_tool_incognito">시크릿 모드</string>
     <string name="ime_tool_language">언어</string>
@@ -3114,6 +3367,7 @@
     <string name="ime_tool_picker_leader">%1$s, 다음:</string>
     <string name="ime_tool_plugins">플러그인</string>
     <string name="ime_tool_power_saving">절전 모드</string>
+    <string name="ime_tool_privacy_shade">보안막</string>
     <string name="ime_tool_qr_gen">QR 코드</string>
     <string name="ime_tool_qr_scan">QR 스캔</string>
     <string name="ime_tool_quick_note">빠른 메모</string>
@@ -3138,6 +3392,7 @@
     <string name="ime_tool_text_edit">텍스트 편집</string>
     <string name="ime_tool_text_repeat">반복</string>
     <string name="ime_tool_themes">테마</string>
+    <string name="ime_tool_timestamp">타임스탬프</string>
     <string name="ime_tool_todo">할 일 목록</string>
     <string name="ime_tool_trackpad">트랙패드</string>
     <string name="ime_tool_translate">번역</string>
@@ -3195,12 +3450,14 @@
     <string name="ime_translate_engine_online_info">온라인 서비스를 사용합니다.</string>
     <string name="ime_translate_hint">번역할 텍스트를 입력하세요…</string>
     <string name="ime_translate_idle">입력하면 여기에 번역이 표시됩니다.</string>
+    <string name="ime_translate_idle_manual">전체 텍스트를 입력한 다음 번역을 탭하세요. 그 전에는 아무것도 전송되지 않습니다.</string>
     <string name="ime_translate_module_failed_error">Google Play에서 다운로드를 완료하지 못했습니다. 연결 상태를 확인한 후 다시 시도하세요. 계속 실패하면 설정 &gt; 도구 &gt; 번역에서 다운로드하세요.</string>
     <string name="ime_translate_module_installing_action">다운로드 중…</string>
     <string name="ime_translate_module_missing_body">기기 내 번역은 Google Play에서 제공하는 키보드의 추가 구성 요소입니다. 연결 없이 번역하려면 다운로드하세요.</string>
     <string name="ime_translate_need_models_body">기기에서 번역하려면 다음을 다운로드하세요: %1$s. 약 %2$s.</string>
     <string name="ime_translate_nllb_licence_accept_action">동의 및 다운로드</string>
     <string name="ime_translate_nllb_licence_body">NLLB-200은 Meta의 라이선스인 Creative Commons Attribution-NonCommercial 4.0에 따라 Hugging Face에서 제공됩니다. 비상업적 용도로만 사용 가능하며 보증이 제공되지 않습니다. 다시 눌러 동의하고 다운로드하세요.</string>
+    <string name="ime_translate_now_action">번역</string>
     <string name="ime_translate_offline_build_error">이 오프라인 빌드는 이 휴대폰에서 번역할 수 없습니다. 유일한 엔진인 Firefox Translations에는 Android 9 이상을 지원하는 64비트 휴대폰이 필요합니다. 번역하려면 표준 빌드를 설치하세요.</string>
     <string name="ime_translate_offline_failed_error">기기 내 번역을 시작하지 못했습니다. 다시 시도하거나 온라인 엔진을 선택하세요.</string>
     <string name="ime_translate_offline_import_body">ᡠᢃ ᢅᢘᡦ</string>
@@ -3216,6 +3473,7 @@
     <string name="ime_translate_select_source_desc">소스 언어 선택</string>
     <string name="ime_translate_server_label">사용자 서버</string>
     <string name="ime_translate_source_guessed_label">%1$s?</string>
+    <string name="ime_translate_speak_desc">번역 내용을 큰 소리로 읽기</string>
     <string name="ime_translate_swap_desc">언어 전환</string>
     <string name="ime_typing_accuracy_label">정확도</string>
     <string name="ime_typing_accuracy_short_label">정확도</string>
@@ -3336,6 +3594,10 @@
     <string name="ime_voice_model_get_language_action">오프라인 음성 입력을 위해 %1$s 가져오기</string>
     <string name="ime_voice_permission_action">마이크 허용</string>
     <string name="ime_voice_permission_body">음성 입력 기능을 사용하려면 마이크 권한이 필요합니다. 앱은 사용자가 말하는 동안에만 오디오를 녹음합니다.</string>
+    <string name="ime_voice_prompt_fix_custom">음성 입력 설정의 \'음성 입력 시 감지할 추가 단어\'에서 일부를 제거하거나 프롬프트를 단축하세요.</string>
+    <string name="ime_voice_prompt_fix_personal">음성 입력 설정에서 내 말 듣기를 끄거나 프롬프트를 줄이세요.</string>
+    <string name="ime_voice_prompt_fix_prompt">음성 입력 설정의 서버 화면에 있는 프롬프트 단축을 %1$d자 미만으로 설정하세요.</string>
+    <string name="ime_voice_prompt_too_long">이 서버는 최대 %2$d자의 프롬프트를 허용하며, 현재 프롬프트는 %1$d자입니다: 프롬프트 %3$d, 감지할 단어 수 %4$d, 내 단어 감지 %5$d.</string>
     <string name="ime_voice_secure_field_notice">비밀번호 필드에서는 음성 입력이 작동하지 않습니다.</string>
     <string name="ime_voice_server_metered_ask">데이터 절약 모드가 켜져 있습니다. 마이크를 다시 눌러 모바일 데이터로 음성을 전송하세요.</string>
     <string name="ime_voice_server_metered_blocked">모바일 데이터를 사용하는 동안에는 전사 서버가 꺼집니다. 설정의 데이터 절약 모드에서 변경할 수 있습니다.</string>
@@ -3375,6 +3637,12 @@
     <string name="ime_voice_use_system_action">시스템 인식기 사용</string>
     <string name="ime_weather_clouds_label">구름</string>
     <string name="ime_weather_error">앱에서 날씨 정보를 다운로드할 수 없습니다. 네트워크를 확인하세요.</string>
+    <string name="ime_weather_event_back_desc">캘린더로 돌아가기</string>
+    <string name="ime_weather_event_home_place">%1$s(회원님의 날씨 위치)</string>
+    <string name="ime_weather_event_home_unnamed">내 날씨 위치</string>
+    <string name="ime_weather_event_hour_desc">%1$s: %2$s, %3$s, 강수 확률 %4$s</string>
+    <string name="ime_weather_event_no_hours">아직 이 날짜의 예보가 없습니다.</string>
+    <string name="ime_weather_event_rain_info">강수 확률 %1$d%%</string>
     <string name="ime_weather_feels_like_label">체감 온도</string>
     <string name="ime_weather_high_low_info">최고 %1$d° 최저 %2$d°</string>
     <string name="ime_weather_humidity_label">습도</string>
@@ -3490,6 +3758,7 @@
     <string name="ime_wmpass_no_password">WM Pass에서 비밀번호를 생성하지 않았습니다. 볼트가 잠겨 있을 수 있습니다.</string>
     <string name="ime_wmpass_no_username">이 로그인에는 채울 사용자 이름이 없습니다.</string>
     <string name="ime_wmpass_no_vault">WM Pass에 아직 보관소가 없습니다. 먼저 그곳에서 보관소를 만드세요.</string>
+    <string name="ime_wmpass_not_released">WM Pass가 아직 출시되지 않았습니다. 이 도구는 출시 및 설치 후 작동하기 시작합니다.</string>
     <string name="ime_wmpass_not_set">설정되지 않음</string>
     <string name="ime_wmpass_off">이를 사용하려면 설정, 보안에서 \'WM Pass에 WM 키보드 자동 완성 허용\'을 켜세요.</string>
     <string name="ime_wmpass_open">WM Pass 열기</string>

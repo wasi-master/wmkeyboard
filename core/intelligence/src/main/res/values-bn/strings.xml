@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">একটি সাম্প্রতিক মাঝারি আকারের মডেল যা উত্তর দেওয়ার আগে চিন্তা করে। এটি চালানোর জন্য একটি মাঝারি মানের ডিভাইস প্রয়োজন।</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">ছোট এবং দ্রুত। এটি সাধারণ ডিভাইসে দ্রুত রিরাইট করার জন্য ভালো।</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">একটি খুব ছোট মডেল যা ছবি পড়তে পারে। এটি একটি ছবির বর্ণনা দেয়, তবে প্রায়শই স্ক্রিনশটের টেক্সট ভুল পড়ে।</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">নির্দেশনা অনুসরণ এবং টুল ব্যবহারের জন্য Gemma 4 E4B-এর এনভিডিয়ার রিট্রেনিং। শুধুমাত্র পাঠ্য, এবং এর জন্য একটি শক্তিশালী ডিভাইস প্রয়োজন।</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">একটি সাধারণ-উদ্দেশ্যের মডেল যা একটি সাধারণ ডিভাইসেও চলে।</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">এটি 1B-এর নিচের মডেলগুলোর চেয়ে স্পষ্টতই স্মার্ট। এর জন্য একটি মিড-রেঞ্জ ডিভাইসের প্রয়োজন।</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">একটি সাম্প্রতিক ছোট মডেল। এর আকারের তুলনায় গুণমান বেশ ভালো।</string>

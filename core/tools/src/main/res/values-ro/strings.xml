@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">Bună</string>
     <string name="core_tools_media_category_laugh">Râs</string>
     <string name="core_tools_media_category_love">Dragoste</string>
+    <string name="core_tools_media_category_memes">Meme-uri</string>
     <string name="core_tools_media_category_no">Nu</string>
     <string name="core_tools_media_category_party">Petrecere</string>
     <string name="core_tools_media_category_reactions">Reacții</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">Un server Mozhi: un front-end gratuit pentru Google, DeepL, DuckDuckGo, Yandex și Reverso. Alege motorul. DeepL și Reverso necesită o limbă sursă.</string>
     <string name="core_tools_provider_music_server">Propriul tău server de recunoaștere</string>
     <string name="core_tools_provider_music_server_desc">Un server pe care îl rulezi și care răspunde ca AudD: clipul este postat ca fișier, iar melodia revine sub formă de JSON. Pune un sistem de amprentare digitală precum Panako sau Olaf în spate.</string>
+    <string name="core_tools_provider_mwmbl_desc">Un motor de căutare gratuit, non-profit, cu propriul său index. Fără cheie. Doar rezultate web, fără imagini.</string>
     <string name="core_tools_provider_nllb">Pe dispozitiv (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">Traduce pe telefon cu modelul NLLB-200 de la Meta pe CTranslate2: 200 de limbi, între oricare două dintre ele, pentru perechile pe care celelalte motoare nu le pot face. O descărcare de 630 MB, iar o propoziție durează câteva secunde. Textul dvs. rămâne pe telefon. Modelul este licențiat doar pentru uz necomercial (CC BY-NC 4.0). Necesită un telefon pe 64 de biți cu 6 GB de memorie sau mai mult.</string>
     <string name="core_tools_provider_none_on">Niciun furnizor nu este activat. Activează unul din setările acestui instrument.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">Această listă</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">Afișează sau ascunde tastele</string>
     <string name="core_tools_shortcut_leader_double_tap">Apasă %1$s de două ori</string>
+    <string name="core_tools_speak_no_voice">Acest telefon nu are nicio voce %1$s cu care să citească. Adăugați una în setările de text-to-speech din Android sau descărcați o voce offline din Unelte › Citire cu voce tare.</string>
     <string name="core_tools_symbol_category_arrows_label">Săgeți</string>
     <string name="core_tools_symbol_category_currency_label">Valută</string>
     <string name="core_tools_symbol_category_fractions_label">Fracții</string>
     <string name="core_tools_symbol_category_greek_label">Greacă</string>
     <string name="core_tools_symbol_category_math_label">Matematică</string>
+    <string name="core_tools_symbol_category_music_label">Muzică</string>
     <string name="core_tools_symbol_category_other_label">Altele</string>
     <string name="core_tools_symbol_category_punctuation_label">Punctuație</string>
     <string name="core_tools_symbol_category_shapes_label">Forme și stele</string>
+    <string name="core_tools_symbol_category_stars_label">Stele</string>
     <string name="core_tools_symbol_category_superscript_label">Superscript</string>
+    <string name="core_tools_symbol_category_technical_label">Tehnic</string>
+    <string name="core_tools_symbol_category_weather_label">Vreme</string>
     <string name="core_tools_symbol_set_coding_label">Programare</string>
     <string name="core_tools_symbol_set_email_label">E-mail</string>
     <string name="core_tools_symbol_set_math_label">Matematică</string>

@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Egy nemrég megjelent közepes méretű modell, amely válaszadás előtt gondolkodik. Középkategóriás eszköz szükséges hozzá.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Kicsi és gyors. Alapvető eszközökön történő gyors átírásra alkalmas.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Egy nagyon kicsi modell, amely képes képeket olvasni. Leírja a képet, de gyakran félreolvassa a képernyőképen lévő szöveget.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">A Gemma 4 E4B NVIDIA általi továbbfejlesztése az utasítások követésére és eszközök használatára. Csak szöveges, és erős eszközt igényel.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Egy általános célú modell, amely még elfér egy alapvető eszközön.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Egyértelműen okosabb, mint az 1B alatti modellek. Középkategóriás eszköz szükséges hozzá.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Egy új, kisméretű modell. Méretéhez képest kiváló minőségű.</string>

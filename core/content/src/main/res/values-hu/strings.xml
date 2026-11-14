@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">E-mail cím</string>
+    <string name="core_content_clip_entity_email_tag">E-MAIL</string>
     <string name="core_content_clip_entity_otp_label">Egyszer használatos kód</string>
     <string name="core_content_clip_entity_otp_tag">KÓD</string>
     <string name="core_content_clip_entity_phone_label">Telefonszám</string>
@@ -38,6 +40,10 @@
         <item quantity="one">Az alkalmazás kihagyott %1$d kódrészletet, amelyben nincs beszúrható tartalom.</item>
         <item quantity="other">Az alkalmazás kihagyott %1$d kódrészletet, amelyekben nincs beszúrható tartalom.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d űrlapmező kínál választási listát. Az alkalmazás gépelt válaszként kéri, az első választás kitöltésével.</item>
+        <item quantity="other">%1$d űrlapmező kínál választási listát. Az alkalmazás mindegyiket gépelt válaszként kéri, az első választás kitöltésével.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Az alkalmazás kihagyott %1$d kódrészletet, amely képet szúr be.</item>
         <item quantity="other">Az alkalmazás kihagyott %1$d kódrészletet, amely képeket szúr be.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d kódrészlet olyan értéket használ, amelyre az Espansónak nincs megfelelője. Úgy van kiírva, ahogy van.</item>
         <item quantity="other">%1$d kódrészlet olyan értékeket használ, amelyekre az Espansónak nincs megfelelője. Úgy vannak kiírva, ahogy vannak.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d részlet képet szúr be. A szövegfájl nem tudja tárolni a képet, így csak a szavai mentek ki.</item>
+        <item quantity="other">%1$d részlet képeket szúr be. A szövegfájl nem tudja tárolni a képeket, így csak a szavaik mentek ki.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">Az alkalmazás eltávolította a mintát %1$d kódrészletből. Az alkalmazás nem futtat ilyen formájú mintákat. A kódrészlet a listában marad.</item>
@@ -197,17 +207,34 @@
         <item quantity="one">Az alkalmazás eltávolított %1$d triggert, amelyet a billentyűzet nem tud figyelni. A kódrészlete a listában marad.</item>
         <item quantity="other">Az alkalmazás eltávolított %1$d triggert, amelyet a billentyűzet nem tud figyelni. A kódrészleteik a listában maradnak.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">===-gal kezdődik, de nem egy teljes === kioldó === sor. Ha egy szövegsort ===-gal szeretne kezdeni, írjon helyette \===-t</string>
+    <string name="core_content_snippet_text_bad_pattern">A minta nem használható: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">A(z) %1$s nem lehet %2$s</string>
+    <string name="core_content_snippet_text_before_header">Szöveg az első === trigger === sor előtt. Kezdjen egy blokkot egyessel, vagy kezdje a sort #-tel</string>
+    <string name="core_content_snippet_text_no_text">Ennek a snippetnek nincs szövege</string>
+    <string name="core_content_snippet_text_no_trigger">Az === jelek között semmit sem tartalmazó kódrészlethez @label vagy @pattern sor szükséges</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d képrészlet érkezett szövegként: a szövegfájl nem tartalmaz képeket</item>
+        <item quantity="other">%1$d képrészlet érkezett szövegként: a szövegfájl nem tartalmaz képeket</item>
+    </plurals>
+    <string name="core_content_snippet_text_unknown_link">A(z) @link neve %1$s, és egyetlen részlet sem rendelkezik ilyen kiváltófeltétellel</string>
+    <string name="core_content_snippet_text_unknown_picture">A @picture a %1$s nevet adja meg, amelyet egyetlen kódrészlet sem használ. Adj hozzá képeket a kódrészlet saját szerkesztőjében</string>
+    <string name="core_content_snippet_text_unknown_setting">A billentyűzet nem ismeri a(z) %1$s beállítást. Ha a kódrészlet szövegét @ jelekkel szeretné kezdeni, írjon helyette \@ jelet</string>
     <string name="core_content_snippet_var_app_info">Annak az alkalmazásnak a neve, amelyben gépel</string>
+    <string name="core_content_snippet_var_battery_info">Az akkumulátor töltöttsége, például 85%</string>
     <string name="core_content_snippet_var_clip_info">A legújabb vágólap-bejegyzés</string>
     <string name="core_content_snippet_var_cursor_info">A hely, ahol a kurzor landol</string>
     <string name="core_content_snippet_var_date_info">A mai dátum</string>
     <string name="core_content_snippet_var_datetime_info">A dátum és az idő</string>
     <string name="core_content_snippet_var_day_info">A hónap napja</string>
+    <string name="core_content_snippet_var_greeting_info">Jó reggelt, napot vagy estét az idő függvényében, a billentyűzet nyelvén</string>
     <string name="core_content_snippet_var_isodate_info">A dátum ISO formátumban, például 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">A dátum és az idő ISO formátumban</string>
+    <string name="core_content_snippet_var_language_info">A billentyűzet nyelve, amelyen gépel</string>
     <string name="core_content_snippet_var_month_info">A hónap neve</string>
     <string name="core_content_snippet_var_package_info">Az alkalmazás csomagneve</string>
     <string name="core_content_snippet_var_selection_info">A mezőben kijelölt szöveg</string>
+    <string name="core_content_snippet_var_tab_info">Egy tabulátor karakter</string>
     <string name="core_content_snippet_var_time12_info">Az aktuális idő 12 órás formátumban</string>
     <string name="core_content_snippet_var_time_info">Az aktuális idő 24 órás formátumban</string>
     <string name="core_content_snippet_var_timestamp_info">Az idő Unix másodpercben</string>

@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Tuore keskikokoinen malli, joka ajattelee ennen vastaamista. Vaatii keskitason laitteen.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Pieni ja nopea. Hyvä nopeisiin uudelleenkirjoituksiin peruslaitteella.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Erittäin pieni malli, joka osaa lukea kuvia. Se kuvailee kuvan, mutta lukee usein väärin kuvakaappauksessa olevan tekstin.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">NVIDIAn uudelleenkoulutus Gemma 4 E4B:stä ohjeiden noudattamiseen ja työkalujen käyttämiseen. Vain teksti, ja se vaatii tehokkaan laitteen.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Yleiskäyttöinen malli, joka mahtuu vielä peruslaitteelle.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Selvästi älykkäämpi kuin alle 1B-mallit. Vaatii keskitason laitteen.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Tuore pieni malli. Laatu on korkea sen kokoon nähden.</string>

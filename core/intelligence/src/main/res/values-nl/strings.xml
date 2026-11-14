@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Een recent middelgroot model dat nadenkt voordat het antwoordt. Het heeft een apparaat uit het middensegment nodig.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Klein en snel. Het is geschikt voor snelle tekstaanpassingen op een basisapparaat.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Een heel klein model dat afbeeldingen kan lezen. Het beschrijft een afbeelding, maar leest vaak de tekst in een screenshot verkeerd.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">NVIDIA\'s hertraining van Gemma 4 E4B voor het opvolgen van instructies en het gebruiken van tools. Alleen tekst en vereist een krachtig apparaat.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Een model voor algemeen gebruik dat nog steeds op een basisapparaat past.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Duidelijk slimmer dan de modellen onder 1B. Het vereist een apparaat uit het middensegment.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Een recent klein model. De kwaliteit is hoog voor het formaat.</string>

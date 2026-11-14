@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Faixa, tecla e chaves</string>
     <string name="core_settings_glide_commit_scope_pill_label">Faixa e pílula</string>
     <string name="core_settings_glide_commit_scope_strip_label">Barra</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">Após desfazer</string>
+    <string name="core_settings_glide_drawn_letters_off_label">Desativado</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">Quando em dúvida</string>
     <string name="core_settings_glide_engine_built_in_label">Integrado</string>
     <string name="core_settings_glide_engine_futo_label">FUTO Swipe (Inglês, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Biblioteca de gestos da Google (importada)</string>

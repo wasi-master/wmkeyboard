@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Ein aktuelles mittelgroßes Modell, das nachdenkt, bevor es antwortet. Es benötigt ein Mittelklasse-Gerät.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Klein und schnell. Gut geeignet für schnelle Korrekturen auf einem Basis-Gerät.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Ein sehr kleines Modell, das Bilder lesen kann. Es beschreibt ein Bild, liest aber oft den Text in einem Screenshot falsch.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">NVIDIAs Weiterbildung von Gemma 4 E4B für das Befolgen von Anweisungen und die Nutzung von Werkzeugen. Nur Text, und es benötigt ein leistungsstarkes Gerät.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Ein Allzweckmodell, das auch auf einem einfachen Gerät Platz findet.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Deutlich intelligenter als Modelle unter 1B. Erfordert ein Mittelklasse-Gerät.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Ein aktuelles kleines Modell. Die Qualität ist für seine Größe hoch.</string>

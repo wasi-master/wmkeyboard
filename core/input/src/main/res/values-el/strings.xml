@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">Αναγνώσεις Furigana</string>
     <string name="core_input_cjk_pack_hanja_subtitle">Λέξεις Hangul και τα Hanja τους, 300.000 καταχωρήσεις. Το πληκτρολόγιο χρειάζεται αυτό το πακέτο για να προσφέρει Hanja στη γραμμή προτάσεων.</string>
     <string name="core_input_cjk_pack_hanja_title">Λεξικό Hanja (漢字)</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, ώστε μια λέξη με τα προθήματα και τα επιθήματά της να είναι γνωστή και να διορθώνεται τυχόν ορθογραφικό λάθος σε αυτήν.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">Αραβικό λεξικό ορθογραφίας</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, ώστε οι λέξεις με οποιαδήποτε κατάληξη να είναι γνωστές και τα τυπογραφικά λάθη σε αυτές να διορθώνονται.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">Κανόνες ορθογραφίας Τουρκικής</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">Αναγνώσεις Kana από το mozc, 1,08 εκατομμύρια καταχωρήσεις, περίπου 42 MB. Το πληκτρολόγιο χρειάζεται αυτό το πακέτο για την ιαπωνική μετατροπή.</string>

@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">عنوان البريد الإلكتروني</string>
+    <string name="core_content_clip_entity_email_tag">البريد الإلكتروني</string>
     <string name="core_content_clip_entity_otp_label">رمز لمرة واحدة</string>
     <string name="core_content_clip_entity_otp_tag">رمز</string>
     <string name="core_content_clip_entity_phone_label">رقم الهاتف</string>
@@ -38,6 +40,10 @@
         <item quantity="one">تخطى التطبيق %1$d مقتطف لا يحتوي على شيء لإدراجه.</item>
         <item quantity="other">تخطى التطبيق %1$d مقتطفات لا تحتوي على شيء لإدراجه.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">حقل نموذج واحد (%1$d) يقدم قائمة للاختيار منها. يطلب التطبيق ذلك كإجابة مكتوبة، مع ملء الخيار الأول.</item>
+        <item quantity="other">تقدم حقول النماذج (%1$d) قائمة للاختيار منها. يطلب التطبيق كل منها كإجابة مكتوبة، مع ملء الخيار الأول.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">تخطى التطبيق قصاصة %1$d تدرج صورة.</item>
         <item quantity="other">تخطى التطبيق %1$d قصاصات تدرج صوراً.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">يستخدم %1$d مقتطف قيمة ليس لدى Espanso مكافئ لها. تمت كتابتها كما هي.</item>
         <item quantity="other">تستخدم %1$d مقتطفات قيماً ليس لدى Espanso مكافئ لها. تمت كتابتها كما هي.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">قصاصة واحدة %1$d تدرج صورة. لا يمكن للملف النصي احتواء الصورة، لذلك تم تصدير كلماتها فقط.</item>
+        <item quantity="other">%1$d قصاصات تدرج صوراً. لا يمكن للملف النصي احتواء الصور، لذلك تم تصدير كلماتها فقط.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">أزال التطبيق النمط من %1$d مقتطف. لا يقوم التطبيق بتشغيل أنماط بهذا الشكل. يبقى المقتطف في القائمة.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">أزال التطبيق %1$d من المشغلات التي لا يمكن للوحة المفاتيح مراقبتها. تبقى مقتطفاتها في القائمة.</item>
         <item quantity="other">أزال التطبيق %1$d من المشغلات التي لا يمكن للوحة المفاتيح مراقبتها. تبقى مقتطفاتها في القائمة.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">يبدأ بـ 111 ولكنه ليس سطر تشغيل 111 كاملاً. لبدء سطر نصي بـ 111، اكتب \111 بدلاً من ذلك</string>
+    <string name="core_content_snippet_text_bad_pattern">لا يمكن استخدام النموذج: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">لا يمكن لـ %1$s أن يكون %2$s</string>
+    <string name="core_content_snippet_text_before_header">النص قبل أول خط تشغيل ===. ابدأ كتلة بواحدة، أو ابدأ السطر بـ #</string>
+    <string name="core_content_snippet_text_no_text">لا يحتوي هذا المقتطف على نص</string>
+    <string name="core_content_snippet_text_no_trigger">تحتاج المقتطفة التي لا تحتوي على شيء بين العلامات 999 إلى سطر @label أو @pattern</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">جاء %1$d مقتطف صور كنص له: ملف النص لا يحتوي على أي صور</item>
+        <item quantity="other">جاءت %1$d مقتطفات صور كنص لها: ملف النص لا يحتوي على أي صور</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">تم تخطي المقطع في السطر %1$d، والذي يحتوي على خطأ</string>
+    <string name="core_content_snippet_text_unknown_link">يسمي الرابط @link %1$s، ولا توجد أي فقرة هنا بهذا المشغل</string>
+    <string name="core_content_snippet_text_unknown_picture">يحتوي @picture على الأسماء %1$s، والتي لا يستخدمها أي مقتطف. أضف الصور في محرر المقتطفات نفسه</string>
+    <string name="core_content_snippet_text_unknown_setting">لوحة المفاتيح لا تعرف الإعداد %1$s. لبدء نص المقتطف بـ @، اكتب \@ بدلاً من ذلك</string>
     <string name="core_content_snippet_var_app_info">اسم التطبيق الذي تكتب فيه</string>
+    <string name="core_content_snippet_var_battery_info">شحن البطارية، على سبيل المثال 85%</string>
     <string name="core_content_snippet_var_clip_info">أحدث إدخال في الحافظة</string>
     <string name="core_content_snippet_var_cursor_info">المكان الذي يستقر فيه المؤشر</string>
     <string name="core_content_snippet_var_date_info">تاريخ اليوم</string>
     <string name="core_content_snippet_var_datetime_info">التاريخ والوقت</string>
     <string name="core_content_snippet_var_day_info">يوم الشهر</string>
+    <string name="core_content_snippet_var_greeting_info">صباح الخير، مساء الخير أو طاب مساؤك حسب الوقت، بلغة لوحة المفاتيح</string>
     <string name="core_content_snippet_var_isodate_info">التاريخ بصيغة ISO، على سبيل المثال 19-07-2026</string>
     <string name="core_content_snippet_var_isotime_info">التاريخ والوقت بتنسيق ISO</string>
+    <string name="core_content_snippet_var_language_info">لغة لوحة المفاتيح التي تكتب بها</string>
     <string name="core_content_snippet_var_month_info">اسم الشهر</string>
     <string name="core_content_snippet_var_package_info">اسم حزمة ذلك التطبيق</string>
     <string name="core_content_snippet_var_selection_info">النص الذي تحدده في الحقل</string>
+    <string name="core_content_snippet_var_tab_info">حرف جدول مسافات (Tab)</string>
     <string name="core_content_snippet_var_time12_info">الوقت الحالي بتنسيق 12 ساعة</string>
     <string name="core_content_snippet_var_time_info">الوقت الآن بصيغة 24 ساعة</string>
     <string name="core_content_snippet_var_timestamp_info">الوقت بالثواني بنظام يونكس</string>

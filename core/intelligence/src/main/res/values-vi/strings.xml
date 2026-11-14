@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Một mô hình cỡ trung gần đây suy nghĩ trước khi trả lời. Nó cần một thiết bị tầm trung.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Nhỏ và nhanh. Phù hợp để viết lại nhanh trên thiết bị cơ bản.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Một mô hình rất nhỏ có thể đọc hình ảnh. Nó mô tả một bức ảnh, nhưng thường đọc sai văn bản trong ảnh chụp màn hình.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">Bản đào tạo lại của NVIDIA cho Gemma 4 E4B để tuân theo hướng dẫn và sử dụng công cụ. Chỉ hỗ trợ văn bản và cần thiết bị mạnh.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Một mô hình đa năng vẫn phù hợp với thiết bị cơ bản.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Thông minh hơn rõ rệt so với các mô hình dưới 1B. Nó cần một thiết bị tầm trung.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Một mô hình nhỏ gần đây. Chất lượng cao so với kích thước của nó.</string>

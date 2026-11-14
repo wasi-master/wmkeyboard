@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">Netfang</string>
+    <string name="core_content_clip_entity_email_tag">TÖLVUPÓSTUR</string>
     <string name="core_content_clip_entity_otp_label">Einskiptiskóði</string>
     <string name="core_content_clip_entity_otp_tag">KÓÐI</string>
     <string name="core_content_clip_entity_phone_label">Símanúmer</string>
@@ -38,6 +40,10 @@
         <item quantity="one">Forritið sleppti %1$d bút sem hefur ekkert til að setja inn.</item>
         <item quantity="other">Forritið sleppti %1$d bútum sem hafa ekkert til að setja inn.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d eyðublaðsreitur býður upp á lista til að velja úr. Appið biður um hann sem innsláttað svar, þar sem fyrsti valkosturinn er útfylltur.</item>
+        <item quantity="other">%1$d eyðublaðsreitir bjóða upp á lista til að velja úr. Appið biður um hvern um sig sem innsláttað svar, þar sem fyrsti valkosturinn er útfylltur.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Forritið sleppti %1$d textabút sem setur inn mynd.</item>
         <item quantity="other">Forritið sleppti %1$d textabútum sem setja inn myndir.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d brot notar gildi sem Espanso hefur enga hliðstæðu fyrir. Það er skrifað út eins og það er.</item>
         <item quantity="other">%1$d brot nota gildi sem Espanso hefur enga hliðstæðu fyrir. Þau eru skrifuð út eins og þau eru.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d stubbur setur inn mynd. Textaskrá getur ekki geymt myndina, svo aðeins orð hennar fóru út.</item>
+        <item quantity="other">%1$d stubbar setja inn myndir. Textaskrá getur ekki geymt myndirnar, svo aðeins orð þeirra fóru út.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">Forritið fjarlægði mynstrið úr %1$d textabút. Forritið keyrir ekki mynstur af þessari gerð. Textabúturinn verður áfram á listanum.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">Forritið fjarlægði %1$d kveikju sem lyklaborðið getur ekki fylgst með. Búturinn verður áfram á listanum.</item>
         <item quantity="other">Forritið fjarlægði %1$d kveikjur sem lyklaborðið getur ekki fylgst með. Bútarnir verða áfram á listanum.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">Byrjar á 333 en er ekki heil 333 kveikjulína 333. Til að láta textalínu byrja á 333 skal skrifa \333 í staðinn</string>
+    <string name="core_content_snippet_text_bad_pattern">Ekki er hægt að nota mynstrið: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s getur ekki verið %2$s</string>
+    <string name="core_content_snippet_text_before_header">Texti á undan fyrstu === kveikjulínu ===. Byrjaðu blokk með einni, eða byrjaðu línuna á #</string>
+    <string name="core_content_snippet_text_no_text">Þessi bútur hefur engan texta</string>
+    <string name="core_content_snippet_text_no_trigger">Bútur með ekkert á milli 333 merkjanna þarf @label eða @pattern línu</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d myndarbútur barst sem texti hans: textaskrá inniheldur engar myndir</item>
+        <item quantity="other">%1$d myndarbútar bárust sem texti þeirra: textaskrá inniheldur engar myndir</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">Sleppti bútnum í línu %1$d, sem er með villu í sér</string>
+    <string name="core_content_snippet_text_unknown_link">\@link nefnir %1$s, og enginn bútur hérna hefur þann kveikjara</string>
+    <string name="core_content_snippet_text_unknown_picture">\@picture nefnir %1$s, sem enginn bútur notar. Bættu við myndum í ritlinum fyrir bútinn sjálfan</string>
+    <string name="core_content_snippet_text_unknown_setting">Lyklaborðið þekkir ekki stillinguna %1$s. Til að byrja texta bút á @, skrifaðu \@ í staðinn</string>
     <string name="core_content_snippet_var_app_info">Nafn forritsins sem þú skrifar í</string>
+    <string name="core_content_snippet_var_battery_info">Rafhlöðuhlaðan, til dæmis 85%</string>
     <string name="core_content_snippet_var_clip_info">Nýjasta færslan á klemmuspjaldinu</string>
     <string name="core_content_snippet_var_cursor_info">Staðurinn þar sem bendillinn lendir</string>
     <string name="core_content_snippet_var_date_info">Dagsetning dagsins í dag</string>
     <string name="core_content_snippet_var_datetime_info">Dagsetning og tími</string>
     <string name="core_content_snippet_var_day_info">Dagur mánaðarins</string>
+    <string name="core_content_snippet_var_greeting_info">Góðan daginn, góðan dag eða gott kvöld eftir tímanum, á tungumáli lyklaborðsins</string>
     <string name="core_content_snippet_var_isodate_info">Dagsetningin á ISO-formi, til dæmis 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">Dagsetning og tími á ISO-formi</string>
+    <string name="core_content_snippet_var_language_info">Lyklaborðstungumálið sem þú skrifar á</string>
     <string name="core_content_snippet_var_month_info">Nafn mánaðarins</string>
     <string name="core_content_snippet_var_package_info">Pakkaheiti þess forrits</string>
     <string name="core_content_snippet_var_selection_info">Textinn sem þú velur í reitnum</string>
+    <string name="core_content_snippet_var_tab_info">Tab-bila stafur</string>
     <string name="core_content_snippet_var_time12_info">Tíminn núna á 12 tíma formi</string>
     <string name="core_content_snippet_var_time_info">Tíminn núna á 24-tíma formi</string>
     <string name="core_content_snippet_var_timestamp_info">Tíminn í Unix-sekúndum</string>

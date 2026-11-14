@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">Cách đọc Furigana</string>
     <string name="core_input_cjk_pack_hanja_subtitle">Các từ tiếng Hàn và Hanja tương ứng, 300.000 mục. Bàn phím cần gói này để cung cấp Hanja trên thanh gợi ý.</string>
     <string name="core_input_cjk_pack_hanja_title">Từ điển Hanja (漢字)</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, giúp nhận diện từ kèm theo tiền tố và hậu tố của nó, đồng thời sửa lỗi chính tả.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">Từ điển chính tả tiếng Ả Rập</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, để các từ có bất kỳ hậu tố nào đều được nhận biết và các lỗi chính tả trong đó được sửa.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">Quy tắc chính tả tiếng Thổ Nhĩ Kỳ</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">Cách đọc Kana từ mozc, 1,08 triệu mục, khoảng 42 MB. Bàn phím cần gói này để chuyển đổi tiếng Nhật.</string>

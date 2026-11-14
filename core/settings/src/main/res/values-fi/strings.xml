@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Pyyhkäisy, pillereitä ja näppäimiä</string>
     <string name="core_settings_glide_commit_scope_pill_label">Nauha ja pilleri</string>
     <string name="core_settings_glide_commit_scope_strip_label">Nauha</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">Kumoamisen jälkeen</string>
+    <string name="core_settings_glide_drawn_letters_off_label">Pois päältä</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">Epävarmoissa tilanteissa</string>
     <string name="core_settings_glide_engine_built_in_label">Sisäänrakennettu</string>
     <string name="core_settings_glide_engine_futo_label">FUTO-pyyhkäisy (englanti, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Googlen elekirjasto (tuotu)</string>

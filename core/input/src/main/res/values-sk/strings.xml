@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">Čítania Furigana</string>
     <string name="core_input_cjk_pack_hanja_subtitle">Slová Hangul a ich Hanja, 300 000 položiek. Klávesnica potrebuje tento balík na ponuku Hanja na lište návrhov.</string>
     <string name="core_input_cjk_pack_hanja_title">Slovník Hanja (漢字)</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, takže slovo s jeho predponami a príponami je známe a preklep v ňom sa oprava.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">Arabský slovník pravopisu</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, takže slová s akoukoľvek príponou sú známe a preklepy v nich sa opravia.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">Pravidlá tureckého pravopisu</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">Čítania Kana z mozc, 1,08 milióna záznamov, približne 42 MB. Klávesnica potrebuje tento balík na konverziu japončiny.</string>

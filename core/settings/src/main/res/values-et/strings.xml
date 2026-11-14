@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Riba, nupp ja klahvid</string>
     <string name="core_settings_glide_commit_scope_pill_label">Riba ja pill</string>
     <string name="core_settings_glide_commit_scope_strip_label">Riba</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">Pärast tagasivõtmist</string>
+    <string name="core_settings_glide_drawn_letters_off_label">Väljas</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">Kui pole kindel</string>
     <string name="core_settings_glide_engine_built_in_label">Sisseehitatud</string>
     <string name="core_settings_glide_engine_futo_label">FUTO libistamine (inglise keel, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Google\'i žestide teek (imporditud)</string>

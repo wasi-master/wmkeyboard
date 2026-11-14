@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">آدرس ایمیل</string>
+    <string name="core_content_clip_entity_email_tag">ایمیل</string>
     <string name="core_content_clip_entity_otp_label">کد یک‌بار مصرف</string>
     <string name="core_content_clip_entity_otp_tag">کد</string>
     <string name="core_content_clip_entity_phone_label">شماره تلفن</string>
@@ -38,6 +40,10 @@
         <item quantity="one">برنامه %1$d قطعه کد را که چیزی برای درج نداشت، نادیده گرفت.</item>
         <item quantity="other">برنامه %1$d قطعه کد را که چیزی برای درج نداشتند، نادیده گرفت.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d فیلد فرم لیستی را برای انتخاب ارائه می‌دهد. برنامه آن را به عنوان یک پاسخ تایپ‌شده درخواست می‌کند، در حالی که اولین گزینه از پیش پر شده است.</item>
+        <item quantity="other">%1$d فیلد فرم لیستی را برای انتخاب ارائه می‌دهند. برنامه هر کدام را به عنوان یک پاسخ تایپ‌شده درخواست می‌کند، در حالی که اولین گزینه از پیش پر شده است.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">برنامه %1$d قطعه متنی که تصویر درج می‌کند را نادیده گرفت.</item>
         <item quantity="other">برنامه %1$d قطعه متنی که تصویر درج می‌کنند را نادیده گرفت.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d قطعه کد از مقداری استفاده می‌کند که Espanso معادل آن را ندارد. این مقدار همان‌طور که هست نوشته می‌شود.</item>
         <item quantity="other">%1$d قطعه کد از مقادیری استفاده می‌کنند که Espanso معادل آن‌ها را ندارد. آن‌ها همان‌طور که هستند نوشته می‌شوند.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d قطعه‌کد یک تصویر درج می‌کند. یک فایل متنی نمی‌تواند تصویر را نگه دارد، بنابراین فقط کلمات آن خارج شدند.</item>
+        <item quantity="other">%1$d قطعه‌کد تصاویر را درج می‌کنند. یک فایل متنی نمی‌تواند تصاویر را نگه دارد، بنابراین فقط کلمات آن‌ها خارج شدند.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">برنامه الگو را از %1$d قطعه کد حذف کرد. برنامه الگوهایی با آن شکل را اجرا نمی‌کند. قطعه کد در لیست باقی می‌ماند.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">برنامه %1$d محرکی را حذف کرد که صفحه‌کلید نمی‌تواند آن را نظارت کند. قطعه کد آن در لیست باقی می‌ماند.</item>
         <item quantity="other">برنامه %1$d محرک را حذف کرد که صفحه‌کلید نمی‌تواند آن‌ها را نظارت کند. قطعه کدهای آن‌ها در لیست باقی می‌مانند.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">با === شروع می‌شود اما یک خط ماشه === تمام‌عیار === نیست. برای شروع یک خط متن با ===، به جای آن \=== بنویسید</string>
+    <string name="core_content_snippet_text_bad_pattern">الگو نمی‌تواند استفاده شود: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s نمی‌تواند %2$s باشد</string>
+    <string name="core_content_snippet_text_before_header">متن قبل از اولین خط ماشه ===. یک بلوک را با یک مورد شروع کنید، یا خط را با # آغاز کنید</string>
+    <string name="core_content_snippet_text_no_text">این قطعه متن فاقد متن است</string>
+    <string name="core_content_snippet_text_no_trigger">یک قطعه کد بدون هیچ‌چیزی بین علامت‌های === نیاز به یک خط @label یا @pattern دارد</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">یک قطعه تصویر به عنوان متن آن وارد شد: یک فایل متنی هیچ تصویری را نگه نمی‌دارد</item>
+        <item quantity="other">%1$d قطعه تصویر به عنوان متن آن‌ها وارد شد: یک فایل متنی هیچ تصویری را نگه نمی‌دارد</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">قطعه متن در خط %1$d که دارای اشکال بود، رد شد</string>
+    <string name="core_content_snippet_text_unknown_link">\@link نام‌گذاری می‌کند %1$s، و هیچ قطعه کدی در اینجا آن محرک را ندارد</string>
+    <string name="core_content_snippet_text_unknown_picture">نام‌های @picture %1$s را نشان می‌دهد، که هیچ کاربرکی از آن استفاده نمی‌کند. تصاویر را در ویرایشگر خود کاربرک اضافه کنید</string>
+    <string name="core_content_snippet_text_unknown_setting">صفحه‌کلید تنظیم %1$s را نمی‌شناسد. برای شروع متن قطعه کد با @، به‌جای آن \@ بنویسید</string>
     <string name="core_content_snippet_var_app_info">نام برنامه‌ای که در آن تایپ می‌کنید</string>
+    <string name="core_content_snippet_var_battery_info">شارژ باتری، برای مثال ۸۵٪</string>
     <string name="core_content_snippet_var_clip_info">جدیدترین ورودی کلیپ‌بورد</string>
     <string name="core_content_snippet_var_cursor_info">مکانی که مکان‌نما در آن قرار می‌گیرد</string>
     <string name="core_content_snippet_var_date_info">تاریخ امروز</string>
     <string name="core_content_snippet_var_datetime_info">تاریخ و زمان</string>
     <string name="core_content_snippet_var_day_info">روز از ماه</string>
+    <string name="core_content_snippet_var_greeting_info">صبح، بعد از ظهر یا عصر بخیر بسته به زمان، به زبان صفحه‌کلید</string>
     <string name="core_content_snippet_var_isodate_info">تاریخ به فرمت ISO، برای مثال 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">تاریخ و زمان به فرمت ISO</string>
+    <string name="core_content_snippet_var_language_info">زبان صفحه‌کلیدی که با آن تایپ می‌کنید</string>
     <string name="core_content_snippet_var_month_info">نام ماه</string>
     <string name="core_content_snippet_var_package_info">نام بسته آن برنامه</string>
     <string name="core_content_snippet_var_selection_info">متنی که در فیلد انتخاب می‌کنید</string>
+    <string name="core_content_snippet_var_tab_info">یک کاراکتر تب</string>
     <string name="core_content_snippet_var_time12_info">زمان فعلی به صورت ۱۲ ساعته</string>
     <string name="core_content_snippet_var_time_info">زمان فعلی به صورت ۲۴ ساعته</string>
     <string name="core_content_snippet_var_timestamp_info">زمان به ثانیه یونیکس</string>

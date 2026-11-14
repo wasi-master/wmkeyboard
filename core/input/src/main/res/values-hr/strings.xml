@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">Furigana čitanja</string>
     <string name="core_input_cjk_pack_hanja_subtitle">Hangul riječi i njihovi Hanja znakovi, 300.000 unosa. Tipkovnici je potreban ovaj paket kako bi nudila Hanja znakove na traci s prijedlozima.</string>
     <string name="core_input_cjk_pack_hanja_title">Hanja (漢字) rječnik</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, tako da je riječ s njezinim prefiksima i sufiksima poznata i pravopisna pogreška u njoj se ispravlja.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">Arapski rječnik provjere pravopisa</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, tako da su riječi s bilo kojim sufiksom poznate, a tipfeleri u njima se ispravljaju.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">Pravila turskog pravopisa</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">Kana očitanja iz mozc-a, 1,08 milijuna unosa, oko 42 MB. Tipkovnica treba ovaj paket za japansku konverziju.</string>

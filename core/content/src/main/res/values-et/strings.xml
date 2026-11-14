@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">E-posti aadress</string>
+    <string name="core_content_clip_entity_email_tag">E-POST</string>
     <string name="core_content_clip_entity_otp_label">Ühekordne kood</string>
     <string name="core_content_clip_entity_otp_tag">KOOD</string>
     <string name="core_content_clip_entity_phone_label">Telefoninumber</string>
@@ -38,6 +40,10 @@
         <item quantity="one">Rakendus jättis vahele %1$d väljalõike, millel pole midagi sisestada.</item>
         <item quantity="other">Rakendus jättis vahele %1$d väljalõiget, millel pole midagi sisestada.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d vormiväli pakub valikloendit. Rakendus küsib seda sisestatud vastusena, kusjuures esimene valik on täidetud.</item>
+        <item quantity="other">%1$d vormivälja pakuvad valikloendit. Rakendus küsib igaühte sisestatud vastusena, kusjuures esimene valik on täidetud.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Rakendus jättis vahele %1$d väljavõtte, mis lisab pildi.</item>
         <item quantity="other">Rakendus jättis vahele %1$d väljavõtet, mis lisavad pilte.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d tekstilõik kasutab väärtust, millele Espansol puudub vaste. See kirjutatakse välja nii, nagu see on.</item>
         <item quantity="other">%1$d tekstilõiku kasutavad väärtusi, millele Espansol puudub vaste. Need kirjutatakse välja nii, nagu need on.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d väljalõige lisab pildi. Tekstifail ei saa pilti salvestada, seega eksporditi ainult tekst.</item>
+        <item quantity="other">%1$d väljalõiget lisavad pildid. Tekstifail ei saa pilte salvestada, seega eksporditi ainult tekst.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">Rakendus eemaldas mustri %1$d tekstilõigust. Rakendus ei käivita seda tüüpi mustreid. Tekstilõik jääb loendisse.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">Rakendus eemaldas %1$d päästiku, mida klaviatuur ei saa jälgida. Selle väljavõte jääb loendisse.</item>
         <item quantity="other">Rakendus eemaldas %1$d päästikut, mida klaviatuur ei saa jälgida. Nende väljavõtted jäävad loendisse.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">Algab märgiga ===, kuid ei ole terviklik === käivitaja === rida. Tekstirea alustamiseks märgiga === kirjutage selle asemel \===</string>
+    <string name="core_content_snippet_text_bad_pattern">Mustrit ei saa kasutada: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s ei saa olla %2$s</string>
+    <string name="core_content_snippet_text_before_header">Tekst enne esimest === käivitaja === rida. Alustage plokki ühega või alustage rida märgiga #</string>
+    <string name="core_content_snippet_text_no_text">Sellel katkel pole teksti</string>
+    <string name="core_content_snippet_text_no_trigger">Katend, millel pole 111 märkide vahel midagi, vajab @label või @pattern rida</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">Tekstina saabus %1$d pildilõik: tekstifail ei sisalda pilte</item>
+        <item quantity="other">Tekstina saabus %1$d pildilõiku: tekstifail ei sisalda pilte</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">Jäeti vahele katkend real %1$d, milles on viga</string>
+    <string name="core_content_snippet_text_unknown_link">Viide @link nimetab %1$s ja ühelgi siinsel katendil pole seda käivitit</string>
+    <string name="core_content_snippet_text_unknown_picture">\@picture nimetab %1$s, mida ükski väljavõte ei kasuta. Lisage pilte väljavõtte enda redaktoris</string>
+    <string name="core_content_snippet_text_unknown_setting">Klaviatuur ei tunne seadistust %1$s. Snippeti teksti alustamiseks märgiga @ kirjutage selle asemel \@</string>
     <string name="core_content_snippet_var_app_info">Rakenduse nimi, millesse trükite</string>
+    <string name="core_content_snippet_var_battery_info">Aku laetuse tase, näiteks 85%</string>
     <string name="core_content_snippet_var_clip_info">Uusim lõikelaua kirje</string>
     <string name="core_content_snippet_var_cursor_info">Koht, kuhu kursor maandub</string>
     <string name="core_content_snippet_var_date_info">Tänane kuupäev</string>
     <string name="core_content_snippet_var_datetime_info">Kuupäev ja kellaaeg</string>
     <string name="core_content_snippet_var_day_info">Kuu päev</string>
+    <string name="core_content_snippet_var_greeting_info">Tere hommikust, päevast või õhtust vastavalt ajale, klaviatuuri keeles</string>
     <string name="core_content_snippet_var_isodate_info">Kuupäev ISO-vormingus, näiteks 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">Kuupäev ja kellaaeg ISO-vormingus</string>
+    <string name="core_content_snippet_var_language_info">Klaviatuuri keel, milles kirjutad</string>
     <string name="core_content_snippet_var_month_info">Kuu nimi</string>
     <string name="core_content_snippet_var_package_info">Selle rakenduse paketi nimi</string>
     <string name="core_content_snippet_var_selection_info">Väljalt valitud tekst</string>
+    <string name="core_content_snippet_var_tab_info">Tabulaatori märk</string>
     <string name="core_content_snippet_var_time12_info">Praegune kellaaeg 12-tunnises vormingus</string>
     <string name="core_content_snippet_var_time_info">Praegune aeg 24-tunnises vormingus</string>
     <string name="core_content_snippet_var_timestamp_info">Aeg Unixi sekundites</string>

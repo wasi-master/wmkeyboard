@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">Ahoj</string>
     <string name="core_tools_media_category_laugh">Smiech</string>
     <string name="core_tools_media_category_love">Láska</string>
+    <string name="core_tools_media_category_memes">Memy</string>
     <string name="core_tools_media_category_no">Nie</string>
     <string name="core_tools_media_category_party">Párty</string>
     <string name="core_tools_media_category_reactions">Reakcie</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">Server Mozhi: bezplatné rozhranie pre Google, DeepL, DuckDuckGo, Yandex a Reverso. Vyberte si engine. DeepL a Reverso vyžadujú zdrojový jazyk.</string>
     <string name="core_tools_provider_music_server">Váš vlastný server na rozpoznávanie</string>
     <string name="core_tools_provider_music_server_desc">Server, ktorý prevádzkujete a odpovedá ako AudD: klip sa odošle ako súbor a skladba sa vráti ako JSON. Vložte zaň nástroj na tvorbu odtlačkov, ako je Panako alebo Olaf.</string>
+    <string name="core_tools_provider_mwmbl_desc">Bezplatný neziskový vyhľadávač s vlastným indexom. Žiadny kľúč. Iba webové výsledky, žiadne obrázky.</string>
     <string name="core_tools_provider_nllb">V zariadení (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">Prekladá priamo v telefóne pomocou modelu NLLB-200 od spoločnosti Meta na platforme CTranslate2: 200 jazykov, medzi akýmikoľvek dvoma z nich, pre páry, ktoré iné nástroje nezvládnu. Jedno stiahnutie s veľkosťou 630 MB, veta trvá niekoľko sekúnd. Váš text zostáva v telefóne. Model je licencovaný len na nekomerčné použitie (CC BY-NC 4.0). Vyžaduje 64-bitový telefón so 6 GB pamäte alebo viac.</string>
     <string name="core_tools_provider_none_on">Žiadny poskytovateľ nie je zapnutý. Zapnite jedného v nastaveniach tohto nástroja.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">Tento zoznam</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">Zobraziť alebo skryť klávesy</string>
     <string name="core_tools_shortcut_leader_double_tap">Stlačte %1$s dvakrát</string>
+    <string name="core_tools_speak_no_voice">Tento telefón nemá hlas %1$s na jeho prečítanie. Pridajte ho v nastaveniach prevodu textu na reč v systéme Android alebo si stiahnite offline hlas v ponuke Nástroje › Čítať nahlas.</string>
     <string name="core_tools_symbol_category_arrows_label">Šípky</string>
     <string name="core_tools_symbol_category_currency_label">Mena</string>
     <string name="core_tools_symbol_category_fractions_label">Zlomky</string>
     <string name="core_tools_symbol_category_greek_label">Gréčtina</string>
     <string name="core_tools_symbol_category_math_label">Matematika</string>
+    <string name="core_tools_symbol_category_music_label">Hudba</string>
     <string name="core_tools_symbol_category_other_label">Iné</string>
     <string name="core_tools_symbol_category_punctuation_label">Interpunkcia</string>
     <string name="core_tools_symbol_category_shapes_label">Tvary a hviezdy</string>
+    <string name="core_tools_symbol_category_stars_label">Hviezučky</string>
     <string name="core_tools_symbol_category_superscript_label">Horný index</string>
+    <string name="core_tools_symbol_category_technical_label">Technické</string>
+    <string name="core_tools_symbol_category_weather_label">Počasie</string>
     <string name="core_tools_symbol_set_coding_label">Kódovanie</string>
     <string name="core_tools_symbol_set_email_label">E-mail</string>
     <string name="core_tools_symbol_set_math_label">Matematika</string>

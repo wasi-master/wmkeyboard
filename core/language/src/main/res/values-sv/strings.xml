@@ -23,6 +23,34 @@
         <item quantity="one">%1$d svep på en tangent har ingen plats här, eftersom det här tangentbordet använder det svepet för en annan uppgift. Appen tog bort det.</item>
         <item quantity="other">%1$d svep på tangenter har ingen plats här, eftersom det här tangentbordet använder de svepen för andra uppgifter. Appen tog bort dem.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">Appen utelämnade %1$d regel som ändrar vad radering tar bort. Radering fungerar som den gör på alla layouter här.</item>
+        <item quantity="other">Appen utelämnade %1$d regler som ändrar vad radering tar bort. Radering fungerar som den gör på alla layouter här.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">Appen tog bort %1$d svipning som ändrar riktning. Svipningar på detta tangentbord går åt ett håll.</item>
+        <item quantity="other">Appen tog bort %1$d svipningar som ändrar riktning. Svipningar på detta tangentbord går åt ett håll.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">Appen utelämnade %1$d sida för en tangent som Caps Lock eller Ctrl. Det här tangentbordet saknar sida för den tangenten.</item>
+        <item quantity="other">Appen utelämnade %1$d sidor för tangenter som Caps Lock eller Ctrl. Det här tangentbordet saknar sidor för de tangenterna.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">Appen utelämnade %1$d regel som placerar tecken i deras skrivna ordning. Det här tangentbordet skriver tecken i den ordning du skriver dem.</item>
+        <item quantity="other">Appen utelämnade %1$d regler som placerar tecken i deras skrivna ordning. Det här tangentbordet skriver tecken i den ordning du skriver dem.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d regel sätter en accent på nästa bokstav. Här är tangenten som startar det en död tangent.</item>
+        <item quantity="other">%1$d regler sätter en accent på nästa bokstav. Här är tangenterna som startar dem döda tangenter.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">Appen utelämnade %1$d regel som ändrar text när du skriver. Ingen tangent här startar den, eller så matchar den mer text än en tangent kan skriva.</item>
+        <item quantity="other">Appen utelämnade %1$d regler som ändrar text när du skriver. Ingen tangent här startar dem, eller så matchar de mer text än en tangent kan skriva.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d regel förvandlar en tangent och nästa till ett annat tecken. Här nås det tecknet genom att hålla ner den första tangenten.</item>
+        <item quantity="other">%1$d regler förvandlar en tangent och nästa till ett annat tecken. Här nås de tecknen genom att hålla ner den första tangenten.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Appen ändrade %1$d tangent till den närmaste tangenten den har.</item>
         <item quantity="other">Appen ändrade %1$d tangenter till de närmaste tangenterna den har.</item>

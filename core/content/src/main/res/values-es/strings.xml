@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">Dirección de correo electrónico</string>
+    <string name="core_content_clip_entity_email_tag">CORREO ELECTRÓNICO</string>
     <string name="core_content_clip_entity_otp_label">Código de un solo uso</string>
     <string name="core_content_clip_entity_otp_tag">CÓDIGO</string>
     <string name="core_content_clip_entity_phone_label">Número de teléfono</string>
@@ -38,6 +40,10 @@
         <item quantity="one">La aplicación omitió %1$d fragmento que no tiene nada que insertar.</item>
         <item quantity="other">La aplicación omitió %1$d fragmentos que no tienen nada que insertar.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d campo de formulario ofrece una lista para elegir. La aplicación lo solicita como una respuesta escrita, con la primera opción rellenada.</item>
+        <item quantity="other">%1$d campos de formulario ofrecen una lista para elegir. La aplicación solicita cada uno como una respuesta escrita, con la primera opción rellenada.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">La aplicación omitió %1$d fragmento que inserta una imagen.</item>
         <item quantity="other">La aplicación omitió %1$d fragmentos que insertan imágenes.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d fragmento utiliza un valor para el que Espanso no tiene equivalente. Se escribe tal cual.</item>
         <item quantity="other">%1$d fragmentos utilizan valores para los que Espanso no tiene equivalente. Se escriben tal cual.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d fragmento inserta una imagen. Un archivo de texto no puede contener la imagen, por lo que solo se extrajeron sus palabras.</item>
+        <item quantity="other">%1$d fragmentos insertan imágenes. Un archivo de texto no puede contener las imágenes, por lo que solo se extrajeron sus palabras.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">La aplicación eliminó el patrón del fragmento %1$d. La aplicación no ejecuta patrones de ese tipo. El fragmento permanece en la lista.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">La aplicación eliminó %1$d desencadenante que el teclado no puede supervisar. Su fragmento permanece en la lista.</item>
         <item quantity="other">La aplicación eliminó %1$d desencadenantes que el teclado no puede supervisar. Sus fragmentos permanecen en la lista.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">Empieza con 222 pero no es una línea de activación 222 completa 222. Para empezar una línea de texto con 222, escribe \222 en su lugar</string>
+    <string name="core_content_snippet_text_bad_pattern">El patrón no se puede utilizar: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s no puede ser %2$s</string>
+    <string name="core_content_snippet_text_before_header">Texto antes de la primera línea activadora === ===. Comienza un bloque con uno, o empieza la línea con #</string>
+    <string name="core_content_snippet_text_no_text">Este fragmento no tiene texto</string>
+    <string name="core_content_snippet_text_no_trigger">Un fragmento sin nada entre las marcas === necesita una línea @label o @pattern</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">Llegó %1$d fragmento de imagen como texto: un archivo de texto no contiene imágenes</item>
+        <item quantity="other">Llegaron %1$d fragmentos de imagen como texto: un archivo de texto no contiene imágenes</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">Se omitió el fragmento en la línea %1$d, que contiene un error</string>
+    <string name="core_content_snippet_text_unknown_link">El @link nombra %1$s, y ningún fragmento aquí tiene ese activador</string>
+    <string name="core_content_snippet_text_unknown_picture">El @picture nombra a %1$s, que ningún fragmento utiliza. Añade imágenes en el propio editor del fragmento</string>
+    <string name="core_content_snippet_text_unknown_setting">El teclado no conoce el ajuste %1$s. Para empezar el texto de un fragmento con @, escribe \@ en su lugar</string>
     <string name="core_content_snippet_var_app_info">El nombre de la aplicación en la que escribes</string>
+    <string name="core_content_snippet_var_battery_info">La carga de la batería, por ejemplo, 85%</string>
     <string name="core_content_snippet_var_clip_info">La entrada del portapapeles más reciente</string>
     <string name="core_content_snippet_var_cursor_info">El lugar donde aterriza el cursor</string>
     <string name="core_content_snippet_var_date_info">Fecha de hoy</string>
     <string name="core_content_snippet_var_datetime_info">La fecha y la hora</string>
     <string name="core_content_snippet_var_day_info">El día del mes</string>
+    <string name="core_content_snippet_var_greeting_info">Buenos días, buenas tardes o buenas noches según la hora, en el idioma del teclado</string>
     <string name="core_content_snippet_var_isodate_info">La fecha en formato ISO, por ejemplo 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">La fecha y la hora en formato ISO</string>
+    <string name="core_content_snippet_var_language_info">El idioma del teclado en el que escribes</string>
     <string name="core_content_snippet_var_month_info">El nombre del mes</string>
     <string name="core_content_snippet_var_package_info">El nombre del paquete de esa aplicación</string>
     <string name="core_content_snippet_var_selection_info">El texto que seleccionas en el campo</string>
+    <string name="core_content_snippet_var_tab_info">Un carácter de tabulación</string>
     <string name="core_content_snippet_var_time12_info">La hora actual en formato de 12 horas</string>
     <string name="core_content_snippet_var_time_info">La hora actual en formato de 24 horas</string>
     <string name="core_content_snippet_var_timestamp_info">La hora en segundos Unix</string>

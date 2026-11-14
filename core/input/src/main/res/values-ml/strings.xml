@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">ഫുരിഗാന വായനകൾ</string>
     <string name="core_input_cjk_pack_hanja_subtitle">ഹങ്കുൽ വാക്കുകളും അവയുടെ ഹഞ്ചയും, 300,000 എൻട്രികൾ. നിർദ്ദേശ സ്ട്രിപ്പിൽ ഹഞ്ച വാഗ്ദാനം ചെയ്യാൻ കീബോർഡിന് ഈ പായ്ക്ക് ആവശ്യമാണ്.</string>
     <string name="core_input_cjk_pack_hanja_title">ഹഞ്ച (漢字) നിഘണ്ടു</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">\'\'\'Ayaspell, അതിനാൽ ഉപസർഗങ്ങളും പ്രത്യയങ്ങളുമുള്ള ഒരു വാക്ക് അറിയപ്പെടുന്നു, അതിലെ അക്ഷരത്തെറ്റ് പരിഹരിക്കപ്പെടുകയും ചെയ്യുന്നു.\'\'\'</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">അറബിക് സ്പെല്ലിംഗ് നിഘണ്ടു</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, അതിനാൽ ഏത് പ്രത്യയവുമുള്ള വാക്കുകളും അറിയപ്പെടുന്നു, അവയിലെ അക്ഷരത്തെറ്റുകൾ പരിഹരിക്കപ്പെടും.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">തുർക്കിഷ് അക്ഷരവിന്യാസ നിയമങ്ങൾ</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">മോസ്ക് (mozc)-ൽ നിന്നുള്ള കാന റീഡിംഗുകൾ, 1.08 ദശലക്ഷം എൻട്രികൾ, ഏകദേശം 42 MB. ജാപ്പനീസ് പരിവർത്തനത്തിന് കീബോർഡിന് ഈ പാക്ക് ആവശ്യമാണ്.</string>

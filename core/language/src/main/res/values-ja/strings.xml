@@ -23,6 +23,34 @@
         <item quantity="one">キー上の1回のスワイプは、このキーボードでは別の機能に使用されているため、ここには配置できません。アプリによって削除されました。</item>
         <item quantity="other">キー上の%1$d回のスワイプは、このキーボードでは他の機能に使用されているため、ここには配置できません。アプリによって削除されました。</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">アプリが、削除の動作を変更するルールを %1$d 個除外しました。削除は、ここにあるすべてのレイアウトと同様に機能します。</item>
+        <item quantity="other">アプリが、削除の動作を変更するルールを %1$d 個除外しました。削除は、ここにあるすべてのレイアウトと同様に機能します。</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">アプリは方向が変わる %1$d 件のスワイプを削除しました。このキーボードでのスワイプは一方向です。</item>
+        <item quantity="other">アプリは方向が変わる %1$d 件のスワイプを削除しました。このキーボードでのスワイプは一方向です。</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">アプリが Caps Lock や Ctrl などのキー用の %1$d ページを省略しました。このキーボードにはそのキーのページはありません。</item>
+        <item quantity="other">アプリが Caps Lock や Ctrl などのキー用の %1$d ページを省略しました。このキーボードにはそれらのキーのページはありません。</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">アプリは記号を記述順に配置するルールを %1$d個除外しました。このキーボードは入力した順序で記号を記述します。</item>
+        <item quantity="other">アプリは記号を記述順に配置するルールを %1$d個除外しました。このキーボードは入力した順序で記号を記述します。</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d個のルールにより次の文字にアクセントが付きます。ここでは、それを開始するキーが無効キー（デッドキー）になっています。</item>
+        <item quantity="other">%1$d個のルールにより次の文字にアクセントが付きます。ここでは、それらを開始するキーが無効キー（デッドキー）になっています。</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">アプリは入力中にテキストを変更する1個のルールを除外しました。これを開始するキーがないか、キーで入力できる文字数よりも多くのテキストに一致しています。</item>
+        <item quantity="other">アプリは入力中にテキストを変更する%1$d個のルールを除外しました。これらを開始するキーがないか、キーで入力できる文字数よりも多くのテキストに一致しています。</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d個のルールにより、あるキーと次のキーが別の文字に変換されます。ここでは、その文字は最初のキーを長押しすることで入力できます。</item>
+        <item quantity="other">%1$d個のルールにより、あるキーと次のキーが別の文字に変換されます。ここでは、それらの文字は最初のキーを長押しすることで入力できます。</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">アプリが%1$d個のキーを、利用可能な最も近いキーに変更しました。</item>
         <item quantity="other">アプリが%1$d個のキーを、利用可能な最も近いキーに変更しました。</item>

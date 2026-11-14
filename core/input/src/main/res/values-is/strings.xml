@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">Furigana lestur</string>
     <string name="core_input_cjk_pack_hanja_subtitle">Hangul orð og Hanja þeirra, 300.000 færslur. Lyklaborðið þarf þennan pakka til að bjóða upp á Hanja á tillögustrimlinum.</string>
     <string name="core_input_cjk_pack_hanja_title">Hanja (漢字) orðabók</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, þannig að orð með forskeytum og viðskeytum þekkist og stafsetningarvilla í því lagist.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">Arabíska stafsetningarorðabókin</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, þannig að orð með hvaða viðskeyti sem er eru þekkt og innsláttarvillur í þeim eru lagaðar.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">Tyrkneskar stafsetningarreglur</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">Kana-lestur frá mozc, 1,08 milljón færslur, um 42 MB. Lyklaborðið þarf þennan pakka fyrir japanska umbreytingu.</string>

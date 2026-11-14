@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">Endereço de e-mail</string>
+    <string name="core_content_clip_entity_email_tag">E-MAIL</string>
     <string name="core_content_clip_entity_otp_label">Código de uso único</string>
     <string name="core_content_clip_entity_otp_tag">CÓDIGO</string>
     <string name="core_content_clip_entity_phone_label">Número de telefone</string>
@@ -38,6 +40,10 @@
         <item quantity="one">O aplicativo ignorou %1$d snippet que não tem nada para inserir.</item>
         <item quantity="other">O aplicativo ignorou %1$d snippets que não têm nada para inserir.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d campo de formulário oferece uma lista para escolher. O aplicativo solicita como uma resposta digitada, com a primeira escolha preenchida.</item>
+        <item quantity="other">%1$d campos de formulário oferecem uma lista para escolher. O aplicativo solicita cada um como uma resposta digitada, com a primeira escolha preenchida.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">O aplicativo ignorou %1$d snippet que insere uma imagem.</item>
         <item quantity="other">O aplicativo ignorou %1$d snippets que inserem imagens.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d snippet usa um valor para o qual o Espanso não tem equivalente. Ele é escrito como está.</item>
         <item quantity="other">%1$d snippets usam valores para os quais o Espanso não tem equivalente. Eles são escritos como estão.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d trecho insere uma foto. Um arquivo de texto não pode conter a foto, então apenas suas palavras foram enviadas.</item>
+        <item quantity="other">%1$d trechos inserem fotos. Um arquivo de texto não pode conter as fotos, então apenas suas palavras foram enviadas.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">O aplicativo removeu o padrão de %1$d snippet. O aplicativo não executa padrões desse formato. O snippet permanece na lista.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">A aplicação removeu %1$d gatilho que o teclado não consegue monitorizar. O seu snippet permanece na lista.</item>
         <item quantity="other">A aplicação removeu %1$d gatilhos que o teclado não consegue monitorizar. Os seus snippets permanecem na lista.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">Começa com === mas não é uma linha de gatilho === completa. Para iniciar uma linha de texto com ===, escreva \=== em vez disso</string>
+    <string name="core_content_snippet_text_bad_pattern">O padrão não pode ser usado: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s não pode ser %2$s</string>
+    <string name="core_content_snippet_text_before_header">Texto antes da primeira linha de acionamento 222 222. Inicie um bloco com um ou comece a linha com #</string>
+    <string name="core_content_snippet_text_no_text">Este fragmento não tem texto</string>
+    <string name="core_content_snippet_text_no_trigger">Um trecho sem nada entre as marcas === precisa de uma linha @label ou @pattern</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d trecho de imagem entrou como seu texto: um arquivo de texto não contém imagens</item>
+        <item quantity="other">%1$d trechos de imagem entraram como seu texto: um arquivo de texto não contém imagens</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">Trecho pulado na linha %1$d, que contém um erro</string>
+    <string name="core_content_snippet_text_unknown_link">O @link chama-se %1$s, e nenhum trecho aqui tem esse gatilho</string>
+    <string name="core_content_snippet_text_unknown_picture">O @picture se chama %1$s, o que nenhum trecho usa. Adicione imagens no próprio editor do trecho</string>
+    <string name="core_content_snippet_text_unknown_setting">O teclado não conhece a configuração %1$s. Para iniciar o texto de um trecho com @, escreva \@ em vez disso</string>
     <string name="core_content_snippet_var_app_info">O nome do aplicativo em que você digita</string>
+    <string name="core_content_snippet_var_battery_info">A carga da bateria, por exemplo 85%</string>
     <string name="core_content_snippet_var_clip_info">A entrada mais recente da área de transferência</string>
     <string name="core_content_snippet_var_cursor_info">O local onde o cursor pousa</string>
     <string name="core_content_snippet_var_date_info">Data de hoje</string>
     <string name="core_content_snippet_var_datetime_info">A data e a hora</string>
     <string name="core_content_snippet_var_day_info">O dia do mês</string>
+    <string name="core_content_snippet_var_greeting_info">Bom dia, boa tarde ou boa noite dependendo do horário, no idioma do teclado</string>
     <string name="core_content_snippet_var_isodate_info">A data no formato ISO, por exemplo 19-07-2026</string>
     <string name="core_content_snippet_var_isotime_info">A data e a hora no formato ISO</string>
+    <string name="core_content_snippet_var_language_info">O idioma do teclado em que escreve</string>
     <string name="core_content_snippet_var_month_info">O nome do mês</string>
     <string name="core_content_snippet_var_package_info">O nome do pacote desse aplicativo</string>
     <string name="core_content_snippet_var_selection_info">O texto que você seleciona no campo</string>
+    <string name="core_content_snippet_var_tab_info">Um caractere de tabulação</string>
     <string name="core_content_snippet_var_time12_info">A hora atual no formato de 12 horas</string>
     <string name="core_content_snippet_var_time_info">A hora atual no formato de 24 horas</string>
     <string name="core_content_snippet_var_timestamp_info">O tempo em segundos Unix</string>

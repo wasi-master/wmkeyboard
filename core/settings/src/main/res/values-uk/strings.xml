@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Смужка, підказки та клавіші</string>
     <string name="core_settings_glide_commit_scope_pill_label">Strip and pill</string>
     <string name="core_settings_glide_commit_scope_strip_label">Видалити</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">Після скасування</string>
+    <string name="core_settings_glide_drawn_letters_off_label">Вимк.</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">Якщо не впевнено</string>
     <string name="core_settings_glide_engine_built_in_label">Вбудований</string>
     <string name="core_settings_glide_engine_futo_label">FUTO Swipe (англійська, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Бібліотека жестів Google (імпортована)</string>

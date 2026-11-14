@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">Adreça electrònica</string>
+    <string name="core_content_clip_entity_email_tag">CORREU ELECTRÒNIC</string>
     <string name="core_content_clip_entity_otp_label">Codi d\'un sol ús</string>
     <string name="core_content_clip_entity_otp_tag">CODI</string>
     <string name="core_content_clip_entity_phone_label">Número de telèfon</string>
@@ -38,6 +40,10 @@
         <item quantity="one">L\'aplicació ha omès %1$d fragment que no té res per inserir.</item>
         <item quantity="other">L\'aplicació ha omès %1$d fragments que no tenen res per inserir.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d camp de formulari ofereix una llista per triar. L\'aplicació ho demana com a resposta escrita, amb la primera opció emplenada.</item>
+        <item quantity="other">%1$d camps de formulari ofereixen una llista per triar. L\'aplicació ho demana com a resposta escrita per a cadascun, amb la primera opció emplenada.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">L\'aplicació ha omès %1$d fragment que insereix una imatge.</item>
         <item quantity="other">L\'aplicació ha omès %1$d fragments que insereixen imatges.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d fragment utilitza un valor per al qual Espanso no té cap equivalent. S\'escriu tal qual.</item>
         <item quantity="other">%1$d fragments utilitzen valors per als quals Espanso no té cap equivalent. S\'escriuen tal qual.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d fragment insereix una imatge. Un fitxer de text no pot contenir la imatge, així que només se n\'han exportat les paraules.</item>
+        <item quantity="other">%1$d fragments insereixen imatges. Un fitxer de text no pot contenir les imatges, així que només se n\'han exportat les paraules.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">L\'aplicació ha eliminat el patró de %1$d fragment. L\'aplicació no executa patrons d\'aquesta forma. El fragment roman a la llista.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">L\'aplicació ha eliminat %1$d activador que el teclat no pot vigilar. El seu fragment roman a la llista.</item>
         <item quantity="other">L\'aplicació ha eliminat %1$d activadors que el teclat no pot vigilar. Els seus fragments romanen a la llista.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">Comença amb 111 però no és una línia de disparador 111 sencera. Per començar una línia de text amb 111, escriviu \111 en lloc d\'això</string>
+    <string name="core_content_snippet_text_bad_pattern">No es pot utilitzar el patró: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s no pot ser %2$s</string>
+    <string name="core_content_snippet_text_before_header">Text abans de la primera línia disparadora ===. Inicieu un bloc amb un, o comenceu la línia amb #</string>
+    <string name="core_content_snippet_text_no_text">Aquest fragment no té text</string>
+    <string name="core_content_snippet_text_no_trigger">Un fragment sense res entre les marques === necessita una línia @label o @pattern</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">Ha arribat %1$d fragment d\'imatge com a text: un fitxer de text no conté imatges</item>
+        <item quantity="other">Han arribat %1$d fragments d\'imatge com a text: un fitxer de text no conté imatges</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">S\'ha omès el fragment de la línia %1$d, que conté un error</string>
+    <string name="core_content_snippet_text_unknown_link">El @link s\'anomena %1$s, i cap fragment d\'aquí no té aquest activador</string>
+    <string name="core_content_snippet_text_unknown_picture">El @pictureomena %1$s, que no utilitza cap fragment. Afegiu imatges a l\'editor propi del fragment</string>
+    <string name="core_content_snippet_text_unknown_setting">El teclat no reconeix la configuració %1$s. Per començar el text d\'un fragment amb @, escriviu \@ en comptes d\'això</string>
     <string name="core_content_snippet_var_app_info">El nom de l\'aplicació on escrius</string>
+    <string name="core_content_snippet_var_battery_info">La càrrega de la bateria, per exemple 85%</string>
     <string name="core_content_snippet_var_clip_info">L\'entrada més recent del porta-retalls</string>
     <string name="core_content_snippet_var_cursor_info">El lloc on cau el cursor</string>
     <string name="core_content_snippet_var_date_info">Data d\'avui</string>
     <string name="core_content_snippet_var_datetime_info">La data i l\'hora</string>
     <string name="core_content_snippet_var_day_info">El dia del mes</string>
+    <string name="core_content_snippet_var_greeting_info">Bon dia, bona tarda o bona nit segons l\'hora, en l\'idioma del teclat</string>
     <string name="core_content_snippet_var_isodate_info">La data en format ISO, per exemple 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">La data i l\'hora en format ISO</string>
+    <string name="core_content_snippet_var_language_info">La llengua del teclat en la qual escriviu</string>
     <string name="core_content_snippet_var_month_info">El nom del mes</string>
     <string name="core_content_snippet_var_package_info">El nom del paquet d\'aquesta aplicació</string>
     <string name="core_content_snippet_var_selection_info">El text que seleccioneu al camp</string>
+    <string name="core_content_snippet_var_tab_info">Un caràcter de tabulació</string>
     <string name="core_content_snippet_var_time12_info">L\'hora actual en format de 12 hores</string>
     <string name="core_content_snippet_var_time_info">L\'hora actual en format de 24 hores</string>
     <string name="core_content_snippet_var_timestamp_info">L\'hora en segons Unix</string>

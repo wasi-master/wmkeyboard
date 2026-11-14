@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">Halló</string>
     <string name="core_tools_media_category_laugh">Hlátur</string>
     <string name="core_tools_media_category_love">Ást</string>
+    <string name="core_tools_media_category_memes">Skopmyndir</string>
     <string name="core_tools_media_category_no">Nei</string>
     <string name="core_tools_media_category_party">Partý</string>
     <string name="core_tools_media_category_reactions">Viðbrögð</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">Mozhi-þjónn: ókeypis viðmót fyrir Google, DeepL, DuckDuckGo, Yandex og Reverso. Veldu vélina. DeepL og Reverso þurfa upprunamál.</string>
     <string name="core_tools_provider_music_server">Þinn eigin auðkenningarþjónn</string>
     <string name="core_tools_provider_music_server_desc">Miðlari sem þú keyrir sem svarar eins og AudD: klippan er send sem skrá og lagið kemur til baka sem JSON. Settu fingrafaralesara eins og Panako eða Olaf á bak við hann.</string>
+    <string name="core_tools_provider_mwmbl_desc">Ókeypis leitarvél sem rekin er án hagnaðarsjónarmiða með eigin vísitölu. Enginn lykill. Aðeins vefniðurstöður, engar myndir.</string>
     <string name="core_tools_provider_nllb">Í tæki (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">Þýðir í símanum með NLLB-200 líkani Meta á CTranslate2: 200 tungumál, á milli hvaða tveggja sem er, fyrir pörin sem aðrar vélar geta ekki gert. Eitt niðurhal upp á 630 MB, og setning tekur nokkrar sekúndur. Textinn þinn helst í símanum. Líkanið er aðeins leyft til notkunar sem ekki er í viðskiptaskyni (CC BY-NC 4.0). Þarf 64-bita síma með 6 GB af minni eða meira.</string>
     <string name="core_tools_provider_none_on">Engin veita er virk. Virkjaðu eina í stillingum þessa tóls.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">Þessi listi</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">Sýna eða fela takkana</string>
     <string name="core_tools_shortcut_leader_double_tap">Ýttu á %1$s tvisvar</string>
+    <string name="core_tools_speak_no_voice">Þessi sími er ekki með %1$s rödd til að lesa þetta með. Bættu við einni í texta-í-tal stillingum Android, eða hladdu niður nettengdri rödd undir Tól › Lesa til baka.</string>
     <string name="core_tools_symbol_category_arrows_label">Örvar</string>
     <string name="core_tools_symbol_category_currency_label">Gjaldmiðill</string>
     <string name="core_tools_symbol_category_fractions_label">Brot</string>
     <string name="core_tools_symbol_category_greek_label">Gríska</string>
     <string name="core_tools_symbol_category_math_label">Stærðfræði</string>
+    <string name="core_tools_symbol_category_music_label">Tónlist</string>
     <string name="core_tools_symbol_category_other_label">Annað</string>
     <string name="core_tools_symbol_category_punctuation_label">Greinarmerki</string>
     <string name="core_tools_symbol_category_shapes_label">Form og stjörnur</string>
+    <string name="core_tools_symbol_category_stars_label">Stjörnur</string>
     <string name="core_tools_symbol_category_superscript_label">Háletur</string>
+    <string name="core_tools_symbol_category_technical_label">Tæknilegt</string>
+    <string name="core_tools_symbol_category_weather_label">Veður</string>
     <string name="core_tools_symbol_set_coding_label">Forritun</string>
     <string name="core_tools_symbol_set_email_label">Tölvupóstur</string>
     <string name="core_tools_symbol_set_math_label">Stærðfræði</string>

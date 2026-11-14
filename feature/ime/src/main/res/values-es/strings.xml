@@ -176,6 +176,7 @@
     <string name="ime_ai_error_no_text">No hay nada que procesar. Escribe algo de texto primero.</string>
     <string name="ime_ai_error_only_reasoning">El modelo utilizó toda la respuesta para razonar. Inténtalo de nuevo o activa “Mostrar razonamiento” en la configuración.</string>
     <string name="ime_ai_error_request_failed">La solicitud no funcionó</string>
+    <string name="ime_ai_error_stopped_hidden">Se detuvo porque el teclado estaba cerrado. Vuelve a intentarlo para ejecutarlo de nuevo.</string>
     <string name="ime_ai_idle_body">Las acciones se ejecutan sobre el texto seleccionado o sobre todo el campo. Utilizan %1$s.</string>
     <string name="ime_ai_idle_empty_body">Escribe o selecciona texto para usar estas acciones. Presiona %1$s para escribir texto nuevo.</string>
     <string name="ime_ai_idle_empty_no_writer_body">Escribe o selecciona algo de texto para usar estas acciones.</string>
@@ -307,9 +308,11 @@
     <string name="ime_app_colors_none">No se encontraron colores en esta aplicación</string>
     <string name="ime_app_colors_off_desc">No usar los colores de esta aplicación</string>
     <string name="ime_app_colors_pick_desc">Color de la aplicación %1$d</string>
+    <string name="ime_applet_back">Atrás</string>
     <string name="ime_applet_close">Cerrar la caja</string>
     <string name="ime_applet_copied">Copiado</string>
     <string name="ime_applet_open_in_keyboard">Abrir en el teclado</string>
+    <string name="ime_applet_pop_out">Abrir en una ventana flotante</string>
     <string name="ime_applet_resize">Arrastrar para cambiar el tamaño</string>
     <string name="ime_applet_tuck">Ocultar en el borde</string>
     <string name="ime_applet_untuck">Restaurar %1$s</string>
@@ -319,6 +322,33 @@
     <string name="ime_ask_ai_label_vocab">Vocabulario: %1$s</string>
     <string name="ime_ask_ai_label_wiki">Wikipedia: %1$s</string>
     <string name="ime_autofill_dismiss_desc">Ocultar las sugerencias de autocompletado</string>
+    <string name="ime_board_copy_desc">Copiar a este teléfono</string>
+    <string name="ime_board_delete_body">Se elimina de todos los dispositivos que usan el tablero. Las copias que ya estén en el portapapeles del teléfono permanecerán.</string>
+    <string name="ime_board_delete_desc">Quitar del tablero</string>
+    <string name="ime_board_delete_no">Cancelar</string>
+    <string name="ime_board_delete_title">¿Quitar este clip del tablero?</string>
+    <string name="ime_board_delete_yes">Quitar</string>
+    <string name="ime_board_edit_desc">Editar</string>
+    <string name="ime_board_empty_body">Los clips enviados aquí aparecen en tus otros dispositivos que usan la misma carpeta, incluso los que están desconectados ahora.</string>
+    <string name="ime_board_empty_title">No hay nada en el portapapeles</string>
+    <string name="ime_board_notice_copied">Copiado</string>
+    <string name="ime_board_notice_deleted">Quitado del tablero</string>
+    <string name="ime_board_notice_refused">Solo se pueden colocar en el tablero los recortes de texto que no estén ocultos</string>
+    <string name="ime_board_notice_sent">Enviado al tablero</string>
+    <string name="ime_board_send_desc">Enviar un clip</string>
+    <string name="ime_board_send_done">Listo</string>
+    <string name="ime_board_send_empty">No hay clips de texto para enviar. Las imágenes, archivos y clips ocultos permanecen en este teléfono.</string>
+    <string name="ime_board_send_one_desc">Enviar</string>
+    <string name="ime_board_send_title">Enviar al tablero</string>
+    <string name="ime_board_sent_desc">Enviado</string>
+    <string name="ime_board_status_failed">No se puede conectar al tablero</string>
+    <string name="ime_board_status_never">Aún no se ha comprobado</string>
+    <string name="ime_board_status_synced">Comprobado %1$s</string>
+    <string name="ime_board_status_syncing">Comprobando el teclado...</string>
+    <string name="ime_board_status_waiting">Esperando a llegar al tablero</string>
+    <string name="ime_board_status_waiting_offline">No se puede conectar al tablero. Tus cambios se enviarán cuando sea posible</string>
+    <string name="ime_board_sync_desc">Comprobar el tablero ahora</string>
+    <string name="ime_board_title">Pizarra compartida</string>
     <string name="ime_calc_degrees_label">grados</string>
     <string name="ime_calc_insert_action">Insertar</string>
     <string name="ime_calc_radians_label">rad</string>
@@ -471,7 +501,9 @@
     </plurals>
     <string name="ime_calendar_untitled">(Sin título)</string>
     <string name="ime_calendar_view_agenda">Agenda</string>
+    <string name="ime_calendar_view_day">Día</string>
     <string name="ime_calendar_view_month">Mes</string>
+    <string name="ime_calendar_weather_desc">%1$s, %2$s en %3$s. Abre la previsión para cada hora</string>
     <string name="ime_calendar_yesterday_label">Ayer</string>
     <string name="ime_calendar_zone_note">Horas en %1$s</string>
     <string name="ime_camera_captured_photo_desc">La foto que tomaste</string>
@@ -543,6 +575,7 @@
         <item quantity="one">Combinar %1$d clip</item>
         <item quantity="other">Combinar %1$d clips</item>
     </plurals>
+    <string name="ime_clip_compose_email">Redactar correo electrónico</string>
     <string name="ime_clip_delete_pinned_question">¿Eliminar este clip fijado?</string>
     <plurals name="ime_clip_deleted">
         <item quantity="one">Clip eliminado</item>
@@ -563,6 +596,7 @@
         <item quantity="other">Mostrar %1$d partes encontradas en tus clips</item>
     </plurals>
     <string name="ime_clip_extract_codes">Códigos de un solo uso</string>
+    <string name="ime_clip_extract_emails">Direcciones de correo electrónico</string>
     <string name="ime_clip_extract_links">Enlaces</string>
     <string name="ime_clip_extract_parts">Extraer</string>
     <string name="ime_clip_extract_phones">Números de teléfono</string>
@@ -589,6 +623,7 @@
         <item quantity="one">Oculto · %1$d carácter</item>
         <item quantity="other">Oculto · %1$d caracteres</item>
     </plurals>
+    <string name="ime_clip_image_pasted_toast">Pegado del portapapeles. Si no llegó nada, esta aplicación no toma fotos: mantén presionado el clip para compartirlo</string>
     <string name="ime_clip_info_copied">Copiado</string>
     <string name="ime_clip_info_edited">Editado</string>
     <string name="ime_clip_info_from">De</string>
@@ -642,7 +677,12 @@
         <item quantity="other">%1$d seleccionados</item>
     </plurals>
     <string name="ime_clip_send_as_sticker">Enviar como pegatina</string>
+    <string name="ime_clip_shape_code">Código</string>
+    <string name="ime_clip_shape_markdown">Markdown</string>
+    <string name="ime_clip_share_image">Compartir</string>
+    <string name="ime_clip_show_formatted">Mostrar con formato</string>
     <string name="ime_clip_show_in_history">Mostrar en el historial</string>
+    <string name="ime_clip_show_raw">Mostrar sin procesar</string>
     <string name="ime_clip_tags">Etiquetas</string>
     <string name="ime_clip_tags_placeholder">Etiquetas, separadas por comas</string>
     <string name="ime_clip_tags_title">Etiquetas</string>
@@ -908,6 +948,7 @@
     <string name="ime_conversion_pack_offer">Descarga el %1$s para escribir caracteres</string>
     <string name="ime_conversion_pack_offer_dismiss_desc">Descartar</string>
     <string name="ime_converter_from_label">Desde</string>
+    <string name="ime_converter_tab_units">Unidades</string>
     <string name="ime_converter_to_label">A</string>
     <string name="ime_currency_insert_action">Insertar</string>
     <string name="ime_currency_progress">Descargando los tipos de cambio…</string>
@@ -916,6 +957,32 @@
     <string name="ime_currency_section_crypto">Cripto</string>
     <string name="ime_currency_section_popular">Comunes</string>
     <string name="ime_currency_swap_desc">Intercambiar las monedas</string>
+    <string name="ime_custom_button_desc">Abrir %1$s</string>
+    <string name="ime_custom_button_label">Botón personalizado</string>
+    <string name="ime_custom_button_shortcut_failed">Ese acceso directo no se puede abrir. Es posible que la aplicación ya no exista o que solo permita abrirla desde la pantalla de inicio.</string>
+    <string name="ime_custom_page_clipboard">Ajustes del portapapeles</string>
+    <string name="ime_custom_page_custom_buttons">Botones personalizados</string>
+    <string name="ime_custom_page_dictionary">Diccionario</string>
+    <string name="ime_custom_page_favourites">Favoritos</string>
+    <string name="ime_custom_page_home">Ajustes</string>
+    <string name="ime_custom_page_keypress">Sonido y vibración</string>
+    <string name="ime_custom_page_languages">Idiomas</string>
+    <string name="ime_custom_page_search">Ajustes de búsqueda</string>
+    <string name="ime_custom_page_themes">Temas</string>
+    <string name="ime_custom_page_toolbar">Ajustes de la barra de herramientas</string>
+    <string name="ime_custom_page_tools">Herramientas</string>
+    <string name="ime_custom_page_typing">Escritura</string>
+    <string name="ime_custom_toggle_auto_caps">Mayúsculas automáticas</string>
+    <string name="ime_custom_toggle_glide">Escritura gestual</string>
+    <string name="ime_custom_toggle_key_hints">Sugerencias de teclas</string>
+    <string name="ime_custom_toggle_key_popup">Ventana emergente de tecla</string>
+    <string name="ime_custom_toggle_number_row">Fila de números</string>
+    <string name="ime_custom_toggle_reduce_motion">Reducir movimiento</string>
+    <string name="ime_custom_toggle_sound">Sonido de las teclas</string>
+    <string name="ime_custom_toggle_suggestions">Sugerencias</string>
+    <string name="ime_custom_toggle_symbol_row">Fila de símbolos</string>
+    <string name="ime_custom_toggle_toolbar_labels">Nombres de la barra de herramientas</string>
+    <string name="ime_custom_toggle_vibration">Vibración</string>
     <string name="ime_delete_redo_chip">Rehacer “%1$s”</string>
     <string name="ime_delete_redo_plain">Eliminar de nuevo</string>
     <string name="ime_delete_undo_chip">Deshacer “%1$s”</string>
@@ -953,6 +1020,7 @@
     <string name="ime_disabled_correction_invalid">Escribe una palabra diferente para corregir. La palabra que se va a corregir necesita al menos 3 letras, y la solución puede ser una palabra, o dos en caso de que falte un espacio.</string>
     <string name="ime_disabled_media_app_blocks">La aplicación que se está reproduciendo no permite esto.</string>
     <string name="ime_disabled_spell_unchanged">Cambia primero la ortografía. Una ortografía vacía o sin cambios no tiene nada que aplicar.</string>
+    <string name="ime_disabled_translate_empty_box">El cuadro está vacío o su traducción aún está en camino.</string>
     <string name="ime_disabled_translate_nothing">Aún no se ha traducido nada. Escribe o pega el texto a traducir primero.</string>
     <string name="ime_disabled_translate_same_language">El texto ya está en el idioma al que quieres traducir.</string>
     <string name="ime_disabled_voice_undo">Aún no hay nada que deshacer. Deshacer revierte la última frase que dijiste.</string>
@@ -982,6 +1050,10 @@
     <string name="ime_docscan_next">Recortar</string>
     <string name="ime_docscan_open_settings">Abrir ajustes</string>
     <string name="ime_docscan_page_number">Página %1$d</string>
+    <plurals name="ime_docscan_pages_album">
+        <item quantity="one">La página se abre en la pantalla para compartir de la aplicación</item>
+        <item quantity="other">Esta aplicación toma una foto a la vez aquí, por lo que las %d páginas se abren juntas en su pantalla para compartir, para enviarlas como un solo álbum</item>
+    </plurals>
     <plurals name="ime_docscan_pages_shared">
         <item quantity="one">La aplicación no tomó la última página aquí, así que se abre en la pantalla de compartir de la aplicación.</item>
         <item quantity="other">La aplicación no tomó %d páginas aquí, así que se abren juntas en la pantalla de compartir de la aplicación.</item>
@@ -1064,10 +1136,15 @@
     <string name="ime_files_access_pick">Selector de Android</string>
     <string name="ime_files_access_title">Seleccionar archivos sin salir del teclado</string>
     <string name="ime_files_add">Añadir</string>
+    <string name="ime_files_add_tree">Añadir una carpeta</string>
+    <string name="ime_files_add_tree_detail">Una unidad USB, una tarjeta SD o una carpeta compartida por otra aplicación, como una unidad de red</string>
+    <string name="ime_files_allow_all">Todo el almacenamiento del teléfono</string>
+    <string name="ime_files_allow_all_detail">Necesita acceso a todos los archivos de Android</string>
     <string name="ime_files_camera">Cámara</string>
     <string name="ime_files_clear_desc">Borrar la selección</string>
     <string name="ime_files_collapse_desc">Acortar</string>
     <string name="ime_files_copy_desc">Copiar</string>
+    <string name="ime_files_copy_to">Copiar a %1$s</string>
     <string name="ime_files_delete_body">Las carpetas van con todo lo que contienen. Esto es permanente: Android no tiene papelera de reciclaje para archivos.</string>
     <string name="ime_files_delete_desc">Eliminar</string>
     <string name="ime_files_delete_no">Cancelar</string>
@@ -1084,8 +1161,11 @@
     <string name="ime_files_expand_desc">Hacer más alto</string>
     <string name="ime_files_hide_hidden">Ocultar archivos ocultos</string>
     <string name="ime_files_kde_unreadable">No se pudo leer ese archivo para enviarlo</string>
+    <string name="ime_files_locked_body">El administrador de archivos no se abre sobre la pantalla de bloqueo.</string>
+    <string name="ime_files_locked_title">Desbloquear para ver tus archivos</string>
     <string name="ime_files_more_desc">Más</string>
     <string name="ime_files_move_desc">Mover</string>
+    <string name="ime_files_move_to">Mover a %1$s</string>
     <string name="ime_files_movies">Películas</string>
     <string name="ime_files_music">Música</string>
     <string name="ime_files_new_folder">Nueva carpeta</string>
@@ -1111,6 +1191,8 @@
         <item quantity="one">Se ha movido %d elemento</item>
         <item quantity="other">Se han movido %d elementos</item>
     </plurals>
+    <string name="ime_files_notice_tree_removed">Carpeta eliminada de la lista</string>
+    <string name="ime_files_one_pane_desc">Una lista</string>
     <string name="ime_files_op_cancel">Detener</string>
     <string name="ime_files_op_copy">Copiando %1$d de %2$d</string>
     <string name="ime_files_op_delete">Eliminando %1$d de %2$d</string>
@@ -1127,6 +1209,9 @@
     <string name="ime_files_pictures">Imágenes</string>
     <string name="ime_files_places">Ubicaciones</string>
     <string name="ime_files_recent">Recientes</string>
+    <string name="ime_files_remove_tree_body">La carpeta y sus archivos permanecen donde están. Puedes volver a añadirla en cualquier momento.</string>
+    <string name="ime_files_remove_tree_title">¿Quitar \"%1$s\" de la lista?</string>
+    <string name="ime_files_remove_tree_yes">Quitar</string>
     <string name="ime_files_rename_desc">Cambiar nombre</string>
     <string name="ime_files_rename_hint">Nuevo nombre</string>
     <string name="ime_files_search_clear_desc">Finalizar la búsqueda</string>
@@ -1145,6 +1230,7 @@
     <string name="ime_files_title_many">Elegir archivos</string>
     <string name="ime_files_title_one">Elegir un archivo</string>
     <string name="ime_files_title_picture">Elegir una imagen</string>
+    <string name="ime_files_two_panes_desc">Dos listas lado a lado</string>
     <string name="ime_files_unreadable">Android no permite que el teclado abra esta carpeta</string>
     <string name="ime_find_case_desc">Coincidir mayúsculas y minúsculas</string>
     <string name="ime_find_clear_desc">Borrar %1$s</string>
@@ -1176,6 +1262,24 @@
     <string name="ime_floating_category_empty">Esta categoría está vacía. Añade acciones en la configuración del botón flotante.</string>
     <string name="ime_floating_category_label">Categoría</string>
     <string name="ime_floating_close_menu">Cerrar menú</string>
+    <string name="ime_floating_device_bluetooth">Bluetooth</string>
+    <string name="ime_floating_device_bluetooth_desc">Activa o desactiva el Bluetooth</string>
+    <string name="ime_floating_device_bluetooth_page_desc">Abre la página de Bluetooth de Android</string>
+    <string name="ime_floating_device_data">Datos móviles</string>
+    <string name="ime_floating_device_data_desc">Activa o desactiva los datos móviles</string>
+    <string name="ime_floating_device_data_panel_desc">Abre el panel de internet de Android</string>
+    <string name="ime_floating_device_failed">Android no permitió eso</string>
+    <string name="ime_floating_device_hotspot">Punto de acceso</string>
+    <string name="ime_floating_device_hotspot_desc">Abre la página de zona Wi-Fi de Android</string>
+    <string name="ime_floating_device_off">%1$s desactivado</string>
+    <string name="ime_floating_device_on">%1$s activado</string>
+    <string name="ime_floating_device_ringer">Modo de timbre</string>
+    <string name="ime_floating_device_ringer_desc">Timbre, vibración y silencio, por turno</string>
+    <string name="ime_floating_device_volume">Panel de volumen</string>
+    <string name="ime_floating_device_volume_desc">Abre el panel de volumen de Android con todos los controles deslizantes</string>
+    <string name="ime_floating_device_wifi">Wi-Fi</string>
+    <string name="ime_floating_device_wifi_desc">Activa o desactiva el Wi-Fi</string>
+    <string name="ime_floating_device_wifi_panel_desc">Abre el panel de Wi-Fi de Android</string>
     <string name="ime_floating_dismiss_target">Suelta aquí para ocultar el botón</string>
     <string name="ime_floating_dock_desc">Anclar el teclado</string>
     <string name="ime_floating_hide_label">Ocultar el botón</string>
@@ -1186,7 +1290,11 @@
     <string name="ime_floating_pair_label">Abrir un par de aplicaciones</string>
     <string name="ime_floating_pair_missing">Una de las dos aplicaciones ya no está instalada</string>
     <string name="ime_floating_pair_name">%1$s + %2$s</string>
+    <string name="ime_floating_plugin_label">Complemento</string>
     <string name="ime_floating_resize_desc">Cambiar el tamaño del teclado</string>
+    <string name="ime_floating_ringer_ring">Timbre</string>
+    <string name="ime_floating_ringer_silent">Silencioso</string>
+    <string name="ime_floating_ringer_vibrate">Vibrar</string>
     <string name="ime_floating_system_app_drawer">Cajón de aplicaciones</string>
     <string name="ime_floating_system_back">Atrás</string>
     <string name="ime_floating_system_notifications">Notificaciones</string>
@@ -1244,6 +1352,7 @@
     <string name="ime_gallery_album_camera">Cámara</string>
     <string name="ime_gallery_album_favorites">Favoritos</string>
     <string name="ime_gallery_album_gifs">GIFs</string>
+    <string name="ime_gallery_album_immich">Immich</string>
     <string name="ime_gallery_album_recents">Recientes</string>
     <string name="ime_gallery_album_screenshots">Capturas de pantalla</string>
     <string name="ime_gallery_album_sent">Enviado desde el teclado</string>
@@ -1335,6 +1444,10 @@
     <string name="ime_gallery_info_taken">Tomada</string>
     <string name="ime_gallery_layer_delete">Eliminar</string>
     <string name="ime_gallery_more_desc">Más opciones de galería</string>
+    <plurals name="ime_gallery_notice_already_uploaded">
+        <item quantity="one">Immich ya tenía %d foto</item>
+        <item quantity="other">Immich ya tenía las %d fotos</item>
+    </plurals>
     <plurals name="ime_gallery_notice_copied">
         <item quantity="one">Se copió %d elemento</item>
         <item quantity="other">Se copiaron %d elementos</item>
@@ -1343,6 +1456,8 @@
         <item quantity="one">No se pudo leer %d elemento</item>
         <item quantity="other">No se pudieron leer %d elementos</item>
     </plurals>
+    <string name="ime_gallery_notice_immich_failed">No se pudo conectar con tu servidor Immich</string>
+    <string name="ime_gallery_notice_immich_refused">Immich rechazó la clave de API; verifica sus permisos</string>
     <plurals name="ime_gallery_notice_limit">
         <item quantity="one">Puedes elegir %d elemento a la vez</item>
         <item quantity="other">Puedes elegir hasta %d elementos a la vez</item>
@@ -1363,6 +1478,14 @@
     <plurals name="ime_gallery_notice_shared">
         <item quantity="one">Se abrió la pantalla de compartir para %d elemento</item>
         <item quantity="other">Se abrió la pantalla de compartir para %d elementos</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_upload_failed">
+        <item quantity="one">%d imagen no se ha subido</item>
+        <item quantity="other">%d imágenes no se han subido</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_uploaded">
+        <item quantity="one">Se ha subido %d imagen a Immich</item>
+        <item quantity="other">Se han subido %d imágenes a Immich</item>
     </plurals>
     <string name="ime_gallery_partial_action">Elegir más</string>
     <string name="ime_gallery_partial_body">Solo permitiste algunas fotos.</string>
@@ -1406,6 +1529,7 @@
     <string name="ime_gallery_tool_stickers">Stickers</string>
     <string name="ime_gallery_tool_text">Texto</string>
     <string name="ime_gallery_tool_upscale">Escalar</string>
+    <string name="ime_gallery_upload_immich">Subir a Immich</string>
     <string name="ime_gallery_upscale_art">Dibujo o texto</string>
     <string name="ime_gallery_upscale_done">Aumentada la escala ×%1$d: %2$d × %3$d</string>
     <string name="ime_gallery_upscale_downloading">La aplicación está descargando el escalador…</string>
@@ -1664,6 +1788,9 @@
     <string name="ime_handwriting_unsupported_info">Esta versión de la aplicación solo lee la escritura a mano en chino y japonés. Añade uno de ellos en Idiomas para escribir aquí.</string>
     <string name="ime_hardware_keys_hide_desc">Ocultar teclas</string>
     <string name="ime_hardware_keys_show_desc">Mostrar teclas</string>
+    <string name="ime_homophones_finish">Termina de escribir la palabra primero</string>
+    <string name="ime_homophones_none">Nada en este teléfono suena como %1$s. Un paquete de idiomas o un esquema RIME agrega las lecturas.</string>
+    <string name="ime_homophones_none_before">Escribe primero un carácter chino o japonés</string>
     <string name="ime_hw_pick_mode_off_toast">Modo de selección desactivado</string>
     <string name="ime_hw_pick_mode_on_toast">Modo de selección activado: las teclas numéricas seleccionan sugerencias, Mayús escribe el número</string>
     <string name="ime_icons_builtin_label">Integrado</string>
@@ -1678,6 +1805,45 @@
     <string name="ime_image_search_need_key_body">La búsqueda de imágenes necesita una clave de API de Brave Search. Añade una clave en los ajustes de esta herramienta.</string>
     <string name="ime_incognito_on_desc">El modo incógnito está activado</string>
     <string name="ime_insert_action">Insertar</string>
+    <string name="ime_invite_about_hint">Añadir una descripción</string>
+    <string name="ime_invite_action">Invitar en línea</string>
+    <string name="ime_invite_add_title">Añadir título</string>
+    <string name="ime_invite_error_address">La dirección %1$s en la configuración no es una dirección web.</string>
+    <string name="ime_invite_error_bad_token">%1$s no aceptó el token de la API.</string>
+    <string name="ime_invite_error_data_saver">El ahorro de datos está activado. Publicar requiere unos pocos kilobytes.</string>
+    <string name="ime_invite_error_network">%1$s no respondió.</string>
+    <string name="ime_invite_error_no_title">La invitación necesita un título.</string>
+    <string name="ime_invite_error_offline">Sin conexión. Conéctate e inténtalo de nuevo.</string>
+    <string name="ime_invite_error_refused">%1$s dice que esta cuenta no puede crear eventos allí.</string>
+    <string name="ime_invite_error_rejected">%1$s rechazó el evento.</string>
+    <string name="ime_invite_error_signed_out">%1$s cerró tu sesión. Inicia sesión de nuevo en la configuración.</string>
+    <string name="ime_invite_fix_in_pretix">Abrir Pretix</string>
+    <string name="ime_invite_go_ahead">Adelante</string>
+    <string name="ime_invite_insert_link">Insertar enlace</string>
+    <string name="ime_invite_insert_message">Insertar invitación</string>
+    <string name="ime_invite_link_only">Solo las personas con el enlace</string>
+    <string name="ime_invite_listed">Listado públicamente</string>
+    <string name="ime_invite_made">Creado el %1$s, las inscripciones a ¡n no est¡n abiertas</string>
+    <string name="ime_invite_not_live">Pretix creó el evento pero no abrió las inscripciones. %1$s</string>
+    <string name="ime_invite_not_set_up_body">Inicia sesión en Mobilizon o añade primero un servidor de Pretix en la configuración de la herramienta Calendario.</string>
+    <string name="ime_invite_not_set_up_title">Aún no hay servicio de eventos</string>
+    <string name="ime_invite_note_mobilizon">Las personas se registran en la página del evento. Mobilizon te envía un correo electrónico cuando lo hacen.</string>
+    <string name="ime_invite_note_pretix">El evento incluye una entrada gratuita, por lo que la gente se registra en su página con su dirección de correo electrónico.</string>
+    <string name="ime_invite_open_page">Abrir página</string>
+    <string name="ime_invite_open_settings">Ajustes</string>
+    <string name="ime_invite_place_hint">Añadir un lugar o un enlace</string>
+    <string name="ime_invite_places_any">Sin límite</string>
+    <string name="ime_invite_places_label">Lugares</string>
+    <string name="ime_invite_post_as">Publicar como %1$s</string>
+    <string name="ime_invite_post_as_default">Publicar con tu perfil</string>
+    <string name="ime_invite_post_as_loading">Cargando tus perfiles…</string>
+    <string name="ime_invite_publish">Publicar</string>
+    <string name="ime_invite_published">Publicado el %1$s</string>
+    <string name="ime_invite_publishing">Publicando…</string>
+    <string name="ime_invite_publishing_to">Publicando en %1$s</string>
+    <string name="ime_invite_ticket_name">Registrarse</string>
+    <string name="ime_invite_title">Invitar en línea</string>
+    <string name="ime_invite_try_again">Reintentar</string>
     <string name="ime_kaomoji_add">Añadir un kaomoji</string>
     <string name="ime_kaomoji_all">Todo</string>
     <string name="ime_kaomoji_cancel">Cancelar</string>
@@ -1965,6 +2131,7 @@
     <string name="ime_learn_text_action">Aprender texto</string>
     <string name="ime_learn_word_never_desc">No aprender nunca %1$s</string>
     <string name="ime_learn_word_offer">¿Añadir \"%1$s\"?</string>
+    <string name="ime_legacy_font_output">Salida de fuente heredada</string>
     <string name="ime_level_no_sensor_empty">Tu dispositivo no tiene acelerómetro.</string>
     <string name="ime_location_address_failed">No hay dirección aquí. Las coordenadas siguen funcionando.</string>
     <string name="ime_location_address_looking">Buscando la dirección…</string>
@@ -2137,6 +2304,29 @@
         <item quantity="other">%d notas archivadas</item>
     </plurals>
     <string name="ime_notes_archived_badge">Archivado</string>
+    <string name="ime_notes_assist_deck_action">Crear un mazo de estudio</string>
+    <plurals name="ime_notes_assist_deck_action_count">
+        <item quantity="one">Crear un mazo de estudio (%d tarjeta)</item>
+        <item quantity="other">Crear un mazo de estudio (%d tarjetas)</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_empty_toast">No hay términos con significados para crear tarjetas</string>
+    <plurals name="ime_notes_assist_deck_made_toast">
+        <item quantity="one">Mazo de estudio \"%2$s\" creado con %1$d tarjeta. Encuéntralo en Vocabulario.</item>
+        <item quantity="other">Mazo de estudio \"%2$s\" creado con %1$d tarjetas. Encuéntralo en Vocabulario.</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_working_toast">Creando mazo de estudio…</string>
+    <string name="ime_notes_assist_details_label">Detalles clave</string>
+    <string name="ime_notes_assist_heading_busy">Pensando en un encabezado…</string>
+    <string name="ime_notes_assist_heading_dismiss_desc">Este encabezado no</string>
+    <string name="ime_notes_assist_heading_suggestion">Encabezado: %1$s</string>
+    <string name="ime_notes_assist_heading_use_action">Usar</string>
+    <string name="ime_notes_assist_related_label">Relacionado</string>
+    <string name="ime_notes_assist_remind_chip">Recuérdame: %1$s · %2$s</string>
+    <string name="ime_notes_assist_reminders_label">Próximamente</string>
+    <string name="ime_notes_assist_summarize_action">Resumir</string>
+    <string name="ime_notes_assist_summarize_again_action">Otra vez</string>
+    <string name="ime_notes_assist_summary_busy">Resumiendo en tu teléfono...</string>
+    <string name="ime_notes_assist_summary_label">Resumen</string>
     <string name="ime_notes_body_hint">Escribe una nota… Markdown funciona: **negrita**, - listas, - [ ] tareas</string>
     <string name="ime_notes_collapse_desc">Volver a la altura del teclado</string>
     <string name="ime_notes_confirm_action">Toca de nuevo para confirmar</string>
@@ -2185,6 +2375,7 @@
     <string name="ime_notes_no_match">No hay notas que coincidan con “%1$s”.</string>
     <string name="ime_notes_passage_desc">De %1$s. Toca para insertar, mantén presionado para abrir la nota.</string>
     <string name="ime_notes_passages_section">Pasajes</string>
+    <string name="ime_notes_paste_desc">Pegar</string>
     <string name="ime_notes_pin_action">Fijar</string>
     <string name="ime_notes_pinned_section">Fijadas</string>
     <string name="ime_notes_restore_action">Restaurar</string>
@@ -2218,6 +2409,29 @@
     <string name="ime_otp_chip_dismiss_desc">Ocultar el código</string>
     <string name="ime_panel_back_desc">Volver al teclado</string>
     <string name="ime_panel_over_keys_height_desc">Altura del panel sobre las teclas. Arrastra hacia arriba o hacia abajo</string>
+    <string name="ime_paperless_card_also_field">También coloca las páginas en el cuadro de texto</string>
+    <string name="ime_paperless_card_correspondent">Corresponsal</string>
+    <string name="ime_paperless_card_field_only">Solo cuadro de texto</string>
+    <string name="ime_paperless_card_loading">Obteniendo tus etiquetas del servidor…</string>
+    <string name="ime_paperless_card_name">Título</string>
+    <string name="ime_paperless_card_name_hint">Opcional. Si se deja vacío, Paperless le asigna un nombre.</string>
+    <string name="ime_paperless_card_none">Ninguno</string>
+    <string name="ime_paperless_card_offline">No se puede contactar con el servidor en este momento. El escaneo espera en el teléfono con tus etiquetas predeterminadas y se sube en cuanto sea posible.</string>
+    <string name="ime_paperless_card_offline_cached">No se puede contactar con el servidor en este momento; estas son sus listas anteriores. El escaneo se subirá en cuanto sea posible.</string>
+    <string name="ime_paperless_card_one_pdf">Todas las páginas en un PDF</string>
+    <plurals name="ime_paperless_card_pages">
+        <item quantity="one">%d página</item>
+        <item quantity="other">%d páginas</item>
+    </plurals>
+    <string name="ime_paperless_card_send">Enviar</string>
+    <string name="ime_paperless_card_tags">Etiquetas</string>
+    <string name="ime_paperless_card_title">Enviar a Paperless</string>
+    <string name="ime_paperless_card_type">Tipo de documento</string>
+    <string name="ime_paperless_queue_failed">No se ha podido conservar el escaneo para Paperless</string>
+    <plurals name="ime_paperless_queued">
+        <item quantity="one">%d documento en camino a Paperless. Se subirá en cuanto haya conexión.</item>
+        <item quantity="other">%d documentos en camino a Paperless. Se subirán en cuanto haya conexión.</item>
+    </plurals>
     <string name="ime_password_add_digit_label">Añadir un dígito</string>
     <string name="ime_password_capitalize_label">Letras mayúsculas</string>
     <string name="ime_password_copied_toast">Copiado al portapapeles</string>
@@ -2236,11 +2450,27 @@
     <string name="ime_password_tab_pin">PIN</string>
     <string name="ime_password_words_label">Palabras</string>
     <string name="ime_phonetic_word_list_offer">Obtén la lista de palabras %1$s para mejores sugerencias</string>
+    <string name="ime_plugin_access_mark">Este complemento puede usar Internet o leer lo que escribes</string>
+    <string name="ime_plugin_action_settings">Configuración y permisos</string>
+    <string name="ime_plugin_action_toolbar_add">Añadir a la barra de herramientas</string>
+    <string name="ime_plugin_action_toolbar_remove">Eliminar de la barra de herramientas</string>
+    <string name="ime_plugin_action_toolbox_add">Añadir a la caja de herramientas</string>
+    <string name="ime_plugin_action_toolbox_remove">Quitar de la barra de herramientas</string>
+    <string name="ime_plugin_action_turn_off">Desactivar</string>
+    <string name="ime_plugin_action_turn_on">Activar</string>
+    <string name="ime_plugin_clock_alarm_set">%1$s ha configurado una alarma para las %2$s en Reloj</string>
+    <string name="ime_plugin_clock_timer_set">%1$s inició un temporizador de %2$s en Reloj</string>
     <string name="ime_plugin_empty_body">Un complemento es una pequeña herramienta en un entorno aislado. Puedes añadir complementos desde un repositorio de complementos o desde un archivo .wmplugin. Un complemento no puede ver lo que escribes.</string>
     <string name="ime_plugin_empty_title">Aún no hay complementos</string>
     <string name="ime_plugin_manage_action">Gestionar complementos</string>
+    <string name="ime_plugin_more">Más opciones para %1$s</string>
+    <string name="ime_plugin_permission_allow">Permitir</string>
+    <string name="ime_plugin_permission_deny">No permitir</string>
+    <string name="ime_plugin_permission_risky_note">Esto también activa permisos de riesgo para los complementos. Puedes volver a desactivarlos en la página del complemento en Ajustes.</string>
+    <string name="ime_plugin_permission_title">Permitir a %1$s:</string>
     <string name="ime_plugin_version_label">Versión %1$s</string>
     <string name="ime_power_saving_on_desc">El ahorro de energía está activado</string>
+    <string name="ime_privacy_shade_hint">Arrastra el controlador hacia arriba para ver las últimas líneas</string>
     <string name="ime_provider_choose_desc">Elige el proveedor</string>
     <string name="ime_punct_ampersand">Et</string>
     <string name="ime_punct_apostrophe">Apóstrofo</string>
@@ -2374,6 +2604,8 @@
     <string name="ime_resize_move_desc">Arrastra para mover el teclado hacia arriba o hacia abajo</string>
     <string name="ime_resize_reset">Restablecer</string>
     <string name="ime_resize_right_handle_desc">Arrastra para cambiar el espacio a la derecha del teclado</string>
+    <string name="ime_resize_toolbar_handle">Barra de herramientas</string>
+    <string name="ime_resize_toolbar_handle_desc">Arrastra hacia arriba o hacia abajo para cambiar la altura de la barra de herramientas</string>
     <string name="ime_retype_button">Reescribir</string>
     <string name="ime_retype_button_desc">Volver a escribir la palabra en el cursor</string>
     <string name="ime_retype_button_nothing">No hay ninguna palabra que volver a escribir. Coloca el cursor justo después de una palabra.</string>
@@ -2428,8 +2660,10 @@
     <string name="ime_scanner_torch_desc">Linterna</string>
     <string name="ime_scanner_translate_action">Traducir</string>
     <string name="ime_screen_capture_desc">Capturar la pantalla</string>
+    <string name="ime_screen_capture_progress">Capturando la pantalla...</string>
     <string name="ime_search_attribution_brave">vía Brave</string>
     <string name="ime_search_attribution_left">Queda %1$s · %2$s</string>
+    <string name="ime_search_attribution_mwmbl">a través de Mwmbl</string>
     <string name="ime_search_attribution_tavily">vía Tavily</string>
     <string name="ime_search_in_browser_desc">Buscar en el navegador</string>
     <string name="ime_search_menu_copy_link">Copiar el enlace</string>
@@ -2439,6 +2673,7 @@
     <string name="ime_search_no_more">No hay más resultados</string>
     <string name="ime_search_tab_all">Todo</string>
     <string name="ime_search_tab_images">Imágenes</string>
+    <string name="ime_second_toolbar_empty">Arrastra una herramienta aquí desde la caja de herramientas o la barra de herramientas</string>
     <string name="ime_selection_ask_ai">Preguntar a la IA</string>
     <string name="ime_selection_macro_ai_translate_label">Traducción con IA</string>
     <string name="ime_selection_macro_back_desc">Volver a las acciones de selección</string>
@@ -2737,6 +2972,8 @@
     <string name="ime_service_incognito_off_toast">El modo incógnito está desactivado</string>
     <string name="ime_service_incognito_on_toast">El modo incógnito está activado. El teclado no aprende lo que escribes.</string>
     <string name="ime_service_incognito_switch_toast">El modo incógnito está activado. Toca la herramienta Incógnito para desactivarlo</string>
+    <string name="ime_service_legacy_font_off_toast">Escribiendo Unicode</string>
+    <string name="ime_service_legacy_font_on_toast">Escribiendo para la fuente %1$s</string>
     <string name="ime_service_media_download_error_toast">La descarga no funcionó. Comprueba tu conexión.</string>
     <string name="ime_service_media_fetch_error">El teclado no puede obtener resultados</string>
     <string name="ime_service_mode_tool_order_toast">El teclado guardó el orden de herramientas para el modo %1$s. Otras aplicaciones mantienen su propio orden.</string>
@@ -2760,6 +2997,7 @@
     <string name="ime_service_power_saving_on_empty_toast">El ahorro de energía está activado. Aún no hay ninguna función configurada para detenerse.</string>
     <string name="ime_service_power_saving_on_toast">El ahorro de energía está activado</string>
     <string name="ime_service_power_saving_still_on_toast">El ahorro de energía permanece activado. El activador de batería está encendido.</string>
+    <string name="ime_service_privacy_shade_floating_toast">La cortina de privacidad funciona con el teclado acoplado. Acopla el teclado primero.</string>
     <string name="ime_service_qr_error">El teclado no puede crear el código QR</string>
     <string name="ime_service_resize_floating_toast">Acopla el teclado para cambiar su tamaño</string>
     <string name="ime_service_search_error">La búsqueda no funcionó</string>
@@ -2820,6 +3058,7 @@
     <string name="ime_smart_repeat_count">×%1$s</string>
     <string name="ime_smart_repeat_offer">Repetir “%1$s”</string>
     <string name="ime_smart_replies_dismiss_desc">Ocultar las respuestas inteligentes</string>
+    <string name="ime_smart_search_offer">%1$s: “%2$s”</string>
     <string name="ime_smart_send_link">Recibir el archivo</string>
     <string name="ime_smart_translate_offer">Traducir</string>
     <string name="ime_smart_vocab_daily">Palabra del día: %1$s ›</string>
@@ -2829,6 +3068,12 @@
     <string name="ime_smart_vocab_word">%1$s ›</string>
     <string name="ime_smart_weather_tap">Obtener el pronóstico</string>
     <string name="ime_smart_wiki_word">“%1$s” en Wikipedia</string>
+    <string name="ime_snippet_ask_cancel_desc">Cancelar el fragmento</string>
+    <string name="ime_snippet_ask_done_desc">Insertar el fragmento</string>
+    <string name="ime_snippet_ask_hint">Escribe %1$s</string>
+    <string name="ime_snippet_ask_next_desc">Siguiente campo</string>
+    <string name="ime_snippet_ask_step_label">%1$s %2$d/%3$d</string>
+    <string name="ime_snippet_image_desc">Fragmento de imagen %1$s</string>
     <string name="ime_snippet_offer_back_desc">Volver a %1$s</string>
     <string name="ime_snippet_offer_desc">Insertar el fragmento %1$s</string>
     <string name="ime_snippet_offer_more_desc">Más de %1$s</string>
@@ -2939,6 +3184,7 @@
     <string name="ime_suggestion_hold_label">Opciones de palabra</string>
     <string name="ime_suggestion_never_suggest">No sugerir nunca \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Volver a las teclas</string>
+    <string name="ime_suggestion_pattern_still_hides">Un patrón de lista negra todavía oculta \"%1$s\". Edítalo en la lista negra de sugerencias.</string>
     <string name="ime_suggestion_rank_badge">Rango \"%1$s\" %2$s</string>
     <string name="ime_suggestion_rank_unchanged">\"%1$s\" sin cambios</string>
     <string name="ime_suggestions_show_desc">Mostrar la barra de sugerencias</string>
@@ -2968,6 +3214,8 @@
     <string name="ime_synonyms_title">Sinónimos para \"%1$s\"</string>
     <string name="ime_textedit_delete_line_desc">Eliminar línea</string>
     <string name="ime_textedit_delete_line_forward_desc">Eliminar línea hacia adelante</string>
+    <string name="ime_textedit_delete_to_end_desc">Eliminar hasta el final</string>
+    <string name="ime_textedit_delete_to_start_desc">Borrar hasta el inicio</string>
     <string name="ime_textedit_delete_word_desc">Eliminar palabra</string>
     <string name="ime_textedit_delete_word_forward_desc">Eliminar palabra hacia adelante</string>
     <string name="ime_textedit_doc_end_desc">Mover al final del texto</string>
@@ -2986,6 +3234,7 @@
     <string name="ime_textedit_select_label">Seleccionar</string>
     <string name="ime_textedit_select_line_desc">Seleccionar la línea</string>
     <string name="ime_textedit_select_word_desc">Seleccionar la palabra</string>
+    <string name="ime_textedit_type_clipboard_desc">Escribir desde el portapapeles</string>
     <string name="ime_textedit_up_desc">Mover hacia arriba</string>
     <string name="ime_textedit_word_left_desc">Mover una palabra a la izquierda</string>
     <string name="ime_textedit_word_right_desc">Mover una palabra a la derecha</string>
@@ -3063,6 +3312,7 @@
     <string name="ime_tool_calculator">Calculadora</string>
     <string name="ime_tool_calendar">Calendario</string>
     <string name="ime_tool_camera">Cámara</string>
+    <string name="ime_tool_clear_field">Eliminar todo</string>
     <string name="ime_tool_clipboard">Portapapeles</string>
     <string name="ime_tool_clipboard_search">Búsqueda en el portapapeles</string>
     <string name="ime_tool_clock">Reloj</string>
@@ -3079,11 +3329,13 @@
     <string name="ime_tool_cursor_word_right">Palabra a la derecha</string>
     <string name="ime_tool_custom_layout">Diseño personalizado</string>
     <string name="ime_tool_cut">Cortar</string>
+    <string name="ime_tool_debug_info">Información de depuración</string>
     <string name="ime_tool_dictionary">Diccionario</string>
     <string name="ime_tool_doc_scan">Escaneo de documentos</string>
     <string name="ime_tool_emoji">Emoji</string>
     <string name="ime_tool_emoji_mix">Mezclas de emojis</string>
     <string name="ime_tool_fancy">Texto elegante</string>
+    <string name="ime_tool_files">Archivos</string>
     <string name="ime_tool_find_replace">Buscar y reemplazar</string>
     <string name="ime_tool_flashlight">Linterna</string>
     <string name="ime_tool_floating">Flotante</string>
@@ -3093,6 +3345,7 @@
     <string name="ime_tool_handwriting">Escritura a mano</string>
     <string name="ime_tool_hide_keyboard">Ocultar</string>
     <string name="ime_tool_home_assistant">Hogar inteligente</string>
+    <string name="ime_tool_homophones">Mismo sonido</string>
     <string name="ime_tool_image_search">Imágenes</string>
     <string name="ime_tool_incognito">Incógnito</string>
     <string name="ime_tool_language">Idioma</string>
@@ -3119,6 +3372,7 @@
     <string name="ime_tool_picker_leader">%1$s, luego:</string>
     <string name="ime_tool_plugins">Plugins</string>
     <string name="ime_tool_power_saving">Ahorro de energía</string>
+    <string name="ime_tool_privacy_shade">Filtro de privacidad</string>
     <string name="ime_tool_qr_gen">Código QR</string>
     <string name="ime_tool_qr_scan">Escaneo QR</string>
     <string name="ime_tool_quick_note">Nota rápida</string>
@@ -3143,6 +3397,7 @@
     <string name="ime_tool_text_edit">Edición de texto</string>
     <string name="ime_tool_text_repeat">Repetir</string>
     <string name="ime_tool_themes">Temas</string>
+    <string name="ime_tool_timestamp">Marca de tiempo</string>
     <string name="ime_tool_todo">Lista de tareas</string>
     <string name="ime_tool_trackpad">Panel táctil</string>
     <string name="ime_tool_translate">Traducir</string>
@@ -3200,12 +3455,14 @@
     <string name="ime_translate_engine_online_info">Utiliza el servicio en línea.</string>
     <string name="ime_translate_hint">Escribe el texto a traducir…</string>
     <string name="ime_translate_idle">La traducción se muestra aquí a medida que escribe.</string>
+    <string name="ime_translate_idle_manual">Escribe todo el texto y toca Traducir. No se envía nada antes de eso.</string>
     <string name="ime_translate_module_failed_error">Google Play no entregó la descarga. Comprueba la conexión e inténtalo de nuevo. Si vuelve a fallar, descárgalo desde Ajustes, Herramientas, Traducir.</string>
     <string name="ime_translate_module_installing_action">Descargando…</string>
     <string name="ime_translate_module_missing_body">La traducción en el dispositivo es una parte adicional del teclado que proviene de Google Play. Descárgala para traducir sin conexión.</string>
     <string name="ime_translate_need_models_body">Para traducir en el dispositivo, descarga: %1$s. Aproximadamente %2$s.</string>
     <string name="ime_translate_nllb_licence_accept_action">Aceptar y descargar</string>
     <string name="ime_translate_nllb_licence_body">NLLB-200 proviene de Hugging Face bajo la licencia de Meta para el mismo, Creative Commons Attribution-NonCommercial 4.0: solo para uso no comercial, sin garantía. Presiona de nuevo para aceptarla y descargar.</string>
+    <string name="ime_translate_now_action">Traducir</string>
     <string name="ime_translate_offline_build_error">Esta compilación sin conexión no puede traducir en este teléfono: su motor único, Firefox Translations, requiere un teléfono de 64 bits con Android 9 o posterior. Para traducir, instale la compilación estándar.</string>
     <string name="ime_translate_offline_failed_error">La traducción en el dispositivo no se inició. Inténtalo de nuevo o selecciona el motor en línea.</string>
     <string name="ime_translate_offline_import_body">Esta versión sin conexión no se puede descargar. Para traducir esto, obténgalos en otro dispositivo e impórtelos: %1$s. Abra Ajustes › Herramientas › Traducir › Proveedores › En el dispositivo (Traducciones de Firefox).</string>
@@ -3221,6 +3478,7 @@
     <string name="ime_translate_select_source_desc">Selecciona el idioma de origen</string>
     <string name="ime_translate_server_label">Tu servidor</string>
     <string name="ime_translate_source_guessed_label">¿%1$s?</string>
+    <string name="ime_translate_speak_desc">Leer la traducción en voz alta</string>
     <string name="ime_translate_swap_desc">Intercambiar los idiomas</string>
     <string name="ime_typing_accuracy_label">precisión</string>
     <string name="ime_typing_accuracy_short_label">prec</string>
@@ -3341,6 +3599,10 @@
     <string name="ime_voice_model_get_language_action">Obtener %1$s para escritura por voz sin conexión</string>
     <string name="ime_voice_permission_action">Permitir micrófono</string>
     <string name="ime_voice_permission_body">La escritura por voz necesita permiso para usar el micrófono. La aplicación graba audio solo mientras hablas.</string>
+    <string name="ime_voice_prompt_fix_custom">Elimina algunas palabras adicionales para reconocer en la configuración de la escritura por voz o acorta la instrucción.</string>
+    <string name="ime_voice_prompt_fix_personal">Desactiva Escuchar mis palabras en la configuración de escritura por voz o acorta el comando.</string>
+    <string name="ime_voice_prompt_fix_prompt">Acorta el aviso (Prompt), en la pantalla del servidor en la configuración de escritura por voz, a menos de %1$d caracteres.</string>
+    <string name="ime_voice_prompt_too_long">Este servidor acepta una instrucción de hasta %2$d caracteres, y esta tiene %1$d: Instrucción %3$d, Más palabras que escuchar %4$d, Escuchar mis palabras %5$d.</string>
     <string name="ime_voice_secure_field_notice">La escritura por voz no funciona en campos de contraseña.</string>
     <string name="ime_voice_server_metered_ask">El ahorro de datos está activado. Pulsa el micrófono de nuevo para enviar tu voz usando datos móviles.</string>
     <string name="ime_voice_server_metered_blocked">El servidor de transcripción está desactivado mientras usas datos móviles. Puedes cambiar esto en Ajustes, en Ahorro de datos.</string>
@@ -3380,6 +3642,12 @@
     <string name="ime_voice_use_system_action">Usar el reconocedor del sistema</string>
     <string name="ime_weather_clouds_label">nubes</string>
     <string name="ime_weather_error">La aplicación no puede descargar el clima. Comprueba tu red.</string>
+    <string name="ime_weather_event_back_desc">Volver al calendario</string>
+    <string name="ime_weather_event_home_place">%1$s (tu ubicación meteorológica)</string>
+    <string name="ime_weather_event_home_unnamed">Tu ubicación meteorológica</string>
+    <string name="ime_weather_event_hour_desc">%1$s: %2$s, %3$s, probabilidad de lluvia %4$s</string>
+    <string name="ime_weather_event_no_hours">La previsión aún no llega a este día.</string>
+    <string name="ime_weather_event_rain_info">%1$d%% de probabilidad de lluvia</string>
     <string name="ime_weather_feels_like_label">sensación térmica</string>
     <string name="ime_weather_high_low_info">Máx %1$d° Mín %2$d°</string>
     <string name="ime_weather_humidity_label">humedad</string>
@@ -3495,6 +3763,7 @@
     <string name="ime_wmpass_no_password">WM Pass no creó ninguna contraseña. Es posible que la caja fuerte se haya bloqueado.</string>
     <string name="ime_wmpass_no_username">Este inicio de sesión no tiene un nombre de usuario que rellenar.</string>
     <string name="ime_wmpass_no_vault">WM Pass aún no tiene ninguna bóveda. Crea una allí primero.</string>
+    <string name="ime_wmpass_not_released">WM Pass aún no ha salido. Esta herramienta empieza a funcionar una vez que se lance e instale.</string>
     <string name="ime_wmpass_not_set">No configurado</string>
     <string name="ime_wmpass_off">Para usar esto, activa Permitir que el Teclado WM complete WM Pass, en Configuración, Seguridad.</string>
     <string name="ime_wmpass_open">Abrir WM Pass</string>

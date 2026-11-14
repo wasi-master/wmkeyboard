@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">Sähköpostiosoite</string>
+    <string name="core_content_clip_entity_email_tag">SÄHKÖPOSTI</string>
     <string name="core_content_clip_entity_otp_label">Kertakäyttökoodi</string>
     <string name="core_content_clip_entity_otp_tag">KOODI</string>
     <string name="core_content_clip_entity_phone_label">Puhelinnumero</string>
@@ -38,6 +40,10 @@
         <item quantity="one">Sovellus ohitti %1$d tekstinpätkän, jossa ei ole mitään lisättävää.</item>
         <item quantity="other">Sovellus ohitti %1$d tekstinpätkää, joissa ei ole mitään lisättävää.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d lomakekenttä tarjoaa valintaluettelon. Sovellus pyytää sitä kirjoitettuna vastauksena siten, että ensimmäinen vaihtoehto on täytettynä.</item>
+        <item quantity="other">%1$d lomakekenttää tarjoavat valintaluettelon. Sovellus pyytää niitä kirjoitettuna vastauksena siten, että ensimmäinen vaihtoehto on täytettynä.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Sovellus ohitti %1$d tekstinpätkän, joka lisää kuvan.</item>
         <item quantity="other">Sovellus ohitti %1$d tekstinpätkää, jotka lisäävät kuvia.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d tekstinpätkä käyttää arvoa, jolle Espansolla ei ole vastinetta. Se kirjoitetaan sellaisenaan.</item>
         <item quantity="other">%1$d tekstinpätkää käyttää arvoja, joille Espansolla ei ole vastinetta. Ne kirjoitetaan sellaisinaan.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d pätkä lisää kuvan. Tekstitiedosto ei voi sisältää kuvaa, joten vain sen sanat vietiin.</item>
+        <item quantity="other">%1$d pätkää lisää kuvia. Tekstitiedosto ei voi sisältää kuvia, joten vain niiden sanat vietiin.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">Sovellus poisti kaavan %1$d tekstinpätkästä. Sovellus ei suorita kyseisen muotoisia kaavoja. Tekstinpätkä pysyy luettelossa.</item>
@@ -197,17 +207,34 @@
         <item quantity="one">Sovellus poisti %1$d liipaisimen, jota näppäimistö ei voi valvoa. Sen tekstikatkelma pysyy luettelossa.</item>
         <item quantity="other">Sovellus poisti %1$d liipaisinta, joita näppäimistö ei voi valvoa. Niiden tekstikatkelmat pysyvät luettelossa.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_pattern">Kaavaa ei voida käyttää: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s ei voi olla %2$s</string>
+    <string name="core_content_snippet_text_before_header">Teksti ennen ensimmäistä ===-liipaisuriviä. Aloita lohko yhdellä tai aloita rivi merkillä #</string>
+    <string name="core_content_snippet_text_no_text">Tällä katkelmalla ei ole tekstiä</string>
+    <string name="core_content_snippet_text_no_trigger">Pätkä, jonka merkintöjen === välissä ei ole mitään, vaatii @label- tai @pattern-rivin</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d kuvakatkelma tuli tekstinään: tekstitiedosto ei sisällä kuvia</item>
+        <item quantity="other">%1$d kuvakatkelmaa tuli tekstinään: tekstitiedosto ei sisällä kuvia</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">Ohitettiin koodinpätkä rivillä %1$d, jossa on virhe</string>
+    <string name="core_content_snippet_text_unknown_link">\@link-kohdan nimi on %1$s, eikä täällä ole katkelmaa, jolla olisi kyseinen laukaisin</string>
+    <string name="core_content_snippet_text_unknown_picture">Kuva @picture nimeltä %1$s ei ole käytössä missään katkelmassa. Lisää kuvia katkelman omassa muokkausohjelmassa</string>
+    <string name="core_content_snippet_text_unknown_setting">Näppäimistö ei tunne asetusta %1$s. Jos haluat aloittaa leikkeen tekstin merkillä @, kirjoita sen sijaan \@</string>
     <string name="core_content_snippet_var_app_info">Sovelluksen nimi, johon kirjoitat</string>
+    <string name="core_content_snippet_var_battery_info">Akun varaus, esimerkiksi 85 %</string>
     <string name="core_content_snippet_var_clip_info">Uusin leikepöydän kohde</string>
     <string name="core_content_snippet_var_cursor_info">Kohta, johon kohdistin asettuu</string>
     <string name="core_content_snippet_var_date_info">Tämän päivän päivämäärä</string>
     <string name="core_content_snippet_var_datetime_info">Päivämäärä ja kellonaika</string>
     <string name="core_content_snippet_var_day_info">Kuukauden päivä</string>
+    <string name="core_content_snippet_var_greeting_info">Hyvää huomenta, iltapäivää tai iltaa ajan mukaan, näppäimistön kielellä</string>
     <string name="core_content_snippet_var_isodate_info">Päivämäärä ISO-muodossa, esimerkiksi 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">Päivämäärä ja kellonaika ISO-muodossa</string>
+    <string name="core_content_snippet_var_language_info">Näppäimistökieli, jolla kirjoitat</string>
     <string name="core_content_snippet_var_month_info">Kuukauden nimi</string>
     <string name="core_content_snippet_var_package_info">Kyseisen sovelluksen paketin nimi</string>
     <string name="core_content_snippet_var_selection_info">Kentässä valitsemasi teksti</string>
+    <string name="core_content_snippet_var_tab_info">Sarkainmerkki</string>
     <string name="core_content_snippet_var_time12_info">Kellonaika 12 tunnin muodossa</string>
     <string name="core_content_snippet_var_time_info">Nykyinen aika 24 tunnin muodossa</string>
     <string name="core_content_snippet_var_timestamp_info">Aika Unix-sekunteina</string>

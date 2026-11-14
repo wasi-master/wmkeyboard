@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">Читання фурігана</string>
     <string name="core_input_cjk_pack_hanja_subtitle">Слова хангылем та їх ханча, 300 000 записів. Клавіатурі потрібен цей пакет, щоб пропонувати ханча на панелі підказок.</string>
     <string name="core_input_cjk_pack_hanja_title">Словник ханджа (漢字)</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, тому слово з його префіксами та суфіксами відоме, а помилки в ньому виправляються.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">Арабський словник перевірки орфографії</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, тому слова з будь-яким суфіксом розпізнаються, а друкарські помилки в них виправляються.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">Правила орфографії турецькою мовою</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">Читання кана з mozc, 1,08 мільйона записів, близько 42 МБ. Клавіатурі потрібен цей пакет для японської конвертації.</string>

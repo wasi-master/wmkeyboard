@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">یک مدل میان‌رده جدید که قبل از پاسخ دادن فکر می‌کند. به دستگاهی با قدرت متوسط نیاز دارد.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">کوچک و سریع. برای بازنویسی‌های سریع در یک دستگاه پایه مناسب است.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">مدل بسیار کوچکی که می‌تواند تصاویر را بخواند. این مدل تصویر را توصیف می‌کند، اما اغلب متن‌های موجود در تصاویر صفحه را اشتباه می‌خواند.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">آموزش مجدد Gemma 4 E4B انویدیا برای پیروی از دستورالعمل‌ها و استفاده از ابزارها. فقط متنی است و به یک دستگاه قدرتمند نیاز دارد.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">یک مدل همه‌منظوره که همچنان روی یک دستگاه پایه جا می‌شود.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">به وضوح هوشمندتر از مدل‌های زیر 1 میلیارد پارامتر است. به دستگاهی با قدرت متوسط نیاز دارد.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">یک مدل کوچک جدید. کیفیت آن نسبت به اندازه‌اش بالاست.</string>

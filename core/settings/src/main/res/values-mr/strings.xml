@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">स्ट्रिप, पिल आणि कीज</string>
     <string name="core_settings_glide_commit_scope_pill_label">स्ट्रिप आणि पिल</string>
     <string name="core_settings_glide_commit_scope_strip_label">स्ट्रिप</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">अनडू केल्यानंतर</string>
+    <string name="core_settings_glide_drawn_letters_off_label">बंद</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">खात्री नसताना</string>
     <string name="core_settings_glide_engine_built_in_label">इन-बिल्ट</string>
     <string name="core_settings_glide_engine_futo_label">FUTO स्वाइप (इंग्रजी, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Google ची जेश्चर लायब्ररी (आयात केलेली)</string>

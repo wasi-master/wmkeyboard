@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">Sawubona</string>
     <string name="core_tools_media_category_laugh">Hleka</string>
     <string name="core_tools_media_category_love">Uthando</string>
+    <string name="core_tools_media_category_memes">Ama-Meme</string>
     <string name="core_tools_media_category_no">Cha</string>
     <string name="core_tools_media_category_party">Iphathi</string>
     <string name="core_tools_media_category_reactions">Izimpendulo</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">Iseva ye-Mozhi: isixhumi esibonakalayo samahhala ku-Google, DeepL, DuckDuckGo, Yandex ne-Reverso. Khetha injini. I-DeepL ne-Reverso idinga ulimi lomthombo.</string>
     <string name="core_tools_provider_music_server">Iseva yakho yokuqaphela</string>
     <string name="core_tools_provider_music_server_desc">Iseva oyisebenzisayo ephendula njenge-AudD: isiqeshana sithunyelwa njengefayela bese ingoma ibuyela njenge-JSON. Beka i-fingerprinter efana ne-Panako noma i-Olaf ngemuva kwayo.</string>
+    <string name="core_tools_provider_mwmbl_desc">Injini yokusesha yamahhala engayenzi inzuzo enesikhomba sayo. Alikho ukhiye. Imiphumela yewebhu kuphela, akukho zithombe.</string>
     <string name="core_tools_provider_nllb">Kudivayisi (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">Ihumusha ocingweni ngemodeli ye-NLLB-200 yakwa-Meta ku-CTranslate2: izilimi ezingama-200, phakathi kwanoma yiziphi ezimbili zazo, ngemibhangqwana ezinye izinjini ezingakwazi ukuyenza. Ukulanda okukodwa okungu-630 MB, futhi umusho uthatha imizuzwana embalwa. Umbhalo wakho uhlala ocingweni. Imodeli inelayisensi yokusetshenziswa okungewona okwezentengiso kuphela (CC BY-NC 4.0). Idinga ifoni engu-64-bit enenkumbulo engu-6 GB noma ngaphezulu.</string>
     <string name="core_tools_provider_none_on">Ayikho umhlinzeki ovuliwe. Vula owodwa kuzilungiselelo zaleli thuluzi.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">Lolu hlu</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">Bonisa noma fihla okhiye</string>
     <string name="core_tools_shortcut_leader_double_tap">Cindezela u-%1$s kabili</string>
+    <string name="core_tools_speak_no_voice">Le foni ayinalo izwi le-%1$s lokuyifunda. Engeza eyodwa kuzilungiselelo zombhalo ziye enkulumweni ze-Android, noma ulande izwi elingaxhunyiwe ku-inthanethi ngaphansi kwethi Amathuluzi › Funda emuva.</string>
     <string name="core_tools_symbol_category_arrows_label">Imicibisholo</string>
     <string name="core_tools_symbol_category_currency_label">Imali</string>
     <string name="core_tools_symbol_category_fractions_label">Izingxenyana</string>
     <string name="core_tools_symbol_category_greek_label">IsiGreki</string>
     <string name="core_tools_symbol_category_math_label">Izibalo</string>
+    <string name="core_tools_symbol_category_music_label">Umculo</string>
     <string name="core_tools_symbol_category_other_label">Okunye</string>
     <string name="core_tools_symbol_category_punctuation_label">Izimpawu zokuloba</string>
     <string name="core_tools_symbol_category_shapes_label">Izimo nezinkanyezi</string>
+    <string name="core_tools_symbol_category_stars_label">Izinkanyezi</string>
     <string name="core_tools_symbol_category_superscript_label">Umbhalo ongaphezulu</string>
+    <string name="core_tools_symbol_category_technical_label">Ezobuchwepheshe</string>
+    <string name="core_tools_symbol_category_weather_label">Isimo sezulu</string>
     <string name="core_tools_symbol_set_coding_label">Ukubhala ikhodi</string>
     <string name="core_tools_symbol_set_email_label">Imeyili</string>
     <string name="core_tools_symbol_set_math_label">Izibalo</string>

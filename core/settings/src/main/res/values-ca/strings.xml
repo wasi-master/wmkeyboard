@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Franja, píndola i tecles</string>
     <string name="core_settings_glide_commit_scope_pill_label">Franja i píndola</string>
     <string name="core_settings_glide_commit_scope_strip_label">Franja</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">Després de desfer</string>
+    <string name="core_settings_glide_drawn_letters_off_label">Desactivat</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">Si no n\'esteu segurs</string>
     <string name="core_settings_glide_engine_built_in_label">Integrat</string>
     <string name="core_settings_glide_engine_futo_label">FUTO Swipe (anglès, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Biblioteca de gestos de Google (importada)</string>

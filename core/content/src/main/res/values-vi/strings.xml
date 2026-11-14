@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">Địa chỉ email</string>
+    <string name="core_content_clip_entity_email_tag">EMAIL</string>
     <string name="core_content_clip_entity_otp_label">Mã dùng một lần</string>
     <string name="core_content_clip_entity_otp_tag">MÃ</string>
     <string name="core_content_clip_entity_phone_label">Số điện thoại</string>
@@ -38,6 +40,10 @@
         <item quantity="one">Ứng dụng đã bỏ qua %1$d đoạn mã không có nội dung để chèn.</item>
         <item quantity="other">Ứng dụng đã bỏ qua %1$d đoạn mã không có nội dung để chèn.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d trường biểu mẫu cung cấp một danh sách để chọn. Ứng dụng yêu cầu câu trả lời dưới dạng văn bản đã nhập, với lựa chọn đầu tiên được điền sẵn.</item>
+        <item quantity="other">%1$d trường biểu mẫu cung cấp danh sách để chọn. Ứng dụng yêu cầu từng trường dưới dạng văn bản đã nhập, với lựa chọn đầu tiên được điền sẵn.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Ứng dụng đã bỏ qua %1$d đoạn mã chèn hình ảnh.</item>
         <item quantity="other">Ứng dụng đã bỏ qua %1$d đoạn mã chèn hình ảnh.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d đoạn mã sử dụng giá trị mà Espanso không có tương đương. Nó được viết ra như hiện trạng.</item>
         <item quantity="other">%1$d đoạn mã sử dụng các giá trị mà Espanso không có tương đương. Chúng được viết ra như hiện trạng.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d đoạn mã chèn một hình ảnh. Tệp văn bản không thể chứa hình ảnh, vì vậy chỉ có các từ của nó được xuất ra.</item>
+        <item quantity="other">%1$d đoạn mã chèn các hình ảnh. Tệp văn bản không thể chứa hình ảnh, vì vậy chỉ có các từ của chúng được xuất ra.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">Ứng dụng đã xóa mẫu khỏi %1$d đoạn mã. Ứng dụng không chạy các mẫu có dạng đó. Đoạn mã vẫn nằm trong danh sách.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">Ứng dụng đã xóa %1$d trình kích hoạt mà bàn phím không thể theo dõi. Đoạn mã của nó vẫn nằm trong danh sách.</item>
         <item quantity="other">Ứng dụng đã xóa %1$d trình kích hoạt mà bàn phím không thể theo dõi. Các đoạn mã của chúng vẫn nằm trong danh sách.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">Bắt đầu bằng 999 nhưng không phải là một dòng kích hoạt 999 hoàn chỉnh. Để bắt đầu một dòng văn bản bằng 999, hãy viết \999 thay thế</string>
+    <string name="core_content_snippet_text_bad_pattern">Mẫu không thể được sử dụng: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s không thể là %2$s</string>
+    <string name="core_content_snippet_text_before_header">Văn bản trước dòng kích hoạt === đầu tiên ===. Bắt đầu một khối bằng một, hoặc bắt đầu dòng bằng #</string>
+    <string name="core_content_snippet_text_no_text">Đoạn mã này không có văn bản</string>
+    <string name="core_content_snippet_text_no_trigger">Đoạn mã không có nội dung gì giữa các dấu === cần có dòng @label hoặc @pattern</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d đoạn trích hình ảnh được hiển thị dưới dạng văn bản: tệp văn bản không chứa hình ảnh</item>
+        <item quantity="other">%1$d đoạn trích hình ảnh được hiển thị dưới dạng văn bản: tệp văn bản không chứa hình ảnh</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">Đã bỏ qua đoạn trích ở dòng %1$d, do có lỗi trong đó</string>
+    <string name="core_content_snippet_text_unknown_link">\@link gọi tên %1$s và không có đoạn mã nào ở đây có trình kích hoạt đó</string>
+    <string name="core_content_snippet_text_unknown_picture">\@picture có tên %1$s, không có đoạn mã nào sử dụng. Thêm hình ảnh trong trình chỉnh sửa riêng của đoạn mã</string>
+    <string name="core_content_snippet_text_unknown_setting">Bàn phím không nhận diện được cài đặt %1$s. Để bắt đầu văn bản của đoạn mã bằng @, hãy viết \@ thay thế</string>
     <string name="core_content_snippet_var_app_info">Tên của ứng dụng bạn đang nhập</string>
+    <string name="core_content_snippet_var_battery_info">Mức sạc pin, ví dụ 85%</string>
     <string name="core_content_snippet_var_clip_info">Mục nhập bộ nhớ tạm mới nhất</string>
     <string name="core_content_snippet_var_cursor_info">Nơi con trỏ dừng lại</string>
     <string name="core_content_snippet_var_date_info">Ngày hôm nay</string>
     <string name="core_content_snippet_var_datetime_info">Ngày và giờ</string>
     <string name="core_content_snippet_var_day_info">Ngày trong tháng</string>
+    <string name="core_content_snippet_var_greeting_info">Chào buổi sáng, chiều hoặc tối tùy theo thời gian, bằng ngôn ngữ bàn phím</string>
     <string name="core_content_snippet_var_isodate_info">Ngày ở định dạng ISO, ví dụ: 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">Ngày và giờ ở định dạng ISO</string>
+    <string name="core_content_snippet_var_language_info">Ngôn ngữ bàn phím bạn đang gõ</string>
     <string name="core_content_snippet_var_month_info">Tên của tháng</string>
     <string name="core_content_snippet_var_package_info">Tên gói của ứng dụng đó</string>
     <string name="core_content_snippet_var_selection_info">Văn bản bạn chọn trong trường</string>
+    <string name="core_content_snippet_var_tab_info">Một ký tự tab</string>
     <string name="core_content_snippet_var_time12_info">Thời gian hiện tại ở định dạng 12 giờ</string>
     <string name="core_content_snippet_var_time_info">Thời gian hiện tại ở định dạng 24 giờ</string>
     <string name="core_content_snippet_var_timestamp_info">Thời gian tính bằng giây Unix</string>

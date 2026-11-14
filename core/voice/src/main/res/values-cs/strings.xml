@@ -9,11 +9,16 @@
     <string name="core_voice_model_base_multi_body">Tento model vyvažuje přesnost a rychlost. Pokrývá každý jazyk, který Whisper zná. Vyberte jej, pokud je malý model příliš pomalý.</string>
     <string name="core_voice_model_base_world_body">Tento model používá jazyk, ve kterém píšete, namísto odhadu. Krátké fráze jsou mnohem spolehlivější. Vyberte jej, pokud jeho seznam obsahuje vaše jazyky.</string>
     <string name="core_voice_model_cpp_base_body">Tento model vyvažuje přesnost a rychlost. Používá jazyk, ve kterém diktujete, z jakéhokoli z 99 jazyků, které Whisper zná, a naslouchá vašim vlastním slovům. Vyberte jej, pokud je malý model příliš pomalý.</string>
+    <string name="core_voice_model_cpp_fine_tune_body">%1$s dále trénoval tento model Turbo na řeči v tomto jednom jazyce. Zpracovává pouze tento jazyk.</string>
+    <string name="core_voice_model_cpp_hinglish_body">Společnost Oriserve trénovala tento model v hindštině a v hindštině smíchané s angličtinou. Píše to, co říkáte, latinkou tak, jak se píše Hinglish, a anglická slova zachovává v angličtině. Nikdy nepíše dévanágarí, takže se hodí spíše pro hingliš než pro hindštinu. Je malý a rychlý.</string>
+    <string name="core_voice_model_cpp_kb_body">Švédská národní knihovna natrénovala tento model na švédské řeči. Zpracovává pouze švédštinu a je v ní přesnější než obecný model Whisper stejné velikosti.</string>
+    <string name="core_voice_model_cpp_kotoba_body">Společnost Kotoba Technologies vytvořila tento japonský model z Whisper Large v3. Jeho dekodér je mnohem menší, takže běží přibližně rychlostí modelu Turbo. Zpracovává pouze japonštinu.</string>
     <string name="core_voice_model_cpp_large_body">Toto je nejpřesnější model Whisper. Stažení má 1,1 GB. Načíst jej může pouze zařízení s velkým množstvím paměti. Model Turbo je téměř stejně přesný a má poloviční velikost.</string>
     <string name="core_voice_model_cpp_medium_body">Tento model poskytuje přesnost téměř na úrovni desktopu. Každá fráze trvá několik sekund. Během běhu model využívá téměř jeden gigabajt paměti.</string>
     <string name="core_voice_model_cpp_small_body">Tento model poskytuje nejlepší přesnost, která stále dobře funguje na telefonu. Používá jazyk, ve kterém diktujete, v jakémkoli z 99 jazyků, které Whisper zná, a naslouchá vašim vlastním slovům.</string>
     <string name="core_voice_model_cpp_tiny_body">Toto je nejrychlejší model. Funguje dobře při jasné výslovnosti, ale šum snižuje přesnost. Používá jazyk, ve kterém diktujete, a naslouchá vašim vlastním slovům.</string>
     <string name="core_voice_model_cpp_turbo_body">Tento model je téměř stejně přesný jako největší model, při poloviční velikosti. Každá fráze trvá několik sekund a model neumí překládat.</string>
+    <string name="core_voice_model_custom_body">Tento model whisper.cpp jste importovali ze souboru. Klávesnice neví, jak byl trénován, proto jej zvolte pro jazyky, pro které byl vytvořen, v části Model pro jednotlivé jazyky.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d jazyk</item>
         <item quantity="other">%1$d jazyků</item>

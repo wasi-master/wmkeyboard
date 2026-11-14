@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">回答する前に思考する、最近の中規模モデルです。ミドルレンジのデバイスが必要です。</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">小型で高速。基本的なデバイスでの簡単な書き換えに適しています。</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">画像を読み取ることができる非常に小さなモデルです。画像の説明は可能ですが、スクリーンショット内のテキストの読み取りには誤りが生じることがよくあります。</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">指示に従うこととツールの使用のためにNVIDIAが再トレーニングしたGemma 4 E4B。テキストのみで、高性能なデバイスが必要です。</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">基本的なデバイスでも動作する汎用モデルです。</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B未満のモデルよりも明らかに賢いです。ミドルレンジのデバイスが必要です。</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">最近の小型モデルです。サイズに対して品質が高いのが特徴です。</string>

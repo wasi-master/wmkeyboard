@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Nesen izlaists vidēja izmēra modelis, kas pirms atbildēšanas padomā. Tam nepieciešama vidējas klases ierīce.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Mazs un ātrs. Tas ir piemērots ātrai pārrakstīšanai pamata ierīcē.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Ļoti mazs modelis, kas prot lasīt attēlus. Tas apraksta attēlu, bet bieži nepareizi nolasa tekstu ekrānuzņēmumā.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">NVIDIA veikta Gemma 4 E4B pārkvalifikācija norādījumu izpildei un rīku izmantošanai. Tikai teksts, un ir nepieciešama jaudīga ierīce.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Vispārēja lietojuma modelis, kas joprojām ietilpst pamata ierīcē.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Nepārprotami gudrāks par modeļiem, kas mazāki par 1B. Tam nepieciešama vidējas klases ierīce.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Nesen izlaists neliels modelis. Kvalitāte ir augsta, ņemot vērā tā izmēru.</string>

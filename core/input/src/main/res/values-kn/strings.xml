@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">ಫುರಿಗಾನಾ ಉಚ್ಚಾರಣೆಗಳು</string>
     <string name="core_input_cjk_pack_hanja_subtitle">ಹಂಗುಲ್ ಪದಗಳು ಮತ್ತು ಅವುಗಳ ಹಂಝಾ, 300,000 ನಮೂದುಗಳು. ಸಲಹೆ ಪಟ್ಟಿಯಲ್ಲಿ ಹಂಝಾವನ್ನು ನೀಡಲು ಕೀಬೋರ್ಡ್‌ಗೆ ಈ ಪ್ಯಾಕ್ ಅಗತ್ಯವಿದೆ.</string>
     <string name="core_input_cjk_pack_hanja_title">ಹಂஜா (漢字) ನಿಘಂಟು</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">ಅಯಾಸ್ಪೆಲ್, ಆದ್ದರಿಂದ ಅದರ ಉಪಸರ್ಗಗಳು ಮತ್ತು ಪ್ರತ್ಯಯಗಳನ್ನು ಹೊಂದಿರುವ ಪದವು ತಿಳಿದಿರುತ್ತದೆ ಮತ್ತು ಅದರಲ್ಲಿರುವ ಟೈಪ್ ದೋಷವು ಸರಿಹೋಗುತ್ತದೆ.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">ಅರೇಬಿಕ್ ಕಾಗುಣಿತ ನಿಘಂಟು</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, ಆದ್ದರಿಂದ ಯಾವುದೇ ಪ್ರತ್ಯಯವನ್ನು ಹೊಂದಿರುವ ಪದಗಳು ತಿಳಿದಿವೆ ಮತ್ತು ಅವುಗಳಲ್ಲಿನ ಟೈಪೋಗಳನ್ನು ಸರಿಪಡಿಸಲಾಗುತ್ತದೆ.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">ಟರ್ಕಿಶ್ ಕಾಗುಣಿತ ನಿಯಮಗಳು</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">Mozc ನಿಂದ ಕಾನಾ ರೀಡಿಂಗ್‌ಗಳು, 1.08 ಮಿಲಿಯನ್ ನಮೂದುಗಳು, ಸುಮಾರು 42 MB. ಜಪಾನೀಸ್ ಪರಿವರ್ತನೆಗಾಗಿ ಕೀಬೋರ್ಡ್‌ಗೆ ಈ ಪ್ಯಾಕ್ ಅಗತ್ಯವಿದೆ.</string>

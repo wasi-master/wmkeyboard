@@ -23,6 +23,34 @@
         <item quantity="one">%1$d stroka á takka á ekki heima hér, því þetta lyklaborð notar þá stroku í annað. Forritið fjarlægði hana.</item>
         <item quantity="other">%1$d strokur á takka eiga ekki heima hér, því þetta lyklaborð notar þær strokur í annað. Forritið fjarlægði þær.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">Forritið sleppti %1$d reglu sem breytir því hvað eyðing fjarlægir. Eyðing virkar eins og hún gerir á öllum lyklaborðum hér.</item>
+        <item quantity="other">Forritið sleppti %1$d reglum sem breyta því hvað eyðing fjarlægir. Eyðing virkar eins og hún gerir á öllum lyklaborðum hér.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">Forritið fjarlægði %1$d strok sem breytir um stefnu. Strokur á þessu lyklaborði fara eina leið.</item>
+        <item quantity="other">Forritið fjarlægði %1$d strok sem breyta um stefnu. Strokur á þessu lyklaborði fara eina leið.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">Forritið sleppti %1$d síðu fyrir lykil eins og Caps Lock eða Ctrl. Þetta lyklaborð er ekki með síðu fyrir þann lykil.</item>
+        <item quantity="other">Forritið sleppti %1$d síðum fyrir lykla eins og Caps Lock eða Ctrl. Þetta lyklaborð er ekki með síðu fyrir þá lykla.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">Forritið sleppti %1$d reglu sem setur merki í ritaða röð þeirra. Þetta lyklaborð skrifar merki í þeirri röð sem þú skrifar þau.</item>
+        <item quantity="other">Forritið sleppti %1$d reglum sem setja merki í ritaða röð þeirra. Þetta lyklaborð skrifar merki í þeirri röð sem þú skrifar þau.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d regla setur kommu eða kommu á næsta staf. Hér er lykillinn sem ræsir hana dauður lykill.</item>
+        <item quantity="other">%1$d reglur setja kommu eða kommu á næsta staf. Hér eru lyklarnir sem ræsa þær dauðir lyklar.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">Forritið sleppti %1$d reglu sem breytir texta þegar þ匂 skrifar. Enginn lykill ræsir hana, eða hún passar við meiri texta en lykill getur skrifað.</item>
+        <item quantity="other">Forritið sleppti %1$d reglum sem breyta texta þegar þ匂 skrifar. Enginn lykill ræsir þær, eða þær passa við meiri texta en lykill getur skrifað.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d regla breytir takka og næsta takka í annan staf. Hér er sá stafur virkur þegar ýtt er á og haldið inni fyrsta takkanum.</item>
+        <item quantity="other">%1$d reglur breyta takka og næsta takka í annan staf. Hér eru þessir stafir virkir þegar ýtt er á og haldið inni fyrsta takkanum.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Forritið breytti %1$d lykli í næsta lykil sem það hefur.</item>
         <item quantity="other">Forritið breytti %1$d lyklum í næstu lykla sem það hefur.</item>

@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">스트립, 필 및 키</string>
     <string name="core_settings_glide_commit_scope_pill_label">스트립 및 필</string>
     <string name="core_settings_glide_commit_scope_strip_label">제거</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">실행 취소 후</string>
+    <string name="core_settings_glide_drawn_letters_off_label">끄기</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">확실하지 않을 때</string>
     <string name="core_settings_glide_engine_built_in_label">내장</string>
     <string name="core_settings_glide_engine_futo_label">FUTO 스와이프 (영어, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Google 제스처 라이브러리(가져옴)</string>

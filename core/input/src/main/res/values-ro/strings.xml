@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">Citiri Furigana</string>
     <string name="core_input_cjk_pack_hanja_subtitle">Cuvinte Hangul și Hanja ale acestora, 300.000 de intrări. Tastatura are nevoie de acest pachet pentru a oferi Hanja pe bara de sugestii.</string>
     <string name="core_input_cjk_pack_hanja_title">Dicționar Hanja (漢字)</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, astfel încât un cuvânt cu prefixele și sufixele sale este recunoscut, iar o greșeală de dactilografiere din acesta este corectată.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">Dicționar de ortografie pentru limba arabă</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, astfel încât cuvintele cu orice sufix să fie cunoscute și greșelile din ele să fie corectate.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">Reguli de ortografie turcă</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">Citiri Kana de la mozc, 1,08 milioane de intrări, aproximativ 42 MB. Tastatura are nevoie de acest pachet pentru conversia în japoneză.</string>

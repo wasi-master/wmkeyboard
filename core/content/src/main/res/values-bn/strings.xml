@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">ইমেল ঠিকানা</string>
+    <string name="core_content_clip_entity_email_tag">ইমেল</string>
     <string name="core_content_clip_entity_otp_label">ওয়ান-টাইম কোড</string>
     <string name="core_content_clip_entity_otp_tag">কোড</string>
     <string name="core_content_clip_entity_phone_label">ফোন নম্বর</string>
@@ -38,6 +40,10 @@
         <item quantity="one">অ্যাপটি %1$dটি স্নিপেট বাদ দিয়েছে যাতে ইনসার্ট করার মতো কিছু নেই।</item>
         <item quantity="other">অ্যাপটি %1$dটি স্নিপেট বাদ দিয়েছে যাতে ইনসার্ট করার মতো কিছু নেই।</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d ফর্ম ফিল্ড বেছে নেওয়ার জন্য একটি তালিকা অফার করে। অ্যাপটি টাইপ করা উত্তর হিসেবে এটি চায়, যেখানে প্রথম পছন্দটি পূরণ করা থাকে।</item>
+        <item quantity="other">%1$d ফর্ম ফিল্ড বেছে নেওয়ার জন্য একটি তালিকা অফার করে। অ্যাপটি টাইপ করা উত্তর হিসেবে প্রতিটি চায়, যেখানে প্রথম পছন্দটি পূরণ করা থাকে।</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">অ্যাপটি %1$d টি স্নিপেট এড়িয়ে গেছে যা একটি ছবি ইনসার্ট করে।</item>
         <item quantity="other">অ্যাপটি %1$d টি স্নিপেট এড়িয়ে গেছে যা ছবি ইনসার্ট করে।</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d টি স্নিপেট এমন একটি মান ব্যবহার করে যার কোনো সমতুল্য মান Espanso-তে নেই। এটি যেমন আছে তেমনই লেখা হয়েছে।</item>
         <item quantity="other">%1$d টি স্নিপেট এমন মান ব্যবহার করে যার কোনো সমতুল্য মান Espanso-তে নেই। এগুলো যেমন আছে তেমনই লেখা হয়েছে।</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d স্নিপেট একটি ছবি যুক্ত করে। একটি টেক্সট ফাইল ছবিটি ধারণ করতে পারে না, তাই কেবল এর শব্দগুলো পাঠানো হয়েছে।</item>
+        <item quantity="other">%1$d স্নিপেটগুলো ছবি যুক্ত করে। একটি টেক্সট ফাইল ছবিগুলো ধারণ করতে পারে না, তাই কেবল সেগুলোর শব্দগুলো পাঠানো হয়েছে।</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">অ্যাপটি %1$d স্নিপেট থেকে প্যাটার্নটি সরিয়ে দিয়েছে। অ্যাপটি সেই আকারের প্যাটার্ন চালায় না। স্নিপেটটি তালিকায় থেকে যায়।</item>
@@ -197,17 +207,35 @@
         <item quantity="one">অ্যাপটি %1$dটি ট্রিগার সরিয়েছে যা কীবোর্ড পর্যবেক্ষণ করতে পারে না। এর স্নিপেট তালিকায় থেকে যাবে।</item>
         <item quantity="other">অ্যাপটি %1$dটি ট্রিগার সরিয়েছে যা কীবোর্ড পর্যবেক্ষণ করতে পারে না। তাদের স্নিপেট তালিকায় থেকে যাবে।</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">=== দিয়ে শুরু হয় কিন্তু সম্পূর্ণ === ট্রিগার === লাইন নয়। টেক্সটের একটি লাইন === দিয়ে শুরু করতে, পরিবর্তে \=== লিখুন</string>
+    <string name="core_content_snippet_text_bad_pattern">প্যাটার্নটি ব্যবহার করা যাবে না: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s, %2$s হতে পারে না</string>
+    <string name="core_content_snippet_text_before_header">প্রথম === ট্রিগার === লাইনের আগের পাঠ্য। একটি দিয়ে একটি ব্লক শুরু করুন, অথবা লাইনটি # দিয়ে শুরু করুন</string>
+    <string name="core_content_snippet_text_no_text">এই স্নিপেটে কোনো টেক্সট নেই</string>
+    <string name="core_content_snippet_text_no_trigger">=== চিহ্নের মাঝখানে কিছু নেই এমন একটি স্নিপেটে একটি @label বা একটি @pattern লাইন প্রয়োজন</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">এর পাঠ্য হিসেবে ১টি ছবির স্নিপেট এসেছে: একটি পাঠ্য ফাইলে কোনো ছবি থাকে না</item>
+        <item quantity="other">এর পাঠ্য হিসেবে %1$dটি ছবির স্নিপেট এসেছে: একটি পাঠ্য ফাইলে কোনো ছবি থাকে না</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">%1$d লাইনের স্নিপেটটি বাদ দেওয়া হয়েছে, যাতে একটি ভুল আছে</string>
+    <string name="core_content_snippet_text_unknown_link">\@link এর নাম %1$s, এবং এখানে কোনো স্নিপেটের সেই ট্রিগার নেই</string>
+    <string name="core_content_snippet_text_unknown_picture">\@picture %1$s এর নাম দেয়, যা কোনো স্নিপেট ব্যবহার করে না। স্নিপেটের নিজস্ব এডিটরে ছবি যোগ করুন</string>
+    <string name="core_content_snippet_text_unknown_setting">কীবোর্ডটি %1$s সেটিংটি জানে না। @ দিয়ে কোনো স্নিপেটের টেক্সট শুরু করতে, পরিবর্তে \@ লিখুন</string>
     <string name="core_content_snippet_var_app_info">আপনি যে অ্যাপটিতে টাইপ করছেন তার নাম</string>
+    <string name="core_content_snippet_var_battery_info">ব্যাটারির চার্জ, উদাহরণস্বরূপ ৮৫%</string>
     <string name="core_content_snippet_var_clip_info">সবচেয়ে নতুন ক্লিপবোর্ড এন্ট্রি</string>
     <string name="core_content_snippet_var_cursor_info">যেখানে কার্সারটি থামে</string>
     <string name="core_content_snippet_var_date_info">আজকের তারিখ</string>
     <string name="core_content_snippet_var_datetime_info">তারিখ এবং সময়</string>
     <string name="core_content_snippet_var_day_info">মাসের দিন</string>
+    <string name="core_content_snippet_var_greeting_info">কিবোর্ডের ভাষায় সময়ের ওপর নির্ভর করে শুভ সকাল, দুপুর বা বিকেল</string>
     <string name="core_content_snippet_var_isodate_info">আইএসও (ISO) ফর্মে তারিখ, উদাহরণস্বরূপ ২০২৬-০৭-১৯</string>
     <string name="core_content_snippet_var_isotime_info">আইএসও (ISO) ফরম্যাটে তারিখ এবং সময়</string>
+    <string name="core_content_snippet_var_language_info">যে কীবোর্ড ভাষায় আপনি টাইপ করেন</string>
     <string name="core_content_snippet_var_month_info">মাসের নাম</string>
     <string name="core_content_snippet_var_package_info">সেই অ্যাপের প্যাকেজের নাম</string>
     <string name="core_content_snippet_var_selection_info">ফিল্ডে আপনি যে টেক্সটটি নির্বাচন করেন</string>
+    <string name="core_content_snippet_var_tab_info">একটি ট্যাব ক্যারেক্টার</string>
     <string name="core_content_snippet_var_time12_info">১২-ঘণ্টার ফরম্যাটে বর্তমান সময়</string>
     <string name="core_content_snippet_var_time_info">২৪-ঘণ্টার ফরম্যাটে বর্তমান সময়</string>
     <string name="core_content_snippet_var_timestamp_info">ইউনিক্স সেকেন্ডে সময়</string>

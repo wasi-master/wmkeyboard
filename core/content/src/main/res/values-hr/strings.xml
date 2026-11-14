@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">Adresa e-pošte</string>
+    <string name="core_content_clip_entity_email_tag">E-POŠTA</string>
     <string name="core_content_clip_entity_otp_label">Jednokratni kod</string>
     <string name="core_content_clip_entity_otp_tag">KOD</string>
     <string name="core_content_clip_entity_phone_label">Telefonski broj</string>
@@ -38,6 +40,10 @@
         <item quantity="one">Aplikacija je preskočila %1$d isječak koji nema ništa za umetanje.</item>
         <item quantity="other">Aplikacija je preskočila %1$d isječaka koji nemaju ništa za umetanje.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d polje obrasca nudi popis za odabir. Aplikacija to traži kao upisani odgovor, s prva ispunjena opcija.</item>
+        <item quantity="other">%1$d polja obrasca nude popis za odabir. Aplikacija svako traži kao upisani odgovor, s prva ispunjena opcija.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Aplikacija je preskočila %1$d isječak koji umeće sliku.</item>
         <item quantity="other">Aplikacija je preskočila %1$d isječaka koji umeću slike.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d isječak koristi vrijednost za koju Espanso nema ekvivalent. Napisan je kako stoji.</item>
         <item quantity="other">%1$d isječaka koristi vrijednosti za koje Espanso nema ekvivalent. Napisani su kako stoje.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d isječak umeće sliku. Tekstualna datoteka ne može sadržavati sliku, stoga su izvezene samo njezine riječi.</item>
+        <item quantity="other">%1$d isječaka umeće slike. Tekstualna datoteka ne može sadržavati slike, stoga su izvezene samo njihove riječi.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">Aplikacija je uklonila uzorak iz %1$d isječka. Aplikacija ne pokreće uzorke tog oblika. Isječak ostaje na popisu.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">Aplikacija je uklonila %1$d okidač koji tipkovnica ne može pratiti. Njegov isječak ostaje na popisu.</item>
         <item quantity="other">Aplikacija je uklonila %1$d okidača koje tipkovnica ne može pratiti. Njihovi isječci ostaju na popisu.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">Počinje s ===, ali nije cijeli redak okidača ===. Da biste započeli redak teksta s ===, umjesto toga napišite \===</string>
+    <string name="core_content_snippet_text_bad_pattern">Predložak se ne može koristiti: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s ne može biti %2$s</string>
+    <string name="core_content_snippet_text_before_header">Tekst prije prvog redka === okidač ===. Započnite blok s jednim ili započnite redak s #</string>
+    <string name="core_content_snippet_text_no_text">Ovaj odsječak nema teksta</string>
+    <string name="core_content_snippet_text_no_trigger">Isječak bez ičega između === oznaka treba @label ili @pattern redak</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d isječak slike došao je kao njegov tekst: tekstualna datoteka ne sadrži slike</item>
+        <item quantity="other">%1$d isječaka slika došlo je kao njihov tekst: tekstualna datoteka ne sadrži slike</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">Preskočen isječak u retku %1$d, koji sadrži pogrešku</string>
+    <string name="core_content_snippet_text_unknown_link">\@link navodi %1$s, a nijedan isječak ovdje nema taj okidač</string>
+    <string name="core_content_snippet_text_unknown_picture">\@picture navodi %1$s, što nijedan isječak ne koristi. Dodajte slike u uređivaču samog isječka</string>
+    <string name="core_content_snippet_text_unknown_setting">Tipkovnica ne poznaje postavku %1$s. Kako bi tekst isječka započeo s @, upišite \@</string>
     <string name="core_content_snippet_var_app_info">Naziv aplikacije u kojoj tipkate</string>
+    <string name="core_content_snippet_var_battery_info">Napunjenost baterije, na primjer 85%</string>
     <string name="core_content_snippet_var_clip_info">Najnoviji unos u međuspremniku</string>
     <string name="core_content_snippet_var_cursor_info">Mjesto gdje se postavlja kursor</string>
     <string name="core_content_snippet_var_date_info">Današnji datum</string>
     <string name="core_content_snippet_var_datetime_info">Datum i vrijeme</string>
     <string name="core_content_snippet_var_day_info">Dan u mjesecu</string>
+    <string name="core_content_snippet_var_greeting_info">Dobro jutro, dobar dan ili dobra večer ovisno o vremenu, na jeziku tipkovnice</string>
     <string name="core_content_snippet_var_isodate_info">Datum u ISO obliku, na primjer 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">Datum i vrijeme u ISO formatu</string>
+    <string name="core_content_snippet_var_language_info">Jezik tipkovnice na kojem tipkate</string>
     <string name="core_content_snippet_var_month_info">Naziv mjeseca</string>
     <string name="core_content_snippet_var_package_info">Naziv paketa te aplikacije</string>
     <string name="core_content_snippet_var_selection_info">Tekst koji odaberete u polju</string>
+    <string name="core_content_snippet_var_tab_info">Znak tabulatora</string>
     <string name="core_content_snippet_var_time12_info">Trenutno vrijeme u 12-satnom formatu</string>
     <string name="core_content_snippet_var_time_info">Trenutno vrijeme u 24-satnom formatu</string>
     <string name="core_content_snippet_var_timestamp_info">Vrijeme u Unix sekundama</string>

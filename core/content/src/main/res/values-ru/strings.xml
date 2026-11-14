@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">Адрес электронной почты</string>
+    <string name="core_content_clip_entity_email_tag">ЭЛ. ПОЧТА</string>
     <string name="core_content_clip_entity_otp_label">Одноразовый код</string>
     <string name="core_content_clip_entity_otp_tag">КОД</string>
     <string name="core_content_clip_entity_phone_label">Номер телефона</string>
@@ -38,6 +40,10 @@
         <item quantity="one">Приложение пропустило %1$d сниппет, которому нечего вставлять.</item>
         <item quantity="other">Приложение пропустило %1$d сниппетов, которым нечего вставлять.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d поле формы предлагает список на выбор. Приложение запрашивает его в виде введенного ответа с подставленным первым вариантом.</item>
+        <item quantity="other">%1$d поля формы предлагают список на выбор. Приложение запрашивает каждое из них в виде введенного ответа с подставленным первым вариантом.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Приложение пропустило %1$d сниппет, который вставляет изображение.</item>
         <item quantity="other">Приложение пропустило %1$d сниппетов, которые вставляют изображения.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d фрагмент использует значение, для которого у Espanso нет эквивалента. Оно записано как есть.</item>
         <item quantity="other">%1$d фрагментов используют значения, для которых у Espanso нет эквивалента. Они записаны как есть.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d фрагмент вставляет изображение. Текстовый файл не может содержать изображение, поэтому были выгружены только его слова.</item>
+        <item quantity="other">%1$d фрагментов вставляют изображения. Текстовый файл не может содержать изображения, поэтому были выгружены только их слова.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">Приложение удалило шаблон из %1$d фрагмента. Приложение не выполняет шаблоны такого типа. Фрагмент остается в списке.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">Приложение удалило %1$d триггер, который клавиатура не может отслеживать. Его фрагмент остается в списке.</item>
         <item quantity="other">Приложение удалило %1$d триггеров, которые клавиатура не может отслеживать. Их фрагменты остаются в списке.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">Начинается с 555, но не является полноценной строкой триггера 555. Чтобы начать строку текста с 555, напишите вместо этого \555</string>
+    <string name="core_content_snippet_text_bad_pattern">Шаблон не может быть использован: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s не может быть %2$s</string>
+    <string name="core_content_snippet_text_before_header">Текст перед первой строкой триггера 555. Начните блок с одного символа или начните строку с #</string>
+    <string name="core_content_snippet_text_no_text">Этот фрагмент не содержит текста</string>
+    <string name="core_content_snippet_text_no_trigger">Сниппет, у которого ничего нет между знаками 999, должен содержать строку @label или @pattern</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d сниппет с картинкой был принят как текст: текстовый файл не содержит картинок</item>
+        <item quantity="other">%1$d сниппета(-ов) с картинками были приняты как текст: текстовый файл не содержит картинок</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">Пропущен фрагмент в строке %1$d, в котором есть ошибка</string>
+    <string name="core_content_snippet_text_unknown_link">\@link ссылается на %1$s, и здесь нет ни одного фрагмента с таким триггером</string>
+    <string name="core_content_snippet_text_unknown_picture">\@picture ссылается на %1$s, который не используется ни одним фрагментом. Добавьте изображения в собственном редакторе фрагмента</string>
+    <string name="core_content_snippet_text_unknown_setting">Клавиатура не распознает настройку %1$s. Чтобы начать текст сниппета с символа @, напишите \@</string>
     <string name="core_content_snippet_var_app_info">Название приложения, в котором вы печатаете</string>
+    <string name="core_content_snippet_var_battery_info">Заряд батареи, например 85%</string>
     <string name="core_content_snippet_var_clip_info">Последняя запись в буфере обмена</string>
     <string name="core_content_snippet_var_cursor_info">Место, где находится курсор</string>
     <string name="core_content_snippet_var_date_info">Сегодняшняя дата</string>
     <string name="core_content_snippet_var_datetime_info">Дата и время</string>
     <string name="core_content_snippet_var_day_info">День месяца</string>
+    <string name="core_content_snippet_var_greeting_info">«Доброе утро», «Добрый день» или «Добрый вечер» в зависимости от времени суток на языке клавиатуры</string>
     <string name="core_content_snippet_var_isodate_info">Дата в формате ISO, например 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">Дата и время в формате ISO</string>
+    <string name="core_content_snippet_var_language_info">Язык клавиатуры, на котором вы печатаете</string>
     <string name="core_content_snippet_var_month_info">Название месяца</string>
     <string name="core_content_snippet_var_package_info">Имя пакета этого приложения</string>
     <string name="core_content_snippet_var_selection_info">Текст, который вы выделяете в поле</string>
+    <string name="core_content_snippet_var_tab_info">Символ табуляции</string>
     <string name="core_content_snippet_var_time12_info">Текущее время в 12-часовом формате</string>
     <string name="core_content_snippet_var_time_info">Текущее время в 24-часовом формате</string>
     <string name="core_content_snippet_var_timestamp_info">Время в секундах Unix</string>

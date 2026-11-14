@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">การอ่านฟูริงานะ</string>
     <string name="core_input_cjk_pack_hanja_subtitle">คำภาษาฮันกึลและฮันจาที่เกี่ยวข้อง จำนวน 300,000 รายการ คีย์บอร์ดจำเป็นต้องมีชุดข้อมูลนี้เพื่อแสดงฮันจาในแถบคำแนะนำ</string>
     <string name="core_input_cjk_pack_hanja_title">พจนานุกรมฮันจา (漢字)</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell เพื่อให้รู้จักคำที่มีคำนำหน้าและคำต่อท้าย และแก้ไขคำผิดในนั้นได้</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">พจนานุกรมการสะกดคำภาษาอาหรับ</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr เพื่อให้รู้จักคำที่มีคำต่อท้ายใดๆ และแก้ไขคำผิดในคำเหล่านั้น</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">กฎการสะกดคำภาษาตุรกี</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">การอ่านคานะจาก mozc มีรายการ 1.08 ล้านรายการ ขนาดประมาณ 42 MB แป้นพิมพ์จำเป็นต้องใช้ชุดข้อมูลนี้สำหรับการแปลงภาษาญี่ปุ่น</string>

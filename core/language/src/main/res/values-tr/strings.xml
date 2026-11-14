@@ -23,6 +23,34 @@
         <item quantity="one">Bir tuş üzerindeki %1$d kaydırma hareketinin burada yeri yok, çünkü bu klavye o kaydırmayı başka bir iş için kullanıyor. Uygulama bunu kaldırdı.</item>
         <item quantity="other">Tuşlar üzerindeki %1$d kaydırma hareketinin burada yeri yok, çünkü bu klavye o kaydırmaları başka işler için kullanıyor. Uygulama bunları kaldırdı.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">Uygulama, silme işleminin neyi kaldıracağını değiştiren %1$d kuralı hariç tuttu. Silme, buradaki her düzende olduğu gibi çalışır.</item>
+        <item quantity="other">Uygulama, silme işleminin neyi kaldıracağını değiştiren %1$d kuralı hariç tuttu. Silme, buradaki her düzende olduğu gibi çalışır.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">Uygulama, yön değiştiren %1$d kaydırma hareketini kaldırdı. Bu klavyedeki kaydırma hareketleri tek bir yöne gider.</item>
+        <item quantity="other">Uygulama, yön değiştiren %1$d kaydırma hareketini kaldırdı. Bu klavyedeki kaydırma hareketleri tek bir yöne gider.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">Uygulama, Caps Lock veya Ctrl gibi bir tuş için %1$d sayfayı hariç tuttu. Bu klavyede o tuş için bir sayfa yok.</item>
+        <item quantity="other">Uygulama, Caps Lock veya Ctrl gibi tuşlar için %1$d sayfayı hariç tuttu. Bu klavyede o tuşlar için bir sayfa yok.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">Uygulama, işaretleri yazım sırasına koyan %1$d kuralı hariç tuttu. Bu klavye işaretleri yazdığınız sırada yazar.</item>
+        <item quantity="other">Uygulama, işaretleri yazım sırasına koyan %1$d kuralı hariç tuttu. Bu klavye işaretleri yazdığınız sırada yazar.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d kural bir sonraki harfe vurgu koyar. Burada, bunu başlatan tuş ölü bir tuştur.</item>
+        <item quantity="other">%1$d kural bir sonraki harfe vurgu koyar. Burada, bunları başlatan tuşlar ölü tuşlardır.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">Uygulama, yazarken metni değiştiren %1$d kuralı hariç tuttu. Hiçbir tuş bunu başlatmıyor veya bir tuşun yazabileceğinden daha fazla metinle eşleşiyor.</item>
+        <item quantity="other">Uygulama, yazarken metni değiştiren %1$d kuralı hariç tuttu. Hiçbir tuş bunları başlatmıyor veya tuşların yazabileceğinden daha fazla metinle eşleşiyorlar.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d kural bir tuşu ve sonrakini başka bir karakter haline getirir. Burada bu karakter, ilk tuş basılı tutulduğundadır.</item>
+        <item quantity="other">%1$d kural bir tuşu ve sonrakini başka bir karakter haline getirir. Burada bu karakterler, ilk tuş basılı tutulduğundadır.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Uygulama %1$d tuşu sahip olduğu en yakın tuşla değiştirdi.</item>
         <item quantity="other">Uygulama %1$d tuşu sahip olduğu en yakın tuşlarla değiştirdi.</item>

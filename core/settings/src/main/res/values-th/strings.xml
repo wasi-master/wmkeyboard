@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">แถบ ปุ่ม และคีย์</string>
     <string name="core_settings_glide_commit_scope_pill_label">ตัดออกและแสดงเป็นป้าย</string>
     <string name="core_settings_glide_commit_scope_strip_label">ตัดออก</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">หลังจากการเลิกทำ</string>
+    <string name="core_settings_glide_drawn_letters_off_label">ปิด</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">เมื่อไม่แน่ใจ</string>
     <string name="core_settings_glide_engine_built_in_label">ในตัว</string>
     <string name="core_settings_glide_engine_futo_label">FUTO Swipe (ภาษาอังกฤษ, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">ไลบรารีท่าทางสัมผัสของ Google (นำเข้าแล้ว)</string>

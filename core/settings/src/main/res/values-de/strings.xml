@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Leiste, Pille und Tasten</string>
     <string name="core_settings_glide_commit_scope_pill_label">Leiste und Pille</string>
     <string name="core_settings_glide_commit_scope_strip_label">Leiste</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">Nach einem Rückgängigmachen</string>
+    <string name="core_settings_glide_drawn_letters_off_label">Aus</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">Bei Ungewissheit</string>
     <string name="core_settings_glide_engine_built_in_label">Integriert</string>
     <string name="core_settings_glide_engine_futo_label">FUTO Wischen (Englisch, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Googles Gesten-Bibliothek (importiert)</string>

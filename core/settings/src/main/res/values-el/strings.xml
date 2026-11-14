@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Λωρίδα, πλαίσιο και πλήκτρα</string>
     <string name="core_settings_glide_commit_scope_pill_label">Λωρίδα και χάπι</string>
     <string name="core_settings_glide_commit_scope_strip_label">Λωρίδα</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">Μετά από αναίρεση</string>
+    <string name="core_settings_glide_drawn_letters_off_label">Ανενεργό</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">Όταν δεν είστε σίγουροι</string>
     <string name="core_settings_glide_engine_built_in_label">Ενσωματωμένο</string>
     <string name="core_settings_glide_engine_futo_label">FUTO Swipe (Αγγλικά, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Βιβλιοθήκη χειρονομιών Google (εισαγμένη)</string>

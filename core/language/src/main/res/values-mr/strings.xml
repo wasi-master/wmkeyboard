@@ -23,6 +23,34 @@
         <item quantity="one">कीवर %1$d स्वाइपला येथे जागा नाही, कारण हा कीबोर्ड तो स्वाइप दुसऱ्या कामासाठी वापरतो. ॲपने ते काढून टाकले आहे.</item>
         <item quantity="other">कीवर %1$d स्वाइपना येथे जागा नाही, कारण हा कीबोर्ड ते स्वाइप दुसऱ्या कामांसाठी वापरतो. ॲपने ते काढून टाकले आहेत.</item>
     </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">अॅपने %1$d नियम वगळला आहे जो हटवणे काय काढून टाकते ते बदलतो. हटवणे येथे प्रत्येक लेआउटवर जसे कार्य करते तसेच कार्य करते.</item>
+        <item quantity="other">अॅपने %1$d नियम वगळले आहेत जे हटवणे काय काढून टाकतात ते बदलतात. हटवणे येथे प्रत्येक लेआउटवर जसे कार्य करते तसेच कार्य करते.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">ॲपabi दिशा बदलणारे %1$d स्वाइप काढून टाकले आहे. या कीबोर्डवरील स्वाइप एका दिशेने जातात.</item>
+        <item quantity="other">ॲपabi दिशा बदलणारे %1$d स्वाइप काढून टाकले आहेत. या कीबोर्डवरील स्वाइप एका दिशेने जातात.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">अ‍ॅप्सने Caps Lock किंवा Ctrl सारख्या की साठी %1$d पृष्ठ वगळले. या कीबोर्डवर त्या की साठी कोणतेही पृष्ठ नाही.</item>
+        <item quantity="other">अ‍ॅप्सने Caps Lock किंवा Ctrl सारख्या की साठी %1$d पृष्ठे वगळली. या कीबोर्डवर त्या की साठी कोणतीही पृष्ठे नाहीत.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">अ‍ॅप्सने %1$d नियम वगळला जो चिन्हे त्यांच्या लेखी क्रमाने ठेवतो. हा कीबोर्ड तुम्ही टाईप केलेल्या क्रमाने चिन्हे लिहितो.</item>
+        <item quantity="other">अ‍ॅप्सने %1$d नियम वगळले जे चिन्हे त्यांच्या लेखी क्रमाने ठेवतात. हा कीबोर्ड तुम्ही टाईप केलेल्या क्रमाने चिन्हे लिहितो.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d नियम पुढील अक्षरावर उच्चारचिन्ह ठेवतो. येथे, ती सुरू करणारी की एक डेड की आहे.</item>
+        <item quantity="other">%1$d नियम पुढील अक्षरावर उच्चारचिन्ह ठेवतात. येथे, त्या सुरू करणाऱ्या की डेड की आहेत.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">ॲपने %1$d नियम वगळला आहे जो तुम्ही टाइप करता तसे मजकूर बदलतो. कोणतीही की येथे ती सुरू करत नाही, किंवा ती की टाईप करू शकen त्यापेक्षा जास्त मजकूर जुळवते.</item>
+        <item quantity="other">ॲपने %1$d नियम वगळले आहेत जे तुम्ही टाइप करता तसे मजकूर बदलतात. कोणतीही की येथे त्या सुरू करत नाही, किंवा त्या की टाईप करू शकen त्यापेक्षा जास्त मजकूर जुळवतात.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d नियम एक की आणि पुढील की दुसऱ्या वर्णामध्ये बदलतो. येथे, तो वर्ण पहिल्या की दाबून आणि धरून ठेवण्यावर आहे.</item>
+        <item quantity="other">%1$d नियम एक की आणि पुढील की दुसऱ्या वर्णामध्ये बदलतात. येथे, ती वर्ण पहिल्या की दाबून आणि धरून ठेवण्यावर आहेत.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">ॲपने %1$d की ला त्याच्या जवळच्या की मध्ये बदलले आहे.</item>
         <item quantity="other">ॲपने %1$d की ना त्यांच्या जवळच्या की मध्ये बदलले आहे.</item>

@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">Ikheli le-imeyili</string>
+    <string name="core_content_clip_entity_email_tag">I-EMAIL</string>
     <string name="core_content_clip_entity_otp_label">Ikhodi yesikhathi esisodwa</string>
     <string name="core_content_clip_entity_otp_tag">IKHODI</string>
     <string name="core_content_clip_entity_phone_label">Inombolo yocingo</string>
@@ -38,6 +40,10 @@
         <item quantity="one">Uhlelo lokusebenza lweqe isicashunisi esingu-%1$d esingenalutho olungafakwa.</item>
         <item quantity="other">Uhlelo lokusebenza lweqe izicashunisi ezingu-%1$d ezingenalutho olungafakwa.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">Inkambu yefomu engu-%1$d inikeza uhlu ongakhetha kulolu. Uhlelo lokusebenza luyicela njengempendulo ethayiphiwe, ngokukhetha kokuqala kugcwalisiwe.</item>
+        <item quantity="other">Izinkambu zefomu ezingu-%1$d zinikeza uhlu ongakhetha kulolu. Uhlelo lokusebenza luyicela ngayinye njengempendulo ethayiphiwe, ngokukhetha kokuqala kugcwalisiwe.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Uhlelo lokusebenza lweqe isiqeshana esingu-%1$d esifaka isithombe.</item>
         <item quantity="other">Uhlelo lokusebenza lweqe iziqeshana ezingu-%1$d ezifaka izithombe.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">Isicashunisi esingu-%1$d sisebenzisa inani i-Espanso engenalo elilingana nalo. Kubhalwe njengoba kunjalo.</item>
         <item quantity="other">Izicashunisi ezingu-%1$d zisebenzisa amanani i-Espanso engenalo elilingana nawo. Kubhalwe njengoba kunjalo.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">Isiqephu sesi-%1$d sifaka isithombe. Ifayela lombhalo alikwazi ukuqukatha isithombe, ngakho amagama awo kuphela aphumile.</item>
+        <item quantity="other">Iziqephu ezi-%1$d zifaka izithombe. Ifayela lombhalo alikwazi ukuqukatha izithombe, ngakho amagama azo kuphela aphumile.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">Uhlelo lokusebenza lususe iphethini esicashunisini esingu-%1$d. Uhlelo lokusebenza alusebenzisi amaphethini alolo hlobo. Isicashunisi sihlala ohlwini.</item>
@@ -197,17 +207,34 @@
         <item quantity="one">Uhlelo lokusebenza lususe i-trigger engu-%1$d ikhibhodi engakwazi ukuyibheka. Isiqeshana sayo sihlala ohlwini.</item>
         <item quantity="other">Uhlelo lokusebenza lususe ama-trigger angu-%1$d ikhibhodi engakwazi ukuwabheka. Iziqeshana zazo zihlala ohlwini.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">Kuqala ngo-=== kodwa akuyona ulayini womculo ogcwele ka-===. Ukuqala ulayini wombhalo ngo-===, bhala u-\3 esikhundleni salokho</string>
+    <string name="core_content_snippet_text_bad_pattern">Iphethini ayikwazi ukusetshenziswa: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s akukwazi ukuba ngu-%2$s</string>
+    <string name="core_content_snippet_text_before_header">Umbhalo ngaphambi komugqa wokuqala === wenqaba ===. Qala ibhulokhi ngelilodwa, noma uqale umugqa ngo-#</string>
+    <string name="core_content_snippet_text_no_text">Lesi siqeshana asinangqikithi</string>
+    <string name="core_content_snippet_text_no_trigger">Isiqeshana esingenalutho phakathi kwezimpawu ze-999 sidinga umugqa ka-@label noma ka-@pattern</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">Isiqeshana sesithombe esingu-%1$d sifikile njengombhalo waso: ifayela lombhalo alinamifanekiso</item>
+        <item quantity="other">Izingcezu zezithombe ezingu-%1$d zifikile njengombhalo wazo: ifayela lombhalo alinamifanekiso</item>
+    </plurals>
+    <string name="core_content_snippet_text_unknown_link">I-@link iqamba u-%1$s, futhi akukho snippet lapha enaleso sikhuthazo</string>
+    <string name="core_content_snippet_text_unknown_picture">I-@picture igama liyi-%1$s, elingasetshenziswa i-snippet. Engeza izithombe kumhleli we-snippet</string>
+    <string name="core_content_snippet_text_unknown_setting">Ikhibhodi ayisazi isilungiselelo %1$s. Ukuze uqale umbhalo wesiqeshana ngo-@, bhala u-\@ esikhundleni salokho</string>
     <string name="core_content_snippet_var_app_info">Igama lohlelo lokusebenza oluthayiphayo</string>
+    <string name="core_content_snippet_var_battery_info">Ukushajwa kwebhethri, isibonelo 85%</string>
     <string name="core_content_snippet_var_clip_info">Okufakiwe kwakamuva ebhodini lokunamathisela</string>
     <string name="core_content_snippet_var_cursor_info">Indawo lapho isikhombisi sihlala khona</string>
     <string name="core_content_snippet_var_date_info">Usuku lwanamuhla</string>
     <string name="core_content_snippet_var_datetime_info">Usuku nesikhathi</string>
     <string name="core_content_snippet_var_day_info">Usuku lwenyanga</string>
+    <string name="core_content_snippet_var_greeting_info">Sawubona ekuseni, ntambama noma kusihlwa ngesikhathi, ngolimi lwekhibhodi</string>
     <string name="core_content_snippet_var_isodate_info">Usuku ngefomu le-ISO, isibonelo 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">Usuku nesikhathi ngefomethi ye-ISO</string>
+    <string name="core_content_snippet_var_language_info">Ulimi lwekhibhodi oyithayiphayo</string>
     <string name="core_content_snippet_var_month_info">Igama lenyanga</string>
     <string name="core_content_snippet_var_package_info">Igama lephakethe lalolu hlelo lokusebenza</string>
     <string name="core_content_snippet_var_selection_info">Umbhalo owukhethayo enkundleni</string>
+    <string name="core_content_snippet_var_tab_info">Uphawu lwethebhu</string>
     <string name="core_content_snippet_var_time12_info">Isikhathi manje ngefomethi yamahora ayi-12</string>
     <string name="core_content_snippet_var_time_info">Isikhathi samanje ngefomethi yamahora angama-24</string>
     <string name="core_content_snippet_var_timestamp_info">Isikhathi ngemizuzwana ye-Unix</string>

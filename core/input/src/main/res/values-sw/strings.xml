@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">Usomaji wa Furigana</string>
     <string name="core_input_cjk_pack_hanja_subtitle">Maneno ya Hangul na Hanja yake, maingizo 300,000. Kinanda kinahitaji kifurushi hiki kutoa Hanja kwenye utepe wa mapendekezo.</string>
     <string name="core_input_cjk_pack_hanja_title">Kamusi ya Hanja (漢字)</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, kwa hiyo neno lenye viambishi vyake linajulikana na kosa la kuandika linarekebishwa.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">Kamusi ya tahajia ya Kiarabu</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, ili maneno yenye kiambishi chochote yajulikane na makosa ya kuandika yarekebishwe.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">Sheria za tahajia za Kituruki</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">Usomaji wa Kana kutoka mozc, viingilio milioni 1.08, takriban MB 42. Kibodi inahitaji kifurushi hiki kwa ajili ya ubadilishaji wa Kijapani.</string>

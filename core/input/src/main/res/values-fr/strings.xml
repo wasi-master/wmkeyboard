@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">Lectures furigana</string>
     <string name="core_input_cjk_pack_hanja_subtitle">Mots hangul et leurs hanja, 300 000 entrées. Le clavier a besoin de ce pack pour proposer des hanja dans la barre de suggestion.</string>
     <string name="core_input_cjk_pack_hanja_title">Dictionnaire Hanja (漢字)</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, de sorte qu\'un mot avec ses préfixes et suffixes est reconnu et qu\'une faute de frappe est corrigée.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">Dictionnaire orthographique arabe</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, pour que les mots avec n\'importe quel suffixe soient reconnus et que leurs fautes de frappe soient corrigées.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">Règles orthographiques turques</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">Lectures Kana de mozc, 1,08 million d\'entrées, environ 42 Mo. Le clavier a besoin de ce pack pour la conversion japonaise.</string>

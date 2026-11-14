@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">Ukufundwa kweFurigana</string>
     <string name="core_input_cjk_pack_hanja_subtitle">Amagama e-Hangul ne-Hanja yawo, okufakiwe okuyi-300,000. Ikhibhodi idinga le phakethe ukuze inikele nge-Hanja kumugqa wokuphakamisa.</string>
     <string name="core_input_cjk_pack_hanja_title">Isichazamazwi sesi-Hanja (漢字)</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">I-Ayaspell, ngakho igama elinezandulela nezijobelelo zalo liyaziwa futhi iphutha lokuthayipha kulona liyaxazululwa.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">Isichazamazwi sesipelingi sesi-Arabhu</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">i-hunspell-tr, ngakho amagama anoma yisiphi isijobelelo ayaziwa futhi amaphutha okuthayipha kuwo ayalungiswa.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">Imithetho yokupela yesi-Turkish</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">Ukufundwa kwe-Kana okuvela ku-mozc, okufakiwe okuyizigidi eziyi-1.08, cishe ama-42 MB. Ikhibhodi idinga leli phakethe ukuze iguqule isiJapane.</string>

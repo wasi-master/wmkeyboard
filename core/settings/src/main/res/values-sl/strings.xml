@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Trak, gumb in tipke</string>
     <string name="core_settings_glide_commit_scope_pill_label">Trak in pilula</string>
     <string name="core_settings_glide_commit_scope_strip_label">Odstrani</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">Po razveljavitvi</string>
+    <string name="core_settings_glide_drawn_letters_off_label">Izklopljeno</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">Ko ni negotov</string>
     <string name="core_settings_glide_engine_built_in_label">Vgrajeno</string>
     <string name="core_settings_glide_engine_futo_label">FUTO Swipe (angleščina, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">Googlova knjižnica potez (uvožena)</string>

@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">மின்னஞ்சல் முகவரி</string>
+    <string name="core_content_clip_entity_email_tag">மின்னஞ்சல்</string>
     <string name="core_content_clip_entity_otp_label">ஒருமுறை பயன்படுத்தும் குறியீடு</string>
     <string name="core_content_clip_entity_otp_tag">CODE</string>
     <string name="core_content_clip_entity_phone_label">தொலைபேசி எண்</string>
@@ -38,6 +40,10 @@
         <item quantity="one">செருகுவதற்கு எதுவுமில்லாத %1$d துணுக்கை ஆப்ஸ் தவிர்த்துவிட்டது.</item>
         <item quantity="other">செருகுவதற்கு எதுவுமில்லாத %1$d துணுக்குகளை ஆப்ஸ் தவிர்த்துவிட்டது.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d படிவப் புலம் தேர்ந்தெடுக்க ஒரு பட்டியலை வழங்குகிறது. பயன்பாடு அதை தட்டச்சு செய்யப்பட்ட பதிலாக் கேட்கிறது, முதல் தேர்வு நிரப்பப்பட்டுள்ளது.</item>
+        <item quantity="other">%1$d படிவப் புலங்கள் தேர்ந்தெடுக்க ஒரு பட்டியலை வழங்குகின்றன. பயன்பாடு ஒவ்வொன்றையும் தட்டச்சு செய்யப்பட்ட பதிலாக் கேட்கிறது, முதல் தேர்வு நிரப்பப்பட்டுள்ளது.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">படத்தைச் செருகும் %1$d துணுக்கை ஆப்ஸ் தவிர்த்துவிட்டது.</item>
         <item quantity="other">படங்களைச் செருகும் %1$d துணுக்குகளை ஆப்ஸ் தவிர்த்துவிட்டது.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d ஸ்னிப்பெட் Espanso-வில் இணையான மதிப்பு இல்லாத ஒன்றைப் பயன்படுத்துகிறது. அது அப்படியே எழுதப்பட்டுள்ளது.</item>
         <item quantity="other">%1$d ஸ்னிப்பெட்டுகள் Espanso-வில் இணையான மதிப்பு இல்லாதவற்றைப் பயன்படுத்துகின்றன. அவை அப்படியே எழுதப்பட்டுள்ளன.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d துணுக்கு ஒரு படத்தைச் செருகுகிறது. ஒரு உரைக்கோப்பால் படத்தைக் கொண்டிருக்க முடியாது, எனவே அதன் சொற்கள் மட்டுமே வெளிவந்தன.</item>
+        <item quantity="other">%1$d துணுக்குகள் படங்களைச் செருகுகின்றன. ஒரு உரைக்கோப்பால் படங்களைக் கொண்டிருக்க முடியாது, எனவே அவற்றின் சொற்கள் மட்டுமே வெளிவந்தன.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">ஆப் %1$d ஸ்னிப்பெட்டிலிருந்து பேட்டர்னை நீக்கியது. ஆப் அந்த வடிவத்தின் பேட்டர்ன்களை இயக்குவதில்லை. ஸ்னிப்பெட் பட்டியலில் இருக்கும்.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">விசைப்பலகையால் கவனிக்க முடியாத %1$d தூண்டுதலைச் செயலி நீக்கியது. அதன் துணுக்கு பட்டியலில் இருக்கும்.</item>
         <item quantity="other">விசைப்பலகையால் கவனிக்க முடியாத %1$d தூண்டுதல்களைச் செயலி நீக்கியது. அவற்றின் துணுக்குகள் பட்டியலில் இருக்கும்.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">=== இல் தொடங்குகிறது ஆனால் முழுமையான === தூண்டுதல் === வரி அல்ல. === உடன் உரை வரியைத் தொடங்க, அதற்குப் பதிலாக \=== என எழுதவும்</string>
+    <string name="core_content_snippet_text_bad_pattern">மாதிரியைப் பயன்படுத்த முடியாது: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s ஆனது %2$s ஆக இருக்க முடியாது</string>
+    <string name="core_content_snippet_text_before_header">முதல் === தூண்டுதல் === வரிக்கு முந்தைய உரை. ஒன்றைக் கொண்டு ஒரு தொகுதியைத் தொடங்கவும் அல்லது வரியை # உடன் தொடங்கவும்</string>
+    <string name="core_content_snippet_text_no_text">இந்தத் துணுக்கு உரையில்லை</string>
+    <string name="core_content_snippet_text_no_trigger">=== குறிகளுக்கு இடையில் எதுவும் இல்லாத ஒரு துணுக்குக்கு @label அல்லது @pattern வரி தேவை</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d படத் துணுக்கு அதன் உரையாக வந்தது: ஒரு உரை கோப்பில் படங்கள் இல்லை</item>
+        <item quantity="other">%1$d படத் துணுக்குகள் அவற்றின் உரையாக வந்தன: ஒரு உரை கோப்பில் படங்கள் இல்லை</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">வரி %1$d இல் உள்ள துணுக்கு தவிர்க்கப்பட்டது, அதில் பிழை உள்ளது</string>
+    <string name="core_content_snippet_text_unknown_link">\@link ஆனது %1$s எனப் பெயரிடுகிறது, மேலும் இங்கு எந்தத் துணுக்குக்கும் அந்தத் தூண்டுதல் இல்லை</string>
+    <string name="core_content_snippet_text_unknown_picture">\@picture ஆனது %1$s ஐக் குறிப்பிடுகிறது, இதை எந்தச் துணுக்கும் பயன்படுத்துவதில்லை. துணுக்கின் சொந்த எடிட்டரில் படங்களைச் சேர்க்கவும்</string>
+    <string name="core_content_snippet_text_unknown_setting">விசைப்பலகைக்கு %1$s அமைப்பு தெரியாது. துணுக்கு ஒன்றின் உரை @ உடன் தொடங்க, \@ என எழுதவும்</string>
     <string name="core_content_snippet_var_app_info">நீங்கள் தட்டச்சு செய்யும் செயலியின் பெயர்</string>
+    <string name="core_content_snippet_var_battery_info">பேட்டரி சார்ஜ், எடுத்துக்காட்டாக 85%</string>
     <string name="core_content_snippet_var_clip_info">மிகப் புதிய கிளிப்போர்டு உள்ளீடு</string>
     <string name="core_content_snippet_var_cursor_info">கர்சர் அமரும் இடம்</string>
     <string name="core_content_snippet_var_date_info">இன்றைய தேதி</string>
     <string name="core_content_snippet_var_datetime_info">தேதி மற்றும் நேரம்</string>
     <string name="core_content_snippet_var_day_info">மாதத்தின் நாள்</string>
+    <string name="core_content_snippet_var_greeting_info">விசைப்பலகை மொழியில், நேரத்திற்கு ஏற்ப காலை, மதியம் அல்லது மாலை வணக்கம்</string>
     <string name="core_content_snippet_var_isodate_info">ISO வடிவத்தில் உள்ள தேதி, உதாரணமாக 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">ISO வடிவத்தில் தேதி மற்றும் நேரம்</string>
+    <string name="core_content_snippet_var_language_info">நீங்கள் தட்டச்சு செய்யும் விசைப்பலகை மொழி</string>
     <string name="core_content_snippet_var_month_info">மாதத்தின் பெயர்</string>
     <string name="core_content_snippet_var_package_info">அந்த ஆப்ஸின் தொகுப்பு பெயர்</string>
     <string name="core_content_snippet_var_selection_info">புலத்தில் நீங்கள் தேர்ந்தெடுக்கும் உரை</string>
+    <string name="core_content_snippet_var_tab_info">ஒரு டேப் எழுத்து</string>
     <string name="core_content_snippet_var_time12_info">தற்போதைய நேரம் 12-மணிநேர வடிவில்</string>
     <string name="core_content_snippet_var_time_info">தற்போதைய நேரம் 24-மணிநேர வடிவில்</string>
     <string name="core_content_snippet_var_timestamp_info">Unix வினாடிகளில் நேரம்</string>

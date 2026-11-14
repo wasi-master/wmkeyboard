@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">ईमेल पता</string>
+    <string name="core_content_clip_entity_email_tag">ईमेल</string>
     <string name="core_content_clip_entity_otp_label">वन-टाइम कोड</string>
     <string name="core_content_clip_entity_otp_tag">कोड</string>
     <string name="core_content_clip_entity_phone_label">फ़ोन नंबर</string>
@@ -38,6 +40,10 @@
         <item quantity="one">ऐप ने %1$d स्निपेट छोड़ दिया जिसमें डालने के लिए कुछ नहीं है।</item>
         <item quantity="other">ऐप ने %1$d स्निपेट्स छोड़ दिए जिनमें डालने के लिए कुछ नहीं है।</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d फ़ॉर्म फ़ील्ड चुनने के लिए एक सूची प्रदान करता है। ऐप इसे टाइप किए गए उत्तर के रूप में माँगता है, जिसमें पहला विकल्प भरा होता है।</item>
+        <item quantity="other">%1$d फ़ॉर्म फ़ील्ड चुनने के लिए एक सूची प्रदान करते हैं। ऐप प्रत्येक को टाइप किए गए उत्तर के रूप में माँगता है, जिसमें पहला विकल्प भरा होता है।</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">ऐप ने %1$d स्निपेट छोड़ दिया जो एक चित्र सम्मिलित करता है।</item>
         <item quantity="other">ऐप ने %1$d स्निपेट छोड़ दिए जो चित्र सम्मिलित करते हैं।</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d स्निपेट एक ऐसे मान का उपयोग करता है जिसके लिए Espanso में कोई समकक्ष नहीं है। इसे वैसे ही लिखा गया है जैसे यह है।</item>
         <item quantity="other">%1$d स्निपेट ऐसे मानों का उपयोग करते हैं जिनके लिए Espanso में कोई समकक्ष नहीं है। उन्हें वैसे ही लिखा गया है जैसे वे हैं।</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d स्निपेट एक तस्वीर सम्मिलित करता है। एक पाठ फ़ाइल तस्वीर को नहीं रख सकती है, इसलिए केवल इसके शब्द बाहर गए।</item>
+        <item quantity="other">%1$d स्निपेट तस्वीरें सम्मिलित करते हैं। एक पाठ फ़ाइल तस्वीरों को नहीं रख सकती है, इसलिए केवल उनके शब्द बाहर गए।</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">ऐप ने %1$d स्निपेट से पैटर्न हटा दिया है। ऐप उस आकार के पैटर्न नहीं चलाता है। स्निपेट सूची में रहता है।</item>
@@ -197,17 +207,35 @@
         <item quantity="one">ऐप ने %1$d ट्रिगर हटा दिया है जिसे कीबोर्ड ट्रैक नहीं कर सकता। इसका स्निपेट सूची में बना रहेगा।</item>
         <item quantity="other">ऐप ने %1$d ट्रिगर हटा दिए हैं जिन्हें कीबोर्ड ट्रैक नहीं कर सकता। उनके स्निपेट सूची में बने रहेंगे।</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">=== से शुरू होता है लेकिन पूरी तरह से === ट्रिगर === लाइन नहीं है। पाठ की एक पंक्ति को === से शुरू करने के लिए, इसके बजाय \=== लिखें</string>
+    <string name="core_content_snippet_text_bad_pattern">पैटर्न का उपयोग नहीं किया जा सकता है: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s %2$s नहीं हो सकता</string>
+    <string name="core_content_snippet_text_before_header">पहला === ट्रिगर === लाइन से पहले का पाठ। एक से ब्लॉक शुरू करें, या लाइन को # से शुरू करें</string>
+    <string name="core_content_snippet_text_no_text">इस स्निपेट में कोई पाठ नहीं है</string>
+    <string name="core_content_snippet_text_no_trigger">=== चिह्नों के बीच कुछ न होने वाले स्निपेट को @label या @pattern लाइन की आवश्यकता होती है</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d चित्र स्निपेट इसके पाठ के रूप में आया: एक पाठ फ़ाइल में कोई चित्र नहीं होता है</item>
+        <item quantity="other">%1$d चित्र स्निपेट उनके पाठ के रूप में आए: एक पाठ फ़ाइल में कोई चित्र नहीं होता है</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">पंक्ति %1$d पर स्निपेट छोड़ दिया गया, जिसमें कोई गलती है</string>
+    <string name="core_content_snippet_text_unknown_link">\@link का नाम %1$s है, और यहाँ किसी भी स्निपेट में वह ट्रिगर नहीं है</string>
+    <string name="core_content_snippet_text_unknown_picture">\@picture का नाम %1$s है, जिसका उपयोग कोई स्निपेट नहीं करता है। स्निपेट के अपने एडिटर में तस्वीरें जोड़ें</string>
+    <string name="core_content_snippet_text_unknown_setting">कीबोर्ड सेटिंग %1$s नहीं जानता है। @ से स्निपेट के पाठ को शुरू करने के लिए, इसके बजाय \@ लिखें</string>
     <string name="core_content_snippet_var_app_info">उस ऐप का नाम जिसमें आप टाइप करते हैं</string>
+    <string name="core_content_snippet_var_battery_info">बैटरी चार्ज, उदाहरण के लिए 85%</string>
     <string name="core_content_snippet_var_clip_info">सबसे नई क्लिपबोर्ड प्रविष्टि</string>
     <string name="core_content_snippet_var_cursor_info">वह स्थान जहाँ कर्सर रुकता है</string>
     <string name="core_content_snippet_var_date_info">आज की तारीख</string>
     <string name="core_content_snippet_var_datetime_info">तारीख और समय</string>
     <string name="core_content_snippet_var_day_info">महीने का दिन</string>
+    <string name="core_content_snippet_var_greeting_info">कीबोर्ड भाषा में समय के अनुसार सुप्रभात, दोपहर या शाम</string>
     <string name="core_content_snippet_var_isodate_info">ISO प्रारूप में तिथि, उदाहरण के लिए 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">ISO प्रारूप में तारीख और समय</string>
+    <string name="core_content_snippet_var_language_info">कीबोर्ड भाषा जिसमें आप टाइप करते हैं</string>
     <string name="core_content_snippet_var_month_info">महीने का नाम</string>
     <string name="core_content_snippet_var_package_info">उस ऐप का पैकेज नाम</string>
     <string name="core_content_snippet_var_selection_info">वह टेक्स्ट जिसे आप फ़ील्ड में चुनते हैं</string>
+    <string name="core_content_snippet_var_tab_info">एक टैब कैरेक्टर</string>
     <string name="core_content_snippet_var_time12_info">12-घंटे के प्रारूप में वर्तमान समय</string>
     <string name="core_content_snippet_var_time_info">24-घंटे के प्रारूप में वर्तमान समय</string>
     <string name="core_content_snippet_var_timestamp_info">यूनिक्स सेकंड में समय</string>

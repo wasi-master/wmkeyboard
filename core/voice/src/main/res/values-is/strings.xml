@@ -9,11 +9,16 @@
     <string name="core_voice_model_base_multi_body">Þetta líkan jafnar nákvæmni og hraða. Það nær yfir öll tungumál sem Whisper þekkir. Veldu það ef litla líkanið er of hægt.</string>
     <string name="core_voice_model_base_world_body">Þetta líkan notar tungumálið sem þú skrifar á í stað þess að giska. Stuttar setningar verða mun áreiðanlegri. Veldu það þegar listinn inniheldur tungumálin þín.</string>
     <string name="core_voice_model_cpp_base_body">Þetta líkan jafnar nákvæmni og hraða. Það notar tungumálið sem þú talar á, af þeim 99 tungumálum sem Whisper þekkir, og hlustar eftir þínum eigin orðum. Veldu þetta ef litla líkanið er of hægt.</string>
+    <string name="core_voice_model_cpp_fine_tune_body">%1$s þjálfaði þetta Turbo líkan frekar í tali á þessu eina tungumáli. Það höndlar aðeins það tungumál.</string>
+    <string name="core_voice_model_cpp_hinglish_body">Oriserve þjálfaði þetta líkan á hindí og á hindí blönduðu við ensku. Það skrifar það sem þú segir með latneskum stöfum, eins og hinglish er skrifað, og heldur enskum orðum á ensku. Það skrifar aldrei devanagari, svo það hentar hinglish betur heldur en hindí. Það er lítið og hratt.</string>
+    <string name="core_voice_model_cpp_kb_body">Landsbókasafn Svíþjóðar þjálfaði þetta líkan á sænsku tali. Það meðhöndlar aðeins sænsku og er nákvæmara fyrir hana en almenna Whisper líkanið af sömu stærð.</string>
+    <string name="core_voice_model_cpp_kotoba_body">Kotoba Technologies gerði þetta japanska líkan úr Whisper Large v3. Afkóðari þess er mun minni, svo hann keyrir á um það bil hraða Turbo líkansins. Það sér eingöngu um japönsku.</string>
     <string name="core_voice_model_cpp_large_body">Þetta er nákvæmasta Whisper-líkanið. Niðurhalið er 1,1 GB. Aðeins tæki með mikið minni geta hlaðið því. Turbo-líkanið er næstum jafn nákvæmt og er helmingi minna.</string>
     <string name="core_voice_model_cpp_medium_body">Þetta líkan gefur næstum því nákvæmni eins og á borðtölvu. Hver setning tekur nokkrar sekúndur. Líkanið notar næstum eitt gígabæt af minni á meðan það keyrir.</string>
     <string name="core_voice_model_cpp_small_body">Þetta líkan gefur bestu nákvæmnina sem keyrir samt vel í síma. Það notar tungumálið sem þú talar á, af þeim 99 tungumálum sem Whisper þekkir, og það hlustar eftir þínum eigin orðum.</string>
     <string name="core_voice_model_cpp_tiny_body">Þetta er hraðasta líkanið. Það virkar vel með skýru tali, en hávaði dregur úr nákvæmninni. Það notar tungumálið sem þú talar inn á og hlustar eftir þínum eigin orðum.</string>
     <string name="core_voice_model_cpp_turbo_body">Þetta líkan er næstum jafn nákvæmt og stærsta líkanið, á helmingi minni stærð. Hver setning tekur nokkrar sekúndur og það getur ekki þýtt.</string>
+    <string name="core_voice_model_custom_body">Þú fluttir þetta whisper.cpp líkan inn úr skrá. Lyklaborðið veit ekki hvernig það var þjálfað, svo veldu það fyrir þau tungumál sem það var gert fyrir undir Líkan á hvert tungumál.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d tungumál</item>
         <item quantity="other">%1$d tungumál</item>

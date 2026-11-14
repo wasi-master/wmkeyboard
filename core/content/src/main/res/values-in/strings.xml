@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">Alamat email</string>
+    <string name="core_content_clip_entity_email_tag">EMAIL</string>
     <string name="core_content_clip_entity_otp_label">Kode sekali pakai</string>
     <string name="core_content_clip_entity_otp_tag">KODE</string>
     <string name="core_content_clip_entity_phone_label">Nomor telepon</string>
@@ -38,6 +40,10 @@
         <item quantity="one">Aplikasi melewatkan %1$d cuplikan yang tidak memiliki apa pun untuk disisipkan.</item>
         <item quantity="other">Aplikasi melewatkan %1$d cuplikan yang tidak memiliki apa pun untuk disisipkan.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d kolom formulir menawarkan daftar untuk dipilih. Aplikasi meminta ini sebagai jawaban ketikan, dengan pilihan pertama terisi.</item>
+        <item quantity="other">%1$d kolom formulir menawarkan daftar untuk dipilih. Aplikasi meminta masing-masing sebagai jawaban ketikan, dengan pilihan pertama terisi.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Aplikasi melewatkan %1$d cuplikan yang menyisipkan gambar.</item>
         <item quantity="other">Aplikasi melewatkan %1$d cuplikan yang menyisipkan gambar.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d cuplikan menggunakan nilai yang tidak memiliki padanan di Espanso. Nilai tersebut ditulis apa adanya.</item>
         <item quantity="other">%1$d cuplikan menggunakan nilai yang tidak memiliki padanan di Espanso. Nilai tersebut ditulis apa adanya.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d cuplikan menyisipkan gambar. Berkas teks tidak dapat memuat gambar, jadi hanya teksnya yang disertakan.</item>
+        <item quantity="other">%1$d cuplikan menyisipkan gambar. Berkas teks tidak dapat memuat gambar, jadi hanya teksnya yang disertakan.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">Aplikasi menghapus pola dari %1$d cuplikan. Aplikasi tidak menjalankan pola dengan bentuk tersebut. Cuplikan tetap ada di daftar.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">Aplikasi menghapus %1$d pemicu yang tidak dapat dipantau oleh keyboard. Cuplikannya tetap ada di daftar.</item>
         <item quantity="other">Aplikasi menghapus %1$d pemicu yang tidak dapat dipantau oleh keyboard. Cuplikannya tetap ada di daftar.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">Dimulai dengan === tetapi bukan baris pemicu === penuh ===. Untuk memulai baris teks dengan ===, tulis \=== sebagai gantinya</string>
+    <string name="core_content_snippet_text_bad_pattern">Pola tidak dapat digunakan: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s tidak boleh berupa %2$s</string>
+    <string name="core_content_snippet_text_before_header">Teks sebelum baris pemicu pertama 999. Mulai blok dengan satu, atau mulai baris dengan #</string>
+    <string name="core_content_snippet_text_no_text">Cuplikan ini tidak memiliki teks</string>
+    <string name="core_content_snippet_text_no_trigger">Cuplikan tanpa apa pun di antara tanda 233 memerlukan baris @label atau @pattern</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d cuplikan gambar masuk sebagai teksnya: file teks tidak berisi gambar</item>
+        <item quantity="other">%1$d cuplikan gambar masuk sebagai teksnya: file teks tidak berisi gambar</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">Melewati cuplikan pada baris %1$d yang memiliki kesalahan di dalamnya</string>
+    <string name="core_content_snippet_text_unknown_link">\@link menyebutkan %1$s, dan tidak ada cuplikan di sini yang memiliki pemicu tersebut</string>
+    <string name="core_content_snippet_text_unknown_picture">\@picture menamai %1$s, yang tidak digunakan oleh cuplikan apa pun. Tambahkan gambar di editor cuplikan itu sendiri</string>
+    <string name="core_content_snippet_text_unknown_setting">Papan tombol tidak mengenali pengaturan %1$s. Untuk memulai teks cuplikan dengan @, tulis \@ sebagai gantinya</string>
     <string name="core_content_snippet_var_app_info">Nama aplikasi tempat Anda mengetik</string>
+    <string name="core_content_snippet_var_battery_info">Pengisian daya baterai, misalnya 85%</string>
     <string name="core_content_snippet_var_clip_info">Entri papan klip terbaru</string>
     <string name="core_content_snippet_var_cursor_info">Tempat kursor mendarat</string>
     <string name="core_content_snippet_var_date_info">Tanggal hari ini</string>
     <string name="core_content_snippet_var_datetime_info">Tanggal dan waktu</string>
     <string name="core_content_snippet_var_day_info">Hari dalam bulan</string>
+    <string name="core_content_snippet_var_greeting_info">Selamat pagi, siang, atau sore sesuai waktu, dalam bahasa papan tombol</string>
     <string name="core_content_snippet_var_isodate_info">Tanggal dalam bentuk ISO, contohnya 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">Tanggal dan waktu dalam bentuk ISO</string>
+    <string name="core_content_snippet_var_language_info">Bahasa papan ketik yang Anda gunakan untuk mengetik</string>
     <string name="core_content_snippet_var_month_info">Nama bulan</string>
     <string name="core_content_snippet_var_package_info">Nama paket aplikasi tersebut</string>
     <string name="core_content_snippet_var_selection_info">Teks yang Anda pilih di kolom</string>
+    <string name="core_content_snippet_var_tab_info">Karakter tab</string>
     <string name="core_content_snippet_var_time12_info">Waktu saat ini dalam format 12 jam</string>
     <string name="core_content_snippet_var_time_info">Waktu saat ini dalam format 24 jam</string>
     <string name="core_content_snippet_var_timestamp_info">Waktu dalam detik Unix</string>

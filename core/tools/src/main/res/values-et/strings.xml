@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">Tere</string>
     <string name="core_tools_media_category_laugh">Naer</string>
     <string name="core_tools_media_category_love">Armastus</string>
+    <string name="core_tools_media_category_memes">Meemid</string>
     <string name="core_tools_media_category_no">Ei</string>
     <string name="core_tools_media_category_party">Pidu</string>
     <string name="core_tools_media_category_reactions">Reaktsioonid</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">Mozhi server: tasuta kasutajaliides Google\'i, DeepL-i, DuckDuckGo, Yandexi ja Reverso jaoks. Vali mootor. DeepL ja Reverso vajavad lähtekeelt.</string>
     <string name="core_tools_provider_music_server">Sinu enda tuvastusserver</string>
     <string name="core_tools_provider_music_server_desc">Sinu hallatav server, mis vastab nagu AudD: klipp postitatakse failina ja laul tuleb tagasi JSON-vormingus. Lisa selle taha sõrmejälgede tuvastaja, näiteks Panako või Olaf.</string>
+    <string name="core_tools_provider_mwmbl_desc">Tasuta mittetulunduslik otsingumootor oma indeksiga. Võtit pole. Ainult veebitulemused, pilte pole.</string>
     <string name="core_tools_provider_nllb">Seadmes (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">Tõlgib telefonis Meta NLLB-200 mudeliga CTranslate2-l: 200 keelt, mis tahes kahe keele vahel, paaridele, mida teised mootorid ei suuda. Üks 630 MB allalaadimine ja lause võtab paar sekundit. Teie tekst jääb telefoni. Mudel on litsentsitud ainult mitteäriliseks kasutamiseks (CC BY-NC 4.0). Vajab 64-bitist telefoni, millel on vähemalt 6 GB mälu.</string>
     <string name="core_tools_provider_none_on">Ükski teenusepakkuja pole sisse lülitatud. Lülitage üks sisse selle tööriista seadetes.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">See loend</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">Kuva või peida klahvid</string>
     <string name="core_tools_shortcut_leader_double_tap">Vajutage %1$s kaks korda</string>
+    <string name="core_tools_speak_no_voice">Sellel telefonil ei ole %1$s häält, millega teksti ette lugeda. Lisa see Androidi tekst-kõneks seadetest või laadi alla võrguühenduseta hääl jaotisest Tööriistad › Ettelugemine.</string>
     <string name="core_tools_symbol_category_arrows_label">Nooled</string>
     <string name="core_tools_symbol_category_currency_label">Valuuta</string>
     <string name="core_tools_symbol_category_fractions_label">Murdarvud</string>
     <string name="core_tools_symbol_category_greek_label">Kreeka</string>
     <string name="core_tools_symbol_category_math_label">Matemaatika</string>
+    <string name="core_tools_symbol_category_music_label">Muusika</string>
     <string name="core_tools_symbol_category_other_label">Muu</string>
     <string name="core_tools_symbol_category_punctuation_label">Kirjavahemärgid</string>
     <string name="core_tools_symbol_category_shapes_label">Kujundid ja tähed</string>
+    <string name="core_tools_symbol_category_stars_label">Tähed</string>
     <string name="core_tools_symbol_category_superscript_label">Ülaindeks</string>
+    <string name="core_tools_symbol_category_technical_label">Tehniline</string>
+    <string name="core_tools_symbol_category_weather_label">Ilm</string>
     <string name="core_tools_symbol_set_coding_label">Programmeerimine</string>
     <string name="core_tools_symbol_set_email_label">E-post</string>
     <string name="core_tools_symbol_set_math_label">Matemaatika</string>

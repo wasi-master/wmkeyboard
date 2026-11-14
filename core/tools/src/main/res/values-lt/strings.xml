@@ -131,6 +131,7 @@
     <string name="core_tools_media_category_hello">Labas</string>
     <string name="core_tools_media_category_laugh">Juokas</string>
     <string name="core_tools_media_category_love">Meilė</string>
+    <string name="core_tools_media_category_memes">Memai</string>
     <string name="core_tools_media_category_no">Ne</string>
     <string name="core_tools_media_category_party">Vakarėlis</string>
     <string name="core_tools_media_category_reactions">Reakcijos</string>
@@ -236,6 +237,7 @@
     <string name="core_tools_provider_mozhi_desc">Mozhi serveris: nemokama sąsaja su Google, DeepL, DuckDuckGo, Yandex ir Reverso. Pasirinkite variklį. DeepL ir Reverso reikalinga šaltinio kalba.</string>
     <string name="core_tools_provider_music_server">Jūsų pačių atpažinimo serveris</string>
     <string name="core_tools_provider_music_server_desc">Jūsų valdomas serveris, kuris atsako kaip „AudD“: klipas siunčiamas kaip failas, o daina grąžinama kaip JSON. Įdiekite pirštų atspaudų atpažinimo įrankį, pvz., „Panako“ arba „Olaf“.</string>
+    <string name="core_tools_provider_mwmbl_desc">Nemokama pelno nesiekianti paieškos sistema su savo indeksu. Jokio rakto. Tik žiniatinklio rezultatai, jokių vaizdų.</string>
     <string name="core_tools_provider_nllb">Įrenginyje (NLLB-200)</string>
     <string name="core_tools_provider_nllb_desc">Verčia telefone naudodamas „Meta“ NLLB-200 modelį „CTranslate2“ pagrindu: 200 kalbų, tarp bet kurių dviejų iš jų, poroms, kurių kiti varikliai negali apdoroti. Vienas 630 MB atsisiuntimas, o sakinys išverčiamas per kelias sekundes. Jūsų tekstas lieka telefone. Modelis licencijuotas tik nekomerciniam naudojimui (CC BY-NC 4.0). Reikalingas 64 bitų telefonas su 6 GB ar daugiau atminties.</string>
     <string name="core_tools_provider_none_on">Nėra įjungto teikėjo. Įjunkite vieną šio įrankio nustatymuose.</string>
@@ -336,15 +338,20 @@
     <string name="core_tools_shortcut_cheat_this_list">Šis sąrašas</string>
     <string name="core_tools_shortcut_cheat_toggle_keys">Rodyti arba slėpti klavišus</string>
     <string name="core_tools_shortcut_leader_double_tap">Paspauskite %1$s du kartus</string>
+    <string name="core_tools_speak_no_voice">Šis telefonas neturi %1$s balso tekstui perskaityti. Pridėkite jį „Android“ teksto į kalbą nustatymuose arba atsisiųskite neprisijungus pasiekiamą balsą skiltyje Įrankiai › Skaityti atgal.</string>
     <string name="core_tools_symbol_category_arrows_label">Rodyklės</string>
     <string name="core_tools_symbol_category_currency_label">Valiuta</string>
     <string name="core_tools_symbol_category_fractions_label">Trupmenos</string>
     <string name="core_tools_symbol_category_greek_label">Graikų</string>
     <string name="core_tools_symbol_category_math_label">Matematika</string>
+    <string name="core_tools_symbol_category_music_label">Muzika</string>
     <string name="core_tools_symbol_category_other_label">Kita</string>
     <string name="core_tools_symbol_category_punctuation_label">Skyryba</string>
     <string name="core_tools_symbol_category_shapes_label">Figūros ir žvaigždės</string>
+    <string name="core_tools_symbol_category_stars_label">Žvaigždutės</string>
     <string name="core_tools_symbol_category_superscript_label">Viršutinis indeksas</string>
+    <string name="core_tools_symbol_category_technical_label">Techninė</string>
+    <string name="core_tools_symbol_category_weather_label">Orai</string>
     <string name="core_tools_symbol_set_coding_label">Programavimas</string>
     <string name="core_tools_symbol_set_email_label">El. paštas</string>
     <string name="core_tools_symbol_set_math_label">Matematika</string>

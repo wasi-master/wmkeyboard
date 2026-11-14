@@ -51,6 +51,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">స్ట్రిప్, పిల్ మరియు కీలు</string>
     <string name="core_settings_glide_commit_scope_pill_label">స్ట్రిప్ మరియు పిల్</string>
     <string name="core_settings_glide_commit_scope_strip_label">స్ట్రిప్</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">రద్దు చేసిన తర్వాత</string>
+    <string name="core_settings_glide_drawn_letters_off_label">ఆఫ్</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">సందిగ్ధంగా ఉన్నప్పుడు</string>
     <string name="core_settings_glide_engine_built_in_label">ఇన్-బిల్ట్</string>
     <string name="core_settings_glide_engine_futo_label">FUTO స్వైప్ (ఇంగ్లీష్, QWERTY)</string>
     <string name="core_settings_glide_engine_google_label">గూగుల్ యొక్క గెస్టర్ లైబ్రరీ (ఇంపోర్ట్ చేయబడింది)</string>

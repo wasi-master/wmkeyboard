@@ -176,6 +176,7 @@
     <string name="ime_ai_error_no_text">Tidak ada yang bisa dikerjakan. Ketik teks terlebih dahulu.</string>
     <string name="ime_ai_error_only_reasoning">Model menggunakan seluruh respons untuk menalar. Coba lagi, atau aktifkan “Tampilkan penalaran” di setelan.</string>
     <string name="ime_ai_error_request_failed">Permintaan tidak berhasil</string>
+    <string name="ime_ai_error_stopped_hidden">Berhenti karena papan ketik ditutup. Coba lagi untuk menjalankannya.</string>
     <string name="ime_ai_idle_body">Tindakan dijalankan pada teks yang dipilih, atau pada seluruh kolom. Tindakan tersebut menggunakan %1$s.</string>
     <string name="ime_ai_idle_empty_body">Ketik atau pilih teks untuk menggunakan tindakan ini. Tekan %1$s untuk menulis teks baru.</string>
     <string name="ime_ai_idle_empty_no_writer_body">Ketik atau pilih teks untuk menggunakan tindakan ini.</string>
@@ -307,9 +308,11 @@
     <string name="ime_app_colors_none">Tidak ada warna yang ditemukan di aplikasi ini</string>
     <string name="ime_app_colors_off_desc">Jangan gunakan warna aplikasi ini</string>
     <string name="ime_app_colors_pick_desc">Warna aplikasi %1$d</string>
+    <string name="ime_applet_back">Kembali</string>
     <string name="ime_applet_close">Tutup kotak</string>
     <string name="ime_applet_copied">Disalin</string>
     <string name="ime_applet_open_in_keyboard">Buka di keyboard</string>
+    <string name="ime_applet_pop_out">Buka di kotak mengapung</string>
     <string name="ime_applet_resize">Seret untuk mengubah ukuran</string>
     <string name="ime_applet_tuck">Selipkan ke tepi</string>
     <string name="ime_applet_untuck">Kembalikan %1$s</string>
@@ -319,6 +322,33 @@
     <string name="ime_ask_ai_label_vocab">Kosakata: %1$s</string>
     <string name="ime_ask_ai_label_wiki">Wikipedia: %1$s</string>
     <string name="ime_autofill_dismiss_desc">Sembunyikan saran isi otomatis</string>
+    <string name="ime_board_copy_desc">Salin ke ponsel ini</string>
+    <string name="ime_board_delete_body">Ini akan dihapus dari setiap perangkat yang menggunakan papan ini. Salinan yang sudah ada di papan klip ponsel sendiri akan tetap ada.</string>
+    <string name="ime_board_delete_desc">Lepaskan papan</string>
+    <string name="ime_board_delete_no">Batal</string>
+    <string name="ime_board_delete_title">Hapus klip ini dari papan?</string>
+    <string name="ime_board_delete_yes">Lepaskan</string>
+    <string name="ime_board_edit_desc">Edit</string>
+    <string name="ime_board_empty_body">Klip yang dikirim di sini akan muncul di perangkat Anda yang lain yang menggunakan folder yang sama, bahkan yang sedang offline sekarang.</string>
+    <string name="ime_board_empty_title">Tidak ada apa pun di papan</string>
+    <string name="ime_board_notice_copied">Disalin</string>
+    <string name="ime_board_notice_deleted">Dikeluarkan dari papan</string>
+    <string name="ime_board_notice_refused">Hanya klip teks yang tidak disembunyikan yang dapat masuk ke papan</string>
+    <string name="ime_board_notice_sent">Dikirim ke papan</string>
+    <string name="ime_board_send_desc">Kirim klip</string>
+    <string name="ime_board_send_done">Selesai</string>
+    <string name="ime_board_send_empty">Tidak ada klip teks untuk dikirim. Gambar, file, dan klip tersembunyi tetap berada di ponsel ini.</string>
+    <string name="ime_board_send_one_desc">Kirim</string>
+    <string name="ime_board_send_title">Kirim ke papan</string>
+    <string name="ime_board_sent_desc">Terkirim</string>
+    <string name="ime_board_status_failed">Tidak dapat mencapai papan</string>
+    <string name="ime_board_status_never">Belum diperiksa</string>
+    <string name="ime_board_status_synced">Diperiksa %1$s</string>
+    <string name="ime_board_status_syncing">Memeriksa papan…</string>
+    <string name="ime_board_status_waiting">Menunggu untuk mencapai papan</string>
+    <string name="ime_board_status_waiting_offline">Tidak dapat menjangkau papan. Perubahan Anda akan dikirim saat terhubung kembali</string>
+    <string name="ime_board_sync_desc">Periksa papan sekarang</string>
+    <string name="ime_board_title">Papan bersama</string>
     <string name="ime_calc_degrees_label">derajat</string>
     <string name="ime_calc_insert_action">Sisipkan</string>
     <string name="ime_calc_radians_label">rad</string>
@@ -471,7 +501,9 @@
     </plurals>
     <string name="ime_calendar_untitled">(Tanpa judul)</string>
     <string name="ime_calendar_view_agenda">Agenda</string>
+    <string name="ime_calendar_view_day">Hari</string>
     <string name="ime_calendar_view_month">Bulan</string>
+    <string name="ime_calendar_weather_desc">%1$s, %2$s di %3$s. Membuka prakiraan cuaca untuk setiap jam</string>
     <string name="ime_calendar_yesterday_label">Kemarin</string>
     <string name="ime_calendar_zone_note">Waktu dalam %1$s</string>
     <string name="ime_camera_captured_photo_desc">Foto yang Anda ambil</string>
@@ -543,6 +575,7 @@
         <item quantity="one">Gabungkan %1$d klip</item>
         <item quantity="other">Gabungkan %1$d klip</item>
     </plurals>
+    <string name="ime_clip_compose_email">Tulis email</string>
     <string name="ime_clip_delete_pinned_question">Hapus klip yang disematkan ini?</string>
     <plurals name="ime_clip_deleted">
         <item quantity="one">Klip dihapus</item>
@@ -563,6 +596,7 @@
         <item quantity="other">Tampilkan %1$d bagian yang ditemukan di klip Anda</item>
     </plurals>
     <string name="ime_clip_extract_codes">Kode sekali pakai</string>
+    <string name="ime_clip_extract_emails">Alamat email</string>
     <string name="ime_clip_extract_links">Tautan</string>
     <string name="ime_clip_extract_parts">Ekstrak</string>
     <string name="ime_clip_extract_phones">Nomor telepon</string>
@@ -589,6 +623,7 @@
         <item quantity="one">Disembunyikan · %1$d karakter</item>
         <item quantity="other">Disembunyikan · %1$d karakter</item>
     </plurals>
+    <string name="ime_clip_image_pasted_toast">Ditempel dari papan klip. Jika tidak ada yang masuk, aplikasi ini tidak mengambil gambar: tahan klip untuk membagikannya</string>
     <string name="ime_clip_info_copied">Disalin</string>
     <string name="ime_clip_info_edited">Diedit</string>
     <string name="ime_clip_info_from">Dari</string>
@@ -642,7 +677,12 @@
         <item quantity="other">%1$d dipilih</item>
     </plurals>
     <string name="ime_clip_send_as_sticker">Kirim sebagai stiker</string>
+    <string name="ime_clip_shape_code">Kode</string>
+    <string name="ime_clip_shape_markdown">Markdown</string>
+    <string name="ime_clip_share_image">Bagikan</string>
+    <string name="ime_clip_show_formatted">Tampilkan yang diformat</string>
     <string name="ime_clip_show_in_history">Tampilkan dalam riwayat</string>
+    <string name="ime_clip_show_raw">Tampilkan mentah</string>
     <string name="ime_clip_tags">Tag</string>
     <string name="ime_clip_tags_placeholder">Tag, dipisahkan dengan koma</string>
     <string name="ime_clip_tags_title">Tag</string>
@@ -908,6 +948,7 @@
     <string name="ime_conversion_pack_offer">Unduh %1$s untuk mengetik karakter</string>
     <string name="ime_conversion_pack_offer_dismiss_desc">Tutup</string>
     <string name="ime_converter_from_label">Dari</string>
+    <string name="ime_converter_tab_units">Satuan</string>
     <string name="ime_converter_to_label">Ke</string>
     <string name="ime_currency_insert_action">Sisipkan</string>
     <string name="ime_currency_progress">Mengunduh nilai tukar…</string>
@@ -916,6 +957,32 @@
     <string name="ime_currency_section_crypto">Kripto</string>
     <string name="ime_currency_section_popular">Umum</string>
     <string name="ime_currency_swap_desc">Tukar mata uang</string>
+    <string name="ime_custom_button_desc">Buka %1$s</string>
+    <string name="ime_custom_button_label">Tombol kustom</string>
+    <string name="ime_custom_button_shortcut_failed">Pintasan tersebut tidak dapat dibuka. Aplikasinya mungkin sudah tidak ada, atau hanya mengizinkan layar beranda untuk membukanya.</string>
+    <string name="ime_custom_page_clipboard">Pengaturan papan klip</string>
+    <string name="ime_custom_page_custom_buttons">Tombol kustom</string>
+    <string name="ime_custom_page_dictionary">Kamus</string>
+    <string name="ime_custom_page_favourites">Favorit</string>
+    <string name="ime_custom_page_home">Pengaturan</string>
+    <string name="ime_custom_page_keypress">Suara dan getaran</string>
+    <string name="ime_custom_page_languages">Bahasa</string>
+    <string name="ime_custom_page_search">Setelan telusuri</string>
+    <string name="ime_custom_page_themes">Tema</string>
+    <string name="ime_custom_page_toolbar">Pengaturan bilah alat</string>
+    <string name="ime_custom_page_tools">Alat</string>
+    <string name="ime_custom_page_typing">Mengetik</string>
+    <string name="ime_custom_toggle_auto_caps">Kapital otomatis</string>
+    <string name="ime_custom_toggle_glide">Mengetik usap</string>
+    <string name="ime_custom_toggle_key_hints">Petunjuk tombol</string>
+    <string name="ime_custom_toggle_key_popup">Pop-up tombol</string>
+    <string name="ime_custom_toggle_number_row">Baris angka</string>
+    <string name="ime_custom_toggle_reduce_motion">Kurangi gerakan</string>
+    <string name="ime_custom_toggle_sound">Suara tombol</string>
+    <string name="ime_custom_toggle_suggestions">Saran</string>
+    <string name="ime_custom_toggle_symbol_row">Baris simbol</string>
+    <string name="ime_custom_toggle_toolbar_labels">Nama toolbar</string>
+    <string name="ime_custom_toggle_vibration">Getaran</string>
     <string name="ime_delete_redo_chip">Ulangi \"%1$s\"</string>
     <string name="ime_delete_redo_plain">Hapus lagi</string>
     <string name="ime_delete_undo_chip">Urungkan \"%1$s\"</string>
@@ -953,6 +1020,7 @@
     <string name="ime_disabled_correction_invalid">Ketik kata yang berbeda untuk dikoreksi. Kata yang dikoreksi memerlukan setidaknya 3 huruf, dan perbaikannya bisa berupa satu kata, atau dua kata jika spasi terlewat.</string>
     <string name="ime_disabled_media_app_blocks">Aplikasi yang sedang diputar tidak mengizinkan ini.</string>
     <string name="ime_disabled_spell_unchanged">Ubah ejaan terlebih dahulu. Ejaan yang kosong atau tidak berubah tidak memiliki apa pun untuk diterapkan.</string>
+    <string name="ime_disabled_translate_empty_box">Kotak kosong, atau terjemahannya masih dalam proses.</string>
     <string name="ime_disabled_translate_nothing">Belum ada yang diterjemahkan. Ketik atau tempel teks untuk diterjemahkan terlebih dahulu.</string>
     <string name="ime_disabled_translate_same_language">Teks sudah dalam bahasa tujuan terjemahan Anda.</string>
     <string name="ime_disabled_voice_undo">Belum ada yang bisa dibatalkan. Batalkan mengurungkan frasa terakhir yang Anda ucapkan.</string>
@@ -982,6 +1050,10 @@
     <string name="ime_docscan_next">Pangkas</string>
     <string name="ime_docscan_open_settings">Buka pengaturan</string>
     <string name="ime_docscan_page_number">Halaman %1$d</string>
+    <plurals name="ime_docscan_pages_album">
+        <item quantity="one">Halaman terbuka di layar bagikan aplikasi</item>
+        <item quantity="other">Aplikasi ini mengambil satu gambar dalam satu waktu di sini, sehingga %d halaman terbuka bersamaan di layar bagikannya, untuk dikirim sebagai satu album</item>
+    </plurals>
     <plurals name="ime_docscan_pages_shared">
         <item quantity="one">Aplikasi tidak mengambil halaman terakhir di sini, jadi halaman tersebut terbuka di layar bagikan aplikasi</item>
         <item quantity="other">Aplikasi tidak mengambil %d halaman di sini, jadi halaman-halaman tersebut terbuka bersamaan di layar bagikan aplikasi</item>
@@ -1064,10 +1136,15 @@
     <string name="ime_files_access_pick">Pemilih Android</string>
     <string name="ime_files_access_title">Pilih file tanpa meninggalkan papan ketik</string>
     <string name="ime_files_add">Tambahkan</string>
+    <string name="ime_files_add_tree">Tambahkan folder</string>
+    <string name="ime_files_add_tree_detail">Drive USB, kartu SD, atau folder yang dibagikan oleh aplikasi lain, seperti drive jaringan</string>
+    <string name="ime_files_allow_all">Semua penyimpanan ponsel</string>
+    <string name="ime_files_allow_all_detail">Memerlukan akses Semua berkas Android</string>
     <string name="ime_files_camera">Kamera</string>
     <string name="ime_files_clear_desc">Hapus pilihan</string>
     <string name="ime_files_collapse_desc">Buat lebih pendek</string>
     <string name="ime_files_copy_desc">Salin</string>
+    <string name="ime_files_copy_to">Salin ke %1$s</string>
     <string name="ime_files_delete_body">Folder akan dihapus beserta semua isinya. Tindakan ini bersifat permanen: Android tidak memiliki tempat sampah untuk file.</string>
     <string name="ime_files_delete_desc">Hapus</string>
     <string name="ime_files_delete_no">Batal</string>
@@ -1084,8 +1161,11 @@
     <string name="ime_files_expand_desc">Buat lebih tinggi</string>
     <string name="ime_files_hide_hidden">Sembunyikan file tersembunyi</string>
     <string name="ime_files_kde_unreadable">Tidak dapat membaca file tersebut untuk dikirim</string>
+    <string name="ime_files_locked_body">Pengelola file tidak terbuka di atas layar kunci.</string>
+    <string name="ime_files_locked_title">Buka kunci untuk melihat file Anda</string>
     <string name="ime_files_more_desc">Lainnya</string>
     <string name="ime_files_move_desc">Pindahkan</string>
+    <string name="ime_files_move_to">Pindahkan ke %1$s</string>
     <string name="ime_files_movies">Film</string>
     <string name="ime_files_music">Musik</string>
     <string name="ime_files_new_folder">Folder baru</string>
@@ -1111,6 +1191,8 @@
         <item quantity="one">Memindahkan %d item</item>
         <item quantity="other">Memindahkan %d item</item>
     </plurals>
+    <string name="ime_files_notice_tree_removed">Folder dihapus dari daftar</string>
+    <string name="ime_files_one_pane_desc">Satu daftar</string>
     <string name="ime_files_op_cancel">Berhenti</string>
     <string name="ime_files_op_copy">Menyalin %1$d dari %2$d</string>
     <string name="ime_files_op_delete">Menghapus %1$d dari %2$d</string>
@@ -1127,6 +1209,9 @@
     <string name="ime_files_pictures">Gambar</string>
     <string name="ime_files_places">Tempat</string>
     <string name="ime_files_recent">Terbaru</string>
+    <string name="ime_files_remove_tree_body">Folder dan file-filenya tetap berada di tempatnya. Anda dapat menambahkannya kembali kapan saja.</string>
+    <string name="ime_files_remove_tree_title">Hapus \"%1$s\" dari daftar?</string>
+    <string name="ime_files_remove_tree_yes">Hapus</string>
     <string name="ime_files_rename_desc">Ganti nama</string>
     <string name="ime_files_rename_hint">Nama baru</string>
     <string name="ime_files_search_clear_desc">Akhiri pencarian</string>
@@ -1145,6 +1230,7 @@
     <string name="ime_files_title_many">Pilih file</string>
     <string name="ime_files_title_one">Pilih file</string>
     <string name="ime_files_title_picture">Pilih gambar</string>
+    <string name="ime_files_two_panes_desc">Dua daftar berdampingan</string>
     <string name="ime_files_unreadable">Android tidak mengizinkan papan ketik membuka folder ini</string>
     <string name="ime_find_case_desc">Sesuaikan huruf besar/kecil</string>
     <string name="ime_find_clear_desc">Hapus %1$s</string>
@@ -1176,6 +1262,24 @@
     <string name="ime_floating_category_empty">Kategori ini kosong. Tambahkan tindakan ke dalamnya di pengaturan tombol mengambang.</string>
     <string name="ime_floating_category_label">Kategori</string>
     <string name="ime_floating_close_menu">Tutup menu</string>
+    <string name="ime_floating_device_bluetooth">Bluetooth</string>
+    <string name="ime_floating_device_bluetooth_desc">Menyalakan atau mematikan Bluetooth</string>
+    <string name="ime_floating_device_bluetooth_page_desc">Membuka halaman Bluetooth Android</string>
+    <string name="ime_floating_device_data">Data seluler</string>
+    <string name="ime_floating_device_data_desc">Mengaktifkan atau menonaktifkan data seluler</string>
+    <string name="ime_floating_device_data_panel_desc">Membuka panel internet Android</string>
+    <string name="ime_floating_device_failed">Android tidak mengizinkan hal tersebut</string>
+    <string name="ime_floating_device_hotspot">Hotspot</string>
+    <string name="ime_floating_device_hotspot_desc">Membuka halaman hotspot Android</string>
+    <string name="ime_floating_device_off">%1$s nonaktif</string>
+    <string name="ime_floating_device_on">%1$s aktif</string>
+    <string name="ime_floating_device_ringer">Mode dering</string>
+    <string name="ime_floating_device_ringer_desc">Dering, getar, dan sunyi secara bergantian</string>
+    <string name="ime_floating_device_volume">Panel volume</string>
+    <string name="ime_floating_device_volume_desc">Membuka panel volume Android dengan semua penggeser volume</string>
+    <string name="ime_floating_device_wifi">Wi-Fi</string>
+    <string name="ime_floating_device_wifi_desc">Menyalakan atau mematikan Wi-Fi</string>
+    <string name="ime_floating_device_wifi_panel_desc">Membuka panel Wi-Fi Android</string>
     <string name="ime_floating_dismiss_target">Jatuhkan di sini untuk menyembunyikan tombol</string>
     <string name="ime_floating_dock_desc">Dermakan papan ketik</string>
     <string name="ime_floating_hide_label">Sembunyikan tombol</string>
@@ -1186,7 +1290,11 @@
     <string name="ime_floating_pair_label">Buka pasangan aplikasi</string>
     <string name="ime_floating_pair_missing">Salah satu dari dua aplikasi sudah tidak terinstal lagi</string>
     <string name="ime_floating_pair_name">%1$s + %2$s</string>
+    <string name="ime_floating_plugin_label">Plugin</string>
     <string name="ime_floating_resize_desc">Ubah ukuran papan ketik</string>
+    <string name="ime_floating_ringer_ring">Derdering</string>
+    <string name="ime_floating_ringer_silent">Senyap</string>
+    <string name="ime_floating_ringer_vibrate">Getar</string>
     <string name="ime_floating_system_app_drawer">Laci aplikasi</string>
     <string name="ime_floating_system_back">Kembali</string>
     <string name="ime_floating_system_notifications">Notifikasi</string>
@@ -1244,6 +1352,7 @@
     <string name="ime_gallery_album_camera">Kamera</string>
     <string name="ime_gallery_album_favorites">Favorit</string>
     <string name="ime_gallery_album_gifs">GIF</string>
+    <string name="ime_gallery_album_immich">Immich</string>
     <string name="ime_gallery_album_recents">Terbaru</string>
     <string name="ime_gallery_album_screenshots">Tangkapan layar</string>
     <string name="ime_gallery_album_sent">Dikirim dari papan ketik</string>
@@ -1335,6 +1444,10 @@
     <string name="ime_gallery_info_taken">Diambil</string>
     <string name="ime_gallery_layer_delete">Hapus</string>
     <string name="ime_gallery_more_desc">Opsi galeri lainnya</string>
+    <plurals name="ime_gallery_notice_already_uploaded">
+        <item quantity="one">Immich sudah memiliki %d gambar</item>
+        <item quantity="other">Immich sudah memiliki semua %d gambar</item>
+    </plurals>
     <plurals name="ime_gallery_notice_copied">
         <item quantity="one">%d item disalin</item>
         <item quantity="other">%d item disalin</item>
@@ -1343,6 +1456,8 @@
         <item quantity="one">Tidak dapat membaca %d item</item>
         <item quantity="other">Tidak dapat membaca %d item</item>
     </plurals>
+    <string name="ime_gallery_notice_immich_failed">Tidak dapat menjangkau server Immich Anda</string>
+    <string name="ime_gallery_notice_immich_refused">Immich menolak kunci API; periksa izinnya</string>
     <plurals name="ime_gallery_notice_limit">
         <item quantity="one">Anda dapat memilih %d item sekaligus</item>
         <item quantity="other">Anda dapat memilih hingga %d item sekaligus</item>
@@ -1363,6 +1478,14 @@
     <plurals name="ime_gallery_notice_shared">
         <item quantity="one">Membuka layar bagikan untuk %d item</item>
         <item quantity="other">Membuka layar bagikan untuk %d item</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_upload_failed">
+        <item quantity="one">%d gambar gagal diunggah</item>
+        <item quantity="other">%d gambar gagal diunggah</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_uploaded">
+        <item quantity="one">Berhasil mengunggah %d gambar ke Immich</item>
+        <item quantity="other">Berhasil mengunggah %d gambar ke Immich</item>
     </plurals>
     <string name="ime_gallery_partial_action">Pilih lainnya</string>
     <string name="ime_gallery_partial_body">Anda hanya mengizinkan beberapa foto.</string>
@@ -1406,6 +1529,7 @@
     <string name="ime_gallery_tool_stickers">Stiker</string>
     <string name="ime_gallery_tool_text">Teks</string>
     <string name="ime_gallery_tool_upscale">Upscale</string>
+    <string name="ime_gallery_upload_immich">Unggah ke Immich</string>
     <string name="ime_gallery_upscale_art">Gambar atau teks</string>
     <string name="ime_gallery_upscale_done">Ditingkatkan ×%1$d: %2$d × %3$d</string>
     <string name="ime_gallery_upscale_downloading">Aplikasi sedang mengambil pengupscale…</string>
@@ -1664,6 +1788,9 @@
     <string name="ime_handwriting_unsupported_info">Versi aplikasi ini hanya membaca tulisan tangan dalam bahasa Mandarin dan Jepang. Tambahkan salah satunya di Bahasa untuk menulis di sini.</string>
     <string name="ime_hardware_keys_hide_desc">Sembunyikan tombol</string>
     <string name="ime_hardware_keys_show_desc">Tampilkan tombol</string>
+    <string name="ime_homophones_finish">Selesaikan kata yang sedang Anda ketik terlebih dahulu</string>
+    <string name="ime_homophones_none">Tidak ada yang terdengar seperti %1$s di ponsel ini. Paket bahasa atau skema RIME menambahkan pelafalannya.</string>
+    <string name="ime_homophones_none_before">Ketik karakter Tionghoa atau Jepang terlebih dahulu</string>
     <string name="ime_hw_pick_mode_off_toast">Mode pilih nonaktif</string>
     <string name="ime_hw_pick_mode_on_toast">Mode pilih aktif: tombol angka memilih saran, Shift mengetik angka</string>
     <string name="ime_icons_builtin_label">Bawaan</string>
@@ -1679,6 +1806,45 @@
     <string name="ime_image_search_need_key_body">Pencarian gambar memerlukan kunci API dari Brave Search. Tambahkan kunci di pengaturan untuk alat ini.</string>
     <string name="ime_incognito_on_desc">Mode penyamaran aktif</string>
     <string name="ime_insert_action">Sisipkan</string>
+    <string name="ime_invite_about_hint">Tambahkan deskripsi</string>
+    <string name="ime_invite_action">Undang secara online</string>
+    <string name="ime_invite_add_title">Tambahkan judul</string>
+    <string name="ime_invite_error_address">Alamat %1$s di pengaturan bukan alamat web.</string>
+    <string name="ime_invite_error_bad_token">%1$s tidak menerima token API.</string>
+    <string name="ime_invite_error_data_saver">Penghemat data aktif. Publikasi mengirimkan beberapa kilobita.</string>
+    <string name="ime_invite_error_network">%1$s tidak merespons.</string>
+    <string name="ime_invite_error_no_title">Undangan memerlukan judul.</string>
+    <string name="ime_invite_error_offline">Tidak ada koneksi. Hubungkan dan coba lagi.</string>
+    <string name="ime_invite_error_refused">%1$s mengatakan akun ini tidak dapat membuat acara di sana.</string>
+    <string name="ime_invite_error_rejected">%1$s menolak acara tersebut.</string>
+    <string name="ime_invite_error_signed_out">%1$s mengeluarkan Anda. Masuk kembali di setelan.</string>
+    <string name="ime_invite_fix_in_pretix">Buka Pretix</string>
+    <string name="ime_invite_go_ahead">Lanjutkan</string>
+    <string name="ime_invite_insert_link">Sisipkan tautan</string>
+    <string name="ime_invite_insert_message">Sisipkan undangan</string>
+    <string name="ime_invite_link_only">Hanya orang dengan tautan</string>
+    <string name="ime_invite_listed">Terdaftar secara publik</string>
+    <string name="ime_invite_made">Dibuat pada %1$s, pendaftaran belum dibuka</string>
+    <string name="ime_invite_not_live">Pretix membuat acara tetapi tidak mau membuka pendaftaran. %1$s</string>
+    <string name="ime_invite_not_set_up_body">Masuk ke Mobilizon atau tambahkan server Pretix di pengaturan alat Kalender terlebih dahulu.</string>
+    <string name="ime_invite_not_set_up_title">Belum ada layanan acara</string>
+    <string name="ime_invite_note_mobilizon">Orang mendaftar di halaman acara. Mobilizon akan mengirim email kepada Anda saat mereka mendaftar.</string>
+    <string name="ime_invite_note_pretix">Acara ini mendapatkan satu tiket gratis, jadi orang mendaftar di halamannya dengan alamat email mereka.</string>
+    <string name="ime_invite_open_page">Buka halaman</string>
+    <string name="ime_invite_open_settings">Setelan</string>
+    <string name="ime_invite_place_hint">Tambahkan tempat atau tautan</string>
+    <string name="ime_invite_places_any">Tanpa batas</string>
+    <string name="ime_invite_places_label">Tempat</string>
+    <string name="ime_invite_post_as">Posting sebagai %1$s</string>
+    <string name="ime_invite_post_as_default">Posting sebagai profil Anda</string>
+    <string name="ime_invite_post_as_loading">Memuat profil Anda...</string>
+    <string name="ime_invite_publish">Publikasikan</string>
+    <string name="ime_invite_published">Dipublikasikan pada %1$s</string>
+    <string name="ime_invite_publishing">Mempublikasikan…</string>
+    <string name="ime_invite_publishing_to">Memublikasikan ke %1$s</string>
+    <string name="ime_invite_ticket_name">Pendaftaran</string>
+    <string name="ime_invite_title">Undang secara online</string>
+    <string name="ime_invite_try_again">Coba lagi</string>
     <string name="ime_kaomoji_add">Tambahkan kaomoji</string>
     <string name="ime_kaomoji_all">Semua</string>
     <string name="ime_kaomoji_cancel">Batal</string>
@@ -1966,6 +2132,7 @@
     <string name="ime_learn_text_action">Pelajari teks</string>
     <string name="ime_learn_word_never_desc">Jangan pernah pelajari %1$s</string>
     <string name="ime_learn_word_offer">Tambahkan \"%1$s\"?</string>
+    <string name="ime_legacy_font_output">Output font lama</string>
     <string name="ime_level_no_sensor_empty">Perangkat Anda tidak memiliki akselerometer.</string>
     <string name="ime_location_address_failed">Tidak ada alamat di sini. Koordinat tetap berfungsi.</string>
     <string name="ime_location_address_looking">Mencari alamat…</string>
@@ -2138,6 +2305,29 @@
         <item quantity="other">%d catatan diarsipkan</item>
     </plurals>
     <string name="ime_notes_archived_badge">Diarsipkan</string>
+    <string name="ime_notes_assist_deck_action">Buat dek belajar</string>
+    <plurals name="ime_notes_assist_deck_action_count">
+        <item quantity="one">Buat tumpukan belajar (%d kartu)</item>
+        <item quantity="other">Buat tumpukan belajar (%d kartu)</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_empty_toast">Tidak ada istilah dengan arti untuk membuat kartu</string>
+    <plurals name="ime_notes_assist_deck_made_toast">
+        <item quantity="one">Dek belajar \"%2$s\" dibuat dengan %1$d kartu. Temukan di Kosakata.</item>
+        <item quantity="other">Dek belajar \"%2$s\" dibuat dengan %1$d kartu. Temukan di Kosakata.</item>
+    </plurals>
+    <string name="ime_notes_assist_deck_working_toast">Membuat setumpuk kartu belajar...</string>
+    <string name="ime_notes_assist_details_label">Detail kunci</string>
+    <string name="ime_notes_assist_heading_busy">Memikirkan judul…</string>
+    <string name="ime_notes_assist_heading_dismiss_desc">Bukan judul ini</string>
+    <string name="ime_notes_assist_heading_suggestion">Judul: %1$s</string>
+    <string name="ime_notes_assist_heading_use_action">Gunakan</string>
+    <string name="ime_notes_assist_related_label">Terkait</string>
+    <string name="ime_notes_assist_remind_chip">Ingatkan saya: %1$s · %2$s</string>
+    <string name="ime_notes_assist_reminders_label">Akan datang</string>
+    <string name="ime_notes_assist_summarize_action">Ringkas</string>
+    <string name="ime_notes_assist_summarize_again_action">Lagi</string>
+    <string name="ime_notes_assist_summary_busy">Membuat ringkasan di ponsel Anda...</string>
+    <string name="ime_notes_assist_summary_label">Ringkasan</string>
     <string name="ime_notes_body_hint">Tulis catatan… Markdown berfungsi: **tebal**, - daftar, - [ ] tugas</string>
     <string name="ime_notes_collapse_desc">Kembali ke tinggi keyboard</string>
     <string name="ime_notes_confirm_action">Ketuk lagi untuk mengonfirmasi</string>
@@ -2186,6 +2376,7 @@
     <string name="ime_notes_no_match">Tidak ada catatan yang cocok dengan “%1$s”.</string>
     <string name="ime_notes_passage_desc">Dari %1$s. Ketuk untuk menyisipkan, tahan untuk membuka catatan.</string>
     <string name="ime_notes_passages_section">Bagian</string>
+    <string name="ime_notes_paste_desc">Tempel</string>
     <string name="ime_notes_pin_action">Sematkan</string>
     <string name="ime_notes_pinned_section">Disematkan</string>
     <string name="ime_notes_restore_action">Pulihkan</string>
@@ -2219,6 +2410,29 @@
     <string name="ime_otp_chip_dismiss_desc">Sembunyikan kode</string>
     <string name="ime_panel_back_desc">Kembali ke papan ketik</string>
     <string name="ime_panel_over_keys_height_desc">Tinggi panel di atas tombol. Seret ke atas atau ke bawah</string>
+    <string name="ime_paperless_card_also_field">Juga masukkan halaman-halaman ke dalam kotak teks</string>
+    <string name="ime_paperless_card_correspondent">Koresponden</string>
+    <string name="ime_paperless_card_field_only">Kotak teks saja</string>
+    <string name="ime_paperless_card_loading">Mengambil tag Anda dari server…</string>
+    <string name="ime_paperless_card_name">Judul</string>
+    <string name="ime_paperless_card_name_hint">Opsional. Jika dibiarkan kosong, Paperless akan memberinya nama.</string>
+    <string name="ime_paperless_card_none">Tidak ada</string>
+    <string name="ime_paperless_card_offline">Server tidak dapat dijangkau saat ini. Pemindaian menunggu di ponsel dengan label default Anda dan akan diunggah setelah terhubung kembali.</string>
+    <string name="ime_paperless_card_offline_cached">Server tidak dapat dijangkau saat ini; ini adalah daftar sebelumnya dari server tersebut. Pemindaian akan diunggah setelah terhubung kembali.</string>
+    <string name="ime_paperless_card_one_pdf">Semua halaman dalam satu PDF</string>
+    <plurals name="ime_paperless_card_pages">
+        <item quantity="one">%d halaman</item>
+        <item quantity="other">%d halaman</item>
+    </plurals>
+    <string name="ime_paperless_card_send">Kirim</string>
+    <string name="ime_paperless_card_tags">Tag</string>
+    <string name="ime_paperless_card_title">Kirim ke Paperless</string>
+    <string name="ime_paperless_card_type">Jenis dokumen</string>
+    <string name="ime_paperless_queue_failed">Tidak dapat menyimpan pemindaian untuk Tanpa Kertas</string>
+    <plurals name="ime_paperless_queued">
+        <item quantity="one">%d dokumen sedang dalam perjalanan ke Paperless. Dokumen akan diunggah segera setelah ada koneksi.</item>
+        <item quantity="other">%d dokumen sedang dalam perjalanan ke Paperless. Dokumen akan diunggah segera setelah ada koneksi.</item>
+    </plurals>
     <string name="ime_password_add_digit_label">Tambahkan digit</string>
     <string name="ime_password_capitalize_label">Huruf kapital</string>
     <string name="ime_password_copied_toast">Disalin ke papan klip</string>
@@ -2237,11 +2451,27 @@
     <string name="ime_password_tab_pin">PIN</string>
     <string name="ime_password_words_label">Kata</string>
     <string name="ime_phonetic_word_list_offer">Dapatkan daftar kata %1$s untuk kata-kata yang lebih baik</string>
+    <string name="ime_plugin_access_mark">Plugin ini dapat menggunakan internet atau membaca apa yang Anda ketik</string>
+    <string name="ime_plugin_action_settings">Setelan dan izin</string>
+    <string name="ime_plugin_action_toolbar_add">Tambahkan ke bilah alat</string>
+    <string name="ime_plugin_action_toolbar_remove">Hapus dari bilah alat</string>
+    <string name="ime_plugin_action_toolbox_add">Tambahkan ke kotak alat</string>
+    <string name="ime_plugin_action_toolbox_remove">Hapus dari kotak alat</string>
+    <string name="ime_plugin_action_turn_off">Matikan</string>
+    <string name="ime_plugin_action_turn_on">Aktifkan</string>
+    <string name="ime_plugin_clock_alarm_set">%1$s menyetel alarm untuk %2$s di Jam</string>
+    <string name="ime_plugin_clock_timer_set">%1$s memulai pengatur waktu %2$s di Jam</string>
     <string name="ime_plugin_empty_body">Plugin adalah alat kecil di dalam sandbox. Anda dapat menambahkan plugin dari repositori add-on atau dari file .wmplugin. Plugin tidak dapat melihat apa yang Anda ketik.</string>
     <string name="ime_plugin_empty_title">Belum ada plugin</string>
     <string name="ime_plugin_manage_action">Kelola plugin</string>
+    <string name="ime_plugin_more">Lebih banyak opsi untuk %1$s</string>
+    <string name="ime_plugin_permission_allow">Izinkan</string>
+    <string name="ime_plugin_permission_deny">Jangan izinkan</string>
+    <string name="ime_plugin_permission_risky_note">Ini juga mengaktifkan izin berisiko untuk plugin. Anda dapat mematikannya kembali di halaman plugin di Pengaturan.</string>
+    <string name="ime_plugin_permission_title">Izinkan %1$s untuk:</string>
     <string name="ime_plugin_version_label">Versi %1$s</string>
     <string name="ime_power_saving_on_desc">Penghemat daya aktif</string>
+    <string name="ime_privacy_shade_hint">Seret gagang ke atas untuk melihat baris terakhir</string>
     <string name="ime_provider_choose_desc">Pilih penyedia</string>
     <string name="ime_punct_ampersand">Ampersand</string>
     <string name="ime_punct_apostrophe">Apostrof</string>
@@ -2375,6 +2605,8 @@
     <string name="ime_resize_move_desc">Seret untuk memindahkan papan ketik ke atas atau ke bawah</string>
     <string name="ime_resize_reset">Atur ulang</string>
     <string name="ime_resize_right_handle_desc">Seret untuk mengubah ruang di sebelah kanan papan ketik</string>
+    <string name="ime_resize_toolbar_handle">Bilah alat</string>
+    <string name="ime_resize_toolbar_handle_desc">Seret ke atas atau ke bawah untuk mengubah tinggi toolbar</string>
     <string name="ime_retype_button">Ketik ulang</string>
     <string name="ime_retype_button_desc">Ketik ulang kata pada kursor</string>
     <string name="ime_retype_button_nothing">Tidak ada kata untuk diketik ulang. Letakkan kursor tepat setelah kata.</string>
@@ -2429,8 +2661,10 @@
     <string name="ime_scanner_torch_desc">Senter</string>
     <string name="ime_scanner_translate_action">Terjemahkan</string>
     <string name="ime_screen_capture_desc">Ambil tangkapan layar</string>
+    <string name="ime_screen_capture_progress">Mengambil tangkapan layar…</string>
     <string name="ime_search_attribution_brave">via Brave</string>
     <string name="ime_search_attribution_left">%1$s · %2$s tersisa</string>
+    <string name="ime_search_attribution_mwmbl">melalui Mwmbl</string>
     <string name="ime_search_attribution_tavily">via Tavily</string>
     <string name="ime_search_in_browser_desc">Cari di browser</string>
     <string name="ime_search_menu_copy_link">Salin link</string>
@@ -2440,6 +2674,7 @@
     <string name="ime_search_no_more">Tidak ada hasil lagi</string>
     <string name="ime_search_tab_all">Semua</string>
     <string name="ime_search_tab_images">Gambar</string>
+    <string name="ime_second_toolbar_empty">Seret alat ke sini dari kotak alat atau bilah alat</string>
     <string name="ime_selection_ask_ai">Tanya AI</string>
     <string name="ime_selection_macro_ai_translate_label">Terjemahan AI</string>
     <string name="ime_selection_macro_back_desc">Kembali ke tindakan pilihan</string>
@@ -2738,6 +2973,8 @@
     <string name="ime_service_incognito_off_toast">Mode penyamaran nonaktif</string>
     <string name="ime_service_incognito_on_toast">Mode penyamaran aktif. Keyboard tidak mempelajari apa yang Anda ketik.</string>
     <string name="ime_service_incognito_switch_toast">Mode Penyamaran aktif. Ketuk alat Penyamaran untuk mematikannya</string>
+    <string name="ime_service_legacy_font_off_toast">Menulis Unicode</string>
+    <string name="ime_service_legacy_font_on_toast">Menulis untuk font %1$s</string>
     <string name="ime_service_media_download_error_toast">Unduhan tidak berhasil. Periksa koneksi Anda.</string>
     <string name="ime_service_media_fetch_error">Papan ketik tidak dapat memperoleh hasil</string>
     <string name="ime_service_mode_tool_order_toast">Papan ketik menyimpan urutan alat untuk mode %1$s. Aplikasi lain menyimpan urutannya sendiri.</string>
@@ -2761,6 +2998,7 @@
     <string name="ime_service_power_saving_on_empty_toast">Penghemat daya aktif. Belum ada fitur yang diatur untuk berhenti.</string>
     <string name="ime_service_power_saving_on_toast">Penghemat daya aktif</string>
     <string name="ime_service_power_saving_still_on_toast">Penghemat daya tetap aktif. Pemicu baterai aktif.</string>
+    <string name="ime_service_privacy_shade_floating_toast">Bayangan privasi berfungsi dengan papan tombol yang ditambatkan. Tambatkan papan tombol terlebih dahulu.</string>
     <string name="ime_service_qr_error">Papan ketik tidak dapat membuat kode QR</string>
     <string name="ime_service_resize_floating_toast">Dermakan papan ketik untuk mengubah ukurannya</string>
     <string name="ime_service_search_error">Pencarian tidak berhasil</string>
@@ -2821,6 +3059,7 @@
     <string name="ime_smart_repeat_count">×%1$s</string>
     <string name="ime_smart_repeat_offer">Ulangi “%1$s”</string>
     <string name="ime_smart_replies_dismiss_desc">Sembunyikan balasan cerdas</string>
+    <string name="ime_smart_search_offer">%1$s: “%2$s”</string>
     <string name="ime_smart_send_link">Terima file</string>
     <string name="ime_smart_translate_offer">Terjemahkan</string>
     <string name="ime_smart_vocab_daily">Kata hari ini: %1$s ›</string>
@@ -2830,6 +3069,12 @@
     <string name="ime_smart_vocab_word">%1$s ›</string>
     <string name="ime_smart_weather_tap">Dapatkan prakiraan cuaca</string>
     <string name="ime_smart_wiki_word">“%1$s” di Wikipedia</string>
+    <string name="ime_snippet_ask_cancel_desc">Batalkan cuplikan</string>
+    <string name="ime_snippet_ask_done_desc">Sisipkan cuplikan</string>
+    <string name="ime_snippet_ask_hint">Ketik %1$s</string>
+    <string name="ime_snippet_ask_next_desc">Bidang berikutnya</string>
+    <string name="ime_snippet_ask_step_label">%1$s %2$d/%3$d</string>
+    <string name="ime_snippet_image_desc">Kutipan gambar %1$s</string>
     <string name="ime_snippet_offer_back_desc">Kembali ke %1$s</string>
     <string name="ime_snippet_offer_desc">Masukkan cuplikan %1$s</string>
     <string name="ime_snippet_offer_more_desc">Lainnya dari %1$s</string>
@@ -2940,6 +3185,7 @@
     <string name="ime_suggestion_hold_label">Opsi kata</string>
     <string name="ime_suggestion_never_suggest">Jangan pernah sarankan \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Kembali ke tombol</string>
+    <string name="ime_suggestion_pattern_still_hides">Pola daftar hitam masih menyembunyikan \"%1$s\". Edit di bawah Daftar hitam saran.</string>
     <string name="ime_suggestion_rank_badge">\"%1$s\" peringkat %2$s</string>
     <string name="ime_suggestion_rank_unchanged">\"%1$s\" tidak berubah</string>
     <string name="ime_suggestions_show_desc">Tampilkan baris saran</string>
@@ -2969,6 +3215,8 @@
     <string name="ime_synonyms_title">Sinonim untuk \"%1$s\"</string>
     <string name="ime_textedit_delete_line_desc">Hapus baris</string>
     <string name="ime_textedit_delete_line_forward_desc">Hapus baris ke depan</string>
+    <string name="ime_textedit_delete_to_end_desc">Hapus hingga akhir</string>
+    <string name="ime_textedit_delete_to_start_desc">Hapus hingga awal</string>
     <string name="ime_textedit_delete_word_desc">Hapus kata</string>
     <string name="ime_textedit_delete_word_forward_desc">Hapus kata ke depan</string>
     <string name="ime_textedit_doc_end_desc">Pindah ke akhir teks</string>
@@ -2987,6 +3235,7 @@
     <string name="ime_textedit_select_label">Pilih</string>
     <string name="ime_textedit_select_line_desc">Pilih baris</string>
     <string name="ime_textedit_select_word_desc">Pilih kata</string>
+    <string name="ime_textedit_type_clipboard_desc">Ketik papan klip</string>
     <string name="ime_textedit_up_desc">Pindah ke atas</string>
     <string name="ime_textedit_word_left_desc">Pindahkan satu kata ke kiri</string>
     <string name="ime_textedit_word_right_desc">Pindahkan satu kata ke kanan</string>
@@ -3064,6 +3313,7 @@
     <string name="ime_tool_calculator">Kalkulator</string>
     <string name="ime_tool_calendar">Kalender</string>
     <string name="ime_tool_camera">Kamera</string>
+    <string name="ime_tool_clear_field">Hapus semuanya</string>
     <string name="ime_tool_clipboard">Papan klip</string>
     <string name="ime_tool_clipboard_search">Pencarian papan klip</string>
     <string name="ime_tool_clock">Jam</string>
@@ -3080,11 +3330,13 @@
     <string name="ime_tool_cursor_word_right">Kata ke kanan</string>
     <string name="ime_tool_custom_layout">Tata letak kustom</string>
     <string name="ime_tool_cut">Potong</string>
+    <string name="ime_tool_debug_info">Info debug</string>
     <string name="ime_tool_dictionary">Kamus</string>
     <string name="ime_tool_doc_scan">Pindai dokumen</string>
     <string name="ime_tool_emoji">Emoji</string>
     <string name="ime_tool_emoji_mix">Paduan emoji</string>
     <string name="ime_tool_fancy">Teks bergaya</string>
+    <string name="ime_tool_files">File</string>
     <string name="ime_tool_find_replace">Cari &amp; ganti</string>
     <string name="ime_tool_flashlight">Senter</string>
     <string name="ime_tool_floating">Mengambang</string>
@@ -3094,6 +3346,7 @@
     <string name="ime_tool_handwriting">Tulisan tangan</string>
     <string name="ime_tool_hide_keyboard">Sembunyikan</string>
     <string name="ime_tool_home_assistant">Rumah pintar</string>
+    <string name="ime_tool_homophones">Suara yang sama</string>
     <string name="ime_tool_image_search">Gambar</string>
     <string name="ime_tool_incognito">Penyamaran</string>
     <string name="ime_tool_language">Bahasa</string>
@@ -3120,6 +3373,7 @@
     <string name="ime_tool_picker_leader">%1$s, lalu:</string>
     <string name="ime_tool_plugins">Plugin</string>
     <string name="ime_tool_power_saving">Hemat daya</string>
+    <string name="ime_tool_privacy_shade">Nuansa privasi</string>
     <string name="ime_tool_qr_gen">Kode QR</string>
     <string name="ime_tool_qr_scan">Pindai QR</string>
     <string name="ime_tool_quick_note">Catatan singkat</string>
@@ -3144,6 +3398,7 @@
     <string name="ime_tool_text_edit">Pengeditan teks</string>
     <string name="ime_tool_text_repeat">Ulangi</string>
     <string name="ime_tool_themes">Tema</string>
+    <string name="ime_tool_timestamp">Stempel waktu</string>
     <string name="ime_tool_todo">Daftar tugas</string>
     <string name="ime_tool_trackpad">Trackpad</string>
     <string name="ime_tool_translate">Terjemahkan</string>
@@ -3201,12 +3456,14 @@
     <string name="ime_translate_engine_online_info">Menggunakan layanan daring.</string>
     <string name="ime_translate_hint">Ketik teks untuk diterjemahkan…</string>
     <string name="ime_translate_idle">Terjemahan muncul di sini saat Anda mengetik.</string>
+    <string name="ime_translate_idle_manual">Ketik seluruh teks, lalu ketuk Terjemahkan. Tidak ada yang dikirim sebelum itu.</string>
     <string name="ime_translate_module_failed_error">Google Play tidak mengirimkan unduhan. Periksa koneksi, lalu coba lagi. Jika gagal lagi, unduh dari Setelan, Alat, Terjemahkan.</string>
     <string name="ime_translate_module_installing_action">Mengunduh…</string>
     <string name="ime_translate_module_missing_body">Terjemahan pada perangkat adalah bagian tambahan dari papan ketik yang berasal dari Google Play. Unduh untuk menerjemahkan tanpa koneksi.</string>
     <string name="ime_translate_need_models_body">Untuk menerjemahkan di perangkat, unduh: %1$s. Sekitar %2$s.</string>
     <string name="ime_translate_nllb_licence_accept_action">Terima dan unduh</string>
     <string name="ime_translate_nllb_licence_body">NLLB-200 berasal dari Hugging Face di bawah lisensi Meta, Creative Commons Attribution-NonCommercial 4.0: hanya untuk penggunaan non-komersial, tanpa jaminan. Tekan sekali lagi untuk menerima dan mengunduhnya.</string>
+    <string name="ime_translate_now_action">Terjemahkan</string>
     <string name="ime_translate_offline_build_error">Versi offline ini tidak dapat menerjemahkan di ponsel ini: satu mesinnya, Firefox Translations, memerlukan ponsel 64-bit dengan Android 9 atau versi yang lebih baru. Untuk menerjemahkan, instal versi standar.</string>
     <string name="ime_translate_offline_failed_error">Terjemahan pada perangkat tidak dimulai. Coba lagi, atau pilih mesin daring.</string>
     <string name="ime_translate_offline_import_body">Build offline ini tidak dapat mengunduh. Untuk menerjemahkannya, ambil file ini di perangkat lain dan impor: %1$s. Buka Pengaturan › Alat › Terjemahan › Penyedia › Di perangkat (Terjemahan Firefox).</string>
@@ -3222,6 +3479,7 @@
     <string name="ime_translate_select_source_desc">Pilih bahasa sumber</string>
     <string name="ime_translate_server_label">Server Anda</string>
     <string name="ime_translate_source_guessed_label">%1$s?</string>
+    <string name="ime_translate_speak_desc">Baca terjemahan dengan lantang</string>
     <string name="ime_translate_swap_desc">Tukar bahasa</string>
     <string name="ime_typing_accuracy_label">akurasi</string>
     <string name="ime_typing_accuracy_short_label">akurasi</string>
@@ -3342,6 +3600,10 @@
     <string name="ime_voice_model_get_language_action">Dapatkan %1$s untuk pengetikan suara offline</string>
     <string name="ime_voice_permission_action">Izinkan mikrofon</string>
     <string name="ime_voice_permission_body">Pengetikan suara memerlukan izin untuk menggunakan mikrofon. Aplikasi hanya merekam audio saat Anda berbicara.</string>
+    <string name="ime_voice_prompt_fix_custom">Hapus beberapa \'Kata lain yang didengarkan\' di setelan Pengetikan suara, atau persingkat Perintah.</string>
+    <string name="ime_voice_prompt_fix_personal">Matikan \'Dengarkan kata-kata saya\' di pengaturan pengetikan suara, atau persingkat Perintah.</string>
+    <string name="ime_voice_prompt_fix_prompt">Persingkat Perintah, pada layar server di pengaturan Pengetikan suara, menjadi di bawah %1$d karakter.</string>
+    <string name="ime_voice_prompt_too_long">Server ini menerima perintah hingga %2$d karakter, dan yang ini adalah %1$d: Perintah %3$d, Kata lain untuk didengarkan %4$d, Dengarkan kata-kata saya %5$d.</string>
     <string name="ime_voice_secure_field_notice">Pengetikan suara tidak berfungsi di kolom kata sandi.</string>
     <string name="ime_voice_server_metered_ask">Penghemat data aktif. Tekan mikrofon lagi untuk mengirim suara Anda melalui data seluler.</string>
     <string name="ime_voice_server_metered_blocked">Server transkripsi dimatikan saat Anda menggunakan data seluler. Anda dapat mengubahnya di Setelan, di bawah Penghemat data.</string>
@@ -3381,6 +3643,12 @@
     <string name="ime_voice_use_system_action">Gunakan pengenal sistem</string>
     <string name="ime_weather_clouds_label">berawan</string>
     <string name="ime_weather_error">Aplikasi tidak dapat mengunduh cuaca. Periksa jaringan Anda.</string>
+    <string name="ime_weather_event_back_desc">Kembali ke kalender</string>
+    <string name="ime_weather_event_home_place">%1$s (lokasi cuaca Anda)</string>
+    <string name="ime_weather_event_home_unnamed">Lokasi cuaca Anda</string>
+    <string name="ime_weather_event_hour_desc">%1$s: %2$s, %3$s, peluang hujan %4$s</string>
+    <string name="ime_weather_event_no_hours">Prakiraan cuaca belum mencapai hari ini.</string>
+    <string name="ime_weather_event_rain_info">%1$d%% kemungkinan hujan</string>
     <string name="ime_weather_feels_like_label">terasa seperti</string>
     <string name="ime_weather_high_low_info">T %1$d° R %2$d°</string>
     <string name="ime_weather_humidity_label">kelembapan</string>
@@ -3496,6 +3764,7 @@
     <string name="ime_wmpass_no_password">WM Pass tidak membuat kata sandi. Kankas mungkin terkunci.</string>
     <string name="ime_wmpass_no_username">Login ini tidak memiliki nama pengguna untuk diisi.</string>
     <string name="ime_wmpass_no_vault">WM Pass belum memiliki brankas. Buatlah satu di sana terlebih dahulu.</string>
+    <string name="ime_wmpass_not_released">WM Pass belum dirilis. Alat ini mulai berfungsi setelah dirilis dan diinstal.</string>
     <string name="ime_wmpass_not_set">Belum disetel</string>
     <string name="ime_wmpass_off">Untuk menggunakan ini, aktifkan Biarkan Papan Tombol WM mengisi WM Pass, di bawah Pengaturan, Keamanan.</string>
     <string name="ime_wmpass_open">Buka WM Pass</string>

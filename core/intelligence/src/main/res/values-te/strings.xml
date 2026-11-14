@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">సమాధానం చెప్పే ముందు ఆలోచించే ఇటీవలి మధ్యస్థ పరిమాణ నమూనా. దీనికి మధ్యస్థ పరికర అవసరం.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">చిన్నది మరియు వేగవంతమైనది. ప్రాథమిక పరికరంలో త్వరిత మార్పులకు ఇది మంచిది.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">చిత్రాలను చదవగల చాలా చిన్న మోడల్. ఇది చిత్రాన్ని వివరిస్తుంది, కానీ తరచుగా స్క్రీన్‌షాట్‌లోని వచనాన్ని తప్పుగా చదువుతుంది.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">సూచనలను అనుసరించడం మరియు సాధనాలను ఉపయోగించడం కోసం జెమ్మా 4 E4B యొక్క NVIDIA యొక్క రీట్రైనింగ్. టెక్స్ట్ మాత్రమే, మరియు దీనికి శక్తివంతమైన పరికరం అవసరం.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">సాధారణ పరికరాల్లో కూడా పనిచేసే ఒక సాధారణ ప్రయోజన మోడల్.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B కంటే తక్కువ ఉన్న మోడల్స్ కంటే ఇది స్పష్టంగా తెలివైనది. దీనికి మిడ్-రేంజ్ పరికరం అవసరం.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">ఇది ఇటీవలి చిన్న మోడల్. దీని పరిమాణానికి తగినట్లుగా నాణ్యత ఎక్కువగా ఉంటుంది.</string>

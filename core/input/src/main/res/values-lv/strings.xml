@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">Furigana lasījumi</string>
     <string name="core_input_cjk_pack_hanja_subtitle">Hangeila vārdi un to Hanja, 300 000 ierakstu. Tastatūrai ir nepieciešama šī pakotne, lai ieteikumu joslā piedāvātu Hanja.</string>
     <string name="core_input_cjk_pack_hanja_title">Hanja (漢字) vārdnīca</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, lai vārds ar tā prefiksiem un sufiksiem bųtu zināms un tajā esoša drukas kııda tiktu izlabota.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">Arābu valodas pareizrakstības vārdnīca</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, lai vārdi ar jebkuru sufiksu būtu zināmi un drukas kļūdas tajos tiktu labotas.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">Turku valodas pareizrakstības noteikumi</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">Kana lasījumi no mozc, 1,08 miljoni ierakstu, aptuveni 42 MB. Tastatūrai šī pakotne ir nepieciešama japāņu valodas konvertēšanai.</string>

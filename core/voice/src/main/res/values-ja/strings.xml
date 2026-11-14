@@ -9,11 +9,16 @@
     <string name="core_voice_model_base_multi_body">このモデルは精度と速度のバランスが取れています。Whisperが対応するすべての言語をカバーします。Smallモデルが遅すぎる場合に選択してください。</string>
     <string name="core_voice_model_base_world_body">このモデルは推測ではなく、入力した言語を使用します。短いフレーズの認識精度が大幅に向上します。リストに自分の言語が含まれている場合に選択してください。</string>
     <string name="core_voice_model_cpp_base_body">このモデルは精度と速度のバランスが取れています。Whisperが対応する99言語のいずれかで、あなたが話す言語を認識し、あなたの言葉を書き起こします。Smallモデルの動作が遅い場合に選択してください。</string>
+    <string name="core_voice_model_cpp_fine_tune_body">%1$sはこの言語の音声でこのTurboモデルをさらにトレーニングしました。その言語のみを処理します。</string>
+    <string name="core_voice_model_cpp_hinglish_body">Oriserveはこのモデルをヒンディー語、およびヒンディー語と英語を混ぜた言語でトレーニングしました。音声で話した内容をヒンディー語のタイピング方法に合わせてラテン文字で書き起こし、英語の単語は英語のまま保持します。デーヴァーナガリー文字は使用しないため、ヒンディー語というよりもヒンディー・イングリッシュ（Hinglish）に適しています。小型で高速です。</string>
+    <string name="core_voice_model_cpp_kb_body">スウェーデン国立図書館がスウェーデン語の音声でトレーニングしたモデルです。スウェーデン語専用であり、同サイズの一般的なWhisperモデルよりも精度が高くなります。</string>
+    <string name="core_voice_model_cpp_kotoba_body">Kotoba TechnologiesがWhisper Large v3をベースに作成した日本語モデルです。デコーダーが大幅に小さいため、Turboモデルと同等の速度で動作します。日本語専用です。</string>
     <string name="core_voice_model_cpp_large_body">これは最も精度の高いWhisperモデルです。ダウンロードサイズは1.1GBです。大容量メモリを搭載したデバイスでのみ読み込み可能です。Turboモデルはほぼ同等の精度で、サイズは半分です。</string>
     <string name="core_voice_model_cpp_medium_body">このモデルはデスクトップ並みの精度を提供します。各フレーズの処理に数秒かかります。実行中、モデルは約1ギガバイトのメモリを使用します。</string>
     <string name="core_voice_model_cpp_small_body">このモデルは、スマートフォンで快適に動作しつつ最高の精度を提供します。Whisperが対応する99言語のいずれかで話した内容を認識し、あなたの言葉をそのまま聞き取ります。</string>
     <string name="core_voice_model_cpp_tiny_body">これは最も高速なモデルです。明瞭な音声ではうまく機能しますが、ノイズがあると精度が低下します。あなたが話す言語を使用し、あなたの言葉を認識します。</string>
     <string name="core_voice_model_cpp_turbo_body">このモデルは最大サイズのモデルとほぼ同等の精度を持ちながら、サイズは半分です。フレーズごとに数秒かかり、翻訳はできません。</string>
+    <string name="core_voice_model_custom_body">ファイルからこの whisper.cpp モデルをインポートしました。キーボードはトレーニング方法を認識していないため、「言語ごとのモデル」でそのモデルが作成された言語を選択してください。</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d言語</item>
         <item quantity="other">%1$d言語</item>

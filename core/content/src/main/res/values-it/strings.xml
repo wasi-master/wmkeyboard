@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">Indirizzo email</string>
+    <string name="core_content_clip_entity_email_tag">EMAIL</string>
     <string name="core_content_clip_entity_otp_label">Codice monouso</string>
     <string name="core_content_clip_entity_otp_tag">CODICE</string>
     <string name="core_content_clip_entity_phone_label">Numero di telefono</string>
@@ -38,6 +40,10 @@
         <item quantity="one">L\'app ha saltato %1$d snippet che non ha nulla da inserire.</item>
         <item quantity="other">L\'app ha saltato %1$d snippet che non hanno nulla da inserire.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d campo del modulo offre un elenco tra cui scegliere. L\'app lo richiede come risposta digitata, con la prima scelta precompilata.</item>
+        <item quantity="other">%1$d campi del modulo offrono un elenco tra cui scegliere. L\'app li richiede ciascuno come risposta digitata, con la prima scelta precompilata.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">L\'app ha saltato %1$d snippet che inserisce un\'immagine.</item>
         <item quantity="other">L\'app ha saltato %1$d snippet che inseriscono immagini.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d snippet utilizza un valore per il quale Espanso non ha un equivalente. Viene scritto così com\'è.</item>
         <item quantity="other">%1$d snippet utilizzano valori per i quali Espanso non ha un equivalente. Vengono scritti così come sono.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d snippet inserisce un\'immagine. Un file di testo non può contenere l\'immagine, quindi sono state esportate solo le sue parole.</item>
+        <item quantity="other">%1$d snippet inseriscono immagini. Un file di testo non può contenere le immagini, quindi sono state esportate solo le loro parole.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">L\'app ha rimosso il pattern da %1$d snippet. L\'app non esegue pattern di quel tipo. Lo snippet rimane nell\'elenco.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">L\'app ha rimosso %1$d trigger che la tastiera non può monitorare. Il suo snippet rimane nell\'elenco.</item>
         <item quantity="other">L\'app ha rimosso %1$d trigger che la tastiera non può monitorare. I loro snippet rimangono nell\'elenco.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">Inizia con 111 ma non è una riga di attivazione 111 completa 111. Per iniziare una riga di testo con 111, scrivi invece \111</string>
+    <string name="core_content_snippet_text_bad_pattern">Impossibile utilizzare il criterio: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s non può essere %2$s</string>
+    <string name="core_content_snippet_text_before_header">Testo prima della prima riga di attivazione 333. Inizia un blocco con uno o inizia la riga con #</string>
+    <string name="core_content_snippet_text_no_text">Questo frammento non ha testo</string>
+    <string name="core_content_snippet_text_no_trigger">Un frammento senza nulla tra i segni === richiede una riga @label o @pattern</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d frammento di immagine è arrivato come testo: un file di testo non contiene immagini</item>
+        <item quantity="other">%1$d frammenti di immagine sono arrivati come testo: un file di testo non contiene immagini</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">Saltato il frammento alla riga %1$d, che contiene un errore</string>
+    <string name="core_content_snippet_text_unknown_link">Il @link nomina %1$s, e nessun frammento qui ha quel trigger</string>
+    <string name="core_content_snippet_text_unknown_picture">Il @picture nomina %1$s, che nessuno snippet utilizza. Aggiungi immagini nell\'editor dello snippet</string>
+    <string name="core_content_snippet_text_unknown_setting">La tastiera non riconosce l\'impostazione %1$s. Per iniziare il testo di un frammento con @, scrivi invece \@</string>
     <string name="core_content_snippet_var_app_info">Il nome dell\'app in cui stai scrivendo</string>
+    <string name="core_content_snippet_var_battery_info">La carica della batteria, ad esempio 85%</string>
     <string name="core_content_snippet_var_clip_info">L\'elemento più recente negli appunti</string>
     <string name="core_content_snippet_var_cursor_info">Il punto in cui si posiziona il cursore</string>
     <string name="core_content_snippet_var_date_info">Data di oggi</string>
     <string name="core_content_snippet_var_datetime_info">Data e ora</string>
     <string name="core_content_snippet_var_day_info">Il giorno del mese</string>
+    <string name="core_content_snippet_var_greeting_info">Buongiorno, buon pomeriggio o buonasera a seconda dell\'ora, nella lingua della tastiera</string>
     <string name="core_content_snippet_var_isodate_info">La data in formato ISO, ad esempio 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">Data e ora in formato ISO</string>
+    <string name="core_content_snippet_var_language_info">La lingua della tastiera che utilizzi per digitare</string>
     <string name="core_content_snippet_var_month_info">Il nome del mese</string>
     <string name="core_content_snippet_var_package_info">Il nome del pacchetto di quell\'app</string>
     <string name="core_content_snippet_var_selection_info">Il testo selezionato nel campo</string>
+    <string name="core_content_snippet_var_tab_info">Un carattere di tabulazione</string>
     <string name="core_content_snippet_var_time12_info">L\'ora attuale nel formato a 12 ore</string>
     <string name="core_content_snippet_var_time_info">L\'ora attuale nel formato 24 ore</string>
     <string name="core_content_snippet_var_timestamp_info">Il tempo in secondi Unix</string>

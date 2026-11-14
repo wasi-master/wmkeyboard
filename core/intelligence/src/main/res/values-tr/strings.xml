@@ -36,6 +36,7 @@
     <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Cevap vermeden önce düşünen, yeni nesil orta ölçekli bir model. Orta seviye bir cihaz gerektirir.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Küçük ve hızlı. Temel bir cihazda hızlı yeniden yazmalar için iyidir.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Resimleri okuyabilen çok küçük bir model. Bir resmi tanımlar ancak ekran görüntüsündeki metni genellikle yanlış okur.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">NVIDIA\'nın yönergeleri izleme ve araçları kullanma amacıyla Gemma 4 E4B\'yi yeniden eğitmesi. Yalnızca metin içerir ve güçlü bir cihaz gerektirir.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Temel bir cihaza sığabilen genel amaçlı bir model.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B altındaki modellerden belirgin şekilde daha akıllı. Orta seviye bir cihaz gerektirir.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Yakın zamanda çıkmış küçük bir model. Boyutuna göre kalitesi yüksektir.</string>

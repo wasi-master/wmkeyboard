@@ -15,6 +15,8 @@
     <string name="core_input_cjk_pack_furigana_title">Furigana-avlesninger</string>
     <string name="core_input_cjk_pack_hanja_subtitle">Hangul-ord og deres Hanja, 300 000 oppføringer. Tastaturet trenger denne pakken for å tilby Hanja på forslagslinjen.</string>
     <string name="core_input_cjk_pack_hanja_title">Hanja (漢字)-ordbok</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, slik at et ord med sine prefikser og suffikser er kjent og skrivefeil i det blir rettet.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">Arabisk stavekontrollordbok</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, slik at ord med ettersjetter er kjent og skrivefeil i dem blir rettet opp.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">Tyrkiske rettskrivingsregler</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">Kana-lesninger fra mozc, 1,08 millioner oppføringer, ca. 42 MB. Tastaturet trenger denne pakken for japansk konvertering.</string>

@@ -2,6 +2,8 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_content_clip_entity_email_label">El. pašto adresas</string>
+    <string name="core_content_clip_entity_email_tag">EL. PAŠTAS</string>
     <string name="core_content_clip_entity_otp_label">Vienkartinis kodas</string>
     <string name="core_content_clip_entity_otp_tag">KODAS</string>
     <string name="core_content_clip_entity_phone_label">Telefono numeris</string>
@@ -38,6 +40,10 @@
         <item quantity="one">Programa praleido %1$d fragmentą, kurio nėra ką įterpti.</item>
         <item quantity="other">Programa praleido %1$d fragmentų, kurių nėra ką įterpti.</item>
     </plurals>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d formos laukas siūlo pasirinkti iš sąrašo. Programėlė to prašo kaip įvesto atsakymo, užpildant pirmąjį pasirinkimą.</item>
+        <item quantity="other">%1$d formos laukai siūlo pasirinkti iš sąrašo. Programėlė kiekvieno iš jų prašo kaip įvesto atsakymo, užpildant pirmąjį pasirinkimą.</item>
+    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Programa praleido %1$d fragmentą, kuris įterpia paveikslėlį.</item>
         <item quantity="other">Programa praleido %1$d fragmentų, kurie įterpia paveikslėlius.</item>
@@ -57,6 +63,10 @@
     <plurals name="core_content_espanso_note_no_variable">
         <item quantity="one">%1$d fragmentas naudoja reikšmę, kurios „Espanso“ neturi atitikmens. Jis parašytas toks, koks yra.</item>
         <item quantity="other">%1$d fragmentai naudoja reikšmes, kurių „Espanso“ neturi atitikmens. Jie parašyti tokie, kokie yra.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d iškarpa įterpia paveikslėlį. Tekstinis failas negali talpinti paveikslėlio, todėl buvo išsiųsti tik jo žodžiai.</item>
+        <item quantity="other">%1$d iškarpos įterpia paveikslėlius. Tekstinis failas negali talpinti paveikslėlių, todėl buvo išsiųsti tik jų žodžiai.</item>
     </plurals>
     <plurals name="core_content_espanso_note_regex">
         <item quantity="one">Programa pašalino šabloną iš %1$d fragmento. Programa nevykdo tokios formos šablonų. Fragmentas lieka sąraše.</item>
@@ -197,17 +207,35 @@
         <item quantity="one">Programa pašalino %1$d paleidiklį, kurio klaviatūra negali stebėti. Jo fragmentas lieka sąraše.</item>
         <item quantity="other">Programa pašalino %1$d paleidiklių, kurių klaviatūra negali stebėti. Jų fragmentai lieka sąraše.</item>
     </plurals>
+    <string name="core_content_snippet_text_bad_header">Prasideda nuo ===, bet nėra visa === paleidiklio === eilutė. Norėdami pradėti teksto eilutę nuo ===, parašykite \===</string>
+    <string name="core_content_snippet_text_bad_pattern">Šio šablono naudoti negalima: %1$s</string>
+    <string name="core_content_snippet_text_bad_value">%1$s negali būti %2$s</string>
+    <string name="core_content_snippet_text_before_header">Tekstas prieš pirmąją „===“ paleidiklio „===“ eilutę. Pradėkite bloką viena arba pradėkite eilutę su #</string>
+    <string name="core_content_snippet_text_no_text">Šis fragmentas neturi teksto</string>
+    <string name="core_content_snippet_text_no_trigger">Iškarpa be nieko tarp ženklų „===“ reikalauja @label arba @pattern eilutės</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d paveikslėlio iškarpa buvo įtraukta kaip tekstas: teksto faile paveikslėlių nėra</item>
+        <item quantity="other">%1$d paveikslėlių iškarpos buvo įtrauktos kaip tekstas: teksto faile paveikslėlių nėra</item>
+    </plurals>
+    <string name="core_content_snippet_text_skipped_line">Praleistas iškarpos fragmentas %1$d eilutėje, kurioje yra klaida</string>
+    <string name="core_content_snippet_text_unknown_link">\@link pavadinimai %1$s, ir čia nėra ištraukos su tokiu paleidikliu</string>
+    <string name="core_content_snippet_text_unknown_picture">\@picture nurodo %1$s, kurio nenaudoja jokia iškarpa. Pridėkite nuotraukas iškarpos redaktoriuje</string>
+    <string name="core_content_snippet_text_unknown_setting">Klaviatūra nežino nustatymo %1$s. Norėdami pradėti ištraukos tekstą simboliu @, įrašykite \@</string>
     <string name="core_content_snippet_var_app_info">Programos, kurioje rašote, pavadinimas</string>
+    <string name="core_content_snippet_var_battery_info">Baterijos įkrova, pavyzdžiui, 85%</string>
     <string name="core_content_snippet_var_clip_info">Naujausias iškarpinės įrašas</string>
     <string name="core_content_snippet_var_cursor_info">Vieta, kurioje atsiduria žymeklis</string>
     <string name="core_content_snippet_var_date_info">Šiandienos data</string>
     <string name="core_content_snippet_var_datetime_info">Data ir laikas</string>
     <string name="core_content_snippet_var_day_info">Mėnesio diena</string>
+    <string name="core_content_snippet_var_greeting_info">Labas rytas, diena ar vakaras pagal laiką, klaviatūros kalba</string>
     <string name="core_content_snippet_var_isodate_info">Data ISO formatu, pavyzdžiui, 2026-07-19</string>
     <string name="core_content_snippet_var_isotime_info">Data ir laikas ISO formatu</string>
+    <string name="core_content_snippet_var_language_info">Klaviatūros kalba, kuria rašote</string>
     <string name="core_content_snippet_var_month_info">Mėnesio pavadinimas</string>
     <string name="core_content_snippet_var_package_info">Tos programėlės paketo pavadinimas</string>
     <string name="core_content_snippet_var_selection_info">Tekstas, kurį pasirenkate lauke</string>
+    <string name="core_content_snippet_var_tab_info">Tabuliacijos simbolis</string>
     <string name="core_content_snippet_var_time12_info">Dabartinis laikas 12 valandų formatu</string>
     <string name="core_content_snippet_var_time_info">Dabartinis laikas 24 valandų formatu</string>
     <string name="core_content_snippet_var_timestamp_info">Laikas Unix sekundėmis</string>
