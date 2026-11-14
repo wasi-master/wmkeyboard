@@ -19948,8 +19948,13 @@ internal fun KeyPreviewOverlay(
 /** Marks a pooled bubble's key, so a slot number never equals a press's token. */
 private object BubbleSlotKey
 
-/** The letter a one-letter preview bubble is as wide as: the widest Latin capital in most faces. */
-private const val UniformBubbleLetter = "W"
+/**
+ * The letters a one-letter preview bubble is as wide as, lower and upper case:
+ * a mid-width letter, so most bubbles match and only the wide few (m, w, M, W)
+ * grow past it. Sizing to a W made every bubble as fat as the widest one.
+ */
+private const val UniformBubbleLetterLower = "n"
+private const val UniformBubbleLetterUpper = "N"
 
 /**
  * One preview bubble. In on-key mode it is key-wide with a large label near the
@@ -19976,16 +19981,18 @@ private fun KeyPreviewBubble(
     val labelStyle = LocalTextStyle.current.merge(
         TextStyle(fontSize = ((if (onKeyStyle) OnKeyLabelSp else FloatingLabelSp) * popup.fontScale).sp),
     )
-    // One letter's bubble is as wide as the widest letter's, so every key's
-    // is the same size (#1307): sized to its own label, an `i` drew narrower
-    // than a `q` and a `w` wider again. A longer label still grows past it.
+    // One letter's bubble is as wide as a mid-width letter in its case, so
+    // most keys' are the same size (#1307): sized to its own label, an `i`
+    // drew narrower than a `q`. Wider letters and longer labels grow past it.
+    // The width setting below x1 narrows this floor with the padding.
     val letterFloor = if (preview.label.codePointCount(0, preview.label.length) <= 1) {
+        val reference = if (preview.label.any { it.isUpperCase() }) UniformBubbleLetterUpper else UniformBubbleLetterLower
         // Through the bubbles' cache, at the composition's density as
         // [CachedTextLine] reads it, so the press after the first is a hit.
-        val measured = remember(labelStyle, density) {
-            labelCache.measure(UniformBubbleLetter, labelStyle, maxLines = 1, softWrap = false, density = density).size.width
+        val measured = remember(reference, labelStyle, density) {
+            labelCache.measure(reference, labelStyle, maxLines = 1, softWrap = false, density = density).size.width
         }
-        with(density) { measured.toDp() }
+        with(density) { measured.toDp() } * minOf(widthScale, 1f)
     } else {
         0.dp
     }
