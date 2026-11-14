@@ -19873,6 +19873,9 @@ internal fun KeyPreviewOverlay(
 /** Marks a pooled bubble's key, so a slot number never equals a press's token. */
 private object BubbleSlotKey
 
+/** The letter a one-letter preview bubble is as wide as: the widest Latin capital in most faces. */
+private const val UniformBubbleLetter = "W"
+
 /**
  * One preview bubble. In on-key mode it is key-wide with a large label near the
  * top, clear of the finger (the stock-keyboard style where the bubble replaces
@@ -19895,6 +19898,23 @@ private fun KeyPreviewBubble(
     val border = kb.popupSurfaceBorder()
     val widthScale = popup.previewWidthScale.takeIf { it.isFinite() }?.coerceIn(KeyPreviewWidthScaleRange) ?: 1f
     val keyWidth = with(density) { preview.size.width.toDp() }
+    val labelStyle = LocalTextStyle.current.merge(
+        TextStyle(fontSize = ((if (onKeyStyle) OnKeyLabelSp else FloatingLabelSp) * popup.fontScale).sp),
+    )
+    // One letter's bubble is as wide as the widest letter's, so every key's
+    // is the same size (#1307): sized to its own label, an `i` drew narrower
+    // than a `q` and a `w` wider again. A longer label still grows past it.
+    val letterFloor = if (preview.label.codePointCount(0, preview.label.length) <= 1) {
+        // Through the bubbles' cache, at the composition's density as
+        // [CachedTextLine] reads it, so the press after the first is a hit.
+        val measured = remember(labelStyle, density) {
+            labelCache.measure(UniformBubbleLetter, labelStyle, maxLines = 1, softWrap = false, density = density).size.width
+        }
+        with(density) { measured.toDp() }
+    } else {
+        0.dp
+    }
+    val sidePadding = 14.dp * minOf(widthScale, 1f)
     val labelColor = preview.popupText
         ?: popup.textColor?.let { Color(it.toInt()) }
         ?: kb.popupText
@@ -19920,13 +19940,13 @@ private fun KeyPreviewBubble(
             )
             .clip(shape)
             .height(with(density) { heightPx.toDp() })
-            .widthIn(min = previewBubbleMinWidth(keyWidth, onKeyStyle, widthScale))
+            .widthIn(min = maxOf(previewBubbleMinWidth(keyWidth, onKeyStyle, widthScale), letterFloor + sidePadding * 2))
             .popupTexture(LocalKeyTextures.current, shape)
             // Lit from below by the touch bloom, where the finger is.
             .touchBloomGlow(kb.liveTouchBloom)
             // A narrower bubble gives up its side padding first, so the label
             // still fits; a wider one is wide by its floor above.
-            .padding(horizontal = 14.dp * minOf(widthScale, 1f)),
+            .padding(horizontal = sidePadding),
         contentAlignment = if (onKeyStyle) Alignment.TopCenter else Alignment.Center,
     ) {
         // Through the overlay's cache: a bubble is composed for every press
@@ -19935,9 +19955,7 @@ private fun KeyPreviewBubble(
         CachedTextLine(
             text = AnnotatedString(preview.label),
             modifier = if (onKeyStyle) Modifier.padding(top = OnKeyLabelTopPadding) else Modifier,
-            style = LocalTextStyle.current.merge(
-                TextStyle(fontSize = ((if (onKeyStyle) OnKeyLabelSp else FloatingLabelSp) * popup.fontScale).sp),
-            ),
+            style = labelStyle,
             color = labelColor,
             overflow = TextOverflow.Clip,
             cache = labelCache,
