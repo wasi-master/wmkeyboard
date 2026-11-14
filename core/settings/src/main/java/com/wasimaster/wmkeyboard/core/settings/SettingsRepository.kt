@@ -2401,11 +2401,16 @@ data class ToolbarBehavior(
      * stays whatever the strip shows, with the toolbar switched off, and
      * under every [placement]. Off by default; on, it costs one toolbar's
      * height. Where it sits is its [BarRow.SECOND_TOOLBAR] entry in
-     * [KeyboardSettings.barOrder].
+     * [KeyboardSettings.barOrder], moved on Rows & bars like any other row.
      */
     val secondRow: Boolean = false,
-    /** The second row's tools, in the order it draws them. */
-    val secondRowTools: List<ToolbarTool> = DefaultSecondRowTools,
+    /**
+     * The second row's tools, in the order it draws them: built-in tools and
+     * plugins alike, since a tool is dragged onto it from the toolbox or the
+     * toolbar. While the row is on these are out of the toolbox, as pinned
+     * tools are.
+     */
+    val secondRowTools: List<ToolKey> = DefaultSecondRowTools.toolKeys(),
 )
 
 /**
@@ -15974,14 +15979,8 @@ class SettingsRepository(private val context: Context) {
             toolsArrow = p[TOOLBAR_TOOLS_ARROW] ?: defaults.toolbarBehavior.toolsArrow,
             holdDelayMs = p[TOOLBAR_HOLD_DELAY] ?: defaults.toolbarBehavior.holdDelayMs,
             secondRow = p[TOOLBAR_SECOND_ROW] ?: defaults.toolbarBehavior.secondRow,
-            secondRowTools = p[TOOLBAR_SECOND_ROW_TOOLS]
-                ?.let { csv ->
-                    if (csv.isEmpty()) {
-                        emptyList()
-                    } else {
-                        csv.split(',').mapNotNull { runCatching { ToolbarTool.valueOf(it) }.getOrNull() }.distinct()
-                    }
-                }
+            // Enum names before plugins could go on it, which decode the same.
+            secondRowTools = p[TOOLBAR_SECOND_ROW_TOOLS]?.let(::decodeToolKeys)
                 ?: defaults.toolbarBehavior.secondRowTools,
         )
 
@@ -18932,9 +18931,9 @@ class SettingsRepository(private val context: Context) {
         editPrefs { prefs ->
             prefs[TOOLBAR_SECOND_ROW] = value
             if (value) {
-                val tools = prefs[TOOLBAR_SECOND_ROW_TOOLS]?.let { decodeToolNames(it) }
+                val tools = prefs[TOOLBAR_SECOND_ROW_TOOLS]?.let(::decodeToolKeys)
                     ?: SettingsDefaults.toolbarBehavior.secondRowTools
-                enableToolsIn(prefs, tools)
+                enableToolsIn(prefs, tools.builtinTools())
             }
         }
 
@@ -18942,13 +18941,13 @@ class SettingsRepository(private val context: Context) {
      * The second toolbar's tools, in order. A tool new to the row is switched
      * on under Tools as well, for the reason [setSecondToolbar] gives.
      */
-    suspend fun setSecondToolbarTools(value: List<ToolbarTool>) =
+    suspend fun setSecondToolbarTools(value: List<ToolKey>) =
         editPrefs { prefs ->
             val tools = value.distinct()
-            val before = prefs[TOOLBAR_SECOND_ROW_TOOLS]?.let { decodeToolNames(it) }
+            val before = prefs[TOOLBAR_SECOND_ROW_TOOLS]?.let(::decodeToolKeys)
                 ?: SettingsDefaults.toolbarBehavior.secondRowTools
-            prefs[TOOLBAR_SECOND_ROW_TOOLS] = tools.joinToString(",") { tool -> tool.name }
-            enableToolsIn(prefs, tools - before.toSet())
+            prefs[TOOLBAR_SECOND_ROW_TOOLS] = encodeToolKeys(tools)
+            enableToolsIn(prefs, (tools - before.toSet()).builtinTools())
         }
 
     /** [setToolEnabled]'s switch-on, for several tools in one write. */
@@ -18968,13 +18967,6 @@ class SettingsRepository(private val context: Context) {
         }
         prefs[DISABLED_TOOLS] = next.joinToString(",") { it.name }
     }
-
-    /** Moves the second toolbar's entry in the row order (#1217); see [withSecondToolbarAt]. */
-    suspend fun setSecondToolbarPlace(place: SecondToolbarPlace) =
-        editPrefs { prefs ->
-            val stored = readBarOrder(prefs, SettingsDefaults)
-            prefs[BAR_ORDER] = withSecondToolbarAt(stored, place).joinToString(",") { row -> row.name }
-        }
 
     suspend fun setStripOwnSize(value: Boolean) =
         editPrefs { it[TOOLBAR_STRIP_OWN_SIZE] = value }

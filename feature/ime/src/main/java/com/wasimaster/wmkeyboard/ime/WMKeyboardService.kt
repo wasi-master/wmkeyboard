@@ -47245,6 +47245,7 @@ open class WMKeyboardService : InputMethodService() {
         onFolderOrder = ::onToolboxFolderOrder,
         onPluginTool = ::onPluginToolTap,
         onPluginSettings = { id -> openRoute("plugin/$id") },
+        onSecondRowChange = ::onSecondToolbarToolsChange,
     )
 
     // ---- plugins as tools ----
@@ -59626,6 +59627,15 @@ open class WMKeyboardService : InputMethodService() {
             else settingsRepository.setToolbarTools(tools)
         }
         if (mode != null) noteModeToolOrder(mode)
+    }
+
+    /**
+     * The second toolbar's tools after a drag (#1217). One list for every
+     * mode: the row is not part of a mode's own tool arrangement.
+     */
+    fun onSecondToolbarToolsChange(tools: List<com.wasimaster.wmkeyboard.core.settings.ToolKey>) {
+        vibrate()
+        serviceScope.launch { settingsRepository.setSecondToolbarTools(tools) }
     }
 
     fun onToolboxOrderChange(order: List<com.wasimaster.wmkeyboard.core.settings.ToolKey>) {

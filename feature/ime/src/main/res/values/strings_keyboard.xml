@@ -767,6 +767,8 @@
     <string name="ime_toolbox_drag_scope_mode">Changing the tool order for only the %1$s mode</string>
     <string name="ime_toolbox_drag_scope_global">Changing the global tool order outside modes</string>
     <string name="ime_toolbox_empty">Every tool is on the toolbar.</string>
+    <!-- The second toolbar (#1217) with no tools on it yet. -->
+    <string name="ime_second_toolbar_empty">Drag a tool here from the toolbox or the toolbar</string>
     <!-- The toolbox search (#687). Typed with the keyboard's own keys. -->
     <string name="ime_toolbox_search_desc">Search tools</string>
     <string name="ime_toolbox_search_hint">Search tools…</string>

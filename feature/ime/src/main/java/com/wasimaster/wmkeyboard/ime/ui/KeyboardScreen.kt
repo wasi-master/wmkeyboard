@@ -2261,7 +2261,7 @@ private fun KeyboardScreenFrame(
                     1
                 }
                 ) + (
-                if (settings.toolbarBehavior.secondRow && settings.toolbarBehavior.secondRowTools.isNotEmpty()) 1 else 0
+                if (settings.toolbarBehavior.secondRow) 1 else 0
                 )
             val headroomDp = (
                 (gridDp(tallest) - gridDp(entry)) +
@@ -9943,7 +9943,31 @@ private class ToolDragController {
     var boxSlot by mutableStateOf<Int?>(null)
         private set
     private var fromToolbar = false
+    /** Whether the tool in flight was picked up off the second toolbar (#1217). */
+    private var fromSecond = false
+    val draggingFromSecond: Boolean get() = fromSecond
     var toolbarBounds: Rect? = null
+    /**
+     * Insertion slot on the second toolbar (#1217) under the finger, or null
+     * when off it. The row previews the drop there the way the bar does.
+     */
+    var secondSlot by mutableStateOf<Int?>(null)
+        private set
+    /** The second toolbar's box in root coordinates while it is on screen, else null. */
+    var secondBounds: Rect? = null
+    /** The second toolbar's stored tools, in order: every commit to it is a rewrite of this. */
+    var secondCurrent: List<ToolKey> = emptyList()
+    /** The subset of [secondCurrent] the row draws; slots count against it, as [visibleTools] does on the bar. */
+    var secondVisible: List<ToolKey> = emptyList()
+    /** Whether the second toolbar lays its tools out right-to-left, as [barRtl]. */
+    var secondRtl: Boolean = false
+    /**
+     * Each second-toolbar tool's centre across the screen, in root
+     * coordinates, as last laid out. The row packs or spreads, and scrolls
+     * when it is full, so the slot is counted from where the tools really are
+     * rather than from a share of the row's width.
+     */
+    val secondCentres = HashMap<ToolKey, Float>()
     /**
      * Width, in px, that the toolbar last gave one of its buttons.
      *
@@ -10148,9 +10172,10 @@ private class ToolDragController {
      */
     var onOrderPreview: (List<ToolKey>) -> Unit = {}
 
-    fun start(tool: ToolKey, fromBar: Boolean, at: Offset) {
+    fun start(tool: ToolKey, fromBar: Boolean, at: Offset, fromSecondRow: Boolean = false) {
         dragging = tool
         fromToolbar = fromBar
+        fromSecond = fromSecondRow
         position = at
         retarget(at)
     }
@@ -10159,6 +10184,7 @@ private class ToolDragController {
     fun startFolder(folder: ToolboxFolder, at: Offset) {
         draggingFolder = folder
         fromToolbar = false
+        fromSecond = false
         position = at
         retarget(at)
     }
@@ -10175,11 +10201,18 @@ private class ToolDragController {
      */
     private fun retarget(at: Offset): Boolean {
         val exit = folderExitAt(at)
-        val bar = if (exit) null else slotAt(at)
-        val merge = if (exit || bar != null) null else mergeAt(at)
-        val box = if (exit || bar != null || merge != null) null else toolboxSlotAt(at)
-        val changed = bar != barSlot || box != boxSlot || merge?.key != boxMerge?.key || exit != overFolderExit
+        // The bar's hit box reaches past its edges, and the second toolbar may
+        // sit right against it: a finger inside the second row's own box is
+        // the second row's, whatever the bar's margin says.
+        val onSecond = !exit && secondBounds?.contains(at) == true
+        val bar = if (exit || onSecond) null else slotAt(at)
+        val second = if (exit || bar != null) null else secondSlotAt(at)
+        val merge = if (exit || bar != null || second != null) null else mergeAt(at)
+        val box = if (exit || bar != null || second != null || merge != null) null else toolboxSlotAt(at)
+        val changed = bar != barSlot || second != secondSlot || box != boxSlot ||
+            merge?.key != boxMerge?.key || exit != overFolderExit
         barSlot = bar
+        secondSlot = second
         boxSlot = box
         boxMerge = merge
         overFolderExit = exit
@@ -10190,6 +10223,7 @@ private class ToolDragController {
         dragging = null
         draggingFolder = null
         barSlot = null
+        secondSlot = null
         boxSlot = null
         boxMerge = null
         overFolderExit = false
@@ -10201,6 +10235,7 @@ private class ToolDragController {
         if (folder == null && tool == null) return
         retarget(position)
         val bar = barSlot
+        val second = secondSlot
         val box = boxSlot
         val merge = boxMerge
         val exit = overFolderExit
@@ -10221,10 +10256,17 @@ private class ToolDragController {
         val view = folderView
         if (exit) {
             toolbox.onTakeOut(tool)
+        } else if (second != null) {
+            // Onto the second toolbar (#1217): off the bar first when that is
+            // where it came from, so a tool moves between the rows rather
+            // than being copied.
+            if (fromToolbar) onCommit(currentTools - tool)
+            toolbox.onSecondRowChange(secondWith(tool, second))
         } else if (bar != null) {
+            if (fromSecond) toolbox.onSecondRowChange(secondCurrent - tool)
             onCommit(barWith(tool, bar))
         } else if (merge != null) {
-            if (fromToolbar) onCommit(currentTools - tool)
+            leaveRows(tool)
             when (merge) {
                 is ToolboxCell.Tool -> toolbox.onMerge(tool, merge.tool)
                 is ToolboxCell.Folder -> toolbox.onAddToFolder(tool, merge.folder.id)
@@ -10232,7 +10274,7 @@ private class ToolDragController {
         } else if (box != null) {
             // Dropped on the grid: place it at that spot in the toolbox
             // order — and off the bar first, when that's where it came from.
-            if (fromToolbar) onCommit(currentTools - tool)
+            leaveRows(tool)
             if (view != null && tool !in view.tools) {
                 // Off the bar into an open folder: filed in it.
                 toolbox.onAddToFolder(tool, view.id)
@@ -10243,12 +10285,43 @@ private class ToolDragController {
             // never draws an arrangement the storage will not agree with.
             onOrderPreview(next)
             if (view != null) toolbox.onFolderOrder(view.id, next) else onOrderCommit(next)
-        } else if (fromToolbar && toolboxViewport != null) {
+        } else if ((fromToolbar || fromSecond) && toolboxViewport != null) {
             // Off-bar drops unpin only while the toolbox is open (its
             // viewport is registered) — a reorder drag that wanders off the
             // bar with no toolbox in sight just snaps back.
-            onCommit(currentTools - tool)
+            leaveRows(tool)
         }
+    }
+
+    /** Takes [tool] off whichever row it was picked up from: the bar or the second toolbar. */
+    private fun leaveRows(tool: ToolKey) {
+        if (fromToolbar) onCommit(currentTools - tool)
+        if (fromSecond) toolbox.onSecondRowChange(secondCurrent - tool)
+    }
+
+    /**
+     * Insertion slot on the second toolbar (#1217) under [at], or null when
+     * off it. Its box is inflated like the bar's, so a drop just past its edge
+     * still lands. Folders stay on the bar: the row holds tools only.
+     */
+    private fun secondSlotAt(at: Offset): Int? {
+        val row = secondBounds ?: return null
+        val tool = dragging ?: return null
+        if (!row.inflate(30f).contains(at)) return null
+        return (secondVisible - tool).count { other ->
+            val centre = secondCentres[other] ?: return@count false
+            if (secondRtl) centre > at.x else centre < at.x
+        }
+    }
+
+    /** The second toolbar's stored list with [tool] at display slot [slot]; [barWith]'s rule. */
+    private fun secondWith(tool: ToolKey, slot: Int): List<ToolKey> {
+        val shown = secondVisible - tool
+        val successor = shown.getOrNull(slot.coerceIn(0, shown.size))
+        val row = secondCurrent.toMutableList().apply { remove(tool) }
+        val at = successor?.let { row.indexOf(it) }?.takeIf { it >= 0 } ?: row.size
+        row.add(at, tool)
+        return row
     }
 
     /**
@@ -10408,7 +10481,7 @@ private class ToolDragController {
     private fun folderExitAt(at: Offset): Boolean {
         val view = folderView ?: return false
         val tool = dragging ?: return false
-        if (fromToolbar || tool !in view.tools) return false
+        if (fromToolbar || fromSecond || tool !in view.tools) return false
         return folderExitBounds?.contains(at) == true
     }
 }
@@ -10606,6 +10679,8 @@ private fun DraggableTool(
     onHoldMenu: () -> Unit = {},
     /** How long the hold takes, in ms; 0 is the system's touch-and-hold delay (#665). */
     holdDelayMs: Int = 0,
+    /** Whether this is a second-toolbar button (#1217): a pick-up then comes off that row, not the bar. */
+    fromSecondRow: Boolean = false,
     content: @Composable (Modifier) -> Unit,
 ) {
     var origin by remember { mutableStateOf(Offset.Zero) }
@@ -10723,7 +10798,7 @@ private fun DraggableTool(
                                         held = false
                                         drag.onTrackpadHold(false)
                                     }
-                                    drag.start(tool, fromToolbar, rootPos)
+                                    drag.start(tool, fromToolbar && !fromSecondRow, rootPos, fromSecondRow)
                                 }
                                 // Nothing to move until the finger has travelled:
                                 // no drag has been started, and drag.move would
@@ -12037,18 +12112,19 @@ private fun ToolsRow(
 }
 
 /**
- * The second toolbar (#1217): a row of the tools the user picked for it,
- * apart from the pinned ones, that stays whatever the strip and the toolbar
- * are doing.
+ * The second toolbar (#1217): a row of the tools the user put on it, apart
+ * from the pinned ones, that stays whatever the strip and the toolbar are
+ * doing.
  *
- * Its buttons are the bar's: the same [ToolCircle]s, labels, colours, sizes
- * and hold behaviour, so a caret move repeats on a hold and a bound hold runs
- * its tool, exactly as when the tool is pinned. They do not drag: the row's
- * tools are picked and ordered in Settings, and a pick-up here would have
- * nowhere to land on the bar's drop targets. Spread over the width when the
- * toolbar's tool layout spreads, otherwise packed and scrolling once they
- * outgrow it. No toolbox button and no way back out of a panel: those stay
- * the toolbar's.
+ * Its buttons are the bar's [PinnedToolCell]s, so they look, hold and drag
+ * exactly as on the bar: hold and drag one along the row to reorder it, up or
+ * down onto the toolbar to move it there, or into an open toolbox to take it
+ * off. A tool from the toolbar or the toolbox dropped here joins the row at
+ * the slot under the finger. Spread over the width when the toolbar's tool
+ * layout spreads, otherwise packed and scrolling once they outgrow it. With
+ * nothing on it the row says where its tools come from, so it is still a
+ * place to drop one. No toolbox button and no way back out of a panel: those
+ * stay the toolbar's.
  */
 @Composable
 private fun SecondToolbarRow(
@@ -12058,17 +12134,38 @@ private fun SecondToolbarRow(
 ) {
     val behavior = state.settings.toolbarBehavior
     val spread = behavior.greedy && !behavior.scrollable
-    val labels = state.settings.toolbarLabels
-    val labelSize = state.settings.toolbarLabelSize
     val labelMaxWidth = LocalKbTheme.current.toolWidthDp.takeIf { behavior.labelsFixedWidth }
     val tools = secondToolbarTools(state)
-    val dpadRing = LocalDpadRing.current
-    val direction = if (toolbarReadsRtl(state)) LayoutDirection.Rtl else LayoutDirection.Ltr
+    val rtl = toolbarReadsRtl(state)
+    val direction = if (rtl) LayoutDirection.Rtl else LayoutDirection.Ltr
+    drag.secondVisible = tools
+    drag.secondCurrent = behavior.secondRowTools
+    drag.secondRtl = rtl
+    // Gone from the screen, the row is no drop target: a stale box would
+    // still catch drops meant for whatever took its place.
+    DisposableEffect(drag) {
+        onDispose {
+            drag.secondBounds = null
+            drag.secondCentres.clear()
+        }
+    }
+    // The drop preview, as on the bar: the dragged tool's cell moves to the
+    // slot under the finger and draws washed out there (see [ToolbarRow]).
+    val dragTool = drag.dragging
+    val ghostSlot = drag.secondSlot
+    val displayTools: List<ToolKey> = if (dragTool != null && ghostSlot != null) {
+        (tools - dragTool).toMutableList().apply { add(ghostSlot.coerceIn(0, size), dragTool) }
+    } else {
+        tools
+    }
     CompositionLocalProvider(LocalLayoutDirection provides direction) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(secondToolbarHeight(state.settings))
+                // Outside the scroll, so it is the visible row: the whole of
+                // it is where a drop lands, the cells' centres say where.
+                .onGloballyPositioned { drag.secondBounds = it.boundsInRoot() }
                 // The toolbar's padding, whether or not the toolbar is on: a
                 // negative one only shortened the row's height above.
                 .padding(
@@ -12078,58 +12175,37 @@ private fun SecondToolbarRow(
                 .then(if (spread) Modifier else Modifier.horizontalScroll(rememberScrollState())),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            for (tool in tools) {
+            if (displayTools.isEmpty()) {
+                Text(
+                    stringResource(R.string.ime_second_toolbar_empty),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .then(if (spread) Modifier.weight(1f) else Modifier)
+                        .padding(horizontal = 16.dp),
+                )
+            }
+            for (tool in displayTools) {
                 key(tool) {
                     val cell = if (spread) {
                         Modifier.weight(1f).fillMaxHeight()
                     } else {
                         Modifier.padding(horizontal = 3.dp)
                     }
-                    Box(cell, contentAlignment = Alignment.Center) {
-                        DraggableTool(
-                            tool.key,
-                            fromToolbar = true,
-                            enabled = true,
-                            drag = drag,
-                            onTap = { onToolTap(tool) },
-                            holdRepeatMs = holdRepeatMs(tool, state),
-                            // The bar's binding, read straight: the Voice
-                            // tool's mode menu is the bar's alone, so here
-                            // its hold runs what the hold is bound to.
-                            holdAction = behavior.holdActionOf(tool),
-                            dragEnabled = false,
-                            holdArms = holdArmsSelection(tool, fromToolbar = true, state = state),
-                            holdPanel = state.panel != PanelMode.TOOLBOX &&
-                                holdOpensTrackpad(tool, fromToolbar = true, state = state),
-                            holdDelayMs = behavior.holdDelayMs,
-                        ) { holdModifier ->
-                            val paint = if (behavior.pinnedToolColors) toolAccentPaint(tool, state.settings) else null
-                            ToolCircle(
-                                slot = IconSlots.forTool(tool),
-                                description = toolLabel(tool),
-                                active = toolActive(tool, state),
-                                tint = paint?.color,
-                                tintBrush = paint?.brush,
-                                label = if (labels) toolLabel(tool) else null,
-                                labelSizeSp = labelSize,
-                                labelMaxWidthDp = labelMaxWidth,
-                                wide = true,
-                                // The D-pad ring reaches it as it reaches the
-                                // bar (TV remotes), under an id of its own: a
-                                // tool on both rows is two targets.
-                                modifier = holdModifier
-                                    .panelOrigin()
-                                    .then(
-                                        if (dpadRing) {
-                                            Modifier.dpadTarget(SecondToolbarRingId(tool)) { onToolTap(tool) }
-                                        } else {
-                                            Modifier
-                                        },
-                                    ),
-                                interactive = false,
-                            ) {}
-                        }
-                    }
+                    PinnedToolCell(
+                        tool = tool,
+                        state = state,
+                        drag = drag,
+                        onToolTap = onToolTap,
+                        cell = cell.onGloballyPositioned { drag.secondCentres[tool] = it.boundsInRoot().center.x },
+                        hint = null,
+                        labelMaxWidthDp = labelMaxWidth,
+                        inRow = true,
+                        secondRow = true,
+                    )
                 }
             }
         }
@@ -12137,7 +12213,7 @@ private fun SecondToolbarRow(
 }
 
 /** A second-toolbar button's place in the D-pad ring (#1217), apart from the same tool on the bar. */
-private data class SecondToolbarRingId(val tool: ToolbarTool)
+private data class SecondToolbarRingId(val tool: ToolKey)
 
 /**
  * The pinned tools in a column down one side of the keys, for a phone on its
@@ -12952,6 +13028,8 @@ private fun PinnedToolCell(
     shared: Boolean = false,
     fadeThis: Boolean = true,
     contentAlpha: () -> Float = { 1f },
+    /** A second-toolbar button (#1217): drags off that row and has a D-pad target of its own. */
+    secondRow: Boolean = false,
 ) {
     val customizing = state.panel == PanelMode.TOOLBOX
     val labels = state.settings.toolbarLabels
@@ -12991,6 +13069,7 @@ private fun PinnedToolCell(
             holdMenu = holdPicksVoiceMode(tool, fromToolbar = true, state = state),
             onHoldMenu = { voiceMenuOpen = true },
             holdDelayMs = state.settings.toolbarBehavior.holdDelayMs,
+            fromSecondRow = secondRow,
         ) { dragModifier ->
             val paint = if (pinnedColors) toolAccentPaint(tool, state.settings) else null
             ToolCircle(
@@ -13008,7 +13087,12 @@ private fun PinnedToolCell(
                 // screen is exactly the row the drop commits. The
                 // solid icon to look at is the floating one under
                 // the finger.
-                ghost = tool == drag.dragging,
+                // A tool on both rows washes out only on the row it came
+                // off or is heading for.
+                ghost = tool == drag.dragging && when {
+                    secondRow -> drag.draggingFromSecond || drag.secondSlot != null
+                    else -> !drag.draggingFromSecond || drag.barSlot != null
+                },
                 wide = true,
                 hint = hint,
                 // The icon itself animates, anchored at the
@@ -13025,7 +13109,9 @@ private fun PinnedToolCell(
                     .panelOrigin()
                     .then(
                         if (dpadRing) {
-                            Modifier.dpadTarget(tool.tool ?: tool) { drag.tap(tool, onToolTap) }
+                            Modifier.dpadTarget(if (secondRow) SecondToolbarRingId(tool) else tool.tool ?: tool) {
+                                drag.tap(tool, onToolTap)
+                            }
                         } else {
                             Modifier
                         },
@@ -16823,7 +16909,7 @@ private fun KeyboardBody(
             // one gesture.
             val pillToolbox = state.panel == PanelMode.TOOLBOX &&
                 state.settings.toolbox.layout == ToolboxLayout.PILLS
-            val asPill = pillToolbox && drag.barSlot == null
+            val asPill = pillToolbox && drag.barSlot == null && drag.secondSlot == null
             // As wide as the cell it is heading for, so the preview is the real
             // footprint; the cell size is whatever the grid last measured, and
             // a fallback covers the frame before it has.
@@ -26431,20 +26517,18 @@ private fun paddedToolbarHeight(settings: KeyboardSettings): Dp {
 internal fun secondToolbarHeight(settings: KeyboardSettings): Dp = paddedToolbarHeight(settings)
 
 /** The second toolbar's tools that can draw here, in its order (#1217). */
-internal fun secondToolbarTools(state: KeyboardUiState): List<ToolbarTool> =
-    state.settings.toolbarBehavior.secondRowTools.filter {
-        it in state.settings.enabledTools && isSupportedTool(it) && isUsableTool(it, state.settings)
-    }
+internal fun secondToolbarTools(state: KeyboardUiState): List<ToolKey> =
+    state.settings.toolbarBehavior.secondRowTools.filter { toolShown(it, state) }
 
 /**
  * Whether the second toolbar (#1217) has a row on screen, panels aside: on,
- * with a tool to draw, and not on a lock screen the strip is kept off. The
- * renderer and [fullBleedHiddenRows] both read it, so a full-bleed panel takes
+ * and not on a lock screen the strip is kept off. An empty row still draws,
+ * saying where its tools come from, so there is always a row to drop one on.
+ * The renderer and [fullBleedHiddenRows] both read it, so a full-bleed panel takes
  * exactly the height the row gave up.
  */
 internal fun secondToolbarShown(state: KeyboardUiState): Boolean =
-    state.settings.toolbarBehavior.secondRow && !barLockHidden(state) &&
-        secondToolbarTools(state).isNotEmpty()
+    state.settings.toolbarBehavior.secondRow && !barLockHidden(state)
 
 /**
  * The user's toolbar top and bottom padding (#208), for a row sized with
@@ -26709,6 +26793,8 @@ data class ToolboxCallbacks(
     val onPluginTool: (String) -> Unit = {},
     /** A plugin's tool held: its page in the settings app, by plugin id. */
     val onPluginSettings: (String) -> Unit = {},
+    /** The second toolbar's tools after a drop on, off or along it (#1217). */
+    val onSecondRowChange: (List<ToolKey>) -> Unit = {},
 )
 
 /** One cell of the toolbox grid: a tool, or a folder of them (#709). */
@@ -26805,8 +26891,11 @@ internal fun sortedByUse(tools: List<ToolKey>, sort: ToolboxSort, state: Keyboar
  * from the grid ([ToolboxSettings.hiddenTools]), which stay on everywhere else.
  */
 internal fun visibleToolboxTools(state: KeyboardUiState): List<ToolKey> {
+    // The second toolbar's tools (#1217) are pinned too: a tool sits in one
+    // place, so a drag has one cell to start from.
     val pinned = state.settings.toolbarTools.toSet() +
-        if (mediaAutoPinned(state)) setOf(ToolbarTool.MEDIA_CONTROL.key) else emptySet()
+        (if (mediaAutoPinned(state)) setOf(ToolbarTool.MEDIA_CONTROL.key) else emptySet()) +
+        (if (state.settings.toolbarBehavior.secondRow) state.settings.toolbarBehavior.secondRowTools else emptyList())
     val hidden = state.settings.toolbox.hiddenTools
     return state.settings.toolboxOrder.filter {
         it !in pinned && it !in hidden && toolShown(it, state)

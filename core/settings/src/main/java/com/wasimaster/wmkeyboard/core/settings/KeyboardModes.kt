@@ -70,42 +70,6 @@ val DefaultBarOrder: List<BarRow> = listOf(
 )
 
 /**
- * Where the second toolbar (#1217) sits against the toolbar and the strip: the
- * two places its settings offer. The row order on Rows & bars can put it
- * anywhere else as well; this only names the two ends of the toolbar.
- */
-enum class SecondToolbarPlace { ABOVE_TOOLBAR, BELOW_STRIP }
-
-/**
- * Which of the two [SecondToolbarPlace]s [order] puts the second toolbar in:
- * above when it comes before the strip, below otherwise.
- */
-fun secondToolbarPlace(order: List<BarRow>): SecondToolbarPlace {
-    val second = order.indexOf(BarRow.SECOND_TOOLBAR)
-    val strip = order.indexOf(BarRow.TOPBAR)
-    return if (second in 0 until strip) SecondToolbarPlace.ABOVE_TOOLBAR else SecondToolbarPlace.BELOW_STRIP
-}
-
-/**
- * [order] with the second toolbar moved to [place]: directly over the topmost
- * of the strip and the tools row, or directly under the strip. Every other row
- * keeps its place, so a hand-made order survives the switch.
- */
-fun withSecondToolbarAt(order: List<BarRow>, place: SecondToolbarPlace): List<BarRow> {
-    val out = sanitizeBarOrder(order).filter { it != BarRow.SECOND_TOOLBAR }.toMutableList()
-    val strip = out.indexOf(BarRow.TOPBAR)
-    val at = when (place) {
-        SecondToolbarPlace.ABOVE_TOOLBAR -> {
-            val tools = out.indexOf(BarRow.TOOLS)
-            if (tools in 0 until strip) tools else strip
-        }
-        SecondToolbarPlace.BELOW_STRIP -> strip + 1
-    }
-    out.add(at.coerceIn(0, out.size), BarRow.SECOND_TOOLBAR)
-    return out
-}
-
-/**
  * Ensures every row appears exactly once, preserving the stored order.
  *
  * A row the stored order does not know goes where [DefaultBarOrder] puts it
