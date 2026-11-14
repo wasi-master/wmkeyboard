@@ -92,6 +92,29 @@ class FloatingButtonModelTest {
     }
 
     @Test
+    fun aPhoneControlReadsBackFromItsToken() {
+        val wifi = FloatingAction.Device(DeviceControl.WIFI)
+        assertEquals("device:WIFI", wifi.token)
+        assertEquals(wifi, FloatingAction.parse(wifi.token))
+        assertNull(FloatingAction.parse("device:NFC"))
+        val ringer = FloatingAction.Device(DeviceControl.RINGER)
+        assertTrue(SummonButtonSettings(doubleTap = ringer).cyclesRinger())
+        assertFalse(SummonButtonSettings(menu = listOf(ringer)).copy(hold = FloatingAction.None).cyclesRinger())
+    }
+
+    @Test
+    fun theRingerCyclesRingVibrateSilentSkippingWhatItCannot() {
+        assertEquals(RingerMode.VIBRATE, nextRingerMode(RingerMode.RING, canVibrate = true, canSilence = true))
+        assertEquals(RingerMode.SILENT, nextRingerMode(RingerMode.VIBRATE, canVibrate = true, canSilence = true))
+        assertEquals(RingerMode.RING, nextRingerMode(RingerMode.SILENT, canVibrate = true, canSilence = true))
+        // No Do Not Disturb access: ring and vibrate only.
+        assertEquals(RingerMode.RING, nextRingerMode(RingerMode.VIBRATE, canVibrate = true, canSilence = false))
+        // No vibrator: ring and silent only.
+        assertEquals(RingerMode.SILENT, nextRingerMode(RingerMode.RING, canVibrate = false, canSilence = true))
+        assertEquals(RingerMode.RING, nextRingerMode(RingerMode.RING, canVibrate = false, canSilence = false))
+    }
+
+    @Test
     fun aSwipeGoesToTheNearestBoundDirection() {
         val all = FlickDirection.entries
         // Screen y points down: a swipe with negative dy is up.

@@ -93,6 +93,15 @@ sealed interface FloatingAction {
     }
 
     /**
+     * Works one of the phone's own controls (#1326): cycles the ringer, opens
+     * the volume panel, or flips Wi-Fi, mobile data, Bluetooth or the hotspot,
+     * opening Android's page for the switch where the keyboard may not flip it.
+     */
+    data class Device(val control: DeviceControl) : FloatingAction {
+        override val token get() = "$DEVICE_PREFIX${control.name}"
+    }
+
+    /**
      * Opens one of the button's categories (#923): a ring of its own, in
      * place of the one it sits in, that a hold can slide on into. Its name
      * and slots live in [SummonButtonSettings.categories], under [id].
@@ -126,6 +135,7 @@ sealed interface FloatingAction {
         private const val APPLET_PREFIX = "applet:"
         private const val SYSTEM_PREFIX = "system:"
         private const val CUSTOM_PREFIX = "custom:"
+        private const val DEVICE_PREFIX = "device:"
 
         /** Between a pair's two packages; no package name has one. */
         private const val PAIR_JOIN = '+'
@@ -146,6 +156,9 @@ sealed interface FloatingAction {
                 token.startsWith(SYSTEM_PREFIX) -> token.removePrefix(SYSTEM_PREFIX)
                     .let { name -> SystemButton.entries.firstOrNull { it.name == name } }
                     ?.let(::System)
+                token.startsWith(DEVICE_PREFIX) -> token.removePrefix(DEVICE_PREFIX)
+                    .let { name -> DeviceControl.entries.firstOrNull { it.name == name } }
+                    ?.let(::Device)
                 token.startsWith(APPLET_PREFIX) -> token.removePrefix(APPLET_PREFIX)
                     .let { name -> AppletTools.firstOrNull { it.name == name } }
                     ?.let(::Applet)

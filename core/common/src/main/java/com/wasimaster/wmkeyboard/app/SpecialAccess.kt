@@ -119,6 +119,15 @@ enum class SpecialAccess {
      * disclosure opens with it rather than with what the keyboard does with it.
      */
     ALL_FILES,
+
+    /**
+     * Do Not Disturb access, for the floating button's ringer action (#1326).
+     * Android lets an app put the ringer on silent, or take it off silent,
+     * only with this grant, because silent and Do Not Disturb share a switch
+     * underneath. Nothing is read: the keyboard sets the ringer mode when the
+     * button is pressed, and leaves Do Not Disturb's own rules alone.
+     */
+    DO_NOT_DISTURB,
     ;
 
     /** Dialog heading: the grant and the feature that wants it. */
@@ -137,6 +146,7 @@ enum class SpecialAccess {
             EXACT_ALARMS -> R.string.common_special_access_exact_alarms_title
             FULL_SCREEN -> R.string.common_special_access_full_screen_title
             ALL_FILES -> R.string.common_special_access_all_files_title
+            DO_NOT_DISTURB -> R.string.common_special_access_do_not_disturb_title
         }
 
     /** What is read, why, where it goes, and that the feature is optional. */
@@ -155,6 +165,7 @@ enum class SpecialAccess {
             EXACT_ALARMS -> R.string.common_special_access_exact_alarms_body
             FULL_SCREEN -> R.string.common_special_access_full_screen_body
             ALL_FILES -> R.string.common_special_access_all_files_body
+            DO_NOT_DISTURB -> R.string.common_special_access_do_not_disturb_body
         }
 
     /**
@@ -212,6 +223,8 @@ enum class SpecialAccess {
         } else {
             emptyList()
         }
+        // The list of apps with the grant; every version from minSdk has it.
+        DO_NOT_DISTURB -> listOf(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS))
         // Both pages are newer than minSdk; the checks are spelled out for Lint.
         EXACT_ALARMS -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             listOf(

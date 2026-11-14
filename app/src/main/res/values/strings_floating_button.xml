@@ -11,6 +11,8 @@
     <string name="floating_button_screen_title">Let the button read the screen</string>
     <string name="floating_button_system_buttons_title">Let the button press system buttons</string>
     <string name="floating_button_system_buttons_subtitle">Screenshot, Back, Recent apps and the other system buttons need the system buttons service on in Android\'s accessibility settings</string>
+    <string name="floating_button_do_not_disturb_title">Let the button silence the phone</string>
+    <string name="floating_button_do_not_disturb_subtitle">Ringer mode needs Do Not Disturb access for silent. Until then it switches between ring and vibrate</string>
     <string name="floating_button_screen_subtitle">Ask AI can bring the text on screen with it, and Look up can find the word you tap, once the screen reading service is on</string>
 
     <string name="floating_button_preview_caption">Tap: %1$s · Hold: %2$s</string>
@@ -98,6 +100,7 @@
     <string name="floating_button_pick_pair">Open an app pair</string>
     <string name="floating_button_pick_group_applets">Floating boxes</string>
     <string name="floating_button_pick_group_system">System buttons</string>
+    <string name="floating_button_pick_group_device">Phone controls</string>
     <string name="floating_button_pick_system_subtitle">Presses Android\'s own button for you</string>
     <string name="floating_button_pick_system_off_title">Turn on system buttons</string>
     <string name="floating_button_pick_system_off_subtitle">Back, Recent apps, the app drawer, notifications and quick settings need the system buttons service. Tap to see what it does</string>

@@ -894,6 +894,7 @@ internal object SettingsRowIcons {
         put(R.string.share_sheet_recents_clear_title) { Icons.Outlined.History }
         put(R.string.floating_button_screen_title) { Icons.Outlined.Preview }
         put(R.string.floating_button_system_buttons_title) { Icons.Outlined.Screenshot }
+        put(R.string.floating_button_do_not_disturb_title) { Icons.Outlined.NotificationsOff }
         put(R.string.floating_button_tap_title) { Icons.Outlined.TouchApp }
         put(R.string.floating_button_double_tap_title) { Icons.Outlined.AdsClick }
         put(R.string.floating_button_hold_title) { Icons.Outlined.Gesture }
@@ -2571,6 +2572,7 @@ internal object SettingsRowIcons {
         put(R.string.privacy_permissions_all_files_title) { Icons.Outlined.Storage }
         put(R.string.privacy_permissions_split_screen_title) { Icons.Outlined.ViewColumn }
         put(R.string.privacy_permissions_system_buttons_title) { Icons.Outlined.Screenshot }
+        put(R.string.privacy_permissions_do_not_disturb_title) { Icons.Outlined.NotificationsOff }
         put(R.string.tooldetail_screenshot_service_title) { Icons.Outlined.Screenshot }
         put(R.string.voice_system_service_title) { Icons.Outlined.Mic }
         put(R.string.modes_number_row_title) { Icons.Outlined.Dialpad }

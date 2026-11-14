@@ -63,6 +63,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VerticalSplit
 import com.wasimaster.wmkeyboard.core.settings.AppletTools
 import com.wasimaster.wmkeyboard.core.settings.DefaultFloatingMenu
+import com.wasimaster.wmkeyboard.core.settings.DeviceControl
 import com.wasimaster.wmkeyboard.core.settings.FLOATING_CATEGORY_NAME_MAX
 import com.wasimaster.wmkeyboard.core.settings.FloatingAction
 import com.wasimaster.wmkeyboard.core.settings.FloatingButtonIdleRange
@@ -93,6 +94,8 @@ import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.pillTouchWidthDp
 import com.wasimaster.wmkeyboard.core.settings.readsScreen
 import com.wasimaster.wmkeyboard.core.settings.pressesSystemButtons
+import com.wasimaster.wmkeyboard.core.settings.cyclesRinger
+import com.wasimaster.wmkeyboard.ime.floating.DeviceControls
 import com.wasimaster.wmkeyboard.ime.AppCatalog
 import com.wasimaster.wmkeyboard.ime.KeyboardControls
 import com.wasimaster.wmkeyboard.ime.floating.FLOATING_MENU_ITEM_DP
@@ -155,6 +158,8 @@ internal fun FloatingButtonSettingsScreen(
     val askScreenReading = rememberDisclosedSpecialAccess(SpecialAccess.SCREEN_CONTENT)
     val systemButtons = rememberGrantState { SystemButtonsService.isEnabled(it) }
     val askSystemButtons = rememberDisclosedSpecialAccess(SpecialAccess.SYSTEM_BUTTONS)
+    val doNotDisturb = rememberGrantState(::hasDoNotDisturbAccess)
+    val askDoNotDisturb = rememberDisclosedSpecialAccess(SpecialAccess.DO_NOT_DISTURB)
     // The keyboard only re-checks the grant when it next closes; coming back
     // from the system screen with it is worth showing the button at once.
     LaunchedEffect(button.enabled, overlayGranted) {
@@ -215,6 +220,13 @@ internal fun FloatingButtonSettingsScreen(
                 R.string.floating_button_system_buttons_title,
                 subtitle = stringResource(R.string.floating_button_system_buttons_subtitle),
             ) { askSystemButtons() }
+        }
+        // Ringer mode bound (#1326), Do Not Disturb access missing: no silent.
+        item(visible = button.enabled && overlayGranted && button.cyclesRinger() && !doNotDisturb) {
+            NavRow(
+                R.string.floating_button_do_not_disturb_title,
+                subtitle = stringResource(R.string.floating_button_do_not_disturb_subtitle),
+            ) { askDoNotDisturb() }
         }
     }
 
@@ -1285,6 +1297,28 @@ private fun FloatingActionPicker(
                 )
             }
     }
+    // The phone's own controls (#1326). Each says what it does on this phone:
+    // a switch the keyboard flips, or Android's page for it. Ringer mode asks
+    // for Do Not Disturb access as it is picked, since silent needs it.
+    val context = LocalContext.current
+    val dndOn = rememberGrantState(::hasDoNotDisturbAccess)
+    val askDnd = rememberDisclosedSpecialAccess(SpecialAccess.DO_NOT_DISTURB)
+    val deviceRows = DeviceControl.entries
+        .map { FloatingAction.Device(it) }
+        .filter { offered(it) }
+        .map { action ->
+            PickerRow(
+                key = action.token,
+                title = floatingActionLabel(action),
+                subtitle = remember(action) { DeviceControls.description(context, action.control) },
+                selected = current == action,
+                leading = { Icon(floatingActionIcon(action), contentDescription = null) },
+                onPick = {
+                    onPick(action)
+                    if (action.control == DeviceControl.RINGER && !dndOn) askDnd()
+                },
+            )
+        }
     // The user's own buttons (#1213, #1236), made on Tools › Custom buttons.
     val customRows = com.wasimaster.wmkeyboard.ime.ui.CustomButtonFaces.buttons
         .filter { it.usable }
@@ -1336,6 +1370,9 @@ private fun FloatingActionPicker(
         if (systemRows.isNotEmpty()) {
             add(PickerGroup("system", stringResource(R.string.floating_button_pick_group_system), systemRows))
         }
+        if (deviceRows.isNotEmpty()) {
+            add(PickerGroup("device", stringResource(R.string.floating_button_pick_group_device), deviceRows))
+        }
         if (customRows.isNotEmpty()) {
             add(PickerGroup("custom", stringResource(R.string.floating_button_pick_group_custom), customRows))
         }
@@ -1364,6 +1401,10 @@ private fun FloatingActionPicker(
         onDismiss = onDismiss,
     )
 }
+
+/** Whether the keyboard holds Do Not Disturb access, which the ringer action needs for silent (#1326). */
+private fun hasDoNotDisturbAccess(context: android.content.Context): Boolean =
+    context.getSystemService(android.app.NotificationManager::class.java)?.isNotificationPolicyAccessGranted == true
 
 /** A shortcut button's own picture for a list row (#1213), or null for anything else. */
 @Composable

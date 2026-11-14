@@ -96,6 +96,24 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
 
+    <!-- The floating button's phone controls (#1326). CHANGE_WIFI_STATE above
+         also lets its Wi-Fi action switch Wi-Fi itself, which Android allows
+         an app up to Android 9. The two Bluetooth ones let its Bluetooth action
+         do the same up to Android 11; from 12 that would take the Nearby
+         devices prompt, so they stop there and the action goes through
+         Shizuku or root, or opens Android's Bluetooth page. All three are
+         normal permissions, granted at install. ACCESS_NOTIFICATION_POLICY
+         puts the keyboard on Android's Do Not Disturb access list, which the
+         ringer action needs to set silent; the access itself is a switch the
+         user turns on there. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+
     <!-- Used by the optional calendar tool to list the day's events while it
          is open, and by the AI's calendar tool (#698) when the user allows it. -->
     <uses-permission android:name="android.permission.READ_CALENDAR" />

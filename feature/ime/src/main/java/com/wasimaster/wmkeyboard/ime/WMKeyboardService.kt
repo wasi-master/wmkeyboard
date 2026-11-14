@@ -8268,6 +8268,7 @@ open class WMKeyboardService : InputMethodService() {
             is FloatingAction.AppPair -> openPairFromFloatingButton(action)
             is FloatingAction.Applet -> openFloatingApplet(action.tool)
             is FloatingAction.System -> pressSystemButton(action.button)
+            is FloatingAction.Device -> runDeviceControl(action.control)
             is FloatingAction.Custom -> onCustomButtonTap(action.id)
             is FloatingAction.Plugin -> runPluginFromFloatingButton(action.id)
             // The button answers these itself.
@@ -9057,6 +9058,19 @@ open class WMKeyboardService : InputMethodService() {
         }
         if (!service.press(button)) {
             Toast.makeText(this, R.string.ime_floating_system_failed, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * One of the phone's controls from the floating button (#1326): the
+     * ringer, the volume panel, or a radio's switch, flipped here where this
+     * phone lets the keyboard and opened as Android's page where it does not.
+     * Shell access is brought up to date first, as before a launch.
+     */
+    private fun runDeviceControl(control: com.wasimaster.wmkeyboard.core.settings.DeviceControl) {
+        syncShellAccess()
+        serviceScope.launch {
+            com.wasimaster.wmkeyboard.ime.floating.DeviceControls.run(this@WMKeyboardService, control)
         }
     }
 

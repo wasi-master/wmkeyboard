@@ -333,6 +333,8 @@
     <string name="privacy_permissions_screen_content_subtitle">Let the floating AI button read the screen when you press it</string>
     <string name="privacy_permissions_system_buttons_title">Accessibility service for system buttons</string>
     <string name="privacy_permissions_system_buttons_subtitle">Let the Screenshot tool and the floating button press Android\'s system buttons</string>
+    <string name="privacy_permissions_do_not_disturb_title">Do Not Disturb access</string>
+    <string name="privacy_permissions_do_not_disturb_subtitle">Let the floating button\'s Ringer mode action put the phone on silent</string>
     <string name="privacy_permissions_split_screen_title">Accessibility service for split screen</string>
     <string name="privacy_permissions_split_screen_subtitle">Let the app launcher press Android\'s split screen switch</string>
 

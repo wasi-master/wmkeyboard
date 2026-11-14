@@ -189,6 +189,10 @@ fun SummonButtonSettings.pressesSystemButtons(): Boolean =
         it is FloatingAction.System || it == FloatingAction.Tool(ToolbarTool.SCREENSHOT)
     }
 
+/** Whether any of the button's gestures, or its quick menu, cycles the ringer (#1326), which wants Do Not Disturb access for silent. */
+fun SummonButtonSettings.cyclesRinger(): Boolean =
+    FloatingAction.Device(DeviceControl.RINGER).let { it in gestureActions() || it in opensMenuItems() }
+
 /**
  * Every slot a gesture can reach: the quick menu's when some gesture opens
  * it, and the slots of each category reached from there or bound to a

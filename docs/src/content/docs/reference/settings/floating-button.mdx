@@ -27,6 +27,7 @@ A preview heads the screen: a sketch of a phone with the button on the side it r
 | Allow display over other apps *(shown only while Android hasn't allowed it)* | Link | |
 | Let the button read the screen *(shown only when an action asks the AI or looks up a word and the screen reading service is off; not in the Play Store build)* | Link | |
 | Let the button press system buttons *(shown only when an action is Screenshot or a system button and the system buttons service is off; not in the Play Store build)* | Link | |
+| Let the button silence the phone *(shown only when an action is Ringer mode and Android hasn't given the keyboard Do Not Disturb access)* | Link | |
 | Tap | Action | **Show keyboard** |
 | Double tap | Action | **Nothing** |
 | Press and hold | Action | **Quick menu** |
@@ -71,7 +72,7 @@ A preview heads the screen: a sketch of a phone with the button on the side it r
 - **Open an app** opens a second list, every app on the phone that has an icon in the app drawer, the same list the [app launcher](/tools/app-launcher/) shows. Search it by name and pick one, and the gesture opens that app. If the phone has a work profile, its apps follow under **Work apps**, with the briefcase on their icons, and one picked there opens in the work profile. With work apps paused, Android asks whether to turn them on. The row then names the app you picked. If the app is uninstalled later, the gesture says so instead of doing nothing.
 - **Open an app pair** opens one of the [app launcher's split screen pairs](/tools/app-launcher/#split-screen-pairs): the first app full screen, then the second beside it in split screen, just as tapping the pair in the launcher does. The list shows each pair by the name you gave it, or by both apps' names. Pairs are made in the launcher (hold an app and pick **Pair in split screen with…**), so with none yet the list says where. On a phone without split screen, only the first app opens. If either app is uninstalled later, the gesture says so.
 
-Then **System buttons**, **Your buttons**, **Plugins** and **Floating boxes**.
+Then **System buttons**, **Phone controls**, **Your buttons**, **Plugins** and **Floating boxes**.
 
 **Your buttons** lists the [custom buttons](/tools/custom-buttons/) you made under <SettingsPath path="Tools / Custom buttons" />: an app's shortcut, a setting switch or a settings page. A switch or a page runs without the keyboard coming up. The group is missing until you make a button.
 
@@ -88,6 +89,25 @@ Then **System buttons**, **Your buttons**, **Plugins** and **Floating boxes**.
 - **Quick settings** pulls down quick settings, with the Wi-Fi and Bluetooth tiles.
 
 Android lets another app press these only through an accessibility service, so they need **WM Keyboard system buttons** turned on in Android's accessibility settings, the same service the [Screenshot](/tools/instruments/#screenshot) tool uses. It presses the one button you asked for and reads nothing on screen. Until it's on, the group shows a single **Turn on system buttons** row instead, which explains the service and then opens Android's page for it. If one of these actions is already set and the service is turned off later, pressing it explains the service again, and a row under the switch at the top of this screen says what's missing. Not in the Play Store build.
+
+### Phone controls
+
+**Phone controls** work the phone's own settings, so the button can do what you'd otherwise pull down the shade for:
+
+- **Ringer mode** switches the ringer to the next of ring, vibrate and silent, and a short message says which it's on now. On a phone with no vibration motor it skips vibrate.
+- **Volume panel** opens Android's volume panel, with a slider for media, calls, the ringer and alarms, the one the settings app opens. On a phone without that panel, and before Android 10, it shows the volume slider a volume key brings up.
+- **Wi-Fi**, **Mobile data** and **Bluetooth** turn their switch on if it's off and off if it's on, then say which.
+- **Hotspot** opens Android's hotspot page.
+
+Android lets an app flip those three switches only in some cases, so each picks the first way that works on your phone, and its row in the list says which it'll be:
+
+- **Wi-Fi** switches itself on Android 9 and older, and **Bluetooth** on Android 11 and older, with no permission to grant.
+- Past those versions, and for **Mobile data** on every version, the keyboard switches them through [Shizuku or root](/reference/settings/permissions/#shizuku-or-root) once you've turned **Use Shizuku or root for keyboard features** on and allowed the keyboard there. Not in the Play Store build.
+- Otherwise the action opens Android's own control for you to flip: the Wi-Fi panel or the internet panel (Wi-Fi and mobile data together) on Android 10 and later, or the Wi-Fi, mobile network or Bluetooth page.
+
+The hotspot always opens its page. No app can start the phone's hotspot on current Android, and even through Shizuku or root there's no command that starts it with your own saved name and password.
+
+Silent is the one ringer mode that needs a grant. Android ties it to Do Not Disturb, and lets an app turn silent on or off only once you've given it **Do Not Disturb access**. Picking **Ringer mode** explains this and opens Android's list for it, and until you allow it a row under the switch at the top of this screen says so. Without it, the action switches between ring and vibrate, and if the phone is already on silent, pressing it asks for the access again, since it can't take the phone off silent otherwise. The keyboard uses the access only to set the ringer. It doesn't read or change your Do Not Disturb schedules. See [Permissions](/privacy/permissions/#the-ones-that-arent-permissions).
 
 ### Floating boxes
 

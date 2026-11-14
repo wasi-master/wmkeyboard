@@ -221,6 +221,15 @@ internal fun PermissionsSettings(repository: SettingsRepository) {
                 { SystemButtonsService.isEnabled(it) },
             )
         }
+        // The floating button's ringer action (#1326): silent needs it.
+        item(level = SettingLevel.ADVANCED) {
+            SpecialAccessRow(
+                R.string.privacy_permissions_do_not_disturb_title,
+                R.string.privacy_permissions_do_not_disturb_subtitle,
+                SpecialAccess.DO_NOT_DISTURB,
+                { it.getSystemService(android.app.NotificationManager::class.java)?.isNotificationPolicyAccessGranted == true },
+            )
+        }
         // Only where the app can install a new version of itself, and only
         // where Android has a per-app switch to send anyone to. Below API 26
         // it is one global setting the system installer raises by itself.

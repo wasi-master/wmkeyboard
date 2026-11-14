@@ -62,6 +62,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowB
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Apps
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Block
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bluetooth
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Folder
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
@@ -69,10 +70,16 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardHide
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.GridView
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Notifications
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.NotificationsActive
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SignalCellularAlt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ToggleOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VerticalSplit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewCarousel
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VisibilityOff
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VolumeUp
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Wifi
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.WifiTethering
+import com.wasimaster.wmkeyboard.core.settings.DeviceControl
 import com.wasimaster.wmkeyboard.core.settings.FloatingAction
 import com.wasimaster.wmkeyboard.core.settings.FlickDirection
 import com.wasimaster.wmkeyboard.core.settings.FloatingButtonShape
@@ -154,6 +161,7 @@ fun floatingActionIcon(
     is FloatingAction.AppPair -> Icons.Outlined.VerticalSplit
     is FloatingAction.Applet -> IconDefaults.forTool(action.tool)
     is FloatingAction.System -> systemButtonIcon(action.button)
+    is FloatingAction.Device -> deviceControlIcon(action.control)
     // Its own glyph; a shortcut draws its picture where it has one.
     is FloatingAction.Custom -> com.wasimaster.wmkeyboard.ime.ui.CustomButtonFaces.byId(action.id)
         ?.let { com.wasimaster.wmkeyboard.ime.ui.IconDefaults.forSlot(com.wasimaster.wmkeyboard.ime.ui.customButtonSlot(it)) }
@@ -173,6 +181,16 @@ fun systemButtonIcon(button: SystemButton): ImageVector = when (button) {
     SystemButton.APP_DRAWER -> Icons.Outlined.GridView
     SystemButton.NOTIFICATIONS -> Icons.Outlined.Notifications
     SystemButton.QUICK_SETTINGS -> Icons.Outlined.ToggleOn
+}
+
+/** The glyph of one of the phone's controls (#1326). */
+fun deviceControlIcon(control: DeviceControl): ImageVector = when (control) {
+    DeviceControl.RINGER -> Icons.Outlined.NotificationsActive
+    DeviceControl.VOLUME_PANEL -> Icons.Outlined.VolumeUp
+    DeviceControl.WIFI -> Icons.Outlined.Wifi
+    DeviceControl.MOBILE_DATA -> Icons.Outlined.SignalCellularAlt
+    DeviceControl.BLUETOOTH -> Icons.Outlined.Bluetooth
+    DeviceControl.HOTSPOT -> Icons.Outlined.WifiTethering
 }
 
 /** What one of Android's system buttons is called (#1170). */
@@ -240,6 +258,7 @@ internal fun floatingActionLabelRes(action: FloatingAction, keyboardUp: Boolean)
     is FloatingAction.AppPair -> R.string.ime_floating_pair_label
     is FloatingAction.Applet -> toolLabelRes(action.tool)
     is FloatingAction.System -> systemButtonLabelRes(action.button)
+    is FloatingAction.Device -> DeviceControls.labelRes(action.control)
     is FloatingAction.Category -> R.string.ime_floating_category_label
     is FloatingAction.Custom -> R.string.ime_custom_button_label
     is FloatingAction.Plugin -> R.string.ime_floating_plugin_label
