@@ -5452,9 +5452,12 @@ private fun ThemeEditorContent(
     // own (#265, #769), opened from these rows or by pressing the part on the
     // preview, so the page carries one short group for them instead of three
     // long ones.
+    // Folds like the sections around it (#1318), rather than sitting open
+    // among them.
     SettingsGroup(
         stringResource(R.string.theme_parts_section_title),
         info = stringResource(R.string.theme_parts_section_body),
+        foldKey = "theme/parts",
     ) {
         item {
             WmRow(
