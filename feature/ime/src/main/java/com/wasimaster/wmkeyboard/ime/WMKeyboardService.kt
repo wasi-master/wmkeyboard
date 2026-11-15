@@ -824,6 +824,7 @@ import com.wasimaster.wmkeyboard.core.transliteration.KhiproRomanizer
 import com.wasimaster.wmkeyboard.core.transliteration.KhiproSpecs
 import com.wasimaster.wmkeyboard.core.settings.stopsBackgroundWork
 import com.wasimaster.wmkeyboard.core.transliteration.Zawgyi
+import com.wasimaster.wmkeyboard.core.layout.findLayout
 import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.ClipboardKeyAction
@@ -20405,7 +20406,13 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun openSecondaryLayout(id: String) {
         val state = _uiState.value
-        if (id !in state.layouts.secondaries) return
+        if (id !in state.layouts.secondaries) {
+            // A whole layout named on the key (#1230): switched to, as the
+            // Secondary layout tool switches to a pinned one, and the key
+            // pressed on it again goes back to the layout it interrupted.
+            if (findLayout(state.settings.customLayouts, id) != null) toggleSecondaryBoard(id)
+            return
+        }
         if (state.layoutMode == LayoutMode.SECONDARY && state.secondaryLayoutId == id) {
             closeSecondaryLayout()
             return

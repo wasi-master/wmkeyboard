@@ -2969,7 +2969,14 @@ internal fun KeyLayoutEditorScreen(
     val popupColumns = settings.watch { it.popup.alternatesColumns }
     val popupNearestFirst = settings.watch { it.popup.alternatesNearestFirst }
     val popupBalanced = settings.watch { it.popup.alternatesBalanced }
-    val secondaryLayoutList = secondaryLayouts(settings.watch { it.customLayouts })
+    // An "Open a layout" key reaches the secondary grids and, since #1230's
+    // follow-up, every enabled layout, which it switches the keyboard to.
+    val layoutCustoms = settings.watch { it.customLayouts }
+    val layoutEnabled = settings.watch { it.enabledLayoutIds }
+    val secondaryLayoutList = remember(layoutCustoms, layoutEnabled) {
+        secondaryLayouts(layoutCustoms) +
+            layoutEnabled.distinct().mapNotNull { findLayout(layoutCustoms, it) }.filterNot { it.secondary }
+    }
     val keyboardModeList = settings.watch { it.keyboardModes }
     val ref = selection
     if (panelKind == null && ref != null && selectedKey != null) {
