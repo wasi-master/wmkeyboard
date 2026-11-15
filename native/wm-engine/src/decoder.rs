@@ -1148,8 +1148,15 @@ pub const KNOWN_MARGIN: f64 = 6.0;
 /// Spanish, French and Portuguese: 1.5 restored 67-71% of the accents left
 /// off (6% to 32% at the known-word bar) and took the words left wrong from
 /// 12.1/17.2/13.1% to 9.1/14.8/11.0%; 0.5 began changing correctly typed
-/// French words (1.7%).
-pub const ACCENT_MARGIN: f64 = 1.5;
+/// French words (1.7%). Raised to 3.0 in 0.6.8: the lists hold many accent
+/// pairs that are both everyday words, and against AOSP's lists 1.5 put
+/// Italian `parlo` ("I speak") as `parlò` ("he spoke") and Spanish `publico`
+/// as `público`. On clean typing of 300 recent Tatoeba sentences per
+/// language (the app's typing harness) 3.0 changed 3 correctly typed words
+/// where 1.5 changed 6 in Spanish, 3 against 7 in Italian and 9 against 11
+/// in French, and on the same sentences typed with every accent left off it
+/// put back 25 against 28, 10 against 12 and 105 against 105.
+pub const ACCENT_MARGIN: f64 = 3.0;
 /// The share of the bar a reading must reach to be offered instead.
 pub const OFFER_SHARE: f64 = 0.35;
 
@@ -1197,12 +1204,71 @@ pub fn verdict_full(
         known_margin
     };
     let lead = best.score - decoded.literal;
-    if lead >= bar {
+    if lead >= bar && !held_by_taps(decoded, best, typed) {
         Verdict { apply: Some(best.text.clone()), offer: None, lead }
     } else if lead >= bar * OFFER_SHARE {
         Verdict { apply: None, offer: Some(best.text.clone()), lead }
     } else {
         Verdict { lead, ..Verdict::default() }
+    }
+}
+
+/// How far the taps may favour the letters as typed over a reading, in nats,
+/// before that reading stops being put in place of a listed word
+/// ([`held_by_taps`]). At the decoder's spread, 1 nat is a tap about four
+/// tenths of a key towards the other letter: close enough to the edge that
+/// the finger could have meant either.
+pub const KNOWN_TAP_EVIDENCE: f64 = 1.0;
+
+/// Whether the taps themselves stand by a listed word against `best`, so
+/// that `best` may be offered and never applied.
+///
+/// A word some list holds, typed with every tap well inside its own key, is
+/// the word the user typed. The lists and the pairs can still say another
+/// word is commoner there (`vegan` beside `began`, French `mon` beside `non`,
+/// `Je` beside `Ne`), and on those grounds alone the reading used to be put
+/// in: on clean typing against a full-size list that rewrote one correctly
+/// typed word in twenty in English and one in eleven in French. So a listed
+/// word is rewritten only when the taps leave room for it: a reading made of
+/// slips alone, each tap near enough the other key that the taps lose at
+/// most [`KNOWN_TAP_EVIDENCE`] by it. A reading that needs a letter added,
+/// dropped or swapped, or a space put in, has no tap to point to at all
+/// (`Dan` to `Dans`, `ama` to `a a`), and waits for the words after it
+/// ([`recheck`]) or the chip. Accents put back and a space tap read as a
+/// letter keep their own bars: the taps say nothing against either.
+pub fn held_by_taps(decoded: &Decoded, best: &Reading, typed: &str) -> bool {
+    if !decoded.literal_listed || best.edge != 0 || folds_to(&best.text, typed) {
+        return false;
+    }
+    if best.edits > 0 || best.spaces > 0 {
+        return true;
+    }
+    let taps = (best.score - best.lexical) - (decoded.literal - decoded.literal_lexical);
+    taps < -KNOWN_TAP_EVIDENCE
+}
+
+/// The verdict the keyboard asks for: the fitted gate ([`Gate`]) at
+/// `confidence` for a buffer no list holds, when `confidence` is above 0,
+/// and the fixed bars ([`verdict_with`]) otherwise.
+///
+/// A listed word is always judged at the fixed bars. The gate was fitted on
+/// English taps against one English list, and what it learned about a listed
+/// word (a rare spelling one slip from a common one is probably the common
+/// one) does not carry: on other lists and other languages it rewrote
+/// everyday words typed right, French `a` to `à` after `il` among them.
+/// Holding new words back is where it earned its place, and it keeps that.
+pub fn decide(
+    decoded: &Decoded,
+    typed: &str,
+    confidence: f64,
+    margin: f64,
+    known_margin: f64,
+    accent_margin: f64,
+) -> Verdict {
+    if confidence > 0.0 && !decoded.literal_listed {
+        Gate::verdict(decoded, typed, confidence)
+    } else {
+        verdict_with(decoded, typed, margin, known_margin, accent_margin)
     }
 }
 

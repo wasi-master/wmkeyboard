@@ -48,3 +48,43 @@ internal fun capitalizeFirst(word: String): String {
     if (upper == first) return word
     return String(Character.toChars(upper)) + word.substring(Character.charCount(first))
 }
+
+/**
+ * The casing of the languages that write a dotted and a dotless i as two
+ * letters: Turkish, Azerbaijani, Crimean Tatar and Gagauz. There `i` has the
+ * capital `İ` and `ı` the capital `I`, where every other Latin alphabet pairs
+ * `i` with `I`.
+ *
+ * Folded the common way, `İyi` became `i` and a combining dot and matched no
+ * word in any list, so the commonest word a Turkish sentence opens with was
+ * unknown where it opened one; a suggestion for a word in `i` came back with
+ * the dotless capital (`Iyi`, `Ile`); and a list's `İstanbul` was filed under
+ * a key that typing `istanbul` never reached.
+ */
+object TurkicCase {
+    private val LANGUAGES = setOf("tr", "az", "crh", "gag")
+    private val LOCALE = java.util.Locale.forLanguageTag("tr")
+
+    /** Whether [languageId] (`tr`, `tr_TR`, `az-Latn`) cases its letters this way. */
+    fun applies(languageId: String): Boolean =
+        languageId.substringBefore('-').substringBefore('_').lowercase() in LANGUAGES
+
+    fun lower(text: String): String = text.lowercase(LOCALE)
+
+    fun upper(text: String): String = text.uppercase(LOCALE)
+
+    /** [c]'s capital: `İ` for `i`, `I` for `ı`, the usual one otherwise. */
+    fun upperChar(c: Char): Char = when (c) {
+        'i' -> '\u0130'
+        '\u0131' -> 'I'
+        else -> c.uppercaseChar()
+    }
+
+    /** [word] with its first letter as a capital. */
+    fun capitalized(word: String): String = when (word.firstOrNull()) {
+        'i' -> "\u0130" + word.substring(1)
+        '\u0131' -> "I" + word.substring(1)
+        // The file's own, for every other letter.
+        else -> capitalizeFirst(word)
+    }
+}

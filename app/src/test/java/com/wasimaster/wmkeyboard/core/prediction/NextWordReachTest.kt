@@ -26,6 +26,8 @@ class NextWordReachTest {
             val pack = NgramPackBuilder().apply {
                 addBigram("of", "the", 204351)
                 addBigram("of", "a", 50000)
+                addBigram("of", "course", 40000)
+                addBigram("of", "time", 30000)
             }.build()
             NgramPackCodec.write(pack, bytes)
             file.writeBytes(bytes.toByteArray())
@@ -43,10 +45,25 @@ class NextWordReachTest {
     }
 
     @Test
+    fun aPairTypedOnceWaitsBehindTheCorpus() {
+        // One use is not a habit: what the corpus expects comes first until
+        // the pair is typed again, or every word ever typed after a word
+        // would lead the strip after it.
+        val lexicon = UserLexicon(null)
+        lexicon.learnBigram("of", "zebra")
+        val engine = engine(lexicon)
+        val once = engine.suggest("", previousWord = "of", limit = 5)
+        assertEquals("the", once.first())
+        assertTrue(once.toString(), "zebra" in once)
+        lexicon.learnBigram("of", "zebra")
+        assertEquals("zebra", engine.suggest("", previousWord = "of", limit = 5).first())
+    }
+
+    @Test
     fun normalIsWhatTheStripAlwaysOffered() {
         val engine = engine()
         assertEquals(NextWordReach.NORMAL, engine.nextWordReach)
-        assertEquals(listOf("the", "a"), engine.suggest("", previousWord = "of"))
+        assertEquals(listOf("the", "a", "course", "time"), engine.suggest("", previousWord = "of"))
     }
 
     @Test
@@ -67,13 +84,20 @@ class NextWordReachTest {
         assertEquals(listOf("course"), engine.suggest("", previousWord = "of"))
     }
 
+    /**
+     * What the empty strip showed stays while its letters are typed, whatever
+     * predicted it (0.6.8): `the`, on a two-chip strip after `of`, is still
+     * there after `t`. The corpus pack's deeper guesses, the ones not shown,
+     * are carried only at MORE: `time` is fourth after `of`.
+     */
     @Test
     fun moreCarriesCorpusFollowersIntoATypedWord() {
-        val normal = engine().suggest("t", previousWord = "of", limit = 8)
-        assertFalse("the corpus follower carried at NORMAL: $normal", normal.any { it.equals("the", true) })
+        val normal = engine().suggest("t", previousWord = "of", limit = 8, phoneticSlots = 2)
+        assertTrue("the shown follower dropped at NORMAL: $normal", normal.any { it.equals("the", true) })
+        assertFalse("an unshown corpus follower carried at NORMAL: $normal", normal.any { it.equals("time", true) })
         val more = engine().apply { nextWordReach = NextWordReach.MORE }
-            .suggest("t", previousWord = "of", limit = 8)
-        assertTrue("the corpus follower missing at MORE: $more", more.any { it.equals("the", true) })
+            .suggest("t", previousWord = "of", limit = 8, phoneticSlots = 2)
+        assertTrue("the corpus follower missing at MORE: $more", more.any { it.equals("time", true) })
     }
 
     @Test

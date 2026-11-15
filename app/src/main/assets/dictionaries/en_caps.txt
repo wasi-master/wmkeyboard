@@ -1,9 +1,12 @@
 # Capitals for the bundled English list (#517): the spellings AOSP LatinIME en_US
-# writes only with a capital, limited to keys the bundled list has. Apache-2.0,
+# writes only with a capital, limited to keys the bundled list has, and the names
+# it also lists in small letters at a small fraction of the capital's count
+# (John, Tom, England, America: 60 or more below on its 0..255 scale). Apache-2.0,
 # Copyright (C) The Android Open Source Project.
 ABC
 AI
 APB
+ASAP
 ATM
 AWOL
 Aaron
@@ -82,7 +85,10 @@ Alvin
 Alyssa
 Alzheimer
 Amanda
+Ambrose
 Amelia
+America
+American
 Americans
 Ames
 Ami
@@ -191,6 +197,7 @@ Ballard
 Baltimore
 Bambi
 Bangalore
+Bangkok
 Barbara
 Barcelona
 Barclay
@@ -198,6 +205,7 @@ Barkley
 Barlow
 Barnaby
 Barnes
+Barney
 Barrett
 Barry
 Bart
@@ -277,6 +285,7 @@ Bosnia
 Boston
 Boyd
 Boyle
+Brad
 Bradford
 Bradley
 Brady
@@ -300,6 +309,7 @@ Bridget
 Briggs
 Brighton
 Brigitte
+Bristol
 Britain
 British
 Britney
@@ -397,6 +407,7 @@ Carr
 Carrie
 Carroll
 Carson
+Carter
 Cartwright
 Cary
 Casanova
@@ -432,6 +443,7 @@ Charlene
 Charles
 Charleston
 Charley
+Charlie
 Charlotte
 Che
 Chelsea
@@ -439,6 +451,7 @@ Chen
 Cheng
 Cher
 Cheryl
+Chester
 Chet
 Chevy
 Cheyenne
@@ -454,6 +467,7 @@ Chloe
 Chris
 Chrissy
 Christ
+Christian
 Christianity
 Christians
 Christie
@@ -513,6 +527,7 @@ Connie
 Connor
 Connors
 Conrad
+Constance
 Constantine
 Conway
 Copenhagen
@@ -567,6 +582,7 @@ Dani
 Daniel
 Danielle
 Daniels
+Danish
 Danny
 Dante
 Daphne
@@ -582,6 +598,7 @@ Darryl
 Darwin
 Daryl
 Dave
+Davenport
 Davey
 David
 Davidson
@@ -620,6 +637,7 @@ Dex
 Diana
 Diane
 Diaz
+Dickens
 Dickie
 Diego
 Dillon
@@ -653,6 +671,7 @@ Dorothy
 Dottie
 Doug
 Douglas
+Dover
 Doyle
 Dr
 Dracula
@@ -666,6 +685,7 @@ Duncan
 Dunham
 Durant
 Dustin
+Dutch
 Dwayne
 Dwight
 Dylan
@@ -710,6 +730,7 @@ Ellie
 Elliot
 Elliott
 Ellis
+Elmer
 Elmo
 Elsa
 Elsie
@@ -725,6 +746,7 @@ Emily
 Emma
 Emmet
 Emmett
+England
 English
 Englishman
 Enrique
@@ -755,6 +777,7 @@ Eva
 Evan
 Evans
 Evelyn
+Everest
 Everett
 Evie
 Ewing
@@ -796,6 +819,7 @@ Fitzgerald
 Flanders
 Fleischman
 Fleming
+Fletcher
 Fleur
 Florence
 Flores
@@ -819,6 +843,7 @@ Francois
 Frankenstein
 Frankfurt
 Frankie
+Franklin
 Franky
 Franny
 Franz
@@ -835,6 +860,7 @@ Freud
 Freya
 Friday
 Fridays
+Fritz
 GPS
 Gabe
 Gabi
@@ -881,6 +907,7 @@ Gibson
 Gideon
 Gigi
 Gil
+Gilbert
 Giles
 Gilles
 Gilmore
@@ -929,6 +956,7 @@ Griffith
 Grimes
 Grimm
 Groot
+Grover
 Gruber
 Guido
 Guillaume
@@ -943,10 +971,12 @@ Gwen
 HIV
 HK
 HQ
+Hagen
 Hailey
 Haiti
 Haley
 Halloween
+Hamburg
 Hamilton
 Hammond
 Hampshire
@@ -960,6 +990,7 @@ Hannibal
 Hans
 Hansen
 Hanson
+Harding
 Harlan
 Harlem
 Harley
@@ -968,10 +999,12 @@ Harold
 Harriet
 Harris
 Harrison
+Harry
 Hartley
 Harvard
 Harvey
 Haskell
+Hastings
 Hathaway
 Havana
 Hawaii
@@ -995,6 +1028,7 @@ Hendrix
 Henri
 Henrietta
 Henrik
+Henry
 Hera
 Herbert
 Herbie
@@ -1059,6 +1093,7 @@ I'll
 I'm
 I've
 ICU
+IDs
 IP
 IQ
 IRA
@@ -1139,6 +1174,7 @@ Jared
 Jarvis
 Jason
 Javier
+Jean
 Jeanette
 Jeanne
 Jeannie
@@ -1161,6 +1197,7 @@ Jeremiah
 Jeremy
 Jericho
 Jerome
+Jerry
 Jerusalem
 Jesse
 Jessica
@@ -1174,6 +1211,7 @@ Jiang
 Jill
 Jillian
 Jim
+Jimmy
 Jo
 Joan
 Joanie
@@ -1189,7 +1227,9 @@ Johan
 Johann
 Johanna
 Johannes
+John
 Johnnie
+Johnny
 Johnson
 Jojo
 Jon
@@ -1204,6 +1244,7 @@ Jose
 Josef
 Joseph
 Josephine
+Josh
 Joshua
 Josie
 Joyce
@@ -1305,6 +1346,7 @@ Kristina
 Ku
 Kumar
 Kurt
+Kyle
 Kylie
 Kyoto
 LAN
@@ -1328,6 +1370,7 @@ Larsen
 Larson
 Latin
 Latino
+Laura
 Lauren
 Laurence
 Laurent
@@ -1357,9 +1400,11 @@ Leonardo
 Leopold
 Leroy
 Leslie
+Lester
 Levi
 Levine
 Lew
+Lewis
 Lexi
 Liam
 Lian
@@ -1415,6 +1460,7 @@ Lovejoy
 Lowe
 Lowell
 Lt
+Ltd
 Luca
 Lucas
 Lucia
@@ -1523,6 +1569,7 @@ Marsha
 Marshall
 Marta
 Martha
+Martin
 Martina
 Martine
 Martinez
@@ -1547,7 +1594,9 @@ Maura
 Maureen
 Maurice
 Maxine
+Maxwell
 Maya
+Mayer
 McBride
 McCall
 McCarthy
@@ -1563,6 +1612,7 @@ Meade
 Medici
 Mediterranean
 Medusa
+Meg
 Megan
 Megatron
 Meghan
@@ -1580,6 +1630,7 @@ Meredith
 Merrick
 Mexican
 Mexicans
+Mexico
 Meyer
 Meyers
 Mia
@@ -1592,6 +1643,7 @@ Michelangelo
 Michele
 Michelle
 Michigan
+Mick
 Micki
 Micky
 Middleton
@@ -1638,6 +1690,7 @@ Moreno
 Morgan
 Moriarty
 Mormon
+Morocco
 Morrison
 Morse
 Mort
@@ -1645,6 +1698,7 @@ Mortimer
 Morton
 Morty
 Moscow
+Moses
 Mozart
 Mr
 Mrs
@@ -1661,6 +1715,7 @@ Murray
 Muslim
 Muslims
 Mussolini
+Myers
 Myra
 NASA
 NATO
@@ -1676,6 +1731,7 @@ Nana
 Nancy
 Naomi
 Naples
+Napoleon
 Nash
 Nashville
 Nat
@@ -1724,6 +1780,7 @@ Nina
 Nixon
 Noah
 Nobel
+Noel
 Nolan
 Nora
 Norfolk
@@ -1748,6 +1805,7 @@ Oklahoma
 Olaf
 Oleg
 Olga
+Oliver
 Olivia
 Olivier
 Ollie
@@ -1760,6 +1818,7 @@ Omar
 Ophelia
 Oprah
 Oregon
+Orion
 Orlando
 Orleans
 Orson
@@ -1774,6 +1833,7 @@ Otis
 Otto
 Owen
 Owens
+Oxford
 Ozzy
 PC
 PR
@@ -1785,12 +1845,15 @@ Pakistani
 Palermo
 Palestine
 Palestinian
+Palmer
 Pam
 Pamela
+Panama
 Pancho
 Pandora
 Paolo
 Paris
+Parker
 Paso
 Patel
 Patricia
@@ -1821,6 +1884,7 @@ Perry
 Persian
 Peru
 Pete
+Peter
 Petersburg
 Peterson
 Petey
@@ -1870,6 +1934,7 @@ Punjab
 Quebec
 Queenie
 Quentin
+Quincy
 Quinn
 RAF
 Rachel
@@ -1907,6 +1972,7 @@ Rembrandt
 Remy
 Rene
 Renee
+Reno
 Reuben
 Rex
 Rey
@@ -1950,6 +2016,8 @@ Rockefeller
 Rodney
 Rodrigo
 Rodriguez
+Roger
+Rogers
 Roland
 Rolex
 Rolf
@@ -1960,6 +2028,7 @@ Romania
 Romanian
 Romano
 Rome
+Romeo
 Romero
 Ron
 Ronald
@@ -2064,6 +2133,7 @@ Seth
 Seymour
 Shakespeare
 Shane
+Shanghai
 Shankar
 Shannon
 Sharon
@@ -2072,6 +2142,7 @@ Shaun
 Shawn
 Shea
 Sheffield
+Sheila
 Shelby
 Sheldon
 Shelley
@@ -2080,6 +2151,7 @@ Shelton
 Shepard
 Sheppard
 Sheridan
+Sherlock
 Sherman
 Sherwood
 Shirley
@@ -2177,6 +2249,7 @@ Swanson
 Sweden
 Swedish
 Sweeney
+Swiss
 Switzerland
 Sybil
 Syd
@@ -2198,12 +2271,14 @@ Tammy
 Tanaka
 Tania
 Tanya
+Tao
 Tara
 Tarzan
 Tasha
 Tate
 Taylor
 TeX
+Ted
 Tennessee
 Terence
 Teresa
@@ -2211,6 +2286,7 @@ Teri
 Terra
 Terrence
 Terri
+Terry
 Tesla
 Tess
 Tessa
@@ -2218,6 +2294,7 @@ Texas
 Thai
 Thailand
 Thames
+Thatcher
 Thea
 Thelma
 Theo
@@ -2232,6 +2309,7 @@ Thursday
 Thursdays
 Tia
 Tibet
+Tiffany
 Tim
 Timmy
 Tina
@@ -2243,7 +2321,9 @@ Tod
 Todd
 Tokyo
 Toledo
+Tom
 Toni
+Tony
 Tonya
 Toronto
 Torres
@@ -2267,6 +2347,7 @@ Tucson
 Tuesday
 Tuesdays
 Turkish
+Turks
 Tyler
 Tyrone
 Tyson
@@ -2329,6 +2410,7 @@ Volvo
 Vulcan
 Wagner
 Walden
+Wales
 Wallace
 Walsh
 Walt
@@ -2337,9 +2419,11 @@ Walters
 Walton
 Wanda
 Wang
+Warner
 Warsaw
 Warwick
 Washington
+Waterloo
 Watkins
 Watson
 Wayne
@@ -2350,6 +2434,8 @@ Wednesday
 Wei
 Weiss
 Welles
+Wellington
+Welsh
 Wendell
 Wendy
 Werner
@@ -2372,6 +2458,7 @@ Willie
 Willis
 Wilma
 Wilson
+Winchester
 Windsor
 Winnie
 Winslow

@@ -926,7 +926,9 @@ private fun wordsTheListsHold(
         if (!listCapitals || !shipped(langId)) {
             key
         } else {
-            capitalsOf(langId).firstNotNullOfOrNull { DictionaryCapitals.spelling(it, key) } ?: key
+            capitalsOf(langId).firstNotNullOfOrNull {
+                DictionaryCapitals.spelling(it, key, com.wasimaster.wmkeyboard.core.prediction.TurkicCase.applies(langId))
+            } ?: key
         }
     return words.filter { word ->
         val key = WordKey.of(word)

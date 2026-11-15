@@ -31,17 +31,33 @@ interface PhoneticIndex {
      */
     fun lookupLoose(input: String): List<String> = lookup(input)
 
+    /**
+     * The words [input] reaches when it is read as spelled the other ways
+     * people romanize the language, best first: for when [lookup] finds
+     * nothing at all. Empty by default.
+     */
+    fun lookupSpelledOtherwise(input: String): List<String> = emptyList()
+
     /** Dictionary frequency of a native-script [word], 0 when unknown. */
     fun frequencyOf(word: String): Int
 
     /**
-     * The list's native-script words that begin with [prefix], commonest
-     * first, at most [limit] of them. What a layout whose keys already spell
-     * the word (Khipro) asks to finish it. Empty by default: an index is built
-     * for romanized lookup, and only one that keeps its words sorted can answer
-     * this cheaply.
+     * [word]'s frequency as [lookup] weighed it for [input]: less for what
+     * the typing argues against (Bengali's typed h, a final o), never more.
      */
-    fun completions(prefix: String, limit: Int): List<String> = emptyList()
+    fun weightOf(input: String, word: String): Double = frequencyOf(word).toDouble()
+
+    /**
+     * The list's native-script words that begin with [prefix], commonest
+     * first, at most [limit] of them: what a layout whose keys already spell
+     * the word (Khipro) asks to finish it, and what a phonetic strip offers
+     * for a word typed partway. Read off [sortedWords], so an index that keeps
+     * none answers nothing.
+     */
+    fun completions(prefix: String, limit: Int): List<String> {
+        val words = sortedWords ?: return emptyList()
+        return completionsIn(words, prefix, limit)
+    }
 
     /**
      * How good [lookup]'s best answer for [input] is: that word's frequency,
@@ -60,6 +76,52 @@ interface PhoneticIndex {
     val isEmpty: Boolean
 
     companion object {
+        /**
+         * The words of [words] with [prefix], commonest [limit] first. The
+         * words are in word order, so those with [prefix] are one contiguous
+         * run of them: binary-search the run's start and keep the commonest
+         * [limit] while walking it. A one-letter prefix over a big downloaded
+         * list is a run of tens of thousands, which is still a linear pass on
+         * the suggestion thread, not a sort.
+         */
+        fun completionsIn(words: SortedWords, prefix: String, limit: Int): List<String> {
+            if (prefix.isEmpty() || limit <= 0) return emptyList()
+            var low = 0
+            var high = words.size
+            while (low < high) {
+                val mid = (low + high) ushr 1
+                if (compareWord(words, mid, prefix) < 0) low = mid + 1 else high = mid
+            }
+            // Min-heap on frequency: the head is the weakest word kept so far.
+            val best = java.util.PriorityQueue<Int>(limit + 1, compareByDescending { words.rank(it) })
+            var i = low
+            while (i < words.size && startsWith(words, i, prefix)) {
+                best.add(i)
+                if (best.size > limit) best.poll()
+                i++
+            }
+            val out = ArrayList<String>(best.size)
+            while (best.isNotEmpty()) out.add(words.word(best.poll()))
+            return out.asReversed()
+        }
+
+        /** Word [i] of [words] against [word], in [String.compareTo] order. */
+        private fun compareWord(words: SortedWords, i: Int, word: String): Int {
+            val length = words.length(i)
+            for (k in 0 until minOf(length, word.length)) {
+                val diff = words.charAt(i, k) - word[k]
+                if (diff != 0) return diff
+            }
+            return length - word.length
+        }
+
+        /** Whether word [i] of [words] begins with [prefix]. */
+        private fun startsWith(words: SortedWords, i: Int, prefix: String): Boolean {
+            if (words.length(i) < prefix.length) return false
+            for (k in prefix.indices) if (words.charAt(i, k) != prefix[k]) return false
+            return true
+        }
+
         /** No dictionary: every lookup misses, and the rules stand alone. */
         val EMPTY: PhoneticIndex = object : PhoneticIndex {
             override fun lookup(input: String): List<String> = emptyList()

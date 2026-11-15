@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.dictionaries
 
 import com.wasimaster.wmkeyboard.core.prediction.PackedTrie
+import com.wasimaster.wmkeyboard.core.prediction.TurkicCase
 import com.wasimaster.wmkeyboard.core.prediction.WordKey
 import com.wasimaster.wmkeyboard.core.prediction.WordSource
 import java.util.BitSet
@@ -27,6 +28,35 @@ import java.util.BitSet
 object DictionaryCapitals {
 
     /**
+     * Words a list spells only in capitals that are ordinary lower-case words
+     * of the language, by language: AOSP's Polish list has `PAN` and no
+     * `pan`, the forty-fifth commonest Polish word, so every "pan" typed came
+     * out as an acronym. Found by matching each AOSP list's capitals-only
+     * words against the first 3,000 of the language's counted list and
+     * keeping the ones that are words or interjections there, not
+     * abbreviations (`OK`, `FBI`, `USA` and `TV` stay capitals).
+     */
+    private val LOWER_CASE_WORDS: Map<String, Set<String>> = mapOf(
+        "pl" to setOf("pan", "oh", "ej", "um"),
+        "hr" to setOf("vi", "sad"),
+        "sr" to setOf("сад"),
+        "cs" to setOf("oh", "ah", "hm", "au"),
+        "de" to setOf("tu", "hm"),
+        "es" to setOf("eh", "os"),
+        "it" to setOf("esco"),
+        "fi" to setOf("isi"),
+        "nl" to setOf("ah"),
+        "sl" to setOf("oh", "aha"),
+        "pt" to setOf("ias", "uh"),
+        "tr" to setOf("ee"),
+        "en" to setOf("erm"),
+    )
+
+    /** Whether [key] is a lower-case word of [languageId] whatever its list's capitals say. */
+    fun writtenLowerCase(languageId: String, key: String): Boolean =
+        LOWER_CASE_WORDS[languageId.substringBefore('_')]?.contains(key) == true
+
+    /**
      * A shape is a bit per character, set where that character is a capital.
      * Eleven bits is what a dictionary frequency stores exactly; a capital
      * further in than that is only kept for a word that is capitals throughout.
@@ -43,15 +73,17 @@ object DictionaryCapitals {
      * Rewrites the first [count] of [words] to their lower-case keys, in
      * place, and returns the capitals that took away.
      */
-    fun fold(words: Array<String?>, count: Int): Folded {
+    fun fold(words: Array<String?>, count: Int, turkic: Boolean = false): Folded {
         val shapes = HashMap<String, Int>()
         val folded = BitSet(count)
         for (i in 0 until count) {
             val word = words[i] ?: continue
             if (!hasCapital(word)) continue
-            val key = WordKey.of(word)
+            // [turkic]: `İ` folds to `i` and `I` to `ı` ([TurkicCase]), so
+            // `İstanbul` is filed where typing `istanbul` finds it.
+            val key = WordKey.of(if (turkic) TurkicCase.lower(word) else word)
             // Sorted by frequency, so the first spelling met is the common one.
-            if (key !in shapes) shapes[key] = shapeOf(word, key)
+            if (key !in shapes) shapes[key] = shapeOf(word, key, turkic)
             words[i] = key
             folded.set(i)
         }
@@ -82,30 +114,32 @@ object DictionaryCapitals {
     }
 
     /** [key] as [capitals] spells it, or null when it has no capital there. */
-    fun spelling(capitals: WordSource, key: String): String? {
+    fun spelling(capitals: WordSource, key: String, turkic: Boolean = false): String? {
         val shape = capitals.frequencyOf(key)
         if (shape <= 0) return null
-        if (shape == ALL_CAPS) return key.uppercase()
+        if (shape == ALL_CAPS) return if (turkic) TurkicCase.upper(key) else key.uppercase()
         val out = StringBuilder(key)
         for (i in 0 until minOf(key.length, MASK_BITS)) {
-            if (shape and (1 shl i) != 0) out.setCharAt(i, key[i].uppercaseChar())
+            if (shape and (1 shl i) != 0) out.setCharAt(i, upperOf(key[i], turkic))
         }
         return out.toString()
     }
+
+    private fun upperOf(c: Char, turkic: Boolean): Char = if (turkic) TurkicCase.upperChar(c) else c.uppercaseChar()
 
     /**
      * The shape that turns [key] back into [word], or 0 when no shape does:
      * a capital past the eleventh character, or a letter whose two cases are
      * not the same length.
      */
-    private fun shapeOf(word: String, key: String): Int {
+    private fun shapeOf(word: String, key: String, turkic: Boolean = false): Int {
         val surface = WordKey.surface(word)
         if (surface.length != key.length) return 0
-        if (key.length > 1 && surface == key.uppercase()) return ALL_CAPS
+        if (key.length > 1 && surface == (if (turkic) TurkicCase.upper(key) else key.uppercase())) return ALL_CAPS
         var shape = 0
         for (i in surface.indices) {
             if (surface[i] == key[i]) continue
-            if (i >= MASK_BITS || key[i].uppercaseChar() != surface[i]) return 0
+            if (i >= MASK_BITS || upperOf(key[i], turkic) != surface[i]) return 0
             shape = shape or (1 shl i)
         }
         return if (shape == ALL_CAPS) 0 else shape

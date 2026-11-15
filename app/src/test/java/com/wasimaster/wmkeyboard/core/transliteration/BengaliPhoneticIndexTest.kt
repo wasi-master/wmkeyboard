@@ -165,4 +165,39 @@ class BengaliPhoneticIndexTest {
         assertEquals(listOf("দোকান"), words.lookupLoose("dokan"))
         assertEquals(listOf("বট", "ভোট"), words.lookupLoose("vot"))
     }
+
+    /**
+     * Dakshina's human romanizations spell Bangla other ways than Avro's: the
+     * inherent vowel as `a`, য-ফলা as `y`, ং as `n`/`ng`, ক্ষ as `kh`, জ্ঞ as
+     * `gy`, ব-ফলা as `w`. When the fold finds nothing, those readings do.
+     */
+    @Test fun otherRomanizationsFindTheWordTheFoldMisses() {
+        val words = BengaliPhoneticIndex(
+            listOf(
+                "ব্যবহার" to 900, "অংশ" to 700, "বাংলা" to 5000, "সক্ষম" to 300,
+                "স্বাধীন" to 400, "বিজ্ঞান" to 600, "নামক" to 200, "সংখ্যা" to 800,
+            ),
+        )
+        for ((typed, word) in listOf(
+            "byabohar" to "ব্যবহার", "angsho" to "অংশ", "bangla" to "বাংলা", "shokkhom" to "সক্ষম",
+            "swadhin" to "স্বাধীন", "bigyan" to "বিজ্ঞান", "namak" to "নামক", "sonkhya" to "সংখ্যা",
+        )) {
+            assertEquals(typed, word, (words.lookup(typed) + words.lookupSpelledOtherwise(typed)).first())
+        }
+        assertEquals(emptyList<String>(), words.lookupSpelledOtherwise("zq"))
+    }
+
+    /** What [BengaliPhoneticIndex.lookup] weighed: the typed h divides the plain word. */
+    @Test fun weightCarriesTheAspirationHandicap() {
+        assertEquals(4850.0, index.weightOf("take", "তাকে"), 0.0)
+        assertEquals(true, index.weightOf("thake", "তাকে") < index.weightOf("thake", "থাকে"))
+        // A word under another key answers with its plain frequency.
+        assertEquals(1900.0, index.weightOf("zzz", "টাকা"), 0.0)
+    }
+
+    @Test fun completionsAreTheCommonestWordsWithThePrefix() {
+        assertEquals(listOf("থাকে", "থাকা"), index.completions("থাক", 5))
+        assertEquals(listOf("তাকে"), index.completions("তাক", 1))
+        assertEquals(emptyList<String>(), index.completions("", 5))
+    }
 }

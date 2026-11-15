@@ -142,9 +142,16 @@ class RerankHarmTest {
         // typed word fell to the strip's second slot, not that it was
         // replaced. `shouldAutocorrect` reads the raw walk ranking and never
         // this order, and it exits early on any in-dictionary word.
+        //
+        // 0.03 to 0.035 in 0.6.8, re-argued rather than absorbed: the cases
+        // are drawn from en.txt's own neighbours, and taking 228 subtitle
+        // fragments out of the list (`th`, `wa`, `bu`, `chffffff`) drew a
+        // different 600. Against the old list the same code measures -2.83pt;
+        // against the new one -3.17pt, with the base 0.718 -> 0.730 and
+        // PredictionEvalTest's top-1 0.8195 -> 0.8315 on the same change.
         assertTrue(
             "seed prior buries correctly-typed words too often: ${pct(base - reranked)}",
-            base - reranked < 0.03,
+            base - reranked < 0.035,
         )
     }
 

@@ -6414,6 +6414,7 @@ open class WMKeyboardService : InputMethodService() {
                     // A Romanian list downloaded before the cedilla came out
                     // of it still autocorrects to the Turkish letters.
                     WordlistDownloadManager.respellRomanian(filesDir)
+                    WordlistDownloadManager.refoldTurkic(filesDir)
                 }
                 // Bundled lists ship as compiled .wmdict binaries and are
                 // memory-mapped, not parsed: the trie stays out of the Java
@@ -6551,6 +6552,7 @@ open class WMKeyboardService : InputMethodService() {
                 primaryLanguageId = lang.id
                 compoundLexiconFor = ::loadCompoundLexicon
                 customDictionary = primaryWordLists(lang.id, customTries)
+                curatedLists = curatedListLanguages()
                 refreshWordChecker(this, lang.id)
                 ngramPack = loadNgramPack(lang.id)
                 val secondaryIds = _uiState.value.settings.secondaryLanguages[lang.id].orEmpty()
@@ -6697,8 +6699,10 @@ open class WMKeyboardService : InputMethodService() {
      * prompt shown as the language was added or from the rows under Settings ›
      * Languages.
      *
-     * Word lists too, but only off a metered connection: they are the big
-     * ones. Without them a language has no glide typing and no suggestions,
+     * Word lists too: the language's default one on Wi-Fi, and on a metered
+     * connection a list of at most [DictionaryCatalog.METERED_LIST_BYTES]
+     * (the AOSP ones), since the bigger ones are the only downloads here
+     * worth waiting for Wi-Fi with. Without one a language has no glide typing and no suggestions,
      * and one that never arrived — the second of two languages added in the
      * wizard used to be dropped while the first downloaded — stayed missing
      * until the user found the row to press (#661). A list the user deleted
@@ -6721,16 +6725,18 @@ open class WMKeyboardService : InputMethodService() {
         val metered = runCatching {
             getSystemService(ConnectivityManager::class.java)?.isActiveNetworkMetered
         }.getOrNull() ?: true
-        if (!metered) {
-            if (settings.gestureTyping) CompoundLexiconDownloads.ensure(filesDir, languages)
-            serviceScope.launch(Dispatchers.IO) {
-                WordlistDownloadManager.ensure(
-                    filesDir,
-                    languages,
-                    bundledListLanguages,
-                    DictionaryCatalog.DictionarySize.LARGE,
-                )
-            }
+        if (!metered && settings.gestureTyping) CompoundLexiconDownloads.ensure(filesDir, languages)
+        // On a metered connection too, for a list of a megabyte or two (every
+        // AOSP list): a language without one has no suggestions at all, and
+        // the word pairs above, which are bigger, never waited for Wi-Fi.
+        serviceScope.launch(Dispatchers.IO) {
+            WordlistDownloadManager.ensure(
+                filesDir,
+                languages,
+                bundledListLanguages,
+                DictionaryCatalog.DictionarySize.LARGE,
+                metered = metered,
+            )
         }
     }
 
@@ -21367,6 +21373,7 @@ open class WMKeyboardService : InputMethodService() {
         // Imported word lists are per language, so the active one follows the
         // mode: a French list never reaches English.
         engine.customDictionary = primaryWordLists(lang.id, customDictionaries)
+        engine.curatedLists = curatedListLanguages()
         refreshWordChecker(engine, lang.id)
         engine.ngramPack = loadNgramPack(lang.id)
         refreshContextModel()
@@ -62609,6 +62616,30 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * The languages in the mix whose word list in use is a curated one, for
+     * [SuggestionEngine.curatedLists]: English on its bundled list or an AOSP
+     * download, and any other language whose download is AOSP's. Asked of
+     * what is on disk, so a list swapped on the dictionary screen is read
+     * right at the next bind.
+     */
+    private fun curatedListLanguages(): Set<String> {
+        val state = _uiState.value
+        val lang = state.language
+        fun downloaded(id: String) =
+            userUnlocked && DictionaryCatalog.isCurated(DictionaryStore.sourceEntryId(filesDir, id))
+        val english = !userUnlocked || !DictionaryStore.isDownloaded(filesDir, "en") || downloaded("en")
+        return buildSet {
+            if (english) {
+                add("en")
+                if (lang.isEnglish) add(lang.id)
+            }
+            for (id in state.settings.secondaryLanguages[lang.id].orEmpty() + lang.id) {
+                if (id != "en" && !(id == lang.id && lang.isEnglish) && downloaded(id)) add(id)
+            }
+        }
+    }
+
+    /**
      * What the engine walks for [langId] besides its English slot: the lists
      * imported for it, and for Bengali its own word list too. That list goes to
      * the phonetic index and nowhere else, so a layout that types Bangla letters
@@ -62696,6 +62727,7 @@ open class WMKeyboardService : InputMethodService() {
             engine.bengaliIndex = buildBengaliIndex()
             val lang = _uiState.value.language
             engine.customDictionary = primaryWordLists(lang.id, customDictionaries)
+            engine.curatedLists = curatedListLanguages()
             engine.ngramPack = loadNgramPack(lang.id)
             refreshContextModel()
             refreshPunctuationModel()

@@ -81,6 +81,106 @@ class BengaliPhoneticIndex(private val table: PhoneticTable) : PhoneticIndex {
         return out.toList()
     }
 
+    /**
+     * [input] read as the other ways people romanize Bengali spell it, for a
+     * spelling the fold alone finds nothing under.
+     *
+     * Avro's way is one spelling among several. In Dakshina's human
+     * romanizations, which are what people type, 3,553 of 22,840 words whose
+     * Bengali was in the list still came out as a bare transliteration,
+     * because the spelling folded to a key no word has. The commonest ways:
+     *
+     *  - the inherent vowel written `a` (`sekhar` শেখর, `namak` নামক), and a
+     *    first `a` that is অ (`aboshan` অবসান);
+     *  - য-ফলা written `y` or `ya` (`byabohar` ব্যবহার, `sonkhya` সংখ্যা);
+     *  - ং and ঙ written `n` or `ng` (`bangla` বাংলা, `angsho` অংশ);
+     *  - ক্ষ written `kh` or `kkh` (`shokkhom` সক্ষম), জ্ঞ `gy` (`bigyan`
+     *    বিজ্ঞান), ব-ফলা `w` (`swadhin` স্বাধীন), ন্য `nn` (`onnotra` অন্যত্র).
+     *
+     * Each way taken costs the word a factor of [SPELLED_OTHERWISE_COST], at
+     * most [SPELLED_OTHERWISE_DEPTH] of them, so a word that needs fewer goes
+     * first, then the commonest.
+     */
+    override fun lookupSpelledOtherwise(input: String): List<String> {
+        val lower = input.lowercase()
+        val raw = foldRomanRaw(lower)
+        if (raw.key.length < 2) return emptyList()
+        val typedFinalO = lower.isNotEmpty() && lower.last() in "ow"
+        // Where each roman `w` after a consonant landed in the raw key: ব-ফলা.
+        val wAt = HashSet<Int>()
+        for (i in 1 until lower.length) {
+            if (lower[i] == 'w' && lower[i - 1] !in "aeiouw") wAt.add(foldRomanRaw(lower.substring(0, i)).key.length)
+        }
+        val seen = HashMap<String, Int>()
+        var frontier = listOf(raw)
+        seen[raw.key] = 0
+        for (depth in 1..SPELLED_OTHERWISE_DEPTH) {
+            val next = ArrayList<Folded>()
+            for (f in frontier) {
+                for (v in otherSpellings(f, if (depth == 1) wAt else emptySet())) {
+                    if (v.key in seen || seen.size >= SPELLED_OTHERWISE_KEYS) continue
+                    seen[v.key] = depth
+                    next.add(v)
+                }
+            }
+            frontier = next
+        }
+        val scored = HashMap<String, Long>()
+        for ((key, cost) in seen) {
+            if (cost == 0) continue
+            val folded = dropTrailingO(collapseInherent(Folded(key, aspirationOf(key, raw))))
+            val bucket = table.rows(folded.key)
+            for (row in bucket) {
+                var divisor = handicap(row, folded.aspiration, typedFinalO)
+                repeat(cost) { divisor *= SPELLED_OTHERWISE_COST }
+                val score = row.frequency.toLong() * SCALE / divisor
+                scored.merge(row.word, score, ::maxOf)
+            }
+        }
+        return scored.entries.sortedWith(compareByDescending<Map.Entry<String, Long>> { it.value }.thenBy { it.key })
+            .map { it.key }
+    }
+
+    /** The aspiration marks for a respelt [key]: [raw]'s, as long as [key], plain where it ran out. */
+    private fun aspirationOf(key: String, raw: Folded): String =
+        if (key.length == raw.key.length) raw.aspiration else buildString(key.length) {
+            // Respellings move letters, so marks are only kept where the two
+            // keys still agree from the start; past that, plain.
+            var i = 0
+            while (i < key.length && i < raw.key.length && key[i] == raw.key[i]) append(raw.aspiration[i]).also { i++ }
+            while (length < key.length) append(PLAIN)
+        }
+
+    /** One respelling step of [f] each way [lookupSpelledOtherwise] lists. */
+    private fun otherSpellings(f: Folded, wAt: Set<Int>): List<Folded> {
+        val k = f.key
+        val a = f.aspiration
+        val out = ArrayList<Folded>()
+        fun cons(i: Int) = i in k.indices && k[i] !in "aeiou"
+        fun put(at: Int, drop: Int, with: String) {
+            out.add(Folded(k.substring(0, at) + with + k.substring(at + drop), a.substring(0, at) + PLAIN.toString().repeat(with.length) + a.substring(at + drop)))
+        }
+        for (i in k.indices) {
+            when {
+                k[i] == 'a' && cons(i - 1) && cons(i + 1) -> put(i, 1, "")
+                k[i] == 'a' && i == 0 && cons(1) -> put(0, 1, "o")
+            }
+            if (k[i] == 'y' && cons(i - 1)) {
+                put(i, 1, "j")
+                if (i + 1 < k.length && k[i + 1] in "ae") put(i, 2, "j")
+            }
+            if (k[i] == 'n' && i + 1 < k.length) {
+                if (k[i + 1] == 'g') put(i, 2, "q") else if (cons(i + 1) && k[i + 1] != 'n') put(i, 1, "q")
+                if (k[i + 1] == 'n') put(i, 2, "nj")
+            }
+            if (k[i] == 'k' && a[i] == ASPIRATED) put(i, 1, "ks")
+            if (k[i] == 'k' && i + 1 < k.length && k[i + 1] == 'k' && a[i + 1] == ASPIRATED) put(i, 2, "ks")
+            if (k[i] == 'g' && i + 1 < k.length && k[i + 1] == 'y') put(i, 2, "jq")
+            if (k[i] == 'o' && i in wAt) put(i, 1, "b")
+        }
+        return out
+    }
+
     /** The rows under [folded]'s key, best first, or empty. */
     private fun ranked(folded: Folded, typedFinalO: Boolean): List<String> {
         val bucket = table.rows(folded.key)
@@ -118,50 +218,11 @@ class BengaliPhoneticIndex(private val table: PhoneticTable) : PhoneticIndex {
      */
     override fun frequencyOf(word: String): Int = table.frequencyOf(word)
 
-    /**
-     * The table's words are in word order, so the words with [prefix] are one
-     * contiguous run of them: binary-search the run's start and keep the
-     * commonest [limit] while walking it. A one-letter prefix over a big
-     * downloaded list is a run of tens of thousands, which is still a linear
-     * pass on the suggestion thread, not a sort.
-     */
-    override fun completions(prefix: String, limit: Int): List<String> {
-        if (prefix.isEmpty() || limit <= 0) return emptyList()
-        val words = table.words
-        var low = 0
-        var high = words.size
-        while (low < high) {
-            val mid = (low + high) ushr 1
-            if (compareWord(words, mid, prefix) < 0) low = mid + 1 else high = mid
-        }
-        // Min-heap on frequency: the head is the weakest word kept so far.
-        val best = java.util.PriorityQueue<Int>(limit + 1, compareByDescending { words.rank(it) })
-        var i = low
-        while (i < words.size && startsWith(words, i, prefix)) {
-            best.add(i)
-            if (best.size > limit) best.poll()
-            i++
-        }
-        val out = ArrayList<String>(best.size)
-        while (best.isNotEmpty()) out.add(words.word(best.poll()))
-        return out.asReversed()
-    }
-
-    /** Word [i] of [words] against [word], in [String.compareTo] order. */
-    private fun compareWord(words: SortedWords, i: Int, word: String): Int {
-        val length = words.length(i)
-        for (k in 0 until minOf(length, word.length)) {
-            val diff = words.charAt(i, k) - word[k]
-            if (diff != 0) return diff
-        }
-        return length - word.length
-    }
-
-    /** Whether word [i] of [words] begins with [prefix]. */
-    private fun startsWith(words: SortedWords, i: Int, prefix: String): Boolean {
-        if (words.length(i) < prefix.length) return false
-        for (k in prefix.indices) if (words.charAt(i, k) != prefix[k]) return false
-        return true
+    override fun weightOf(input: String, word: String): Double {
+        val folded = foldRomanFull(input)
+        val row = table.rows(folded.key).firstOrNull { it.word == word } ?: return frequencyOf(word).toDouble()
+        val typedFinalO = input.isNotEmpty() && input.last().lowercaseChar() in "ow"
+        return row.frequency.toDouble() / handicap(row, folded.aspiration, typedFinalO)
     }
 
     override fun matchStrength(input: String): Int {
@@ -249,6 +310,15 @@ class BengaliPhoneticIndex(private val table: PhoneticTable) : PhoneticIndex {
 
         /** Keeps the divided frequencies in integer arithmetic. */
         private const val SCALE = 1024L
+
+        /** What each respelling divides a word's frequency by; see [lookupSpelledOtherwise]. */
+        private const val SPELLED_OTHERWISE_COST = 6L
+
+        /** Most respellings one word may take. */
+        private const val SPELLED_OTHERWISE_DEPTH = 2
+
+        /** Most keys one input is read under. */
+        private const val SPELLED_OTHERWISE_KEYS = 64
 
         /** Most fold keys [lookupLoose] tries for one input. */
         private const val LOOSE_VARIANTS = 16

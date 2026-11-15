@@ -111,6 +111,10 @@ class AlphabetPhoneticIndex(
 
     override val isEmpty: Boolean get() = table.isEmpty
 
+    /** The list's words in order, for [completions]; null with no list. */
+    override val sortedWords: SortedWords? get() = if (table.isEmpty) null else table.words
+
+
     override fun lookup(input: String): List<String> {
         val literal = rules(input)
         val key = AlphabetFold.key(languageId, literal) ?: return emptyList()

@@ -85,6 +85,21 @@ class DictionaryCapitalsTest {
         assertEquals("Haus", engine.shouldAutocorrect("haus"))
     }
 
+    /** AOSP's Polish list spells `pan` only as the acronym `PAN`; the word is lower case. */
+    @Test fun aCommonWordTheListOnlySpellsInCapitalsStaysLowerCase() {
+        val (folded, polish) = fold("PAN", "FBI", "dom")
+        val list = PackedTrie.of(folded.filterNotNull().map { it.lowercase() to 100 })
+        val engine = SuggestionEngine(list, BengaliPhoneticIndex(emptyList()), UserLexicon(null)).apply {
+            primaryLanguageId = "pl"
+            customDictionary = list
+            dictionaryCapitals = mapOf("pl" to polish!!)
+        }
+        assertNull(engine.shouldAutocorrect("pan"))
+        assertEquals("FBI", engine.shouldAutocorrect("fbi"))
+        assertEquals(true, DictionaryCapitals.writtenLowerCase("pl", "pan"))
+        assertEquals(false, DictionaryCapitals.writtenLowerCase("en", "pan"))
+    }
+
     /** #517: English's bundled list is lower case, so its capitals ship beside it. */
     @Test fun theBundledCapitalsNameTheDaysForTheBundledList() {
         val english = PackedTrie.of(listOf("monday" to 100, "london" to 100, "will" to 100))

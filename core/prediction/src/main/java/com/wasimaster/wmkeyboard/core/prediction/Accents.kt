@@ -61,6 +61,9 @@ object Accents {
         }
     }
 
+    /** Whether [word] has a letter with an accent, a stroke or a tone mark on it. */
+    fun hasMarks(word: String): Boolean = word.any { bare(it) != it }
+
     /** Whether [label] is [typed] with an accent the typist left off. */
     fun isAccentOf(label: Char, typed: Char): Boolean =
         label != typed && label.code >= LATIN_START && bare(label) == typed

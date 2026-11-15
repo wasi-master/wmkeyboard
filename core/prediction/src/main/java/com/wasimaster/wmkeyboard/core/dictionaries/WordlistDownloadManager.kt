@@ -7,6 +7,7 @@ import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.prediction.AospScores
+import com.wasimaster.wmkeyboard.core.prediction.TurkicCase
 import com.wasimaster.wmkeyboard.core.prediction.MappedTrie
 import com.wasimaster.wmkeyboard.core.prediction.PackedTrie
 import com.wasimaster.wmkeyboard.core.prediction.PackedTrieCodec
@@ -107,6 +108,11 @@ object WordlistDownloadManager {
     /** The largest list [foldCapitals] rebuilds in place. */
     private const val MAX_REFOLD_WORDS = 600_000
 
+    /** U+0307, what the common lower-casing leaves after the `i` of an `İ`. */
+    private const val COMBINING_DOT = '\u0307'
+    private const val DOTTED_FOLD = "i\u0307"
+    private const val DOTTED_CAPITAL = "\u0130"
+
     /** Rough on-disk bytes per stored word (measured ~40 B on the bundled lists). */
     private const val BYTES_PER_WORD = 64L
 
@@ -188,10 +194,15 @@ object WordlistDownloadManager {
         langIds: Collection<String>,
         bundled: Set<String>,
         size: DictionaryCatalog.DictionarySize,
+        metered: Boolean = false,
     ) {
         for (langId in langIds.distinct()) {
             if (langId in bundled) continue
-            val entry = DictionaryCatalog.preferred(langId) ?: continue
+            // On a metered connection only a list small enough to take
+            // unasked; a language whose lists are all bigger waits.
+            val entry = (
+                if (metered) DictionaryCatalog.preferredOnMetered(langId) else DictionaryCatalog.preferred(langId)
+                ) ?: continue
             val skip = synchronized(lock) {
                 entry.id in givenUp || entry.id == activeId || isQueued(entry.id)
             }
@@ -365,7 +376,7 @@ object WordlistDownloadManager {
         } else {
             null
         }
-        val capitals = DictionaryCapitals.fold(list.words, list.count).capitals
+        val capitals = DictionaryCapitals.fold(list.words, list.count, TurkicCase.applies(langId)).capitals
         val trie = PackedTrie.of(list.words, list.frequencies, list.count)
         part.outputStream().use { PackedTrieCodec.write(trie, it) }
         val file = DictionaryStore.capitalsFile(filesDir, langId)
@@ -424,6 +435,46 @@ object WordlistDownloadManager {
                 part.delete()
                 DictionaryStore.capitalsFile(filesDir, langId).delete()
             }
+        }
+    }
+
+    /**
+     * Files again, in place, a Turkish, Azerbaijani, Crimean Tatar or Gagauz
+     * list downloaded before its capitals were folded the way those languages
+     * case their letters ([TurkicCase]). Nothing is fetched. Run beside
+     * [foldCapitals] at keyboard start, off the main thread.
+     *
+     * Such a list holds `İstanbul` under `i`, a combining dot and `stanbul`,
+     * which no typing reaches, and has lost its capital. The test is one step
+     * down the mapped trie for that dot, so a list already right costs
+     * nothing. Each word is put back as the list wrote it (the dot marks an
+     * `İ`, the old capitals mark the rest) and folded as a download folds it
+     * now.
+     */
+    fun refoldTurkic(filesDir: File) {
+        if (isBusy) return
+        for (langId in DictionaryStore.downloadedLanguageIds(filesDir)) {
+            if (!TurkicCase.applies(langId)) continue
+            val main = DictionaryStore.downloadedFile(filesDir, langId)
+            val part = DictionaryStore.partFile(filesDir, langId)
+            runCatching {
+                val mapped = MappedTrie.open(main) ?: return@runCatching
+                if (mapped.walkers().none { w -> w.child(w.root, 'i').let { it >= 0 && w.child(it, COMBINING_DOT) >= 0 } }) {
+                    return@runCatching
+                }
+                if (mapped.wordCount > MAX_REFOLD_WORDS) return@runCatching
+                val old = MappedTrie.open(DictionaryStore.capitalsFile(filesDir, langId))
+                val entries = mapped.entries().sortedByDescending { it.second }
+                val words = arrayOfNulls<String>(entries.size)
+                val frequencies = IntArray(entries.size)
+                entries.forEachIndexed { i, (key, frequency) ->
+                    val written = old?.let { DictionaryCapitals.spelling(it, key) } ?: key
+                    words[i] = written.replace(DOTTED_FOLD, DOTTED_CAPITAL)
+                    frequencies[i] = frequency
+                }
+                pack(filesDir, langId, Wordlist(words, frequencies, entries.size), part)
+                if (!part.renameTo(main)) part.delete()
+            }.onFailure { part.delete() }
         }
     }
 

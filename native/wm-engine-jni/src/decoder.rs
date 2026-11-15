@@ -428,13 +428,9 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
                 }
             });
         }
-        let v = if confidence > 0.0 {
-            decoder::Gate::verdict(&decoded, &inp.typed, confidence)
-        } else {
-            // The accent bar moves with the slider as the other two do.
-            let accent_margin = margin * decoder::ACCENT_MARGIN / decoder::APPLY_MARGIN;
-            decoder::verdict_with(&decoded, &inp.typed, margin, known_margin, accent_margin)
-        };
+        // The accent bar moves with the slider as the other two do.
+        let accent_margin = margin * decoder::ACCENT_MARGIN / decoder::APPLY_MARGIN;
+        let v = decoder::decide(&decoded, &inp.typed, confidence, margin, known_margin, accent_margin);
         let best = v.apply.as_ref().or(v.offer.as_ref()).and_then(|t| decoded.readings.iter().find(|r| &r.text == t));
         stats(env, &out, v.lead, best)?;
         give_all(env, vec![v.apply.unwrap_or_default(), v.offer.unwrap_or_default()])

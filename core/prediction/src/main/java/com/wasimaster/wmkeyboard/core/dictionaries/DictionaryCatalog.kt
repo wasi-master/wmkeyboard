@@ -823,6 +823,43 @@ object DictionaryCatalog {
      * where it has one, else its counted list, and of either the first region
      * listed (Europe for Portuguese, the US for English).
      */
-    fun preferred(langId: String): DictionaryEntry? =
-        forLanguage(langId).minByOrNull { it.source.ordinal }
+    fun preferred(langId: String): DictionaryEntry? {
+        val lists = forLanguage(langId)
+        if (langId in COUNTED_FIRST) lists.firstOrNull { it.source == WordlistSource.FREQUENCY }?.let { return it }
+        return lists.minByOrNull { it.source.ordinal }
+    }
+
+    /**
+     * The list [langId] downloads by itself on a metered connection: the
+     * [preferred] one when it is small enough to fetch without asking
+     * ([METERED_LIST_BYTES], which every AOSP list is), else the language's
+     * smallest list under that size, else none. A language with no word list
+     * has no suggestions and no glide typing at all, which is a worse thing
+     * to wait for Wi-Fi with than a megabyte is to spend.
+     */
+    fun preferredOnMetered(langId: String): DictionaryEntry? {
+        preferred(langId)?.takeIf { it.approxGzBytes <= METERED_LIST_BYTES }?.let { return it }
+        return forLanguage(langId).filter { it.approxGzBytes <= METERED_LIST_BYTES }.minByOrNull { it.approxGzBytes }
+    }
+
+    /** The largest download a metered connection is spent on unasked: 2 MB. */
+    const val METERED_LIST_BYTES = 2_000_000L
+
+    /**
+     * Languages whose counted list is the better default. AOSP's Turkish
+     * list was counted from encyclopedia stubs: `köy` (village) and
+     * `muhtarlık` are among its ten commonest words, and `m` completes to
+     * *muhtarlık, müzik, merkezi*. On everyday Turkish sentences it knew 89%
+     * of the words typed and saved 25% of the keystrokes; the counted list
+     * knew 97% and saved 32%.
+     */
+    private val COUNTED_FIRST = setOf("tr")
+
+    /**
+     * Whether the list downloaded as [entryId] is a curated one (AOSP's):
+     * every entry a word, none of a counted list's typos. Null, an id this
+     * catalog no longer has, and a counted list are not.
+     */
+    fun isCurated(entryId: String?): Boolean =
+        entryId != null && entries.firstOrNull { it.id == entryId }?.source == WordlistSource.AOSP
 }

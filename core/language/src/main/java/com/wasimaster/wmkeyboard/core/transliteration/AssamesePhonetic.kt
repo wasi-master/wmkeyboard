@@ -37,6 +37,10 @@ class AssamesePhoneticIndex(private val table: PhoneticTable) : PhoneticIndex {
 
     override val isEmpty: Boolean get() = inner.isEmpty
 
+    /** The list's words in order, for [completions]; null with no list. */
+    override val sortedWords: SortedWords? get() = if (inner.isEmpty) null else inner.sortedWords
+
+
     override fun lookup(input: String): List<String> = inner.lookup(input.replace('x', 's')).distinct()
 
     override fun frequencyOf(word: String): Int = table.frequencyOf(word)

@@ -1119,7 +1119,10 @@ fn main() {
                         Some(r) if r.score > d.literal => r.text.clone(),
                         _ => buf.clone(),
                     };
-                    let v = if gate_on {
+                    // As the keyboard asks (`decoder::decide`): the gate
+                    // for a buffer no list holds, the fixed bars for one a
+                    // list does.
+                    let v = if gate_on && !d.literal_listed {
                         decoder::Gate::verdict(&d, &buf, gate_confidence)
                     } else {
                         decoder::verdict_full(&d, &buf, apply_margin, known_margin, accent_margin, edge_margin)

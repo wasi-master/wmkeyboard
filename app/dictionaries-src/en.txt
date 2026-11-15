@@ -1674,7 +1674,6 @@ gasps 3713
 grand 3712
 yep 3710
 shh 3707
-de 3706
 themselves 3704
 mate 3703
 drinking 3703
@@ -2094,7 +2093,6 @@ harm 3195
 style 3195
 sees 3193
 basically 3191
-al 3190
 signal 3190
 nope 3190
 spare 3188
@@ -2527,7 +2525,6 @@ americans 2848
 notes 2848
 smoking 2848
 hank 2848
-ls 2848
 wolf 2846
 precious 2846
 rooms 2846
@@ -2560,7 +2557,6 @@ creature 2832
 fourth 2832
 cleaning 2831
 california 2830
-lf 2830
 shift 2829
 elizabeth 2829
 chicago 2827
@@ -3227,7 +3223,6 @@ whispers 2464
 religious 2464
 presents 2464
 chip 2464
-chffffff 2463
 surveillance 2463
 carlos 2462
 vampire 2461
@@ -3353,7 +3348,6 @@ homes 2407
 festival 2406
 tradition 2406
 cigarettes 2406
-le 2406
 beside 2406
 harvey 2405
 motive 2405
@@ -3574,7 +3568,6 @@ accounts 2321
 extreme 2321
 gettin 2321
 cia 2321
-ii 2320
 pays 2319
 profile 2319
 oxygen 2319
@@ -3777,7 +3770,6 @@ humming 2242
 washed 2242
 drives 2241
 talented 2240
-li 2240
 aid 2240
 troubles 2237
 core 2237
@@ -3806,7 +3798,6 @@ fabulous 2229
 twins 2229
 characters 2228
 cooked 2228
-ln 2228
 ruth 2227
 dreamed 2227
 arts 2227
@@ -3875,7 +3866,6 @@ shore 2210
 miami 2210
 fifteen 2210
 visitors 2210
-bo 2210
 net 2210
 insult 2210
 owen 2209
@@ -3984,7 +3974,6 @@ appearance 2177
 musical 2175
 sends 2175
 slide 2175
-aii 2175
 shawn 2175
 ultimate 2174
 pork 2173
@@ -4159,7 +4148,6 @@ largest 2121
 washing 2121
 achieve 2121
 causes 2120
-mo 2120
 dope 2120
 palm 2119
 logan 2119
@@ -4218,8 +4206,6 @@ poker 2099
 wrapped 2099
 korean 2099
 graham 2099
-mi 2098
-fu 2098
 ivan 2098
 focused 2098
 liam 2098
@@ -4283,7 +4269,6 @@ shining 2079
 backwards 2079
 baron 2078
 kidnapping 2078
-iike 2078
 marshal 2077
 petty 2077
 sealed 2077
@@ -4424,7 +4409,6 @@ explode 2034
 immediate 2033
 belonged 2033
 identified 2033
-di 2032
 hunger 2032
 closest 2032
 combination 2031
@@ -4433,7 +4417,6 @@ seth 2031
 gabriel 2030
 detectives 2030
 severe 2030
-en 2030
 organized 2029
 franklin 2029
 gut 2028
@@ -4629,7 +4612,6 @@ toss 1977
 anderson 1976
 acid 1976
 nora 1975
-si 1975
 anonymous 1974
 inn 1973
 planted 1973
@@ -4987,7 +4969,6 @@ brutal 1868
 alison 1868
 vain 1868
 switched 1867
-chi 1867
 deer 1866
 brooklyn 1866
 dresses 1866
@@ -4997,7 +4978,6 @@ inspiration 1865
 benjamin 1864
 nicky 1864
 thrilled 1864
-tae 1864
 suggestion 1864
 dummy 1863
 sailor 1863
@@ -5009,7 +4989,6 @@ idol 1862
 trucks 1862
 rank 1861
 denise 1861
-yu 1861
 veronica 1860
 blocked 1860
 strict 1860
@@ -5063,7 +5042,6 @@ freddie 1847
 engineering 1846
 element 1845
 balloon 1845
-ty 1844
 broadcast 1844
 spray 1844
 ninja 1844
@@ -5102,7 +5080,6 @@ kidney 1832
 finishing 1832
 products 1832
 im 1832
-wu 1831
 invasion 1830
 affection 1830
 woody 1830
@@ -5268,7 +5245,6 @@ travelling 1789
 confessed 1789
 roast 1789
 website 1788
-ja 1788
 mikey 1788
 flood 1788
 harbor 1788
@@ -5321,7 +5297,6 @@ lin 1776
 fellows 1776
 rot 1776
 password 1776
-th 1775
 kirk 1775
 pedro 1775
 spill 1775
@@ -5460,7 +5435,6 @@ establish 1741
 dearest 1740
 intimate 1740
 eager 1740
-se 1740
 cathy 1740
 atlantic 1739
 contains 1739
@@ -5540,7 +5514,6 @@ noises 1725
 inviting 1725
 pregnancy 1724
 declared 1724
-yi 1724
 vicky 1724
 drums 1724
 wooden 1723
@@ -5549,7 +5522,6 @@ mouths 1722
 bees 1722
 creaking 1722
 sasha 1721
-unh 1721
 skies 1721
 painter 1721
 allies 1721
@@ -5573,7 +5545,6 @@ juliet 1716
 shrimp 1716
 tore 1716
 seventh 1715
-ou 1715
 avoiding 1714
 dawson 1714
 isaac 1714
@@ -5594,7 +5565,6 @@ glove 1711
 nearest 1711
 manny 1711
 begged 1711
-que 1710
 withdraw 1710
 shocking 1710
 guessed 1709
@@ -5775,7 +5745,6 @@ pursue 1662
 dreamt 1662
 stefan 1662
 revolutionary 1661
-wa 1661
 rig 1661
 convincing 1661
 fiona 1661
@@ -5880,7 +5849,6 @@ persuade 1641
 pastor 1641
 dolls 1641
 pose 1640
-ji 1640
 ming 1640
 rupees 1640
 tricked 1640
@@ -5894,7 +5862,6 @@ musician 1638
 labour 1638
 evolution 1638
 salute 1637
-ba 1637
 cent 1637
 bartender 1637
 calendar 1637
@@ -5956,7 +5923,6 @@ honorable 1622
 shiny 1622
 hawk 1621
 shorts 1621
-ni 1621
 representative 1621
 wong 1621
 pouring 1620
@@ -5969,7 +5935,6 @@ trophy 1620
 marilyn 1619
 hallelujah 1619
 neal 1619
-es 1619
 howdy 1619
 misses 1618
 flush 1618
@@ -6108,7 +6073,6 @@ sabrina 1589
 kicks 1589
 integrity 1588
 dash 1588
-jae 1588
 senate 1588
 mentally 1587
 flee 1587
@@ -6183,7 +6147,6 @@ straighten 1576
 legitimate 1575
 sting 1575
 youngest 1575
-du 1575
 flynn 1575
 ciao 1574
 coroner 1574
@@ -6205,7 +6168,6 @@ jr 1571
 whores 1571
 sentimental 1570
 cooler 1570
-eun 1570
 bert 1570
 feds 1570
 reese 1570
@@ -6249,7 +6211,6 @@ accidents 1563
 alcoholic 1563
 fabric 1563
 nazis 1562
-sal 1562
 dame 1562
 rebels 1562
 custom 1561
@@ -6286,7 +6247,6 @@ visible 1553
 easter 1553
 jeep 1553
 dj 1553
-les 1553
 garcia 1553
 tracked 1553
 ignorant 1552
@@ -6321,7 +6281,6 @@ writers 1548
 grain 1548
 essentially 1547
 archie 1547
-ofthe 1547
 individuals 1547
 meredith 1547
 gavin 1547
@@ -6342,7 +6301,6 @@ rogue 1544
 superintendent 1543
 cody 1543
 jacques 1543
-ol 1543
 challenges 1542
 corruption 1542
 sullivan 1542
@@ -6729,14 +6687,12 @@ niles 1449
 consult 1449
 nevertheless 1448
 carnival 1448
-au 1448
 baba 1448
 hah 1448
 paths 1447
 rides 1447
 tray 1447
 cynthia 1447
-te 1447
 handcuffs 1447
 shannon 1447
 barrier 1447
@@ -6873,7 +6829,6 @@ oxford 1419
 organize 1419
 sensors 1419
 shanghai 1419
-wh 1418
 sniper 1418
 noisy 1418
 framed 1418
@@ -6923,7 +6878,6 @@ dances 1410
 gemma 1410
 pinch 1409
 ingredients 1409
-ra 1409
 hurricane 1409
 chatting 1409
 mini 1408
@@ -7003,7 +6957,6 @@ trent 1394
 keeper 1394
 detroit 1394
 canadian 1394
-su 1393
 associates 1393
 gerry 1393
 restless 1392
@@ -7020,7 +6973,6 @@ towns 1390
 pawn 1390
 edith 1390
 includes 1389
-lu 1389
 proposition 1389
 joker 1389
 spilled 1389
@@ -7059,7 +7011,6 @@ shaft 1383
 definition 1383
 gardens 1382
 chandler 1382
-ne 1382
 notify 1382
 brady 1382
 beasts 1381
@@ -7074,7 +7025,6 @@ dagger 1379
 spine 1379
 detect 1378
 chow 1378
-des 1377
 teenagers 1377
 handwriting 1377
 mock 1377
@@ -7141,7 +7091,6 @@ elders 1366
 battlefield 1366
 sticky 1366
 glen 1366
-liu 1366
 primitive 1366
 reign 1366
 eugene 1366
@@ -7193,7 +7142,6 @@ visions 1355
 bathing 1355
 gregory 1355
 delight 1355
-iot 1354
 genes 1354
 boundaries 1354
 caution 1354
@@ -7269,7 +7217,6 @@ sacrifices 1338
 representing 1337
 drift 1337
 ruthless 1337
-po 1337
 arguments 1337
 crappy 1337
 musicians 1336
@@ -7344,7 +7291,6 @@ striking 1319
 vows 1319
 donovan 1319
 antique 1319
-il 1319
 sherlock 1319
 puke 1319
 hysterical 1318
@@ -7373,7 +7319,6 @@ grayson 1312
 expelled 1311
 camille 1311
 languages 1311
-iv 1311
 premises 1311
 pronounce 1310
 ng 1310
@@ -7443,7 +7388,6 @@ werewolf 1297
 slipping 1297
 matthews 1297
 explosions 1297
-seo 1296
 russ 1296
 whitney 1296
 ignoring 1296
@@ -7464,7 +7408,6 @@ roberto 1293
 deepest 1293
 perfection 1293
 shutting 1293
-iii 1292
 tiffany 1292
 mentor 1292
 branches 1292
@@ -7477,7 +7420,6 @@ battalion 1291
 moustache 1291
 irresponsible 1291
 audio 1291
-ga 1291
 initiative 1291
 sweaty 1291
 noel 1290
@@ -7635,7 +7577,6 @@ immigration 1263
 filth 1263
 momma 1263
 jackass 1263
-cho 1263
 reminder 1263
 culprit 1263
 gabrielle 1263
@@ -7777,7 +7718,6 @@ claw 1233
 donation 1233
 isabelle 1233
 traitors 1233
-mei 1232
 jasper 1232
 borders 1231
 australian 1231
@@ -7890,13 +7830,11 @@ neutral 1210
 philippe 1210
 workin 1210
 steering 1210
-rm 1210
 presidential 1210
 rental 1210
 challenged 1210
 julien 1210
 feeds 1210
-je 1209
 vegetarian 1209
 teasing 1209
 surprisingly 1209
@@ -7920,7 +7858,6 @@ barb 1207
 enters 1206
 maps 1206
 meth 1206
-ifyou 1206
 fruits 1206
 colored 1206
 poppy 1206
@@ -7996,7 +7933,6 @@ portion 1192
 irony 1192
 exceptional 1192
 slit 1192
-ss 1192
 despise 1192
 waltz 1192
 humour 1192
@@ -8004,7 +7940,6 @@ crashes 1191
 gu 1191
 stammering 1191
 coaches 1191
-joo 1191
 await 1190
 bryan 1190
 celebrated 1190
@@ -8014,7 +7949,6 @@ gag 1189
 telescope 1189
 verse 1189
 stalin 1188
-iet 1188
 babysitter 1188
 pr 1188
 distinguished 1187
@@ -8035,7 +7969,6 @@ apartments 1184
 tipped 1184
 turf 1184
 tang 1184
-tu 1184
 discharged 1184
 psychologist 1184
 duh 1183
@@ -8298,7 +8231,6 @@ fantasies 1138
 heritage 1138
 fisherman 1138
 armstrong 1137
-nder 1137
 complained 1137
 nightclub 1136
 willow 1136
@@ -8323,7 +8255,6 @@ portuguese 1133
 negotiations 1133
 wheeler 1132
 overheard 1132
-iove 1132
 breeding 1132
 barge 1132
 refugees 1132
@@ -8398,7 +8329,6 @@ understandable 1119
 banner 1119
 academic 1118
 thuds 1118
-sa 1118
 publicly 1118
 orphans 1118
 pearls 1118
@@ -8614,7 +8544,6 @@ motto 1081
 moss 1081
 yum 1081
 melting 1080
-yan 1080
 requesting 1080
 lava 1080
 kris 1079
@@ -8799,7 +8728,6 @@ metaphor 1044
 kindergarten 1044
 fades 1044
 anders 1044
-fi 1043
 brazilian 1043
 devastating 1042
 bea 1042
@@ -8940,12 +8868,10 @@ yakuza 1021
 weeping 1021
 fragments 1021
 catastrophe 1021
-bp 1020
 churches 1020
 pins 1020
 shaving 1020
 legit 1019
-yoo 1019
 targeted 1019
 simpler 1019
 noticing 1019
@@ -8997,8 +8923,6 @@ richards 1011
 erotic 1011
 feng 1010
 siblings 1010
-est 1010
-dre 1010
 cass 1010
 disk 1010
 op 1010
@@ -9079,7 +9003,6 @@ reef 996
 treasury 996
 calmly 996
 mathematics 996
-ar 996
 ups 996
 shameful 995
 abbey 995
@@ -9159,7 +9082,6 @@ hostess 985
 cheng 985
 sneaky 985
 swollen 985
-por 985
 unlocked 985
 eliza 985
 gladys 985
@@ -9167,7 +9089,6 @@ mixture 984
 porsche 984
 diagnosed 984
 vaughn 984
-ri 984
 liberation 984
 nay 983
 crows 983
@@ -9192,7 +9113,6 @@ dangers 979
 exploring 979
 mist 979
 galaxies 979
-ju 979
 sculpture 978
 marjorie 978
 adrenaline 978
@@ -9488,7 +9408,6 @@ practiced 935
 christianity 935
 hazard 934
 stretched 934
-dea 934
 trudy 934
 slug 934
 frustration 934
@@ -9566,7 +9485,6 @@ amigo 924
 courtyard 924
 royalty 924
 spontaneous 924
-ca 924
 restroom 924
 peep 924
 negotiating 924
@@ -9607,7 +9525,6 @@ broadcasting 918
 banking 917
 reminding 917
 cassidy 917
-axl 917
 ferguson 916
 estimated 916
 hebrew 916
@@ -9873,7 +9790,6 @@ mourn 875
 intercom 875
 tory 874
 penthouse 874
-forthe 874
 eileen 874
 ginny 874
 quack 874
@@ -9891,7 +9807,6 @@ theodore 872
 organisation 872
 lowered 872
 youtube 872
-ct 872
 jaws 872
 troll 871
 squid 871
@@ -9924,7 +9839,6 @@ furthermore 868
 quarry 867
 puss 866
 farts 866
-guo 866
 depot 866
 evenings 866
 ole 866
@@ -9935,7 +9849,6 @@ dryer 865
 mutters 865
 vomiting 865
 brock 865
-fei 865
 candis 865
 moody 864
 donated 864
@@ -10095,7 +10008,6 @@ seeks 838
 newman 838
 vicinity 838
 flank 838
-der 838
 clint 838
 functioning 838
 horatio 837
@@ -10216,7 +10128,6 @@ islamic 819
 calculated 819
 lakes 819
 grumpy 819
-ki 819
 picasso 818
 eddy 818
 consulting 818
@@ -10295,7 +10206,6 @@ deleted 807
 sustain 807
 stanford 807
 ahmed 807
-couid 807
 buyers 807
 valet 807
 darius 807
@@ -10322,7 +10232,6 @@ prevented 805
 withdrawal 805
 pry 805
 sexuality 804
-br 804
 vinnie 804
 considerate 804
 sovereign 803
@@ -10380,7 +10289,6 @@ charmed 795
 spiral 795
 scans 794
 hmmm 794
-ka 794
 louisiana 794
 rumour 794
 kirsten 794
@@ -10456,7 +10364,6 @@ tao 782
 captive 782
 montreal 782
 zen 782
-cee 782
 knuckles 782
 canteen 782
 credibility 782
@@ -10542,9 +10449,7 @@ refugee 770
 luc 769
 whitey 769
 inhabitants 769
-yun 769
 harassing 769
-ro 768
 interpretation 768
 burying 768
 bree 768
@@ -10635,7 +10540,6 @@ skinner 754
 lunchtime 754
 imported 754
 transcript 754
-iife 753
 conceal 753
 holler 753
 chug 753
@@ -10662,7 +10566,6 @@ indicated 751
 reviews 751
 kristen 751
 yuki 750
-vey 750
 trivial 750
 parcel 749
 scroll 749
@@ -10735,7 +10638,6 @@ lettuce 739
 exaggerating 738
 inferior 738
 zac 738
-foryou 738
 boredom 738
 amos 737
 tolerance 737
@@ -10793,7 +10695,6 @@ afterlife 730
 smiley 730
 eccentric 730
 wand 730
-vi 730
 memphis 730
 consume 730
 praised 730
@@ -10898,16 +10799,12 @@ buddhist 716
 ambitions 716
 terrain 716
 turbo 716
-hae 716
 screening 715
-mu 715
 riots 715
 coaching 715
 explodes 715
 premature 715
-lsn 715
 undone 715
-qi 715
 communism 714
 fitted 714
 treacherous 714
@@ -10943,7 +10840,6 @@ knob 710
 domain 709
 conclude 709
 dresser 709
-bao 709
 berries 709
 straining 708
 beads 708
@@ -10956,7 +10852,6 @@ prisons 707
 salvage 707
 mentioning 707
 lass 707
-tox 706
 sonja 706
 poof 706
 productive 706
@@ -11096,7 +10991,6 @@ tremble 689
 hooking 689
 screeches 689
 moons 689
-ae 688
 sweetness 688
 disrespectful 688
 dane 688
@@ -11115,7 +11009,6 @@ jaime 686
 seymour 686
 competent 686
 bein 686
-bi 686
 lectures 686
 basics 686
 texture 685
@@ -11142,7 +11035,6 @@ desmond 683
 lesbians 683
 fairies 683
 monitors 683
-hua 683
 weighing 683
 roasted 683
 discovering 683
@@ -11206,7 +11098,6 @@ doughnut 676
 tags 676
 wrapping 676
 tar 676
-om 676
 dinozzo 676
 ducky 676
 unfaithful 676
@@ -11228,7 +11119,6 @@ attacker 674
 horribly 674
 inject 674
 descend 674
-wi 674
 liberated 673
 burner 673
 fluffy 673
@@ -11354,13 +11244,10 @@ viva 656
 intensive 656
 gustav 656
 endangered 656
-va 656
 circling 656
 ave 656
 stashed 656
-das 655
 backward 655
-hai 655
 chamberlain 655
 sari 655
 thermal 655
@@ -11462,10 +11349,8 @@ furnace 643
 thine 643
 titus 643
 pierced 643
-bu 643
 chinatown 643
 slade 643
-sai 642
 toothpaste 642
 cuddle 642
 langley 642
@@ -11736,7 +11621,6 @@ olives 608
 miniature 608
 omen 608
 kristin 607
-bai 607
 chum 607
 posse 607
 mutiny 607
@@ -11824,7 +11708,6 @@ mellow 599
 announcing 598
 resumes 598
 hawaiian 598
-ac 598
 centers 597
 adultery 597
 scatter 597
@@ -11863,7 +11746,6 @@ radha 592
 outdoor 592
 raquel 592
 dew 592
-ing 592
 mt 592
 currents 591
 explanations 591
@@ -11877,7 +11759,6 @@ harp 590
 margin 590
 everett 590
 anthem 590
-aa 590
 kylie 590
 distracting 590
 fertility 590
@@ -11906,7 +11787,6 @@ janine 586
 deceiving 586
 weave 586
 hikaru 586
-sdh 586
 corrupted 586
 gallows 585
 budge 585
@@ -11942,12 +11822,10 @@ cid 581
 stained 581
 ballard 580
 elevated 580
-ryo 580
 transparent 580
 unclear 580
 strokes 580
 aria 580
-hwa 580
 solidarity 579
 sidekick 579
 starter 579
@@ -12023,7 +11901,6 @@ rubble 569
 largely 569
 fong 569
 irina 569
-ahn 569
 admiration 569
 lizzy 568
 flap 568
@@ -12132,7 +12009,6 @@ sticker 555
 lennox 555
 unstoppable 555
 veal 555
-fe 555
 isle 555
 characteristics 555
 earthquakes 554
@@ -12143,7 +12019,6 @@ deployed 554
 biblical 554
 puck 554
 mystic 553
-aya 553
 gaby 553
 intends 553
 muffins 553
@@ -12183,7 +12058,6 @@ distributed 548
 pavement 548
 projector 548
 rugby 548
-jt 548
 fragment 548
 baldwin 547
 obscene 547
@@ -12221,7 +12095,6 @@ developments 543
 capitalism 543
 polished 543
 defenses 543
-xi 543
 crates 543
 fences 542
 differ 542
@@ -12232,7 +12105,6 @@ gardening 542
 gram 542
 tinker 541
 forecast 541
-ti 541
 pinched 540
 tangled 540
 macy 540
@@ -12339,7 +12211,6 @@ respectfully 530
 futile 530
 dictator 529
 stuffy 529
-wai 529
 mammals 529
 fasten 529
 neptune 529
@@ -12467,7 +12338,6 @@ kinky 511
 titans 511
 microscope 511
 intimidating 511
-ren 511
 babu 511
 territories 511
 vaguely 511
@@ -12483,7 +12353,6 @@ knitting 510
 slowed 510
 administrator 510
 blacksmith 510
-ctu 510
 tolling 510
 correspondence 510
 fashionable 510
@@ -12497,7 +12366,6 @@ quits 509
 outnumbered 509
 lockhart 509
 verbal 508
-mc 508
 terminate 508
 hosts 507
 rye 507
@@ -12583,7 +12451,6 @@ commentator 497
 pitt 497
 camilla 497
 cerebral 497
-qin 497
 zelda 497
 spoiling 497
 tsar 497
@@ -12690,7 +12557,6 @@ saudi 484
 slapping 484
 gases 484
 aching 483
-lau 483
 abusive 483
 vermin 483
 bracelets 483
@@ -12727,11 +12593,9 @@ raoul 480
 vulture 480
 constantine 480
 outlet 480
-git 480
 pictured 480
 functional 480
 nitrogen 479
-cc 479
 lest 479
 speechless 479
 delusions 478
@@ -12741,7 +12605,6 @@ jerking 477
 engaging 477
 accountable 477
 piles 477
-ch 477
 intro 477
 rescuing 477
 orgy 477
@@ -12882,7 +12745,6 @@ cruising 460
 violently 460
 tile 460
 ashtray 459
-und 459
 neighing 459
 zones 459
 donut 459
@@ -13168,7 +13030,6 @@ protests 428
 versions 428
 ambrose 428
 adriana 428
-ia 428
 mit 428
 youthful 428
 numbered 428
@@ -13275,7 +13136,6 @@ crispy 416
 administrative 416
 hawks 416
 crave 416
-qu 416
 reviewed 416
 persuasive 416
 turmoil 416
@@ -13290,7 +13150,6 @@ rooting 415
 irma 415
 mcqueen 415
 stoop 415
-ee 415
 greer 415
 panicking 415
 panels 415
@@ -13441,7 +13300,6 @@ sponsors 398
 tickles 398
 cello 398
 herring 397
-ab 397
 disability 397
 griffith 397
 orchid 397
@@ -13469,7 +13327,6 @@ cactus 394
 motherland 394
 defendants 394
 wilt 394
-jia 394
 executives 393
 spoons 393
 belinda 393
@@ -13518,7 +13375,6 @@ camels 389
 tux 389
 denis 389
 depended 389
-tak 389
 whine 389
 axis 389
 orchard 389
@@ -13558,7 +13414,6 @@ catholics 385
 stormy 385
 refresh 385
 elisa 385
-cor 385
 floats 384
 expanded 384
 chilling 384
@@ -13577,7 +13432,6 @@ psyched 383
 hussein 383
 departments 382
 tuxedo 382
-mak 382
 bummed 382
 heinrich 382
 finer 382
@@ -13593,7 +13447,6 @@ seeker 381
 watering 381
 ids 381
 malaria 381
-aj 381
 walters 381
 sinatra 381
 lending 381
@@ -13750,7 +13603,6 @@ snappy 362
 kingdoms 362
 vocabulary 362
 cromwell 362
-tj 362
 reacting 362
 conceive 362
 sling 361
@@ -13787,7 +13639,6 @@ hauling 358
 buckingham 358
 steadily 358
 processes 358
-bey 357
 projection 357
 creed 357
 acquitted 357
@@ -13818,7 +13669,6 @@ trails 354
 insides 354
 bonfire 354
 micah 354
-anu 353
 urgency 353
 bearer 353
 provincial 353
@@ -13857,9 +13707,7 @@ marko 350
 crosby 349
 plausible 349
 disgraceful 349
-dax 349
 brushed 349
-dai 349
 holed 349
 encore 349
 ludwig 349
@@ -13872,7 +13720,6 @@ shatter 349
 fascists 349
 entertained 349
 mckenzie 349
-rin 348
 lama 348
 specialists 348
 phenomena 347
@@ -13887,7 +13734,6 @@ hatchet 346
 bambi 346
 statute 346
 offscreen 346
-gao 346
 carefree 346
 pollen 345
 endurance 345
@@ -13913,7 +13759,6 @@ advertise 345
 saline 344
 edgy 344
 girlie 344
-rao 344
 regained 344
 parental 344
 barbarian 344
@@ -13948,18 +13793,15 @@ adventurous 340
 swab 340
 inevitably 340
 expectation 340
-xu 339
 carcass 339
 notary 339
 lukas 339
 armand 339
-alphahff 338
 perverted 338
 surrogate 338
 spat 338
 dazzling 338
 snipers 338
-lai 338
 cartman 338
 capabilities 338
 midwife 338
@@ -14003,7 +13845,6 @@ peninsula 333
 carey 333
 radiator 333
 tolerated 333
-tor 332
 clucking 332
 stun 332
 specimens 332
@@ -14012,7 +13853,6 @@ accomplices 331
 somber 331
 assailant 331
 mutation 331
-ke 331
 straightaway 331
 spun 331
 reclaim 331
@@ -14028,7 +13868,6 @@ funnier 330
 whee 329
 indefinitely 329
 disasters 329
-sen 329
 forwards 329
 quo 329
 addressing 329
@@ -14146,7 +13985,6 @@ sheffield 317
 dustin 317
 ares 317
 crazier 317
-od 317
 goldie 317
 bulbs 316
 blindly 316
@@ -14284,8 +14122,6 @@ whit 303
 hoot 303
 sumo 303
 holocaust 303
-io 302
-yao 302
 servers 302
 hartley 302
 fabio 302
@@ -14301,7 +14137,6 @@ rebuilt 300
 legislation 300
 sighting 300
 discomfort 300
-tru 300
 technological 300
 saigon 300
 lacked 300
@@ -14312,8 +14147,6 @@ kosher 299
 entrepreneur 299
 tyra 299
 worshipped 299
-wasrt 299
-siu 299
 unauthorized 298
 romanian 298
 melbourne 298
@@ -14327,7 +14160,6 @@ joaquin 298
 myrtle 298
 europeans 298
 deputies 297
-ther 297
 highlights 297
 musashi 297
 cate 297
@@ -14450,7 +14282,6 @@ theorists 283
 rowan 283
 bowels 283
 density 283
-iong 283
 researcher 283
 timid 283
 meself 283
@@ -14485,7 +14316,6 @@ devised 280
 headlights 280
 exiled 280
 impeccable 280
-oome 280
 donors 280
 crucified 280
 customary 280
@@ -14534,7 +14364,6 @@ castles 276
 reproduce 275
 goodwin 275
 blueberry 275
-ryu 275
 oskar 275
 flo 274
 potty 274
@@ -14550,7 +14379,6 @@ spook 274
 fertilizer 274
 techno 273
 hinges 273
-zhu 273
 helium 273
 imposed 273
 financing 273
@@ -14720,7 +14548,6 @@ slashed 255
 frantic 255
 negroes 255
 calves 255
-pao 255
 aloha 255
 sahara 254
 freshly 254
@@ -14771,7 +14598,6 @@ paces 250
 fenton 249
 slugs 249
 leftover 248
-ze 248
 freighter 248
 bashed 248
 convicts 248
@@ -14797,7 +14623,6 @@ mutton 245
 hypocrisy 245
 dyson 245
 invaluable 245
-ce 245
 lucrative 244
 cbs 244
 slows 244
@@ -14854,7 +14679,6 @@ heavyweight 241
 diplomacy 241
 tonya 240
 sri 240
-ev 240
 nutty 240
 extravagant 240
 caterpillar 240
@@ -14870,7 +14694,6 @@ mugs 238
 junkies 238
 rudder 238
 hermann 238
-ot 238
 laundering 238
 kaufman 238
 pints 238
@@ -14936,7 +14759,6 @@ shea 231
 miscarriage 231
 patrons 231
 moya 231
-hun 231
 racer 231
 plots 230
 hoop 230
@@ -14998,7 +14820,6 @@ neha 225
 sulking 225
 actively 225
 mortuary 225
-ey 225
 serenity 225
 funded 224
 mmmm 224
@@ -15078,7 +14899,6 @@ silva 217
 hospitalized 216
 fig 216
 speculate 216
-sha 216
 yeh 216
 fidel 216
 inflicted 216
@@ -15103,7 +14923,6 @@ pendant 214
 harmonica 214
 listing 214
 viruses 214
-ich 214
 heartache 214
 trumpets 214
 dvds 214
@@ -15124,7 +14943,6 @@ jameson 213
 lovebirds 213
 rivalry 213
 vial 212
-rv 212
 bret 212
 peeking 212
 talisman 212
@@ -15223,7 +15041,6 @@ cramped 202
 bailing 202
 instagram 202
 curt 202
-fo 202
 stamina 201
 cheesecake 201
 testosterone 201
@@ -15278,7 +15095,6 @@ devi 197
 trot 196
 selfie 196
 strategies 196
-bb 196
 thriving 196
 haunts 196
 kyoko 196
@@ -15305,7 +15121,6 @@ labeled 193
 maude 193
 comforts 193
 ample 193
-hyo 193
 clang 193
 understatement 193
 disqualified 193
@@ -15393,7 +15208,6 @@ sleazy 184
 abner 184
 upsets 183
 imaging 183
-dis 183
 stefano 183
 amaze 183
 kimono 183
@@ -15559,13 +15373,11 @@ perverts 166
 sassy 165
 vegetation 165
 nab 165
-lim 165
 carton 165
 featuring 165
 scapegoat 165
 burr 165
 provinces 165
-nd 165
 regroup 165
 heller 165
 machete 165
@@ -15581,7 +15393,6 @@ unrelated 165
 captivity 165
 aroma 165
 barred 165
-pe 165
 crumbling 165
 manila 165
 snowball 165
@@ -15607,7 +15418,6 @@ cheerleading 162
 haystack 162
 perv 162
 contamination 162
-hye 162
 blurry 161
 lowlife 161
 malaysia 161
@@ -15639,7 +15449,6 @@ gorillas 159
 oakland 159
 requirement 159
 skateboard 159
-zo 159
 lew 159
 similarities 158
 grazie 158
@@ -15675,14 +15484,12 @@ stewardess 156
 cochran 156
 jukebox 156
 minors 156
-oo 156
 detecting 156
 pillars 156
 interfered 156
 establishing 156
 atheist 156
 algae 156
-uni 156
 krista 155
 haiti 155
 mouthful 155
@@ -15783,13 +15590,10 @@ benito 145
 hunts 145
 ridicule 145
 unethical 144
-nai 144
 flushes 144
 gregor 144
 aeryn 143
 groot 143
-yue 143
-jer 143
 ringtone 143
 manson 143
 monuments 143
@@ -15818,10 +15622,8 @@ quincy 141
 shalom 141
 toil 141
 weiss 141
-hes 141
 alexandria 140
 sdi 140
-epi 140
 orthodox 140
 custard 140
 bosnia 140
@@ -15933,7 +15735,6 @@ ehh 129
 penetration 129
 queenie 129
 tampering 129
-suk 129
 unsafe 129
 conned 129
 merrick 129
@@ -15941,7 +15742,6 @@ contractions 129
 chaperone 129
 clipped 129
 masha 129
-ap 129
 singular 129
 loathe 129
 manipulative 129
@@ -15967,7 +15767,6 @@ herbie 126
 aargh 125
 marcello 125
 pritchard 125
-ist 125
 taping 125
 arkansas 125
 norfolk 125
@@ -16062,7 +15861,6 @@ selfridge 116
 breathtaking 116
 saber 116
 specials 116
-xo 115
 apt 115
 winnings 115
 embracing 114
@@ -16075,7 +15873,6 @@ chapters 114
 foxy 114
 whinnying 114
 scuba 114
-lui 113
 kessler 113
 deprive 113
 reckons 113
@@ -16126,7 +15923,6 @@ cheerio 110
 unimaginable 110
 stimulate 110
 incriminating 110
-jap 110
 clangs 110
 fanatic 110
 surreal 109
@@ -16139,7 +15935,6 @@ kapoor 109
 genevieve 108
 charisma 108
 sadistic 108
-zeo 108
 iconic 108
 enormously 108
 constructive 108
@@ -16180,7 +15975,6 @@ occult 104
 cadets 104
 socket 104
 shawl 104
-mio 104
 markham 104
 framing 104
 junkyard 104
@@ -16199,7 +15993,6 @@ burps 103
 ludicrous 103
 demonstrations 103
 biography 103
-cy 102
 concludes 102
 retreating 102
 satin 102
@@ -16238,7 +16031,6 @@ documentation 99
 guineas 99
 hotch 99
 explored 99
-bom 98
 dunham 98
 playoffs 98
 faraday 98
@@ -16311,7 +16103,6 @@ witnessing 91
 duly 91
 glide 91
 enclosed 91
-fai 91
 nameless 90
 rai 90
 armando 90
@@ -16339,7 +16130,6 @@ trainers 88
 janis 88
 provocative 88
 hemingway 88
-ci 88
 complimentary 88
 bethlehem 88
 suppressed 88
@@ -16404,7 +16194,6 @@ settings 80
 nationwide 80
 schoolteacher 80
 dealership 80
-kei 80
 hearings 80
 negotiator 80
 drills 80
@@ -16442,7 +16231,6 @@ chittering 77
 pappy 77
 scarred 77
 claps 77
-gia 77
 outcast 77
 faucet 76
 prepares 76
@@ -16560,7 +16348,6 @@ alexa 65
 uninvited 65
 insider 65
 kamal 65
-moz 65
 bondage 65
 chao 64
 taser 64
@@ -16620,7 +16407,6 @@ journeys 60
 confiscate 60
 coworkers 60
 checkup 60
-wad 60
 aeroplane 60
 innocents 59
 endeavor 59
@@ -16647,7 +16433,6 @@ exemplary 57
 bearings 57
 replicate 57
 perfected 57
-cao 57
 olympus 56
 baboon 56
 reproach 56
@@ -16673,7 +16458,6 @@ ange 54
 cambodia 54
 clicked 54
 tallest 54
-jeb 54
 unison 54
 ion 54
 bozo 54
@@ -16694,7 +16478,6 @@ visionary 51
 borden 51
 talkative 51
 alyssa 51
-sie 51
 kemp 51
 jeffries 51
 unkind 51
@@ -16718,7 +16501,6 @@ unwilling 49
 profoundly 49
 barclay 49
 dearie 49
-dae 49
 nearing 49
 hester 49
 franks 49
@@ -16732,7 +16514,6 @@ martina 49
 clarkson 49
 toki 49
 outright 49
-ito 49
 coincidences 49
 downside 49
 oats 49
@@ -16796,7 +16577,6 @@ chokes 43
 santana 43
 guerrilla 43
 charismatic 43
-xev 43
 garret 43
 startling 43
 historically 42
@@ -16807,7 +16587,6 @@ campfire 42
 castillo 42
 himalayas 42
 storeroom 42
-jez 42
 tulip 42
 looting 42
 pinball 42
@@ -16822,7 +16601,6 @@ mckinley 41
 hathaway 41
 leaping 41
 reconciliation 40
-vou 40
 greenwich 40
 waterloo 40
 isaiah 40
@@ -16887,12 +16665,10 @@ minions 35
 toro 35
 scenarios 35
 sandro 35
-fda 35
 overreacted 34
 contradiction 34
 gregg 34
 vat 34
-nia 34
 bellies 34
 mardi 33
 horizons 33
@@ -16915,7 +16691,6 @@ hendricks 32
 nachos 32
 jens 31
 munitions 31
-gyu 31
 trailing 31
 rochelle 31
 folds 31
@@ -17144,7 +16919,6 @@ aligned 8
 topped 8
 gnome 8
 wholesale 8
-sur 7
 plunged 7
 paddles 7
 laddie 7
@@ -17164,7 +16938,6 @@ infidelity 6
 nugget 6
 cecile 6
 operators 5
-aki 5
 swells 5
 securities 5
 rejects 5
@@ -17214,7 +16987,6 @@ gigolo 1
 persist 1
 puffy 1
 swiped 1
-fir 1
 hawke 1
 startle 1
 wingman 1

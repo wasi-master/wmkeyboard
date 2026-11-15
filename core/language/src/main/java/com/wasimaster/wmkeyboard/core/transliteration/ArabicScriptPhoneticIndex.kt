@@ -33,6 +33,10 @@ class ArabicScriptPhoneticIndex(
 
     override val isEmpty: Boolean get() = inner.isEmpty
 
+    /** The list's words in order, for [completions]; null with no list. */
+    override val sortedWords: SortedWords? get() = inner.sortedWords
+
+
     override fun lookup(input: String): List<String> {
         val all = readings(input).map { inner.lookup(it) }
         if (all.size == 1) return all[0]

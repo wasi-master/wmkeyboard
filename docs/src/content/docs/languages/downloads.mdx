@@ -29,7 +29,7 @@ Both are gated on **Download data automatically** (<SettingsPath path="Languages
 
 The check runs from the keyboard rather than the settings app, and it reads your enabled-language list rather than running once at install. Add Tamil today and its pack is fetched the next time you type on the keyboard. Anything already on disk is skipped. A download that fails is left alone until the keyboard's process next starts, so a dead connection doesn't turn into a retry loop.
 
-Word lists join in under the same switch, but only on Wi-Fi or another unmetered connection, because they're the big ones. Without one a language has no glide typing and no suggestions, so an enabled language whose list never arrived gets it here at the size tier the add-a-language prompt uses. A language whose list ships with the app (English, Bangla) is skipped. So is one whose list you deleted: Delete sticks until you download that list again by hand.
+Word lists join in under the same switch. On Wi-Fi or another unmetered connection a language gets its usual list at the size tier the add-a-language prompt uses. Since 0.6.8 a metered connection fetches one too, as long as it is 2 MB or less, which every AOSP list is: a language without a word list has no glide typing and no suggestions, and the word pairs, which are bigger, never waited for Wi-Fi either. A language whose lists are all larger, such as one with only a counted list, waits for Wi-Fi as before. A language whose list ships with the app (English, Bangla) is skipped. So is one whose list you deleted: Delete sticks until you download that list again by hand.
 
 Downloads you ask for queue up rather than cancel each other. Adding two languages in the setup wizard fetches both word lists, one after the other.
 

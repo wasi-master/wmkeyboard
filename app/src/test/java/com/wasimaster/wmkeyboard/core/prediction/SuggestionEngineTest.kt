@@ -166,7 +166,9 @@ class SuggestionEngineTest {
         // "how can someone" (#195): nothing learned follows "someone", but
         // "help" has followed "can" one word later and "how" two words later.
         val lexicon = UserLexicon(null)
-        lexicon.learnBigram("someone", "else")
+        // Twice: a pair typed once waits behind the corpus and the gappy
+        // habits (0.6.8), see learnedPairTypedOnceWaitsBehindTheCorpus.
+        repeat(2) { lexicon.learnBigram("someone", "else") }
         repeat(2) { lexicon.learnSkip1gram("can", "help") }
         repeat(3) { lexicon.learnSkip2gram("how", "please") }
         val e = SuggestionEngine(Trie(), BengaliPhoneticIndex(emptyList()), lexicon)
@@ -218,12 +220,13 @@ class SuggestionEngineTest {
         repeat(10_000) { heavy.learnBigram("hello", "world") }
         val e2 = SuggestionEngine(lopsided, BengaliPhoneticIndex(emptyList()), heavy)
         assertEquals(listOf("world", "words"), e2.suggest("wor", previousWord = "hello"))
-        // The capped boost alone still cannot: a corpus pair is not carried.
-        val seeded = SuggestionEngine(
-            lopsided, BengaliPhoneticIndex(emptyList()), UserLexicon(null),
-            seedBigrams = SeedBigrams.load("hello world 10000\n".byteInputStream()),
-        )
-        assertEquals("words", seeded.suggest("wor", previousWord = "hello").first())
+        // The capped boost alone still cannot: a corpus pair the empty strip
+        // did not show is not carried. One it did show is (0.6.8): typing its
+        // first letters must not take it away.
+        val seeds = SeedBigrams.load("hello there 20000\nhello world 10000\n".byteInputStream())
+        val seeded = SuggestionEngine(lopsided, BengaliPhoneticIndex(emptyList()), UserLexicon(null), seedBigrams = seeds)
+        assertEquals("words", seeded.suggest("wor", previousWord = "hello", phoneticSlots = 1).first())
+        assertEquals("world", seeded.suggest("wor", previousWord = "hello", phoneticSlots = 2).first())
     }
 
     /**
@@ -1051,7 +1054,8 @@ class SuggestionEngineTest {
         // learned and read back under the same key as any other bigram.
         val seeds = SeedBigrams.load("<s> I 98\n".byteInputStream())
         val lexicon = UserLexicon(null)
-        lexicon.learnBigram(WordContext.SENTENCE_START, "Morning")
+        // Twice: an opener used once waits behind the bundled ones (0.6.8).
+        repeat(2) { lexicon.learnBigram(WordContext.SENTENCE_START, "Morning") }
         val e = SuggestionEngine(
             Trie(), BengaliPhoneticIndex(emptyList()), lexicon, seedBigrams = seeds,
         )
