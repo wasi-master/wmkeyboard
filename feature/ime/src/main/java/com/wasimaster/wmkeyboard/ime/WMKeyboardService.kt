@@ -18035,8 +18035,10 @@ open class WMKeyboardService : InputMethodService() {
         if (!state.settings.autoText.capitalize || typed.any { it.isUpperCase() }) return latin
         if (previousWord != WordContext.SENTENCE_START) return latin
         val inputType = currentInputEditorInfo?.inputType ?: return latin
+        // Asked of the flags "Capitals in every field" fills in (#1341).
+        val asked = capsModeFlags(inputType)
         if (inputType and InputType.TYPE_MASK_CLASS != InputType.TYPE_CLASS_TEXT ||
-            inputType and InputType.TYPE_TEXT_FLAG_CAP_SENTENCES == 0
+            asked and (InputType.TYPE_TEXT_FLAG_CAP_SENTENCES or InputType.TYPE_TEXT_FLAG_CAP_WORDS) == 0
         ) {
             return latin
         }
@@ -62033,10 +62035,35 @@ open class WMKeyboardService : InputMethodService() {
      * capitals at all (an address, a password) is left as it is.
      */
     private fun capsModeFlags(inputType: Int): Int {
-        if (!_uiState.value.settings.autoText.capitalizeWords) return inputType
+        val autoText = _uiState.value.settings.autoText
         val asked = InputType.TYPE_TEXT_FLAG_CAP_SENTENCES or InputType.TYPE_TEXT_FLAG_CAP_WORDS
-        if (inputType and asked == 0) return inputType
-        return (inputType and InputType.TYPE_TEXT_FLAG_CAP_SENTENCES.inv()) or InputType.TYPE_TEXT_FLAG_CAP_WORDS
+        // "Capitals in every field" (#1341): a text field that asked for no
+        // capitals is asked for sentence ones, unless what it holds is never
+        // capitalized.
+        val type = if (autoText.capitalizeAnyField && inputType and asked == 0 && mayCapitalizeUnasked(inputType)) {
+            inputType or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+        } else {
+            inputType
+        }
+        if (!autoText.capitalizeWords) return type
+        if (type and asked == 0) return type
+        return (type and InputType.TYPE_TEXT_FLAG_CAP_SENTENCES.inv()) or InputType.TYPE_TEXT_FLAG_CAP_WORDS
+    }
+
+    /** A text field whose contents a sentence capital would not spoil: not an address, a password or a filter. */
+    private fun mayCapitalizeUnasked(inputType: Int): Boolean {
+        if (inputType and InputType.TYPE_MASK_CLASS != InputType.TYPE_CLASS_TEXT) return false
+        return when (inputType and InputType.TYPE_MASK_VARIATION) {
+            InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS,
+            InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS,
+            InputType.TYPE_TEXT_VARIATION_URI,
+            InputType.TYPE_TEXT_VARIATION_PASSWORD,
+            InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD,
+            InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD,
+            InputType.TYPE_TEXT_VARIATION_FILTER,
+            -> false
+            else -> true
+        }
     }
 
     private fun maybeAutoCapitalize(knownCaps: Int? = null) {

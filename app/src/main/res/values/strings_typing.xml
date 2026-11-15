@@ -202,6 +202,9 @@
     <string name="typing_auto_capitalize_subtitle">Put a capital letter at the start of each sentence</string>
     <string name="typing_auto_capitalize_words_title">Capitalize every word</string>
     <string name="typing_auto_capitalize_words_subtitle">Put a capital letter at the start of each word, not just each sentence</string>
+    <string name="typing_auto_capitalize_any_field_title">Capitals in every field</string>
+    <string name="typing_auto_capitalize_any_field_subtitle">Start sentences with a capital even where the app does not ask for one</string>
+    <string name="typing_auto_capitalize_any_field_info">An app tells the keyboard which of its fields want capitals, and many never say so, which leaves them in lower case. On, every text field gets sentence capitals unless it is an email address, a web address, a password or a search filter, which keep their lower case. A field that wants all capitals or every word capitalized still gets that.</string>
     <string name="typing_auto_capitalize_words_info">Shift turns on by itself after every space, so \"new york city\" comes out as \"New York City\". Press shift before a word to type it in lower case. This works only in the fields that ask for capitals, so email addresses, web addresses and passwords keep their lower case.</string>
     <string name="typing_auto_capitalize_info">Shift turns on by itself at the start of a text field, and after the punctuation that ends a sentence (. ! ? ।). This happens only in the fields that ask for sentence capitals, and only in the scripts that have capital letters, which are Latin, Cyrillic, Greek and Armenian. Nothing changes in Bengali or any other script without letter case. The keyboard never changes caps lock by itself.</string>
 

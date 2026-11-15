@@ -3275,6 +3275,12 @@ data class AutoTextSettings(
      * an email address or a web address keeps its lower case.
      */
     val capitalizeWords: Boolean = false,
+    /**
+     * Sentence capitals in a text field that asks for none (#1341): many
+     * apps never set the flag, and their fields started in lower case. Not
+     * in an email address, a web address, a password or a list filter.
+     */
+    val capitalizeAnyField: Boolean = false,
     /** Double-tapping space commits ". " in place of the two spaces. */
     val doubleSpacePeriod: Boolean = true,
     /** Double-tapping space inserts a tab character (wins over the period). */
@@ -12467,6 +12473,7 @@ class SettingsRepository(private val context: Context) {
         private val DICTIONARY_CAPITALS = booleanPreferencesKey("dictionary_capitals")
         private val AUTO_CAPITALIZE = booleanPreferencesKey("auto_capitalize")
         private val AUTO_CAPITALIZE_WORDS = booleanPreferencesKey("auto_capitalize_words")
+        private val AUTO_CAPITALIZE_ANY_FIELD = booleanPreferencesKey("auto_capitalize_any_field")
         private val DOUBLE_SPACE_PERIOD = booleanPreferencesKey("double_space_period")
         private val DOUBLE_SPACE_TAB = booleanPreferencesKey("double_space_tab")
         private val AUTO_SPACE_AFTER_PUNCTUATION =
@@ -14872,6 +14879,7 @@ class SettingsRepository(private val context: Context) {
             apostrophe = p[AUTO_APOSTROPHE] ?: defaults.autoText.apostrophe,
             capitalize = p[AUTO_CAPITALIZE] ?: defaults.autoText.capitalize,
             capitalizeWords = p[AUTO_CAPITALIZE_WORDS] ?: defaults.autoText.capitalizeWords,
+            capitalizeAnyField = p[AUTO_CAPITALIZE_ANY_FIELD] ?: defaults.autoText.capitalizeAnyField,
             doubleSpacePeriod = p[DOUBLE_SPACE_PERIOD] ?: defaults.autoText.doubleSpacePeriod,
             doubleSpaceTab = p[DOUBLE_SPACE_TAB] ?: defaults.autoText.doubleSpaceTab,
             spaceAfterPunctuation = p[AUTO_SPACE_AFTER_PUNCTUATION]
@@ -22622,6 +22630,8 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAutoCapitalizeWords(value: Boolean) =
         editPrefs { it[AUTO_CAPITALIZE_WORDS] = value }
+    suspend fun setAutoCapitalizeAnyField(value: Boolean) =
+        editPrefs { it[AUTO_CAPITALIZE_ANY_FIELD] = value }
 
     suspend fun setDoubleSpacePeriod(value: Boolean) =
         editPrefs { it[DOUBLE_SPACE_PERIOD] = value }

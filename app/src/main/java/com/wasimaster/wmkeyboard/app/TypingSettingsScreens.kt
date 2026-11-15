@@ -775,6 +775,16 @@ internal fun TypingWritingSettings(
                 default = SettingsDefaults.autoText.capitalizeWords,
             ) { scope.launch { repository.setAutoCapitalizeWords(it) } }
         }
+        // Capitals where the app never asked for any (#1341).
+        item(visible = capitalizeOn, level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.typing_auto_capitalize_any_field_title,
+                stringResource(R.string.typing_auto_capitalize_any_field_subtitle),
+                settings.watch { it.autoText.capitalizeAnyField },
+                info = stringResource(R.string.typing_auto_capitalize_any_field_info),
+                default = SettingsDefaults.autoText.capitalizeAnyField,
+            ) { scope.launch { repository.setAutoCapitalizeAnyField(it) } }
+        }
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.typing_shift_recase_title,
