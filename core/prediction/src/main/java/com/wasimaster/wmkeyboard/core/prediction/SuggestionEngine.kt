@@ -3385,6 +3385,9 @@ class SuggestionEngine(
         /** How far below a direct completion a prefix-and-stem one sits (#1311). */
         private const val ARABIC_PREFIX_DAMP = 0.8
 
+        /** How far below its stem a pronoun ending nobody has begun to type sits (#1311). */
+        private const val ARABIC_ENDING_DAMP = 1.5
+
         /** How far a Portuguese verb-and-pronoun form sits below the verb itself. */
         private const val PT_CLITIC_DAMP = 0.6
 
@@ -4234,6 +4237,8 @@ class SuggestionEngine(
         // from the lists and the prefix goes back on. Walked before the whole
         // word for the same reason as the compound tail.
         if (!ambiguous && primaryLanguageId == ArabicClitics.LANGUAGE) arabicPrefixCandidates(lower, limit, merged)
+        // And with a pronoun ending (#1311), where Ayaspell can vouch for it.
+        if (!ambiguous && primaryLanguageId == ArabicClitics.LANGUAGE) arabicEndingCandidates(lower, merged)
         if (!ambiguous && writesPortuguese()) portugueseCliticCandidates(lower, merged)
 
         // One fuzzy walk covers completions AND corrections over every trie
@@ -7152,6 +7157,28 @@ class SuggestionEngine(
             val whole = prefix + word
             if (wordChecker !== WordChecker.NONE && !wordChecker.accepts(whole)) continue
             merged.merge(whole, c.score - ARABIC_PREFIX_DAMP, ::maxOf)
+        }
+    }
+
+    /**
+     * [lower] read as a listed stem and a pronoun ending, finished or just
+     * begun (#1311): كتاب offers كتابها and كتابهم, مدرستك offers مدرستكم
+     * ([ArabicClitics.endings]). A stem and ending are a guess the lists can't
+     * check, so only with a spell checker installed (Ayaspell for Arabic),
+     * and only the forms it accepts. At the stem's own score, less
+     * [ARABIC_PREFIX_DAMP] once some of the ending is typed and
+     * [ARABIC_ENDING_DAMP] while none is, which keeps them behind the words
+     * the lists complete to.
+     */
+    private fun arabicEndingCandidates(lower: String, merged: HashMap<String, Double>) {
+        if (wordChecker === WordChecker.NONE) return
+        val sources = walkSources()
+        for (e in ArabicClitics.endings(lower)) {
+            if (e.whole == lower) continue
+            val stem = rankedDictionaryScore(e.stem, sources)
+            if (!stem.isFinite() || !wordChecker.accepts(e.whole)) continue
+            val damp = if (e.typedEnding > 0) ARABIC_PREFIX_DAMP else ARABIC_ENDING_DAMP
+            merged.merge(e.whole, stem - damp, ::maxOf)
         }
     }
 
