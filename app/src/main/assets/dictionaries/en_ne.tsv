@@ -1,0 +1,122 @@
+# English → Nepali loanword map.
+#
+# English words Nepali speakers routinely write in Devanagari, spelled the way
+# Nepali spells them. They are not reachable through the Nepali phonetic
+# rules, because English spelling says little about English sound: "phone"
+# would come out फोने and "video" भिदेओ. Typed on the Nepali phonetic layout,
+# the English spelling on the left resolves straight to the Nepali form on the
+# right, ahead of the rules and of the dictionary. Nepali writes English v as
+# भ (भिडियो, भिसा) and the open a as या (म्याच, क्यामेरा).
+#
+# Only loanwords: an English word Nepali has its own word for is not here,
+# since typing "news" should not answer with समाचार.
+#
+# Format: english<TAB>Nepali, one per line, lowercase keys.
+phone	फोन
+mobile	मोबाइल
+video	भिडियो
+videos	भिडियो
+school	स्कुल
+college	कलेज
+office	अफिस
+bus	बस
+internet	इन्टरनेट
+facebook	फेसबुक
+youtube	युट्युब
+tiktok	टिकटक
+computer	कम्प्युटर
+doctor	डाक्टर
+police	पुलिस
+teacher	टिचर
+ok	ओके
+okay	ओके
+sorry	सरी
+thanks	थ्याङ्क्स
+please	प्लिज
+hello	हेलो
+hi	हाइ
+bye	बाइ
+love	लभ
+party	पार्टी
+team	टिम
+match	म्याच
+game	गेम
+cricket	क्रिकेट
+football	फुटबल
+news	न्युज
+channel	च्यानल
+subscribe	सब्सक्राइब
+comment	कमेन्ट
+like	लाइक
+share	सेयर
+photo	फोटो
+camera	क्यामेरा
+car	कार
+bike	बाइक
+road	रोड
+hotel	होटल
+restaurant	रेस्टुरेन्ट
+market	मार्केट
+company	कम्पनी
+vote	भोट
+leader	लिडर
+bank	बैंक
+online	अनलाइन
+app	एप
+whatsapp	ह्वाट्सएप
+viber	भाइबर
+message	म्यासेज
+call	कल
+time	टाइम
+free	फ्री
+plan	प्लान
+idea	आइडिया
+problem	प्रोब्लम
+system	सिस्टम
+power	पावर
+light	लाइट
+class	क्लास
+exam	एक्जाम
+result	रिजल्ट
+form	फारम
+visa	भिसा
+passport	पासपोर्ट
+dollar	डलर
+ticket	टिकट
+airport	एयरपोर्ट
+flight	फ्लाइट
+corona	कोरोना
+mask	मास्क
+laptop	ल्यापटप
+charger	चार्जर
+battery	ब्याट्री
+data	डाटा
+wifi	वाइफाइ
+sim	सिम
+recharge	रिचार्ज
+birthday	बर्थडे
+happy	ह्याप्पी
+good	गुड
+nice	नाइस
+best	बेस्ट
+super	सुपर
+sir	सर
+madam	म्याडम
+film	फिल्म
+movie	मुभी
+music	म्युजिक
+radio	रेडियो
+television	टेलिभिजन
+tv	टिभी
+email	इमेल
+website	वेबसाइट
+link	लिङ्क
+password	पासवर्ड
+account	एकाउन्ट
+coffee	कफी
+chocolate	चकलेट
+cake	केक
+pizza	पिज्जा
+burger	बर्गर
+room	रुम
+hostel	होस्टल

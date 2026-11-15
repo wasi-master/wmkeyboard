@@ -1,17 +1,19 @@
 ---
 title: "Phonetic typing in more languages"
-description: "Roman letters in, native script out, for Marathi, Gujarati, Punjabi, Odia, Assamese, Tamil, Telugu, Kannada, Malayalam, Persian, Arabic, Greek and Tibetan."
+description: "Roman letters in, native script out, for Marathi, Nepali, Sanskrit, Gujarati, Punjabi, Odia, Assamese, Tamil, Telugu, Kannada, Malayalam, Persian, Arabic, Greek and Tibetan."
 sidebar:
   order: 3.7
 ---
 
 import SettingsPath from '@components/SettingsPath.astro';
 
-Bangla has [Avro](/languages/bengali/), Hindi has [Hindi phonetic](/languages/hindi/) and Urdu has [Urdu phonetic](/languages/urdu/). Thirteen more languages now have the same kind of layout: a QWERTY grid where you type a word the way you'd write it in a chat, and the keyboard writes it in the language's own script. Type `vanakkam` on Tamil phonetic and you get Tamil; type `el7amdulillah` on Arabic phonetic and you get الحمدلله.
+Bangla has [Avro](/languages/bengali/), Hindi has [Hindi phonetic](/languages/hindi/) and Urdu has [Urdu phonetic](/languages/urdu/). Fifteen more languages now have the same kind of layout: a QWERTY grid where you type a word the way you'd write it in a chat, and the keyboard writes it in the language's own script. Type `vanakkam` on Tamil phonetic and you get Tamil; type `el7amdulillah` on Arabic phonetic and you get الحمدلله.
 
 | Language | Layout | You type | You get |
 |---|---|---|---|
 | Marathi | Marathi phonetic | `tumhi`, `tyala` | तुम्ही, त्याला |
+| Nepali | Nepali phonetic | `k xa`, `vayo` | के छ, भयो |
+| Sanskrit | Sanskrit phonetic | `kRShNa`, `bhagavAn` | कृष्ण, भगवान् |
 | Gujarati | Gujarati phonetic | `tame`, `chhu` | તમે, છું |
 | Punjabi | Punjabi phonetic | `mainu`, `ohda` | ਮੈਨੂੰ, ਉਹਦਾ |
 | Odia | Odia phonetic | `tume`, `kemiti` | ତୁମେ, କେମିତି |
@@ -41,9 +43,9 @@ Three layers, the same three Hindi and Urdu phonetic use, in this order:
 2. **The language's word list, if you've downloaded it.** What you typed and every word on the list are reduced to a loose key that forgets what roman spelling never says (vowel length, dental against retroflex, aspiration, the letters a script keeps for its loanwords) and keeps those details only to rank the candidates. With the list installed, the right word comes first for most chat spellings: Marathi 90%, Gujarati 82%, Telugu 78%, Punjabi 75%, Kannada 60%, Malayalam 56%, Odia 54%, Tamil 48% (measured on about 200 everyday chat spellings per language).
 3. **The rules alone**, for every word that's in neither. They make the likelier guess, and the strip offers the other readings next to it, such as the same spelling with a vowel read long or with a different closing vowel, so you can tap the one you meant.
 
-Folding a whole word list into those keys is work, and a phone that does it at every keyboard start spends tens of megabytes on it. So the [data repository](https://github.com/wasi-master/wmkeyboard-data) does it once, ahead of time, for every language here and for Hindi and Urdu, and publishes the result beside the word list (`<code>_phonetic_v1r1.wmpi.gz`, `v1r2` for Bangla and Assamese, 1 to 9&nbsp;MB). The keyboard fetches it right after the word list and reads it in place from storage, so it costs almost no memory. Only lists you imported yourself are still folded on the phone. Until the file is there (no connection, or the build with no internet), the keyboard folds the downloaded list itself, as it always did. You can import the file instead: it is in the language's language pack, and [Offline imports](/privacy/offline/) installs it.
+Folding a whole word list into those keys is work, and a phone that does it at every keyboard start spends tens of megabytes on it. So the [data repository](https://github.com/wasi-master/wmkeyboard-data) does it once, ahead of time, for every language here but Nepali and Sanskrit and for Hindi and Urdu, and publishes the result beside the word list (`<code>_phonetic_v1r1.wmpi.gz`, `v1r2` for Bangla and Assamese, 1 to 9&nbsp;MB). The keyboard fetches it right after the word list and reads it in place from storage, so it costs almost no memory. Only lists you imported yourself are still folded on the phone. Until the file is there (no connection, or the build with no internet), the keyboard folds the downloaded list itself, as it always did. You can import the file instead: it is in the language's language pack, and [Offline imports](/privacy/offline/) installs it.
 
-The rules alone get about half of everyday words exactly right: Tamil 66%, Kannada and Malayalam 60%, Marathi 57%, Punjabi 57%, Gujarati 55%, Telugu 53%, Odia 42%, Persian 67%, Arabic 46%. The rest are lexical facts no rule can know, which is what the first two layers are for.
+The rules alone get about half of everyday words exactly right: Tamil 66%, Kannada and Malayalam 60%, Marathi 57%, Punjabi 57%, Gujarati 55%, Telugu 53%, Odia 42%, Persian 67%, Arabic 46%. Nepali was measured differently, see [Nepali](#nepali). The rest are lexical facts no rule can know, which is what the first two layers are for.
 
 In the first two layers the words before count too: one spelling can stand for several words, and the one or two you typed just before move up the reading that usually follows them, on the strip and for what space writes. The evidence is your own typing (every word pair you commit is remembered) and the language's word-pair data, which all eleven have as a 1 to 2&nbsp;MB download in the language's **Dictionaries** group, next to the word list. Without it, it is your own habits only, and those start empty. A known spelling only ever trades places with another known spelling of the same buffer. <SettingsPath path="Languages & layouts / your language / Spellings / Use the words before" /> turns it off.
 
@@ -57,7 +59,7 @@ The layers above are not part of autocorrect, and the autocorrect toggle doesn't
 
 <SettingsPath path="Languages & layouts / your language / Suggestion strip / Neural suggestions" />
 
-The three layers above know the words their lists know and the spellings their rules expect. Loose spellings fall between them: `valobashi`, `bhalobasi` and `bhalobaashi` are all ভালোবাসি to anyone who reads Bangla. **Neural suggestions** adds a fourth source for that, IndicXlit, a transliteration model by [AI4Bharat](https://github.com/AI4Bharat/IndicXlit) that learned from millions of romanized words how people write 21 Indic languages in Latin letters. It is off by default, and it is the same switch on every language that has it: Bangla, Hindi, Urdu, Assamese, Marathi, Gujarati, Punjabi, Odia, Tamil, Telugu, Kannada and Malayalam.
+The three layers above know the words their lists know and the spellings their rules expect. Loose spellings fall between them: `valobashi`, `bhalobasi` and `bhalobaashi` are all ভালোবাসি to anyone who reads Bangla. **Neural suggestions** adds a fourth source for that, IndicXlit, a transliteration model by [AI4Bharat](https://github.com/AI4Bharat/IndicXlit) that learned from millions of romanized words how people write 21 Indic languages in Latin letters. It is off by default, and it is the same switch on every language that has it: Bangla, Hindi, Urdu, Assamese, Marathi, Nepali, Gujarati, Punjabi, Odia, Tamil, Telugu, Kannada and Malayalam.
 
 Turned on, the strip shows up to three of the model's readings right after the word the space bar writes. Readings that are in the language's word list come first. The word the space bar writes never changes (unless you turn on [Let it choose the word](#let-it-choose-the-word)), and the model never corrects anything by itself: its readings are only offered, and a tap writes one. So it helps most when you scroll or glance past the first word, and costs nothing when the first word was already right.
 
@@ -78,6 +80,7 @@ Measured on held-out words, the right word in the first four places of the strip
 | Telugu | 57% | 90% |
 | Kannada | 51% | 89% |
 | Malayalam | 32% | 77% |
+| Nepali | 50% | 93% |
 
 The other languages were measured on 2,000 words of the Aksharantar test set each, with the language's word list installed. Aksharantar spells long vowels doubled (`aa`, `ee`), which Avro reads differently from most of these layouts, so Bangla's Aksharantar row starts low; the chat rows are the fairer picture for Bangla.
 
@@ -121,6 +124,26 @@ These follow Hindi phonetic's model: you write the word the way it sounds, the i
 - **Marathi** reads `z` and `zh` as झ (`maza`, `tuza`), `L` as ळ, and knows its own postpositions and verb endings: `tyala` त्याला, `karnar` करणार, `karun` करून, `gharachya` घराच्या, `mitranno` मित्रांनो.
 - **Gujarati** reads `z` as ઝ and `x` as ક્ષ (`Axar`, `Laxmi`), writes the neuter and infinitive endings with their nasal (`hu` હું, `karvu` કરવું, `kartu` કરતું), and the locative too (`gharma` ઘરમાં).
 - **Punjabi** is written in Gurmukhi, which has almost no conjuncts: a doubled consonant is the addak (`pakka` ਪੱਕਾ), a nasal is a tippi or a bindi by the vowel before it (`mainu` ਮੈਨੂੰ, `ton` ਤੋਂ), and a y-glide is a vowel carrier rather than ਯ (`pyar` ਪਿਆਰ, `gya` ਗਿਆ, `duniya` ਦੁਨੀਆ).
+
+### Nepali
+
+Nepali phonetic is written for the way Nepali is typed in a chat. `x` is छ and `v` is भ, as in `k xa` के छ, `vayo` भयो and `vanda` भन्दा, while `w` stays व. A closing `a` is the inherent vowel unless the word ends in मा, दा or था (`kina` किन, `gharma` घरमा, `garda` गर्दा). A closing `u` stays short (`garnu` गर्नु), and a closing `ai` is ै (`sabai` सबै).
+
+- **Verb endings join their stem**, and a `ch` in them is छ: `garcha`, `garxa` and `garchha` all write गर्छ, `huncha` writes हुन्छ, `sakdina` सक्दिन and `garthyo` गर्थ्यो. An ending that closes on न or स takes its halanta (`chan` छन्, `garnuhos` गर्नुहोस्, `garos` गरोस्).
+- **Postpositions glued to a word keep their spelling**, and the stem never joins them: `ramlai` रामलाई, `gharbata` घरबाट, `timisanga` तिमीसँग, `keTiharu` केटीहरू.
+- **A nasal before a stop is written with that row's nasal**, as Nepali spells it (`sanket` सङ्केत, `ghanTaa` घण्टा), and before a sibilant or ह as the anusvara (`sansaar` संसार). Any consonant joins a र after it (`timro` तिम्रो, `mitra` मित्र).
+
+With the Nepali word list installed, a closing `a` can also find a word that does not write one, so `xa` finds छ and `hunxa` finds हुन्छ, and a `v` or `w` finds a word spelled with व or ब. The known-spellings list has about 400 chat spellings (`k` के, `hjr` हजुर, `px` पछि, `tapai` तपाईँ) and 100 English loanwords. On 2,000 Nepali test words from Aksharantar, most of them long and rare, the rules alone spelled 17.6% exactly, against 10.7% for the plain Devanagari rules the Nepali layout used to fall back on. The strip's first four had the word 50.3% of the time with the word list, and 92.8% with neural suggestions on.
+
+### Sanskrit
+
+Sanskrit phonetic reads ITRANS and Harvard-Kyoto, the two schemes Sanskrit is typed in that need only letter keys, so what you type is spelled exactly. Every vowel is typed, and a word that ends on a consonant takes its halanta (`bhagavAn` भगवान्, `saMskRtam` संस्कृतम्).
+
+- **Vowels:** long ones doubled or capital (`aa` or `A`, `ii` or `I`, `uu` or `U`); `R`, `Ri` or `RRi` is ऋ, `RR` is ॠ, `lR` is ऌ.
+- **Consonants:** the retroflex row is capital (`T`, `Th`, `D`, `Dh`, `N`); ष is `Sh` or `S`, श is `sh` or `z`; `G` and `J` are ङ and ञ; `x` is क्ष and `jn` is ज्ञ; छ is `chh` or `Ch`.
+- **Signs:** `M` is the anusvara and `H` the visarga, and `om` on its own is ॐ. A nasal before a stop of its row is written as the anusvara (`sangItam` संगीतम्); type `G` or `J` to write the nasal itself (`saGgIta` सङ्गीत).
+
+There is no known-spellings list for Sanskrit, since these schemes leave nothing to guess. With the Sanskrit word list installed the strip also offers listed words that sound like what you typed.
 
 ### Odia, Tamil, Telugu, Kannada and Malayalam
 
@@ -171,7 +194,7 @@ All of them rank against a word list when one is installed, so the strip leads w
 
 ## Glide typing
 
-Swiping over a phonetic layout draws a romanization, so the stroke is decoded against romanized spellings and turned into the script, as on Avro. Marathi, Gujarati, Punjabi, Tamil, Telugu, Kannada, Malayalam and Arabic each have a romanized word list in the language catalogue that widens what a swipe can find. See [Glide typing](/typing/glide-typing/).
+Swiping over a phonetic layout draws a romanization, so the stroke is decoded against romanized spellings and turned into the script, as on Avro. Marathi, Nepali, Gujarati, Punjabi, Tamil, Telugu, Kannada, Malayalam and Arabic each have a romanized word list in the language catalogue that widens what a swipe can find. See [Glide typing](/typing/glide-typing/).
 
 ## Switching mid-word
 

@@ -41,7 +41,15 @@ package com.wasimaster.wmkeyboard.core.transliteration
  * "ladka" and "larka"), and nasalisation left off altogether (नहीं is "nahi",
  * हाँ is "ha").
  */
-class HindiPhoneticIndex(private val table: PhoneticTable) : PhoneticIndex {
+class HindiPhoneticIndex(
+    private val table: PhoneticTable,
+    /**
+     * Whether a typed closing "a" may be the inherent vowel of any word, not
+     * only of one closing on य, र or व ([spokenFinalA]): how Nepali and
+     * Sanskrit are typed, "xa" for छ and "rAma" for राम.
+     */
+    private val typedSchwa: Boolean = false,
+) : PhoneticIndex {
 
     /** An index built on the device over [entries], `word to frequency`. */
     constructor(entries: List<Pair<String, Int>>) : this(table(entries))
@@ -73,12 +81,16 @@ class HindiPhoneticIndex(private val table: PhoneticTable) : PhoneticIndex {
      * or व is like that: खर्च is said "kharch", so "kharcha" stays खर्चा, and
      * "kama" does not start finding कम. Which words end that way is decided
      * when they are filed ([FLAG_SPOKEN_A]), from their Devanagari spelling.
+     *
+     * With [typedSchwa] every word is like that, down to a one-letter key:
+     * Nepali types "xa" for छ and "huncha" for हुन्छ.
      */
     private fun spokenFinalA(typed: Folded): List<PhoneticRow> {
         val key = typed.key
-        if (key.length < 3 || key.last() != 'a') return emptyList()
+        if (key.length < (if (typedSchwa) 2 else 3) || key.last() != 'a') return emptyList()
         if ((typed.detail.last().code - DETAIL_BASE) and TAIL_MASK == TAIL_LONG) return emptyList()
-        return table.rows(key.dropLast(1)).filter { it.flags and FLAG_SPOKEN_A != 0 }
+        val rows = table.rows(key.dropLast(1))
+        return if (typedSchwa) rows else rows.filter { it.flags and FLAG_SPOKEN_A != 0 }
     }
 
     override fun frequencyOf(word: String): Int = table.frequencyOf(word)

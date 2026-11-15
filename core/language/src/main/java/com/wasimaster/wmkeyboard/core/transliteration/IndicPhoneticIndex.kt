@@ -35,6 +35,8 @@ class IndicPhoneticIndex(
     private val spellingOf: (String) -> String,
     private val romanPrep: (String) -> String = { it },
     private val rerankBy: ((String) -> String)? = null,
+    /** See [IndicProfiles.typedSchwa]. */
+    typedSchwa: Boolean = false,
 ) : PhoneticIndex {
 
     /** An index built on the device over [entries], `word to frequency`. */
@@ -48,7 +50,7 @@ class IndicPhoneticIndex(
 
     // Rows keep the word as the list spells it and are filed by its
     // Devanagari, so the Hindi index answers in the list's own script.
-    private val inner = HindiPhoneticIndex(table)
+    private val inner = HindiPhoneticIndex(table, typedSchwa)
 
     /** Every word at the same count: no frequency to rank by. */
     private val flat: Boolean = !table.isEmpty && table.maxFrequency == table.minFrequency

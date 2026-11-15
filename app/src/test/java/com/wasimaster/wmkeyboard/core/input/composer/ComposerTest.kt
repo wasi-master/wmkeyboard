@@ -79,6 +79,8 @@ class ComposerTest {
             BuiltInLayouts.TELUGU_PHONETIC to "te",
             BuiltInLayouts.KANNADA_PHONETIC to "kn",
             BuiltInLayouts.MALAYALAM_PHONETIC to "ml",
+            BuiltInLayouts.NEPALI_PHONETIC to "ne",
+            BuiltInLayouts.SANSKRIT_PHONETIC to "sa",
             BuiltInLayouts.PERSIAN_PHONETIC to "fa",
             BuiltInLayouts.ARABIC_PHONETIC to "ar",
             BuiltInLayouts.AVRO to "bn",

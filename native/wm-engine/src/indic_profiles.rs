@@ -2,10 +2,12 @@
 //! needs beyond the shared Hindi fold. A port of `IndicProfiles.kt`.
 
 use crate::indic::Engine;
-use crate::{gujarati, kannada, malayalam, marathi, minor_phonetic, odia, punjabi, tamil, telugu};
+use crate::{
+    gujarati, kannada, malayalam, marathi, minor_phonetic, nepali, odia, punjabi, sanskrit, tamil, telugu,
+};
 
 /// Every language's language id, in the order the Kotlin registry lists them.
-pub const LANGUAGE_IDS: [&str; 8] = ["mr", "gu", "pa", "or", "ta", "te", "kn", "ml"];
+pub const LANGUAGE_IDS: [&str; 10] = ["mr", "gu", "pa", "or", "ta", "te", "kn", "ml", "ne", "sa"];
 
 /// The engine for `language_id`, if it is one of the Indic-engine languages.
 pub fn for_language(language_id: &str) -> Option<&'static Engine> {
@@ -18,6 +20,8 @@ pub fn for_language(language_id: &str) -> Option<&'static Engine> {
         "te" => telugu::engine(),
         "kn" => kannada::engine(),
         "ml" => malayalam::engine(),
+        "ne" => nepali::engine(),
+        "sa" => sanskrit::engine(),
         _ => return minor_phonetic::indic_engine(language_id),
     })
 }
@@ -26,9 +30,14 @@ pub fn for_language(language_id: &str) -> Option<&'static Engine> {
 /// before an index lookup: the Dravidian four write "th" and "dh" for the
 /// plain dentals; Telugu, Kannada and Malayalam close a word on the
 /// anusvara where roman writes "m"; Tamil writes no voiced stops; Malayalam
-/// folds its nasals and voicing on both sides.
+/// folds its nasals and voicing on both sides. Nepali writes छ "x" and भ "v",
+/// and says व as b, so "w" is a b too. Sanskrit's Harvard-Kyoto capitals are
+/// letters the fold would otherwise lowercase into others: R is ऋ, G and J the
+/// nasals, z श.
 pub fn roman_prep(language_id: &str, input: &str) -> String {
     match language_id {
+        "ne" => nepali_prep(input),
+        "sa" => sanskrit_prep(input),
         "ta" => tamil_prep(&dravidian_dentals(input)),
         "te" | "kn" => closing_m(&dravidian_dentals(input)),
         // In this order: "nth" has to be read as ന്ത before "th" becomes "t".
@@ -38,9 +47,16 @@ pub fn roman_prep(language_id: &str, input: &str) -> String {
 }
 
 /// The list's words, in Devanagari, rewritten the same way as `roman_prep`
-/// rewrites what is typed: Malayalam's voiced stops onto the unvoiced ones.
+/// rewrites what is typed: Malayalam's voiced stops onto the unvoiced ones;
+/// Nepali's व onto ब, and the joiners its lists write in र्‍य dropped, which
+/// the fold would otherwise refuse the word for.
 pub fn devanagari_prep(language_id: &str, dev: &str) -> String {
     match language_id {
+        "ne" => dev
+            .chars()
+            .filter(|&c| c != '\u{200C}' && c != '\u{200D}')
+            .map(|c| if c == 'व' { 'ब' } else { c })
+            .collect(),
         "ml" => dev
             .chars()
             .map(|c| match c {
@@ -59,10 +75,66 @@ pub fn devanagari_prep(language_id: &str, dev: &str) -> String {
     }
 }
 
+/// Whether the language's romanization spells the inherent vowel it does
+/// not write at the end of a word: Nepali "xa" छ and "huncha" हुन्छ,
+/// Sanskrit "rAma" राम. The index then reads a typed closing "a" as that
+/// vowel too, for every word rather than only the conjunct-final ones Hindi
+/// says it after.
+pub fn typed_schwa(language_id: &str) -> bool {
+    matches!(language_id, "ne" | "sa")
+}
+
 /// Whether the index should break ties by closeness to what the rules
 /// themselves spell: for a list with no frequencies to break them (Tamil's).
 pub fn rerank_flat_list(language_id: &str) -> bool {
     language_id == "ta"
+}
+
+fn nepali_prep(input: &str) -> String {
+    let mut out = String::with_capacity(input.len() + 4);
+    for c in input.chars() {
+        match c {
+            'x' | 'X' => out.push_str("chh"),
+            'v' | 'V' => out.push_str("bh"),
+            'w' | 'W' => out.push('b'),
+            c => out.push(c),
+        }
+    }
+    out
+}
+
+fn sanskrit_prep(input: &str) -> String {
+    let chars: Vec<char> = input.chars().collect();
+    let mut out = String::with_capacity(input.len() + 4);
+    let mut i = 0;
+    while i < chars.len() {
+        let c = chars[i];
+        let next = chars.get(i + 1).copied();
+        match c {
+            'R' if next == Some('R') => {
+                out.push_str("rii");
+                i += 2;
+                continue;
+            }
+            'R' => {
+                out.push_str("ri");
+                // "Ri" and "RRi" spell the same ऋ.
+                if next == Some('i') {
+                    i += 1;
+                }
+            }
+            'l' if next == Some('R') => {
+                out.push_str("li");
+                i += 2;
+                continue;
+            }
+            'G' | 'J' => out.push('n'),
+            'z' => out.push_str("sh"),
+            c => out.push(c),
+        }
+        i += 1;
+    }
+    out
 }
 
 fn dravidian_dentals(input: &str) -> String {
@@ -151,6 +223,19 @@ mod tests {
         assert_eq!("entu", roman_prep("ml", "enthu"));
         assert_eq!("enre", roman_prep("ml", "ente"));
         assert_eq!("karna", roman_prep("hi", "karna"));
+        assert_eq!("bhayo", roman_prep("ne", "vayo"));
+        assert_eq!("hunchha", roman_prep("ne", "hunxa"));
+        assert_eq!("dhanyabad", roman_prep("ne", "dhanyawad"));
+        assert_eq!("kriShNa", roman_prep("sa", "kRShNa"));
+        assert_eq!("kriShNa", roman_prep("sa", "kRiShNa"));
+        assert_eq!("shiva", roman_prep("sa", "ziva"));
+    }
+
+    #[test]
+    fn nepali_devanagari_prep_drops_joiners_and_reads_va_as_ba() {
+        assert_eq!("गर्यो", devanagari_prep("ne", "गर्\u{200D}यो"));
+        assert_eq!("धन्यबाद", devanagari_prep("ne", "धन्यवाद"));
+        assert_eq!("धन्यवाद", devanagari_prep("hi", "धन्यवाद"));
     }
 
     #[test]

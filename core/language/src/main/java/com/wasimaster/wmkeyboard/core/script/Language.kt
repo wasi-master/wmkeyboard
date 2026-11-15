@@ -753,7 +753,12 @@ object LanguageRegistry {
             englishName = "Nepali",
             script = ScriptId.DEVANAGARI,
             localeTag = "ne-NP",
-            layoutIds = listOf(AssetLayouts.NE_INSCRIPT_ID, AssetLayouts.NE_TRADITIONAL_ID, AssetLayouts.NE_T9_ID),
+            layoutIds = listOf(
+                AssetLayouts.NE_INSCRIPT_ID,
+                BuiltInLayouts.NEPALI_PHONETIC_ID,
+                AssetLayouts.NE_TRADITIONAL_ID,
+                AssetLayouts.NE_T9_ID,
+            ),
             numeralSystem = NumeralSystem.DEVANAGARI,
         ),
         LanguageDef(
@@ -762,7 +767,7 @@ object LanguageRegistry {
             englishName = "Sanskrit",
             script = ScriptId.DEVANAGARI,
             localeTag = "sa-IN",
-            layoutIds = listOf(AssetLayouts.SA_INSCRIPT_ID, AssetLayouts.SA_T9_ID),
+            layoutIds = listOf(AssetLayouts.SA_INSCRIPT_ID, BuiltInLayouts.SANSKRIT_PHONETIC_ID, AssetLayouts.SA_T9_ID),
             numeralSystem = NumeralSystem.DEVANAGARI,
         ),
         LanguageDef(

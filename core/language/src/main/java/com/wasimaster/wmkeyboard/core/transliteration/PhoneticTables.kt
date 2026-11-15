@@ -112,6 +112,7 @@ object PhoneticTables {
                 spellingOf = profile.script::toDevanagari,
                 romanPrep = IndicProfiles.romanPrep(languageId),
                 rerankBy = if (IndicProfiles.rerankFlatList(languageId)) IndicPhonetic(profile)::transliterate else null,
+                typedSchwa = IndicProfiles.typedSchwa(languageId),
             )
             languageId == "fa" -> ArabicScriptPhoneticIndex(table, ArabicScriptPhoneticIndex::persianReadings)
             languageId == "ar" -> ArabicScriptPhoneticIndex(table, ArabicScriptPhoneticIndex::arabicReadings)

@@ -56,6 +56,8 @@ object BuiltInLayouts {
     const val TELUGU_PHONETIC_ID = "builtin_telugu_phonetic"
     const val KANNADA_PHONETIC_ID = "builtin_kannada_phonetic"
     const val MALAYALAM_PHONETIC_ID = "builtin_malayalam_phonetic"
+    const val NEPALI_PHONETIC_ID = "builtin_nepali_phonetic"
+    const val SANSKRIT_PHONETIC_ID = "builtin_sanskrit_phonetic"
     const val PERSIAN_PHONETIC_ID = "builtin_persian_phonetic"
     const val ARABIC_PHONETIC_ID = "builtin_arabic_phonetic"
     const val GREEK_PHONETIC_ID = "builtin_greek_phonetic"
@@ -437,6 +439,12 @@ object BuiltInLayouts {
     val TELUGU_PHONETIC = phonetic(TELUGU_PHONETIC_ID, "Telugu phonetic", "te")
     val KANNADA_PHONETIC = phonetic(KANNADA_PHONETIC_ID, "Kannada phonetic", "kn")
     val MALAYALAM_PHONETIC = phonetic(MALAYALAM_PHONETIC_ID, "Malayalam phonetic", "ml")
+
+    /** Nepali the way a chat spells it, "k xa" → के छ, "vayo" → भयो (issue #1340). */
+    val NEPALI_PHONETIC = phonetic(NEPALI_PHONETIC_ID, "Nepali phonetic", "ne")
+
+    /** Sanskrit in ITRANS or Harvard-Kyoto letters, "kRShNa" → कृष्ण. */
+    val SANSKRIT_PHONETIC = phonetic(SANSKRIT_PHONETIC_ID, "Sanskrit phonetic", "sa")
     val PERSIAN_PHONETIC = phonetic(PERSIAN_PHONETIC_ID, "Persian phonetic", "fa")
     val ARABIC_PHONETIC = phonetic(ARABIC_PHONETIC_ID, "Arabic phonetic", "ar")
     val GREEK_PHONETIC = phonetic(GREEK_PHONETIC_ID, "Greeklish", "el")
@@ -515,7 +523,7 @@ object BuiltInLayouts {
         FRENCH, GERMAN, SPANISH, KOREAN, RUSSIAN, ARABIC, GREEK, HEBREW, HINDI, HINDI_PHONETIC,
         URDU_PHONETIC, MARATHI_PHONETIC, GUJARATI_PHONETIC, PUNJABI_PHONETIC, ODIA_PHONETIC,
         ASSAMESE_PHONETIC, TAMIL_PHONETIC, TELUGU_PHONETIC, KANNADA_PHONETIC, MALAYALAM_PHONETIC,
-        PERSIAN_PHONETIC, ARABIC_PHONETIC, GREEK_PHONETIC, TIBETAN_WYLIE, T9, COMPACT,
+        NEPALI_PHONETIC, SANSKRIT_PHONETIC, PERSIAN_PHONETIC, ARABIC_PHONETIC, GREEK_PHONETIC, TIBETAN_WYLIE, T9, COMPACT,
     )
 
     fun byId(id: String): LayoutSpec? = all.firstOrNull { it.id == id }

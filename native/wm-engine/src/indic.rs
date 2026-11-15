@@ -144,6 +144,12 @@ pub struct Profile {
     pub soft_endings: Vec<&'static str>,
     /// Tamil's dental/alveolar n.
     pub tamil_n: bool,
+    /// North: any consonant but र itself joins a र after it ("ramro" राम्रो),
+    /// not only the dentals and श Hindi joins.
+    pub join_r: bool,
+    /// North: a closing "ai" after another vowel is the noun's ाई ("safai"
+    /// सफाई) rather than ै. Nepali closes on ै ("sabai" सबै, "gardai" गर्दै).
+    pub closing_aai: bool,
     pub word_hook: Option<Hook>,
 }
 
@@ -164,6 +170,8 @@ impl Profile {
             endings: Vec::new(),
             soft_endings: Vec::new(),
             tamil_n: false,
+            join_r: false,
+            closing_aai: true,
             word_hook: None,
         }
     }
@@ -447,6 +455,7 @@ impl Engine {
                 Kind::Vowel => {
                     if north
                         && last
+                        && self.profile.closing_aai
                         && *token == self.diphthong_ai
                         && tokens[..index].iter().any(Rule::is_vowel)
                     {
@@ -592,7 +601,11 @@ impl Engine {
         if doubled || here == "य" {
             true
         } else if here == "र" {
-            BEFORE_R.contains(&before)
+            if self.profile.join_r {
+                before != "र"
+            } else {
+                BEFORE_R.contains(&before)
+            }
         } else if here == "व" {
             BEFORE_V.contains(&before)
         } else if SIBILANTS.contains(&before) {

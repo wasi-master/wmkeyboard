@@ -3,7 +3,7 @@ package com.wasimaster.wmkeyboard.core.transliteration
 /**
  * Phonetic typing for the Indic languages that do not have an engine of their
  * own: roman letters in, native script out (Marathi, Gujarati, Punjabi, Odia,
- * Tamil, Telugu, Kannada and Malayalam), one [IndicProfile] each. The engine
+ * Tamil, Telugu, Kannada, Malayalam, Nepali and Sanskrit), one [IndicProfile] each. The engine
  * and every profile's rules live in Rust (`native/wm-engine/src/indic.rs` and
  * one module per language); this is the call into it.
  */
@@ -16,8 +16,12 @@ class IndicPhonetic(val profile: IndicProfile) {
     fun variants(input: String): List<String> = EngineNative.indicVariants(profile.languageId, input).toList()
 }
 
-/** One of the Indic engine's languages: its id, and the script it writes. */
-class IndicProfile(val languageId: String, val script: IndicScript)
+/**
+ * One of the Indic engine's languages: its id, the script it writes, and
+ * whether it ships curated spellings (`dictionaries/<id>_rom.tsv` and
+ * `en_<id>.tsv`) that outrank the rules and the list.
+ */
+class IndicProfile(val languageId: String, val script: IndicScript, val curated: Boolean = false)
 
 /**
  * The Indic engine's languages, and what each one's word-list index needs
@@ -33,14 +37,18 @@ object IndicProfiles {
     private val BENGALI_IDS = listOf("bpy", "brx-Beng", "ctg", "grt-Beng", "mni-Beng", "sat-Beng", "trp", "unr")
 
     val all: List<IndicProfile> = listOf(
-        IndicProfile("mr", IndicScript.DEVANAGARI),
-        IndicProfile("gu", IndicScript.GUJARATI),
-        IndicProfile("pa", IndicScript.GURMUKHI),
-        IndicProfile("or", IndicScript.ORIYA),
-        IndicProfile("ta", IndicScript.TAMIL),
-        IndicProfile("te", IndicScript.TELUGU),
-        IndicProfile("kn", IndicScript.KANNADA),
-        IndicProfile("ml", IndicScript.MALAYALAM),
+        IndicProfile("mr", IndicScript.DEVANAGARI, curated = true),
+        IndicProfile("gu", IndicScript.GUJARATI, curated = true),
+        IndicProfile("pa", IndicScript.GURMUKHI, curated = true),
+        IndicProfile("or", IndicScript.ORIYA, curated = true),
+        IndicProfile("ta", IndicScript.TAMIL, curated = true),
+        IndicProfile("te", IndicScript.TELUGU, curated = true),
+        IndicProfile("kn", IndicScript.KANNADA, curated = true),
+        IndicProfile("ml", IndicScript.MALAYALAM, curated = true),
+        IndicProfile("ne", IndicScript.DEVANAGARI, curated = true),
+        // Typed in ITRANS or Harvard-Kyoto, which spell every word exactly:
+        // nothing for a chat-spelling map to correct.
+        IndicProfile("sa", IndicScript.DEVANAGARI),
     )
 
     /**
@@ -68,21 +76,33 @@ object IndicProfiles {
      * before an index lookup: the Dravidian four write "th" and "dh" for the
      * plain dentals, Telugu, Kannada and Malayalam close a word on the
      * anusvara where roman writes "m", Tamil writes no voiced stops,
-     * Malayalam folds its nasals and voicing.
+     * Malayalam folds its nasals and voicing. Nepali writes छ "x" and भ
+     * "v" and says व as b; Sanskrit's Harvard-Kyoto capitals spell ऋ and the
+     * nasals.
      */
     fun romanPrep(languageId: String): (String) -> String = when (languageId) {
-        "ta", "te", "kn", "ml" -> { input -> EngineNative.indicRomanPrep(languageId, input) }
+        "ta", "te", "kn", "ml", "ne", "sa" -> { input -> EngineNative.indicRomanPrep(languageId, input) }
         else -> { input -> input }
     }
 
     /**
      * The list's words, in Devanagari, rewritten the same way as [romanPrep]
-     * rewrites what is typed: Malayalam's voiced stops onto the unvoiced ones.
+     * rewrites what is typed: Malayalam's voiced stops onto the unvoiced ones,
+     * Nepali's व onto ब with the joiners of र्‍य dropped.
      */
     fun devanagariPrep(languageId: String): (String) -> String = when (languageId) {
-        "ml" -> { dev -> EngineNative.indicDevanagariPrep(languageId, dev) }
+        "ml", "ne" -> { dev -> EngineNative.indicDevanagariPrep(languageId, dev) }
         else -> { dev -> dev }
     }
+
+    /**
+     * Whether the language's romanization spells, at the end of a word, the
+     * inherent vowel its script does not write: Nepali "xa" छ, Sanskrit
+     * "rAma" राम. The index then reads a typed closing "a" that way for any
+     * word ([HindiPhoneticIndex]'s typed schwa). Mirrors
+     * `indic_profiles::typed_schwa` in the engine.
+     */
+    fun typedSchwa(languageId: String): Boolean = languageId == "ne" || languageId == "sa"
 
     /**
      * Whether the index should break ties by closeness to what the rules

@@ -85,6 +85,11 @@ impl IndicPhoneticIndex {
                 |s| indic_profiles::roman_prep("ml", s),
                 |s| indic_profiles::devanagari_prep("ml", s),
             ),
+            "ne" => (
+                |s| indic_profiles::roman_prep("ne", s),
+                |s| indic_profiles::devanagari_prep("ne", s),
+            ),
+            "sa" => (|s| indic_profiles::roman_prep("sa", s), identity),
             _ => (identity, identity),
         };
         let rerank_by: Option<fn(&str) -> String> = if indic_profiles::rerank_flat_list(language_id)
@@ -93,13 +98,15 @@ impl IndicPhoneticIndex {
         } else {
             None
         };
-        Some(IndicPhoneticIndex::new(
+        let mut index = IndicPhoneticIndex::new(
             entries,
             engine.profile.script,
             Some(roman_prep),
             Some(devanagari_prep),
             rerank_by,
-        ))
+        );
+        index.inner = index.inner.with_typed_schwa(indic_profiles::typed_schwa(language_id));
+        Some(index)
     }
 }
 

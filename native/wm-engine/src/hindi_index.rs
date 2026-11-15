@@ -464,6 +464,10 @@ pub struct HindiPhoneticIndex {
     by_key: HashMap<String, Vec<Entry>>,
     freq_by_word: HashMap<String, i32>,
     max_frequency: i32,
+    /// Whether a typed closing "a" may be the inherent vowel of any word,
+    /// not only of one closing on य, र or व: how Nepali and Sanskrit are
+    /// typed ("xa" छ, "rAma" राम). See [`HindiPhoneticIndex::with_typed_schwa`].
+    typed_schwa: bool,
 }
 
 impl HindiPhoneticIndex {
@@ -508,7 +512,17 @@ impl HindiPhoneticIndex {
             by_key,
             freq_by_word,
             max_frequency,
+            typed_schwa: false,
         }
+    }
+
+    /// The same index, reading a typed closing "a" as the inherent vowel of
+    /// any word when `on`: a language whose romanization spells the vowel it
+    /// does not write. Such a word still ranks below one whose key has the
+    /// "a" in it, by the spoken-final-a handicap.
+    pub fn with_typed_schwa(mut self, on: bool) -> HindiPhoneticIndex {
+        self.typed_schwa = on;
+        self
     }
 
     /// Words a closing "a" was typed for that the key has no closing "a" in:
@@ -516,7 +530,8 @@ impl HindiPhoneticIndex {
     /// or व is like that.
     fn spoken_final_a(&self, typed: &Folded) -> Vec<&Entry> {
         let key = &typed.key;
-        if key.len() < 3 || !key.ends_with('a') {
+        let shortest = if self.typed_schwa { 2 } else { 3 };
+        if key.len() < shortest || !key.ends_with('a') {
             return Vec::new();
         }
         if ((typed.detail[typed.detail.len() - 1] - DETAIL_BASE) as u32) & TAIL_MASK == TAIL_LONG {
@@ -528,6 +543,9 @@ impl HindiPhoneticIndex {
                 bucket
                     .iter()
                     .filter(|entry| {
+                        if self.typed_schwa {
+                            return true;
+                        }
                         let chars: Vec<char> = entry.word.chars().collect();
                         chars.len() >= 3
                             && chars[chars.len() - 2] == VIRAMA
