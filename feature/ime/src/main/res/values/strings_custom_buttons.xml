@@ -18,6 +18,13 @@
     <string name="ime_custom_toggle_toolbar_labels">Toolbar names</string>
     <string name="ime_custom_toggle_reduce_motion">Reduce motion</string>
     <string name="ime_custom_toggle_second_toolbar">Second toolbar</string>
+    <string name="ime_custom_toggle_autocorrect">Autocorrect</string>
+    <string name="ime_custom_toggle_double_space">Double space period</string>
+    <string name="ime_custom_toggle_space_after_punctuation">Space after punctuation</string>
+    <string name="ime_custom_toggle_arrow_row">Arrow keys row</string>
+    <string name="ime_custom_toggle_split">Split keyboard</string>
+    <string name="ime_custom_toggle_incognito">Incognito</string>
+    <string name="ime_custom_toggle_dark_theme">Dark keyboard</string>
 
     <!-- The settings pages a custom button can open. -->
     <string name="ime_custom_page_favourites">Favourites</string>
@@ -32,4 +39,18 @@
     <string name="ime_custom_page_toolbar">Toolbar settings</string>
     <string name="ime_custom_page_keypress">Sound and vibration</string>
     <string name="ime_custom_page_custom_buttons">Custom buttons</string>
+    <string name="ime_custom_page_appearance">Appearance</string>
+    <string name="ime_custom_page_layout">Layout</string>
+    <string name="ime_custom_page_layout_size">Size and position</string>
+    <string name="ime_custom_page_corrections">Autocorrect settings</string>
+    <string name="ime_custom_page_suggestions">Suggestion settings</string>
+    <string name="ime_custom_page_gestures">Gestures</string>
+    <string name="ime_custom_page_haptics">Haptics and sound</string>
+    <string name="ime_custom_page_emoji">Emoji settings</string>
+    <string name="ime_custom_page_voice">Voice typing</string>
+    <string name="ime_custom_page_ai">AI settings</string>
+    <string name="ime_custom_page_privacy">Privacy</string>
+    <string name="ime_custom_page_backup">Backup and restore</string>
+    <string name="ime_custom_page_accessibility">Accessibility</string>
+    <string name="ime_custom_page_statistics">Statistics</string>
 </resources>

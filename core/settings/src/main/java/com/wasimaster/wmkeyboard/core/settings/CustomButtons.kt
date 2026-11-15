@@ -77,21 +77,40 @@ enum class CustomButtonKind { SHORTCUT, SETTING, PAGE, PLUGIN }
 /**
  * The settings a custom button can flip (#1236): on/off ones the keyboard
  * reads live, so a tap shows at once. The button is lit while [isOn].
- * A small fixed list on purpose; each entry is one getter and one setter.
+ * Each entry is one getter and one setter, so the list is a chosen one.
+ *
+ * A hold on the button opens the switch's own row in Settings (#1356):
+ * [settingRow] is that row's title resource name, which the settings app
+ * finds, scrolls to and flashes; [route] is the screen to open when there is
+ * no single row to point at.
  */
-enum class CustomToggle {
-    NUMBER_ROW,
-    KEY_HINTS,
-    SYMBOL_ROW,
-    SUGGESTIONS,
-    GLIDE_TYPING,
-    AUTO_CAPITALIZE,
-    KEY_SOUND,
-    VIBRATION,
-    KEY_POPUP,
-    TOOLBAR_LABELS,
-    REDUCE_MOTION,
-    SECOND_TOOLBAR,
+enum class CustomToggle(val settingRow: String?, val route: String) {
+    NUMBER_ROW("layout_number_row_title", "layout/size"),
+    KEY_HINTS("keypress_long_press_hints_title", "keypress/shortcuts"),
+    SYMBOL_ROW("rows_symbol_row_title", "rows"),
+    SUGGESTIONS("typing_suggestions_title", "typing/suggestions"),
+    GLIDE_TYPING("typing_glide_typing_title", "typing/gestures"),
+    AUTO_CAPITALIZE("typing_auto_capitalize_title", "typing/writing"),
+    KEY_SOUND("hardware_sound_key_title", "keypress/haptics"),
+    VIBRATION("keypress_haptics_title", "keypress/haptics"),
+    KEY_POPUP("keypress_popup_title", "keypress/popup"),
+    TOOLBAR_LABELS("appearance_toolbar_labels_title", "appearance/toolbar"),
+    REDUCE_MOTION("accessibility_reduce_motion_title", "accessibility"),
+    SECOND_TOOLBAR("appearance_second_toolbar_title", "appearance/toolbar"),
+    // #1356.
+    AUTOCORRECT("typing_autocorrect_title", "typing/corrections"),
+    DOUBLE_SPACE_PERIOD("typing_double_space_title", "typing/writing"),
+    SPACE_AFTER_PUNCTUATION("typing_auto_space_punctuation_title", "typing/writing"),
+    ARROW_ROW("layout_arrow_row_title", "layout"),
+    SPLIT_KEYBOARD("layout_split_title", "layout/onehanded"),
+    INCOGNITO("privacy_incognito_title", "privacy"),
+    /**
+     * Dark keys rather than light: on for Dark or AMOLED. Off turns the mode
+     * to Light, on to Dark, so a press always changes what the board looks
+     * like, even from Follow the system. An automatic day and night theme
+     * pair still decides over it.
+     */
+    DARK_THEME(null, "themes"),
     ;
 
     fun isOn(s: KeyboardSettings): Boolean = when (this) {
@@ -107,6 +126,13 @@ enum class CustomToggle {
         TOOLBAR_LABELS -> s.toolbarLabels
         REDUCE_MOTION -> s.reduceMotion
         SECOND_TOOLBAR -> s.toolbarBehavior.secondRow
+        AUTOCORRECT -> s.correction.enabled
+        DOUBLE_SPACE_PERIOD -> s.autoText.doubleSpacePeriod
+        SPACE_AFTER_PUNCTUATION -> s.autoText.spaceAfterPunctuation
+        ARROW_ROW -> s.layoutBehavior.arrowRow
+        SPLIT_KEYBOARD -> s.splitKeyboard
+        INCOGNITO -> s.incognito
+        DARK_THEME -> s.themeMode == ThemeMode.DARK || s.themeMode == ThemeMode.AMOLED
     }
 }
 
@@ -125,6 +151,13 @@ suspend fun SettingsRepository.setCustomToggle(toggle: CustomToggle, on: Boolean
         CustomToggle.TOOLBAR_LABELS -> setToolbarLabels(on)
         CustomToggle.REDUCE_MOTION -> setReduceMotion(on)
         CustomToggle.SECOND_TOOLBAR -> setSecondToolbar(on)
+        CustomToggle.AUTOCORRECT -> setAutocorrect(on)
+        CustomToggle.DOUBLE_SPACE_PERIOD -> setDoubleSpacePeriod(on)
+        CustomToggle.SPACE_AFTER_PUNCTUATION -> setAutoSpaceAfterPunctuation(on)
+        CustomToggle.ARROW_ROW -> setArrowRow(on)
+        CustomToggle.SPLIT_KEYBOARD -> setSplitKeyboard(on)
+        CustomToggle.INCOGNITO -> setIncognito(on)
+        CustomToggle.DARK_THEME -> setThemeMode(if (on) ThemeMode.DARK else ThemeMode.LIGHT)
     }
 }
 
@@ -146,6 +179,21 @@ enum class CustomPage(val route: String?) {
     TOOLBAR("appearance/toolbar"),
     KEYPRESS("keypress"),
     CUSTOM_BUTTONS("custom_buttons"),
+    // #1356.
+    APPEARANCE("appearance"),
+    LAYOUT("layout"),
+    LAYOUT_SIZE("layout/size"),
+    CORRECTIONS("typing/corrections"),
+    SUGGESTIONS("typing/suggestions"),
+    GESTURES("typing/gestures"),
+    HAPTICS("keypress/haptics"),
+    EMOJI("emoji"),
+    VOICE("voice"),
+    AI("ai"),
+    PRIVACY("privacy"),
+    BACKUP("backup"),
+    ACCESSIBILITY("accessibility"),
+    STATISTICS("statistics"),
 }
 
 /** The most buttons the list keeps: past this the toolbar has no room left for its tools. */

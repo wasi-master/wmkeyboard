@@ -28154,12 +28154,21 @@ open class WMKeyboardService : InputMethodService() {
     /**
      * The user's own buttons on the toolbar and in the toolbox (#1213, #1236).
      * A hold that does not pick one up opens their page in Settings, as a
-     * plugin's opens its own (#1345).
+     * plugin's opens its own (#1345); on a switch, it opens the switch's own
+     * row instead, where the setting and those around it live (#1356).
      */
     private val customButtonCallbacks by lazy {
         com.wasimaster.wmkeyboard.ime.ui.CustomButtonCallbacks(
             onTap = ::onCustomButtonTap,
-            onSettings = { openRoute("custom_buttons") },
+            onSettings = { id ->
+                val toggle = _uiState.value.settings.toolbox.customButtons.firstOrNull { it.id == id }?.toggle
+                val row = toggle?.settingRow
+                when {
+                    row != null -> openSetting(row)
+                    toggle != null -> openRoute(toggle.route)
+                    else -> openRoute("custom_buttons")
+                }
+            },
         )
     }
 

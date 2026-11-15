@@ -51,6 +51,25 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TouchApp
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Vibration
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewDay
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VolumeUp
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Accessibility
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Backup
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.BarChart
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Brush
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DarkMode
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Dashboard
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EmojiEmotions
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Height
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardDoubleArrowRight
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mic
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Shield
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SmartToy
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SpaceBar
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Spellcheck
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Swipe
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFormat
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VerticalSplit
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VisibilityOff
 import com.wasimaster.wmkeyboard.core.settings.CUSTOM_LAUNCHER_SHORTCUT_PREFIX
 import com.wasimaster.wmkeyboard.core.settings.CustomButton
 import com.wasimaster.wmkeyboard.core.settings.CustomButtonKind
@@ -133,6 +152,13 @@ fun customToggleIcon(toggle: CustomToggle): ImageVector = when (toggle) {
     CustomToggle.TOOLBAR_LABELS -> Icons.Outlined.Label
     CustomToggle.REDUCE_MOTION -> Icons.Outlined.MotionPhotosOff
     CustomToggle.SECOND_TOOLBAR -> Icons.Outlined.TableRows
+    CustomToggle.AUTOCORRECT -> Icons.Outlined.Spellcheck
+    CustomToggle.DOUBLE_SPACE_PERIOD -> Icons.Outlined.SpaceBar
+    CustomToggle.SPACE_AFTER_PUNCTUATION -> Icons.Outlined.TextFormat
+    CustomToggle.ARROW_ROW -> Icons.Outlined.KeyboardDoubleArrowRight
+    CustomToggle.SPLIT_KEYBOARD -> Icons.Outlined.VerticalSplit
+    CustomToggle.INCOGNITO -> Icons.Outlined.VisibilityOff
+    CustomToggle.DARK_THEME -> Icons.Outlined.DarkMode
 }
 
 fun customPageIcon(page: CustomPage): ImageVector = when (page) {
@@ -148,6 +174,20 @@ fun customPageIcon(page: CustomPage): ImageVector = when (page) {
     CustomPage.TOOLBAR -> Icons.Outlined.ViewDay
     CustomPage.KEYPRESS -> Icons.Outlined.TouchApp
     CustomPage.CUSTOM_BUTTONS -> Icons.Outlined.SmartButton
+    CustomPage.APPEARANCE -> Icons.Outlined.Brush
+    CustomPage.LAYOUT -> Icons.Outlined.Dashboard
+    CustomPage.LAYOUT_SIZE -> Icons.Outlined.Height
+    CustomPage.CORRECTIONS -> Icons.Outlined.Spellcheck
+    CustomPage.SUGGESTIONS -> Icons.Outlined.AutoAwesome
+    CustomPage.GESTURES -> Icons.Outlined.Swipe
+    CustomPage.HAPTICS -> Icons.Outlined.Vibration
+    CustomPage.EMOJI -> Icons.Outlined.EmojiEmotions
+    CustomPage.VOICE -> Icons.Outlined.Mic
+    CustomPage.AI -> Icons.Outlined.SmartToy
+    CustomPage.PRIVACY -> Icons.Outlined.Shield
+    CustomPage.BACKUP -> Icons.Outlined.Backup
+    CustomPage.ACCESSIBILITY -> Icons.Outlined.Accessibility
+    CustomPage.STATISTICS -> Icons.Outlined.BarChart
 }
 
 @StringRes
@@ -164,6 +204,13 @@ fun customToggleLabelRes(toggle: CustomToggle): Int = when (toggle) {
     CustomToggle.TOOLBAR_LABELS -> R.string.ime_custom_toggle_toolbar_labels
     CustomToggle.REDUCE_MOTION -> R.string.ime_custom_toggle_reduce_motion
     CustomToggle.SECOND_TOOLBAR -> R.string.ime_custom_toggle_second_toolbar
+    CustomToggle.AUTOCORRECT -> R.string.ime_custom_toggle_autocorrect
+    CustomToggle.DOUBLE_SPACE_PERIOD -> R.string.ime_custom_toggle_double_space
+    CustomToggle.SPACE_AFTER_PUNCTUATION -> R.string.ime_custom_toggle_space_after_punctuation
+    CustomToggle.ARROW_ROW -> R.string.ime_custom_toggle_arrow_row
+    CustomToggle.SPLIT_KEYBOARD -> R.string.ime_custom_toggle_split
+    CustomToggle.INCOGNITO -> R.string.ime_custom_toggle_incognito
+    CustomToggle.DARK_THEME -> R.string.ime_custom_toggle_dark_theme
 }
 
 @StringRes
@@ -180,6 +227,20 @@ fun customPageLabelRes(page: CustomPage): Int = when (page) {
     CustomPage.TOOLBAR -> R.string.ime_custom_page_toolbar
     CustomPage.KEYPRESS -> R.string.ime_custom_page_keypress
     CustomPage.CUSTOM_BUTTONS -> R.string.ime_custom_page_custom_buttons
+    CustomPage.APPEARANCE -> R.string.ime_custom_page_appearance
+    CustomPage.LAYOUT -> R.string.ime_custom_page_layout
+    CustomPage.LAYOUT_SIZE -> R.string.ime_custom_page_layout_size
+    CustomPage.CORRECTIONS -> R.string.ime_custom_page_corrections
+    CustomPage.SUGGESTIONS -> R.string.ime_custom_page_suggestions
+    CustomPage.GESTURES -> R.string.ime_custom_page_gestures
+    CustomPage.HAPTICS -> R.string.ime_custom_page_haptics
+    CustomPage.EMOJI -> R.string.ime_custom_page_emoji
+    CustomPage.VOICE -> R.string.ime_custom_page_voice
+    CustomPage.AI -> R.string.ime_custom_page_ai
+    CustomPage.PRIVACY -> R.string.ime_custom_page_privacy
+    CustomPage.BACKUP -> R.string.ime_custom_page_backup
+    CustomPage.ACCESSIBILITY -> R.string.ime_custom_page_accessibility
+    CustomPage.STATISTICS -> R.string.ime_custom_page_statistics
 }
 
 /**
