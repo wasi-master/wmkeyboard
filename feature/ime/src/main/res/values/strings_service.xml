@@ -342,6 +342,7 @@
     <!-- The tab a floating box leaves on the screen's edge. %1$s is the tool's name, for example Calculator. -->
     <string name="ime_applet_untuck">Bring back <xliff:g id="tool" example="Calculator">%1$s</xliff:g></string>
     <string name="ime_applet_copied">Copied</string>
+    <string name="ime_private_copy_unreadable">This app doesn\'t let the keyboard read what\'s selected, so nothing was copied. Turn off Keep the keyboard\'s copies private to copy here.</string>
     <string name="ime_floating_pair_name">%1$s + %2$s</string>
     <string name="ime_floating_pair_missing">One of the two apps is no longer installed</string>
     <!-- A slot that opens a ring of its own (#923), named here only when it has no name. -->

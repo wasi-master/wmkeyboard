@@ -55422,12 +55422,31 @@ open class WMKeyboardService : InputMethodService() {
         // rather than a fallback to its own copy that would leak it. [whole]
         // is the field the hold shortcut just selected, read before the
         // selection landed, for an editor slow to report it back.
-        val selected = ic.getSelectedText(0)?.takeIf { it.isNotEmpty() } ?: whole
+        val selected = ic.getSelectedText(0)?.takeIf { it.isNotEmpty() } ?: whole ?: extractedSelection(ic)
         if (!selected.isNullOrEmpty()) {
             KeyboardClipboard.copy(this, selected)
             if (cut) ic.commitText("", 1) else collapseSelectionToEnd(ic)
+        } else if (expectedSelStart >= 0 && expectedSelEnd >= 0 && expectedSelStart != expectedSelEnd) {
+            // A selection the editor reported moving to and will not read out:
+            // a rename box in some file managers. The copy did nothing and said
+            // nothing (#612); saying so beats a fallback that would leak it.
+            Toast.makeText(this, R.string.ime_private_copy_unreadable, Toast.LENGTH_SHORT).show()
         }
         return true
+    }
+
+    /**
+     * The selection read out of the editor's extracted text, for an editor
+     * that does not answer getSelectedText but does report its text with the
+     * selection's offsets. Null when it reports no selection.
+     */
+    private fun extractedSelection(ic: InputConnection): CharSequence? {
+        val extracted = ic.getExtractedText(ExtractedTextRequest(), 0) ?: return null
+        val text = extracted.text ?: return null
+        val start = minOf(extracted.selectionStart, extracted.selectionEnd)
+        val end = maxOf(extracted.selectionStart, extracted.selectionEnd)
+        if (start < 0 || start == end || end > text.length) return null
+        return text.subSequence(start, end)
     }
 
     /**
