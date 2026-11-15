@@ -14727,13 +14727,16 @@ private fun ToolPill(
                 else Modifier.background(background, shape),
             )
             .then(
-                if (ghost) {
-                    Modifier.border(1.dp, kb.toolbarIcon.copy(alpha = 0.35f), shape)
-                } else {
-                    Modifier
+                when {
+                    ghost -> Modifier.border(1.dp, kb.toolbarIcon.copy(alpha = 0.35f), shape)
+                    // A filled pill is its tool's colour whether the tool is
+                    // on or not, so "on" is a ring in the colour that reads
+                    // on it, inset so the pills keep their size (#1349).
+                    active && fill != null -> Modifier.border(2.dp, content, shape).padding(2.dp)
+                    else -> Modifier
                 }
             )
-            .padding(start = 10.dp, end = 6.dp),
+            .padding(start = if (active && fill != null) 8.dp else 10.dp, end = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         SlotIcon(
@@ -14755,6 +14758,16 @@ private fun ToolPill(
                 .padding(start = 8.dp)
                 .then(if (labelAnchor != null) Modifier.panelOriginLabel(labelAnchor) else Modifier),
         )
+        // And a dot by the name, for a ring alone is easy to miss on a
+        // bright fill (#1349).
+        if (active && fill != null && !ghost) {
+            Box(
+                Modifier
+                    .padding(end = 6.dp)
+                    .size(7.dp)
+                    .background(content, CircleShape),
+            )
+        }
         // A pill is a row, so its badge sits at the end beside the chevron
         // rather than under an icon. Same footprint either way.
         if (hint != null) HintBadge(hint, modifier = Modifier.padding(end = 4.dp))
