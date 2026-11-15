@@ -2363,6 +2363,13 @@ data class ToolbarBehavior(
      * button at the end until a side is picked here.
      */
     val stripEndTools: Set<ToolbarTool> = emptySet(),
+    /**
+     * The user's custom buttons beside the suggestions (#1300), by id, after
+     * the tools at whichever end each one sits; [stripEndCustomButtons] are
+     * the ones after the words.
+     */
+    val stripCustomButtons: List<String> = emptyList(),
+    val stripEndCustomButtons: Set<String> = emptySet(),
     /** The strip's toolbox button ([stripToolbox]) at the far end, after the words. */
     val stripToolboxAtEnd: Boolean = false,
     /**
@@ -2450,6 +2457,9 @@ sealed interface ToolHoldAction {
 
     /** The hold runs [tool]'s tap. */
     data class Run(val tool: ToolbarTool) : ToolHoldAction
+
+    /** The hold runs one of the user's custom buttons (#1300), by its id. */
+    data class RunCustom(val id: String) : ToolHoldAction
 
     /**
      * The hold opens the tool itself in a floating box over the app (#1155),
@@ -2595,6 +2605,9 @@ object ToolHoldActions {
     /** The action token for [ToolHoldAction.Floating] (#1155); not a tool name either. */
     const val FLOAT_TOKEN = "FLOAT"
 
+    /** What a [ToolHoldAction.RunCustom] token starts with, the button's id after it (#1300). */
+    const val CUSTOM_PREFIX = "CUSTOM:"
+
     fun decode(csv: String?): Map<ToolbarTool, ToolHoldAction> =
         csv?.split(',')?.mapNotNull { entry ->
             val separator = entry.indexOf('=')
@@ -2605,6 +2618,10 @@ object ToolHoldActions {
             if (token == SETTINGS_TOKEN) return@mapNotNull tool to ToolHoldAction.OpenSettings
             // Only a tool that has a floating box keeps it.
             if (token == FLOAT_TOKEN) return@mapNotNull if (tool.floats) tool to ToolHoldAction.Floating else null
+            if (token.startsWith(CUSTOM_PREFIX)) {
+                val id = token.removePrefix(CUSTOM_PREFIX)
+                return@mapNotNull if (id.isEmpty()) null else tool to ToolHoldAction.RunCustom(id)
+            }
             val action = toolOrNull(token) ?: return@mapNotNull null
             // A tool holding to itself is a tap done slowly; drop it rather than
             // firing the same action twice for one gesture.
@@ -2618,6 +2635,7 @@ object ToolHoldActions {
                 ToolHoldAction.OpenSettings -> SETTINGS_TOKEN
                 ToolHoldAction.Floating -> FLOAT_TOKEN
                 is ToolHoldAction.Run -> action.tool.name
+                is ToolHoldAction.RunCustom -> CUSTOM_PREFIX + action.id
             }
             "${tool.name}=$token"
         }
@@ -13294,6 +13312,8 @@ class SettingsRepository(private val context: Context) {
         /** The one switch that put every strip button at the end, before each had a side. */
         private val TOOLBAR_STRIP_AT_END = booleanPreferencesKey("toolbar_strip_at_end")
         private val TOOLBAR_STRIP_END_TOOLS = stringPreferencesKey("toolbar_strip_end_tools")
+        private val TOOLBAR_STRIP_CUSTOM = stringPreferencesKey("toolbar_strip_custom")
+        private val TOOLBAR_STRIP_END_CUSTOM = stringPreferencesKey("toolbar_strip_end_custom")
         private val TOOLBAR_STRIP_TOOLBOX_AT_END = booleanPreferencesKey("toolbar_strip_toolbox_at_end")
         private val TOOLBAR_STRIP_TOOLBOX = booleanPreferencesKey("toolbar_strip_toolbox")
         private val TOOLBAR_BAR_TOOLBOX = booleanPreferencesKey("toolbar_bar_toolbox")
@@ -16008,6 +16028,10 @@ class SettingsRepository(private val context: Context) {
             stripToolWidthDp = p[TOOLBAR_STRIP_TOOL_WIDTH] ?: defaults.toolbarBehavior.stripToolWidthDp,
             stripIconSizeDp = p[TOOLBAR_STRIP_ICON_SIZE] ?: defaults.toolbarBehavior.stripIconSizeDp,
             stripEndTools = readStripEndTools(p) ?: defaults.toolbarBehavior.stripEndTools,
+            stripCustomButtons = p[TOOLBAR_STRIP_CUSTOM]?.split(',')?.filter { it.isNotEmpty() }?.distinct()
+                ?: defaults.toolbarBehavior.stripCustomButtons,
+            stripEndCustomButtons = p[TOOLBAR_STRIP_END_CUSTOM]?.split(',')?.filter { it.isNotEmpty() }?.toSet()
+                ?: defaults.toolbarBehavior.stripEndCustomButtons,
             stripToolboxAtEnd = p[TOOLBAR_STRIP_TOOLBOX_AT_END] ?: p[TOOLBAR_STRIP_AT_END]
                 ?: defaults.toolbarBehavior.stripToolboxAtEnd,
             stripToolbox = p[TOOLBAR_STRIP_TOOLBOX] ?: defaults.toolbarBehavior.stripToolbox,
@@ -19104,6 +19128,16 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setStripToolboxAtEnd(value: Boolean) =
         editPrefs { it[TOOLBAR_STRIP_TOOLBOX_AT_END] = value }
+
+    /** The custom buttons beside the suggestions (#1300), in order. */
+    suspend fun setStripCustomButtons(ids: List<String>) =
+        editPrefs { it[TOOLBAR_STRIP_CUSTOM] = ids.distinct().joinToString(",") }
+
+    /** Puts one of the strip's custom buttons after the words ([atEnd]) or before them (#1300). */
+    suspend fun setStripCustomAtEnd(id: String, atEnd: Boolean) = editPrefs { prefs ->
+        val current = prefs[TOOLBAR_STRIP_END_CUSTOM]?.split(',')?.filter { it.isNotEmpty() }?.toSet().orEmpty()
+        prefs[TOOLBAR_STRIP_END_CUSTOM] = (if (atEnd) current + id else current - id).joinToString(",")
+    }
 
     /**
      * The tools stored at the strip's end, or null with nothing stored. Under

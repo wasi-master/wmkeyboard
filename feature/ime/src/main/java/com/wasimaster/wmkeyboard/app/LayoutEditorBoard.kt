@@ -152,7 +152,8 @@ fun editorKeySlot(key: Key, enterSlot: String): String? {
         KeyAction.InputMethodPicker, is KeyAction.SwitchInputMethod -> IconSlots.KEY_INPUT_METHOD_PICKER
         KeyAction.Emoji -> IconSlots.KEY_EMOJI
         KeyAction.Toolbox -> IconSlots.CHROME_TOOLBOX.takeIf { key.label.isBlank() }
-        is KeyAction.Tool -> IconSlots.forTool(action.tool).takeIf { key.label.isBlank() }
+        is KeyAction.Tool -> (action.custom?.let(com.wasimaster.wmkeyboard.ime.ui::customToolSlot) ?: IconSlots.forTool(action.tool))
+            .takeIf { key.label.isBlank() }
         is KeyAction.SendKey -> arrowKeySlot(action.keyCode)
             ?.takeIf { key.label.isBlank() || key.label in ArrowGlyphs }
         else -> null

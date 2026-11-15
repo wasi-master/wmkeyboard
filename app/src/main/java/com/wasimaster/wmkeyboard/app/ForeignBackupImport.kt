@@ -464,6 +464,9 @@ private fun toolHoldsText(context: Context, csv: String): String =
                 ToolHoldAction.OpenSettings -> context.getString(R.string.tooldetail_hold_settings_title)
                 ToolHoldAction.Floating -> context.getString(R.string.tooldetail_hold_floating_title)
                 is ToolHoldAction.Run -> context.getString(toolTitle(action.tool))
+                is ToolHoldAction.RunCustom -> com.wasimaster.wmkeyboard.ime.ui.customToolName(
+                    context, com.wasimaster.wmkeyboard.ime.ui.CustomButtonFaces.buttons, action.id,
+                )
             },
         )
     }

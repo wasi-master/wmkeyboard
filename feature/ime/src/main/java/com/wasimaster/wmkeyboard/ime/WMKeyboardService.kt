@@ -12389,7 +12389,11 @@ open class WMKeyboardService : InputMethodService() {
             // A key — or a long-press alternate — bound to a tool: voice, the
             // edit pad, the clipboard. Runs whether or not the tool is on the
             // toolbar; see [runToolFromKey].
-            is KeyAction.Tool -> runToolFromKey((key.action as KeyAction.Tool).tool)
+            is KeyAction.Tool -> (key.action as KeyAction.Tool).let { bound ->
+                // One of the user's own buttons (#1300), else the tool.
+                val custom = bound.custom
+                if (custom != null) onCustomButtonTap(custom) else runToolFromKey(bound.tool)
+            }
             // One of the user's secondary layouts, shown over the letters the
             // way ?123 shows the symbols; a second press takes it down again.
             is KeyAction.Layout -> openSecondaryLayout((key.action as KeyAction.Layout).id)

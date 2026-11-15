@@ -1077,6 +1077,7 @@ private fun StripButtonsSettings(repository: SettingsRepository, settings: LiveS
     val dpFormat = stringResource(R.string.typing_value_dp)
     val buttonsOn = settings.watch { it.emojiToolbar }
     val stripOwnSize = settings.watch { it.toolbarBehavior.stripOwnSize }
+    val hasCustoms = settings.watch { it.toolbarBehavior.stripCustomButtons.isNotEmpty() }
     SettingsGroup(stringResource(R.string.appearance_strip_buttons_section_title)) {
         item {
             ToggleSetting(
@@ -1089,6 +1090,7 @@ private fun StripButtonsSettings(repository: SettingsRepository, settings: LiveS
         }
         item(visible = buttonsOn) {
             val shortcuts = settings.watch { it.toolbarBehavior.stripShortcuts }
+            val customs = settings.watch { it.toolbarBehavior.stripCustomButtons }
             var picking by remember { mutableStateOf(false) }
             NavRow(
                 title = R.string.appearance_strip_buttons_add_title,
@@ -1104,6 +1106,11 @@ private fun StripButtonsSettings(repository: SettingsRepository, settings: LiveS
                     onPick = { picked ->
                         picking = false
                         if (picked != null) scope.launch { repository.setStripShortcuts(shortcuts + picked) }
+                    },
+                    // The user's custom buttons beside the words too (#1300).
+                    onPickCustom = { id ->
+                        picking = false
+                        if (id !in customs) scope.launch { repository.setStripCustomButtons(customs + id) }
                     },
                 )
             }
@@ -1141,6 +1148,41 @@ private fun StripButtonsSettings(repository: SettingsRepository, settings: LiveS
                     onClick = { scope.launch { repository.setStripToolAtEnd(tool, !atEnd) } },
                     modifier = Modifier.semantics { contentDescription = sideDesc.format(name, sideName) },
                 ) { Text(sideName) }
+            }
+        }
+        // The custom buttons on the strip (#1300): a side each and a bin, like the tools above.
+        item(visible = buttonsOn && hasCustoms) {
+            val customs = settings.watch { it.toolbarBehavior.stripCustomButtons }
+            val endCustoms = settings.watch { it.toolbarBehavior.stripEndCustomButtons }
+            val left = stringResource(R.string.appearance_strip_buttons_side_left)
+            val right = stringResource(R.string.appearance_strip_buttons_side_right)
+            val sideDesc = stringResource(R.string.appearance_strip_buttons_side_desc)
+            val removeDesc = stringResource(CommonR.string.common_delete)
+            Column {
+                for (id in customs) {
+                    val name = customButtonName(id)
+                    val atEnd = id in endCustoms
+                    val sideName = if (atEnd) right else left
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp),
+                    ) {
+                        Text(
+                            name,
+                            style = MaterialTheme.typography.bodyLarge,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f),
+                        )
+                        TextButton(
+                            onClick = { scope.launch { repository.setStripCustomAtEnd(id, !atEnd) } },
+                            modifier = Modifier.semantics { contentDescription = sideDesc.format(name, sideName) },
+                        ) { Text(sideName) }
+                        IconButton(onClick = { scope.launch { repository.setStripCustomButtons(customs - id) } }) {
+                            Icon(Icons.Outlined.Delete, contentDescription = removeDesc)
+                        }
+                    }
+                }
             }
         }
         item(visible = buttonsOn, level = SettingLevel.STANDARD) {

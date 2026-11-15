@@ -252,6 +252,7 @@ private fun ToolHoldRow(
             ToolHoldAction.None -> stringResource(R.string.tooldetail_hold_nothing_value)
             ToolHoldAction.Floating -> stringResource(R.string.tooldetail_hold_floating_title)
             is ToolHoldAction.Run -> stringResource(toolTitle(resolved.tool))
+            is ToolHoldAction.RunCustom -> customButtonName(resolved.id)
         },
     ) { editing = true }
     if (editing) {
@@ -292,6 +293,12 @@ private fun ToolHoldRow(
             onPickNothing = {
                 editing = false
                 scope.launch { repository.setToolHoldAction(tool, ToolHoldAction.None) }
+            },
+            // The user's own buttons (#1300): an app shortcut, a switch, a page.
+            customCurrent = (bound as? ToolHoldAction.RunCustom)?.id,
+            onPickCustom = { id ->
+                editing = false
+                scope.launch { repository.setToolHoldAction(tool, ToolHoldAction.RunCustom(id)) }
             },
             memoryKey = "tool-hold",
         )
@@ -334,6 +341,12 @@ internal fun ToolPickerDialog(
     onPickFloating: () -> Unit = {},
     /** Which remembered folds and scroll the page opens with; see [ActionPickerPage]. */
     memoryKey: String = "tools",
+    /**
+     * Offers the user's custom buttons as a group of their own (#1300) when
+     * set; [customCurrent] is the one picked now, if it is one of them.
+     */
+    customCurrent: String? = null,
+    onPickCustom: ((String) -> Unit)? = null,
 ) {
     // A page of its own now (#665), grouped the way the Tools screen groups
     // them, with the answers that are not a tool above the groups.
@@ -403,8 +416,36 @@ internal fun ToolPickerDialog(
                 ),
             )
         }
+        val yours = com.wasimaster.wmkeyboard.ime.ui.CustomButtonFaces.buttons.filter { it.usable }
+        if (onPickCustom != null && yours.isNotEmpty()) {
+            add(
+                PickerGroup(
+                    "group-custom",
+                    stringResource(R.string.custombuttons_yours_title),
+                    yours.map { button ->
+                        val action = com.wasimaster.wmkeyboard.core.settings.FloatingAction.Custom(button.id)
+                        PickerRow(
+                            key = "custom:${button.id}",
+                            title = customButtonName(button.id),
+                            subtitle = stringResource(R.string.floating_button_pick_custom_subtitle),
+                            selected = customCurrent == button.id,
+                            leading = { FloatingActionGlyph(action, Modifier.size(24.dp)) },
+                            onPick = { onPickCustom(button.id) },
+                        )
+                    },
+                ),
+            )
+        }
     }
     ActionPickerPage(memoryKey = memoryKey, title = title, groups = groups, onDismiss = onDismiss)
+}
+
+/** A custom button's name (#1300), as the toolbar and the floating button give it. */
+@Composable
+internal fun customButtonName(id: String): String {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val buttons = com.wasimaster.wmkeyboard.ime.ui.CustomButtonFaces.buttons
+    return remember(buttons, id) { com.wasimaster.wmkeyboard.ime.ui.customToolName(context, buttons, id) }
 }
 
 /** One tool as a picker row: its name, what it does, and its glyph. */

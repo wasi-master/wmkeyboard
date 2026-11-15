@@ -33,6 +33,15 @@ class ToolHoldActionsTest {
         assertEquals(map, ToolHoldActions.decode(ToolHoldActions.encode(map)))
     }
 
+    /** A hold bound to one of the user's custom buttons (#1300) keeps the button's id. */
+    @Test
+    fun `a hold bound to a custom button round trips`() {
+        val map = mapOf(ToolbarTool.PASTE to ToolHoldAction.RunCustom("c3"))
+        assertEquals("PASTE=CUSTOM:c3", ToolHoldActions.encode(map))
+        assertEquals(map, ToolHoldActions.decode("PASTE=CUSTOM:c3"))
+        assertEquals(emptyMap<ToolbarTool, ToolHoldAction>(), ToolHoldActions.decode("PASTE=CUSTOM:"))
+    }
+
     /** "Does nothing" (#136) is its own token, and no tool can ever be named that. */
     @Test
     fun `a hold bound to nothing survives the round trip and is not a tool`() {

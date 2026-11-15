@@ -10907,6 +10907,8 @@ private fun DraggableTool(
                                     null, ToolHoldAction.OpenSettings -> drag.openSettings(tool)
                                     ToolHoldAction.None -> Unit
                                     is ToolHoldAction.Run -> drag.onHoldAction(bound.tool)
+                                    // One of the user's own buttons (#1300).
+                                    is ToolHoldAction.RunCustom -> drag.custom.onTap(bound.id)
                                     ToolHoldAction.Floating -> tool.tool?.let(drag.onFloat)
                                 }
                             }
@@ -11939,15 +11941,43 @@ private fun StripTools(
         addAll(tools)
         if (autoPhonetic) add(phonetic)
     }
-    for (tool in if (stripToolsHeldLtr(state)) order.asReversed() else order) {
-        if (tool == null) {
-            key("§toolbox") { StripToolboxButton(state, onPinnedTools, onToolbox) }
-        } else {
-            // Only the switch added by itself is a step down in size.
-            val compact = autoPhonetic && tool == phonetic && !state.settings.toolbarBehavior.stripOwnSize
-            key(tool) { StripToolButton(state, tool, drag, compact = compact, onToolTap) }
+    // The user's custom buttons for this end (#1300), after its tools.
+    val customIds = behavior.stripCustomButtons.filter { id ->
+        (id in behavior.stripEndCustomButtons) == side &&
+            state.settings.toolbox.customButtons.customButtonById(id)?.usable == true
+    }
+    val drawn: List<Any?> = order + customIds.map { StripCustomEntry(it) }
+    for (entry in if (stripToolsHeldLtr(state)) drawn.asReversed() else drawn) {
+        when (entry) {
+            null -> key("§toolbox") { StripToolboxButton(state, onPinnedTools, onToolbox) }
+            is StripCustomEntry -> key("§custom:${entry.id}") { StripCustomButton(state, entry.id, drag) }
+            is ToolbarTool -> {
+                // Only the switch added by itself is a step down in size.
+                val compact = autoPhonetic && entry == phonetic && !state.settings.toolbarBehavior.stripOwnSize
+                key(entry) { StripToolButton(state, entry, drag, compact = compact, onToolTap) }
+            }
+            else -> Unit
         }
     }
+}
+
+/** A custom button among [StripTools]' entries, apart from a tool by its type. */
+private class StripCustomEntry(val id: String)
+
+/** One of the user's custom buttons beside the suggestions (#1300): an app shortcut, a switch, a page. */
+@Composable
+private fun StripCustomButton(state: KeyboardUiState, id: String, drag: ToolDragController) {
+    val behavior = state.settings.toolbarBehavior
+    val label = toolLabel(ToolKey.Custom(id), state)
+    ToolCircle(
+        slot = customToolSlot(id),
+        description = label,
+        active = false,
+        longPressLabel = label,
+        wide = true,
+        widthDp = behavior.stripToolWidthDp.takeIf { behavior.stripOwnSize },
+        iconSizeDp = behavior.stripIconSizeDp.takeIf { behavior.stripOwnSize },
+    ) { drag.custom.onTap(id) }
 }
 
 /**
@@ -29298,7 +29328,8 @@ private fun AlternateAction(
         KeyAction.InputMethodPicker, is KeyAction.SwitchInputMethod -> IconSlots.KEY_INPUT_METHOD_PICKER
         KeyAction.Emoji -> IconSlots.KEY_EMOJI
         KeyAction.Toolbox -> IconSlots.CHROME_TOOLBOX
-        is KeyAction.Tool -> IconSlots.forTool(action.tool)
+        // A custom button's own picture or glyph (#1300), else the tool's.
+        is KeyAction.Tool -> action.custom?.let(::customToolSlot) ?: IconSlots.forTool(action.tool)
         is KeyAction.SendKey -> arrowKeySlot(action.keyCode)
         else -> null
     }?.takeIf { alternate.label.isBlank() }

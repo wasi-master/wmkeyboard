@@ -856,7 +856,7 @@ private fun FloatingMenuEditor(
  * (#1138), else the glyph the button draws, a category's own among them.
  */
 @Composable
-private fun FloatingActionGlyph(
+internal fun FloatingActionGlyph(
     action: FloatingAction,
     modifier: Modifier = Modifier,
     categories: List<FloatingCategory> = emptyList(),

@@ -6284,7 +6284,7 @@ internal fun KeyEditSheet(
                 NavRow(
                     title = R.string.layout_editor_tool_row_title,
                     subtitle = stringResource(R.string.layout_editor_tool_row_subtitle),
-                    value = stringResource(toolTitle(toolAction.tool)),
+                    value = toolAction.custom?.let { customButtonName(it) } ?: stringResource(toolTitle(toolAction.tool)),
                 ) { pickingTool = true }
             }
         }
@@ -6740,12 +6740,18 @@ internal fun KeyEditSheet(
     if (pickingTool) {
         ToolPickerDialog(
             title = stringResource(R.string.layout_editor_tool_picker_title),
-            current = (key.action as? KeyAction.Tool)?.tool,
+            current = (key.action as? KeyAction.Tool)?.takeIf { it.custom == null }?.tool,
             options = ToolbarTool.entries.filter(::isSupportedTool),
             onDismiss = { pickingTool = false },
             onPick = { picked ->
                 pickingTool = false
                 picked?.let { tool -> onChange { it.copy(action = KeyAction.Tool(tool)) } }
+            },
+            // One of the user's custom buttons on the key (#1300).
+            customCurrent = (key.action as? KeyAction.Tool)?.custom,
+            onPickCustom = { id ->
+                pickingTool = false
+                onChange { it.copy(action = KeyAction.Tool(custom = id)) }
             },
         )
     }
@@ -7293,12 +7299,18 @@ private fun FlickFields(
     pickingToolAt?.let { direction ->
         ToolPickerDialog(
             title = stringResource(R.string.layout_editor_tool_picker_title),
-            current = (key.flickActions[direction]?.action as? KeyAction.Tool)?.tool,
+            current = (key.flickActions[direction]?.action as? KeyAction.Tool)?.takeIf { it.custom == null }?.tool,
             options = ToolbarTool.entries.filter(::isSupportedTool),
             onDismiss = { pickingToolAt = null },
             onPick = { picked ->
                 pickingToolAt = null
                 picked?.let { tool -> finishArm(direction, KeyAction.Tool(tool)) }
+            },
+            // A flick that runs one of the user's custom buttons (#1300).
+            customCurrent = (key.flickActions[direction]?.action as? KeyAction.Tool)?.custom,
+            onPickCustom = { id ->
+                pickingToolAt = null
+                finishArm(direction, KeyAction.Tool(custom = id))
             },
         )
     }
@@ -7940,7 +7952,7 @@ private fun ActionAlternatesRows(
     pickingToolAt?.let { index ->
         ToolPickerDialog(
             title = stringResource(R.string.layout_editor_tool_picker_title),
-            current = (alternates.getOrNull(index)?.action as? KeyAction.Tool)?.tool,
+            current = (alternates.getOrNull(index)?.action as? KeyAction.Tool)?.takeIf { it.custom == null }?.tool,
             options = ToolbarTool.entries.filter(::isSupportedTool),
             onDismiss = { pickingToolAt = null },
             onPick = { picked ->
@@ -7952,6 +7964,16 @@ private fun ActionAlternatesRows(
                         },
                     )
                 }
+            },
+            // A long-press alternate that runs one of the user's custom buttons (#1300).
+            customCurrent = (alternates.getOrNull(index)?.action as? KeyAction.Tool)?.custom,
+            onPickCustom = { id ->
+                pickingToolAt = null
+                onChange(
+                    alternates.mapIndexed { i, a ->
+                        if (i == index) a.copy(action = KeyAction.Tool(custom = id)) else a
+                    },
+                )
             },
         )
     }
@@ -7980,7 +8002,9 @@ internal fun actionAlternateName(
     keyboardModes: List<KeyboardMode> = emptyList(),
 ): String {
     val action = alternate.action
-    if (action is KeyAction.Tool) return stringResource(toolTitle(action.tool))
+    if (action is KeyAction.Tool) {
+        return action.custom?.let { customButtonName(it) } ?: stringResource(toolTitle(action.tool))
+    }
     if (action is KeyAction.Layout) {
         return secondaryLayouts.firstOrNull { it.id == action.id }?.name
             ?: alternate.drawnLabel()

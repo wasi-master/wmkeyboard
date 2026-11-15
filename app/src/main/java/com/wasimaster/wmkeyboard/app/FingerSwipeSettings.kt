@@ -149,10 +149,13 @@ internal fun KeyBindingPicker(
         )
         is KeyAction.Tool -> ToolPickerDialog(
             title = stringResource(R.string.layout_editor_tool_picker_title),
-            current = (current?.action as? KeyAction.Tool)?.tool,
+            current = (current?.action as? KeyAction.Tool)?.takeIf { it.custom == null }?.tool,
             options = ToolbarTool.entries.filter(::isSupportedTool),
             onDismiss = onDismiss,
             onPick = { picked -> if (picked != null) onBind(KeyAlternate(KeyAction.Tool(picked))) else onDismiss() },
+            // A swipe that runs one of the user's custom buttons (#1300).
+            customCurrent = (current?.action as? KeyAction.Tool)?.custom,
+            onPickCustom = { id -> onBind(KeyAlternate(KeyAction.Tool(custom = id))) },
         )
         is KeyAction.Edit -> TextEditActionPickerDialog(
             current = (current?.action as? KeyAction.Edit)?.op,

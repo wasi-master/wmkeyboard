@@ -192,6 +192,13 @@ sealed interface KeyAction {
      */
     @Serializable @SerialName("tool") data class Tool(
         val tool: ToolbarTool = ToolbarTool.EMOJI,
+        /**
+         * One of the user's custom buttons (#1300), by its id, run in place of
+         * [tool]: an app shortcut, a setting's switch or a settings page, from
+         * a key, a flick or a long-press alternate. [tool] then only names the
+         * key for a build that has never heard of custom buttons.
+         */
+        val custom: String? = null,
     ) : KeyAction
 
     /**
