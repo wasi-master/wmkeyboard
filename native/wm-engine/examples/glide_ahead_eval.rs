@@ -16,7 +16,7 @@
 
 use std::io::BufRead;
 
-use wm_engine::fuzzy::Tier;
+use wm_engine::fuzzy::{RankScale, Tier};
 use wm_engine::glide::keymap::KeyMap;
 use wm_engine::glide::{Decoder, Point, Source, Tuning};
 use wm_engine::user_lexicon::UserTrie;
@@ -125,7 +125,7 @@ fn main() {
         })
         .collect();
     eprintln!("{} strokes of {min_letters}+ letters", records.len());
-    let sources = [Source { walker: &trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0 }];
+    let sources = [Source { walker: &trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0, scale: RankScale::RAW }];
 
     for line in std::io::stdin().lock().lines().map_while(Result::ok) {
         let line = line.trim().to_string();

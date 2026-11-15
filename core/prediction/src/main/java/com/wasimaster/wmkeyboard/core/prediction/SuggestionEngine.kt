@@ -2555,7 +2555,7 @@ class SuggestionEngine(
             for (s in TrieCompleter.complete(src.walker, drawn, GLIDE_KIN_SCAN)) {
                 val key = WordKey.of(s.word)
                 if (key.isEmpty() || key == self || suppressed(s.word)) continue
-                val score = src.logWeight + ln(1.0 + s.frequency) + rankOffset(s.word)
+                val score = src.rankScore(s.frequency) + rankOffset(s.word)
                 val prior = best[key]
                 if (prior == null || score > prior) {
                     best[key] = score

@@ -3,7 +3,7 @@
 //! finer the longer it runs. A 26-letter compound could not be read at all
 //! at the old limit of 24.
 
-use wm_engine::fuzzy::Tier;
+use wm_engine::fuzzy::{RankScale, Tier};
 use wm_engine::glide::keymap::KeyMap;
 use wm_engine::glide::workspace::{
     samples_for, LETTER_ARC, LONG_SAMPLES, LONG_STROKE, SAMPLES_PER_LETTER, SAMPLE_POINTS, SHORT_SAMPLES,
@@ -77,7 +77,7 @@ fn english_with_long_words() -> UserTrie {
 }
 
 fn decode(decoder: &mut Decoder, trie: &UserTrie, path: &[Point]) -> Vec<Candidate> {
-    let sources = [Source { walker: trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0 }];
+    let sources = [Source { walker: trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0, scale: RankScale::RAW }];
     decoder.decode(path, &keymap(), KEY_W, &sources, 4, None, 0)
 }
 

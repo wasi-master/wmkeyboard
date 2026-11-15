@@ -17,7 +17,7 @@
 use std::collections::HashMap;
 use std::time::Instant;
 
-use wm_engine::fuzzy::Tier;
+use wm_engine::fuzzy::{RankScale, Tier};
 use wm_engine::glide::ctc::{CtcDecoder, Scoring, Stroke, CLASSES};
 use wm_engine::glide::keymap::KeyMap;
 use wm_engine::glide::{Decoder, LearnedShapes, Marks, Point, Source, Tuning, SHAPE_QUANT};
@@ -196,7 +196,7 @@ fn main() {
             .map(|part| {
                 let trie = &trie;
                 scope.spawn(move || {
-                    let sources = [Source { walker: trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0 }];
+                    let sources = [Source { walker: trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0, scale: RankScale::RAW }];
                     let mut decoder = CtcDecoder::new(scoring);
                     let mut glide = Decoder::new(Tuning::default());
                     let mut t = Tally::default();

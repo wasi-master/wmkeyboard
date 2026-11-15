@@ -405,7 +405,11 @@ internal object PredictionNative {
     external fun glideKeyMapOpen(keyX: FloatArray, keyY: FloatArray, codePoints: IntArray, keyOf: IntArray): Long
     external fun glideKeyMapClose(handle: Long)
 
-    /** The tuning array layout `glideDecode` reads; 2 is the `[2, count, fields...]` envelope. */
+    /**
+     * The tuning array layout `glideDecode` reads; 2 is the `[2, count, fields...]`
+     * envelope, 3 the same envelope plus each source's ranking scale appended
+     * to the weights (three values a source: weight, scale floor, stretch).
+     */
     external fun glideTuningVersion(): Int
 
     /**

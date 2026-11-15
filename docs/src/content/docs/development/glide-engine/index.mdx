@@ -26,6 +26,16 @@ sources, flattens both into arrays for `PredictionNative.glideDecode`, and
 post-processes what comes back: the context blend, the n-gram rerank, apostrophes
 and casing.
 
+Each source carries the list's ranking scale (`RankScale`, the one the typing
+walk reads, see [Dictionaries](/development/dictionaries/)) beside its weight:
+the decoder's frequency term is `log_weight + freq_weight * scale.ln1p(f)`. A
+library that reads scales reports `glideTuningVersion` 3, and `NativeGlide`
+then appends every source's floor and stretch to the weights array (three
+values a source) and sends `rankWeight` as the weight; against an older
+library it sends `logWeight` alone, which reads every list as stored. The
+harnesses read their list at its scale too; `SCALE=raw` in `glide_beam_eval`
+and `glide_cases` reads it as stored.
+
 ## Pages
 
 - [Language profiles](/development/glide-engine/language-profiles/): the

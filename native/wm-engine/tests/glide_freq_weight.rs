@@ -3,7 +3,7 @@
 //! At 1.0 a decode is the shipped one to the bit; below it the frequency
 //! term shrinks by exactly that factor and the shape term stands.
 
-use wm_engine::fuzzy::Tier;
+use wm_engine::fuzzy::{RankScale, Tier};
 use wm_engine::glide::keymap::KeyMap;
 use wm_engine::glide::{Candidate, Decoder, Point, Source, Tuning};
 use wm_engine::user_lexicon::UserTrie;
@@ -60,7 +60,7 @@ fn english() -> (UserTrie, Vec<(String, i32)>) {
 }
 
 fn decode(decoder: &mut Decoder, trie: &UserTrie, path: &[Point]) -> Vec<Candidate> {
-    let sources = [Source { walker: trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0 }];
+    let sources = [Source { walker: trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0, scale: RankScale::RAW }];
     decoder.decode(path, &keymap(), KEY_W, &sources, 4, None, 0)
 }
 
@@ -114,5 +114,32 @@ fn at_weight_zero_the_order_is_the_shape_order() {
         for pair in found.windows(2) {
             assert!(pair[0].shape_cost <= pair[1].shape_cost, "{word}: {} before {}", word_of(&pair[0]), word_of(&pair[1]));
         }
+    }
+}
+
+#[test]
+fn a_corpus_count_list_read_on_its_scale_decodes_as_the_bundled_list_does() {
+    // The bundled list's numbers are `973.83 ln(count / 1000) + 1`: turned
+    // back into corpus counts, the list a download carries. Read as stored,
+    // its commonest short words outweigh a stroke ("pinned" read "one");
+    // read on its own ranking scale it decodes as the bundled list does.
+    let (bundled, words) = english();
+    let mut corpus = UserTrie::new();
+    let mut counts = Vec::new();
+    for (word, f) in &words {
+        let count = (1000.0 * ((*f as f64 - 1.0) / 973.83).exp()).round().max(1.0) as i32;
+        counts.push(count);
+        corpus.insert(word, count);
+    }
+    let scale = RankScale::for_counts(&counts, 10_000.0, 1.01);
+    assert!(!scale.is_raw());
+    let mut decoder = Decoder::new(Tuning::default());
+    for word in ["pinned", "bigger", "keyboard", "people", "those"] {
+        let path = swipe(word);
+        let sources = [Source { walker: &corpus, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0, scale }];
+        let scaled = decoder.decode(&path, &keymap(), KEY_W, &sources, 4, None, 0);
+        let plain = decode(&mut decoder, &bundled, &path);
+        assert_eq!(scaled.first().map(word_of), plain.first().map(word_of), "{word}");
+        assert_eq!(scaled.first().map(word_of).as_deref(), Some(word));
     }
 }

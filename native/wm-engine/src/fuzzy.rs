@@ -395,6 +395,16 @@ impl RankScale {
         }
     }
 
+    /// [`RankScale::for_list`] for a list given as its counts, in any order:
+    /// what the harnesses read a word list at.
+    pub fn for_counts(counts: &[i32], reference: f64, tolerance: f64) -> RankScale {
+        let mut sorted = counts.to_vec();
+        sorted.sort_unstable_by(|a, b| b.cmp(a));
+        let top = sorted.first().copied().unwrap_or(0);
+        let at_anchor = sorted.get(RankScale::ANCHOR_RANK - 1).copied().unwrap_or(0);
+        RankScale::for_list(top, at_anchor, reference, tolerance)
+    }
+
     /// The line that puts a list whose commonest word is `top` where the
     /// bundled list's is, at `reference` (10,000), with the floor the same
     /// ratio below it.

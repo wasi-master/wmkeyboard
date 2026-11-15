@@ -76,10 +76,10 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
         // Heaviest source first, so its emissions raise the floor before the
         // lighter ones start — the same ordering trick the typing beam uses.
         val ordered = sources.sortedByDescending {
-            it.logWeight + tuning.freqWeight * ln1p(it.walker.maxSubtree(it.walker.root))
+            it.rankWeight + tuning.freqWeight * it.scale.ln1p(it.walker.maxSubtree(it.walker.root))
         }
         for (src in ordered) {
-            val rootBound = src.logWeight + tuning.freqWeight * ln1p(src.walker.maxSubtree(src.walker.root))
+            val rootBound = src.rankWeight + tuning.freqWeight * src.scale.ln1p(src.walker.maxSubtree(src.walker.root))
             if (rootBound < floor - EPS) continue
             floor = searchOne(src, keys, ws, k, results, floor, ahead, budget)
         }
@@ -338,7 +338,7 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
         ws.push(
             node = walker.root, parent = -1, viaLabel = KotlinGlideWorkspace.NO_LABEL,
             lastKey = -1, length = 0, extra = 0f, floorCost = 0f,
-            bound = src.logWeight + tuning.freqWeight * ln1p(walker.maxSubtree(walker.root)),
+            bound = src.rankWeight + tuning.freqWeight * src.scale.ln1p(walker.maxSubtree(walker.root)),
             letterCp = 0,
         )
 
@@ -382,7 +382,7 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
                     walker.isWord(node) &&
                     walker.frequency(node) >= minFrequency
                 ) {
-                    val score = src.logWeight + tuning.freqWeight * ln1p(lmCap(partFreq, walker.frequency(node))) -
+                    val score = src.rankWeight + tuning.freqWeight * src.scale.ln1p(lmCap(partFreq, walker.frequency(node))) -
                         tuning.shapeWeight * shape -
                         charge
                     if (score > floor - EPS || results.size < k) {
@@ -417,8 +417,8 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
             ) {
                 val cap = lmCap(partFreq, walker.frequency(node))
                 val floorCost = ws.floorCost[s]
-                val partPenalty = tuning.joinPartPenalty * ln1p(walker.frequency(node))
-                val bound = src.logWeight + tuning.freqWeight * ln1p(lmCap(cap, walker.maxSubtree(walker.root))) -
+                val partPenalty = tuning.joinPartPenalty * src.scale.ln1p(walker.frequency(node))
+                val bound = src.rankWeight + tuning.freqWeight * src.scale.ln1p(lmCap(cap, walker.maxSubtree(walker.root))) -
                     tuning.shapeWeight * (floorCost + extra) -
                     joinCharge(joins + 1) -
                     ws.joinPenalty[s] -
@@ -514,7 +514,7 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
                     if (minCol >= KotlinGlideWorkspace.UNREACHABLE) continue
                 }
 
-                val bound = src.logWeight + tuning.freqWeight * ln1p(lmCap(partFreq, subtree)) -
+                val bound = src.rankWeight + tuning.freqWeight * src.scale.ln1p(lmCap(partFreq, subtree)) -
                     tuning.shapeWeight * (minCol + childExtra) -
                     charge
                 if (bound < floor - EPS) continue
@@ -573,7 +573,7 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
         floor: Double,
         ws: KotlinGlideWorkspace,
     ): Boolean {
-        val bound = src.logWeight + tuning.freqWeight * ln1p(lmCap(ws.partFreq[s], subtree)) -
+        val bound = src.rankWeight + tuning.freqWeight * src.scale.ln1p(lmCap(ws.partFreq[s], subtree)) -
             tuning.shapeWeight * (ws.floorCost[s] + extra) -
             joinCharge(ws.joins[s]) -
             ws.joinPenalty[s]
@@ -648,7 +648,7 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
         val spelled = word.toString()
         if (listedNonWord(spelled, src)) return
         val extra = spelled.length - prefix.length
-        val score = src.logWeight + tuning.freqWeight * ln1p(lmCap(ws.partFreq[s], best)) -
+        val score = src.rankWeight + tuning.freqWeight * src.scale.ln1p(lmCap(ws.partFreq[s], best)) -
             tuning.shapeWeight * shape -
             tuning.lookAheadCost * extra -
             joinCharge(ws.joins[s]) -
@@ -1752,8 +1752,6 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
         const val RESULT_K = 8
 
         private const val EPS = 1e-9
-
-        private fun ln1p(v: Int): Double = ln(1.0 + v)
 
         /**
          * The frequency a compound's language-model term is read at: the

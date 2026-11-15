@@ -49,10 +49,19 @@
 use std::collections::HashSet;
 use std::io::{BufRead, Write};
 
-use wm_engine::fuzzy::Tier;
+use wm_engine::fuzzy::{RankScale, Tier};
 use wm_engine::glide::keymap::KeyMap;
 use wm_engine::glide::{open_run, Candidate, Decoder, Point, Source, Tuning};
 use wm_engine::user_lexicon::UserTrie;
+
+
+/// How the word list's counts are read ([`RankScale::for_counts`]), set once
+/// when it is loaded.
+static LIST_SCALE: std::sync::OnceLock<RankScale> = std::sync::OnceLock::new();
+
+fn list_scale() -> RankScale {
+    LIST_SCALE.get().copied().unwrap_or(RankScale::RAW)
+}
 
 struct Record {
     word: String,
@@ -151,10 +160,19 @@ fn main() {
     let text = std::fs::read_to_string(&args[3]).expect("word list");
     let mut trie = UserTrie::new();
     let mut known: HashSet<String> = HashSet::new();
+    let mut counts: Vec<i32> = Vec::new();
     for (word, frequency) in wm_engine::wordlist::parse(&text) {
         known.insert(word.to_lowercase());
+        counts.push(frequency);
         trie.insert(&word, frequency);
     }
+    // The list is read at the scale the keyboard reads it at
+    // (`RankScale::for_list`); `SCALE=raw` reads its counts as stored.
+    let _ = LIST_SCALE.set(if std::env::var("SCALE").is_ok_and(|v| v == "raw") {
+        RankScale::RAW
+    } else {
+        RankScale::for_counts(&counts, 10_000.0, 1.01)
+    });
     let skip = std::env::var("SKIP").ok().and_then(|v| v.parse().ok()).unwrap_or(0usize);
     let limit = std::env::var("LIMIT").ok().and_then(|v| v.parse().ok()).unwrap_or(usize::MAX);
     let threads = std::env::var("THREADS").ok().and_then(|v| v.parse().ok()).unwrap_or(8usize);
@@ -210,7 +228,7 @@ fn main() {
                 .map(|part| {
                     let (trie, layout, known) = (&trie, &layout, &known);
                     scope.spawn(move || {
-                        let sources = [Source { walker: trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0 }];
+                        let sources = [Source { walker: trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0, scale: list_scale() }];
                         let mut decoder = Decoder::new(tuning.clone());
                         let mut t = Tally::default();
                         let mut lines: Vec<String> = Vec::new();
@@ -323,7 +341,7 @@ fn walk(from: Point, to: Point, key_width: f32) -> Vec<Point> {
 /// before) and with the walk as an open end (what it does now), and the
 /// whole-pair hit rate too.
 fn chained(records: &[Record], layout: &[(i32, f32, f32)], trie: &UserTrie) {
-    let sources = [Source { walker: trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0 }];
+    let sources = [Source { walker: trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0, scale: list_scale() }];
     let mut decoder = Decoder::new(Tuning::default());
     let (mut n, mut first_plain, mut first_open, mut second_plain, mut second_open, mut both_plain, mut both_open) =
         (0usize, 0usize, 0usize, 0usize, 0usize, 0usize, 0usize);
@@ -565,7 +583,7 @@ fn phrases(records: &[Record], layout: &[(i32, f32, f32)], trie: &UserTrie, thre
             .enumerate()
             .map(|(part_index, part)| {
                 scope.spawn(move || {
-                    let sources = [Source { walker: trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0 }];
+                    let sources = [Source { walker: trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0, scale: list_scale() }];
                     let mut decoder = Decoder::new(Tuning::default());
                     let mut rng = Lcg(part_index as u64 + 1);
                     let mut t = PhraseTally::default();

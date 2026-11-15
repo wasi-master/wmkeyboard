@@ -8,7 +8,7 @@
 //! almost never stood clear of the words the stroke already spelled. These
 //! hold the three weights that were moved back to where each does its job.
 
-use wm_engine::fuzzy::Tier;
+use wm_engine::fuzzy::{RankScale, Tier};
 use wm_engine::glide::keymap::KeyMap;
 use wm_engine::glide::{Candidate, Decoder, Point, Source, Tuning};
 use wm_engine::user_lexicon::UserTrie;
@@ -105,7 +105,7 @@ fn english() -> UserTrie {
 }
 
 fn decode(tuning: Tuning, trie: &UserTrie, path: &[Point], look_ahead: usize) -> Vec<Candidate> {
-    let sources = [Source { walker: trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0 }];
+    let sources = [Source { walker: trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0, scale: RankScale::RAW }];
     Decoder::new(tuning).decode(path, &keymap(), KEY_W, &sources, 8, None, look_ahead)
 }
 

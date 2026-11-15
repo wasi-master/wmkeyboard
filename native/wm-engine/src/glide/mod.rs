@@ -16,10 +16,9 @@ pub mod keymap;
 pub mod loops;
 pub mod workspace;
 
-use crate::fuzzy::{Tier, Walker};
+use crate::fuzzy::{RankScale, Tier, Walker};
 use crate::kernels::band;
 use crate::sort;
-use crate::strict_math;
 use keymap::KeyMap;
 use loops::{is_joiner, is_non_word, LoopScan};
 use std::collections::HashMap;
@@ -204,9 +203,15 @@ pub struct Alignment {
 /// frequency a word in it may have (0 for none).
 pub struct Source<'a> {
     pub walker: &'a dyn Walker,
+    /// The weight on the scale the counts are read at ([`Source::scale`]).
     pub log_weight: f64,
     pub tier: Tier,
     pub min_frequency: i32,
+    /// How the list's counts enter the score, as for the typing walk
+    /// ([`RankScale`]): a list of corpus counts on the bundled list's log
+    /// line, so a word's frequency weighs against the stroke's shape the
+    /// way the fit on the bundled list set it.
+    pub scale: RankScale,
 }
 
 /// The user's own drawn shapes per word, quantised as the shape store keeps
@@ -282,10 +287,6 @@ const EPS: f64 = 1e-9;
 const SKIP_SLACK: f32 = 1e-3;
 /// `GlideShapeStore.QUANT`.
 pub const SHAPE_QUANT: f32 = 10.0;
-
-fn ln1p(v: i32) -> f64 {
-    strict_math::ln1p_count(v)
-}
 
 /// The frequency a compound's language-model term is read at: the least
 /// of its finished parts' (`cap`, `workspace::NO_PART` for none) and `f`, the current
@@ -453,7 +454,7 @@ impl Decoder {
         let mut floor = f64::NEG_INFINITY;
         let mut ordered: Vec<&Source> = sources.iter().collect();
         let fw = self.tuning.freq_weight;
-        let root_bound = |s: &Source| s.log_weight + fw * ln1p(s.walker.max_subtree(s.walker.root()));
+        let root_bound = |s: &Source| s.log_weight + fw * s.scale.ln1p(s.walker.max_subtree(s.walker.root()));
         sort::by(&mut ordered, |a, b| root_bound(b).total_cmp(&root_bound(a)));
         for src in ordered {
             if root_bound(src) < floor - EPS {
@@ -716,7 +717,7 @@ impl Decoder {
 
         self.ws.reset();
         let root = walker.root();
-        self.ws.push(root, -1, NO_LABEL, -1, 0, 0.0, 0.0, src.log_weight + tuning.freq_weight * ln1p(walker.max_subtree(root)), 0);
+        self.ws.push(root, -1, NO_LABEL, -1, 0, 0.0, 0.0, src.log_weight + tuning.freq_weight * src.scale.ln1p(walker.max_subtree(root)), 0);
 
         let mut pops = 0;
         let max_pops = tuning.max_pops.max(1);
@@ -752,7 +753,7 @@ impl Decoder {
                     && walker.is_word(node)
                     && walker.frequency(node) >= min_frequency
                 {
-                    let score = src.log_weight + tuning.freq_weight * ln1p(lm_cap(part_freq, walker.frequency(node)))
+                    let score = src.log_weight + tuning.freq_weight * src.scale.ln1p(lm_cap(part_freq, walker.frequency(node)))
                         - tuning.shape_weight * shape as f64
                         - charge;
                     if score > floor - EPS || results.len() < k {
@@ -794,8 +795,8 @@ impl Decoder {
             {
                 let cap = lm_cap(part_freq, walker.frequency(node));
                 let floor_cost = self.ws.floor_cost[s];
-                let part_penalty = tuning.join_part_penalty * ln1p(walker.frequency(node));
-                let bound = src.log_weight + tuning.freq_weight * ln1p(lm_cap(cap, walker.max_subtree(root)))
+                let part_penalty = tuning.join_part_penalty * src.scale.ln1p(walker.frequency(node));
+                let bound = src.log_weight + tuning.freq_weight * src.scale.ln1p(lm_cap(cap, walker.max_subtree(root)))
                     - tuning.shape_weight * (floor_cost + extra) as f64
                     - tuning.join_charge(joins + 1)
                     - self.ws.join_penalty[s]
@@ -852,7 +853,7 @@ impl Decoder {
 
                 let min_col: f32;
                 let mut child_extra = extra;
-                let head = src.log_weight + tuning.freq_weight * ln1p(lm_cap(part_freq, subtree));
+                let head = src.log_weight + tuning.freq_weight * src.scale.ln1p(lm_cap(part_freq, subtree));
                 if repeat {
                     min_col = self.ws.floor_cost[s];
                     child_extra += self.repeat_charge(last_key as usize);
@@ -910,7 +911,7 @@ impl Decoder {
 
     #[allow(clippy::too_many_arguments)]
     fn descend_silent(&mut self, src: &Source, subtree: i32, s: usize, child: u32, label: u16, extra: f32, floor: f64) -> bool {
-        let bound = src.log_weight + self.tuning.freq_weight * ln1p(lm_cap(self.ws.part_freq[s], subtree))
+        let bound = src.log_weight + self.tuning.freq_weight * src.scale.ln1p(lm_cap(self.ws.part_freq[s], subtree))
             - self.tuning.shape_weight * (self.ws.floor_cost[s] + extra) as f64
             - self.tuning.join_charge(self.ws.joins[s])
             - self.ws.join_penalty[s];
@@ -970,7 +971,7 @@ impl Decoder {
             return;
         }
         let extra = (word.len() - prefix.len()) as i32;
-        let score = src.log_weight + self.tuning.freq_weight * ln1p(lm_cap(self.ws.part_freq[s], best))
+        let score = src.log_weight + self.tuning.freq_weight * src.scale.ln1p(lm_cap(self.ws.part_freq[s], best))
             - self.tuning.shape_weight * shape as f64
             - self.tuning.look_ahead_cost * extra as f64
             - self.tuning.join_charge(self.ws.joins[s])
@@ -2137,7 +2138,7 @@ mod kernel_parity {
         for (w, f) in &entries {
             trie.insert(w, *f);
         }
-        let sources = [Source { walker: &trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0 }];
+        let sources = [Source { walker: &trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0, scale: RankScale::RAW }];
         let keys = keymap();
         let words: Vec<&str> = entries
             .iter()
@@ -2253,7 +2254,7 @@ mod chained {
     }
 
     fn top(decoder: &mut Decoder, trie: &UserTrie, path: &[Point]) -> Option<String> {
-        let sources = [Source { walker: trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0 }];
+        let sources = [Source { walker: trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0, scale: RankScale::RAW }];
         decoder.decode(path, &keymap(), KEY_W, &sources, 4, None, 0).first().map(|c| String::from_utf16_lossy(&c.word))
     }
 

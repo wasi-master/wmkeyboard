@@ -23,7 +23,7 @@ use std::collections::HashSet;
 use std::io::BufRead;
 use std::time::Instant;
 
-use wm_engine::fuzzy::Tier;
+use wm_engine::fuzzy::{RankScale, Tier};
 use wm_engine::glide::keymap::KeyMap;
 use wm_engine::glide::{Decoder, Point, Source, Tuning};
 use wm_engine::user_lexicon::UserTrie;
@@ -72,6 +72,7 @@ fn main() {
             log_weight: if i == 0 { 0.0 } else { secondary },
             tier: Tier::Dictionary,
             min_frequency: *floor,
+            scale: RankScale::RAW,
         })
         .collect();
 

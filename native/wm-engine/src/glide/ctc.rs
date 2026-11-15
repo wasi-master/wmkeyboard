@@ -410,7 +410,7 @@ impl CtcDecoder {
             let path = cur.score / powf(length, self.scoring.length_norm);
             let score = path
                 + self.scoring.length_bonus * length
-                + self.scoring.freq_weight * (src.log_weight + strict_math::ln1p_count(frequency)) as f32;
+                + self.scoring.freq_weight * (src.log_weight + src.scale.ln1p(frequency)) as f32;
             let better = match best.get(&word) {
                 None => true,
                 Some(existing) => existing.score < score as f64,
@@ -472,7 +472,7 @@ impl CtcDecoder {
         let length = cur.depth as f32;
         let path = cur.score / powf(length, self.scoring.length_norm);
         let score = path + self.scoring.length_bonus * length
-            + self.scoring.freq_weight * (src.log_weight + strict_math::ln1p_count(best)) as f32
+            + self.scoring.freq_weight * (src.log_weight + src.scale.ln1p(best)) as f32
             - self.scoring.look_ahead_cost * extra as f32;
         let better = match ahead.get(&word) {
             None => true,

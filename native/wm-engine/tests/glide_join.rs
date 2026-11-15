@@ -5,7 +5,7 @@
 //! and `join_part_penalty` guard it: every part at least that long, and
 //! each part joined past charged on its own frequency.
 
-use wm_engine::fuzzy::Tier;
+use wm_engine::fuzzy::{RankScale, Tier};
 use wm_engine::glide::keymap::KeyMap;
 use wm_engine::glide::{Candidate, Decoder, Point, Source, Tuning};
 use wm_engine::user_lexicon::UserTrie;
@@ -76,7 +76,7 @@ fn frequency(word: &str) -> i32 {
 }
 
 fn decode(decoder: &mut Decoder, trie: &UserTrie, path: &[Point]) -> Vec<Candidate> {
-    let sources = [Source { walker: trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0 }];
+    let sources = [Source { walker: trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0, scale: RankScale::RAW }];
     decoder.decode(path, &keymap(), KEY_W, &sources, 4, None, 0)
 }
 

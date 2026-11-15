@@ -19,7 +19,7 @@
 use std::io::{BufRead, Write};
 use std::sync::Arc;
 
-use wm_engine::fuzzy::Tier;
+use wm_engine::fuzzy::{RankScale, Tier};
 use wm_engine::glide::keymap::KeyMap;
 use wm_engine::glide::{Decoder, Point, Source, Tuning};
 use wm_engine::lm::{Lm, Prefix, Session};
@@ -186,6 +186,7 @@ fn main() {
                                 log_weight: 0.0,
                                 tier: Tier::Dictionary,
                                 min_frequency: 0,
+                                scale: RankScale::RAW,
                             }];
                             let mut out = decoder.decode(
                                 &r.points,

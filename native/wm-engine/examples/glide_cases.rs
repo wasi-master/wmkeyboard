@@ -25,10 +25,19 @@
 
 use std::io::BufRead;
 
-use wm_engine::fuzzy::Tier;
+use wm_engine::fuzzy::{RankScale, Tier};
 use wm_engine::glide::keymap::KeyMap;
 use wm_engine::glide::{Decoder, Point, Source, Tuning};
 use wm_engine::user_lexicon::UserTrie;
+
+
+/// How the word list's counts are read ([`RankScale::for_counts`]), set once
+/// when it is loaded.
+static LIST_SCALE: std::sync::OnceLock<RankScale> = std::sync::OnceLock::new();
+
+fn list_scale() -> RankScale {
+    LIST_SCALE.get().copied().unwrap_or(RankScale::RAW)
+}
 
 const WIDTH: f32 = 1000.0;
 const HEIGHT: f32 = 420.0;
@@ -242,10 +251,19 @@ fn main() {
     );
     let text = std::fs::read_to_string(&args[2]).expect("word list");
     let mut trie = UserTrie::new();
+    let mut counts: Vec<i32> = Vec::new();
     for (word, frequency) in wm_engine::wordlist::parse(&text) {
+        counts.push(frequency);
         trie.insert(&word, frequency);
     }
-    let sources = [Source { walker: &trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0 }];
+    // The list is read at the scale the keyboard reads it at
+    // (`RankScale::for_list`); `SCALE=raw` reads its counts as stored.
+    let _ = LIST_SCALE.set(if std::env::var("SCALE").is_ok_and(|v| v == "raw") {
+        RankScale::RAW
+    } else {
+        RankScale::for_counts(&counts, 10_000.0, 1.01)
+    });
+    let sources = [Source { walker: &trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0, scale: list_scale() }];
     let quiet = std::env::var("QUIET").is_ok_and(|v| v == "1");
     let (mut total, mut total_hit) = (0usize, 0usize);
 

@@ -211,7 +211,7 @@ class KotlinCtcGlideBeam(private val scoring: Scoring = Scoring()) {
             val length = curDepth[h].toFloat()
             val path = curScore[h] / length.pow(scoring.lengthNorm)
             val score = path + scoring.lengthBonus * length +
-                scoring.freqWeight * (src.logWeight + ln(1.0 + frequency)).toFloat()
+                scoring.freqWeight * (src.rankWeight + src.scale.ln1p(frequency)).toFloat()
             val existing = best[word]
             if (existing == null || existing.score < score) {
                 best[word] = GlideBeam.Candidate(word, score.toDouble(), -path.toDouble(), src.tier)
@@ -261,7 +261,7 @@ class KotlinCtcGlideBeam(private val scoring: Scoring = Scoring()) {
         val length = depth.toFloat()
         val path = pathScore / length.pow(scoring.lengthNorm)
         val score = path + scoring.lengthBonus * length +
-            scoring.freqWeight * (src.logWeight + ln(1.0 + best)).toFloat() -
+            scoring.freqWeight * (src.rankWeight + src.scale.ln1p(best)).toFloat() -
             scoring.lookAheadCost * extra
         val existing = ahead[guess]
         if (existing == null || existing.score < score) {
