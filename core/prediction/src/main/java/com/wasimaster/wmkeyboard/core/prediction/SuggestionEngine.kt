@@ -2238,13 +2238,28 @@ class SuggestionEngine(
         previousWord: String?,
         previousWord2: String?,
         useModel: Boolean = true,
-    ): List<List<String>> {
+    ): List<List<String>> = readGlidePhraseWithRunnerUp(slots, previousWord, previousWord2, useModel).first
+
+    /**
+     * [readGlidePhrase], and beside it the runner-up phrase to offer on the
+     * strip ([GlidePhraseLattice.runnerUp]), one word per slot, or null when
+     * no other reading of an earlier word came close.
+     */
+    fun readGlidePhraseWithRunnerUp(
+        slots: List<GlidePhraseLattice.Slot>,
+        previousWord: String?,
+        previousWord2: String?,
+        useModel: Boolean = true,
+    ): Pair<List<List<String>>, List<String>?> {
         val lift = glideContextLift()
         val back1 = previousWord?.takeUnless(WordContext::isSentinel)
         val back2 = previousWord2?.takeUnless(WordContext::isSentinel).takeIf { back1 != null }
-        val phrases = GlidePhraseLattice.read(slots, back2, back1, lift = lift)
-        val best = (if (useModel) withPhraseModel(phrases) else phrases).firstOrNull() ?: return slots.map { it.words }
-        return GlidePhraseLattice.slotOrders(slots, best, back2, back1, lift)
+        val phrases = GlidePhraseLattice.read(slots, back2, back1, lift = lift).let {
+            if (useModel) withPhraseModel(it) else it
+        }
+        val best = phrases.firstOrNull() ?: return slots.map { it.words } to null
+        val runnerUp = GlidePhraseLattice.runnerUp(phrases)?.words?.takeIf { words -> words.all { it != null } }
+        return GlidePhraseLattice.slotOrders(slots, best, back2, back1, lift) to runnerUp?.map { it.orEmpty() }
     }
 
     /**

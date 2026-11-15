@@ -96,4 +96,25 @@ class GlidePhraseLatticeTest {
         assertEquals(listOf("a"), orders[0])
         assertEquals(listOf("far", "car", "us"), orders[1])
     }
+
+    @Test
+    fun theRunnerUpChangesAnEarlierWord() {
+        val slots = listOf(slot("by" to 5.0, "buy" to 4.8), slot("a" to 3.0), slot("car" to 6.0, "far" to 5.9))
+        val phrases = GlidePhraseLattice.read(slots, null, null, lift = silent)
+        // "by a far" is closer, but the last word's alternates are on the strip already.
+        assertEquals(listOf("buy", "a", "car"), GlidePhraseLattice.runnerUp(phrases)?.words)
+    }
+
+    @Test
+    fun aRunnerUpTooFarBehindIsNotOffered() {
+        val slots = listOf(slot("by" to 5.0, "buy" to 1.0), slot("a" to 3.0), slot("car" to 6.0))
+        val phrases = GlidePhraseLattice.read(slots, null, null, lift = silent)
+        assertEquals(null, GlidePhraseLattice.runnerUp(phrases))
+    }
+
+    @Test
+    fun aOneWordStrokeHasNoRunnerUp() {
+        val phrases = GlidePhraseLattice.read(listOf(slot("by" to 5.0, "buy" to 4.9)), null, null, lift = silent)
+        assertEquals(null, GlidePhraseLattice.runnerUp(phrases))
+    }
 }

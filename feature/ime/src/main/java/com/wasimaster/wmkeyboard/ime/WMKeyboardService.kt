@@ -3998,6 +3998,22 @@ open class WMKeyboardService : InputMethodService() {
 
     private class ChainedWord(val word: String, val stroke: GlideStroke, val after: String)
 
+    /**
+     * The runner-up reading of a stroke that crossed the spacebar, on the
+     * strip as one chip (#832): [chip] is that phrase, [committed] the phrase
+     * the stroke typed, as the field shows it. It is the only way to change
+     * a word earlier in the stroke without taking the later ones back with
+     * Backspace first. A pick replaces the phrase only while the text in
+     * front of the caret is still [committed].
+     */
+    private class PhraseChip(val chip: String, val committed: String)
+
+    /** The phrase chip on offer, or null; see [PhraseChip]. */
+    private var phraseChip: PhraseChip? = null
+
+    /** What [glidePhrase] last read as the stroke's runner-up phrase, one word a segment. */
+    private var glidePhraseRunnerUp: List<String>? = null
+
     /** The words this stroke has finished by crossing the spacebar, for its previews. Main thread only. */
     private val previewChain = ArrayList<List<GesturePoint>>()
 
@@ -32008,6 +32024,10 @@ open class WMKeyboardService : InputMethodService() {
         // edit in the service. A live buffer keeps its region, which is the
         // one the ordinary pick is *supposed* to replace.
         if (composing.isEmpty()) ic.finishComposingText()
+        phraseChip?.takeIf { it.chip == suggestion }?.let { offer ->
+            phraseChip = null
+            if (composing.isEmpty() && replacePhrase(ic, offer)) return
+        }
         // The two-thumb split chip (#832): only while the word it splits is
         // still the one open, or still the one the pause just typed.
         duetSplit?.takeIf { it.chip == suggestion }?.let { split ->
@@ -33756,6 +33776,51 @@ open class WMKeyboardService : InputMethodService() {
      * so the picker's preference is still measured against the decoder's own
      * first choice.
      */
+    /**
+     * The chip for a stroke's [runnerUp] phrase beside the [typed] one, or
+     * null when the two read the same. Each word takes the capital its typed
+     * counterpart has (a shifted first word, a name the list capitalises).
+     */
+    private fun phraseChipFor(typed: List<String>, runnerUp: List<String>): PhraseChip? {
+        val words = runnerUp.mapIndexed { i, w ->
+            val t = typed[i]
+            if (t.firstOrNull()?.isUpperCase() == true) w.replaceFirstChar { it.titlecase() } else w
+        }
+        if (words == typed) return null
+        return PhraseChip(words.joinToString(" "), typed.joinToString(" "))
+    }
+
+    /**
+     * Puts [offer]'s phrase in place of the one the stroke typed, keeping the
+     * space after it, if the text in front of the caret is still that phrase
+     * (with or without the space). False, changing nothing, when it is not.
+     */
+    private fun replacePhrase(ic: InputConnection, offer: PhraseChip): Boolean {
+        val before = ic.getTextBeforeCursor(offer.committed.length + 1, 0)?.toString() ?: return false
+        val tail = when {
+            before.endsWith(offer.committed + " ") -> " "
+            before.endsWith(offer.committed) -> ""
+            else -> return false
+        }
+        val length = offer.committed.length + tail.length
+        revision?.expectDelete(length, 0)
+        ic.beginBatchEdit()
+        ic.deleteSurroundingText(length, 0)
+        ic.commitText(offer.chip + tail, 1)
+        ic.endBatchEdit()
+        // The stroke's words are no longer the ones typed: nothing of them is
+        // left for Backspace or the strip to take back.
+        lastGestureWord = null
+        lastGestureStroke = null
+        stripReplacesGestureWord = false
+        chainBehind.clear()
+        offer.committed.split(' ').forEach { learningBuffer.drop(it) }
+        armRevertGuard()
+        syncPreviousWordFromField(ic)
+        refreshSuggestions()
+        return true
+    }
+
     private fun glidePhrase(
         segments: List<List<GesturePoint>>,
         keys: List<KeyCenter>,
@@ -33772,7 +33837,8 @@ open class WMKeyboardService : InputMethodService() {
                 GlidePhraseLattice.Slot(reading.words, reading.scores)
             }
         }
-        val orders = engine.readGlidePhrase(slots, previousWord, previousWord2)
+        val (orders, runnerUp) = engine.readGlidePhraseWithRunnerUp(slots, previousWord, previousWord2)
+        glidePhraseRunnerUp = runnerUp
         return readings.mapIndexed { index, reading ->
             if (index == last && pinned != null) reading else reading.ordered(orders[index])
         }
@@ -36712,7 +36778,14 @@ open class WMKeyboardService : InputMethodService() {
             // stands down for it. The spaces between its words are the
             // spacebar crossings the user drew, and stay.
             var spentNoSpace = false
+            phraseChip = null
+            glidePhraseRunnerUp = null
             val readings = withContext(Dispatchers.Default) { glidePhrase(segments, keys, keyWidthPx, chosen) }
+            val runnerUp = glidePhraseRunnerUp
+            // The words as typed, one a segment, for the runner-up chip below;
+            // a segment that typed none, or a snippet, leaves the phrase unofferable.
+            val typedWords = ArrayList<String>(segments.size)
+            var phraseIntact = true
             chainBehind.clear()
             var wordBefore: Pair<String, GlideStroke>? = null
             segments.forEachIndexed { index, segment ->
@@ -36721,7 +36794,10 @@ open class WMKeyboardService : InputMethodService() {
                 // The pick belongs to the last segment, and survives an empty
                 // decode of it the way a single glide's pick does.
                 val picked = chosen?.takeIf { index == segments.lastIndex }
-                if (candidates.isEmpty() && picked == null) return@forEachIndexed
+                if (candidates.isEmpty() && picked == null) {
+                    phraseIntact = false
+                    return@forEachIndexed
+                }
                 if (picked != null && candidates.isNotEmpty() && picked != candidates.first()) {
                     noteGlidePreference(rejected = candidates.first(), chosen = picked)
                 }
@@ -36741,10 +36817,12 @@ open class WMKeyboardService : InputMethodService() {
                     // alternates for the strip to offer in its place.
                     lastWords = emptyList()
                     committedAny = true
+                    phraseIntact = false
                     return@forEachIndexed
                 }
                 caretParked = false
                 ic.commitText(word, 1)
+                typedWords += word
                 // Both before the learning hop below, for the reason spelled
                 // out in [onGesture]: this is what stops the commit's own echo
                 // arming a composing region over the word, which the next
@@ -36827,8 +36905,14 @@ open class WMKeyboardService : InputMethodService() {
                 val floating = nextWordOctopus()
                 val chips = nextWordEmoji()
                 glideStripPages(lastWords, lastWords.firstOrNull().orEmpty())
+                // The runner-up phrase (#832), after the last word's own
+                // alternates: one tap changes an earlier word of the stroke.
+                val offer = runnerUp?.takeIf { phraseIntact && !caretParked && it.size == typedWords.size }
+                    ?.let { phraseChipFor(typedWords, it) }
+                phraseChip = offer
+                val strip = if (offer != null && offer.chip !in lastWords) lastWords + offer.chip else lastWords
                 _uiState.update {
-                    it.copy(suggestions = lastWords, octopus = floating, emojiSuggestions = chips)
+                    it.copy(suggestions = strip, octopus = floating, emojiSuggestions = chips)
                 }
             }
         }

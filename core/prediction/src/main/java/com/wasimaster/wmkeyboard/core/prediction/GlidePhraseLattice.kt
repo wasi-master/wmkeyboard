@@ -135,5 +135,33 @@ object GlidePhraseLattice {
         }
     }
 
+    /**
+     * How far behind the best phrase a runner-up may score and still be
+     * offered on the strip ([runnerUp]), in nats: about the lift a common
+     * pair gives a word, so the runner-up is a reading the words around it
+     * nearly chose, not any other path through the slots.
+     */
+    const val RUNNER_UP_MARGIN = 2.5
+
+    /**
+     * The phrase to offer beside [phrases]' best, or null: the best-scoring
+     * other phrase that reads some word before the last slot differently
+     * (the last word's alternates are on the strip already), has a word in
+     * every slot the best one has, and is within [margin] nats of it. What
+     * lets a word earlier in the stroke be changed without taking the later
+     * ones back first: "by a car" offers "buy a car".
+     */
+    fun runnerUp(phrases: List<Phrase>, margin: Double = RUNNER_UP_MARGIN): Phrase? {
+        val best = phrases.firstOrNull() ?: return null
+        val last = best.words.lastIndex
+        if (last < 1) return null
+        return phrases.drop(1).firstOrNull { p ->
+            best.score - p.score <= margin &&
+                p.words.size == best.words.size &&
+                p.words.indices.all { (p.words[it] == null) == (best.words[it] == null) } &&
+                (0 until last).any { p.words[it] != best.words[it] }
+        }
+    }
+
     private class Path(val score: Double, val words: List<String?>, val back2: String?, val back1: String?)
 }
