@@ -31,9 +31,21 @@ package com.wasimaster.wmkeyboard.core.input.imported
  */
 class MimEngine(private val program: MimProgram) {
 
-    /** What a run of keys wrote: the settled part, and the part still composing. */
-    data class Result(val committed: String, val preedit: String) {
+    /**
+     * What a run of keys wrote: the settled part, and the part still
+     * composing; [choices] when the run ended inside a candidate list.
+     */
+    data class Result(val committed: String, val preedit: String, val choices: Choices? = null) {
         val text: String get() = committed + preedit
+    }
+
+    /**
+     * The candidate list the run ended on: the whole text is [before], one
+     * of [list], then [after]; [index] is the one the rules chose.
+     */
+    data class Choices(val before: String, val list: List<String>, val index: Int, val after: String) {
+        /** The whole text with choice [i] in place. */
+        fun textWith(i: Int): String = before + list[i] + after
     }
 
     /** The text [keys] type, each key a character the method reads. */
@@ -45,7 +57,8 @@ class MimEngine(private val program: MimProgram) {
             context.filter(String(Character.toChars(cp)))
             i += Character.charCount(cp)
         }
-        return Result(codePoints(context.committed), codePoints(context.preedit))
+        val committed = codePoints(context.committed)
+        return Result(committed, codePoints(context.preedit), context.openChoices(committed))
     }
 
     /**
@@ -156,6 +169,19 @@ class MimEngine(private val program: MimProgram) {
             map = state.root
             prevState = null
             stateHook = null
+            choices = null
+        }
+
+        /** The candidate list still open in the preedit, after [committed]; null when there is none. */
+        fun openChoices(committed: String): Choices? {
+            val list = choices ?: return null
+            if (list.size < 2 || choiceStart < 0 || choiceEnd > preedit.size || choiceStart > choiceEnd) return null
+            val index = choiceIndex.coerceIn(0, list.size - 1)
+            // Rules that edited the text since may have moved it; then the list no longer describes it.
+            if (codePoints(preedit.subList(choiceStart, choiceEnd)) != list[index]) return null
+            val before = committed + codePoints(preedit.subList(0, choiceStart))
+            val after = codePoints(preedit.subList(choiceEnd, preedit.size))
+            return Choices(before, list, index, after)
         }
 
         private fun handleKey(): Int {

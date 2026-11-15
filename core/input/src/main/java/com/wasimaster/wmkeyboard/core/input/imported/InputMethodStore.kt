@@ -30,6 +30,12 @@ data class InputMethodMeta(
      * `w1`), a number typed on its own stays a number.
      */
     val digitsStart: Boolean = false,
+    /**
+     * Whether the space bar is one of the method's keys while a word is being
+     * spelled: a Rime Bopomofo schema writes the first tone with it, so `ㄅㄚ`
+     * then space is bā. A second space, or one on an empty word, is a space.
+     */
+    val spaceKey: Boolean = false,
 )
 
 /**
@@ -101,6 +107,7 @@ object InputMethodStore {
                     is MethodPayload.Rules -> method.keys.any { it.isDigit() }
                     is MethodPayload.Regex -> false
                 },
+                spaceKey = (method.payload as? MethodPayload.Reading)?.spellings?.keys?.any { ' ' in it } == true,
             )
             when (val p = method.payload) {
                 is MethodPayload.Table -> writeRows(File(temp, TABLE), p.rows, p.weights)

@@ -159,6 +159,28 @@ class MimEngineTest {
         assertEquals("x", engine.run("a").text)
         assertEquals("one", engine.run("b").text)
         assertTrue(MimFeature.CANDIDATE_LIST !in program.unsupported)
+        assertTrue(program.listsCandidates)
+    }
+
+    @Test
+    fun `the list a run ends on is offered, with select moving the choice`() {
+        val program = MimProgram.compile(
+            """
+            (input-method t pick)
+            (map (m ("k" "K") ("a" ("xyz"))) (sel ("n" (select @+))))
+            (state (init (m (shift pick))) (pick (sel)))
+            """.trimIndent(),
+        )
+        val engine = MimEngine(program)
+        val first = engine.run("a").choices!!
+        assertEquals(listOf("x", "y", "z"), first.list)
+        assertEquals(0, first.index)
+        assertEquals("y", first.textWith(1))
+        assertEquals(1, engine.run("an").choices!!.index)
+        assertEquals("y", engine.run("an").text)
+        // A list the initial state commits at once is already settled.
+        assertEquals(null, engine.run("k").choices)
+        assertFalse(MimProgram.compile(itrans).listsCandidates)
     }
 
     @Test

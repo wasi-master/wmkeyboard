@@ -245,6 +245,73 @@ class TableImportTest {
     }
 
     @Test
+    fun `a code table spells its uncoded phrases and the vocabulary's with its encoder`() {
+        // Wubi 86's rules: two characters take two letters of each, three take
+        // one of the first two and two of the last, four and more one of the
+        // first three and the last. A z code is excluded from building phrases.
+        val wubi = """
+            ---
+            name: wubi
+            use_preset_vocabulary: true
+            encoder:
+              exclude_patterns:
+                - '^z.*${'$'}'
+              rules:
+                - length_equal: 2
+                  formula: "AaAbBaBb"
+                - length_equal: 3
+                  formula: "AaBaCaCb"
+                - length_in_range: [4, 10]
+                  formula: "AaBaCaZa"
+            ...
+            工	aaaa
+            工	zzz
+            人	wwww
+            民	nav
+            中	khk
+            国	lgyi
+            人民
+        """.trimIndent()
+        val method = ready(file("wubi.dict.yaml", wubi), file("essay.txt", "中国\t900\n中国人民\t80\n人民\t500\n"))
+        val payload = method.payload as MethodPayload.Table
+        val rows = payload.rows.zip(payload.weights.toList()).toMap()
+        assertEquals(500, rows["wwna" to "人民"])
+        assertEquals(900, rows["khlg" to "中国"])
+        assertEquals(80, rows["klwn" to "中国人民"])
+        // The z code never joined a phrase.
+        assertTrue(payload.rows.none { it.second.length > 1 && it.first.startsWith("z") })
+    }
+
+    @Test
+    fun `a formula counts from the back past U`() {
+        assertEquals(listOf(0 to 0, -1 to -1, -2 to 1), RimeTableEncoder.formula("AaZzYb"))
+        assertNull(RimeTableEncoder.formula("Aa1"))
+        assertNull(RimeTableEncoder.formula("aA"))
+    }
+
+    @Test
+    fun `a reading schema that spells with the space bar marks it as a key`() {
+        val bopomofo = """
+            schema:
+              schema_id: test_bopomofo
+            engine:
+              translators:
+                - script_translator
+            speller:
+              alphabet: "1qaz "
+              algebra:
+                - xform/^ba1${'$'}/1 /
+            translator:
+              dictionary: test_bopomofo
+        """.trimIndent()
+        val d = "---\nname: test_bopomofo\n...\n八\tba1\n"
+        val method = ready(file("test_bopomofo.schema.yaml", bopomofo), file("test_bopomofo.dict.yaml", d))
+        val payload = method.payload as MethodPayload.Reading
+        assertTrue(payload.spellings.keys.any { ' ' in it })
+        assertTrue(method.notes.none { it is ImportNote.SpaceKey })
+    }
+
+    @Test
     fun `a slash escaped in a double-quoted YAML 1_2 string is read`() {
         val parsed = RimeFiles.loadYaml(RimeFiles.yaml12Escapes("a: \"x\\/y\"\nb: 'p\\/q'\n")) as Map<*, *>
         assertEquals("x/y", parsed["a"])

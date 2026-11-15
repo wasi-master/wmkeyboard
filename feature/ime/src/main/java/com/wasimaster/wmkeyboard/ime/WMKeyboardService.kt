@@ -19916,6 +19916,13 @@ open class WMKeyboardService : InputMethodService() {
         multitap.end()
         if (closesMultitap) return
 
+        // A method that spells with the space bar (an imported Bopomofo
+        // schema's first tone) takes it into the word being composed.
+        if (composing.isNotEmpty() && state.composer.buffersChar(' ', composing)) {
+            processTypedText(" ", applyDeadKeys = false)
+            return
+        }
+
         // Space over a selection replaces it; skip autocorrect/double-space.
         if (hasSelection(ic)) {
             // A browser's address bar shows its inline completion as a

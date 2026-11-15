@@ -333,6 +333,10 @@ object RimeFiles {
         val maxPhraseLength: Int,
         /** Phrases rarer than this are not taken from the vocabulary; 0 for no limit. */
         val minPhraseWeight: Double,
+        /** How a code table spells a phrase from its characters' codes; null for none. */
+        val encoder: RimeTableEncoder? = null,
+        /** Rows that give a phrase and no code, for [encoder] to spell: text and stated weight. */
+        val uncoded: List<Pair<String, Long?>> = emptyList(),
     )
 
     /**
@@ -359,6 +363,7 @@ object RimeFiles {
         val weightAt = columns.indexOf("weight")
         if (textAt < 0) return null
         val rows = ArrayList<Row>()
+        val uncoded = ArrayList<Pair<String, Long?>>()
         var truncated = false
         val body = text.substring(end).substringAfter('\n', "")
         for (raw in body.lineSequence()) {
@@ -370,10 +375,16 @@ object RimeFiles {
             val cells = raw.split('\t')
             val value = cells.getOrNull(textAt)?.trim().orEmpty()
             val code = if (codeAt >= 0) cells.getOrNull(codeAt)?.trim().orEmpty() else ""
-            if (value.isEmpty() || code.isEmpty()) continue
+            if (value.isEmpty()) continue
             val weightCell = if (weightAt >= 0) cells.getOrNull(weightAt)?.trim().orEmpty() else ""
             val percent = weightCell.takeIf { it.endsWith('%') }?.dropLast(1)?.toDoubleOrNull()
             val weight = if (percent == null) weightCell.toDoubleOrNull()?.toLong() else null
+            // A phrase with no code is the encoder's to spell (Wubi lists its
+            // words that way); with no encoder it has nothing to be typed with.
+            if (code.isEmpty()) {
+                if (uncoded.size < MAX_ROWS) uncoded += value to weight
+                continue
+            }
             rows += Row(value, code, weight, percent)
         }
         return Dict(
@@ -384,6 +395,8 @@ object RimeFiles {
             vocabulary,
             maxPhraseLength = (header["max_phrase_length"] as? Number)?.toInt() ?: 0,
             minPhraseWeight = (header["min_phrase_weight"] as? Number)?.toDouble() ?: 0.0,
+            encoder = RimeTableEncoder.of(header["encoder"]),
+            uncoded = uncoded,
         )
     }
 

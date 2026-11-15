@@ -55,7 +55,7 @@ sealed interface ImportNote {
     /** A part of an m17n method that does not run here. */
     data class Unsupported(val feature: MimFeature) : ImportNote
 
-    /** The schema types with the space bar (a tone key), which here always types a space. */
+    /** A code table types with the space bar, which here always types a space; reading schemas take it as a key. */
     data object SpaceKey : ImportNote
 }
 
@@ -212,6 +212,7 @@ object InputMethodSources {
 
         // The dictionary and everything it imports, depth first, each once.
         val rows = ArrayList<RimeFiles.Row>()
+        val uncoded = ArrayList<Pair<String, Long?>>()
         val missing = LinkedHashSet<String>()
         var truncated = false
         var settings: RimeFiles.Dict? = null
@@ -233,6 +234,7 @@ object InputMethodSources {
                 }
                 rows += row
             }
+            uncoded += dict.uncoded
             for (imported in dict.importTables) load(imported, depth + 1)
         }
         load(rootName, 0)
@@ -257,6 +259,12 @@ object InputMethodSources {
         if (reading && vocabulary.isNotEmpty()) {
             if (!addPhrases(rows, vocabulary, settings)) truncated = true
         }
+        // A code table's phrases spelled by its encoder, as Rime compiles
+        // them: the rows that came without a code, then the vocabulary's.
+        val encoder = settings?.encoder
+        if (!reading && encoder != null) {
+            if (!encodePhrases(rows, uncoded, vocabulary, settings, encoder)) truncated = true
+        }
 
         missing += config.missing
         if (missing.isNotEmpty()) notes += ImportNote.MissingFiles(missing.toList())
@@ -267,7 +275,9 @@ object InputMethodSources {
         val problems = ArrayList<SpellingAlgebra.Problem>()
         val algebra = SpellingAlgebra.of(schema?.algebra.orEmpty(), problems)
         if (problems.isNotEmpty()) notes += ImportNote.SkippedRules(problems.size)
-        if (schema != null && ' ' in schema.alphabet) notes += ImportNote.SpaceKey
+        // A reading schema's space (Bopomofo's first tone) is a key here; a
+        // code table's codes are stored without it, so there it stays a space.
+        if (schema != null && ' ' in schema.alphabet && !reading) notes += ImportNote.SpaceKey
 
         val weights = weightsOf(rows, vocabulary)
         val name = schema?.name ?: rootName
@@ -431,6 +441,58 @@ object InputMethodSources {
                 }
                 if (k < 0) break
             }
+        }
+        return true
+    }
+
+    /**
+     * Codes for [uncoded] rows and the [vocabulary]'s phrases the table does
+     * not list, from its single characters' codes through [encoder]. Phrases
+     * past the dictionary's `max_phrase_length` or under its
+     * `min_phrase_weight` are left out of the vocabulary's, as Rime leaves
+     * them. False when the row limit cut the list short.
+     */
+    private fun encodePhrases(
+        rows: MutableList<RimeFiles.Row>,
+        uncoded: List<Pair<String, Long?>>,
+        vocabulary: Map<String, Long>,
+        settings: RimeFiles.Dict?,
+        encoder: RimeTableEncoder,
+    ): Boolean {
+        val charCodes = HashMap<String, MutableList<String>>()
+        val known = HashSet<String>(rows.size * 2)
+        for (row in rows) {
+            known += row.text
+            if (row.text.codePointCount(0, row.text.length) != 1) continue
+            val code = row.code.replace(" ", "")
+            val list = charCodes.getOrPut(row.text) { ArrayList(2) }
+            if (code !in list) list += code
+        }
+        // The longest code first: a character's full code is the one a
+        // formula's letters are counted along, its short codes are shortcuts.
+        for (list in charCodes.values) list.sortByDescending { it.length }
+        val codesOf = { c: String -> charCodes[c].orEmpty() }
+        fun add(text: String, weight: Long?): Boolean {
+            for (code in encoder.encode(text, codesOf)) {
+                if (rows.size >= RimeFiles.MAX_ROWS) return false
+                rows += RimeFiles.Row(text, code, weight, null)
+            }
+            known += text
+            return true
+        }
+        for ((text, weight) in uncoded) {
+            if (text in known) continue
+            if (!add(text, weight ?: vocabulary[text])) return false
+        }
+        val maxLength = settings?.maxPhraseLength ?: 0
+        val minWeight = settings?.minPhraseWeight ?: 0.0
+        for ((phrase, weight) in vocabulary) {
+            if (phrase in known) continue
+            val length = phrase.codePointCount(0, phrase.length)
+            if (length < 2 || length > MAX_PHRASE_CHARS) continue
+            if (maxLength > 0 && length > maxLength) continue
+            if (minWeight > 0 && weight < minWeight) continue
+            if (!add(phrase, weight)) return false
         }
         return true
     }

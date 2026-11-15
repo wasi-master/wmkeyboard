@@ -29,6 +29,12 @@ class MimProgram private constructor(
     val missingIncludes: List<String>,
     /** How many key sequences the states can reach, for the import screen to count. */
     val entries: Int,
+    /**
+     * Whether the method offers lists to choose from (a Pinyin or Kana method
+     * written with `candidates`, `select` and `show`), which the keyboard puts
+     * on the strip.
+     */
+    val listsCandidates: Boolean = false,
 ) {
 
     /** One node of a state's key tree. */
@@ -105,6 +111,7 @@ class MimProgram private constructor(
         private val maps = LinkedHashMap<String, MutableList<MimValue>>()
         private val stateForms = ArrayList<List<MimValue>>()
         private val unsupported = LinkedHashSet<MimFeature>()
+        private var listsCandidates = false
         private val missing = ArrayList<String>()
         private var includeDepth = 0
         private var entries = 0
@@ -131,6 +138,7 @@ class MimProgram private constructor(
                 unsupported = unsupported,
                 missingIncludes = missing,
                 entries = entries,
+                listsCandidates = listsCandidates,
             )
         }
 
@@ -263,14 +271,31 @@ class MimProgram private constructor(
                     "module" -> unsupported += MimFeature.EXTERNAL_MODULE
                     "call" -> unsupported += MimFeature.EXTERNAL_MODULE
                     "switch-im", "push-im", "pop-im" -> unsupported += MimFeature.OTHER_METHOD
-                    "select", "show", "hide" -> unsupported += MimFeature.CANDIDATE_LIST
+                    "select", "show", "hide" -> listsCandidates = true
+                    "insert" -> if (items.getOrNull(1) is MimValue.Lst) listsCandidates = true
                     else -> Unit
                 }
                 for (item in items) walk(item, depth + 1)
             }
+            /** An action written short as a list of strings (`("か" "カ")`) is a candidate list. */
+            fun shortList(action: MimValue) {
+                val head = action.items?.firstOrNull() ?: return
+                if (head is MimValue.Text || head is MimValue.Lst) listsCandidates = true
+            }
             for (form in forms) walk(form, 0)
-            for (actions in macros.values) for (a in actions) walk(a, 0)
-            for (entries in maps.values) for (e in entries) walk(e, 0)
+            for (actions in macros.values) {
+                for (a in actions) {
+                    walk(a, 0)
+                    shortList(a)
+                }
+            }
+            for (entries in maps.values) {
+                for (e in entries) {
+                    walk(e, 0)
+                    // An entry is its key sequence, then its actions.
+                    e.items?.drop(1)?.forEach(::shortList)
+                }
+            }
         }
 
         private companion object {
@@ -291,6 +316,9 @@ enum class MimFeature {
     /** Handing the keys to another input method part way (`switch-im`, `push-im`). */
     OTHER_METHOD,
 
-    /** A list of choices the user moves through (`select`); the first one is always taken. */
+    /**
+     * A list of choices the user moves through (`select`). No longer reported:
+     * the strip shows the list. Kept so a stored note still reads.
+     */
     CANDIDATE_LIST,
 }
