@@ -6051,6 +6051,19 @@ class SuggestionEngine(
         return rest.subList(0, index) + item + rest.subList(index, rest.size)
     }
 
+    /**
+     * [word] is the user's own, learned under a language that is neither the
+     * one being typed nor one riding beside it, and no list in use holds it.
+     * Untagged words belong to every language.
+     */
+    private fun learnedElsewhere(word: String): Boolean {
+        val tag = userLexicon.languageOf(word) ?: return false
+        if (tag == primaryLanguageId || tag == detectedLanguageId()) return false
+        if (secondaryDictionaries.any { it.langId == tag }) return false
+        if (tag == EN && (englishSources || englishAsSecondary)) return false
+        return !inDictionaries(word.lowercase())
+    }
+
     private fun nextWords(
         previousWord: String?,
         previousWord2: String?,
@@ -6061,11 +6074,17 @@ class SuggestionEngine(
         if (reach == NextWordReach.OFF) return emptyList()
         val ordered = followerOrder(previousWord, previousWord2, previousWord3, limit, personal = reach.personalOnly)
         if (ordered.isEmpty()) return emptyList()
+        val atStart = WordContext.isSentinel(previousWord)
         var result = ordered.asSequence()
             .filterNot(::suppressed)
             // Belt and braces: the sentence-start sentinel is context, never
             // an offer — nothing should ever have learned it as a follower.
             .filterNot { WordContext.isSentinel(it) }
+            // A sentence start has no words to say which language comes
+            // next, so the one on screen does: a sentence opener learned
+            // while typing a language not in use now waits for that
+            // language (#1337: "don't" and "Home" on an empty German field).
+            .filterNot { atStart && learnedElsewhere(it) }
             .take(limit)
             .toList()
         // Formal fields: chat-speak yields its slot when anything else is
