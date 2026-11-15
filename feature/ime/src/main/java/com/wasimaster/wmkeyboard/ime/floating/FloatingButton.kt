@@ -261,7 +261,7 @@ internal class FloatingButton(
         view.contentDescription = face.label
         // A change is worth seeing: the button wakes, then fades again as set.
         idle = false
-        view.animate().alpha(setting.opacity).setDuration(FADE_IN_MS).start()
+        if (appeared) view.animate().alpha(setting.opacity).setDuration(FADE_IN_MS).start()
         if (resized) {
             buttonParams?.let {
                 it.width = windowW
@@ -303,17 +303,29 @@ internal class FloatingButton(
         val added = runCatching { windowManager.addView(view, layout) }.isSuccess
         if (added) {
             button = view
-            if (onPanel) view.post { checkPanelOrigin(view) }
             view.alpha = 0f
             view.scaleX = 0.6f
             view.scaleY = 0.6f
-            view.animate().alpha(setting.opacity).scaleX(1f).scaleY(1f)
-                .setInterpolator(OvershootInterpolator(1.6f)).setDuration(paced(APPEAR_MS)).start()
+            appeared = false
+            // Over the keys, unseen until the corner it counts from is known to
+            // be right (#1238): where Android puts a panel is measured, not
+            // assumed, and a button seen at the guess and then moved is the jump.
+            if (onPanel) view.post { checkPanelOrigin(view) } else appear(view)
             scheduleIdle()
         } else {
             buttonParams = null
             lifecycle.onStop()
         }
+    }
+
+    /** The button has had its appearing animation since it was put up. */
+    private var appeared = false
+
+    private fun appear(view: TouchHost) {
+        if (appeared || button !== view) return
+        appeared = true
+        view.animate().alpha(setting.opacity).scaleX(1f).scaleY(1f)
+            .setInterpolator(OvershootInterpolator(1.6f)).setDuration(paced(APPEAR_MS)).start()
     }
 
     /** Takes the button, and its menu and target, off screen. Safe to call when it is not there. */
@@ -342,7 +354,14 @@ internal class FloatingButton(
         if (topPx == ceilingPx) return
         ceilingPx = topPx
         val current = button ?: return
-        if (!current.dragging) place()
+        if (current.dragging) return
+        // Over the keys the button is a panel of the keyboard's window, which
+        // grows and shrinks from the bottom of the screen as the toolbar, a
+        // tool or the number row come and go. Where Android counts the panel
+        // from can move with it, so it is measured again rather than leaving
+        // the button wherever the window's last size put it (#1238).
+        if (onPanel) originChecks = 0
+        place()
     }
 
     /** The screen changed shape (rotation, fold): put the button back on it, and shut a menu laid out for the old one. */
@@ -376,7 +395,11 @@ internal class FloatingButton(
      * most, so a window Android will not put where asked cannot loop.
      */
     private fun checkPanelOrigin(view: TouchHost) {
-        if (!onPanel || button !== view || view.dragging || originChecks >= MAX_ORIGIN_CHECKS) return
+        if (!onPanel || button !== view || view.dragging) return
+        if (originChecks >= MAX_ORIGIN_CHECKS) {
+            appear(view)
+            return
+        }
         val layout = buttonParams ?: return
         if (!view.isAttachedToWindow) return
         val at = IntArray(2).also(view::getLocationOnScreen)
@@ -385,6 +408,7 @@ internal class FloatingButton(
         val measured = intArrayOf(drawnX - layout.x, drawnY - layout.y)
         if (measured.contentEquals(origin())) {
             rememberPanelOrigin(measured)
+            appear(view)
             return
         }
         originChecks++

@@ -63057,8 +63057,11 @@ open class WMKeyboardService : InputMethodService() {
 
         /** Tools the floating button runs without bringing the keyboard up: they have no panel. */
         // Leave field acts on the field the keyboard was put away from; bringing
-        // the keyboard up to then put it away again would be all flicker.
-        private val FloatingToolsWithoutKeyboard = setOf(ToolbarTool.SETTINGS, ToolbarTool.LEAVE_FIELD, ToolbarTool.SCREENSHOT)
+        // the keyboard up to then put it away again would be all flicker. The
+        // flashlight is the phone's, not the keyboard's (#1238).
+        private val FloatingToolsWithoutKeyboard = setOf(
+            ToolbarTool.SETTINGS, ToolbarTool.LEAVE_FIELD, ToolbarTool.SCREENSHOT, ToolbarTool.FLASHLIGHT,
+        )
 
         /** How long the keyboard gets to slide away before a screenshot (#1148). */
         private const val SCREENSHOT_KEYBOARD_SETTLE_MS = 380L
