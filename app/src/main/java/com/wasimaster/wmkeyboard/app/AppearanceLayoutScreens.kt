@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.app
 import com.wasimaster.wmkeyboard.core.settings.DefaultToolbarKeys
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,6 +28,8 @@ import com.wasimaster.wmkeyboard.core.settings.LabelOffsetRange
 import com.wasimaster.wmkeyboard.core.settings.ArrowKey
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -103,6 +106,7 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import androidx.compose.material.icons.Icons
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewColumn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewWeek
