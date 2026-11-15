@@ -42,6 +42,7 @@
     <string name="plugins_tile_none">Panel only</string>
     <string name="plugins_tile_toolbar">Toolbar</string>
     <string name="plugins_tile_toolbox">Toolbox</string>
+    <string name="plugins_tile_second_row">Second toolbar</string>
     <string name="plugins_fact_never_code">Download new code and run it, or reach the rest of your phone beyond the things listed above</string>
     <!-- Insert is the button inside a plugin panel that sends a result to the text field. -->
     <string name="plugins_facts_info_v5">A plugin lists what it can do before you install it. Some things, like the internet or reading the text you write, stay off until you turn them on for that plugin, on its page. Nothing turns on by itself.</string>

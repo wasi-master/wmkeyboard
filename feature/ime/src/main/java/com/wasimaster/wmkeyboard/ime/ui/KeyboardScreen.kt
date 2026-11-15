@@ -14209,7 +14209,10 @@ private fun ToolboxTopHeader(
         // With a mode on, the arrangement being edited is that mode's
         // own — say so, or the same keyboard looking different in the
         // next app reads as the drag being lost.
-        val dragHint = stringResource(R.string.ime_toolbox_hint_drag)
+        // The second toolbar is a drop target too while it is on (#1217).
+        val dragHint = stringResource(
+            if (state.settings.toolbarBehavior.secondRow) R.string.ime_toolbox_hint_drag_second else R.string.ime_toolbox_hint_drag,
+        )
         Text(
             if (activeMode != null) {
                 stringResource(R.string.ime_toolbox_hint_mode, activeMode.name) + " " + dragHint
@@ -17276,7 +17279,13 @@ private fun DragScopeLabel(
     )
     Text(
         text = if (mode != null) {
-            stringResource(R.string.ime_toolbox_drag_scope_mode, mode.name)
+            // The second toolbar is the same in every mode, so a drop there
+            // is not the mode's alone; the pill says so rather than promise it.
+            stringResource(
+                if (state.settings.toolbarBehavior.secondRow) R.string.ime_toolbox_drag_scope_mode_second
+                else R.string.ime_toolbox_drag_scope_mode,
+                mode.name,
+            )
         } else {
             stringResource(R.string.ime_toolbox_drag_scope_global)
         },

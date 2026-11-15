@@ -848,13 +848,14 @@ private fun PluginToolsGroup(
     if (plugins.isEmpty()) return
     val scope = rememberCoroutineScope()
     val lists = settings.watch { Triple(it.toolbarTools, it.toolboxOrder, it.toolbox.folders) }
+    val secondRow = settings.watch { it.toolbarBehavior.secondRowTools }
     SettingsGroup(
         stringResource(R.string.tools_plugins_group_title),
         info = stringResource(R.string.tools_plugins_group_info),
     ) {
         for (plugin in plugins) {
             item(key = "plugin:${plugin.id}") {
-                val place = pluginToolPlaceIn(lists.first, lists.second, lists.third, plugin.id)
+                val place = pluginToolPlaceIn(lists.first, lists.second, lists.third, plugin.id, secondRow)
                 WmRow(
                     title = plugin.displayName,
                     subtitle = stringResource(
@@ -862,6 +863,7 @@ private fun PluginToolsGroup(
                             PluginToolPlace.NONE -> R.string.plugins_tile_none
                             PluginToolPlace.TOOLBAR -> R.string.plugins_tile_toolbar
                             PluginToolPlace.TOOLBOX -> R.string.plugins_tile_toolbox
+                            PluginToolPlace.SECOND_ROW -> R.string.plugins_tile_second_row
                         },
                     ),
                     leading = { PluginIcon(plugin, tint = plugin.toolColor ?: MaterialTheme.colorScheme.onSurfaceVariant) },

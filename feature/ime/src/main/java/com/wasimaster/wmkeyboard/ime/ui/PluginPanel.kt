@@ -229,6 +229,7 @@ private fun PluginList(
                         state.settings.toolboxOrder,
                         state.settings.toolbox.folders,
                         plugin.id,
+                        state.settings.toolbarBehavior.secondRowTools,
                     )
                     val onBar = where == PluginToolPlace.TOOLBAR
                     val toolbarLabel = stringResource(if (onBar) R.string.ime_plugin_action_toolbar_remove else R.string.ime_plugin_action_toolbar_add)

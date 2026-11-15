@@ -7,21 +7,24 @@ package com.wasimaster.wmkeyboard.core.settings
  * [ToolKey.Plugin] entry; this is that membership as one answer, for the
  * plugin menus and the plugin's settings page.
  */
-enum class PluginToolPlace { NONE, TOOLBAR, TOOLBOX }
+enum class PluginToolPlace { NONE, TOOLBAR, TOOLBOX, SECOND_ROW }
 
 /**
  * Where plugin [pluginId] stands in these lists: on the bar when [bar] holds
- * it, in the toolbox when [order] or a folder does, otherwise nowhere.
+ * it, on the second toolbar when [second] does (#1217), in the toolbox when
+ * [order] or a folder does, otherwise nowhere.
  */
 fun pluginToolPlaceIn(
     bar: List<ToolKey>,
     order: List<ToolKey>,
     folders: List<ToolboxFolder>,
     pluginId: String,
+    second: List<ToolKey> = emptyList(),
 ): PluginToolPlace {
     val key = pluginToolKey(pluginId)
     return when {
         key in bar -> PluginToolPlace.TOOLBAR
+        key in second -> PluginToolPlace.SECOND_ROW
         key in order || folders.folderOf(key) != null -> PluginToolPlace.TOOLBOX
         else -> PluginToolPlace.NONE
     }
@@ -44,7 +47,8 @@ fun withPluginToolPlace(
     return when (place) {
         PluginToolPlace.NONE -> (bar - key) to (order - key)
         PluginToolPlace.TOOLBAR -> (if (key in bar) bar else bar + key) to ranked
-        PluginToolPlace.TOOLBOX -> (bar - key) to ranked
+        // The second row is a list of its own; for these two it is the toolbox's case.
+        PluginToolPlace.TOOLBOX, PluginToolPlace.SECOND_ROW -> (bar - key) to ranked
     }
 }
 

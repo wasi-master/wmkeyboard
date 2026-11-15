@@ -771,6 +771,8 @@
     <!-- Pill shown while a tool is being dragged, naming where the new
          arrangement is saved. %1$s is the name the user gave the mode. -->
     <string name="ime_toolbox_drag_scope_mode">Changing the tool order for only the %1$s mode</string>
+    <string name="ime_toolbox_drag_scope_mode_second">Changing the tool order for only the %1$s mode; the second toolbar is the same in every mode</string>
+    <string name="ime_toolbox_hint_drag_second">Press and hold a tool, then drag it. Drop it on the toolbar or the second toolbar to pin it there. Drop it in this grid to change the order. Drop it below the grid to remove it.</string>
     <string name="ime_toolbox_drag_scope_global">Changing the global tool order outside modes</string>
     <string name="ime_toolbox_empty">Every tool is on the toolbar.</string>
     <!-- The second toolbar (#1217) with no tools on it yet. -->

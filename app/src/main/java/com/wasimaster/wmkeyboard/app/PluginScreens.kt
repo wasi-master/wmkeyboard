@@ -109,7 +109,8 @@ internal fun PluginsScreen(repository: SettingsRepository, settings: LiveSetting
     // Where each plugin is a tool, from the global lists (a mode's own order
     // only decides where it sits).
     val toolLists = settings.watch { Triple(it.toolbarTools, it.toolboxOrder, it.toolbox.folders) }
-    val toolPlaces = { id: String -> pluginToolPlaceIn(toolLists.first, toolLists.second, toolLists.third, id) }
+    val secondRow = settings.watch { it.toolbarBehavior.secondRowTools }
+    val toolPlaces = { id: String -> pluginToolPlaceIn(toolLists.first, toolLists.second, toolLists.third, id, secondRow) }
     var uninstalling by remember { mutableStateOf<InstalledPlugin?>(null) }
     val retired = remember(revision) { store.retiredNames() }
     val parked = remember(revision) { store.parked() }
@@ -562,7 +563,11 @@ internal fun PluginDetailScreen(
     var refresh by remember { mutableIntStateOf(0) }
     var confirmUninstall by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val place = settings.watch { pluginToolPlaceIn(it.toolbarTools, it.toolboxOrder, it.toolbox.folders, pluginId) }
+    val place = settings.watch {
+        pluginToolPlaceIn(it.toolbarTools, it.toolboxOrder, it.toolbox.folders, pluginId, it.toolbarBehavior.secondRowTools)
+    }
+    // Offered while the second toolbar is on, or while the plugin is already on it.
+    val secondRowOn = settings.watch { it.toolbarBehavior.secondRow }
 
     if (plugin == null) {
         Column { CaptionText(stringResource(R.string.plugins_detail_missing)) }
@@ -636,11 +641,14 @@ internal fun PluginDetailScreen(
         SettingsGroup(stringResource(R.string.plugins_tile_title), info = stringResource(R.string.plugins_tile_info)) {
             item {
                 SingleChoiceSegmentedButtonRow(modifier = androidx.compose.ui.Modifier.fillMaxWidth()) {
-                    val choices = listOf(
-                        PluginToolPlace.NONE to R.string.plugins_tile_none,
-                        PluginToolPlace.TOOLBAR to R.string.plugins_tile_toolbar,
-                        PluginToolPlace.TOOLBOX to R.string.plugins_tile_toolbox,
-                    )
+                    val choices = buildList {
+                        add(PluginToolPlace.NONE to R.string.plugins_tile_none)
+                        add(PluginToolPlace.TOOLBAR to R.string.plugins_tile_toolbar)
+                        if (secondRowOn || place == PluginToolPlace.SECOND_ROW) {
+                            add(PluginToolPlace.SECOND_ROW to R.string.plugins_tile_second_row)
+                        }
+                        add(PluginToolPlace.TOOLBOX to R.string.plugins_tile_toolbox)
+                    }
                     choices.forEachIndexed { index, (choice, label) ->
                         SegmentedButton(
                             selected = place == choice,

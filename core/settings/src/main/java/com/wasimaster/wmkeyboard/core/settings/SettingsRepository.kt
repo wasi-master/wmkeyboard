@@ -17164,7 +17164,13 @@ class SettingsRepository(private val context: Context) {
      * the global lists; a mode's own order only decides where it sits.
      */
     fun pluginToolPlace(settings: KeyboardSettings, pluginId: String): PluginToolPlace =
-        pluginToolPlaceIn(settings.toolbarTools, settings.toolboxOrder, settings.toolbox.folders, pluginId)
+        pluginToolPlaceIn(
+            settings.toolbarTools,
+            settings.toolboxOrder,
+            settings.toolbox.folders,
+            pluginId,
+            settings.toolbarBehavior.secondRowTools,
+        )
 
     /**
      * Makes plugin [pluginId] a tool at [place], or no tool at all. Pinning
@@ -17183,6 +17189,15 @@ class SettingsRepository(private val context: Context) {
             val (nextBar, nextOrder) = withPluginToolPlace(bar, order, key, place)
             prefs[TOOLBAR_TOOLS] = encodeToolKeys(nextBar)
             prefs[TOOLBOX_ORDER] = encodeToolKeys(nextOrder)
+            // The second toolbar (#1217) holds it only while that is the place.
+            val second = prefs[TOOLBAR_SECOND_ROW_TOOLS]?.let(::decodeToolKeys)
+                ?: SettingsDefaults.toolbarBehavior.secondRowTools
+            val nextSecond = if (place == PluginToolPlace.SECOND_ROW) {
+                if (key in second) second else second + key
+            } else {
+                second - key
+            }
+            if (nextSecond != second) prefs[TOOLBAR_SECOND_ROW_TOOLS] = encodeToolKeys(nextSecond)
             // Shown again: a hide from the grid was for the tool it was then.
             val hidden = decodeToolKeys(prefs[TOOLBOX_HIDDEN_TOOLS])
             if (key in hidden) {
@@ -17226,6 +17241,7 @@ class SettingsRepository(private val context: Context) {
             }
             rewrite(TOOLBAR_TOOLS)
             rewrite(TOOLBOX_ORDER)
+            rewrite(TOOLBAR_SECOND_ROW_TOOLS)
             val hidden = decodeToolKeys(prefs[TOOLBOX_HIDDEN_TOOLS]).withoutPlugin(pluginId)
             if (hidden.isEmpty()) prefs.remove(TOOLBOX_HIDDEN_TOOLS) else prefs[TOOLBOX_HIDDEN_TOOLS] = encodeToolKeys(hidden)
             val folders = decodeToolboxFolders(prefs[TOOLBOX_FOLDERS]).withoutPlugin(pluginId)
