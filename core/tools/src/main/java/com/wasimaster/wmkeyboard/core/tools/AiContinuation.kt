@@ -43,6 +43,15 @@ object AiContinuation {
     const val REASONING_TIMEOUT_MS = 5_000L
 
     /**
+     * The least a model on the phone gets, whatever **Give up after** says.
+     * Loading it and reading the prompt take seconds on a phone, so at the
+     * cloud's 1.5 s every on-device answer arrived late and was dropped: the
+     * chip never showed (Telegram 9523, 9555). A key pressed meanwhile still
+     * cancels it, so a slow answer is never for text that has moved on.
+     */
+    const val ON_DEVICE_TIMEOUT_MS = 8_000L
+
+    /**
      * Read past the context the user allowed, so [context] can tell a tail it
      * cut from a field that is simply short, and start on a whole word.
      */

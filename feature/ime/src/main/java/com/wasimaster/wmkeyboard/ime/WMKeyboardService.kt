@@ -28358,11 +28358,16 @@ open class WMKeyboardService : InputMethodService() {
         if (reasons && composingNow && reading == null) return null
         val system = if (reading != null) AiContinuation.conversionPrompt() else AiContinuation.prompt(midWord)
         val user = if (reading != null) context + "\n" + reading else context
-        val deadline = SystemClock.uptimeMillis() + when {
+        val allowed = when {
             reading != null && reasons -> AiContinuation.REASONING_TIMEOUT_MS
             composingNow -> settings.ai.stripSuggestComposingTimeoutMs
             reasons -> AiContinuation.REASONING_TIMEOUT_MS
             else -> settings.ai.stripSuggestTimeoutMs
+        }
+        val deadline = SystemClock.uptimeMillis() + if (settings.ai.provider == AiProvider.ON_DEVICE) {
+            maxOf(allowed, AiContinuation.ON_DEVICE_TIMEOUT_MS)
+        } else {
+            allowed
         }
         val alive = { seq == aiSuggestSeq && SystemClock.uptimeMillis() < deadline }
         val answer = if (settings.ai.provider == AiProvider.ON_DEVICE) {
