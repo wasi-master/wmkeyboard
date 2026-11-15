@@ -1255,6 +1255,7 @@
     <!-- Spoken by TalkBack for the AI continuation chip in the suggestion strip (#944). %1$s is the continuation. -->
     <string name="ime_ai_suggest_desc">AI suggestion: %1$s. Double-tap to insert, hold to hide in this field.</string>
     <string name="ime_smart_send_link">Receive the file</string>
+    <string name="ime_smart_open_app">Open <xliff:g id="app" example="WhatsApp">%1$s</xliff:g></string>
     <string name="ime_smart_open_tool">Open %1$s</string>
     <!-- Where a currency chip's converted amount would be, while the exchange
          rates wait for a tap before they are fetched. -->

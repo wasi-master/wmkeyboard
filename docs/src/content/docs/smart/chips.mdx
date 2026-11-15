@@ -132,6 +132,16 @@ A contact with several numbers is offered on the one you've marked as default in
 
 The switch is **off** by default because it reads your address book. Turning it on asks for the contacts permission, after a screen explaining what's read. Names and numbers are held in memory only while the keyboard runs, are never written to a file, and never leave the phone. The chip doesn't show in password fields, or anywhere the strip is switched off.
 
+## Opening an app by name
+
+<SettingsPath path="Typing / Smart chips / Open an app by name" />
+
+Type the name of an app on your phone, such as `whatsapp` or `google maps`, and a narrow chip reading **Open WhatsApp** comes up beside the word candidates. Tap it and the app opens, the same way the [App launcher](/tools/app-launcher/) opens it. The name you typed stays in your text.
+
+The name has to be the app's whole name as your launcher shows it, in any case and with or without accents, right before the cursor or followed by one space. The longest name wins, so `google maps` opens Maps rather than reading `maps` alone. Names shorter than three letters never raise a chip, and neither does a name two apps share. Each name gets one offer per field, as with contacts. Apps in a work profile aren't offered.
+
+The switch is **off** by default, because plenty of app names are everyday words (Camera, Clock, Messages) and a chip on each would get in the way.
+
 ## Repeated text
 
 <SettingsPath path="Typing / Smart chips / Repeated text" />
@@ -206,6 +216,7 @@ Each detector has guards against the shapes of text that look like a trigger but
 - **Group long numbers**: default **on**.
 - **Grouping style**: **Automatic**, **Thousands** or **Lakh and crore**, default **Automatic**, which follows the language you're typing in.
 - **Call or text a contact**: default **off**. Needs the contacts permission. See [Calling or texting a contact](#calling-or-texting-a-contact).
+- **Open an app by name**: default **off**. See [Opening an app by name](#opening-an-app-by-name).
 - **Message with**: default **Messages (SMS)**. Only shown while Call or text a contact is on. Messages (SMS), WhatsApp, Telegram, Signal or Ask every time.
 - **Repeated text**: default **on**. See [Repeated text](#repeated-text).
 - **Chip after this many repeats**: 2 to 6, default **3**. Shown while Repeated text is on; the same row lives on the Text repeat tool's page.

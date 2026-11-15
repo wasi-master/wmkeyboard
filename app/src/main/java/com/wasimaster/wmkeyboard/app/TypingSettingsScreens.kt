@@ -2152,6 +2152,16 @@ internal fun TypingSmartChipsSettings(
                     default = SettingsDefaults.smartChips.contactMessageApp,
                 )
             }
+            // #656: an installed app's name typed → open it.
+            item(level = SettingLevel.STANDARD) {
+                ToggleSetting(
+                    R.string.typing_smart_apps_title,
+                    stringResource(R.string.typing_smart_apps_subtitle),
+                    settings.watch { it.smartChips.apps },
+                    info = stringResource(R.string.typing_smart_apps_info),
+                    default = SettingsDefaults.smartChips.apps,
+                ) { scope.launch { repository.setSmartChipApps(it) } }
+            }
             // The same text typed a few times in a row → the Text repeat tool,
             // opened on it with the count already set.
             item(level = SettingLevel.ADVANCED) {

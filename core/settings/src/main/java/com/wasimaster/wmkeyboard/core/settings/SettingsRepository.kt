@@ -6447,6 +6447,12 @@ data class SmartChipSettings(
      * reads the address book, which needs the contacts permission.
      */
     val contacts: Boolean = false,
+    /**
+     * An installed app's name → open it (#656): "whatsapp" offers to open
+     * WhatsApp. Off by default: a chat is full of words that are also app
+     * names ("camera", "clock"), and a chip on each would be noise.
+     */
+    val apps: Boolean = false,
     /** Which app the contact chip's message button opens (#1218); see [ContactMessageApp]. */
     val contactMessageApp: ContactMessageApp = ContactMessageApp.SMS,
     /**
@@ -13943,6 +13949,7 @@ class SettingsRepository(private val context: Context) {
         private val SMART_CHIP_NUMBERS = booleanPreferencesKey("smart_chip_numbers")
         private val SMART_CHIP_NUMBER_GROUPING = stringPreferencesKey("smart_chip_number_grouping")
         private val SMART_CHIP_CONTACTS = booleanPreferencesKey("smart_chip_contacts")
+        private val SMART_CHIP_APPS = booleanPreferencesKey("smart_chip_apps")
         private val SMART_CHIP_CONTACT_MESSAGE_APP = stringPreferencesKey("smart_chip_contact_message_app")
         private val SMART_CHIP_KEEP_TEXT = booleanPreferencesKey("smart_chip_keep_text")
         private val SMART_CHIP_REPEATS = booleanPreferencesKey("smart_chip_repeats")
@@ -16718,6 +16725,7 @@ class SettingsRepository(private val context: Context) {
                 ?.let { runCatching { NumberGrouping.valueOf(it) }.getOrNull() }
                 ?: defaults.smartChips.numberGrouping,
             contacts = p[SMART_CHIP_CONTACTS] ?: defaults.smartChips.contacts,
+            apps = p[SMART_CHIP_APPS] ?: defaults.smartChips.apps,
             contactMessageApp = p[SMART_CHIP_CONTACT_MESSAGE_APP]
                 ?.let { runCatching { ContactMessageApp.valueOf(it) }.getOrNull() }
                 ?: defaults.smartChips.contactMessageApp,
@@ -26652,6 +26660,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSmartChipContacts(value: Boolean) =
         editPrefs { it[SMART_CHIP_CONTACTS] = value }
+
+    /** @see SmartChipSettings.apps */
+    suspend fun setSmartChipApps(value: Boolean) =
+        editPrefs { it[SMART_CHIP_APPS] = value }
 
     suspend fun setSmartChipContactMessageApp(value: ContactMessageApp) =
         editPrefs { it[SMART_CHIP_CONTACT_MESSAGE_APP] = value.name }

@@ -56,6 +56,9 @@ sealed interface ToolPrefill {
      */
     data class Translate(val text: String, val target: String?, val textLength: Int, val hintLength: Int) : ToolPrefill
 
+    /** An app the app chip opens (#656), by package and launcher activity. */
+    data class OpenApp(val packageName: String, val activityName: String) : ToolPrefill
+
     /** A sentence the Home Assistant panel sends to Assist as it opens. */
     data class Assist(val sentence: String) : ToolPrefill
 
@@ -109,11 +112,11 @@ object SmartSuggest {
      * with a call face and a message button, and so is [REPEAT] (the same
      * text typed several times over), which opens the Text repeat tool.
      */
-    enum class Kind { CALC, CURRENCY, UNIT, NUMBER, DATE, WEATHER, TOOL, LOOKUP, INTENT, VOCAB, CONTACT, REPEAT, SEND_LINK, SEARCH }
+    enum class Kind { CALC, CURRENCY, UNIT, NUMBER, DATE, WEATHER, TOOL, LOOKUP, INTENT, VOCAB, CONTACT, REPEAT, SEND_LINK, SEARCH, APP }
 
     /** The kinds that only claim the space their label needs. */
     val narrowKinds: Set<Kind> =
-        setOf(Kind.TOOL, Kind.LOOKUP, Kind.INTENT, Kind.VOCAB, Kind.CONTACT, Kind.REPEAT, Kind.SEND_LINK, Kind.SEARCH)
+        setOf(Kind.TOOL, Kind.LOOKUP, Kind.INTENT, Kind.VOCAB, Kind.CONTACT, Kind.REPEAT, Kind.SEND_LINK, Kind.SEARCH, Kind.APP)
 
     /**
      * A switch under Smart chips, as far as the tools behind it go. The
@@ -319,6 +322,8 @@ object SmartSuggest {
         /** Offer to receive a Send share link typed or pasted into the field (#729). */
         val sendLinkChips: Boolean = false,
         val contacts: ContactPhones? = null,
+        /** The installed apps by name, for the chip that opens one (#656); null while that is off. */
+        val apps: AppNames? = null,
         // ---- repeated text ----
         /** "no no no" → the Text repeat tool, opened on that text. */
         val repeatChips: Boolean = true,
@@ -380,6 +385,9 @@ object SmartSuggest {
         // has more to offer.
         ctx.contacts?.let { contacts ->
             detectContact(tail, contacts, truncated)?.let { return it }
+        }
+        ctx.apps?.let { apps ->
+            detectApp(tail, apps, truncated)?.let { return it }
         }
         // Last: a nudge is advice, and every explicit trigger above outranks it.
         if (ctx.vocabChips) detectVocab(tail, ctx)?.let { return it }
@@ -1989,6 +1997,40 @@ object SmartSuggest {
                 // the keyboard calls or texts a number.
                 tool = ToolbarTool.SELECTION_ACTIONS,
                 prefill = ToolPrefill.Contact(contact.name, contact.number),
+            )
+        }
+        return null
+    }
+
+    /**
+     * An installed app's name just typed: the chip offers to open it (#656).
+     * The longest run of trailing words that names an app wins ("google
+     * maps", not "maps"), with one trailing space allowed, as for a contact.
+     * The text is never touched.
+     */
+    private fun detectApp(tail: String, apps: AppNames, truncated: Boolean): SmartHit? {
+        if (apps.isEmpty) return null
+        val body = if (tail.endsWith(' ')) tail.dropLast(1) else tail
+        if (body.isEmpty() || body.last().isWhitespace()) return null
+        val tokens = body.split(' ', '\t', '\n')
+        val words = ArrayList<String>()
+        for (index in tokens.indices.reversed()) {
+            val token = tokens[index]
+            if (truncated && index == 0) break
+            if (token.isEmpty() || token.any { it.isWhitespace() }) break
+            words.add(0, token)
+            if (words.size == AppNames.MAX_WORDS) break
+        }
+        for (n in words.size downTo 1) {
+            val app = apps.match(words.takeLast(n).joinToString(" ")) ?: continue
+            return SmartHit(
+                kind = Kind.APP,
+                query = app.label,
+                result = null,
+                insert = null,
+                replaceSpan = 0,
+                tool = ToolbarTool.APP_LAUNCHER,
+                prefill = ToolPrefill.OpenApp(app.packageName, app.activityName),
             )
         }
         return null

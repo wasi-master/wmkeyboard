@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.settings.fiatRateProviders
 import com.wasimaster.wmkeyboard.core.settings.cryptoRateProviders
+import com.wasimaster.wmkeyboard.core.tools.AppNames
 import com.wasimaster.wmkeyboard.core.tools.NoRateProviderException
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
@@ -27472,6 +27473,7 @@ open class WMKeyboardService : InputMethodService() {
     /** Drops the app list and its icons; the next open, or this one, lists again. */
     private fun invalidateLauncherApps() {
         launcherAppsCache = null
+        appChipNames = null
         launcherIconCache.evictAll()
         _uiState.update { it.copy(launcherApps = emptyList(), launcherDetail = null) }
         if (_uiState.value.panel == PanelMode.APP_LAUNCHER) loadLauncherApps()
@@ -28314,7 +28316,7 @@ open class WMKeyboardService : InputMethodService() {
             }
             return
         }
-        if (prev.kind == SmartSuggest.Kind.CONTACT) {
+        if (prev.kind == SmartSuggest.Kind.CONTACT || prev.kind == SmartSuggest.Kind.APP) {
             if (next == null || next.kind != prev.kind || next.query != prev.query) {
                 contactChipsRetired += prev.query
             }
@@ -28440,7 +28442,10 @@ open class WMKeyboardService : InputMethodService() {
             ) {
                 hit = null
             }
-            if (hit != null && hit.kind == SmartSuggest.Kind.CONTACT && hit.query in contactChipsRetired) {
+            // A name, a contact's or an app's (#656), is offered once a field.
+            if (hit != null && (hit.kind == SmartSuggest.Kind.CONTACT || hit.kind == SmartSuggest.Kind.APP) &&
+                hit.query in contactChipsRetired
+            ) {
                 hit = null
             }
             retireIntentChip(hit)
@@ -28787,6 +28792,7 @@ open class WMKeyboardService : InputMethodService() {
                 state.language,
             ),
             contacts = contactPhones.takeIf { state.settings.smartChips.contacts && !it.isEmpty },
+            apps = if (state.settings.smartChips.apps) appNamesForChips() else null,
             searchTriggers = state.settings.smartChips.let { if (it.searchTriggers) it.searchTriggerList else emptyList() },
             pluginKeywords = if (state.settings.smartChips.searchTriggers) pluginKeywordChips() else emptyMap(),
             repeatChips = state.settings.smartChips.repeats,
@@ -28855,6 +28861,10 @@ open class WMKeyboardService : InputMethodService() {
         }
         if (hit.kind == SmartSuggest.Kind.CONTACT) {
             startContactAction(hit, message = false)
+            return
+        }
+        if (hit.kind == SmartSuggest.Kind.APP) {
+            openAppFromChip(hit)
             return
         }
         hintTranslatedInPlace(hit)?.let { prefill ->
@@ -28977,6 +28987,10 @@ open class WMKeyboardService : InputMethodService() {
             startContactAction(hit, message = true)
             return
         }
+        if (hit.kind == SmartSuggest.Kind.APP) {
+            openAppFromChip(hit)
+            return
+        }
         // A hint that was taken has done its job for this field.
         if (hit.kind == SmartSuggest.Kind.INTENT || hit.kind == SmartSuggest.Kind.LOOKUP) {
             intentChipsRetired += hit.tool
@@ -29017,6 +29031,44 @@ open class WMKeyboardService : InputMethodService() {
                 octopus = emptyMap(),
             )
         }
+    }
+
+    /**
+     * The installed apps by name for the app chip (#656), from the launcher
+     * tool's list. Loaded once in the background the first time the chip
+     * asks; until then, and on a load that failed, nothing matches.
+     */
+    private fun appNamesForChips(): AppNames? {
+        appChipNames?.let { return it }
+        val cached = launcherAppsCache
+        if (cached != null) {
+            return AppNames.of(cached.filter { it.profile == null }.map { AppNames.App(it.label, it.packageName, it.activityName) })
+                .also { appChipNames = it }
+        }
+        if (!appChipLoading) {
+            appChipLoading = true
+            serviceScope.launch {
+                val apps = AppCatalog.loadAllApps(this@WMKeyboardService, otherProfiles = false)
+                appChipNames = AppNames.of(apps.map { AppNames.App(it.label, it.packageName, it.activityName) })
+                appChipLoading = false
+            }
+        }
+        return null
+    }
+
+    @Volatile private var appChipNames: AppNames? = null
+    @Volatile private var appChipLoading = false
+
+    /**
+     * An app chip was tapped (#656): the app opens the way the App launcher
+     * tool opens it. The typed name stays where it is.
+     */
+    private fun openAppFromChip(hit: SmartSuggest.SmartHit) {
+        val app = hit.prefill as? com.wasimaster.wmkeyboard.core.tools.ToolPrefill.OpenApp ?: return
+        vibrate()
+        contactChipsRetired += hit.query
+        _uiState.update { it.copy(smart = null) }
+        onLauncherAppTap(LauncherApp(packageName = app.packageName, label = hit.query, activityName = app.activityName))
     }
 
     /**

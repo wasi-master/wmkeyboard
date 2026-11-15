@@ -512,6 +512,9 @@
     <string name="typing_smart_contact_message_subtitle">Which app the contact chip\'s message button opens</string>
     <string name="typing_smart_contact_message_sms">Messages (SMS)</string>
     <string name="typing_smart_contact_message_ask">Ask every time</string>
+    <string name="typing_smart_apps_title">Open an app by name</string>
+    <string name="typing_smart_apps_subtitle">Type the name of an installed app and the strip offers to open it</string>
+    <string name="typing_smart_apps_info">Type the full name of an app on your phone, such as WhatsApp or Google Maps, in any case. The strip then shows a chip that opens the app. The name that you typed stays in the text. Names shorter than three letters, and names that two apps share, never raise a chip. Each name is offered one time in each text field. Off by default, because many app names are everyday words.</string>
     <string name="typing_smart_contacts_title">Call or text a contact</string>
     <string name="typing_smart_contacts_subtitle">Type the name of a contact and the strip offers to call or text that person</string>
     <string name="typing_smart_contacts_info">Type the full name of a contact, in any case, or only the first name with a capital letter when no other contact has that first name. The strip then shows a chip with the name. Tap the name to open your phone app with the number filled in. Tap the message button to open your messages app. The keyboard never makes the call itself, and the name that you typed stays in the text. Each name is offered one time in each text field. This setting needs access to your contacts and is off by default.</string>
