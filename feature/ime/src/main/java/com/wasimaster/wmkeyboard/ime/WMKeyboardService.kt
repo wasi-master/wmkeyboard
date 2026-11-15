@@ -1859,6 +1859,9 @@ open class WMKeyboardService : InputMethodService() {
         val allowComma = state.settings.autoText.smartPunctuationComma
         val script = state.script
         val languageId = state.language.id
+        // Hinglish riding beside English (#1292): the question words of every
+        // language the layout suggests from count, not only its own.
+        val questionLanguages = listOf(languageId) + state.settings.secondaryLanguages[languageId].orEmpty()
         val ask = PunctuationAsk(model, words, languageId, allowComma, script)
         punctuationAsked?.takeIf { it.sameAs(ask) }?.let { asked ->
             // Answered already; no answer leaves the key as it stands, which
@@ -1872,7 +1875,7 @@ open class WMKeyboardService : InputMethodService() {
             delay(SMART_PUNCTUATION_DEBOUNCE_MS * deviceLoad.backgroundWorkStretch())
             // A language the model never learned asks with its question
             // words (#1316): one in the sentence is the question mark.
-            val mark = if (QuestionWords.asks(languageId, words)) {
+            val mark = if (questionLanguages.any { QuestionWords.asks(it, words) }) {
                 PunctuationModel.QUESTION
             } else {
                 PunctuationModel.markFor(model.predict(words, languageId), allowComma)
