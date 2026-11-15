@@ -102,6 +102,10 @@
     <!-- The phone's speech recognizer, set to always use the recognizer service. -->
     <string name="providers_summary_system_online">Always the recognizer service</string>
     <string name="providers_summary_deepl_write">DeepL Write on</string>
+    <!-- A LibreSpeed speed test row: the server picked from the public list, and the company that runs it. -->
+    <string name="providers_summary_librespeed_server">%1$s</string>
+    <string name="providers_summary_librespeed_sponsored">%1$s, run by %2$s</string>
+    <string name="providers_summary_librespeed_pick">Pick a server</string>
     <string name="providers_usage_title">Usage</string>
     <string name="providers_usage_month_title">This month on this phone</string>
     <string name="providers_usage_none">Nothing sent yet</string>

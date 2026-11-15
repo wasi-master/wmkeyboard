@@ -224,6 +224,17 @@ private fun kindSummary(row: ResolvedProvider, type: ProviderType, settings: Key
                 ),
             ) + setupParts(row, type),
         )
+        // The server picked from the public list, and who runs it: a row's
+        // setup alone said only its address.
+        ProviderTypes.LIBRESPEED.id -> {
+            val name = row.customName.ifBlank { row.url }
+            val sponsor = row.credential?.extra?.get("sponsor")?.takeIf { it.isNotBlank() }
+            when {
+                name.isBlank() -> ProviderSummary(listOf(SummaryPart.Phrase(R.string.providers_summary_librespeed_pick)), problem = true)
+                sponsor != null -> ProviderSummary(listOf(SummaryPart.Phrase(R.string.providers_summary_librespeed_sponsored, name, sponsor)))
+                else -> ProviderSummary(listOf(SummaryPart.Phrase(R.string.providers_summary_librespeed_server, name)))
+            }
+        }
         // Harper is English only, so the kind of English is its choice.
         ProviderTypes.HARPER.id -> ProviderSummary(listOf(SummaryPart.Phrase(settings.grammarDialect.labelRes)))
         else -> null

@@ -1143,6 +1143,8 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     PanelMode.DOC_SCAN -> emptyList()
     // The tab chips, then the result card's insert chips.
     PanelMode.MUSIC_ID -> listOf(FocusRegion.CHIPS, FocusRegion.ACTIONS)
+    // The face's buttons (the dial, Cancel, Send to Again), then the ticket's chips.
+    PanelMode.SPEED_TEST -> listOf(FocusRegion.ACTIONS, FocusRegion.CHIPS)
     // The search, Copy/Open/More, the pinned and recent row, then every app.
     PanelMode.SHARE -> listOf(FocusRegion.SEARCH, FocusRegion.ACTIONS, FocusRegion.CHIPS, FocusRegion.RESULTS)
     // Panels with nothing to drive. The sensor trio has zero controls at all;
@@ -1153,9 +1155,6 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     // TRACKPAD is a pointing surface and nothing else.
     PanelMode.NONE, PanelMode.TEXT_EDIT, PanelMode.TRACKPAD, PanelMode.COMPASS, PanelMode.LEVEL,
     PanelMode.MOON_PHASE, PanelMode.NUMPAD, PanelMode.HANDWRITING, PanelMode.CUSTOM_LAYOUTS,
-    // The speed test's chips are touch targets with no [PanelFocusTarget]
-    // yet; a ring here would be an empty one. Add the regions with the targets.
-    PanelMode.SPEED_TEST,
     // AI reply publishes no ring yet (#234): its three bands are all touch
     // targets and none of them has a [PanelFocusTarget], so a ring here would
     // be an empty one. Add the regions with the targets, not before.

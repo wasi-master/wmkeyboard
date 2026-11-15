@@ -1,0 +1,10 @@
+<!-- LibreSpeed's mark: the arrow of the favicon in librespeed/speedtest (frontend/images/favicon.svg), as one colour. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="19"
+    android:viewportHeight="18">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M17.1947 2.38135H3.55467L3.42638 9.32426L8.84467 9.49601L8.25888 9.99686L2.04297 15.4616L16.3914 15.3137V8.62233L10.1332 7.52898L17.1947 2.38135Z"/>
+</vector>

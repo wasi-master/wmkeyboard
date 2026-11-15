@@ -87,7 +87,9 @@ import com.wasimaster.wmkeyboard.core.tools.speedtest.SpeedCardStyle
 import com.wasimaster.wmkeyboard.core.tools.speedtest.SpeedTestMath
 import com.wasimaster.wmkeyboard.core.tools.speedtest.SpeedTestPhase
 import com.wasimaster.wmkeyboard.core.tools.speedtest.SpeedUnit
+import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
+import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.speedtest.SpeedTestAction
 import com.wasimaster.wmkeyboard.ime.speedtest.SpeedTestStage
@@ -129,6 +131,34 @@ internal fun SpeedTestPanel(state: KeyboardUiState, onAction: (SpeedTestAction) 
     }
     LaunchedEffect(palette) { onAction(SpeedTestAction.Theme(palette)) }
 
+    // The hardware ring: the face's buttons, then (on the ticket) the chips
+    // under the card. What there is to press changes with the stage.
+    val busy = ui.rendering
+    val actions: List<() -> Unit> = when (ui.stage) {
+        SpeedTestStage.IDLE -> listOf { onAction(SpeedTestAction.Start) }
+        SpeedTestStage.ASK_METERED -> listOfNotNull(
+            { onAction(SpeedTestAction.AllowMetered) }.takeIf { ui.canAllow },
+            { onAction(SpeedTestAction.Cancel) },
+        )
+        SpeedTestStage.RUNNING -> listOf { onAction(SpeedTestAction.Cancel) }
+        SpeedTestStage.DONE -> listOf(
+            { if (!busy) onAction(SpeedTestAction.Send) },
+            { if (!busy) onAction(SpeedTestAction.Save) },
+            { if (!busy) onAction(SpeedTestAction.Share) },
+            { onAction(SpeedTestAction.InsertText) },
+            { onAction(SpeedTestAction.Again) },
+        )
+        SpeedTestStage.ERROR -> listOf { onAction(SpeedTestAction.Again) }
+    }
+    PanelFocusTarget(panel = PanelMode.SPEED_TEST, region = FocusRegion.ACTIONS, count = actions.size, columns = actions.size) {
+        actions.getOrNull(it)?.invoke()
+    }
+    val chips = if (ui.stage == SpeedTestStage.DONE) ticketChips(onAction) else emptyList()
+    PanelFocusTarget(panel = PanelMode.SPEED_TEST, region = FocusRegion.CHIPS, count = chips.size, columns = chips.size) {
+        chips.getOrNull(it)?.invoke()
+    }
+    val actionRing = state.focusedIndex(FocusRegion.ACTIONS)
+
     FullBleedTool(
         state = state,
         title = "",
@@ -136,8 +166,8 @@ internal fun SpeedTestPanel(state: KeyboardUiState, onAction: (SpeedTestAction) 
         extraHeight = SpeedExtraHeight,
         headerActions = {
             when (ui.stage) {
-                SpeedTestStage.RUNNING -> RunningHeader(state, onAction)
-                SpeedTestStage.DONE -> DoneHeader(ui, onAction)
+                SpeedTestStage.RUNNING -> RunningHeader(state, onAction, ringed = actionRing == 0)
+                SpeedTestStage.DONE -> DoneHeader(ui, onAction, ringed = actionRing == DONE_AGAIN_INDEX)
                 else -> IdleHeader(state)
             }
         },
@@ -150,11 +180,11 @@ internal fun SpeedTestPanel(state: KeyboardUiState, onAction: (SpeedTestAction) 
         ) { stage ->
             Box(Modifier.fillMaxSize().blockTouches(stage != ui.stage)) {
                 when (stage) {
-                    SpeedTestStage.IDLE -> IdleFace(ui, onAction)
-                    SpeedTestStage.ASK_METERED -> AskFace(ui, onAction)
+                    SpeedTestStage.IDLE -> IdleFace(ui, onAction, ringed = actionRing == 0)
+                    SpeedTestStage.ASK_METERED -> AskFace(ui, onAction, actionRing)
                     SpeedTestStage.RUNNING -> RunningFace(state)
                     SpeedTestStage.DONE -> TicketFace(state, palette, onAction)
-                    SpeedTestStage.ERROR -> ErrorFace(state, onAction)
+                    SpeedTestStage.ERROR -> ErrorFace(state, onAction, ringed = actionRing == 0)
                 }
             }
         }
@@ -179,7 +209,7 @@ private fun RowScope.IdleHeader(state: KeyboardUiState) {
 
 /** The phases as a rail: Ping, Download, Upload (when the run measures it), and Cancel. */
 @Composable
-private fun RowScope.RunningHeader(state: KeyboardUiState, onAction: (SpeedTestAction) -> Unit) {
+private fun RowScope.RunningHeader(state: KeyboardUiState, onAction: (SpeedTestAction) -> Unit, ringed: Boolean = false) {
     val kb = LocalKbTheme.current
     val ui = state.speedTest
     val slots = (state.settings.speedTest.duration * SAMPLES_PER_SECOND).coerceAtLeast(1)
@@ -202,13 +232,13 @@ private fun RowScope.RunningHeader(state: KeyboardUiState, onAction: (SpeedTestA
     Spacer(Modifier.width(6.dp))
     ProgressRail(steps, animate = kb.motion.any)
     Spacer(Modifier.width(8.dp))
-    PillButton(stringResource(CommonR.string.common_cancel), height = 30.dp) { onAction(SpeedTestAction.Cancel) }
+    PillButton(stringResource(CommonR.string.common_cancel), height = 30.dp, focused = ringed) { onAction(SpeedTestAction.Cancel) }
     Spacer(Modifier.width(4.dp))
 }
 
 /** Where and when the result came from, and Run again. */
 @Composable
-private fun RowScope.DoneHeader(ui: SpeedTestUi, onAction: (SpeedTestAction) -> Unit) {
+private fun RowScope.DoneHeader(ui: SpeedTestUi, onAction: (SpeedTestAction) -> Unit, ringed: Boolean = false) {
     val kb = LocalKbTheme.current
     val context = LocalContext.current
     val result = ui.result
@@ -226,14 +256,14 @@ private fun RowScope.DoneHeader(ui: SpeedTestUi, onAction: (SpeedTestAction) -> 
         overflow = TextOverflow.Ellipsis,
         modifier = Modifier.padding(start = 8.dp).weight(1f),
     )
-    PillButton(stringResource(R.string.ime_speed_again), icon = Icons.Outlined.Replay, height = 30.dp) { onAction(SpeedTestAction.Again) }
+    PillButton(stringResource(R.string.ime_speed_again), icon = Icons.Outlined.Replay, height = 30.dp, focused = ringed) { onAction(SpeedTestAction.Again) }
     Spacer(Modifier.width(4.dp))
 }
 
 // ---- idle: the dial is the button ----
 
 @Composable
-private fun IdleFace(ui: SpeedTestUi, onAction: (SpeedTestAction) -> Unit) {
+private fun IdleFace(ui: SpeedTestUi, onAction: (SpeedTestAction) -> Unit, ringed: Boolean = false) {
     val kb = LocalKbTheme.current
     val feedback = LocalKeyPressFeedback.current
     val animate = kb.motion.any
@@ -262,6 +292,7 @@ private fun IdleFace(ui: SpeedTestUi, onAction: (SpeedTestAction) -> Unit) {
                 ticks = true,
                 modifier = Modifier
                     .size(ring)
+                    .focusRing(ringed, CircleShape)
                     .pressScale(source, animate)
                     .clip(CircleShape)
                     .clickable(interactionSource = source, indication = null) {
@@ -293,7 +324,7 @@ private fun IdleFace(ui: SpeedTestUi, onAction: (SpeedTestAction) -> Unit) {
 // ---- the data saver's question ----
 
 @Composable
-private fun AskFace(ui: SpeedTestUi, onAction: (SpeedTestAction) -> Unit) {
+private fun AskFace(ui: SpeedTestUi, onAction: (SpeedTestAction) -> Unit, ring: Int? = null) {
     val kb = LocalKbTheme.current
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
@@ -314,9 +345,9 @@ private fun AskFace(ui: SpeedTestUi, onAction: (SpeedTestAction) -> Unit) {
         Spacer(Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             if (ui.canAllow) {
-                PillButton(stringResource(R.string.ime_speed_run_anyway), primary = true) { onAction(SpeedTestAction.AllowMetered) }
+                PillButton(stringResource(R.string.ime_speed_run_anyway), primary = true, focused = ring == 0) { onAction(SpeedTestAction.AllowMetered) }
             }
-            PillButton(stringResource(CommonR.string.common_cancel)) { onAction(SpeedTestAction.Cancel) }
+            PillButton(stringResource(CommonR.string.common_cancel), focused = ring == (if (ui.canAllow) 1 else 0)) { onAction(SpeedTestAction.Cancel) }
         }
     }
 }
@@ -545,26 +576,48 @@ private fun TicketFace(state: KeyboardUiState, themePalette: SpeedCardPalette, o
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                for (size in SpeedCardSize.entries) {
-                    ToolPanelChip(stringResource(sizeLabel(size)), selected = s.cardSize == size) { onAction(SpeedTestAction.SetSize(size)) }
+                // Ringed in the order [ticketChips] lists them.
+                val chipRing = state.focusedIndex(FocusRegion.CHIPS)
+                val chipShape = kb.chipShape()
+                for ((i, size) in SpeedCardSize.entries.withIndex()) {
+                    ToolPanelChip(
+                        stringResource(sizeLabel(size)),
+                        selected = s.cardSize == size,
+                        modifier = Modifier.focusRing(chipRing == i, chipShape),
+                    ) { onAction(SpeedTestAction.SetSize(size)) }
                 }
                 ChipGap()
-                for (layout in SpeedCardLayout.entries) {
-                    ToolPanelChip(stringResource(layoutLabel(layout)), selected = s.cardLayout == layout) { onAction(SpeedTestAction.SetLayout(layout)) }
+                val layoutsAt = SpeedCardSize.entries.size
+                for ((i, layout) in SpeedCardLayout.entries.withIndex()) {
+                    ToolPanelChip(
+                        stringResource(layoutLabel(layout)),
+                        selected = s.cardLayout == layout,
+                        modifier = Modifier.focusRing(chipRing == layoutsAt + i, chipShape),
+                    ) { onAction(SpeedTestAction.SetLayout(layout)) }
                 }
                 ChipGap()
-                for (unit in SpeedUnit.entries) {
-                    ToolPanelChip(SpeedTestMath.unitLabel(unit), selected = s.unit == unit) { onAction(SpeedTestAction.SetUnit(unit)) }
+                val unitsAt = layoutsAt + SpeedCardLayout.entries.size
+                for ((i, unit) in SpeedUnit.entries.withIndex()) {
+                    ToolPanelChip(
+                        SpeedTestMath.unitLabel(unit),
+                        selected = s.unit == unit,
+                        modifier = Modifier.focusRing(chipRing == unitsAt + i, chipShape),
+                    ) { onAction(SpeedTestAction.SetUnit(unit)) }
                 }
             }
             Spacer(Modifier.height(6.dp))
             val busy = ui.rendering
+            val ring = state.focusedIndex(FocusRegion.ACTIONS)
             ActionBar(
                 listOf(
-                    KitAction(stringResource(R.string.ime_speed_send), Icons.AutoMirrored.Outlined.Send, enabled = !busy, primary = true) { onAction(SpeedTestAction.Send) },
-                    KitAction(stringResource(R.string.ime_speed_save), Icons.Outlined.Save, enabled = !busy) { onAction(SpeedTestAction.Save) },
-                    KitAction(stringResource(R.string.ime_speed_share), Icons.Outlined.Share, enabled = !busy) { onAction(SpeedTestAction.Share) },
-                    KitAction(stringResource(R.string.ime_speed_insert_text), Icons.Outlined.TextFields) { onAction(SpeedTestAction.InsertText) },
+                    KitAction(stringResource(R.string.ime_speed_send), Icons.AutoMirrored.Outlined.Send, enabled = !busy, primary = true, focused = ring == 0) {
+                        onAction(SpeedTestAction.Send)
+                    },
+                    KitAction(stringResource(R.string.ime_speed_save), Icons.Outlined.Save, enabled = !busy, focused = ring == 1) { onAction(SpeedTestAction.Save) },
+                    KitAction(stringResource(R.string.ime_speed_share), Icons.Outlined.Share, enabled = !busy, focused = ring == 2) { onAction(SpeedTestAction.Share) },
+                    KitAction(stringResource(R.string.ime_speed_insert_text), Icons.Outlined.TextFields, focused = ring == 3) {
+                        onAction(SpeedTestAction.InsertText)
+                    },
                 ),
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
             )
@@ -676,7 +729,7 @@ private fun layoutLabel(layout: SpeedCardLayout): Int = when (layout) {
 // ---- error ----
 
 @Composable
-private fun ErrorFace(state: KeyboardUiState, onAction: (SpeedTestAction) -> Unit) {
+private fun ErrorFace(state: KeyboardUiState, onAction: (SpeedTestAction) -> Unit, ringed: Boolean = false) {
     val kb = LocalKbTheme.current
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
@@ -696,11 +749,23 @@ private fun ErrorFace(state: KeyboardUiState, onAction: (SpeedTestAction) -> Uni
         )
         Spacer(Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            PillButton(stringResource(CommonR.string.common_retry), primary = true) { onAction(SpeedTestAction.Again) }
+            PillButton(stringResource(CommonR.string.common_retry), primary = true, focused = ringed) { onAction(SpeedTestAction.Again) }
             ProviderChooser(ProviderTool.SPEED_TEST, state.settings)
         }
     }
 }
+
+/**
+ * The ticket's chips as the ring walks them, in the order they are drawn:
+ * the sizes, the layouts, then the units.
+ */
+private fun ticketChips(onAction: (SpeedTestAction) -> Unit): List<() -> Unit> =
+    SpeedCardSize.entries.map { { onAction(SpeedTestAction.SetSize(it)) } } +
+        SpeedCardLayout.entries.map { { onAction(SpeedTestAction.SetLayout(it)) } } +
+        SpeedUnit.entries.map { { onAction(SpeedTestAction.SetUnit(it)) } }
+
+/** Where Again sits in the ticket's ring: after Send, Save, Share and Insert as text. */
+private const val DONE_AGAIN_INDEX = 4
 
 /** The engine samples every 200 ms, so a phase of N seconds is 5N points on the line. */
 private const val SAMPLES_PER_SECOND = 5

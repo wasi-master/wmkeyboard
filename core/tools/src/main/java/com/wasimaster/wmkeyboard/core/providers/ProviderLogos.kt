@@ -55,6 +55,9 @@ object ProviderLogos {
         ProviderTypes.FRANKFURTER.id to mark(R.drawable.core_tools_logo_frankfurter, 0xFF1A1A1A),
         ProviderTypes.COINBASE.id to mark(R.drawable.core_tools_logo_coinbase, 0xFF0052FF),
         ProviderTypes.COINGECKO.id to picture(R.drawable.core_tools_logo_coingecko),
+        ProviderTypes.CLOUDFLARE_SPEED.id to mark(R.drawable.core_tools_logo_cloudflare, 0xFFF38020),
+        ProviderTypes.CLOUDFLARE_AI.id to mark(R.drawable.core_tools_logo_cloudflare, 0xFFF38020),
+        ProviderTypes.LIBRESPEED.id to mark(R.drawable.core_tools_logo_librespeed, 0xFF7419B1),
     )
 
     fun of(typeId: String): ProviderLogo? = byId[typeId]
