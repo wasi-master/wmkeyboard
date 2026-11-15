@@ -105,4 +105,15 @@ class KanaGlideTest {
             assertTrue(spelling, spelling.all { it in KanaGlide.KEYS })
         }
     }
+
+    @Test
+    fun `a dakuten drawn over the shift key reads like one drawn over its own key`() {
+        val viaShift = "か${KanaGlide.SHIFT_DAKUTEN}つこう"
+        assertEquals("がつこう", KanaGlide.reading(viaShift))
+        val spellings = KanaGlide.spellings(pack("がっこう\t学校\t26742", "ぱん\tパン\t25500")).toMap()
+        assertEquals(spellings["か゛つこう"], spellings[viaShift])
+        // The handakuten has no place on shift.
+        assertTrue("は゜ん" in spellings)
+        assertFalse(spellings.keys.any { KanaGlide.SHIFT_DAKUTEN in it && '゜' in it })
+    }
 }

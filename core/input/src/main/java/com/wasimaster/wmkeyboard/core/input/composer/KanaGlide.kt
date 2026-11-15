@@ -38,12 +38,22 @@ object KanaGlide {
     /** The spacing handakuten, the ゜ key's label. */
     const val HANDAKUTEN = '゜'
 
+    /**
+     * The ⇧ key's place on the glide grid where ⇧ doubles as ゛ (JIS kana,
+     * whose ⇧ flicks up to 小゛゜, #1132): a stroke that passes over ⇧ after
+     * か spells が, as one passing over the ゛ key does. The combining mark,
+     * so it gets a key of its own: the grid holds one key per character, and
+     * the ゛ key keeps [DAKUTEN].
+     */
+    const val SHIFT_DAKUTEN = '\u3099'
+
     /** Every character a spelling may hold: the keys a stroke can pass through. */
     val KEYS: String = buildString {
         for (c in 'ぁ'..'ゖ') append(c)
         append('ー')
         append(DAKUTEN)
         append(HANDAKUTEN)
+        append(SHIFT_DAKUTEN)
     }
 
     /**
@@ -61,7 +71,13 @@ object KanaGlide {
             if (reading.length < MIN_LENGTH || !reading.all(::isReadingChar)) return@forEachRow
             val weight = weight(score)
             keep(unmarked(reading), weight)
-            if (score >= DRAWN_FLOOR) drawn(reading)?.let { keep(it, weight) }
+            if (score >= DRAWN_FLOOR) {
+                drawn(reading)?.let {
+                    keep(it, weight)
+                    // The same marks drawn over ⇧ instead of the ゛ key.
+                    if (DAKUTEN in it) keep(it.replace(DAKUTEN, SHIFT_DAKUTEN), weight)
+                }
+            }
         }
         return best.entries.map { it.key to it.value }
     }
@@ -91,11 +107,13 @@ object KanaGlide {
 
     /**
      * The reading a decoded [spelling] goes into the buffer as: a kana
-     * followed by ゛ or ゜ becomes the marked kana. A mark the kana before it
-     * cannot take is dropped, as the 小゛゜ key leaves such a kana alone.
+     * followed by ゛ or ゜ (or ⇧'s [SHIFT_DAKUTEN]) becomes the marked kana. A
+     * mark the kana before it cannot take is dropped, as the 小゛゜ key leaves
+     * such a kana alone.
      */
     fun reading(spelling: String): String = buildString(spelling.length) {
-        for (c in spelling) {
+        for (raw in spelling) {
+            val c = if (raw == SHIFT_DAKUTEN) DAKUTEN else raw
             if (c != DAKUTEN && c != HANDAKUTEN) {
                 append(c)
                 continue

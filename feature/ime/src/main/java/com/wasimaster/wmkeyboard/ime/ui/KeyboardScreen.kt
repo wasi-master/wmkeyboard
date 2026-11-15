@@ -24621,11 +24621,16 @@ internal fun bridgeSpaceAcrossGap(keys: List<Key>, gapWeight: Float): List<Key>?
  */
 private val GlidePunctuationCodePoints = setOf(
     ','.code, '.'.code, '\''.code, '/'.code,
-    KanaGlide.DAKUTEN.code, KanaGlide.HANDAKUTEN.code,
+    KanaGlide.DAKUTEN.code, KanaGlide.HANDAKUTEN.code, KanaGlide.SHIFT_DAKUTEN.code,
 )
 
 /** The character this key contributes to the centres map if it is punctuation. */
 private fun Key.glidePunctuationCodePoint(): Int? {
+    // A ⇧ that flicks up to 小゛゜ (JIS kana, #1132) is a ゛ to glide over too,
+    // under a mark of its own: the ゛ key keeps the spacing one.
+    if (action == KeyAction.Shift && flickActions[FlickDirection.UP]?.action == KeyAction.KanaVariant) {
+        return KanaGlide.SHIFT_DAKUTEN.code
+    }
     val text = (output ?: label).singleOrNull() ?: return null
     // A ゛ or ゜ key is usually the 小゛゜ action wearing the mark as its label,
     // and sometimes a key that types the mark, spacing or combining.
