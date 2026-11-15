@@ -58049,6 +58049,12 @@ open class WMKeyboardService : InputMethodService() {
         spentChipClipId = item.id
         clearClipboardSuggestion()
         purgeAfterPasswordPaste(item)
+        // Kept private, the clip just pasted from the history is what the
+        // paste keys and flicks give next (#970), as a copy of it would be.
+        // Nothing reaches the system clipboard; a secret is never held.
+        if (item.kind.isTextual && !item.sensitive && !_uiState.value.secureField) {
+            KeyboardClipboard.holdForPaste(item.text)
+        }
         bumpPastedClip(item)
         closePanelAfterInsertIfEnabled()
     }
