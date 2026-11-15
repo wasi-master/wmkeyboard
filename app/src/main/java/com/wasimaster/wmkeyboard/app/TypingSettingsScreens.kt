@@ -523,7 +523,10 @@ internal fun TypingCorrectionsSettings(
                 default = SettingsDefaults.suggestionStrip.learnFromCorrections,
             ) { scope.launch { repository.setLearnFromCorrections(it) } }
         }
-        item(level = SettingLevel.STANDARD) {
+        // At every level (#620): the list of what was learned is where a
+        // correction the keyboard keeps making is undone, and search sends
+        // people here for it whatever level they are on.
+        item {
             NavRow(
                 R.string.typing_learned_corrections_title,
                 stringResource(R.string.typing_learned_corrections_subtitle),
