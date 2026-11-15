@@ -598,7 +598,7 @@ class SuggestionEngine(
         if (judged === marker) return null
         val taps = judged.taps ?: return null
         val wrong = judged.word.trim()
-        if (wrong.isEmpty() || wrong.any { !it.isLetter() && it != '\'' && it != ' ' }) return null
+        if (wrong.isEmpty() || wrong.any { !WordContext.isWordChar(it) && it != '\'' && it != ' ' }) return null
         val followers = commits.takeLast(back).flatMap { c ->
             c.word.trim().trimEnd { !it.isLetterOrDigit() }.split(' ').filter { it.isNotEmpty() }
         }
@@ -666,7 +666,7 @@ class SuggestionEngine(
         val points2 = taps2.points ?: return null
         val w1 = first.word.trim()
         val w2 = second.word.trim().trimEnd { !it.isLetterOrDigit() }
-        if (w1.isEmpty() || w2.isEmpty() || (w1 + w2).any { !it.isLetter() && it != ' ' && it != '\'' }) return null
+        if (w1.isEmpty() || w2.isEmpty() || (w1 + w2).any { !WordContext.isWordChar(it) && it != ' ' && it != '\'' }) return null
         val words1 = w1.split(' ').map { WordKey.of(it) }
         val words2 = w2.split(' ').map { WordKey.of(it) }
         val tailSize = words1.size + words2.size
@@ -722,7 +722,7 @@ class SuggestionEngine(
         val taps = last.taps ?: return null
         val points = taps.points ?: return null
         val word = last.word.trim()
-        if (word.isEmpty() || ' ' in word || word.any { !it.isLetter() }) return null
+        if (word.isEmpty() || ' ' in word || word.any { !WordContext.isWordChar(it) }) return null
         val sentence = sentence
         if (sentence.isEmpty() || WordKey.of(sentence.last()) != WordKey.of(word)) return null
         val model = touchModelField ?: return null
@@ -4944,7 +4944,7 @@ class SuggestionEngine(
         if (WordContext.isSentinel(prev)) return null
         val lower = composing.lowercase()
         if (prev.isEmpty()) return null
-        if (!prev.all { it.isLetter() } || !lower.all { it.isLetter() }) return null
+        if (!prev.all(WordContext::isWordChar) || !lower.all(WordContext::isWordChar)) return null
         val joined = prev + lower
         if (joined.length > JOIN_MAX_LENGTH || suppressed(joined)) return null
         fun freqOf(word: String) = maxOf(
@@ -5010,7 +5010,7 @@ class SuggestionEngine(
         val prev = previousWord?.lowercase() ?: return null
         val lower = composing.lowercase()
         if (prev.isEmpty() || lower.isEmpty() || WordContext.isSentinel(prev)) return null
-        if (!prev.all { it.isLetter() } || !lower.all { it.isLetter() }) return null
+        if (!prev.all(WordContext::isWordChar) || !lower.all(WordContext::isWordChar)) return null
         fun freqOf(word: String) = maxOf(
             dictionaryFrequencyOf(word),
             weighted(userLexicon.frequencyOf(word), USER_WORD_WEIGHT),
@@ -5071,7 +5071,7 @@ class SuggestionEngine(
      * seen once is not evidence that the user meant it here.
      */
     private fun splitCandidates(word: String, touch: List<TouchPoint?>?): List<SplitReading> {
-        if (word.length < 4 || !word.all { it.isLetter() }) return emptyList()
+        if (word.length < 4 || !word.all(WordContext::isWordChar)) return emptyList()
         val results = ArrayList<SplitReading>()
         val taps = touch?.takeIf { it.size == word.length }
         fun freqOf(part: String): Int {
@@ -6664,7 +6664,7 @@ class SuggestionEngine(
         touch: List<TouchPoint?>?,
         timingMultiplier: Double,
     ): CorrectionDecision? {
-        if (!readWholePhrases || lower.isEmpty() || lower.any { !it.isLetter() }) return null
+        if (!readWholePhrases || lower.isEmpty() || !lower.all(WordContext::isWordChar)) return null
         noteTaps(lower, touch, timingMultiplier)
         if (lower in TEXTING_SHORT_FORMS || contacts.contains(lower) || apps.contains(lower)) return null
         if (!inDictionaries(lower) && userLexicon.isEstablished(lower, learnedWordMinCount)) return null

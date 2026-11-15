@@ -60,7 +60,7 @@ class NameIndex private constructor(
             val next = HashMap<String, HashMap<String, Word>>()
             for (name in names) {
                 val parts = name.split(SEPARATORS)
-                    .map { it.trim { c -> !c.isLetter() } }
+                    .map { it.trim { c -> !WordContext.isWordChar(c) } }
                     .filter { part -> part.length >= 2 && part.any { it.isLetter() } }
                 var previous: String? = null
                 for (part in parts) {

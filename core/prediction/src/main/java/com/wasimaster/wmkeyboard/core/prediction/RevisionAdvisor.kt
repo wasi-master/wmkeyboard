@@ -30,7 +30,7 @@ class RevisionAdvisor(
         val p = prev?.lowercase() ?: return null
         val f = follower?.lowercase() ?: return null
         if (WordContext.isSentinel(p) || WordContext.isSentinel(f)) return null
-        if (f.isEmpty() || !f.all { it.isLetter() }) return null
+        if (f.isEmpty() || !f.all(WordContext::isWordChar)) return null
         val siblings = CONFUSABLES[p] ?: return null
 
         var best: String? = null
