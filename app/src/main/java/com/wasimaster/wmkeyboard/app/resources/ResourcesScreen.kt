@@ -19,6 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
+import com.wasimaster.wmkeyboard.core.power.LoadGovernor
+import com.wasimaster.wmkeyboard.core.settings.DeviceClass
+import com.wasimaster.wmkeyboard.core.settings.LoadLevel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -119,6 +122,7 @@ internal fun ResourcesScreen(
     }
 
     MemoryCard(current.memory)
+    LoadCard(onNavigate)
     ModelsCard(current, busy, onNavigate, onUnload = { id -> unload { ResidentModels.unload(id) } }) {
         unload { ResidentModels.unloadAll() }
     }
@@ -289,6 +293,67 @@ private fun ModelsCard(
             )
         }
     }
+}
+
+/**
+ * How hard the keyboard judges the phone to be working (the load governor
+ * behind "When the phone is busy" in power saving): the level, the phone's
+ * class, and which readings raised it. Read from the keyboard, which shares
+ * this process; before the keyboard first came up there is nothing to show.
+ */
+@Composable
+private fun LoadCard(onNavigate: (String) -> Unit) {
+    val report by LoadGovernor.Latest.report.collectAsState()
+    SettingsGroup(
+        stringResource(R.string.resources_load_group),
+        info = stringResource(R.string.resources_load_info),
+    ) {
+        val r = report
+        item {
+            when {
+                r == null -> WmRow(title = stringResource(R.string.resources_load_unknown), icon = Icons.Outlined.Speed)
+                !r.adapting -> WmRow(
+                    title = stringResource(R.string.resources_load_off),
+                    subtitle = stringResource(R.string.resources_load_off_subtitle),
+                    icon = Icons.Outlined.Speed,
+                    onClick = { onNavigate(POWER_SAVING_ROUTE) },
+                )
+                else -> WmRow(
+                    title = stringResource(
+                        when (r.load.level) {
+                            LoadLevel.NORMAL -> R.string.resources_load_normal
+                            LoadLevel.ELEVATED -> R.string.resources_load_elevated
+                            LoadLevel.HEAVY -> R.string.resources_load_heavy
+                        },
+                    ),
+                    subtitle = listOfNotNull(
+                        stringResource(
+                            when (r.load.deviceClass) {
+                                DeviceClass.LOW -> R.string.resources_load_class_low
+                                DeviceClass.MID -> R.string.resources_load_class_mid
+                                DeviceClass.HIGH -> R.string.resources_load_class_high
+                            },
+                        ),
+                        r.raised.takeIf { it.isNotEmpty() }?.let { raised ->
+                            stringResource(
+                                R.string.resources_load_raised_by,
+                                raised.map { stringResource(signalLabel(it)) }.joinToString(", "),
+                            )
+                        },
+                    ).joinToString(" · "),
+                    icon = Icons.Outlined.Speed,
+                    onClick = { onNavigate(POWER_SAVING_ROUTE) },
+                )
+            }
+        }
+    }
+}
+
+private fun signalLabel(signal: LoadGovernor.LoadSignal): Int = when (signal) {
+    LoadGovernor.LoadSignal.FRAMES -> R.string.resources_load_signal_frames
+    LoadGovernor.LoadSignal.THERMAL -> R.string.resources_load_signal_thermal
+    LoadGovernor.LoadSignal.MEMORY -> R.string.resources_load_signal_memory
+    LoadGovernor.LoadSignal.SUGGESTIONS -> R.string.resources_load_signal_suggestions
 }
 
 @Composable

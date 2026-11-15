@@ -32,6 +32,23 @@
     <!-- %1$s: the amount native code has allocated right now -->
     <string name="resources_memory_native_detail">%1$s allocated by native code right now</string>
 
+    <!-- How busy the keyboard judges the phone to be (Power saving's "When the phone is busy"). -->
+    <string name="resources_load_group">Load</string>
+    <string name="resources_load_info">The keyboard watches how its own frames keep up, how warm the phone is, how short of memory, and how long a word suggestion takes. When they say the phone is struggling, it eases off: moving backgrounds slow down or stop, animations shorten, and work that can wait waits, such as gathering your words for dictation when the keyboard opens. It goes back to normal after a calm spell. Tap the row for the switch.</string>
+    <string name="resources_load_unknown">Not measured yet. Open the keyboard once.</string>
+    <string name="resources_load_off">Adapting to load is off</string>
+    <string name="resources_load_off_subtitle">The keyboard runs as you set it, however busy the phone is</string>
+    <string name="resources_load_normal">Normal: nothing is struggling</string>
+    <string name="resources_load_elevated">Busy: moving backgrounds slowed</string>
+    <string name="resources_load_heavy">Heavy: effects off, waiting work put off</string>
+    <string name="resources_load_class_low">A low-end phone</string>
+    <string name="resources_load_class_mid">A mid-range phone</string>
+    <string name="resources_load_class_high">A high-end phone</string>
+    <string name="resources_load_raised_by">raised by %1$s</string>
+    <string name="resources_load_signal_frames">dropped frames</string>
+    <string name="resources_load_signal_thermal">heat</string>
+    <string name="resources_load_signal_memory">low memory</string>
+    <string name="resources_load_signal_suggestions">slow suggestions</string>
     <string name="resources_cpu_group">Processor time</string>
     <string name="resources_cpu_info">Processor time is the closest thing to battery use that Android lets an app measure for itself. It is counted per thread, and threads are grouped by their names, so a model that runs on threads it named shows up under Models. Time on threads that have already ended counts only in the total.</string>
     <!-- %1$s: processor time, such as "2 min 10 s"; %2$s: how long the keyboard has been running -->

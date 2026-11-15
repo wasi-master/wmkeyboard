@@ -284,7 +284,40 @@ class LoadGovernor(private val context: Context) {
             DeviceLoad()
         }
         if (_state.value != next) _state.value = next
+        val now = SystemClock.uptimeMillis()
+        val report = synchronized(lock) {
+            LoadReport(
+                load = DeviceLoad(tracker.level, deviceClass, television),
+                adapting = enabled,
+                raised = buildSet {
+                    if (thermal > LoadLevel.NORMAL) add(LoadSignal.THERMAL)
+                    if (headroom > LoadLevel.NORMAL && now - headroomAt < HEADROOM_VALID_MS) add(LoadSignal.THERMAL)
+                    if (memory > LoadLevel.NORMAL && now - memoryAt < MEMORY_VALID_MS) add(LoadSignal.MEMORY)
+                    if (frames > LoadLevel.NORMAL && now - framesAt < FRAMES_VALID_MS) add(LoadSignal.FRAMES)
+                    if (work > LoadLevel.NORMAL && now - workAt < WORK_VALID_MS) add(LoadSignal.SUGGESTIONS)
+                },
+            )
+        }
+        if (latest.value != report) latest.value = report
     }
+
+    /** What the Resources screen shows of the governor: the level, the phone's class, and what is raising it. */
+    data class LoadReport(val load: DeviceLoad, val adapting: Boolean, val raised: Set<LoadSignal>)
+
+    /** The readings that can raise the level. */
+    enum class LoadSignal { FRAMES, THERMAL, MEMORY, SUGGESTIONS }
+
+    /**
+     * The keyboard's governor as the rest of the process sees it: the
+     * settings app shares the keyboard's process, so its Resources screen
+     * reads the level from here. Null until the keyboard first comes up.
+     */
+    object Latest {
+        internal val flow = MutableStateFlow<LoadReport?>(null)
+        val report: StateFlow<LoadReport?> = flow.asStateFlow()
+    }
+
+    private val latest get() = Latest.flow
 
     private fun classify() {
         val am = context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager

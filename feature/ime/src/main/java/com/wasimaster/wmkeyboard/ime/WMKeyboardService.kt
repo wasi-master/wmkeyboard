@@ -1512,7 +1512,24 @@ open class WMKeyboardService : InputMethodService() {
     private fun applyDeviceLoad(load: DeviceLoad) {
         deviceLoad = load
         ThemeFramePacing.budget = MotionBudget.of(load)
+        // A glide coverage check put off while the phone was struggling is
+        // asked again once it is not.
+        if (load.level != LoadLevel.HEAVY && glideCoverageDeferred) {
+            glideCoverageDeferred = false
+            glideSourcesEpoch.update { it + 1 }
+        }
     }
+
+    /**
+     * Set when the glide gate kept its last answer rather than measure
+     * coverage again under [LoadLevel.HEAVY] load; [applyDeviceLoad] re-asks
+     * it when the load eases.
+     */
+    @Volatile
+    private var glideCoverageDeferred = false
+
+    /** The language and alphabet glide coverage was last measured for: only that answer may stand in. */
+    private var glideCoverageMeasured: Pair<String, Set<Int>>? = null
 
     /** Pending [scheduleWarmUps]. */
     private var warmUpJob: Job? = null
@@ -1535,6 +1552,14 @@ open class WMKeyboardService : InputMethodService() {
                 val wait = typingCadence.untilPauseMs(now)
                 if (wait <= 0L || now >= deadline) break
                 delay(minOf(wait, deadline - now))
+            }
+            // Under heavy load (a game, a hot phone) the walk of the personal
+            // dictionary waits for the load to ease, for a while: the mic
+            // still gathers its words when pressed, so nothing is lost by
+            // waiting except a little bias on the first dictation.
+            val heavyDeadline = SystemClock.uptimeMillis() + WARM_UP_LOAD_WAIT_MAX_MS
+            while (deviceLoad.level == LoadLevel.HEAVY && SystemClock.uptimeMillis() < heavyDeadline) {
+                delay(WARM_UP_LOAD_POLL_MS)
             }
             // Ready before the first press of the mic, not after it (#305).
             refreshVoiceBias()
@@ -34388,8 +34413,21 @@ open class WMKeyboardService : InputMethodService() {
                     engine?.glideRomanization =
                         gate.phonetic?.let { romanizedGlides[it] } ?: RomanizedIndex.EMPTY
                     val allowed = gate.phonetic != null || !gate.converts
-                    val ready = allowed && engine != null && withContext(Dispatchers.Default) {
-                        engine.glideCoverage(gate.alphabet) >= GlideCoverage.THRESHOLD
+                    // The keyboard opening on a struggling phone re-asks the same
+                    // question for the same language and keys; the answer it
+                    // had stands until the load eases ([applyDeviceLoad]).
+                    val measuredKey = gate.languageId to gate.alphabet
+                    val putOff = allowed && engine != null && deviceLoad.level == LoadLevel.HEAVY &&
+                        glideCoverageMeasured == measuredKey
+                    val ready = if (putOff) {
+                        glideCoverageDeferred = true
+                        _uiState.value.glideReady
+                    } else {
+                        (
+                            allowed && engine != null && withContext(Dispatchers.Default) {
+                                engine.glideCoverage(gate.alphabet) >= GlideCoverage.THRESHOLD
+                            }
+                            ).also { if (allowed && engine != null) glideCoverageMeasured = measuredKey }
                     }
                     // Nothing of the language's own to decode against — its
                     // word list was never downloaded — so a swipe either
@@ -63617,6 +63655,10 @@ open class WMKeyboardService : InputMethodService() {
 
         /** How long after the keyboard opens the warm-ups wait for a pause, at most. */
         private const val WARM_UP_WAIT_MAX_MS = 1_500L
+
+        /** How long the warm-ups wait out heavy load before they run anyway, and how often they look. */
+        private const val WARM_UP_LOAD_WAIT_MAX_MS = 20_000L
+        private const val WARM_UP_LOAD_POLL_MS = 1_000L
 
         /** The opening frames the warm-ups stay out of. */
         private const val WARM_UP_FIRST_FRAMES_MS = 300L
