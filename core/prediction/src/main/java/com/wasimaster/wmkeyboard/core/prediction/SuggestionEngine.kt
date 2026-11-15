@@ -3372,6 +3372,9 @@ class SuggestionEngine(
          */
         private const val KLINGON_SUFFIX_DAMP = 1.4
 
+        /** How far below a direct completion a prefix-and-stem one sits (#1311). */
+        private const val ARABIC_PREFIX_DAMP = 0.8
+
         /** The further step down for each later ending. */
         private const val KLINGON_SUFFIX_STEP = 0.2
 
@@ -4211,6 +4214,10 @@ class SuggestionEngine(
         // parts already typed (#679). Walked before the whole word, so the
         // memoised walk [octopusWords] reads afterwards is the whole word's.
         if (!ambiguous) compoundTailCandidates(lower, limit, touch, merged)
+        // An Arabic word typed with its prefix (#1311): the stem completes
+        // from the lists and the prefix goes back on. Walked before the whole
+        // word for the same reason as the compound tail.
+        if (!ambiguous && primaryLanguageId == ArabicClitics.LANGUAGE) arabicPrefixCandidates(lower, limit, merged)
 
         // One fuzzy walk covers completions AND corrections over every trie
         // source. Corrections (edited paths) are admitted in full only when the
@@ -7079,6 +7086,27 @@ class SuggestionEngine(
      * Damped by [COMPOUND_TAIL_DAMP] so a compound the lists know whole still
      * leads its made-up neighbours.
      */
+    /**
+     * The completions of the stem after [lower]'s Arabic prefix (#1311), with
+     * the prefix put back, a little below the words the lists complete [lower]
+     * to directly. Completions only: a correction of the stem is a guess on
+     * top of a guess.
+     */
+    private fun arabicPrefixCandidates(lower: String, limit: Int, merged: HashMap<String, Double>) {
+        val (prefix, stem) = ArabicClitics.split(lower) ?: return
+        val walked = beam.search(walkSources(), stem, proximity, maxOf(limit * 2, WALK_K) / 2, beamWorkspace.get())
+        for (c in dampMismatchedLanguages(walked)) {
+            if (c.edits > 0 || ' ' in c.word) continue
+            val word = WordKey.of(c.word)
+            // A stem that already carries the article does not take it twice.
+            if (prefix.endsWith("ال") && word.startsWith("ال")) continue
+            // With Ayaspell installed its rules have the last word on the pair.
+            val whole = prefix + word
+            if (wordChecker !== WordChecker.NONE && !wordChecker.accepts(whole)) continue
+            merged.merge(whole, c.score - ARABIC_PREFIX_DAMP, ::maxOf)
+        }
+    }
+
     private fun compoundTailCandidates(
         lower: String,
         limit: Int,
