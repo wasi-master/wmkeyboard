@@ -1085,7 +1085,17 @@ private fun NoteCard(
                 .combinedClickable(
                     interactionSource = source,
                     indication = null,
-                    onClick = { if (held) callbacks.onHold(null) else callbacks.onOpen(note.id) },
+                    onClick = {
+                        // With "Tap a note to insert it" (#1333) a tap types
+                        // the note in; a held note opens instead.
+                        val inserts = state.settings.notes.tapInserts
+                        when {
+                            held && inserts -> callbacks.onOpen(note.id)
+                            held -> callbacks.onHold(null)
+                            inserts -> callbacks.onInsert(note.id)
+                            else -> callbacks.onOpen(note.id)
+                        }
+                    },
                     onLongClick = {
                         feedback()
                         callbacks.onHold(if (held) null else note.id)

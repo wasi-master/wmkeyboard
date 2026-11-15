@@ -11364,12 +11364,18 @@ internal fun ToolCircle(
     } else if (holdLabel == null && onLongPress == null) {
         Modifier.panelOrigin().clickable(onClick = onClick)
     } else {
+        // Read through State: the detector outlives the composition that
+        // started it, and a lambda captured then went stale. A panel header's
+        // back called the onClick of the face the panel first opened on, or
+        // of a placeholder bundle, and did nothing (#1350, #1333).
+        val tap by rememberUpdatedState(onClick)
+        val hold by rememberUpdatedState(onLongPress)
         Modifier.panelOrigin().pointerInput(holdLabel, onLongPress != null) {
             detectTapGestures(
-                onTap = { onClick() },
+                onTap = { tap() },
                 onLongPress = {
                     feedback()
-                    if (onLongPress != null) onLongPress() else showLabel = true
+                    hold?.invoke() ?: run { showLabel = true }
                 },
             )
         }

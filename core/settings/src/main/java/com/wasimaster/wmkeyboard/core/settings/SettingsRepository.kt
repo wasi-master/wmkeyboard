@@ -13552,6 +13552,7 @@ class SettingsRepository(private val context: Context) {
         private val NOTES_SAVE_SELECTION_APPENDS = booleanPreferencesKey("notes_save_selection_appends")
         private val NOTES_TRASH_DAYS = intPreferencesKey("notes_trash_days")
         private val NOTES_KEEP_TOOLBAR = booleanPreferencesKey("notes_keep_toolbar")
+        private val NOTES_TAP_INSERTS = booleanPreferencesKey("notes_tap_inserts")
         private val NOTES_ASSIST = booleanPreferencesKey("notes_assist")
         private val NOTES_ASSIST_HEADINGS = booleanPreferencesKey("notes_assist_headings")
         private val NOTES_ASSIST_SUMMARIES = booleanPreferencesKey("notes_assist_summaries")
@@ -16448,6 +16449,7 @@ class SettingsRepository(private val context: Context) {
             saveSelectionAppends = p[NOTES_SAVE_SELECTION_APPENDS] ?: defaults.notes.saveSelectionAppends,
             trashDays = p[NOTES_TRASH_DAYS]?.coerceIn(0, NotesSettings.MAX_TRASH_DAYS) ?: defaults.notes.trashDays,
             keepToolbar = p[NOTES_KEEP_TOOLBAR] ?: defaults.notes.keepToolbar,
+            tapInserts = p[NOTES_TAP_INSERTS] ?: defaults.notes.tapInserts,
             assist = NotesAssistSettings(
                 enabled = p[NOTES_ASSIST] ?: defaults.notes.assist.enabled,
                 headings = p[NOTES_ASSIST_HEADINGS] ?: defaults.notes.assist.headings,
@@ -18451,6 +18453,7 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[NOTES_TRASH_DAYS] = value.coerceIn(0, NotesSettings.MAX_TRASH_DAYS) }
 
     suspend fun setNotesKeepToolbar(value: Boolean) = editPrefs { it[NOTES_KEEP_TOOLBAR] = value }
+    suspend fun setNotesTapInserts(value: Boolean) = editPrefs { it[NOTES_TAP_INSERTS] = value }
 
     /**
      * One change to the notes assistant's settings (#1293), applied to what

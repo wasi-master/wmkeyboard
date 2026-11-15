@@ -1198,6 +1198,9 @@
     <string name="tooldetail_notes_markdown_title">Format Markdown</string>
     <string name="tooldetail_notes_keep_toolbar_title">Keep the toolbar</string>
     <string name="tooldetail_notes_keep_toolbar_subtitle">Open Notes under the toolbar, so your tools stay in reach</string>
+    <string name="tooldetail_notes_tap_inserts_title">Tap a note to insert it</string>
+    <string name="tooldetail_notes_tap_inserts_subtitle">A tap types the note into the field instead of opening it</string>
+    <string name="tooldetail_notes_tap_inserts_info">Off, tapping a note in the list opens it to read, and its Insert button types it into the field. On, a tap types it straight in, the same as Insert. To open a note then, hold it to show its buttons and tap it again. A locked note still asks to be unlocked first.</string>
     <string name="tooldetail_notes_keep_toolbar_info">Off, the Notes panel takes the whole keyboard and the toolbar steps aside, which gives the notes the most room. On, the toolbar stays above the panel while you read and write notes, and the panel is one row shorter. The back button in the panel\'s header still goes back one step: out of the note you are editing, then to the list.</string>
     <string name="tooldetail_notes_assist_group">On-device assistant</string>
     <string name="tooldetail_notes_assist_title">Notes assistant</string>

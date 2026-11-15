@@ -52,6 +52,12 @@ data class NotesSettings(
      * panel takes the whole keyboard, the toolbar's row included.
      */
     val keepToolbar: Boolean = false,
+    /**
+     * A tap on a note in the list types it into the field (#1333), as its
+     * Insert chip does; a hold shows the chips, and a tap on a held note
+     * opens it. Off by default: a tap opens the note.
+     */
+    val tapInserts: Boolean = false,
     /** The on-device assistant over notes and pinned clips (#1293); off until turned on. */
     val assist: NotesAssistSettings = NotesAssistSettings(),
     /**

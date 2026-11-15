@@ -1140,6 +1140,16 @@ internal fun NotesToolSettings(
                 default = d.keepToolbar,
             ) { scope.launch { repository.setNotesKeepToolbar(it) } }
         }
+        // A tap types the note in rather than opening it (#1333).
+        item {
+            ToggleSetting(
+                R.string.tooldetail_notes_tap_inserts_title,
+                stringResource(R.string.tooldetail_notes_tap_inserts_subtitle),
+                settings.watch { it.notes.tapInserts },
+                info = stringResource(R.string.tooldetail_notes_tap_inserts_info),
+                default = d.tapInserts,
+            ) { scope.launch { repository.setNotesTapInserts(it) } }
+        }
         item {
             ChoiceSetting(
                 R.string.tooldetail_notes_panel_start_title,

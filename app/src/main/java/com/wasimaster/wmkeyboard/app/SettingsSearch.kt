@@ -2021,6 +2021,7 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.NOTES, R.string.tooldetail_notes_sort_title),
     toolEntry(ToolbarTool.NOTES, R.string.tooldetail_notes_markdown_title, R.string.tooldetail_notes_markdown_subtitle),
     toolEntry(ToolbarTool.NOTES, R.string.tooldetail_notes_keep_toolbar_title, R.string.tooldetail_notes_keep_toolbar_subtitle),
+    toolEntry(ToolbarTool.NOTES, R.string.tooldetail_notes_tap_inserts_title, R.string.tooldetail_notes_tap_inserts_subtitle),
     toolEntry(ToolbarTool.NOTES, R.string.tooldetail_notes_panel_start_title, R.string.tooldetail_notes_panel_start_subtitle),
     toolEntry(ToolbarTool.NOTES, R.string.tooldetail_notes_panel_layout_title, R.string.tooldetail_notes_panel_layout_subtitle),
     toolEntry(ToolbarTool.NOTES, R.string.tooldetail_notes_trash_days_title),
