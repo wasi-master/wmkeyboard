@@ -3074,20 +3074,40 @@ internal fun dockedWidthArrangement(
  * it shows wherever the board does. Tools / Incognito can switch it off.
  */
 @Composable
-private fun BoxScope.IncognitoWatermark(state: KeyboardUiState) {
+private fun BoxScope.IncognitoWatermark(state: KeyboardUiState, docked: Boolean = true) {
     if (!state.incognitoOn || !state.settings.incognitoWatermark) return
     // Centred on the key rows, measured up from the bottom, rather than on the
     // whole board (#1239): the toolbar and the strip above the keys pulled it
-    // off centre, and a tool changing the board's height moved it.
+    // off centre, and a tool changing the board's height moved it. The floor
+    // under the rows is the navigation bar's band and, docked, the bottom
+    // padding over it, which the rows stand on and left the mark low.
     val density = LocalDensity.current
     val navBottom = with(density) { navigationBarInsets().getBottom(density).toDp() }
-    val lift = navBottom + ((keyRowsHeight(state) - IncognitoWatermarkSize) / 2).coerceAtLeast(0.dp)
-    SlotIcon(
-        IconSlots.CHROME_INCOGNITO,
-        contentDescription = null,
-        modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = lift).size(IncognitoWatermarkSize),
-        tint = LocalKbTheme.current.secondaryText.copy(alpha = IncognitoWatermarkAlpha),
-    )
+    val floor = navBottom + if (docked) bottomPaddingDp(state.settings).dp else 0.dp
+    val tint = LocalKbTheme.current.secondaryText.copy(alpha = IncognitoWatermarkAlpha)
+    val keysShown = state.panel == PanelMode.NONE || keyRowsUnderPanel(state)
+    if (keysShown || !docked) {
+        val lift = floor + ((keyRowsHeight(state) - IncognitoWatermarkSize) / 2).coerceAtLeast(0.dp)
+        SlotIcon(
+            IconSlots.CHROME_INCOGNITO,
+            contentDescription = null,
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = lift).size(IncognitoWatermarkSize),
+            tint = tint,
+        )
+        return
+    }
+    // A tool with no keys under it (the clipboard with no search) fills the
+    // board between the bar and the floor: the mark is centred on that (#1239).
+    BoxWithConstraints(Modifier.matchParentSize()) {
+        val room = maxHeight - floor - topBarHeight(state.settings)
+        val lift = floor + ((room - IncognitoWatermarkSize) / 2).coerceAtLeast(0.dp)
+        SlotIcon(
+            IconSlots.CHROME_INCOGNITO,
+            contentDescription = null,
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = lift).size(IncognitoWatermarkSize),
+            tint = tint,
+        )
+    }
 }
 
 /** How big [IncognitoWatermark] is drawn, and how faint. */
@@ -3447,7 +3467,7 @@ private fun FloatingKeyboardFrame(
         ) {
             Box {
                 BoardBackground(LocalKbTheme.current)
-                IncognitoWatermark(state)
+                IncognitoWatermark(state, docked = false)
                 val handleAtBottom = state.settings.floatingHandle == FloatingHandlePosition.BOTTOM
                 // One bar, placed above or below the keys; see the frame's KDoc.
                 val handleBar: @Composable () -> Unit = {
