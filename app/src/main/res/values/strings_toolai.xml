@@ -611,6 +611,9 @@
     <string name="toolai_reply_tone_new">New tone</string>
     <string name="toolai_reply_catch_shots_title">Add screenshots automatically</string>
     <string name="toolai_reply_catch_shots_subtitle">One taken while the panel is open, and the newest from the last two minutes when it opens. Needs permission to read your images</string>
+    <string name="toolai_ai_fallback_title">Try the next one when it fails</string>
+    <string name="toolai_ai_fallback_subtitle">A service that can\'t answer hands the request to the next in the list</string>
+    <string name="toolai_ai_fallback_info">When the service in use can\'t be reached, turns the key down or answers with an error before it has written anything, the same request goes to the next service in the list, and on down the list. Your phone\'s own model is never asked this way. Off by default, because it sends your text to a service you did not pick for that request.</string>
     <string name="toolai_reply_strip_chip_title">Reply chip on the strip</string>
     <string name="toolai_reply_strip_chip_subtitle">After you copy a message in a chat, a Reply chip beside the copy opens this panel with it</string>
     <string name="toolai_reply_provider_nav_subtitle">Replies use the provider, key and model set up for the AI tool</string>

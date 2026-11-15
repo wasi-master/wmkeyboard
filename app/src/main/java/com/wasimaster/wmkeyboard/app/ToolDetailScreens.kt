@@ -3067,45 +3067,19 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.scanner.ocrAutoSelectWords,
                     ) { scope.launch { repository.setOcrAutoSelectWords(it) } }
                 }
-                item(level = SettingLevel.ADVANCED) {
-                    ChoiceSetting(
-                        R.string.tooldetail_ocr_engine_title,
-                        info = stringResource(
-                            // F-Droid's build: PaddleOCR or online, nothing else.
-                            if (BuildConfig.ENABLE_ML_KIT_SCANNERS || TesseractOcr.available) R.string.tooldetail_ocr_engine_info
-                            else R.string.tooldetail_ocr_engine_info_paddle,
-                        ),
-                        // Only what this build has: F-Droid's has neither
-                        // ML Kit nor Tesseract, and a choice of either
-                        // restored from a backup reads as Automatic.
-                        options = OcrLanguages.engines(TesseractOcr.available).map { engine ->
-                            engine to stringResource(
-                                when (engine) {
-                                    OcrEngine.AUTO -> R.string.tooldetail_ocr_engine_auto
-                                    OcrEngine.ML_KIT -> R.string.tooldetail_ocr_engine_mlkit
-                                    OcrEngine.TESSERACT -> R.string.tooldetail_ocr_engine_tesseract
-                                    OcrEngine.ONLINE -> R.string.tooldetail_ocr_engine_online
-                                },
-                            )
-                        },
-                        selected = settings.watch { OcrLanguages.usable(it.scanner.ocrEngine, TesseractOcr.available) },
-                        default = SettingsDefaults.scanner.ocrEngine,
-                    ) { scope.launch { repository.setOcrEngine(it) } }
-                }
             }
             // Issue #469: a model that reads images, behind an
             // OpenAI-compatible address of the user's choosing; #727 adds
-            // Rens servers. Readers are a provider list, asked in order or
-            // chosen in the panel.
-            if (settings.watch { it.scanner.ocrEngine == OcrEngine.ONLINE }) {
-                ProvidersGroup(
-                    repository,
-                    settings,
-                    ProviderTool.OCR,
-                    titleRes = R.string.tooldetail_ocr_online_group,
-                    info = stringResource(R.string.tooldetail_ocr_online_info),
-                )
-            }
+            // Rens servers. The engines on the phone are rows of the same
+            // list now: the first row that is on reads, and the old engine
+            // setting is derived from it.
+            ProvidersGroup(
+                repository,
+                settings,
+                ProviderTool.OCR,
+                titleRes = R.string.tooldetail_ocr_readers_group,
+                info = stringResource(R.string.tooldetail_ocr_readers_info),
+            )
             val usableEngine = settings.watch { OcrLanguages.usable(it.scanner.ocrEngine, TesseractOcr.available) }
             if (usableEngine != OcrEngine.ML_KIT && usableEngine != OcrEngine.ONLINE) {
                 SectionHeader(

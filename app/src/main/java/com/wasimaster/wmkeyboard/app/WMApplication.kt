@@ -148,6 +148,9 @@ open class WMApplication : Application() {
             googleHome = com.wasimaster.wmkeyboard.config.BuildConfig.ENABLE_GOOGLE_HOME,
             bergamot = BergamotTranslator.available,
             nllb = NllbTranslator.available,
+            // And the OCR list its engines on the phone.
+            mlKitOcr = com.wasimaster.wmkeyboard.config.BuildConfig.ENABLE_ML_KIT_SCANNERS,
+            tesseract = com.wasimaster.wmkeyboard.core.ocr.TesseractOcr.available,
         )
         // Where the Dictionary tool's offline dictionaries live, for a
         // look-up from the keyboard or the AI tool alike. Only a path: before

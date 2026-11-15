@@ -8,6 +8,7 @@ import com.wasimaster.wmkeyboard.core.settings.DeepLSettings
 import com.wasimaster.wmkeyboard.core.settings.GifSettings
 import com.wasimaster.wmkeyboard.core.settings.GifSourceMode
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.OcrEngine
 import com.wasimaster.wmkeyboard.core.settings.ProviderEdits
 import com.wasimaster.wmkeyboard.core.settings.ProviderProblem
 import com.wasimaster.wmkeyboard.core.settings.ProviderSettings
@@ -24,6 +25,7 @@ import com.wasimaster.wmkeyboard.core.settings.preferringEngine
 import com.wasimaster.wmkeyboard.core.settings.withProviderChoices
 import com.wasimaster.wmkeyboard.core.settings.assistHome
 import com.wasimaster.wmkeyboard.core.settings.homes
+import com.wasimaster.wmkeyboard.core.settings.ocrEngineFromList
 import com.wasimaster.wmkeyboard.core.settings.providerChain
 import com.wasimaster.wmkeyboard.core.settings.providerChoices
 import com.wasimaster.wmkeyboard.core.settings.providerCredentials
@@ -467,10 +469,15 @@ class ProviderFrameworkTest {
     }
 
     @Test
-    fun `the OCR tool's old online reader becomes its list, and a vision reader needs a model`() {
+    fun `the OCR tool's old engine and online reader become its list, and a vision reader needs a model`() {
         val s = KeyboardSettings(scanner = ScannerSettings(ocrOnlineUrl = "https://api", ocrOnlineModel = "", ocrOnlineKey = "k"))
-        assertEquals(listOf("vision_ocr"), ids(s.providerChain(ProviderTool.OCR, play)))
-        val row = s.resolveProviders(ProviderTool.OCR, play, all = true).single()
+        assertEquals(listOf("ocr_on_device", "vision_ocr"), ids(s.providerChain(ProviderTool.OCR, play)))
+        assertEquals(OcrEngine.AUTO, s.ocrEngineFromList(play, OcrEngine.AUTO))
+        val online = s.copy(scanner = s.scanner.copy(ocrEngine = OcrEngine.ONLINE))
+        val chain = online.providerChain(ProviderTool.OCR, play)
+        assertEquals(listOf("vision_ocr", "ocr_on_device"), ids(chain))
+        assertFalse(chain.entries.last().enabled)
+        val row = s.resolveProviders(ProviderTool.OCR, play, all = true).single { it.typeId == "vision_ocr" }
         assertEquals(ProviderProblem.NEEDS_MODEL, row.problem)
         assertEquals("k", row.apiKey)
         assertTrue(KeyboardSettings().providerChain(ProviderTool.PHOTO_TRANSLATE, play).entries.isEmpty())

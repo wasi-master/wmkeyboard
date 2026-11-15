@@ -65,6 +65,12 @@
     <string name="core_tools_provider_rens" translatable="false">Rens</string>
     <string name="core_tools_provider_rens_desc">A Rens server: a free front end to Google Lens. It reads the text in a photo for you, in most scripts.</string>
     <string name="core_tools_provider_rens_translate_desc">A Rens server: a free front end to Google Lens. It gives the photo back with its text translated.</string>
+    <string name="core_tools_provider_ocr_on_device">On this phone</string>
+    <string name="core_tools_provider_ocr_on_device_desc">Reads on the phone with the best engine this build has for the script: ML Kit, Tesseract or PaddleOCR. Nothing leaves the phone.</string>
+    <string name="core_tools_provider_ocr_mlkit">ML Kit</string>
+    <string name="core_tools_provider_ocr_mlkit_desc">Google\'s text recognizer, on the phone: Latin, Chinese, Japanese, Korean and Devanagari.</string>
+    <string name="core_tools_provider_ocr_tesseract">Tesseract</string>
+    <string name="core_tools_provider_ocr_tesseract_desc">Free software, on the phone, for any script it has a language pack for. The packs download from the OCR tool\'s page.</string>
     <string name="core_tools_provider_vision_ocr">Your vision model</string>
     <string name="core_tools_provider_vision_ocr_desc">A model that reads images, through a server that answers OpenAI chat requests. Needs the address and the model name.</string>
     <string name="core_tools_provider_google_translate">Google Translate</string>

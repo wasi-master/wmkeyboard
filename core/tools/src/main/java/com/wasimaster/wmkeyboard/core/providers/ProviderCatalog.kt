@@ -41,6 +41,10 @@ data class ProviderEnv(
     val googleHome: Boolean = false,
     /** The build carries the on-device AI runtime (every one but F-Droid's). */
     val onDeviceAi: Boolean = false,
+    /** ML Kit's text recognizer is compiled into this build. */
+    val mlKitOcr: Boolean = false,
+    /** Tesseract can read here: its library is in this build. */
+    val tesseract: Boolean = false,
     /**
      * The dictation engines this build can run, by engine id
      * ([ProviderTypes.VOICE_ENGINES]). Every one unless a caller looked:
@@ -74,11 +78,28 @@ object ProviderEnvironment {
     var nllb: Boolean = false
         private set
 
-    fun install(onDeviceTranslate: Boolean, googleHome: Boolean = false, bergamot: Boolean = false, nllb: Boolean = false) {
+    @Volatile
+    var mlKitOcr: Boolean = false
+        private set
+
+    @Volatile
+    var tesseract: Boolean = false
+        private set
+
+    fun install(
+        onDeviceTranslate: Boolean,
+        googleHome: Boolean = false,
+        bergamot: Boolean = false,
+        nllb: Boolean = false,
+        mlKitOcr: Boolean = false,
+        tesseract: Boolean = false,
+    ) {
         this.onDeviceTranslate = onDeviceTranslate
         this.googleHome = googleHome
         this.bergamot = bergamot
         this.nllb = nllb
+        this.mlKitOcr = mlKitOcr
+        this.tesseract = tesseract
     }
 
     /**
@@ -96,6 +117,8 @@ object ProviderEnvironment {
         // The build carries the Home APIs, and the phone has the Play services they run through.
         googleHome = googleHome && PlayServices.available,
         onDeviceAi = BuildConfig.ENABLE_LOCAL_LLM,
+        mlKitOcr = mlKitOcr,
+        tesseract = tesseract,
     )
 }
 
@@ -114,6 +137,8 @@ object ProviderCatalog {
         type === ProviderTypes.NLLB && !env.nllb -> false
         type === ProviderTypes.GOOGLE_HOME && !env.googleHome -> false
         type === ProviderTypes.ON_DEVICE_AI && !env.onDeviceAi -> false
+        type === ProviderTypes.OCR_ML_KIT && !env.mlKitOcr -> false
+        type === ProviderTypes.OCR_TESSERACT && !env.tesseract -> false
         ProviderTool.VOICE in type.serves -> ProviderTypes.VOICE_ENGINES[type.id] in env.voiceEngines
         else -> true
     }

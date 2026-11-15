@@ -36,7 +36,11 @@ enum class ProviderTool(val id: String, val modes: List<ChainMode>, @StringRes v
 
     /** The smart home panel: every home on the list is connected at once, in list order. */
     SMART_HOME("smart_home", listOf(ChainMode.MIX), R.string.core_tools_provider_tool_smart_home),
-    /** The OCR tool's online readers, asked when its engine is Online. The on-device engines stay a setting. */
+    /**
+     * The OCR tool's readers: the engines on the phone and the online ones,
+     * in one list. The first that is on reads; the online ones also stand in
+     * for each other in order, or are picked in the panel.
+     */
     OCR("ocr", listOf(ChainMode.FALLBACK, ChainMode.PICK), R.string.core_tools_provider_tool_ocr),
 
     /** The camera tool's Translate button (#727): the photo comes back with its text translated. */
@@ -423,6 +427,30 @@ object ProviderTypes {
         CredentialSpec(url = Need.REQUIRED), multiInstance = true, freeSoftware = true,
         toolDescRes = mapOf(ProviderTool.PHOTO_TRANSLATE to R.string.core_tools_provider_rens_translate_desc),
     )
+
+    /**
+     * The OCR tool's engines on the phone as rows of its list: the automatic
+     * one (ML Kit where it has the script, else Tesseract or PaddleOCR, as
+     * the build carries them), and ML Kit and Tesseract by name.
+     */
+    val OCR_ON_DEVICE = ProviderType(
+        "ocr_on_device", setOf(ProviderTool.OCR),
+        R.string.core_tools_provider_ocr_on_device, R.string.core_tools_provider_ocr_on_device_desc,
+        onDevice = true,
+    )
+    val OCR_ML_KIT = ProviderType(
+        "ocr_mlkit", setOf(ProviderTool.OCR),
+        R.string.core_tools_provider_ocr_mlkit, R.string.core_tools_provider_ocr_mlkit_desc,
+        onDevice = true,
+    )
+    val OCR_TESSERACT = ProviderType(
+        "ocr_tesseract", setOf(ProviderTool.OCR),
+        R.string.core_tools_provider_ocr_tesseract, R.string.core_tools_provider_ocr_tesseract_desc,
+        onDevice = true, freeSoftware = true,
+    )
+
+    /** The OCR rows that read on the phone. */
+    val OCR_ENGINES: Set<String> by lazy { setOf(OCR_ON_DEVICE.id, OCR_ML_KIT.id, OCR_TESSERACT.id) }
 
     /** A model that reads images through an OpenAI-compatible API (#469), the OCR tool's first online reader. */
     val VISION_OCR = ProviderType(
@@ -960,7 +988,7 @@ object ProviderTypes {
         UNSPLASH, PEXELS,
         ER_API, FRANKFURTER, ALLRATESTODAY, COINBASE, CURRENCY_API, COINGECKO,
         HOME_ASSISTANT, GOOGLE_HOME, SMARTTHINGS, HUE, OPENHAB, TUYA, SWITCHBOT,
-        VISION_OCR, RENS,
+        OCR_ON_DEVICE, OCR_ML_KIT, OCR_TESSERACT, VISION_OCR, RENS,
         ANTHROPIC, OPENAI, GEMINI, XAI, DEEPSEEK, BRAVE_ANSWERS, PRIVATEMODE, OLLAMA, LM_STUDIO, OPENAI_COMPATIBLE, ON_DEVICE_AI,
         SYSTEM_RECOGNIZER, WHISTLE, WHISPER, ASR4ALL, PARAKEET, MOONSHINE, SHERPA, OMNILINGUAL, VOSK, TRANSCRIPTION_SERVER,
         HARPER, LANGUAGETOOL,

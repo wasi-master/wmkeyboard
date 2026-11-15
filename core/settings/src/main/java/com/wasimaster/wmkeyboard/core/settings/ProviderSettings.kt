@@ -468,8 +468,18 @@ object LegacyProviders {
             ProviderTool.SMART_HOME -> ProviderChain(emptyList(), ChainMode.MIX)
             // Only the reader the user set up: nothing reads a photo online
             // that the user did not name.
+            // The engine the old setting chose, as the first row, and the
+            // reader the user set up. With the engine on Online, the phone's
+            // row waits switched off below the reader.
             ProviderTool.OCR -> ProviderChain(
-                buildList { if (has(ProviderTypes.VISION_OCR)) add(entry(ProviderTypes.VISION_OCR)) },
+                buildList {
+                    // An engine this build lacks (ML Kit restored on F-Droid's) is the automatic one.
+                    val engine = ocrEngineType(s.scanner.ocrEngine)
+                        ?.let { if (ProviderCatalog.runnable(it, env)) it else ProviderTypes.OCR_ON_DEVICE }
+                    if (engine != null) add(entry(engine))
+                    if (has(ProviderTypes.VISION_OCR)) add(entry(ProviderTypes.VISION_OCR))
+                    if (engine == null) add(entry(ProviderTypes.OCR_ON_DEVICE, on = false))
+                },
             )
             // New with #727: empty until a Rens server is added.
             ProviderTool.PHOTO_TRANSLATE -> ProviderChain()
@@ -802,6 +812,45 @@ fun KeyboardSettings.aiThrough(key: String, env: ProviderEnv = choiceEnv()): AiS
 fun KeyboardSettings.voiceRows(env: ProviderEnv = choiceEnv()): List<ResolvedProvider> =
     resolveProviders(ProviderTool.VOICE, env)
 
+/** The OCR list's row for [engine], or null for [OcrEngine.ONLINE], which is the online rows. */
+fun ocrEngineType(engine: OcrEngine): ProviderType? = when (engine) {
+    OcrEngine.AUTO -> ProviderTypes.OCR_ON_DEVICE
+    OcrEngine.ML_KIT -> ProviderTypes.OCR_ML_KIT
+    OcrEngine.TESSERACT -> ProviderTypes.OCR_TESSERACT
+    OcrEngine.ONLINE -> null
+}
+
+/**
+ * The OCR engine the list's first row asks for: a row on the phone runs
+ * that engine, an online reader first means the online readers. [current]
+ * when nothing in the list is on.
+ */
+fun KeyboardSettings.ocrEngineFromList(env: ProviderEnv, current: OcrEngine): OcrEngine {
+    // A list saved before the engines were rows of it holds only online
+    // readers, which the engine setting kept off unless it said Online. It
+    // keeps that setting until an engine row is added to it.
+    val saved = providers.chains[ProviderTool.OCR]
+    if (saved != null && saved.entries.none { it.typeId in ProviderTypes.OCR_ENGINES }) return current
+    val first = resolveProviders(ProviderTool.OCR, env).firstOrNull() ?: return current
+    return when (first.typeId) {
+        ProviderTypes.OCR_ON_DEVICE.id -> OcrEngine.AUTO
+        ProviderTypes.OCR_ML_KIT.id -> OcrEngine.ML_KIT
+        ProviderTypes.OCR_TESSERACT.id -> OcrEngine.TESSERACT
+        else -> OcrEngine.ONLINE
+    }
+}
+
+/**
+ * The other AI rows a request moves on to when the one in use fails, in
+ * the list's order, with [AiSettings.fallbackNext] on. Not the phone's own
+ * model, whose engine is not the client's, and none of their own.
+ */
+private fun KeyboardSettings.aiFallbacks(env: ProviderEnv, chosen: ResolvedProvider?, stored: AiSettings): List<AiSettings> {
+    if (chosen == null || !stored.fallbackNext) return emptyList()
+    return aiRows(env).filter { it.key != chosen.key && it.typeId != ProviderTypes.ON_DEVICE_AI.id }
+        .map { stored.through(it).copy(fallbacks = emptyList()) }
+}
+
 /**
  * The settings with the providers in use written where the code that runs
  * them reads: [AiSettings] through the AI row chosen, [WhisperSettings] with
@@ -818,7 +867,7 @@ fun KeyboardSettings.withProviderChoices(env: ProviderEnv = choiceEnv()): Keyboa
     val stored = copy(providers = providers.copy(legacyAi = storedAi, legacyWhisper = storedWhisper))
     val choice = stored.aiChoice(env)
     val ai = if (choice != null) {
-        stored.ai.through(choice)
+        stored.ai.through(choice).copy(fallbacks = stored.aiFallbacks(env, choice, stored.ai))
     } else {
         stored.ai.copy(
             listed = false,
@@ -834,7 +883,8 @@ fun KeyboardSettings.withProviderChoices(env: ProviderEnv = choiceEnv()): Keyboa
         serverModel = server?.model.orEmpty(),
         serverPath = server?.credential?.extra?.get(CredentialSpec.PATH)?.trim().orEmpty(),
     )
-    return stored.copy(ai = ai, whisper = whisper)
+    val scanner = stored.scanner.copy(ocrEngine = stored.ocrEngineFromList(env, stored.scanner.ocrEngine))
+    return stored.copy(ai = ai, whisper = whisper, scanner = scanner)
 }
 
 /**

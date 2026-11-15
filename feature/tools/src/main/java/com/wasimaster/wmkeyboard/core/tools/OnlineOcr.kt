@@ -18,8 +18,9 @@ import java.io.File
  */
 object OnlineOcr {
 
+    /** The online rows alone: the list also holds the engines on the phone, which the OCR panel runs itself. */
     fun rows(settings: KeyboardSettings, pick: String? = null): List<ResolvedProvider> =
-        settings.resolveProviders(ProviderTool.OCR, pick = pick)
+        settings.resolveProviders(ProviderTool.OCR, pick = pick).filter { it.typeId !in ProviderTypes.OCR_ENGINES }
 
     fun read(settings: KeyboardSettings, jpeg: ByteArray, pick: String? = null): String =
         read(rows(settings, pick), jpeg)

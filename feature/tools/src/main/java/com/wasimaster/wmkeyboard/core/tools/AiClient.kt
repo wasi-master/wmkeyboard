@@ -26,6 +26,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
 import java.util.UUID
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * One-shot chat completion against the AI tool's configured provider —
@@ -68,6 +69,11 @@ object AiClient {
          * does not answer on `/chat/completions`; blank for that default.
          */
         val path: String = "",
+        /**
+         * The services to ask, in order, when this one fails before writing
+         * anything ([AiSettings.fallbackNext]); empty for none.
+         */
+        val backups: List<Config> = emptyList(),
     )
 
     /** The placeholder a header value can use for [Config.sessionId]. */
@@ -327,6 +333,9 @@ object AiClient {
     }
 
     fun config(settings: AiSettings): Config =
+        withHeaders(settings).copy(backups = settings.fallbacks.mapNotNull { runCatching { withHeaders(it) }.getOrNull() })
+
+    private fun withHeaders(settings: AiSettings): Config =
         baseConfig(settings).copy(headers = settings.providerHeaders[settings.provider.name].orEmpty())
 
     private fun baseConfig(settings: AiSettings): Config = when (settings.provider) {
@@ -646,6 +655,36 @@ object AiClient {
         onPhase: (AiPhase) -> Unit,
         onPartial: (String) -> Unit,
         isActive: () -> Boolean = { true },
+    ): Completion {
+        if (config.backups.isEmpty()) return completeOnce(config, system, turns, maxTokens, tools, onPhase, onPartial, isActive)
+        // Ask the next service when this one fails before writing anything:
+        // past the first word the user has seen an answer begin, and a
+        // second one starting over would read as the first one breaking.
+        var wrote = false
+        val partial: (String) -> Unit = { text ->
+            if (text.isNotEmpty()) wrote = true
+            onPartial(text)
+        }
+        return try {
+            completeOnce(config, system, turns, maxTokens, tools, onPhase, partial, isActive)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            if (wrote || !isActive()) throw e
+            val next = config.backups.first().copy(backups = config.backups.drop(1))
+            completeStreaming(next, system, turns, maxTokens, tools, onPhase, onPartial, isActive)
+        }
+    }
+
+    private fun completeOnce(
+        config: Config,
+        system: String,
+        turns: List<ChatTurn>,
+        maxTokens: Int?,
+        tools: List<AiToolSpec>,
+        onPhase: (AiPhase) -> Unit,
+        onPartial: (String) -> Unit,
+        isActive: () -> Boolean,
     ): Completion {
         val chat = normalizedTurns(turns)
         require(chat.isNotEmpty()) { "No user message to answer" }

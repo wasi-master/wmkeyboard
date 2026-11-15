@@ -5708,6 +5708,19 @@ data class AiSettings(
      */
     val braveResearch: Boolean = false,
     /**
+     * When the service in use fails (unreachable, a refused key, a server
+     * error) before writing anything, the request goes to the next service
+     * in the list, in order. Off by default: it sends the text to a second
+     * service the user did not pick for this request.
+     */
+    val fallbackNext: Boolean = false,
+    /**
+     * The services [fallbackNext] moves on to, each with its own fields set,
+     * in the list's order. Filled from the list when the settings are read,
+     * never stored.
+     */
+    val fallbacks: List<AiSettings> = emptyList(),
+    /**
      * The key the user gave the web search tool, read here so the AI client
      * can fall back to it without the whole settings object. Never written
      * through this class: its preference belongs to [WebSearchSettings]. The
@@ -14130,6 +14143,7 @@ class SettingsRepository(private val context: Context) {
         private val AI_DEEPSEEK_MODEL = stringPreferencesKey("ai_deepseek_model")
         private val AI_BRAVE_KEY = stringPreferencesKey("ai_brave_key")
         private val AI_BRAVE_RESEARCH = booleanPreferencesKey("ai_brave_research")
+        private val AI_FALLBACK_NEXT = booleanPreferencesKey("ai_fallback_next")
         private val AI_COMPATIBLE_URL = stringPreferencesKey("ai_compatible_url")
         private val AI_COMPATIBLE_KEY = stringPreferencesKey("ai_compatible_key")
         private val AI_COMPATIBLE_MODEL = stringPreferencesKey("ai_compatible_model")
@@ -16941,6 +16955,7 @@ class SettingsRepository(private val context: Context) {
             deepSeekModel = p[AI_DEEPSEEK_MODEL] ?: defaults.ai.deepSeekModel,
             braveKey = p[AI_BRAVE_KEY] ?: defaults.ai.braveKey,
             braveResearch = p[AI_BRAVE_RESEARCH] ?: defaults.ai.braveResearch,
+            fallbackNext = p[AI_FALLBACK_NEXT] ?: defaults.ai.fallbackNext,
             // The web search Brave key, as the search provider list keeps it.
             braveSearchKey = ProviderCodec.decodeCredentials(p[PROVIDER_CREDENTIALS])
                 ?.firstOrNull { it.id == "brave" }?.apiKey
@@ -27177,6 +27192,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAiBraveResearch(value: Boolean) =
         editPrefs { it[AI_BRAVE_RESEARCH] = value }
+
+    suspend fun setAiFallbackNext(value: Boolean) =
+        editPrefs { it[AI_FALLBACK_NEXT] = value }
 
     suspend fun setAiCompatibleUrl(value: String) =
         editPrefs { it[AI_COMPATIBLE_URL] = value.trim().trimEnd('/') }
