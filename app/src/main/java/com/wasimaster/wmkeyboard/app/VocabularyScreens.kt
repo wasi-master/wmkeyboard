@@ -364,6 +364,7 @@ internal fun VocabularyToolSettings(
                 stringResource(R.string.tooldetail_vocab_nudges_subtitle),
                 nudges,
                 default = d.nudges,
+                info = stringResource(R.string.tooldetail_vocab_nudges_info),
             ) {
                 scope.launch { repository.setVocabNudges(it) }
             }
@@ -374,6 +375,7 @@ internal fun VocabularyToolSettings(
                 stringResource(R.string.tooldetail_vocab_nudge_self_subtitle),
                 settings.watch { it.vocabulary.nudgeOnVocabWord },
                 default = d.nudgeOnVocabWord,
+                info = stringResource(R.string.tooldetail_vocab_nudge_self_info),
             ) { scope.launch { repository.setVocabNudgeOnVocabWord(it) } }
         }
         item(visible = nudges, level = SettingLevel.STANDARD) {
@@ -386,6 +388,7 @@ internal fun VocabularyToolSettings(
                 ),
                 selected = settings.watch { it.vocabulary.chipTapAction },
                 default = d.chipTapAction,
+                info = stringResource(R.string.tooldetail_vocab_tap_info),
             ) { scope.launch { repository.setVocabChipTapAction(it) } }
         }
         item(visible = nudges, level = SettingLevel.ADVANCED) {
@@ -398,6 +401,7 @@ internal fun VocabularyToolSettings(
                 ),
                 selected = settings.watch { it.vocabulary.nudgeScope },
                 default = d.nudgeScope,
+                info = stringResource(R.string.tooldetail_vocab_scope_info),
             ) { scope.launch { repository.setVocabNudgeScope(it) } }
         }
         item(visible = nudges, level = SettingLevel.STANDARD) {
@@ -411,6 +415,7 @@ internal fun VocabularyToolSettings(
                 ),
                 selected = settings.watch { it.vocabulary.nudgeLevel },
                 default = d.nudgeLevel,
+                info = stringResource(R.string.tooldetail_vocab_level_info),
             ) { scope.launch { repository.setVocabNudgeLevel(it) } }
         }
         item(visible = nudges, level = SettingLevel.STANDARD) {
@@ -423,6 +428,7 @@ internal fun VocabularyToolSettings(
                 ),
                 selected = settings.watch { it.vocabulary.cooldown },
                 default = d.cooldown,
+                info = stringResource(R.string.tooldetail_vocab_cooldown_info),
             ) { scope.launch { repository.setVocabCooldown(it) } }
         }
     }
@@ -486,6 +492,7 @@ internal fun VocabularyToolSettings(
                 ),
                 selected = settings.watch { it.vocabulary.relatedTap },
                 default = d.relatedTap,
+                info = stringResource(R.string.tooldetail_vocab_related_info),
             ) { scope.launch { repository.setVocabRelatedTap(it) } }
         }
         item {
@@ -536,6 +543,7 @@ internal fun VocabularyToolSettings(
                 ),
                 selected = settings.watch { it.vocabulary.audioSource },
                 default = d.audioSource,
+                info = stringResource(R.string.tooldetail_vocab_audio_source_info),
             ) { scope.launch { repository.setVocabAudioSource(it) } }
         }
         item {
@@ -548,6 +556,7 @@ internal fun VocabularyToolSettings(
                 ),
                 selected = settings.watch { it.vocabulary.accent },
                 default = d.accent,
+                info = stringResource(R.string.tooldetail_vocab_accent_info),
             ) { scope.launch { repository.setVocabAccent(it) } }
         }
         item(visible = ttsTunable, level = SettingLevel.ADVANCED) {
@@ -557,6 +566,7 @@ internal fun VocabularyToolSettings(
                 range = VocabularySettings.MIN_TTS..VocabularySettings.MAX_TTS,
                 display = { speedFormat.format(it) },
                 default = d.ttsRate,
+                info = stringResource(R.string.tooldetail_vocab_tts_rate_info),
             ) { scope.launch { repository.setVocabTtsRate(it) } }
         }
         item(visible = ttsTunable, level = SettingLevel.ADVANCED) {
@@ -566,6 +576,7 @@ internal fun VocabularyToolSettings(
                 range = VocabularySettings.MIN_TTS..VocabularySettings.MAX_TTS,
                 display = { speedFormat.format(it) },
                 default = d.ttsPitch,
+                info = stringResource(R.string.tooldetail_vocab_tts_pitch_info),
             ) { scope.launch { repository.setVocabTtsPitch(it) } }
         }
         item {
@@ -603,6 +614,7 @@ internal fun VocabularyToolSettings(
                         ),
                     )
                 },
+                info = stringResource(R.string.tooldetail_vocab_scheduler_info),
             ) { scope.launch { repository.setVocabScheduler(it) } }
         }
         item {
@@ -613,6 +625,7 @@ internal fun VocabularyToolSettings(
                 range = VocabularySettings.MIN_DAILY_GOAL.toFloat()..VocabularySettings.MAX_DAILY_GOAL.toFloat(),
                 display = { numberFormat.format(it.roundToInt()) },
                 default = d.dailyGoal.toFloat(),
+                info = stringResource(R.string.tooldetail_vocab_goal_info),
             ) { scope.launch { repository.setVocabDailyGoal(it.roundToInt()) } }
         }
     }
@@ -624,6 +637,7 @@ internal fun VocabularyToolSettings(
                 stringResource(R.string.tooldetail_vocab_wotd_card_subtitle),
                 settings.watch { it.vocabulary.wordOfTheDayCard },
                 default = d.wordOfTheDayCard,
+                info = stringResource(R.string.tooldetail_vocab_wotd_card_info),
             ) {
                 scope.launch { repository.setVocabWordOfTheDayCard(it) }
             }
@@ -634,6 +648,7 @@ internal fun VocabularyToolSettings(
                 stringResource(R.string.tooldetail_vocab_wotd_chip_subtitle),
                 wordChip,
                 default = d.wordOfTheDayChip,
+                info = stringResource(R.string.tooldetail_vocab_wotd_chip_info),
             ) {
                 scope.launch { repository.setVocabWordOfTheDayChip(it) }
             }
@@ -653,6 +668,7 @@ internal fun VocabularyToolSettings(
                 ),
                 selected = settings.watch { it.vocabulary.wordInterval },
                 default = d.wordInterval,
+                info = stringResource(R.string.tooldetail_vocab_wotd_interval_info),
             ) { scope.launch { repository.setVocabWordInterval(it) } }
         }
         item(visible = wordChip, level = SettingLevel.ADVANCED) {
@@ -663,6 +679,7 @@ internal fun VocabularyToolSettings(
                 range = VocabularySettings.MIN_CHIP_TIMES.toFloat()..VocabularySettings.MAX_CHIP_TIMES.toFloat(),
                 display = { numberFormat.format(it.roundToInt()) },
                 default = d.chipTimesPerWord.toFloat(),
+                info = stringResource(R.string.tooldetail_vocab_wotd_chip_times_info),
             ) { scope.launch { repository.setVocabChipTimesPerWord(it.roundToInt()) } }
         }
     }

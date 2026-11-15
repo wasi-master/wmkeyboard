@@ -172,6 +172,7 @@ internal fun EmojiMixSettings(
                 stringResource(R.string.emojimix_panel_strip_subtitle),
                 settings.watch { it.emoji.mix.panelStrip },
                 default = SettingsDefaults.emoji.mix.panelStrip,
+                info = stringResource(R.string.emojimix_panel_strip_info),
             ) { scope.launch { repository.setEmojiMixPanelStrip(it) } }
         }
         item {
@@ -180,6 +181,7 @@ internal fun EmojiMixSettings(
                 stringResource(R.string.emojimix_typing_subtitle),
                 typing,
                 default = SettingsDefaults.emoji.mix.typingSuggest,
+                info = stringResource(R.string.emojimix_typing_info),
             ) { scope.launch { repository.setEmojiMixTypingSuggest(it) } }
         }
         item(visible = typing, level = SettingLevel.STANDARD) {
@@ -192,6 +194,7 @@ internal fun EmojiMixSettings(
                 ),
                 selected = settings.watch { it.emoji.mix.suggestStyle },
                 default = SettingsDefaults.emoji.mix.suggestStyle,
+                info = stringResource(R.string.emojimix_style_info),
             ) { scope.launch { repository.setEmojiMixSuggestStyle(it) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -200,6 +203,7 @@ internal fun EmojiMixSettings(
                 stringResource(R.string.emojimix_replace_subtitle),
                 settings.watch { it.emoji.mix.replaceTypedEmoji },
                 default = SettingsDefaults.emoji.mix.replaceTypedEmoji,
+                info = stringResource(R.string.emojimix_replace_info),
             ) { scope.launch { repository.setEmojiMixReplaceTyped(it) } }
         }
         item {
@@ -207,6 +211,7 @@ internal fun EmojiMixSettings(
                 R.string.emojimix_panel_title,
                 stringResource(R.string.emojimix_panel_subtitle),
                 settings.watch { ToolbarTool.EMOJI_MIX in it.enabledTools },
+                info = stringResource(R.string.emojimix_panel_info),
             ) { scope.launch { repository.setToolEnabled(ToolbarTool.EMOJI_MIX, it) } }
         }
     }
@@ -221,6 +226,7 @@ internal fun EmojiMixSettings(
                 ),
                 selected = settings.watch { it.emoji.mix.order },
                 default = SettingsDefaults.emoji.mix.order,
+                info = stringResource(R.string.emojimix_order_info),
             ) { scope.launch { repository.setEmojiMixOrder(it) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -233,6 +239,7 @@ internal fun EmojiMixSettings(
                 ),
                 selected = settings.watch { it.emoji.mix.sendMode },
                 default = SettingsDefaults.emoji.mix.sendMode,
+                info = stringResource(R.string.emojimix_send_info),
             ) { scope.launch { repository.setEmojiMixSendMode(it) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -243,6 +250,7 @@ internal fun EmojiMixSettings(
                 range = EmojiMixCellSizeRange.first.toFloat()..EmojiMixCellSizeRange.last.toFloat(),
                 display = { dpFormat.format(it.roundToInt()) },
                 default = SettingsDefaults.emoji.mix.cellSize.toFloat(),
+                info = stringResource(R.string.emojimix_cell_size_info),
             ) { scope.launch { repository.setEmojiMixCellSize(it.roundToInt()) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -251,6 +259,7 @@ internal fun EmojiMixSettings(
                 stringResource(R.string.emojimix_auto_refresh_subtitle),
                 settings.watch { it.emoji.mix.autoRefresh },
                 default = SettingsDefaults.emoji.mix.autoRefresh,
+                info = stringResource(R.string.emojimix_auto_refresh_info),
             ) { scope.launch { repository.setEmojiMixAutoRefresh(it) } }
         }
         item(level = SettingLevel.STANDARD) {

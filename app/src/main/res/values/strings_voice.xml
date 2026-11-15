@@ -65,10 +65,12 @@
     <string name="voice_typing_plain_desc">The same, but with no punctuation and no spaces</string>
     <string name="voice_continuous_title">Keep listening</string>
     <string name="voice_continuous_subtitle">Start the next sentence automatically after each one goes into the field</string>
+    <string name="voice_continuous_info">After each sentence goes into the text field, the microphone starts to listen for the next one by itself. You can dictate a long text without a tap between sentences. With this off, dictation stops after one sentence. This setting is on by default.</string>
     <!-- Long press on the greyed-out switch. "One block at a time" is the name of a Voice typing mode. -->
     <string name="voice_continuous_forced_reason">Type while you speak always starts the next sentence. Set Voice typing mode to One block at a time to choose.</string>
     <string name="voice_keep_screen_on_title">Keep the screen on</string>
     <string name="voice_keep_screen_on_subtitle">While you dictate, so a screen timeout does not end it and lose what you were saying</string>
+    <string name="voice_keep_screen_on_info">Keeps the screen on while you dictate. A screen that turns off would end the dictation and lose the words you were saying. This setting is on by default.</string>
     <string name="voice_silence_stop_title">Stop after a pause</string>
     <string name="voice_silence_stop_subtitle">End a Whisper or server clip by itself when you stop talking</string>
     <string name="voice_silence_stop_info">Offline Whisper and the transcription server record a whole clip, so the microphone stays open until you press it or the clip fills: 30 seconds, or two minutes for a whisper.cpp model. Set a pause here and the clip ends by itself once you have said something and then gone quiet for that long. Asr4All, Sherpa, Omnilingual, Vosk and Parakeet hear the pause with the Phrase end detector. With Keep listening off, that also ends dictation, so you never have to reach for the microphone. The system recognizer stops after a pause of its own and ignores this. Off by default.</string>
@@ -80,10 +82,12 @@
     <!-- Slider readout: a pause length in seconds, e.g. "1.5 s". -->
     <string name="voice_silence_stop_seconds">%1$.1f s</string>
     <string name="voice_punctuation_title">Spoken punctuation</string>
+    <string name="voice_punctuation_info">Say the name of a punctuation mark to type it. For example, say comma, question mark or new line. The names work in the language you dictate in. This setting is on by default.</string>
     <!-- The three quoted words are spoken examples. Translate them into words that the user would say. -->
     <string name="voice_punctuation_subtitle">Say \"comma\", \"question mark\" or \"দাঁড়ি\" to type the mark</string>
     <string name="voice_offline_group">Offline transcription</string>
     <string name="voice_translate_title">Translate to English</string>
+    <string name="voice_translate_info">The model translates what you say into English as it transcribes. You speak in your own language, and English text is typed.</string>
     <string name="voice_denoise_title">Reduce background noise</string>
     <string name="voice_denoise_subtitle">Clean up the microphone before an offline model hears it</string>
     <string name="voice_denoise_info">Takes background sound such as traffic, a busy café or a fan out of the microphone\'s audio before an offline engine (Whisper, Whistle, Asr4All, Parakeet, Moonshine, Sherpa, Omnilingual) hears it. Light is RNNoise, a tiny network that adds about 10 ms. Strong is DPDFNet, a DeepFilterNet model on ONNX Runtime: a 9 MB download, more work for the phone and 40 ms of delay, but it is the one that helps recognition. On noisy test recordings Light cost Whisper words, and Strong won some back. Without its model, Strong runs as Light. The system recognizer and the transcription server get the microphone as it is. Off by default.</string>
@@ -163,6 +167,7 @@
     <string name="voice_auto_punctuation_info">Sherpa and Omnilingual write the words they hear and nothing else: no full stops, no commas, no capitals. With this on, a punctuation model reads each finished phrase on the phone and puts in full stops, commas and question marks in the marks of the language (। in Bengali and Hindi, ؟ in Arabic, 。 in Chinese), with a capital at the start of every sentence. Names get their capitals from the keyboard\'s word lists, and English ones also from Sherpa\'s English punctuation model when you have it. The model knows 88 languages and is a 151 MB download; English works without it if the English model is on the phone. Engines that punctuate for themselves are never touched, nor is plain voice typing.</string>
     <string name="voice_punctuation_choice_title">Which punctuation model</string>
     <string name="voice_punctuation_choice_subtitle">The big model reads 88 languages. For English alone, the small one is enough</string>
+    <string name="voice_punctuation_choice_info">The model that adds punctuation to dictated text. The big model reads 88 languages. The small model is enough if you dictate in English only, and is a smaller download.</string>
     <string name="voice_punctuation_choice_auto">Whichever is on the phone</string>
     <string name="voice_punctuation_choice_multilingual">Multilingual only</string>
     <string name="voice_punctuation_choice_english">English only, the small one</string>
@@ -194,6 +199,7 @@
     <string name="voice_server_key_hint">Optional. Leave it empty for a server that needs no key</string>
     <string name="voice_server_language_title">Send the keyboard language</string>
     <string name="voice_server_language_subtitle">Tell the server which language you are typing in. Turn this off to let the server detect it</string>
+    <string name="voice_server_language_info">Tells your transcription server which language the keyboard is set to, so it does not have to guess. Turn this off to let the server detect the language, for example when you speak a different language from the one you type. This setting is on by default.</string>
     <!-- The server's "prompt" field (#305). -->
     <string name="voice_server_prompt_label">Prompt</string>
     <string name="voice_server_prompt_hint">Optional. Text the model reads as what came before, to set spelling and style. Whisper models read only about the last 150 words of it</string>

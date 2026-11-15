@@ -41,6 +41,7 @@
     <string name="appearance_key_label_case_upper">Capitals</string>
     <string name="appearance_key_hint_corner_title">Key hint corner</string>
     <string name="appearance_key_hint_corner_subtitle">Which corner of the key the long-press hint sits in</string>
+    <string name="appearance_key_hint_corner_info">The corner of each key where the small long-press hint is drawn. Move it if the hint is too near the key\'s letter for your taste. The default is the top corner at the end of the key.</string>
     <string name="appearance_key_hint_corner_top_start">Top left</string>
     <string name="appearance_key_hint_corner_top_center">Top middle</string>
     <string name="appearance_key_hint_corner_top_end">Top right</string>
@@ -53,10 +54,13 @@
     <string name="appearance_key_hint_offset_info">At 0 dp the hint touches the top edge of the key, and below 0 it moves up past the key\'s inner margin. Larger values move the hint down, nearer to the label. The default is 1 dp.</string>
     <string name="appearance_key_hint_offset_x_title">Key hint side position</string>
     <string name="appearance_key_hint_offset_x_subtitle">How far in from the side of the key the hint sits. Below 0 moves it out to the edge</string>
+    <string name="appearance_key_hint_offset_x_info">Moves the long-press hint sideways in its corner. A higher value moves it in from the side of the key. A value below 0 moves it out to the edge. The default is 0.</string>
     <string name="appearance_key_label_offset_x_title">Key label across</string>
     <string name="appearance_key_label_offset_x_subtitle">Moves the letter on each key to the side, away from a large hint</string>
+    <string name="appearance_key_label_offset_x_info">Moves the letter on every key to the side. Use it to make room for a large hint, or to change the look of the keys. The default is 0, which puts the letter in the centre.</string>
     <string name="appearance_key_label_offset_y_title">Key label up or down</string>
     <string name="appearance_key_label_offset_y_subtitle">Moves the letter on each key down, or up below 0, away from a large hint</string>
+    <string name="appearance_key_label_offset_y_info">Moves the letter on every key down, or up when the value is below 0. Use it to make room for a large hint above or below the letter. The default is 0, which puts the letter in the centre.</string>
     <string name="appearance_key_hint_size_info">This changes the size of the small hint that the keyboard prints in the corner of a key. The keyboard shows the hint when \"Press and hold hints\" is on. Larger values make the hints easier to read. The default is ×1.00.</string>
 
     <!-- Appearance screen, Toolbar group: the strip above the keys. -->
@@ -78,8 +82,10 @@
     <string name="appearance_toolbar_placement_swipe_desc">The tools share the strip, and come up when you swipe up on it</string>
     <string name="appearance_toolbar_bar_toolbox_title">Toolbox button before the tools</string>
     <string name="appearance_toolbar_bar_toolbox_subtitle">Off leaves the toolbox to the button beside the suggestions. An open tool still shows it</string>
+    <string name="appearance_toolbar_bar_toolbox_info">Shows the toolbox button at the start of the toolbar, before the tools. With this off, the toolbox opens from the button beside the suggestions. While a tool is open, the button shows either way, so you can always go back. This setting is on by default.</string>
     <string name="appearance_toolbar_tools_arrow_title">Arrow to the tools</string>
     <string name="appearance_toolbar_tools_arrow_subtitle">Off leaves opening and closing the tools to a swipe up and down on the strip</string>
+    <string name="appearance_toolbar_tools_arrow_info">Shows the small arrow that opens and closes the row of tools. With this off, you swipe up on the suggestion strip to open the tools and swipe down to close them. This setting is on by default.</string>
     <string name="appearance_toolbar_needs_strip_toolbox">Needs the toolbox button beside the suggestions, further down this screen</string>
     <string name="appearance_toolbar_placement_strip_desc">The tools and the suggestions share one row, and the arrow flips between them</string>
     <string name="appearance_toolbar_placement_button_desc">The tools get a row of their own, opened and closed from the arrow</string>
@@ -154,15 +160,19 @@
     <string name="appearance_toolbar_keep_tools_info">Open a tool such as Notes or the clipboard, go to another app, and come back before the time below runs out (3 minutes unless you change it): the tool is open again with what you were doing in it, such as a note you were writing or a search you typed. Moving to another text box in the same app still closes it. A plugin starts again from what it saved. The camera, Music ID, WM Pass, Find and replace and Learn from text never reopen by themselves, and nothing reopens in a password box, an incognito field or on the lock screen.</string>
     <string name="appearance_toolbar_keep_tools_minutes_title">How long a tool stays open</string>
     <string name="appearance_toolbar_keep_tools_minutes_subtitle">How long the tool waits for you to come back to the app</string>
+    <string name="appearance_toolbar_keep_tools_minutes_info">When you leave an app with a tool open, the keyboard remembers the tool for this many minutes. If you come back in time, the tool is still open. After that, the keyboard opens on its keys. The default is 3 minutes.</string>
     <string name="appearance_toolbar_labels_title">Tool labels</string>
     <string name="appearance_toolbar_labels_subtitle">Show the name of each tool below its icon on the toolbar</string>
     <string name="appearance_toolbar_labels_info">The keyboard draws a small name below every pinned tool. Increase the toolbar height to give the labels space.</string>
     <string name="appearance_toolbar_labels_fixed_title">Keep labelled tools one width</string>
     <string name="appearance_toolbar_labels_fixed_subtitle">Cut a long name short instead of widening its button</string>
+    <string name="appearance_toolbar_labels_fixed_info">Every labelled tool on the toolbar gets the same width, and a long name is cut short. With this off, a button grows to fit its name, so the buttons have different widths. This setting is off by default.</string>
     <string name="appearance_toolbar_pinned_colors_title">Color the pinned tools</string>
     <string name="appearance_toolbar_pinned_colors_subtitle">Give the tools on the toolbar the colors they have in the toolbox</string>
+    <string name="appearance_toolbar_pinned_colors_info">Draws each tool on the toolbar in the colour it has in the toolbox. With this off, the tools on the toolbar use the theme\'s one icon colour. This setting is off by default.</string>
     <string name="appearance_toolbar_label_size_title">Label text size</string>
     <string name="appearance_toolbar_label_size_subtitle">Font size of the tool labels on the toolbar</string>
+    <string name="appearance_toolbar_label_size_info">The font size of the names under the tools on the toolbar. The default is 10.</string>
     <string name="appearance_tool_circle_title">Tool circle radius</string>
     <string name="appearance_tool_circle_subtitle">How round the circle behind each toolbar tool is</string>
     <!-- Gboard is the name of another keyboard app. Keep it as it is. -->
@@ -224,6 +234,7 @@
     <string name="appearance_toolbox_sort_alphabetical_label">A to Z</string>
     <string name="appearance_toolbox_cell_spacing_title">Space around each tool</string>
     <string name="appearance_toolbox_cell_spacing_subtitle">Above and below each tool in the toolbox grid. Less fits more rows on a page</string>
+    <string name="appearance_toolbox_cell_spacing_info">The space above and below each tool in the toolbox grid. Less space fits more rows of tools on one page. More space makes each tool easier to hit. The default is 10 dp.</string>
     <string name="appearance_toolbox_sort_info">Your order is the order you make by dragging tools around the toolbox. Most used puts the tools you open most often first. Recently used puts the tool you opened last first. Tools you have never opened come after them, in your order. The toolbox sorts itself each time it opens, so tools do not move while you tap them. A folder sits where its first tool falls, and keeps its own order inside. Dragging a tool still changes your order, and you get it back when you choose Your order again.</string>
     <string name="appearance_toolbox_search_sort_title">Search order before typing</string>
     <string name="appearance_toolbox_search_sort_subtitle">How the toolbox search lists the tools until you type</string>

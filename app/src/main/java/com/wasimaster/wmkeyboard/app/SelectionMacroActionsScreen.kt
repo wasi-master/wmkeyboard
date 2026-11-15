@@ -458,6 +458,7 @@ internal fun SelectionMacroIconsScreen(
                 range = SelectionIconSizeRange,
                 display = { sizeFormat.format(it.roundToInt()) },
                 default = SettingsDefaults.selectionMacros.iconOnlySizeDp,
+                info = stringResource(R.string.selection_macros_icon_size_info),
             ) { size -> scope.launch { repository.setSelectionMacroIconSize(size.roundToInt().toFloat()) } }
         }
         for (macro in shown) {
@@ -519,6 +520,7 @@ internal fun SelectionMacroZonesScreen(
                 stringResource(R.string.selection_macros_zones_sort_subtitle),
                 settings.watch { it.selectionMacros.sortZonesByTime },
                 default = SettingsDefaults.selectionMacros.sortZonesByTime,
+                info = stringResource(R.string.selection_macros_zones_sort_info),
             ) { scope.launch { repository.setSelectionMacroSortZones(it) } }
         }
     }

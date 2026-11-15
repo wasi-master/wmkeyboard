@@ -172,6 +172,7 @@ internal fun RestorePointsSettings(repository: SettingsRepository, settings: Liv
                 stringResource(R.string.restore_history_keep_subtitle),
                 keepHistory,
                 default = SettingsDefaults.settingsHistory,
+                info = stringResource(R.string.restore_history_keep_info),
             ) { on -> scope.launch { repository.setSettingsHistory(on) } }
         }
         if (keepHistory && batches.isEmpty()) {

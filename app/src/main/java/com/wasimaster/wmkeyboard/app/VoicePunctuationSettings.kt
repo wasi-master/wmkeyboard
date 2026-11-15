@@ -62,6 +62,7 @@ internal fun VoicePunctuationSetting(repository: SettingsRepository, settings: L
                     ),
                     selected = choice,
                     default = SettingsDefaults.whisper.punctuationModel,
+                    info = stringResource(R.string.voice_punctuation_choice_info),
                 ) { scope.launch { repository.setVoicePunctuationModel(it) } }
                 if (choice != PunctuationChoice.ENGLISH) {
                     PunctuationModelRow(settings)

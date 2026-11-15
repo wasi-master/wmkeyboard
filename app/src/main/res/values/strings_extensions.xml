@@ -12,6 +12,7 @@
     <!-- One bundle's own page. -->
     <string name="extension_enabled_title">Turned on</string>
     <string name="extension_enabled_subtitle">Show this feature everywhere and let it work in the background</string>
+    <string name="extension_enabled_info">Turns this group of features on. Its tools, settings and pages show across the app, and any background work it needs can run. With this off, everything in the group is hidden and does nothing, and your settings for it are kept.</string>
     <string name="extension_tools_title">Tools</string>
     <string name="extension_tools_off_subtitle">Hidden from the toolbar, the toolbox and the Tools list while the feature is off</string>
     <string name="extension_screens_title">Settings screens</string>

@@ -85,8 +85,10 @@
 
     <string name="typing_chips_at_end_title">Chips on the far side</string>
     <string name="typing_chips_at_end_subtitle">A one-time code, a copied clip, a keyword or a join chip sits at the end of the strip, where a right thumb reaches it</string>
+    <string name="typing_chips_at_end_info">The special chips on the suggestion strip are a one-time code, the text you just copied, a tool keyword and a join chip. Normally they sit at the start of the strip. With this on, they sit at the end, where the thumb of your right hand reaches them more easily. The word suggestions keep their order. This setting is off by default.</string>
     <string name="typing_shortcuts_converting_title">Shortcuts while converting</string>
     <string name="typing_shortcuts_converting_subtitle">On Pinyin and other conversion layouts, a snippet trigger or tool keyword offers a chip at the end of the strip</string>
+    <string name="typing_shortcuts_converting_info">On Pinyin and the other layouts that convert a reading, the letters you type are a reading, not a word. With this on, a reading that is also a snippet trigger or a tool keyword still offers its chip, at the end of the strip after the candidates. Turn it off if those chips get in the way of the candidates. This setting is on by default.</string>
     <string name="typing_context_revision_title">Re-check the previous word</string>
     <string name="typing_context_revision_subtitle">Offer a fix for the word before, once the next word shows what you meant</string>
     <string name="typing_context_revision_info">After you type a word, the keyboard looks again at the word before it with the new word in sight. If one of the other readings it had fits the sentence much better (\"by a car\" → \"buy\"), a chip offers it. Nothing changes until you tap the chip. Needs the context model.</string>
@@ -259,6 +261,7 @@
     <string name="typing_hide_composing_underline_info">This setting is off by default. While you type a word, the app you are typing in underlines the part the keyboard can still change: an Avro word before it becomes Bengali, or a word a suggestion may still replace. With this on, the keyboard asks the app to show that word without the underline. Typing, suggestions and corrections work the same; you just no longer see where the open word starts. Chrome, web pages inside other apps and some code editors draw their own underline whatever this says. A Japanese conversion keeps its underline, because it marks the segments the arrow keys move between.</string>
     <string name="typing_auto_close_quotes_title">Close quotes for me</string>
     <string name="typing_auto_close_quotes_subtitle">Press \" or \' and the keyboard types the closing one too, unless it comes right after a letter or number</string>
+    <string name="typing_auto_close_quotes_info">When you press a quotation mark, the keyboard types the closing mark too and puts the cursor between the two. It does not do this right after a letter or a number, where the mark is an apostrophe or the end of a quote. This setting is off by default.</string>
     <string name="typing_auto_close_brackets_title">Close brackets for me</string>
     <string name="typing_auto_close_brackets_subtitle">Press ( [ { and the keyboard types the closing half, with the cursor between them</string>
     <string name="typing_auto_close_brackets_info">This setting is off by default. With it on, pressing an opening bracket types the closing one behind the cursor and leaves the cursor between the two, so you type straight inside the pair: press ( and you get (), ready for what goes in it. Pressing the closing bracket when it is already the next character steps over it instead of typing a second one, and one backspace on an empty pair takes both halves out. The CJK brackets are included, and so are the fullwidth ones. Quotes are not: the apostrophe in \"don\'t\" shares that key, and closing it would be wrong more often than right. Nor is &lt;, which outside code is a less-than sign. Passwords, email fields and number pads are left alone; a browser\'s address bar is not.</string>
@@ -364,8 +367,10 @@
 
     <string name="typing_typed_word_first_title">Word as typed first</string>
     <string name="typing_typed_word_first_subtitle">Show what you typed in the first slot, wherever it ranks. A space still writes the bold word</string>
+    <string name="typing_typed_word_first_info">The first slot of the strip always shows the word exactly as you typed it, wherever it ranks. A space still writes the word in bold, which can be a correction. This setting is off by default.</string>
     <string name="typing_rank_marks_title">Mark words you ranked</string>
     <string name="typing_rank_marks_subtitle">A word you moved up or down shows its rank in a small circle at the corner of its slot</string>
+    <string name="typing_rank_marks_info">A word that you moved up or down in the suggestions shows its rank in a small circle at the corner of its slot, so you can see which words you ranked yourself. This setting is off by default.</string>
     <string name="typing_skip_typed_word_title">Only offer new words</string>
     <string name="typing_skip_typed_word_subtitle">Leave out the word you have already typed</string>
     <string name="typing_number_prediction_title">Numbers from the letter keys</string>
@@ -481,13 +486,16 @@
 
     <string name="typing_smart_calc_title">Calculate as you type</string>
     <string name="typing_smart_calc_subtitle">\"12*4\" offers 48</string>
+    <string name="typing_smart_calc_info">When you type a sum such as 12*4, the strip offers the answer, 48, as a chip. A tap types it. This setting is on by default.</string>
 
     <string name="typing_smart_currency_title">Convert currencies</string>
+    <string name="typing_smart_currency_info">When you type an amount of money, such as 150 usd, 150$ or 150 dollars, the strip offers the amount in your own currency as a chip.</string>
     <!-- %1$s is the currency code to convert into, for example EUR -->
     <string name="typing_smart_currency_subtitle">\"150 usd\", \"150$\" or \"150 dollars\" offers the amount in <xliff:g id="currency_code" example="EUR">%1$s</xliff:g></string>
 
     <string name="typing_smart_units_title">Convert units</string>
     <string name="typing_smart_units_subtitle">\"1 ft\" offers the same length in metres</string>
+    <string name="typing_smart_units_info">When you type a measure such as 1 ft, the strip offers the same measure in the other system as a chip. This setting is on by default.</string>
 
     <string name="typing_smart_tool_keywords_title">Tool keywords</string>
     <string name="typing_smart_tool_keywords_subtitle">Type \"wiki\" and the strip offers to open Wikipedia</string>
@@ -495,24 +503,30 @@
 
     <string name="typing_smart_dates_title">Resolve dates</string>
     <string name="typing_smart_dates_subtitle">\"next friday\" offers the date it lands on, and the calendar opened there</string>
+    <string name="typing_smart_dates_info">When you type a date in words, such as next friday, the strip offers the date it falls on. The chip can also open the calendar on that day.</string>
 
     <string name="typing_smart_weather_title">Answer weather questions</string>
     <string name="typing_smart_weather_subtitle">\"will it rain\" shows the forecast on the strip. Needs a weather location</string>
+    <string name="typing_smart_weather_info">When you type a question about the weather, such as will it rain, the strip shows the forecast. This needs a weather location set in the Weather tool.</string>
 
     <string name="typing_smart_lookups_title">Offer lookups</string>
     <string name="typing_smart_lookups_subtitle">\"define serendipity\" offers the dictionary, \"who is Tesla\" offers Wikipedia</string>
+    <string name="typing_smart_lookups_info">When you type define and a word, the strip offers the Dictionary tool. When you type who is and a name, it offers Wikipedia.</string>
 
     <string name="typing_smart_intents_title">Translate hints</string>
     <string name="typing_smart_intents_subtitle">\"how do you say\" or \"in spanish\" offers the translator</string>
+    <string name="typing_smart_intents_info">When you type how do you say, or end a phrase with in spanish, the strip offers the Translate tool for that phrase.</string>
 
     <string name="typing_smart_gifs_title">GIFs for celebrations</string>
     <string name="typing_smart_gifs_subtitle">\"happy birthday\" offers a matching GIF search</string>
+    <string name="typing_smart_gifs_info">When you type a greeting for an occasion, such as happy birthday, the strip offers a GIF search for it.</string>
 
     <string name="typing_smart_keep_text_title">Keep the text when a chip opens its tool</string>
     <string name="typing_smart_keep_text_subtitle">The settings button on a chip leaves what you typed, such as 150 usd or calculator, in the text</string>
     <string name="typing_smart_keep_text_info">The button at the end of a chip opens the tool with your numbers filled in. When this is off, the button also removes the text that the chip answered, because the tool types its own result in its place. When this is on, your text stays. Either way, if the tool typed nothing, the first backspace after you close the tool puts the removed text back.</string>
     <string name="typing_smart_contact_message_title">Message with</string>
     <string name="typing_smart_contact_message_subtitle">Which app the contact chip\'s message button opens</string>
+    <string name="typing_smart_contact_message_info">The app that opens when you press the message button on a contact chip. Messages (SMS) opens the phone\'s SMS app. Ask every time lets you pick. The default is Messages (SMS).</string>
     <string name="typing_smart_contact_message_sms">Messages (SMS)</string>
     <string name="typing_smart_contact_message_ask">Ask every time</string>
     <string name="typing_smart_apps_title">Open an app by name</string>
@@ -526,11 +540,13 @@
     <string name="typing_smart_repeats_info">Type a word, a phrase or a line and then type it again, with a space, a comma or a new line between, or with nothing between, such as \"hahaha\". Once it is there the set number of times, a chip shows the text with a count that goes up as you keep typing it. Tap the chip and the Text repeat tool opens on that text, with the same separator and a larger count ready. The text you typed stays until you press Insert there, and the tool\'s own setting says whether Insert replaces those copies or adds to them. Each text is offered one time in each text field. A single stretched letter or a doubled emoji does not count, and the chip does not show in password fields.</string>
     <string name="typing_smart_repeat_after_title">Chip after this many repeats</string>
     <string name="typing_smart_repeat_after_subtitle">How many copies in a row before the chip shows</string>
+    <string name="typing_smart_repeat_after_info">How many times in a row you type the same thing before the strip offers the Text repeat tool as a chip.</string>
     <string name="typing_smart_numbers_title">Group long numbers</string>
     <string name="typing_smart_numbers_subtitle">Type 1234567 and the strip offers it grouped. One press types the grouped number</string>
     <string name="typing_smart_numbers_info">A number of five digits or more, typed on its own, is offered back with separators. Numbers that start with a zero are left alone, and so is anything joined to a letter, a dash or a slash, because those are phone numbers, dates and codes rather than amounts.</string>
     <string name="typing_smart_number_grouping_title">Grouping style</string>
     <string name="typing_smart_number_grouping_subtitle">Where the separators fall</string>
+    <string name="typing_smart_number_grouping_info">Where the separators go when the keyboard groups a long number, for example 1,000,000 or the 10,00,000 used in South Asia. Automatic follows your language. The default is Automatic.</string>
     <string name="typing_smart_number_grouping_auto">Automatic</string>
     <string name="typing_smart_number_grouping_auto_desc">Follow the language being typed: South Asian for Bangla, Hindi and the languages beside them, thousands everywhere else</string>
     <string name="typing_smart_number_grouping_western">Thousands</string>
@@ -561,6 +577,7 @@
     <string name="typing_otp_code_fields_info">A code box usually asks for a number keypad, or names itself \"OTP\", \"PIN\" or \"verification code\". With this on, the chip shows there and nowhere else. Some apps give their code box neither, and the chip cannot find it — leave this off and a code is offered in any field while it is still valid.</string>
     <string name="typing_otp_expiry_title">Offer a code for</string>
     <string name="typing_otp_expiry_subtitle">A code older than this stops being offered</string>
+    <string name="typing_otp_expiry_info">How long a one-time code from a message is offered on the strip. An older code is no longer offered, because most codes stop working after a few minutes. The default is 3 minutes.</string>
     <string name="typing_otp_dismiss_title">Clear the notification</string>
     <string name="typing_otp_dismiss_subtitle">Dismiss the code\'s notification after the chip types it</string>
     <string name="typing_otp_dismiss_info">A used code has no reason to stay in the shade. After the chip types the code, the keyboard dismisses the notification it came from. This uses the same notification access. Some apps post their code again after a dismissal; turn this off if that bothers you.</string>
@@ -982,9 +999,11 @@
 
     <string name="typing_trail_width_title">Trail width</string>
     <string name="typing_trail_width_subtitle">Thickness of the glide trail</string>
+    <string name="typing_trail_width_info">How thick the line is that follows your finger while you glide. The default is 10 dp.</string>
 
     <string name="typing_trail_length_title">Trail length</string>
     <string name="typing_trail_length_subtitle">How long the trail stays behind your finger</string>
+    <string name="typing_trail_length_info">How long each part of the trail stays visible behind your finger. A longer time shows more of the path you drew. The default is 350 ms.</string>
 
     <!-- Typing settings screen, Gestures group. These shape the pill that floats
          above your finger with the word a glide has decoded so far. -->
@@ -1017,6 +1036,7 @@
     <string name="typing_glide_strip_preview_info">While you glide, the suggestion strip shows every word that fits your stroke, and the words change as you move. Turn this on and the strip shows only the word that the keyboard reads now.\n\nThe other words come back on the strip when you lift your finger. If the ambiguity picker is on, it still offers them during the stroke. This does not change what a glide types.</string>
 
     <string name="typing_trail_opacity_title">Trail opacity</string>
+    <string name="typing_trail_opacity_info">How solid the glide trail is. A lower value lets the keys show through the trail. The default is a little over half.</string>
 
     <string name="typing_space_short_swipe_title">Quick swipe on the spacebar</string>
     <string name="typing_space_short_swipe_subtitle">A swipe that starts to move immediately</string>
@@ -1135,9 +1155,11 @@
     <string name="typing_backspace_lines_subtitle">Up deletes lines before the cursor, down the lines after it</string>
     <string name="typing_backspace_lines_up_title">Swipe up deletes lines</string>
     <string name="typing_backspace_lines_up_subtitle">Back to the start of the line, then the line above</string>
+    <string name="typing_backspace_lines_up_info">A swipe up from the backspace key deletes text one line at a time, upward. While Swipe up to clear all is on, that setting has the swipe up, and this one does nothing. This setting is on by default.</string>
     <string name="typing_backspace_lines_up_cleared_subtitle">Swipe up to clear all has the swipe up while it is on</string>
     <string name="typing_backspace_lines_down_title">Swipe down deletes lines</string>
     <string name="typing_backspace_lines_down_subtitle">To the end of the line, then the line below</string>
+    <string name="typing_backspace_lines_down_info">A swipe down from the backspace key deletes forward: first to the end of the line, then the line below, one line at a time. This setting is on by default.</string>
     <string name="typing_backspace_lines_info">A swipe up on the delete key deletes back to the start of the line. With the cursor already at the start of a line, it deletes the whole line above. A swipe down deletes to the end of the line, then the line below. Keep your finger out after the swipe and it goes on, a line at a time. Either swipe can be turned off on its own in the two rows under this one. With Swipe up to clear all on too, the swipe up clears everything and only the swipe down deletes lines. A delete key your layout already gave a swipe up or down keeps it. Off by default.</string>
     <string name="typing_backspace_up_clears_subtitle">Swipe up on backspace to delete everything in the text box</string>
     <string name="typing_backspace_up_clears_info">Press backspace and swipe straight up. Once your finger is far enough up, the keyboard selects all the text in the box and deletes it when you lift. Bring your finger back down before you lift and nothing is deleted.\n\nThe swipe goes as far up as the first word of a backspace swipe goes sideways, the Word delete distance. In a box that shows only part of its text to the keyboard, the swipe does nothing, so it never leaves half a message behind.\n\nA backspace key with its own flick up, set in the layout editor, keeps that flick instead.</string>
@@ -1200,8 +1222,10 @@
     <string name="typing_hw_lang_ctrl_shift_title">Ctrl+Shift changes the language</string>
     <string name="typing_hw_lang_alt_space_title">Alt+Space changes the language</string>
     <string name="typing_hw_lang_alt_space_subtitle">Alt and Space together switch to the next language</string>
+    <string name="typing_hw_lang_alt_space_info">On a hardware keyboard, Alt and Space together change to the next language. This setting is off by default.</string>
     <string name="typing_hw_lang_shift_space_title">Shift+Space changes the language</string>
     <string name="typing_hw_lang_shift_space_subtitle">Shift and Space together switch to the next language instead of typing a space</string>
+    <string name="typing_hw_lang_shift_space_info">On a hardware keyboard, Shift and Space together change to the next language, and do not type a space. This setting is off by default.</string>
     <string name="typing_hw_follow_layout_title">Letter keys follow the on-screen layout</string>
     <string name="typing_hw_follow_layout_subtitle">The physical keys type the letters of the language you switch to</string>
     <string name="typing_hw_follow_layout_info">Each letter key on the physical keyboard types the letter in the same place on the keyboard\'s current layout: Q types the first letter of the top row, A the first of the middle row, and so on. Switch language with Ctrl+Space or Ctrl+Shift and the keys switch with it. For tablets whose keyboard only types the phone\'s system language, such as Huawei MatePad keyboards. The punctuation keys beside the letters follow the layout too, and a digit or symbol key with no key in its place types what it prints on a US keyboard. Shortcuts with Ctrl or Alt keep the phone\'s own layout. Off by default.</string>
@@ -1255,14 +1279,17 @@
     <string name="typing_suggestion_pages_title">Swipe down for more suggestions</string>
     <string name="typing_suggestion_pages_emoji_title">Emoji in the grid</string>
     <string name="typing_suggestion_pages_emoji_subtitle">After the words, the emoji that match the word you are typing</string>
+    <string name="typing_suggestion_pages_emoji_info">The grid of extra suggestions also lists the emoji that match the word you are typing, after the words. This setting is on by default.</string>
     <string name="typing_suggestion_pages_fancy_title">Fancy text in the grid</string>
     <string name="typing_suggestion_pages_fancy_subtitle">Last, the word in every fancy text style, to pick by how it looks</string>
+    <string name="typing_suggestion_pages_fancy_info">The grid of extra suggestions ends with the word in every fancy text style, so you can pick a style by its look. This setting is off by default.</string>
     <string name="typing_suggestion_pages_subtitle">Swipe down on the suggestions to see every word the keyboard ranked</string>
     <string name="typing_suggestion_swipe_up_title">Swipe up for more suggestions</string>
     <string name="typing_suggestion_swipe_up_subtitle">Swipe up on the suggestions, then slide onto a word and lift to use it</string>
     <string name="typing_suggestion_swipe_up_info">With this on, swipe up on the strip while it has words and up to 12 more suggestions open just above it. Keep your finger down and slide it onto the word you want: lift there to use it, or lift anywhere outside the words to close them without picking. This setting is off by default.</string>
     <string name="typing_suggestion_expanded_grid_title">More suggestions in a grid</string>
     <string name="typing_suggestion_expanded_grid_subtitle">Line the extra suggestions up in columns, one for each suggestion slot</string>
+    <string name="typing_suggestion_expanded_grid_info">The extra suggestions are lined up in columns, one column for each slot of the strip. With this off, they flow in rows of different widths. This setting is off by default.</string>
     <string name="typing_suggestion_pages_info">The strip shows only a few words. With this on, swipe down on it while it has words and a grid of up to 24 suggestions covers the keys, best first. Tap one to use it, or swipe the strip again or tap Back to the keys to close the grid. When this is on, a downward swipe over suggestions opens the grid instead of hiding the keyboard; over an empty strip it still hides it if that setting is on. This setting is off by default.</string>
     <string name="typing_suggestion_slots_title">Number of suggestions</string>
     <string name="typing_suggestion_slots_subtitle">How many words the suggestion strip shows at once</string>
@@ -1275,6 +1302,7 @@
     <string name="typing_suggestion_emoji_slot_subtitle">Count a suggested emoji as one of the suggestions</string>
     <string name="typing_rtl_words_from_right_title">Right-to-left words start on the right</string>
     <string name="typing_rtl_words_from_right_subtitle">Off keeps the strip, its best word and its buttons where they are in every other language</string>
+    <string name="typing_rtl_words_from_right_info">For a right-to-left language such as Arabic or Hebrew, the suggestion strip starts on the right: the best word and the buttons change sides. With this off, the strip is laid out the same in every language. This setting is on by default.</string>
     <string name="typing_rest_words_title">Words before you type</string>
     <string name="typing_rest_words_hint">Separated by commas. They replace the usual openers at the start of a sentence, and fill empty slots after a word</string>
     <string name="typing_suggestion_fixed_slots_title">Keep suggestions in place</string>
@@ -1347,6 +1375,7 @@
     <string name="typing_space_cursor_magnifier_title">Cursor magnifier</string>
     <string name="typing_magnifier_follows_title">Follow the text</string>
     <string name="typing_magnifier_follows_subtitle">Keep the magnifier over the cursor. Off, it stays above the keyboard</string>
+    <string name="typing_magnifier_follows_info">The magnifier sits over the cursor and moves with it through the text. With this off, the magnifier stays in one place above the keyboard. This setting is on by default.</string>
     <string name="typing_space_cursor_magnifier_subtitle">Show the text at the cursor, larger, while a spacebar swipe moves the cursor</string>
     <string name="typing_space_cursor_magnifier_info">The magnifier shows the line of text around the cursor. It goes above the cursor when the app tells the keyboard where the cursor is. If the app does not, it goes above the keyboard. The trackpad tool has a separate setting for this.</string>
     <string name="typing_space_cursor_step_info">A smaller distance moves the cursor faster, so a short spacebar can still cross a long line. A larger one is steadier if your slides tend to overshoot. This setting is 16 dp by default.</string>

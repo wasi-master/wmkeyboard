@@ -25,6 +25,7 @@
     <string name="ha_group_connection_info">The keyboard talks only to the homes you list here, each with its own key. Nothing about your home passes through any other service.</string>
     <string name="ha_enabled_title">Smart home tool</string>
     <string name="ha_enabled_subtitle">Lights, switches, climate, media, scenes and sensors as tiles in the keyboard, live</string>
+    <string name="ha_enabled_info">Adds the smart home tool to the keyboard. It shows your lights, switches, climate, media, scenes and sensors as tiles, with their live state, and you control them without leaving the app you are in.</string>
     <string name="smarthome_homes_title">Homes</string>
     <string name="smarthome_homes_info">Every home on the list is connected while the tool runs, and its rooms join the panel\'s tabs. Add a Home Assistant, Google Home, SmartThings, a Hue bridge, an openHAB server, a Smart Life (Tuya) project or a SwitchBot account; more than one is fine.</string>
 
@@ -109,16 +110,21 @@
     <string name="ha_favourites_subtitle_none">Pick the tiles the Favourites tab shows, and hide what you never use</string>
     <string name="ha_favourites_subtitle">%1$d favourites</string>
     <string name="ha_open_on_title">Open on</string>
+    <string name="ha_open_on_info">The tab that the smart home panel shows when it opens: your favourites, or the tab you had open last. The default is your favourites.</string>
     <string name="ha_open_on_favourites">Favourites</string>
     <string name="ha_open_on_last">Last tab</string>
     <string name="ha_areas_tabs_title">A tab per room</string>
     <string name="ha_areas_tabs_subtitle">Your rooms as each home orders them; with several homes, the home\'s name comes first. Off, there is Favourites and All.</string>
+    <string name="ha_areas_tabs_info">Gives each room a tab of its own, in the order your home has them. With several homes, the name of the home comes first. With this off, there are two tabs, Favourites and All. This setting is on by default.</string>
     <string name="ha_tile_size_title">Tile size</string>
+    <string name="ha_tile_size_info">The size of the tiles in the smart home panel. Smaller tiles fit more devices on the screen. The default is comfortable.</string>
     <string name="ha_tile_comfortable">Comfortable</string>
     <string name="ha_tile_compact">Compact</string>
     <string name="ha_confirm_risky_title">Hold to confirm risky actions</string>
     <string name="ha_confirm_risky_subtitle">Locks, alarms, garage doors, gates and sirens take a hold instead of a tap</string>
+    <string name="ha_confirm_risky_info">Locks, alarms, garage doors, gates and sirens need a hold in place of a tap, so a touch by accident cannot open a door. This setting is on by default.</string>
     <string name="ha_insert_format_title">What a sensor tile types</string>
+    <string name="ha_insert_format_info">What is typed into your text when you send a sensor\'s tile, for example its value alone or its name with the value.</string>
     <string name="ha_insert_value">Value</string>
     <string name="ha_insert_value_unit">Value and unit</string>
     <string name="ha_insert_name_value">Name and value</string>
@@ -128,11 +134,14 @@
     <string name="ha_group_assist_info">The command bar at the bottom of the panel sends what you type to Home Assistant\'s Assist, which understands sentences like \"turn off the kitchen lights\". Only Home Assistant has one.</string>
     <string name="ha_assist_enabled_title">Command bar</string>
     <string name="ha_assist_enabled_subtitle">Type a sentence for your home at the bottom of the panel</string>
+    <string name="ha_assist_enabled_info">Shows a command bar at the bottom of the smart home panel. Type a sentence for your home there, such as turn off the lights, and your assistant carries it out. This setting is on by default.</string>
     <string name="ha_assist_agent_title">Conversation agent</string>
+    <string name="ha_assist_agent_info">Which of your home\'s assistants answers the command bar. The list comes from your server after it is connected.</string>
     <string name="ha_assist_agent_default">Home Assistant\'s default</string>
     <string name="ha_assist_agent_subtitle">Which of your assistants answers. The list comes from the server once connected.</string>
     <string name="ha_assist_language_title">Send the keyboard\'s language</string>
     <string name="ha_assist_language_subtitle">Assist answers in the language you are typing in</string>
+    <string name="ha_assist_language_info">Tells the assistant which language you are typing in, so it understands the command and answers in that language. This setting is on by default.</string>
 
     <!-- Link group -->
     <string name="ha_group_link">Connection lifetime</string>
@@ -144,6 +153,7 @@
     <string name="ha_lifetime_keyboard_detail">Connects when the keyboard comes up, so the panel is live the instant it opens; drops a minute after the keyboard hides.</string>
     <string name="ha_cache_title">Keep the last states on the phone</string>
     <string name="ha_cache_subtitle">The panel draws your tiles at once from the last session, dimmed until each home confirms them</string>
+    <string name="ha_cache_info">The last known states of your devices are kept on the phone. The panel then draws your tiles at once, dimmed until each home confirms them. With this off, the panel waits for the server. This setting is on by default.</string>
 
     <!-- Also group -->
     <string name="ha_group_also">Also</string>
@@ -151,6 +161,7 @@
     <string name="ha_ai_tools_subtitle">The chat\'s tools include your homes; each one asks before it acts</string>
     <string name="ha_smart_chip_title">Suggest commands as you type</string>
     <string name="ha_smart_chip_subtitle">\"turn off the lights\" in any field offers a chip that sends it to Assist instead of the words</string>
+    <string name="ha_smart_chip_info">When you type a command for your home in any text field, such as turn off the lights, the strip offers a chip. A tap sends the command to your assistant and does not type the words. This setting is on by default.</string>
 
     <!-- Favourites and rooms screen -->
     <string name="ha_entities_search_hint">Search</string>

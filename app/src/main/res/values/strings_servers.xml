@@ -95,6 +95,7 @@
 
     <!-- The fields that say where one repository is. -->
     <string name="servers_repo_forge_title">Hosted on</string>
+    <string name="servers_repo_forge_info">The kind of server that holds the repository, such as GitHub, GitLab or Forgejo. Each kind builds the address of a file in its own way, so the app needs to know which one it is.</string>
     <string name="servers_forge_github">GitHub</string>
     <string name="servers_forge_forgejo">Forgejo or Gitea</string>
     <string name="servers_forge_gitlab">GitLab</string>

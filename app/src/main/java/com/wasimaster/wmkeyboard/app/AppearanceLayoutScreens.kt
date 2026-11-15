@@ -357,6 +357,7 @@ internal fun AppearanceKeysSettings(
                 ),
                 selected = settings.watch { it.layoutBehavior.hintCorner },
                 default = SettingsDefaults.layoutBehavior.hintCorner,
+                info = stringResource(R.string.appearance_key_hint_corner_info),
             ) { scope.launch { repository.setHintCorner(it) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -379,6 +380,7 @@ internal fun AppearanceKeysSettings(
                 range = HintOffsetRange.first.toFloat()..HintOffsetRange.last.toFloat(),
                 display = { dpFormat.format(it.roundToInt()) },
                 default = SettingsDefaults.layoutBehavior.hintOffsetXDp.toFloat(),
+                info = stringResource(R.string.appearance_key_hint_offset_x_info),
             ) { scope.launch { repository.setHintOffsetXDp(it.roundToInt()) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -389,6 +391,7 @@ internal fun AppearanceKeysSettings(
                 range = LabelOffsetRange.first.toFloat()..LabelOffsetRange.last.toFloat(),
                 display = { dpFormat.format(it.roundToInt()) },
                 default = SettingsDefaults.layoutBehavior.labelOffsetXDp.toFloat(),
+                info = stringResource(R.string.appearance_key_label_offset_x_info),
             ) { scope.launch { repository.setLabelOffsetXDp(it.roundToInt()) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -399,6 +402,7 @@ internal fun AppearanceKeysSettings(
                 range = LabelOffsetRange.first.toFloat()..LabelOffsetRange.last.toFloat(),
                 display = { dpFormat.format(it.roundToInt()) },
                 default = SettingsDefaults.layoutBehavior.labelOffsetYDp.toFloat(),
+                info = stringResource(R.string.appearance_key_label_offset_y_info),
             ) { scope.launch { repository.setLabelOffsetYDp(it.roundToInt()) } }
         }
         // Drawn only once something has actually moved. Theme, font and icons
@@ -579,6 +583,7 @@ internal fun AppearanceToolbarSettings(
                     enabled = stripSwipes,
                     disabledReason = DisabledReason(stringResource(R.string.appearance_toolbar_needs_strip_toolbox)),
                     default = SettingsDefaults.toolbarBehavior.barToolbox,
+                    info = stringResource(R.string.appearance_toolbar_bar_toolbox_info),
                 ) { scope.launch { repository.setToolbarBarToolbox(it) } }
             }
             if (placement == ToolbarPlacement.STRIP || placement == ToolbarPlacement.ON_DEMAND_ROW) item(level = SettingLevel.ADVANCED) {
@@ -587,6 +592,7 @@ internal fun AppearanceToolbarSettings(
                     stringResource(R.string.appearance_toolbar_tools_arrow_subtitle),
                     settings.watch { it.toolbarBehavior.toolsArrow },
                     default = SettingsDefaults.toolbarBehavior.toolsArrow,
+                    info = stringResource(R.string.appearance_toolbar_tools_arrow_info),
                 ) { scope.launch { repository.setToolbarToolsArrow(it) } }
             }
             // Sideways only (#970): a column down one side of the keys in
@@ -761,6 +767,7 @@ internal fun AppearanceToolbarSettings(
                 range = KeepToolsMinutesRange.first.toFloat()..KeepToolsMinutesRange.last.toFloat(),
                 display = { minutesFormat.format(it.roundToInt()) },
                 default = SettingsDefaults.toolbarBehavior.keepToolsMinutes.toFloat(),
+                info = stringResource(R.string.appearance_toolbar_keep_tools_minutes_info),
             ) { scope.launch { repository.setKeepToolsMinutes(it.roundToInt()) } }
         }
         if (toolbarOn) item {
@@ -782,6 +789,7 @@ internal fun AppearanceToolbarSettings(
                 range = 7f..14f,
                 display = { spFormat.format(it.roundToInt()) },
                 default = SettingsDefaults.toolbarLabelSize.toFloat(),
+                info = stringResource(R.string.appearance_toolbar_label_size_info),
             ) { scope.launch { repository.setToolbarLabelSize(it.roundToInt()) } }
         }
         item(visible = toolbarOn && labelsOn, level = SettingLevel.ADVANCED) {
@@ -790,6 +798,7 @@ internal fun AppearanceToolbarSettings(
                 stringResource(R.string.appearance_toolbar_labels_fixed_subtitle),
                 settings.watch { it.toolbarBehavior.labelsFixedWidth },
                 default = SettingsDefaults.toolbarBehavior.labelsFixedWidth,
+                info = stringResource(R.string.appearance_toolbar_labels_fixed_info),
             ) { scope.launch { repository.setToolbarLabelsFixedWidth(it) } }
         }
         item(visible = toolbarOn, level = SettingLevel.ADVANCED) {
@@ -798,6 +807,7 @@ internal fun AppearanceToolbarSettings(
                 stringResource(R.string.appearance_toolbar_pinned_colors_subtitle),
                 settings.watch { it.toolbarBehavior.pinnedToolColors },
                 default = SettingsDefaults.toolbarBehavior.pinnedToolColors,
+                info = stringResource(R.string.appearance_toolbar_pinned_colors_info),
             ) { scope.launch { repository.setToolbarPinnedToolColors(it) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -1207,6 +1217,7 @@ private fun StripButtonsSettings(repository: SettingsRepository, settings: LiveS
                 ),
                 selected = side,
                 default = StripToolboxSide.OFF,
+                info = stringResource(R.string.langemoji_strip_toolbox_info),
             ) { chosen ->
                 scope.launch {
                     repository.setStripToolbox(chosen != StripToolboxSide.OFF)
@@ -1222,6 +1233,7 @@ private fun StripButtonsSettings(repository: SettingsRepository, settings: LiveS
                 stringResource(R.string.langemoji_strip_own_size_subtitle),
                 stripOwnSize,
                 default = SettingsDefaults.toolbarBehavior.stripOwnSize,
+                info = stringResource(R.string.langemoji_strip_own_size_info),
             ) { scope.launch { repository.setStripOwnSize(it) } }
         }
         item(visible = buttonsOn && stripOwnSize, level = SettingLevel.ADVANCED) {
@@ -1233,6 +1245,7 @@ private fun StripButtonsSettings(repository: SettingsRepository, settings: LiveS
                 range = 20f..64f,
                 display = { dpFormat.format(it.roundToInt()) },
                 default = SettingsDefaults.toolbarBehavior.stripToolWidthDp.toFloat(),
+                info = stringResource(R.string.langemoji_strip_tool_width_info),
             ) { scope.launch { repository.setStripToolWidthDp(it.roundToInt()) } }
         }
         item(visible = buttonsOn && stripOwnSize, level = SettingLevel.ADVANCED) {
@@ -1243,6 +1256,7 @@ private fun StripButtonsSettings(repository: SettingsRepository, settings: LiveS
                 range = 14f..30f,
                 display = { dpFormat.format(it.roundToInt()) },
                 default = SettingsDefaults.toolbarBehavior.stripIconSizeDp.toFloat(),
+                info = stringResource(R.string.langemoji_strip_icon_size_info),
             ) { scope.launch { repository.setStripIconSizeDp(it.roundToInt()) } }
         }
     }
@@ -1385,6 +1399,7 @@ internal fun AppearanceToolboxSettings(
                 range = 0f..16f,
                 display = { dpFormat.format(it.roundToInt()) },
                 default = SettingsDefaults.toolbox.cellSpacingDp.toFloat(),
+                info = stringResource(R.string.appearance_toolbox_cell_spacing_info),
             ) { scope.launch { repository.setToolboxCellSpacing(it.roundToInt()) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -1629,6 +1644,7 @@ internal fun LayoutSettings(
                 stringResource(R.string.layout_number_row_hints_subtitle),
                 settings.watch { it.layoutBehavior.numberRowHints },
                 default = SettingsDefaults.layoutBehavior.numberRowHints,
+                info = stringResource(R.string.layout_number_row_hints_info),
             ) { scope.launch { repository.setNumberRowHints(it) } }
         }
         item(visible = numberRow, level = SettingLevel.ADVANCED) {
@@ -2291,6 +2307,7 @@ internal fun LayoutSizeSettings(
                     options = BoardCorner.entries.map { it to stringResource(it.labelRes) },
                     selected = settings.watch { it.layoutBehavior.boardCorners },
                     default = SettingsDefaults.layoutBehavior.boardCorners,
+                    info = stringResource(R.string.layout_board_corners_info),
                 ) { scope.launch { repository.setBoardCorners(it) } }
             }
         }
@@ -2416,6 +2433,7 @@ internal fun LayoutVariantSizeSettings(
                 value = settings.watch { it.sizingValuesFor(variant).keyboardScale } ?: 1f,
                 range = 0.5f..1.5f,
                 display = { percentFormat.format((it * 100).toInt()) },
+                info = stringResource(R.string.layout_keyboard_scale_info),
             ) { scope.launch { repository.setVariantKeyboardScale(variant, it) } }
         }
         item {
@@ -2425,6 +2443,7 @@ internal fun LayoutVariantSizeSettings(
                     .toFloat(),
                 range = 32f..100f,
                 display = { dpFormat.format(it.toInt()) },
+                info = stringResource(R.string.layout_key_height_info),
             ) { scope.launch { repository.setVariantKeyHeightDp(variant, it.toInt()) } }
         }
         // The variant may turn the number row on or off for itself,
@@ -2439,6 +2458,7 @@ internal fun LayoutVariantSizeSettings(
                 }.toFloat(),
                 range = 32f..100f,
                 display = { dpFormat.format(it.toInt()) },
+                info = stringResource(R.string.layout_number_row_height_info),
             ) {
                 scope.launch {
                     repository.setVariantNumberRowHeightDp(variant, it.toInt())
@@ -2454,6 +2474,7 @@ internal fun LayoutVariantSizeSettings(
                     ).toFloat(),
                 range = 0f..SettingsRepository.MAX_BOTTOM_PADDING_DP.toFloat(),
                 display = { dpFormat.format(it.toInt()) },
+                info = stringResource(R.string.layout_bottom_padding_info),
             ) { scope.launch { repository.setVariantBottomPaddingDp(variant, it.toInt()) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -2464,6 +2485,7 @@ internal fun LayoutVariantSizeSettings(
                 }.toFloat(),
                 range = 50f..100f,
                 display = { percentFormat.format(it.toInt()) },
+                info = stringResource(R.string.layout_keyboard_width_info),
             ) { scope.launch { repository.setVariantWidthPercent(variant, it.toInt()) } }
         }
         item(visible = shapeKeysNarrowed, level = SettingLevel.STANDARD) {
@@ -2473,6 +2495,7 @@ internal fun LayoutVariantSizeSettings(
                 settings.watch {
                     it.sizingValuesFor(variant).fullWidthBars ?: it.layoutBehavior.fullWidthBars
                 },
+                info = stringResource(R.string.layout_full_width_bars_info),
             ) { scope.launch { repository.setVariantFullWidthBars(variant, it) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -2483,6 +2506,7 @@ internal fun LayoutVariantSizeSettings(
                 }.toFloat(),
                 range = ToolbarHeightRange.first.toFloat()..ToolbarHeightRange.last.toFloat(),
                 display = { dpFormat.format(it.toInt()) },
+                info = stringResource(R.string.layout_toolbar_height_info),
             ) { scope.launch { repository.setVariantToolbarHeightDp(variant, it.toInt()) } }
         }
         item {
@@ -2491,6 +2515,7 @@ internal fun LayoutVariantSizeSettings(
                 value = settings.watch { it.sizingValuesFor(variant).fontScale ?: it.fontScale },
                 range = KeyFontScaleRange,
                 display = { multiplierFormat.format(it) },
+                info = stringResource(R.string.layout_font_size_info),
             ) { scope.launch { repository.setVariantFontScale(variant, it) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -2499,6 +2524,7 @@ internal fun LayoutVariantSizeSettings(
                 value = settings.watch { it.sizingValuesFor(variant).keyGapScale ?: it.keyGapScale },
                 range = 0f..2f,
                 display = { percentFormat.format((it * 100).toInt()) },
+                info = stringResource(R.string.layout_key_spacing_info),
             ) { scope.launch { repository.setVariantKeyGapScale(variant, it) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -2509,6 +2535,7 @@ internal fun LayoutVariantSizeSettings(
                 },
                 range = SidePadScaleRange,
                 display = { percentFormat.format((it * 100).toInt()) },
+                info = stringResource(R.string.layout_side_padding_left_info),
             ) { scope.launch { repository.setVariantSidePadLeftScale(variant, it) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -2519,6 +2546,7 @@ internal fun LayoutVariantSizeSettings(
                 },
                 range = SidePadScaleRange,
                 display = { percentFormat.format((it * 100).toInt()) },
+                info = stringResource(R.string.layout_side_padding_right_info),
             ) { scope.launch { repository.setVariantSidePadRightScale(variant, it) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -2533,6 +2561,7 @@ internal fun LayoutVariantSizeSettings(
                 display = {
                     if (it.toInt() == 0) followKeys else dpFormat.format(it.toInt())
                 },
+                info = stringResource(R.string.layout_bottom_row_height_info),
             ) {
                 scope.launch { repository.setVariantBottomRowHeightDp(variant, it.toInt()) }
             }
@@ -2545,6 +2574,7 @@ internal fun LayoutVariantSizeSettings(
                 R.string.layout_number_row_title,
                 null,
                 shapeNumberRow,
+                info = stringResource(R.string.layout_number_row_info),
             ) { scope.launch { repository.setVariantNumberRow(variant, it) } }
         }
         // Gates on the two shared switches (#611), not switches of
@@ -2556,6 +2586,7 @@ internal fun LayoutVariantSizeSettings(
                 R.string.layout_variant_allow_one_handed_title,
                 stringResource(R.string.layout_variant_allow_one_handed_subtitle),
                 settings.watch { it.oneHandedAllowedOn(variant) },
+                info = stringResource(R.string.layout_variant_allow_one_handed_info),
             ) { scope.launch { repository.setVariantAllowOneHanded(variant, it) } }
         }
         item {
@@ -2563,6 +2594,7 @@ internal fun LayoutVariantSizeSettings(
                 R.string.layout_variant_allow_split_title,
                 stringResource(R.string.layout_variant_allow_split_subtitle),
                 settings.watch { it.splitAllowedOn(variant) },
+                info = stringResource(R.string.layout_variant_allow_split_info),
             ) { scope.launch { repository.setVariantAllowSplit(variant, it) } }
         }
         item(visible = shapeNarrowed, level = SettingLevel.ADVANCED) {
@@ -2574,6 +2606,7 @@ internal fun LayoutVariantSizeSettings(
                 selected = settings.watch {
                     it.sizingValuesFor(variant).keyboardAlignment ?: it.keyboardAlignment
                 },
+                info = stringResource(R.string.layout_keyboard_position_info),
             ) { scope.launch { repository.setVariantAlignment(variant, it) } }
         }
         if (shapeOverridden) {
@@ -2617,6 +2650,7 @@ internal fun LayoutOneHandedSettings(
                 },
                 selected = settings.watch { it.oneHandedMode },
                 default = SettingsDefaults.oneHandedMode,
+                info = stringResource(R.string.layout_one_handed_info),
             ) { scope.launch { repository.setOneHandedMode(it) } }
         }
         // Shown with one-handed mode off too, so the board can be chosen

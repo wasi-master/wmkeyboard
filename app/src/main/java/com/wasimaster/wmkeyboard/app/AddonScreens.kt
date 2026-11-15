@@ -1075,6 +1075,7 @@ private fun RefreshSettingsGroup(
                 stringResource(R.string.addon_refresh_unmetered_subtitle),
                 refreshUnmeteredOnly,
                 default = false,
+                info = stringResource(R.string.addon_refresh_unmetered_info),
             ) { store.setRefreshUnmeteredOnly(it) }
         }
     }

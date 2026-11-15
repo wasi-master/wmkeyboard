@@ -222,8 +222,10 @@
     <string name="keypress_word_stops_punctuation_info">This is for each delete that takes whole words: the held delete key, and the backspace swipe when it takes words.\n\nOn, \"wmkeyboard.pages.dev\" goes in steps: \"dev\", then \".\", then \"pages\". Off, all of it goes in one step, up to the last space.</string>
     <string name="keypress_word_stops_capitals_title">Words stop at capitals</string>
     <string name="keypress_word_stops_capitals_subtitle">\"GrapheneOS\" goes as \"OS\", then \"Graphene\"</string>
+    <string name="keypress_word_stops_capitals_info">When backspace deletes word by word, a capital letter inside a word starts a new part. GrapheneOS is deleted as OS first, then Graphene. This helps with names of this kind and with code. This setting is off by default.</string>
     <string name="keypress_word_stops_digits_title">Words stop at numbers</string>
     <string name="keypress_word_stops_digits_subtitle">\"word1\" goes as \"1\", then \"word\"</string>
+    <string name="keypress_word_stops_digits_info">When backspace deletes word by word, a change between letters and digits starts a new part. word1 is deleted as 1 first, then word. This setting is off by default.</string>
 
     <string name="keypress_word_delete_repeat_title">Word delete interval</string>
     <string name="keypress_word_delete_repeat_subtitle">How fast a held delete key clears words</string>
@@ -238,6 +240,7 @@
     <string name="keypress_custom_repeat_info">This is the speed of the keys you turned Repeat while held on for in the key layout editor, such as a row of arrow keys. Delete and space keep their own speeds above. Lower values repeat faster.</string>
     <string name="keypress_flicks_repeat_title">Hold a flick to repeat it</string>
     <string name="keypress_flicks_repeat_subtitle">A letter flicked out and held there types again and again until you lift, at the repeating key interval</string>
+    <string name="keypress_flicks_repeat_info">After you flick a key to type one of its side letters, keep your finger there. The letter then types again and again until you lift, at the speed of a repeating key. This setting is off by default.</string>
 
     <string name="keypress_caps_lock_title">Caps lock double press</string>
     <string name="keypress_caps_lock_subtitle">How fast a second press of shift turns on caps lock</string>

@@ -10,6 +10,7 @@ import com.wasimaster.wmkeyboard.app.STICKER_GENERATOR_ROUTE
 import com.wasimaster.wmkeyboard.app.deleteNeuralPhonetic
 import com.wasimaster.wmkeyboard.app.modules.PlayModules
 import com.wasimaster.wmkeyboard.config.BuildConfig
+import com.wasimaster.wmkeyboard.core.helpvisuals.HelpVisualStore
 import com.wasimaster.wmkeyboard.core.addons.AddonStore
 import com.wasimaster.wmkeyboard.core.aihistory.AiHistoryStore
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
@@ -1042,6 +1043,20 @@ internal object StorageCategories {
                 emptyOut(File(env.roots.noBackupFiles, "langpacks"))
                 com.wasimaster.wmkeyboard.core.modules.LanguagePackResources.reload(env.context)
             },
+        ),
+        // The pictures and clips above a setting's explanation, fetched as a
+        // pack or one at a time. Deleting them also forgets which packs were
+        // here, so the next "?" offers the download again.
+        StorageCategory(
+            id = "help_pictures",
+            title = R.string.storage_help_pictures_title,
+            subtitle = R.string.storage_help_pictures_subtitle,
+            icon = Icons.Outlined.Image,
+            accent = Color(0xFF7986CB),
+            group = StorageGroup.DOWNLOADS,
+            pathsOf = { roots -> listOf(File(roots.noBackupFiles, HelpVisualStore.DIR)) },
+            countOf = { roots -> childrenOf(File(roots.noBackupFiles, "${HelpVisualStore.DIR}/files")).size },
+            clearOf = { env -> com.wasimaster.wmkeyboard.app.HelpVisuals.clear(env.context) },
         ),
         // Native delivery (GitHub and F-Droid builds): the libraries features
         // fetched the first time they were used. One row per library, named

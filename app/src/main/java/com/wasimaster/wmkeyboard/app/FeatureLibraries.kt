@@ -67,6 +67,7 @@ internal fun FeatureLibrariesRows() {
                 if (accepted) R.string.privacy_qualcomm_licence_accepted else R.string.privacy_qualcomm_licence_not_accepted,
             ),
             accepted,
+            info = stringResource(R.string.privacy_qualcomm_licence_info),
         ) { want ->
             if (want) asking = true else NativeConsent.set(NativeConsent.QUALCOMM, false)
         }

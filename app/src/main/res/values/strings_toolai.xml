@@ -6,6 +6,7 @@
     <!-- ================================================================== -->
 
     <string name="toolai_typing_default_test_title">Default test</string>
+    <string name="toolai_typing_default_test_info">The kind of test the typing test opens on: a test that runs for a time, or a test of a fixed number of words.</string>
     <!-- The test runs for a set number of seconds. -->
     <string name="toolai_typing_mode_time_label">Timed</string>
     <!-- The test runs until you type a set number of words. -->
@@ -15,20 +16,26 @@
 
     <string name="toolai_typing_length_title">Length</string>
     <string name="toolai_typing_seconds_label">Seconds</string>
+    <string name="toolai_typing_seconds_info">How long a timed typing test runs.</string>
     <string name="toolai_typing_words_label">Words</string>
+    <string name="toolai_typing_words_info">How many words a typing test of fixed length has. The default is 25.</string>
     <string name="toolai_typing_quote_info">Quote tests run to the end of the quotation.</string>
 
     <string name="toolai_typing_difficulty_title">Difficulty</string>
     <string name="toolai_typing_punctuation_title">Punctuation</string>
     <string name="toolai_typing_punctuation_subtitle">Capital letters, commas and full stops in the test text</string>
+    <string name="toolai_typing_punctuation_info">The test text has capital letters, commas and full stops, as real writing does. With this off, it is lowercase words only. This setting is off by default.</string>
     <string name="toolai_typing_numbers_title">Numbers</string>
     <string name="toolai_typing_numbers_subtitle">The keyboard mixes numbers into the test words</string>
+    <string name="toolai_typing_numbers_info">Mixes numbers into the words of the test, to practise the number row.</string>
     <!-- Group for the two options that let the keyboard's own helpers take part in a run. -->
     <string name="toolai_typing_assist_title">Typing aids</string>
     <string name="toolai_typing_glide_title">Glide typing</string>
     <string name="toolai_typing_glide_subtitle">Swipe words during a test, to see how much faster gestures make you</string>
+    <string name="toolai_typing_glide_info">Lets you glide words during a test, so you can measure how fast you are with gestures. With this off, the test accepts taps only.</string>
     <string name="toolai_typing_suggestions_title">Suggestions</string>
     <string name="toolai_typing_suggestions_subtitle">Show the suggestion strip during a test, in its usual row above the keys. Tapping a word finishes it</string>
+    <string name="toolai_typing_suggestions_info">Shows the suggestion strip during a test, in its usual place above the keys. A tap on a word finishes it. With this off, the test measures your tapping alone.</string>
     <string name="toolai_typing_language_info">The test runs in whichever language the keyboard is in. Switch languages from the panel or the spacebar. English and Bangla have their own word lists; any other language uses its downloaded or imported dictionary.</string>
     <!-- A personal-best row's title with its language, e.g. "30 seconds · বাংলা". -->
     <string name="toolai_typing_best_language_label">%1$s · %2$s</string>
@@ -75,6 +82,7 @@
     <string name="toolai_ai_providers_info">The services and models the AI tools, AI reply, the chat and the settings assistant can use. Add a service with its key, a server you run, or a model on your device. You can add the same service more than once, for a second key or a second server. One of them answers at a time: pick it under In use, or with the model picker on the AI panel.</string>
     <string name="toolai_ai_in_use_title">In use</string>
     <string name="toolai_ai_in_use_subtitle">The provider the AI tools ask. The model picker on the AI panel changes it too</string>
+    <string name="toolai_ai_in_use_info">The provider that the AI tools send their requests to. You can set up several providers and keep one in use. The model picker on the AI panel changes the same setting from the keyboard.</string>
 
     <!-- Group heading. Product names. -->
     <string name="toolai_ai_anthropic_group_title" translatable="false">Claude (Anthropic)</string>
@@ -159,15 +167,19 @@
     <!-- The three language names are examples. Keep them in English: the field takes an English language name. -->
     <string name="toolai_ai_translate_to_hint">For example English, Bengali, Japanese</string>
     <string name="toolai_ai_show_thinking_title">Show model reasoning</string>
+    <string name="toolai_ai_show_thinking_info">Some models reason before they answer and send that reasoning as text. With this on, the AI panel shows the reasoning while the answer is made. With this off, the panel shows a progress bar and then the answer only. This setting is off by default.</string>
     <!-- &lt;think&gt; is a tag the model writes around its own reasoning. Keep it as it is. -->
     <string name="toolai_ai_show_thinking_subtitle">The panel shows the &lt;think&gt; text of reasoning models instead of a progress bar</string>
     <string name="toolai_ai_model_picker_title">Model picker on the panel</string>
     <string name="toolai_ai_model_picker_subtitle">Change between the providers that you set up and the models that you download, on the keyboard</string>
+    <string name="toolai_ai_model_picker_info">Shows a picker on the AI panel that lists the providers you set up and the models you downloaded. You can change the model there without opening the settings. Turn this off for a simpler panel if you always use one model. This setting is on by default.</string>
 
     <string name="toolai_ai_diff_title">Show a changes view</string>
     <string name="toolai_ai_diff_subtitle">The panel gets a Changes button that marks what the model added and what it deleted</string>
+    <string name="toolai_ai_diff_info">Adds a Changes button to the AI panel. The changes view marks the words that the model added and the words that it deleted, so you can check an edit before you accept it.</string>
     <string name="toolai_ai_diff_first_title">Open a result on the changes</string>
     <string name="toolai_ai_diff_first_subtitle">The panel starts on the changes instead of the plain result</string>
+    <string name="toolai_ai_diff_first_info">When a result arrives, the AI panel opens on the changes view instead of on the plain result. This is useful if you mostly use the AI tools to correct text. This setting is off by default.</string>
 
     <!-- The AI continuation chip in the suggestion strip (#944). -->
     <string name="toolai_strip_suggest_group_title">Suggestion strip</string>
@@ -179,12 +191,16 @@
     <string name="toolai_strip_suggest_info">The app never asks in a password field, in a field that turns off suggestions, or in incognito. Each pause after a word is one request, and a new key press cancels it. Tap the suggestion to insert it. Hold it to hide AI suggestions until you go to a different field.</string>
     <string name="toolai_strip_suggest_word_only_title">Send only the last word</string>
     <string name="toolai_strip_suggest_word_only_subtitle">Sends less of your text. The suggestions are less accurate.</string>
+    <string name="toolai_strip_suggest_word_only_info">Each request sends only the last word you typed, not the sentence before it. This sends less of your text to the provider. The model knows less about what you are writing, so its suggestions are less accurate.</string>
     <string name="toolai_strip_suggest_composing_title">Ask while typing a word</string>
     <string name="toolai_strip_suggest_composing_subtitle">Also asks mid-word, and for the conversion of a Chinese or Japanese reading. This sends many more requests. A model that thinks first is skipped mid-word.</string>
+    <string name="toolai_strip_suggest_composing_info">The keyboard also asks the model while you are in the middle of a word, and for the conversion of a Chinese or Japanese reading. This sends many more requests, which costs more with a paid provider. A model that reasons before it answers is too slow for this and is skipped.</string>
     <string name="toolai_strip_suggest_after_words_title">Show after the words</string>
     <string name="toolai_strip_suggest_after_words_subtitle">The chip stays at the end of the strip, so it never moves a word you are about to tap</string>
+    <string name="toolai_strip_suggest_after_words_info">The AI suggestion always sits at the end of the suggestion strip, after the word suggestions. The words then stay where they are when the AI suggestion arrives, so you never tap the wrong one. With this off, the AI suggestion can take a place among the words. This setting is off by default.</string>
     <string name="toolai_strip_suggest_after_word_title">Ask after a word ends</string>
     <string name="toolai_strip_suggest_after_word_subtitle">Also asks when you stop after a whole word</string>
+    <string name="toolai_strip_suggest_after_word_info">The keyboard asks the model for a suggestion when you stop after a complete word, which is the usual moment to suggest what comes next. This setting is on by default.</string>
     <string name="toolai_strip_suggest_idle_title">Wait before asking</string>
     <string name="toolai_strip_suggest_timeout_title">Give up after</string>
     <string name="toolai_strip_suggest_composing_delay_title">Wait before asking mid-word</string>
@@ -192,11 +208,14 @@
     <!-- AI suggestions in the strip, #1048's extras. -->
     <string name="toolai_strip_suggest_only_unsure_title">Only when the keyboard is unsure</string>
     <string name="toolai_strip_suggest_only_unsure_subtitle">Ask only when the strip has no prediction of its own, doesn\'t know the word, or a reading can be written several ways</string>
+    <string name="toolai_strip_suggest_only_unsure_info">The keyboard asks the model only when its own prediction is weak: the strip has no prediction, the word is not in the dictionary, or a reading can be written in several ways. This sends fewer requests. This setting is off by default.</string>
     <string name="toolai_strip_suggest_provider_title">Provider for suggestions</string>
     <string name="toolai_strip_suggest_provider_subtitle">A fast, cheap model for the strip, and a better one for the panel</string>
+    <string name="toolai_strip_suggest_provider_info">The provider that makes the suggestions on the strip. It can be a different one from the provider the AI panel uses. A small, fast, cheap model suits the strip, because it is asked often and must answer quickly.</string>
     <string name="toolai_strip_suggest_provider_same">Same as the AI tool</string>
     <string name="toolai_strip_suggest_temperature_title">Creativity</string>
     <string name="toolai_strip_suggest_temperature_subtitle">How far the suggestions may wander from the likeliest words</string>
+    <string name="toolai_strip_suggest_temperature_info">How freely the model picks its words. Focused keeps to the most likely words. Varied lets the suggestions differ more from one request to the next. Service default leaves the choice to the provider.</string>
     <string name="toolai_strip_suggest_temperature_default">Service default</string>
     <string name="toolai_strip_suggest_temperature_focused">Focused</string>
     <string name="toolai_strip_suggest_temperature_balanced">Balanced</string>
@@ -208,6 +227,7 @@
     <string name="toolai_strip_suggest_ms_value">%1$d ms</string>
     <string name="toolai_strip_suggest_chars_title">Text to send</string>
     <string name="toolai_strip_suggest_chars_subtitle">How many characters before the cursor each request sends</string>
+    <string name="toolai_strip_suggest_chars_info">How many characters before the cursor go to the model with each request. More text gives the model more to work from and gives better suggestions. Less text is faster, and less of what you write is sent.</string>
 
     <!--
       Tool calling (#470): letting the model search the web, or read one page,
@@ -218,6 +238,7 @@
     <string name="toolai_ai_tools_info_fallback">This provider has no built-in support for tools, so the keyboard explains them to the model in words instead. It works, but a small model often ignores them or gets the format wrong. A provider with real tool support is far more reliable.</string>
     <string name="toolai_ai_tool_search_title">Let the model search the web</string>
     <string name="toolai_ai_tool_search_subtitle">It writes its own search and reads the results. Searches go to whichever service the search tool uses, and count against that service\'s quota.</string>
+    <string name="toolai_ai_tool_search_info">Lets the model run a web search when it needs facts it does not have. The model writes the search itself and reads the results before it answers. The search goes to the service that the Web search tool uses and counts against that service\'s quota.</string>
     <string name="toolai_ai_tool_search_needs_setup_title">Let the model search the web</string>
     <string name="toolai_ai_tool_search_needs_setup_subtitle">Set up a search service first — the model has nothing to search with</string>
     <string name="toolai_ai_tool_fetch_title">Let the model read a web page</string>
@@ -462,10 +483,12 @@
     <string name="toolai_ai_history_group_title">History</string>
     <string name="toolai_ai_history_title">Keep a history of the results</string>
     <string name="toolai_ai_history_subtitle">The keyboard keeps what you send and what the model answers. The records stay on your device. Nothing is kept from a password field or in incognito.</string>
+    <string name="toolai_ai_history_info">Each run of an AI tool is saved as a record: the text you sent and the answer of the model. You can open a record again, copy from it, or delete it. The records stay on this device. Text from a password field and anything done in incognito mode is never saved.</string>
     <string name="toolai_ai_history_nav_title">History</string>
     <string name="toolai_ai_history_nav_subtitle">Read, copy and delete what the AI tool did</string>
     <string name="toolai_ai_history_max_title">Number of records to keep</string>
     <string name="toolai_ai_history_max_subtitle">The oldest record goes when the history is full</string>
+    <string name="toolai_ai_history_max_info">The most records the AI history holds. When the history is full, each new record removes the oldest one. A lower number uses less storage. The default is 100 records.</string>
     <string name="toolai_ai_history_search_label">Search the history</string>
     <string name="toolai_ai_history_all_actions">All</string>
     <string name="toolai_ai_history_empty">The history is empty. Run an AI action and it appears here.</string>
@@ -506,8 +529,10 @@
     <string name="toolai_ai_action_behaviour_title">Behaviour</string>
     <string name="toolai_ai_action_ask_title">Type the prompt at every run</string>
     <string name="toolai_ai_action_ask_subtitle">The keyboard asks you for the prompt instead of using a saved one</string>
+    <string name="toolai_ai_action_ask_info">Each time you run this action, the keyboard asks you to type the prompt. Use this for an action whose instructions change every time. With this off, the action uses its saved prompt.</string>
     <string name="toolai_ai_action_prefill_title">Start from the saved prompt</string>
     <string name="toolai_ai_action_prefill_subtitle">The box opens with the prompt below already in it, so you change it instead of typing it again</string>
+    <string name="toolai_ai_action_prefill_info">When the keyboard asks for the prompt, the box already holds the saved prompt. You then change a few words instead of typing the prompt again.</string>
     <!-- Label of the prompt field for an action that asks at every run. -->
     <string name="toolai_ai_action_prefill_label">Prompt to start from</string>
     <!-- Helper text under that field. %1$s is the text {target}, which the app
@@ -515,14 +540,19 @@
     <string name="toolai_ai_action_prefill_hint">The instruction box opens with this text. You can change it before each run. Write %1$s where you want the target language.</string>
     <string name="toolai_ai_action_empty_field_title">Works with an empty field</string>
     <string name="toolai_ai_action_empty_field_subtitle">With no text in the field, the action writes new text instead of changing text</string>
+    <string name="toolai_ai_action_empty_field_info">The action can run when the text field is empty. It then writes new text from the prompt alone. With this off, the action needs text in the field to work on.</string>
     <string name="toolai_ai_action_before_cursor_title">Read the text before the cursor</string>
     <string name="toolai_ai_action_before_cursor_subtitle">The action reads only the text in front of the cursor, not the whole field. Selected text always wins.</string>
+    <string name="toolai_ai_action_before_cursor_info">The action reads only the text before the cursor, not the complete field. This is useful in a long document, where only the last part matters. If you selected text, the action always reads the selection.</string>
     <string name="toolai_ai_action_append_title">Add the result to the end</string>
     <string name="toolai_ai_action_append_subtitle">Replace adds the result after your text instead of in place of it</string>
+    <string name="toolai_ai_action_append_info">The result is added after your text. Your text stays as it is. With this off, the result takes the place of your text.</string>
     <string name="toolai_ai_action_output_only_title">Answer with the text only</string>
     <string name="toolai_ai_action_output_only_subtitle">The model gives the result and nothing else. Turn this off for an action that explains something.</string>
+    <string name="toolai_ai_action_output_only_info">Tells the model to answer with the result only, with no introduction or comment, so the answer can go straight into your text. Turn this off for an action that explains or describes something.</string>
     <string name="toolai_ai_action_raw_title">Write the whole prompt</string>
     <string name="toolai_ai_action_raw_subtitle">The app sends your text as it is. The safety text stops the model from reading the text of the field as commands, so turn this on only if you write that part yourself.</string>
+    <string name="toolai_ai_action_raw_info">The app sends your prompt exactly as you wrote it and adds nothing. Normally the app adds safety text that stops the model from obeying instructions hidden in the field\'s text. Turn this on only if your prompt handles that itself.</string>
     <string name="toolai_ai_action_preview_title">The prompt that the app sends</string>
     <string name="toolai_ai_action_reset_action">Reset</string>
     <string name="toolai_ai_action_delete_action">Delete</string>
@@ -569,18 +599,24 @@
 
     <string name="toolai_chats_group_title">Chats</string>
     <string name="toolai_chat_enter_sends_title">Enter sends the message</string>
+    <string name="toolai_chat_enter_sends_info">In the AI chat on the keyboard, the Enter key sends your message. With this off, Enter starts a new line, and the Send button sends. This setting is off by default.</string>
     <string name="toolai_chat_follow_ups_title">Suggest follow-up questions</string>
     <string name="toolai_chat_follow_ups_subtitle">A chat answer from a cloud or server model ends with up to three questions you might ask next, as chips a tap puts in the message box. On-device models are never asked.</string>
+    <string name="toolai_chat_follow_ups_info">After an answer, the chat shows as many as three questions you could ask next. A tap on one puts it in the message box. Only cloud and server models are asked for these. An on-device model is not, because it would be slow. This setting is on by default.</string>
     <string name="toolai_research_depth_title">Deep research depth</string>
     <string name="toolai_research_depth_subtitle">How far a Deep research report goes. Quick plans 3 sub-questions and reads 4 pages; Standard plans 4, looks again once for what is missing, and reads 8; Deep plans 6, looks again twice, and reads 14. Deeper takes longer and sends more text to the model.</string>
+    <string name="toolai_research_depth_info">How much work a Deep research report does. Quick plans 3 questions and reads 4 pages. Standard plans 4 questions, looks one more time for what is missing, and reads 8 pages. Deep plans 6 questions, looks two more times, and reads 14 pages. A deeper report takes longer and sends more text to the model. The default is Standard.</string>
     <string name="toolai_research_depth_quick">Quick</string>
     <string name="toolai_research_depth_standard">Standard</string>
     <string name="toolai_research_depth_deep">Deep</string>
     <string name="toolai_research_review_plan_title">Review the research plan first</string>
     <string name="toolai_research_review_plan_subtitle">Deep research shows its sub-questions and waits for Start before it searches anything. Off, the plan is shown as it runs, and Stop ends it.</string>
+    <string name="toolai_research_review_plan_info">Deep research shows you its list of questions and waits until you press Start. You can check the plan before any search is made. With this off, the research starts at once and shows the plan while it runs. This setting is off by default.</string>
     <string name="toolai_chat_auto_rename_title">Auto-rename chats</string>
+    <string name="toolai_chat_auto_rename_info">The model names each chat from your first message and its answer, in your language, so the chat list is easy to scan. With this off, a chat takes the first line of your first message as its name. This setting is on by default.</string>
     <string name="toolai_ai_selection_menu_title">Ask AI in the selection menu</string>
     <string name="toolai_ai_selection_menu_subtitle">Ask AI shows in other apps\' menu for selected text. Turning the AI tool off takes it out too.</string>
+    <string name="toolai_ai_selection_menu_info">Adds Ask AI to the menu that other apps show when you select text. A tap sends the selected text to the AI tool. If the AI tool is turned off, this menu item is removed too. This setting is on by default.</string>
     <string name="toolai_chat_auto_rename_subtitle">The model that answers names each chat from your first message and its reply, in your language, and can rename it later when you ask and agree. Off, a chat is named after the first line of your first message.</string>
     <string name="toolai_chat_enter_sends_subtitle">In the chat on the keyboard, the Enter key sends. When this is off, Enter starts a new line and the Send button sends.</string>
     <string name="toolai_keep_chats_title">Keep your conversations</string>
@@ -603,13 +639,16 @@
     <string name="toolai_reply_drafts_title">Drafts</string>
     <!-- How many alternative replies one run writes. -->
     <string name="toolai_reply_count_title">Replies per run</string>
+    <string name="toolai_reply_count_info">How many different replies the model drafts in one run. More replies give you more to choose from and take longer.</string>
     <string name="toolai_reply_length_title">Length</string>
     <string name="toolai_reply_length_subtitle">How long a drafted reply runs</string>
+    <string name="toolai_reply_length_info">How long a drafted reply is. The default is medium.</string>
     <string name="toolai_reply_length_short">Short</string>
     <string name="toolai_reply_length_medium">Medium</string>
     <string name="toolai_reply_length_long">Long</string>
     <string name="toolai_reply_emoji_title">Emoji</string>
     <string name="toolai_reply_emoji_subtitle">Whether drafted replies use emoji</string>
+    <string name="toolai_reply_emoji_info">Whether the drafted replies use emoji. Allow lets the model decide. Avoid keeps them out. Match theirs uses emoji only when the other person does.</string>
     <!-- Use emoji as freely as the other person does, and no more. -->
     <string name="toolai_reply_emoji_match">Match theirs</string>
     <string name="toolai_reply_emoji_allow">Allow</string>
@@ -623,10 +662,12 @@
     <string name="toolai_reply_language_hint">Blank follows the conversation</string>
     <!-- How much of the gathered conversation one run sends. -->
     <string name="toolai_reply_context_title">Conversation sent</string>
+    <string name="toolai_reply_context_info">How much of the conversation is sent to the model, in characters. More text helps the reply fit the conversation, and costs more with a paid provider. The default is 1,500.</string>
 
     <string name="toolai_reply_shots_title">Screenshots</string>
     <string name="toolai_reply_image_mode_title">How screenshots are read</string>
     <string name="toolai_reply_image_mode_subtitle">Sent to the AI as a picture, or read on this device first</string>
+    <string name="toolai_reply_image_mode_info">How a screenshot of the chat reaches the model. It can be sent as a picture, which needs a model that reads pictures, or its text can be read on this device first and sent as text. Automatic picks by what the model can do. The default is Automatic.</string>
     <!-- Send the picture where the provider can take one, read it here otherwise. -->
     <string name="toolai_reply_image_mode_auto">Automatic</string>
     <string name="toolai_reply_image_mode_image">Send the picture</string>
@@ -635,8 +676,10 @@
     <string name="toolai_reply_after_title">After a reply</string>
     <string name="toolai_reply_tidy_title">Clear what it used</string>
     <string name="toolai_reply_tidy_subtitle">Take the copied messages and screenshots back out once a reply is used. You can turn this off for one reply in the panel</string>
+    <string name="toolai_reply_tidy_info">When you use a reply, the copied messages and screenshots it was made from are taken back out of the panel. You can turn this off for one reply in the panel. This setting is on by default.</string>
     <string name="toolai_reply_history_title">Keep drafted replies in the AI history</string>
     <string name="toolai_reply_history_subtitle">Off: a record of a reply holds somebody else\'s message, not your own writing</string>
+    <string name="toolai_reply_history_info">Saves drafted replies in the AI history. A record of a reply holds the other person\'s message as well as your own writing, so turn this off to keep their words out of the history.</string>
 
     <string name="toolai_reply_provider_title">AI provider</string>
     <string name="toolai_reply_provider_nav_title">AI settings</string>
@@ -647,11 +690,13 @@
     <string name="toolai_reply_tone_new">New tone</string>
     <string name="toolai_reply_catch_shots_title">Add screenshots automatically</string>
     <string name="toolai_reply_catch_shots_subtitle">One taken while the panel is open, and the newest from the last two minutes when it opens. Needs permission to read your images</string>
+    <string name="toolai_reply_catch_shots_info">The reply panel adds screenshots by itself: one that you take while the panel is open, and the newest one from the last two minutes when the panel opens. The keyboard needs permission to read your pictures. This setting is off by default.</string>
     <string name="toolai_ai_fallback_title">Try the next one when it fails</string>
     <string name="toolai_ai_fallback_subtitle">A service that can\'t answer hands the request to the next in the list</string>
     <string name="toolai_ai_fallback_info">When the service in use can\'t be reached, turns the key down or answers with an error before it has written anything, the same request goes to the next service in the list, and on down the list. Your phone\'s own model is never asked this way. Off by default, because it sends your text to a service you did not pick for that request.</string>
     <string name="toolai_reply_strip_chip_title">Reply chip on the strip</string>
     <string name="toolai_reply_strip_chip_subtitle">After you copy a message in a chat, a Reply chip beside the copy opens this panel with it</string>
+    <string name="toolai_reply_strip_chip_info">After you copy a message in a chat, a Reply chip shows on the strip beside the copy. A tap opens the reply panel with that message. This setting is on by default.</string>
     <string name="toolai_reply_provider_nav_subtitle">Replies use the provider, key and model set up for the AI tool</string>
     <!-- AI screen, opened from the settings home screen. It collects the AI tools, the chat and the history. -->
     <string name="toolai_hub_tools_title">On the keyboard</string>
@@ -659,8 +704,10 @@
     <string name="toolai_hub_button_group_title">Chat button</string>
     <string name="toolai_hub_chat_button_everywhere_title">Chat button on every screen</string>
     <string name="toolai_hub_chat_button_everywhere_subtitle">Show the button that opens the AI chat on every settings screen, not only this one</string>
+    <string name="toolai_hub_chat_button_everywhere_info">Puts the button that opens the AI chat on every settings screen. With this off, the button shows only on the AI screens. This setting is off by default.</string>
     <string name="toolai_hub_settings_assistant_title">Offer the Settings assistant</string>
     <string name="toolai_hub_settings_assistant_subtitle">Off hides it from search and the AI screens, and it sends nothing</string>
+    <string name="toolai_hub_settings_assistant_info">The Settings assistant answers questions about this app\'s settings and can take you to the right one. With this off, it is gone from search and from the AI screens, and it sends nothing to any model. This setting is on by default.</string>
     <string name="toolai_ai_chat_fab_desc">Chat with the AI</string>
 
     <!-- ================================================================== -->

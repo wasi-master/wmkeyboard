@@ -1137,6 +1137,7 @@ internal fun NotesToolSettings(
                 options = NoteSort.entries.map { it to stringResource(it.labelRes()) },
                 selected = settings.watch { it.notes.sort },
                 default = d.sort,
+                info = stringResource(R.string.tooldetail_notes_sort_info),
             ) { scope.launch { repository.setNotesSort(it) } }
         }
         item {
@@ -1145,6 +1146,7 @@ internal fun NotesToolSettings(
                 stringResource(R.string.tooldetail_notes_markdown_subtitle),
                 settings.watch { it.notes.renderMarkdown },
                 default = d.renderMarkdown,
+                info = stringResource(R.string.tooldetail_notes_markdown_info),
             ) { scope.launch { repository.setNotesRenderMarkdown(it) } }
         }
         // The toolbar over the open panel (#1282), instead of the panel over it.
@@ -1177,6 +1179,7 @@ internal fun NotesToolSettings(
                 ),
                 selected = settings.watch { it.notes.panelOpensOn },
                 default = d.panelOpensOn,
+                info = stringResource(R.string.tooldetail_notes_panel_start_info),
             ) { scope.launch { repository.setNotesPanelOpensOn(it) } }
         }
         item {
@@ -1189,6 +1192,7 @@ internal fun NotesToolSettings(
                 ),
                 selected = settings.watch { it.notes.panelLayout },
                 default = d.panelLayout,
+                info = stringResource(R.string.tooldetail_notes_panel_layout_info),
             ) { scope.launch { repository.setNotesPanelLayout(it) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -1204,6 +1208,7 @@ internal fun NotesToolSettings(
                 },
                 selected = settings.watch { it.notes.trashDays }.let { days -> if (days in NotesSettings.TRASH_DAY_CHOICES) days else 30 },
                 default = d.trashDays,
+                info = stringResource(R.string.tooldetail_notes_trash_days_info),
             ) { scope.launch { repository.setNotesTrashDays(it) } }
         }
         item {
@@ -1216,6 +1221,7 @@ internal fun NotesToolSettings(
                 ),
                 selected = settings.watch { it.notes.saveSelectionAppends },
                 default = d.saveSelectionAppends,
+                info = stringResource(R.string.tooldetail_notes_save_selection_info),
             ) { scope.launch { repository.setNotesSaveSelectionAppends(it) } }
         }
     }

@@ -127,6 +127,7 @@ internal fun KeySoundGroup(
                 stringResource(R.string.hardware_sound_key_subtitle),
                 settings.watch { it.sound.enabled },
                 default = SettingsDefaults.sound.enabled,
+                info = stringResource(R.string.hardware_sound_key_info),
             ) {
                 scope.launch { repository.setKeySound(it) }
                 if (it) {
@@ -146,6 +147,7 @@ internal fun KeySoundGroup(
                 ),
                 selected = settings.watch { it.sound.output },
                 default = SettingsDefaults.sound.output,
+                info = stringResource(R.string.hardware_sound_output_info),
             ) { scope.launch { repository.setKeySoundOutput(it) } }
         }
         item(visible = soundOn) {
@@ -159,6 +161,7 @@ internal fun KeySoundGroup(
                 ),
                 selected = settings.watch { it.sound.stream },
                 default = SettingsDefaults.sound.stream,
+                info = stringResource(R.string.hardware_sound_stream_info),
             ) {
                 scope.launch { repository.setKeySoundStream(it) }
                 KeySoundPlayer.useStream(it)
@@ -314,6 +317,7 @@ internal fun KeySoundGroup(
                     val sound = settings.value.sound
                     KeySoundPlayer.preview(context, sound.style, it, sound.previewId())
                 },
+                info = stringResource(R.string.hardware_sound_volume_info),
             ) {
                 scope.launch { repository.setKeySoundVolume(it) }
             }
@@ -823,6 +827,7 @@ private fun KeyReleaseSoundToggle(
         stringResource(R.string.hardware_sound_pack_release_subtitle),
         settings.watch { it.sound.playRelease },
         default = SettingsDefaults.sound.playRelease,
+        info = stringResource(R.string.hardware_sound_pack_release_info),
     ) { on ->
         scope.launch { repository.setKeySoundPlayRelease(on) }
         // Turning it on previews the whole keystroke, which is the only way to
@@ -1021,6 +1026,7 @@ internal fun KeyPressDeleteSettings(
                     ),
                     settings.watch { it.textEditing.deleteLineSwipeUp },
                     default = SettingsDefaults.textEditing.deleteLineSwipeUp,
+                    info = stringResource(R.string.typing_backspace_lines_up_info),
                 ) { scope.launch { repository.setDeleteLineSwipeUp(it) } }
             }
             item(level = SettingLevel.STANDARD) {
@@ -1029,6 +1035,7 @@ internal fun KeyPressDeleteSettings(
                     stringResource(R.string.typing_backspace_lines_down_subtitle),
                     settings.watch { it.textEditing.deleteLineSwipeDown },
                     default = SettingsDefaults.textEditing.deleteLineSwipeDown,
+                    info = stringResource(R.string.typing_backspace_lines_down_info),
                 ) { scope.launch { repository.setDeleteLineSwipeDown(it) } }
             }
         }
@@ -1291,6 +1298,7 @@ internal fun KeyPressTimingSettings(
                 stringResource(R.string.keypress_word_stops_capitals_subtitle),
                 settings.watch { it.textEditing.deleteWordStopsAtCapitals },
                 default = SettingsDefaults.textEditing.deleteWordStopsAtCapitals,
+                info = stringResource(R.string.keypress_word_stops_capitals_info),
             ) { scope.launch { repository.setDeleteWordStopsAtCapitals(it) } }
         }
         item(visible = holdDeletesWords || (swipeDelete && swipeUnit == BackspaceSwipeUnit.WORD), level = SettingLevel.ADVANCED) {
@@ -1299,6 +1307,7 @@ internal fun KeyPressTimingSettings(
                 stringResource(R.string.keypress_word_stops_digits_subtitle),
                 settings.watch { it.textEditing.deleteWordStopsAtDigits },
                 default = SettingsDefaults.textEditing.deleteWordStopsAtDigits,
+                info = stringResource(R.string.keypress_word_stops_digits_info),
             ) { scope.launch { repository.setDeleteWordStopsAtDigits(it) } }
         }
         item(visible = holdDeletesWords, level = SettingLevel.ADVANCED) {
@@ -1340,6 +1349,7 @@ internal fun KeyPressTimingSettings(
                 stringResource(R.string.keypress_flicks_repeat_subtitle),
                 settings.watch { it.keyRepeat.flicksRepeat },
                 default = SettingsDefaults.keyRepeat.flicksRepeat,
+                info = stringResource(R.string.keypress_flicks_repeat_info),
             ) { scope.launch { repository.setFlicksRepeat(it) } }
         }
         item(level = SettingLevel.STANDARD) {

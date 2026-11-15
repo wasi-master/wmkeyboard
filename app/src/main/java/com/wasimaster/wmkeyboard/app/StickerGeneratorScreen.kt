@@ -690,6 +690,7 @@ internal fun StickerGeneratorScreen(
                 title = R.string.stickergen_seed_lock_title,
                 subtitle = stringResource(R.string.stickergen_seed_lock_subtitle),
                 checked = seedLocked,
+                info = stringResource(R.string.stickergen_seed_lock_info),
             ) { seedLocked = it }
         }
         if (current != null && current.adjustableSteps) {
@@ -751,6 +752,7 @@ internal fun StickerGeneratorScreen(
                 ),
                 checked = removeBackground && SubjectCutout.supported,
                 enabled = SubjectCutout.supported,
+                info = stringResource(R.string.stickergen_cutout_info),
             ) {
                 removeBackground = it
                 prefs.edit().putBoolean(KEY_CUTOUT, it).apply()
@@ -761,6 +763,7 @@ internal fun StickerGeneratorScreen(
                 title = R.string.stickergen_safety_title,
                 subtitle = stringResource(if (online) R.string.stickergen_safety_subtitle_online else R.string.stickergen_safety_subtitle),
                 checked = safety,
+                info = stringResource(R.string.stickergen_safety_info),
             ) {
                 safety = it
                 prefs.edit().putBoolean(KEY_SAFETY, it).apply()
@@ -774,6 +777,7 @@ internal fun StickerGeneratorScreen(
                     title = R.string.stickergen_gpu_title,
                     subtitle = stringResource(R.string.stickergen_gpu_subtitle),
                     checked = onGpu,
+                    info = stringResource(R.string.stickergen_gpu_info),
                 ) {
                     onGpu = it
                     prefs.edit().putBoolean(KEY_GPU, it).apply()

@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.app
 
 import com.wasimaster.wmkeyboard.config.BuildConfig
+import com.wasimaster.wmkeyboard.core.helpvisuals.HelpPack
 import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
 import android.content.Context
 import android.net.Uri
@@ -132,6 +133,9 @@ object OfflineImport {
         /** An interface language pack. */
         APP_LANGUAGE(R.string.import_offline_app_language_title, R.string.import_offline_app_language_body),
 
+        /** A pack of help pictures, one look's worth. */
+        HELP_PICTURES(R.string.import_offline_help_title, R.string.import_offline_help_body),
+
         /** A zip holding files of more than one of the kinds above. */
         MIXED(R.string.import_offline_mixed_title, R.string.import_offline_mixed_body),
     }
@@ -172,6 +176,7 @@ object OfflineImport {
             LatinImeLibrary.supported && LatinImePins.isLibraryName(leaf) -> Kind.GESTURE_LIBRARY
             isNativeLibrary(leaf) || isLibraryArchive(leaf) -> Kind.NATIVE_LIBRARY
             LanguagePackDownloads.isPackName(leaf) -> Kind.APP_LANGUAGE
+            HelpPack.themeOf(leaf) != null -> Kind.HELP_PICTURES
             else -> null
         }
     }
@@ -386,7 +391,8 @@ object OfflineImport {
      * resource table nothing here uses.
      */
     internal fun keptWhole(name: String): Boolean =
-        name.endsWith(".apk", ignoreCase = true) || CjkDictCatalog.byFileName(name) != null
+        name.endsWith(".apk", ignoreCase = true) || CjkDictCatalog.byFileName(name) != null ||
+            HelpPack.themeOf(name) != null
 
     /**
      * Sorts [files] by what they are, then installs them. Sorting first is
@@ -726,6 +732,16 @@ object OfflineImport {
             return attempt(name) {
                 if (CutoutModel.install(filesDir, file)) {
                     Outcome(name, true, R.string.offline_import_cutout_done)
+                } else {
+                    Outcome(name, false, R.string.offline_import_mismatch)
+                }
+            }
+        }
+        if (HelpPack.themeOf(name) != null) {
+            return attempt(name) {
+                val added = kotlinx.coroutines.runBlocking { HelpVisuals.import(context, file) }
+                if (added != null) {
+                    Outcome(name, true, R.string.offline_import_help_done, listOf(count(added)))
                 } else {
                     Outcome(name, false, R.string.offline_import_mismatch)
                 }

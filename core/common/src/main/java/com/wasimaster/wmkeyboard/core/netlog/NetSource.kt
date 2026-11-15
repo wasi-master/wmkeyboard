@@ -157,6 +157,12 @@ enum class NetSource(
 
     /** An interface language pack the standard GitHub build fetches when its language is picked. */
     DOWNLOAD_LANGUAGE("download_language"),
+
+    /**
+     * A help picture for a setting's "?" dialog, or a whole pack of them (data
+     * repository). Only after the user has said how they want the pictures.
+     */
+    DOWNLOAD_HELP("download_help"),
     ADDONS("addons"),
     KEYMAN("keyman"),
     SIGNAL_STICKERS("signal_stickers", ToolbarTool.STICKER),

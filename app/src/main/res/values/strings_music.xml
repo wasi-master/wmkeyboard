@@ -7,22 +7,28 @@
     <string name="music_insert_group">What goes into the text</string>
     <string name="music_text_format_title">Insert as</string>
     <string name="music_text_format_subtitle">What the Insert button types. Every other shape is a chip beside it.</string>
+    <string name="music_text_format_info">What the Insert button of Music ID types for a recognised song, for example the title and the artist. The other formats are offered as chips beside the button. The default is the title and the artist.</string>
     <string name="music_card_style_title">Picture style</string>
     <string name="music_card_style_subtitle">The picture the Picture chip makes first. The others are one tap further.</string>
+    <string name="music_card_style_info">The look of the picture that the Picture chip makes first for a recognised song. The other looks are one tap further.</string>
     <string name="music_open_link_title">Open in</string>
     <string name="music_open_link_subtitle">Which store a link points to, when the song is on it</string>
+    <string name="music_open_link_info">The music service that a song\'s link points to, when the song is on that service. The first the song has uses the first link the recognition service returned.</string>
     <string name="music_open_link_first">The first the song has</string>
 
     <string name="music_listening_group">Listening</string>
     <string name="music_clip_seconds_title">Listen for</string>
     <string name="music_clip_seconds_subtitle">How long the microphone records before asking. Longer clips match more reliably and cost the same.</string>
+    <string name="music_clip_seconds_info">How long the microphone records before the clip is sent for recognition. A longer clip is matched more reliably and costs the same as a short one. A shorter clip gives the answer sooner.</string>
     <string name="music_clip_seconds_value">%d s</string>
     <string name="music_now_playing_first_title">Check what the phone plays first</string>
     <string name="music_now_playing_first_subtitle">Read the song from the player on this phone before listening, where notification access allows it</string>
+    <string name="music_now_playing_first_info">Before it listens with the microphone, Music ID reads the song from the media player on this phone. This is instant and needs no network. It works only where you gave the keyboard notification access. This setting is on by default.</string>
 
     <string name="music_history_group">History</string>
     <string name="music_keep_history_title">Keep a history</string>
     <string name="music_keep_history_subtitle">Remember the songs recognised, on this phone only</string>
+    <string name="music_keep_history_info">Keeps a list of the songs that Music ID recognised, so you can find one again later. The list stays on this phone.</string>
     <string name="music_history_open_title">Recognised songs</string>
     <string name="music_history_open_subtitle">Every song the tool has named, newest first</string>
     <string name="music_history_title">Recognised songs</string>

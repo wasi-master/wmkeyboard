@@ -105,10 +105,13 @@
 
     <string name="update_row_auto_check_title">Check for updates automatically</string>
     <string name="update_row_auto_check_subtitle">Look for a new version when you open this app. Off, nothing is sent until you press Check for updates</string>
+    <string name="update_row_auto_check_info">The app looks for a new version each time you open it. With this off, nothing is sent until you press Check for updates.</string>
     <string name="update_row_prompts_title">Ask me about updates</string>
     <string name="update_row_prompts_subtitle">Offer a new version when you open this app</string>
+    <string name="update_row_prompts_info">When a new version is found, the app offers it to you when you open the app. With this off, you see the new version only on the About screen.</string>
     <string name="update_row_prereleases_title">Include pre-releases</string>
     <string name="update_row_prereleases_subtitle">Offer test versions before they are finished</string>
+    <string name="update_row_prereleases_info">Also offers test versions, which come out before a release is finished. They have the newest features and can have more bugs.</string>
 
     <!-- The shade. An update the user started can outlive the settings screen
          they started it from, and a quiet install leaves nothing behind. -->

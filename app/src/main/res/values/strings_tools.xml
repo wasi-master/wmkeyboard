@@ -11,6 +11,7 @@
 
     <string name="tools_colored_icons_title">Colorful tool icons</string>
     <string name="tools_colored_icons_subtitle">Each tool gets its own accent color here and in the toolbox. Open a tool to change the color of that one icon.</string>
+    <string name="tools_colored_icons_info">Each tool gets an accent colour of its own, here and in the toolbox, which makes a tool easier to find. Open a tool to change the colour of that one icon. With this off, every tool uses the theme\'s one colour. This setting is on by default.</string>
     <string name="tools_gradient_icons_title">Gradient tool colors</string>
     <string name="tools_gradient_icons_subtitle">Paint each tool with two colors, from the top left to the bottom right</string>
     <string name="tools_gradient_icons_info">Off, a tool is one flat color. On, every tool becomes a gradient that runs from its color at the top left to a second color at the bottom right. The second color is worked out from the first, so you need not pick one. To choose both, open the tool and set the start color and the end color.</string>
@@ -20,15 +21,20 @@
     <!-- Switch on the Tools screen. On, the Panels group shows as the two groups named in the subtitle. -->
     <string name="tools_file_manager_title">Built-in file manager</string>
     <string name="tools_file_manager_subtitle">Tools pick files inside the keyboard. Off, they open Android\'s picker</string>
+    <string name="tools_file_manager_info">When a tool needs a file, you pick it in a file list inside the keyboard. With this off, the tool opens Android\'s own file picker. This setting is on by default.</string>
     <!-- Switch on the Tools screen, for a tool opened in a box that floats over other apps. -->
     <string name="tools_box_close_outside_title">Close floating boxes on a tap outside</string>
     <string name="tools_box_close_outside_subtitle">A tap anywhere else on the screen closes a tool\'s floating box</string>
+    <string name="tools_box_close_outside_info">A tap anywhere outside a tool\'s floating box closes the box. With this off, a box stays open until you close it with its button. This setting is off by default.</string>
     <string name="tools_box_gestures_title">Floating box gestures instead of buttons</string>
+    <string name="tools_box_gestures_info">Hides the buttons of a floating box and uses throws in their place. Throw the box up to close it, down to move it into the keyboard, or to a side to tuck it away. This setting is off by default.</string>
     <string name="tools_box_hold_to_move_title">Hold a floating box to move it</string>
     <string name="tools_box_hold_to_move_subtitle">Hold a finger still anywhere on a floating box, then drag it, even over a list or a slider</string>
+    <string name="tools_box_hold_to_move_info">Hold a finger still anywhere on a floating box, then drag to move the box. It works even on a list or a slider inside the box. With this off, you drag the box by its top bar. This setting is off by default.</string>
     <string name="tools_box_gestures_subtitle">Hides a floating box\'s buttons: throw it up to close it, down to move it into the keyboard, or into a side to tuck it</string>
     <string name="tools_split_panels_title">Split the Panels group</string>
     <string name="tools_split_panels_subtitle">Show Writing and Connect and media as two groups</string>
+    <string name="tools_split_panels_info">Shows the Panels group of the Tools screen as two smaller groups, Writing and Connect and media. The tools are the same. This setting is off by default.</string>
 
     <!-- Group headings on the Tools screen, one for each kind of tool. -->
     <string name="tools_group_panels_title">Panels</string>

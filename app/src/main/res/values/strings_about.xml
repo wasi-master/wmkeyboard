@@ -19,6 +19,7 @@
     <string name="about_version_title">Version</string>
     <string name="about_notes_after_update_title">Show what\'s new after an update</string>
     <string name="about_notes_after_update_subtitle">Open the release notes by themselves the first time the app opens after an update</string>
+    <string name="about_notes_after_update_info">After an update, the first time you open the app it shows the release notes for the new version, so you see what changed without looking for it. Turn this off to open straight to the settings. The notes stay under About › What\'s new either way.</string>
     <string name="about_whats_new_subtitle">What changed in <xliff:g id="version" example="0.6.2">%1$s</xliff:g></string>
     <!--
       Subtitle of the version row.
@@ -418,10 +419,13 @@
     <string name="feedback_shortcuts_group">Feedback shortcuts</string>
     <string name="feedback_shake_title">Shake to send feedback</string>
     <string name="feedback_shake_subtitle">Shake the phone while this app is open to report what is on the screen</string>
+    <string name="feedback_shake_info">While a screen of this app is open, a shake of the phone opens the feedback form with a picture of that screen attached. It is a fast way to report something that looks wrong at the moment you see it. It does nothing in other apps. This setting is off by default.</string>
     <string name="feedback_screenshot_title">Screenshot to send feedback</string>
     <string name="feedback_screenshot_subtitle">Taking a screenshot of this app opens the feedback form with that screen</string>
+    <string name="feedback_screenshot_info">When you take a screenshot of this app, the feedback form opens with that screenshot attached, ready to send. Nothing is sent until you press send. This setting is off by default.</string>
     <string name="feedback_screenshot_needs_14">Needs Android 14 or later, which tells an app when it is in a screenshot</string>
     <string name="feedback_telegram_route_title">Send to Telegram by</string>
+    <string name="feedback_telegram_route_info">How a feedback report gets to the project\'s Telegram group. Telegram\'s share list opens Telegram and lets you pick the chat yourself. The topic\'s link opens the feedback topic directly, with the report ready to paste.</string>
     <string name="feedback_telegram_route_share">Telegram\'s share list</string>
     <string name="feedback_telegram_route_topic">The topic\'s link</string>
 </resources>

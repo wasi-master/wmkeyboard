@@ -93,105 +93,134 @@ class KeyboardShots(
 
     @Test
     fun capture() {
-        val app = ApplicationProvider.getApplicationContext<Application>()
-        grantInternet(app)
-        // A hardware keyboard is a configuration, the way Android reports one.
-        RuntimeEnvironment.setQualifiers(if (dark) "+night" else "+notnight")
-        if (shot.hardwareKeyboard) RuntimeEnvironment.setQualifiers("+keysexposed-qwerty")
-        androidx.test.espresso.IdlingPolicies.setMasterPolicyTimeout(8, TimeUnit.SECONDS)
-        androidx.test.espresso.IdlingPolicies.setIdlingResourceTimeout(8, TimeUnit.SECONDS)
-        val repo = SettingsRepository(app)
-        runBlocking {
-            repo.clearAllPreferences()
-            repo.setOnboardingDone(true)
-            shot.seed(Seed(repo, app))
-        }
-        val intent = Intent(app, DocsShotActivity::class.java)
-            .putExtra("mode", shot.mode)
-            .putExtra("kind", shot.kind)
-            .putExtra("action", shot.action)
-            .putExtra("theme", if (dark) "dark" else "light")
-        shot.hint?.let { intent.putExtra("hint", it) }
-        shot.text?.let { intent.putExtra("text", it) }
-
-        ActivityScenario.launch<DocsShotActivity>(intent).use { scenario ->
-            val steps = KbStepsImpl(compose)
-            val base = File(out, "${shot.id}.${if (dark) "dark" else "light"}")
-            base.parentFile?.mkdirs()
-            var controller: org.robolectric.android.controller.ServiceController<ShotKeyboard>? = null
-            try {
-                steps.settle(first = true)
-                val (field, info) = focusField(scenario)
-                // The focused field's cursor blinks forever, so Compose never
-                // reads as idle and every wait would run to its timeout. From
-                // here time moves only when a step moves it (see tick).
-                compose.mainClock.autoAdvance = false
-                val ic = field?.onCreateInputConnection(info)
-                controller = Robolectric.buildService(ShotKeyboard::class.java)
-                val service = controller.create().get()
-                service.ic = ic
-                service.info = info
-                steps.service = service
-                service.onStartInput(info, false)
-                val view = service.onCreateInputView()
-                service.onStartInputView(info, false)
-                scenario.onActivity { activity -> dock(activity, view) }
-                steps.settle(first = true)
-                shot.steps(steps)
-                steps.settle()
-            } catch (failure: Throwable) {
-                runCatching { captureScreenRoboImage("${base.path}.fail.png") }
-                File("${base.path}.fail.txt").writeText("$failure\n" + failure.stackTrace.take(20).joinToString("\n"))
-                throw failure
-            }
+        val base = File(out, "${shot.id}.${if (dark) "dark" else "light"}")
+        withKeyboard(compose, shot, dark, base) {
             captureScreenRoboImage("${base.path}.png")
             File("${base.path}.json").writeText("{}\n")
-            runCatching { controller?.destroy() }
         }
-        resetFakes()
     }
+}
 
-    /**
-     * Focuses the host's field the way a tap would, and returns the view
-     * holding focus with the EditorInfo it fills in: the field's own input
-     * type, action and selection.
-     */
-    private fun focusField(scenario: ActivityScenario<DocsShotActivity>): Pair<View?, EditorInfo> {
-        runCatching { compose.onAllNodes(hasSetTextAction()).onFirst().performClick() }
-        var focused: View? = null
-        scenario.onActivity { activity ->
-            focused = activity.window.decorView.findFocus()
-            if (focused == null) {
-                // The chat host's field is a platform EditText, which no Compose
-                // matcher reaches.
-                firstEditText(activity.window.decorView)?.let {
-                    it.requestFocus()
-                    focused = it
-                }
+/** The keyboard as [withKeyboard] set it up: the steps that drive it, and its docked view. */
+internal class KbStage(val steps: KbStepsImpl, val keyboard: View)
+
+/**
+ * Opens the host for [shot] in light or [dark], boots the real keyboard on its
+ * field, runs the shot's seed and steps, and hands the result to [body] to
+ * capture. [prepare] runs once the keyboard is up and before the steps, for a
+ * caller that records them. A failure leaves `<failBase>.fail.png` and
+ * `.fail.txt` behind and is thrown on.
+ *
+ * Shared by the docs screenshots ([KeyboardShots]) and the help pictures
+ * ([HelpShots]), so both draw the same keyboard the same way.
+ */
+internal fun withKeyboard(
+    compose: ComposeTestRule,
+    shot: KbShot,
+    dark: Boolean,
+    failBase: File,
+    prepare: (KbStage) -> Unit = {},
+    body: (KbStage) -> Unit,
+) {
+    val app = ApplicationProvider.getApplicationContext<Application>()
+    grantInternet(app)
+    // A hardware keyboard is a configuration, the way Android reports one.
+    RuntimeEnvironment.setQualifiers(if (dark) "+night" else "+notnight")
+    if (shot.hardwareKeyboard) RuntimeEnvironment.setQualifiers("+keysexposed-qwerty")
+    androidx.test.espresso.IdlingPolicies.setMasterPolicyTimeout(8, TimeUnit.SECONDS)
+    androidx.test.espresso.IdlingPolicies.setIdlingResourceTimeout(8, TimeUnit.SECONDS)
+    val repo = SettingsRepository(app)
+    runBlocking {
+        repo.clearAllPreferences()
+        repo.setOnboardingDone(true)
+        shot.seed(Seed(repo, app))
+    }
+    val intent = Intent(app, DocsShotActivity::class.java)
+        .putExtra("mode", shot.mode)
+        .putExtra("kind", shot.kind)
+        .putExtra("action", shot.action)
+        .putExtra("theme", if (dark) "dark" else "light")
+    shot.hint?.let { intent.putExtra("hint", it) }
+    shot.text?.let { intent.putExtra("text", it) }
+
+    ActivityScenario.launch<DocsShotActivity>(intent).use { scenario ->
+        val steps = KbStepsImpl(compose)
+        failBase.parentFile?.mkdirs()
+        var controller: org.robolectric.android.controller.ServiceController<ShotKeyboard>? = null
+        val stage: KbStage
+        try {
+            steps.settle(first = true)
+            val (field, info) = focusField(compose, scenario)
+            // The focused field's cursor blinks forever, so Compose never
+            // reads as idle and every wait would run to its timeout. From
+            // here time moves only when a step moves it (see tick).
+            compose.mainClock.autoAdvance = false
+            val ic = field?.onCreateInputConnection(info)
+            controller = Robolectric.buildService(ShotKeyboard::class.java)
+            val service = controller.create().get()
+            service.ic = ic
+            service.info = info
+            steps.service = service
+            service.onStartInput(info, false)
+            val view = service.onCreateInputView()
+            service.onStartInputView(info, false)
+            scenario.onActivity { activity -> dock(activity, view) }
+            steps.settle(first = true)
+            stage = KbStage(steps, view)
+            prepare(stage)
+            shot.steps(steps)
+            steps.settle()
+        } catch (failure: Throwable) {
+            runCatching { captureScreenRoboImage("${failBase.path}.fail.png") }
+            File("${failBase.path}.fail.txt").writeText("$failure\n" + failure.stackTrace.take(20).joinToString("\n"))
+            throw failure
+        }
+        body(stage)
+        runCatching { controller?.destroy() }
+    }
+    resetFakes()
+}
+
+/**
+ * Focuses the host's field the way a tap would, and returns the view
+ * holding focus with the EditorInfo it fills in: the field's own input
+ * type, action and selection.
+ */
+private fun focusField(compose: ComposeTestRule, scenario: ActivityScenario<DocsShotActivity>): Pair<View?, EditorInfo> {
+    runCatching { compose.onAllNodes(hasSetTextAction()).onFirst().performClick() }
+    var focused: View? = null
+    scenario.onActivity { activity ->
+        focused = activity.window.decorView.findFocus()
+        if (focused == null) {
+            // The chat host's field is a platform EditText, which no Compose
+            // matcher reaches.
+            firstEditText(activity.window.decorView)?.let {
+                it.requestFocus()
+                focused = it
             }
         }
-        compose.waitForIdle()
-        val info = EditorInfo().apply { packageName = "com.example.messages" }
-        return focused to info
     }
+    compose.waitForIdle()
+    val info = EditorInfo().apply { packageName = "com.example.messages" }
+    return focused to info
+}
 
-    private fun firstEditText(view: View): EditText? = when (view) {
-        is EditText -> view
-        is ViewGroup -> (0 until view.childCount).firstNotNullOfOrNull { firstEditText(view.getChildAt(it)) }
-        else -> null
-    }
+private fun firstEditText(view: View): EditText? = when (view) {
+    is EditText -> view
+    is ViewGroup -> (0 until view.childCount).firstNotNullOfOrNull { firstEditText(view.getChildAt(it)) }
+    else -> null
+}
 
-    private fun dock(activity: Activity, view: View) {
-        (view.parent as? ViewGroup)?.removeView(view)
-        (activity.window.decorView as ViewGroup).addView(
-            view,
-            FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT,
-                Gravity.BOTTOM,
-            ),
-        )
-    }
+private fun dock(activity: Activity, view: View) {
+    (view.parent as? ViewGroup)?.removeView(view)
+    (activity.window.decorView as ViewGroup).addView(
+        view,
+        FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.WRAP_CONTENT,
+            Gravity.BOTTOM,
+        ),
+    )
 }
 
 /** The service, typing into the host's field rather than an IME binding's. */
@@ -270,10 +299,32 @@ interface KbSteps {
     fun pause(millis: Long)
 
     fun settle()
+
+    /**
+     * Draws [word] as one glide stroke, key centre to key centre, the finger
+     * taking [perKeyMillis] between letters, then lifts. With [lift] off the
+     * finger stays down on the last letter, the trail and the preview still
+     * showing, for a picture of a glide under way.
+     */
+    fun glide(word: String, perKeyMillis: Long = 180, lift: Boolean = true)
+
+    /**
+     * Everything [block] does is filmed, a frame each time the clock moves:
+     * the frames of a help clip ([HelpShots]). The docs screenshots have no
+     * film to put them in, and run [block] as it is.
+     */
+    fun record(block: () -> Unit)
+
+    /** Holds still for [millis] of the keyboard's own clock: a beat in a clip. */
+    fun hold(millis: Long)
 }
 
-private class KbStepsImpl(override val rule: ComposeTestRule) : KbSteps {
+internal class KbStepsImpl(override val rule: ComposeTestRule) : KbSteps {
     override lateinit var service: WMKeyboardService
+
+    /** Takes one frame of a clip, shown for the milliseconds it is handed; set by whoever is filming. */
+    var onFrame: ((Long) -> Unit)? = null
+    private var recording = false
 
     private val all = SemanticsMatcher("any") { true }
 
@@ -295,9 +346,60 @@ private class KbStepsImpl(override val rule: ComposeTestRule) : KbSteps {
      * toolbar, and the main looper's, which the service's coroutines and the
      * suggestion work posted back from its background threads run on.
      */
-    private fun tick() {
-        rule.mainClock.advanceTimeBy(100)
-        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(100))
+    private fun tick() = step(100)
+
+    /** [tick] of any length, filmed while [record] is running. */
+    private fun step(millis: Long) {
+        rule.mainClock.advanceTimeBy(millis)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(millis))
+        if (recording) onFrame?.invoke(millis)
+    }
+
+    override fun record(block: () -> Unit) {
+        recording = true
+        try {
+            block()
+        } finally {
+            recording = false
+        }
+    }
+
+    override fun hold(millis: Long) {
+        var left = millis
+        while (left > 0) {
+            step(minOf(left, 100))
+            left -= 100
+        }
+    }
+
+    override fun glide(word: String, perKeyMillis: Long, lift: Boolean) {
+        val keys = word.map { keyNode(it.toString()) }
+        val first = keys.first()
+        // Touch input is given in the first key's own coordinates, so every
+        // other key is placed relative to that key's corner.
+        val origin = first.fetchSemanticsNode().boundsInRoot.topLeft
+        val centers = keys.map { it.fetchSemanticsNode().boundsInRoot.center - origin }
+        first.performTouchInput { down(centers[0]) }
+        step(GLIDE_STEP_MS)
+        val pieces = (perKeyMillis / GLIDE_STEP_MS).toInt().coerceAtLeast(2)
+        for (i in 1 until centers.size) {
+            val from = centers[i - 1]
+            val to = centers[i]
+            for (piece in 1..pieces) {
+                val at = from + (to - from) * (piece.toFloat() / pieces)
+                first.performTouchInput { moveTo(at) }
+                step(GLIDE_STEP_MS)
+            }
+        }
+        step(GLIDE_STEP_MS)
+        if (!lift) {
+            // The trail fades behind a finger that stops, so the capture is
+            // taken a few frames after the last move, no later.
+            repeat(2) { step(GLIDE_STEP_MS) }
+            return
+        }
+        first.performTouchInput { up() }
+        settle()
     }
 
     override fun settle() = settle(first = false)
@@ -330,8 +432,16 @@ private class KbStepsImpl(override val rule: ComposeTestRule) : KbSteps {
         settle()
     }
 
+    /**
+     * The key showing [label]. A letter key shows its capital while shift is
+     * on, as it is at the start of an empty field, so a lone letter is matched
+     * in either case.
+     */
+    private fun keyNode(label: String) =
+        rule.onAllNodesWithText(label, ignoreCase = label.length == 1).onFirst()
+
     override fun hold(label: String, millis: Long) {
-        val node = rule.onAllNodesWithText(label).onFirst()
+        val node = keyNode(label)
         node.performTouchInput { down(center) }
         rule.mainClock.advanceTimeBy(millis)
         repeat(6) { tick() }
@@ -427,6 +537,9 @@ private class KbStepsImpl(override val rule: ComposeTestRule) : KbSteps {
         settle()
     }
 }
+
+/** A glide stroke moves, and is filmed, this often: 25 frames a second. */
+private const val GLIDE_STEP_MS = 40L
 
 /** Every keyboard shot, by manifest id. */
 val KB_SHOTS: List<KbShot> = listOf(

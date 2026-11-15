@@ -148,6 +148,29 @@ A setting that only works while another one is on is hidden while that one is of
 - At the Simple [depth](#choosing-how-many-settings-you-see), the same menu starts with **What is this?** on any row that has an explanation, because the **?** is not drawn on the rows there. It opens the explanation the **?** opens at the other depths.
 - The keyboard does the same for its own greyed-out buttons. See [Gesture cheat sheet › Holding a greyed-out button](/reference/gestures/#holding-a-greyed-out-button).
 
+## Seeing what a setting does
+
+Most rows carry a **?** beside their name. Tap it for a plain explanation of the setting: what it does, when you would want it, and what it starts on. At the Simple depth the **?** is not drawn; touch and hold the row and pick **What is this?** for the same explanation.
+
+Some explanations open on a picture. A **?** drawn in colour has one, and it comes in four shapes:
+
+- **A picture** of the keyboard with the setting at work.
+- **Off and on**, the same keyboard twice, cut down to the part that changes. A change in a narrow spot puts the two side by side. A change across the whole keyboard, such as the number row, puts Off above On so each stays large enough to read.
+- **A short clip** for something that moves, such as a glide. It plays on a loop. Tap it to pause, and tap again to go on. With motion reduced it waits on its first frame until you tap. Android 8.1 and older show the first frame only.
+- **A set to swipe through**, one picture per option, each under the option's name.
+
+Tap a still picture to see it at the width of the screen.
+
+The pictures are not part of the app. They would add many megabytes to every install, so they are downloaded from the project's [data repository](https://github.com/wasi-master/wmkeyboard-data), and the first **?** that has one asks how you want them:
+
+- **Get all pictures** downloads every picture as one pack, and after that nothing waits. The dialog names the size before you choose.
+- **One at a time** downloads a picture when you open its explanation, a few tens of kilobytes each.
+- **No pictures** keeps explanations as words.
+
+The light look and the dark look have their own pictures, in two separate packs, so you only fetch the look you use. If you got the light pack and later open an explanation while the phone is in dark mode, the dialog shows the light picture and offers the dark pack under it. **Keep the light ones** settles it, and the app stops asking. With a pack on the phone, a picture a later version adds comes by itself, alone, the first time you open its explanation.
+
+Every download shows in [Network activity](/privacy/network-activity/) as **Help picture downloads**, and data saving can hold it back like any other download. The files are checked against a checksum built into the app before they are kept. Change your answer any time under <SettingsPath path="About / Settings app / Help pictures" />, and delete the pictures there or under <SettingsPath path="About / Storage" />. On the build with no internet permission the pictures come as a file instead. See [Using it without internet](/privacy/offline/#importing-instead-of-downloading).
+
 ## Trying a change
 
 Every settings screen has a small keyboard button in its bottom corner. Tap it and a text field opens at the bottom of the screen with the real keyboard under it, so you can try a change, such as a new press and hold delay or a taller number row, on the screen where you made it. The keyboard picks up each change as you make it, while the field stays open. Scroll the screen above the field to reach the rest of the settings.

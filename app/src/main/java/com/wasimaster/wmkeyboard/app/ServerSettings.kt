@@ -162,6 +162,7 @@ private fun RepoLocationRows(repo: ServiceRepo, repository: SettingsRepository, 
             options = GitForge.entries.map { it to stringResource(it.labelRes) },
             selected = shown.forge,
             default = repo.default.forge,
+            info = stringResource(R.string.servers_repo_forge_info),
         ) { forge ->
             if (forge != shown.forge) replace(RepoLocation(forge, forge.defaultHost, shown.owner, shown.repo))
         }

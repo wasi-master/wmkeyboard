@@ -29,14 +29,17 @@
     <string name="lookup_settings_info">Look up a word in any app, on a card over that app. Select the word and tap Look up in the menu, or tap Look up on the floating button and then tap the word. The card asks the dictionary sources above, in their order. From the card you can hear the word, copy it, add it to My words, ask the AI about it, or send it to AnkiDroid as a flashcard.</string>
     <string name="lookup_settings_selection_title">Look up in the selection menu</string>
     <string name="lookup_settings_selection_subtitle">Look up shows in other apps\' menu for selected text</string>
+    <string name="lookup_settings_selection_info">Adds Look up to the menu that other apps show when you select text. A tap opens the word in the Dictionary tool. This setting is on by default.</string>
     <string name="lookup_settings_tap_title">Tap a word on the screen</string>
     <string name="lookup_settings_tap_subtitle">Give the floating button a Look up action. It needs screen reading.</string>
     <string name="lookup_settings_style_title">Card for a tapped word</string>
     <string name="lookup_settings_style_subtitle">A word from the selection menu always gets the sheet</string>
+    <string name="lookup_settings_style_info">How the definition of a word you tap is shown. Beside the word opens a small card next to it. Sheet at the bottom opens a larger sheet from the bottom of the screen. A word that comes from the selection menu always gets the sheet.</string>
     <string name="lookup_settings_style_sheet">Sheet at the bottom</string>
     <string name="lookup_settings_style_popup">Beside the word</string>
     <string name="lookup_settings_anki_title">Add to Anki</string>
     <string name="lookup_settings_anki_subtitle">How a word goes to AnkiDroid</string>
+    <string name="lookup_settings_anki_info">How a word goes to AnkiDroid as a flashcard. Straight to the deck adds the card with no further step, and asks for AnkiDroid\'s permission the first time. AnkiDroid\'s editor opens the note filled in, for you to check and save. Automatic uses the first when AnkiDroid allows it, and the editor otherwise. The default is Automatic.</string>
     <string name="lookup_settings_anki_auto">Automatic</string>
     <string name="lookup_settings_anki_direct">Straight to the deck</string>
     <string name="lookup_settings_anki_editor">AnkiDroid\'s editor</string>
@@ -52,6 +55,7 @@
     <string name="lookup_settings_recordings_info">When you tap the speaker beside a word, the keyboard looks for recordings of real people saying it: the audio files on Wiktionary, from Wikimedia Commons and Lingua Libre, in the word\'s language. Forvo is asked too when you add your own Forvo key. Each voice gets a chip under the word, named by its accent or its speaker, so you can pick another one. When nobody has recorded the word, the phone\'s own voice reads it as before.</string>
     <string name="lookup_settings_keep_recordings_title">Keep recordings for offline use</string>
     <string name="lookup_settings_keep_recordings_subtitle">A word you played once plays again with no connection</string>
+    <string name="lookup_settings_keep_recordings_info">A pronunciation you play once is saved on the phone. It then plays again with no connection, and without a second download. This setting is on by default.</string>
     <string name="lookup_settings_forvo_title">Forvo API key</string>
     <string name="lookup_settings_forvo_hint">Optional. Get a key at api.forvo.com to add Forvo\'s voices. It is never put in a backup.</string>
     <string name="lookup_settings_deck_hint">Made on first use. A note type named WM Keyboard Look-up is made too.</string>

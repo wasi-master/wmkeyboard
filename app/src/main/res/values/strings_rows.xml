@@ -61,6 +61,7 @@
 
     <!-- Per-snippet answer to the app-wide setting of the same name. -->
     <string name="rows_snippet_multi_expand_label">When this snippet has several expansions</string>
+    <string name="rows_snippet_multi_expand_info">What the keyboard does when this snippet has more than one expansion. App setting follows the choice made under Snippets for all snippets. The other choices apply to this snippet only.</string>
     <!-- %1$s is the choice the app-wide setting is on, such as "Chips only". -->
     <string name="rows_snippet_multi_expand_default_label">App setting (%1$s)</string>
     <!-- One line under the "App setting" option in a snippet's expansions picker. -->
@@ -81,6 +82,7 @@
 
     <!-- Carrying the trigger's own capitals into what it expands to. -->
     <string name="rows_snippet_propagate_case_label">Match the trigger\'s capitals</string>
+    <string name="rows_snippet_propagate_case_info">The expansion follows the capitals of the trigger you typed. If you type the trigger with a capital first letter, the expansion starts with a capital. If you type it in all capitals, the expansion is in all capitals.</string>
     <string name="rows_snippet_propagate_case_body">Typing the trigger in capitals expands to capitals. Useful for snippets that fix ordinary words rather than codes.</string>
     <!-- Caption over the choice of which letters get the capitals. -->
     <string name="rows_snippet_case_style_label">Which letters to make capitals</string>
@@ -115,12 +117,15 @@
 
     <!-- Per-snippet switch: expand on its own, or wait to be tapped. -->
     <string name="rows_snippet_confirm_label">Ask before it expands</string>
+    <string name="rows_snippet_confirm_info">The snippet does not expand by itself. The keyboard offers the expansion as a chip on the strip, and it goes in only when you tap the chip. Use this for a trigger that is also a normal word.</string>
     <string name="rows_snippet_confirm_body">The keyboard shows the snippet on the suggestion bar and writes it only when you tap it. Your own words stay as you typed them if you do not.</string>
 
     <!-- Per-snippet switch: expand on the trigger's last letter, with no space after it. -->
     <string name="rows_snippet_immediate_label">Expand immediately</string>
+    <string name="rows_snippet_immediate_info">The snippet expands at the moment you type the last letter of its trigger, without a space or a punctuation mark after it. Use this for a trigger that no normal word ends with.</string>
     <string name="rows_snippet_immediate_body">The snippet replaces the trigger as soon as you type its last letter. You do not need a space. Press backspace once to get the trigger back. To keep a trigger as text, type the escape character, a backslash by default, just before it.</string>
     <string name="rows_snippet_inside_words_label">Also inside words</string>
+    <string name="rows_snippet_inside_words_info">The trigger also works in the middle of a word. With this off, the trigger must stand alone as a word of its own.</string>
     <string name="rows_snippet_inside_words_body">The trigger also works in the middle of a word. If this is off, it works only at the start of a word.</string>
 
     <string name="rows_snippet_test_label">Try it</string>
@@ -169,6 +174,7 @@
     <string name="rows_symbol_row_lines_info">Each line is one symbol row height tall and shows the next entries of the set, so more of a set is on screen without a scroll. The row keeps its picker at the left edge whatever the count.</string>
     <string name="rows_symbol_row_scroll_title">Scrolling</string>
     <string name="rows_symbol_row_scroll_subtitle">How the lines move when you scroll sideways</string>
+    <string name="rows_symbol_row_scroll_info">How the lines of the symbol row move when you scroll sideways. Together moves all the lines as one grid. Each line alone scrolls only the line under your finger. The default is Together.</string>
     <string name="rows_symbol_row_scroll_together_label">Together</string>
     <string name="rows_symbol_row_scroll_separate_label">Each line alone</string>
     <string name="rows_symbol_row_scroll_together_desc">The lines move as one grid. A scroll on any line moves all of them.</string>

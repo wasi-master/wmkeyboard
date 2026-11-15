@@ -17,6 +17,7 @@
     <string name="kdeconnect_group_main_info">Pairs this keyboard with a computer that runs KDE Connect, GSConnect or Valent, over your local network. The keyboard shows up there as its own device, so the KDE Connect app is not needed on the phone.</string>
     <string name="kdeconnect_enabled_title">Use KDE Connect</string>
     <string name="kdeconnect_enabled_subtitle">Look for paired computers and let them find this phone</string>
+    <string name="kdeconnect_enabled_info">Turns KDE Connect on. The keyboard looks for your paired computers on the network and lets them find this phone. Until it is on, nothing is sent or received.</string>
     <string name="kdeconnect_devices_title">Devices</string>
     <string name="kdeconnect_devices_subtitle_none">Pair a computer</string>
     <string name="kdeconnect_devices_subtitle">%1$d paired</string>
@@ -35,11 +36,13 @@
     <string name="kdeconnect_lifetime_always_detail">Also after the keyboard hides, until Android pauses or closes it there, which on many phones is soon. Uses more battery.</string>
     <string name="kdeconnect_auto_connect_title">Connect automatically</string>
     <string name="kdeconnect_auto_connect_subtitle">Reconnect to paired computers when they are found</string>
+    <string name="kdeconnect_auto_connect_info">Reconnects to a paired computer as soon as it is found on the network, with no tap. This setting is on by default.</string>
 
     <!-- Clipboard -->
     <string name="kdeconnect_group_clipboard">Clipboard</string>
     <string name="kdeconnect_clipboard_receive_title">Receive the computer\'s clipboard</string>
     <string name="kdeconnect_clipboard_receive_subtitle">Text copied there is ready to paste here</string>
+    <string name="kdeconnect_clipboard_receive_info">Text that you copy on a paired computer arrives on this phone, ready to paste.</string>
     <string name="kdeconnect_clear_secrets_title">Clear received passwords</string>
     <string name="kdeconnect_clear_secrets_subtitle">A password or code copied on the computer leaves this phone\'s clipboard after this long</string>
     <string name="kdeconnect_clear_secrets_info">Only text that looks like a password or a one-time code counts, the same check clipboard history uses. It is cleared only if it is still on the clipboard, and its copy in clipboard history goes too unless pinned. Other text from the computer stays.</string>
@@ -52,6 +55,7 @@
     <string name="kdeconnect_group_typing">Typing from the computer</string>
     <string name="kdeconnect_remote_typing_title">Let the computer type here</string>
     <string name="kdeconnect_remote_typing_subtitle">Its keyboard types into the field, while this keyboard is showing and the phone is unlocked</string>
+    <string name="kdeconnect_remote_typing_info">Lets a paired computer\'s keyboard type into the text field on this phone. It works only while this keyboard is showing and the phone is unlocked.</string>
     <string name="kdeconnect_pipeline_title">Use the keyboard language</string>
     <string name="kdeconnect_pipeline_subtitle">Run its keys through this keyboard\'s layout, like a hardware keyboard</string>
     <string name="kdeconnect_pipeline_info">Off: what the computer sends is typed exactly. On: a Latin keyboard on the desk writes Bengali through Avro, and suggestions and autocorrect apply.</string>
@@ -59,28 +63,38 @@
     <!-- Touchpad -->
     <string name="kdeconnect_group_touchpad">Touchpad</string>
     <string name="kdeconnect_pad_speed_title">Pointer speed</string>
+    <string name="kdeconnect_pad_speed_info">How far the computer\'s pointer moves for a move of your finger on the touchpad. At 1 it moves at the normal speed.</string>
     <string name="kdeconnect_pad_accel_title">Acceleration</string>
     <string name="kdeconnect_pad_accel_subtitle">Slow moves are precise, fast moves go far</string>
+    <string name="kdeconnect_pad_accel_info">A slow move of your finger moves the pointer a short way, for precise work, and a fast move takes it far. With this off, the pointer always moves in the same proportion. This setting is on by default.</string>
     <string name="kdeconnect_scroll_speed_title">Scroll speed</string>
+    <string name="kdeconnect_scroll_speed_info">How far the computer scrolls for a move of two fingers on the touchpad. At 1 it scrolls at the normal speed.</string>
     <string name="kdeconnect_natural_scroll_title">Natural scrolling</string>
     <string name="kdeconnect_natural_scroll_subtitle">The page follows your fingers</string>
+    <string name="kdeconnect_natural_scroll_info">The page moves in the direction of your fingers, as on a phone. With this off, the page moves the opposite way, like a mouse wheel. This setting is on by default.</string>
     <string name="kdeconnect_tap_click_title">Tap to click</string>
     <string name="kdeconnect_tap_click_subtitle">Two fingers for right click, three for middle</string>
+    <string name="kdeconnect_tap_click_info">A tap on the touchpad is a click. A tap with two fingers is a right click, and a tap with three is a middle click. This setting is on by default.</string>
     <string name="kdeconnect_pad_haptics_title">Vibrate on clicks</string>
+    <string name="kdeconnect_pad_haptics_info">The phone gives a short tick when the touchpad sends a click. This setting is on by default.</string>
 
     <!-- Sharing -->
     <string name="kdeconnect_group_sharing">Sharing</string>
     <string name="kdeconnect_receive_files_title">Receive files</string>
     <string name="kdeconnect_receive_files_subtitle">Saved to Downloads, in WM Keyboard, and added to the clipboard history</string>
+    <string name="kdeconnect_receive_files_info">Files that a paired computer sends are saved to Downloads, in the WM Keyboard folder, and added to the clipboard history. This setting is on by default.</string>
     <string name="kdeconnect_share_sheet_title">Show in the share menu</string>
     <string name="kdeconnect_share_sheet_subtitle">Other apps can share to the computer. Only shown once a computer is paired</string>
+    <string name="kdeconnect_share_sheet_info">Adds your paired computer to the share menu of other apps, so you can send a file or a link to it from any app. It shows only after a computer is paired. This setting is on by default.</string>
     <string name="kdeconnect_battery_title">Report battery level</string>
     <string name="kdeconnect_battery_subtitle">The computer shows this phone\'s charge</string>
+    <string name="kdeconnect_battery_info">Tells the paired computer this phone\'s battery level, so the computer can show it. This setting is on by default.</string>
     <string name="kdeconnect_codes_title">Send one-time codes</string>
     <string name="kdeconnect_codes_subtitle">A verification code that arrives here is offered on the computer too</string>
     <string name="kdeconnect_codes_info">When a code arrives in a notification, the phone sends the code alone to the paired computer, never the message it came in. WM Keyboard on the computer offers it above the cursor, and a KDE Connect desktop shows it as a notification. Everything stays on your local network. This needs Codes from notifications on, under Typing, because that is what reads the notifications.</string>
     <string name="kdeconnect_media_title">Offer this phone\'s media</string>
     <string name="kdeconnect_media_subtitle">The computer can pause and skip what plays here</string>
+    <string name="kdeconnect_media_info">Lets the paired computer see what plays on this phone, and pause it or skip to the next track.</string>
     <string name="kdeconnect_media_access_title">Notification access</string>
     <string name="kdeconnect_media_access_granted">Granted. Needed to see what is playing</string>
     <string name="kdeconnect_media_access_missing">Needed to see what is playing. Tap to grant</string>
@@ -145,4 +159,5 @@
     <!-- Notifications screen -->
     <string name="kdeconnect_notify_title">Paired computers</string>
     <string name="kdeconnect_notify_subtitle">A pair request, a file or a ping that arrived while the keyboard was hidden</string>
+    <string name="kdeconnect_notify_info">Shows a notification when a paired computer sends a pair request, a file or a ping while the keyboard is hidden. With this off, you see these only when the keyboard is open.</string>
 </resources>

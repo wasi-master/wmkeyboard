@@ -91,6 +91,7 @@ internal fun NotificationSettingsScreen(settings: LiveSettings) {
                 stringResource(R.string.notify_downloads_subtitle),
                 checked = downloads.value,
                 default = NotificationSwitches.DEFAULT_DOWNLOADS,
+                info = stringResource(R.string.notify_downloads_info),
             ) {
                 downloads.value = it
                 NotificationSwitches.set(context, NotificationKind.DOWNLOADS, it)
@@ -102,6 +103,7 @@ internal fun NotificationSettingsScreen(settings: LiveSettings) {
                 stringResource(R.string.notify_updates_subtitle),
                 checked = updates.value,
                 default = NotificationSwitches.DEFAULT_UPDATES,
+                info = stringResource(R.string.notify_updates_info),
             ) {
                 updates.value = it
                 NotificationSwitches.set(context, NotificationKind.UPDATES, it)
@@ -113,6 +115,7 @@ internal fun NotificationSettingsScreen(settings: LiveSettings) {
                 stringResource(R.string.notify_backup_subtitle),
                 checked = backup.value,
                 default = NotificationSwitches.DEFAULT_BACKUP,
+                info = stringResource(R.string.notify_backup_info),
             ) {
                 backup.value = it
                 NotificationSwitches.set(context, NotificationKind.BACKUP, it)
@@ -126,6 +129,7 @@ internal fun NotificationSettingsScreen(settings: LiveSettings) {
                 stringResource(R.string.kdeconnect_notify_subtitle),
                 checked = connect.value,
                 default = NotificationSwitches.DEFAULT_CONNECT,
+                info = stringResource(R.string.kdeconnect_notify_info),
             ) {
                 connect.value = it
                 NotificationSwitches.set(context, NotificationKind.CONNECT, it)

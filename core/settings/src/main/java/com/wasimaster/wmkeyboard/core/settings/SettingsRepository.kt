@@ -8226,10 +8226,24 @@ data class AppUiSettings(
      * is read with a bundle's tools already taken out while it is off.
      */
     val extensions: Set<Extension>? = null,
+    /**
+     * How the pictures and clips above a setting's explanation (its "?")
+     * reach the phone. [HelpPictures.ASK] until the first "?" that has one
+     * is opened, which is where the question is put.
+     */
+    val helpPictures: HelpPictures = HelpPictures.ASK,
 )
 
 /** See [AppUiSettings.settingLinks]. */
 enum class SettingLinkMode { OFF, HOLD, BUTTON }
+
+/**
+ * See [AppUiSettings.helpPictures]. [ALL] downloads every picture of the look
+ * the app is in as one pack; [ONE_BY_ONE] fetches each picture when its
+ * explanation is opened; [OFF] shows the words alone. The pictures of the
+ * light and the dark look are separate downloads either way.
+ */
+enum class HelpPictures { ASK, ALL, ONE_BY_ONE, OFF }
 
 /**
  * How much of the settings app is shown; see [AppUiSettings.settingsDepth].
@@ -13147,6 +13161,7 @@ class SettingsRepository(private val context: Context) {
         private val SETTINGS_HIDDEN_ROWS = booleanPreferencesKey("settings_hidden_rows")
         private val SETTINGS_SWITCHED_OFF_ROWS = booleanPreferencesKey("settings_switched_off_rows")
         private val SETTINGS_ALSO_UNDER = booleanPreferencesKey("settings_also_under")
+        private val SETTINGS_HELP_PICTURES = stringPreferencesKey("settings_help_pictures")
         private val EXTENSIONS_ENABLED = stringSetPreferencesKey("extensions_enabled")
         private val SYMBOL_ROW_HEIGHT = intPreferencesKey("symbol_row_height")
         private val SYMBOL_ROW_LINES = intPreferencesKey("symbol_row_lines")
@@ -15391,6 +15406,9 @@ class SettingsRepository(private val context: Context) {
             switchedOffRows = p[SETTINGS_SWITCHED_OFF_ROWS] ?: defaults.appUi.switchedOffRows,
             alsoUnderLine = p[SETTINGS_ALSO_UNDER] ?: defaults.appUi.alsoUnderLine,
             extensions = p[EXTENSIONS_ENABLED]?.let(Extension::decode),
+            helpPictures = p[SETTINGS_HELP_PICTURES]
+                ?.let { runCatching { HelpPictures.valueOf(it) }.getOrNull() }
+                ?: defaults.appUi.helpPictures,
         )
 
     private fun readToolLimits(p: Preferences, defaults: KeyboardSettings) =
@@ -25028,6 +25046,10 @@ class SettingsRepository(private val context: Context) {
     /** See [AppUiSettings.settingsDepth]. */
     suspend fun setSettingsDepth(value: SettingsDepth) =
         editPrefs { it[SETTINGS_DEPTH] = value.name }
+
+    /** See [AppUiSettings.helpPictures]. */
+    suspend fun setHelpPictures(value: HelpPictures) =
+        editPrefs { it[SETTINGS_HELP_PICTURES] = value.name }
 
     /** See [AppUiSettings.hiddenSettingsRows]. */
     suspend fun setHiddenSettingsRows(value: Boolean) =

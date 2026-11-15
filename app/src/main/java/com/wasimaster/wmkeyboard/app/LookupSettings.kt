@@ -38,6 +38,7 @@ internal fun LookupSettingsGroup(repository: SettingsRepository, settings: LiveS
                 stringResource(R.string.lookup_settings_selection_subtitle),
                 settings.watch { it.lookup.selectionMenu },
                 default = SettingsDefaults.lookup.selectionMenu,
+                info = stringResource(R.string.lookup_settings_selection_info),
             ) { on ->
                 LookupSelectionMenu.apply(context, on)
                 scope.launch { repository.updateLookup { it.copy(selectionMenu = on) } }
@@ -61,6 +62,7 @@ internal fun LookupSettingsGroup(repository: SettingsRepository, settings: LiveS
                     ),
                     selected = settings.watch { it.lookup.cardStyle },
                     default = SettingsDefaults.lookup.cardStyle,
+                    info = stringResource(R.string.lookup_settings_style_info),
                 ) { style -> scope.launch { repository.updateLookup { it.copy(cardStyle = style) } } }
             }
         }
@@ -104,6 +106,7 @@ internal fun LookupSettingsGroup(repository: SettingsRepository, settings: LiveS
                     stringResource(R.string.lookup_settings_keep_recordings_subtitle),
                     settings.watch { it.lookup.keepRecordings },
                     default = SettingsDefaults.lookup.keepRecordings,
+                    info = stringResource(R.string.lookup_settings_keep_recordings_info),
                 ) { on -> scope.launch { repository.updateLookup { it.copy(keepRecordings = on) } } }
             }
             item(level = SettingLevel.ADVANCED) {
@@ -138,6 +141,7 @@ internal fun LookupSettingsGroup(repository: SettingsRepository, settings: LiveS
                         ),
                     )
                 },
+                info = stringResource(R.string.lookup_settings_anki_info),
             ) { mode -> scope.launch { repository.updateLookup { it.copy(ankiMode = mode) } } }
         }
         item(level = SettingLevel.ADVANCED) {

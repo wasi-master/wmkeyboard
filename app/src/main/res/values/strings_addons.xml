@@ -22,6 +22,7 @@
     <string name="addon_auto_refresh_info">A repository publishes a list of what it offers. The keyboard fetches that list each time that you open this screen, so a theme or a layout added since your last visit shows up without you doing anything. Each list is small, but the keyboard fetches one for every repository that you added. Turn this off to fetch nothing until you press Refresh. Refresh always fetches, whatever these two settings say, because pressing it is the request. This setting is on by default.</string>
     <string name="addon_refresh_unmetered_title">Only on Wi-Fi</string>
     <string name="addon_refresh_unmetered_subtitle">Skip the check when your connection costs data</string>
+    <string name="addon_refresh_unmetered_info">The automatic check for add-on updates runs only on Wi-Fi or another connection that does not count data. On mobile data the check is skipped until such a connection is back. A check you start yourself always runs.</string>
     <!-- Section heading over the add-ons the user has installed. -->
     <string name="addon_installed_section_title">Installed</string>
     <string name="addon_repos_intro_body">Add-on repositories are ordinary web pages. They list themes, layouts, dictionaries, snippets, sticker packs, icon packs, fonts, emoji fonts and key sounds. An add-on holds plain data. The app does not run code when you install one.</string>

@@ -1737,6 +1737,7 @@ fun ThemesScreen(
                 stringResource(R.string.theme_material_you_subtitle),
                 checked = settings.watch { it.dynamicColor },
                 default = SettingsDefaults.dynamicColor,
+                info = stringResource(R.string.theme_material_you_info),
             ) { scope.launch { repository.setDynamicColor(it) } }
         }
     }
@@ -1774,6 +1775,7 @@ fun ThemesScreen(
                 stringResource(R.string.theme_auto_subtitle),
                 checked = autoOn,
                 default = SettingsDefaults.autoTheme.enabled,
+                info = stringResource(R.string.theme_auto_info),
             ) { scope.launch { repository.setAutoThemeEnabled(it) } }
         }
         if (autoOn) {
@@ -1797,6 +1799,7 @@ fun ThemesScreen(
                         .map { it to stringResource(it.labelRes) },
                     selected = settings.watch { it.autoTheme.shuffleInterval },
                     default = SettingsDefaults.autoTheme.shuffleInterval,
+                    info = stringResource(R.string.theme_shuffle_interval_info),
                 ) { value -> scope.launch { repository.setAutoThemeShuffleInterval(value) } }
             }
             item(visible = shuffles) {
@@ -2640,6 +2643,7 @@ private fun AppColorsGroup(repository: SettingsRepository, settings: LiveSetting
                 stringResource(R.string.theme_app_colors_subtitle),
                 checked = on,
                 default = SettingsDefaults.appColors.enabled,
+                info = stringResource(R.string.theme_app_colors_info),
             ) { scope.launch { repository.setAppColorsEnabled(it) } }
         }
         item(visible = on, level = SettingLevel.STANDARD) {
@@ -2649,6 +2653,7 @@ private fun AppColorsGroup(repository: SettingsRepository, settings: LiveSetting
                 selected = settings.watch { it.appColors.scope },
                 default = SettingsDefaults.appColors.scope,
                 detail = { ChoiceDetail(stringResource(appColorScopeDescRes(it))) },
+                info = stringResource(R.string.theme_app_colors_scope_info),
             ) { value -> scope.launch { repository.setAppColorsScope(value) } }
         }
         item(visible = on, level = SettingLevel.ADVANCED) {
@@ -2658,6 +2663,7 @@ private fun AppColorsGroup(repository: SettingsRepository, settings: LiveSetting
                 selected = settings.watch { it.appColors.source },
                 default = SettingsDefaults.appColors.source,
                 detail = { ChoiceDetail(stringResource(appColorSourceDescRes(it))) },
+                info = stringResource(R.string.theme_app_colors_source_info),
             ) { value -> scope.launch { repository.setAppColorsSource(value) } }
         }
         item(visible = on, level = SettingLevel.STANDARD) {
@@ -2673,6 +2679,7 @@ private fun AppColorsGroup(repository: SettingsRepository, settings: LiveSetting
                         leading = { PaletteStyleSwatch(style) },
                     )
                 },
+                info = stringResource(R.string.theme_app_colors_style_info),
             ) { value -> scope.launch { repository.setAppColorsStyle(value) } }
         }
         item(visible = on && picks > 0) {
@@ -4007,6 +4014,7 @@ private fun ThemeEditorContent(
                                 },
                             )
                         },
+                        info = stringResource(R.string.theme_popup_placement_info),
                     ) { value -> update { t -> t.copy(popupPlacement = value) } }
                 }
                 item(level = SettingLevel.STANDARD) {
@@ -4341,6 +4349,7 @@ private fun ThemeEditorContent(
                 R.string.theme_editor_dark_title,
                 stringResource(R.string.theme_editor_dark_subtitle),
                 checked = look.watch { it.dark },
+                info = stringResource(R.string.theme_editor_dark_info),
             ) { dark -> update { t -> t.reseeded(t.enterKeyBackground, dark) } }
         }
         item {
@@ -4531,6 +4540,7 @@ private fun ThemeEditorContent(
                     R.string.theme_picture_on_keys_title,
                     stringResource(R.string.theme_picture_on_keys_subtitle),
                     checked = look.watch { it.pictureOnKeys },
+                    info = stringResource(R.string.theme_picture_on_keys_info),
                 ) { on -> update { t -> t.withPictureOnKeys(on) } }
             }
             if (!reduceMotion) item(level = SettingLevel.STANDARD) {
@@ -4538,6 +4548,7 @@ private fun ThemeEditorContent(
                     R.string.theme_background_animated_title,
                     stringResource(R.string.theme_background_animated_subtitle),
                     checked = look.watch { it.backgroundAnimated },
+                    info = stringResource(R.string.theme_background_animated_info),
                 ) { on ->
                     update { t ->
                         t.copy(
@@ -4997,6 +5008,7 @@ private fun ThemeEditorContent(
                 R.string.theme_glass_title,
                 stringResource(R.string.theme_glass_subtitle),
                 checked = frostOn,
+                info = stringResource(R.string.theme_glass_info),
             ) { on -> updateFrost { it.copy(enabled = on) } }
         }
         if (!frostOn) return@SettingsGroup
@@ -5064,6 +5076,7 @@ private fun ThemeEditorContent(
                 R.string.theme_glass_window_blur_title,
                 stringResource(R.string.theme_glass_window_blur_subtitle),
                 checked = frost.windowBlur,
+                info = stringResource(R.string.theme_glass_window_blur_info),
             ) { on -> updateFrost { it.copy(windowBlur = on) } }
         }
         // A phone with its blur off, or none to offer (some skins dropped the
@@ -5160,6 +5173,7 @@ private fun ThemeEditorContent(
                 R.string.theme_glass_accent_board_title,
                 stringResource(R.string.theme_glass_accent_board_subtitle),
                 checked = frost.accentBoard,
+                info = stringResource(R.string.theme_glass_accent_board_info),
             ) { on -> updateFrost { it.copy(accentBoard = on) } }
         }
         item(visible = hasImage && frost.backdropSource != FrostBackdropSource.WALLPAPER &&
@@ -5169,6 +5183,7 @@ private fun ThemeEditorContent(
                 R.string.theme_glass_blur_board_title,
                 stringResource(R.string.theme_glass_blur_board_subtitle),
                 checked = frost.blurBoard,
+                info = stringResource(R.string.theme_glass_blur_board_info),
             ) { on -> updateFrost { it.copy(blurBoard = on) } }
         }
         item(visible = !hasBackdrop) {
@@ -5764,6 +5779,7 @@ private fun ThemeEditorContent(
                 R.string.theme_custom_radii_title,
                 stringResource(R.string.theme_custom_radii_subtitle),
                 checked = hasCustomRadii,
+                info = stringResource(R.string.theme_custom_radii_info),
             ) { enable ->
                 val current = settings.value
                 update { t ->
@@ -5847,6 +5863,7 @@ private fun ThemeEditorContent(
                 R.string.theme_custom_layout_title,
                 stringResource(R.string.theme_custom_layout_subtitle),
                 checked = hasLayoutOverrides,
+                info = stringResource(R.string.theme_custom_layout_info),
             ) { enable ->
                 val current = settings.value
                 update { t ->
@@ -5980,6 +5997,7 @@ private fun ThemeEditorContent(
                     R.string.theme_bold_labels_title,
                     subtitle = null,
                     checked = look.watch { it.boldKeyLabels ?: false },
+                    info = stringResource(R.string.theme_bold_labels_info),
                 ) { bold -> update { t -> t.copy(boldKeyLabels = bold) } }
             }
             item {
@@ -6305,6 +6323,7 @@ private fun ThemeEditorContent(
                     kind to if (kind == null) stringResource(CommonR.string.common_none) else stringResource(materialKindLabel(kind))
                 },
                 selected = materialSpec?.kind?.let(::keyMaterialKindOrNull),
+                info = stringResource(R.string.theme_material_info),
             ) { kind ->
                 // A new preset starts clean: the fine-tuning belonged to the old one.
                 update { t -> t.copy(keyMaterial = kind?.let { KeyMaterialSpec(kind = it.name) }) }
@@ -6356,6 +6375,7 @@ private fun ThemeEditorContent(
                     title = R.string.theme_material_texture_title,
                     options = MaterialTexture.entries.map { it to stringResource(materialTextureLabel(it)) },
                     selected = material.texture,
+                    info = stringResource(R.string.theme_material_texture_info),
                 ) { picked -> updateMaterial { it.copy(texture = picked.name) } }
             }
             item(level = SettingLevel.STANDARD) {
@@ -6371,6 +6391,7 @@ private fun ThemeEditorContent(
                     title = R.string.theme_material_edge_title,
                     options = MaterialEdge.entries.map { it to stringResource(materialEdgeLabel(it)) },
                     selected = material.edge,
+                    info = stringResource(R.string.theme_material_edge_info),
                 ) { picked -> updateMaterial { it.copy(edge = picked.name) } }
             }
             item(level = SettingLevel.STANDARD) {
@@ -6394,6 +6415,7 @@ private fun ThemeEditorContent(
                     title = R.string.theme_material_label_title,
                     options = MaterialLabel.entries.map { it to stringResource(materialLabelLabel(it)) },
                     selected = material.label,
+                    info = stringResource(R.string.theme_material_label_info),
                 ) { picked -> updateMaterial { it.copy(label = picked.name) } }
             }
             item(level = SettingLevel.STANDARD) {
@@ -6598,6 +6620,7 @@ private fun ThemeEditorContent(
                     p to if (p == null) stringResource(CommonR.string.common_none) else stringResource(lightingPatternLabel(p))
                 },
                 selected = lighting?.pattern?.let(::keyLightingPatternOrNull),
+                info = stringResource(R.string.theme_lighting_info),
             ) { p ->
                 update { t ->
                     t.copy(keyLighting = p?.let { t.keyLighting?.copy(pattern = it.name) ?: KeyLightingSpec(pattern = it.name) })
@@ -6616,6 +6639,7 @@ private fun ThemeEditorContent(
                             leading = { KeyLightPickerTile(lighting.copy(target = target.name), swatchColors, swatchesMove) },
                         )
                     },
+                    info = stringResource(R.string.theme_lighting_target_info),
                 ) { picked -> updateLighting { it.copy(target = picked.name) } }
             }
             item {
@@ -6699,6 +6723,7 @@ private fun ThemeEditorContent(
                 R.string.theme_touch_bloom_title,
                 stringResource(R.string.theme_touch_bloom_subtitle),
                 checked = bloom != null,
+                info = stringResource(R.string.theme_touch_bloom_info),
             ) { on -> update { t -> t.copy(touchBloom = if (on) t.touchBloom ?: TouchBloomSpec() else null) } }
         }
         if (bloom != null) {
@@ -7822,6 +7847,7 @@ private fun KeyOverrideDialog(
                 title = R.string.theme_key_override_gradient_title,
                 subtitle = null,
                 checked = override.gradient != null,
+                info = stringResource(R.string.theme_key_override_gradient_info),
             ) { on ->
                 onChange(
                     override.copy(
@@ -7971,6 +7997,7 @@ private fun KeyOverrideDialog(
                 title = R.string.theme_key_override_radius_title,
                 subtitle = override.cornerRadiusDp?.let { "$it dp" } ?: stringResource(CommonR.string.common_auto),
                 checked = override.cornerRadiusDp != null,
+                info = stringResource(R.string.theme_key_override_radius_info),
             ) { on -> onChange(override.copy(cornerRadiusDp = if (on) theme.keyCornerRadiusDp ?: 8 else null)) }
             override.cornerRadiusDp?.let { radius ->
                 SliderRow(
@@ -8008,6 +8035,7 @@ private fun KeyOverrideDialog(
                 subtitle = override.labelScale?.let { "${(it * 100).toInt()}%" }
                     ?: stringResource(CommonR.string.common_auto),
                 checked = override.labelScale != null,
+                info = stringResource(R.string.theme_key_override_label_size_info),
             ) { on -> onChange(override.copy(labelScale = if (on) 1f else null)) }
             override.labelScale?.let { scale ->
                 SliderRow(

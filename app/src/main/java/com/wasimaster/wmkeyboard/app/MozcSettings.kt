@@ -87,6 +87,7 @@ internal fun MozcEngineGroup(
                 ),
                 selected = if (mozcOn) JapaneseEngine.MOZC else JapaneseEngine.BUILT_IN,
                 default = JapaneseEngine.BUILT_IN,
+                info = stringResource(R.string.languages_mozc_engine_info),
             ) { engine ->
                 val on = engine == JapaneseEngine.MOZC
                 scope.launch { repository.setMozcJapanese(on) }

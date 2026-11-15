@@ -30,6 +30,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -829,6 +831,14 @@ private fun SettingsNavHost(
             foldScope.launch { repository.setSettingsDepth(depth) }
         }
     }
+    // How the pictures in a setting's "?" dialog arrive (About › App), and
+    // the index of which settings have one, read off the main thread.
+    val helpPicturesMode = settings.watch { it.appUi.helpPictures }
+    val helpPictures = remember(helpPicturesMode) {
+        HelpPicturesControl(helpPicturesMode) { mode -> foldScope.launch { repository.setHelpPictures(mode) } }
+    }
+    val helpContext = LocalContext.current
+    LaunchedEffect(Unit) { HelpVisuals.warm(helpContext) }
     // Which feature bundles are on (Extensions), read by Home, Advanced, the
     // Tools list and every picker; a route a switched-off bundle owns is
     // turned towards the Extensions screen before navigate() sees it.
@@ -935,6 +945,7 @@ private fun SettingsNavHost(
             LocalSettingsCrumbTrail provides crumbs,
             LocalAdvancedFolds provides folds,
             LocalSettingsDepth provides depthControl,
+            LocalHelpPictures provides helpPictures,
             LocalExtensions provides extensionsOn,
             LocalTwoPane provides twoPane,
             // Published here rather than threaded through, so that the small
@@ -4470,24 +4481,45 @@ internal fun transparentListColors(): ListItemColors =
 internal fun InfoButton(title: String, detail: String) {
     if (LocalRowExtrasBare.current) return
     var open by remember { mutableStateOf(false) }
+    // A "?" that opens on a picture is drawn in the accent, so the rows worth
+    // opening for a look can be told from the ones that only have words.
+    val pictured = rowHasHelpPicture()
     IconButton(onClick = { open = true }, modifier = Modifier.size(RowExtraSize)) {
         Icon(
             Icons.AutoMirrored.Outlined.HelpOutline,
             contentDescription = stringResource(R.string.home_info_desc, title),
             modifier = Modifier.size(18.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+            tint = if (pictured) MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
+            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
         )
     }
     if (open) InfoDialog(title, detail) { open = false }
 }
 
-/** The explanation [InfoButton] opens: the setting's name over its [detail], and OK. */
+/**
+ * The explanation [InfoButton] opens: the setting's name over its [detail],
+ * and OK. A setting that has a picture, a clip or an off/on comparison shows
+ * it above the words ([HelpVisualSlot]); [pictureKey] is the title resource
+ * the picture is filed under, the row's own unless the caller says otherwise.
+ */
 @Composable
-internal fun InfoDialog(title: String, detail: String, onDismiss: () -> Unit) {
+internal fun InfoDialog(
+    title: String,
+    detail: String,
+    @StringRes pictureKey: Int = LocalRowLinkKey.current?.key ?: 0,
+    onDismiss: () -> Unit,
+) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
-        text = { Text(detail) },
+        text = {
+            // Scrolls: a picture over a long explanation is taller than a
+            // small phone's dialog.
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                HelpVisualSlot(pictureKey, title)
+                Text(detail)
+            }
+        },
         confirmButton = {
             TextButton(onClick = onDismiss) {
                 Text(stringResource(CommonR.string.common_ok))

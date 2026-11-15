@@ -257,6 +257,7 @@ internal fun FloatingButtonSettingsScreen(
                 stringResource(R.string.floating_button_docked_subtitle),
                 button.docked,
                 default = defaults.docked,
+                info = stringResource(R.string.floating_button_docked_info),
             ) { scope.launch { repository.setFloatingButtonDocked(it) } }
         }
         for (direction in FlickDirection.entries) {
@@ -335,6 +336,7 @@ internal fun FloatingButtonSettingsScreen(
                 stringResource(R.string.floating_button_menu_labels_subtitle),
                 button.menuLabels,
                 default = defaults.menuLabels,
+                info = stringResource(R.string.floating_button_menu_labels_info),
             ) { scope.launch { repository.setFloatingButtonMenuLabels(it) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -345,6 +347,7 @@ internal fun FloatingButtonSettingsScreen(
                 range = FloatingMenuGapRange.first.toFloat()..FloatingMenuGapRange.last.toFloat(),
                 display = { dpFormat.format(it.roundToInt()) },
                 default = defaults.menuGapDp.toFloat(),
+                info = stringResource(R.string.floating_button_menu_gap_info),
             ) { scope.launch { repository.setFloatingButtonMenuGap(it.roundToInt()) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -353,6 +356,7 @@ internal fun FloatingButtonSettingsScreen(
                 options = FloatingMenuAnimation.entries.map { it to stringResource(animationLabel(it)) },
                 selected = button.menuAnimation,
                 default = defaults.menuAnimation,
+                info = stringResource(R.string.floating_button_menu_animation_info),
             ) { scope.launch { repository.setFloatingButtonMenuAnimation(it) } }
         }
         // Faster for those who find the motion slow (#1138); the button's own
@@ -366,6 +370,7 @@ internal fun FloatingButtonSettingsScreen(
                 range = FloatingAnimationSpeedRange,
                 display = { speedFormat.format(it) },
                 default = defaults.animationSpeed,
+                info = stringResource(R.string.floating_button_animation_speed_info),
             ) { scope.launch { repository.setFloatingButtonAnimationSpeed((it * 20).roundToInt() / 20f) } }
         }
         item(visible = button.menu != DefaultFloatingMenu) {
@@ -383,6 +388,7 @@ internal fun FloatingButtonSettingsScreen(
                 options = FloatingButtonStyle.entries.map { it to stringResource(styleLabel(it)) },
                 selected = button.style,
                 default = defaults.style,
+                info = stringResource(R.string.floating_button_style_info),
             ) { scope.launch { repository.setFloatingButtonStyle(it) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -392,6 +398,7 @@ internal fun FloatingButtonSettingsScreen(
                 options = FloatingButtonShape.entries.map { it to stringResource(shapeLabel(it)) },
                 selected = button.shape,
                 default = defaults.shape,
+                info = stringResource(R.string.floating_button_shape_info),
             ) { scope.launch { repository.setFloatingButtonShape(it) } }
         }
         // A slim line against the edge for a small screen (#1137); the rest of
@@ -402,6 +409,7 @@ internal fun FloatingButtonSettingsScreen(
                 stringResource(R.string.floating_button_pill_subtitle),
                 button.edgePill,
                 default = defaults.edgePill,
+                info = stringResource(R.string.floating_button_pill_info),
             ) { scope.launch { repository.setFloatingButtonPill(it) } }
         }
         item(visible = button.edgePill, level = SettingLevel.STANDARD) {
@@ -412,6 +420,7 @@ internal fun FloatingButtonSettingsScreen(
                 range = FloatingPillThicknessRange.first.toFloat()..FloatingPillThicknessRange.last.toFloat(),
                 display = { dpFormat.format(it.roundToInt()) },
                 default = defaults.pillThicknessDp.toFloat(),
+                info = stringResource(R.string.floating_button_pill_thickness_info),
             ) { scope.launch { repository.setFloatingButtonPillThickness(it.roundToInt()) } }
         }
         item(visible = button.edgePill, level = SettingLevel.STANDARD) {
@@ -422,6 +431,7 @@ internal fun FloatingButtonSettingsScreen(
                 range = FloatingPillLengthRange.first.toFloat()..FloatingPillLengthRange.last.toFloat(),
                 display = { dpFormat.format(it.roundToInt()) },
                 default = defaults.pillLengthDp.toFloat(),
+                info = stringResource(R.string.floating_button_pill_length_info),
             ) { scope.launch { repository.setFloatingButtonPillLength(it.roundToInt()) } }
         }
         item(visible = button.edgePill, level = SettingLevel.ADVANCED) {
@@ -433,6 +443,7 @@ internal fun FloatingButtonSettingsScreen(
                 range = FloatingPillTouchRange.first.toFloat()..FloatingPillTouchRange.last.toFloat(),
                 display = { dpFormat.format(it.roundToInt()) },
                 default = defaults.pillTouchDp.toFloat(),
+                info = stringResource(R.string.floating_button_pill_touch_info),
             ) { scope.launch { repository.setFloatingButtonPillTouch(it.roundToInt()) } }
         }
         item {
@@ -443,6 +454,7 @@ internal fun FloatingButtonSettingsScreen(
                 range = FloatingButtonSizeRange.first.toFloat()..FloatingButtonSizeRange.last.toFloat(),
                 display = { dpFormat.format(it.roundToInt()) },
                 default = defaults.sizeDp.toFloat(),
+                info = stringResource(R.string.floating_button_size_info),
             ) { scope.launch { repository.setFloatingButtonSize(it.roundToInt()) } }
         }
         item {
@@ -453,6 +465,7 @@ internal fun FloatingButtonSettingsScreen(
                 range = 0.3f..1f,
                 display = { percentFormat.format((it * 100).roundToInt()) },
                 default = defaults.opacity,
+                info = stringResource(R.string.floating_button_opacity_info),
             ) { scope.launch { repository.setFloatingButtonOpacity(it) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -466,6 +479,7 @@ internal fun FloatingButtonSettingsScreen(
                 display = { it.roundToInt().let { s -> if (s == 0) never else seconds.format(s) } },
                 default = defaults.idleFadeSeconds.toFloat(),
                 typed = false,
+                info = stringResource(R.string.floating_button_idle_info),
             ) { scope.launch { repository.setFloatingButtonIdleFade(it.roundToInt()) } }
         }
         item(visible = button.idleFadeSeconds > 0, level = SettingLevel.ADVANCED) {
@@ -476,6 +490,7 @@ internal fun FloatingButtonSettingsScreen(
                 range = 0.15f..1f,
                 display = { percentFormat.format((it * 100).roundToInt()) },
                 default = defaults.idleOpacity,
+                info = stringResource(R.string.floating_button_idle_opacity_info),
             ) { scope.launch { repository.setFloatingButtonIdleOpacity(it) } }
         }
         // A pill already sits against the edge, so it has nothing to tuck.
@@ -485,6 +500,7 @@ internal fun FloatingButtonSettingsScreen(
                 stringResource(R.string.floating_button_tuck_subtitle),
                 button.tuck,
                 default = defaults.tuck,
+                info = stringResource(R.string.floating_button_tuck_info),
             ) { scope.launch { repository.setFloatingButtonTuck(it) } }
         }
     }
@@ -496,6 +512,7 @@ internal fun FloatingButtonSettingsScreen(
                 stringResource(R.string.floating_button_while_typing_subtitle),
                 button.whileTyping,
                 default = defaults.whileTyping,
+                info = stringResource(R.string.floating_button_while_typing_info),
             ) { scope.launch { repository.setFloatingButtonWhileTyping(it) } }
         }
         item(visible = button.whileTyping, level = SettingLevel.ADVANCED) {
@@ -504,6 +521,7 @@ internal fun FloatingButtonSettingsScreen(
                 stringResource(R.string.floating_button_over_keyboard_subtitle),
                 button.overKeyboard,
                 default = defaults.overKeyboard,
+                info = stringResource(R.string.floating_button_over_keyboard_info),
             ) { scope.launch { repository.setFloatingButtonOverKeyboard(it) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -512,6 +530,7 @@ internal fun FloatingButtonSettingsScreen(
                 stringResource(R.string.floating_button_landscape_subtitle),
                 button.hideInLandscape,
                 default = defaults.hideInLandscape,
+                info = stringResource(R.string.floating_button_landscape_info),
             ) { scope.launch { repository.setFloatingButtonHideInLandscape(it) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -520,6 +539,7 @@ internal fun FloatingButtonSettingsScreen(
                 stringResource(R.string.floating_button_haptics_subtitle),
                 button.haptics,
                 default = defaults.haptics,
+                info = stringResource(R.string.floating_button_haptics_info),
             ) { scope.launch { repository.setFloatingButtonHaptics(it) } }
         }
         item(visible = button.xFraction != defaults.xFraction || button.yFraction != defaults.yFraction) {

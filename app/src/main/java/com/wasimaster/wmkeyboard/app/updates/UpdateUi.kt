@@ -576,6 +576,7 @@ internal fun UpdateSettings(settings: LiveSettings) {
                     autoCheck.value = it
                     updater.autoCheck = it
                 },
+                info = stringResource(R.string.update_row_auto_check_info),
             )
         }
         item {
@@ -588,6 +589,7 @@ internal fun UpdateSettings(settings: LiveSettings) {
                     autoPrompt.value = it
                     updater.autoPrompt = it
                 },
+                info = stringResource(R.string.update_row_prompts_info),
             )
         }
         item(visible = updater.supportsPrereleases) {
@@ -600,6 +602,7 @@ internal fun UpdateSettings(settings: LiveSettings) {
                     prereleases.value = it
                     updater.includePrereleases = it
                 },
+                info = stringResource(R.string.update_row_prereleases_info),
             )
         }
     }

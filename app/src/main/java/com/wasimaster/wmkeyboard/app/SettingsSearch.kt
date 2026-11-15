@@ -3094,6 +3094,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         about(R.string.settings_hidden_rows_title, R.string.settings_hidden_rows_subtitle),
         about(R.string.settings_switched_off_rows_title, R.string.settings_switched_off_rows_subtitle),
         about(R.string.settings_also_under_title, R.string.settings_also_under_subtitle),
+        about(R.string.help_pictures_title, R.string.help_pictures_subtitle),
         entry(
             R.string.about_diagnostics_title, R.string.about_diagnostics_subtitle,
             R.string.home_about_title, "debug_log", keywords = R.string.search_kw_diagnostics,

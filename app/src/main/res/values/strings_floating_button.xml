@@ -25,6 +25,7 @@
     <string name="floating_button_hold_title">Press and hold</string>
     <string name="floating_button_docked_title">Fixed in place</string>
     <string name="floating_button_docked_subtitle">The button stays where it is, and a swipe from it runs the action set for that direction</string>
+    <string name="floating_button_docked_info">The floating button stays where you put it and cannot be dragged. A swipe that starts on the button then runs the action set for that direction. With this off, a drag moves the button.</string>
     <string name="floating_button_flick_unbound">Nothing</string>
     <string name="floating_button_flick_up_title">Swipe up</string>
     <string name="floating_button_flick_up_right_title">Swipe up and right</string>
@@ -55,14 +56,18 @@
     <string name="floating_button_menu_add_pick_title">Add to the quick menu</string>
     <string name="floating_button_menu_labels_title">Show names</string>
     <string name="floating_button_menu_labels_subtitle">Each action\'s name under its icon. Off, only the one under your finger is named</string>
+    <string name="floating_button_menu_labels_info">Shows the name of each action under its icon in the button\'s menu. With this off, only the action under your finger is named, and the menu is smaller.</string>
     <string name="floating_button_menu_reset_title">Reset the menu</string>
     <string name="floating_button_menu_reset_subtitle">Voice typing, Ask AI, clipboard, emoji and the keyboard</string>
     <!-- How far the rings stand off the button, and how they come out (#923). -->
     <string name="floating_button_menu_gap_title">Distance from the button</string>
     <string name="floating_button_menu_gap_subtitle">How far out the actions sit, in the quick menu and in every category</string>
+    <string name="floating_button_menu_gap_info">How far from the button the actions of its menu are placed. A larger distance spreads the actions out, so each one is easier to hit.</string>
     <string name="floating_button_menu_animation_title">Opening animation</string>
+    <string name="floating_button_menu_animation_info">How the menu appears when it opens. Pop, Spring, Sweep and Fade are different motions. None opens the menu at once, with no motion.</string>
     <string name="floating_button_animation_speed_title">Animation speed</string>
     <string name="floating_button_animation_speed_subtitle">How fast the menu opens and closes, and the button moves into place</string>
+    <string name="floating_button_animation_speed_info">How fast the menu opens and closes, and how fast the button moves into place after a drag.</string>
     <string name="floating_button_animation_speed_value">%1$.2f×</string>
     <string name="floating_button_menu_animation_spring">Spring</string>
     <string name="floating_button_menu_animation_pop">Pop</string>
@@ -113,6 +118,7 @@
 
     <string name="floating_button_look_group">Look</string>
     <string name="floating_button_style_title">Colours</string>
+    <string name="floating_button_style_info">The colours of the floating button. Auto follows the phone\'s light or dark mode. Light and Dark keep one look. Accent uses your theme\'s accent colour.</string>
     <string name="floating_button_style_auto">Auto</string>
     <string name="floating_button_style_dark">Dark</string>
     <string name="floating_button_style_light">Light</string>
@@ -120,6 +126,7 @@
     <!-- The button's outline (#933). -->
     <string name="floating_button_shape_title">Shape</string>
     <string name="floating_button_shape_subtitle">The outline of the button and of its actions</string>
+    <string name="floating_button_shape_info">The outline of the floating button and of the actions in its menu.</string>
     <string name="floating_button_shape_circle">Circle</string>
     <string name="floating_button_shape_squircle">Squircle</string>
     <string name="floating_button_shape_rounded_square">Rounded square</string>
@@ -132,35 +139,48 @@
     <string name="floating_button_shape_heart">Heart</string>
     <string name="floating_button_pill_title">Thin pill on the edge</string>
     <string name="floating_button_pill_subtitle">A slim line against the side of the screen instead of a round button</string>
+    <string name="floating_button_pill_info">Draws the floating button as a thin line against the side of the screen, in place of a round button. It covers almost nothing of the app. A touch on the line works the same as a touch on the button.</string>
     <string name="floating_button_pill_thickness_title">Pill thickness</string>
     <string name="floating_button_pill_thickness_subtitle">How thick the line is drawn</string>
+    <string name="floating_button_pill_thickness_info">How thick the pill is drawn. This changes its look only. The area that takes a touch is set under Touch area.</string>
     <string name="floating_button_pill_length_title">Pill height</string>
     <string name="floating_button_pill_length_subtitle">How tall the line is, and how tall the area that takes a touch</string>
+    <string name="floating_button_pill_length_info">How tall the pill is. The area that takes a touch gets the same height, so a taller pill is easier to find with a thumb.</string>
     <string name="floating_button_pill_touch_title">Touch area</string>
     <string name="floating_button_pill_touch_subtitle">How far in from the edge a touch still reaches the pill</string>
+    <string name="floating_button_pill_touch_info">How far in from the screen edge a touch still counts as a touch on the pill. A wider area is easier to hit, and takes more touches away from the app at that edge.</string>
     <string name="floating_button_size_title">Size</string>
     <string name="floating_button_size_subtitle">How large the button is</string>
+    <string name="floating_button_size_info">The size of the floating button. A larger button is easier to hit and covers more of the app under it.</string>
     <string name="floating_button_opacity_title">Opacity</string>
     <string name="floating_button_opacity_subtitle">How solid the button is while you use it</string>
+    <string name="floating_button_opacity_info">How solid the floating button looks while you use it. A lower value lets the app show through.</string>
     <string name="floating_button_idle_title">Fade when idle</string>
     <string name="floating_button_idle_subtitle">How long the button waits before it fades</string>
+    <string name="floating_button_idle_info">How long the floating button waits after your last touch before it fades.</string>
     <string name="floating_button_idle_never">Never</string>
     <string name="floating_button_idle_seconds">%1$d s</string>
     <string name="floating_button_idle_opacity_title">Faded opacity</string>
     <string name="floating_button_idle_opacity_subtitle">How solid the button is once it fades</string>
+    <string name="floating_button_idle_opacity_info">How solid the floating button looks after it fades. A low value keeps it out of the way. A value that is too low makes it hard to find again.</string>
     <string name="floating_button_tuck_title">Tuck into the edge</string>
     <string name="floating_button_tuck_subtitle">A faded button slides half off the side, out of the way of the app</string>
+    <string name="floating_button_tuck_info">When the button fades, it also slides half off the side of the screen, so it covers less of the app. A touch brings it back out.</string>
 
     <string name="floating_button_behaviour_group">Behaviour</string>
     <string name="floating_button_while_typing_title">Show while typing</string>
     <string name="floating_button_while_typing_subtitle">Stay on screen above the open keyboard, where a tap on the keyboard action closes it</string>
+    <string name="floating_button_while_typing_info">Keeps the floating button on the screen while the keyboard is open, above the keyboard. Its keyboard action then closes the keyboard. With this off, the button hides while you type.</string>
     <!-- Over the keys rather than lifted clear of them (#926). -->
     <string name="floating_button_over_keyboard_title">Float over the keyboard</string>
     <string name="floating_button_over_keyboard_subtitle">Stay where you put it, even over the keys. Only the button takes a touch; the keys around it still type</string>
+    <string name="floating_button_over_keyboard_info">The button stays where you put it, even when that place is over the keys. Only the button itself takes a touch, and the keys around it still type. With this off, the button moves up when the keyboard opens.</string>
     <string name="floating_button_landscape_title">Hide in landscape</string>
     <string name="floating_button_landscape_subtitle">Keep games and videos clear of the button</string>
+    <string name="floating_button_landscape_info">Hides the floating button while the phone is held sideways, so it does not cover a game or a video.</string>
     <string name="floating_button_haptics_title">Vibrate on touch</string>
     <string name="floating_button_haptics_subtitle">A tick on a tap, a firmer one when the menu opens or an action is picked</string>
+    <string name="floating_button_haptics_info">The phone vibrates on a touch of the floating button: a light tick for a tap, and a firmer one when the menu opens or you pick an action.</string>
     <string name="floating_button_reset_position_title">Reset position</string>
     <string name="floating_button_reset_position_subtitle">Back to the right edge, a little below the middle</string>
 

@@ -200,6 +200,7 @@ internal fun EmojiSettings(
                 selected = settings.watch { it.emojiBarContent },
                 default = SettingsDefaults.emojiBarContent,
                 detail = { content -> ChoiceDetail(stringResource(emojiBarContentDescRes(content))) },
+                info = stringResource(R.string.langemoji_emoji_bar_content_info),
             ) { scope.launch { repository.setEmojiBarContent(it) } }
         }
         item(visible = barMode != EmojiBarMode.OFF, level = SettingLevel.ADVANCED) {
@@ -462,6 +463,7 @@ internal fun EmojiPanelSettings(
                 range = EmojiTabWidthRange.first.toFloat()..EmojiTabWidthRange.last.toFloat(),
                 display = { numberFormat.format(it.roundToInt()) },
                 default = SettingsDefaults.emoji.tabMinWidth.toFloat(),
+                info = stringResource(R.string.langemoji_emoji_tab_width_info),
             ) { scope.launch { repository.setEmojiTabMinWidth(it.roundToInt()) } }
         }
         item(level = SettingLevel.STANDARD) {

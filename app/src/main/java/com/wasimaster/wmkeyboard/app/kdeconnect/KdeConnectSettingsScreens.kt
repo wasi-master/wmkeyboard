@@ -148,6 +148,7 @@ internal fun KdeConnectToolSettings(
                 stringResource(R.string.kdeconnect_enabled_subtitle),
                 kdeOn,
                 default = defaults.enabled,
+                info = stringResource(R.string.kdeconnect_enabled_info),
             ) { scope.launch { repository.setKdeEnabled(it) } }
         }
         item(visible = kdeOn) {
@@ -197,6 +198,7 @@ internal fun KdeConnectToolSettings(
                 stringResource(R.string.kdeconnect_auto_connect_subtitle),
                 settings.watch { it.kdeConnect.autoConnect },
                 default = defaults.autoConnect,
+                info = stringResource(R.string.kdeconnect_auto_connect_info),
             ) { scope.launch { repository.setKdeAutoConnect(it) } }
         }
     }
@@ -208,6 +210,7 @@ internal fun KdeConnectToolSettings(
                 stringResource(R.string.kdeconnect_clipboard_receive_subtitle),
                 clipboardReceive,
                 default = defaults.clipboardReceive,
+                info = stringResource(R.string.kdeconnect_clipboard_receive_info),
             ) { scope.launch { repository.setKdeClipboardReceive(it) } }
         }
         item(visible = clipboardReceive, level = SettingLevel.ADVANCED) {
@@ -241,6 +244,7 @@ internal fun KdeConnectToolSettings(
                 stringResource(R.string.kdeconnect_remote_typing_subtitle),
                 remoteTyping,
                 default = defaults.remoteTyping,
+                info = stringResource(R.string.kdeconnect_remote_typing_info),
             ) { scope.launch { repository.setKdeRemoteTyping(it) } }
         }
         item(visible = remoteTyping, level = SettingLevel.ADVANCED) {
@@ -263,6 +267,7 @@ internal fun KdeConnectToolSettings(
                 range = KdeConnectSettings.PAD_SPEED_RANGE,
                 display = times,
                 default = defaults.padSensitivity,
+                info = stringResource(R.string.kdeconnect_pad_speed_info),
             ) { scope.launch { repository.setKdePadSensitivity(it) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -271,6 +276,7 @@ internal fun KdeConnectToolSettings(
                 stringResource(R.string.kdeconnect_pad_accel_subtitle),
                 settings.watch { it.kdeConnect.padAcceleration },
                 default = defaults.padAcceleration,
+                info = stringResource(R.string.kdeconnect_pad_accel_info),
             ) { scope.launch { repository.setKdePadAcceleration(it) } }
         }
         item {
@@ -280,6 +286,7 @@ internal fun KdeConnectToolSettings(
                 range = KdeConnectSettings.PAD_SPEED_RANGE,
                 display = times,
                 default = defaults.scrollSpeed,
+                info = stringResource(R.string.kdeconnect_scroll_speed_info),
             ) { scope.launch { repository.setKdeScrollSpeed(it) } }
         }
         item {
@@ -288,6 +295,7 @@ internal fun KdeConnectToolSettings(
                 stringResource(R.string.kdeconnect_natural_scroll_subtitle),
                 settings.watch { it.kdeConnect.naturalScroll },
                 default = defaults.naturalScroll,
+                info = stringResource(R.string.kdeconnect_natural_scroll_info),
             ) { scope.launch { repository.setKdeNaturalScroll(it) } }
         }
         item {
@@ -296,6 +304,7 @@ internal fun KdeConnectToolSettings(
                 stringResource(R.string.kdeconnect_tap_click_subtitle),
                 settings.watch { it.kdeConnect.tapToClick },
                 default = defaults.tapToClick,
+                info = stringResource(R.string.kdeconnect_tap_click_info),
             ) { scope.launch { repository.setKdeTapToClick(it) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -304,6 +313,7 @@ internal fun KdeConnectToolSettings(
                 null,
                 settings.watch { it.kdeConnect.padHaptics },
                 default = defaults.padHaptics,
+                info = stringResource(R.string.kdeconnect_pad_haptics_info),
             ) { scope.launch { repository.setKdePadHaptics(it) } }
         }
     }
@@ -317,6 +327,7 @@ internal fun KdeConnectToolSettings(
                 stringResource(R.string.kdeconnect_receive_files_subtitle),
                 settings.watch { it.kdeConnect.receiveFiles },
                 default = defaults.receiveFiles,
+                info = stringResource(R.string.kdeconnect_receive_files_info),
             ) { scope.launch { repository.setKdeReceiveFiles(it) } }
         }
         item {
@@ -325,6 +336,7 @@ internal fun KdeConnectToolSettings(
                 stringResource(R.string.kdeconnect_share_sheet_subtitle),
                 settings.watch { it.kdeConnect.shareSheet },
                 default = defaults.shareSheet,
+                info = stringResource(R.string.kdeconnect_share_sheet_info),
             ) { scope.launch { repository.setKdeShareSheet(it) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -333,6 +345,7 @@ internal fun KdeConnectToolSettings(
                 stringResource(R.string.kdeconnect_battery_subtitle),
                 settings.watch { it.kdeConnect.batteryReport },
                 default = defaults.batteryReport,
+                info = stringResource(R.string.kdeconnect_battery_info),
             ) { scope.launch { repository.setKdeBatteryReport(it) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -350,6 +363,7 @@ internal fun KdeConnectToolSettings(
                 stringResource(R.string.kdeconnect_media_subtitle),
                 exposeMedia,
                 default = defaults.exposeMedia,
+                info = stringResource(R.string.kdeconnect_media_info),
             ) { scope.launch { repository.setKdeExposeMedia(it) } }
         }
         item(visible = exposeMedia) {

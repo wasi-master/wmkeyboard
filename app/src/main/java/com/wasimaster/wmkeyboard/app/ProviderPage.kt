@@ -228,6 +228,7 @@ internal fun ProviderPage(
                         ),
                         checked = row.entry.enabled,
                         icon = Icons.Outlined.ToggleOn,
+                        info = stringResource(R.string.providers_page_on_info),
                     ) { on ->
                         save(ProviderEdits.setChain(tool, settings.value.providerChain(tool, env).toggled(row.key, on)))
                     }
@@ -562,6 +563,7 @@ private fun WhisperOfflineSettings(repository: SettingsRepository, settings: Liv
                 stringResource(R.string.voice_translate_subtitle),
                 settings.watch { it.whisper.translate },
                 default = SettingsDefaults.whisper.translate,
+                info = stringResource(R.string.voice_translate_info),
             ) { scope.launch { repository.setWhisperTranslate(it) } }
         }
     }

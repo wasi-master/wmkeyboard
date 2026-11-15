@@ -59,6 +59,7 @@ internal fun ShareSheetSettingsScreen(
                 stringResource(R.string.share_sheet_recents_subtitle),
                 share.recentsEnabled,
                 default = defaults.recentsEnabled,
+                info = stringResource(R.string.share_sheet_recents_info),
             ) { on -> scope.launch { repository.setShareSheetRecentsEnabled(on) } }
         }
     }
@@ -77,6 +78,7 @@ internal fun ShareSheetSettingsScreen(
             ControlSetting(
                 R.string.share_sheet_pins_order_title,
                 subtitle = stringResource(R.string.share_sheet_pins_order_subtitle),
+                info = stringResource(R.string.share_sheet_pins_order_info),
             ) {
                 ReorderableColumn(
                     items = share.pinned,

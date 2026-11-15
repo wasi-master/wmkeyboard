@@ -97,6 +97,8 @@
     <string name="storage_play_modules_subtitle">Features the app fetched from the Play Store the first time you used them, such as voice typing, translation and on-device AI</string>
     <!-- Under a module the user removed: Play uninstalls it later, not at once. -->
     <string name="storage_play_module_removing">Play removes it later, usually within a day</string>
+    <string name="storage_help_pictures_title">Help pictures</string>
+    <string name="storage_help_pictures_subtitle">The pictures and clips shown above a setting\'s explanation, downloaded when you asked for them</string>
     <string name="storage_language_packs_title">Interface languages</string>
     <string name="storage_language_packs_subtitle">The app\'s menus and settings in languages other than English, downloaded when you picked them</string>
     <string name="storage_feature_libraries_subtitle">Native code that features such as voice typing, grammar checking, the scanner and on-device AI downloaded the first time you used them Press one to open the settings of the feature it belongs to.</string>

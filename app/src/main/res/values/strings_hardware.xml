@@ -62,6 +62,7 @@
     <string name="hardware_sound_group_title">Key press sound</string>
     <string name="hardware_sound_key_title">Key sound</string>
     <string name="hardware_sound_key_subtitle">Play a sound on every key press</string>
+    <string name="hardware_sound_key_info">Plays a short sound each time you press a key. The sound itself, its volume and where it plays are set in the rows below.</string>
 
     <string name="hardware_sound_style_title">Sound style</string>
     <!-- Section that chooses which installed sound pack the keys play. -->
@@ -79,6 +80,7 @@
 
     <string name="hardware_sound_volume_title">Sound volume</string>
     <string name="hardware_sound_volume_subtitle">Relative to the media volume of your device</string>
+    <string name="hardware_sound_volume_info">How loud key sounds are, as a part of the volume of the slider they follow. At the middle, a key sound plays at half that volume.</string>
 
     <!-- ================================================================== -->
     <!-- The key sounds installed on this device.                           -->
@@ -112,13 +114,16 @@
     <!-- %1$s is the recordings line above, for example "10 recordings". -->
     <string name="hardware_sound_pack_with_release">%1$s &#8226; keys sound on the way up</string>
     <string name="hardware_sound_pack_release_title">Key release sound</string>
+    <string name="hardware_sound_pack_release_info">A sound pack can hold two sounds for each key: one for the press and one for the release. With this on, the second sound plays when you lift your finger, as a mechanical keyboard clicks twice. This setting is on by default.</string>
     <string name="hardware_sound_output_title">Where sounds play</string>
     <string name="hardware_sound_output_subtitle">Headphones means wired, USB or Bluetooth</string>
+    <string name="hardware_sound_output_info">Where key sounds are allowed to play. Anywhere plays them wherever the phone\'s sound goes. Only through headphones keeps them out of the room: wired, USB and Bluetooth headphones all count. Only on the phone\'s speaker keeps them out of your music. The default is Anywhere.</string>
     <string name="hardware_sound_output_anywhere">Anywhere</string>
     <string name="hardware_sound_output_headphones">Only through headphones</string>
     <string name="hardware_sound_output_speaker">Only on the phone\'s speaker</string>
     <string name="hardware_sound_stream_title">Volume follows</string>
     <string name="hardware_sound_stream_subtitle">Which of the phone\'s volume sliders sets how loud key sounds are</string>
+    <string name="hardware_sound_stream_info">Which of the phone\'s volume sliders controls the loudness of key sounds. System is the slider for touch sounds, and it is silent while the phone is on silent. Media volume plays key sounds as loud as your music. Notification volume follows the slider for notifications. The default is System.</string>
     <string name="hardware_sound_stream_system">System (touch sounds)</string>
     <string name="hardware_sound_stream_notification">Notification volume</string>
     <string name="hardware_sound_stream_media">Media volume</string>

@@ -5,25 +5,35 @@
     <string name="tooldetail_speed_run_info">A run pings the server ten times, then downloads for the time set here, then uploads for the same time. The headline numbers leave out the first fifth of each transfer, where the connections are still opening.</string>
     <string name="tooldetail_speed_duration_title">Seconds per direction</string>
     <string name="tooldetail_speed_duration_subtitle">How long the download and the upload each run. Longer is steadier and costs more data.</string>
+    <string name="tooldetail_speed_duration_info">How long the download test and the upload test each run. A longer run gives a steadier result and uses more data.</string>
     <string name="tooldetail_speed_connections_title">Connections at once</string>
     <string name="tooldetail_speed_connections_subtitle">Requests in flight together. One connection rarely fills a fast line; four is what the browser tests use.</string>
+    <string name="tooldetail_speed_connections_info">How many requests the test runs at the same time. One connection rarely fills a fast line. Four is what the tests in a browser use. The default is 4.</string>
     <string name="tooldetail_speed_upload_title">Measure upload</string>
     <string name="tooldetail_speed_upload_subtitle">Off, a run is pings and download only, and takes half the time and data.</string>
+    <string name="tooldetail_speed_upload_info">Also measures the upload speed. With this off, a run measures ping and download only, and takes half the time and half the data. This setting is on by default.</string>
     <string name="tooldetail_speed_unit_title">Unit</string>
+    <string name="tooldetail_speed_unit_info">The unit that speeds are shown in. The default is megabits per second, which is the unit internet providers advertise.</string>
 
     <string name="tooldetail_speed_card_group">Result card</string>
     <string name="tooldetail_speed_card_info">The picture a result is sent as. The same choices sit on the panel as chips, and either place changes both.</string>
     <string name="tooldetail_speed_card_style_title">Style</string>
+    <string name="tooldetail_speed_card_style_info">The look of the result card that you can send after a speed test.</string>
     <string name="tooldetail_speed_card_size_title">Size</string>
+    <string name="tooldetail_speed_card_size_info">The shape of the result card: for example a square, or the size of a sticker. The default is the square.</string>
     <string name="tooldetail_speed_card_layout_title">Layout</string>
+    <string name="tooldetail_speed_card_layout_info">How much the result card shows: every figure of the run, or a shorter version. The default is the full card.</string>
     <string name="tooldetail_speed_send_mode_title">Send a sticker-sized card as</string>
     <string name="tooldetail_speed_send_mode_subtitle">Only the Sticker size can go as a sticker, and only into apps that take one. The other sizes are always pictures.</string>
+    <string name="tooldetail_speed_send_mode_info">How a card of the Sticker size is sent. A sticker shows large with a clear background, in apps that take stickers. A picture works in every app. Cards of the other sizes are always sent as pictures.</string>
     <string name="tooldetail_speed_send_mode_image">Picture</string>
     <string name="tooldetail_speed_send_mode_sticker">Sticker</string>
     <string name="tooldetail_speed_save_gallery_title">Save sent cards to the gallery</string>
     <string name="tooldetail_speed_save_gallery_subtitle">A copy of every card you send goes into Pictures/WM Keyboard. The panel\'s Save button saves one whether this is on or not.</string>
+    <string name="tooldetail_speed_save_gallery_info">A copy of every card you send is saved to Pictures/WM Keyboard. The Save button on the panel saves a card whether this is on or not. This setting is off by default.</string>
     <string name="tooldetail_speed_show_ip_title">Show my IP address</string>
     <string name="tooldetail_speed_show_ip_subtitle">Put the connection\'s public address in the card\'s footer. Off, the card names only the network and the server.</string>
+    <string name="tooldetail_speed_show_ip_info">Prints the public IP address of your connection in the footer of the result card. With this off, the card names only the network and the test server. Leave it off for a card you post in public. This setting is off by default.</string>
 
     <string name="tooldetail_speed_style_theme">Theme</string>
     <string name="tooldetail_speed_style_dark">Dark</string>

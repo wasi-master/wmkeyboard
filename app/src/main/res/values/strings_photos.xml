@@ -113,6 +113,7 @@
     <string name="photo_rotation_start_action">Turn on the rotation</string>
     <string name="photo_rotation_on_title">Rotate the background</string>
     <string name="photo_rotation_on_subtitle">Turn it off to keep the photo that is up now</string>
+    <string name="photo_rotation_on_info">The keyboard changes its background photo by itself. Turn this off to keep the photo that shows now.</string>
     <string name="photo_rotation_schedule_section_title">Schedule</string>
     <string name="photo_rotation_interval_title">How frequently</string>
     <string name="photo_rotation_shuffle_title">Change the photo now</string>
@@ -136,10 +137,13 @@
     <string name="photo_rotation_terms_hint">Put a comma between the words</string>
     <string name="photo_rotation_safe_title">Safe photos only</string>
     <string name="photo_rotation_safe_subtitle">Tell the service to remove adult photos</string>
+    <string name="photo_rotation_safe_info">Asks the photo service to leave out adult photos. This setting is on by default.</string>
     <string name="photo_rotation_wide_title">Wide photos only</string>
     <string name="photo_rotation_wide_subtitle">A keyboard is wide and short, so wide photos fit better</string>
+    <string name="photo_rotation_wide_info">Asks the photo service for wide photos only. A keyboard is wide and short, so a wide photo fits it with less cut off. This setting is on by default.</string>
     <string name="photo_rotation_metered_title">Use mobile data</string>
     <string name="photo_rotation_metered_subtitle">Get photos when there is no Wi-Fi</string>
+    <string name="photo_rotation_metered_info">Lets the keyboard download new background photos on mobile data. With this off, it downloads them on Wi-Fi only. While Data saver stops background downloads, nothing is downloaded on mobile data whatever this says. This setting is off by default.</string>
     <string name="photo_rotation_metered_saver_subtitle">Off on mobile data while Data saver stops background downloads</string>
     <string name="photo_rotation_metered_saver_nav_subtitle">Change what happens on mobile data</string>
     <string name="photo_rotation_storage_section_title">Photos and storage</string>

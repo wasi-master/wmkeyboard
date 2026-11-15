@@ -1058,6 +1058,7 @@ private fun WebDavPart(draft: BackupLocation, onChange: (BackupLocation) -> Unit
         title = R.string.backup_webdav_preset_title,
         options = WebDavPreset.entries.map { it to if (it == WebDavPreset.CUSTOM) other else it.label },
         selected = preset,
+        info = stringResource(R.string.backup_webdav_preset_info),
     ) { picked ->
         onChange(
             withParts(
@@ -1204,6 +1205,7 @@ private fun S3Part(draft: BackupLocation, onChange: (BackupLocation) -> Unit) {
         title = R.string.backup_s3_preset_title,
         options = S3Preset.entries.map { it to if (it == S3Preset.CUSTOM) other else it.label },
         selected = preset,
+        info = stringResource(R.string.backup_s3_preset_info),
     ) { picked ->
         val region = if (picked == S3Preset.CUSTOM) s3.region else picked.defaultRegion
         apply(s3.copy(preset = picked.id, region = region))
@@ -1272,6 +1274,7 @@ private fun S3Part(draft: BackupLocation, onChange: (BackupLocation) -> Unit) {
             stringResource(R.string.backup_auto_s3_path_style_subtitle),
             s3.pathStyle,
             default = SettingsDefaults.autoBackup.s3.pathStyle,
+            info = stringResource(R.string.backup_auto_s3_path_style_info),
         ) { on -> apply(s3.copy(pathStyle = on)) }
     } else if (s3.endpoint.isNotEmpty()) {
         Text(
@@ -1322,6 +1325,7 @@ private fun FtpPart(draft: BackupLocation, onChange: (BackupLocation) -> Unit) {
         stringResource(R.string.backup_auto_ftp_secure_subtitle),
         ftp.secure,
         default = SettingsDefaults.autoBackup.ftp.secure,
+        info = stringResource(R.string.backup_auto_ftp_secure_info),
     ) { on -> onChange(draft.copy(ftp = ftp.copy(secure = on))) }
     if (!ftp.secure) {
         StateBanner(stringResource(R.string.backup_auto_ftp_cleartext), tone = BannerTone.WARNING)
@@ -1391,6 +1395,7 @@ private fun SftpPart(draft: BackupLocation, onForget: () -> Unit, onChange: (Bac
         stringResource(R.string.backup_sftp_legacy_subtitle),
         sftp.legacyAlgorithms,
         default = false,
+        info = stringResource(R.string.backup_sftp_legacy_info),
     ) { on -> onChange(draft.copy(sftp = sftp.copy(legacyAlgorithms = on))) }
 }
 
@@ -1441,6 +1446,7 @@ private fun SmbPart(draft: BackupLocation, onChange: (BackupLocation) -> Unit) {
         stringResource(R.string.backup_smb_encrypt_subtitle),
         smb.encrypt,
         default = true,
+        info = stringResource(R.string.backup_smb_encrypt_info),
     ) { on -> onChange(draft.copy(smb = smb.copy(encrypt = on))) }
     if (!smb.encrypt) StateBanner(stringResource(R.string.backup_smb_cleartext), tone = BannerTone.WARNING)
 }
@@ -1461,6 +1467,7 @@ private fun GitPart(draft: BackupLocation, onChange: (BackupLocation) -> Unit) {
             GitProvider.GITEA to stringResource(R.string.backup_git_provider_gitea),
         ),
         selected = git.provider,
+        info = stringResource(R.string.backup_git_provider_info),
     ) { onChange(draft.copy(git = git.copy(provider = it))) }
     StoredTextField(
         label = stringResource(R.string.backup_git_server_label),
@@ -1542,12 +1549,14 @@ private fun GitPart(draft: BackupLocation, onChange: (BackupLocation) -> Unit) {
         stringResource(R.string.backup_git_skip_ci_subtitle),
         git.skipCi,
         default = true,
+        info = stringResource(R.string.backup_git_skip_ci_info),
     ) { on -> onChange(draft.copy(git = git.copy(skipCi = on))) }
     ToggleSetting(
         R.string.backup_git_allow_public_title,
         stringResource(R.string.backup_git_allow_public_subtitle),
         git.allowPublic,
         default = false,
+        info = stringResource(R.string.backup_git_allow_public_info),
     ) { on -> onChange(draft.copy(git = git.copy(allowPublic = on))) }
     StateBanner(
         stringResource(if (git.allowPublic) R.string.backup_git_public_warning else R.string.backup_git_info),
@@ -1574,6 +1583,7 @@ private fun ImapPart(draft: BackupLocation, onChange: (BackupLocation) -> Unit) 
         ),
         selected = imap.security,
         default = ImapSecurity.TLS,
+        info = stringResource(R.string.backup_imap_security_info),
     ) { picked ->
         // A port still at the old mode's default follows the new mode.
         val port = if (imap.port == imap.security.defaultPort) picked.defaultPort else imap.port
@@ -1703,6 +1713,7 @@ private fun DrivePart(draft: BackupLocation, onMessage: (String) -> Unit, onChan
         ),
         selected = draft.driveSpace,
         default = DriveSpace.APP_DATA,
+        info = stringResource(R.string.backup_drive_space_info),
     ) { onChange(draft.copy(driveSpace = it)) }
     if (draft.driveSpace == DriveSpace.FOLDER) {
         StoredTextField(

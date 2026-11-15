@@ -59,6 +59,7 @@ internal fun SearchShortcutsGroup(repository: SettingsRepository, settings: Live
                 on,
                 icon = Icons.Outlined.Search,
                 default = SettingsDefaults.smartChips.searchTriggers,
+                info = stringResource(R.string.search_shortcuts_info),
             ) { scope.launch { repository.setSearchTriggers(it) } }
         }
         if (on) {

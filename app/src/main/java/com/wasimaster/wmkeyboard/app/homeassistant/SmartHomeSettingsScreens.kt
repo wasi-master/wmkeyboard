@@ -116,7 +116,7 @@ internal fun SmartHomeToolSettings(
 
     SettingsGroup(stringResource(R.string.ha_group_connection), info = stringResource(R.string.ha_group_connection_info)) {
         item {
-            ToggleSetting(R.string.ha_enabled_title, stringResource(R.string.ha_enabled_subtitle), on, default = defaults.enabled) {
+            ToggleSetting(R.string.ha_enabled_title, stringResource(R.string.ha_enabled_subtitle), on, default = defaults.enabled, info = stringResource(R.string.ha_enabled_info)) {
                 scope.launch { repository.setHaEnabled(it) }
             }
         }
@@ -148,12 +148,14 @@ internal fun SmartHomeToolSettings(
                 ),
                 selected = settings.watch { it.homeAssistant.openOn },
                 default = defaults.openOn,
+                info = stringResource(R.string.ha_open_on_info),
             ) { scope.launch { repository.setHaOpenOn(it) } }
         }
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.ha_areas_tabs_title, stringResource(R.string.ha_areas_tabs_subtitle),
                 settings.watch { it.homeAssistant.areasAsTabs }, default = defaults.areasAsTabs,
+                info = stringResource(R.string.ha_areas_tabs_info),
             ) { scope.launch { repository.setHaAreasAsTabs(it) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -165,12 +167,14 @@ internal fun SmartHomeToolSettings(
                 ),
                 selected = settings.watch { it.homeAssistant.tileSize },
                 default = defaults.tileSize,
+                info = stringResource(R.string.ha_tile_size_info),
             ) { scope.launch { repository.setHaTileSize(it) } }
         }
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.ha_confirm_risky_title, stringResource(R.string.ha_confirm_risky_subtitle),
                 settings.watch { it.homeAssistant.confirmRisky }, default = defaults.confirmRisky,
+                info = stringResource(R.string.ha_confirm_risky_info),
             ) { scope.launch { repository.setHaConfirmRisky(it) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -183,6 +187,7 @@ internal fun SmartHomeToolSettings(
                 ),
                 selected = settings.watch { HaInsertFormat.of(it.homeAssistant.insertFormat) },
                 default = HaInsertFormat.of(defaults.insertFormat),
+                info = stringResource(R.string.ha_insert_format_info),
             ) { scope.launch { repository.setHaInsertFormat(it.id) } }
         }
     }
@@ -198,6 +203,7 @@ internal fun SmartHomeToolSettings(
                 ToggleSetting(
                     R.string.ha_assist_enabled_title, stringResource(R.string.ha_assist_enabled_subtitle),
                     settings.watch { it.homeAssistant.assistEnabled }, default = defaults.assistEnabled,
+                    info = stringResource(R.string.ha_assist_enabled_info),
                 ) { scope.launch { repository.setHaAssistEnabled(it) } }
             }
             item(visible = ha.assistEnabled, level = SettingLevel.ADVANCED) {
@@ -209,12 +215,14 @@ internal fun SmartHomeToolSettings(
                     options = listOf("" to stringResource(R.string.ha_assist_agent_default)) + agents.map { it.id to it.name },
                     selected = if (agents.any { it.id == selected }) selected else "",
                     default = "",
+                    info = stringResource(R.string.ha_assist_agent_info),
                 ) { scope.launch { repository.setHaAssistAgent(it) } }
             }
             item(visible = ha.assistEnabled, level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.ha_assist_language_title, stringResource(R.string.ha_assist_language_subtitle),
                     settings.watch { it.homeAssistant.assistFollowsKeyboardLanguage }, default = defaults.assistFollowsKeyboardLanguage,
+                    info = stringResource(R.string.ha_assist_language_info),
                 ) { scope.launch { repository.setHaAssistFollowsLanguage(it) } }
             }
         }
@@ -242,6 +250,7 @@ internal fun SmartHomeToolSettings(
             ToggleSetting(
                 R.string.ha_cache_title, stringResource(R.string.ha_cache_subtitle),
                 settings.watch { it.homeAssistant.cacheStates }, default = defaults.cacheStates,
+                info = stringResource(R.string.ha_cache_info),
             ) { scope.launch { repository.setHaCacheStates(it) } }
         }
     }
@@ -256,6 +265,7 @@ internal fun SmartHomeToolSettings(
             ToggleSetting(
                 R.string.ha_smart_chip_title, stringResource(R.string.ha_smart_chip_subtitle),
                 settings.watch { it.homeAssistant.smartChip }, default = defaults.smartChip,
+                info = stringResource(R.string.ha_smart_chip_info),
             ) { scope.launch { repository.setHaSmartChip(it) } }
         }
     }

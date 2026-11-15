@@ -1669,6 +1669,11 @@ if (docShots) {
         systemProperty("wmkb.docShots.only", providers.gradleProperty("wmkb.docShots.only").getOrElse(""))
         // `-Pwmkb.docShots.modes=light` (or dark) renders one of the two, for a quick look.
         systemProperty("wmkb.docShots.modes", providers.gradleProperty("wmkb.docShots.modes").getOrElse(""))
+        // HelpShots, the pictures in a setting's "?" dialog: rendered only when
+        // `-Pwmkb.helpShots.only=<regex over title resource names>` is given
+        // (`.*` for all), into build/helpshots/ for tools/helpvisuals/build.py.
+        systemProperty("wmkb.helpShots.only", providers.gradleProperty("wmkb.helpShots.only").getOrElse(""))
+        systemProperty("wmkb.helpShots.out", layout.buildDirectory.dir("helpshots").get().asFile.absolutePath)
         // AddonShots, the community repository's render: `-Pwmkb.addonShots.in=<dir>`
         // holds request.json and the submitted file, `-Pwmkb.addonShots.out=<dir>`
         // gets the PNGs and the report.

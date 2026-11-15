@@ -87,6 +87,7 @@ internal fun KaomojiSettings(
                 stringResource(R.string.langemoji_kaomoji_split_subtitle),
                 settings.watch { it.emoji.kaomoji.splitEmoticons },
                 default = SettingsDefaults.emoji.kaomoji.splitEmoticons,
+                info = stringResource(R.string.langemoji_kaomoji_split_info),
             ) { scope.launch { repository.setKaomojiSplitEmoticons(it) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -95,6 +96,7 @@ internal fun KaomojiSettings(
                 stringResource(R.string.langemoji_kaomoji_tag_tabs_subtitle),
                 settings.watch { it.emoji.kaomoji.tagTabs },
                 default = SettingsDefaults.emoji.kaomoji.tagTabs,
+                info = stringResource(R.string.langemoji_kaomoji_tag_tabs_info),
             ) { scope.launch { repository.setKaomojiTagTabs(it) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -109,6 +111,7 @@ internal fun KaomojiSettings(
                 ),
                 selected = settings.watch { it.emoji.kaomoji.startView },
                 default = SettingsDefaults.emoji.kaomoji.startView,
+                info = stringResource(R.string.langemoji_kaomoji_start_info),
             ) { scope.launch { repository.setKaomojiStartView(it) } }
         }
     }
@@ -156,6 +159,7 @@ internal fun KaomojiSettings(
                 stringResource(R.string.langemoji_kaomoji_in_search_subtitle),
                 settings.watch { it.emoji.kaomoji.inSearch },
                 default = SettingsDefaults.emoji.kaomoji.inSearch,
+                info = stringResource(R.string.langemoji_kaomoji_in_search_info),
             ) { scope.launch { repository.setKaomojiInSearch(it) } }
         }
     }

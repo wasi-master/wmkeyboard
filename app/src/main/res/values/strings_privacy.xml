@@ -126,6 +126,7 @@
     <!-- %1$d of %2$d: libraries on the phone, of all this build can use. -->
     <string name="privacy_native_import_subtitle">%1$d of %2$d on this phone. This is the offline build, so it cannot download them: get the files on another device and import them here, or install the standard build over this one</string>
     <string name="privacy_qualcomm_licence_title">Qualcomm NPU runtime</string>
+    <string name="privacy_qualcomm_licence_info">On-device AI can run on the phone\'s NPU, which is faster and uses less battery. That needs Qualcomm\'s QNN runtime, which Qualcomm gives out under its own licence. Turn this on to read the licence, accept it, and download the runtime from Maven Central. Until then, on-device AI runs without the NPU.</string>
     <string name="privacy_qualcomm_licence_accepted">Licence accepted. The NPU runtime downloads from Maven Central.</string>
     <string name="privacy_qualcomm_licence_not_accepted">Not accepted. On-device AI can\'t use the NPU.</string>
     <string name="privacy_qualcomm_licence_dialog_title">Qualcomm\'s licence</string>
@@ -248,6 +249,7 @@
     <string name="privacy_lock_change_subtitle">Enter a new one twice. Only a scrambled copy is kept</string>
     <string name="privacy_lock_shortcut_title">Offer the fingerprint first</string>
     <string name="privacy_lock_shortcut_subtitle">Unlock with a finger, with the PIN, password or pattern one tap away</string>
+    <string name="privacy_lock_shortcut_info">The lock asks for a fingerprint first. The PIN, password or pattern is one tap away, for when the finger does not read.</string>
     <string name="privacy_lock_shortcut_unavailable">This phone has no fingerprint set up</string>
     <string name="privacy_lock_use_pin">Use PIN</string>
     <string name="privacy_lock_use_password">Use password</string>

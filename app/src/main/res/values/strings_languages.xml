@@ -221,6 +221,7 @@
     <string name="languages_fancy_style_title">Style</string>
     <string name="languages_fancy_style_row_title">Fancy style</string>
     <string name="languages_fancy_style_row_subtitle">The lettering the fancy keyboard types. Also switchable from the strip over the keys.</string>
+    <string name="languages_fancy_style_row_info">The lettering that the fancy text keyboard types, such as bold or script. The strip above the keys changes the same setting while you type. The default is bold.</string>
     <string name="languages_fancy_fonts_group">Your fonts</string>
     <string name="languages_fancy_fonts_info">Make a style from any alphabet: copy a font\'s letters from a fancy-text website and paste them in. Your fonts join the strip over the keys after the built-in styles. Letters you leave out type plain. Separate the letters with spaces to give one letter several characters, such as (a) (b) (c).</string>
     <string name="languages_fancy_fonts_add_title">Add a font</string>
@@ -294,6 +295,7 @@
     <string name="languages_raw_keys_chip_info">Khipro keys such as f and / change the letters before them, so the word on the strip does not always show which keys you pressed.\n\nWith this on, the second word on the strip is the keys exactly as you pressed them, modifiers included. Tap it to write those keys as they are, in English letters. The space bar does not change: it writes the Bengali word.\n\nWith this off, the keys show only when they are all letters and English is mixed in on the layout, for English words that the dictionary does not know.</string>
     <string name="languages_phonetic_strip_source_title">Suggestions after them</string>
     <string name="languages_phonetic_strip_source_subtitle">Which language fills the rest of the strip</string>
+    <string name="languages_phonetic_strip_source_info">After the phonetic readings of what you typed, the rest of the suggestion strip is filled with words. This sets where those words come from. English only offers English words. The other choice offers words of the layout\'s own language only. Smart offers both and puts first the language of the text around the cursor.</string>
     <string name="languages_phonetic_strip_source_smart_label">Smart</string>
     <!-- %1$s is the English name of the language, for example "Bengali". -->
     <string name="languages_phonetic_strip_source_native_label"><xliff:g id="language" example="Bengali">%1$s</xliff:g> only</string>
@@ -602,6 +604,7 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
     <string name="languages_rime_group_title">Conversion engine</string>
     <string name="languages_rime_group_info">The built-in engine converts with the dictionaries above. RIME is the open-source engine behind Weasel, Squirrel and Trime. It reads RIME schemas, learns the words you pick, and can type schemas you import yourself. It needs its own library and schema packs, which it compiles on the phone.</string>
     <string name="languages_rime_engine_title">Engine</string>
+    <string name="languages_rime_engine_info">The engine that converts readings for this language. With RIME, each layout of the language converts through the RIME schema you pick for it. The keys stay the same.</string>
     <string name="languages_rime_engine_builtin">Built-in</string>
     <string name="languages_rime_engine_rime">RIME</string>
     <string name="languages_rime_engine_subtitle">With RIME, the layouts of this language convert through the RIME schema you pick for each. The keys stay the same.</string>
@@ -651,6 +654,7 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
     <string name="languages_mozc_group_title">Conversion engine</string>
     <string name="languages_mozc_group_info">The built-in engine converts with the kana dictionary above. Mozc is Google\'s open-source Japanese engine, the one behind Google Japanese Input. It converts whole sentences, learns what you pick, and lets you move the boundaries between the parts of a reading. It needs its own library and dictionary.</string>
     <string name="languages_mozc_engine_title">Japanese engine</string>
+    <string name="languages_mozc_engine_info">The engine that converts Japanese readings into kanji. With Mozc, every Japanese layout converts through Mozc: romaji, flick, 12-key and kana. The keys stay the same, and the arrow keys change the length of the part being converted.</string>
     <string name="languages_mozc_engine_mozc">Mozc</string>
     <string name="languages_mozc_engine_subtitle">With Mozc, every Japanese layout converts through Mozc: romaji, flick, 12-key and kana. The keys stay the same. The arrow keys resize the part of the reading being converted.</string>
     <!-- %1$s is a size such as 2.9 MB. -->
@@ -682,15 +686,18 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
     <string name="languages_cjk_traditional_info">The keyboard converts each candidate from Simplified (简体) to Traditional (繁體) before it shows the candidate. Some Simplified characters have more than one Traditional form, and the word decides which one is correct: 发 is 發 in 發展 but 髮 in 頭髮, and 后 is 後 in 後來 but 后 in 皇后. With the phrase table pack downloaded, the keyboard reads whole words, so it writes the correct form. Without the pack, or for a word that is in no table, it converts one character at a time.</string>
     <string name="languages_cjk_traditional_button_title">繁 button</string>
     <string name="languages_cjk_traditional_button_subtitle">A button beside the candidates switches between Simplified and Traditional</string>
+    <string name="languages_cjk_traditional_button_info">Shows a 繁 button beside the candidates. A tap changes the candidates between Simplified and Traditional characters, without a visit to the settings. This setting is off by default.</string>
     <string name="languages_cjk_kyujitai_title">Old character forms</string>
     <string name="languages_cjk_kyujitai_subtitle">Candidates come out in kyujitai (舊字體): 國 for 国, 學 for 学</string>
     <string name="languages_cjk_kyujitai_info">The keyboard converts each candidate from the new forms used today (shinjitai) to the old forms (kyujitai), with OpenCC\'s Japanese tables. Some new forms stand for more than one old one, and the word decides: 弁 is 辯 in 弁論 but 辨 in 弁当. Kana are not changed. Mozc and the built-in conversion both follow this setting.</string>
     <string name="languages_cjk_kyujitai_button_title">舊 button</string>
     <string name="languages_cjk_kyujitai_button_subtitle">A button beside the candidates switches between the new and the old forms</string>
+    <string name="languages_cjk_kyujitai_button_info">Shows a 舊 button beside the candidates. A tap changes the candidates between the new character forms and the old forms. This setting is off by default.</string>
     <string name="languages_cjk_reading_in_field_title">Show the reading in the text field</string>
     <string name="languages_cjk_reading_in_field_subtitle">Off, the pinyin you type shows only on the keyboard, before the candidates</string>
     <string name="languages_cjk_reading_in_field_info">On, the pinyin, zhuyin or Jyutping that you type shows underlined in the text field until you pick a candidate. Off, the text field stays as it is, and the keyboard shows what you typed at the start of the candidate strip. Only the candidate you pick goes into the text field, the way fcitx5 works.</string>
     <string name="languages_cjk_reading_on_switch_title">When you switch language mid-reading</string>
+    <string name="languages_cjk_reading_on_switch_info">What happens to a reading you have typed and not yet converted when you change language. Type the first candidate puts the best candidates into the text field. Type what you typed puts the pinyin or zhuyin letters there. Discard it puts nothing there. The default is Type the first candidate.</string>
     <string name="languages_cjk_reading_on_switch_convert">Type the first candidate</string>
     <string name="languages_cjk_reading_on_switch_convert_desc">The best candidates for everything that you typed go into the text field</string>
     <string name="languages_cjk_reading_on_switch_typed">Type what you typed</string>
@@ -715,6 +722,7 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
     <string name="languages_braille_download_info">Download liblouis\'s tables to type contracted braille. They work offline after the download.</string>
     <string name="languages_braille_table_title">Contractions</string>
     <string name="languages_braille_table_subtitle">Which contracted braille your words are read as. A word types when you press space or another key. Needs the tables above.</string>
+    <string name="languages_braille_table_info">Which contracted braille the chord keyboard reads your cells as. With a table picked, the cells you type become the word when you press space or another key. The tables above must be downloaded first.</string>
     <string name="languages_braille_table_uncontracted">None, English letter by letter</string>
     <string name="languages_nikud_download_info">Download Phonikud to add niqqud to Hebrew text: select it and tap Add niqqud. It works offline after the download, and uses a lot of memory while it runs.</string>
     <string name="languages_tashkeel_download_info">Download CATT to add tashkeel to Arabic text: select it and tap Add tashkeel. It works offline after the download.</string>
@@ -740,6 +748,7 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
     <string name="languages_cjk_hanja_subtitle">Show the Hanja for the word you are typing on the suggestion strip</string>
     <string name="languages_cjk_hanja_info">Tap one to write it in place of the Hangul. An ending stays in Hangul, so 학교에 can become 學校에. Needs the Hanja dictionary above. To see every choice for a word, turn on the scrolling suggestion strip.</string>
     <string name="languages_cjk_lazy_title">Lazy pronunciation (懶音)</string>
+    <string name="languages_cjk_lazy_info">Many Cantonese speakers merge certain sounds, for example n and l at the start of a syllable. With this on, a reading typed with a merged sound also finds the words written with the original sound. This setting is on by default.</string>
     <!-- Only "Match merged sounds" and "before" need translation. The rest is
          Jyutping spelling and stays as it is. -->
     <string name="languages_cjk_lazy_subtitle">Match merged sounds: n↔l, ng↔∅, gw→g before -o, -ng↔-n, -k↔-t…</string>

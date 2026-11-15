@@ -383,6 +383,8 @@
     <string name="import_offline_rime_body"><xliff:g id="file_name" example="my-schemas.zip">%1$s</xliff:g> holds RIME input schemas. Import adds them, and the RIME engine compiles them the next time the RIME screen is open.</string>
     <string name="import_offline_app_language_title">Install an interface language?</string>
     <string name="import_offline_app_language_body"><xliff:g id="file_name" example="wmkeyboard-1.0-vc100-lang-de.apk">%1$s</xliff:g> holds the app\'s text in another language. Import installs it, so the app can show that language.</string>
+    <string name="import_offline_help_title">Install help pictures?</string>
+    <string name="import_offline_help_body"><xliff:g id="file_name" example="wmkb-help-light-0123456789ab.zip">%1$s</xliff:g> holds the pictures and clips shown above a setting\'s explanation. Import installs them, so those explanations show their pictures.</string>
     <string name="import_offline_mixed_title">Install these files?</string>
     <string name="import_offline_mixed_body"><xliff:g id="file_name" example="files.zip">%1$s</xliff:g> holds files of more than one kind that the keyboard can install. Import installs each one it knows and reports on all of them.</string>
     <!-- Files of other kinds opened from a file manager or a chat app, each

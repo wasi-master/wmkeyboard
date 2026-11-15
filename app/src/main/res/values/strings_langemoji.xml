@@ -73,12 +73,16 @@
     <string name="langemoji_emoji_access_title">Access</string>
     <string name="langemoji_strip_tools_add_value">Add</string>
     <string name="langemoji_strip_toolbox_title">Toolbox button</string>
+    <string name="langemoji_strip_toolbox_info">Puts a toolbox button among the buttons beside the suggestions. The toolbox is then one press away while the suggestions show, with no need to open the toolbar first.</string>
     <string name="langemoji_strip_own_size_title">Own size for these buttons</string>
     <string name="langemoji_strip_own_size_subtitle">Size the buttons beside the suggestions apart from the toolbar\'s tools</string>
+    <string name="langemoji_strip_own_size_info">Gives the buttons beside the suggestions their own width and icon size. With this off, they use the same sizes as the tools on the toolbar. This setting is off by default.</string>
     <string name="langemoji_strip_tool_width_title">Button width</string>
     <string name="langemoji_strip_tool_width_subtitle">How wide each button beside the suggestions is</string>
+    <string name="langemoji_strip_tool_width_info">The width of each button beside the suggestions. Narrower buttons leave more room for the suggested words. The default is 38 dp.</string>
     <string name="langemoji_strip_icon_size_title">Button icon size</string>
     <string name="langemoji_strip_icon_size_subtitle">How big the icon in each button beside the suggestions is</string>
+    <string name="langemoji_strip_icon_size_info">The size of the icon in each button beside the suggestions. The default is 22 dp.</string>
     <string name="langemoji_emoji_full_bleed_title">Full-screen emoji panel</string>
     <string name="langemoji_emoji_full_bleed_subtitle">Hide the toolbar and move the category tabs up, next to a back button</string>
     <string name="langemoji_emoji_full_bleed_info">The emoji panel fills the whole keyboard. The toolbar, the emoji row and the symbol row go away. The category tabs move into the row that they leave, next to a back button. Turn this off to keep the toolbar in reach while you select emoji.</string>
@@ -159,6 +163,7 @@
     <string name="langemoji_emoji_most_used_desc">The emoji that you use most often come first</string>
     <string name="langemoji_emoji_tab_width_title">Narrowest tab</string>
     <string name="langemoji_emoji_tab_width_subtitle">How narrow a category tab may get before the tabs scroll sideways. Less fits every tab on the screen</string>
+    <string name="langemoji_emoji_tab_width_info">The narrowest a category tab of the emoji panel may get. When the tabs do not all fit at this width, they scroll sideways. A lower value fits every tab on the screen at once. The default is 40 dp.</string>
     <string name="langemoji_emoji_both_label">Both</string>
     <string name="langemoji_emoji_both_desc">Your most used emoji at the top, then your recent ones, each under its own heading</string>
     <string name="langemoji_emoji_tab_off_label">Off</string>
@@ -195,6 +200,7 @@
     <string name="langemoji_emoji_bar_always_desc">The row stays between the toolbar and the keys</string>
     <string name="langemoji_emoji_bar_content_title">Emoji row content</string>
     <string name="langemoji_emoji_bar_content_subtitle">Favourites always come first</string>
+    <string name="langemoji_emoji_bar_content_info">Which emoji fill the emoji row above the keys. Your favourites always come first, and this setting chooses what follows them. The default is the emoji you use most.</string>
     <string name="langemoji_emoji_favourites_label">Favourites</string>
     <!-- One line under each option in the emoji row content picker. -->
     <string name="langemoji_emoji_bar_content_most_used_desc">The emoji that you use most often</string>
@@ -377,10 +383,13 @@
     <string name="langemoji_kaomoji_tab_group">The tab</string>
     <string name="langemoji_kaomoji_split_title">Separate Emoticons tab</string>
     <string name="langemoji_kaomoji_split_subtitle">Show :-) and the other ASCII faces in a tab of their own</string>
+    <string name="langemoji_kaomoji_split_info">Puts the plain ASCII faces, such as :-), in a tab of their own, apart from the kaomoji. With this off, they share one tab. This setting is off by default.</string>
     <string name="langemoji_kaomoji_tag_tabs_title">Tag tabs</string>
     <string name="langemoji_kaomoji_tag_tabs_subtitle">A row of tags at the top of the tab. Off shows one long list with a heading for each tag.</string>
+    <string name="langemoji_kaomoji_tag_tabs_info">Shows a row of tags at the top of the kaomoji tab. A tap on a tag shows the faces for that feeling only. With this off, the tab is one long list with a heading for each tag. This setting is on by default.</string>
     <string name="langemoji_kaomoji_start_title">Open on</string>
     <string name="langemoji_kaomoji_start_subtitle">The tag the tab shows when you open the emoji panel</string>
+    <string name="langemoji_kaomoji_start_info">The tag that the kaomoji tab shows when you open it: all the faces, your favourites, the ones you used recently, or the tag you had open last. The default is the last tag you used.</string>
     <string name="langemoji_kaomoji_start_last">The last tag you used</string>
     <string name="langemoji_kaomoji_start_recent">Recent</string>
     <string name="langemoji_kaomoji_start_favourites">Favourites</string>
@@ -401,6 +410,7 @@
     <string name="langemoji_kaomoji_suggest_info">The keyboard shows the faces of a tag when the word you type is the name of that tag. Your favourites and the faces you use most come first. If you press one, it goes in after your word, or in place of it, the same as an emoji suggestion.</string>
     <string name="langemoji_kaomoji_in_search_title">Kaomoji in emoji search</string>
     <string name="langemoji_kaomoji_in_search_subtitle">Show the faces that match after the emoji in the search of the emoji panel</string>
+    <string name="langemoji_kaomoji_in_search_info">When you search in the emoji panel, the kaomoji that match your words are listed after the emoji. Turn this off to search emoji only. This setting is on by default.</string>
     <string name="langemoji_kaomoji_library_group">Your library</string>
     <string name="langemoji_kaomoji_faces_title">Faces</string>
     <string name="langemoji_kaomoji_faces_subtitle">Add, change, sort and delete the faces in your library</string>

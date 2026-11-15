@@ -12,6 +12,7 @@
     <string name="layout_number_row_height_info">A short digit row keeps fast access to the numbers. It adds less height to the keyboard than a full row.</string>
     <string name="layout_number_row_hints_title">Hints on the number row</string>
     <string name="layout_number_row_hints_subtitle">The small symbols in the corners of the digit keys. Off hides them on that row only</string>
+    <string name="layout_number_row_hints_info">The digit keys of the number row show a small symbol in the corner, which a long press types. Turn this off for cleaner digit keys. The long press still works, and the hints on the letter keys are not changed. This setting is on by default.</string>
     <string name="layout_number_row_shift_symbols_title">Symbols on shift</string>
     <string name="layout_number_row_shift_symbols_subtitle">Press and hold shift to change the digit row to symbols</string>
     <!-- The characters in brackets are the symbols themselves. Do not translate them. -->
@@ -140,6 +141,7 @@
     <string name="layout_board_inverse_corner_off">Off</string>
     <string name="layout_board_corners_title">Which corners</string>
     <string name="layout_board_corners_subtitle">The corners that the settings above make round</string>
+    <string name="layout_board_corners_info">Which of the keyboard\'s four corners take the rounding set above. Leave a corner out to keep it square, for example the bottom corners on a keyboard that sits against the screen edge. All four are rounded by default.</string>
     <string name="layout_keyboard_width_title">Keyboard width</string>
     <string name="layout_keyboard_width_subtitle">Make the keyboard narrower</string>
     <string name="layout_keyboard_width_info">Below 100 percent the keyboard does not fill the whole screen. Select the edge that it sits at below. This helps on very wide screens. One-handed mode below is a quick preset, and it replaces this value while it is on.</string>
@@ -168,12 +170,16 @@
     <string name="layout_variant_summary" tools:ignore="PluralsCandidate">%1$d dp keys, %2$d%% wide</string>
     <string name="layout_keyboard_scale_title">Keyboard scale</string>
     <string name="layout_keyboard_scale_subtitle">Make the whole keyboard smaller or larger on this screen</string>
+    <string name="layout_keyboard_scale_info">Makes the complete keyboard smaller or larger on this kind of screen: keys, text and bars together. Use it for a quick size change. The sliders below change one measure at a time.</string>
     <string name="layout_font_size_title">Font size</string>
+    <string name="layout_font_size_info">The size of the letters on the keys. It does not change the size of the keys themselves.</string>
     <!-- Per-screen gates on one-handed and split mode (#611). -->
     <string name="layout_variant_allow_one_handed_title">One-handed mode on this screen</string>
     <string name="layout_variant_allow_one_handed_subtitle">When off, the keyboard stays full width here, even with one-handed mode on</string>
+    <string name="layout_variant_allow_one_handed_info">Lets one-handed mode make the keyboard smaller on this kind of screen. With this off, the keyboard stays at full width here, even while one-handed mode is on for other screens.</string>
     <string name="layout_variant_allow_split_title">Split keyboard on this screen</string>
     <string name="layout_variant_allow_split_subtitle">When off, the keyboard stays in one piece here, even with split keyboard on</string>
+    <string name="layout_variant_allow_split_info">Lets the split keyboard divide the keys into two halves on this kind of screen. With this off, the keyboard stays in one piece here, even while split keyboard is on for other screens.</string>
     <string name="layout_follow_portrait_title">Follow portrait again</string>
     <!-- %1$s is the name of a screen shape, such as Landscape. -->
     <string name="layout_follow_portrait_subtitle">Delete the sizes that you set for <xliff:g id="screen" example="Landscape">%1$s</xliff:g></string>
@@ -183,6 +189,7 @@
     <string name="layout_one_handed_page_subtitle">One-handed, split, floating</string>
     <string name="layout_one_handed_title">One-handed mode</string>
     <string name="layout_one_handed_subtitle">Make the keyboard smaller at one edge of the screen</string>
+    <string name="layout_one_handed_info">Makes the keyboard smaller and puts it against one edge of the screen, so one thumb reaches every key. Pick the edge for the hand you type with. The default is Off.</string>
     <string name="layout_one_handed_caption">You can set one-handed mode for each orientation. In the keyboard, the arrow on the rail changes the side and saves it here for that orientation.</string>
     <string name="layout_one_handed_layout_title">Layout in one-handed mode</string>
     <string name="layout_one_handed_layout_subtitle">The layout to use while one-handed mode is on</string>

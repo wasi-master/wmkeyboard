@@ -177,6 +177,7 @@ fun PhotoRotationScreen(
                     subtitle = stringResource(R.string.photo_rotation_on_subtitle),
                     checked = rotateEnabled,
                     default = SettingsDefaults.photoBackground.rotateEnabled,
+                    info = stringResource(R.string.photo_rotation_on_info),
                 ) { scope.launch { repository.setPhotoRotateEnabled(it) } }
             }
         }
@@ -320,6 +321,7 @@ fun PhotoRotationScreen(
                         subtitle = stringResource(R.string.photo_rotation_wide_subtitle),
                         checked = settings.watch { it.photoBackground.landscapeOnly },
                         default = SettingsDefaults.photoBackground.landscapeOnly,
+                        info = stringResource(R.string.photo_rotation_wide_info),
                     ) { scope.launch { repository.setPhotoLandscapeOnly(it) } }
                 }
                 item(level = SettingLevel.STANDARD) {
@@ -328,6 +330,7 @@ fun PhotoRotationScreen(
                         subtitle = stringResource(R.string.photo_rotation_safe_subtitle),
                         checked = settings.watch { it.photoBackground.safeSearch },
                         default = SettingsDefaults.photoBackground.safeSearch,
+                        info = stringResource(R.string.photo_rotation_safe_info),
                     ) { scope.launch { repository.setPhotoSafeSearch(it) } }
                 }
                 // Data saver copies `false` over this switch on a metered
@@ -343,6 +346,7 @@ fun PhotoRotationScreen(
                         ),
                         checked = settings.watch { it.photoBackground.fetchOnMetered },
                         default = SettingsDefaults.photoBackground.fetchOnMetered,
+                        info = stringResource(R.string.photo_rotation_metered_info),
                     ) { scope.launch { repository.setPhotoFetchOnMetered(it) } }
                 }
                 item(visible = saverStops, level = SettingLevel.STANDARD) {

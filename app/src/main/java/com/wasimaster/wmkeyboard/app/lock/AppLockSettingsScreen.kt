@@ -129,6 +129,7 @@ internal fun AppLockSettingsScreen(repository: SettingsRepository) {
                 // because that is what the lock then asks for.
                 selected = if (cfg.usesSecret) cfg.method else AppLockMethod.BIOMETRIC,
                 default = AppLockDefaults.method,
+                info = stringResource(R.string.privacy_lock_method_info),
             ) { picked ->
                 // No extra check to switch: once the lock is on, this whole
                 // screen is already behind it. A new secret is only stored
@@ -162,6 +163,7 @@ internal fun AppLockSettingsScreen(repository: SettingsRepository) {
                     enabled = biometric == AppLockStatus.READY,
                     disabledReason = DisabledReason(stringResource(R.string.privacy_lock_shortcut_unavailable)),
                     default = AppLockDefaults.biometricShortcut,
+                    info = stringResource(R.string.privacy_lock_shortcut_info),
                 ) { scope.launch { repository.setAppLockBiometricShortcut(it) } }
             }
         }

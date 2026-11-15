@@ -522,6 +522,7 @@ internal fun SnippetSettings(
                 stringResource(R.string.expander_titles_only_subtitle),
                 settings.watch { it.suggestionStrip.snippetTitlesOnly },
                 default = SettingsDefaults.suggestionStrip.snippetTitlesOnly,
+                info = stringResource(R.string.expander_titles_only_info),
             ) { scope.launch { repository.setSnippetTitlesOnly(it) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -530,6 +531,7 @@ internal fun SnippetSettings(
                 stringResource(R.string.expander_panel_stays_subtitle),
                 settings.watch { it.suggestionStrip.snippetPanelStays },
                 default = SettingsDefaults.suggestionStrip.snippetPanelStays,
+                info = stringResource(R.string.expander_panel_stays_info),
             ) { scope.launch { repository.setSnippetPanelStays(it) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -936,6 +938,7 @@ internal fun SnippetFolderScreen(
                 subtitle = stringResource(R.string.expander_folder_enabled_subtitle),
                 checked = here.enabled,
                 onChange = { on -> mutate { it.setFolderEnabled(folderId, on) } },
+                info = stringResource(R.string.expander_folder_enabled_info),
             )
         }
         // One option for every snippet here at once (#1122): the built-in
@@ -2137,6 +2140,7 @@ private fun SnippetEditorForm(
                     R.string.rows_snippet_propagate_case_label,
                     stringResource(R.string.rows_snippet_propagate_case_body),
                     checked = propagateCase,
+                    info = stringResource(R.string.rows_snippet_propagate_case_info),
                 ) { propagateCase = it }
             }
             // The style only means anything for a trigger typed with one
@@ -2165,6 +2169,7 @@ private fun SnippetEditorForm(
                     R.string.rows_snippet_confirm_label,
                     stringResource(R.string.rows_snippet_confirm_body),
                     checked = confirm,
+                    info = stringResource(R.string.rows_snippet_confirm_info),
                 ) { confirm = it }
             }
             item(visible = word && !confirm, level = SettingLevel.STANDARD) {
@@ -2172,6 +2177,7 @@ private fun SnippetEditorForm(
                     R.string.rows_snippet_immediate_label,
                     stringResource(R.string.rows_snippet_immediate_body),
                     checked = immediate,
+                    info = stringResource(R.string.rows_snippet_immediate_info),
                 ) { immediate = it }
             }
             item(visible = word && !confirm && immediate, level = SettingLevel.ADVANCED) {
@@ -2179,6 +2185,7 @@ private fun SnippetEditorForm(
                     R.string.rows_snippet_inside_words_label,
                     stringResource(R.string.rows_snippet_inside_words_body),
                     checked = insideWords,
+                    info = stringResource(R.string.rows_snippet_inside_words_info),
                 ) { insideWords = it }
             }
             // Nothing to choose between until there is more than one thing to
@@ -2204,6 +2211,7 @@ private fun SnippetEditorForm(
                         // following the app's.
                         default = MultiExpand.DEFAULT,
                         detail = { choice -> ChoiceDetail(stringResource(snippetMultiExpandDescRes(choice))) },
+                        info = stringResource(R.string.rows_snippet_multi_expand_info),
                     ) { multiExpand = it }
                 }
             }

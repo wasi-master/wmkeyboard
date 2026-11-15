@@ -411,10 +411,12 @@
     <string name="backup_auto_folder_none">Not set</string>
     <string name="backup_auto_enabled_title">Back up automatically</string>
     <string name="backup_auto_enabled_subtitle">The app writes a backup on a timer.</string>
+    <string name="backup_auto_enabled_info">The app writes a backup by itself on a timer, to every location that has Back up here turned on. You then have a recent backup without having to remember to make one.</string>
     <string name="backup_auto_enabled_needs_folder">Choose a folder first.</string>
     <string name="backup_auto_enabled_needs_sign_in">Sign in first.</string>
     <string name="backup_auto_enabled_needs_details">Fill in the connection details first.</string>
     <string name="backup_auto_interval_title">How often</string>
+    <string name="backup_auto_interval_info">The time between two automatic backups. A shorter interval loses less if the phone is lost, and uses more battery and data.</string>
     <plurals name="backup_auto_interval_hours">
         <item quantity="one">Every hour</item>
         <item quantity="other">Every %d hours</item>
@@ -425,6 +427,7 @@
     </plurals>
     <string name="backup_auto_keep_title">Backups to keep</string>
     <string name="backup_auto_keep_subtitle">The app deletes the oldest backup when there are more than this. It always keeps the newest one. Each device counts only its own backups.</string>
+    <string name="backup_auto_keep_info">How many backups stay in the location. When there are more, the app deletes the oldest. The newest backup is always kept. Each device counts only its own backups, so two phones that share a location do not delete each other\'s.</string>
     <plurals name="backup_auto_keep_value">
         <item quantity="one">%d backup</item>
         <item quantity="other">%d backups</item>
@@ -437,11 +440,15 @@
     <string name="backup_frequent_info">A second automatic backup beside the main one, with its own schedule, sections and number of copies. Use it for what changes often and is small, like your settings and layouts, every hour or so, and leave the bulky and personal things to the main backup once a day. It goes to the same locations under the same conditions, and pausing backups pauses it too. Its files are named apart, so each kind keeps its own copies, and the restore list shows both. It never includes API keys.</string>
     <string name="backup_frequent_enabled_title">Also back up often</string>
     <string name="backup_frequent_enabled_subtitle">A second, smaller backup on its own schedule, to the same locations</string>
+    <string name="backup_frequent_enabled_info">Adds a second backup that runs more often than the main one and holds less, so it is small and fast. It goes to the same locations. Use it for the things that change every day, such as the clipboard or your notes.</string>
     <string name="backup_frequent_interval_title">How often, frequent backup</string>
+    <string name="backup_frequent_interval_info">The time between two frequent backups. It is usually much shorter than the interval of the main backup.</string>
     <string name="backup_frequent_keep_title">Frequent backups to keep</string>
     <string name="backup_frequent_keep_subtitle">Counted apart from the main backups</string>
+    <string name="backup_frequent_keep_info">How many frequent backups stay in each location. They are counted apart from the main backups, so they never push a main backup out.</string>
     <string name="backup_frequent_encrypt_title">Encrypt frequent backups</string>
     <string name="backup_frequent_encrypt_subtitle">With the passphrase under Protect with a passphrase</string>
+    <string name="backup_frequent_encrypt_info">Encrypts the frequent backups too. They use the same passphrase as the main backups, the one set under Protect with a passphrase.</string>
     <string name="backup_frequent_encrypt_needs_passphrase">Set a passphrase under Protect with a passphrase first</string>
     <string name="backup_contents_column_main">Main</string>
     <string name="backup_contents_column_frequent">Frequent</string>
@@ -545,6 +552,7 @@
     <string name="backup_auto_s3_secret_label">Secret access key</string>
     <string name="backup_auto_s3_path_style_title">Put the bucket in the path</string>
     <string name="backup_auto_s3_path_style_subtitle">Turn this on for MinIO, and for any address that is an IP address. Leave it off for Amazon S3 and Cloudflare R2.</string>
+    <string name="backup_auto_s3_path_style_info">Writes the bucket\'s name in the path of the address instead of in the host name. MinIO needs this, and so does any server reached by an IP address. Leave it off for Amazon S3 and Cloudflare R2.</string>
     <string name="backup_auto_s3_cleartext">This endpoint is not https. The app signs every request with your secret key, and on a plain http address anyone on the network can read what is sent.</string>
 
     <string name="backup_auto_ftp_host_label">Server</string>
@@ -555,6 +563,7 @@
     <string name="backup_auto_ftp_path_hint">Leave this empty to use the directory you land in after you sign in.</string>
     <string name="backup_auto_ftp_secure_title">Use TLS</string>
     <string name="backup_auto_ftp_secure_subtitle">Encrypts the connection before the app signs in. Leave this on unless your server cannot do it.</string>
+    <string name="backup_auto_ftp_secure_info">Encrypts the FTP connection with TLS before the app signs in, so the password and the backup are not sent as plain text. Leave this on unless your server cannot do TLS.</string>
     <string name="backup_auto_ftp_cleartext">Without TLS, your password and your backup both cross the network as plain text that anyone in between can read. If you must leave this off, turn on Protect with a passphrase in Automatic backup.</string>
 
     <string name="backup_auto_oauth_signed_in">Signed in.</string>
@@ -622,6 +631,7 @@
     <string name="backup_sync_paired_title">Sync with paired devices</string>
     <string name="backup_sync_wifi_only_title">Sync only on Wi-Fi</string>
     <string name="backup_sync_wifi_only_subtitle">On mobile data, sync waits for Wi-Fi. Sync now still runs</string>
+    <string name="backup_sync_wifi_only_info">Sync waits for Wi-Fi and does not run on mobile data. A sync that you start with Sync now still runs on any connection. This setting is off by default.</string>
     <string name="backup_sync_paired_subtitle">A computer with WM Keyboard that you pair over KDE Connect syncs with this phone</string>
     <string name="backup_sync_paired_info">A paired computer becomes a location here, Nearby device, and is ticked. Sync this device is turned on with it. The two send each other their sync files while both are on the same network and the keyboard is open.</string>
     <string name="backup_auto_needs_target">Tick a location in Back up to.</string>
@@ -657,6 +667,7 @@
     <string name="backup_sync_enabled_title">Sync this device</string>
     <string name="backup_sync_enabled_subtitle">Share changes with your other devices</string>
     <string name="backup_sync_mode_title">When to sync</string>
+    <string name="backup_sync_mode_info">When this device sends its changes and gets the changes from your other devices. Soon after a change syncs about a minute after you change something. On a schedule syncs at a fixed interval and uses the least data. Only when I ask syncs when you press Sync now.</string>
     <string name="backup_sync_mode_soon">Soon after a change</string>
     <string name="backup_sync_mode_soon_desc">About a minute after you change something, and every hour for changes from other devices</string>
     <string name="backup_sync_mode_schedule">On a schedule</string>
@@ -664,14 +675,17 @@
     <string name="backup_sync_mode_manual">Only when I ask</string>
     <string name="backup_sync_mode_manual_desc">Only when you press Sync now</string>
     <string name="backup_sync_interval_title">How often</string>
+    <string name="backup_sync_interval_info">The time between two syncs when sync runs on a schedule. A shorter interval keeps your devices closer together and uses more data and battery.</string>
     <string name="backup_sync_secrets_title">Sync API keys and passwords</string>
     <string name="backup_sync_secrets_subtitle">A passphrase protects them</string>
+    <string name="backup_sync_secrets_info">Also syncs your API keys and passwords for services, so you do not type them again on each device. They are encrypted with a passphrase before they leave the phone. This setting is off by default.</string>
     <string name="backup_sync_contents_title">What syncs</string>
     <string name="backup_sync_local_note">Some settings stay on each device, because they only fit that device: the keyboard size and position, one-handed mode, the hardware keyboard, paired computers and the app lock. To keep more on this device, use Keep on this device below.</string>
     <string name="backup_sync_keep_local_title">Keep on this device</string>
     <string name="backup_sync_keep_local_info">Settings you tick here stay as they are on this device. Changes you make to them here are not sent, and changes from your other devices are not taken. Untick one later and this device takes what your other devices have.</string>
     <string name="backup_sync_keep_toolbar_title">Toolbar and toolbox</string>
     <string name="backup_sync_keep_toolbar_subtitle">Which tools, in what order, and how they look</string>
+    <string name="backup_sync_keep_toolbar_info">Keeps this device\'s own toolbar and toolbox: which tools they hold, in what order, and how they look. Sync then does not replace them with the arrangement from another device. This is useful when a phone and a tablet need different toolbars.</string>
     <string name="backup_sync_keep_layouts_title">Languages and layouts</string>
     <string name="backup_sync_keep_layouts_subtitle">The layouts you switch between, extra languages, and the layout for each app</string>
     <string name="backup_sync_keep_theme_title">Theme</string>
@@ -778,6 +792,7 @@
 
     <!-- WebDAV services -->
     <string name="backup_webdav_preset_title">Service</string>
+    <string name="backup_webdav_preset_info">The WebDAV service you use. A preset fills in the address pattern that the service needs. Pick Other WebDAV server to type the complete address yourself.</string>
     <string name="backup_webdav_preset_other">Other WebDAV server</string>
     <string name="backup_webdav_server_label">Server</string>
     <string name="backup_webdav_server_hint">The name of your server, for example cloud.example.com</string>
@@ -789,6 +804,7 @@
 
     <!-- S3 services -->
     <string name="backup_s3_preset_title">Service</string>
+    <string name="backup_s3_preset_info">The S3 storage service you use. A preset fills in the endpoint and the options that the service needs. Pick Other S3 service to type them yourself.</string>
     <string name="backup_s3_preset_other">Other S3 service</string>
     <string name="backup_s3_account_id_label">Account ID</string>
     <string name="backup_s3_account_id_hint">The account ID from the dashboard of the service</string>
@@ -803,6 +819,7 @@
 
     <!-- Google Drive: which part of Drive -->
     <string name="backup_drive_space_title">Where in Drive</string>
+    <string name="backup_drive_space_info">Where in Google Drive the backups go. The hidden app folder is out of sight and only this app can read it. A folder you can see shows the backup files in Drive, where you can download, move or delete them yourself.</string>
     <string name="backup_drive_space_hidden">Hidden app folder</string>
     <string name="backup_drive_space_folder">A folder you can see</string>
     <string name="backup_drive_folder_label">Folder in My Drive</string>
@@ -839,6 +856,7 @@
     <string name="backup_profile_copy_command">Copy the command</string>
     <string name="backup_sftp_legacy_title">Allow old algorithms</string>
     <string name="backup_sftp_legacy_subtitle">Also offers SHA-1, for old NAS devices. Keep this off unless the connection fails without it.</string>
+    <string name="backup_sftp_legacy_info">Also offers the older SHA-1 algorithms when the app connects. Some old NAS devices accept nothing newer. These algorithms are weaker, so keep this off unless the connection fails without it.</string>
 
     <!-- SMB -->
     <string name="backup_smb_host_hint">A name or an IP address, for example 192.168.1.20</string>
@@ -849,10 +867,12 @@
     <string name="backup_smb_domain_hint">Usually empty. Only for a computer in a Windows domain.</string>
     <string name="backup_smb_encrypt_title">Encrypt the connection</string>
     <string name="backup_smb_encrypt_subtitle">Needs SMB 3. Turn this off only for an old server that cannot encrypt.</string>
+    <string name="backup_smb_encrypt_info">Encrypts the connection to the shared folder. The server must support SMB 3. Turn this off only for an old server that cannot encrypt, and only on a network you trust.</string>
     <string name="backup_smb_cleartext">Without encryption, your backup crosses the network as plain bytes. The sign-in stays protected. If you must keep this off, turn on Protect with a passphrase in Automatic backup.</string>
 
     <!-- Git -->
     <string name="backup_git_provider_title">Host</string>
+    <string name="backup_git_provider_info">The kind of server that holds the repository: GitHub, GitLab, or Gitea and Forgejo. Each one has its own way to sign in and its own addresses, so the app needs to know which one it talks to.</string>
     <string name="backup_git_provider_github" translatable="false">GitHub</string>
     <string name="backup_git_provider_gitlab" translatable="false">GitLab</string>
     <string name="backup_git_provider_gitea" translatable="false">Gitea / Forgejo</string>
@@ -876,14 +896,17 @@
     <string name="backup_git_author_hint">Leave the author empty to use the account of the token.</string>
     <string name="backup_git_skip_ci_title">Add [skip ci]</string>
     <string name="backup_git_skip_ci_subtitle">Stops a backup from starting the CI of the repository</string>
+    <string name="backup_git_skip_ci_info">Adds [skip ci] to the message of each backup commit. A repository that runs automatic jobs on every commit then does not run them for a backup.</string>
     <string name="backup_git_allow_public_title">Allow a public repository</string>
     <string name="backup_git_allow_public_subtitle">Anybody can read a backup in a public repository</string>
+    <string name="backup_git_allow_public_info">Lets the app write backups to a repository that anybody can read. A backup holds your settings and your saved text, so use a public repository only together with a passphrase.</string>
     <string name="backup_git_info">Each backup and each deleted old backup is a commit. The history of the repository keeps all of them. The app refuses a public repository. Turn on Protect with a passphrase in Automatic backup.</string>
     <string name="backup_git_public_warning">Anybody can read a backup in a public repository, and its history keeps every old backup after the app deletes it. Turn on Protect with a passphrase in Automatic backup.</string>
 
     <!-- IMAP -->
     <string name="backup_imap_host_hint">The IMAP server of your mail service, for example imap.gmail.com</string>
     <string name="backup_imap_security_title">Security</string>
+    <string name="backup_imap_security_info">How the connection to the mail server is protected. TLS encrypts from the first byte. STARTTLS starts plain and then changes to an encrypted connection. None sends everything as plain text, your password too, so use it only on your own network.</string>
     <string name="backup_imap_security_tls" translatable="false">TLS</string>
     <string name="backup_imap_security_starttls" translatable="false">STARTTLS</string>
     <string name="backup_imap_security_none">None</string>
@@ -972,6 +995,7 @@
     <string name="backup_box_info">The app sees your whole Box, because Box has no folder only for apps. It writes only to the folder below. To take this permission back, open the apps list in your Box account settings.</string>
 
     <string name="backup_pcloud_region_title">Data region</string>
+    <string name="backup_pcloud_region_info">The region where your pCloud account keeps its data, Europe or the United States. It is fixed when the account is made. Pick the one your account uses, or the sign-in fails.</string>
     <string name="backup_pcloud_region_us">United States</string>
     <string name="backup_pcloud_region_eu">Europe</string>
     <string name="backup_pcloud_other_region">Your account is in the other data region. The app changed it. Select Sign in again.</string>
@@ -984,6 +1008,7 @@
     <string name="backup_nas_path_hint_qnap">From the top of the NAS, starting with a shared folder, for example /Public/WM Keyboard. The app makes the folders below the share.</string>
     <string name="backup_nas_own_cert_title">Accept the certificate of the NAS</string>
     <string name="backup_nas_own_cert_subtitle">Most NAS boxes on a home network use a certificate that they made themselves. The app remembers the certificate of the first connection and refuses a different one later.</string>
+    <string name="backup_nas_own_cert_info">Most NAS boxes on a home network make their own security certificate, which no authority has signed. With this on, the app accepts that certificate, remembers the one from the first connection, and refuses a different one later. Leave this off for a server that has a signed certificate.</string>
     <string name="backup_nas_cert_title">Certificate</string>
     <!-- %1$s is the start of a SHA-256 fingerprint. -->
     <string name="backup_nas_cert_value">Remembered: %1$s…</string>

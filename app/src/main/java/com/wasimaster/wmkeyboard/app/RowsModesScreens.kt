@@ -748,6 +748,7 @@ internal fun SymbolRowSettings(
                             ),
                         )
                     },
+                    info = stringResource(R.string.rows_symbol_row_scroll_info),
                 ) { scope.launch { repository.setSymbolRowScroll(it) } }
             }
         }
@@ -1814,6 +1815,7 @@ internal fun ModeEditor(
                 ),
                 selected = settings.watch { modeIn(it).emojiBarMode },
                 detail = { barMode -> ChoiceDetail(stringResource(modeEmojiRowDescRes(barMode))) },
+                info = stringResource(R.string.modes_emoji_row_info),
             ) { save(current().copy(emojiBarMode = it)) }
         }
         item {
@@ -1826,6 +1828,7 @@ internal fun ModeEditor(
                 ),
                 selected = settings.watch { modeIn(it).symbolRowEnabled },
                 detail = inheritDetail(),
+                info = stringResource(R.string.modes_symbol_row_info),
             ) { save(current().copy(symbolRowEnabled = it)) }
         }
         // Typing behaviour. A mode dressed the keyboard but never changed what
@@ -1841,6 +1844,7 @@ internal fun ModeEditor(
                 options = listOf(null to inherit, true to on, false to off),
                 selected = settings.watch { modeIn(it).autocorrect },
                 detail = inheritDetail(),
+                info = stringResource(R.string.modes_autocorrect_info),
             ) { save(current().copy(autocorrect = it)) }
         }
         item(level = SettingLevel.STANDARD) {
@@ -1852,6 +1856,7 @@ internal fun ModeEditor(
                 options = listOf(null to inherit, true to on, false to off),
                 selected = settings.watch { modeIn(it).autoCapitalize },
                 detail = inheritDetail(),
+                info = stringResource(R.string.modes_autocapitalize_info),
             ) { save(current().copy(autoCapitalize = it)) }
         }
         item {
@@ -1863,6 +1868,7 @@ internal fun ModeEditor(
                 options = listOf(null to inherit, true to on, false to off),
                 selected = settings.watch { modeIn(it).suggestions },
                 detail = inheritDetail(),
+                info = stringResource(R.string.modes_suggestions_info),
             ) { save(current().copy(suggestions = it)) }
         }
         // The spaces nobody pressed for, as one question: a field either wants
@@ -2001,6 +2007,7 @@ internal fun ModeEditor(
                 ),
                 selected = settings.watch { modeIn(it).numberRow },
                 detail = inheritDetail(),
+                info = stringResource(R.string.modes_number_row_info),
             ) { save(current().copy(numberRow = it)) }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -2014,6 +2021,7 @@ internal fun ModeEditor(
                 ),
                 selected = settings.watch { modeIn(it).oneHandedOverride },
                 detail = inheritDetail(),
+                info = stringResource(R.string.modes_one_handed_override_info),
             ) { save(current().copy(oneHandedOverride = it)) }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -2040,6 +2048,7 @@ internal fun ModeEditor(
                 ),
                 selected = settings.watch { modeIn(it).keyHeightPercent },
                 detail = inheritDetail(),
+                info = stringResource(R.string.modes_key_height_info),
             ) { save(current().copy(keyHeightPercent = it)) }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -2052,6 +2061,7 @@ internal fun ModeEditor(
                 ),
                 selected = settings.watch { modeIn(it).keyPreview },
                 detail = inheritDetail(),
+                info = stringResource(R.string.modes_key_preview_info),
             ) { save(current().copy(keyPreview = it)) }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -2067,6 +2077,7 @@ internal fun ModeEditor(
                 ),
                 selected = settings.watch { modeIn(it).longPressDelayMs },
                 detail = inheritDetail(),
+                info = stringResource(R.string.modes_long_press_info),
             ) { save(current().copy(longPressDelayMs = it)) }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -2079,6 +2090,7 @@ internal fun ModeEditor(
                 ),
                 selected = settings.watch { modeIn(it).clipboardChip },
                 detail = inheritDetail(),
+                info = stringResource(R.string.modes_clipboard_chip_info),
             ) { save(current().copy(clipboardChip = it)) }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -2091,6 +2103,7 @@ internal fun ModeEditor(
                 ),
                 selected = settings.watch { modeIn(it).keySwipes },
                 detail = inheritDetail(),
+                info = stringResource(R.string.modes_key_swipes_info),
             ) { save(current().copy(keySwipes = it)) }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -2161,6 +2174,7 @@ internal fun ModeEditor(
                 R.string.modes_pinned_tools_title,
                 stringResource(R.string.modes_pinned_tools_subtitle),
                 pinned != null,
+                info = stringResource(R.string.modes_pinned_tools_info),
             ) { on ->
                 val mode = current()
                 save(
@@ -2205,6 +2219,7 @@ internal fun ModeEditor(
                             else Icons.Outlined.FindReplace,
                         )
                     },
+                    info = stringResource(R.string.modes_pinned_behaviour_info),
                 ) { append ->
                     // Switching to append: the copied-in global pins would
                     // duplicate what is already on the toolbar, so drop them.
@@ -2258,6 +2273,7 @@ internal fun ModeEditor(
                 R.string.modes_toolbox_order_title,
                 stringResource(R.string.modes_toolbox_order_subtitle),
                 order != null,
+                info = stringResource(R.string.modes_toolbox_order_info),
             ) { on ->
                 save(current().copy(toolboxOrder = if (on) emptyList() else null))
             }
@@ -2304,6 +2320,7 @@ internal fun ModeEditor(
                 R.string.modes_symbol_sets_title,
                 stringResource(R.string.modes_symbol_sets_subtitle),
                 settings.watch { modeIn(it).symbolSetIds != null },
+                info = stringResource(R.string.modes_symbol_sets_info),
             ) { on ->
                 save(
                     current().copy(
@@ -2371,7 +2388,7 @@ internal fun ModeEditor(
     ) {
         item {
             val fieldKinds = settings.watch { modeIn(it).fieldKinds }
-            ControlSetting(R.string.modes_field_types_title) {
+            ControlSetting(R.string.modes_field_types_title, info = stringResource(R.string.modes_field_types_info)) {
                 FlowRow(
                     modifier = Modifier.padding(top = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -2591,6 +2608,7 @@ internal fun ModeEditor(
                 ),
                 selected = settings.watch { modeIn(it).orientation },
                 default = null,
+                info = stringResource(R.string.modes_orientation_info),
             ) { save(current().copy(orientation = it)) }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -2603,6 +2621,7 @@ internal fun ModeEditor(
                 ),
                 selected = settings.watch { modeIn(it).hardwareKeyboard },
                 default = null,
+                info = stringResource(R.string.modes_hardware_keyboard_info),
             ) { save(current().copy(hardwareKeyboard = it)) }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -2628,6 +2647,7 @@ internal fun ModeEditor(
                 ),
                 selected = settings.watch { modeIn(it).oneHanded },
                 default = null,
+                info = stringResource(R.string.modes_one_handed_info),
             ) { save(current().copy(oneHanded = it)) }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -2653,6 +2673,7 @@ internal fun ModeEditor(
                 ),
                 selected = settings.watch { modeIn(it).bluetoothAudio },
                 default = null,
+                info = stringResource(R.string.modes_bluetooth_info),
             ) { save(current().copy(bluetoothAudio = it)) }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -2686,6 +2707,7 @@ internal fun ModeEditor(
                 ),
                 selected = settings.watch { modeIn(it).fieldEmpty },
                 default = null,
+                info = stringResource(R.string.modes_field_empty_info),
             ) { save(current().copy(fieldEmpty = it)) }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -2714,6 +2736,7 @@ internal fun ModeEditor(
                     R.string.modes_time_title,
                     stringResource(R.string.modes_time_subtitle),
                     from != null && to != null,
+                    info = stringResource(R.string.modes_time_info),
                 ) { on ->
                     save(
                         if (on) {

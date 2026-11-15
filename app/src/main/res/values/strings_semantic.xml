@@ -19,6 +19,7 @@
     <string name="semantic_status_ready">Ready. The keyboard adds matches by meaning as it learns your clips, notes and snippets, a few at a time in the background.</string>
     <string name="semantic_tag_stickers_title">Tag my stickers</string>
     <string name="semantic_tag_stickers_subtitle">Stickers without keywords get some from what they show, so they come up while you type</string>
+    <string name="semantic_tag_stickers_info">Stickers that have no keywords get some from what the picture shows, worked out on this phone. Those stickers can then be suggested while you type. This setting is on by default.</string>
     <string name="semantic_delete_title">Delete the model</string>
     <!-- %1$s is how much storage the model files take, for example "373 MB". -->
     <string name="semantic_delete_subtitle"><xliff:g id="size" example="373 MB">%1$s</xliff:g> on this phone</string>

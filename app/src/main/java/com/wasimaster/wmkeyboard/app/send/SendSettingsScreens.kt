@@ -122,6 +122,7 @@ internal fun SendToolSettings(repository: SettingsRepository, settings: LiveSett
                 ),
                 selected = settings.watch { it.send.expireSeconds },
                 default = d.expireSeconds,
+                info = stringResource(R.string.send_expire_info),
             ) { v -> update { it.copy(expireSeconds = v) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -131,6 +132,7 @@ internal fun SendToolSettings(repository: SettingsRepository, settings: LiveSett
                 options = SendServerConfig.DEFAULT.downloadCounts.map { it to it.toString() },
                 selected = settings.watch { it.send.downloads },
                 default = d.downloads,
+                info = stringResource(R.string.send_downloads_info),
             ) { v -> update { it.copy(downloads = v) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -144,6 +146,7 @@ internal fun SendToolSettings(repository: SettingsRepository, settings: LiveSett
                 ),
                 selected = settings.watch { it.send.password },
                 default = d.password,
+                info = stringResource(R.string.send_password_info),
             ) { v -> update { it.copy(password = v) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -158,6 +161,7 @@ internal fun SendToolSettings(repository: SettingsRepository, settings: LiveSett
                 ),
                 selected = settings.watch { it.send.afterUpload },
                 default = d.afterUpload,
+                info = stringResource(R.string.send_after_info),
             ) { v -> update { it.copy(afterUpload = v) } }
         }
     }
@@ -169,6 +173,7 @@ internal fun SendToolSettings(repository: SettingsRepository, settings: LiveSett
                 stringResource(R.string.send_detect_subtitle),
                 settings.watch { it.send.detectLinks },
                 default = d.detectLinks,
+                info = stringResource(R.string.send_detect_info),
             ) { v -> update { it.copy(detectLinks = v) } }
         }
         item {
@@ -177,6 +182,7 @@ internal fun SendToolSettings(repository: SettingsRepository, settings: LiveSett
                 stringResource(R.string.send_open_after_subtitle),
                 settings.watch { it.send.openAfterDownload },
                 default = d.openAfterDownload,
+                info = stringResource(R.string.send_open_after_info),
             ) { v -> update { it.copy(openAfterDownload = v) } }
         }
     }
@@ -203,6 +209,7 @@ internal fun SendToolSettings(repository: SettingsRepository, settings: LiveSett
                 stringResource(R.string.send_nearby_subtitle),
                 nearby,
                 default = d.nearby,
+                info = stringResource(R.string.send_nearby_info),
             ) { v -> update { it.copy(nearby = v) } }
         }
         item(visible = nearby, level = SettingLevel.ADVANCED) {
@@ -211,6 +218,7 @@ internal fun SendToolSettings(repository: SettingsRepository, settings: LiveSett
                 stringResource(R.string.send_keep_direct_subtitle),
                 settings.watch { it.send.keepDirectLink },
                 default = d.keepDirectLink,
+                info = stringResource(R.string.send_keep_direct_info),
             ) { v -> update { it.copy(keepDirectLink = v) } }
         }
         item(visible = nearby) {
@@ -219,6 +227,7 @@ internal fun SendToolSettings(repository: SettingsRepository, settings: LiveSett
                 stringResource(R.string.send_localsend_subtitle),
                 settings.watch { it.send.localSend },
                 default = d.localSend,
+                info = stringResource(R.string.send_localsend_info),
             ) { v -> update { it.copy(localSend = v) } }
         }
         item(visible = nearby, level = SettingLevel.ADVANCED) {
@@ -254,6 +263,7 @@ internal fun SendToolSettings(repository: SettingsRepository, settings: LiveSett
                 stringResource(R.string.send_share_sheet_subtitle),
                 settings.watch { it.send.shareSheet },
                 default = d.shareSheet,
+                info = stringResource(R.string.send_share_sheet_info),
             ) { v -> update { it.copy(shareSheet = v) } }
         }
         item {
@@ -262,6 +272,7 @@ internal fun SendToolSettings(repository: SettingsRepository, settings: LiveSett
                 stringResource(R.string.send_history_subtitle),
                 settings.watch { it.send.keepHistory },
                 default = d.keepHistory,
+                info = stringResource(R.string.send_history_info),
             ) { v -> update { it.copy(keepHistory = v) } }
         }
         item {

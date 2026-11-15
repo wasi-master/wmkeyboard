@@ -43,5 +43,6 @@
     <string name="text_actions_settings_show_note">Save as note on the sheet</string>
     <string name="text_actions_settings_translate_title">WM Translate in the selection menu</string>
     <string name="text_actions_settings_translate_subtitle">An entry that opens straight on the translation. Needs the Translate tool</string>
+    <string name="text_actions_settings_translate_info">Adds WM Translate to the menu that other apps show for selected text. A tap opens the translation of the selection directly. The Translate tool must be turned on. This setting is off by default.</string>
 
 </resources>

@@ -184,6 +184,7 @@
     <string name="offline_import_native_archive_label">%1$s, inside %2$s (import the whole file) · %3$s</string>
     <string name="offline_import_gesture_library_done">Google\'s gesture library. Pick it under Typing › Gestures › Glide engine to use it</string>
     <string name="offline_import_language_pack_done">Interface language %1$s</string>
+    <string name="offline_import_help_done">Help pictures, %1$s added</string>
     <string name="offline_import_khipro_specs_done">Khipro\'s layout rules from %1$s</string>
     <string name="offline_import_khipro_specs_not_newer">Khipro\'s layout rules, no newer than the ones in use, so left as they are</string>
     <string name="offline_import_khipro_specs_refused">Khipro\'s layout rules were not installed: %1$s</string>

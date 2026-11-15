@@ -66,6 +66,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 ),
                 selected = config.hour24,
                 default = defaults.hour24,
+                info = stringResource(R.string.clock_hour_format_info),
             ) { v -> set { it.copy(hour24 = v) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -74,6 +75,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 stringResource(R.string.clock_show_seconds_subtitle),
                 config.showSeconds,
                 default = defaults.showSeconds,
+                info = stringResource(R.string.clock_show_seconds_info),
             ) { v -> set { it.copy(showSeconds = v) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -82,6 +84,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 stringResource(R.string.clock_sort_zones_subtitle),
                 config.sortZonesByTime,
                 default = defaults.sortZonesByTime,
+                info = stringResource(R.string.clock_sort_zones_info),
             ) { v -> set { it.copy(sortZonesByTime = v) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -90,6 +93,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 stringResource(R.string.clock_pin_local_subtitle),
                 config.pinLocalZone,
                 default = defaults.pinLocalZone,
+                info = stringResource(R.string.clock_pin_local_info),
             ) { v -> set { it.copy(pinLocalZone = v) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -98,6 +102,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 stringResource(R.string.clock_pin_utc_subtitle),
                 config.pinUtc,
                 default = defaults.pinUtc,
+                info = stringResource(R.string.clock_pin_utc_info),
             ) { v -> set { it.copy(pinUtc = v) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -106,6 +111,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 stringResource(R.string.clock_zones_grid_subtitle),
                 config.zonesGrid,
                 default = defaults.zonesGrid,
+                info = stringResource(R.string.clock_zones_grid_info),
             ) { v -> set { it.copy(zonesGrid = v) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -115,6 +121,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 options = InsertFormat.entries.map { it.id to stringResource(insertFormatLabel(it)) },
                 selected = config.insertFormat,
                 default = defaults.insertFormat,
+                info = stringResource(R.string.clock_insert_format_info),
             ) { v -> set { it.copy(insertFormat = v) } }
         }
     }
@@ -161,6 +168,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 stringResource(R.string.clock_vibrate_subtitle),
                 config.vibrate,
                 default = defaults.vibrate,
+                info = stringResource(R.string.clock_vibrate_info),
             ) { v -> set { it.copy(vibrate = v) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -170,6 +178,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 range = 1f..30f,
                 display = minutes,
                 default = defaults.snoozeMinutes.toFloat(),
+                info = stringResource(R.string.clock_snooze_info),
             ) { v -> set { it.copy(snoozeMinutes = v.roundToInt()) } }
         }
         item(visible = service, level = SettingLevel.ADVANCED) {
@@ -180,6 +189,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 range = 0f..60f,
                 display = seconds,
                 default = defaults.fadeInSeconds.toFloat(),
+                info = stringResource(R.string.clock_fade_info),
             ) { v -> set { it.copy(fadeInSeconds = v.roundToInt()) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -190,6 +200,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 range = 1f..30f,
                 display = minutes,
                 default = defaults.autoSilenceMinutes.toFloat(),
+                info = stringResource(R.string.clock_auto_silence_info),
             ) { v -> set { it.copy(autoSilenceMinutes = v.roundToInt()) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -209,6 +220,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                     }
                 },
                 default = defaults.autoSnoozes.toFloat(),
+                info = stringResource(R.string.clock_auto_snooze_info),
             ) { v ->
                 val n = v.roundToInt()
                 set { it.copy(autoSnoozes = if (n >= AUTO_SNOOZE_STOPS) ClockConfig.SNOOZE_UNTIL_ANSWERED else n) }
@@ -223,6 +235,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 },
                 selected = config.upcomingNoticeMinutes,
                 default = defaults.upcomingNoticeMinutes,
+                info = stringResource(R.string.clock_upcoming_info),
             ) { v -> set { it.copy(upcomingNoticeMinutes = v) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -231,6 +244,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 stringResource(R.string.clock_snoozed_notice_subtitle),
                 config.snoozedNotice,
                 default = defaults.snoozedNotice,
+                info = stringResource(R.string.clock_snoozed_notice_info),
             ) { v -> set { it.copy(snoozedNotice = v) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -239,6 +253,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 stringResource(R.string.clock_missed_notice_subtitle),
                 config.missedNotice,
                 default = defaults.missedNotice,
+                info = stringResource(R.string.clock_missed_notice_info),
             ) { v -> set { it.copy(missedNotice = v) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -247,6 +262,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 stringResource(R.string.clock_volume_keys_subtitle),
                 config.volumeKeysSnooze,
                 default = defaults.volumeKeysSnooze,
+                info = stringResource(R.string.clock_volume_keys_info),
             ) { v -> set { it.copy(volumeKeysSnooze = v) } }
         }
     }
@@ -263,6 +279,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 range = 5f..90f,
                 display = minutes,
                 default = defaults.focusMinutes.toFloat(),
+                info = stringResource(R.string.clock_focus_info),
             ) { v -> set { it.copy(focusMinutes = v.roundToInt()) } }
         }
         item {
@@ -272,6 +289,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 range = 1f..30f,
                 display = minutes,
                 default = defaults.shortBreakMinutes.toFloat(),
+                info = stringResource(R.string.clock_short_break_info),
             ) { v -> set { it.copy(shortBreakMinutes = v.roundToInt()) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -281,6 +299,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 range = 5f..60f,
                 display = minutes,
                 default = defaults.longBreakMinutes.toFloat(),
+                info = stringResource(R.string.clock_long_break_info),
             ) { v -> set { it.copy(longBreakMinutes = v.roundToInt()) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -291,6 +310,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 steps = wholeSteps(2f..8f),
                 display = { v -> context.resources.getQuantityString(R.plurals.clock_sessions_value, v.roundToInt(), v.roundToInt()) },
                 default = defaults.longBreakEvery.toFloat(),
+                info = stringResource(R.string.clock_long_every_info),
             ) { v -> set { it.copy(longBreakEvery = v.roundToInt()) } }
         }
     }
@@ -308,6 +328,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 range = 0f..47f,
                 display = clockText,
                 default = (defaults.workStartMinutes / HALF_HOUR).toFloat(),
+                info = stringResource(R.string.clock_work_start_info),
             ) { v -> set { it.copy(workStartMinutes = v.roundToInt() * HALF_HOUR) } }
         }
         item {
@@ -317,6 +338,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 range = 1f..48f,
                 display = clockText,
                 default = (defaults.workEndMinutes / HALF_HOUR).toFloat(),
+                info = stringResource(R.string.clock_work_end_info),
             ) { v -> set { it.copy(workEndMinutes = (v.roundToInt() * HALF_HOUR).coerceAtMost(DAY_MINUTES - 1)) } }
         }
     }
@@ -330,6 +352,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 },
                 selected = config.historyDays,
                 default = defaults.historyDays,
+                info = stringResource(R.string.clock_history_keep_info),
             ) { v -> set { it.copy(historyDays = v) } }
         }
     }

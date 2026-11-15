@@ -132,6 +132,7 @@ internal fun SemanticSearchGroup(repository: SettingsRepository, settings: LiveS
                     stringResource(R.string.semantic_tag_stickers_subtitle),
                     settings.watch { it.semanticSearch.tagStickers },
                     default = SettingsDefaults.semanticSearch.tagStickers,
+                    info = stringResource(R.string.semantic_tag_stickers_info),
                 ) { on -> scope.launch { repository.updateSemanticSearch { it.copy(tagStickers = on) } } }
             }
         }

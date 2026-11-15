@@ -95,6 +95,7 @@
     <string name="stickergen_seed_label">Seed</string>
     <string name="stickergen_seed_lock_title">Keep the seed</string>
     <string name="stickergen_seed_lock_subtitle">The same prompt and seed draw the same picture; off, every tap tries a new one</string>
+    <string name="stickergen_seed_lock_info">The seed is the number that the picture starts from. With this on, the same prompt and the same seed draw the same picture again, so you can change one word and compare. With this off, every tap draws a new picture.</string>
     <string name="stickergen_steps_title">Steps</string>
     <string name="stickergen_guidance_title">Guidance</string>
     <string name="stickergen_default_value">Default (%1$d)</string>
@@ -103,11 +104,14 @@
     <string name="stickergen_no_guidance">This model draws in one step without guidance, so it has no negative prompt or step count to set.</string>
     <string name="stickergen_cutout_title">Remove the background</string>
     <string name="stickergen_cutout_subtitle">Lift the subject off the background before the editor opens</string>
+    <string name="stickergen_cutout_info">After a picture is drawn, the subject is cut out of its background before the sticker editor opens, so the sticker has a clear background.</string>
     <string name="stickergen_cutout_unsupported">This build has no background remover; the editor\'s eraser still works</string>
     <string name="stickergen_gpu_title">Draw on the GPU</string>
     <string name="stickergen_gpu_subtitle">Run the model on the phone\'s graphics chip instead of its processor. Often faster, but the first picture waits while the GPU compiles its code, and on some phones the processor is quicker. Where the GPU cannot run it, the processor draws instead.</string>
+    <string name="stickergen_gpu_info">Runs the image model on the phone\'s graphics chip instead of its processor. This is often faster. The first picture takes longer, because the GPU must first compile its code, and on some phones the processor is the quicker one. Where the GPU cannot run the model, the processor draws instead.</string>
     <string name="stickergen_safety_title">Safety filter</string>
     <string name="stickergen_safety_subtitle">Check every picture with an on-device classifier and hold back unsafe ones. Prompts are always checked.</string>
+    <string name="stickergen_safety_info">Asks the image service to hold back unsafe pictures, where the service has a switch for that. Your prompt is always checked before it is sent, whatever this says.</string>
     <string name="stickergen_safety_subtitle_online">Ask the service to hold back unsafe pictures, where it has a switch for that. Prompts are always checked first.</string>
     <string name="stickergen_negative_online">Not every service reads one: Gemini, GPT Image and Grok Imagine leave it out.</string>
 </resources>

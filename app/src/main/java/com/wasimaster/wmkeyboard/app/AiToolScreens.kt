@@ -129,6 +129,7 @@ internal fun AiHubSettings(
                 stringResource(R.string.toolai_hub_settings_assistant_subtitle),
                 assistant,
                 default = SettingsDefaults.appUi.settingsAssistant,
+                info = stringResource(R.string.toolai_hub_settings_assistant_info),
             ) { on ->
                 // Off sends nothing more (#877): a question still out is
                 // retired, and its late answer goes nowhere.
@@ -171,6 +172,7 @@ internal fun AiHubSettings(
                 stringResource(R.string.toolai_hub_chat_button_everywhere_subtitle),
                 settings.watch { it.appUi.aiChatButtonEverywhere },
                 default = SettingsDefaults.appUi.aiChatButtonEverywhere,
+                info = stringResource(R.string.toolai_hub_chat_button_everywhere_info),
             ) { scope.launch { repository.setAiChatButtonEverywhere(it) } }
         }
     }
@@ -256,6 +258,7 @@ internal fun AiToolSettings(
                     subtitle = stringResource(R.string.toolai_ai_in_use_subtitle),
                     options = rows.map { it.key to providerTitle(context, it) },
                     selected = inUse,
+                    info = stringResource(R.string.toolai_ai_in_use_info),
                 ) { key ->
                     val provider = rows.firstOrNull { it.key == key }?.let { AiProviders.of(it.typeId) } ?: return@ChoiceSetting
                     scope.launch { repository.setAiProviderKey(key, provider) }
@@ -313,6 +316,7 @@ internal fun AiToolSettings(
                 stringResource(R.string.toolai_ai_show_thinking_subtitle),
                 settings.watch { it.ai.showThinking },
                 default = SettingsDefaults.ai.showThinking,
+                info = stringResource(R.string.toolai_ai_show_thinking_info),
             ) { scope.launch { repository.setAiShowThinking(it) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -321,6 +325,7 @@ internal fun AiToolSettings(
                 stringResource(R.string.toolai_ai_model_picker_subtitle),
                 settings.watch { it.ai.panelModelPicker },
                 default = SettingsDefaults.ai.panelModelPicker,
+                info = stringResource(R.string.toolai_ai_model_picker_info),
             ) { scope.launch { repository.setAiPanelModelPicker(it) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -329,6 +334,7 @@ internal fun AiToolSettings(
                 stringResource(R.string.toolai_ai_diff_subtitle),
                 diffView,
                 default = SettingsDefaults.ai.diffView,
+                info = stringResource(R.string.toolai_ai_diff_info),
             ) { scope.launch { repository.setAiDiffView(it) } }
         }
         item(visible = diffView, level = SettingLevel.ADVANCED) {
@@ -337,6 +343,7 @@ internal fun AiToolSettings(
                 stringResource(R.string.toolai_ai_diff_first_subtitle),
                 settings.watch { it.ai.diffOpensFirst },
                 default = SettingsDefaults.ai.diffOpensFirst,
+                info = stringResource(R.string.toolai_ai_diff_first_info),
             ) { scope.launch { repository.setAiDiffOpensFirst(it) } }
         }
     }
@@ -361,6 +368,7 @@ internal fun AiToolSettings(
                 },
                 stripSuggest,
                 default = SettingsDefaults.ai.stripSuggest,
+                info = stringResource(R.string.toolai_strip_suggest_info),
             ) { scope.launch { repository.setAiStripSuggest(it) } }
         }
         item(visible = stripSuggest, level = SettingLevel.STANDARD) {
@@ -369,6 +377,7 @@ internal fun AiToolSettings(
                 stringResource(R.string.toolai_strip_suggest_word_only_subtitle),
                 stripWordOnly,
                 default = SettingsDefaults.ai.stripSuggestWordOnly,
+                info = stringResource(R.string.toolai_strip_suggest_word_only_info),
             ) { scope.launch { repository.setAiStripSuggestWordOnly(it) } }
         }
         item(visible = stripSuggest && !stripWordOnly, level = SettingLevel.ADVANCED) {
@@ -379,6 +388,7 @@ internal fun AiToolSettings(
                 range = AI_STRIP_SUGGEST_CHARS_MIN.toFloat()..AI_STRIP_SUGGEST_CHARS_MAX.toFloat(),
                 display = { numberFormat.format((it / 10f).roundToInt() * 10) },
                 default = SettingsDefaults.ai.stripSuggestChars.toFloat(),
+                info = stringResource(R.string.toolai_strip_suggest_chars_info),
             ) { scope.launch { repository.setAiStripSuggestChars((it / 10f).roundToInt() * 10) } }
         }
         item(visible = stripSuggest, level = SettingLevel.STANDARD) {
@@ -387,6 +397,7 @@ internal fun AiToolSettings(
                 stringResource(R.string.toolai_strip_suggest_composing_subtitle),
                 stripComposing,
                 default = SettingsDefaults.ai.stripSuggestComposing,
+                info = stringResource(R.string.toolai_strip_suggest_composing_info),
             ) { scope.launch { repository.setAiStripSuggestComposing(it) } }
         }
         // Off only with the other on: both off is the main switch's job.
@@ -396,6 +407,7 @@ internal fun AiToolSettings(
                 stringResource(R.string.toolai_strip_suggest_after_word_subtitle),
                 settings.watch { it.ai.stripSuggestAfterWord },
                 default = SettingsDefaults.ai.stripSuggestAfterWord,
+                info = stringResource(R.string.toolai_strip_suggest_after_word_info),
             ) { scope.launch { repository.setAiStripSuggestAfterWord(it) } }
         }
         item(visible = stripSuggest, level = SettingLevel.ADVANCED) {
@@ -404,6 +416,7 @@ internal fun AiToolSettings(
                 stringResource(R.string.toolai_strip_suggest_after_words_subtitle),
                 settings.watch { it.ai.stripSuggestAfterWords },
                 default = SettingsDefaults.ai.stripSuggestAfterWords,
+                info = stringResource(R.string.toolai_strip_suggest_after_words_info),
             ) { scope.launch { repository.setAiStripSuggestAfterWords(it) } }
         }
         item(visible = stripSuggest, level = SettingLevel.ADVANCED) {
@@ -445,6 +458,7 @@ internal fun AiToolSettings(
                 stringResource(R.string.toolai_strip_suggest_only_unsure_subtitle),
                 settings.watch { it.ai.stripSuggestOnlyUnsure },
                 default = SettingsDefaults.ai.stripSuggestOnlyUnsure,
+                info = stringResource(R.string.toolai_strip_suggest_only_unsure_info),
             ) { scope.launch { repository.setAiStripSuggestOnlyUnsure(it) } }
         }
         item(visible = stripSuggest && rows.size > 1, level = SettingLevel.STANDARD) {
@@ -456,6 +470,7 @@ internal fun AiToolSettings(
                     rows.map { it.key to providerTitle(context, it) },
                 selected = settings.watch { s -> s.ai.stripSuggestProvider.takeIf { key -> rows.any { it.key == key } }.orEmpty() },
                 default = "",
+                info = stringResource(R.string.toolai_strip_suggest_provider_info),
             ) { key -> scope.launch { repository.setAiStripSuggestProvider(key) } }
         }
         item(visible = stripSuggest, level = SettingLevel.ADVANCED) {
@@ -476,6 +491,7 @@ internal fun AiToolSettings(
                     AiStripTemperatures.firstOrNull { it == s.ai.stripSuggestTemperature } ?: AiStripTemperatures.first()
                 },
                 default = SettingsDefaults.ai.stripSuggestTemperature,
+                info = stringResource(R.string.toolai_strip_suggest_temperature_info),
             ) { value -> scope.launch { repository.setAiStripSuggestTemperature(value) } }
         }
         item(visible = stripSuggest, level = SettingLevel.ADVANCED) {
@@ -527,6 +543,7 @@ internal fun AiToolSettings(
                 stringResource(R.string.toolai_ai_tool_search_subtitle),
                 toolSearch,
                 default = SettingsDefaults.ai.toolWebSearch,
+                info = stringResource(R.string.toolai_ai_tool_search_info),
             ) { scope.launch { repository.setAiToolWebSearch(it) } }
         }
         item(visible = !searchReady) {
@@ -604,6 +621,7 @@ internal fun AiToolSettings(
                 stringResource(R.string.toolai_chat_enter_sends_subtitle),
                 settings.watch { it.ai.chatEnterSends },
                 default = SettingsDefaults.ai.chatEnterSends,
+                info = stringResource(R.string.toolai_chat_enter_sends_info),
             ) { scope.launch { repository.setAiChatEnterSends(it) } }
         }
         // The model that answered names the chat (#882), on both chats.
@@ -613,6 +631,7 @@ internal fun AiToolSettings(
                 stringResource(R.string.toolai_chat_auto_rename_subtitle),
                 settings.watch { it.ai.chatAutoRename },
                 default = SettingsDefaults.ai.chatAutoRename,
+                info = stringResource(R.string.toolai_chat_auto_rename_info),
             ) { scope.launch { repository.setAiChatAutoRename(it) } }
         }
         // Suggested next questions under an answer, from cloud models only.
@@ -622,6 +641,7 @@ internal fun AiToolSettings(
                 stringResource(R.string.toolai_chat_follow_ups_subtitle),
                 settings.watch { it.ai.chatFollowUps },
                 default = SettingsDefaults.ai.chatFollowUps,
+                info = stringResource(R.string.toolai_chat_follow_ups_info),
             ) { scope.launch { repository.setAiChatFollowUps(it) } }
         }
         // The chat's Deep research mode: how far a report goes, and whether
@@ -637,6 +657,7 @@ internal fun AiToolSettings(
                 ),
                 selected = settings.watch { it.ai.research.depth },
                 default = SettingsDefaults.ai.research.depth,
+                info = stringResource(R.string.toolai_research_depth_info),
             ) { scope.launch { repository.setAiResearchDepth(it) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -645,6 +666,7 @@ internal fun AiToolSettings(
                 stringResource(R.string.toolai_research_review_plan_subtitle),
                 settings.watch { it.ai.research.reviewPlan },
                 default = SettingsDefaults.ai.research.reviewPlan,
+                info = stringResource(R.string.toolai_research_review_plan_info),
             ) { scope.launch { repository.setAiResearchReviewPlan(it) } }
         }
         // "Ask AI" in other apps' selection menus (#897). AskAiSelectionMenu
@@ -655,6 +677,7 @@ internal fun AiToolSettings(
                 stringResource(R.string.toolai_ai_selection_menu_subtitle),
                 settings.watch { it.ai.selectionMenu },
                 default = SettingsDefaults.ai.selectionMenu,
+                info = stringResource(R.string.toolai_ai_selection_menu_info),
             ) { scope.launch { repository.setAiSelectionMenu(it) } }
         }
         // The phone's digital assistant (#1143). SystemVoiceComponents
@@ -1024,6 +1047,7 @@ internal fun AiActionEditor(
                 R.string.toolai_ai_action_ask_title,
                 stringResource(R.string.toolai_ai_action_ask_subtitle),
                 askEachRun,
+                info = stringResource(R.string.toolai_ai_action_ask_info),
             ) { askEachRun = it }
         }
         item(visible = askEachRun, level = SettingLevel.ADVANCED) {
@@ -1031,6 +1055,7 @@ internal fun AiActionEditor(
                 R.string.toolai_ai_action_prefill_title,
                 stringResource(R.string.toolai_ai_action_prefill_subtitle),
                 prefillPrompt,
+                info = stringResource(R.string.toolai_ai_action_prefill_info),
             ) { prefillPrompt = it }
         }
         if (!tone) item(level = SettingLevel.STANDARD) {
@@ -1038,6 +1063,7 @@ internal fun AiActionEditor(
                 R.string.toolai_ai_action_empty_field_title,
                 stringResource(R.string.toolai_ai_action_empty_field_subtitle),
                 worksWithoutText,
+                info = stringResource(R.string.toolai_ai_action_empty_field_info),
             ) { worksWithoutText = it }
         }
         if (!tone) item(level = SettingLevel.ADVANCED) {
@@ -1045,6 +1071,7 @@ internal fun AiActionEditor(
                 R.string.toolai_ai_action_before_cursor_title,
                 stringResource(R.string.toolai_ai_action_before_cursor_subtitle),
                 beforeCursor,
+                info = stringResource(R.string.toolai_ai_action_before_cursor_info),
             ) { beforeCursor = it }
         }
         if (!tone) item(level = SettingLevel.STANDARD) {
@@ -1052,6 +1079,7 @@ internal fun AiActionEditor(
                 R.string.toolai_ai_action_append_title,
                 stringResource(R.string.toolai_ai_action_append_subtitle),
                 append,
+                info = stringResource(R.string.toolai_ai_action_append_info),
             ) { append = it }
         }
         // A tone is always framed by the reply prompt: its guard is what keeps
@@ -1062,6 +1090,7 @@ internal fun AiActionEditor(
                     R.string.toolai_ai_action_raw_title,
                     stringResource(R.string.toolai_ai_action_raw_subtitle),
                     rawPrompt,
+                    info = stringResource(R.string.toolai_ai_action_raw_info),
                 ) { rawPrompt = it }
             }
             // A raw prompt is sent as written, frame and all: `AiPrompts`
@@ -1072,6 +1101,7 @@ internal fun AiActionEditor(
                     R.string.toolai_ai_action_output_only_title,
                     stringResource(R.string.toolai_ai_action_output_only_subtitle),
                     outputOnly,
+                    info = stringResource(R.string.toolai_ai_action_output_only_info),
                 ) { outputOnly = it }
             }
         }

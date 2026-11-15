@@ -511,6 +511,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                     R.string.voice_typing_title,
                 ),
                 default = SettingsDefaults.voiceContinuous,
+                info = stringResource(R.string.voice_continuous_info),
             ) { scope.launch { repository.setVoiceContinuous(it) } }
         }
         item {
@@ -519,6 +520,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 stringResource(R.string.voice_keep_screen_on_subtitle),
                 settings.watch { it.voiceBar.keepScreenOn },
                 default = SettingsDefaults.voiceBar.keepScreenOn,
+                info = stringResource(R.string.voice_keep_screen_on_info),
             ) { scope.launch { repository.setVoiceKeepScreenOn(it) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -551,6 +553,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 stringResource(R.string.voice_punctuation_subtitle),
                 settings.watch { it.voiceSpokenPunctuation },
                 default = SettingsDefaults.voiceSpokenPunctuation,
+                info = stringResource(R.string.voice_punctuation_info),
             ) { scope.launch { repository.setVoiceSpokenPunctuation(it) } }
         }
         // Only Sherpa, Omnilingual and Vosk write bare words; plain voice
@@ -793,6 +796,7 @@ internal fun VoiceServerSettings(repository: SettingsRepository, settings: LiveS
                 stringResource(R.string.voice_server_language_subtitle),
                 settings.watch { it.whisper.serverSendLanguage },
                 default = SettingsDefaults.whisper.serverSendLanguage,
+                info = stringResource(R.string.voice_server_language_info),
             ) { scope.launch { repository.setVoiceServerSendLanguage(it) } }
         }
         item {
@@ -846,6 +850,7 @@ internal fun ClipboardSettings(
                 default = SettingsDefaults.clipboard.history,
                 onChange = { scope.launch { repository.setClipboardHistory(it) } },
                 onOpen = { onNavigate("clipboard/history") },
+                info = stringResource(R.string.clipboard_history_info),
             )
         }
         item {
@@ -1013,6 +1018,7 @@ internal fun ClipboardSettings(
                 stringResource(R.string.clipboard_outline_pinned_subtitle),
                 settings.watch { it.clipboard.outlinePinned },
                 default = SettingsDefaults.clipboard.outlinePinned,
+                info = stringResource(R.string.clipboard_outline_pinned_info),
             ) { scope.launch { repository.setClipboardOutlinePinned(it) } }
         }
         item {
@@ -1069,6 +1075,7 @@ internal fun ClipboardSettings(
                 stringResource(R.string.clipboard_bump_on_paste_subtitle),
                 settings.watch { it.clipboard.bumpOnPaste },
                 default = SettingsDefaults.clipboard.bumpOnPaste,
+                info = stringResource(R.string.clipboard_bump_on_paste_info),
             ) { scope.launch { repository.setClipboardBumpOnPaste(it) } }
         }
         item {
@@ -1141,6 +1148,7 @@ internal fun ClipboardSettings(
                 stringResource(R.string.clipboard_search_subtitle),
                 settings.watch { it.clipboard.search },
                 default = SettingsDefaults.clipboard.search,
+                info = stringResource(R.string.clipboard_search_info),
             ) { scope.launch { repository.setClipboardSearch(it) } }
         }
         item(visible = clipSearch) {
@@ -1176,6 +1184,7 @@ internal fun ClipboardSettings(
                 stringResource(R.string.clipboard_link_previews_subtitle),
                 settings.watch { it.clipboard.linkPreviews },
                 default = SettingsDefaults.clipboard.linkPreviews,
+                info = stringResource(R.string.clipboard_link_previews_info),
             ) { scope.launch { repository.setClipboardLinkPreviews(it) } }
         }
         item {
@@ -1262,6 +1271,7 @@ internal fun ClipboardHistorySettings(
                 range = 0f..168f,
                 display = { if (it.toInt() == 0) never else hoursFormat.format(it.toInt()) },
                 default = SettingsDefaults.clipboard.expiryHours.toFloat(),
+                info = stringResource(R.string.clipboard_expiry_info),
             ) { scope.launch { repository.setClipboardExpiryHours(it.toInt()) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -1297,6 +1307,7 @@ internal fun ClipboardHistorySettings(
                 stringResource(R.string.clipboard_pinned_last_subtitle),
                 settings.watch { it.clipboard.pinnedLast },
                 default = SettingsDefaults.clipboard.pinnedLast,
+                info = stringResource(R.string.clipboard_pinned_last_info),
             ) { scope.launch { repository.setClipboardPinnedLast(it) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -1329,6 +1340,7 @@ internal fun ClipboardHistorySettings(
                 stringResource(R.string.clipboard_text_only_subtitle),
                 textOnly,
                 default = SettingsDefaults.clipboard.textOnly,
+                info = stringResource(R.string.clipboard_text_only_info),
             ) { on -> scope.launch { repository.setClipboardTextOnly(on) } }
         }
         // Screenshots, the source app and the paste chip are all read as a
@@ -1343,6 +1355,7 @@ internal fun ClipboardHistorySettings(
                 enabled = !textOnly,
                 disabledReason = if (textOnly) DisabledReason(stringResource(R.string.clipboard_screenshots_text_only)) else null,
                 default = SettingsDefaults.clipboard.userScreenshots,
+                info = stringResource(R.string.clipboard_screenshots_info),
             ) { on ->
                 scope.launch { repository.setClipboardUserScreenshots(on) }
                 if (on && !hasImagesPermission(context)) {
@@ -1436,6 +1449,7 @@ internal fun ClipboardChipsSettings(
                 stringResource(R.string.clipboard_suggest_recent_subtitle),
                 suggestRecent,
                 default = SettingsDefaults.clipboard.suggestRecent,
+                info = stringResource(R.string.clipboard_suggest_recent_info),
             ) { scope.launch { repository.setClipboardSuggestRecent(it) } }
         }
         item(visible = suggestRecent, level = SettingLevel.ADVANCED) {
@@ -1534,6 +1548,7 @@ internal fun ClipboardChipsSettings(
                 stringResource(R.string.clipboard_entity_to_clipboard_subtitle),
                 settings.watch { it.clipboard.entityToClipboard },
                 default = SettingsDefaults.clipboard.entityToClipboard,
+                info = stringResource(R.string.clipboard_entity_to_clipboard_info),
             ) { scope.launch { repository.setClipboardEntityToClipboard(it) } }
         }
         item(visible = detectEntities, level = SettingLevel.ADVANCED) {
@@ -1666,6 +1681,7 @@ internal fun ClipboardRulesSettings(
                 range = 1f..120f,
                 display = { minutesFormat.format(it.toInt()) },
                 default = SettingsDefaults.clipboard.sensitiveExpiryMinutes.toFloat(),
+                info = stringResource(R.string.clipboard_sensitive_expiry_info),
             ) {
                 scope.launch { repository.setClipboardSensitiveExpiryMinutes(it.toInt()) }
             }

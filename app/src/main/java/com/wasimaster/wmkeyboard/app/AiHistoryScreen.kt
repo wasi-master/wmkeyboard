@@ -115,6 +115,7 @@ internal fun AiHistoryScreen(repository: SettingsRepository, settings: LiveSetti
                 stringResource(R.string.toolai_ai_history_subtitle),
                 historyOn,
                 default = SettingsDefaults.ai.historyEnabled,
+                info = stringResource(R.string.toolai_ai_history_info),
             ) { on ->
                 scope.launch {
                     repository.setAiHistoryEnabled(on)
@@ -136,6 +137,7 @@ internal fun AiHistoryScreen(repository: SettingsRepository, settings: LiveSetti
                     AiHistoryStore.MAX_ITEMS_CEILING.toFloat(),
                 display = { it.toInt().toString() },
                 default = SettingsDefaults.ai.historyMax.toFloat(),
+                info = stringResource(R.string.toolai_ai_history_max_info),
             ) { picked ->
                 scope.launch {
                     repository.setAiHistoryMax(picked.toInt())

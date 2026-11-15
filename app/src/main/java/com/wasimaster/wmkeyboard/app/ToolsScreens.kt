@@ -479,6 +479,7 @@ internal fun ToolsSettings(
         checked = colored,
         onChange = { scope.launch { repository.setColoredToolIcons(it) } },
         default = SettingsDefaults.coloredToolIcons,
+        info = stringResource(R.string.tools_colored_icons_info),
     )
     // Nested under the switch above rather than shown greyed out: with the
     // colours off there is nothing for a gradient to be made of, so the row
@@ -514,6 +515,7 @@ internal fun ToolsSettings(
             checked = settings.watch { it.builtInFileManager },
             onChange = { scope.launch { repository.setBuiltInFileManager(it) } },
             default = SettingsDefaults.builtInFileManager,
+            info = stringResource(R.string.tools_file_manager_info),
         )
     }
     // A tool's floating box over other apps (#1155) that goes at a tap
@@ -524,6 +526,7 @@ internal fun ToolsSettings(
         checked = settings.watch { it.summonButton.boxClosesOutside },
         onChange = { scope.launch { repository.setFloatingBoxClosesOutside(it) } },
         default = SettingsDefaults.summonButton.boxClosesOutside,
+        info = stringResource(R.string.tools_box_close_outside_info),
     )
     // The box's buttons traded for throws (#1262): up closes, down moves it
     // into the keyboard, a side tucks it.
@@ -533,6 +536,7 @@ internal fun ToolsSettings(
         checked = settings.watch { it.summonButton.boxGestures },
         onChange = { scope.launch { repository.setFloatingBoxGestures(it) } },
         default = SettingsDefaults.summonButton.boxGestures,
+        info = stringResource(R.string.tools_box_gestures_info),
     )
     // A hold, then a drag, moves the box from anywhere on it (#1263).
     ToggleSetting(
@@ -541,6 +545,7 @@ internal fun ToolsSettings(
         checked = settings.watch { it.summonButton.boxHoldToMove },
         onChange = { scope.launch { repository.setFloatingBoxHoldToMove(it) } },
         default = SettingsDefaults.summonButton.boxHoldToMove,
+        info = stringResource(R.string.tools_box_hold_to_move_info),
     )
     // Panels as one group or two (#759). Above the groups it reshapes, so
     // the switch and what it changes are on screen together.
@@ -551,6 +556,7 @@ internal fun ToolsSettings(
         checked = splitPanels,
         onChange = { scope.launch { repository.setSplitToolPanels(it) } },
         default = SettingsDefaults.appUi.splitToolPanels,
+        info = stringResource(R.string.tools_split_panels_info),
     )
     val groups = (if (splitPanels) SplitToolGroups else ToolGroups).withExtensions(extensions)
     // Only the group titles need a composition; each grouping itself is fixed.

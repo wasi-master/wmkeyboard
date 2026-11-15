@@ -1700,6 +1700,7 @@ internal fun AboutSettings(
                 stringResource(R.string.about_notes_after_update_subtitle),
                 on,
                 default = true,
+                info = stringResource(R.string.about_notes_after_update_info),
             ) {
                 on = it
                 NewSettings.setShowNotesAfterUpdate(context, it)
@@ -1843,6 +1844,7 @@ internal fun AboutSettings(
                 stringResource(R.string.feedback_shake_subtitle),
                 settings.watch { it.feedbackShortcuts.shake },
                 default = SettingsDefaults.feedbackShortcuts.shake,
+                info = stringResource(R.string.feedback_shake_info),
             ) { scope.launch { repository.setFeedbackShake(it) } }
         }
         item {
@@ -1855,6 +1857,7 @@ internal fun AboutSettings(
                 supported && settings.watch { it.feedbackShortcuts.screenshot },
                 enabled = supported,
                 default = SettingsDefaults.feedbackShortcuts.screenshot,
+                info = stringResource(R.string.feedback_screenshot_info),
             ) { scope.launch { repository.setFeedbackScreenshot(it) } }
         }
         item {
@@ -1866,6 +1869,7 @@ internal fun AboutSettings(
                 ),
                 selected = settings.watch { it.feedbackShortcuts.telegramRoute },
                 default = SettingsDefaults.feedbackShortcuts.telegramRoute,
+                info = stringResource(R.string.feedback_telegram_route_info),
             ) { scope.launch { repository.setFeedbackTelegramRoute(it) } }
         }
     }
@@ -1929,6 +1933,7 @@ internal fun AboutSettings(
                 stringResource(R.string.settings_hidden_rows_subtitle),
                 settings.watch { it.appUi.hiddenSettingsRows },
                 default = SettingsDefaults.appUi.hiddenSettingsRows,
+                info = stringResource(R.string.settings_hidden_rows_info),
             ) { scope.launch { repository.setHiddenSettingsRows(it) } }
         }
         item {
@@ -1937,6 +1942,7 @@ internal fun AboutSettings(
                 stringResource(R.string.settings_switched_off_rows_subtitle),
                 settings.watch { it.appUi.switchedOffRows },
                 default = SettingsDefaults.appUi.switchedOffRows,
+                info = stringResource(R.string.settings_switched_off_rows_info),
             ) { scope.launch { repository.setSwitchedOffRows(it) } }
         }
         item {
@@ -1945,7 +1951,14 @@ internal fun AboutSettings(
                 stringResource(R.string.settings_also_under_subtitle),
                 settings.watch { it.appUi.alsoUnderLine },
                 default = SettingsDefaults.appUi.alsoUnderLine,
+                info = stringResource(R.string.settings_also_under_info),
             ) { scope.launch { repository.setAlsoUnderLine(it) } }
+        }
+        // The pictures above a setting's explanation: how they arrive, and
+        // the button that deletes the ones already here.
+        item {
+            HelpPicturesChoice()
+            HelpPicturesDelete()
         }
         item(level = SettingLevel.ADVANCED) {
             ToggleSetting(

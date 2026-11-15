@@ -22,18 +22,22 @@
     <string name="theme_mode_amoled_label">AMOLED</string>
     <string name="theme_material_you_title">Material You colors</string>
     <string name="theme_material_you_subtitle">The Default theme takes its colors from your wallpaper</string>
+    <string name="theme_material_you_info">The Default theme takes its colours from your wallpaper, as other Material You apps do. With this off, the Default theme keeps its own fixed colours. Android 12 and later. This setting is off by default.</string>
 
     <!-- Themes screen: the keyboard taking the colors of the app it types in. -->
     <string name="theme_app_colors_section_title">App colors</string>
     <string name="theme_app_colors_section_body">The keyboard takes the colors of the app that you type in. It finds them in the app icon and in the colors that the app sets for its own screens. Then it makes a full palette from one of them, as Android does from your wallpaper. Your theme does not change. In a different app, or with this setting off, the keyboard shows the theme again. In the Appearance tool on the keyboard, you can select a different color of the app, or no color, for each app.</string>
     <string name="theme_app_colors_title">Match the app colors</string>
     <string name="theme_app_colors_subtitle">Use the colors of the app that you type in</string>
+    <string name="theme_app_colors_info">The keyboard takes the colours of the app you are typing in, so it looks like a part of that app. The colours change each time you go to another app.</string>
     <string name="theme_app_colors_scope_title">Themes that change</string>
+    <string name="theme_app_colors_scope_info">Which of your themes take the app\'s colours. Default and wallpaper themes changes only the Default theme and themes that follow the wallpaper. All themes changes every theme, also the ones with fixed colours.</string>
     <string name="theme_app_colors_scope_following_label">Default and wallpaper themes</string>
     <string name="theme_app_colors_scope_following_desc">The Default theme, and themes with Follow wallpaper colors on. Other themes keep their colors.</string>
     <string name="theme_app_colors_scope_all_label">All themes</string>
     <string name="theme_app_colors_scope_all_desc">Every theme takes the app colors, also themes with fixed colors. Light and dark parts of the theme stay light and dark.</string>
     <string name="theme_app_colors_source_title">Find colors in</string>
+    <string name="theme_app_colors_source_info">Where the keyboard looks for an app\'s colours. App screens uses only the colours the app sets for its own screens, such as its toolbar. App icon uses only the icon, which helps when an app\'s colours look wrong. Auto tries the app\'s screens first, then the icon. The default is Auto.</string>
     <string name="theme_app_colors_source_auto_label">Auto</string>
     <string name="theme_app_colors_source_auto_desc">The colors that the app sets for its screens first, then the app icon</string>
     <string name="theme_app_colors_source_icon_label">App icon</string>
@@ -42,6 +46,7 @@
     <string name="theme_app_colors_source_app_desc">Only the colors that the app sets for its screens, for example its toolbar. Some apps set none.</string>
     <string name="theme_app_colors_style_title">Palette style</string>
     <string name="theme_app_colors_style_subtitle">How one app color becomes a full palette</string>
+    <string name="theme_app_colors_style_info">How one colour from the app becomes a full set of keyboard colours. The styles go from one that stays nearest to the exact app colour, through more playful ones that move away from it, to one that is gray only.</string>
     <string name="theme_app_colors_style_tonal_spot_desc">Calm colors. Android uses this style by default.</string>
     <string name="theme_app_colors_style_vibrant_desc">The strongest colors</string>
     <string name="theme_app_colors_style_expressive_desc">Colors moved away from the app color, for a playful look</string>
@@ -63,6 +68,7 @@
     <string name="theme_auto_section_body">The keyboard changes between a light theme and a dark theme on its own. While this is on, the theme tool on the keyboard shows only a preview. The schedule selects the active theme.</string>
     <string name="theme_auto_title">Auto theme</string>
     <string name="theme_auto_subtitle">Use a light theme in the day and a dark theme at night</string>
+    <string name="theme_auto_info">The keyboard uses a light theme in the day and a dark theme at night, and changes between them by itself. You pick which theme is used for each.</string>
     <string name="theme_auto_light_title">Light theme</string>
     <string name="theme_auto_dark_title">Dark theme</string>
     <!-- The two modes of one half of the pair, in the theme picker. "One
@@ -79,6 +85,7 @@
     </plurals>
     <string name="theme_shuffle_interval_title">Change the theme</string>
     <string name="theme_shuffle_interval_subtitle">How often a random half selects a new theme</string>
+    <string name="theme_shuffle_interval_info">How often the keyboard picks a new theme at random from the themes you allow. The default is every time the keyboard opens.</string>
     <string name="theme_shuffle_now_title">Change the theme now</string>
     <string name="theme_shuffle_now_subtitle">Select a new theme from your sets</string>
     <!-- Button that selects a new theme immediately. -->
@@ -256,6 +263,7 @@
     <string name="theme_seed_section_body">The app makes all the colors from one seed color. You can change each color below.</string>
     <string name="theme_editor_dark_title">Dark theme</string>
     <string name="theme_editor_dark_subtitle">The seed color makes a dark palette or a light palette</string>
+    <string name="theme_editor_dark_info">Whether the seed colour makes a dark set of colours or a light one. Turn this on for a dark theme.</string>
     <string name="theme_follow_wallpaper_title">Follow wallpaper colors</string>
     <string name="theme_follow_wallpaper_subtitle">The colors change to match your wallpaper. Each color keeps its lightness, so the text stays easy to read.</string>
     <string name="theme_follow_wallpaper_unsupported">Needs Android 12 or later</string>
@@ -278,6 +286,7 @@
     <!-- Switch: the background photo is cut up and shown across the keys, with a plain color between them. -->
     <string name="theme_picture_on_keys_title">Picture on the keys</string>
     <string name="theme_picture_on_keys_subtitle">Spread the image across the keys, each key showing its own piece, with the background color between them. Turns on glass for the keys and makes them see-through. Set the color between the keys with Background, and lower the Enter key\'s opacity to put the picture there too</string>
+    <string name="theme_picture_on_keys_info">Spreads the background image across the keys. Each key shows its own piece of the picture, and the background colour shows between the keys. This turns on glass for the keys and makes them see-through.</string>
     <string name="theme_background_image_alpha_body">The board color became transparent when you selected this image. The image shows at full strength. Increase the opacity of the background color to tint the image or to make it dark.</string>
     <string name="theme_background_image_landscape_title">Landscape background image</string>
     <string name="theme_background_image_landscape_none">Optional: the keyboard shows this image in landscape, or the image above if this one is empty</string>
@@ -339,6 +348,7 @@
     <string name="theme_popup_text_title">Popup text</string>
     <string name="theme_popup_shape_title">Popup shape</string>
     <string name="theme_popup_placement_title">Popup placement</string>
+    <string name="theme_popup_placement_info">Where the popup of a pressed key shows for this theme. On the key grows the bubble out of the key itself. Floating shows it above the key, apart from it. Default uses the placement from the keyboard settings.</string>
     <!-- Descriptions of the three popup placements. -->
     <string name="theme_popup_placement_default_desc">Uses the placement from the keyboard settings</string>
     <string name="theme_popup_placement_key_desc">The bubble grows out of the key that you press</string>
@@ -415,6 +425,7 @@
     <!-- Theme editor: corners. -->
     <string name="theme_corners_section_title">Corners</string>
     <string name="theme_custom_radii_title">Corner radii for this theme</string>
+    <string name="theme_custom_radii_info">Gives this theme its own corner radii for keys and popups. With this off, the theme follows the sliders under Appearance.</string>
     <!-- "Appearance" is the name of another settings screen. -->
     <string name="theme_custom_radii_subtitle">Off: the theme follows the sliders in Appearance</string>
     <string name="theme_key_radius_title">Key corner radius</string>
@@ -428,6 +439,7 @@
     <string name="theme_layout_section_title">Layout</string>
     <string name="theme_layout_section_body">A theme can set its own sizes and spacing, so one import changes the whole look. Screen-specific sizes from Layout settings still win over the theme.</string>
     <string name="theme_custom_layout_title">Layout for this theme</string>
+    <string name="theme_custom_layout_info">Gives this theme its own key sizes and spacing. With this off, the theme follows the sliders under Appearance and Layout. While this is on, those sliders are pinned for this theme.</string>
     <!-- "Appearance" is the name of another settings screen. -->
     <string name="theme_custom_layout_subtitle">Off: the theme follows the sliders in Appearance and Layout</string>
     <!-- Every title below is the title of the global row it shadows, word for
@@ -443,6 +455,7 @@
     <string name="theme_side_padding_right_title">Right padding</string>
     <string name="theme_font_scale_title">Key label font size</string>
     <string name="theme_bold_labels_title">Bold key labels</string>
+    <string name="theme_bold_labels_info">Draws the letters on the keys in bold for this theme.</string>
     <string name="theme_hint_scale_title">Key hint font size</string>
     <string name="theme_trail_width_title">Gesture trail width</string>
     <string name="theme_trail_opacity_title">Gesture trail opacity</string>
@@ -455,6 +468,7 @@
     <string name="theme_glass_section_body">Frosted glass: keys, bars and popups show what is behind them, blurred, with a rim of light and a little grain. Blurring the app behind the keyboard needs Android 12 or later and follows the phone\'s own blur setting. Over a background image the glass blurs the image instead, on every phone.</string>
     <string name="theme_glass_title">Frosted glass</string>
     <string name="theme_glass_subtitle">See-through surfaces over a blurred backdrop, with a rim and grain</string>
+    <string name="theme_glass_info">Draws the keyboard\'s surfaces as frosted glass: see-through, over a blurred backdrop, with a light rim and a fine grain.</string>
     <string name="theme_glass_preset_label">Presets</string>
     <string name="theme_glass_preset_body">A preset sets the glass sliders and makes the key, chip, tool and popup colors see-through where they are not already. Every slider still moves afterwards.</string>
     <!-- Names of the four presets. Frosted is milky glass, Clear is almost
@@ -476,6 +490,7 @@
     <string name="theme_glass_dispersion_body">How far red and blue part where the pane bends the backdrop, like light through the edge of a prism.</string>
     <string name="theme_glass_window_blur_title">Blur behind the keyboard</string>
     <string name="theme_glass_window_blur_subtitle">The app behind the keyboard shows through the board, blurred. Android 12 and later. Off while the phone\'s blur or the keyboard\'s power saving is off, and in the floating keyboard. Turn this off, and set Behind the glass to Nothing, for a solid keyboard</string>
+    <string name="theme_glass_window_blur_info">The app behind the keyboard shows through the board, blurred. This needs Android 12 or later. It is off while the phone\'s own blur or the keyboard\'s power saving turns blur off, and in the floating keyboard. For a solid keyboard, turn this off and set Behind the glass to Nothing.</string>
     <string name="theme_glass_window_blur_unavailable">This phone isn\'t blurring windows right now: its blur is off, or it has none. The glass shows your wallpaper instead of the app, so the background won\'t change from app to app. Look for a window blur switch in the phone\'s settings (on Samsung, turn off Reduce transparency and blur under Accessibility › Visibility enhancements), or turn off battery saver.</string>
     <string name="theme_glass_blur_strength_title">Blur strength</string>
     <string name="theme_glass_blur_strength_body">How far the system blurs the app behind the board, and the keys behind a popup or menu.</string>
@@ -514,8 +529,10 @@
     <!-- The board is tinted with the strong accent colour of the wallpaper. -->
     <string name="theme_glass_accent_board_title">Accent-tinted board</string>
     <string name="theme_glass_accent_board_subtitle">The board takes your wallpaper\'s accent colour, as FrostKeys does. Off keeps a darker, quieter tint in the wallpaper\'s hue</string>
+    <string name="theme_glass_accent_board_info">Tints the board with the accent colour of your wallpaper. With this off, the board keeps a darker and quieter tint in the wallpaper\'s hue.</string>
     <string name="theme_glass_blur_board_title">Blur the background too</string>
     <string name="theme_glass_blur_board_subtitle">The background image is frosted between the keys as well, with the backdrop sliders below. Off keeps it as sharp as its own blur setting leaves it</string>
+    <string name="theme_glass_blur_board_info">The background image is also frosted in the gaps between the keys, by the backdrop sliders below. With this off, the image between the keys is as sharp as its own blur setting leaves it.</string>
     <string name="theme_glass_backdrop_blur_title">Backdrop blur</string>
     <string name="theme_glass_backdrop_blur_body">How much the background image is blurred where it shows through a glass surface. The board itself stays as sharp as its own blur setting leaves it.</string>
     <string name="theme_glass_saturation_title">Backdrop saturation</string>
@@ -537,6 +554,7 @@
     <!-- Theme editor: animated background image. -->
     <string name="theme_background_animated_title">Play animated image</string>
     <string name="theme_background_animated_subtitle">Plays a GIF or animated WebP background. Turns off blur. Does not play with reduce motion or power saving.</string>
+    <string name="theme_background_animated_info">Plays a GIF or an animated WebP that you set as the background. Blur is turned off while it plays. The animation does not play while reduce motion or power saving is on.</string>
 
     <!-- Which built-ins show in the keyboard's Themes tool. -->
     <string name="theme_panel_pin_body">The pin on each card decides if the theme shows in the keyboard\'s Themes tool. Your own themes always show there.</string>
@@ -597,13 +615,16 @@
     <!-- Single-key styles on a frosted-glass theme: Auto follows the key's class, On makes this key glass, Off keeps it solid. -->
     <string name="theme_key_override_glass_label">Frosted glass</string>
     <string name="theme_key_override_label_size_title">Label size</string>
+    <string name="theme_key_override_label_size_info">Gives this key its own label size, apart from the size of the other keys.</string>
     <string name="theme_key_override_gradient_title">Gradient face</string>
+    <string name="theme_key_override_gradient_info">Fills this key\'s face with a gradient between two colours, in place of one flat colour.</string>
     <string name="theme_key_override_gradient_start_title">Gradient start</string>
     <string name="theme_key_override_gradient_end_title">Gradient end</string>
     <string name="theme_key_override_gradient_angle_title">Gradient angle</string>
     <string name="theme_key_override_glow_title">Glow</string>
     <string name="theme_key_override_glow_size_title">Glow reach</string>
     <string name="theme_key_override_radius_title">Corner radius</string>
+    <string name="theme_key_override_radius_info">Gives this key its own corner radius, apart from the radius of the other keys.</string>
     <string name="theme_key_background_title">Key background</string>
     <string name="theme_key_override_pick_action">Pick on keyboard</string>
 
@@ -827,17 +848,21 @@
     <string name="theme_material_section_title">Key material</string>
     <string name="theme_material_section_body">What the keys look like they are made of: a raised key cap, brushed metal, wood, stitched cloth, a neon tube and more. Each material is a starting point. Change any part of it below, or pick Custom and build one from nothing.</string>
     <string name="theme_material_title">Material</string>
+    <string name="theme_material_info">The material the keys look as if they were made of, such as a key cap, glass, ceramic or candy. Each material has its own highlights, shadows and depth. Custom lets you set those parts yourself.</string>
     <string name="theme_material_bevel_title">Key cap height</string>
     <string name="theme_material_inset_title">Top face inset</string>
     <string name="theme_material_skirt_title">Cap side shade</string>
     <string name="theme_material_gloss_title">Gloss</string>
     <string name="theme_material_light_title">Light direction</string>
     <string name="theme_material_texture_title">Surface texture</string>
+    <string name="theme_material_texture_info">A fine texture drawn over the face of each key, such as carbon fibre or a dot matrix.</string>
     <string name="theme_material_texture_opacity_title">Texture strength</string>
     <string name="theme_material_edge_title">Edge</string>
+    <string name="theme_material_edge_info">How the edge of each key is drawn, such as an ink outline, a glow, a double ring or stitching. None draws no edge.</string>
     <string name="theme_material_edge_color_title">Edge colour</string>
     <string name="theme_material_edge_width_title">Edge width</string>
     <string name="theme_material_label_title">Label effect</string>
+    <string name="theme_material_label_info">An effect on the letters of the keys, such as raised letters, letters pressed into the key, or letters made of dots.</string>
     <string name="theme_material_iridescence_title">Rainbow sheen</string>
     <string name="theme_material_soft_shadow_title">Soft shadow</string>
     <string name="theme_board_effect_section_title">Moving background</string>
@@ -861,7 +886,9 @@
     <string name="theme_lighting_section_title">Key lighting</string>
     <string name="theme_lighting_section_body">Light on the keys, like a backlit keyboard. Some patterns run on their own. Others light up from the key you press and fade when you stop typing. It stops when Reduce motion or power saving is on.</string>
     <string name="theme_lighting_title">Pattern</string>
+    <string name="theme_lighting_info">The light pattern that plays on the keys, like the lighting of a gaming keyboard. Some patterns run all the time, and some answer each key press.</string>
     <string name="theme_lighting_target_title">Light on</string>
+    <string name="theme_lighting_target_info">The part of each key that the light is drawn on: the face, the edges, the whole key, or a glow behind the keys.</string>
     <string name="theme_lighting_color_title">Light colour</string>
     <string name="theme_lighting_intensity_title">Brightness</string>
     <string name="theme_lighting_size_title">Glow size</string>
@@ -877,6 +904,7 @@
     <string name="theme_touch_bloom_section_body">The keyboard answers your finger. A soft light blooms out from where you touch, and the keys near your finger dip and spring back with a small wobble while the rest stay still. When you glide, the light and the dip follow your finger, and the bubble over a pressed key lights up in the same colour. It stops when Reduce motion or power saving is on.</string>
     <string name="theme_touch_bloom_title">Touch bloom</string>
     <string name="theme_touch_bloom_subtitle">Light and a springy dip under your finger</string>
+    <string name="theme_touch_bloom_info">A soft light spreads under your finger at each press, and the key dips and springs back.</string>
     <string name="theme_touch_bloom_color_title">Light colour</string>
     <string name="theme_touch_bloom_light_title">Light strength</string>
     <string name="theme_touch_bloom_radius_title">Reach</string>

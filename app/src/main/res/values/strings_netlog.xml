@@ -138,6 +138,7 @@
     <string name="netlog_keep_info">The log keeps up to 2,000 rows and 30 days of totals, on your device only. Each row holds the feature, the server, the address without its query, the size, the result and the time. It never holds what you typed, searched or sent, and it never holds API keys. Backups do not include it.</string>
     <string name="netlog_keyboard_dot_title">Show activity on the keyboard</string>
     <string name="netlog_keyboard_dot_subtitle">A small dot on the toolbar while a request is under way</string>
+    <string name="netlog_keyboard_dot_info">Shows a small dot on the keyboard\'s toolbar while the keyboard has a network request under way, so you see at once when it talks to the internet. This setting is off by default.</string>
     <string name="netlog_export_chooser">Share the network log</string>
     <string name="netlog_cleared">Network log cleared</string>
 
@@ -200,6 +201,7 @@
     <string name="netlog_source_download_glide">Glide model downloads</string>
     <string name="netlog_source_download_native">Feature library downloads</string>
     <string name="netlog_source_download_language">Interface language downloads</string>
+    <string name="netlog_source_download_help">Help picture downloads</string>
     <string name="netlog_source_addons">Add-ons</string>
     <string name="netlog_source_keyman">Keyman keyboards</string>
     <string name="netlog_source_signal_stickers">Signal sticker packs</string>

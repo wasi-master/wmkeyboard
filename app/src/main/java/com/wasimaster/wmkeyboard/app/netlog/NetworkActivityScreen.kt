@@ -799,6 +799,7 @@ private fun Options(
                 stringResource(R.string.netlog_keyboard_dot_subtitle),
                 settings.watch { it.networkLog.showOnKeyboard },
                 default = SettingsDefaults.networkLog.showOnKeyboard,
+                info = stringResource(R.string.netlog_keyboard_dot_info),
             ) { scope.launch { repository.setNetworkLogOnKeyboard(it) } }
         }
         item {

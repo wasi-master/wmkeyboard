@@ -1245,6 +1245,7 @@ internal fun LanguageDetailScreen(
                         ?: FancyStyles.all.first(),
                     default = FancyStyles.byId(SettingsDefaults.layoutBehavior.fancyStyleId)
                         ?: FancyStyles.all.first(),
+                    info = stringResource(R.string.languages_fancy_style_row_info),
                 ) { scope.launch { repository.setFancyStyle(it.id) } }
             }
         }
@@ -2032,6 +2033,7 @@ private fun CjkDictPackManager(
                 stringResource(R.string.languages_cjk_traditional_button_subtitle),
                 settings.watch { it.cjk.traditionalButton },
                 default = SettingsDefaults.cjk.traditionalButton,
+                info = stringResource(R.string.languages_cjk_traditional_button_info),
             ) { on -> scope.launch { repository.setCjkTraditionalButton(on) } }
         }
 
@@ -2056,6 +2058,7 @@ private fun CjkDictPackManager(
                 selected = settings.watch { it.cjk.readingOnSwitch },
                 default = SettingsDefaults.cjk.readingOnSwitch,
                 detail = { choice -> ChoiceDetail(stringResource(readingOnSwitchDescRes(choice))) },
+                info = stringResource(R.string.languages_cjk_reading_on_switch_info),
             ) { choice -> scope.launch { repository.setCjkReadingOnSwitch(choice) } }
         }
 
@@ -2083,6 +2086,7 @@ private fun CjkDictPackManager(
                 stringResource(R.string.languages_cjk_lazy_subtitle),
                 settings.watch { it.cjk.jyutpingLazy },
                 default = SettingsDefaults.cjk.jyutpingLazy,
+                info = stringResource(R.string.languages_cjk_lazy_info),
             ) { on -> scope.launch { repository.setJyutpingLazy(on) } }
         }
 
@@ -2177,6 +2181,7 @@ private fun CjkDictPackManager(
                 options = listOf("" to uncontracted) + BrailleContracted.tables.map { it.id to it.label },
                 selected = settings.watch { it.cjk.brailleTable },
                 default = SettingsDefaults.cjk.brailleTable,
+                info = stringResource(R.string.languages_braille_table_info),
             ) { table -> scope.launch { repository.setBrailleTable(table) } }
         }
 
@@ -2210,6 +2215,7 @@ private fun CjkDictPackManager(
                 stringResource(R.string.languages_cjk_kyujitai_button_subtitle),
                 settings.watch { it.cjk.traditionalButton },
                 default = SettingsDefaults.cjk.traditionalButton,
+                info = stringResource(R.string.languages_cjk_kyujitai_button_info),
             ) { on -> scope.launch { repository.setCjkTraditionalButton(on) } }
         }
 
@@ -2361,6 +2367,7 @@ private fun CjkDictPackManager(
                     options = DoublePinyinScheme.entries.map { it to stringResource(it.displayNameRes) },
                     selected = current,
                     default = SettingsDefaults.cjk.pinyinDoublePinyin,
+                    info = stringResource(R.string.languages_cjk_double_pinyin_info),
                 ) { scheme ->
                     scope.launch {
                         if (scheme == DoublePinyinScheme.CUSTOM && customText.isBlank()) {
@@ -2496,6 +2503,7 @@ private fun PhoneticStripGroup(
                             },
                         )
                     },
+                    info = stringResource(R.string.languages_phonetic_strip_source_info),
                 ) { scope.launch { repository.setPhoneticStripSource(langId, it) } }
             }
         }

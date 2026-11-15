@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2" xmlns:tools="http://schemas.android.com/tools">
+    <!-- Help pictures: the picture, clip or off/on comparison above the words in a setting's "?" dialog. The files are downloaded, as one pack for the light look and one for the dark look, or one picture at a time. -->
+
+    <!-- The card shown in the picture's place the first time a "?" that has one is opened. -->
+    <string name="help_pictures_ask_title">This setting has a picture</string>
+    <string name="help_pictures_ask_body_light" tools:ignore="PluralsCandidate">Some settings have a picture or a short clip that shows what they do. The pictures are a download. You can get all of them for the light look now (<xliff:g id="pack_size" example="7.2 MB">%1$s</xliff:g>), or get each one when you open its explanation (this one is <xliff:g id="picture_size" example="18 kB">%2$s</xliff:g>).</string>
+    <string name="help_pictures_ask_body_dark" tools:ignore="PluralsCandidate">Some settings have a picture or a short clip that shows what they do. The pictures are a download. You can get all of them for the dark look now (<xliff:g id="pack_size" example="6.9 MB">%1$s</xliff:g>), or get each one when you open its explanation (this one is <xliff:g id="picture_size" example="18 kB">%2$s</xliff:g>).</string>
+    <string name="help_pictures_ask_body_single">Some settings have a picture or a short clip that shows what they do. The pictures are a download. You can get each one when you open its explanation (this one is <xliff:g id="picture_size" example="18 kB">%1$s</xliff:g>).</string>
+    <string name="help_pictures_ask_all">Get all pictures (<xliff:g id="pack_size" example="7.2 MB">%1$s</xliff:g>)</string>
+    <string name="help_pictures_ask_one">One at a time</string>
+    <string name="help_pictures_ask_off">No pictures</string>
+    <string name="help_pictures_ask_footer">You can change this under About › App › Help pictures.</string>
+
+    <!-- Pictures were asked for as a pack, and the pack for the look the app is in now is not on the phone. -->
+    <string name="help_pictures_pack_offer_dark">The pictures for the dark look are a separate download (<xliff:g id="pack_size" example="6.9 MB">%1$s</xliff:g>).</string>
+    <string name="help_pictures_pack_offer_light">The pictures for the light look are a separate download (<xliff:g id="pack_size" example="7.2 MB">%1$s</xliff:g>).</string>
+    <string name="help_pictures_keep_light">Keep the light ones</string>
+    <string name="help_pictures_keep_dark">Keep the dark ones</string>
+    <string name="help_pictures_pack_progress">Downloading the pictures: <xliff:g id="percent" example="42">%1$d</xliff:g>%%</string>
+
+    <string name="help_pictures_loading">The picture is loading</string>
+    <string name="help_pictures_failed">The picture did not download. Check the connection and try again.</string>
+    <string name="help_pictures_blocked">Data saving held the picture back. It downloads when data saving allows downloads.</string>
+
+    <!-- The build with no internet permission: pictures come as a pack file. %1$s is the pack's file name. -->
+    <string name="help_pictures_offline_body">This is the offline build, so the pictures come as a file. Download <xliff:g id="file_name" example="wmkb-help-light-0123456789ab.zip">%1$s</xliff:g> on another device, bring it to this phone, then import it here.</string>
+    <string name="help_pictures_copy_address">Copy the address</string>
+    <string name="help_pictures_import_wrong">This file is not a help picture pack.</string>
+    <string name="help_pictures_import_none">Every picture in this pack is already on the phone.</string>
+    <plurals name="help_pictures_imported">
+        <item quantity="one">%1$d picture added</item>
+        <item quantity="other">%1$d pictures added</item>
+    </plurals>
+
+    <!-- Read by a screen reader. %1$s is the setting's name. -->
+    <string name="help_pictures_picture_desc">Picture of <xliff:g id="setting" example="Number row">%1$s</xliff:g></string>
+    <string name="help_pictures_clip_desc">Clip of <xliff:g id="setting" example="Glide typing">%1$s</xliff:g></string>
+    <string name="help_pictures_zoom">Make the picture larger</string>
+    <string name="help_pictures_play">Play the clip</string>
+    <string name="help_pictures_pause">Pause the clip</string>
+    <!-- Above a set of pictures that have no names of their own. -->
+    <string name="help_pictures_page" tools:ignore="PluralsCandidate">Picture <xliff:g id="number" example="2">%1$d</xliff:g> of <xliff:g id="total" example="4">%2$d</xliff:g></string>
+
+    <!-- About › App. -->
+    <string name="help_pictures_title">Help pictures</string>
+    <string name="help_pictures_subtitle">Pictures and clips in a setting\'s explanation</string>
+    <string name="help_pictures_info">Some settings show a picture, a short clip, or the setting off and on side by side when you press their question mark. A question mark that has one is drawn in colour. The pictures are not part of the app: they are downloaded from the project\'s data repository, with one set for the light look and one for the dark look. All at once downloads the set for the look you use. One at a time downloads a picture when you open its explanation. Off shows the words only. This setting is Ask by default.</string>
+    <string name="help_pictures_mode_ask">Ask</string>
+    <string name="help_pictures_mode_ask_desc">Asks the next time you open an explanation that has a picture</string>
+    <string name="help_pictures_mode_all">All at once</string>
+    <string name="help_pictures_mode_all_desc">One download for the look you use, then no waiting</string>
+    <string name="help_pictures_mode_one">One at a time</string>
+    <string name="help_pictures_mode_one_desc">Each picture downloads when you open its explanation</string>
+    <string name="help_pictures_mode_off">Off</string>
+    <string name="help_pictures_mode_off_desc">Explanations show words only</string>
+    <string name="help_pictures_delete_title">Downloaded help pictures</string>
+    <string name="help_pictures_delete_confirm">This deletes every help picture on the phone. They download again when you ask for them.</string>
+</resources>

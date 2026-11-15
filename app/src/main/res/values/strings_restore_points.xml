@@ -71,6 +71,7 @@
     <string name="restore_history_group">Change history</string>
     <string name="restore_history_keep_title">Keep a change history</string>
     <string name="restore_history_keep_subtitle">Records each settings change for 30 days, on this phone only, so you can undo it. Off deletes the history.</string>
+    <string name="restore_history_keep_info">The app records every change you make to a setting, with its old value, for 30 days. You can undo a change from the history, or go back to how things were on an earlier day. The record stays on this phone. Turning this off deletes the history. This setting is on by default.</string>
     <string name="restore_history_empty">No changes since the history started.</string>
     <!-- %d is how many more history rows the button shows. -->
     <plurals name="restore_history_more">

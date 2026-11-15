@@ -1,0 +1,90 @@
+---
+title: "Help pictures"
+description: "How the pictures, clips and off/on comparisons in a setting's ? dialog are rendered on the JVM, cut, compressed, packed and published, and how to add one."
+sidebar:
+  order: 9
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+A setting's **?** dialog can show a picture above its words. This page is for whoever adds one. The reader's side is in [Seeing what a setting does](/reference/settings/#seeing-what-a-setting-does).
+
+## The moving parts
+
+| Piece | Where | What it does |
+|---|---|---|
+| Shot list | `app/src/docShots/java/.../docshots/HelpShotList.kt` | One line per setting: what to show |
+| Renderer | `HelpShots.kt`, beside it | Boots the real keyboard on the JVM and saves whole screens |
+| Builder | `tools/helpvisuals/build.py` | Cuts, scales, encodes, packs, writes the index |
+| Index | `app/src/main/assets/help/visuals.tsv` | Shipped in the APK: which setting has what, sizes, checksums |
+| Files and packs | `help/files/` and `help/packs/` in the [data repository](https://github.com/wasi-master/wmkeyboard-data) | What the app downloads |
+| Reader | `core/common/.../core/helpvisuals/` and `app/.../app/HelpVisualUi.kt` | Store, downloads, and the dialog |
+
+A picture is filed under the resource name of the setting's title, such as `layout_number_row_title`. That is the same key the row's icon and its search entry use, so a row needs no change to gain a picture: the dialog looks its own row up.
+
+## Adding a picture
+
+Add one line to `HELP_SHOTS`, then render and build.
+
+```kotlin
+// A switch that changes how the keyboard looks: no steps needed.
+toggle("layout_number_row_title") { setNumberRow(it) },
+
+// A switch that changes what typing does: steps that make it show.
+toggle("typing_autocorrect_title", typed { type("wprld ") }, crop = HelpCrop.TEXT) { setAutocorrect(it) },
+
+// Two values of a slider, under literal labels.
+compare(
+    "layout_key_height_title",
+    off = { repo.setKeyHeightDp(40) },
+    on = { repo.setKeyHeightDp(64) },
+    crop = HelpCrop.KEYBOARD,
+    labels = "=40 dp" to "=64 dp",
+),
+
+// One state, with room kept above the keyboard for a popup.
+still("keypress_popup_title", typed { hold("e") }, aboveDp = 72),
+
+// Something that moves.
+clip("typing_glide_typing_title", typed { record { glide("hello"); hold(900) } }, aboveDp = 96),
+```
+
+`toggle` and `compare` boot the keyboard twice, once per half, on seeds that differ in the one setting. Neither half is a flipped copy of the other, so each shows what a user with that value really sees. `gallery` takes one labelled state per option. A label is a string resource's name, or the words themselves behind `=` for a value that reads the same in every language.
+
+`typed { }` runs its steps on the keyboard under a plain field. Pass `crop = HelpCrop.TEXT` when the difference lands in the text: the picture is then the changed line of the field set right over the part of the keyboard that changed, with the empty screen between them left out.
+
+```bash
+./gradlew :app:testEnDebugUnitTest -Pwmkb.docShots=true --tests "*HelpShots*" -Pwmkb.helpShots.only='layout_number_row'
+```
+
+```bash
+python3 tools/helpvisuals/build.py --sheet /tmp/help-sheet
+```
+
+The Gradle run renders only the keys the regex matches, in light and dark, into `app/build/helpshots/`. Each frame is a test, about eleven seconds, most of it the keyboard loading its dictionaries. `build.py` then does the rest and prints what it made. `--sheet` writes one PNG per visual to look over before anything is published.
+
+## What the builder decides
+
+- **The cut.** `HelpCrop.DIFF`, the default for a comparison, keeps the part of the keyboard that differs between the frames. Its top and bottom move out to the gaps between rows of keys, and a cut wider than about half the screen becomes the full width, so no key is cut through. `KEYBOARD` keeps the keyboard from its first drawn row down, plus `aboveDp` of screen over it for a popup. Every frame of a visual gets the same cut, so they line up.
+- **Nothing to show.** A comparison whose frames come out identical is dropped and reported. That makes it cheap to try a setting: a candidate that shows no difference costs a render and nothing else.
+- **Size.** Stills are scaled to 720 px wide at most and written as lossy WebP, about 15 kB each. A clip is an animated WebP at 540 px; runs of identical frames become one frame held longer, and the last frame rests before the loop.
+- **Names.** Every file is named by the SHA-256 of its bytes. A picture that did not change keeps its name across versions, and the app refuses a file that does not hash to its name.
+- **Packs.** One zip per look, stored not compressed, with fixed timestamps, so the same pictures always make the same pack.
+
+`tools/helpvisuals/built.json` remembers every visual built so far. A run that renders ten settings adds ten and leaves the rest alone, so the whole set never has to be rendered in one go. `--forget <key>` takes one out.
+
+## What the JVM cannot draw
+
+The renderer has no other apps, no system dialogs and no window blur. For those, record the phone and file the recording:
+
+```bash
+python3 tools/helpvisuals/build.py --take theme_glass_window_blur_title light.mp4 --dark dark.mp4
+```
+
+Any video ffmpeg reads works. It is sampled at twelve frames a second, scaled, and encoded as the same kind of clip.
+
+## Publishing
+
+`build.py` writes into a checkout of the data repository, `../wmkeyboard-data` unless `--out` says otherwise, and stops there. Commit and push that checkout when the pictures are right, then ship the app with the new `visuals.tsv`. Do it in that order: an app whose index names a file the repository does not have shows the dialog's "did not download" line.
+
+An older app keeps working after a newer pack replaces the one it knows. Its pack download fails once, and from then on it fetches single files, which are kept in the repository for as long as any released version names them.

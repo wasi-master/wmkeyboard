@@ -1691,6 +1691,7 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
                     DisabledReason(stringResource(R.string.backup_auto_needs_target))
                 },
                 default = SettingsDefaults.autoBackup.enabled && configured,
+                info = stringResource(R.string.backup_auto_enabled_info),
             ) { on ->
                 scope.launch {
                     repository.setAutoBackupEnabled(on)
@@ -1720,6 +1721,7 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
                 // Hours, then days: a bare number cannot say which.
                 typed = false,
                 default = intervalSliderIndex(SettingsDefaults.autoBackup.intervalHours).toFloat(),
+                info = stringResource(R.string.backup_auto_interval_info),
             ) { index ->
                 scope.launch {
                     repository.setAutoBackupIntervalHours(intervalAt(index))
@@ -1741,6 +1743,7 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
                     )
                 },
                 default = SettingsDefaults.autoBackup.keep.toFloat(),
+                info = stringResource(R.string.backup_auto_keep_info),
             ) { kept -> scope.launch { repository.setAutoBackupKeep(kept.roundToInt()) } }
         }
         // #970: older generations spread out in time, past the newest ones.
@@ -1800,6 +1803,7 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
                     stringResource(R.string.backup_frequent_enabled_subtitle),
                     frequentOn,
                     default = SettingsDefaults.autoBackup.frequent.enabled,
+                    info = stringResource(R.string.backup_frequent_enabled_info),
                 ) { on ->
                     scope.launch {
                         repository.setFrequentBackupEnabled(on)
@@ -1815,6 +1819,7 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
                     display = { backupIntervalLabel(context, intervalAt(it)) },
                     typed = false,
                     default = intervalSliderIndex(SettingsDefaults.autoBackup.frequent.intervalHours).toFloat(),
+                    info = stringResource(R.string.backup_frequent_interval_info),
                 ) { index ->
                     scope.launch {
                         repository.setFrequentBackupIntervalHours(intervalAt(index))
@@ -1832,6 +1837,7 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
                         context.resources.getQuantityString(R.plurals.backup_auto_keep_value, kept.roundToInt(), kept.roundToInt())
                     },
                     default = SettingsDefaults.autoBackup.frequent.keep.toFloat(),
+                    info = stringResource(R.string.backup_frequent_keep_info),
                 ) { kept -> scope.launch { repository.setFrequentBackupKeep(kept.roundToInt()) } }
             }
             item(visible = frequentOn) {
@@ -1844,6 +1850,7 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
                     enabled = hasPassphrase,
                     disabledReason = DisabledReason(stringResource(R.string.backup_frequent_encrypt_needs_passphrase)),
                     default = SettingsDefaults.autoBackup.frequent.encrypt,
+                    info = stringResource(R.string.backup_frequent_encrypt_info),
                 ) { on -> scope.launch { repository.setFrequentBackupEncrypt(on) } }
             }
         }
@@ -2061,6 +2068,7 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
                         ),
                     )
                 },
+                info = stringResource(R.string.backup_sync_mode_info),
             ) { mode -> scope.launch { repository.setSyncMode(mode) } }
         }
         item(visible = syncOn && syncMode == SyncMode.SCHEDULE, level = SettingLevel.ADVANCED) {
@@ -2072,6 +2080,7 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
                 // Hours, then days: a bare number cannot say which.
                 typed = false,
                 default = intervalSliderIndex(SettingsDefaults.autoBackup.sync.intervalHours).toFloat(),
+                info = stringResource(R.string.backup_sync_interval_info),
             ) { index -> scope.launch { repository.setSyncIntervalHours(intervalAt(index)) } }
         }
         item(visible = syncOn, level = SettingLevel.ADVANCED) {
@@ -2083,6 +2092,7 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
                 ),
                 settings.watch { it.autoBackup.sync.includeSecrets },
                 default = SettingsDefaults.autoBackup.sync.includeSecrets,
+                info = stringResource(R.string.backup_sync_secrets_info),
             ) { on -> setKeys(on) }
         }
     }
@@ -2148,6 +2158,7 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
                 stringResource(R.string.backup_sync_wifi_only_subtitle),
                 settings.watch { it.autoBackup.sync.wifiOnly },
                 default = SettingsDefaults.autoBackup.sync.wifiOnly,
+                info = stringResource(R.string.backup_sync_wifi_only_info),
             ) { on -> scope.launch { repository.setSyncWifiOnly(on) } }
         }
     }
@@ -2195,6 +2206,7 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
                     ),
                     settings.watch { group in it.autoBackup.sync.keepLocalGroups },
                     default = false,
+                    info = stringResource(R.string.backup_sync_keep_toolbar_info),
                 ) { on ->
                     scope.launch {
                         repository.setSyncKeepLocal(group, on)

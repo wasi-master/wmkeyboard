@@ -92,6 +92,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     ),
                     selected = settings.watch { it.gallery.tapAction },
                     default = d.tapAction,
+                    info = stringResource(R.string.gallery_tap_info),
                 ) { v -> update { it.copy(tapAction = v) } }
             }
             item {
@@ -101,6 +102,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     options = (GallerySettings.MIN_COLUMNS..GallerySettings.MAX_COLUMNS).map { it to it.toString() },
                     selected = settings.watch { it.gallery.columns },
                     default = d.columns,
+                    info = stringResource(R.string.gallery_columns_info),
                 ) { v -> update { it.copy(columns = v) } }
             }
             item {
@@ -109,6 +111,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     stringResource(R.string.gallery_camera_tile_subtitle),
                     settings.watch { it.gallery.cameraTile },
                     default = d.cameraTile,
+                    info = stringResource(R.string.gallery_camera_tile_info),
                 ) { v -> update { it.copy(cameraTile = v) } }
             }
             item {
@@ -117,6 +120,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     stringResource(R.string.gallery_show_videos_subtitle),
                     settings.watch { it.gallery.showVideos },
                     default = d.showVideos,
+                    info = stringResource(R.string.gallery_show_videos_info),
                 ) { v -> update { it.copy(showVideos = v) } }
             }
             item(level = SettingLevel.ADVANCED) {
@@ -125,6 +129,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     stringResource(R.string.gallery_scrubber_subtitle),
                     settings.watch { it.gallery.dateScrubber },
                     default = d.dateScrubber,
+                    info = stringResource(R.string.gallery_scrubber_info),
                 ) { v -> update { it.copy(dateScrubber = v) } }
             }
             item(level = SettingLevel.ADVANCED) {
@@ -133,6 +138,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     stringResource(R.string.gallery_start_expanded_subtitle),
                     settings.watch { it.gallery.startExpanded },
                     default = d.startExpanded,
+                    info = stringResource(R.string.gallery_start_expanded_info),
                 ) { v -> update { it.copy(startExpanded = v) } }
             }
             item(level = SettingLevel.ADVANCED) {
@@ -141,6 +147,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     stringResource(R.string.gallery_remember_album_subtitle),
                     settings.watch { it.gallery.rememberAlbum },
                     default = d.rememberAlbum,
+                    info = stringResource(R.string.gallery_remember_album_info),
                 ) { v -> update { it.copy(rememberAlbum = v) } }
             }
             item(level = SettingLevel.ADVANCED) {
@@ -149,6 +156,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     stringResource(R.string.gallery_haptics_subtitle),
                     settings.watch { it.gallery.haptics },
                     default = d.haptics,
+                    info = stringResource(R.string.gallery_haptics_info),
                 ) { v -> update { it.copy(haptics = v) } }
             }
             // #970: folders left out of the gallery altogether.
@@ -190,6 +198,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                 ),
                 selected = settings.watch { it.gallery.quality },
                 default = d.quality,
+                info = stringResource(R.string.gallery_quality_info),
             ) { v -> update { it.copy(quality = v) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -201,6 +210,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     GallerySettings.SELECTION_CHOICES.minByOrNull { kotlin.math.abs(it - n) } ?: d.maxSelection
                 },
                 default = d.maxSelection,
+                info = stringResource(R.string.gallery_max_selection_info),
             ) { v -> update { it.copy(maxSelection = v) } }
         }
         if (ChannelFeatures.GALLERY_BROWSER) {
@@ -215,6 +225,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     ),
                     selected = settings.watch { it.gallery.caption },
                     default = d.caption,
+                    info = stringResource(R.string.gallery_caption_info),
                 ) { v -> update { it.copy(caption = v) } }
             }
         }
@@ -229,6 +240,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                 ),
                 selected = settings.watch { it.gallery.fallback },
                 default = d.fallback,
+                info = stringResource(R.string.gallery_fallback_info),
             ) { v -> update { it.copy(fallback = v) } }
         }
         if (ChannelFeatures.GALLERY_BROWSER) {
@@ -238,6 +250,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     stringResource(R.string.gallery_close_after_send_subtitle),
                     settings.watch { it.gallery.closeAfterSend },
                     default = d.closeAfterSend,
+                    info = stringResource(R.string.gallery_close_after_send_info),
                 ) { v -> update { it.copy(closeAfterSend = v) } }
             }
             item(level = SettingLevel.STANDARD) {
@@ -246,6 +259,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     stringResource(R.string.gallery_save_edited_subtitle),
                     settings.watch { it.gallery.saveEdited },
                     default = d.saveEdited,
+                    info = stringResource(R.string.gallery_save_edited_info),
                 ) { v -> update { it.copy(saveEdited = v) } }
             }
         }
@@ -258,6 +272,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                 stringResource(R.string.gallery_strip_location_subtitle),
                 settings.watch { it.gallery.stripLocation },
                 default = d.stripLocation,
+                info = stringResource(R.string.gallery_strip_location_info),
             ) { v -> update { it.copy(stripLocation = v) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -266,6 +281,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                 stringResource(R.string.gallery_strip_all_subtitle),
                 settings.watch { it.gallery.stripAllMetadata },
                 default = d.stripAllMetadata,
+                info = stringResource(R.string.gallery_strip_all_info),
             ) { v -> update { it.copy(stripAllMetadata = v) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -274,6 +290,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                 stringResource(R.string.gallery_random_names_subtitle),
                 settings.watch { it.gallery.randomFileNames },
                 default = d.randomFileNames,
+                info = stringResource(R.string.gallery_random_names_info),
             ) { v -> update { it.copy(randomFileNames = v) } }
         }
         if (ChannelFeatures.GALLERY_BROWSER) {
@@ -283,6 +300,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     stringResource(R.string.gallery_history_subtitle),
                     settings.watch { it.gallery.keepHistory },
                     default = d.keepHistory,
+                    info = stringResource(R.string.gallery_history_info),
                 ) { v -> update { it.copy(keepHistory = v) } }
             }
             item(level = SettingLevel.STANDARD) {

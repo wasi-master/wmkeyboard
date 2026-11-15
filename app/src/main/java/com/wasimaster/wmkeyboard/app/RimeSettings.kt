@@ -160,6 +160,7 @@ internal fun RimeEngineGroup(
                 ),
                 selected = if (rimeOn) ChineseEngine.RIME else ChineseEngine.BUILT_IN,
                 default = ChineseEngine.BUILT_IN,
+                info = stringResource(R.string.languages_rime_engine_info),
             ) { engine ->
                 val on = engine == ChineseEngine.RIME
                 scope.launch { repository.setRimeLanguage(langId, on) }

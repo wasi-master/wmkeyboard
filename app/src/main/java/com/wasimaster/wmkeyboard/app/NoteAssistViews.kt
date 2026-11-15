@@ -145,6 +145,7 @@ internal fun NotesAssistSettingsGroup(repository: SettingsRepository, settings: 
                     enabled = modelReady,
                     disabledReason = needsModel,
                     default = d.headings,
+                    info = stringResource(R.string.tooldetail_notes_assist_headings_info),
                 ) { on -> change { it.copy(headings = on) } }
             }
             item {
@@ -155,6 +156,7 @@ internal fun NotesAssistSettingsGroup(repository: SettingsRepository, settings: 
                     enabled = modelReady,
                     disabledReason = needsModel,
                     default = d.summaries,
+                    info = stringResource(R.string.tooldetail_notes_assist_summaries_info),
                 ) { on -> change { it.copy(summaries = on) } }
             }
             if (assist.summaries && modelReady) {
@@ -165,6 +167,7 @@ internal fun NotesAssistSettingsGroup(repository: SettingsRepository, settings: 
                         options = NoteAssistPrompts.SUMMARY_WORD_CHOICES.map { it to pluralStringResource(R.plurals.tooldetail_notes_assist_words, it, it) },
                         selected = assist.summaryWords.let { words -> NoteAssistPrompts.SUMMARY_WORD_CHOICES.minByOrNull { kotlin.math.abs(it - words) } ?: words },
                         default = d.summaryWords,
+                        info = stringResource(R.string.tooldetail_notes_assist_summary_words_info),
                     ) { words -> change { it.copy(summaryWords = words) } }
                 }
             }
@@ -174,6 +177,7 @@ internal fun NotesAssistSettingsGroup(repository: SettingsRepository, settings: 
                     stringResource(R.string.tooldetail_notes_assist_highlights_subtitle),
                     assist.highlights,
                     default = d.highlights,
+                    info = stringResource(R.string.tooldetail_notes_assist_highlights_info),
                 ) { on -> change { it.copy(highlights = on) } }
             }
             item {
@@ -182,6 +186,7 @@ internal fun NotesAssistSettingsGroup(repository: SettingsRepository, settings: 
                     stringResource(R.string.tooldetail_notes_assist_reminders_subtitle),
                     assist.reminders,
                     default = d.reminders,
+                    info = stringResource(R.string.tooldetail_notes_assist_reminders_info),
                 ) { on -> change { it.copy(reminders = on) } }
             }
             item {
@@ -199,6 +204,7 @@ internal fun NotesAssistSettingsGroup(repository: SettingsRepository, settings: 
                     stringResource(R.string.tooldetail_notes_assist_decks_subtitle),
                     assist.decks,
                     default = d.decks,
+                    info = stringResource(R.string.tooldetail_notes_assist_decks_info),
                 ) { on -> change { it.copy(decks = on) } }
             }
         }

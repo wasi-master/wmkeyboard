@@ -31,27 +31,36 @@
     <string name="emojimix_where_title">Where mixes show</string>
     <string name="emojimix_panel_strip_title">Over the emoji panel</string>
     <string name="emojimix_panel_strip_subtitle">Pick an emoji to see a row of mixes with it</string>
+    <string name="emojimix_panel_strip_info">When you pick an emoji in the emoji panel, a row above the panel shows mixes made with that emoji. A tap sends one. This setting is on by default.</string>
     <string name="emojimix_typing_title">On the suggestion strip</string>
     <string name="emojimix_typing_subtitle">When the text ends in one or two emoji</string>
+    <string name="emojimix_typing_info">When your text ends in one or two emoji, the suggestion strip offers mixes of them. A tap sends the mix as a sticker or a picture.</string>
     <string name="emojimix_style_title">How the strip shows them</string>
+    <string name="emojimix_style_info">How the suggestion strip offers emoji mixes. Thumbnails shows small pictures of the mixes on the strip itself. One chip shows a single button that opens the mixes. A row above adds a separate row of mixes over the strip. The default is Thumbnails.</string>
     <string name="emojimix_style_strip_label">Thumbnails</string>
     <string name="emojimix_style_chip_label">One chip</string>
     <string name="emojimix_style_tray_label">A row above</string>
     <string name="emojimix_replace_title">Replace the emoji</string>
     <string name="emojimix_replace_subtitle">Sending a mix removes the emoji it was made from</string>
+    <string name="emojimix_replace_info">When you send a mix, the keyboard deletes the emoji that you typed to make it, so the message holds the mix only. With this off, the emoji stay in your text. This setting is on by default.</string>
     <string name="emojimix_panel_title">Mixes panel</string>
     <string name="emojimix_panel_subtitle">A tab beside emoji, GIFs and stickers to put any two emoji together</string>
+    <string name="emojimix_panel_info">Adds a Mixes tab beside emoji, GIFs and stickers. There you pick any two emoji and get their mix, without typing them first.</string>
 
     <string name="emojimix_behaviour_title">Mixes</string>
     <string name="emojimix_order_title">Order</string>
+    <string name="emojimix_order_info">The order of the mixes offered for an emoji. As the source has them keeps the order of the list they come from. Your emoji first puts the mixes with the emoji you use most at the front.</string>
     <string name="emojimix_order_yours_label">Your emoji first</string>
     <string name="emojimix_order_source_label">As the source has them</string>
     <string name="emojimix_send_title">Send as</string>
     <string name="emojimix_send_subtitle">Apps that take no stickers get a picture</string>
+    <string name="emojimix_send_info">How a mix is sent. A sticker has a clear background and shows large in apps that take stickers. A picture works in every app. An app that takes no stickers always gets a picture.</string>
     <string name="emojimix_send_sticker_label">Sticker</string>
     <string name="emojimix_send_image_label">Picture</string>
     <string name="emojimix_cell_size_title">Size in the Mixes panel</string>
+    <string name="emojimix_cell_size_info">The size of each mix in the Mixes panel. Larger mixes are easier to see, and fewer fit on the screen. The default is 72 dp.</string>
     <string name="emojimix_auto_refresh_title">Fetch lists again each month</string>
     <string name="emojimix_auto_refresh_subtitle">Only on a connection that is not metered</string>
+    <string name="emojimix_auto_refresh_info">Downloads the lists of mixes again once a month, to pick up new ones. The download runs only on Wi-Fi or another connection that does not count data. This setting is off by default.</string>
     <string name="emojimix_clear_cache_title">Clear fetched mixes</string>
 </resources>

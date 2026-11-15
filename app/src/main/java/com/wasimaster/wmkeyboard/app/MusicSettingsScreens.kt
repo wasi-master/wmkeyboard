@@ -62,6 +62,7 @@ internal fun MusicToolSettings(repository: SettingsRepository, settings: LiveSet
                 options = MusicTextFormat.entries.map { it to stringResource(it.labelRes) },
                 selected = settings.watch { it.music.textFormat },
                 default = defaults.textFormat,
+                info = stringResource(R.string.music_text_format_info),
             ) { scope.launch { repository.setMusicTextFormat(it) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -71,6 +72,7 @@ internal fun MusicToolSettings(repository: SettingsRepository, settings: LiveSet
                 options = MusicCardStyle.entries.map { it to stringResource(it.labelRes) },
                 selected = settings.watch { it.music.cardStyle },
                 default = defaults.cardStyle,
+                info = stringResource(R.string.music_card_style_info),
             ) { scope.launch { repository.setMusicCardStyle(it) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -81,6 +83,7 @@ internal fun MusicToolSettings(repository: SettingsRepository, settings: LiveSet
                 options = listOf<Pair<MusicLink?, String>>(null to none) + MusicLink.entries.map { it to it.label },
                 selected = settings.watch { it.music.openLink },
                 default = defaults.openLink,
+                info = stringResource(R.string.music_open_link_info),
             ) { scope.launch { repository.setMusicOpenLink(it) } }
         }
     }
@@ -95,6 +98,7 @@ internal fun MusicToolSettings(repository: SettingsRepository, settings: LiveSet
                 range = MusicClip.MIN_SECONDS.toFloat()..MusicClip.MAX_SECONDS.toFloat(),
                 display = { seconds.format(it.roundToInt()) },
                 default = defaults.clipSeconds.toFloat(),
+                info = stringResource(R.string.music_clip_seconds_info),
             ) { scope.launch { repository.setMusicClipSeconds(it.roundToInt()) } }
         }
         item {
@@ -103,6 +107,7 @@ internal fun MusicToolSettings(repository: SettingsRepository, settings: LiveSet
                 stringResource(R.string.music_now_playing_first_subtitle),
                 settings.watch { it.music.nowPlayingFirst },
                 default = defaults.nowPlayingFirst,
+                info = stringResource(R.string.music_now_playing_first_info),
             ) { scope.launch { repository.setMusicNowPlayingFirst(it) } }
         }
     }
@@ -115,6 +120,7 @@ internal fun MusicToolSettings(repository: SettingsRepository, settings: LiveSet
                 stringResource(R.string.music_keep_history_subtitle),
                 settings.watch { it.music.keepHistory },
                 default = defaults.keepHistory,
+                info = stringResource(R.string.music_keep_history_info),
             ) { scope.launch { repository.setMusicKeepHistory(it) } }
         }
         item {

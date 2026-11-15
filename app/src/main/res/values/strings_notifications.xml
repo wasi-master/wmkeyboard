@@ -18,12 +18,15 @@
 
     <string name="notify_downloads_title">Downloads</string>
     <string name="notify_downloads_subtitle">Progress for dictionaries, voice models and add-ons, and a line when one finishes or fails</string>
+    <string name="notify_downloads_info">Shows a notification while a dictionary, a voice model or an add-on downloads, with its progress, and one line when the download finishes or fails.</string>
 
     <string name="notify_updates_title">App updates</string>
     <string name="notify_updates_subtitle">An update downloading, one waiting to be installed, and one just installed</string>
+    <string name="notify_updates_info">Shows a notification when an update of the app downloads, when one waits to be installed, and when one was just installed.</string>
 
     <string name="notify_backup_title">Backup problems</string>
     <string name="notify_backup_subtitle">Only when an automatic backup does not go through. A backup that works says nothing.</string>
+    <string name="notify_backup_info">Shows a notification only when an automatic backup fails, so you can fix the problem. A backup that works shows nothing.</string>
 
     <string name="notify_controls_title">Keyboard controls</string>
     <string name="notify_controls_subtitle">A permanent entry in the shade for bringing the keyboard back</string>

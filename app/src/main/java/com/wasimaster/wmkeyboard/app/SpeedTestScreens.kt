@@ -63,6 +63,7 @@ internal fun SpeedTestToolSettings(repository: SettingsRepository, settings: Liv
                 range = 5f..30f,
                 display = { secondsFormat.format(it.roundToInt()) },
                 default = SettingsDefaults.speedTest.duration.toFloat(),
+                info = stringResource(R.string.tooldetail_speed_duration_info),
             ) { scope.launch { repository.setSpeedTestDuration(it.roundToInt()) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -74,6 +75,7 @@ internal fun SpeedTestToolSettings(repository: SettingsRepository, settings: Liv
                 steps = wholeSteps(1f..8f),
                 display = { numberFormat.format(it.roundToInt()) },
                 default = SettingsDefaults.speedTest.connections.toFloat(),
+                info = stringResource(R.string.tooldetail_speed_connections_info),
             ) { scope.launch { repository.setSpeedTestConnections(it.roundToInt()) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -82,6 +84,7 @@ internal fun SpeedTestToolSettings(repository: SettingsRepository, settings: Liv
                 stringResource(R.string.tooldetail_speed_upload_subtitle),
                 settings.watch { it.speedTest.upload },
                 default = SettingsDefaults.speedTest.upload,
+                info = stringResource(R.string.tooldetail_speed_upload_info),
             ) { scope.launch { repository.setSpeedTestUpload(it) } }
         }
         item {
@@ -90,6 +93,7 @@ internal fun SpeedTestToolSettings(repository: SettingsRepository, settings: Liv
                 options = SpeedUnit.entries.map { it to SpeedTestMath.unitLabel(it) },
                 selected = settings.watch { it.speedTest.unit },
                 default = SettingsDefaults.speedTest.unit,
+                info = stringResource(R.string.tooldetail_speed_unit_info),
             ) { scope.launch { repository.setSpeedTestUnit(it) } }
         }
     }
@@ -105,6 +109,7 @@ internal fun SpeedTestToolSettings(repository: SettingsRepository, settings: Liv
                 options = SpeedCardStyle.entries.map { it to stringResource(speedStyleLabel(it)) },
                 selected = settings.watch { it.speedTest.cardStyle },
                 default = SettingsDefaults.speedTest.cardStyle,
+                info = stringResource(R.string.tooldetail_speed_card_style_info),
             ) { scope.launch { repository.setSpeedTestCardStyle(it) } }
         }
         item {
@@ -114,6 +119,7 @@ internal fun SpeedTestToolSettings(repository: SettingsRepository, settings: Liv
                 selected = settings.watch { it.speedTest.cardSize },
                 default = SettingsDefaults.speedTest.cardSize,
                 detail = { size -> ChoiceDetail("${size.width} × ${size.height}") },
+                info = stringResource(R.string.tooldetail_speed_card_size_info),
             ) { scope.launch { repository.setSpeedTestCardSize(it) } }
         }
         item {
@@ -122,6 +128,7 @@ internal fun SpeedTestToolSettings(repository: SettingsRepository, settings: Liv
                 options = SpeedCardLayout.entries.map { it to stringResource(speedLayoutLabel(it)) },
                 selected = settings.watch { it.speedTest.cardLayout },
                 default = SettingsDefaults.speedTest.cardLayout,
+                info = stringResource(R.string.tooldetail_speed_card_layout_info),
             ) { scope.launch { repository.setSpeedTestCardLayout(it) } }
         }
         item {
@@ -134,6 +141,7 @@ internal fun SpeedTestToolSettings(repository: SettingsRepository, settings: Liv
                 ),
                 selected = settings.watch { it.speedTest.sendMode },
                 default = SettingsDefaults.speedTest.sendMode,
+                info = stringResource(R.string.tooldetail_speed_send_mode_info),
             ) { scope.launch { repository.setSpeedTestSendMode(it) } }
         }
         item {
@@ -142,6 +150,7 @@ internal fun SpeedTestToolSettings(repository: SettingsRepository, settings: Liv
                 stringResource(R.string.tooldetail_speed_save_gallery_subtitle),
                 settings.watch { it.speedTest.saveToGallery },
                 default = SettingsDefaults.speedTest.saveToGallery,
+                info = stringResource(R.string.tooldetail_speed_save_gallery_info),
             ) { scope.launch { repository.setSpeedTestSaveToGallery(it) } }
         }
         item {
@@ -150,6 +159,7 @@ internal fun SpeedTestToolSettings(repository: SettingsRepository, settings: Liv
                 stringResource(R.string.tooldetail_speed_show_ip_subtitle),
                 settings.watch { it.speedTest.showIp },
                 default = SettingsDefaults.speedTest.showIp,
+                info = stringResource(R.string.tooldetail_speed_show_ip_info),
             ) { scope.launch { repository.setSpeedTestShowIp(it) } }
         }
     }

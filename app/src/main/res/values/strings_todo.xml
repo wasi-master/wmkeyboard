@@ -42,8 +42,10 @@
     <string name="tooldetail_todo_open_none_subtitle">Nothing to do</string>
     <string name="tooldetail_todo_due_chip_title">Show due tasks on the suggestion strip</string>
     <string name="tooldetail_todo_due_chip_subtitle">A task that has fallen due waits there until you tick it, put it off or close it</string>
+    <string name="tooldetail_todo_due_chip_info">A task that is due shows as a chip on the suggestion strip. It stays there until you tick it, put it off, or close it.</string>
     <string name="tooldetail_todo_hide_done_title">Hide finished tasks in the keyboard</string>
     <string name="tooldetail_todo_hide_done_subtitle">The keyboard\'s list opens with ticked tasks left out. Its Hide done chip shows them again for that visit.</string>
+    <string name="tooldetail_todo_hide_done_info">The task list on the keyboard opens with the ticked tasks left out, so you see what is still to do. The Hide done chip in the panel shows them again for that visit.</string>
 
     <string name="tooldetail_todo_sync_group">Task app sync</string>
     <string name="tooldetail_todo_sync_title">Sync with a task app</string>

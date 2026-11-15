@@ -125,6 +125,7 @@ internal fun PaperlessSettingsGroup(repository: SettingsRepository, settings: Li
                     ),
                     selected = p.afterScan,
                     default = d.afterScan,
+                    info = stringResource(R.string.paperless_after_info),
                 ) { v -> update { it.copy(afterScan = v) } }
             }
             item {
@@ -153,6 +154,7 @@ internal fun PaperlessSettingsGroup(repository: SettingsRepository, settings: Li
                             options = listOf(0 to stringResource(R.string.paperless_none)) + known.correspondents.map { it.id to it.name },
                             selected = p.correspondent.takeIf { id -> id == 0 || known.correspondents.any { it.id == id } } ?: 0,
                             default = 0,
+                            info = stringResource(R.string.paperless_correspondent_info),
                         ) { v -> update { it.copy(correspondent = v) } }
                     }
                 }
@@ -164,6 +166,7 @@ internal fun PaperlessSettingsGroup(repository: SettingsRepository, settings: Li
                             options = listOf(0 to stringResource(R.string.paperless_none)) + known.documentTypes.map { it.id to it.name },
                             selected = p.documentType.takeIf { id -> id == 0 || known.documentTypes.any { it.id == id } } ?: 0,
                             default = 0,
+                            info = stringResource(R.string.paperless_type_info),
                         ) { v -> update { it.copy(documentType = v) } }
                     }
                 }
@@ -174,6 +177,7 @@ internal fun PaperlessSettingsGroup(repository: SettingsRepository, settings: Li
                     stringResource(R.string.paperless_one_pdf_subtitle),
                     p.onePdf,
                     default = d.onePdf,
+                    info = stringResource(R.string.paperless_one_pdf_info),
                 ) { v -> update { it.copy(onePdf = v) } }
             }
             item {
@@ -182,6 +186,7 @@ internal fun PaperlessSettingsGroup(repository: SettingsRepository, settings: Li
                     stringResource(R.string.paperless_wifi_only_subtitle),
                     p.wifiOnly,
                     default = d.wifiOnly,
+                    info = stringResource(R.string.paperless_wifi_only_info),
                 ) { v -> update { it.copy(wifiOnly = v) } }
             }
         }

@@ -14,6 +14,7 @@
 
     <string name="selection_macros_placement_title">Where it appears</string>
     <string name="selection_macros_placement_subtitle">The row the actions are drawn on</string>
+    <string name="selection_macros_placement_info">Where the selection actions are drawn when you select text. Own row adds a row above the keys, which makes the keyboard one row taller while text is selected. Suggestion strip draws them over the strip, which costs no height, and there are no word suggestions to show during a selection.</string>
     <string name="selection_macros_placement_row">Own row</string>
     <string name="selection_macros_placement_strip">Suggestion strip</string>
     <string name="selection_macros_placement_row_desc">A row of its own above the keys, which arrives with the selection. The keyboard is one row taller while it is there. You can move the row up or down under Rows.</string>
@@ -136,6 +137,7 @@
     <string name="selection_macros_icons_info">A picked action takes less room on the bar: it shows its icon and no name, and screen readers still say the name. Actions with no icon of their own, like the case options, always show their name.</string>
     <string name="selection_macros_icon_size_title">Icon size</string>
     <string name="selection_macros_icon_size_subtitle">How big the icons drawn alone are</string>
+    <string name="selection_macros_icon_size_info">The size of the icons of the selection actions that are drawn without a name. The default is 16.</string>
     <!-- A size in density-independent pixels, as the slider's readout. -->
     <string name="selection_macros_icon_size_value"><xliff:g id="size" example="16">%1$d</xliff:g> dp</string>
     <string name="selection_macros_icons_empty">No action with an icon is on. Switch some on under Actions first.</string>
@@ -146,6 +148,7 @@
     <string name="selection_macros_zones_default_caption">Nothing picked yet, so the list is UTC and this device\'s zone.</string>
     <string name="selection_macros_zones_sort_title">Sort by time</string>
     <string name="selection_macros_zones_sort_subtitle">Show the zones with the earliest time first, instead of in this order</string>
+    <string name="selection_macros_zones_sort_info">Lists the time zones with the earliest time first, instead of in the order shown here. This setting is off by default.</string>
     <string name="selection_macros_zones_search_hint">Add a zone</string>
     <string name="selection_macros_zones_add_desc">Add</string>
 

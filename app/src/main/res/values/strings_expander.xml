@@ -58,6 +58,7 @@
     <string name="expander_folder_icon_none_label">Plain folder</string>
     <string name="expander_folder_enabled_title">Expand while you type</string>
     <string name="expander_folder_enabled_subtitle">Off keeps the snippets in the panel, but they no longer appear by themselves</string>
+    <string name="expander_folder_enabled_info">The snippets in this folder expand by themselves when you type their trigger. With this off, they still show in the snippets panel, and you insert them with a tap.</string>
     <!-- Folder screen row and dialog that set options on every snippet in the folder at once. -->
     <string name="expander_folder_bulk_title">Change all snippets here</string>
     <plurals name="expander_folder_bulk_subtitle">
@@ -192,8 +193,10 @@
     <string name="expander_behaviour_title">Behaviour</string>
     <string name="expander_titles_only_title">Names only</string>
     <string name="expander_titles_only_subtitle">Show each snippet in the panel by its name alone, without its text, so more fit</string>
+    <string name="expander_titles_only_info">The snippets panel shows each snippet by its name only, without its text. More snippets then fit on the screen. This setting is off by default.</string>
     <string name="expander_panel_stays_title">Stay open after inserting</string>
     <string name="expander_panel_stays_subtitle">Keep the snippets panel open when you tap a snippet, to insert several in a row</string>
+    <string name="expander_panel_stays_info">The snippets panel stays open after you tap a snippet, so you can insert several, one after the other. With this off, the panel closes after one. This setting is off by default.</string>
     <string name="expander_grid_columns_title">Panel columns</string>
     <string name="expander_grid_columns_subtitle">How many snippet tiles sit side by side in the keyboard\'s panel</string>
     <string name="expander_secure_fields_title">Expand in password fields</string>

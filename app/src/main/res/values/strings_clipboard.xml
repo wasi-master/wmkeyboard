@@ -30,8 +30,10 @@
     <string name="clipboard_panel_group">Panel</string>
     <string name="clipboard_history_title">Clipboard history</string>
     <string name="clipboard_history_subtitle">Save copied text so that you can paste it quickly</string>
+    <string name="clipboard_history_info">The keyboard saves the text you copy, so you can paste older copies again from the clipboard panel. With this off, only the system clipboard\'s one newest copy can be pasted.</string>
     <string name="clipboard_suggest_recent_title">Suggest the last copy</string>
     <string name="clipboard_suggest_recent_subtitle">Show the last copied text as a chip on the suggestion strip. One press pastes it</string>
+    <string name="clipboard_suggest_recent_info">Right after you copy text, the suggestion strip shows it as a chip. One press on the chip pastes it.</string>
     <string name="clipboard_suggest_codes_title">Suggest copied codes</string>
     <string name="clipboard_suggest_codes_subtitle">Offer a copied one-time code as a paste chip</string>
     <string name="clipboard_suggest_codes_info">A code on its own is treated as a secret, and a secret is normally kept off the suggestion strip, because the chip stays in view while you type. A code you copied by hand is the case that rule was never aimed at: you copied it to paste it, and it is one tap away in the clipboard panel either way. "Any field" offers a code copied in the last few minutes wherever you are typing. "Code boxes only" limits that to fields that ask for digits, so a code never appears over the keys of a message. Either way this covers codes only. A copied password is never offered.</string>
@@ -47,6 +49,7 @@
     <string name="clipboard_toast_info">This works for the copy actions of the keyboard: the A/C/V/X clipboard shortcuts and the copy button of the text editing panel. It works only for fields that give no copy feedback of their own. This setting is off by default.</string>
     <string name="clipboard_expiry_title">Clipboard expiry</string>
     <string name="clipboard_expiry_subtitle">Delete unpinned clips after this time</string>
+    <string name="clipboard_expiry_info">Clips that are not pinned are deleted after this time. Pinned clips are kept. A shorter time keeps less of what you copied on the phone. The default is 24 hours.</string>
     <!-- Slider readout when the clipboard expiry is set to zero, so clips never expire. -->
     <string name="clipboard_expiry_never">never</string>
     <string name="clipboard_max_title">Maximum entries</string>
@@ -93,6 +96,7 @@
     <string name="clipboard_confirm_pinned_delete_subtitle">Deleting a pinned clip asks first; unpinned clips go at once</string>
     <string name="clipboard_confirm_pinned_delete_info">You pin a clip to keep it, so losing one to a stray tap on its bin or a swipe made while scrolling costs more than losing any other clip. With this setting on, deleting a pinned clip from the panel shows a question first, and only Delete removes it. Unpinned clips are deleted straight away, as before. This setting is on by default.</string>
     <string name="clipboard_pinned_last_title">Pinned entries last</string>
+    <string name="clipboard_pinned_last_info">Lists pinned clips at the end of the clipboard panel, after the recent copies. With this off, pinned clips come first. This setting is off by default.</string>
     <string name="clipboard_pinned_in_place_title">Keep pinned clips in place</string>
     <string name="clipboard_pinned_in_place_subtitle">Pinned clips stay among the others instead of moving to the top or the end</string>
     <string name="clipboard_pinned_in_place_info">A pinned clip keeps its pin, so it never expires, but it stays where it was copied in the history, the way SwiftKey shows pins. With this setting on, Pinned entries last and the Pinned and unpinned tabs have no effect. This setting is off by default.</string>
@@ -114,11 +118,13 @@
     <string name="clipboard_pinned_tabs_info">The panel opens on the Unpinned tab. When you pin a clip, it moves to the Pinned tab. A search looks through the two tabs. With the tabs on, Pinned entries last has no effect. This setting is off by default.</string>
     <string name="clipboard_outline_pinned_title">Outline pinned clips</string>
     <string name="clipboard_outline_pinned_subtitle">Draw a thin border in the accent color around each pinned clip</string>
+    <string name="clipboard_outline_pinned_info">Draws a thin border in the accent colour around each pinned clip, so pinned clips are easy to tell from the others. This setting is off by default.</string>
     <string name="clipboard_card_buttons_title">Pin and delete buttons</string>
     <string name="clipboard_card_buttons_subtitle">Show a pin and a bin on every clip</string>
     <string name="clipboard_card_buttons_info">With this setting off, press and hold a clip to pin or delete it from its popup. A card also loses the row the buttons sat on, unless the row still shows the clip\'s number, its time or a rich text tag, so more clips fit in the panel. This setting is on by default.</string>
     <string name="clipboard_bump_on_paste_title">Move a pasted clip to the top</string>
     <string name="clipboard_bump_on_paste_subtitle">A clip you paste from the history goes first in it, and back on the system clipboard</string>
+    <string name="clipboard_bump_on_paste_info">When you paste a clip from the history, the clip moves to the top of the history and becomes the system clipboard\'s current copy again. With this off, the clip stays where it was. This setting is off by default.</string>
     <string name="clipboard_backspace_undoes_paste_title">Backspace removes a paste</string>
     <string name="clipboard_backspace_undoes_paste_subtitle">One backspace after a paste deletes all of the pasted text</string>
     <string name="clipboard_backspace_undoes_paste_info">This setting is on by default. Right after you paste, one backspace deletes everything you pasted. This works for the Paste key and tool, a clip from the clipboard panel or the suggestion strip, and a kaomoji or other text a keyboard panel puts in. Once you type, move the cursor or change text boxes, backspace deletes one character again. It does not work for a paste from the app\'s own menu, or in a terminal.</string>
@@ -155,6 +161,7 @@
     <!-- Long press on the greyed-out switch; the names are the two settings that hold it. -->
     <string name="clipboard_search_title">Search bar</string>
     <string name="clipboard_search_subtitle">Show a search bar at the top of the clipboard panel. It filters the history as you type</string>
+    <string name="clipboard_search_info">Shows a search bar at the top of the clipboard panel. As you type in it, the history is filtered to the clips that hold those words. This setting is off by default.</string>
     <string name="clipboard_search_regex_title">Regular expressions</string>
     <string name="clipboard_search_regex_subtitle">Read the search as a pattern, such as ^https or \\d{6}</string>
     <string name="clipboard_search_regex_info">With this setting on, what you type in the clipboard search is a regular expression instead of plain text. ^https finds clips that start with a web address, \\d{6} finds six digits in a row, and invoice|receipt finds either word. Case never matters. A pattern that is not finished yet, like an open bracket, searches as plain text until it is, so the list does not go blank while you type. This setting is off by default.</string>
@@ -168,6 +175,7 @@
     <string name="clipboard_entity_icons_info">Each clip shows a small icon for each kind of part found in it: a link, a phone number or a code. A number on the icon says how many there are. Press an icon to see the parts and pick one. The chips above the history go away while this is on. Press and hold a clip and press Extract to do the same from its menu.</string>
     <string name="clipboard_entity_to_clipboard_title">Copy picked parts to the clipboard</string>
     <string name="clipboard_entity_to_clipboard_subtitle">A picked link, number or code becomes a clip, and is not typed</string>
+    <string name="clipboard_entity_to_clipboard_info">A clip can hold a link, a phone number or a code, which the panel offers as a chip. With this on, a press on such a chip copies that part to the clipboard as a clip of its own. With this off, the part is typed into the text field. This setting is off by default.</string>
     <string name="clipboard_fragments_on_strip_title">Show the found parts on the suggestion strip</string>
     <string name="clipboard_fragments_on_strip_subtitle">After a copy, its codes, numbers and links take the strip as chips</string>
     <string name="clipboard_fragments_on_strip_info">When you copy something that has a code, a phone number or a link in it, the suggestion strip shows the whole copy as a chip and then a dashed chip for each part. A press pastes that part, so you do not have to open the clipboard. The chips stay until you type something or press the ✕, and then the strip shows words again with the usual chip for the copy. This setting is off by default.</string>
@@ -187,10 +195,13 @@
     <string name="clipboard_strip_media_info">Photos and videos carry data that can identify you: the GPS position, the make, model and serial number of the phone, the owner\'s name and the date and time. With this setting on, the keyboard removes this data before you paste. A picture in the history is cleaned when the keyboard keeps it, and again when you paste it. A video, or a file kept by its link, is pasted as a cleaned copy. The picture and the sound are not compressed again. HEIF and other pictures that cannot be cleaned in place are saved again as JPEG. If the keyboard cannot clean a video (for example an MKV file), it does not paste it. The orientation stays, so a photo does not turn. The Gallery tool has its own settings for the pictures and videos it sends. This setting is off by default.</string>
     <string name="clipboard_link_previews_title">Link previews</string>
     <string name="clipboard_link_previews_subtitle">Get the page title of a copied link and show it in the panel. This contacts the linked site</string>
+    <string name="clipboard_link_previews_info">For a copied link, the keyboard gets the title of the page and shows it in the clipboard panel, so you can tell links apart. To get the title, the keyboard contacts the linked site, which then sees your IP address.</string>
     <string name="clipboard_screenshots_title">Your screenshots</string>
     <string name="clipboard_screenshots_subtitle">Show your screenshots in the clipboard next to copied text and images</string>
+    <string name="clipboard_screenshots_info">Shows your recent screenshots in the clipboard panel beside the copied text and pictures, so you can send one right after you take it.</string>
     <string name="clipboard_text_only_title">Text only</string>
     <string name="clipboard_text_only_subtitle">Keep copied pictures, videos and files out of history. They stay on the clipboard for the next paste</string>
+    <string name="clipboard_text_only_info">Keeps copied pictures, videos and files out of the clipboard history. They stay on the system clipboard, so the next paste still works. Only copied text is saved.</string>
     <string name="clipboard_screenshots_text_only">Text only is on, so screenshots are not added</string>
     <string name="clipboard_storage_permission_title">The app needs the storage permission</string>
     <string name="clipboard_storage_permission_subtitle">Open the system settings to give the permission</string>
@@ -210,6 +221,7 @@
     <string name="clipboard_detect_sensitive_info">Most password managers are older than the sensitive mark of Android, and a code that you copy by hand out of a message carries no mark at all. The keyboard looks for these clips on your device, and the test is narrow on purpose. A clip matches only when the whole clip is one token: a short run of capital letters and digits, or a long mix of capital letters, small letters, digits and symbols. Sentences, links and email addresses never match.</string>
     <string name="clipboard_sensitive_expiry_title">Forget sensitive clips after</string>
     <string name="clipboard_sensitive_expiry_subtitle">This time is separate from the history expiry above</string>
+    <string name="clipboard_sensitive_expiry_info">A clip that looks like a password or a code is deleted after this time. This time is counted apart from the history expiry above, and is usually much shorter. The default is 5 minutes.</string>
 
     <!-- The paste chip on the suggestion strip. -->
     <string name="clipboard_chip_life_title">How long the paste chip stays</string>

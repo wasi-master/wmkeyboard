@@ -361,6 +361,7 @@ internal fun ExtensionDetailSettings(
                 checked = on,
                 icon = extensionIcon(extension),
                 onChange = { value -> scope.launch { setExtensionEnabled(repository, extension, value) } },
+                info = stringResource(R.string.extension_enabled_info),
             )
         }
     }

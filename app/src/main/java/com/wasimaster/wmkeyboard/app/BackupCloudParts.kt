@@ -169,6 +169,7 @@ internal fun PCloudPart(draft: BackupLocation, onChange: (BackupLocation) -> Uni
             ),
             selected = pcloud.region,
             default = PCloudRegion.US,
+            info = stringResource(R.string.backup_pcloud_region_info),
         ) { onChange(draft.copy(pcloud = pcloud.copy(region = it))) }
         StoredTextField(
             label = stringResource(R.string.backup_cloud_email_label),
@@ -247,6 +248,7 @@ internal fun NasPart(draft: BackupLocation, onForgetCertificate: () -> Unit, onC
         stringResource(R.string.backup_nas_own_cert_subtitle),
         nas.ownCertificate,
         default = false,
+        info = stringResource(R.string.backup_nas_own_cert_info),
     ) { on -> edit { it.copy(ownCertificate = on, certPin = "") } }
     if (nas.ownCertificate) {
         WmRow(

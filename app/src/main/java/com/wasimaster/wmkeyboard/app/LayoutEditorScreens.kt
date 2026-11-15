@@ -3548,6 +3548,7 @@ internal fun KeyLayoutEditorScreen(
                 R.string.layout_editor_show_shift_title,
                 stringResource(R.string.layout_editor_show_shift_subtitle),
                 showShift,
+                info = stringResource(R.string.layout_editor_show_shift_info),
             ) { showShift = it }
         }
         item(level = SettingLevel.STANDARD) {
@@ -3901,6 +3902,7 @@ internal fun KeyLayoutEditorScreen(
                     null to stringResource(R.string.layout_editor_landscape_layout_same),
                 ) + others.map { it.id to it.name },
                 selected = spec.landscapeLayoutId,
+                info = stringResource(R.string.layout_editor_landscape_layout_info),
             ) { chosen -> edit { it.copy(landscapeLayoutId = chosen) } }
         }
         if (!secondary) item(level = SettingLevel.ADVANCED) {
@@ -3925,6 +3927,7 @@ internal fun KeyLayoutEditorScreen(
                     },
                 ),
                 edited.watch { it.tabletExpand },
+                info = stringResource(R.string.layout_editor_tablet_expand_info),
             ) { on -> edit { it.copy(tabletExpand = on) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -3934,6 +3937,7 @@ internal fun KeyLayoutEditorScreen(
                 R.string.layout_editor_hex_grid_title,
                 stringResource(R.string.layout_editor_hex_grid_subtitle),
                 edited.watch { isHexGrid(it.grid) },
+                info = stringResource(R.string.layout_editor_hex_grid_info),
             ) { on -> edit { it.copy(grid = if (on) HexGridKind else null) } }
         }
         item(level = SettingLevel.ADVANCED) {
@@ -6568,6 +6572,7 @@ internal fun KeyEditSheet(
                     R.string.layout_editor_icon_beside_label_title,
                     stringResource(R.string.layout_editor_icon_beside_label_subtitle),
                     key.iconBesideLabel,
+                    info = stringResource(R.string.layout_editor_icon_beside_label_info),
                 ) { beside -> onChange { it.copy(iconBesideLabel = beside) } }
             }
         }
@@ -8266,6 +8271,7 @@ private fun RoleRow(role: KeyRole?, onChange: (KeyRole?) -> Unit) {
             )
         },
         onChange = onChange,
+        info = stringResource(R.string.layout_editor_role_info),
     )
 }
 
@@ -8712,6 +8718,7 @@ private fun KeyScreenRow(screen: KeyScreen, onChange: (KeyScreen) -> Unit) {
     ControlSetting(
         R.string.layout_editor_key_screen_title,
         subtitle = stringResource(R.string.layout_editor_key_screen_hint),
+        info = stringResource(R.string.layout_editor_key_screen_info),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 4.dp)) {
             for (choice in KeyScreen.entries) {

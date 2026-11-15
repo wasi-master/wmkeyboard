@@ -5,6 +5,7 @@
     <string name="shell_access_group_info">With Shizuku running, or root, the keyboard can grant itself what you would otherwise turn on screen by screen in system Settings. Every grant shows up there as usual and is taken back there. Nothing here runs until you turn it on.</string>
     <string name="shell_access_enabled_title">Use Shizuku or root for keyboard features</string>
     <string name="shell_access_enabled_subtitle">One-tap grants below, and reading the chat for AI reply</string>
+    <string name="shell_access_enabled_info">Lets the keyboard use Shizuku or root for the features below. With it, a permission that normally needs a visit to the system settings is granted with one tap, and AI reply can read the chat on the screen. Nothing is done with this access except what the rows below turn on.</string>
     <string name="shell_access_default_keyboard_title">Make this the keyboard</string>
     <string name="shell_access_default_keyboard_subtitle">Turns WM Keyboard on in the keyboard list and switches to it</string>
     <string name="shell_access_grant_permissions_title">Grant every permission</string>
@@ -21,9 +22,11 @@
     <string name="shell_access_spell_checker_subtitle">Makes WM Keyboard\'s spell checker the one every app uses</string>
     <string name="shell_access_reply_screen_title">AI reply reads the chat</string>
     <string name="shell_access_reply_screen_subtitle">When the reply panel opens, the messages on screen are added, yours on the right and theirs on the left</string>
+    <string name="shell_access_reply_screen_info">When the AI reply panel opens, the keyboard reads the messages on the screen and gives them to the model, yours on the right and theirs on the left. The reply then fits the conversation. The messages go to the AI provider you use.</string>
     <string name="shell_access_result_done">Done</string>
     <string name="shell_access_capture_title">Capture the screen</string>
     <string name="shell_access_capture_subtitle">OCR, Translate and AI reply get a button that reads the screen above the keyboard, with no screen recording prompt</string>
+    <string name="shell_access_capture_info">Gives OCR, Translate and AI reply a button that reads the screen above the keyboard. Without Shizuku or root, Android shows a screen recording prompt each time. With them, no prompt shows.</string>
     <string name="shell_access_result_partial">Granted %1$d of %2$d. Android refused the rest, such as a permission an app installed after the keyboard defines.</string>
     <string name="shell_access_result_failed">Android refused. Check Shizuku or your root manager.</string>
     <string name="shell_access_result_no_access">Start Shizuku and allow the keyboard, or turn on root, first</string>

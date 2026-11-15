@@ -46,6 +46,7 @@ internal fun DictionaryTranslationsGroup(repository: SettingsRepository, setting
                 stringResource(R.string.tooldetail_dictionary_translations_subtitle),
                 enabled,
                 default = SettingsDefaults.dictionaryTranslations.enabled,
+                info = stringResource(R.string.tooldetail_dictionary_translations_info),
             ) { scope.launch { repository.setDictionaryTranslations(it) } }
         }
         item(visible = enabled) {

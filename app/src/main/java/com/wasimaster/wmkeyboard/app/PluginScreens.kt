@@ -726,6 +726,7 @@ internal fun PluginDetailScreen(
                     stringResource(R.string.plugins_detail_subsystem_off_subtitle),
                     R.string.plugins_allow_title,
                 ),
+                info = stringResource(R.string.plugins_detail_enabled_info),
             ) { store.setEnabled(pluginId, it) }
         }
         item(level = SettingLevel.ADVANCED) {

@@ -60,6 +60,7 @@
     <!-- Subtitle shared by the settings that only apply while the mode runs. -->
     <string name="modes_active_subtitle">While this mode is active</string>
     <string name="modes_emoji_row_title">Emoji row</string>
+    <string name="modes_emoji_row_info">Whether the emoji row shows while this mode is active. Inherit keeps the setting that applies outside the mode.</string>
     <!-- One emoji button in place of the whole emoji row. -->
     <string name="modes_emoji_row_button_label">Button</string>
     <!-- The full emoji row. -->
@@ -70,12 +71,15 @@
     <string name="modes_emoji_row_button_desc">A button on the toolbar opens the row</string>
     <string name="modes_emoji_row_row_desc">The row stays above the keys</string>
     <string name="modes_symbol_row_title">Symbol row</string>
+    <string name="modes_symbol_row_info">Whether the symbol row shows while this mode is active. Inherit keeps the setting that applies outside the mode.</string>
     <string name="modes_theme_title">Theme</string>
     <string name="modes_theme_inherit_subtitle">Inherit the theme that is set</string>
     <string name="modes_theme_override_body">While this mode is active, the keyboard uses this theme. It replaces the theme you set elsewhere, and it also replaces an automatic light and dark pair for the time the mode runs. The mode does not change your own choice. Your theme comes back when the mode ends.</string>
     <string name="modes_pinned_tools_title">Custom pinned tools</string>
     <string name="modes_pinned_tools_subtitle">Change the pinned tools of the toolbar while this mode is active</string>
+    <string name="modes_pinned_tools_info">Gives this mode its own pinned tools. While the mode is active, the toolbar shows them, as set under Pinned tools behaviour.</string>
     <string name="modes_pinned_behaviour_title">Pinned tools behaviour</string>
+    <string name="modes_pinned_behaviour_info">How the tools of this mode meet the tools you pinned yourself. Add to mine puts the mode\'s tools after yours. Replace mine pins only the mode\'s tools while the mode is active.</string>
     <string name="modes_pinned_behaviour_append_subtitle">The keyboard adds these tools after the tools you pinned yourself</string>
     <string name="modes_pinned_behaviour_replace_subtitle">Only these tools are pinned while this mode is active</string>
     <!-- Option: keep the tools the user pinned and add the tools of the mode. -->
@@ -89,9 +93,11 @@
          which mode's arrangement they are changing. %1$s is that name. -->
     <string name="modes_toolbox_order_title">Custom toolbox order</string>
     <string name="modes_toolbox_order_subtitle">Move the tools of this mode to the front of the toolbox panel</string>
+    <string name="modes_toolbox_order_info">While this mode is active, its tools move to the front of the toolbox panel, so the tools you need there are the first you see.</string>
     <string name="modes_toolbox_order_body">The tools you select come first in the toolbox. The other tools keep their usual place behind them.</string>
     <string name="modes_symbol_sets_title">Custom symbol sets</string>
     <string name="modes_symbol_sets_subtitle">The symbol row shows only the sets of this mode while it is active</string>
+    <string name="modes_symbol_sets_info">While this mode is active, the symbol row offers only the symbol sets you pick for the mode.</string>
     <string name="modes_symbol_set_order_body">The row opens on the first set in the order.</string>
 
     <!-- ==================================================================
@@ -99,6 +105,7 @@
          ================================================================== -->
     <string name="modes_auto_group_title">Turn on automatically for</string>
     <string name="modes_field_types_title">Field types</string>
+    <string name="modes_field_types_info">The kinds of text field that turn this mode on, such as email, password or web address fields. The mode becomes active when you tap a field of one of these kinds.</string>
     <string name="modes_auto_both_match_body">Both conditions must match. This mode turns on only for these field types in the apps in the list below.</string>
     <string name="modes_auto_all_match_body">All the conditions you set must match: the field type, the hint text and the app.</string>
     <string name="modes_exclude_app_title">Not in these apps</string>
@@ -110,6 +117,7 @@
     <string name="modes_group_subtitle">Counts like an app in the list, including apps installed later</string>
     <string name="modes_condition_any">Any</string>
     <string name="modes_orientation_title">Screen direction</string>
+    <string name="modes_orientation_info">Makes the mode depend on how the phone is held. Upright applies it only in portrait. Sideways applies it only in landscape.</string>
     <string name="modes_orientation_portrait">Upright</string>
     <string name="modes_orientation_landscape">Sideways</string>
     <string name="modes_screen_size_title">Screen size</string>
@@ -117,6 +125,7 @@
     <string name="modes_screen_size_phone">Phone</string>
     <string name="modes_screen_size_tablet">Tablet</string>
     <string name="modes_one_handed_title">One-handed mode</string>
+    <string name="modes_one_handed_info">Makes the mode depend on one-handed mode: active only while the keyboard is in one-handed mode, or only while it is not.</string>
     <string name="modes_one_handed_on">On</string>
     <string name="modes_one_handed_off">Off</string>
     <string name="modes_dark_mode_title">Dark mode</string>
@@ -124,6 +133,7 @@
     <string name="modes_dark_mode_on">On</string>
     <string name="modes_dark_mode_off">Off</string>
     <string name="modes_bluetooth_title">Bluetooth audio</string>
+    <string name="modes_bluetooth_info">Makes the mode depend on Bluetooth audio. Connected applies it only while a headset or speaker is connected. Not connected applies it only while none is.</string>
     <string name="modes_bluetooth_on">Connected</string>
     <string name="modes_bluetooth_off">Not connected</string>
     <string name="modes_bluetooth_names_title">Bluetooth device names</string>
@@ -133,30 +143,40 @@
     <string name="modes_field_languages_title">Field languages</string>
     <string name="modes_field_languages_subtitle">Only in a field that asks for one of these language codes, such as ja or de</string>
     <string name="modes_field_empty_title">Text in the field</string>
+    <string name="modes_field_empty_info">Makes the mode depend on the text field\'s contents. Empty applies it only while the field holds no text. Not empty applies it only while the field has text.</string>
     <string name="modes_field_empty_on">Empty</string>
     <string name="modes_field_empty_off">Not empty</string>
     <string name="modes_text_starts_title">Text starts with</string>
     <string name="modes_text_starts_subtitle">Only while the field starts with one of these, such as /, $ or &gt;</string>
     <string name="modes_one_handed_override_title">Use one-handed mode</string>
+    <string name="modes_one_handed_override_info">Whether the keyboard is in one-handed mode while this mode is active. Inherit keeps the setting that applies outside the mode.</string>
     <string name="modes_one_handed_left">Left</string>
     <string name="modes_one_handed_right">Right</string>
     <string name="modes_snippets_title">Snippet triggers</string>
     <string name="modes_snippets_info">Off, typing a trigger expands nothing in this mode. The Snippets tool still inserts them.</string>
     <string name="modes_number_row_title">Number row</string>
+    <string name="modes_number_row_info">Whether the number row shows while this mode is active. Inherit keeps the setting that applies outside the mode.</string>
     <string name="modes_key_height_title">Key height</string>
+    <string name="modes_key_height_info">The height of the keys while this mode is active. Inherit keeps the height that applies outside the mode.</string>
     <string name="modes_key_preview_title">Key preview</string>
+    <string name="modes_key_preview_info">Whether a key shows its popup when you press it while this mode is active. Inherit keeps the setting that applies outside the mode. A mode for passwords can turn the popup off, so nobody reads the keys over your shoulder.</string>
     <string name="modes_long_press_title">Long-press delay</string>
+    <string name="modes_long_press_info">How long you hold a key before its long press opens while this mode is active. Inherit keeps the delay that applies outside the mode.</string>
     <string name="modes_clipboard_chip_title">Copied text chip</string>
+    <string name="modes_clipboard_chip_info">Whether the strip offers the text you just copied as a chip while this mode is active. Inherit keeps the setting that applies outside the mode.</string>
     <string name="modes_key_swipes_title">Key swipes</string>
+    <string name="modes_key_swipes_info">Whether swipes on keys work while this mode is active. Inherit keeps the setting that applies outside the mode.</string>
     <string name="modes_languages_title">Languages</string>
     <string name="modes_languages_subtitle">Which of your languages count in this mode, by code, such as en or bn</string>
     <string name="modes_voice_languages_title">Voice typing languages</string>
     <string name="modes_voice_languages_subtitle">What dictation listens for in this mode, by code, such as en or bn</string>
     <string name="modes_hardware_keyboard_title">Hardware keyboard</string>
+    <string name="modes_hardware_keyboard_info">Makes the mode depend on a hardware keyboard. Attached applies it only while one is connected. Not attached applies it only while none is.</string>
     <string name="modes_hardware_keyboard_on">Attached</string>
     <string name="modes_hardware_keyboard_off">Not attached</string>
     <string name="modes_time_title">Time of day</string>
     <string name="modes_time_subtitle">Only between two times. Checked each time you tap a text box</string>
+    <string name="modes_time_info">The mode is active only between two times of the day. The time is checked each time you tap a text box.</string>
     <string name="modes_time_from">From</string>
     <string name="modes_time_to">To</string>
     <string name="modes_priority_title">Priority</string>
@@ -210,8 +230,11 @@
     <string name="modes_manual_duration_info">This is about picking a mode yourself from the Modes tool, not about a mode that switches on for an app on its own. Until you change app is the keyboard\'s old behaviour and suits a mode you reach for once. Until you change it suits a mode you meant to stay in, and it stays on until you pick another mode or turn it off.</string>
 
     <string name="modes_autocorrect_title">Autocorrect</string>
+    <string name="modes_autocorrect_info">Whether autocorrect works while this mode is active. Inherit keeps the setting that applies outside the mode. A mode for code or for a terminal usually turns it off.</string>
     <string name="modes_autocapitalize_title">Automatic capitals</string>
+    <string name="modes_autocapitalize_info">Whether sentences start with a capital letter by themselves while this mode is active. Inherit keeps the setting that applies outside the mode.</string>
     <string name="modes_suggestions_title">Suggestions</string>
+    <string name="modes_suggestions_info">Whether word suggestions show while this mode is active. Inherit keeps the setting that applies outside the mode.</string>
     <string name="modes_autospace_title">Automatic spaces</string>
     <string name="modes_autospace_subtitle">Spaces the keyboard types for you while this mode is active</string>
     <string name="modes_autospace_info">One switch over every space the keyboard puts in without a press: after punctuation, after a suggestion you pick from the strip, and after a word you glide. Off means every space in the field is one you typed, which is what you want when you are renaming a file extension, typing a command, or filling any field where a stray space is a mistake. On turns all three on, including the space after punctuation, which is off by default everywhere else.</string>

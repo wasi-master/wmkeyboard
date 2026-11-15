@@ -4,8 +4,10 @@
     <string name="location_share_group">Sharing</string>
     <string name="location_format_title">Default format</string>
     <string name="location_format_subtitle">What Insert types. Hold a format on the panel to make it the default.</string>
+    <string name="location_format_info">What the Insert button of the location tool types: a message with the address, the coordinates, a map link, and so on. A hold on a format in the panel also makes it the default. The default is the message.</string>
     <string name="location_map_link_title">Map link</string>
     <string name="location_map_link_subtitle">The map that a shared link opens</string>
+    <string name="location_map_link_info">The map service that a shared location link opens. The default is Google Maps.</string>
     <string name="location_map_link_geo">geo: link, opens the reader\'s own maps app</string>
     <string name="location_map_link_card">A WM Keyboard page with a button for every map</string>
     <string name="location_precision_title">Precision</string>
@@ -16,6 +18,7 @@
     <string name="location_lookup_address_info">The keyboard sends the point, at the precision you chose, to the address server one time for each share. The default server is Nominatim from OpenStreetMap. Off, nothing about your position leaves the phone until you send the text yourself.</string>
     <string name="location_locate_on_open_title">Locate when the tool opens</string>
     <string name="location_locate_on_open_subtitle">If Android already allows it. Off, the panel waits for Locate me.</string>
+    <string name="location_locate_on_open_info">The location tool looks for your position as soon as it opens, if Android already gave it the permission. With this off, the panel waits until you press Locate me, and the phone\'s position is not read before that. This setting is on by default.</string>
 
     <string name="location_tiles_group">Map behind the dial</string>
     <string name="location_tiles_label">Tile server</string>
@@ -48,6 +51,7 @@
     <string name="location_camera_info">Both use the location tool: its precision, its address lookup and its format. The first photo with either asks Android for location access.</string>
     <string name="location_camera_stamp_title">Stamp the place on photos</string>
     <string name="location_camera_stamp_subtitle">A band along the bottom with the address, coordinates, time and Plus code. The pin on the viewfinder turns this on and off.</string>
+    <string name="location_camera_stamp_info">Prints a band along the bottom of each photo with the address, the coordinates, the time and the Plus code of the place. The pin on the viewfinder turns the same setting on and off. This setting is off by default.</string>
     <string name="location_camera_caption_title">Add the place as text</string>
     <string name="location_camera_caption_subtitle">Send puts the place in the text box too, in the location tool\'s default format</string>
     <string name="location_camera_caption_info">The text goes in first, then the photo. Many chat apps use the text in the box as the photo\'s caption; others send it as a message of its own.</string>

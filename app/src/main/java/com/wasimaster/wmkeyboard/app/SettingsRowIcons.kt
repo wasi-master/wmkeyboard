@@ -490,6 +490,8 @@ internal object SettingsRowIcons {
         put(R.string.accessibility_language_switch_motion_title) { Icons.Outlined.Flip }
         put(R.string.accessibility_tool_result_motion_title) { Icons.Outlined.Spellcheck }
         put(R.string.settings_depth_title) { Icons.Outlined.Tune }
+        put(R.string.help_pictures_title) { Icons.Outlined.Image }
+        put(R.string.help_pictures_delete_title) { Icons.Outlined.Delete }
         put(R.string.settings_hidden_rows_title) { Icons.Outlined.Visibility }
         put(R.string.accessibility_row_icons_title) { Icons.Outlined.Interests }
         put(R.string.accessibility_screen_transitions_title) { Icons.Outlined.Animation }

@@ -99,6 +99,7 @@ internal fun LocationToolSettings(repository: SettingsRepository, settings: Live
                 options = formatOptions,
                 selected = settings.watch { it.location.format },
                 default = defaults.format,
+                info = stringResource(R.string.location_format_info),
             ) { scope.launch { repository.setLocationFormat(it) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -108,6 +109,7 @@ internal fun LocationToolSettings(repository: SettingsRepository, settings: Live
                 options = mapOptions,
                 selected = settings.watch { it.location.mapLink },
                 default = defaults.mapLink,
+                info = stringResource(R.string.location_map_link_info),
             ) { scope.launch { repository.setLocationMapLink(it) } }
         }
         item {
@@ -135,6 +137,7 @@ internal fun LocationToolSettings(repository: SettingsRepository, settings: Live
                 stringResource(R.string.location_locate_on_open_subtitle),
                 settings.watch { it.location.locateOnOpen },
                 default = defaults.locateOnOpen,
+                info = stringResource(R.string.location_locate_on_open_info),
             ) { scope.launch { repository.setLocationLocateOnOpen(it) } }
         }
         serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.NOMINATIM), level = SettingLevel.ADVANCED)

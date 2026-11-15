@@ -81,6 +81,7 @@ internal fun SelectionMacroSettingsScreen(
                         },
                     )
                 },
+                info = stringResource(R.string.selection_macros_placement_info),
             ) { scope.launch { repository.setSelectionMacroPlacement(it) } }
         }
         // Reads as a second question about where the bar appears rather than
@@ -190,6 +191,7 @@ internal fun SelectionMacroSettingsScreen(
                 stringResource(R.string.text_actions_settings_translate_subtitle),
                 settings.watch { it.selectionMacros.systemMenuTranslate },
                 default = SettingsDefaults.selectionMacros.systemMenuTranslate,
+                info = stringResource(R.string.text_actions_settings_translate_info),
             ) { scope.launch { repository.setSelectionMenuTranslate(it) } }
         }
         for ((id, title) in listOf(
@@ -215,6 +217,7 @@ internal fun SelectionMacroSettingsScreen(
                 stringResource(R.string.toolai_ai_selection_menu_subtitle),
                 settings.watch { it.ai.selectionMenu },
                 default = SettingsDefaults.ai.selectionMenu,
+                info = stringResource(R.string.toolai_ai_selection_menu_info),
             ) { scope.launch { repository.setAiSelectionMenu(it) } }
         }
         item(level = SettingLevel.STANDARD) {
@@ -223,6 +226,7 @@ internal fun SelectionMacroSettingsScreen(
                 stringResource(R.string.lookup_settings_selection_subtitle),
                 settings.watch { it.lookup.selectionMenu },
                 default = SettingsDefaults.lookup.selectionMenu,
+                info = stringResource(R.string.lookup_settings_selection_info),
             ) { on ->
                 LookupSelectionMenu.apply(context, on)
                 scope.launch { repository.updateLookup { it.copy(selectionMenu = on) } }

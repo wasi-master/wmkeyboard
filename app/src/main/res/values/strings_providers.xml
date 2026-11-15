@@ -23,6 +23,7 @@
     <string name="providers_open">Open settings</string>
     <!-- A provider's own screen (ProviderPage.kt). -->
     <string name="providers_page_on_title">Use this provider</string>
+    <string name="providers_page_on_info">Puts this provider to use. The tool asks it when its turn comes in the order of the list, so a provider higher in the list is asked first. Turn this off to keep the provider set up and stop the tool asking it.</string>
     <!-- %1$s is the tool, such as Translate. -->
     <string name="providers_page_on_subtitle">%1$s asks it in its place on the list</string>
     <!-- %1$s is the tool, such as Translate. -->
