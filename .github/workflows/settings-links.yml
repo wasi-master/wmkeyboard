@@ -6,7 +6,9 @@ name: Settings links
 #   docs/src/data/settings-links.json  every screen and row a link can name,
 #                                      dumped from the app's settings index;
 #   docs/src/data/settings-since.json  the first release that has each one,
-#                                      dated from the v* tags.
+#                                      dated from the v* tags, with a copy at
+#                                      app/src/main/settings-since.json that
+#                                      the APK bundles.
 #
 # Runs on a push to main that can change either, and on every release tag: a
 # tag is what turns this release's "Not released yet" rows into released ones,
@@ -78,12 +80,17 @@ jobs:
       - name: Date every screen and row
         run: node docs/scripts/extract-settings-since.mjs
 
+      # The app bundles its own copy: F-Droid deletes docs/ before it builds,
+      # so the APK cannot read the docs one and still match ours (#1346).
+      - name: Copy the versions for the app
+        run: cp docs/src/data/settings-since.json app/src/main/settings-since.json
+
       # A push made with the workflow token starts no other workflow, so this
       # commit cannot run this job again. Rebased first because main may have
       # moved during the build.
       - name: Commit the refresh
         run: |
-          git add docs/src/data/settings-links.json docs/src/data/settings-since.json
+          git add docs/src/data/settings-links.json docs/src/data/settings-since.json app/src/main/settings-since.json
           if git diff --cached --quiet; then
             echo "Already current."
             exit 0
