@@ -2952,11 +2952,13 @@ internal fun WmScreen(
                 // Each small button stacked above the bottom one adds a step.
                 val buttons = listOf(hasFab, hasPreview, hasChat).count { it }
                 // The new settings bar floats over the foot of every page;
-                // a row under it has to be able to scroll out from under it.
+                // a row under it has to be able to scroll out from under it,
+                // and from under the buttons, which ride up above the bar
+                // while it shows (#1348): their room is on top of its.
                 val bar = with(LocalDensity.current) { NewSettings.barHeight.toDp() }
                 Spacer(
                     Modifier.height(
-                        maxOf(bar, if (buttons == 0) 24.dp else FAB_TAIL + PREVIEW_FAB_STEP * (buttons - 1)),
+                        bar + if (buttons == 0) 24.dp else FAB_TAIL + PREVIEW_FAB_STEP * (buttons - 1),
                     ),
                 )
             }

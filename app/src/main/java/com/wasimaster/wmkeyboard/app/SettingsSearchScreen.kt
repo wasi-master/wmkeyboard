@@ -678,14 +678,20 @@ private fun HighlightFrame(
     // flash, while the hold below still has a second or so to run.
     val centred = remember { BooleanArray(1) }
     val bring: suspend () -> Unit = {
-        val viewport = scroll?.viewportSize ?: 0
+        // The new settings card floats over the foot of the page (#1348): the
+        // part of the viewport it covers is not view, so the row is centred
+        // in what is left above it, and never brought in under it.
+        val bar = NewSettings.barHeight.toFloat()
+        val viewport = (scroll?.viewportSize ?: 0) - bar.toInt()
         val h = height[0]
         if (centred[0] && viewport > h && h > 0) {
             // A viewport-tall box with the row at its middle: the scroll that
             // fits all of it in view is the one that centres the row. Near
             // either end of the page the scroll stops short, as it should.
             val above = (viewport - h) / 2f
-            requester.bringIntoView(Rect(0f, -above, 1f, h + above))
+            requester.bringIntoView(Rect(0f, -above, 1f, h + above + bar))
+        } else if (bar > 0f && h > 0) {
+            requester.bringIntoView(Rect(0f, 0f, 1f, h + bar))
         } else {
             requester.bringIntoView()
         }
