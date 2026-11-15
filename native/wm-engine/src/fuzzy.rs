@@ -233,39 +233,66 @@ impl<'a> TouchScoring<'a> {
     }
 
     /// How much better `word`'s letters explain the taps once the hand's
-    /// drift is allowed for: the taps of one word share an offset (a thumb
-    /// that lands a little right of every key), so a reading whose keys sit
-    /// the same way from every tap is likelier than the taps one by one say.
-    /// The gain in log-likelihood of a model where each tap is its key plus a
-    /// shared offset drawn with [SHAPE_DRIFT_SIGMAS] sigmas over the model's
-    /// own per-tap scatter, against the taps read independently:
-    /// `n s / (1 + n s) * n |mean residual|^2 / (2 sigma^2)`, `s` the drift
-    /// variance over the tap variance. Fleksy's US 9,024,882 reads a word from
-    /// its taps' shape about their centroid the same way. Read over the
-    /// typed positions only, so a completion is judged on the letters typed;
+    /// drift is allowed for. The taps of one word move together: a thumb
+    /// lands a little to one side of every key (a shared offset), and a hand
+    /// spreads or squeezes the word (a scale about its centre). Fleksy's US
+    /// 9,024,882 reads a word from its taps' shape about their centroid the
+    /// same way. The keys are fitted to the taps by the best offset and a
+    /// scale held to [`SHAPE_SCALE_MIN`, `SHAPE_SCALE_MAX`], and the gain is
+    /// what the fit takes off the taps' squared distance from their keys,
+    /// shrunk by how much a prior of [SHAPE_DRIFT_SIGMAS] trusts it,
+    /// `n s / (1 + n s)` with `s` the drift variance over the tap variance,
+    /// over `2 sigma^2`. With the scale at 1 that is the exact gain of a
+    /// shared-offset model, `n |mean residual|^2`. Read over the typed
+    /// positions only, so a completion is judged on the letters typed;
     /// positions without a tap, or with a letter the layout has no key for,
     /// are left out, and fewer than two left gives nothing.
     fn drift_bonus(&self, word: &[u16]) -> f64 {
-        let (mut sx, mut sy, mut n) = (0.0f64, 0.0f64, 0usize);
+        let mut pairs: Vec<(f64, f64, f64, f64)> = Vec::with_capacity(self.points.len());
         for (pos, unit) in word.iter().enumerate().take(self.points.len()) {
             let Some(p) = self.point(pos) else { continue };
             let Some(&i) = self.model.index.get(unit) else { continue };
             let (_, cx, cy) = self.model.keys[i];
-            sx += (p.0 - cx) as f64;
-            sy += (p.1 - cy) as f64;
-            n += 1;
+            pairs.push((cx as f64, cy as f64, p.0 as f64, p.1 as f64));
         }
-        if n < 2 {
+        if pairs.len() < 2 {
             return 0.0;
         }
-        let n = n as f64;
-        let (mx, my) = (sx / n, sy / n);
+        let n = pairs.len() as f64;
+        let (mut kx, mut ky, mut tx, mut ty) = (0.0f64, 0.0f64, 0.0f64, 0.0f64);
+        for &(a, b, c, d) in &pairs {
+            kx += a;
+            ky += b;
+            tx += c;
+            ty += d;
+        }
+        let (kx, ky, tx, ty) = (kx / n, ky / n, tx / n, ty / n);
+        let (mut num, mut den) = (0.0f64, 0.0f64);
+        for &(a, b, c, d) in &pairs {
+            num += (a - kx) * (c - tx) + (b - ky) * (d - ty);
+            den += (a - kx) * (a - kx) + (b - ky) * (b - ky);
+        }
+        let scale = if den > 1e-9 { (num / den).clamp(SHAPE_SCALE_MIN, SHAPE_SCALE_MAX) } else { 1.0 };
+        let (mut raw, mut fit) = (0.0f64, 0.0f64);
+        for &(a, b, c, d) in &pairs {
+            raw += (c - a) * (c - a) + (d - b) * (d - b);
+            let (fx, fy) = (tx + (a - kx) * scale, ty + (b - ky) * scale);
+            fit += (c - fx) * (c - fx) + (d - fy) * (d - fy);
+        }
+        let gain = raw - fit;
+        if !(gain > 0.0) {
+            return 0.0;
+        }
         let tap = self.model.sigma * self.model.sigma;
         let drift = SHAPE_DRIFT_SIGMAS * SHAPE_DRIFT_SIGMAS * tap;
         let shrink = n * drift / (tap + n * drift);
-        shrink * n * (mx * mx + my * my) / (2.0 * tap)
+        shrink * gain / (2.0 * tap)
     }
 }
+
+/// How far [`TouchScoring::drift_bonus`] lets a hand squeeze or spread a word.
+pub const SHAPE_SCALE_MIN: f64 = 0.6;
+pub const SHAPE_SCALE_MAX: f64 = 1.6;
 
 /// The hand's drift over one word, in sigmas of the tap scatter
 /// ([`TouchScoring::drift_bonus`]).
@@ -1621,9 +1648,17 @@ mod tests {
         // Every tap half a key right: n s / (1 + n s) * n * 0.25 / (2 * 0.25), n 3, s 1.
         let drifted = TouchScoring::new(&model, shifted([0.5, 0.5, 0.5]));
         assert!((drifted.drift_bonus(&the) - 1.125).abs() < 1e-6);
-        // The same distances with no shared direction earn nothing.
+        // The same distances with no shared direction earn far less: only
+        // what a scale about the centre happens to explain.
         let scattered = TouchScoring::new(&model, shifted([0.5, -0.5, 0.0]));
-        assert!(scattered.drift_bonus(&the).abs() < 1e-12);
+        assert!(scattered.drift_bonus(&the) < 0.15);
+        // A hand that spreads the word by a third, no offset: the scale reads it.
+        let (kx, ky) = ((4.0 + 5.25 + 2.0) / 3.0, 1.0 / 3.0);
+        let spread: Vec<Option<(f32, f32)>> = "the"
+            .chars()
+            .map(|c| Some((kx + (centre(c).0 - kx) * 1.3, ky + (centre(c).1 - ky) * 1.3)))
+            .collect();
+        assert!(TouchScoring::new(&model, spread).drift_bonus(&the) > 0.5);
         // A completion is read over the typed letters only.
         let drifted_two = TouchScoring::new(&model, shifted([0.5, 0.5, 0.5]).into_iter().take(2).collect());
         // n 2: 2/3 * 2 * 0.25 / 0.5.

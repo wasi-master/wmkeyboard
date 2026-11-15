@@ -90,24 +90,49 @@ class KotlinFuzzyBeamSearch {
     }
 
     private fun driftBonus(touch: TouchScoring, word: String): Double {
-        var sx = 0.0
-        var sy = 0.0
-        var n = 0
+        val pairs = ArrayList<DoubleArray>()
         for (pos in 0 until minOf(word.length, touch.points.size)) {
             val p = touch.points[pos] ?: continue
             val c = touch.model.center(word[pos]) ?: continue
-            sx += (p.x - c.x).toDouble()
-            sy += (p.y - c.y).toDouble()
-            n++
+            pairs.add(doubleArrayOf(c.x.toDouble(), c.y.toDouble(), p.x.toDouble(), p.y.toDouble()))
         }
-        if (n < 2) return 0.0
-        val count = n.toDouble()
-        val mx = sx / count
-        val my = sy / count
+        if (pairs.size < 2) return 0.0
+        val n = pairs.size.toDouble()
+        var kx = 0.0
+        var ky = 0.0
+        var tx = 0.0
+        var ty = 0.0
+        for (q in pairs) {
+            kx += q[0]
+            ky += q[1]
+            tx += q[2]
+            ty += q[3]
+        }
+        kx /= n
+        ky /= n
+        tx /= n
+        ty /= n
+        var num = 0.0
+        var den = 0.0
+        for (q in pairs) {
+            num += (q[0] - kx) * (q[2] - tx) + (q[1] - ky) * (q[3] - ty)
+            den += (q[0] - kx) * (q[0] - kx) + (q[1] - ky) * (q[1] - ky)
+        }
+        val scale = if (den > 1e-9) (num / den).coerceIn(SHAPE_SCALE_MIN, SHAPE_SCALE_MAX) else 1.0
+        var raw = 0.0
+        var fit = 0.0
+        for (q in pairs) {
+            raw += (q[2] - q[0]) * (q[2] - q[0]) + (q[3] - q[1]) * (q[3] - q[1])
+            val fx = tx + (q[0] - kx) * scale
+            val fy = ty + (q[1] - ky) * scale
+            fit += (q[2] - fx) * (q[2] - fx) + (q[3] - fy) * (q[3] - fy)
+        }
+        val gain = raw - fit
+        if (!(gain > 0.0)) return 0.0
         val tap = touch.model.sigmaValue * touch.model.sigmaValue
         val drift = SHAPE_DRIFT_SIGMAS * SHAPE_DRIFT_SIGMAS * tap
-        val shrink = count * drift / (tap + count * drift)
-        return shrink * count * (mx * mx + my * my) / (2.0 * tap)
+        val shrink = n * drift / (tap + n * drift)
+        return shrink * gain / (2.0 * tap)
     }
 
     @Suppress("LongParameterList")
@@ -639,9 +664,11 @@ class KotlinFuzzyBeamSearch {
         /** Autocorrect wants a deeper ranked list than the strip shows. */
         const val AUTOCORRECT_K = 8
 
-        /** wm-engine's `SHAPE_DRIFT_SIGMAS` and `SHAPE_WEIGHT`. */
+        /** wm-engine's `SHAPE_DRIFT_SIGMAS`, `SHAPE_WEIGHT` and scale bounds. */
         const val SHAPE_DRIFT_SIGMAS = 1.0
         const val SHAPE_WEIGHT = 1.0
+        const val SHAPE_SCALE_MIN = 0.6
+        const val SHAPE_SCALE_MAX = 1.6
 
         /** Cap on the rank cost an off-center tap adds to an exact match. */
         const val MATCH_CAP = 1.0
