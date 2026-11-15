@@ -1513,7 +1513,7 @@ class SuggestionEngine(
             secondary = secondaryDictionaries.associate { it.langId to countAtAnchor(it.source) },
         )
         val raw = weightsFor(tops)
-        val ranked = weightsFor(tops.map(::rankedTop))
+        val ranked = weightsFor(tops.zip(anchors, ::rankedTop))
         return SourceScales(
             active = raw.active, custom = raw.custom, english = raw.english, secondary = raw.secondary,
             activeRank = ranked.active, customRank = ranked.custom, englishRank = ranked.english,
@@ -1532,7 +1532,13 @@ class SuggestionEngine(
         val english: Int,
         val secondary: Map<String, Int>,
     ) {
-        fun map(f: (Int) -> Int) = SourceTops(f(active), f(custom), f(english), secondary.mapValues { f(it.value) })
+        /** Each list's count beside the same list's in [other], through [f]. */
+        fun zip(other: SourceTops, f: (Int, Int) -> Int) = SourceTops(
+            f(active, other.active),
+            f(custom, other.custom),
+            f(english, other.english),
+            secondary.mapValues { (langId, top) -> f(top, other.secondary[langId] ?: 0) },
+        )
     }
 
     /** [SourceScales]' multipliers for lists whose commonest counts are [tops]. */
@@ -1559,18 +1565,14 @@ class SuggestionEngine(
 
     /**
      * How the walk reads a list whose commonest count is [top] and whose
-     * count at [RankScale.ANCHOR_RANK] is [atAnchor] ([RankScale]): on a log
-     * line pinned to the bundled list's by rank when its top lands above the
-     * reference the engine is tuned on, which is every list that carries
-     * corpus counts, and as stored otherwise: the bundled list itself, a flat
-     * list, a list whose counts top out under the reference.
+     * count at [RankScale.ANCHOR_RANK] is [atAnchor] ([RankScale.forList]):
+     * on a log line pinned to the bundled list's by rank when it carries
+     * corpus counts, whether its top lands above the reference the engine is
+     * tuned on or, for a small corpus, under it; as stored otherwise: the
+     * bundled lists themselves, a flat list, a list too short to rank.
      */
     private fun rankScaleOf(top: Int, atAnchor: Int): RankScale =
-        if (top > REFERENCE_TOP_FREQUENCY * SCALE_TOLERANCE) {
-            RankScale.anchored(top, atAnchor, REFERENCE_TOP_FREQUENCY)
-        } else {
-            RankScale.RAW
-        }
+        RankScale.forList(top, atAnchor, REFERENCE_TOP_FREQUENCY, SCALE_TOLERANCE)
 
     /**
      * [source]'s count at [RankScale.ANCHOR_RANK], read from the walker that
@@ -1580,8 +1582,8 @@ class SuggestionEngine(
         source.walkers().maxByOrNull { it.maxSubtree(it.root) }?.countAtRank(RankScale.ANCHOR_RANK) ?: 0
 
     /** [top] as the walk reads it: the reference itself on any log line. */
-    private fun rankedTop(top: Int): Int =
-        if (top > REFERENCE_TOP_FREQUENCY * SCALE_TOLERANCE) REFERENCE_TOP_FREQUENCY.toInt() else top
+    private fun rankedTop(top: Int, atAnchor: Int): Int =
+        if (rankScaleOf(top, atAnchor).isRaw) top else REFERENCE_TOP_FREQUENCY.toInt()
 
     @Volatile
     private var sourceScalesCache: Pair<Long, SourceScales>? = null

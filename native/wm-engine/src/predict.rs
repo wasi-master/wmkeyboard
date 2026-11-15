@@ -815,15 +815,15 @@ fn scaled_weight(top: i32, weight: f64, target: f64) -> f64 {
 }
 
 /// How `list`'s counts are read for ranking: on the bundled list's log line
-/// when its commonest word lands above the reference, as stored otherwise
-/// (see [`RankScale`]).
+/// when they are corpus counts, as stored otherwise
+/// ([`RankScale::for_list`]).
 fn rank_scale_of(list: &WordList) -> RankScale {
-    let top = list.top();
-    if top as f64 > REFERENCE_TOP_FREQUENCY * SCALE_TOLERANCE {
-        RankScale::anchored(top, list.frequency_at_rank(RankScale::ANCHOR_RANK), REFERENCE_TOP_FREQUENCY)
-    } else {
-        RankScale::RAW
-    }
+    RankScale::for_list(
+        list.top(),
+        list.frequency_at_rank(RankScale::ANCHOR_RANK),
+        REFERENCE_TOP_FREQUENCY,
+        SCALE_TOLERANCE,
+    )
 }
 
 /// `list`'s commonest word as ranking reads it: the reference itself on the

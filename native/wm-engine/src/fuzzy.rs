@@ -366,6 +366,35 @@ impl RankScale {
         }
     }
 
+    /// A list whose counts sit at or under the reference counts as corpus
+    /// counts, and is read on [`RankScale::anchored`], when its count at
+    /// [`RankScale::ANCHOR_RANK`] is under this share of its top. Counts that
+    /// are already logs keep far more of their top that deep: the bundled
+    /// English list 0.31, the bundled Bangla one 0.12. Corpus counts keep
+    /// a hundredth or less (the small Wikipedia lists 0.0003 to 0.01).
+    pub const CORPUS_ANCHOR_SHARE: f64 = 0.05;
+
+    /// How a list whose commonest count is `top` and whose count at
+    /// [`RankScale::ANCHOR_RANK`] is `at_anchor` is read for ranking.
+    ///
+    /// A list whose top lands above the reference carries corpus counts, and
+    /// is read [`RankScale::anchored`]. So is one whose top is at or under it
+    /// but whose counts fall away like a corpus's: a small corpus (a
+    /// Wikipedia of a few thousand articles) tops out at a few thousand, and
+    /// read as stored its mid words were a few nats under where the engine's
+    /// fixed prices expect them, the same fault the large lists had. A list
+    /// already on the reference's log scale, a flat one, or one too short to
+    /// have a word at the anchor is read as stored.
+    pub fn for_list(top: i32, at_anchor: i32, reference: f64, tolerance: f64) -> RankScale {
+        if top as f64 > reference * tolerance {
+            RankScale::anchored(top, at_anchor, reference)
+        } else if at_anchor > 0 && (at_anchor as f64) < top as f64 * RankScale::CORPUS_ANCHOR_SHARE {
+            RankScale::anchored(top, at_anchor, reference)
+        } else {
+            RankScale::RAW
+        }
+    }
+
     /// The line that puts a list whose commonest word is `top` where the
     /// bundled list's is, at `reference` (10,000), with the floor the same
     /// ratio below it.
@@ -1354,6 +1383,22 @@ mod tests {
         // A list with no count at the anchor keeps the assumed line.
         assert_eq!(RankScale::log_line(31_465, 10_000.0), RankScale::anchored(31_465, 0, 10_000.0));
         assert_eq!(RankScale::log_line(5, 10_000.0), RankScale::anchored(5, 5, 10_000.0));
+    }
+
+    #[test]
+    fn a_small_corpus_under_the_reference_is_anchored_and_log_lists_stay_raw() {
+        // A small Wikipedia's counts: 4,941 at the top, 28 at rank 2,000.
+        let small = RankScale::for_list(4_941, 28, 10_000.0, 1.01);
+        assert!((small.read(4_941) - 10_000.0).abs() < 1e-6);
+        assert!((small.read(28) - RankScale::REFERENCE_AT_ANCHOR).abs() < 1e-6);
+        // The bundled lists are logs already: English, then Bangla.
+        assert!(RankScale::for_list(10_000, 3_077, 10_000.0, 1.01).is_raw());
+        assert!(RankScale::for_list(9_000, 1_078, 10_000.0, 1.01).is_raw());
+        // Too short to have a word at the anchor, or flat.
+        assert!(RankScale::for_list(4_941, 0, 10_000.0, 1.01).is_raw());
+        assert!(RankScale::for_list(1, 1, 10_000.0, 1.01).is_raw());
+        // Above the reference nothing changed.
+        assert_eq!(RankScale::anchored(31_465, 127, 10_000.0), RankScale::for_list(31_465, 127, 10_000.0, 1.01));
     }
 
     #[test]

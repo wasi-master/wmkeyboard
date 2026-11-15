@@ -295,6 +295,36 @@ class RankScale(val floor: Double, val perNat: Double) {
         const val DYNAMIC_RANGE = 28_787.591
 
         /**
+         * A list whose counts sit at or under the reference counts as corpus
+         * counts, and is read [anchored], when its count at [ANCHOR_RANK] is
+         * under this share of its top. Counts that are already logs keep far
+         * more of their top that deep (the bundled English list 0.31, the
+         * bundled Bangla one 0.12); corpus counts keep a hundredth or less
+         * (the small Wikipedia lists 0.0003 to 0.01).
+         */
+        const val CORPUS_ANCHOR_SHARE = 0.05
+
+        /**
+         * How a list whose commonest count is [top] and whose count at
+         * [ANCHOR_RANK] is [atAnchor] is read for ranking (`wm-engine`'s
+         * `RankScale::for_list`).
+         *
+         * A list whose top lands above [reference] × [tolerance] carries
+         * corpus counts and is read [anchored]. So is one whose top is at or
+         * under it but whose counts fall away like a corpus's: a small
+         * corpus (a Wikipedia of a few thousand articles) tops out at a few
+         * thousand, and read as stored its mid words sat a few nats under
+         * where the engine's fixed prices expect them, the fault the large
+         * lists had. A list already on the reference's log scale, a flat
+         * one, or one too short to have a word at the anchor reads as stored.
+         */
+        fun forList(top: Int, atAnchor: Int, reference: Double, tolerance: Double): RankScale = when {
+            top > reference * tolerance -> anchored(top, atAnchor, reference)
+            atAnchor > 0 && atAnchor < top * CORPUS_ANCHOR_SHARE -> anchored(top, atAnchor, reference)
+            else -> RAW
+        }
+
+        /**
          * The line that puts a list whose commonest word is [top] where the
          * bundled list's is, at [reference], with its floor the same ratio
          * below it.

@@ -26,6 +26,21 @@ class RankScaleTest {
         assertEquals(RankScale.logLine(500, 10_000.0), RankScale.anchored(500, 500, 10_000.0))
     }
 
+    @Test fun `a small corpus under the reference is anchored and log lists stay raw`() {
+        // A small Wikipedia's counts: 4,941 at the top, 28 at rank 2,000.
+        val small = RankScale.forList(4_941, 28, 10_000.0, 1.01)
+        assertEquals(10_000.0, small.read(4_941), 1e-6)
+        assertEquals(RankScale.REFERENCE_AT_ANCHOR, small.read(28), 1e-6)
+        // The bundled lists are logs already: English, then Bangla.
+        assertTrue(RankScale.forList(10_000, 3_077, 10_000.0, 1.01).isRaw)
+        assertTrue(RankScale.forList(9_000, 1_078, 10_000.0, 1.01).isRaw)
+        // Too short to have a word at the anchor, or flat.
+        assertTrue(RankScale.forList(4_941, 0, 10_000.0, 1.01).isRaw)
+        assertTrue(RankScale.forList(1, 1, 10_000.0, 1.01).isRaw)
+        // Above the reference nothing changed.
+        assertEquals(RankScale.anchored(31_465, 127, 10_000.0), RankScale.forList(31_465, 127, 10_000.0, 1.01))
+    }
+
     @Test fun `a head that is one long tie cannot blow the stretch up`() {
         val line = RankScale.anchored(1_000_000, 999_999, 10_000.0)
         assertEquals(RankScale.logLine(1_000_000, 10_000.0).perNat * 2.0, line.perNat, 1e-9)
