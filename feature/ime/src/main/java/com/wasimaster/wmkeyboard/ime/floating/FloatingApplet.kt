@@ -67,6 +67,10 @@ import kotlin.math.roundToInt
  * a throw up closes it, a throw down moves the tool into the keyboard, and a
  * throw sideways tucks it (#1262). Its top never goes under the status bar,
  * where Android's shade would take every touch meant for it (#1263).
+ *
+ * A double tap on its title bar rolls it up to the bar and back (#1241), and
+ * its see-through button fades it and lets every touch through to the app
+ * under it, a small button left on its corner to make it solid again.
  */
 internal class FloatingApplet(
     private val context: Context,
@@ -156,6 +160,8 @@ internal class FloatingApplet(
                     onBodyDrag = ::onBodyDrag,
                     onResize = ::onResize,
                     onTuck = { tuck(nearLeft()) },
+                    onRollUp = ::toggleRolledUp,
+                    onSeeThrough = { seeThrough(true) },
                     onTabTouch = ::onTabTouch,
                     onRestore = ::untuck,
                     onClose = { close() },
@@ -196,6 +202,7 @@ internal class FloatingApplet(
     private fun close(notify: Boolean) {
         val current = view ?: return
         val shown = box.panel
+        removeSolidButton()
         view = null
         params = null
         glide?.cancel()
@@ -206,6 +213,8 @@ internal class FloatingApplet(
         lifecycle.onStop()
         box.panel = null
         box.tuckedLeft = null
+        box.rolledUp = false
+        box.seeThrough = false
         if (notify && shown != null) host.appletClosed(shown)
     }
 
@@ -221,6 +230,9 @@ internal class FloatingApplet(
             untuck()
             return
         }
+        // So does a see-through one, or a rolled-up one.
+        if (box.seeThrough) seeThrough(false)
+        if (box.rolledUp) toggleRolledUp()
         current.animate().cancel()
         current.scaleX = 1.04f
         current.scaleY = 1.04f
@@ -274,8 +286,11 @@ internal class FloatingApplet(
         val height = prefs.getInt(KEY_H, -1).takeIf { it > 0 }?.let(::dp)
             ?: dp(DEFAULT_HEIGHT_DP) + shadow
         return width.coerceIn(minOf(dp(MIN_WIDTH_DP), screenW), screenW) to
-            height.coerceIn(minOf(dp(MIN_HEIGHT_DP), screenH), screenH)
+            if (box.rolledUp) rolledHeight() else height.coerceIn(minOf(dp(MIN_HEIGHT_DP), screenH), screenH)
     }
+
+    /** A rolled-up box (#1241): its title bar and the shadow round it. */
+    private fun rolledHeight(): Int = dp(FLOATING_APPLET_BAR_DP) + 2 * dp(FLOATING_APPLET_SHADOW_DP)
 
     private fun positionFromPrefs(layout: WindowManager.LayoutParams) {
         val (roomX, roomY) = room(layout)
@@ -313,6 +328,7 @@ internal class FloatingApplet(
         val onLeft = box.tuckedLeft
         if (onLeft != null) placeTab(layout, onLeft) else positionFromPrefs(layout)
         runCatching { windowManager.updateViewLayout(current, layout) }
+        placeSolidButton()
     }
 
     /** Keeps where the box was let go, as fractions of the room the screen leaves it. */
@@ -324,13 +340,117 @@ internal class FloatingApplet(
         }
     }
 
-    /** Keeps the box's size, in dp, for the next time it opens. */
+    /** Keeps the box's size, in dp, for the next time it opens; a rolled-up box's height is not its own. */
     private fun saveSize(layout: WindowManager.LayoutParams) {
         prefs.edit {
             putInt(KEY_W, (layout.width / density).roundToInt())
-            putInt(KEY_H, (layout.height / density).roundToInt())
+            if (!box.rolledUp) putInt(KEY_H, (layout.height / density).roundToInt())
         }
     }
+
+    // ---- rolled up and see-through (#1241) ----
+
+    /**
+     * Rolls the box up to its title bar, or back down to its size: the app
+     * under it in view without closing the tool. Its top stays where it is.
+     */
+    private fun toggleRolledUp() {
+        val layout = params ?: return
+        val current = view ?: return
+        if (box.tuckedLeft != null) return
+        box.rolledUp = !box.rolledUp
+        layout.height = size().second
+        val (_, roomY) = room(layout)
+        layout.y = layout.y.coerceIn(topFloor().coerceAtMost(roomY), roomY)
+        runCatching { windowManager.updateViewLayout(current, layout) }
+    }
+
+    /** The button left on a see-through box's corner that makes it solid again. */
+    private var solidButton: ComposeView? = null
+
+    /**
+     * See-through ([on]) or solid (#1241). See-through, the box is faded
+     * and takes no touch at all, so a tap anywhere on it lands on the app
+     * under it; the keys still type into its tool. Android lets touches pass
+     * an overlay only when it is faded past [SEE_THROUGH_ALPHA]'s ceiling,
+     * which is why the fade and the pass-through are one switch. A small
+     * button of its own, outside the faded window, brings it back.
+     */
+    private fun seeThrough(on: Boolean) {
+        val layout = params ?: return
+        val current = view ?: return
+        if (box.seeThrough == on) return
+        box.seeThrough = on
+        if (on) {
+            layout.flags = layout.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+            layout.alpha = SEE_THROUGH_ALPHA
+        } else {
+            layout.flags = layout.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
+            layout.alpha = 1f
+        }
+        runCatching { windowManager.updateViewLayout(current, layout) }
+        if (on) addSolidButton() else removeSolidButton()
+    }
+
+    private fun addSolidButton() {
+        if (solidButton != null) return
+        val button = ComposeView(windowContext).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+            setContent {
+                val state by host.state.collectAsState()
+                SolidAgainButton(state, box) { seeThrough(false) }
+            }
+        }
+        lifecycle.attachTo(button)
+        val size = dp(SOLID_BUTTON_DP)
+        val flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+        val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        } else {
+            @Suppress("DEPRECATION")
+            WindowManager.LayoutParams.TYPE_PHONE
+        }
+        val layout = WindowManager.LayoutParams(size, size, type, flags, PixelFormat.TRANSLUCENT).apply {
+            gravity = Gravity.TOP or Gravity.START
+            title = "WM Keyboard floating tool, solid again"
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) setFitInsetsTypes(0)
+        }
+        if (runCatching { windowManager.addView(button, layout) }.isFailure) {
+            // No way back from see-through without it: stay solid.
+            params?.let { card ->
+                card.flags = card.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
+                card.alpha = 1f
+                view?.let { runCatching { windowManager.updateViewLayout(it, card) } }
+            }
+            box.seeThrough = false
+            return
+        }
+        solidButton = button
+        placeSolidButton()
+    }
+
+    /** On the card's top end corner, over its close button, where a hand reaching to close it finds it. */
+    private fun placeSolidButton() {
+        val button = solidButton ?: return
+        val card = params ?: return
+        val layout = button.layoutParams as? WindowManager.LayoutParams ?: return
+        val shadow = dp(FLOATING_APPLET_SHADOW_DP)
+        layout.x = card.x + card.width - shadow - layout.width
+        layout.y = card.y + shadow + (dp(FLOATING_APPLET_BAR_DP) - layout.height) / 2
+        runCatching { windowManager.updateViewLayout(button, layout) }
+    }
+
+    private fun removeSolidButton() {
+        val button = solidButton ?: return
+        solidButton = null
+        runCatching { windowManager.removeViewImmediate(button) }
+    }
+
+    /** When the title bar was last tapped, for the double tap that rolls the box up. */
+    private var lastBarTap = 0L
 
     /** Whether the box's middle is on the left half of the screen, the side a tuck goes to. */
     private fun nearLeft(): Boolean {
@@ -487,7 +607,21 @@ internal class FloatingApplet(
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> dragStart(event.rawX, event.rawY, event.eventTime)
             MotionEvent.ACTION_MOVE -> dragTo(event.rawX, event.rawY, event.eventTime)
-            MotionEvent.ACTION_UP -> dragEnd(event.rawX, event.rawY, event.eventTime, cancelled = false)
+            MotionEvent.ACTION_UP -> {
+                val config = ViewConfiguration.get(context)
+                val still = hypot(event.rawX - downRawX, event.rawY - downRawY) <= config.scaledTouchSlop
+                val tap = still && event.eventTime - downTime <= ViewConfiguration.getTapTimeout() * 3L
+                dragEnd(event.rawX, event.rawY, event.eventTime, cancelled = false)
+                if (tap) {
+                    // Two taps on the bar roll the box up, or back down (#1241).
+                    if (event.eventTime - lastBarTap <= ViewConfiguration.getDoubleTapTimeout()) {
+                        lastBarTap = 0L
+                        toggleRolledUp()
+                    } else {
+                        lastBarTap = event.eventTime
+                    }
+                }
+            }
             MotionEvent.ACTION_CANCEL -> dragEnd(event.rawX, event.rawY, event.eventTime, cancelled = true)
         }
         return true
@@ -717,7 +851,7 @@ internal class FloatingApplet(
         val (screenW, screenH) = screenSize()
         val scale = span(event) / pinchSpan
         val width = (pinchW * scale).roundToInt().coerceIn(minOf(dp(MIN_WIDTH_DP), screenW), screenW)
-        val height = (pinchH * scale).roundToInt().coerceIn(minOf(dp(MIN_HEIGHT_DP), screenH), screenH)
+        val height = if (box.rolledUp) pinchH else (pinchH * scale).roundToInt().coerceIn(minOf(dp(MIN_HEIGHT_DP), screenH), screenH)
         val cx = (rawX(event, 0) + rawX(event, 1)) / 2f
         val cy = (rawY(event, 0) + rawY(event, 1)) / 2f
         layout.width = width
@@ -866,5 +1000,15 @@ internal class FloatingApplet(
 
         /** The status bar's height where Android will not say (#1263). */
         const val STATUS_BAR_FALLBACK_DP = 24
+
+        /**
+         * A see-through box's fade (#1241). Android passes touches through an
+         * overlay only at or under 0.8 opacity, its ceiling for windows of
+         * other apps; half lets the app under it read clearly.
+         */
+        const val SEE_THROUGH_ALPHA = 0.5f
+
+        /** The make-it-solid button on a see-through box's corner. */
+        const val SOLID_BUTTON_DP = 40
     }
 }

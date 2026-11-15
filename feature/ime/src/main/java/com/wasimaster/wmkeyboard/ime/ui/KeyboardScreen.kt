@@ -15048,10 +15048,14 @@ internal fun FullBleedTool(
     content: @Composable () -> Unit,
 ) {
     val kb = LocalKbTheme.current
+    // In the floating box the tool fills the box (#1241): the box has its
+    // own grip and its own size, and the keyboard's height bar and collapsed
+    // height drew a second, smaller box with a drag pill inside it.
+    val inBox = LocalInFloatingBox.current
     // Collapsed over the live keys, the panel wears a bar of its own that
     // drags it taller (#615), the one height every such panel shares. Not a
     // panel that only collapses to make way for the toolbar: no keys under it.
-    val overKeys = if (compact && keyRowsUnderPanel(state)) {
+    val overKeys = if (!inBox && compact && keyRowsUnderPanel(state)) {
         panelOverKeysSize(state, wanted = compactHeight - captureStripHeight(state), floor = FullBleedHeaderHeight)
     } else {
         null
@@ -15064,12 +15068,12 @@ internal fun FullBleedTool(
     // keyboard by the rows it leaves on screen.
     val board = keyRowsHeight(state) +
         (if (barFullBleed(state)) fullBleedHiddenRows(state, macroRowAtPanelOpen(state)) else 0.dp)
-    val grown = if (overKeys == null && !compact && topHandle == null) {
+    val grown = if (!inBox && overKeys == null && !compact && topHandle == null) {
         fullBleedSize(state, wanted = board + extraHeight, floor = board)
     } else {
         null
     }
-    val handle = overKeys?.bar ?: grown?.bar ?: topHandle
+    val handle = if (inBox) null else overKeys?.bar ?: grown?.bar ?: topHandle
     val height = if (overKeys != null) {
         overKeys.height
     } else if (grown != null) {
@@ -15088,7 +15092,7 @@ internal fun FullBleedTool(
     Column(
         modifier = (overKeys?.probe ?: grown?.probe ?: Modifier)
             .fillMaxWidth()
-            .height(height),
+            .then(if (inBox) Modifier.fillMaxHeight() else Modifier.height(height)),
     ) {
         handle?.invoke()
         MediaHeaderReveal(collapsed = headerHidden) {

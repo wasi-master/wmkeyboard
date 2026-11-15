@@ -350,4 +350,27 @@ class CaptureFieldTest {
         )
         assertEquals("there".length, moved.captureCaretIndex())
     }
+
+    @Test
+    fun `up and down step a line at a time in a note of several lines`() {
+        // #1241: they jumped to the note's ends, which looked like nothing.
+        val text = "first line\nab\nthird line"
+        // Column 5 on line one: line two is shorter, so its end.
+        assertEquals(13, CaretText(text, 5).lineStep(up = false))
+        // Column 1 on line two goes to column 1 of line three.
+        assertEquals(15, CaretText(text, 12).lineStep(up = false))
+        // Up from line three, column 7, cut to line two's end.
+        assertEquals(13, CaretText(text, 21).lineStep(up = true))
+        // From the first line up is the start; from the last, down is the end.
+        assertEquals(0, CaretText(text, 3).lineStep(up = true))
+        assertEquals(text.length, CaretText(text, 16).lineStep(up = false))
+    }
+
+    @Test
+    fun `home and end are the line's ends`() {
+        val text = "first line\nab\nthird line"
+        assertEquals(11, CaretText(text, 12).lineEdge(end = false))
+        assertEquals(13, CaretText(text, 12).lineEdge(end = true))
+        assertEquals(text.length, CaretText(text, 16).lineEdge(end = true))
+    }
 }

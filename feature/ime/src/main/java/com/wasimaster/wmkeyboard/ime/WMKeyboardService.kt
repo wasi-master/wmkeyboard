@@ -14135,6 +14135,35 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * Up or Down in the focused keyboard-owned field (#1241): a line at a
+     * time where it holds several, else its ends ([onCaptureCaretToEdge]).
+     */
+    private fun captureLineStep(up: Boolean, extend: Boolean): Boolean {
+        val state = _uiState.value
+        val target = state.captureTarget() ?: return false
+        val before = state.captureCaretText()
+        if (target == CaptureTarget.WORD_SPELL || before == null || '\n' !in before.text) {
+            return onCaptureCaretToEdge(end = !up, extend = extend)
+        }
+        if (!target.movableCaret) return true
+        captureCaretTo(before.caretAt(before.lineStep(up), extend))
+        return true
+    }
+
+    /** Home or End: the line's ends in a field of several lines (#1241), else the field's. */
+    private fun captureLineEdge(end: Boolean, extend: Boolean): Boolean {
+        val state = _uiState.value
+        val target = state.captureTarget() ?: return false
+        val before = state.captureCaretText()
+        if (target == CaptureTarget.WORD_SPELL || before == null || '\n' !in before.text) {
+            return onCaptureCaretToEdge(end = end, extend = extend)
+        }
+        if (!target.movableCaret) return true
+        captureCaretTo(before.caretAt(before.lineEdge(end), extend))
+        return true
+    }
+
+    /**
      * The caret put at the start or end of the focused keyboard-owned field —
      * what the vertical scrub, Home and End ask of a one-line buffer.
      */
@@ -14174,10 +14203,10 @@ open class WMKeyboardService : InputMethodService() {
         return when (keyCode) {
             KeyEvent.KEYCODE_DPAD_LEFT -> onCaptureCaretMove(-1, extend)
             KeyEvent.KEYCODE_DPAD_RIGHT -> onCaptureCaretMove(1, extend)
-            KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_MOVE_HOME ->
-                onCaptureCaretToEdge(end = false, extend = extend)
-            KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_MOVE_END ->
-                onCaptureCaretToEdge(end = true, extend = extend)
+            KeyEvent.KEYCODE_DPAD_UP -> captureLineStep(up = true, extend = extend)
+            KeyEvent.KEYCODE_DPAD_DOWN -> captureLineStep(up = false, extend = extend)
+            KeyEvent.KEYCODE_MOVE_HOME -> captureLineEdge(end = false, extend = extend)
+            KeyEvent.KEYCODE_MOVE_END -> captureLineEdge(end = true, extend = extend)
             else -> false
         }
     }
@@ -55414,12 +55443,16 @@ open class WMKeyboardService : InputMethodService() {
         val handled = when (action) {
             TextEditAction.LEFT -> onCaptureCaretMove(-1, extend)
             TextEditAction.RIGHT -> onCaptureCaretMove(1, extend)
-            // A one-line buffer, so up/Home is its start and down/End its end.
-            TextEditAction.UP, TextEditAction.HOME, TextEditAction.PAGE_UP,
-            TextEditAction.DOC_START,
+            // A line up or down in a note of several lines (#1241), where
+            // they jumped to the note's ends and looked like they did nothing;
+            // a one-line buffer's start and end, as before.
+            TextEditAction.UP -> captureLineStep(up = true, extend = extend)
+            TextEditAction.DOWN -> captureLineStep(up = false, extend = extend)
+            TextEditAction.HOME -> captureLineEdge(end = false, extend = extend)
+            TextEditAction.END -> captureLineEdge(end = true, extend = extend)
+            TextEditAction.PAGE_UP, TextEditAction.DOC_START,
             -> onCaptureCaretToEdge(end = false, extend = extend)
-            TextEditAction.DOWN, TextEditAction.END, TextEditAction.PAGE_DOWN,
-            TextEditAction.DOC_END,
+            TextEditAction.PAGE_DOWN, TextEditAction.DOC_END,
             -> onCaptureCaretToEdge(end = true, extend = extend)
             // A word at a time (#612), by the rule a held delete measures words with.
             TextEditAction.WORD_LEFT -> captureWordStep(back = true, extend = extend)

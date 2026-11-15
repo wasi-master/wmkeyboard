@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ChevronLeft
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DragHandle
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Opacity
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInFull
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Remove
 import com.wasimaster.wmkeyboard.ime.CaptureSelectionAction
@@ -181,6 +182,12 @@ internal class FloatingAppletState {
 
     /** Tucked into the left edge (true) or the right (false), as a tab; null while the box is out. */
     var tuckedLeft by mutableStateOf<Boolean?>(null)
+
+    /** Rolled up to its title bar (#1241). */
+    var rolledUp by mutableStateOf(false)
+
+    /** Faded, every touch passing through it to the app under it (#1241). */
+    var seeThrough by mutableStateOf(false)
 }
 
 /**
@@ -206,6 +213,8 @@ internal fun FloatingAppletFrame(
     onBodyDrag: (BodyDrag) -> Unit,
     onResize: (MotionEvent) -> Boolean,
     onTuck: () -> Unit,
+    onRollUp: () -> Unit,
+    onSeeThrough: () -> Unit,
     onTabTouch: (MotionEvent) -> Boolean,
     onRestore: () -> Unit,
     onClose: () -> Unit,
@@ -224,6 +233,9 @@ internal fun FloatingAppletFrame(
         val tuckLabel = stringResource(R.string.ime_applet_tuck)
         val keyboardLabel = stringResource(R.string.ime_applet_open_in_keyboard)
         val closeLabel = stringResource(R.string.ime_applet_close)
+        val rollLabel = stringResource(if (box.rolledUp) R.string.ime_applet_roll_down else R.string.ime_applet_roll_up)
+        val seeThroughLabel = stringResource(R.string.ime_applet_see_through)
+        val rolled = box.rolledUp
         Box(Modifier.fillMaxSize().padding(FLOATING_APPLET_SHADOW_DP.dp)) {
             Column(
                 Modifier
@@ -236,7 +248,7 @@ internal fun FloatingAppletFrame(
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .height(44.dp)
+                        .height(FLOATING_APPLET_BAR_DP.dp)
                         .padding(end = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -247,14 +259,19 @@ internal fun FloatingAppletFrame(
                             .weight(1f)
                             .fillMaxHeight()
                             .pointerInteropFilter(onTouchEvent = onMove)
-                            // The buttons' jobs, for a screen reader, with them hidden (#1262).
+                            // The buttons' jobs, for a screen reader, with them hidden
+                            // (#1262), and the double tap's, which has no button (#1241).
                             .semantics {
-                                if (gestures) {
-                                    customActions = listOf(
+                                val roll = CustomAccessibilityAction(rollLabel) { onRollUp(); true }
+                                customActions = if (gestures) {
+                                    listOf(
+                                        roll,
                                         CustomAccessibilityAction(tuckLabel) { onTuck(); true },
                                         CustomAccessibilityAction(keyboardLabel) { onOpenInKeyboard(); true },
                                         CustomAccessibilityAction(closeLabel) { onClose(); true },
                                     )
+                                } else {
+                                    listOf(roll)
                                 }
                             }
                             .padding(start = 14.dp),
@@ -272,6 +289,12 @@ internal fun FloatingAppletFrame(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
+                    }
+                    // See-through (#1241): faded, and every tap on it lands on
+                    // the app under it, a button on its corner to have it back.
+                    // Kept with the gestures on, since no gesture does it.
+                    IconButton(onClick = onSeeThrough) {
+                        Icon(Icons.Outlined.Opacity, contentDescription = seeThroughLabel, tint = colors.onSurfaceVariant)
                     }
                     if (!gestures) {
                         // Out of the way into the nearer side, a tab left there to bring it back.
@@ -294,42 +317,47 @@ internal fun FloatingAppletFrame(
                         }
                     }
                 }
-                Box(
-                    Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .dragsWhereUnclaimed(state.settings.summonButton.boxHoldToMove, onBodyDrag),
-                ) {
-                    // The tool's own text box takes the keyboard's caret handle,
-                    // as it does inside the keyboard, while the keys are the box's.
-                    val caret = if (state.panel == PanelMode.NONE && state.toolUp(panel)) {
-                        CaptureCaretHandle(
-                            state.captureCaretIndex(),
-                            callbacks.onCaretTap,
-                            anchor = state.captureAnchorIndex(),
-                            onSelect = callbacks.onSelect,
-                            onSelectionAction = callbacks.onSelectionAction,
-                        )
-                    } else {
-                        CaptureCaretHandle(0, {})
-                    }
-                    CompositionLocalProvider(
-                        LocalCaptureCaret provides caret,
-                        com.wasimaster.wmkeyboard.ime.ui.LocalInFloatingBox provides true,
+                // Rolled up, the title bar is all there is (#1241).
+                if (!rolled) {
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .dragsWhereUnclaimed(state.settings.summonButton.boxHoldToMove, onBodyDrag),
                     ) {
-                        AppletPanel(panel, state, callbacks, onClose)
-                    }
-                    // With the bottom bar gone (#1262), the grip alone, over the corner.
-                    if (gestures) {
-                        ResizeGrip(
-                            onResize,
-                            Modifier
-                                .align(Alignment.BottomEnd)
-                                .background(colors.surface, RoundedCornerShape(topStart = 10.dp)),
-                        )
+                        // The tool's own text box takes the keyboard's caret handle,
+                        // as it does inside the keyboard, while the keys are the box's:
+                        // with the clipboard or snippets open over the keys too, which
+                        // leave the box its field (#1241) and had left its taps dead.
+                        val caret = if (state.toolUp(panel)) {
+                            CaptureCaretHandle(
+                                state.captureCaretIndex(),
+                                callbacks.onCaretTap,
+                                anchor = state.captureAnchorIndex(),
+                                onSelect = callbacks.onSelect,
+                                onSelectionAction = callbacks.onSelectionAction,
+                            )
+                        } else {
+                            CaptureCaretHandle(0, {})
+                        }
+                        CompositionLocalProvider(
+                            LocalCaptureCaret provides caret,
+                            com.wasimaster.wmkeyboard.ime.ui.LocalInFloatingBox provides true,
+                        ) {
+                            AppletPanel(panel, state, callbacks, onClose)
+                        }
+                        // With the bottom bar gone (#1262), the grip alone, over the corner.
+                        if (gestures) {
+                            ResizeGrip(
+                                onResize,
+                                Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .background(colors.surface, RoundedCornerShape(topStart = 10.dp)),
+                            )
+                        }
                     }
                 }
-                if (!gestures) {
+                if (!gestures && !rolled) {
                     // The bottom bar: a drag on it moves the box (#1263), and
                     // the grip at its end resizes it from the corner.
                     Row(
@@ -347,6 +375,31 @@ internal fun FloatingAppletFrame(
                         ResizeGrip(onResize)
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * What a see-through box (#1241) leaves on its corner, in its own window:
+ * the faded box takes no touch, so this is the one way back to a solid one.
+ */
+@Composable
+internal fun SolidAgainButton(state: KeyboardUiState, box: FloatingAppletState, onSolid: () -> Unit) {
+    KeyboardThemeProvider(state.settings) {
+        val colors = MaterialTheme.colorScheme
+        val label = stringResource(R.string.ime_applet_solid, box.title)
+        Box(
+            Modifier
+                .fillMaxSize()
+                .padding(2.dp)
+                .shadow(4.dp, androidx.compose.foundation.shape.CircleShape)
+                .clip(androidx.compose.foundation.shape.CircleShape)
+                .background(colors.primaryContainer),
+            contentAlignment = Alignment.Center,
+        ) {
+            IconButton(onClick = onSolid) {
+                Icon(Icons.Outlined.Opacity, contentDescription = label, tint = colors.onPrimaryContainer)
             }
         }
     }
@@ -646,3 +699,6 @@ private val IdleTranslate = TranslateCallbacks()
 
 /** Room round the card for its shadow, in dp. */
 internal const val FLOATING_APPLET_SHADOW_DP = 10
+
+/** The box's title bar, all of a rolled-up box (#1241), in dp. */
+internal const val FLOATING_APPLET_BAR_DP = 44

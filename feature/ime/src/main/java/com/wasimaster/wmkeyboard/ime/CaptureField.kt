@@ -123,6 +123,37 @@ data class CaretText(
     }
 
     /**
+     * Where Up ([up]) or Down puts the caret (#1241): the same column on the
+     * line above or below, cut to that line's length, and the buffer's start
+     * or end from its first or last line. A one-line buffer's Up and Down are
+     * its ends, as they always were. Lines are the text's own, split at
+     * newlines, not the ones a narrow box wraps it into.
+     */
+    fun lineStep(up: Boolean): Int {
+        val i = at
+        val start = lineStartOf(i)
+        val column = i - start
+        if (up) {
+            if (start == 0) return 0
+            val above = lineStartOf(start - 1)
+            return clamp(minOf(above + column, start - 1))
+        }
+        val end = text.indexOf('\n', i).let { if (it < 0) return text.length else it }
+        val next = end + 1
+        val nextEnd = text.indexOf('\n', next).let { if (it < 0) text.length else it }
+        return clamp(minOf(next + column, nextEnd))
+    }
+
+    /** The start ([end] false) or end of the line the caret is on: Home and End in a buffer of several lines (#1241). */
+    fun lineEdge(end: Boolean): Int {
+        val i = at
+        return if (end) text.indexOf('\n', i).let { if (it < 0) text.length else it } else lineStartOf(i)
+    }
+
+    private fun lineStartOf(index: Int): Int =
+        if (index <= 0) 0 else text.lastIndexOf('\n', index - 1) + 1
+
+    /**
      * The caret moved [delta] characters, clamped to the buffer's ends. With
      * [extend] the anchor stays put and the selection grows or shrinks; without
      * it a selection collapses to the end the arrow points at, as in any field.
