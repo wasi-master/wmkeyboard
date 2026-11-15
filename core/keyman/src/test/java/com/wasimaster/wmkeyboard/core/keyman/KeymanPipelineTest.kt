@@ -2,6 +2,8 @@ package com.wasimaster.wmkeyboard.core.keyman
 
 import com.wasimaster.wmkeyboard.core.layout.LayoutFile
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
+import com.wasimaster.wmkeyboard.core.script.KeymanLanguages
+import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.script.ScriptId
 import com.wasimaster.wmkeyboard.core.script.ScriptRegistry
 import java.io.File
@@ -142,11 +144,31 @@ class KeymanPipelineTest {
         // not carry one and a wrong script is not cosmetic — it decides text
         // direction, whether shift does anything, and which font the keys draw
         // with.
+        //
+        // A language the app already carries by hand (hoc-Wara, written by hand
+        // for its non-BMP grid, or any other) is never emitted as a generated
+        // entry: that would shadow the hand-written one in the registry index.
+        // Its layouts go to keyman-extra-layouts.tsv instead, the rows
+        // KeymanLanguages.extraLayoutIds is written from, under the id they join.
         val byLanguage = rows.groupBy { it.langId }.filterKeys { it.isNotEmpty() }
+        val generated = KeymanLanguages.all.mapTo(HashSet()) { it.id }
+        val carried = LanguageRegistry.all.mapNotNullTo(HashSet()) { lang -> lang.id.takeIf { it !in generated } }
+        fun joins(langId: String): String? =
+            langId.takeIf { it in carried } ?: KeymanLanguages.mergedInto[langId]?.takeIf { it in carried }
+        File(out, "keyman-extra-layouts.tsv").writeText(
+            buildString {
+                appendLine(listOf("lang_id", "joins", "layout_ids").joinToString("\t"))
+                for ((langId, boards) in byLanguage.toSortedMap()) {
+                    val target = joins(langId) ?: continue
+                    appendLine(listOf(langId, target, boards.joinToString(" ") { it.layoutId }).joinToString("\t"))
+                }
+            },
+        )
         File(out, "keyman-languages.tsv").writeText(
             buildString {
                 appendLine(listOf("lang_id", "script", "layout_ids", "confidence", "names").joinToString("\t"))
                 for ((langId, boards) in byLanguage.toSortedMap()) {
+                    if (joins(langId) != null) continue
                     val best = boards.mapNotNull { it.script }.maxByOrNull { it.second }
                     val script = best?.first ?: "LATIN"
                     val confidence = best?.second ?: 0

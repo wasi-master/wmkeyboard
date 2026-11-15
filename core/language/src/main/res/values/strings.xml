@@ -340,6 +340,7 @@
     <string name="core_lang_numeral_system_meetei" translatable="false">꯰-꯹</string>
     <string name="core_lang_numeral_system_ol_chiki" translatable="false">᱐-᱙</string>
     <string name="core_lang_numeral_system_shan" translatable="false">႐-႙</string>
+    <string name="core_lang_numeral_system_warang_citi" translatable="false">𑣠-𑣩</string>
 
     <!-- Panel layouts: the emoji, clipboard and text-editing panels laid out as
          grids. A "component" is the live part of a panel (the emoji grid, the

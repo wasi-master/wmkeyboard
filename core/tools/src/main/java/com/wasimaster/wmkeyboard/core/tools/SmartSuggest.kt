@@ -1329,7 +1329,9 @@ object SmartSuggest {
      * offers nothing.
      */
     private fun detectNumber(tail: String, ctx: Context): SmartHit? {
-        val glyphs = ctx.numberDigits
+        // Read char by char, so a system outside the BMP (Warang Citi) is left
+        // out: its digits are not offered back, ASCII ones still are.
+        val glyphs = ctx.numberDigits?.takeIf { it.length == 10 }
         fun digitsLeftOf(index: Int): Int {
             var i = index
             while (i > 0 && digitValue(tail[i - 1], glyphs) >= 0) i--

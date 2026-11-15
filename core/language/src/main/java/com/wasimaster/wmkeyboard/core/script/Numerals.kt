@@ -40,7 +40,28 @@ enum class NumeralSystem(val digits: String?, @StringRes val labelRes: Int) {
     MEETEI("꯰꯱꯲꯳꯴꯵꯶꯷꯸꯹", R.string.core_lang_numeral_system_meetei),
     OL_CHIKI("᱐᱑᱒᱓᱔᱕᱖᱗᱘᱙", R.string.core_lang_numeral_system_ol_chiki),
     SHAN("႐႑႒႓႔႕႖႗႘႙", R.string.core_lang_numeral_system_shan),
+
+    /**
+     * Warang Citi's own digits (U+118E0..118E9), for Ho. Outside the BMP,
+     * so each glyph is two chars: read them with [digitGlyph], never by index.
+     */
+    WARANG_CITI("𑣠𑣡𑣢𑣣𑣤𑣥𑣦𑣧𑣨𑣩", R.string.core_lang_numeral_system_warang_citi),
 }
+
+/**
+ * The glyph for digit [d] (0..9) in [digits], a [NumeralSystem.digits]
+ * string. A system outside the BMP (Warang Citi) spends two chars a glyph,
+ * so the glyph is a string and found by code point, not by index.
+ */
+fun digitGlyph(digits: String, d: Int): String =
+    if (digits.length == DIGIT_COUNT) {
+        digits[d].toString()
+    } else {
+        val start = digits.offsetByCodePoints(0, d)
+        digits.substring(start, digits.offsetByCodePoints(start, 1))
+    }
+
+private const val DIGIT_COUNT = 10
 
 /**
  * Where a non-Latin numeral system rewrites the digits that get committed.
@@ -94,7 +115,7 @@ fun mapDigits(s: String, digits: String?): String {
                 append(s, 0, i)
                 for (j in i until s.length) {
                     val c = s[j]
-                    append(if (c in '0'..'9') digits[c - '0'] else c)
+                    if (c in '0'..'9') append(digitGlyph(digits, c - '0')) else append(c)
                 }
             }
         }

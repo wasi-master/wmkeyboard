@@ -451,6 +451,7 @@ import com.wasimaster.wmkeyboard.core.script.TextDirection
 import com.wasimaster.wmkeyboard.core.script.ASCII_DIGITS
 import com.wasimaster.wmkeyboard.core.script.NumeralCommitScope
 import com.wasimaster.wmkeyboard.core.script.VERBATIM_DIGITS
+import com.wasimaster.wmkeyboard.core.script.digitGlyph
 import com.wasimaster.wmkeyboard.core.script.mapDigits
 import com.wasimaster.wmkeyboard.core.script.resolveNumeralDigits
 import com.wasimaster.wmkeyboard.core.settings.BackspaceSwipeUnit
@@ -26258,7 +26259,7 @@ private fun List<Key>.withOtherNumerals(other: String?): List<Key> {
     return map { key ->
         val digit = (key.output ?: key.label).singleOrNull()
         if (key.action != KeyAction.Text || digit == null || digit !in '0'..'9') return@map key
-        val alternate = VERBATIM_DIGITS + other[digit - '0']
+        val alternate = VERBATIM_DIGITS + digitGlyph(other, digit - '0')
         key.copy(longPress = listOf(alternate) + key.longPress.filterNot { it == alternate })
     }
 }

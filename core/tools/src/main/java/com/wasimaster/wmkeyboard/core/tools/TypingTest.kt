@@ -383,11 +383,15 @@ fun buildTypingPrompt(
     return words
 }
 
-/** `0-9` respelt in [digits] (ten glyphs, `0` first); unchanged when null. */
+/**
+ * `0-9` respelt in [digits] (ten glyphs, `0` first, each one code point, so
+ * Warang Citi's two-char glyphs too); unchanged when null.
+ */
 private fun localizeDigits(numeral: String, digits: String?): String {
-    if (digits == null || digits.length != 10) return numeral
+    if (digits == null || digits.codePointCount(0, digits.length) != 10) return numeral
+    val glyphs = digits.codePoints().toArray()
     return buildString(numeral.length) {
-        for (c in numeral) append(if (c in '0'..'9') digits[c - '0'] else c)
+        for (c in numeral) if (c in '0'..'9') appendCodePoint(glyphs[c - '0']) else append(c)
     }
 }
 

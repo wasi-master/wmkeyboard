@@ -3488,6 +3488,7 @@ object LanguageRegistry {
                 AssetLayouts.HOC_WARANG_CITI_ID,
                 AssetLayouts.HOC_WARANG_CITI_ALT_ID,
             ),
+            numeralSystem = NumeralSystem.WARANG_CITI,
         ),
         // Languages whose only layout is one of the new national-standard grids.
         LanguageDef(
