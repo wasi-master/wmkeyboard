@@ -56011,8 +56011,7 @@ open class WMKeyboardService : InputMethodService() {
      * fill-in row needs the strip and the keys.
      */
     private fun insertSnippetText(rawText: String, rawCaret: Int, image: String? = null) {
-        val target = _uiState.value.captureTarget()
-        val boxField = _uiState.value.panel == PanelMode.SNIPPETS && target?.movableCaret == true
+        val boxField = _uiState.value.panel == PanelMode.SNIPPETS && boxFieldHasKeys()
         currentInputConnection?.takeUnless { boxField }?.let { ic ->
             if (image == null && !SnippetStore.hasAsks(rawText)) return@let
             ic.beginBatchEdit()
@@ -58006,6 +58005,18 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /**
+     * Whether the keys are typing into a field of the floating box (a note or
+     * a task open there, #1241) rather than the app, so a clip or a snippet
+     * tapped goes into that field. Never the clipboard's or the snippets' own
+     * boxes: a clip tapped among search results goes to the app as it always
+     * did (#1178), and pasting into the search is a flick or a hold away.
+     */
+    private fun boxFieldHasKeys(): Boolean {
+        val target = _uiState.value.captureTarget() ?: return false
+        return target.movableCaret && target !in PanelOwnFields
+    }
+
     fun onClipboardItemTapped(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
         if (!isClipboardAccessible()) return
         vibrate()
@@ -58037,7 +58048,7 @@ open class WMKeyboardService : InputMethodService() {
                 }
                 // A note or task open in the floating box takes the clip
                 // (#1241): its field has the keys over the clipboard.
-                _uiState.value.captureTarget()?.movableCaret == true && captureTyped(item.text) -> Unit
+                boxFieldHasKeys() && captureTyped(item.text) -> Unit
                 _uiState.value.settings.clipboard.typeOutPastes &&
                     item.text.length in 2..ClipTypeOutMaxChars -> commitCharacterByCharacter(item.text)
                 else -> commitPastedToField(item.text)
@@ -63065,6 +63076,13 @@ open class WMKeyboardService : InputMethodService() {
         private const val MAX_DRAWN_LINES = 400
 
         private const val CLEAR_FIELD_MAX_CHARS = 200_000
+
+        /** The clipboard's and the snippets' own boxes, which a tapped clip or snippet never goes into (#1178). */
+        private val PanelOwnFields = setOf(
+            CaptureTarget.CLIPBOARD_SEARCH, CaptureTarget.CLIP_EDIT, CaptureTarget.CLIP_WRITE,
+            CaptureTarget.CLIP_JOINER, CaptureTarget.CLIP_BASE, CaptureTarget.CLIP_APPEND,
+            CaptureTarget.SNIPPET_SEARCH, CaptureTarget.SNIPPET_ASK,
+        )
 
         /** How long a summoned keyboard keeps the floating button's panel through field reports (#1196). */
         private const val FLOATING_TOOL_KEEP_MS = 1_500L
