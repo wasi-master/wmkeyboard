@@ -9,3 +9,12 @@ package com.wasimaster.wmkeyboard.core.settings
  */
 internal fun fullHeightImeWindowByDefault(): Boolean =
     !android.os.Build.MANUFACTURER.orEmpty().equals("HUAWEI", ignoreCase = true)
+
+/**
+ * Whether the docked window starts out holding a band above the board for the
+ * top row's bubbles ([KeyPopupSettings.windowBand]). Not where the window
+ * starts out the keyboard's own height ([fullHeightImeWindowByDefault]): a
+ * nova 9's apps in a floating window dodge that whole frame, band included,
+ * and were squashed down to the field being typed in (#1347).
+ */
+internal fun previewBandByDefault(): Boolean = fullHeightImeWindowByDefault()

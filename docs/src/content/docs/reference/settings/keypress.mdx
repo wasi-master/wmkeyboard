@@ -91,7 +91,7 @@ A theme can carry a key sound of its own, and where it does, it wins over everyt
 |---|---|---|---|
 | Key popup | Toggle | On / Off | On |
 | Popup on number pads *(shown only while Key popup is on)* | Toggle | On / Off | Off |
-| Space above the keyboard *(same)* | Toggle | On / Off | On |
+| Space above the keyboard *(same)* | Toggle | On / Off | On (Off on Huawei phones) |
 | Minimum popup duration *(same)* | Slider | 0–300 ms | 140 ms |
 | Popup on key *(shown only while Key popup is on)* | Toggle | On / Off | On |
 | Popup font size | Slider | ×0.70–×1.60 | ×1.00 |
@@ -111,7 +111,7 @@ A theme can carry a key sound of its own, and where it does, it wins over everyt
 
 **Popup distance above key** and **Popup sideways shift** place the floating bubble, and appear only while **Popup on key** is off. The distance is how far above the pressed key the bubble sits. Raise it when your finger covers the bubble, which is the usual complaint about the floating style, and the keyboard makes the same amount of extra room above the top row so a bubble there is still drawn in full. The sideways shift moves the bubble left (a negative value) or right (a positive value) of the key, which gets it out from behind the hand that holds the phone. It's a screen-space shift rather than a start-relative one, because it's about your hand and not about the script, so an RTL layout doesn't mirror it. Near the edge of the keyboard the bubble stops at the edge instead of leaving the screen.
 
-**Space above the keyboard** is the clear band the keyboard holds above its top row, so a top-row key's bubble is drawn in full over the app. The band isn't counted as keyboard: apps are still laid out down to the keys, and a tap in the band reaches the app. Some phones still move an app in a floating window clear of the band too, which squashes the window against the top of the screen while you type. Turn this off on those phones. The keyboard's window then ends at its top row and a top-row bubble stays inside the keyboard, over its own key, the same as it does under a blurred theme.
+**Space above the keyboard** is the clear band the keyboard holds above its top row, so a top-row key's bubble is drawn in full over the app. The band isn't counted as keyboard: apps are still laid out down to the keys, and a tap in the band reaches the app. Some phones still move an app in a floating window clear of the band too, which squashes the window against the top of the screen while you type. Turn this off on those phones. It starts out off on Huawei phones, whose floating windows do this, together with the full-height keyboard window. The keyboard's window then ends at its top row and a top-row bubble stays inside the keyboard, over its own key, the same as it does under a blurred theme.
 
 **Popup color** and **Popup text color** are the bubble's background and the character inside it. Both read **Automatic** until you pick one, which means the bubble follows the keyboard theme. A color picked here wins over the theme, and the reset control on the row puts it back to Automatic. Unlike the shape and the radius, these two stop at the preview bubble: press-and-hold alternates, the language picker and the panel menus stay on the theme's popup color. A per-key style from a layout still overrides both.
 

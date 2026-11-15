@@ -447,9 +447,11 @@ data class KeyPopupSettings(
      * window's whole frame instead, band included, and get squashed against
      * the top of the screen (#614). Off, the window is the board's own height
      * and a top-row bubble is clamped to the board's top edge, as it already
-     * is under a blurred window.
+     * is under a blurred window. Off by default on Huawei, along with the
+     * full-height window: HarmonyOS 4.2's floating windows dodge the frame
+     * once it is the keyboard's own height again (#1347).
      */
-    val windowBand: Boolean = true,
+    val windowBand: Boolean = previewBandByDefault(),
     /**
      * Corner radius of every popup surface — the preview bubble, the long-press
      * alternates, the language picker and the panel menus. Read by the [shape]
