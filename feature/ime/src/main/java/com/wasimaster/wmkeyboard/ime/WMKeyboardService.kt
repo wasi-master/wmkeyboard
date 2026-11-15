@@ -4564,6 +4564,21 @@ open class WMKeyboardService : InputMethodService() {
             ClipboardDiagnostics.onSensitiveDrop()
             return@OnPrimaryClipChangedListener
         }
+        // Collecting into a clip (#1312): this copy goes onto its end, a line
+        // of its own, and makes no clip. A secret never does; nor does the
+        // clip's own text copied again. A clip that has gone stops it.
+        clipCollectId?.let { into ->
+            if (!sensitive && text.isNotBlank()) {
+                val target = clipboardStore.items().firstOrNull { it.id == into }
+                val merged = target?.takeIf { it.text != text }?.let { clipboardStore.editText(into, it.text + "\n" + text) }
+                if (merged != null) {
+                    saveClipboardSoon()
+                    _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
+                    return@OnPrimaryClipChangedListener
+                }
+                if (target == null) clipCollectId = null
+            }
+        }
         // Markup for the text as copied would paste back what a rule took out.
         val html = item.htmlText?.takeIf { !tidied }
         val added = if (html != null) {
@@ -59299,6 +59314,7 @@ open class WMKeyboardService : InputMethodService() {
         onQr = ::onClipboardQr,
         onSearch = ::onClipboardSearch,
         onPasteNext = ::onClipboardPasteNext,
+        onCollect = ::onClipboardCollect,
         board = clipBoardTool.callbacks,
     )
 
@@ -59351,19 +59367,42 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * Opens a link clip in the browser, from its press-and-hold popup (#371).
-     * Only a clip that is one bare web address: [ClipLinks.asUrl] takes nothing
-     * but http, https and www, so a copied `intent:` or `file:` never opens.
+     * Opens a link clip, from its press-and-hold popup (#371). Only a clip
+     * that is one bare web address: [ClipLinks.asUrl] takes nothing but http,
+     * https and www, so a copied `intent:` or `file:` never opens.
+     *
+     * Where an app of its own takes the link (YouTube for a video, Reddit
+     * for a post) Android's picker offers that app beside the browsers
+     * (#1312), since Android itself only hands a link to an app that has
+     * proved it owns the site; with none, it opens as it always did.
      */
     fun onClipboardOpenLink(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
         if (!isClipboardAccessible() || !item.kind.isTextual || item.sensitive) return
         val url = ClipLinks.asUrl(item.text) ?: return
         vibrate()
-        val opened = runCatching {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-        }.isSuccess
+        val view = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+        val intent = if (linkHasOwnApp(view)) {
+            Intent.createChooser(view, null)
+        } else {
+            view
+        }.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val opened = runCatching { startActivity(intent) }.isSuccess
         if (!opened) toast(R.string.ime_selection_macro_no_app_toast)
     }
+
+    /**
+     * Whether an app that is not a browser takes [view]'s link: one that
+     * answers it but not a plain page on a made-up site, which every browser
+     * answers. Apps are visible here through the launcher query in the manifest.
+     */
+    private fun linkHasOwnApp(view: Intent): Boolean = runCatching {
+        val flags = PackageManager.MATCH_ALL
+        val handlers = packageManager.queryIntentActivities(view, flags).map { it.activityInfo.packageName }.toSet()
+        if (handlers.isEmpty()) return@runCatching false
+        val probe = Intent(Intent.ACTION_VIEW, Uri.parse("https://example.invalid/"))
+        val browsers = packageManager.queryIntentActivities(probe, flags).map { it.activityInfo.packageName }.toSet()
+        (handlers - browsers - packageName).isNotEmpty()
+    }.getOrDefault(false)
 
     /**
      * A held clip's Compose email (gap list item 26): the mail app, a new
@@ -59463,6 +59502,27 @@ open class WMKeyboardService : InputMethodService() {
      * the write gate's self-write token, a picture by the keyboard's file provider,
      * which the listener already skips.
      */
+    /**
+     * Collect copies here (#1312): from now on each new text copy goes into
+     * [item], on a line of its own, instead of becoming a clip of its own;
+     * pressing it on the same clip again stops. For as long as the keyboard
+     * runs, and until that clip is gone.
+     */
+    fun onClipboardCollect(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
+        if (item.sensitive || !item.kind.isTextual) return
+        vibrate()
+        clipCollectId = if (clipCollectId == item.id) {
+            toast(R.string.ime_clip_collect_off_toast)
+            null
+        } else {
+            toast(R.string.ime_clip_collect_toast)
+            item.id
+        }
+    }
+
+    /** The clip new copies go into (#1312), or null while each copy is a clip of its own. */
+    private var clipCollectId: Long? = null
+
     fun onClipboardPasteNext(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
         if (!isClipboardAccessible() || item.sensitive) return
         vibrate()

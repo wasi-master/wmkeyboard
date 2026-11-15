@@ -8480,6 +8480,9 @@ enum class ClipHoldAction {
 
     /** What pastes next, without moving the clip in the history (#1178). */
     PASTE_NEXT,
+
+    /** New copies go into this clip, one per line, instead of new clips (#1312). */
+    COLLECT,
     SELECT,
     REORDER,
     SHOW_IN_HISTORY,
