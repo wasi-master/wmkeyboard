@@ -9304,6 +9304,9 @@ open class WMKeyboardService : InputMethodService() {
      */
     override fun requestHideSelf(flags: Int) {
         if (_uiState.value.settings.persistentKeyboard) pinSuspended = true
+        // The user put the keyboard away themselves: the tool open in it goes
+        // with it rather than waiting to come back in this app (#1352).
+        userHidTool = true
         clearSummon()
         super.requestHideSelf(flags)
     }
@@ -9508,6 +9511,8 @@ open class WMKeyboardService : InputMethodService() {
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
         inputStarts++
+        // A new field gets a new Back dispatcher from its app (#1352).
+        refreshPanelBackCallback()
         // Runs for every field even while the soft view stays hidden
         // (hardware-keyboard typing), where onStartInputView never fires:
         // the previous field's cached selection and half-typed word must not
@@ -11334,6 +11339,9 @@ open class WMKeyboardService : InputMethodService() {
      */
     override fun onWindowShown() {
         super.onWindowShown()
+        // The field this show is for may be another app's: see the function.
+        refreshPanelBackCallback()
+        userHidTool = false
         // Every show starts fully covered: the last peek was for the last field.
         privacyShade.coverAll()
         onScreenAgain()
@@ -11359,6 +11367,10 @@ open class WMKeyboardService : InputMethodService() {
      */
     override fun onWindowHidden() {
         super.onWindowHidden()
+        // Nothing of the keyboard's is on screen for Back to close, and a
+        // callback left registered would still be ahead of the app's own
+        // (#1352). The next show registers it again if it is wanted.
+        updatePanelBackCallback(false)
         // Off screen: a screenshot from now on has no keyboard in it (#234).
         noteBoardTop(0)
         // Nothing to draw from here until the window comes back, so the
@@ -20457,7 +20469,10 @@ open class WMKeyboardService : InputMethodService() {
     private fun parkTool() {
         val pkg = currentInputEditorInfo?.packageName ?: return
         val state = _uiState.value
-        val keep = state.settings.toolbarBehavior.keepToolsAcrossApps &&
+        val userHid = userHidTool
+        userHidTool = false
+        val keep = !userHid &&
+            state.settings.toolbarBehavior.keepToolsAcrossApps &&
             state.panel != PanelMode.NONE &&
             state.panel !in UnparkedPanels &&
             state.panel != state.appletPanel &&
@@ -20479,6 +20494,13 @@ open class WMKeyboardService : InputMethodService() {
         while (parkedTools.size > PARKED_TOOLS_MAX) parkedTools.remove(parkedTools.keys.first())
         persistentSurface.saveParkedTool(PersistentSurfacePrefs.ParkedTool(pkg, parked.panel.name, pluginId, now))
     }
+
+    /**
+     * Set by a hide the keyboard asked for itself (the hide tool, the toolbar
+     * swipe, Back), read once by the [parkTool] that hide leads to: a tool the
+     * user closed the keyboard on is not one they left open (#1352).
+     */
+    private var userHidTool = false
 
     private fun dropParkedTool(pkg: String) {
         parkedTools.remove(pkg) ?: return
@@ -59889,6 +59911,17 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var panelBackCallback: android.window.OnBackInvokedCallback? = null
 
+    /**
+     * Above the framework's own Back callback, which hides the keyboard (#1352).
+     * [InputMethodService.showWindow] registers that one at PRIORITY_DEFAULT
+     * as the very last step of every show, and within one priority the newest
+     * callback wins. Ours, registered while a tool was opened over a field
+     * being started (a tool coming back to its app) or left registered across
+     * a hide (a pinned or summoned keyboard), sat at the same priority and
+     * lost: Back hid the keyboard with the tool still open.
+     */
+    private val panelBackPriority = android.window.OnBackInvokedDispatcher.PRIORITY_OVERLAY
+
     private fun updatePanelBackCallback(backHasLayer: Boolean) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
         val dispatcher = window?.window?.onBackInvokedDispatcher ?: return
@@ -59896,16 +59929,42 @@ open class WMKeyboardService : InputMethodService() {
             val callback = android.window.OnBackInvokedCallback {
                 if (!dismissTopLayer(fromBack = true)) onPinnedBack()
             }
-            dispatcher.registerOnBackInvokedCallback(
-                android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT,
-                callback,
-            )
+            dispatcher.registerOnBackInvokedCallback(panelBackPriority, callback)
             panelBackCallback = callback
         } else if (!backHasLayer && panelBackCallback != null) {
             panelBackCallback?.let { dispatcher.unregisterOnBackInvokedCallback(it) }
             panelBackCallback = null
         }
     }
+
+    /**
+     * Hands a registered Back callback to the app the keyboard is now typing
+     * into (#1352). The IME window passes each registration on to the focused
+     * app's dispatcher, and the framework swaps that dispatcher for every new
+     * field, after onStartInput and the views have run. A callback that stayed
+     * registered from the last field (a pinned keyboard, a tool kept open) was
+     * left with the old one, so the new app never heard of it. Posted, so it
+     * runs once the framework has swapped the dispatcher in.
+     */
+    private fun refreshPanelBackCallback() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        window?.window?.decorView?.post {
+            if (!isInputViewShown) return@post
+            val wanted = backCallbackWanted()
+            val callback = panelBackCallback
+            val dispatcher = window?.window?.onBackInvokedDispatcher
+            if (wanted && callback != null && dispatcher != null) {
+                dispatcher.unregisterOnBackInvokedCallback(callback)
+                dispatcher.registerOnBackInvokedCallback(panelBackPriority, callback)
+            } else {
+                updatePanelBackCallback(wanted)
+            }
+        }
+    }
+
+    /** What the collector in onCreate registers the Back callback on, read once. */
+    private fun backCallbackWanted(): Boolean =
+        backClosesLayer() || _uiState.value.settings.persistentKeyboard || summonHolding.value || floatingMenuOpen.value
 
     /**
      * Closes the topmost thing the keyboard is showing, innermost first, and

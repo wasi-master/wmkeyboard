@@ -1142,6 +1142,8 @@ private fun SearchStrings.appearanceToolbarRows(): List<SettingsSearchEntry> {
         row(R.string.appearance_toolbar_padding_top_title, R.string.appearance_toolbar_padding_top_subtitle),
         row(R.string.appearance_toolbar_padding_bottom_title, R.string.appearance_toolbar_padding_bottom_subtitle),
         row(R.string.appearance_toolbar_lock_title, R.string.appearance_toolbar_lock_subtitle),
+        row(R.string.appearance_toolbar_keep_tools_title, R.string.appearance_toolbar_keep_tools_subtitle),
+        row(R.string.appearance_toolbar_keep_tools_minutes_title, R.string.appearance_toolbar_keep_tools_minutes_subtitle),
         row(R.string.appearance_toolbar_labels_title, R.string.appearance_toolbar_labels_subtitle),
         row(R.string.appearance_toolbar_label_size_title, R.string.appearance_toolbar_label_size_subtitle),
         row(R.string.appearance_toolbar_labels_fixed_title, R.string.appearance_toolbar_labels_fixed_subtitle),
