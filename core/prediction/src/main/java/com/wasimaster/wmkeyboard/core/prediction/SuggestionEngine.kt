@@ -4033,6 +4033,9 @@ class SuggestionEngine(
          */
         private const val SHOWN_FOLLOWER_ASK = 5
 
+        /** What a capitals-only word typed in small letters gives up to the words it begins; see [suggest]. */
+        private val ACRONYM_TYPED_SMALL = ln(16.0)
+
         /** How far a carried follower sits above the best other candidate, in log-score. */
         private const val FOLLOWER_LEAD = 0.5
 
@@ -4365,6 +4368,16 @@ class SuggestionEngine(
         }
         if (tails.isNotEmpty()) mergeCompoundTails(lower, tails, foundedCompounds, walked, merged)
         if (accented != null) merged.merge(accented.first, accented.second, ::maxOf)
+        // A word the lists spell only in capitals, typed in small letters, is
+        // more likely the start of a longer word than the acronym: Polish
+        // `si` is się far oftener than SI, `ce` celu than CE. It stays on the
+        // strip, behind the completions it used to block.
+        if (known && composing.none(Char::isUpperCase) && lower.length >= 2) {
+            val shape = listSpelling(lower)
+            if (shape != null && shape.length == lower.length && shape.all { !it.isLetter() || it.isUpperCase() }) {
+                merged.computeIfPresent(lower) { _, score -> score - ACRONYM_TYPED_SMALL }
+            }
+        }
         val slips = when {
             known -> knownWordSlips(lower, walked, merged, touch)
             accented != null -> knownWordSlips(lower, walked, merged, touch, accented.second)
