@@ -17,6 +17,8 @@
     <!-- About screen: the group of switches for the settings app itself (how many settings show, its language, its name in the launcher). -->
     <string name="about_settings_app_title">Settings app</string>
     <string name="about_version_title">Version</string>
+    <string name="about_notes_after_update_title">Show what\'s new after an update</string>
+    <string name="about_notes_after_update_subtitle">Open the release notes by themselves the first time the app opens after an update</string>
     <string name="about_whats_new_subtitle">What changed in <xliff:g id="version" example="0.6.2">%1$s</xliff:g></string>
     <!--
       Subtitle of the version row.

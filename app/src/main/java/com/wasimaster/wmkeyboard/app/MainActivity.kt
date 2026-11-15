@@ -1011,6 +1011,12 @@ private fun SettingsNavHost(
                 }
                 if (settings.watch { it.onboardingDone }) {
                     NewSettingsBar(openNewSetting, Modifier.align(Alignment.BottomCenter))
+                    // The release notes, once, after an update (#730).
+                    if (NewSettings.notesDue) {
+                        com.wasimaster.wmkeyboard.app.updates.InstalledReleaseNotesDialog {
+                            NewSettings.notesShown(context)
+                        }
+                    }
                 }
                 // The favourites list a custom button on the keyboard opened (#1236).
                 if (openFavourites) FavouritesSheet(here = null, onDismiss = onFavouritesClosed)

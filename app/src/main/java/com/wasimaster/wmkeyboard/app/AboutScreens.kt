@@ -1692,6 +1692,19 @@ internal fun AboutSettings(
                 stringResource(R.string.about_whats_new_subtitle, BuildConfig.VERSION_NAME),
             ) { showNotes = true }
         }
+        item(level = SettingLevel.STANDARD) {
+            // The notes above, opened by themselves after an update (#730).
+            var on by remember { mutableStateOf(NewSettings.showNotesAfterUpdate(context)) }
+            ToggleSetting(
+                R.string.about_notes_after_update_title,
+                stringResource(R.string.about_notes_after_update_subtitle),
+                on,
+                default = true,
+            ) {
+                on = it
+                NewSettings.setShowNotesAfterUpdate(context, it)
+            }
+        }
         item {
             // The bar that walks through what the latest update added (#970)
             // goes for good once it is closed; this brings it back, borders

@@ -78,6 +78,12 @@ internal object NewSettings {
     /** When each new row was first on screen, as "key<TAB>millis": its border lasts a day from then. */
     private const val KEY_SEEN = "seen"
 
+    /** Whether the installed version's notes open by themselves after an update (#730). */
+    private const val KEY_SHOW_NOTES = "show_notes_after_update"
+
+    /** The version whose notes are still to be shown after its update (#730); -1 for none. */
+    private const val KEY_NOTES_DUE = "notes_due"
+
     /** How long a new row keeps its border after it was first on screen (#1242). */
     private const val BORDER_MS = 24L * 60 * 60 * 1000
 
@@ -134,6 +140,29 @@ internal object NewSettings {
     var wholeIndex: List<SettingsSearchEntry> = emptyList()
         private set
 
+    /**
+     * The installed version's release notes are waiting to open by themselves
+     * (#730): set by the first launch after an update, not after a first
+     * install, and cleared once they have been shown.
+     */
+    var notesDue: Boolean by mutableStateOf(false)
+        private set
+
+    /** The notes have been shown, or put away: not again until the next update. */
+    fun notesShown(context: Context) {
+        notesDue = false
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putLong(KEY_NOTES_DUE, -1L).apply()
+    }
+
+    /** About's switch for the notes after an update (#730). On unless turned off. */
+    fun showNotesAfterUpdate(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_SHOW_NOTES, true)
+
+    fun setShowNotesAfterUpdate(context: Context, on: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_SHOW_NOTES, on).apply()
+        if (!on) notesDue = false
+    }
+
     /** Reads, and after an update works out, the new rows. Off the main thread: it builds the index. */
     fun load(context: Context) {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -159,6 +188,8 @@ internal object NewSettings {
             // Nothing known is a first install, or a version from before this
             // existed: no way to tell what is new, so nothing is.
             val added = if (known.isNullOrEmpty()) emptySet() else keyed.keys - known
+            // An update, not a first install: its notes are due (#730).
+            if (!known.isNullOrEmpty()) prefs.edit().putLong(KEY_NOTES_DUE, version).apply()
             last = added.ifEmpty { prefs.getStringSet(KEY_LAST, null).orEmpty() }
             fresh = added
             prefs.edit()
@@ -170,6 +201,7 @@ internal object NewSettings {
                 .putStringSet(KEY_SEEN, emptySet())
                 .apply()
         }
+        notesDue = prefs.getLong(KEY_NOTES_DUE, -1L) == version && prefs.getBoolean(KEY_SHOW_NOTES, true)
         lastKeys = last
         lastAdded = keyed.filterKeys { it in last }.values.distinctBy { it.titleRes }
         keyOf = keyed.entries.associate { (key, entry) -> entry.titleRes to key }
