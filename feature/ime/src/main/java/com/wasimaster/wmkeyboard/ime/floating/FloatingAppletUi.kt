@@ -279,8 +279,15 @@ internal fun FloatingAppletFrame(
                             Icon(Icons.Outlined.Remove, contentDescription = tuckLabel, tint = colors.onSurfaceVariant)
                         }
                         // Back into the keyboard, as its panel, for a tool that wants the keys.
+                        // A size down (#1240): its arrows run to the glyph's corners, so at
+                        // the full 24 dp it looked bigger than the dash and the cross beside it.
                         IconButton(onClick = onOpenInKeyboard) {
-                            Icon(Icons.Outlined.OpenInFull, contentDescription = keyboardLabel, tint = colors.onSurfaceVariant)
+                            Icon(
+                                Icons.Outlined.OpenInFull,
+                                contentDescription = keyboardLabel,
+                                tint = colors.onSurfaceVariant,
+                                modifier = Modifier.size(19.dp),
+                            )
                         }
                         IconButton(onClick = onClose) {
                             Icon(Icons.Outlined.Close, contentDescription = closeLabel, tint = colors.onSurfaceVariant)
