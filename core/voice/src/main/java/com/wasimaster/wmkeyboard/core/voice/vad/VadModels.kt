@@ -93,7 +93,7 @@ object VadModels {
         "parakeet_ultra_head",
         listOf(
             Pinned(
-                "https://huggingface.co/wasi-master/parakeet-ultra-executorch/resolve/main/vad/$ULTRA_HEAD_FILE",
+                "https://huggingface.co/wasi-master/parakeet-ultra-executorch/resolve/ab56e6672e6c72b0540f36a20423a50a1d22765f/vad/$ULTRA_HEAD_FILE",
                 ULTRA_HEAD_FILE,
                 18_204_292L,
                 "1aa3cdebb5b723fa28016043c37fe54c056af0db4606783083b2d7677658f987",
