@@ -31533,6 +31533,15 @@ private const val WORD_STEP_SHRINK_RATIO = 6f / 72f
 private const val MIN_WORD_STEP_RATIO = 28f / 72f
 
 /**
+ * Whether a held [key] repeats as whole words (#1296): a delete of either way,
+ * a forward delete included, with Holding delete clears words on. The
+ * delete key itself always went by the switch; an arm, a hold action or the
+ * pad's ⌦ took one character at a time whatever it said.
+ */
+private fun holdClearsWords(key: Key, textEditing: TextEditingSettings): Boolean =
+    textEditing.deleteHoldDeletesWords && (key.action.deletesBackward() || key.action.deletesForward())
+
+/**
  * What a held key's repeat tick plays.
  *
  * The buzz and the click are one call when both are wanted, because the sound
@@ -32135,13 +32144,16 @@ private fun Modifier.pointerInputKey(
                                     // An arrow or a delete on the arm keeps
                                     // going while the finger stays out on it.
                                     armRepeat = key.flickKey(live)?.takeIf { it.flickArmRepeats() }?.let { armKey ->
+                                        // A delete on the arm clears words when
+                                        // held, as the delete key does (#1296).
+                                        val words = holdClearsWords(armKey, textEditing)
                                         scope.launch {
                                             delay(keyRepeat.startDelayMs.toLong())
                                             armRepeated = true
                                             while (true) {
                                                 repeatFeedback(vibrateOnRepeat, soundOnRepeat, onKeyPress, onKeySound, onKeyHaptic)
-                                                onKeyRepeat(armKey)
-                                                delay(textEditing.repeatMs.toLong())
+                                                if (words) deleteSwipe.onDeleteUnit(true, armKey.action.deletesForward()) else onKeyRepeat(armKey)
+                                                delay(if (words) keyRepeat.wordDeleteMs.toLong() else textEditing.repeatMs.toLong())
                                             }
                                         }
                                     } ?: key.flickKey(live)?.let { armKey ->
@@ -32820,6 +32832,7 @@ private fun Modifier.pointerInputKey(
                                     // A forward delete or an arrow on the arm keeps
                                     // going while the finger stays out on it.
                                     armRepeat = key.flickKey(live)?.takeIf { it.flickArmRepeats() }?.let { armKey ->
+                                        val words = holdClearsWords(armKey, textEditing)
                                         scope.launch {
                                             delay(keyRepeat.startDelayMs.toLong())
                                             armRepeated = true
@@ -32829,11 +32842,18 @@ private fun Modifier.pointerInputKey(
                                                     // Held out, the preview takes one more line a tick.
                                                     val more = deleteSwipe.onSelectLines(linesShown + 1, lineForward)
                                                     if (more > linesShown) linesShown = more
+                                                } else if (words) {
+                                                    // Words, as a held delete key takes them (#1296).
+                                                    deleteSwipe.onDeleteUnit(true, armKey.action.deletesForward())
                                                 } else {
                                                     onKeyRepeat(armKey)
                                                 }
                                                 // A caret move steps at the caret's pace, a delete at the delete's.
-                                                val stepMs = if (armKey.action.repeatsAsCaretMove()) textEditing.repeatMs else keyRepeat.deleteMs
+                                                val stepMs = when {
+                                                    armKey.action.repeatsAsCaretMove() -> textEditing.repeatMs
+                                                    words -> keyRepeat.wordDeleteMs
+                                                    else -> keyRepeat.deleteMs
+                                                }
                                                 delay(stepMs.toLong())
                                             }
                                         }
@@ -33182,9 +33202,12 @@ private fun Modifier.pointerInputKey(
                                 keyRepeat.flicksRepeat && arm.action == KeyAction.Text && !key.bendsVowels
                             }
                             armRepeat = dir?.let { key.flickKey(it) }?.takeIf { it.flickArmRepeats() || typingArm(it) }?.let { arm ->
+                                // A delete on the arm clears words when held (#1296).
+                                val words = holdClearsWords(arm, textEditing)
                                 val intervalMs = when {
                                     typingArm(arm) -> keyRepeat.customKeyMs
                                     arm.action.repeatsAsCaretMove() -> textEditing.repeatMs
+                                    words -> keyRepeat.wordDeleteMs
                                     else -> keyRepeat.deleteMs
                                 }.toLong()
                                 scope.launch {
@@ -33192,7 +33215,7 @@ private fun Modifier.pointerInputKey(
                                     armRepeated = true
                                     while (true) {
                                         repeatFeedback(vibrateOnRepeat, soundOnRepeat, onKeyPress, onKeySound, onKeyHaptic)
-                                        onKeyRepeat(arm)
+                                        if (words) deleteSwipe.onDeleteUnit(true, arm.action.deletesForward()) else onKeyRepeat(arm)
                                         delay(intervalMs)
                                     }
                                 }
@@ -33462,10 +33485,12 @@ private fun Modifier.pointerInputKey(
                                                 }
                                                 val deletesBack = held.action.deletesBackward()
                                                 val deletesFwd = held.action.deletesForward()
-                                                val intervalMs = if (deletesBack || deletesFwd) {
-                                                    keyRepeat.deleteMs
-                                                } else {
-                                                    textEditing.repeatMs
+                                                // A held delete clears words as the delete key does (#1296).
+                                                val words = holdClearsWords(held, textEditing)
+                                                val intervalMs = when {
+                                                    words -> keyRepeat.wordDeleteMs
+                                                    deletesBack || deletesFwd -> keyRepeat.deleteMs
+                                                    else -> textEditing.repeatMs
                                                 }.toLong()
                                                 onKeyRepeat(held)
                                                 delay(keyRepeat.startDelayMs.toLong())
@@ -33480,7 +33505,7 @@ private fun Modifier.pointerInputKey(
                                                         vibrateOnRepeat, soundOnRepeat,
                                                         onKeyPress, onKeySound, onKeyHaptic,
                                                     )
-                                                    onKeyRepeat(held)
+                                                    if (words) deleteSwipe.onDeleteUnit(true, deletesFwd) else onKeyRepeat(held)
                                                     delay(intervalMs)
                                                 }
                                             }

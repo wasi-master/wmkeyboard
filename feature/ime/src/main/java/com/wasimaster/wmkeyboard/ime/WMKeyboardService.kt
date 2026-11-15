@@ -55448,10 +55448,66 @@ open class WMKeyboardService : InputMethodService() {
             TextEditAction.RETYPE_WORD -> true
             // A box of the keyboard's own adds no spaces to take back.
             TextEditAction.NO_SPACE, TextEditAction.NO_SPACE_NEXT -> true
+            // The line and edge deletes in the box itself (#1296): they took
+            // one character there, and Delete everything reached the app.
+            TextEditAction.DELETE_LINE ->
+                captureDeleteBy(forward = false) { DeleteLines.step(it.text.substring(0, it.at), forward = false) }
+            TextEditAction.DELETE_LINE_FORWARD ->
+                captureDeleteBy(forward = true) { DeleteLines.step(it.text.substring(it.at), forward = true) }
+            TextEditAction.DELETE_TO_START -> captureDeleteBy(forward = false) { it.at }
+            TextEditAction.DELETE_TO_END -> captureDeleteBy(forward = true) { it.text.length - it.at }
+            TextEditAction.CLEAR_FIELD -> captureClear()
             else -> false
         }
         if (handled && haptic) vibrate()
         return handled
+    }
+
+    /**
+     * Deletes [count] characters before the caret, or after it with [forward],
+     * from the focused keyboard-owned field (#1296); a selection goes first,
+     * as any delete takes it. False where the field has no caret of its own
+     * (the word card, the typing test, the computer's line), so the caller
+     * deletes as it always did.
+     */
+    private fun captureDeleteBy(forward: Boolean, count: (CaretText) -> Int): Boolean {
+        val state = _uiState.value
+        val target = state.captureTarget() ?: return false
+        if (target == CaptureTarget.WORD_SPELL || target == CaptureTarget.KDE_REMOTE || !target.movableCaret) return false
+        val before = state.captureCaretText() ?: return false
+        if (composesInCapture(state.composer) && liveCaptureComposition(state, before) != null) return false
+        if (before.hasSelection) {
+            captureWrite(target, before, before.withoutSelection())
+            return true
+        }
+        val at = before.at
+        val head = before.text.substring(0, at)
+        val tail = before.text.substring(at)
+        val n = count(before).coerceAtLeast(0)
+        if (n == 0) return true
+        val after = if (forward) {
+            CaretText(head + tail.substring(n.coerceAtMost(tail.length)), at)
+        } else {
+            val from = (at - n).coerceAtLeast(0)
+            CaretText(head.substring(0, from) + tail, from)
+        }
+        captureWrite(target, before, after)
+        return true
+    }
+
+    /**
+     * Clear the field (#1194) with one of the keyboard's own boxes holding the
+     * keys: that box empties, and the app's text behind the panel is never
+     * touched. True for any such box, so the press cannot reach the app.
+     */
+    private fun captureClear(): Boolean {
+        val state = _uiState.value
+        val target = state.captureTarget() ?: return false
+        if (target == CaptureTarget.WORD_SPELL || target == CaptureTarget.KDE_REMOTE || !target.movableCaret) return true
+        val before = state.captureCaretText() ?: return true
+        if (before.text.isEmpty()) return true
+        captureWrite(target, before, CaretText("", 0))
+        return true
     }
 
     /** The focused keyboard-owned field's selection set by [select]; false where it has none to set. */
