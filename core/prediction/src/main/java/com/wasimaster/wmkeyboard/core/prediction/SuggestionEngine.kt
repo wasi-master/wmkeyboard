@@ -3177,7 +3177,8 @@ class SuggestionEngine(
     fun isKnownWord(word: String): Boolean {
         val lower = word.lowercase()
         return inDictionaries(lower) || userLexicon.contains(lower) ||
-            contacts.contains(lower) || apps.contains(lower) || spellAccepted(word)
+            contacts.contains(lower) || apps.contains(lower) || spellAccepted(word) ||
+            '-' in lower && writesPortuguese() && PortugueseClitics.isEnclitic(lower, ::listedOrLearned)
     }
 
     /**
@@ -3374,6 +3375,12 @@ class SuggestionEngine(
 
         /** How far below a direct completion a prefix-and-stem one sits (#1311). */
         private const val ARABIC_PREFIX_DAMP = 0.8
+
+        /** How far a Portuguese verb-and-pronoun form sits below the verb itself. */
+        private const val PT_CLITIC_DAMP = 0.6
+
+        /** The most of them offered for one input. */
+        private const val PT_CLITIC_MAX = 6
 
         /** The further step down for each later ending. */
         private const val KLINGON_SUFFIX_STEP = 0.2
@@ -4218,6 +4225,7 @@ class SuggestionEngine(
         // from the lists and the prefix goes back on. Walked before the whole
         // word for the same reason as the compound tail.
         if (!ambiguous && primaryLanguageId == ArabicClitics.LANGUAGE) arabicPrefixCandidates(lower, limit, merged)
+        if (!ambiguous && writesPortuguese()) portugueseCliticCandidates(lower, merged)
 
         // One fuzzy walk covers completions AND corrections over every trie
         // source. Corrections (edited paths) are admitted in full only when the
@@ -7079,17 +7087,30 @@ class SuggestionEngine(
         if ('-' !in lower) return false
         val parts = lower.split('-')
         return parts.size in 2..MAX_COMPOUND_PARTS &&
-            parts.all { it.isNotEmpty() && (inDictionaries(it) || userLexicon.contains(it)) }
+            parts.all { it.isNotEmpty() && (inDictionaries(it) || userLexicon.contains(it)) } ||
+            writesPortuguese() && PortugueseClitics.isEnclitic(lower, ::listedOrLearned)
     }
 
+    private fun listedOrLearned(word: String): Boolean = inDictionaries(word) || userLexicon.contains(word)
+
+    /** Whether Portuguese is one of the languages being typed. */
+    private fun writesPortuguese(): Boolean =
+        mixLanguageIds().any { it.substringBefore('_').substringBefore('-') == PortugueseClitics.LANGUAGE }
+
     /**
-     * Completions of the part after [lower]'s last hyphen, each put back
-     * behind the parts in front of it, into [merged]. Only when every part in
-     * front is a word, so a dash inside a code or an address completes nothing,
-     * and corrections of the last part only when it is not a word already.
-     * Damped by [COMPOUND_TAIL_DAMP] so a compound the lists know whole still
-     * leads its made-up neighbours.
+     * A Portuguese verb with its pronoun hyphened on (#215), typed in full,
+     * begun after the hyphen or typed with no hyphen at all: `cortá-l`,
+     * `cortar-`, `cortalo` and `cortarse` offer cortá-lo, cortar-se and the
+     * rest. Each scores as the verb it hangs on, a little below it, so the
+     * verb typed alone still leads its own forms.
      */
+    private fun portugueseCliticCandidates(lower: String, merged: HashMap<String, Double>) {
+        for (reading in PortugueseClitics.readings(lower, ::listedOrLearned).take(PT_CLITIC_MAX)) {
+            val score = rankedDictionaryScore(reading.host).takeIf { it.isFinite() } ?: continue
+            merged.merge(reading.word, score - PT_CLITIC_DAMP, ::maxOf)
+        }
+    }
+
     /**
      * The completions of the stem after [lower]'s Arabic prefix (#1311), with
      * the prefix put back, a little below the words the lists complete [lower]
@@ -7111,6 +7132,14 @@ class SuggestionEngine(
         }
     }
 
+    /**
+     * Completions of the part after [lower]'s last hyphen, each put back
+     * behind the parts in front of it, into [merged]. Only when every part in
+     * front is a word, so a dash inside a code or an address completes nothing,
+     * and corrections of the last part only when it is not a word already.
+     * Damped by [COMPOUND_TAIL_DAMP] so a compound the lists know whole still
+     * leads its made-up neighbours.
+     */
     private fun compoundTailCandidates(
         lower: String,
         limit: Int,
