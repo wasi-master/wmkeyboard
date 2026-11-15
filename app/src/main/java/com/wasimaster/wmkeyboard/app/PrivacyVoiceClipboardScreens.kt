@@ -1643,6 +1643,7 @@ private fun clipHoldActionLabels(): Map<ClipHoldAction, String> = ClipHoldAction
             ClipHoldAction.DETAILS -> ImeR.string.ime_clip_details_desc
             ClipHoldAction.PASTE_NEXT -> ImeR.string.ime_clip_paste_next
             ClipHoldAction.COLLECT -> ImeR.string.ime_clip_collect
+            ClipHoldAction.SEND_TO_BOARD -> ImeR.string.ime_clip_send_to_board
             ClipHoldAction.SELECT -> ImeR.string.ime_clip_select
             ClipHoldAction.REORDER -> ImeR.string.ime_clip_reorder
             ClipHoldAction.SHOW_IN_HISTORY -> ImeR.string.ime_clip_show_in_history

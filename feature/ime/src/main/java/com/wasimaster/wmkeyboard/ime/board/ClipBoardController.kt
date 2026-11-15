@@ -157,6 +157,39 @@ internal class ClipBoardController(
 
     // ---- Changes ----------------------------------------------------------
 
+    /** Whether the board is set up and reachable, for the held clip's Send to board (#1201). */
+    fun ready(): Boolean = location() != null && host.available()
+
+    /**
+     * A clip sent from outside the board's own view (#1201): a held clip's
+     * Send to board, or a new copy with "Send every copy" on ([quiet], no
+     * buzz and no notice). Same rules as the + list: text only, never a secret.
+     */
+    fun sendClip(clip: ClipItem, quiet: Boolean = false) {
+        if (quiet) {
+            if (location() == null || !host.available() || clip.sensitive) return
+            sendQuietly(clip)
+        } else {
+            send(clip)
+        }
+    }
+
+    private fun sendQuietly(clip: ClipItem) {
+        val location = location() ?: return
+        val portable = ClipBoard.portableText(clip) ?: return
+        scope.launch {
+            val (me, device) = withContext(Dispatchers.IO) { BackupInstall.id(app) to BackupInstall.deviceLabel(app) }
+            val now = System.currentTimeMillis()
+            var added = false
+            val local = ClipBoardSync.change(app, location) { entries ->
+                ClipBoard.add(entries, portable.first, portable.second, device, me, now)
+                    ?.also { added = true }?.first ?: entries
+            }
+            publish(local)
+            if (added) syncSoon()
+        }
+    }
+
     private fun send(clip: ClipItem) {
         val location = location() ?: return
         host.haptic()

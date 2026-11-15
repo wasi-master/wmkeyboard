@@ -1027,6 +1027,8 @@
     <string name="ime_notes_has_reminder">Has a deadline or birthday ahead</string>
     <string name="ime_clip_paste_next">Paste next</string>
     <string name="ime_clip_collect">Collect copies here</string>
+    <string name="ime_clip_send_to_board">Send to board</string>
+    <string name="ime_clip_sent_to_board_toast">Sent to the shared board</string>
     <string name="ime_clip_collect_toast">New copies go into this clip. Press Collect copies here on it again to stop.</string>
     <string name="ime_clip_collect_off_toast">New copies are clips of their own again</string>
     <string name="ime_clip_share_image">Share</string>

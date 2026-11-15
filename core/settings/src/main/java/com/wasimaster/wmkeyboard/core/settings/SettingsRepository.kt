@@ -8483,6 +8483,9 @@ enum class ClipHoldAction {
 
     /** New copies go into this clip, one per line, instead of new clips (#1312). */
     COLLECT,
+
+    /** Onto the shared board (#1201), while one is set up. */
+    SEND_TO_BOARD,
     SELECT,
     REORDER,
     SHOW_IN_HISTORY,
@@ -8568,6 +8571,12 @@ data class ClipboardSettings(
      * syncs; see `ClipBoardSync`.
      */
     val boardLocation: String = "",
+    /**
+     * Every text copy goes onto the shared board as well (#1201), not only
+     * the clips sent by hand. Off by default: a board is shared, and most
+     * copies are not meant for the other devices. Secrets never go.
+     */
+    val boardAutoSend: Boolean = false,
     /**
      * How long the recently-copied paste chip stays on the suggestion strip,
      * in seconds. 0 means until it is pasted or dismissed.
@@ -13098,6 +13107,7 @@ class SettingsRepository(private val context: Context) {
             booleanPreferencesKey("add_words_to_system_dictionary")
         private val CLIPBOARD_HISTORY = booleanPreferencesKey("clipboard_history")
         private val CLIPBOARD_BOARD_LOCATION = stringPreferencesKey("clipboard_board_location")
+        private val CLIPBOARD_BOARD_AUTO_SEND = booleanPreferencesKey("clipboard_board_auto_send")
         private val CLIPBOARD_EXPIRY_HOURS = intPreferencesKey("clipboard_expiry_hours")
         private val CLIPBOARD_MAX_ITEMS = intPreferencesKey("clipboard_max_items")
         private val CLIPBOARD_SENSITIVE_HANDLING =
@@ -15341,6 +15351,7 @@ class SettingsRepository(private val context: Context) {
         ClipboardSettings(
             history = p[CLIPBOARD_HISTORY] ?: defaults.clipboard.history,
             boardLocation = p[CLIPBOARD_BOARD_LOCATION] ?: defaults.clipboard.boardLocation,
+            boardAutoSend = p[CLIPBOARD_BOARD_AUTO_SEND] ?: defaults.clipboard.boardAutoSend,
             pasteChipSeconds = p[CLIPBOARD_PASTE_CHIP_SECONDS]
                 ?: defaults.clipboard.pasteChipSeconds,
             expiryHours = p[CLIPBOARD_EXPIRY_HOURS] ?: defaults.clipboard.expiryHours,
@@ -25070,6 +25081,10 @@ class SettingsRepository(private val context: Context) {
     /** The shared board's place (#1201), or empty to turn it off. */
     suspend fun setClipboardBoardLocation(value: String) =
         editPrefs { it[CLIPBOARD_BOARD_LOCATION] = value }
+
+    /** @see ClipboardSettings.boardAutoSend */
+    suspend fun setClipboardBoardAutoSend(value: Boolean) =
+        editPrefs { it[CLIPBOARD_BOARD_AUTO_SEND] = value }
 
     suspend fun setClipboardExpiryHours(value: Int) =
         editPrefs { it[CLIPBOARD_EXPIRY_HOURS] = value.coerceIn(0, 24 * 7) }

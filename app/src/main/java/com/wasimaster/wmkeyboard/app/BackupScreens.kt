@@ -1616,6 +1616,16 @@ private fun SharedBoardGroup(repository: SettingsRepository, settings: LiveSetti
                 default = SettingsDefaults.clipboard.boardLocation,
             ) { scope.launch { repository.setClipboardBoardLocation(it) } }
         }
+        // Every copy onto the board as well (#1201), not only those sent by hand.
+        item(visible = boardPicked.isNotEmpty() && boardPlaces.any { it.id == boardPicked }) {
+            ToggleSetting(
+                R.string.clipboard_board_auto_title,
+                stringResource(R.string.clipboard_board_auto_subtitle),
+                settings.watch { it.clipboard.boardAutoSend },
+                info = stringResource(R.string.clipboard_board_auto_info),
+                default = SettingsDefaults.clipboard.boardAutoSend,
+            ) { scope.launch { repository.setClipboardBoardAutoSend(it) } }
+        }
     }
 }
 

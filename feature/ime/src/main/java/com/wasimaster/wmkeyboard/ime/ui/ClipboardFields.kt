@@ -59,6 +59,7 @@ import com.wasimaster.wmkeyboard.core.selection.ColourCodes
 import com.wasimaster.wmkeyboard.core.tools.CodeSniff
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.OpenInNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.filled.PushPin
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudUpload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.LibraryAdd
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Checklist
@@ -273,6 +274,8 @@ data class ClipboardPanelActions(
     val onPasteNext: (ClipItem) -> Unit = {},
     /** Collect copies here (#1312): new copies go into this clip until it is pressed again. */
     val onCollect: (ClipItem) -> Unit = {},
+    /** Send to board (#1201): this clip onto the shared board; null where there is no board. */
+    val onSendToBoard: ((ClipItem) -> Unit)? = null,
     /** A text clip searched for (#914): on Wikipedia when true, else the web search tool. */
     val onSearch: (ClipItem, Boolean) -> Unit = { _, _ -> },
     /** A note's passage the search found (#1104), tapped: typed into the field, as the note has it. */
@@ -2501,6 +2504,10 @@ private fun ClipHoldPopup(
     val collect: (() -> Unit)? = if (hold.picked == null && textual && !item.sensitive) {
         { onDismiss(); callbacks.actions.onCollect(item) }
     } else null
+    // Send to board (#1201): the same clips, while a board is set up.
+    val sendToBoard: (() -> Unit)? = callbacks.actions.onSendToBoard
+        ?.takeIf { hold.picked == null && textual && !item.sensitive && callbacks.actions.board.state.value.configured }
+        ?.let { send -> { onDismiss(); send(item) } }
     // Picking and reordering are for the history as it is drawn; not while a
     // search or a filter has cut it down, or while clips are already picked.
     val onPick: (() -> Unit)? = if (hold.picked == null) {
@@ -2517,6 +2524,7 @@ private fun ClipHoldPopup(
                 onInfo = { fullText = false },
                 onPasteNext = pasteNext,
                 onCollect = collect,
+                onSendToBoard = sendToBoard,
                 onPick = onPick,
                 onReorder = onReorder,
                 onJump = hold.onJump?.let { jump -> { onDismiss(); jump() } },
@@ -2613,6 +2621,8 @@ private class ClipTextActions(
     val onPasteNext: (() -> Unit)? = null,
     /** New copies go into this clip (#1312). */
     val onCollect: (() -> Unit)? = null,
+    /** Onto the shared board (#1201). */
+    val onSendToBoard: (() -> Unit)? = null,
     /** Start picking clips, with this one (#612). */
     val onPick: (() -> Unit)? = null,
     /** The Reorder view (#612). */
@@ -2822,6 +2832,9 @@ private fun ClipTextActionButton(action: ClipHoldAction, item: ClipItem, actions
         }
         ClipHoldAction.COLLECT -> actions.onCollect?.let {
             ClipTextActionIcon(Icons.Outlined.LibraryAdd, stringResource(R.string.ime_clip_collect), tint, it)
+        }
+        ClipHoldAction.SEND_TO_BOARD -> actions.onSendToBoard?.let {
+            ClipTextActionIcon(Icons.Outlined.CloudUpload, stringResource(R.string.ime_clip_send_to_board), tint, it)
         }
         ClipHoldAction.SELECT -> actions.onPick?.let {
             ClipTextActionIcon(Icons.Outlined.Checklist, stringResource(R.string.ime_clip_select), tint, it)

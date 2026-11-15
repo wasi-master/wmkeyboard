@@ -4593,6 +4593,10 @@ open class WMKeyboardService : InputMethodService() {
         if (added != null) ClipboardDiagnostics.onStoredText()
         saveClipboardSoon()
         _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
+        // "Send every copy to the board" (#1201): onto the shared board as well.
+        if (added != null && !added.sensitive && !secureKept && state.settings.clipboard.boardAutoSend) {
+            clipBoardTool.sendClip(added, quiet = true)
+        }
         // A secret is never offered as a strip chip: the whole point of the chip
         // is that it sits in view above the keys while you type something else.
         // A copy made while the reply panel is open is almost always the next
@@ -59322,6 +59326,11 @@ open class WMKeyboardService : InputMethodService() {
         onSearch = ::onClipboardSearch,
         onPasteNext = ::onClipboardPasteNext,
         onCollect = ::onClipboardCollect,
+        onSendToBoard = { item ->
+            vibrate()
+            clipBoardTool.sendClip(item, quiet = true)
+            toast(R.string.ime_clip_sent_to_board_toast)
+        },
         board = clipBoardTool.callbacks,
     )
 

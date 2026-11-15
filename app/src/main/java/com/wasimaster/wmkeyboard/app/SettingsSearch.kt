@@ -2744,6 +2744,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         // kind of place is findable by name, and all of them land on the card.
         backupHub(R.string.backup_locations_title, R.string.backup_location_add_subtitle),
         backupHub(R.string.clipboard_board_title, R.string.clipboard_board_subtitle),
+        backupHub(R.string.clipboard_board_auto_title, R.string.clipboard_board_auto_subtitle),
         backupHub(R.string.backup_auto_folder_title, R.string.backup_auto_dest_folder_desc),
         backupHub(R.string.backup_auto_dest_webdav, R.string.backup_auto_dest_webdav_desc),
         backupHub(R.string.backup_auto_drive_title, R.string.backup_auto_dest_drive_desc),
