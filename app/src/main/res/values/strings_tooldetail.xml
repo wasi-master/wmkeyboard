@@ -238,6 +238,16 @@
     <string name="tooldetail_dictionary_sources_info">The tool asks the first source that is on. When that source does not know the word, or cannot be reached, the tool asks the next one. Drag a source to change the order, and turn off a source to never ask it. Online sources receive only the word you look up.</string>
     <string name="tooldetail_dictionary_packs_title">Vocabulary packs</string>
     <string name="tooldetail_dictionary_offline_group">Offline dictionaries</string>
+    <!-- dict.cc word lists the user downloads from dict.cc and imports (#1085). dict.cc is a name; keep it as is. -->
+    <string name="tooldetail_dictcc_group">dict.cc word lists</string>
+    <string name="tooldetail_dictcc_info">dict.cc lets you download its word lists for your own use, but no app may share them, so there is nothing to download here. Request a list on dict.cc (search for about:wordlist there), pick the language pair, and import the file you get, zipped or not. The keyboard makes an offline dictionary of it both ways round, so a German–English list looks German words up in English and English words in German, with dict.cc\'s word classes and subject labels. Importing a list of the same pair again replaces the old one.</string>
+    <string name="tooldetail_dictcc_import_title">Import a dict.cc word list</string>
+    <string name="tooldetail_dictcc_import_subtitle">The text file dict.cc sends you, or its zip</string>
+    <string name="tooldetail_dictcc_reading">Reading, %1$d lines so far</string>
+    <string name="tooldetail_dictcc_done">%1$s is ready: %2$d words</string>
+    <string name="tooldetail_dictcc_not_a_list">That file is not a dict.cc word list. Its first lines should name the pair, like DE-EN.</string>
+    <string name="tooldetail_dictcc_failed">The list could not be read. Check there is room on the phone and try again.</string>
+    <string name="tooldetail_dictcc_installed">On this device, %1$s</string>
     <string name="tooldetail_dictionary_imported_group">Imported dictionaries</string>
     <string name="tooldetail_dictionary_imported_info">Yomichan and Yomitan dictionaries, in any language: Japanese with readings and pitch accent (JMdict, Jitendex), Chinese, Korean, and the Wiktionary dictionaries for many other languages. StarDict dictionaries work too, as plain text. Import the dictionary\'s zip or tar file. Inflected Japanese words find their dictionary form. The source list above asks them as one source, Imported dictionaries; inside it they answer in this order.</string>
     <plurals name="tooldetail_dictionary_imported_entries">

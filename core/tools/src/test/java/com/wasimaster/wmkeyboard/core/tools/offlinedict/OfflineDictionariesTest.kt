@@ -129,8 +129,13 @@ class OfflineDictionariesTest {
 
     @Test
     fun `the language packs are published under their own language`() {
-        for (pack in OfflineDictionaryCatalog.LANGUAGES) {
+        for (pack in OfflineDictionaryCatalog.ENGLISH_MEANINGS) {
             assertEquals("${pack.langId}_wiktionary", pack.id)
+            assertEquals(pack, OfflineDictionaryCatalog.byId(pack.id))
+        }
+        // Definitions in the language itself (#1085), from its own edition of Wiktionary.
+        for (pack in OfflineDictionaryCatalog.NATIVE) {
+            assertEquals("${pack.langId}_native", pack.id)
             assertEquals(pack, OfflineDictionaryCatalog.byId(pack.id))
         }
         assertEquals(OfflineDictionaryCatalog.entries.size, OfflineDictionaryCatalog.entries.distinctBy { it.id }.size)

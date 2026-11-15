@@ -30,7 +30,14 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
+import com.wasimaster.wmkeyboard.core.tools.offlinedict.DictCc
+import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaries
 import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaryCatalog
+import com.wasimaster.wmkeyboard.core.tools.offlinedict.WmDictFile
+import com.wasimaster.wmkeyboard.core.util.requireInputStream
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaryDownloads
 import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaryDownloads.Status
 import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaryPack
@@ -185,6 +192,85 @@ private fun OfflineDictionaryRow(
                 progress = { if (status.totalBytes > 0) (status.bytes.toFloat() / status.totalBytes).coerceIn(0f, 1f) else 0f },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
             )
+        }
+    }
+}
+
+/**
+ * dict.cc word lists the user brings (#1085): dict.cc lets anyone download
+ * its vocabulary for their own use but not hand it on, so there is no pack
+ * to download, only this import, which turns the file into one on the phone.
+ * A row per list made, and the import row.
+ */
+@Composable
+internal fun DictCcGroup() {
+    val context = LocalContext.current
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val folder = java.io.File(context.filesDir, OfflineDictionaries.DIR_NAME)
+    var made by remember { mutableStateOf(OfflineDictionaries.userPackFiles(folder)) }
+    var reading by remember { mutableStateOf<Int?>(null) }
+    var message by remember { mutableStateOf<String?>(null) }
+    val picker = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        if (uri == null || reading != null) return@rememberLauncherForActivityResult
+        reading = 0
+        message = null
+        scope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver.requireInputStream(uri).use { input ->
+                        DictCc.convert(input, context.filesDir) { rows -> reading = rows }
+                    }
+                }
+            }
+            reading = null
+            message = result.fold(
+                onSuccess = { context.getString(R.string.tooldetail_dictcc_done, it.name, it.headwords) },
+                onFailure = {
+                    context.getString(
+                        if (it is DictCc.NotDictCcException) R.string.tooldetail_dictcc_not_a_list else R.string.tooldetail_dictcc_failed,
+                    )
+                },
+            )
+            made = OfflineDictionaries.userPackFiles(folder)
+        }
+    }
+    SettingsGroup(stringResource(R.string.tooldetail_dictcc_group), info = stringResource(R.string.tooldetail_dictcc_info)) {
+        for (file in made) {
+            item(key = file.name) {
+                val name = remember(file) {
+                    runCatching { WmDictFile.open(file)?.use { it.header["name"] } }.getOrNull() ?: file.nameWithoutExtension
+                }
+                val delete = {
+                    file.delete()
+                    made = OfflineDictionaries.userPackFiles(folder)
+                }
+                WmRow(
+                    title = name,
+                    supporting = { Text(stringResource(R.string.tooldetail_dictcc_installed, formatBytes(file.length()))) },
+                    swipeActions = listOf(deleteSwipeAction(stringResource(R.string.tooldetail_dictionary_offline_delete_desc, name), delete)),
+                    trailing = {
+                        IconButton(onClick = delete) {
+                            Icon(Icons.Outlined.Delete, stringResource(R.string.tooldetail_dictionary_offline_delete_desc, name))
+                        }
+                    },
+                    modifier = Modifier.padding(horizontal = 4.dp),
+                )
+            }
+        }
+        item(key = "dictcc-import") {
+            Column {
+                NavRow(
+                    R.string.tooldetail_dictcc_import_title,
+                    reading?.let { stringResource(R.string.tooldetail_dictcc_reading, it) }
+                        ?: message
+                        ?: stringResource(R.string.tooldetail_dictcc_import_subtitle),
+                ) {
+                    if (reading == null) picker.launch(arrayOf("text/plain", "application/zip", "application/octet-stream"))
+                }
+                if (reading != null) LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp))
+            }
         }
     }
 }

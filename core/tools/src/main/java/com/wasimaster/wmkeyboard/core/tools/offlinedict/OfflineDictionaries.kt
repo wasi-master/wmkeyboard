@@ -69,7 +69,7 @@ object OfflineDictionaryCatalog {
      * each: English Wiktionary's entries for the language. The source that
      * reads them asks whichever are on the device.
      */
-    val LANGUAGES: List<OfflineDictionaryPack> = listOf(
+    val ENGLISH_MEANINGS: List<OfflineDictionaryPack> = listOf(
         language("sq", "Albanian", 9_562, 411_287L),
         language("ar", "Arabic", 16_933, 890_656L),
         language("eu", "Basque", 3_925, 123_283L),
@@ -106,6 +106,41 @@ object OfflineDictionaryCatalog {
     private fun language(langId: String, name: String, headwords: Int, gzBytes: Long) = OfflineDictionaryPack(
         "${langId}_wiktionary", "$name–English Wiktionary (offline)", langId, headwords, gzBytes, "CC BY-SA 4.0, GFDL",
     )
+
+    /**
+     * Definitions in the language itself (#1085): the language's own edition
+     * of Wiktionary, so German words are explained in German. Named in the
+     * language, the way its edition names itself.
+     */
+    val NATIVE: List<OfflineDictionaryPack> = listOf(
+        native("zh", "中文", 53_213, 2_548_757L, "kaikki-zhwiktionary.jsonl.gz sha256:600f8dd8050369d6"),
+        native("cs", "čeština", 40_612, 2_073_435L, "kaikki-cswiktionary.jsonl.gz sha256:e0087651ae40f982"),
+        native("nl", "Nederlands", 163_709, 10_669_043L, "kaikki-nlwiktionary.jsonl.gz sha256:1657c961242ca63c"),
+        native("fr", "français", 235_491, 18_214_171L, "kaikki-frwiktionary.jsonl.gz sha256:33c7b73bc11d2533"),
+        native("de", "Deutsch", 151_568, 13_520_969L, "kaikki-dewiktionary.jsonl.gz sha256:3405adc801ae6840"),
+        native("el", "Ελληνικά", 397_804, 9_265_599L, "kaikki-elwiktionary.jsonl.gz sha256:80c83cbfb0701a4c"),
+        native("id", "Bahasa Indonesia", 38_963, 946_750L, "kaikki-idwiktionary.jsonl.gz sha256:c8133eeb262b48cb"),
+        native("it", "italiano", 55_830, 3_627_056L, "kaikki-itwiktionary.jsonl.gz sha256:075c981ca609a66d"),
+        native("ja", "日本語", 107_998, 4_874_826L, "kaikki-jawiktionary.jsonl.gz sha256:728782429f82dcb5"),
+        native("ko", "한국어", 75_321, 2_479_966L, "kaikki-kowiktionary.jsonl.gz sha256:09d515e5f601058d"),
+        native("ku", "Kurdî", 212_791, 4_200_045L, "kaikki-kuwiktionary.jsonl.gz sha256:698523dde054d0ba"),
+        native("ms", "Bahasa Melayu", 8_172, 272_945L, "kaikki-mswiktionary.jsonl.gz sha256:1f983559a1cd7cd6"),
+        native("pl", "polski", 90_373, 4_419_285L, "kaikki-plwiktionary.jsonl.gz sha256:30fda85e7309d8c3"),
+        native("pt", "português", 71_231, 4_145_910L, "kaikki-ptwiktionary.jsonl.gz sha256:0990ec2517efca42"),
+        native("ru", "русский", 398_551, 16_582_090L, "kaikki-ruwiktionary.jsonl.gz sha256:98bebfb8013064d2"),
+        native("es", "español", 96_362, 6_280_370L, "kaikki-eswiktionary.jsonl.gz sha256:206001cbdfc783cf"),
+        native("th", "ไทย", 18_799, 1_217_310L, "kaikki-thwiktionary.jsonl.gz sha256:2b1b114094f05558"),
+        native("tr", "Türkçe", 133_766, 3_338_412L, "kaikki-trwiktionary.jsonl.gz sha256:8404795fcb0e7a67"),
+        native("vi", "Tiếng Việt", 30_987, 1_715_351L, "kaikki-viwiktionary.jsonl.gz sha256:1f0abd21982660b5"),
+    )
+
+    private fun native(langId: String, ownName: String, headwords: Int, gzBytes: Long, source: String) = OfflineDictionaryPack(
+        "${langId}_native", "$ownName Wiktionary (offline)", langId, headwords, gzBytes, "CC BY-SA 4.0, GFDL",
+        source = source,
+    )
+
+    /** Every pack the language source asks: English meanings, then the languages' own definitions. */
+    val LANGUAGES: List<OfflineDictionaryPack> = ENGLISH_MEANINGS + NATIVE
 
     val entries: List<OfflineDictionaryPack> = listOf(WIKTIONARY, OEWN, BENGALI_WIKTIONARY) + LANGUAGES
 
@@ -172,7 +207,8 @@ object OfflineDictionaries {
         val file = File(folder, packId + EXTENSION)
         if (!file.isFile) return emptyList()
         val dict = runCatching { WmDictFile.open(file) }.getOrNull() ?: return emptyList()
-        val langId = OfflineDictionaryCatalog.byId(packId)?.langId.orEmpty()
+        // A dict.cc pack made on the phone is in no catalogue; its header says whose words it holds.
+        val langId = OfflineDictionaryCatalog.byId(packId)?.langId ?: dict.header["lang"].orEmpty()
         val english = langId == "en"
         // Whose word it is goes on the entry (#1085): the card names it, and
         // the speaker reads it in that language rather than in English.
@@ -185,17 +221,41 @@ object OfflineDictionaries {
      * so when more than one answers each part of speech names its language.
      */
     fun lookupLanguages(word: String): List<DictEntry> {
-        val answers = OfflineDictionaryCatalog.LANGUAGES.mapNotNull { pack ->
-            lookup(pack.id, word).takeIf { it.isNotEmpty() }?.let { pack to it }
+        val packs = OfflineDictionaryCatalog.LANGUAGES.map { it.id to it.langId } + userPacks()
+        val answers = packs.mapNotNull { (id, langId) ->
+            lookup(id, word).takeIf { it.isNotEmpty() }?.let { Triple(id, langId, it) }
         }
-        if (answers.size <= 1) return answers.firstOrNull()?.second.orEmpty()
-        return answers.flatMap { (pack, entries) ->
-            val language = Locale.forLanguageTag(pack.langId).displayLanguage
+        if (answers.size <= 1) return answers.firstOrNull()?.third.orEmpty()
+        return answers.flatMap { (id, langId, entries) ->
+            val locale = Locale.forLanguageTag(langId)
+            // The same language can answer twice: in English, and in its own
+            // words, or from a dict.cc list; each says which it is.
+            val language = when {
+                id.endsWith(NATIVE_SUFFIX) -> locale.getDisplayLanguage(locale).replaceFirstChar { it.titlecase(locale) }
+                id.startsWith(DictCc.ID_PREFIX) -> "dict.cc"
+                else -> locale.displayLanguage
+            }
             entries.map { entry ->
                 entry.copy(meanings = entry.meanings.map { it.copy(partOfSpeech = "$language: ${it.partOfSpeech}") })
             }
         }
     }
+
+    /** The dict.cc lists made on this phone (#1085): id and the language of their headwords' first side. */
+    fun userPacks(): List<Pair<String, String>> {
+        val folder = dir ?: return emptyList()
+        return userPackFiles(folder).mapNotNull { file ->
+            val lang = runCatching { WmDictFile.open(file)?.use { it.header["lang"] } }.getOrNull() ?: return@mapNotNull null
+            file.name.removeSuffix(EXTENSION) to lang
+        }
+    }
+
+    /** The dict.cc packs in [folder], by file. */
+    fun userPackFiles(folder: File): List<File> =
+        folder.listFiles { f -> f.isFile && f.name.startsWith(DictCc.ID_PREFIX) && f.name.endsWith(EXTENSION) }
+            ?.sortedBy { it.name }.orEmpty()
+
+    private const val NATIVE_SUFFIX = "_native"
 
     /**
      * Headwords that start with [prefix] in the packs on the device, for the
@@ -208,12 +268,14 @@ object OfflineDictionaries {
         val key = normalize(prefix)
         if (key.length < MIN_COMPLETION_PREFIX) return emptyList()
         val folder = dir ?: return emptyList()
-        val packs = listOf(OfflineDictionaryCatalog.WIKTIONARY, OfflineDictionaryCatalog.OEWN) +
-            OfflineDictionaryCatalog.LANGUAGES + OfflineDictionaryCatalog.BENGALI_WIKTIONARY
+        val packs = (
+            listOf(OfflineDictionaryCatalog.WIKTIONARY, OfflineDictionaryCatalog.OEWN) +
+                OfflineDictionaryCatalog.LANGUAGES + OfflineDictionaryCatalog.BENGALI_WIKTIONARY
+            ).map { it.id } + userPackFiles(folder).map { it.name.removeSuffix(EXTENSION) }
         val out = LinkedHashMap<String, String>()
-        for (pack in packs) {
+        for (id in packs) {
             if (out.size >= limit) break
-            val file = File(folder, pack.id + EXTENSION)
+            val file = File(folder, id + EXTENSION)
             if (!file.isFile) continue
             val words = runCatching { WmDictFile.open(file)?.use { it.complete(key, COMPLETION_SCAN) } }.getOrNull().orEmpty()
             for (word in completionOrder(words, key)) {
