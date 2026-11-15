@@ -30511,8 +30511,14 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
             // key asks for both (issue #187). A keypad's space key draws its
             // open-box legend as a glyph, like any other key on the pad (#459).
             val padGlyph = key.label == PAD_SPACE_LABEL && namedIcon == null
-            val showText = !padGlyph && key.label.isNotEmpty() && (namedIcon == null || key.iconBesideLabel)
-            if (padGlyph) {
+            // The kana flick pad's space says what it does, as a Japanese
+            // phone keyboard's does: 空白 (space), and 変換 (convert) while a
+            // reading is waiting to be converted.
+            val kanaSpace = key.label == KANA_SPACE_LABEL && namedIcon == null
+            val showText = !padGlyph && !kanaSpace && key.label.isNotEmpty() && (namedIcon == null || key.iconBesideLabel)
+            if (kanaSpace) {
+                KanaSpaceLabel(contentColor, fontScale)
+            } else if (padGlyph) {
                 Text(
                     text = PAD_SPACE_LABEL,
                     fontSize = (LetterLabelSp * (visual.drawnLabelScale() ?: 1f) * fontScale).sp,
@@ -36618,3 +36624,28 @@ private fun KeyboardSettings.applyLayoutSizing(sizing: LayoutAppearance?): Keybo
 internal fun KeyboardUiState.showsPasswordManagerChip(): Boolean =
     secureField && passwordManagerApp != null && fieldKind == FieldKind.TEXT && otpSuggestion == null &&
         clipboardSuggestion == null
+
+/** The label the kana flick pad gives its space key; see [KanaSpaceLabel]. */
+private const val KANA_SPACE_LABEL = "\u7a7a\u767d"
+
+/**
+ * 空白 on the kana flick pad's space key, or 変換 while a reading is
+ * composing and space would convert it. Read through a derived state, so a
+ * keystroke recomposes this label when the answer flips and nothing else.
+ */
+@Composable
+private fun KanaSpaceLabel(color: Color, fontScale: Float) {
+    val live = LocalLiveUiState.current
+    val converting = if (live != null) {
+        remember(live) { derivedStateOf { live.value.composingPreview.isNotEmpty() } }.value
+    } else {
+        false
+    }
+    Text(
+        text = if (converting) "\u5909\u63db" else KANA_SPACE_LABEL,
+        fontSize = (13 * fontScale).sp,
+        color = color,
+        maxLines = 1,
+        softWrap = false,
+    )
+}
