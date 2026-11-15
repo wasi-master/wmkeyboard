@@ -4528,8 +4528,12 @@ open class WMKeyboardService : InputMethodService() {
         val ruled = if (flaggedSensitive || markedSecret || secureKept) copied else tidyCopy(copied, state.settings.clipboard)
         // Then the links lose their trackers (#665), when asked. Always onto
         // the system clipboard as well: a clean paste is the point of it.
+        // The rules run once more over a link that lost its trackers (#1215):
+        // one that drops a trailing slash only matches once the query after
+        // it is gone, and needed a second copy to.
         val cleaned = if (state.settings.clipboard.cleanCopiedLinks && !flaggedSensitive && !markedSecret && !secureKept) {
             SelectionMacros.stripTrackersInText(ruled, state.settings.clipboard.extraTrackers)
+                ?.let { tidyCopy(it, state.settings.clipboard) }
         } else {
             null
         }
@@ -4657,6 +4661,7 @@ open class WMKeyboardService : InputMethodService() {
         // do in the listener: the keyboard's own Copy and Cut never reach it.
         val cleaned = if (state.settings.clipboard.cleanCopiedLinks && !secureKept && !flagged) {
             SelectionMacros.stripTrackersInText(ruled, state.settings.clipboard.extraTrackers)
+                ?.let { tidyCopy(it, state.settings.clipboard) }
         } else {
             null
         }
