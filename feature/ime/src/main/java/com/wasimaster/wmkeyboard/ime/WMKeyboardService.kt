@@ -62331,24 +62331,37 @@ open class WMKeyboardService : InputMethodService() {
      * layout" (#1128): the key in the same place on the layout on screen, read
      * by the key's position on a QWERTY board (the key code, which the phone's
      * own physical layout does not change), not by the character that layout
-     * gives it. Null when the setting is off, the key is not a letter, or the
-     * layout has no key there.
+     * gives it. The punctuation keys beside the letters count as places too,
+     * so on an Arabic layout the key right of P types its ج. A digit or
+     * punctuation key with no key in its place on screen types what it prints
+     * on a US board: the phone's own physical layout gave Arabic-Indic digits
+     * and Arabic letters there, which is what the setting is meant to stop.
+     * Null when the setting is off or the key is none of these.
      */
     private fun onScreenLetterFor(event: KeyEvent, state: KeyboardUiState): String? {
         if (!state.settings.hardwareKeyboard.followOnScreenLayout) return null
         val code = event.keyCode
-        if (code < KeyEvent.KEYCODE_A || code > KeyEvent.KEYCODE_Z) return null
-        val letter = ('a' + (code - KeyEvent.KEYCODE_A))
-        val row = QwertyRows.indexOfFirst { letter in it }
-        if (row < 0) return null
-        val column = QwertyRows[row].indexOf(letter)
-        val rows = com.wasimaster.wmkeyboard.ime.ui.currentLayout(state).rows
-            .map { keys -> keys.filter { it.action == KeyAction.Text && (it.output ?: it.label).length in 1..2 } }
-            .filter { it.size >= QWERTY_MIN_ROW }
-        val key = rows.getOrNull(row)?.getOrNull(column) ?: return null
-        val shifted = event.isShiftPressed != event.isCapsLockOn
-        val text = key.output ?: key.label
-        return if (shifted) key.shiftLabel ?: keyUppercase(text) else text
+        val place = when (code) {
+            in KeyEvent.KEYCODE_A..KeyEvent.KEYCODE_Z -> 'a' + (code - KeyEvent.KEYCODE_A)
+            else -> UsPunctuationKeys[code]?.first
+        }
+        if (place != null) {
+            val row = QwertyRows.indexOfFirst { place in it }
+            if (row >= 0) {
+                val column = QwertyRows[row].indexOf(place)
+                val rows = com.wasimaster.wmkeyboard.ime.ui.currentLayout(state).rows
+                    .map { keys -> keys.filter { it.action == KeyAction.Text && (it.output ?: it.label).length in 1..2 } }
+                    .filter { it.size >= QWERTY_MIN_ROW }
+                val key = rows.getOrNull(row)?.getOrNull(column)
+                if (key != null) {
+                    val shifted = event.isShiftPressed != event.isCapsLockOn
+                    val text = key.output ?: key.label
+                    return if (shifted) key.shiftLabel ?: keyUppercase(text) else text
+                }
+            }
+        }
+        val us = UsPunctuationKeys[code] ?: return null
+        return (if (event.isShiftPressed) us.second else us.first).toString()
     }
 
     private fun hardwareIntercepts(state: KeyboardUiState): Boolean {
@@ -63830,8 +63843,36 @@ open class WMKeyboardService : InputMethodService() {
          */
         private const val FLOATING_TOOL_WAIT_MS = 3_000L
 
-        /** The letter rows of a QWERTY board, which a key code's place is read against (#1128). */
-        private val QwertyRows = listOf("qwertyuiop", "asdfghjkl", "zxcvbnm")
+        /**
+         * The letter rows of a QWERTY board with the punctuation keys that
+         * end them, which a key code's place is read against (#1128).
+         */
+        private val QwertyRows = listOf("qwertyuiop[]", "asdfghjkl;'", "zxcvbnm,./")
+
+        /** What the digit and punctuation keys print on a US board, plain and with Shift (#1128). */
+        private val UsPunctuationKeys: Map<Int, Pair<Char, Char>> = mapOf(
+            KeyEvent.KEYCODE_1 to ('1' to '!'),
+            KeyEvent.KEYCODE_2 to ('2' to '@'),
+            KeyEvent.KEYCODE_3 to ('3' to '#'),
+            KeyEvent.KEYCODE_4 to ('4' to '$'),
+            KeyEvent.KEYCODE_5 to ('5' to '%'),
+            KeyEvent.KEYCODE_6 to ('6' to '^'),
+            KeyEvent.KEYCODE_7 to ('7' to '&'),
+            KeyEvent.KEYCODE_8 to ('8' to '*'),
+            KeyEvent.KEYCODE_9 to ('9' to '('),
+            KeyEvent.KEYCODE_0 to ('0' to ')'),
+            KeyEvent.KEYCODE_GRAVE to ('`' to '~'),
+            KeyEvent.KEYCODE_MINUS to ('-' to '_'),
+            KeyEvent.KEYCODE_EQUALS to ('=' to '+'),
+            KeyEvent.KEYCODE_LEFT_BRACKET to ('[' to '{'),
+            KeyEvent.KEYCODE_RIGHT_BRACKET to (']' to '}'),
+            KeyEvent.KEYCODE_BACKSLASH to ('\\' to '|'),
+            KeyEvent.KEYCODE_SEMICOLON to (';' to ':'),
+            KeyEvent.KEYCODE_APOSTROPHE to ('\'' to '"'),
+            KeyEvent.KEYCODE_COMMA to (',' to '<'),
+            KeyEvent.KEYCODE_PERIOD to ('.' to '>'),
+            KeyEvent.KEYCODE_SLASH to ('/' to '?'),
+        )
 
         /** Fewest letter keys a layout row needs to count as one of the three letter rows (#1128). */
         private const val QWERTY_MIN_ROW = 6
