@@ -98,6 +98,19 @@ object VoiceRoutes {
     }
 
     /**
+     * Whether a phrase every recognizer refused to start is asked once more
+     * with a bare request: the language and nothing else, no formatting,
+     * biasing or language detection. Some recognizers turn down a request
+     * whose extras they do not know rather than ignoring them, as Android
+     * says they should (Expressive Keyboard retries the same way). Not after
+     * a bare request already, and not when a recognizer lacks the microphone:
+     * the extras are not what stops that one.
+     */
+    fun retriesBare(failures: List<Failure>, alreadyBare: Boolean): Boolean =
+        !alreadyBare && failures.isNotEmpty() && failures.all { cannotStart(it.code) } &&
+            failures.none { it.code == ERROR_INSUFFICIENT_PERMISSIONS }
+
+    /**
      * The failure to tell the user about when every recognizer in [failures]
      * failed to start. The on-device recognizer's is passed over when any
      * other was tried, since most languages have no on-device model and that

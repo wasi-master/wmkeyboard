@@ -710,6 +710,18 @@ private fun MicContent(
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(horizontal = 24.dp),
         )
+        // The recognizer would not start: another keyboard's voice typing or
+        // the phone's voice window may still work.
+        val lastResort = voice.lastResort
+        if (voice.status == VoiceStatus.ERROR && lastResort != null) {
+            Row(modifier = Modifier.padding(top = 8.dp)) {
+                VoiceChipAction(
+                    text = lastResort.label,
+                    icon = Icons.Outlined.Mic,
+                    onClick = { onRailKey(VoiceBarAction.LastResort) },
+                )
+            }
+        }
 
         // Offline Whisper chips: a prompt to download a model, or the
         // translate-to-English toggle. Whisper auto-detects language, so there

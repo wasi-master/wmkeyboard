@@ -184,7 +184,11 @@ class VoiceInputEngine(private val context: Context) {
         listen(Request(languageTag, listener, formatting, bias, alsoListenFor, maskOffensive), routes, 0, emptyList())
     }
 
-    /** What [start] was asked for, carried from one recognizer to the next. */
+    /**
+     * What [start] was asked for, carried from one recognizer to the next.
+     * [bare] is the second pass [VoiceRoutes.retriesBare] allows: the
+     * language alone, no extras.
+     */
     private class Request(
         val languageTag: String,
         val listener: Listener,
@@ -192,7 +196,10 @@ class VoiceInputEngine(private val context: Context) {
         val bias: VoiceBiasRequest,
         val alsoListenFor: List<String>,
         val maskOffensive: Boolean,
-    )
+        val bare: Boolean = false,
+    ) {
+        fun bare(): Request = Request(languageTag, listener, false, VoiceBiasRequest.NONE, emptyList(), maskOffensive, bare = true)
+    }
 
     private fun open(route: VoiceRoute): SpeechRecognizer = when (route) {
         VoiceRoute.OnDevice ->
@@ -308,9 +315,16 @@ class VoiceInputEngine(private val context: Context) {
                     return
                 }
                 release(session)
+                val failures = failed + VoiceRoutes.Failure(route, error)
+                // Every one refused to start: once more from the first, with
+                // the language alone, for recognizers that refuse extras.
+                if (neverStarted && !finishing && VoiceRoutes.retriesBare(failures, ask.bare)) {
+                    listen(ask.bare(), routes, 0, failures)
+                    return
+                }
                 // The last of several that could not start: say the most
                 // useful of their reasons.
-                val told = if (neverStarted) VoiceRoutes.toTell(failed + VoiceRoutes.Failure(route, error)).code else error
+                val told = if (neverStarted) VoiceRoutes.toTell(failures).code else error
                 report(listener, told)
             }
 
@@ -346,8 +360,23 @@ class VoiceInputEngine(private val context: Context) {
 
             override fun onEvent(eventType: Int, params: Bundle?) {}
         })
-        session.startListening(recognizerIntent(ask.languageTag, ask.formatting, ask.bias, ask.alsoListenFor, ask.maskOffensive))
+        session.startListening(
+            if (ask.bare) {
+                bareRecognizerIntent(ask.languageTag)
+            } else {
+                recognizerIntent(ask.languageTag, ask.formatting, ask.bias, ask.alsoListenFor, ask.maskOffensive)
+            },
+        )
     }
+
+    /** The request with nothing but what every recognizer knows: free-form, the language, partials. */
+    private fun bareRecognizerIntent(languageTag: String): Intent =
+        Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, languageTag)
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+            putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, context.packageName)
+        }
 
     private fun recognizerIntent(
         languageTag: String,

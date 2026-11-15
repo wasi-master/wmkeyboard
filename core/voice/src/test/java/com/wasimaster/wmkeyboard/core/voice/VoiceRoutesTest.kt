@@ -106,4 +106,15 @@ class VoiceRoutesTest {
         val gone = Failure(service(futo), VoiceRoutes.ERROR_TOO_MANY_REQUESTS)
         assertEquals(unset, VoiceRoutes.toTell(listOf(unset, gone)))
     }
+
+    @Test
+    fun `a phrase nobody started is asked once more, bare`() {
+        val client = listOf(Failure(VoiceRoute.Default, VoiceRoutes.ERROR_CLIENT), Failure(VoiceRoute.Service("g/s"), 10))
+        assertTrue(VoiceRoutes.retriesBare(client, alreadyBare = false))
+        assertFalse(VoiceRoutes.retriesBare(client, alreadyBare = true))
+        assertFalse(VoiceRoutes.retriesBare(emptyList(), alreadyBare = false))
+        // The microphone is not the extras' fault, and a lost network is not a refusal to start.
+        assertFalse(VoiceRoutes.retriesBare(client + Failure(VoiceRoute.Default, VoiceRoutes.ERROR_INSUFFICIENT_PERMISSIONS), false))
+        assertFalse(VoiceRoutes.retriesBare(listOf(Failure(VoiceRoute.Default, VoiceRoutes.ERROR_NETWORK)), false))
+    }
 }

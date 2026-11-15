@@ -311,6 +311,14 @@
         <intent>
             <action android:name="android.speech.RecognitionService" />
         </intent>
+        <!-- The voice windows (RECOGNIZE_SPEECH) and other keyboards, the
+             dictation last resorts when no recognition service will start. -->
+        <intent>
+            <action android:name="android.speech.action.RECOGNIZE_SPEECH" />
+        </intent>
+        <intent>
+            <action android:name="android.view.InputMethod" />
+        </intent>
         <!-- Speech synthesisers, for the vocabulary card's speaker button when
              Wiktionary has no recording (or the network is not to be used). -->
         <intent>
@@ -1577,6 +1585,16 @@
              shows Android's own consent dialog for deleting the screenshot a
              reply was drafted from. No noHistory, for the reason the scanner
              below has none: the dialog's result comes back to this activity. -->
+        <!-- Invisible trampoline that opens the phone's voice window when no
+             recognition service will start for the keyboard; the words are
+             committed once the field has the keyboard back. -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.VoiceWindowActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
         <activity
             android:name="com.wasimaster.wmkeyboard.app.ReplyShotDeleteActivity"
             android:excludeFromRecents="true"

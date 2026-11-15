@@ -314,6 +314,8 @@ On Android 12 and up the system recognizer prefers to run fully on-device, once 
 
 On all three, voice typing used to stop at "Speech recognition did not work" before the microphone opened.
 
+When every one of them refuses to start, the keyboard asks them all once more with a plain request: your language and nothing else, without the formatting, word hints and language detection it normally adds, since some recognizers turn down a request with extras they don't know. If that fails too, the error comes with a button for what is left. **Use … voice typing** switches to another keyboard's voice input, Gboard's on most phones, which runs the recognizer itself and hands the keyboard back when you close it. Without one, **Open the phone's voice window** opens the voice window an app's mic button would, and what you say there is typed into the field once the window closes and the keyboard is back. WM Keyboard's own voice window is never offered there, since it would only come back to the same recognizers.
+
 Two limits keep your audio where you put it. A service you picked under **Recognition service** is the only one asked. And when the default is a recognizer you installed yourself, such as FUTO Voice Input, nothing stands in for it: a phrase it can't take ends in its own error.
 
 ### Hinglish, Banglish and other romanized languages

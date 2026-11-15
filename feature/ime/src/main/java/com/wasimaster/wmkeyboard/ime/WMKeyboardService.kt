@@ -34,6 +34,7 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.Typeface
 import android.os.Build
+import android.speech.RecognizerIntent
 import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
@@ -10442,6 +10443,11 @@ open class WMKeyboardService : InputMethodService() {
         // ran while the keyboard was down, so they can only insert now,
         // as the target field regains the input connection.
         commitScanPages(DocScanActivity.consumePendingPages())
+        // Words from the phone's voice window, a dictation last resort: the
+        // window ran while the keyboard was down, so they land now.
+        com.wasimaster.wmkeyboard.app.VoiceWindowActivity.consumePending()?.let { heard ->
+            commitVoiceUtterance(heard, _uiState.value.voice.languageTag)
+        }
         // Fresh field: re-arm the on-keyboard writing hint and check the model
         // up front so the first swipe writes rather than nagging.
         hwModelHintShown = false
@@ -38719,11 +38725,19 @@ open class WMKeyboardService : InputMethodService() {
                             VoiceStatus.ERROR to getString(R.string.ime_service_voice_error_language)
                         VoiceInputEngine.ErrorKind.OTHER -> VoiceStatus.ERROR to recognizerFailed()
                     }
+                    // A recognizer that never got going: offer what is left.
+                    val lastResort = if (status == VoiceStatus.ERROR &&
+                        (kind == VoiceInputEngine.ErrorKind.OTHER || kind == VoiceInputEngine.ErrorKind.LANGUAGE)
+                    ) {
+                        voiceLastResort()
+                    } else {
+                        null
+                    }
                     _uiState.update {
                         it.copy(
                             voice = it.voice.copy(
                                 status = status, languageTag = tag, errorMessage = message,
-                                partial = "", level = 0f,
+                                partial = "", level = 0f, lastResort = lastResort,
                             ),
                         )
                     }
@@ -38733,6 +38747,64 @@ open class WMKeyboardService : InputMethodService() {
                 }
             },
         )
+    }
+
+    /**
+     * The last resorts for a recognizer that would not start, best first:
+     * another keyboard's voice typing (Gboard's, on most phones), which runs
+     * the recognizer in its own process and so often works where binding it
+     * from here does not; then the phone's own voice window, the activity an
+     * app's mic button opens. WM Keyboard's own window is never offered: it
+     * would come straight back here.
+     */
+    private fun voiceLastResort(): VoiceLastResort? {
+        val imm = getSystemService(InputMethodManager::class.java)
+        if (imm != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            for (info in runCatching { imm.enabledInputMethodList }.getOrDefault(emptyList())) {
+                if (info.packageName == packageName) continue
+                val subtype = runCatching { imm.getEnabledInputMethodSubtypeList(info, true) }.getOrDefault(emptyList())
+                    .firstOrNull { it.mode == "voice" } ?: continue
+                val name = runCatching { info.loadLabel(packageManager).toString() }.getOrDefault(info.packageName)
+                return VoiceLastResort(
+                    VoiceLastResort.Kind.OTHER_KEYBOARD,
+                    getString(R.string.ime_voice_last_resort_keyboard, name),
+                    info.id,
+                    subtype.hashCode(),
+                )
+            }
+        }
+        val window = runCatching {
+            packageManager.queryIntentActivities(Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH), 0)
+        }.getOrDefault(emptyList()).firstOrNull { it.activityInfo.packageName != packageName } ?: return null
+        val component = ComponentName(window.activityInfo.packageName, window.activityInfo.name)
+        return VoiceLastResort(
+            VoiceLastResort.Kind.VOICE_WINDOW,
+            getString(R.string.ime_voice_last_resort_window),
+            component.flattenToString(),
+        )
+    }
+
+    /** Runs the [voiceLastResort] the error offered. */
+    private fun runVoiceLastResort() {
+        val resort = _uiState.value.voice.lastResort ?: return
+        vibrate()
+        when (resort.kind) {
+            VoiceLastResort.Kind.OTHER_KEYBOARD -> {
+                val imm = getSystemService(InputMethodManager::class.java) ?: return
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return
+                val info = imm.enabledInputMethodList.firstOrNull { it.id == resort.target } ?: return
+                val subtype = imm.getEnabledInputMethodSubtypeList(info, true).firstOrNull { it.hashCode() == resort.subtype }
+                // Its voice typing hands the keyboard back when it is done,
+                // as Gboard's does from its own close button.
+                runCatching { switchInputMethod(resort.target, subtype) }
+            }
+            VoiceLastResort.Kind.VOICE_WINDOW -> {
+                val window = ComponentName.unflattenFromString(resort.target) ?: return
+                runCatching {
+                    com.wasimaster.wmkeyboard.app.VoiceWindowActivity.start(this, window, _uiState.value.voice.languageTag)
+                }
+            }
+        }
     }
 
     /**
@@ -40256,6 +40328,7 @@ open class WMKeyboardService : InputMethodService() {
             is VoiceBarAction.Bounds -> onVoiceBarBounds(action)
             is VoiceBarAction.PickLanguages -> onVoiceLanguagePick(action.ids)
             VoiceBarAction.CycleMic -> cycleVoiceMic()
+            VoiceBarAction.LastResort -> runVoiceLastResort()
             is VoiceBarAction.PickEngine -> onVoiceEnginePick(action.languageId, action.choice)
         }
     }

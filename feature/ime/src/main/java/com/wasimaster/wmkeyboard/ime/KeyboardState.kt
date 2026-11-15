@@ -1374,7 +1374,26 @@ data class VoiceUi(
     val engineChoices: List<com.wasimaster.wmkeyboard.core.voice.VoiceChoice> = emptyList(),
     /** [engineLanguage]'s stored pick (`engine` or `engine:modelId`), empty when it follows the global engine. */
     val engineChoice: String = "",
+    /**
+     * What is left to try when the phone's recognizer would not start at all
+     * (a last resort, shown with the error): another keyboard's voice typing,
+     * or the phone's own voice window. Null when there is neither.
+     */
+    val lastResort: VoiceLastResort? = null,
 )
+
+/** A way to dictate past a recognizer that will not start; see [VoiceUi.lastResort]. */
+data class VoiceLastResort(
+    val kind: Kind,
+    /** The button's words: "Use Gboard's voice typing", "Open the voice window". */
+    val label: String,
+    /** The other keyboard's id, or the voice window's flattened component. */
+    val target: String,
+    /** The other keyboard's voice subtype, by hash code; 0 for the window. */
+    val subtype: Int = 0,
+) {
+    enum class Kind { OTHER_KEYBOARD, VOICE_WINDOW }
+}
 
 /** The session records a whole clip and transcribes it after the stop tap. */
 val VoiceUi.clipBased: Boolean get() = whisper || remote
@@ -1553,6 +1572,9 @@ sealed interface VoiceBarAction {
 
     /** The voice panel's microphone chip (#581): listen through the next microphone plugged in. */
     data object CycleMic : VoiceBarAction
+
+    /** The error's way past a recognizer that would not start ([VoiceUi.lastResort]). */
+    data object LastResort : VoiceBarAction
 
     /**
      * A pick off the voice panel's engine chip: [languageId] dictates with
