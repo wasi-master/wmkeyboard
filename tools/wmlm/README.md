@@ -17,6 +17,7 @@ and `smart/autocorrect.mdx` under "The learned gate".
 | `common.py` | the tokenisation both sides share (lower-case, trim punctuation, `<num>`, the sixteen specials) |
 | `corpus.py` | sentences out of Tatoeba and Leipzig archives, labelled with register and field |
 | `banglish.py` | romanised Bengali sentences out of a Leipzig Bengali corpus, with chat spellings from the spelling map |
+| `hinglish.py` | romanised Hindi sentences out of MADLAD-400's `hi_Latn` crawl, through the Hinglish word pairs' filters |
 | `prep.py` | vocabulary and token arrays, plus the held-out sentences as text; `pieces=N` reserves N slots for subword pieces so words outside the vocabulary are spelled rather than `<unk>` |
 | `model.py`, `train.py` | the model and its training loop (CUDA, MPS or CPU); `distill=` adds a teacher's soft targets to the loss |
 | `distill.py` | runs a large causal LM (Qwen2.5-0.5B by default, through `transformers`) over a sample of the training sentences and writes its top-k next-word distribution mapped onto the student's vocabulary |
@@ -80,6 +81,28 @@ python export.py en_bn_run/best.pt en_bn_lm/vocab.txt bn_rom_context.wmlm --lang
 `<lang:0>` is English and `<lang:1>` Banglish in that model; the catalog
 entry for `bn_rom` points at it and the keyboard passes the slot of the
 language it is on.
+
+## English and Hinglish in one model
+
+The same recipe for romanised Hindi. `hinglish.py` takes the sentences from
+MADLAD-400's `hi_Latn` clean split through the filters the Hinglish word pairs
+use (the data repo's `scripts/build_hi_rom_ngrams.py`, imported, so the two stay
+in step), and the vocabulary is seeded with the Hinglish and English lists in
+turn so neither crowds the other out. Tatoeba English plus Leipzig's 2023 news
+300K stand in for the English half.
+
+```bash
+python hinglish.py hi_Latn_clean_0000.jsonl.gz hi_rom_sentences.tsv
+python corpus.py tatoeba:eng_sentences.tsv.bz2 leipzig:eng_news_2023_300K.tar.gz > en_sentences.tsv
+(awk 'NR%2==0' en_sentences.tsv; cat hi_rom_sentences.tsv) > en_hi_rom_sentences.tsv
+# seed_hi_en.txt: hi_rom_v2's first 20,000 words and en.txt's, interleaved
+python prep.py en_hi_rom_sentences.tsv en_hi_lm vocab=24576 ctx=32 seed_words=seed_hi_en.txt
+python train.py en_hi_lm en_hi_run steps=8000 batch=256
+python export.py en_hi_run/best.pt en_hi_lm/vocab.txt hi_rom_context.wmlm --langs=en,hi_rom --name="English and Hinglish"
+```
+
+`<lang:1>` is Hinglish. The catalog entry for `hi_rom` points at
+`data/hi/hi_rom_context.wmlm`.
 
 ## Masks, alignment and paired evaluation
 

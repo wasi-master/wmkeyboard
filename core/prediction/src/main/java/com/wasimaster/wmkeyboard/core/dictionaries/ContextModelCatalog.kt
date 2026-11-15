@@ -79,6 +79,16 @@ object ContextModelCatalog {
             bytes = 10_801_084,
             sha256 = "2a43d0dcfb739546ad37ebdb9d0dfccf1684aabc8530122fd95dc42ed1e7b6f1",
         ),
+        // Hinglish and English in one model, as Banglish (tools/wmlm
+        // hinglish.py, `--langs=en,hi_rom`): next-word top-1 .232 against
+        // the hi_rom word pairs' .196 on held-out Hinglish.
+        ContextModelEntry(
+            languageId = "hi_rom",
+            repoCode = "hi",
+            stem = "hi_rom_context",
+            bytes = 6_590_836,
+            sha256 = "1cfcda6b800a240f0a34db12dc1eb3f2a1e99c3fc8799f2daef21e75246b85c8",
+        ),
         // German d256/6/4/768, ctx40, 24,576 vocab; the G6P 90k candidate.
         ContextModelEntry(
             languageId = "de",

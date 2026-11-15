@@ -33,6 +33,14 @@ class ContextModelCatalogTest {
     }
 
     @Test
+    fun hinglishReadsTheMixedModelFromTheHindiFolder() {
+        val entry = ContextModelCatalog.forLanguage("hi_rom")
+        assertNotNull(entry)
+        assertEquals("hi_rom_context.wmlm", entry!!.fileName)
+        assertTrue(entry.url().endsWith("data/hi/hi_rom_context.wmlm"))
+    }
+
+    @Test
     fun englishVariantsAreStandardFirst() {
         val variants = ContextModelCatalog.variantsFor("en")
         assertEquals(listOf(ContextModelVariant.STANDARD, ContextModelVariant.LARGE), variants.map { it.variant })
