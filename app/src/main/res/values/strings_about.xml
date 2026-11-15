@@ -260,6 +260,7 @@
     <!-- X11 is the window system of Linux; keysym is its word for a key's character. -->
     <string name="about_bundled_keysyms_used">The table of X11 keysym names, to read Linux keyboard layouts</string>
     <string name="about_bundled_jquery_ime_used">The exact transliteration schemes for Indian languages: Mozhi, Swanalekha, Lekhani, and Nepali, Sanskrit and Hindi transliteration</string>
+    <string name="about_bundled_indic_keyboard_used">Fourteen key grids, among them Lalitha for Malayalam, Telugu Apple, and boards for Kaithi, Sharada, Saurashtra and Mon</string>
     <string name="about_bundled_keyman_used">The key grids for 862 layouts, mostly for languages no other keyboard covers</string>
     <string name="about_bundled_indicxlit_used">The model behind Neural suggestions on the Indic phonetic layouts, downloaded when they are turned on</string>
     <string name="about_bundled_avro_used">Desktop Avro\'s dictionary, suffixes, autocorrect and search rules, behind the Avro candidate list</string>

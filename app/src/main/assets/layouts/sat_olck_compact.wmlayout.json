@@ -1,0 +1,184 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sat_olck_compact",
+    "name": "ᱥᱟᱱᱛᱟᱲᱤ (Santali compact)",
+    "langId": "sat",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "᱑",
+              "shiftLabel": "ᱯ"
+            },
+            {
+              "label": "᱒",
+              "shiftLabel": "ᱼ",
+              "longPress": [
+                "-"
+              ]
+            },
+            {
+              "label": "᱓",
+              "shiftLabel": "ᱠ"
+            },
+            {
+              "label": "᱔",
+              "shiftLabel": "ᱞ"
+            },
+            {
+              "label": "᱕",
+              "shiftLabel": "ᱡ"
+            },
+            {
+              "label": "᱖",
+              "shiftLabel": "ᱫ"
+            },
+            {
+              "label": "᱗",
+              "shiftLabel": "ᱚ"
+            },
+            {
+              "label": "᱘",
+              "shiftLabel": "ᱤ"
+            },
+            {
+              "label": "᱙",
+              "shiftLabel": "ᱲ"
+            },
+            {
+              "label": "᱐",
+              "shiftLabel": "ᱻ"
+            }
+          ],
+          [
+            {
+              "label": "ᱵ",
+              "shiftLabel": "ᱧ"
+            },
+            {
+              "label": "ᱱ",
+              "shiftLabel": "ᱣ"
+            },
+            {
+              "label": "ᱢ",
+              "shiftLabel": "ᱮ"
+            },
+            {
+              "label": "ᱛ",
+              "shiftLabel": "ᱨ"
+            },
+            {
+              "label": "ᱳ",
+              "shiftLabel": "ᱴ"
+            },
+            {
+              "label": "ᱸ",
+              "shiftLabel": "ᱭ"
+            },
+            {
+              "label": "ᱬ",
+              "shiftLabel": "ᱩ"
+            },
+            {
+              "label": "᱾",
+              "shiftLabel": "᱿"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "ᱶ",
+              "shiftLabel": "ᱟ"
+            },
+            {
+              "label": "ᱹ",
+              "shiftLabel": "ᱥ"
+            },
+            {
+              "label": "ᱽ",
+              "shiftLabel": "ᱰ"
+            },
+            {
+              "label": "ᱪ",
+              "shiftLabel": "ᱝ"
+            },
+            {
+              "label": "ᱺ",
+              "shiftLabel": "ᱜ"
+            },
+            {
+              "label": "ᱷ",
+              "shiftLabel": "ᱦ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

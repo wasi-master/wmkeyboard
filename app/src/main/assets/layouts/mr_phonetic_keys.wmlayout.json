@@ -1,0 +1,211 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_mr_phonetic_keys",
+    "name": "मराठी फोनेटिक (Marathi phonetic keys)",
+    "langId": "mr",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ओ",
+              "shiftLabel": "औ"
+            },
+            {
+              "label": "ट",
+              "shiftLabel": "ठ"
+            },
+            {
+              "label": "े",
+              "shiftLabel": "ै"
+            },
+            {
+              "label": "र",
+              "shiftLabel": "ृ"
+            },
+            {
+              "label": "त",
+              "shiftLabel": "थ"
+            },
+            {
+              "label": "य",
+              "shiftLabel": "य़"
+            },
+            {
+              "label": "ु",
+              "shiftLabel": "ू"
+            },
+            {
+              "label": "ि",
+              "shiftLabel": "ी"
+            },
+            {
+              "label": "ो",
+              "shiftLabel": "ौ"
+            },
+            {
+              "label": "प",
+              "shiftLabel": "फ"
+            },
+            {
+              "label": "ड",
+              "shiftLabel": "ढ"
+            },
+            {
+              "label": "ऋ",
+              "shiftLabel": "ऱ"
+            }
+          ],
+          [
+            {
+              "label": "ा",
+              "shiftLabel": "आ"
+            },
+            {
+              "label": "स",
+              "shiftLabel": "श"
+            },
+            {
+              "label": "द",
+              "shiftLabel": "ध"
+            },
+            {
+              "label": "्",
+              "shiftLabel": "अ"
+            },
+            {
+              "label": "ग",
+              "shiftLabel": "घ"
+            },
+            {
+              "label": "ह",
+              "shiftLabel": "ः"
+            },
+            {
+              "label": "ज",
+              "shiftLabel": "झ"
+            },
+            {
+              "label": "क",
+              "shiftLabel": "ख"
+            },
+            {
+              "label": "ल",
+              "shiftLabel": "ळ"
+            },
+            {
+              "label": "इ",
+              "shiftLabel": "ई"
+            },
+            {
+              "label": "उ",
+              "shiftLabel": "ऊ"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "ङ",
+              "shiftLabel": "ँ"
+            },
+            {
+              "label": "ष",
+              "shiftLabel": "क्ष"
+            },
+            {
+              "label": "च",
+              "shiftLabel": "छ"
+            },
+            {
+              "label": "व",
+              "shiftLabel": "ऴ"
+            },
+            {
+              "label": "ब",
+              "shiftLabel": "भ"
+            },
+            {
+              "label": "न",
+              "shiftLabel": "ण"
+            },
+            {
+              "label": "म",
+              "shiftLabel": "ं"
+            },
+            {
+              "label": "ए",
+              "shiftLabel": "ऐ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "।",
+                "॥",
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

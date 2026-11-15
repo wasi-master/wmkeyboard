@@ -746,6 +746,7 @@ object LanguageRegistry {
                 AssetLayouts.MR_T9_ID,
                 AssetLayouts.MR_PHONETIC_ONE_ROW_ID,
                 BuiltInLayouts.MR_TRANSLITERATION_ID,
+                AssetLayouts.MR_PHONETIC_KEYS_ID,
             ),
             numeralSystem = NumeralSystem.DEVANAGARI,
         ),
@@ -787,6 +788,7 @@ object LanguageRegistry {
                 AssetLayouts.TA_T9_ID,
                 AssetLayouts.TA_PHONETIC_ONE_ROW_ID,
                 BuiltInLayouts.TA_TRANSLITERATION_ID,
+                AssetLayouts.TA_TYPEWRITER_KEYS_ID,
             ),
         ),
         LanguageDef(
@@ -809,6 +811,8 @@ object LanguageRegistry {
                 AssetLayouts.TE_T9_ID,
                 AssetLayouts.TE_PHONETIC_ONE_ROW_ID,
                 BuiltInLayouts.TE_TRANSLITERATION_ID,
+                AssetLayouts.TE_PHONETIC_KEYS_ID,
+                AssetLayouts.TE_APPLE_ID,
             ),
         ),
         LanguageDef(
@@ -842,6 +846,7 @@ object LanguageRegistry {
                 AssetLayouts.ML_PHONETIC_ONE_ROW_ID,
                 BuiltInLayouts.ML_TRANSLITERATION_ID,
                 BuiltInLayouts.ML_SWANALEKHA_ID,
+                AssetLayouts.ML_LALITHA_ID,
             ),
         ),
         LanguageDef(
@@ -857,6 +862,7 @@ object LanguageRegistry {
                 AssetLayouts.GU_T9_ID,
                 AssetLayouts.GU_PHONETIC_ONE_ROW_ID,
                 BuiltInLayouts.GU_TRANSLITERATION_ID,
+                AssetLayouts.GU_PHONETIC_KEYS_ID,
             ),
         ),
         LanguageDef(
@@ -873,6 +879,7 @@ object LanguageRegistry {
                 AssetLayouts.PA_T9_ID,
                 AssetLayouts.PA_PHONETIC_ONE_ROW_ID,
                 BuiltInLayouts.PA_TRANSLITERATION_ID,
+                AssetLayouts.PA_PHONETIC_KEYS_ID,
             ),
         ),
         LanguageDef(
@@ -889,6 +896,7 @@ object LanguageRegistry {
                 AssetLayouts.OR_PHONETIC_ONE_ROW_ID,
                 BuiltInLayouts.OR_TRANSLITERATION_ID,
                 BuiltInLayouts.OR_LEKHANI_ID,
+                AssetLayouts.OR_PHONETIC_KEYS_ID,
             ),
         ),
         LanguageDef(
@@ -3289,7 +3297,7 @@ object LanguageRegistry {
             englishName = "Mon",
             script = ScriptId.MYANMAR,
             localeTag = "mnw",
-            layoutIds = listOf(AssetLayouts.MNW_ID),
+            layoutIds = listOf(AssetLayouts.MNW_ID, AssetLayouts.MNW_TALACHAN_ID),
             numeralSystem = NumeralSystem.MYANMAR,
         ),
         LanguageDef(
@@ -3452,7 +3460,7 @@ object LanguageRegistry {
             englishName = "Santali",
             script = ScriptId.OL_CHIKI,
             localeTag = "sat",
-            layoutIds = listOf(AssetLayouts.SAT_ID, AssetLayouts.SAT_INSCRIPT_ID, AssetLayouts.SAT_T9_ID),
+            layoutIds = listOf(AssetLayouts.SAT_ID, AssetLayouts.SAT_INSCRIPT_ID, AssetLayouts.SAT_T9_ID, AssetLayouts.SAT_OLCK_COMPACT_ID),
             numeralSystem = NumeralSystem.OL_CHIKI,
         ),
         LanguageDef(
@@ -3850,7 +3858,7 @@ object LanguageRegistry {
     private val handWrittenAll: List<LanguageDef> = (handWritten + handWrittenMore + CorpusLanguages.all).map { lang ->
         val extra = KeymanLanguages.extraLayoutIds[lang.id].orEmpty() + GboardLanguages.extraLayoutIds[lang.id].orEmpty() +
             SamsungExtraLayouts.byLanguage[lang.id].orEmpty() + RomanizedLanguages.extraLayoutIds[lang.id].orEmpty() +
-            HandwritingLanguages.layoutIds(lang.id)
+            PortedLayouts.extraLayoutIds[lang.id].orEmpty() + HandwritingLanguages.layoutIds(lang.id)
         if (extra.isEmpty()) lang else lang.copy(layoutIds = lang.layoutIds + extra)
     }
 
@@ -3866,7 +3874,8 @@ object LanguageRegistry {
                 if (extra.isNullOrEmpty()) lang else lang.copy(layoutIds = lang.layoutIds + extra)
             } + GboardLanguages.all
         ).map { lang ->
-            val extra = SamsungExtraLayouts.byLanguage[lang.id].orEmpty() + RomanizedLanguages.extraLayoutIds[lang.id].orEmpty()
+            val extra = SamsungExtraLayouts.byLanguage[lang.id].orEmpty() + RomanizedLanguages.extraLayoutIds[lang.id].orEmpty() +
+                PortedLayouts.extraLayoutIds[lang.id].orEmpty()
             if (extra.isEmpty()) lang else lang.copy(layoutIds = lang.layoutIds + extra)
         } + SamsungLanguages.all + RomanizedLanguages.all).map { lang ->
             val pad = HandwritingLanguages.layoutIds(lang.id)

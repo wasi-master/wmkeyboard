@@ -1,0 +1,187 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_ta_typewriter_keys",
+    "name": "தமிழ் (Tamil typewriter keys)",
+    "langId": "ta",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ஞ",
+              "shiftLabel": "ஶ"
+            },
+            {
+              "label": "ற",
+              "shiftLabel": "ஷ"
+            },
+            {
+              "label": "ந",
+              "shiftLabel": "ஸ"
+            },
+            {
+              "label": "ச",
+              "shiftLabel": "ஹ"
+            },
+            {
+              "label": "வ",
+              "shiftLabel": "ஜ"
+            },
+            {
+              "label": "ர",
+              "shiftLabel": "ல"
+            },
+            {
+              "label": "ை",
+              "shiftLabel": "ஐ"
+            },
+            {
+              "label": "ொ",
+              "shiftLabel": "ோ"
+            },
+            {
+              "label": "ி",
+              "shiftLabel": "ீ"
+            },
+            {
+              "label": "ு",
+              "shiftLabel": "ூ"
+            }
+          ],
+          [
+            {
+              "label": "ய"
+            },
+            {
+              "label": "ள"
+            },
+            {
+              "label": "ன"
+            },
+            {
+              "label": "க"
+            },
+            {
+              "label": "ப"
+            },
+            {
+              "label": "ா",
+              "shiftLabel": "ழ"
+            },
+            {
+              "label": "த",
+              "shiftLabel": "ம"
+            },
+            {
+              "label": "ட",
+              "shiftLabel": "ங"
+            },
+            {
+              "label": "்",
+              "shiftLabel": "ஃ"
+            },
+            {
+              "label": "இ",
+              "shiftLabel": "ஈ"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "ண"
+            },
+            {
+              "label": "ஒ",
+              "shiftLabel": "ஓ"
+            },
+            {
+              "label": "உ",
+              "shiftLabel": "ஊ"
+            },
+            {
+              "label": "எ",
+              "shiftLabel": "ஏ"
+            },
+            {
+              "label": "ெ",
+              "shiftLabel": "ே"
+            },
+            {
+              "label": "ஔ",
+              "shiftLabel": "ௌ"
+            },
+            {
+              "label": "அ",
+              "shiftLabel": "ஆ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

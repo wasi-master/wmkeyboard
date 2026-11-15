@@ -1,0 +1,228 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_te_phonetic_keys",
+    "name": "తెలుగు (Telugu phonetic keys)",
+    "langId": "te",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ట",
+              "shiftLabel": "ఠ"
+            },
+            {
+              "label": "డ",
+              "shiftLabel": "ఢ"
+            },
+            {
+              "label": "ె",
+              "shiftLabel": "ే",
+              "longPress": [
+                "ఎ",
+                "ఏ"
+              ]
+            },
+            {
+              "label": "ర",
+              "shiftLabel": "ృ",
+              "longPress": [
+                "ఋ",
+                "ఱ"
+              ]
+            },
+            {
+              "label": "త",
+              "shiftLabel": "థ"
+            },
+            {
+              "label": "య",
+              "shiftLabel": "ై",
+              "longPress": [
+                "ఐ"
+              ]
+            },
+            {
+              "label": "ు",
+              "shiftLabel": "ూ",
+              "longPress": [
+                "ఉ",
+                "ఊ"
+              ]
+            },
+            {
+              "label": "ి",
+              "shiftLabel": "ీ",
+              "longPress": [
+                "ఇ",
+                "ఈ"
+              ]
+            },
+            {
+              "label": "ొ",
+              "shiftLabel": "ో",
+              "longPress": [
+                "ఒ",
+                "ఓ"
+              ]
+            },
+            {
+              "label": "ప",
+              "shiftLabel": "ఫ"
+            }
+          ],
+          [
+            {
+              "label": "ా",
+              "shiftLabel": "ఆ",
+              "longPress": [
+                "అ"
+              ]
+            },
+            {
+              "label": "స",
+              "shiftLabel": "శ"
+            },
+            {
+              "label": "ద",
+              "shiftLabel": "ధ"
+            },
+            {
+              "label": "్",
+              "shiftLabel": "ౄ",
+              "longPress": [
+                "ౠ"
+              ]
+            },
+            {
+              "label": "గ",
+              "shiftLabel": "ఘ"
+            },
+            {
+              "label": "హ",
+              "shiftLabel": "ః"
+            },
+            {
+              "label": "జ",
+              "shiftLabel": "ఝ"
+            },
+            {
+              "label": "క",
+              "shiftLabel": "ఖ"
+            },
+            {
+              "label": "ల",
+              "shiftLabel": "ళ",
+              "longPress": [
+                "ౢ",
+                "ఌ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "ఞ",
+              "shiftLabel": "ఙ"
+            },
+            {
+              "label": "ష",
+              "shiftLabel": "ఛ"
+            },
+            {
+              "label": "చ",
+              "shiftLabel": "ౌ"
+            },
+            {
+              "label": "వ",
+              "shiftLabel": "భ",
+              "longPress": [
+                "ఔ"
+              ]
+            },
+            {
+              "label": "బ",
+              "shiftLabel": "ణ"
+            },
+            {
+              "label": "న",
+              "shiftLabel": "ం",
+              "longPress": [
+                "ॐ"
+              ]
+            },
+            {
+              "label": "మ",
+              "shiftLabel": "ౘ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

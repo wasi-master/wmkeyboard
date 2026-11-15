@@ -52,8 +52,8 @@ class ShippedCountsTest {
 
     companion object {
         const val LANGUAGES = 1_556
-        const val BUILT_IN_LAYOUTS = 39
-        const val ASSET_LAYOUTS = 3_693
+        const val BUILT_IN_LAYOUTS = 56
+        const val ASSET_LAYOUTS = 3_707
         const val KEYMAN_LAYOUTS = 862
         const val TOTAL_LAYOUTS = BUILT_IN_LAYOUTS + ASSET_LAYOUTS
 

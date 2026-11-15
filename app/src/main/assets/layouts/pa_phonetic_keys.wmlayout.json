@@ -1,0 +1,199 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_pa_phonetic_keys",
+    "name": "ਪੰਜਾਬੀ (Punjabi phonetic keys)",
+    "langId": "pa",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ਤ",
+              "shiftLabel": "ਥ"
+            },
+            {
+              "label": "ਾ"
+            },
+            {
+              "label": "ੲ",
+              "shiftLabel": "ਓ"
+            },
+            {
+              "label": "ਰ",
+              "shiftLabel": "੍"
+            },
+            {
+              "label": "ਟ",
+              "shiftLabel": "ਠ"
+            },
+            {
+              "label": "ੇ",
+              "shiftLabel": "ੈ"
+            },
+            {
+              "label": "ੁ",
+              "shiftLabel": "ੂ"
+            },
+            {
+              "label": "ਿ",
+              "shiftLabel": "ੀ"
+            },
+            {
+              "label": "ੋ",
+              "shiftLabel": "ੌ"
+            },
+            {
+              "label": "ਪ",
+              "shiftLabel": "ਫ"
+            }
+          ],
+          [
+            {
+              "label": "ੳ",
+              "shiftLabel": "ਅ"
+            },
+            {
+              "label": "ਸ",
+              "shiftLabel": "ਸ਼"
+            },
+            {
+              "label": "ਦ",
+              "shiftLabel": "ਧ"
+            },
+            {
+              "label": "ਡ",
+              "shiftLabel": "ਢ"
+            },
+            {
+              "label": "ਗ",
+              "shiftLabel": "ਘ",
+              "longPress": [
+                "ਙ"
+              ]
+            },
+            {
+              "label": "ਹ",
+              "shiftLabel": "੍"
+            },
+            {
+              "label": "ਜ",
+              "shiftLabel": "ਝ"
+            },
+            {
+              "label": "ਕ",
+              "shiftLabel": "ਖ"
+            },
+            {
+              "label": "ਲ",
+              "shiftLabel": "ਲ਼"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "ਜ਼",
+              "shiftLabel": "ਗ਼"
+            },
+            {
+              "label": "ਣ",
+              "shiftLabel": "ਯ",
+              "longPress": [
+                "ਞ"
+              ]
+            },
+            {
+              "label": "ਚ",
+              "shiftLabel": "ਛ"
+            },
+            {
+              "label": "ਵ",
+              "shiftLabel": "ੜ"
+            },
+            {
+              "label": "ਬ",
+              "shiftLabel": "ਭ"
+            },
+            {
+              "label": "ਨ",
+              "shiftLabel": "ਂ"
+            },
+            {
+              "label": "ਮ",
+              "shiftLabel": "ੰ",
+              "longPress": [
+                "ੱ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                "।",
+                "॥",
+                "ੴ",
+                "☬",
+                ",",
+                "?",
+                "!"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

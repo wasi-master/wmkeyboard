@@ -1007,6 +1007,27 @@ object AssetLayouts {
     const val DE_KOY_ID = "asset_de_koy"
     const val BZD_QWERTY_ID = "asset_bzd_qwerty"
 
+    // The grids smc/Indic-Keyboard (Apache-2.0) ships that had no counterpart
+    // here, converted from its LatinIME XML and given this app's shift, delete
+    // and bottom rows (#1340). Its compact and mobile InScript boards, Navees,
+    // KaGaPa, Jhelum, Probhat and the rest already had one. The phonetic-keys
+    // boards put each letter on the QWERTY key that sounds like it; nothing is
+    // transliterated.
+    const val GU_PHONETIC_KEYS_ID = "asset_gu_phonetic_keys"
+    const val PA_PHONETIC_KEYS_ID = "asset_pa_phonetic_keys"
+    const val TE_PHONETIC_KEYS_ID = "asset_te_phonetic_keys"
+    const val TE_APPLE_ID = "asset_te_apple"
+    const val TA_TYPEWRITER_KEYS_ID = "asset_ta_typewriter_keys"
+    const val MR_PHONETIC_KEYS_ID = "asset_mr_phonetic_keys"
+    const val OR_PHONETIC_KEYS_ID = "asset_or_phonetic_keys"
+    const val ML_LALITHA_ID = "asset_ml_lalitha"
+    const val SAT_OLCK_COMPACT_ID = "asset_sat_olck_compact"
+    const val MNW_TALACHAN_ID = "asset_mnw_talachan"
+    const val BHO_KAITHI_PHONETIC_ID = "asset_bho_kaithi_phonetic"
+    const val KS_SHARADA_PHONETIC_ID = "asset_ks_sharada_phonetic"
+    const val SAZ_PHONETIC_ID = "asset_saz_phonetic"
+    const val SYL_SYLOTI_NAGRI_PHONETIC_ID = "asset_syl_syloti_nagri_phonetic"
+
     // One-row boards (QWERTY folded column by column, Minuum style), generated
     // from each language's main grid; see EN_ONE_ROW_ID.
     const val AS_PHONETIC_ONE_ROW_ID = "asset_as_phonetic_one_row"

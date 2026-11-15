@@ -938,6 +938,16 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/wikimedia/jquery.ime",
         ),
     )
+    // Converted to this app's layout files; Apache-2.0 asks for the notice.
+    add(
+        Attribution(
+            "Indic Keyboard layouts",
+            R.string.about_bundled_indic_keyboard_used,
+            "Copyright 2013-2026 Jishnu Mohan, Swathanthra Malayalam Computing, ICFOSS, Arushi Dogra; Mon layout by Talachan",
+            "Apache-2.0", "apache-2.0.txt",
+            "https://github.com/smc/Indic-Keyboard",
+        ),
+    )
     // One row for 862 keyboards. Each carries its own MIT licence differing
     // only in the holder line, so the asset states the shared text once and
     // then names every holder; shipping 862 near-identical LICENSE.md files

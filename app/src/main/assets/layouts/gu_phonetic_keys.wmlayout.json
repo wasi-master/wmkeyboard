@@ -1,0 +1,234 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gu_phonetic_keys",
+    "name": "ગુજરાતી (Gujarati phonetic keys)",
+    "langId": "gu",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ઓ",
+              "shiftLabel": "ઔ"
+            },
+            {
+              "label": "ટ",
+              "shiftLabel": "ઠ"
+            },
+            {
+              "label": "ે",
+              "shiftLabel": "ૈ",
+              "longPress": [
+                "એ",
+                " ઍ",
+                " ૅ",
+                "ઐ"
+              ]
+            },
+            {
+              "label": "ર",
+              "shiftLabel": "ૃ",
+              "longPress": [
+                "૱",
+                "ઋ"
+              ]
+            },
+            {
+              "label": "ત",
+              "shiftLabel": "થ",
+              "longPress": [
+                "ત્ર"
+              ]
+            },
+            {
+              "label": "ય",
+              "shiftLabel": "ય઼"
+            },
+            {
+              "label": "ુ",
+              "shiftLabel": "ૂ",
+              "longPress": [
+                "ઉ",
+                "ઊ"
+              ]
+            },
+            {
+              "label": "િ",
+              "shiftLabel": "ી",
+              "longPress": [
+                "ઇ",
+                "ઈ"
+              ]
+            },
+            {
+              "label": "ો",
+              "shiftLabel": "ૌ",
+              "longPress": [
+                "ઑ",
+                " ૉ",
+                " ૐ"
+              ]
+            },
+            {
+              "label": "પ",
+              "shiftLabel": "ફ"
+            }
+          ],
+          [
+            {
+              "label": "ા",
+              "shiftLabel": "આ"
+            },
+            {
+              "label": "સ",
+              "shiftLabel": "શ",
+              "longPress": [
+                "શ્ર"
+              ]
+            },
+            {
+              "label": "દ",
+              "shiftLabel": "ધ",
+              "longPress": [
+                "ડ",
+                "ઢ"
+              ]
+            },
+            {
+              "label": "્",
+              "shiftLabel": "અ"
+            },
+            {
+              "label": "ગ",
+              "shiftLabel": "ઘ"
+            },
+            {
+              "label": "હ",
+              "shiftLabel": "ઃ"
+            },
+            {
+              "label": "જ",
+              "shiftLabel": "ઝ",
+              "longPress": [
+                "જ્ઞ"
+              ]
+            },
+            {
+              "label": "ક",
+              "shiftLabel": "ખ",
+              "longPress": [
+                "ક્ષ"
+              ]
+            },
+            {
+              "label": "લ",
+              "shiftLabel": "ળ"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "ઙ",
+              "shiftLabel": "ઁ",
+              "longPress": [
+                "઼"
+              ]
+            },
+            {
+              "label": "ષ",
+              "shiftLabel": "ક્ક્"
+            },
+            {
+              "label": "ચ",
+              "shiftLabel": "છ"
+            },
+            {
+              "label": "વ",
+              "shiftLabel": "ઽ"
+            },
+            {
+              "label": "બ",
+              "shiftLabel": "ભ"
+            },
+            {
+              "label": "ન",
+              "shiftLabel": "ણ"
+            },
+            {
+              "label": "મ",
+              "shiftLabel": "ં"
+            },
+            {
+              "label": "।"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

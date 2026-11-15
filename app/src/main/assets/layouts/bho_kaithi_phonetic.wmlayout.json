@@ -1,0 +1,214 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_bho_kaithi_phonetic",
+    "name": "𑂍𑂶𑂟𑂲 (Kaithi phonetic keys)",
+    "langId": "bho-Kthi",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ZWNJ",
+              "output": "‌",
+              "longPress": [
+                "‍"
+              ]
+            },
+            {
+              "label": "𑂫"
+            },
+            {
+              "label": "𑂵",
+              "shiftLabel": "𑂶",
+              "longPress": [
+                "𑂉",
+                "𑂊"
+              ]
+            },
+            {
+              "label": "𑂩",
+              "shiftLabel": "𑃂"
+            },
+            {
+              "label": "𑂞",
+              "shiftLabel": "𑂟"
+            },
+            {
+              "label": "𑂨",
+              "shiftLabel": "𑂖"
+            },
+            {
+              "label": "𑂳",
+              "shiftLabel": "𑂴",
+              "longPress": [
+                "𑂇",
+                "𑂈"
+              ]
+            },
+            {
+              "label": "𑂱",
+              "shiftLabel": "𑂲",
+              "longPress": [
+                "𑂅",
+                "𑂆"
+              ]
+            },
+            {
+              "label": "𑂷",
+              "shiftLabel": "𑂸",
+              "longPress": [
+                "𑂋",
+                "𑂌"
+              ]
+            },
+            {
+              "label": "𑂣",
+              "shiftLabel": "𑂤"
+            }
+          ],
+          [
+            {
+              "label": "𑂰",
+              "shiftLabel": "𑂄",
+              "longPress": [
+                "𑂃"
+              ]
+            },
+            {
+              "label": "𑂮",
+              "shiftLabel": "𑂭"
+            },
+            {
+              "label": "𑂠",
+              "shiftLabel": "𑂡"
+            },
+            {
+              "label": "𑂗",
+              "shiftLabel": "𑂘"
+            },
+            {
+              "label": "𑂏",
+              "shiftLabel": "𑂐"
+            },
+            {
+              "label": "𑂯",
+              "shiftLabel": "𑂂"
+            },
+            {
+              "label": "𑂔",
+              "shiftLabel": "𑂕"
+            },
+            {
+              "label": "𑂍",
+              "shiftLabel": "𑂎"
+            },
+            {
+              "label": "𑂪",
+              "shiftLabel": "𑂺"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "𑂬",
+              "shiftLabel": "𑂁"
+            },
+            {
+              "label": "𑂹",
+              "shiftLabel": "𑂀"
+            },
+            {
+              "label": "𑂒",
+              "shiftLabel": "𑂓"
+            },
+            {
+              "label": "𑂙",
+              "shiftLabel": "𑂛",
+              "longPress": [
+                "𑂚",
+                "𑂜"
+              ]
+            },
+            {
+              "label": "𑂥",
+              "shiftLabel": "𑂦"
+            },
+            {
+              "label": "𑂢",
+              "shiftLabel": "𑂝"
+            },
+            {
+              "label": "𑂧",
+              "shiftLabel": "𑂑"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}
