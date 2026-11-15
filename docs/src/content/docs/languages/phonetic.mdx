@@ -158,6 +158,10 @@ These languages pronounce every vowel, so people type every vowel: `amma`, `nann
 - **Kannada** reads `th` as ತ and knows its plural `-galu` and the long first vowels of its commonest words (`beku` ಬೇಕು, `helu` ಹೇಳು).
 - **Odia** writes ଯ where a word opens and ୟ elsewhere, ୱ for `w`, and spells its nasal clusters as conjuncts (`ranga` ରଙ୍ଗ, `pancha` ପଞ୍ଚ).
 
+Malayalam, Tamil, Telugu and Kannada also read a spelling the way [Varnam](https://varnamproject.com/) does, the engine behind Indic Keyboard's Varnam layouts, over Varnam's own tables of what each roman pattern can stand for. `th` may be ത, ത്ത, ഥ or ത്ഥ and `ll` may be ല്ല or ള്ള, so `vellam` has many readings, and the keyboard follows only those some word of the downloaded list starts with: വെള്ളം. The commonest whole word that survives goes first on the strip, ahead of the word list's other matches; Varnam's engine itself is not part of the app, only its tables.
+
+On 2,000 held-out words per language (Aksharantar's test set), that put the intended word first more often: Malayalam 23.1% to 30.9%, Tamil 36.6% to 41.1%, Telugu 52.6% to 53.2%, Kannada 42.3% to 42.8%, with the strip's first four as good or better. It needs the word list; without one these languages read exactly as before. The same walk added nothing on Marathi, Gujarati, Punjabi, Odia or Nepali, so they don't use it.
+
 ### Assamese
 
 Assamese uses Avro's rules, because people romanize it the way they romanize Bangla, with three changes: every র is ৰ, an `x` is the Assamese স (`xokolu` সকলো, `axom` অসম), and a `w` gliding into a vowel is ৱ.

@@ -3424,6 +3424,12 @@ open class WMKeyboardService : InputMethodService() {
                 val index = PhoneticIndexCache.get(scheme.languageId, phoneticSignature(scheme.languageId)) {
                     phoneticIndex(scheme)
                 }
+                // The Varnam table and the word list it walks, read here off
+                // the main thread rather than on the first key (Malayalam,
+                // Tamil, Telugu, Kannada).
+                if (com.wasimaster.wmkeyboard.core.transliteration.VarnamSchemes.forLanguage(scheme.languageId) != null) {
+                    index.sortedWords?.size
+                }
                 scheme.languageId to PhoneticBackend(scheme, index, spellings)
             }.toMap()
         }

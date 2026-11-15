@@ -938,6 +938,17 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/wikimedia/jquery.ime",
         ),
     )
+    // Varnam's symbol tables, converted to text under assets/varnam/ with
+    // MPL-2.0's notice at the head of each; read by our own code, not govarnam.
+    add(
+        Attribution(
+            "Varnam schemes",
+            R.string.about_bundled_varnam_used,
+            "Copyright Navaneeth K N, Kumaran Venkataraman, Kishore96in, Raja Reddy Karri, Varun Reddy, Shwetha Thammaiah, Sharath Kr. Battaje",
+            "MPL-2.0", "mpl-2.0.txt",
+            "https://github.com/varnamproject/schemes",
+        ),
+    )
     // Converted to this app's layout files; Apache-2.0 asks for the notice.
     add(
         Attribution(

@@ -52,6 +52,15 @@ class IndicPhoneticIndex(
     // Devanagari, so the Hindi index answers in the list's own script.
     private val inner = HindiPhoneticIndex(table, typedSchwa)
 
+    private val source = table
+
+    /**
+     * The list's words in order, for [VarnamScheme]'s walk; null with no
+     * list. Asked for, not kept: a table combined from a download and an
+     * import merges its word lists the first time they are read.
+     */
+    override val sortedWords: SortedWords? get() = if (source.isEmpty) null else source.words
+
     /** Every word at the same count: no frequency to rank by. */
     private val flat: Boolean = !table.isEmpty && table.maxFrequency == table.minFrequency
 

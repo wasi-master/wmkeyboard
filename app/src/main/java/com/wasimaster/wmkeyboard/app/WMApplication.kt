@@ -92,6 +92,11 @@ open class WMApplication : Application() {
         com.wasimaster.wmkeyboard.core.input.imported.BundledInputMethods.assets = { path ->
             runCatching { appAssets.open(path) }.getOrNull()
         }
+        // The Varnam symbol tables Malayalam, Tamil, Telugu and Kannada read
+        // their dictionary words through; each is read the first time it is used.
+        com.wasimaster.wmkeyboard.core.transliteration.VarnamSchemes.assets = { path ->
+            runCatching { appAssets.open(path) }.getOrNull()
+        }
         // Lets the keyboard tell whether a screen of this app is up before it
         // recycles the process the two share. One callback registration.
         com.wasimaster.wmkeyboard.core.util.StartedActivities.install(this)
