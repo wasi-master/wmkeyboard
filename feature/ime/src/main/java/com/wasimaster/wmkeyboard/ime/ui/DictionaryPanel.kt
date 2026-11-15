@@ -30,6 +30,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
@@ -63,6 +65,7 @@ import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.aichat.AskAiContext
+import com.wasimaster.wmkeyboard.ime.lookup.SearchCompletions
 import kotlinx.coroutines.launch
 
 /**
@@ -161,27 +164,60 @@ internal fun DictionaryPanel(
         // While searching with nothing typed the wrapper collapses to just
         // the header; the body would only flash clipped content, so skip it.
         if (state.dictionarySearchActive && state.dictionaryQuery.isBlank()) return@Box
-
-        when (val dict = state.dictionary) {
-            DictionaryUi.Idle -> DictionaryMessage(stringResource(R.string.ime_dict_idle_info))
-            is DictionaryUi.Loading -> DictionaryMessage(
-                stringResource(R.string.ime_dict_lookup_progress, dict.word),
-            )
-            is DictionaryUi.Error -> DictionaryMessage(stringResource(OfflineBuild.network(R.string.ime_dict_error)))
-            // Another app on the phone may know it (#970): Aard 2, ColorDict, Kiwix.
-            is DictionaryUi.NotFound -> DictionaryMessage(
-                stringResource(R.string.ime_dict_not_found_empty, dict.word),
-                lookupWord = dict.word,
-                sites = state.settings.lookup.webLookups(),
-            )
-            is DictionaryUi.NotOnDevice -> DictionaryMessage(
-                stringResource(R.string.ime_dict_not_on_device, dict.word),
-                lookupWord = dict.word,
-                sites = state.settings.lookup.webLookups(),
-            )
-            DictionaryUi.NoSources -> DictionaryMessage(stringResource(R.string.ime_dict_no_sources))
-            is DictionaryUi.Ready -> DictionaryEntries(state, dict, onLookup, onInsert, onAddToVocab)
+        Column(Modifier.fillMaxSize()) {
+            // What the typing could be heading for (#1085), idioms included.
+            if (state.dictionarySearchActive) DictionaryCompletions(onLookup)
+            Box(Modifier.weight(1f).fillMaxWidth()) { DictionaryBody(state, onLookup, onInsert, onAddToVocab) }
         }
+    }
+}
+
+/**
+ * The offline dictionaries' headwords that start with what is typed (#1085),
+ * a row of chips over the live result; a tap looks one up. Nothing without
+ * an offline dictionary on the phone.
+ */
+@Composable
+private fun DictionaryCompletions(onLookup: (String) -> Unit) {
+    val words by SearchCompletions.dictionary.collectAsState()
+    if (words.isEmpty()) return
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 14.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
+        for (word in words) DictionaryChip(label = word, filled = false) { onLookup(word) }
+    }
+}
+
+@Composable
+private fun DictionaryBody(
+    state: KeyboardUiState,
+    onLookup: (String) -> Unit,
+    onInsert: (String) -> Unit,
+    onAddToVocab: (String) -> Unit,
+) {
+    when (val dict = state.dictionary) {
+        DictionaryUi.Idle -> DictionaryMessage(stringResource(R.string.ime_dict_idle_info))
+        is DictionaryUi.Loading -> DictionaryMessage(
+            stringResource(R.string.ime_dict_lookup_progress, dict.word),
+        )
+        is DictionaryUi.Error -> DictionaryMessage(stringResource(OfflineBuild.network(R.string.ime_dict_error)))
+        // Another app on the phone may know it (#970): Aard 2, ColorDict, Kiwix.
+        is DictionaryUi.NotFound -> DictionaryMessage(
+            stringResource(R.string.ime_dict_not_found_empty, dict.word),
+            lookupWord = dict.word,
+            sites = state.settings.lookup.webLookups(),
+        )
+        is DictionaryUi.NotOnDevice -> DictionaryMessage(
+            stringResource(R.string.ime_dict_not_on_device, dict.word),
+            lookupWord = dict.word,
+            sites = state.settings.lookup.webLookups(),
+        )
+        DictionaryUi.NoSources -> DictionaryMessage(stringResource(R.string.ime_dict_no_sources))
+        is DictionaryUi.Ready -> DictionaryEntries(state, dict, onLookup, onInsert, onAddToVocab)
     }
 }
 
@@ -450,13 +486,15 @@ private fun DictionaryMeaning(
                     modifier = Modifier.width(20.dp),
                 )
                 Column {
-                    // A long press selects: Ask AI, Copy or Insert (#352).
+                    // A long press selects: Ask AI, Copy or Insert (#352). A tap
+                    // on a word looks that word up (#1085).
                     SelectableText(
                         definition.text,
                         color = kb.modifierKeyText,
                         fontSize = 13.sp,
                         lineHeight = 17.sp,
                         ask = ask,
+                        onWordTap = onLookup,
                     )
                     if (definition.example != null) {
                         SelectableText(
@@ -468,6 +506,7 @@ private fun DictionaryMeaning(
                             fontFamily = serif,
                             modifier = Modifier.padding(top = 1.dp),
                             ask = ask,
+                            onWordTap = onLookup,
                         )
                     }
                 }

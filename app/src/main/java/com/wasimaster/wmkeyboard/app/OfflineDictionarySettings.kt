@@ -116,7 +116,12 @@ private fun OfflineDictionaryRow(
 ) {
     val busy = status is Status.Downloading || status == Status.Queued
     val subtitle = when (status) {
-        is Status.Downloaded -> stringResource(R.string.tooldetail_dictionary_offline_installed, formatBytes(status.sizeBytes), pack.license)
+        // An older build of the pack (#1085: Wiktionary grew from its common words to all of them).
+        is Status.Downloaded -> if (status.outdated) {
+            stringResource(R.string.tooldetail_dictionary_offline_outdated, formatBytes(status.sizeBytes))
+        } else {
+            stringResource(R.string.tooldetail_dictionary_offline_installed, formatBytes(status.sizeBytes), pack.license)
+        }
         is Status.Downloading -> stringResource(
             R.string.tooldetail_dictionary_offline_downloading,
             formatBytes(status.bytes),
@@ -150,6 +155,12 @@ private fun OfflineDictionaryRow(
             },
             trailing = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    // The newer build, over the one here: the install swaps it in once it has all arrived.
+                    if (status is Status.Downloaded && status.outdated && canDownload) {
+                        IconButton(onClick = onDownload) {
+                            Icon(Icons.Outlined.Download, stringResource(R.string.tooldetail_dictionary_offline_update_desc, pack.name))
+                        }
+                    }
                     when {
                         status is Status.Downloaded -> IconButton(onClick = onDelete) {
                             Icon(Icons.Outlined.Delete, stringResource(R.string.tooldetail_dictionary_offline_delete_desc, pack.name))

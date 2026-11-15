@@ -2505,6 +2505,15 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.translate.hintReplaces,
                     ) { scope.launch { repository.setTranslateHintReplaces(it) } }
                 }
+                // Issue #1085: the word at the caret, without selecting it first.
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_translate_word_at_caret_title,
+                        stringResource(R.string.tooldetail_translate_word_at_caret_subtitle),
+                        settings.watch { it.translate.wordAtCaret },
+                        default = SettingsDefaults.translate.wordAtCaret,
+                    ) { scope.launch { repository.setTranslateWordAtCaret(it) } }
+                }
                 // The offline build has only the device to choose.
                 if (onDevice && !offlineBuild) {
                     item(level = SettingLevel.STANDARD) {

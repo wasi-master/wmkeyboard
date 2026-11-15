@@ -364,6 +364,8 @@ fun KeyboardSettings.onMeteredNetwork(): KeyboardSettings {
         },
         dictionaryAutoLookup =
         if (ds.dictionaryLookup.stopsBackgroundWork) false else dictionaryAutoLookup,
+        // Translate's word at the caret is the same unasked look-up (#1085).
+        translate = if (ds.dictionaryLookup.stopsBackgroundWork) translate.copy(wordAtCaret = false) else translate,
         // The photo pool already has its own metered switch, which the pool's
         // own `mayFetch` reads. Clearing it here means one decision reaches
         // both the rotation and the top-up, and the user's own choice comes

@@ -68,7 +68,45 @@ class WmDictFile private constructor(
         return out
     }
 
+    /**
+     * The headwords of the lines whose key starts with [prefix] (already lower
+     * case), in file order, reading at most [limit] lines. Redirects are
+     * skipped: their lemma is listed on its own line.
+     */
+    fun complete(prefix: String, limit: Int): List<String> {
+        val target = prefix.toByteArray(Charsets.UTF_8)
+        if (target.isEmpty()) return emptyList()
+        var lo = dataStart
+        var hi = length
+        while (lo < hi) {
+            val mid = (lo + hi) ushr 1
+            val start = lineStartAtOrAfter(mid)
+            if (start >= length || compareKey(start, target) >= 0) hi = mid else lo = start + 1
+        }
+        val out = ArrayList<String>()
+        var start = lineStartAtOrAfter(lo)
+        var read = 0
+        while (start < length && read < limit && startsWith(start, target)) {
+            val (text, next) = readLine(start)
+            (parse(text) as? Entry)?.let { out += it.word }
+            start = next
+            read++
+        }
+        return out
+    }
+
     override fun close() = raf.close()
+
+    /** Whether the key of the line at [start] begins with [prefix]. */
+    private fun startsWith(start: Long, prefix: ByteArray): Boolean {
+        var p = start
+        for (b in prefix) {
+            val c = if (p < length) byteAt(p) else -1
+            if (c == -1 || c == TAB || c == NEWLINE || c != (b.toInt() and 0xff)) return false
+            p++
+        }
+        return true
+    }
 
     private fun byteAt(pos: Long): Int {
         if (pos < bufferStart || pos >= bufferStart + bufferLength) {

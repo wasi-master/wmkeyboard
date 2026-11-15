@@ -23,6 +23,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -45,6 +47,8 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -61,7 +65,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -86,12 +92,14 @@ import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.core.translate.TranslateModuleState
 import com.wasimaster.wmkeyboard.core.ui.ScrollRail
 import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
+import com.wasimaster.wmkeyboard.ime.CaretText
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.ProviderPicks
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.TranslateUi
+import com.wasimaster.wmkeyboard.ime.lookup.SearchCompletions
 import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 
 /**
@@ -118,6 +126,10 @@ data class TranslateCallbacks(
     val onTranslate: () -> Unit = {},
     /** Reads the translation aloud in its own language (#1085). */
     val onSpeak: () -> Unit = {},
+    /** A suggestion under the text box, tapped (#1085): it becomes the text, translated. */
+    val onSuggestion: (String) -> Unit = {},
+    /** A word of the translation, tapped (#1085): the Dictionary looks it up. */
+    val onLookUp: (String) -> Unit = {},
 )
 
 /**
@@ -259,7 +271,7 @@ internal fun TranslateTool(
                         .weight(1f)
                         .heightIn(max = FullBleedHeaderHeight)
                         .padding(start = 8.dp),
-                    callbacks.onSpeak,
+                    callbacks,
                 )
                 TranslateActionRow(
                     state,
@@ -351,7 +363,7 @@ private fun TranslatePanel(
                 Modifier
                     .weight(1f)
                     .fillMaxHeight(),
-                callbacks.onSpeak,
+                callbacks,
             )
         }
         return
@@ -368,7 +380,7 @@ private fun TranslatePanel(
             )
         },
         languages = { TranslateLanguageRow(state, callbacks, menus) },
-        result = { TranslateResult(state, Modifier.fillMaxSize(), callbacks.onSpeak) },
+        result = { TranslateResult(state, Modifier.fillMaxSize(), callbacks) },
         actions = {
             TranslateActionRow(
                 state,
@@ -638,10 +650,13 @@ private fun TranslateLanguageRow(
 /**
  * The translation, the error in its place, or the offer of the models it
  * needs. A translation has a speaker at its corner that reads it aloud in its
- * own language (#1085).
+ * own language (#1085), and a tap on one of its words looks that word up.
+ * While the box is typed into, the words and idioms it could be heading for
+ * sit over the result ([SearchCompletions]).
  */
 @Composable
-private fun TranslateResult(state: KeyboardUiState, modifier: Modifier, onSpeak: () -> Unit = {}) {
+private fun TranslateResult(state: KeyboardUiState, modifier: Modifier, callbacks: TranslateCallbacks) {
+    val onSpeak = callbacks.onSpeak
     val kb = LocalKbTheme.current
     val translate = state.translate
     val animate = kb.motion.toolResults
@@ -654,25 +669,64 @@ private fun TranslateResult(state: KeyboardUiState, modifier: Modifier, onSpeak:
         if (offer) {
             TranslateDownloadOffer(translate = translate, modifier = Modifier.fillMaxSize(), animate = animate)
         } else {
-            Box(Modifier.fillMaxSize()) {
-                val speakable = translate.translated.isNotEmpty() && translate.error == null
-                TranslateText(state, animate, Modifier.fillMaxSize().padding(end = if (speakable) TranslateSpeakSize else 0.dp))
-                if (speakable) {
-                    val speak = stringResource(R.string.ime_translate_speak_desc)
-                    IconHint(speak, modifier = Modifier.align(Alignment.TopEnd)) {
-                        Icon(
-                            Icons.AutoMirrored.Outlined.VolumeUp,
-                            contentDescription = speak,
-                            tint = kb.secondaryText,
-                            modifier = Modifier
-                                .size(TranslateSpeakSize)
-                                .clip(CircleShape)
-                                .clickable(onClick = onSpeak)
-                                .padding(5.dp),
-                        )
+            Column(Modifier.fillMaxSize()) {
+                if (state.mediaSearchActive) TranslateSuggestions(callbacks.onSuggestion)
+                Box(Modifier.weight(1f).fillMaxWidth()) {
+                    val speakable = translate.translated.isNotEmpty() && translate.error == null
+                    TranslateText(
+                        state,
+                        animate,
+                        Modifier.fillMaxSize().padding(end = if (speakable) TranslateSpeakSize else 0.dp),
+                        onWordTap = callbacks.onLookUp.takeIf { speakable },
+                    )
+                    if (speakable) {
+                        val speak = stringResource(R.string.ime_translate_speak_desc)
+                        IconHint(speak, modifier = Modifier.align(Alignment.TopEnd)) {
+                            Icon(
+                                Icons.AutoMirrored.Outlined.VolumeUp,
+                                contentDescription = speak,
+                                tint = kb.secondaryText,
+                                modifier = Modifier
+                                    .size(TranslateSpeakSize)
+                                    .clip(CircleShape)
+                                    .clickable(onClick = onSpeak)
+                                    .padding(5.dp),
+                            )
+                        }
                     }
                 }
             }
+        }
+    }
+}
+
+/** The suggestions over the result while the box is typed into (#1085); nothing when there are none. */
+@Composable
+private fun TranslateSuggestions(onPick: (String) -> Unit) {
+    val kb = LocalKbTheme.current
+    val phrases by SearchCompletions.translate.collectAsState()
+    if (phrases.isEmpty()) return
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(top = 2.dp, bottom = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
+        for (phrase in phrases) {
+            Text(
+                phrase,
+                color = kb.chipText,
+                fontSize = 12.sp,
+                maxLines = 1,
+                modifier = Modifier
+                    .clip(kb.chipShape())
+                    .frostGlass(kb, kb.chipShape(), FrostSurface.CHIPS)
+                    .background(kb.chip)
+                    .chipBorder(kb, kb.chipShape())
+                    .clickable { onPick(phrase) }
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
+            )
         }
     }
 }
@@ -682,7 +736,13 @@ private val TranslateSpeakSize = 28.dp
 
 /** The translation, or the line standing in for it, fading in where it changed. */
 @Composable
-private fun TranslateText(state: KeyboardUiState, animate: Boolean, modifier: Modifier) {
+private fun TranslateText(
+    state: KeyboardUiState,
+    animate: Boolean,
+    modifier: Modifier,
+    /** A word of the translation, tapped; null while there is no translation to tap. */
+    onWordTap: ((String) -> Unit)? = null,
+) {
     val kb = LocalKbTheme.current
     val translate = state.translate
     RevealedText(
@@ -704,6 +764,7 @@ private fun TranslateText(state: KeyboardUiState, animate: Boolean, modifier: Mo
         modifier = modifier
             .padding(vertical = 4.dp)
             .verticalScroll(rememberScrollState()),
+        onWordTap = onWordTap,
     )
 }
 
@@ -723,8 +784,12 @@ private fun RevealedText(
     fontSize: TextUnit,
     animate: Boolean,
     modifier: Modifier,
+    /** The word under a tap, for a text whose words look themselves up (#1085). */
+    onWordTap: ((String) -> Unit)? = null,
 ) {
     var settled by remember { mutableStateOf(text) }
+    var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
+    val wordTap by rememberUpdatedState(onWordTap)
     val keep = remember(text) { if (animate) revealStart(settled, text) else text.length }
     val fade = remember(text) { Animatable(if (keep < text.length) 0f else 1f) }
     LaunchedEffect(text) {
@@ -740,7 +805,23 @@ private fun RevealedText(
             withStyle(SpanStyle(color = color.copy(alpha = color.alpha * p))) { append(text, keep, text.length) }
         }
     }
-    Text(text = shown, color = color, fontSize = fontSize, modifier = modifier)
+    Text(
+        text = shown,
+        color = color,
+        fontSize = fontSize,
+        onTextLayout = { layout = it },
+        modifier = if (onWordTap == null) {
+            modifier
+        } else {
+            modifier.pointerInput(text) {
+                detectTapGestures { position ->
+                    val laid = layout?.takeIf { it.layoutInput.text.text == text } ?: return@detectTapGestures
+                    val span = CaretText.wordSpanAt(text, laid.getOffsetForPosition(position)) ?: return@detectTapGestures
+                    wordTap?.invoke(text.substring(span.first, span.last + 1))
+                }
+            }
+        },
+    )
 }
 
 /**

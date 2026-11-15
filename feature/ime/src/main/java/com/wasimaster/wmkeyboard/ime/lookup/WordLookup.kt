@@ -128,6 +128,58 @@ object WordLookup {
     }
 }
 
+/**
+ * The word the Dictionary and Translate tools open on when nothing is
+ * selected (#1085): the word the caret touches, or with the caret just after
+ * one and a space ("this ⌶"), that word. Never the word to the right across a
+ * space: that is the next word, not the one just typed.
+ */
+object CaretWord {
+
+    /** [word], at [start] until [end] counted from the caret: negative is before it. */
+    data class Span(val word: String, val start: Int, val end: Int)
+
+    /** Longer than any word worth looking up; a run past it is a URL or a hash. */
+    const val MAX_LENGTH = 40
+
+    /** Edges a word may have in the text but not in the look-up ('tis, -ness). */
+    private const val EDGES = "'’-"
+
+    /** The word around the caret, from the text just [before] and [after] it; null for none. */
+    fun at(before: String, after: String): Span? {
+        val back = before.takeLastWhile(::isWordChar)
+        val forward = after.takeWhile(::isWordChar)
+        span(back + forward, -back.length)?.let { return it }
+        // Spaces or tabs, not a line break: a word on the line above is not the one just typed.
+        val gap = before.takeLastWhile { it == ' ' || it == '\t' || it == '\u00A0' }
+        if (gap.isEmpty() || forward.isNotEmpty()) return null
+        val left = before.dropLast(gap.length).takeLastWhile(::isWordChar)
+        return span(left, -(gap.length + left.length))
+    }
+
+    /** A selection as a look-up: trimmed, and only when it reads as a word or a short phrase. */
+    fun clean(raw: String): String? {
+        val word = raw.trim().trim('\'', '’', '-', '“', '”', '"')
+        return word.takeIf { it.isNotEmpty() && it.length <= MAX_LENGTH && it.any(Char::isLetter) }
+    }
+
+    private fun span(raw: String, rawStart: Int): Span? {
+        val lead = raw.indexOfFirst { it !in EDGES }
+        if (lead < 0) return null
+        val trail = raw.indexOfLast { it !in EDGES }
+        val word = raw.substring(lead, trail + 1)
+        if (word.length > MAX_LENGTH || word.none(Char::isLetter)) return null
+        return Span(word, rawStart + lead, rawStart + trail + 1)
+    }
+
+    /** Letters in any script, the marks that sit on them (Indic vowel signs), apostrophes and hyphens. */
+    private fun isWordChar(c: Char): Boolean {
+        if (c.isLetter() || c in EDGES) return true
+        val type = Character.getType(c)
+        return type == Character.NON_SPACING_MARK.toInt() || type == Character.COMBINING_SPACING_MARK.toInt()
+    }
+}
+
 /** How the keyboard opens the Look up card (#765); the activity lives in `:app`. */
 object LookupLaunch {
     const val ACTIVITY = "com.wasimaster.wmkeyboard.app.LookupActivity"

@@ -74,6 +74,38 @@ class OfflineDictionariesTest {
     }
 
     @Test
+    fun `a phrase is one headword and its first word may be inflected`() {
+        installText(
+            pack(
+                "wiktionary",
+                listOf(
+                    "take\t\t\t" + sense("verb", "to grasp"),
+                    "take off\t\t\t" + sense("verb", "to leave the ground"),
+                    "take on\t\t\t" + sense("verb", "to accept"),
+                    "take over\t\t\t" + sense("verb", "to assume control"),
+                    "took\t@take",
+                    "faux pas\t\t\t" + sense("noun", "a blunder"),
+                ),
+            ),
+            name = "wiktionary.wmdict.gz",
+        )
+        // An empty headword field is the key itself.
+        assertEquals("faux pas", OfflineDictionaries.lookup("wiktionary", " Faux  pas ").single().word)
+        assertEquals("to leave the ground", OfflineDictionaries.lookup("wiktionary", "took off").single().meanings[0].definitions[0].text)
+        assertEquals("take off", OfflineDictionaries.lookup("wiktionary", "taking off").single().word)
+        assertEquals(listOf("take", "take on", "take off", "take over"), OfflineDictionaries.complete("tak"))
+        assertEquals(listOf("take on", "take off", "take over"), OfflineDictionaries.complete("take o"))
+        assertTrue(OfflineDictionaries.complete("t").isEmpty())
+    }
+
+    @Test
+    fun `a pack from an older build is outdated`() {
+        installText(pack("wiktionary", listOf()).replace("#name\tTest\n", "#name\tTest\n#source\told\n"), name = "wiktionary.wmdict.gz")
+        assertTrue(OfflineDictionaries.isOutdated(filesDir, OfflineDictionaryCatalog.WIKTIONARY))
+        assertFalse(OfflineDictionaries.isOutdated(filesDir, OfflineDictionaryCatalog.OEWN))
+    }
+
+    @Test
     fun `a language pack keeps its redirects but not the English rules`() {
         installText(pack("de_wiktionary"), name = "de_wiktionary.wmdict.gz")
         assertEquals("mouse", OfflineDictionaries.lookup("de_wiktionary", "mice").single().word)

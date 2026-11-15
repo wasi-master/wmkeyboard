@@ -656,7 +656,9 @@ private class SelectionHighlightNode(
  * [ask] names where the text came from for Ask AI, which is offered only
  * with one, and the whole of [text] travels with the selection as its
  * paragraph. [onTap] is the text's own tap, which a selection being up takes
- * instead, to let go of it.
+ * instead, to let go of it. [onWordTap], when given, takes the tap in its
+ * place with the word under the finger (#1085: a word in a definition looks
+ * that word up); a tap on no word still goes to [onTap].
  */
 @Composable
 internal fun SelectableText(
@@ -675,8 +677,10 @@ internal fun SelectableText(
      */
     quote: ((String) -> String)? = null,
     onTap: (() -> Unit)? = null,
+    onWordTap: ((String) -> Unit)? = null,
 ) = SelectableText(
     AnnotatedString(text), color, fontSize, modifier, lineHeight, fontWeight, fontStyle, fontFamily, ask, quote, onTap,
+    onWordTap = onWordTap,
 )
 
 /**
@@ -699,6 +703,7 @@ internal fun SelectableText(
     onTap: (() -> Unit)? = null,
     /** Inline formulas (#811) drawn in the text's placeholders; a selection takes their plain text. */
     inlineContent: Map<String, InlineTextContent> = emptyMap(),
+    onWordTap: ((String) -> Unit)? = null,
 ) {
     val text = styled.text
     val kb = LocalKbTheme.current
@@ -711,6 +716,7 @@ internal fun SelectableText(
     // the one the selection was made in.
     var selection by remember(text) { mutableStateOf<IntRange?>(null) }
     val tapAction by rememberUpdatedState(onTap)
+    val wordTapAction by rememberUpdatedState(onWordTap)
     val layoutOf = remember(text) { { layoutState.value?.takeIf { it.layoutInput.text.text == text } } }
     val current = selection
     val start = current?.first ?: 0
@@ -744,8 +750,21 @@ internal fun SelectableText(
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         selection = span
                     },
-                    onTap = {
-                        if (selection != null) selection = null else tapAction?.invoke()
+                    onTap = { position ->
+                        val wordTap = wordTapAction
+                        val word = if (selection == null && wordTap != null) {
+                            layoutState.value?.takeIf { it.layoutInput.text.text == text }?.let { layout ->
+                                val offset = layout.getOffsetForPosition(position).coerceIn(0, text.length)
+                                CaretText.wordSpanAt(text, offset)?.let { text.substring(it.first, it.last + 1) }
+                            }
+                        } else {
+                            null
+                        }
+                        when {
+                            selection != null -> selection = null
+                            word != null -> wordTap?.invoke(word)
+                            else -> tapAction?.invoke()
+                        }
                     },
                 )
             },

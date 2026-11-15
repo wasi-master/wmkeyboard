@@ -57,7 +57,7 @@ it.
 | Web search | `api.search.brave.com` | your search query | only when you submit a search, never as you type |
 | Image search | `api.search.brave.com` | your search query | same (submit only) |
 | Camera, search by photo | `lens.google.com`, `www.bing.com`, `yandex.com` or `tineye.com`, whichever Tools / Camera / Search site names, or your own server for Custom | the photo, scaled to at most 1280 px | only when you press Search on a photo with Search with set to Web. The default, Google Lens, and the share sheet hand the photo to another app and send nothing from the keyboard |
-| Dictionary | `kaikki.org`, `en.wiktionary.org`, `api.dictionaryapi.dev`, `api.urbandictionary.com` if you turn it on, in the order set under Tools / Dictionary / Dictionary sources | one English word: your selection, or the word at the cursor | on panel open, if "Look up the word at the cursor" is on (the default); also on manual search. A source is asked only when the ones before it had no entry or could not be reached. Installed vocabulary packs are read on the device first, and send nothing; so are the offline dictionaries, wherever they sit in the list |
+| Dictionary | `kaikki.org`, `en.wiktionary.org`, `api.dictionaryapi.dev`, `api.urbandictionary.com` if you turn it on, in the order set under Tools / Dictionary / Dictionary sources | one word or short phrase: your selection, or the word at or just before the cursor | on panel open, if "Look up the word at the cursor" is on (the default); also on manual search. A source is asked only when the ones before it had no entry or could not be reached. Installed vocabulary packs are read on the device first, and send nothing; so are the offline dictionaries, wherever they sit in the list |
 | Recorded pronunciations | `en.wiktionary.org` for the list of recordings, `upload.wikimedia.org` for the audio, and `apifree.forvo.com` only if you added a Forvo key | the word, and its language for Forvo | only when you tap an entry's speaker in the Dictionary tool or the Look up card, with **Recorded pronunciations** on (the default). A recording already kept on the phone is played without asking |
 | Synonyms | `api.datamuse.com`, `kaikki.org`, `api.dictionaryapi.dev`, in the order set under Typing / Suggestions / Synonym sources | one English word: the word you held on the suggestion strip | only when you tap Synonyms in the word menu, and a source is asked only when the ones before it had nothing. Installed vocabulary packs are read on the phone first, and send nothing |
 | Wikipedia | `wikipedia.org` | your search text or an article title | only when you search or open an article, never on panel open |
@@ -472,11 +472,13 @@ place.
 - **Coin prices are fetched lazily.** Cryptocurrency is on by default, but
   the coin source is only asked when you actually type a coin amount or pick
   a coin on the panel. If you never do, your keyboard never talks to it.
-- **Only one tool reads your field rather than its own search box.**
+- **Only two tools read your field rather than their own search box.**
   Translate, Wikipedia and both search tools send what you type into the
   panel, and nothing else: the translate panel is its own window and never
-  looks at the field behind it. Dictionary is the exception, reading the
-  selected or cursor word when auto-lookup is on.
+  looks at the field behind it, unless you turn on **Translate the word at
+  the cursor**, which puts that one word in its box as it opens. Dictionary
+  is the other exception, reading the selected or cursor word when
+  auto-lookup is on.
 - **Addon repository manifests aren't fetched proactively.** Seeding the two
   pre-added references doesn't contact them. A manifest only downloads when
   you actually open or refresh the Addons screen, which is also the visit

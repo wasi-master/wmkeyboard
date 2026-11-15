@@ -200,13 +200,42 @@ object DictionaryLookup {
             }
             answered = true
             if (source.online) onlineAnswered = true
-            if (entries.isNotEmpty()) return Result.Found(entries, source)
+            if (entries.isNotEmpty()) {
+                return Result.Found(entries + otherLanguages(trimmed, source, entries, sources, fetch), source)
+            }
         }
         return when {
             !answered -> Result.Failed
             onlineFailed && !onlineAnswered -> Result.NotOnDevice
             else -> Result.NotFound
         }
+    }
+
+    /**
+     * The same spelling in the other languages' packs on the device (#1085),
+     * after an answer from [answered]: "motte" is an English word and a German
+     * one, "Gift" a present in English and poison in German. Only when the
+     * language packs are one of [sources] the user left on and did not answer
+     * already, and only entries whose language is not one [found] has.
+     * Nothing when they cannot be read.
+     */
+    private suspend fun otherLanguages(
+        word: String,
+        answered: DictionarySource,
+        found: List<DictEntry>,
+        sources: List<DictionarySource>,
+        fetch: Fetch,
+    ): List<DictEntry> {
+        if (answered == DictionarySource.OFFLINE_LANGUAGES || DictionarySource.OFFLINE_LANGUAGES !in sources) return emptyList()
+        val extra = try {
+            withContext(Dispatchers.IO) { fetch.entries(DictionarySource.OFFLINE_LANGUAGES, word) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            return emptyList()
+        }
+        val have = found.map { it.language.ifEmpty { "en" } }.toSet()
+        return extra.filter { it.language.isNotEmpty() && it.language !in have }
     }
 
     /**

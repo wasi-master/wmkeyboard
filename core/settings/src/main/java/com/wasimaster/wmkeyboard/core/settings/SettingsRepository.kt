@@ -939,6 +939,13 @@ data class TranslateSettings(
      * the tool on the words, as it always did.
      */
     val hintReplaces: Boolean = false,
+    /**
+     * Opening Translate with nothing selected puts the word at the caret in
+     * its box and translates it (#1085): the word the caret touches, or the
+     * one just before it across spaces ("this ⌶"). Off by default: the panel
+     * opens on its empty box, and nothing from the field is read.
+     */
+    val wordAtCaret: Boolean = false,
     /** DeepL, the user's own opt-in service (see [DeepLSettings]). Issue #331. */
     val deepl: DeepLSettings = DeepLSettings(),
     /** A translation server the user runs (see [TranslateServerSettings]). Issue #435. */
@@ -13732,6 +13739,7 @@ class SettingsRepository(private val context: Context) {
         private val TRANSLATE_ONLY_DOWNLOADED = booleanPreferencesKey("translate_only_downloaded")
         private val TRANSLATE_CLEAR_ON_INSERT = booleanPreferencesKey("translate_clear_on_insert")
         private val TRANSLATE_MANUAL = booleanPreferencesKey("translate_manual")
+        private val TRANSLATE_WORD_AT_CARET = booleanPreferencesKey("translate_word_at_caret")
         private val TRANSLATE_LIVE_DELAY_MS = intPreferencesKey("translate_live_delay_ms")
         private val TRANSLATE_HINT_REPLACES = booleanPreferencesKey("translate_hint_replaces")
         private val DEEPL_API_KEY = stringPreferencesKey("deepl_api_key")
@@ -16587,6 +16595,7 @@ class SettingsRepository(private val context: Context) {
             liveDelayMs = (p[TRANSLATE_LIVE_DELAY_MS] ?: defaults.translate.liveDelayMs)
                 .coerceIn(TRANSLATE_LIVE_DELAY_RANGE),
             hintReplaces = p[TRANSLATE_HINT_REPLACES] ?: defaults.translate.hintReplaces,
+            wordAtCaret = p[TRANSLATE_WORD_AT_CARET] ?: defaults.translate.wordAtCaret,
             deepl = DeepLSettings(
                 apiKey = p[DEEPL_API_KEY] ?: defaults.translate.deepl.apiKey,
                 endpoint = p[DEEPL_ENDPOINT] ?: defaults.translate.deepl.endpoint,
@@ -26071,6 +26080,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setTranslateHintReplaces(value: Boolean) =
         editPrefs { it[TRANSLATE_HINT_REPLACES] = value }
+
+    suspend fun setTranslateWordAtCaret(value: Boolean) =
+        editPrefs { it[TRANSLATE_WORD_AT_CARET] = value }
 
     suspend fun setDeepLApiKey(value: String) =
         editPrefs { it[DEEPL_API_KEY] = value.trim() }

@@ -224,7 +224,7 @@
 
     <!-- Dictionary tool. -->
     <string name="tooldetail_dictionary_auto_title">Look up the word at the cursor</string>
-    <string name="tooldetail_dictionary_auto_subtitle">The tool searches the selected word or the current word when it opens</string>
+    <string name="tooldetail_dictionary_auto_subtitle">The tool searches the selected word, or the word at the cursor or just before it, when it opens</string>
     <string name="tooldetail_dictionary_translations_group">Translations</string>
     <string name="tooldetail_dictionary_translations_info">Translations come from Wiktionary. When the word was found in Wiktionary, its translations come on the same page, so nothing more is sent. When another source found the word, the tool asks Wiktionary for the translations as well, but only if Wiktionary is on in the dictionary sources.</string>
     <string name="tooldetail_dictionary_translations_title">Show translations</string>
@@ -249,9 +249,11 @@
     <string name="tooldetail_dictionary_imported_import_title">Import a dictionary</string>
     <string name="tooldetail_dictionary_imported_import_subtitle">A Yomichan or Yomitan dictionary zip, or a StarDict dictionary in a zip or tar. A large one takes some minutes.</string>
     <string name="tooldetail_dictionary_imported_link">Yomitan dictionaries</string>
-    <string name="tooldetail_dictionary_offline_info">Whole English dictionaries kept on the phone, so the Dictionary tool can define ordinary words with no connection, and in the build without internet access. The vocabulary packs know only their own lists\' words. Once one is here, the source list above asks it wherever you put it; by default after the online sources, so it answers when they cannot be reached. Wiktionary, offline, is Wiktionary\'s common words with pronunciation (CC BY-SA 4.0). Open English WordNet has every single English word in WordNet, with shorter definitions (CC BY 4.0).</string>
+    <string name="tooldetail_dictionary_offline_info">Whole English dictionaries kept on the phone, so the Dictionary tool can define ordinary words with no connection, and in the build without internet access. The vocabulary packs know only their own lists\' words. Once one is here, the source list above asks it wherever you put it; by default after the online sources, so it answers when they cannot be reached. Wiktionary, offline, is every English word and phrase in Wiktionary, idioms and hyphenated words included, with pronunciation (CC BY-SA 4.0). Open English WordNet has every single English word in WordNet, with shorter definitions (CC BY 4.0).</string>
     <string name="tooldetail_dictionary_offline_available">%1$s download, %2$s</string>
     <string name="tooldetail_dictionary_offline_installed">On this device, %1$s, %2$s</string>
+    <string name="tooldetail_dictionary_offline_outdated">On this device, %1$s. A newer version is out: download it to replace this one</string>
+    <string name="tooldetail_dictionary_offline_update_desc">Update %1$s</string>
     <string name="tooldetail_dictionary_offline_downloading">Downloading, %1$s of %2$s</string>
     <string name="tooldetail_dictionary_offline_queued">Waiting for the other download</string>
     <string name="tooldetail_dictionary_offline_failed_not_a_pack">The file downloaded is not this dictionary. Try again later.</string>
@@ -528,6 +530,8 @@
     <string name="tooldetail_translate_downloaded_first_subtitle">The language lists on the panel start with the languages on the device. With On device and Automatic.</string>
     <string name="tooldetail_translate_clear_on_insert_title">Clear after inserting</string>
     <string name="tooldetail_translate_clear_on_insert_subtitle">Insert empties the box and its translation, so you can type the next message straight away</string>
+    <string name="tooldetail_translate_word_at_caret_title">Translate the word at the cursor</string>
+    <string name="tooldetail_translate_word_at_caret_subtitle">With nothing selected, the tool translates the word at the cursor or just before it when it opens</string>
     <string name="tooldetail_translate_manual_title">Translate only when asked</string>
     <string name="tooldetail_translate_manual_subtitle">Nothing is sent while you type. Tap Translate to translate the text once</string>
     <string name="tooldetail_translate_manual_info">For a provider with a request limit or a cost per request, such as an AI service on a free plan. Editing the text, or changing its language or provider, dims the translation instead of sending it again; it can still be inserted.</string>

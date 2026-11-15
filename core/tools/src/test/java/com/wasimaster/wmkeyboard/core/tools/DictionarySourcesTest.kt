@@ -132,6 +132,20 @@ class DictionarySourcesTest {
     }
 
     @Test
+    fun `the same spelling in a language pack follows an English answer`() = runBlocking {
+        val german = DictEntry("Motte", "", null, found.single().meanings, language = "de")
+        val english = found.single().copy(word = "motte", language = "en")
+        val sources = listOf(DictionarySource.OFFLINE_WIKTIONARY, DictionarySource.OFFLINE_LANGUAGES)
+        val result = DictionaryLookup.resolve("motte", sources) { source, _ ->
+            if (source == DictionarySource.OFFLINE_LANGUAGES) listOf(german) else listOf(english)
+        }
+        assertEquals(DictionaryLookup.Result.Found(listOf(english, german), DictionarySource.OFFLINE_WIKTIONARY), result)
+        // Language packs switched off: only the English entry.
+        val alone = DictionaryLookup.resolve("motte", listOf(DictionarySource.OFFLINE_WIKTIONARY)) { _, _ -> listOf(english) }
+        assertEquals(DictionaryLookup.Result.Found(listOf(english), DictionarySource.OFFLINE_WIKTIONARY), alone)
+    }
+
+    @Test
     fun `lookup tells no entry from nothing reached`() = runBlocking {
         val sources = listOf(DictionarySource.WIKTIONARY, DictionarySource.DICTIONARY_API)
         assertEquals(

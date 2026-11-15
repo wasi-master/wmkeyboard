@@ -380,6 +380,8 @@ fun KeyboardSettings.underPowerSaving(): KeyboardSettings {
             scanner
         },
         dictionaryAutoLookup = if (ps.dropBackgroundNetwork) false else dictionaryAutoLookup,
+        // The same unasked look-up, in Translate (#1085).
+        translate = if (ps.dropBackgroundNetwork) translate.copy(wordAtCaret = false) else translate,
         typingStatsEnabled = if (ps.dropTypingStats) false else typingStatsEnabled,
         mediaControl = if (ps.dropMediaPin) {
             mediaControl.copy(pinWhilePlaying = false)

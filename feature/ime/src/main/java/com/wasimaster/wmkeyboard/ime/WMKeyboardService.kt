@@ -148,6 +148,8 @@ import com.wasimaster.wmkeyboard.core.xlit.IndicXlit
 import com.wasimaster.wmkeyboard.core.xlit.IndicXlitLatinDownloads
 import com.wasimaster.wmkeyboard.core.xlit.IndicXlitModels
 import com.wasimaster.wmkeyboard.core.semantic.MeaningSync
+import com.wasimaster.wmkeyboard.ime.lookup.CaretWord
+import com.wasimaster.wmkeyboard.ime.lookup.SearchCompletions
 import com.wasimaster.wmkeyboard.ime.semantic.MeaningHits
 import com.wasimaster.wmkeyboard.ime.semantic.MeaningSearch
 import com.wasimaster.wmkeyboard.ime.semantic.MeaningSpace
@@ -14556,6 +14558,8 @@ open class WMKeyboardService : InputMethodService() {
                     PanelMode.EMOJI_MIX -> emojiMixTool.onQuery(text)
                     else -> scheduleMediaLiveSearch()
                 }
+                // Words and idioms the box could be heading for (#1085).
+                if (_uiState.value.toolUp(PanelMode.TRANSLATE)) SearchCompletions.translate(serviceScope, text)
             }
             CaptureTarget.DICTIONARY_SEARCH -> {
                 updateQuery { it.copy(dictionaryQuery = text) }
@@ -37170,6 +37174,7 @@ open class WMKeyboardService : InputMethodService() {
             PanelMode.TRANSLATE -> {
                 prefillTranslateFromHint()
                 prefillTranslateFromSelection()
+                prefillTranslateFromCaret()
             }
             PanelMode.PLUGINS -> if (!pluginReturnShown()) {
                 openPluginList()
@@ -47187,28 +47192,28 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
-    /** Selection first; else the run of word characters around the cursor. */
+    /**
+     * Selection first; else the word the caret touches, or the one just before
+     * it across spaces (#1085). Any script: the language packs and imported
+     * dictionaries define more than English now.
+     */
     private fun currentWordForLookup(): String? {
         val ic = currentInputConnection ?: return null
-        fun sanitize(raw: String): String? {
-            val word = raw.trim().trim('\'', '-', '“', '”', '"')
-            return word.takeIf {
-                it.isNotEmpty() && it.length <= 40 &&
-                    it.any(Char::isLetter) &&
-                    // The API is English-only; skip Bengali (or any
-                    // non-Latin) words instead of showing "not found".
-                    it.all { ch -> ch.code < 0x250 || ch == '’' }
-            }
-        }
-        ic.getSelectedText(0)?.toString()?.let { return sanitize(it) }
-        val before = ic.getTextBeforeCursor(48, 0)?.toString().orEmpty()
-        val after = ic.getTextAfterCursor(48, 0)?.toString().orEmpty()
-        fun isWordChar(c: Char) = c.isLetter() || c == '\'' || c == '’' || c == '-'
-        return sanitize(before.takeLastWhile(::isWordChar) + after.takeWhile(::isWordChar))
+        ic.getSelectedText(0)?.toString()?.takeIf { it.isNotEmpty() }?.let { return CaretWord.clean(it) }
+        return caretWordSpan()?.word
+    }
+
+    /** The word at or just before the caret, with where it sits around the caret; null for none. */
+    private fun caretWordSpan(): CaretWord.Span? {
+        val ic = currentInputConnection ?: return null
+        val before = ic.getTextBeforeCursor(CARET_WORD_READ, 0)?.toString().orEmpty()
+        val after = ic.getTextAfterCursor(CARET_WORD_READ, 0)?.toString().orEmpty()
+        return CaretWord.at(before, after)
     }
 
     fun onDictionaryLookup(rawWord: String) {
         dictionaryLiveJob?.cancel()
+        SearchCompletions.clearDictionary()
         lookUpWord(rawWord, live = false)
     }
 
@@ -47221,6 +47226,9 @@ open class WMKeyboardService : InputMethodService() {
     private fun scheduleLiveDictionaryLookup(text: String) {
         dictionaryLiveJob?.cancel()
         dictionaryJob?.cancel()
+        // The headwords the typing could be heading for (#1085), from the
+        // offline dictionaries: phrases and idioms are headwords too.
+        SearchCompletions.dictionary(serviceScope, text)
         val word = text.trim()
         if (word.isEmpty()) {
             _uiState.update { it.copy(dictionary = DictionaryUi.Idle) }
@@ -49932,7 +49940,25 @@ open class WMKeyboardService : InputMethodService() {
             onClear = ::onTranslateClear,
             onTranslate = ::onTranslateNow,
             onSpeak = ::onTranslateSpeak,
+            onSuggestion = ::onTranslateSuggestion,
+            // A word of the translation, tapped (#1085): the Dictionary on it.
+            onLookUp = ::onVocabFullDictionary,
         )
+    }
+
+    /**
+     * A suggestion under Translate's box, tapped (#1085): the phrase becomes
+     * the box's text and is translated, the keys put away so the result shows.
+     */
+    fun onTranslateSuggestion(phrase: String) {
+        vibrate()
+        SearchCompletions.clearTranslate()
+        _uiState.update { it.copy(mediaQuery = phrase, mediaSearchActive = false, mediaAction = null) }
+        if (_uiState.value.settings.translate.manual) {
+            scheduleTranslate(immediate = true, force = true, explicit = true)
+        } else {
+            runMediaSearch()
+        }
     }
 
     /**
@@ -49949,6 +49975,8 @@ open class WMKeyboardService : InputMethodService() {
     /** What [onTranslateClear] does, without its buzz: Insert has had one already. */
     private fun clearTranslateBox() {
         translateJob?.cancel()
+        translateCaretWord = null
+        SearchCompletions.clearTranslate()
         _uiState.update {
             it.copy(
                 mediaQuery = "",
@@ -50046,6 +50074,51 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * The word at the caret, when Translate opens with nothing selected and
+     * the setting asks for it (#1085): into the box and translated, the way a
+     * selection opens it. Replace then swaps that word for its translation,
+     * not the whole field ([translateCaretWord]).
+     */
+    private fun prefillTranslateFromCaret() {
+        translateCaretWord = null
+        val state = _uiState.value
+        if (!state.settings.translate.wordAtCaret || state.mediaQuery.isNotEmpty()) return
+        if (currentInputEditorInfo.isSecureField()) return
+        val span = caretWordSpan() ?: return
+        translateCaretWord = span
+        _uiState.update { it.copy(mediaQuery = span.word, translate = it.translate.copy(selection = "")) }
+        // Translate only when asked (#1226): the word waits in the box for the button.
+        if (!state.settings.translate.manual) runMediaSearch()
+    }
+
+    /** The caret word [prefillTranslateFromCaret] put in the box, for Replace; null once the box is another text. */
+    private var translateCaretWord: CaretWord.Span? = null
+
+    /**
+     * Replace on a box that still holds the caret word it opened on (#1085):
+     * that word, where it still stands around the caret, becomes the
+     * translation. False when the box or the field has moved on.
+     */
+    private fun replaceTranslateCaretWord(translated: String): Boolean {
+        val span = translateCaretWord ?: return false
+        if (_uiState.value.mediaQuery.trim() != span.word) return false
+        val ic = currentInputConnection ?: return false
+        val caret = expectedSelStart.takeIf { it >= 0 && it == expectedSelEnd } ?: return false
+        val before = ic.getTextBeforeCursor(CARET_WORD_READ, 0)?.toString().orEmpty()
+        val after = ic.getTextAfterCursor(CARET_WORD_READ, 0)?.toString().orEmpty()
+        if (CaretWord.at(before, after) != span) return false
+        ic.finishComposingText()
+        revision = null
+        composing = StringBuilder()
+        ic.beginBatchEdit()
+        ic.setSelection(caret + span.start, caret + span.end)
+        ic.commitText(translated, 1)
+        ic.endBatchEdit()
+        translateCaretWord = null
+        return true
+    }
+
+    /**
      * Replaces the whole field with the translation, or only the selection the
      * panel opened on while that is still what is selected (#434). A
      * selection that has gone since puts the translation in at the caret, as
@@ -50057,6 +50130,7 @@ open class WMKeyboardService : InputMethodService() {
         val translated = translate.translated
         if (translated.isEmpty()) return
         vibrate()
+        if (replaceTranslateCaretWord(translated)) return
         if (translate.selection.isNotEmpty()) {
             val now = runCatching { currentInputConnection?.getSelectedText(0)?.toString() }.getOrNull()
             if (now != null && now.trim() == translate.selection) {
@@ -64002,6 +64076,9 @@ private const val MAX_MACRO_SELECTION = 4000
 
 /** Pasted text longer than this is not read for Zawgyi: a long paste is rarely one encoding's mistake. */
 private const val MAX_ZAWGYI_PASTE = 4000
+
+/** Characters read on each side of the caret for the word the Dictionary and Translate open on (#1085). */
+private const val CARET_WORD_READ = 48
 
 /** Enough of the field for a syllable's signs and medials ([MyanmarVisualOrder]). */
 private const val MYANMAR_ORDER_CONTEXT = 12

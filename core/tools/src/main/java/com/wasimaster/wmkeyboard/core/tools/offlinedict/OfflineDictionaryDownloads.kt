@@ -33,7 +33,8 @@ object OfflineDictionaryDownloads {
         data object NotDownloaded : Status
         data object Queued : Status
         data class Downloading(val bytes: Long, val totalBytes: Long) : Status
-        data class Downloaded(val sizeBytes: Long) : Status
+        /** [outdated]: an older build of the pack, which a download replaces (#1085). */
+        data class Downloaded(val sizeBytes: Long, val outdated: Boolean = false) : Status
 
         /** [httpStatus] is the server's answer when it refused, 0 for a network or file failure. */
         data class Failed(val notAPack: Boolean, val httpStatus: Int = 0) : Status
@@ -61,7 +62,11 @@ object OfflineDictionaryDownloads {
                     status!!
                 } else {
                     val file = OfflineDictionaries.file(filesDir, pack.id)
-                    if (file.isFile) Status.Downloaded(file.length()) else status?.takeIf { it is Status.Failed } ?: Status.NotDownloaded
+                    if (file.isFile) {
+                        Status.Downloaded(file.length(), OfflineDictionaries.isOutdated(filesDir, pack))
+                    } else {
+                        status?.takeIf { it is Status.Failed } ?: Status.NotDownloaded
+                    }
                 }
             }
         }
@@ -127,7 +132,7 @@ object OfflineDictionaryDownloads {
         } catch (e: CancellationException) {
             netCall.fail(e)
             set(pack.id, if (OfflineDictionaries.isInstalled(filesDir, pack.id)) {
-                Status.Downloaded(OfflineDictionaries.file(filesDir, pack.id).length())
+                Status.Downloaded(OfflineDictionaries.file(filesDir, pack.id).length(), OfflineDictionaries.isOutdated(filesDir, pack))
             } else {
                 Status.NotDownloaded
             })
