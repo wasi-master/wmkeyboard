@@ -299,6 +299,15 @@ class AvroDesktop private constructor(
         }
 
         /**
+         * Desktop Avro's endings alone, romanized ending to its Bengali, out
+         * of `suffix.json` ([input]): what the main strip joins onto a known
+         * stem without loading the rest of the data.
+         */
+        fun readSuffixes(input: InputStream): Map<String, String> =
+            Json.parseToJsonElement(input.readBytes().decodeToString()).jsonObject
+                .getValue("suffixes").jsonObject.mapValues { it.value.jsonPrimitive.content }
+
+        /**
          * Reads the five files [open] names (`phonetic.json` and the rest of
          * `assets/avro/`) and, when there is one, the downloaded [dictionary].
          */

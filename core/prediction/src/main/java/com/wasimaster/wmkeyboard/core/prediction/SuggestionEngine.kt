@@ -5304,6 +5304,14 @@ class SuggestionEngine(
     var phoneticPicks: Map<String, String> = emptyMap()
 
     /**
+     * Desktop Avro's 737 endings, romanized ending to its Bengali, which the
+     * Bangla strip joins onto a known stem ([BengaliSuffixes.joinTable]).
+     * Set by the IME from `assets/avro/suffix.json`; empty joins nothing.
+     */
+    @Volatile
+    var bengaliEndings: Map<String, String> = emptyMap()
+
+    /**
      * The remembered pick for [composing] (Telegram group): it leads the list
      * and is what a space commits, until another pick from the list replaces
      * it. Never one the strip holds back.
@@ -5399,6 +5407,13 @@ class SuggestionEngine(
                     hasEnding = true
                     ordered.add(it)
                 }
+            // Desktop Avro's whole table of endings, vowel-initial ones joined
+            // with its য়/ত/ঙ seams: offered after the dictionary's words, but
+            // not settling the word the way the common endings above do, since
+            // a one-letter ending like `e` or `r` fits almost any spelling.
+            ordered.addAll(
+                BengaliSuffixes.joinTable(composing, bengaliEndings, { bengaliStemReading(backend, it) }, phonetic),
+            )
         }
         // The literal reading, then whatever else the rules think the spelling
         // could mean. For a scheme whose rules are never undecided (Avro) that

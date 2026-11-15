@@ -6485,6 +6485,7 @@ open class WMKeyboardService : InputMethodService() {
                 regionalAvoid = englishRegionalAvoid()
                 rankOffsets = wordRanks.snapshot()
                 phoneticPicks = phoneticPickStore.snapshot()
+                bengaliEndings = avroEndings
                 applyOffensiveWords(offensiveSet)
                 blockOffensiveWords = _uiState.value.settings.suggestionStrip.blockOffensiveWords
                 skipAllCapsAutocorrect = _uiState.value.settings.correction.skipAllCaps
@@ -18225,6 +18226,15 @@ open class WMKeyboardService : InputMethodService() {
         val allowed = !(saver.active && saver.settings.downloads.stopsBackgroundWork)
         if (!allowed) return
         serviceScope.launch(Dispatchers.IO) { KhiproSpecs.refreshIfDue(allowed = true) }
+    }
+
+    /**
+     * Desktop Avro's endings (`assets/avro/suffix.json`, 23 KB), which the
+     * Bangla strip joins onto known stems whether or not the candidate list
+     * is on. Read once, on the thread that first builds an engine.
+     */
+    private val avroEndings: Map<String, String> by lazy {
+        runCatching { assets.open("avro/suffix.json").use(AvroDesktop::readSuffixes) }.getOrDefault(emptyMap())
     }
 
     /** Desktop Avro's data while a Bangla candidate list is on; see [loadAvroDesktop]. */

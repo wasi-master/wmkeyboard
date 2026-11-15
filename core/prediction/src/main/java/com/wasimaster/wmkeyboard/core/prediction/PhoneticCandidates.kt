@@ -134,26 +134,11 @@ object PhoneticCandidates {
             bases.addAll(backend.index.lookup(base).take(SUFFIX_BASES))
             for (word in bases) {
                 if (word.isEmpty()) continue
-                out.add(join(word, suffix))
+                out.add(BengaliSuffixes.glue(word, suffix))
             }
         }
         return out
     }
-
-    private fun join(base: String, suffix: String): String {
-        val last = base.last()
-        return when {
-            isVowel(last) && isVowelSign(suffix.first()) -> base + YA + suffix
-            last == KHANDA_TA -> base.dropLast(1) + TA + suffix
-            last == ANUSVARA -> base.dropLast(1) + NGA + suffix
-            else -> base + suffix
-        }
-    }
-
-    private fun isVowelSign(c: Char): Boolean = c in "ািীুূৃৄেৈোৌ"
-
-    private fun isVowel(c: Char): Boolean =
-        isVowelSign(c) || c in "অআইঈউঊঋঌএঐওঔৡ"
 
     /** Plain edit distance, the measure Avro sorts its dictionary words by. */
     fun levenshtein(a: String, b: String): Int {
@@ -174,12 +159,6 @@ object PhoneticCandidates {
         }
         return previous[b.length]
     }
-
-    private const val YA = 'য়'
-    private const val KHANDA_TA = 'ৎ'
-    private const val TA = 'ত'
-    private const val ANUSVARA = 'ং'
-    private const val NGA = 'ঙ'
 
     /**
      * The endings read off a word to find its base, by language, in the

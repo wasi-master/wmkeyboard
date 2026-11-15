@@ -61,6 +61,41 @@ class BengaliSuffixesTest {
         assertTrue(join("bondhu").isEmpty())
     }
 
+    /** A slice of desktop Avro's endings table. */
+    private val table = mapOf(
+        "e" to "\u09c7", "er" to "\u09c7\u09b0", "r" to "\u09b0", "i" to "\u0987",
+        "te" to "\u09a4\u09c7", "ra" to "\u09b0\u09be",
+    )
+
+    private val tableStems = mapOf(
+        "rajshahi" to "রাজশাহী",
+        "baba" to "বাবা",
+        "hothat" to "হঠাৎ",
+        "rong" to "রং",
+        "chele" to "ছেলে",
+    )
+
+    private fun joinTable(roman: String, literal: String = ""): List<String> =
+        BengaliSuffixes.joinTable(roman, table, tableStems::get, literal)
+
+    @Test
+    fun tableJoinsWithAvrosSeams() {
+        assertEquals(listOf("রাজশাহীতে"), joinTable("rajshahite"))
+        // A vowel before a vowel sign takes য় (U+09DF) between them.
+        assertEquals(listOf("বাবা\u09df\u09c7\u09b0"), joinTable("babaer"))
+        // ৎ opens up to ত, ং closes to ঙ.
+        assertEquals(listOf("হঠাতই"), joinTable("hothati"))
+        assertEquals(listOf("রঙের"), joinTable("ronger"))
+        assertEquals(listOf("ছেলেরা"), joinTable("chelera"))
+    }
+
+    @Test
+    fun tableLeavesOutTheLiteralAndUnknownStems() {
+        assertTrue(joinTable("chelera", literal = "ছেলেরা").isEmpty())
+        assertTrue(joinTable("xyzer").isEmpty())
+        assertTrue(BengaliSuffixes.joinTable("babaer", emptyMap(), tableStems::get, "").isEmpty())
+    }
+
     @Test
     fun declinesWhenNothingIsLeftBeforeTheEnding() {
         // The ending with too short a stem in front of it is not a plural.
