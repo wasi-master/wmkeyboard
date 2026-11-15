@@ -126,6 +126,7 @@ internal object SettingsRoutes {
         "appearance/toolbox",
         "layout",
         "layout/size",
+        "layout/size/{variant}",
         "layout/onehanded",
         "layout/panels",
         "fonts",

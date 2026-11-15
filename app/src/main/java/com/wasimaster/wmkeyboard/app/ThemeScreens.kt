@@ -2372,9 +2372,13 @@ fun ThemesScreen(
     }
     // After the built-ins, where someone who has looked through everything the
     // app ships with is standing.
+    // One row for getting more (#43), as Layout & size has (#1318): the
+    // community repository is one of the stores the add-on screen lists, so
+    // a second row for it only split the same catalogue in two.
     SettingsGroup {
-        item { AddonStoreRow(AddonType.Theme, onNavigate) }
-        item { CommunityAddonsRow(AddonType.Theme, onNavigate) }
+        item {
+            AddonStoreRow(AddonType.Theme, onNavigate, subtitle = stringResource(R.string.theme_get_more_subtitle))
+        }
     }
     Spacer(Modifier.height(24.dp))
 

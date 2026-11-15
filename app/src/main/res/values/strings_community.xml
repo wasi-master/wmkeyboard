@@ -38,6 +38,7 @@
     <string name="layout_community_title">Community layouts</string>
     <string name="layout_community_subtitle">Layouts other people made and shared</string>
     <string name="layout_get_more_subtitle">From the add-on and community repositories</string>
+    <string name="theme_get_more_subtitle">From the add-on and community repositories, where other people share theirs</string>
     <string name="addon_based_on">Remix of <xliff:g id="original" example="Night Owl">%1$s</xliff:g></string>
     <string name="community_publish_kind_icon_pack">icon pack</string>
     <string name="community_publish_kind_stickers">sticker pack</string>

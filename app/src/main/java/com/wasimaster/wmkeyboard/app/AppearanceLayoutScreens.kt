@@ -2026,12 +2026,12 @@ internal fun LayoutSettings(
 internal fun LayoutSizeSettings(
     repository: SettingsRepository,
     settings: LiveSettings,
+    onNavigate: (String) -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
     val dpFormat = stringResource(R.string.typing_value_dp)
     val percentFormat = stringResource(R.string.typing_value_percent)
     val multiplierFormat = stringResource(R.string.keypress_value_multiplier)
-    var expandedVariant by remember { mutableStateOf<ScreenVariant?>(null) }
     // What the keyboard uses while bottom padding is unset (#343). Read off
     // this screen's own insets, which carry the same kind of navigation bar.
     val autoBottomPadding = autoBottomPaddingDp(gestureBarAtBottom())
@@ -2063,23 +2063,6 @@ internal fun LayoutSizeSettings(
             SettingsDefaults.layoutBehavior.bottomRowHeightDp ||
             s.layoutBehavior.fullWidthBars != SettingsDefaults.layoutBehavior.fullWidthBars ||
             s.toolbarHeightDp != SettingsDefaults.toolbarHeightDp
-    }
-    // Only the expanded screen shape draws its rows, so only its values
-    // decide which of them are there.
-    val shapeNumberRow = settings.watch { s ->
-        expandedVariant?.let { s.sizingValuesFor(it).numberRow } ?: s.numberRow
-    }
-    val shapeNarrowed = settings.watch { s ->
-        (expandedVariant?.let { s.sizingValuesFor(it).keyboardWidthPercent } ?: s.keyboardWidthPercent) < 100
-    }
-    val shapeKeysNarrowed = settings.watch { s ->
-        val v = expandedVariant?.let { s.sizingValuesFor(it) }
-        ((v?.keyboardWidthPercent ?: s.keyboardWidthPercent) < 100) ||
-            (v?.sidePadLeftScale ?: s.layoutBehavior.sidePadLeftScale) > 0f ||
-            (v?.sidePadRightScale ?: s.layoutBehavior.sidePadRightScale) > 0f
-    }
-    val shapeOverridden = settings.watch { s ->
-        expandedVariant?.let { s.sizingOverrides[it] }?.let { !it.isEmpty } == true
     }
     val preview = LocalKeyboardPreview.current
     SettingsGroup(stringResource(R.string.layout_size_position_title)) {
@@ -2375,190 +2358,230 @@ internal fun LayoutSizeSettings(
                     },
                     icon = SettingsRowIcons[variant.labelRes],
                     onClick = {
-                        expandedVariant = if (expandedVariant == variant) null else variant
+                        onNavigate("$VARIANT_SIZE_ROUTE_PREFIX${variant.name.lowercase()}")
                     },
                 )
             }
-            if (expandedVariant == variant) {
-                item {
-                    SliderSetting(
-                        R.string.layout_keyboard_scale_title,
-                        subtitle = stringResource(R.string.layout_keyboard_scale_subtitle),
-                        value = settings.watch { it.sizingValuesFor(variant).keyboardScale } ?: 1f,
-                        range = 0.5f..1.5f,
-                        display = { percentFormat.format((it * 100).toInt()) },
-                    ) { scope.launch { repository.setVariantKeyboardScale(variant, it) } }
+        }
+    }
+}
+
+/** Where one screen shape's sizes live: `layout/size/landscape` and so on. */
+internal const val VARIANT_SIZE_ROUTE_PREFIX = "layout/size/"
+
+/** The screen shape a `layout/size/{variant}` route names; null for portrait or an unknown name. */
+internal fun sizeVariantOf(segment: String?): ScreenVariant? =
+    ScreenVariant.entries.firstOrNull { it.isOverride && it.name.equals(segment, ignoreCase = true) }
+
+/**
+ * One screen shape's own sizes (#43): a page of its own, opened from
+ * Per-screen sizing, instead of rows that unfolded inside the size page and
+ * pushed everything under them down. Each value left alone follows portrait.
+ */
+@Composable
+internal fun LayoutVariantSizeSettings(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+    variant: ScreenVariant,
+) {
+    val scope = rememberCoroutineScope()
+    val dpFormat = stringResource(R.string.typing_value_dp)
+    val percentFormat = stringResource(R.string.typing_value_percent)
+    val multiplierFormat = stringResource(R.string.keypress_value_multiplier)
+    val autoBottomPadding = autoBottomPaddingDp(gestureBarAtBottom())
+    // This shape's own values decide which rows are there.
+    val shapeNumberRow = settings.watch { s -> s.sizingValuesFor(variant).numberRow ?: s.numberRow }
+    val shapeNarrowed = settings.watch { s ->
+        (s.sizingValuesFor(variant).keyboardWidthPercent ?: s.keyboardWidthPercent) < 100
+    }
+    val shapeKeysNarrowed = settings.watch { s ->
+        val v = s.sizingValuesFor(variant)
+        ((v.keyboardWidthPercent ?: s.keyboardWidthPercent) < 100) ||
+            (v.sidePadLeftScale ?: s.layoutBehavior.sidePadLeftScale) > 0f ||
+            (v.sidePadRightScale ?: s.layoutBehavior.sidePadRightScale) > 0f
+    }
+    val shapeOverridden = settings.watch { s -> s.sizingOverrides[variant]?.let { !it.isEmpty } == true }
+    SettingsGroup(
+        stringResource(R.string.layout_size_position_title),
+        info = stringResource(R.string.layout_per_screen_caption),
+    ) {
+        item {
+            SliderSetting(
+                R.string.layout_keyboard_scale_title,
+                subtitle = stringResource(R.string.layout_keyboard_scale_subtitle),
+                value = settings.watch { it.sizingValuesFor(variant).keyboardScale } ?: 1f,
+                range = 0.5f..1.5f,
+                display = { percentFormat.format((it * 100).toInt()) },
+            ) { scope.launch { repository.setVariantKeyboardScale(variant, it) } }
+        }
+        item {
+            SliderSetting(
+                R.string.layout_key_height_title,
+                value = settings.watch { it.sizingValuesFor(variant).keyHeightDp ?: it.keyHeightDp }
+                    .toFloat(),
+                range = 32f..100f,
+                display = { dpFormat.format(it.toInt()) },
+            ) { scope.launch { repository.setVariantKeyHeightDp(variant, it.toInt()) } }
+        }
+        // The variant may turn the number row on or off for itself,
+        // and that override is what decides whether the row is drawn
+        // on this screen shape — so it, not the global switch, is what
+        // makes the height mean something here.
+        item(visible = shapeNumberRow, level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.layout_number_row_height_title,
+                value = settings.watch {
+                    it.sizingValuesFor(variant).numberRowHeightDp ?: it.numberRowHeightDp
+                }.toFloat(),
+                range = 32f..100f,
+                display = { dpFormat.format(it.toInt()) },
+            ) {
+                scope.launch {
+                    repository.setVariantNumberRowHeightDp(variant, it.toInt())
                 }
-                item {
-                    SliderSetting(
-                        R.string.layout_key_height_title,
-                        value = settings.watch { it.sizingValuesFor(variant).keyHeightDp ?: it.keyHeightDp }
-                            .toFloat(),
-                        range = 32f..100f,
-                        display = { dpFormat.format(it.toInt()) },
-                    ) { scope.launch { repository.setVariantKeyHeightDp(variant, it.toInt()) } }
-                }
-                // The variant may turn the number row on or off for itself,
-                // and that override is what decides whether the row is drawn
-                // on this screen shape — so it, not the global switch, is what
-                // makes the height mean something here.
-                item(visible = shapeNumberRow, level = SettingLevel.ADVANCED) {
-                    SliderSetting(
-                        R.string.layout_number_row_height_title,
-                        value = settings.watch {
-                            it.sizingValuesFor(variant).numberRowHeightDp ?: it.numberRowHeightDp
-                        }.toFloat(),
-                        range = 32f..100f,
-                        display = { dpFormat.format(it.toInt()) },
-                    ) {
-                        scope.launch {
-                            repository.setVariantNumberRowHeightDp(variant, it.toInt())
-                        }
-                    }
-                }
-                item(level = SettingLevel.STANDARD) {
-                    SliderSetting(
-                        R.string.layout_bottom_padding_title,
-                        value = (
-                            settings.watch { it.sizingValuesFor(variant).bottomPaddingDp ?: it.bottomPaddingDp }
-                                ?: autoBottomPadding
-                            ).toFloat(),
-                        range = 0f..SettingsRepository.MAX_BOTTOM_PADDING_DP.toFloat(),
-                        display = { dpFormat.format(it.toInt()) },
-                    ) { scope.launch { repository.setVariantBottomPaddingDp(variant, it.toInt()) } }
-                }
-                item(level = SettingLevel.STANDARD) {
-                    SliderSetting(
-                        R.string.layout_keyboard_width_title,
-                        value = settings.watch {
-                            it.sizingValuesFor(variant).keyboardWidthPercent ?: it.keyboardWidthPercent
-                        }.toFloat(),
-                        range = 50f..100f,
-                        display = { percentFormat.format(it.toInt()) },
-                    ) { scope.launch { repository.setVariantWidthPercent(variant, it.toInt()) } }
-                }
-                item(visible = shapeKeysNarrowed, level = SettingLevel.STANDARD) {
-                    ToggleSetting(
-                        R.string.layout_full_width_bars_title,
-                        stringResource(R.string.layout_full_width_bars_subtitle),
-                        settings.watch {
-                            it.sizingValuesFor(variant).fullWidthBars ?: it.layoutBehavior.fullWidthBars
-                        },
-                    ) { scope.launch { repository.setVariantFullWidthBars(variant, it) } }
-                }
-                item(level = SettingLevel.ADVANCED) {
-                    SliderSetting(
-                        R.string.layout_toolbar_height_title,
-                        value = settings.watch {
-                            it.sizingValuesFor(variant).toolbarHeightDp ?: it.toolbarHeightDp
-                        }.toFloat(),
-                        range = ToolbarHeightRange.first.toFloat()..ToolbarHeightRange.last.toFloat(),
-                        display = { dpFormat.format(it.toInt()) },
-                    ) { scope.launch { repository.setVariantToolbarHeightDp(variant, it.toInt()) } }
-                }
-                item {
-                    SliderSetting(
-                        R.string.layout_font_size_title,
-                        value = settings.watch { it.sizingValuesFor(variant).fontScale ?: it.fontScale },
-                        range = KeyFontScaleRange,
-                        display = { multiplierFormat.format(it) },
-                    ) { scope.launch { repository.setVariantFontScale(variant, it) } }
-                }
-                item(level = SettingLevel.STANDARD) {
-                    SliderSetting(
-                        R.string.layout_key_spacing_title,
-                        value = settings.watch { it.sizingValuesFor(variant).keyGapScale ?: it.keyGapScale },
-                        range = 0f..2f,
-                        display = { percentFormat.format((it * 100).toInt()) },
-                    ) { scope.launch { repository.setVariantKeyGapScale(variant, it) } }
-                }
-                item(level = SettingLevel.ADVANCED) {
-                    SliderSetting(
-                        R.string.layout_side_padding_left_title,
-                        value = settings.watch {
-                            it.sizingValuesFor(variant).sidePadLeftScale ?: it.layoutBehavior.sidePadLeftScale
-                        },
-                        range = SidePadScaleRange,
-                        display = { percentFormat.format((it * 100).toInt()) },
-                    ) { scope.launch { repository.setVariantSidePadLeftScale(variant, it) } }
-                }
-                item(level = SettingLevel.ADVANCED) {
-                    SliderSetting(
-                        R.string.layout_side_padding_right_title,
-                        value = settings.watch {
-                            it.sizingValuesFor(variant).sidePadRightScale ?: it.layoutBehavior.sidePadRightScale
-                        },
-                        range = SidePadScaleRange,
-                        display = { percentFormat.format((it * 100).toInt()) },
-                    ) { scope.launch { repository.setVariantSidePadRightScale(variant, it) } }
-                }
-                item(level = SettingLevel.ADVANCED) {
-                    val followKeys = stringResource(R.string.layout_bottom_row_follow_keys_label)
-                    SliderSetting(
-                        R.string.layout_bottom_row_height_title,
-                        value = settings.watch {
-                            it.sizingValuesFor(variant).bottomRowHeightDp
-                                ?: it.layoutBehavior.bottomRowHeightDp
-                        }.toFloat(),
-                        range = 0f..BottomRowHeightRange.last.toFloat(),
-                        display = {
-                            if (it.toInt() == 0) followKeys else dpFormat.format(it.toInt())
-                        },
-                    ) {
-                        scope.launch { repository.setVariantBottomRowHeightDp(variant, it.toInt()) }
-                    }
-                }
-                item {
-                    // The one per-shape choice that is not a number. Landscape
-                    // has the least room for a sixth row and the most need for
-                    // the keys under it.
-                    ToggleSetting(
-                        R.string.layout_number_row_title,
-                        null,
-                        shapeNumberRow,
-                    ) { scope.launch { repository.setVariantNumberRow(variant, it) } }
-                }
-                // Gates on the two shared switches (#611), not switches of
-                // their own: the mode stays one setting, and this says whether
-                // the shape honours it. Unset, they show the shared rules
-                // ("Portrait only", "Split only on wide screens").
-                item {
-                    ToggleSetting(
-                        R.string.layout_variant_allow_one_handed_title,
-                        stringResource(R.string.layout_variant_allow_one_handed_subtitle),
-                        settings.watch { it.oneHandedAllowedOn(variant) },
-                    ) { scope.launch { repository.setVariantAllowOneHanded(variant, it) } }
-                }
-                item {
-                    ToggleSetting(
-                        R.string.layout_variant_allow_split_title,
-                        stringResource(R.string.layout_variant_allow_split_subtitle),
-                        settings.watch { it.splitAllowedOn(variant) },
-                    ) { scope.launch { repository.setVariantAllowSplit(variant, it) } }
-                }
-                item(visible = shapeNarrowed, level = SettingLevel.ADVANCED) {
-                    ChoiceSetting(
-                        title = R.string.layout_keyboard_position_title,
-                        options = KeyboardAlignment.entries.map { alignment ->
-                            alignment to stringResource(layoutAlignmentLabelRes(alignment))
-                        },
-                        selected = settings.watch {
-                            it.sizingValuesFor(variant).keyboardAlignment ?: it.keyboardAlignment
-                        },
-                    ) { scope.launch { repository.setVariantAlignment(variant, it) } }
-                }
-                if (shapeOverridden) {
-                    item {
-                        NavRow(
-                            R.string.layout_follow_portrait_title,
-                            stringResource(
-                                R.string.layout_follow_portrait_subtitle,
-                                stringResource(variant.labelRes),
-                            ),
-                            onClick = { scope.launch { repository.clearVariantSizing(variant) } },
-                        )
-                    }
-                }
+            }
+        }
+        item(level = SettingLevel.STANDARD) {
+            SliderSetting(
+                R.string.layout_bottom_padding_title,
+                value = (
+                    settings.watch { it.sizingValuesFor(variant).bottomPaddingDp ?: it.bottomPaddingDp }
+                        ?: autoBottomPadding
+                    ).toFloat(),
+                range = 0f..SettingsRepository.MAX_BOTTOM_PADDING_DP.toFloat(),
+                display = { dpFormat.format(it.toInt()) },
+            ) { scope.launch { repository.setVariantBottomPaddingDp(variant, it.toInt()) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            SliderSetting(
+                R.string.layout_keyboard_width_title,
+                value = settings.watch {
+                    it.sizingValuesFor(variant).keyboardWidthPercent ?: it.keyboardWidthPercent
+                }.toFloat(),
+                range = 50f..100f,
+                display = { percentFormat.format(it.toInt()) },
+            ) { scope.launch { repository.setVariantWidthPercent(variant, it.toInt()) } }
+        }
+        item(visible = shapeKeysNarrowed, level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.layout_full_width_bars_title,
+                stringResource(R.string.layout_full_width_bars_subtitle),
+                settings.watch {
+                    it.sizingValuesFor(variant).fullWidthBars ?: it.layoutBehavior.fullWidthBars
+                },
+            ) { scope.launch { repository.setVariantFullWidthBars(variant, it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.layout_toolbar_height_title,
+                value = settings.watch {
+                    it.sizingValuesFor(variant).toolbarHeightDp ?: it.toolbarHeightDp
+                }.toFloat(),
+                range = ToolbarHeightRange.first.toFloat()..ToolbarHeightRange.last.toFloat(),
+                display = { dpFormat.format(it.toInt()) },
+            ) { scope.launch { repository.setVariantToolbarHeightDp(variant, it.toInt()) } }
+        }
+        item {
+            SliderSetting(
+                R.string.layout_font_size_title,
+                value = settings.watch { it.sizingValuesFor(variant).fontScale ?: it.fontScale },
+                range = KeyFontScaleRange,
+                display = { multiplierFormat.format(it) },
+            ) { scope.launch { repository.setVariantFontScale(variant, it) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            SliderSetting(
+                R.string.layout_key_spacing_title,
+                value = settings.watch { it.sizingValuesFor(variant).keyGapScale ?: it.keyGapScale },
+                range = 0f..2f,
+                display = { percentFormat.format((it * 100).toInt()) },
+            ) { scope.launch { repository.setVariantKeyGapScale(variant, it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.layout_side_padding_left_title,
+                value = settings.watch {
+                    it.sizingValuesFor(variant).sidePadLeftScale ?: it.layoutBehavior.sidePadLeftScale
+                },
+                range = SidePadScaleRange,
+                display = { percentFormat.format((it * 100).toInt()) },
+            ) { scope.launch { repository.setVariantSidePadLeftScale(variant, it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.layout_side_padding_right_title,
+                value = settings.watch {
+                    it.sizingValuesFor(variant).sidePadRightScale ?: it.layoutBehavior.sidePadRightScale
+                },
+                range = SidePadScaleRange,
+                display = { percentFormat.format((it * 100).toInt()) },
+            ) { scope.launch { repository.setVariantSidePadRightScale(variant, it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            val followKeys = stringResource(R.string.layout_bottom_row_follow_keys_label)
+            SliderSetting(
+                R.string.layout_bottom_row_height_title,
+                value = settings.watch {
+                    it.sizingValuesFor(variant).bottomRowHeightDp
+                        ?: it.layoutBehavior.bottomRowHeightDp
+                }.toFloat(),
+                range = 0f..BottomRowHeightRange.last.toFloat(),
+                display = {
+                    if (it.toInt() == 0) followKeys else dpFormat.format(it.toInt())
+                },
+            ) {
+                scope.launch { repository.setVariantBottomRowHeightDp(variant, it.toInt()) }
+            }
+        }
+        item {
+            // The one per-shape choice that is not a number. Landscape
+            // has the least room for a sixth row and the most need for
+            // the keys under it.
+            ToggleSetting(
+                R.string.layout_number_row_title,
+                null,
+                shapeNumberRow,
+            ) { scope.launch { repository.setVariantNumberRow(variant, it) } }
+        }
+        // Gates on the two shared switches (#611), not switches of
+        // their own: the mode stays one setting, and this says whether
+        // the shape honours it. Unset, they show the shared rules
+        // ("Portrait only", "Split only on wide screens").
+        item {
+            ToggleSetting(
+                R.string.layout_variant_allow_one_handed_title,
+                stringResource(R.string.layout_variant_allow_one_handed_subtitle),
+                settings.watch { it.oneHandedAllowedOn(variant) },
+            ) { scope.launch { repository.setVariantAllowOneHanded(variant, it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.layout_variant_allow_split_title,
+                stringResource(R.string.layout_variant_allow_split_subtitle),
+                settings.watch { it.splitAllowedOn(variant) },
+            ) { scope.launch { repository.setVariantAllowSplit(variant, it) } }
+        }
+        item(visible = shapeNarrowed, level = SettingLevel.ADVANCED) {
+            ChoiceSetting(
+                title = R.string.layout_keyboard_position_title,
+                options = KeyboardAlignment.entries.map { alignment ->
+                    alignment to stringResource(layoutAlignmentLabelRes(alignment))
+                },
+                selected = settings.watch {
+                    it.sizingValuesFor(variant).keyboardAlignment ?: it.keyboardAlignment
+                },
+            ) { scope.launch { repository.setVariantAlignment(variant, it) } }
+        }
+        if (shapeOverridden) {
+            item {
+                NavRow(
+                    R.string.layout_follow_portrait_title,
+                    stringResource(
+                        R.string.layout_follow_portrait_subtitle,
+                        stringResource(variant.labelRes),
+                    ),
+                    onClick = { scope.launch { repository.clearVariantSizing(variant) } },
+                )
             }
         }
     }

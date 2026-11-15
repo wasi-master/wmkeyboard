@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -65,33 +66,41 @@ import kotlinx.coroutines.launch
 // ---- tools ----
 
 /**
- * Whether a tool's settings page offers anything beyond the enable switch —
- * drives the "has more settings" marker on the tools list. Kept as the
- * caption-only exceptions so a new tool with options is marked by default.
+ * The tools whose page offers more than its enable switch, for the "has more
+ * settings" mark on the tools list (#43). Derived, not kept by hand: a row on
+ * a tool's page is in the settings search index under `tool/<NAME>` (search
+ * has to find it), so the tools with such rows, beyond the tool's own entry,
+ * are the tools with options. The hand-kept list this replaces had drifted:
+ * it left the media controls unmarked though their page has three rows.
+ *
+ * Built off the main thread from the index the path strip already keeps for
+ * the process; empty until then, so the marks appear a moment after the
+ * screen does rather than holding it up.
  */
-/**
- * Whether the tool's detail page offers anything beyond the enable switch —
- * gates the "has more settings" affordance in the tools list. Keep in sync
- * with [ToolDetailSettings]'s `when`: a tool whose page is just the toggle
- * (or a caption) doesn't earn the icon.
- */
-private fun toolHasOptions(tool: ToolbarTool): Boolean = tool !in ToolsWithoutOptions
-/** Asked once per row on a screen of sixty, so it is not built per call. */
-private val ToolsWithoutOptions: Set<ToolbarTool> =
-    setOf(
-        ToolbarTool.SETTINGS,
-        // Quick toggles/panels, not tools with settings of their own —
-        // their options all live elsewhere (Appearance, Typing).
-        ToolbarTool.THEMES, ToolbarTool.SOUND_HAPTICS, ToolbarTool.ONE_HANDED,
-        // Just an enable toggle — the transport lives on the keyboard panel,
-        // there is nothing to configure here.
-        ToolbarTool.MEDIA_CONTROL,
-        // Everything it changes is a Layout slider; the tool is only the
-        // in-place way to drag them.
-        ToolbarTool.RESIZE,
-        // A shortcut, like Settings: its page only leads to the Statistics screen.
-        ToolbarTool.STATISTICS,
-    )
+internal object ToolOptionMarks {
+    private val marks = kotlinx.coroutines.flow.MutableStateFlow<Pair<String, Set<ToolbarTool>>?>(null)
+
+    @Composable
+    fun current(): Set<ToolbarTool> {
+        val res = LocalContext.current.resources
+        val locales = res.configuration.locales.toLanguageTags()
+        val held by marks.collectAsState()
+        LaunchedEffect(locales) {
+            if (marks.value?.first == locales) return@LaunchedEffect
+            val found = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { derive(CrumbSiblingIndex.of(res)) }
+            marks.value = locales to found
+        }
+        return held?.takeIf { it.first == locales }?.second.orEmpty()
+    }
+
+    /** The tools [index] files rows under, other than each tool's own entry. */
+    internal fun derive(index: List<SettingsSearchEntry>): Set<ToolbarTool> =
+        index.asSequence()
+            .filter { it.route.startsWith("tool/") && it.weight != EntryWeight.TOOL }
+            .mapNotNull { entry -> entry.tool ?: ToolbarTool.entries.firstOrNull { "tool/${it.name}" == entry.route } }
+            .toHashSet()
+}
+
 /**
  * The name of a tool on its settings screen, as a string resource the caller
  * resolves while it draws.
@@ -654,7 +663,7 @@ internal fun ToolRow(
             subtitleFlies = true,
             trailing = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (toolHasOptions(tool)) {
+                    if (tool in ToolOptionMarks.current()) {
                         Icon(
                             Icons.Outlined.Tune,
                             contentDescription = optionsDesc,

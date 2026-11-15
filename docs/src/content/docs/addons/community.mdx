@@ -7,7 +7,7 @@ sidebar:
 
 import SettingsPath from '@components/SettingsPath.astro';
 
-The community addon repository, [`wmkeyboard-community-addons`](https://github.com/wasi-master/wmkeyboard-community-addons) on GitHub, holds themes, layouts, icon packs, sticker packs, sound packs and snippet packs that people made and sent in. It is pre-added like the other two repositories, so what it holds shows up under Addons, and its themes and layouts also behind the **Community themes** and **Community layouts** rows. You can send your own from the app in a few taps. A GitHub account is the only requirement.
+The community addon repository, [`wmkeyboard-community-addons`](https://github.com/wasi-master/wmkeyboard-community-addons) on GitHub, holds themes, layouts, icon packs, sticker packs, sound packs and snippet packs that people made and sent in. It is pre-added like the other two repositories, so what it holds shows up under Addons, and its themes and layouts also behind the **Download more** rows on the Themes screen and on Layout & size. You can send your own from the app in a few taps. A GitHub account is the only requirement.
 
 ## Sending a theme
 
@@ -71,7 +71,7 @@ The repository's bot reads the issue within a minute or two. It checks the file 
 
 It then comments on the issue with a quick preview drawn from the file, and links to try it before anyone approves it: one opens the addon in the app, the other in the [web store](/addons/). The preview is the keyboard for a theme or layout, a grid of the icons for an icon pack and of the first 24 stickers for a sticker pack. Sound and snippet packs have nothing to draw, so their comment is the checks alone. For a theme or layout, a few minutes later the bot replaces that preview with a render of the real keyboard wearing it. If something needs fixing, the comment says what. Edit the issue and the checks run again.
 
-When a maintainer approves it, the bot adds it to the repository and closes the issue with a link to install it. It then appears under Addons for everyone, a layout among the others behind **Download more** on Layout & size, and a theme also under **Community themes**.
+When a maintainer approves it, the bot adds it to the repository and closes the issue with a link to install it. It then appears under Addons for everyone, a layout among the others behind **Download more** on Layout & size, and a theme among the others behind **Download more** on the Themes screen.
 
 ## Remixes
 
@@ -80,6 +80,6 @@ Only themes and layouts carry a remix credit. A theme or layout installed from a
 ## Details
 
 - GitHub leaves the **License** box on its form empty even though the app sends your choice, so pick it there again before you press Submit.
-- Removing the community repository from Addons works like removing the others: permanent, and the **Community themes** row then offers to add it back instead of opening it.
+- Removing the community repository from Addons works like removing the others: permanent. Add it back with its address from the Addons screen.
 - The issue is always filed on GitHub, even when the F-Droid build's Servers screen points the repository at a mirror.
 - Your theme's own id and any background file paths are never sent; the export already replaces them, and the app installs a published theme under a fresh id.

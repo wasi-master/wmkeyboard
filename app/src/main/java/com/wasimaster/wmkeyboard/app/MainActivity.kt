@@ -1766,7 +1766,24 @@ private fun SettingsNavGraph(
             ) {
                 LayoutSizeSettings(
                     repository, settings,
+                    onNavigate = { navController.navigate(it) },
                 )
+            }
+        }
+        composable("layout/size/{variant}") { backStackEntry ->
+            // A link may name portrait or nothing at all: those have no page
+            // of their own, so they land on the size page itself.
+            val variant = sizeVariantOf(backStackEntry.arguments?.getString("variant"))
+            SettingsScreen(
+                variant?.let { stringResource(it.labelRes) } ?: stringResource(R.string.layout_size_position_title),
+                { navController.popBackStack() },
+                route = "layout/size",
+            ) {
+                if (variant == null) {
+                    LayoutSizeSettings(repository, settings, onNavigate = { navController.navigate(it) })
+                } else {
+                    LayoutVariantSizeSettings(repository, settings, variant)
+                }
             }
         }
         composable("layout/panels") {

@@ -72,6 +72,8 @@
     <string name="storage_bundled_dicts_subtitle">Unpacked from the app. They come back when you next type.</string>
     <string name="storage_emoji_dicts_title">Emoji words</string>
     <string name="storage_emoji_dicts_subtitle">Emoji search words in your languages</string>
+    <string name="storage_handwriting_models_title">Handwriting models</string>
+    <string name="storage_handwriting_models_subtitle">What the Handwriting tool reads your strokes with. A deleted model downloads again the next time you write in that script.</string>
     <string name="storage_voice_models_title">Voice models</string>
     <string name="storage_voice_models_subtitle">Speech recognition that runs on your device</string>
     <string name="storage_glide_models_title">Glide models</string>

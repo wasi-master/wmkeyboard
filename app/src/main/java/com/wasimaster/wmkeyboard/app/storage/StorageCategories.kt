@@ -500,6 +500,26 @@ internal object StorageCategories {
                 VocabDownloadManager.refresh(env.roots.files)
             },
         ),
+        // The handwriting engine's models (#43): the stroke reader the
+        // Handwriting tool downloads, once per script. They fell under
+        // "Other app data" before, where nothing said what they were. The
+        // Chinese and Japanese stroke models are dictionary packs and stay
+        // with those.
+        StorageCategory(
+            id = "handwriting_models",
+            title = R.string.storage_handwriting_models_title,
+            subtitle = R.string.storage_handwriting_models_subtitle,
+            icon = Icons.Outlined.Gesture,
+            accent = Color(0xFF5C6BC0),
+            group = StorageGroup.DOWNLOADS,
+            danger = Danger.REDOWNLOAD,
+            manageRoute = "tool/HANDWRITING",
+            pathsOf = { listOf(File(it.files, "handwriting")) },
+            itemsOf = { env ->
+                val dir = File(env.roots.files, "handwriting")
+                dir.walkTopDown().filter { it.isFile }.map { env.namedItem(it) }.toList()
+            },
+        ),
         StorageCategory(
             id = "voice_models",
             title = R.string.storage_voice_models_title,
