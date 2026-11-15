@@ -20294,6 +20294,10 @@ open class WMKeyboardService : InputMethodService() {
      * nothing refreshed it after the mark: whether the toolbar came up was
      * left to whichever selection echo happened to rebuild the strip.
      */
+    /** [emojis] with the ones the user picks most brought forward; see [EmojiUsage.rankedByUse]. */
+    private fun emojiByUse(emojis: List<String>): List<String> =
+        if (::emojiUsage.isInitialized) emojiUsage.rankedByUse(emojis) else emojis
+
     private fun showSentenceOpeners() {
         if (composing.isNotEmpty() || previousWord != WordContext.SENTENCE_START) return
         val (words, emojis) = nextWordStrip()
@@ -25879,7 +25883,7 @@ open class WMKeyboardService : InputMethodService() {
         val shown = withRestWords(words, state)
         nextWordPages(engine, state, shown, before, before2, before3)
         return shown to if (state.settings.emojiPrediction) {
-            (emojis + triggerEmojiForPreviousWord()).distinct()
+            emojiByUse((emojis + triggerEmojiForPreviousWord()).distinct())
         } else {
             emptyList()
         }
@@ -30955,7 +30959,7 @@ open class WMKeyboardService : InputMethodService() {
                         } else {
                             typed
                         }
-                        emojiSuggester?.suggest(query, previousWord.orEmpty()).orEmpty()
+                        emojiSuggester?.suggest(query, previousWord.orEmpty()).orEmpty().let(::emojiByUse)
                     } else {
                         emptyList()
                     }

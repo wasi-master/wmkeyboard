@@ -95,4 +95,14 @@ class EmojiUsageTest {
         assertEquals(listOf("🎂"), u.recents())
         assertEquals(listOf("🎂", "😂"), u.frequents())
     }
+
+    @Test fun rankedByUseBringsTheUsedOnesForwardStably() {
+        val u = usage()
+        assertEquals(listOf("🐶", "🐕", "🦮"), u.rankedByUse(listOf("🐶", "🐕", "🦮")))
+        repeat(3) { u.record("🦮") }
+        u.record("🐕")
+        assertEquals(listOf("🦮", "🐕", "🐶"), u.rankedByUse(listOf("🐶", "🐕", "🦮")))
+        u.toggleFavourite("🐶")
+        assertEquals(listOf("🐶", "🦮", "🐕"), u.rankedByUse(listOf("🐶", "🐕", "🦮")))
+    }
 }

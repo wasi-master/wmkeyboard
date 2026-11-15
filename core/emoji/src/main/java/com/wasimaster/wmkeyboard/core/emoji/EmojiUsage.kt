@@ -56,6 +56,9 @@ class EmojiUsage(private val storageFile: File?) {
         const val MIN_RECENTS = 8
         const val MAX_RECENTS_CEILING = 96
         private const val MAX_FAVOURITES = 64
+
+        /** What a favourite counts as in [rankedByUse]: a handful of uses. */
+        private const val FAVOURITE_USES = 5
     }
 
     /**
@@ -126,6 +129,27 @@ class EmojiUsage(private val storageFile: File?) {
                 .map { it.key },
             limit,
         )
+
+    /**
+     * [candidates] with the ones you use most brought forward, the rest in
+     * the order given: the strip's emoji for a word ranked by your own picks
+     * rather than by the keyword list alone. A favourite counts as used often;
+     * a skin-tone variant counts for its base when it is the one you prefer.
+     * Stable, so two you never used keep the keyword list's order.
+     */
+    @Synchronized
+    fun rankedByUse(candidates: List<String>): List<String> {
+        if (candidates.size < 2 || (counts.isEmpty() && favourites.isEmpty())) return candidates
+        fun uses(emoji: String): Int {
+            val own = counts[emoji] ?: 0
+            val variant = variantPrefs[emoji]?.let { counts[it] } ?: 0
+            val favourite = if (emoji in favourites) FAVOURITE_USES else 0
+            return maxOf(own + variant, favourite)
+        }
+        return candidates.withIndex()
+            .sortedWith(compareByDescending<IndexedValue<String>> { uses(it.value) }.thenBy { it.index })
+            .map { it.value }
+    }
 
     private fun pinned(used: Sequence<String>, limit: Int): List<String> =
         (favourites.asSequence() + used.filter { it !in favourites })
