@@ -91,7 +91,7 @@ class SpellCheckerEngineTest {
         assertEquals("Donaudampfschiff", full.first())
         // A split is offered only where splits are.
         assertFalse(full.any { ' ' in it })
-        e.autocorrectSplits = true
+        e.autocorrectSplits = true; e.stripSplits = true
         assertTrue(
             e.suggest("Donaudampfschif", previousWord = null, spellSuggestions = true)
                 .any { it.equals("Donau dampfschif", ignoreCase = true) },

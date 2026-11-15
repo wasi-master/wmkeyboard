@@ -1113,6 +1113,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_timing_signal_title) { Icons.Outlined.Timer }
         put(R.string.typing_number_row_corrections_title) { Icons.Outlined.Pin }
         put(R.string.typing_autocorrect_splits_title) { Icons.Outlined.SpaceBar }
+        put(R.string.typing_strip_splits_title) { Icons.Outlined.SpaceBar }
         put(R.string.typing_language_detection_title) { Icons.Outlined.Translate }
         put(R.string.typing_language_detection_strength_title) { Icons.Outlined.Tune }
         put(R.string.typing_language_detection_by_app_title) { Icons.Outlined.Apps }

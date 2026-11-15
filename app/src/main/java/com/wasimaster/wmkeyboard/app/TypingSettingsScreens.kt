@@ -506,6 +506,17 @@ internal fun TypingCorrectionsSettings(
         // Not autocorrect's own: learning from fixes made by hand, the strip's
         // spelling, filtering and ranking, and language detection all work
         // with autocorrect off, so they stay on the page with it off (#1112).
+        // The strip's two-word splits have their own switch apart from
+        // "Add missing spaces" (#413).
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_strip_splits_title,
+                stringResource(R.string.typing_strip_splits_subtitle),
+                settings.watch { it.suggestionStrip.stripSplits },
+                info = stringResource(R.string.typing_strip_splits_info),
+                default = SettingsDefaults.suggestionStrip.stripSplits,
+            ) { scope.launch { repository.setStripSplits(it) } }
+        }
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.typing_undo_delete_chip_title,

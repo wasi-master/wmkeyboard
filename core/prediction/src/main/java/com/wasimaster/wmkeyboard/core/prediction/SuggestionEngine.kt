@@ -1074,6 +1074,13 @@ class SuggestionEngine(
     var autocorrectSplits: Boolean = false
 
     /**
+     * Whether [suggest] offers two-word splits on the strip, apart from
+     * [autocorrectSplits] (#413). Off by default for the same reason.
+     */
+    @Volatile
+    var stripSplits: Boolean = false
+
+    /**
      * When on, a composing word carrying exactly one digit may be corrected
      * by a same-length substitution at that digit ("as3" → "ase", a
      * number-row slip above the intended letter). Off by default: only the
@@ -3212,7 +3219,7 @@ class SuggestionEngine(
             FuzzyBeamSearch.COST_SUB_FAR
         checker.suggestions(composing, SPELL_SUGGESTIONS).forEachIndexed { i, spelling ->
             // A split ("Donau dampfschiff") only where the user wants splits offered at all.
-            if (' ' in spelling && !autocorrectSplits) return@forEachIndexed
+            if (' ' in spelling && !stripSplits) return@forEachIndexed
             val listed = rankedDictionaryScore(spelling.lowercase(), sources)
             val score = (if (listed.isFinite()) listed - FuzzyBeamSearch.COST_SUB_FAR else unlisted) -
                 i * SPELL_SUGGESTION_STEP
@@ -4288,11 +4295,10 @@ class SuggestionEngine(
             for (s in apps.complete(lower, limit)) {
                 merged.merge(s.word, flatScore(s.frequency, APP_WEIGHT), ::maxOf)
             }
-            // Offered only while the setting that applies them is on (#413):
-            // a user who turned "Add missing spaces" off did not want "his to"
-            // on the strip while typing "history" either, and the join the
-            // other way round is a different candidate that stays.
-            if (!spelled && autocorrectSplits) {
+            // Offered only while their own switch is on (#413), apart from
+            // "Add missing spaces", which decides what space does. The join
+            // the other way round is a different candidate that stays.
+            if (!spelled && stripSplits) {
                 for (split in splitCandidates(lower, touch)) {
                     // A letter tapped only half low reaches the strip on a
                     // pair the keyboard knows, the one it could be asked about.

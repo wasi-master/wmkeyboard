@@ -994,7 +994,7 @@ class SuggestionEngineTest {
         }
         // The strip offers splits only while "Add missing spaces" is on (#413).
         val e = SuggestionEngine(dictionary, BengaliPhoneticIndex(emptyList()), UserLexicon(null))
-            .apply { autocorrectSplits = true }
+            .apply { autocorrectSplits = true; stripSplits = true }
         assertEquals("of the", e.suggest("ofthe", previousWord = null).first())
         assertTrue("a lot" in e.suggest("alot", previousWord = null))
         // Capitalization pattern carries over the whole phrase.
@@ -1225,7 +1225,7 @@ class SuggestionEngineTest {
     @Test fun `stray spacebar-neighbour letter offers the split in the strip`() {
         val e = engine().apply {
             touchModel = KeyTouchModel(mapOf('b' to TouchPoint(5f, 3f)))
-            autocorrectSplits = true
+            autocorrectSplits = true; stripSplits = true
         }
         val low = List(9) { i -> if (i == 3) TouchPoint(5f, 3.4f) else null }
         val out = e.suggest("thebworld", previousWord = null, touch = low)
@@ -1235,7 +1235,7 @@ class SuggestionEngineTest {
     @Test fun `boundary letter far from the spacebar never reads as a space`() {
         val e = engine().apply {
             touchModel = KeyTouchModel(mapOf('x' to TouchPoint(2f, 3f)))
-            autocorrectSplits = true
+            autocorrectSplits = true; stripSplits = true
         }
         val low = List(9) { i -> if (i == 3) TouchPoint(2f, 3.4f) else null }
         val out = e.suggest("thexworld", previousWord = null, touch = low)
@@ -1252,7 +1252,7 @@ class SuggestionEngineTest {
             PackedTrie.of(listOf("that" to 10_203_742, "s" to 110_199, "a" to 14_484_562, "lot" to 200_000)),
             BengaliPhoneticIndex(emptyList()),
             UserLexicon(null),
-        ).apply { autocorrectSplits = true }
+        ).apply { autocorrectSplits = true; stripSplits = true }
         assertFalse("that s" in e.suggest("thats", previousWord = null))
         // Ordinary autocorrect still has its say — "thats" is one deletion
         // from "that" — but the split is not what it says.
@@ -1270,7 +1270,7 @@ class SuggestionEngineTest {
     /** Split autocorrect on, with "the world" typed often enough to vouch for itself. */
     private fun splitEngine(lexicon: UserLexicon = UserLexicon(null)): SuggestionEngine =
         engine(lexicon.apply { repeat(2) { learnBigram("the", "world") } })
-            .apply { autocorrectSplits = true }
+            .apply { autocorrectSplits = true; stripSplits = true }
 
     @Test fun `split autocorrect inserts the missed space`() {
         val e = splitEngine()
@@ -1283,7 +1283,7 @@ class SuggestionEngineTest {
         // Both halves listed is not enough: nearly any unlisted word breaks
         // into two listed fragments somewhere ("config" -> "con fig").
         val lexicon = UserLexicon(null)
-        val e = engine(lexicon).apply { autocorrectSplits = true }
+        val e = engine(lexicon).apply { autocorrectSplits = true; stripSplits = true }
         assertNull(e.shouldAutocorrect("theworld"))
         assertTrue("the world" in e.suggest("theworld", previousWord = null))
         // One sighting is what an applied-and-kept split leaves behind.
@@ -1305,7 +1305,7 @@ class SuggestionEngineTest {
     /** A bottom-row model: `b` sits at y = 3, the spacebar a row below it. */
     private fun bottomRowEngine(lexicon: UserLexicon = UserLexicon(null)): SuggestionEngine =
         engine(lexicon).apply {
-            autocorrectSplits = true
+            autocorrectSplits = true; stripSplits = true
             touchModel = KeyTouchModel(mapOf('b' to TouchPoint(5f, 3f)))
         }
 
@@ -1377,7 +1377,7 @@ class SuggestionEngineTest {
         val seeds = SeedBigrams.load("i want 78\nto the 92\n".byteInputStream())
         return SuggestionEngine(dictionary, BengaliPhoneticIndex(emptyList()), UserLexicon(null), seedBigrams = seeds)
             .apply {
-                autocorrectSplits = true
+                autocorrectSplits = true; stripSplits = true
                 touchModel = KeyTouchModel(qwertyCenters)
             }
     }
@@ -1418,7 +1418,7 @@ class SuggestionEngineTest {
     }
 
     @Test fun `single-word fix always outranks a split`() {
-        val e = engine().apply { autocorrectSplits = true }
+        val e = engine().apply { autocorrectSplits = true; stripSplits = true }
         assertEquals("world", e.shouldAutocorrect("wprld"))
     }
 
@@ -1530,7 +1530,7 @@ class SuggestionEngineTest {
     }
 
     @Test fun `known words are never split`() {
-        val e = engine().apply { autocorrectSplits = true }
+        val e = engine().apply { autocorrectSplits = true; stripSplits = true }
         assertNull(e.shouldAutocorrect("hello"))
     }
 

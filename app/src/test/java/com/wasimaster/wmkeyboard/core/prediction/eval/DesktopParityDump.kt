@@ -61,7 +61,7 @@ class DesktopParityDump {
                 .filter { it.isNotBlank() }
                 .map { id -> SecondaryDictionary(id, MappedTrie.open(File(dict, "$id/main.wmdict")) ?: error(id)) }
             fieldDetectionShift = SuggestionEngine.FIELD_SHIFT_BALANCED
-            autocorrectSplits = true
+            autocorrectSplits = true; stripSplits = true
             digitSlipCorrections = true
         }
         // The phone's Context rerank (on by default): PARITY_RERANK=1.

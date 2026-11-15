@@ -11672,6 +11672,13 @@ data class SuggestionStripSettings(
      */
     val autocorrectSplits: Boolean = true,
     /**
+     * Two-word splits offered on the strip ("his to" while typing "history"),
+     * apart from [autocorrectSplits], which decides whether space makes one
+     * (#413). A store from before it reads [autocorrectSplits]'s value, which
+     * used to decide both.
+     */
+    val stripSplits: Boolean = true,
+    /**
      * Languages that have turned the fixed-spelling map off, keyed by
      * [com.wasimaster.wmkeyboard.core.script.LanguageDef.id]. Absent means on,
      * so the map works out of the box and only an explicit opt-out disables it.
@@ -12615,6 +12622,7 @@ class SettingsRepository(private val context: Context) {
         private val NUMBER_ROW_CORRECTIONS = booleanPreferencesKey("number_row_corrections")
         private val NUMBER_PREDICTION = booleanPreferencesKey("number_prediction")
         private val AUTOCORRECT_SPLITS = booleanPreferencesKey("autocorrect_splits")
+        private val STRIP_SPLITS = booleanPreferencesKey("strip_splits")
         private val REGISTER_PRIORS = booleanPreferencesKey("register_priors")
         private val TIMING_SIGNAL_STRENGTH = floatPreferencesKey("timing_signal_strength")
         private val CONTACT_SUGGESTIONS = booleanPreferencesKey("contact_suggestions")
@@ -15670,6 +15678,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.suggestionStrip.numberPrediction,
             autocorrectSplits = p[AUTOCORRECT_SPLITS]
                 ?: defaults.suggestionStrip.autocorrectSplits,
+            stripSplits = p[STRIP_SPLITS] ?: p[AUTOCORRECT_SPLITS]
+                ?: defaults.suggestionStrip.stripSplits,
             spellingMapOffLangs = p[SPELLING_MAP_OFF_LANGS]
                 ?: defaults.suggestionStrip.spellingMapOffLangs,
             phoneticSiblingsOffLangs = p[PHONETIC_SIBLINGS_OFF_LANGS]
@@ -23001,6 +23011,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAutocorrectSplits(value: Boolean) =
         editPrefs { it[AUTOCORRECT_SPLITS] = value }
+
+    suspend fun setStripSplits(value: Boolean) =
+        editPrefs { it[STRIP_SPLITS] = value }
 
     suspend fun setAutoSpaceAfterSuggestion(value: Boolean) =
         editPrefs { it[AUTO_SPACE_AFTER_SUGGESTION] = value }

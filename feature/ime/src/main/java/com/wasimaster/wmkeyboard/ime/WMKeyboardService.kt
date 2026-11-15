@@ -5887,6 +5887,7 @@ open class WMKeyboardService : InputMethodService() {
                 // before the first trigger fires, not when a chip is drawn.
                 snippetStore.setMultiExpandMode(settings.suggestionStrip.snippetMultiExpand)
                 suggestionEngine?.autocorrectSplits = settings.suggestionStrip.autocorrectSplits
+                suggestionEngine?.stripSplits = settings.suggestionStrip.stripSplits
                 suggestionEngine?.digitSlipCorrections = digitSlipsOn(settings)
                 suggestionEngine?.apostropheFixes = settings.autoText.apostrophe
                 pushRegister(settings)
@@ -6480,6 +6481,7 @@ open class WMKeyboardService : InputMethodService() {
                 nextWordReach = _uiState.value.settings.suggestionStrip.nextWordReach()
                 lmStrength = _uiState.value.settings.suggestionStrip.lmStrength / 100.0
                 autocorrectSplits = _uiState.value.settings.suggestionStrip.autocorrectSplits
+                stripSplits = _uiState.value.settings.suggestionStrip.stripSplits
                 digitSlipCorrections = digitSlipsOn(_uiState.value.settings)
                 apostropheFixes = _uiState.value.settings.autoText.apostrophe
                 val lang = _uiState.value.language
