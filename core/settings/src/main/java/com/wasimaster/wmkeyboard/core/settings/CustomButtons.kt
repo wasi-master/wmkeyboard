@@ -86,6 +86,7 @@ enum class CustomToggle {
     KEY_POPUP,
     TOOLBAR_LABELS,
     REDUCE_MOTION,
+    SECOND_TOOLBAR,
     ;
 
     fun isOn(s: KeyboardSettings): Boolean = when (this) {
@@ -100,6 +101,7 @@ enum class CustomToggle {
         KEY_POPUP -> s.popup.enabled
         TOOLBAR_LABELS -> s.toolbarLabels
         REDUCE_MOTION -> s.reduceMotion
+        SECOND_TOOLBAR -> s.toolbarBehavior.secondRow
     }
 }
 
@@ -117,6 +119,7 @@ suspend fun SettingsRepository.setCustomToggle(toggle: CustomToggle, on: Boolean
         CustomToggle.KEY_POPUP -> setKeyPopup(on)
         CustomToggle.TOOLBAR_LABELS -> setToolbarLabels(on)
         CustomToggle.REDUCE_MOTION -> setReduceMotion(on)
+        CustomToggle.SECOND_TOOLBAR -> setSecondToolbar(on)
     }
 }
 

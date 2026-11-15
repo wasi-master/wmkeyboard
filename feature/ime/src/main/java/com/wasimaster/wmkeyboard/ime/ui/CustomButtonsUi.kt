@@ -62,6 +62,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Palette
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SmartButton
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Subtitles
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TableRows
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextIncrease
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TouchApp
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Vibration
@@ -134,6 +135,7 @@ fun customToggleIcon(toggle: CustomToggle): ImageVector = when (toggle) {
     CustomToggle.KEY_POPUP -> Icons.Outlined.TextIncrease
     CustomToggle.TOOLBAR_LABELS -> Icons.Outlined.Label
     CustomToggle.REDUCE_MOTION -> Icons.Outlined.MotionPhotosOff
+    CustomToggle.SECOND_TOOLBAR -> Icons.Outlined.TableRows
 }
 
 fun customPageIcon(page: CustomPage): ImageVector = when (page) {
@@ -164,6 +166,7 @@ fun customToggleLabelRes(toggle: CustomToggle): Int = when (toggle) {
     CustomToggle.KEY_POPUP -> R.string.ime_custom_toggle_key_popup
     CustomToggle.TOOLBAR_LABELS -> R.string.ime_custom_toggle_toolbar_labels
     CustomToggle.REDUCE_MOTION -> R.string.ime_custom_toggle_reduce_motion
+    CustomToggle.SECOND_TOOLBAR -> R.string.ime_custom_toggle_second_toolbar
 }
 
 @StringRes

@@ -17,6 +17,7 @@
     <string name="ime_custom_toggle_key_popup">Key popup</string>
     <string name="ime_custom_toggle_toolbar_labels">Toolbar names</string>
     <string name="ime_custom_toggle_reduce_motion">Reduce motion</string>
+    <string name="ime_custom_toggle_second_toolbar">Second toolbar</string>
 
     <!-- The settings pages a custom button can open. -->
     <string name="ime_custom_page_favourites">Favourites</string>
