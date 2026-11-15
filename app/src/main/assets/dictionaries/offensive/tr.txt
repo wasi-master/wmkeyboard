@@ -8,6 +8,10 @@
 # letters. The source lists also carry leetspeak and symbol obfuscations
 # ($h!t, 1mb3c1l3), which no word list holds and no suggestion can ever be,
 # so they are dropped rather than shipped and searched.
+#
+# Pruned for #979: everyday words among this language's 10,000 most
+# frequent (subtitle counts) were removed by hand; slurs, profanity and
+# vulgar slang stayed.
 agaçkakan
 akrotomofili
 am
@@ -44,17 +48,12 @@ boşalmak
 boşalmalar
 boşalmış
 boşalır
-budala
 canavarlik
 canavarlık
-cehennem
-cesaret
-cesur
 cimbom
 dallama
 dalyarak
 dangalak
-dik
 dikmek
 dildolar
 düğme
@@ -63,7 +62,6 @@ ensest
 ereksiyon
 esek
 esekler
-ezik
 fahise
 fahiseler
 fetiş
@@ -130,7 +128,6 @@ kizdiran
 kiç
 klitoris
 kolza
-kurmak
 kürtaj
 kürtajcı
 kürtajlar
@@ -138,7 +135,6 @@ kırlangıç
 kıç
 linç
 makat
-mastürbasyon
 mazosist
 mazoşist
 memeler
@@ -170,8 +166,6 @@ penetrasyon
 perisi
 pezevenk
 pic
-pislik
-pislikler
 pisuar
 piç
 popo
@@ -193,11 +187,9 @@ saksocularin
 saksocunun
 saksocuya
 saksocuyu
-salak
 sapıklık
 sarhos
 sehvet
-serseri
 sevismek
 sidik
 sik
@@ -231,7 +223,6 @@ tasaklari
 tasaklarin
 tasakta
 tasaktan
-tecavüz
 testis
 topuzu
 transeksüel
@@ -251,7 +242,6 @@ yaraklarin
 yarakta
 yaraktan
 yavsak
-yeah
 zenci
 zenciler
 zoofili
@@ -268,6 +258,5 @@ zoofili
 çingeneye
 çingeneyi
 çük
-öfkeli
 üretra
 ýbne

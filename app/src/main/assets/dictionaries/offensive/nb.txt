@@ -8,7 +8,10 @@
 # letters. The source lists also carry leetspeak and symbol obfuscations
 # ($h!t, 1mb3c1l3), which no word list holds and no suggestion can ever be,
 # so they are dropped rather than shipped and searched.
-abort
+#
+# Pruned for #979: everyday words among this language's 10,000 most
+# frequent (subtitle counts) were removed by hand; slurs, profanity and
+# vulgar slang stayed.
 aborter
 akrotomofili
 ambiseksualitet
@@ -30,7 +33,6 @@ ereksjon
 fallos
 fan
 fanken
-fattig
 felg
 fetisj
 fetta
@@ -97,13 +99,11 @@ pokker
 pornografi
 prostituert
 pungen
-rasende
 rasshull
 rasstapp
 ronkefjes
 rosett
 rottpung
-rykke
 ræva
 ræven
 s'dgurgler

@@ -8,6 +8,10 @@
 # letters. The source lists also carry leetspeak and symbol obfuscations
 # ($h!t, 1mb3c1l3), which no word list holds and no suggestion can ever be,
 # so they are dropped rather than shipped and searched.
+#
+# Pruned for #979: everyday words among this language's 10,000 most
+# frequent (subtitle counts) were removed by hand; slurs, profanity and
+# vulgar slang stayed.
 akrotomofilie
 ambisexualita
 ambisexuální
@@ -16,9 +20,7 @@ anální
 batich
 bestialita
 bestiální
-blbost
 bodnutí
-bordel
 bradavka
 buzerant
 buzna
@@ -30,7 +32,6 @@ chcát
 chtíč
 churak
 coura
-debil
 dement
 dildy
 dršťka
@@ -65,7 +66,6 @@ jebat
 ješitnost
 kadit
 klitoris
-knoflík
 knoflíky
 kobercovník
 kohout
@@ -76,21 +76,17 @@ kokot
 kokotina
 konečník
 koniomrd
-koule
 kout
-kouření
 kozy
 koòomrd
 koňomrd
 kraavo
-kretén
 kreténi
 kripl
 krvavý
 kunda
 kurva
 kuřbuřt
-křik
 lynčovat
 lynčování
 mamrd
@@ -107,9 +103,7 @@ mrdník
 nacista
 nacistický
 nadržený
-nahoru
 nasrat
-naštvaný
 negr
 negři
 nymfa
@@ -117,7 +111,6 @@ nymfomanie
 násilník
 odprejskni
 odvaha
-odvážný
 orgasmus
 orgasmy
 orgie
@@ -131,7 +124,6 @@ pedofilie
 pedofilní
 peecha
 peehat
-peklo
 pes-fucker
 piicha
 pikantní
@@ -140,7 +132,6 @@ piča
 pičovina
 pičus
 pochcat
-pohlaví
 polykat
 pornografie
 posrat
@@ -153,7 +144,6 @@ prdelka
 proniknout
 pronikání
 prostitutka
-prsa
 prt
 průser
 pyj
@@ -182,35 +172,29 @@ sraní
 sračka
 srát
 sráč
-synovec
 sát
 teplouš
 trhnout
 vagína
 varle
-vole
 voleh
 vybudovat
 vyjebat
 vypíčenec
 vysrat
-zadek
 zajebaný
 zasraný
 zasrat
 zatraceně
 zesrat
-zkazit
 zkurvený
 zkurvit
 zkurvysyn
 zmrd
 zmrdat
 znásilněn
-znásilnění
 zoofil
 zoofilie
-zpomalit
 zprcat
 zuřící
 zvrácenost

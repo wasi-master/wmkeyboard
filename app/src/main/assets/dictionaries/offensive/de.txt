@@ -8,11 +8,14 @@
 # letters. The source lists also carry leetspeak and symbol obfuscations
 # ($h!t, 1mb3c1l3), which no word list holds and no suggestion can ever be,
 # so they are dropped rather than shipped and searched.
+#
+# Pruned for #979: everyday words among this language's 10,000 most
+# frequent (subtitle counts) were removed by hand; slurs, profanity and
+# vulgar slang stayed.
 aas
 aasgeier
 abdrehen
 abortuar
-abschaum
 abspritzen
 abticken
 abtreibende
@@ -54,7 +57,6 @@ arschlöcher
 arschmade
 auberfeiger
 aufgeilen
-aufrecht
 ausgestoßen
 aushilfsnasenbär
 ausstoßend
@@ -70,8 +72,6 @@ bettbrunza
 bimbo
 blasenbonze
 blödarsch
-blödmann
-blödsinn
 bohnenstange
 bonze
 bordel
@@ -80,11 +80,8 @@ bratze
 brillenschlange
 bruchbude
 brustwarze
-bulle
 bumsen
 bumslokal
-depp
-donnerwetter
 dorfmatratze
 dorftrampel
 dreck-sack
@@ -96,23 +93,18 @@ drecksgör
 dreckskerl
 drecksnest
 dummbatz
-dumme
-dummkopf
 dumpf-backe
 dumpfbacke
 duncauf
 dödel
 dösbaddel
-ecke
 egoismus
-eindringen
 ejakulation
 ejakulationen
 ejakulieren
 ekelfresse
 erarschen
 erektion
-feigling
 felgen
 fetisch
 fettarsch
@@ -131,7 +123,6 @@ fickschnitten
 filzlaus
 fischkopp
 flachwichser
-flasche
 fleischklops
 flittchen
 fotze
@@ -179,7 +170,6 @@ huren-sohn
 hurensohn
 hänfling
 hängebauchschwein
-idiot
 inzest
 inzestuös
 ische
@@ -197,23 +187,18 @@ kanake
 kimme
 klitoris
 klobesen
-klugscheißer
 knacker
 knalltüte
-knopf
-knöpfe
 korintenkacker
 korinthenkacker
 kot-nascher
 kotnascher
 kotzbrocken
-kotzen
 käsequanten
 kümmerling
 labertasche
 lahmarsch
 lellek
-lesbe
 lick
 lms
 lotterliese
@@ -234,7 +219,6 @@ masturbierend
 miefen
 milf
 missgeburt
-mist
 mistkerl
 miststück
 morgen-latte
@@ -248,7 +232,6 @@ mutterficker
 möpse
 möse
 mösen
-nackt
 nebelkrähe
 neger
 nepp
@@ -263,12 +246,9 @@ nymphe
 nymphomanie
 onanieren
 orgasmen
-orgasmus
 orgie
 orgien
 pansexuell
-penis
-penner
 perverser
 pestbaeule
 pferdearsch
@@ -277,7 +257,6 @@ piefkes
 pimmel
 pimmelberger
 pimpern
-pinkeln
 piss-nelke
 piss-nelken
 pisse
@@ -294,12 +273,10 @@ poppen
 porno
 pornografie
 proletensau
-prostituierte
 puff
 pädophiler
 pädophilie
 quacksalber
-quatsch
 randsteinschwalbe
 rassig
 reihern
@@ -315,11 +292,9 @@ sackratten
 sacktreter
 sadismus
 saftladen
-saufen
 saugen
 schabracke
 scheide
-schein
 scheiss
 scheissdreck
 scheisse
@@ -353,7 +328,6 @@ schweinepriester
 schwuchtel
 schwuchteln
 schwuchtl
-schwul
 schwuler
 schönling
 shaisa
@@ -366,16 +340,12 @@ spargel
 spargeltarzan
 spasti
 spießig
-spinnen
-spinner
-spinnst
 staßenstrich
 stinkfotze
 stinkstiefel
 sumpfgurke
 teppich-muncher
 teppichmuncher
-teufel
 tittchen
 titte
 titten
@@ -384,18 +354,10 @@ transen
 transuse
 trantüte
 tratschtante
-trottel
 tunte
 tunten
-tussi
-ungeheuer
 verarsche
-verdammt
-verdammter
-verfluchter
 vergewaltiger
-vergewaltigt
-vergewaltigung
 verpissen
 vielfraß
 voegeln
@@ -409,20 +371,17 @@ volltrottel
 vögeln
 wabbelbauch
 waschlappen
-weichei
 wichse
 wichsen
 wichser
 witzbold
 wurzelzwerk
-wütend
 x-bewertet
 xbewertet
 zicke
 zickig
 zimperliese
 zimtzicke
-zombie
 zoophil
 zoophilie
 ätzend

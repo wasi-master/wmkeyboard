@@ -8,7 +8,10 @@
 # letters. The source lists also carry leetspeak and symbol obfuscations
 # ($h!t, 1mb3c1l3), which no word list holds and no suggestion can ever be,
 # so they are dropped rather than shipped and searched.
-abort
+#
+# Pruned for #979: everyday words among this language's 10,000 most
+# frequent (subtitle counts) were removed by hand; slurs, profanity and
+# vulgar slang stayed.
 abortuär
 abortuärer
 abortör
@@ -21,14 +24,11 @@ arsle
 arslen
 attans
 avsugning
-bajs
 balle
 bestialisk
 bestialitet
 blatte
-blodig
 blygdläppar
-bollar
 bollväska
 brutta
 bröstvårta
@@ -46,7 +46,6 @@ ejakulerande
 ejakulerar
 erektion
 fallos
-fan
 fetisch
 finnjävel
 fita
@@ -57,7 +56,6 @@ fittslem
 fjolla
 fläns
 fälg
-förbannad
 fördämning
 hebefil
 hebefiler
@@ -67,7 +65,6 @@ hora
 horunge
 hund-fucker
 hämma
-hård
 incestuösa
 jarvla
 jugge
@@ -81,11 +78,8 @@ knullare
 kukhuvud
 kuksugare
 kuksås
-kulor
 kåt
 kåtbock
-kön
-körd
 kötthuvud
 köttnacke
 livmoder
@@ -95,10 +89,8 @@ lusta
 lyncha
 lynchning
 mammaknullare
-mes
 mesar
 miffo
-missfoster
 moderat
 mongo
 moona
@@ -127,28 +119,21 @@ pattar
 pedofil
 pedofili
 penetrera
-pervers
-pigg
 pippa
 pissluder
 pitt
 pornografi
 porr
-prostituerad
 prutt
-pucko
 pulla
 pung
 pök
-rasande
 rasse
 rattar
 rosett
-rumpa
 runka
 runkare
 runkhora
-ryck
 rycka
 röv
 rövhål
@@ -171,16 +156,10 @@ sodomiserad
 son-of-a-tik
 sosse
 spermier
-stake
-stick
-sticka
 stånga
 subba
-suga
-svälja
 sädesvätska
 särbarn
-sås
 tattare
 testikel
 tidelag
@@ -190,7 +169,6 @@ tomteporr
 tratthora
 träskluder
 tuppar
-tusan
 tuttar
 upprätt
 urinrör
@@ -198,9 +176,6 @@ urinväg
 utlösning
 utlösningar
 vrå
-våldta
-våldtagen
-våldtäkt
 våldtäktsman
 zigenare
 zoofil

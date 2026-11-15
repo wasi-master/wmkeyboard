@@ -8,6 +8,10 @@
 # letters. The source lists also carry leetspeak and symbol obfuscations
 # ($h!t, 1mb3c1l3), which no word list holds and no suggestion can ever be,
 # so they are dropped rather than shipped and searched.
+#
+# Pruned for #979: everyday words among this language's 10,000 most
+# frequent (subtitle counts) were removed by hand; slurs, profanity and
+# vulgar slang stayed.
 abortuar
 acrotomofilie
 ambisexualitate
@@ -16,11 +20,9 @@ avorturi
 balconar
 beli
 bestialitate
-bile
 bou
 bulangiu
 butoane
-buton
 cacă
 chec
 ciocănitoare
@@ -31,12 +33,9 @@ cocalar
 cocoș
 cocoș-fraier
 cocoșilor
-colț
 corupție
 corvoadă
-covor
 cur
-curaj
 curule
 curva
 curve
@@ -50,7 +49,6 @@ cățelele
 dement
 descreierat
 dildo-uri
-dorință
 dracului
 egoism
 ejacula
@@ -62,7 +60,6 @@ ejaculează
 ejaculări
 erecție
 escortă
-excitat
 exclama
 falus
 felatie
@@ -71,8 +68,6 @@ flanșă
 fofoloanca
 frisca
 fund-fucker
-fundurile
-furie
 fut
 futangiilor
 futu-i
@@ -82,9 +77,6 @@ gurist
 hebefil
 hebefili
 hebefilie
-iad
-idiot
-idiotule
 incestuoasă
 inpulit
 insurubare
@@ -107,7 +99,6 @@ masturbezi
 muist
 mârlan
 nazist
-negru
 nenorocit
 nenorocitule
 nimfomanie
@@ -122,8 +113,6 @@ panaramă
 pedofil
 pedofilie
 penetrare
-pervers
-pește
 pisată
 pizde
 pizdă
@@ -135,8 +124,6 @@ poponar
 poponari
 porcarie
 pornografie
-prost
-prostituată
 pulaman
 pulă
 păsărică
@@ -160,32 +147,24 @@ sodomie
 sodomizat
 spermatozoizi
 spermă
-suge
 sugi
 sângeros
-sânii
 tarfa
 testicul
 transexuali
 trăgea
 tzatze
-tâmpit
 uretra
 urinar
 uter
-vacă
-vagabond
 vagin
 vertical
-viol
-violat
 violator
 zdreanta
 zdreanță
 zoofil
 zoofilie
 îmbinare
-întârzia
 înțepătură
 țâțe
 șarlatan

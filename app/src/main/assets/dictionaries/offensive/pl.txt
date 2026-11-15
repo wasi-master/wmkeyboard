@@ -8,6 +8,10 @@
 # letters. The source lists also carry leetspeak and symbol obfuscations
 # ($h!t, 1mb3c1l3), which no word list holds and no suggestion can ever be,
 # so they are dropped rather than shipped and searched.
+#
+# Pruned for #979: everyday words among this language's 10,000 most
+# frequent (subtitle counts) were removed by hand; slurs, profanity and
+# vulgar slang stayed.
 aborcja
 aborcjonariusze
 aborcjonista
@@ -22,11 +26,9 @@ bestialstwa
 bestialstwo
 burdel
 burdelmama
-bzdury
 chichocząc
 chika
 chlapa
-cholerny
 chuja
 chujach
 chujami
@@ -425,7 +427,6 @@ dosrałybyśmy
 dosrałyście
 dosrałyśmy
 dosrań
-drań
 dup
 dupa
 dupach
@@ -585,7 +586,6 @@ dupć
 dupę
 dziwka
 dziwki
-dzwonek
 egoizm
 ejakulacja
 erekcja
@@ -599,7 +599,6 @@ gałki
 goovnoh
 gswno
 gwałciciel
-gwałt
 gówniany
 gówno
 hebefile
@@ -617,10 +616,8 @@ hujom
 hujowi
 huju
 hujów
-idiota
 jajco
 jajeczko
-jajko
 jajo
 jaskółka
 jeb
@@ -809,7 +806,6 @@ krwawy
 księżna
 kudły
 kulki
-kurde
 kurestwo
 kurew
 kurewce
@@ -4035,7 +4031,6 @@ obręcz
 odbyt
 odbytnica
 odwaga
-odważny
 opóźniać
 opóźnienie
 orgazm
@@ -4043,14 +4038,12 @@ orgazmy
 orgia
 orgie
 osły
-palant
 panseksualny
 papieros
 paruwa
 pedofil
 pedofilia
 perwersji
-piekło
 pieprzone
 pieprzony
 pieprzy
@@ -4062,7 +4055,6 @@ pierdolnąć
 pierdolony
 pierdoła
 pierdzieć
-piersi
 pipa
 pipka
 pisarz
@@ -4824,7 +4816,6 @@ przejebię
 przejebmy
 przejebmyż
 przejebże
-przeklęty
 przekurwione
 przenikliwość
 przeniknąć
@@ -6655,7 +6646,6 @@ trzęsidupom
 trzęsidupy
 trzęsidupą
 trzęsidupę
-tyłek
 udup
 udupcie
 udupcież
@@ -7289,7 +7279,6 @@ wkurwiłyśmy
 wkurwmy
 wkurwmyż
 wkurwże
-wkurza
 wpieprz
 wpieprza
 wpieprzacie
@@ -8129,7 +8118,6 @@ wysrań
 wytrysk
 wytryski
 wytrysku
-wściekły
 zad
 zadupi
 zadupia

@@ -8,7 +8,10 @@
 # letters. The source lists also carry leetspeak and symbol obfuscations
 # ($h!t, 1mb3c1l3), which no word list holds and no suggestion can ever be,
 # so they are dropped rather than shipped and searched.
-abort
+#
+# Pruned for #979: everyday words among this language's 10,000 most
+# frequent (subtitle counts) were removed by hand; slurs, profanity and
+# vulgar slang stayed.
 aborter
 abortist
 agger
@@ -17,15 +20,9 @@ ambiseksualitet
 ambiseksuel
 amboseksuel
 baby-kanon
-begær
 bestialitet
 bestialsk
-blodig
 blodskam
-bolde
-brian
-brokker
-bryster
 brystvorte
 bøsserøv
 dige
@@ -45,14 +42,12 @@ fisse
 fissehår
 fj's
 flis
-forbandede
 fælg
 hane
 haner
 hebefil
 hebefiler
 hebefili
-helvede
 hestepik
 hund-fucker
 incestuøse
@@ -60,15 +55,10 @@ jylland
 jyllandsk
 klaphat
 klitoris
-knapper
 knop
-ko
 kran
-krog
 kusse
 kussekryller
-køn
-liderlig
 livmoder
 lort
 lorte
@@ -80,13 +70,11 @@ nymfomani
 nynazistisk
 onanere
 onani
-orgasme
 orgasmer
 orgie
 orgier
 osteged
 panseksuel
-pervers
 pik
 pikansjos
 pikantilope
@@ -95,15 +83,11 @@ pikhår
 pikslugeri
 pikspiller
 piksutteri
-pokkers
 pornografi
 prikker
-prostitueret
 pungen
 pædofil
 pædofili
-rasende
-rejse
 roset
 rulletobak
 rumpe
@@ -119,18 +103,12 @@ skamlæber
 skide
 skider
 skiderik
-skrue
-sluge
-snuppe
 sodoma
 sodomi
 sodomiseret
 spjætte
 sprække
-sutte
-svans
 svensker
-sæd
 sædafgang
 sædafgange
 søn-of-a-bitch
@@ -138,14 +116,9 @@ testikel
 tudefj's
 tæve
 tæver
-tøs
 udbrød
-urin
 urinrøret
 vagabond
-voldtage
-voldtaget
-voldtægt
 voldtægtsforbryder
 voldtægtsmand
 zoofil
