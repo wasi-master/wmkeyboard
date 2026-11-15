@@ -143,15 +143,30 @@ object ShellAccess {
 
     val available: Boolean get() = kind() != ShellKind.NONE
 
-    /** Runs [command] as the shell (or root); null when no door is open or it failed to start. */
+    /** Whether root may stand in when Shizuku is granted but its service will not come up. */
+    private val rootBackup: Boolean get() = rootAllowed && suPresent
+
+    /**
+     * Runs [command] as the shell (or root); null when no door is open or it
+     * failed to start.
+     *
+     * Shizuku goes first, but when its user service never binds (seen with
+     * Shizuku forks such as Shizuku-next on a KernelSU phone) and the user
+     * has turned **Use root** on, the command goes through `su` instead of
+     * failing: before, root was never tried while Shizuku said "allowed", so
+     * every grant came back refused on a phone that had both.
+     */
     suspend fun exec(context: Context, command: String): ShellResult? = withContext(Dispatchers.IO) {
         when (kind()) {
             ShellKind.SHIZUKU -> runCatching { parse(userService(context)?.exec(command)) }.getOrNull()
-            ShellKind.ROOT -> withTimeoutOrNull(ROOT_TIMEOUT_MS) {
-                runCatching { parse(ShellUserService.runCommand(listOf("su", "-c", command))) }.getOrNull()
-            }
+                ?: if (rootBackup) execRoot(command) else null
+            ShellKind.ROOT -> execRoot(command)
             ShellKind.NONE -> null
         }
+    }
+
+    private suspend fun execRoot(command: String): ShellResult? = withTimeoutOrNull(ROOT_TIMEOUT_MS) {
+        runCatching { parse(ShellUserService.runCommand(listOf("su", "-c", command))) }.getOrNull()
     }
 
     /**
@@ -169,21 +184,23 @@ object ShellAccess {
                             android.os.ParcelFileDescriptor.AutoCloseInputStream(pfd).use { readCapped(it, maxBytes) }
                         }
                     }.getOrNull()
-                }
-                ShellKind.ROOT -> withTimeoutOrNull(ROOT_TIMEOUT_MS) {
-                    runCatching {
-                        val process = ProcessBuilder(listOf("su", "-c", command))
-                            .redirectError(ProcessBuilder.Redirect.to(java.io.File("/dev/null"))).start()
-                        try {
-                            process.inputStream.use { readCapped(it, maxBytes) }
-                        } finally {
-                            process.destroy()
-                        }
-                    }.getOrNull()
-                }
+                } ?: if (rootBackup && service.value == null) execRootBytes(command, maxBytes) else null
+                ShellKind.ROOT -> execRootBytes(command, maxBytes)
                 ShellKind.NONE -> null
             }
         }
+
+    private suspend fun execRootBytes(command: String, maxBytes: Int): ByteArray? = withTimeoutOrNull(ROOT_TIMEOUT_MS) {
+        runCatching {
+            val process = ProcessBuilder(listOf("su", "-c", command))
+                .redirectError(ProcessBuilder.Redirect.to(java.io.File("/dev/null"))).start()
+            try {
+                process.inputStream.use { readCapped(it, maxBytes) }
+            } finally {
+                process.destroy()
+            }
+        }.getOrNull()
+    }
 
     private fun readCapped(input: java.io.InputStream, maxBytes: Int): ByteArray? {
         val out = java.io.ByteArrayOutputStream()

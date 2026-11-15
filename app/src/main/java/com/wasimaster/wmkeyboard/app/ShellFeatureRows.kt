@@ -112,7 +112,25 @@ internal fun ShellFeaturesGroup(repository: SettingsRepository) {
                 value = if (missing == 0) stringResource(R.string.privacy_permissions_status_granted) else missing.toString(),
             ) {
                 if (missing == 0) return@NavRow
-                run { ShellGrants.grantRuntimePermissions(context)?.let { it > 0 } }
+                if (!ready) {
+                    report(null)
+                    return@NavRow
+                }
+                scope.launch {
+                    val outcome = ShellGrants.grantRuntimePermissions(context)
+                    if (outcome != null && outcome.granted in 1 until outcome.asked) {
+                        // Some went through: say how many, not a flat "Done"
+                        // that leaves the row's count unexplained.
+                        version++
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.shell_access_result_partial, outcome.granted, outcome.asked),
+                            Toast.LENGTH_LONG,
+                        ).show()
+                    } else {
+                        report(outcome?.let { it.granted > 0 })
+                    }
+                }
             }
         }
         item(visible = enabled) {

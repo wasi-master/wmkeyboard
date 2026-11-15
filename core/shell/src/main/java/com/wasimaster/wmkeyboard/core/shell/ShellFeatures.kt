@@ -115,16 +115,23 @@ object ShellGrants {
         return base == PermissionInfo.PROTECTION_DANGEROUS
     }
 
-    /** Grants every [missingRuntimePermissions] entry; the count granted, or null with no shell. */
-    suspend fun grantRuntimePermissions(context: Context): Int? {
+    /** What [grantRuntimePermissions] did: [granted] of the [asked] that were missing. */
+    data class GrantOutcome(val granted: Int, val asked: Int)
+
+    /**
+     * Grants every [missingRuntimePermissions] entry; null with no shell.
+     * One that Android refuses (a permission another app defines, installed
+     * after the keyboard, cannot be granted) does not stop the rest.
+     */
+    suspend fun grantRuntimePermissions(context: Context): GrantOutcome? {
         val missing = missingRuntimePermissions(context)
-        if (missing.isEmpty()) return 0
+        if (missing.isEmpty()) return GrantOutcome(0, 0)
         if (!ShellAccess.available) return null
         var granted = 0
         for (permission in missing) {
             if (ShellAccess.exec(context, "pm grant ${context.packageName} $permission")?.ok == true) granted++
         }
-        return granted
+        return GrantOutcome(granted, missing.size)
     }
 
     fun canWriteSecureSettings(context: Context): Boolean =

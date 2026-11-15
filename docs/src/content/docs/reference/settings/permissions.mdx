@@ -74,7 +74,7 @@ Notification access is the one place a row from this screen lands somewhere broa
 
 <SettingsPath path="Privacy / Permissions / Shizuku or root" />
 
-Only in the F-Droid and GitHub builds. The Play Store build has no such group. Everything below the first switch stays hidden until you turn that switch on, and each row needs Shizuku running with the keyboard allowed, or **Use root** on. A row that changes something shows **Granted** once it is done. Each grant lands where Android normally keeps it, so you take it back there the usual way.
+Only in the F-Droid and GitHub builds. The Play Store build has no such group. Everything below the first switch stays hidden until you turn that switch on, and each row needs Shizuku running with the keyboard allowed, or **Use root** on. A row that changes something shows **Granted** once it is done. With both, Shizuku is used first; if its service won't start and **Use root** is on, the row goes through root instead. Each grant lands where Android normally keeps it, so you take it back there the usual way.
 
 | Row | What it does |
 |---|---|
@@ -82,7 +82,7 @@ Only in the F-Droid and GitHub builds. The Play Store build has no such group. E
 | Shizuku | Same row as in the [app launcher](/tools/app-launcher/#shizuku-and-root): install, start or allow Shizuku |
 | Use root | Same setting as the app launcher's. Only on a rooted phone |
 | Make this the keyboard | Turns WM Keyboard on in Android's keyboard list and switches to it (`ime enable`, `ime set`) |
-| Grant every permission | Grants every runtime permission the app declares and doesn't hold yet, without a prompt for each. The value shows how many are missing. Background location is never included |
+| Grant every permission | Grants every runtime permission the app declares and doesn't hold yet, without a prompt for each. The value shows how many are missing. Background location is never included. When Android refuses some (a permission defined by an app installed after the keyboard can't be granted), a message says how many of them went through |
 | Notification access | Allows the listener behind [media controls](/tools/media/) and the [one-time code chip](/smart/one-time-codes/). The chip still needs its own setting on |
 | Codes Android hides | Android 15 and later only. Lets the listener read the one-time codes Android otherwise hides from it ("Sensitive notification content hidden"), by allowing `RECEIVE_SENSITIVE_NOTIFICATIONS`. No prompt or Settings screen can give this |
 | Screen reading service | Turns on the accessibility service that the [floating button's](/reference/settings/floating-button/#asking-the-ai-about-the-screen) **Ask AI** and **Look up** use, keeping any other services you already have on |

@@ -24,6 +24,7 @@
     <string name="shell_access_result_done">Done</string>
     <string name="shell_access_capture_title">Capture the screen</string>
     <string name="shell_access_capture_subtitle">OCR, Translate and AI reply get a button that reads the screen above the keyboard, with no screen recording prompt</string>
+    <string name="shell_access_result_partial">Granted %1$d of %2$d. Android refused the rest, such as a permission an app installed after the keyboard defines.</string>
     <string name="shell_access_result_failed">Android refused. Check Shizuku or your root manager.</string>
     <string name="shell_access_result_no_access">Start Shizuku and allow the keyboard, or turn on root, first</string>
 </resources>
