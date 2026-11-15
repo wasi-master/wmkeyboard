@@ -49,6 +49,15 @@ enum class InputMethodKind {
     /** A program of rules that writes the text in place: an m17n `.mim`. */
     @SerialName("rules")
     RULES,
+
+    /**
+     * Regular-expression rules over the text before the cursor that write it
+     * in place: a jquery.ime method (Wikimedia's, and Indic Keyboard's copy).
+     * The ones that ship are bound by an id starting `jq:` and read from the
+     * app's assets; an imported one lives under the app's files like the rest.
+     */
+    @SerialName("regex")
+    REGEX,
 }
 
 /**

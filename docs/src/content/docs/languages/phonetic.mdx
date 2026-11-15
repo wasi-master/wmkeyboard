@@ -133,6 +133,8 @@ Nepali phonetic is written for the way Nepali is typed in a chat. `x` is छ and
 - **Postpositions glued to a word keep their spelling**, and the stem never joins them: `ramlai` रामलाई, `gharbata` घरबाट, `timisanga` तिमीसँग, `keTiharu` केटीहरू.
 - **A nasal before a stop is written with that row's nasal**, as Nepali spells it (`sanket` सङ्केत, `ghanTaa` घण्टा), and before a sibilant or ह as the anusvara (`sansaar` संसार). Any consonant joins a र after it (`timro` तिम्रो, `mitra` मित्र).
 
+There is also [Nepali transliteration](#exact-transliteration-schemes), the exact scheme Nepali Wikipedia's editors type in.
+
 With the Nepali word list installed, a closing `a` can also find a word that does not write one, so `xa` finds छ and `hunxa` finds हुन्छ, and a `v` or `w` finds a word spelled with व or ब. The known-spellings list has about 400 chat spellings (`k` के, `hjr` हजुर, `px` पछि, `tapai` तपाईँ) and 100 English loanwords. On 2,000 Nepali test words from Aksharantar, most of them long and rare, the rules alone spelled 17.6% exactly, against 10.7% for the plain Devanagari rules the Nepali layout used to fall back on. The strip's first four had the word 50.3% of the time with the word list, and 92.8% with neural suggestions on.
 
 ### Sanskrit
@@ -176,6 +178,32 @@ Greeklish doesn't care which spelling you use: `kalimera` and `kalhmera`, `thelw
 ### Tibetan
 
 Wylie is an exact system rather than a guess, so there's nothing to rank: what you type is what you get. The space bar types a tsheg, `/` a shad, and `'` the a-chung. Stacks follow the rules of Tibetan spelling (`bsgrubs` བསྒྲུབས), `.` keeps two letters apart (`g.yag` གཡག) and `+` forces a stack (`pad+ma` པདྨ). Capitals are the Sanskrit letters and long vowels of Extended Wylie (`Ta` ཊ, `A` ཨཱ).
+## Exact transliteration schemes
+
+The phonetic layouts above read chat spelling and guess where it is unsure. Many people learned one fixed scheme instead, where every key does one thing and a word is spelled exactly: the schemes Wikipedia's editors type in, which Indic Keyboard offers as its transliteration layouts. Fifteen of them ship as layouts of their own, on the same QWERTY grid:
+
+| Language | Layout | You type | You get |
+|---|---|---|---|
+| Nepali | Nepali transliteration | `nepaala` | नेपाल |
+| Hindi | Hindi transliteration | `raama` | राम |
+| Marathi | Marathi transliteration | `oMkaara` | ओंकार |
+| Sanskrit | Sanskrit transliteration | `saMskRtam` | संस्कृतम् |
+| Malayalam | Mozhi, Swanalekha | `malayaaLam`, `nanni` | മലയാളം, നന്നി |
+| Odia | Odia transliteration, Lekhani | `dxiNeSwr` (Lekhani) | ଦକ୍ଷିଣେଶ୍ୱର |
+| Tamil | Tamil transliteration | `thamizh` | தமிழ் |
+| Telugu | Telugu transliteration | `telugu` | తెలుగు |
+| Kannada | Kannada transliteration | `gautam` | ಗೌತಮ್ |
+| Gujarati | Gujarati transliteration | `gujaraatii` | ગુજરાતી |
+| Punjabi | Punjabi transliteration | `hoiaa` | ਹੋਇਆ |
+| Assamese | Assamese transliteration | `tumi` | তুমি |
+| Sinhala | Singlish | `sinhala` | සින්හල |
+
+Add the language and turn the layout on under **Layouts**, as for a phonetic one. A consonant on its own shows with a virama until the vowel after it lands: `k` writes क्, then `a` makes it क, and `h` after `k` makes it ख्. A space ends the word the way the scheme says, which for Hindi transliteration drops a closing virama (`agar` is अगर). A few signs besides letters are part of the scheme, such as `` ` `` or `~` for a virama, `\` to type the next key as itself, and `.` for the danda, and the keyboard passes those to the rules too. Digits stay digits. Turn on <SettingsPath path="Languages & layouts / your language / Key hints / Show the letter each key types" /> to see on each key what it will write next.
+
+These layouts write exactly what the scheme spells, so the suggestion strip offers words that begin with it rather than other readings. The rules are the methods' own files from [jquery.ime](https://github.com/wikimedia/jquery.ime), Swanalekha from Indic Keyboard's copy of it, read by the keyboard's own engine, which passes the jquery.ime test suite for every one of them that has tests. The keyboard fixes one thing the files get wrong: Nepali transliteration declares less history than its rules read, so on Wikipedia `na` types न्अ. Here it types न.
+
+Any other jquery.ime method can be added from its rule file, see [Input methods](/reference/importing-other-keyboards/#input-methods-cin-rime-and-m17n).
+
 ## Languages with rules only
 
 77 more languages have a phonetic layout named after them: `kamal` writes कमल on Maithili phonetic, కమల on Lambadi (Telugu) phonetic and কমল on Chittagonian phonetic.

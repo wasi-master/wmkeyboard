@@ -892,6 +892,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.JapaneseUserWords
 import com.wasimaster.wmkeyboard.core.input.composer.VietnameseConfig
 import com.wasimaster.wmkeyboard.core.input.composer.VietnameseTelexComposer
 import com.wasimaster.wmkeyboard.core.input.composer.VietnameseVniComposer
+import com.wasimaster.wmkeyboard.core.input.imported.BundledInputMethods
 import com.wasimaster.wmkeyboard.core.input.imported.ImportedInputMethods
 import com.wasimaster.wmkeyboard.core.script.FancyAssembly
 import com.wasimaster.wmkeyboard.core.script.FancyStyle
@@ -24868,8 +24869,15 @@ open class WMKeyboardService : InputMethodService() {
      * disk, which costs a file check per method, so it is asked on every focus.
      */
     private fun reloadImportedInputMethods() {
-        if (!userUnlocked) return
         val settings = _uiState.value.settings
+        // The jquery.ime methods that ship (Nepali transliteration, Mozhi,
+        // Swanalekha) are assets, readable before the unlock: read the enabled
+        // ones now so the first key does not wait for a file.
+        val bundled = settings.enabledLayoutIds.mapNotNull { id ->
+            resolveLayout(settings.customLayouts, id).inputMethod?.id?.takeIf(BundledInputMethods::isBundled)
+        }
+        if (bundled.isNotEmpty()) serviceScope.launch(Dispatchers.Default) { BundledInputMethods.preload(bundled) }
+        if (!userUnlocked) return
         val enabled = settings.enabledLayoutIds.toHashSet()
         val wanted = settings.customLayouts.mapNotNullTo(HashSet()) { spec ->
             spec.inputMethod?.id?.takeIf { spec.id in enabled }

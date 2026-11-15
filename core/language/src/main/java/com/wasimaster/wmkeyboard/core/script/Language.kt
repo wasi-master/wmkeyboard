@@ -299,6 +299,7 @@ object LanguageRegistry {
                 AssetLayouts.HI_PHONETIC_KEYS_ID,
                 AssetLayouts.HI_T9_ID,
                 AssetLayouts.HI_PHONETIC_ONE_ROW_ID,
+                BuiltInLayouts.HI_TRANSLITERATION_ID,
             ),
             numeralSystem = NumeralSystem.DEVANAGARI,
         ),
@@ -744,6 +745,7 @@ object LanguageRegistry {
                 AssetLayouts.MR_ALPHABETIC_ID,
                 AssetLayouts.MR_T9_ID,
                 AssetLayouts.MR_PHONETIC_ONE_ROW_ID,
+                BuiltInLayouts.MR_TRANSLITERATION_ID,
             ),
             numeralSystem = NumeralSystem.DEVANAGARI,
         ),
@@ -758,6 +760,7 @@ object LanguageRegistry {
                 BuiltInLayouts.NEPALI_PHONETIC_ID,
                 AssetLayouts.NE_TRADITIONAL_ID,
                 AssetLayouts.NE_T9_ID,
+                BuiltInLayouts.NE_TRANSLITERATION_ID,
             ),
             numeralSystem = NumeralSystem.DEVANAGARI,
         ),
@@ -767,7 +770,7 @@ object LanguageRegistry {
             englishName = "Sanskrit",
             script = ScriptId.DEVANAGARI,
             localeTag = "sa-IN",
-            layoutIds = listOf(AssetLayouts.SA_INSCRIPT_ID, BuiltInLayouts.SANSKRIT_PHONETIC_ID, AssetLayouts.SA_T9_ID),
+            layoutIds = listOf(AssetLayouts.SA_INSCRIPT_ID, BuiltInLayouts.SANSKRIT_PHONETIC_ID, AssetLayouts.SA_T9_ID, BuiltInLayouts.SA_TRANSLITERATION_ID),
             numeralSystem = NumeralSystem.DEVANAGARI,
         ),
         LanguageDef(
@@ -783,6 +786,7 @@ object LanguageRegistry {
                 AssetLayouts.TA_ALPHABETIC_ID,
                 AssetLayouts.TA_T9_ID,
                 AssetLayouts.TA_PHONETIC_ONE_ROW_ID,
+                BuiltInLayouts.TA_TRANSLITERATION_ID,
             ),
         ),
         LanguageDef(
@@ -791,7 +795,7 @@ object LanguageRegistry {
             englishName = "Sinhala",
             script = ScriptId.SINHALA,
             localeTag = "si-LK",
-            layoutIds = listOf(AssetLayouts.SI_WIJESEKARA_ID, AssetLayouts.SI_PHONETIC_ID, AssetLayouts.SI_T9_ID),
+            layoutIds = listOf(AssetLayouts.SI_WIJESEKARA_ID, AssetLayouts.SI_PHONETIC_ID, AssetLayouts.SI_T9_ID, BuiltInLayouts.SI_SINGLISH_ID),
         ),
         LanguageDef(
             id = "te",
@@ -804,6 +808,7 @@ object LanguageRegistry {
                 BuiltInLayouts.TELUGU_PHONETIC_ID,
                 AssetLayouts.TE_T9_ID,
                 AssetLayouts.TE_PHONETIC_ONE_ROW_ID,
+                BuiltInLayouts.TE_TRANSLITERATION_ID,
             ),
         ),
         LanguageDef(
@@ -819,6 +824,7 @@ object LanguageRegistry {
                 AssetLayouts.KN_EXTENDED_ID,
                 AssetLayouts.KN_T9_ID,
                 AssetLayouts.KN_PHONETIC_ONE_ROW_ID,
+                BuiltInLayouts.KN_TRANSLITERATION_ID,
             ),
         ),
         LanguageDef(
@@ -834,6 +840,8 @@ object LanguageRegistry {
                 AssetLayouts.ML_ALPHABETIC_ID,
                 AssetLayouts.ML_T9_ID,
                 AssetLayouts.ML_PHONETIC_ONE_ROW_ID,
+                BuiltInLayouts.ML_TRANSLITERATION_ID,
+                BuiltInLayouts.ML_SWANALEKHA_ID,
             ),
         ),
         LanguageDef(
@@ -848,6 +856,7 @@ object LanguageRegistry {
                 AssetLayouts.GU_ALPHABETIC_ID,
                 AssetLayouts.GU_T9_ID,
                 AssetLayouts.GU_PHONETIC_ONE_ROW_ID,
+                BuiltInLayouts.GU_TRANSLITERATION_ID,
             ),
         ),
         LanguageDef(
@@ -863,6 +872,7 @@ object LanguageRegistry {
                 AssetLayouts.PA_ALPHABETIC_ID,
                 AssetLayouts.PA_T9_ID,
                 AssetLayouts.PA_PHONETIC_ONE_ROW_ID,
+                BuiltInLayouts.PA_TRANSLITERATION_ID,
             ),
         ),
         LanguageDef(
@@ -877,6 +887,8 @@ object LanguageRegistry {
                 AssetLayouts.OR_PHONETIC_ID,
                 AssetLayouts.OR_T9_ID,
                 AssetLayouts.OR_PHONETIC_ONE_ROW_ID,
+                BuiltInLayouts.OR_TRANSLITERATION_ID,
+                BuiltInLayouts.OR_LEKHANI_ID,
             ),
         ),
         LanguageDef(
@@ -2110,6 +2122,7 @@ object LanguageRegistry {
                 AssetLayouts.AS_INSCRIPT_ID,
                 AssetLayouts.AS_T9_ID,
                 AssetLayouts.AS_PHONETIC_ONE_ROW_ID,
+                BuiltInLayouts.AS_TRANSLITERATION_ID,
             ),
             numeralSystem = NumeralSystem.BENGALI,
         ),

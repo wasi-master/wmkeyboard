@@ -10,7 +10,7 @@ import kotlinx.serialization.json.Json
 data class InputMethodMeta(
     val version: Int = 1,
     val name: String,
-    /** `cin`, `rime` or `m17n`. */
+    /** `cin`, `rime`, `m17n` or `jquery`. */
     val format: String,
     val kind: InputMethodKind,
     /** Key caps from the file, by key. */
@@ -45,6 +45,8 @@ data class InputMethodMeta(
  * - `main.mim` and `lib_<n>.mim`: an m17n method's own files, compiled when
  *   loaded. They are small, and keeping the source means a later, better
  *   engine reads the same thing the user imported.
+ * - `rules.txt`: a jquery.ime method's rule file, `.js` or `.xml`, as given,
+ *   for the same reason.
  *
  * A folder is written under a temporary name and renamed into place, so a
  * half-written method never loads.
@@ -97,6 +99,7 @@ object InputMethodStore {
                     is MethodPayload.Table -> p.rows.any { it.first.firstOrNull()?.isDigit() == true }
                     is MethodPayload.Reading -> p.spellings.keys.any { it.firstOrNull()?.isDigit() == true }
                     is MethodPayload.Rules -> method.keys.any { it.isDigit() }
+                    is MethodPayload.Regex -> false
                 },
             )
             when (val p = method.payload) {
@@ -122,6 +125,7 @@ object InputMethodStore {
                     File(temp, MAIN_MIM).writeText(p.main)
                     p.library.forEachIndexed { i, text -> File(temp, "lib_$i.mim").writeText(text) }
                 }
+                is MethodPayload.Regex -> File(temp, REGEX_RULES).writeText(p.source)
             }
             // Last, so a folder with a meta file is a folder with everything else.
             File(temp, META).writeText(json.encodeToString(InputMethodMeta.serializer(), meta))
@@ -174,6 +178,9 @@ object InputMethodStore {
         return main to library
     }
 
+    /** A jquery.ime method's rule file, kept as the user gave it and read when loaded. */
+    internal fun regexFile(filesDir: File, id: String): File? = File(dir(filesDir, id), REGEX_RULES).takeIf { it.isFile }
+
     /** What decides whether a loaded copy is current: each wanted folder's meta file's age. */
     internal fun stamp(filesDir: File, ids: Collection<String>): String =
         ids.sorted().joinToString(",") { id -> "$id:${File(dir(filesDir, id), META).lastModified()}" }
@@ -185,6 +192,7 @@ object InputMethodStore {
     private const val TABLE = "table.tsv"
     private const val SPELLINGS = "spellings.tsv"
     private const val MAIN_MIM = "main.mim"
+    private const val REGEX_RULES = "rules.txt"
     private const val TEMP = ".part"
     private const val MAX_ID = 64
 }

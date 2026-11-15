@@ -36,7 +36,7 @@ class SourceFile(val name: String, val bytes: ByteArray) {
 }
 
 /** Which program wrote the files. */
-enum class MethodFormat { CIN, RIME, M17N }
+enum class MethodFormat { CIN, RIME, M17N, JQUERY }
 
 /** Something about an import worth telling the user before they agree to it. */
 sealed interface ImportNote {
@@ -94,6 +94,9 @@ sealed interface MethodPayload {
 
     /** The `.mim` itself and the ones it includes, kept as text and compiled when loaded. */
     class Rules(val main: String, val library: List<String>) : MethodPayload
+
+    /** A jquery.ime rule file (`.js` or Indic Keyboard's `.xml`), kept as text and read when loaded. */
+    class Regex(val source: String) : MethodPayload
 }
 
 /** A method read out of foreign files, not yet written anywhere. */
@@ -141,6 +144,8 @@ object InputMethodSources {
         if (files.isEmpty()) return Conversion.Refused(ImportRefusal.NOT_A_METHOD)
         val mims = files.filter { it.name.endsWith(".mim", ignoreCase = true) || it.text.contains("(input-method") }
         if (mims.isNotEmpty()) return fromMim(mims, files - mims.toSet())
+        val jquery = files.firstOrNull { JqueryImeFiles.looks(it.text) }
+        if (jquery != null) return fromJquery(jquery, files - jquery)
         val yamls = files.filter { RimeFiles.isYaml(it.name) || RimeFiles.looksLikeSchema(it.name, it.text) || RimeFiles.looksLikeDict(it.name, it.text) }
         if (yamls.isNotEmpty()) return fromRime(yamls, files - yamls.toSet())
         val cins = files.filter { CinTable.looksLikeCin(it.text) }
@@ -472,6 +477,43 @@ object InputMethodSources {
                 entries = program.entries,
                 notes = notes,
                 payload = MethodPayload.Rules(main.text, library),
+            ),
+        )
+    }
+
+    // ---- jquery.ime ----
+
+    private fun fromJquery(file: SourceFile, unused: List<SourceFile>): Conversion {
+        val rules = JqueryImeFiles.parse(file.text) ?: return Conversion.Refused(ImportRefusal.EMPTY)
+        val notes = ArrayList<ImportNote>()
+        if (rules.skipped > 0) notes += ImportNote.SkippedRules(rules.skipped)
+        if (unused.isNotEmpty()) notes += ImportNote.UnusedFiles(unused.map { it.name })
+        val letters = ('a'..'z') + ('A'..'Z')
+        val sample = buildString {
+            for (c in letters) {
+                append(rules.run(c.toString()))
+                if (length > SAMPLE_CHARS) break
+            }
+        }
+        // Capitals are keys of their own whenever one types something its
+        // lowercase does not: Nepali's T is ट where t is त.
+        val shifted = ('A'..'Z').any { rules.run(it.toString()) != rules.run(it.lowercase()) }
+        // The language code the method's id opens with ("ne" of
+        // ne-transliteration), which is how every jquery.ime id is formed.
+        val tag = rules.id.substringBefore('-').takeIf { it.isNotBlank() && it.length <= 3 }
+        return Conversion.Ready(
+            ConvertedMethod(
+                format = MethodFormat.JQUERY,
+                kind = InputMethodKind.REGEX,
+                name = rules.name,
+                languageTag = tag,
+                sample = sample,
+                keys = letters.toSet() + rules.keys,
+                keyNames = emptyMap(),
+                shifted = shifted,
+                entries = rules.rules.size,
+                notes = notes,
+                payload = MethodPayload.Regex(file.text),
             ),
         )
     }

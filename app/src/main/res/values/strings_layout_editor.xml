@@ -104,9 +104,9 @@
     <string name="layout_editor_foreign_from_unexpected">The app read this as an Unexpected Keyboard or CleverKeys layout. The swipes to the corners of each key come across as swipes, and you can also hold the key to get them. The app adds its own bottom row unless the layout has its own.</string>
     <!-- The language a converted layout types in. The file does not say, so the
          app makes a guess from the letters on the keys. -->
-    <!-- ".cin", "Rime", "m17n" and ".mim" are the names of formats; do not translate them. -->
+    <!-- ".cin", "Rime", "m17n", ".mim" and "jquery.ime" are the names of formats; do not translate them. -->
     <string name="layout_editor_im_title">Import an input method</string>
-    <string name="layout_editor_im_subtitle">Read a .cin table, a Rime schema with its dictionaries, or an m17n .mim file. Pick all the files the method needs at the same time.</string>
+    <string name="layout_editor_im_subtitle">Read a .cin table, a Rime schema with its dictionaries, an m17n .mim file, or a jquery.ime rule file. Pick all the files the method needs at the same time.</string>
     <string name="layout_editor_im_busy">Reading the input method. A large Rime dictionary can take a minute.</string>
     <string name="layout_editor_im_too_large">The files are too large to import.</string>
     <string name="layout_editor_im_failed">The app could not save the input method. Make sure there is free space on the device.</string>

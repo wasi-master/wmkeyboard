@@ -86,6 +86,12 @@ open class WMApplication : Application() {
         // Where a Khipro spec set newer than the bundled one is kept (#909);
         // loaded the first time Khipro types, not here.
         com.wasimaster.wmkeyboard.core.transliteration.KhiproSpecs.attach(this)
+        // Where the jquery.ime methods that ship are read from; each is read
+        // the first time a layout types through it, not here.
+        val appAssets = assets
+        com.wasimaster.wmkeyboard.core.input.imported.BundledInputMethods.assets = { path ->
+            runCatching { appAssets.open(path) }.getOrNull()
+        }
         // Lets the keyboard tell whether a screen of this app is up before it
         // recycles the process the two share. One callback registration.
         com.wasimaster.wmkeyboard.core.util.StartedActivities.install(this)

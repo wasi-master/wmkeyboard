@@ -62,6 +62,23 @@ object BuiltInLayouts {
     const val ARABIC_PHONETIC_ID = "builtin_arabic_phonetic"
     const val GREEK_PHONETIC_ID = "builtin_greek_phonetic"
     const val TIBETAN_WYLIE_ID = "builtin_tibetan_wylie"
+
+    // The jquery.ime methods that ship; see [scheme].
+    const val AS_TRANSLITERATION_ID = "builtin_jq_as_transliteration"
+    const val GU_TRANSLITERATION_ID = "builtin_jq_gu_transliteration"
+    const val HI_TRANSLITERATION_ID = "builtin_jq_hi_transliteration"
+    const val KN_TRANSLITERATION_ID = "builtin_jq_kn_transliteration"
+    const val ML_TRANSLITERATION_ID = "builtin_jq_ml_transliteration"
+    const val ML_SWANALEKHA_ID = "builtin_jq_ml_swanalekha"
+    const val MR_TRANSLITERATION_ID = "builtin_jq_mr_transliteration"
+    const val NE_TRANSLITERATION_ID = "builtin_jq_ne_transliteration"
+    const val OR_TRANSLITERATION_ID = "builtin_jq_or_transliteration"
+    const val OR_LEKHANI_ID = "builtin_jq_or_lekhani"
+    const val PA_TRANSLITERATION_ID = "builtin_jq_pa_transliteration"
+    const val SA_TRANSLITERATION_ID = "builtin_jq_sa_transliteration"
+    const val SI_SINGLISH_ID = "builtin_jq_si_singlish"
+    const val TA_TRANSLITERATION_ID = "builtin_jq_ta_transliteration"
+    const val TE_TRANSLITERATION_ID = "builtin_jq_te_transliteration"
     const val T9_ID = "builtin_t9"
     const val COMPACT_ID = "builtin_compact"
 
@@ -451,6 +468,39 @@ object BuiltInLayouts {
     val TIBETAN_WYLIE = phonetic(TIBETAN_WYLIE_ID, "Wylie", "bo")
 
     /**
+     * An exact transliteration scheme on the QWERTY grid: a jquery.ime method
+     * that ships with the app, bound by its id ([InputMethodBinding] `jq:`
+     * plus the method's own id, read from `assets/input_methods/jquery/`).
+     * These are the schemes Wikipedia's editors type in, and the ones Indic
+     * Keyboard offers as its transliteration layouts: every key does one
+     * fixed thing, so a user who learned Mozhi or Lekhani types it here
+     * unchanged. The phonetic layouts above guess at chat spelling instead.
+     */
+    private fun scheme(id: String, method: String, name: String, langId: String) = LayoutSpec(
+        id = id,
+        name = name,
+        langId = langId,
+        layers = mapOf(LayoutLayer.LETTERS.key to LayerSpec(qwertyRows)),
+        inputMethod = InputMethodBinding("jq:$method", InputMethodKind.REGEX),
+    )
+
+    val AS_TRANSLITERATION = scheme(AS_TRANSLITERATION_ID, "as-transliteration", "Assamese transliteration", "as")
+    val GU_TRANSLITERATION = scheme(GU_TRANSLITERATION_ID, "gu-transliteration", "Gujarati transliteration", "gu")
+    val HI_TRANSLITERATION = scheme(HI_TRANSLITERATION_ID, "hi-transliteration", "Hindi transliteration", "hi")
+    val KN_TRANSLITERATION = scheme(KN_TRANSLITERATION_ID, "kn-transliteration", "Kannada transliteration", "kn")
+    val ML_TRANSLITERATION = scheme(ML_TRANSLITERATION_ID, "ml-transliteration", "Mozhi", "ml")
+    val ML_SWANALEKHA = scheme(ML_SWANALEKHA_ID, "ml-swanalekha", "Swanalekha", "ml")
+    val MR_TRANSLITERATION = scheme(MR_TRANSLITERATION_ID, "mr-transliteration", "Marathi transliteration", "mr")
+    val NE_TRANSLITERATION = scheme(NE_TRANSLITERATION_ID, "ne-transliteration", "Nepali transliteration", "ne")
+    val OR_TRANSLITERATION = scheme(OR_TRANSLITERATION_ID, "or-transliteration", "Odia transliteration", "or")
+    val OR_LEKHANI = scheme(OR_LEKHANI_ID, "or-lekhani", "Lekhani", "or")
+    val PA_TRANSLITERATION = scheme(PA_TRANSLITERATION_ID, "pa-transliteration", "Punjabi transliteration", "pa")
+    val SA_TRANSLITERATION = scheme(SA_TRANSLITERATION_ID, "sa-transliteration", "Sanskrit transliteration", "sa")
+    val SI_SINGLISH = scheme(SI_SINGLISH_ID, "si-singlish", "Singlish", "si")
+    val TA_TRANSLITERATION = scheme(TA_TRANSLITERATION_ID, "ta-transliteration", "Tamil transliteration", "ta")
+    val TE_TRANSLITERATION = scheme(TE_TRANSLITERATION_ID, "te-transliteration", "Telugu transliteration", "te")
+
+    /**
      * T9: the phone keypad, three or four letters to a key, decoded by the
      * language model rather than by multi-tap (discussion #103).
      *
@@ -524,7 +574,27 @@ object BuiltInLayouts {
         URDU_PHONETIC, MARATHI_PHONETIC, GUJARATI_PHONETIC, PUNJABI_PHONETIC, ODIA_PHONETIC,
         ASSAMESE_PHONETIC, TAMIL_PHONETIC, TELUGU_PHONETIC, KANNADA_PHONETIC, MALAYALAM_PHONETIC,
         NEPALI_PHONETIC, SANSKRIT_PHONETIC, PERSIAN_PHONETIC, ARABIC_PHONETIC, GREEK_PHONETIC, TIBETAN_WYLIE, T9, COMPACT,
-    )
+    ) + schemes
+
+    /** The shipped jquery.ime schemes ([scheme]), in language order. */
+    val schemes: List<LayoutSpec>
+        get() = listOf(
+            AS_TRANSLITERATION,
+            GU_TRANSLITERATION,
+            HI_TRANSLITERATION,
+            KN_TRANSLITERATION,
+            ML_TRANSLITERATION,
+            ML_SWANALEKHA,
+            MR_TRANSLITERATION,
+            NE_TRANSLITERATION,
+            OR_TRANSLITERATION,
+            OR_LEKHANI,
+            PA_TRANSLITERATION,
+            SA_TRANSLITERATION,
+            SI_SINGLISH,
+            TA_TRANSLITERATION,
+            TE_TRANSLITERATION,
+        )
 
     fun byId(id: String): LayoutSpec? = all.firstOrNull { it.id == id }
 

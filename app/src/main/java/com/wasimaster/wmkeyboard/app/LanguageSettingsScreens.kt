@@ -1395,11 +1395,15 @@ internal fun LanguageDetailScreen(
     }
     val phonetic = ComposerType.TRANSLITERATE in composers
     // An imported m17n method (ITRANS, InScript, Tamil99) is a roman grid too,
-    // and the hints are how it says what its keys write. Only the hints: the
-    // key map and strip below are Avro's.
+    // and so is a jquery.ime method, shipped or imported (Mozhi, Nepali
+    // transliteration); the hints are how it says what its keys write. Only
+    // the hints: the key map and strip below are Avro's.
     val rulesMethod = settings.watch { s ->
         s.enabledLayoutIds.any { id ->
-            resolveLayout(s.customLayouts, id).let { it.langId == langId && it.inputMethod?.kind == InputMethodKind.RULES }
+            resolveLayout(s.customLayouts, id).let {
+                it.langId == langId &&
+                    (it.inputMethod?.kind == InputMethodKind.RULES || it.inputMethod?.kind == InputMethodKind.REGEX)
+            }
         }
     }
     val khipro = ComposerType.KHIPRO in composers || ComposerType.KHIPRO_DARK in composers

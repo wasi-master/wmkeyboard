@@ -10,7 +10,8 @@ import java.io.File
 
 /**
  * Importing another input method's own files as a keyboard of this app's:
- * a `.cin` table, a Rime schema with its dictionaries, or an m17n `.mim`.
+ * a `.cin` table, a Rime schema with its dictionaries, an m17n `.mim`, or a
+ * jquery.ime rule file.
  *
  * The screen reads the picked files ([read]), shows what came out and asks
  * for the language, and then [install] writes the method's data where the
@@ -58,6 +59,11 @@ object InputMethodImport {
         )
         MethodFormat.M17N -> LayoutMessage(
             pluralsRes = R.plurals.core_input_im_summary_m17n,
+            quantity = method.entries,
+            args = listOf(method.entries),
+        )
+        MethodFormat.JQUERY -> LayoutMessage(
+            pluralsRes = R.plurals.core_input_im_summary_jquery,
             quantity = method.entries,
             args = listOf(method.entries),
         )

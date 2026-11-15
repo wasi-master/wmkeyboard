@@ -1,0 +1,60 @@
+jquery.ime input methods
+https://github.com/wikimedia/jquery.ime
+
+The transliteration schemes under assets/input_methods/jquery/ are rule
+files from Wikimedia's jquery.ime (commit 77ed339ee9ce, 2026-10-20), shipped
+unchanged, and one from Indic Keyboard's copy of it (android-ime, commit
+311d331bb274, 2026-09-09; https://gitlab.com/indicproject/android-ime). WM
+Keyboard reads them with its own code (RegexRules.kt); no part of jquery.ime's
+JavaScript is included.
+
+jquery.ime is dual licensed under the GNU General Public License, version 2
+or later, and the MIT license below. The rule files name their own authors
+and licence:
+
+  as-transliteration   Junaid P V                                   GPLv3
+  gu-transliteration   Jaldeep R Vasavada, Amir E. Aharoni          GPLv3
+  hi-transliteration   Junaid P V                                   GPLv3
+  kn-transliteration   M G Harish, HP Nadig                         GPLv3
+  ml-transliteration   Junaid P V                                   GPLv3
+  ml-swanalekha        Junaid P V, Anoop P (from android-ime)       GPLv3
+  mr-transliteration   Pathak A B                                   GPLv3
+  ne-transliteration   Junaid P V, Bhawani Gautam                   GPLv3
+  or-lekhani           Junaid P V, Subhashish Panigrahi,
+                       Jnanaranjan Sahu                             GPLv3
+  or-transliteration   Junaid P V, Subhashish Panigrahi,
+                       Shitikantha Dash                             GPLv3
+  pa-transliteration   Amir E. Aharoni, Saurabh Choudhary,
+                       Surinder Wadhawan                            GPLv3
+  sa-transliteration   Junaid P V, Naveen Shankar                   GPLv3
+  si-singlish          Junaid P V, Nishantha Anuruddha              GPLv3
+  ta-transliteration   Junaid P V                                   GPLv3
+  te-transliteration   Veeven, Junaid P V, Rahimanuddin Shaik       GPLv3
+
+The GNU General Public License, version 3, is in gpl-3.0.txt beside this
+file. The rule files themselves carry each method's full header.
+
+----------------------------------------------------------------------------
+
+Copyright (c) 2012 Alolita Sharma, Amir Aharoni, Arun Ganesh, Brandon Harris,
+Niklas Laxström, Pau Giner, Santhosh Thottingal, Siebrand Mazeland and other
+contributors. See CREDITS for a list.
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

@@ -927,6 +927,17 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/farhanishmam/BanglaTLit",
         ),
     )
+    // Shipped unchanged and read by our own code; the file lists every
+    // method's authors and licence.
+    add(
+        Attribution(
+            "jquery.ime input methods",
+            R.string.about_bundled_jquery_ime_used,
+            "Copyright the jquery.ime contributors and each method's authors, listed in the licence",
+            "GPL-3.0 / MIT", "jquery-ime.txt",
+            "https://github.com/wikimedia/jquery.ime",
+        ),
+    )
     // One row for 862 keyboards. Each carries its own MIT licence differing
     // only in the holder line, so the asset states the shared text once and
     // then names every holder; shipping 862 near-identical LICENSE.md files

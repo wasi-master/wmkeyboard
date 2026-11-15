@@ -106,7 +106,7 @@
       Importing another input method's files as a keyboard: a .cin table (gcin,
       OpenVanilla), a Rime schema and dictionary, or an m17n .mim file. These
       lines show in the confirmation before the import. ".cin", ".mim", "Rime",
-      "m17n", "Anthy" and ".dict.yaml" are names; do not translate them.
+      "m17n", "Anthy", ".dict.yaml" and "jquery.ime" are names; do not translate them.
     -->
     <plurals name="core_input_im_summary_cin">
         <item quantity="one">The app read this as a .cin table with %1$d entry. Type a code, then pick the character from the suggestion strip.</item>
@@ -124,6 +124,10 @@
         <item quantity="one">The app read this as an m17n input method with %1$d rule. The keys write the text as you type.</item>
         <item quantity="other">The app read this as an m17n input method with %1$d rules. The keys write the text as you type.</item>
     </plurals>
+    <plurals name="core_input_im_summary_jquery">
+        <item quantity="one">The app read this as a jquery.ime input method with %1$d rule. The keys write the text as you type.</item>
+        <item quantity="other">The app read this as a jquery.ime input method with %1$d rules. The keys write the text as you type.</item>
+    </plurals>
 
     <string name="core_input_im_note_missing_files">These files were not picked, so their part is missing: <xliff:g id="files" example="pinyin.yaml, jyut6ping3.chars.dict.yaml">%1$s</xliff:g>. To include them, import again and pick them together.</string>
     <string name="core_input_im_note_unused_files">The app did not use these files: <xliff:g id="files" example="readme.txt">%1$s</xliff:g>.</string>
@@ -137,7 +141,7 @@
     <string name="core_input_im_note_candidates">For some keys this method gives a list of choices. The keyboard always uses the first choice.</string>
     <string name="core_input_im_note_space">This method uses the space bar as a key, for example for a tone. Here the space bar always types a space.</string>
 
-    <string name="core_input_im_refused_not_method">The app cannot read that as an input method. It reads .cin tables, Rime schemas and dictionaries (.schema.yaml, .dict.yaml), and m17n .mim files.</string>
+    <string name="core_input_im_refused_not_method">The app cannot read that as an input method. It reads .cin tables, Rime schemas and dictionaries (.schema.yaml, .dict.yaml), m17n .mim files, and jquery.ime rule files (.js).</string>
     <string name="core_input_im_refused_broken">The file has an error, so the app cannot read it: <xliff:g id="detail" example="Unclosed list at offset 120">%1$s</xliff:g></string>
     <string name="core_input_im_refused_no_dictionary">The schema needs its dictionary. Import again and also pick <xliff:g id="file" example="luna_pinyin.dict.yaml">%1$s</xliff:g>.</string>
     <string name="core_input_im_refused_empty">The file has nothing to type with.</string>

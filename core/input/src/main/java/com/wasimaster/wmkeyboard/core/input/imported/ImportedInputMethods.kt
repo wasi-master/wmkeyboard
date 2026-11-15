@@ -42,6 +42,8 @@ object ImportedInputMethods {
         class Rules(meta: InputMethodMeta, val program: MimProgram) : Loaded(meta) {
             val engine = MimEngine(program)
         }
+
+        class Regex(meta: InputMethodMeta, val rules: RegexRules) : Loaded(meta)
     }
 
     /** What one typed spelling may be: [syllables] best first, abbreviations from [partialFrom] on. */
@@ -58,6 +60,10 @@ object ImportedInputMethods {
 
     fun loaded(id: String): Loaded? = loaded[id]
 
+    /** A jquery.ime method's rules, whether it ships ([BundledInputMethods]) or was imported. */
+    fun regexRules(id: String): RegexRules? =
+        if (BundledInputMethods.isBundled(id)) BundledInputMethods.rules(id) else (loaded[id] as? Loaded.Regex)?.rules
+
     /** The composer a layout bound to [binding] types through. Always the same object for one binding. */
     fun composer(binding: InputMethodBinding): Composer =
         composers.getOrPut("${binding.id}/${binding.kind}") {
@@ -65,6 +71,7 @@ object ImportedInputMethods {
                 InputMethodKind.TABLE -> TableMethodComposer(binding.id)
                 InputMethodKind.READING -> ReadingMethodComposer(binding.id)
                 InputMethodKind.RULES -> RulesMethodComposer(binding.id)
+                InputMethodKind.REGEX -> RegexMethodComposer(binding.id)
             }
         }
 
@@ -149,6 +156,10 @@ object ImportedInputMethods {
             InputMethodKind.RULES -> {
                 val (main, library) = InputMethodStore.mimFiles(filesDir, id) ?: return null
                 Loaded.Rules(meta, MimProgram.compile(main, library))
+            }
+            InputMethodKind.REGEX -> {
+                val text = InputMethodStore.regexFile(filesDir, id)?.readText() ?: return null
+                Loaded.Regex(meta, JqueryImeFiles.parse(text) ?: return null)
             }
         }
     }

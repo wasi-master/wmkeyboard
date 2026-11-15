@@ -251,3 +251,61 @@ internal class RulesMethodComposer(private val id: String) : Composer {
         return text
     }
 }
+
+/**
+ * A jquery.ime method: like [RulesMethodComposer], the rules write the text in
+ * place and there is nothing to choose, so the composing region shows what
+ * they have written so far. The keys of the word are replayed from the start
+ * on every key, which is what lets a backspace take back one key rather than
+ * one letter of the output.
+ */
+internal class RegexMethodComposer(private val id: String) : Composer {
+
+    private val rules: RegexRules?
+        get() = ImportedInputMethods.regexRules(id)
+
+    override val isTransliterating: Boolean get() = true
+
+    /** The signs the rules read: `\` to escape, `` ` `` or `~` for a virama, `.` for a danda. */
+    override fun buffersChar(c: Char): Boolean = rules?.keys?.contains(c) == true
+
+    override fun composeBuffer(buffer: String): String = compose(buffer)
+
+    /**
+     * The word as it closes. On a web page the space that ends a word is a
+     * key like any other, and some methods have a rule for it (Hindi
+     * transliteration drops the virama a word was left with: `agar` is अगर्
+     * until the space makes it अगर). Here the space commits the word instead
+     * of reaching the rules, so it is run through them on the way out, and
+     * kept only if they did something with the word before it.
+     */
+    override fun finishBuffer(buffer: String): String {
+        val r = rules ?: return buffer
+        val closed = r.run("$buffer ")
+        return if (closed.endsWith(' ')) closed.dropLast(1) else compose(buffer)
+    }
+
+    /** What one more key writes, compared from the front: a key may rewrite the letter before it. */
+    override fun keyPreview(buffer: String, key: String, wholeCluster: Boolean): String? {
+        if (key.isEmpty() || rules == null) return null
+        val before = compose(buffer)
+        val after = compose(buffer + key)
+        var shared = 0
+        while (shared < before.length && shared < after.length && before[shared] == after[shared]) shared++
+        return after.substring(shared)
+    }
+
+    private class Composed(val rules: RegexRules, val buffer: String, val text: String)
+
+    /** One entry, for the same reason as the m17n composer's: the key hints ask after one buffer forty times. */
+    @Volatile
+    private var last: Composed? = null
+
+    private fun compose(buffer: String): String {
+        val r = rules ?: return buffer
+        last?.let { if (it.rules === r && it.buffer == buffer) return it.text }
+        val text = r.run(buffer)
+        last = Composed(r, buffer, text)
+        return text
+    }
+}
