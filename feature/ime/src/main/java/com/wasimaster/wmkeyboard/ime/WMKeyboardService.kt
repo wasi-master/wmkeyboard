@@ -34833,7 +34833,11 @@ open class WMKeyboardService : InputMethodService() {
                 _uiState.update {
                     it.copy(
                         suggestions = strip,
-                        octopusGlide = floating,
+                        // The same words as the last preview keep the same
+                        // map: the live readers compare by instance, and a
+                        // fresh equal map redrew every octopus label on each
+                        // preview of a stroke that had settled.
+                        octopusGlide = if (floating == it.octopusGlide) it.octopusGlide else floating,
                         glideWord = steadied.words.first(),
                         glidePhrase = phraseSoFar,
                         // Published raw and cased at the draw sites, through
