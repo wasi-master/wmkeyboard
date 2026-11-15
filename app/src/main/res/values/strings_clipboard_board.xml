@@ -8,7 +8,7 @@
     <string name="clipboard_board_info">Clips you send to the board wait in that folder until your other devices read it, even if they are offline now. Any of them can copy, change or take off an entry; the latest change wins. Only text goes: pictures, files and hidden clips stay on the phone. With a backup passphrase set, the board is encrypted with it, so every device needs the same one.</string>
     <string name="clipboard_board_auto_title">Send every copy to the board</string>
     <string name="clipboard_board_auto_subtitle">Text you copy on this phone goes onto the shared board too</string>
-    <string name="clipboard_board_auto_info">Every text you copy on this phone is put on the shared board as well as in this phone's history, so it reaches your other devices without sending it by hand. Passwords and other hidden clips never go, and neither do pictures or files. Off by default, since most copies are not meant for the other devices. Turn it on on each device that should send.</string>
+    <string name="clipboard_board_auto_info">Every text you copy on this phone is put on the shared board as well as in this phone\'s history, so it reaches your other devices without sending it by hand. Passwords and other hidden clips never go, and neither do pictures or files. Off by default, since most copies are not meant for the other devices. Turn it on on each device that should send.</string>
     <string name="clipboard_board_off">Off</string>
     <!-- The Clipboard screen's last row, which opens Backup & restore where the board is set. -->
     <string name="clipboard_board_link_off">Off. Set on Data › Backup &amp; restore, with the places it uses</string>
