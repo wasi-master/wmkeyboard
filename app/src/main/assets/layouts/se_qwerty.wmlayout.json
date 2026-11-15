@@ -11,15 +11,17 @@
         "rows": [
           [
             {
-              "label": "q",
+              "label": "á",
               "longPress": [
-                "á"
+                "q",
+                "à",
+                "â"
               ]
             },
             {
-              "label": "w",
+              "label": "š",
               "longPress": [
-                "š"
+                "w"
               ]
             },
             {
@@ -35,15 +37,13 @@
               "label": "r"
             },
             {
-              "label": "t",
-              "longPress": [
-                "ŧ"
-              ]
+              "label": "t"
             },
             {
-              "label": "y",
+              "label": "ŧ",
               "longPress": [
-                "ŧ"
+                "y",
+                "t"
               ]
             },
             {
@@ -66,7 +66,6 @@
             {
               "label": "o",
               "longPress": [
-                "ø",
                 "ö",
                 "õ",
                 "ō",
@@ -77,18 +76,18 @@
             },
             {
               "label": "p"
+            },
+            {
+              "label": "å"
             }
           ],
           [
             {
               "label": "a",
               "longPress": [
-                "á",
                 "à",
                 "ä",
-                "å",
                 "â",
-                "æ",
                 "ā"
               ]
             },
@@ -128,6 +127,18 @@
             },
             {
               "label": "l"
+            },
+            {
+              "label": "ø",
+              "longPress": [
+                "ö"
+              ]
+            },
+            {
+              "label": "æ",
+              "longPress": [
+                "ä"
+              ]
             }
           ],
           [
@@ -147,12 +158,15 @@
               ]
             },
             {
-              "label": "x"
+              "label": "č",
+              "longPress": [
+                "x",
+                "c"
+              ]
             },
             {
               "label": "c",
               "longPress": [
-                "č",
                 "ç"
               ]
             },
