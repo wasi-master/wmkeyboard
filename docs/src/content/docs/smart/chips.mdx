@@ -90,6 +90,7 @@ Type a shortcut and then what you're looking for, and a narrow chip offers that 
 | `@wiki` | Wikipedia, which runs the search as it opens |
 | `@define` | The Dictionary, which looks the word up as it opens |
 | `@web` | Web search, which runs the search as it opens |
+| `@translate` | Translate, which translates your words as it opens |
 | `@contact` | Your contacts: the first saved name that starts with your words gets the [contact chip](#calling-or-texting-a-contact), to call or text them |
 
 A [plugin](/plugins/wm-package/#the-manifest) can add a shortcut of its own: `@weather dhaka` offers the Weather plugin, which opens and gets "dhaka" to look up. These follow the same rules and the same switch, but they aren't in the list below it; switching the plugin off takes its shortcut away. If two plugins claim the same word, the one installed first keeps it, and a word one of your own shortcuts already uses stays yours.
@@ -209,7 +210,7 @@ Each detector has guards against the shapes of text that look like a trigger but
 - **Repeated text**: default **on**. See [Repeated text](#repeated-text).
 - **Chip after this many repeats**: 2 to 6, default **3**. Shown while Repeated text is on; the same row lives on the Text repeat tool's page.
 - **Keep the text when a chip opens its tool**: default **off**. Leaves the typed amount, sum or tool keyword in place when the gear opens the tool.
-- **Search shortcuts**: default **on**, with six shortcuts to start. See [Search shortcuts](#search-shortcuts).
+- **Search shortcuts**: default **on**, with seven shortcuts to start. See [Search shortcuts](#search-shortcuts).
 
 Each tool's own page (Calculator, Unit converter, Currency converter) links back here with a **Suggestion chip** row that shows whether its chip is on. The switches themselves live only under Smart chips.
 

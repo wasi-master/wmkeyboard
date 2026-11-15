@@ -59,12 +59,27 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
  * first launch after an update compares the index against them, and what it
  * did not have before is new. The very first install records the names and
  * marks nothing: every setting is new then, and saying so says nothing.
+ *
+ * The borders and the bar are apart (#1242): closing the bar puts the bar
+ * away and leaves the borders. A row's border goes when the row is tapped,
+ * or a day after it was first on screen, so an update that brings 185 rows
+ * marks each one where the user next comes across it, without a walk
+ * through all of them first.
  */
 internal object NewSettings {
     private const val PREFS = "new_settings"
     private const val KEY_VERSION = "version_code"
     private const val KEY_KNOWN = "known"
     private const val KEY_FRESH = "fresh"
+
+    /** Whether the bar is up; closing it leaves the borders (#1242). */
+    private const val KEY_BAR = "bar_open"
+
+    /** When each new row was first on screen, as "key<TAB>millis": its border lasts a day from then. */
+    private const val KEY_SEEN = "seen"
+
+    /** How long a new row keeps its border after it was first on screen (#1242). */
+    private const val BORDER_MS = 24L * 60 * 60 * 1000
 
     /**
      * What the latest update that brought any settings brought, kept when the
@@ -77,9 +92,16 @@ internal object NewSettings {
     var entries: List<SettingsSearchEntry> by mutableStateOf(emptyList())
         private set
 
-    /** Title resources of [entries], which the rows match on. */
+    /** Title resources of the rows that wear the gold border, which the rows match on. */
     var titles: Set<Int> by mutableStateOf(emptySet())
         private set
+
+    /** The rows behind [titles], for a row that only knows its title text. */
+    private var bordered: List<SettingsSearchEntry> by mutableStateOf(emptyList())
+
+    /** Each new row's prefs key by title resource, and when it was first on screen. */
+    private var keyOf: Map<Int, String> = emptyMap()
+    private val seenAt = HashMap<String, Long>()
 
     /** Which of [entries] the bar last opened, or -1 before it has opened one. */
     var at: Int by mutableIntStateOf(-1)
@@ -127,7 +149,8 @@ internal object NewSettings {
         }
         val fresh: Set<String>
         val last: Set<String>
-        if (prefs.getLong(KEY_VERSION, -1L) == version) {
+        val sameVersion = prefs.getLong(KEY_VERSION, -1L) == version
+        if (sameVersion) {
             fresh = prefs.getStringSet(KEY_FRESH, null).orEmpty()
             // A version from before KEY_LAST: its unseen rows are the best guess.
             last = prefs.getStringSet(KEY_LAST, null) ?: fresh
@@ -143,11 +166,64 @@ internal object NewSettings {
                 .putStringSet(KEY_KNOWN, keyed.keys + known.orEmpty())
                 .putStringSet(KEY_FRESH, added)
                 .putStringSet(KEY_LAST, last)
+                .putBoolean(KEY_BAR, true)
+                .putStringSet(KEY_SEEN, emptySet())
                 .apply()
         }
         lastKeys = last
         lastAdded = keyed.filterKeys { it in last }.values.distinctBy { it.titleRes }
-        show(keyed.filterKeys { it in fresh }.values.distinctBy { it.titleRes })
+        keyOf = keyed.entries.associate { (key, entry) -> entry.titleRes to key }
+        seenAt.clear()
+        prefs.getStringSet(KEY_SEEN, null).orEmpty().forEach { line ->
+            val tab = line.lastIndexOf('\t')
+            if (tab > 0) line.substring(tab + 1).toLongOrNull()?.let { seenAt[line.substring(0, tab)] = it }
+        }
+        val now = System.currentTimeMillis()
+        val rows = keyed.filterKeys { it in fresh }.values.distinctBy { it.titleRes }
+        val lasting = keyed.filterKeys { key -> key in fresh && seenAt[key]?.let { now - it < BORDER_MS } != false }
+        show(
+            bar = if (prefs.getBoolean(KEY_BAR, true)) rows else emptyList(),
+            borders = lasting.values.distinctBy { it.titleRes },
+        )
+    }
+
+    /**
+     * Whether the row with title resource [titleRes], or with [title] where
+     * it has none, wears the gold border.
+     */
+    fun isNew(titleRes: Int, title: String?): Boolean = when {
+        titleRes != 0 -> titleRes in titles
+        title == null || titles.isEmpty() -> false
+        else -> bordered.any { it.title == title }
+    }
+
+    private fun resOf(titleRes: Int, title: String?): Int =
+        if (titleRes != 0) titleRes else bordered.firstOrNull { it.title == title }?.titleRes ?: 0
+
+    /** A bordered row is on screen: its day starts now, the first time (#1242). */
+    fun sighted(context: Context, titleRes: Int, title: String?) {
+        val key = keyOf[resOf(titleRes, title)] ?: return
+        if (key in seenAt) return
+        seenAt[key] = System.currentTimeMillis()
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putStringSet(KEY_SEEN, seenAt.mapTo(HashSet()) { (k, at) -> "$k\t$at" })
+            .apply()
+    }
+
+    /** A bordered row was tapped: seen to, so its border goes (#1242). The bar still steps to it. */
+    fun touched(context: Context, titleRes: Int, title: String?) {
+        val res = resOf(titleRes, title)
+        if (res == 0 || res !in titles) return
+        val key = keyOf[res]
+        titles = titles - res
+        bordered = bordered.filter { it.titleRes != res }
+        if (key == null) return
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val fresh = prefs.getStringSet(KEY_FRESH, null).orEmpty()
+        // Kept for the bar while it is up; gone for good once both are done with it.
+        if (entries.none { it.titleRes == res }) prefs.edit().putStringSet(KEY_FRESH, fresh - key).apply()
+        seenAt[key] = 0L
+        prefs.edit().putStringSet(KEY_SEEN, seenAt.mapTo(HashSet()) { (k, at) -> "$k\t$at" }).apply()
     }
 
     /** Moves the bar to [index] and hands back the entry to open there. */
@@ -158,21 +234,30 @@ internal object NewSettings {
         return entry
     }
 
-    /** The user has seen enough: the borders and the bar go until the next update. */
+    /**
+     * The bar is put away until the next update. The borders stay (#1242),
+     * each until its row is tapped or has been on screen a day.
+     */
     fun dismiss(context: Context) {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putStringSet(KEY_FRESH, emptySet()).apply()
-        show(emptyList())
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_BAR, false).apply()
+        show(bar = emptyList(), borders = bordered)
     }
 
-    /** About's way back in: the latest update's rows, bar and borders again, from the first. */
+    /** About's way back in: the latest update's rows, bar and borders again, from the first, each with a fresh day. */
     fun replay(context: Context) {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putStringSet(KEY_FRESH, lastKeys).apply()
-        show(lastAdded)
+        seenAt.clear()
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putStringSet(KEY_FRESH, lastKeys)
+            .putBoolean(KEY_BAR, true)
+            .putStringSet(KEY_SEEN, emptySet())
+            .apply()
+        show(bar = lastAdded, borders = lastAdded)
     }
 
-    private fun show(found: List<SettingsSearchEntry>) {
-        entries = found
-        titles = found.mapTo(HashSet()) { it.titleRes }
+    private fun show(bar: List<SettingsSearchEntry>, borders: List<SettingsSearchEntry>) {
+        entries = bar
+        bordered = borders
+        titles = borders.mapTo(HashSet()) { it.titleRes }
         at = -1
     }
 }

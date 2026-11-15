@@ -37239,9 +37239,19 @@ open class WMKeyboardService : InputMethodService() {
             }
             PanelMode.AI_REPLY -> prepareAiReply()
             PanelMode.TRANSLATE -> {
-                prefillTranslateFromHint()
-                prefillTranslateFromSelection()
-                prefillTranslateFromCaret()
+                // A "@translate …" search shortcut (#1242): its words, translated as it opens.
+                val asked = (_uiState.value.toolPrefill as? ToolPrefill.Lookup)?.term
+                if (asked != null) {
+                    onToolPrefillConsumed()
+                    _uiState.update {
+                        it.copy(mediaQuery = asked, mediaSearchActive = false, translate = it.translate.cleared())
+                    }
+                    runMediaSearch()
+                } else {
+                    prefillTranslateFromHint()
+                    prefillTranslateFromSelection()
+                    prefillTranslateFromCaret()
+                }
             }
             PanelMode.PLUGINS -> if (!pluginReturnShown()) {
                 openPluginList()

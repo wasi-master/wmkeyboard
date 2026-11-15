@@ -501,12 +501,13 @@ internal fun HighlightableRow(
         val bare = depthControl.depth == SettingsDepth.SIMPLE
         val whatIsThis = if (info != null && bare) remember(title, info) { RowInfo(title.orEmpty(), info) } else null
         val hold = if (coarse) null else rememberRowHold(disabledReason, whatIsThis)
-        // A row an update brought wears a gold border until the user puts the
-        // new settings bar away (#970).
-        val isNew = !coarse && when {
-            highlightKey != 0 -> highlightKey in NewSettings.titles
-            title == null || NewSettings.titles.isEmpty() -> false
-            else -> NewSettings.entries.any { it.title == title }
+        // A row an update brought wears a gold border (#970) until it is
+        // tapped, or for a day from when it was first on screen (#1242),
+        // whether or not the new settings bar is still up.
+        val isNew = !coarse && NewSettings.isNew(highlightKey, title)
+        if (isNew) {
+            val context = LocalContext.current
+            LaunchedEffect(highlightKey, title) { NewSettings.sighted(context, highlightKey, title) }
         }
         // Inside a group card the border takes the card's own corners: the
         // card clips to them, and a rounder end corner cut a 12 dp outline (#1184).
@@ -516,11 +517,36 @@ internal fun HighlightableRow(
             rank = if (coarse) HighlightRank.SECTION else HighlightRank.ROW,
             modifier = Modifier
                 .then(if (coarse || touch == null) Modifier else Modifier.armRowTouch(touch))
+                .then(if (isNew) Modifier.clearsNewOnTap(highlightKey, title) else Modifier)
                 .settingLinkHold(hold, disabledReason, whatIsThis)
                 .then(if (isNew) Modifier.border(1.5.dp, NewSettingGold, newBorderShape) else Modifier),
         ) {
             if (LocalRowPeeked.current) PeekedContent(content) else content()
             RowHoldMenu(hold)
+        }
+    }
+}
+
+/**
+ * A tap on a new row (#1242), not a drag that scrolls past it: seen to, so
+ * its gold border goes. Watched on the way down and never consumed, as
+ * [armRowTouch] is, so the row's own controls still get the tap.
+ */
+@Composable
+private fun Modifier.clearsNewOnTap(titleRes: Int, title: String?): Modifier {
+    val context = LocalContext.current
+    return pointerInput(titleRes, title) {
+        awaitEachGesture {
+            val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+            var moved = false
+            while (true) {
+                val change = awaitPointerEvent(PointerEventPass.Initial).changes.firstOrNull { it.id == down.id } ?: break
+                if ((change.position - down.position).getDistance() > viewConfiguration.touchSlop) moved = true
+                if (!change.pressed) {
+                    if (!moved) NewSettings.touched(context, titleRes, title)
+                    break
+                }
+            }
         }
     }
 }

@@ -11,6 +11,9 @@ enum class SearchTarget(val id: String, val tool: ToolbarTool?) {
     DICTIONARY("dictionary", ToolbarTool.DICTIONARY),
     WEB("web", ToolbarTool.WEB_SEARCH),
 
+    /** Translate, which translates the words as it opens (#1242). */
+    TRANSLATE("translate", ToolbarTool.TRANSLATE),
+
     /** A saved contact whose name starts with the words, to call or text. */
     CONTACTS("contacts", null),
     ;
@@ -42,6 +45,7 @@ object SearchTriggers {
         SearchTrigger("@wiki", SearchTarget.WIKIPEDIA),
         SearchTrigger("@define", SearchTarget.DICTIONARY),
         SearchTrigger("@web", SearchTarget.WEB),
+        SearchTrigger("@translate", SearchTarget.TRANSLATE),
         SearchTrigger("@contact", SearchTarget.CONTACTS),
     )
 
