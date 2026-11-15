@@ -30235,6 +30235,9 @@ private fun NamedKeyIcon(icon: ResolvedIcon, contentDescription: String?, tint: 
     }
 }
 
+/** How far a theme's letter outline (#1222) spreads round a key's label, in dp. */
+private const val LabelOutlineDp = 3f
+
 /** The side an action key's icon is drawn at when nothing sizes it: Material's own 24 dp. */
 private const val ActionKeyIconDp = 24f
 
@@ -30649,8 +30652,17 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     (key.flickArm(FlickDirection.LEFT) != null || key.flickArm(FlickDirection.RIGHT) != null)
                 val endArms = armsShown &&
                     (key.flickArm(FlickDirection.UP) != null || key.flickArm(FlickDirection.DOWN) != null)
+                // A theme's letter outline (#1222): a halo that keeps the
+                // letters readable over a photo, drawn by the text itself.
+                val outline = LocalKbTheme.current.labelOutline
+                val outlinePx = with(LocalDensity.current) { LabelOutlineDp.dp.toPx() }
                 Text(
                     text = text,
+                    style = if (outline == null) {
+                        LocalTextStyle.current
+                    } else {
+                        LocalTextStyle.current.copy(shadow = androidx.compose.ui.graphics.Shadow(outline, blurRadius = outlinePx))
+                    },
                     modifier = Modifier
                         .align(Alignment.Center)
                         // Moved off the centre when the user asked (#970), to

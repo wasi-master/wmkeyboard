@@ -392,6 +392,8 @@
 
     <!-- Theme editor: shadows, the popup selection and the one-handed rail. -->
     <string name="theme_key_elevation_title">Key shadow</string>
+    <string name="theme_key_text_outline_title">Letter outline</string>
+    <string name="theme_key_text_outline_body">A soft outline round the letters on every key, so they stay readable over a photo or a busy background. Pick a colour that contrasts with the key text: black round white letters, white round dark ones. Lower its alpha for a gentle shadow instead of an outline. Unset draws none.</string>
     <string name="theme_key_shadow_color_title">Key shadow colour</string>
     <string name="theme_key_shadow_color_body">The colour of the shadow under each key. Leave it unset for the usual black, or pick a colour and lower its alpha for a soft glow. Android 8 and older draw every shadow black.</string>
     <string name="theme_key_elevation_body">How far the keys are lifted off the board. Some key shapes cannot draw a shadow and stay flat, and so does a key whose colour you can see through.</string>

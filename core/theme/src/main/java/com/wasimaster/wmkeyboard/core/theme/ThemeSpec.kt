@@ -288,6 +288,12 @@ data class ThemeSpec(
     val keyGradient: GradientSpec? = null,
     val keyBackground: Long = 0xFF303338,
     val keyText: Long = 0xFFE9E9EE,
+    /**
+     * A soft outline drawn round every key's letters (#1222), so they read
+     * over a busy photo whatever its colours. Null draws none. Alpha is
+     * honoured: a half-strength black is a shadow, a full one an outline.
+     */
+    val keyTextOutline: Long? = null,
     val modifierKeyBackground: Long = 0xFF222428,
     val modifierKeyText: Long? = null,
     /**

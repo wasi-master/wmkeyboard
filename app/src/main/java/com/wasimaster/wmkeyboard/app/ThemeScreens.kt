@@ -4761,6 +4761,16 @@ private fun ThemeEditorContent(
                 update { t -> t.copy(keyText = it) }
             }
         }
+        // A halo round the letters (#1222): keys over a busy photo stay readable.
+        item {
+            NullableColorRow(
+                R.string.theme_key_text_outline_title,
+                look.watch { it.keyTextOutline }, fallback = 0xFF000000,
+                supportsAlpha = true,
+                info = stringResource(R.string.theme_key_text_outline_body),
+                onChange = { update { t -> t.copy(keyTextOutline = it) } },
+            )
+        }
         item {
             ColorRow(
                 R.string.theme_modifier_keys_title,
