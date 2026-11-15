@@ -39307,6 +39307,7 @@ open class WMKeyboardService : InputMethodService() {
             WhisperCppPlan.prompt(model, words),
             WhisperCppPlan.beamSize(model),
             WhisperCppPlan.wantsGpu(model, _uiState.value.settings.whisper.compute),
+            suppressSymbols = _uiState.value.settings.voiceBar.suppressSymbols,
         ) ?: return null
         val detected = model.multilingual && codes.isEmpty()
         return if (detected) WhisperScript.rescueAmong(result.text, languages) else result.text

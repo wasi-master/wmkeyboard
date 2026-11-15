@@ -572,6 +572,7 @@ class AppDictation(
                 WhisperCppPlan.prompt(model, biasWords(VoiceBias.RECOGNIZER_LIMIT)),
                 WhisperCppPlan.beamSize(model),
                 WhisperCppPlan.wantsGpu(model, settings.whisper.compute),
+                suppressSymbols = settings.voiceBar.suppressSymbols,
             ) ?: return ""
             val detected = model.multilingual && codes.isEmpty()
             return if (detected) WhisperScript.rescueAmong(result.text, languageIds) else result.text

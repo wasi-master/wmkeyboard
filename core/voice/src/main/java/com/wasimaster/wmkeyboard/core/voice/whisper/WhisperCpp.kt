@@ -115,6 +115,8 @@ object WhisperCpp {
      * @param prompt words to steer spelling and vocabulary towards, or null.
      * @param beamSize 1 decodes greedily; more keeps that many hypotheses.
      * @param gpu run it on the GPU where the phone can ([WhisperCppPlan.wantsGpu]).
+     * @param suppressSymbols keep the decoder off symbol tokens
+     *   ([WhisperSymbolTokens]), for "Suppress symbols".
      * Blocking; call off the main thread. Throws [WhisperException].
      */
     fun transcribe(
@@ -125,11 +127,13 @@ object WhisperCpp {
         prompt: String?,
         beamSize: Int,
         gpu: Boolean = false,
+        suppressSymbols: Boolean = false,
     ): Result? {
         lock.lock()
         try {
             val codes = languages.toTypedArray()
             var h = openLocked(modelFile, gpu)
+            suppress(h, suppressSymbols)
             if (openGpu) {
                 try {
                     val bytes = WhisperCppGpu.attempt(WhisperCppGpu.modelKey(modelFile)) {
@@ -140,6 +144,7 @@ object WhisperCpp {
                     // The GPU failed on this clip and is not asked again for
                     // this model: the CPU builds take it, and the next ones.
                     h = openLocked(modelFile, gpu)
+                    suppress(h, suppressSymbols)
                 }
             }
             val bytes = try {
@@ -151,6 +156,37 @@ object WhisperCpp {
         } finally {
             lock.unlock()
         }
+    }
+
+    /** The handle the suppressed tokens were last set on, and whether any were. */
+    private var suppressedHandle = 0L
+    private var suppressedOn = false
+
+    /** The symbol tokens of the model open now, by its path; worked out once per model. */
+    private var symbolTokens: Pair<String, IntArray>? = null
+
+    /**
+     * Sets the tokens the decoder may not pick on [h]: the model's symbol
+     * tokens with [on], none without. A library from before the masking had
+     * no such call, and then only the filter on the finished text acts.
+     * Under [lock].
+     */
+    private fun suppress(h: Long, on: Boolean) {
+        if (h == suppressedHandle && on == suppressedOn) return
+        val gpu = openGpu
+        runCatching {
+            val ids = if (on) {
+                val path = openPath.orEmpty()
+                symbolTokens?.takeIf { it.first == path }?.second
+                    ?: WhisperSymbolTokens.ids(if (gpu) WhisperCppGpu.vocab(h) else nativeVocab(h))
+                        .also { symbolTokens = path to it }
+            } else {
+                IntArray(0)
+            }
+            if (gpu) WhisperCppGpu.setSuppressed(h, ids) else nativeSetSuppressed(h, ids)
+        }
+        suppressedHandle = h
+        suppressedOn = on
     }
 
     private fun result(bytes: ByteArray): Result {
@@ -233,6 +269,8 @@ object WhisperCpp {
     private fun closeLocked() = synchronized(handleLock) {
         val h = handle
         handle = 0L
+        // A model opened next may land at the same address.
+        suppressedHandle = 0L
         openPath = null
         if (h != 0L) {
             if (openGpu) WhisperCppGpu.close(h) else nativeClose(h)
@@ -255,6 +293,10 @@ object WhisperCpp {
     ): ByteArray?
 
     @JvmStatic private external fun nativePartial(handle: Long): ByteArray
+
+    @JvmStatic private external fun nativeVocab(handle: Long): ByteArray
+
+    @JvmStatic private external fun nativeSetSuppressed(handle: Long, ids: IntArray)
 
     @JvmStatic private external fun nativeAbort(handle: Long)
 }

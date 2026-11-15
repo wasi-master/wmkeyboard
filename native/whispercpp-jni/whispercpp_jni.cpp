@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <mutex>
@@ -50,6 +51,11 @@ struct Session {
     std::string done;
     std::string current;
     int current_tokens = 0;
+
+    // Tokens the decoder may not pick ("Suppress symbols"): set by
+    // nativeSetSuppressed between clips, read by onLogits during one, both
+    // under run_mutex.
+    std::vector<whisper_token> suppressed;
 };
 
 void throwJava(JNIEnv* env, const char* message) {
@@ -81,9 +87,16 @@ std::string tokensToText(whisper_context* ctx, const whisper_token_data* tokens,
 // Runs on whichever thread decodes: several at once under beam search, so it
 // only records. The longest hypothesis wins a step; beams are kept sorted, so
 // that is close to the best one, and it is only a preview.
+//
+// It is also where "Suppress symbols" acts: a suppressed token's logit goes
+// to minus infinity, so the decoder writes the word ("percent") instead of
+// the mark, rather than the mark being cut out afterwards.
 void onLogits(whisper_context* ctx, whisper_state*, const whisper_token_data* tokens, int n_tokens,
-              float*, void* user_data) {
+              float* logits, void* user_data) {
     auto* s = static_cast<Session*>(user_data);
+    if (logits) {
+        for (const whisper_token id : s->suppressed) logits[id] = -INFINITY;
+    }
     std::string text = tokensToText(ctx, tokens, n_tokens);
     std::lock_guard<std::mutex> lock(s->partial_mutex);
     if (n_tokens >= s->current_tokens) {
@@ -350,6 +363,52 @@ JNI_FN(nativeTranscribe)(
         if (text) out += text;
     }
     return bytes(env, out);
+}
+
+/**
+ * The model's text tokens, for Kotlin to choose which to suppress: for each
+ * id from 0 up to end-of-text, two bytes of length (little-endian) and the
+ * token's bytes. Byte-level tokens may hold half a character.
+ */
+extern "C" JNIEXPORT jbyteArray JNICALL
+JNI_FN(nativeVocab)(JNIEnv* env, jclass, jlong handle) {
+    auto* s = reinterpret_cast<Session*>(handle);
+    if (!s || !s->ctx) return bytes(env, "");
+    std::lock_guard<std::mutex> run(s->run_mutex);
+    const whisper_token eot = whisper_token_eot(s->ctx);
+    std::string out;
+    for (whisper_token id = 0; id < eot; ++id) {
+        const char* piece = whisper_token_to_str(s->ctx, id);
+        const size_t n = piece ? std::min<size_t>(std::strlen(piece), 0xFFFF) : 0;
+        out += static_cast<char>(n & 0xFF);
+        out += static_cast<char>((n >> 8) & 0xFF);
+        if (n) out.append(piece, n);
+    }
+    return bytes(env, out);
+}
+
+/**
+ * The tokens the decoder may not pick from now on, by id; an empty array
+ * lets it pick any. Ids outside the vocabulary are ignored. Waits for a
+ * running transcription to finish.
+ */
+extern "C" JNIEXPORT void JNICALL
+JNI_FN(nativeSetSuppressed)(JNIEnv* env, jclass, jlong handle, jintArray ids) {
+    auto* s = reinterpret_cast<Session*>(handle);
+    if (!s || !s->ctx) return;
+    std::vector<whisper_token> next;
+    const jsize n = ids ? env->GetArrayLength(ids) : 0;
+    if (n > 0) {
+        std::vector<jint> raw(static_cast<size_t>(n));
+        env->GetIntArrayRegion(ids, 0, n, raw.data());
+        const int vocab = whisper_n_vocab(s->ctx);
+        next.reserve(raw.size());
+        for (const jint id : raw) {
+            if (id >= 0 && id < vocab) next.push_back(static_cast<whisper_token>(id));
+        }
+    }
+    std::lock_guard<std::mutex> run(s->run_mutex);
+    s->suppressed = std::move(next);
 }
 
 /** What has been decoded so far, as UTF-8 bytes; empty before the first token. */

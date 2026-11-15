@@ -254,6 +254,10 @@ object WhisperCppGpu {
 
     internal fun partial(handle: Long): ByteArray = nativePartial(handle)
 
+    internal fun vocab(handle: Long): ByteArray = nativeVocab(handle)
+
+    internal fun setSuppressed(handle: Long, ids: IntArray) = nativeSetSuppressed(handle, ids)
+
     internal fun abort(handle: Long) = nativeAbort(handle)
 
     @JvmStatic private external fun nativeGpuInit(cacheDir: String?): ByteArray
@@ -277,4 +281,8 @@ object WhisperCppGpu {
     @JvmStatic private external fun nativePartial(handle: Long): ByteArray
 
     @JvmStatic private external fun nativeAbort(handle: Long)
+
+    @JvmStatic private external fun nativeVocab(handle: Long): ByteArray
+
+    @JvmStatic private external fun nativeSetSuppressed(handle: Long, ids: IntArray)
 }
