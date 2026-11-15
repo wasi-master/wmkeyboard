@@ -2587,10 +2587,10 @@
     "host": "settings",
     "setup": [
       "Home \u2192 Keyboard group \u2192 Layout & size",
-      "Scroll to 'Per-screen sizing' and tap the 'Landscape' row to expand its editor (Keyboard scale, Key height, Bottom padding, Keyboard width, Font size sliders)"
+      "Under 'Per-screen sizing', tap 'Landscape': its own page opens (layout/size/landscape), with Keyboard scale at the top"
     ],
-    "status": "done",
-    "notes": "Group at MainActivity.kt:3590-3695; expanded editor renders under whichever ScreenVariant row is tapped.",
+    "status": "todo",
+    "notes": "Since #43 (7e5cbd342) each screen shape is a page of its own, layout/size/{variant}; the old shot shows the rows unfolded in place. Re-render with the docs-shots run.",
     "kind": "still",
     "dark": "src/assets/screens/typing/size-position-per-screen.dark.webp",
     "source": "jvm"

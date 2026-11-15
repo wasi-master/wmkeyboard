@@ -51,9 +51,9 @@ private val smartChips = Shot("smart/options", "typing/chips", setting = "typing
 private val blacklist = Shot("smart/blacklist-editor", "blacklist", seed = { blacklist("idk", "whatever", "ugh") })
 private val gesturesGroup = Shot("typing/glide-settings-gestures", "typing/gestures", setting = "typing_glide_typing_title")
 private val sizeGroup = Shot("typing/size-position-settings-overview", "layout/size", setting = "layout_size_position_title")
+// Each screen shape has a page of its own since 0.6.7 (#43); it used to unfold under its row.
 private val perScreen = Shot(
-    "typing/size-position-per-screen", "layout/size", setting = "layout_per_screen_title",
-    steps = { tap("Landscape") },
+    "typing/size-position-per-screen", "layout/size/landscape", setting = "layout_keyboard_scale_title",
 )
 
 // ---------------------------------------------------------------- languages
