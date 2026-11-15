@@ -82,6 +82,25 @@ object VadModels {
         ),
     )
 
+    /**
+     * Parakeet Ultra's voice-activity head with a copy of its subsampler, as
+     * an ExecuTorch program of its own (#1173, tools/parakeet-ultra/export_vad.py;
+     * Moondream's weights, CC-BY-4.0 like the model). Not a phrase end
+     * detector: Parakeet uses it to cut a dictation past 50 seconds at a pause.
+     */
+    const val ULTRA_HEAD_FILE = "ultra_vad.pte"
+    val ULTRA_HEAD = Download(
+        "parakeet_ultra_head",
+        listOf(
+            Pinned(
+                "https://huggingface.co/wasi-master/parakeet-ultra-executorch/resolve/main/vad/$ULTRA_HEAD_FILE",
+                ULTRA_HEAD_FILE,
+                18_204_292L,
+                "1aa3cdebb5b723fa28016043c37fe54c056af0db4606783083b2d7677658f987",
+            ),
+        ),
+    )
+
     private const val SPACE_MARGIN_BYTES = 16L * 1024 * 1024
 
     /**

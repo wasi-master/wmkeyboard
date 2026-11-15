@@ -149,6 +149,11 @@
     <string name="voice_smart_turn_conservative_title">Only ever wait longer</string>
     <string name="voice_smart_turn_conservative_subtitle">Never end sooner than the pause; wait twice the pause when you sound unfinished</string>
     <string name="voice_smart_turn_conservative_info">Ending a phrase too soon cuts off your last words, while ending it late only costs a moment. With this on, Smart Turn can only make the wait longer: when you sound finished, the phrase still waits out the whole pause set in Stop after a pause, and when you sound mid-thought, it waits twice that pause. Off by default, which lets Smart Turn end a finished sentence after a short pause.</string>
+    <!-- Parakeet page: Parakeet Ultra's voice-activity head, for dictation past 50 seconds (#1173). -->
+    <string name="voice_parakeet_long_group">Long dictation</string>
+    <string name="voice_parakeet_long_info">Parakeet reads at most 50 seconds at a time, and audio past that used to be dropped. Parakeet Ultra carries a small voice-activity head of its own that finds the pauses in a recording. With it downloaded, a dictation that reaches 50 seconds is cut at its longest pause in the last 15 seconds, that part is written, and listening goes on. It works on recordings with speech in them; it isn\'t a phrase end detector.</string>
+    <string name="voice_parakeet_head_title">Ultra\'s pause finder</string>
+    <string name="voice_parakeet_head_missing"><xliff:g id="size" example="18 MB">%1$s</xliff:g> to download. Until then audio past 50 seconds is dropped</string>
     <string name="voice_smart_turn_model_title">Smart Turn model</string>
     <!-- %1$s is a file size, e.g. "8.7 MB". -->
     <string name="voice_smart_turn_model_missing"><xliff:g id="size" example="8.7 MB">%1$s</xliff:g> to download. Until then every pause is waited out</string>

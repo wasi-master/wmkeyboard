@@ -19,10 +19,18 @@ import com.wasimaster.wmkeyboard.core.voice.VoiceStream
  * Not thread-safe: one thread (the ExecuTorch one Parakeet runs on) feeds,
  * reads and finishes.
  *
- * @param maxSamples the longest clip [transcribe] takes; audio past it is dropped.
+ * A clip that reaches [maxSamples] is cut at a pause when [cutAt] can find
+ * one (#1173, Parakeet Ultra's own voice-activity head): the part before the
+ * cut is transcribed once and kept, and the audio after it starts the next
+ * part, so dictation goes on past the model's 50 seconds. Without [cutAt],
+ * audio past [maxSamples] is dropped, as it always was.
+ *
+ * @param maxSamples the longest clip [transcribe] takes.
  * @param transcribe the clip's first n samples as text: [ParakeetEngine]'s
  *   decoding, or a fake in a test.
  * @param now a millisecond clock, for the pacing.
+ * @param cutAt the sample to cut a full clip's first n samples at, or null
+ *   when there is no good place.
  */
 class ParakeetStream internal constructor(
     private val maxSamples: Int,
@@ -30,6 +38,7 @@ class ParakeetStream internal constructor(
     private val now: () -> Long = System::currentTimeMillis,
     private val minStepSamples: Int = MIN_STEP_SAMPLES,
     private val paceFactor: Int = PACE_FACTOR,
+    private val cutAt: ((pcm: FloatArray, count: Int) -> Int?)? = null,
 ) : VoiceStream {
 
     private var buffer = FloatArray(INITIAL_SAMPLES)
@@ -43,20 +52,50 @@ class ParakeetStream internal constructor(
 
     private var heard = ""
 
+    /** What the parts already cut off came to, joined. */
+    private var settled = ""
+
     override fun feed(chunk: FloatArray, count: Int) {
-        val n = minOf(count, chunk.size, maxSamples - size)
-        if (n <= 0) return
-        ensure(size + n)
-        System.arraycopy(chunk, 0, buffer, size, n)
-        size += n
-        if (size - decodedSize >= stepSamples()) pass()
+        var from = 0
+        var left = minOf(count, chunk.size)
+        while (left > 0) {
+            if (size >= maxSamples && !cut()) return
+            val n = minOf(left, maxSamples - size)
+            ensure(size + n)
+            System.arraycopy(chunk, from, buffer, size, n)
+            size += n
+            from += n
+            left -= n
+            if (size - decodedSize >= stepSamples()) pass()
+        }
     }
 
-    override fun text(): String = heard
+    override fun text(): String = join(settled, heard)
 
     override fun finish(): String {
         if (size > decodedSize || (size > 0 && heard.isEmpty())) pass()
-        return heard
+        return join(settled, heard)
+    }
+
+    /**
+     * Cuts the full clip at [cutAt]'s pause: the part before it transcribed
+     * and kept, the rest moved to the front. False when there is no cutter,
+     * or it found nowhere to cut.
+     */
+    private fun cut(): Boolean {
+        val at = cutAt?.invoke(buffer, size)?.takeIf { it in 1 until size } ?: return false
+        settled = join(settled, transcribe(buffer, at))
+        System.arraycopy(buffer, at, buffer, 0, size - at)
+        size -= at
+        decodedSize = 0
+        heard = ""
+        return true
+    }
+
+    private fun join(before: String, after: String): String = when {
+        before.isEmpty() -> after
+        after.isEmpty() -> before
+        else -> "$before $after"
     }
 
     /**

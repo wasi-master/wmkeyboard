@@ -349,6 +349,8 @@ internal fun ProviderOwnSettings(
             if (it == EtEngine.SHERPA) SherpaCustomModels(settings)
             // How long Asr4All looks ahead before it writes (#1322).
             if (it == EtEngine.ASR4ALL) Asr4AllTierGroup(repository, settings)
+            // Parakeet Ultra past 50 seconds, cut at its own pauses (#1173).
+            if (it == EtEngine.PARAKEET) ParakeetUltraHeadGroup(settings)
             // Where the engine's phrase ends, next to the engine (#1174).
             if (it.live) VoicePhraseEndGroup(repository, settings)
         }

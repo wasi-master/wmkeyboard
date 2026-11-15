@@ -88,6 +88,32 @@ class ParakeetStreamTest {
     }
 
     @Test
+    fun `a full clip with a cutter is cut at its pause and goes on`() {
+        val fake = Fake()
+        // Every sample says where it was fed, so a pass shows where its clip starts.
+        var fed = 0f
+        val s = ParakeetStream(
+            250, fake::transcribe, now = { fake.clock }, minStepSamples = 1_000, paceFactor = 3,
+            cutAt = { _, count -> count - 50 },
+        )
+        repeat(4) { s.feed(FloatArray(100) { fed++ }) }
+        // 250 filled, cut at 200 (part one), the next 150 after the 50 kept.
+        assertEquals(200, fake.passes.first())
+        val text = s.finish()
+        assertEquals(listOf(200, 200), fake.passes)
+        assertEquals("n=200 first=0.0 n=200 first=200.0", text)
+    }
+
+    @Test
+    fun `a cutter that finds no pause drops the rest as before`() {
+        val fake = Fake()
+        val s = ParakeetStream(250, fake::transcribe, now = { fake.clock }, minStepSamples = 1_000, cutAt = { _, _ -> null })
+        repeat(4) { s.feed(FloatArray(100)) }
+        s.finish()
+        assertEquals(listOf(250), fake.passes)
+    }
+
+    @Test
     fun `an empty clip finishes empty without a pass`() {
         val fake = Fake()
         assertEquals("", stream(fake).finish())

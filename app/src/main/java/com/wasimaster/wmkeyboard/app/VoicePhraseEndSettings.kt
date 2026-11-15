@@ -220,6 +220,35 @@ internal fun VoicePhraseEndSetting(repository: SettingsRepository, settings: Liv
     }
 }
 
+/**
+ * Parakeet Ultra's own voice-activity head (#1173), shown once Ultra is on
+ * the device: with it, a dictation that reaches the model's 50 seconds is cut
+ * at its last pause and goes on, instead of the rest being dropped.
+ */
+@Composable
+internal fun ParakeetUltraHeadGroup(settings: LiveSettings) {
+    val filesDir = LocalContext.current.filesDir
+    val ultra = remember(filesDir) {
+        com.wasimaster.wmkeyboard.core.voice.executorch.EtCatalog.byId(
+            com.wasimaster.wmkeyboard.core.voice.parakeet.ParakeetEngine.ULTRA_ID,
+        )?.let { com.wasimaster.wmkeyboard.core.voice.executorch.EtStore.isDownloaded(filesDir, it) } == true
+    }
+    if (!ultra) return
+    SettingsGroup(
+        stringResource(R.string.voice_parakeet_long_group),
+        info = stringResource(R.string.voice_parakeet_long_info),
+    ) {
+        item {
+            VadDownloadRow(
+                settings,
+                VadModels.ULTRA_HEAD,
+                stringResource(R.string.voice_parakeet_head_title),
+                stringResource(R.string.voice_parakeet_head_missing, formatBytes(VadModels.ULTRA_HEAD.bytes)),
+            )
+        }
+    }
+}
+
 /** One detector's download: fetch, progress, delete. */
 @Composable
 private fun VadDownloadRow(settings: LiveSettings, download: VadModels.Download, title: String, missing: String) {

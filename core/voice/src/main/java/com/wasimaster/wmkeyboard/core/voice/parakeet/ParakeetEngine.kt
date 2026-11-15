@@ -9,6 +9,7 @@ import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
 import com.wasimaster.wmkeyboard.core.voice.executorch.PieceVocab
 import com.wasimaster.wmkeyboard.core.voice.executorch.Tensor
 import com.wasimaster.wmkeyboard.core.voice.sherpa.QnnSpeech
+import com.wasimaster.wmkeyboard.core.voice.vad.VadModels
 import java.io.File
 
 /**
@@ -35,6 +36,28 @@ object ParakeetEngine {
     /** The longest clip v3's preprocessor takes: 800,000 samples. */
     const val MAX_CLIP_SECONDS = 50
 
+    /**
+     * The longest clip the recorder gives [model]: [MAX_CLIP_SECONDS], or
+     * with Parakeet Ultra and its voice-activity head on the device, the
+     * same two minutes whisper.cpp gets, since [ParakeetStream] then cuts it
+     * at the head's pauses as it passes 50 seconds (#1173). The GPU build
+     * runs without the head, so it keeps 50.
+     */
+    fun maxClipSeconds(filesDir: File, model: EtModel): Int =
+        if (model.id == ULTRA_ID && !headFailed && VadModels.ULTRA_HEAD.isDownloaded(filesDir)) LONG_CLIP_SECONDS else MAX_CLIP_SECONDS
+
+    /** [maxClipSeconds] with the head: whisper.cpp's two minutes. */
+    const val LONG_CLIP_SECONDS = 120
+
+    /** How far back from the limit a long dictation's cut may go to find a pause (#1173). */
+    const val CUT_SEARCH_SECONDS = 15
+
+    /** The model whose voice-activity head [VadModels.ULTRA_HEAD] is: Parakeet Ultra on the CPU. */
+    const val ULTRA_ID = "parakeet-ultra"
+
+    /** The head failed to open once this process: it is not tried again, and dictation runs without it. */
+    @Volatile private var headFailed = false
+
     /** The TDT duration head's choices, in frames: v3's, as NeMo exports them. */
     private val DURATIONS = intArrayOf(0, 1, 2, 3, 4)
 
@@ -49,17 +72,78 @@ object ParakeetEngine {
         require(model.engine == EtEngine.PARAKEET)
         val runs = runnable(filesDir, model)
         if (runs.npu != null) return QnnSpeech.warm(filesDir, runs)
-        EtNative.programs(listOf(EtStore.file(filesDir, runs, PROGRAM)))
+        open(filesDir, runs)
         vocabFor(filesDir, runs)
+    }
+
+    /**
+     * [model]'s program, and with Parakeet Ultra its voice-activity head when
+     * that is downloaded (#1173), opened as one set so neither closes the
+     * other. A head that will not open is left out, and dictation goes on as
+     * it did before there was one.
+     */
+    private fun open(filesDir: File, model: EtModel): Pair<EtNative.Program, EtNative.Program?> {
+        val main = EtStore.file(filesDir, model, PROGRAM)
+        val head = VadModels.ULTRA_HEAD.takeIf {
+            model.id == ULTRA_ID && !headFailed && it.isDownloaded(filesDir)
+        }?.file(filesDir, VadModels.ULTRA_HEAD_FILE)
+        if (head != null) {
+            runCatching { EtNative.programs(listOf(main, head)) }
+                .onSuccess { return it[0] to it[1] }
+            headFailed = true
+        }
+        return EtNative.programs(listOf(main)).single() to null
+    }
+
+    /**
+     * Where to cut a clip too long for [program], from [head]'s logits over
+     * the program's own features for it; null when it cannot say. See
+     * [ParakeetCut].
+     */
+    internal fun cutter(program: EtRunner, head: EtRunner): (FloatArray, Int) -> Int? = { pcm, count ->
+        runCatching {
+            val n = minOf(count, maxSamples(program))
+            val audio = if (n == pcm.size) pcm else pcm.copyOf(n)
+            val proc = program.run("preprocessor", listOf(Tensor(longArrayOf(n.toLong()), audio), Tensor.long(n.toLong())))
+            val mel = proc[0]
+            val bins = mel.shape[1].toInt()
+            val frames = mel.shape[2].toInt()
+            // Whole encoder frames only: the head program takes a multiple of 8.
+            val valid = minOf(proc[1].scalar.toInt(), frames).let { it - it % MEL_PER_FRAME }
+            if (valid < MIN_HEAD_FRAMES) return@runCatching null
+            // The features as the preprocessor padded them; the head reads the real ones.
+            val data = if (valid == frames) {
+                mel.floats
+            } else {
+                FloatArray(bins * valid) { i -> mel.floats[(i / valid) * frames + i % valid] }
+            }
+            val logits = head.run("vad", listOf(Tensor(longArrayOf(1, bins.toLong(), valid.toLong()), data)))[0].floats
+            ParakeetCut.pick(logits, n, CUT_SEARCH_SECONDS * SAMPLE_RATE)
+        }.getOrNull()
     }
 
     /** [pcm] (16 kHz mono, in [-1, 1]) as text. On [EtNative.dispatcher] only. */
     fun transcribe(filesDir: File, chosen: EtModel, pcm: FloatArray): String {
         val model = runnable(filesDir, chosen)
         if (model.npu != null) return QnnSpeech.transcribe(filesDir, model, pcm, minOf(pcm.size, MAX_CLIP_SECONDS * 16_000))
-        val program = EtNative.programs(listOf(EtStore.file(filesDir, model, PROGRAM))).single()
-        val tokens = decode(program, pcm, program.constant("blank_id")?.toInt() ?: DEFAULT_BLANK)
-        return vocabFor(filesDir, model).decode(tokens).trim()
+        val (program, head) = open(filesDir, model)
+        val blank = program.constant("blank_id")?.toInt() ?: DEFAULT_BLANK
+        val vocab = vocabFor(filesDir, model)
+        val max = maxSamples(program)
+        if (head == null || pcm.size <= max) return vocab.decode(decode(program, pcm, blank)).trim()
+        // Longer than the model takes, with Ultra's head to say where the
+        // pauses are (#1173): one part at a time, each cut at a pause.
+        val cut = cutter(program, head)
+        val parts = ArrayList<String>()
+        var from = 0
+        while (pcm.size - from > max) {
+            val window = pcm.copyOfRange(from, from + max)
+            val at = cut(window, max)?.takeIf { it in 1..max } ?: max
+            parts += vocab.decode(decode(program, window.copyOf(at), blank)).trim()
+            from += at
+        }
+        parts += vocab.decode(decode(program, pcm.copyOfRange(from, pcm.size), blank)).trim()
+        return parts.filter { it.isNotEmpty() }.joinToString(" ")
     }
 
     /**
@@ -80,12 +164,16 @@ object ParakeetEngine {
                 QnnSpeech.transcribe(filesDir, model, pcm, count)
             })
         }
-        val program = EtNative.programs(listOf(EtStore.file(filesDir, model, PROGRAM))).single()
+        val (program, head) = open(filesDir, model)
         val vocab = vocabFor(filesDir, model)
         val blank = program.constant("blank_id")?.toInt() ?: DEFAULT_BLANK
-        return ParakeetStream(maxSamples(program), transcribe = { pcm, count ->
-            vocab.decode(decode(program, if (count == pcm.size) pcm else pcm.copyOf(count), blank)).trim()
-        })
+        return ParakeetStream(
+            maxSamples(program),
+            transcribe = { pcm, count ->
+                vocab.decode(decode(program, if (count == pcm.size) pcm else pcm.copyOf(count), blank)).trim()
+            },
+            cutAt = head?.let { cutter(program, it) },
+        )
     }
 
     /**
@@ -191,5 +279,12 @@ object ParakeetEngine {
     }
 
     private const val DEFAULT_BLANK = 8192
+    private const val SAMPLE_RATE = 16_000
+
+    /** The head program's shortest input, in mel frames. */
+    private const val MIN_HEAD_FRAMES = 32
+
+    /** Mel frames to an encoder frame. */
+    private const val MEL_PER_FRAME = 8
     private const val DEFAULT_MAX_SAMPLES = 16_000 * 50
 }

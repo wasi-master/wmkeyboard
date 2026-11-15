@@ -56,6 +56,16 @@ Parakeet has no detector of its own, so **Auto** gives it Silero once ONNX Runti
 
 Moondream's Parakeet Ultra carries a small voice activity head of its own, which their Photon runtime uses to cut long recordings at pauses. The keyboard's ExecuTorch export of Ultra was made with the four parts the Parakeet runner uses and left that head out, so it is not used yet; the phrase end detector does that job. Using it would take a new export of Ultra with the head as a fifth part, and a new download.
 
+## Long dictation with Parakeet Ultra
+
+Parakeet reads at most 50 seconds at once. Parakeet Ultra's weights also carry a small voice-activity head that finds the pauses in a recording, which Moondream's own runtime uses to cut long audio. Since 0.6.8 the keyboard can use it too. Once Ultra is on your phone, Parakeet's page has a **Long dictation** group with **Ultra's pause finder**, an 18 MB download.
+
+With it downloaded, a dictation with Ultra (the CPU build) records for up to two minutes at a time instead of 50 seconds. When the words pass 50 seconds, the head reads the clip, the cut goes in the middle of the longest pause in the last 15 seconds, the part before it is written, and listening carries on from there. Without a pause in those 15 seconds it cuts where the head hears the least speech. Without the download, or on the GPU build, a phrase still ends at 50 seconds as before.
+
+It isn't a phrase end detector, and it isn't offered as one. It reads a recording that has speech in it: on a few seconds of room noise by itself it can't tell noise from speech, so it can't say when you've stopped talking. **Stop after a pause** and your **Phrase end detector** still do that.
+
+The pause finder is Ultra's own head with a copy of the model's first layers, exported on its own (`tools/parakeet-ultra/export_vad.py`). Moondream didn't publish how the head joins its layers, so two details were settled from the weights: the activation between them, which changes its answers by under 0.04, and its five-frame window, centred, which keeps the quiet after speech at under 0.02 on the test clips.
+
 ## Details & edge cases
 
 **Several languages at once.** A dictation that listens for several languages (see [Language and engine](/tools/voice/#language-and-engine)) is Parakeet's when every one of them is among its 25; it tells them apart on its own.

@@ -39456,10 +39456,11 @@ open class WMKeyboardService : InputMethodService() {
         // and so do the engines that decode as they hear.
         val live = (model as? OnDeviceVoice.Et)?.model?.engine?.let(::liveEngine) == true
         val cpp = (model as? OnDeviceVoice.Whisper)?.model?.ggml == true || live
+        val parakeet = (model as? OnDeviceVoice.Et)?.model?.takeIf { it.engine == EtEngine.PARAKEET }
         val maxSeconds = when {
             // Before the live engines: Parakeet is one, and its preprocessor
-            // reads no more than this.
-            (model as? OnDeviceVoice.Et)?.model?.engine == EtEngine.PARAKEET -> ParakeetEngine.MAX_CLIP_SECONDS
+            // reads no more than 50 seconds, unless Ultra's head cuts it (#1173).
+            parakeet != null -> ParakeetEngine.maxClipSeconds(filesDir, parakeet)
             cpp -> WhisperCppPlan.MAX_CLIP_SECONDS
             else -> WhisperMel.CHUNK_SECONDS
         }

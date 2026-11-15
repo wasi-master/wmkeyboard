@@ -26,6 +26,10 @@ on:
         description: Vulkan computes in fp16
         type: boolean
         default: false
+      vad_head:
+        description: Only Ultra's voice-activity head (export_vad.py), into vad/
+        type: boolean
+        default: false
 
 jobs:
   export:
@@ -81,6 +85,12 @@ jobs:
       - name: Export
         run: |
           . /opt/et/bin/activate
+          if [ "${{ inputs.vad_head }}" = true ]; then
+            # The head on its own (#1173): small, and needs neither NeMo nor v3.
+            python tools/parakeet-ultra/export_vad.py --output-dir out/vad
+            ls -laR out
+            exit 0
+          fi
           python tools/parakeet-ultra/export_ultra.py \
             --export-script /tmp/export_parakeet_tdt.py --output-dir out \
             --source "${{ inputs.source }}" --backend "${{ inputs.backend }}" \
@@ -93,7 +103,7 @@ jobs:
         run: |
           {
             echo '```json'
-            cat out/manifest*.json
+            cat out/manifest*.json out/vad/manifest*.json 2>/dev/null || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
