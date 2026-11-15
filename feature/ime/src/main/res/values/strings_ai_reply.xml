@@ -84,4 +84,6 @@
     <string name="ime_reply_draft_line">From your draft: %1$s</string>
     <string name="ime_reply_notice_shot_kept">Removed from WM Keyboard. The screenshot is still in your gallery.</string>
     <!-- A tone that asks for an instruction every run has nowhere to type one here. -->
+    <!-- The chip beside a fresh copy in a chat field that opens AI reply with it. Short: it sits on the suggestion strip. -->
+    <string name="ime_reply_strip_chip">Reply</string>
 </resources>

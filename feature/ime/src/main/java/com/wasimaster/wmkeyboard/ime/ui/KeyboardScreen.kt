@@ -527,6 +527,9 @@ import com.wasimaster.wmkeyboard.core.settings.ToolbarColumn
 import com.wasimaster.wmkeyboard.core.settings.ToolHoldAction
 import com.wasimaster.wmkeyboard.core.settings.holdActionOf
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.settings.AiProvider
+import com.wasimaster.wmkeyboard.core.tools.AiClient
+import androidx.compose.material.icons.outlined.Quickreply
 import com.wasimaster.wmkeyboard.core.settings.ToolKey
 import com.wasimaster.wmkeyboard.core.settings.builtinTools
 import com.wasimaster.wmkeyboard.core.settings.contains
@@ -5760,6 +5763,11 @@ private fun RowScope.StripAnswerChips(
     // [recentClipChip] already says the clip is there; the null check is for
     // the compiler, which cannot see through a parameter.
     if (recentClip != null && recentClipChip && shownSmart == null) {
+        // A message just copied in a chat: one tap from drafting a reply to
+        // it, which picks the copy up as it opens.
+        if (replyChipWanted(state)) {
+            ReplyEntryChip { onToolTap(ToolbarTool.AI_REPLY) }
+        }
         val clipChip = @Composable { chipModifier: Modifier ->
             ClipboardSuggestionChip(
                 clip = recentClip,
@@ -12113,6 +12121,43 @@ private fun StripToolButton(
         widthDp = behavior.stripToolWidthDp.takeIf { behavior.stripOwnSize },
         iconSizeDp = behavior.stripIconSizeDp.takeIf { behavior.stripOwnSize },
     ) { onToolTap(tool) }
+}
+
+/**
+ * Whether the strip offers a Reply chip beside a fresh copy: the setting is
+ * on, the field is a chat's (a Send key, or the Chat mode's apps), nothing is
+ * typed yet, and an AI is set up to answer.
+ */
+private fun replyChipWanted(state: KeyboardUiState): Boolean {
+    if (!state.settings.ai.reply.stripChip || state.secureField || state.composingPreview.isNotEmpty()) return false
+    val chat = state.enterAction == EnterAction.SEND || state.activeModeId == "mode_chat"
+    return chat && (state.settings.ai.provider == AiProvider.ON_DEVICE || AiClient.isConfigured(state.settings.ai))
+}
+
+/** The Reply chip ([replyChipWanted]): opens AI reply with the copy in it. */
+@Composable
+private fun ReplyEntryChip(onClick: () -> Unit) {
+    val kb = LocalKbTheme.current
+    val shape = kb.toolShape()
+    Row(
+        modifier = Modifier
+            .padding(horizontal = 2.dp)
+            .height(CompactToolSide.dp)
+            .clip(shape)
+            .background(if (kb.toolRadiusDp > 0) kb.toolCircle else Color.Transparent, shape)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Outlined.Quickreply, contentDescription = null, tint = kb.toolbarIcon, modifier = Modifier.size(16.dp))
+        Spacer(Modifier.width(4.dp))
+        Text(
+            stringResource(R.string.ime_reply_strip_chip),
+            color = kb.toolbarIcon,
+            fontSize = 12.sp,
+            maxLines = 1,
+        )
+    }
 }
 
 /**

@@ -5638,6 +5638,12 @@ data class AiReplySettings(
      * it. The picker works either way.
      */
     val catchScreenshots: Boolean = false,
+    /**
+     * A Reply chip beside a message just copied in a chat's field (a Send
+     * key, or the Chat mode's apps), which opens this panel with the copy in
+     * it. Only while an AI is set up; it sends nothing until a tone is picked.
+     */
+    val stripChip: Boolean = true,
 )
 
 /** The range of [AiSettings.stripSuggestChars]: a clause at least, never a document. */
@@ -14178,6 +14184,7 @@ class SettingsRepository(private val context: Context) {
         private val AI_REPLY_TIDY_UP = booleanPreferencesKey("ai_reply_tidy_up")
         private val AI_REPLY_KEEP_HISTORY = booleanPreferencesKey("ai_reply_keep_history")
         private val AI_REPLY_CATCH_SCREENSHOTS = booleanPreferencesKey("ai_reply_catch_screenshots")
+        private val AI_REPLY_STRIP_CHIP = booleanPreferencesKey("ai_reply_strip_chip")
         private val AI_MEMORY_ENABLED = booleanPreferencesKey("ai_memory_enabled")
         private val AI_MEMORY_CLOUD = booleanPreferencesKey("ai_memory_cloud")
         // Where a per-action prompt override used to live, one key each. Read
@@ -17016,6 +17023,7 @@ class SettingsRepository(private val context: Context) {
                 tidyUp = p[AI_REPLY_TIDY_UP] ?: defaults.ai.reply.tidyUp,
                 keepHistory = p[AI_REPLY_KEEP_HISTORY] ?: defaults.ai.reply.keepHistory,
                 catchScreenshots = p[AI_REPLY_CATCH_SCREENSHOTS] ?: defaults.ai.reply.catchScreenshots,
+                stripChip = p[AI_REPLY_STRIP_CHIP] ?: defaults.ai.reply.stripChip,
             ),
             memory = AiMemorySettings(
                 enabled = p[AI_MEMORY_ENABLED] ?: defaults.ai.memory.enabled,
@@ -23404,6 +23412,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAiReplyCatchScreenshots(value: Boolean) =
         editPrefs { it[AI_REPLY_CATCH_SCREENSHOTS] = value }
+
+    suspend fun setAiReplyStripChip(value: Boolean) =
+        editPrefs { it[AI_REPLY_STRIP_CHIP] = value }
 
     suspend fun setAiMemoryEnabled(value: Boolean) = editPrefs { it[AI_MEMORY_ENABLED] = value }
 

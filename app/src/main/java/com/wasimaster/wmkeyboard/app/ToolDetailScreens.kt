@@ -5521,6 +5521,14 @@ private fun AiReplyToolSettings(
                 default = SettingsDefaults.ai.reply.catchScreenshots,
             ) { scope.launch { repository.setAiReplyCatchScreenshots(it) } }
         }
+        item {
+            ToggleSetting(
+                R.string.toolai_reply_strip_chip_title,
+                stringResource(R.string.toolai_reply_strip_chip_subtitle),
+                settings.watch { it.ai.reply.stripChip },
+                default = SettingsDefaults.ai.reply.stripChip,
+            ) { scope.launch { repository.setAiReplyStripChip(it) } }
+        }
     }
 
     SettingsGroup(stringResource(R.string.toolai_reply_tones_title), level = SettingLevel.STANDARD) {
