@@ -221,6 +221,10 @@ if [ "${WMKB_ET_VULKAN:-1}" = 1 ]; then
     retry git -C "$SRC" submodule update --init --depth 1 --quiet \
         backends/vulkan/third-party/Vulkan-Headers backends/vulkan/third-party/volk \
         backends/vulkan/third-party/VulkanMemoryAllocator
+    # The shader generator lists its sources in the file system's order, so
+    # the library's bytes followed the build machine (0.6.7 failed F-Droid's
+    # reproducibility check on it): sorted.
+    "$PY" -I "$HERE/patch_vulkan_spv.py" "$SRC"
     # shellcheck source=../vulkan.sh
     . "$HERE/../vulkan.sh"
     vulkan_setup "$WORK" "$BIN"
