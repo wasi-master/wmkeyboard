@@ -204,7 +204,10 @@ event's `start` and `end` are the local midnights around its dates.
 `calendar.calendars()` lists the calendars an event can go in, primary ones
 first, and `add(..., calendar=id)` picks one. The keyboard needs Android's
 calendar permission too: the first call without it shows Android's question
-and raises `PermissionError`, and the next call works.
+and raises `PermissionError`, and the next call works. Android's question comes
+up at most once a day for each plugin, so a plugin that reads the calendar as
+it opens doesn't ask on every open; until then the call only raises
+`PermissionError`, so catch it and carry on without the calendar.
 
 ## todo
 

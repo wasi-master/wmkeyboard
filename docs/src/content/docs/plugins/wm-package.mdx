@@ -399,7 +399,9 @@ when the user backs out; files are up to 4 MB.
 ## calendar
 
 `from wm import calendar`. Needs the risky `calendar`. The first call without
-Android's calendar permission asks for it and raises `PermissionError`.
+Android's calendar permission asks for it and raises `PermissionError`. It
+asks at most once a day per plugin; other calls without the permission just
+raise.
 
 | | |
 |---|---|
