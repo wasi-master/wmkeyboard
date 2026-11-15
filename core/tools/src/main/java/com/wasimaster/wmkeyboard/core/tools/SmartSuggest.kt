@@ -370,7 +370,7 @@ object SmartSuggest {
         if (ctx.currencyEnabled) detectCurrency(tail, ctx)?.let { return it }
         if (ctx.unitsEnabled) detectUnit(tail, ctx)?.let { return it }
         if (ctx.calcEnabled) detectCalcPhrase(tail, ctx)?.let { return it }
-        if (ctx.calcEnabled) detectCalc(tail, ctx)?.let { return it }
+        if (ctx.calcEnabled) detectCalc(tail, ctx, text)?.let { return it }
         if (ctx.numberChips) detectNumber(tail, ctx)?.let { return it }
         if (ctx.dateChips) detectDate(tail, ctx)?.let { return it }
         if (ctx.weatherChips) detectWeather(tail, ctx)?.let { return it }
@@ -1230,14 +1230,36 @@ object SmartSuggest {
      * genuine expression is still preferred, and a second sum on the same line
      * is found instead of being shadowed by the first one's result.
      */
-    private fun detectCalc(tail: String, ctx: Context): SmartHit? {
+    private fun detectCalc(tail: String, ctx: Context, text: String = tail): SmartHit? {
+        // [tail] is the end of [text]; the link check reads [text] so it can
+        // still see a scheme the 48-character window has cut off.
+        val offset = text.length - tail.length
         var from = 0
         while (from <= tail.length) {
             val match = CALC_TAIL.find(tail, from) ?: return null
-            calcHit(match, ctx)?.let { return it }
+            if (!insideLink(text, offset + match.range.first)) calcHit(match, ctx)?.let { return it }
             from = match.range.first + 1
         }
         return null
+    }
+
+    /**
+     * What, earlier in the same word, says the digits belong to a link or a
+     * path: a scheme, "www.", a domain followed by its path or query, or a
+     * letter before a slash. "nature.com/articles/d41586-026-03638-3" ends in
+     * a run the sum scanner reads as "026-03638-3", which is part of an
+     * address and not a subtraction.
+     */
+    private val LINK_PREFIX = Regex(
+        """://|^www\.|\p{L}[\p{L}\d-]*\.\p{L}{2,}[/:?#]|\p{L}[^/\s]*/""",
+        RegexOption.IGNORE_CASE,
+    )
+
+    /** True when the word holding [start] in [text] reads as a link before it. */
+    private fun insideLink(text: String, start: Int): Boolean {
+        var wordStart = start
+        while (wordStart > 0 && !text[wordStart - 1].isWhitespace()) wordStart--
+        return wordStart < start && LINK_PREFIX.containsMatchIn(text.substring(wordStart, start))
     }
 
     private fun calcHit(match: MatchResult, ctx: Context): SmartHit? {

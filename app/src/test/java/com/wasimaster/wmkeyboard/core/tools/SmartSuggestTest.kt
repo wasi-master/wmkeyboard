@@ -568,6 +568,18 @@ class SmartSuggestTest {
     }
 
     @Test
+    fun numbersInsideALinkAreNotSums() {
+        assertNull(hit("https://www.nature.com/articles/d41586-026-03638-3"))
+        // The window has cut the scheme off; the domain and path still say link.
+        assertNull(hit("see nature.com/articles/d41586-026-03638-3"))
+        assertNull(hit("example.org?page=2+3"))
+        assertNull(hit("wiki/item-12-4"))
+        // A sum typed after a link, as its own word, still gets its chip.
+        assertEquals("8", hit("https://example.com 12-4")?.result)
+        assertEquals("3", hit("12/4")?.result)
+    }
+
+    @Test
     fun aShortSubtractionIsASumWithoutTheEquals() {
         // #545
         assertEquals("8", hit("12-4")?.result)
