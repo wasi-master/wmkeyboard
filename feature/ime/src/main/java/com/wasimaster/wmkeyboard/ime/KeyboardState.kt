@@ -5091,6 +5091,7 @@ data class KeyboardUiState(
      */
     fun panelFieldTarget(): CaptureTarget? = when {
         toolText.snippetAsk != null -> CaptureTarget.SNIPPET_ASK
+        toolText.clipWrite != null -> CaptureTarget.CLIP_WRITE
         typingTestActive -> CaptureTarget.TYPING_TEST
         aiCustomInputActive -> CaptureTarget.AI_CUSTOM
         aiChatComposing -> CaptureTarget.AI_CHAT
@@ -5233,6 +5234,7 @@ data class KeyboardUiState(
         CaptureTarget.CLIP_APPEND -> clipCombine?.append.orEmpty()
         CaptureTarget.SNIPPET_SEARCH -> snippetQuery
         CaptureTarget.SNIPPET_ASK -> toolText.snippetAsk?.text.orEmpty()
+        CaptureTarget.CLIP_WRITE -> toolText.clipWrite.orEmpty()
         CaptureTarget.NOTE_SEARCH -> notes.query
         CaptureTarget.NOTE_TITLE -> notes.editing?.titleDraft.orEmpty()
         CaptureTarget.NOTE_BODY -> notes.editing?.bodyDraft.orEmpty()
@@ -5651,4 +5653,11 @@ data class ToolTextEntries(
      * to go into the app's field, and only Enter or Cancel lets it.
      */
     val snippetAsk: SnippetAskEntry? = null,
+    /**
+     * A clip being written in the strip's place (#1339), from the floating
+     * button's Write a clip: empty while nothing is typed yet, null when the
+     * row is not up. The keys type here and nowhere else, so the app behind
+     * is never touched; Enter or the tick copies it as a new clip.
+     */
+    val clipWrite: String? = null,
 )

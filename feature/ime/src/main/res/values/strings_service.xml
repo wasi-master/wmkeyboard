@@ -282,6 +282,7 @@
     <string name="ime_ai_button_label">Ask AI about this screen</string>
     <string name="ime_floating_menu_label">Quick menu</string>
     <string name="ime_floating_lookup_label">Look up a word</string>
+    <string name="ime_floating_write_clip_label">Write a clip</string>
     <string name="ime_floating_pick_hint">Tap a word to look it up</string>
     <string name="ime_floating_pick_nothing">There is no text there to look up</string>
     <string name="ime_screenshot_failed">Android did not take the screenshot</string>

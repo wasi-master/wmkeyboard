@@ -8268,6 +8268,7 @@ open class WMKeyboardService : InputMethodService() {
             FloatingAction.Keyboard -> onSummonButtonTap()
             FloatingAction.AskAi -> askAiAboutScreen()
             FloatingAction.LookUp -> lookUpOnScreen()
+            FloatingAction.WriteClip -> writeClipFromFloatingButton()
             is FloatingAction.Tool -> runToolFromFloatingButton(action.tool)
             is FloatingAction.App -> openAppFromFloatingButton(action)
             is FloatingAction.AppPair -> openPairFromFloatingButton(action)
@@ -9126,6 +9127,89 @@ open class WMKeyboardService : InputMethodService() {
 
     /** When a summoned keyboard opened the floating button's tool, or 0. */
     private var floatingToolOpenedAt = 0L
+
+    /**
+     * The floating button's Write a clip (#1339) is waiting for the keyboard
+     * it summoned, as [floatingPendingTool] waits; opened in [onScreenAgain].
+     */
+    private var clipWritePending = false
+
+    /**
+     * The clip row brought the keyboard up itself, so keeping or dropping the
+     * clip puts it away again and the screen is left as it was found.
+     */
+    private var clipWriteSummoned = false
+
+    /**
+     * The floating button's Write a clip (#1339): the keyboard comes up typing
+     * into a new clip in the strip's place instead of into any field, for text
+     * on screen that cannot be selected. A second press while the row is up
+     * keeps what was typed, the way the row's tick does.
+     */
+    private fun writeClipFromFloatingButton() {
+        if (_uiState.value.toolText.clipWrite != null) {
+            finishClipWrite(keep = true)
+            return
+        }
+        if (isDeviceLocked() || !isClipboardAccessible()) return
+        if (windowOnScreen) {
+            clipWritePending = false
+            openClipWrite(summoned = false)
+            return
+        }
+        clipWritePending = true
+        floatingPendingAt = SystemClock.uptimeMillis()
+        summonKeyboard()
+    }
+
+    /**
+     * Puts the clip row up, empty, with the keys typing into it. No panel
+     * stays open: the row and the keys are all that cover the app, which is
+     * the point of the row (#1339).
+     */
+    private fun openClipWrite(summoned: Boolean) {
+        clipWriteSummoned = summoned
+        _uiState.update {
+            it.copy(
+                panel = PanelMode.NONE,
+                snippetPicker = null,
+                toolText = it.toolText.copy(clipWrite = ""),
+                captureCaret = CaptureCaret(CaptureTarget.CLIP_WRITE.name, 0, ""),
+            )
+        }
+    }
+
+    /** The clip row's tick ([keep]) or ✕; see [finishClipWrite]. */
+    fun onClipWriteDone(keep: Boolean) = finishClipWrite(keep)
+
+    /**
+     * Takes the clip row down. With [keep], what was typed is copied, just as
+     * the keyboard's own Copy copies a selection: onto the clipboard, and from
+     * there into the history as a new clip (only into the history while the
+     * clipboard is kept private). Blank text keeps nothing.
+     *
+     * With [hide], a keyboard the row summoned, or one over a screen with no
+     * field, goes away with it, so the app is left uncovered. The window
+     * going, or another field taking the keyboard, pass false: the keyboard
+     * is already on its way, and the text is kept rather than lost.
+     */
+    private fun finishClipWrite(keep: Boolean, hide: Boolean = true) {
+        val text = _uiState.value.toolText.clipWrite ?: return
+        val summoned = clipWriteSummoned
+        clipWriteSummoned = false
+        _uiState.update {
+            it.copy(
+                toolText = it.toolText.copy(clipWrite = null),
+                captureCaret = it.captureCaret?.takeUnless { caret -> caret.key == CaptureTarget.CLIP_WRITE.name },
+            )
+        }
+        val clip = text.trim()
+        if (keep && clip.isNotEmpty()) {
+            if (hide) vibrate()
+            KeyboardClipboard.copy(this, clip)
+        }
+        if (hide && windowOnScreen && (summoned || isNullField())) requestHideSelf(0)
+    }
 
     /**
      * The panel the floating button's tool just opened belongs to this summon
@@ -10002,6 +10086,10 @@ open class WMKeyboardService : InputMethodService() {
         // in at a caret in the last field. Nothing is put back there either,
         // since that field is no longer the one the keyboard can write to.
         if (!restarting) pendingSnippetAsk = null
+        // A clip being written (#1339) carries on over another screen with no
+        // field, which a video or a dialog coming and going can start; a real
+        // field taking the keyboard keeps the clip and closes the row.
+        if (!restarting && !nullField) finishClipWrite(keep = true, hide = false)
         _uiState.update {
             it.copy(
                 settings = modeSettings,
@@ -11196,6 +11284,14 @@ open class WMKeyboardService : InputMethodService() {
                 }
             }
         }
+        // The clip row the floating button asked for (#1339), posted for the
+        // same reason as the tool above.
+        if (clipWritePending) {
+            clipWritePending = false
+            if (arriving && SystemClock.uptimeMillis() - floatingPendingAt < FLOATING_TOOL_WAIT_MS) {
+                serviceScope.launch(Dispatchers.Main) { openClipWrite(summoned = true) }
+            }
+        }
         // Held up over the settings app with no field there (pinned or
         // summoned): it opens its test field, the way its keyboard button
         // would. Only then: a keyboard that is merely still on screen while
@@ -11268,6 +11364,8 @@ open class WMKeyboardService : InputMethodService() {
         loadGovernor.detach()
         // A drop made while the keyboard was up lasted until now.
         floatingButtonDismissed = false
+        // A clip being written is kept, not lost, when the keyboard goes (#1339).
+        finishClipWrite(keep = true, hide = false)
         // A chat name the model proposed on the keyboard's chat and nobody
         // answered is declined as the keyboard goes (#882). Only from the
         // panel: the app's own chat types with this keyboard too, and hiding
@@ -13907,6 +14005,8 @@ open class WMKeyboardService : InputMethodService() {
             CaptureTarget.EMOJI_SEARCH, CaptureTarget.CLIPBOARD_SEARCH, CaptureTarget.SNIPPET_SEARCH -> Unit
             // The next field, or the snippet in with every answer.
             CaptureTarget.SNIPPET_ASK -> onSnippetAskNext()
+            // The clip row is one line: Enter keeps the clip (#1339).
+            CaptureTarget.CLIP_WRITE -> finishClipWrite(keep = true)
             // Searching notes filters as you type; Enter has nothing to run.
             CaptureTarget.NOTE_SEARCH -> Unit
             // A title is one line: Enter moves on to the body.
@@ -14410,6 +14510,14 @@ open class WMKeyboardService : InputMethodService() {
             CaptureTarget.CONVERTER -> converterEdit { text }
             // One line per answer: a newline would end the field, and Enter
             // already means "next".
+            // One line, as it is drawn; a pasted newline becomes a space.
+            CaptureTarget.CLIP_WRITE -> _uiState.update { state ->
+                state.copy(
+                    toolText = state.toolText.copy(
+                        clipWrite = state.toolText.clipWrite?.let { text.replace("\n", " ").take(ClipEdit.MAX_LENGTH) },
+                    ),
+                )
+            }
             CaptureTarget.SNIPPET_ASK -> _uiState.update { state ->
                 state.copy(
                     toolText = state.toolText.copy(
@@ -42726,6 +42834,7 @@ open class WMKeyboardService : InputMethodService() {
             onFocusSwitch = ::onCaptureFocusSwitch,
             onKeysLower = ::onCaptureKeysLower,
             onEmojiQueryClear = ::onEmojiQueryClear,
+            onClipWrite = ::onClipWriteDone,
         )
     }
 
@@ -59755,7 +59864,10 @@ open class WMKeyboardService : InputMethodService() {
         // where nothing it does costs the board a recomposition), so it is
         // asked about here rather than in [topLayerDismissal]'s `when`.
         panelFocus.keyGrid.alternatesOpen ||
-            ((state.panel != PanelMode.NONE || state.voice.strip || state.toolText.snippetAsk != null) &&
+            ((
+                state.panel != PanelMode.NONE || state.voice.strip || state.toolText.snippetAsk != null ||
+                    state.toolText.clipWrite != null
+                ) &&
                 topLayerDismissal(state, fromBack = true) != null)
 
     /**
@@ -59777,6 +59889,9 @@ open class WMKeyboardService : InputMethodService() {
             state.voice.strip -> ::closeVoiceStrip
             // A snippet waiting on its fill-in row: Back is its Cancel.
             state.toolText.snippetAsk != null -> ({ cancelSnippetAsk(restore = true) })
+            // The clip row (#1339): Back keeps what was typed, as the tick does;
+            // only the ✕ throws it away.
+            state.toolText.clipWrite != null -> ({ finishClipWrite(keep = true) })
             // The spelling bar is the innermost layer of all: back leaves the
             // respelling and puts the word card that opened it up again.
             state.wordSpellActive -> ({ cancelWordSpell() })

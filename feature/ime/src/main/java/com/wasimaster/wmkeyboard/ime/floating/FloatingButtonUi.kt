@@ -64,6 +64,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Block
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bluetooth
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EditNote
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Folder
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardHide
@@ -153,6 +154,7 @@ fun floatingActionIcon(
     FloatingAction.Keyboard -> if (keyboardUp) Icons.Outlined.KeyboardHide else Icons.Outlined.Keyboard
     FloatingAction.AskAi -> Icons.Outlined.AutoAwesome
     FloatingAction.LookUp -> com.wasimaster.wmkeyboard.core.icons.SymbolIcons.Dictionary
+    FloatingAction.WriteClip -> Icons.Outlined.EditNote
     FloatingAction.Menu -> Icons.Outlined.Apps
     FloatingAction.Hide -> Icons.Outlined.VisibilityOff
     is FloatingAction.Tool -> IconDefaults.forTool(action.tool)
@@ -251,6 +253,7 @@ internal fun floatingActionLabelRes(action: FloatingAction, keyboardUp: Boolean)
     FloatingAction.Keyboard -> if (keyboardUp) R.string.ime_summon_button_hide_label else R.string.ime_summon_button_label
     FloatingAction.AskAi -> R.string.ime_ai_button_label
     FloatingAction.LookUp -> R.string.ime_floating_lookup_label
+    FloatingAction.WriteClip -> R.string.ime_floating_write_clip_label
     FloatingAction.Menu -> R.string.ime_floating_menu_label
     FloatingAction.Hide -> R.string.ime_floating_hide_label
     is FloatingAction.Tool -> toolLabelRes(action.tool)

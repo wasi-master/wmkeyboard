@@ -1203,6 +1203,7 @@ private fun FloatingActionPicker(
         FloatingAction.Keyboard to R.string.floating_button_pick_keyboard_subtitle,
         FloatingAction.AskAi to R.string.floating_button_pick_ai_subtitle,
         FloatingAction.LookUp to R.string.floating_button_pick_lookup_subtitle,
+        FloatingAction.WriteClip to R.string.floating_button_pick_write_clip_subtitle,
         FloatingAction.Menu to R.string.floating_button_pick_menu_subtitle,
         FloatingAction.Hide to R.string.floating_button_pick_hide_subtitle,
         FloatingAction.None to R.string.floating_button_pick_none_subtitle,

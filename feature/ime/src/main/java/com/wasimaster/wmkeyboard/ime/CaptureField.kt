@@ -375,6 +375,13 @@ enum class CaptureTarget(
     /** The clipboard panel's clip editor: free text, newlines and all. */
     CLIP_EDIT(takesWords = true, prose = true),
 
+    /**
+     * A new clip typed in the strip's place (#1339), from the floating
+     * button: text copied down by hand off the screen. One line, and Enter
+     * keeps it.
+     */
+    CLIP_WRITE(takesWords = true, prose = true),
+
     /** The clipboard's Combine (#612): what goes between the clips. Punctuation, not words. */
     CLIP_JOINER(takesWords = false),
 
@@ -504,7 +511,10 @@ enum class CaptureTarget(
             this != TOOLBOX_FOLDER_NAME && this != LAUNCHER_FOLDER_NAME &&
             // The snippet waits to go in at the app's caret: typing there
             // first would put the answer somewhere else entirely.
-            this != SNIPPET_ASK
+            this != SNIPPET_ASK &&
+            // A clip written off the screen is the point of the keys being
+            // up; the app behind may have no field, and must not be touched.
+            this != CLIP_WRITE
 
     /**
      * Whether the field's key rows can be put down to see the panel under them

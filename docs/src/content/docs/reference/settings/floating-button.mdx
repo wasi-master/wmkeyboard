@@ -66,6 +66,7 @@ A preview heads the screen: a sketch of a phone with the button on the side it r
 - **Show keyboard** opens the keyboard over the app in front, even on a screen with no text field, and keeps it there until you close it. While the keyboard is open, the same action closes it, and the button's icon turns into a keyboard with a down arrow to say so. See [Opening the keyboard without a text field](/typing/size-position/#opening-the-keyboard-without-a-text-field).
 - **Ask AI about this screen** opens an AI chat about what's on screen. See [Asking the AI about the screen](#asking-the-ai-about-the-screen).
 - **Look up a word** waits for you to tap a word anywhere on screen, then opens the [Look up](/tools/look-up/) card for it. Not in the Play Store build. See [Looking up a word](#looking-up-a-word).
+- **Write a clip** opens the keyboard to type a new clip instead of into any field, for text on screen you can't copy. See [Writing down text you can't copy](#writing-down-text-you-cant-copy).
 - **Quick menu** fans the quick menu out around the button.
 - **Hide the button** puts the button away until the keyboard next opens or closes.
 - **Nothing** leaves the gesture unbound.
@@ -214,3 +215,13 @@ The chat uses the model picked in the [AI tool](/tools/ai/), and the conversatio
 **Look up a word** puts a light wash over the screen and a hint at the top, "Tap a word to look it up". Tap a word and the [Look up](/tools/look-up/) card opens for it, with its meaning, reading and pronunciation, and a button to make an Anki card of it. A swipe, or 10 seconds with no tap, cancels it.
 
 It finds the word through the same screen reading service as **Ask AI about this screen**, reading only the text under your finger, once, when you tap. With the service off, the action opens a card that offers to turn it on. The Play Store build doesn't contain the service or this action; there, select the word and pick **Look up** from the selection menu instead.
+
+## Writing down text you can't copy
+
+Some text can be read but not selected: a caption burned into a video, a tooltip that vanishes as soon as you touch the screen, a message shown only until the page is tapped. **Write a clip** is for copying it down by hand without anything covering it.
+
+It brings the keyboard up, even on a screen with no text field, and puts a box in the suggestion strip's place. What you type goes into that box and nowhere else: the app behind gets no keys and no touch, so a tooltip or a paused video stays as it was. No panel or sheet opens; the box and the keys are all that cover the app. The box shows the whole clip on one line, and scrolls sideways to keep the cursor in view as the clip grows, so nothing is cut short the way the paste chip shortens a copy. Tap in it to move the cursor, or press and hold a word to select it. Glide typing, the arrow keys and Backspace work as they do in the keyboard's other boxes, such as the clipboard's search.
+
+The tick, Enter or Back keeps the clip. It's copied just as the keyboard's own **Copy** copies a selection: onto the clipboard, ready to paste, and from there into the [clipboard history](/tools/clipboard/) as a new clip. If the keyboard came up for the clip, it goes away again with it. The **✕** throws the text away instead. Pressing the button again while the box is up keeps the clip too.
+
+What you've typed isn't lost when the keyboard closes some other way, or when you tap into a real text field: either keeps it as a clip. Opening another screen with no text field, such as a video going full screen, leaves the box up. Line breaks aren't typed into the box, since Enter keeps the clip; a pasted line break becomes a space.

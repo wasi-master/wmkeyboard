@@ -168,6 +168,7 @@
     <string name="floating_button_pick_keyboard_subtitle">Opens the keyboard, even with no text field; closes it while it is open</string>
     <string name="floating_button_pick_ai_subtitle">Opens an AI chat about what is on screen</string>
     <string name="floating_button_pick_lookup_subtitle">Tap a word on the screen to see its meaning, reading and pronunciation</string>
+    <string name="floating_button_pick_write_clip_subtitle">Opens the keyboard to type a new clip, for text on screen you can\'t copy</string>
     <string name="floating_button_pick_menu_subtitle">Fans more actions out round the button</string>
     <string name="floating_button_pick_hide_subtitle">Puts the button away until the keyboard next opens or closes</string>
     <string name="floating_button_pick_none_subtitle">This gesture does nothing</string>

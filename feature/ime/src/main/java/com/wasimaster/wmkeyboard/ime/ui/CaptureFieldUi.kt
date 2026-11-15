@@ -108,6 +108,8 @@ data class CaptureCallbacks(
     val onFocusSwitch: () -> Unit = {},
     /** The button at the end of the field's strip: its key rows go down to show the panel (#961). */
     val onKeysLower: () -> Unit = {},
+    /** The clip row's tick (true, keep the clip) or its ✕ (false) (#1339). */
+    val onClipWrite: (Boolean) -> Unit = {},
 )
 
 /**

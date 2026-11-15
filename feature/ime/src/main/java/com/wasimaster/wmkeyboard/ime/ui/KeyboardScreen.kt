@@ -15726,6 +15726,10 @@ private fun KeyboardBody(
                             // the keys, so its row is what has to be seen.
                             state.toolText.snippetAsk != null ->
                                 SnippetAskBar(state, snippetPanel.onAskNext, snippetPanel.onAskCancel)
+                            // A clip being written off the screen (#1339) holds
+                            // the keys the same way, and its row is the clip.
+                            state.toolText.clipWrite != null ->
+                                ClipWriteBar(state, capture.onClipWrite)
                             // Before every other case, the toolbar's own
                             // visibility included: the word card has handed
                             // the keys to this bar, so it is the only thing

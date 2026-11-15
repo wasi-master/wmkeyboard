@@ -34,6 +34,16 @@ sealed interface FloatingAction {
         override val token = "look_up"
     }
 
+    /**
+     * Brings the keyboard up typing into a new clip rather than into any
+     * field (#1339): for text on screen that cannot be selected, a video's
+     * caption or a tooltip that vanishes at a touch. The clip shows on the
+     * strip as it is typed, and nothing else covers the app.
+     */
+    data object WriteClip : FloatingAction {
+        override val token = "write_clip"
+    }
+
     /** Fans the quick menu out around the button. Never a menu slot itself. */
     data object Menu : FloatingAction {
         override val token = "menu"
@@ -146,6 +156,7 @@ sealed interface FloatingAction {
             Keyboard.token -> Keyboard
             AskAi.token -> AskAi
             LookUp.token -> LookUp
+            WriteClip.token -> WriteClip
             Menu.token -> Menu
             Hide.token -> Hide
             else -> when {
