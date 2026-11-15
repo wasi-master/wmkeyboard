@@ -2114,8 +2114,6 @@
     <string name="custombuttons_loading">షార్ట్‌కట్‌ల కోసం వెతుకుతోంది…</string>
     <string name="custombuttons_maker_unsupported">ఆ యాప్ హోమ్ స్క్రీన్ మాత్రమే అంగీకరించగల షార్ట్‌కట్‌ను సృష్టించింది.</string>
     <string name="custombuttons_makers_group">షార్ట్‌కట్‌లను సృష్టించే యాప్‌లు</string>
-    <string name="custombuttons_move_down">కిందికి కదిలించు</string>
-    <string name="custombuttons_move_up">పైకి కదుపు</string>
     <string name="custombuttons_nav_subtitle">ఇతర యాప్‌ల షార్ట్‌కట్‌లు, సెట్టింగ్ స్విచ్‌లు మరియు సెట్టింగ్‌ల పేజీలు, కీస్ నుండి ఒక ట్యాప్ దూరంలో ఉన్నాయి</string>
     <string name="custombuttons_no_plugins">జోడించడానికి ప్లగిన్‌లు ఏవీ లేవు. ప్లగిన్‌లను ఆన్ చేసి, ముందుగా ఒకదాన్ని ఇన్‌స్టాల్ చేయండి.</string>
     <string name="custombuttons_on_toolbar">టూల్‌బార్‌లో</string>

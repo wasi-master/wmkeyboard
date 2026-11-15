@@ -2113,8 +2113,6 @@
     <string name="custombuttons_loading">מחפש קיצורי דרך...</string>
     <string name="custombuttons_maker_unsupported">אפליקציה זו יצרה קיצור דרך שרק מסך הבית יכול לקבל.</string>
     <string name="custombuttons_makers_group">אפליקציות היוצרות קיצורי דרך</string>
-    <string name="custombuttons_move_down">הזז למטה</string>
-    <string name="custombuttons_move_up">הזז למעלה</string>
     <string name="custombuttons_nav_subtitle">קיצורי דרך של אפליקציות אחרות, מתגי הגדרות ועמודי הגדרות, בנגיעה אחת מהמקשים</string>
     <string name="custombuttons_no_plugins">אין תוספים להוספה. הפעל תוספים והתקן אחד תחילה.</string>
     <string name="custombuttons_on_toolbar">בסרגל הכלים</string>

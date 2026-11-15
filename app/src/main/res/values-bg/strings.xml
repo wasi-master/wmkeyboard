@@ -2116,8 +2116,6 @@
     <string name="custombuttons_loading">Търсене на преки пътища…</string>
     <string name="custombuttons_maker_unsupported">Това приложение създаде пряк път, който се приема само от началния екран.</string>
     <string name="custombuttons_makers_group">Приложения за създаване на преки пътища</string>
-    <string name="custombuttons_move_down">Преместване надолу</string>
-    <string name="custombuttons_move_up">Преместване нагоре</string>
     <string name="custombuttons_nav_subtitle">Пряк пътища към други приложения, превключватели и страници с настройки, на едно докосване от клавишите</string>
     <string name="custombuttons_no_plugins">Няма приставки за добавяне. Първо включете приставките и инсталирайте една.</string>
     <string name="custombuttons_on_toolbar">на лентата с инструменти</string>

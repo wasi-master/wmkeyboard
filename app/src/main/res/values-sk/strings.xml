@@ -2114,8 +2114,6 @@
     <string name="custombuttons_loading">Hľadajú sa skratky…</string>
     <string name="custombuttons_maker_unsupported">Táto aplikácia vytvorila zástupcu, ktorého dokáže prijať iba domovská obrazovka.</string>
     <string name="custombuttons_makers_group">Aplikácie na vytváranie skratiek</string>
-    <string name="custombuttons_move_down">Presunúť nadol</string>
-    <string name="custombuttons_move_up">Posunúť nahor</string>
     <string name="custombuttons_nav_subtitle">Skratky iných aplikácií, prepínače nastavení a stránky nastavení jedným klepnutím z klávesov</string>
     <string name="custombuttons_no_plugins">Žiadne doplnky na pridanie. Najprv zapnite doplnky a nainštalujte jeden.</string>
     <string name="custombuttons_on_toolbar">na paneli nástrojov</string>

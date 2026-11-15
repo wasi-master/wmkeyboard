@@ -2115,8 +2115,6 @@
     <string name="custombuttons_loading">Zoeken naar snelkoppelingen…</string>
     <string name="custombuttons_maker_unsupported">Die app heeft een snelkoppeling gemaakt die alleen het startscherm kan accepteren.</string>
     <string name="custombuttons_makers_group">Apps die snelkoppelingen maken</string>
-    <string name="custombuttons_move_down">Omlaag verplaatsen</string>
-    <string name="custombuttons_move_up">Omhoog verplaatsen</string>
     <string name="custombuttons_nav_subtitle">Snelkoppelingen van andere apps, instellingenschakelaars en instellingenpagina\'s, één tik verwijderd van de toetsen</string>
     <string name="custombuttons_no_plugins">Geen plug-ins om toe te voegen. Schakel plug-ins in en installeer er eerst eén.</string>
     <string name="custombuttons_on_toolbar">op de werkbalk</string>

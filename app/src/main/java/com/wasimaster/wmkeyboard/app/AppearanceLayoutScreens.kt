@@ -1050,6 +1050,7 @@ internal fun AppearanceToolbarSettings(
                     when (tool) {
                         is ToolKey.Builtin -> names[tool.tool] ?: tool.token
                         is ToolKey.Plugin -> pluginNames[tool.pluginId] ?: tool.pluginId
+                        is ToolKey.Custom -> tool.token
                     }
                 },
                 onReorder = { order -> scope.launch { repository.setSecondToolbarTools(order) } },

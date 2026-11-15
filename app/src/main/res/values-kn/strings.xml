@@ -2119,8 +2119,6 @@
     <string name="custombuttons_loading">ಶಾರ್ಟ್‌ಕಟ್‌ಗಳಿಗಾಗಿ ಹುಡುಕಲಾಗುತ್ತಿದೆ...</string>
     <string name="custombuttons_maker_unsupported">ಆ ಅಪ್ಲಿಕೇಶನ್ ಹೋಮ್ ಸ್ಕ್ರೀನ್ ಮಾತ್ರ ಸ್ವೀಕರಿಸಬಹುದಾದ ಶಾರ್ಟ್‌ಕಟ್ ಅನ್ನು ಮಾಡಿದೆ.</string>
     <string name="custombuttons_makers_group">ಶಾರ್ಟ್‌ಕಟ್‌ಗಳನ್ನು ಮಾಡುವ ಅಪ್ಲಿಕೇಶನ್‌ಗಳು</string>
-    <string name="custombuttons_move_down">ಕೆಳಗೆ ಸರಿಸಿ</string>
-    <string name="custombuttons_move_up">ಮೇಲಕ್ಕೆ ಸರಿಸಿ</string>
     <string name="custombuttons_nav_subtitle">ಇತರ ಅಪ್ಲಿಕೇಶನ್‌ಗಳ ಶಾರ್ಟ್‌ಕಟ್‌ಗಳು, ಸೆಟ್ಟಿಂಗ್‌ಗಳ ಸ್ವಿಚ್‌ಗಳು ಮತ್ತು ಸೆಟ್ಟಿಂಗ್‌ಗಳ ಪುಟಗಳು, ಕೀಗಳಿಂದ ಕೇವಲ ಒಂದು ಸ್ಪರ್ಶ ದೂರ</string>
     <string name="custombuttons_no_plugins">ಸ ಸೇರಿಸಲು ಯಾವುದೇ ಪ್ಲಗಿನ್‌ಗಳಿಲ್ಲ. ಪ್ಲಗಿನ್‌ಗಳನ್ನು ಆನ್ ಮಾಡಿ ಮತ್ತು ಮೊದಲು ಒಂದನ್ನು ಸ್ಥಾಪಿಸಿ.</string>
     <string name="custombuttons_on_toolbar">ಟೂಲ್‌ಬಾರ್‌ನಲ್ಲಿ</string>

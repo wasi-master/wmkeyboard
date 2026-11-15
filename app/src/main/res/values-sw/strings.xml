@@ -2118,8 +2118,6 @@
     <string name="custombuttons_loading">Inatafuta njia za mkato…</string>
     <string name="custombuttons_maker_unsupported">Programu hiyo iliunda njia ya mkato ambayo skrini ya nyumbani pekee ndiyo inayoweza kukubali.</string>
     <string name="custombuttons_makers_group">Programu zinazounda njia za mkato</string>
-    <string name="custombuttons_move_down">Sogeza chini</string>
-    <string name="custombuttons_move_up">Sogeza juu</string>
     <string name="custombuttons_nav_subtitle">Njia za mkato za programu zingine, swichi za mipangilio na kurasa za mipangilio, kugusa mara moja kutoka kwa vitufe</string>
     <string name="custombuttons_no_plugins">Hakuna programu jalizi za kuongeza. Washa programu jalizi na uweke moja kwanza.</string>
     <string name="custombuttons_on_toolbar">kwenye upau wa zana</string>

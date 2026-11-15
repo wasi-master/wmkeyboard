@@ -2118,8 +2118,6 @@
     <string name="custombuttons_loading">Kuseshwa izinqamuleli…</string>
     <string name="custombuttons_maker_unsupported">Lolu hlelo lokusebenza lwenze izinqamuleli isikrini sasekhaya kuphela esingazamukela.</string>
     <string name="custombuttons_makers_group">Izinhlelo zokusebenza ezenza izinqamuleli</string>
-    <string name="custombuttons_move_down">Hambisa phansi</string>
-    <string name="custombuttons_move_up">Hambisa phezulu</string>
     <string name="custombuttons_nav_subtitle">Izinqamuleli zezinye izinhlelo zokusebenza, ukushintsha izilungiselelo namakhasi ezilungiselelo, ngokuthepha okukodwa kusuka ezinkinobhweni</string>
     <string name="custombuttons_no_plugins">Azikho izixhumi ezengeziwe zokungeza. Vula izixhumi ezengeziwe bese uqale ufake eyodwa.</string>
     <string name="custombuttons_on_toolbar">kubha yamathuluzi</string>

@@ -2114,8 +2114,6 @@
     <string name="custombuttons_loading">Etsitään pikakuvakkeita…</string>
     <string name="custombuttons_maker_unsupported">Kyseinen sovellus loi pikakuvakkeen, jonka vain aloitusnäyttö voi hyväksyä.</string>
     <string name="custombuttons_makers_group">Sovellukset, jotka luovat pikakuvakkeita</string>
-    <string name="custombuttons_move_down">Siirrä alas</string>
-    <string name="custombuttons_move_up">Siirrä ylöspäin</string>
     <string name="custombuttons_nav_subtitle">Muiden sovellusten pikanäppäimet, asetusvalitsimet ja asetussivut yhden napautuksen päässä näppäimistä</string>
     <string name="custombuttons_no_plugins">Ei lisäosia lisättäväksi. Ota lisäosat käyttöön ja asenna yksi ensin.</string>
     <string name="custombuttons_on_toolbar">työkalurivillä</string>

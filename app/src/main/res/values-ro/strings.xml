@@ -2115,8 +2115,6 @@
     <string name="custombuttons_loading">Se caută comenzi rapide…</string>
     <string name="custombuttons_maker_unsupported">Această aplicație a creat o scurtătură pe care doar ecranul principal o poate accepta.</string>
     <string name="custombuttons_makers_group">Aplicații care creează comenzi rapide</string>
-    <string name="custombuttons_move_down">Mută mai jos</string>
-    <string name="custombuttons_move_up">Mută mai sus</string>
     <string name="custombuttons_nav_subtitle">Comenzi rapide pentru alte aplicații, comutatoare și pagini de setări, la o atingere distanță de taste</string>
     <string name="custombuttons_no_plugins">Niciun modul periferic de adaugat. Activeaza modulele si instaleaza unul mai intai.</string>
     <string name="custombuttons_on_toolbar">pe bara de instrumente</string>

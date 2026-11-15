@@ -2117,8 +2117,6 @@
     <string name="custombuttons_loading">جاري البحث عن الاختصارات...</string>
     <string name="custombuttons_maker_unsupported">أنشأ هذا التطبيق اختصاراً لا تقبله سوى الشاشة الرئيسية.</string>
     <string name="custombuttons_makers_group">تطبيقات إنشاء الاختصارات</string>
-    <string name="custombuttons_move_down">نقل للأسفل</string>
-    <string name="custombuttons_move_up">تحريك لأعلى</string>
     <string name="custombuttons_nav_subtitle">اختصارات التطبيقات الأخرى ومفاتيح الإعدادات صفحات الإعدادات، بضغطة زر واحدة من المفاتيح</string>
     <string name="custombuttons_no_plugins">لا توجد ملحقات إضافية للإضافة. يرجى تفعيل الملحقات وتثبيت إحداها أولاً.</string>
     <string name="custombuttons_on_toolbar">على شريط الأدوات</string>

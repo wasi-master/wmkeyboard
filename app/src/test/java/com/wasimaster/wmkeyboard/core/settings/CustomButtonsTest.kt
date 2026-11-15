@@ -40,25 +40,16 @@ class CustomButtonsTest {
     }
 
     @Test
-    fun `toolbar and toolbox split by placement and skip unknown switches`() {
+    fun `only buttons this build can run are live tools`() {
         val gone = CustomButton("c4", CustomButtonKind.SETTING, "NO_SUCH_SETTING")
-        val list = listOf(shortcut, numberRow, favourites, gone)
-        assertEquals(listOf(shortcut, favourites), list.onToolbar())
-        assertEquals(listOf(numberRow), list.inToolbox())
+        val list = listOf(shortcut, numberRow, favourites, gone, weather)
+        assertEquals(setOf("c1", "c2", "c3"), list.liveCustomToolIds())
     }
 
     @Test
     fun `next id fills the first gap`() {
         assertEquals("c4", listOf(shortcut, numberRow, favourites).nextCustomButtonId())
         assertEquals("c1", listOf(numberRow).nextCustomButtonId())
-    }
-
-    @Test
-    fun `moving clamps at the ends`() {
-        val list = listOf(shortcut, numberRow, favourites)
-        assertEquals(listOf(numberRow, shortcut, favourites), list.moved("c2", -1))
-        assertEquals(list, list.moved("c1", -1))
-        assertEquals(listOf(numberRow, favourites, shortcut), list.moved("c1", 5))
     }
 
     @Test

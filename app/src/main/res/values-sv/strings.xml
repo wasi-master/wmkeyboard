@@ -2115,8 +2115,6 @@
     <string name="custombuttons_loading">Letar efter genvägar…</string>
     <string name="custombuttons_maker_unsupported">Denappen skapade en genväg som bara startskärmen kan acceptera.</string>
     <string name="custombuttons_makers_group">Appar som skapar genvägar</string>
-    <string name="custombuttons_move_down">Flytta ner</string>
-    <string name="custombuttons_move_up">Flytta upp</string>
     <string name="custombuttons_nav_subtitle">Andra appars genvägar, inställningsväxlar och inställningssidor, ett tryck från tangenterna</string>
     <string name="custombuttons_no_plugins">Inga insticksprogram att lägga till. Aktivera insticksprogram och installera ett först.</string>
     <string name="custombuttons_on_toolbar">på verktygsfältet</string>

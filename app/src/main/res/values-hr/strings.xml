@@ -2116,8 +2116,6 @@
     <string name="custombuttons_loading">Traženje prečaca…</string>
     <string name="custombuttons_maker_unsupported">Ta je aplikacija izradila prečac koji može prihvatiti samo početni zaslon.</string>
     <string name="custombuttons_makers_group">Aplikacije koje stvaraju prečace</string>
-    <string name="custombuttons_move_down">Pomakni dolje</string>
-    <string name="custombuttons_move_up">Pomakni gore</string>
     <string name="custombuttons_nav_subtitle">Prečaci drugih aplikacija, preklopnici postavki i stranice postavki, jednim dodirom s tipki</string>
     <string name="custombuttons_no_plugins">Nema dodataka za dodavanje. Prvo uključite dodatke i instalirajte jedan.</string>
     <string name="custombuttons_on_toolbar">na alatnoj traci</string>

@@ -2112,8 +2112,6 @@
     <string name="custombuttons_loading">Recherche de raccourcis…</string>
     <string name="custombuttons_maker_unsupported">Cette application a créé un raccourci que seul l\'écran d\'accueil peut accepter.</string>
     <string name="custombuttons_makers_group">Applications de cr&amp;eacute;ation de raccourcis</string>
-    <string name="custombuttons_move_down">Déplacer vers le bas</string>
-    <string name="custombuttons_move_up">Déplacer vers le haut</string>
     <string name="custombuttons_nav_subtitle">Raccourcis d\'autres applications, commutateurs de paramètres et pages de paramètres, à portée de touche</string>
     <string name="custombuttons_no_plugins">Aucun plugin à ajouter. Activez les plugins et installez-en un d\'abord.</string>
     <string name="custombuttons_on_toolbar">sur la barre d\'outils</string>

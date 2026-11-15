@@ -9,39 +9,22 @@ import android.os.Process
 import android.util.LruCache
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AppShortcut
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bookmarks
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
@@ -75,10 +58,7 @@ import com.wasimaster.wmkeyboard.core.settings.CustomPage
 import com.wasimaster.wmkeyboard.core.settings.CustomToggle
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.customButtonById
-import com.wasimaster.wmkeyboard.core.settings.inToolbox
-import com.wasimaster.wmkeyboard.core.settings.onToolbar
 import com.wasimaster.wmkeyboard.ime.AppCatalog
-import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.floating.FloatingAppIcons
 import java.io.File
@@ -86,16 +66,14 @@ import java.io.File
 /**
  * The user's own buttons (#1213, #1236), handed down from the service with
  * the other toolbar callbacks. [onTap] runs one by its id: opens the
- * shortcut, flips the setting or opens the page.
+ * shortcut, flips the setting or opens the page. [onSettings] is a hold that
+ * picks nothing up: the buttons' page in Settings.
  */
 @Immutable
 class CustomButtonCallbacks(
     val onTap: (String) -> Unit = {},
+    val onSettings: (String) -> Unit = {},
 )
-
-/** The custom buttons the toolbar shows after its tools, folders and apps. */
-internal fun toolbarCustomButtons(state: KeyboardUiState): List<CustomButton> =
-    state.settings.toolbox.customButtons.onToolbar()
 
 /** The icon slot a custom button draws with, so an icon pack can dress it too. */
 fun customButtonSlot(button: CustomButton): String = when (button.kind) {
@@ -114,6 +92,25 @@ fun customPageSlot(page: CustomPage): String = "custom.page.${page.name.lowercas
 
 /** A shortcut whose own picture is gone, and the fallback for anything unknown. */
 const val CUSTOM_SHORTCUT_SLOT = "custom.shortcut"
+
+/** Where the slot of one shortcut button, drawn with its own picture, starts; see [customToolSlot]. */
+private const val CUSTOM_PICTURE_SLOT_PREFIX = "custom.button."
+
+/**
+ * The slot custom button [id] draws through as a tool (#1345): a switch's or a
+ * page's glyph slot, which an icon pack can dress, or for a shortcut a slot of
+ * its own that [SlotIcon] draws with the shortcut's picture. Reads
+ * [CustomButtonFaces], which is snapshot state, so a cell redraws when the
+ * button changes.
+ */
+fun customToolSlot(id: String): String {
+    val button = CustomButtonFaces.byId(id) ?: return CUSTOM_SHORTCUT_SLOT
+    return if (button.kind == CustomButtonKind.SHORTCUT) CUSTOM_PICTURE_SLOT_PREFIX + id else customButtonSlot(button)
+}
+
+/** The shortcut button a slot from [customToolSlot] draws the picture of, or null for any other slot. */
+internal fun customPictureOfSlot(slot: String): String? =
+    if (slot.startsWith(CUSTOM_PICTURE_SLOT_PREFIX)) slot.removePrefix(CUSTOM_PICTURE_SLOT_PREFIX) else null
 
 /** The built-in glyphs of the custom-button slots, for [IconDefaults]' table. */
 internal fun customButtonSlotIcons(): Map<String, ImageVector> = buildMap {
@@ -192,8 +189,11 @@ fun customPageLabelRes(page: CustomPage): Int = when (page) {
  * and the settings screens that show buttons write it as the settings arrive.
  */
 object CustomButtonFaces {
-    @Volatile
-    var buttons: List<CustomButton> = emptyList()
+    /**
+     * Snapshot state, so the keyboard's tool cells (which find a button's
+     * slot here, see [customToolSlot]) redraw when the list changes.
+     */
+    var buttons: List<CustomButton> by mutableStateOf(emptyList())
 
     private val icons = LruCache<String, ImageBitmap>(ICON_CACHE)
 
@@ -296,102 +296,45 @@ object CustomShortcuts {
 }
 
 /**
- * One custom button on the toolbar or in the toolbox. A switch or a page is
- * a tool's round button, lit while its setting is on; a shortcut wears its
- * own picture, as an app on the toolbar does (#1159). [labelled] draws the
- * name under it, as the toolbox always does and the toolbar does when its
- * labels are on.
+ * A shortcut button's own picture where a tool's glyph goes (#1345): on the
+ * toolbar, in the toolbox grid, a folder's face, the dragged ghost. Drawn as
+ * it is, not tinted, as an app's icon on the toolbar is (#1159); [alpha] keeps
+ * a ghost faint. The shortcut glyph while the picture loads or when it is gone.
  */
 @Composable
-internal fun CustomButtonCell(
-    button: CustomButton,
-    state: KeyboardUiState,
-    callbacks: CustomButtonCallbacks,
-    modifier: Modifier = Modifier,
-    labelled: Boolean = state.settings.toolbarLabels,
-    wide: Boolean = true,
+internal fun CustomShortcutPicture(
+    id: String,
+    contentDescription: String?,
+    modifier: Modifier,
+    tint: Color,
 ) {
     val context = LocalContext.current
-    val name = remember(button, context) { CustomButtonFaces.name(context, button) }
-    val kb = LocalKbTheme.current
-    if (button.kind != CustomButtonKind.SHORTCUT) {
-        ToolCircle(
-            slot = customButtonSlot(button),
-            description = name,
-            active = button.toggle?.isOn(state.settings) == true,
-            modifier = modifier,
-            longPressLabel = name.takeUnless { labelled },
-            label = name.takeIf { labelled },
-            labelSizeSp = state.settings.toolbarLabelSize,
-            wide = wide,
-        ) { callbacks.onTap(button.id) }
+    val button = CustomButtonFaces.byId(id)
+    val px = with(LocalDensity.current) { CUSTOM_PICTURE_DP.dp.roundToPx() }.coerceAtLeast(1)
+    val picture by produceState<ImageBitmap?>(null, button, px) {
+        value = if (button == null) {
+            null
+        } else {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { CustomButtonFaces.icon(context, button, px) }
+        }
+    }
+    val shown = picture
+    if (shown == null) {
+        SlotIcon(CUSTOM_SHORTCUT_SLOT, contentDescription = contentDescription, modifier = modifier, tint = tint)
         return
     }
-    val iconDp = kb.toolIconSizeDp + CUSTOM_ICON_EXTRA_DP
-    val px = with(LocalDensity.current) { iconDp.dp.roundToPx() }.coerceAtLeast(1)
-    val icon by produceState<ImageBitmap?>(null, button, px) {
-        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            CustomButtonFaces.icon(context, button, px)
-        }
-    }
-    val description = context.getString(R.string.ime_custom_button_desc, name)
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .clickable(onClickLabel = description) { callbacks.onTap(button.id) }
-            .semantics { contentDescription = description },
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        val picture = icon
-        if (picture != null) {
-            Image(picture, contentDescription = null, modifier = Modifier.size(iconDp.dp))
-        } else {
-            Box(Modifier.size(iconDp.dp), contentAlignment = Alignment.Center) {
-                SlotIcon(
-                    CUSTOM_SHORTCUT_SLOT,
-                    contentDescription = null,
-                    modifier = Modifier.size(kb.toolIconSizeDp.dp),
-                    tint = kb.toolbarIcon,
-                )
-            }
-        }
-        if (labelled) {
-            Text(
-                name,
-                fontSize = state.settings.toolbarLabelSize.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                color = kb.toolbarIcon,
-                modifier = Modifier.widthIn(max = 72.dp),
-            )
-        }
-    }
+    Image(
+        shown,
+        contentDescription = contentDescription,
+        modifier = modifier,
+        alpha = if (tint.isSpecified) tint.alpha else 1f,
+    )
 }
 
-/**
- * The toolbox's row of custom buttons (#1213, #1236): the ones set to live
- * in the toolbox rather than on the bar, above the grid, named. Draws nothing
- * when there are none.
- */
-@Composable
-internal fun ToolboxCustomButtons(state: KeyboardUiState, callbacks: CustomButtonCallbacks) {
-    val buttons = state.settings.toolbox.customButtons.inToolbox()
-    if (buttons.isEmpty()) return
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        for (button in buttons) {
-            key("custom:${button.id}") {
-                CustomButtonCell(button, state, callbacks, labelled = true, wide = false)
-            }
-        }
-    }
-}
+/** The name custom button [id] goes by as a tool, or the generic one for a button since deleted. */
+fun customToolName(context: Context, buttons: List<CustomButton>, id: String): String =
+    buttons.customButtonById(id)?.let { CustomButtonFaces.name(context, it) }
+        ?: context.getString(R.string.ime_custom_button_label)
 
-/** A shortcut's picture is a filled one, a glyph has air round it, as for the toolbar's apps. */
-private const val CUSTOM_ICON_EXTRA_DP = 4
+/** Sized once for every place a tool's icon is drawn; [Image] scales it to the cell. */
+private const val CUSTOM_PICTURE_DP = 32

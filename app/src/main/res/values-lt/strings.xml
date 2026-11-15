@@ -2116,8 +2116,6 @@
     <string name="custombuttons_loading">Ieškoma nuorodų…</string>
     <string name="custombuttons_maker_unsupported">Ši programa sukūrė nuorodą, kurią gali priimti tik pagrindinis ekranas.</string>
     <string name="custombuttons_makers_group">Programos, kuriančios nuorodas</string>
-    <string name="custombuttons_move_down">Perkelti žemyn</string>
-    <string name="custombuttons_move_up">Perkelti aukštyn</string>
     <string name="custombuttons_nav_subtitle">Kitų programėlių nuorodos, nustatymų perjungikliai ir nustatymų puslapiai vienu klavišo paspaudimu</string>
     <string name="custombuttons_no_plugins">Nėra pridedamų papildinių. Pirmiausia įjunkite papildinius ir įdiekite vieną.</string>
     <string name="custombuttons_on_toolbar">įrankių juostoje</string>

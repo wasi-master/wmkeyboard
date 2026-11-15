@@ -2114,8 +2114,6 @@
     <string name="custombuttons_loading">குறுக்குவழிகளைத் தேடுகிறது…</string>
     <string name="custombuttons_maker_unsupported">அந்தப் பயன்பாடு முகப்புத் திரை மட்டுமே ஏற்றுக்கொள்ளக்கூடிய குறுக்குவழியை உருவாக்கியது.</string>
     <string name="custombuttons_makers_group">குறுக்குவழிகளை உருவாக்கும் செயலிகள்</string>
-    <string name="custombuttons_move_down">கீழே நகர்த்து</string>
-    <string name="custombuttons_move_up">மேலே நகர்த்து</string>
     <string name="custombuttons_nav_subtitle">பிற செயலிகளின் குறுக்குவழிகள், அமைப்புக் சுவிட்சுகள் மற்றும் அமைப்புப் பக்கங்கள், விசைகளிலிருந்து ஒரு தட்டல் தொலைவில்</string>
     <string name="custombuttons_no_plugins">சேர்க்க செருகுநிரல்கள் இல்லை. செருகுநிரல்களை இயக்கத்தில் வைத்து முதலில் ஒன்றை நிறுவவும்.</string>
     <string name="custombuttons_on_toolbar">கருவிப்பட்டை மீது</string>

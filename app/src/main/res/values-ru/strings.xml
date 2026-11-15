@@ -2114,8 +2114,6 @@
     <string name="custombuttons_loading">Поиск ярлыков…</string>
     <string name="custombuttons_maker_unsupported">Этот объект создал ярлык, который может принять только главный экран.</string>
     <string name="custombuttons_makers_group">Приложения для создания ярлыков</string>
-    <string name="custombuttons_move_down">Переместить вниз</string>
-    <string name="custombuttons_move_up">Переместить выше</string>
     <string name="custombuttons_nav_subtitle">Ярлыки других приложений, переключатели и страницы настроек в одно касание с клавиш</string>
     <string name="custombuttons_no_plugins">Нет плагинов для добавления. Сначала включите плагины и установите хотя бы один.</string>
     <string name="custombuttons_on_toolbar">на панели инструментов</string>

@@ -2113,8 +2113,6 @@
     <string name="custombuttons_loading">Kısayollar aranıyor…</string>
     <string name="custombuttons_maker_unsupported">Bu uygulama, yalnızca ana ekranın kabul edebileceği bir kısayol oluşturdu.</string>
     <string name="custombuttons_makers_group">Kısayol oluşturan uygulamalar</string>
-    <string name="custombuttons_move_down">Aşağı taşı</string>
-    <string name="custombuttons_move_up">Yukarı taşı</string>
     <string name="custombuttons_nav_subtitle">Diğer uygulamaların kısayolları, ayar anahtarları ve ayar sayfaları, tuşlardan tek dokunuşla erişilebilir</string>
     <string name="custombuttons_no_plugins">Eklenecek eklenti yok. Önce eklentileri açın ve bir tane yükleyin.</string>
     <string name="custombuttons_on_toolbar">araç çubuğunda</string>

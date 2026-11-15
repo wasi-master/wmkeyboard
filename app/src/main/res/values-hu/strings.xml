@@ -2112,8 +2112,6 @@
     <string name="custombuttons_loading">Parancsikonok keresése…</string>
     <string name="custombuttons_maker_unsupported">Az az alkalmazás olyan parancsikont hozott létre, amelyet csak a kezdőképernyő tud fogadni.</string>
     <string name="custombuttons_makers_group">Parancsikonokat készítő alkalmazások</string>
-    <string name="custombuttons_move_down">Mozgatás lefelé</string>
-    <string name="custombuttons_move_up">Mozgatás fel</string>
     <string name="custombuttons_nav_subtitle">Más alkalmazások parancsikonjai, beállítás-kapcsolók és beállítások oldalak, egy koppintásra a billentyűktől</string>
     <string name="custombuttons_no_plugins">Nincsenek hozzáadható bővítmények. Előbb kapcsolja be a bővítményeket, és telepítsen egyet.</string>
     <string name="custombuttons_on_toolbar">az eszköztáron</string>

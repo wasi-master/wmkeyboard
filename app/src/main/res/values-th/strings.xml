@@ -2112,8 +2112,6 @@
     <string name="custombuttons_loading">กำลังหาทางลัด...</string>
     <string name="custombuttons_maker_unsupported">แอปนั้นสร้างทางลัดที่ยอมรับได้เฉพาะหน้าจอหลักเท่านั้น</string>
     <string name="custombuttons_makers_group">แอปที่สร้างทางลัด</string>
-    <string name="custombuttons_move_down">เลื่อนลง</string>
-    <string name="custombuttons_move_up">ย้ายขึ้น</string>
     <string name="custombuttons_nav_subtitle">ทางลัดแอปอื่นๆ สวิตช์การตั้งค่า และหน้าการตั้งค่า เพียงแตะครั้งเดียวจากปุ่มต่างๆ</string>
     <string name="custombuttons_no_plugins">ไม่มีปลั๊กอินให้เพิ่ม โปรดเปิดใช้งานปลั๊กอินและติดตั้งก่อน</string>
     <string name="custombuttons_on_toolbar">บนแถบเครื่องมือ</string>

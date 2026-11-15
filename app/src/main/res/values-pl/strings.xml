@@ -2114,8 +2114,6 @@
     <string name="custombuttons_loading">Szukanie skrótów…</string>
     <string name="custombuttons_maker_unsupported">Ta aplikacja utworzyła skrót, który obsługuje tylko ekran główny.</string>
     <string name="custombuttons_makers_group">Aplikacje tworzące skróty</string>
-    <string name="custombuttons_move_down">Przenieś w dół</string>
-    <string name="custombuttons_move_up">Przenieś wyżej</string>
     <string name="custombuttons_nav_subtitle">Skróty innych aplikacji, przełączniki ustawień i strony ustawień dostępne jednym dotknięciem klawisza</string>
     <string name="custombuttons_no_plugins">Brak wtyczek do dodania. Najpierw włącz wtyczki i zainstaluj jedną.</string>
     <string name="custombuttons_on_toolbar">na pasku narzędzi</string>

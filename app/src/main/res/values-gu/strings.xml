@@ -2115,8 +2115,6 @@
     <string name="custombuttons_loading">શોર્ટકટ્સ શોધી રહ્યા છીએ…</string>
     <string name="custombuttons_maker_unsupported">તે ઍપ દ્વારા શૉર્ટકટ બનાવવામાં આવ્યો છે જેને ફક્ત હોમ સ્ક્રીન સ્વીકારી શકે છે.</string>
     <string name="custombuttons_makers_group">শার্টকট বনাবনারा অপীস</string>
-    <string name="custombuttons_move_down">નીચે ખસેડો</string>
-    <string name="custombuttons_move_up">ઉપર ખસેડો</string>
     <string name="custombuttons_nav_subtitle">બીજી એપ્સના શોર્ટકટ્સ, સેટિંગ સ્વિચ અને સેટિંગ્સ પેજ, કીઝથી એક ટેપ દૂર</string>
     <string name="custombuttons_no_plugins">ઉમેરવા માટે કોઈ પ્લગઇન નથી. પ્લગઇન્સ ચાલુ કરો અને પહેલા એક ઇન્સ્ટોલ કરો.</string>
     <string name="custombuttons_on_toolbar">ટૂલબાર પર</string>

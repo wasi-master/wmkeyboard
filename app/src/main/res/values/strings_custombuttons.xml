@@ -7,7 +7,7 @@
         <item quantity="other">%1$d buttons</item>
     </plurals>
     <string name="custombuttons_nav_subtitle">Other apps\' shortcuts, setting switches and settings pages, one tap from the keys</string>
-    <string name="custombuttons_caption">Your own buttons for the toolbar and the toolbox. A setting switch is lit while its setting is on. The floating button can run any of them too: pick one under Floating button › Your buttons.</string>
+    <string name="custombuttons_caption">Your own buttons for the toolbar and the toolbox. Each one is a tool: hold it and drag it between the bar and the toolbox, or onto another tool to make a folder. A setting switch is lit while its setting is on. The floating button can run any of them too: pick one under Floating button › Your buttons.</string>
     <string name="custombuttons_yours_title">Your buttons</string>
     <string name="custombuttons_add_title">Add a button</string>
     <string name="custombuttons_add_shortcut_title">App shortcut</string>
@@ -28,8 +28,6 @@
     <string name="custombuttons_in_toolbox">in the toolbox</string>
     <string name="custombuttons_row_subtitle">%1$s, %2$s</string>
     <string name="custombuttons_unusable">This version of the keyboard can\'t run it.</string>
-    <string name="custombuttons_move_up">Move up</string>
-    <string name="custombuttons_move_down">Move down</string>
     <string name="custombuttons_loading">Looking for shortcuts…</string>
     <string name="custombuttons_shortcut_limited_title">Only some shortcuts are listed</string>
     <string name="custombuttons_shortcut_limited_body">Android lets only the home screen read every app\'s shortcuts. Listed here are the ones apps declare for anyone to open, and below them the apps that make a shortcut when asked.</string>
@@ -42,8 +40,8 @@
     <string name="custombuttons_edit_title">Edit button</string>
     <string name="custombuttons_edit_name">Name</string>
     <string name="custombuttons_edit_toolbar">On the toolbar</string>
-    <string name="custombuttons_edit_toolbar_on">Shown after the toolbar\'s tools</string>
-    <string name="custombuttons_edit_toolbar_off">Shown in a row at the top of the toolbox</string>
+    <string name="custombuttons_edit_toolbar_on">Pinned to the toolbar with your tools</string>
+    <string name="custombuttons_edit_toolbar_off">In the toolbox grid with your tools</string>
 
     <!-- Floating button picker. -->
     <string name="floating_button_pick_group_custom">Your buttons</string>

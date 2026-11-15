@@ -2116,8 +2116,6 @@
     <string name="custombuttons_loading">Nach Verknüpfungen suchen…</string>
     <string name="custombuttons_maker_unsupported">Diese App hat eine Verknüpfung erstellt, die nur der Startbildschirm akzeptieren kann.</string>
     <string name="custombuttons_makers_group">Apps, die Verknüpfungen erstellen</string>
-    <string name="custombuttons_move_down">Nach unten verschieben</string>
-    <string name="custombuttons_move_up">Nach oben verschieben</string>
     <string name="custombuttons_nav_subtitle">Verknüpfungen anderer Apps, Schalter und Einstellungsseiten, nur einen Tipp von den Tasten entfernt</string>
     <string name="custombuttons_no_plugins">Keine Plugins zum Hinzufügen. Aktivieren Sie zuerst Plugins und installieren Sie eines.</string>
     <string name="custombuttons_on_toolbar">in der Symbolleiste</string>

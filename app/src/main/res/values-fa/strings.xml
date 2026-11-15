@@ -2117,8 +2117,6 @@
     <string name="custombuttons_loading">در حال جستجوی میانبرها…</string>
     <string name="custombuttons_maker_unsupported">آن برنامه میانبری ساخت که فقط صفحه اصلی می‌تواند آن را بپذیرد.</string>
     <string name="custombuttons_makers_group">برنامه‌هایی که میانبر می‌سازند</string>
-    <string name="custombuttons_move_down">پایین آوردن</string>
-    <string name="custombuttons_move_up">انتقال به بالا</string>
     <string name="custombuttons_nav_subtitle">میانبرهای سایر برنامه‌ها، کلیدهای تنظیمات و صفحات تنظیمات، با یک ضربه از روی کلیدها</string>
     <string name="custombuttons_no_plugins">افزونه‌ای برای افزودن وجود ندارد. ابتدا افزونه‌ها را روشن کرده و یکی را نصب کنید.</string>
     <string name="custombuttons_on_toolbar">روی نوار ابزار</string>

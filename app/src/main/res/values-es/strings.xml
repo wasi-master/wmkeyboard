@@ -2118,8 +2118,6 @@
     <string name="custombuttons_loading">Buscando accesos directos…</string>
     <string name="custombuttons_maker_unsupported">Esa aplicación creó un acceso directo que solo la pantalla de inicio puede aceptar.</string>
     <string name="custombuttons_makers_group">Aplicaciones que crean accesos directos</string>
-    <string name="custombuttons_move_down">Mover hacia abajo</string>
-    <string name="custombuttons_move_up">Mover hacia arriba</string>
     <string name="custombuttons_nav_subtitle">Accesos directos de otras aplicaciones, interruptores de configuración y páginas de ajustes, a un toque de distancia desde las teclas</string>
     <string name="custombuttons_no_plugins">No hay complementos para añadir. Activa los complementos e instala uno primero.</string>
     <string name="custombuttons_on_toolbar">en la barra de herramientas</string>

@@ -2114,8 +2114,6 @@
     <string name="custombuttons_loading">Leder efter genveje...</string>
     <string name="custombuttons_maker_unsupported">Den app oprettede en genvej, som kun startskærmen kan acceptere.</string>
     <string name="custombuttons_makers_group">Apps der opretter genveje</string>
-    <string name="custombuttons_move_down">Flyt ned</string>
-    <string name="custombuttons_move_up">Flyt op</string>
     <string name="custombuttons_nav_subtitle">Genveje til andre apps, indstillingskontakter og indstillingssider, et tryk væk fra tasterne</string>
     <string name="custombuttons_no_plugins">Ingen plugins at tilføje. Slå plugins til, og installer en først.</string>
     <string name="custombuttons_on_toolbar">p\' v\'rkt\'jslinjen</string>

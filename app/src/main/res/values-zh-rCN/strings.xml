@@ -2111,8 +2111,6 @@
     <string name="custombuttons_loading">正在寻找快捷方式…</string>
     <string name="custombuttons_maker_unsupported">该应用创建的快捷方式仅主屏幕可接受。</string>
     <string name="custombuttons_makers_group">制作快捷方式的应用</string>
-    <string name="custombuttons_move_down">向下移动</string>
-    <string name="custombuttons_move_up">上移</string>
     <string name="custombuttons_nav_subtitle">其他应用的快捷方式、设置开关和设置页面，按键一触即达</string>
     <string name="custombuttons_no_plugins">没有可添加的插件。请先启用插件并安装一个。</string>
     <string name="custombuttons_on_toolbar">在工具栏上</string>

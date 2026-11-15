@@ -532,6 +532,7 @@ import com.wasimaster.wmkeyboard.core.settings.contains
 import com.wasimaster.wmkeyboard.core.settings.isSupported
 import com.wasimaster.wmkeyboard.core.settings.key
 import com.wasimaster.wmkeyboard.core.settings.shownWith
+import com.wasimaster.wmkeyboard.core.settings.customButtonById
 import com.wasimaster.wmkeyboard.core.settings.ClipRecentChipsMax
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Sell
@@ -10051,22 +10052,28 @@ private class ToolDragController {
     /** Hold without dragging past the slop: open the tool's settings page. */
     var onOpenSettings: (ToolbarTool) -> Unit = {}
 
-    /** [onOpenSettings] for any entry: a plugin's hold opens the plugin's own page in Settings. */
+    /**
+     * [onOpenSettings] for any entry: a plugin's hold opens the plugin's own
+     * page in Settings, a custom button's the custom buttons page.
+     */
     fun openSettings(tool: ToolKey) {
         when (tool) {
             is ToolKey.Builtin -> onOpenSettings(tool.tool)
             is ToolKey.Plugin -> toolbox.onPluginSettings(tool.pluginId)
+            is ToolKey.Custom -> custom.onSettings(tool.id)
         }
     }
 
     /**
      * A tap on [tool]: a built-in one through [onToolTap], the dispatcher
-     * every tool button already calls, and a plugin's by opening its panel.
+     * every tool button already calls, a plugin's by opening its panel, and a
+     * custom button's by running it (#1345).
      */
     fun tap(tool: ToolKey, onToolTap: (ToolbarTool) -> Unit) {
         when (tool) {
             is ToolKey.Builtin -> onToolTap(tool.tool)
             is ToolKey.Plugin -> toolbox.onPluginTool(tool.pluginId)
+            is ToolKey.Custom -> custom.onTap(tool.id)
         }
     }
 
@@ -12396,17 +12403,6 @@ private fun ToolsColumn(
         }
         // Apps never carried in among the tools after the folders, as on the bar (#1159).
         for (app in if (appsBySlot.isEmpty()) toolbarApps(state) else toolbarAppsTrailing(state)) appCell(app)
-        // The user's own buttons last, as on the bar (#1213, #1236).
-        for (button in toolbarCustomButtons(state)) {
-            key("custom:${button.id}") {
-                CustomButtonCell(
-                    button = button,
-                    state = state,
-                    callbacks = drag.custom,
-                    modifier = cell.animatePlacement(enabled = motion) { drag.bodyCoords },
-                )
-            }
-        }
         if (toolboxSearchShown && searchAtEnd) toolboxSearch()
         // The keys called up over the toolbar-only view go away from here too (#642).
         if (hardwareKeysToggleable(state)) {
@@ -12578,7 +12574,6 @@ private fun RowScope.ToolbarRow(
     val tools = visibleToolbarTools(state)
     val pinnedFolders = state.settings.toolbox.folders.filter { it.pinned }
     val pinnedApps = toolbarApps(state)
-    val pinnedCustom = toolbarCustomButtons(state)
     // The D-pad ring reaches the bar as well as the keys: without it a remote
     // could type but never open a tool, change a setting or start voice input.
     // Each button registers where it is while it is drawn (see [dpadTarget]).
@@ -12850,25 +12845,6 @@ private fun RowScope.ToolbarRow(
         }
         // The apps never carried in among the tools, after the folders.
         for (app in trailingApps) appCell(app)
-        // The user's own buttons (#1213, #1236), after the apps: like an app,
-        // a custom button has no place in the bar's stored list of tools.
-        for (button in pinnedCustom) {
-            key("custom:${button.id}") {
-                Box(
-                    if (greedy) Modifier.weight(1f).fillMaxHeight() else Modifier.padding(horizontal = 3.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CustomButtonCell(
-                        button = button,
-                        state = state,
-                        callbacks = drag.custom,
-                        modifier = Modifier
-                            .animatePlacement(enabled = motion, inRow = true) { drag.bodyCoords }
-                            .graphicsLayer { alpha = contentAlpha() },
-                    )
-                }
-            }
-        }
     }
     if (greedy) {
         // Over a see-through split gap (#1256), the grid moves in from one end
@@ -12880,7 +12856,7 @@ private fun RowScope.ToolbarRow(
         val gridCells = (if (panelOpen && !toolboxIsBack) 1 else 0) +
             (if (toolboxSearchShown) 1 else 0) +
             (if (barToolboxShown(state)) 1 else 0) +
-            (displayTools.size + pinnedFolders.size + pinnedApps.size + pinnedCustom.size).coerceAtLeast(1)
+            (displayTools.size + pinnedFolders.size + pinnedApps.size).coerceAtLeast(1)
         val gridInset = gridCut?.let { cut ->
             cut.cutIn()?.let { insetToCut(gridCells, cut.laidOutWidth.toFloat(), it) }
         }
@@ -12916,7 +12892,7 @@ private fun RowScope.ToolbarRow(
             CompositionLocalProvider(LocalLayoutDirection provides toolsDirection) {
                 Row(
                     modifier = Modifier
-                        .weight((displayTools.size + pinnedFolders.size + pinnedApps.size + pinnedCustom.size).coerceAtLeast(1).toFloat())
+                        .weight((displayTools.size + pinnedFolders.size + pinnedApps.size).coerceAtLeast(1).toFloat())
                         .fillMaxHeight()
                         .onGloballyPositioned { drag.toolbarBounds = it.boundsInRoot() },
                     verticalAlignment = Alignment.CenterVertically,
@@ -13512,9 +13488,6 @@ private fun ToolboxPanel(
                 drag.active && drag.boxMerge != null -> without
                 else -> cells
             }
-            // The user's own buttons kept in the toolbox (#1213, #1236), above
-            // the grid at its top level; a search or a folder lists tools only.
-            if (openFolder == null && !searching) ToolboxCustomButtons(state, drag.custom)
             if (display.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
@@ -14777,8 +14750,14 @@ private fun ToolPill(
         // A pill is a row, so its badge sits at the end beside the chevron
         // rather than under an icon. Same footprint either way.
         if (hint != null) HintBadge(hint, modifier = Modifier.padding(end = 4.dp))
-        // A plugin always opens its panel.
-        if (tool.tool?.let(::toolOpensScreen) != false) {
+        // A plugin always opens its panel; a custom button runs in place or
+        // leaves for another app, and has no screen of the keyboard's to show.
+        val opensScreen = when (tool) {
+            is ToolKey.Builtin -> toolOpensScreen(tool.tool)
+            is ToolKey.Plugin -> true
+            is ToolKey.Custom -> false
+        }
+        if (opensScreen) {
             Icon(
                 Icons.AutoMirrored.Outlined.KeyboardArrowRight,
                 contentDescription = null,
@@ -26727,12 +26706,17 @@ internal fun visibleToolbarTools(state: KeyboardUiState): List<ToolKey> =
 
 /**
  * Whether [tool] may be drawn at all: a built-in tool switched on that this
- * build ships and can run now, or a plugin that is installed, on and drawing a
- * panel ([KeyboardUiState.pluginTools]).
+ * build ships and can run now, a plugin that is installed, on and drawing a
+ * panel ([KeyboardUiState.pluginTools]), or a custom button that still exists
+ * and this build can run (#1345).
  */
 internal fun toolShown(tool: ToolKey, state: KeyboardUiState): Boolean =
-    tool.shownWith(state.pluginTools.keys) {
-        it in state.settings.enabledTools && isSupportedTool(it) && isUsableTool(it, state.settings)
+    if (tool is ToolKey.Custom) {
+        state.settings.toolbox.customButtons.customButtonById(tool.id)?.usable == true
+    } else {
+        tool.shownWith(state.pluginTools.keys) {
+            it in state.settings.enabledTools && isSupportedTool(it) && isUsableTool(it, state.settings)
+        }
     }
 
 /**
@@ -26743,25 +26727,36 @@ internal fun toolShown(tool: ToolKey, state: KeyboardUiState): Boolean =
 internal fun barHintSlot(tools: List<ToolKey>, tool: ToolKey): Int? =
     tool.tool?.let { builtin -> tools.builtinTools().indexOf(builtin) + 1 }
 
-/** The name a toolbox entry goes by: a built-in tool's own, or its plugin's. */
+/** The name a toolbox entry goes by: a built-in tool's own, its plugin's, or its custom button's. */
 @Composable
 internal fun toolLabel(tool: ToolKey, state: KeyboardUiState): String = when (tool) {
     is ToolKey.Builtin -> toolLabel(tool.tool)
     is ToolKey.Plugin -> state.pluginTools[tool.pluginId]?.name ?: tool.pluginId
+    is ToolKey.Custom -> {
+        val context = LocalContext.current
+        val buttons = state.settings.toolbox.customButtons
+        remember(buttons, tool.id, context) { customToolName(context, buttons, tool.id) }
+    }
 }
 
 /** [toolLabel] for a caller with no composition: the service, the search's ranking. */
 internal fun toolKeyName(context: android.content.Context, tool: ToolKey, state: KeyboardUiState): String = when (tool) {
     is ToolKey.Builtin -> context.getString(toolLabelRes(tool.tool))
     is ToolKey.Plugin -> state.pluginTools[tool.pluginId]?.name ?: tool.pluginId
+    is ToolKey.Custom -> customToolName(context, state.settings.toolbox.customButtons, tool.id)
 }
 
-/** Lit while its panel is open: a built-in tool by its own rule, a plugin while it is the one running. */
+/**
+ * Lit while its panel is open: a built-in tool by its own rule, a plugin while
+ * it is the one running, a custom setting switch while its setting is on.
+ */
 @Composable
 private fun toolActive(tool: ToolKey, state: KeyboardUiState): Boolean = when (tool) {
     is ToolKey.Builtin -> toolActive(tool.tool, state)
     is ToolKey.Plugin -> state.panel == PanelMode.PLUGINS &&
         (state.plugins as? PluginPanelUi.Running)?.plugin?.id == tool.pluginId
+    is ToolKey.Custom -> state.settings.toolbox.customButtons.customButtonById(tool.id)
+        ?.toggle?.isOn(state.settings) == true
 }
 
 /** A built-in tool's colours; a plugin wears the theme's own tool colour. */
@@ -26776,6 +26771,8 @@ private fun toolAccentPaint(tool: ToolKey, settings: KeyboardSettings): ToolPain
             ToolPaint(color, if (settings.toolIconGradients) com.wasimaster.wmkeyboard.core.ui.toolGradientEnd(color) else null)
         }
     }
+    // A custom button wears the theme's own tool colour; a shortcut, its picture.
+    is ToolKey.Custom -> null
 }
 
 /**

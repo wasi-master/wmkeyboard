@@ -2113,8 +2113,6 @@
     <string name="custombuttons_loading">ᕒሔሀረ ጥጠጨጨጥጥ ጥጠጨጨጥጥ</string>
     <string name="custombuttons_maker_unsupported">해당 앱이 홈 화면에서만 허용되는 바로 가기를 만들었습니다.</string>
     <string name="custombuttons_makers_group">단축키를 만드는 앱</string>
-    <string name="custombuttons_move_down">아래로 이동</string>
-    <string name="custombuttons_move_up">위로 이동</string>
     <string name="custombuttons_nav_subtitle">다른 앱의 바로 가기, 설정 스위치, 설정 페이지를 키에서 탭 한 번으로 이용하세요</string>
     <string name="custombuttons_no_plugins">추가할 플러그인이 없습니다. 먼저 플러그인을 켜고 설치하세요.</string>
     <string name="custombuttons_on_toolbar">도구 모음에서</string>

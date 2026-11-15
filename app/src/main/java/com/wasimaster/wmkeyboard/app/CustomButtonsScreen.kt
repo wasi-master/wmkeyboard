@@ -45,8 +45,6 @@ import androidx.core.graphics.drawable.toBitmap
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AppShortcut
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ArrowDownward
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ArrowUpward
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bookmarks
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension
@@ -61,7 +59,7 @@ import com.wasimaster.wmkeyboard.core.settings.CustomPage
 import com.wasimaster.wmkeyboard.core.settings.CustomToggle
 import com.wasimaster.wmkeyboard.core.settings.MAX_CUSTOM_BUTTONS
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
-import com.wasimaster.wmkeyboard.core.settings.moved
+import com.wasimaster.wmkeyboard.core.settings.customToolKey
 import com.wasimaster.wmkeyboard.core.settings.nextCustomButtonId
 import com.wasimaster.wmkeyboard.ime.ui.CustomButtonFaces
 import com.wasimaster.wmkeyboard.ime.ui.customPageIcon
@@ -82,15 +80,18 @@ private enum class CustomPick { SHORTCUT, SETTING, PAGE, PLUGIN }
 /**
  * The user's own buttons (#1213, #1236): another app's shortcut, a switch
  * over one of the keyboard's settings, a jump to a settings page, or a
- * plugin's panel. Each
- * sits on the toolbar or in the toolbox, and the floating button can run any
- * of them. A press on a button renames it and moves it between the two.
+ * plugin's panel. Each is a tool (#1345): on the toolbar or in the toolbox,
+ * dragged between the two and around them like any other, and the floating
+ * button can run any of them. A press on a button renames it and pins it to
+ * the toolbar or puts it in the toolbox.
  */
 @Composable
 internal fun CustomButtonsScreen(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val buttons = settings.watch { it.toolbox.customButtons }
+    // Where each button is lives in the tool lists, not on the button (#1345).
+    val pinned = settings.watch { s -> s.toolbarTools.toSet() }
     SideEffect { CustomButtonFaces.buttons = buttons }
     var picking by rememberSaveable { mutableStateOf<CustomPick?>(null) }
     var editing by rememberSaveable { mutableStateOf<String?>(null) }
@@ -132,14 +133,12 @@ internal fun CustomButtonsScreen(repository: SettingsRepository, settings: LiveS
     CaptionText(stringResource(R.string.custombuttons_caption))
     if (buttons.isNotEmpty()) {
         SettingsGroup(stringResource(R.string.custombuttons_yours_title)) {
-            buttons.forEachIndexed { index, button ->
+            for (button in buttons) {
                 item(key = button.id) {
                     CustomButtonRow(
                         button = button,
-                        canMoveUp = index > 0,
-                        canMoveDown = index < buttons.lastIndex,
+                        onToolbar = customToolKey(button.id) in pinned,
                         onEdit = { editing = button.id },
-                        onMove = { by -> scope.launch { repository.updateCustomButtons { it.moved(button.id, by) } } },
                         onDelete = {
                             scope.launch {
                                 repository.updateCustomButtons { list -> list.filterNot { it.id == button.id } }
@@ -239,15 +238,18 @@ internal fun CustomButtonsScreen(repository: SettingsRepository, settings: LiveS
 
     val edited = buttons.firstOrNull { it.id == editing }
     if (edited != null) {
+        val wasOnToolbar = customToolKey(edited.id) in pinned
         EditCustomButtonDialog(
             button = edited,
+            onToolbar = wasOnToolbar,
             onDismiss = { editing = null },
             onSave = { label, onToolbar ->
                 editing = null
                 scope.launch {
                     repository.updateCustomButtons { list ->
-                        list.map { if (it.id == edited.id) it.copy(label = label, onToolbar = onToolbar) else it }
+                        list.map { if (it.id == edited.id) it.copy(label = label) else it }
                     }
+                    if (onToolbar != wasOnToolbar) repository.setCustomButtonOnToolbar(edited.id, onToolbar)
                 }
             },
         )
@@ -257,10 +259,8 @@ internal fun CustomButtonsScreen(repository: SettingsRepository, settings: LiveS
 @Composable
 private fun CustomButtonRow(
     button: CustomButton,
-    canMoveUp: Boolean,
-    canMoveDown: Boolean,
+    onToolbar: Boolean,
     onEdit: () -> Unit,
-    onMove: (Int) -> Unit,
     onDelete: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -274,7 +274,7 @@ private fun CustomButtonRow(
         },
     )
     val place = stringResource(
-        if (button.onToolbar) R.string.custombuttons_on_toolbar else R.string.custombuttons_in_toolbox,
+        if (onToolbar) R.string.custombuttons_on_toolbar else R.string.custombuttons_in_toolbox,
     )
     WmRow(
         title = name,
@@ -283,16 +283,8 @@ private fun CustomButtonRow(
         swipeActions = listOf(deleteSwipeAction(stringResource(CommonR.string.common_delete), onDelete)),
         leading = { CustomButtonGlyph(button) },
         trailing = {
-            Row {
-                IconButton(onClick = { onMove(-1) }, enabled = canMoveUp) {
-                    Icon(Icons.Outlined.ArrowUpward, contentDescription = stringResource(R.string.custombuttons_move_up))
-                }
-                IconButton(onClick = { onMove(1) }, enabled = canMoveDown) {
-                    Icon(Icons.Outlined.ArrowDownward, contentDescription = stringResource(R.string.custombuttons_move_down))
-                }
-                IconButton(onClick = onDelete) {
-                    Icon(Icons.Outlined.Delete, contentDescription = stringResource(CommonR.string.common_delete))
-                }
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Outlined.Delete, contentDescription = stringResource(CommonR.string.common_delete))
             }
         },
         onClick = onEdit,
@@ -520,12 +512,14 @@ private fun PluginTilePicker(taken: Set<String>, onDismiss: () -> Unit, onPick: 
 @Composable
 private fun EditCustomButtonDialog(
     button: CustomButton,
+    /** Whether the button is pinned to the toolbar now, by the tool lists. */
+    onToolbar: Boolean,
     onDismiss: () -> Unit,
     onSave: (label: String, onToolbar: Boolean) -> Unit,
 ) {
     val context = LocalContext.current
     var label by rememberSaveable(button.id) { mutableStateOf(button.label) }
-    var onToolbar by rememberSaveable(button.id) { mutableStateOf(button.onToolbar) }
+    var pinned by rememberSaveable(button.id) { mutableStateOf(onToolbar) }
     val fallback = remember(button) { CustomButtonFaces.name(context, button.copy(label = "")) }
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -545,18 +539,18 @@ private fun EditCustomButtonDialog(
                         Text(stringResource(R.string.custombuttons_edit_toolbar))
                         Text(
                             stringResource(
-                                if (onToolbar) R.string.custombuttons_edit_toolbar_on else R.string.custombuttons_edit_toolbar_off,
+                                if (pinned) R.string.custombuttons_edit_toolbar_on else R.string.custombuttons_edit_toolbar_off,
                             ),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    Switch(checked = onToolbar, onCheckedChange = { onToolbar = it })
+                    Switch(checked = pinned, onCheckedChange = { pinned = it })
                 }
             }
         },
         confirmButton = {
-            TextButton(onClick = { onSave(label.trim(), onToolbar) }) { Text(stringResource(CommonR.string.common_save)) }
+            TextButton(onClick = { onSave(label.trim(), pinned) }) { Text(stringResource(CommonR.string.common_save)) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }

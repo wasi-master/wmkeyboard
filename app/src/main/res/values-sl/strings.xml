@@ -2115,8 +2115,6 @@
     <string name="custombuttons_loading">Iskanje bliųnjic…</string>
     <string name="custombuttons_maker_unsupported">Ta aplikacija je ustvarila bližnjico, ki jo podpira samo domači zaslon.</string>
     <string name="custombuttons_makers_group">Aplikacije, ki ustvarjajo bližnjice</string>
-    <string name="custombuttons_move_down">Premakni navzdol</string>
-    <string name="custombuttons_move_up">Premakni navzgor</string>
     <string name="custombuttons_nav_subtitle">Bližnjice drugih aplikacij, stikala nastavitev in strani z nastavitvami, en dotik stran od tipk</string>
     <string name="custombuttons_no_plugins">Ni vtičnikov za dodajanje. Najprej vklopite vtičnike in namestite enega.</string>
     <string name="custombuttons_on_toolbar">v orodni vrstici</string>

@@ -2115,8 +2115,6 @@
     <string name="custombuttons_loading">കുറുക്കുവഴികൾക്കായി തിരയുന്നു…</string>
     <string name="custombuttons_maker_unsupported">ഹോം സ്‌ക്രീന് മാത്രം സ്വീകരിക്കാൻ കഴിയുന്ന ഒരു കുറുക്കുവഴി ആ ആപ്പ് ഉണ്ടാക്കി.</string>
     <string name="custombuttons_makers_group">കുറുക്കുവഴികൾ നിർമ്മിക്കുന്ന ആപ്പുകൾ</string>
-    <string name="custombuttons_move_down">താഴേക്ക് നീക്കുക</string>
-    <string name="custombuttons_move_up">മുകളിലേക്ക് നീക്കുക</string>
     <string name="custombuttons_nav_subtitle">മറ്റ് ആപ്പുകളുടെ കുറുക്കുവഴികൾ, ക്രമീകരണ സ്വിച്ചുകൾ, ക്രമീകരണ പേജുകൾ, കീകൾക്ക് ഒരു ടാപ്പ് അകലെ</string>
     <string name="custombuttons_no_plugins">ചേര്‍ക്കാന്‍ പ്ലഗിനുകളൊന്നുമില്ല. പ്ലഗിനുകള്‍ ഓണാക്കി ആദ്യം ഒരെണ്ണം ഇന്‍സ്റ്റാള്‍ ചെയ്യുക.</string>
     <string name="custombuttons_on_toolbar">ടൂൾബാറിൽ</string>

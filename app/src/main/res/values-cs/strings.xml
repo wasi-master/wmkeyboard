@@ -2112,8 +2112,6 @@
     <string name="custombuttons_loading">Hledání zástupců…</string>
     <string name="custombuttons_maker_unsupported">Tato aplikace vytvořila zástupce, kterého může přijmout pouze domovská obrazovka.</string>
     <string name="custombuttons_makers_group">Aplikace pro tvorbu zkratek</string>
-    <string name="custombuttons_move_down">Posunout dolů</string>
-    <string name="custombuttons_move_up">Posunout nahoru</string>
     <string name="custombuttons_nav_subtitle">Zástupci jiných aplikací, přepínače nastavení a stránky nastavení, jedno klepnutí od kláves</string>
     <string name="custombuttons_no_plugins">Žádné doplňky k přidání. Nejprve doplňte zapněte a nějaký nainstalujte.</string>
     <string name="custombuttons_on_toolbar">na panelu nástrojů</string>

@@ -2110,8 +2110,6 @@
     <string name="custombuttons_loading">Leita að flýtileiðum…</string>
     <string name="custombuttons_maker_unsupported">Forritið bjó til flýtileið sem aðeins heimaskjárinn getur samþykkt.</string>
     <string name="custombuttons_makers_group">Forrit sem búa til flýtileiðir</string>
-    <string name="custombuttons_move_down">Færa niður</string>
-    <string name="custombuttons_move_up">Færa upp</string>
     <string name="custombuttons_nav_subtitle">Flýtileiðir annarra forrita, stillingarofa og stillingasíður, einum smelli frá lyklunum</string>
     <string name="custombuttons_no_plugins">Engar viðbætur til að bæta við. Kveiktu á viðbótum og settu upp eina fyrst.</string>
     <string name="custombuttons_on_toolbar">á tækjastikunni</string>

@@ -143,10 +143,11 @@ object PluginToolIcons {
     }
 }
 
-/** The slot [key] draws its icon through: a built-in tool's own, or its plugin's. */
+/** The slot [key] draws its icon through: a built-in tool's own, its plugin's, or its custom button's. */
 fun toolKeySlot(key: ToolKey): String = when (key) {
     is ToolKey.Builtin -> com.wasimaster.wmkeyboard.core.icons.IconSlots.forTool(key.tool)
     is ToolKey.Plugin -> PluginToolIcons.slot(key.pluginId)
+    is ToolKey.Custom -> customToolSlot(key.id)
 }
 
 /**

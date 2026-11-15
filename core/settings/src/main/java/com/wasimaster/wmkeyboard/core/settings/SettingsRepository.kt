@@ -2740,7 +2740,8 @@ data class ToolboxSettings(
     val backLowersKeys: Boolean = false,
     /**
      * The user's own buttons (#1213, #1236): app shortcuts, setting switches
-     * and settings pages, on the toolbar or in the toolbox. See [CustomButton].
+     * and settings pages. See [CustomButton]. Where each one is, on the bar or
+     * in the toolbox, is its [ToolKey.Custom] entry in the tool lists (#1345).
      * Per device, since a shortcut belongs to an app installed here.
      */
     val customButtons: List<CustomButton> = emptyList(),
@@ -17180,13 +17181,87 @@ class SettingsRepository(private val context: Context) {
     /**
      * Rewrites the custom buttons (#1213, #1236) through [edit], applied to
      * what is stored at the time of the write, as [updateToolboxFolders] does.
+     * The tool lists follow in the same write (#1345): a new button takes its
+     * place on the bar or in the toolbox, and a deleted one leaves every list.
      */
     suspend fun updateCustomButtons(edit: (List<CustomButton>) -> List<CustomButton>) =
         editPrefs { prefs ->
             val next = edit(decodeCustomButtons(prefs[CUSTOM_BUTTONS])).normalizedCustomButtons()
             val encoded = encodeCustomButtons(next)
             if (encoded == null) prefs.remove(CUSTOM_BUTTONS) else prefs[CUSTOM_BUTTONS] = encoded
+            placeCustomButtonToolsIn(prefs, next)
         }
+
+    /**
+     * Gives every custom button a place among the tools (#1345): one made
+     * before buttons were tools goes to the bar or the toolbox as its old
+     * switch said, and an entry whose button is gone leaves every list.
+     * Idempotent: with everything placed it writes nothing. Run on every
+     * start, beside [migratePluginTiles].
+     */
+    suspend fun placeCustomButtonTools() =
+        editPrefs { prefs -> placeCustomButtonToolsIn(prefs, decodeCustomButtons(prefs[CUSTOM_BUTTONS])) }
+
+    /** Whether custom button [id] is pinned to the toolbar, by the global bar. */
+    fun customButtonOnToolbar(settings: KeyboardSettings, id: String): Boolean =
+        isCustomToolId(id) && customToolKey(id) in settings.toolbarTools
+
+    /**
+     * Pins custom button [id] to the end of the toolbar, or moves it into the
+     * toolbox where it keeps its rank: what dragging it does, for the
+     * settings page's switch. Its own flag follows, for a list that ever
+     * loses it again.
+     */
+    suspend fun setCustomButtonOnToolbar(id: String, onToolbar: Boolean) {
+        if (!isCustomToolId(id)) return
+        editPrefs { prefs ->
+            val buttons = decodeCustomButtons(prefs[CUSTOM_BUTTONS])
+            if (buttons.customButtonById(id) == null) return@editPrefs
+            val flagged = buttons.map { if (it.id == id) it.copy(onToolbar = onToolbar) else it }
+            encodeCustomButtons(flagged)?.let { prefs[CUSTOM_BUTTONS] = it }
+            val bar = prefs[TOOLBAR_TOOLS]?.let(::decodeToolKeys) ?: DefaultToolbarKeys
+            val order = completedToolOrder(decodeToolKeys(prefs[TOOLBOX_ORDER]))
+            val (nextBar, nextOrder) = withCustomButtonPlace(bar, order, id, onToolbar)
+            prefs[TOOLBAR_TOOLS] = encodeToolKeys(nextBar)
+            prefs[TOOLBOX_ORDER] = encodeToolKeys(nextOrder)
+            // Put in the toolbox on purpose, so shown there again.
+            val key = customToolKey(id)
+            val hidden = decodeToolKeys(prefs[TOOLBOX_HIDDEN_TOOLS])
+            if (key in hidden) {
+                val rest = hidden - key
+                if (rest.isEmpty()) prefs.remove(TOOLBOX_HIDDEN_TOOLS) else prefs[TOOLBOX_HIDDEN_TOOLS] = encodeToolKeys(rest)
+            }
+        }
+    }
+
+    /**
+     * The tool lists brought in line with [buttons], inside an edit: see
+     * [placedCustomButtons]. Writes only what changed, so a start with
+     * nothing to do leaves the store alone.
+     */
+    private fun placeCustomButtonToolsIn(prefs: MutablePreferences, buttons: List<CustomButton>) {
+        val bar = prefs[TOOLBAR_TOOLS]?.let(::decodeToolKeys) ?: DefaultToolbarKeys
+        val order = completedToolOrder(decodeToolKeys(prefs[TOOLBOX_ORDER]))
+        val folders = decodeToolboxFolders(prefs[TOOLBOX_FOLDERS])
+        val placed = placedCustomButtons(buttons, bar, order, folders)
+        if (placed.bar != bar) prefs[TOOLBAR_TOOLS] = encodeToolKeys(placed.bar)
+        if (placed.order != order) prefs[TOOLBOX_ORDER] = encodeToolKeys(placed.order)
+        val ids = customToolIds(buttons)
+        val hidden = decodeToolKeys(prefs[TOOLBOX_HIDDEN_TOOLS])
+        val keptHidden = hidden.keepingCustom(ids)
+        if (keptHidden != hidden) {
+            if (keptHidden.isEmpty()) prefs.remove(TOOLBOX_HIDDEN_TOOLS) else prefs[TOOLBOX_HIDDEN_TOOLS] = encodeToolKeys(keptHidden)
+        }
+        val keptFolders = folders.keepingCustom(ids)
+        if (keptFolders != folders) {
+            val encoded = encodeToolboxFolders(keptFolders)
+            if (encoded == null) prefs.remove(TOOLBOX_FOLDERS) else prefs[TOOLBOX_FOLDERS] = encoded
+        }
+        prefs[KEYBOARD_MODES]?.let { KeyboardModeCodec.decodeList(it) }?.let { modes ->
+            val kept = modes.map { it.keepingCustom(ids) }
+            if (kept != modes) prefs[KEYBOARD_MODES] = KeyboardModeCodec.encodeList(kept)
+        }
+    }
 
     /** Replaces the whole enabled set at once (the onboarding tools page). */
     suspend fun setEnabledTools(enabled: Collection<ToolbarTool>) =
@@ -17296,11 +17371,12 @@ class SettingsRepository(private val context: Context) {
     /**
      * Puts the toolbox grid back to [DefaultToolOrder]. "Reset pinned tools"
      * restored the bar and nothing restored the grid, so a bad drag session
-     * there had no way back. Plugins shown as tools stay tools, at the end.
+     * there had no way back. Plugins and custom buttons shown as tools stay
+     * tools, at the end.
      */
     suspend fun resetToolboxOrder() = editPrefs { prefs ->
-        val plugins = decodeToolKeys(prefs[TOOLBOX_ORDER]).filterIsInstance<ToolKey.Plugin>()
-        if (plugins.isEmpty()) prefs.remove(TOOLBOX_ORDER) else prefs[TOOLBOX_ORDER] = encodeToolKeys(DefaultToolOrderKeys + plugins)
+        val own = decodeToolKeys(prefs[TOOLBOX_ORDER]).filter { it !is ToolKey.Builtin }
+        if (own.isEmpty()) prefs.remove(TOOLBOX_ORDER) else prefs[TOOLBOX_ORDER] = encodeToolKeys(DefaultToolOrderKeys + own)
     }
 
     /** Records a launch at the head of the recents, newest first, capped. */

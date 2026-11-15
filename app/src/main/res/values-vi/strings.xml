@@ -2112,8 +2112,6 @@
     <string name="custombuttons_loading">Đang tìm phím tắt…</string>
     <string name="custombuttons_maker_unsupported">Ứng dụng đó đã tạo một phím tắt mà chỉ màn hình chính mới có thể chấp nhận.</string>
     <string name="custombuttons_makers_group">Các ứng dụng tạo phím tắt</string>
-    <string name="custombuttons_move_down">Di chuyển xuống</string>
-    <string name="custombuttons_move_up">Di chuyển lên</string>
     <string name="custombuttons_nav_subtitle">Lối tắt của ứng dụng khác, công tắc cài đặt và trang cài đặt, cách một lần chạm từ các phím</string>
     <string name="custombuttons_no_plugins">Không có trình bổ sung nào để thêm. Hãy bật trình bổ sung và cài đặt một trình bổ sung trước.</string>
     <string name="custombuttons_on_toolbar">trên thanh công cụ</string>

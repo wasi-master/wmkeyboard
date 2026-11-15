@@ -2114,8 +2114,6 @@
     <string name="custombuttons_loading">Procurando atalhos…</string>
     <string name="custombuttons_maker_unsupported">Esse aplicativo criou um atalho que apenas a tela inicial pode aceitar.</string>
     <string name="custombuttons_makers_group">Aplicativos que criam atalhos</string>
-    <string name="custombuttons_move_down">Mover para baixo</string>
-    <string name="custombuttons_move_up">Mover para cima</string>
     <string name="custombuttons_nav_subtitle">Atalhos de outros aplicativos, chaves de configuração e páginas de configuração, a um toque das teclas</string>
     <string name="custombuttons_no_plugins">Nenhum plugin para adicionar. Ative os plugins e instale um primeiro.</string>
     <string name="custombuttons_on_toolbar">na barra de ferramentas</string>

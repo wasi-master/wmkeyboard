@@ -2114,8 +2114,6 @@
     <string name="custombuttons_loading">Αναζήτηση συντομεύσεων…</string>
     <string name="custombuttons_maker_unsupported">Αυτή η εφαρμογή δημιούργησε μια συντόμευση που μόνο η αρχική οθόνη μπορεί να αποδεχτεί.</string>
     <string name="custombuttons_makers_group">Εφαρμογές που δημιουργούν συντομεύσεις</string>
-    <string name="custombuttons_move_down">Μετακίνηση προς τα κάτω</string>
-    <string name="custombuttons_move_up">Μετακίνηση επάνω</string>
     <string name="custombuttons_nav_subtitle">Συντομεύσεις άλλων εφαρμογών, διακόπτες ρυθμίσεων και σελίδες ρυθμίσεων, ένα άγγιγμα μακριά από τα πλήκτρα</string>
     <string name="custombuttons_no_plugins">Δεν υπάρχουν πρόσθετα για προσθήκη. Ενεργοποιήστε τα πρόσθετα και εγκαταστήστε ένα πρώτα.</string>
     <string name="custombuttons_on_toolbar">στη γραμμή εργαλείων</string>

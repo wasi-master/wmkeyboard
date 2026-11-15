@@ -2117,8 +2117,6 @@
     <string name="custombuttons_loading">शॉर्टकट खोज रहे हैं…</string>
     <string name="custombuttons_maker_unsupported">उस ऐप ने एक ऐसा शॉर्टकट बनाया जिसे केवल होम स्क्रीन स्वीकार कर सकती है।</string>
     <string name="custombuttons_makers_group">शॉर्टकट बनाने वाले ऐप्स</string>
-    <string name="custombuttons_move_down">नीचे ले जाएं</string>
-    <string name="custombuttons_move_up">ऊपर ले जाएं</string>
     <string name="custombuttons_nav_subtitle">अन्य ऐप्स के शॉर्टकट, सेटिंग स्विच और सेटिंग पेज, कुंजियों से बस एक टैप की दूरी पर</string>
     <string name="custombuttons_no_plugins">जोड़ने के लिए कोई प्लगइन नहीं हैं। पहले प्लगइन चालू करें और एक इंस्टॉल करें।</string>
     <string name="custombuttons_on_toolbar">टूलबार पर</string>

@@ -2117,8 +2117,6 @@
     <string name="custombuttons_loading">ਸ਼ਾਰਟਕੱਟ ਲੱਭੇ ਜਾ ਰਹੇ ਹਨ…</string>
     <string name="custombuttons_maker_unsupported">ਉਸ ਐਪ ਨੇ ਇੱਕ ਸ਼ਾਰਟਕੱਟ ਬਣਾਇਆ ਹੈ ਜਿਸਨੂੰ ਸਿਰਫ਼ ਹੋਮ ਸਕ੍ਰੀਨ ਸਵੀਕਾਰ ਕਰ ਸਕਦੀ ਹੈ।</string>
     <string name="custombuttons_makers_group">ਸ਼ਾਰਟਕੱਟ ਬਣਾਉਣ ਵਾਲੀਆਂ ਐਪਾਂ</string>
-    <string name="custombuttons_move_down">ਹੇਠਾਂ ਲੈ ਜਾਓ</string>
-    <string name="custombuttons_move_up">ਉੱਪਰ ਭੇਜੋ</string>
     <string name="custombuttons_nav_subtitle">ਹੋਰ ਐਪਾਂ ਦੇ ਸ਼ਾਰਟਕੱਟ, ਸੈਟਿੰਗ ਸਵਿੱਚਾਂ ਅਤੇ ਸੈਟਿੰਗ ਪੰਨੇ, ਕੁੰਜੀਆਂ ਤੋਂ ਇੱਕ ਟੈਪ ਨਾਲ</string>
     <string name="custombuttons_no_plugins">ਸ਼ਾਮਲ ਕਰਨ ਲਈ ਕੋਈ ਪਲੱਗਇਨ ਨਹੀਂ ਹੈ। ਪਹਿਲਾਂ ਪਲੱਗਇਨ ਚਾਲੂ ਕਰੋ ਅਤੇ ਇੱਕ ਸਥਾਪਿਤ ਕਰੋ।</string>
     <string name="custombuttons_on_toolbar">टूलबल उते</string>

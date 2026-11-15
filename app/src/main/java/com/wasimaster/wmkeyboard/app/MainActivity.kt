@@ -204,6 +204,8 @@ import com.wasimaster.wmkeyboard.core.emoji.EmojiDictDownloadManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.RowScope
@@ -364,6 +366,14 @@ class MainActivity : FragmentActivity() {
         lifecycleScope.launch { repository.seedNewDefaultModes() }
         // Plugin tiles made as custom buttons become tools of their own.
         lifecycleScope.launch { repository.migratePluginTiles() }
+        // Custom buttons made before they were tools get their place (#1345),
+        // and the screens that name a button as a tool read it from here.
+        lifecycleScope.launch { repository.placeCustomButtonTools() }
+        lifecycleScope.launch {
+            repository.settings.map { it.toolbox.customButtons }.distinctUntilChanged().collect {
+                com.wasimaster.wmkeyboard.ime.ui.CustomButtonFaces.buttons = it
+            }
+        }
         val nav = navFor(intent)
         pendingNav.value = nav
         // A rotation rebuilds the activity from the same intent. The dialog

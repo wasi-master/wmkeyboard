@@ -2111,8 +2111,6 @@
     <string name="custombuttons_loading">Otseteede otsimine...</string>
     <string name="custombuttons_maker_unsupported">See rakendus lõi otsetee, mida ainult avakuva saab vastu võtta.</string>
     <string name="custombuttons_makers_group">Rakendused, mis loovad otseteid</string>
-    <string name="custombuttons_move_down">Liiguta alla</string>
-    <string name="custombuttons_move_up">Liiguta üles</string>
     <string name="custombuttons_nav_subtitle">Muude rakenduste otseteed, seadete lülitid ja seadete lehed, ühe puudutuse kaugusel klahvidest</string>
     <string name="custombuttons_no_plugins">Lisatavaid pluginaid pole. Lülitage pluginad sisse ja installige esmalt üks.</string>
     <string name="custombuttons_on_toolbar">tööriistaribal</string>

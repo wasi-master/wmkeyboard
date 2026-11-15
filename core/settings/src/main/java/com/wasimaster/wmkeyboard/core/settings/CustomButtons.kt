@@ -16,11 +16,11 @@ import kotlinx.serialization.json.jsonPrimitive
  * settings, or a jump to a settings page (#1236).
  *
  * Fixed tools are [ToolbarTool] values; these cannot be, since there is one
- * per shortcut the user picks, so they live in a list of their own, the way
- * the apps on the toolbar (#1159) and the toolbox folders do. The toolbar
- * draws the ones [onToolbar] after its tools, folders and apps; the toolbox
- * draws the rest in a row above its grid. The floating button names one by
- * [id] (`custom:<id>`).
+ * per shortcut the user picks, so what a button is lives in a list of its
+ * own. Where it is lives in the tool lists, as a [ToolKey.Custom] entry
+ * (#1345): pinned to the toolbar, at a cell of the toolbox grid, in a folder,
+ * hidden, ranked by use, exactly as a built-in tool is, and dragged between
+ * them the same way. The floating button names one by [id] (`custom:<id>`).
  */
 data class CustomButton(
     /** Stable for the button's life: `c1`, `c2`, …; see [nextCustomButtonId]. */
@@ -39,7 +39,12 @@ data class CustomButton(
     val label: String = "",
     /** The app a shortcut belongs to: its icon stands in when the shortcut's own is missing. */
     val packageName: String = "",
-    /** On the toolbar, or (false) in the toolbox. */
+    /**
+     * Where the button goes when it is first placed: pinned to the toolbar, or
+     * (false) into the toolbox. Read only for a button no tool list holds yet
+     * ([placedCustomButtons]): a new one, or one made before buttons were
+     * tools (#1345). After that the lists decide, and a drag moves it.
+     */
     val onToolbar: Boolean = true,
 ) {
     /** The switch this button flips, or null for another kind (or one this build dropped). */
@@ -163,20 +168,8 @@ fun List<CustomButton>.nextCustomButtonId(): String {
 fun List<CustomButton>.customButtonById(id: String?): CustomButton? =
     if (id == null) null else firstOrNull { it.id == id }
 
-/** The buttons the toolbar shows, in the user's order. */
-fun List<CustomButton>.onToolbar(): List<CustomButton> = filter { it.onToolbar && it.usable }
-
-/** The buttons the toolbox shows, in the user's order. */
-fun List<CustomButton>.inToolbox(): List<CustomButton> = filter { !it.onToolbar && it.usable }
-
-/** [this] with [button] moved [by] places (negative is up), clamped to the ends. */
-fun List<CustomButton>.moved(button: String, by: Int): List<CustomButton> {
-    val from = indexOfFirst { it.id == button }
-    if (from < 0) return this
-    val to = (from + by).coerceIn(0, size - 1)
-    if (to == from) return this
-    return toMutableList().apply { add(to, removeAt(from)) }
-}
+/** The ids of the buttons that can be drawn as tools: those this build can still run. */
+fun List<CustomButton>.liveCustomToolIds(): Set<String> = mapNotNullTo(HashSet()) { button -> button.id.takeIf { button.usable } }
 
 private fun cleanLabel(label: String): String =
     label.replace('\n', ' ').replace('\t', ' ').trim().take(CUSTOM_BUTTON_LABEL_MAX)

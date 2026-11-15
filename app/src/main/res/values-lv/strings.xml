@@ -2116,8 +2116,6 @@
     <string name="custombuttons_loading">Meklē īsceļus…</string>
     <string name="custombuttons_maker_unsupported">Šī lietotne izveidoja īsceļu, ko var pieņemt tikai sākuma ekrāns.</string>
     <string name="custombuttons_makers_group">Lietotnes, kas izveido saīsnes</string>
-    <string name="custombuttons_move_down">Pārvietot lejup</string>
-    <string name="custombuttons_move_up">Pārvietot augšup</string>
     <string name="custombuttons_nav_subtitle">Citu lietotņu saīsnes, iestatījumu slēdži un iestatījumu lapas viena pieskāriena attālumā no taustiņiem</string>
     <string name="custombuttons_no_plugins">Nav pievienojamu spraudņu. Vispirms ieslēdziet spraudņus un instalējiet kādu.</string>
     <string name="custombuttons_on_toolbar">rīkjoslā</string>

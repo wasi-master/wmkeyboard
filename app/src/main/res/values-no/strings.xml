@@ -2115,8 +2115,6 @@
     <string name="custombuttons_loading">Leter etter snarveier…</string>
     <string name="custombuttons_maker_unsupported">Den appen laget en snarvei som bare startskjermen kan godta.</string>
     <string name="custombuttons_makers_group">Apper som lager snarveier</string>
-    <string name="custombuttons_move_down">Flytt ned</string>
-    <string name="custombuttons_move_up">Flytt opp</string>
     <string name="custombuttons_nav_subtitle">Snarveier til andre apper, innstillingsbrytere og innstillingssider, ett trykk fra tastene</string>
     <string name="custombuttons_no_plugins">Ingen programtillegg å legge til. Slå på programtillegg og installer ett først.</string>
     <string name="custombuttons_on_toolbar">på verktøylinjen</string>

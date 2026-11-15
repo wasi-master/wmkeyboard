@@ -128,6 +128,8 @@ import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.ToolKey
 import com.wasimaster.wmkeyboard.core.settings.pluginToolKey
 import com.wasimaster.wmkeyboard.core.settings.shownWith
+import com.wasimaster.wmkeyboard.core.settings.liveCustomToolIds
+import com.wasimaster.wmkeyboard.core.settings.customToolKey
 import com.wasimaster.wmkeyboard.core.settings.toolKeys
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
@@ -2215,14 +2217,15 @@ internal fun ModeEditor(
                 }
             }
             item(level = SettingLevel.STANDARD) {
-                // A mode can pin a plugin's tool too, after the built-in ones.
+                // A mode can pin a plugin's tool too, and a custom button
+                // (#1345), after the built-in ones.
                 val pluginNames = rememberPluginToolNames()
                 ToolChips(
                     tools = settings.watch { s ->
                         ToolbarTool.entries.filter {
                             it in s.enabledTools && isSupportedTool(it) &&
                                 isUsableTool(it, s)
-                        }.toolKeys()
+                        }.toolKeys() + s.toolbox.customButtons.filter { it.usable }.map { customToolKey(it.id) }
                     } + pluginNames.keys.map(::pluginToolKey),
                     selected = pinned,
                     pluginNames = pluginNames,
@@ -2265,7 +2268,7 @@ internal fun ModeEditor(
                 ToolChips(
                     tools = settings.watch { s ->
                         s.toolboxOrder.filter { key ->
-                            key.shownWith(pluginNames.keys) {
+                            key.shownWith(pluginNames.keys, s.toolbox.customButtons.liveCustomToolIds()) {
                                 it in s.enabledTools && isSupportedTool(it) && isUsableTool(it, s)
                             }
                         }

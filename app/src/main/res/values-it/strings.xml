@@ -2114,8 +2114,6 @@
     <string name="custombuttons_loading">Ricerca di collegamenti…</string>
     <string name="custombuttons_maker_unsupported">Quell\'app ha creato un collegamento che solo la schermata iniziale può accettare.</string>
     <string name="custombuttons_makers_group">App che creano scorciatoie</string>
-    <string name="custombuttons_move_down">Sposta in basso</string>
-    <string name="custombuttons_move_up">Sposta in alto</string>
     <string name="custombuttons_nav_subtitle">Scorciatoie di altre app, interruttori e pagine delle impostazioni, a un solo tocco dai tasti</string>
     <string name="custombuttons_no_plugins">Nessun plugin da aggiungere. Attiva prima i plugin e installane uno.</string>
     <string name="custombuttons_on_toolbar">sulla barra degli strumenti</string>

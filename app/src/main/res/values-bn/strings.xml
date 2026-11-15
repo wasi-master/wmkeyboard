@@ -2116,8 +2116,6 @@
     <string name="custombuttons_loading">শর্টকাট খোঁজা হচ্ছে…</string>
     <string name="custombuttons_maker_unsupported">ওই অ্যাপটি এমন একটি শর্টকাট তৈরি করেছে যা কেবল হোম স্ক্রিন গ্রহণ করতে পারে।</string>
     <string name="custombuttons_makers_group">যে অ্যাপগুলো শর্টকাট তৈরি করে</string>
-    <string name="custombuttons_move_down">নিচে সরান</string>
-    <string name="custombuttons_move_up">উপরে সরান</string>
     <string name="custombuttons_nav_subtitle">অন্যান্য অ্যাপের শর্টকাট, সেটিং সুইচ এবং সেটিং পেজ, কি থেকে এক ট্যাপ দূরে</string>
     <string name="custombuttons_no_plugins">যোগ করার কোন প্লাগইন নেই। প্লাগইন চালু করুন এবং প্রথমে একটি ইনস্টল করুন।</string>
     <string name="custombuttons_on_toolbar">টুলবারে</string>

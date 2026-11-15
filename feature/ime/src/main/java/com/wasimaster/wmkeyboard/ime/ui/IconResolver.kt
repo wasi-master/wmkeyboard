@@ -140,6 +140,14 @@ fun SlotIcon(
     brush: Brush? = null,
 ) {
     val resolved = LocalIconSet.current.resolve(slot)
+    // A custom shortcut button drawn as a tool wears its own picture (#1345).
+    if (resolved == null) {
+        val shortcut = customPictureOfSlot(slot)
+        if (shortcut != null) {
+            CustomShortcutPicture(shortcut, contentDescription, modifier, tint)
+            return
+        }
+    }
     val recolourable = resolved == null || resolved.monochrome
     val painted = if (brush != null && recolourable) modifier.paintedWith(brush) else modifier
     val shade = if (recolourable) tint else Color.Unspecified

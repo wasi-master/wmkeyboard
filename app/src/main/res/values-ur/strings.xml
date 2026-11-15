@@ -2114,8 +2114,6 @@
     <string name="custombuttons_loading">شارٹ کٹس تلاش کیے جا رہے ہیں…</string>
     <string name="custombuttons_maker_unsupported">اس ایپ نے ایک ایسا شارٹ کٹ بنایا ہے جسے صرف ہوم اسکرین قبول کر سکتی ہے۔</string>
     <string name="custombuttons_makers_group">شارٹ کٹس بنانے والی ایپس</string>
-    <string name="custombuttons_move_down">نیچے منتقل کریں</string>
-    <string name="custombuttons_move_up">اوپر لے جائیں</string>
     <string name="custombuttons_nav_subtitle">دوسری ایپ کے شارٹ کٹس، سیٹنگ سوئچز اور سیٹنگز کے صفحات، کلیدوں سے ایک تھپکی کے فاصلے پر</string>
     <string name="custombuttons_no_plugins">شامل کرنے کے لیے کوئی پلگ ان نہیں۔ پہلے پلگ ان آن کریں اور ایک انسٹال کریں۔</string>
     <string name="custombuttons_on_toolbar">ٹول بار پر</string>

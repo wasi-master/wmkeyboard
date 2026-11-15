@@ -2113,8 +2113,6 @@
     <string name="custombuttons_loading">Mencari pintasan…</string>
     <string name="custombuttons_maker_unsupported">Aplikasi tersebut membuat pintasan yang hanya dapat diterima oleh layar utama.</string>
     <string name="custombuttons_makers_group">Aplikasi yang membuat pintasan</string>
-    <string name="custombuttons_move_down">Pindahkan ke bawah</string>
-    <string name="custombuttons_move_up">Pindahkan ke atas</string>
     <string name="custombuttons_nav_subtitle">Pintasan aplikasi lain, tombol pengalih setelan, dan halaman setelan, cukup satu ketukan dari tombol</string>
     <string name="custombuttons_no_plugins">Tidak ada plugin untuk ditambahkan. Nyalakan plugin dan instal salah satu terlebih dahulu.</string>
     <string name="custombuttons_on_toolbar">di toolbar</string>

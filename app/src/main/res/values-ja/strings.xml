@@ -2113,8 +2113,6 @@
     <string name="custombuttons_loading">ショートカットを検索中…</string>
     <string name="custombuttons_maker_unsupported">そのアプリはホーム画面のみが受け付けられるショートカットを作成しました。</string>
     <string name="custombuttons_makers_group">ショートカット作成アプリ</string>
-    <string name="custombuttons_move_down">下に移動</string>
-    <string name="custombuttons_move_up">上に移動</string>
     <string name="custombuttons_nav_subtitle">他アプリのショートカット、設定の切り替え、設定ページをキーからワンタップで</string>
     <string name="custombuttons_no_plugins">追加するプラグインがありません。プラグインを有効にして、まずインストールしてください。</string>
     <string name="custombuttons_on_toolbar">ツールバー上</string>

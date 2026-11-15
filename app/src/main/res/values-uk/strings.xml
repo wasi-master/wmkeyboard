@@ -2116,8 +2116,6 @@
     <string name="custombuttons_loading">Пошук ярликів…</string>
     <string name="custombuttons_maker_unsupported">Цей додаток створив ярлик, який приймає лише головний екран.</string>
     <string name="custombuttons_makers_group">Додатки для створення ярликів</string>
-    <string name="custombuttons_move_down">Пересунути нижче</string>
-    <string name="custombuttons_move_up">Перемістити вище</string>
     <string name="custombuttons_nav_subtitle">Ярлики інших додатків, перемикачі налаштувань і сторінки налаштувань за один дотик із клавіатури</string>
     <string name="custombuttons_no_plugins">Немає плагінів для додавання. Спочатку ввімкніть плагіни та встановіть один із них.</string>
     <string name="custombuttons_on_toolbar">на панелі інструментів</string>

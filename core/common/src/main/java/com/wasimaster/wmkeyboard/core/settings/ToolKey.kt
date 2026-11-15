@@ -1,8 +1,8 @@
 package com.wasimaster.wmkeyboard.core.settings
 
 /**
- * One entry of the toolbox and the toolbar: a built-in [ToolbarTool], or an
- * installed plugin shown as a tool.
+ * One entry of the toolbox and the toolbar: a built-in [ToolbarTool], an
+ * installed plugin shown as a tool, or one of the user's own buttons (#1345).
  *
  * Everything that arranges tools (the toolbox order, the pinned tools, the
  * tools hidden from the grid, a toolbox folder's tools, a mode's own order,
@@ -10,10 +10,10 @@ package com.wasimaster.wmkeyboard.core.settings
  * filed, pinned, searched and ranked exactly as Calculator is. What a tool
  * *does* stays on [ToolbarTool]; a plugin entry always opens its plugin.
  *
- * Stored as [token]: a built-in's enum name, or `plugin:<id>`. Both live in
- * the same comma-joined preferences the enum names always did, and a build
- * that does not know plugin entries skips them as it skips any name it does
- * not know.
+ * Stored as [token]: a built-in's enum name, `plugin:<id>` or `custom:<id>`.
+ * All live in the same comma-joined preferences the enum names always did,
+ * and a build that does not know an entry's kind skips it as it skips any
+ * name it does not know.
  */
 sealed interface ToolKey {
     /** The stored form; see [ToolKey]. */
@@ -37,6 +37,18 @@ sealed interface ToolKey {
         override fun toString(): String = token
     }
 
+    /**
+     * One of the user's own buttons (#1213, #1236), by the id it has in the
+     * custom button list. Dragged, pinned and filed like any tool (#1345);
+     * what it runs, and what it looks like, stays on the button.
+     */
+    data class Custom(val id: String) : ToolKey {
+        override val token: String get() = CUSTOM_TOOL_PREFIX + id
+        override val tool: ToolbarTool? get() = null
+        override val pluginId: String? get() = null
+        override fun toString(): String = token
+    }
+
     companion object {
         /** The entry [token] spells, or null for a name this build does not know or a malformed id. */
         fun of(token: String): ToolKey? {
@@ -44,6 +56,10 @@ sealed interface ToolKey {
             if (t.startsWith(PLUGIN_TOOL_PREFIX)) {
                 val id = t.removePrefix(PLUGIN_TOOL_PREFIX)
                 return if (isPluginToolId(id)) Plugin(id) else null
+            }
+            if (t.startsWith(CUSTOM_TOOL_PREFIX)) {
+                val id = t.removePrefix(CUSTOM_TOOL_PREFIX)
+                return if (isCustomToolId(id)) Custom(id) else null
             }
             return ToolByName[t]?.key
         }
@@ -61,6 +77,20 @@ const val PLUGIN_TOOL_PREFIX = "plugin:"
 fun isPluginToolId(id: String): Boolean = PluginToolId.matches(id)
 
 private val PluginToolId = Regex("^[a-z0-9][a-z0-9._-]{2,63}$")
+
+/** What a custom button entry's [ToolKey.token] starts with. */
+const val CUSTOM_TOOL_PREFIX = "custom:"
+
+/** Whether [id] can be a custom button's id inside a stored list: letters and digits (`c1`, `c2`, …). */
+fun isCustomToolId(id: String): Boolean = CustomToolId.matches(id)
+
+private val CustomToolId = Regex("^[A-Za-z0-9]{1,16}$")
+
+/** Custom button [id] as a toolbox entry. */
+fun customToolKey(id: String): ToolKey.Custom = ToolKey.Custom(id)
+
+/** The custom button this entry is, by id, or null for a built-in tool or a plugin. */
+val ToolKey.customButtonId: String? get() = (this as? ToolKey.Custom)?.id
 
 private val ToolByName: Map<String, ToolbarTool> = ToolbarTool.entries.associateBy { it.name }
 
@@ -98,16 +128,22 @@ fun decodeToolKeys(csv: String?): List<ToolKey> =
 fun List<ToolKey>.withoutPlugin(pluginId: String): List<ToolKey> = filterNot { it.pluginId == pluginId }
 
 /**
- * Whether an entry may be shown: a built-in tool by the caller's own test, and
- * a plugin only while it is in [livePlugins], the installed plugins that are
- * switched on and draw a panel. An uninstalled or switched-off plugin keeps its
- * place in the stored lists, so turning it back on returns it where it was,
- * but nothing draws it.
+ * Whether an entry may be shown: a built-in tool by the caller's own test, a
+ * plugin only while it is in [livePlugins], the installed plugins that are
+ * switched on and draw a panel, and a custom button only while it is in
+ * [liveCustom], the buttons that exist and this build can run. An uninstalled
+ * or switched-off plugin keeps its place in the stored lists, so turning it
+ * back on returns it where it was, but nothing draws it.
  */
-inline fun ToolKey.shownWith(livePlugins: Set<String>, builtin: (ToolbarTool) -> Boolean): Boolean =
+inline fun ToolKey.shownWith(
+    livePlugins: Set<String>,
+    liveCustom: Set<String> = emptySet(),
+    builtin: (ToolbarTool) -> Boolean,
+): Boolean =
     when (this) {
         is ToolKey.Builtin -> builtin(tool)
         is ToolKey.Plugin -> pluginId in livePlugins
+        is ToolKey.Custom -> id in liveCustom
     }
 
 /** [DefaultToolbarTools] as entries: what a fresh install pins. */
@@ -120,8 +156,8 @@ val DefaultToolOrderKeys: List<ToolKey> = DefaultToolOrder.toolKeys()
  * A stored toolbox order made complete: the built-in tools it does not name
  * (shipped later, or dropped from a corrupt entry) rejoin after the nearest
  * tool that outranks them in [DefaultToolOrder], rather than all at the end,
- * so a new tool lands beside its peers. Plugin entries keep the places they
- * were stored at. An empty list is the default order.
+ * so a new tool lands beside its peers. Plugin and custom button entries keep
+ * the places they were stored at. An empty list is the default order.
  */
 fun completedToolOrder(stored: List<ToolKey>): List<ToolKey> {
     if (stored.isEmpty()) return DefaultToolOrderKeys
@@ -143,5 +179,5 @@ fun completedToolOrder(stored: List<ToolKey>): List<ToolKey> {
 /** [tools] as entries, for writing a list of built-in tools where entries are kept. */
 fun toolKeysOf(vararg tools: ToolbarTool): List<ToolKey> = tools.map { it.key }
 
-/** Whether this build has the entry: a built-in tool by [isSupportedTool], a plugin always (whether it is installed is asked apart). */
+/** Whether this build has the entry: a built-in tool by [isSupportedTool], a plugin or a custom button always (whether it is there is asked apart). */
 fun ToolKey.isSupported(): Boolean = tool?.let(::isSupportedTool) ?: true

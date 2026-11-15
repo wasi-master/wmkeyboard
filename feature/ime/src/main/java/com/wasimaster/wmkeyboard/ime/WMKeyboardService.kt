@@ -574,6 +574,8 @@ import com.wasimaster.wmkeyboard.ime.ui.visibleToolbarTools
 import com.wasimaster.wmkeyboard.core.settings.builtinTools
 import com.wasimaster.wmkeyboard.core.settings.key
 import com.wasimaster.wmkeyboard.core.settings.pluginToolKey
+import com.wasimaster.wmkeyboard.core.settings.customToolKey
+import com.wasimaster.wmkeyboard.core.settings.liveCustomToolIds
 import com.wasimaster.wmkeyboard.ime.ui.hardwareKeysToggleable
 import com.wasimaster.wmkeyboard.core.tools.page
 import com.wasimaster.wmkeyboard.core.tools.step
@@ -5393,6 +5395,8 @@ open class WMKeyboardService : InputMethodService() {
         if (userUnlocked) {
             serviceScope.launch { settingsRepository.seedNewDefaultModes() }
             serviceScope.launch { settingsRepository.migratePluginTiles() }
+            // Custom buttons made before they were tools get their place (#1345).
+            serviceScope.launch { settingsRepository.placeCustomButtonTools() }
             watchPluginTools()
         }
 
@@ -6247,6 +6251,7 @@ open class WMKeyboardService : InputMethodService() {
         loadDictionariesAndEmoji()
         serviceScope.launch { settingsRepository.seedNewDefaultModes() }
         serviceScope.launch { settingsRepository.migratePluginTiles() }
+        serviceScope.launch { settingsRepository.placeCustomButtonTools() }
         watchPluginTools()
         // An enabled-subtype list written before the unlock only lived until
         // this moment, so the switcher would quietly fall back to one language.
@@ -27792,9 +27797,16 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
 
-    /** The user's own buttons on the toolbar and in the toolbox (#1213, #1236). */
+    /**
+     * The user's own buttons on the toolbar and in the toolbox (#1213, #1236).
+     * A hold that does not pick one up opens their page in Settings, as a
+     * plugin's opens its own (#1345).
+     */
     private val customButtonCallbacks by lazy {
-        com.wasimaster.wmkeyboard.ime.ui.CustomButtonCallbacks(onTap = ::onCustomButtonTap)
+        com.wasimaster.wmkeyboard.ime.ui.CustomButtonCallbacks(
+            onTap = ::onCustomButtonTap,
+            onSettings = { openRoute("custom_buttons") },
+        )
     }
 
     /**
@@ -27807,6 +27819,10 @@ open class WMKeyboardService : InputMethodService() {
     private fun onCustomButtonTap(id: String) {
         val settings = _uiState.value.settings
         val button = settings.toolbox.customButtons.firstOrNull { it.id == id } ?: return
+        // Counted for the toolbox's orders by use, like any tool (#1345).
+        if (button.usable && com.wasimaster.wmkeyboard.core.settings.isCustomToolId(id)) {
+            toolUsage.record(com.wasimaster.wmkeyboard.core.settings.customToolKey(id))
+        }
         when (button.kind) {
             com.wasimaster.wmkeyboard.core.settings.CustomButtonKind.SHORTCUT -> {
                 vibrate()
@@ -36446,6 +36462,7 @@ open class WMKeyboardService : InputMethodService() {
         when (tool) {
             is com.wasimaster.wmkeyboard.core.settings.ToolKey.Builtin -> onToolTap(tool.tool)
             is com.wasimaster.wmkeyboard.core.settings.ToolKey.Plugin -> onPluginToolTap(tool.pluginId)
+            is com.wasimaster.wmkeyboard.core.settings.ToolKey.Custom -> onCustomButtonTap(tool.id)
         }
     }
 
@@ -56088,7 +56105,8 @@ open class WMKeyboardService : InputMethodService() {
         // language; a collator, so "Échange" files under E, not after Z.
         val collator = java.text.Collator.getInstance(resources.configuration.locales[0])
         val state = _uiState.value
-        val alphabetical = (ToolbarTool.entries.map { it.key } + state.pluginTools.keys.map(::pluginToolKey)).sortedWith(
+        val own = state.settings.toolbox.customButtons.liveCustomToolIds().map(::customToolKey)
+        val alphabetical = (ToolbarTool.entries.map { it.key } + state.pluginTools.keys.map(::pluginToolKey) + own).sortedWith(
             compareBy(collator) { tool: com.wasimaster.wmkeyboard.core.settings.ToolKey ->
                 com.wasimaster.wmkeyboard.ime.ui.toolKeyName(this, tool, state)
             },

@@ -2115,8 +2115,6 @@
     <string name="custombuttons_loading">S\'estan buscant dreceres…</string>
     <string name="custombuttons_maker_unsupported">Aquesta aplicació ha creat una drecera que només la pantalla d\'inici pot acceptar.</string>
     <string name="custombuttons_makers_group">Aplicacions que creen dreceres</string>
-    <string name="custombuttons_move_down">Mou avall</string>
-    <string name="custombuttons_move_up">Mou amunt</string>
     <string name="custombuttons_nav_subtitle">Dreceres d\'altres aplicacions, commutadors de configuració i pàgines de configuració, a un toc de les tecles</string>
     <string name="custombuttons_no_plugins">No hi ha connectors per afegir. Activeu els connectors i instal·leu-ne un primer.</string>
     <string name="custombuttons_on_toolbar">a la barra d\'eines</string>
