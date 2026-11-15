@@ -32862,6 +32862,18 @@ private fun Modifier.pointerInputKey(
             val flickSlopPx = flickDistanceDp.dp.toPx()
             val swipeSlopPx = if (armed) maxOf(slopPx, flickSlopPx) else slopPx
             val dir = if (forward) 1f else -1f
+            // A pull the way the deletion goes, up to 45° off level, is the
+            // swipe's while no arm points that way (#1357). An up or a down
+            // arm answers to anything within 67.5° of it, so on a key with
+            // only those a swipe 25° off level went to the arm instead.
+            val deleteSideFree = swipeOn && (
+                if (forward) {
+                    listOf(FlickDirection.RIGHT, FlickDirection.UP_RIGHT, FlickDirection.DOWN_RIGHT)
+                } else {
+                    listOf(FlickDirection.LEFT, FlickDirection.UP_LEFT, FlickDirection.DOWN_LEFT)
+                }
+                ).none(hasArm)
+            fun swipeOwns(dx: Float, dy: Float): Boolean = deleteSideFree && dx * dir > 0f && abs(dx) >= abs(dy)
             // Swiping up on backspace clears the field. An up arm keeps the
             // direction, as it keeps any direction it points. It costs the same
             // pull as a first word, and selects everything before the lift
@@ -32963,7 +32975,11 @@ private fun Modifier.pointerInputKey(
                         // the finger still down (#662).
                         if (armed && !swiping && !clearing && !longPressFired) {
                             val offset = change.position - down.position
-                            val live = resolveFlickDirection(offset.x, offset.y, flickSlopPx, hasArm)
+                            val live = if (swipeOwns(offset.x, offset.y)) {
+                                null
+                            } else {
+                                resolveFlickDirection(offset.x, offset.y, flickSlopPx, hasArm)
+                            }
                             if (live != arm) {
                                 arm = live
                                 setFlickDirection(live)
