@@ -15884,7 +15884,7 @@ private fun KeyboardBody(
                                         }
                                         Box(Modifier.weight(1f)) { StripWithDot() }
                                         if (stripRetype) {
-                                            RetypeBarButton(suggestionHold, Modifier.height(topBarHeight(state.settings)))
+                                            RetypeBarButton(suggestionHold, Modifier.height(topBarHeight(state.settings)), ready = state.retypeReady)
                                         }
                                     }
                                 } else {
@@ -16022,7 +16022,7 @@ private fun KeyboardBody(
                                     Box(Modifier.weight(1f)) {
                                         if (state.recentBar.isNotEmpty()) RecentWordRow(state.recentBar, suggestionHold)
                                     }
-                                    RetypeBarButton(suggestionHold)
+                                    RetypeBarButton(suggestionHold, ready = state.retypeReady)
                                 }
                             } else if (state.recentBar.isEmpty()) {
                                 Spacer(Modifier.fillMaxWidth().height(RecentRowHeight))

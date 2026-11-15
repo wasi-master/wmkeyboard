@@ -14,6 +14,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -39,7 +40,7 @@ internal fun retypeButtonOn(state: KeyboardUiState, place: RetypeButtonPlace): B
  * its spoken name.
  */
 @Composable
-internal fun RetypeBarButton(hold: SuggestionHoldCallbacks, modifier: Modifier = Modifier) {
+internal fun RetypeBarButton(hold: SuggestionHoldCallbacks, modifier: Modifier = Modifier, ready: Boolean = true) {
     val kb = LocalKbTheme.current
     val action = stringResource(R.string.ime_retype_button_desc)
     Box(
@@ -51,7 +52,10 @@ internal fun RetypeBarButton(hold: SuggestionHoldCallbacks, modifier: Modifier =
             .padding(vertical = 6.dp, horizontal = 2.dp)
             .clip(RoundedCornerShape(8.dp))
             .background(kb.chip)
-            .padding(horizontal = 10.dp),
+            .padding(horizontal = 10.dp)
+            // Nothing to take at the cursor: greyed before the press. A press
+            // still says why, as it did.
+            .alpha(if (ready) 1f else DISABLED_ALPHA),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
@@ -62,3 +66,6 @@ internal fun RetypeBarButton(hold: SuggestionHoldCallbacks, modifier: Modifier =
         )
     }
 }
+
+/** A Retype button with no word to take, as a disabled control is drawn. */
+private const val DISABLED_ALPHA = 0.38f

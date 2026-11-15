@@ -4080,6 +4080,8 @@ data class KeyboardUiState(
      */
     val hiddenEmoji: Set<String> = emptySet(),
     val clipboardItems: List<ClipItem> = emptyList(),
+    /** Whether the Retype button (#1189) has a word to take; it is drawn greyed while not. */
+    val retypeReady: Boolean = true,
     /** Live query for the clipboard panel's search bar (feature-gated). */
     val clipboardQuery: String = "",
     /**

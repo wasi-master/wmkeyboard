@@ -10436,12 +10436,26 @@ open class WMKeyboardService : InputMethodService() {
                 trace(ImeTrace.UPDATE_SELECTION) {
                     updateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)
                 }
+                refreshRetypeReady()
             }
             return
         }
         trace(ImeTrace.UPDATE_SELECTION) {
             updateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)
         }
+        refreshRetypeReady()
+    }
+
+    /**
+     * Whether the Retype button (#1189) has a word to take now, so it can be
+     * drawn greyed before it is pressed rather than saying so after. Read
+     * only while the button is on; one short read of the text before the caret.
+     */
+    private fun refreshRetypeReady() {
+        val s = _uiState.value
+        if (s.settings.suggestionStrip.retypeButton == com.wasimaster.wmkeyboard.core.settings.RetypeButtonPlace.OFF) return
+        val ready = !retypeSpent() && retypeTarget() != null
+        if (ready != s.retypeReady) _uiState.update { it.copy(retypeReady = ready) }
     }
 
     /** Delivers [onUpdateSelection] for an editor in this process; see there. */
