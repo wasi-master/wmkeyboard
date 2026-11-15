@@ -135,6 +135,7 @@ import com.wasimaster.wmkeyboard.core.settings.NumberGrouping
 import com.wasimaster.wmkeyboard.core.settings.RankControl
 import com.wasimaster.wmkeyboard.core.settings.RecentWordPlacement
 import com.wasimaster.wmkeyboard.core.settings.RetypeButtonPlace
+import com.wasimaster.wmkeyboard.core.settings.RetypeTarget
 import com.wasimaster.wmkeyboard.core.settings.stripHidden
 import com.wasimaster.wmkeyboard.core.settings.SuggestionOverflow
 import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeAction
@@ -2529,6 +2530,8 @@ internal fun TypingGlideSettings(
     val shiftCapitals = settings.watch { it.gesture.shiftGlideCapitals }
     val twoThumb = settings.watch { it.gesture.twoThumbGlide }
     val twoThumbWordEnd = settings.watch { it.gesture.twoThumbWordEnd }
+    val retypes = settings.watch { it.gesture.twoThumbBackspace } == TwoThumbBackspace.RETYPE_WORD ||
+        settings.watch { it.suggestionStrip.retypeButton } != RetypeButtonPlace.OFF
     // Two-thumb typing turns off the features that read one swipe as a
     // whole word (#745). Their rows stay editable, since the values come
     // back when it is turned off, but say so instead of their usual line.
@@ -2710,9 +2713,6 @@ internal fun TypingGlideSettings(
                         default = SettingsDefaults.gesture.twoThumbPauseBand,
                     ) { scope.launch { repository.setGestureTwoThumbPauseBand(it) } }
                 }
-                // What Backspace does to a two-thumb word (#1188), apart from
-                // the ordinary glide switch further down.
-                twoThumbBackspaceRows(settings, repository, scope, twoThumb, twoThumbWordEnd)
                 item(visible = !twoThumb, level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.typing_swipe_continues_typed_title,
@@ -2956,6 +2956,21 @@ internal fun TypingGlideSettings(
                     ) { scope.launch { repository.setGestureHandwriteDotCooldownMs(it.roundToInt()) } }
                 }
             }
+        }
+    }
+    // What Backspace does to a two-thumb word (#1188), apart from the
+    // ordinary glide switch: a fold of its own, so the five rows about one key
+    // stop splitting the two-thumb timing rows from the rest of glide typing.
+    // Only rows that apply are drawn, and a fold with none draws nothing.
+    if (glideOn && swipeAction == LetterSwipeAction.TYPE_WORDS) {
+        SettingsGroup(
+            stringResource(R.string.typing_group_two_thumb_backspace_title),
+            level = SettingLevel.STANDARD,
+            foldKey = "typing/two_thumb_backspace",
+            info = stringResource(R.string.typing_two_thumb_backspace_info),
+            foldSummary = { stringResource(R.string.typing_group_two_thumb_backspace_summary) },
+        ) {
+            twoThumbBackspaceRows(settings, repository, scope, twoThumb, twoThumbWordEnd, retypes)
         }
     }
     // How the decoder reads a stroke: the three tolerances (#222) and the
@@ -4462,6 +4477,8 @@ private fun SettingsGroupScope.twoThumbBackspaceRows(
     scope: CoroutineScope,
     twoThumb: Boolean,
     wordEnd: TwoThumbWordEnd,
+    /** Backspace's action is Retype word, or the Retype button is on. */
+    retypes: Boolean,
 ) {
     item(visible = twoThumb, level = SettingLevel.STANDARD) {
         val action = settings.watch { it.gesture.twoThumbBackspace }
@@ -4568,6 +4585,32 @@ private fun SettingsGroupScope.twoThumbBackspaceRows(
             ),
             default = SettingsDefaults.gesture.twoThumbBackspaceJoinFirst,
         ) { scope.launch { repository.setGestureTwoThumbBackspaceJoinFirst(it) } }
+    }
+    // Which word Retype takes while a later one is open: asked wherever a
+    // Retype can happen, by Backspace's action or by the button.
+    item(visible = twoThumb && retypes, level = SettingLevel.STANDARD) {
+        ChoiceSetting(
+            title = R.string.typing_retype_target_title,
+            subtitle = stringResource(R.string.typing_retype_target_subtitle),
+            info = stringResource(R.string.typing_retype_target_info),
+            options = listOf(
+                RetypeTarget.WORD_AT_CARET to stringResource(R.string.typing_retype_target_caret_label),
+                RetypeTarget.LAST_FINISHED to stringResource(R.string.typing_retype_target_finished_label),
+            ),
+            selected = settings.watch { it.gesture.retypeTarget },
+            onChange = { scope.launch { repository.setGestureRetypeTarget(it) } },
+            default = SettingsDefaults.gesture.retypeTarget,
+            detail = { option ->
+                ChoiceDetail(
+                    stringResource(
+                        when (option) {
+                            RetypeTarget.WORD_AT_CARET -> R.string.typing_retype_target_caret_desc
+                            RetypeTarget.LAST_FINISHED -> R.string.typing_retype_target_finished_desc
+                        },
+                    ),
+                )
+            },
+        )
     }
 }
 

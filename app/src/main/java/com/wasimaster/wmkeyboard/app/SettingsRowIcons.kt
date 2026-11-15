@@ -1303,6 +1303,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_two_thumb_backspace_title) { Icons.AutoMirrored.Outlined.Backspace }
         put(R.string.typing_two_thumb_backspace_space_first_title) { Icons.Outlined.SpaceBar }
         put(R.string.typing_two_thumb_backspace_join_first_title) { Icons.AutoMirrored.Outlined.Undo }
+        put(R.string.typing_retype_target_title) { Icons.AutoMirrored.Outlined.Backspace }
         put(R.string.typing_swipe_continues_typed_title) { Icons.Outlined.Swipe }
         put(R.string.typing_shift_glide_capitals_title) { Icons.Outlined.KeyboardCapslock }
         put(R.string.typing_shift_glide_mode_title) { Icons.Outlined.KeyboardCapslock }

@@ -1587,6 +1587,16 @@ enum class ContactMessageApp { SMS, WHATSAPP, TELEGRAM, SIGNAL, ASK }
 enum class TwoThumbBackspace { CURRENT, UNDO_STEP, TRIM_END, RETYPE_WORD, DELETE_CHARACTER }
 
 /**
+ * Which word Retype takes while a later word is still being typed (#1188).
+ * [WORD_AT_CARET] takes the open word, as Retype always has. [LAST_FINISHED]
+ * takes the finished word before it (`hello wor` gives `| wor`): the open
+ * word stays as typed, uncorrected and unlearned, and the caret goes back to
+ * where the finished word began. With no word open both take the word at the
+ * caret.
+ */
+enum class RetypeTarget { WORD_AT_CARET, LAST_FINISHED }
+
+/**
  * The range [GestureSettings.twoThumbPauseMs], [GestureSettings.twoThumbTapPauseMs]
  * and [GestureSettings.twoThumbOneLetterPauseMs] are held to, in ms.
  */
@@ -10094,6 +10104,8 @@ data class GestureSettings(
      * keeps what was typed after it as a word of its own: `carp` → `car p`.
      */
     val twoThumbBackspaceJoinFirst: Boolean = false,
+    /** Which word Retype takes while another is open; see [RetypeTarget]. */
+    val retypeTarget: RetypeTarget = RetypeTarget.WORD_AT_CARET,
     /**
      * Bumped by the gestures screen's "forget" so a running keyboard drops
      * its in-memory copies of the swipe-style stores — the contract of
@@ -12829,6 +12841,7 @@ class SettingsRepository(private val context: Context) {
             booleanPreferencesKey("gesture_two_thumb_backspace_space_first")
         private val GESTURE_TWO_THUMB_BACKSPACE_JOIN_FIRST =
             booleanPreferencesKey("gesture_two_thumb_backspace_join_first")
+        private val GESTURE_RETYPE_TARGET = stringPreferencesKey("gesture_retype_target")
         private val GESTURE_SWIPE_STYLE_VERSION = intPreferencesKey("gesture_swipe_style_version")
         // Legacy boolean, read only to migrate into SPACE_LONG_SWIPE.
         private val SPACEBAR_CURSOR = booleanPreferencesKey("spacebar_cursor")
@@ -15216,6 +15229,9 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.gesture.twoThumbBackspaceSpaceFirst,
             twoThumbBackspaceJoinFirst = p[GESTURE_TWO_THUMB_BACKSPACE_JOIN_FIRST]
                 ?: defaults.gesture.twoThumbBackspaceJoinFirst,
+            retypeTarget = p[GESTURE_RETYPE_TARGET]
+                ?.let { runCatching { RetypeTarget.valueOf(it) }.getOrNull() }
+                ?: defaults.gesture.retypeTarget,
             swipeStyleVersion = p[GESTURE_SWIPE_STYLE_VERSION] ?: defaults.gesture.swipeStyleVersion,
         )
 
@@ -24014,6 +24030,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setGestureTwoThumbBackspaceJoinFirst(value: Boolean) =
         editPrefs { it[GESTURE_TWO_THUMB_BACKSPACE_JOIN_FIRST] = value }
+
+    suspend fun setGestureRetypeTarget(value: RetypeTarget) =
+        editPrefs { it[GESTURE_RETYPE_TARGET] = value.name }
 
     /**
      * Deletes everything a swipe style is made of — where the finger lands,

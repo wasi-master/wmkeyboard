@@ -712,6 +712,7 @@ private fun SearchStrings.typingGlideRows(): List<SettingsSearchEntry> {
         row(R.string.typing_two_thumb_backspace_title),
         row(R.string.typing_two_thumb_backspace_space_first_title, R.string.typing_two_thumb_backspace_space_first_subtitle),
         row(R.string.typing_two_thumb_backspace_join_first_title, R.string.typing_two_thumb_backspace_join_first_subtitle),
+        row(R.string.typing_retype_target_title, R.string.typing_retype_target_subtitle),
         row(R.string.typing_swipe_continues_typed_title, R.string.typing_swipe_continues_typed_subtitle),
         row(R.string.typing_shift_glide_capitals_title, R.string.typing_shift_glide_capitals_subtitle),
         row(R.string.typing_shift_glide_mode_title, R.string.typing_shift_glide_mode_subtitle),

@@ -348,6 +348,7 @@ import android.net.ConnectivityManager
 import com.wasimaster.wmkeyboard.core.settings.PerAppLanguageSettings
 import com.wasimaster.wmkeyboard.core.settings.PhotoNetworkConditions
 import com.wasimaster.wmkeyboard.core.settings.ReadingOnSwitch
+import com.wasimaster.wmkeyboard.core.settings.RetypeTarget
 import com.wasimaster.wmkeyboard.core.settings.RotationState
 import com.wasimaster.wmkeyboard.core.settings.isRotationDue
 import com.wasimaster.wmkeyboard.core.settings.isThemeShuffleDue
@@ -19425,6 +19426,10 @@ open class WMKeyboardService : InputMethodService() {
         val ic = currentInputConnection ?: return false
         if (hasSelection(ic) || isNullField()) return false
         val engine = suggestionEngine
+        // Set to take the finished word before an open one (#1188).
+        if (composing.isNotEmpty() && _uiState.value.settings.gesture.retypeTarget == RetypeTarget.LAST_FINISHED) {
+            return retypeFinishedWordBehindOpen(ic)
+        }
         if (composing.isNotEmpty()) {
             // The word as the field shows it (#840): a transliterating
             // composer's buffer is its keys, and Telex's `huowngs` put back
@@ -19482,6 +19487,75 @@ open class WMKeyboardService : InputMethodService() {
         // before it as the old one stood.
         if (keepSpace) ic.commitText(" ", 0)
         ic.endBatchEdit()
+        pendingWordSpace = false
+        lastGestureWord = null
+        twoThumbWordBehind = false
+        lastRevertible = null
+        clearSwapOffer()
+        syncPreviousWordFromField(ic)
+        publishRetypeOffer(RetypeOffer(word, start, readings))
+        return true
+    }
+
+    /**
+     * Retype under [RetypeTarget.LAST_FINISHED] while a word is open (#1188):
+     * takes the finished word in front of it, `hello wor⌶` giving `⌶ wor`.
+     * Only a word the field proves is there: the caret where the keyboard
+     * last saw it, the open word right behind it as typed, and exactly one
+     * space between the two. The open word is left in the field as it reads,
+     * not corrected and not learned, its gestures dropped; the finished word
+     * goes, and the caret goes back to where it began, with its readings on
+     * the strip as for any Retype. When the field doesn't prove all that, the
+     * press is spent on saying so: the open word is never taken in its place.
+     */
+    private fun retypeFinishedWordBehindOpen(ic: InputConnection): Boolean {
+        val engine = suggestionEngine
+        val open = _uiState.value.composingPreview.ifEmpty { composing.toString() }
+        val at = expectedSelStart
+        val before = if (at >= 0 && caretProvenAt(ic, at)) {
+            runCatching { ic.getTextBeforeCursor(RETYPE_LOOKBEHIND, 0)?.toString() }.getOrNull()
+        } else {
+            null
+        }
+        val body = before?.takeIf { it.endsWith(open) }?.dropLast(open.length)
+            ?.takeIf { it.endsWith(' ') && !it.endsWith("  ") }?.dropLast(1)
+        var from = body?.length ?: 0
+        if (body != null) while (from > 0 && isComposingWordChar(body[from - 1])) from--
+        val word = body?.substring(from).orEmpty()
+        if (body == null || word.none { it.isLetter() } || (from == 0 && (before?.length ?: 0) >= RETYPE_LOOKBEHIND)) {
+            toast(R.string.ime_retype_last_finished_unavailable)
+            return true
+        }
+        val wordEnd = at - open.length - 1
+        val start = wordEnd - word.length
+        val readings = glideReadings.readingsAt(word, start).filterNot { engine?.suppresses(it) == true }
+        // The open word's decode or all-up pause must not type it again once
+        // it is left behind (#1188).
+        duetJob?.cancel()
+        duetGeneration++
+        allUpJob?.cancel()
+        allUpArmed = false
+        reopenedWord = null
+        recordStat { onBackspace(System.currentTimeMillis(), SystemClock.uptimeMillis()) }
+        clearCaretWord()
+        noteDeletedForLearning(start, wordEnd)
+        // One batch, so the field answers with one caret update, at the place
+        // the offer below waits for.
+        ic.beginBatchEdit()
+        ic.finishComposingText()
+        ic.setSelection(wordEnd, wordEnd)
+        ic.deleteSurroundingText(word.length, 0)
+        ic.endBatchEdit()
+        revision = null
+        composing.setLength(0)
+        duetWord.clear()
+        composingTouch.clear()
+        composingKeys.clear()
+        composingHints.clear()
+        ambiguousReading = null
+        phoneticKeyed = null
+        keystrokeTiming.reset()
+        invalidateExpectedSelection()
         pendingWordSpace = false
         lastGestureWord = null
         twoThumbWordBehind = false

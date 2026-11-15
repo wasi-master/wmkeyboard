@@ -847,6 +847,15 @@
     <string name="typing_two_thumb_backspace_join_first_subtitle">The first press puts back a space that Take the space back removed</string>
     <string name="typing_two_thumb_backspace_join_first_needs_retract">Needs Finish a two-thumb word set to All thumbs up, and Take the space back above Off</string>
     <string name="typing_two_thumb_backspace_join_first_info">Take the space back can join a letter to the word before it: car, the space, then p gives carp. With this on, the first Backspace puts the space back and keeps the letters you typed after it as a word of their own, so carp becomes car p. The space is not taken back again until you type a new word. The next press uses the Two-thumb Backspace action on that word. It works only for the latest join while you are still typing the word, and never for No space or a space you typed.</string>
+    <string name="typing_retype_target_title">Word to retype</string>
+    <string name="typing_retype_target_subtitle">Which word Retype takes while you\'re typing the next one</string>
+    <string name="typing_retype_target_info">This matters only while a later word is still being typed. With no word open, Retype takes the word right before the cursor either way. Last finished word needs exactly one space between the two words and the cursor where the keyboard left it; when the app doesn\'t show that, the press says so and changes nothing, rather than taking the word you\'re typing.</string>
+    <string name="typing_retype_target_caret_label">Word at the cursor</string>
+    <string name="typing_retype_target_caret_desc">The word you\'re typing, or the one right before the cursor when none is open.</string>
+    <string name="typing_retype_target_finished_label">Last finished word</string>
+    <string name="typing_retype_target_finished_desc">The word you finished before the one you\'re typing. That later word stays as you typed it, without a correction, and the cursor moves back to where the finished word was.</string>
+    <string name="typing_group_two_thumb_backspace_title">Two-thumb Backspace</string>
+    <string name="typing_group_two_thumb_backspace_summary">What Backspace and Retype do to a word typed with both thumbs</string>
     <string name="typing_space_after_glide_title">Space after a glided word</string>
     <string name="typing_space_after_glide_subtitle">Add a space when you lift your finger at the end of a glide</string>
     <string name="typing_space_after_glide_info">This setting is on by default. The keyboard types a space after a glided word, so the next word does not join it. You can glide the next word, or type it on the keys. Type . , ? ! ; : or a closing bracket next, and the keyboard removes the space first. A press on the spacebar counts as the space that is already there. Backspace takes back the glided word and its space together. The keyboard adds no space in a password, an email address, a web address, a number pad or a phone pad.</string>
