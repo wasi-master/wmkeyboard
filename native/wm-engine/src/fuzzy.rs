@@ -231,7 +231,50 @@ impl<'a> TouchScoring<'a> {
     fn point(&self, pos: usize) -> Option<(f32, f32)> {
         self.points.get(pos).copied().flatten()
     }
+
+    /// How much better `word`'s letters explain the taps once the hand's
+    /// drift is allowed for: the taps of one word share an offset (a thumb
+    /// that lands a little right of every key), so a reading whose keys sit
+    /// the same way from every tap is likelier than the taps one by one say.
+    /// The gain in log-likelihood of a model where each tap is its key plus a
+    /// shared offset drawn with [SHAPE_DRIFT_SIGMAS] sigmas over the model's
+    /// own per-tap scatter, against the taps read independently:
+    /// `n s / (1 + n s) * n |mean residual|^2 / (2 sigma^2)`, `s` the drift
+    /// variance over the tap variance. Fleksy's US 9,024,882 reads a word from
+    /// its taps' shape about their centroid the same way. Read over the
+    /// typed positions only, so a completion is judged on the letters typed;
+    /// positions without a tap, or with a letter the layout has no key for,
+    /// are left out, and fewer than two left gives nothing.
+    fn drift_bonus(&self, word: &[u16]) -> f64 {
+        let (mut sx, mut sy, mut n) = (0.0f64, 0.0f64, 0usize);
+        for (pos, unit) in word.iter().enumerate().take(self.points.len()) {
+            let Some(p) = self.point(pos) else { continue };
+            let Some(&i) = self.model.index.get(unit) else { continue };
+            let (_, cx, cy) = self.model.keys[i];
+            sx += (p.0 - cx) as f64;
+            sy += (p.1 - cy) as f64;
+            n += 1;
+        }
+        if n < 2 {
+            return 0.0;
+        }
+        let n = n as f64;
+        let (mx, my) = (sx / n, sy / n);
+        let tap = self.model.sigma * self.model.sigma;
+        let drift = SHAPE_DRIFT_SIGMAS * SHAPE_DRIFT_SIGMAS * tap;
+        let shrink = n * drift / (tap + n * drift);
+        shrink * n * (mx * mx + my * my) / (2.0 * tap)
+    }
 }
+
+/// The hand's drift over one word, in sigmas of the tap scatter
+/// ([`TouchScoring::drift_bonus`]).
+pub const SHAPE_DRIFT_SIGMAS: f64 = 1.0;
+
+/// How much of [`TouchScoring::drift_bonus`] a candidate gains. The walk's
+/// touch costs are capped and tempered, so the bonus is too; the noisy-tap
+/// eval (`shape_eval`) is where it was fitted.
+pub const SHAPE_WEIGHT: f64 = 1.0;
 
 /// The letters each keystroke could have meant, on a keyboard with several
 /// on a key: the Kotlin `KeySets`. `spellings[pos]` lists the members a word
@@ -809,6 +852,21 @@ pub fn search_units(
         floor = walk.one(src, &mut results, floor, ws);
     }
     let mut out: Vec<Candidate> = results.into_values().collect();
+    // Phase 2 of slips: a reading whose keys sit the same way from every tap
+    // gains the drift bonus. Only on a path of matches and slips, where the
+    // typed positions line up with the word's letters one to one; never
+    // with slips off, which keeps that walk the old one bit for bit, nor on
+    // an ambiguous board.
+    if let Some(touch) = touch.filter(|t| t.model.slip_radius > 0.0 && !ambiguous) {
+        for c in out.iter_mut().filter(|c| c.edits == c.slips) {
+            let bonus = SHAPE_WEIGHT * touch.drift_bonus(&c.word);
+            if bonus > 0.0 {
+                c.score += bonus;
+                c.dict_score += bonus;
+                c.user_score += bonus;
+            }
+        }
+    }
     sort::by(&mut out, |a, b| b.score.total_cmp(&a.score).then_with(|| a.word.cmp(&b.word)));
     out.truncate(k);
     out
@@ -1551,6 +1609,40 @@ mod tests {
         let got = touch_search(&d, "rhw", taps, &model);
         assert_eq!(1, got.len());
         assert_eq!((2, 1), (got[0].edits, got[0].slips));
+    }
+
+    #[test]
+    fn taps_that_share_an_offset_earn_the_drift_bonus() {
+        let model = TouchModel::new(qwerty_keys(), TouchModel::SIGMA);
+        let shifted = |dx: [f32; 3]| {
+            "the".chars().zip(dx).map(|(c, d)| Some((centre(c).0 + d, centre(c).1))).collect::<Vec<_>>()
+        };
+        let the: Vec<u16> = "the".encode_utf16().collect();
+        // Every tap half a key right: n s / (1 + n s) * n * 0.25 / (2 * 0.25), n 3, s 1.
+        let drifted = TouchScoring::new(&model, shifted([0.5, 0.5, 0.5]));
+        assert!((drifted.drift_bonus(&the) - 1.125).abs() < 1e-6);
+        // The same distances with no shared direction earn nothing.
+        let scattered = TouchScoring::new(&model, shifted([0.5, -0.5, 0.0]));
+        assert!(scattered.drift_bonus(&the).abs() < 1e-12);
+        // A completion is read over the typed letters only.
+        let drifted_two = TouchScoring::new(&model, shifted([0.5, 0.5, 0.5]).into_iter().take(2).collect());
+        // n 2: 2/3 * 2 * 0.25 / 0.5.
+        assert!((drifted_two.drift_bonus(&the) - 2.0 / 3.0).abs() < 1e-6);
+        // One tap is no shape.
+        let one = TouchScoring::new(&model, vec![Some((centre('t').0 + 0.5, centre('t').1)), None, None]);
+        assert_eq!(0.0, one.drift_bonus(&the));
+    }
+
+    #[test]
+    fn slips_off_reads_no_drift() {
+        let d = dict(&[("the", 1000)]);
+        let taps = vec![toward('t', 'y', 0.4), toward('h', 'j', 0.4), toward('e', 'r', 0.4)];
+        let model = TouchModel::new(qwerty_keys(), TouchModel::SIGMA);
+        let on = touch_search(&d, "the", taps.clone(), &model);
+        let off = touch_search(&d, "the", taps, &model.clone().with_slip_radius(0.0));
+        assert!(on[0].score > off[0].score, "a shared offset is worth something with slips on");
+        let plain = touch_search(&d, "the", vec![Some(centre('t')), Some(centre('h')), Some(centre('e'))], &model);
+        assert_eq!(plain[0].score, touch_search(&d, "the", vec![Some(centre('t')), Some(centre('h')), Some(centre('e'))], &model.with_slip_radius(0.0))[0].score);
     }
 
     #[test]

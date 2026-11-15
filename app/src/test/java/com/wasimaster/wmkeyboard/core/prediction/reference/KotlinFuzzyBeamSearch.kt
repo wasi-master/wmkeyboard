@@ -67,9 +67,47 @@ class KotlinFuzzyBeamSearch {
             )
         }
 
-        return results.values.sortedWith(
+        // wm-engine's drift bonus (`TouchScoring::drift_bonus`), on matches
+        // and slips only, never with slips off or on an ambiguous board.
+        val rescored = if (touch == null || touch.model.slipRadius <= 0.0 || keys?.isAmbiguous == true) {
+            results.values
+        } else {
+            results.values.map { c ->
+                val bonus = if (c.edits == c.slips) SHAPE_WEIGHT * driftBonus(touch, c.word) else 0.0
+                if (bonus > 0.0) {
+                    ScoredCandidate(
+                        c.word, c.score + bonus, c.editCost, c.edits, c.completedChars, c.tier,
+                        c.dictScore + bonus, c.userScore + bonus, c.accents, c.slips,
+                    )
+                } else {
+                    c
+                }
+            }
+        }
+        return rescored.sortedWith(
             compareByDescending<ScoredCandidate> { it.score }.thenBy { it.word }
         ).take(k)
+    }
+
+    private fun driftBonus(touch: TouchScoring, word: String): Double {
+        var sx = 0.0
+        var sy = 0.0
+        var n = 0
+        for (pos in 0 until minOf(word.length, touch.points.size)) {
+            val p = touch.points[pos] ?: continue
+            val c = touch.model.center(word[pos]) ?: continue
+            sx += (p.x - c.x).toDouble()
+            sy += (p.y - c.y).toDouble()
+            n++
+        }
+        if (n < 2) return 0.0
+        val count = n.toDouble()
+        val mx = sx / count
+        val my = sy / count
+        val tap = touch.model.sigmaValue * touch.model.sigmaValue
+        val drift = SHAPE_DRIFT_SIGMAS * SHAPE_DRIFT_SIGMAS * tap
+        val shrink = count * drift / (tap + count * drift)
+        return shrink * count * (mx * mx + my * my) / (2.0 * tap)
     }
 
     @Suppress("LongParameterList")
@@ -600,6 +638,10 @@ class KotlinFuzzyBeamSearch {
 
         /** Autocorrect wants a deeper ranked list than the strip shows. */
         const val AUTOCORRECT_K = 8
+
+        /** wm-engine's `SHAPE_DRIFT_SIGMAS` and `SHAPE_WEIGHT`. */
+        const val SHAPE_DRIFT_SIGMAS = 1.0
+        const val SHAPE_WEIGHT = 1.0
 
         /** Cap on the rank cost an off-center tap adds to an exact match. */
         const val MATCH_CAP = 1.0

@@ -71,7 +71,7 @@ class KeyTouchModel(
     internal val centerPairs: FloatArray by lazy {
         FloatArray(keysArray.size * 2) { if (it % 2 == 0) centersArray[it / 2].x else centersArray[it / 2].y }
     }
-    internal val sigmaValue: Double get() = sigma
+    val sigmaValue: Double get() = sigma
 
     fun knows(ch: Char): Boolean = centers.containsKey(ch)
 
