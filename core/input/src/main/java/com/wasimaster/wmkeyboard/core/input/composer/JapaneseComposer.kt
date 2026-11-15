@@ -66,6 +66,31 @@ object JapaneseComposer : Composer {
     override fun composeBuffer(buffer: String): String = Kana.toHiragana(buffer)
 
     /**
+     * One key off, or with "Backspace takes a whole kana" ([CjkConfig.kanaBackspace],
+     * #1338) the keys of the last kana the reading shows: `konnnichiha` loses
+     * `ha`, so こんにちは becomes こんにち. A key still waiting for its vowel is a
+     * kana of its own here and goes alone. Taking the kana after a doubled
+     * consonant leaves that consonant on its own, which would show as a
+     * letter; it is spelled `xtu` instead, so がっこ goes back to がっ.
+     */
+    override fun backspaceBuffer(buffer: String): String {
+        if (!CjkConfig.kanaBackspace || buffer.isEmpty()) return buffer.dropLast(1)
+        val spans = Kana.transduce(buffer)
+        val last = spans.lastOrNull() ?: return buffer.dropLast(1)
+        val kept = buffer.dropLast(last.romajiLen.coerceAtLeast(1))
+        val beforeLast = spans.getOrNull(spans.size - 2)
+        if (beforeLast?.kana == "っ" && beforeLast.romajiLen == 1 && kept.isNotEmpty() && kept.last().isLetter()) {
+            val keptSpans = Kana.transduce(kept)
+            if (keptSpans.lastOrNull()?.kana?.singleOrNull()?.isLetter() == true &&
+                keptSpans.last().kana.single().code < 0x80
+            ) {
+                return kept.dropLast(1) + "xtu"
+            }
+        }
+        return kept
+    }
+
+    /**
      * Read off the transduction of the whole buffer rather than of the keys
      * before the caret: `kan` alone is かん, but in `kana` its `n` starts な.
      * A caret inside a kana's keys counts that kana as after it.

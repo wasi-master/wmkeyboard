@@ -420,6 +420,7 @@ Opening a Chinese, Cantonese, or Japanese entry from the Languages screen shows 
 | Regional wording (Standard / Taiwan / Taiwan wording / Hong Kong) | Standard | Same, only shown once Traditional is on |
 | Lazy pronunciation (懶音) | On | Cantonese only |
 | Match kana without marks | On | Japanese only, and only kana typed on Flick, Kana JIS or 50 keys |
+| Backspace takes a whole kana | Off | Japanese only, and only romaji typing |
 | Full-width space | Off | Chinese, Cantonese, and Japanese, each on its own |
 | Space steps through candidates | Off | Chinese, Cantonese, and Japanese, each on its own |
 | Jianpin (简拼) | On | Chinese only; ignored under a Double Pinyin scheme |
@@ -429,6 +430,8 @@ Opening a Chinese, Cantonese, or Japanese entry from the Languages screen shows 
 | The eleven fuzzy pairs, one row each | All on | Chinese only, shown while Fuzzy Pinyin is on |
 | Double Pinyin scheme | Off (full Pinyin) | Chinese only |
 | Custom Double Pinyin scheme | Empty | Chinese only, used when the scheme above is Custom |
+
+**Backspace takes a whole kana** changes what Backspace does to a romaji reading that isn't converted yet. Off, it takes back the last letter you typed, so こんにちは becomes こんにちh, which is how Google Japanese Input works. On, it takes the whole last kana with every letter that spelled it, so こんにちは becomes こんにち and がっこ becomes がっ. A letter still waiting for its vowel goes on its own.
 
 To clear everything the keyboard has learned from your CJK picks:
 

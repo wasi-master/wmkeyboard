@@ -2188,6 +2188,17 @@ private fun CjkDictPackManager(
             ) { on -> scope.launch { repository.setKanaLooseMarks(on) } }
         }
 
+        // Japanese-only: Backspace on an unconverted romaji reading (#1338).
+        item(visible = langId == "ja", level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.languages_cjk_kana_backspace_title,
+                stringResource(R.string.languages_cjk_kana_backspace_subtitle),
+                settings.watch { it.cjk.kanaBackspace },
+                info = stringResource(R.string.languages_cjk_kana_backspace_info),
+                default = SettingsDefaults.cjk.kanaBackspace,
+            ) { on -> scope.launch { repository.setKanaBackspace(on) } }
+        }
+
         // Japanese-only: the flick pad takes repeated taps (あ → い → う) as
         // well as flicks, the keitai way; this keeps it to flicks.
         item(visible = langId == "ja", level = SettingLevel.STANDARD) {

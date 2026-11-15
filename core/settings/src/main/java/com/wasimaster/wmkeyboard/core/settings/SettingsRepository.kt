@@ -6713,6 +6713,12 @@ data class CjkSettings(
      */
     val kanaLooseMarks: Boolean = true,
     /**
+     * Japanese romaji: Backspace takes the last kana of an unconverted
+     * reading, every key that spelled it, instead of the last key (#1338).
+     * Off by default, as in Google Japanese Input and Mozc, which take a key.
+     */
+    val kanaBackspace: Boolean = false,
+    /**
      * Japanese: the flick pad's kana keys only flick, and a second tap types
      * the same kana again instead of stepping あ → い → う (toggle input,
      * keitai style; competitor gap list item 17, FUTO's "Flick only"). Off by
@@ -12994,6 +13000,7 @@ class SettingsRepository(private val context: Context) {
         private val HANJA_SUGGESTIONS = booleanPreferencesKey("hanja_suggestions")
         private val BRAILLE_TABLE = stringPreferencesKey("braille_table")
         private val KANA_LOOSE_MARKS = booleanPreferencesKey("kana_loose_marks")
+        private val KANA_BACKSPACE = booleanPreferencesKey("kana_backspace")
         private val KANA_FLICK_ONLY = booleanPreferencesKey("kana_flick_only")
         private val FULL_WIDTH_SPACE_LANGUAGES = stringSetPreferencesKey("full_width_space_languages")
         private val SPACE_STEPS_CANDIDATES_LANGUAGES =
@@ -15236,6 +15243,7 @@ class SettingsRepository(private val context: Context) {
             hanjaSuggestions = p[HANJA_SUGGESTIONS] ?: defaults.cjk.hanjaSuggestions,
             brailleTable = p[BRAILLE_TABLE] ?: defaults.cjk.brailleTable,
             kanaLooseMarks = p[KANA_LOOSE_MARKS] ?: defaults.cjk.kanaLooseMarks,
+            kanaBackspace = p[KANA_BACKSPACE] ?: defaults.cjk.kanaBackspace,
             kanaFlickOnly = p[KANA_FLICK_ONLY] ?: defaults.cjk.kanaFlickOnly,
             fullWidthSpaceLanguages = p[FULL_WIDTH_SPACE_LANGUAGES] ?: defaults.cjk.fullWidthSpaceLanguages,
             spaceStepsCandidatesLanguages = p[SPACE_STEPS_CANDIDATES_LANGUAGES]
@@ -24805,6 +24813,8 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setKanaLooseMarks(value: Boolean) =
         editPrefs { it[KANA_LOOSE_MARKS] = value }
+    suspend fun setKanaBackspace(value: Boolean) =
+        editPrefs { it[KANA_BACKSPACE] = value }
 
     suspend fun setKanaFlickOnly(value: Boolean) =
         editPrefs { it[KANA_FLICK_ONLY] = value }

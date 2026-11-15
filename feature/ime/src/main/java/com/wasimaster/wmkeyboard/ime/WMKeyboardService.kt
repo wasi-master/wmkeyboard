@@ -5876,6 +5876,7 @@ open class WMKeyboardService : InputMethodService() {
                 }
                 CjkConfig.lazyJyutping = settings.cjk.jyutpingLazy
                 CjkConfig.looseKanaMarks = settings.cjk.kanaLooseMarks
+                CjkConfig.kanaBackspace = settings.cjk.kanaBackspace
                 HanVariant.region = settings.cjk.hanRegion
                 // Vietnamese, pushed the same way and for the same reason.
                 VietnameseConfig.strictTones = settings.vietnamese.strictTones

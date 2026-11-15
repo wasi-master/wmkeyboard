@@ -744,6 +744,9 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
          stays as it is. -->
     <string name="languages_cjk_loose_marks_subtitle">かつこう also finds 学校 (がっこう)</string>
     <!-- The kana are examples and stay as they are. -->
+    <string name="languages_cjk_kana_backspace_title">Backspace takes a whole kana</string>
+    <string name="languages_cjk_kana_backspace_subtitle">While typing romaji, Backspace removes the last kana instead of the last letter</string>
+    <string name="languages_cjk_kana_backspace_info">Off, Backspace on a reading that is not converted yet takes back the last letter you typed, so こんにちは becomes こんにちh, as in Google Japanese Input. On, it takes the whole last kana with every letter that spelled it, so こんにちは becomes こんにち. A letter still waiting for its vowel goes on its own. Once the reading is converted, Backspace works the same either way.</string>
     <string name="languages_cjk_loose_marks_info">On the Flick and Kana JIS layouts, a small kana, a ゛ or a ゜ is an extra key. With this on, a plain kana also matches those forms: か finds が, つ finds っ and づ, は finds ば and ぱ, や finds ゃ. When two words are almost equally common, the one that you typed exactly comes first. A kana that you typed with a mark is not changed, and Romaji typing is not changed.</string>
     <string name="languages_cjk_full_width_space_title">Full-width space</string>
     <!-- 　 is the full-width space itself, drawn between the brackets, and stays
