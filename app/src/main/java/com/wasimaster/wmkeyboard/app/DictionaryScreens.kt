@@ -50,6 +50,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -113,6 +114,24 @@ private const val DICTIONARY_SEARCH_THRESHOLD = 12
 /** Rows the word lists draw per page; the next page is a tap away. */
 private const val WORD_LIST_PAGE = 100
 /** The "Show N more" row at the foot of a paged word list. */
+/**
+ * The shortcuts given to personal-dictionary words (#1343), by the word they
+ * offer: the snippets in [com.wasimaster.wmkeyboard.core.snippets.DictionaryShortcuts]'s
+ * folder, keyed in lower case. Empty when there is none, or the snippets
+ * cannot be read.
+ */
+private fun dictionaryShortcuts(context: android.content.Context): Map<String, List<String>> = runCatching {
+    val store = com.wasimaster.wmkeyboard.core.snippets.SnippetStore(
+        java.io.File(context.filesDir, "snippets/snippets.json"),
+    )
+    val folder = store.folders()
+        .firstOrNull { it.name == com.wasimaster.wmkeyboard.core.snippets.DictionaryShortcuts.FOLDER_NAME }
+        ?: return@runCatching emptyMap()
+    store.items()
+        .filter { it.folderId == folder.id && it.trigger.isNotBlank() }
+        .groupBy({ it.text.trim().lowercase() }, { it.trigger })
+}.getOrDefault(emptyMap())
+
 @Composable
 private fun ShowMoreWordsRow(remaining: Int, onClick: () -> Unit) {
     WmRow(
@@ -400,7 +419,15 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
     // count-sorted list, which made finding a single word to delete a scroll
     // through everything the keyboard has ever learned.
     var query by remember { mutableStateOf("") }
-    if (words.size > DICTIONARY_SEARCH_THRESHOLD || query.isNotEmpty()) {
+    // The shortcuts given to words (#1343), which live in the snippets'
+    // "Personal dictionary" folder: read back here so a word can be found by
+    // its shortcut, and the words that have one listed on their own. Read
+    // again whenever the words change, which an add with a shortcut does.
+    val shortcuts by produceState(emptyMap<String, List<String>>(), words) {
+        value = withContext(Dispatchers.IO) { dictionaryShortcuts(context) }
+    }
+    var onlyShortcuts by remember { mutableStateOf(false) }
+    if (words.size > DICTIONARY_SEARCH_THRESHOLD || query.isNotEmpty() || shortcuts.isNotEmpty()) {
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
@@ -461,17 +488,26 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
     LaunchedEffect(groups) {
         if (filter != null && groups.none { it.languageId == filter?.languageId }) filter = null
     }
-    if (groups.size > 1) {
+    val withShortcut = remember(words, shortcuts) { words.count { shortcuts.containsKey(it.first.lowercase()) } }
+    if (onlyShortcuts && withShortcut == 0) onlyShortcuts = false
+    if (groups.size > 1 || withShortcut > 0) {
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
         ) {
             FilterChip(
-                selected = filter == null,
-                onClick = { filter = null },
+                selected = filter == null && !onlyShortcuts,
+                onClick = { filter = null; onlyShortcuts = false },
                 label = { Text(stringResource(R.string.backup_dictionary_filter_everything)) },
             )
-            for (group in groups) {
+            if (withShortcut > 0) {
+                FilterChip(
+                    selected = onlyShortcuts,
+                    onClick = { onlyShortcuts = !onlyShortcuts },
+                    label = { Text(stringResource(R.string.backup_dictionary_filter_shortcuts, withShortcut)) },
+                )
+            }
+            for (group in groups.takeIf { it.size > 1 }.orEmpty()) {
                 FilterChip(
                     selected = filter == LanguageFilter(group.languageId),
                     onClick = { filter = LanguageFilter(group.languageId) },
@@ -500,10 +536,18 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
     }
     val sorted = sortedFrom?.second.orEmpty()
     val sortedNow = sortedFrom?.first === words
-    val shown = remember(sorted, query, filter, langs) {
+    val shown = remember(sorted, query, filter, langs, shortcuts, onlyShortcuts) {
         val needle = query.trim().lowercase()
         val inLanguage = filter?.let { f -> sorted.filter { langs[it.first] == f.languageId } } ?: sorted
-        if (needle.isEmpty()) inLanguage else inLanguage.filter { needle in it.first.lowercase() }
+        val inShortcuts = if (onlyShortcuts) inLanguage.filter { shortcuts.containsKey(it.first.lowercase()) } else inLanguage
+        // A search finds a word by its shortcut too (#1343).
+        if (needle.isEmpty()) {
+            inShortcuts
+        } else {
+            inShortcuts.filter { (word, _) ->
+                needle in word.lowercase() || shortcuts[word.lowercase()].orEmpty().any { needle in it.lowercase() }
+            }
+        }
     }
     if (words.isEmpty()) {
         CaptionText(stringResource(R.string.backup_dictionary_empty))
@@ -529,11 +573,14 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
                 } else {
                     seen
                 }
-                val kept = if (word in pinned) {
+                val pinnedOrNot = if (word in pinned) {
                     stringResource(R.string.backup_dictionary_pinned_subtitle, standing)
                 } else {
                     standing
                 }
+                val kept = shortcuts[word.lowercase()]?.let {
+                    stringResource(R.string.backup_dictionary_shortcut_subtitle, pinnedOrNot, it.joinToString(", "))
+                } ?: pinnedOrNot
                 WmRow(
                     title = word,
                     // The language leads (#930), so a list mixing them reads

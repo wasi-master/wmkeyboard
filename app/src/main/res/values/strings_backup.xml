@@ -40,6 +40,8 @@
     <string name="backup_dictionary_every_language">All languages</string>
     <!-- The filter chip that shows every word, whatever its language. -->
     <string name="backup_dictionary_filter_everything">All words</string>
+    <string name="backup_dictionary_filter_shortcuts">With a shortcut (<xliff:g id="count" example="4">%1$d</xliff:g>)</string>
+    <string name="backup_dictionary_shortcut_subtitle"><xliff:g id="standing" example="You added this word">%1$s</xliff:g> · shortcut <xliff:g id="shortcuts" example="asaik">%2$s</xliff:g></string>
     <!-- A filter chip: %1$s is a language (or "All languages"), %2$d how
          many words are filed under it. -->
     <string name="backup_dictionary_language_chip"><xliff:g id="language" example="Bangla">%1$s</xliff:g> · <xliff:g id="count" example="34">%2$d</xliff:g></string>
