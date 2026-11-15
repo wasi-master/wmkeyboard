@@ -10619,6 +10619,13 @@ private fun holdOpensTrackpad(
 private fun toolHoldDelay(settingMs: Int, systemMs: Long): Long =
     if (settingMs > 0) settingMs.toLong() else systemMs
 
+/**
+ * How long a hold that will open a tool's settings stays still after the buzz
+ * before the page opens (#1353), while the tool can still be picked up to
+ * reorder it. Long enough to start a drag, short against the hold itself.
+ */
+private const val SettingsHoldGraceMs = 350L
+
 private fun holdArmsSelection(
     tool: ToolbarTool,
     fromToolbar: Boolean,
@@ -10750,6 +10757,10 @@ private fun DraggableTool(
                     // Same for the trackpad panel: open by this hold, closed by
                     // its release, and never by a release that did not open it.
                     var held = false
+                    // The settings page opened while the finger was still down.
+                    var settingsOpened = false
+                    val opensSettings = !holdArms && !holdPanel && holdRepeatMs == null && !holdMenu &&
+                        (holdAction == null || holdAction == ToolHoldAction.OpenSettings)
                     val timer = scope.launch {
                         delay(toolHoldDelay(holdDelayMs, viewConfiguration.longPressTimeoutMillis))
                         // The buzz tells the user the long-press registered.
@@ -10781,6 +10792,19 @@ private fun DraggableTool(
                             while (true) {
                                 tapAction()
                                 delay(holdRepeatMs)
+                            }
+                        } else if (opensSettings) {
+                            // The settings page opens once the hold is held,
+                            // not on the lift (#1353): no guessing how long is
+                            // long enough. A moment's grace first while the
+                            // tool can still be picked up, so a hold that sets
+                            // off to reorder is not taken to the settings; the
+                            // pick-up cancels this timer.
+                            if (dragEnabled) delay(SettingsHoldGraceMs)
+                            if (!dragged) {
+                                settingsOpened = true
+                                drag.cancel()
+                                drag.openSettings(tool)
                             }
                         }
                     }
@@ -10852,6 +10876,7 @@ private fun DraggableTool(
                                 drag.cancel()
                                 if (released && !scrolled) tapAction()
                             }
+                            settingsOpened -> Unit
                             dragged -> drag.end()
                             // A hold that armed selection mode, or held the
                             // trackpad open, has already done its work, and
