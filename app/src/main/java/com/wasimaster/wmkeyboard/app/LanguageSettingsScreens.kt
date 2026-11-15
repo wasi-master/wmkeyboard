@@ -2192,6 +2192,27 @@ private fun CjkDictPackManager(
             ) { on -> scope.launch { repository.setKanaLooseMarks(on) } }
         }
 
+        // Japanese-only: the old character forms (kyujitai), and the strip
+        // button that flips them, the 繁 button's setting under its own name
+        // here (#962).
+        item(visible = langId == "ja", level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.languages_cjk_kyujitai_title,
+                stringResource(R.string.languages_cjk_kyujitai_subtitle),
+                settings.watch { it.cjk.kyujitaiOutput },
+                info = stringResource(R.string.languages_cjk_kyujitai_info),
+                default = SettingsDefaults.cjk.kyujitaiOutput,
+            ) { on -> scope.launch { repository.setCjkKyujitaiOutput(on) } }
+        }
+        item(visible = langId == "ja", level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.languages_cjk_kyujitai_button_title,
+                stringResource(R.string.languages_cjk_kyujitai_button_subtitle),
+                settings.watch { it.cjk.traditionalButton },
+                default = SettingsDefaults.cjk.traditionalButton,
+            ) { on -> scope.launch { repository.setCjkTraditionalButton(on) } }
+        }
+
         // Japanese-only: Backspace on an unconverted romaji reading (#1338).
         item(visible = langId == "ja", level = SettingLevel.STANDARD) {
             ToggleSetting(

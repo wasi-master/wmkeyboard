@@ -6713,6 +6713,12 @@ data class CjkSettings(
      */
     val traditionalButton: Boolean = false,
     /**
+     * Japanese: candidates in the old character forms (kyujitai, 國 for 国,
+     * 學 for 学), through OpenCC's Japanese tables (#962). The 繁 button
+     * ([traditionalButton]) shows as 舊 on the Japanese layouts and flips this.
+     */
+    val kyujitaiOutput: Boolean = false,
+    /**
      * Chinese and Cantonese: whether the reading being converted (the pinyin,
      * zhuyin or jyutping typed so far) sits in the app's field as underlined
      * text, or only in the keyboard, at the start of the candidate strip, the
@@ -13079,6 +13085,7 @@ class SettingsRepository(private val context: Context) {
         private val PINYIN_DOUBLE_PINYIN_CUSTOM = stringPreferencesKey("pinyin_double_pinyin_custom")
         private val CJK_TRADITIONAL_OUTPUT = booleanPreferencesKey("cjk_traditional_output")
         private val CJK_TRADITIONAL_BUTTON = booleanPreferencesKey("cjk_traditional_button")
+        private val CJK_KYUJITAI_OUTPUT = booleanPreferencesKey("cjk_kyujitai_output")
         private val CJK_READING_IN_FIELD = booleanPreferencesKey("cjk_reading_in_field")
         private val CJK_READING_ON_SWITCH = stringPreferencesKey("cjk_reading_on_switch")
         private val JYUTPING_LAZY = booleanPreferencesKey("jyutping_lazy")
@@ -15331,6 +15338,7 @@ class SettingsRepository(private val context: Context) {
             pinyinDoublePinyinCustom = p[PINYIN_DOUBLE_PINYIN_CUSTOM] ?: defaults.cjk.pinyinDoublePinyinCustom,
             traditionalOutput = p[CJK_TRADITIONAL_OUTPUT] ?: defaults.cjk.traditionalOutput,
             traditionalButton = p[CJK_TRADITIONAL_BUTTON] ?: defaults.cjk.traditionalButton,
+            kyujitaiOutput = p[CJK_KYUJITAI_OUTPUT] ?: defaults.cjk.kyujitaiOutput,
             readingInField = p[CJK_READING_IN_FIELD] ?: defaults.cjk.readingInField,
             readingOnSwitch = p[CJK_READING_ON_SWITCH]
                 ?.let { runCatching { ReadingOnSwitch.valueOf(it) }.getOrNull() }
@@ -25047,6 +25055,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setCjkTraditionalButton(value: Boolean) =
         editPrefs { it[CJK_TRADITIONAL_BUTTON] = value }
+
+    suspend fun setCjkKyujitaiOutput(value: Boolean) =
+        editPrefs { it[CJK_KYUJITAI_OUTPUT] = value }
 
     suspend fun setJyutpingLazy(value: Boolean) =
         editPrefs { it[JYUTPING_LAZY] = value }

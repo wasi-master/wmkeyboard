@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.core.input.mozc
 import com.wasimaster.wmkeyboard.core.input.composer.CjkContext
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictionaries
 import com.wasimaster.wmkeyboard.core.input.composer.Composer
+import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
 import com.wasimaster.wmkeyboard.core.input.composer.Kana
 
 /**
@@ -193,12 +194,12 @@ class MozcComposer internal constructor(val base: Composer) : Composer {
         val preceding = CjkContext.text
         val menu = MozcRuntime.predict(preceding, maxOf(limit, 1)) ?: return emptyList()
         lastPredictions = preceding to menu
-        return menu.texts.take(limit)
+        return menu.texts.take(limit).map(HanVariant::toKyujitai)
     }
 
     override fun learnPrediction(context: String, picked: String) {
         val (preceding, menu) = lastPredictions ?: return
-        val index = menu.texts.indexOf(picked).takeIf { it >= 0 } ?: return
+        val index = menu.texts.indexOfFirst { it == picked || HanVariant.toKyujitai(it) == picked }.takeIf { it >= 0 } ?: return
         MozcRuntime.commitPrediction(preceding, menu.ids[index])
         lastPredictions = null
     }
@@ -210,7 +211,7 @@ class MozcComposer internal constructor(val base: Composer) : Composer {
         if (split != null && ops == null) segmenting = null
         val preceding = CjkContext.text
         val user = CjkDictionaries.japaneseUser
-        val key = "$buffer|${ops?.joinToString(",")}|$preceding|${System.identityHashCode(user)}"
+        val key = "$buffer|${ops?.joinToString(",")}|$preceding|${System.identityHashCode(user)}|${HanVariant.kyujitaiStamp()}"
         val generation = MozcRuntime.generation
         last?.takeIf { it.key == key && it.generation == generation }?.let { return it }
         if (buffer.isEmpty()) return Ranked(key, generation, emptyList(), IntArray(0), IntArray(0), "", preceding, null, emptyList(), 0)
@@ -251,7 +252,9 @@ class MozcComposer internal constructor(val base: Composer) : Composer {
         val seen = HashSet<Pair<String, Int>>()
         fun add(text: String, chars: Int, id: Int, cap: Int) {
             if (texts.size >= cap || !seen.add(text to chars)) return
-            texts += text
+            // In the old forms when the user writes them (#962); kana pass
+            // through, and Mozc is told the pick by its id, not its text.
+            texts += HanVariant.toKyujitai(text)
             consumed += chars
             ids += id
         }
@@ -291,7 +294,7 @@ class MozcComposer internal constructor(val base: Composer) : Composer {
             reading = converted,
             preceding = preceding,
             ops = ops,
-            segments = menu.segments.map { it.second },
+            segments = menu.segments.map { HanVariant.toKyujitai(it.second) },
             focus = menu.focus.coerceIn(0, (menu.segments.size - 1).coerceAtLeast(0)),
         )
         last = ranked

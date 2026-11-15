@@ -797,6 +797,8 @@ internal object SettingsRowIcons {
         put(R.string.languages_custom_dictionaries_title) { SymbolIcons.Dictionary }
         put(R.string.languages_emoji_keywords_title) { Icons.Outlined.EmojiEmotions }
         put(R.string.languages_cjk_traditional_title) { Icons.Outlined.Translate }
+        put(R.string.languages_cjk_kyujitai_title) { Icons.Outlined.Translate }
+        put(R.string.languages_cjk_kyujitai_button_title) { Icons.Outlined.Translate }
         put(R.string.languages_rime_engine_title) { Icons.Outlined.Settings }
         put(R.string.languages_rime_status_title) { Icons.Outlined.Info }
         put(R.string.languages_rime_import_title) { Icons.Outlined.FileOpen }

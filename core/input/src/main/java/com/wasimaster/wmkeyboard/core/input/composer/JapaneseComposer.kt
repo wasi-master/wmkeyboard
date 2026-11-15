@@ -155,19 +155,23 @@ object JapaneseComposer : Composer {
 
     override fun learnChoice(buffer: String, index: Int) {
         val cand = ranked(buffer).getOrNull(index) ?: return
-        CjkLearning.learn(NAMESPACE, cand.reading, cand.text)
+        CjkLearning.learn(NAMESPACE, cand.reading, cand.source)
     }
 
     override val adjustsChoices: Boolean get() = true
 
     override fun adjustChoice(buffer: String, index: Int, adjustment: CandidateAdjustment) {
         val cand = ranked(buffer).getOrNull(index) ?: return
-        CjkLearning.adjust(NAMESPACE, cand.reading, cand.text, cand.text, adjustment)
+        CjkLearning.adjust(NAMESPACE, cand.reading, cand.text, cand.source, adjustment)
     }
 
 
-    /** A candidate word, the romaji input chars it covers, and its kana reading. */
-    private data class Cand(val text: String, val consumed: Int, val reading: String)
+    /**
+     * A candidate word, the romaji input chars it covers, and its kana
+     * reading; [source] is the word as the dictionary spells it, before
+     * [HanVariant.toKyujitai], which is what learning keeps.
+     */
+    private data class Cand(val text: String, val consumed: Int, val reading: String, val source: String = text)
 
     /**
      * Candidates for [buffer], longest kana reading first so a whole-phrase entry
@@ -212,7 +216,10 @@ object JapaneseComposer : Composer {
                 ),
                 user = CjkLearning.userData(NAMESPACE),
             )
-            for (cand in decoded) out.getOrPut(cand.text) { Cand(cand.text, cand.consumed, cand.reading) }
+            for (cand in decoded) {
+                val text = HanVariant.toKyujitai(cand.text)
+                out.getOrPut(text) { Cand(text, cand.consumed, cand.reading, cand.text) }
+            }
         }
         // Trailing plain-kana choices for the whole buffer, always available so
         // this works as a kana keyboard with no conversion pack at all.
@@ -221,7 +228,7 @@ object JapaneseComposer : Composer {
         if (kata != whole) out.getOrPut(kata) { Cand(kata, romaji, whole) }
         val half = Kana.toHalfWidthKatakana(kata)
         if (half != kata) out.getOrPut(half) { Cand(half, romaji, whole) }
-        return CjkLearning.rank(NAMESPACE, out.values.toList(), { it.text }, { it.reading })
+        return CjkLearning.rank(NAMESPACE, out.values.toList(), { it.source }, { it.reading })
         // Stretch (not shipped): light okurigana / verb-conjugation would fold a
         // trailing kana inflection (…って, …した) back onto a stem reading before
         // dict lookup here, so 食べた converts from `tabeta`. Needs a conjugation

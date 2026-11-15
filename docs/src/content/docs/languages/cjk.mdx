@@ -239,10 +239,11 @@ For a message in the other script you don't need the settings app. Two switches 
 
 - **Hold <KeyCap>'词</KeyCap>** on the Pinyin layout and let go. A toast says which script the keyboard now writes.
 - **The 繁 button.** Turn on **繁 button** under <SettingsPath path="Languages & layouts / Chinese / Chinese options / 繁 button" /> (also on the Cantonese page; off by default). A 繁 button then sits beside the candidates on every Chinese and Cantonese layout, lit while candidates come out Traditional. Like the other buttons beside the words, it shows while the candidate strip is up, not while the toolbar is.
+- **Type the name of the script.** With the button off, it still comes up while a candidate on the strip is the name of a script: type `fanti` or `jianti`, and while 繁体 or 简体 (or 繁體, 簡體) is among the candidates, the 繁 button sits beside them. Tap it to switch, then go on typing the reading or delete it.
 
 A reading you are in the middle of typing switches with it: the candidates on the strip are drawn again in the new script, so you can type `toufa`, see 头发, switch and pick 頭髮. Any layout can carry the switch too: in the [layout editor](/languages/custom-layouts/) it's the **Simplified / Traditional Chinese** action, and in a layout file it's `{"type": "han_script"}`.
 
-Both controls are on the Chinese and Cantonese options pages only, and they are one setting shared by the two languages. Japanese candidates never pass through this conversion, so the Japanese page does not show them.
+Both controls are on the Chinese and Cantonese options pages only, and they are one setting shared by the two languages. Japanese candidates never pass through this conversion; Japanese has its own switch for the old character forms, in [Old character forms](#old-character-forms-kyujitai).
 
 ## Handwriting layouts
 
@@ -267,6 +268,12 @@ The two other pages of Flick keep the same columns, so switching never moves a k
 The Flick pad is an ordinary layout, so you can change it in the [layout editor](/languages/custom-layouts/). Each key's sheet has a 3×3 pad with a cell for every flick direction, the four corners included, and a [Shift field for each](/languages/custom-layouts/#editing-a-key) so the same pad can type katakana while Shift is on. The editor's preview draws a key's flicks around its edges, so you can see and move every kana on the pad, and the keyboard draws them on the keys the same way unless [Show flick arms on keys](/typing/gestures/#flick-keys) is off. Any key of a Japanese layout can also be told to **become 小゛゜ after a kana**: while the last kana you typed has a small, ゛ or ゜ form, that key shows 小゛゜ and changes it, and once the word is done it goes back to its own job. Give that job to the globe or emoji key and the separate <KeyCap>小゛゜</KeyCap> key can go, which is how phone kana pads save the space. Either key cycles katakana as readily as hiragana, so a pad built on アイウエオ keys reaches ェ from エ and バ or パ from ハ.
 
 All five read the same kana or romaji into `JapaneseComposer`, which converts kana readings to kanji/word candidates using a Mozc-derived dictionary. If nothing in the dictionary matches (or before you've downloaded the pack at all), the reading still commits as plain hiragana, katakana, or half-width katakana, so every Japanese layout works as a bare kana keyboard with zero setup. A phrase the dictionary lists only in kana still gets its kanji reading offered: `またあした` puts また明日 on the strip next to the plain kana, so you don't have to convert また and 明日 one at a time.
+
+### Old character forms (kyujitai)
+
+**Old character forms**, under <SettingsPath path="Languages & layouts / Japanese / Japanese options / Old character forms" /> (off by default), writes the kanji candidates in kyujitai, the forms used before the 1946 reform: 國 for 国, 學 for 学, 會 for 会, 藝 for 芸. The conversion is OpenCC's Japanese one (`jp2t`), over its 235 words and 403 characters, and it reads whole words first where one new form stands for several old ones: 弁 is 辯 in 弁論, 辨 in 弁当 and 瓣 in 弁膜. Kana are never changed, and a character with no old form stays as it is. It works with the built-in conversion and with Mozc alike, and your picks are learned against the dictionary's spelling, so switching back keeps them.
+
+**舊 button**, on the same page, puts a 舊 button beside the candidates on the Japanese layouts, lit while the candidates come out in the old forms; it is the same setting as Chinese's 繁 button, under its Japanese name. With it off, the button still comes up while 旧字体 or 新字体 (or 舊字體) is among the candidates, so typing `kyuujitai` offers the switch. A reading you are in the middle of typing is drawn again in the other forms on the spot.
 
 ### Kana without marks
 
@@ -420,6 +427,8 @@ Opening a Chinese, Cantonese, or Japanese entry from the Languages screen shows 
 | Regional wording (Standard / Taiwan / Taiwan wording / Hong Kong) | Standard | Same, only shown once Traditional is on |
 | Lazy pronunciation (懶音) | On | Cantonese only |
 | Match kana without marks | On | Japanese only, and only kana typed on Flick, Kana JIS or 50 keys |
+| Old character forms | Off | Japanese only |
+| 舊 button | Off | Japanese; the same setting as the 繁 button |
 | Backspace takes a whole kana | Off | Japanese only, and only romaji typing |
 | Full-width space | Off | Chinese, Cantonese, and Japanese, each on its own |
 | Space steps through candidates | Off | Chinese, Cantonese, and Japanese, each on its own |

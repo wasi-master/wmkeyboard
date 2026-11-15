@@ -159,6 +159,7 @@ internal val SettingsSearchKeywords: Map<Int, Int> = buildMap {
     put(R.string.languages_cjk_full_width_space_title, R.string.search_kw_languages_cjk_full_width_space)
     put(R.string.languages_cjk_space_steps_title, R.string.search_kw_languages_cjk_space_steps)
     put(R.string.languages_cjk_traditional_title, R.string.search_kw_languages_cjk_traditional)
+    put(R.string.languages_cjk_kyujitai_title, R.string.search_kw_languages_cjk_kyujitai)
     put(R.string.languages_rime_engine_title, R.string.search_kw_languages_rime_engine)
     put(R.string.languages_mozc_engine_title, R.string.search_kw_languages_mozc_engine)
     put(R.string.languages_conjunct_backspace_title, R.string.search_kw_languages_conjunct_backspace)

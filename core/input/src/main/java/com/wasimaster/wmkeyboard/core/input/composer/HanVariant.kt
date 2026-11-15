@@ -99,6 +99,16 @@ object HanVariant {
     var hkVariants: HanPhraseTable = HanPhraseTable.EMPTY
         set(value) { field = value; CjkDictionaries.invalidate() }
 
+    /** OpenCC JPShinjitaiPhrases: Japanese words whose old form a character map gets wrong (弁当 → 辨當). */
+    @Volatile
+    var jpPhrases: HanPhraseTable = HanPhraseTable.EMPTY
+        set(value) { field = value; CjkDictionaries.invalidate() }
+
+    /** OpenCC JPShinjitaiCharacters: Japanese new forms (shinjitai) → old forms (kyujitai), 国 → 國. */
+    @Volatile
+    var jpCharacters: HanPhraseTable = HanPhraseTable.EMPTY
+        set(value) { field = value; CjkDictionaries.invalidate() }
+
     /** The user's region; only [HanRegion.TAIWAN_WORDING] changes vocabulary. */
     @Volatile
     var region: HanRegion = HanRegion.GENERIC
@@ -190,6 +200,28 @@ object HanVariant {
         }
         return forms
     }
+
+    /**
+     * [text], a Japanese candidate, in the old character forms (kyujitai,
+     * #962) when [CjkConfig.kyujitaiOutput] is on and the tables are loaded:
+     * OpenCC's `jp2t`, phrases then characters as one short-circuit group, so
+     * 弁 is 辯 in 弁論 and 辨 in 弁当. Kana and anything in no table pass
+     * through, and the same instance comes back when nothing changed. Applied
+     * inside the Japanese composers where a word becomes a candidate, for the
+     * reason [HanVariant] gives for Traditional.
+     */
+    fun toKyujitai(text: String): String {
+        if (!CjkConfig.kyujitaiOutput || text.isEmpty()) return text
+        val group = arrayOf(jpPhrases, jpCharacters)
+        if (group.all { it.isEmpty() }) return text
+        val out = StringBuilder(text.length)
+        convert(text, 0, text.length, group, out)
+        return if (text.contentEquals(out)) text else out.toString()
+    }
+
+    /** A stamp that changes whenever [toKyujitai] would answer differently, for caches keyed by hand. */
+    fun kyujitaiStamp(): Int =
+        if (!CjkConfig.kyujitaiOutput) 0 else 31 * System.identityHashCode(jpPhrases) + System.identityHashCode(jpCharacters)
 
     /** The region's table group, run over Traditional text; null for Standard. */
     private fun regionalGroup(): Array<HanPhraseTable>? = when (region) {

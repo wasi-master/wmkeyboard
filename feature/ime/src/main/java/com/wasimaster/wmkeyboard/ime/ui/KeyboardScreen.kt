@@ -4987,6 +4987,12 @@ private fun CachedTextLine(
     )
 }
 
+/** Names of the two Chinese scripts that, as a candidate, bring up the 繁 button (#962). */
+private val HAN_SCRIPT_NAMES = setOf("简体", "繁体", "簡體", "繁體", "简体字", "繁体字", "簡體字", "繁體字")
+
+/** The Japanese names of the new and old character forms, which bring up the 舊 button (#962). */
+private val KANJI_FORM_NAMES = setOf("旧字体", "新字体", "舊字體", "新字體", "旧字", "舊字")
+
 // The candidate surface's body, in three functions rather than written
 // straight into [StripSlot]'s lambda. That lambda had grown back to 10,172
 // dex instructions, past the 10,000 at which ART stops compiling a method
@@ -5046,12 +5052,28 @@ private fun RowScope.StripOfferChips(
             }
         }
     // Chinese and Cantonese's 繁 button, the same switch over Traditional
-    // characters (#962). Lit while candidates come out Traditional.
-    if ((state.language.id == "zh" || state.language.id == "yue") && state.settings.cjk.traditionalButton) {
+    // characters (#962). Lit while candidates come out Traditional. Also up,
+    // with the button off, while the candidates hold the name of a script
+    // (简体, 繁體), so typing `fanti` offers the switch as other keyboards do.
+    val han = state.language.id == "zh" || state.language.id == "yue"
+    if (han && (state.settings.cjk.traditionalButton || state.suggestions.any { it in HAN_SCRIPT_NAMES })) {
         EncodingToggle(
             active = state.settings.cjk.traditionalOutput,
             label = stringResource(R.string.ime_traditional_button),
             description = stringResource(R.string.ime_traditional_output),
+        ) {
+            onStripOfferAction(StripOfferAction.ToggleTraditional)
+        }
+    }
+    // Japanese's 舊 button over the old character forms (kyujitai), the same
+    // button setting and the same offer for 旧字体 and 新字体.
+    if (state.language.id == "ja" &&
+        (state.settings.cjk.traditionalButton || state.suggestions.any { it in KANJI_FORM_NAMES })
+    ) {
+        EncodingToggle(
+            active = state.settings.cjk.kyujitaiOutput,
+            label = stringResource(R.string.ime_kyujitai_button),
+            description = stringResource(R.string.ime_kyujitai_output),
         ) {
             onStripOfferAction(StripOfferAction.ToggleTraditional)
         }

@@ -16,6 +16,9 @@ class HanVariantTest {
     @Before
     fun reset() {
         CjkConfig.traditionalOutput = false
+        CjkConfig.kyujitaiOutput = false
+        HanVariant.jpPhrases = HanPhraseTable.EMPTY
+        HanVariant.jpCharacters = HanPhraseTable.EMPTY
         HanVariant.region = HanVariant.HanRegion.GENERIC
         HanVariant.s2t = HanPhraseTable.EMPTY
         HanVariant.s2tPhrases = HanPhraseTable.EMPTY
@@ -75,6 +78,25 @@ class HanVariantTest {
         assertEquals(1, t.keyLength(t.matchPrefix("xb", 1, 2)))
         assertEquals(-1, t.matchPrefix("xyz", 0, 3))
         assertEquals(-1, HanPhraseTable.EMPTY.matchPrefix("a", 0, 1))
+    }
+
+    @Test
+    fun `japanese old forms follow the word`() {
+        HanVariant.jpPhrases = table("jp_shinjitai_phrases.txt")
+        HanVariant.jpCharacters = table("jp_shinjitai_characters.txt")
+        // Off: nothing changes, the same instance comes back.
+        val plain = "学校"
+        assertTrue(HanVariant.toKyujitai(plain) === plain)
+        CjkConfig.kyujitaiOutput = true
+        assertEquals("學校", HanVariant.toKyujitai("学校"))
+        assertEquals("國會", HanVariant.toKyujitai("国会"))
+        // 弁 has three old forms; the word picks one.
+        assertEquals("辯論", HanVariant.toKyujitai("弁論"))
+        assertEquals("辨當", HanVariant.toKyujitai("弁当"))
+        // Kana pass through untouched.
+        assertEquals("がっこう", HanVariant.toKyujitai("がっこう"))
+        // Chinese Traditional output is a separate switch.
+        assertEquals("学校", HanVariant.toTraditional("学校"))
     }
 
     @Test

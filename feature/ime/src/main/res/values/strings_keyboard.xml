@@ -496,6 +496,8 @@
     <!-- The strip button on Chinese and Cantonese layouts: 繁 is the first character of 繁體, Traditional. Not translated. -->
     <string name="ime_traditional_button" translatable="false">繁</string>
     <string name="ime_traditional_output">Traditional characters</string>
+    <string name="ime_kyujitai_button" translatable="false">舊</string>
+    <string name="ime_kyujitai_output">Old character forms (kyujitai)</string>
     <!-- Strip chip after a paste the keyboard found to be in Zawgyi, the old Burmese font encoding. Tapping it replaces the paste with Unicode. -->
     <string name="ime_zawgyi_paste_offer">Pasted Zawgyi. Convert to Unicode</string>
     <!-- Strip chip on a Burmese layout when the text box already holds Zawgyi. Tapping it makes the keyboard write Zawgyi in this text box. -->

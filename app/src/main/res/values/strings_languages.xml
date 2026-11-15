@@ -682,6 +682,11 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
     <string name="languages_cjk_traditional_info">The keyboard converts each candidate from Simplified (简体) to Traditional (繁體) before it shows the candidate. Some Simplified characters have more than one Traditional form, and the word decides which one is correct: 发 is 發 in 發展 but 髮 in 頭髮, and 后 is 後 in 後來 but 后 in 皇后. With the phrase table pack downloaded, the keyboard reads whole words, so it writes the correct form. Without the pack, or for a word that is in no table, it converts one character at a time.</string>
     <string name="languages_cjk_traditional_button_title">繁 button</string>
     <string name="languages_cjk_traditional_button_subtitle">A button beside the candidates switches between Simplified and Traditional</string>
+    <string name="languages_cjk_kyujitai_title">Old character forms</string>
+    <string name="languages_cjk_kyujitai_subtitle">Candidates come out in kyujitai (舊字體): 國 for 国, 學 for 学</string>
+    <string name="languages_cjk_kyujitai_info">The keyboard converts each candidate from the new forms used today (shinjitai) to the old forms (kyujitai), with OpenCC\'s Japanese tables. Some new forms stand for more than one old one, and the word decides: 弁 is 辯 in 弁論 but 辨 in 弁当. Kana are not changed. Mozc and the built-in conversion both follow this setting.</string>
+    <string name="languages_cjk_kyujitai_button_title">舊 button</string>
+    <string name="languages_cjk_kyujitai_button_subtitle">A button beside the candidates switches between the new and the old forms</string>
     <string name="languages_cjk_reading_in_field_title">Show the reading in the text field</string>
     <string name="languages_cjk_reading_in_field_subtitle">Off, the pinyin you type shows only on the keyboard, before the candidates</string>
     <string name="languages_cjk_reading_in_field_info">On, the pinyin, zhuyin or Jyutping that you type shows underlined in the text field until you pick a candidate. Off, the text field stays as it is, and the keyboard shows what you typed at the start of the candidate strip. Only the candidate you pick goes into the text field, the way fcitx5 works.</string>

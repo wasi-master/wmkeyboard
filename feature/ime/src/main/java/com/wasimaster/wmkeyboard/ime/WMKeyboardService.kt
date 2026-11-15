@@ -5918,6 +5918,8 @@ open class WMKeyboardService : InputMethodService() {
                 CjkConfig.doublePinyin = settings.cjk.pinyinDoublePinyin
                 CjkConfig.traditionalOutput = settings.cjk.traditionalOutput
                 if (settings.cjk.traditionalOutput) loadHanVariantTables()
+                CjkConfig.kyujitaiOutput = settings.cjk.kyujitaiOutput
+                if (settings.cjk.kyujitaiOutput) loadKyujitaiTables()
                 // Chinese and Japanese handwriting reads through ML Kit or
                 // zinnia, and Chinese through zinnia picks its model by the
                 // Traditional switch above, so either change can move the
@@ -25001,6 +25003,27 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /** Set once the Japanese old-form tables have been asked for; they never change after. */
+    @Volatile
+    private var kyujitaiTablesRequested = false
+
+    /**
+     * Loads OpenCC's Japanese tables (`jp2t`, bundled, 640 rows) behind
+     * kyujitai output (#962) the first time it is seen on. Until they land
+     * [HanVariant.toKyujitai] is the identity.
+     */
+    private fun loadKyujitaiTables() {
+        if (kyujitaiTablesRequested) return
+        kyujitaiTablesRequested = true
+        serviceScope.launch(Dispatchers.Default) {
+            fun table(name: String): HanPhraseTable = runCatching {
+                assets.open("dictionaries/$name").bufferedReader().useLines(HanPhraseTable::parse)
+            }.getOrDefault(HanPhraseTable.EMPTY)
+            HanVariant.jpPhrases = table("jp_shinjitai_phrases.txt")
+            HanVariant.jpCharacters = table("jp_shinjitai_characters.txt")
+        }
+    }
+
     /** The downloaded OpenCC phrase pack into [HanVariant]; empty when it is not on disk. */
     private fun loadHanPhrases() {
         HanVariant.s2tPhrases = CjkDictStore.downloadedFileFor(filesDir, "s2t_phrases")
@@ -41980,6 +42003,11 @@ open class WMKeyboardService : InputMethodService() {
      * quick second tap from reading the old value.
      */
     fun onTraditionalOutputToggle() {
+        // On Japanese the same button and key switch the old character forms.
+        if (_uiState.value.language.id == "ja") {
+            onKyujitaiOutputToggle()
+            return
+        }
         vibrate()
         val next = !CjkConfig.traditionalOutput
         CjkConfig.traditionalOutput = next
@@ -41990,6 +42018,26 @@ open class WMKeyboardService : InputMethodService() {
             Toast.LENGTH_SHORT,
         ).show()
         serviceScope.launch { settingsRepository.setCjkTraditionalOutput(next) }
+        val state = _uiState.value
+        if (state.composer.isConversion && composing.isNotEmpty()) refreshConversionCandidates(state)
+    }
+
+    /**
+     * Japanese candidates in the new or the old character forms (kyujitai,
+     * #962): the 舊 button on the strip, on the same terms as
+     * [onTraditionalOutputToggle].
+     */
+    private fun onKyujitaiOutputToggle() {
+        vibrate()
+        val next = !CjkConfig.kyujitaiOutput
+        CjkConfig.kyujitaiOutput = next
+        if (next) loadKyujitaiTables()
+        Toast.makeText(
+            this,
+            getString(if (next) R.string.ime_service_kyujitai_on_toast else R.string.ime_service_kyujitai_off_toast),
+            Toast.LENGTH_SHORT,
+        ).show()
+        serviceScope.launch { settingsRepository.setCjkKyujitaiOutput(next) }
         val state = _uiState.value
         if (state.composer.isConversion && composing.isNotEmpty()) refreshConversionCandidates(state)
     }

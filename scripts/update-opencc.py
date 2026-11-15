@@ -47,6 +47,9 @@ COPIES = {
     "tw_variants.txt": "TWVariants",
     "hk_variants_phrases.txt": "HKVariantsPhrases",
     "hk_variants.txt": "HKVariants",
+    # jp2t.json: Japanese new forms to old (kyujitai, #962).
+    "jp_shinjitai_phrases.txt": "JPShinjitaiPhrases",
+    "jp_shinjitai_characters.txt": "JPShinjitaiCharacters",
 }
 
 

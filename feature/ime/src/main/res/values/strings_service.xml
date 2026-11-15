@@ -194,6 +194,8 @@
     <string name="ime_service_zawgyi_off_toast">Burmese is written as Unicode</string>
     <string name="ime_service_traditional_on_toast">Chinese is written in Traditional characters (繁體)</string>
     <string name="ime_service_traditional_off_toast">Chinese is written in Simplified characters (简体)</string>
+    <string name="ime_service_kyujitai_on_toast">Japanese is written in the old character forms (舊字體)</string>
+    <string name="ime_service_kyujitai_off_toast">Japanese is written in the new character forms (新字体)</string>
     <string name="ime_zawgyi_field_toast">Writing Zawgyi in this text box</string>
     <string name="ime_zawgyi_paste_moved_toast">The pasted text is no longer before the cursor, so it was left as it is</string>
     <string name="ime_service_selection_actions_on_toast">Selection actions are on</string>
