@@ -128,8 +128,8 @@ private fun dictionaryShortcuts(context: android.content.Context): Map<String, L
         .firstOrNull { it.name == com.wasimaster.wmkeyboard.core.snippets.DictionaryShortcuts.FOLDER_NAME }
         ?: return@runCatching emptyMap()
     store.items()
-        .filter { it.folderId == folder.id && it.trigger.isNotBlank() }
-        .groupBy({ it.text.trim().lowercase() }, { it.trigger })
+        .filter { it.folderId == folder.id && !it.trigger.isNullOrBlank() }
+        .groupBy({ it.text.trim().lowercase() }, { it.trigger.orEmpty() })
 }.getOrDefault(emptyMap())
 
 @Composable
