@@ -1024,6 +1024,7 @@
     <string name="ime_clip_edit_placeholder">Type the clip’s text</string>
     <!-- A clip's own labels (#612): the hold popup's action, and the editor opened on them. -->
     <string name="ime_clip_tags">Tags</string>
+    <string name="ime_notes_has_reminder">Has a deadline or birthday ahead</string>
     <string name="ime_clip_paste_next">Paste next</string>
     <string name="ime_clip_collect">Collect copies here</string>
     <string name="ime_clip_collect_toast">New copies go into this clip. Press Collect copies here on it again to stop.</string>

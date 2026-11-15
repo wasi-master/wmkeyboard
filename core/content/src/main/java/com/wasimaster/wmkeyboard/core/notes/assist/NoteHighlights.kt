@@ -101,7 +101,67 @@ object NoteHighlights {
         // tomorrow, day after tomorrow, next week, next friday, this sat, friday
         """(?<![\p{L}])(?:day after tomorrow|tomorrow|tonight|today|next week|next month|""" +
             """(?:next|this|coming)\s+(?:$WEEKDAYS|$SHORT_WEEKDAYS)|(?:$WEEKDAYS))(?![\p{L}])""",
-    ).map { Regex(it + TIME_TAIL, RegexOption.IGNORE_CASE) }
+    ).map { Regex(it + TIME_TAIL, RegexOption.IGNORE_CASE) } + bengaliShapes()
+
+    /**
+     * Bengali dates (#1293): the English months as Bengali writes them, with
+     * Bengali digits or ASCII ones, ordinal endings (১লা, ২০শে), the weekdays
+     * and the next-day words. [toLatin] reads a match back in English for
+     * [DateTimes], so both scripts mean the same date.
+     */
+    private val BN_MONTH_NAMES: List<Pair<String, String>> = listOf(
+        "জানুয়ারি" to "january", "জানুয়ারী" to "january", "ফেব্রুয়ারি" to "february", "ফেব্রুয়ারী" to "february",
+        "মার্চ" to "march", "এপ্রিল" to "april", "মে" to "may", "জুন" to "june", "জুলাই" to "july",
+        "আগস্ট" to "august", "আগষ্ট" to "august", "সেপ্টেম্বর" to "september", "অক্টোবর" to "october",
+        "নভেম্বর" to "november", "ডিসেম্বর" to "december",
+    )
+    private val BN_WEEKDAYS: List<Pair<String, String>> = listOf(
+        "শনিবার" to "saturday", "রবিবার" to "sunday", "সোমবার" to "monday", "মঙ্গলবার" to "tuesday",
+        "বুধবার" to "wednesday", "বৃহস্পতিবার" to "thursday", "শুক্রবার" to "friday",
+    )
+    private val BN_RELATIVE: List<Pair<String, String>> = listOf(
+        "আগামী সপ্তাহ" to "next week", "আগামী মাস" to "next month", "আগামীকাল" to "tomorrow",
+        "পরশু" to "day after tomorrow", "আজ" to "today", "আগামী" to "next",
+    )
+
+    /** Bengali's ordinal endings on a day: ১লা, ২রা, ৪ঠা, ৫ই, ২০শে. */
+    private const val BN_ORDINAL = "(?:লা|রা|ঠা|ই|শে)?"
+
+    /** [word] matching য় written as one letter or as য and its dot. */
+    private fun bnAlt(word: String): String =
+        word.split('\u09DF').joinToString("(?:\u09DF|\u09AF\u09BC)") { part -> Regex.escape(part) }
+
+    private fun bengaliShapes(): List<Regex> {
+        val months = BN_MONTH_NAMES.sortedByDescending { it.first.length }.joinToString("|") { bnAlt(it.first) }
+        val weekdays = BN_WEEKDAYS.joinToString("|") { bnAlt(it.first) }
+        val digit = "[\\d০-৯]"
+        val notWord = "(?![\\p{L}\\p{M}])"
+        return listOf(
+            // ২০/১১/২০২৬
+            """(?<![\d০-৯/.-])[০-৯]{1,2}([/.\-])[০-৯]{1,2}\1(?:[০-৯]{4}|[০-৯]{2})(?![\d০-৯/.-])""",
+            // ২০শে নভেম্বর ২০২৬, 20 নভেম্বর
+            """(?<![\p{L}\p{M}\d০-৯])$digit{1,2}$BN_ORDINAL\s*(?:$months)$notWord(?:,?\s+$digit{4}(?![\d০-৯]))?""",
+            // নভেম্বর ২০, ২০২৬
+            """(?<![\p{L}\p{M}])(?:$months)\s+$digit{1,2}$BN_ORDINAL(?![\d০-৯\p{L}\p{M}])(?:,?\s+$digit{4}(?![\d০-৯]))?""",
+            // আগামীকাল, পরশু, আগামী শুক্রবার, শুক্রবার
+            """(?<![\p{L}\p{M}])(?:আগামী সপ্তাহ|আগামী মাস|আগামীকাল|পরশু|আজ|(?:আগামী\s+)?(?:$weekdays))$notWord""",
+        ).map { Regex(it) }
+    }
+
+    /**
+     * A Bengali date match in the English [DateTimes] reads: digits to ASCII,
+     * the ordinal endings off, months, weekdays and next-day words to English.
+     * Latin text comes back as it was.
+     */
+    internal fun toLatin(raw: String): String {
+        if (raw.none { it in '\u0980'..'\u09FF' }) return raw
+        var out = raw.replace("\u09AF\u09BC", "\u09DF")
+        out = out.map { if (it in '০'..'৯') '0' + (it - '০') else it }.joinToString("")
+        for ((bn, en) in BN_MONTH_NAMES + BN_WEEKDAYS) out = out.replace(bn.replace("\u09AF\u09BC", "\u09DF"), " $en ")
+        for ((bn, en) in BN_RELATIVE) out = out.replace(bn, " $en ")
+        out = out.replace(Regex("(\\d)(?:লা|রা|ঠা|ই|শে)"), "$1")
+        return out.replace(Regex("\\s+"), " ").trim()
+    }
 
     /**
      * The words that make a date a deadline, read on the date's own line
@@ -207,7 +267,7 @@ object NoteHighlights {
                 val end = start + raw.length
                 if (spans.any { start < it.end && it.start < end }) continue
                 if (raw.length > DateTimes.MAX_LENGTH) continue
-                val hit = DateTimes.parse(raw, anchorMillis, zone, locale) ?: continue
+                val hit = DateTimes.parse(toLatin(raw), anchorMillis, zone, locale) ?: continue
                 if (!hit.hasDate) continue
                 val line = lineAt(text, start)
                 val lineStart = text.lastIndexOf('\n', start - 1) + 1

@@ -64,6 +64,7 @@ import com.wasimaster.wmkeyboard.app.lock.AppLockStatus
 import com.wasimaster.wmkeyboard.app.lock.AppLockTargets
 import com.wasimaster.wmkeyboard.app.lock.LocalAppLock
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Alarm
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
@@ -247,6 +248,8 @@ internal fun NotesListScreen(
     var message by remember { mutableStateOf<String?>(null) }
     var sortMenu by remember { mutableStateOf(false) }
     val sort = settings.watch { it.notes.sort }
+    // The alarm on a note with a deadline or birthday ahead (#1293).
+    val reminderMarks = settings.watch { it.notes.assist.enabled && it.notes.assist.reminders }
     val tagColours = remember(state.tags) { state.tags.associate { it.name.lowercase(Locale.ROOT) to it.colour } }
 
     val shown = remember(state.active, state.archived, view, tagFilter, query, sort) {
@@ -413,6 +416,7 @@ internal fun NotesListScreen(
                     NoteListRow(
                         note = note,
                         tagColours = tagColours,
+                        reminderMark = reminderMarks,
                         selecting = selecting,
                         checked = note.id in selected,
                         onClick = {
@@ -597,6 +601,8 @@ private suspend fun importNotes(context: android.content.Context, state: NotesSc
 private fun NoteListRow(
     note: Note,
     tagColours: Map<String, Int>,
+    /** Whether a note with a deadline or birthday ahead wears an alarm (#1293). */
+    reminderMark: Boolean,
     selecting: Boolean,
     checked: Boolean,
     onClick: () -> Unit,
@@ -636,6 +642,14 @@ private fun NoteListRow(
                 leading = if (selecting) ({ Checkbox(checked = checked, onCheckedChange = { onClick() }) }) else null,
                 trailing = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        val due = reminderMark && !note.locked && remember(note.id, note.updatedAt) {
+                            com.wasimaster.wmkeyboard.core.notes.assist.NoteReminders.upcoming(
+                                com.wasimaster.wmkeyboard.core.notes.assist.NoteHighlights.find(note.body, note.updatedAt),
+                                System.currentTimeMillis(),
+                                limit = 1,
+                            ).isNotEmpty()
+                        }
+                        if (due) Icon(Icons.Outlined.Alarm, contentDescription = stringResource(R.string.notes_has_reminder_desc), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                         if (note.pinned) Icon(Icons.Outlined.PushPin, contentDescription = stringResource(R.string.notes_pinned_desc), modifier = Modifier.size(16.dp))
                         if (note.locked) Icon(Icons.Outlined.Lock, contentDescription = stringResource(R.string.notes_locked_desc), modifier = Modifier.size(16.dp))
                     }

@@ -85,6 +85,7 @@ import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.clipboard.clipPreviewText
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Subject
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Alarm
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
@@ -949,6 +950,7 @@ private fun ShelfCard(
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
                 NoteGlyph(note, look, size = 14.dp)
                 if (look.progress != null || note.locked) Spacer(Modifier.width(5.dp))
+                NoteReminderMark(state, note, size = 13.dp)
                 Text(look.footer, color = kb.secondaryText, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
@@ -1015,6 +1017,7 @@ private fun GridCard(
                 Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
                     NoteGlyph(note, look, size = 14.dp)
                     if (look.progress != null || note.locked) Spacer(Modifier.width(5.dp))
+                    NoteReminderMark(state, note, size = 13.dp)
                     Text(look.footer, color = kb.secondaryText, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
                     if (note.archived && state.notes.filter != NotesFilter.Archived) {
                         Spacer(Modifier.width(5.dp))
@@ -1115,6 +1118,34 @@ private fun Modifier.noteTint(colour: Color): Modifier =
         val x = if (layoutDirection == LayoutDirection.Ltr) 0f else size.width - w
         drawRect(colour, Offset(x, 0f), Size(w, size.height))
     }
+
+/**
+ * An alarm on the card of a note with a deadline or a birthday still ahead
+ * (#1293), the ones the assistant's Remind me chips offer, so the shelf
+ * shows which notes have one without opening them. Only with the notes
+ * assistant and its reminders on, and never on a locked note, whose text is
+ * not read. Worked out once per edit of the note.
+ */
+@Composable
+private fun NoteReminderMark(state: KeyboardUiState, note: Note, size: Dp) {
+    val assist = state.settings.notes.assist
+    if (!assist.enabled || !assist.reminders || note.locked) return
+    val due = remember(note.id, note.updatedAt) {
+        val now = System.currentTimeMillis()
+        com.wasimaster.wmkeyboard.core.notes.assist.NoteReminders.upcoming(
+            com.wasimaster.wmkeyboard.core.notes.assist.NoteHighlights.find(note.body, note.updatedAt),
+            now,
+            limit = 1,
+        ).isNotEmpty()
+    }
+    if (!due) return
+    Icon(
+        Icons.Outlined.Alarm,
+        contentDescription = stringResource(R.string.ime_notes_has_reminder),
+        tint = LocalKbTheme.current.accent,
+        modifier = Modifier.padding(end = 4.dp).size(size),
+    )
+}
 
 /** The checklist ring, or the lock, that leads a card's footer; nothing for a plain note. */
 @Composable

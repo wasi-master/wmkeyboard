@@ -27,6 +27,7 @@
     <string name="notes_locked_preview">Locked note</string>
     <string name="notes_locked_desc">Locked</string>
     <string name="notes_pinned_desc">Pinned</string>
+    <string name="notes_has_reminder_desc">Has a deadline or birthday ahead</string>
     <string name="notes_empty">You have no notes yet. Press the + button to write one, or select text in any app and press Save as note on the keyboard.</string>
     <!-- %1$s is what was searched for. -->
     <string name="notes_empty_search">No note matches “<xliff:g id="query" example="milk">%1$s</xliff:g>”.</string>

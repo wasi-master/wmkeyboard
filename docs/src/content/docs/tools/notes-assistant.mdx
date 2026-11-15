@@ -50,6 +50,7 @@ A row of chips picks out:
 - **Deadlines**, in red: a date with *due*, *deadline*, *submit*, *apply*, *by*, *before*, *until*, *expires*, *renew*, *pay* or a word like them in front of it on the same line.
 - **Birthdays**: a date on a line that says *birthday*, *anniversary* or *date of birth*.
 - **Other dates**: `3 Dec`, `December 3rd, 2026`, `2026-12-03`, `03/12/2026` in your phone's date order, `tomorrow`, `next friday at 5pm`.
+- **Dates in Bengali**, the same kinds: `২০শে নভেম্বর`, `নভেম্বর ২০, ২০২৬`, `২০/১১/২০২৬`, `আগামীকাল`, `পরশু`, `আগামী শুক্রবার`. Bengali digits and ASCII ones both count, and *শেষ তারিখ*, *জমা* or *মেয়াদ* make a date a deadline, *জন্মদিন* a birthday.
 - **Amounts**: a currency sign or code beside a number, like `$1,200.50`, `৳500` or `40 USD`.
 - **Phone numbers, email addresses, links and places**, found the way the clipboard [finds them in clips](/tools/clipboard/#pulling-codes-and-links-out-of-a-clip). A code-shaped number is not picked out, since a note is not where codes arrive.
 
@@ -60,6 +61,8 @@ A date without a year, or a word like *tomorrow*, is read from the day the note 
 <SettingsPath path="Tools / Notes / Reminders" />
 
 Under **Coming up**, a deadline that is still ahead, up to four months out, gets a **Remind me** chip with its date. A birthday gets one too, for the next time it comes round, whatever year the note gives.
+
+A note with a deadline or birthday ahead wears a small alarm on its card in the keyboard's Notes panel and in the app's Notes list, so you can see which notes have one without opening them.
 
 Nothing is set by itself. A tap opens the [Calendar tool's](/tools/calendar/) new event with the note's line as its title and the date filled in, all day unless the note gave a time, and with your usual reminder. A birthday's event repeats every year. If you set the Calendar tool to save through your calendar app, or the tool is off, the calendar app's own new-event screen opens instead. In the settings app it is always the calendar app.
 

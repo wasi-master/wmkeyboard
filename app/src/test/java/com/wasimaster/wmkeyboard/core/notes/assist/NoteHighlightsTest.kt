@@ -70,4 +70,20 @@ class NoteHighlightsTest {
         assertEquals(1, find("Call 01712345678\nOr 01712345678 again").count { it.kind == NoteHighlightKind.PHONE })
         assertTrue(find("   \n ").isEmpty())
     }
+
+    @Test
+    fun `a Bengali deadline with Bengali digits and month reads as the same date`() {
+        // #1293: "শেষ তারিখ" makes it a deadline; ২০শে নভেম্বর is 20 November.
+        val found = find("ফর্ম জমার শেষ তারিখ ২০শে নভেম্বর").single()
+        assertEquals(NoteHighlightKind.DEADLINE, found.kind)
+        assertEquals("২০শে নভেম্বর", found.text)
+        assertEquals(at(2026, 11, 20), found.whenMillis)
+    }
+
+    @Test
+    fun `Bengali text reads back in English for the date parser`() {
+        assertEquals("20 november 2026", NoteHighlights.toLatin("২০শে নভেম্বর ২০২৬"))
+        assertEquals("tomorrow", NoteHighlights.toLatin("আগামীকাল"))
+        assertEquals("3 Dec", NoteHighlights.toLatin("3 Dec"))
+    }
 }
