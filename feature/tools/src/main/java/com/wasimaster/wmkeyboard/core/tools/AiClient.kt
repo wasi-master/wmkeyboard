@@ -61,6 +61,8 @@ object AiClient {
          * for it; everywhere else it is ignored.
          */
         val reasoning: Boolean? = null,
+        /** Brave only: its research mode, several searches before one answer. */
+        val braveResearch: Boolean = false,
     )
 
     /** The placeholder a header value can use for [Config.sessionId]. */
@@ -345,6 +347,7 @@ object AiClient {
         AiProvider.BRAVE -> Config(
             AiProvider.BRAVE, settings.braveKey.ifBlank { settings.braveSearchKey },
             DefaultModels.BRAVE, "",
+            braveResearch = settings.braveResearch,
         )
         AiProvider.OPENAI_COMPATIBLE -> Config(
             AiProvider.OPENAI_COMPATIBLE, settings.compatibleKey,
@@ -2043,16 +2046,19 @@ object AiClient {
         return runStream(
             source = config.netSource,
             url = ServiceEndpoints.base(ServiceEndpoint.BRAVE_SEARCH) + "/res/v1/chat/completions",
-            body = braveBody(system, turns, maxTokens),
+            body = braveBody(system, turns, maxTokens, research = config.braveResearch),
             headers = requestHeaders(config, mapOf("X-Subscription-Token" to config.apiKey)),
-            timeoutMs = 120_000,
+            // Research runs up to Brave's own five-minute budget.
+            timeoutMs = if (config.braveResearch) 330_000 else 120_000,
             onPhase = onPhase,
             onPartial = onPartial,
             isActive = isActive,
             apply = { line, buffer ->
                 // A tag prefix held back at the very end is released here.
                 if (line.startsWith("data:") && line.removePrefix("data:").trim() == "[DONE]") {
-                    buffer.answer(filter.flush())
+                    val answer = filter.flush()
+                    buffer.reasoning(filter.takeReasoning())
+                    buffer.answer(answer)
                 }
                 sseData(line)?.let { applyBraveEvent(it, filter, buffer) }
             },
@@ -2064,9 +2070,13 @@ object AiClient {
         system: String,
         turns: List<ChatTurn>,
         maxTokens: Int?,
+        research: Boolean = false,
     ): String = buildJsonObject {
         put("model", DefaultModels.BRAVE)
         put("stream", true)
+        // Several searches and reads before one cited answer; streaming only,
+        // and never with enable_citations, which this body does not send.
+        if (research) put("enable_research", true)
         // Brave's spelling; it does not read max_tokens.
         if (maxTokens != null) put("max_completion_tokens", maxTokens)
         put("messages", buildJsonArray {
@@ -2113,14 +2123,32 @@ object AiClient {
             throw streamFailure(error.text("message").ifEmpty { error.text("detail") })
         }
         val choice = event["choices"]?.jsonArray?.firstOrNull()?.jsonObject ?: return
-        choice["delta"]?.jsonObject?.let { buffer.answer(filter.feed(it.text("content"))) }
+        choice["delta"]?.jsonObject?.let {
+            val answer = filter.feed(it.text("content"))
+            buffer.reasoning(filter.takeReasoning())
+            buffer.answer(answer)
+        }
         val finish = choice.text("finish_reason")
-        if (finish.isNotEmpty()) buffer.answer(filter.flush())
+        if (finish.isNotEmpty()) {
+            val answer = filter.flush()
+            buffer.reasoning(filter.takeReasoning())
+            buffer.answer(answer)
+        }
         if (finish == "length") buffer.markTruncated()
     }
 
-    /** The tags Brave writes into the answer text that are not answer. */
-    private val BRAVE_TAGS = listOf("usage", "citation")
+    /** The tags Brave writes into the answer text whose content is dropped: metadata and debug. */
+    private val BRAVE_DROPPED = listOf("usage", "citation", "queries", "analyzing")
+
+    /**
+     * Research mode's tags whose content is the model at work rather than the
+     * answer (#438's follow-up): how it is choosing sources, its progress
+     * counts, and the gaps it found. Shown as reasoning, the think block.
+     */
+    private val BRAVE_REASONING = listOf("thinking", "progress", "blindspots")
+
+    /** Research mode's final answer, unwrapped. */
+    private const val BRAVE_ANSWER = "answer"
 
     internal fun stripBraveTags(text: String): String {
         val filter = BraveTagFilter()
@@ -2128,14 +2156,19 @@ object AiClient {
     }
 
     /**
-     * Removes Brave's inline metadata tags from a stream whose chunks can cut
-     * a tag anywhere, `<us` in one event and `age>{…}</usage>` in the next.
-     * Text that might still turn into a tag is held back until it either does
-     * or cannot; everything else passes through at once, so the answer still
-     * appears as it streams.
+     * Sorts Brave's stream, whose chunks can cut a tag anywhere (`<us` in one
+     * event and `age>{…}</usage>` in the next): metadata tags are dropped,
+     * research mode's working tags go to [takeReasoning], and its `<answer>`
+     * is unwrapped. Text that might still turn into a tag is held back until
+     * it either does or cannot; everything else passes through at once, so
+     * the answer still appears as it streams.
      */
     internal class BraveTagFilter {
         private val pending = StringBuilder()
+        private val reasoning = StringBuilder()
+
+        /** The content tag the text is inside: a [BRAVE_REASONING] one or [BRAVE_ANSWER]; null outside. */
+        private var inside: String? = null
 
         /** Takes the next chunk, returns the text now known to be answer. */
         fun feed(chunk: String): String {
@@ -2145,35 +2178,66 @@ object AiClient {
 
         /**
          * The end of the stream: a partial tag name is released as text, and a
-         * tag that never closed is dropped, because what it held is metadata.
+         * dropped tag that never closed is dropped whole, because what it held
+         * is metadata.
          */
         fun flush(): String = drain(final = true)
 
+        /** The working text collected since the last call, for the think block. */
+        fun takeReasoning(): String {
+            val out = reasoning.toString()
+            reasoning.setLength(0)
+            return out
+        }
+
+        private fun emit(out: StringBuilder, from: Int, to: Int) {
+            if (from >= to) return
+            if (inside in BRAVE_REASONING) reasoning.append(pending, from, to) else out.append(pending, from, to)
+        }
+
+        @Suppress("CyclomaticComplexMethod", "LoopWithTooManyJumpStatements")
         private fun drain(final: Boolean): String {
             val out = StringBuilder()
             var i = 0
             while (i < pending.length) {
                 val open = pending.indexOf("<", i)
                 if (open < 0) {
-                    out.append(pending, i, pending.length)
+                    emit(out, i, pending.length)
                     i = pending.length
                     break
                 }
-                out.append(pending, i, open)
+                emit(out, i, open)
                 i = open
-                val tag = BRAVE_TAGS.firstOrNull { pending.startsWith("<$it>", i) }
-                if (tag != null) {
-                    val close = pending.indexOf("</$tag>", i)
+                val current = inside
+                if (current != null && pending.startsWith("</$current>", i)) {
+                    // A working tag ends its own line in the think block.
+                    if (current in BRAVE_REASONING && reasoning.isNotEmpty() && !reasoning.endsWith("\n")) {
+                        reasoning.append('\n')
+                    }
+                    inside = null
+                    i += current.length + CLOSING_TAG_EXTRA
+                    continue
+                }
+                val dropped = BRAVE_DROPPED.firstOrNull { pending.startsWith("<$it>", i) }
+                if (dropped != null) {
+                    val close = pending.indexOf("</$dropped>", i)
                     if (close < 0) {
                         if (final) i = pending.length
                         break
                     }
-                    i = close + tag.length + CLOSING_TAG_EXTRA
+                    i = close + dropped.length + CLOSING_TAG_EXTRA
+                    continue
+                }
+                val content = (BRAVE_REASONING + BRAVE_ANSWER).firstOrNull { pending.startsWith("<$it>", i) }
+                if (content != null && current == null) {
+                    inside = content
+                    i += content.length + 2
                     continue
                 }
                 val rest = pending.substring(i)
-                if (!final && BRAVE_TAGS.any { "<$it>".startsWith(rest) }) break
-                out.append('<')
+                val names = BRAVE_DROPPED + BRAVE_REASONING + BRAVE_ANSWER
+                if (!final && (names.any { "<$it>".startsWith(rest) || "</$it>".startsWith(rest) })) break
+                emit(out, i, i + 1)
                 i++
             }
             pending.delete(0, i)

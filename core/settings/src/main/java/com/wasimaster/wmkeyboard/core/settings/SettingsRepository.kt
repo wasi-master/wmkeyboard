@@ -5696,6 +5696,12 @@ data class AiSettings(
     /** Key for Brave's Answers API. Blank = [braveSearchKey]. */
     val braveKey: String = "",
     /**
+     * Brave's research mode: several searches and reads, a minute or more,
+     * before one cited answer, with its progress shown as reasoning. Off by
+     * default: it costs several requests and is slow for a quick reply.
+     */
+    val braveResearch: Boolean = false,
+    /**
      * The key the user gave the web search tool, read here so the AI client
      * can fall back to it without the whole settings object. Never written
      * through this class: its preference belongs to [WebSearchSettings]. The
@@ -14111,6 +14117,7 @@ class SettingsRepository(private val context: Context) {
         private val AI_DEEPSEEK_KEY = stringPreferencesKey("ai_deepseek_key")
         private val AI_DEEPSEEK_MODEL = stringPreferencesKey("ai_deepseek_model")
         private val AI_BRAVE_KEY = stringPreferencesKey("ai_brave_key")
+        private val AI_BRAVE_RESEARCH = booleanPreferencesKey("ai_brave_research")
         private val AI_COMPATIBLE_URL = stringPreferencesKey("ai_compatible_url")
         private val AI_COMPATIBLE_KEY = stringPreferencesKey("ai_compatible_key")
         private val AI_COMPATIBLE_MODEL = stringPreferencesKey("ai_compatible_model")
@@ -16920,6 +16927,7 @@ class SettingsRepository(private val context: Context) {
             deepSeekKey = p[AI_DEEPSEEK_KEY] ?: defaults.ai.deepSeekKey,
             deepSeekModel = p[AI_DEEPSEEK_MODEL] ?: defaults.ai.deepSeekModel,
             braveKey = p[AI_BRAVE_KEY] ?: defaults.ai.braveKey,
+            braveResearch = p[AI_BRAVE_RESEARCH] ?: defaults.ai.braveResearch,
             // The web search Brave key, as the search provider list keeps it.
             braveSearchKey = ProviderCodec.decodeCredentials(p[PROVIDER_CREDENTIALS])
                 ?.firstOrNull { it.id == "brave" }?.apiKey
@@ -27149,6 +27157,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAiBraveKey(value: String) =
         editPrefs { it[AI_BRAVE_KEY] = value.trim() }
+
+    suspend fun setAiBraveResearch(value: Boolean) =
+        editPrefs { it[AI_BRAVE_RESEARCH] = value }
 
     suspend fun setAiCompatibleUrl(value: String) =
         editPrefs { it[AI_COMPATIBLE_URL] = value.trim().trimEnd('/') }

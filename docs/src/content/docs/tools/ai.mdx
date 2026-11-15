@@ -112,6 +112,7 @@ DeepSeek's reasoning models stream their thinking on a separate field. The app f
 - **No Model field.** Brave has one model, so there's nothing to pick.
 - **One message per request.** Brave doesn't accept a system prompt or earlier turns, so the app sends the action's instructions, and in a [chat](#chatting-instead-of-transforming) the earlier messages as a transcript, together with your text as one message.
 - Brave bills each answer for the search it ran plus the tokens in and out. The usage and citation markers it writes into the stream are removed before you see the answer.
+- **Research mode**, on the Brave row's own page under <SettingsPath path="Tools / AI writing tools / Brave / Research mode" /> (off by default), turns on Brave's deep research: up to five rounds of searching and reading, for as long as five minutes, and then one answer with its sources. While it works, its progress counts, the reasoning it gives for picking sources and the gaps it found show in the thinking block above the answer, and the answer replaces them when it arrives. Every search in a run is billed, so a researched answer costs several times a plain one; keep it for questions that need it.
 
 ### Privatemode
 

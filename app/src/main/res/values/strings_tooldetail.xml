@@ -1444,4 +1444,7 @@
     <string name="tooldetail_privacy_shade_apps_add">Add an app</string>
     <string name="tooldetail_privacy_shade_apps_remove_desc">Take the app off the list</string>
     <string name="tooldetail_privacy_shade_touch_off_subtitle">The shade takes taps. Hold a finger on it to see under it until you let go</string>
+    <string name="tooldetail_brave_research_title">Research mode</string>
+    <string name="tooldetail_brave_research_subtitle">Several searches before one cited answer; slower, and billed per search</string>
+    <string name="tooldetail_brave_research_info">Brave runs up to five rounds of searching and reading, for as long as five minutes, and then writes one answer with its sources. While it works, its progress and its reasoning show in the thinking block above the answer. Each search it runs is billed, so a researched answer costs several times a plain one.</string>
 </resources>

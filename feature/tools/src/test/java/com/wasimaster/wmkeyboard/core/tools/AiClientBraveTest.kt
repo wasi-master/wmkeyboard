@@ -153,4 +153,28 @@ class AiClientBraveTest {
             ),
         )
     }
+
+    @Test
+    fun `research mode sends enable_research and sorts its tags`() {
+        val body = Json.parseToJsonElement(
+            AiClient.braveBody("", listOf(ChatTurn(ChatRole.USER, "q")), maxTokens = null, research = true),
+        ).jsonObject
+        assertEquals("true", body["enable_research"]!!.jsonPrimitive.content)
+        assertNull(body["enable_citations"])
+
+        val filter = AiClient.BraveTagFilter()
+        val answer = StringBuilder()
+        val reasoning = StringBuilder()
+        listOf(
+            "<queries>[\"a\"]</queries><prog", "ress>2 iterations</progress><thinking>pick ",
+            "these</thinking><answer>The ans", "wer.<citation>1</citation></answer><usage>{}</usage>",
+        ).forEach {
+            answer.append(filter.feed(it))
+            reasoning.append(filter.takeReasoning())
+        }
+        answer.append(filter.flush())
+        reasoning.append(filter.takeReasoning())
+        assertEquals("The answer.", answer.toString())
+        assertEquals("2 iterations\npick these\n", reasoning.toString())
+    }
 }

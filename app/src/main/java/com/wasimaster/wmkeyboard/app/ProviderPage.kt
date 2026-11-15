@@ -383,8 +383,29 @@ internal fun ProviderOwnSettings(
         ProviderTypes.LIBRESPEED.id -> LibreSpeedServerSettings(repository, settings, row)
         // ---- AI: the model on the phone, and the headers a service is sent with (#648).
         ProviderTypes.ON_DEVICE_AI.id -> LocalLlmModelManager(repository, settings)
+        ProviderTypes.BRAVE_ANSWERS.id -> {
+            BraveResearchGroup(repository, settings)
+            AiProviderHeadersGroup(repository, settings, AiProvider.BRAVE)
+        }
         else -> if (tool == ProviderTool.AI) {
             AiProviders.of(type.id)?.takeIf { it != AiProvider.ON_DEVICE }?.let { AiProviderHeadersGroup(repository, settings, it) }
+        }
+    }
+}
+
+/** Brave's research mode (`enable_research`), on the Brave row's own page. */
+@Composable
+private fun BraveResearchGroup(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    SettingsGroup(level = SettingLevel.STANDARD) {
+        item {
+            ToggleSetting(
+                R.string.tooldetail_brave_research_title,
+                stringResource(R.string.tooldetail_brave_research_subtitle),
+                settings.watch { it.ai.braveResearch },
+                info = stringResource(R.string.tooldetail_brave_research_info),
+                default = SettingsDefaults.ai.braveResearch,
+            ) { on -> scope.launch { repository.setAiBraveResearch(on) } }
         }
     }
 }
