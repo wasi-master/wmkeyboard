@@ -529,7 +529,7 @@ import com.wasimaster.wmkeyboard.core.settings.holdActionOf
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.tools.AiClient
-import androidx.compose.material.icons.outlined.Quickreply
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Quickreply
 import com.wasimaster.wmkeyboard.core.settings.ToolKey
 import com.wasimaster.wmkeyboard.core.settings.builtinTools
 import com.wasimaster.wmkeyboard.core.settings.contains

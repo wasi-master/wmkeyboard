@@ -4,7 +4,7 @@ import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.settings.fiatRateProviders
 import com.wasimaster.wmkeyboard.core.settings.cryptoRateProviders
-import com.wasimaster.wmkeyboard.core.tools.AppNames
+import com.wasimaster.wmkeyboard.core.tools.AppNames as ChipAppNames
 import com.wasimaster.wmkeyboard.core.tools.NoRateProviderException
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
@@ -150,7 +150,7 @@ import com.wasimaster.wmkeyboard.core.xlit.IndicXlit
 import com.wasimaster.wmkeyboard.core.xlit.IndicXlitLatinDownloads
 import com.wasimaster.wmkeyboard.core.xlit.IndicXlitModels
 import com.wasimaster.wmkeyboard.core.semantic.MeaningSync
-import com.wasimaster.wmkeyboard.ime.lookup.CaretWord
+import com.wasimaster.wmkeyboard.ime.lookup.CaretWord as LookupCaretWord
 import com.wasimaster.wmkeyboard.ime.lookup.SearchCompletions
 import com.wasimaster.wmkeyboard.ime.semantic.MeaningHits
 import com.wasimaster.wmkeyboard.ime.semantic.MeaningSearch
@@ -29344,25 +29344,25 @@ open class WMKeyboardService : InputMethodService() {
      * tool's list. Loaded once in the background the first time the chip
      * asks; until then, and on a load that failed, nothing matches.
      */
-    private fun appNamesForChips(): AppNames? {
+    private fun appNamesForChips(): ChipAppNames? {
         appChipNames?.let { return it }
         val cached = launcherAppsCache
         if (cached != null) {
-            return AppNames.of(cached.filter { it.profile == null }.map { AppNames.App(it.label, it.packageName, it.activityName) })
+            return ChipAppNames.of(cached.filter { it.profile == null }.map { ChipAppNames.App(it.label, it.packageName, it.activityName) })
                 .also { appChipNames = it }
         }
         if (!appChipLoading) {
             appChipLoading = true
             serviceScope.launch {
                 val apps = AppCatalog.loadAllApps(this@WMKeyboardService, otherProfiles = false)
-                appChipNames = AppNames.of(apps.map { AppNames.App(it.label, it.packageName, it.activityName) })
+                appChipNames = ChipAppNames.of(apps.map { ChipAppNames.App(it.label, it.packageName, it.activityName) })
                 appChipLoading = false
             }
         }
         return null
     }
 
-    @Volatile private var appChipNames: AppNames? = null
+    @Volatile private var appChipNames: ChipAppNames? = null
     @Volatile private var appChipLoading = false
 
     /**
@@ -47819,16 +47819,16 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun currentWordForLookup(): String? {
         val ic = currentInputConnection ?: return null
-        ic.getSelectedText(0)?.toString()?.takeIf { it.isNotEmpty() }?.let { return CaretWord.clean(it) }
+        ic.getSelectedText(0)?.toString()?.takeIf { it.isNotEmpty() }?.let { return LookupCaretWord.clean(it) }
         return caretWordSpan()?.word
     }
 
     /** The word at or just before the caret, with where it sits around the caret; null for none. */
-    private fun caretWordSpan(): CaretWord.Span? {
+    private fun caretWordSpan(): LookupCaretWord.Span? {
         val ic = currentInputConnection ?: return null
         val before = ic.getTextBeforeCursor(CARET_WORD_READ, 0)?.toString().orEmpty()
         val after = ic.getTextAfterCursor(CARET_WORD_READ, 0)?.toString().orEmpty()
-        return CaretWord.at(before, after)
+        return LookupCaretWord.at(before, after)
     }
 
     fun onDictionaryLookup(rawWord: String) {
@@ -50712,7 +50712,7 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /** The caret word [prefillTranslateFromCaret] put in the box, for Replace; null once the box is another text. */
-    private var translateCaretWord: CaretWord.Span? = null
+    private var translateCaretWord: LookupCaretWord.Span? = null
 
     /**
      * Replace on a box that still holds the caret word it opened on (#1085):
@@ -50726,7 +50726,7 @@ open class WMKeyboardService : InputMethodService() {
         val caret = expectedSelStart.takeIf { it >= 0 && it == expectedSelEnd } ?: return false
         val before = ic.getTextBeforeCursor(CARET_WORD_READ, 0)?.toString().orEmpty()
         val after = ic.getTextAfterCursor(CARET_WORD_READ, 0)?.toString().orEmpty()
-        if (CaretWord.at(before, after) != span) return false
+        if (LookupCaretWord.at(before, after) != span) return false
         ic.finishComposingText()
         revision = null
         composing = StringBuilder()

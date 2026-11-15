@@ -316,6 +316,7 @@ internal fun VoicePanel(
                     onToggleTranslate = onToggleTranslate,
                     onOpenVoiceSettings = onOpenVoiceSettings,
                     onUseSystemEngine = onUseSystemEngine,
+                    onLastResort = { onRailKey(VoiceBarAction.LastResort) },
                     micFocused = focusedAction == 0,
                 )
             }
@@ -581,6 +582,7 @@ private fun MicContent(
     onToggleTranslate: () -> Unit,
     onOpenVoiceSettings: () -> Unit,
     onUseSystemEngine: () -> Unit,
+    onLastResort: () -> Unit,
     micFocused: Boolean = false,
 ) {
     val kb = LocalKbTheme.current
@@ -718,7 +720,7 @@ private fun MicContent(
                 VoiceChipAction(
                     text = lastResort.label,
                     icon = Icons.Outlined.Mic,
-                    onClick = { onRailKey(VoiceBarAction.LastResort) },
+                    onClick = onLastResort,
                 )
             }
         }
