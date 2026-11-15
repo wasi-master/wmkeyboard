@@ -52,6 +52,10 @@
     <string name="vocab_list_export_subtitle">Save as a .wmvocab.json file to share or publish</string>
     <string name="vocab_list_exported">Saved.</string>
     <string name="vocab_list_export_error">Could not write the file.</string>
+    <plurals name="vocab_lists_exported">
+        <item quantity="one">%1$d list saved to one zip. Import that zip under Vocabulary packs on any phone.</item>
+        <item quantity="other">%1$d lists saved to one zip. Import that zip under Vocabulary packs on any phone.</item>
+    </plurals>
     <string name="vocab_list_bulk_title">Add many words</string>
     <string name="vocab_list_bulk_subtitle">Paste a list, one word per line</string>
     <string name="vocab_list_delete_title">Delete list</string>

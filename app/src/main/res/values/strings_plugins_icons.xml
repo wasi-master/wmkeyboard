@@ -89,7 +89,7 @@
 
     <string name="plugins_add_title">Add</string>
     <string name="plugins_install_file_title">Install from a file</string>
-    <string name="plugins_install_file_subtitle">Select a .wmplugin file</string>
+    <string name="plugins_install_file_subtitle">Select a .wmplugin file, or a zip of several</string>
     <string name="plugins_install_repo_info">You can also install plugins from an add-on repository. Look under Add-ons.</string>
 
     <!-- ================================================================== -->
@@ -160,6 +160,15 @@
     <!-- %1$s is the name of the plugin. -->
     <string name="plugins_uninstall_confirm_title">Uninstall %1$s?</string>
     <string name="plugins_uninstall_confirm_body">The app deletes its script and all the data it saved from your device.</string>
+    <plurals name="plugins_uninstall_many_title">
+        <item quantity="one">Uninstall %1$d plugin?</item>
+        <item quantity="other">Uninstall %1$d plugins?</item>
+    </plurals>
+    <plurals name="plugins_exported_count">
+        <item quantity="one">%1$d plugin saved to the file. Install it from that file on any phone.</item>
+        <item quantity="other">%1$d plugins saved to one zip. Install from that zip on any phone: each plugin asks before it goes in.</item>
+    </plurals>
+    <string name="plugins_export_failed">Some plugins could not be saved: %1$s</string>
 
     <!-- ================================================================== -->
     <!-- The install dialog: what the file claims to be.                    -->

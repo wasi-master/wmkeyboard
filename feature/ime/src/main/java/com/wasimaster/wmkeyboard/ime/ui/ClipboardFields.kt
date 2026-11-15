@@ -158,6 +158,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Link
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mail
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Place
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SelectAll
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Share
 import com.wasimaster.wmkeyboard.core.clipboard.ClipItem
 import com.wasimaster.wmkeyboard.core.clipboard.ClipKind
 import com.wasimaster.wmkeyboard.core.clipboard.ClipLinks
@@ -1267,6 +1268,7 @@ private fun ClipboardListField(
         )
     }
     val deleteAsked = session.deleteAsking.value
+    val clipContext = androidx.compose.ui.platform.LocalContext.current
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             when {
@@ -1290,6 +1292,10 @@ private fun ClipboardListField(
                     onDelete = {
                         session.selection.value = null
                         callbacks.actions.onDeleteMany(selection)
+                    },
+                    onShare = {
+                        session.selection.value = null
+                        shareClips(clipContext, selection, state.clipboardItems)
                     },
                     onTidy = if (session.tidy) {
                         {
@@ -1459,6 +1465,8 @@ private fun ClipSelectionBar(
     onSelectAll: () -> Unit,
     onCombine: () -> Unit,
     onDelete: () -> Unit,
+    /** Hands the picked text clips to another app through the share sheet: the clipboard's export. */
+    onShare: (() -> Unit)? = null,
     /** Runs the copy rules over the picked clips (#612); none without rules. */
     onTidy: (() -> Unit)? = null,
     /** Converts the picked clips between Zawgyi and Unicode; shown while one holds Burmese. */
@@ -1535,6 +1543,22 @@ private fun ClipSelectionBar(
         ) {
             TextButton(onClick = onCombine, enabled = textual >= 2) {
                 Text(stringResource(R.string.ime_clip_combine))
+            }
+        }
+        if (onShare != null) {
+            val share = stringResource(R.string.ime_clip_share_desc)
+            IconHint(
+                share,
+                disabledReason = DisabledReason(stringResource(R.string.ime_disabled_clip_share)).takeIf { textual < 1 },
+            ) {
+                IconButton(onClick = onShare, enabled = textual >= 1, modifier = Modifier.size(36.dp)) {
+                    Icon(
+                        Icons.Outlined.Share,
+                        contentDescription = share,
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
         TextButton(onClick = onDelete, enabled = picked.isNotEmpty()) {
@@ -4515,5 +4539,26 @@ private fun ClipCombineBox(
                 )
             }
         }
+    }
+}
+
+/**
+ * The picked text clips, in the order they were picked, one after another
+ * with a blank line between, handed to the share sheet: how a batch of clips
+ * leaves the keyboard for a file, a note app or a chat. Clips marked
+ * sensitive (passwords, codes) stay out, as they do from every other export.
+ */
+private fun shareClips(context: android.content.Context, picked: List<Long>, items: List<ClipItem>) {
+    val byId = items.associateBy { it.id }
+    val text = picked.mapNotNull { id -> byId[id]?.takeIf { it.kind.isTextual && !it.sensitive }?.text }
+        .joinToString("\n\n")
+    if (text.isEmpty()) return
+    val send = android.content.Intent(android.content.Intent.ACTION_SEND)
+        .setType("text/plain")
+        .putExtra(android.content.Intent.EXTRA_TEXT, text)
+    runCatching {
+        context.startActivity(
+            android.content.Intent.createChooser(send, null).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK),
+        )
     }
 }

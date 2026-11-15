@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.util.requireOutputStream
+import androidx.activity.compose.BackHandler
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -118,9 +120,96 @@ internal fun PluginsScreen(repository: SettingsRepository, settings: LiveSetting
     var pending by remember { mutableStateOf<Uri?>(null) }
     val scope = rememberCoroutineScope()
 
+    // Several plugins in one zip (the pick bar's export): each is shown its
+    // own disclosure in turn, from a copy in the cache.
+    var queued by remember { mutableStateOf<List<Uri>>(emptyList()) }
     val picker = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument(),
-    ) { uri -> pending = uri }
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val parts = withContext(Dispatchers.IO) { unbundlePlugins(context, uri) }
+            if (parts == null) {
+                pending = uri
+            } else {
+                queued = parts.drop(1)
+                pending = parts.firstOrNull()
+            }
+        }
+    }
+
+    // A long press on a plugin starts picking, as in the other lists of
+    // things the user installs: taps then tick plugins, and the dock exports
+    // or uninstalls every ticked one at once. The ⋮ keeps the row's menu.
+    var pickedIds by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var confirmBulkUninstall by remember { mutableStateOf(false) }
+    val livePicked = plugins.filter { it.id in pickedIds }
+    val picking = livePicked.isNotEmpty() && enabled
+    var pendingBulkExport by remember { mutableStateOf<List<InstalledPlugin>?>(null) }
+    val bulkExportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument(PackBundle.MIME_TYPE),
+    ) { uri ->
+        val picked = pendingBulkExport
+        pendingBulkExport = null
+        if (uri == null || picked == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val failed = withContext(Dispatchers.IO) {
+                val failed = ArrayList<String>()
+                runCatching {
+                    context.contentResolver.requireOutputStream(uri).use { out ->
+                        PackBundle.write(
+                            out,
+                            picked.map { plugin ->
+                                val name = "${plugin.displayName.replace(Regex("[^\\p{L}\\p{N} _-]"), "").trim().ifBlank { plugin.id }}.${PluginFile.FILE_EXTENSION}"
+                                name to { stream: java.io.OutputStream -> if (!store.export(plugin.id, stream)) failed += plugin.displayName }
+                            },
+                        )
+                    }
+                }.onFailure { failed += picked.map { it.displayName } }
+                failed
+            }
+            pickedIds = emptySet()
+            importMessage = if (failed.isEmpty()) {
+                context.resources.getQuantityString(R.plurals.plugins_exported_count, picked.size, picked.size)
+            } else {
+                context.getString(R.string.plugins_export_failed, failed.joinToString(", "))
+            }
+        }
+    }
+    BackHandler(enabled = picking) { pickedIds = emptySet() }
+    if (picking) {
+        RegisterDock {
+            PickBar(
+                count = livePicked.size,
+                allPicked = livePicked.size == plugins.size,
+                onClear = { pickedIds = emptySet() },
+                onSelectAll = { pickedIds = plugins.mapTo(HashSet()) { it.id } },
+                onExport = {
+                    pendingBulkExport = livePicked
+                    bulkExportLauncher.launch(PackBundle.fileName("plugins"))
+                },
+                onDelete = { confirmBulkUninstall = true },
+            )
+        }
+    }
+    if (confirmBulkUninstall && picking) {
+        val count = livePicked.size
+        AlertDialog(
+            onDismissRequest = { confirmBulkUninstall = false },
+            title = { Text(pluralStringResource(R.plurals.plugins_uninstall_many_title, count, count)) },
+            text = { Text(stringResource(R.string.plugins_uninstall_confirm_body)) },
+            confirmButton = {
+                TextButton({
+                    confirmBulkUninstall = false
+                    val doomed = livePicked
+                    pickedIds = emptySet()
+                    scope.launch { for (plugin in doomed) repository.removePluginTool(plugin.id) }
+                    for (plugin in doomed) store.delete(plugin.id)
+                }) { Text(stringResource(CommonR.string.common_uninstall)) }
+            },
+            dismissButton = { TextButton({ confirmBulkUninstall = false }) { Text(stringResource(CommonR.string.common_cancel)) } },
+        )
+    }
 
     // No scroller of its own: SettingsScreen already wraps this content in a
     // Column(verticalScroll), and a scrollable inside a scrollable is measured
@@ -249,6 +338,9 @@ internal fun PluginsScreen(repository: SettingsRepository, settings: LiveSetting
                                 onPlace = { place -> scope.launch { repository.setPluginToolPlace(plugin.id, place) } },
                                 onNavigate = onNavigate,
                                 onUninstall = { uninstalling = plugin },
+                                picking = picking,
+                                picked = plugin.id in pickedIds,
+                                onPick = { pickedIds = pickedIds.toggled(plugin.id) },
                             )
                         }
                     }
@@ -277,9 +369,13 @@ internal fun PluginsScreen(repository: SettingsRepository, settings: LiveSetting
     pending?.let { uri ->
         PluginInstallDialog(
             uri = uri,
-            onDismiss = { pending = null },
+            onDismiss = {
+                pending = queued.firstOrNull()
+                queued = queued.drop(1)
+            },
             onDone = { message ->
-                pending = null
+                pending = queued.firstOrNull()
+                queued = queued.drop(1)
                 importMessage = message
             },
             scope = scope,
@@ -453,6 +549,9 @@ private fun PluginListRow(
     onPlace: (PluginToolPlace) -> Unit,
     onNavigate: (String) -> Unit,
     onUninstall: () -> Unit,
+    picking: Boolean = false,
+    picked: Boolean = false,
+    onPick: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val store = remember { PluginStore.get(context) }
@@ -476,15 +575,21 @@ private fun PluginListRow(
             title = plugin.displayName,
             subtitle = subtitle,
             // The icon its tool wears on the toolbar and in the toolbox.
-            leading = { PluginIcon(plugin, tint = plugin.toolColor ?: MaterialTheme.colorScheme.onSurfaceVariant) },
-            swipeActions = swipes,
+            leading = {
+                if (picking) {
+                    androidx.compose.material3.Checkbox(checked = picked, onCheckedChange = null)
+                } else {
+                    PluginIcon(plugin, tint = plugin.toolColor ?: MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            },
+            swipeActions = if (picking) emptyList() else swipes,
             trailing = {
                 IconButton(onClick = { menu = true }) {
                     Icon(Icons.Outlined.MoreVert, contentDescription = stringResource(ImeR.string.ime_plugin_more, plugin.displayName))
                 }
             },
-            onLongClick = { menu = true },
-            onClick = { onNavigate(pluginRoute(plugin.id)) },
+            onLongClick = onPick ?: { menu = true },
+            onClick = if (picking && onPick != null) onPick else ({ onNavigate(pluginRoute(plugin.id)) }),
         )
         androidx.compose.material3.DropdownMenu(
             expanded = menu,
@@ -1137,4 +1242,25 @@ private fun PluginInstallDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
         },
     )
+}
+
+/**
+ * The plugins in a zip of `.wmplugin` files (the pick bar's export), copied
+ * out to the cache one file each so each install reads its own; null when
+ * [uri] is a single plugin rather than such a zip. Blocking.
+ */
+private fun unbundlePlugins(context: android.content.Context, uri: Uri): List<Uri>? {
+    if (!PackBundle.isBundle(context, uri, PluginFile.FILE_EXTENSION)) return null
+    val folder = java.io.File(context.cacheDir, "plugin-bundle").apply {
+        deleteRecursively()
+        mkdirs()
+    }
+    val out = ArrayList<Uri>()
+    PackBundle.forEachPack(context, uri, PluginFile.FILE_EXTENSION) { name, input ->
+        if (input == null) return@forEachPack
+        val file = java.io.File(folder, "${out.size}-" + name.replace('/', '_'))
+        input.use { i -> file.outputStream().use { i.copyTo(it) } }
+        out += Uri.fromFile(file)
+    }
+    return out
 }

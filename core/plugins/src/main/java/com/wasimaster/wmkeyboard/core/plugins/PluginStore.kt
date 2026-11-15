@@ -751,6 +751,30 @@ class PluginStore(
         parkedList.removeAll { it.id == id }
     }
 
+    /**
+     * Plugin [id] as a `.wmplugin` again, written to [out]: its manifest,
+     * script, modules, assets and translations as installed, so the file
+     * installs on another phone the way the original did. Not its storage,
+     * log or secrets, which are the user's data rather than the plugin.
+     * False when something of it is missing.
+     */
+    fun export(id: String, out: java.io.OutputStream): Boolean {
+        val dir = dirFor(id)?.takeIf { it.isDirectory } ?: return false
+        val manifestText = runCatching { File(dir, MANIFEST_FILE).readText() }.getOrNull() ?: return false
+        val manifest = (PluginManifestCodec.read(manifestText) as? PluginManifestResult.Ok)?.manifest ?: return false
+        val script = script(id) ?: return false
+        val assetsRoot = File(dir, ASSETS_DIR)
+        val assets = assetsRoot.walkTopDown()
+            .filter { it.isFile }
+            .associate { it.relativeTo(assetsRoot).invariantSeparatorsPath to it.readBytes() }
+            .filterKeys(PluginFile::isAssetName)
+        val locales = localeTags(id).mapNotNull { tag ->
+            val file = File(File(dir, PluginLocales.DIR), tag + PluginLocales.SUFFIX)
+            runCatching { tag to file.readText() }.getOrNull()
+        }.toMap()
+        return runCatching { PluginFile.write(out, manifest, script, modules(id), assets, locales) }.isSuccess
+    }
+
     /** Plugin [id]'s secrets, `wm.secrets` and its secret settings rows; null without a folder. */
     fun secrets(id: String): PluginSecrets? =
         baseDir?.parentFile?.let { files -> PluginSecrets(File(files, PluginSecrets.DIR_NAME), id) }

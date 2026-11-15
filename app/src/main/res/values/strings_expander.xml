@@ -33,6 +33,10 @@
     <string name="expander_snippets_empty">You have no snippets yet. Press the + button to write one.</string>
     <!-- Bar shown after a snippet is deleted, naming it. %1$s is the snippet's name. -->
     <string name="expander_deleted_snackbar">Deleted %1$s</string>
+    <plurals name="expander_deleted_many_snackbar">
+        <item quantity="one">Deleted %1$d snippet</item>
+        <item quantity="other">Deleted %1$d snippets</item>
+    </plurals>
 
     <!-- Folders: named groups of snippets. A folder that is switched off keeps
          its snippets, but they no longer appear by themselves while you type. -->

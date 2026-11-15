@@ -1154,6 +1154,7 @@
     <string name="ime_clip_select">Select</string>
     <string name="ime_clip_select_cancel_desc">Stop selecting</string>
     <string name="ime_clip_select_all_desc">Select all, or none</string>
+    <string name="ime_clip_share_desc">Share the picked clips</string>
     <plurals name="ime_clip_selected_count">
         <item quantity="one">%1$d selected</item>
         <item quantity="other">%1$d selected</item>

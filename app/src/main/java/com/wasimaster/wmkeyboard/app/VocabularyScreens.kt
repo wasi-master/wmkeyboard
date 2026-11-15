@@ -788,6 +788,25 @@ internal fun VocabPacksScreen(
     val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         scope.launch {
+            // Several lists in one zip (the lists screen's pick bar exports
+            // them so): each comes in on its own, and one message says how many.
+            val bundled = withContext(Dispatchers.IO) {
+                if (!PackBundle.isBundle(context, uri, VocabPackFile.FILE_EXTENSION)) return@withContext null
+                val failed = ArrayList<String>()
+                var imported = 0
+                runCatching {
+                    PackBundle.forEachPack(context, uri, VocabPackFile.FILE_EXTENSION) { entry, input ->
+                        val got = input?.use { runCatching { VocabPacks.import(context.filesDir, "en", entry, it) }.getOrNull() }
+                        if (got is VocabPacks.ImportResult.Imported) imported++ else failed += entry
+                    }
+                }
+                imported to failed
+            }
+            if (bundled != null) {
+                message = bulkImportSummary(context, bundled.first, bundled.second)
+                revision++
+                return@launch
+            }
             val result = withContext(Dispatchers.IO) {
                 runCatching {
                     val name = context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
@@ -1125,6 +1144,87 @@ internal fun VocabListsScreen(
         }
     }
 
+    // A long press on a list starts picking: taps then tick lists, and the
+    // dock exports every ticked one in one zip or deletes them all.
+    var pickedFiles by remember { mutableStateOf<Set<File>>(emptySet()) }
+    var confirmBulkDelete by remember { mutableStateOf(false) }
+    var message by remember { mutableStateOf<String?>(null) }
+    val livePicked = lists.filter { it.file in pickedFiles }
+    val picking = livePicked.isNotEmpty()
+    var pendingExport by remember { mutableStateOf<List<UserVocabList>?>(null) }
+    val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(PackBundle.MIME_TYPE)) { uri ->
+        val picked = pendingExport
+        pendingExport = null
+        if (uri == null || picked == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val ok = withContext(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver.requireOutputStream(uri).use { out ->
+                        PackBundle.write(
+                            out,
+                            picked.map { list ->
+                                VocabPackFile.fileName(list.pack.meta) to { stream: java.io.OutputStream ->
+                                    stream.use {
+                                        it.write(VocabPackFile.encode(list.pack, BuildConfig.VERSION_CODE, BuildConfig.VERSION_NAME).toByteArray())
+                                    }
+                                }
+                            },
+                        )
+                    }
+                }.isSuccess
+            }
+            pickedFiles = emptySet()
+            message = if (ok) {
+                context.resources.getQuantityString(R.plurals.vocab_lists_exported, picked.size, picked.size)
+            } else {
+                context.getString(R.string.vocab_list_export_error)
+            }
+        }
+    }
+    androidx.activity.compose.BackHandler(enabled = picking) { pickedFiles = emptySet() }
+    if (picking) {
+        RegisterDock {
+            PickBar(
+                count = livePicked.size,
+                allPicked = livePicked.size == lists.size,
+                onClear = { pickedFiles = emptySet() },
+                onSelectAll = { pickedFiles = lists.mapTo(HashSet()) { it.file } },
+                onExport = {
+                    pendingExport = livePicked
+                    exportLauncher.launch(PackBundle.fileName("vocabulary-lists"))
+                },
+                onDelete = { confirmBulkDelete = true },
+            )
+        }
+    }
+    if (confirmBulkDelete && picking) {
+        val count = livePicked.size
+        AlertDialog(
+            onDismissRequest = { confirmBulkDelete = false },
+            title = { Text(pluralStringResource(R.plurals.pick_delete_title, count, count)) },
+            text = { Text(stringResource(R.string.pick_delete_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmBulkDelete = false
+                    val doomed = livePicked
+                    pickedFiles = emptySet()
+                    scope.launch {
+                        withContext(Dispatchers.IO) { doomed.forEach { VocabPacks.remove(it.file) } }
+                        revision++
+                    }
+                }) { Text(stringResource(CommonR.string.common_delete)) }
+            },
+            dismissButton = { TextButton(onClick = { confirmBulkDelete = false }) { Text(stringResource(CommonR.string.common_cancel)) } },
+        )
+    }
+    message?.let { text ->
+        AlertDialog(
+            onDismissRequest = { message = null },
+            text = { Text(text) },
+            confirmButton = { TextButton(onClick = { message = null }) { Text(stringResource(CommonR.string.common_ok)) } },
+        )
+    }
+
     RegisterAddFab(stringResource(R.string.vocab_lists_add_action)) { newName = "" }
 
     SettingsGroup(stringResource(R.string.vocab_lists_title), info = stringResource(R.string.vocab_lists_info)) {
@@ -1136,9 +1236,15 @@ internal fun VocabListsScreen(
                 WmRow(
                     title = list.pack.name,
                     subtitle = stringResource(R.string.vocab_list_subtitle, list.pack.words.size, list.learnt),
-                    icon = Icons.Outlined.PlaylistAdd,
+                    icon = if (picking) null else Icons.Outlined.PlaylistAdd,
+                    leading = if (picking) {
+                        { androidx.compose.material3.Checkbox(checked = list.file in pickedFiles, onCheckedChange = null) }
+                    } else {
+                        null
+                    },
+                    onLongClick = { pickedFiles = pickedFiles.toggled(list.file) },
                     trailing = {
-                        Switch(
+                        if (!picking) Switch(
                             checked = VocabPacks.isEnabled(list.file),
                             onCheckedChange = { on ->
                                 scope.launch {
@@ -1148,7 +1254,9 @@ internal fun VocabListsScreen(
                             },
                         )
                     },
-                    onClick = { onNavigate(vocabListRoute(VocabPacks.packIdOf(list.file))) },
+                    onClick = {
+                        if (picking) pickedFiles = pickedFiles.toggled(list.file) else onNavigate(vocabListRoute(VocabPacks.packIdOf(list.file)))
+                    },
                 )
             }
         }
