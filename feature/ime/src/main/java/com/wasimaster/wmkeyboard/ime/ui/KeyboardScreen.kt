@@ -11805,8 +11805,11 @@ private fun phoneticEnglishLanguage(state: KeyboardUiState): String? =
  */
 private fun stripShortcutTools(state: KeyboardUiState): List<ToolbarTool> {
     if (!state.settings.emojiToolbar) return emptyList()
+    // Not asked whether the tool is on in the toolbox: picking it for the strip
+    // is asking for it, and the actions that never go in the toolbox (Leave
+    // field) or a tool taken out of it (Settings) showed nothing (#1300).
     return state.settings.toolbarBehavior.stripShortcuts.filter {
-        it in state.settings.enabledTools && isSupportedTool(it) && isUsableTool(it, state.settings)
+        isSupportedTool(it) && isUsableTool(it, state.settings)
     }
 }
 
@@ -11880,8 +11883,11 @@ private fun StripTools(
     // Null is the toolbox button. Drawn in the order they read left to right,
     // whichever way the strip runs, unless the toolbar mirrors for this script
     // too (see [stripToolsHeldLtr]).
+    // Not while the tools have a row of their own that starts with the
+    // toolbox button already: the same button twice (#1300).
+    val toolboxOnRow = toolsRowVisible && barToolboxShown(state)
     val order = buildList {
-        if (state.settings.emojiToolbar && behavior.stripToolbox && behavior.stripToolboxAtEnd == side) add(null)
+        if (state.settings.emojiToolbar && behavior.stripToolbox && behavior.stripToolboxAtEnd == side && !toolboxOnRow) add(null)
         addAll(tools)
         if (autoPhonetic) add(phonetic)
     }

@@ -36481,8 +36481,11 @@ open class WMKeyboardService : InputMethodService() {
         // The toolbar never renders a tool the user has switched off, but a
         // shortcut can still name one: a stored binding outlives the tool
         // leaving the strip. The device-level tests are in [runTool], which the
-        // key-bound path ([runToolFromKey]) reaches without this one.
-        if (tool !in _uiState.value.settings.enabledTools) return
+        // key-bound path ([runToolFromKey]) reaches without this one. A tool
+        // the user put beside the suggestions is one they asked for there,
+        // whether or not it is on in the toolbox (#1300).
+        val settings = _uiState.value.settings
+        if (tool !in settings.enabledTools && tool !in settings.toolbarBehavior.stripShortcuts) return
         // Set to open in the floating box (#1259): the tap floats it.
         if (tool.floats && tool in _uiState.value.settings.toolbarBehavior.floatOnTap) {
             openFloatingApplet(tool)
