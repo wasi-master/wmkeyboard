@@ -720,6 +720,8 @@
     <!-- Screen reader action name of that button. -->
     <string name="backup_dictionary_sort_reverse">Reverse the order</string>
     <string name="backup_dictionary_no_matches">No learned word matches \"%1$s\".</string>
+    <string name="backup_dictionary_search_regex_desc">Search with a regular expression</string>
+    <string name="backup_dictionary_search_regex_invalid">Not a regular expression this search can read</string>
     <string name="backup_blacklist_scope_title">Blocked from the keyboard</string>
     <string name="backup_blacklist_scope_subtitle">Where a word you block with Never suggest applies</string>
     <string name="backup_blacklist_scope_info">Pressing and holding a suggestion and choosing Never suggest blocks the word. This decides whether it is blocked in every language or only in the language you were typing. Words you add on this screen ask each time.</string>
