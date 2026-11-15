@@ -37,6 +37,10 @@
     <string name="ime_clock_relative_now">now</string>
     <string name="ime_clock_search_empty_title">No place found</string>
     <string name="ime_clock_search_empty_body">Try the name of a big city near it, its country, or its offset from UTC.</string>
+    <!-- A button under the world clock's search results: looks the typed town up online (Open-Meteo's place search) for one the built-in list lacks. -->
+    <string name="ime_clock_search_online">Search online</string>
+    <string name="ime_clock_search_online_busy">Searching…</string>
+    <string name="ime_clock_search_online_failed">Couldn\'t reach the search. Try again</string>
     <string name="ime_clock_format_time">Time</string>
     <string name="ime_clock_format_date_time">Date and time</string>
     <string name="ime_clock_format_date_long">Full date</string>

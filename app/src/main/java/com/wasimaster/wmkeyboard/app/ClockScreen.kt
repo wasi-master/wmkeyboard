@@ -69,6 +69,12 @@ import com.wasimaster.wmkeyboard.core.clock.ClockStore
 import com.wasimaster.wmkeyboard.core.clock.HistoryKind
 import com.wasimaster.wmkeyboard.core.clock.IcuZoneNames
 import com.wasimaster.wmkeyboard.core.clock.LocalDay
+import com.wasimaster.wmkeyboard.core.clock.OnlinePlaces
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.wasimaster.wmkeyboard.core.clock.RunningTimer
 import com.wasimaster.wmkeyboard.core.clock.Weekdays
 import com.wasimaster.wmkeyboard.core.clock.WorldZone
@@ -88,9 +94,10 @@ import java.util.Calendar
 import java.util.TimeZone
 import com.wasimaster.wmkeyboard.ime.R as ImeR
 
-/** The Clock screen's sections; the keyboard panel has the planner and date maths besides. */
+/** The Clock screen's sections, the keyboard panel's tabs with date maths and countdowns apart. */
 internal enum class ClockSection(val tab: String) {
-    ALARMS("alarms"), TIMERS("timers"), STOPWATCH("stopwatch"), CLOCKS("clocks"), COUNTDOWNS("dates"), HISTORY("history");
+    ALARMS("alarms"), TIMERS("timers"), STOPWATCH("stopwatch"), CLOCKS("clocks"), PLANNER("planner"),
+    DATE_MATHS("date-maths"), COUNTDOWNS("dates"), HISTORY("history");
 
     companion object {
         fun of(tab: String?): ClockSection = entries.firstOrNull { it.tab == tab } ?: ALARMS
@@ -180,6 +187,8 @@ internal fun ClockScreen(initialTab: String?, onNavigate: (String) -> Unit) {
             ClockSection.TIMERS -> TimersSection(data, hour24)
             ClockSection.STOPWATCH -> StopwatchSection(data)
             ClockSection.CLOCKS -> ClocksSection(config.shownZones(), config.zones, hour24)
+            ClockSection.PLANNER -> PlannerSection(config, hour24)
+            ClockSection.DATE_MATHS -> DateMathsSection()
             ClockSection.COUNTDOWNS -> CountdownsSection(data)
             ClockSection.HISTORY -> HistorySection(data, hour24)
         }
@@ -203,6 +212,8 @@ private fun sectionLabel(s: ClockSection): Int = when (s) {
     ClockSection.TIMERS -> ImeR.string.ime_clock_tab_timers
     ClockSection.STOPWATCH -> ImeR.string.ime_clock_tab_stopwatch
     ClockSection.CLOCKS -> ImeR.string.ime_clock_tab_clocks
+    ClockSection.PLANNER -> ImeR.string.ime_clock_tab_planner
+    ClockSection.DATE_MATHS -> R.string.clock_section_date_maths
     ClockSection.COUNTDOWNS -> ImeR.string.ime_clock_dates_countdowns
     ClockSection.HISTORY -> ImeR.string.ime_clock_tab_history
 }
@@ -602,10 +613,16 @@ private fun ClocksSection(zones: List<WorldZone>, stored: List<WorldZone>, hour2
 private fun ZonePickerDialog(onDismiss: () -> Unit, onPick: (ZoneEntry) -> Unit) {
     var query by remember { mutableStateOf("") }
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val catalog = remember {
         ZoneCatalog(IcuZoneNames(viewerRegion = DeviceLocales.read(context).regionCodes.firstOrNull()))
     }
-    val results = remember(query) { catalog.search(query) }
+    // A town the zone list lacks, looked up online on a press only (the
+    // typed text leaves the phone); a new keystroke drops the hits again.
+    var online by remember(query) { mutableStateOf<List<ZoneEntry>?>(null) }
+    var searching by remember(query) { mutableStateOf(false) }
+    var failed by remember(query) { mutableStateOf(false) }
+    val results = remember(query, online) { ((online ?: emptyList()) + catalog.search(query)).distinctBy { it.key } }
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {},
@@ -620,6 +637,32 @@ private fun ZonePickerDialog(onDismiss: () -> Unit, onPick: (ZoneEntry) -> Unit)
                     placeholder = { Text(stringResource(ImeR.string.ime_clock_search_hint)) },
                     modifier = Modifier.fillMaxWidth(),
                 )
+                if (query.isNotBlank() && online == null && InternetPermission.granted) {
+                    TextButton(
+                        enabled = !searching,
+                        onClick = {
+                            searching = true
+                            failed = false
+                            val asked = query
+                            scope.launch {
+                                val found = withContext(Dispatchers.IO) { runCatching { OnlinePlaces.search(asked) }.getOrNull() }
+                                if (asked != query) return@launch
+                                searching = false
+                                if (found == null) failed = true else online = found
+                            }
+                        },
+                    ) {
+                        Text(
+                            stringResource(
+                                when {
+                                    searching -> ImeR.string.ime_clock_search_online_busy
+                                    failed -> ImeR.string.ime_clock_search_online_failed
+                                    else -> ImeR.string.ime_clock_search_online
+                                },
+                            ),
+                        )
+                    }
+                }
                 LazyColumn(Modifier.heightIn(max = 360.dp)) {
                     items(results, key = { it.key }) { e ->
                         Column(

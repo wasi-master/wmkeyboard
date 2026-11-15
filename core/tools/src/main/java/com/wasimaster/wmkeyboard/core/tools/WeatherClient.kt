@@ -57,6 +57,8 @@ data class GeoPlace(
     val region: String,
     val latitude: Float,
     val longitude: Float,
+    /** The place's tz id ("Asia/Dhaka"), when the geocoder names one; the world clock's online search needs it. */
+    val timezone: String? = null,
 )
 
 /** One hour of an hourly forecast (#1212). [timeMillis] is the hour's start. */
@@ -164,6 +166,7 @@ object WeatherClient {
                 ).joinToString(", "),
                 latitude = place.getValue("latitude").jsonPrimitive.double.toFloat(),
                 longitude = place.getValue("longitude").jsonPrimitive.double.toFloat(),
+                timezone = place.optString("timezone"),
             )
         }
     }

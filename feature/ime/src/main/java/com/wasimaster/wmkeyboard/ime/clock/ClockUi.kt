@@ -30,6 +30,8 @@ data class ClockUi(
     val systemHour24: Boolean = false,
     /** Zone search results while the search box is open; null when it is closed. */
     val search: List<ZoneEntry>? = null,
+    /** Where the open search's online lookup stands; back to idle as the query changes. */
+    val online: OnlineSearch = OnlineSearch.IDLE,
     /** The clock whose insert sheet is open: a zone id, or "" for the local one. */
     val insertZone: String? = null,
     /** The moment the open insert sheet types; null types the time now. */
@@ -121,6 +123,9 @@ data class DatesUi(
     val newCountdown: LocalDay? = null,
 )
 
+/** The world clock's online place search, asked for with a button under the results. */
+enum class OnlineSearch { IDLE, BUSY, DONE, FAILED }
+
 sealed interface ClockUndo {
     data class AlarmRemoved(val alarm: Alarm) : ClockUndo
     data class HistoryCleared(val entries: List<HistoryEntry>) : ClockUndo
@@ -136,6 +141,9 @@ sealed interface ClockAction {
     // Clocks
     data object SearchOpen : ClockAction
     data object SearchClose : ClockAction
+
+    /** Looks the typed text up online, for a town the zone list has no entry for. */
+    data object SearchOnline : ClockAction
     data class AddZone(val zone: ZoneEntry) : ClockAction
     data class RemoveZone(val zoneId: String) : ClockAction
     data class MoveZone(val zoneId: String, val by: Int) : ClockAction

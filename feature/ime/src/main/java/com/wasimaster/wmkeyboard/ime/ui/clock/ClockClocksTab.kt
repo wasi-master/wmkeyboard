@@ -84,6 +84,8 @@ import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.clock.ClockAction
 import com.wasimaster.wmkeyboard.ime.clock.ClockUi
+import com.wasimaster.wmkeyboard.ime.clock.OnlineSearch
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.ime.clock.InsertWhen
 import com.wasimaster.wmkeyboard.ime.ui.KbTheme
 import com.wasimaster.wmkeyboard.ime.ui.LocalKbTheme
@@ -119,7 +121,7 @@ import kotlin.math.sin
 internal fun ClocksTab(state: KeyboardUiState, ui: ClockUi, act: (ClockAction) -> Unit) {
     val search = ui.search
     if (search != null) {
-        SearchResults(search, ui, act)
+        SearchResults(search, ui, typed = state.clockText?.text.orEmpty(), act = act)
         return
     }
     val kb = LocalKbTheme.current
@@ -687,15 +689,32 @@ private fun relativeText(context: android.content.Context, t: Long, now: Long): 
     }
 
 @Composable
-private fun SearchResults(results: List<ZoneEntry>, ui: ClockUi, act: (ClockAction) -> Unit) {
+private fun SearchResults(results: List<ZoneEntry>, ui: ClockUi, typed: String, act: (ClockAction) -> Unit) {
     val kb = LocalKbTheme.current
     val now = rememberNow(60_000L)
     val added = remember(ui.config.zones) { ui.config.zones.map { it.zoneId }.toSet() }
+    // A town the zone list lacks is looked up online, only on a press: the
+    // query leaves the phone, so it is never sent by itself.
+    val canGoOnline = typed.isNotBlank() && ui.online != OnlineSearch.DONE && InternetPermission.granted
+    val onlineButton: @Composable () -> Unit = {
+        PillButton(
+            stringResource(
+                when (ui.online) {
+                    OnlineSearch.BUSY -> R.string.ime_clock_search_online_busy
+                    OnlineSearch.FAILED -> R.string.ime_clock_search_online_failed
+                    else -> R.string.ime_clock_search_online
+                },
+            ),
+            icon = Icons.Outlined.Public,
+            enabled = ui.online != OnlineSearch.BUSY,
+        ) { act(ClockAction.SearchOnline) }
+    }
     if (results.isEmpty()) {
         EmptyState(
             icon = Icons.Outlined.Public,
             title = stringResource(R.string.ime_clock_search_empty_title),
             body = stringResource(R.string.ime_clock_search_empty_body),
+            action = if (canGoOnline) onlineButton else null,
         )
         return
     }
@@ -740,6 +759,11 @@ private fun SearchResults(results: List<ZoneEntry>, ui: ClockUi, act: (ClockActi
                         modifier = Modifier.size(16.dp),
                     )
                 }
+            }
+        }
+        if (canGoOnline) {
+            item(key = "online") {
+                Box(Modifier.fillMaxWidth().padding(vertical = 6.dp), contentAlignment = Alignment.Center) { onlineButton() }
             }
         }
     }

@@ -23,10 +23,16 @@
     <string name="clock_no_alarms">No alarms yet. Add one with the button below.</string>
     <string name="clock_no_timers">No timers running. Start one from a preset above, or from the keyboard\'s Clock tool.</string>
     <string name="clock_no_zones">No cities yet. Add the places of the people you talk to.</string>
+    <!-- The Clock screen's section for date maths (days between two dates, a date plus some days). -->
+    <string name="clock_section_date_maths">Date maths</string>
+    <string name="clock_copy_times">Copy the times</string>
+    <string name="clock_copy_discord">Copy for Discord</string>
+    <string name="clock_copy_answer">Copy</string>
+    <string name="clock_copied">Copied</string>
 
     <!-- Clock: tool settings -->
     <string name="clock_open_title">Open the clock</string>
-    <string name="clock_open_subtitle">Alarms, timers, stopwatch, world clocks, countdowns and history</string>
+    <string name="clock_open_subtitle">Alarms, timers, stopwatch, world clocks, meeting planner, date maths, countdowns and history</string>
     <string name="clock_grants_group">For alarms you can rely on</string>
     <string name="clock_grants_info">An alarm needs three things from Android to ring at the exact minute, over the lock screen, with buttons to snooze and dismiss. Each row here is one that is still missing. Alarms ring without them too, only less exactly, or as a plain notification. After the phone restarts, the alarms are set again when the keyboard first starts.</string>
     <string name="clock_grant_exact_title">Allow exact alarms</string>

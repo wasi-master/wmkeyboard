@@ -20,6 +20,7 @@ import com.wasimaster.wmkeyboard.core.clock.IcuZoneNames
 import com.wasimaster.wmkeyboard.core.clock.InsertFormat
 import com.wasimaster.wmkeyboard.core.clock.LocalDay
 import com.wasimaster.wmkeyboard.core.clock.MeetingPlanner
+import com.wasimaster.wmkeyboard.core.clock.OnlinePlaces
 import com.wasimaster.wmkeyboard.core.clock.PlannerDay
 import com.wasimaster.wmkeyboard.core.clock.Span
 import com.wasimaster.wmkeyboard.core.clock.ZoneEntry
@@ -28,12 +29,14 @@ import com.wasimaster.wmkeyboard.core.notify.WmNotifications
 import com.wasimaster.wmkeyboard.core.script.DeviceLocales
 import com.wasimaster.wmkeyboard.ime.R
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.TimeZone
 
 /**
@@ -132,7 +135,10 @@ internal class ClockController(
     /** Called by the service as the box is typed into. */
     fun onText(entry: ClockTextEntry) {
         when (entry.field) {
-            ClockTextField.SEARCH -> _state.update { it.copy(search = catalog.search(entry.text)) }
+            ClockTextField.SEARCH -> {
+                onlineJob?.cancel()
+                _state.update { it.copy(search = catalog.search(entry.text), online = OnlineSearch.IDLE) }
+            }
             ClockTextField.ALARM_LABEL ->
                 _state.update { s -> s.copy(alarmEdit = s.alarmEdit?.copy(label = entry.text.take(LABEL_MAX))) }
             ClockTextField.TIMER_LABEL -> _state.update { it.copy(timerLabel = entry.text.take(LABEL_MAX)) }
@@ -184,13 +190,14 @@ internal class ClockController(
             ClockAction.OpenApp -> openRoute(ClockEngine.ROUTE)
 
             ClockAction.SearchOpen -> {
-                _state.update { it.copy(search = catalog.search(""), insertZone = null) }
+                _state.update { it.copy(search = catalog.search(""), online = OnlineSearch.IDLE, insertZone = null) }
                 startText(ClockTextEntry(ClockTextField.SEARCH))
             }
             ClockAction.SearchClose -> {
                 endTextIfAny()
                 _state.update { it.copy(search = null) }
             }
+            ClockAction.SearchOnline -> searchOnline()
             is ClockAction.AddZone -> addZone(action.zone)
             is ClockAction.RemoveZone -> {
                 val zones = ClockPrefs.get(app).zones
@@ -456,6 +463,31 @@ internal class ClockController(
             null -> Unit
         }
         _state.update { it.copy(undo = null) }
+    }
+
+    private var onlineJob: Job? = null
+
+    /**
+     * The typed text looked up with the Weather tool's geocoder, for a town
+     * the zone list lacks. Its hits go first, ahead of the list's own; a new
+     * keystroke drops them again.
+     */
+    private fun searchOnline() {
+        val query = currentText()?.takeIf { it.field == ClockTextField.SEARCH }?.text?.trim().orEmpty()
+        if (query.isEmpty() || _state.value.online == OnlineSearch.BUSY) return
+        onlineJob?.cancel()
+        _state.update { it.copy(online = OnlineSearch.BUSY) }
+        onlineJob = scope.launch {
+            val found = withContext(Dispatchers.IO) { runCatching { OnlinePlaces.search(query) }.getOrNull() }
+            _state.update { s ->
+                val shown = s.search ?: return@update s.copy(online = OnlineSearch.IDLE)
+                if (found == null) {
+                    s.copy(online = OnlineSearch.FAILED)
+                } else {
+                    s.copy(search = (found + shown).distinctBy { it.key }, online = OnlineSearch.DONE)
+                }
+            }
+        }
     }
 
     private fun addZone(entry: ZoneEntry) {
