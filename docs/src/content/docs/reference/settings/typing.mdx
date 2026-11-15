@@ -209,6 +209,29 @@ The three navigation rows at the bottom open their own screens rather than an in
 
 Full writeup: [Suggestions & prediction](/smart/suggestions/) for the strip itself, [Contact-aware typing](/smart/contacts/) for the three permission-gated toggles, [Password manager chips & smart replies](/smart/autofill/) for the two Android-11 toggles, [Autocorrect](/smart/autocorrect/#reducing-typos-before-they-happen) for autopilot, and [Words on the keys](/typing/words-on-the-keys/) for the octopus screen.
 
+### Learning on this device
+
+On the Suggestions page since 0.6.6, beside the personal dictionary; it was on the Privacy screen before.
+
+<SettingsPath path="Typing / Suggestions / Learning on this device" />
+
+| Setting | Control | Default |
+|---|---|---|
+| Learn from typing | Toggle | On |
+| Add words to the system dictionary | Toggle, shown only while Learn from typing is on | Off |
+| Use the Android dictionary | Toggle | On |
+| Expand Android dictionary shortcuts | Toggle | On |
+
+**Learn from typing** is the master switch for the on-device word and word-pair lexicon. Turning it off stops new learning without deleting anything already learned.
+
+**Add words to the system dictionary** also writes learned words to Android's own personal dictionary (System Settings → Languages & input → Dictionary), so other keyboards and the platform spell checker see them too. It's the one setting in this group that writes outside the app, which is why it defaults off even though the keyboard's own learning already covers the same ground. The row only appears while **Learn from typing** is on, since words reach the system dictionary through that same learning path.
+
+**Use the Android dictionary** reads that same system dictionary the other way. Every word in it is a known word: it's suggested, autocorrect leaves it alone, and typing or gliding it never raises the "add to dictionary?" chip. The list is re-read whenever it changes, so a word added in System Settings works at once.
+
+**Expand Android dictionary shortcuts** reads the shortcut column of that list. Type a shortcut you've defined there, say "omw", and it offers the full phrase, "on my way", as a suggestion.
+
+Incognito mode, which pauses this learning, is on [Privacy](/reference/settings/privacy/#incognito).
+
 ### The Autopilot screen
 
 <SettingsPath path="Typing / Suggestions / Autopilot" />

@@ -9,10 +9,10 @@ import PhoneFrame from '@components/PhoneFrame.astro';
 import SettingsPath from '@components/SettingsPath.astro';
 import Shot from '@components/Shot.astro';
 
-The Privacy screen is six groups, in this order: the way into the permissions inventory, learning on this device and incognito, Android's own backup opt-in, whether other apps may control the keyboard, whether downloads are checked against their checksum, and the one button that clears learned data. Nothing else. This page is the field reference. For the reasoning and the rest of the privacy story, start at [Privacy at a glance](/privacy/overview/).
+The Privacy screen is five groups, in this order: the way into the permissions inventory, the network log and the app lock; incognito; whether other apps may control the keyboard; downloads (the GitHub mirror and whether downloads are checked against their checksum); and the one button that clears learned data. Nothing else. This page is the field reference. For the reasoning and the rest of the privacy story, start at [Privacy at a glance](/privacy/overview/).
 
-<PhoneFrame caption="The Privacy screen: the Permissions row, then the Learning on this device, Android backup and Your data groups.">
-  <Shot id="reference/settings/privacy-screen-groups" alt="The Privacy screen: On-device learning, Android backup, and Your data groups." />
+<PhoneFrame caption="The Privacy screen: the Permissions row, then its groups.">
+  <Shot id="reference/settings/privacy-screen-groups" alt="The Privacy screen and its groups." />
 </PhoneFrame>
 
 ## Options
@@ -55,45 +55,19 @@ It opens a screen of its own, where you turn the lock on, choose what it covers,
 
 Before you turn it on, note that the lock hides screens inside the settings app, and it does not encrypt anything. An export file, the Android backup, USB debugging and a rooted phone all still reach the same data.
 
-### Learning on this device
+### Incognito
 
-<SettingsPath path="Privacy / Learning on this device" />
+<SettingsPath path="Privacy / Incognito" />
 
 | Setting | Control | Default |
 |---|---|---|
-| Learn from typing | Toggle | On |
-| Add words to the system dictionary | Toggle, shown only while Learn from typing is on | Off |
-| Use the Android dictionary | Toggle | On |
-| Expand Android dictionary shortcuts | Toggle | On |
 | Incognito mode | Toggle | Off |
 | Follow private browsing | Toggle | On |
 | Incognito by app | List of apps, each Always incognito or Never incognito, and Add an app | Empty |
 
-**Learn from typing** is the master switch for the on-device word and word-pair lexicon. Turning it off stops new learning without deleting anything already learned.
-
-**Add words to the system dictionary** also writes learned words to Android's own personal dictionary (System Settings → Languages & input → Dictionary), so other keyboards and the platform spell checker see them too. It's the one setting in this group that writes outside the app, which is why it defaults off even though the keyboard's own learning already covers the same ground. The row only appears while **Learn from typing** is on, since words reach the system dictionary through that same learning path.
-
-**Use the Android dictionary** reads that same system dictionary the other way. Every word in it is a known word: it's suggested, autocorrect leaves it alone, and typing or gliding it never raises the "add to dictionary?" chip. The list is re-read whenever it changes, so a word added in System Settings works at once.
-
-**Expand Android dictionary shortcuts** reads the shortcut column of that list. Type a shortcut you've defined there, say "omw", and it offers the full phrase, "on my way", as a suggestion.
-
 **Incognito mode** and **Follow private browsing** are covered in full on [Incognito & secure fields](/privacy/incognito/), including exactly what pausing learning and clipboard capture means. **Follow private browsing** defaults to **on**, the opposite of its neighbour "Incognito mode". Two related toggles, **Pause learning** and **Pause clipboard capture**, both on by default, live on <SettingsPath path="Tools / Incognito" /> rather than here, next to a third, **Keep copies in the keyboard**, off by default, which keeps the keyboard's own copies off the system clipboard while incognito is on. "Follow private browsing" appears on that Tools screen too. It's the same setting shown in both places, not a second copy.
 
-### Android backup
-
-<SettingsPath path="Privacy / Android backup" />
-
-| Setting | Control | Default |
-|---|---|---|
-| Back up with Android | Toggle | Off |
-
-**Back up with Android** folds the keyboard into Android's own backup and phone-to-phone transfer system. It's off by default, so nothing this keyboard stores is copied anywhere until you turn it on. Once on, it includes settings, themes, layouts, snippets, learned words, sticker and icon packs, plugins, imported fonts and the word lists you imported yourself, plus any saved API keys (Translate, AI tools, and the rest). Voice and AI models, downloaded dictionaries, and emoji-keyword packs are left out, because the keyboard can fetch them again on its own. So are four smaller things, all for size: the camera and document-scanner scratch folders, the images behind clipboard entries (the clipboard's text history stays), and the uncropped originals behind your stickers (the stickers themselves stay). A cloud backup is only made on devices that can encrypt it with your screen lock.
-
-<PhoneFrame side caption="The info dialog for Back up with Android, listing what's included and excluded.">
-  <Shot id="reference/settings/privacy-backup-info-dialog" alt="The info dialog for Back up with Android, listing what's included and excluded." />
-</PhoneFrame>
-
-This is a different screen from the sibling **Backup & restore** item on the Settings home screen (route `backup`), which exports and imports a settings file by hand and never touches Google at all. See [Backup & restore](/privacy/backup/) for both paths side by side, and the [Backup & restore reference](/reference/settings/backup/) for that screen's own fields.
+What the keyboard learns from typing, and the Android dictionary switches, were in this group until 0.6.6. They are on the Suggestions page now: see [Learning on this device](/reference/settings/typing/#learning-on-this-device). Android's own backup moved to [Backup & restore](/reference/settings/backup/#android-backup).
 
 ### Other apps
 

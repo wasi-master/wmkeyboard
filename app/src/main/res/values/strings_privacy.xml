@@ -75,6 +75,7 @@
     <!-- ================================================================== -->
 
     <string name="privacy_learning_group_title">Learning on this device</string>
+    <string name="privacy_incognito_group_title">Incognito</string>
 
     <string name="privacy_learn_typing_title">Learn from typing</string>
     <string name="privacy_learn_typing_subtitle">The keyboard adjusts the suggestions to your typing. Nothing leaves your device</string>

@@ -13,8 +13,8 @@ import Shot from '@components/Shot.astro';
 
 Typing never touches the network on this keyboard, in any language and on any layout. That covers composing, prediction, autocorrect, gesture typing, spell check and learning. A short list of optional tools does reach the network. This page names every one of them, what sets it off, and how to switch it off.
 
-<PhoneFrame caption="The Privacy screen: On-device learning, Android backup, and Your data groups.">
-  <Shot id="privacy/privacy-screen-groups" alt="The Privacy screen: On-device learning, Android backup, and Your data groups." />
+<PhoneFrame caption="The Privacy screen and its groups.">
+  <Shot id="privacy/privacy-screen-groups" alt="The Privacy screen and its groups." />
 </PhoneFrame>
 
 ## The short version
@@ -91,11 +91,10 @@ Whether any particular build of the app ships with a working built-in key for Tr
 
 <SettingsPath path="Privacy" />
 
-The Privacy screen has four groups, each documented in full on its own page:
+The Privacy screen has these groups, each documented in full on its own page. What the keyboard learns from your typing is set under <SettingsPath path="Typing / Suggestions / Learning on this device" />, beside the personal dictionary, and Android's own backup under <SettingsPath path="Data / Backup & restore / Android backup" />; both lived on this screen before 0.6.6. See [Your data on device](/privacy/data/) and [Backup & restore](/privacy/backup/).
 
 - **Permissions and the lock** (an unnamed group at the top, holding two rows). The first opens the inventory of everything the keyboard can reach, and what it currently holds. See [Permissions](/privacy/permissions/) and, field by field, [Permissions settings](/reference/settings/permissions/). The second opens the **App lock**, which puts your fingerprint, or a PIN, password or pattern set in the app, in front of the settings screens and delete buttons you choose. It is off until you turn it on, and turning it on or off both ask for a check. See [App lock](/reference/settings/app-lock/).
-- **On-device learning** covers what gets learned, incognito mode, and private-browsing detection. See [Your data on device](/privacy/data/) and [Incognito & secure fields](/privacy/incognito/).
-- **Android backup** folds the keyboard into Android's own backup system, off by default. See [Backup & restore](/privacy/backup/).
+- **Incognito** holds incognito mode and private-browsing detection. See [Incognito & secure fields](/privacy/incognito/).
 - **Your data** holds one row, **Learned words**, whose delete button sits behind a confirmation. See [Your data on device](/privacy/data/#clearing-whats-stored).
 
 Every per-tool network toggle mentioned above lives on that tool's own settings screen rather than on Privacy. See [Network policy](/privacy/network/) for the full list, or the [tool settings reference](/reference/settings/tools/) for a screen-by-screen field list.

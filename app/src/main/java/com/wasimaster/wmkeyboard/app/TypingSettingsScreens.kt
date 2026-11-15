@@ -1707,6 +1707,8 @@ internal fun TypingSuggestionsSettings(
             ) { scope.launch { repository.setDeleteEditsImportedLists(it) } }
         }
     }
+    // What is learned from typing (#134), here beside the personal dictionary.
+    LearningGroup(repository, settings)
     // Where Synonyms looks (#321), in the order it asks: a provider is only
     // asked when those above it had nothing or were unreachable.
     ProvidersGroup(

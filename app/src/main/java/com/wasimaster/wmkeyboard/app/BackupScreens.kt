@@ -1380,6 +1380,8 @@ internal fun BackupSettings(
             )
         }
     }
+    // Android's own backup (#134), apart from the keyboard's files above.
+    AndroidBackupGroup(repository, settings)
     Spacer(Modifier.height(16.dp))
 
     foreignUri?.let { uri -> ImportFileDialog(repository, uri) { foreignUri = null } }

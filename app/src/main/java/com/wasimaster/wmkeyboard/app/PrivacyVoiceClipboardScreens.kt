@@ -100,8 +100,6 @@ internal fun PrivacySettings(
     onNavigate: (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    // Decides which rows the group holds; the rows read everything else.
-    val learnOn = settings.watch { it.learnFromTyping }
     // An unnamed group has no SectionHeader to hold it off the top bar, so the
     // breathing room a named group gets for free is spelled out here.
     Spacer(Modifier.height(12.dp))
@@ -141,10 +139,79 @@ internal fun PrivacySettings(
             ) { onNavigate(AppLockTargets.ROUTE) }
         }
     }
+    // Learning moved to Typing › Suggestions and Android backup to Backup &
+    // restore (#134): Privacy keeps what is about privacy itself.
     SettingsGroup(
-        stringResource(R.string.privacy_learning_group_title),
+        stringResource(R.string.privacy_incognito_group_title),
         info = stringResource(R.string.privacy_on_device_info),
     ) {
+        item {
+            ToggleSetting(
+                R.string.privacy_incognito_title,
+                stringResource(R.string.privacy_incognito_subtitle),
+                settings.watch { it.incognito },
+                info = stringResource(R.string.privacy_incognito_info),
+                default = SettingsDefaults.incognito,
+            ) { scope.launch { repository.setIncognito(it) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.privacy_auto_incognito_title,
+                stringResource(R.string.privacy_auto_incognito_subtitle),
+                settings.watch { it.autoIncognito },
+                info = stringResource(AUTO_INCOGNITO_INFO),
+                default = SettingsDefaults.autoIncognito,
+            ) { scope.launch { repository.setAutoIncognito(it) } }
+        }
+    }
+    IncognitoAppsGroup(repository, settings)
+    OtherAppsGroup(repository, onNavigate)
+    // F-Droid's opt-in and the offline build's import are what a feature's
+    // message points to, so they show at every depth; the checksum switch,
+    // which is for one rare situation, stays with Everything.
+    val libraryChoice = NativeDelivery.active && (NativeConsent.downloadsNeedOptIn || !InternetPermission.granted)
+    SettingsGroup(
+        stringResource(R.string.privacy_downloads_group_title),
+        level = if (libraryChoice) SettingLevel.BASIC else SettingLevel.STANDARD,
+    ) {
+        item(level = SettingLevel.STANDARD, weight = 2) { DownloadMirrorRow(repository, settings) }
+        item(level = SettingLevel.ADVANCED) { VerifyChecksumsRow(repository, settings) }
+        item(visible = FeatureLibraryList.offered) { FeatureLibrariesNavRow() }
+        item { FeatureLibrariesRows() }
+    }
+    SettingsGroup(stringResource(R.string.privacy_data_group_title)) {
+        item {
+            ActionRow(
+                title = R.string.privacy_delete_learned_words_title,
+                subtitle = stringResource(R.string.privacy_delete_learned_words_subtitle),
+                action = stringResource(R.string.privacy_delete_learned_words_action),
+                confirm = stringResource(R.string.privacy_delete_learned_words_confirm),
+                lock = AppLockTargets["action_delete_learned_words"],
+            ) {
+                scope.launch {
+                    repository.clearLearnedData()
+                    // The Chinese, Japanese and Cantonese picks are one of the
+                    // files the repository deletes, but its live store is a
+                    // `:core:input` object that `:core:settings` cannot reach,
+                    // so the in-memory copy in this process is dropped here.
+                    CjkLearning.store?.clear()
+                }
+            }
+        }
+    }
+}
+
+/**
+ * What the keyboard learns from typing, and how it shares words with Android's
+ * own dictionary (#134: on Typing › Suggestions, beside the personal
+ * dictionary, rather than on Privacy).
+ */
+@Composable
+internal fun LearningGroup(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    // Decides which rows the group holds; the rows read everything else.
+    val learnOn = settings.watch { it.learnFromTyping }
+    SettingsGroup(stringResource(R.string.privacy_learning_group_title)) {
         item {
             ToggleSetting(
                 R.string.privacy_learn_typing_title,
@@ -183,26 +250,13 @@ internal fun PrivacySettings(
                 default = SettingsDefaults.suggestionStrip.expandUserDictShortcuts,
             ) { scope.launch { repository.setExpandUserDictShortcuts(it) } }
         }
-        item {
-            ToggleSetting(
-                R.string.privacy_incognito_title,
-                stringResource(R.string.privacy_incognito_subtitle),
-                settings.watch { it.incognito },
-                info = stringResource(R.string.privacy_incognito_info),
-                default = SettingsDefaults.incognito,
-            ) { scope.launch { repository.setIncognito(it) } }
-        }
-        item(level = SettingLevel.STANDARD) {
-            ToggleSetting(
-                R.string.privacy_auto_incognito_title,
-                stringResource(R.string.privacy_auto_incognito_subtitle),
-                settings.watch { it.autoIncognito },
-                info = stringResource(AUTO_INCOGNITO_INFO),
-                default = SettingsDefaults.autoIncognito,
-            ) { scope.launch { repository.setAutoIncognito(it) } }
-        }
     }
-    IncognitoAppsGroup(repository, settings)
+}
+
+/** Android's own backup switch, on the Backup & restore screen (#134). */
+@Composable
+internal fun AndroidBackupGroup(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
     SettingsGroup(stringResource(R.string.privacy_backup_group_title)) {
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
@@ -212,40 +266,6 @@ internal fun PrivacySettings(
                 info = stringResource(R.string.privacy_backup_info),
                 default = SettingsDefaults.cloudBackup,
             ) { scope.launch { repository.setCloudBackup(it) } }
-        }
-    }
-    OtherAppsGroup(repository, onNavigate)
-    // F-Droid's opt-in and the offline build's import are what a feature's
-    // message points to, so they show at every depth; the checksum switch,
-    // which is for one rare situation, stays with Everything.
-    val libraryChoice = NativeDelivery.active && (NativeConsent.downloadsNeedOptIn || !InternetPermission.granted)
-    SettingsGroup(
-        stringResource(R.string.privacy_downloads_group_title),
-        level = if (libraryChoice) SettingLevel.BASIC else SettingLevel.STANDARD,
-    ) {
-        item(level = SettingLevel.STANDARD, weight = 2) { DownloadMirrorRow(repository, settings) }
-        item(level = SettingLevel.ADVANCED) { VerifyChecksumsRow(repository, settings) }
-        item(visible = FeatureLibraryList.offered) { FeatureLibrariesNavRow() }
-        item { FeatureLibrariesRows() }
-    }
-    SettingsGroup(stringResource(R.string.privacy_data_group_title)) {
-        item {
-            ActionRow(
-                title = R.string.privacy_delete_learned_words_title,
-                subtitle = stringResource(R.string.privacy_delete_learned_words_subtitle),
-                action = stringResource(R.string.privacy_delete_learned_words_action),
-                confirm = stringResource(R.string.privacy_delete_learned_words_confirm),
-                lock = AppLockTargets["action_delete_learned_words"],
-            ) {
-                scope.launch {
-                    repository.clearLearnedData()
-                    // The Chinese, Japanese and Cantonese picks are one of the
-                    // files the repository deletes, but its live store is a
-                    // `:core:input` object that `:core:settings` cannot reach,
-                    // so the in-memory copy in this process is dropped here.
-                    CjkLearning.store?.clear()
-                }
-            }
         }
     }
 }

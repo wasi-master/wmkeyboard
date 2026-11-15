@@ -289,6 +289,22 @@ Opening a `.wmconfig.json` or `.wmsettings.json` file from a file manager routes
 
 **Import from another keyboard**, the row under it, takes a whole backup from HeliBoard, LeanType, FUTO Keyboard, FlorisBoard, CleverKeys or AnySoftKeyboard. It reads the file and lists everything inside, grouped as Layouts, Themes, Languages, Dictionaries and words, and Settings, each item with its own check box and every box ticked to start. A section heading's box ticks or clears the whole section. **Import** writes only the ticked items and then says what landed, for example "The app imported 2 layouts, 1 theme, 12 settings." Settings get the same read-back and rollback as a restore of this app's own backup. What each keyboard's backup holds, and what never comes across, is on [Importing from other keyboards](/reference/importing-other-keyboards/#whole-backups).
 
+### Android backup
+
+<SettingsPath path="Data / Backup & restore / Android backup" />
+
+| Setting | Control | Default |
+|---|---|---|
+| Back up with Android | Toggle | Off |
+
+**Back up with Android** folds the keyboard into Android's own backup and phone-to-phone transfer system. It's off by default, so nothing this keyboard stores is copied anywhere until you turn it on. Once on, it includes settings, themes, layouts, snippets, learned words, sticker and icon packs, plugins, imported fonts and the word lists you imported yourself, plus any saved API keys (Translate, AI tools, and the rest). Voice and AI models, downloaded dictionaries, and emoji-keyword packs are left out, because the keyboard can fetch them again on its own. So are four smaller things, all for size: the camera and document-scanner scratch folders, the images behind clipboard entries (the clipboard's text history stays), and the uncropped originals behind your stickers (the stickers themselves stay). A cloud backup is only made on devices that can encrypt it with your screen lock.
+
+<PhoneFrame side caption="The info dialog for Back up with Android, listing what's included and excluded.">
+  <Shot id="reference/settings/privacy-backup-info-dialog" alt="The info dialog for Back up with Android, listing what's included and excluded." />
+</PhoneFrame>
+
+It sits at the foot of this screen since 0.6.6, under its own heading; it was on the Privacy screen before. It is separate from everything else here: the rest of this screen exports and imports your own files and never touches Google at all. See [Backup & restore](/privacy/backup/) for both paths side by side,.
+
 ## Details & edge cases
 
 - **An emoji-history import lands live.** The keyboard holds its emoji history in memory while it runs and writes it out when a field closes, so a restore could have been overwritten seconds later. Importing bumps a counter the running keyboard watches, which makes it drop its copy and re-read the file. The panel's Recent and Favourites tabs refresh on the spot, with nothing to restart.
