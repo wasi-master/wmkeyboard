@@ -1437,6 +1437,18 @@ class SuggestionEngineTest {
         assertNull(e.shouldAutocorrect("is"))
     }
 
+    @Test fun `a slip waits in the strip's last slot, behind the completions`() {
+        // #979: `us` for `is`, demoted, so it never pushes a completion aside.
+        val dictionary = Trie().apply {
+            insert("is", 9_000)
+            insert("issue", 6_000)
+            insert("island", 5_000)
+            insert("us", 8_000)
+        }
+        val e = SuggestionEngine(dictionary, BengaliPhoneticIndex(emptyList()), UserLexicon(null))
+        assertEquals(listOf("is", "issue", "us"), e.suggest("is", previousWord = null, limit = 3))
+    }
+
     @Test fun `a rare known word still offers its slip when completions crowd the walk`() {
         // `tnr` is listed (the Full English download keeps it twice), but the
         // walk's top ranks fill with `tr…` completions after dropping its `n`,

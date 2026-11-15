@@ -4402,7 +4402,7 @@ class SuggestionEngine(
             null
         }
 
-        val order = slipsStayBelow(reordered ?: ranked, accented?.first?.lowercase() ?: lower, slips)
+        val order = slipsStayBelow(reordered ?: ranked, accented?.first?.lowercase() ?: lower, slips, limit)
         if (caseExact) {
             // Expanded before the slice: one key can be two words here, and a
             // key whose spellings all disagree with what was typed is none.
@@ -4608,16 +4608,20 @@ class SuggestionEngine(
      * `words` typed in full stays ahead of `world`, one letter off. The typed
      * letters with an apostrophe put back are no slip: `that's` still leads
      * `thats` (#215).
+     *
+     * Nor ahead of the words that start with what was typed (#979): a slip
+     * waits in the strip's last slot, of [limit], so `is` offers `us` where a
+     * glance finds it without it pushing `isn't` or `issue` aside.
      */
-    private fun slipsStayBelow(order: List<String>, lower: String, slips: Set<String>): List<String> {
+    private fun slipsStayBelow(order: List<String>, lower: String, slips: Set<String>, limit: Int): List<String> {
         if (slips.isEmpty()) return order
-        val at = order.indexOfFirst { it.lowercase() == lower }
-        if (at <= 0) return order
-        val (jumped, kept) = order.subList(0, at).partition {
-            it.lowercase() in slips && it.filter(Char::isLetterOrDigit).lowercase() != lower
-        }
-        if (jumped.isEmpty()) return order
-        return kept + order[at] + jumped + order.subList(at + 1, order.size)
+        val isSlip = { word: String -> word.lowercase() in slips && word.filter(Char::isLetterOrDigit).lowercase() != lower }
+        val moved = order.filter(isSlip)
+        if (moved.isEmpty()) return order
+        val rest = order.filterNot(isSlip)
+        val typedAt = rest.indexOfFirst { it.lowercase() == lower }
+        val at = maxOf(limit - moved.size, typedAt + 1).coerceIn(0, rest.size)
+        return rest.subList(0, at) + moved + rest.subList(at, rest.size)
     }
 
     /**
