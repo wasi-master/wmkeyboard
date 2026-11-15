@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">장소가 지정되지 않았으며 날씨 도구에 저장된 장소도 없습니다. 사용자에게 어떤 장소를 의미하는지 물어보세요.</string>
     <string name="ftools_mcp_declined">사용자가 이 호출을 허용하지 않았습니다. 이 답변에서 해당 도구를 다시 호출하지 마세요. 도구 없이 답변하고, 수행할 수 없었던 작업을 언급하세요.</string>
     <string name="ftools_mcp_empty">도구가 실행되었으나 아무런 응답을 받지 못했습니다.</string>
-    <string name="ftools_mcp_error_needs_input">서버가 추가 입력을 요청했으나 키보드에서 아직 제공할 수 없습니다.</string>
     <string name="ftools_mcp_error_no_version">이 서버는 키보드에서 지원하는 것보다 최신 버전의 MCP를 사용하고 있습니다.</string>
     <string name="ftools_mcp_error_not_mcp">이 주소는 MCP 서버처럼 응답하지 않았습니다. 주소와 유형을 확인하세요.</string>
     <string name="ftools_mcp_error_server">서버에서 오류를 보냈습니다: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">이 서버는 로그인이 필요하지만 키보드에서 아직 지원하지 않습니다. 서버에서 토큰이나 키를 제공하는 경우 헤더로 추가하세요.</string>
     <string name="ftools_mcp_omitted">[도구가 여기에서 읽을 수 없는 콘텐츠를 보냈습니다: %1$s]</string>
     <string name="ftools_mcp_reason_declined">사용자가 허용하지 않았습니다</string>
     <string name="ftools_mcp_reason_stopped">실행 전 중지됨</string>

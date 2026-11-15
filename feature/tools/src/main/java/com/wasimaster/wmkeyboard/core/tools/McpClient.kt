@@ -39,7 +39,16 @@ class McpException(
     @StringRes val messageRes: Int,
     /** The server's own words, for the messages that quote them. */
     val detail: String = "",
+    /** The server turned the request away for want of a sign-in. */
+    val signIn: Boolean = false,
 ) : IOException(detail.ifEmpty { "MCP failure" })
+
+/**
+ * A call that stopped on a question for the user, which the model is to ask
+ * ([McpInputAnswer.Defer]). Not a failure: [question] is what the model is
+ * handed, and the server's state waits in [McpClient] for its next call.
+ */
+class McpDeferredInput(val question: String) : IOException(question)
 
 /**
  * Talks to the MCP servers the user added (#573). Blocking; call on an IO
@@ -60,6 +69,12 @@ class McpException(
  * day and its process can be killed at any moment, so a held socket would
  * mostly be a dead one. An old HTTP server's session id is remembered in memory,
  * because asking for a new one costs two requests per call.
+ *
+ * A server that wants a sign-in gets the token of [McpAuthState], refreshed
+ * here when it has run out ([McpAuth]). What a server asks for in the middle
+ * of a call (a question, a completion, its roots) goes to the
+ * [McpInputHandler] the caller passes: as an `input_required` result on a
+ * modern server, as a request down the answer's stream on an old one.
  */
 object McpClient {
 
@@ -79,6 +94,26 @@ object McpClient {
     /** Old HTTP servers' sessions, by server id. */
     private val sessions = ConcurrentHashMap<String, String>()
 
+    /**
+     * A call waiting on a question the model was asked to put to the user,
+     * by server id and tool: the server's state, the answers already given,
+     * and the keys still to answer.
+     */
+    private class Deferred(
+        val state: String?,
+        val answered: Map<String, JsonObject>,
+        val asked: List<String>,
+        val at: Long,
+    )
+
+    private val deferred = ConcurrentHashMap<String, Deferred>()
+
+    /** How long a deferred question waits for the model's next call. */
+    private const val DEFERRED_MS = 15 * 60_000L
+
+    /** Rounds of questions one call may go through before it is given up. */
+    private const val MAX_INPUT_ROUNDS = 4
+
     /** How one server is spoken to, once found out. */
     private data class Link(val era: McpEra, val version: String)
 
@@ -91,21 +126,29 @@ object McpClient {
      * Finds out how [server] speaks and lists its tools. What the settings
      * screen's Connect button runs, and the only place a server is probed.
      */
-    fun connect(server: McpServerSpec, headers: List<McpHeader>): McpCatalogEntry = guarded {
-        val sent = headerMap(headers)
+    fun connect(
+        server: McpServerSpec,
+        headers: List<McpHeader>,
+        auth: McpAuthState? = null,
+        onAuth: (McpAuthState) -> Unit = {},
+    ): McpCatalogEntry = guarded {
+        authorized(server, headers, auth, onAuth) { sent -> connectWith(server, sent) }
+    }
+
+    private fun connectWith(server: McpServerSpec, sent: Map<String, String>): McpCatalogEntry {
         sessions.remove(server.id)
         val url = server.url.trim()
-        if (server.transport == McpTransport.SSE) return@guarded sseConnect(url, sent)
+        if (server.transport == McpTransport.SSE) return sseConnect(url, sent)
         val found = try {
             probe(server.id, url, sent)
         } catch (e: HttpStatus) {
             if (server.transport == McpTransport.AUTO && e.status in OLD_TRANSPORT_STATUSES) {
-                return@guarded sseConnect(url, sent)
+                return sseConnect(url, sent)
             }
             throw e
         }
         val tools = listTools { method, params -> httpCall(server.id, url, sent, found.link, method, params) }
-        McpCatalogEntry(
+        return McpCatalogEntry(
             url = url,
             era = found.link.era,
             version = found.link.version,
@@ -127,30 +170,81 @@ object McpClient {
         entry: McpCatalogEntry,
         tool: String,
         argumentsJson: String,
+        auth: McpAuthState? = null,
+        onAuth: (McpAuthState) -> Unit = {},
+        input: McpInputHandler? = null,
     ): McpProtocol.Outcome = guarded {
-        val sent = headerMap(headers)
+        authorized(server, headers, auth, onAuth) { sent -> callWith(server, sent, entry, tool, argumentsJson, input) }
+    }
+
+    private fun callWith(
+        server: McpServerSpec,
+        sent: Map<String, String>,
+        entry: McpCatalogEntry,
+        tool: String,
+        argumentsJson: String,
+        input: McpInputHandler?,
+    ): McpProtocol.Outcome {
         val url = server.url.trim()
-        val params = McpProtocol.callParams(tool, argumentsJson)
-        if (entry.era == McpEra.SSE) {
-            return@guarded outcomeOf(sseSession(url, sent) { rpc -> rpc("tools/call", params) })
+        val key = server.id + "\u0000" + tool
+        var params = McpProtocol.callParams(tool, McpProtocol.withoutInput(argumentsJson))
+        // The model's answers to a question it was asked to put to the user:
+        // they go back with the state the server left, as the same call's
+        // next round.
+        val waiting = deferred.remove(key)
+        if (waiting != null && McpProtocol.hasInput(argumentsJson) &&
+            System.currentTimeMillis() - waiting.at < DEFERRED_MS
+        ) {
+            val answers = waiting.answered + McpProtocol.inputAnswers(argumentsJson, waiting.asked)
+            params = McpProtocol.retryParams(params, answers, waiting.state)
         }
-        val link = Link(entry.era, entry.version)
-        val reply = try {
-            httpCall(server.id, url, sent, link, "tools/call", params)
+        if (entry.era == McpEra.SSE) {
+            return outcomeOf(sseSession(url, sent, input) { rpc -> rpc("tools/call", params) })
+        }
+        var link = Link(entry.era, entry.version)
+        var reply = try {
+            httpCall(server.id, url, sent, link, "tools/call", params, input)
         } catch (e: HttpStatus) {
             if (e.status !in OLD_TRANSPORT_STATUSES) throw e
             // The server no longer speaks the way it did when its tools were
             // listed. Find out how it speaks now, once.
             sessions.remove(server.id)
-            val fresh = try {
+            link = try {
                 probe(server.id, url, sent).link
             } catch (again: HttpStatus) {
                 if (server.transport == McpTransport.STREAMABLE_HTTP) throw again
-                return@guarded outcomeOf(sseSession(url, sent) { rpc -> rpc("tools/call", params) })
+                return outcomeOf(sseSession(url, sent, input) { rpc -> rpc("tools/call", params) })
             }
-            httpCall(server.id, url, sent, fresh, "tools/call", params)
+            httpCall(server.id, url, sent, link, "tools/call", params, input)
         }
-        outcomeOf(reply)
+        repeat(MAX_INPUT_ROUNDS) {
+            val result = (reply as? McpReply.Result)?.result ?: return outcomeOf(reply)
+            if (!McpProtocol.needsInput(result)) return outcomeOf(reply)
+            val requests = McpProtocol.inputRequests(result)
+            if (input == null || requests.isEmpty()) throw McpException(R.string.ftools_mcp_error_needs_input)
+            val answers = LinkedHashMap<String, JsonObject>()
+            val questions = ArrayList<String>()
+            for (request in requests) {
+                when (val answer = input.answer(request, canDefer = true)) {
+                    is McpInputAnswer.Answer -> answers[request.key] = answer.result
+                    is McpInputAnswer.Defer -> questions += answer.question
+                    McpInputAnswer.Refuse -> throw McpException(R.string.ftools_mcp_error_needs_input)
+                }
+            }
+            val state = McpProtocol.requestState(result)
+            if (questions.isNotEmpty()) {
+                deferred[key] = Deferred(
+                    state,
+                    answers,
+                    requests.map { it.key }.filter { it !in answers },
+                    System.currentTimeMillis(),
+                )
+                throw McpDeferredInput(questions.joinToString("\n\n"))
+            }
+            params = McpProtocol.retryParams(params, answers, state)
+            reply = httpCall(server.id, url, sent, link, "tools/call", params, input)
+        }
+        throw McpException(R.string.ftools_mcp_error_needs_input)
     }
 
     /** Runs [block], turning a bare status failure into one with words. */
@@ -158,6 +252,42 @@ object McpClient {
         block()
     } catch (e: HttpStatus) {
         throw statusFailure(e)
+    }
+
+    /**
+     * Runs [block] with the headers to send: the user's, and the sign-in's
+     * token unless the user set an `Authorization` header of their own. A
+     * token that has run out is refreshed first, and one the server turns
+     * down is refreshed once and the request tried again; each new token
+     * goes to [onAuth] to be kept.
+     */
+    private inline fun <T> authorized(
+        server: McpServerSpec,
+        headers: List<McpHeader>,
+        auth: McpAuthState?,
+        onAuth: (McpAuthState) -> Unit,
+        block: (Map<String, String>) -> T,
+    ): T {
+        // Tokens for another address are not sent: the user changed the
+        // server's address, and those tokens belong to the old one.
+        val given = auth?.takeIf { it.resource == McpOAuth.canonicalResource(server.url) }
+        var state = given
+        if (given != null && !given.usable(System.currentTimeMillis()) && given.canRefresh) {
+            val renewed = McpAuth.refresh(given)
+            if (renewed != null) {
+                state = renewed
+                onAuth(renewed)
+            }
+        }
+        return try {
+            block(headerMap(headers, state))
+        } catch (e: McpException) {
+            val held = state
+            if (!e.signIn || held == null || !held.canRefresh) throw e
+            val fresh = McpAuth.refresh(held) ?: throw e
+            onAuth(fresh)
+            block(headerMap(headers, fresh))
+        }
     }
 
     /** A line for the user about [failure]: ours for an MCP failure, [ToolHttp]'s for the rest. */
@@ -218,7 +348,10 @@ object McpClient {
         val body = McpProtocol.request(
             id,
             "initialize",
-            McpProtocol.initializeParams(McpProtocol.LEGACY_VERSION, BuildConfig.VERSION_NAME),
+            // Every call after this one shares the session, so it says once
+            // what the client can answer; a call made without a handler
+            // still answers what it can (no roots, a declined question).
+            McpProtocol.initializeParams(McpProtocol.LEGACY_VERSION, BuildConfig.VERSION_NAME, answersInput = true),
         )
         var session: String? = null
         val reply = ToolHttp.exchange(
@@ -265,16 +398,17 @@ object McpClient {
         link: Link,
         method: String,
         params: JsonObject,
+        input: McpInputHandler? = null,
     ): McpReply {
-        if (link.era == McpEra.MODERN) return post(url, sent, link, serverId, method, params)
+        if (link.era == McpEra.MODERN) return post(url, sent, link, serverId, method, params, input)
         if (sessions[serverId] == null) initialize(serverId, url, sent)
         return try {
-            post(url, sent, link, serverId, method, params)
+            post(url, sent, link, serverId, method, params, input)
         } catch (e: HttpStatus) {
             if (e.status != HTTP_NOT_FOUND || sessions[serverId] == null) throw e
             sessions.remove(serverId)
             initialize(serverId, url, sent)
-            post(url, sent, link, serverId, method, params)
+            post(url, sent, link, serverId, method, params, input)
         }
     }
 
@@ -285,6 +419,7 @@ object McpClient {
         serverId: String?,
         method: String,
         params: JsonObject,
+        input: McpInputHandler? = null,
     ): McpReply {
         val id = ids.getAndIncrement()
         val modern = link.era == McpEra.MODERN
@@ -292,6 +427,7 @@ object McpClient {
             id, method, params,
             modern = if (modern) link.version else null,
             clientVersion = BuildConfig.VERSION_NAME,
+            answersInput = input != null,
         )
         val headers = if (modern) {
             buildMap {
@@ -309,13 +445,59 @@ object McpClient {
         } else {
             legacyHeaders(serverId.orEmpty(), sent, link)
         }
+        // An old server asks its questions down the answer's stream, and
+        // waits there for a POST with the answer.
+        val respond: ((String) -> Unit)? = if (modern) {
+            null
+        } else {
+            { message -> postAnswer(url, legacyHeaders(serverId.orEmpty(), sent, link), message) }
+        }
         return ToolHttp.exchange(
             url, "POST", body,
             headers = headers,
             wantHeaders = WANT,
             timeoutMs = TIMEOUT_MS,
             source = NetSource.AI_MCP,
-        ) { exchange -> answer(exchange, id) }
+        ) { exchange -> answer(exchange, id, input, respond) }
+    }
+
+    /** Sends the client's answer to a request a server made. A 202 and no body is the usual reply. */
+    private fun postAnswer(url: String, headers: Map<String, String>, message: String) {
+        runCatching {
+            ToolHttp.exchange(
+                url, "POST", message,
+                headers = headers + ("Accept" to ACCEPT_BOTH),
+                timeoutMs = TIMEOUT_MS,
+                source = NetSource.AI_MCP,
+            ) { }
+        }
+    }
+
+    /**
+     * The message that answers a server's own request [message], or null when
+     * it is not one. Never asks the model: the server is waiting on an open
+     * stream. `ping` is answered whatever the handler.
+     */
+    private fun serverRequestAnswer(message: String, input: McpInputHandler?): String? {
+        val (id, request) = McpProtocol.serverRequest(message) ?: return null
+        if (request.method == "ping") return McpProtocol.response(id, JsonObject(emptyMap()))
+        val answer = (input ?: REFUSING).answer(request, canDefer = false)
+        return when (answer) {
+            is McpInputAnswer.Answer -> McpProtocol.response(id, answer.result)
+            // A question for a model cannot wait on this stream: the user
+            // has not seen it, so it is declined rather than guessed at.
+            is McpInputAnswer.Defer -> McpProtocol.response(id, McpProtocol.elicitResult("decline"))
+            McpInputAnswer.Refuse -> McpProtocol.errorResponse(id, McpProtocol.METHOD_NOT_FOUND, request.method)
+        }
+    }
+
+    /** What a call with no handler answers: no roots, and every question declined. */
+    private val REFUSING = McpInputHandler { request, _ ->
+        when (request.method) {
+            "roots/list" -> McpInputAnswer.Answer(McpProtocol.rootsResult())
+            "elicitation/create" -> McpInputAnswer.Answer(McpProtocol.elicitResult("decline"))
+            else -> McpInputAnswer.Refuse
+        }
     }
 
     private fun legacyHeaders(serverId: String, sent: Map<String, String>, link: Link): Map<String, String> =
@@ -330,7 +512,12 @@ object McpClient {
      * The answer to request [id] in one response, whether the server sent it
      * as one JSON object or down an event stream after some notifications.
      */
-    private fun answer(exchange: ToolHttp.Exchange, id: Int): McpReply {
+    private fun answer(
+        exchange: ToolHttp.Exchange,
+        id: Int,
+        input: McpInputHandler? = null,
+        respond: ((String) -> Unit)? = null,
+    ): McpReply {
         val status = exchange.status
         if (status == HTTP_UNAUTHORIZED) throw unauthorized(exchange)
         if (status !in 200..299) {
@@ -341,7 +528,7 @@ object McpClient {
         }
         val reader = exchange.body ?: throw McpException(R.string.ftools_mcp_error_not_mcp)
         if (exchange.contentType == "text/event-stream") {
-            return streamed(reader, id) ?: throw McpException(R.string.ftools_mcp_error_not_mcp)
+            return streamed(reader, id, input, respond) ?: throw McpException(R.string.ftools_mcp_error_not_mcp)
         }
         val text = reader.readText()
         return McpProtocol.reply(text, id)
@@ -349,28 +536,37 @@ object McpClient {
             ?: throw McpException(R.string.ftools_mcp_error_not_mcp)
     }
 
-    /** Reads events off [reader] until one carries the answer to [id]. */
-    private fun streamed(reader: BufferedReader, id: Int): McpReply? {
+    /**
+     * Reads events off [reader] until one carries the answer to [id]. A
+     * request the server sends on the way is answered through [respond].
+     */
+    private fun streamed(
+        reader: BufferedReader,
+        id: Int,
+        input: McpInputHandler?,
+        respond: ((String) -> Unit)?,
+    ): McpReply? {
         val sse = McpSseReader()
         while (true) {
             val line = reader.readLine()
             val event = if (line == null) sse.end() else sse.line(line)
             if (event != null && event.event == "message") {
                 McpProtocol.reply(event.data, id)?.let { return it }
+                if (respond != null) serverRequestAnswer(event.data, input)?.let(respond)
             }
             if (line == null) return null
         }
     }
 
     /**
-     * A 401. A server that names an OAuth authorisation server wants a
-     * sign-in this keyboard cannot do yet, which deserves saying plainly
-     * rather than as "your key was rejected" to someone who never gave a key.
+     * A 401. A Bearer challenge means the server wants a sign-in (or a new
+     * token), which deserves saying plainly rather than as "your key was
+     * rejected" to someone who never gave a key.
      */
     private fun unauthorized(exchange: ToolHttp.Exchange): IOException {
-        val challenge = exchange.headers[AUTH_HEADER].orEmpty()
-        return if (challenge.startsWith("Bearer", ignoreCase = true) && "resource_metadata" in challenge) {
-            McpException(R.string.ftools_mcp_error_sign_in)
+        val challenge = McpOAuth.challenge(exchange.headers[AUTH_HEADER])
+        return if (challenge != null) {
+            McpException(R.string.ftools_mcp_error_sign_in, signIn = true)
         } else {
             ToolHttp.httpFailure(HTTP_UNAUTHORIZED, exchange.body?.readText())
         }
@@ -388,7 +584,7 @@ object McpClient {
     private fun sseConnect(url: String, sent: Map<String, String>): McpCatalogEntry {
         var info = "" to ""
         var version = McpProtocol.SSE_VERSION
-        val tools = sseSession(url, sent, onReady = { result ->
+        val tools = sseSession(url, sent, null, onReady = { result ->
             info = McpProtocol.serverInfo(result)
             McpProtocol.negotiatedVersion(result)?.let { version = it }
         }) { rpc -> listTools(rpc) }
@@ -411,6 +607,7 @@ object McpClient {
     private fun <T> sseSession(
         url: String,
         sent: Map<String, String>,
+        input: McpInputHandler?,
         onReady: (JsonObject) -> Unit = {},
         work: ((String, JsonObject) -> McpReply) -> T,
     ): T = ToolHttp.exchange(
@@ -433,13 +630,16 @@ object McpClient {
                 events.line(line)?.let { return it }
             }
         }
+        var endpoint: String? = null
         fun awaitReply(id: Int): McpReply {
             while (true) {
                 val event = nextEvent() ?: throw McpException(R.string.ftools_mcp_error_not_mcp)
-                if (event.event == "message") McpProtocol.reply(event.data, id)?.let { return it }
+                if (event.event != "message") continue
+                McpProtocol.reply(event.data, id)?.let { return it }
+                val to = endpoint ?: continue
+                serverRequestAnswer(event.data, input)?.let { postAnswer(to, sent, it) }
             }
         }
-        var endpoint: String? = null
         while (endpoint == null) {
             val event = nextEvent() ?: throw McpException(R.string.ftools_mcp_error_not_mcp)
             if (event.event == "endpoint") endpoint = McpProtocol.endpointUrl(url, event.data)
@@ -466,7 +666,10 @@ object McpClient {
             }
             direct ?: awaitReply(id)
         }
-        val init = rpc("initialize", McpProtocol.initializeParams(McpProtocol.SSE_VERSION, BuildConfig.VERSION_NAME))
+        val init = rpc(
+            "initialize",
+            McpProtocol.initializeParams(McpProtocol.SSE_VERSION, BuildConfig.VERSION_NAME, answersInput = true),
+        )
         when (init) {
             is McpReply.Result -> onReady(init.result)
             is McpReply.Error -> throw McpException(R.string.ftools_mcp_error_server, init.message)
@@ -508,11 +711,16 @@ object McpClient {
 
     /**
      * The user's headers, cleaned: no blank names, and none of the ones the
-     * protocol itself sets, which a pasted config sometimes carries.
+     * protocol itself sets, which a pasted config sometimes carries. Then the
+     * sign-in's token, unless the user gave an `Authorization` of their own.
      */
-    private fun headerMap(headers: List<McpHeader>): Map<String, String> =
-        headers.filter { it.name.isNotBlank() && it.name.trim().lowercase() !in RESERVED }
+    private fun headerMap(headers: List<McpHeader>, auth: McpAuthState? = null): Map<String, String> {
+        val own = headers.filter { it.name.isNotBlank() && it.name.trim().lowercase() !in RESERVED }
             .associate { it.name.trim() to it.value.trim() }
+        val token = auth?.accessToken?.takeIf { it.isNotEmpty() } ?: return own
+        if (own.keys.any { it.equals("authorization", ignoreCase = true) }) return own
+        return own + ("Authorization" to "Bearer $token")
+    }
 
     private val RESERVED = setOf(
         "accept", "content-type", "content-length", "host",

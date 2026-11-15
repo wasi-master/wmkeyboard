@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Δεν δόθηκε τοποθεσία και ο χρήστης δεν έχει αποθηκεύσει καμία στο εργαλείο καιρού. Ρωτήστε τον χρήστη για ποια τοποθεσία αναφέρεται.</string>
     <string name="ftools_mcp_declined">Ο χρήστης δεν επέτρεψε αυτήν την κλήση. Μην καλέσετε ξανά αυτό το εργαλείο σε αυτήν την απάντηση. Απαντήστε χωρίς αυτό και πείτε τι δεν μπορέσατε να κάνετε.</string>
     <string name="ftools_mcp_empty">Το εργαλείο εκτελέστηκε και δεν έστειλε τίποτα πίσω.</string>
-    <string name="ftools_mcp_error_needs_input">Ο διακομιστής ζήτησε περισσότερα δεδομένα εισόδου και το πληκτρολόγιο δεν μπορεί να τα δώσει ακόμα.</string>
     <string name="ftools_mcp_error_no_version">Αυτός ο διακομιστής χρησιμοποιεί νεότερη έκδοση του MCP από αυτή που αναγνωρίζει το πληκτρολόγιο.</string>
     <string name="ftools_mcp_error_not_mcp">Αυτή η διεύθυνση δεν απάντησε σαν διακομιστής MCP. Ελέγξτε τη διεύθυνση και τον τύπο.</string>
     <string name="ftools_mcp_error_server">Ο διακομιστής έστειλε σφάλμα: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Αυτός ο διακομιστής απαιτεί σύνδεση, και το πληκτρολόγιο δεν μπορεί να το κάνει ακόμα. Αν ο διακομιστής παρέχει διακριτικά ή κλειδιά, προσθέστε ένα ως κεφαλίδα.</string>
     <string name="ftools_mcp_omitted">[το εργαλείο έστειλε επίσης πίσω περιεχόμενο που δεν μπορείτε να διαβάσετε εδώ: %1$s]</string>
     <string name="ftools_mcp_reason_declined">Δεν το επιτρέψατε</string>
     <string name="ftools_mcp_reason_stopped">Διακόπηκε πριν την εκτέλεση</string>

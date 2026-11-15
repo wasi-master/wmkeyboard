@@ -430,6 +430,14 @@ Press the **+** button. The editor asks for:
 
 Change the address later and the tool list no longer describes the server, so the editor asks you to connect again.
 
+### Signing in
+
+Some servers want you to log in with an account instead of sending a key. Since 0.6.8 the editor has an **Account** group with a **Sign in** button for them. It opens the server's own sign-in page in your browser, so the keyboard never sees your password. When you finish, the browser comes back to the keyboard's settings and the server connects by itself. The row then says **Signed in**, and **Sign out** forgets the sign-in.
+
+This is the sign-in the MCP specification describes: OAuth with PKCE. The keyboard finds the server's sign-in service from what the server publishes, introduces itself with its client metadata document where the service takes one, or registers itself where it doesn't, and asks for a token for that server's address only. The token is renewed by itself when it runs out. If the renewal is turned down, a tool call says the server wants you to sign in again. A sign-in is kept with your headers, so a settings export leaves it out unless you include secrets.
+
+A sign-in service that only takes apps registered with it in advance, or one without PKCE, can't be used this way. The editor says which. Before 0.6.8 there was no sign-in at all, and a server that asked for one could only be used with a token in a header.
+
 ### Pasting a JSON config
 
 Most desktop apps that use MCP keep their servers in a JSON file. Copy that file's text, then press **Paste a JSON config** on the server list. The keyboard reads the formats in common use: Claude Desktop and Cursor's `mcpServers`, VS Code's `servers`, the inner map on its own, or a single server. It shows what it found before anything is saved, then **Add 2 servers** adds them and connects each one.
@@ -449,7 +457,15 @@ Most desktop apps that use MCP keep their servers in a JSON file. Copy that file
 }
 ```
 
-Here **notes** is added. **files** is listed as skipped: it starts a program on a computer (the `command` line), and a phone has nothing to start it with. A server with no address, or one that isn't `http` or `https`, is skipped too, with the reason beside it.
+Here **notes** is added as it is. **files** starts a program on a computer (the `command` line), and Android doesn't let an app start programs. Since 0.6.8 it comes in anyway, pointed at `http://127.0.0.1:8811/mcp`, and its page gets a **Local program** group with the line that runs it behind a bridge:
+
+```sh
+npx -y supergateway --stdio 'npx -y some-file-server' --outputTransport streamableHttp --port 8811
+```
+
+[supergateway](https://github.com/supercorp-ai/supergateway) starts the program and lets the keyboard reach it over HTTP. Copy the line into [Termux](https://termux.dev/) on the same phone (with Node.js installed, `pkg install nodejs`), leave it running, and press **Connect**. Or run it on a computer and change the address to the computer's own on your network. Each such server gets the next port, 8812, 8813 and so on. The program's `env` values go at the front of its line. Before 0.6.8 these servers were skipped.
+
+A server with no address, or one that isn't `http` or `https`, is still skipped, with the reason beside it.
 
 ### Run, Ask or Off
 
@@ -471,14 +487,26 @@ When the model calls a tool set to **Ask**, an approval card appears in the pane
 - **Allow once**: this call goes ahead.
 - **Always allow**: this call goes ahead, and the tool is set to **Run** from now on.
 
+### When a server asks you something
+
+A tool can stop halfway and ask for more before it finishes. Since 0.6.8 the keyboard answers:
+
+- **A yes-or-no question**: shown on an approval card, the same as a call. Allow says yes, Deny says no.
+- **A page to open**, such as a payment or a sign-in of the server's own: the card shows the address, and Allow opens it in your browser.
+- **A form to fill in**: the model is told what the server asked and asks you in its answer. When you reply, it calls the tool again with your answers, and that call goes through the tool's **Run**, **Ask** or **Off** like any other, so with **Ask** you see exactly what goes back. On an older server that waits on an open connection for the answer, there's no time for that and the question is declined.
+- **A request for your AI to write something** (what MCP calls sampling): the card shows what the server wants written. Allow sends it to the AI provider you set up here and hands the answer to the server. It is never sent to the model on your phone, and nothing goes without your Allow.
+- **Which folders it may see**: none. A phone shares no folders with a server.
+
+Before 0.6.8 a tool that asked for anything failed with "the keyboard cannot give it yet".
+
 ### What is sent, and where
 
-Nothing goes to a server until the model calls one of its tools, or you press Connect. A call sends the tool's name and the values the model wrote for it straight to your server, with your headers. It doesn't go through any WM Keyboard service. Whatever the server sends back is handed to the model. Every request shows in the [network activity log](/privacy/network-activity/) under **MCP servers**.
+Nothing goes to a server until the model calls one of its tools, or you press Connect. A call sends the tool's name and the values the model wrote for it straight to your server, with your headers and your sign-in's token. It doesn't go through any WM Keyboard service. A sign-in talks only to the server and the sign-in service it names; the docs site hosts the keyboard's client metadata document, which a sign-in service may read, but nothing is sent to it. Whatever the server sends back is handed to the model. Every request shows in the [network activity log](/privacy/network-activity/) under **MCP servers**.
 
 ### Limits
 
-- **No sign-in yet.** A server that wants you to log in through OAuth can't be used. If it gives out tokens or API keys, add one as a header instead.
-- **Only `http` and `https` servers.** Local servers that start as a program (`command`, `npx`, `uvx`) need a computer to run on.
+- **Sign-in needs a willing service.** A server whose sign-in service takes only apps registered with it in advance can't be signed in to. If it gives out tokens or API keys, add one as a header instead.
+- **Programs need a bridge.** A server that starts as a program (`command`, `npx`, `uvx`) runs only behind the bridge line its page shows, in Termux or on a computer.
 - **Every tool costs prompt space.** The name, description and input format of each tool that isn't **Off** go with every request, so 30 tools can cost more than the text you asked about. The server list warns you past 20. Turn off the tools you don't need.
 - **Text only.** Images, audio and links a tool sends back aren't shown to the model. It is told that something was there.
 

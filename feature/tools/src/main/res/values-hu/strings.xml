@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Nem lett megadva helyszín, és a felhasználó sem mentett el egyet az időjárás-eszközben. Kérdezd meg a felhasználót, melyik helyre gondolt.</string>
     <string name="ftools_mcp_declined">A felhasználó nem engedélyezte ezt a hívást. Ne hívja meg újra ezt az eszközt ebben a válaszban. Válaszoljon nélküle, és mondja el, mit nem tudott megtenni.</string>
     <string name="ftools_mcp_empty">Az eszköz lefutott, de nem küldött vissza semmit.</string>
-    <string name="ftools_mcp_error_needs_input">A kiszolgáló további bevitelt kért, de a billentyűzet még nem tudja megadni.</string>
     <string name="ftools_mcp_error_no_version">Ez a szerver az MCP újabb verzióját használja, mint amit a billentyűzet ismer.</string>
     <string name="ftools_mcp_error_not_mcp">Ez a cím nem MCP-kiszolgálóként válaszolt. Ellenőrizze a címet és a típust.</string>
     <string name="ftools_mcp_error_server">A szerver hibát küldött: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Ehhez a szerverhez be kell jelentkeznie, amit a billentyűzet még nem tud megtenni. Ha a szerver tokeneket vagy kulcsokat ad ki, adjon hozzá egyet fejléc formájában.</string>
     <string name="ftools_mcp_omitted">[az eszköz olyan tartalmat is visszaküldött, amelyet itt nem tud elolvasni: %1$s]</string>
     <string name="ftools_mcp_reason_declined">Nem engedélyezte</string>
     <string name="ftools_mcp_reason_stopped">Leállítva futtatás előtt</string>

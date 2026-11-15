@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">કોઈ સ્થળ આપવામાં આવ્યું નથી, અને વપરાશકર્તાએ હવામાન ટૂલમાં કોઈ સ્થળ સાચવ્યું નથી. વપરાશકર્તાને પૂછો કે તેઓ કયા સ્થળ વિશે વાત કરી રહ્યા છે.</string>
     <string name="ftools_mcp_declined">વપરાશકર્તાએ આ કૉલની મંજૂરી આપી નથી. આ જવાબમાં ફરીથી આ ટૂલને કૉલ કરશો નહીં. તેના વિના જવાબ આપો અને તમે શું કરી શક્યા નથી તે જણાવો.</string>
     <string name="ftools_mcp_empty">ટૂલ ચાલ્યું અને કંઈપણ પાછું મોકલ્યું નથી.</string>
-    <string name="ftools_mcp_error_needs_input">સર્વરે વધુ ઇનપુટ માંગ્યું છે, અને કીબોર્ડ હજુ તે આપી શકતું નથી.</string>
     <string name="ftools_mcp_error_no_version">આ સર્વર MCP ના એવા સંસ્કરણનો ઉપયોગ કરે છે જે કીબોર્ડ જાણતું નથી.</string>
     <string name="ftools_mcp_error_not_mcp">આ સરનામે MCP સર્વરની જેમ જવાબ આપ્યો નથી. સરનામું અને પ્રકાર તપાસો.</string>
     <string name="ftools_mcp_error_server">સર્વરે ભૂલ મોકલી: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">આ સર્વરને તમારે સાઇન ઇન કરવાની જરૂર છે, અને કીબોર્ડ હજી તે કરી શકતું નથી. જો સર્વર ટોકન્સ અથવા કી આપે છે, તો હેડર તરીકે એક ઉમેરો.</string>
     <string name="ftools_mcp_omitted">[ટૂલે એવી સામગ્રી પણ મોકલી છે જે તમે અહીં વાંચી શકતા નથી: %1$s]</string>
     <string name="ftools_mcp_reason_declined">તમે તેને મંજૂરી આપી નથી</string>
     <string name="ftools_mcp_reason_stopped">ચાલતા પહેલા અટકી ગયું</string>

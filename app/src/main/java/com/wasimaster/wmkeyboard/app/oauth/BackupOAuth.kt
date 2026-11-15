@@ -15,6 +15,7 @@ import com.wasimaster.wmkeyboard.core.settings.sink.BackupLog
 import com.wasimaster.wmkeyboard.core.settings.sink.BoxSink
 import com.wasimaster.wmkeyboard.core.settings.sink.DropboxSink
 import com.wasimaster.wmkeyboard.core.settings.sink.OneDriveSink
+import com.wasimaster.wmkeyboard.core.tools.McpAuth
 import java.io.File
 import java.security.MessageDigest
 import java.security.SecureRandom
@@ -285,21 +286,29 @@ object BackupOAuth {
  * Catches the `wmkeyboard://oauth` redirect and gets out of the way.
  *
  * Invisible and immediately finished: the settings screen is what reacts, by
- * watching [BackupOAuth.result]. `singleTask`, so a redirect arriving while the
- * app is already open reaches this instance rather than stacking another.
+ * watching [BackupOAuth.result], or [McpAuth.result] for a sign-in to an MCP
+ * server, which comes back on `wmkeyboard://oauth/mcp`. `singleTask`, so a
+ * redirect arriving while the app is already open reaches this instance
+ * rather than stacking another.
  */
 class OAuthRedirectActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        BackupOAuth.deliver(this, intent?.data)
-        BackupOAuth.returnToApp(this)
-        finish()
+        route(intent?.data)
     }
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        BackupOAuth.deliver(this, intent?.data)
+        route(intent?.data)
+    }
+
+    private fun route(uri: Uri?) {
+        if (uri?.path?.trimEnd('/') == "/mcp") {
+            McpAuth.deliver(this, uri.toString())
+        } else {
+            BackupOAuth.deliver(this, uri)
+        }
         BackupOAuth.returnToApp(this)
         finish()
     }

@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">לא צוין מקום, והמשתמש לא שמר אחד בכלי מזג האוויר. שאל את המשתמש לאיזה מקום הוא מתכוון.</string>
     <string name="ftools_mcp_declined">המשתמש לא אישר שיחה זו. אל תקרא לכלי זה שוב בתשובה זו. ענה בלעדיו, וציין מה לא יכולת לעשות.</string>
     <string name="ftools_mcp_empty">הכלי הופעל ולא שלח דבר בחזרה.</string>
-    <string name="ftools_mcp_error_needs_input">השרת ביקש קלט נוסף, והמקלדת אינה יכולה לספק אותו עדיין.</string>
     <string name="ftools_mcp_error_no_version">שרת זה משתמש בגרסת MCP חדשה יותר מזו שהמקלדת מכירה.</string>
     <string name="ftools_mcp_error_not_mcp">כתובת זו לא הגיבה כשרת MCP. בדוק את הכתובת ואת הסוג.</string>
     <string name="ftools_mcp_error_server">השרת שלח שגיאה: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">שרת זה דורש ממך להיכנס, והמקלדת עדיין לא יכולה לעשות זאת. אם השרת מנפיק אסימונים או מפתחות, הוסף אחד ככותרת.</string>
     <string name="ftools_mcp_omitted">[הכלי שלח בחזרה גם תוכן שלא ניתן לקרוא כאן: %1$s]</string>
     <string name="ftools_mcp_reason_declined">לא אישרת זאת</string>
     <string name="ftools_mcp_reason_stopped">נעצר לפני שהופעל</string>

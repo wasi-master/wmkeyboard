@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">لم يتم تحديد مكان، ولم يحفظ المستخدم أي مكان في أداة الطقس. اسأل المستخدم عن المكان الذي يقصده.</string>
     <string name="ftools_mcp_declined">لم يسمح المستخدم بهذا الاستدعاء. لا تستدعِ هذه الأداة مرة أخرى في هذه الإجابة. أجب بدونها، واذكر ما لم تتمكن من فعله.</string>
     <string name="ftools_mcp_empty">تم تشغيل الأداة ولم ترسل أي شيء.</string>
-    <string name="ftools_mcp_error_needs_input">طلب الخادم مزيداً من المدخلات، ولا يمكن للوحة المفاتيح تقديمها بعد.</string>
     <string name="ftools_mcp_error_no_version">يستخدم هذا الخادم إصداراً من MCP أحدث مما تعرفه لوحة المفاتيح.</string>
     <string name="ftools_mcp_error_not_mcp">لم يستجب هذا العنوان كخادم MCP. تحقق من العنوان والنوع.</string>
     <string name="ftools_mcp_error_server">أرسل الخادم خطأ: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">يتطلب هذا الخادم تسجيل الدخول، ولا يمكن للوحة المفاتيح القيام بذلك بعد. إذا كان الخادم يصدر رموزاً أو مفاتيح، فأضف واحداً منها كرأس.</string>
     <string name="ftools_mcp_omitted">[أرسلت الأداة أيضاً محتوى لا يمكنك قراءته هنا: %1$s]</string>
     <string name="ftools_mcp_reason_declined">لم تسمح بذلك</string>
     <string name="ftools_mcp_reason_stopped">توقف قبل أن يبدأ</string>

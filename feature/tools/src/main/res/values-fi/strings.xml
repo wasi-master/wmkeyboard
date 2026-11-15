@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Paikkaa ei annettu, eikä käyttäjä ole tallentanut sellaista säätyökaluun. Kysy käyttäjältä, mitä paikkaa hän tarkoittaa.</string>
     <string name="ftools_mcp_declined">Käyttäjä ei sallinut tätä kutsua. Älä kutsu tätä työkalua uudelleen tässä vastauksessa. Vastaa ilman sitä ja kerro, mitä et voinut tehdä.</string>
     <string name="ftools_mcp_empty">Työkalu suoritettiin, mutta se ei palauttanut mitään.</string>
-    <string name="ftools_mcp_error_needs_input">Palvelin pyysi lisätietoja, eikä näppäimistö voi antaa niitä vielä.</string>
     <string name="ftools_mcp_error_no_version">Tämä palvelin käyttää uudempaa MCP-versiota kuin näppäimistö tuntee.</string>
     <string name="ftools_mcp_error_not_mcp">Tämä osoite ei vastannut MCP-palvelimena. Tarkista osoite ja tyyppi.</string>
     <string name="ftools_mcp_error_server">Palvelin lähetti virheen: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Tämä palvelin vaatii kirjautumisen, eikä näppäimistö pysty siihen vielä. Jos palvelin antaa tokeneita tai avaimia, lisää yksi otsikkona.</string>
     <string name="ftools_mcp_omitted">[työkalu lähetti takaisin myös sisältöä, jota et voi lukea tässä: %1$s]</string>
     <string name="ftools_mcp_reason_declined">Et sallinut sitä</string>
     <string name="ftools_mcp_reason_stopped">Pysäytetty ennen suoritusta</string>

@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">ไม่ได้ระบุสถานที่ และผู้ใช้ยังไม่ได้บันทึกสถานที่ไว้ในเครื่องมือสภาพอากาศ โปรดถามผู้ใช้ว่าหมายถึงสถานที่ใด</string>
     <string name="ftools_mcp_declined">ผู้ใช้ไม่อนุญาตให้เรียกใช้เครื่องมือนี้ อย่าเรียกใช้เครื่องมือนี้อีกในคำตอบนี้ ให้ตอบโดยไม่ใช้เครื่องมือนี้และระบุสิ่งที่คุณไม่สามารถทำได้</string>
     <string name="ftools_mcp_empty">เครื่องมือทำงานแล้วแต่ไม่ส่งข้อมูลกลับมา</string>
-    <string name="ftools_mcp_error_needs_input">เซิร์ฟเวอร์ต้องการข้อมูลเพิ่มเติม แต่คีย์บอร์ดยังไม่สามารถให้ข้อมูลนั้นได้</string>
     <string name="ftools_mcp_error_no_version">เซิร์ฟเวอร์นี้ใช้ MCP เวอร์ชันที่ใหม่กว่าที่คีย์บอร์ดรองรับ</string>
     <string name="ftools_mcp_error_not_mcp">ที่อยู่นี้ไม่ได้ตอบกลับเหมือนเซิร์ฟเวอร์ MCP โปรดตรวจสอบที่อยู่และประเภท</string>
     <string name="ftools_mcp_error_server">เซิร์ฟเวอร์ส่งข้อผิดพลาด: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">เซิร์ฟเวอร์นี้ต้องการให้คุณลงชื่อเข้าใช้ และแป้นพิมพ์ยังไม่สามารถทำเช่นนั้นได้ หากเซิร์ฟเวอร์แจกโทเค็นหรือคีย์ ให้เพิ่มคีย์หนึ่งรายการเป็นส่วนหัว</string>
     <string name="ftools_mcp_omitted">[เครื่องมือยังส่งเนื้อหาที่คุณไม่สามารถอ่านได้ที่นี่กลับมาด้วย: %1$s]</string>
     <string name="ftools_mcp_reason_declined">คุณไม่อนุญาต</string>
     <string name="ftools_mcp_reason_stopped">หยุดทำงานก่อนที่จะเริ่ม</string>

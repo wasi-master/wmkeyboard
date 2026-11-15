@@ -33,6 +33,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -43,9 +44,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -61,6 +64,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Visibility
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VisibilityOff
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.tools.McpAuth
+import com.wasimaster.wmkeyboard.core.tools.McpAuthState
 import com.wasimaster.wmkeyboard.core.tools.McpCatalogEntry
 import com.wasimaster.wmkeyboard.core.tools.McpCatalogStore
 import com.wasimaster.wmkeyboard.core.tools.McpClient
@@ -203,6 +208,7 @@ internal fun AiMcpSettings(
                     url = server.url,
                     transport = server.transport,
                     enabled = true,
+                    bridgeCommand = server.bridgeCommand,
                 ) to server.headers
             }
             connecting.addAll(added.map { it.first.id })
@@ -351,6 +357,13 @@ private fun McpImportSummary(found: McpConfigImport.Result) {
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
+                if (server.bridgeCommand.isNotEmpty()) {
+                    Text(
+                        stringResource(R.string.toolai_ai_mcp_import_bridged),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
     }
@@ -457,11 +470,73 @@ internal fun AiMcpEditor(
             transport = transport,
             enabled = saved?.enabled ?: true,
             toolPolicies = saved?.toolPolicies.orEmpty(),
+            bridgeCommand = saved?.bridgeCommand.orEmpty(),
         )
     }
     // A row with no name is a row the user added and never filled in.
     fun sentHeaders(): List<McpHeader> =
         headers.filter { it.name.isNotBlank() }.map { McpHeader(it.name.trim(), it.value.trim()) }
+
+    val signedIn = settings.watch { it.ai.mcpAuth[serverId] }
+    val exchanging by McpAuth.exchanging.collectAsState()
+    var signingIn by remember(serverId) { mutableStateOf(false) }
+
+    // Saves the draft, then asks the server for its tools, signed in when
+    // there is a sign-in: what Connect runs, and what a finished sign-in runs.
+    fun connectNow() {
+        val spec = draft()
+        val sent = sentHeaders()
+        connecting = true
+        outcome = null
+        scope.launch {
+            // Saved first: the list Connect fetches is filed under
+            // this server's id and address, and both have to be the
+            // ones the keyboard will use.
+            repository.upsertMcpServer(spec, sent)
+            val auth: McpAuthState? = settings.value.ai.mcpAuth[spec.id]
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    McpClient.connect(spec, sent, auth) { fresh ->
+                        scope.launch { repository.setMcpAuth(spec.id, fresh) }
+                    }
+                }.onSuccess { McpCatalogStore.put(context, spec.id, it) }
+            }
+            McpClient.forget(spec.id)
+            outcome = result.fold(
+                onSuccess = { found ->
+                    McpConnectOutcome.Connected(
+                        server = listOf(found.serverName, found.serverVersion)
+                            .filter { it.isNotBlank() }
+                            .joinToString(" ")
+                            .ifEmpty { spec.label },
+                        tools = found.tools.size,
+                    )
+                },
+                onFailure = { McpConnectOutcome.Failed(McpClient.message(context, it)) },
+            )
+            connecting = false
+        }
+    }
+
+    // The browser hands back to the app; the exchange finishes in McpAuth,
+    // and a sign-in for this server connects at once.
+    val authResult by McpAuth.result.collectAsState()
+    LaunchedEffect(authResult) {
+        val done = authResult ?: return@LaunchedEffect
+        if (done.serverId != serverId) return@LaunchedEffect
+        McpAuth.consume()
+        when (done.outcome) {
+            McpAuth.Outcome.SIGNED_IN -> connectNow()
+            McpAuth.Outcome.FAILED -> outcome = McpConnectOutcome.Failed(
+                if (done.message.isBlank()) {
+                    context.getString(R.string.toolai_ai_mcp_sign_in_failed)
+                } else {
+                    context.getString(R.string.toolai_ai_mcp_sign_in_failed_reason, done.message)
+                },
+            )
+            McpAuth.Outcome.CANCELLED -> Unit
+        }
+    }
 
     SettingsGroup {
         item {
@@ -545,6 +620,80 @@ internal fun AiMcpEditor(
             }
         }
     }
+    val bridge = existing?.bridgeCommand.orEmpty()
+    if (bridge.isNotEmpty()) McpBridgeGroup(bridge)
+    SettingsGroup(
+        stringResource(R.string.toolai_ai_mcp_sign_in_group_title),
+        info = stringResource(R.string.toolai_ai_mcp_sign_in_info),
+    ) {
+        item {
+            val busy = signingIn || exchanging == serverId
+            WmRow(
+                title = stringResource(
+                    if (signedIn != null) R.string.toolai_ai_mcp_signed_in_title else R.string.toolai_ai_mcp_sign_in_title,
+                ),
+                supporting = {
+                    Text(
+                        stringResource(
+                            when {
+                                exchanging == serverId -> R.string.toolai_ai_mcp_sign_in_working
+                                signedIn != null -> R.string.toolai_ai_mcp_signed_in_subtitle
+                                else -> R.string.toolai_ai_mcp_sign_in_subtitle
+                            },
+                        ),
+                    )
+                },
+                trailing = {
+                    if (signedIn != null) {
+                        TextButton(onClick = {
+                            scope.launch {
+                                repository.setMcpAuth(serverId, null)
+                                McpClient.forget(serverId)
+                            }
+                        }) { Text(stringResource(R.string.toolai_ai_mcp_sign_out_action)) }
+                    } else {
+                        OutlinedButton(
+                            enabled = validUrl && !busy,
+                            onClick = {
+                                val spec = draft()
+                                val sent = sentHeaders()
+                                signingIn = true
+                                outcome = null
+                                scope.launch {
+                                    repository.upsertMcpServer(spec, sent)
+                                    val page = withContext(Dispatchers.IO) {
+                                        runCatching { McpAuth.prepare(context, spec, sent) }
+                                    }
+                                    signingIn = false
+                                    page.onSuccess { address ->
+                                        val opened = runCatching {
+                                            context.startActivity(
+                                                android.content.Intent(
+                                                    android.content.Intent.ACTION_VIEW,
+                                                    android.net.Uri.parse(address),
+                                                ),
+                                            )
+                                        }
+                                        if (opened.isFailure) {
+                                            outcome = McpConnectOutcome.Failed(context.getString(R.string.toolai_ai_mcp_sign_in_no_browser))
+                                        }
+                                    }.onFailure { failure ->
+                                        outcome = McpConnectOutcome.Failed(McpClient.message(context, failure))
+                                    }
+                                }
+                            },
+                        ) {
+                            if (busy) {
+                                CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(8.dp))
+                            }
+                            Text(stringResource(R.string.toolai_ai_mcp_sign_in_action))
+                        }
+                    }
+                },
+            )
+        }
+    }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -566,36 +715,7 @@ internal fun AiMcpEditor(
         Spacer(Modifier.weight(1f))
         OutlinedButton(
             enabled = validUrl && !connecting,
-            onClick = {
-                val spec = draft()
-                val sent = sentHeaders()
-                connecting = true
-                outcome = null
-                scope.launch {
-                    // Saved first: the list Connect fetches is filed under
-                    // this server's id and address, and both have to be the
-                    // ones the keyboard will use.
-                    repository.upsertMcpServer(spec, sent)
-                    val result = withContext(Dispatchers.IO) {
-                        runCatching { McpClient.connect(spec, sent) }
-                            .onSuccess { McpCatalogStore.put(context, spec.id, it) }
-                    }
-                    McpClient.forget(spec.id)
-                    outcome = result.fold(
-                        onSuccess = { found ->
-                            McpConnectOutcome.Connected(
-                                server = listOf(found.serverName, found.serverVersion)
-                                    .filter { it.isNotBlank() }
-                                    .joinToString(" ")
-                                    .ifEmpty { spec.label },
-                                tools = found.tools.size,
-                            )
-                        },
-                        onFailure = { McpConnectOutcome.Failed(McpClient.message(context, it)) },
-                    )
-                    connecting = false
-                }
-            },
+            onClick = { connectNow() },
         ) {
             if (connecting) {
                 CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(16.dp))
@@ -710,6 +830,53 @@ internal fun AiProviderHeadersGroup(
                 Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(4.dp))
                 Text(stringResource(R.string.toolai_ai_mcp_header_add_action))
+            }
+        }
+    }
+}
+
+/**
+ * A server that starts as a program on a computer, imported from a config:
+ * the line that runs it behind a bridge the keyboard can reach, to copy into
+ * Termux or a computer's terminal.
+ */
+@Composable
+private fun McpBridgeGroup(command: String) {
+    val clipboard = LocalClipboardManager.current
+    var copied by remember(command) { mutableStateOf(false) }
+    SettingsGroup(
+        stringResource(R.string.toolai_ai_mcp_bridge_group_title),
+        info = stringResource(R.string.toolai_ai_mcp_bridge_info),
+    ) {
+        item {
+            Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Text(
+                    stringResource(R.string.toolai_ai_mcp_bridge_body),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                ) {
+                    Text(
+                        command,
+                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                        modifier = Modifier.padding(12.dp),
+                    )
+                }
+                TextButton(onClick = {
+                    clipboard.setText(AnnotatedString(command))
+                    copied = true
+                }) {
+                    Text(
+                        stringResource(
+                            if (copied) R.string.toolai_ai_mcp_bridge_copied else R.string.toolai_ai_mcp_bridge_copy_action,
+                        ),
+                    )
+                }
             }
         }
     }

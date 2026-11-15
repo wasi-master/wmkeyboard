@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Ayikho indawo enikeziwe, futhi umsebenzisi akazange alondoloze eyodwa kuthuluzi lesimo sezulu. Buza umsebenzisi ukuthi iyiphi indawo ayishoyo.</string>
     <string name="ftools_mcp_declined">Umsebenzisi akazange avumele lokhu kushaya. Ungaphinde ushayele leli thuluzi kule mpendulo. Phendula ngaphandle kwalo, futhi usho lokho obungakwazi ukukwenza.</string>
     <string name="ftools_mcp_empty">Ithuluzi lisebenze kodwa alibuyisanga lutho.</string>
-    <string name="ftools_mcp_error_needs_input">Iseva icele okwengeziwe okufakiwe, futhi ikhibhodi ayikakwazi ukukunikela okwamanje.</string>
     <string name="ftools_mcp_error_no_version">Le seva isebenzisa inguqulo entsha ye-MCP kunaleyo eyaziwa yikhibhodi.</string>
     <string name="ftools_mcp_error_not_mcp">Leli kheli aliphendulanga njengeseva ye-MCP. Hlola ikheli nohlobo.</string>
     <string name="ftools_mcp_error_server">Iseva ithumele iphutha: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Le seva idinga ukuthi ungene ngemvume, futhi ikhibhodi ayikakwazi ukukwenza lokho. Uma iseva ikhipha amathokheni noma okhiye, engeza eyodwa njengenhloko.</string>
     <string name="ftools_mcp_omitted">[ithuluzi liphinde lathumela okuqukethwe ongeke ukufunde lapha: %1$s]</string>
     <string name="ftools_mcp_reason_declined">Awukuvumelanga</string>
     <string name="ftools_mcp_reason_stopped">Imisiwe ngaphambi kokuba isebenze</string>

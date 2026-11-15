@@ -162,6 +162,7 @@ import com.wasimaster.wmkeyboard.core.theme.withEmbeddedImages
 import com.wasimaster.wmkeyboard.core.theme.withExtractedImages
 import com.wasimaster.wmkeyboard.core.aihistory.AiHistoryStore
 import com.wasimaster.wmkeyboard.core.tools.AiActionCodec
+import com.wasimaster.wmkeyboard.core.tools.McpAuthState
 import com.wasimaster.wmkeyboard.core.tools.McpHeader
 import com.wasimaster.wmkeyboard.core.tools.McpServerCodec
 import com.wasimaster.wmkeyboard.core.tools.McpServerSpec
@@ -5980,6 +5981,11 @@ data class AiSettings(
      * `SettingsBackup.SECRET_KEYS`, the server list's is not.
      */
     val mcpHeaders: Map<String, List<McpHeader>> = emptyMap(),
+    /**
+     * OAuth sign-ins to MCP servers, by server id: the client id each server
+     * knows the keyboard by and the tokens it gave. Secret like [mcpHeaders].
+     */
+    val mcpAuth: Map<String, McpAuthState> = emptyMap(),
     /**
      * Extra headers sent with every request to a provider, by `AiProvider.name`
      * (#648). Some gateways want more than a key: OpenCode Go reads a session
@@ -14193,6 +14199,7 @@ class SettingsRepository(private val context: Context) {
         private val AI_TOOL_CALENDAR_ID = longPreferencesKey("ai_tool_calendar_id")
         private val AI_MCP_SERVERS = stringPreferencesKey("ai_mcp_servers")
         private val AI_MCP_HEADERS = stringPreferencesKey("ai_mcp_headers")
+        private val AI_MCP_AUTH = stringPreferencesKey("ai_mcp_auth")
         private val AI_PROVIDER_HEADERS = stringPreferencesKey("ai_provider_headers")
         private val AI_DIFF_OPENS_FIRST = booleanPreferencesKey("ai_diff_opens_first")
         private val AI_SELECTION_MENU = booleanPreferencesKey("ai_selection_menu")
@@ -17036,6 +17043,7 @@ class SettingsRepository(private val context: Context) {
             toolCalendarId = p[AI_TOOL_CALENDAR_ID] ?: defaults.ai.toolCalendarId,
             mcpServers = McpServerCodec.decodeServers(p[AI_MCP_SERVERS].orEmpty()),
             mcpHeaders = McpServerCodec.decodeHeaders(p[AI_MCP_HEADERS].orEmpty()),
+            mcpAuth = McpServerCodec.decodeAuth(p[AI_MCP_AUTH].orEmpty()),
             providerHeaders = McpServerCodec.decodeHeaders(p[AI_PROVIDER_HEADERS].orEmpty()),
             reply = AiReplySettings(
                 count = p[AI_REPLY_COUNT] ?: defaults.ai.reply.count,
@@ -23492,7 +23500,18 @@ class SettingsRepository(private val context: Context) {
             val current = McpServerCodec.decodeServers(prefs[AI_MCP_SERVERS].orEmpty())
             prefs[AI_MCP_SERVERS] = McpServerCodec.encodeServers(current.filter { it.id != id })
             writeMcpHeaders(prefs, id, emptyList())
+            writeMcpAuth(prefs, id, null)
         }
+
+    /** Keeps (or with null, forgets) the OAuth sign-in to one MCP server. */
+    suspend fun setMcpAuth(id: String, auth: McpAuthState?) =
+        editPrefs { prefs -> writeMcpAuth(prefs, id, auth) }
+
+    private fun writeMcpAuth(prefs: MutablePreferences, id: String, auth: McpAuthState?) {
+        val all = McpServerCodec.decodeAuth(prefs[AI_MCP_AUTH].orEmpty()) - id
+        val next = if (auth == null) all else all + (id to auth)
+        if (next.isEmpty()) prefs.remove(AI_MCP_AUTH) else prefs[AI_MCP_AUTH] = McpServerCodec.encodeAuth(next)
+    }
 
     suspend fun setMcpServerEnabled(id: String, enabled: Boolean) =
         editMcpServer(id) { it.copy(enabled = enabled) }

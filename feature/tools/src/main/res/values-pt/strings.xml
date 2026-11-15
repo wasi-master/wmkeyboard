@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Nenhum local foi fornecido e o usuário não salvou um na ferramenta de clima. Pergunte ao usuário a qual local ele se refere.</string>
     <string name="ftools_mcp_declined">O usuário não permitiu esta chamada. Não chame esta ferramenta novamente nesta resposta. Responda sem ela e diga o que você não pôde fazer.</string>
     <string name="ftools_mcp_empty">A ferramenta foi executada e não retornou nada.</string>
-    <string name="ftools_mcp_error_needs_input">O servidor solicitou mais informações e o teclado ainda não consegue fornecê-las.</string>
     <string name="ftools_mcp_error_no_version">Este servidor usa uma versão do MCP mais recente do que a que o teclado conhece.</string>
     <string name="ftools_mcp_error_not_mcp">Este endereço não respondeu como um servidor MCP. Verifique o endereço e o tipo.</string>
     <string name="ftools_mcp_error_server">O servidor enviou um erro: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Este servidor exige que você faça login, e o teclado ainda não consegue fazer isso. Se o servidor fornecer tokens ou chaves, adicione um como cabeçalho.</string>
     <string name="ftools_mcp_omitted">[a ferramenta também enviou de volta conteúdo que você não pode ler aqui: %1$s]</string>
     <string name="ftools_mcp_reason_declined">Você não permitiu</string>
     <string name="ftools_mcp_reason_stopped">Parado antes de ser executado</string>

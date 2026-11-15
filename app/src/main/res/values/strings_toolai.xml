@@ -333,6 +333,7 @@
     <string name="toolai_ai_mcp_import_error">This is not a JSON config. Copy all of the text, from the first brace to the last.</string>
     <string name="toolai_ai_mcp_import_none_empty">The config has no servers.</string>
     <string name="toolai_ai_mcp_import_found_title">Servers to add</string>
+    <string name="toolai_ai_mcp_import_bridged">A program on a computer: its page says how to run it</string>
     <string name="toolai_ai_mcp_import_skipped_title">Servers that the keyboard skips</string>
     <!-- One skipped server. %1$s is its name, %2$s the reason. -->
     <string name="toolai_ai_mcp_import_skipped_line">%1$s: %2$s</string>
@@ -382,6 +383,25 @@
 
     <!-- Button that saves the server and asks it for its tools. -->
     <string name="toolai_ai_mcp_connect_action">Connect</string>
+    <!-- MCP server editor: OAuth sign-in group. -->
+    <string name="toolai_ai_mcp_sign_in_group_title">Account</string>
+    <string name="toolai_ai_mcp_sign_in_info">Some servers want you to log in with an account rather than send a key. Sign in opens the server\'s own sign-in page in your browser, so the keyboard never sees your password. When you\'re done the browser comes back here and the server connects. The keyboard keeps the sign-in and renews it by itself; Sign out forgets it. A server that gives out tokens or keys doesn\'t need this: put the key in a header.</string>
+    <string name="toolai_ai_mcp_sign_in_title">Not signed in</string>
+    <string name="toolai_ai_mcp_signed_in_title">Signed in</string>
+    <string name="toolai_ai_mcp_sign_in_subtitle">For a server that asks you to log in</string>
+    <string name="toolai_ai_mcp_signed_in_subtitle">The keyboard renews the sign-in by itself</string>
+    <string name="toolai_ai_mcp_sign_in_working">Finishing the sign-in…</string>
+    <string name="toolai_ai_mcp_sign_in_action">Sign in</string>
+    <string name="toolai_ai_mcp_sign_out_action">Sign out</string>
+    <string name="toolai_ai_mcp_sign_in_failed">The sign-in didn\'t finish.</string>
+    <string name="toolai_ai_mcp_sign_in_failed_reason">The sign-in didn\'t finish: %1$s</string>
+    <string name="toolai_ai_mcp_sign_in_no_browser">No browser is installed to open the sign-in page.</string>
+    <!-- MCP server editor: a server imported as a local program, reached through a bridge. -->
+    <string name="toolai_ai_mcp_bridge_group_title">Local program</string>
+    <string name="toolai_ai_mcp_bridge_info">This server starts as a program on a computer, and Android doesn\'t let an app start programs. A bridge called supergateway runs the program and lets the keyboard talk to it over HTTP. In Termux on this phone (with Node.js installed), the address 127.0.0.1 already points at it. On a computer, change the address to the computer\'s own on your network.</string>
+    <string name="toolai_ai_mcp_bridge_body">Run this and leave it running, then press Connect:</string>
+    <string name="toolai_ai_mcp_bridge_copy_action">Copy</string>
+    <string name="toolai_ai_mcp_bridge_copied">Copied</string>
     <!-- Result of Connect. %1$s is the name and version that the server gave,
          %2$d the number of tools that it has. -->
     <plurals name="toolai_ai_mcp_connected_body">

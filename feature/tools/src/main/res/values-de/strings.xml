@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Es wurde kein Ort angegeben und der Nutzer hat im Wetter-Tool keinen gespeichert. Fragen Sie den Nutzer nach dem gewünschten Ort.</string>
     <string name="ftools_mcp_declined">Der Benutzer hat diesen Aufruf nicht zugelassen. Rufen Sie dieses Tool in dieser Antwort nicht erneut auf. Antworten Sie ohne es und geben Sie an, was Sie nicht tun konnten.</string>
     <string name="ftools_mcp_empty">Das Tool wurde ausgeführt und hat nichts zurückgegeben.</string>
-    <string name="ftools_mcp_error_needs_input">Der Server hat nach mehr Eingaben gefragt, und die Tastatur kann diese noch nicht bereitstellen.</string>
     <string name="ftools_mcp_error_no_version">Dieser Server verwendet eine neuere MCP-Version, als die Tastatur unterstützt.</string>
     <string name="ftools_mcp_error_not_mcp">Diese Adresse hat nicht wie ein MCP-Server geantwortet. Überprüfen Sie die Adresse und den Typ.</string>
     <string name="ftools_mcp_error_server">Der Server hat einen Fehler gesendet: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Dieser Server erfordert eine Anmeldung, was die Tastatur noch nicht kann. Wenn der Server Token oder Schlüssel ausgibt, fügen Sie einen als Header hinzu.</string>
     <string name="ftools_mcp_omitted">[das Tool hat auch Inhalte zurückgesendet, die Sie hier nicht lesen können: %1$s]</string>
     <string name="ftools_mcp_reason_declined">Sie haben es nicht zugelassen</string>
     <string name="ftools_mcp_reason_stopped">Gestoppt, bevor es ausgeführt wurde</string>

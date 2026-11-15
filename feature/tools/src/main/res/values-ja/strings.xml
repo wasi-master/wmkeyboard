@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">場所が指定されておらず、天気ツールにも保存されていません。場所を確認してください。</string>
     <string name="ftools_mcp_declined">ユーザーはこの呼び出しを許可しませんでした。この回答で再度このツールを呼び出さないでください。ツールなしで回答し、実行できなかった内容を伝えてください。</string>
     <string name="ftools_mcp_empty">ツールは実行されましたが、何も返されませんでした。</string>
-    <string name="ftools_mcp_error_needs_input">サーバーがさらなる入力を要求していますが、キーボードからはまだ入力できません。</string>
     <string name="ftools_mcp_error_no_version">このサーバーは、キーボードが対応しているものより新しいバージョンのMCPを使用しています。</string>
     <string name="ftools_mcp_error_not_mcp">このアドレスはMCPサーバーとして応答しませんでした。アドレスとタイプを確認してください。</string>
     <string name="ftools_mcp_error_server">サーバーがエラーを返しました: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">このサーバーにはサインインが必要ですが、キーボードからはまだ実行できません。サーバーがトークンやキーを発行する場合は、ヘッダーとして追加してください。</string>
     <string name="ftools_mcp_omitted">[ツールが、ここには表示できないコンテンツを返信しました: %1$s]</string>
     <string name="ftools_mcp_reason_declined">許可されていません</string>
     <string name="ftools_mcp_reason_stopped">実行前に停止しました</string>

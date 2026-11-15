@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">کوئی جگہ نہیں دی گئی، اور صارف نے موسم کے ٹول میں کوئی جگہ محفوظ نہیں کی ہے۔ صارف سے پوچھیں کہ ان کی مراد کون سی جگہ ہے۔</string>
     <string name="ftools_mcp_declined">صارف نے اس کال کی اجازت نہیں دی۔ اس جواب میں اس ٹول کو دوبارہ کال نہ کریں۔ اس کے بغیر جواب دیں، اور بتائیں کہ آپ کیا نہیں کر سکے۔</string>
     <string name="ftools_mcp_empty">ٹول چلا اور کچھ واپس نہیں بھیجا۔</string>
-    <string name="ftools_mcp_error_needs_input">سرور نے مزید ان پٹ مانگا ہے، اور کی بورڈ ابھی اسے نہیں دے سکتا۔</string>
     <string name="ftools_mcp_error_no_version">یہ سرور MCP کا ایک نیا ورژن استعمال کر رہا ہے جو کی بورڈ نہیں جانتا۔</string>
     <string name="ftools_mcp_error_not_mcp">اس پتے نے MCP سرور کی طرح جواب نہیں دیا۔ پتے اور قسم کو چیک کریں۔</string>
     <string name="ftools_mcp_error_server">سرور نے ایک خرابی بھیجی: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">اس سرور کو آپ کے سائن ان کرنے کی ضرورت ہے، اور کی بورڈ ابھی ایسا نہیں کر سکتا۔ اگر سرور ٹوکن یا کیز دیتا ہے، تو ایک کو ہیڈر کے طور پر شامل کریں۔</string>
     <string name="ftools_mcp_omitted">[ٹول نے ایسا مواد بھی واپس بھیجا جسے آپ یہاں نہیں پڑھ سکتے: %1$s]</string>
     <string name="ftools_mcp_reason_declined">آپ نے اس کی اجازت نہیں دی</string>
     <string name="ftools_mcp_reason_stopped">چلنے سے پہلے رک گیا</string>

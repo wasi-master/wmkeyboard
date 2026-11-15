@@ -95,6 +95,71 @@ class McpProtocolTest {
     }
 
     @Test
+    fun `an input_required result reads its requests and retries with the answers`() {
+        val result = obj(
+            """{"resultType":"input_required","requestState":"S1","inputRequests":{
+                "login":{"method":"elicitation/create","params":{"mode":"form","message":"Your name?",
+                  "requestedSchema":{"type":"object","properties":{"name":{"type":"string","title":"Name"},
+                  "plan":{"type":"string","enum":["free","pro"]}},"required":["name"]}}},
+                "where":{"method":"roots/list"}}}""",
+        )
+        val requests = McpProtocol.inputRequests(result)
+        assertEquals(listOf("login", "where"), requests.map { it.key })
+        assertEquals("roots/list", requests[1].method)
+        assertEquals("S1", McpProtocol.requestState(result))
+        val asked = McpProtocol.elicitation(requests[0].params)
+        assertEquals("Your name?", asked.message)
+        assertNull(asked.url)
+        assertEquals(listOf("name", "plan"), asked.fields.map { it.name })
+        assertTrue(asked.fields[0].required)
+        assertEquals(listOf("free", "pro"), asked.fields[1].options)
+        val base = McpProtocol.callParams("t", """{"a":1}""")
+        val retry = McpProtocol.retryParams(base, mapOf("where" to McpProtocol.rootsResult()), "S1")
+        assertEquals("S1", retry["requestState"]!!.jsonPrimitive.content)
+        assertEquals("""{"roots":[]}""", retry["inputResponses"]!!.jsonObject["where"].toString())
+        assertEquals("""{"a":1}""", retry["arguments"].toString())
+    }
+
+    @Test
+    fun `a url elicitation keeps its page, and the model's answers come back by key`() {
+        val asked = McpProtocol.elicitation(obj("""{"mode":"url","message":"Pay","url":"https://pay.test/x"}"""))
+        assertEquals("https://pay.test/x", asked.url)
+        val args = """{"q":"x","_mcp_input":{"login":{"name":"Ann"},"other":"decline"}}"""
+        assertTrue(McpProtocol.hasInput(args))
+        assertEquals("""{"q":"x"}""", McpProtocol.withoutInput(args))
+        val answers = McpProtocol.inputAnswers(args, listOf("login", "other", "missing"))
+        assertEquals("""{"action":"accept","content":{"name":"Ann"}}""", answers["login"].toString())
+        assertEquals("""{"action":"decline"}""", answers["other"].toString())
+        assertEquals("""{"action":"cancel"}""", answers["missing"].toString())
+    }
+
+    @Test
+    fun `an old server's request on the stream is read and answered`() {
+        val (id, request) = McpProtocol.serverRequest(
+            """{"jsonrpc":"2.0","id":"r1","method":"sampling/createMessage","params":{"systemPrompt":"Be short",
+               "messages":[{"role":"user","content":{"type":"text","text":"Hi"}}],"maxTokens":50}}""",
+        )!!
+        assertEquals("sampling/createMessage", request.method)
+        val (system, turns) = McpProtocol.samplingTurns(request.params)
+        assertEquals("Be short", system)
+        assertEquals(listOf(true to "Hi"), turns)
+        assertEquals(50, McpProtocol.samplingMaxTokens(request.params))
+        val answer = McpProtocol.response(id, McpProtocol.samplingResult("Hello", "m"))
+        assertTrue(answer.startsWith("""{"jsonrpc":"2.0","id":"r1","result":{"role":"assistant""""))
+        assertNull(McpProtocol.serverRequest("""{"jsonrpc":"2.0","method":"notifications/progress"}"""))
+        assertNull(McpProtocol.serverRequest("""{"jsonrpc":"2.0","id":3,"result":{}}"""))
+    }
+
+    @Test
+    fun `capabilities are declared only when the client answers`() {
+        assertEquals("{}", McpProtocol.capabilities(false).toString())
+        val caps = McpProtocol.capabilities(true)
+        assertEquals(setOf("elicitation", "sampling", "roots"), caps.keys)
+        val body = McpProtocol.request(1, "tools/call", modern = "2026-07-28", answersInput = true)
+        assertTrue("\"io.modelcontextprotocol/clientCapabilities\":{\"elicitation\"" in body)
+    }
+
+    @Test
     fun `endpoint resolves against the stream address`() {
         assertEquals(
             "https://a.test/messages?sessionId=1",

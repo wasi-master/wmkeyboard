@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">No se indicó ningún lugar, y el usuario no ha guardado ninguno en la herramienta del tiempo. Pregunta al usuario a qué lugar se refiere.</string>
     <string name="ftools_mcp_declined">El usuario no permitió esta llamada. No vuelvas a llamar a esta herramienta en esta respuesta. Responde sin ella y explica lo que no pudiste hacer.</string>
     <string name="ftools_mcp_empty">La herramienta se ejecutó y no envió nada de vuelta.</string>
-    <string name="ftools_mcp_error_needs_input">El servidor solicitó más información y el teclado aún no puede proporcionarla.</string>
     <string name="ftools_mcp_error_no_version">Este servidor utiliza una versión de MCP más reciente de la que conoce el teclado.</string>
     <string name="ftools_mcp_error_not_mcp">Esta dirección no respondió como un servidor MCP. Verifica la dirección y el tipo.</string>
     <string name="ftools_mcp_error_server">El servidor envió un error: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Este servidor requiere que inicies sesión, y el teclado aún no puede hacerlo. Si el servidor proporciona tokens o claves, añade uno como encabezado.</string>
     <string name="ftools_mcp_omitted">[la herramienta también devolvió contenido que no puedes leer aquí: %1$s]</string>
     <string name="ftools_mcp_reason_declined">No lo permitiste</string>
     <string name="ftools_mcp_reason_stopped">Detenido antes de ejecutarse</string>

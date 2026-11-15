@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">مکانی داده نشده است و کاربر مکانی را در ابزار آب‌وهوا ذخیره نکرده است. از کاربر بپرسید منظورش کدام مکان است.</string>
     <string name="ftools_mcp_declined">کاربر اجازه این فراخوانی را نداد. دوباره این ابزار را در این پاسخ فراخوانی نکنید. بدون آن پاسخ دهید و بگویید چه کاری را نتوانستید انجام دهید.</string>
     <string name="ftools_mcp_empty">ابزار اجرا شد و چیزی برنگرداند.</string>
-    <string name="ftools_mcp_error_needs_input">سرور درخواست ورودی بیشتری کرد و صفحه‌کلید هنوز نمی‌تواند آن را ارائه دهد.</string>
     <string name="ftools_mcp_error_no_version">این سرور از نسخه جدیدتری از MCP نسبت به آنچه کیبورد می‌شناسد، استفاده می‌کند.</string>
     <string name="ftools_mcp_error_not_mcp">این آدرس مانند یک سرور MCP پاسخ نداد. آدرس و نوع آن را بررسی کنید.</string>
     <string name="ftools_mcp_error_server">سرور خطایی ارسال کرد: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">این سرور نیاز دارد که وارد شوید و صفحه‌کلید هنوز نمی‌تواند این کار را انجام دهد. اگر سرور توکن یا کلید ارائه می‌دهد، یکی را به عنوان سربرگ اضافه کنید.</string>
     <string name="ftools_mcp_omitted">[ابزار همچنین محتوایی را بازگرداند که نمی‌توانید در اینجا بخوانید: %1$s]</string>
     <string name="ftools_mcp_reason_declined">شما اجازه ندادید</string>
     <string name="ftools_mcp_reason_stopped">قبل از اجرا متوقف شد</string>

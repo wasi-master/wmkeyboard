@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Enginn staður var gefinn upp og notandinn hefur ekki vistað einn í veðurverkfærinu. Spurðu notandann hvaða stað hann á við.</string>
     <string name="ftools_mcp_declined">Notandinn leyfði ekki þetta símtal. Ekki hringja í þetta tól aftur í þessu svari. Svaraðu án þess og segðu hvað þú gast ekki gert.</string>
     <string name="ftools_mcp_empty">Tólið keyrði og sendi ekkert til baka.</string>
-    <string name="ftools_mcp_error_needs_input">Netþjónninn bað um frekari inntak og lyklaborðið getur ekki veitt það ennþá.</string>
     <string name="ftools_mcp_error_no_version">Þessi þjónn notar nýrri útgáfu af MCP en lyklaborðið þekkir.</string>
     <string name="ftools_mcp_error_not_mcp">Þetta vistfang svaraði ekki eins og MCP-þjónn. Athugaðu vistfangið og tegundina.</string>
     <string name="ftools_mcp_error_server">Netþjónninn sendi villu: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Þessi þjónn krefst innskráningar og lyklaborðið getur ekki gert það enn sem komið er. Ef þjónninn gefur út auðkenni eða lykla, bættu einum við sem haus.</string>
     <string name="ftools_mcp_omitted">[tólið sendi einnig til baka efni sem þú getur ekki lesið hér: %1$s]</string>
     <string name="ftools_mcp_reason_declined">Þú leyfðir það ekki</string>
     <string name="ftools_mcp_reason_stopped">Stöðvað áður en það keyrði</string>

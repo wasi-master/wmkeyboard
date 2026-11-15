@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">സ്ഥലം നൽകിയിട്ടില്ല, കാലാവസ്ഥാ ടൂളിൽ ഉപയോക്താവ് ഒരു സ്ഥലം സേവ് ചെയ്തിട്ടുമില്ല. ഏത് സ്ഥലത്തെക്കുറിച്ചാണ് ഉദ്ദേശിക്കുന്നതെന്ന് ഉപയോക്താവിനോട് ചോദിക്കുക.</string>
     <string name="ftools_mcp_declined">ഉപയോക്താവ് ഈ കോൾ അനുവദിച്ചില്ല. ഈ ഉത്തരത്തിൽ ഈ ടൂൾ വീണ്ടും വിളിക്കരുത്. അത് കൂടാതെ ഉത്തരം നൽകുകയും, നിങ്ങൾക്ക് എന്ത് ചെയ്യാൻ കഴിഞ്ഞില്ലെന്ന് പറയുകയും ചെയ്യുക.</string>
     <string name="ftools_mcp_empty">ടൂൾ പ്രവർത്തിച്ചു, പക്ഷേ ഒന്നും തിരികെ ലഭിച്ചില്ല.</string>
-    <string name="ftools_mcp_error_needs_input">സെർവർ കൂടുതൽ വിവരങ്ങൾ ആവശ്യപ്പെട്ടിട്ടുണ്ട്, എന്നാൽ കീബോർഡിന് അത് ഇതുവരെ നൽകാൻ സാധിക്കില്ല.</string>
     <string name="ftools_mcp_error_no_version">ഈ സെർവർ കീബോർഡിന് അറിയാവുന്നതിനേക്കാൾ പുതിയ പതിപ്പിലുള്ള MCP ആണ് ഉപയോഗിക്കുന്നത്.</string>
     <string name="ftools_mcp_error_not_mcp">ഈ വിലാസം ഒരു MCP സെർവറായി പ്രതികരിച്ചില്ല. വിലാസവും തരവും പരിശോധിക്കുക.</string>
     <string name="ftools_mcp_error_server">സെർവർ ഒരു പിശക് അയച്ചു: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">ഈ സെർവറിലേക്ക് നിങ്ങൾ സൈൻ ഇൻ ചെയ്യേണ്ടതുണ്ട്, കീബോർഡിന് അത് ഇതുവരെ ചെയ്യാൻ കഴിയില്ല. സെർവർ ടോക്കണുകളോ കീകളോ നൽകുന്നുണ്ടെങ്കിൽ, ഒന്നായി ഒരു ഹെഡർ ചേർക്കുക.</string>
     <string name="ftools_mcp_omitted">[നിങ്ങൾക്ക് ഇവിടെ വായിക്കാൻ കഴിയാത്ത ഉള്ളടക്കവും ടൂൾ തിരികെ അയച്ചു: %1$s]</string>
     <string name="ftools_mcp_reason_declined">നിങ്ങൾ അത് അനുവദിച്ചില്ല</string>
     <string name="ftools_mcp_reason_stopped">പ്രവർത്തിക്കുന്നതിന് മുമ്പ് നിർത്തി</string>

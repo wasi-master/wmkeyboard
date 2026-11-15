@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Vieta nenurodyta, o vartotojas jos neišsaugojo orų įrankyje. Paklauskite vartotojo, kokią vietą jis turi omenyje.</string>
     <string name="ftools_mcp_declined">Vartotojas neleido atlikti šio skambučio. Daugiau nebekvieskite šio įrankio šiame atsakyme. Atsakykite be jo ir pasakykite, ko negalėjote padaryti.</string>
     <string name="ftools_mcp_empty">Įrankis buvo paleistas ir nieko negrąžino.</string>
-    <string name="ftools_mcp_error_needs_input">Serveris paprašė papildomos įvesties, o klaviatūra jos dar negali suteikti.</string>
     <string name="ftools_mcp_error_no_version">Šis serveris naudoja naujesnę MCP versiją, nei atpažįsta klaviatūra.</string>
     <string name="ftools_mcp_error_not_mcp">Šis adresas neatsakė kaip MCP serveris. Patikrinkite adresą ir tipą.</string>
     <string name="ftools_mcp_error_server">Serveris atsiuntė klaidą: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Šiam serveriui reikia, kad prisijungtumėte, o klaviatūra to dar negali padaryti. Jei serveris išduoda prieigos raktus ar raktus, pridėkite vieną kaip antraštę.</string>
     <string name="ftools_mcp_omitted">[įrankis taip pat atsiuntė turinį, kurio čia negalite perskaityti: %1$s]</string>
     <string name="ftools_mcp_reason_declined">Jūs neleidote</string>
     <string name="ftools_mcp_reason_stopped">Sustabdyta prieš paleidžiant</string>

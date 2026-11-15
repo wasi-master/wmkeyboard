@@ -68,6 +68,14 @@ data class McpServerSpec(
     val transport: McpTransport = McpTransport.AUTO,
     val enabled: Boolean = true,
     val toolPolicies: Map<String, McpToolPolicy> = emptyMap(),
+    /**
+     * For a server that starts as a local program (`"command": "npx"`): the
+     * line that runs it behind a small HTTP bridge, which [url] then points
+     * at. Android has no way to start the program itself, but Termux on the
+     * same phone, or a computer on the network, does. Empty for an ordinary
+     * server.
+     */
+    val bridgeCommand: String = "",
 ) {
     fun policyFor(tool: McpTool): McpToolPolicy = toolPolicies[tool.name] ?: McpToolPolicy.defaultFor(tool)
 
@@ -77,6 +85,39 @@ data class McpServerSpec(
     companion object {
         /** Prefix of a server's id, followed by the time it was added. */
         const val ID_PREFIX = "mcp_"
+    }
+}
+
+/**
+ * A sign-in to one MCP server through OAuth: the client this keyboard is
+ * known as there, and the tokens it was given. Secret like the headers, and
+ * kept the same way, by server id under a preference of its own.
+ *
+ * [resource] is the server address the tokens are for. A changed address
+ * makes them useless there, and the client signs in again rather than sending
+ * one server's token to another.
+ */
+@Serializable
+data class McpAuthState(
+    val resource: String = "",
+    val issuer: String = "",
+    val tokenEndpoint: String = "",
+    val clientId: String = "",
+    val clientSecret: String = "",
+    val accessToken: String = "",
+    val refreshToken: String = "",
+    /** Epoch millis the access token stops working at; 0 when the server did not say. */
+    val expiresAt: Long = 0L,
+    val scope: String = "",
+) {
+    /** Whether the access token can still be sent: a margin before it runs out, so it does not run out on the way. */
+    fun usable(now: Long): Boolean =
+        accessToken.isNotEmpty() && (expiresAt == 0L || expiresAt - EXPIRY_MARGIN_MS > now)
+
+    val canRefresh: Boolean get() = refreshToken.isNotEmpty() && tokenEndpoint.isNotEmpty()
+
+    companion object {
+        const val EXPIRY_MARGIN_MS = 60_000L
     }
 }
 
@@ -126,4 +167,13 @@ object McpServerCodec {
     }
 
     private val policiesSerializer = MapSerializer(String.serializer(), McpToolPolicy.serializer())
+
+    private val authSerializer = MapSerializer(String.serializer(), McpAuthState.serializer())
+
+    fun encodeAuth(auth: Map<String, McpAuthState>): String = json.encodeToString(authSerializer, auth)
+
+    fun decodeAuth(value: String): Map<String, McpAuthState> {
+        if (value.isBlank()) return emptyMap()
+        return runCatching { json.decodeFromString(authSerializer, value) }.getOrDefault(emptyMap())
+    }
 }

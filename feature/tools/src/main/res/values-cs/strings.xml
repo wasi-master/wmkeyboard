@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Nebylo zadáno žádné místo a uživatel si v nástroji Počasí žádné neuložil. Zeptejte se uživatele, jaké místo má na mysli.</string>
     <string name="ftools_mcp_declined">Uživatel toto volání nepovolil. Nevolejte tento nástroj znovu v této odpovědi. Odpovězte bez něj a řekněte, co jste nemohli udělat.</string>
     <string name="ftools_mcp_empty">Nástroj byl spuštěn a nevrátil nic.</string>
-    <string name="ftools_mcp_error_needs_input">Server vyžaduje další vstup, ale klávesnice jej zatím nemůže poskytnout.</string>
     <string name="ftools_mcp_error_no_version">Tento server používá novější verzi MCP, než jakou klávesnice zná.</string>
     <string name="ftools_mcp_error_not_mcp">Tato adresa neodpovídá jako server MCP. Zkontrolujte adresu a typ.</string>
     <string name="ftools_mcp_error_server">Server odeslal chybu: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Tento server vyžaduje přihlášení, což klávesnice zatím neumí. Pokud server vydává tokeny nebo klíče, přidejte jeden jako hlavičku.</string>
     <string name="ftools_mcp_omitted">[nástroj také odeslal zpět obsah, který zde nemůžete přečíst: %1$s]</string>
     <string name="ftools_mcp_reason_declined">Nepovolili jste to</string>
     <string name="ftools_mcp_reason_stopped">Zastaveno před spuštěním</string>

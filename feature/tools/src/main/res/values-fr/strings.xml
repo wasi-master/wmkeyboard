@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Aucun lieu n\'a été indiqué et l\'utilisateur n\'en a pas enregistré dans l\'outil météo. Demandez à l\'utilisateur de quel lieu il s\'agit.</string>
     <string name="ftools_mcp_declined">L\'utilisateur n\'a pas autorisé cet appel. Ne rappelez pas cet outil dans cette réponse. Répondez sans lui et indiquez ce que vous n\'avez pas pu faire.</string>
     <string name="ftools_mcp_empty">L\'outil a été exécuté et n\'a rien renvoyé.</string>
-    <string name="ftools_mcp_error_needs_input">Le serveur a demandé plus d\'informations, et le clavier ne peut pas encore les fournir.</string>
     <string name="ftools_mcp_error_no_version">Ce serveur utilise une version de MCP plus récente que celle connue du clavier.</string>
     <string name="ftools_mcp_error_not_mcp">Cette adresse n\'a pas répondu comme un serveur MCP. Vérifiez l\'adresse et le type.</string>
     <string name="ftools_mcp_error_server">Le serveur a renvoyé une erreur : %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Ce serveur nécessite une connexion, ce que le clavier ne peut pas encore faire. Si le serveur fournit des jetons ou des clés, ajoutez-en un en tant qu\'en-tête.</string>
     <string name="ftools_mcp_omitted">[l\'outil a également renvoyé du contenu que vous ne pouvez pas lire ici : %1$s]</string>
     <string name="ftools_mcp_reason_declined">Vous ne l\'avez pas autorisé</string>
     <string name="ftools_mcp_reason_stopped">Arrêté avant son exécution</string>

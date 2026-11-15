@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Nije navedeno mjesto, a korisnik ga nije spremio u alatu za vremensku prognozu. Pitajte korisnika na koje mjesto misli.</string>
     <string name="ftools_mcp_declined">Korisnik nije dopustio ovaj poziv. Nemojte ponovno pozivati ovaj alat u ovom odgovoru. Odgovorite bez njega i recite što niste mogli učiniti.</string>
     <string name="ftools_mcp_empty">Alat je pokrenut i nije vratio ništa.</string>
-    <string name="ftools_mcp_error_needs_input">Poslužitelj je tražio dodatni unos, a tipkovnica ga još ne može dati.</string>
     <string name="ftools_mcp_error_no_version">Ovaj poslužitelj koristi noviju verziju MCP-a od one koju tipkovnica podržava.</string>
     <string name="ftools_mcp_error_not_mcp">Ova adresa nije odgovorila kao MCP poslužitelj. Provjerite adresu i tip.</string>
     <string name="ftools_mcp_error_server">Poslužitelj je poslao pogrešku: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Ovaj poslužitelj zahtijeva prijavu, a tipkovnica to još ne može učiniti. Ako poslužitelj izdaje tokene ili ključeve, dodajte jedan kao zaglavlje.</string>
     <string name="ftools_mcp_omitted">[alat je također poslao natrag sadržaj koji ovdje ne možete pročitati: %1$s]</string>
     <string name="ftools_mcp_reason_declined">Niste dopustili</string>
     <string name="ftools_mcp_reason_stopped">Zaustavljeno prije pokretanja</string>

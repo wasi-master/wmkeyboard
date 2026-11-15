@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">ఏ ప్రదేశం ఇవ్వబడలేదు మరియు వినియోగదారు వాతావరణ సాధనంలో దేనినీ సేవ్ చేయలేదు. వినియోగదారు ఏ ప్రదేశం గురించి మాట్లాడుతున్నారో అడగండి.</string>
     <string name="ftools_mcp_declined">వినియోగదారు ఈ కాల్‌ను అనుమతించలేదు. ఈ సమాధానంలో ఈ సాధనాన్ని మళ్ళీ పిలవకండి. దాని లేకుండా సమాధానం ఇవ్వండి మరియు మీరు ఏమి చేయలేకపోయారో చెప్పండి.</string>
     <string name="ftools_mcp_empty">టూల్ రన్ అయ్యింది కానీ ఏమీ తిరిగి పంపలేదు.</string>
-    <string name="ftools_mcp_error_needs_input">సర్వర్ మరిన్ని ఇన్‌పుట్‌లను కోరింది, మరియు కీబోర్డ్ ఇంకా వాటిని ఇవ్వలేదు.</string>
     <string name="ftools_mcp_error_no_version">ఈ సర్వర్ కీబోర్డ్‌కు తెలిసిన దానికంటే కొత్త వెర్షన్ MCPని ఉపయోగిస్తోంది.</string>
     <string name="ftools_mcp_error_not_mcp">ఈ చిరునామా MCP సర్వర్ లాగా స్పందించలేదు. చిరునామా మరియు రకాన్ని తనిఖీ చేయండి.</string>
     <string name="ftools_mcp_error_server">సర్వర్ ఒక లోపాన్ని పంపింది: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">ఈ సర్వర్‌కు మీరు సైన్ ఇన్ అవ్వాలి, మరియు కీబోర్డ్ ఇంకా అలా చేయలేదు. సర్వర్ టోకెన్‌లు లేదా కీలను ఇస్తే, ఒకదాన్ని హెడర్‌గా జోడించండి.</string>
     <string name="ftools_mcp_omitted">[ఈ టూల్ మీరు ఇక్కడ చదవలేని కంటెంట్‌ను కూడా పంపింది: %1$s]</string>
     <string name="ftools_mcp_reason_declined">మీరు దీనిని అనుమతించలేదు</string>
     <string name="ftools_mcp_reason_stopped">రన్ అవ్వకముందే ఆగిపోయింది</string>

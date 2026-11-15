@@ -9,21 +9,33 @@ import org.junit.Test
 class McpConfigImportTest {
 
     @Test
-    fun `claude desktop shape, with a local command skipped`() {
+    fun `claude desktop shape, with a local command bridged`() {
         val result = McpConfigImport.parse(
             """
             {"mcpServers": {
-              "files": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-filesystem"]},
-              "remote": {"url": "https://mcp.example.com/mcp", "headers": {"Authorization": "Bearer abc"}}
+              "files": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-filesystem", "/my files"],
+                        "env": {"TOKEN": "it's"}},
+              "remote": {"url": "https://mcp.example.com/mcp", "headers": {"Authorization": "Bearer abc"}},
+              "git": {"command": "uvx", "args": ["mcp-server-git"]}
             }}
             """,
         )!!
-        val server = result.servers.single()
+        assertTrue(result.skipped.isEmpty())
+        val (files, server, git) = result.servers
         assertEquals("remote", server.name)
         assertEquals("https://mcp.example.com/mcp", server.url)
         assertEquals(McpTransport.AUTO, server.transport)
         assertEquals(listOf(McpHeader("Authorization", "Bearer abc")), server.headers)
-        assertEquals(McpConfigImport.Skipped("files", McpConfigImport.SkipReason.COMMAND), result.skipped.single())
+        assertEquals("", server.bridgeCommand)
+        assertEquals("http://127.0.0.1:8811/mcp", files.url)
+        assertEquals(McpTransport.STREAMABLE_HTTP, files.transport)
+        assertEquals(
+            "npx -y supergateway --stdio 'TOKEN=\"it'\\''s\" npx -y @modelcontextprotocol/server-filesystem \"/my files\"' " +
+                "--outputTransport streamableHttp --port 8811",
+            files.bridgeCommand,
+        )
+        assertEquals("http://127.0.0.1:8812/mcp", git.url)
+        assertTrue(git.bridgeCommand.endsWith("--stdio 'uvx mcp-server-git' --outputTransport streamableHttp --port 8812"))
     }
 
     @Test

@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">कोई जगह नहीं दी गई थी, और उपयोगकर्ता ने मौसम टूल में कोई जगह नहीं सहेजी है। उपयोगकर्ता से पूछें कि उनका मतलब किस जगह से है।</string>
     <string name="ftools_mcp_declined">उपयोगकर्ता ने इस कॉल की अनुमति नहीं दी। इस उत्तर में इस टूल को दोबारा कॉल न करें। इसके बिना उत्तर दें, और बताएं कि आप क्या नहीं कर सके।</string>
     <string name="ftools_mcp_empty">टूल चला और उसने कुछ भी वापस नहीं भेजा।</string>
-    <string name="ftools_mcp_error_needs_input">सर्वर ने अधिक इनपुट मांगा है, और कीबोर्ड अभी इसे देने में सक्षम नहीं है।</string>
     <string name="ftools_mcp_error_no_version">यह सर्वर MCP के उस वर्शन का उपयोग करता है जिसे कीबोर्ड नहीं पहचानता है।</string>
     <string name="ftools_mcp_error_not_mcp">इस पते ने MCP सर्वर की तरह उत्तर नहीं दिया। पता और प्रकार जांचें।</string>
     <string name="ftools_mcp_error_server">सर्वर ने एक त्रुटि भेजी: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">इस सर्वर के लिए आपको साइन इन करने की आवश्यकता है, और कीबोर्ड अभी ऐसा नहीं कर सकता है। यदि सर्वर टोकन या कुंजियाँ देता है, तो एक को हेडर के रूप में जोड़ें।</string>
     <string name="ftools_mcp_omitted">[टूल ने ऐसी सामग्री भी वापस भेजी है जिसे आप यहाँ नहीं पढ़ सकते: %1$s]</string>
     <string name="ftools_mcp_reason_declined">आपने इसकी अनुमति नहीं दी</string>
     <string name="ftools_mcp_reason_stopped">चलने से पहले रुक गया</string>

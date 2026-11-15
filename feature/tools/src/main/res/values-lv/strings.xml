@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Nav norādīta vieta, un lietotājs to nav saglabājis laika apstākļu rīkā. Jautājiet lietotājam, kuru vietu viņš domā.</string>
     <string name="ftools_mcp_declined">Lietotājs neatļāva šo zvanu. Neizsauciet šo rīku vēlreiz šajā atbildē. Atbildiet bez tā un pasakiet, ko nevarējāt izdarīt.</string>
     <string name="ftools_mcp_empty">Rīks tika izpildīts un neko neatgrieza.</string>
-    <string name="ftools_mcp_error_needs_input">Serveris pieprasīja papildu ievadi, un tastatūra to vēl nevar sniegt.</string>
     <string name="ftools_mcp_error_no_version">Šis serveris izmanto jaunāku MCP versiju, nekā tastatūra atpazīst.</string>
     <string name="ftools_mcp_error_not_mcp">Šī adrese neatbildēja kā MCP serveris. Pārbaudiet adresi un veidu.</string>
     <string name="ftools_mcp_error_server">Serveris nosūtīja kļūdu: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Šim serverim ir nepieciešams, lai jūs pierakstītos, un tastatūra to vēl nevar izdarīt. Ja serveris izsniedz marķierus vai atslēgas, pievienojiet vienu kā galveni.</string>
     <string name="ftools_mcp_omitted">[rīks arī nosūtīja atpakaļ saturu, ko šeit nevarat izlasīt: %1$s]</string>
     <string name="ftools_mcp_reason_declined">Jūs to neatļāvāt</string>
     <string name="ftools_mcp_reason_stopped">Apturēts pirms palaišanas</string>

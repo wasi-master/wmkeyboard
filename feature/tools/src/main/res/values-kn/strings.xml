@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">ಯಾವುದೇ ಸ್ಥಳವನ್ನು ನೀಡಲಾಗಿಲ್ಲ, ಮತ್ತು ಬಳಕೆದಾರರು ಹವಾಮಾನ ಟೂಲ್‌ನಲ್ಲಿ ಒಂದನ್ನು ಉಳಿಸಿಲ್ಲ. ಬಳಕೆದಾರರಿಗೆ ಯಾವ ಸ್ಥಳದ ಬಗ್ಗೆ ಮಾತನಾಡುತ್ತಿದ್ದಾರೆ ಎಂದು ಕೇಳಿ.</string>
     <string name="ftools_mcp_declined">ಬಳಕೆದಾರರು ಈ ಕರೆಯನ್ನು ಅನುಮತಿಸಲಿಲ್ಲ. ಈ ಉತ್ತರದಲ್ಲಿ ಈ ಉಪಕರಣವನ್ನು ಮತ್ತೆ ಕರೆಯಬೇಡಿ. ಇಲ್ಲದೆ ಉತ್ತರಿಸಿ ಮತ್ತು ನೀವು ಏನು ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ ಎಂಬುದನ್ನು ತಿಳಿಸಿ.</string>
     <string name="ftools_mcp_empty">ಉಪಕರಣವು ಚಲಿಸಿದೆ ಮತ್ತು ಏನನ್ನೂ ಹಿಂತಿರುಗಿಸಲಿಲ್ಲ.</string>
-    <string name="ftools_mcp_error_needs_input">ಸರ್ವರ್ ಹೆಚ್ಚಿನ ಇನ್‌ಪುಟ್ ಕೇಳಿದೆ, ಮತ್ತು ಕೀಬೋರ್ಡ್ ಅದನ್ನು ಇನ್ನೂ ನೀಡಲು ಸಾಧ್ಯವಿಲ್ಲ.</string>
     <string name="ftools_mcp_error_no_version">ಈ ಸರ್ವರ್ ಕೀಬೋರ್ಡ್‌ಗೆ ತಿಳಿದಿರುವುದಕ್ಕಿಂತ ಹೊಸ ಆವೃತ್ತಿಯ MCP ಅನ್ನು ಬಳಸುತ್ತಿದೆ.</string>
     <string name="ftools_mcp_error_not_mcp">ಈ ವಿಳಾಸವು MCP ಸರ್ವರ್‌ನಂತೆ ಉತ್ತರಿಸಲಿಲ್ಲ. ವಿಳಾಸ ಮತ್ತು ಪ್ರಕಾರವನ್ನು ಪರಿಶೀಲಿಸಿ.</string>
     <string name="ftools_mcp_error_server">ಸರ್ವರ್ ದೋಷವನ್ನು ಕಳುಹಿಸಿದೆ: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">ಈ ಸರ್ವರ್‌ಗೆ ನೀವು ಸೈನ್ ಇನ್ ಆಗುವ ಅಗತ್ಯವಿದೆ, ಮತ್ತು ಕೀಬೋರ್ಡ್ ಇನ್ನೂ ಅದನ್ನು ಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ. ಸರ್ವರ್ ಟೋಕನ್‌ಗಳು ಅಥವಾ ಕೀಗಳನ್ನು ನೀಡಿದರೆ, ಒಂದನ್ನು ಹೆಡರ್ ಆಗಿ ಸೇರಿಸಿ.</string>
     <string name="ftools_mcp_omitted">[ಟೂಲ್ ನೀವು ಇಲ್ಲಿ ಓದಲು ಸಾಧ್ಯವಾಗದ ವಿಷಯವನ್ನು ಸಹ ಹಿಂತಿರುಗಿಸಿದೆ: %1$s]</string>
     <string name="ftools_mcp_reason_declined">ನೀವು ಅದನ್ನು ಅನುಮತಿಸಲಿಲ್ಲ</string>
     <string name="ftools_mcp_reason_stopped">ಚಾಲನೆಯಾಗುವ ಮುನ್ನವೇ ನಿಲ್ಲಿಸಲಾಗಿದೆ</string>

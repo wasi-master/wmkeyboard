@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Nu a fost specificată nicio locație, iar utilizatorul nu a salvat una în instrumentul meteo. Întreabă utilizatorul la ce locație se referă.</string>
     <string name="ftools_mcp_declined">Utilizatorul nu a permis acest apel. Nu mai apelați acest instrument din nou în acest răspuns. Răspundeți fără el și spuneți ce nu ați putut face.</string>
     <string name="ftools_mcp_empty">Instrumentul a rulat și nu a trimis nimic înapoi.</string>
-    <string name="ftools_mcp_error_needs_input">Serverul a cerut mai multe date de intrare, iar tastatura nu le poate oferi încă.</string>
     <string name="ftools_mcp_error_no_version">Acest server utilizează o versiune de MCP mai nouă decât cea recunoscută de tastatură.</string>
     <string name="ftools_mcp_error_not_mcp">Această adresă nu a răspuns ca un server MCP. Verifică adresa și tipul.</string>
     <string name="ftools_mcp_error_server">Serverul a trimis o eroare: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Acest server necesită autentificare, iar tastatura nu poate face acest lucru încă. Dacă serverul oferă token-uri sau chei, adăugați unul ca antet.</string>
     <string name="ftools_mcp_omitted">[instrumentul a trimis înapoi și conținut pe care nu îl puteți citi aici: %1$s]</string>
     <string name="ftools_mcp_reason_declined">Nu ai permis acest lucru</string>
     <string name="ftools_mcp_reason_stopped">Oprit înainte de a rula</string>

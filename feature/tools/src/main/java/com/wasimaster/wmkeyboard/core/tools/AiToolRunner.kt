@@ -43,7 +43,9 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.put
 
 /**
  * Runs the tools a model asked for (#470), and turns what happened — including
@@ -287,7 +289,22 @@ class AiToolRunner(
             setMcpToolPolicy(offer.server.id, offer.tool.name, McpToolPolicy.ALLOW)
         }?.let { return it }
         val headers = settings.ai.mcpHeaders[offer.server.id].orEmpty()
-        val outcome = McpClient.call(offer.server, headers, offer.entry, offer.tool.name, call.arguments)
+        val outcome = try {
+            McpClient.call(
+                offer.server, headers, offer.entry, offer.tool.name, call.arguments,
+                auth = settings.ai.mcpAuth[offer.server.id],
+                onAuth = { fresh ->
+                    // A refreshed token is kept at once: the old refresh
+                    // token may already be spent.
+                    runCatching { runBlocking { SettingsRepository(context).setMcpAuth(offer.server.id, fresh) } }
+                },
+                input = inputHandler(call, offer),
+            )
+        } catch (deferred: McpDeferredInput) {
+            // Not a failure: the server asked something only the user can
+            // answer, and the model is told to ask it.
+            return AiToolResult(call, deferred.question, display = display)
+        }
         val content = buildString {
             append(outcome.text.ifBlank { context.getString(R.string.ftools_mcp_empty) })
             if (outcome.truncated) append("\n\n").append(context.getString(R.string.ftools_mcp_truncated))
@@ -304,6 +321,116 @@ class AiToolRunner(
             )
         }
         return AiToolResult(call, content, display = display)
+    }
+
+    /**
+     * What this run answers when [offer]'s server asks for something in the
+     * middle of [call] (MRTR, or an old server's request):
+     *
+     * - **Roots**: none. A phone shares no folders with a server.
+     * - **A page to open** (URL elicitation): asked about on the same card as
+     *   a call, then opened in the browser.
+     * - **A yes or no** (a question with no fields): asked about on the card.
+     * - **A form**: handed to the model, which asks the user in its answer
+     *   and calls the tool again with what they said. The second call is
+     *   asked about like any other, so the user sees what goes back.
+     * - **A completion from the user's AI** (sampling): asked about on the
+     *   card, showing what the server wrote, then run on the AI set up here.
+     */
+    private fun inputHandler(call: AiToolCall, offer: McpOffer) = McpInputHandler { request, canDefer ->
+        when (request.method) {
+            "roots/list" -> McpInputAnswer.Answer(McpProtocol.rootsResult())
+            "elicitation/create" -> elicit(call, offer, McpProtocol.elicitation(request.params), request.key, canDefer)
+            "sampling/createMessage" -> sample(offer, request.params)
+            else -> McpInputAnswer.Refuse
+        }
+    }
+
+    private fun askOnCard(offer: McpOffer, title: String, details: String): AiToolApproval =
+        approver?.approve(
+            AiToolActivity(
+                tool = title,
+                server = offer.server.label,
+                running = true,
+                awaitingApproval = true,
+                details = details,
+            ),
+        ) ?: AiToolApproval.DENY
+
+    private fun elicitAction(approval: AiToolApproval): String = when (approval) {
+        AiToolApproval.ONCE, AiToolApproval.ALWAYS -> "accept"
+        AiToolApproval.DENY -> "decline"
+        AiToolApproval.CANCELLED -> "cancel"
+    }
+
+    private fun elicit(
+        call: AiToolCall,
+        offer: McpOffer,
+        asked: McpProtocol.Elicitation,
+        key: String,
+        canDefer: Boolean,
+    ): McpInputAnswer {
+        val url = asked.url
+        if (url != null) {
+            val details = listOf(asked.message, url).filter { it.isNotBlank() }.joinToString("\n\n")
+            val action = elicitAction(askOnCard(offer, context.getString(R.string.ftools_mcp_open_page_title), details))
+            if (action == "accept") {
+                runCatching {
+                    context.startActivity(
+                        Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                    )
+                }
+            }
+            return McpInputAnswer.Answer(McpProtocol.elicitResult(action))
+        }
+        if (asked.fields.isEmpty()) {
+            val action = elicitAction(askOnCard(offer, context.getString(R.string.ftools_mcp_confirm_title), asked.message))
+            return McpInputAnswer.Answer(McpProtocol.elicitResult(action, JsonObject(emptyMap())))
+        }
+        if (!canDefer) return McpInputAnswer.Answer(McpProtocol.elicitResult("decline"))
+        val fields = asked.fields.joinToString("\n") { field ->
+            buildString {
+                append("- ").append(field.name)
+                if (field.title.isNotBlank() && field.title != field.name) append(" (").append(field.title).append(')')
+                append(": ").append(field.type)
+                if (field.options.isNotEmpty()) append(", one of ").append(field.options.joinToString(", "))
+                if (field.required) append(", required")
+                if (field.description.isNotBlank()) append(". ").append(field.description)
+            }
+        }
+        val template = buildJsonObject {
+            put(key, buildJsonObject { asked.fields.forEach { put(it.name, "…") } })
+        }.toString()
+        val question = listOf(asked.message, fields).filter { it.isNotBlank() }.joinToString("\n")
+        return McpInputAnswer.Defer(context.getString(R.string.ftools_mcp_input_question, call.name, question, template))
+    }
+
+    /** A completion the server asked the user's own AI for, after the user allowed it. */
+    private fun sample(offer: McpOffer, params: JsonObject): McpInputAnswer {
+        val ai = settings.ai
+        if (ai.provider == AiProvider.ON_DEVICE || !AiClient.isConfigured(ai)) return McpInputAnswer.Refuse
+        val (system, turns) = McpProtocol.samplingTurns(params)
+        if (turns.isEmpty()) return McpInputAnswer.Refuse
+        val shown = buildString {
+            if (system.isNotBlank()) append(system).append("\n\n")
+            append(turns.joinToString("\n\n") { it.second })
+        }
+        when (askOnCard(offer, context.getString(R.string.ftools_mcp_sampling_title), shown)) {
+            AiToolApproval.ONCE, AiToolApproval.ALWAYS -> Unit
+            else -> return McpInputAnswer.Refuse
+        }
+        val config = AiClient.config(ai)
+        val reply = AiClient.completeStreaming(
+            config,
+            system,
+            turns.map { (user, text) ->
+                AiClient.ChatTurn(if (user) AiClient.ChatRole.USER else AiClient.ChatRole.ASSISTANT, text)
+            },
+            McpProtocol.samplingMaxTokens(params) ?: AiClient.effectiveMaxTokens(ai),
+            onPhase = {},
+            onPartial = {},
+        )
+        return McpInputAnswer.Answer(McpProtocol.samplingResult(AiThinking.stripped(reply.text), config.model))
     }
 
     /**

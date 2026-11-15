@@ -58,6 +58,38 @@ sealed interface McpReply {
     data class Error(val code: Int, val message: String, val data: JsonElement?) : McpReply
 }
 
+/**
+ * One thing a server asked the client for in the middle of a call (MRTR):
+ * `elicitation/create`, `sampling/createMessage` or `roots/list`, with [key]
+ * the name its answer goes back under.
+ */
+data class McpInputRequest(val key: String, val method: String, val params: JsonObject)
+
+/** What the client does about one [McpInputRequest]. */
+sealed interface McpInputAnswer {
+    /** The answer to send back. */
+    data class Answer(val result: JsonObject) : McpInputAnswer
+
+    /**
+     * A question only the user can answer, handed to the model instead: it
+     * asks the user in the chat and calls the tool again with the answers
+     * in [McpProtocol.INPUT_ARGUMENT]. [question] is what the model is told.
+     */
+    data class Defer(val question: String) : McpInputAnswer
+
+    /** Nothing to answer with: the call fails. */
+    data object Refuse : McpInputAnswer
+}
+
+/**
+ * Answers what a server asks for in the middle of a call. [canDefer] is
+ * false where the server is waiting on an open stream (an old server's own
+ * request), so the question cannot go to the model and come back later.
+ */
+fun interface McpInputHandler {
+    fun answer(request: McpInputRequest, canDefer: Boolean): McpInputAnswer
+}
+
 /** One server-sent event: its type and its whole data, lines joined. */
 data class McpSseEvent(val event: String, val data: String)
 
@@ -125,6 +157,9 @@ object McpProtocol {
 
     const val UNSUPPORTED_VERSION = -32022
 
+    /** JSON-RPC's "method not found", for a server request this client does not know. */
+    const val METHOD_NOT_FOUND = -32601
+
     /** The error codes only a modern server sends; any other error means an old server. */
     private val MODERN_ERRORS = -32022..-32020
 
@@ -151,11 +186,12 @@ object McpProtocol {
         params: JsonObject = JsonObject(emptyMap()),
         modern: String? = null,
         clientVersion: String = "",
+        answersInput: Boolean = false,
     ): String = buildJsonObject {
         put("jsonrpc", "2.0")
         put("id", id)
         put("method", method)
-        put("params", if (modern == null) params else withMeta(params, modern, clientVersion))
+        put("params", if (modern == null) params else withMeta(params, modern, clientVersion, answersInput))
     }.toString()
 
     /** One notification: no id, and nothing comes back. */
@@ -164,7 +200,7 @@ object McpProtocol {
         put("method", method)
     }.toString()
 
-    private fun withMeta(params: JsonObject, version: String, clientVersion: String): JsonObject {
+    private fun withMeta(params: JsonObject, version: String, clientVersion: String, answersInput: Boolean): JsonObject {
         val meta = buildJsonObject {
             (params["_meta"] as? JsonObject)?.forEach { (key, value) -> put(key, value) }
             put("io.modelcontextprotocol/protocolVersion", version)
@@ -172,15 +208,32 @@ object McpProtocol {
                 put("name", CLIENT_NAME)
                 put("version", clientVersion.ifBlank { "1" })
             }
-            putJsonObject("io.modelcontextprotocol/clientCapabilities") {}
+            put("io.modelcontextprotocol/clientCapabilities", capabilities(answersInput))
         }
         return JsonObject(params + ("_meta" to meta))
     }
 
+    /**
+     * What the client says it can answer. With [answersInput], everything a
+     * server may ask for in the middle of a call: a question for the user
+     * (a form, or a page to open), a completion from the user's own model,
+     * and the folders it may look at, of which a phone shares none. Without,
+     * nothing, so a server does not ask what no one will answer.
+     */
+    fun capabilities(answersInput: Boolean): JsonObject = buildJsonObject {
+        if (!answersInput) return@buildJsonObject
+        putJsonObject("elicitation") {
+            putJsonObject("form") {}
+            putJsonObject("url") {}
+        }
+        putJsonObject("sampling") {}
+        putJsonObject("roots") {}
+    }
+
     /** What an old server's `initialize` takes. */
-    fun initializeParams(version: String, clientVersion: String): JsonObject = buildJsonObject {
+    fun initializeParams(version: String, clientVersion: String, answersInput: Boolean = false): JsonObject = buildJsonObject {
         put("protocolVersion", version)
-        putJsonObject("capabilities") {}
+        put("capabilities", capabilities(answersInput))
         putJsonObject("clientInfo") {
             put("name", CLIENT_NAME)
             put("version", clientVersion.ifBlank { "1" })
@@ -257,13 +310,187 @@ object McpProtocol {
 
     /**
      * Whether a modern result is asking the client for something before it
-     * can finish (a question for the user, a model completion). This client
-     * has nothing to answer those with, so the call is reported as failed.
+     * can finish (a question for the user, a model completion): the call is
+     * then sent again with the answers ([inputRequests], [retryParams]).
      */
     fun needsInput(result: JsonObject): Boolean {
         val type = (result["resultType"] as? JsonPrimitive)?.contentOrNull ?: return false
         return type != "complete"
     }
+
+    // ---- input a server asks for (MRTR, and the old servers' requests) ----
+
+    /** The requests an `input_required` result carries, by the key the answer goes back under. */
+    fun inputRequests(result: JsonObject): List<McpInputRequest> =
+        (result["inputRequests"] as? JsonObject).orEmpty().mapNotNull { (key, value) ->
+            val obj = value as? JsonObject ?: return@mapNotNull null
+            val method = (obj["method"] as? JsonPrimitive)?.contentOrNull ?: return@mapNotNull null
+            McpInputRequest(key, method, obj["params"] as? JsonObject ?: JsonObject(emptyMap()))
+        }
+
+    /** The opaque state an `input_required` result asks to have sent back. */
+    fun requestState(result: JsonObject): String? = (result["requestState"] as? JsonPrimitive)?.contentOrNull
+
+    /** [params] again, with the answers and the server's state, for the retry. */
+    fun retryParams(params: JsonObject, responses: Map<String, JsonObject>, state: String?): JsonObject =
+        JsonObject(
+            buildMap {
+                putAll(params - "inputResponses" - "requestState")
+                put("inputResponses", JsonObject(responses))
+                if (state != null) put("requestState", JsonPrimitive(state))
+            },
+        )
+
+    /**
+     * A request an old server sent down the stream of a call, in place of an
+     * `input_required` result: the id to answer, and what it asks. Null for
+     * anything that is not a request (an answer, a notification).
+     */
+    fun serverRequest(message: String): Pair<JsonElement, McpInputRequest>? {
+        val obj = runCatching { json.parseToJsonElement(message) as? JsonObject }.getOrNull() ?: return null
+        val id = obj["id"]?.takeIf { it !is kotlinx.serialization.json.JsonNull } ?: return null
+        val method = (obj["method"] as? JsonPrimitive)?.contentOrNull ?: return null
+        val params = obj["params"] as? JsonObject ?: JsonObject(emptyMap())
+        return id to McpInputRequest(method, method, params)
+    }
+
+    /** The answer to a server's own request [id]. */
+    fun response(id: JsonElement, result: JsonObject): String = buildJsonObject {
+        put("jsonrpc", "2.0")
+        put("id", id)
+        put("result", result)
+    }.toString()
+
+    /** A refusal of a server's own request [id], for a method this client does not know. */
+    fun errorResponse(id: JsonElement, code: Int, message: String): String = buildJsonObject {
+        put("jsonrpc", "2.0")
+        put("id", id)
+        putJsonObject("error") {
+            put("code", code)
+            put("message", message)
+        }
+    }.toString()
+
+    /** `elicitation/create`'s answer. [content] only with [action] `accept`. */
+    fun elicitResult(action: String, content: JsonObject? = null): JsonObject = buildJsonObject {
+        put("action", action)
+        if (content != null && action == "accept") put("content", content)
+    }
+
+    /** `roots/list`'s answer: a phone shares no folders with a server. */
+    fun rootsResult(): JsonObject = buildJsonObject { put("roots", JsonArray(emptyList())) }
+
+    /** `sampling/createMessage`'s answer. */
+    fun samplingResult(text: String, model: String): JsonObject = buildJsonObject {
+        put("role", "assistant")
+        putJsonObject("content") {
+            put("type", "text")
+            put("text", text)
+        }
+        put("model", model.ifBlank { "unknown" })
+        put("stopReason", "endTurn")
+    }
+
+    /** What an `elicitation/create` asks, read for a person or a model. */
+    data class Elicitation(
+        val message: String,
+        /** Set for URL mode: the page the user is asked to open. */
+        val url: String?,
+        val fields: List<ElicitField>,
+    )
+
+    data class ElicitField(
+        val name: String,
+        val title: String,
+        val type: String,
+        val required: Boolean,
+        val options: List<String>,
+        val description: String,
+    )
+
+    fun elicitation(params: JsonObject): Elicitation {
+        val message = (params["message"] as? JsonPrimitive)?.contentOrNull.orEmpty()
+        val mode = (params["mode"] as? JsonPrimitive)?.contentOrNull
+        val url = (params["url"] as? JsonPrimitive)?.contentOrNull
+            ?.takeIf { mode == "url" && (it.startsWith("https://") || it.startsWith("http://")) }
+        val schema = params["requestedSchema"] as? JsonObject
+        val required = ((schema?.get("required")) as? JsonArray).strings().toSet()
+        val fields = (schema?.get("properties") as? JsonObject).orEmpty().map { (name, value) ->
+            val obj = value as? JsonObject ?: JsonObject(emptyMap())
+            val options = (obj["enum"] as? JsonArray).strings().ifEmpty {
+                (obj["oneOf"] as? JsonArray).orEmpty().mapNotNull { option ->
+                    ((option as? JsonObject)?.get("const") as? JsonPrimitive)?.contentOrNull
+                }
+            }
+            ElicitField(
+                name = name,
+                title = (obj["title"] as? JsonPrimitive)?.contentOrNull.orEmpty(),
+                type = (obj["type"] as? JsonPrimitive)?.contentOrNull ?: "string",
+                required = name in required,
+                options = options,
+                description = (obj["description"] as? JsonPrimitive)?.contentOrNull.orEmpty(),
+            )
+        }
+        return Elicitation(message, url, fields)
+    }
+
+    /**
+     * A sampling request as plain text: its system prompt, and its messages
+     * oldest first with whether each is the user's. Only text is read; a
+     * picture or sound in it is left out.
+     */
+    fun samplingTurns(params: JsonObject): Pair<String, List<Pair<Boolean, String>>> {
+        val system = (params["systemPrompt"] as? JsonPrimitive)?.contentOrNull.orEmpty()
+        val turns = (params["messages"] as? JsonArray).orEmpty().mapNotNull { message ->
+            val obj = message as? JsonObject ?: return@mapNotNull null
+            val user = (obj["role"] as? JsonPrimitive)?.contentOrNull != "assistant"
+            val parts = when (val content = obj["content"]) {
+                is JsonArray -> content.mapNotNull { it as? JsonObject }
+                is JsonObject -> listOf(content)
+                else -> emptyList()
+            }
+            val text = parts.filter { (it["type"] as? JsonPrimitive)?.contentOrNull == "text" }
+                .mapNotNull { (it["text"] as? JsonPrimitive)?.contentOrNull }
+                .joinToString("\n")
+            text.takeIf { it.isNotBlank() }?.let { user to it }
+        }
+        return system to turns
+    }
+
+    /** The cap a sampling request puts on its answer, or null. */
+    fun samplingMaxTokens(params: JsonObject): Int? = (params["maxTokens"] as? JsonPrimitive)?.intOrNull
+
+    /**
+     * Answers the model gave for a deferred question: the `_mcp_input` object
+     * in its arguments, by request key. A key the model set to the string
+     * `decline` is declined; a key it left out is cancelled.
+     */
+    fun inputAnswers(argumentsJson: String, keys: Collection<String>): Map<String, JsonObject> {
+        val given = callArguments(argumentsJson)[INPUT_ARGUMENT] as? JsonObject ?: JsonObject(emptyMap())
+        return keys.associateWith { key ->
+            when (val value = given[key]) {
+                is JsonObject -> elicitResult("accept", value)
+                is JsonPrimitive -> if (value.contentOrNull.equals("decline", ignoreCase = true)) {
+                    elicitResult("decline")
+                } else {
+                    elicitResult("cancel")
+                }
+                else -> elicitResult("cancel")
+            }
+        }
+    }
+
+    /** [argumentsJson] without the answers to a deferred question, as the server should see it. */
+    fun withoutInput(argumentsJson: String): String {
+        val args = callArguments(argumentsJson)
+        if (INPUT_ARGUMENT !in args) return argumentsJson
+        return JsonObject(args - INPUT_ARGUMENT).toString()
+    }
+
+    fun hasInput(argumentsJson: String): Boolean = INPUT_ARGUMENT in callArguments(argumentsJson)
+
+    /** The argument a model puts a deferred question's answers in. */
+    const val INPUT_ARGUMENT = "_mcp_input"
 
     /** The server's own name and version, from either generation's answer. */
     fun serverInfo(result: JsonObject): Pair<String, String> {
@@ -455,9 +682,14 @@ object McpProtocol {
  *
  * Takes the shapes in use: Claude Desktop and Cursor's
  * `{"mcpServers": {name: {...}}}`, VS Code's `{"servers": {name: {...}}}`,
- * the inner map on its own, and one server object. A server that is started
- * as a local command (`"command": "npx"`) cannot run on a phone, so it is
- * listed as skipped with that reason rather than silently dropped.
+ * the inner map on its own, and one server object.
+ *
+ * A server that is started as a local command (`"command": "npx"`) cannot be
+ * started by an Android app: the system lets no app run a program it brought
+ * along. It comes in pointed at a bridge on the same phone instead,
+ * `http://127.0.0.1:<port>/mcp`, with the line that starts the bridge
+ * ([Server.bridgeCommand]): supergateway runs the program and speaks
+ * Streamable HTTP for it, in Termux or on a computer.
  */
 object McpConfigImport {
 
@@ -466,10 +698,15 @@ object McpConfigImport {
         val url: String,
         val transport: McpTransport,
         val headers: List<McpHeader>,
+        /** For a local program: the line that runs it behind a bridge at [url]. */
+        val bridgeCommand: String = "",
     )
 
+    /** The port the first bridged server listens on; each next one takes the next port. */
+    const val FIRST_BRIDGE_PORT = 8811
+
     enum class SkipReason {
-        /** Started as a local program; Android has nothing to start it with. */
+        /** Started as a local program with no command to bridge. Kept for configs read before bridging. */
         COMMAND,
 
         /** No address at all. */
@@ -501,9 +738,23 @@ object McpConfigImport {
         }
         val servers = ArrayList<Server>()
         val skipped = ArrayList<Skipped>()
+        var port = FIRST_BRIDGE_PORT
         for ((name, body) in entries) {
             val url = stringOf(body, "url") ?: stringOf(body, "serverUrl") ?: stringOf(body, "endpoint")
+            val command = stringOf(body, "command")
             when {
+                url == null && command != null -> {
+                    servers.add(
+                        Server(
+                            name.trim(),
+                            "http://127.0.0.1:$port/mcp",
+                            McpTransport.STREAMABLE_HTTP,
+                            emptyList(),
+                            bridgeCommand(command, argsOf(body), envOf(body), port),
+                        ),
+                    )
+                    port++
+                }
                 url == null && body["command"] != null -> skipped.add(Skipped(name, SkipReason.COMMAND))
                 url == null -> skipped.add(Skipped(name, SkipReason.NO_URL))
                 !isHttp(url) -> skipped.add(Skipped(name, SkipReason.BAD_URL))
@@ -512,6 +763,42 @@ object McpConfigImport {
         }
         return Result(servers, skipped)
     }
+
+    /**
+     * The line that starts [command] behind supergateway on [port]. The
+     * program's own line goes in single quotes, so nothing in it is read by
+     * the shell the bridge is started from; the bridge hands it to a shell of
+     * its own, where each argument is quoted again if it needs to be.
+     */
+    fun bridgeCommand(command: String, args: List<String>, env: Map<String, String>, port: Int): String {
+        val inner = buildList {
+            for ((key, value) in env) add("$key=${shellWord(value)}")
+            add(shellWord(command))
+            args.forEach { add(shellWord(it)) }
+        }.joinToString(" ")
+        val outer = "'" + inner.replace("'", "'\\''") + "'"
+        return "npx -y supergateway --stdio $outer --outputTransport streamableHttp --port $port"
+    }
+
+    private val PLAIN_WORD = Regex("[A-Za-z0-9_@%+=:,./-]+")
+
+    /** [word] as one shell word: as it is when it is plain, else in double quotes. */
+    private fun shellWord(word: String): String =
+        if (word.matches(PLAIN_WORD)) {
+            word
+        } else {
+            "\"" + word.replace("\\", "\\\\").replace("\"", "\\\"").replace("$", "\\$").replace("`", "\\`") + "\""
+        }
+
+    private fun argsOf(body: JsonObject): List<String> =
+        (body["args"] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }.orEmpty()
+
+    private fun envOf(body: JsonObject): Map<String, String> =
+        (body["env"] as? JsonObject)?.entries?.mapNotNull { (key, value) ->
+            (value as? JsonPrimitive)?.contentOrNull?.let { key to it }
+        }.orEmpty().filter { (key, _) -> key.matches(ENV_NAME) }.toMap()
+
+    private val ENV_NAME = Regex("[A-Za-z_][A-Za-z0-9_]*")
 
     private fun looksLikeServer(obj: JsonObject): Boolean =
         obj["url"] is JsonPrimitive || obj["serverUrl"] is JsonPrimitive || obj["command"] is JsonPrimitive

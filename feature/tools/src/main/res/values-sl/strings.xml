@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Kraj ni bil naveden, uporabnik pa ga ni shranil v orodju za vreme. Vprašajte uporabnika, kateri kraj ima v mislih.</string>
     <string name="ftools_mcp_declined">Uporabnik ni dovolil tega klica. Tega orodja v tem odgovoru ne kličite več. Odgovorite brez njega in povejte, česa niste mogli storiti.</string>
     <string name="ftools_mcp_empty">Orodje se je izvedlo, vendar ni vrnilo nobenega rezultata.</string>
-    <string name="ftools_mcp_error_needs_input">Strežnik je zahteval več vnosa, tipkovnica pa ga še ne more podati.</string>
     <string name="ftools_mcp_error_no_version">Ta strežnik uporablja novejšo različico MCP, kot jo pozna tipkovnica.</string>
     <string name="ftools_mcp_error_not_mcp">Ta naslov se ni odzval kot strežnik MCP. Preverite naslov in vrsto.</string>
     <string name="ftools_mcp_error_server">Strežnik je poslal napako: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Ta strežnik zahteva prijavo, česar tipkovnica še ne zmore. Če strežnik izdaja žetone ali ključe, dodajte enega kot glavo.</string>
     <string name="ftools_mcp_omitted">[orodje je poslalo nazaj tudi vsebino, ki je tukaj ne morete prebrati: %1$s]</string>
     <string name="ftools_mcp_reason_declined">Niste dovolili</string>
     <string name="ftools_mcp_reason_stopped">Ustavljeno pred zagonom</string>

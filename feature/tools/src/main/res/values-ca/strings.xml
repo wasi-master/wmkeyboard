@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">No s\'ha indicat cap lloc i l\'usuari no n\'ha desat cap a l\'eina del temps. Pregunta a l\'usuari a quin lloc es refereix.</string>
     <string name="ftools_mcp_declined">L\'usuari no ha permès aquesta crida. No tornis a cridar aquesta eina en aquesta resposta. Respon sense ella i digues què no has pogut fer.</string>
     <string name="ftools_mcp_empty">L\'eina s\'ha executat i no ha retornat res.</string>
-    <string name="ftools_mcp_error_needs_input">El servidor ha demanat més informació i el teclat encara no la pot proporcionar.</string>
     <string name="ftools_mcp_error_no_version">Aquest servidor utilitza una versió d\'MCP més recent de la que coneix el teclat.</string>
     <string name="ftools_mcp_error_not_mcp">Aquesta adreça no ha respost com un servidor MCP. Comprova l\'adreça i el tipus.</string>
     <string name="ftools_mcp_error_server">El servidor ha enviat un error: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Aquest servidor requereix que iniciïs sessió, i el teclat encara no pot fer-ho. Si el servidor proporciona testimonis o claus, afegeix-ne un com a capçalera.</string>
     <string name="ftools_mcp_omitted">[l\'eina també ha enviat contingut que no podeu llegir aquí: %1$s]</string>
     <string name="ftools_mcp_reason_declined">No ho has permès</string>
     <string name="ftools_mcp_reason_stopped">Aturat abans d\'executar-se</string>

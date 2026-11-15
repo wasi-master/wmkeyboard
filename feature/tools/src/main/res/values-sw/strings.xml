@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Hakuna mahali palipotolewa, na mtumiaji hajawahifadhi mahali popote katika zana ya hali ya hewa. Muulize mtumiaji anamaanisha mahali gani.</string>
     <string name="ftools_mcp_declined">Mtumiaji hakuruhusu simu hii. Usipige simu hii tena katika jibu hili. Jibu bila hiyo, na useme kile ambacho hukuweza kufanya.</string>
     <string name="ftools_mcp_empty">Zana ilifanya kazi na haikurejesha chochote.</string>
-    <string name="ftools_mcp_error_needs_input">Seva iliomba maelezo zaidi, na kibodi haiwezi kuyatoa bado.</string>
     <string name="ftools_mcp_error_no_version">Seva hii inatumia toleo jipya zaidi la MCP kuliko kibodi inavyojua.</string>
     <string name="ftools_mcp_error_not_mcp">Anwani hii haikujibu kama seva ya MCP. Angalia anwani na aina yake.</string>
     <string name="ftools_mcp_error_server">Seva imetuma hitilafu: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Seva hii inahitaji uingie, na kibodi haiwezi kufanya hivyo bado. Ikiwa seva inatoa tokeni au funguo, ongeza moja kama kichwa.</string>
     <string name="ftools_mcp_omitted">[zana pia ilituma maudhui ambayo huwezi kuyasoma hapa: %1$s]</string>
     <string name="ftools_mcp_reason_declined">Hukuruhusu</string>
     <string name="ftools_mcp_reason_stopped">Imesimamishwa kabla haijaanza</string>

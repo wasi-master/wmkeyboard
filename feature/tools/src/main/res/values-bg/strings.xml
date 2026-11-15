@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Не е посочено място и потребителят не е запазил такова в инструмента за времето. Попитайте потребителя кое място има предвид.</string>
     <string name="ftools_mcp_declined">Потребителят не разреши това извикване. Не извиквайте този инструмент отново в този отговор. Отговорете без него и кажете какво не сте могли да направите.</string>
     <string name="ftools_mcp_empty">Инструментът се изпълни и не върна нищо.</string>
-    <string name="ftools_mcp_error_needs_input">Сървърът поиска допълнително въвеждане, но клавиатурата все още не може да го предостави.</string>
     <string name="ftools_mcp_error_no_version">Този сървър използва по-нова версия на MCP, отколкото клавиатурата разпознава.</string>
     <string name="ftools_mcp_error_not_mcp">Този адрес не отговори като MCP сървър. Проверете адреса и типа.</string>
     <string name="ftools_mcp_error_server">Сървърът изпрати грешка: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Този сървър изисква влизане, което клавиатурата все още не поддържа. Ако сървърът предоставя токени или ключове, добавете един като заглавна част.</string>
     <string name="ftools_mcp_omitted">[инструментът също върна съдържание, което не можете да прочетете тук: %1$s]</string>
     <string name="ftools_mcp_reason_declined">Не сте го разрешили</string>
     <string name="ftools_mcp_reason_stopped">Спряно преди изпълнение</string>

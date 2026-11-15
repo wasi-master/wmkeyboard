@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Er is geen locatie opgegeven en de gebruiker heeft er geen opgeslagen in de weer-tool. Vraag de gebruiker welke locatie wordt bedoeld.</string>
     <string name="ftools_mcp_declined">De gebruiker heeft deze aanroep niet toegestaan. Roep deze tool niet opnieuw aan in dit antwoord. Antwoord zonder de tool en zeg wat je niet kon doen.</string>
     <string name="ftools_mcp_empty">De tool is uitgevoerd en heeft niets teruggestuurd.</string>
-    <string name="ftools_mcp_error_needs_input">De server vroeg om meer invoer, en het toetsenbord kan dit nog niet geven.</string>
     <string name="ftools_mcp_error_no_version">Deze server gebruikt een nieuwere versie van MCP dan het toetsenbord kent.</string>
     <string name="ftools_mcp_error_not_mcp">Dit adres antwoordde niet als een MCP-server. Controleer het adres en het type.</string>
     <string name="ftools_mcp_error_server">De server stuurde een foutmelding: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Deze server vereist dat je inlogt, en het toetsenbord kan dat nog niet. Als de server tokens of sleutels uitgeeft, voeg er dan een toe als header.</string>
     <string name="ftools_mcp_omitted">[de tool stuurde ook inhoud terug die je hier niet kunt lezen: %1$s]</string>
     <string name="ftools_mcp_reason_declined">Je hebt het niet toegestaan</string>
     <string name="ftools_mcp_reason_stopped">Gestopt voordat het werd uitgevoerd</string>

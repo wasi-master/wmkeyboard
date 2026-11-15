@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">未提供地点，且用户在天气工具中未保存地点。请询问用户指的是哪个地点。</string>
     <string name="ftools_mcp_declined">用户未允许此调用。请勿在此回答中再次调用此工具。请在不使用该工具的情况下回答，并说明您无法完成的操作。</string>
     <string name="ftools_mcp_empty">工具已运行，但未返回任何结果。</string>
-    <string name="ftools_mcp_error_needs_input">服务器请求更多输入，但键盘目前无法提供。</string>
     <string name="ftools_mcp_error_no_version">该服务器使用的 MCP 版本比输入法所知的版本更新。</string>
     <string name="ftools_mcp_error_not_mcp">此地址未以 MCP 服务器方式响应。请检查地址和类型。</string>
     <string name="ftools_mcp_error_server">服务器发送了错误：%1$s</string>
-    <string name="ftools_mcp_error_sign_in">此服务器需要您登录，但键盘目前无法执行此操作。如果服务器提供令牌或密钥，请将其添加为标头。</string>
     <string name="ftools_mcp_omitted">[该工具还发送了您在此处无法读取的内容：%1$s]</string>
     <string name="ftools_mcp_reason_declined">您未授权</string>
     <string name="ftools_mcp_reason_stopped">在运行前已停止</string>

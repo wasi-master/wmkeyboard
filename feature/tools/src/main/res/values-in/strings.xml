@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Tidak ada lokasi yang diberikan, dan pengguna belum menyimpannya di alat cuaca. Tanyakan kepada pengguna lokasi yang dimaksud.</string>
     <string name="ftools_mcp_declined">Pengguna tidak mengizinkan panggilan ini. Jangan panggil alat ini lagi dalam jawaban ini. Jawab tanpa alat tersebut, dan katakan apa yang tidak dapat Anda lakukan.</string>
     <string name="ftools_mcp_empty">Alat dijalankan dan tidak mengirimkan apa pun kembali.</string>
-    <string name="ftools_mcp_error_needs_input">Server meminta input lebih lanjut, dan papan ketik belum dapat memberikannya.</string>
     <string name="ftools_mcp_error_no_version">Server ini menggunakan versi MCP yang lebih baru daripada yang diketahui keyboard.</string>
     <string name="ftools_mcp_error_not_mcp">Alamat ini tidak merespons seperti server MCP. Periksa alamat dan jenisnya.</string>
     <string name="ftools_mcp_error_server">Server mengirimkan kesalahan: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Server ini mengharuskan Anda untuk masuk, dan papan tik belum bisa melakukannya. Jika server mengeluarkan token atau kunci, tambahkan salah satunya sebagai header.</string>
     <string name="ftools_mcp_omitted">[alat ini juga mengirim kembali konten yang tidak dapat Anda baca di sini: %1$s]</string>
     <string name="ftools_mcp_reason_declined">Anda tidak mengizinkannya</string>
     <string name="ftools_mcp_reason_stopped">Dihentikan sebelum dijalankan</string>

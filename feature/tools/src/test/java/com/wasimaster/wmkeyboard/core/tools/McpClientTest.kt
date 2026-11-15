@@ -91,6 +91,7 @@ class McpClientTest {
             "tools/list" -> json(exchange, """{"jsonrpc":"2.0","id":$id,"result":{"tools":$tools}}""")
             "tools/call" -> {
                 seen += "name=" + exchange.requestHeaders.getFirst("Mcp-Name")
+                if (body.params["name"]?.jsonPrimitive?.content == "ask") return askTool(exchange, id, body.params)
                 val text = body.params["arguments"]!!.jsonObject["text"]!!.jsonPrimitive.content
                 // Answered down a stream, after a notification it has to skip.
                 send(
@@ -102,6 +103,78 @@ class McpClientTest {
             }
             else -> json(exchange, """{"jsonrpc":"2.0","id":$id,"error":{"code":-32601,"message":"no"}}""")
         }
+    }
+
+    /**
+     * A tool that needs the user's name first (MRTR): `input_required` with a
+     * form, then the name back once the retry carries it with the state.
+     */
+    private fun askTool(exchange: HttpExchange, id: String, params: JsonObject) {
+        val responses = params["inputResponses"] as? JsonObject
+        if (responses == null) {
+            json(
+                exchange,
+                """{"jsonrpc":"2.0","id":$id,"result":{"resultType":"input_required","requestState":"S9","inputRequests":{
+                   "login":{"method":"elicitation/create","params":{"mode":"form","message":"Name?",
+                   "requestedSchema":{"type":"object","properties":{"name":{"type":"string"}},"required":["name"]}}},
+                   "where":{"method":"roots/list","params":{}}}}}""",
+            )
+            return
+        }
+        seen += "state=" + params["requestState"]?.jsonPrimitive?.content
+        seen += "roots=" + responses["where"]
+        val login = responses["login"]!!.jsonObject
+        val name = login["content"]?.jsonObject?.get("name")?.jsonPrimitive?.content ?: login["action"]!!.jsonPrimitive.content
+        json(exchange, """{"jsonrpc":"2.0","id":$id,"result":{"resultType":"complete","content":[{"type":"text","text":"hello $name"}]}}""")
+    }
+
+    @Test
+    fun `a question from a modern server is answered and the call retried`() {
+        val entry = McpClient.connect(spec("modern"), emptyList())
+        val direct = McpInputHandler { request, _ ->
+            when (request.method) {
+                "roots/list" -> McpInputAnswer.Answer(McpProtocol.rootsResult())
+                else -> McpInputAnswer.Answer(
+                    McpProtocol.elicitResult("accept", Json.parseToJsonElement("""{"name":"Ann"}""").jsonObject),
+                )
+            }
+        }
+        assertEquals("hello Ann", McpClient.call(spec("modern"), emptyList(), entry, "ask", "{}", input = direct).text)
+        assertTrue(seen.contains("state=S9"))
+        assertTrue(seen.contains("""roots={"roots":[]}"""))
+    }
+
+    @Test
+    fun `a form handed to the model comes back on the next call`() {
+        val entry = McpClient.connect(spec("modern"), emptyList())
+        val toModel = McpInputHandler { request, _ ->
+            if (request.method == "roots/list") {
+                McpInputAnswer.Answer(McpProtocol.rootsResult())
+            } else {
+                McpInputAnswer.Defer("ask for login")
+            }
+        }
+        val asked = assertThrows(McpDeferredInput::class.java) {
+            McpClient.call(spec("modern"), emptyList(), entry, "ask", "{}", input = toModel)
+        }
+        assertEquals("ask for login", asked.question)
+        val outcome = McpClient.call(
+            spec("modern"), emptyList(), entry, "ask", """{"_mcp_input":{"login":{"name":"Bo"}}}""", input = toModel,
+        )
+        assertEquals("hello Bo", outcome.text)
+    }
+
+    @Test
+    fun `a sign-in's token is sent unless the user set their own`() {
+        val auth = McpAuthState(resource = McpOAuth.canonicalResource("$base/modern"), accessToken = "tok")
+        McpClient.connect(spec("modern"), emptyList(), auth)
+        assertEquals("Bearer tok", lastAuth)
+        McpClient.connect(spec("modern"), listOf(McpHeader("Authorization", "Bearer mine")), auth)
+        assertEquals("Bearer mine", lastAuth)
+        // A token for another address is not sent here.
+        lastAuth = null
+        McpClient.connect(spec("modern"), emptyList(), auth.copy(resource = "https://elsewhere.test/mcp"))
+        assertEquals(null, lastAuth)
     }
 
     @Test

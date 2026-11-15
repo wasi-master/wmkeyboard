@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">ਕੋਈ ਥਾਂ ਨਹੀਂ ਦਿੱਤੀ ਗਈ, ਅਤੇ ਉਪਭੋਗਤਾ ਨੇ ਮੌਸਮ ਟੂਲ ਵਿੱਚ ਕੋਈ ਥਾਂ ਸੁਰੱਖਿਅਤ ਨਹੀਂ ਕੀਤੀ ਹੈ। ਉਪਭੋਗਤਾ ਨੂੰ ਪੁੱਛੋ ਕਿ ਉਹ ਕਿਹੜੀ ਥਾਂ ਦੀ ਗੱਲ ਕਰ ਰਿਹਾ ਹੈ।</string>
     <string name="ftools_mcp_declined">ਉਪਭੋਗਤਾ ਨੇ ਇਸ ਕਾਲ ਦੀ ਇਜਾਜ਼ਤ ਨਹੀਂ ਦਿੱਤੀ। ਇਸ ਜਵਾਬ ਵਿੱਚ ਇਸ ਟੂਲ ਨੂੰ ਦੁਬਾਰਾ ਕਾਲ ਨਾ ਕਰੋ। ਇਸ ਤੋਂ ਬਿਨਾਂ ਜਵਾਬ ਦਿਓ, ਅਤੇ ਦੱਸੋ ਕਿ ਤੁਸੀਂ ਕੀ ਨਹੀਂ ਕਰ ਸਕੇ।</string>
     <string name="ftools_mcp_empty">ਟੂਲ ਚੱਲਿਆ ਅਤੇ ਵਾਪਸ ਕੁਝ ਨਹੀਂ ਭੇਜਿਆ।</string>
-    <string name="ftools_mcp_error_needs_input">ਸਰਵਰ ਨੇ ਹੋਰ ਇਨਪੁਟ ਮੰਗਿਆ ਹੈ, ਅਤੇ ਕੀਬੋਰਡ ਅਜੇ ਇਹ ਨਹੀਂ ਦੇ ਸਕਦਾ।</string>
     <string name="ftools_mcp_error_no_version">ਇਹ ਸਰਵਰ MCP ਦੇ ਇੱਕ ਨਵੇਂ ਵਰਜਨ ਦੀ ਵਰਤੋਂ ਕਰਦਾ ਹੈ ਜਿਸ ਬਾਰੇ ਕੀਬੋਰਡ ਨੂੰ ਜਾਣਕਾਰੀ ਨਹੀਂ ਹੈ।</string>
     <string name="ftools_mcp_error_not_mcp">ਇਸ ਪਤੇ ਨੇ MCP ਸਰਵਰ ਵਾਂਗ ਜਵਾਬ ਨਹੀਂ ਦਿੱਤਾ। ਪਤਾ ਅਤੇ ਕਿਸਮ ਦੀ ਜਾਂਚ ਕਰੋ।</string>
     <string name="ftools_mcp_error_server">ਸਰਵਰ ਨੇ ਇੱਕ ਗਲਤੀ ਭੇਜੀ: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">ਇਸ ਸਰਵਰ ਲਈ ਤੁਹਾਨੂੰ ਸਾਈਨ ਇਨ ਕਰਨ ਦੀ ਲੋੜ ਹੈ, ਅਤੇ ਕੀਬੋਰਡ ਅਜੇ ਅਜਿਹਾ ਨਹੀਂ ਕਰ ਸਕਦਾ। ਜੇਕਰ ਸਰਵਰ ਟੋਕਨ ਜਾਂ ਕੁੰਜੀਆਂ ਦਿੰਦਾ ਹੈ, ਤਾਂ ਇੱਕ ਨੂੰ ਹੈਡਰ ਵਜੋਂ ਸ਼ਾਮਲ ਕਰੋ।</string>
     <string name="ftools_mcp_omitted">[ਟੂਲ ਨੇ ਅਜਿਹੀ ਸਮੱਗਰੀ ਵੀ ਵਾਪਸ ਭੇਜੀ ਹੈ ਜੋ ਤੁਸੀਂ ਇੱਥੇ ਨਹੀਂ ਪੜ੍ਹ ਸਕਦੇ: %1$s]</string>
     <string name="ftools_mcp_reason_declined">ਤੁਸੀਂ ਇਸਦੀ ਇਜਾਜ਼ਤ ਨਹੀਂ ਦਿੱਤੀ</string>
     <string name="ftools_mcp_reason_stopped">ਚੱਲਣ ਤੋਂ ਪਹਿਲਾਂ ਰੁਕ ਗਿਆ</string>

@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Місце не вказано, і користувач не зберіг його в інструменті погоди. Запитайте користувача, яке місце він має на увазі.</string>
     <string name="ftools_mcp_declined">Користувач не дозволив цей виклик. Не викликайте цей інструмент знову в цій відповіді. Дайте відповідь без нього і скажіть, що ви не змогли зробити.</string>
     <string name="ftools_mcp_empty">Інструмент виконав роботу, але нічого не повернув.</string>
-    <string name="ftools_mcp_error_needs_input">Сервер запитав додаткові дані, а клавіатура поки що не може їх надати.</string>
     <string name="ftools_mcp_error_no_version">Цей сервер використовує новішу версію MCP, ніж підтримує клавіатура.</string>
     <string name="ftools_mcp_error_not_mcp">Ця адреса не відповіла як MCP-сервер. Перевірте адресу та тип.</string>
     <string name="ftools_mcp_error_server">Сервер надіслав помилку: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Цей сервер вимагає входу в систему, а клавіатура поки що не може цього зробити. Якщо сервер видає токени або ключі, додайте один із них як заголовок.</string>
     <string name="ftools_mcp_omitted">[інструмент також надіслав вміст, який ви не можете прочитати тут: %1$s]</string>
     <string name="ftools_mcp_reason_declined">Ви не надали дозвіл</string>
     <string name="ftools_mcp_reason_stopped">Зупинено до запуску</string>

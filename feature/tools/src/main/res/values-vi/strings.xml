@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Không có địa điểm nào được cung cấp và người dùng chưa lưu địa điểm nào trong công cụ thời tiết. Hãy hỏi người dùng địa điểm họ muốn nói đến.</string>
     <string name="ftools_mcp_declined">Người dùng không cho phép cuộc gọi này. Không gọi lại công cụ này trong câu trả lời này. Hãy trả lời mà không cần nó và cho biết những gì bạn không thể thực hiện.</string>
     <string name="ftools_mcp_empty">Công cụ đã chạy nhưng không trả về kết quả nào.</string>
-    <string name="ftools_mcp_error_needs_input">Máy chủ yêu cầu thêm thông tin đầu vào và bàn phím chưa thể cung cấp.</string>
     <string name="ftools_mcp_error_no_version">Máy chủ này sử dụng phiên bản MCP mới hơn phiên bản mà bàn phím nhận biết.</string>
     <string name="ftools_mcp_error_not_mcp">Địa chỉ này không phản hồi như một máy chủ MCP. Kiểm tra địa chỉ và loại.</string>
     <string name="ftools_mcp_error_server">Máy chủ đã gửi một lỗi: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Máy chủ này yêu cầu bạn đăng nhập và bàn phím chưa thể thực hiện việc đó. Nếu máy chủ cung cấp mã thông báo hoặc khóa, hãy thêm một khóa dưới dạng tiêu đề.</string>
     <string name="ftools_mcp_omitted">[công cụ cũng đã gửi lại nội dung bạn không thể đọc ở đây: %1$s]</string>
     <string name="ftools_mcp_reason_declined">Bạn đã không cho phép</string>
     <string name="ftools_mcp_reason_stopped">Đã dừng trước khi chạy</string>

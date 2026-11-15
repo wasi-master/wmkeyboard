@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Местоположение не указано, и пользователь не сохранил его в инструменте погоды. Спросите пользователя, какое место он имеет в виду.</string>
     <string name="ftools_mcp_declined">Пользователь не разрешил этот вызов. Не вызывайте этот инструмент снова в этом ответе. Ответьте без него и скажите, что вы не смогли сделать.</string>
     <string name="ftools_mcp_empty">Инструмент выполнился и ничего не вернул.</string>
-    <string name="ftools_mcp_error_needs_input">Сервер запросил дополнительные данные, но клавиатура пока не может их предоставить.</string>
     <string name="ftools_mcp_error_no_version">Этот сервер использует более новую версию MCP, чем известна клавиатуре.</string>
     <string name="ftools_mcp_error_not_mcp">Этот адрес не ответил как MCP-сервер. Проверьте адрес и тип.</string>
     <string name="ftools_mcp_error_server">Сервер отправил ошибку: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Этот сервер требует входа в систему, а клавиатура пока не умеет этого делать. Если сервер выдает токены или ключи, добавьте один из них в качестве заголовка.</string>
     <string name="ftools_mcp_omitted">[инструмент также отправил содержимое, которое вы не можете прочитать здесь: %1$s]</string>
     <string name="ftools_mcp_reason_declined">Вы не дали разрешение</string>
     <string name="ftools_mcp_reason_stopped">Остановлено до запуска</string>

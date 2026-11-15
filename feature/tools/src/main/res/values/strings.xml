@@ -175,13 +175,29 @@
     <!-- The run was stopped while the card asked. -->
     <string name="ftools_mcp_reason_stopped">Stopped before it ran</string>
     <!-- The server needs an OAuth sign-in. -->
-    <string name="ftools_mcp_error_sign_in">This server needs you to sign in, and the keyboard cannot do that yet. If the server gives out tokens or keys, add one as a header.</string>
+    <string name="ftools_mcp_error_sign_in">This server wants you to sign in. Open it under MCP servers in the AI tool\'s settings and press Sign in.</string>
+    <!-- Sign in on an MCP server whose 401 and metadata name no sign-in at all. -->
+    <string name="ftools_mcp_auth_not_needed">This server didn\'t ask for a sign-in. If it wants a token or key, add it as a header.</string>
+    <!-- The MCP server names a sign-in service that publishes nothing the keyboard can read. -->
+    <string name="ftools_mcp_auth_no_server">This server asks for a sign-in, but its sign-in service couldn\'t be found.</string>
+    <!-- The sign-in service lacks PKCE (S256), which the MCP spec requires. -->
+    <string name="ftools_mcp_auth_no_pkce">This server\'s sign-in service doesn\'t offer the secure sign-in (PKCE) the keyboard needs.</string>
+    <!-- The sign-in service takes no dynamic registration and no client metadata document. -->
+    <string name="ftools_mcp_auth_no_registration">This server\'s sign-in service only takes apps registered with it in advance. If it gives out tokens or keys, add one as a header instead.</string>
+    <!-- Title of the approval card when an MCP server asks to have a page opened (URL elicitation). -->
+    <string name="ftools_mcp_open_page_title">Open a page for the server</string>
+    <!-- Title of the approval card when an MCP server asks a yes-or-no question. -->
+    <string name="ftools_mcp_confirm_title">The server asks</string>
+    <!-- Title of the approval card when an MCP server asks the user's own AI to write something (sampling). -->
+    <string name="ftools_mcp_sampling_title">The server asks your AI to write</string>
+    <!-- Handed to the model (not shown to the user) when an MCP tool needs answers from the user. %1$s is the tool's name, %2$s the server's question and fields, %3$s a JSON template of the answers. -->
+    <string name="ftools_mcp_input_question">The tool %1$s needs more from the user before it can finish.\n\n%2$s\n\nAsk the user for this in your answer, and do not fill it in yourself. Once they have answered, call %1$s again with the same arguments plus \"_mcp_input\": %3$s, with their answers in place of the values. If they say no, put \"decline\" in place of the object.</string>
     <!-- The address answered, but not like an MCP server. -->
     <string name="ftools_mcp_error_not_mcp">This address did not answer like an MCP server. Check the address and the type.</string>
     <!-- The server answered with an error; %1$s is its own words. -->
     <string name="ftools_mcp_error_server">The server sent an error: %1$s</string>
     <!-- The server wants an answer from the user or a model before it can finish. -->
-    <string name="ftools_mcp_error_needs_input">The server asked for more input, and the keyboard cannot give it yet.</string>
+    <string name="ftools_mcp_error_needs_input">The server asked for something the keyboard couldn\'t give it.</string>
     <!-- The server only speaks versions of the protocol this keyboard does not. -->
     <string name="ftools_mcp_error_no_version">This server uses a newer version of MCP than the keyboard knows.</string>
     <!-- The server was removed or turned off after the model saw its tool. -->

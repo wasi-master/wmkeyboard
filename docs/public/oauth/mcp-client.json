@@ -1,0 +1,10 @@
+{
+  "client_id": "https://wmkeyboard.pages.dev/oauth/mcp-client.json",
+  "client_name": "WM Keyboard",
+  "client_uri": "https://wmkeyboard.pages.dev/",
+  "logo_uri": "https://wmkeyboard.pages.dev/favicon.png",
+  "redirect_uris": ["wmkeyboard://oauth/mcp"],
+  "grant_types": ["authorization_code", "refresh_token"],
+  "response_types": ["code"],
+  "token_endpoint_auth_method": "none"
+}

@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Kohta ei antud ja kasutaja pole ilmatööriistas ühtegi salvestanud. Küsi kasutajalt, millist kohta ta silmas peab.</string>
     <string name="ftools_mcp_declined">Kasutaja ei lubanud seda kõnet. Ärge kutsuge seda tööriista selles vastuses uuesti. Vastake ilma selleta ja öelge, mida te ei saanud teha.</string>
     <string name="ftools_mcp_empty">Tööriist käivitus ja ei saatnud midagi tagasi.</string>
-    <string name="ftools_mcp_error_needs_input">Server küsis lisasisendit ja klaviatuur ei saa seda veel anda.</string>
     <string name="ftools_mcp_error_no_version">See server kasutab uuemat MCP versiooni, kui klaviatuur tunneb.</string>
     <string name="ftools_mcp_error_not_mcp">See aadress ei vastanud MCP-serverina. Kontrolli aadressi ja tüüpi.</string>
     <string name="ftools_mcp_error_server">Server saatis vea: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">See server nõuab sisselogimist ja klaviatuur ei saa seda veel teha. Kui server väljastab žetoone või võtmeid, lisage üks päisena.</string>
     <string name="ftools_mcp_omitted">[tööriist saatis tagasi ka sisu, mida siin lugeda ei saa: %1$s]</string>
     <string name="ftools_mcp_reason_declined">Te ei andnud selleks luba</string>
     <string name="ftools_mcp_reason_stopped">Peatatud enne käivitamist</string>

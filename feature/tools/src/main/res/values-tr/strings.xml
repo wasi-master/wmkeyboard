@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Herhangi bir yer belirtilmedi ve kullanıcı hava durumu aracına bir yer kaydetmedi. Kullanıcıya hangi yeri kastettiğini sorun.</string>
     <string name="ftools_mcp_declined">Kullanıcı bu çağrıya izin vermedi. Bu cevabın içinde bu aracı tekrar çağırmayın. Onsuz cevap verin ve neyi yapamadığınızı belirtin.</string>
     <string name="ftools_mcp_empty">Araç çalıştı ancak hiçbir sonuç döndürmedi.</string>
-    <string name="ftools_mcp_error_needs_input">Sunucu daha fazla girdi istedi ancak klavye bunu henüz sağlayamıyor.</string>
     <string name="ftools_mcp_error_no_version">Bu sunucu, klavyenin bildiğinden daha yeni bir MCP sürümü kullanıyor.</string>
     <string name="ftools_mcp_error_not_mcp">Bu adres bir MCP sunucusu gibi yanıt vermedi. Adresi ve türü kontrol edin.</string>
     <string name="ftools_mcp_error_server">Sunucu bir hata gönderdi: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Bu sunucu giriş yapmanızı gerektiriyor ve klavye bunu henüz yapamıyor. Sunucu jeton veya anahtar veriyorsa, bir başlık olarak ekleyin.</string>
     <string name="ftools_mcp_omitted">[araç ayrıca burada okuyamayacağınız içerikler gönderdi: %1$s]</string>
     <string name="ftools_mcp_reason_declined">İzin vermediniz</string>
     <string name="ftools_mcp_reason_stopped">Çalıştırılmadan önce durduruldu</string>

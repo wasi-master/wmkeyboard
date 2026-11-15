@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">Ingen sted ble oppgitt, og brukeren har ikke lagret et i værverktøyet. Spør brukeren hvilket sted de mener.</string>
     <string name="ftools_mcp_declined">Brukeren tillot ikke dette anropet. Ikke kall dette verktøyet igjen i dette svaret. Svar uten det, og si hva du ikke kunne gjøre.</string>
     <string name="ftools_mcp_empty">Verktøyet kjørte og sendte ingenting tilbake.</string>
-    <string name="ftools_mcp_error_needs_input">Serveren ba om mer input, og tastaturet kan ikke gi det ennå.</string>
     <string name="ftools_mcp_error_no_version">Denne serveren bruker en nyere versjon av MCP enn tastaturet kjenner til.</string>
     <string name="ftools_mcp_error_not_mcp">Denne adressen svarte ikke som en MCP-tjener. Kontroller adressen og typen.</string>
     <string name="ftools_mcp_error_server">Serveren sendte en feil: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">Denne tjeneren krever at du logger inn, og tastaturet kan ikke gjøre det ennå. Hvis tjeneren utsteder tokener eller nøkler, legg til en som en overskrift.</string>
     <string name="ftools_mcp_omitted">[verktøyet sendte også tilbake innhold du ikke kan lese her: %1$s]</string>
     <string name="ftools_mcp_reason_declined">Du tillot det ikke</string>
     <string name="ftools_mcp_reason_stopped">Stoppet før den kjørte</string>

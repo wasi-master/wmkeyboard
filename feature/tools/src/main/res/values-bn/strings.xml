@@ -87,11 +87,9 @@
     <string name="ftools_ai_tool_weather_no_place">কোনো জায়গার নাম দেওয়া হয়নি এবং ব্যবহারকারী আবহাওয়া টুলে কোনো জায়গা সেভ করেননি। ব্যবহারকারীকে জিজ্ঞাসা করুন তারা কোন জায়গার কথা বলছেন।</string>
     <string name="ftools_mcp_declined">ব্যবহারকারী এই কলটি করার অনুমতি দেননি। এই উত্তরে এই টুলটি আর কল করবেন না। এটি ছাড়াই উত্তর দিন এবং আপনি কী করতে পারেননি তা বলুন।</string>
     <string name="ftools_mcp_empty">টুলটি চলেছে কিন্তু কোনো ফলাফল পাঠায়নি।</string>
-    <string name="ftools_mcp_error_needs_input">সার্ভার আরও ইনপুট চেয়েছে, এবং কীবোর্ড এখনও তা দিতে পারছে না।</string>
     <string name="ftools_mcp_error_no_version">এই সার্ভারটি কীবোর্ডের জানা সংস্করণের চেয়ে নতুন সংস্করণের MCP ব্যবহার করছে।</string>
     <string name="ftools_mcp_error_not_mcp">এই ঠিকানাটি এমসিপি (MCP) সার্ভারের মতো সাড়া দেয়নি। ঠিকানা এবং ধরনটি পরীক্ষা করুন।</string>
     <string name="ftools_mcp_error_server">সার্ভার একটি ত্রুটি পাঠিয়েছে: %1$s</string>
-    <string name="ftools_mcp_error_sign_in">এই সার্ভারে আপনাকে সাইন ইন করতে হবে, এবং কীবোর্ড এখনও তা করতে পারে না। যদি সার্ভার টোকেন বা কী প্রদান করে, তবে একটি হেডার হিসেবে যোগ করুন।</string>
     <string name="ftools_mcp_omitted">[টুলটি এমন কন্টেন্টও পাঠিয়েছে যা আপনি এখানে পড়তে পারবেন না: %1$s]</string>
     <string name="ftools_mcp_reason_declined">আপনি এটি অনুমতি দেননি</string>
     <string name="ftools_mcp_reason_stopped">চালানোর আগেই থেমে গেছে</string>
