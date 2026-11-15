@@ -209,7 +209,7 @@ The chips you set narrow each other:
 - **Pinned** + **Not Links** is the pinned clips that aren't links.
 - **Pinned** + **#bug** + **#critical** is the pinned clips tagged either `#bug` or `#critical`. Tags are either-or, and so are kinds, since a clip is only one kind: **Text** + **Links** shows both.
 - A **Not** chip leaves its clips out, whatever else is set: **#bug** + **Not #work** is the clips tagged `#bug` that aren't tagged `#work`.
-- **Duplicates** keeps the clips that have a twin among the ones left, and **Not Duplicates** the ones that don't.
+- **Duplicates** keeps the clips that have a twin among the ones left, and **Not Duplicates** the ones that don't. Two links are twins when they open the same page: the trackers come off first (the built-in ones and any you added to Copy rules, see [Tidying copies with rules](#tidying-copies-with-rules)), and so do `www.`, `m.`, the `https://` and a trailing slash. A YouTube video counts once however it was shared, so `youtu.be/abc`, `youtube.com/shorts/abc?si=…` and `youtube.com/watch?v=abc&t=42` are twins.
 
 **All**, **Pinned** and **Unpinned** never combine with each other. Holding **Unpinned** while **Pinned** is set swaps one for the other and keeps your other chips; holding **All** drops the pinned filter alone. A tap on **All** clears the whole kind row but leaves your tags.
 

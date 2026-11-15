@@ -316,12 +316,61 @@ internal enum class ClipFilter {
 /**
  * What two clips' texts are compared by in the duplicates filter (#612): the
  * text in lower case with its runs of spaces and line breaks made one space.
+ * A link is compared by the page it opens (#1312, [sameLinkKey]), so the
+ * same video copied with and without its share tracker counts once.
  */
-internal fun duplicateKey(item: ClipItem): String? =
-    item.text.takeIf { item.kind.isTextual && !item.sensitive && it.isNotBlank() }
-        ?.trim()?.lowercase()?.replace(DuplicateSpace, " ")
+internal fun duplicateKey(item: ClipItem): String? {
+    val text = item.text.takeIf { item.kind.isTextual && !item.sensitive && it.isNotBlank() } ?: return null
+    if (item.kind == ClipKind.LINK) sameLinkKey(text, ClipDuplicateTrackers)?.let { return it }
+    return text.trim().lowercase().replace(DuplicateSpace, " ")
+}
 
 private val DuplicateSpace = Regex("\\s+")
+
+/**
+ * The user's own tracker names (Copy rules, #665), which [duplicateKey] takes
+ * off a link before it compares, as the copy rules do. Set by the clipboard
+ * panel from its settings; a list the panel reads, not state of its own.
+ */
+@Volatile
+internal var ClipDuplicateTrackers: List<String> = emptyList()
+
+/**
+ * The page [text] opens, when it is one link (#1312): its trackers off (the
+ * built-in ones and [extra]), no scheme, the host without `www.`, `m.` or
+ * `mobile.`, no trailing slash, and a YouTube video under one address
+ * whichever way it was shared (`youtu.be/x`, `/shorts/x`, `/watch?v=x&t=9`).
+ * Null for anything that is not a single link.
+ */
+internal fun sameLinkKey(text: String, extra: Collection<String>): String? {
+    val trimmed = text.trim()
+    if (trimmed.isEmpty() || trimmed.any { it.isWhitespace() }) return null
+    val url = com.wasimaster.wmkeyboard.core.selection.SelectionMacros.stripTrackers(trimmed, extra) ?: trimmed
+    val schemeless = url.substringAfter("://", url)
+    val hostEnd = schemeless.indexOfFirst { it == '/' || it == '?' || it == '#' }.let { if (it < 0) schemeless.length else it }
+    var host = schemeless.substring(0, hostEnd).substringAfterLast('@').lowercase()
+    for (prefix in SameLinkHostPrefixes) host = host.removePrefix(prefix)
+    if (host.isEmpty() || '.' !in host) return null
+    var rest = schemeless.substring(hostEnd)
+    val fragment = rest.substringAfter('#', "").let { if (it.isEmpty()) "" else "#$it" }
+    rest = rest.substringBefore('#')
+    val path = rest.substringBefore('?').trimEnd('/')
+    val query = rest.substringAfter('?', "")
+    youtubeId(host, path, query)?.let { return "link:youtube.com/watch?v=$it" }
+    return "link:$host$path" + (if (query.isEmpty()) "" else "?$query") + fragment
+}
+
+private val SameLinkHostPrefixes = listOf("www.", "m.", "mobile.")
+
+/** The video a YouTube link opens, or null for any other link. */
+private fun youtubeId(host: String, path: String, query: String): String? = when {
+    host == "youtu.be" -> path.removePrefix("/").substringBefore('/').takeIf { it.isNotEmpty() }
+    host != "youtube.com" && host != "music.youtube.com" -> null
+    path.startsWith("/shorts/") || path.startsWith("/live/") || path.startsWith("/embed/") ->
+        path.substringAfter('/', "").substringAfter('/').substringBefore('/').takeIf { it.isNotEmpty() }
+    path == "/watch" -> query.split('&').firstOrNull { it.startsWith("v=") }?.removePrefix("v=")?.takeIf { it.isNotEmpty() }
+    else -> null
+}
 
 /**
  * [items] that share a [duplicateKey] with another, each group together in
@@ -1980,6 +2029,8 @@ private fun ClipboardHistory(
     val gridItems = session.gridItems
     val emptySlots = session.emptySlots
     val clipboard = state.settings.clipboard
+    // Duplicate links are compared with the user's own trackers off too (#1312).
+    ClipDuplicateTrackers = clipboard.extraTrackers
     // Image clips offer Translate while a photo translation server is on (#807).
     val photoTranslate = remember(state.settings) { PhotoTranslate.rows(state.settings).isNotEmpty() }
     val searchTools = remember(state.settings.enabledTools) {
