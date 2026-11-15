@@ -76,6 +76,9 @@
 
     <string name="privacy_learning_group_title">Learning on this device</string>
     <string name="privacy_incognito_group_title">Incognito</string>
+    <string name="privacy_secure_window_title">Hide the keyboard from screenshots</string>
+    <string name="privacy_secure_window_subtitle">In password fields and while incognito</string>
+    <string name="privacy_secure_window_info">In a password field, and whenever incognito is on, the keyboard asks Android to keep it out of screenshots, screen recordings, screen sharing and the recent apps preview: those show black where the keyboard is. The app you are typing in decides for itself whether its own window is hidden. Turn this off if you need to record the keyboard in those fields.</string>
 
     <string name="privacy_learn_typing_title">Learn from typing</string>
     <string name="privacy_learn_typing_subtitle">The keyboard adjusts the suggestions to your typing. Nothing leaves your device</string>

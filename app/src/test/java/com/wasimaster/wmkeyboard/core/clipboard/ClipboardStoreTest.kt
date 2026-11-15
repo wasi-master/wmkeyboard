@@ -18,6 +18,20 @@ class ClipboardStoreTest {
         assertEquals(listOf("second", "first"), store.items(now = 3000).map { it.text })
     }
 
+    @Test fun theHistoryHasASizeBoundAndPinsAreSpared() {
+        val store = ClipboardStore(null, expiryMillis = 0, maxItems = 0)
+        val pin = store.add("p".repeat(400_000), now = 1)!!
+        store.setPinned(pin.id, true)
+        for (i in 0 until 20) store.add(('a' + i).toString().repeat(450_000), now = 10L + i)
+        val kept = store.items(now = 1000)
+        val unpinned = kept.filter { !it.pinned }
+        assertTrue(unpinned.sumOf { it.text.length.toLong() } <= ClipboardStore.HARD_MAX_HISTORY_CHARS)
+        assertTrue(kept.any { it.pinned })
+        // The newest survive; the oldest went first.
+        assertEquals('a' + 19, unpinned.first().text.first())
+        assertFalse(unpinned.any { it.text.first() == 'a' })
+    }
+
     @Test fun duplicateMovesToTop() {
         val store = ClipboardStore(null)
         store.add("a", now = 1000)

@@ -5309,6 +5309,21 @@ open class WMKeyboardService : InputMethodService() {
                 .collect { KeyboardClipboard.isPrivate = it }
         }
         KeyboardClipboard.onPrivateCopy = ::recordPrivateCopy
+        // The keyboard's window is kept out of screenshots, screen recordings
+        // and the recents thumbnail in a password field and while incognito
+        // (#1215), unless the user turned that off.
+        serviceScope.launch {
+            _uiState.map { it.settings.layoutBehavior.secureWindow && (it.secureField || it.incognitoOn) }
+                .distinctUntilChanged()
+                .collect { secure ->
+                    val win = window?.window ?: return@collect
+                    if (secure) {
+                        win.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+                    } else {
+                        win.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+                    }
+                }
+        }
         // Parks on an empty channel until the first glide; costs nothing until
         // then, and saves a job launch per preview once a finger is down.
         startGesturePreviewConsumer()
@@ -5429,6 +5444,7 @@ open class WMKeyboardService : InputMethodService() {
         // since it was first seeded. No-op once it has run.
         if (userUnlocked) {
             serviceScope.launch { settingsRepository.seedNewDefaultModes() }
+            serviceScope.launch { settingsRepository.settleSensitiveClipDefault() }
             serviceScope.launch { settingsRepository.migratePluginTiles() }
             // Custom buttons made before they were tools get their place (#1345).
             serviceScope.launch { settingsRepository.placeCustomButtonTools() }

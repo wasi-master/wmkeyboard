@@ -364,6 +364,7 @@ class MainActivity : FragmentActivity() {
         // Modes added since this install was first seeded — the settings
         // screen should list them even if the keyboard has not run yet.
         lifecycleScope.launch { repository.seedNewDefaultModes() }
+        lifecycleScope.launch { repository.settleSensitiveClipDefault() }
         // Plugin tiles made as custom buttons become tools of their own.
         lifecycleScope.launch { repository.migratePluginTiles() }
         // Custom buttons made before they were tools get their place (#1345),

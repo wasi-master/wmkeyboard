@@ -163,6 +163,16 @@ internal fun PrivacySettings(
                 default = SettingsDefaults.autoIncognito,
             ) { scope.launch { repository.setAutoIncognito(it) } }
         }
+        // #1215: the keyboard out of screenshots where what is typed is private.
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.privacy_secure_window_title,
+                stringResource(R.string.privacy_secure_window_subtitle),
+                settings.watch { it.layoutBehavior.secureWindow },
+                info = stringResource(R.string.privacy_secure_window_info),
+                default = SettingsDefaults.layoutBehavior.secureWindow,
+            ) { scope.launch { repository.setSecureWindow(it) } }
+        }
     }
     IncognitoAppsGroup(repository, settings)
     OtherAppsGroup(repository, onNavigate)

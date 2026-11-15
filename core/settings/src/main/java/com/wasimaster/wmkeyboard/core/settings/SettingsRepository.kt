@@ -8603,11 +8603,13 @@ data class ClipboardSettings(
      * `ClipDescription.EXTRA_IS_SENSITIVE`, which is what a password manager
      * sets on a copied password).
      *
-     * [SensitiveClipHandling.KEEP] by default: hiding and expiring secrets is
-     * an opt-in for the privacy-minded, not something every user pays for with
-     * masked clips they cannot read or edit.
+     * [SensitiveClipHandling.NEVER_SAVE] for a fresh install (#1215): a
+     * copied password or code goes to the app it was copied for and never
+     * into the history. An install set up before that keeps
+     * [SensitiveClipHandling.KEEP], pinned by [SettingsRepository.settleSensitiveClipDefault],
+     * so an update never starts dropping clips it used to keep.
      */
-    val sensitiveHandling: SensitiveClipHandling = SensitiveClipHandling.KEEP,
+    val sensitiveHandling: SensitiveClipHandling = SensitiveClipHandling.NEVER_SAVE,
     /**
      * Also apply [sensitiveHandling] to clips that *look* like a password or a
      * bare one-time code, not just the ones flagged by their source. Most
@@ -10178,6 +10180,13 @@ data class LayoutBehaviorSettings(
      * end (#1177). Off keeps the bar's tools where they are, with the mark on
      * the board as the sign instead. Read through [KeyboardSettings.incognitoBadge].
      */
+    /**
+     * Keeps the keyboard's window out of screenshots, screen recordings and
+     * the recents thumbnail (FLAG_SECURE) in a password field and while
+     * incognito (#1215). On by default; off for anyone who records the
+     * keyboard in those fields on purpose.
+     */
+    val secureWindow: Boolean = true,
     val incognitoBadge: Boolean = true,
     /**
      * Long-pressing the ?123 / symbols key opens the numeric keypad panel on
@@ -13716,6 +13725,8 @@ class SettingsRepository(private val context: Context) {
         private val INCOGNITO_PRIVATE_CLIPBOARD = booleanPreferencesKey("incognito_private_clipboard")
         private val INCOGNITO_WATERMARK = booleanPreferencesKey("incognito_watermark")
         private val INCOGNITO_BADGE = booleanPreferencesKey("incognito_badge")
+        private val SECURE_WINDOW = booleanPreferencesKey("secure_window")
+        private val SENSITIVE_DEFAULT_SETTLED = booleanPreferencesKey("clipboard_sensitive_default_settled")
         private val INCOGNITO_PAUSES_LEARNING = booleanPreferencesKey("incognito_pauses_learning")
         private val AUTO_INCOGNITO = booleanPreferencesKey("auto_incognito")
         private val INCOGNITO_APPS = stringSetPreferencesKey("incognito_apps")
@@ -15822,6 +15833,7 @@ class SettingsRepository(private val context: Context) {
         LayoutBehaviorSettings(
             incognitoWatermark = p[INCOGNITO_WATERMARK] ?: defaults.layoutBehavior.incognitoWatermark,
             incognitoBadge = p[INCOGNITO_BADGE] ?: defaults.layoutBehavior.incognitoBadge,
+            secureWindow = p[SECURE_WINDOW] ?: defaults.layoutBehavior.secureWindow,
             symbolsLongPressNumpad =
                 p[SYMBOLS_LONGPRESS_NUMPAD] ?: defaults.layoutBehavior.symbolsLongPressNumpad,
             symbolsNumpadKey = p[SYMBOLS_NUMPAD_KEY] ?: defaults.layoutBehavior.symbolsNumpadKey,
@@ -18770,6 +18782,26 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setIncognitoBadge(value: Boolean) =
         editPrefs { it[INCOGNITO_BADGE] = value }
+
+    suspend fun setSecureWindow(value: Boolean) =
+        editPrefs { it[SECURE_WINDOW] = value }
+
+    /**
+     * Once per install, from the version where a fresh install starts on
+     * [SensitiveClipHandling.NEVER_SAVE] (#1215): an install that was already
+     * set up, and never chose for itself, keeps the KEEP it has been living
+     * with, so an update never starts dropping clips it used to keep. A fresh
+     * install reaches this before its onboarding is done, settles it, and
+     * keeps the new default.
+     */
+    suspend fun settleSensitiveClipDefault() =
+        editPrefs { prefs ->
+            if (prefs[SENSITIVE_DEFAULT_SETTLED] == true) return@editPrefs
+            prefs[SENSITIVE_DEFAULT_SETTLED] = true
+            if (prefs[CLIPBOARD_SENSITIVE_HANDLING] == null && prefs[ONBOARDING_DONE] == true) {
+                prefs[CLIPBOARD_SENSITIVE_HANDLING] = SensitiveClipHandling.KEEP.name
+            }
+        }
 
     suspend fun setIncognitoPausesLearning(value: Boolean) =
         editPrefs { it[INCOGNITO_PAUSES_LEARNING] = value }

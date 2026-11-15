@@ -359,6 +359,16 @@ class ClipboardStore(
         const val HARD_MAX_IMAGE_BYTES = 32L * 1024 * 1024
 
         /**
+         * The most characters of text and markup the unpinned clips hold
+         * together (#1215), about 16 MB in memory. With no item cap ([maxItems]
+         * 0) and no expiry the history had no bound at all, and all of it is
+         * held in memory and written on every save. Past it the oldest
+         * unpinned clips go first, as they do under the item cap; a pinned
+         * clip is never removed for it.
+         */
+        const val HARD_MAX_HISTORY_CHARS = 8_000_000L
+
+        /**
          * How far past the clock [move] puts a clip dragged to the top of its
          * group: about three centuries, so no copy made later sorts above it.
          */
@@ -917,12 +927,24 @@ class ClipboardStore(
             item.expiresAt(expiryMillis, sensitiveExpiryMillis)?.let { now > it } == true
         }
         // 0 is no cap (#414): the expiry above is then the only bound.
-        val cap = maxItems.takeIf { it > 0 } ?: return
-        while (items.count { !it.pinned } > cap) {
+        val cap = maxItems.takeIf { it > 0 }
+        if (cap != null) {
+            while (items.count { !it.pinned } > cap) {
+                val oldest = items.filter { !it.pinned }.minByOrNull { it.timestamp } ?: break
+                removeWhere { it === oldest }
+            }
+        }
+        // And a size bound whatever the caps say (#1215).
+        var held = items.sumOf { if (it.pinned) 0L else it.heldChars() }
+        while (held > HARD_MAX_HISTORY_CHARS) {
             val oldest = items.filter { !it.pinned }.minByOrNull { it.timestamp } ?: break
+            held -= oldest.heldChars()
             removeWhere { it === oldest }
         }
     }
+
+    /** What one clip holds in memory and in the file, in characters. */
+    private fun ClipItem.heldChars(): Long = text.length.toLong() + (htmlText?.length ?: 0)
 
     private fun removeWhere(predicate: (ClipItem) -> Boolean) {
         val removed = items.filter(predicate)

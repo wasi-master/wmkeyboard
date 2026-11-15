@@ -1031,6 +1031,7 @@ internal object SettingsRowIcons {
         put(R.string.privacy_dict_shortcuts_title) { Icons.AutoMirrored.Outlined.ShortText }
         put(R.string.privacy_incognito_title) { Icons.Outlined.VisibilityOff }
         put(R.string.privacy_auto_incognito_title) { Icons.Outlined.Public }
+        put(R.string.privacy_secure_window_title) { Icons.Outlined.VisibilityOff }
         put(R.string.privacy_backup_title) { Icons.Outlined.CloudUpload }
         put(R.string.privacy_download_mirror_title) { Icons.Outlined.CloudDownload }
         put(R.string.privacy_verify_checksums_title) { Icons.Outlined.Verified }
