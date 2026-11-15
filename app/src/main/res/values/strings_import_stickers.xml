@@ -262,6 +262,12 @@
          from a file or from the clipboard. ==== -->
 
     <string name="import_heli_title">Theme from HeliBoard</string>
+    <!-- Kyng theme share codes (KBTH1.…), read from the clipboard. Kyng is a keyboard's name. -->
+    <string name="import_kyng_done">The app saved <xliff:g id="theme_name" example="Harbour">%1$s</xliff:g> from its Kyng code, with the code\'s twelve colours. It does not switch to it.</string>
+    <string name="import_kyng_catalog_parts">The code also picks Kyng\'s own key style, effects or backdrop. Those are Kyng\'s artwork and do not come across; only the colours do.</string>
+    <string name="import_kyng_catalog_palette">That code uses one of Kyng\'s built-in palettes, so it holds no colours of its own. In Kyng, make your own palette or change a built-in one, then share the theme again.</string>
+    <string name="import_kyng_damaged">That Kyng code is cut off or damaged. Copy the whole code again.</string>
+    <string name="import_kyng_no_code">The clipboard has no Kyng theme code. In Kyng, share the theme and copy its code, which starts with KBTH1.</string>
     <string name="import_heli_body">HeliBoard and LeanType share a theme as a line of text. Copy it from the colour screen of that keyboard, or pick the file that you saved it in.</string>
     <string name="import_heli_paste_action">Paste</string>
     <string name="import_heli_file_action">Open a file</string>

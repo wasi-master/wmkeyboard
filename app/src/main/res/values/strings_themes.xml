@@ -172,6 +172,8 @@
          Kinetica is the name of that keyboard. Keep it short: it sits beside
          Import, FlorisBoard and HeliBoard. -->
     <string name="theme_import_kinetica_action" translatable="false">Kinetica</string>
+    <!-- Imports a theme from a Kyng share code on the clipboard. Kyng is a name. -->
+    <string name="theme_import_kyng_action" translatable="false">Kyng</string>
     <!-- Button that makes a theme from a screenshot of a keyboard. Keep it short:
          it sits beside Import, FlorisBoard and HeliBoard. -->
     <string name="theme_copy_action">Screenshot</string>

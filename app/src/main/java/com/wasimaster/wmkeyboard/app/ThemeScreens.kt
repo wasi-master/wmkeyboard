@@ -381,6 +381,7 @@ import java.io.File
 import kotlin.math.max
 import kotlin.math.roundToInt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
 import com.wasimaster.wmkeyboard.core.theme.FlexResult
 import com.wasimaster.wmkeyboard.core.theme.FlexTheme
 import com.wasimaster.wmkeyboard.core.theme.deviceWallpaperPalette
@@ -389,6 +390,7 @@ import com.wasimaster.wmkeyboard.core.theme.GboardResult
 import com.wasimaster.wmkeyboard.core.theme.GboardTheme
 import com.wasimaster.wmkeyboard.core.theme.HeliResult
 import com.wasimaster.wmkeyboard.core.theme.HeliTheme
+import com.wasimaster.wmkeyboard.core.theme.KyngShareCode
 import com.wasimaster.wmkeyboard.core.theme.ClinkTheme
 import com.wasimaster.wmkeyboard.core.theme.ClinkThemeResult
 import com.wasimaster.wmkeyboard.core.theme.KineticaTheme
@@ -1494,6 +1496,27 @@ fun ThemesScreen(
     suspend fun applyHeliTheme(text: String?) {
         message = heliTheme(text, "custom_${System.currentTimeMillis()}").message
     }
+    // A Kyng share code is one line of text (`KBTH1.…`), so its button reads
+    // the clipboard straight away. Only a palette the user built in Kyng
+    // carries colours; see KyngShareCode.
+    suspend fun applyKyngTheme(text: String?) {
+        val id = "custom_${System.currentTimeMillis()}"
+        val result = withContext(Dispatchers.Default) { KyngShareCode.read(text.orEmpty(), id) }
+        message = when (result) {
+            is KyngShareCode.Result.Converted -> {
+                repository.upsertCustomTheme(result.theme)
+                buildString {
+                    append(context.getString(R.string.import_kyng_done, result.theme.name))
+                    if (result.catalogParts.isNotEmpty()) {
+                        append("\n\n").append(context.getString(R.string.import_kyng_catalog_parts))
+                    }
+                }
+            }
+            is KyngShareCode.Result.CatalogPaletteOnly -> context.getString(R.string.import_kyng_catalog_palette)
+            KyngShareCode.Result.Damaged -> context.getString(R.string.import_kyng_damaged)
+            KyngShareCode.Result.NotACode -> context.getString(R.string.import_kyng_no_code)
+        }
+    }
     val heliLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenMultipleDocuments()
     ) { uris ->
@@ -2105,6 +2128,15 @@ fun ThemesScreen(
             Icon(Icons.Outlined.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(6.dp))
             Text(stringResource(R.string.theme_import_clink_action))
+        }
+        val kyngClipboard = LocalClipboardManager.current
+        OutlinedButton(onClick = {
+            val pasted = kyngClipboard.getText()?.text
+            scope.launch { applyKyngTheme(pasted) }
+        }) {
+            Icon(Icons.Outlined.ContentPaste, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(6.dp))
+            Text(stringResource(R.string.theme_import_kyng_action))
         }
         // The Play build has no Rboard browser (it would fetch a collection of
         // unlicensed third-party artwork from inside the app), so there is

@@ -29,7 +29,7 @@ The exported file is the whole theme, written as plain JSON with no wrapper or f
 
 ## Importing a theme
 
-There are three ways a theme gets imported, and they don't all behave the same way: two apply the theme immediately, one doesn't. Seven more buttons on the same row, **FlorisBoard**, **HeliBoard**, **FUTO**, **Multiling O**, **Kinetica**, **Clink** and **Gboard**, read someone else's format rather than this one, and **Screenshot** reads a picture. They're covered separately below.
+There are three ways a theme gets imported, and they don't all behave the same way: two apply the theme immediately, one doesn't. Eight more buttons on the same row, **FlorisBoard**, **HeliBoard**, **FUTO**, **Multiling O**, **Kinetica**, **Clink**, **Kyng** and **Gboard**, read someone else's format rather than this one, and **Screenshot** reads a picture. They're covered separately below.
 
 ### From the Import button
 
@@ -86,6 +86,12 @@ The **Multiling O** button reads the colours of a Multiling O Keyboard theme. Th
 ### From a Kinetica backup
 
 Kinetica has no theme file: its look is a handful of settings (where the colours come from, light or dark, one typed colour, key borders and the swipe trail), and they travel in its backup. So the **Kinetica** button opens a file picker for that backup, the `kinetica_backup_….txt` that **Backup**, then **Export a backup**, saves in Kinetica's settings. Only the theme is read out of it; the words and the rest stay where they are. The colours are worked out by Kinetica's own rules, so a typed colour spreads over the keys, the bar and the popups as it did there. A theme set to follow the phone's light or dark mode comes across as one theme with a dark and a light look, and Material You comes across as a theme that follows the wallpaper. The theme is saved without being switched on, and the result message says what did not come across: a rainbow trail takes the theme's colour, and keys that light up under a swipe aren't drawn. Kinetica leaves its background picture out of its backup, so the picture has to be added again in the theme editor. A Kinetica backup also opens from a file manager. See [Importing other keyboards](/reference/importing-other-keyboards/#kinetica-themes).
+
+### From a Kyng share code
+
+Kyng shares a theme as one line of text that starts with `KBTH1.`. Copy it, then tap **Kyng**: the button reads the code straight from the clipboard, saves a theme of yours and doesn't switch to it. Text around the code, such as the rest of a chat message, is fine.
+
+Only the colours come across, and only from a palette made in Kyng. A code carries twelve colours when its palette is your own (the board, the keys and function keys and their pressed shades, the labels, the accent, the border, the shadow, and the key preview's fill and label). A code made with one of Kyng's built-in palettes, key styles, effects, lighting or backdrops names those by number in Kyng's own catalog instead; that catalog is Kyng's artwork, which this app doesn't carry, so the import says what it left out. In Kyng, make a palette of your own or change a built-in one before sharing to bring the colours over. The function keys' pressed shade is the one colour with nowhere to go here: this app works it out from the key colour. The border and shadow colours are kept at no width and no lift, since in Kyng the key style decides whether they show; set **Border width** or **Key shadow** in the editor to use them.
 
 ### From a Clink theme
 
