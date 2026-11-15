@@ -44,7 +44,15 @@ class ImmichClient(server: String, private val apiKey: String) {
     data class Bucket(val key: String, val count: Int)
 
     /** One asset of a bucket, as the timeline lists it. */
-    data class Asset(val id: String, val image: Boolean, val ratio: Float, val createdMs: Long, val trashed: Boolean)
+    data class Asset(
+        val id: String,
+        val image: Boolean,
+        val ratio: Float,
+        val createdMs: Long,
+        val trashed: Boolean,
+        /** A video's length, from the timeline's `duration` (`0:00:12.345`); 0 for a picture or when not given. */
+        val durationMs: Long = 0,
+    )
 
     data class Album(val id: String, val name: String, val count: Int, val coverId: String?)
 
@@ -88,6 +96,7 @@ class ImmichClient(server: String, private val apiKey: String) {
         val ratios = o.optJSONArray("ratio")
         val trashed = o.optJSONArray("isTrashed")
         val created = o.optJSONArray("fileCreatedAt")
+        val durations = o.optJSONArray("duration")
         val month = parseTime(key)
         return (0 until ids.length()).map { i ->
             Asset(
@@ -96,8 +105,19 @@ class ImmichClient(server: String, private val apiKey: String) {
                 ratio = ratios?.optDouble(i, 1.0)?.toFloat()?.takeIf { it > 0f && !it.isNaN() } ?: 1f,
                 createdMs = created?.optString(i)?.let(::parseTime)?.takeIf { it > 0 } ?: month,
                 trashed = trashed?.optBoolean(i, false) ?: false,
+                durationMs = durations?.takeUnless { it.isNull(i) }?.optString(i)?.let { parseDuration(it) } ?: 0,
             )
         }.filter { it.id.isNotEmpty() }
+    }
+
+    /** `0:00:12.345` (hours, minutes, seconds) in milliseconds; 0 for anything else. */
+    internal fun parseDuration(text: String): Long {
+        val parts = text.trim().split(':')
+        if (parts.size != 3) return 0
+        val h = parts[0].toLongOrNull() ?: return 0
+        val m = parts[1].toLongOrNull() ?: return 0
+        val s = parts[2].toDoubleOrNull() ?: return 0
+        return ((h * 3600 + m * 60) * 1000 + (s * 1000).toLong()).coerceAtLeast(0)
     }
 
     /** The albums the key can read: the user's own and those shared with them. */

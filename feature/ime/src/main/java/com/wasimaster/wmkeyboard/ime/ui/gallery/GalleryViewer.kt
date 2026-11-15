@@ -377,11 +377,35 @@ private fun VideoPage(item: GalleryItem, current: Boolean, muted: Boolean, onTap
         }
     }
     DisposableEffect(item.id) { onDispose { runCatching { view?.stopPlayback() } } }
+    // An Immich video (#1205) plays from its original, fetched first; its
+    // server picture stands in, with a spinner, until it is here.
+    val appContext = androidx.compose.ui.platform.LocalContext.current.applicationContext
+    val playUri by androidx.compose.runtime.produceState(if (item.isRemote) null else item.uri, item.id) {
+        if (item.isRemote) {
+            value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                com.wasimaster.wmkeyboard.ime.gallery.immich.ImmichLibrary.fetchFromServer(appContext, item)?.uri
+            }
+        }
+    }
+    val source = playUri
+    if (source == null) {
+        Box(Modifier.fillMaxSize().clickable(onClick = onTap), contentAlignment = Alignment.Center) {
+            AsyncImage(
+                model = MediaThumb.of(item, REMOTE_VIDEO_STILL_PX),
+                contentDescription = null,
+                imageLoader = rememberGalleryImageLoader(),
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxSize(),
+            )
+            androidx.compose.material3.CircularProgressIndicator(color = OnPhoto)
+        }
+        return
+    }
     Box(Modifier.fillMaxSize()) {
         AndroidView(
             factory = { ctx ->
                 VideoView(ctx).apply {
-                    setVideoURI(item.uri)
+                    setVideoURI(source)
                     setOnPreparedListener { mp ->
                         mp.isLooping = true
                         player = mp
@@ -469,3 +493,6 @@ private fun InfoLine(label: Int, value: String) {
         Text(value, color = OnPhoto, fontSize = 12.sp)
     }
 }
+
+/** The size of the server picture an Immich video shows while it downloads (#1205). */
+private const val REMOTE_VIDEO_STILL_PX = 1440

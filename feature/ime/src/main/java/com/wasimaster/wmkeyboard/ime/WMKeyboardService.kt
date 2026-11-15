@@ -51694,6 +51694,26 @@ open class WMKeyboardService : InputMethodService() {
                 }
                 override fun fileUri(file: File): Uri? =
                     runCatching { FileProvider.getUriForFile(this@WMKeyboardService, clipboardFileProviderAuthority, file) }.getOrNull()
+                override fun galleryShown(): Boolean =
+                    isInputViewShown && _uiState.value.panel == PanelMode.GALLERY
+                override fun uploadFailedNotice(failed: Int, refused: Boolean) {
+                    val ctx = this@WMKeyboardService
+                    com.wasimaster.wmkeyboard.core.notify.WmNotifications.post(
+                        ctx,
+                        com.wasimaster.wmkeyboard.core.notify.NotificationKind.SEND,
+                        com.wasimaster.wmkeyboard.core.notify.NotificationIds.IMMICH_UPLOAD,
+                    ) {
+                        setContentTitle(ctx.getString(R.string.ime_gallery_immich_upload_failed_title))
+                        setContentText(
+                            if (refused) {
+                                ctx.getString(R.string.ime_gallery_immich_upload_refused_body)
+                            } else {
+                                ctx.resources.getQuantityString(R.plurals.ime_gallery_immich_upload_failed_body, failed, failed)
+                            },
+                        )
+                        setAutoCancel(true)
+                    }
+                }
                 override fun share(send: Intent) = shareVia(send)
                 override fun photoSearchReady(): Boolean = userUnlocked && meaningSearch.picturesReady
                 override fun indexPhotos(photos: List<com.wasimaster.wmkeyboard.core.media.gallery.GalleryItem>) =

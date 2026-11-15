@@ -27,8 +27,9 @@ import java.util.UUID
  * are listed once and filled in as the grid pages down; [forget] drops that
  * when the panel opens again, so new pictures on the server show up.
  *
- * Only pictures are listed: Immich videos would have to be fetched whole
- * before they could be watched or sent.
+ * Videos are listed too, with their length: a video is fetched whole before
+ * it plays in the viewer or is sent, the same fetch a picture's original
+ * takes, so it goes through the network log like every other call.
  */
 internal object ImmichLibrary {
 
@@ -92,21 +93,24 @@ internal object ImmichLibrary {
 
     /**
      * Rows [offset] up to [offset] + [limit] of [album], newest first, asking
-     * the server for as many months as that takes. Videos are left out, so a
-     * filter for videos or GIFs finds nothing here.
+     * the server for as many months as that takes. Pictures and videos; the
+     * server tells no GIF apart, so a filter for GIFs finds nothing here.
      */
     fun page(s: GallerySettings, album: GalleryAlbum, filter: GalleryFilter, offset: Int, limit: Int): List<GalleryItem> {
-        if (filter == GalleryFilter.VIDEOS || filter == GalleryFilter.GIFS) return emptyList()
+        if (filter == GalleryFilter.GIFS) return emptyList()
         val c = client(s) ?: return emptyList()
         val albumId = album.id.takeIf { album.kind == AlbumKind.IMMICH_ALBUM }
-        val key = albumId ?: TIMELINE
+        // Each filter keeps its own rows, so an offset counts the rows it shows.
+        val key = (albumId ?: TIMELINE) + "|" + filter.name
         val entry = synchronized(this) { cache[key] } ?: AlbumCache(c.buckets(albumId)).also {
             synchronized(this) { cache[key] = it }
         }
         while (entry.loaded.size < offset + limit && !entry.done) {
             val bucket = entry.buckets[entry.next]
             val assets = c.bucket(bucket.key, albumId)
-            entry.loaded += assets.filter { it.image && !it.trashed }.map { item(it, album.name.orEmpty()) }
+            entry.loaded += assets.filter { !it.trashed }
+                .map { item(it, album.name.orEmpty()) }
+                .filter { filter.accepts(it.kind) }
             entry.next++
         }
         if (offset >= entry.loaded.size) return emptyList()
@@ -116,15 +120,15 @@ internal object ImmichLibrary {
     private fun item(a: ImmichClient.Asset, albumName: String): GalleryItem {
         return GalleryItem(
             id = rowId(a.id),
-            mime = "image/jpeg",
-            kind = GalleryKind.IMAGE,
+            mime = if (a.image) "image/jpeg" else "video/mp4",
+            kind = if (a.image) GalleryKind.IMAGE else GalleryKind.VIDEO,
             name = "",
             // The timeline gives the shape only; the size comes with the original.
             width = (a.ratio * RATIO_SCALE).toInt(),
             height = RATIO_SCALE,
             orientation = 0,
             size = 0,
-            durationMs = 0,
+            durationMs = a.durationMs,
             dateMs = a.createdMs,
             bucketId = REMOTE_BUCKET,
             bucketName = albumName,
@@ -167,8 +171,22 @@ internal object ImmichLibrary {
      */
     fun fetch(context: Context, s: GallerySettings, item: GalleryItem): GalleryItem? {
         if (!item.isRemote) return item
+        return fetchWith(context, client(s) ?: return null, item)
+    }
+
+    /**
+     * [fetch] from the server the albums were last listed from, for the
+     * viewer, which has no settings to hand: a video plays from its fetched
+     * original (#1205).
+     */
+    fun fetchFromServer(context: Context, item: GalleryItem): GalleryItem? {
+        if (!item.isRemote) return item
+        val c = synchronized(this) { client } ?: return null
+        return fetchWith(context, c, item)
+    }
+
+    private fun fetchWith(context: Context, c: ImmichClient, item: GalleryItem): GalleryItem? {
         val id = item.sourceUri?.let(::assetOf) ?: return null
-        val c = client(s) ?: return null
         val dir = File(MediaPrep.outputDir(context), "immich").apply { mkdirs() }
         val done = dir.listFiles()?.firstOrNull { it.name.startsWith("$id.") && it.length() > 0 }
         val (file, mime, name) = if (done != null) {
@@ -183,17 +201,22 @@ internal object ImmichLibrary {
                 ?: MediaPrep.extensionFor(original.mime)
             val file = File(dir, "$id.$ext")
             if (!part.renameTo(file)) return null
-            Triple(file, original.mime.takeIf { it.startsWith("image/") } ?: mimeOfExt(ext), original.name ?: file.name)
+            Triple(
+                file,
+                original.mime.takeIf { it.startsWith("image/") || it.startsWith("video/") } ?: mimeOfExt(ext),
+                original.name ?: file.name,
+            )
         }
         val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        runCatching { android.graphics.BitmapFactory.decodeFile(file.path, bounds) }
+        if (!item.isVideo) runCatching { android.graphics.BitmapFactory.decodeFile(file.path, bounds) }
         return item.copy(
             sourceUri = Uri.fromFile(file),
             mime = mime,
             name = name,
             size = file.length(),
-            width = bounds.outWidth.coerceAtLeast(0),
-            height = bounds.outHeight.coerceAtLeast(0),
+            // A video keeps the shape the timeline gave it.
+            width = bounds.outWidth.takeIf { it > 0 } ?: if (item.isVideo) item.width else 0,
+            height = bounds.outHeight.takeIf { it > 0 } ?: if (item.isVideo) item.height else 0,
             // The original's own EXIF turn is read where the picture is decoded.
             orientation = 0,
         )
@@ -206,6 +229,11 @@ internal object ImmichLibrary {
         "heic", "heif" -> "image/heic"
         "avif" -> "image/avif"
         "dng" -> "image/x-adobe-dng"
+        "mp4", "m4v" -> "video/mp4"
+        "mov" -> "video/quicktime"
+        "webm" -> "video/webm"
+        "mkv" -> "video/x-matroska"
+        "3gp" -> "video/3gpp"
         else -> "image/jpeg"
     }
 

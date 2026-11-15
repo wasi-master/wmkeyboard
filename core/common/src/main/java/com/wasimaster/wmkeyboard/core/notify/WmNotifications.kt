@@ -314,6 +314,9 @@ object NotificationIds {
     /** The Send files tool's upload in flight, then its finished link. */
     const val SEND_UPLOAD = 7
 
+    /** An upload to the user's Immich server that failed with the keyboard gone (#1205). */
+    const val IMMICH_UPLOAD = 11
+
     /** A file arriving through a Send link or from a device nearby. */
     const val SEND_RECEIVE = 8
 

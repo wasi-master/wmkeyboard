@@ -100,6 +100,12 @@ internal class GalleryController(
         /** A FileProvider URI for a copy in the media cache, for share and copy. */
         fun fileUri(file: File): Uri?
 
+        /** Whether the gallery panel is on screen now. */
+        fun galleryShown(): Boolean = true
+
+        /** [failed] pictures did not reach Immich with nobody watching the panel ([refused]: the key). */
+        fun uploadFailedNotice(failed: Int, refused: Boolean) {}
+
         /** [send] on the keyboard's share sheet, or Android's when that is off (#970). True when one opened. */
         fun share(send: Intent): Boolean
 
@@ -904,6 +910,9 @@ internal class GalleryController(
         sendJob = scope.launch {
             try {
                 val r = withContext(Dispatchers.IO) { ImmichLibrary.upload(app, host.settings, items) }
+                // A failure nobody is looking at (#1205): the panel, or the
+                // keyboard, went away while the pictures went up.
+                if (r.failed > 0 && !host.galleryShown()) host.uploadFailedNotice(r.failed, r.refused)
                 when {
                     r.refused -> notice(GalleryNotice.Kind.IMMICH_REFUSED)
                     r.failed > 0 -> notice(GalleryNotice.Kind.UPLOAD_FAILED, r.failed)
