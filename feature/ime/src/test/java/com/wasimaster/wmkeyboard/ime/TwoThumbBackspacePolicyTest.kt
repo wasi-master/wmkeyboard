@@ -164,6 +164,35 @@ class TwoThumbBackspacePolicyTest {
     }
 
     @Test
+    fun `undo input step after the space key takes the space with the newest swipe`() {
+        val (service, editor) = keyboard(settings(backspace = TwoThumbBackspace.UNDO_STEP))
+        swipe(service)
+        drain(service)
+        swipe(service)
+        drain(service)
+        service.onKey(TwoThumbKit.space)
+        drain(service)
+        assertEquals("fixture", "qyqy ", editor.text.toString())
+        echoCaret(service, editor)
+        press(service)
+        assertEquals("the word is open again, one swipe shorter", "qy", editor.text.toString())
+    }
+
+    @Test
+    fun `control - current behavior after the space key deletes the space`() {
+        val (service, editor) = keyboard(settings(backspace = TwoThumbBackspace.CURRENT))
+        swipe(service)
+        drain(service)
+        swipe(service)
+        drain(service)
+        service.onKey(TwoThumbKit.space)
+        drain(service)
+        echoCaret(service, editor)
+        press(service)
+        assertEquals("qyqy", editor.text.toString())
+    }
+
+    @Test
     fun `a two-thumb word ended by the space key keeps that space on Retype`() {
         val editor = ExtractingEditor("")
         val (service, _) = keyboard(

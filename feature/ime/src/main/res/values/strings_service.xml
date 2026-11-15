@@ -373,4 +373,6 @@
     <string name="ime_disabled_clip_share">Select a text clip to share it. Pictures and clips marked sensitive are not shared.</string>
     <string name="ime_service_privacy_shade_floating_toast">The privacy shade works with the docked keyboard. Dock the keyboard first.</string>
     <string name="ime_privacy_shade_hint">Drag the handle up to see the last lines</string>
+    <string name="ime_two_thumb_retype_refused">Couldn\'t retype: the word before the caret couldn\'t be read back, so Backspace deleted a character</string>
+    <string name="ime_two_thumb_undo_changed">The word changed after it was typed, so Backspace deleted a character instead of undoing a gesture</string>
 </resources>

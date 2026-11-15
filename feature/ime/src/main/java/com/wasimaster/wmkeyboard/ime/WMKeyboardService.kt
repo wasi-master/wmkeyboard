@@ -17345,6 +17345,42 @@ open class WMKeyboardService : InputMethodService() {
         armRevertGuard()
     }
 
+    /**
+     * The two-thumb word the Space key is about to end, as the all-up end
+     * keeps it ([commitDuet]), when Backspace is set to take its gestures
+     * back (Undo input step, Trim the word's end) (#1188). Null otherwise:
+     * under the other choices, and under Current behavior, a Space-ended word
+     * keeps the Backspace it always had. A decode still running is read first,
+     * as the commit would read it, so the record is the word that is typed.
+     */
+    private fun spaceEndedDuet(ic: InputConnection, state: KeyboardUiState): CommittedDuet? {
+        val gesture = state.settings.gesture
+        if (!gesture.twoThumbGlide || !duetWord.active) return null
+        if (gesture.twoThumbBackspace != TwoThumbBackspace.UNDO_STEP &&
+            gesture.twoThumbBackspace != TwoThumbBackspace.TRIM_END
+        ) {
+            return null
+        }
+        if (duetShownGeneration != duetGeneration) settleDuet(ic)
+        if (!duetWord.active || composing.isEmpty()) return null
+        return CommittedDuet(composing.toString(), duetWord.copy(), duetShift, duetReadings.toList())
+    }
+
+    /**
+     * Arms Backspace on a two-thumb word the Space key just ended, the way
+     * [commitDuet] arms it on one the all-up pause ended: the next press
+     * reopens it and takes its newest gesture back. The space goes with it,
+     * user's or not ([glideCommitLength] reads it off the field), so the word
+     * is left open at the caret exactly as it was before the Space.
+     */
+    private fun armSpaceEndedDuet(duet: CommittedDuet) {
+        committedDuet = duet.takeIf { it.gestures.snapshot().size > 1 }
+        lastGestureWord = duet.word
+        gestureWordShifted = duet.shift != ShiftState.OFF
+        lastGestureStroke = null
+        stripReplacesGestureWord = false
+    }
+
     /** The just-typed two-thumb word stops being one unit: this press deletes as any other. */
     private fun dropTwoThumbWordUndo() {
         lastGestureWord = null
@@ -17437,9 +17473,11 @@ open class WMKeyboardService : InputMethodService() {
                 if (composing.isEmpty() && foundWordSpace) pendingWordSpace = true
                 if (retypeWord()) return
                 // Refused (a caret the editor will not prove, a mark behind
-                // it): an ordinary Backspace rather than a press that does nothing.
+                // it): an ordinary Backspace rather than a press that does
+                // nothing, and a word on why, so the press isn't a mystery.
                 pendingWordSpace = false
                 dropTwoThumbWordUndo()
+                toast(R.string.ime_two_thumb_retype_refused)
             }
             TwoThumbBackspaceStep.DELETE_CHARACTER, TwoThumbBackspaceStep.ORDINARY -> dropTwoThumbWordUndo()
             TwoThumbBackspaceStep.LEGACY, TwoThumbBackspaceStep.UNDO_STEP, TwoThumbBackspaceStep.TRIM_END -> Unit
@@ -17531,6 +17569,12 @@ open class WMKeyboardService : InputMethodService() {
                         armRevertGuard()
                     }
                     return
+                }
+                // The word before the caret is no longer the one typed (an
+                // app restyled it, a later edit touched it): no gesture to
+                // take back, so the press deletes, and says why (#1188).
+                if (twoThumbStep == TwoThumbBackspaceStep.UNDO_STEP || twoThumbStep == TwoThumbBackspaceStep.TRIM_END) {
+                    toast(R.string.ime_two_thumb_undo_changed)
                 }
             }
         }
@@ -20061,6 +20105,9 @@ open class WMKeyboardService : InputMethodService() {
         // being ended: the space press there is the user making room for a new
         // word, and stepping over the gap ahead would glue that word to the next.
         val typedWord = composing.isNotEmpty() && composing.toString() != resumedWord
+        // Taken before the commit clears them: a two-thumb word's gestures,
+        // for Backspace's Undo input step after a Space ends it (#1188).
+        val spaceEndedDuet = if (typedWord) spaceEndedDuet(ic, state) else null
         val committed = commitComposing(
             ic,
             autocorrect = state.settings.correction.enabledFor(state.language.id),
@@ -20080,6 +20127,7 @@ open class WMKeyboardService : InputMethodService() {
         // A two-thumb word ended by the space key (#1188): the space is the
         // user's, the word is still the one Backspace may act on.
         if (typedWord && committed) armTwoThumbWordBehind()
+        if (committed) spaceEndedDuet?.let(::armSpaceEndedDuet)
 
         // How close together the two spaces have to be. One number for both
         // rules below, so the tab and the full stop never disagree about what
