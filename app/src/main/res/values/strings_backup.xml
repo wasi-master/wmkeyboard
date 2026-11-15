@@ -645,6 +645,7 @@
     <string name="backup_files_title">Files</string>
     <string name="backup_files_export_title">Export to a file</string>
     <string name="backup_files_export_subtitle">Save a copy that you move yourself</string>
+    <string name="backup_files_export_disabled">Nothing is ticked under What goes in an export. Tick something there first.</string>
     <string name="backup_files_import_title">Import a file</string>
     <string name="backup_files_import_subtitle">Restore from a backup or a settings file</string>
     <string name="backup_files_contents_title">What goes in an export</string>

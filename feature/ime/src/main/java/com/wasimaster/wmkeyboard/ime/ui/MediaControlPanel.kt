@@ -352,27 +352,31 @@ private fun SeekBar(kb: KbTheme, track: MediaSnapshot, onSeek: (Long) -> Unit, s
     val shown = if (scrubbing) scrubFraction else playedFraction
 
     Column(Modifier.fillMaxWidth()) {
-        Slider(
-            value = shown,
-            onValueChange = { scrubbing = true; scrubFraction = it },
-            onValueChangeFinished = {
-                onSeek((scrubFraction * track.durationMs).toLong())
-                scrubbing = false
-            },
-            enabled = track.canSeek,
-            colors = SliderDefaults.colors(
-                thumbColor = kb.accent,
-                activeTrackColor = kb.accent,
-                inactiveTrackColor = kb.divider,
-                disabledThumbColor = kb.secondaryText,
-                disabledActiveTrackColor = kb.secondaryText,
-                disabledInactiveTrackColor = kb.divider,
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(24.dp)
-                .onSizeChanged { barWidthPx = it.width },
-        )
+        // Held while greyed out, says why: the playing app turned seeking off.
+        val seekReason = DisabledReason(stringResource(R.string.ime_disabled_media_seek)).takeUnless { track.canSeek }
+        IconHint(null, Modifier.fillMaxWidth(), disabledReason = seekReason) {
+            Slider(
+                value = shown,
+                onValueChange = { scrubbing = true; scrubFraction = it },
+                onValueChangeFinished = {
+                    onSeek((scrubFraction * track.durationMs).toLong())
+                    scrubbing = false
+                },
+                enabled = track.canSeek,
+                colors = SliderDefaults.colors(
+                    thumbColor = kb.accent,
+                    activeTrackColor = kb.accent,
+                    inactiveTrackColor = kb.divider,
+                    disabledThumbColor = kb.secondaryText,
+                    disabledActiveTrackColor = kb.secondaryText,
+                    disabledInactiveTrackColor = kb.divider,
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(24.dp)
+                    .onSizeChanged { barWidthPx = it.width },
+            )
+        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,

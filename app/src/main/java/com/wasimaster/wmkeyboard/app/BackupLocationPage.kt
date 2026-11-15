@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ChevronRight
 import com.wasimaster.wmkeyboard.core.settings.AutoBackupIntervals
@@ -228,6 +229,10 @@ internal fun BackupLocationSettings(repository: SettingsRepository, settings: Li
                     ),
                     ownContents.encrypt && hasPassphrase,
                     enabled = hasPassphrase,
+                    disabledReason = DisabledReason(
+                        stringResource(R.string.backup_location_encrypt_needs_passphrase),
+                        route = "backup/auto",
+                    ),
                     default = false,
                 ) { on -> contents { it.copy(encrypt = on) } }
             }

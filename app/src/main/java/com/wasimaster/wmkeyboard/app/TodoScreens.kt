@@ -52,6 +52,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
@@ -540,6 +541,7 @@ internal fun TodoToolSettings(
                 todo.syncEnabled,
                 info = stringResource(R.string.tooldetail_todo_sync_info),
                 enabled = installed.isNotEmpty() || todo.syncEnabled,
+                disabledReason = DisabledReason(stringResource(R.string.tooldetail_todo_sync_none_subtitle)),
                 default = d.syncEnabled,
             ) { on ->
                 if (on) {
@@ -570,6 +572,7 @@ internal fun TodoToolSettings(
                     },
                     action = stringResource(R.string.tooldetail_todo_sync_now_button),
                     enabled = todo.syncReady,
+                    disabledReason = DisabledReason(stringResource(R.string.tooldetail_todo_sync_pick_list_first)),
                 ) {
                     scope.launch {
                         message = syncMessage(context, runTodoSync(context, null, settings))

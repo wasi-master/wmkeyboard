@@ -52,6 +52,7 @@
     <string name="tooldetail_todo_sync_none_subtitle">Install OpenTasks or Tasks.org, and add your CalDAV account to DAVx5, to sync. Until then the list stays on this phone.</string>
     <string name="tooldetail_todo_list_title">Task list</string>
     <string name="tooldetail_todo_list_none">None picked</string>
+    <string name="tooldetail_todo_sync_pick_list_first">Pick a list to sync with first.</string>
     <string name="tooldetail_todo_list_pick_title">Pick a task list</string>
     <!-- %1$s is a task app's name, for example "OpenTasks". -->
     <string name="tooldetail_todo_list_allow_action">Allow access to <xliff:g id="app" example="OpenTasks">%1$s</xliff:g></string>

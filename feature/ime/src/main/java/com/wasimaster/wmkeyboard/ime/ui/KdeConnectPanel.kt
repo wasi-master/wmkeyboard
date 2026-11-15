@@ -38,6 +38,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardArrowLeft
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardArrowRight
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardReturn
@@ -606,7 +607,10 @@ private fun InputTab(kb: KbTheme, state: KeyboardUiState, device: KdeDevice, eng
         if (!typing) {
             Spacer(Modifier.height(4.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                AccentButton(kb, stringResource(R.string.ime_kde_type_on_pc), enabled = device.acceptsKeys) { capture.onKde(KdeAction.SetTyping(true)) }
+                AccentButton(
+                    kb, stringResource(R.string.ime_kde_type_on_pc), enabled = device.acceptsKeys,
+                    disabledReason = DisabledReason(stringResource(R.string.ime_disabled_kde_keys)),
+                ) { capture.onKde(KdeAction.SetTyping(true)) }
                 Spacer(Modifier.weight(1f))
                 QuickKey(kb, stringResource(R.string.ime_kde_key_esc)) { capture.onKdeKey(KdeSpecialKey.ESCAPE, state.kde.mods) }
                 QuickKey(kb, stringResource(R.string.ime_kde_key_tab)) { capture.onKdeKey(KdeSpecialKey.TAB, state.kde.mods) }
@@ -799,6 +803,10 @@ private fun KdePlayer.toSnapshot(deviceName: String, art: android.graphics.Bitma
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SendTab(kb: KbTheme, device: KdeDevice, engine: KdeConnectEngine, onKde: (KdeAction) -> Unit) {
+    // What holding a greyed-out way to send says: the computer turned that
+    // plugin off, or its KDE Connect does not have it.
+    val clipboardOff = DisabledReason(stringResource(R.string.ime_disabled_kde_clipboard))
+    val shareOff = DisabledReason(stringResource(R.string.ime_disabled_kde_share))
     if (device.transfers.isEmpty()) {
         // Nothing to list yet: the three ways to send take the room the list would.
         Column(
@@ -807,13 +815,16 @@ private fun SendTab(kb: KbTheme, device: KdeDevice, engine: KdeConnectEngine, on
             verticalArrangement = Arrangement.Center,
         ) {
             Row(Modifier.widthIn(max = SEND_TILES_MAX_WIDTH).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SendTile(kb, Icons.Outlined.ContentPaste, stringResource(R.string.ime_kde_send_clipboard), enabled = device.canClipboard, accent = true) {
+                SendTile(
+                    kb, Icons.Outlined.ContentPaste, stringResource(R.string.ime_kde_send_clipboard), enabled = device.canClipboard, accent = true,
+                    disabledReason = clipboardOff,
+                ) {
                     onKde(KdeAction.SendClipboard)
                 }
-                SendTile(kb, Icons.Outlined.TextFields, stringResource(R.string.ime_kde_send_field), enabled = device.canShare) {
+                SendTile(kb, Icons.Outlined.TextFields, stringResource(R.string.ime_kde_send_field), enabled = device.canShare, disabledReason = shareOff) {
                     onKde(KdeAction.SendFieldText)
                 }
-                SendTile(kb, Icons.Outlined.AttachFile, stringResource(R.string.ime_kde_send_files), enabled = device.canShare) {
+                SendTile(kb, Icons.Outlined.AttachFile, stringResource(R.string.ime_kde_send_files), enabled = device.canShare, disabledReason = shareOff) {
                     onKde(KdeAction.PickFiles)
                 }
             }
@@ -828,9 +839,9 @@ private fun SendTab(kb: KbTheme, device: KdeDevice, engine: KdeConnectEngine, on
     }
     Column(Modifier.fillMaxSize()) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            ToolPanelChip(stringResource(R.string.ime_kde_send_clipboard), selected = true, enabled = device.canClipboard) { onKde(KdeAction.SendClipboard) }
-            ToolPanelChip(stringResource(R.string.ime_kde_send_field), enabled = device.canShare) { onKde(KdeAction.SendFieldText) }
-            ToolPanelChip(stringResource(R.string.ime_kde_send_files), enabled = device.canShare) { onKde(KdeAction.PickFiles) }
+            ToolPanelChip(stringResource(R.string.ime_kde_send_clipboard), selected = true, enabled = device.canClipboard, disabledReason = clipboardOff) { onKde(KdeAction.SendClipboard) }
+            ToolPanelChip(stringResource(R.string.ime_kde_send_field), enabled = device.canShare, disabledReason = shareOff) { onKde(KdeAction.SendFieldText) }
+            ToolPanelChip(stringResource(R.string.ime_kde_send_files), enabled = device.canShare, disabledReason = shareOff) { onKde(KdeAction.PickFiles) }
             if (device.transfers.any { it.state != KdeTransferState.RUNNING && it.state != KdeTransferState.WAITING }) {
                 ToolPanelChip(stringResource(R.string.ime_kde_transfer_clear)) { engine.share.clearFinished(device.id) }
             }
@@ -844,19 +855,30 @@ private fun SendTab(kb: KbTheme, device: KdeDevice, engine: KdeConnectEngine, on
 
 /** One of the Send tab's empty-state buttons: an icon over its label, a third of the row. */
 @Composable
-private fun RowScope.SendTile(kb: KbTheme, icon: ImageVector, label: String, enabled: Boolean, accent: Boolean = false, onClick: () -> Unit) {
+private fun RowScope.SendTile(
+    kb: KbTheme,
+    icon: ImageVector,
+    label: String,
+    enabled: Boolean,
+    accent: Boolean = false,
+    disabledReason: DisabledReason? = null,
+    onClick: () -> Unit,
+) {
     val fill = if (accent) kb.accent else kb.chip
     val tint = if (accent) maxContrastOn(kb.accent) else kb.chipText
-    Column(
-        Modifier.weight(1f).height(SEND_TILE_HEIGHT).alpha(if (enabled) 1f else BUTTON_DISABLED_ALPHA)
-            .clip(RoundedCornerShape(kb.keyRadiusDp.dp)).background(fill)
-            .clickable(enabled = enabled, onClick = onClick).padding(horizontal = 6.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Icon(icon, null, tint = tint, modifier = Modifier.size(26.dp))
-        Spacer(Modifier.height(6.dp))
-        Text(label, color = tint, fontSize = 13.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
+    val reason = disabledReason.takeUnless { enabled }
+    IconHint(label.takeIf { reason != null }, Modifier.weight(1f), disabledReason = reason) {
+        Column(
+            Modifier.height(SEND_TILE_HEIGHT).alpha(if (enabled) 1f else BUTTON_DISABLED_ALPHA)
+                .clip(RoundedCornerShape(kb.keyRadiusDp.dp)).background(fill)
+                .clickable(enabled = enabled, onClick = onClick).padding(horizontal = 6.dp, vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Icon(icon, null, tint = tint, modifier = Modifier.size(26.dp))
+            Spacer(Modifier.height(6.dp))
+            Text(label, color = tint, fontSize = 13.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
     }
 }
 
@@ -1130,12 +1152,21 @@ private fun pauseLabel(minutes: Int): Int = when (minutes) {
  * whole when disabled, fill included.
  */
 @Composable
-private fun AccentButton(kb: KbTheme, label: String, enabled: Boolean = true, onClick: () -> Unit) {
-    Box(
-        Modifier.alpha(if (enabled) 1f else BUTTON_DISABLED_ALPHA).height(QUICK_KEY_HEIGHT).clip(RoundedCornerShape(kb.keyRadiusDp.dp))
-            .background(kb.accent).clickable(enabled = enabled, onClick = onClick).padding(horizontal = 16.dp),
-        contentAlignment = Alignment.Center,
-    ) { Text(label, color = maxContrastOn(kb.accent), fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1) }
+private fun AccentButton(
+    kb: KbTheme,
+    label: String,
+    enabled: Boolean = true,
+    disabledReason: DisabledReason? = null,
+    onClick: () -> Unit,
+) {
+    val reason = disabledReason.takeUnless { enabled }
+    IconHint(label.takeIf { reason != null }, disabledReason = reason) {
+        Box(
+            Modifier.alpha(if (enabled) 1f else BUTTON_DISABLED_ALPHA).height(QUICK_KEY_HEIGHT).clip(RoundedCornerShape(kb.keyRadiusDp.dp))
+                .background(kb.accent).clickable(enabled = enabled, onClick = onClick).padding(horizontal = 16.dp),
+            contentAlignment = Alignment.Center,
+        ) { Text(label, color = maxContrastOn(kb.accent), fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1) }
+    }
 }
 
 @Composable

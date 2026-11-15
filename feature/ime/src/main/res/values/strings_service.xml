@@ -364,6 +364,11 @@
     <string name="ime_disabled_translate_empty_box">The box is empty, or its translation is still on its way.</string>
     <string name="ime_disabled_translate_same_language">The text is already in the language you translate to.</string>
     <string name="ime_disabled_media_app_blocks">The app that is playing does not allow this.</string>
+    <string name="ime_disabled_media_seek">The app that is playing does not let other apps move to a point in this track.</string>
+    <!-- KDE Connect panel: why a way to reach the computer is greyed out. "KDE Connect" and the plugin names are as KDE Connect's own settings show them. -->
+    <string name="ime_disabled_kde_keys">The computer does not take typing from the phone right now. Turn on Remote keyboard in KDE Connect on the computer.</string>
+    <string name="ime_disabled_kde_clipboard">The computer does not take the clipboard. Turn on Clipboard sync in KDE Connect on the computer.</string>
+    <string name="ime_disabled_kde_share">The computer does not take text or files. Turn on Share and receive in KDE Connect on the computer.</string>
     <string name="ime_disabled_voice_undo">Nothing to undo yet. Undo takes back the last phrase you spoke.</string>
     <string name="ime_disabled_correction_invalid">Type a different word to correct to. The word being corrected needs at least 3 letters, and the fix can be one word, or two for a missed space.</string>
     <string name="ime_word_correct_saved">\"<xliff:g id="typed" example="kagay">%1$s</xliff:g>\" will be corrected to \"<xliff:g id="fixed" example="lagay">%2$s</xliff:g>\"</string>

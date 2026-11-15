@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Visibility
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VisibilityOff
 import androidx.compose.foundation.text.KeyboardOptions
@@ -1349,6 +1350,10 @@ internal fun BackupSettings(
                 subtitle = stringResource(R.string.backup_files_export_subtitle),
                 icon = Icons.Outlined.FileUpload,
                 enabled = settings.watch { it.autoBackup.exportSectionSet.isNotEmpty() },
+                disabledReason = DisabledReason(
+                    stringResource(R.string.backup_files_export_disabled),
+                    route = "backup/contents",
+                ),
                 onClick = exportGuarded,
             )
         }
@@ -1678,6 +1683,13 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
                 ),
                 autoOn && configured,
                 enabled = configured,
+                // No location at all is fixed on the Backup page; an unticked
+                // one under Back up to, further down this page.
+                disabledReason = if (locations.isEmpty()) {
+                    DisabledReason(stringResource(R.string.backup_auto_needs_location), route = "backup")
+                } else {
+                    DisabledReason(stringResource(R.string.backup_auto_needs_target))
+                },
                 default = SettingsDefaults.autoBackup.enabled && configured,
             ) { on ->
                 scope.launch {
@@ -1830,6 +1842,7 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
                     ),
                     settings.watch { it.autoBackup.frequent.encrypt } && hasPassphrase,
                     enabled = hasPassphrase,
+                    disabledReason = DisabledReason(stringResource(R.string.backup_frequent_encrypt_needs_passphrase)),
                     default = SettingsDefaults.autoBackup.frequent.encrypt,
                 ) { on -> scope.launch { repository.setFrequentBackupEncrypt(on) } }
             }
@@ -1993,6 +2006,7 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
                 syncOn && hasActive,
                 info = stringResource(R.string.backup_sync_first_note),
                 enabled = hasActive,
+                disabledReason = DisabledReason(stringResource(R.string.backup_auto_needs_location), route = "backup"),
                 default = SettingsDefaults.autoBackup.sync.enabled,
             ) { on ->
                 val auto = settings.value.autoBackup

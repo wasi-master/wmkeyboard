@@ -52,6 +52,13 @@ internal fun AppLockSettingsScreen(repository: SettingsRepository) {
     // The method whose secret is being set, while its setup sheet is up.
     var settingUp by remember { mutableStateOf<AppLockMethod?>(null) }
 
+    // Held on a greyed-out switch, says what is missing. No setting named:
+    // the fix is in the phone's own security settings, and a reason naming a
+    // setting would hide the rows the way overridden ones hide.
+    val lockReason = DisabledReason(
+        if (status.reason != 0) stringResource(status.reason) else "",
+    ).takeUnless { status.canEnable }
+
     Spacer(Modifier.height(12.dp))
 
     SettingsGroup {
@@ -62,6 +69,7 @@ internal fun AppLockSettingsScreen(repository: SettingsRepository) {
                 cfg.enabled,
                 info = stringResource(R.string.privacy_lock_enabled_info),
                 enabled = status.canEnable,
+                disabledReason = lockReason,
                 default = AppLockDefaults.enabled,
             ) { wanted ->
                 // A controlled switch: the value is written only after the
@@ -191,6 +199,7 @@ internal fun AppLockSettingsScreen(repository: SettingsRepository) {
                             ?: SettingsRowIcons[target.label],
                         highlightKey = target.label,
                         enabled = status.canEnable,
+                        disabledReason = lockReason,
                         default = target.onByDefault,
                     ) { checked ->
                         scope.launch { repository.setAppLockTarget(target.id, checked) }
