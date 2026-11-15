@@ -30,6 +30,37 @@ class AiClientChatBodyTest {
     )
 
     @Test
+    fun `a temperature goes where each service reads it, and only where it is taken`() {
+        fun parse(text: String) = json.parseToJsonElement(text).jsonObject
+        val warm = 0.7
+        val anthropic = parse(AiClient.anthropicBody(config(AiProvider.ANTHROPIC).copy(temperature = warm), "s", chat, 10))
+        assertEquals("0.7", anthropic["temperature"]?.jsonPrimitive?.content)
+        val thinking = parse(
+            AiClient.anthropicBody(config(AiProvider.ANTHROPIC).copy(temperature = warm, reasoning = true), "s", chat, 10),
+        )
+        assertNull(thinking["temperature"])
+        val compatible = parse(
+            AiClient.openAiCompatibleBody(config(AiProvider.OPENAI_COMPATIBLE).copy(temperature = warm), "s", chat, 10),
+        )
+        assertEquals("0.7", compatible["temperature"]?.jsonPrimitive?.content)
+        val o3 = parse(
+            AiClient.openAiCompatibleBody(
+                AiClient.Config(AiProvider.OPENAI, "k", "o3-mini", "").copy(temperature = warm), "s", chat, 10,
+            ),
+        )
+        assertNull(o3["temperature"])
+        val gpt4 = parse(
+            AiClient.openAiCompatibleBody(AiClient.Config(AiProvider.OPENAI, "k", "gpt-4.1", "").copy(temperature = warm), "s", chat, 10),
+        )
+        assertEquals("0.7", gpt4["temperature"]?.jsonPrimitive?.content)
+        val gemini = parse(AiClient.geminiBody("s", chat, null, temperature = warm))
+        assertEquals("0.7", gemini["generationConfig"]!!.jsonObject["temperature"]?.jsonPrimitive?.content)
+        val ollama = parse(AiClient.ollamaBody(config(AiProvider.OLLAMA).copy(temperature = warm), "s", chat, null))
+        assertEquals("0.7", ollama["options"]!!.jsonObject["temperature"]?.jsonPrimitive?.content)
+        assertNull(parse(AiClient.ollamaBody(config(AiProvider.OLLAMA), "s", chat, null))["options"])
+    }
+
+    @Test
     fun `anthropic sends user and assistant roles with system on top`() {
         val body = json.parseToJsonElement(
             AiClient.anthropicBody(config(AiProvider.ANTHROPIC), "sys", chat, 1000),

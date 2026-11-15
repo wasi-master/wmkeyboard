@@ -14,6 +14,7 @@ import com.wasimaster.wmkeyboard.core.settings.AI_STRIP_SUGGEST_CHARS_MAX
 import com.wasimaster.wmkeyboard.core.settings.AI_STRIP_SUGGEST_CHARS_MIN
 import com.wasimaster.wmkeyboard.core.settings.AiStripComposingDelayRange
 import com.wasimaster.wmkeyboard.core.settings.AiStripIdleRange
+import com.wasimaster.wmkeyboard.core.settings.AiStripTemperatures
 import com.wasimaster.wmkeyboard.core.settings.AiStripTimeoutRange
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
@@ -436,6 +437,74 @@ internal fun AiToolSettings(
                 AiStripTimeoutRange,
                 SettingsDefaults.ai.stripSuggestComposingTimeoutMs,
             ) { ms -> scope.launch { repository.setAiStripSuggestComposingTimeout(ms) } }
+        }
+        // #1048's extras: when to ask, whom, how freely, and where not.
+        item(visible = stripSuggest, level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.toolai_strip_suggest_only_unsure_title,
+                stringResource(R.string.toolai_strip_suggest_only_unsure_subtitle),
+                settings.watch { it.ai.stripSuggestOnlyUnsure },
+                default = SettingsDefaults.ai.stripSuggestOnlyUnsure,
+            ) { scope.launch { repository.setAiStripSuggestOnlyUnsure(it) } }
+        }
+        item(visible = stripSuggest && rows.size > 1, level = SettingLevel.STANDARD) {
+            val context = LocalContext.current
+            ChoiceSetting(
+                R.string.toolai_strip_suggest_provider_title,
+                subtitle = stringResource(R.string.toolai_strip_suggest_provider_subtitle),
+                options = listOf("" to stringResource(R.string.toolai_strip_suggest_provider_same)) +
+                    rows.map { it.key to providerTitle(context, it) },
+                selected = settings.watch { s -> s.ai.stripSuggestProvider.takeIf { key -> rows.any { it.key == key } }.orEmpty() },
+                default = "",
+            ) { key -> scope.launch { repository.setAiStripSuggestProvider(key) } }
+        }
+        item(visible = stripSuggest, level = SettingLevel.ADVANCED) {
+            ChoiceSetting(
+                R.string.toolai_strip_suggest_temperature_title,
+                subtitle = stringResource(R.string.toolai_strip_suggest_temperature_subtitle),
+                options = AiStripTemperatures.map { value ->
+                    value to stringResource(
+                        when {
+                            value < 0f -> R.string.toolai_strip_suggest_temperature_default
+                            value < 0.5f -> R.string.toolai_strip_suggest_temperature_focused
+                            value < 0.9f -> R.string.toolai_strip_suggest_temperature_balanced
+                            else -> R.string.toolai_strip_suggest_temperature_varied
+                        },
+                    )
+                },
+                selected = settings.watch { s ->
+                    AiStripTemperatures.firstOrNull { it == s.ai.stripSuggestTemperature } ?: AiStripTemperatures.first()
+                },
+                default = SettingsDefaults.ai.stripSuggestTemperature,
+            ) { value -> scope.launch { repository.setAiStripSuggestTemperature(value) } }
+        }
+        item(visible = stripSuggest, level = SettingLevel.ADVANCED) {
+            TextFieldSetting(
+                label = stringResource(R.string.toolai_strip_suggest_prompt_title),
+                value = settings.value.ai.stripSuggestPrompt,
+                hint = stringResource(R.string.toolai_strip_suggest_prompt_hint),
+                default = "",
+            ) { repository.setAiStripSuggestPrompt(it) }
+        }
+    }
+    // One switch per keyboard language, for a language the model writes
+    // badly or a language the user would rather not send (#1048).
+    val stripLanguages = settings.watch { s -> s.enabledLanguages.map { it.id to it.displayName.substringBefore(" · ") } }
+    if (stripSuggest && stripLanguages.size > 1) {
+        val off = settings.watch { it.ai.stripSuggestOffLanguages }
+        SettingsGroup(
+            stringResource(R.string.toolai_strip_suggest_languages_title),
+            info = stringResource(R.string.toolai_strip_suggest_languages_info),
+        ) {
+            for ((id, name) in stripLanguages) {
+                item(key = "strip_lang_$id", level = SettingLevel.ADVANCED) {
+                    ToggleSetting(
+                        title = name,
+                        subtitle = null,
+                        checked = id !in off,
+                    ) { on -> scope.launch { repository.setAiStripSuggestLanguage(id, on) } }
+                }
+            }
         }
     }
     SettingsGroup(

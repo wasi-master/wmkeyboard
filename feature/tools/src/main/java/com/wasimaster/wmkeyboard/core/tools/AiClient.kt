@@ -74,6 +74,13 @@ object AiClient {
          * anything ([AiSettings.fallbackNext]); empty for none.
          */
         val backups: List<Config> = emptyList(),
+        /**
+         * Sampling temperature, or null for the service's own default. Set by
+         * the suggestion strip's Creativity (#1048); the panel and the chat
+         * leave it to the service. Left out where the model refuses one: a
+         * reasoning model, or Anthropic's with thinking on.
+         */
+        val temperature: Double? = null,
     )
 
     /** The placeholder a header value can use for [Config.sessionId]. */
@@ -1354,6 +1361,7 @@ object AiClient {
         put("max_tokens", maxTokens)
         put("system", system)
         put("stream", true)
+        if (config.reasoning != true) config.temperature?.let { put("temperature", it.coerceIn(0.0, 1.0)) }
         // The chat's Reasoning switch (#882), in the shape the model accepts.
         config.reasoning?.takeIf { controlsReasoning(config.provider, config.model) }
             ?.let { on -> putClaudeThinking(config.model, on, maxTokens) }
@@ -1550,6 +1558,7 @@ object AiClient {
         // service then applies its own default, which is what the user asked
         // for. Sending a huge number instead would be rejected by some.
         if (maxTokens != null) put(outputCeilingField(config), maxTokens)
+        if (takesTemperature(config)) config.temperature?.let { put("temperature", it) }
         put("stream", true)
         // Asks for the token totals on the last chunk, where the service is
         // known to take the field; another server might refuse it (#1135).
@@ -1587,6 +1596,18 @@ object AiClient {
         }
         return if (newName) "max_completion_tokens" else "max_tokens"
     }
+
+    /**
+     * Whether an OpenAI-shaped request may name a temperature. OpenAI's
+     * reasoning models (o-series, GPT-5) refuse any but their own.
+     */
+    internal fun takesTemperature(config: Config): Boolean {
+        if (outputCeilingField(config) != "max_completion_tokens") return true
+        val model = config.model.lowercase().substringAfterLast('/')
+        return !(model.startsWith("gpt-5") || REASONING_O_SERIES.containsMatchIn(model))
+    }
+
+    private val REASONING_O_SERIES = Regex("^o\\d")
 
     /** The `tools` array OpenAI, Ollama and everything OpenAI-shaped reads. */
     private fun openAiTools(tools: List<AiToolSpec>): JsonArray = buildJsonArray {
@@ -1775,6 +1796,7 @@ object AiClient {
         /** The chat's Reasoning switch and the model it applies to; see [geminiThinking]. */
         reasoning: Boolean? = null,
         model: String = "",
+        temperature: Double? = null,
     ): String = buildJsonObject {
         putJsonObject("system_instruction") {
             put("parts", buildJsonArray { add(buildJsonObject { put("text", system) }) })
@@ -1807,9 +1829,10 @@ object AiClient {
         // Left out entirely for "provider maximum", so Gemini writes up to
         // the model's own output limit. This is the setting that used to cut
         // a long answer off in the middle with nothing to say so.
-        if (maxTokens != null || reasoning != null) {
+        if (maxTokens != null || reasoning != null || temperature != null) {
             putJsonObject("generationConfig") {
                 if (maxTokens != null) put("maxOutputTokens", maxTokens)
+                if (temperature != null) put("temperature", temperature)
                 if (reasoning != null) put("thinkingConfig", geminiThinking(model, reasoning))
             }
         }
@@ -1893,6 +1916,7 @@ object AiClient {
         val body = geminiBody(
             system, turns, maxTokens, tools,
             config.reasoning?.takeIf { controlsReasoning(config.provider, config.model) }, config.model,
+            config.temperature,
         )
         return runStream(
             source = config.netSource,
@@ -1979,8 +2003,11 @@ object AiClient {
         // rather than at the top level. Left out for "provider maximum",
         // which is what this request always did before the setting reached
         // it at all.
-        if (maxTokens != null) {
-            putJsonObject("options") { put("num_predict", maxTokens) }
+        if (maxTokens != null || config.temperature != null) {
+            putJsonObject("options") {
+                if (maxTokens != null) put("num_predict", maxTokens)
+                config.temperature?.let { put("temperature", it) }
+            }
         }
         put("messages", buildJsonArray {
             add(buildJsonObject { put("role", "system"); put("content", system) })

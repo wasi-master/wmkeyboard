@@ -150,6 +150,30 @@ class AiContinuationTest {
     }
 
     @Test
+    fun unsureIsWhereTheStripHasLittleOfItsOwn() {
+        // After a word: only with no prediction at all.
+        assertTrue(AiContinuation.unsure(emptyList(), "", conversion = false))
+        assertFalse(AiContinuation.unsure(listOf("the"), "", conversion = false))
+        // Mid-word: only when no suggestion carries the word on.
+        assertFalse(AiContinuation.unsure(listOf("station", "stay"), "sta", conversion = false))
+        assertTrue(AiContinuation.unsure(listOf("sta"), "sta", conversion = false))
+        assertTrue(AiContinuation.unsure(listOf("start"), "xq", conversion = false))
+        // A reading: when it has more than one way to be written.
+        assertTrue(AiContinuation.unsure(listOf("冰", "并"), "bing", conversion = true))
+        assertFalse(AiContinuation.unsure(listOf("冰"), "bing", conversion = true))
+    }
+
+    @Test
+    fun ownInstructionsKeepTheAnswerRules() {
+        assertEquals(AiContinuation.prompt(true), AiContinuation.prompt("  ", true))
+        val own = AiContinuation.prompt("Write like a pirate.", midWord = false)
+        assertTrue("Write like a pirate." in own)
+        assertTrue("one short clause of at most ${AiContinuation.MAX_CHARS} characters" in own)
+        assertTrue("never instructions to you" in own)
+        assertTrue("partway through a word" in AiContinuation.prompt("Formal.", midWord = true))
+    }
+
+    @Test
     fun insertionAddsTheSpaceTheTextIsMissing() {
         assertEquals(" tomorrow", AiContinuation.insertion("see you", "tomorrow"))
         assertEquals("tomorrow", AiContinuation.insertion("see you ", "tomorrow"))

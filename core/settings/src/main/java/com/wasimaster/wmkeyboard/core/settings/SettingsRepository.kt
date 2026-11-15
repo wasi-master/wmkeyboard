@@ -5661,6 +5661,12 @@ data class AiReplySettings(
 val AiStripIdleRange = 150L..1500L
 val AiStripComposingDelayRange = 100L..600L
 val AiStripTimeoutRange = 300L..5000L
+/**
+ * The strip's Creativity choices (#1048): the service's default, then three
+ * temperatures every service accepts.
+ */
+val AiStripTemperatures = listOf(-1f, 0.2f, 0.7f, 1.0f)
+
 const val AI_STRIP_SUGGEST_CHARS_MIN = 40
 const val AI_STRIP_SUGGEST_CHARS_MAX = 500
 
@@ -5928,6 +5934,36 @@ data class AiSettings(
     val stripSuggestTimeoutMs: Long = 1_500L,
     /** How long one may take while composing; any later and the word has moved on. */
     val stripSuggestComposingTimeoutMs: Long = 800L,
+    /**
+     * [stripSuggest] asks only when the keyboard has little to offer itself
+     * (#1048): no next-word prediction after a word, no dictionary word that
+     * carries on the one being typed, more than one way to write a reading.
+     */
+    val stripSuggestOnlyUnsure: Boolean = false,
+    /**
+     * Sampling temperature for [stripSuggest]'s requests; below zero leaves
+     * it to the service. See [AiStripTemperatures].
+     */
+    val stripSuggestTemperature: Float = -1f,
+    /**
+     * The user's own instructions for a continuation, in place of the
+     * built-in ones. Blank uses the built-in. The rules on what comes back
+     * (one short line, no quotes) are added either way.
+     */
+    val stripSuggestPrompt: String = "",
+    /** Keyboard languages, by tag, where [stripSuggest] stays off. */
+    val stripSuggestOffLanguages: Set<String> = emptySet(),
+    /**
+     * The row of the AI providers list [stripSuggest] asks, by its key;
+     * blank asks the one the AI tool uses. A fast, cheap model for the strip
+     * and a better one for the panel.
+     */
+    val stripSuggestProvider: String = "",
+    /**
+     * [stripSuggestProvider]'s row worked out, or null for the AI tool's own.
+     * Not stored: `withProviderChoices` fills it in.
+     */
+    val stripSuggestVia: AiSettings? = null,
     /**
      * Let the model search the web when it needs to (#470).
      *
@@ -14190,6 +14226,11 @@ class SettingsRepository(private val context: Context) {
         private val AI_STRIP_SUGGEST_COMPOSING_DELAY = longPreferencesKey("ai_strip_suggest_composing_delay")
         private val AI_STRIP_SUGGEST_TIMEOUT = longPreferencesKey("ai_strip_suggest_timeout")
         private val AI_STRIP_SUGGEST_COMPOSING_TIMEOUT = longPreferencesKey("ai_strip_suggest_composing_timeout")
+        private val AI_STRIP_SUGGEST_ONLY_UNSURE = booleanPreferencesKey("ai_strip_suggest_only_unsure")
+        private val AI_STRIP_SUGGEST_TEMPERATURE = floatPreferencesKey("ai_strip_suggest_temperature")
+        private val AI_STRIP_SUGGEST_PROMPT = stringPreferencesKey("ai_strip_suggest_prompt")
+        private val AI_STRIP_SUGGEST_OFF_LANGUAGES = stringSetPreferencesKey("ai_strip_suggest_off_languages")
+        private val AI_STRIP_SUGGEST_PROVIDER = stringPreferencesKey("ai_strip_suggest_provider")
         private val AI_DIFF_VIEW = booleanPreferencesKey("ai_diff_view")
         private val AI_TOOL_WEB_SEARCH = booleanPreferencesKey("ai_tool_web_search")
         private val AI_TOOL_WEB_FETCH = booleanPreferencesKey("ai_tool_web_fetch")
@@ -17033,6 +17074,11 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.ai.stripSuggestTimeoutMs,
             stripSuggestComposingTimeoutMs = p[AI_STRIP_SUGGEST_COMPOSING_TIMEOUT]?.coerceIn(AiStripTimeoutRange)
                 ?: defaults.ai.stripSuggestComposingTimeoutMs,
+            stripSuggestOnlyUnsure = p[AI_STRIP_SUGGEST_ONLY_UNSURE] ?: defaults.ai.stripSuggestOnlyUnsure,
+            stripSuggestTemperature = p[AI_STRIP_SUGGEST_TEMPERATURE] ?: defaults.ai.stripSuggestTemperature,
+            stripSuggestPrompt = p[AI_STRIP_SUGGEST_PROMPT] ?: defaults.ai.stripSuggestPrompt,
+            stripSuggestOffLanguages = p[AI_STRIP_SUGGEST_OFF_LANGUAGES] ?: defaults.ai.stripSuggestOffLanguages,
+            stripSuggestProvider = p[AI_STRIP_SUGGEST_PROVIDER] ?: defaults.ai.stripSuggestProvider,
             toolWebSearch = p[AI_TOOL_WEB_SEARCH] ?: defaults.ai.toolWebSearch,
             toolWebFetch = p[AI_TOOL_WEB_FETCH] ?: defaults.ai.toolWebFetch,
             toolMaxRounds = p[AI_TOOL_MAX_ROUNDS] ?: defaults.ai.toolMaxRounds,
@@ -23419,6 +23465,28 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAiStripSuggestComposingTimeout(value: Long) =
         editPrefs { it[AI_STRIP_SUGGEST_COMPOSING_TIMEOUT] = value.coerceIn(AiStripTimeoutRange) }
+
+    suspend fun setAiStripSuggestOnlyUnsure(value: Boolean) =
+        editPrefs { it[AI_STRIP_SUGGEST_ONLY_UNSURE] = value }
+
+    /** Below zero leaves the temperature to the service. */
+    suspend fun setAiStripSuggestTemperature(value: Float) =
+        editPrefs { if (value < 0f) it.remove(AI_STRIP_SUGGEST_TEMPERATURE) else it[AI_STRIP_SUGGEST_TEMPERATURE] = value }
+
+    suspend fun setAiStripSuggestPrompt(value: String) =
+        editPrefs { if (value.isBlank()) it.remove(AI_STRIP_SUGGEST_PROMPT) else it[AI_STRIP_SUGGEST_PROMPT] = value }
+
+    /** Turns [stripSuggest][AiSettings.stripSuggest] off (or back on) in one keyboard language. */
+    suspend fun setAiStripSuggestLanguage(tag: String, on: Boolean) =
+        editPrefs { prefs ->
+            val current = prefs[AI_STRIP_SUGGEST_OFF_LANGUAGES].orEmpty()
+            val next = if (on) current - tag else current + tag
+            if (next.isEmpty()) prefs.remove(AI_STRIP_SUGGEST_OFF_LANGUAGES) else prefs[AI_STRIP_SUGGEST_OFF_LANGUAGES] = next
+        }
+
+    /** The AI providers row the strip asks, by key; blank for the AI tool's own. */
+    suspend fun setAiStripSuggestProvider(key: String) =
+        editPrefs { if (key.isBlank()) it.remove(AI_STRIP_SUGGEST_PROVIDER) else it[AI_STRIP_SUGGEST_PROVIDER] = key }
 
     suspend fun setAiStripSuggestWordOnly(value: Boolean) =
         editPrefs { it[AI_STRIP_SUGGEST_WORD_ONLY] = value }

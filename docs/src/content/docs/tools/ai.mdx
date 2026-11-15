@@ -526,6 +526,14 @@ A conversion you tap is learned like a picked candidate, unless learning is off,
 
 Tap a continuation to insert it after your text, with a space in front where one is missing (never next to Chinese or Japanese). Since 0.6.6 the word it ends on is learned once, as if you'd typed it, so a word the model found for you counts toward your [personal dictionary](/smart/personal-dictionary/) the way your own do. When the continuation finishes a word you'd started, the whole word is learned. Only that word: the rest is the model's phrasing, so no other word and no word pair comes from it. Nothing is learned with learning off, in incognito or in a password field, and nothing you've learned is ever sent to the provider. Hold it to hide AI suggestions until you move to a different field. **Show after the words**, off by default, keeps the chip at the end of the strip instead of in front of the words, so a chip arriving late never moves a word you're about to tap.
 
+Since 0.6.8 there's more to tune under the same group:
+
+- **Only when the keyboard is unsure** (off by default) asks only where the keyboard has little of its own: after a word, when the strip has no next-word prediction; mid-word, when no dictionary word carries on what you typed; on a reading, when it can be written more than one way. Far fewer requests, and the chip turns up where it helps.
+- **Provider for suggestions** picks a row from the AI providers list for the strip alone, so a fast, cheap model can answer here while a better one serves the panel and the chat. **Same as the AI tool** is the default. A row removed later falls back to the tool's own.
+- **Creativity** sets the sampling temperature: **Service default**, **Focused** (0.2), **Balanced** (0.7) or **Varied** (1.0). A model that refuses a temperature, such as OpenAI's reasoning models, is sent none. It applies to cloud services; a model on your phone keeps its own.
+- **Instructions** replaces the built-in request with your own words: a tone, a register, a subject. The rules on what comes back (one short line, no quotes) are added after yours whatever they say, since an answer outside them never shows. Leave it blank for the built-in one. A reading's conversion always uses the built-in request.
+- **Suggestions by language**, with more than one keyboard language, has a switch per language. A language turned off sends nothing while its keyboard is in use.
+
 What each request carries:
 
 - **Text to send**: the last 120 characters before the cursor by default, cut forward to a whole word. The slider goes from 40 to 500.

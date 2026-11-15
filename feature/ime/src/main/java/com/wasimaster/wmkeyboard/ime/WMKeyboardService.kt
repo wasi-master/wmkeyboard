@@ -28747,7 +28747,8 @@ open class WMKeyboardService : InputMethodService() {
     /** The gate for the AI continuation, read from [state] as it is now. */
     private fun aiSuggestField(state: KeyboardUiState): AiContinuation.Field =
         AiContinuation.Field(
-            enabled = state.settings.ai.stripSuggest,
+            // Off in a language the user turned it off for (#1048).
+            enabled = state.settings.ai.stripSuggest && state.language.id !in state.settings.ai.stripSuggestOffLanguages,
             providerConfigured = aiSuggestProviderReady(state.settings),
             secureField = state.secureField,
             noSuggestions = state.fieldNoSuggestions,
@@ -28761,8 +28762,10 @@ open class WMKeyboardService : InputMethodService() {
      * phone model has to be downloaded and in this build.
      */
     private fun aiSuggestProviderReady(settings: KeyboardSettings): Boolean {
-        if (!AiClient.isConfigured(settings.ai)) return false
-        if (settings.ai.provider == AiProvider.ON_DEVICE) {
+        // The strip's own provider row when it names one (#1048).
+        val ai = settings.ai.stripSuggestVia ?: settings.ai
+        if (!AiClient.isConfigured(ai)) return false
+        if (ai.provider == AiProvider.ON_DEVICE) {
             return BuildConfig.ENABLE_LOCAL_LLM && effectiveLocalModelFile(settings) != null
         }
         return dataSaverStatus.decide(MeteredFeature.CLOUD_AI) == MeteredDecision.ALLOWED
@@ -28812,6 +28815,12 @@ open class WMKeyboardService : InputMethodService() {
             )
             // What goes before a reading only helps; without it the reading still asks.
             if (context == null && reading == null) return@launch
+            // Only when the keyboard has little of its own to offer (#1048).
+            if (settings.ai.stripSuggestOnlyUnsure &&
+                !AiContinuation.unsure(still.suggestions, composing.toString(), conversion)
+            ) {
+                return@launch
+            }
             val midWord = composingNow && !conversion
             val answer = withContext(Dispatchers.IO) {
                 runCatching {
@@ -28845,29 +28854,36 @@ open class WMKeyboardService : InputMethodService() {
         midWord: Boolean,
         reading: String? = null,
     ): String? {
+        // The strip's own provider row, when it names one (#1048); the AI
+        // tool's otherwise. Either carries the strip's settings.
+        val ai = settings.ai.stripSuggestVia ?: settings.ai
         // Thinking is asked off below, but not every provider can turn it off
         // (#991: DeepSeek's default model reasons regardless, OpenAI's go no
         // lower than "low"), and the think block comes out of the same budget
         // as the answer.
-        val reasons = settings.ai.provider != AiProvider.ON_DEVICE && AiClient.expectsReasoning(settings.ai)
+        val reasons = ai.provider != AiProvider.ON_DEVICE && AiClient.expectsReasoning(ai)
         // Thinking first can't keep up with a word still being typed (#1048),
         // but a reading parked in the field waits for it.
         if (reasons && composingNow && reading == null) return null
-        val system = if (reading != null) AiContinuation.conversionPrompt() else AiContinuation.prompt(midWord)
+        val system = if (reading != null) {
+            AiContinuation.conversionPrompt()
+        } else {
+            AiContinuation.prompt(ai.stripSuggestPrompt, midWord)
+        }
         val user = if (reading != null) context + "\n" + reading else context
         val allowed = when {
             reading != null && reasons -> AiContinuation.REASONING_TIMEOUT_MS
-            composingNow -> settings.ai.stripSuggestComposingTimeoutMs
+            composingNow -> ai.stripSuggestComposingTimeoutMs
             reasons -> AiContinuation.REASONING_TIMEOUT_MS
-            else -> settings.ai.stripSuggestTimeoutMs
+            else -> ai.stripSuggestTimeoutMs
         }
-        val deadline = SystemClock.uptimeMillis() + if (settings.ai.provider == AiProvider.ON_DEVICE) {
+        val deadline = SystemClock.uptimeMillis() + if (ai.provider == AiProvider.ON_DEVICE) {
             maxOf(allowed, AiContinuation.ON_DEVICE_TIMEOUT_MS)
         } else {
             allowed
         }
         val alive = { seq == aiSuggestSeq && SystemClock.uptimeMillis() < deadline }
-        val answer = if (settings.ai.provider == AiProvider.ON_DEVICE) {
+        val answer = if (ai.provider == AiProvider.ON_DEVICE) {
             // One request at a time on the phone's model, and never beside a
             // run the AI panel started.
             if (aiJob?.isActive == true) return null
@@ -28877,8 +28893,8 @@ open class WMKeyboardService : InputMethodService() {
                 LocalLlmEngine.generate(
                     context = applicationContext,
                     modelFile = modelFile,
-                    backend = settings.ai.localBackend,
-                    contextTokens = settings.ai.localContextTokens,
+                    backend = ai.localBackend,
+                    contextTokens = ai.localContextTokens,
                     system = system,
                     user = user,
                 )
@@ -28888,7 +28904,10 @@ open class WMKeyboardService : InputMethodService() {
         } else {
             AiClient.completeStreaming(
                 // A few words do not need a model to think first.
-                config = AiClient.config(settings.ai).copy(reasoning = false),
+                config = AiClient.config(ai).copy(
+                    reasoning = false,
+                    temperature = ai.stripSuggestTemperature.takeIf { it >= 0f }?.toDouble(),
+                ),
                 system = system,
                 user = user,
                 maxTokens = if (reasons) AiContinuation.REASONING_MAX_TOKENS else AiContinuation.MAX_TOKENS,

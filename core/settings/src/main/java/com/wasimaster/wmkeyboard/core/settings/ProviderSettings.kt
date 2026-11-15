@@ -866,12 +866,18 @@ private fun KeyboardSettings.aiFallbacks(env: ProviderEnv, chosen: ResolvedProvi
 fun KeyboardSettings.withProviderChoices(env: ProviderEnv = choiceEnv()): KeyboardSettings {
     val stored = copy(providers = providers.copy(legacyAi = storedAi, legacyWhisper = storedWhisper))
     val choice = stored.aiChoice(env)
+    // The strip's own row (#1048), when it names one that can answer; a row
+    // removed since falls back to the AI tool's.
+    val stripRow = stored.ai.stripSuggestProvider.takeIf { it.isNotBlank() }
+        ?.let { key -> stored.aiRows(env).firstOrNull { it.key == key } }
+    val stripVia = stripRow?.let { stored.ai.through(it).copy(fallbacks = emptyList(), stripSuggestVia = null) }
     val ai = if (choice != null) {
-        stored.ai.through(choice).copy(fallbacks = stored.aiFallbacks(env, choice, stored.ai))
+        stored.ai.through(choice).copy(fallbacks = stored.aiFallbacks(env, choice, stored.ai), stripSuggestVia = stripVia)
     } else {
         stored.ai.copy(
             listed = false,
             provider = if (stored.ai.provider == AiProvider.ON_DEVICE) AiProvider.ANTHROPIC else stored.ai.provider,
+            stripSuggestVia = stripVia,
         )
     }
     val voices = stored.voiceRows(env)

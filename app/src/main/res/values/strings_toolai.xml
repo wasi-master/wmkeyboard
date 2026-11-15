@@ -189,6 +189,22 @@
     <string name="toolai_strip_suggest_timeout_title">Give up after</string>
     <string name="toolai_strip_suggest_composing_delay_title">Wait before asking mid-word</string>
     <string name="toolai_strip_suggest_composing_timeout_title">Give up mid-word after</string>
+    <!-- AI suggestions in the strip, #1048's extras. -->
+    <string name="toolai_strip_suggest_only_unsure_title">Only when the keyboard is unsure</string>
+    <string name="toolai_strip_suggest_only_unsure_subtitle">Ask only when the strip has no prediction of its own, doesn\'t know the word, or a reading can be written several ways</string>
+    <string name="toolai_strip_suggest_provider_title">Provider for suggestions</string>
+    <string name="toolai_strip_suggest_provider_subtitle">A fast, cheap model for the strip, and a better one for the panel</string>
+    <string name="toolai_strip_suggest_provider_same">Same as the AI tool</string>
+    <string name="toolai_strip_suggest_temperature_title">Creativity</string>
+    <string name="toolai_strip_suggest_temperature_subtitle">How far the suggestions may wander from the likeliest words</string>
+    <string name="toolai_strip_suggest_temperature_default">Service default</string>
+    <string name="toolai_strip_suggest_temperature_focused">Focused</string>
+    <string name="toolai_strip_suggest_temperature_balanced">Balanced</string>
+    <string name="toolai_strip_suggest_temperature_varied">Varied</string>
+    <string name="toolai_strip_suggest_prompt_title">Instructions</string>
+    <string name="toolai_strip_suggest_prompt_hint">How to continue your text, in your words: a tone, a register. Blank uses the built-in ones</string>
+    <string name="toolai_strip_suggest_languages_title">Suggestions by language</string>
+    <string name="toolai_strip_suggest_languages_info">AI suggestions turned off for a language stay off while that language\'s keyboard is in use, and nothing is sent. Useful for a language the model writes badly, or one you\'d rather not send.</string>
     <string name="toolai_strip_suggest_ms_value">%1$d ms</string>
     <string name="toolai_strip_suggest_chars_title">Text to send</string>
     <string name="toolai_strip_suggest_chars_subtitle">How many characters before the cursor each request sends</string>
