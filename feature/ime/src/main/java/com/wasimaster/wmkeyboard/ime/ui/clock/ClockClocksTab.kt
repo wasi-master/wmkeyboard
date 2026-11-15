@@ -222,16 +222,18 @@ internal fun ClocksTab(state: KeyboardUiState, ui: ClockUi, act: (ClockAction) -
             }
             item(key = "tail") { Spacer(Modifier.height(2.dp)) }
         }
-        ActionBar(
-            buildList {
-                add(KitAction(stringResource(R.string.ime_clock_add_city), Icons.Outlined.Add, primary = true) { act(ClockAction.SearchOpen) })
-                if (zones.isNotEmpty()) {
-                    add(KitAction(stringResource(R.string.ime_clock_insert_all), Icons.Outlined.ContentPaste) { act(ClockAction.InsertAllClocks) })
-                }
-            },
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-            height = 36.dp,
-        )
+        // With no city yet the wide tile in the row is the way to add one, and
+        // a second "Add a city" under it said the same thing twice.
+        if (zones.isNotEmpty()) {
+            ActionBar(
+                listOf(
+                    KitAction(stringResource(R.string.ime_clock_add_city), Icons.Outlined.Add, primary = true) { act(ClockAction.SearchOpen) },
+                    KitAction(stringResource(R.string.ime_clock_insert_all), Icons.Outlined.ContentPaste) { act(ClockAction.InsertAllClocks) },
+                ),
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                height = 36.dp,
+            )
+        }
     }
 }
 
