@@ -87,6 +87,7 @@ import com.wasimaster.wmkeyboard.core.clipboard.clipPreviewText
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Subject
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Alarm
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AttachFile
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
@@ -190,6 +191,8 @@ data class NotesCallbacks(
     val onUndoDismiss: () -> Unit = {},
     /** A chip on the Quick note row (#864): a note to add to, or null for a new one. */
     val onQuickPick: (Long?) -> Unit = {},
+    /** The jot pill's attach button: a new note holding the field's text (its selection, else all of it). */
+    val onNewFromField: () -> Unit = {},
     /** The assistant's suggested heading becomes the note's title (#1293). */
     val onAssistHeading: (Long) -> Unit = {},
     /** The suggested heading waved away. */
@@ -556,10 +559,16 @@ private fun NotesList(state: KeyboardUiState, callbacks: NotesCallbacks, onOpenR
             else -> notes.items.filterNot { it.pinned }
         }
     }
-    // What the hardware ring walks, in the order it is drawn.
+    // What the hardware ring walks, in the order it is drawn: a search's
+    // passages first (Enter types one, as a tap does), then the notes.
     val ordered = remember(carousel, rest) { carousel + rest }
-    PanelFocusTarget(panel = PanelMode.NOTES, region = FocusRegion.RESULTS, count = ordered.size, columns = 1) { index ->
-        ordered.getOrNull(index)?.let { callbacks.onOpen(it.id) }
+    val passageCount = notes.passages.size
+    PanelFocusTarget(panel = PanelMode.NOTES, region = FocusRegion.RESULTS, count = passageCount + ordered.size, columns = 1) { index ->
+        if (index < passageCount) {
+            notes.passages.getOrNull(index)?.let(callbacks.onPassageInsert)
+        } else {
+            ordered.getOrNull(index - passageCount)?.let { callbacks.onOpen(it.id) }
+        }
     }
     PanelFocusTarget(panel = PanelMode.NOTES, region = FocusRegion.ACTIONS, count = 0, columns = 1) {}
     val focusedRow = state.focusedIndex()
@@ -730,8 +739,16 @@ private fun ShelfBody(
     // The passages, then the label and the shelf, sit ahead of the grid's own cards.
     val lead = passageItemCount(passages)
     val head = lead + if (carousel.isNotEmpty()) 2 else 0
+    // The ring counts the passages first, then the shelf, then the grid.
+    val p = passages.size
     ScrollFocusIntoView(focusedRow) { index ->
-        gridState.animateScrollToItem(if (index < carousel.size) lead else head + (index - carousel.size))
+        gridState.animateScrollToItem(
+            when {
+                index < p -> 1 + index
+                index - p < carousel.size -> lead
+                else -> head + (index - p - carousel.size)
+            },
+        )
     }
     LazyVerticalStaggeredGrid(
         state = gridState,
@@ -752,7 +769,7 @@ private fun ShelfBody(
                 ShelfLabel(Icons.Outlined.FormatQuote, stringResource(R.string.ime_notes_passages_section))
             }
             items(count = passages.size, key = { passageKey(passages, it) }, span = { StaggeredGridItemSpan.FullLine }) { index ->
-                PassageRow(passages[index], index, callbacks)
+                PassageRow(passages[index], index, callbacks, focused = focusedRow == index)
             }
         }
         if (carousel.isNotEmpty()) {
@@ -769,7 +786,7 @@ private fun ShelfBody(
                             now = now,
                             tagColours = tagColours,
                             index = index,
-                            focused = focusedRow == index,
+                            focused = focusedRow == p + index,
                             held = notes.held == note.id,
                             callbacks = callbacks,
                             onOpenRoute = onOpenRoute,
@@ -786,7 +803,7 @@ private fun ShelfBody(
                 now = now,
                 tagColours = tagColours,
                 index = carousel.size + index,
-                focused = focusedRow == carousel.size + index,
+                focused = focusedRow == p + carousel.size + index,
                 held = notes.held == note.id,
                 callbacks = callbacks,
                 onOpenRoute = onOpenRoute,
@@ -825,8 +842,8 @@ private fun passageKey(passages: List<NotePassageHit>, index: Int): String = "pa
  * as the note has it; a hold opens the note in the editor at the match.
  */
 @Composable
-private fun PassageRow(hit: NotePassageHit, index: Int, callbacks: NotesCallbacks, modifier: Modifier = Modifier) {
-    NotePassageCard(hit, index, onInsert = callbacks.onPassageInsert, onOpen = callbacks.onPassageOpen, modifier = modifier)
+private fun PassageRow(hit: NotePassageHit, index: Int, callbacks: NotesCallbacks, modifier: Modifier = Modifier, focused: Boolean = false) {
+    NotePassageCard(hit, index, onInsert = callbacks.onPassageInsert, onOpen = callbacks.onPassageOpen, modifier = modifier, focused = focused)
 }
 
 /**
@@ -1179,7 +1196,9 @@ private fun TimelineBody(
     val listState = rememberLazyListState()
     // The passages' label, rows and the gap under them.
     val lead = passageItemCount(passages).let { if (it > 0) it + 1 else 0 }
-    ScrollFocusIntoView(focusedRow) { listState.animateScrollToItem(lead + it) }
+    // The ring counts the passages first, then the rows.
+    val p = passages.size
+    ScrollFocusIntoView(focusedRow) { listState.animateScrollToItem(if (it < p) 1 + it else lead + it - p) }
     val today = remember(now) { dayStart(now) }
     val days = remember(rows) { rows.map { dayStart(timelineStamp(it)) } }
     LazyColumn(
@@ -1197,7 +1216,7 @@ private fun TimelineBody(
                 ShelfLabel(Icons.Outlined.FormatQuote, stringResource(R.string.ime_notes_passages_section))
             }
             items(count = passages.size, key = { passageKey(passages, it) }) { index ->
-                PassageRow(passages[index], index, callbacks, Modifier.padding(top = 6.dp))
+                PassageRow(passages[index], index, callbacks, Modifier.padding(top = 6.dp), focused = focusedRow == index)
             }
             item(key = "passages-gap") { Spacer(Modifier.height(10.dp)) }
         }
@@ -1221,7 +1240,7 @@ private fun TimelineBody(
                     today = today,
                     tagColours = tagColours,
                     index = index,
-                    focused = focusedRow == index,
+                    focused = focusedRow == p + index,
                     held = notes.held == note.id,
                     callbacks = callbacks,
                     onOpenRoute = onOpenRoute,
@@ -1462,7 +1481,25 @@ private fun JotPill(state: KeyboardUiState, callbacks: NotesCallbacks, modifier:
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
         )
-        Spacer(Modifier.width(8.dp))
+        // The field's text as a new note: what is being written, kept before
+        // it is sent. Not offered in a password field.
+        if (!state.secureField) {
+            val attach = stringResource(R.string.ime_notes_attach_field_desc)
+            Box(
+                Modifier
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .clickable {
+                        feedback()
+                        callbacks.onNewFromField()
+                    },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Outlined.AttachFile, contentDescription = attach, tint = kb.toolbarIcon, modifier = Modifier.size(18.dp))
+            }
+            Spacer(Modifier.width(4.dp))
+        }
+        Spacer(Modifier.width(4.dp))
         Box(
             Modifier
                 .size(32.dp)

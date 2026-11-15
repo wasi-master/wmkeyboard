@@ -46,9 +46,16 @@ object NoteFiles {
 
     const val ZIP_MIME = "application/zip"
 
+    /**
+     * Most notes one long file becomes. A note holds [NoteStore.MAX_BODY_CHARS];
+     * a book imported whole was cut at that length and lost the rest, so a
+     * longer file is split into numbered parts instead ([fromTextParts]).
+     */
+    const val MAX_IMPORT_PARTS = 40
+
     /** Most files one zip import reads, and most bytes one entry may hold: both zip-bomb guards. */
     const val MAX_IMPORT_FILES = 1_000
-    const val MAX_IMPORT_BYTES = 4L * NoteStore.MAX_BODY_CHARS
+    const val MAX_IMPORT_BYTES = 4L * MAX_IMPORT_PARTS * NoteStore.MAX_BODY_CHARS
 
     /** File names this reads as notes, by extension, ignoring case. */
     val IMPORT_EXTENSIONS: Set<String> = setOf("md", "markdown", "txt", "text")
@@ -179,6 +186,54 @@ object NoteFiles {
     }
 
     /**
+     * [fromText], split into numbered parts when the body is longer than a
+     * note holds: "Moby Dick (1/3)", "(2/3)", "(3/3)", each with the file's
+     * tags, cut at a blank line where one falls near the limit, else at a
+     * line break, else at a space. Past [MAX_IMPORT_PARTS] parts the rest is
+     * left out, as the store would have cut it.
+     */
+    fun fromTextParts(fileName: String, text: String, modifiedAt: Long = System.currentTimeMillis()): List<Note> =
+        split(fromText(fileName, text, modifiedAt))
+
+    /** [note] as parts no longer than [limit] each; the note itself when it fits. */
+    fun split(note: Note, limit: Int = NoteStore.MAX_BODY_CHARS): List<Note> {
+        if (note.body.length <= limit) return listOf(note)
+        val chunks = ArrayList<String>()
+        var rest = note.body
+        while (rest.isNotEmpty() && chunks.size < MAX_IMPORT_PARTS) {
+            if (rest.length <= limit) {
+                chunks += rest
+                break
+            }
+            val cut = cutPoint(rest, limit)
+            chunks += rest.substring(0, cut).trimEnd()
+            rest = rest.substring(cut).trimStart('\n', ' ')
+        }
+        val base = note.title.ifBlank { note.displayTitle() }.trim()
+        return chunks.mapIndexed { i, body ->
+            val part = "(${i + 1}/${chunks.size})"
+            note.copy(
+                body = body,
+                title = (if (base.isEmpty()) part else "$base $part").take(NoteStore.MAX_TITLE_LENGTH),
+            )
+        }
+    }
+
+    /**
+     * Where to end a part of [text] at most [limit] long: the last blank line
+     * in the last quarter, else the last line break there, else the last
+     * space, else [limit] itself, moved off the middle of a surrogate pair.
+     */
+    private fun cutPoint(text: String, limit: Int): Int {
+        val floor = limit - limit / 4
+        val window = text.substring(0, limit)
+        window.lastIndexOf("\n\n").takeIf { it >= floor }?.let { return it + 2 }
+        window.lastIndexOf('\n').takeIf { it >= floor }?.let { return it + 1 }
+        window.lastIndexOf(' ').takeIf { it >= floor }?.let { return it + 1 }
+        return if (Character.isHighSurrogate(text[limit - 1])) limit - 1 else limit
+    }
+
+    /**
      * A file name for [note]: the title as a slug, the id when the title gives
      * nothing, and a `-2`, `-3` suffix while [taken] already holds the name.
      * The chosen name is added to [taken].
@@ -223,7 +278,7 @@ object NoteFiles {
                 if (out.size >= MAX_IMPORT_FILES) break
                 val bytes = readCapped(zip, MAX_IMPORT_BYTES) ?: continue
                 val time = entry.time.takeIf { it > 0 } ?: System.currentTimeMillis()
-                out += fromText(name, String(bytes), time)
+                out += fromTextParts(name, String(bytes), time)
             }
         }
         return out

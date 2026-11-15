@@ -156,6 +156,10 @@
         <item quantity="one">%1$d file skipped: not a text file</item>
         <item quantity="other">%1$d files skipped: not text files</item>
     </plurals>
+    <plurals name="notes_import_split">
+        <item quantity="one">%1$d long file came in as several notes, one per part</item>
+        <item quantity="other">%1$d long files came in as several notes, one per part</item>
+    </plurals>
     <!-- The notes assistant in the note editor (#1293) -->
     <string name="notes_assist_heading_busy">Thinking of a heading…</string>
     <string name="notes_assist_heading_suggestion">Heading: %1$s</string>

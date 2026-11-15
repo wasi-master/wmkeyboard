@@ -561,20 +561,22 @@ private suspend fun importNotes(context: android.content.Context, state: NotesSc
     var imported = 0
     var duplicates = 0
     var skipped = 0
+    var split = 0
     val existing = (state.active + state.archived).map { it.title.trim() to it.body.trim() }.toHashSet()
     val notes = withContext(Dispatchers.IO) {
-        uris.mapNotNull { uri ->
+        uris.flatMap { uri ->
             val name = WMFileTypes.displayName(context, uri)
             if (!NoteFiles.isNoteFile(name)) {
                 skipped++
-                return@mapNotNull null
+                return@flatMap emptyList()
             }
             val bytes = runCatching { context.contentResolver.readBytesCapped(uri) }.getOrNull()
             if (bytes == null) {
                 skipped++
-                return@mapNotNull null
+                return@flatMap emptyList()
             }
-            NoteFiles.fromText(name, String(bytes))
+            // A file longer than one note holds comes in as numbered parts.
+            NoteFiles.fromTextParts(name, String(bytes)).also { if (it.size > 1) split++ }
         }
     }
     state.mutate { store ->
@@ -591,6 +593,7 @@ private suspend fun importNotes(context: android.content.Context, state: NotesSc
         add(context.resources.getQuantityString(R.plurals.notes_imported_count, imported, imported))
         if (duplicates > 0) add(context.resources.getQuantityString(R.plurals.notes_import_duplicates, duplicates, duplicates))
         if (skipped > 0) add(context.resources.getQuantityString(R.plurals.notes_import_skipped, skipped, skipped))
+        if (split > 0) add(context.resources.getQuantityString(R.plurals.notes_import_split, split, split))
     }
     return lines.joinToString("\n")
 }

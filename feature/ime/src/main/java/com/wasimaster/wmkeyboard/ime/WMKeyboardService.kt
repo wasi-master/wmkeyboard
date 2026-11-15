@@ -52224,6 +52224,7 @@ open class WMKeyboardService : InputMethodService() {
         onUndo = ::onNotesUndo,
         onUndoDismiss = ::onNotesUndoDismiss,
         onQuickPick = ::onNotesQuickPick,
+        onNewFromField = ::onNotesNewFromField,
         onAssistHeading = ::onNoteAssistHeading,
         onAssistHeadingDismiss = ::onNoteAssistHeadingDismiss,
         onAssistSummarize = ::onNoteAssistSummarize,
@@ -52417,6 +52418,29 @@ open class WMKeyboardService : InputMethodService() {
     fun onNotesNew(tag: String?) = startNewNote(tag, NoteEditField.TITLE)
 
     /**
+     * The jot pill's attach button: a new note holding what the field being
+     * typed in holds, its selection if there is one, else the whole field,
+     * the keys at its end. Never from a password field; an empty field says
+     * so instead of making a blank note.
+     */
+    fun onNotesNewFromField() {
+        val variation = (currentInputEditorInfo?.inputType ?: 0) and InputType.TYPE_MASK_VARIATION
+        val secret = (currentInputEditorInfo?.inputType ?: 0) and InputType.TYPE_MASK_CLASS == InputType.TYPE_CLASS_TEXT &&
+            variation in NOTE_SECRET_VARIATIONS
+        val ic = currentInputConnection
+        val text = if (secret || ic == null) {
+            ""
+        } else {
+            ic.getSelectedText(0)?.toString()?.takeIf { it.isNotBlank() } ?: extractFieldText()
+        }
+        if (text.isBlank()) {
+            toast(R.string.ime_notes_field_empty_toast)
+            return
+        }
+        startNewNote(tag = null, focus = NoteEditField.BODY, body = text.trim().take(NoteEdit.EDITOR_MAX_LENGTH))
+    }
+
+    /**
      * The Quick note action (#864): the Notes panel opens on a new note with
      * the keys already in its body, and the editor carries the row of the
      * latest notes. Fired again while that is up, it closes the panel, the
@@ -52458,7 +52482,7 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /** A new note in the editor, the keys in [focus]: the title from New, the body from Quick note. */
-    private fun startNewNote(tag: String?, focus: NoteEditField) {
+    private fun startNewNote(tag: String?, focus: NoteEditField, body: String = "") {
         if (!userUnlocked) {
             toast(R.string.ime_notes_unlock_toast)
             return
@@ -52466,7 +52490,7 @@ open class WMKeyboardService : InputMethodService() {
         vibrate()
         notesFlushEdit(leaveEditor = true)
         currentInputConnection?.let { commitComposing(it, autocorrect = false) }
-        val note = noteStore.add("", tags = listOfNotNull(tag))
+        val note = noteStore.add(body, tags = listOfNotNull(tag))
         saveNotesSoon()
         publishNotes {
             it.copy(
@@ -52479,7 +52503,14 @@ open class WMKeyboardService : InputMethodService() {
                 readExpanded = false,
             )
         }
-        _uiState.update { it.copy(panelFocus = null) }
+        _uiState.update {
+            // A note born with text (the jot pill's attach) takes the keys after it.
+            if (note.body.isEmpty()) {
+                it.copy(panelFocus = null)
+            } else {
+                it.copy(panelFocus = null, captureCaret = CaptureCaret(CaptureTarget.NOTE_BODY.name, note.body.length, note.body))
+            }
+        }
     }
 
     /**
@@ -63052,6 +63083,13 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     companion object {
+        /** Field variations whose text the jot pill's attach never reads. */
+        private val NOTE_SECRET_VARIATIONS = setOf(
+            InputType.TYPE_TEXT_VARIATION_PASSWORD,
+            InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD,
+            InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD,
+        )
+
         /** The most characters Type the clipboard types out (#1314): a login, not a document. */
         private const val TYPE_CLIPBOARD_MAX = 2_000
 

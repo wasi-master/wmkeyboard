@@ -61,6 +61,9 @@
     <string name="ime_notes_passages_section">Passages</string>
     <string name="ime_notes_passage_desc">From <xliff:g id="note" example="Quotes">%1$s</xliff:g>. Tap to insert, hold to open the note.</string>
     <string name="ime_notes_jot_hint">Jot something…</string>
+    <!-- The paperclip on the jot pill: makes a new note from the text of the field being typed in. -->
+    <string name="ime_notes_attach_field_desc">New note from the text in this field</string>
+    <string name="ime_notes_field_empty_toast">This field has no text to keep</string>
     <!-- The read view's header button that unfolds the second row of actions. -->
     <string name="ime_notes_more_desc">More actions</string>
     <!-- %1$s is a relative time like "2 hours ago". -->

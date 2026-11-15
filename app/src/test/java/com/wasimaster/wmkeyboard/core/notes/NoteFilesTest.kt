@@ -110,4 +110,17 @@ class NoteFilesTest {
         assertFalse(NoteFiles.isNoteFile("c.pdf"))
         assertFalse(NoteFiles.isNoteFile("md"))
     }
+
+    @Test
+    fun `a file longer than a note holds comes in as numbered parts cut at paragraphs`() {
+        val para = "word ".repeat(40).trim() // 199 chars
+        val text = List(12) { para }.joinToString("\n\n")
+        val parts = NoteFiles.split(NoteFiles.fromText("Book.txt", text + "\n\nTags: lit"), limit = 1_000)
+        assertTrue(parts.size > 1)
+        assertEquals("Book (1/${parts.size})", parts[0].title)
+        assertTrue(parts.all { it.body.length <= 1_000 && it.tags == listOf("lit") })
+        // Nothing lost: every paragraph is in exactly one part, none cut through.
+        assertEquals(12, parts.sumOf { p -> p.body.split("\n\n").count { it == para } })
+        assertEquals(1, NoteFiles.split(Note(0, "short"), limit = 1_000).size)
+    }
 }
