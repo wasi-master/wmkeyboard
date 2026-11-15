@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.app
 
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
 import com.wasimaster.wmkeyboard.core.ui.DisabledReason
+import com.wasimaster.wmkeyboard.core.download.DataMirror
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -220,8 +221,9 @@ internal fun PrivacySettings(
     val libraryChoice = NativeDelivery.active && (NativeConsent.downloadsNeedOptIn || !InternetPermission.granted)
     SettingsGroup(
         stringResource(R.string.privacy_downloads_group_title),
-        level = if (libraryChoice) SettingLevel.BASIC else SettingLevel.ADVANCED,
+        level = if (libraryChoice) SettingLevel.BASIC else SettingLevel.STANDARD,
     ) {
+        item(level = SettingLevel.STANDARD, weight = 2) { DownloadMirrorRow(repository, settings) }
         item(level = SettingLevel.ADVANCED) { VerifyChecksumsRow(repository, settings) }
         item(visible = FeatureLibraryList.offered) { FeatureLibrariesNavRow() }
         item { FeatureLibrariesRows() }
@@ -246,6 +248,24 @@ internal fun PrivacySettings(
             }
         }
     }
+}
+
+/**
+ * A GitHub proxy every GitHub download tries first (#1045): for anyone GitHub
+ * is blocked or crawling for. The hint says when what is typed can't be used.
+ */
+@Composable
+private fun DownloadMirrorRow(repository: SettingsRepository, settings: LiveSettings) {
+    val stored = settings.watch { it.selfHosted.downloadMirror }
+    val usable = stored.isBlank() || DataMirror.isUsableProxy(stored)
+    TextFieldSetting(
+        label = stringResource(R.string.privacy_download_mirror_title),
+        value = stored,
+        hint = stringResource(
+            if (usable) R.string.privacy_download_mirror_hint else R.string.privacy_download_mirror_invalid,
+        ),
+        default = "",
+    ) { repository.setDownloadMirror(it) }
 }
 
 /**

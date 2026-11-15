@@ -2827,6 +2827,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         privacy(R.string.privacy_auto_incognito_title, R.string.privacy_auto_incognito_subtitle),
         privacy(R.string.privacy_incognito_apps_title, R.string.privacy_incognito_apps_add),
         privacy(R.string.privacy_backup_title, R.string.privacy_backup_subtitle),
+        privacy(R.string.privacy_download_mirror_title, R.string.privacy_download_mirror_hint),
         privacy(R.string.privacy_verify_checksums_title, R.string.privacy_verify_checksums_subtitle),
         privacy(R.string.automation_enabled_title, R.string.automation_enabled_subtitle),
         // Every row on Allowed actions, under the Privacy screen it hangs off.

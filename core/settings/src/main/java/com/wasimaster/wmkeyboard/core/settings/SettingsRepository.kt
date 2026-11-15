@@ -17,6 +17,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.wasimaster.wmkeyboard.config.BuildConfig
+import com.wasimaster.wmkeyboard.core.download.DataMirror
 import com.wasimaster.wmkeyboard.core.endpoints.RepoLocation
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoint
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoints
@@ -13903,6 +13904,7 @@ class SettingsRepository(private val context: Context) {
         private val SELF_HOSTED_COMMONS_URL = stringPreferencesKey("self_hosted_commons_url")
         private val SELF_HOSTED_ENDPOINTS = stringPreferencesKey("self_hosted_endpoints")
         private val SELF_HOSTED_REPOS = stringPreferencesKey("self_hosted_repos")
+        private val DOWNLOAD_MIRROR = stringPreferencesKey("download_mirror")
         private val PROVIDER_CREDENTIALS = stringPreferencesKey(SettingsBackup.PROVIDER_CREDENTIALS)
         private val PROVIDER_CHAINS = stringPreferencesKey("provider_chains")
         // Absent means "never chosen", which takes the seeded defaults; an
@@ -14255,6 +14257,7 @@ class SettingsRepository(private val context: Context) {
         // user set without being handed the settings. See [ServiceEndpoints].
         .onEach {
             ServiceEndpoints.update(it.selfHosted.endpoints, it.selfHosted.repos)
+            DataMirror.proxy = it.selfHosted.downloadMirror.trim().takeIf(DataMirror::isUsableProxy)
             // Same reasoning for the network log's switch: whoever reads
             // settings keeps the log's idea of "on" current.
             NetLog.enabled = it.networkLog.keep
@@ -17110,6 +17113,7 @@ class SettingsRepository(private val context: Context) {
             commonsUrl = p[SELF_HOSTED_COMMONS_URL] ?: defaults.selfHosted.commonsUrl,
             endpoints = p[SELF_HOSTED_ENDPOINTS]?.let(::decodeEndpointMap) ?: defaults.selfHosted.endpoints,
             repos = p[SELF_HOSTED_REPOS]?.let(::decodeRepoMap) ?: defaults.selfHosted.repos,
+            downloadMirror = p[DOWNLOAD_MIRROR] ?: defaults.selfHosted.downloadMirror,
         )
 
     /**
@@ -17746,6 +17750,13 @@ class SettingsRepository(private val context: Context) {
             val trimmed = value.trim()
             val next = if (trimmed.isEmpty()) current - endpoint.id else current + (endpoint.id to trimmed)
             if (next.isEmpty()) prefs.remove(SELF_HOSTED_ENDPOINTS) else prefs[SELF_HOSTED_ENDPOINTS] = encodeEndpointMap(next)
+        }
+
+    /** A GitHub proxy every GitHub download tries first; blank for none. See [DataMirror.proxy]. */
+    suspend fun setDownloadMirror(value: String) =
+        editPrefs { prefs ->
+            val trimmed = value.trim()
+            if (trimmed.isEmpty()) prefs.remove(DOWNLOAD_MIRROR) else prefs[DOWNLOAD_MIRROR] = trimmed
         }
 
     /** Where one repository is fetched from on the F-Droid build; null puts it back on its default. */

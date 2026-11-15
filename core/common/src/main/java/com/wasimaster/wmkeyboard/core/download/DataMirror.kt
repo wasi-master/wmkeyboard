@@ -32,10 +32,55 @@ object DataMirror {
      * a repository the user chose is the one they get.
      */
     fun of(url: String): String? {
-        val base = base ?: return null
         val data = ServiceRepo.DATA.default
-        if (ServiceEndpoints.repo(ServiceRepo.DATA) != data) return null
-        return mirrored(url, "https://${data.host}/${data.owner}/${data.repo}/releases/download/", base)
+        val r2 = base?.takeIf { ServiceEndpoints.repo(ServiceRepo.DATA) == data }
+            ?.let { mirrored(url, "https://${data.host}/${data.owner}/${data.repo}/releases/download/", it) }
+        return r2 ?: proxy?.let { proxied(url, it) }
+    }
+
+    /**
+     * A GitHub proxy the user set (Settings › Privacy › Downloads), or null.
+     * Either a prefix the whole GitHub address goes after
+     * (`https://proxy.example/` → `https://proxy.example/https://github.com/…`),
+     * the form most public GitHub proxies take, or a template with `{url}` in
+     * it. Every GitHub file the keyboard downloads tries it first and falls back
+     * to GitHub for whatever it did not deliver.
+     *
+     * For anyone GitHub is blocked or crawling for (#1045: mainland China,
+     * where `github.com` timed out and `raw.githubusercontent.com` stalled).
+     * A pinned file is still checked against its SHA-256 whatever served it, so
+     * a proxy can make a pinned download fail but not swap it.
+     */
+    @Volatile
+    var proxy: String? = null
+
+    /** GitHub's download hosts: what [proxy] is used for. */
+    private val GITHUB_HOSTS = setOf(
+        "github.com",
+        "raw.githubusercontent.com",
+        "objects.githubusercontent.com",
+        "release-assets.githubusercontent.com",
+        "codeload.github.com",
+        "gist.githubusercontent.com",
+    )
+
+    /** Whether [value] can be used as a [proxy]: an http(s) address, `{url}` at most once. */
+    fun isUsableProxy(value: String): Boolean {
+        val v = value.trim()
+        if (!v.startsWith("https://") && !v.startsWith("http://")) return false
+        val host = v.substringAfter("://").substringBefore('/').substringBefore('?')
+        if (host.isEmpty() || ' ' in v) return false
+        return v.split("{url}").size <= 2
+    }
+
+    /** [url] through [proxy] when [url] is on one of GitHub's hosts, else null. */
+    internal fun proxied(url: String, proxy: String): String? {
+        if (!url.startsWith("https://")) return null
+        val host = url.removePrefix("https://").substringBefore('/').substringBefore('?').lowercase()
+        if (host !in GITHUB_HOSTS) return null
+        val p = proxy.trim()
+        if (!isUsableProxy(p)) return null
+        return if ("{url}" in p) p.replace("{url}", url) else "${p.trimEnd('/')}/$url"
     }
 
     /** [url] under [origin] (`…/releases/download/`) moved to [base], for a [TAGS] release. */

@@ -504,7 +504,7 @@ Chinese and Cantonese can convert on [RIME](https://rime.im/) instead of the key
 
 RIME needs three things before it takes over, and the group lists them as they arrive:
 
-1. **Its library**, about 3 MB. The Google Play edition fetches it from Play, the GitHub edition from the project's data repository, and the F-Droid edition from the same place once **Download feature libraries** is on under Privacy. Picking RIME asks for it, after the usual question on a metered connection.
+1. **Its library**, about 3 MB. The Google Play edition fetches it from Play, the GitHub edition from the project's data repository, and the F-Droid edition from the same place once **Download feature libraries** is on under Privacy. Picking RIME asks for it, after the usual question on a metered connection. If GitHub can't be reached from where you are, set a [GitHub mirror](/privacy/network/#where-github-cant-be-reached) first, or the library and the packs won't arrive. Until the library is here, the **RIME status** row says so and its **Compile** button stays greyed.
 2. **A schema pack.** Each row downloads one, together with **RIME essentials** (punctuation, symbols, a word-frequency table and the Simplified and Traditional tables every schema uses). Each pack is checked against a SHA-256 built into the app, like the conversion dictionaries.
 3. **Compiling.** RIME turns schemas into fast lookup tables on the phone, which it calls *deploying*. The **RIME status** row starts it by itself as soon as a download finishes and shows each schema as it goes. **Compile** runs it again. Luna Pinyin takes seconds; Rime Ice, with its far bigger vocabulary, can take a minute or more and a few hundred megabytes of memory while it runs.
 

@@ -362,6 +362,19 @@ class FileDownloaderTest {
         assertEquals(null, DataMirror.mirrored("https://huggingface.co/x/resolve/main/models/y", origin, base))
     }
 
+    @Test fun aGithubProxyTakesOnlyGithubAddresses() {
+        val raw = "https://raw.githubusercontent.com/iDvel/rime-ice/main/rime_ice.zip"
+        assertEquals("https://gh.example/$raw", DataMirror.proxied(raw, "https://gh.example/"))
+        assertEquals("https://gh.example/$raw", DataMirror.proxied(raw, " https://gh.example "))
+        assertEquals("https://p.example/get?u=$raw", DataMirror.proxied(raw, "https://p.example/get?u={url}"))
+        val release = "https://github.com/wasi-master/wmkeyboard-data/releases/download/natives/abc-libwmrime.so"
+        assertEquals("https://gh.example/$release", DataMirror.proxied(release, "https://gh.example"))
+        assertEquals(null, DataMirror.proxied("https://huggingface.co/x/resolve/main/y", "https://gh.example/"))
+        assertEquals(null, DataMirror.proxied("https://github.com.evil.example/x", "https://gh.example/"))
+        assertEquals(null, DataMirror.proxied(raw, "gh.example"))
+        assertEquals(null, DataMirror.proxied(raw, "https://gh.example/{url}/{url}"))
+    }
+
     @Test fun planRoundTrips() {
         val plan = RangePlan.split(10_000_000, 0, 1_000_000, 3_000_000)
         plan.pieces[1].advance(1234)

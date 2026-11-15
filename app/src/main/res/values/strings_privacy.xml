@@ -128,6 +128,9 @@
     <string name="privacy_qualcomm_licence_dialog_body">To run AI on the NPU, the keyboard needs Qualcomm\'s QNN runtime for your phone\'s chip (about <xliff:g id="size" example="29 MB">%1$s</xliff:g>). The keyboard downloads it from Qualcomm\'s own package on Maven Central, so Qualcomm gives you these files under its AI Stack License, not WM Keyboard. The licence says that you must be 18 or older and that you accept its terms.</string>
     <string name="privacy_qualcomm_licence_accept">Accept and download</string>
     <string name="privacy_qualcomm_licence_view">View licence</string>
+    <string name="privacy_download_mirror_title">GitHub mirror</string>
+    <string name="privacy_download_mirror_hint">Where GitHub can\'t be reached, a GitHub proxy address, such as https://proxy.example/. Each GitHub download tries it first, then GitHub. Files with a published checksum are still checked. Empty: straight from GitHub.</string>
+    <string name="privacy_download_mirror_invalid">Not used: start the address with https://, and write {url} once at most</string>
     <string name="privacy_verify_checksums_title">Verify downloaded files</string>
     <string name="privacy_verify_checksums_subtitle">Check every download and import against its published checksum</string>
     <string name="privacy_verify_checksums_off_subtitle">Off: the keyboard uses files that fail their checksum. Turn this back on when you can.</string>

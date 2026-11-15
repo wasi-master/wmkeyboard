@@ -611,11 +611,13 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
     <!-- %1$s and %2$s are sizes such as 1.2 MB and 2.9 MB. -->
     <string name="languages_rime_library_installing">Downloading the RIME library: <xliff:g id="done" example="1.2 MB">%1$s</xliff:g> of <xliff:g id="total" example="2.9 MB">%2$s</xliff:g></string>
     <string name="languages_rime_library_installing_unsized">Downloading the RIME library…</string>
-    <string name="languages_rime_library_failed">The RIME library did not download.</string>
+    <string name="languages_rime_library_failed">The RIME library did not download. If GitHub can\'t be reached from here, set a GitHub mirror under Privacy › Downloads.</string>
     <string name="languages_rime_status_title">RIME status</string>
     <string name="languages_rime_status_off">Download a schema pack below. RIME starts when one is compiled.</string>
     <string name="languages_rime_status_locked">RIME starts after you unlock the phone. Until then the built-in engine types.</string>
-    <string name="languages_rime_status_needs_library">Waiting for the RIME library.</string>
+    <string name="languages_rime_status_needs_library">Compile waits for the RIME library. Download it from the banner above.</string>
+    <string name="languages_rime_status_library_coming">Compiles as soon as the RIME library has downloaded.</string>
+    <string name="languages_rime_status_library_failed">Can\'t compile: the RIME library did not download. If GitHub can\'t be reached from here, set a GitHub mirror under Privacy › Downloads, then retry above.</string>
     <string name="languages_rime_status_needs_deploy">The schemas changed and need to be compiled again.</string>
     <string name="languages_rime_status_deploying_start">Getting ready to compile…</string>
     <!-- %1$s is a schema name such as 朙月拼音. %2$d and %3$d count schemas. -->

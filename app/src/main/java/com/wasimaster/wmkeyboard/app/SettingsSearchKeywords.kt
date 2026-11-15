@@ -199,6 +199,7 @@ internal val SettingsSearchKeywords: Map<Int, Int> = buildMap {
     put(R.string.privacy_learn_typing_title, R.string.search_kw_privacy_learn_typing)
     put(R.string.privacy_lock_title, R.string.search_kw_privacy_lock)
     put(R.string.privacy_verify_checksums_title, R.string.search_kw_privacy_verify_checksums)
+    put(R.string.privacy_download_mirror_title, R.string.search_kw_privacy_download_mirror)
     put(R.string.selection_macros_title, R.string.search_kw_selection_macros)
     put(R.string.selection_macros_actions_title, R.string.search_kw_selection_macros_actions)
     put(R.string.statistics_title, R.string.search_kw_statistics)

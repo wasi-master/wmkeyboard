@@ -331,6 +331,27 @@ that are unpacked as they arrive still come as one request, because a size
 tier stops reading part way through the file and fetching all of it first
 would cost more data.
 
+### Where GitHub can't be reached
+
+Most downloads come from GitHub: the data repository, RIME's schema packs and
+many models. Where `github.com` is blocked or crawls, as it does from mainland
+China, set **GitHub mirror** under Settings › Privacy › Downloads to a GitHub
+proxy. Two forms work:
+
+- A prefix: `https://proxy.example/` turns
+  `https://github.com/…` into `https://proxy.example/https://github.com/…`,
+  the form most public GitHub proxies use.
+- A template with `{url}` where the GitHub address goes, such as
+  `https://proxy.example/fetch?u={url}`.
+
+Every download from `github.com`, `raw.githubusercontent.com` and GitHub's
+release file hosts then tries the proxy first, and GitHub for whatever the
+proxy didn't deliver. A proxy sees which files you fetch. It can't swap a file
+that has a checksum in the table below: that file is still checked, whoever
+served it. A file without one is taken as the proxy sends it, so pick a proxy
+you trust. Calls that aren't downloads, such as the add-on list or update
+checks, still go to GitHub directly.
+
 | Download | Source | Integrity check | Confirms before using mobile data? |
 |---|---|---|---|
 | Dictionaries and wordlists | the project's GitHub data repository | none beyond the gzip stream's own format check | Only from the "download everything for this language" button, which asks while [Data saver](/privacy/data-saver/) is on and its **Downloads** row is set to *Ask each time* (the default) |

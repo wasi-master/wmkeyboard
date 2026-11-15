@@ -197,6 +197,7 @@
     <string name="search_kw_layout_split">thumb ergonomic tablet</string>
     <string name="search_kw_privacy_backup">phone migrate</string>
     <string name="search_kw_privacy_verify_checksums">hash sha256 integrity signature mismatch corrupt</string>
+    <string name="search_kw_privacy_download_mirror">proxy github blocked china vpn ghproxy slow download raw.githubusercontent</string>
     <string name="search_kw_privacy_learn_typing">personalization adapt remember habits</string>
     <string name="search_kw_privacy_lock">biometric face unlock applock passcode</string>
     <string name="search_kw_selection_macros">highlight context menu share</string>

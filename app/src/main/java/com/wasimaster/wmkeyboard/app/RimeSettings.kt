@@ -168,7 +168,7 @@ internal fun RimeEngineGroup(
         }
 
         item(visible = rimeOn) {
-            RimeStatusRow(status, enabled = module == ModuleState.Installed && !RimeRuntime.deploying) {
+            RimeStatusRow(status, module, enabled = module == ModuleState.Installed && !RimeRuntime.deploying) {
                 RimeRuntime.deploy(context)
             }
         }
@@ -307,14 +307,26 @@ private fun RimeLibraryBanner(module: ModuleState, onDownload: () -> Unit) {
     }
 }
 
-/** What RIME is doing, with a progress bar while it compiles and the Compile button otherwise. */
+/**
+ * What RIME is doing, with a progress bar while it compiles and the Compile
+ * button otherwise. The button is greyed until the library is here, and the
+ * line says so then rather than asking for a compile it can't run (#1045).
+ */
 @Composable
-private fun RimeStatusRow(status: RimeRuntime.Status, enabled: Boolean, onDeploy: () -> Unit) {
+private fun RimeStatusRow(status: RimeRuntime.Status, module: ModuleState, enabled: Boolean, onDeploy: () -> Unit) {
+    val noLibrary = module != ModuleState.Installed
+    val libraryFailed = (module as? ModuleState.Missing)?.failed == true
     val text = when (status) {
         RimeRuntime.Status.Off -> stringResource(R.string.languages_rime_status_off)
         RimeRuntime.Status.Locked -> stringResource(R.string.languages_rime_status_locked)
-        RimeRuntime.Status.NeedsLibrary -> stringResource(R.string.languages_rime_status_needs_library)
-        RimeRuntime.Status.NeedsDeploy -> stringResource(R.string.languages_rime_status_needs_deploy)
+        RimeRuntime.Status.NeedsLibrary, RimeRuntime.Status.NeedsDeploy -> stringResource(
+            when {
+                !noLibrary && status == RimeRuntime.Status.NeedsDeploy -> R.string.languages_rime_status_needs_deploy
+                libraryFailed -> R.string.languages_rime_status_library_failed
+                module is ModuleState.Installing -> R.string.languages_rime_status_library_coming
+                else -> R.string.languages_rime_status_needs_library
+            },
+        )
         is RimeRuntime.Status.Deploying -> status.current?.let {
             stringResource(R.string.languages_rime_status_deploying, it, status.done + 1, status.total)
         } ?: stringResource(R.string.languages_rime_status_deploying_start)

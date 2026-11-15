@@ -1032,6 +1032,7 @@ internal object SettingsRowIcons {
         put(R.string.privacy_incognito_title) { Icons.Outlined.VisibilityOff }
         put(R.string.privacy_auto_incognito_title) { Icons.Outlined.Public }
         put(R.string.privacy_backup_title) { Icons.Outlined.CloudUpload }
+        put(R.string.privacy_download_mirror_title) { Icons.Outlined.CloudDownload }
         put(R.string.privacy_verify_checksums_title) { Icons.Outlined.Verified }
         put(R.string.privacy_delete_learned_words_title) { Icons.Outlined.DeleteSweep }
         put(R.string.privacy_weather_location_title) { Icons.Outlined.LocationOn }

@@ -70,4 +70,12 @@ data class SelfHostedSettings(
 
     /** Git locations for the downloaded data, keyed by [ServiceRepo.id]. Missing means the default. */
     val repos: Map<String, RepoLocation> = emptyMap(),
+
+    /**
+     * A GitHub proxy for downloads, or blank. Unlike the rest of this class it
+     * is read on every build: GitHub is where the GitHub and Play builds'
+     * downloads come from too, and it is unreachable from some countries
+     * (#1045). See [com.wasimaster.wmkeyboard.core.download.DataMirror.proxy].
+     */
+    val downloadMirror: String = "",
 )
