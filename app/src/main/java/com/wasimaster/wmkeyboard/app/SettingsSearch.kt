@@ -1640,6 +1640,7 @@ private fun SearchStrings.clipboardRows(): List<SettingsSearchEntry> {
         row(R.string.clipboard_key_row_title, R.string.clipboard_key_row_subtitle),
         row(R.string.clipboard_view_title, R.string.clipboard_view_subtitle),
         row(R.string.clipboard_columns_title, R.string.clipboard_columns_subtitle),
+        row(R.string.clipboard_grid_rows_title, R.string.clipboard_grid_rows_subtitle),
         row(R.string.clipboard_lines_title, R.string.clipboard_lines_subtitle),
         row(R.string.clipboard_line_spacing_title, R.string.clipboard_line_spacing_subtitle),
         row(R.string.clipboard_time_title, R.string.clipboard_time_subtitle),

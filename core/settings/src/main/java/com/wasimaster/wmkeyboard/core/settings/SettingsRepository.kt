@@ -8900,6 +8900,12 @@ data class ClipboardSettings(
      * view is always one clip per row.
      */
     val gridColumns: Int = 2,
+    /**
+     * The grid lines its cards up in rows, in the order they were copied,
+     * rather than packing each card into its shortest column (#1354). Off,
+     * the packed grid, by default.
+     */
+    val gridRows: Boolean = false,
     /** The time each clip shows: none, when it was copied, or when it expires. */
     val timeLabel: ClipTimeLabel = ClipTimeLabel.OFF,
     /**
@@ -13266,6 +13272,7 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_SWIPE_TO_DELETE = booleanPreferencesKey("clipboard_swipe_to_delete")
         private val CLIPBOARD_PREVIEW_LINES = intPreferencesKey("clipboard_preview_lines")
         private val CLIPBOARD_GRID_COLUMNS = intPreferencesKey("clipboard_grid_columns")
+        private val CLIPBOARD_GRID_ROWS = booleanPreferencesKey("clipboard_grid_rows")
         private val CLIPBOARD_TIME_LABEL = stringPreferencesKey("clipboard_time_label")
         private val CLIPBOARD_MAX_TEXT_CHARS = intPreferencesKey("clipboard_max_text_chars")
         private val CLIPBOARD_CLEAR_BUTTON = booleanPreferencesKey("clipboard_clear_button")
@@ -15527,6 +15534,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.clipboard.previewLines,
             gridColumns = p[CLIPBOARD_GRID_COLUMNS]?.coerceIn(ClipGridColumnsRange)
                 ?: defaults.clipboard.gridColumns,
+            gridRows = p[CLIPBOARD_GRID_ROWS] ?: defaults.clipboard.gridRows,
             timeLabel = p[CLIPBOARD_TIME_LABEL]
                 ?.let { runCatching { ClipTimeLabel.valueOf(it) }.getOrNull() }
                 ?: defaults.clipboard.timeLabel,
@@ -25480,6 +25488,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardGridColumns(value: Int) =
         editPrefs { it[CLIPBOARD_GRID_COLUMNS] = value.coerceIn(ClipGridColumnsRange) }
+
+    suspend fun setClipboardGridRows(value: Boolean) =
+        editPrefs { it[CLIPBOARD_GRID_ROWS] = value }
 
     suspend fun setClipboardTimeLabel(value: ClipTimeLabel) =
         editPrefs { it[CLIPBOARD_TIME_LABEL] = value.name }

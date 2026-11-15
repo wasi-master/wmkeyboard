@@ -946,6 +946,15 @@ internal fun ClipboardSettings(
                 default = SettingsDefaults.clipboard.gridColumns.toFloat(),
             ) { scope.launch { repository.setClipboardGridColumns(it.roundToInt()) } }
         }
+        item(visible = clipView == ClipboardView.GRID) {
+            ToggleSetting(
+                R.string.clipboard_grid_rows_title,
+                stringResource(R.string.clipboard_grid_rows_subtitle),
+                settings.watch { it.clipboard.gridRows },
+                info = stringResource(R.string.clipboard_grid_rows_info),
+                default = SettingsDefaults.clipboard.gridRows,
+            ) { scope.launch { repository.setClipboardGridRows(it) } }
+        }
         item {
             val auto = stringResource(R.string.clipboard_lines_auto)
             SliderSetting(

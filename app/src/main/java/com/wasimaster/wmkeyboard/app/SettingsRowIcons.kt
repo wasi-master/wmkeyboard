@@ -311,6 +311,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewAgenda
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewCarousel
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewDay
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewStream
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TableRows
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewWeek
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Visibility
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VisibilityOff
@@ -1445,6 +1446,7 @@ internal object SettingsRowIcons {
         put(R.string.clipboard_full_bleed_title) { Icons.Outlined.Fullscreen }
         put(R.string.clipboard_view_title) { Icons.Outlined.GridView }
         put(R.string.clipboard_columns_title) { Icons.Outlined.ViewWeek }
+        put(R.string.clipboard_grid_rows_title) { Icons.Outlined.TableRows }
         put(R.string.clipboard_lines_title) { Icons.Outlined.TextFields }
         put(R.string.clipboard_time_title) { Icons.Outlined.Schedule }
         put(R.string.clipboard_max_chars_title) { Icons.Outlined.Straighten }

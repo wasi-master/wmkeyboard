@@ -764,7 +764,10 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     // from the clips as they are.
     val gridMemory = remember(active, tab.value, query, oldest.value, searching, tabbed, folders.isEmpty()) { ClipGridMemory() }
     val live = remember(state.clipboardItems) { state.clipboardItems.mapTo(HashSet()) { it.id } }
-    val gridItems = withDeletedSlots(gridMemory.drawn, shownItems, live)
+    // In rows (#1354) a delete reflows only the clips after it, so nothing
+    // above moves and no slot is needed; the slots are for the packed grid.
+    val inRows = state.settings.clipboard.gridRows && state.settings.clipboard.view != ClipboardView.LIST
+    val gridItems = if (inRows) shownItems else withDeletedSlots(gridMemory.drawn, shownItems, live)
     androidx.compose.runtime.SideEffect { gridMemory.drawn = gridItems }
     val emptySlots = if (gridItems === shownItems) emptySet() else gridItems.mapNotNullTo(HashSet()) { it.id.takeIf { id -> id !in live } }
     // A picked clip that has gone, by a delete or its timer, is no longer picked.
@@ -2068,6 +2071,10 @@ private fun ClipboardHistory(
             (isSupportedTool(ToolbarTool.WIKIPEDIA) && ToolbarTool.WIKIPEDIA in state.settings.enabledTools)
     }
     val columns = if (session.list) 1 else clipboard.gridColumns.coerceIn(ClipGridColumnsRange)
+    // Clips in rows (#1354): the cards line up row by row in the order they
+    // were copied. The packed grid puts each card in its shortest column, so
+    // cards of different heights read out of order across a row.
+    val inRows = clipboard.gridRows && columns > 1
     // 0 is the view's own: six lines on a card, three in a row, where a list
     // is for scanning many clips.
     val lines = clipboard.previewLines.takeIf { it > 0 } ?: if (session.list) 3 else 6
@@ -2133,8 +2140,11 @@ private fun ClipboardHistory(
     // Labels the ring skips: the passages' ahead of them, and the clips' after.
     val lead = if (passages.isEmpty()) 0 else 1
     val clipsLabel = passages.isNotEmpty() && shownItems.isNotEmpty()
+    // A clip's place in the lazy list: in rows, its row's.
+    fun clipItemIndex(clip: Int): Int = if (inRows) clip / columns else clip
     ScrollFocusIntoView(focused) { index ->
-        gridState.animateScrollToItem(index + lead + if (clipsLabel && index >= passages.size) 1 else 0)
+        val at = if (index < passages.size) index else passages.size + clipItemIndex(index - passages.size)
+        gridState.animateScrollToItem(at + lead + if (clipsLabel && index >= passages.size) 1 else 0)
     }
     // Show in history (#612): once the search has closed, the history page
     // scrolls to the clip found, and rings it for a moment so it is the one
@@ -2147,7 +2157,7 @@ private fun ClipboardHistory(
             val index = gridItems.indexOfFirst { it.id == id }
             if (index < 0) return@LaunchedEffect
             session.jumpTo.value = null
-            gridState.scrollToItem(index)
+            gridState.scrollToItem(clipItemIndex(index))
             flashId = id
             delay(ClipJumpFlashMs)
             flashId = null
@@ -2155,6 +2165,60 @@ private fun ClipboardHistory(
     }
     val duplicates = session.active.duplicates
     val shortcut = clipboard.cardShortcut
+    val clipCard: @Composable (Int, ClipItem, Modifier) -> Unit = { index, item, cardModifier ->
+        SwipeToDeleteCard(
+            onDelete = { callbacks.onDelete(item) },
+            enabled = swipe,
+            // A pinned clip's swipe only asks (#636), so the card comes back.
+            keepOnDelete = item.pinned && session.confirmPinned,
+            // One way pins and the other deletes, when asked (#414), and
+            // which way round is the user's (#612).
+            onSwipePin = if (clipboard.swipePin != ClipSwipePin.OFF) {
+                { callbacks.onPin(item) }
+            } else null,
+            pinLeft = clipboard.swipePin == ClipSwipePin.LEFT,
+            modifier = cardModifier,
+        ) {
+            val number = session.numbers[item.id]
+            val time = clipTimeText(item, timeLabel, clipboard, now)
+            val hold = ClipHold(
+                holdDelete = !clipboard.swipeToDelete || !clipboard.cardButtons,
+                holdPin = !clipboard.cardButtons,
+                ocr = session.ocr,
+                photoTranslate = photoTranslate,
+                webSearch = searchTools.first,
+                wikipedia = searchTools.second,
+                entities = session.perClip[item.id].orEmpty(),
+                icons = session.entityIcons && picked == null,
+                typeTag = clipboard.typeTags,
+                plainLinks = plainLinks,
+                lineHeight = lineHeight,
+                picked = picked?.let { item.id in it },
+                onPick = { session.selection.value = listOf(item.id) },
+                onReorder = { session.reordering.value = true },
+                onJump = if (searchPage) {
+                    { clipJumpTo(session, item, callbacks) }
+                } else null,
+                onKeepOnly = if (duplicates) {
+                    {
+                        val key = duplicateKey(item)
+                        val others = shownItems.filter { it.id != item.id && duplicateKey(it) == key }.map { it.id }
+                        if (others.isNotEmpty()) callbacks.actions.onDeleteMany(others)
+                    }
+                } else null,
+                shortcut = shortcut,
+                holdActions = clipboard.holdActions,
+                holdPaste = clipboard.holdPaste,
+            )
+            val outlined = (clipboard.outlinePinned && item.pinned) || item.id == flashId
+            val ringed = index + passages.size == focused
+            if (session.list) {
+                ClipRow(item, number, lines, time, focused = ringed, outlined, buttons, hold, callbacks)
+            } else {
+                ClipCard(item, number, lines, time, focused = ringed, outlined, buttons, hold, callbacks)
+            }
+        }
+    }
     // Staggered, not a fixed grid: each column packs independently, so a tall
     // image sits next to two or three stacked text clips.
     LazyVerticalStaggeredGrid(
@@ -2205,77 +2269,57 @@ private fun ClipboardHistory(
                 }
             }
         }
-        itemsIndexed(gridItems, key = { _, item -> item.id }) { index, item ->
-            // A deleted clip's slot (#612): nothing to draw, only the place.
-            if (item.id in emptySlots) {
-                Spacer(Modifier.fillMaxWidth().height(0.dp))
-                return@itemsIndexed
-            }
-            // Deleting fades the card out and slides the survivors up into the
-            // gap; pinning re-sorts the list, so the card glides to the front.
-            // Under Reduce motion the list simply redraws in its new order.
-            SwipeToDeleteCard(
-                onDelete = { callbacks.onDelete(item) },
-                enabled = swipe,
-                // A pinned clip's swipe only asks (#636), so the card comes back.
-                keepOnDelete = item.pinned && session.confirmPinned,
-                // One way pins and the other deletes, when asked (#414), and
-                // which way round is the user's (#612).
-                onSwipePin = if (clipboard.swipePin != ClipSwipePin.OFF) {
-                    { callbacks.onPin(item) }
-                } else null,
-                pinLeft = clipboard.swipePin == ClipSwipePin.LEFT,
-                modifier = if (state.settings.reduceMotion) {
-                    Modifier.padding(bottom = ClipItemGap)
-                } else {
-                    Modifier.padding(bottom = ClipItemGap).animateItem(
+        if (inRows) {
+            // One lazy item a row, so the row lines up and moves as one.
+            val rowCount = (gridItems.size + columns - 1) / columns
+            items(rowCount, key = { row -> "row-" + gridItems[row * columns].id }, span = { StaggeredGridItemSpan.FullLine }) { row ->
+                Row(
+                    modifier = if (state.settings.reduceMotion) Modifier else Modifier.animateItem(
                         fadeInSpec = tween(160),
                         placementSpec = spring(
                             stiffness = Spring.StiffnessMediumLow,
                             visibilityThreshold = IntOffset.VisibilityThreshold,
                         ),
                         fadeOutSpec = tween(140),
-                    )
-                },
-            ) {
-                val number = session.numbers[item.id]
-                val time = clipTimeText(item, timeLabel, clipboard, now)
-                val hold = ClipHold(
-                    holdDelete = !clipboard.swipeToDelete || !clipboard.cardButtons,
-                    holdPin = !clipboard.cardButtons,
-                    ocr = session.ocr,
-                    photoTranslate = photoTranslate,
-                    webSearch = searchTools.first,
-                    wikipedia = searchTools.second,
-                    entities = session.perClip[item.id].orEmpty(),
-                    icons = session.entityIcons && picked == null,
-                    typeTag = clipboard.typeTags,
-                    plainLinks = plainLinks,
-                    lineHeight = lineHeight,
-                    picked = picked?.let { item.id in it },
-                    onPick = { session.selection.value = listOf(item.id) },
-                    onReorder = { session.reordering.value = true },
-                    onJump = if (searchPage) {
-                        { clipJumpTo(session, item, callbacks) }
-                    } else null,
-                    onKeepOnly = if (duplicates) {
-                        {
-                            val key = duplicateKey(item)
-                            val others = shownItems.filter { it.id != item.id && duplicateKey(it) == key }.map { it.id }
-                            if (others.isNotEmpty()) callbacks.actions.onDeleteMany(others)
+                    ),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    for (cell in 0 until columns) {
+                        val index = row * columns + cell
+                        val item = gridItems.getOrNull(index)
+                        Box(Modifier.weight(1f)) {
+                            if (item != null) {
+                                androidx.compose.runtime.key(item.id) {
+                                    clipCard(index, item, Modifier.padding(bottom = ClipItemGap))
+                                }
+                            }
                         }
-                    } else null,
-                    shortcut = shortcut,
-                    holdActions = clipboard.holdActions,
-                    holdPaste = clipboard.holdPaste,
-                )
-                val outlined = (clipboard.outlinePinned && item.pinned) || item.id == flashId
-                val ringed = index + passages.size == focused
-                if (session.list) {
-                    ClipRow(item, number, lines, time, focused = ringed, outlined, buttons, hold, callbacks)
-                } else {
-                    ClipCard(item, number, lines, time, focused = ringed, outlined, buttons, hold, callbacks)
+                    }
                 }
+            }
+        } else {
+            itemsIndexed(gridItems, key = { _, item -> item.id }) { index, item ->
+                // A deleted clip's slot (#612): nothing to draw, only the place.
+                if (item.id in emptySlots) {
+                    Spacer(Modifier.fillMaxWidth().height(0.dp))
+                    return@itemsIndexed
+                }
+                clipCard(
+                    index,
+                    item,
+                    if (state.settings.reduceMotion) {
+                        Modifier.padding(bottom = ClipItemGap)
+                    } else {
+                        Modifier.padding(bottom = ClipItemGap).animateItem(
+                            fadeInSpec = tween(160),
+                            placementSpec = spring(
+                                stiffness = Spring.StiffnessMediumLow,
+                                visibilityThreshold = IntOffset.VisibilityThreshold,
+                            ),
+                            fadeOutSpec = tween(140),
+                        )
+                    },
+                )
             }
         }
     }

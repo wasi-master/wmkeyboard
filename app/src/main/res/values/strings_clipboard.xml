@@ -63,6 +63,9 @@
     <!-- Long press on the greyed-out Grid columns slider. -->
     <string name="clipboard_columns_title">Grid columns</string>
     <string name="clipboard_columns_subtitle">How many columns of cards the grid has</string>
+    <string name="clipboard_grid_rows_title">Clips in rows</string>
+    <string name="clipboard_grid_rows_subtitle">Line the cards up row by row, in the order they were copied</string>
+    <string name="clipboard_grid_rows_info">Off, each card goes into whichever column is shortest, so a tall picture sits beside two or three short clips and no space is wasted, but cards of different heights read out of order across a row. On, the cards line up in rows in the order they were copied, and a row is as tall as its tallest card. Deleting a clip moves only the clips after it. Off by default.</string>
     <string name="clipboard_columns_info">More columns show more clips at once, which suits short text. Fewer give each card more room, which suits long text and pictures. The list layout always shows one clip per row. The default is 2.</string>
     <string name="clipboard_lines_title">Lines per clip</string>
     <string name="clipboard_lines_subtitle">How much of each clip\'s text the panel shows</string>
