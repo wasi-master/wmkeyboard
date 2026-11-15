@@ -1497,6 +1497,7 @@ private fun Sessions(
                     .fillMaxWidth()
                     .clip(shape)
                     .focusRing(focused == index + top.size, shape)
+                    .frostGlass(kb, shape, FrostSurface.CARDS)
                     .background(if (checked) kb.chipActive else kb.chip)
                     .chipBorder(kb, shape)
                     .combinedClickable(
@@ -1580,6 +1581,7 @@ private fun RenameRow(draft: String, onChat: (AiChatAction) -> Unit, modifier: M
         modifier = modifier
             .fillMaxWidth()
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CARDS)
             .background(kb.chip)
             .border(1.5.dp, kb.accent, shape)
             .padding(start = 10.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),

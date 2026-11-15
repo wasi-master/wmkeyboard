@@ -892,6 +892,13 @@ data class KeyOverride(
      * null follows the board's. See [KEY_OVERRIDE_RADIUS_RANGE].
      */
     val cornerRadiusDp: Int? = null,
+    /**
+     * Whether this key is a pane of the theme's frosted glass; null follows
+     * its class ([FrostSpec]'s surfaces: letters, function keys, Enter,
+     * space). True makes one key glass on a theme whose glass leaves its
+     * class out; false keeps one key solid. Nothing on a theme without glass.
+     */
+    val glass: Boolean? = null,
 ) {
     val isEmpty: Boolean
         get() = background == null && text == null && border == null &&
@@ -899,7 +906,8 @@ data class KeyOverride(
             texture == null && pressedTexture == null && effect == null && effectParam == null &&
             pressedBackground == null &&
             labelScale == null && bold == null && shape == null &&
-            gradient == null && glow == null && glowDp == null && cornerRadiusDp == null
+            gradient == null && glow == null && glowDp == null && cornerRadiusDp == null &&
+            glass == null
 
     /**
      * The kind of burst this key throws on its own, or null when it follows

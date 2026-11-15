@@ -51,6 +51,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.wasimaster.wmkeyboard.ime.ui.frostGlass
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.homeassistant.HaActions
 import com.wasimaster.wmkeyboard.core.homeassistant.HaFeatures
 import com.wasimaster.wmkeyboard.core.homeassistant.HaInsertFormat
@@ -597,6 +599,7 @@ private fun CameraBlock(tile: HaTile, snapshot: HaSnapshotUi?, act: (HaAction) -
             .fillMaxWidth()
             .aspectRatio(16f / 9f)
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CARDS)
             .background(kb.chip)
             .clickable { act(HaAction.Snapshot(tile.id)) },
         contentAlignment = Alignment.Center,

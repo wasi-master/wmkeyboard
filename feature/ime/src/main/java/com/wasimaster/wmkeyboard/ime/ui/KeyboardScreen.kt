@@ -19212,6 +19212,8 @@ internal data class KeyVisual(
     val labelScale: Float? = null,
     /** Whether the theme made this one key's label bold; null follows the board. */
     val bold: Boolean? = null,
+    /** This key's own say on being glass (single-key styles); null follows its class. */
+    val glass: Boolean? = null,
     /**
      * A letter on a strip board (`LayoutSpec.strip`): drawn bare, at the one
      * size every letter of the strip shares, free to reach past its narrow key.
@@ -19455,6 +19457,7 @@ internal fun keyVisual(
             ?.takeIf { it.isFinite() }
             ?.coerceIn(KEY_OVERRIDE_LABEL_SCALE_RANGE),
         bold = override?.bold,
+        glass = override?.glass,
         stripLetter = stripLetter,
         shapeKind = overrideShape,
         // A single-key style's radius first, then its class's (gap list item
@@ -27993,7 +27996,8 @@ internal fun KeyButton(
                 // The backdrop bitmap and the key's place are state reads
                 // here, so a bake landing or a relayout re-prepares the paint
                 // and the press path still only draws.
-                val frost = kb.frost?.takeIf { faces && it.has(frostSurfaceFor(key.action)) }
+                // A single-key style may make one key glass or keep it solid.
+                val frost = kb.frost?.takeIf { faces && (visual.glass ?: it.has(frostSurfaceFor(key.action))) }
                 val glass = frost?.let {
                     val lensKind = visual.shapeKind ?: kb.keyShapeKind
                     val lensRadius = lensRadiusPx(lensKind, visual.cornerRadiusDp ?: kb.keyRadiusDp, size, this)

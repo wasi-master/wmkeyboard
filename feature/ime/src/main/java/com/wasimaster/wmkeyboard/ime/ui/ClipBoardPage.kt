@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.clipboard.ClipItem
 import com.wasimaster.wmkeyboard.core.clipboard.board.BoardEntry
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
@@ -203,6 +204,7 @@ private fun EntryCard(entry: BoardEntry, act: (ClipBoardAction) -> Unit) {
         Modifier
             .fillMaxWidth()
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CARDS)
             .background(kb.chip)
             .chipBorder(kb, shape)
             .clickable { act(ClipBoardAction.Paste(entry)) }
@@ -298,6 +300,7 @@ private fun DeleteQuestion(act: (ClipBoardAction) -> Unit) {
         Modifier
             .padding(horizontal = 24.dp)
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CARDS)
             .background(kb.popup)
             .chipBorder(kb, shape)
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {}
@@ -361,6 +364,7 @@ internal fun ClipBoardEntryRow(ui: ClipBoardUi, act: (ClipBoardAction) -> Unit) 
             .fillMaxWidth()
             .padding(start = 6.dp, end = 6.dp, top = 4.dp, bottom = 2.dp)
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CARDS)
             .background(kb.chip)
             .chipBorder(kb, shape)
             .clickable { act(ClipBoardAction.Open) }

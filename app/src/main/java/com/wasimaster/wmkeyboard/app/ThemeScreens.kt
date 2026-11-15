@@ -7928,6 +7928,19 @@ private fun KeyOverrideDialog(
                 modifier = Modifier.padding(vertical = 8.dp),
                 label = stringResource(R.string.theme_key_override_bold_label),
             ) { bold -> onChange(override.copy(bold = bold)) }
+            // Only on a glass theme: elsewhere there is no glass to opt into.
+            if (theme.frost != null) {
+                ChoiceControl(
+                    options = listOf(
+                        null to stringResource(CommonR.string.common_auto),
+                        false to stringResource(CommonR.string.common_off),
+                        true to stringResource(CommonR.string.common_on),
+                    ),
+                    selected = override.glass,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    label = stringResource(R.string.theme_key_override_glass_label),
+                ) { glass -> onChange(override.copy(glass = glass)) }
+            }
             ToggleSetting(
                 title = R.string.theme_key_override_label_size_title,
                 subtitle = override.labelScale?.let { "${(it * 100).toInt()}%" }

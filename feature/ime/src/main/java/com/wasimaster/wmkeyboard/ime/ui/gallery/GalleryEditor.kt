@@ -47,6 +47,8 @@ import androidx.compose.ui.unit.IntSize as UnitIntSize
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.wasimaster.wmkeyboard.ime.ui.frostGlass
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Redo
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Undo
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
@@ -210,6 +212,7 @@ private fun SaveCard(visible: Boolean, replaceable: Boolean, act: (GalleryAction
                     .padding(top = 50.dp, end = 8.dp)
                     .width(272.dp)
                     .clip(shape)
+                    .frostGlass(kb, shape, FrostSurface.CARDS)
                     .background(kb.popup)
                     .chipBorder(kb, shape)
                     .padding(vertical = 4.dp),

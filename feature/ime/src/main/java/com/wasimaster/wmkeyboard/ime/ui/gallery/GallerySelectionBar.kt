@@ -59,6 +59,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
+import com.wasimaster.wmkeyboard.ime.ui.frostGlass
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Send
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudUpload
@@ -302,6 +304,7 @@ private fun CaptionBox(caption: String, typing: GalleryTextEntry?, modifier: Mod
         modifier
             .height(40.dp)
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CARDS)
             .background(kb.chip)
             .chipBorder(kb, shape)
             .clickable(onClick = onClick)
@@ -414,6 +417,7 @@ internal fun SendMenu(
         modifier
             .width(250.dp)
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CARDS)
             .background(kb.popup)
             .chipBorder(kb, shape)
             .padding(vertical = 4.dp),
@@ -459,6 +463,7 @@ internal fun FallbackCard(count: Int, act: (GalleryAction) -> Unit, modifier: Mo
         modifier
             .padding(16.dp)
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CARDS)
             .background(kb.popup)
             .chipBorder(kb, shape)
             .padding(16.dp),

@@ -59,6 +59,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.wasimaster.wmkeyboard.ime.ui.frostGlass
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.files.DocFiles
 import com.wasimaster.wmkeyboard.core.files.FileEntry
 import com.wasimaster.wmkeyboard.core.files.FileShortcut
@@ -297,6 +299,7 @@ private fun RowScope.TypingHeader(text: String, placeholder: String, pending: Bo
             .weight(1f)
             .padding(start = 6.dp, end = 4.dp)
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CARDS)
             .background(kb.chip)
             .chipBorder(kb, shape)
             .padding(horizontal = 12.dp, vertical = 6.dp),
@@ -787,6 +790,7 @@ private fun OverflowMenu(ui: FileManagerUi, modifier: Modifier, pick: (FileActio
         modifier
             .widthIn(min = 200.dp)
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CARDS)
             .background(kb.popup)
             .chipBorder(kb, shape)
             .padding(vertical = 4.dp),
@@ -852,6 +856,7 @@ private fun QuestionCard(title: String, body: String, no: String, yes: String, m
         modifier
             .padding(horizontal = 24.dp)
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CARDS)
             .background(kb.popup)
             .chipBorder(kb, shape)
             .padding(16.dp),

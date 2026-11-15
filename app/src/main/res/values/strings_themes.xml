@@ -587,6 +587,8 @@
     <string name="theme_key_override_effect_label">Press effect</string>
     <string name="theme_key_override_shape_title">Key shape</string>
     <string name="theme_key_override_bold_label">Bold label</string>
+    <!-- Single-key styles on a frosted-glass theme: Auto follows the key's class, On makes this key glass, Off keeps it solid. -->
+    <string name="theme_key_override_glass_label">Frosted glass</string>
     <string name="theme_key_override_label_size_title">Label size</string>
     <string name="theme_key_override_gradient_title">Gradient face</string>
     <string name="theme_key_override_gradient_start_title">Gradient start</string>

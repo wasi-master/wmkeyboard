@@ -161,6 +161,7 @@ private fun AllDayChip(event: DeviceCalendarEvent, onClick: () -> Unit) {
         Modifier
             .height(26.dp)
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CARDS)
             .background(colour.copy(alpha = 0.28f))
             .chipBorder(kb, shape)
             .clickable {

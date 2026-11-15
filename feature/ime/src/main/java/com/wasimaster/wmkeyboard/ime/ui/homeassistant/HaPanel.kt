@@ -374,6 +374,7 @@ private fun SkeletonGrid(animate: Boolean) {
                             .weight(1f)
                             .height(64.dp)
                             .clip(kb.cardShape())
+                            .frostGlass(kb, kb.cardShape(), FrostSurface.CARDS)
                             .background(kb.chip.copy(alpha = kb.chip.alpha * (0.35f + 0.2f * alpha))),
                     )
                 }
