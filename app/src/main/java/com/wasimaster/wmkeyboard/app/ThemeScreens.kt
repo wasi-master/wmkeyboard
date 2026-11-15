@@ -4842,6 +4842,31 @@ private fun ThemeEditorContent(
                 onChange = { update { t -> t.copy(pressedKeyBackground = it) } },
             )
         }
+        // The labels while held (Telegram 7588): a pressed face far from the
+        // key's own needs a label colour of its own, per class.
+        item(level = SettingLevel.ADVANCED) {
+            NullableColorRow(
+                R.string.theme_pressed_key_text_title,
+                look.watch { it.pressedKeyText }, fallback = look.watch { it.keyText },
+                onChange = { update { t -> t.copy(pressedKeyText = it) } },
+            )
+        }
+        item(level = SettingLevel.ADVANCED) {
+            NullableColorRow(
+                R.string.theme_pressed_modifier_key_text_title,
+                look.watch { it.pressedModifierKeyText },
+                fallback = look.watch { it.modifierKeyText ?: it.keyText },
+                onChange = { update { t -> t.copy(pressedModifierKeyText = it) } },
+            )
+        }
+        item(level = SettingLevel.ADVANCED) {
+            NullableColorRow(
+                R.string.theme_pressed_enter_key_text_title,
+                look.watch { it.pressedEnterKeyText },
+                fallback = look.watch { it.modifierKeyText ?: it.keyText },
+                onChange = { update { t -> t.copy(pressedEnterKeyText = it) } },
+            )
+        }
         item(level = SettingLevel.STANDARD) {
             NullableColorRow(
                 R.string.theme_key_border_title,
@@ -7741,6 +7766,11 @@ private fun KeyOverrideDialog(
                 R.string.theme_key_text_title,
                 override.text, fallback = theme.keyText,
                 onChange = { onChange(override.copy(text = it)) },
+            )
+            NullableColorRow(
+                R.string.theme_key_override_pressed_text_title,
+                override.pressedText, fallback = override.text ?: theme.pressedKeyText ?: theme.keyText,
+                onChange = { onChange(override.copy(pressedText = it)) },
             )
             NullableColorRow(
                 R.string.theme_hint_text_title,

@@ -320,6 +320,11 @@
     <string name="theme_enter_key_title">Enter key</string>
     <string name="theme_enter_key_icon_title">Enter key icon</string>
     <string name="theme_pressed_key_title">Pressed key</string>
+    <string name="theme_pressed_key_text_title">Pressed key text</string>
+    <string name="theme_pressed_modifier_key_text_title">Pressed function key text</string>
+    <string name="theme_pressed_enter_key_text_title">Pressed Enter icon</string>
+    <!-- Single-key styles: this one key's label colour while it is held. -->
+    <string name="theme_key_override_pressed_text_title">Key text while pressed</string>
     <string name="theme_key_border_title">Key border</string>
     <string name="theme_border_width_title">Border width</string>
 

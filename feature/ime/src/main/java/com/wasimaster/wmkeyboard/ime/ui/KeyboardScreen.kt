@@ -19104,6 +19104,10 @@ internal data class KeyPalette(
     val enterKeyText: Color,
     val pressedKey: Color,
     val accent: Color,
+    /** Label colours while held, per class; null keeps the label's own. */
+    val pressedKeyText: Color? = null,
+    val pressedModifierKeyText: Color? = null,
+    val pressedEnterKeyText: Color? = null,
     /** The theme's own corner-hint colour; null fades the label colour. */
     val hintText: Color? = null,
     /**
@@ -19132,6 +19136,9 @@ internal fun KbTheme.keyPalette(): KeyPalette = KeyPalette(
     enterKeyText = enterKeyText,
     pressedKey = pressedKey,
     accent = accent,
+    pressedKeyText = pressedKeyText,
+    pressedModifierKeyText = pressedModifierKeyText,
+    pressedEnterKeyText = pressedEnterKeyText,
     hintText = hintText,
     overrides = keyOverrides,
     keysHaveFaces = keysHaveFaces,
@@ -19446,8 +19453,13 @@ internal fun keyVisual(
         contentColor = contentColor,
         // Enter is the one key that recolours under the finger: its text colour
         // is picked for its own accented face, which the press paints over.
-        pressedContentColor =
-            if (action == KeyAction.Enter) palette.modifierKeyText else contentColor,
+        // A theme or a single-key style may give the held label its own
+        // colour (Telegram 7588), for a pressed face far from the key's.
+        pressedContentColor = override?.pressedText?.let { Color(it.toInt()) } ?: when (action) {
+            KeyAction.Enter -> palette.pressedEnterKeyText ?: palette.modifierKeyText
+            KeyAction.Text -> palette.pressedKeyText ?: contentColor
+            else -> palette.pressedModifierKeyText ?: contentColor
+        },
         hintColor = override?.hint?.let { Color(it.toInt()) } ?: palette.hintText,
         overrideId = overrideId,
         // Clamped here rather than at the draw, the way every other value out
