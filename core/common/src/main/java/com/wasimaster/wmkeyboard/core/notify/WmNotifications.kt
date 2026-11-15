@@ -170,6 +170,13 @@ class NotificationSubChannel private constructor(
             R.string.common_notify_channel_alarms_title,
             R.string.common_notify_channel_alarms_body,
         )
+
+        /** An alarm that rang with nobody there, apart from the notices before a ring (#970). */
+        val CLOCK_MISSED = NotificationSubChannel(
+            "clock_missed",
+            R.string.common_notify_channel_missed_title,
+            R.string.common_notify_channel_missed_body,
+        )
     }
 }
 
@@ -298,10 +305,11 @@ object NotificationIds {
     /** Alarms set, and an update took the full-screen grant the ring screen needs (#1287). */
     const val CLOCK_FULL_SCREEN_LOST = 102
 
-    /** The summaries over the clock's three groups (#970): timers, the stopwatch, alarms. */
+    /** The summaries over the clock's groups (#970): timers, the stopwatch, alarm notices, missed alarms. */
     const val CLOCK_TIMERS_SUMMARY = 103
     const val CLOCK_STOPWATCH_SUMMARY = 104
     const val CLOCK_ALARMS_SUMMARY = 105
+    const val CLOCK_MISSED_SUMMARY = 106
 
     /** The Send files tool's upload in flight, then its finished link. */
     const val SEND_UPLOAD = 7

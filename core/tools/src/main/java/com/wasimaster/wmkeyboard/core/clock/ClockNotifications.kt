@@ -50,6 +50,7 @@ object ClockNotifications {
     private const val GROUP_TIMERS = "clock_timers"
     private const val GROUP_STOPWATCH = "clock_stopwatch"
     private const val GROUP_ALARMS = "clock_alarms"
+    private const val GROUP_MISSED = "clock_missed"
 
     /** The ring screen, in `:app`, named as a string like the settings activity. */
     const val RING_ACTIVITY = "com.wasimaster.wmkeyboard.app.clock.ClockRingActivity"
@@ -80,7 +81,8 @@ object ClockNotifications {
         val missed = active.any { NotificationIds.isMissedAlarm(it) }
         syncSummary(context, Summary.TIMERS, data.timers.isNotEmpty())
         syncSummary(context, Summary.STOPWATCH, !data.stopwatch.isReset)
-        syncSummary(context, Summary.ALARMS, missed || wanted.any { NotificationIds.isAlarmNotice(it) })
+        syncSummary(context, Summary.ALARMS, wanted.any { NotificationIds.isAlarmNotice(it) })
+        syncSummary(context, Summary.MISSED, missed)
     }
 
     /**
@@ -104,8 +106,15 @@ object ClockNotifications {
             R.string.core_tools_clock_stopwatch, "stopwatch", NotificationSubChannel.CLOCK_STOPWATCH,
         ),
         ALARMS(
-            GROUP_ALARMS, NotificationIds.CLOCK_ALARMS_SUMMARY, R.drawable.core_tools_ic_alarm,
+            GROUP_ALARMS, NotificationIds.CLOCK_ALARMS_SUMMARY, R.drawable.core_tools_ic_alarm_on,
             R.string.core_tools_clock_alarm, "alarms", NotificationSubChannel.CLOCK_ALARMS,
+        ),
+
+        // Missed alarms apart from the ones still to come (#970): a channel,
+        // a group and a status bar icon of their own, as other clock apps do.
+        MISSED(
+            GROUP_MISSED, NotificationIds.CLOCK_MISSED_SUMMARY, R.drawable.core_tools_ic_alarm_off,
+            R.string.core_tools_clock_alarm, "history", NotificationSubChannel.CLOCK_MISSED,
         ),
     }
 
@@ -150,7 +159,8 @@ object ClockNotifications {
             val title = alarm.label.ifEmpty { context.getString(R.string.core_tools_clock_alarm) }
             val time = ClockFormats.time(at, zone, hour24)
             WmNotifications.post(context, NotificationKind.CLOCK, id, NotificationSubChannel.CLOCK_ALARMS) {
-                setSmallIcon(R.drawable.core_tools_ic_alarm)
+                // An icon each in the status bar (#970): a snooze, or a ring to come.
+                setSmallIcon(if (snoozed) R.drawable.core_tools_ic_snooze else R.drawable.core_tools_ic_alarm_on)
                 setGroup(GROUP_ALARMS)
                 setContentTitle(title)
                 setContentText(
@@ -177,15 +187,15 @@ object ClockNotifications {
     fun postMissed(context: Context, ring: Ringing) {
         val title = ring.label.ifEmpty { context.getString(R.string.core_tools_clock_alarm) }
         val time = ClockFormats.time(ring.since, java.util.TimeZone.getDefault(), android.text.format.DateFormat.is24HourFormat(context))
-        WmNotifications.post(context, NotificationKind.CLOCK, NotificationIds.forMissedAlarm(ring.ref), NotificationSubChannel.CLOCK_ALARMS) {
-            setSmallIcon(R.drawable.core_tools_ic_alarm)
-            setGroup(GROUP_ALARMS)
+        WmNotifications.post(context, NotificationKind.CLOCK, NotificationIds.forMissedAlarm(ring.ref), NotificationSubChannel.CLOCK_MISSED) {
+            setSmallIcon(R.drawable.core_tools_ic_alarm_off)
+            setGroup(GROUP_MISSED)
             setContentTitle(context.getString(R.string.core_tools_clock_missed_title, title))
             setContentText(context.getString(R.string.core_tools_clock_missed_at, time))
             setAutoCancel(true)
             setContentIntent(openClock(context, "history"))
         }
-        syncSummary(context, Summary.ALARMS, children = true)
+        syncSummary(context, Summary.MISSED, children = true)
     }
 
     private fun postTimer(context: Context, t: RunningTimer, id: Int) {
