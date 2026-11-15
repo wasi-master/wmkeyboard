@@ -63,6 +63,11 @@ object AiClient {
         val reasoning: Boolean? = null,
         /** Brave only: its research mode, several searches before one answer. */
         val braveResearch: Boolean = false,
+        /**
+         * An OpenAI-compatible server's own chat route (#388), for one that
+         * does not answer on `/chat/completions`; blank for that default.
+         */
+        val path: String = "",
     )
 
     /** The placeholder a header value can use for [Config.sessionId]. */
@@ -258,10 +263,24 @@ object AiClient {
         AiProvider.LM_STUDIO -> "${config.baseUrl.trimEnd('/')}/v1/chat/completions"
         // The user gives the address up to and including any version segment,
         // because those differ between services (/v1, /openai/v1, /api/v1).
-        AiProvider.OPENAI_COMPATIBLE -> "${config.baseUrl.trimEnd('/')}/chat/completions"
+        AiProvider.OPENAI_COMPATIBLE -> routed(config.baseUrl, config.path, "/chat/completions")
         // The user's own privatemode-proxy: its address with or without /v1.
         AiProvider.PRIVATEMODE -> privatemodeProxyBase(config.baseUrl) + "/chat/completions"
         else -> error("${config.provider} does not use the OpenAI request shape")
+    }
+
+    /**
+     * [base] with [path] after it, as the transcription server's route works
+     * (#388): a path with `://` in it is a whole address of its own, anything
+     * else is added to [base] as typed, and a blank one takes [default].
+     */
+    internal fun routed(base: String, path: String, default: String): String {
+        val route = path.trim()
+        return when {
+            route.isEmpty() -> base.trimEnd('/') + default
+            "://" in route -> route
+            else -> base.trimEnd('/') + "/" + route.trimStart('/')
+        }
     }
 
     /**
@@ -353,6 +372,7 @@ object AiClient {
             AiProvider.OPENAI_COMPATIBLE, settings.compatibleKey,
             settings.compatibleModel,
             settings.compatibleUrl,
+            path = settings.compatiblePath,
         )
         AiProvider.ON_DEVICE -> Config(
             AiProvider.ON_DEVICE, "",

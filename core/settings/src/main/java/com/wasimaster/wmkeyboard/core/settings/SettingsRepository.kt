@@ -5718,6 +5718,12 @@ data class AiSettings(
     val compatibleKey: String = "",
     val compatibleModel: String = "",
     /**
+     * The OpenAI-compatible server's chat route when it is not
+     * `/chat/completions` (#388). Set only from the AI list's row in use, by
+     * its Endpoint path field; blank for the default.
+     */
+    val compatiblePath: String = "",
+    /**
      * Privatemode (#1145). Set only from the AI list's row in use
      * (`through`): the kind came after the lists, so it has no older
      * preference of its own. A blank [privatemodeProxyUrl] encrypts on the

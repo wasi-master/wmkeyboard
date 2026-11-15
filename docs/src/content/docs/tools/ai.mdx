@@ -134,11 +134,12 @@ Pictures aren't sent to Privatemode, and extra headers aren't added to its encry
 
 ### Any other OpenAI-compatible service
 
-**OpenAI-compatible service** is the escape hatch, and it reaches far more than the named services do. Anything that speaks OpenAI's chat-completions shape works: OpenRouter, Groq, Together, Mistral, Cerebras, self-hosted vLLM. Add one row for each service you use. Three fields:
+**OpenAI-compatible service** is the escape hatch, and it reaches far more than the named services do. Anything that speaks OpenAI's chat-completions shape works: OpenRouter, Groq, Together, Mistral, Cerebras, self-hosted vLLM. Add one row for each service you use. Four fields:
 
 - **Server address**: the address up to and including the version segment, for example `https://openrouter.ai/api/v1`. The app adds `/chat/completions` itself. That split exists because services disagree about the prefix (`/v1`, `/openai/v1`, `/api/v1`), so guessing it would break half of them.
 - **Model**: required here, unlike the named providers. There's no sensible default to guess for a service the app knows nothing about.
 - **API key**: optional. A gateway on your own network often wants none.
+- **Endpoint path**: optional, for a server whose chat route isn't `/chat/completions`. What you type is added to the address as typed (`/v1/generate`), and a whole address starting `https://` replaces the address for chat. Leave it empty for `/chat/completions`. The transcription server has the same field for its own route.
 
 :::note
 An `http://` address works, for a service on your own network, and that traffic is plain HTTP. Keep the server on a network you trust.

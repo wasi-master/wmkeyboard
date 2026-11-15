@@ -779,7 +779,12 @@ fun AiSettings.through(row: ResolvedProvider): AiSettings {
         AiProvider.BRAVE -> base.copy(braveKey = row.credential?.apiKey?.trim().orEmpty())
         AiProvider.OLLAMA -> base.copy(ollamaUrl = row.url, ollamaModel = row.model)
         AiProvider.LM_STUDIO -> base.copy(lmStudioUrl = row.url, lmStudioModel = row.model)
-        AiProvider.OPENAI_COMPATIBLE -> base.copy(compatibleUrl = row.url, compatibleKey = row.apiKey, compatibleModel = row.model)
+        AiProvider.OPENAI_COMPATIBLE -> base.copy(
+            compatibleUrl = row.url,
+            compatibleKey = row.apiKey,
+            compatibleModel = row.model,
+            compatiblePath = row.credential?.extra?.get(CredentialSpec.PATH)?.trim().orEmpty(),
+        )
         AiProvider.PRIVATEMODE -> base.copy(privatemodeKey = row.apiKey, privatemodeModel = row.model, privatemodeProxyUrl = row.url)
         AiProvider.ON_DEVICE -> base
     }

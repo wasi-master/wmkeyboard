@@ -1173,7 +1173,9 @@ internal fun ProviderEditorSheet(
                 StoredTextField(
                     label = stringResource(R.string.providers_field_path),
                     value = draft.extra[CredentialSpec.PATH].orEmpty(),
-                    supporting = stringResource(R.string.providers_field_path_hint),
+                    supporting = stringResource(
+                        if (ProviderTool.AI in type.serves) R.string.providers_field_path_ai_hint else R.string.providers_field_path_hint,
+                    ),
                     keyboardType = KeyboardType.Uri,
                 ) { path ->
                     edit(draft.copy(extra = if (path.isBlank()) draft.extra - CredentialSpec.PATH else draft.extra + (CredentialSpec.PATH to path)))

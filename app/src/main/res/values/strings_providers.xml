@@ -188,6 +188,7 @@
     <string name="providers_field_secret">Access secret</string>
     <string name="providers_field_secret_hint">The project\'s access secret from the ACRCloud console. Signs each request together with the key.</string>
     <string name="providers_field_path">Endpoint path</string>
+    <string name="providers_field_path_ai_hint">Optional. For a service whose chat route is not /chat/completions, such as /v1/generate. It is added to the address as typed; a whole address with https:// replaces it. Leave it empty for /chat/completions</string>
     <string name="providers_field_path_hint">Optional. For a server with its own route, such as /v1/transcribe. It is added to the address as typed. Leave it empty to use /audio/transcriptions</string>
     <string name="providers_field_model_required_hint">Required. A model that can read images, for example qwen2.5vl:7b.</string>
     <string name="providers_field_engine">Engine</string>

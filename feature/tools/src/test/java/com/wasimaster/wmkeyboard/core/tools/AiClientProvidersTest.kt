@@ -106,4 +106,12 @@ class AiClientProvidersTest {
             AiClient.expectsReasoning(AiSettings(provider = AiProvider.DEEPSEEK, deepSeekKey = "k")),
         )
     }
+
+    @Test
+    fun `an OpenAI-compatible server's own route replaces chat completions`() {
+        assertEquals("https://h/v1/chat/completions", AiClient.routed("https://h/v1/", "", "/chat/completions"))
+        assertEquals("https://h/v1/generate", AiClient.routed("https://h/v1", "/generate", "/chat/completions"))
+        assertEquals("https://h/v1/generate", AiClient.routed("https://h/v1", "generate", "/chat/completions"))
+        assertEquals("https://other/x", AiClient.routed("https://h/v1", " https://other/x ", "/chat/completions"))
+    }
 }

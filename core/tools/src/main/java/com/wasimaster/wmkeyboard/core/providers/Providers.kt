@@ -672,7 +672,8 @@ object ProviderTypes {
     /** Any other service with OpenAI's chat shape: OpenRouter, Groq, Mistral, a gateway at home. */
     val OPENAI_COMPATIBLE = ProviderType(
         "openai_compatible", AI, R.string.core_tools_provider_openai_compatible, R.string.core_tools_provider_openai_compatible_desc,
-        CredentialSpec(key = Need.OPTIONAL, url = Need.REQUIRED, model = true, modelRequired = true), multiInstance = true,
+        CredentialSpec(key = Need.OPTIONAL, url = Need.REQUIRED, model = true, modelRequired = true, path = true),
+        multiInstance = true,
     )
 
     /**
