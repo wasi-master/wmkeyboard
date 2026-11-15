@@ -1737,6 +1737,15 @@ internal fun LayoutSettings(
                 default = SettingsDefaults.layoutBehavior.symbolsReturnOnSpace,
             ) { scope.launch { repository.setSymbolsReturnOnSpace(it) } }
         }
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.layout_back_leaves_symbols_title,
+                stringResource(R.string.layout_back_leaves_symbols_subtitle),
+                settings.watch { it.layoutBehavior.backLeavesSymbols },
+                info = stringResource(R.string.layout_back_leaves_symbols_info),
+                default = SettingsDefaults.layoutBehavior.backLeavesSymbols,
+            ) { scope.launch { repository.setBackLeavesSymbols(it) } }
+        }
     }
 
     SettingsGroup(

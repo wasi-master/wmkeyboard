@@ -60039,9 +60039,18 @@ open class WMKeyboardService : InputMethodService() {
         panelFocus.keyGrid.alternatesOpen ||
             ((
                 state.panel != PanelMode.NONE || state.voice.strip || state.toolText.snippetAsk != null ||
-                    state.toolText.clipWrite != null
+                    state.toolText.clipWrite != null || backLeavesLayer(state)
                 ) &&
                 topLayerDismissal(state, fromBack = true) != null)
+
+    /**
+     * Back on ?123 or Fn goes to the letters (#1352), with the switch on. Only
+     * with nothing of the keyboard's open over the keys: a panel closes first.
+     */
+    private fun backLeavesLayer(state: KeyboardUiState): Boolean =
+        state.settings.layoutBehavior.backLeavesSymbols && state.panel == PanelMode.NONE &&
+            (state.layoutMode == LayoutMode.SYMBOLS || state.layoutMode == LayoutMode.SYMBOLS_SHIFTED ||
+                state.layoutMode == LayoutMode.FN)
 
     /**
      * How to close the topmost layer showing, or null when Back has nothing of
@@ -60136,6 +60145,10 @@ open class WMKeyboardService : InputMethodService() {
             // panel's own close button are all still ways out.
             state.panel != PanelMode.NONE && !(fromBack && panelLayoutPersists(state)) ->
                 ({ onPanelChange(state.panel) })
+            // ?123 back to the letters, with that switch on (#1352).
+            backLeavesLayer(state) -> ({
+                _uiState.update { it.copy(layoutMode = LayoutMode.LETTERS, fnLocked = false, fnReturn = null) }
+            })
             else -> null
         }
     }

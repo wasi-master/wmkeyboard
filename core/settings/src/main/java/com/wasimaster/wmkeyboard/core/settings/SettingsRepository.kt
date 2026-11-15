@@ -10835,6 +10835,12 @@ data class LayoutBehaviorSettings(
      */
     val symbolsReturnOnSpace: Boolean = false,
     /**
+     * Back on ?123 (either symbols page, or Fn) goes to the letters instead of
+     * hiding the keyboard (#1352); the next Back hides it. Off by default, as
+     * Gboard has it: Back puts the keyboard away from any layer.
+     */
+    val backLeavesSymbols: Boolean = false,
+    /**
      * The user has never touched the number-row toggle, so [applyDeviceForm] is
      * free to pick a default for the screen they are on.
      *
@@ -12810,6 +12816,7 @@ class SettingsRepository(private val context: Context) {
             booleanPreferencesKey("symbols_return_to_letters")
         private val SYMBOLS_RETURN_CHARS = stringPreferencesKey("symbols_return_chars")
         private val SYMBOLS_RETURN_ON_SPACE = booleanPreferencesKey("symbols_return_on_space")
+        private val BACK_LEAVES_SYMBOLS = booleanPreferencesKey("back_leaves_symbols")
         private val AUTO_SPACE_AFTER_SUGGESTION = booleanPreferencesKey("auto_space_after_suggestion")
         private val SPACE_AFTER_SUGGESTION_OFF_LANGS =
             stringSetPreferencesKey("space_after_suggestion_off_langs")
@@ -15918,6 +15925,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.layoutBehavior.symbolsReturnChars,
             symbolsReturnOnSpace = p[SYMBOLS_RETURN_ON_SPACE]
                 ?: defaults.layoutBehavior.symbolsReturnOnSpace,
+            backLeavesSymbols = p[BACK_LEAVES_SYMBOLS] ?: defaults.layoutBehavior.backLeavesSymbols,
             // Derived from whether the key is *there*, not from its value —
             // see the fields' own docs. This is the only place that
             // information survives; every other read collapses it with `?:`.
@@ -23350,6 +23358,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSymbolsReturnOnSpace(value: Boolean) =
         editPrefs { it[SYMBOLS_RETURN_ON_SPACE] = value }
+
+    suspend fun setBackLeavesSymbols(value: Boolean) =
+        editPrefs { it[BACK_LEAVES_SYMBOLS] = value }
 
     /**
      * Persist the characters that send ?123 back to the letters. Whitespace and

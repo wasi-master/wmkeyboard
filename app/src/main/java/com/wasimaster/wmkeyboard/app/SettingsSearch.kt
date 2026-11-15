@@ -1213,6 +1213,7 @@ private fun SearchStrings.layoutRows(): List<SettingsSearchEntry> {
         row(R.string.layout_symbols_return_title, R.string.layout_symbols_return_subtitle),
         row(R.string.layout_symbols_return_chars_title),
         row(R.string.layout_symbols_return_space_title, R.string.layout_symbols_return_space_subtitle),
+        row(R.string.layout_back_leaves_symbols_title, R.string.layout_back_leaves_symbols_subtitle),
         row(R.string.layout_numeral_scope_title, R.string.layout_numeral_scope_subtitle),
         row(R.string.langemoji_lang_keymaps_title, R.string.langemoji_lang_keymaps_subtitle),
         // The width, the height and the side of the one-handed keyboard name

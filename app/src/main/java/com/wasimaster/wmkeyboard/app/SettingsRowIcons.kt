@@ -838,6 +838,7 @@ internal object SettingsRowIcons {
         put(R.string.layout_custom_arrow_row_title) { Icons.Outlined.Edit }
         put(R.string.layout_symbols_return_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }
         put(R.string.layout_symbols_return_space_title) { Icons.Outlined.SpaceBar }
+        put(R.string.layout_back_leaves_symbols_title) { Icons.AutoMirrored.Outlined.ArrowBack }
         put(R.string.layout_numeral_scope_title) { Icons.Outlined.Numbers }
         put(R.string.layout_resize_drag_title) { Icons.Outlined.AspectRatio }
         put(R.string.layout_key_height_title) { Icons.Outlined.Height }
