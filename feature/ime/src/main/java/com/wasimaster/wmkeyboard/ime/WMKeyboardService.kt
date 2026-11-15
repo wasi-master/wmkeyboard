@@ -58045,15 +58045,17 @@ open class WMKeyboardService : InputMethodService() {
      * Not into a password field, whose paste the sweep above may just have
      * taken out of the history, and the system clipboard is left alone for a
      * hidden clip and while the keyboard's clipboard is private, where putting
-     * the text there is the leak those modes exist to stop.
+     * the text there is the leak those modes exist to stop. Private, the
+     * keyboard's own copy takes it instead (#970): the paste keys gave the
+     * clip copied last, not the one just moved to the top.
      */
     private fun bumpPastedClip(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
         val state = _uiState.value
         if (!state.settings.clipboard.bumpOnPaste || state.secureField) return
         clipboardStore.bump(item.id) ?: return
         clipboardStore.save()
-        if (item.kind.isTextual && !item.sensitive && !KeyboardClipboard.isPrivate) {
-            ClipboardWriteGate.writeText(this, item.text, null)
+        if (item.kind.isTextual && !item.sensitive) {
+            if (!KeyboardClipboard.holdForPaste(item.text)) ClipboardWriteGate.writeText(this, item.text, null)
         }
         _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
     }
