@@ -439,6 +439,7 @@
     <string name="ime_tool_quick_note">Quick note</string>
     <string name="ime_tool_debug_info">Debug info</string>
     <string name="ime_tool_homophones">Same sound</string>
+    <string name="ime_tool_type_clipboard">Type the clipboard</string>
     <string name="ime_homophones_none_before">Type a Chinese or Japanese character first</string>
     <!-- %1$s: the character, such as 是 -->
     <string name="ime_homophones_none">Nothing on this phone sounds like %1$s. A language pack or a RIME schema adds the readings.</string>

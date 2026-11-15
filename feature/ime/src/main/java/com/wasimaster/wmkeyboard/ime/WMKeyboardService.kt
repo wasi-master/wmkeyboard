@@ -36571,6 +36571,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.SCREENSHOT -> takeScreenshot()
             ToolbarTool.DEBUG_INFO -> showDebugInfo()
             ToolbarTool.HOMOPHONES -> showHomophones()
+            ToolbarTool.TYPE_CLIPBOARD -> onTextEdit(TextEditAction.TYPE_CLIPBOARD)
             ToolbarTool.PRIVACY_SHADE -> onPrivacyShadeToggle()
             ToolbarTool.QUICK_NOTE -> onQuickNote()
             ToolbarTool.READ_BACK -> toggleReadBack()

@@ -258,6 +258,7 @@ object IconDefaults {
         ToolbarTool.COPY -> Icons.Outlined.ContentCopy
         ToolbarTool.CUT -> Icons.Outlined.ContentCut
         ToolbarTool.PASTE -> Icons.Outlined.ContentPaste
+        ToolbarTool.TYPE_CLIPBOARD -> Icons.Outlined.ContentPaste
         // Material's own "quick reply": a speech bubble with a flash in it,
         // which is exactly what this tool does.
         ToolbarTool.AI_REPLY -> Icons.Outlined.Quickreply
