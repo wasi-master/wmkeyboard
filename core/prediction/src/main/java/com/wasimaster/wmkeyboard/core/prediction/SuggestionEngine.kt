@@ -2751,12 +2751,15 @@ class SuggestionEngine(
         previousWord2: String?,
     ): List<GlideBeam.Candidate> {
         if (decoded.size < 2) return decoded
+        // Sentence weight (#1250): 0 leaves the stroke's own order.
+        val weight = glideTuning.contextWeight.toDouble()
+        if (weight <= 0.0) return decoded
         val back1 = previousWord?.takeUnless(WordContext::isSentinel) ?: return decoded
         val back2 = previousWord2?.takeUnless(WordContext::isSentinel)
         val lift = glideContextLift()
         var moved = false
         val lifted = decoded.map { c ->
-            val by = if (c.ahead == 0 && c.score.isFinite()) lift.of(back2, back1, c.word) else 0.0
+            val by = if (c.ahead == 0 && c.score.isFinite()) lift.of(back2, back1, c.word) * weight else 0.0
             if (by == 0.0) {
                 c
             } else {

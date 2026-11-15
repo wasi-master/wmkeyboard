@@ -731,6 +731,7 @@ private fun SearchStrings.typingGlideRows(): List<SettingsSearchEntry> {
         row(R.string.typing_glide_language_radii_title, R.string.typing_glide_language_radii_subtitle),
         row(R.string.typing_glide_dwell_title, R.string.typing_glide_dwell_subtitle),
         row(R.string.typing_glide_pause_strength_title, R.string.typing_glide_pause_strength_subtitle),
+        row(R.string.typing_glide_sentence_weight_title, R.string.typing_glide_sentence_weight_subtitle),
         row(R.string.typing_glide_loop_title, R.string.typing_glide_loop_subtitle),
         row(R.string.typing_glide_loop_arc_title, R.string.typing_glide_loop_arc_subtitle),
         row(R.string.typing_glide_loop_extent_title, R.string.typing_glide_loop_extent_subtitle),

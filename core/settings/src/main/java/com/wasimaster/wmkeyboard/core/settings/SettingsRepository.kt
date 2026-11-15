@@ -9352,6 +9352,12 @@ val GlidePauseStrengthRange = 0.5f..10f
 val GlideLoopStrengthRange = 1f..10f
 
 /**
+ * Bounds for [GestureSettings.sentenceWeight] (#1250): from the stroke alone
+ * (0) to twice the evidence the word pairs were measured at.
+ */
+val GlideSentenceWeightRange = 0f..2f
+
+/**
  * Bounds for [GestureSettings.loopMinArc], in key widths: the least path a
  * curl has to hold before it is a loop rather than tremor. Covers the band
  * `GlideTuningSweepTest` swept, 0.7 to 1.6, with room either side.
@@ -9906,6 +9912,14 @@ data class GestureSettings(
      */
     val loopStrength: Float = GlideBeam.Tuning.DEFAULT.unclaimedLoop,
     /**
+     * How much the words before the cursor count against a glide's own
+     * reading (#1250, [GlideBeam.Tuning.contextWeight]): at 0 the stroke
+     * alone decides, so a well-drawn word is never swapped for one that fits
+     * the sentence better; at 1, the default, a close call goes to the word
+     * that fits. Range [GlideSentenceWeightRange].
+     */
+    val sentenceWeight: Float = GlideBeam.Tuning.DEFAULT.contextWeight,
+    /**
      * Read a back-and-forth on a key — a scribble with no turn to it, which
      * is how some people mark a doubled letter — as that letter twice.
      *
@@ -10056,6 +10070,7 @@ fun GestureSettings.glideTuning(): GlideBeam.Tuning = GlideBeam.Tuning.DEFAULT.c
     loopMinArc = loopMinArc,
     loopRadius = loopRadius,
     unclaimedLoop = loopStrength,
+    contextWeight = sentenceWeight,
     wiggleExtent = if (wiggleDouble) wiggleExtent else 0f,
     wiggleWeight = if (wiggleDouble) wiggleWeight else 0f,
     shapeSeeding = shapeSeeding,
@@ -12695,6 +12710,7 @@ class SettingsRepository(private val context: Context) {
         private val GESTURE_DWELL_FULL = floatPreferencesKey("gesture_dwell_full")
         private val GESTURE_PAUSE_STRENGTH = floatPreferencesKey("gesture_pause_strength")
         private val GESTURE_LOOP_STRENGTH = floatPreferencesKey("gesture_loop_strength")
+        private val GESTURE_SENTENCE_WEIGHT = floatPreferencesKey("gesture_sentence_weight")
         private val GESTURE_LOOP_DOUBLE = booleanPreferencesKey("gesture_loop_double")
         private val GESTURE_LOOP_MIN_ARC = floatPreferencesKey("gesture_loop_min_arc")
         private val GESTURE_LOOP_EXTENT = floatPreferencesKey("gesture_loop_extent")
@@ -15088,6 +15104,8 @@ class SettingsRepository(private val context: Context) {
                 .coerceIn(GlidePauseStrengthRange),
             loopStrength = (p[GESTURE_LOOP_STRENGTH] ?: defaults.gesture.loopStrength)
                 .coerceIn(GlideLoopStrengthRange),
+            sentenceWeight = (p[GESTURE_SENTENCE_WEIGHT] ?: defaults.gesture.sentenceWeight)
+                .coerceIn(GlideSentenceWeightRange),
             loopDouble = p[GESTURE_LOOP_DOUBLE] ?: defaults.gesture.loopDouble,
             loopMinArc = p[GESTURE_LOOP_MIN_ARC] ?: defaults.gesture.loopMinArc,
             loopExtent = p[GESTURE_LOOP_EXTENT] ?: defaults.gesture.loopExtent,
@@ -23923,6 +23941,10 @@ class SettingsRepository(private val context: Context) {
     /** @see GestureSettings.loopStrength */
     suspend fun setGestureLoopStrength(value: Float) =
         editPrefs { it[GESTURE_LOOP_STRENGTH] = value.coerceIn(GlideLoopStrengthRange) }
+
+    /** @see GestureSettings.sentenceWeight */
+    suspend fun setGestureSentenceWeight(value: Float) =
+        editPrefs { it[GESTURE_SENTENCE_WEIGHT] = value.coerceIn(GlideSentenceWeightRange) }
 
     /** @see GestureSettings.loopDouble */
     suspend fun setGestureLoopDouble(value: Boolean) =

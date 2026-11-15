@@ -57,13 +57,12 @@ class GlideShapeStoreTest {
     }
 
     @Test
-    fun `a rejected shape goes once rejected more than accepted`() {
+    fun `a rejected shape goes once rejected as often as accepted`() {
         val store = GlideShapeStore(null)
         val base = flat(10)
         store.learn(GlideShapeSample(layout, base), "hello")
         assertFalse(store.reject(layout, "hello", near(base, 100)))
-        assertTrue(store.reject(layout, "hello", near(base, 1)))
-        assertEquals(1, store.countFor("hello"))
+        // Kept once, wrong once: gone (#1250).
         assertTrue(store.reject(layout, "hello", near(base, 1)))
         assertEquals(0, store.countFor("hello"))
         assertTrue(store.isEmpty())

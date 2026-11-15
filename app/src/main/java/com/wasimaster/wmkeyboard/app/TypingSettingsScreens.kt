@@ -104,6 +104,7 @@ import com.wasimaster.wmkeyboard.core.settings.GlideLoopExtentRange
 import com.wasimaster.wmkeyboard.core.settings.GlideLoopRadiusRange
 import com.wasimaster.wmkeyboard.core.settings.GlideLoopStrengthRange
 import com.wasimaster.wmkeyboard.core.settings.GlidePauseStrengthRange
+import com.wasimaster.wmkeyboard.core.settings.GlideSentenceWeightRange
 import com.wasimaster.wmkeyboard.core.settings.GlideWiggleExtentRange
 import com.wasimaster.wmkeyboard.core.settings.GlideKeptStrokesRange
 import com.wasimaster.wmkeyboard.core.settings.GlideShapesPerWordRange
@@ -4822,6 +4823,20 @@ private fun SettingsGroupScope.glideIntentRows(
             info = stringResource(R.string.typing_glide_pause_strength_info),
             default = SettingsDefaults.gesture.pauseStrength,
         ) { scope.launch { repository.setGesturePauseStrength(it) } }
+    }
+    // How much the sentence counts against the stroke (#1250): at 0 the
+    // stroke alone decides, the "gesture is king" a careful hand asked for.
+    item {
+        val valueFormat = stringResource(R.string.typing_value_multiplier_suffix)
+        SliderSetting(
+            R.string.typing_glide_sentence_weight_title,
+            subtitle = stringResource(R.string.typing_glide_sentence_weight_subtitle),
+            value = settings.watch { it.gesture.sentenceWeight },
+            range = GlideSentenceWeightRange,
+            display = { valueFormat.format("%.1f".format(it)) },
+            info = stringResource(R.string.typing_glide_sentence_weight_info),
+            default = SettingsDefaults.gesture.sentenceWeight,
+        ) { scope.launch { repository.setGestureSentenceWeight(it) } }
     }
     // The circle, and the three things that decide whether a curl is one.
     item {

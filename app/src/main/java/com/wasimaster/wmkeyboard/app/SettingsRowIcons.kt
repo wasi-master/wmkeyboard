@@ -1323,6 +1323,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_glide_language_radii_title) { Icons.Outlined.Translate }
         put(R.string.typing_glide_dwell_title) { Icons.Outlined.Timer }
         put(R.string.typing_glide_pause_strength_title) { Icons.Outlined.LineWeight }
+        put(R.string.typing_glide_sentence_weight_title) { Icons.Outlined.LineWeight }
         put(R.string.typing_glide_loop_title) { Icons.Outlined.Loop }
         put(R.string.typing_glide_loop_arc_title) { Icons.Outlined.Tune }
         put(R.string.typing_glide_loop_extent_title) { Icons.Outlined.ZoomOutMap }

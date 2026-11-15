@@ -418,6 +418,15 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         val learnedShapeGain: Double = 0.15,
         val shapeSeeding: Boolean = false,
         /**
+         * How much the words before the cursor count against a single
+         * stroke's own reading, as a multiple of the evidence the n-grams give
+         * (#1250): 1 is what was measured (`glide_context_eval`, .8940 with
+         * the pack alone against .8797 for the stroke alone), 0 lets the
+         * stroke alone decide, 2 leans on the sentence. Read on the Kotlin
+         * side only (the context lift), never sent to the native decoder.
+         */
+        val contextWeight: Float = 1f,
+        /**
          * How much the whole stroke's *shape* counts, once its size and position
          * are taken out of it.
          *

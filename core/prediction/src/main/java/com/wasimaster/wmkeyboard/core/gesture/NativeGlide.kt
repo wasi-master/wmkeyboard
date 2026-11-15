@@ -96,7 +96,27 @@ internal object NativeGlide {
         } else {
             null
         }
-        return candidates(PredictionNative.glideFinish(words, stored, seeds))
+        val finished = candidates(PredictionNative.glideFinish(words, stored, seeds))
+        return if (seeds.isNullOrEmpty()) finished else strokeWinsTies(finished, words, readCount)
+    }
+
+    /**
+     * A seeded word scores exactly the leader's score, and the native sort
+     * broke that tie by the alphabet (#1250): one stroke of "more" kept under
+     * "me" was enough for "me" to lead every later "more". The stroke's own
+     * reading now wins a tie, so a seed sits beside it on the strip, one tap
+     * away, instead of in front of it.
+     */
+    private fun strokeWinsTies(
+        finished: List<GlideBeam.Candidate>,
+        walkedWords: Array<String>,
+        readCount: Int,
+    ): List<GlideBeam.Candidate> {
+        val read = HashMap<String, Int>(readCount * 2)
+        for (i in 0 until minOf(readCount, walkedWords.size)) read.putIfAbsent(walkedWords[i], i)
+        return finished.sortedWith(
+            compareByDescending<GlideBeam.Candidate> { it.score }.thenBy { read[it.word] ?: Int.MAX_VALUE },
+        )
     }
 
     /** The sources as `glide.rs` takes them, or null when one has no Rust twin. */

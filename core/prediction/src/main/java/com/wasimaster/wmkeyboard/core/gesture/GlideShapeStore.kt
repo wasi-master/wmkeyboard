@@ -71,7 +71,7 @@ class GlideShapeSample(val layoutKey: Long, val shape: ByteArray)
  * acceptance, further off it is a new way of drawing the word and is added,
  * up to the user's limit ([setShapesPerWord], three unless they moved it),
  * the least-accepted making room. A glide the user undoes or replaces marks
- * the shape that matched it rejected, and a shape rejected more often than
+ * the shape that matched it rejected, and a shape rejected as often as
  * accepted goes.
  *
  * Bounded at [MAX_WORDS] words across every layout, the longest untouched
@@ -307,8 +307,9 @@ class GlideShapeStore(private val storageFile: File?) {
     /**
      * A glide read as [word] and drawn as [drawn] was undone or replaced: the
      * stored shape that matched it, if one did within [REJECT_RADIUS], counts
-     * a rejection, and goes once rejected more often than accepted. True
-     * when a shape was marked.
+     * a rejection, and goes once rejected as often as accepted. A wrong shape
+     * kept once goes at the first undo (#1250); it took two, and a wrong
+     * shape kept N times took N + 1. True when a shape was marked.
      */
     @Synchronized
     fun reject(layoutKey: Long, word: String, drawn: ByteArray): Boolean {
@@ -320,7 +321,7 @@ class GlideShapeStore(private val storageFile: File?) {
         tick++
         entry.tick = tick
         nearest.rejected++
-        if (nearest.rejected > nearest.accepted) entry.shapes.remove(nearest)
+        if (nearest.rejected >= nearest.accepted) entry.shapes.remove(nearest)
         if (entry.shapes.isEmpty()) words.remove(key)
         if (words.isEmpty()) layouts.remove(layoutKey)
         settle()
