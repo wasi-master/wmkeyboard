@@ -52188,7 +52188,7 @@ open class WMKeyboardService : InputMethodService() {
     fun onNoteOpen(id: Long) {
         vibrate()
         if (noteStore.item(id) == null) return
-        publishNotes { it.copy(open = id, readExpanded = false, held = null, confirm = null) }
+        publishNotes { it.copy(open = id, readExpanded = false, readFrom = null, held = null, confirm = null) }
         _uiState.update { it.copy(panelFocus = null) }
     }
 
@@ -52199,7 +52199,7 @@ open class WMKeyboardService : InputMethodService() {
             notes.editing != null -> onNoteEditDone()
             notes.open != null -> {
                 vibrate()
-                publishNotes { it.copy(open = null, readExpanded = false, confirm = null) }
+                publishNotes { it.copy(open = null, readExpanded = false, readFrom = null, confirm = null) }
                 _uiState.update { it.copy(panelFocus = null) }
             }
             else -> onPanelChange(PanelMode.NOTES)
@@ -52501,8 +52501,16 @@ open class WMKeyboardService : InputMethodService() {
      */
     fun onNotePassageEdit(hit: NotePassageHit) {
         val note = noteStore.item(hit.noteId) ?: return
-        if (note.locked || note.body.length > NoteEdit.EDITOR_MAX_LENGTH) {
+        if (note.locked) {
             onNoteOpen(note.id)
+            return
+        }
+        // Too long for the editor: it opens to read, at the passage's line
+        // rather than the top of the note (#1099).
+        if (note.body.length > NoteEdit.EDITOR_MAX_LENGTH) {
+            val at = NotesLogic.passageOffset(note.body, hit.text, hit.matchStart)
+            onNoteOpen(note.id)
+            publishNotes { it.copy(readFrom = NotesLogic.readStartFor(note.body, at)) }
             return
         }
         val at = NotesLogic.passageOffset(note.body, hit.text, hit.matchStart)

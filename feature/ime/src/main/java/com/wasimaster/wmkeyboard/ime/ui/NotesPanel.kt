@@ -1732,7 +1732,21 @@ private fun NotesReadView(
                     modifier = Modifier.fillMaxWidth().clickable { if (!note.inTrash) callbacks.onEditStart(note.id, null) },
                 )
                 else -> {
-                    val body = remember(note.body, showAll) { if (showAll) note.body else readPrefix(note.body) }
+                    // Opened at a passage (#1099): the body from a few lines
+                    // above it, with a way back to the top.
+                    val from = state.notes.readFrom?.takeIf { state.notes.open == note.id }
+                        ?.coerceIn(0, note.body.length) ?: 0
+                    var fromTop by rememberSaveable(note.id, from) { mutableStateOf(from == 0) }
+                    val start = if (fromTop) 0 else from
+                    val lineShift = remember(note.body, start) { note.body.subSequence(0, start).count { it == '\n' } }
+                    if (start > 0) {
+                        ToolPanelChip(stringResource(R.string.ime_notes_show_from_start_action)) { fromTop = true }
+                        Spacer(Modifier.height(6.dp))
+                    }
+                    val body = remember(note.body, showAll, start) {
+                        val rest = if (start > 0) note.body.substring(start) else note.body
+                        if (showAll) rest else readPrefix(rest)
+                    }
                     val editable = !note.inTrash && note.body.length <= NoteEdit.EDITOR_MAX_LENGTH
                     // A long press selects, with Copy, Insert and Ask AI on its bar, as in Wikipedia.
                     val title = note.displayTitle()
@@ -1743,8 +1757,8 @@ private fun NotesReadView(
                             body,
                             ChatMarkdownColors(text = kb.modifierKeyText, dim = kb.secondaryText, codeBackground = kb.chip, link = kb.accent),
                             fontSize = 13.sp,
-                            onTaskToggle = if (note.inTrash) null else ({ task -> callbacks.onTaskToggle(note.id, task.line) }),
-                            onBlockTap = if (editable) ({ block -> callbacks.onEditStart(note.id, block.line) }) else null,
+                            onTaskToggle = if (note.inTrash) null else ({ task -> callbacks.onTaskToggle(note.id, task.line + lineShift) }),
+                            onBlockTap = if (editable) ({ block -> callbacks.onEditStart(note.id, block.line + lineShift) }) else null,
                             selectable = true,
                             ask = ask,
                         )
@@ -1759,7 +1773,7 @@ private fun NotesReadView(
                             onTap = if (editable) ({ callbacks.onEditStart(note.id, null) }) else null,
                         )
                     }
-                    if (!showAll && body.length < note.body.length) {
+                    if (!showAll && body.length < note.body.length - start) {
                         Spacer(Modifier.height(6.dp))
                         ToolPanelChip(stringResource(R.string.ime_notes_show_more_action)) { showAll = true }
                     }

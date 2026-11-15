@@ -141,6 +141,12 @@ data class NotesPanelUi(
     /** The read view grew to the screen's share (#348's expand). */
     val readExpanded: Boolean = false,
     /**
+     * Where in [open]'s body the read view starts (#1099): a held passage in a
+     * note too long for the editor opens to read at the line it is on, not at
+     * the top of 90,000 characters. Null, or 0, reads from the start.
+     */
+    val readFrom: Int? = null,
+    /**
      * Opened by the Quick note action (#864): the editor carries a row of the
      * latest notes, [recent], to switch to one and add to it. For this visit
      * only; the plain Notes tool opens without it.
@@ -374,6 +380,24 @@ object NotesLogic {
         if (at < 0) return body.length
         return (at + matchStart).coerceIn(0, body.length)
     }
+
+    /**
+     * Where the read view starts for a passage at [offset] in [body] (#1099):
+     * the start of the line [LINES_BEFORE_PASSAGE] lines above it, so the
+     * match comes with a little of what leads up to it.
+     */
+    fun readStartFor(body: String, offset: Int): Int {
+        var at = offset.coerceIn(0, body.length)
+        repeat(LINES_BEFORE_PASSAGE + 1) {
+            if (at <= 0) return 0
+            val nl = body.lastIndexOf('\n', at - 1)
+            if (nl < 0) return 0
+            at = nl
+        }
+        return at + 1
+    }
+
+    private const val LINES_BEFORE_PASSAGE = 2
 
     /** The UTF-16 offset where line [line] of [body] starts; the end for a line past the last. */
     fun lineStartOffset(body: String, line: Int): Int {

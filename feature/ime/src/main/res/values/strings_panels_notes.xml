@@ -53,6 +53,7 @@
     <string name="ime_notes_empty_trash_action">Empty trash</string>
     <string name="ime_notes_confirm_action">Tap again to confirm</string>
     <string name="ime_notes_show_more_action">Show more</string>
+    <string name="ime_notes_show_from_start_action">Show from the start</string>
     <!-- The shelf (#560): the header's round search button, the pinned row's label, and the floating pill that starts a note. -->
     <string name="ime_notes_search_desc">Search notes</string>
     <string name="ime_notes_pinned_section">Pinned</string>
