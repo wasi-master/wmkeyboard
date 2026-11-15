@@ -28,7 +28,7 @@ contributed by saen1a in #966 and #1208.
 |---|---|---|---|---|---|
 | Default (every other id) | 1.0 | 1.0 | 1.33 | off | off |
 | English (`en`) | 1.0 | 1.0 | 1.33 | off | 0.7 / 3.0 small list, 0.5 / 5.0 large list (listed words only) |
-| German (`de`) | 0.75 | 0.5 | 2.0 | 8.0 / 4 letters / 0.1 | 0.5 / 5.0 on both list sizes |
+| German (`de`) | 0.75 | 0.5 | 2.0 | 8.0 / 4 letters / 0.1, linking letters at 0.5 | 0.5 / 5.0 on both list sizes |
 | Finnish (`fi`) | 0.75 | 0.75 | 2.0 | off | off |
 | Estonian (`et`) | 0.75 | 0.75 | 2.0 | off | off |
 | Hungarian (`hu`) | 0.75 | 0.75 | 2.0 | off | off |
@@ -144,8 +144,20 @@ layouts:
 | Array | Read as |
 |---|---|
 | `[2, 32, fields...]` | the envelope, fields from index 2 |
+| `[2, 33, fields...]` | the envelope with `joinLinkCost` as the 33rd field (library version 4) |
+| 33 values | the 30 fields, both budgets and `joinLinkCost` |
 | 32 values | the 30 fields plus both budgets |
 | 30 values | the 30 fields, budgets at their defaults |
+
+`joinLinkCost` (`join_link_cost`) is the price of a linking letter between two
+joined parts: `s` after a part that doesn't end in `s`, `n` after one that ends in
+`e`. The letter takes its key in the alignment and the next part starts from the
+trie root after it. Infinite reads none, which is every row but German's (0.5).
+Measured with `glide_cases` on 12 compounds held out of the 150k German list, this
+profile, QWERTZ, the compound guard applied by hand: 2 of 12 read first with no
+links, 4 at 1.0, 6 at 0.5 and at 0; 24 listed words unchanged at every cost.
+`NativeGlide` sends the 33rd field in the envelope only to a library reporting
+`glideTuningVersion` 4 or later, since an older one reads only a 32-field envelope.
 
 `maxPops` is clamped to at least 1 and `maxStates` to 1..`MAX_STATES`. A library
 built before the envelope has no `glideTuningVersion`; `NativeGlide` catches the

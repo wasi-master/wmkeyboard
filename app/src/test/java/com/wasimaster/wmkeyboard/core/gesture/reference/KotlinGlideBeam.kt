@@ -437,6 +437,39 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
                         ws.copyColumn(s, id)
                     }
                 }
+                // A linking letter between the parts, drawn on the stroke
+                // (`wm-engine`'s `join_link_cost`): s after a part not ending
+                // in s, n after one ending in e.
+                if (tuning.joinLinkCost.isFinite() && length + 1 + tuning.joinMinPart <= n) {
+                    val lastCp = ws.letterCp[s]
+                    val links = listOfNotNull('s'.takeIf { lastCp != 's'.code }, 'n'.takeIf { lastCp == 'e'.code })
+                    for (link in links) {
+                        val key = keys.keyIndex(link.code)
+                        if (key < 0 || key >= keys.keyCount || !ws.nearKey[key]) continue
+                        if (bound - tuning.joinLinkCost < floor - EPS) continue
+                        val minCol = advance(ws, prevColumn = ws.columnOf(s), key = key, prevKey = lastKey, keys = keys)
+                        if (minCol >= KotlinGlideWorkspace.UNREACHABLE) continue
+                        val linkBound = src.rankWeight +
+                            tuning.freqWeight * src.scale.ln1p(lmCap(cap, walker.maxSubtree(walker.root))) -
+                            tuning.shapeWeight * (minCol + extra) -
+                            joinCharge(joins + 1) -
+                            ws.joinPenalty[s] -
+                            partPenalty -
+                            tuning.joinLinkCost
+                        if (linkBound < floor - EPS) continue
+                        val id = ws.push(
+                            node = walker.root, parent = s, viaLabel = link, lastKey = key,
+                            length = length + 1, extra = extra, floorCost = minCol, bound = linkBound,
+                            letterCp = link.code,
+                        )
+                        if (id < 0) break
+                        ws.join(
+                            id, partFreq = cap, partFrom = length + 1, joins = joins + 1,
+                            joinPenalty = ws.joinPenalty[s] + partPenalty + tuning.joinLinkCost,
+                        )
+                        ws.storeScratch(id)
+                    }
+                }
             }
 
             val count = walker.childrenInto(node, ws.children)

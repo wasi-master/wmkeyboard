@@ -84,6 +84,13 @@ pub struct Tuning {
     pub join_cost: f64,
     pub join_min_part: i32,
     pub join_part_penalty: f64,
+    /// What a linking letter costs at a compound join, in nats, on top of
+    /// the join itself (#966): German puts an `s` between some parts
+    /// (Arbeit-s-zeit) and an `n` after a part ending in `e`
+    /// (Sonne-n-schein), and the stroke draws that letter. Infinite, the
+    /// default, reads no linking letters, so every decode without them is
+    /// the old one.
+    pub join_link_cost: f64,
     /// Runaway backstop on the pops one decode reads; floor pruning ends a
     /// healthy walk far earlier. Clamped to at least 1 at use.
     pub max_pops: usize,
@@ -126,6 +133,7 @@ impl Default for Tuning {
             join_cost: f64::INFINITY,
             join_min_part: MIN_JOIN_PART,
             join_part_penalty: 0.0,
+            join_link_cost: f64::INFINITY,
             max_pops: MAX_POPS,
             max_states: workspace::MAX_STATES,
         }
@@ -292,6 +300,15 @@ pub const SHAPE_QUANT: f32 = 10.0;
 /// of its finished parts' (`cap`, `workspace::NO_PART` for none) and `f`, the current
 /// part's or its subtree's. `f` itself for a plain word, so the plain
 /// decode's arithmetic is untouched.
+/// The linking letters a compound may take after a part whose last letter
+/// is `last_cp`: `s` after any part but one ending in `s`, and `n` after one
+/// ending in `e` (#966).
+fn linking_letters(last_cp: i32) -> impl Iterator<Item = u16> {
+    let s = (last_cp != 's' as i32).then_some('s' as u16);
+    let n = (last_cp == 'e' as i32).then_some('n' as u16);
+    s.into_iter().chain(n)
+}
+
 fn lm_cap(cap: i32, f: i32) -> i32 {
     if f < cap {
         f
@@ -808,6 +825,46 @@ impl Decoder {
                         self.ws.joins[id] = joins + 1;
                         self.ws.join_penalty[id] = self.ws.join_penalty[s] + part_penalty;
                         self.ws.copy_column(s, id);
+                    }
+                }
+                // A linking letter between the parts (Arbeit-s-zeit,
+                // Sonne-n-schein): drawn on the stroke, so it takes its key
+                // in the alignment like any letter, and the next part is
+                // read from the root after it. It pays `join_link_cost`
+                // beside the join's own charges.
+                if tuning.join_link_cost.is_finite() && (length + 1 + tuning.join_min_part) as usize <= n {
+                    let last_cp = self.ws.letter_cp[s];
+                    for link in linking_letters(last_cp) {
+                        let key = keys.key_index(link as i32);
+                        if key < 0 || key as usize >= key_count || !self.ws.near_key[key as usize] {
+                            continue;
+                        }
+                        let link_bound = bound - tuning.join_link_cost;
+                        if link_bound < floor - EPS {
+                            continue;
+                        }
+                        let min_col = self.advance(Some(s), key as usize, last_key, keys, None);
+                        if min_col >= UNREACHABLE {
+                            continue;
+                        }
+                        let bound = src.log_weight
+                            + tuning.freq_weight * src.scale.ln1p(lm_cap(cap, walker.max_subtree(root)))
+                            - tuning.shape_weight * (min_col + extra) as f64
+                            - tuning.join_charge(joins + 1)
+                            - self.ws.join_penalty[s]
+                            - part_penalty
+                            - tuning.join_link_cost;
+                        if bound < floor - EPS {
+                            continue;
+                        }
+                        let Some(id) = self.ws.push(root, s as i32, link, key, length + 1, extra, min_col, bound, link as i32) else {
+                            break;
+                        };
+                        self.ws.part_freq[id] = cap;
+                        self.ws.part_from[id] = length + 1;
+                        self.ws.joins[id] = joins + 1;
+                        self.ws.join_penalty[id] = self.ws.join_penalty[s] + part_penalty + tuning.join_link_cost;
+                        self.ws.store_scratch(id);
                     }
                 }
             }

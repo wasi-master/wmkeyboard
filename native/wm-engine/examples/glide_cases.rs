@@ -97,6 +97,10 @@ fn set(t: &mut Tuning, name: &str, value: f64) -> bool {
         "end_radius" => t.end_radius = value as f32,
         "near_radius" => t.near_radius = value as f32,
         "look_ahead_cost" => t.look_ahead_cost = value,
+        "join_cost" => t.join_cost = value,
+        "join_min_part" => t.join_min_part = value as i32,
+        "join_part_penalty" => t.join_part_penalty = value,
+        "join_link_cost" => t.join_link_cost = value,
         _ => return false,
     }
     true

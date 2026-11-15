@@ -40,13 +40,19 @@ internal object NativeGlide {
             endRadius.toDouble(), nearRadius.toDouble(), vocabularyRank.toDouble(), lookAheadCost,
             lookAheadBudget.toDouble(), joinerCost.toDouble(), freqWeight, joinCost,
             joinMinPart.toDouble(), joinPartPenalty,
-            maxPops.toDouble(), maxStates.toDouble(),
+            maxPops.toDouble(), maxStates.toDouble(), joinLinkCost,
         )
     }
 
-    /** [tuning] with the `[version, count, fields...]` envelope when the library reads it. */
+    /**
+     * [tuning] with the `[version, count, fields...]` envelope when the library
+     * reads it. A library before version 4 reads an envelope of exactly the
+     * first 32 fields, so the link cost goes only to one that reads it; the
+     * bare array is read as far as a library knows, so it can carry it.
+     */
     private fun tuningValues(tuning: GlideBeam.Tuning): DoubleArray {
-        val fields = tuningArray(tuning)
+        val all = tuningArray(tuning)
+        val fields = if (tuningVersion >= LINK_VERSION) all else all.copyOf(ENVELOPE_FIELDS)
         return if (tuningVersion >= 2) doubleArrayOf(2.0, fields.size.toDouble()) + fields else fields
     }
 
@@ -321,4 +327,10 @@ internal object NativeGlide {
 
     /** The first `glideTuningVersion` that reads the sources' ranking scales. */
     private const val SCALES_VERSION = 3
+
+    /** The first `glideTuningVersion` that reads a 33rd tuning field, the link cost, in the envelope. */
+    private const val LINK_VERSION = 4
+
+    /** The fields an envelope before [LINK_VERSION] holds. */
+    private const val ENVELOPE_FIELDS = 32
 }

@@ -83,6 +83,8 @@ object GlideLanguageProfiles {
         val joinCost: Double,
         val joinMinPart: Int,
         val joinPartPenalty: Double,
+        /** [GlideBeam.Tuning.joinLinkCost]; infinite, reading no linking letters, unless a row says otherwise. */
+        val joinLinkCost: Double = Double.POSITIVE_INFINITY,
         /** Decoder nats per nat the context model prefers a stroke's candidate over the first it can read. */
         val lmBlend: Double = DEFAULT_LM_BLEND,
         /** The most [lmBlend] moves a candidate either way. */
@@ -115,13 +117,13 @@ object GlideLanguageProfiles {
             val weight = if (hasContext) freqWeightWithContext else freqWeight
             return if (tuning.freqWeight == weight && tuning.gapWeight == gapWeight &&
                 tuning.joinCost == joinCost && tuning.joinMinPart == joinMinPart &&
-                tuning.joinPartPenalty == joinPartPenalty
+                tuning.joinPartPenalty == joinPartPenalty && tuning.joinLinkCost == joinLinkCost
             ) {
                 tuning
             } else {
                 tuning.copy(
                     freqWeight = weight, gapWeight = gapWeight, joinCost = joinCost,
-                    joinMinPart = joinMinPart, joinPartPenalty = joinPartPenalty,
+                    joinMinPart = joinMinPart, joinPartPenalty = joinPartPenalty, joinLinkCost = joinLinkCost,
                 )
             }
         }
@@ -159,6 +161,12 @@ object GlideLanguageProfiles {
         joinCost = 8.0,
         joinMinPart = 4,
         joinPartPenalty = 0.1,
+        // Arbeit-s-zeit, Sonne-n-schein (#966). On synthetic strokes of 12
+        // compounds held out of the 150k list (glide_cases, this profile),
+        // with the compound lexicon's guard applied: 2 read right without
+        // linking letters, 4 at 1.0, 6 at 0.5 and at 0; 24 listed words read
+        // exactly as before at every cost. Real German strokes not re-run.
+        joinLinkCost = 0.5,
         lmBlend = 0.5,
         lmBlendCap = 5.0,
         glideLmBlend = 0.5,

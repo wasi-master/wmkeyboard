@@ -174,3 +174,40 @@ fn the_guard_at_its_defaults_is_the_unguarded_decode_to_the_bit() {
         assert_eq!(decode(&mut unguarded, &trie, &path), decode(&mut explicit, &trie, &path), "{word}");
     }
 }
+
+#[test]
+fn a_linking_letter_joins_two_parts_only_when_priced() {
+    // arbeit + s + platz: the s is drawn, and no part holds it.
+    let trie = list();
+    let path = swipe("arbeitsplatz");
+    let mut unlinked = Decoder::new(Tuning { join_cost: 2.0, ..Tuning::default() });
+    assert!(Tuning::default().join_link_cost.is_infinite());
+    let plain = decode(&mut unlinked, &trie, &path);
+    assert!(plain.iter().all(|c| word_of(c) != "arbeitsplatz"), "{:?}", plain.iter().map(word_of).collect::<Vec<_>>());
+    let mut linked = Decoder::new(Tuning { join_cost: 2.0, join_link_cost: 0.5, ..Tuning::default() });
+    let found = decode(&mut linked, &trie, &path);
+    assert_eq!(found.first().map(word_of).as_deref(), Some("arbeitsplatz"), "{:?}", found.iter().map(word_of).collect::<Vec<_>>());
+    // The link is priced: the joined reading scores the rarer part less the
+    // join and the link, and nothing more than that.
+    let top = &found[0];
+    let ceiling = (1.0 + frequency("platz").min(frequency("arbeit")) as f64).ln() - 2.0 - 0.5;
+    assert!(top.score <= ceiling + 1e-9, "{} over {ceiling}", top.score);
+}
+
+#[test]
+fn a_linking_n_follows_only_a_part_that_ends_in_e() {
+    let mut trie = UserTrie::new();
+    for (w, f) in [("sonne", 3000), ("schein", 2000), ("haus", 5000), ("acht", 2500)] {
+        trie.insert(w, f);
+    }
+    let mut linked = Decoder::new(Tuning { join_cost: 2.0, join_link_cost: 0.5, ..Tuning::default() });
+    let found = decode(&mut linked, &trie, &swipe("sonnenschein"));
+    assert_eq!(found.first().map(word_of).as_deref(), Some("sonnenschein"), "{:?}", found.iter().map(word_of).collect::<Vec<_>>());
+    // haus ends in s: no n links it to acht.
+    let found = decode(&mut linked, &trie, &swipe("hausnacht"));
+    assert!(found.iter().all(|c| word_of(c) != "hausnacht"), "{:?}", found.iter().map(word_of).collect::<Vec<_>>());
+    assert_eq!(
+        decode(&mut linked, &trie, &swipe("sonnenacht")).first().map(word_of).as_deref(),
+        Some("sonnenacht"),
+    );
+}

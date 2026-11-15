@@ -125,6 +125,7 @@ fn set(t: &mut Tuning, name: &str, value: f64) {
         "join_cost" => t.join_cost = value,
         "join_min_part" => t.join_min_part = value as i32,
         "join_part_penalty" => t.join_part_penalty = value,
+        "join_link_cost" => t.join_link_cost = value,
         _ => panic!("no tuning field {name}"),
     }
 }

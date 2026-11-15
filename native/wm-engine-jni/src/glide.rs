@@ -70,8 +70,9 @@ fn longs(env: &mut JNIEnv, a: &JLongArray) -> Option<Vec<i64>> {
 
 /// The tuning layout `glideTuningVersion` reports and `tuning` reads. 3
 /// says the same tuning layout as 2, plus each source's ranking scale
-/// appended to the decode's weights ([`SourceSpec::scale`]).
-const GLIDE_TUNING_VERSION: jint = 3;
+/// appended to the decode's weights ([`SourceSpec::scale`]). 4 takes a 33rd
+/// field, `join_link_cost`, in the envelope as in the bare array.
+const GLIDE_TUNING_VERSION: jint = 4;
 
 /// The first tuning version with the envelope; `tuning` reads it from any
 /// version from here to [`GLIDE_TUNING_VERSION`].
@@ -96,7 +97,7 @@ const FIRST_ENVELOPE_VERSION: jint = 2;
 fn tuning(v: &[f64]) -> Option<Tuning> {
     let fields: &[f64] = if v.len() >= 2
         && (FIRST_ENVELOPE_VERSION..=GLIDE_TUNING_VERSION).contains(&(v[0] as i32))
-        && v[1] as i32 == 32
+        && (v[1] as i32 == 32 || v[1] as i32 == 33)
     {
         &v[2..]
     } else {
@@ -136,6 +137,7 @@ fn tuning(v: &[f64]) -> Option<Tuning> {
         join_cost: fields[27],
         join_min_part: fields[28] as i32,
         join_part_penalty: fields[29],
+        join_link_cost: fields.get(32).copied().unwrap_or(f64::INFINITY),
         max_pops: fields.get(30).map_or(MAX_POPS, |&x| (x as usize).max(1)),
         max_states: fields.get(31).map_or(MAX_STATES, |&x| (x as usize).max(1).min(MAX_STATES)),
     })
@@ -697,6 +699,20 @@ mod tests {
         let t = tuning(&v).expect("a valid tuning");
         assert_eq!(2000, t.max_pops);
         assert_eq!(8192, t.max_states);
+    }
+
+    #[test]
+    fn the_link_cost_is_the_33rd_field_and_off_without_it() {
+        let mut v = vec![GLIDE_TUNING_VERSION as f64, 33.0];
+        v.extend_from_slice(&shipped_tuning());
+        v.extend_from_slice(&[2000.0, 8192.0, 0.5]);
+        assert_eq!(0.5, tuning(&v).expect("a valid tuning").join_link_cost);
+        // An envelope of the version-2 shape, and the bare 32 values, read none.
+        let mut old = vec![2.0, 32.0];
+        old.extend_from_slice(&shipped_tuning());
+        old.extend_from_slice(&[2000.0, 8192.0]);
+        assert!(tuning(&old).expect("a valid tuning").join_link_cost.is_infinite());
+        assert!(tuning(&old[2..]).expect("a valid tuning").join_link_cost.is_infinite());
     }
 
     #[test]

@@ -631,6 +631,15 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
          */
         val joinPartPenalty: Double = 0.0,
         /**
+         * What a linking letter between two joined parts costs, in nats, on
+         * top of [joinCost] (`wm-engine`'s `join_link_cost`): an `s` after a
+         * part that doesn't end in one (Arbeit-s-zeit), an `n` after one
+         * ending in `e` (Sonne-n-schein), drawn on the stroke. Infinite, the
+         * default, reads none. Sent only to a library that reads it
+         * (`glideTuningVersion` 4).
+         */
+        val joinLinkCost: Double = Double.POSITIVE_INFINITY,
+        /**
          * Runaway pop backstop for one decode, not a language weight: see
          * [GlideBeam.MAX_POPS]. A mid-swipe preview frame decodes under a
          * smaller budget (2,000 pops / 8,192 states) than the final lift
