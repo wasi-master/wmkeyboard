@@ -80,7 +80,7 @@ Landscape is the one exception, and it starts shorter rather than following port
 
 "Unfolded" isn't read from a fold sensor. It's decided by the screen's smallest dimension being at least 600dp, checked live as the configuration changes. That deliberately reads a phone turned sideways as still "not unfolded", since it's wide but still a phone. A large screen counts as "unfolded" however it's held, whether that's an opened foldable's inner display or a tablet that never folded at all. There's no separate "folded" state in the code. Portrait's values are what a folded or ordinary phone always used, which is why the settings screen's own caption calls portrait your "folded" size.
 
-Tap a shape's row to open its own page (before 0.6.7 the rows unfolded in place):
+Tap a shape's row to open its own page (before 0.6.8 the rows unfolded in place):
 
 - **Keyboard scale**, a whole-keyboard multiplier from 50% to 150%. It exists only on these three override shapes; portrait has no base scale of its own. It multiplies key height and number row height together, so a foldable's roomy inner display can run a smaller keyboard than its cover screen, or the reverse, without re-dialing each height by hand.
 - **Key height**, **Number row height** (if the number row is on), **Bottom padding**, **Keyboard width**, **Toolbar height**, **Font size**, **Key spacing**, **Left padding**, **Right padding**, **Bottom row height**, and, when width is under 100%, **Keyboard position**. Same ranges as their portrait counterparts above.
