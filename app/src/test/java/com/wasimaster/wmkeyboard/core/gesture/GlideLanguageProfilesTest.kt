@@ -16,6 +16,7 @@ class GlideLanguageProfilesTest {
         assertEquals(8.0, tuned.joinCost, 0.0)
         assertEquals(4, tuned.joinMinPart)
         assertEquals(0.1, tuned.joinPartPenalty, 0.0)
+        assertEquals(0.5, tuned.joinLinkCost, 0.0)
         // Nothing else moves.
         assertEquals(
             GlideBeam.Tuning.DEFAULT,
@@ -25,6 +26,7 @@ class GlideLanguageProfilesTest {
                 joinCost = Double.POSITIVE_INFINITY,
                 joinMinPart = GlideBeam.Tuning.DEFAULT.joinMinPart,
                 joinPartPenalty = GlideBeam.Tuning.DEFAULT.joinPartPenalty,
+                joinLinkCost = GlideBeam.Tuning.DEFAULT.joinLinkCost,
             ),
         )
     }
@@ -79,6 +81,16 @@ class GlideLanguageProfilesTest {
         // Regional ids resolve to the row; mixing in another list does not.
         assertSame(GlideLanguageProfiles.FINNISH, GlideLanguageProfiles.forLanguage("fi-FI"))
         assertSame(GlideBeam.Tuning.DEFAULT, GlideLanguageProfiles.tune(GlideBeam.Tuning.DEFAULT, "fi", mixed = true))
+    }
+
+    @Test
+    fun `japanese reads kana strokes on shape, with joins off`() {
+        val tuned = GlideLanguageProfiles.tune(GlideBeam.Tuning.DEFAULT, "ja")
+        assertEquals(0.25, tuned.freqWeight, 0.0)
+        assertEquals(GlideBeam.Tuning.DEFAULT.gapWeight, tuned.gapWeight, 0f)
+        assertEquals(Double.POSITIVE_INFINITY, tuned.joinCost, 0.0)
+        assertSame(GlideLanguageProfiles.JAPANESE, GlideLanguageProfiles.forLanguage("ja-JP"))
+        assertSame(GlideBeam.Tuning.DEFAULT, GlideLanguageProfiles.tune(GlideBeam.Tuning.DEFAULT, "ja", mixed = true))
     }
 
     @Test

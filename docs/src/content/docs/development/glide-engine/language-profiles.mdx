@@ -32,6 +32,7 @@ contributed by saen1a in #966 and #1208.
 | Finnish (`fi`) | 0.75 | 0.75 | 2.0 | off | off |
 | Estonian (`et`) | 0.75 | 0.75 | 2.0 | off | off |
 | Hungarian (`hu`) | 0.75 | 0.75 | 2.0 | off | off |
+| Japanese (`ja`) | 0.25 | 0.25 | 1.33 | off | off |
 
 Ids resolve by their language subtag, so `de-DE`, `de_AT` and `fi-FI` take their
 language's row. A field with another language's list mixed in (**Also suggest
@@ -77,6 +78,31 @@ start the 10.58 MB `fi_full` compound-lexicon download for every Finnish glide
 user, because `CompoundLexiconDownloads.supports` follows the profile's
 `joinCost`. `CompoundLexiconTest` asserts `supports` stays false for `fi`, `et`
 and `hu` so a row edit cannot start that download by accident.
+
+### Japanese: kana readings, synthetic strokes
+
+Only Kana JIS and 50 keys glide in Japanese, and their strokes spell kana
+readings out of `KanaGlide`, about fifty keys on the grid. No real Japanese swipes
+exist to fit against, so this row is the one measured on synthetic strokes alone,
+and it ships without the paired CI the other rows have. The setup: `glide_cases`
+with the JIS rows a key apart and 1.7 keys high, 600 readings drawn by their
+frequency in `ja_full`, four seeds each (2,400 decodes), read RAW as the app reads
+the kana source.
+
+| Weights | `freqWeight` 1.0 clean / sloppy | 0.5 | 0.25 | 0.15 |
+|---|---:|---:|---:|---:|
+| Table scores (`ja_kana`) | 73.00 / 66.33 | 84.38 / 77.67 | 90.33 / 84.04 | 92.33 / 85.88 |
+| Bundled reading counts | 82.33 / 79.04 | 89.38 / 86.08 | 92.88 / 89.58 | 93.79 / 89.33 |
+
+Clean strokes cut corners by 0.3 of a key with 0.06 tremor, sloppy ones 0.45 and
+0.12. The table's scores are `30000 - cost` from Mozc and overrate inflection
+pieces, so the counts (`ja_glide_counts.tsv`, 20,000 readings counted in `ja_full`
+through the furigana table) are bundled and read by `KanaGlide.spellings`. The
+row takes 0.25 rather than 0.15 because strokes drawn through the key centres
+flatter shape, and 0.15 already reads fewer of the sloppy ones. `gapWeight` 2.0
+cost at 0.25 (92.63 / 88.42). The test readings are drawn from the same corpus
+the counts come from, which favours the counts; the frequency weight moves the
+same way on the table's own scores.
 
 ### Measured and rejected
 

@@ -60,8 +60,18 @@ object KanaGlide {
      * The spellings and their weights. Each reading keeps the weight of the
      * commonest word behind it, and so does each spelling two readings fold
      * into (かき for both 書き and 鍵's かぎ).
+     *
+     * [counts] is how often each reading is written in running text
+     * (`ja_glide_counts.tsv`, the data repo's `build_ja_glide_counts.py`). A
+     * reading it lists weighs its count; any other weighs its table score's
+     * weight cut by [UNCOUNTED_SHARE], so a counted reading leads an
+     * uncounted one of the same shape. On synthetic Kana JIS strokes of 600
+     * readings drawn by corpus frequency (glide_cases, four seeds each), the
+     * counts read 92.9 % first against 90.3 % for the table's scores alone,
+     * and 89.6 % against 84.0 % on sloppier strokes, both at the Japanese
+     * glide profile's frequency weight.
      */
-    fun spellings(dict: ConversionDictionary): List<Pair<String, Int>> {
+    fun spellings(dict: ConversionDictionary, counts: Map<String, Int> = emptyMap()): List<Pair<String, Int>> {
         if (dict.isEmpty) return emptyList()
         val best = HashMap<String, Int>()
         fun keep(spelling: String, weight: Int) {
@@ -69,7 +79,10 @@ object KanaGlide {
         }
         dict.forEachRow(FLOOR) { reading, _, score ->
             if (reading.length < MIN_LENGTH || !reading.all(::isReadingChar)) return@forEachRow
-            val weight = weight(score)
+            val weight = when {
+                counts.isEmpty() -> weight(score)
+                else -> counts[reading] ?: (weight(score) / UNCOUNTED_SHARE).coerceAtLeast(1)
+            }
             keep(unmarked(reading), weight)
             if (score >= DRAWN_FLOOR) {
                 drawn(reading)?.let {
@@ -126,14 +139,29 @@ object KanaGlide {
     private fun isReadingChar(c: Char): Boolean = c in 'ぁ'..'ゖ' || c == 'ー'
 
     /**
+     * [spellings]' counts, read from `reading<TAB>count` lines. A line that
+     * isn't one is skipped.
+     */
+    fun readCounts(lines: Sequence<String>): Map<String, Int> {
+        val counts = HashMap<String, Int>()
+        for (line in lines) {
+            val tab = line.indexOf('\t')
+            if (tab <= 0) continue
+            val count = line.substring(tab + 1).trim().toIntOrNull() ?: continue
+            counts[line.substring(0, tab)] = count
+        }
+        return counts
+    }
+
+    /**
      * A table score as a word count. `ja_kana` carries `30000 - cost` from
      * Mozc, and a Mozc cost is about 500 × −ln p, so the score is already a
      * logarithm: taken as it stands, 学校 (26742) and a rare given name
      * (23287) would sit 0.14 apart once the decoder takes its own log, and a
      * swipe would be decided by shape alone. Undone here, the gap is the one
      * the two words really have, which is the kind of number the decoder's
-     * weights were set against. Re-check this if the pack is ever rebuilt on
-     * real counts (see `build_mozc_ja_kana.py` in the data repo).
+     * weights were set against. With the corpus counts loaded these weights
+     * only order the readings the counts leave out.
      *
      * Scores above [CEILING] all weigh the same. The top of the table is where
      * the pack is least honest: its 1,280 rows at a full 30000 are mostly
@@ -152,6 +180,14 @@ object KanaGlide {
      * like with room to spare. A reading below it still converts when tapped.
      */
     private const val FLOOR = 24_000
+
+    /**
+     * How far below its own weight an uncounted reading sits when [spellings]
+     * has counts: the counts run to about 216,000 and the table's weights to
+     * about 3,000, so a reading the corpus never wrote lands under nearly
+     * every one it did.
+     */
+    private const val UNCOUNTED_SHARE = 30
 
     /** Readings this common also get their marks-drawn spelling ([drawn]). */
     private const val DRAWN_FLOOR = 25_000

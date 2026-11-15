@@ -18255,7 +18255,14 @@ open class WMKeyboardService : InputMethodService() {
         val table = CjkDictionaries.japanese
         if (table.isEmpty || kanaGlideTable === table || kanaGlideJob?.isActive == true) return
         kanaGlideJob = serviceScope.launch {
-            val trie = withContext(Dispatchers.Default) { PackedTrie.of(KanaGlide.spellings(table)) }
+            val trie = withContext(Dispatchers.Default) {
+                // How often each reading is written (bundled, 320 KB); without
+                // it the table's own scores weigh the readings.
+                val counts = runCatching {
+                    assets.open("dictionaries/ja_glide_counts.tsv").bufferedReader().useLines(KanaGlide::readCounts)
+                }.getOrDefault(emptyMap())
+                PackedTrie.of(KanaGlide.spellings(table, counts))
+            }
             kanaGlideTable = table
             romanizedGlides = romanizedGlides +
                 (KANA_GLIDE to RomanizedIndex.deterministic(trie, PackedTrie.EMPTY, KanaGlide.KEYS, KanaGlide::reading))

@@ -228,6 +228,36 @@ object GlideLanguageProfiles {
     )
 
     /**
+     * Japanese: Kana JIS strokes spell readings ([KanaGlide][com.wasimaster.wmkeyboard.core.input.composer.KanaGlide]),
+     * fifty keys on a grid built for ten, where many readings share a shape
+     * and the reading weights spread far wider than a word list's. No real
+     * Japanese swipes exist to fit against, so this row is measured on
+     * synthetic strokes (glide_cases, the JIS rows a key apart and 1.7 keys
+     * high): 600 readings drawn by their frequency in `ja_full`, four seeds
+     * each, read with the bundled reading counts. Read first:
+     *
+     *     freqWeight         clean strokes   sloppy strokes
+     *     1.0 (default)        82.3 %           79.0 %
+     *     0.5                  89.4 %           86.1 %
+     *     0.25                 92.9 %           89.6 %
+     *     0.15                 93.8 %           89.3 %
+     *
+     * (clean: corners cut 0.3 key, tremor 0.06; sloppy: 0.45 and 0.12.) The
+     * table's own scores without the counts go 73.0 % to 90.3 % clean and
+     * 66.3 % to 84.0 % sloppy for the same move. 0.25 rather than 0.15: the
+     * strokes are drawn through the key centres, which flatters shape, and
+     * 0.15 already reads fewer of the sloppy strokes. The gap weight at 2.0
+     * costs at 0.25 (92.6 % / 88.4 %), and joins stay off.
+     */
+    val JAPANESE = Profile(
+        freqWeight = 0.25,
+        gapWeight = GlideBeam.Tuning.DEFAULT.gapWeight,
+        joinCost = GlideBeam.Tuning.DEFAULT.joinCost,
+        joinMinPart = GlideBeam.Tuning.DEFAULT.joinMinPart,
+        joinPartPenalty = GlideBeam.Tuning.DEFAULT.joinPartPenalty,
+    )
+
+    /**
      * English: the decoder defaults are its fit. The small bundled list uses
      * 0.7/3.0 with pieces: +4.9 top-1 on the original 2,129/1,824 hard slice,
      * +3.25 on the full 26,523 public set. The large list uses 0.5/5.0 on
@@ -257,6 +287,7 @@ object GlideLanguageProfiles {
         "et" to ESTONIAN,
         "fi" to FINNISH,
         "hu" to HUNGARIAN,
+        "ja" to JAPANESE,
     )
 
     /**
