@@ -184,6 +184,15 @@ interface Composer {
     fun buffersChar(c: Char, composing: CharSequence): Boolean = buffersChar(c)
 
     /**
+     * Whether a key that types several characters at once goes into the buffer
+     * whole rather than ending the word. Only a method whose rules read what
+     * came before, keyed in the script itself, needs it: KaChaTaThaPa's క్ష on
+     * the hold of స has to stay in the buffer for the ి typed after it to
+     * become క్షి. Everywhere else such a key is text, typed as it is.
+     */
+    fun buffersText(text: String, composing: CharSequence): Boolean = false
+
+    /**
      * Whether [word] is shaped like a word of this composer's script, and so
      * worth remembering when no dictionary has heard of it.
      *

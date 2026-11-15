@@ -15399,7 +15399,10 @@ open class WMKeyboardService : InputMethodService() {
                         !state.layouts.ambiguousKeys
                     )
             )
-        val isWordChar = singleWordChar || clusterContinuation
+        // A several-letter key on a board whose rules read the letters before
+        // the next one (KaChaTaThaPa's క్ష): it joins the word like a letter.
+        val spelledText = text.length > 1 && state.composer.buffersText(text, composing)
+        val isWordChar = singleWordChar || clusterContinuation || spelledText
         // Avro is a transliterating input method: its composing must run even
         // in password fields and with the strip off, or the roman keys commit
         // untransliterated and no Bengali is produced. English composing

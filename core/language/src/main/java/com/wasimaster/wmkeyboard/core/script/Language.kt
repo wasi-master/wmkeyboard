@@ -813,6 +813,7 @@ object LanguageRegistry {
                 BuiltInLayouts.TE_TRANSLITERATION_ID,
                 AssetLayouts.TE_PHONETIC_KEYS_ID,
                 AssetLayouts.TE_APPLE_ID,
+                AssetLayouts.TE_KACHATATHAPA_ID,
             ),
         ),
         LanguageDef(

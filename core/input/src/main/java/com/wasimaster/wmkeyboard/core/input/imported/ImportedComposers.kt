@@ -266,8 +266,18 @@ internal class RegexMethodComposer(private val id: String) : Composer {
 
     override val isTransliterating: Boolean get() = true
 
-    /** The signs the rules read: `\` to escape, `` ` `` or `~` for a virama, `.` for a danda. */
-    override fun buffersChar(c: Char): Boolean = rules?.keys?.contains(c) == true
+    /**
+     * The signs the rules read: `\` to escape, `` ` `` or `~` for a virama,
+     * `.` for a danda. On a method typed in the script itself, also the marks
+     * its rules name, the virama a KaChaTaThaPa word is built from first.
+     */
+    override fun buffersChar(c: Char): Boolean {
+        val r = rules ?: return false
+        return c in r.keys || (c >= '\u0080' && r.typesScript && c in r.scriptChars)
+    }
+
+    override fun buffersText(text: String, composing: CharSequence): Boolean =
+        rules?.typesScript == true && text.all { it.isLetter() || buffersChar(it) }
 
     override fun composeBuffer(buffer: String): String = compose(buffer)
 

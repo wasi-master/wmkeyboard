@@ -84,7 +84,56 @@ class RegexRules(
         for (rule in rules) {
             for (c in rule.input.pattern()) if (c in '!'..'~' && !c.isLetterOrDigit()) candidates += c
         }
-        candidates.filterTo(HashSet()) { c -> PROBES.any { prefix -> reads(prefix, c) } }
+        val found = candidates.filterTo(HashSet()) { c -> PROBES.any { prefix -> reads(prefix, c) } }
+        if (typesScript) for (rule in rules) signsBetweenLetters(rule.input.pattern(), candidates, found)
+        found
+    }
+
+    /**
+     * The characters past ASCII the rules' patterns name. On a method typed
+     * in the script itself (KaChaTaThaPa's keys are క, ్ and అ) these are
+     * keys too, and the ones that are not letters, the virama first, have to
+     * be buffered for the rules to see them.
+     */
+    val scriptChars: Set<Char> by lazy {
+        val out = HashSet<Char>()
+        for (rule in rules) for (c in rule.input.pattern()) if (c >= '\u0080') out += c
+        out
+    }
+
+    /**
+     * Whether the keys are the script's own letters rather than roman ones:
+     * most rules end on a character past ASCII, where a roman method's end on
+     * the roman letter just typed.
+     */
+    val typesScript: Boolean by lazy {
+        var script = 0
+        var roman = 0
+        for (rule in rules) {
+            val p = rule.input.pattern()
+            val last = p.lastOrNull { it !in REGEX_TAIL } ?: continue
+            if (last >= '\u0080') script++ else if (last.isLetter()) roman++
+        }
+        script > roman
+    }
+
+    /**
+     * A sign a script-keyed method reads between its letters: the rule's own
+     * letters on either side of [candidates]' sign, typed with the sign
+     * between them, lose the sign. KaChaTaThaPa's `అ'` is ఆ, `్^` holds a
+     * ZWJ, and `మ్&బ్` keeps the మ్ an anusvara would otherwise replace; a
+     * full stop after మ్ turns it into ం but stays a full stop, so it ends
+     * the word like any other.
+     */
+    private fun signsBetweenLetters(pattern: String, candidates: Set<Char>, found: MutableSet<Char>) {
+        for (i in pattern.indices) {
+            val c = pattern[i]
+            if (c !in candidates || c in found) continue
+            val before = scriptRun(pattern, i, -1)
+            if (before.isEmpty()) continue
+            val after = scriptRun(pattern, i, 1)
+            if (c !in run(before + c + after)) found += c
+        }
     }
 
     private fun reads(prefix: String, key: Char): Boolean {
@@ -97,6 +146,24 @@ class RegexRules(
     private companion object {
         /** What a sign key is tried after: nothing, a consonant, a vowel. */
         val PROBES = listOf("", "k", "a", "ka", "n")
+
+        /** Regex syntax a pattern can end on after its last literal. */
+        const val REGEX_TAIL = ")]?*+}|\$"
+
+        /**
+         * The nearest run of characters past ASCII before ([step] -1) or
+         * after (+1) [from] in [pattern], whatever syntax lies between.
+         */
+        fun scriptRun(pattern: String, from: Int, step: Int): String {
+            var i = from + step
+            while (i in pattern.indices && pattern[i] < '\u0080') i += step
+            val run = StringBuilder()
+            while (i in pattern.indices && pattern[i] >= '\u0080') {
+                run.append(pattern[i])
+                i += step
+            }
+            return if (step < 0) run.reverse().toString() else run.toString()
+        }
 
         /**
          * JavaScript's `String.replace` with a string replacement, first match

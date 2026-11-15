@@ -202,6 +202,8 @@ Add the language and turn the layout on under **Layouts**, as for a phonetic one
 
 These layouts write exactly what the scheme spells, so the suggestion strip offers words that begin with it rather than other readings. The rules are the methods' own files from [jquery.ime](https://github.com/wikimedia/jquery.ime), Swanalekha from Indic Keyboard's copy of it, read by the keyboard's own engine, which passes the jquery.ime test suite for every one of them that has tests. The keyboard fixes one thing the files get wrong: Nepali transliteration declares less history than its rules read, so on Wikipedia `na` types न्अ. Here it types न.
 
+One more runs on rules but is typed in Telugu rather than in roman letters: **KaChaTaThaPa**, from Indic Keyboard. Its keys are Telugu letters, క as ka, and the virama key then a vowel turns that vowel into its sign: క ్ ఇ is కి, క అ is కా, and త ్ ఎ ల ్ ఉ గ ్ ఉ is తెలుగు. A nasal before a consonant becomes the anusvara (మ ్ బ ్ is ంబ్), and `&` typed between them keeps the మ్. Its rule file had three slips, the nasal before స and వ and the `&` before భ, which are fixed here.
+
 Any other jquery.ime method can be added from its rule file, see [Input methods](/reference/importing-other-keyboards/#input-methods-cin-rime-and-m17n).
 
 ## Languages with rules only

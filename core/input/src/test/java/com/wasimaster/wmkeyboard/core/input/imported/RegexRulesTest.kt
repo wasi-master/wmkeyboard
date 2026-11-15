@@ -10,9 +10,8 @@ import org.junit.Test
 
 /**
  * The jquery.ime engine: the rule files that ship, a few of jquery.ime's own
- * test fixtures for them (the whole fixture set, 1,128 cases over these
- * methods, passed when the engine was written), and the parsing of both
- * file formats.
+ * test fixtures for them (all 1,057 of its cases for the methods that ship
+ * pass), and the parsing of both file formats.
  */
 class RegexRulesTest {
 
@@ -69,6 +68,28 @@ class RegexRulesTest {
         val sw = method("ml-swanalekha")
         assertEquals("നന്നി", sw.run("nanni"))
         assertEquals("എന്താ", sw.run("enthaa"))
+    }
+
+    @Test fun kachatathapaIsTypedInTheScriptItself() {
+        // Indic Keyboard's Telugu board: క is ka, ్ then a vowel makes the
+        // vowel a sign, and a nasal before a stop becomes the anusvara.
+        val k = method("te-kachatathapa")
+        assertTrue(k.typesScript)
+        assertTrue(!method("hi-transliteration").typesScript)
+        assertTrue('\u0C4D' in k.scriptChars)
+        assertEquals("నమస్తే", k.run("నమస్త్ఎఅ"))
+        assertEquals("తెలుగు", k.run("త్ఎల్ఉగ్ఉ"))
+        assertEquals("కా", k.run("కఅ"))
+        assertEquals("క్షా", k.run("క్షఅ"))
+        assertEquals("ంబ్", k.run("మ్బ్"))
+        // Three rules fixed here: స and వ after a nasal, and & before భ.
+        assertEquals("ంస్", k.run("మ్స్"))
+        assertEquals("ంవ్", k.run("మ్వ్"))
+        assertEquals("మ్భ్", k.run("మ్&భ్"))
+        // Its signs, found between its own letters: ' lengthens, ^ holds a
+        // ZWJ, & keeps the మ్. A full stop still ends the word.
+        assertEquals(setOf('&', '\'', '^'), k.keys)
+        assertEquals("రాం.", k.run("రామ్."))
     }
 
     @Test fun theSignKeysAreFound() {

@@ -1017,6 +1017,8 @@ object AssetLayouts {
     const val PA_PHONETIC_KEYS_ID = "asset_pa_phonetic_keys"
     const val TE_PHONETIC_KEYS_ID = "asset_te_phonetic_keys"
     const val TE_APPLE_ID = "asset_te_apple"
+    /** Typed in Telugu itself through its own jquery.ime rule file: క ్ ఇ is కి. */
+    const val TE_KACHATATHAPA_ID = "asset_te_kachatathapa"
     const val TA_TYPEWRITER_KEYS_ID = "asset_ta_typewriter_keys"
     const val MR_PHONETIC_KEYS_ID = "asset_mr_phonetic_keys"
     const val OR_PHONETIC_KEYS_ID = "asset_or_phonetic_keys"

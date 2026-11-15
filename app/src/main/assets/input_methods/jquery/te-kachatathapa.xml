@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<inputmethod id="te-kachatathapa" name="కచటతప" description="Telugu Kachatathapa" author="Jishnu Mohan" version="1.0" contextLength="1" maxKeyLength="4">
+  <pattern input="(మ్|న్)బ్" replacement="ంబ్"/>
+  <pattern input="(మ్|న్)భ్" replacement="ంభ్"/>
+  <pattern input="(మ్|న్)చ్" replacement="ంచ్"/>
+  <pattern input="(మ్|న్)ఛ్" replacement="ంఛ్"/>
+  <pattern input="(మ్|న్)ద్" replacement="ంద్"/>
+  <pattern input="(మ్|న్)డ్" replacement="ండ్"/>
+  <pattern input="(మ్|న్)ఫ్" replacement="ంఫ్"/>
+  <pattern input="(మ్|న్)గ్" replacement="ంగ్"/>
+  <pattern input="(మ్|న్)హ్" replacement="ంహ్"/>
+  <pattern input="(మ్|న్)జ్" replacement="ంజ్"/>
+  <pattern input="(మ్|న్)ఝ్" replacement="ంఝ్"/>
+  <pattern input="(మ్|న్)క్" replacement="ంక్"/>
+  <pattern input="(మ్|న్)ళ్" replacement="ంళ్"/>
+  <pattern input="(మ్|న్)ప్" replacement="ంప్"/>
+  <pattern input="(మ్|న్)ర్" replacement="ంర్"/>
+  <pattern input="(మ్|న్)స్" replacement="ంస్"/>
+  <pattern input="(మ్|న్)త్" replacement="ంత్"/>
+  <pattern input="(మ్|న్)ట్" replacement="ంట్"/>
+  <pattern input="(మ్|న్)వ్" replacement="ంవ్"/>
+  <pattern input="(మ్|న్)క్ష్" replacement="ంక్ష్"/>
+  <pattern input="(మ్|న్)&amp;బ్" replacement="$1బ్"/>
+  <pattern input="(మ్|న్)&amp;భ్" replacement="$1భ్"/>
+  <pattern input="(మ్|న్)&amp;చ్" replacement="$1చ్"/>
+  <pattern input="(మ్|న్)&amp;ఛ్" replacement="$1ఛ్"/>
+  <pattern input="(మ్|న్)&amp;ద్" replacement="$1ద్"/>
+  <pattern input="(మ్|న్)&amp;డ్" replacement="$1డ్"/>
+  <pattern input="(మ్|న్)&amp;ఫ్" replacement="$1ఫ్"/>
+  <pattern input="(మ్|న్)&amp;గ్" replacement="$1గ్"/>
+  <pattern input="(మ్|న్)&amp;హ్" replacement="$1హ్"/>
+  <pattern input="(మ్|న్)&amp;జ్" replacement="$1జ్"/>
+  <pattern input="(మ్|న్)&amp;ఝ్" replacement="$1ఝ్"/>
+  <pattern input="(మ్|న్)&amp;క్" replacement="$1క్"/>
+  <pattern input="(మ్|న్)&amp;ళ్" replacement="$1ళ్"/>
+  <pattern input="(మ్|న్)&amp;ప్" replacement="$1ప్"/>
+  <pattern input="(మ్|న్)&amp;ర్" replacement="$1ర్"/>
+  <pattern input="(మ్|న్)&amp;స్" replacement="$1స్"/>
+  <pattern input="(మ్|న్)&amp;త్" replacement="$1త్"/>
+  <pattern input="(మ్|న్)&amp;ట్" replacement="$1ట్"/>
+  <pattern input="(మ్|న్)&amp;వ్" replacement="$1వ్"/>
+  <pattern input="(మ్|న్)&amp;క్ష్" replacement="$1క్ష్"/>
+  <pattern input="(మ్|న్)&amp;(\s|\.|\, |\))" replacement="$1$2"/>
+  <pattern input="([క-హ]|ౘ|ౙ)్అ" replacement="$1"/>
+  <pattern input="([క-హ])(్ఆ|అ|&apos;)" replacement="$1ా"/>
+  <pattern input="([క-హ])్ఇ" replacement="$1ి"/>
+  <pattern input="([క-హ])(్ఇ|ిఇ|ి&apos;|ెఎ)" replacement="$1ీ"/>
+  <pattern input="([క-హ])్ఉ" replacement="$1ు"/>
+  <pattern input="([క-హ])(ుఉ|ు&apos;|ుఅ|్ఉ)" replacement="$1ూ"/>
+  <pattern input="([క-హ])ొఒ" context="ఒ" replacement="$1ూ"/>
+  <pattern input="([క-హ])్ఋ" replacement="$1ృ"/>
+  <pattern input="([క-హ])్ర్&apos;" replacement="$1ృ"/>
+  <pattern input="([క-హ])ృఉ" replacement="$1ౄ"/>
+  <pattern input="([క-హ])్ఌ" replacement="$1ౢ"/>
+  <pattern input="([క-హ])ౢ(ల్|&apos;)" replacement="$1ౣ"/>
+  <pattern input="([క-హ])్ఎ" replacement="$1ె"/>
+  <pattern input="([క-హ])(్E|ెఅ|ె&apos;)" replacement="$1ే"/>
+  <pattern input="([క-హ])ఎ" context="అ" replacement="$1ే"/>
+  <pattern input="([క-హ])ెఇ" replacement="$1ై"/>
+  <pattern input="([క-హ])ఇ" context="అ" replacement="$1ై"/>
+  <pattern input="([క-హ])్ఒ" replacement="$1ొ"/>
+  <pattern input="([క-హ])(్O|ొఅ|ొ&apos;)" replacement="$1ో"/>
+  <pattern input="([క-హ])(ొఉ|ొవ్)" replacement="$1ౌ"/>
+  <pattern input="([క-హ])ఉ" context="అ" replacement="$1ౌ"/>
+  <pattern input="(్)\^" replacement="$1‍"/>
+  <pattern input="మ్(\s|\.|\, |\))" replacement="ం$1"/>
+  <pattern input="అ(అ|&apos;)" replacement="ఆ"/>
+  <pattern input="ఇ(ఇ|&apos;)" replacement="ఈ"/>
+  <pattern input="ఎఎ" replacement="ఈ"/>
+  <pattern input="ఉ(ఉ|&apos;)" replacement="ఊ"/>
+  <pattern input="ఒఒ" replacement="ఊ"/>
+  <pattern input="ఎ(అ|&apos;)" replacement="ఏ"/>
+  <pattern input="అe" context="అ" replacement="ఏ"/>
+  <pattern input="ఎఇ" replacement="ఐ"/>
+  <pattern input="అఇ" context="అ" replacement="ఐ"/>
+  <pattern input="ఒ(అ|&apos;)" context="" replacement="ఓ"/>
+  <pattern input="అఒ" context="అ" replacement="ఓ"/>
+  <pattern input="ఒ(ఉ|వ్)" replacement="ఔ"/>
+  <pattern input="అఉ" context="అ" replacement="ఔ"/>
+  <pattern input="ఋ(ఉ|&apos;)" replacement="ౠ"/>
+  <pattern input="ర్&apos;" replacement="ఋ"/>
+  <pattern input="క్హ్" replacement="ఖ్"/>
+  <pattern input="గ్హ్" replacement="ఘ్"/>
+  <pattern input="జ్హ్" replacement="ఝ్"/>
+  <pattern input="చ్&apos;" replacement="ఛ్"/>
+  <pattern input="చ్హ్" replacement="చ్"/>
+  <pattern input="స్హ్" replacement="ష్"/>
+  <pattern input="స్&apos;" replacement="శ్"/>
+  <pattern input="త్&apos;" replacement="ట్"/>
+  <pattern input="ట్హ్" replacement="ఠ్"/>
+  <pattern input="ద్&apos;" replacement="డ్"/>
+  <pattern input="డ్హ్" replacement="ఢ్"/>
+  <pattern input="న్&apos;" replacement="ణ్"/>
+  <pattern input="త్థ్" replacement="థ్"/>
+  <pattern input="ద్హ్" replacement="ధ్"/>
+  <pattern input="ప్హ్" replacement="ఫ్"/>
+  <pattern input="బ్హ్" replacement="భ్"/>
+  <pattern input="ల్&apos;" replacement="ళ్"/>
+</inputmethod>

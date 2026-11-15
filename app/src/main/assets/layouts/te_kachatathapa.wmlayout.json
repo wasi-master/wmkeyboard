@@ -1,0 +1,214 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_te_kachatathapa",
+    "name": "తెలుగు కచటతప (KaChaTaThaPa)",
+    "langId": "te",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "అ",
+              "shiftLabel": "ఆ"
+            },
+            {
+              "label": "ఇ",
+              "shiftLabel": "ఈ"
+            },
+            {
+              "label": "ఉ",
+              "shiftLabel": "ఊ"
+            },
+            {
+              "label": "ఋ",
+              "shiftLabel": "ౠ"
+            },
+            {
+              "label": "ఎ",
+              "shiftLabel": "ఏ"
+            },
+            {
+              "label": "ం",
+              "shiftLabel": "ః"
+            },
+            {
+              "label": "ఐ",
+              "shiftLabel": "ఔ"
+            },
+            {
+              "label": "ఒ",
+              "shiftLabel": "ఓ"
+            },
+            {
+              "label": "।",
+              "shiftLabel": "॥"
+            },
+            {
+              "label": "ౘ",
+              "shiftLabel": "ౙ"
+            },
+            {
+              "label": "ॐ",
+              "shiftLabel": "ఌ",
+              "longPress": [
+                "ౡ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "క",
+              "shiftLabel": "ఖ"
+            },
+            {
+              "label": "చ",
+              "shiftLabel": "ఛ"
+            },
+            {
+              "label": "ట",
+              "shiftLabel": "ఠ"
+            },
+            {
+              "label": "త",
+              "shiftLabel": "థ"
+            },
+            {
+              "label": "ప",
+              "shiftLabel": "ఫ"
+            },
+            {
+              "label": "్"
+            },
+            {
+              "label": "గ",
+              "shiftLabel": "ఘ"
+            },
+            {
+              "label": "జ",
+              "shiftLabel": "ఝ"
+            },
+            {
+              "label": "డ",
+              "shiftLabel": "ఢ"
+            },
+            {
+              "label": "ద",
+              "shiftLabel": "ధ"
+            },
+            {
+              "label": "బ",
+              "shiftLabel": "భ"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "న",
+              "shiftLabel": "ణ"
+            },
+            {
+              "label": "ఙ",
+              "shiftLabel": "ఞ"
+            },
+            {
+              "label": "మ",
+              "shiftLabel": "ఁ"
+            },
+            {
+              "label": "య",
+              "shiftLabel": "వ"
+            },
+            {
+              "label": "ర",
+              "shiftLabel": "ఱ"
+            },
+            {
+              "label": "ల",
+              "shiftLabel": "ళ"
+            },
+            {
+              "label": "హ",
+              "shiftLabel": "శ"
+            },
+            {
+              "label": "స",
+              "shiftLabel": "ష",
+              "longPress": [
+                "క్ష"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    },
+    "inputMethod": {
+      "id": "jq:te-kachatathapa",
+      "kind": "regex"
+    }
+  }
+}
