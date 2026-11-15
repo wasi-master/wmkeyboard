@@ -22355,6 +22355,16 @@ open class WMKeyboardService : InputMethodService() {
                 obviousness = decision.obviousness
                 corrected ?: vietnameseComposed
             }
+            // Without Restore marks the word goes in as composed, except for
+            // a fix the user taught for it: their own pairs apply in every
+            // language (#1334).
+            vietnameseComposed != null && autocorrect && state.allowsTypingIntelligence && !gluedToWord -> {
+                val decision = suggestionEngine?.decideTaughtFix(vietnameseComposed, previousWord)
+                    ?: SuggestionEngine.NO_CORRECTION
+                corrected = decision.apply?.takeIf { it != vietnameseComposed && !declinedHere }
+                offered = decision.offer?.takeIf { it != vietnameseComposed && !declinedHere }
+                corrected ?: vietnameseComposed
+            }
             // Other transliterators (Hangul) commit the composed text
             // directly, with no dictionary pass. A layout whose keys spell the
             // word outright (Khipro) commits the English word they spell; the

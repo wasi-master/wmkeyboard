@@ -311,6 +311,9 @@ class CorrectionMemory(private val storageFile: File?) {
          * and the engine asks the bigram context as well. */
         const val APPLY_KNOWN_AT = 3
 
+        /** ...and past this many, without asking the context (#1334). */
+        const val APPLY_KNOWN_ANYWHERE_AT = 6
+
         /** A fix has to outnumber the next most common fix of the same
          * spelling by this factor before it is the fix. */
         const val DOMINANCE = 2

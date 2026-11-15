@@ -6508,6 +6508,17 @@ class SuggestionEngine(
      * on Never suggest; a pair the user has since
      * undone is the penalty memory's to hold back, and is left to it.
      */
+    /**
+     * Only what the user has taught about [word], for a commit that runs no
+     * correction of its own: Vietnamese composed with its marks left as typed
+     * (#1334). The user's own pairs are theirs whatever the language does.
+     */
+    fun decideTaughtFix(word: String, previousWord: String? = null): CorrectionDecision {
+        val lower = word.lowercase()
+        if (lower.length < CorrectionMemory.MIN_TYPED_LENGTH) return NO_CORRECTION
+        return withTaughtFix(word, lower, previousWord, NO_CORRECTION)
+    }
+
     private fun withTaughtFix(
         word: String,
         lower: String,
@@ -6520,9 +6531,13 @@ class SuggestionEngine(
         if (correctionStats.penalty(lower, fixed) != CorrectionStats.Penalty.NONE) return ordinary
         // A spelling the user put on Never suggest is one they do not mean,
         // whatever list holds it (#881): their fix is taught as for a typo.
+        // Nor is one only the learned words hold, once it has been fixed
+        // enough to apply (#1334): typing a slip over and over is how it got
+        // learned, and the fixes say what it was.
+        val learnedOnly = !inDictionaries(lower) && userLexicon.isEstablished(lower, learnedWordMinCount)
         val knownTyped = !blacklisted(lower) && (
             inDictionaries(lower) ||
-                userLexicon.isEstablished(lower, learnedWordMinCount) ||
+                (learnedOnly && taught.count < CorrectionMemory.APPLY_AT) ||
                 contacts.contains(lower) || apps.contains(lower) || spellAccepted(word)
             )
         fun applied() = CorrectionDecision(
@@ -6533,6 +6548,10 @@ class SuggestionEngine(
             complexity = complexityOfEdit(lower, fixed),
         )
         if (knownTyped) {
+            // Fixed this often, the user means it wherever it stands, the
+            // start of a line included, where there is no context to ask
+            // (#1334).
+            if (taught.count >= CorrectionMemory.APPLY_KNOWN_ANYWHERE_AT) return applied()
             if (taught.count < CorrectionMemory.APPLY_AT ||
                 !contextAdvisor.precedes(previousWord, lower, fixed)
             ) {
