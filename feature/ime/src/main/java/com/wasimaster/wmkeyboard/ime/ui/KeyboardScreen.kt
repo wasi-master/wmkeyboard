@@ -21591,7 +21591,7 @@ private fun KeyRows(
                                 key.startsGlobeDrag(globeDragLive.value) ||
                                 key.ownsDeleteStroke() || key.ownsSpaceStroke()
                         },
-                        nearLetter = { at -> nearLetterKey(at, liveCenters.value, keyWidth.value) },
+                        nearLetter = { at -> nearLetterKey(at, liveCenters.value, keyWidth.value, overhang = true) },
                         grid = {
                             liveLayouts.value.glideKeys(
                                 apostropheCenter = apostropheCenter(
@@ -22003,6 +22003,7 @@ private fun KeyRows(
                                 down.position,
                                 liveCenters.value,
                                 keyWidth.value,
+                                overhang = true,
                             )
                         ) {
                             if (travelled > glideStartDistancePx(slop * effectiveSlop, keyWidth.value, midWord)) {
@@ -24595,10 +24596,46 @@ private fun nearLetterKey(
     position: Offset,
     centers: Map<Int, Offset>,
     keyWidth: Float,
-): Boolean = centers.any { (codePoint, center) ->
-    codePoint !in GlidePunctuationCodePoints &&
-        (center - position).getDistance() < keyWidth
+    overhang: Boolean = false,
+): Boolean {
+    val near = centers.any { (codePoint, center) ->
+        codePoint !in GlidePunctuationCodePoints && (center - position).getDistance() < keyWidth
+    }
+    return near || overhang && glideStartsAboveTopRow(position, centers, keyWidth)
 }
+
+/**
+ * Whether a glide may start at [position], above the top letter row (#970):
+ * on the number row, or the top edge of a key that is taller than it is
+ * wide. Keys are commonly about 1.4 widths tall, so the digit over `q` sits
+ * further from it than [nearLetterKey]'s one key width, and a word begun a
+ * little high never became a glide. A start within [GLIDE_START_ABOVE_ROWS]
+ * row pitches above the top row counts when, folded straight down onto that
+ * row, it is within a key width of one of its letters; the stroke's samples
+ * up there are folded the same way before it is decoded ([GlideOverhang]).
+ * Only above: below the bottom row sit the comma and the period, whose
+ * slides keep their own meaning.
+ */
+internal fun glideStartsAboveTopRow(position: Offset, centers: Map<Int, Offset>, keyWidth: Float): Boolean {
+    var top = Float.MAX_VALUE
+    for ((codePoint, center) in centers) {
+        if (codePoint !in GlidePunctuationCodePoints && center.y < top) top = center.y
+    }
+    if (top == Float.MAX_VALUE || position.y >= top) return false
+    var next = Float.MAX_VALUE
+    for ((codePoint, center) in centers) {
+        if (codePoint !in GlidePunctuationCodePoints && center.y > top + keyWidth / 2f && center.y < next) next = center.y
+    }
+    val pitch = if (next == Float.MAX_VALUE) keyWidth else next - top
+    if (top - position.y > pitch * GLIDE_START_ABOVE_ROWS) return false
+    val folded = Offset(position.x, top)
+    return centers.any { (codePoint, center) ->
+        codePoint !in GlidePunctuationCodePoints && center.y == top && (center - folded).getDistance() < keyWidth
+    }
+}
+
+/** See [glideStartsAboveTopRow]: the number row's own height and half a row of slack above it. */
+internal const val GLIDE_START_ABOVE_ROWS = 1.5f
 
 /**
  * Whether a stroke the glide loop claimed was really a tap (#782): the finger
