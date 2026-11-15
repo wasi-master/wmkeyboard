@@ -2063,6 +2063,35 @@ mod tests {
     }
 
     #[test]
+    fn a_real_word_slip_is_revised_once_the_next_words_land() {
+        // "it us a good day": `us` is a word, so nothing corrects it as it
+        // is typed; the words after it are what prove it should be `is`.
+        let g = qwerty();
+        let l = WordList::of(&[("it", 950), ("is", 960), ("us", 700), ("a", 990), ("good", 800), ("day", 700)]);
+        let rank = |f: i32| zipf(((1000 - f.min(1000)) / 50 + 1) as usize, 6);
+        let src = [Source { walker: l.dict(), prior: &rank }];
+        let bigram = |a: &str, b: &str| match (a, b) {
+            ("it", "is") | ("is", "a") => 5000,
+            ("a", "good") | ("good", "day") => 3000,
+            _ => 0,
+        };
+        let trigram = |_: &str, _: &str, _: &str| 0;
+        let ctx = Pairs { bigram: &bigram, trigram: &trigram, alpha: 1.0, tri: 0.0, cap: 9.0 };
+        // The u tapped toward the i, the s dead centre.
+        let taps = [tap(&g, 'u', 0.3, 0.0), tap(&g, 's', 0.0, 0.0)];
+        let p = Params::default();
+        let none = |_: u16, _: u16| false;
+        let run = |before: &[&str], after: &[&str]| {
+            recheck(&taps, &g, &src, &ctx, before, "us", after, &p, &none, None, RECHECK_MARGIN, RECHECK_KNOWN_MARGIN)
+        };
+        assert_eq!(run(&["it"], &["a", "good"]).apply.as_deref(), Some("is"));
+        // Before anything follows it, a listed word stays as typed.
+        assert_eq!(run(&["it"], &[]).apply, None);
+        // "tell us about it": the words around it agree with `us`.
+        assert_eq!(run(&["tell"], &["about"]).apply, None);
+    }
+
+    #[test]
     fn accents_and_capitals_read_on_their_keys() {
         let g = qwerty();
         let l = WordList::of(&[("für", 900), ("Haus", 500), ("hat", 400)]);
