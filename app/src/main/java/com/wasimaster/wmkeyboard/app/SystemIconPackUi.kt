@@ -42,9 +42,16 @@ import kotlinx.coroutines.withContext
  * they are looked up and when there are none.
  */
 @Composable
-internal fun rememberSystemIconPacks(): List<SystemIconPack> {
+internal fun rememberSystemIconPacks(): List<SystemIconPack> = rememberSystemIconPacksOrNull().orEmpty()
+
+/**
+ * The installed launcher icon packs, or null while they are still being looked
+ * up, for a page that says "none installed" only once it knows.
+ */
+@Composable
+internal fun rememberSystemIconPacksOrNull(): List<SystemIconPack>? {
     val context = LocalContext.current
-    val packs by produceState(emptyList<SystemIconPack>(), context) {
+    val packs by produceState<List<SystemIconPack>?>(null, context) {
         value = withContext(Dispatchers.IO) { SystemIconPacks.installed(context) }
     }
     return packs

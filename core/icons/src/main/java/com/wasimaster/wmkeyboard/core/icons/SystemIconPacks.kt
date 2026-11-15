@@ -101,13 +101,30 @@ object SystemIconPacks {
         return seen.values.sortedBy { it.label.lowercase() }
     }
 
-    /** [packageName]'s index, read once per process and kept; empty for a pack that cannot be read. */
+    /**
+     * [packageName]'s index, read once per process and kept; empty for a pack
+     * that cannot be read.
+     *
+     * One reader per pack: the App icons page and the launcher grid ask for
+     * every app's icon at once, and before this each of those callers missed
+     * the cache together and parsed the whole `appfilter.xml` side by side. A
+     * large pack (a Pix Material pack, in one report) read by dozens of IO threads at
+     * once held so much memory that the app stopped answering. The rest now
+     * wait for the first and share its result.
+     */
     fun index(context: Context, packageName: String): SystemPackIndex {
         synchronized(indexes) { indexes[packageName]?.let { return it } }
-        val read = runCatching { readIndex(context, packageName) }.getOrNull() ?: SystemPackIndex.EMPTY
-        synchronized(indexes) { indexes[packageName] = read }
-        return read
+        val gate = synchronized(reading) { reading.getOrPut(packageName) { Any() } }
+        synchronized(gate) {
+            synchronized(indexes) { indexes[packageName]?.let { return it } }
+            val read = runCatching { readIndex(context, packageName) }.getOrNull() ?: SystemPackIndex.EMPTY
+            synchronized(indexes) { indexes[packageName] = read }
+            return read
+        }
     }
+
+    /** One lock per pack being read, so a pack is parsed by one thread at a time. */
+    private val reading = HashMap<String, Any>()
 
     /**
      * [name] out of [packageName] drawn into a [sizePx] square, or null when

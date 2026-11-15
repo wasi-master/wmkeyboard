@@ -38,7 +38,7 @@ import com.wasimaster.wmkeyboard.app.SettingsGroup
 import com.wasimaster.wmkeyboard.app.StateBanner
 import com.wasimaster.wmkeyboard.app.SystemPackIconGrid
 import com.wasimaster.wmkeyboard.app.WmRow
-import com.wasimaster.wmkeyboard.app.rememberSystemIconPacks
+import com.wasimaster.wmkeyboard.app.rememberSystemIconPacksOrNull
 import com.wasimaster.wmkeyboard.app.rememberSystemPackIcon
 import com.wasimaster.wmkeyboard.app.systemPackLabel
 import com.wasimaster.wmkeyboard.common.R as CommonR
@@ -68,7 +68,10 @@ private class IconApp(val packageName: String, val label: String)
 internal fun LauncherAppIconsScreen(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val packs = rememberSystemIconPacks()
+    // Null while the packs are looked up: the page must not say "no pack is
+    // installed" (or name the chosen one by its package) before it knows.
+    val packsOrNull = rememberSystemIconPacksOrNull()
+    val packs = packsOrNull.orEmpty()
     val pack = settings.watch { it.launcher.iconPack }
     val picks = settings.watch { it.launcher.appIcons }
     val apps by produceState(emptyList<IconApp>(), context) {
@@ -78,12 +81,12 @@ internal fun LauncherAppIconsScreen(repository: SettingsRepository, settings: Li
     var picking by remember { mutableStateOf<IconApp?>(null) }
 
     Spacer(Modifier.height(12.dp))
-    if (packs.isEmpty()) StateBanner(stringResource(R.string.launcherappicons_no_packs))
+    if (packsOrNull != null && packs.isEmpty()) StateBanner(stringResource(R.string.launcherappicons_no_packs))
     SettingsGroup {
         item {
             // A pack that has gone stays named until another is picked, so
             // the row does not claim "None" while the setting still holds it.
-            val gone = pack.isNotEmpty() && packs.none { it.packageName == pack }
+            val gone = packsOrNull != null && pack.isNotEmpty() && packs.none { it.packageName == pack }
             ChoiceSetting(
                 R.string.launcherappicons_pack_title,
                 subtitle = stringResource(R.string.launcherappicons_pack_subtitle),
