@@ -339,6 +339,7 @@ internal class FloatingButton(
         button = null
         buttonParams = null
         xAnimator?.cancel()
+        yAnimator?.cancel()
         current.cancelPress()
         current.animate().cancel()
         runCatching { windowManager.removeViewImmediate(current) }
@@ -360,8 +361,42 @@ internal class FloatingButton(
         // tool or the number row come and go. Where Android counts the panel
         // from can move with it, so it is measured again rather than leaving
         // the button wherever the window's last size put it (#1238).
-        if (onPanel) originChecks = 0
-        place()
+        if (onPanel) {
+            originChecks = 0
+            place()
+            return
+        }
+        // Over the apps the button is lifted clear of the keyboard, or let
+        // back down to where it was put, and glides there with the keyboard
+        // rather than jumping (#1238).
+        glideY(current)
+    }
+
+    private var yAnimator: ValueAnimator? = null
+
+    /** Moves [view] to the height [positionFromFractions] gives it now, over [LIFT_MS]. */
+    private fun glideY(view: TouchHost) {
+        val layout = buttonParams ?: return
+        val from = layout.y
+        positionFromFractions(layout)
+        val to = layout.y
+        layout.y = from
+        yAnimator?.cancel()
+        if (from == to || setting.animationSpeed <= 0f) {
+            layout.y = to
+            runCatching { windowManager.updateViewLayout(view, layout) }
+            return
+        }
+        yAnimator = ValueAnimator.ofInt(from, to).apply {
+            duration = paced(LIFT_MS)
+            interpolator = DecelerateInterpolator()
+            addUpdateListener {
+                if (button !== view || view.dragging) return@addUpdateListener
+                layout.y = it.animatedValue as Int
+                runCatching { windowManager.updateViewLayout(view, layout) }
+            }
+            start()
+        }
     }
 
     /** The screen changed shape (rotation, fold): put the button back on it, and shut a menu laid out for the old one. */
@@ -376,6 +411,7 @@ internal class FloatingButton(
         val layout = buttonParams ?: return
         val current = button ?: return
         xAnimator?.cancel()
+        yAnimator?.cancel()
         positionFromFractions(layout)
         runCatching { windowManager.updateViewLayout(current, layout) }
         if (onPanel) current.post { checkPanelOrigin(current) }
@@ -1223,6 +1259,8 @@ internal class FloatingButton(
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     touching = true
+                    // A finger on it stops a lift mid-glide where it is (#1238).
+                    yAnimator?.cancel()
                     wake(snap = true)
                     downRawX = event.rawX
                     downRawY = event.rawY
@@ -1522,6 +1560,9 @@ internal class FloatingButton(
         const val TARGET_SNAP_DP = 84f
 
         const val APPEAR_MS = 260L
+
+        /** How long the button takes to rise clear of the keyboard, or settle back (#1238). */
+        const val LIFT_MS = 220L
         const val SNAP_MS = 260L
         private val NO_OFFSET = IntArray(2)
         const val MAX_ORIGIN_CHECKS = 3
