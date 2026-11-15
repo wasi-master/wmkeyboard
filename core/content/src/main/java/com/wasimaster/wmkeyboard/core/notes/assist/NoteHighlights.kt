@@ -151,9 +151,10 @@ object NoteHighlights {
     /**
      * A Bengali date match in the English [DateTimes] reads: digits to ASCII,
      * the ordinal endings off, months, weekdays and next-day words to English.
-     * Latin text comes back as it was.
+     * Latin text comes back as it was. Public for its test, which lives in
+     * :app with the rest of the unit tests and cannot see `internal`.
      */
-    internal fun toLatin(raw: String): String {
+    fun toLatin(raw: String): String {
         if (raw.none { it in '\u0980'..'\u09FF' }) return raw
         var out = raw.replace("\u09AF\u09BC", "\u09DF")
         out = out.map { if (it in '০'..'৯') '0' + (it - '০') else it }.joinToString("")
