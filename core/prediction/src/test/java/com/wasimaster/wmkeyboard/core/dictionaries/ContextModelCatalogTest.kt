@@ -4,6 +4,7 @@ import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -30,6 +31,15 @@ class ContextModelCatalogTest {
         assertEquals("de_context.wmlm", entry.fileName)
         assertEquals(entry, ContextModelCatalog.byFileName("de_context.wmlm"))
         assertEquals(entry, ContextModelCatalog.entry("de", ContextModelVariant.STANDARD))
+    }
+
+    @Test
+    fun aMixedModelUnderAlsoSuggestFromServesTheEnglishLayout() {
+        assertEquals("hi_rom", ContextModelCatalog.sharedFor("en", listOf("de", "hi_rom")))
+        assertEquals("bn_rom", ContextModelCatalog.sharedFor("en", listOf("bn_rom")))
+        assertNull(ContextModelCatalog.sharedFor("en", listOf("de")))
+        assertNull(ContextModelCatalog.sharedFor("de", listOf("hi_rom")))
+        assertNull(ContextModelCatalog.sharedFor("en", emptyList()))
     }
 
     @Test

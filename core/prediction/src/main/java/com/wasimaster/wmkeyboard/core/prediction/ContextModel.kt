@@ -42,8 +42,16 @@ class ContextModel private constructor(
     /** The session's handle for a native caller that scores with it (the tap decoder), 0 once closed. */
     internal val sessionHandle: Long get() = if (closed) 0L else session
 
+    /**
+     * The language the model is read as instead of the layout's own, when it
+     * was borrowed from a language under "Also suggest from" (Hinglish on an
+     * English layout, #1292); null reads it as the layout's language.
+     */
+    @Volatile
+    var readAs: String? = null
+
     /** Which of [languages] the keyboard is on, 0 when the model has one language. */
-    fun slotOf(languageId: String): Int = languages.indexOf(languageId).coerceAtLeast(0)
+    fun slotOf(languageId: String): Int = languages.indexOf(readAs ?: languageId).coerceAtLeast(0)
 
     /**
      * Reads the words before the caret, oldest first, under the prefix the

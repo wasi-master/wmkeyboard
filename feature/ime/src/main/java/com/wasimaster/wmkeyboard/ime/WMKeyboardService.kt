@@ -293,6 +293,7 @@ import com.wasimaster.wmkeyboard.core.prediction.CorrectionWatch
 import com.wasimaster.wmkeyboard.core.prediction.DeclinedSpots
 import com.wasimaster.wmkeyboard.core.prediction.EditOps
 import com.wasimaster.wmkeyboard.core.prediction.GlideOutcomes
+import com.wasimaster.wmkeyboard.core.dictionaries.ContextModelCatalog
 import com.wasimaster.wmkeyboard.core.dictionaries.ContextModelDownloadManager
 import com.wasimaster.wmkeyboard.core.dictionaries.PunctuationModelDownloadManager
 import com.wasimaster.wmkeyboard.core.dictionaries.NgramPackDownloadManager
@@ -1839,13 +1840,19 @@ open class WMKeyboardService : InputMethodService() {
     private fun refreshContextModel() {
         val engine = suggestionEngine ?: return
         val settings = _uiState.value.settings
-        val langId = _uiState.value.language.id
+        val primary = _uiState.value.language.id
+        // Hinglish under "Also suggest from" on an English layout (#1292):
+        // its model was trained on both, so it reads the mixed sentence, as
+        // Hinglish, in place of English's own once it is downloaded.
+        val borrowed = ContextModelCatalog.sharedFor(primary, settings.secondaryLanguages[primary].orEmpty())
+            ?.takeIf { ContextModelDownloadManager.modelFile(filesDir, it).isFile }
+        val langId = borrowed ?: primary
         val file = ContextModelDownloadManager.modelFile(filesDir, langId)
         val wanted = settings.suggestionStrip.neuralContext && userUnlocked && file.isFile
         val key = if (wanted) langId to file.lastModified() else null
         if (key == contextModelKey && (engine.contextModel === contextModel)) return
         contextModel?.close()
-        contextModel = if (wanted) ContextModel.open(file) else null
+        contextModel = if (wanted) ContextModel.open(file)?.also { it.readAs = borrowed } else null
         contextModelKey = key
         engine.contextModel = contextModel
         pushSentenceContext()
@@ -5649,8 +5656,9 @@ open class WMKeyboardService : InputMethodService() {
 
         // A freshly landed context model likewise.
         serviceScope.launch {
-            ContextModelDownloadManager.completions.collect { langId ->
-                if (userUnlocked && _uiState.value.language.id == langId) refreshContextModel()
+            ContextModelDownloadManager.completions.collect {
+                // Any language's: the layout may be borrowing a secondary's (#1292).
+                if (userUnlocked) refreshContextModel()
             }
         }
         // And the smart punctuation key's model.
@@ -6736,7 +6744,12 @@ open class WMKeyboardService : InputMethodService() {
             filesDir,
             languages + languages.flatMap { settings.secondaryLanguages[it].orEmpty() },
         )
-        if (settings.suggestionStrip.neuralContext) ContextModelDownloadManager.ensure(filesDir, languages)
+        if (settings.suggestionStrip.neuralContext) {
+            // A model that reads its layout's language too (Hinglish beside
+            // English, #1292) comes along when that language is a secondary.
+            val shared = languages.mapNotNull { ContextModelCatalog.sharedFor(it, settings.secondaryLanguages[it].orEmpty()) }
+            ContextModelDownloadManager.ensure(filesDir, languages + shared)
+        }
         if (settings.autoText.smartPunctuation) PunctuationModelDownloadManager.ensure(filesDir)
         val metered = runCatching {
             getSystemService(ConnectivityManager::class.java)?.isActiveNetworkMetered

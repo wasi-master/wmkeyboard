@@ -28,6 +28,12 @@ class ContextModelEntry(
     /** SHA-256 of the file, checked after download. */
     val sha256: String,
     val variant: ContextModelVariant = ContextModelVariant.STANDARD,
+    /**
+     * Other languages the model was trained on, so it can stand in for their
+     * own model when this language sits under "Also suggest from" on their
+     * layout: Hinglish's model reads English too (#1292).
+     */
+    val alsoReads: Set<String> = emptySet(),
 ) {
     init {
         require(bytes > 0) { "$stem: bytes must be positive" }
@@ -78,6 +84,7 @@ object ContextModelCatalog {
             stem = "bn_rom_context",
             bytes = 10_801_084,
             sha256 = "2a43d0dcfb739546ad37ebdb9d0dfccf1684aabc8530122fd95dc42ed1e7b6f1",
+            alsoReads = setOf("en"),
         ),
         // Hinglish and English in one model, as Banglish (tools/wmlm
         // hinglish.py, `--langs=en,hi_rom`): next-word top-1 .232 against
@@ -88,6 +95,7 @@ object ContextModelCatalog {
             stem = "hi_rom_context",
             bytes = 6_590_836,
             sha256 = "1cfcda6b800a240f0a34db12dc1eb3f2a1e99c3fc8799f2daef21e75246b85c8",
+            alsoReads = setOf("en"),
         ),
         // German d256/6/4/768, ctx40, 24,576 vocab; the G6P 90k candidate.
         ContextModelEntry(
@@ -111,6 +119,14 @@ object ContextModelCatalog {
 
     fun entry(languageId: String, variant: ContextModelVariant): ContextModelEntry? =
         byLanguage[languageId]?.firstOrNull { it.variant == variant }
+
+    /**
+     * The language under "Also suggest from" on a [primary] layout whose model
+     * reads [primary] as well, so it can serve the mixed sentence in place of
+     * [primary]'s own: Hinglish beside English. Null when none does.
+     */
+    fun sharedFor(primary: String, secondaries: List<String>): String? =
+        secondaries.firstOrNull { primary in forLanguage(it)?.alsoReads.orEmpty() }
 
     /** The entry published as [fileName] (`en_context.wmlm`), for an import (#1000). */
     fun byFileName(fileName: String): ContextModelEntry? = entries.firstOrNull { it.fileName == fileName }
