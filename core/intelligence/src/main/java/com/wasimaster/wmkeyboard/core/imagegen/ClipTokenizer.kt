@@ -175,9 +175,14 @@ class ClipTokenizer(mergeLines: Sequence<String>) {
         private val VOCAB_BYTES: List<String> = BYTE_MAP.first
         private val BYTE_TO_SYMBOL: Array<String> = BYTE_MAP.second
 
+        // No UNICODE_CHARACTER_CLASS: Android's Pattern throws on that flag,
+        // which made this companion fail to initialise and every on-device
+        // model read as unreadable (#1398). Android's regex is ICU, where
+        // \s, \p{L} and \p{N} are Unicode already; \p{Z} keeps the JVM's
+        // ASCII-only \s from splitting no-break spaces off as symbols in tests.
         private val PATTERN = java.util.regex.Pattern.compile(
-            "<\\|startoftext\\|>|<\\|endoftext\\|>|'s|'t|'re|'ve|'m|'ll|'d|\\p{L}+|\\p{N}|[^\\s\\p{L}\\p{N}]+",
-            java.util.regex.Pattern.CASE_INSENSITIVE or java.util.regex.Pattern.UNICODE_CHARACTER_CLASS,
+            "<\\|startoftext\\|>|<\\|endoftext\\|>|'s|'t|'re|'ve|'m|'ll|'d|\\p{L}+|\\p{N}|[^\\s\\p{Z}\\p{L}\\p{N}]+",
+            java.util.regex.Pattern.CASE_INSENSITIVE,
         )
 
         private val SPACES = Regex("\\s+")

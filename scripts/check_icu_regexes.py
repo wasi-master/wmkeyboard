@@ -212,6 +212,7 @@ AFTER = re.compile(r'^\s*\.\s*(?:toRegex|toPattern)\s*\(')
 CALL = re.compile(r'\bRegex\s*\(|\bPattern\.compile\s*\(')
 CHAIN_PLUS = re.compile(r'\s*\+\s*')
 CHAIN_NAME = re.compile(r'[A-Za-z_][\w.]*(?:\([^()]*\))?')
+UNSUPPORTED_FLAG = re.compile(r'\b(?:Pattern|RegexOption)\.(UNICODE_CHARACTER_CLASS|CANON_EQ)\b')
 
 
 def check_file(path):
@@ -255,6 +256,16 @@ def check_file(path):
         error = icu_error(pattern, flags)
         if error:
             rejected.append((path, src.count('\n', 0, s) + 1, error, pattern))
+
+    # Flags Android's Pattern refuses outright, whatever the pattern: it
+    # throws IllegalArgumentException / UnsupportedOperationException, so a
+    # static regex built with one fails as ExceptionInInitializerError (#1398).
+    for m in UNSUPPORTED_FLAG.finditer(src):
+        line_start = src.rfind('\n', 0, m.start()) + 1
+        if src[line_start:m.start()].lstrip().startswith(('//', '*', '/*')):
+            continue
+        rejected.append((path, src.count('\n', 0, m.start()) + 1,
+                         m.group(1) + ' is not supported by Android', m.group(0)))
 
     non_literal = []
     for m in CALL.finditer(src):
