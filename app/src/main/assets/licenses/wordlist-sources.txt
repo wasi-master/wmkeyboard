@@ -62,6 +62,13 @@ Chinese word pairs (the Pinyin "Chinese word pairs" pack)
   Corpora Collection's zho-cn_web_2015 and zho_news_2020 sentences
   (CC BY 4.0), split into words with the CC-CEDICT pinyin pack.
 
+Sentence openers (bundled, dictionaries/openers.tsv)
+----------------------------------------------------
+
+  Counts of the words that begin a sentence, not text: Tatoeba
+  (https://tatoeba.org/) — CC BY 2.0 FR. Built by
+  scripts/build_sentence_openers.py in the app repository.
+
 Offensive word lists (optional suggestion filters)
 --------------------------------------------------
 

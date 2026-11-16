@@ -265,6 +265,15 @@ class SuggestionEngine(
         }
 
     /**
+     * Each language's sentence openers ([SentenceOpeners]), keyed by language
+     * id: what an empty field, or one just past a full stop, offers in
+     * [primaryLanguageId] when it is not English. English's are the `<s>`
+     * rows of the seed pairs.
+     */
+    @Volatile
+    var sentenceOpeners: Map<String, List<String>> = emptyMap()
+
+    /**
      * The spellings a joined glide reading of [languageId] must be found in, or
      * null when there are none to check against, which leaves that language
      * without joins ([retuneGlide]). Asked on a language switch and by
@@ -843,10 +852,10 @@ class SuggestionEngine(
      * emoji follower belongs in the emoji slot, not in a phrase).
      */
     private fun learnedPhrase(previousWord: String?, previousWord2: String?, maxWords: Int): String? {
-        val back1 = previousWord?.lowercase() ?: return null
+        val back1 = previousWord?.lowered() ?: return null
         val words = LearnedPhrase.chain(
             back1 = back1,
-            back2 = previousWord2?.lowercase(),
+            back2 = previousWord2?.lowered(),
             maxWords = maxWords,
             triples = { b2, b1 ->
                 userLexicon.nextWordsAfter(b2, b1, LearnedPhrase.POOL)
@@ -4457,9 +4466,9 @@ class SuggestionEngine(
         // before (or that the seed pairs know as a follower) gets a bounded
         // log-space boost. Completions historically ignored context entirely;
         // this is one map hit per candidate on the async path.
-        val prev = previousWord?.lowercase()
+        val prev = previousWord?.lowered()
         if (prev != null) {
-            val prev2 = previousWord2?.lowercase()
+            val prev2 = previousWord2?.lowered()
             for (entry in merged.entries) {
                 val candidate = entry.key.lowercase()
                 val count = contextCount(prev, prev2, candidate)
@@ -5126,7 +5135,7 @@ class SuggestionEngine(
      * clear margin, so "a" + "nd" doesn't offer "and" on every stumble.
      */
     fun joinCandidate(previousWord: String?, composing: String): String? {
-        val prev = previousWord?.lowercase() ?: return null
+        val prev = previousWord?.lowered() ?: return null
         if (WordContext.isSentinel(prev)) return null
         val lower = composing.lowered()
         if (prev.isEmpty()) return null
@@ -5193,7 +5202,7 @@ class SuggestionEngine(
      * Chip only, like every join.
      */
     fun periodSlipJoin(previousWord: String?, composing: String): String? {
-        val prev = previousWord?.lowercase() ?: return null
+        val prev = previousWord?.lowered() ?: return null
         val lower = composing.lowered()
         if (prev.isEmpty() || lower.isEmpty() || WordContext.isSentinel(prev)) return null
         if (!prev.all(WordContext::isWordChar) || !lower.all(WordContext::isWordChar)) return null
@@ -5469,8 +5478,8 @@ class SuggestionEngine(
         previousWord2: String?,
     ): List<String> {
         if (words.size < 2 || languageId in phoneticContextOff) return words
-        val prev = previousWord?.lowercase()?.takeIf { it.isNotEmpty() } ?: return words
-        val prev2 = previousWord2?.lowercase()?.takeIf { it.isNotEmpty() }
+        val prev = previousWord?.lowered()?.takeIf { it.isNotEmpty() } ?: return words
+        val prev2 = previousWord2?.lowered()?.takeIf { it.isNotEmpty() }
         val head = words.take(PHONETIC_CONTEXT_POOL)
         val boosts = head.map { contextBoost(contextCount(prev, prev2, it.lowercase())) }
         if (boosts.all { it == 0.0 }) return words
@@ -5840,8 +5849,8 @@ class SuggestionEngine(
         val romanized = phoneticRomanized[language]?.takeUnless { it.isEmpty } ?: return null
         val typed = composing.lowercase()
         if (romanized.spells(typed)) return null
-        val prev = previousWord?.lowercase()?.takeIf { it.isNotEmpty() && language !in phoneticContextOff }
-        val prev2 = previousWord2?.lowercase()?.takeIf { it.isNotEmpty() }
+        val prev = previousWord?.lowered()?.takeIf { it.isNotEmpty() && language !in phoneticContextOff }
+        val prev2 = previousWord2?.lowered()?.takeIf { it.isNotEmpty() }
         fun context(word: String) =
             prev?.let { contextBoost(contextCount(it, prev2, word.lowercase())) * PhoneticCorrection.CONTEXT_WEIGHT } ?: 0.0
         val ranked = PhoneticCorrection.merged(
@@ -6018,9 +6027,9 @@ class SuggestionEngine(
             }
         }
         if (scores.isEmpty()) return emptyList()
-        val prev = previousWord?.lowercase()?.takeIf { it.isNotEmpty() && !WordContext.isSentinel(it) }
+        val prev = previousWord?.lowered()?.takeIf { it.isNotEmpty() && !WordContext.isSentinel(it) }
         if (prev != null) {
-            val prev2 = previousWord2?.lowercase()?.takeIf { it.isNotEmpty() && !WordContext.isSentinel(it) }
+            val prev2 = previousWord2?.lowered()?.takeIf { it.isNotEmpty() && !WordContext.isSentinel(it) }
             for (entry in scores.entries) {
                 entry.setValue(entry.value + contextBoost(contextCount(prev, prev2, entry.key)))
             }
@@ -6310,7 +6319,7 @@ class SuggestionEngine(
             (it.shareOf(EN) - it.shareOf(languageId)) * it.ramp *
                 (fieldDetectionShift / FIELD_SHIFT_BALANCED).coerceAtMost(1.0)
         } ?: 0.0
-        val prev = previousWord?.lowercase()?.takeIf { it.isNotEmpty() }
+        val prev = previousWord?.lowered()?.takeIf { it.isNotEmpty() }
         // Which way the word before pulls. A pair English writes (`i am`,
         // `how are`) against a pair the language's own context knows for the
         // reading it would commit; both known and they cancel. The sentence
@@ -6559,11 +6568,11 @@ class SuggestionEngine(
         limit: Int,
         personal: Boolean = false,
     ): LinkedHashSet<String> {
-        val prev = previousWord?.lowercase() ?: return LinkedHashSet()
+        val prev = previousWord?.lowered() ?: return LinkedHashSet()
         val ordered = LinkedHashSet<String>()
         // Most specific first: the two-word context, when known, beats the
         // bigram tail ("I was" -> "going" over everything "was" alone knows).
-        previousWord2?.lowercase()?.let { prev2 ->
+        previousWord2?.lowered()?.let { prev2 ->
             ordered.addAll(userLexicon.nextWordsAfter(prev2, prev, limit))
         }
         // Learned bigrams next — the user's own phrases beat the corpus and
@@ -6590,10 +6599,10 @@ class SuggestionEngine(
         // corpus and the seeds; gappy, so below every direct follower, and
         // never carried into a typed word's strip.
         if (!personal) {
-            previousWord2?.lowercase()?.let { prev2 ->
+            previousWord2?.lowered()?.let { prev2 ->
                 ordered.addAll(userLexicon.skip1Followers(prev2, limit))
             }
-            previousWord3?.lowercase()?.let { prev3 ->
+            previousWord3?.lowered()?.let { prev3 ->
                 ordered.addAll(userLexicon.skip2Followers(prev3, limit))
             }
         }
@@ -6610,16 +6619,25 @@ class SuggestionEngine(
         // Corpus n-grams (downloaded pack): below the user's habits, above
         // the bundled seeds they supersede. The trigram context first.
         if (!ngramPack.isEmpty) {
-            previousWord2?.lowercase()?.let { prev2 ->
+            previousWord2?.lowered()?.let { prev2 ->
                 ordered.addAll(ngramPack.nextWordsAfter(prev2, prev, limit))
             }
             ordered.addAll(ngramPack.nextWords(prev, limit))
         }
         // Seed bigrams are English pairs; they only cold-start English modes.
         // A sentence's first word has no pack to speak for it, so there the
-        // seeds are the corpus and go in ahead of the pairs typed once.
+        // seeds are the corpus and go in ahead of the pairs typed once; every
+        // other language has its own openers for the same place. Without
+        // them the first word of every French, Portuguese or Turkish sentence
+        // was predicted 0% of the time on the typing test.
         val opening = WordContext.isSentinel(prev)
-        if (englishSources && opening) ordered.addAll(seedBigrams.nextWords(prev))
+        if (opening) {
+            if (englishSources) {
+                ordered.addAll(seedBigrams.nextWords(prev))
+            } else {
+                ordered.addAll(sentenceOpeners[primaryLanguageId].orEmpty())
+            }
+        }
         ordered.addAll(once)
         if (englishSources && !opening) ordered.addAll(seedBigrams.nextWords(prev))
         // English riding as a secondary: after one of its words the primary's
@@ -6629,7 +6647,7 @@ class SuggestionEngine(
         if (englishAsSecondary && !englishSources && dictionary.contains(prev)) {
             val englishPack = secondaryEnglishNgramPack
             if (!englishPack.isEmpty) {
-                previousWord2?.lowercase()?.let { prev2 ->
+                previousWord2?.lowered()?.let { prev2 ->
                     ordered.addAll(englishPack.nextWordsAfter(prev2, prev, limit))
                 }
                 ordered.addAll(englishPack.nextWords(prev, limit))
@@ -6642,7 +6660,7 @@ class SuggestionEngine(
         // still offers what tends to follow "met". Appended after every
         // direct source, so genuine followers of prev always rank first.
         if (ordered.size < limit && previousWord2 != null) {
-            val prev2 = previousWord2.lowercase()
+            val prev2 = previousWord2.lowered()
             ordered.addAll(userLexicon.nextWords(prev2, limit))
             if (!ngramPack.isEmpty) ordered.addAll(ngramPack.nextWords(prev2, limit))
         }

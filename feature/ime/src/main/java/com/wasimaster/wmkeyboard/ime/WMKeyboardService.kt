@@ -325,6 +325,7 @@ import com.wasimaster.wmkeyboard.core.prediction.RomanizedDictation
 import com.wasimaster.wmkeyboard.core.prediction.Revision
 import com.wasimaster.wmkeyboard.core.prediction.SecondaryDictionary
 import com.wasimaster.wmkeyboard.core.prediction.SeedBigrams
+import com.wasimaster.wmkeyboard.core.prediction.SentenceOpeners
 import com.wasimaster.wmkeyboard.core.prediction.SuggestionEngine
 import com.wasimaster.wmkeyboard.core.prediction.WordChecker
 import com.wasimaster.wmkeyboard.core.prediction.SystemUserDictionary
@@ -6496,6 +6497,11 @@ open class WMKeyboardService : InputMethodService() {
             val bengaliIndex = withContext(Dispatchers.Default) { buildBengaliIndex() }
             // Copied out of the APK once per version, so off the main thread.
             val phrases = withContext(Dispatchers.IO) { openPhraseList() }
+            val openers = withContext(Dispatchers.IO) {
+                runCatching {
+                    assets.open("dictionaries/openers.tsv").use { SentenceOpeners.load(it) }
+                }.getOrDefault(emptyMap())
+            }
             suggestionEngine = SuggestionEngine(
                 english ?: PackedTrie.EMPTY,
                 bengaliIndex,
@@ -6505,6 +6511,7 @@ open class WMKeyboardService : InputMethodService() {
                 languageMixConfidence,
             ).apply {
                 phraseList = phrases
+                sentenceOpeners = openers
                 contacts = contactNames
                 contactEmails = this@WMKeyboardService.contactEmails
                 apps = appNames
