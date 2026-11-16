@@ -23825,9 +23825,20 @@ open class WMKeyboardService : InputMethodService() {
         // pattern is read off the field the way [tryUncomposedTrigger] reads a
         // trigger, and the word memory the gate keeps from composing is not
         // asked. Nor in a box that names itself a password or PIN (#1404).
+        //
+        // The same address bar does compose once "Suggestions in every field"
+        // puts the strip on it, which is the default, and then the word reaches
+        // here through [commitComposing] instead (#1315, still failing in
+        // 0.6.7). A URL field never passes [allowsTypingIntelligence], so the
+        // composed address bar was turned away here, and the uncomposed path
+        // stands aside wherever words compose. It is let in on the same terms
+        // as the uncomposed one: nothing is learned in a URL field, so the word
+        // memory the gate reads is not kept there and is not asked.
         if (snippetChipsBarred(state)) return false
-        if (!uncomposed && (!state.allowsTypingIntelligence || state.fieldNoSuggestions)) return false
-        if (!uncomposed && !patternGateOpen(typed)) return false
+        val composedUrl = state.fieldKind == FieldKind.URI && state.composesWords
+        val skipsGate = uncomposed || composedUrl
+        if (!skipsGate && (!state.allowsTypingIntelligence || state.fieldNoSuggestions)) return false
+        if (!skipsGate && !patternGateOpen(typed)) return false
         val before = ic.getTextBeforeCursor(SnippetMatcher.MAX_WINDOW, 0) ?: return false
         // Composing text is part of the field's own text, so the window
         // normally ends with the word being committed. An editor that
