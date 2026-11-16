@@ -298,8 +298,24 @@ internal class StableMeasureFrame(
     // has used them up, and reading them padded the keys a second time for a
     // bar already padded for, a row-high gap below the space bar (#569).
     override fun dispatchApplyWindowInsets(insets: WindowInsets): WindowInsets {
+        val bottomBefore = navigationBars?.bottom
+        val barHiddenBefore = navigationBars?.keyboardBarHidden
         navigationBars?.update(insets, this)
         logInsets(insets)
+        // The bar under the keys came or went (#1360): the keyboard is a
+        // different height now, and the window has to be laid out and drawn
+        // again at it. Some phones show the frame after a resize at the old
+        // position until another one is drawn (#424), and a keyboard nobody
+        // touches draws none, so the board sat where it was over a band of
+        // the app.
+        if (navigationBars != null &&
+            (navigationBars.bottom != bottomBefore || navigationBars.keyboardBarHidden != barHiddenBefore)
+        ) {
+            requestLayout()
+            val idle = settleFrames == 0
+            settleFrames = SETTLE_FRAMES
+            if (idle) postOnAnimation(settleRedraw)
+        }
         return super.dispatchApplyWindowInsets(insets)
     }
 

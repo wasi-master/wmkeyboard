@@ -7174,12 +7174,18 @@ open class WMKeyboardService : InputMethodService() {
         // full width, its own height.
         // Between the two, the frame that moves a touch on a split bar row's
         // right half to where the row laid it out (#1256).
+        // Both frames stand the keyboard on their bottom edge (#1360): a
+        // window still the height it was a moment ago, as when the system's
+        // keyboard bar goes and takes its inset with it, left the board at the
+        // top of it, keys where they were, over a see-through band at the
+        // bottom of the screen.
         val touchFrame = SplitBarTouchFrame(this).apply {
             addView(
                 view,
                 android.widget.FrameLayout.LayoutParams(
                     android.view.ViewGroup.LayoutParams.MATCH_PARENT,
                     android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                    android.view.Gravity.BOTTOM,
                 ),
             )
         }
@@ -7192,6 +7198,7 @@ open class WMKeyboardService : InputMethodService() {
                 android.widget.FrameLayout.LayoutParams(
                     android.view.ViewGroup.LayoutParams.MATCH_PARENT,
                     android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                    android.view.Gravity.BOTTOM,
                 ),
             )
         }
