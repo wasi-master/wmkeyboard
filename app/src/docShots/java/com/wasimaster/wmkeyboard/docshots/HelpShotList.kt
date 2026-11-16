@@ -608,7 +608,6 @@ val HELP_SHOTS: List<HelpShot> = listOf(
     toggle("typing_skip_all_caps_title", typed { type("TEH teh ") }, crop = HelpCrop.TEXT) { setAutocorrectSkipAllCaps(it) },
     toggle("typing_undo_autocorrect_title", typed { type("teh "); key(Key(label = "", action = KeyAction.Delete)); settle() }, crop = HelpCrop.TEXT) { setRevertAutocorrectOnBackspace(it) },
     toggle("typing_number_row_corrections_title", typed { type("h3llo ") }.copy(seed = withNumberRow), crop = HelpCrop.TEXT) { setNumberRowCorrections(it) },
-    toggle("typing_dictionary_capitals_title", typed { type("london ") }, crop = HelpCrop.TEXT) { setDictionaryCapitals(it) },
     toggle("typing_ask_before_learning_title", typed { type("zelkodyne ") }) { setAskBeforeLearning(it) },
     toggle("typing_undo_delete_chip_title", typed { type("see you tomorrow"); repeat(8) { key(Key(label = "", action = KeyAction.Delete)) }; settle() }) { setUndoDeleteChip(it) },
     toggle("typing_phrase_completion_title", typed { type("see you ") }) { setPhraseCompletion(it) },
@@ -626,7 +625,6 @@ val HELP_SHOTS: List<HelpShot> = listOf(
 
     // ------------------------------------------------------------ voice panel
     toggle("voice_strip_language_title", docs("tools/voice-panel-listening"), crop = HelpCrop.KEYBOARD) { setVoiceStripLanguageChip(it) },
-    toggle("voice_engine_picker_title", docs("tools/voice-panel-listening"), crop = HelpCrop.KEYBOARD) { setVoiceEnginePicker(it) },
     toggle("voice_mic_switch_title", docs("tools/voice-panel-listening"), crop = HelpCrop.KEYBOARD) { setVoiceMicSwitch(it) },
 
     // ------------------------------------------------------------ more tools
@@ -634,7 +632,6 @@ val HELP_SHOTS: List<HelpShot> = listOf(
     toggle("tooldetail_power_drop_chips_title", typed { type("1 ft") }.copy(seed = { repo.setPowerSavingManual(true) })) { setPowerSavingDropSmartChips(it) },
     toggle("tooldetail_power_drop_emoji_title", typed { type("birthday") }.copy(seed = { repo.setPowerSavingManual(true) })) { setPowerSavingDropEmojiPrediction(it) },
     compare("tooldetail_calc_precision_title", typed { panel(PanelMode.CALCULATOR); type("1/3=") }, off = { repo.setCalcPrecision(2) }, on = { repo.setCalcPrecision(10) }, crop = HelpCrop.KEYBOARD, labels = "=2" to "=10"),
-    toggle("tooldetail_crypto_enable_title", docs("smart/currency-chip").copy(steps = { type("1 btc"); pause(1500); settle() })) { setCryptoEnabled(it) },
     compare("tooldetail_crypto_decimals_title", docs("smart/currency-chip").copy(steps = { type("1 btc"); pause(1500); settle() }), off = { repo.setCryptoDecimals(0) }, on = { repo.setCryptoDecimals(6) }, labels = "=0" to "=6"),
     toggle("toolai_typing_suggestions_title", docs("tools/typing-test-panel"), crop = HelpCrop.KEYBOARD) { setTypingTestSuggestions(it) },
     toggle("tooldetail_privacy_shade_on_title", KbShot("", mode = "chat"), crop = HelpCrop.SCREEN) { setPrivacyShadeOn(it) },

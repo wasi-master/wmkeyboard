@@ -6,12 +6,11 @@ import com.wasimaster.wmkeyboard.core.clock.WorldZone
 import com.wasimaster.wmkeyboard.core.clipboard.ClipboardStore
 import com.wasimaster.wmkeyboard.core.notes.NoteSort
 import com.wasimaster.wmkeyboard.core.notes.NoteStore
+import com.wasimaster.wmkeyboard.core.settings.AlternateGroup
 import com.wasimaster.wmkeyboard.core.settings.AppSortOrder
-import com.wasimaster.wmkeyboard.core.settings.EmojiBarContent
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings
 import com.wasimaster.wmkeyboard.core.settings.EmojiTabMode
-import com.wasimaster.wmkeyboard.core.settings.KaomojiStartView
 import com.wasimaster.wmkeyboard.core.settings.LanguagePickerStyle
 import com.wasimaster.wmkeyboard.core.settings.NextWordAmount
 import com.wasimaster.wmkeyboard.core.settings.NextWordSuggestions
@@ -26,15 +25,12 @@ import com.wasimaster.wmkeyboard.core.script.NumeralSystem
 import com.wasimaster.wmkeyboard.core.theme.KeyMaterialSpec
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
 import com.wasimaster.wmkeyboard.core.theme.TouchBloomSpec
-import com.wasimaster.wmkeyboard.core.settings.SuggestionOverflow
 import com.wasimaster.wmkeyboard.core.settings.SwitcherExtraStop
 import com.wasimaster.wmkeyboard.core.todo.TodoStore
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.core.settings.QrEccLevel
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
-import com.wasimaster.wmkeyboard.core.settings.EmojiDefaultGender
-import com.wasimaster.wmkeyboard.core.settings.EmojiSkinTone
 import com.wasimaster.wmkeyboard.core.settings.ScreenVariant
 import com.wasimaster.wmkeyboard.core.settings.ToolboxSort
 import com.wasimaster.wmkeyboard.core.settings.BoardCorner
@@ -143,9 +139,6 @@ private val toolboxOpen = typed { panel(PanelMode.TOOLBOX) }
 /** Half way through a glide of "hello": the finger still down, the trail and the word above it showing. */
 private val gliding = typed { glide("hello", lift = false) }.seededWith { repo.setGestureTyping(true) }
 
-/** The emoji panel's search, with [query] typed into it. */
-private fun emojiSearch(query: String) = typed { panel(PanelMode.EMOJI); tap("Search", substring = true); type(query) }
-
 /** A clipboard history with a pinned clip, a formatted one and their source apps, open. */
 private fun Seed.richClips() {
     val file = File(context.filesDir, "clipboard/history.json")
@@ -236,30 +229,12 @@ val HELP_SHOTS_2: List<HelpShot> = listOf(
         "langemoji_emoji_both_label" to emojiPanel.seededWith { repo.setEmojiTabMode(EmojiTabMode.BOTH) },
         "langemoji_emoji_tab_off_label" to emojiPanel.seededWith { repo.setEmojiTabMode(EmojiTabMode.OFF) },
     ),
-    gallery(
-        "langemoji_emoji_bar_content_title",
-        "langemoji_emoji_most_used_label" to docs("emoji/emoji-row-own").seededWith { repo.setEmojiBarContent(EmojiBarContent.MOST_USED) },
-        "langemoji_emoji_recent_label" to docs("emoji/emoji-row-own").seededWith { repo.setEmojiBarContent(EmojiBarContent.RECENTS) },
-        "langemoji_emoji_favourites_label" to docs("emoji/emoji-row-own").seededWith { repo.setEmojiBarContent(EmojiBarContent.FAVOURITES) },
-    ),
-    toggle("langemoji_emoji_bar_scroll_title", docs("emoji/emoji-row-own"), crop = HelpCrop.KEYBOARD) { setEmojiBarScrollable(it) },
-    toggle("langemoji_emoji_long_press_name_title", typed { panel(PanelMode.EMOJI); hold("😀") }, crop = HelpCrop.KEYBOARD) { setEmojiLongPressName(it) },
-    toggle("langemoji_emoji_animated_title", typed { panel(PanelMode.EMOJI); hold("😀") }, crop = HelpCrop.KEYBOARD) { setAnimatedEmoji(it) },
-    toggle("langemoji_emoji_sticker_title", typed { panel(PanelMode.EMOJI); hold("😀") }, crop = HelpCrop.KEYBOARD) { setSendEmojiAsSticker(it) },
-    toggle("langemoji_emoji_unicode_search_title", typed { panel(PanelMode.EMOJI); tap("Search", substring = true); type("arrow") }, crop = HelpCrop.KEYBOARD) { setEmojiUnicodeSearch(it) },
     toggle("langemoji_kaomoji_suggest_title", typed { type("shrug") }) { setKaomojiSuggest(it) },
-    gallery(
-        "langemoji_kaomoji_start_title",
-        "langemoji_kaomoji_start_recent" to kaomojiTab.seededWith { repo.setKaomojiStartView(KaomojiStartView.RECENT) },
-        "langemoji_kaomoji_start_favourites" to kaomojiTab.seededWith { repo.setKaomojiStartView(KaomojiStartView.FAVOURITES) },
-        "langemoji_kaomoji_start_all" to kaomojiTab.seededWith { repo.setKaomojiStartView(KaomojiStartView.ALL) },
-    ),
 
     // ------------------------------------------------------------ typing, on what the field and the strip show
     toggle("typing_auto_capitalize_words_title", typed { type("hello world") }.copy(seed = { repo.setAutoCapitalizeAnyField(true) }), crop = HelpCrop.TEXT) { setAutoCapitalizeWords(it) },
     toggle("typing_autocorrect_on_punctuation_title", typed { type("teh.") }, crop = HelpCrop.TEXT) { setAutocorrectOnPunctuation(it) },
     toggle("typing_autocorrect_on_enter_title", KbShot("", mode = "chat", steps = { type("teh\n") }), crop = HelpCrop.TEXT) { setAutocorrectOnEnter(it) },
-    toggle("typing_whole_phrases_title", typed { type("seeyou ") }, crop = HelpCrop.TEXT) { setAutocorrectWholePhrases(it) },
     toggle("typing_smart_calc_title", typed { type("12*4") }) { setSmartCalc(it) },
     toggle("typing_smart_currency_title", docs("smart/currency-chip")) { setSmartCurrency(it) },
     gallery(
@@ -284,21 +259,10 @@ val HELP_SHOTS_2: List<HelpShot> = listOf(
         crop = HelpCrop.KEYBOARD, labels = "=1" to "=3",
     ),
     gallery(
-        "typing_suggestion_overflow_title",
-        "typing_suggestion_overflow_middle" to typed { type("internationalisation") }.seededWith { repo.setSuggestionOverflow(SuggestionOverflow.MIDDLE) },
-        "typing_suggestion_overflow_end" to typed { type("internationalisation") }.seededWith { repo.setSuggestionOverflow(SuggestionOverflow.END) },
-        crop = HelpCrop.DIFF,
-    ),
-    gallery(
         "typing_next_word_amount_title",
         "typing_next_word_amount_fewer" to typed { type("see you ") }.seededWith { repo.setNextWordAmount(NextWordAmount.FEWER) },
         "typing_next_word_amount_more" to typed { type("see you ") }.seededWith { repo.setNextWordAmount(NextWordAmount.MORE) },
         crop = HelpCrop.DIFF,
-    ),
-    gallery(
-        "typing_language_picker_style_title",
-        "typing_language_picker_style_list_label" to docs("languages/hold-drag-picker-list").seededWith { repo.setLanguagePickerStyle(LanguagePickerStyle.LIST) },
-        "typing_language_picker_style_carousel_label" to docs("languages/hold-drag-picker-list").seededWith { repo.setLanguagePickerStyle(LanguagePickerStyle.CAROUSEL) },
     ),
     toggle("typing_hw_modifier_words_title", docs("typing/hardware-tool-picker"), crop = HelpCrop.KEYBOARD) { setHwHintModifierWords(it) },
     toggle("typing_hw_dpad_keys_title", docs("typing/hardware-focus-ring"), crop = HelpCrop.KEYBOARD) { setHwDpadKeyNavigation(it) },
@@ -306,7 +270,6 @@ val HELP_SHOTS_2: List<HelpShot> = listOf(
     compare("keypress_popup_background_title", typed { press("g") }, off = { }, on = { repo.setKeyPopupBackgroundColor(0xFF1565C0) }, crop = HelpCrop.KEYBOARD, aboveDp = 72, labels = "common_default" to "common_custom"),
     compare("keypress_popup_text_color_title", typed { press("g") }, off = { }, on = { repo.setKeyPopupTextColor(0xFFFFB300) }, crop = HelpCrop.KEYBOARD, aboveDp = 72, labels = "common_default" to "common_custom"),
     compare("appearance_suggestion_primary_color_title", typed { type("teh") }, off = { }, on = { repo.setSuggestionPrimaryColor(0xFFE53935) }, labels = "common_default" to "common_custom"),
-    compare("appearance_suggestion_new_word_color_title", typed { type("zelkodyne") }, off = { }, on = { repo.setSuggestionNewWordColor(0xFF43A047) }, labels = "common_default" to "common_custom"),
     toggle("keypress_symbols_numpad_title", typed { hold("?123") }, crop = HelpCrop.KEYBOARD) { setSymbolsLongPressNumpad(it) },
     toggle("keypress_popup_window_band_title", KbShot(""), crop = HelpCrop.SCREEN) { setKeyPopupWindowBand(it) },
     toggle("appearance_toolbar_show_strip_title", strip) { setToolbarShowStrip(it) },
@@ -397,9 +360,9 @@ val HELP_SHOTS_2: List<HelpShot> = listOf(
         off = { repo.setNumeralSystemForLanguage("bn", NumeralSystem.LATIN) }, on = { repo.setNumeralSystemForLanguage("bn", NumeralSystem.BENGALI) },
         crop = HelpCrop.KEYBOARD, labels = "core_lang_numeral_system_latin" to "core_lang_numeral_system_bengali",
     ),
-    toggle("languages_cjk_jianpin_title", pinyin.copy(steps = { type("nh") })) { setPinyinJianpin(it) },
-    toggle("languages_cjk_fuzzy_title", pinyin.copy(steps = { type("lihao") })) { setPinyinFuzzy(it) },
-    toggle("languages_cjk_shortcuts_title", pinyin.copy(steps = { type("rq") })) { setPinyinShortcuts(it) },
+    toggle("languages_cjk_jianpin_title", pinyin.copy(steps = { type("nh"); runCatching { tap("Dismiss") }; settle() })) { setPinyinJianpin(it) },
+    toggle("languages_cjk_fuzzy_title", pinyin.copy(steps = { type("lihao"); runCatching { tap("Dismiss") }; settle() })) { setPinyinFuzzy(it) },
+    toggle("languages_cjk_shortcuts_title", pinyin.copy(steps = { type("rq"); runCatching { tap("Dismiss") }; settle() })) { setPinyinShortcuts(it) },
     // ------------------------------------------------------------ AI, on the docs harness's fake model
     toggle("toolai_ai_diff_title", docs("tools/ai-result-ready"), crop = HelpCrop.KEYBOARD) { setAiDiffView(it) },
     toggle("toolai_ai_model_picker_title", docs("tools/ai-panel-idle"), crop = HelpCrop.KEYBOARD) { setAiPanelModelPicker(it) },
@@ -437,14 +400,14 @@ val HELP_SHOTS_2: List<HelpShot> = listOf(
     toggle("typing_hide_composing_underline_title", typed { type("hello") }, crop = HelpCrop.TEXT) { setHideComposingUnderline(it) },
     toggle("typing_auto_space_punctuation_title", typed { type("hi,there") }, crop = HelpCrop.TEXT) { setAutoSpaceAfterPunctuation(it) },
     toggle("tooldetail_numpad_calc_title", typed { panel(PanelMode.NUMPAD) }, crop = HelpCrop.KEYBOARD) { setNumpadCalculatorLayout(it) },
-    compare("tooldetail_passphrase_words_title", typed { panel(PanelMode.PASSWORD_GEN) }, off = { repo.setPpWordCount(3) }, on = { repo.setPpWordCount(6) }, crop = HelpCrop.KEYBOARD, labels = "=3" to "=6"),
-    toggle("tooldetail_passphrase_capitalize_title", typed { panel(PanelMode.PASSWORD_GEN) }, crop = HelpCrop.KEYBOARD) { setPpCapitalize(it) },
-    toggle("tooldetail_passphrase_digit_title", typed { panel(PanelMode.PASSWORD_GEN) }, crop = HelpCrop.KEYBOARD) { setPpIncludeDigit(it) },
-    compare("tooldetail_pin_length_title", typed { panel(PanelMode.PASSWORD_GEN) }, off = { repo.setPinLength(4) }, on = { repo.setPinLength(8) }, crop = HelpCrop.KEYBOARD, labels = "=4" to "=8"),
+    compare("tooldetail_passphrase_words_title", typed { panel(PanelMode.PASSWORD_GEN) }.seededWith { repo.setPwPassphraseMode(true) }, off = { repo.setPpWordCount(3) }, on = { repo.setPpWordCount(6) }, crop = HelpCrop.KEYBOARD, labels = "=3" to "=6"),
+    toggle("tooldetail_passphrase_capitalize_title", typed { panel(PanelMode.PASSWORD_GEN) }.seededWith { repo.setPwPassphraseMode(true) }, crop = HelpCrop.KEYBOARD) { setPpCapitalize(it) },
+    toggle("tooldetail_passphrase_digit_title", typed { panel(PanelMode.PASSWORD_GEN) }.seededWith { repo.setPwPassphraseMode(true) }, crop = HelpCrop.KEYBOARD) { setPpIncludeDigit(it) },
+    compare("tooldetail_pin_length_title", typed { panel(PanelMode.PASSWORD_GEN) }.seededWith { repo.setPinMode(true) }, off = { repo.setPinLength(4) }, on = { repo.setPinLength(8) }, crop = HelpCrop.KEYBOARD, labels = "=4" to "=8"),
     compare("tooldetail_show_in_toolbox_title", toolboxOpen, off = { repo.setToolHiddenInToolbox(ToolKey.Builtin(ToolbarTool.GIF), true) }, on = { repo.setToolHiddenInToolbox(ToolKey.Builtin(ToolbarTool.GIF), false) }, crop = HelpCrop.KEYBOARD, labels = "common_off" to "common_on"),
     compare("tooldetail_icon_colour_end_title", KbShot(""), off = { repo.setToolColor(ToolbarTool.CLIPBOARD, 0xFFE53935) }, on = { repo.setToolColor(ToolbarTool.CLIPBOARD, 0xFFE53935); repo.setToolColorEnd(ToolbarTool.CLIPBOARD, 0xFF1E88E5) }, labels = "common_off" to "common_on"),
     toggle("clipboard_grid_rows_title", richClipboard, crop = HelpCrop.KEYBOARD) { setClipboardGridRows(it) },
-    toggle("keypress_enter_emoji_title", typed { holdDescription("Enter") }, aboveDp = 120, crop = HelpCrop.KEYBOARD) { setEnterLongPressEmoji(it) },
+    toggle("keypress_enter_emoji_title", typed { holdDescription("Done") }, aboveDp = 120, crop = HelpCrop.KEYBOARD) { setEnterLongPressEmoji(it) },
     // ------------------------------------------------------------ batch 6: glide, symbols page, emoji tones, scale
     compare("typing_trail_style_title", gliding, off = { repo.setGestureTrailOpacity(0.35f) }, on = { repo.setGestureTrailOpacity(1f) }, crop = HelpCrop.KEYBOARD, labels = "=35%" to "=100%"),
     compare("typing_trail_length_title", gliding, off = { repo.setGestureTrailDurationMs(150) }, on = { repo.setGestureTrailDurationMs(1200) }, crop = HelpCrop.KEYBOARD, labels = "=150 ms" to "=1200 ms"),
@@ -466,23 +429,27 @@ val HELP_SHOTS_2: List<HelpShot> = listOf(
         "appearance_toolbox_sort_custom_label" to toolboxOpen.seededWith { repo.setToolboxSort(ToolboxSort.CUSTOM) },
         "appearance_toolbox_sort_alphabetical_label" to toolboxOpen.seededWith { repo.setToolboxSort(ToolboxSort.ALPHABETICAL) },
     ),
-    compare("langemoji_emoji_skin_tone_title", emojiSearch("thumbs"), off = { repo.setEmojiDefaultSkinTone(EmojiSkinTone.NONE) }, on = { repo.setEmojiDefaultSkinTone(EmojiSkinTone.MEDIUM_DARK) }, crop = HelpCrop.KEYBOARD, labels = "common_off" to "common_on"),
-    compare("langemoji_emoji_gender_title", emojiSearch("cook"), off = { repo.setEmojiDefaultGender(EmojiDefaultGender.PERSON) }, on = { repo.setEmojiDefaultGender(EmojiDefaultGender.WOMAN) }, crop = HelpCrop.KEYBOARD, labels = "common_off" to "common_on"),
     toggle("typing_password_manager_chip_title", KbShot("", kind = "password", hint = "Password"), crop = HelpCrop.KEYBOARD) { setPasswordManagerChip(it) },
-    toggle("typing_space_cursor_magnifier_title", typed { type("hello world"); drag("English", -220f) }, aboveDp = 90, crop = HelpCrop.KEYBOARD) { setSpaceCursorMagnifier(it) },
+    toggle("typing_space_cursor_magnifier_title", typed { type("hello world"); drag("Space", -220f) }, aboveDp = 90, crop = HelpCrop.KEYBOARD) { setSpaceCursorMagnifier(it) },
     toggle("tooldetail_password_ambiguous_title", typed { panel(PanelMode.PASSWORD_GEN) }, crop = HelpCrop.KEYBOARD) { setPwExcludeAmbiguous(it) },
     compare("tooldetail_qr_gen_ecc_header", typed { type("https://wmkeyboard.app"); panel(PanelMode.QR_GEN) }, off = { repo.setQrEcc(QrEccLevel.L) }, on = { repo.setQrEcc(QrEccLevel.H) }, crop = HelpCrop.KEYBOARD, labels = "=L" to "=H"),
-    compare("tooldetail_handwriting_height_title", typed { panel(PanelMode.HANDWRITING) }, off = { repo.setHandwritingPanelExtraHeight(0) }, on = { repo.setHandwritingPanelExtraHeight(120) }, crop = HelpCrop.SCREEN, labels = "=0 dp" to "=120 dp"),
     toggle("expander_panel_stays_title", docs("tools/snippets-panel").let { s -> s.copy(steps = { s.steps(this); tap("Thanks") }) }, crop = HelpCrop.SCREEN) { setSnippetPanelStays(it) },
     // ------------------------------------------------------------ batch 7: glide colour, corners, currency, flicks, fancy
     compare("typing_glide_commit_color_title", gliding, off = { repo.setGestureCommitColor(GlideCommitColor.OFF) }, on = { repo.setGestureCommitColor(GlideCommitColor.ALWAYS) }, crop = HelpCrop.KEYBOARD),
     compare("typing_glide_commit_scope_title", gliding.seededWith { repo.setGestureCommitColor(GlideCommitColor.ALWAYS) }, off = { repo.setGestureCommitColorScope(GlideCommitColorScope.STRIP) }, on = { repo.setGestureCommitColorScope(GlideCommitColorScope.STRIP_AND_PILL) }, crop = HelpCrop.KEYBOARD),
     compare("typing_glide_drawn_letters_title", typed { glide("qzxv") }.seededWith { repo.setGestureTyping(true) }, off = { repo.setGestureDrawnLetters(GlideDrawnLetters.OFF) }, on = { repo.setGestureDrawnLetters(GlideDrawnLetters.WHEN_UNSURE) }, crop = HelpCrop.KEYBOARD),
     compare("layout_board_corners_title", KbShot("", mode = "blank").seededWith { repo.setBoardCornerTopDp(28); repo.setBoardCornerBottomDp(28) }, off = { repo.setBoardCorners(BoardCorner.entries.toSet()) }, on = { repo.setBoardCorners(setOf(BoardCorner.TOP_LEFT, BoardCorner.TOP_RIGHT)) }, crop = HelpCrop.SCREEN, labels = "=All four" to "=Top two"),
-    compare("keypress_currency_keys_title", typed { key(Key(label = "", action = KeyAction.Symbols)) }, off = { repo.setCurrencyKeys(emptyList()) }, on = { repo.setCurrencyKeys(listOf("$", "€", "₹", "₩")) }, crop = HelpCrop.KEYBOARD, labels = "=৳ € £ ¥ ₹ ₿" to "=$ € ₹ ₩"),
+    compare("keypress_currency_keys_title", typed { key(Key(label = "", action = KeyAction.Symbols)); hold("$") }, off = { repo.setCurrencyKeys(emptyList()) }, on = { repo.setCurrencyKeys(listOf("$", "€", "₹", "₩")) }, crop = HelpCrop.KEYBOARD, labels = "=৳ € £ ¥ ₹ ₿" to "=$ € ₹ ₩"),
     toggle("typing_flick_hints_title", on("asset_en_flick"), crop = HelpCrop.KEYBOARD) { setFlickHints(it) },
     toggle("rows_recent_words_steady_title", KbShot("", mode = "blank").seededWith { repo.setRecentWordBar(true) }, crop = HelpCrop.SCREEN) { setRecentWordSteady(it) },
     toggle("typing_shift_recase_inside_title", typed { type("hello"); hardwareKey(android.view.KeyEvent.KEYCODE_DPAD_LEFT); hardwareKey(android.view.KeyEvent.KEYCODE_DPAD_LEFT); key(Key(label = "", action = KeyAction.Shift)); settle() }, crop = HelpCrop.TEXT) { setShiftRecasesWordAroundCaret(it) },
     compare("tooldetail_fancy_style_title", typed { tool(ToolbarTool.FANCY); type("hello") }, off = { repo.setFancyToolStyle("bold") }, on = { repo.setFancyToolStyle("double_struck") }, crop = HelpCrop.TEXT, labels = "=Bold" to "=Double-struck"),
     compare("languages_fancy_style_row_title", typed { tool(ToolbarTool.FANCY); type("hello") }.seededWith { repo.setFancyToolStyle(null) }, off = { repo.setFancyStyle("bold_script") }, on = { repo.setFancyStyle("bold_fraktur") }, crop = HelpCrop.TEXT, labels = "=Bold script" to "=Bold fraktur"),
+    compare("appearance_suggestion_new_word_color_title", typed { type("zelkodyne") }, off = { }, on = { repo.setSuggestionNewWordColor(0xFF43A047) }, labels = "common_default" to "common_custom"),
+    // ------------------------------------------------------------ batch 8: delete swipe, alternates, RTL toolbar, pinyin next words
+    toggle("typing_backspace_preview_title", typed { type("see you at the station"); drag("Delete", -260f) }.seededWith { repo.setBackspaceSwipeDelete(true) }, crop = HelpCrop.SCREEN) { setBackspaceSwipePreview(it) },
+    compare("keypress_alternates_order_title", typed { hold("e") }, off = { repo.setAlternatesOrder(listOf(AlternateGroup.LAYOUT, AlternateGroup.ACCENTS, AlternateGroup.SHIFTED)) }, on = { repo.setAlternatesOrder(listOf(AlternateGroup.SHIFTED, AlternateGroup.ACCENTS, AlternateGroup.LAYOUT)) }, crop = HelpCrop.KEYBOARD, labels = "=Layout first" to "=Shifted first"),
+    toggle("appearance_toolbar_rtl_title", on("builtin_arabic"), crop = HelpCrop.KEYBOARD) { setReverseToolbarForRtl(it) },
+    toggle("typing_suggestion_pages_title", typed { type("th") }, crop = HelpCrop.KEYBOARD) { setSuggestionsSwipeForMore(it) },
+    toggle("languages_cjk_prediction_title", pinyin.copy(steps = { type("nihao"); runCatching { tap("Dismiss") }; key(Key(label = "", action = KeyAction.Space)); settle() })) { setPinyinPrediction(it) },
 )

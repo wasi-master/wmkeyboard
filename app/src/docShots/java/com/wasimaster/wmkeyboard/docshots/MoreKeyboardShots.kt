@@ -636,7 +636,7 @@ internal val MORE_KB_SHOTS: List<KbShot> = listOf(
     ),
 
     // ------------------------------------------------------------ gestures
-    KbShot("typing/spacebar-cursor-swipe", kind = "multiline", text = "See you at the station at six", steps = { drag("English", -140f, holdMillis = 700) }),
+    KbShot("typing/spacebar-cursor-swipe", kind = "multiline", text = "See you at the station at six", steps = { drag("Space", -140f, holdMillis = 700) }),
     KbShot("typing/backspace-word-swipe", kind = "multiline", text = "See you at the station at six tomorrow", steps = { drag("Delete", -260f) }),
     KbShot("typing/volume-cursor-control", kind = "multiline", text = "Meet me at the usual place around six tonight.", seed = {
         repo.setVolumeCursor(true); repo.setVolumeCursorMediaAware(false)

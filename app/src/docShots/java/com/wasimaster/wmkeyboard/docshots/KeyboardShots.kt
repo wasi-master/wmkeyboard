@@ -628,10 +628,10 @@ val KB_SHOTS: List<KbShot> = listOf(
     KbShot("typing/symbols-page-open", steps = { key(Key(label = "?123", action = KeyAction.Symbols)); settle() }),
     KbShot("typing/long-press-popup", steps = { hold("e") }),
     KbShot("tour/long-press-alternates", steps = { hold("a") }),
-    KbShot("languages/spacebar-language-preview", steps = { drag("English", 180f) }),
+    KbShot("languages/spacebar-language-preview", steps = { drag("Space", 180f) }),
     KbShot("languages/hold-drag-picker-list", seed = {
         repo.setEnabledLayoutIds(listOf("builtin_qwerty", "builtin_avro", "builtin_probhat", "builtin_jatiya", "asset_fancy"))
-    }, steps = { drag("English", 0f, -120f, holdMillis = 500) }),
+    }, steps = { drag("Space", 0f, -120f, holdMillis = 500) }),
 
     // ------------------------------------------------------------ the strip
     KbShot("smart/suggestion-strip-anatomy", steps = { type("cons") }),
