@@ -410,7 +410,7 @@ private object ClipChangeWatch {
 }
 
 /** Each card's last drawn height by clip, so a deleted clip's place keeps its size (#1354). */
-private class ClipHeights {
+internal class ClipHeights {
     val px = HashMap<Long, Int>()
 }
 

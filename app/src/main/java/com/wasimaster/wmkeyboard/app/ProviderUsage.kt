@@ -59,6 +59,8 @@ internal fun ProviderUsageGroup(row: ResolvedProvider, tool: ProviderTool, onNav
     val scope = rememberCoroutineScope()
     val version by ServiceUsage.version.collectAsState()
     val record = remember(version, key) { ServiceUsage.get(key) }
+    // Brave's prepaid plans report no balance (#1385): the free credit, less this phone's count.
+    val estimate = remember(version, key) { ServiceUsage.estimatedFreeLeft(key) }
     var checking by remember { mutableStateOf(false) }
     val canCheck = UsageChecks.canCheck(row.typeId, row.url) && row.apiKey.isNotBlank()
     SettingsGroup(title = stringResource(R.string.providers_usage_title)) {
@@ -84,8 +86,6 @@ internal fun ProviderUsageGroup(row: ResolvedProvider, tool: ProviderTool, onNav
                 )
             }
         }
-        // Brave's prepaid plans report no balance (#1385): the free credit, less this phone's count.
-        val estimate = remember(version, key) { ServiceUsage.estimatedFreeLeft(key) }
         item(visible = estimate != null) {
             estimate?.let {
                 WmRow(
