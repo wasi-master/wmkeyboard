@@ -1543,6 +1543,17 @@
             android:taskAffinity=""
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
+        <!-- The notes vault's folder (#1211): Android's folder picker, the same
+             shape, for an Obsidian or Zettel Notes vault. -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.VaultPickActivity"
+            android:enableOnBackInvokedCallback="true"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
         <!-- The gallery editor's "Replace the original" (#708): Android's consent
              dialog for changing a photo another app made, which only an
              activity can ask for. -->

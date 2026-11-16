@@ -277,7 +277,7 @@ internal fun NotesPanelHost(
             when {
                 editing != null -> NotesEditHeader(state, editing.titleDraft, editing.focused == NoteEditField.TITLE, callbacks)
                 open != null -> NotesReadHeader(state, open, moreShown, onMore = { moreShown = !moreShown }, callbacks = callbacks)
-                else -> NotesListHeader(state, callbacks, onOpenRoute)
+                else -> NotesListHeader(state, callbacks, onOpenRoute) { onPanelChange(PanelMode.NOTES_VAULT) }
             }
         },
     ) {
@@ -341,7 +341,12 @@ private fun NotesFaceSwitch(face: NotesFace, animate: Boolean, content: @Composa
  * the body so a filter stays a tap away.
  */
 @Composable
-private fun RowScope.NotesListHeader(state: KeyboardUiState, callbacks: NotesCallbacks, onOpenRoute: (String) -> Unit) {
+private fun RowScope.NotesListHeader(
+    state: KeyboardUiState,
+    callbacks: NotesCallbacks,
+    onOpenRoute: (String) -> Unit,
+    onVault: () -> Unit,
+) {
     val notes = state.notes
     PanelFocusTarget(panel = PanelMode.NOTES, region = FocusRegion.SEARCH, count = 1, columns = 1) {
         callbacks.onSearchToggle()
@@ -364,6 +369,8 @@ private fun RowScope.NotesListHeader(state: KeyboardUiState, callbacks: NotesCal
     } else {
         Spacer(Modifier.weight(1f))
     }
+    // An Obsidian or Zettel Notes vault beside the keyboard's own notes (#1211).
+    NotesHeaderButton(Icons.Outlined.Folder, stringResource(R.string.ime_vault_open_desc), onClick = onVault)
     NotesHeaderButton(
         Icons.Outlined.Search,
         stringResource(R.string.ime_notes_search_desc),

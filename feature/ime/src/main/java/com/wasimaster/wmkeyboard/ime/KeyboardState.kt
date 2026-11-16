@@ -896,6 +896,13 @@ enum class PanelMode {
     LINKS,
 
     /**
+     * The notes vault (#1211): an Obsidian or Zettel Notes folder, opened from
+     * the Notes panel. Its state is the controller's, see `ime.vault.VaultUi`;
+     * its box takes the keys through [CaptureTarget.VAULT_TEXT].
+     */
+    NOTES_VAULT,
+
+    /**
      * The Text repeat tool: a piece of text written out many times. Its text
      * and custom separator take the keys through [CaptureTarget.REPEAT_TEXT]
      * and [CaptureTarget.REPEAT_SEPARATOR]; see [TextRepeatUi].
@@ -1121,6 +1128,8 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     PanelMode.FILES -> listOf(FocusRegion.RESULTS)
     // The link buttons; a held link's actions are touch, and typing reaches the box.
     PanelMode.LINKS -> listOf(FocusRegion.RESULTS)
+    // The folder's rows; the header's chips are touch, and typing reaches the box.
+    PanelMode.NOTES_VAULT -> listOf(FocusRegion.RESULTS)
     PanelMode.PASSWORD_GEN ->
         listOf(FocusRegion.CHIPS, FocusRegion.ACTIONS, FocusRegion.RESULTS)
     // The mode tabs, the text pills, Insert/Copy/Undo, then the option chips.
@@ -4647,6 +4656,7 @@ data class KeyboardUiState(
     val galleryText: com.wasimaster.wmkeyboard.ime.gallery.GalleryTextEntry? get() = toolText.gallery
     val filesText: com.wasimaster.wmkeyboard.ime.files.FilesTextEntry? get() = toolText.files
     val linksText: com.wasimaster.wmkeyboard.ime.links.LinkTextEntry? get() = toolText.links
+    val vaultText: com.wasimaster.wmkeyboard.ime.vault.VaultTextEntry? get() = toolText.vault
     val calendarText: com.wasimaster.wmkeyboard.ime.calendar.CalendarTextEntry? get() = toolText.calendar
     val kaomojiText: com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiTextEntry? get() = toolText.kaomoji
     val sendText: com.wasimaster.wmkeyboard.ime.send.SendTextEntry? get() = toolText.send
@@ -5054,6 +5064,10 @@ data class KeyboardUiState(
     val linksTypingActive: Boolean
         get() = panel == PanelMode.LINKS && linksText != null
 
+    /** Whether the notes vault's box has the keys; panel *and* box, as [filesTypingActive]. */
+    val vaultTypingActive: Boolean
+        get() = panel == PanelMode.NOTES_VAULT && vaultText != null
+
     /** Whether the kaomoji tab's text box has the keys; panel *and* box, as [clockTypingActive]. */
     val kaomojiTypingActive: Boolean
         get() = panel == PanelMode.EMOJI && kaomojiText != null
@@ -5172,6 +5186,7 @@ data class KeyboardUiState(
             } else {
                 CaptureTarget.LINK_URL
             }
+        vaultTypingActive -> CaptureTarget.VAULT_TEXT
         calendarTypingActive -> when (calendarText?.field) {
             com.wasimaster.wmkeyboard.ime.calendar.CalendarTextField.LOCATION -> CaptureTarget.CALENDAR_LOCATION
             com.wasimaster.wmkeyboard.ime.calendar.CalendarTextField.NOTES -> CaptureTarget.CALENDAR_NOTES
@@ -5297,6 +5312,7 @@ data class KeyboardUiState(
         CaptureTarget.GALLERY_TEXT -> galleryText?.text.orEmpty()
         CaptureTarget.FILES_TEXT -> filesText?.text.orEmpty()
         CaptureTarget.LINK_URL, CaptureTarget.LINK_TITLE -> linksText?.text.orEmpty()
+        CaptureTarget.VAULT_TEXT -> vaultText?.text.orEmpty()
         CaptureTarget.CALENDAR_TITLE, CaptureTarget.CALENDAR_LOCATION,
         CaptureTarget.CALENDAR_NOTES, CaptureTarget.CALENDAR_GUEST,
         -> calendarText?.text.orEmpty()
@@ -5700,6 +5716,8 @@ data class ToolTextEntries(
     val wmPass: com.wasimaster.wmkeyboard.ime.wmpass.WmPassTextEntry? = null,
     /** The Link wallet's box while it has the keys: an address or a button's name (#1214). */
     val links: com.wasimaster.wmkeyboard.ime.links.LinkTextEntry? = null,
+    /** The notes vault's box while it has the keys: a new note's name, a note's text, a capture (#1211). */
+    val vault: com.wasimaster.wmkeyboard.ime.vault.VaultTextEntry? = null,
     /**
      * The fill-in row of a snippet that asks for `{ask:Name}` values as it
      * expands. Over every other field while it is up: the snippet is waiting

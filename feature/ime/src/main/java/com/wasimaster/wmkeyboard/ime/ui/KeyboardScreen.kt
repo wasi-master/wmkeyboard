@@ -10068,7 +10068,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     // A shortcut to a screen of the settings app, as Statistics is (#1380).
     ToolbarTool.RESOURCES -> false
     ToolbarTool.FIND_REPLACE -> state.panel == PanelMode.FIND_REPLACE
-    ToolbarTool.NOTES -> state.panel == PanelMode.NOTES
+    ToolbarTool.NOTES -> state.panel == PanelMode.NOTES || state.panel == PanelMode.NOTES_VAULT
     ToolbarTool.TODO -> state.panel == PanelMode.TODO
     ToolbarTool.WM_PASS -> state.panel == PanelMode.WM_PASS
     ToolbarTool.QUICK_NOTE -> state.panel == PanelMode.NOTES && state.notes.quick
@@ -15532,7 +15532,7 @@ private val FullBleedPanels = setOf(
     PanelMode.AI_REPLY, PanelMode.LOCATION, PanelMode.CLOCK, PanelMode.TODO, PanelMode.WM_PASS,
     PanelMode.GALLERY, PanelMode.HOME_ASSISTANT, PanelMode.MUSIC_ID,
     PanelMode.GALLERY, PanelMode.SEND_FILES, PanelMode.SHARE, PanelMode.FILES,
-    PanelMode.SPEED_TEST, PanelMode.LINKS,
+    PanelMode.SPEED_TEST, PanelMode.LINKS, PanelMode.NOTES_VAULT,
 )
 
 /**
@@ -16946,6 +16946,12 @@ private fun KeyboardBody(
                     onClose = { onPanelChange(PanelMode.GALLERY) },
                 )
                 // A tool's pick, kept in the keyboard. Its back button goes to that tool, not to the keys.
+                // The Notes panel's Obsidian vault (#1211); back from its top is back to the notes.
+                PanelMode.NOTES_VAULT -> com.wasimaster.wmkeyboard.ime.ui.vault.VaultPanel(
+                    state = state,
+                    callbacks = toolHold.vault,
+                    onClose = { onPanelChange(PanelMode.NOTES) },
+                )
                 // Saved links as buttons (#1214); its two boxes type on the key rows below.
                 PanelMode.LINKS -> com.wasimaster.wmkeyboard.ime.ui.links.LinkWalletPanel(
                     state = state,
@@ -35742,6 +35748,8 @@ data class ToolHoldCallbacks(
     val files: com.wasimaster.wmkeyboard.ime.files.FileManagerCallbacks = com.wasimaster.wmkeyboard.ime.files.FileManagerCallbacks(),
     /** The Link wallet (#1214); its state is the controller's, like [files]. */
     val links: com.wasimaster.wmkeyboard.ime.links.LinkWalletCallbacks = com.wasimaster.wmkeyboard.ime.links.LinkWalletCallbacks(),
+    /** The notes vault (#1211); its state is the controller's, like [links]. */
+    val vault: com.wasimaster.wmkeyboard.ime.vault.VaultCallbacks = com.wasimaster.wmkeyboard.ime.vault.VaultCallbacks(),
     /** The clipboard panel's editor and view switch; here for the same reason as [dictionaryBar]. */
     val clipboard: ClipboardPanelActions = ClipboardPanelActions(),
     /** The caret magnifier (discussion #303); here for the same reason as [dictionaryBar]. */

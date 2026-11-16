@@ -476,6 +476,12 @@ enum class CaptureTarget(
     /** A saved link's name on its button: one line; Enter keeps the link. */
     LINK_TITLE(takesWords = true),
 
+    /**
+     * The notes vault's box (#1211): a new note's name (Enter makes it), or a
+     * note's text or a quick capture, free text with newlines like [NOTE_BODY].
+     */
+    VAULT_TEXT(takesWords = true, prose = true),
+
     /** A calendar event's title in the Calendar composer: one line, Enter moves on to the place. */
     CALENDAR_TITLE(takesWords = true),
 

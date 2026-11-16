@@ -116,6 +116,36 @@ Importing is also the way to keep texts you quote often within reach: a speech, 
 
 **Export to an Obsidian vault** asks for the vault's folder and writes each note to a `WM Keyboard` folder inside it, with its tags and dates in front matter so Obsidian sees them, and any space in a tag turned into a dash. It leaves out locked notes the same way. Export again to update the files: a note whose file is there overwrites it, so edits made to that file in Obsidian are lost, and a note you renamed gets a new file beside the old one. It runs when you tap it, not in the background. Import reads those files back, tags and dates included, and leaves front matter with any other key in the note's text.
 
+## Your Obsidian vault
+
+If your notes already live in an Obsidian or Zettel Notes vault, the keyboard can open that vault next to its own notes, read its notes, edit them where they are, and add new ones. The vault stays a folder of Markdown files that those apps keep using; the keyboard reads and writes the files through Android's folder picker and copies nothing into its own notes.
+
+### Choosing the vault
+
+1. Open Notes and tap the folder button at the right of the panel's header, next to the search.
+2. Tap **Choose a folder**. Android's folder picker opens.
+3. Go to the vault's folder (the one with the `.obsidian` folder inside it, for Obsidian) and tap **Use this folder**, then **Allow**.
+
+The keyboard comes back with the vault's top folder listed. **Change folder** at the bottom of the list picks another one, and **Forget the vault** lets it go. If the picker shares the folder read-only, as some cloud apps do, notes can be read and typed but not changed, and the list says so. If Android takes the folder's permission back, for instance after the app that shares it is uninstalled, the vault view says so and asks for the folder again.
+
+### Reading and editing
+
+The vault opens one folder at a time: folders first, then the notes, which are the `.md`, `.markdown` and `.txt` files. Hidden folders such as `.obsidian` and `.trash` stay out of the list. Tap a folder to go into it; the crumbs along the header go back up, and so does the back arrow.
+
+Tap a note to read it. Its front matter, the block between the `---` lines at the top, is kept out of sight, apart from its `tags`, which show as a line of `#tags` above the text, and its `title`, which names the note in the header (otherwise the file name does). The rest is drawn as Markdown, the way the keyboard's own notes are. A wiki-link such as `[[Shopping]]` or `[[Shopping|the list]]` shows as its words and opens the note it names when you tap it: first in the folder on show, then anywhere in the vault by file name. An embed such as `![[photo.png]]` shows its name in place of the picture.
+
+**Edit** opens the note's text in a box with the keys below; <KeyCap>Enter</KeyCap> starts a new line, **Save** writes the file, and **Cancel** leaves it as it was. The front matter is written back exactly as it was, so Obsidian's own fields keep their values. If the file changed somewhere else while you had it open (a sync, or Obsidian on a computer), saving stops and asks: **Save mine over it**, or **Drop mine and reload**. A note longer than 20,000 characters can be read and typed but not edited in the keyboard. **Type it** types the note's text into the field behind the keyboard.
+
+**New note** asks for a name and makes `name.md` in the folder on show, then opens it to write. Characters no file name can hold, such as `/` and `:`, become spaces.
+
+### Quick captures
+
+A capture is a few words sent to the vault without opening a note. First pick where captures go: hold a note and tap **Add captures to this note**, or hold a folder and tap **New captures in this folder** (or **Captures to this folder** at the bottom of the list, for the folder on show). The note or folder picked shows **Captures** beside its name.
+
+Then tap **Capture** in the header, write, and tap **Send**. Sent to a note, the capture goes on the end of it, on a line of its own, which suits a daily note or an inbox. Sent to a folder, each capture becomes a new note named after its first few words.
+
+The vault and the capture spot belong to this phone. They aren't in backups, since the folder's permission can't move to another phone.
+
 ## Backups
 
 Notes are a section of the [backup file](/privacy/backup/), on by default for the automatic backup and for sync between phones. Every note, its tags and the trash travel in it, except locked notes, which stay out unless **Include API keys** is on: a backup file is easy to send yourself or drop in a shared folder, and a locked note is one you asked to keep from view. Restoring a backup that left locked notes out keeps the ones already on the phone.

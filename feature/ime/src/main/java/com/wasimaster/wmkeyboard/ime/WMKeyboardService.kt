@@ -14303,6 +14303,11 @@ open class WMKeyboardService : InputMethodService() {
             CaptureTarget.FILES_TEXT -> state.filesText?.let(filesTool::onTextEnter)
             // An address moves on to its name; a name keeps the link (#1214).
             CaptureTarget.LINK_URL, CaptureTarget.LINK_TITLE -> state.linksText?.let(linksTool::onTextEnter)
+            // A new note's name makes the note; a note's text and a capture are free text (#1211).
+            CaptureTarget.VAULT_TEXT -> {
+                val entry = state.vaultText
+                if (entry == null || !vaultTool.onTextEnter(entry)) captureTyped("\n")
+            }
             // A title moves on to the place, a guest is added, a place is kept;
             // notes are free text, so Enter is a line break in them.
             CaptureTarget.CALENDAR_TITLE, CaptureTarget.CALENDAR_LOCATION, CaptureTarget.CALENDAR_GUEST ->
@@ -14936,6 +14941,14 @@ open class WMKeyboardService : InputMethodService() {
                 val limit = com.wasimaster.wmkeyboard.ime.links.LinkWalletController.TEXT_MAX
                 val entry = _uiState.value.linksText?.copy(text = text.replace("\n", " ").take(limit))
                 _uiState.update { it.copy(toolText = it.toolText.copy(links = entry)) }
+            }
+            CaptureTarget.VAULT_TEXT -> {
+                val limit = com.wasimaster.wmkeyboard.ime.vault.VaultController.TEXT_MAX
+                val current = _uiState.value.vaultText
+                // A name is one line; a note's text and a capture keep theirs.
+                val clean = if (current?.field == com.wasimaster.wmkeyboard.ime.vault.VaultTextField.NAME) text.replace("\n", " ") else text
+                val entry = current?.copy(text = clean.take(limit))
+                _uiState.update { it.copy(toolText = it.toolText.copy(vault = entry)) }
             }
             CaptureTarget.SEND_PASSWORD, CaptureTarget.SEND_LINK, CaptureTarget.SEND_INSTANCE -> {
                 val limit = when (target) {
@@ -37631,6 +37644,11 @@ open class WMKeyboardService : InputMethodService() {
         if (_uiState.value.panel == PanelMode.CLIPBOARD && clipBoardToolDelegate.isInitialized()) {
             clipBoardTool.onClipboardClose()
         }
+        // Leaving the notes vault: its box gives the keys back (#1211).
+        if (_uiState.value.panel == PanelMode.NOTES_VAULT && vaultToolDelegate.isInitialized()) {
+            vaultTool.onPanelClose()
+            _uiState.update { it.copy(toolText = it.toolText.copy(vault = null)) }
+        }
         // Leaving the Link wallet: its box gives the keys back (#1214).
         if (_uiState.value.panel == PanelMode.LINKS && linksToolDelegate.isInitialized()) {
             linksTool.onPanelClose()
@@ -37890,6 +37908,7 @@ open class WMKeyboardService : InputMethodService() {
             PanelMode.GALLERY -> galleryTool.onPanelOpen()
             PanelMode.FILES -> filesTool.onPanelOpen()
             PanelMode.LINKS -> linksTool.onPanelOpen()
+            PanelMode.NOTES_VAULT -> vaultTool.onPanelOpen()
             // Whether the shared board is set up, and what this phone last saw of it (#1201).
             PanelMode.CLIPBOARD -> clipBoardTool.onClipboardOpen()
             PanelMode.SEND_FILES -> {
@@ -51761,6 +51780,7 @@ open class WMKeyboardService : InputMethodService() {
             gallery = galleryTool.callbacks,
             files = filesTool.callbacks,
             links = linksTool.callbacks,
+            vault = vaultTool.callbacks,
             send = sendTool.callbacks,
             wmPass = wmPassTool.callbacks,
             aiSuggest = com.wasimaster.wmkeyboard.ime.ui.AiSuggestCallbacks(
@@ -52617,6 +52637,35 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
     private val linksTool by linksToolDelegate
+
+    // ---- Notes vault (#1211) ----
+
+    /** An Obsidian or Zettel Notes vault, from the Notes panel. Built on first use. */
+    private val vaultToolDelegate = lazy {
+        com.wasimaster.wmkeyboard.ime.vault.VaultController(
+            context = this,
+            scope = serviceScope,
+            host = object : com.wasimaster.wmkeyboard.ime.vault.VaultController.Host {
+                override fun haptic() = vibrate()
+                override fun insertText(text: String) = onToolTextInsert(text)
+                override fun pickFolder() {
+                    runCatching { startActivity(com.wasimaster.wmkeyboard.app.VaultPickActivity.intent(this@WMKeyboardService)) }
+                }
+                override fun beginText(entry: com.wasimaster.wmkeyboard.ime.vault.VaultTextEntry) {
+                    _uiState.update {
+                        it.copy(
+                            toolText = it.toolText.copy(vault = entry),
+                            panelFocus = null,
+                            captureCaret = CaptureCaret(CaptureTarget.VAULT_TEXT.name, entry.text.length, entry.text),
+                        )
+                    }
+                }
+                override fun endText() = _uiState.update { it.copy(toolText = it.toolText.copy(vault = null)) }
+                override fun currentText() = _uiState.value.vaultText
+            },
+        )
+    }
+    private val vaultTool by vaultToolDelegate
 
     private fun filePanelReady(): Boolean = com.wasimaster.wmkeyboard.ime.files.FilePicks.usesPanel(
         channelAllows = com.wasimaster.wmkeyboard.app.ChannelFeatures.FILE_MANAGER,
@@ -61464,6 +61513,11 @@ open class WMKeyboardService : InputMethodService() {
             // The file manager walks back out through its own layers and
             // folders, and last to the tool that opened it, never to the keys.
             state.panel == PanelMode.FILES -> ({ filesTool.onBack() })
+            // The notes vault walks back out through its box, its note and its
+            // folders (#1211), and from its top to the notes it was opened from.
+            state.panel == PanelMode.NOTES_VAULT -> ({
+                if (!vaultTool.onBack()) onPanelChange(PanelMode.NOTES, haptic = false)
+            })
             // Inner layers close before their panel, like the media sheet: a
             // half-typed AI instruction backs out to the action list, and a
             // focused plugin box gives the keys back, both leaving the panel up.

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The notes vault (#1211): an Obsidian or Zettel Notes folder of Markdown files, from the Notes panel. -->
+    <string name="ime_vault_open_desc">Your Obsidian vault</string>
+    <string name="ime_vault_unset_title">No vault folder chosen</string>
+    <string name="ime_vault_unset_body">Choose the folder your Obsidian or Zettel Notes vault is in. Its notes open here to read and edit, next to your notes in the keyboard.</string>
+    <string name="ime_vault_pick_action">Choose a folder</string>
+    <string name="ime_vault_grant_lost">The keyboard can\'t reach the vault folder any more. Choose it again.</string>
+    <string name="ime_vault_unreadable">That couldn\'t be read.</string>
+    <string name="ime_vault_write_failed">That couldn\'t be saved. The folder may be read-only.</string>
+    <string name="ime_vault_read_only">This folder was shared read-only, so notes can be read but not changed.</string>
+    <string name="ime_vault_saved">Saved</string>
+    <string name="ime_vault_too_long">This note is too long to edit in the keyboard. You can still read it and type it.</string>
+    <string name="ime_vault_folder_empty">No notes or folders here.</string>
+    <string name="ime_vault_note_empty">This note is empty.</string>
+    <string name="ime_vault_link_missing">No note called %1$s in this vault.</string>
+    <string name="ime_vault_new_action">New note</string>
+    <string name="ime_vault_edit_action">Edit</string>
+    <string name="ime_vault_insert_action">Type it</string>
+    <string name="ime_vault_name_hint">Name of the new note…</string>
+    <string name="ime_vault_name_info">A new note in %1$s. Enter makes it and opens it to write.</string>
+    <string name="ime_vault_body_hint">Write here…</string>
+    <string name="ime_vault_create_action">Create</string>
+    <string name="ime_vault_save_action">Save</string>
+    <string name="ime_vault_send_action">Send</string>
+    <string name="ime_vault_conflict">This note changed somewhere else since you opened it.</string>
+    <string name="ime_vault_overwrite_action">Save mine over it</string>
+    <string name="ime_vault_reload_action">Drop mine and reload</string>
+    <string name="ime_vault_capture_action">Capture</string>
+    <string name="ime_vault_capture_to">Capture to %1$s</string>
+    <string name="ime_vault_capture_hint_box">Something to keep…</string>
+    <string name="ime_vault_capture_unset">Hold a note or folder and pick it for captures first.</string>
+    <string name="ime_vault_capture_set">Captures go to %1$s</string>
+    <string name="ime_vault_captured">Sent to %1$s</string>
+    <string name="ime_vault_capture_badge">Captures</string>
+    <string name="ime_vault_capture_add_here">Add captures to this note</string>
+    <string name="ime_vault_capture_new_here">New captures in this folder</string>
+    <string name="ime_vault_capture_this_folder">Captures to this folder</string>
+    <string name="ime_vault_capture_hint">Hold a note to add captures to its end, or a folder to make each capture a note of its own.</string>
+    <string name="ime_vault_capture_file_line">Captures are added to the end of %1$s.</string>
+    <string name="ime_vault_capture_folder_line">Each capture becomes a new note in %1$s.</string>
+    <string name="ime_vault_refresh_action">Refresh</string>
+    <string name="ime_vault_change_action">Change folder</string>
+    <string name="ime_vault_forget_action">Forget the vault</string>
+</resources>
