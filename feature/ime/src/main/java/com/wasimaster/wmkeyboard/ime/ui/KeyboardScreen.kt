@@ -12036,7 +12036,16 @@ private fun Modifier.stripSwipes(
                     }
                     if (fired) continue
                     when {
-                        // Either way closes the open pages.
+                        // With Swipe down to hide on, a second swipe down,
+                        // over the open pages, hides the keyboard (#1351):
+                        // the first one opened them, so a strip with words on
+                        // it could never hide the keyboard. Up puts the pages
+                        // away. With it off, either way closes them.
+                        pagesOpen.value && hide.value && total.y > threshold -> {
+                            fired = true
+                            suggestionHold.onPagesToggle(false)
+                            onSwipeDownHide()
+                        }
                         pagesOpen.value && kotlin.math.abs(total.y) > threshold -> {
                             fired = true
                             suggestionHold.onPagesToggle(false)
