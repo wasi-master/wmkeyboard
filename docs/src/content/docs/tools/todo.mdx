@@ -36,13 +36,34 @@ The **Add a task…** pill opens a box in the header, and the key rows come back
 
 Tap a task's box to tick it. The box springs shut, the words fade to struck-through, and the card sinks below the open ones. Ticking a task ticks the steps still open under it, and clearing a step's tick clears its task's tick too, since the task isn't finished after all.
 
-Press and hold a task to edit it. Its words go into the box in the header, and the card stays under it with a row of chips inside: the quick dates, then **Repeat**, **Delete**, **Type it** (which types the task into the field behind the keyboard), **Add a step** and **Cancel**. A tap on the card puts the edit away. The quick dates are **Later today** (at least three hours on, at the next full hour, while that is still today), **This evening** (18:00, until then), **Tomorrow** and **Next week** (09:00 tomorrow, and 09:00 next Monday), and **No date** on a task that has one. A tap keeps any change to the words too. A delete shows an Undo bar for a few seconds. **Clear done** in the header deletes every ticked task and step at once, with the same Undo.
+Press and hold a task to edit it. Its words go into the box in the header, and the card stays under it with a row of chips inside: the quick dates, then **Repeat**, **Ask AI** (see [Planning a task with AI](#planning-a-task-with-ai)), **Delete**, **Type it** (which types the task into the field behind the keyboard), **Add a step** and **Cancel**. A tap on the card puts the edit away. The quick dates are **Later today** (at least three hours on, at the next full hour, while that is still today), **This evening** (18:00, until then), **Tomorrow** and **Next week** (09:00 tomorrow, and 09:00 next Monday), and **No date** on a task that has one. A tap keeps any change to the words too. A delete shows an Undo bar for a few seconds. **Clear done** in the header deletes every ticked task and step at once, with the same Undo.
 
 **Hide done** in the header leaves the ticked tasks out for this visit; <SettingsPath path="Tools / To-do list / Hide finished tasks in the keyboard" /> makes the panel always open that way.
 
 ## Steps
 
 Tap a task's card to open it. Its steps unfold inside the card, each with its own smaller box, and **Add a step** at the end opens the box for a new one, which Enter adds like a task. A task with steps shows a ring of how many are ticked, "2 of 5", and the arrow turns while it is open. Tap the card again to fold it shut. A card in the Due row opens the same way. Steps go one level deep: a step can't hold steps of its own.
+
+## Planning a task with AI
+
+A task that feels too big to start can be talked through with the keyboard's [AI](/tools/ai/). Open the task's card and tap **Break it down with AI** under its steps, or hold the task and tap **Ask AI** among its chips.
+
+The header becomes a box for what you want to tell the AI, with the keys under it: what the task involves, when it's due, what you've done already, or simply "split this up". Type it, or tap the microphone on the suggestion strip to say it. **Send** (or <KeyCap>Enter</KeyCap>) sends it, and the keys step aside so the answer has the panel's height. **Reply** in the header opens the box again; **Stop** ends an answer being written; **Close** goes back to the list.
+
+The AI answers in the language you write in and can:
+
+- split the task into small steps, each with how many minutes it should take,
+- rewrite the task so it says clearly what's to be done,
+- ask you a question when it needs to know more.
+
+It can't change your list itself. Under its answer is a card with what it proposes, and each part has its own button:
+
+- **Use this wording** replaces the task's words with the new ones.
+- **Add 4 steps** adds the steps under this task, each with its minutes after it, such as "Gather payslips (20 min)".
+- **Put on calendar** books the plan through the AI's [calendar tool](/tools/ai/#adding-calendar-events), the way you set it up there. Written straight into the calendar, each step is an event of its own, one after another; opened in your calendar app, the whole task is one event with its steps in the notes, for you to save. The plan starts at the next quarter hour, or when you told the AI you want to start. With **Add to your calendar** turned off there, the button says it couldn't add it.
+- **Start a Pomodoro** starts the [clock's](/tools/clock/) Pomodoro timer on your own focus and break lengths, labelled with the first step.
+
+A part you've added says **Added**. Ask again and the AI can propose something else, with fresh buttons. The AI sees only this task, its steps and what you've said in this talk, never your other tasks, and nothing it writes can reach them. It uses the model the [AI chat](/tools/ai-chat/) would pick: the last one you chatted with, or the first one set up. The talk isn't saved: closing the panel ends it.
 
 ## The list order
 

@@ -254,6 +254,56 @@ object AiChatController {
     }
 
     /**
+     * One answer outside any saved conversation, for a tool that keeps its
+     * own short talk with the model: the To-do tool's task helper (#1388).
+     * The model the chat would pick (the last one used, else the first that
+     * can answer), with no tools and no memory: the caller decides what the
+     * answer may change, and shows it before anything does. [turns] alternate
+     * the user's and the model's, newest last; [onPartial] gets the raw text
+     * so far. Blocking: call off the main thread. Throws an IOException whose
+     * message the panel can show as it is.
+     */
+    fun completeOnce(
+        context: Context,
+        settings: KeyboardSettings,
+        system: String,
+        turns: List<AiClient.ChatTurn>,
+        onPartial: (String) -> Unit,
+    ): String {
+        val app = context.applicationContext
+        val choice = initialChoice(store(app), choices(app, settings))
+            ?: throw java.io.IOException(app.getString(R.string.ime_todo_ai_no_model))
+        if (cloudAiDecision(app, settings, choice) != MeteredDecision.ALLOWED) {
+            throw java.io.IOException(app.getString(R.string.ime_todo_ai_data_saver))
+        }
+        if (choice.provider == AiProvider.ON_DEVICE) {
+            val modelFile = LocalLlmStore.selectedModelFile(app.filesDir, choice.localModelId)
+                ?: throw java.io.IOException(app.getString(R.string.ime_ai_chat_error_no_model))
+            return LocalLlmEngine.generate(
+                context = app,
+                modelFile = modelFile,
+                backend = settings.ai.localBackend,
+                contextTokens = settings.ai.localContextTokens,
+                system = system,
+                // The engine takes one user string, so the talk so far is folded into it.
+                user = AiClient.foldedPrompt("", turns),
+                onPartial = onPartial,
+            )
+        }
+        val chosen = settings.aiThrough(choice.rowKey) ?: settings.ai.copy(provider = choice.provider)
+        return AiClient.completeWithTools(
+            config = AiClient.config(chosen).copy(netSource = NetSource.AI_CHAT),
+            system = system,
+            turns = turns,
+            maxTokens = AiClient.effectiveMaxTokens(chosen),
+            tools = emptyList(),
+            executor = AiToolLoop.Executor { call -> AiToolResult(call, "", error = "no tools") },
+            onPhase = {},
+            onPartial = onPartial,
+        ).text
+    }
+
+    /**
      * Sends one user message in [conversationId] and streams the answer.
      * No-op while a generation is already running — the screen disables Send.
      */

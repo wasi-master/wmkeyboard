@@ -32,8 +32,10 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -72,6 +74,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Checklist
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandMore
@@ -84,11 +87,14 @@ import com.wasimaster.wmkeyboard.core.todo.TodoDuePreset
 import com.wasimaster.wmkeyboard.core.todo.TodoRepeat
 import com.wasimaster.wmkeyboard.core.todo.TodoRepeatUnit
 import com.wasimaster.wmkeyboard.core.todo.TodoTask
+import com.wasimaster.wmkeyboard.core.tools.TodoAiPlan
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.todo.TodoAction
+import com.wasimaster.wmkeyboard.ime.todo.TodoAiPart
+import com.wasimaster.wmkeyboard.ime.todo.TodoAiUi
 import com.wasimaster.wmkeyboard.ime.todo.TodoCallbacks
 import com.wasimaster.wmkeyboard.ime.todo.TodoRow
 import com.wasimaster.wmkeyboard.ime.todo.TodoTextEntry
@@ -175,17 +181,24 @@ internal fun TodoPanel(
         compact = typing != null,
         compactHeight = TodoTypingHeight,
         headerActions = {
-            if (typing != null) TypingHeader(typing, act) else ListHeader(ui, act)
+            val ai = ui.ai
+            when {
+                typing != null -> TypingHeader(typing, act)
+                ai != null -> AiHeader(ai, act)
+                else -> ListHeader(ui, act)
+            }
         },
     ) {
         Box(Modifier.fillMaxSize()) {
+            val ai = ui.ai
             when {
                 !ui.available -> Message(stringResource(R.string.ime_todo_unavailable))
                 typing != null -> TypingBody(ui, typing, now, zone, act)
+                ai != null -> AiHelpBody(ai, act)
                 ui.rows.isEmpty() -> EmptyList(ui, act)
                 else -> TaskList(ui, lists, focusedRow, now, zone, act)
             }
-            if (ui.available && typing == null && ui.rows.isNotEmpty()) {
+            if (ui.available && typing == null && ai == null && ui.rows.isNotEmpty()) {
                 // The way to a new task floats over the list, and steps aside
                 // for the Undo bar, which takes the same place.
                 FloatingAdd(
@@ -334,6 +347,7 @@ private fun RowScope.TypingHeader(entry: TodoTextEntry, act: (TodoAction) -> Uni
             TodoTextField.NEW -> R.string.ime_todo_new_hint
             TodoTextField.NEW_STEP -> R.string.ime_todo_step_hint
             TodoTextField.EDIT -> R.string.ime_todo_edit_hint
+            TodoTextField.ASK_AI -> R.string.ime_todo_ai_hint
         },
     )
     Row(
@@ -357,7 +371,10 @@ private fun RowScope.TypingHeader(entry: TodoTextEntry, act: (TodoAction) -> Uni
             modifier = Modifier.weight(1f),
         )
     }
-    ToolPanelChip(stringResource(R.string.ime_todo_done_action), selected = true) { act(TodoAction.TextDone) }
+    ToolPanelChip(
+        stringResource(if (entry.field == TodoTextField.ASK_AI) R.string.ime_todo_ai_send else R.string.ime_todo_done_action),
+        selected = true,
+    ) { act(TodoAction.TextDone) }
     Spacer(Modifier.width(4.dp))
 }
 
@@ -384,6 +401,21 @@ private fun TypingBody(ui: TodoUi, entry: TodoTextEntry, now: Long, zone: ZoneId
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
+            TodoTextField.ASK_AI -> {
+                // The keys take most of the height: the last answer, or how to start.
+                val last = ui.ai?.messages?.lastOrNull { !it.fromUser }?.shown
+                Text(
+                    last ?: stringResource(R.string.ime_todo_ai_intro),
+                    color = kb.secondaryText,
+                    fontSize = 12.sp,
+                    maxLines = 5,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                ToolPanelChip(
+                    stringResource(com.wasimaster.wmkeyboard.common.R.string.common_cancel),
+                    modifier = Modifier.padding(top = 4.dp),
+                ) { act(TodoAction.TextCancel) }
+            }
             TodoTextField.EDIT -> {
                 val row = ui.rows.firstOrNull { it.task.id == entry.ref }
                 val step = if (row == null) ui.rows.firstNotNullOfOrNull { r -> r.steps.firstOrNull { it.id == entry.ref } } else null
@@ -423,6 +455,7 @@ private fun EditChips(task: TodoTask, isTop: Boolean, now: Long, zone: ZoneId, a
         if (isTop) {
             ToolPanelChip(stringResource(repeatLabel(task.repeat))) { act(TodoAction.CycleRepeat(task.id)) }
         }
+        ToolPanelChip(stringResource(R.string.ime_todo_ai_action)) { act(TodoAction.AskAi(task.id)) }
         ToolPanelChip(stringResource(R.string.ime_todo_delete_action)) { act(TodoAction.Delete(task.id)) }
         ToolPanelChip(stringResource(R.string.ime_todo_insert_action)) { act(TodoAction.Insert(task.id)) }
         if (isTop) {
@@ -638,6 +671,7 @@ private fun TaskCard(
                     }
                 }
                 AddStepLine(task.id, act)
+                AiLine(task.id, act)
             }
         }
     }
@@ -803,6 +837,220 @@ private fun AddStepLine(parentId: Long, act: (TodoAction) -> Unit) {
         Text(stringResource(R.string.ime_todo_add_step_action), color = kb.accent, fontSize = 13.sp, fontWeight = FontWeight.Medium)
     }
 }
+
+/** Under an open card's steps: the way to the AI's help with this task (#1388). */
+@Composable
+private fun AiLine(taskId: Long, act: (TodoAction) -> Unit) {
+    val kb = LocalKbTheme.current
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(kb.chipShape())
+            .clickable { act(TodoAction.AskAi(taskId)) }
+            .padding(start = 34.dp, top = 6.dp, bottom = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Outlined.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp), tint = kb.accent)
+        Spacer(Modifier.width(8.dp))
+        Text(stringResource(R.string.ime_todo_ai_line), color = kb.accent, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+    }
+}
+
+// ---- the AI's help with one task (#1388) ----
+
+/** Which task this is about, then Reply (or Stop while it writes) and Close. */
+@Composable
+private fun RowScope.AiHeader(ai: TodoAiUi, act: (TodoAction) -> Unit) {
+    val kb = LocalKbTheme.current
+    Icon(
+        Icons.Outlined.AutoAwesome,
+        contentDescription = null,
+        tint = kb.accent,
+        modifier = Modifier.padding(start = 8.dp).size(16.dp),
+    )
+    Text(
+        stringResource(R.string.ime_todo_ai_about, ai.taskText),
+        color = kb.secondaryText,
+        fontSize = 12.sp,
+        fontWeight = FontWeight.SemiBold,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.weight(1f).padding(start = 6.dp, end = 6.dp),
+    )
+    if (ai.running) {
+        ToolPanelChip(stringResource(R.string.ime_todo_ai_stop)) { act(TodoAction.AiStop) }
+    } else {
+        ToolPanelChip(stringResource(R.string.ime_todo_ai_reply), selected = true) { act(TodoAction.AiReply) }
+    }
+    Spacer(Modifier.width(4.dp))
+    ToolPanelChip(stringResource(R.string.ime_todo_ai_close)) { act(TodoAction.AiClose) }
+    Spacer(Modifier.width(4.dp))
+}
+
+/**
+ * The talk about one task: what the user said, what the AI answered, the
+ * answer being written, and under it the newest proposal, each part with
+ * the button that adds it. Nothing here changes the list by itself.
+ */
+@Composable
+private fun AiHelpBody(ai: TodoAiUi, act: (TodoAction) -> Unit) {
+    val kb = LocalKbTheme.current
+    val listState = rememberLazyListState()
+    // What the list holds, by key: "intro", "m<index>", "partial", "plan", "note".
+    val plan = ai.plan
+    val note = ai.note
+    val keys = buildList {
+        if (ai.messages.isEmpty() && !ai.running) add("intro")
+        ai.messages.forEachIndexed { i, message -> if (message.shown.isNotBlank()) add("m$i") }
+        if (ai.running) add("partial")
+        if (plan != null && !ai.running) add("plan")
+        if (note != null) add("note")
+    }
+    // The newest line in sight as the talk grows.
+    androidx.compose.runtime.LaunchedEffect(keys.size, ai.running, note) {
+        if (keys.isNotEmpty()) listState.animateScrollToItem(keys.lastIndex)
+    }
+    LazyColumn(
+        state = listState,
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        items(keys, key = { it }) { key ->
+            when {
+                key == "intro" -> Text(stringResource(R.string.ime_todo_ai_intro), color = kb.secondaryText, fontSize = 12.sp)
+                key == "partial" -> AiWriting(ai.partial)
+                key == "plan" && plan != null -> AiPlanCard(plan, ai.applied, act)
+                key == "note" && note != null -> Text(
+                    note,
+                    color = if (ai.failed) kb.accent else kb.secondaryText,
+                    fontSize = 12.sp,
+                    fontWeight = if (ai.failed) FontWeight.SemiBold else FontWeight.Normal,
+                )
+                key.startsWith("m") -> ai.messages.getOrNull(key.drop(1).toIntOrNull() ?: -1)?.let {
+                    AiBubble(it.shown, fromUser = it.fromUser)
+                }
+            }
+        }
+    }
+}
+
+/** One line of the talk: the user's on the trailing side in the selected-chip colour, the AI's on the leading side. */
+@Composable
+private fun AiBubble(text: String, fromUser: Boolean) {
+    val kb = LocalKbTheme.current
+    val shape = kb.chipShape()
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = if (fromUser) Arrangement.End else Arrangement.Start) {
+        Text(
+            text,
+            color = if (fromUser) kb.chipActiveText else kb.suggestionText,
+            fontSize = 13.sp,
+            modifier = Modifier
+                .widthIn(max = AiBubbleMaxWidth)
+                .clip(shape)
+                .background(if (fromUser) kb.chipActive else kb.chip.copy(alpha = kb.chip.alpha * 0.75f))
+                .chipBorder(kb, shape)
+                .padding(horizontal = 10.dp, vertical = 7.dp),
+        )
+    }
+}
+
+/** The answer as it is written, or a spinner until its first words. */
+@Composable
+private fun AiWriting(partial: String) {
+    val kb = LocalKbTheme.current
+    if (partial.isNotBlank()) {
+        AiBubble(partial, fromUser = false)
+        return
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp, color = kb.accent)
+        Spacer(Modifier.width(8.dp))
+        Text(stringResource(R.string.ime_todo_ai_thinking), color = kb.secondaryText, fontSize = 12.sp)
+    }
+}
+
+/**
+ * The newest proposal: a new wording with its button, the steps with their
+ * minutes, and the buttons that add the steps, book them, or start a
+ * Pomodoro. A part already added says so and does nothing more.
+ */
+@Composable
+private fun AiPlanCard(plan: TodoAiPlan, applied: Set<TodoAiPart>, act: (TodoAction) -> Unit) {
+    val kb = LocalKbTheme.current
+    val shape = kb.cardShape()
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CARDS)
+            .background(kb.chip.copy(alpha = kb.chip.alpha * 0.75f))
+            .chipBorder(kb, shape)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        val rewrite = plan.rewrite
+        if (rewrite != null) {
+            AiPlanLabel(stringResource(R.string.ime_todo_ai_rewrite_label))
+            Text(rewrite, color = kb.suggestionText, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            PartChip(applied, act, TodoAiPart.REWRITE, stringResource(R.string.ime_todo_ai_use_rewrite))
+        }
+        if (plan.steps.isNotEmpty()) {
+            AiPlanLabel(stringResource(R.string.ime_todo_ai_steps_label))
+            for (step in plan.steps) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("•", color = kb.accent, fontSize = 13.sp, modifier = Modifier.padding(end = 6.dp))
+                    Text(step.text, color = kb.suggestionText, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                    val minutes = step.minutes
+                    if (minutes != null) {
+                        Text(
+                            stringResource(R.string.ime_todo_ai_minutes, minutes),
+                            color = kb.secondaryText,
+                            fontSize = 11.sp,
+                            modifier = Modifier.padding(start = 8.dp),
+                        )
+                    }
+                }
+            }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+            if (plan.steps.isNotEmpty()) {
+                PartChip(applied, act, TodoAiPart.STEPS, pluralStringResource(R.plurals.ime_todo_ai_add_steps, plan.steps.size, plan.steps.size))
+            }
+            PartChip(applied, act, TodoAiPart.CALENDAR, stringResource(R.string.ime_todo_ai_put_on_calendar))
+            PartChip(applied, act, TodoAiPart.POMODORO, stringResource(R.string.ime_todo_ai_start_pomodoro))
+        }
+    }
+}
+
+/** One part's button; once that part is added it says so and does nothing more. */
+@Composable
+private fun PartChip(applied: Set<TodoAiPart>, act: (TodoAction) -> Unit, part: TodoAiPart, label: String) {
+    val done = part in applied
+    ToolPanelChip(
+        if (done) stringResource(R.string.ime_todo_ai_added) else label,
+        selected = !done,
+    ) { if (!done) act(TodoAction.AiApply(part)) }
+}
+
+@Composable
+private fun AiPlanLabel(text: String) {
+    val kb = LocalKbTheme.current
+    Text(
+        text.uppercase(),
+        color = kb.secondaryText,
+        fontSize = 10.sp,
+        fontWeight = FontWeight.SemiBold,
+        letterSpacing = 1.sp,
+        maxLines = 1,
+    )
+}
+
+/** How wide a line of the talk grows before it wraps. */
+private val AiBubbleMaxWidth = 300.dp
 
 // ---- the way to a new task ----
 

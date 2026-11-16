@@ -65,4 +65,44 @@
         <item quantity="one">%1$d finished task cleared</item>
         <item quantity="other">%1$d finished tasks cleared</item>
     </plurals>
+    <!-- The AI's help with one task (#1388). -->
+    <string name="ime_todo_ai_action">Ask AI</string>
+    <string name="ime_todo_ai_line">Break it down with AI</string>
+    <string name="ime_todo_ai_hint">Tell the AI about this task…</string>
+    <string name="ime_todo_ai_send">Send</string>
+    <string name="ime_todo_ai_reply">Reply</string>
+    <string name="ime_todo_ai_close">Close</string>
+    <string name="ime_todo_ai_stop">Stop</string>
+    <string name="ime_todo_ai_about">Planning: <xliff:g id="task" example="Do my taxes">%1$s</xliff:g></string>
+    <string name="ime_todo_ai_intro">Say or type what the task involves, and ask the AI to split it into steps, word it better or say how long it takes. Nothing changes until you press a button under its answer.</string>
+    <string name="ime_todo_ai_thinking">Thinking…</string>
+    <string name="ime_todo_ai_failed">The AI didn\'t answer. Try again.</string>
+    <string name="ime_todo_ai_no_model">Set up an AI model first, under Settings › AI.</string>
+    <string name="ime_todo_ai_data_saver">Data Saver is holding back cloud AI on this network.</string>
+    <string name="ime_todo_ai_rewrite_label">New wording</string>
+    <string name="ime_todo_ai_steps_label">Steps</string>
+    <!-- %1$d is minutes. -->
+    <string name="ime_todo_ai_minutes"><xliff:g id="minutes" example="25">%1$d</xliff:g> min</string>
+    <!-- A step added to the list with the AI's estimate after it. -->
+    <string name="ime_todo_ai_step_with_minutes"><xliff:g id="step" example="Gather payslips">%1$s</xliff:g> (<xliff:g id="minutes" example="20">%2$d</xliff:g> min)</string>
+    <string name="ime_todo_ai_use_rewrite">Use this wording</string>
+    <plurals name="ime_todo_ai_add_steps">
+        <item quantity="one">Add %1$d step</item>
+        <item quantity="other">Add %1$d steps</item>
+    </plurals>
+    <string name="ime_todo_ai_put_on_calendar">Put on calendar</string>
+    <string name="ime_todo_ai_start_pomodoro">Start a Pomodoro</string>
+    <string name="ime_todo_ai_added">Added</string>
+    <plurals name="ime_todo_ai_steps_added">
+        <item quantity="one">%1$d step added to this task</item>
+        <item quantity="other">%1$d steps added to this task</item>
+    </plurals>
+    <string name="ime_todo_ai_rewrite_done">The task has its new wording</string>
+    <plurals name="ime_todo_ai_calendar_added">
+        <item quantity="one">%1$d event added to your calendar</item>
+        <item quantity="other">%1$d events added to your calendar, one after another</item>
+    </plurals>
+    <string name="ime_todo_ai_calendar_opened">Your calendar app is open with it filled in. Save it there.</string>
+    <string name="ime_todo_ai_calendar_failed">Not added to the calendar: <xliff:g id="reason" example="the calendar tool is off">%1$s</xliff:g></string>
+    <string name="ime_todo_ai_pomodoro_done">A <xliff:g id="minutes" example="25">%1$d</xliff:g> minute Pomodoro is running for “<xliff:g id="step" example="Gather payslips">%2$s</xliff:g>”</string>
 </resources>

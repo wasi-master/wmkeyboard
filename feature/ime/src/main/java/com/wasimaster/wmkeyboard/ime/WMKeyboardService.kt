@@ -51725,6 +51725,7 @@ open class WMKeyboardService : InputMethodService() {
             },
             endText = { _uiState.update { it.copy(toolText = it.toolText.copy(todo = null)) } },
             currentText = { _uiState.value.todoText },
+            keyboardSettings = { _uiState.value.settings },
         )
     }
     private val todoTool by todoToolDelegate
