@@ -57,6 +57,11 @@ data class CalendarUi(
     val weather: Map<String, EventWeatherChip> = emptyMap(),
     /** The open event on its way to Mobilizon or Pretix (#1274); set while [view] is INVITE. */
     val invite: InviteUi? = null,
+    /** The selected day's weather every few hours at the Weather tool's place (#1368); null while off or out of range. */
+    val dayForecast: DayForecastUi? = null,
+    /** The weather for the event the detail sheet shows (#1368), and the occurrence it was opened from. */
+    val detailWeather: EventWeatherChip? = null,
+    val detailEvent: DeviceCalendarEvent? = null,
 ) {
     val editing: Boolean get() = draft?.eventId != null
 }
@@ -121,6 +126,9 @@ sealed interface CalendarAction {
 
     /** The weather on an event's card: the Weather panel opens on that hour (#1212). */
     data class OpenWeather(val event: DeviceCalendarEvent) : CalendarAction
+
+    /** The day's forecast strip (#1368): the Weather panel opens on the selected day's hours. */
+    data object OpenDayWeather : CalendarAction
 
     // The Weather panel's hourly view for an event
     data object ForecastRefresh : CalendarAction

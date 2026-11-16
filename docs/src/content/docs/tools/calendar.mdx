@@ -49,6 +49,12 @@ Tap the icon to open the Weather panel on that day's hours at that place. The to
 
 One forecast covers every event at the same place for all 16 days, so a week of meetings in one town is a single request. The keyboard keeps it until it's older than the weather tool's **How often to check** (15 minutes by default) and fetches it again the next time a card needs it. While [data saving](/privacy/data-saver/) is on, or there's no network, the cards fetch nothing by themselves: they show a forecast the keyboard already has (up to a day old) or no weather at all. Tapping the icon still fetches the hours when there's a network.
 
+### Weather in the agenda, the day view and an event's details
+
+The same weather shows wherever the event does: on its card in the month view and the [agenda](#agenda), on its block in the [day view](#day) after the title, and in its details, where the icon and temperature sit under the title with the sky, the chance of rain and the place in words. Tapping any of them opens the same hourly view. An event opened before its card had looked the weather up gets it there and then, under the same rules.
+
+From 0.6.8, a day with nothing on shows its weather instead of just "Nothing on": a strip of every third hour (midnight, 3 AM, 6 AM and on to 9 PM) at the weather tool's location, each with its time, an icon, the temperature and any chance of rain, so a free day can be planned by it. Today's strip leaves out the hours already past. The day view shows the same three-hourly forecast down its hour rail, under the hour labels, on every day, busy or not. Tapping the strip or one of those marks opens the Weather panel on that day's hours. Like the cards, it needs **Weather on events** on and a location in the weather tool, reaches only 16 days ahead, and fetches nothing by itself while data saving is on or offline.
+
 ## Invite online
 
 Since 0.6.7 an event can become a page people sign up on, on a free and open-source event service you have an account with: [Mobilizon](https://mobilizon.org/) or [Pretix](https://pretix.eu/). Set the account up first under [Options](#options), then open the event and press **Invite online**.

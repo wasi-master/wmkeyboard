@@ -347,6 +347,7 @@ internal class CalendarController(
             CalendarAction.DiscardDraft -> _state.update { it.copy(draft = null, draftBase = null, resumable = false, series = null) }
             is CalendarAction.OpenEvent -> openEvent(action.event)
             is CalendarAction.OpenWeather -> openForecast(action.event)
+            CalendarAction.OpenDayWeather -> openDayForecast()
             CalendarAction.ForecastRefresh -> fetchForecast(force = true)
             CalendarAction.ForecastBack -> {
                 val day = _forecast.value?.day
@@ -518,6 +519,7 @@ internal class CalendarController(
             if (_state.value.selected == day) {
                 _state.update { it.copy(dayEvents = events) }
                 loadWeather(events)
+                loadDayForecast(day)
             }
         }
     }
@@ -550,6 +552,59 @@ internal class CalendarController(
                 }
             }
         }
+    }
+
+    private var dayForecastJob: Job? = null
+
+    /**
+     * The selected day every [DAY_FORECAST_STEP_HOURS] hours at the Weather
+     * tool's place (#1368), for the day view's rail and a free day's strip.
+     * Under the same rules as the cards: "Weather on events" on, and nothing
+     * fetched unasked on a metered network or offline.
+     */
+    private fun loadDayForecast(day: EventDate) {
+        dayForecastJob?.cancel()
+        val cfg = weatherConfig()
+        val home = cfg.home
+        val zone = TimeZone.getDefault()
+        val start = EventTimes.millis(day, 0, zone)
+        val end = EventTimes.millis(day.plusDays(1), 0, zone)
+        val now = System.currentTimeMillis()
+        if (!cfg.enabled || home == null || end <= now) {
+            if (_state.value.dayForecast != null) _state.update { it.copy(dayForecast = null) }
+            return
+        }
+        dayForecastJob = scope.launch {
+            val forecast = weatherSource.forecast(home.latitude, home.longitude, cfg.staleAfterMs, cfg.mayFetchUnasked)
+            val hours = forecast?.between(start, end).orEmpty().filter {
+                EventTimes.minuteOfDay(it.timeMillis, zone) % (DAY_FORECAST_STEP_HOURS * 60) == 0 &&
+                    it.timeMillis + HOUR_MS > now
+            }
+            _state.update { s ->
+                if (s.selected != day) s else s.copy(dayForecast = hours.takeIf { it.isNotEmpty() }?.let { DayForecastUi(day, home, it, cfg.fahrenheit) })
+            }
+        }
+    }
+
+    /** The day's forecast strip tapped (#1368): the Weather panel opens on the day's hours at the Weather tool's place. */
+    private fun openDayForecast() {
+        val shown = _state.value.dayForecast ?: return
+        val cfg = weatherConfig()
+        val zone = TimeZone.getDefault()
+        haptic()
+        forecastJob?.cancel()
+        _forecast.value = EventForecastUi(
+            title = com.wasimaster.wmkeyboard.ime.ui.calendar.CalendarText.dayMonth(shown.day),
+            place = shown.place,
+            day = shown.day,
+            dayStart = EventTimes.millis(shown.day, 0, zone),
+            dayEnd = EventTimes.millis(shown.day.plusDays(1), 0, zone),
+            focusMillis = shown.hours.firstOrNull()?.timeMillis ?: EventTimes.millis(shown.day, 12 * 60, zone),
+            fahrenheit = cfg.fahrenheit,
+            hour24 = _state.value.hour24,
+        )
+        openWeather()
+        fetchForecast(force = false)
     }
 
     /**
@@ -653,7 +708,20 @@ internal class CalendarController(
         scope.launch {
             val stored = withContext(Dispatchers.IO) { DeviceCalendarWrite.load(app, event.id, event.begin, event.end) } ?: return@launch
             val series = withContext(Dispatchers.IO) { DeviceCalendarWrite.series(app, stored) }
-            _state.update { it.copy(view = CalendarView.DETAIL, detail = stored, series = series, undo = null) }
+            val kept = _state.value.weather[weatherKey(event)]
+            _state.update {
+                it.copy(view = CalendarView.DETAIL, detail = stored, series = series, undo = null, detailWeather = kept, detailEvent = event)
+            }
+            // The event's own weather inside it (#1368): the card's when it had
+            // one, else looked up now, under the cards' rules.
+            if (kept != null) return@launch
+            val cfg = weatherConfig()
+            if (!cfg.enabled) return@launch
+            val at = EventWeatherRules.targetMillis(event.begin, event.end, event.allDay, System.currentTimeMillis()) ?: return@launch
+            val chip = chipFor(event, at, cfg) ?: return@launch
+            _state.update { s ->
+                if (s.detailEvent != event) s else s.copy(detailWeather = chip, weather = s.weather + (weatherKey(event) to chip))
+            }
         }
     }
 
@@ -1035,6 +1103,9 @@ internal class CalendarController(
         private const val CONFLICT_DEBOUNCE_MS = 250L
         private const val GUEST_DEBOUNCE_MS = 150L
         private const val MAX_WEATHER_CHIPS = 200
+
+        /** The day forecast's step (#1368): every three hours, midnight to nine at night. */
+        private const val DAY_FORECAST_STEP_HOURS = 3
 
         fun today(): EventDate = EventDate.of(System.currentTimeMillis(), TimeZone.getDefault())
 

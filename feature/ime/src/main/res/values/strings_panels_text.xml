@@ -360,6 +360,10 @@
     <string name="ime_calendar_untitled">(No title)</string>
     <!-- Read aloud for the weather on an event card. %1$s is the sky (for example "Partly cloudy"), %2$s the temperature, %3$s the place. -->
     <string name="ime_calendar_weather_desc">%1$s, %2$s in %3$s. Opens the forecast for each hour</string>
+    <!-- #1368: a day with nothing on shows its weather every three hours. %1$s is the place. -->
+    <string name="ime_calendar_day_forecast_desc">The day\'s weather every three hours in %1$s. Opens the forecast for each hour</string>
+    <!-- #1368: in an event's details, the chance of rain at its hour. -->
+    <string name="ime_calendar_weather_rain">%1$d%% rain</string>
     <string name="ime_calendar_title_hint">Title</string>
     <string name="ime_calendar_location_hint">Add a place</string>
     <string name="ime_calendar_notes_hint">Add notes</string>

@@ -906,6 +906,14 @@ private fun DayCards(ui: CalendarUi, animate: Boolean, act: (CalendarAction) -> 
         val list = ui.dayEvents
         when {
             list == null -> Unit
+            // A free day shows its weather every few hours, to plan it by (#1368).
+            list.isEmpty() && ui.dayForecast != null -> Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                DayForecastStrip(ui.dayForecast, ui.hour24, Modifier.weight(1f)) { act(CalendarAction.OpenDayWeather) }
+                Spacer(Modifier.width(6.dp))
+                PillButton(stringResource(R.string.ime_calendar_new_event), icon = Icons.Outlined.Add, height = 28.dp) {
+                    act(CalendarAction.NewEvent())
+                }
+            }
             list.isEmpty() -> Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     stringResource(R.string.ime_calendar_no_events_empty),
@@ -1015,11 +1023,54 @@ internal fun EventCard(
 }
 
 /**
+ * A day with nothing on, every few hours (#1368): "6 AM ☀️ 18°  9 AM ⛅ 21° …"
+ * at the Weather tool's place. A tap opens the Weather panel on the day.
+ */
+@Composable
+internal fun DayForecastStrip(
+    forecast: com.wasimaster.wmkeyboard.ime.calendar.DayForecastUi,
+    hour24: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    val kb = LocalKbTheme.current
+    val feedback = LocalKeyPressFeedback.current
+    val zone = remember { java.util.TimeZone.getDefault() }
+    val description = stringResource(R.string.ime_calendar_day_forecast_desc, com.wasimaster.wmkeyboard.ime.ui.forecastPlaceLabel(forecast.place))
+    LazyRow(
+        modifier = modifier
+            .clip(kb.cardShape())
+            .semantics { contentDescription = description }
+            .clickable {
+                feedback()
+                onClick()
+            },
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
+    ) {
+        itemsIndexed(forecast.hours) { _, hour ->
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    CalendarText.time(com.wasimaster.wmkeyboard.core.tools.calendar.EventTimes.minuteOfDay(hour.timeMillis, zone), hour24),
+                    color = kb.secondaryText,
+                    fontSize = 10.sp,
+                    maxLines = 1,
+                )
+                Text(forecast.label(hour), color = kb.suggestionText, fontSize = 12.sp, fontWeight = FontWeight.Medium, maxLines = 1)
+                if (hour.precipProbabilityPercent > 0) {
+                    Text("☔ ${hour.precipProbabilityPercent}%", color = kb.secondaryText, fontSize = 9.sp, maxLines = 1)
+                }
+            }
+        }
+    }
+}
+
+/**
  * "⛅ 21°" on an event card: the forecast for the event's hour where it is
  * (#1212). A tap opens the Weather panel on that day's hours.
  */
 @Composable
-private fun EventWeatherBadge(weather: EventWeatherChip, onClick: () -> Unit) {
+internal fun EventWeatherBadge(weather: EventWeatherChip, onClick: () -> Unit) {
     val kb = LocalKbTheme.current
     val feedback = LocalKeyPressFeedback.current
     val conditions = stringResource(com.wasimaster.wmkeyboard.core.tools.WeatherClient.describeRes(weather.weatherCode))
@@ -1056,6 +1107,14 @@ private fun EventWeatherBadge(weather: EventWeatherChip, onClick: () -> Unit) {
         )
     }
 }
+
+/** "Partly cloudy · 30% rain · Dhaka" beside the detail sheet's weather (#1368). */
+@Composable
+private fun detailWeatherText(weather: EventWeatherChip): String = listOfNotNull(
+    stringResource(com.wasimaster.wmkeyboard.core.tools.WeatherClient.describeRes(weather.weatherCode)),
+    weather.precipProbabilityPercent.takeIf { it >= 0 }?.let { stringResource(R.string.ime_calendar_weather_rain, it) },
+    com.wasimaster.wmkeyboard.ime.ui.forecastPlaceLabel(weather.place),
+).joinToString(" · ")
 
 /** "9:00 – 10:00 AM", the start and end of a timed event on the device's clock. */
 private fun eventTimeText(event: DeviceCalendarEvent, hour24: Boolean): String {
@@ -1292,12 +1351,18 @@ private fun AgendaFace(state: KeyboardUiState, ui: CalendarUi, animate: Boolean,
                                         .padding(vertical = 10.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
-                                    Text(
-                                        stringResource(R.string.ime_calendar_no_events_empty),
-                                        color = kb.secondaryText,
-                                        fontSize = 12.sp,
-                                        modifier = Modifier.weight(1f),
-                                    )
+                                    // The open free day's weather every few hours (#1368).
+                                    val forecast = ui.dayForecast?.takeIf { open && it.day == day }
+                                    if (forecast != null) {
+                                        DayForecastStrip(forecast, ui.hour24, Modifier.weight(1f)) { act(CalendarAction.OpenDayWeather) }
+                                    } else {
+                                        Text(
+                                            stringResource(R.string.ime_calendar_no_events_empty),
+                                            color = kb.secondaryText,
+                                            fontSize = 12.sp,
+                                            modifier = Modifier.weight(1f),
+                                        )
+                                    }
                                     if (open) {
                                         PillButton(stringResource(R.string.ime_calendar_new_event), icon = Icons.Outlined.Add, height = 28.dp) {
                                             act(CalendarAction.NewEvent(day))
@@ -1458,6 +1523,21 @@ private fun EventSheet(event: StoredEvent, ui: CalendarUi, animate: Boolean, act
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
+                // The weather inside the event (#1368): what its card shows, said in full.
+                val weather = ui.detailWeather
+                val source = ui.detailEvent
+                if (weather != null && source != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        EventWeatherBadge(weather) { act(CalendarAction.OpenWeather(source)) }
+                        Text(
+                            detailWeatherText(weather),
+                            color = kb.secondaryText,
+                            fontSize = 11.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
             }
             var line = 1
             ui.series?.let { s ->

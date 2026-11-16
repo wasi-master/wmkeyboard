@@ -51,6 +51,23 @@ data class EventWeatherChip(
 }
 
 /**
+ * The selected day's weather every few hours at the Weather tool's place
+ * (#1368): what the day view's hour rail shows, and what a day with nothing
+ * on shows in place of its cards, so a free day can be planned. Hours
+ * already past are left out of today's.
+ */
+data class DayForecastUi(
+    val day: EventDate,
+    val place: ForecastPlace,
+    val hours: List<com.wasimaster.wmkeyboard.core.tools.WeatherHour>,
+    val fahrenheit: Boolean,
+) {
+    /** The emoji and temperature of [hour], as the strip and the rail draw them. */
+    fun label(hour: com.wasimaster.wmkeyboard.core.tools.WeatherHour): String =
+        WeatherClient.emoji(hour.weatherCode, hour.isDay) + " " + WeatherClient.toDisplay(hour.temperatureC, fahrenheit) + "°"
+}
+
+/**
  * The hourly forecast the Weather panel shows for one event, opened from the
  * weather on its card. Owned by [CalendarController]; the Weather panel only
  * draws it.
