@@ -98,14 +98,22 @@ object LlamaCpp {
                 }
                 throw IOException(context.getString(message))
             }
+            // Read before the retry below turns the state back into
+            // Installing: a Play fetch that failed says so, with Play's code,
+            // instead of "downloading" on every try (Telegram, 10216). Only
+            // Play's gate sets a code; a GitHub build's failed download has
+            // its own retry and is not Play's to explain.
+            val playError = (state as? ModuleState.Missing)?.takeIf { it.failed && !it.confirm }?.error
             gate.requestInstall()
             // Play may be waiting for a yes it can ask only in the settings
             // app; "try again in a moment" never came true then (Telegram, 4529).
             val waiting = (gate.state.value as? ModuleState.Missing)?.confirm == true
             throw IOException(
-                context.getString(
-                    if (waiting) R.string.core_intel_llm_module_confirm else R.string.core_intel_llm_module_downloading,
-                ),
+                when {
+                    waiting -> context.getString(R.string.core_intel_llm_module_confirm)
+                    playError != null -> context.getString(R.string.core_intel_llm_module_failed, playError)
+                    else -> context.getString(R.string.core_intel_llm_module_downloading)
+                },
             )
         }
         LlamaGpu.npu = backend == LocalLlmBackend.NPU && LlamaHexagon.usable

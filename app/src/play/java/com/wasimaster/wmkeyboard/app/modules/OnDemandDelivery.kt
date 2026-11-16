@@ -133,7 +133,7 @@ private class PlayModuleGate(
             // without it a refused module reads only as "could not be fetched".
             SplitInstallSessionStatus.FAILED -> {
                 DebugLog.w(TAG, "$module: Play install failed, error ${session.errorCode()}")
-                ModuleState.Missing(failed = true)
+                ModuleState.Missing(failed = true, error = session.errorCode())
             }
 
             SplitInstallSessionStatus.CANCELING,
@@ -163,9 +163,12 @@ private class PlayModuleGate(
             .addOnFailureListener { e ->
                 val code = (e as? SplitInstallException)?.errorCode
                 DebugLog.w(TAG, "$module: Play refused the install, error ${code ?: e.javaClass.simpleName}")
-                mutableState.value = ModuleState.Missing(failed = true)
+                mutableState.value = ModuleState.Missing(failed = true, error = code ?: PLAY_ERROR_UNKNOWN)
             }
     }
 }
 
 private const val TAG = "modules"
+
+/** Play's SplitInstallErrorCode.INTERNAL_ERROR, for a refusal that carried no code of its own. */
+internal const val PLAY_ERROR_UNKNOWN = -100

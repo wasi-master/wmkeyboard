@@ -31,11 +31,16 @@ sealed interface ModuleState {
      * install Play did not make, or a large download on mobile data. Play
      * shows that question only from an app screen, never from a keyboard, so
      * the settings app asks it the next time it comes to the front.
+     *
+     * [error] is Play's own error code for a failed fetch, when it gave one:
+     * what a message shows so a report says why, rather than a "downloading"
+     * that never ends (Telegram, 10216).
      */
     data class Missing(
         val failed: Boolean = false,
         val consent: String? = null,
         val confirm: Boolean = false,
+        val error: Int? = null,
     ) : ModuleState
 
     /** On its way from Play. Both figures are 0 before Play reports any. */

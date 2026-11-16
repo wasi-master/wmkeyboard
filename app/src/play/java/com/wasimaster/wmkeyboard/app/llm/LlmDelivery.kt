@@ -8,6 +8,7 @@ import com.google.android.play.core.splitinstall.SplitInstallManagerFactory
 import com.google.android.play.core.splitinstall.SplitInstallRequest
 import com.google.android.play.core.splitinstall.SplitInstallSessionState
 import com.google.android.play.core.splitinstall.model.SplitInstallSessionStatus
+import com.wasimaster.wmkeyboard.app.modules.PLAY_ERROR_UNKNOWN
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
 import com.wasimaster.wmkeyboard.core.localllm.LlmModule
 import com.wasimaster.wmkeyboard.core.localllm.LlmModuleGate
@@ -36,9 +37,14 @@ fun installLlmDelivery(app: Application) {
     // keyboard has none, so it says where the question will come instead of
     // "downloading" (Telegram, 4529); the settings app asks it on resume.
     var waiting = false
+    // Play's code for the last fetch that went wrong. Without it a refused
+    // download read as "downloading, try again in a moment" on every try,
+    // for good (Telegram, 10216: a Play install, every model).
+    var failure: Int? = null
     manager.registerListener { session: SplitInstallSessionState ->
         if (LLM_MODULE !in session.moduleNames()) return@registerListener
         waiting = session.status() == SplitInstallSessionStatus.REQUIRES_USER_CONFIRMATION
+        failure = if (session.status() == SplitInstallSessionStatus.FAILED) session.errorCode() else null
         when (session.status()) {
             SplitInstallSessionStatus.REQUIRES_USER_CONFIRMATION ->
                 DebugLog.w(TAG, "$LLM_MODULE: Play asks the user to confirm the download")
@@ -62,10 +68,13 @@ fun installLlmDelivery(app: Application) {
             ).addOnFailureListener { e ->
                 val code = (e as? SplitInstallException)?.errorCode
                 DebugLog.w(TAG, "$LLM_MODULE: Play refused the install, error ${code ?: e.javaClass.simpleName}")
+                failure = code ?: PLAY_ERROR_UNKNOWN
             }
         }
 
         override fun waitingForConfirmation() = waiting && !installed()
+
+        override fun lastError() = failure.takeIf { !installed() }
     }
 }
 

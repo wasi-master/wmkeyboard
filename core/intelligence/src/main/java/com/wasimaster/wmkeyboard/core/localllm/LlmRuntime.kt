@@ -128,6 +128,13 @@ interface LlmModuleGate {
      * agree to. Null when a download can just start, or nothing is missing.
      */
     fun missingConsent(): String? = null
+
+    /**
+     * Play's error code from the last fetch that failed, or null when none
+     * did (or it has been retried and is on its way). Play only; a failure
+     * then says so instead of "downloading" (Telegram, 10216).
+     */
+    fun lastError(): Int? = null
 }
 
 object LlmModule {
