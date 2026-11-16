@@ -1522,6 +1522,13 @@ internal fun LayoutSettings(
             .filter { it.type == AddonType.Layout }
             .mapTo(HashSet()) { it.localRef }
     }
+    // Names more than one row carries (#1389): an add-on install beside the
+    // user's own copy of the same layout, imported from a file before it was
+    // an add-on or an edit of a layout that has since left the app (English
+    // Gboard+, 0.6.7). Those rows say which is which.
+    val sharedNames = remember(customs) {
+        customs.groupingBy { it.name.trim().lowercase() }.eachCount().filterValues { it > 1 }.keys
+    }
     SettingsGroup(stringResource(R.string.langemoji_lang_your_layouts_title)) {
         for (layout in customs) {
             item {
@@ -1529,10 +1536,15 @@ internal fun LayoutSettings(
                 // what finishes the install, so its addon's Use button lands
                 // here — on the layout's own row, not on the group.
                 HighlightableItem(layout.id) {
-                    val subtitle = stringResource(
+                    val base = stringResource(
                         R.string.langemoji_lang_custom_layout_subtitle,
                         baseModeTitle(layout),
                     )
+                    val subtitle = when {
+                        layout.name.trim().lowercase() !in sharedNames -> base
+                        layout.id in addonLayoutIds -> stringResource(R.string.layout_row_origin_addon, base)
+                        else -> stringResource(R.string.layout_row_origin_own, base)
+                    }
                     val checked = settings.watch { layout.id in it.enabledLayoutIds }
                     val default = layout.id in SettingsDefaults.enabledLayoutIds
                     val change: (Boolean) -> Unit = { enable ->

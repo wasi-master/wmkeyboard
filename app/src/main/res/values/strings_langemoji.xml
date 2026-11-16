@@ -28,6 +28,8 @@
     <string name="langemoji_lang_your_layouts_title">Your layouts</string>
     <!-- Subtitle of one custom layout. %1$s is the name of the language and the
          layout that it is built on, for example "English · QWERTY". -->
+    <string name="layout_row_origin_addon">Add-on, updated from its repository. <xliff:g id="base" example="Types with the English dictionary">%1$s</xliff:g></string>
+    <string name="layout_row_origin_own">Your own copy, which you can edit. <xliff:g id="base" example="Types with the English dictionary">%1$s</xliff:g></string>
     <string name="langemoji_lang_custom_layout_subtitle">Types with the <xliff:g id="base" example="English · QWERTY">%1$s</xliff:g> dictionary</string>
     <string name="langemoji_lang_keymaps_title">Key layouts</string>
     <!-- Shown when the user has no layouts of their own yet. -->
