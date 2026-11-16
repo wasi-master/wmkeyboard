@@ -7578,6 +7578,9 @@ data class BottomRowSettings(
     val holdActions: List<KeyAlternate> = emptyList(),
 )
 
+/** The longest the user's own bracket pairs may be, as typed ([TextEditingSettings.autoCloseCustomPairs]). */
+const val AUTO_CLOSE_CUSTOM_PAIRS_MAX = 400
+
 /**
  * Text-editing tool and selection-editing settings, grouped into their own
  * object (see [CameraSettings] for why). DataStore keys stay flat.
@@ -7656,6 +7659,13 @@ data class TextEditingSettings(
      * bracket anybody is opening.
      */
     val autoCloseBrackets: Boolean = false,
+    /**
+     * Pairs of the user's own that [autoCloseBrackets] closes as well (#1361):
+     * each run without a space is one pair, its first character the opener and
+     * the rest the closer, so "<> «» ¿?" pairs those three. Empty, only the
+     * built-in brackets. They wrap a selection too.
+     */
+    val autoCloseCustomPairs: String = "",
     /** The same for `"` and `'`, except right after a letter or digit (#970). */
     val autoCloseQuotes: Boolean = false,
     /**
@@ -12782,6 +12792,7 @@ class SettingsRepository(private val context: Context) {
         private val SMART_PUNCTUATION_OFF_LANGS = stringSetPreferencesKey("smart_punctuation_off_langs")
         private val WRAP_SELECTION_WITH_PAIR = booleanPreferencesKey("wrap_selection_with_pair")
         private val AUTO_CLOSE_BRACKETS = booleanPreferencesKey("auto_close_brackets")
+        private val AUTO_CLOSE_CUSTOM_PAIRS = stringPreferencesKey("auto_close_custom_pairs")
         private val AUTO_CLOSE_QUOTES = booleanPreferencesKey("auto_close_quotes")
         /**
          * Read only: the text-editing pad's grid from before panel layouts. Folded
@@ -16717,6 +16728,8 @@ class SettingsRepository(private val context: Context) {
                 p[WRAP_SELECTION_WITH_PAIR] ?: defaults.textEditing.wrapSelectionWithPair,
             autoCloseBrackets =
                 p[AUTO_CLOSE_BRACKETS] ?: defaults.textEditing.autoCloseBrackets,
+            autoCloseCustomPairs =
+                p[AUTO_CLOSE_CUSTOM_PAIRS] ?: defaults.textEditing.autoCloseCustomPairs,
             autoCloseQuotes = p[AUTO_CLOSE_QUOTES] ?: defaults.textEditing.autoCloseQuotes,
             recapitalizeSelectionWithShift = p[RECAPITALIZE_SELECTION_WITH_SHIFT]
                 ?: defaults.textEditing.recapitalizeSelectionWithShift,
@@ -23226,6 +23239,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAutoCloseBrackets(value: Boolean) =
         editPrefs { it[AUTO_CLOSE_BRACKETS] = value }
+
+    suspend fun setAutoCloseCustomPairs(value: String) =
+        editPrefs { it[AUTO_CLOSE_CUSTOM_PAIRS] = value.take(AUTO_CLOSE_CUSTOM_PAIRS_MAX) }
 
     suspend fun setRecapitalizeSelectionWithShift(value: Boolean) =
         editPrefs { it[RECAPITALIZE_SELECTION_WITH_SHIFT] = value }

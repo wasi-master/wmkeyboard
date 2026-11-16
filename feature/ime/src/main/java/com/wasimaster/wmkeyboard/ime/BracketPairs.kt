@@ -50,16 +50,45 @@ val AUTO_CLOSE_PAIRS: Map<Char, String> = mapOf(
  * ("don't", 5"), so it stands down, and it pairs only where a bracket would:
  * with nothing it would end up wrapped around.
  */
-fun autoCloseQuoteFor(typed: Char, before: Char?, after: CharSequence?): String? {
+fun autoCloseQuoteFor(
+    typed: Char,
+    before: Char?,
+    after: CharSequence?,
+    closers: Set<Char> = AUTO_CLOSE_CLOSERS,
+): String? {
     if (typed != '"' && typed != '\'') return null
     if (before != null && before.isLetterOrDigit()) return null
     val next = after?.firstOrNull() ?: return typed.toString()
-    val room = next.isWhitespace() || next in AUTO_CLOSE_CLOSERS || next in CLAUSE_ENDS
+    val room = next.isWhitespace() || next in closers || next in CLAUSE_ENDS
     return if (room) typed.toString() else null
 }
 
 /** The closers of [AUTO_CLOSE_PAIRS], for the "type over it" test below. */
 val AUTO_CLOSE_CLOSERS: Set<Char> = AUTO_CLOSE_PAIRS.values.mapTo(HashSet()) { it[0] }
+
+/** The first characters of [pairs]' closers: what typing over one steps past. */
+fun closersOf(pairs: Map<Char, String>): Set<Char> = pairs.values.mapTo(HashSet()) { it[0] }
+
+/**
+ * The user's own pairs (#1361) as typed in the setting: runs separated by
+ * spaces, each one opener character then its closer, so `<> «» ¿? 「」`.
+ * Two characters each, as the built-in pairs are, so typing over the closer
+ * and the backspace that takes an empty pair out both have one character to
+ * deal with. A run of any other length, or whose opener is a letter, a digit
+ * or one of the quotes the quotes switch already handles, is skipped.
+ */
+fun parseBracketPairs(text: String): Map<Char, String> {
+    val out = LinkedHashMap<Char, String>()
+    for (run in text.split(' ', '\t', '\n', ',')) {
+        if (run.length != 2) continue
+        val opener = run[0]
+        val closer = run[1]
+        if (opener.isLetterOrDigit() || opener == '"' || opener == '\'' || opener.isSurrogate()) continue
+        if (closer.isLetterOrDigit() || closer.isSurrogate() || closer == opener) continue
+        out[opener] = closer.toString()
+    }
+    return out
+}
 
 /**
  * The closer to type behind the caret when [typed] lands, or null when this
@@ -73,10 +102,17 @@ val AUTO_CLOSE_CLOSERS: Set<Char> = AUTO_CLOSE_PAIRS.values.mapTo(HashSet()) { i
  * where nothing would end up inside it: before a space, a line break, the end
  * of the text, another closer ("[(]"), or a mark that ends a clause.
  */
-fun autoCloseCloserFor(typed: Char, after: CharSequence?): String? {
-    val closer = AUTO_CLOSE_PAIRS[typed] ?: return null
+fun autoCloseCloserFor(
+    typed: Char,
+    after: CharSequence?,
+    pairs: Map<Char, String> = AUTO_CLOSE_PAIRS,
+    closers: Set<Char> = AUTO_CLOSE_CLOSERS,
+): String? {
+    val closer = pairs[typed] ?: return null
     val next = after?.firstOrNull() ?: return closer
-    val room = next.isWhitespace() || next in AUTO_CLOSE_CLOSERS || next in CLAUSE_ENDS
+    // A pair of the user's own may close on a mark ("¿" then "?"), which is
+    // room for a pair like any other.
+    val room = next.isWhitespace() || next in closers || next in CLAUSE_ENDS
     return if (room) closer else null
 }
 
@@ -94,8 +130,8 @@ private val CLAUSE_ENDS: Set<Char> = setOf('.', ',', ';', ':', '!', '?', '。', 
  * being wrong is small and visible: the caret ends up past a closer that was
  * already there, which is where typing one would have put it anyway.
  */
-fun typesOverCloser(typed: Char, after: CharSequence?): Boolean =
-    typed in AUTO_CLOSE_CLOSERS && after?.firstOrNull() == typed
+fun typesOverCloser(typed: Char, after: CharSequence?, closers: Set<Char> = AUTO_CLOSE_CLOSERS): Boolean =
+    typed in closers && after?.firstOrNull() == typed
 
 /**
  * Whether one backspace should take out both halves of an empty pair: the
@@ -103,10 +139,14 @@ fun typesOverCloser(typed: Char, after: CharSequence?): Boolean =
  * auto-close leaves behind, so the press that undoes the opener undoes the
  * closer with it. A pair with anything inside it is left alone.
  */
-fun deletesEmptyPair(before: CharSequence, after: CharSequence?): Boolean {
+fun deletesEmptyPair(
+    before: CharSequence,
+    after: CharSequence?,
+    pairs: Map<Char, String> = AUTO_CLOSE_PAIRS,
+): Boolean {
     val opener = before.lastOrNull() ?: return false
     if (opener == '"' || opener == '\'') return after?.firstOrNull() == opener
-    val closer = AUTO_CLOSE_PAIRS[opener] ?: return false
+    val closer = pairs[opener] ?: return false
     return after?.firstOrNull() == closer[0]
 }
 

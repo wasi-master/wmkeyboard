@@ -121,4 +121,17 @@ class BracketPairsTest {
         assertFalse(closerTakesSpace("."))
         assertFalse(closerTakesSpace("word"))
     }
+
+    @Test
+    fun `the user's own pairs read as two characters each (#1361)`() {
+        val own = parseBracketPairs("<> «» ¿? ab 1) \"\" <<> x")
+        assertEquals(mapOf('<' to ">", '«' to "»", '¿' to "?"), own)
+        val pairs = AUTO_CLOSE_PAIRS + own
+        val closers = closersOf(pairs)
+        assertEquals(">", autoCloseCloserFor('<', " ", pairs, closers))
+        assertEquals("?", autoCloseCloserFor('¿', null, pairs, closers))
+        assertEquals(null, autoCloseCloserFor('<', "x", pairs, closers))
+        assertTrue(typesOverCloser('»', "» rest", closers))
+        assertTrue(deletesEmptyPair("a «", "»", pairs))
+    }
 }

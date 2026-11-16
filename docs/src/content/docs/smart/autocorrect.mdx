@@ -282,6 +282,8 @@ Three presses behave differently once it's on:
 
 Two kinds of character are deliberately left out. **Quotes** (`"`, `'`, `` ` ``, `«`), because the apostrophe in "don't" is the same key, and a keyboard that closed it would be wrong far more often than right; select some text and press the quote instead, which [wraps the selection](/tools/text-editing/) in the pair. **`<`** for the same sort of reason: outside code it is a less-than sign, and `5 <` is nobody opening a bracket.
 
+**Your own pairs**, under the switch while it's on, adds the pairs you want closed too. Type each pair as its two characters, opener first, with a space between pairs: `<> «» ‹› “” ‘’ ¿? ¡! ⌊⌋ ⌈⌉ ⟪⟫ ⦇⦈`. Each one works like a built-in bracket: the opener types the pair where there's room for it, the closer steps over its own half, and one backspace takes an empty pair out. They [wrap a selection](/tools/text-editing/) too. A pair needs two different characters and the opener can't be a letter, a digit or a straight quote, which **Close quotes for me** handles; anything else in the box is skipped.
+
 The rule also stands down when the bracket lands in front of a word. `(` typed immediately before `world` is you putting brackets around that word by hand, and a closer dropped into the middle of it would only have to be deleted again. A space, a mark, another bracket or the end of the text all leave room for the pair. Passwords, email fields and number pads are untouched. Web addresses are not: a browser's address bar is a search box as often as an address box, and a bracket typed there pairs the same as anywhere else.
 
 The pair works the same in apps and web pages that handle typing their own way, Discord, browser-based editors and the like, where the cursor used to land outside the closing bracket.
@@ -388,6 +390,7 @@ Android has a spell checker of its own, separate from the keyboard: it draws the
 | Marks that pull the space out | `.,?!;:।،؛؟۔` | Remove a space before punctuation on |
 | Space before French punctuation | On | always |
 | Close brackets for me | Off | always |
+| Your own pairs | empty | Close brackets for me on |
 | Close quotes for me | Off | always |
 | Continue lists | Off | always |
 | Smart punctuation key | Off | always |

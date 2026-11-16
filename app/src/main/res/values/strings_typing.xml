@@ -264,6 +264,8 @@
     <string name="typing_auto_close_quotes_info">When you press a quotation mark, the keyboard types the closing mark too and puts the cursor between the two. It does not do this right after a letter or a number, where the mark is an apostrophe or the end of a quote. This setting is off by default.</string>
     <string name="typing_auto_close_brackets_title">Close brackets for me</string>
     <string name="typing_auto_close_brackets_subtitle">Press ( [ { and the keyboard types the closing half, with the cursor between them</string>
+    <string name="typing_auto_close_custom_pairs_title">Your own pairs</string>
+    <string name="typing_auto_close_custom_pairs_hint">Two characters for each pair, opener first, with a space between pairs: &lt;&gt; «» ¿? 「」</string>
     <string name="typing_auto_close_brackets_info">This setting is off by default. With it on, pressing an opening bracket types the closing one behind the cursor and leaves the cursor between the two, so you type straight inside the pair: press ( and you get (), ready for what goes in it. Pressing the closing bracket when it is already the next character steps over it instead of typing a second one, and one backspace on an empty pair takes both halves out. The CJK brackets are included, and so are the fullwidth ones. Quotes are not: the apostrophe in \"don\'t\" shares that key, and closing it would be wrong more often than right. Nor is &lt;, which outside code is a less-than sign. Passwords, email fields and number pads are left alone; a browser\'s address bar is not.</string>
 
     <string name="typing_shift_recase_title">Shift changes the case of the selection</string>

@@ -15478,6 +15478,8 @@ open class WMKeyboardService : InputMethodService() {
             // of the pair wraps: ")" over "foo" is "(foo)" too.
             val pair = if (state.settings.textEditing.wrapSelectionWithPair && text.length == 1) {
                 WRAP_PAIRS[text[0]]?.let { text to it } ?: WRAP_OPENERS[text[0]]?.let { it to text }
+                    // The user's own pairs wrap too (#1361), by their opener.
+                    ?: parseBracketPairs(state.settings.textEditing.autoCloseCustomPairs)[text[0]]?.let { text to it }
             } else {
                 null
             }
@@ -16189,9 +16191,33 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         if (!state.settings.textEditing.autoCloseBrackets || !state.allowsBracketPairs) return
-        if (text.length != 1 || text[0] !in AUTO_CLOSE_PAIRS) return
-        val closer = autoCloseCloserFor(text[0], ic.getTextAfterCursor(1, 0)) ?: return
+        val pairs = bracketPairs(state)
+        if (text.length != 1 || text[0] !in pairs) return
+        val closer = autoCloseCloserFor(text[0], ic.getTextAfterCursor(1, 0), pairs, bracketClosers) ?: return
         placeCloser(ic, text, closer)
+    }
+
+    /** What [bracketPairs] last read the user's pairs from, and what it made of them. */
+    private var bracketPairsSource: String? = null
+    private var bracketPairsRead: Map<Char, String> = AUTO_CLOSE_PAIRS
+
+    /** The closers of the last [bracketPairs], read alongside it. */
+    private var bracketClosers: Set<Char> = AUTO_CLOSE_CLOSERS
+
+    /**
+     * The pairs Close brackets for me closes: the built-in brackets and the
+     * user's own (#1361), which win where both name the same opener. Parsed
+     * once per change of the setting, not per keystroke.
+     */
+    private fun bracketPairs(state: KeyboardUiState): Map<Char, String> {
+        val source = state.settings.textEditing.autoCloseCustomPairs
+        if (source != bracketPairsSource) {
+            val own = parseBracketPairs(source)
+            bracketPairsRead = if (own.isEmpty()) AUTO_CLOSE_PAIRS else AUTO_CLOSE_PAIRS + own
+            bracketClosers = closersOf(bracketPairsRead)
+            bracketPairsSource = source
+        }
+        return bracketPairsRead
     }
 
     private fun placeCloser(ic: InputConnection, opener: String, closer: String) {
@@ -16285,13 +16311,14 @@ open class WMKeyboardService : InputMethodService() {
     ): Boolean {
         if (!state.allowsBracketPairs) return false
         val opener = before.lastOrNull() ?: return false
+        val bracketPairs = bracketPairs(state)
         val pairs = if (opener == '"' || opener == '\'') {
             state.settings.textEditing.autoCloseQuotes
         } else {
-            state.settings.textEditing.autoCloseBrackets && opener in AUTO_CLOSE_PAIRS
+            state.settings.textEditing.autoCloseBrackets && opener in bracketPairs
         }
         if (!pairs) return false
-        return deletesEmptyPair(before, ic.getTextAfterCursor(1, 0))
+        return deletesEmptyPair(before, ic.getTextAfterCursor(1, 0), bracketPairs)
     }
 
     /**
@@ -16313,8 +16340,9 @@ open class WMKeyboardService : InputMethodService() {
         if (quote) {
             if (ic.getTextAfterCursor(1, 0)?.firstOrNull() != text[0]) return null
         } else {
-            if (!state.settings.textEditing.autoCloseBrackets || text[0] !in AUTO_CLOSE_CLOSERS) return null
-            if (!typesOverCloser(text[0], ic.getTextAfterCursor(1, 0))) return null
+            bracketPairs(state)
+            if (!state.settings.textEditing.autoCloseBrackets || text[0] !in bracketClosers) return null
+            if (!typesOverCloser(text[0], ic.getTextAfterCursor(1, 0), bracketClosers)) return null
         }
         // Only when the editor's own answer has the closer right ahead of the
         // caret: a Compose field can answer from before the last keystroke

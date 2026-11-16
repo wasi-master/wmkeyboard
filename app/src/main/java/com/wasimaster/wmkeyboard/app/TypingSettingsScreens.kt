@@ -771,6 +771,7 @@ internal fun TypingWritingSettings(
     val doubleSpaceOn = settings.watch { it.autoText.doubleSpacePeriod || it.autoText.doubleSpaceTab }
     val autoSpaceOn = settings.watch { it.autoText.spaceAfterPunctuation }
     val hugOn = settings.watch { it.autoText.hugPunctuation }
+    val closeBracketsOn = settings.watch { it.textEditing.autoCloseBrackets }
     val smartPunctuationOn = settings.watch { it.autoText.smartPunctuation }
     val recaseOn = settings.watch { it.textEditing.recapitalizeSelectionWithShift }
     val capitalizeOn = settings.watch { it.autoText.capitalize }
@@ -1009,6 +1010,15 @@ internal fun TypingWritingSettings(
                 info = stringResource(R.string.typing_auto_close_brackets_info),
                 default = SettingsDefaults.textEditing.autoCloseBrackets,
             ) { scope.launch { repository.setAutoCloseBrackets(it) } }
+        }
+        // Pairs of the user's own, closed the same way (#1361).
+        item(visible = closeBracketsOn, level = SettingLevel.ADVANCED) {
+            TextFieldSetting(
+                label = stringResource(R.string.typing_auto_close_custom_pairs_title),
+                value = settings.watch { it.textEditing.autoCloseCustomPairs },
+                hint = stringResource(R.string.typing_auto_close_custom_pairs_hint),
+                default = SettingsDefaults.textEditing.autoCloseCustomPairs,
+            ) { repository.setAutoCloseCustomPairs(it) }
         }
         item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
