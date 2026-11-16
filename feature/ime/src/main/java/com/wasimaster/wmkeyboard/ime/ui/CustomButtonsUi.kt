@@ -311,6 +311,27 @@ object CustomButtonFaces {
  * be started: the app is gone, or only the home screen may open it.
  */
 object CustomShortcuts {
+    /**
+     * [launch], and for an app screen only the shell can open (#1405) the
+     * shell's `am start`: through Shizuku or root, only while Settings ›
+     * Permissions › Shizuku or root is on. The target was checked to name a
+     * plain component before it gets near the command line.
+     */
+    suspend fun start(context: Context, button: CustomButton): Boolean {
+        if (!button.target.startsWith(com.wasimaster.wmkeyboard.core.settings.CUSTOM_SHELL_ACTIVITY_PREFIX)) {
+            return launch(context, button)
+        }
+        val (pkg, cls) = com.wasimaster.wmkeyboard.core.settings.shellActivityOf(button.target) ?: return false
+        if (pkg == context.packageName) return false
+        if (!com.wasimaster.wmkeyboard.core.shell.ShellFeatures.isEnabled(context)) return false
+        val result = com.wasimaster.wmkeyboard.core.shell.ShellAccess.exec(
+            context,
+            "am start --user current -n '$pkg/$cls'",
+        ) ?: return false
+        // am prints its refusals ("Error: Activity not started…") and still exits 0.
+        return result.ok && !result.output.contains("Error", ignoreCase = false)
+    }
+
     fun launch(context: Context, button: CustomButton): Boolean = runCatching {
         val target = button.target
         if (target.startsWith(CUSTOM_LAUNCHER_SHORTCUT_PREFIX)) {

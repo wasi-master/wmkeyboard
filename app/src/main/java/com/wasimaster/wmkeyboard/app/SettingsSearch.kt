@@ -3154,6 +3154,11 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
             keywords = R.string.search_kw_custombuttons,
         ),
         entry(
+            R.string.custombuttons_add_screen_title, R.string.custombuttons_add_screen_subtitle,
+            R.string.custombuttons_title, "custom_buttons", screenParent = R.string.home_tools_title,
+            keywords = R.string.search_kw_custombuttons_screen,
+        ),
+        entry(
             R.string.custombuttons_add_setting_title, R.string.custombuttons_add_setting_subtitle,
             R.string.custombuttons_title, "custom_buttons", screenParent = R.string.home_tools_title,
         ),

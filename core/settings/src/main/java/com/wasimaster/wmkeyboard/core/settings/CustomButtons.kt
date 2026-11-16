@@ -28,8 +28,9 @@ data class CustomButton(
     val kind: CustomButtonKind,
     /**
      * What the button runs. For [CustomButtonKind.SHORTCUT], an `intent:` URI
-     * (Android's own `Intent.toUri` form) or a launcher shortcut
-     * `ls:<profile serial>:<package>/<shortcut id>`; for
+     * (Android's own `Intent.toUri` form), a launcher shortcut
+     * `ls:<profile serial>:<package>/<shortcut id>`, or an app screen only
+     * Shizuku or root can open, `am:<package>/<activity class>` (#1405); for
      * [CustomButtonKind.SETTING], a [CustomToggle] name; for
      * [CustomButtonKind.PAGE], a [CustomPage] name; for
      * [CustomButtonKind.PLUGIN] (read only to migrate it), a plugin's id.
@@ -204,6 +205,36 @@ const val CUSTOM_BUTTON_LABEL_MAX = 40
 
 /** Where launcher-shortcut targets start; see [CustomButton.target]. */
 const val CUSTOM_LAUNCHER_SHORTCUT_PREFIX = "ls:"
+
+/**
+ * Where an app screen opened through the shell starts (#1405): one another
+ * app may not start itself, because it asks for a permission or is not
+ * exported. See [shellActivityOf].
+ */
+const val CUSTOM_SHELL_ACTIVITY_PREFIX = "am:"
+
+private val shellPackagePattern = Regex("[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)+")
+private val shellClassPattern = Regex("[A-Za-z_][A-Za-z0-9_$]*(\\.[A-Za-z_][A-Za-z0-9_$]*)*")
+
+/**
+ * The package and full class name an `am:` target names, or null when it is
+ * not one or names anything but a plain component. A target can come from a
+ * restored backup and ends up on a shell's command line, so nothing outside
+ * Java's identifier characters gets through: no space, quote, semicolon or
+ * dollar sign at the start.
+ */
+fun shellActivityOf(target: String): Pair<String, String>? {
+    if (!target.startsWith(CUSTOM_SHELL_ACTIVITY_PREFIX)) return null
+    val rest = target.removePrefix(CUSTOM_SHELL_ACTIVITY_PREFIX)
+    val pkg = rest.substringBefore('/', "")
+    var cls = rest.substringAfter('/', "")
+    if (cls.startsWith('.')) cls = pkg + cls
+    if (!shellPackagePattern.matches(pkg) || !shellClassPattern.matches(cls)) return null
+    return pkg to cls
+}
+
+/** The `am:` target for [pkg]'s screen [cls]. */
+fun shellActivityTarget(pkg: String, cls: String): String = "$CUSTOM_SHELL_ACTIVITY_PREFIX$pkg/$cls"
 
 /** An id no button in this list uses yet. */
 fun List<CustomButton>.nextCustomButtonId(): String {

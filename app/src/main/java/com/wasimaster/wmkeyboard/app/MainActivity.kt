@@ -1633,7 +1633,7 @@ private fun SettingsNavGraph(
                 { navController.popBackStack() },
                 route = CustomButtons.ROUTE,
             ) {
-                CustomButtonsScreen(repository, settings)
+                CustomButtonsScreen(repository, settings, onNavigate = { navController.navigate(it) })
             }
         }
         composable(LauncherAppIcons.ROUTE) {

@@ -68,4 +68,17 @@ class CustomButtonsTest {
         assertTrue(CustomToggle.NUMBER_ROW.isOn(on))
         assertEquals(false, CustomToggle.NUMBER_ROW.isOn(on.copy(numberRow = false)))
     }
+
+    @Test
+    fun `a shell screen target names only a plain component`() {
+        assertEquals("com.example.app" to "com.example.app.Hidden\$Inner", shellActivityOf("am:com.example.app/com.example.app.Hidden\$Inner"))
+        assertEquals("com.example.app" to "com.example.app.Main", shellActivityOf("am:com.example.app/.Main"))
+        assertEquals("am:a.b/a.b.C", shellActivityTarget("a.b", "a.b.C"))
+        assertNull(shellActivityOf("intent:#Intent;end"))
+        assertNull(shellActivityOf("am:com.example.app"))
+        assertNull(shellActivityOf("am:com.example.app/a.B; reboot"))
+        assertNull(shellActivityOf("am:com.example.app/a.B' -e"))
+        assertNull(shellActivityOf("am:com.example.app/\$x"))
+        assertNull(shellActivityOf("am:nodots/a.B"))
+    }
 }

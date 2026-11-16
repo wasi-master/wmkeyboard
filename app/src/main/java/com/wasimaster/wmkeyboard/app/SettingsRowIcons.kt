@@ -29,6 +29,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.NotificationsActive
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QrCodeScanner
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Security
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SmartButton
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Window
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SmartToy
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.StickyNote2
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextDecrease
@@ -2653,6 +2654,7 @@ internal object SettingsRowIcons {
         put(R.string.layout_number_row_hints_title) { Icons.Outlined.Tag }
         put(R.string.layout_full_height_window_title) { Icons.Outlined.Height }
         put(R.string.custombuttons_title) { Icons.Outlined.SmartButton }
+        put(R.string.custombuttons_add_screen_title) { Icons.Outlined.Window }
         put(R.string.layout_editor_plugin_row_title) { Icons.Outlined.Extension }
         put(R.string.typing_modifier_drag_title) { Icons.Outlined.OpenWith }
         put(R.string.languages_legacy_font_title) { Icons.Outlined.FontDownload }

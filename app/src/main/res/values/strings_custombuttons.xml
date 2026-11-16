@@ -17,6 +17,18 @@
     <string name="custombuttons_add_page_title">Settings page</string>
     <string name="custombuttons_add_page_subtitle">Opens a page of these settings, or your favourites</string>
     <string name="custombuttons_full">All %1$d buttons are made. Delete one to add another.</string>
+    <string name="custombuttons_add_screen_title">App screen</string>
+    <string name="custombuttons_add_screen_subtitle">Any screen of an installed app, the way an activity launcher opens it</string>
+    <string name="custombuttons_screen_search_hint">Search apps and screens</string>
+    <string name="custombuttons_shortcut_search_hint">Search shortcuts</string>
+    <string name="custombuttons_shortcut_more_action">App screens</string>
+    <string name="custombuttons_screen_loading">Looking for app screens…</string>
+    <string name="custombuttons_screen_empty">No app has a screen the keyboard can open</string>
+    <string name="custombuttons_screen_shell_banner">Listed are the screens any app may open. With Shizuku or root, the screens an app keeps to itself are listed too.</string>
+    <string name="custombuttons_screen_shell_action">Set up</string>
+    <string name="custombuttons_screen_root_banner">Shizuku opens screens that ask for a permission. The ones an app does not share at all need root: turn Use root on to list them.</string>
+    <string name="custombuttons_screen_needs_shell">Opens through Shizuku or root</string>
+    <string name="custombuttons_kind_screen">App screen</string>
     <string name="custombuttons_kind_shortcut">App shortcut</string>
     <string name="custombuttons_kind_setting">Setting switch</string>
     <string name="custombuttons_kind_page">Settings page</string>
@@ -49,4 +61,5 @@
     <string name="floating_button_pick_custom_subtitle">One of your custom buttons</string>
 
     <string name="search_kw_custombuttons">custom button, own button, app shortcut, launcher shortcut, toggle, setting switch, bookmarks, favourites button, one tap</string>
+    <string name="search_kw_custombuttons_screen">activity, activity launcher, intent, hidden settings, app screen, shizuku, root, am start</string>
 </resources>

@@ -92,6 +92,11 @@ data class LauncherActivity(
     val enabled: Boolean,
     /** The profile serial of the app it belongs to; see [LauncherApp.profile]. */
     val profile: Long? = null,
+    /**
+     * The permission a caller must hold to start it, or null. An exported
+     * screen behind one throws for an ordinary app but opens from the shell.
+     */
+    val permission: String? = null,
 ) {
     val component: ComponentName get() = ComponentName(packageName, className)
 }
@@ -257,6 +262,7 @@ object AppCatalog {
                         .ifBlank { info.name.substringAfterLast('.') },
                     exported = info.exported,
                     enabled = info.enabled,
+                    permission = info.permission,
                 )
             }
             .sortedWith(

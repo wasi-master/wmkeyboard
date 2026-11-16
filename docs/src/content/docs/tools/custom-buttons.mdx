@@ -13,9 +13,11 @@ The fixed tools cover what the keyboard does by itself. Custom buttons cover the
 
 The same page is linked from <SettingsPath path="Appearance / Toolbar" />. You can have up to 24 buttons.
 
-## Four kinds
+## Five kinds
 
 **App shortcut** opens a shortcut another app offers. These are the actions a launcher shows when you hold an app's icon: a new incognito tab, a new note, a contact to call. The picker lists them by app, with each shortcut's own icon, and the button wears that icon on the toolbar.
+
+**App screen** opens any screen of an installed app, the way an activity launcher does: an app's hidden settings page, a single tab of a system app, a screen its home-screen icon doesn't lead to. See [App screens](#app-screens) below.
 
 **Setting switch** turns one of the keyboard's settings on and off with a tap. The button is lit while the setting is on, the same way the Incognito tool lights up. You can pick from:
 
@@ -47,6 +49,8 @@ A tap writes the same setting its row in Settings writes, so the two always agre
 
 ## Where shortcuts come from
 
+The picker's rows each add a button, so there is nothing to tick: tap a shortcut and it's made.
+
 Android lets only the home screen read every app's shortcuts. Where the keyboard has that access, the picker lists all of them. Most phones don't give it, and then the picker offers what it can reach without it:
 
 - The shortcuts an app declares in its manifest, as long as the screen they open is one other apps may start. A shortcut only the home screen may open is left out, since the button would do nothing.
@@ -54,7 +58,22 @@ Android lets only the home screen read every app's shortcuts. Where the keyboard
 
 Shortcuts an app adds while it runs, such as a browser's incognito tab on some versions, are only visible to the home screen. Those apps can't be reached this way, and an app that answers the "create shortcut" request with something only a home screen can accept gets a message saying so.
 
+When the list is cut down like this, a note at the top of the picker says so, and its **App screens** button takes you to the App screen picker, which needs no special access.
+
 A shortcut's icon is saved on the phone when you pick it. A backup carries the buttons but not their icons, so after a restore a shortcut button shows its app's icon instead.
+
+## App screens
+
+**App screen** lists every app with a home-screen icon, folded by app; tap an app's name to see its screens, or search across all of them by screen name or class name. Each row shows the screen's class name under its title, and the button wears the screen's icon.
+
+Without special access, the list holds the screens any app may open. Many apps keep more behind a permission, or don't share a screen with other apps at all. The F-Droid and GitHub builds can reach those through Shizuku or root, set up under <SettingsPath path="Privacy / Permissions / Shizuku or root" />; the note at the top of the picker has a **Set up** button that goes there.
+
+- With Shizuku, the list adds the screens that ask for a permission, since Shizuku runs commands as the shell, which holds most of them.
+- With root and **Use root** turned on, it adds the screens an app keeps to itself too.
+
+A screen that needs Shizuku or root says **Opens through Shizuku or root** under its name, and on the page of your buttons it's listed as an App screen. A tap runs `am start` for it, so it works only while Shizuku is running (or root is allowed) and the Shizuku or root switch is on; otherwise the button says it couldn't open. Screens are named only by their app and class, so a restored button can never carry anything else onto the command line. The Google Play build lists only the screens any app may open.
+
+Some screens expect to be opened by their own app with extra details and close at once, or show an error, when opened on their own. That's the app's doing; pick another screen.
 
 ## Toolbar or toolbox
 

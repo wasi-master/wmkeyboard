@@ -92,6 +92,14 @@ private object PickerMemory {
  * description, each heading folds its group away (and says how many it holds
  * while folded), and the folds and the scroll are kept for the next opening
  * under [memoryKey]. With nothing kept yet, it opens on the current choice.
+ *
+ * A picker that adds something rather than choosing one answer (a custom
+ * button, #1407) passes [radios] false: its rows are plain rows, with no
+ * radio button that is never on. [banner] goes above the list, for live state
+ * such as "only some are listed" with the button that changes it; it is no
+ * row to pick. [emptyText] stands where the rows go while there are none
+ * (loading, or nothing to offer). [foldedAtFirst] starts every group folded,
+ * for a list of hundreds such as each app's screens.
  */
 @Composable
 internal fun ActionPickerPage(
@@ -99,6 +107,11 @@ internal fun ActionPickerPage(
     title: String,
     groups: List<PickerGroup>,
     onDismiss: () -> Unit,
+    searchHint: String? = null,
+    radios: Boolean = true,
+    foldedAtFirst: Boolean = false,
+    emptyText: String? = null,
+    banner: (@Composable () -> Unit)? = null,
 ) {
     Dialog(
         onDismissRequest = onDismiss,
@@ -108,10 +121,25 @@ internal fun ActionPickerPage(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.surface,
         ) {
-            ActionPickerContent(memoryKey, title, groups, onDismiss)
+            ActionPickerContent(
+                memoryKey,
+                title,
+                groups,
+                onDismiss,
+                PickerLook(searchHint, radios, foldedAtFirst, emptyText, banner),
+            )
         }
     }
 }
+
+/** How an [ActionPickerPage] draws, past its rows; see its parameters. */
+private class PickerLook(
+    val searchHint: String?,
+    val radios: Boolean,
+    val foldedAtFirst: Boolean,
+    val emptyText: String?,
+    val banner: (@Composable () -> Unit)?,
+)
 
 @Composable
 private fun ActionPickerContent(
@@ -119,15 +147,20 @@ private fun ActionPickerContent(
     title: String,
     groups: List<PickerGroup>,
     onDismiss: () -> Unit,
+    look: PickerLook,
 ) {
     var query by rememberSaveable(memoryKey) { mutableStateOf("") }
-    var folded by remember(memoryKey) { mutableStateOf(PickerMemory.folded[memoryKey].orEmpty()) }
+    // The groups the user flipped from how they start: folded, or, for a
+    // [PickerLook.foldedAtFirst] picker, opened. Kept that way round so a
+    // group that turns up after loading starts the way the picker says.
+    var flipped by remember(memoryKey) { mutableStateOf(PickerMemory.folded[memoryKey].orEmpty()) }
+    val isShut = { key: String -> (key in flipped) != look.foldedAtFirst }
     val list = remember(memoryKey) {
         val saved = PickerMemory.scroll[memoryKey]
         if (saved != null) {
             LazyListState(saved.first, saved.second)
         } else {
-            LazyListState(initialRowIndex(groups, folded))
+            LazyListState(initialRowIndex(groups, isShut))
         }
     }
     DisposableEffect(memoryKey, list) {
@@ -168,7 +201,7 @@ private fun ActionPickerContent(
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
-            placeholder = { Text(stringResource(R.string.action_picker_search_hint)) },
+            placeholder = { Text(look.searchHint ?: stringResource(R.string.action_picker_search_hint)) },
             leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
             trailingIcon = {
                 if (query.isNotEmpty()) {
@@ -188,23 +221,29 @@ private fun ActionPickerContent(
                             CaptionText(stringResource(R.string.action_picker_search_empty, query))
                         }
                     }
-                    items(matches, key = { "match-" + it.key }) { PickerRowView(it) }
+                    items(matches, key = { "match-" + it.key }) { PickerRowView(it, look.radios) }
                     return@LazyColumn
+                }
+                val banner = look.banner
+                if (banner != null) item(key = "banner") { banner() }
+                val emptyText = look.emptyText
+                if (emptyText != null && groups.none { !it.searchOnly && it.rows.isNotEmpty() }) {
+                    item(key = "empty-list") { CaptionText(emptyText) }
                 }
                 for (group in groups) {
                     if (group.searchOnly) continue
                     val title = group.title
                     if (title != null) {
-                        val shut = group.key in folded
+                        val shut = isShut(group.key)
                         item(key = "head-" + group.key) {
                             PickerGroupHeading(title, group.rows.size, shut) {
-                                folded = if (shut) folded - group.key else folded + group.key
-                                PickerMemory.folded[memoryKey] = folded
+                                flipped = if (group.key in flipped) flipped - group.key else flipped + group.key
+                                PickerMemory.folded[memoryKey] = flipped
                             }
                         }
                         if (shut) continue
                     }
-                    items(group.rows, key = { group.key + "/" + it.key }) { PickerRowView(it) }
+                    items(group.rows, key = { group.key + "/" + it.key }) { PickerRowView(it, look.radios) }
                 }
             }
         }
@@ -212,12 +251,12 @@ private fun ActionPickerContent(
 }
 
 /** Where a picker with nothing remembered opens: on the current choice, if a group it is in is open. */
-private fun initialRowIndex(groups: List<PickerGroup>, folded: Set<String>): Int {
+private fun initialRowIndex(groups: List<PickerGroup>, isShut: (String) -> Boolean): Int {
     var index = 0
     for (group in groups) {
         if (group.searchOnly) continue
         if (group.title != null) index++
-        if (group.title != null && group.key in folded) continue
+        if (group.title != null && isShut(group.key)) continue
         val at = group.rows.indexOfFirst { it.selected }
         // A row above the selection keeps the heading over it in sight.
         if (at >= 0) return (index + at - 1).coerceAtLeast(0)
@@ -258,12 +297,16 @@ private fun PickerGroupHeading(title: String, count: Int, shut: Boolean, onToggl
 }
 
 @Composable
-private fun PickerRowView(row: PickerRow) {
+private fun PickerRowView(row: PickerRow, radio: Boolean) {
     WmRow(
         title = row.title,
         subtitle = row.subtitle,
         leading = row.leading,
-        trailing = { RadioButton(selected = row.selected, onClick = row.onPick) },
+        trailing = if (radio) {
+            { RadioButton(selected = row.selected, onClick = row.onPick) }
+        } else {
+            null
+        },
         onClick = row.onPick,
     )
 }

@@ -15,6 +15,7 @@ import android.os.Process
 import android.os.UserManager
 import androidx.core.graphics.drawable.toBitmap
 import com.wasimaster.wmkeyboard.core.settings.CUSTOM_LAUNCHER_SHORTCUT_PREFIX
+import com.wasimaster.wmkeyboard.core.settings.shellActivityTarget
 import com.wasimaster.wmkeyboard.ime.ui.CustomButtonFaces
 import org.xmlpull.v1.XmlPullParser
 
@@ -31,6 +32,14 @@ internal class ShortcutOffer(
     val target: String,
     val icon: () -> Drawable?,
 )
+
+/**
+ * One app's screens for the App screen picker (#1405), by label. [viaShell]
+ * screens open only through Shizuku or root.
+ */
+internal class AppScreens(val packageName: String, val appLabel: String, val screens: List<AppScreen>)
+
+internal class AppScreen(val className: String, val label: String, val viaShell: Boolean)
 
 /** An app screen that makes a shortcut and hands it back: the Widgets-style "Shortcuts" list. */
 internal class ShortcutMaker(
@@ -152,6 +161,56 @@ internal object CustomShortcutSources {
 
     fun deleteIcon(context: Context, id: String) {
         runCatching { CustomButtonFaces.iconFile(context, id).delete() }
+    }
+
+    // ---- any app's screens, as an activity launcher lists them (#1405) ----
+
+    /**
+     * The screens of every app the keyboard can see (those with a home-screen
+     * icon: the manifest asks to see no others), by app label. A screen any
+     * app may start is always listed; with [shell], so is an exported one
+     * behind a permission, and with [root] one that is not exported at all.
+     * Disabled screens never start, so they are left out. Blocking.
+     */
+    suspend fun appScreens(context: Context, shell: Boolean, root: Boolean): List<AppScreens> {
+        val pm = context.packageManager
+        val own = context.packageName
+        return com.wasimaster.wmkeyboard.ime.AppCatalog.loadApps(pm)
+            .filter { it.packageName != own }
+            .mapNotNull { app ->
+                val screens = com.wasimaster.wmkeyboard.ime.AppCatalog.loadActivities(pm, app.packageName)
+                    .filter { it.enabled }
+                    .mapNotNull { activity ->
+                        val direct = activity.exported && activity.permission == null
+                        val reachable = direct || (shell && activity.exported) || root
+                        if (!reachable) return@mapNotNull null
+                        AppScreen(activity.className, activity.label, viaShell = !direct)
+                    }
+                    .sortedWith(compareBy<AppScreen> { it.viaShell }.thenBy(String.CASE_INSENSITIVE_ORDER) { it.label })
+                if (screens.isEmpty()) null else AppScreens(app.packageName, app.label, screens)
+            }
+            .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER, AppScreens::appLabel))
+    }
+
+    /**
+     * [screen] as a button's target: a plain intent naming it when any app may
+     * start it, else the shell's `am:` form.
+     */
+    fun screenOffer(context: Context, app: AppScreens, screen: AppScreen): ShortcutOffer {
+        val component = ComponentName(app.packageName, screen.className)
+        val target = if (screen.viaShell) {
+            shellActivityTarget(app.packageName, screen.className)
+        } else {
+            Intent(Intent.ACTION_MAIN).setComponent(component).toUri(Intent.URI_INTENT_SCHEME)
+        }
+        return ShortcutOffer(
+            key = component.flattenToShortString(),
+            label = screen.label,
+            appLabel = app.appLabel,
+            packageName = app.packageName,
+            target = target,
+            icon = { runCatching { context.packageManager.getActivityIcon(component) }.getOrNull() },
+        )
     }
 
     // ---- LauncherApps, where the keyboard may read shortcuts ----
