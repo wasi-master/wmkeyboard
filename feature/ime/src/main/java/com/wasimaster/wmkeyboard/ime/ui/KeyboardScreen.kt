@@ -372,6 +372,8 @@ import com.wasimaster.wmkeyboard.ime.TodoDueChip
 import com.wasimaster.wmkeyboard.ime.OctopusBoard
 import com.wasimaster.wmkeyboard.ime.DUET_PING_ALL_UP
 import com.wasimaster.wmkeyboard.ime.DUET_PING_DOWN
+import com.wasimaster.wmkeyboard.ime.GLIDE_PING_DROP_SEGMENT
+import com.wasimaster.wmkeyboard.ime.GLIDE_PING_DROP_WORD
 import com.wasimaster.wmkeyboard.ime.CaretDragSource
 import com.wasimaster.wmkeyboard.ime.top
 import com.wasimaster.wmkeyboard.ime.carriedGlideSpellings
@@ -862,6 +864,32 @@ internal class AlternatesGate {
 
 /** See [AlternatesGate]; provided once at the root, like every other key sink. */
 internal val LocalAlternatesGate = staticCompositionLocalOf { AlternatesGate() }
+
+/**
+ * Where each word chip of the strip is on screen, in root coordinates, so a
+ * glide lifted on one takes that word (#1386). Written by the chips as they
+ * are placed, read once per stroke at the lift; nothing draws from it, so a
+ * plain map rather than state. One per process, from the local's default.
+ */
+internal class GlideStripTargets {
+    private val chips = HashMap<String, Rect>()
+
+    fun put(word: String, bounds: Rect) {
+        chips[word] = bounds
+    }
+
+    fun remove(word: String) {
+        chips.remove(word)
+    }
+
+    /** The word whose chip [at] is on, or null. */
+    fun wordAt(at: Offset): String? = chips.entries.firstOrNull { it.value.contains(at) }?.key
+}
+
+internal val LocalGlideStripTargets = staticCompositionLocalOf { GlideStripTargets() }
+
+/** How far into the delete key, as a share of its width, a glide has to get before it drops a word (#1386). */
+private const val GLIDE_DELETE_INSET = 0.3f
 
 /**
  * Which fingers are resting rather than long-pressing, under two-thumb typing
@@ -6654,6 +6682,8 @@ internal fun RowScope.LatinSuggestionChips(
             null
         }
         val shaper = LocalEmojiShaper.current
+        // Where each word is, for a glide lifted on it (#1386).
+        val glideTargets = LocalGlideStripTargets.current
         // One slot: its divider, then the word. A lambda so the two row shapes
         // below draw identical slots.
         val slot: @Composable RowScope.(Int, String?) -> Unit = slot@{ index, suggestion ->
@@ -6690,9 +6720,13 @@ internal fun RowScope.LatinSuggestionChips(
             val slotTextWidth = shareWidths?.getOrNull(index)
                 ?.let { (it - textPadding * 2).coerceAtLeast(0.dp) }
                 ?: textWidth
+            DisposableEffect(glideTargets, suggestion) {
+                onDispose { glideTargets.remove(suggestion) }
+            }
             Box(
                 modifier = slotModifier
                     .fillMaxHeight()
+                    .onGloballyPositioned { glideTargets.put(suggestion, it.boundsInRoot()) }
                     .then(
                         if (tinted) {
                             val (pill, primaryPill) = pills
@@ -21305,6 +21339,9 @@ private fun KeyRows(
     // (#115). Read live for the same reason the apostrophe key is: the stroke's
     // loop outlives this composition.
     val capitalGlide = rememberUpdatedState(gesture.shiftGlideCapitals)
+    // The delete key and the strip as places a stroke can go (#1386).
+    val editTargets = rememberUpdatedState(gesture.glideEditTargets)
+    val stripTargets = LocalGlideStripTargets.current
     // Whether each crossing names one letter rather than the word (#163).
     val letterGlide = rememberUpdatedState(gesture.shiftGlideMode == ShiftGlideMode.LETTER)
     // Stamp of the last tap-typed key (uptime ms). A glide starting within
@@ -22230,6 +22267,14 @@ private fun KeyRows(
                     // Its centre in the stroke's own space, for the cut.
                     var shiftCenter: GesturePoint? = null
                     var wasOverShift = false
+                    // The delete key's inner part, read with the grid like the
+                    // shift key's cell, and whether the finger is in it: going
+                    // in drops a word (#1386). What the last drop took, so a
+                    // stroke left with nothing to type still retires its
+                    // previews at the lift.
+                    var deleteRect: Rect? = null
+                    var wasOverDelete = false
+                    var droppedPoints: List<GesturePoint>? = null
                     var shiftCrossings = 0
                     @Suppress("DoubleMutabilityForCollection")
                     var shiftCuts = ArrayList<Int>()
@@ -22328,6 +22373,17 @@ private fun KeyRows(
                         // Read with the grid, and only when the stroke could
                         // use it: one table walk per glide rather than one
                         // per pointer sample.
+                        // Only its inner part counts, so a word ending on a
+                        // letter beside it that overshoots by a little is
+                        // still that word.
+                        deleteRect = if (editTargets.value) {
+                            liveRects.value.cellOf(KeyAction.Delete)?.let { r ->
+                                val inset = r.width * GLIDE_DELETE_INSET
+                                Rect(r.left + inset, r.top + inset / 2, r.right - inset / 2, r.bottom - inset / 2)
+                            }
+                        } else {
+                            null
+                        }
                         shiftRect = if (capitalGlide.value) {
                             liveRects.value.cellOf(KeyAction.Shift)
                         } else {
@@ -22523,6 +22579,34 @@ private fun KeyRows(
                                 shiftCuts.add(seg.size)
                             }
                             wasOverShift = overShift
+                            // Into the delete key (#1386): the word being drawn
+                            // goes, or with none begun since the last spacebar
+                            // crossing, the last word chained. The stroke
+                            // carries on, and the next word starts as the
+                            // finger leaves the key.
+                            val overDelete = deleteRect?.contains(change.position + boxOrigin) == true
+                            if (overDelete && !wasOverDelete) {
+                                val dropped = when {
+                                    seg.size >= PREVIEW_MIN_POINTS -> {
+                                        droppedPoints = crossings.withHeld(seg).toList()
+                                        GLIDE_PING_DROP_SEGMENT
+                                    }
+                                    segments.isNotEmpty() -> {
+                                        droppedPoints = segments.removeAt(segments.lastIndex)
+                                        segCases.removeAt(segCases.lastIndex)
+                                        GLIDE_PING_DROP_WORD
+                                    }
+                                    else -> null
+                                }
+                                seg = ArrayList()
+                                shiftCuts = ArrayList()
+                                previewedSeg = false
+                                if (dropped != null) {
+                                    if (hapticOn.value) pickerHaptic()
+                                    onGesturePreview(emptyList(), emptyList(), dropped, GlideCase.None)
+                                }
+                            }
+                            wasOverDelete = overDelete
                             when (space) {
                                 SpacebarCrossings.Step.CROSSED -> if (seg.size >= 3) {
                                     val (points, case) = glideSegment(
@@ -22542,7 +22626,7 @@ private fun KeyRows(
                                     keyList?.let { keys -> onGesturePreview(points, keys, -keyWidth.value, case) }
                                 }
                                 SpacebarCrossings.Step.HELD -> Unit
-                                SpacebarCrossings.Step.KEEP -> if (!overShift) seg.add(point)
+                                SpacebarCrossings.Step.KEEP -> if (!overShift && !overDelete) seg.add(point)
                             }
                             // The picker's clock: a finger that stops moving is
                             // asking to be asked. Restarted only by a move past
@@ -22685,7 +22769,18 @@ private fun KeyRows(
                         // one more thing to say about the word, and
                         // ServiceKeyboardContent has no room for another
                         // parameter (see [GlideVerdict]).
-                        val answer = picker.verdict()
+                        // Lifted on a word of the strip (#1386): that word, for
+                        // the one being drawn, and the climb up to it is cut off
+                        // so the decoder reads only the word.
+                        val stripWord = if (!wasOpen && editTargets.value) {
+                            (liftAt ?: seg.lastOrNull())?.let { at -> stripTargets.wordAt(Offset(at.x, at.y) + boxOrigin) }
+                        } else {
+                            null
+                        }
+                        if (stripWord != null) {
+                            while (seg.isNotEmpty() && seg.last().y < 0f) seg.removeAt(seg.lastIndex)
+                        }
+                        val answer = if (stripWord != null) GlideVerdict.Word(stripWord) else picker.verdict()
                         picker.close()
                         // A picker opens on a preview, and a preview needs only
                         // three points, so a frozen last segment is committed
@@ -22740,6 +22835,10 @@ private fun KeyRows(
                             // Every segment fell under the floor, but the
                             // stroke crossed: end what its previews began.
                             onGesture(segments.first(), keys, keyWidth.value, GlideVerdict.Cancel)
+                        } else if (keys != null) {
+                            // Everything drawn went into the delete key (#1386):
+                            // nothing to type, but its previews are retired.
+                            droppedPoints?.let { onGesture(it, keys, keyWidth.value, GlideVerdict.Cancel) }
                         }
                         trail.release()
                     }

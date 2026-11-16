@@ -9778,6 +9778,12 @@ data class GestureSettings(
      */
     val shiftGlideCapitals: Boolean = true,
     /**
+     * A glide run on into the delete key drops the word being drawn, or the
+     * last word of the phrase when none is, and carries on; a glide lifted on
+     * a suggestion takes that suggestion for the word being drawn (#1386).
+     */
+    val glideEditTargets: Boolean = true,
+    /**
      * How a crossing of the shift key is read while [shiftGlideCapitals] is
      * on: the whole word, or one letter per crossing (#163). See
      * [ShiftGlideMode].
@@ -12943,6 +12949,7 @@ class SettingsRepository(private val context: Context) {
         private val LETTER_SWIPE_ACTION = stringPreferencesKey("letter_swipe_action")
         private val GESTURE_SPACE_MULTI_WORD = booleanPreferencesKey("gesture_space_multi_word")
         private val GESTURE_SHIFT_CAPITALS = booleanPreferencesKey("gesture_shift_capitals")
+        private val GESTURE_EDIT_TARGETS = booleanPreferencesKey("gesture_edit_targets")
         private val GESTURE_SHIFT_MODE = stringPreferencesKey("gesture_shift_glide_mode")
         private val GESTURE_TWO_THUMB = booleanPreferencesKey("gesture_two_thumb")
         private val GESTURE_TWO_THUMB_WORD_END = stringPreferencesKey("gesture_two_thumb_word_end")
@@ -15288,6 +15295,7 @@ class SettingsRepository(private val context: Context) {
         GestureSettings(
             spaceGlideMultiWord = p[GESTURE_SPACE_MULTI_WORD] ?: defaults.gesture.spaceGlideMultiWord,
             shiftGlideCapitals = p[GESTURE_SHIFT_CAPITALS] ?: defaults.gesture.shiftGlideCapitals,
+            glideEditTargets = p[GESTURE_EDIT_TARGETS] ?: defaults.gesture.glideEditTargets,
             shiftGlideMode = p[GESTURE_SHIFT_MODE]
                 ?.let { runCatching { ShiftGlideMode.valueOf(it) }.getOrNull() }
                 ?: defaults.gesture.shiftGlideMode,
@@ -24175,6 +24183,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setGestureShiftCapitals(value: Boolean) =
         editPrefs { it[GESTURE_SHIFT_CAPITALS] = value }
+
+    suspend fun setGestureEditTargets(value: Boolean) =
+        editPrefs { it[GESTURE_EDIT_TARGETS] = value }
 
     suspend fun setGestureShiftGlideMode(value: ShiftGlideMode) =
         editPrefs { it[GESTURE_SHIFT_MODE] = value.name }

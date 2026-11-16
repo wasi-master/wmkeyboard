@@ -22,6 +22,14 @@ internal const val DUET_PING_BAR_DOWN = -2f
 internal const val DUET_PING_BAR_UP = -3f
 
 /**
+ * A glide's own signals on the same channel (#1386): the stroke ran into the
+ * delete key and dropped the last word it had chained across the spacebar,
+ * or the word it was drawing. No stroke rides with either.
+ */
+internal const val GLIDE_PING_DROP_WORD = -4f
+internal const val GLIDE_PING_DROP_SEGMENT = -5f
+
+/**
  * Whether a lifted stroke is too small to be a swipe: fewer samples than the
  * two-thumb loop's own commit floor, or a path shorter than half a key, which
  * the decoder already reads as a tap at its first point. A quick tap that

@@ -2762,6 +2762,16 @@ internal fun TypingGlideSettings(
                         default = SettingsDefaults.gesture.shiftGlideCapitals,
                     ) { scope.launch { repository.setGestureShiftCapitals(it) } }
                 }
+                // #1386: the delete key and the strip as places a stroke can go.
+                item(level = SettingLevel.STANDARD) {
+                    ToggleSetting(
+                        R.string.typing_glide_edit_targets_title,
+                        stringResource(R.string.typing_glide_edit_targets_subtitle),
+                        settings.watch { it.gesture.glideEditTargets },
+                        info = stringResource(R.string.typing_glide_edit_targets_info),
+                        default = SettingsDefaults.gesture.glideEditTargets,
+                    ) { scope.launch { repository.setGestureEditTargets(it) } }
+                }
                 // How a crossing reads, only while crossings mean anything.
                 item(visible = shiftCapitals, level = SettingLevel.ADVANCED) {
                     ChoiceSetting(

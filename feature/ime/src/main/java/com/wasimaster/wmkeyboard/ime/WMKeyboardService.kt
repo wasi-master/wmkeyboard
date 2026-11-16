@@ -34893,6 +34893,12 @@ open class WMKeyboardService : InputMethodService() {
         // nothing to preview. Counted whether or not a glide may run now, so a
         // lift is never lost to a field that changed under the finger.
         if (points.isEmpty()) {
+            // A glide run into the delete key (#1386): the word it dropped
+            // goes from the preview, and the chain keeps the rest.
+            if (keyWidthPx == GLIDE_PING_DROP_WORD || keyWidthPx == GLIDE_PING_DROP_SEGMENT) {
+                dropGlidePreviewWord(chained = keyWidthPx == GLIDE_PING_DROP_WORD)
+                return
+            }
             // Every thumb up: no stroke is still being drawn.
             if (keyWidthPx == DUET_PING_ALL_UP) liveDuetStrokes.clear()
             when (keyWidthPx) {
@@ -34927,6 +34933,19 @@ open class WMKeyboardService : InputMethodService() {
                 chain = if (previewChain.isEmpty()) emptyList() else previewChain.toList(),
             ),
         )
+    }
+
+    /**
+     * A glide stroke ran into the delete key (#1386): the word it was drawing
+     * is gone, or with [chained] the last word it had chained across the
+     * spacebar. Previews in flight are about the stroke as it was, so they are
+     * retired; the next sample's preview reads the phrase without the word.
+     */
+    private fun dropGlidePreviewWord(chained: Boolean) {
+        val kept = if (chained) previewChain.dropLast(1) else previewChain.toList()
+        gestureGeneration.incrementAndGet()
+        clearGlidePreview()
+        previewChain.addAll(kept)
     }
 
     /**
@@ -36300,7 +36319,8 @@ open class WMKeyboardService : InputMethodService() {
         if (keys.isEmpty()) return
         syncGlideTriggers(state)
         // Lifted well above the keys: the way out of a wrong word (#1310).
-        if (verdict is GlideVerdict.Cancel ||
+        // Not a lift on a suggestion, which names its word (#1386).
+        if (verdict is GlideVerdict.Cancel || verdict !is GlideVerdict.Word &&
             com.wasimaster.wmkeyboard.core.gesture.GlideOverhang.escaped(points, rawKeyMapFor(keys, keyWidthPx), keyWidthPx)
         ) {
             cancelGlide()
@@ -36938,7 +36958,8 @@ open class WMKeyboardService : InputMethodService() {
         if (!glideAllowed(state)) return
         if (keys.isEmpty() || segments.isEmpty()) return
         syncGlideTriggers(state)
-        if (verdict is GlideVerdict.Cancel || com.wasimaster.wmkeyboard.core.gesture.GlideOverhang.escaped(
+        if (verdict is GlideVerdict.Cancel || verdict !is GlideVerdict.Word &&
+            com.wasimaster.wmkeyboard.core.gesture.GlideOverhang.escaped(
                 segments.last(), rawKeyMapFor(keys, keyWidthPx), keyWidthPx,
             )
         ) {
