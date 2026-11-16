@@ -6654,6 +6654,16 @@ class SuggestionEngine(
             }
             ordered.addAll(seedBigrams.nextWords(prev))
         }
+        // A word joined with hyphens that no pair knows whole (French
+        // `fais-moi`, `pourrait-il`) is followed by what follows its last
+        // part: the pairs were counted over `moi` and `il`.
+        if (ordered.size < limit && '-' in prev) {
+            val tail = prev.substringAfterLast('-')
+            if (tail.isNotEmpty()) {
+                ordered.addAll(userLexicon.nextWords(tail, limit))
+                if (!ngramPack.isEmpty) ordered.addAll(ngramPack.nextWords(tail, limit))
+            }
+        }
         // Skip-gram rescue: an unknown prev (a just-typed name, a typo) has
         // no followers anywhere and the strip would go quiet. Treat it as
         // transparent and backfill from the word before it — "met Priya"

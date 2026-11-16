@@ -71,9 +71,13 @@ object NgramPackDownloadManager {
 
     /** Compile caps: the lists are count-descending, so taking the head
      * keeps the mass that matters. Sized so the on-device compile stays in
-     * tens of MB of transient heap and the mapped file in the tens of MB. */
-    private const val MAX_BIGRAMS = 150_000
-    private const val MAX_TRIGRAMS = 75_000
+     * tens of MB of transient heap and the mapped file in the tens of MB.
+     * Raised from 150,000 / 75,000 when the packs gained subtitle pairs:
+     * on the typing harness the longer head named the next word 1.2 points
+     * more often in French (24.9% to 26.1% in the top three), for a mapped
+     * file of 4.3 MB instead of 1.7 MB. */
+    private const val MAX_BIGRAMS = 400_000
+    private const val MAX_TRIGRAMS = 200_000
 
     /** Words longer than this are junk lines, not vocabulary. */
     private const val MAX_WORD_LENGTH = 48

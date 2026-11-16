@@ -62,6 +62,17 @@ Chinese word pairs (the Pinyin "Chinese word pairs" pack)
   Corpora Collection's zho-cn_web_2015 and zho_news_2020 sentences
   (CC BY 4.0), split into words with the CC-CEDICT pinyin pack.
 
+Subtitle word pairs (34 of the downloadable word-pair packs)
+------------------------------------------------------------
+
+  Word-pair and three-word counts, not text, from OpenSubtitles 2018
+  (http://www.opensubtitles.org/) as distributed by OPUS
+  (https://opus.nlpl.eu/; P. Lison and J. Tiedemann, "OpenSubtitles2016:
+  Extracting Large Parallel Corpora from Movie and TV Subtitles", LREC
+  2016), added to the Leipzig and Tatoeba counts of those packs. OPUS
+  distributes the subtitle text for research use; see the data
+  repository's data/README.md ("Subtitle pairs").
+
 Sentence openers (bundled, dictionaries/openers.tsv)
 ----------------------------------------------------
 

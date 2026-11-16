@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.prediction
 
 import com.wasimaster.wmkeyboard.core.dictionaries.NgramPackCatalog
+import com.wasimaster.wmkeyboard.core.dictionaries.NgramPackEntry
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -64,6 +65,17 @@ class NgramPackCatalogTest {
         assertEquals(false, NgramPackCatalog.byFileName(oldBigrams)!!.second)
         assertEquals(true, NgramPackCatalog.byFileName(oldTrigrams)!!.second)
         assertEquals(rebuilt.repoCode, NgramPackCatalog.byFileName(oldBigrams)!!.first.repoCode)
+    }
+
+    @Test
+    fun aPackRebuiltTwiceAnswersToBothOlderNames() {
+        val entry = NgramPackEntry("af", "af", "af_bigrams_v3", "af_trigrams_v3", 1L)
+        assertEquals(true, entry.isRebuilt)
+        assertEquals(listOf("af_bigrams.txt.gz", "af_bigrams_v2.txt.gz"), entry.legacyFileNames(trigrams = false))
+        assertEquals(listOf("af_trigrams.txt.gz", "af_trigrams_v2.txt.gz"), entry.legacyFileNames(trigrams = true))
+        val first = NgramPackEntry("fr", "fr", "fr_bigrams", "fr_trigrams", 1L)
+        assertEquals(false, first.isRebuilt)
+        assertEquals(emptyList<String>(), first.legacyFileNames(trigrams = false))
     }
 
     @Test
