@@ -87,6 +87,8 @@ import com.wasimaster.wmkeyboard.ime.ui.SearchActions
 import com.wasimaster.wmkeyboard.ime.ui.WebSearchPanel
 import com.wasimaster.wmkeyboard.ime.ui.WikipediaBoxPanel
 import com.wasimaster.wmkeyboard.ime.ui.calendar.CalendarPanel
+import com.wasimaster.wmkeyboard.core.settings.boxBare
+import com.wasimaster.wmkeyboard.core.settings.boxFrameless
 import com.wasimaster.wmkeyboard.ime.ui.searchAttribution
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.tools.ImageResult
@@ -201,7 +203,8 @@ internal class FloatingAppletState {
  * drag does nothing to ([onBodyDrag], #1263). With the box's gestures on
  * (#1262) the title bar keeps only the tool's name, the buttons' jobs going
  * to throws and to a screen reader's actions, and the bottom bar gives way to
- * a grip in the corner.
+ * a grip in the corner. With gestures on, the title bar can go as well, and
+ * the outline and the grip with it (#1373): the tool fills the whole card.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -230,6 +233,9 @@ internal fun FloatingAppletFrame(
         val colors = MaterialTheme.colorScheme
         val shape = RoundedCornerShape(20.dp)
         val gestures = state.settings.summonButton.boxGestures
+        // No title bar, and no outline or grip (#1373); a rolled-up box is its bar, so it keeps one.
+        val bare = state.settings.summonButton.boxBare && !box.rolledUp
+        val frameless = state.settings.summonButton.boxFrameless
         val tuckLabel = stringResource(R.string.ime_applet_tuck)
         val keyboardLabel = stringResource(R.string.ime_applet_open_in_keyboard)
         val closeLabel = stringResource(R.string.ime_applet_close)
@@ -243,9 +249,25 @@ internal fun FloatingAppletFrame(
                     .shadow(10.dp, shape)
                     .clip(shape)
                     .background(colors.surface)
-                    .border(1.dp, colors.outlineVariant, shape),
+                    .then(if (frameless) Modifier else Modifier.border(1.dp, colors.outlineVariant, shape))
+                    // With no title bar, its jobs for a screen reader are the card's (#1373).
+                    .then(
+                        if (!bare) {
+                            Modifier
+                        } else {
+                            Modifier.semantics {
+                                contentDescription = box.title
+                                customActions = listOf(
+                                    CustomAccessibilityAction(seeThroughLabel) { onSeeThrough(); true },
+                                    CustomAccessibilityAction(tuckLabel) { onTuck(); true },
+                                    CustomAccessibilityAction(keyboardLabel) { onOpenInKeyboard(); true },
+                                    CustomAccessibilityAction(closeLabel) { onClose(); true },
+                                )
+                            }
+                        },
+                    ),
             ) {
-                Row(
+                if (!bare) Row(
                     Modifier
                         .fillMaxWidth()
                         .height(FLOATING_APPLET_BAR_DP.dp)
@@ -346,12 +368,13 @@ internal fun FloatingAppletFrame(
                             AppletPanel(panel, state, callbacks, onClose)
                         }
                     }
-                    // With the bottom bar gone (#1262), the grip alone, over the corner.
+                    // With the bottom bar gone (#1262), the grip alone, over the corner,
+                    // unless that went too (#1373): two fingers still pinch the box.
                     // A sibling over the body rather than inside it: inside, the
                     // body's drag read the grip's finger too, held or past the
                     // slop, and the box moved while it resized (Telegram 10316).
                     // Over it, the grip is hit first and the body never sees it.
-                    if (gestures) {
+                    if (gestures && !frameless) {
                         ResizeGrip(
                             onResize,
                             Modifier

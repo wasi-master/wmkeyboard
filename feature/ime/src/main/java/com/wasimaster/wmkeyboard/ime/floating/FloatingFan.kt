@@ -77,10 +77,16 @@ fun floatingFan(
 /**
  * [floatingFan] for a menu of any size up to two rings (#1172): the first
  * [FLOATING_RING_SIZE] slots on the arc they always had, so a menu of eight or
- * fewer looks as it did, and the rest on a second arc outside it, one
- * [spacing] further out. The outer arc is longer, so its slots sit in the
- * gaps between the inner ones rather than behind them, and a hold's slide
- * reaches either ring.
+ * fewer looks as it did, and the rest on a second arc.
+ *
+ * That arc is inside the first, one [spacing] nearer the button, for as many
+ * of the rest as its half circle holds (#1400): eight slots fan out far
+ * enough from the button to leave room there, and a slot inside is a shorter
+ * reach than one outside. What does not fit inside goes on an arc outside the
+ * first, one [spacing] further out, as all of them once did. The arcs are a
+ * [spacing] apart, so no slot on one can crowd one on another; and should
+ * fitting them on screen have turned or widened the inner arc into the others
+ * anyway, the rest all go outside instead. A hold's slide reaches every ring.
  */
 fun floatingRings(
     count: Int,
@@ -92,12 +98,39 @@ fun floatingRings(
     margin: Float,
 ): List<Offset> {
     if (count <= FLOATING_RING_SIZE) return floatingFan(count, anchor, width, height, radius, spacing, margin)
-    val inner = floatingFan(FLOATING_RING_SIZE, anchor, width, height, radius, spacing, margin)
-    // Out from wherever the inner arc settled, which grows past [radius] to fit its slots.
-    val innerRadius = inner.maxOf { (it - anchor).getDistance() }
-    val outer = floatingFan(count - FLOATING_RING_SIZE, anchor, width, height, innerRadius + spacing, spacing, margin)
-    return inner + outer
+    val first = floatingFan(FLOATING_RING_SIZE, anchor, width, height, radius, spacing, margin)
+    // Out from wherever the first arc settled, which grows past [radius] to fit its slots.
+    val firstRadius = first.maxOf { (it - anchor).getDistance() }
+    val rest = count - FLOATING_RING_SIZE
+    fun outside(n: Int) = floatingFan(n, anchor, width, height, firstRadius + spacing, spacing, margin)
+    val insideRadius = firstRadius - spacing
+    val fits = if (insideRadius < radius) 0 else (rest).coerceAtMost(innerRingRoom(insideRadius, spacing))
+    if (fits > 0) {
+        val inside = floatingFan(fits, anchor, width, height, insideRadius, spacing, margin)
+        val beyond = if (fits < rest) outside(rest - fits) else emptyList()
+        val all = first + inside + beyond
+        if (inside.all { (it - anchor).getDistance() <= insideRadius + 1f } && apart(all, spacing * MIN_GAP_SHARE)) {
+            return all
+        }
+    }
+    return first + outside(rest)
 }
+
+/** How many slots fit on half a circle of [ring] with neighbours [spacing] apart (#1400). */
+internal fun innerRingRoom(ring: Float, spacing: Float): Int =
+    if (spacing <= 0f) 0 else (PI.toFloat() * ring / spacing).toInt() + 1
+
+/** Every two of [slots] at least [gap] apart. */
+private fun apart(slots: List<Offset>, gap: Float): Boolean {
+    val min = gap * gap
+    for (i in slots.indices) for (j in i + 1 until slots.size) {
+        if ((slots[i] - slots[j]).getDistanceSquared() < min) return false
+    }
+    return true
+}
+
+/** How close two slots on different rings may come, as a share of [floatingRings]' spacing. */
+private const val MIN_GAP_SHARE = 0.8f
 
 /** How many slots the first ring holds before a second one starts (#1172): the eight it always held. */
 const val FLOATING_RING_SIZE = 8

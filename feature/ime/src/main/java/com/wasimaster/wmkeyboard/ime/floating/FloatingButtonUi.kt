@@ -50,8 +50,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -69,6 +75,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Folder
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardHide
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PictureInPictureAlt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.GridView
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Notifications
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.NotificationsActive
@@ -111,6 +118,9 @@ data class FloatingPalette(
     val outline: Color,
     /** The ring round a slot the finger is on, and the accent style's fill. */
     val accent: Color,
+    /** A phone switch's slot while the switch is on (#1364): the accent, and on the accent style white. */
+    val activeContainer: Color = accent,
+    val activeContent: Color = Color.White,
 )
 
 @Composable
@@ -123,7 +133,14 @@ fun floatingPalette(style: FloatingButtonStyle): FloatingPalette {
         FloatingButtonStyle.AUTO -> if (dark) darkFace.copy(container = Color(0xF02E3036)) else lightFace
         FloatingButtonStyle.DARK -> darkFace
         FloatingButtonStyle.LIGHT -> lightFace
-        FloatingButtonStyle.ACCENT -> FloatingPalette(accent.copy(alpha = 0.96f), Color.White, Color(0x33FFFFFF), accent)
+        FloatingButtonStyle.ACCENT -> FloatingPalette(
+            accent.copy(alpha = 0.96f),
+            Color.White,
+            Color(0x33FFFFFF),
+            accent,
+            activeContainer = Color.White,
+            activeContent = accent,
+        )
     }
 }
 
@@ -272,16 +289,26 @@ internal fun floatingActionLabelRes(action: FloatingAction, keyboardUp: Boolean)
  * fills most of the disc as a launcher's does, or a tinted glyph.
  */
 @Composable
-private fun FloatingGlyph(icon: ImageVector, image: ImageBitmap?, tint: Color, sizeDp: Float) {
+private fun FloatingGlyph(
+    icon: ImageVector,
+    image: ImageBitmap?,
+    tint: Color,
+    sizeDp: Float,
+    shape: FloatingButtonShape,
+    boxDp: Float,
+) {
+    // In the shape's own middle, not its box's (#1372).
+    val shift = remember(shape) { floatingIconOffset(shape) }
+    val at = Modifier.offset((shift.x * boxDp).dp, (shift.y * boxDp).dp)
     if (image != null) {
         Image(
             image,
             contentDescription = null,
             contentScale = ContentScale.Fit,
-            modifier = Modifier.size((sizeDp * APP_ICON_SCALE / ICON_SCALE).dp),
+            modifier = at.size((sizeDp * APP_ICON_SCALE / ICON_SCALE).dp),
         )
     } else {
-        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(sizeDp.dp))
+        Icon(icon, contentDescription = null, tint = tint, modifier = at.size(sizeDp.dp))
     }
 }
 
@@ -306,9 +333,10 @@ fun FloatingButtonFace(
     contentDescription: String? = null,
     shape: FloatingButtonShape = FloatingButtonShape.CIRCLE,
     image: ImageBitmap? = null,
+    roundness: Int = 0,
 ) {
     val palette = floatingPalette(style)
-    val outline = remember(shape) { floatingShape(shape) }
+    val outline = remember(shape, roundness) { floatingShape(shape, roundness) }
     val scale by animateFloatAsState(
         if (pressed) 0.9f else 1f,
         spring(dampingRatio = 0.55f, stiffness = 700f),
@@ -324,7 +352,7 @@ fun FloatingButtonFace(
             .semantics { if (contentDescription != null) this.contentDescription = contentDescription },
         contentAlignment = Alignment.Center,
     ) {
-        FloatingGlyph(icon, image, palette.content, sizeDp * floatingIconScale(shape))
+        FloatingGlyph(icon, image, palette.content, sizeDp * floatingIconScale(shape), shape, sizeDp.toFloat())
     }
 }
 
@@ -383,7 +411,10 @@ const val FLOATING_MENU_LABEL_DP = 84
 /**
  * One quick menu slot: its disc, ringed while [hovered], and with [label] its
  * name under it. In the button's [shape] (#933), with an app's [image] in
- * place of the glyph (#922).
+ * place of the glyph (#922). [sizeDp] across (#1372), its corners rounded by
+ * [roundness]. A phone switch that is on is filled with the accent while
+ * [active] (#1364); one about to open in its floating box ([floating], #1401)
+ * wears the box's badge on its corner.
  */
 @Composable
 fun FloatingMenuItem(
@@ -395,28 +426,53 @@ fun FloatingMenuItem(
     hovered: Boolean = false,
     shape: FloatingButtonShape = FloatingButtonShape.CIRCLE,
     image: ImageBitmap? = null,
+    sizeDp: Int = FLOATING_MENU_ITEM_DP,
+    roundness: Int = 0,
+    active: Boolean = false,
+    floating: Boolean = false,
 ) {
     val palette = floatingPalette(style)
-    val outline: Shape = remember(shape) { floatingShape(shape) }
+    val outline: Shape = remember(shape, roundness) { floatingShape(shape, roundness) }
     val grow by animateFloatAsState(
         if (hovered) 1.16f else 1f,
         spring(dampingRatio = 0.5f, stiffness = 800f),
         label = "floating-hover",
     )
+    val fill = if (active) palette.activeContainer else palette.container
+    val ink = if (active) palette.activeContent else palette.content
     Column(
-        modifier.width(FLOATING_MENU_LABEL_DP.dp),
+        modifier.width(floatingSlotWidthDp(sizeDp).dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Box(
-            Modifier
-                .size(FLOATING_MENU_ITEM_DP.dp)
-                .scale(grow)
-                .shadow(4.dp, outline)
-                .background(palette.container, outline)
-                .border(if (hovered) 2.5.dp else 1.dp, if (hovered) palette.accent else palette.outline, outline),
-            contentAlignment = Alignment.Center,
-        ) {
-            FloatingGlyph(icon, image, palette.content, FLOATING_MENU_ITEM_DP * floatingIconScale(shape))
+        Box(Modifier.size(sizeDp.dp).scale(grow)) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .shadow(4.dp, outline)
+                    .background(fill, outline)
+                    .border(if (hovered) 2.5.dp else 1.dp, if (hovered) palette.accent else palette.outline, outline),
+                contentAlignment = Alignment.Center,
+            ) {
+                FloatingGlyph(icon, image, ink, sizeDp * floatingIconScale(shape), shape, sizeDp.toFloat())
+            }
+            if (floating) {
+                Box(
+                    Modifier
+                        .align(Alignment.TopEnd)
+                        .offset(4.dp, (-4).dp)
+                        .size(20.dp)
+                        .shadow(2.dp, CircleShape)
+                        .background(palette.accent, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        Icons.Outlined.PictureInPictureAlt,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(13.dp),
+                    )
+                }
+            }
         }
         if (showLabel) {
             Spacer(Modifier.height(4.dp))
@@ -438,6 +494,17 @@ fun FloatingMenuItem(
 }
 
 /**
+ * Slot centre to slot centre along a ring, in dp, for slots [itemDp] across
+ * (#1372): room for their names side by side with [labels], else for the
+ * discs and a gap. 86 and 64 for the 52 dp slots the menu always had.
+ */
+fun floatingSlotSpacingDp(itemDp: Int, labels: Boolean): Float =
+    if (labels) maxOf(86f, itemDp + 34f) else itemDp + 12f
+
+/** How wide a slot's column is, in dp: room for its name, or its disc where that is wider (#1372). */
+fun floatingSlotWidthDp(sizeDp: Int): Int = maxOf(FLOATING_MENU_LABEL_DP, sizeDp)
+
+/**
  * The open quick menu, filling its window: a light scrim, the slots coming
  * out of the button as [FloatingMenuState.animation] has them (#923), and in
  * the button's place a close disc, or inside a category a back one.
@@ -451,6 +518,7 @@ internal fun FloatingMenuContent(
     onClose: () -> Unit,
     onBack: () -> Unit,
     onClosed: () -> Unit,
+    onFloat: (Int) -> Unit = {},
 ) {
     val density = LocalDensity.current
     val opening = state.open
@@ -507,16 +575,21 @@ internal fun FloatingMenuContent(
                 }
             }
             val target = state.centers.getOrNull(index)?.minus(origin) ?: anchor
-            val labelHalf = with(density) { (FLOATING_MENU_LABEL_DP.dp / 2).toPx() }
-            val itemHalf = with(density) { (FLOATING_MENU_ITEM_DP.dp / 2).toPx() }
+            val labelHalf = with(density) { (floatingSlotWidthDp(state.itemSizeDp).dp / 2).toPx() }
+            val itemHalf = with(density) { (state.itemSizeDp.dp / 2).toPx() }
+            val floating = state.floatArmed && state.hovered == index
             FloatingMenuItem(
                 icon = item.icon,
                 image = item.image,
-                label = item.label,
+                label = if (floating) item.floatLabel ?: item.label else item.label,
                 style = state.style,
                 shape = state.shape,
                 showLabel = state.labels,
                 hovered = state.hovered == index,
+                sizeDp = state.itemSizeDp,
+                roundness = state.roundness,
+                active = item.active,
+                floating = floating,
                 modifier = Modifier
                     .offset {
                         val at = floatingSlotPosition(animation, anchor, target, travel.value)
@@ -529,10 +602,28 @@ internal fun FloatingMenuContent(
                         scaleX = s
                         scaleY = s
                     }
-                    .semantics { contentDescription = item.label }
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
-                        onPick(index)
-                    },
+                    .semantics {
+                        contentDescription = item.label
+                        onClick(item.label) {
+                            onPick(index)
+                            true
+                        }
+                        // The box version too, for a screen reader (#1401).
+                        val box = item.floatLabel
+                        if (box != null) {
+                            customActions = listOf(CustomAccessibilityAction(box) { onFloat(index); true })
+                        }
+                    }
+                    .slotGestures(
+                        floatable = item.floatLabel != null,
+                        holdFloats = state.holdFloats,
+                        onPick = { onPick(index) },
+                        onFloat = { onFloat(index) },
+                        onArmed = { armed ->
+                            state.floatArmed = armed
+                            state.hovered = if (armed) index else null
+                        },
+                    ),
             )
         }
         // Without names under the slots, the one under the finger is named here.
@@ -540,7 +631,7 @@ internal fun FloatingMenuContent(
         if (!state.labels && hovered != null) {
             val palette = floatingPalette(state.style)
             Text(
-                hovered.label,
+                if (state.floatArmed) hovered.floatLabel ?: hovered.label else hovered.label,
                 color = palette.content,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -563,6 +654,7 @@ internal fun FloatingMenuContent(
             style = state.style,
             sizeDp = state.buttonSizeDp,
             shape = state.shape,
+            roundness = state.roundness,
             contentDescription = stringResource(if (back) R.string.ime_floating_back_menu else R.string.ime_floating_close_menu),
             modifier = Modifier
                 .offset {
@@ -574,6 +666,98 @@ internal fun FloatingMenuContent(
         )
     }
 }
+
+/** What a touch on an open menu's slot came to before it moved, let go, or held. */
+private enum class SlotTouch { TAP, MOVED, CANCEL }
+
+/**
+ * A slot's touches in the open menu (#1401): a tap picks it; a swipe off a
+ * slot whose tool floats opens the tool in its floating box once the finger
+ * is [FLOAT_SWIPE_DP] from where it came down, marked on the slot as it
+ * goes ([onArmed]); and with [holdFloats] a press and hold does the same. A
+ * swipe off any other slot does nothing, as a finger slid off a button does.
+ */
+private fun Modifier.slotGestures(
+    floatable: Boolean,
+    holdFloats: Boolean,
+    onPick: () -> Unit,
+    onFloat: () -> Unit,
+    onArmed: (Boolean) -> Unit,
+): Modifier = pointerInput(floatable, holdFloats) {
+    // Keyed on the two flags alone: the callbacks are new lambdas on every
+    // recomposition, which a hovered slot causes mid-swipe, and a restart
+    // would drop the finger. They act on the same slot by the same index.
+    val away = FLOAT_SWIPE_DP.dp.toPx()
+    awaitEachGesture {
+        val down = awaitFirstDown()
+        down.consume()
+        val slop = viewConfiguration.touchSlop
+        val first = if (floatable && holdFloats) {
+            withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) { untilMovedOrUp(down.id, down.position, slop) }
+        } else {
+            untilMovedOrUp(down.id, down.position, slop)
+        }
+        when (first) {
+            SlotTouch.TAP -> onPick()
+            SlotTouch.CANCEL -> Unit
+            // Held still for a long press: the floating box, at once.
+            null -> {
+                onFloat()
+                untilUp(down.id)
+            }
+            SlotTouch.MOVED -> {
+                var armed = false
+                while (true) {
+                    val event = awaitPointerEvent()
+                    val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                    change.consume()
+                    val far = floatable && (change.position - down.position).getDistance() >= away
+                    if (far != armed) {
+                        armed = far
+                        onArmed(far)
+                    }
+                    if (!change.pressed) {
+                        if (armed) {
+                            armed = false
+                            onArmed(false)
+                            onFloat()
+                        }
+                        break
+                    }
+                }
+                if (armed) onArmed(false)
+            }
+        }
+    }
+}
+
+/** Waits until the finger [id] lifts (a tap), or moves past [slop] from [start]. */
+private suspend fun androidx.compose.ui.input.pointer.AwaitPointerEventScope.untilMovedOrUp(
+    id: androidx.compose.ui.input.pointer.PointerId,
+    start: Offset,
+    slop: Float,
+): SlotTouch {
+    while (true) {
+        val event = awaitPointerEvent()
+        val change = event.changes.firstOrNull { it.id == id } ?: return SlotTouch.CANCEL
+        change.consume()
+        if (!change.pressed) return SlotTouch.TAP
+        if ((change.position - start).getDistance() > slop) return SlotTouch.MOVED
+    }
+}
+
+private suspend fun androidx.compose.ui.input.pointer.AwaitPointerEventScope.untilUp(
+    id: androidx.compose.ui.input.pointer.PointerId,
+) {
+    while (true) {
+        val change = awaitPointerEvent().changes.firstOrNull { it.id == id } ?: return
+        change.consume()
+        if (!change.pressed) return
+    }
+}
+
+/** How far a finger goes from a slot before letting go opens the tool's floating box (#1401), in dp. */
+const val FLOAT_SWIPE_DP = 36
 
 /**
  * Where a slot is drawn [progress] of the way out (#923), from the button's
@@ -691,8 +875,8 @@ internal fun FloatingFlickGuide(state: FloatingFlickGuideState) {
     val shown by animateFloatAsState(if (state.shown) 1f else 0f, tween(140), label = "flick-guide")
     Box(Modifier.fillMaxSize()) {
         val origin = state.windowOrigin
-        val labelHalf = with(density) { (FLOATING_MENU_LABEL_DP.dp / 2).toPx() }
-        val itemHalf = with(density) { (FLOATING_MENU_ITEM_DP.dp / 2).toPx() }
+        val labelHalf = with(density) { (floatingSlotWidthDp(state.itemSizeDp).dp / 2).toPx() }
+        val itemHalf = with(density) { (state.itemSizeDp.dp / 2).toPx() }
         val hovered = state.hovered
         state.slots.forEach { slot ->
             key(slot.direction) {
@@ -707,6 +891,9 @@ internal fun FloatingFlickGuide(state: FloatingFlickGuideState) {
                     shape = state.shape,
                     showLabel = false,
                     hovered = on,
+                    sizeDp = state.itemSizeDp,
+                    roundness = state.roundness,
+                    active = slot.active,
                     modifier = Modifier
                         .offset { IntOffset((at.x - labelHalf).roundToInt(), (at.y - itemHalf).roundToInt()) }
                         .graphicsLayer {
@@ -724,7 +911,7 @@ internal fun FloatingFlickGuide(state: FloatingFlickGuideState) {
             val anchor = state.anchor - origin
             // Clear of the finger: a swipe upward has it above the button.
             val upward = kotlin.math.sin(Math.toRadians(named.direction.degrees.toDouble())) < -0.3
-            val gap = with(density) { (FLOATING_MENU_ITEM_DP.dp + 30.dp).toPx() } + state.radius
+            val gap = with(density) { (state.itemSizeDp.dp + 30.dp).toPx() } + state.radius
             val pillHalfW = with(density) { 90.dp.toPx() }
             val pillH = with(density) { 30.dp.toPx() }
             Text(
@@ -764,6 +951,8 @@ internal class FloatingFlickGuideState {
     var shown by mutableStateOf(false)
     var style by mutableStateOf(FloatingButtonStyle.AUTO)
     var shape by mutableStateOf(FloatingButtonShape.CIRCLE)
+    var roundness by mutableStateOf(0)
+    var itemSizeDp by mutableStateOf(FLOATING_MENU_ITEM_DP)
 }
 
 @Immutable
@@ -773,6 +962,8 @@ internal class FloatingFlickSlot(
     val icon: ImageVector,
     val label: String,
     val image: ImageBitmap? = null,
+    /** A phone switch that is on (#1364). */
+    val active: Boolean = false,
 )
 
 /** What the open menu shows; written by [FloatingButton], read by [FloatingMenuContent]. */
@@ -794,6 +985,16 @@ internal class FloatingMenuState {
     var labels by mutableStateOf(true)
     var buttonSizeDp by mutableStateOf(52)
 
+    /** The slots across (#1372), and how far every outline's corners are rounded. */
+    var itemSizeDp by mutableStateOf(FLOATING_MENU_ITEM_DP)
+    var roundness by mutableStateOf(0)
+
+    /** A hold on a slot opens its floating box (#1401), as a swipe off it does. */
+    var holdFloats by mutableStateOf(false)
+
+    /** The slot [hovered] is set to open in its floating box when the finger lets go (#1401). */
+    var floatArmed by mutableStateOf(false)
+
     /** A category opened from the quick menu (#923): the disc in the middle goes back to it. */
     var canGoBack by mutableStateOf(false)
 }
@@ -805,6 +1006,10 @@ internal class FloatingMenuSlot(
     val icon: ImageVector,
     val label: String,
     val image: ImageBitmap? = null,
+    /** A phone switch that is on (#1364), filled with the accent. */
+    val active: Boolean = false,
+    /** The name of the slot's floating box version (#1401), or null for a slot that has none. */
+    val floatLabel: String? = null,
 )
 
 internal class FloatingDismissState {
@@ -819,6 +1024,7 @@ internal class FloatingFaceState {
     var image by mutableStateOf<ImageBitmap?>(null)
     var style by mutableStateOf(FloatingButtonStyle.AUTO)
     var shape by mutableStateOf(FloatingButtonShape.CIRCLE)
+    var roundness by mutableStateOf(0)
     var sizeDp by mutableStateOf(52)
     var pressed by mutableStateOf(false)
 

@@ -20,6 +20,7 @@ class FloatingShapesTest {
         val polygons = FloatingButtonShape.entries.mapNotNull { shape -> floatingPolygon(shape, box)?.let { shape to it } }
         assertEquals(
             setOf(
+                FloatingButtonShape.SQUARE,
                 FloatingButtonShape.DIAMOND,
                 FloatingButtonShape.PENTAGON,
                 FloatingButtonShape.HEXAGON,
@@ -43,6 +44,20 @@ class FloatingShapesTest {
             val corners = floatingPolygon(shape, box)
             assertNotNull(corners)
             assertEquals(100f - corners!!.maxOf { it.y }, corners.minOf { it.y }, 0.01f)
+        }
+    }
+
+    @Test
+    fun aGlyphSitsInTheMiddleOfAPentagonOrAStarNotOfItsBox() {
+        // Each stands on its points, so its middle is below the box's (#1372).
+        for (shape in listOf(FloatingButtonShape.PENTAGON, FloatingButtonShape.STAR)) {
+            val offset = floatingIconOffset(shape)
+            assertEquals("$shape x", 0f, offset.x, 0.001f)
+            assertTrue("$shape y ${offset.y}", offset.y in 0.03f..0.08f)
+        }
+        for (shape in listOf(FloatingButtonShape.CIRCLE, FloatingButtonShape.SQUARE, FloatingButtonShape.HEXAGON)) {
+            assertEquals(Offset.Zero.x, floatingIconOffset(shape).x, 0.001f)
+            assertEquals(Offset.Zero.y, floatingIconOffset(shape).y, 0.001f)
         }
     }
 

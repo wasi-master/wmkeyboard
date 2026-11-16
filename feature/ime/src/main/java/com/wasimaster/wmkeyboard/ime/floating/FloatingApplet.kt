@@ -61,8 +61,9 @@ import kotlin.math.roundToInt
  *
  * It moves by its title bar, its bottom bar, any part of the tool that a
  * drag does nothing to, or two fingers anywhere, which also pinch it bigger
- * or smaller (#1263, #1262). Let go moving, it carries on a little way and
- * settles; with
+ * or smaller (#1263, #1262). Let go moving, it slides on at the speed it
+ * was let go and slows to a stop, as a picture-in-picture video does (#1373);
+ * with
  * [com.wasimaster.wmkeyboard.core.settings.SummonButtonSettings.boxGestures]
  * a throw up closes it, a throw down moves the tool into the keyboard, and a
  * throw sideways tucks it (#1262). Its top never goes under the status bar,
@@ -734,10 +735,12 @@ internal class FloatingApplet(
     }
 
     /**
-     * The box carries on from the speed it was let go at, a short way and
-     * slowing, and stops inside the screen, below the status bar and above
-     * a docked keyboard: the floating button's feel (#1262). Kept where it
-     * stops.
+     * The box carries on from the speed it was let go at, slowing, and stops
+     * inside the screen, below the status bar and above a docked keyboard
+     * (#1262). It leaves at the finger's own speed and slows evenly over
+     * [GLIDE_MS], so a small throw still slides a fair way, as a
+     * picture-in-picture video does (#1373); before, it stopped a short way
+     * on and felt held back. Kept where it stops.
      */
     private fun settle(current: BoxHost, layout: WindowManager.LayoutParams, vx: Float, vy: Float) {
         val (roomX, roomY) = room(layout)
@@ -753,7 +756,8 @@ internal class FloatingApplet(
         }
         glide = ValueAnimator.ofFloat(0f, 1f).apply {
             duration = GLIDE_MS
-            interpolator = DecelerateInterpolator(1.6f)
+            // Eases out from the finger's speed: 2 × [GLIDE_S] / [GLIDE_MS] is 1.
+            interpolator = DecelerateInterpolator(1f)
             addUpdateListener {
                 if (view !== current) return@addUpdateListener
                 val t = it.animatedValue as Float
@@ -994,9 +998,13 @@ internal class FloatingApplet(
         const val THROW_MIN_MS = 120L
         const val THROW_MAX_MS = 280L
 
-        /** How far a let-go box carries on, as seconds of the speed it had, and how long it takes. */
-        const val GLIDE_S = 0.12f
-        const val GLIDE_MS = 320L
+        /**
+         * How far a let-go box carries on, as seconds of the speed it had, and
+         * how long it takes (#1373). The time is twice the distance's seconds,
+         * so the glide starts at the speed it was let go at: no jolt.
+         */
+        const val GLIDE_S = 0.3f
+        const val GLIDE_MS = 600L
 
         /** The status bar's height where Android will not say (#1263). */
         const val STATUS_BAR_FALLBACK_DP = 24

@@ -91,6 +91,26 @@ data class SummonButtonSettings(
     /** The button's outline, and its slots' (#933). */
     val shape: FloatingButtonShape = FloatingButtonShape.CIRCLE,
     /**
+     * How far the corners of [shape] are rounded off (#1372), as a percentage
+     * of the most they can be: 0 leaves a pentagon, a star or a square as
+     * pointed as drawn, 100 rounds each corner halfway along its sides. A
+     * circle, an oval, a squircle and a heart have no corners to round. See
+     * [FloatingCornerRoundnessRange].
+     */
+    val cornerRoundness: Int = 0,
+    /**
+     * The quick menu's slots across, in dp (#1372), apart from [sizeDp], the
+     * button's own. Every ring and the swipe guide use it. See
+     * [FloatingMenuItemSizeRange].
+     */
+    val menuItemSizeDp: Int = 52,
+    /**
+     * A press and hold on a quick menu slot whose tool has a floating box
+     * opens it in the box, as a swipe off the slot always does (#1401). Off
+     * by default, when a hold on a slot does nothing more than a tap.
+     */
+    val menuHoldFloats: Boolean = false,
+    /**
      * Drawn as a thin pill flat against the side it rests on (#1137), in
      * place of the disc: a few pixels of the screen's edge rather than a
      * button over the app. Its gestures and its quick menu are the button's.
@@ -151,7 +171,33 @@ data class SummonButtonSettings(
      * leaves to the tool. Off by default.
      */
     val boxHoldToMove: Boolean = false,
+    /**
+     * With [boxGestures], a floating box has no title bar at all (#1373):
+     * the tool fills the card, which moves by a drag on any part of the tool
+     * that does nothing with one, by two fingers, or with [boxHoldToMove] by
+     * a hold. Its see-through button and the double tap that rolls it up go
+     * with the bar; a screen reader still has every job in the box's actions.
+     */
+    val boxHideTitle: Boolean = false,
+    /**
+     * With [boxGestures], a floating box has no outline and no resize grip in
+     * its corner (#1373): two fingers still pinch it bigger or smaller.
+     */
+    val boxHideFrame: Boolean = false,
 )
+
+/** The box's title bar is gone (#1373): only while its gestures stand in for its buttons. */
+val SummonButtonSettings.boxBare: Boolean get() = boxGestures && boxHideTitle
+
+/** The box's outline and resize grip are gone (#1373), as [boxBare] is for its title bar. */
+val SummonButtonSettings.boxFrameless: Boolean get() = boxGestures && boxHideFrame
+
+/**
+ * The button stays tucked half off its edge the whole time (#1370): fixed in
+ * place with [SummonButtonSettings.tuck] on, so it never slides out and back
+ * and is always the same target for a thumb.
+ */
+val SummonButtonSettings.staysTucked: Boolean get() = docked && tucks
 
 /** What a tap does with the keyboard up or down. */
 fun SummonButtonSettings.tapFor(keyboardUp: Boolean): FloatingAction =

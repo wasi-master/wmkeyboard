@@ -39,9 +39,11 @@ import com.wasimaster.wmkeyboard.core.settings.flickDirectionOf
 import com.wasimaster.wmkeyboard.core.settings.SummonButtonSettings
 import com.wasimaster.wmkeyboard.core.settings.categoryOf
 import com.wasimaster.wmkeyboard.core.settings.doubleTapFor
+import com.wasimaster.wmkeyboard.core.settings.floatingVersion
 import com.wasimaster.wmkeyboard.core.settings.floatsOverKeyboard
 import com.wasimaster.wmkeyboard.core.settings.gestureActions
 import com.wasimaster.wmkeyboard.core.settings.pillTouchWidthDp
+import com.wasimaster.wmkeyboard.core.settings.staysTucked
 import com.wasimaster.wmkeyboard.core.settings.tapFor
 import com.wasimaster.wmkeyboard.core.settings.tucks
 import com.wasimaster.wmkeyboard.ime.KeyboardViewLifecycleOwner
@@ -246,6 +248,7 @@ internal class FloatingButton(
         face.label = name(tap)
         face.style = setting.style
         face.shape = setting.shape
+        face.roundness = setting.cornerRoundness
         face.sizeDp = setting.sizeDp
         face.pill = setting.edgePill
         face.pillThicknessDp = setting.pillThicknessDp
@@ -257,6 +260,9 @@ internal class FloatingButton(
         menu.speed = setting.animationSpeed
         menu.labels = setting.menuLabels
         menu.buttonSizeDp = setting.sizeDp
+        menu.itemSizeDp = setting.menuItemSizeDp
+        menu.roundness = setting.cornerRoundness
+        menu.holdFloats = setting.menuHoldFloats
         val view = button ?: return
         view.contentDescription = face.label
         // A change is worth seeing: the button wakes, then fades again as set.
@@ -268,8 +274,8 @@ internal class FloatingButton(
                 it.height = windowH
             }
             place()
-        } else if (!view.dragging && menuView == null && buttonParams?.x != restX()) {
-            animateX(restX(), overshoot = false)
+        } else if (!view.dragging && menuView == null && buttonParams?.x != homeX()) {
+            animateX(homeX(), overshoot = false)
         }
         scheduleIdle()
     }
@@ -491,7 +497,7 @@ internal class FloatingButton(
     private fun positionFromFractions(layout: WindowManager.LayoutParams) {
         val (roomX, roomY) = room()
         face.pillOnLeft = onLeft
-        layout.x = if (idle && setting.tucks) tuckedX() else restX()
+        layout.x = if (idle && setting.tucks) tuckedX() else homeX()
         val rest = (yFraction.coerceIn(0f, 1f) * roomY).roundToInt()
         val ceiling = ceiling()
         layout.y = (if (ceiling != null && rest > ceiling) ceiling.coerceAtLeast(0) else rest) - origin()[1]
@@ -509,6 +515,14 @@ internal class FloatingButton(
     private fun origin(): IntArray = if (onPanel) panelOrigin ?: NO_OFFSET else NO_OFFSET
 
     private fun restX(): Int = (xFraction.coerceIn(0f, 1f) * room().first).roundToInt() - origin()[0]
+
+    /**
+     * Where the button sits while awake: its resting place, or half off its
+     * edge for a fixed button that tucks (#1370), which stays there through
+     * every touch rather than sliding out and back, so it is always the same
+     * target in the same place.
+     */
+    private fun homeX(): Int = if (setting.staysTucked) tuckedX() else restX()
 
     /**
      * The lowest the button's window may sit, clear of a docked keyboard; null
@@ -636,7 +650,8 @@ internal class FloatingButton(
         view.animate().alpha(setting.opacity).setDuration(FADE_IN_MS).start()
         if (!idle) return
         idle = false
-        if (!setting.tucks) return
+        // Fixed and tucked (#1370): it brightens where it is, and stays tucked.
+        if (!setting.tucks || setting.staysTucked) return
         if (snap) {
             xAnimator?.cancel()
             buttonParams?.let {
@@ -735,6 +750,7 @@ internal class FloatingButton(
                     onClose = ::closeMenu,
                     onBack = ::backFromCategory,
                     onClosed = { if (!menu.open) removeMenuWindow() },
+                    onFloat = ::pickFloating,
                 )
             }
         }
@@ -803,15 +819,18 @@ internal class FloatingButton(
         val (width, height) = screenSize()
         val anchor = ringAnchor(view)
         val labels = setting.menuLabels
-        val itemHalf = FLOATING_MENU_ITEM_DP * density / 2f
+        val item = setting.menuItemSizeDp
+        val itemHalf = item * density / 2f
         menu.anchor = anchor
+        menu.floatArmed = false
+        armedByHold = false
         menu.centers = floatingRings(
             count = slots.size,
             anchor = anchor,
             width = width.toFloat(),
             height = height.toFloat(),
-            radius = (setting.sizeDp / 2f + setting.menuGapDp + FLOATING_MENU_ITEM_DP / 2f) * density,
-            spacing = (if (labels) LABELLED_SPACING_DP else BARE_SPACING_DP) * density,
+            radius = (setting.sizeDp / 2f + setting.menuGapDp + item / 2f) * density,
+            spacing = floatingSlotSpacingDp(item, labels) * density,
             margin = itemHalf + MENU_MARGIN_DP * density +
                 if (labels) MENU_LABEL_ROOM_DP * density else 0f,
         )
@@ -822,10 +841,16 @@ internal class FloatingButton(
                 action = action,
                 icon = floatingActionIcon(action, keyboardUp, setting.categories),
                 label = name(action),
-                image = appIcon(action, FLOATING_MENU_ITEM_DP),
+                image = appIcon(action, item),
+                active = isOn(action),
+                floatLabel = action.floatingVersion?.let(::name),
             )
         }
     }
+
+    /** A phone switch's slot shows whether the switch is on (#1364); the rest are never "on". */
+    private fun isOn(action: FloatingAction): Boolean =
+        action is FloatingAction.Device && DeviceControls.isOn(context, action.control) == true
 
     /**
      * Swaps the open quick menu's ring for [category]'s (#923), the slots of
@@ -875,11 +900,26 @@ internal class FloatingButton(
         fire(action)
     }
 
+    /**
+     * Slot [index]'s tool in its floating box rather than in the keyboard
+     * (#1401): a swipe off the slot, or a hold on it with the setting on.
+     * A slot with no box version runs as a pick.
+     */
+    private fun pickFloating(index: Int) {
+        val action = menu.items.getOrNull(index)?.action ?: return
+        val floating = action.floatingVersion ?: return pick(index)
+        haptic(confirmHaptic)
+        closeMenu()
+        fire(floating)
+    }
+
     private fun closeMenu() {
         menuFromPress = false
         cancelDwell()
         if (menuView == null) return
         menu.hovered = null
+        menu.floatArmed = false
+        armedByHold = false
         if (menu.open) menu.open = false else removeMenuWindow()
         scheduleIdle()
     }
@@ -911,21 +951,41 @@ internal class FloatingButton(
     /** The category slot a hold's finger is resting on, waiting out [CATEGORY_DWELL_MS]. */
     private var dwellSlot: Int? = null
 
+    /** The hovered slot was set to open in its box by resting on it (#1401), not by sliding past it. */
+    private var armedByHold = false
+
     private val dwell = Runnable {
         val index = dwellSlot ?: return@Runnable
         dwellSlot = null
-        val category = menu.items.getOrNull(index)?.action?.let(setting::categoryOf) ?: return@Runnable
-        openCategory(category)
+        val action = menu.items.getOrNull(index)?.action ?: return@Runnable
+        val category = setting.categoryOf(action)
+        if (category != null) {
+            openCategory(category)
+        } else if (action.floatingVersion != null && menu.hovered == index) {
+            // Held there with the setting on (#1401): letting go opens the box.
+            menu.floatArmed = true
+            armedByHold = true
+            haptic(HapticFeedbackConstants.LONG_PRESS)
+        }
     }
 
-    /** A sliding finger came to rest on slot [index]: a category opens if it stays a moment (#923). */
+    /**
+     * A sliding finger came to rest on slot [index]: a category opens if it
+     * stays a moment (#923), and with [SummonButtonSettings.menuHoldFloats]
+     * a tool that floats is set to open in its box if it stays a long press
+     * (#1401).
+     */
     private fun dwellOn(index: Int?) {
         if (index == dwellSlot) return
         cancelDwell()
         val action = index?.let { menu.items.getOrNull(it)?.action } ?: return
-        if (setting.categoryOf(action) == null) return
+        val wait = when {
+            setting.categoryOf(action) != null -> CATEGORY_DWELL_MS
+            setting.menuHoldFloats && action.floatingVersion != null -> ViewConfiguration.getLongPressTimeout().toLong()
+            else -> return
+        }
         dwellSlot = index
-        button?.postDelayed(dwell, CATEGORY_DWELL_MS)
+        button?.postDelayed(dwell, wait)
     }
 
     private fun cancelDwell() {
@@ -948,8 +1008,9 @@ internal class FloatingButton(
         if (flicks.isEmpty()) return
         val anchor = ringAnchor(view)
         val (width, height) = screenSize()
-        val radius = (setting.sizeDp / 2f + setting.menuGapDp + FLOATING_MENU_ITEM_DP / 2f) * density
-        val margin = (FLOATING_MENU_ITEM_DP / 2f + MENU_MARGIN_DP) * density
+        val item = setting.menuItemSizeDp
+        val radius = (setting.sizeDp / 2f + setting.menuGapDp + item / 2f) * density
+        val margin = (item / 2f + MENU_MARGIN_DP) * density
         flickGuide.slots = flicks.entries.sortedBy { it.key.ordinal }.map { (direction, action) ->
             val angle = Math.toRadians(direction.degrees.toDouble())
             FloatingFlickSlot(
@@ -960,13 +1021,16 @@ internal class FloatingButton(
                 ),
                 icon = floatingActionIcon(action, keyboardUp, setting.categories),
                 label = name(action),
-                image = appIcon(action, FLOATING_MENU_ITEM_DP),
+                image = appIcon(action, item),
+                active = isOn(action),
             )
         }
         flickGuide.anchor = anchor
         flickGuide.radius = radius
         flickGuide.style = setting.style
         flickGuide.shape = setting.shape
+        flickGuide.roundness = setting.cornerRoundness
+        flickGuide.itemSizeDp = item
         flickGuide.hovered = null
         flickGuide.shown = false
         val content = ComposeView(viewContext).apply {
@@ -1257,6 +1321,7 @@ internal class FloatingButton(
                                     shape = face.shape,
                                     sizeDp = face.sizeDp,
                                     pressed = face.pressed,
+                                    roundness = face.roundness,
                                 )
                             }
                         }
@@ -1414,15 +1479,51 @@ internal class FloatingButton(
             hideFlickGuide()
         }
 
-        /** The hold's finger is on its way to a slot. */
+        /**
+         * The hold's finger is on its way to a slot. Carried on out past a
+         * slot whose tool floats, away from the button, it keeps that slot
+         * and sets it to open in its box (#1401), a badge on the slot saying
+         * so; back onto a slot, it is a plain pick again.
+         */
         private fun hover(rawX: Float, rawY: Float) {
-            val reach = (FLOATING_MENU_ITEM_DP / 2f + HOVER_SLACK_DP) * density
-            val slot = floatingSlotAt(Offset(rawX, rawY), menu.centers, reach)
+            val point = Offset(rawX, rawY)
+            val reach = (setting.menuItemSizeDp / 2f + HOVER_SLACK_DP) * density
+            var slot = floatingSlotAt(point, menu.centers, reach)
+            // Still on the slot a hold set to float: it stays set.
+            var floating = slot != null && slot == menu.hovered && armedByHold
+            if (slot == null) {
+                val last = menu.hovered
+                if (last != null && pastSlot(point, last, reach)) {
+                    slot = last
+                    floating = true
+                }
+            }
             if (slot != menu.hovered) {
                 menu.hovered = slot
+                armedByHold = false
                 if (slot != null) haptic(HapticFeedbackConstants.CLOCK_TICK)
             }
-            dwellOn(slot)
+            if (floating != menu.floatArmed) {
+                menu.floatArmed = floating
+                if (floating) haptic(HapticFeedbackConstants.CLOCK_TICK)
+            }
+            if (!floating) dwellOn(slot) else cancelDwell()
+        }
+
+        /**
+         * Whether [point] is beyond slot [index] as seen from the button,
+         * within its width either side and no further than [FLOAT_REACH_DP]:
+         * where a finger that slid onto the slot and kept going ends up.
+         * Only for a slot whose tool floats.
+         */
+        private fun pastSlot(point: Offset, index: Int, reach: Float): Boolean {
+            if (menu.items.getOrNull(index)?.floatLabel == null) return false
+            val center = menu.centers.getOrNull(index) ?: return false
+            val out = center - menu.anchor
+            val length = out.getDistance().takeIf { it > 0f } ?: return false
+            val along = (point - menu.anchor).let { (it.x * out.x + it.y * out.y) / length }
+            val across = abs(((point - menu.anchor).x * out.y - (point - menu.anchor).y * out.x) / length)
+            return along > length && along - length <= FLOAT_REACH_DP * density && across <= reach
         }
 
         /**
@@ -1433,8 +1534,10 @@ internal class FloatingButton(
         private fun releaseHold() {
             if (!menuFromPress) return
             val slot = menu.hovered
+            val floating = menu.floatArmed
             menuFromPress = false
             when {
+                slot != null && floating -> pickFloating(slot)
                 slot != null -> pick(slot)
                 travelled -> closeMenu()
                 else -> Unit
@@ -1562,9 +1665,8 @@ internal class FloatingButton(
         /** How long a hold's finger rests on a category before its ring opens (#923). */
         const val CATEGORY_DWELL_MS = 380L
 
-        /** Along the arc, slot centre to slot centre, with names under the slots and without. */
-        const val LABELLED_SPACING_DP = 86f
-        const val BARE_SPACING_DP = 64f
+        /** How far past a slot a hold's finger may go and still open its tool's box (#1401). */
+        const val FLOAT_REACH_DP = 120f
 
         /** Kept clear of the screen's edge round each slot. */
         const val MENU_MARGIN_DP = 8f

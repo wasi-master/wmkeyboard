@@ -32,6 +32,13 @@
     <string name="tools_box_hold_to_move_subtitle">Hold a finger still anywhere on a floating box, then drag it, even over a list or a slider</string>
     <string name="tools_box_hold_to_move_info">Hold a finger still anywhere on a floating box, then drag to move the box. It works even on a list or a slider inside the box. With this off, you drag the box by its top bar. This setting is off by default.</string>
     <string name="tools_box_gestures_subtitle">Hides a floating box\'s buttons: throw it up to close it, down to move it into the keyboard, or into a side to tuck it</string>
+    <!-- Switches under the one above (#1373), shown while it is on. -->
+    <string name="tools_box_hide_title_title">Hide the title bar</string>
+    <string name="tools_box_hide_title_subtitle">A floating box shows only its tool, with no bar along the top</string>
+    <string name="tools_box_hide_title_info">Takes the title bar off a floating box, so the tool fills it. Move the box by dragging any part of the tool that doesn't scroll, with two fingers, or by holding it if Hold a floating box to move it is on. Throws still close, tuck or dock it. The see-through button and the double tap that rolls the box up go with the bar. This setting is off by default.</string>
+    <string name="tools_box_hide_frame_title">Hide the outline and grip</string>
+    <string name="tools_box_hide_frame_subtitle">No line round a floating box and no resize grip in its corner</string>
+    <string name="tools_box_hide_frame_info">Takes the thin outline off a floating box, and the small grip in its corner that resizes it. Pinch the box with two fingers to resize it instead. This setting is off by default.</string>
     <string name="tools_split_panels_title">Split the Panels group</string>
     <string name="tools_split_panels_subtitle">Show Writing and Connect and media as two groups</string>
     <string name="tools_split_panels_info">Shows the Panels group of the Tools screen as two smaller groups, Writing and Connect and media. The tools are the same. This setting is off by default.</string>

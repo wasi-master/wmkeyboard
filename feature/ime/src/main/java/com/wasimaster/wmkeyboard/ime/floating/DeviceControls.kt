@@ -30,8 +30,9 @@ import com.wasimaster.wmkeyboard.ime.R
  *
  *  1. the app's own API, where Android still lets an app flip it: Wi-Fi up to
  *     Android 9, Bluetooth up to Android 11;
- *  2. a shell command through Shizuku or root ([ShellAccess]), when the user
- *     turned on "Use Shizuku or root for keyboard features" ([ShellFeatures]);
+ *  2. a shell command through Shizuku or root ([ShellAccess]): once the
+ *     keyboard is allowed in Shizuku, or **Use root** is on, wherever that
+ *     switch was turned on ([shell]);
  *  3. Android's own panel or page for the switch, for the user to flip.
  *
  * No route starts the hotspot: Android has no public call for it, and its
@@ -96,7 +97,52 @@ object DeviceControls {
         }
     }
 
-    private fun shell(context: Context): Boolean = ShellFeatures.isEnabled(context) && ShellAccess.available
+    /**
+     * Whether a switch can go through Shizuku or root now (#1364): in a build
+     * that offers them at all, with the keyboard allowed in Shizuku or with
+     * **Use root** on. Either is the user's own yes to the shell, given where
+     * the switch is, so neither waits on the master switch of Privacy ›
+     * Shizuku or root as well. Before, a phone with root allowed and **Use
+     * root** on under the app launcher still opened the panels, because that
+     * other switch was off, and nothing on the floating button's page said so.
+     */
+    private fun shell(context: Context): Boolean {
+        if (!ShellFeatures.offered) return false
+        ShellAccess.init(context)
+        return ShellAccess.available
+    }
+
+    /**
+     * Whether [control] is on now, for its slot in the floating button's rings
+     * to show (#1364); null for the controls with no on and off (the ringer,
+     * the volume panel) and for a state this phone will not tell. Cheap: each
+     * is one read of a system service or a setting.
+     */
+    fun isOn(context: Context, control: DeviceControl): Boolean? = when (control) {
+        DeviceControl.RINGER, DeviceControl.VOLUME_PANEL -> null
+        DeviceControl.WIFI -> runCatching {
+            context.applicationContext.getSystemService(WifiManager::class.java)?.isWifiEnabled
+        }.getOrNull()
+        DeviceControl.MOBILE_DATA -> mobileDataOn(context)
+        DeviceControl.BLUETOOTH -> bluetoothOn(context)
+        DeviceControl.HOTSPOT -> hotspotOn(context)
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun bluetoothOn(context: Context): Boolean? =
+        runCatching { context.getSystemService(BluetoothManager::class.java)?.adapter?.isEnabled }.getOrNull()
+            ?: runCatching { Settings.Global.getInt(context.contentResolver, Settings.Global.BLUETOOTH_ON) == 1 }
+                .getOrNull()
+
+    /**
+     * The hotspot's state, read through the call Android keeps for itself
+     * and lets apps with the Wi-Fi state permission make; null where a phone
+     * refuses it.
+     */
+    private fun hotspotOn(context: Context): Boolean? = runCatching {
+        val wifi = context.applicationContext.getSystemService(WifiManager::class.java) ?: return null
+        wifi.javaClass.getMethod("isWifiApEnabled").invoke(wifi) as? Boolean
+    }.getOrNull()
 
     // ---- the ringer ----
 

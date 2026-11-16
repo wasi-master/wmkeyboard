@@ -325,7 +325,7 @@
     <string name="ime_floating_device_bluetooth_page_desc">Opens Android\'s Bluetooth page</string>
     <string name="ime_floating_device_hotspot_desc">Opens Android\'s hotspot page</string>
     <!-- After a page or panel description above, in builds with Shizuku or root support. -->
-    <string name="ime_floating_device_shell_hint">%1$s. With Shizuku or root allowed, it switches it itself</string>
+    <string name="ime_floating_device_shell_hint">%1$s. Allow the keyboard in Shizuku, or turn on Use root, and it switches it itself</string>
     <!-- Toasts: "Wi-Fi on", "Bluetooth off". %1$s is the control's name above. -->
     <string name="ime_floating_device_on">%1$s on</string>
     <string name="ime_floating_device_off">%1$s off</string>

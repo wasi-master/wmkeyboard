@@ -76,6 +76,8 @@ import com.wasimaster.wmkeyboard.core.settings.FloatingMenuAnimation
 import com.wasimaster.wmkeyboard.core.settings.LauncherSplitCombo
 import com.wasimaster.wmkeyboard.core.settings.FloatingAnimationSpeedRange
 import com.wasimaster.wmkeyboard.core.settings.FloatingMenuGapRange
+import com.wasimaster.wmkeyboard.core.settings.FloatingCornerRoundnessRange
+import com.wasimaster.wmkeyboard.core.settings.FloatingMenuItemSizeRange
 import com.wasimaster.wmkeyboard.core.settings.FloatingPillLengthRange
 import com.wasimaster.wmkeyboard.core.settings.FloatingPillThicknessRange
 import com.wasimaster.wmkeyboard.core.settings.FloatingPillTouchRange
@@ -98,8 +100,6 @@ import com.wasimaster.wmkeyboard.core.settings.cyclesRinger
 import com.wasimaster.wmkeyboard.ime.floating.DeviceControls
 import com.wasimaster.wmkeyboard.ime.AppCatalog
 import com.wasimaster.wmkeyboard.ime.KeyboardControls
-import com.wasimaster.wmkeyboard.ime.floating.FLOATING_MENU_ITEM_DP
-import com.wasimaster.wmkeyboard.ime.floating.FLOATING_MENU_LABEL_DP
 import com.wasimaster.wmkeyboard.ime.floating.FloatingButtonFace
 import com.wasimaster.wmkeyboard.ime.floating.FloatingEdgePill
 import com.wasimaster.wmkeyboard.ime.floating.FloatingMenuItem
@@ -107,6 +107,8 @@ import com.wasimaster.wmkeyboard.ime.floating.floatingActionIcon
 import com.wasimaster.wmkeyboard.ime.floating.floatingActionLabel
 import com.wasimaster.wmkeyboard.ime.floating.FLOATING_RING_SIZE
 import com.wasimaster.wmkeyboard.ime.floating.floatingRings
+import com.wasimaster.wmkeyboard.ime.floating.floatingSlotSpacingDp
+import com.wasimaster.wmkeyboard.ime.floating.floatingSlotWidthDp
 import com.wasimaster.wmkeyboard.ime.floating.rememberFloatingAppIcon
 import com.wasimaster.wmkeyboard.ime.ui.ModeIcons
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
@@ -161,6 +163,15 @@ internal fun FloatingButtonSettingsScreen(
     val askSystemButtons = rememberDisclosedSpecialAccess(SpecialAccess.SYSTEM_BUTTONS)
     val doNotDisturb = rememberGrantState(::hasDoNotDisturbAccess)
     val askDoNotDisturb = rememberDisclosedSpecialAccess(SpecialAccess.DO_NOT_DISTURB)
+    // The phone controls' rows say whether a switch flips itself (#1364),
+    // which turns on Use root as well as on Shizuku: read here, as the
+    // keyboard reads it before it runs one.
+    val useRoot = settings.watch { it.launcher.useRoot }
+    val pageContext = LocalContext.current
+    androidx.compose.runtime.SideEffect {
+        com.wasimaster.wmkeyboard.core.shell.ShellAccess.init(pageContext)
+        com.wasimaster.wmkeyboard.core.shell.ShellAccess.rootAllowed = useRoot
+    }
     // The keyboard only re-checks the grant when it next closes; coming back
     // from the system screen with it is worth showing the button at once.
     LaunchedEffect(button.enabled, overlayGranted) {
@@ -339,6 +350,28 @@ internal fun FloatingButtonSettingsScreen(
                 info = stringResource(R.string.floating_button_menu_labels_info),
             ) { scope.launch { repository.setFloatingButtonMenuLabels(it) } }
         }
+        // The actions' own size, apart from the button's (#1372).
+        item(level = SettingLevel.STANDARD) {
+            SliderSetting(
+                R.string.floating_button_menu_item_size_title,
+                subtitle = stringResource(R.string.floating_button_menu_item_size_subtitle),
+                value = button.menuItemSizeDp.toFloat(),
+                range = FloatingMenuItemSizeRange.first.toFloat()..FloatingMenuItemSizeRange.last.toFloat(),
+                display = { dpFormat.format(it.roundToInt()) },
+                default = defaults.menuItemSizeDp.toFloat(),
+                info = stringResource(R.string.floating_button_menu_item_size_info),
+            ) { scope.launch { repository.setFloatingButtonMenuItemSize(it.roundToInt()) } }
+        }
+        // A tool that floats opens in its box on a hold, as on a swipe off it (#1401).
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.floating_button_menu_hold_floats_title,
+                stringResource(R.string.floating_button_menu_hold_floats_subtitle),
+                button.menuHoldFloats,
+                default = defaults.menuHoldFloats,
+                info = stringResource(R.string.floating_button_menu_hold_floats_info),
+            ) { scope.launch { repository.setFloatingButtonMenuHoldFloats(it) } }
+        }
         item(level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.floating_button_menu_gap_title,
@@ -400,6 +433,18 @@ internal fun FloatingButtonSettingsScreen(
                 default = defaults.shape,
                 info = stringResource(R.string.floating_button_shape_info),
             ) { scope.launch { repository.setFloatingButtonShape(it) } }
+        }
+        // Softer corners on any shape that has them (#1372).
+        item(visible = button.shape.hasCorners, level = SettingLevel.STANDARD) {
+            SliderSetting(
+                R.string.floating_button_corner_title,
+                subtitle = stringResource(R.string.floating_button_corner_subtitle),
+                value = button.cornerRoundness.toFloat(),
+                range = FloatingCornerRoundnessRange.first.toFloat()..FloatingCornerRoundnessRange.last.toFloat(),
+                display = { percentFormat.format(it.roundToInt()) },
+                default = defaults.cornerRoundness.toFloat(),
+                info = stringResource(R.string.floating_button_corner_info),
+            ) { scope.launch { repository.setFloatingButtonCornerRoundness(it.roundToInt()) } }
         }
         // A slim line against the edge for a small screen (#1137); the rest of
         // the page, the quick menu above all, works the same on it.
@@ -493,8 +538,9 @@ internal fun FloatingButtonSettingsScreen(
                 info = stringResource(R.string.floating_button_idle_opacity_info),
             ) { scope.launch { repository.setFloatingButtonIdleOpacity(it) } }
         }
-        // A pill already sits against the edge, so it has nothing to tuck.
-        item(visible = button.idleFadeSeconds > 0 && !button.edgePill, level = SettingLevel.ADVANCED) {
+        // A pill already sits against the edge, so it has nothing to tuck. A
+        // fixed button tucks for good (#1370), faded or not.
+        item(visible = (button.idleFadeSeconds > 0 || button.docked) && !button.edgePill, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.floating_button_tuck_title,
                 stringResource(R.string.floating_button_tuck_subtitle),
@@ -680,6 +726,7 @@ private fun shapeLabel(shape: FloatingButtonShape): Int = when (shape) {
     FloatingButtonShape.CIRCLE -> R.string.floating_button_shape_circle
     FloatingButtonShape.SQUIRCLE -> R.string.floating_button_shape_squircle
     FloatingButtonShape.ROUNDED_SQUARE -> R.string.floating_button_shape_rounded_square
+    FloatingButtonShape.SQUARE -> R.string.floating_button_shape_square
     FloatingButtonShape.OVAL -> R.string.floating_button_shape_oval
     FloatingButtonShape.DIAMOND -> R.string.floating_button_shape_diamond
     FloatingButtonShape.PENTAGON -> R.string.floating_button_shape_pentagon
@@ -688,6 +735,11 @@ private fun shapeLabel(shape: FloatingButtonShape): Int = when (shape) {
     FloatingButtonShape.STAR -> R.string.floating_button_shape_star
     FloatingButtonShape.HEART -> R.string.floating_button_shape_heart
 }
+
+/** The shapes the corner roundness slider changes (#1372): every one but the round ones. */
+private val FloatingButtonShape.hasCorners: Boolean
+    get() = this != FloatingButtonShape.CIRCLE && this != FloatingButtonShape.OVAL &&
+        this != FloatingButtonShape.SQUIRCLE && this != FloatingButtonShape.HEART
 
 private fun animationLabel(animation: FloatingMenuAnimation): Int = when (animation) {
     FloatingMenuAnimation.SPRING -> R.string.floating_button_menu_animation_spring
@@ -746,31 +798,34 @@ private fun FloatingButtonPreview(button: SummonButtonSettings) {
                 if (onLeft) edge + half else widthPx - edge - half,
                 heightPx * 0.55f,
             )
-            val centers = remember(slots.size, widthPx, heightPx, anchor, button.menuLabels, disc, button.menuGapDp) {
+            val item = button.menuItemSizeDp
+            val centers = remember(slots.size, widthPx, heightPx, anchor, button.menuLabels, disc, button.menuGapDp, item) {
                 with(density) {
                     floatingRings(
                         count = slots.size,
                         anchor = anchor,
                         width = widthPx,
                         height = heightPx,
-                        radius = (disc.dp / 2 + button.menuGapDp.dp + (FLOATING_MENU_ITEM_DP.dp / 2)).toPx(),
-                        spacing = (if (button.menuLabels) 86.dp else 64.dp).toPx(),
-                        margin = (FLOATING_MENU_ITEM_DP.dp / 2 + 8.dp + if (button.menuLabels) 18.dp else 0.dp).toPx(),
+                        radius = (disc.dp / 2 + button.menuGapDp.dp + (item.dp / 2)).toPx(),
+                        spacing = floatingSlotSpacingDp(item, button.menuLabels).dp.toPx(),
+                        margin = (item.dp / 2 + 8.dp + if (button.menuLabels) 18.dp else 0.dp).toPx(),
                     )
                 }
             }
-            val labelHalf = with(density) { (FLOATING_MENU_LABEL_DP.dp / 2).toPx() }
-            val itemHalf = with(density) { (FLOATING_MENU_ITEM_DP.dp / 2).toPx() }
+            val labelHalf = with(density) { (floatingSlotWidthDp(item).dp / 2).toPx() }
+            val itemHalf = with(density) { (item.dp / 2).toPx() }
             slots.forEachIndexed { i, action ->
                 val center = centers.getOrNull(i) ?: return@forEachIndexed
                 FloatingMenuItem(
                     icon = floatingActionIcon(action, categories = button.categories),
-                    image = rememberFloatingAppIcon(action as? FloatingAction.App, FLOATING_MENU_ITEM_DP),
+                    image = rememberFloatingAppIcon(action as? FloatingAction.App, item),
                     label = floatingActionLabel(action, categories = button.categories),
                     style = button.style,
                     shape = button.shape,
                     showLabel = button.menuLabels,
                     hovered = i == 0,
+                    sizeDp = item,
+                    roundness = button.cornerRoundness,
                     modifier = Modifier.offset {
                         IntOffset((center.x - labelHalf).roundToInt(), (center.y - itemHalf).roundToInt())
                     },
@@ -801,6 +856,7 @@ private fun FloatingButtonPreview(button: SummonButtonSettings) {
                     style = button.style,
                     shape = button.shape,
                     sizeDp = disc,
+                    roundness = button.cornerRoundness,
                     modifier = Modifier
                         .offset { IntOffset((anchor.x - half).roundToInt(), (anchor.y - half).roundToInt()) }
                         .alpha(button.opacity),

@@ -12509,6 +12509,11 @@ class SettingsRepository(private val context: Context) {
         private val FLOATING_BOX_CLOSE_OUTSIDE = booleanPreferencesKey("floating_box_close_outside")
         private val FLOATING_BOX_GESTURES = booleanPreferencesKey("floating_box_gestures")
         private val FLOATING_BOX_HOLD_TO_MOVE = booleanPreferencesKey("floating_box_hold_to_move")
+        private val FLOATING_BOX_HIDE_TITLE = booleanPreferencesKey("floating_box_hide_title")
+        private val FLOATING_BOX_HIDE_FRAME = booleanPreferencesKey("floating_box_hide_frame")
+        private val FLOATING_BUTTON_CORNER_ROUNDNESS = intPreferencesKey("floating_button_corner_roundness")
+        private val FLOATING_BUTTON_MENU_ITEM_SIZE = intPreferencesKey("floating_button_menu_item_size")
+        private val FLOATING_BUTTON_MENU_HOLD_FLOATS = booleanPreferencesKey("floating_button_menu_hold_floats")
         private val FLOATING_BUTTON_WHILE_TYPING = booleanPreferencesKey("floating_button_while_typing")
         private val FLOATING_BUTTON_HIDE_LANDSCAPE = booleanPreferencesKey("floating_button_hide_landscape")
         private val FLOATING_BUTTON_HAPTICS = booleanPreferencesKey("floating_button_haptics")
@@ -20477,6 +20482,11 @@ class SettingsRepository(private val context: Context) {
             shape = p[FLOATING_BUTTON_SHAPE]
                 ?.let { runCatching { FloatingButtonShape.valueOf(it) }.getOrNull() }
                 ?: d.shape,
+            cornerRoundness = (p[FLOATING_BUTTON_CORNER_ROUNDNESS] ?: d.cornerRoundness)
+                .coerceIn(FloatingCornerRoundnessRange.first, FloatingCornerRoundnessRange.last),
+            menuItemSizeDp = (p[FLOATING_BUTTON_MENU_ITEM_SIZE] ?: d.menuItemSizeDp)
+                .coerceIn(FloatingMenuItemSizeRange.first, FloatingMenuItemSizeRange.last),
+            menuHoldFloats = p[FLOATING_BUTTON_MENU_HOLD_FLOATS] ?: d.menuHoldFloats,
             edgePill = p[FLOATING_BUTTON_PILL] ?: d.edgePill,
             pillThicknessDp = (p[FLOATING_BUTTON_PILL_THICKNESS] ?: d.pillThicknessDp)
                 .coerceIn(FloatingPillThicknessRange.first, FloatingPillThicknessRange.last),
@@ -20496,6 +20506,8 @@ class SettingsRepository(private val context: Context) {
             boxClosesOutside = p[FLOATING_BOX_CLOSE_OUTSIDE] ?: d.boxClosesOutside,
             boxGestures = p[FLOATING_BOX_GESTURES] ?: d.boxGestures,
             boxHoldToMove = p[FLOATING_BOX_HOLD_TO_MOVE] ?: d.boxHoldToMove,
+            boxHideTitle = p[FLOATING_BOX_HIDE_TITLE] ?: d.boxHideTitle,
+            boxHideFrame = p[FLOATING_BOX_HIDE_FRAME] ?: d.boxHideFrame,
         )
     }
 
@@ -20639,6 +20651,23 @@ class SettingsRepository(private val context: Context) {
     suspend fun setFloatingButtonShape(value: FloatingButtonShape) =
         editFloatingButton { it[FLOATING_BUTTON_SHAPE] = value.name }
 
+    /** How far the shape's corners are rounded off (#1372); see [SummonButtonSettings.cornerRoundness]. */
+    suspend fun setFloatingButtonCornerRoundness(value: Int) =
+        editFloatingButton {
+            it[FLOATING_BUTTON_CORNER_ROUNDNESS] =
+                value.coerceIn(FloatingCornerRoundnessRange.first, FloatingCornerRoundnessRange.last)
+        }
+
+    /** The quick menu's slots across (#1372); see [SummonButtonSettings.menuItemSizeDp]. */
+    suspend fun setFloatingButtonMenuItemSize(value: Int) =
+        editFloatingButton {
+            it[FLOATING_BUTTON_MENU_ITEM_SIZE] = value.coerceIn(FloatingMenuItemSizeRange.first, FloatingMenuItemSizeRange.last)
+        }
+
+    /** A hold on a slot opens its floating box (#1401); see [SummonButtonSettings.menuHoldFloats]. */
+    suspend fun setFloatingButtonMenuHoldFloats(value: Boolean) =
+        editFloatingButton { it[FLOATING_BUTTON_MENU_HOLD_FLOATS] = value }
+
     suspend fun setFloatingButtonOverKeyboard(value: Boolean) =
         editFloatingButton { it[FLOATING_BUTTON_OVER_KEYBOARD] = value }
 
@@ -20711,6 +20740,14 @@ class SettingsRepository(private val context: Context) {
     /** A hold then a drag moves a floating box from anywhere (#1263); see [SummonButtonSettings.boxHoldToMove]. */
     suspend fun setFloatingBoxHoldToMove(value: Boolean) =
         editFloatingButton { it[FLOATING_BOX_HOLD_TO_MOVE] = value }
+
+    /** A floating box with no title bar (#1373); see [SummonButtonSettings.boxHideTitle]. */
+    suspend fun setFloatingBoxHideTitle(value: Boolean) =
+        editFloatingButton { it[FLOATING_BOX_HIDE_TITLE] = value }
+
+    /** A floating box with no outline or grip (#1373); see [SummonButtonSettings.boxHideFrame]. */
+    suspend fun setFloatingBoxHideFrame(value: Boolean) =
+        editFloatingButton { it[FLOATING_BOX_HIDE_FRAME] = value }
 
     suspend fun setFloatingButtonWhileTyping(value: Boolean) =
         editFloatingButton { it[FLOATING_BUTTON_WHILE_TYPING] = value }

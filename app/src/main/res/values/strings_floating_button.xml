@@ -130,6 +130,7 @@
     <string name="floating_button_shape_circle">Circle</string>
     <string name="floating_button_shape_squircle">Squircle</string>
     <string name="floating_button_shape_rounded_square">Rounded square</string>
+    <string name="floating_button_shape_square">Square</string>
     <string name="floating_button_shape_oval">Oval</string>
     <string name="floating_button_shape_diamond">Diamond</string>
     <string name="floating_button_shape_pentagon">Pentagon</string>
@@ -137,6 +138,18 @@
     <string name="floating_button_shape_octagon">Octagon</string>
     <string name="floating_button_shape_star">Star</string>
     <string name="floating_button_shape_heart">Heart</string>
+    <!-- Slider (#1372): rounds off the corners of the shape picked above. -->
+    <string name="floating_button_corner_title">Corner roundness</string>
+    <string name="floating_button_corner_subtitle">How far the corners of the shape are rounded off</string>
+    <string name="floating_button_corner_info">Rounds off the corners of the button's shape and of the actions in its menu, for a softer square, pentagon, star or hexagon. At 0% the corners are as sharp as the shape draws them. A circle, an oval, a squircle and a heart have no corners, so this doesn't change them.</string>
+    <!-- Slider (#1372): the quick menu's actions, apart from the button's own size. -->
+    <string name="floating_button_menu_item_size_title">Action size</string>
+    <string name="floating_button_menu_item_size_subtitle">How large each action in the menu is</string>
+    <string name="floating_button_menu_item_size_info">The size of each action in the quick menu, in categories and around a fixed button. The button's own size is set under Size. Larger actions are easier to hit and spread the menu wider.</string>
+    <!-- Switch (#1401): holding a tool in the quick menu opens it in a floating box. -->
+    <string name="floating_button_menu_hold_floats_title">Hold an action to open it floating</string>
+    <string name="floating_button_menu_hold_floats_subtitle">A tool that can float opens in its floating box when you hold it in the menu</string>
+    <string name="floating_button_menu_hold_floats_info">Hold a tool in the quick menu, such as the calendar or the calculator, and it opens in a floating box over the app instead of in the keyboard. A swipe off the tool does the same with this off. Tools that can't float aren't changed. This setting is off by default.</string>
     <string name="floating_button_pill_title">Thin pill on the edge</string>
     <string name="floating_button_pill_subtitle">A slim line against the side of the screen instead of a round button</string>
     <string name="floating_button_pill_info">Draws the floating button as a thin line against the side of the screen, in place of a round button. It covers almost nothing of the app. A touch on the line works the same as a touch on the button.</string>
@@ -165,7 +178,7 @@
     <string name="floating_button_idle_opacity_info">How solid the floating button looks after it fades. A low value keeps it out of the way. A value that is too low makes it hard to find again.</string>
     <string name="floating_button_tuck_title">Tuck into the edge</string>
     <string name="floating_button_tuck_subtitle">A faded button slides half off the side, out of the way of the app</string>
-    <string name="floating_button_tuck_info">When the button fades, it also slides half off the side of the screen, so it covers less of the app. A touch brings it back out.</string>
+    <string name="floating_button_tuck_info">When the button fades, it also slides half off the side of the screen, so it covers less of the app. A touch brings it back out. With Fixed in place on, the button stays tucked all the time, even while you touch it.</string>
 
     <string name="floating_button_behaviour_group">Behaviour</string>
     <string name="floating_button_while_typing_title">Show while typing</string>

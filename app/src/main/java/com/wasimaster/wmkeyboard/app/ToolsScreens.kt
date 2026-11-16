@@ -530,14 +530,35 @@ internal fun ToolsSettings(
     )
     // The box's buttons traded for throws (#1262): up closes, down moves it
     // into the keyboard, a side tucks it.
+    val boxGestures = settings.watch { it.summonButton.boxGestures }
     ToggleSetting(
         title = R.string.tools_box_gestures_title,
         subtitle = stringResource(R.string.tools_box_gestures_subtitle),
-        checked = settings.watch { it.summonButton.boxGestures },
+        checked = boxGestures,
         onChange = { scope.launch { repository.setFloatingBoxGestures(it) } },
         default = SettingsDefaults.summonButton.boxGestures,
         info = stringResource(R.string.tools_box_gestures_info),
     )
+    // With the throws doing the buttons' jobs, the bar and the frame can go
+    // too (#1373), leaving the tool alone in the box.
+    if (boxGestures) {
+        ToggleSetting(
+            title = R.string.tools_box_hide_title_title,
+            subtitle = stringResource(R.string.tools_box_hide_title_subtitle),
+            checked = settings.watch { it.summonButton.boxHideTitle },
+            onChange = { scope.launch { repository.setFloatingBoxHideTitle(it) } },
+            default = SettingsDefaults.summonButton.boxHideTitle,
+            info = stringResource(R.string.tools_box_hide_title_info),
+        )
+        ToggleSetting(
+            title = R.string.tools_box_hide_frame_title,
+            subtitle = stringResource(R.string.tools_box_hide_frame_subtitle),
+            checked = settings.watch { it.summonButton.boxHideFrame },
+            onChange = { scope.launch { repository.setFloatingBoxHideFrame(it) } },
+            default = SettingsDefaults.summonButton.boxHideFrame,
+            info = stringResource(R.string.tools_box_hide_frame_info),
+        )
+    }
     // A hold, then a drag, moves the box from anywhere on it (#1263).
     ToggleSetting(
         title = R.string.tools_box_hold_to_move_title,

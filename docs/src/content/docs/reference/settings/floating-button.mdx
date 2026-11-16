@@ -37,11 +37,14 @@ A preview heads the screen: a sketch of a phone with the button on the side it r
 | Double tap while open *(shown only while Show while typing is on)* | Action | **Same as Double tap** |
 | Quick menu | List of up to 16 actions | Voice, Ask AI about this screen, Clipboard, Emoji, Show keyboard |
 | Show names | Toggle | On |
+| Action size | Slider, 36 to 80 dp | 52 dp |
+| Hold an action to open it floating | Toggle | Off |
 | Distance from the button | Slider, 8 to 96 dp | 22 dp |
 | Opening animation | Choice of 5 | **Spring** |
 | Animation speed | Slider, 0.5× to 3× | 1× |
 | Colours | Choice of 4 | **Auto** |
-| Shape | Choice of 10 | **Circle** |
+| Shape | Choice of 11 | **Circle** |
+| Corner roundness *(shown only for a shape with corners)* | Slider, 0% to 100% | 0% |
 | Thin pill on the edge | Toggle | Off |
 | Pill thickness *(shown only while Thin pill on the edge is on)* | Slider, 2 to 16 dp | 6 dp |
 | Pill height *(shown only while Thin pill on the edge is on)* | Slider, 24 to 200 dp | 72 dp |
@@ -50,7 +53,7 @@ A preview heads the screen: a sketch of a phone with the button on the side it r
 | Opacity | Slider, 30% to 100% | 92% |
 | Fade when idle | Slider, Never to 10 s | 3 s |
 | Faded opacity *(shown only when Fade when idle isn't Never)* | Slider, 15% to 100% | 45% |
-| Tuck into the edge *(shown only when Fade when idle isn't Never and Thin pill on the edge is off)* | Toggle | Off |
+| Tuck into the edge *(shown only when Fade when idle isn't Never or Fixed in place is on, and Thin pill on the edge is off)* | Toggle | Off |
 | Show while typing | Toggle | On |
 | Float over the keyboard *(shown only while Show while typing is on)* | Toggle | Off |
 | Hide in landscape | Toggle | Off |
@@ -103,10 +106,12 @@ Android lets another app press these only through an accessibility service, so t
 Android lets an app flip those three switches only in some cases, so each picks the first way that works on your phone, and its row in the list says which it'll be:
 
 - **Wi-Fi** switches itself on Android 9 and older, and **Bluetooth** on Android 11 and older, with no permission to grant.
-- Past those versions, and for **Mobile data** on every version, the keyboard switches them through [Shizuku or root](/reference/settings/permissions/#shizuku-or-root) once you've turned **Use Shizuku or root for keyboard features** on and allowed the keyboard there. Not in the Play Store build.
+- Past those versions, and for **Mobile data** on every version, the keyboard switches them through [Shizuku or root](/reference/settings/permissions/#shizuku-or-root): once you've allowed the keyboard in Shizuku, or turned on **Use root** (on the [app launcher's](/tools/app-launcher/) page or under Privacy › Permissions › Shizuku or root) and let the keyboard have root in your root manager. Not in the Play Store build.
 - Otherwise the action opens Android's own control for you to flip: the Wi-Fi panel or the internet panel (Wi-Fi and mobile data together) on Android 10 and later, or the Wi-Fi, mobile network or Bluetooth page.
 
 The hotspot always opens its page. No app can start the phone's hotspot on current Android, and even through Shizuku or root there's no command that starts it with your own saved name and password.
+
+In the quick menu, a category and the swipes of a fixed button, **Wi-Fi**, **Mobile data**, **Bluetooth** and **Hotspot** show whether they're on: while the switch is on, the action is filled with the phone's accent colour (white, with **Colours** on **Accent**). It's read each time the menu opens.
 
 Silent is the one ringer mode that needs a grant. Android ties it to Do Not Disturb, and lets an app turn silent on or off only once you've given it **Do Not Disturb access**. Picking **Ringer mode** explains this and opens Android's list for it, and until you allow it a row under the switch at the top of this screen says so. Without it, the action switches between ring and vibrate, and if the phone is already on silent, pressing it asks for the access again, since it can't take the phone off silent otherwise. The keyboard uses the access only to set the ringer. It doesn't read or change your Do Not Disturb schedules. See [Permissions](/privacy/permissions/#the-ones-that-arent-permissions).
 
@@ -126,6 +131,8 @@ With **Double tap** set to anything but **Nothing**, a single tap waits a moment
 
 You don't have to set all eight. A swipe goes to the nearest direction that has an action, as long as it's within about 67° of it, so with only up, down, left and right set, a swipe up and to the right still counts as up or right, whichever it's closer to. As soon as your finger leaves the button, every direction that has an action shows its icon around the button, placed where its swipe points. The one your finger is pointing at grows and gets a ring, and its name appears in a label above the ring, or below it when you're swiping upward, so your finger never covers it. The button itself shows the same icon, with a light tick each time it changes. Let go to run it. The icons go as soon as you lift your finger. A short swipe, under about 28 dp, doesn't count. Tap, double tap and press and hold still work as before, and pressing and holding still opens the quick menu.
 
+With **Tuck into the edge** on, a fixed button stays tucked half off its side the whole time, instead of sliding out at a touch and back when it fades, so it's always the same target in the same place. Its swipes and its quick menu work from there.
+
 Move the button where you want it first, then fix it there. To move it later, turn **Fixed in place** off, drag it, and turn it back on. The cross for hiding the button only appears while dragging, so a fixed button is hidden with the **Hide the button** action instead. With TalkBack, each swipe that has an action is in the button's actions menu.
 
 It works the same on the [thin pill](#look): fix the pill to the edge, and swipe out of it in the directions you set.
@@ -144,11 +151,19 @@ Set **Tap while open** to **Leave field** and the button opens the keyboard with
 
 The quick menu fans out around the button, facing the middle of the screen, so a button on the right edge opens to the left and one near a top corner opens down and inwards. Near the top or bottom of the screen the whole fan turns away from the edge, and widens if it has to, so every action stays on screen with the same gap between them. Opened by **Press and hold**, it can be used without letting go: slide your finger onto an action and lift it there to run it. Let go without moving and the menu stays open for a tap. Tap anywhere else, the cross where the button was, or Back (the button or the back gesture) to close it. Back closes only the menu: the app underneath doesn't see it, and the keyboard stays up if it was.
 
-The list on the screen is the menu in the order it fans out. Drag an action by its handle to move it, and use its bin to remove it. **Add an action** offers the same list as the gestures, without **Quick menu** and **Nothing**, and without what's already in the menu, plus **New category** (see [Categories](#categories)). The menu holds up to sixteen actions. The first eight fan out round the button as before; from the ninth on, a second, wider ring opens outside the first, its actions sitting in the gaps between the inner ones. Both rings stay on screen, and a slide from **Press and hold** reaches either one. Sixteen actions with names under them take most of a phone's screen, so turning **Show names** off is worth it for a full menu.
+The list on the screen is the menu in the order it fans out. Drag an action by its handle to move it, and use its bin to remove it. **Add an action** offers the same list as the gestures, without **Quick menu** and **Nothing**, and without what's already in the menu, plus **New category** (see [Categories](#categories)). The menu holds up to sixteen actions. The first eight fan out round the button as before. From the ninth on, actions go on a second ring inside the first, nearer the button and so a shorter reach, as many as fit on it, usually four or five. The rest go on a ring outside the first. No action ever sits closer to another than most of the gap between neighbours, and a slide from **Press and hold** reaches every ring. Sixteen actions with names under them take most of a phone's screen, so turning **Show names** off is worth it for a full menu.
 
 If no gesture opens the menu, a row says so, and tapping it sets **Press and hold** to **Quick menu**.
 
 **Show names** writes each action's name under its icon. Off, the menu is smaller, and only the action under your finger is named, above the button.
+
+**Action size** is how large each action in the menu is, from 36 dp to 80 dp, apart from the button's own **Size**. It's 52 dp by default. The actions spread out to match, and categories and a fixed button's swipes use it too.
+
+### Opening a tool in its floating box
+
+An action that runs a tool that can [float](/tools/overview/#tools-in-a-floating-box), such as **Calendar** or **Calculator**, can also open it in a floating box over the app instead of in the keyboard. Swipe off the action, away from wherever your finger came down on it: once it's about 36 dp away, the action shows a small box badge and its name says it opens in a box, and letting go opens it there. Slide back to cancel. With the menu opened by **Press and hold**, slide onto the action and carry on outward past it, away from the button, and let go there. A swipe off an action whose tool can't float does nothing, as before.
+
+**Hold an action to open it floating**, off by default, does the same with a hold: press and hold the action in the open menu, or rest on it during a **Press and hold** slide until it shows the badge, and it opens in its box. With TalkBack, each such action has the box version in its actions menu.
 
 **Distance from the button** is how far out the actions sit, from 8 dp to 96 dp beyond the button's edge. It's 22 dp by default, which is where they always sat. The quick menu and every category use the same distance.
 
@@ -174,7 +189,9 @@ On the button, tap a category in the open menu and its ring replaces the menu's.
 
 **Colours** is **Auto**, **Dark**, **Light** or **Accent**. Auto is dark when the phone's dark theme is on and light when it isn't. Accent uses the phone's accent colour on Android 12 and later, and indigo before that. The quick menu takes the same colours.
 
-**Shape** is the button's outline: **Circle** (the default), **Squircle**, **Rounded square**, **Oval**, **Diamond**, **Pentagon**, **Hexagon**, **Octagon**, **Star** or **Heart**. The actions in the quick menu and in categories take the same shape. Every shape fills the same square as the circle, so changing it doesn't move the button or make it take more of the screen. **Size** still sets that square. The pointed shapes draw the icon a little smaller to fit it inside.
+**Shape** is the button's outline: **Circle** (the default), **Squircle**, **Rounded square**, **Square**, **Oval**, **Diamond**, **Pentagon**, **Hexagon**, **Octagon**, **Star** or **Heart**. The actions in the quick menu and in categories take the same shape. Every shape fills the same square as the circle, so changing it doesn't move the button or make it take more of the screen. **Size** still sets that square. The pointed shapes draw the icon a little smaller to fit it inside, and a pentagon or a star puts it in the shape's own middle, a little below the square's, since both stand on two points.
+
+**Corner roundness** rounds off the shape's corners, from 0% (as sharp as the shape draws them, the default) to 100%, where each corner's curve runs halfway along its sides. Pick **Square** and set it to taste for anything from a sharp square to a soft rounded one, or soften a pentagon, star or hexagon. It's shown only for a shape with corners: a circle, an oval, a squircle and a heart have none.
 
 **Thin pill on the edge** draws the button as a slim line flat against the side of the screen it rests on, in place of the round button, for a small screen where the button covers too much of the app. Every gesture works on it as on the round button: tap it, hold it for the quick menu, or drag it up and down or across to the other side. The quick menu fans out from where the round button would sit against that edge. **Pill thickness** is how thick the line is drawn and **Pill height** how tall it is. **Touch area** is how far in from the edge a touch still reaches it, so the line can stay thin while staying easy to hit; it's never less than the pill's own thickness. With **Colours** on **Auto**, the pill is dark when the phone's dark theme is off and light when it's on, like the gesture bar at the bottom of the screen. The pill already sits against the edge, so **Tuck into the edge** isn't offered while it's on.
 
