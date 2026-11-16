@@ -2487,6 +2487,45 @@
   ],
   "kind": "compare"
  },
+ "typing_glide_preview_title": {
+  "frames": [
+   {
+    "dark": {
+     "bytes": 16652,
+     "sha": "e5dcfd98e8ec3de7c45d45ec10d5fa934d07c733440d5d59261c401c2ef39491"
+    },
+    "height": 541,
+    "label": "common_off",
+    "width": 720
+   },
+   {
+    "dark": {
+     "bytes": 18024,
+     "sha": "f6e86a8cffe7e1368a11951323aaab381a392e2cfcd8af38608a0bfdf0dc4700"
+    },
+    "height": 541,
+    "label": "common_on",
+    "width": 720
+   }
+  ],
+  "kind": "compare",
+  "source": "phone"
+ },
+ "typing_glide_typing_title": {
+  "frames": [
+   {
+    "dark": {
+     "bytes": 80046,
+     "sha": "2a34696553e97c9f04567c0e5e4daefd03184fa2b6b2da98a1dcef88e8da613b"
+    },
+    "height": 596,
+    "label": null,
+    "width": 540
+   }
+  ],
+  "kind": "clip",
+  "source": "phone"
+ },
  "typing_inline_emoji_search_title": {
   "frames": [
    {
@@ -2915,5 +2954,53 @@
    }
   ],
   "kind": "compare"
+ },
+ "typing_trail_opacity_title": {
+  "frames": [
+   {
+    "dark": {
+     "bytes": 15242,
+     "sha": "970006a147086fdc55bf69486519c969be31bea9d05dd8183ed271fc7057f8dc"
+    },
+    "height": 541,
+    "label": "=0%",
+    "width": 720
+   },
+   {
+    "dark": {
+     "bytes": 18674,
+     "sha": "a05b536e1382a52d67a4e85eb5494c532ea34b1ca485abaac34d27f663643d41"
+    },
+    "height": 541,
+    "label": "=55%",
+    "width": 720
+   }
+  ],
+  "kind": "compare",
+  "source": "phone"
+ },
+ "typing_trail_width_title": {
+  "frames": [
+   {
+    "dark": {
+     "bytes": 17278,
+     "sha": "f9f6fd22a4dd530087fddec1f85b5c5cc819438e051630f5941298c6979b3ab1"
+    },
+    "height": 541,
+    "label": "=2 dp",
+    "width": 720
+   },
+   {
+    "dark": {
+     "bytes": 17322,
+     "sha": "83138f093bb7edbcd048d67d4f76750adda74ed8783922490cc2f434210c8708"
+    },
+    "height": 541,
+    "label": "=24 dp",
+    "width": 720
+   }
+  ],
+  "kind": "compare",
+  "source": "phone"
  }
 }

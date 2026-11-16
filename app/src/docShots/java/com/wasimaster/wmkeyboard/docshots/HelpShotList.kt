@@ -55,9 +55,6 @@ private val toolbox = typed { panel(PanelMode.TOOLBOX) }
 private val emoji = typed { panel(PanelMode.EMOJI) }
 private val holdE = typed { hold("e") }
 
-/** A glide stopped part of the way, the finger still down. */
-private val midGlide = typed { glide("hello", lift = false) }
-
 val HELP_SHOTS: List<HelpShot> = listOf(
     // ------------------------------------------------------------ rows
     toggle("layout_number_row_title") { setNumberRow(it) },
@@ -188,21 +185,9 @@ val HELP_SHOTS: List<HelpShot> = listOf(
     toggle("typing_auto_close_quotes_title", typed { type("\"") }, crop = HelpCrop.TEXT) { setAutoCloseQuotes(it) },
 
     // ------------------------------------------------------------ glide
-    clip(
-        "typing_glide_typing_title",
-        typed {
-            record {
-                hold(300)
-                glide("hello")
-                hold(900)
-            }
-        },
-        aboveDp = 96,
-    ),
-    toggle("typing_glide_preview_title", midGlide, aboveDp = 96, crop = HelpCrop.KEYBOARD) { setGestureWordPreview(it) },
-    compare("typing_trail_width_title", midGlide, off = { repo.setGestureTrailWidthDp(4f) }, on = { repo.setGestureTrailWidthDp(18f) }, crop = HelpCrop.KEYBOARD, labels = "=4 dp" to "=18 dp"),
-    compare("typing_trail_opacity_title", midGlide, off = { repo.setGestureTrailOpacity(0.25f) }, on = { repo.setGestureTrailOpacity(1f) }, crop = HelpCrop.KEYBOARD, labels = "=25%" to "=100%"),
-    toggle("typing_glide_strip_preview_title", midGlide, aboveDp = 96, crop = HelpCrop.KEYBOARD) { setGestureStripPreviewOnly(it) },
+    // Recorded on a phone (build.py --take / --stills): a glide injected on
+    // the JVM stops after a letter or two, so the clip, the trail's width and
+    // opacity, and the word preview are filed from a recording of a real one.
 
     // ------------------------------------------------------------ clipboard panel
     gallery(

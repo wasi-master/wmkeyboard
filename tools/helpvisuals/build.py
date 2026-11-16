@@ -5,6 +5,9 @@
         -Pwmkb.helpShots.only='<regex>'
     python3 tools/helpvisuals/build.py [keys or regexes...] [--out DIR] [--sheet DIR]
     python3 tools/helpvisuals/build.py --take <key> <recording> [--dark <recording>]
+        [--look dark] [--span START END] [--top PX] [--bottom PX]
+    python3 tools/helpvisuals/build.py --stills <key> <kind> <label>=<picture>... \
+        [--look dark] [--crop keyboard|diff] [--top PX] [--bottom PX]
 
 HelpShots (app/src/docShots) leaves whole screens under app/build/helpshots/,
 one directory per setting and look, with a small JSON beside each saying where
@@ -31,7 +34,15 @@ other pictures stay as they are without their screens having to be rendered
 again. `--forget <key>` takes a visual out.
 
 `--take` files a recording made on a phone as a clip, for what the JVM cannot
-draw: any video ffmpeg reads, cut and scaled the same way.
+draw: any video ffmpeg reads, cut and scaled the same way. `--stills` files
+screenshots or frames pulled out of such a recording as a still, a comparison
+or a gallery; a label is a string resource's name, or words behind `=` ("=4 dp"),
+and `-` for none. `--top` and `--bottom` take the status bar, the app above the
+keyboard and the gesture bar off a phone's screen, in the source's own pixels;
+`--look dark` files what was recorded in the dark look, which the app then
+shows to light-look readers too until a light one is filed. A visual filed
+from a phone is marked so in built.json, and a later build of the JVM's
+renders leaves it alone; `--forget` it to go back to a render.
 """
 import argparse
 import hashlib
@@ -354,7 +365,7 @@ def build_visual(key, out, work):
     return {"kind": kind, "frames": frames}, None
 
 
-def take(key, light, dark, out, work):
+def take(key, light, dark, out, work, span=None, top=0, bottom=0):
     """A phone recording as a clip: frames out of the video, then the same encoder."""
     looks = {}
     size = None
@@ -363,14 +374,54 @@ def take(key, light, dark, out, work):
             continue
         frames_dir = os.path.join(work, theme)
         os.makedirs(frames_dir)
-        run("ffmpeg", "-loglevel", "error", "-i", video, "-vf", f"fps=12,scale={CLIP_WIDTH}:-2", os.path.join(frames_dir, "%04d.png"))
+        window = ["-ss", str(span[0]), "-to", str(span[1])] if span else []
+        crop = f"crop=iw:ih-{top + bottom}:0:{top}," if top or bottom else ""
+        run("ffmpeg", "-loglevel", "error", *window, "-i", video, "-vf", f"{crop}fps=12,scale={CLIP_WIDTH}:-2", os.path.join(frames_dir, "%04d.png"))
         names = sorted(os.listdir(frames_dir))
         if not names:
             sys.exit(f"{video}: no frames")
         images = [Image.open(os.path.join(frames_dir, n)).convert("RGB") for n in names]
         looks[theme] = [store(encode_clip(images, [83] * len(images), work), out)]
         size = images[0].size
-    return {"kind": "clip", "frames": [{"label": None, "width": size[0], "height": size[1], **{t: looks[t][0] for t in looks}}]}
+    return {
+        "kind": "clip",
+        "source": "phone",
+        "frames": [{"label": None, "width": size[0], "height": size[1], **{t: looks[t][0] for t in looks}}],
+    }
+
+
+def stills(key, kind, pairs, theme, crop, top, bottom, out, work):
+    """
+    Screenshots, or frames pulled out of a phone recording, as a still, a
+    comparison or a gallery: cut the way a rendered visual of [crop] is, with
+    the keyboard taken to start [top] pixels down and [bottom] pixels of the
+    screen's foot left out.
+    """
+    labels, images = [], []
+    for pair in pairs:
+        # The last "=" splits, so a literal label keeps its own: "=4 dp=a.png".
+        label, _, path = pair.rpartition("=")
+        if not path:
+            sys.exit(f"{pair}: give <label>=<picture>, with - for no label")
+        image = Image.open(path).convert("RGB")
+        images.append(image.crop((0, 0, image.width, image.height - bottom)))
+        labels.append(None if label == "-" else label)
+    if len({i.size for i in images}) != 1:
+        sys.exit("the pictures are not all one size")
+    metas = [{"crop": crop, "keyboardTop": top, "above": 0} for _ in images]
+    boxes = cuts(metas, images)
+    if boxes is None:
+        sys.exit("the pictures are identical: nothing to show")
+    images = [scaled(cut(i, boxes), MAX_WIDTH) for i in images]
+    files = [store(encode_still(i, work), out) for i in images]
+    return {
+        "kind": kind,
+        "source": "phone",
+        "frames": [
+            {"label": label, "width": image.width, "height": image.height, theme: file}
+            for label, image, file in zip(labels, images, files)
+        ],
+    }
 
 
 def write_pack(theme, built, out):
@@ -450,6 +501,12 @@ def main():
     parser.add_argument("--forget", action="append", default=[], help="take a visual out of the index")
     parser.add_argument("--take", nargs=2, metavar=("KEY", "VIDEO"), help="file a phone recording as a clip")
     parser.add_argument("--dark", help="with --take: the same recording in the dark look")
+    parser.add_argument("--stills", nargs="+", metavar="ARG", help="<key> <still|compare|gallery> <label>=<picture>...")
+    parser.add_argument("--look", choices=THEMES, default="light", help="with --take or --stills: the look the source was recorded in")
+    parser.add_argument("--crop", choices=("keyboard", "diff"), default="keyboard", help="with --stills: how to cut")
+    parser.add_argument("--span", nargs=2, type=float, metavar=("START", "END"), help="with --take: seconds of the recording to keep")
+    parser.add_argument("--top", type=int, default=0, help="with --take or --stills: source pixels above the keyboard to leave out")
+    parser.add_argument("--bottom", type=int, default=0, help="with --take or --stills: source pixels at the foot to leave out")
     args = parser.parse_args()
     if not os.path.isdir(args.out):
         sys.exit(f"{args.out} is not a directory; pass --out <data repository checkout>")
@@ -464,11 +521,23 @@ def main():
     dropped = []
     with tempfile.TemporaryDirectory() as work:
         if args.take:
-            built[args.take[0]] = take(args.take[0], args.take[1], args.dark, args.out, work)
+            light, dark = (args.take[1], args.dark) if args.look == "light" else (None, args.take[1])
+            built[args.take[0]] = take(args.take[0], light, dark, args.out, work, args.span, args.top, args.bottom)
+        elif args.stills:
+            if len(args.stills) < 3 or args.stills[1] not in ("still", "compare", "gallery"):
+                sys.exit("--stills <key> <still|compare|gallery> <label>=<picture>...")
+            built[args.stills[0]] = stills(
+                args.stills[0], args.stills[1], args.stills[2:], args.look, args.crop,
+                args.top, args.bottom, args.out, work,
+            )
         elif os.path.isdir(RENDERS):
             patterns = [re.compile(p) for p in args.only]
             for key in sorted(os.listdir(RENDERS)):
                 if patterns and not any(p.search(key) for p in patterns):
+                    continue
+                # Filed from a phone: a JVM render of the same setting is the
+                # one the phone was asked for because it showed nothing.
+                if built.get(key, {}).get("source") == "phone":
                     continue
                 visual, why = build_visual(key, args.out, work)
                 if visual is None:

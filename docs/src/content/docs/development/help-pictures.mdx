@@ -81,7 +81,18 @@ The renderer has no other apps, no system dialogs and no window blur, and its fi
 python3 tools/helpvisuals/build.py --take theme_glass_window_blur_title light.mp4 --dark dark.mp4
 ```
 
-Any video ffmpeg reads works. It is sampled at twelve frames a second, scaled, and encoded as the same kind of clip.
+Any video ffmpeg reads works, `scrcpy --record` included. It is sampled at twelve frames a second, scaled, and encoded as the same kind of clip. `--span 100.9 103` keeps those seconds of it, and `--top` and `--bottom` take the status bar, the app above the keyboard and the gesture bar off, in the recording's own pixels.
+
+A comparison or a gallery can come from a phone too, out of screenshots or frames pulled from a recording with ffmpeg:
+
+```bash
+python3 tools/helpvisuals/build.py --look dark --top 1250 --bottom 330 \
+    --stills typing_trail_width_title compare "=2 dp=thin.png" "=24 dp=thick.png"
+```
+
+Each picture is given as `label=file`, the label being a string resource's name or words behind `=`, as in the shot list. `--look dark` files a recording made in the dark look; the app shows it to readers in the light look too until a light one is filed. A visual filed from a phone is marked as such in `built.json`, so building the JVM's renders again leaves it alone. `--forget` it to go back to a render.
+
+Glide typing is filed this way. A stroke injected on the JVM stops after a letter or two, so the glide clip, the trail's width and opacity and the word preview come from a recording of a real glide.
 
 ## Publishing
 
