@@ -345,6 +345,12 @@
     <string name="layout_editor_flick_down_right_label">Flick down right</string>
     <string name="layout_editor_flick_pad_desc">Flick directions pad</string>
     <string name="layout_editor_flick_clear">Remove all flick directions</string>
+    <string name="layout_editor_flick_return_title">Out and back</string>
+    <string name="layout_editor_flick_return_none">Swiping out to this arm and back types its capital. Tap to run an action instead.</string>
+    <string name="layout_editor_key_section_space_cycle">Taps after a space</string>
+    <string name="layout_editor_space_cycle_caption">Each further tap of the space bar, with nothing typed between, turns the space into the next entry: a comma, then a full stop, and so on. A tap after the last one types a plain space again. Leave it empty for the usual space bar.</string>
+    <string name="layout_editor_space_cycle_label">Entries, split by |</string>
+    <string name="layout_editor_space_cycle_hint">For example ", |. |? |! " (the space after each mark counts)</string>
     <string name="layout_editor_flick_field_hint">Blank: no flick in this direction</string>
     <string name="layout_editor_flick_set_hint">A flick this way types %1$s</string>
     <string name="layout_editor_flick_add_subtitle_action">A short swipe from the key in any of eight directions types something or does an action, such as moving the cursor</string>
@@ -510,6 +516,8 @@
     <string name="layout_editor_hex_grid_info">Draws the keys of this layout as hexagons. Every second row is moved half a key to the side, and the rows fit into each other like a honeycomb.</string>
     <string name="layout_editor_action_caps_lock_title">Caps lock</string>
     <string name="layout_editor_action_caps_lock_detail">Turns caps lock on and off with one press. For wide layouts that also have a shift key</string>
+    <string name="layout_editor_action_shift_off_title">Shift off</string>
+    <string name="layout_editor_action_shift_off_detail">Puts Shift and caps lock down, and does nothing when they are already off. For a flick arm beside one that turns Shift on</string>
     <!-- Name of the key that deletes the character before the cursor. -->
     <string name="layout_editor_action_delete_title">Delete</string>
     <string name="layout_editor_action_delete_detail">Backspace. It repeats while you hold it</string>
@@ -839,6 +847,8 @@
     <string name="textedit_action_delete_to_start">Delete everything before the cursor</string>
     <string name="textedit_action_delete_to_end">Delete everything after the cursor</string>
     <string name="textedit_action_type_clipboard">Type the clipboard (for fields that refuse a paste)</string>
+    <string name="textedit_action_case_up">Word one case up (lower, Title, UPPER)</string>
+    <string name="textedit_action_case_down">Word one case down (UPPER, Title, lower)</string>
 
     <!-- Chevron on a layout's row that opens or closes the list of its layers. %1$s is the layout's name. -->
     <string name="layout_editor_layers_expand_desc">Show the layers of <xliff:g id="layout" example="QWERTY">%1$s</xliff:g></string>

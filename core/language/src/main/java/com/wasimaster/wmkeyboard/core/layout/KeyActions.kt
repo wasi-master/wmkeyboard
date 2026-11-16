@@ -59,6 +59,16 @@ sealed interface KeyAction {
      */
     @Serializable @SerialName("caps_lock") data object CapsLock : KeyAction
 
+    /**
+     * Puts Shift down, the lock included, whatever state it is in (issue #1409).
+     *
+     * Thumb-Key's swipe down on `e`: [Shift] steps up through its states and
+     * back round to off, so a board with an arm for "shift on" needs an arm
+     * that only ever means "shift off", or a swipe meant to cancel would turn
+     * shift on when it was already off. Does nothing when Shift is off.
+     */
+    @Serializable @SerialName("shift_off") data object ShiftOff : KeyAction
+
     @Serializable @SerialName("delete") data object Delete : KeyAction
 
     /**
@@ -575,6 +585,7 @@ fun KeyAction.fallbackLabel(): String = when (this) {
     KeyAction.HanScript -> "简/繁"
     KeyAction.MorseDot -> "·"
     KeyAction.MorseDash -> "–"
+    KeyAction.ShiftOff -> "⇩"
     // Drawn from the enter icon slot on the board, so the key itself never
     // reaches here. The alternates popup does: the entry the enter key offers
     // carries the icon, but one an author wrote by hand may not.
@@ -795,7 +806,7 @@ fun KeyAction.holdIsSpokenFor(): Boolean = when (this) {
 fun KeyAction.canRepeatOnHold(): Boolean = when (this) {
     KeyAction.Space, KeyAction.None -> false
     KeyAction.MorseDot, KeyAction.MorseDash -> false
-    KeyAction.Shift, KeyAction.CapsLock, KeyAction.Fn -> false
+    KeyAction.Shift, KeyAction.CapsLock, KeyAction.ShiftOff, KeyAction.Fn -> false
     KeyAction.Symbols, KeyAction.Letters, KeyAction.Numpad, KeyAction.Emoji, KeyAction.Toolbox -> false
     KeyAction.LanguageSwitch, KeyAction.InputMethodPicker -> false
     is KeyAction.SwitchInputMethod -> false
@@ -828,7 +839,7 @@ fun KeyAction.canRepeatOnHold(): Boolean = when (this) {
  */
 fun KeyAction.commitsNoText(): Boolean = when (this) {
     KeyAction.Symbols, KeyAction.Letters, KeyAction.Numpad, KeyAction.Fn,
-    KeyAction.Shift, KeyAction.CapsLock, KeyAction.LanguageSwitch, KeyAction.None,
+    KeyAction.Shift, KeyAction.CapsLock, KeyAction.ShiftOff, KeyAction.LanguageSwitch, KeyAction.None,
     -> true
     is KeyAction.Layout -> true
     is KeyAction.LayerSwitch -> true
@@ -880,6 +891,8 @@ private fun TextEditAction.fallbackGlyph(): String = when (this) {
     TextEditAction.DELETE_TO_START -> "⇱⌫"
     TextEditAction.DELETE_TO_END -> "⇲⌦"
     TextEditAction.TYPE_CLIPBOARD -> "⌨📋"
+    TextEditAction.CASE_UP -> "Aa↑"
+    TextEditAction.CASE_DOWN -> "Aa↓"
 }
 
 /**

@@ -745,6 +745,20 @@ internal fun Key.repairKey(
             flickActions = fixed.flickActions.filterValues { it.isUsable() && it.action != KeyAction.Text },
         )
     }
+    // The same for what an arm's out-and-back runs (#1409): typing text there
+    // is what the arm's capital already does.
+    if (fixed.flickReturn.values.any { !it.isUsable() || it.action == KeyAction.Text }) {
+        fixed = fixed.copy(
+            flickReturn = fixed.flickReturn.filterValues { it.isUsable() && it.action != KeyAction.Text },
+        )
+    }
+    // A cycle on anything but a space key is a list nothing reads, and an
+    // empty entry would swallow the space it replaces.
+    if (fixed.spaceCycle.isNotEmpty() && (fixed.action != KeyAction.Space || fixed.spaceCycle.any { it.isEmpty() })) {
+        fixed = fixed.copy(
+            spaceCycle = if (fixed.action == KeyAction.Space) fixed.spaceCycle.filter { it.isNotEmpty() } else emptyList(),
+        )
+    }
     // Quietly again: a repeat on a key that cannot use one is not a broken
     // layout, it is a flag nothing reads — the hold on a ?123 key would
     // otherwise be spent flipping layers rather than opening the alternates the

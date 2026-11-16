@@ -88,6 +88,8 @@
     <string name="ime_textedit_delete_to_start_desc">Delete to the start</string>
     <string name="ime_textedit_delete_to_end_desc">Delete to the end</string>
     <string name="ime_textedit_type_clipboard_desc">Type the clipboard</string>
+    <string name="ime_textedit_case_up_desc">Word case up</string>
+    <string name="ime_textedit_case_down_desc">Word case down</string>
     <string name="ime_tool_clear_field">Delete everything</string>
     <string name="ime_tool_timestamp">Timestamp</string>
     <string name="ime_textedit_doc_end_desc">Move to the end of the text</string>

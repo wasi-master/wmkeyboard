@@ -190,6 +190,8 @@ internal fun textEditActionTitle(op: TextEditAction): Int = when (op) {
     TextEditAction.DELETE_TO_START -> R.string.textedit_action_delete_to_start
     TextEditAction.DELETE_TO_END -> R.string.textedit_action_delete_to_end
     TextEditAction.TYPE_CLIPBOARD -> R.string.textedit_action_type_clipboard
+    TextEditAction.CASE_UP -> R.string.textedit_action_case_up
+    TextEditAction.CASE_DOWN -> R.string.textedit_action_case_down
 }
 
 /** The components a layout of [kind] may place; empty for the keys-only pad. */

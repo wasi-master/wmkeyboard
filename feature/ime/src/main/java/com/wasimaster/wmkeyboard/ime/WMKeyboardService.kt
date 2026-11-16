@@ -12527,10 +12527,14 @@ open class WMKeyboardService : InputMethodService() {
             }
             KeyAction.Shift -> onShift()
             KeyAction.CapsLock -> onCapsLock()
+            KeyAction.ShiftOff -> onShiftOff()
             KeyAction.Delete -> trackDeletion(::onDelete)
             KeyAction.ForwardDelete -> trackForwardDeletion(::onForwardDelete)
             KeyAction.Space -> {
-                onSpace()
+                if (!stepSpaceCycle(key)) {
+                    onSpace()
+                    noteSpaceCycleStart(key)
+                }
                 returnFromSymbolsAfterSpace()
             }
             KeyAction.Enter -> onEnter()
@@ -16979,6 +16983,14 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /** [KeyAction.ShiftOff] (#1409): Shift down, the lock too, from any state. */
+    private fun onShiftOff() {
+        shiftFromRecase = null
+        _uiState.update {
+            if (it.shiftState == ShiftState.OFF) it else it.copy(shiftState = ShiftState.OFF, shiftPressedByUser = false)
+        }
+    }
+
     private fun consumeShift() {
         _uiState.update {
             if (it.shiftState == ShiftState.ON) {
@@ -17085,6 +17097,42 @@ open class WMKeyboardService : InputMethodService() {
         invalidateExpectedSelection()
         syncShiftToCase(next)
         return true
+    }
+
+    /**
+     * Moves the word the caret is in or just after one case form [up] or down
+     * ([caseFormStep]), for `TextEditAction.CASE_UP` / `CASE_DOWN` (#1409). The
+     * word being typed counts: its composing text is ended first, as a caret
+     * key ends it, and then re-cased with the rest. The caret goes back where
+     * it was. Unlike the shift key's re-case ([recapitalizeWordAtCaret]) this
+     * asks no setting and leaves the keyboard's own shift alone: it is an
+     * action someone put on a key, not a second meaning of Shift.
+     */
+    private fun stepWordCaseAtCaret(up: Boolean) {
+        val ic = currentInputConnection ?: return
+        endCompositionForCaretKey(ic)
+        val before = ic.getTextBeforeCursor(CARET_WORD_AHEAD, 0)?.toString() ?: return
+        val after = ic.getTextAfterCursor(CARET_WORD_AHEAD, 0)?.toString() ?: return
+        val head = before.takeLastWhile { isComposingWordChar(it) }
+        val tail = after.takeWhile { isComposingWordChar(it) }
+        if (head.isEmpty() && tail.isEmpty()) return
+        val word = head + tail
+        val next = caseFormStep(word, up)
+        if (next == word || next.length != word.length) return
+        val caret = caretOffset(ic)
+        typedCaretAt = -1
+        typedCaretResetAt = SystemClock.uptimeMillis()
+        ic.beginBatchEdit()
+        ic.deleteSurroundingText(head.length, tail.length)
+        if (caret != null) {
+            ic.commitText(next, 1)
+            ic.setSelection(caret, caret)
+        } else {
+            ic.commitText(next.substring(0, head.length), 1)
+            ic.commitText(next.substring(head.length), 0)
+        }
+        ic.endBatchEdit()
+        invalidateExpectedSelection()
     }
 
     /**
@@ -20274,6 +20322,57 @@ open class WMKeyboardService : InputMethodService() {
         deleteSwipeSteps.clear()
         deleteSwipeWraps = emptyList()
         deleteSwipeWrapsAsk++
+    }
+
+    /**
+     * Where a space key's tap cycle (`Key.spaceCycle`, #1409) stands: the step
+     * the last tap left ([spaceCycleNext]), and the text before the caret just
+     * after it, which the next tap must still find there for nothing to have
+     * been typed between. Null when no cycle is running.
+     */
+    private var spaceCycleStep = -1
+    private var spaceCycleTail: String? = null
+
+    /**
+     * After a plain space from a key with a cycle: the cycle is ready to start
+     * from it. Only in a plain text field, where a `, ` is welcome; an address
+     * or a number keeps its spaces.
+     */
+    private fun noteSpaceCycleStart(key: Key) {
+        spaceCycleTail = null
+        spaceCycleStep = -1
+        if (key.spaceCycle.isEmpty() || _uiState.value.fieldKind != FieldKind.TEXT) return
+        val ic = currentInputConnection ?: return
+        val tail = ic.getTextBeforeCursor(SPACE_CYCLE_TAIL, 0)?.toString() ?: return
+        if (tail.endsWith(" ")) spaceCycleTail = tail
+    }
+
+    /**
+     * A further tap of a space key with a cycle, with nothing typed since the
+     * last (#1409): the text that tap left becomes the cycle's next entry,
+     * `word ` → `word, ` → `word. `. False, and the press is an ordinary
+     * space, when no cycle is running or the text before the caret has moved
+     * on. Runs ahead of the double-space rules, which a layout with a cycle
+     * has traded for it.
+     */
+    private fun stepSpaceCycle(key: Key): Boolean {
+        val tail = spaceCycleTail ?: return false
+        spaceCycleTail = null
+        if (key.spaceCycle.isEmpty() || composing.isNotEmpty()) return false
+        val ic = currentInputConnection ?: return false
+        if (ic.getTextBeforeCursor(SPACE_CYCLE_TAIL, 0)?.toString() != tail) return false
+        val left = key.spaceCycle.getOrNull(spaceCycleStep) ?: " "
+        if (!tail.endsWith(left)) return false
+        val (step, next) = spaceCycleNext(key.spaceCycle, spaceCycleStep)
+        ic.beginBatchEdit()
+        ic.deleteSurroundingText(left.length, 0)
+        ic.commitText(next, 1)
+        ic.endBatchEdit()
+        lastSpaceTime = 0
+        spaceCycleStep = step
+        spaceCycleTail = ic.getTextBeforeCursor(SPACE_CYCLE_TAIL, 0)?.toString()
+        maybeAutoCapitalize()
+        return true
     }
 
     private fun onSpace() {
@@ -56140,6 +56239,13 @@ open class WMKeyboardService : InputMethodService() {
             clearWholeField()
             return
         }
+        // One case form up or down for the word at the caret (#1409), the word
+        // being typed included: Thumb-Key's shift arms swiped out and back.
+        if (action == TextEditAction.CASE_UP || action == TextEditAction.CASE_DOWN) {
+            if (haptic) vibrate()
+            stepWordCaseAtCaret(up = action == TextEditAction.CASE_UP)
+            return
+        }
         if (action == TextEditAction.RETYPE_WORD) {
             if (haptic) vibrate()
             // One press clears one word (#1189): a second, before anything
@@ -56220,6 +56326,7 @@ open class WMKeyboardService : InputMethodService() {
             TextEditAction.DELETE_WORD, TextEditAction.DELETE_WORD_FORWARD,
             TextEditAction.DELETE_LINE, TextEditAction.DELETE_LINE_FORWARD,
             TextEditAction.CLEAR_FIELD, TextEditAction.DELETE_TO_START, TextEditAction.DELETE_TO_END,
+            TextEditAction.CASE_UP, TextEditAction.CASE_DOWN,
             -> Unit
             // Ctrl+Home / Ctrl+End are the editor's whole-text moves, the same
             // way Ctrl+Arrow is its word move; with select mode on they carry

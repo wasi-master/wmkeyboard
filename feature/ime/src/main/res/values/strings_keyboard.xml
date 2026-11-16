@@ -14,6 +14,7 @@
     <string name="ime_key_shift_on">Shift on</string>
     <string name="ime_key_caps_lock_on">Caps lock on</string>
     <string name="ime_key_caps_lock">Caps lock</string>
+    <string name="ime_key_shift_off">Shift off</string>
     <string name="ime_key_tab">Tab</string>
     <string name="ime_key_arrow_left">Left</string>
     <string name="ime_key_arrow_right">Right</string>

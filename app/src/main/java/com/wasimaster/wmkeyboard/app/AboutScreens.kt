@@ -1042,6 +1042,17 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/ekushey-org/bangla-bsti-mobile",
         ),
     )
+    // Issue #1409: the letter tables only, read by our own generator
+    // (scripts/gen_thumbkey_layouts.py); none of Thumb-Key's code is in the app.
+    add(
+        Attribution(
+            "Thumb-Key",
+            R.string.about_bundled_thumbkey_used,
+            "Copyright Dessalines and Thumb-Key contributors",
+            "AGPL-3.0", null,
+            "https://github.com/dessalines/thumb-key",
+        ),
+    )
     add(
         Attribution(
             "IndicXlit",

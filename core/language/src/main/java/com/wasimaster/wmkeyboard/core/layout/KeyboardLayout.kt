@@ -230,6 +230,28 @@ data class Key(
      */
     val flickActions: Map<FlickDirection, KeyAlternate> = emptyMap(),
     /**
+     * What swiping out to an arm and more than halfway back again runs, by
+     * direction (issue #1409): Thumb-Key's swipe-return. Its shift arms put the
+     * word at the caret one case up or down when swiped out and back, its
+     * select-all arm selects the line instead.
+     *
+     * An entry here beats the arm's capital, which is what the return types
+     * when there is none ([Key.flickShift] or the arm's own upper case). An
+     * entry for a direction with no arm at all is never reached, since the
+     * return is measured from the arm the finger went out to.
+     */
+    val flickReturn: Map<FlickDirection, KeyAlternate> = emptyMap(),
+    /**
+     * On a space key, what each further tap turns the space just typed into,
+     * in order (issue #1409): Thumb-Key's `, ` then `. ` then `? ` … , so two
+     * taps end a clause and three a sentence. Each entry replaces the text the
+     * tap before it put in; a tap after the last starts over with a plain
+     * space. Only taps of this key with nothing typed between count, and only
+     * in a plain text field. Empty, the usual case, leaves the space to the
+     * double-space settings.
+     */
+    val spaceCycle: List<String> = emptyList(),
+    /**
      * How big this one key's label is drawn, as a multiple of an ordinary
      * letter's size — and null, the normal case, means the keyboard decides,
      * which is a letter's size for a letter and a smaller one for a
@@ -437,6 +459,7 @@ fun Key.asKanaVariantKey(): Key = copy(
     flick = emptyMap(),
     flickShift = emptyMap(),
     flickActions = emptyMap(),
+    flickReturn = emptyMap(),
     letters = null,
     repeatOnHold = false,
 )
@@ -743,6 +766,17 @@ fun Key.flickKey(direction: FlickDirection): Key? {
             return Key(label = arm.text, output = target.text, action = target.toAction())
         }
     }
+}
+
+/**
+ * What swiping out towards [direction] and back runs instead of the arm
+ * (issue #1409): the [Key.flickReturn] entry, pressed the way an action arm is,
+ * or null when that direction has none or no arm to go out to.
+ */
+fun Key.flickReturnKey(direction: FlickDirection): Key? {
+    if (flickArm(direction) == null) return null
+    val entry = flickReturn[direction]?.takeIf { it.action != KeyAction.Text } ?: return null
+    return Key(label = entry.label, action = entry.action)
 }
 
 /**

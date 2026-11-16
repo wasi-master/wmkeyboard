@@ -86,6 +86,7 @@ data class ThemePreviewSandbox(
                 val next = if (shift == ShiftState.CAPS_LOCK) ShiftState.OFF else ShiftState.CAPS_LOCK
                 copy(shift = next, shiftPressedByUser = next != ShiftState.OFF)
             }
+            KeyAction.ShiftOff -> copy(shift = ShiftState.OFF, shiftPressedByUser = false)
             KeyAction.Delete -> deleted(context)
             KeyAction.Space -> typed(" ", context)
             KeyAction.Enter, KeyAction.Newline -> typed("\n", context)

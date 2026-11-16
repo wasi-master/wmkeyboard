@@ -71,6 +71,11 @@ enum class TextEditAction {
     // Issue #1314. The clipboard typed out key by key rather than pasted: a
     // site that refuses a paste into its login fields takes it as typing.
     TYPE_CLIPBOARD,
+
+    // Issue #1409. The word at or before the caret one case form up (lower →
+    // Title → UPPER) or down (UPPER → Title → lower): what Thumb-Key's shift
+    // arms do when swiped out and back, and an action for any key or flick.
+    CASE_UP, CASE_DOWN,
 }
 
 /**

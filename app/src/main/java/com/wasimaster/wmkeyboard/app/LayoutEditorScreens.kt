@@ -5842,6 +5842,12 @@ internal val KeyActionCatalog: List<KeyActionOption> = listOf(
         { KeyAction.CapsLock }, { it == KeyAction.CapsLock },
     ),
     KeyActionOption(
+        R.string.layout_editor_action_shift_off_title,
+        R.string.layout_editor_action_group_typing,
+        R.string.layout_editor_action_shift_off_detail,
+        { KeyAction.ShiftOff }, { it == KeyAction.ShiftOff },
+    ),
+    KeyActionOption(
         R.string.layout_editor_action_delete_title,
         R.string.layout_editor_action_group_typing,
         R.string.layout_editor_action_delete_detail,
@@ -6526,6 +6532,17 @@ internal fun KeyEditSheet(
         }
     }
 
+    // Issue #1409: what further taps of the space bar turn its space into.
+    if (key.action == KeyAction.Space) {
+        SettingsGroup(
+            stringResource(R.string.layout_editor_key_section_space_cycle),
+            foldKey = if (key.spaceCycle.isEmpty()) "key_space_cycle" else null,
+            level = SettingLevel.STANDARD,
+        ) {
+            item { SpaceCycleField(key, ref, onChange) }
+        }
+    }
+
     SettingsGroup(stringResource(R.string.layout_editor_key_section_look), foldKey = "key_look") {
         item {
             KeyWidthRow(
@@ -7112,6 +7129,10 @@ private fun FlickFields(
     var pickingLayoutAt by remember(ref) { mutableStateOf<FlickDirection?>(null) }
     var pickingModeAt by remember(ref) { mutableStateOf<FlickDirection?>(null) }
     var pickingPluginAt by remember(ref) { mutableStateOf<FlickDirection?>(null) }
+    // What an arm's out-and-back runs (#1409), and its second question.
+    var pickingReturnAt by remember(ref) { mutableStateOf<FlickDirection?>(null) }
+    var pickingReturnEditAt by remember(ref) { mutableStateOf<FlickDirection?>(null) }
+    var pickingReturnToolAt by remember(ref) { mutableStateOf<FlickDirection?>(null) }
     if (!open) {
         WmRow(
             title = stringResource(R.string.layout_editor_flick_add_action),
@@ -7246,10 +7267,39 @@ private fun FlickFields(
             }
         }
     }
-    if (key.flick.isNotEmpty() || key.flickShift.isNotEmpty() || key.flickActions.isNotEmpty()) {
+    // Issue #1409: what swiping out to this arm and back runs, in place of
+    // the capital. Only for a direction that has an arm to go out to.
+    if (key.flickArm(direction) != null) {
+        val back = key.flickReturn[direction]
+        WmRow(
+            title = stringResource(R.string.layout_editor_flick_return_title),
+            subtitle = if (back != null) {
+                stringResource(R.string.layout_editor_flick_action_set, actionAlternateName(back, secondaryLayouts, keyboardModes))
+            } else {
+                stringResource(R.string.layout_editor_flick_return_none)
+            },
+            leading = { Icon(Icons.Outlined.Bolt, contentDescription = null) },
+            trailing = if (back != null) {
+                {
+                    IconButton(onClick = { onChange { it.copy(flickReturn = it.flickReturn - direction) } }) {
+                        Icon(
+                            Icons.Outlined.Close,
+                            contentDescription = stringResource(R.string.layout_editor_action_alternate_remove_desc),
+                        )
+                    }
+                }
+            } else {
+                null
+            },
+            onClick = { pickingReturnAt = direction },
+        )
+    }
+    if (key.flick.isNotEmpty() || key.flickShift.isNotEmpty() || key.flickActions.isNotEmpty() || key.flickReturn.isNotEmpty()) {
         TextButton(
             onClick = {
-                onChange { it.copy(flick = emptyMap(), flickShift = emptyMap(), flickActions = emptyMap()) }
+                onChange {
+                    it.copy(flick = emptyMap(), flickShift = emptyMap(), flickActions = emptyMap(), flickReturn = emptyMap())
+                }
                 open = false
             },
             modifier = Modifier.padding(horizontal = 8.dp),
@@ -7283,6 +7333,65 @@ private fun FlickFields(
                 finishArm(direction, KeyAction.Tool(tool))
             },
             onDismiss = { picking = null },
+        )
+    }
+
+    fun setReturn(direction: FlickDirection, action: KeyAction) = onChange {
+        it.copy(flickReturn = (it.flickReturn + (direction to KeyAlternate(action))).inFlickOrder())
+    }
+    pickingReturnAt?.let { direction ->
+        KeyActionPickerDialog(
+            current = key.flickReturn[direction]?.action ?: KeyAction.None,
+            // The kinds that ask one more question and have a dialog for it
+            // here; a sequence, a layout, a mode or a plugin on a return is a
+            // job for the layout's JSON.
+            options = AlternateActionCatalog.filter { option ->
+                when (option.build()) {
+                    is KeyAction.EditSequence, is KeyAction.Layout, is KeyAction.Mode, is KeyAction.Plugin -> false
+                    else -> true
+                }
+            },
+            onPick = { action ->
+                pickingReturnAt = null
+                when (action) {
+                    is KeyAction.Edit -> pickingReturnEditAt = direction
+                    is KeyAction.Tool -> pickingReturnToolAt = direction
+                    KeyAction.None -> onChange { it.copy(flickReturn = it.flickReturn - direction) }
+                    else -> setReturn(direction, action)
+                }
+            },
+            onPickTool = { tool ->
+                pickingReturnAt = null
+                setReturn(direction, KeyAction.Tool(tool))
+            },
+            onDismiss = { pickingReturnAt = null },
+        )
+    }
+    pickingReturnEditAt?.let { direction ->
+        TextEditActionPickerDialog(
+            current = (key.flickReturn[direction]?.action as? KeyAction.Edit)?.op,
+            onDismiss = { pickingReturnEditAt = null },
+            onPick = { op ->
+                pickingReturnEditAt = null
+                setReturn(direction, KeyAction.Edit(op))
+            },
+        )
+    }
+    pickingReturnToolAt?.let { direction ->
+        ToolPickerDialog(
+            title = stringResource(R.string.layout_editor_tool_picker_title),
+            current = (key.flickReturn[direction]?.action as? KeyAction.Tool)?.takeIf { it.custom == null }?.tool,
+            options = ToolbarTool.entries.filter(::isSupportedTool),
+            onDismiss = { pickingReturnToolAt = null },
+            onPick = { picked ->
+                pickingReturnToolAt = null
+                picked?.let { tool -> setReturn(direction, KeyAction.Tool(tool)) }
+            },
+            customCurrent = (key.flickReturn[direction]?.action as? KeyAction.Tool)?.custom,
+            onPickCustom = { id ->
+                pickingReturnToolAt = null
+                setReturn(direction, KeyAction.Tool(custom = id))
+            },
         )
     }
 
@@ -7466,6 +7575,26 @@ private fun FlickPadCell(key: Key, direction: FlickDirection, takesActions: Bool
 
 /** Tells a flick arm's text field apart from its Shift field, which share a direction. */
 private const val FlickTextField = "text"
+
+/**
+ * The space bar's tap cycle (`Key.spaceCycle`, issue #1409) as one line of
+ * entries split by `|`, so the spaces inside each entry stay as typed:
+ * `, |. |? ` is Thumb-Key's comma, stop and question mark.
+ */
+@Composable
+private fun SpaceCycleField(key: Key, ref: KeyRef, onChange: ((Key) -> Key) -> Unit) {
+    CaptionText(stringResource(R.string.layout_editor_space_cycle_caption))
+    SheetField(
+        label = stringResource(R.string.layout_editor_space_cycle_label),
+        value = key.spaceCycle.joinToString(SpaceCycleSeparator),
+        supporting = stringResource(R.string.layout_editor_space_cycle_hint),
+        resetKey = ref to SpaceCycleSeparator,
+    ) { text ->
+        onChange { it.copy(spaceCycle = text.split(SpaceCycleSeparator).filter { entry -> entry.isNotEmpty() }) }
+    }
+}
+
+private const val SpaceCycleSeparator = "|"
 
 /** Tells a flick arm's Shift field apart from its text field, which share a direction. */
 private const val FlickShiftField = "shift"

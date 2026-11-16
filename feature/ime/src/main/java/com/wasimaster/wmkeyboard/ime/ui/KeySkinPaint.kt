@@ -283,7 +283,7 @@ internal fun skinSlotNameFor(key: Key): String = when (val action = key.action) 
     KeyAction.Space -> SkinSlotName.SPACE
     KeyAction.Enter, KeyAction.Newline, KeyAction.EditorAction -> SkinSlotName.ENTER
     KeyAction.Delete, KeyAction.ForwardDelete -> SkinSlotName.DELETE
-    KeyAction.Shift, KeyAction.CapsLock -> SkinSlotName.SHIFT
+    KeyAction.Shift, KeyAction.CapsLock, KeyAction.ShiftOff -> SkinSlotName.SHIFT
     KeyAction.Symbols, KeyAction.Letters, KeyAction.Numpad -> SkinSlotName.MODE
     is KeyAction.Mode, is KeyAction.LayerSwitch -> SkinSlotName.MODE
     KeyAction.Emoji -> SkinSlotName.EMOJI

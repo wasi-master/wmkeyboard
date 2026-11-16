@@ -270,6 +270,7 @@
     <string name="about_bundled_avro_used">Desktop Avro\'s dictionary, suffixes, autocorrect and search rules, behind the Avro candidate list</string>
     <string name="about_bundled_khipro_used">The rules of the Khipro Bangla layout</string>
     <string name="about_bundled_bsti_used">The key assignments of the BSTI (BDS 1738:2018) Bangla layout</string>
+    <string name="about_bundled_thumbkey_used">The letter arrangements of the Thumb-Key and MessagEase grid layouts</string>
     <!-- Zawgyi is the name of a Burmese font encoding. Keep it as it is. -->
     <string name="about_bundled_myanmar_tools_used">Tells Zawgyi Burmese from Unicode, and converts between the two</string>
     <string name="about_bundled_cldr_zawgyi_used">The rules the Zawgyi and Unicode converters follow</string>

@@ -690,6 +690,7 @@ import com.wasimaster.wmkeyboard.core.layout.ClipboardKeyAction
 import com.wasimaster.wmkeyboard.core.layout.AlternateEntry
 import com.wasimaster.wmkeyboard.core.layout.alternateEntries
 import com.wasimaster.wmkeyboard.core.layout.flickKey
+import com.wasimaster.wmkeyboard.core.layout.flickReturnKey
 import com.wasimaster.wmkeyboard.core.layout.withDeleteLineArms
 import com.wasimaster.wmkeyboard.core.layout.asKanaVariantKey
 import com.wasimaster.wmkeyboard.core.layout.withModeNames
@@ -1346,6 +1347,7 @@ private fun spokenLabel(key: Key, state: KeyboardUiState): SpokenLabel = when (k
             R.string.ime_key_caps_lock
         },
     )
+    KeyAction.ShiftOff -> SpokenLabel(R.string.ime_key_shift_off)
     KeyAction.LanguageSwitch -> SpokenLabel(R.string.ime_key_language_switch)
     KeyAction.InputMethodPicker, is KeyAction.SwitchInputMethod -> SpokenLabel(R.string.ime_key_input_method_picker)
     KeyAction.Emoji -> SpokenLabel(R.string.ime_key_emoji)
@@ -26663,6 +26665,7 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
                     flick = emptyMap(),
                     flickShift = emptyMap(),
                     flickActions = emptyMap(),
+                    flickReturn = emptyMap(),
                 )
                 domainAlternates.isNotEmpty() && role == KeyRole.Period ->
                     key.copy(longPress = domainAlternates + key.longPress)
@@ -30312,6 +30315,7 @@ private fun editorActionSpoken(alternate: KeyAlternate): Int? =
 private fun alternateActionSpoken(action: KeyAction): Int? = when (action) {
     KeyAction.Shift -> R.string.ime_key_shift
     KeyAction.CapsLock -> R.string.ime_key_caps_lock
+    KeyAction.ShiftOff -> R.string.ime_key_shift_off
     KeyAction.Delete -> R.string.ime_key_delete
     KeyAction.ForwardDelete -> R.string.ime_key_forward_delete
     KeyAction.Enter -> R.string.ime_enter_default
@@ -30586,6 +30590,11 @@ private fun FlickCrossPopup(
                     else shown(raw.text, key.flickShift[direction]),
                 )
                 else -> raw
+            }.let { shownArm ->
+                // Brought back on an arm with a return action (#1409): the
+                // cell shows what the lift will run.
+                val back = key.flickReturn[direction]?.takeIf { lit && returned && key.flickReturnKey(direction) != null }
+                if (back != null) FlickArm.Action(back) else shownArm
             }
             FlickCell(arm, lit, flickCellAlignment(direction), fontScale)
         }
@@ -31786,6 +31795,7 @@ private fun flickArmGlyph(action: KeyAction): String = when (action) {
     KeyAction.Enter, KeyAction.Newline, KeyAction.EditorAction -> "⏎"
     KeyAction.Shift -> "⇧"
     KeyAction.CapsLock -> "⇪"
+    KeyAction.ShiftOff -> "⇩"
     KeyAction.Space -> AlternateSpaceGlyph
     KeyAction.LanguageSwitch -> "🌐"
     KeyAction.Emoji -> "☺"
@@ -34085,7 +34095,8 @@ private fun Modifier.pointerInputKey(
                         )
                         val resolved: FlickDirection?
                         val nowReturned: Boolean
-                        if (peak != null && key.flickShiftedText(peak) != null) {
+                        // A return action (#1409) is reached the same way.
+                        if (peak != null && (key.flickShiftedText(peak) != null || key.flickReturnKey(peak) != null)) {
                             resolved = peak
                             nowReturned = flickReturned(extremeDist, (change.position - extreme).getDistance())
                         } else {
@@ -34177,6 +34188,9 @@ private fun Modifier.pointerInputKey(
                 // The capital the return asked for rides as both output and
                 // shift label, so an armed Shift and the return agree on it.
                 val capital = dir?.takeIf { returned }?.let { key.flickShiftedText(it) }
+                // What the arm's out-and-back runs, where it has one (#1409):
+                // it wins over the capital.
+                val returnKey = dir?.takeIf { returned }?.let { key.flickReturnKey(it) }
                 when {
                     armRepeated || centreRepeated -> Unit
                     // A chord ran during this hold: the arm the finger
@@ -34184,6 +34198,7 @@ private fun Modifier.pointerInputKey(
                     chorded -> Unit
                     holdRan && chosen == null -> if (hapticOnLongPressRelease) onKeyPress()
                     chosen != null && bent != null -> onKey(chosen.copy(output = bent, shiftLabel = null))
+                    chosen != null && returnKey != null -> onKey(returnKey)
                     chosen != null && capital != null -> onKey(chosen.copy(output = capital, shiftLabel = capital))
                     chosen != null -> onKey(chosen)
                     // The long press already opened alternates; release commits
