@@ -15457,14 +15457,19 @@ open class WMKeyboardService : InputMethodService() {
             if (pair != null) {
                 val (opener, closer) = pair
                 val selected = ic.getSelectedText(0)?.toString().orEmpty()
+                // Where the selection starts, read before the edit: a read
+                // after it is stale inside a batch on a Compose field (see
+                // [caretAfter]), and the inner text came out selected in the
+                // wrong place.
+                val start = ic.getExtractedText(ExtractedTextRequest(), 0)
+                    ?.takeIf { it.selectionStart >= 0 && it.selectionEnd >= 0 }
+                    ?.let { it.startOffset + minOf(it.selectionStart, it.selectionEnd) }
                 invalidateExpectedSelection()
                 ic.beginBatchEdit()
                 ic.commitText("$opener$selected$closer", 1)
-                val end = ic.getExtractedText(ExtractedTextRequest(), 0)?.selectionEnd
-                if (end != null) {
-                    val innerEnd = end - closer.length
-                    val innerStart = innerEnd - selected.length
-                    if (innerStart in 0..innerEnd) ic.setSelection(innerStart, innerEnd)
+                if (start != null) {
+                    val innerStart = start + opener.length
+                    ic.setSelection(innerStart, innerStart + selected.length)
                 }
                 ic.endBatchEdit()
                 consumeShift()
@@ -15806,7 +15811,7 @@ open class WMKeyboardService : InputMethodService() {
                 )
                 armRevertGuard()
                 // And so does the next key, when it makes the mark a face (#1166).
-                huggedMark = caretOffset(ic)?.let { HuggedMark(text[0], hugged, it) }
+                huggedMark = caretAfter(ic, text)?.let { HuggedMark(text[0], hugged, it) }
             } else if (isSpacedOpener(text, state)) {
                 // "«" opens a French quotation and the space is part of it, so
                 // it is typed here rather than left for the user — and, being
@@ -16153,16 +16158,16 @@ open class WMKeyboardService : InputMethodService() {
             text.length == 1 && (text[0] == '"' || text[0] == '\'')
         ) {
             val before = ic.getTextBeforeCursor(2, 0)?.dropLast(1)?.lastOrNull()
-            autoCloseQuoteFor(text[0], before, ic.getTextAfterCursor(1, 0))?.let { placeCloser(ic, it) }
+            autoCloseQuoteFor(text[0], before, ic.getTextAfterCursor(1, 0))?.let { placeCloser(ic, text, it) }
             return
         }
         if (!state.settings.textEditing.autoCloseBrackets || !state.allowsBracketPairs) return
         if (text.length != 1 || text[0] !in AUTO_CLOSE_PAIRS) return
         val closer = autoCloseCloserFor(text[0], ic.getTextAfterCursor(1, 0)) ?: return
-        placeCloser(ic, closer)
+        placeCloser(ic, text, closer)
     }
 
-    private fun placeCloser(ic: InputConnection, closer: String) {
+    private fun placeCloser(ic: InputConnection, opener: String, closer: String) {
         // The closer goes in like any typed character and the caret is then put
         // back where it stood, between the two halves. A commit with
         // newCursorPosition 0 says the same thing in one call, but only a plain
@@ -16171,7 +16176,16 @@ open class WMKeyboardService : InputMethodService() {
         // Discord insert the text themselves and leave the caret after it, so
         // the pair came out with the caret outside (#617). Where the field will
         // not say where its caret is, that one call is still the best on offer.
-        val caret = caretOffset(ic)
+        //
+        // Nor where its answer is behind: a Compose text field (Reddit's
+        // title, most new apps) reports the text as it stood before the
+        // opener landed, so the caret was put back in front of the "(" or
+        // "'" just typed and the next letter went before it (Telegram 9590,
+        // 10235: "Hi (" then "j" read "Hi j("). Telegram's EditText answers
+        // at once, which is why it never happened there. [caretAfter] takes
+        // the answer only when it already shows the opener; otherwise the
+        // one-call form, which a Compose field applies in order, does it.
+        val caret = caretAfter(ic, opener)
         if (caret == null) {
             ic.commitText(closer, 0)
         } else {
@@ -16195,6 +16209,37 @@ open class WMKeyboardService : InputMethodService() {
         val extracted = ic.getExtractedText(ExtractedTextRequest(), 0) ?: return null
         if (extracted.selectionEnd < 0) return null
         return extracted.startOffset + extracted.selectionEnd
+    }
+
+    /**
+     * The collapsed caret, when the editor's answer has [ahead] right in
+     * front of it, else null. See [caretAfter] for why an answer is checked.
+     */
+    private fun caretBefore(ic: InputConnection, ahead: String): Int? {
+        val extracted = ic.getExtractedText(ExtractedTextRequest(), 0) ?: return null
+        val end = extracted.selectionEnd
+        if (end < 0 || extracted.selectionStart != end) return null
+        val text = extracted.text ?: return null
+        if (end + ahead.length > text.length) return null
+        if (text.subSequence(end, end + ahead.length).toString() != ahead) return null
+        return extracted.startOffset + end
+    }
+
+    /**
+     * [caretOffset], read just after [typed] went in, or null when the
+     * editor's answer does not show it in front of the caret yet. A Compose
+     * text field answers from its last state update, which lags the commit
+     * this keystroke made; moving the caret to that stale offset put it back
+     * in front of what was typed (Telegram 9590).
+     */
+    private fun caretAfter(ic: InputConnection, typed: String): Int? {
+        val extracted = ic.getExtractedText(ExtractedTextRequest(), 0) ?: return null
+        val end = extracted.selectionEnd
+        if (end < 0 || extracted.selectionStart != end) return null
+        val text = extracted.text ?: return null
+        if (end < typed.length || end > text.length) return null
+        if (text.subSequence(end - typed.length, end).toString() != typed) return null
+        return extracted.startOffset + end
     }
 
     /**
@@ -16244,7 +16289,11 @@ open class WMKeyboardService : InputMethodService() {
             if (!state.settings.textEditing.autoCloseBrackets || text[0] !in AUTO_CLOSE_CLOSERS) return null
             if (!typesOverCloser(text[0], ic.getTextAfterCursor(1, 0))) return null
         }
-        val end = caretOffset(ic) ?: return null
+        // Only when the editor's own answer has the closer right ahead of the
+        // caret: a Compose field can answer from before the last keystroke
+        // landed, and a step from that offset lands somewhere else (see
+        // [caretAfter]). Typing the closer is then the safe fallback.
+        val end = caretBefore(ic, text) ?: return null
         val spaced = shouldAutoSpaceAfterPunctuation(ic, state, text, overCloser = true)
         invalidateExpectedSelection()
         ic.setSelection(end + 1, end + 1)
