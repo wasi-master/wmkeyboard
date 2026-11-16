@@ -222,7 +222,7 @@ fun clipPattern(pattern: String, ignoreCase: Boolean = true, dotAll: Boolean = t
     return runCatching { Regex(tidy, options) }.getOrNull()
 }
 
-private val CountWithSpaces = Regex("""\{\s*(\d+)\s*,\s*(\d*)\s*}""")
+private val CountWithSpaces = Regex("""\{\s*(\d+)\s*,\s*(\d*)\s*\}""")
 
 /** What a pattern is tried against (#612): what the clip says, never the words for its kind. */
 private fun ClipItem.patternParts(): List<String> = buildList {
