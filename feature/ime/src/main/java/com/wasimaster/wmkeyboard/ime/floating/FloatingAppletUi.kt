@@ -318,11 +318,10 @@ internal fun FloatingAppletFrame(
                     }
                 }
                 // Rolled up, the title bar is all there is (#1241).
-                if (!rolled) {
+                if (!rolled) Box(Modifier.weight(1f).fillMaxWidth()) {
                     Box(
                         Modifier
-                            .weight(1f)
-                            .fillMaxWidth()
+                            .fillMaxSize()
                             .dragsWhereUnclaimed(state.settings.summonButton.boxHoldToMove, onBodyDrag),
                     ) {
                         // The tool's own text box takes the keyboard's caret handle,
@@ -346,15 +345,19 @@ internal fun FloatingAppletFrame(
                         ) {
                             AppletPanel(panel, state, callbacks, onClose)
                         }
-                        // With the bottom bar gone (#1262), the grip alone, over the corner.
-                        if (gestures) {
-                            ResizeGrip(
-                                onResize,
-                                Modifier
-                                    .align(Alignment.BottomEnd)
-                                    .background(colors.surface, RoundedCornerShape(topStart = 10.dp)),
-                            )
-                        }
+                    }
+                    // With the bottom bar gone (#1262), the grip alone, over the corner.
+                    // A sibling over the body rather than inside it: inside, the
+                    // body's drag read the grip's finger too, held or past the
+                    // slop, and the box moved while it resized (Telegram 10316).
+                    // Over it, the grip is hit first and the body never sees it.
+                    if (gestures) {
+                        ResizeGrip(
+                            onResize,
+                            Modifier
+                                .align(Alignment.BottomEnd)
+                                .background(colors.surface, RoundedCornerShape(topStart = 10.dp)),
+                        )
                     }
                 }
                 if (!gestures && !rolled) {
