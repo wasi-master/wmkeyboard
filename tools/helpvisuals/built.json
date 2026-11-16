@@ -2511,6 +2511,30 @@
   "kind": "compare",
   "source": "phone"
  },
+ "typing_glide_strip_preview_title": {
+  "frames": [
+   {
+    "dark": {
+     "bytes": 16686,
+     "sha": "0bec2ce95dcd0ecba11ac1e608f5ec8a4f90b2898b5b8825f6ce3277018966d0"
+    },
+    "height": 541,
+    "label": "common_off",
+    "width": 720
+   },
+   {
+    "dark": {
+     "bytes": 15692,
+     "sha": "5cfa4b1b036ea950908e72f67982ca41953c9b5220a4ab2b79b86d322b5b5e16"
+    },
+    "height": 541,
+    "label": "common_on",
+    "width": 720
+   }
+  ],
+  "kind": "compare",
+  "source": "phone"
+ },
  "typing_glide_typing_title": {
   "frames": [
    {
