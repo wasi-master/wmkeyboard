@@ -498,6 +498,7 @@ import com.wasimaster.wmkeyboard.core.transliteration.BengaliGraphemes
 import com.wasimaster.wmkeyboard.core.settings.OneHandedMode
 import com.wasimaster.wmkeyboard.core.settings.AlternateGroup
 import com.wasimaster.wmkeyboard.core.settings.DefaultAlternatesOrder
+import com.wasimaster.wmkeyboard.core.settings.byPickCount
 import com.wasimaster.wmkeyboard.core.settings.oneHandedModeFor
 import com.wasimaster.wmkeyboard.core.settings.pinnedBoardId
 import com.wasimaster.wmkeyboard.core.settings.floatingFor
@@ -26171,6 +26172,8 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     // the sort at the end.
     val alternatesOrder = state.settings.popup.alternatesOrder
     val reorderAlternates = alternatesOrder != DefaultAlternatesOrder
+    // How often each alternate was picked, while the popup orders by use (#1408).
+    val alternatePicks = state.settings.popup.alternatePicks.takeIf { state.settings.popup.alternatesByUse && it.isNotEmpty() }
     // A converted Keyman layout keeps its shifted keys on a page of their own
     // rather than in each key's shiftLabel, which is most of the Arabic-script
     // and Indic boards. Only while the letters page is the one showing: on the
@@ -26259,7 +26262,7 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
         punctuationAlternates.isEmpty() && !kanaVariantKeys && nativeLetters.isEmpty() &&
         questionMark == null && questionSwap == null && periodAlternates.isEmpty() &&
         !reorderAlternates && !numpadOnHold && !fancyDigits &&
-        currencyOnHolds == null && currencyOnKey == null
+        currencyOnHolds == null && currencyOnKey == null && alternatePicks == null
     ) {
         // With every rewrite off, mode keys still draw their mode's name (#874).
         return base.withModeKeyNames(modeNames)
@@ -26493,6 +26496,12 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
                         )
                     },
                 )
+            }
+            // Most picked first, when the user asked for it (#1408): a stable
+            // sort over the order built above, so what was never picked stays
+            // where the layout and the group order put it.
+            if (alternatePicks != null && mapped.longPress.size > 1) {
+                mapped = mapped.copy(longPress = byPickCount(mapped.longPress, alternatePicks))
             }
             // Keyed on what the key types, not what it is labelled: a layout
             // that shows "A" and outputs "a" was silently skipped. A key the

@@ -1161,6 +1161,16 @@ internal fun KeyPressAlternatesSettings(
             ) { scope.launch { repository.setRememberPunctuationPick(it) } }
         }
         item {
+            // Issue #1408: a key's hold lists what is picked most first.
+            ToggleSetting(
+                R.string.keypress_alternates_by_use_title,
+                stringResource(R.string.keypress_alternates_by_use_subtitle),
+                settings.watch { it.popup.alternatesByUse },
+                info = stringResource(R.string.keypress_alternates_by_use_info),
+                default = SettingsDefaults.popup.alternatesByUse,
+            ) { scope.launch { repository.setAlternatesByUse(it) } }
+        }
+        item {
             // Issue #385: which group a letter's popup leads with.
             ControlSetting(
                 R.string.keypress_alternates_order_title,

@@ -936,6 +936,7 @@ private fun SearchStrings.keypressAlternatesRows(): List<SettingsSearchEntry> {
         row(R.string.keypress_alternates_nearest_title, R.string.keypress_alternates_nearest_subtitle),
         row(R.string.keypress_alternates_centred_title, R.string.keypress_alternates_centred_subtitle),
         row(R.string.keypress_remember_punctuation_title, R.string.keypress_remember_punctuation_subtitle),
+        row(R.string.keypress_alternates_by_use_title, R.string.keypress_alternates_by_use_subtitle),
         row(R.string.keypress_alternates_order_title, R.string.keypress_alternates_order_subtitle),
     )
 }

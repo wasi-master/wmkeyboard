@@ -594,6 +594,15 @@ data class KeyPopupSettings(
     val rememberPunctuationPick: Boolean = false,
     /** What those keys type instead, by what they type as laid out. See [rememberedPicksAfter]. */
     val punctuationPicks: Map<String, String> = emptyMap(),
+    /**
+     * A key's hold lists its alternates by how often each has been picked,
+     * most first, so a plain hold-and-release types the usual one (#1408).
+     * Off by default, the owner's call: an order that moves under the finger
+     * is a surprise for anyone who learned where things are.
+     */
+    val alternatesByUse: Boolean = false,
+    /** How often each alternate was picked, while [alternatesByUse] is on. See [alternatePickCountsAfter]. */
+    val alternatePicks: Map<String, Int> = emptyMap(),
 ) {
     /**
      * The stored height of one style, on or off: what [heightDp] is for [onKey],
@@ -12746,6 +12755,8 @@ class SettingsRepository(private val context: Context) {
         private val ALTERNATES_BALANCED = booleanPreferencesKey("alternates_balanced")
         private val REMEMBER_PUNCTUATION_PICK = booleanPreferencesKey("remember_punctuation_pick")
         private val PUNCTUATION_PICKS = stringPreferencesKey("punctuation_picks")
+        private val ALTERNATES_BY_USE = booleanPreferencesKey("alternates_by_use")
+        private val ALTERNATE_PICKS = stringPreferencesKey("alternate_picks")
         private val ALTERNATES_CENTRED = booleanPreferencesKey("alternates_centred")
         private val ALTERNATES_ORDER = stringPreferencesKey("alternates_order")
         private val ALTERNATES_HOLD_TO_SELECT = booleanPreferencesKey("alternates_hold_to_select")
@@ -21197,6 +21208,8 @@ class SettingsRepository(private val context: Context) {
             rememberPunctuationPick = p[REMEMBER_PUNCTUATION_PICK] ?: defaults.popup.rememberPunctuationPick,
             punctuationPicks = p[PUNCTUATION_PICKS]?.let(::decodePunctuationPicks)
                 ?: defaults.popup.punctuationPicks,
+            alternatesByUse = p[ALTERNATES_BY_USE] ?: defaults.popup.alternatesByUse,
+            alternatePicks = p[ALTERNATE_PICKS]?.let(::decodeAlternatePicks) ?: defaults.popup.alternatePicks,
         )
     }
 
@@ -23052,6 +23065,20 @@ class SettingsRepository(private val context: Context) {
         editPrefs {
             it[REMEMBER_PUNCTUATION_PICK] = value
             if (!value) it.remove(PUNCTUATION_PICKS)
+        }
+
+    /** Off forgets the counts too, so turning it back on starts from the layout's order (#1408). */
+    suspend fun setAlternatesByUse(value: Boolean) =
+        editPrefs {
+            it[ALTERNATES_BY_USE] = value
+            if (!value) it.remove(ALTERNATE_PICKS)
+        }
+
+    /** One more pick of [picked] from a key's hold (#1408). */
+    suspend fun countAlternatePick(picked: String) =
+        editPrefs { prefs ->
+            val now = prefs[ALTERNATE_PICKS]?.let(::decodeAlternatePicks).orEmpty()
+            prefs[ALTERNATE_PICKS] = encodeAlternatePicks(alternatePickCountsAfter(now, picked))
         }
 
     /** [picked] chosen from the hold of a key that types [shown] (#1096). */
@@ -27729,6 +27756,54 @@ private fun String.isSingleMark(): Boolean {
     val point = codePointAt(0)
     return !Character.isLetterOrDigit(point) && !Character.isWhitespace(point) && !Character.isISOControl(point)
 }
+
+/** How many characters [KeyPopupSettings.alternatePicks] counts; the least picked go first. */
+const val AlternatePicksMax = 400
+
+/** A count no pick takes past, so one character cannot pin the rest forever. */
+const val AlternatePickCountMax = 1000
+
+/**
+ * [counts] after one more pick of [picked] (#1408). At the cap the least
+ * picked character goes. A count at [AlternatePickCountMax] halves every
+ * count, so the order keeps following what is picked now.
+ */
+fun alternatePickCountsAfter(counts: Map<String, Int>, picked: String): Map<String, Int> {
+    if (picked.isEmpty()) return counts
+    var next = counts + (picked to (counts[picked] ?: 0) + 1)
+    if ((next[picked] ?: 0) >= AlternatePickCountMax) {
+        next = next.mapValues { (_, n) -> n / 2 }.filterValues { it > 0 }
+    }
+    if (next.size > AlternatePicksMax) {
+        val drop = next.entries.filter { it.key != picked }.minByOrNull { it.value }?.key
+        if (drop != null) next = next - drop
+    }
+    return next
+}
+
+/** [KeyPopupSettings.alternatePicks] on disk: `picked<TAB>count` lines. */
+fun encodeAlternatePicks(map: Map<String, Int>): String =
+    map.entries.joinToString("\n") { (picked, count) -> "$picked\t$count" }
+
+fun decodeAlternatePicks(text: String): Map<String, Int> = text.lineSequence()
+    .mapNotNull { line ->
+        val tab = line.lastIndexOf('\t')
+        if (tab <= 0) return@mapNotNull null
+        val count = line.substring(tab + 1).toIntOrNull()?.takeIf { it > 0 } ?: return@mapNotNull null
+        line.substring(0, tab) to count
+    }
+    .toMap()
+
+/**
+ * [alternates] in the order [counts] says they are picked, most first; ties,
+ * and every alternate never picked, keep the order they had (#1408).
+ */
+fun byPickCount(alternates: List<String>, counts: Map<String, Int>): List<String> =
+    if (counts.isEmpty() || alternates.none { it in counts }) {
+        alternates
+    } else {
+        alternates.sortedByDescending { counts[it] ?: 0 }
+    }
 
 /** [KeyPopupSettings.punctuationPicks] on disk: `typed<TAB>picked` lines, oldest first. */
 fun encodePunctuationPicks(map: Map<String, String>): String =

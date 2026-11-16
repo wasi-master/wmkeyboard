@@ -42310,7 +42310,10 @@ open class WMKeyboardService : InputMethodService() {
      * setting comes back.
      */
     private fun onAlternatePicked(shown: String, picked: String) {
-        if (!_uiState.value.settings.popup.rememberPunctuationPick) return
+        val popup = _uiState.value.settings.popup
+        // Counted for the order by use (#1408), only while that is on.
+        if (popup.alternatesByUse) serviceScope.launch { settingsRepository.countAlternatePick(picked) }
+        if (!popup.rememberPunctuationPick) return
         serviceScope.launch { settingsRepository.rememberPunctuationPick(shown, picked) }
     }
 

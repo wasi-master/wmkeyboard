@@ -703,6 +703,7 @@ internal object SettingsRowIcons {
         put(R.string.keypress_alternates_nearest_title) { Icons.Outlined.SwapVert }
         put(R.string.keypress_alternates_centred_title) { Icons.Outlined.SwapHoriz }
         put(R.string.keypress_remember_punctuation_title) { Icons.Outlined.History }
+        put(R.string.keypress_alternates_by_use_title) { Icons.AutoMirrored.Outlined.Sort }
         put(R.string.keypress_alternates_order_title) { Icons.AutoMirrored.Outlined.Sort }
         put(R.string.keypress_alternates_hold_title) { Icons.Outlined.Gesture }
         put(R.string.keypress_popup_shape_title) { Icons.Outlined.Category }
