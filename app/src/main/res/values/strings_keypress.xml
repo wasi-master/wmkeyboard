@@ -225,6 +225,9 @@
     <string name="keypress_word_stops_capitals_info">When backspace deletes word by word, a capital letter inside a word starts a new part. GrapheneOS is deleted as OS first, then Graphene. This helps with names of this kind and with code. This setting is off by default.</string>
     <string name="keypress_word_stops_digits_title">Words stop at numbers</string>
     <string name="keypress_word_stops_digits_subtitle">\"word1\" goes as \"1\", then \"word\"</string>
+    <string name="keypress_word_whole_addresses_title">Addresses go in one step</string>
+    <string name="keypress_word_whole_addresses_subtitle">A web or email address goes whole, marks and all</string>
+    <string name="keypress_word_whole_addresses_info">On, a web or email address such as wmkeyboard.pages.dev/typing/ or test@pm.me counts as one word, so a word delete takes all of it in one step.\n\nOff, the word stops above apply inside an address too. In a browser\'s address bar a held delete then takes it a piece at a time, stopping at dots, slashes and the other marks.</string>
     <string name="keypress_word_stops_digits_info">When backspace deletes word by word, a change between letters and digits starts a new part. word1 is deleted as 1 first, then word. This setting is off by default.</string>
 
     <string name="keypress_word_delete_repeat_title">Word delete interval</string>

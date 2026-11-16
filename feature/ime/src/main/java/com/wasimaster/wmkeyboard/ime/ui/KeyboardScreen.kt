@@ -935,6 +935,16 @@ internal val LocalRestGate = staticCompositionLocalOf { RestGate() }
 internal const val RESTING_HOLD_MS = 400L
 
 /**
+ * A held delete-line arm takes its next line once per this many word steps
+ * ([com.wasimaster.wmkeyboard.core.settings.KeyRepeatSettings.wordDeleteMs]),
+ * so a user who sped up the word hold speeds the lines too (#1399).
+ */
+private const val DELETE_LINE_PACE_WORDS = 4
+
+/** The fastest a held delete-line arm takes lines, whatever the word pace (#1399). */
+private const val DELETE_LINE_PACE_MIN_MS = 400
+
+/**
  * Whether a finger lifting under two-thumb typing was resting (#737): it never
  * left its key's slop, another finger produced input (a tap that typed, a
  * swipe that started) while it was down, and it was down [RESTING_HOLD_MS] or
@@ -33015,8 +33025,21 @@ private fun Modifier.pointerInputKey(
                                     // going while the finger stays out on it.
                                     armRepeat = key.flickKey(live)?.takeIf { it.flickArmRepeats() }?.let { armKey ->
                                         val words = holdClearsWords(armKey, textEditing)
+                                        // A line is a lot to take at the pace of a
+                                        // character: at 50 ms a step a whole wrapped
+                                        // message was selected before the finger could
+                                        // lift (#1399). Lines go at a pace a reader
+                                        // can stop on, and the first one waits as long.
+                                        val linePaceMs = (keyRepeat.wordDeleteMs * DELETE_LINE_PACE_WORDS)
+                                            .coerceAtLeast(DELETE_LINE_PACE_MIN_MS)
                                         scope.launch {
-                                            delay(keyRepeat.startDelayMs.toLong())
+                                            delay(
+                                                if (lineForward != null) {
+                                                    maxOf(keyRepeat.startDelayMs, linePaceMs).toLong()
+                                                } else {
+                                                    keyRepeat.startDelayMs.toLong()
+                                                },
+                                            )
                                             armRepeated = true
                                             while (true) {
                                                 repeatFeedback(vibrateOnRepeat, soundOnRepeat, onKeyPress, onKeySound, onKeyHaptic)
@@ -33033,6 +33056,7 @@ private fun Modifier.pointerInputKey(
                                                 // A caret move steps at the caret's pace, a delete at the delete's.
                                                 val stepMs = when {
                                                     armKey.action.repeatsAsCaretMove() -> textEditing.repeatMs
+                                                    lineForward != null -> linePaceMs
                                                     words -> keyRepeat.wordDeleteMs
                                                     else -> keyRepeat.deleteMs
                                                 }

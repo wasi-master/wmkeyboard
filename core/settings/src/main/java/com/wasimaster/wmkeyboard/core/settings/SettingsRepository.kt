@@ -7873,6 +7873,12 @@ data class TextEditingSettings(
     /** Same, between letters and digits: "word1" goes "1", then "word" (#662). */
     val deleteWordStopsAtDigits: Boolean = false,
     /**
+     * A web or email address goes in one word step, marks and all, whatever
+     * the stops above say. Off, the stops apply inside an address too, so a
+     * held delete in a browser's address bar takes it piece by piece (#1296).
+     */
+    val deleteWordWholeAddresses: Boolean = true,
+    /**
      * Dragging sideways on the ⌦ key deletes forward, the way the same drag on
      * backspace deletes behind (issue #226).
      *
@@ -13837,6 +13843,7 @@ class SettingsRepository(private val context: Context) {
         private val SHIFT_RECASES_WORD_AT_CARET = booleanPreferencesKey("shift_recases_word_at_caret")
         private val SHIFT_RECASES_WORD_AROUND_CARET = booleanPreferencesKey("shift_recases_word_around_caret")
         private val DELETE_WORD_STOPS_AT_DIGITS = booleanPreferencesKey("delete_word_stops_at_digits")
+        private val DELETE_WORD_WHOLE_ADDRESSES = booleanPreferencesKey("delete_word_whole_addresses")
         private val CURSOR_WORD_STOPS_AT_DIGITS = booleanPreferencesKey("cursor_word_stops_at_digits")
         private val CURSOR_WORD_STEPS = stringPreferencesKey("cursor_word_steps")
         private val CURSOR_WORD_STOPS_AT_CAPITALS = booleanPreferencesKey("cursor_word_stops_at_capitals")
@@ -16691,6 +16698,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.textEditing.deleteWordStopsAtCapitals,
             deleteWordStopsAtDigits = p[DELETE_WORD_STOPS_AT_DIGITS]
                 ?: defaults.textEditing.deleteWordStopsAtDigits,
+            deleteWordWholeAddresses = p[DELETE_WORD_WHOLE_ADDRESSES]
+                ?: defaults.textEditing.deleteWordWholeAddresses,
             forwardDeleteSwipe = p[FORWARD_DELETE_SWIPE]
                 ?: defaults.textEditing.forwardDeleteSwipe,
             backspaceSwipeUpClears = p[BACKSPACE_SWIPE_UP_CLEARS]
@@ -18746,6 +18755,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setDeleteWordStopsAtDigits(value: Boolean) =
         editPrefs { it[DELETE_WORD_STOPS_AT_DIGITS] = value }
+
+    suspend fun setDeleteWordWholeAddresses(value: Boolean) =
+        editPrefs { it[DELETE_WORD_WHOLE_ADDRESSES] = value }
 
     suspend fun setCursorWordStopsAtDigits(value: Boolean) =
         editPrefs { it[CURSOR_WORD_STOPS_AT_DIGITS] = value }

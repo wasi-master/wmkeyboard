@@ -1310,6 +1310,15 @@ internal fun KeyPressTimingSettings(
                 info = stringResource(R.string.keypress_word_stops_digits_info),
             ) { scope.launch { repository.setDeleteWordStopsAtDigits(it) } }
         }
+        item(visible = holdDeletesWords || (swipeDelete && swipeUnit == BackspaceSwipeUnit.WORD), level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.keypress_word_whole_addresses_title,
+                stringResource(R.string.keypress_word_whole_addresses_subtitle),
+                settings.watch { it.textEditing.deleteWordWholeAddresses },
+                default = SettingsDefaults.textEditing.deleteWordWholeAddresses,
+                info = stringResource(R.string.keypress_word_whole_addresses_info),
+            ) { scope.launch { repository.setDeleteWordWholeAddresses(it) } }
+        }
         item(visible = holdDeletesWords, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.keypress_word_delete_repeat_title,

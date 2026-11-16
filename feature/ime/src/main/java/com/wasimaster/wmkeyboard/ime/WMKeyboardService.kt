@@ -56577,7 +56577,9 @@ open class WMKeyboardService : InputMethodService() {
             punctuation = it.deleteWordStopsAtPunctuation,
             capitals = it.deleteWordStopsAtCapitals,
             digits = it.deleteWordStopsAtDigits,
-            addresses = true,
+            // Off, an address in a browser's bar goes piece by piece at the
+            // stops above instead of in one step (#1296).
+            addresses = it.deleteWordWholeAddresses,
         )
     }
 

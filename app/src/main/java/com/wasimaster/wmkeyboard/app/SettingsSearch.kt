@@ -952,6 +952,7 @@ private fun SearchStrings.keypressTimingRows(): List<SettingsSearchEntry> {
         row(R.string.keypress_word_stops_punctuation_title, R.string.keypress_word_stops_punctuation_subtitle),
         row(R.string.keypress_word_stops_capitals_title, R.string.keypress_word_stops_capitals_subtitle),
         row(R.string.keypress_word_stops_digits_title, R.string.keypress_word_stops_digits_subtitle),
+        row(R.string.keypress_word_whole_addresses_title, R.string.keypress_word_whole_addresses_subtitle),
         row(R.string.keypress_word_delete_repeat_title, R.string.keypress_word_delete_repeat_subtitle),
         row(R.string.keypress_space_repeat_title, R.string.keypress_space_repeat_subtitle),
         row(R.string.keypress_custom_repeat_title, R.string.keypress_custom_repeat_subtitle),

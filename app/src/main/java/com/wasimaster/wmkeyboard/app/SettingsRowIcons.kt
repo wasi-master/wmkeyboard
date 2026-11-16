@@ -2480,6 +2480,7 @@ internal object SettingsRowIcons {
         put(R.string.keypress_word_stops_punctuation_title) { Icons.Outlined.FormatQuote }
         put(R.string.keypress_word_stops_capitals_title) { Icons.Outlined.KeyboardCapslock }
         put(R.string.keypress_word_stops_digits_title) { Icons.Outlined.Numbers }
+        put(R.string.keypress_word_whole_addresses_title) { Icons.Outlined.Link }
         put(R.string.keypress_no_accents_title) { Icons.Outlined.Block }
         put(R.string.appearance_toolbar_hold_delay_title) { Icons.Outlined.Timer }
         put(R.string.layout_editor_bottom_row_laid_out_title) { Icons.Outlined.PushPin }
