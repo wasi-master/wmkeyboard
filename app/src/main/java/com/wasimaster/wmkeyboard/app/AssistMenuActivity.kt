@@ -77,7 +77,9 @@ import java.util.Locale
  *   written in the message box. Nothing is sent until the user sends it.
  * - **Ask by voice** listens here with the keyboard's voice engines
  *   ([AppDictation]) and puts the words in the message box, with the screen
- *   attached when there is one.
+ *   attached when there is one. With Read answers aloud on (#1402) the
+ *   question is sent at once and the answer read out, like a voice
+ *   assistant, while the chat shows it and what its tools did.
  * - **New chat** opens the chat with nothing attached.
  *
  * The screen actions show only when Android sent the screen's text, which
@@ -180,7 +182,9 @@ class AssistMenuActivity : ComponentActivity() {
                     override fun onResult(text: String) {
                         dictation = null
                         listening = false
-                        openChat(text, withScreen = true)
+                        val spoken = settings.ai.chatSpeak != com.wasimaster.wmkeyboard.core.tools.AiSpeakReplies.OFF
+                        val tag = AppDictation.languagesFor(settings, requestedTag = null).firstOrNull()?.let { AppDictation.tagOf(it) }
+                        openChat(text, withScreen = true, spoken = spoken, spokenTag = tag.orEmpty())
                     }
 
                     override fun onError(error: AppDictation.Error) {
@@ -197,13 +201,16 @@ class AssistMenuActivity : ComponentActivity() {
     }
 
     /** The AI chat sheet, with [draft] in its message box and the screen attached when [withScreen]. */
-    private fun openChat(draft: String, withScreen: Boolean) {
+    private fun openChat(draft: String, withScreen: Boolean, spoken: Boolean = false, spokenTag: String = "") {
         val chat = Intent(this, AskAiActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         if (withScreen) {
             intent?.getStringExtra(AskAiLaunch.EXTRA_SCREEN_TEXT)?.let { chat.putExtra(AskAiLaunch.EXTRA_SCREEN_TEXT, it) }
             intent?.getStringExtra(AskAiLaunch.EXTRA_SCREEN_PACKAGE)?.let { chat.putExtra(AskAiLaunch.EXTRA_SCREEN_PACKAGE, it) }
         }
         if (draft.isNotBlank()) chat.putExtra(AskAiActivity.EXTRA_DRAFT, draft)
+        if (spoken && draft.isNotBlank()) {
+            chat.putExtra(AskAiActivity.EXTRA_SEND_SPOKEN, true).putExtra(AskAiActivity.EXTRA_SPOKEN_TAG, spokenTag)
+        }
         startActivity(chat)
         finish()
     }

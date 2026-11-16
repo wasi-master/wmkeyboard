@@ -177,14 +177,28 @@ The gesture then opens a short menu at the bottom of the screen, over the app yo
 
 - **Ask about this screen** opens the chat with the screen's text attached, as the floating button's **Ask AI about this screen** does.
 - **Explain this screen** and **Translate this screen** do the same with a question already in the message box ("Explain what is on this screen.", or "Translate this into" your phone's language). Change it or send it as it is.
-- **Ask by voice** listens with your [voice typing](/tools/voice/) engines, then opens the chat with what you said in the message box, and the screen attached when there is one.
+- **Ask by voice** listens with your [voice typing](/tools/voice/) engines, then opens the chat with what you said, and the screen attached when there is one. With [Read answers aloud](#spoken-answers) on, which it is by default, the question is sent at once and the answer is read out, like a voice assistant: "set an alarm for seven" goes to the alarm tool, the chat shows it working, and you hear what it did. With the setting off, what you said waits in the message box for you to send.
 - **New chat** opens the chat with nothing attached.
 
-Every item ends in the same chat sheet as the other ways in, with the AI tool's models, its [tools](/tools/ai/) and its history, so a question that needs a tool (set a timer, add a calendar event, look something up) works the way it does anywhere else in the chat. Nothing is sent until you send it.
+Every item ends in the same chat sheet as the other ways in, with the AI tool's models, its [tools](/tools/ai/) and its history, so a question that needs a tool (set a timer, add a calendar event, look something up) works the way it does anywhere else in the chat. A tool that asks first still shows its card for you to allow. Apart from a spoken question with Read answers aloud on, nothing is sent until you send it.
 
 The three screen items only appear when Android hands the assistant the screen's text, which it does when **Use text from screen** is on in its assistant settings (behind the gear next to **Digital assistant app**). Without it, a line under the menu says so, with a button to that page. Password fields are never read, and at most 8,000 characters come along.
 
 Android gives every assistant a speech recognizer of its own and makes it the phone's while the assistant is picked. WM Keyboard's is the one [Voice input for other apps](/tools/voice/#voice-input-for-other-apps) uses, so while WM Keyboard is the assistant, apps that ask Android's speech recognizer are heard by your voice typing engines too. With **Phone's recognizer** as the engine, their requests go on to the recognizer you had before. Turning on the assistant doesn't put WM Keyboard's voice input window in front of other apps' microphone buttons; that is still **Voice input for other apps**' own switch.
+
+## Spoken answers
+
+<SettingsPath path="Tools / AI writing tools / Read answers aloud" />
+
+The chat in the app, and the sheet the assistant gesture and the other ways in open, can talk back. The microphone in the message box, beside **+**, listens with your [voice typing](/tools/voice/) engines and shows the words as they're heard, with **Done** to finish and **Cancel** to drop them. What happens next depends on **Read answers aloud**:
+
+- **After a spoken question**, the default: a question you said is sent as soon as you stop, and its answer is read out. A typed question gets a written answer only.
+- **Always**: every answer is read out, typed question or spoken.
+- **Off**: nothing is read, and a spoken question lands in the message box for you to send.
+
+The answer is read once it's finished, while it stays on screen with any tools it used, such as the alarm it set or the search it ran. Markdown's marks aren't read: no asterisks, no link addresses, no code blocks. A very long answer stops at a sentence after about 3,000 characters. The voice is a downloaded one from [Read back](/tools/read-back/) when you have one for the language, otherwise the phone's text-to-speech, in the language you spoke in, or the phone's language for a typed question.
+
+A bar over the message box shows while it reads, with **Stop**, and a microphone to cut in: tap it and the reading stops and the chat listens for your next question. Typing in the message box stops it too, and so does leaving the chat. The chat on the keyboard's AI panel keeps its answers written, since it sits over the app you're typing in.
 
 ## Modes and answer formats
 

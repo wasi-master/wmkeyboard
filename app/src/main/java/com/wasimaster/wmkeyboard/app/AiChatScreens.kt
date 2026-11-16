@@ -87,6 +87,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lock
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mic
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.RecordVoiceOver
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Stop
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -480,6 +482,14 @@ internal fun AiChatScreen(
      * menu (#1143) wrote for the user to send or change.
      */
     initialDraft: String = "",
+    /**
+     * [initialDraft] was said, not written (#1402): the assistant's Ask by
+     * voice. It is sent as soon as a model is there, and its answer read out
+     * when Read answers aloud allows; [spokenTag] is the language it was
+     * heard in, for the voice that reads the answer.
+     */
+    sendDraft: Boolean = false,
+    spokenTag: String = "",
 ) {
     val context = LocalContext.current
     val store = AiChatController.store(context)
@@ -565,6 +575,44 @@ internal fun AiChatScreen(
     }
     val listState = rememberLazyListState()
 
+    // ---- spoken questions and answers (#1402) ----
+    val speakSetting = settings.watch { it.ai.chatSpeak }
+    val speaker = remember { com.wasimaster.wmkeyboard.core.vocab.VocabSpeaker(context) }
+    var speaking by remember { mutableStateOf(false) }
+    // When the answer to read was asked for, and in which language: an answer
+    // newer than this is read once it is finished. Zero reads nothing.
+    var speakSince by rememberSaveable { mutableLongStateOf(0L) }
+    var speakTag by rememberSaveable { mutableStateOf("") }
+    var listening by remember { mutableStateOf(false) }
+    var heard by remember { mutableStateOf("") }
+    var voiceError by remember { mutableStateOf<com.wasimaster.wmkeyboard.ime.sysvoice.AppDictation.Error?>(null) }
+    var dictation by remember { mutableStateOf<com.wasimaster.wmkeyboard.ime.sysvoice.AppDictation?>(null) }
+    val stopSpeaking: () -> Unit = {
+        speaker.stop()
+        speaking = false
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            dictation?.cancel()
+            speaker.shutdown()
+        }
+    }
+    // Nothing keeps talking or listening behind another app.
+    val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
+    DisposableEffect(lifecycle) {
+        val watcher = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_STOP) {
+                dictation?.cancel()
+                dictation = null
+                listening = false
+                speaker.stop()
+                speaking = false
+            }
+        }
+        lifecycle.addObserver(watcher)
+        onDispose { lifecycle.removeObserver(watcher) }
+    }
+
     // The session mirrors the native KV cache; keep it only while some chat
     // screen is alive, so an abandoned chat frees the conversation.
     DisposableEffect(activeId) {
@@ -572,6 +620,123 @@ internal fun AiChatScreen(
             if (!AiChatController.isGenerating) {
                 activeId.takeIf { it >= 0 }?.let { AiChatController.closeSessionFor(it) }
             }
+        }
+    }
+
+    /**
+     * Sends the message box as it stands. [spoken] when it was said rather
+     * than typed, in [tag]'s language: its answer is then read out, as every
+     * answer is with Read answers aloud on Always.
+     */
+    fun sendNow(spoken: Boolean, tag: String) {
+        val picked = choice ?: return
+        if (draft.isBlank() && draftImages.isEmpty() && draftFiles.isEmpty()) return
+        if (researchBlock != null) return
+        val id = activeId.takeIf { it >= 0 }
+            ?: store.newConversation(System.currentTimeMillis()).id
+                .also { activeId = it }
+        if (speaking) stopSpeaking()
+        val reads = when (speakSetting) {
+            com.wasimaster.wmkeyboard.core.tools.AiSpeakReplies.OFF -> false
+            com.wasimaster.wmkeyboard.core.tools.AiSpeakReplies.VOICE -> spoken
+            com.wasimaster.wmkeyboard.core.tools.AiSpeakReplies.ALWAYS -> true
+        }
+        speakSince = if (reads) System.currentTimeMillis() else 0L
+        speakTag = tag
+        AiChatController.send(
+            context, settings.value, id, picked, draft, draftAttachment, draftImages, files = draftFiles,
+            mode = mode, format = format,
+        )
+        draft = ""
+        draftAttachment = ""
+        draftImagesText = ""
+        draftFilesJson = ""
+        attachmentOpen = false
+    }
+
+    // The chat's microphone (#1402): what is heard goes to the message box,
+    // and with Read answers aloud on it is sent at once and answered aloud.
+    val languages = remember(settings.value.enabledLanguages) {
+        com.wasimaster.wmkeyboard.ime.sysvoice.AppDictation.languagesFor(settings.value, requestedTag = null)
+    }
+    val listen: () -> Unit = {
+        dictation?.cancel()
+        listening = true
+        heard = ""
+        voiceError = null
+        val session = com.wasimaster.wmkeyboard.ime.sysvoice.AppDictation(
+            context,
+            settings.value,
+            languages,
+            forwardOnly = !settings.value.voiceBar.enabled,
+            listener = object : com.wasimaster.wmkeyboard.ime.sysvoice.AppDictation.Listener {
+                override fun onReady() = Unit
+
+                override fun onLevel(level: Float) = Unit
+
+                override fun onPartial(text: String) {
+                    heard = text
+                }
+
+                override fun onResult(text: String) {
+                    dictation = null
+                    listening = false
+                    heard = ""
+                    draft = if (draft.isBlank()) text else draft.trimEnd() + " " + text
+                    if (speakSetting != com.wasimaster.wmkeyboard.core.tools.AiSpeakReplies.OFF) {
+                        sendNow(spoken = true, tag = languages.firstOrNull()?.let { com.wasimaster.wmkeyboard.ime.sysvoice.AppDictation.tagOf(it) }.orEmpty())
+                    }
+                }
+
+                override fun onError(error: com.wasimaster.wmkeyboard.ime.sysvoice.AppDictation.Error) {
+                    dictation = null
+                    listening = false
+                    voiceError = error
+                }
+            },
+        )
+        dictation = session
+        session.start()
+    }
+    val micGrant = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            listen()
+        } else {
+            voiceError = com.wasimaster.wmkeyboard.ime.sysvoice.AppDictation.Error.PERMISSION
+        }
+    }
+    // Barge-in: the microphone over an answer being read stops the reading first.
+    val startListening: () -> Unit = {
+        if (speaking) stopSpeaking()
+        if (context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+            listen()
+        } else {
+            micGrant.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
+
+    // A finished answer to a question that asked for one is read out, while
+    // the transcript keeps showing it and what its tools did.
+    LaunchedEffect(run == null, messages.size, speakSince) {
+        if (run != null || speakSince == 0L) return@LaunchedEffect
+        val answer = messages.lastOrNull() ?: return@LaunchedEffect
+        if (answer.role != AiChatMessage.ROLE_ASSISTANT || answer.timestamp < speakSince) return@LaunchedEffect
+        speakSince = 0L
+        if (answer.failed) return@LaunchedEffect
+        val words = com.wasimaster.wmkeyboard.core.tools.AiSpokenText.of(answer.content)
+        if (words.isBlank()) return@LaunchedEffect
+        val locale = speakTag.takeIf { it.isNotBlank() }?.let(java.util.Locale::forLanguageTag) ?: java.util.Locale.getDefault()
+        speaking = true
+        val main = android.os.Handler(android.os.Looper.getMainLooper())
+        speaker.speak(words, audioUrl = null, rate = 1f, pitch = 1f, locale = locale) { main.post { speaking = false } }
+    }
+
+    // The assistant's spoken question goes as soon as there is a model to ask.
+    var draftSent by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(choice) {
+        if (sendDraft && !draftSent && choice != null && draft.isNotBlank()) {
+            draftSent = true
+            sendNow(spoken = true, tag = spokenTag)
         }
     }
 
@@ -807,9 +972,30 @@ internal fun AiChatScreen(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
                 )
             }
+            if (listening || voiceError != null) {
+                ChatListening(
+                    listening = listening,
+                    heard = heard,
+                    error = voiceError,
+                    onDone = { dictation?.stop() },
+                    onCancel = {
+                        dictation?.cancel()
+                        dictation = null
+                        listening = false
+                        voiceError = null
+                    },
+                )
+            } else if (speaking) {
+                ChatSpeaking(onStop = stopSpeaking, onCutIn = startListening)
+            }
             Composer(
                 draft = draft,
-                onDraft = { draft = it },
+                onDraft = {
+                    // Typing over an answer being read is cutting in too.
+                    if (speaking) stopSpeaking()
+                    draft = it
+                },
+                onMic = startListening.takeIf { run == null && !listening },
                 generating = run != null,
                 canSend = choice != null && researchBlock == null &&
                     (draft.isNotBlank() || draftImages.isNotEmpty() || draftFiles.isNotEmpty()),
@@ -817,21 +1003,7 @@ internal fun AiChatScreen(
                 format = format,
                 onMode = { modeId = it.id },
                 onFormat = { formatId = it.id },
-                onSend = {
-                    val picked = choice ?: return@Composer
-                    val id = activeId.takeIf { it >= 0 }
-                        ?: store.newConversation(System.currentTimeMillis()).id
-                            .also { activeId = it }
-                    AiChatController.send(
-                        context, settings.value, id, picked, draft, draftAttachment, draftImages, files = draftFiles,
-                        mode = mode, format = format,
-                    )
-                    draft = ""
-                    draftAttachment = ""
-                    draftImagesText = ""
-                    draftFilesJson = ""
-                    attachmentOpen = false
-                },
+                onSend = { sendNow(false, "") },
                 onStop = { AiChatController.stop(context) },
                 onAttach = { attachSheet = true }.takeIf { run == null },
                 reasoning = settings.watch { it.ai.chatReasoning }
@@ -1429,6 +1601,8 @@ private fun Composer(
     onStop: () -> Unit,
     /** Opens the "+" sheet; null while an answer is coming in. */
     onAttach: (() -> Unit)? = null,
+    /** Starts listening for a spoken question (#1402); null while one can't be asked. */
+    onMic: (() -> Unit)? = null,
     /** The Reasoning switch's state; null hides it, for a model it does nothing for. */
     reasoning: Boolean? = null,
     onReasoning: (Boolean) -> Unit = {},
@@ -1500,6 +1674,12 @@ private fun Composer(
                         onPick = onFormat,
                     )
                 }
+                IconButton(onClick = { onMic?.invoke() }, enabled = onMic != null) {
+                    Icon(
+                        Icons.Outlined.Mic,
+                        contentDescription = stringResource(R.string.ai_chat_speak_mic),
+                    )
+                }
                 IconButton(onClick = { onAttach?.invoke() }, enabled = onAttach != null) {
                     Icon(Icons.Outlined.Add, contentDescription = stringResource(ImeR.string.ime_ai_chat_attach_menu_desc))
                 }
@@ -1521,6 +1701,84 @@ private fun Composer(
             }
         }
     }
+}
+
+/**
+ * Over the message box while the microphone listens (#1402): the words so
+ * far, Done to finish the question and Cancel to drop it; or, after it
+ * failed, why.
+ */
+@Composable
+private fun ChatListening(
+    listening: Boolean,
+    heard: String,
+    error: com.wasimaster.wmkeyboard.ime.sysvoice.AppDictation.Error?,
+    onDone: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            Icons.Outlined.Mic,
+            contentDescription = null,
+            tint = if (error != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(20.dp),
+        )
+        Text(
+            when {
+                error != null -> stringResource(chatVoiceErrorRes(error))
+                heard.isNotBlank() -> heard
+                else -> stringResource(R.string.voice_input_listening)
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (error != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f).padding(horizontal = 10.dp),
+        )
+        if (listening) TextButton(onClick = onDone) { Text(stringResource(R.string.assist_voice_done)) }
+        TextButton(onClick = onCancel) {
+            Text(stringResource(if (listening) CommonR.string.common_cancel else CommonR.string.common_close))
+        }
+    }
+}
+
+/** Over the message box while an answer is read out: Stop, and the microphone to cut in with the next question. */
+@Composable
+private fun ChatSpeaking(onStop: () -> Unit, onCutIn: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            Icons.Outlined.RecordVoiceOver,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(20.dp),
+        )
+        Text(
+            stringResource(R.string.ai_chat_speaking),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f).padding(horizontal = 10.dp),
+        )
+        IconButton(onClick = onCutIn) {
+            Icon(Icons.Outlined.Mic, contentDescription = stringResource(R.string.ai_chat_speak_cut_in))
+        }
+        TextButton(onClick = onStop) { Text(stringResource(R.string.ai_chat_speak_stop)) }
+    }
+}
+
+private fun chatVoiceErrorRes(error: com.wasimaster.wmkeyboard.ime.sysvoice.AppDictation.Error): Int = when (error) {
+    com.wasimaster.wmkeyboard.ime.sysvoice.AppDictation.Error.NO_SPEECH -> R.string.voice_input_error_no_speech
+    com.wasimaster.wmkeyboard.ime.sysvoice.AppDictation.Error.NO_ENGINE -> R.string.voice_input_error_no_engine
+    com.wasimaster.wmkeyboard.ime.sysvoice.AppDictation.Error.PERMISSION -> R.string.voice_input_error_permission
+    com.wasimaster.wmkeyboard.ime.sysvoice.AppDictation.Error.MIC -> R.string.voice_input_error_mic
+    com.wasimaster.wmkeyboard.ime.sysvoice.AppDictation.Error.NETWORK -> R.string.voice_input_error_network
+    com.wasimaster.wmkeyboard.ime.sysvoice.AppDictation.Error.BUSY -> R.string.voice_input_error_busy
+    com.wasimaster.wmkeyboard.ime.sysvoice.AppDictation.Error.TRANSCRIBE -> R.string.voice_input_error_other
 }
 
 /** A chip that opens a menu of [options] under it: the message box's mode and format. */

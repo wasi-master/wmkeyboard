@@ -5892,6 +5892,12 @@ data class AiSettings(
      */
     val chatFollowUps: Boolean = true,
     /**
+     * When the app's AI chat and the assistant read their answers out
+     * (#1402): never, after a question asked by voice (the chat's microphone
+     * or the assistant's Ask by voice), or always.
+     */
+    val chatSpeak: com.wasimaster.wmkeyboard.core.tools.AiSpeakReplies = com.wasimaster.wmkeyboard.core.tools.AiSpeakReplies.VOICE,
+    /**
      * How much text before the cursor a "carry this on" action sends, in
      * characters.
      *
@@ -14264,6 +14270,7 @@ class SettingsRepository(private val context: Context) {
         private val AI_CHAT_REASONING = booleanPreferencesKey("ai_chat_reasoning")
         private val AI_CHAT_AUTO_RENAME = booleanPreferencesKey("ai_chat_auto_rename")
         private val AI_CHAT_FOLLOW_UPS = booleanPreferencesKey("ai_chat_follow_ups")
+        private val AI_CHAT_SPEAK = stringPreferencesKey("ai_chat_speak")
         private val AI_RESEARCH_DEPTH = stringPreferencesKey("ai_research_depth")
         private val AI_RESEARCH_REVIEW_PLAN = booleanPreferencesKey("ai_research_review_plan")
         private val AI_DOWNLOAD_UNMETERED = booleanPreferencesKey("ai_download_unmetered_only")
@@ -17118,6 +17125,7 @@ class SettingsRepository(private val context: Context) {
             chatReasoning = p[AI_CHAT_REASONING] ?: defaults.ai.chatReasoning,
             chatAutoRename = p[AI_CHAT_AUTO_RENAME] ?: defaults.ai.chatAutoRename,
             chatFollowUps = p[AI_CHAT_FOLLOW_UPS] ?: defaults.ai.chatFollowUps,
+            chatSpeak = p[AI_CHAT_SPEAK]?.let { com.wasimaster.wmkeyboard.core.tools.AiSpeakReplies.of(it) } ?: defaults.ai.chatSpeak,
             beforeCursorChars = p[AI_BEFORE_CURSOR_CHARS]
                 ?: defaults.ai.beforeCursorChars,
             stripSuggest = p[AI_STRIP_SUGGEST] ?: defaults.ai.stripSuggest,
@@ -23541,6 +23549,9 @@ class SettingsRepository(private val context: Context) {
     suspend fun setAiChatAutoRename(value: Boolean) = editPrefs { it[AI_CHAT_AUTO_RENAME] = value }
 
     suspend fun setAiChatFollowUps(value: Boolean) = editPrefs { it[AI_CHAT_FOLLOW_UPS] = value }
+
+    suspend fun setAiChatSpeak(value: com.wasimaster.wmkeyboard.core.tools.AiSpeakReplies) =
+        editPrefs { it[AI_CHAT_SPEAK] = value.id }
 
     suspend fun setAiResearchDepth(value: AiResearchDepth) = editPrefs { it[AI_RESEARCH_DEPTH] = value.id }
 

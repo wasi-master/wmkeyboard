@@ -97,6 +97,8 @@ class AskAiActivity : FragmentActivity() {
                                 initialAttachment = ask.attachment,
                                 attachmentLabel = ask.label,
                                 initialDraft = intent?.getStringExtra(EXTRA_DRAFT).orEmpty(),
+                                sendDraft = intent?.getBooleanExtra(EXTRA_SEND_SPOKEN, false) == true,
+                                spokenTag = intent?.getStringExtra(EXTRA_SPOKEN_TAG).orEmpty(),
                                 inSheet = true,
                                 notice = if (ask.screenMissing) {
                                     { ScreenReadingNotice() }
@@ -118,6 +120,13 @@ class AskAiActivity : FragmentActivity() {
          * assistant's "Explain this screen" and the words of "Ask by voice".
          */
         const val EXTRA_DRAFT = "com.wasimaster.wmkeyboard.askai.DRAFT"
+
+        /**
+         * [EXTRA_DRAFT] was said, not written (#1402): it is sent at once and
+         * its answer read out, in the language [EXTRA_SPOKEN_TAG] names.
+         */
+        const val EXTRA_SEND_SPOKEN = "com.wasimaster.wmkeyboard.askai.SEND_SPOKEN"
+        const val EXTRA_SPOKEN_TAG = "com.wasimaster.wmkeyboard.askai.SPOKEN_TAG"
     }
 
     private fun openAiSettings() {

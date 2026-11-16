@@ -603,6 +603,16 @@
     <string name="toolai_chat_follow_ups_title">Suggest follow-up questions</string>
     <string name="toolai_chat_follow_ups_subtitle">A chat answer from a cloud or server model ends with up to three questions you might ask next, as chips a tap puts in the message box. On-device models are never asked.</string>
     <string name="toolai_chat_follow_ups_info">After an answer, the chat shows as many as three questions you could ask next. A tap on one puts it in the message box. Only cloud and server models are asked for these. An on-device model is not, because it would be slow. This setting is on by default.</string>
+    <string name="toolai_chat_speak_title">Read answers aloud</string>
+    <string name="toolai_chat_speak_subtitle">The app\'s AI chat and the assistant say their answer in the phone\'s voice, or a voice you downloaded, while it stays on screen. Tap Stop to end it, or the microphone to cut in with your next question.</string>
+    <string name="toolai_chat_speak_info">When the AI chat in the app, and the chat the assistant gesture opens, read their answers out. After a spoken question: only when you asked with the chat\'s microphone or the assistant\'s Ask by voice, which also sends the question at once. Always: every answer. Off: answers are only written, and a spoken question waits in the message box for you to send. The voice is a downloaded one from Read back when there is one for the language, else the phone\'s text-to-speech. The default is After a spoken question.</string>
+    <string name="toolai_chat_speak_off">Off</string>
+    <string name="toolai_chat_speak_voice">After a spoken question</string>
+    <string name="toolai_chat_speak_always">Always</string>
+    <string name="ai_chat_speak_mic">Ask by voice</string>
+    <string name="ai_chat_speaking">Reading the answer aloud…</string>
+    <string name="ai_chat_speak_stop">Stop</string>
+    <string name="ai_chat_speak_cut_in">Stop and ask something else</string>
     <string name="toolai_research_depth_title">Deep research depth</string>
     <string name="toolai_research_depth_subtitle">How far a Deep research report goes. Quick plans 3 sub-questions and reads 4 pages; Standard plans 4, looks again once for what is missing, and reads 8; Deep plans 6, looks again twice, and reads 14. Deeper takes longer and sends more text to the model.</string>
     <string name="toolai_research_depth_info">How much work a Deep research report does. Quick plans 3 questions and reads 4 pages. Standard plans 4 questions, looks one more time for what is missing, and reads 8 pages. Deep plans 6 questions, looks two more times, and reads 14 pages. A deeper report takes longer and sends more text to the model. The default is Standard.</string>

@@ -2593,6 +2593,7 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.AI, R.string.toolai_chat_enter_sends_title, R.string.toolai_chat_enter_sends_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_chat_auto_rename_title, R.string.toolai_chat_auto_rename_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_chat_follow_ups_title, R.string.toolai_chat_follow_ups_subtitle),
+    toolEntry(ToolbarTool.AI, R.string.toolai_chat_speak_title, R.string.toolai_chat_speak_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_research_depth_title, R.string.toolai_research_depth_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_research_review_plan_title, R.string.toolai_research_review_plan_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_selection_menu_title, R.string.toolai_ai_selection_menu_subtitle),

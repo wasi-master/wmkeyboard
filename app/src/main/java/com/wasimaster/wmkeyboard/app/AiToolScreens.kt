@@ -644,6 +644,21 @@ internal fun AiToolSettings(
                 info = stringResource(R.string.toolai_chat_follow_ups_info),
             ) { scope.launch { repository.setAiChatFollowUps(it) } }
         }
+        // Answers read out like a voice assistant's (#1402).
+        item(level = SettingLevel.STANDARD) {
+            ChoiceSetting(
+                R.string.toolai_chat_speak_title,
+                subtitle = stringResource(R.string.toolai_chat_speak_subtitle),
+                options = listOf(
+                    com.wasimaster.wmkeyboard.core.tools.AiSpeakReplies.OFF to stringResource(R.string.toolai_chat_speak_off),
+                    com.wasimaster.wmkeyboard.core.tools.AiSpeakReplies.VOICE to stringResource(R.string.toolai_chat_speak_voice),
+                    com.wasimaster.wmkeyboard.core.tools.AiSpeakReplies.ALWAYS to stringResource(R.string.toolai_chat_speak_always),
+                ),
+                selected = settings.watch { it.ai.chatSpeak },
+                default = SettingsDefaults.ai.chatSpeak,
+                info = stringResource(R.string.toolai_chat_speak_info),
+            ) { scope.launch { repository.setAiChatSpeak(it) } }
+        }
         // The chat's Deep research mode: how far a report goes, and whether
         // its plan waits for Start.
         item(level = SettingLevel.STANDARD) {
