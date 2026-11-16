@@ -114,3 +114,41 @@ private fun splitWords(name: String): List<String> {
     flush()
     return out
 }
+
+/**
+ * Words that, standing alone in a field's name, mark it as a password or PIN
+ * box (#1404). Many banking apps and web PIN inputs draw dots without telling
+ * the keyboard the field is a password, so the input type alone reads them as
+ * a plain number or text box.
+ */
+private val SECRET_WORDS = setOf(
+    "password", "passwd", "pwd", "passphrase", "passcode", "pin", "pincode", "mpin", "tpin",
+    "cvv", "cvc", "cvv2", "secret",
+    // The same word as apps in a few other languages name the box.
+    "passwort", "kennwort", "contraseña", "contrasena", "senha", "motdepasse", "wachtwoord",
+    "hasło", "haslo", "lösenord", "losenord", "adgangskode", "salasana", "parola", "şifre", "sifre",
+    "пароль",
+)
+
+/**
+ * The same, for scripts written without spaces between words, or where the
+ * name is a phrase: matched anywhere in the name, since "请输入密码" is one run
+ * of letters to [splitWords].
+ */
+private val SECRET_PHRASES = listOf(
+    "密码", "密碼", "パスワード", "暗証番号", "비밀번호", "पासवर्ड", "পাসওয়ার্ড", "كلمة المرور", "كلمة السر", "رمز المرور",
+)
+
+/**
+ * Whether the names the app gave the field say it takes a password or a PIN
+ * (#1404), whatever its input type says. Pure, like [looksLikeCodeField].
+ */
+internal fun looksLikeSecretField(vararg names: String?): Boolean =
+    names.any { name ->
+        if (name.isNullOrBlank()) return@any false
+        if (SECRET_PHRASES.any { it in name }) return@any true
+        val words = splitWords(name)
+        // "Mot de passe" and "security code" are two or three words in the name.
+        words.any { it in SECRET_WORDS } ||
+            words.zipWithNext().any { (a, b) -> (a == "mot" && b == "de") || (a == "security" && b == "code") }
+    }

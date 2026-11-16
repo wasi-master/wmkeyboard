@@ -67,6 +67,8 @@ The Number pad also does sums. An operator typed after a number starts one, whic
 | Snippets on space or Enter | Yes | Yes | Only text the field takes | Only if [turned on](/tools/snippets/) |
 | Snippet chips | Yes | Web address only | Every snippet whose text the field takes, offered outright since the keypad can't type a trigger | No |
 
+Since 0.6.8 a field counts as a password field for snippets when the app names it one, even if it doesn't tell the keyboard it is a password box. Many banking apps and web PIN boxes draw dots over what looks to the keyboard like a plain number or text field, and the snippet chips used to show there with their whole text, personal details and all. Now a field whose hint, label or name says password, PIN, passcode, CVV or one-time code (in English or a dozen other languages) gets no snippet chips and no expansions, so the bar is left to your password manager's suggestions and the [one-time code chip](/smart/one-time-codes/).
+
 These five keypads are shared across every built-in layout. Only the default QWERTY layout defines them and every other language layout inherits the same set, but a custom `.wmlayout.json` can override any of the five with its own key rows.
 
 The keypad shows up whenever the field kind calls for it, with one exception. If focus has been rerouted to something that needs letters, such as an in-panel search box (emoji, dictionary, clipboard, media), a plugin's own text field, or the typing-test tool, the letter layout stays up instead. A digits-only pad would leave those impossible to type in.

@@ -64,4 +64,16 @@ class CodeFieldDetectionTest {
         // The deny list never touches the unambiguous words.
         assertTrue(codeField("Postal OTP"))
     }
+
+    @Test
+    fun `a box that names a password or PIN is a secret one (#1404)`() {
+        assertTrue(looksLikeSecretField("Enter your 4-digit PIN"))
+        assertTrue(looksLikeSecretField(null, null, "loginPassword"))
+        assertTrue(looksLikeSecretField("Mot de passe"))
+        assertTrue(looksLikeSecretField("请输入密码"))
+        assertTrue(looksLikeSecretField("CVV"))
+        assertFalse(looksLikeSecretField("Message"))
+        assertFalse(looksLikeSecretField("Pinned notes"))
+        assertFalse(looksLikeSecretField(null, "", " "))
+    }
 }

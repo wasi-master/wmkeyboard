@@ -1700,6 +1700,14 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var currentFieldHint: String? = null
 
+    /**
+     * The focused field names itself a password, PIN or one-time-code box
+     * (#1404) though its input type does not say so: no snippet chips over
+     * it, and its triggers stay as typed the way a password field's do. The
+     * strip there belongs to the password manager and the code chip.
+     */
+    private var fieldNamedSecret = false
+
     /** What else the focused field says about itself, for [KeyboardMode.fieldNames] and the like. */
     private var currentFieldName: String? = null
     private var currentFieldId = 0
@@ -10088,6 +10096,10 @@ open class WMKeyboardService : InputMethodService() {
             info?.label?.toString(),
             info?.fieldName,
         )
+        // By name only: every number field is a code box by its shape, and the
+        // keypad's snippets are made for number fields (#1020).
+        fieldNamedSecret = looksLikeSecretField(currentFieldHint, info?.label?.toString(), info?.fieldName) ||
+            looksLikeCodeField(FieldKind.TEXT, currentFieldHint, info?.label?.toString(), info?.fieldName)
         currentModeFields = buildSet {
             if (secure) add(ModeField.PASSWORD)
             // The shape of a text box (one line, many lines, no suggestions)
@@ -23429,7 +23441,14 @@ open class WMKeyboardService : InputMethodService() {
      * the ask-first chips and the automation API keep their own refusals.
      */
     private fun secureFieldRefusesSnippets(state: KeyboardUiState): Boolean =
-        state.secureField && !state.settings.suggestionStrip.snippetsInSecureFields
+        (state.secureField || fieldNamedSecret) && !state.settings.suggestionStrip.snippetsInSecureFields
+
+    /**
+     * Whether snippet chips stay off this field: a password field, or one that
+     * names itself a password, PIN or code box (#1404). A chip shows a
+     * snippet's whole text, personal details included, to anyone looking.
+     */
+    private fun snippetChipsBarred(state: KeyboardUiState): Boolean = state.secureField || fieldNamedSecret
 
     /**
      * Expands a trigger that ends in the symbol just typed (#471): `js:` the
@@ -23694,8 +23713,8 @@ open class WMKeyboardService : InputMethodService() {
         // where a pattern such as `^/gh (\S+)$` is meant to work. There the
         // pattern is read off the field the way [tryUncomposedTrigger] reads a
         // trigger, and the word memory the gate keeps from composing is not
-        // asked.
-        if (state.secureField) return false
+        // asked. Nor in a box that names itself a password or PIN (#1404).
+        if (snippetChipsBarred(state)) return false
         if (!uncomposed && (!state.allowsTypingIntelligence || state.fieldNoSuggestions)) return false
         if (!uncomposed && !patternGateOpen(typed)) return false
         val before = ic.getTextBeforeCursor(SnippetMatcher.MAX_WINDOW, 0) ?: return false
@@ -23895,7 +23914,7 @@ open class WMKeyboardService : InputMethodService() {
         match: SnippetMatch? = null,
     ) {
         val state = _uiState.value
-        if (!snippetChipField(state) || state.secureField || state.fieldNoSuggestions ||
+        if (!snippetChipField(state) || snippetChipsBarred(state) || state.fieldNoSuggestions ||
             state.panel != PanelMode.NONE
         ) {
             return
@@ -23995,8 +24014,9 @@ open class WMKeyboardService : InputMethodService() {
         // is a text flag and means nothing on a number class. A PIN is still
         // left out. While a keypad sum is open the strip is its answer's, and
         // the snippets come back once the sum is done ([closeKeypadSum]).
-        if (state.fieldKind.isNumericPad && !state.secureField && state.panel == PanelMode.NONE) {
-            publishSnippetOffer(if (keypadSum != null) null else keypadSnippetOffer(state))
+        if (state.fieldKind.isNumericPad && state.panel == PanelMode.NONE) {
+            // A PIN box gets none, and takes down any a field before it left (#1404).
+            publishSnippetOffer(if (keypadSum != null || snippetChipsBarred(state)) null else keypadSnippetOffer(state))
             return
         }
         // The chip needs a strip to sit on, so a field that asked for a quiet
@@ -24005,7 +24025,7 @@ open class WMKeyboardService : InputMethodService() {
         // buffer holding an input spelling (Avro, Pinyin) is not a trigger and
         // not a word a pattern can read.
         // The number pad over a text field still has the strip (#815).
-        val allowed = snippetChipField(state) && !state.secureField &&
+        val allowed = snippetChipField(state) && !snippetChipsBarred(state) &&
             !state.fieldNoSuggestions && (state.panel == PanelMode.NONE || state.panel == PanelMode.NUMPAD) &&
             !state.composer.isTransliterating && !state.composer.isConversion
         if (!allowed) {
@@ -24080,7 +24100,7 @@ open class WMKeyboardService : InputMethodService() {
             // The gate was read before the sleep; a panel opening or a field
             // turning out to be secure does not cancel this job.
             val still = _uiState.value
-            if ((still.panel != PanelMode.NONE && still.panel != PanelMode.NUMPAD) || still.secureField ||
+            if ((still.panel != PanelMode.NONE && still.panel != PanelMode.NUMPAD) || snippetChipsBarred(still) ||
                 still.fieldNoSuggestions
             ) {
                 publishSnippetOffer(null)
