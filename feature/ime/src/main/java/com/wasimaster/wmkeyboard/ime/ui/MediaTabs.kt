@@ -48,6 +48,7 @@ import com.wasimaster.wmkeyboard.core.layout.PanelLayoutSpec
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.MediaPanelExtraHeightRange
 import com.wasimaster.wmkeyboard.core.settings.MediaSwitcher
+import com.wasimaster.wmkeyboard.core.settings.PanelHeightKind
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.isUsableTool
@@ -228,7 +229,7 @@ internal fun MediaPanelHost(
     LaunchedEffect(chrome, searching) { if (searching) chrome.hidden = false }
     // The height bar: the panel opens this much taller than the keyboard, up
     // to what the screen can give it, the way the clipboard's does (#414).
-    val setting = state.settings.emoji.panelExtraHeightDp
+    val setting = panelExtraHeight(state, PanelHeightKind.MEDIA, state.settings.emoji.panelExtraHeightDp)
     val resize = rememberClipPanelResize(setting)
     val base = if (fullBleed) keyRowsHeight(state) + fullBleedHiddenRows(state, macroRowAtPanelOpen(state)) else keyRowsHeight(state)
     val maxPanel = toolPanelHeight(state, wanted = base + MediaPanelExtraHeightRange.last.dp, floor = base)

@@ -33,6 +33,7 @@ import com.wasimaster.wmkeyboard.core.layout.PanelLayoutSpec
 import com.wasimaster.wmkeyboard.core.settings.ClipPanelExtraHeightRange
 import com.wasimaster.wmkeyboard.core.settings.EmojiBarMode
 import com.wasimaster.wmkeyboard.core.settings.MediaPanelExtraHeightRange
+import com.wasimaster.wmkeyboard.core.settings.PanelHeightKind
 import com.wasimaster.wmkeyboard.core.settings.TextEditAction
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
@@ -272,7 +273,7 @@ private fun EmojiPanelPage(
             // every full-bleed tool shares, which moves a different setting
             // and adds to this one: dragging it left the emoji taller or
             // shorter than the GIFs beside it (Telegram 10316).
-            val setting = state.settings.emoji.panelExtraHeightDp
+            val setting = panelExtraHeight(state, PanelHeightKind.MEDIA, state.settings.emoji.panelExtraHeightDp)
             val resize = rememberClipPanelResize(setting)
             val base = keyRowsHeight(state) + fullBleedHiddenRows(state, macroRowAtPanelOpen(state))
             val maxPanel = toolPanelHeight(state, wanted = base + MediaPanelExtraHeightRange.last.dp, floor = base)
@@ -336,7 +337,7 @@ private fun EmojiPanelPage(
             // The height bar the GIF and sticker panels carry, over the same
             // shared setting: without it, a panel grown from the GIFs could
             // not be made shorter again from the emoji (Telegram 5530).
-            val setting = state.settings.emoji.panelExtraHeightDp
+            val setting = panelExtraHeight(state, PanelHeightKind.MEDIA, state.settings.emoji.panelExtraHeightDp)
             val resize = rememberClipPanelResize(setting)
             val base = keyRowsHeight(state) + barCompensation
             val maxPanel = toolPanelHeight(state, wanted = base + MediaPanelExtraHeightRange.last.dp, floor = base)
@@ -477,11 +478,13 @@ private fun ClipboardHistoryPage(
     // The height bar (#414): the panel opens this much taller than the
     // keyboard, up to what the screen can give it, and the bar on top drags it.
     val clipboard = state.settings.clipboard
-    val resize = rememberClipPanelResize(clipboard.panelExtraHeightDp)
+    // The clipboard's own height, or the clipboard tool's with heights per tool (#1381).
+    val clipExtra = panelExtraHeight(state, PanelHeightKind.CLIPBOARD, clipboard.panelExtraHeightDp)
+    val resize = rememberClipPanelResize(clipExtra)
     val base = if (clipboard.fullBleed) keyRowsHeight(state) + fullBleedHiddenRows(state, macroRowAtPanelOpen(state)) else keyRowsHeight(state)
     val maxPanel = toolPanelHeight(state, wanted = base + ClipPanelExtraHeightRange.last.dp, floor = base)
     val maxExtra = (maxPanel - base).coerceAtLeast(0.dp)
-    val extra = resize.shownDp(clipboard.panelExtraHeightDp).dp.coerceIn(0.dp, maxExtra)
+    val extra = resize.shownDp(clipExtra).dp.coerceIn(0.dp, maxExtra)
     val maxPanelPx = with(LocalDensity.current) { maxPanel.roundToPx() }
     SideEffect { resize.maxPanelPx = maxPanelPx }
     val probe = remember(resize) { Modifier.clipPanelHeightProbe(resize) }
@@ -690,7 +693,7 @@ internal fun HandwritingPanelHost(
  * itself; [mediaPanelHeight] does that for the others.
  */
 internal fun mediaPanelExtraHeight(state: KeyboardUiState): Dp =
-    state.settings.emoji.panelExtraHeightDp.coerceAtLeast(0).dp
+    panelExtraHeight(state, PanelHeightKind.MEDIA, state.settings.emoji.panelExtraHeightDp).coerceAtLeast(0).dp
 
 /**
  * The height of an emoji, GIF or sticker panel that is not full-bleed: the

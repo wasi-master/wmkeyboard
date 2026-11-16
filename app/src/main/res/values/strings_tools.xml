@@ -31,6 +31,18 @@
     <string name="tools_box_hold_to_move_title">Hold a floating box to move it</string>
     <string name="tools_box_hold_to_move_subtitle">Hold a finger still anywhere on a floating box, then drag it, even over a list or a slider</string>
     <string name="tools_box_hold_to_move_info">Hold a finger still anywhere on a floating box, then drag to move the box. It works even on a list or a slider inside the box. With this off, you drag the box by its top bar. This setting is off by default.</string>
+    <string name="tools_swipe_up_float_title">Swipe up on a tool to float it</string>
+    <string name="tools_swipe_up_float_subtitle">A swipe up on a toolbar tool that can float opens it in its floating box</string>
+    <string name="tools_swipe_up_float_info">Swipe up on a tool on the toolbar that can float, such as the calculator or the clipboard, and it rises out of the keyboard into its floating box over the app. While it is out there, its toolbar button is greyed a little. Tap that button to bring the tool back into the keyboard. Holding a tool still works as it did. This setting is on by default.</string>
+    <string name="tools_float_motion_title">Floating tool animation</string>
+    <string name="tools_float_motion_subtitle">How long a tool takes to rise into its floating box and to drop back into the keyboard</string>
+    <string name="tools_float_motion_info">How long the animation lasts when a tool swiped up from the toolbar rises into its floating box, and when a tap on its button brings it back. Set it to Off to open and close the box at once. Reduce motion turns the animation off too. The default is 240 ms.</string>
+    <string name="tools_float_motion_off">Off</string>
+    <string name="tools_float_motion_value">%1$d ms</string>
+    <string name="tools_height_per_tool_title">Each tool keeps its own height</string>
+    <string name="tools_height_per_tool_subtitle">Dragging the bar on top of a tool sets that tool\'s height only</string>
+    <string name="tools_height_per_tool_info">Normally, tools of one kind share a height: making the search panel taller makes the emoji panel taller too. With this on, each tool and panel remembers the height you drag its bar to. A tool you have not resized yet opens at the shared height. This setting is off by default.</string>
+    <string name="tools_height_per_tool_reset_action">Reset tool heights</string>
     <string name="tools_box_gestures_subtitle">Hides a floating box\'s buttons: throw it up to close it, down to move it into the keyboard, or into a side to tuck it</string>
     <!-- Switches under the one above (#1373), shown while it is on. -->
     <string name="tools_box_hide_title_title">Hide the title bar</string>

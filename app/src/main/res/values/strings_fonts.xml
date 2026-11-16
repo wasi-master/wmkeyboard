@@ -152,6 +152,7 @@
     <string name="fonts_tool_password_gen_desc">The app makes strong passwords and passphrases on your device</string>
     <string name="fonts_tool_text_repeat_desc">Write a piece of text many times over: in a row, as a numbered list, or with its last letter stretched</string>
     <string name="fonts_tool_typing_test_desc">Time your typing on this keyboard and keep a record of your best scores</string>
+    <string name="fonts_tool_resources_desc">Open the Resources screen: the memory, processor time and models the keyboard is using</string>
     <string name="fonts_tool_statistics_desc">Open your typing statistics: your level, achievements and where you tap</string>
     <string name="fonts_tool_kde_connect_desc">Use a paired computer from the keyboard: its mouse, keys, media, clipboard and files. The computer can type into the phone too</string>
     <string name="fonts_tool_media_control_desc">Play, pause and skip the media that plays now. It shows album art and a seek bar</string>

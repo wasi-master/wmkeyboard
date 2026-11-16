@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.settings.FloatMotionRange
+import kotlin.math.roundToInt
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wasimaster.wmkeyboard.ime.ui.PluginIcon
@@ -187,6 +189,7 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.MEDIA_CONTROL -> R.string.fonts_tool_media_control_title
     ToolbarTool.KDE_CONNECT -> ImeR.string.ime_tool_kde_connect
     ToolbarTool.STATISTICS -> ImeR.string.ime_tool_statistics
+    ToolbarTool.RESOURCES -> ImeR.string.ime_tool_resources
     ToolbarTool.FIND_REPLACE -> ImeR.string.ime_tool_find_replace
     ToolbarTool.NOTES -> ImeR.string.ime_tool_notes
     ToolbarTool.TODO -> ImeR.string.ime_tool_todo
@@ -294,6 +297,7 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.MEDIA_CONTROL -> R.string.fonts_tool_media_control_desc
     ToolbarTool.KDE_CONNECT -> R.string.fonts_tool_kde_connect_desc
     ToolbarTool.STATISTICS -> R.string.fonts_tool_statistics_desc
+    ToolbarTool.RESOURCES -> R.string.fonts_tool_resources_desc
     ToolbarTool.FIND_REPLACE -> R.string.fonts_tool_find_replace_desc
     ToolbarTool.NOTES -> R.string.fonts_tool_notes_desc
     ToolbarTool.TODO -> R.string.fonts_tool_todo_desc
@@ -568,6 +572,54 @@ internal fun ToolsSettings(
         default = SettingsDefaults.summonButton.boxHoldToMove,
         info = stringResource(R.string.tools_box_hold_to_move_info),
     )
+    // A swipe up on a toolbar tool floats it (#1378), and how fast it flies
+    // out to its box and back.
+    ToggleSetting(
+        title = R.string.tools_swipe_up_float_title,
+        subtitle = stringResource(R.string.tools_swipe_up_float_subtitle),
+        checked = settings.watch { it.toolbarBehavior.swipeUpFloats },
+        onChange = { scope.launch { repository.setToolbarSwipeUpFloats(it) } },
+        default = SettingsDefaults.toolbarBehavior.swipeUpFloats,
+        info = stringResource(R.string.tools_swipe_up_float_info),
+    )
+    val floatContext = LocalContext.current
+    SliderSetting(
+        title = R.string.tools_float_motion_title,
+        subtitle = stringResource(R.string.tools_float_motion_subtitle),
+        value = settings.watch { it.toolbarBehavior.floatMotionMs }.toFloat(),
+        range = FloatMotionRange.first.toFloat()..FloatMotionRange.last.toFloat(),
+        display = { ms ->
+            if (ms.roundToInt() == 0) {
+                floatContext.getString(R.string.tools_float_motion_off)
+            } else {
+                floatContext.getString(R.string.tools_float_motion_value, ms.roundToInt())
+            }
+        },
+        info = stringResource(R.string.tools_float_motion_info),
+        default = SettingsDefaults.toolbarBehavior.floatMotionMs.toFloat(),
+        steps = FloatMotionRange.last / 20 - 1,
+        onChange = { scope.launch { repository.setToolbarFloatMotionMs(it.roundToInt()) } },
+    )
+    // Each tool keeps its own height (#1381), off by default.
+    val heightPerTool = settings.watch { it.layoutBehavior.heightPerTool }
+    ToggleSetting(
+        title = R.string.tools_height_per_tool_title,
+        subtitle = stringResource(R.string.tools_height_per_tool_subtitle),
+        checked = heightPerTool,
+        onChange = { scope.launch { repository.setPanelHeightPerTool(it) } },
+        default = SettingsDefaults.layoutBehavior.heightPerTool,
+        info = stringResource(R.string.tools_height_per_tool_info),
+    )
+    if (heightPerTool && settings.watch { it.layoutBehavior.toolHeights.isNotEmpty() }) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.End,
+        ) {
+            TextButton(onClick = { scope.launch { repository.clearToolPanelHeights() } }) {
+                Text(stringResource(R.string.tools_height_per_tool_reset_action))
+            }
+        }
+    }
     // Panels as one group or two (#759). Above the groups it reshapes, so
     // the switch and what it changes are on screen together.
     val splitPanels = settings.watch { it.appUi.splitToolPanels }
@@ -805,6 +857,7 @@ private fun buildToolGroups(splitPanels: Boolean): List<Pair<Int, List<ToolbarTo
             ToolbarTool.LANGUAGE, ToolbarTool.FANCY, ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.INCOGNITO, ToolbarTool.PRIVACY_SHADE,
             ToolbarTool.SOUND_HAPTICS,
             ToolbarTool.THEMES, ToolbarTool.POWER_SAVING, ToolbarTool.SETTINGS, ToolbarTool.STATISTICS,
+            ToolbarTool.RESOURCES,
         ),
     )
     add(

@@ -7935,6 +7935,7 @@ open class WMKeyboardService : InputMethodService() {
     override fun onConfigureWindow(win: android.view.Window, isFullscreen: Boolean, isCandidatesOnly: Boolean) {
         try {
             super.onConfigureWindow(win, isFullscreen, isCandidatesOnly)
+            UnclampedImeTouches.install(win)
             imeWindowPlatformSized = isFullscreen || isCandidatesOnly
             if (!imeWindowPlatformSized) fitImeWindowHeight(win)
             if (::settingsRepository.isInitialized) updatePrivacyShade(_uiState.value.settings)
@@ -8684,6 +8685,25 @@ open class WMKeyboardService : InputMethodService() {
 
     // ---- floating tools (#1155) ----
 
+    /**
+     * The tool in the floating box comes back into the keyboard's panel: the
+     * box thrown down (#1262), or its greyed toolbar button tapped (#1378).
+     */
+    private fun appletIntoKeyboard(panel: PanelMode) {
+        val tool = appletTool
+        // A running plugin opens again in the keyboard's panel.
+        if (panel == PanelMode.PLUGINS) pluginCarry = (_uiState.value.plugins as? PluginPanelUi.Running)?.plugin?.id
+        // Translate's text and translation move in with it, and
+        // web search's and Wikipedia's text with them (#1265).
+        if (panel in BoxSearchPanels) {
+            val now = _uiState.value
+            val query = if (now.panel == PanelMode.NONE) now.mediaQuery else appletSearchHeld.orEmpty()
+            translateCarry = TranslateCarry(query, now.translate, panel)
+        }
+        appletLeft(panel)
+        if (tool != null) runToolFromFloatingButton(tool)
+    }
+
     /** The floating box, created the first time a tool is opened in it. */
     private val floatingAppletDelegate = lazy {
         FloatingApplet(
@@ -8692,20 +8712,7 @@ open class WMKeyboardService : InputMethodService() {
                 override val state: StateFlow<KeyboardUiState> get() = _uiState
                 override fun appletCallbacks() = appletCallbacks
                 override fun appletClosed(panel: PanelMode) = appletLeft(panel)
-                override fun appletToKeyboard(panel: PanelMode) {
-                    val tool = appletTool
-                    // A running plugin opens again in the keyboard's panel.
-                    if (panel == PanelMode.PLUGINS) pluginCarry = (_uiState.value.plugins as? PluginPanelUi.Running)?.plugin?.id
-                    // Translate's text and translation move in with it, and
-                    // web search's and Wikipedia's text with them (#1265).
-                    if (panel in BoxSearchPanels) {
-                        val now = _uiState.value
-                        val query = if (now.panel == PanelMode.NONE) now.mediaQuery else appletSearchHeld.orEmpty()
-                        translateCarry = TranslateCarry(query, now.translate, panel)
-                    }
-                    appletLeft(panel)
-                    if (tool != null) runToolFromFloatingButton(tool)
-                }
+                override fun appletToKeyboard(panel: PanelMode) = appletIntoKeyboard(panel)
                 override fun appletTucked(tucked: Boolean) {
                     _uiState.update { it.copy(applet = it.applet.copy(appletTucked = tucked)) }
                     // Back out of the edge, Translate's text that waited gets its translation.
@@ -37090,6 +37097,13 @@ open class WMKeyboardService : InputMethodService() {
         // whether or not it is on in the toolbox (#1300).
         val settings = _uiState.value.settings
         if (tool !in settings.enabledTools && tool !in settings.toolbarBehavior.stripShortcuts) return
+        // Out in its floating box (#1378): its greyed button brings it back
+        // into the keyboard, the way throwing the box down does.
+        val floating = _uiState.value.appletPanel
+        if (floating != null && appletTool == tool) {
+            appletIntoKeyboard(floating)
+            return
+        }
         // Set to open in the floating box (#1259): the tap floats it.
         if (tool.floats && tool in _uiState.value.settings.toolbarBehavior.floatOnTap) {
             openFloatingApplet(tool)
@@ -37273,6 +37287,8 @@ open class WMKeyboardService : InputMethodService() {
             // Not a panel: the levels, achievements and heatmap live on the
             // settings app's Statistics screen, and this is a shortcut to it (#390).
             ToolbarTool.STATISTICS -> openRoute(STATISTICS_ROUTE)
+            // The Resources screen, one tap from the keys (#1380).
+            ToolbarTool.RESOURCES -> openRoute(RESOURCES_ROUTE)
             ToolbarTool.LEARN_FROM_TEXT -> onPanelChange(PanelMode.LEARN_FROM_TEXT)
             ToolbarTool.FIND_REPLACE -> openFindReplaceTool()
             ToolbarTool.NOTES -> onPanelChange(PanelMode.NOTES)
@@ -60019,8 +60035,25 @@ open class WMKeyboardService : InputMethodService() {
      * settings screen's Panel height slider writes.
      */
     fun onClipboardPanelHeight(extraDp: Int) {
+        if (keepToolHeight(com.wasimaster.wmkeyboard.core.settings.PanelHeightKind.CLIPBOARD, extraDp)) return
         if (extraDp == _uiState.value.settings.clipboard.panelExtraHeightDp) return
         serviceScope.launch { settingsRepository.setClipboardPanelExtraHeightDp(extraDp) }
+    }
+
+    /**
+     * With each tool keeping its own height (#1381), the height a panel's bar
+     * was let go at is the open panel's alone: kept for it and true. False
+     * while the heights are shared, for the caller to store the shared one.
+     */
+    private fun keepToolHeight(kind: com.wasimaster.wmkeyboard.core.settings.PanelHeightKind, extraDp: Int): Boolean {
+        val now = _uiState.value
+        val layout = now.settings.layoutBehavior
+        if (!layout.heightPerTool) return false
+        val panel = now.panel.takeIf { it != PanelMode.NONE } ?: return true
+        val key = com.wasimaster.wmkeyboard.core.settings.toolHeightKey(kind, panel.name)
+        if (layout.toolHeights[key] == extraDp) return true
+        serviceScope.launch { settingsRepository.setToolPanelExtraHeight(kind, panel.name, extraDp) }
+        return true
     }
 
     /**
@@ -60029,6 +60062,7 @@ open class WMKeyboardService : InputMethodService() {
      * on, the setting the emoji settings' Panel height slider writes (#537).
      */
     fun onMediaPanelHeight(extraDp: Int) {
+        if (keepToolHeight(com.wasimaster.wmkeyboard.core.settings.PanelHeightKind.MEDIA, extraDp)) return
         if (extraDp == _uiState.value.settings.emoji.panelExtraHeightDp) return
         serviceScope.launch { settingsRepository.setMediaPanelExtraHeightDp(extraDp) }
     }
@@ -60038,6 +60072,7 @@ open class WMKeyboardService : InputMethodService() {
      * than its own opening height every such tool opens from now on.
      */
     fun onFullBleedHeight(extraDp: Int) {
+        if (keepToolHeight(com.wasimaster.wmkeyboard.core.settings.PanelHeightKind.FULL_BLEED, extraDp)) return
         if (extraDp == _uiState.value.settings.layoutBehavior.fullBleedExtraHeightDp) return
         serviceScope.launch { settingsRepository.setFullBleedExtraHeightDp(extraDp) }
     }
@@ -60047,6 +60082,7 @@ open class WMKeyboardService : InputMethodService() {
      * much taller than its compact height every such panel opens from now on.
      */
     fun onPanelOverKeysHeight(extraDp: Int) {
+        if (keepToolHeight(com.wasimaster.wmkeyboard.core.settings.PanelHeightKind.OVER_KEYS, extraDp)) return
         if (extraDp == _uiState.value.settings.layoutBehavior.panelOverKeysExtraHeightDp) return
         serviceScope.launch { settingsRepository.setPanelOverKeysExtraHeightDp(extraDp) }
     }
@@ -64225,6 +64261,7 @@ open class WMKeyboardService : InputMethodService() {
 
         /** The settings app's Statistics screen, as its NavHost names it. */
         private const val STATISTICS_ROUTE = "statistics"
+        private const val RESOURCES_ROUTE = "resources"
 
         private const val MM_PER_INCH = 25.4
 

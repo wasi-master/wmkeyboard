@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Memory
 import android.content.Context
 import android.content.Intent
 import android.content.pm.LauncherApps
@@ -117,14 +118,18 @@ private const val CUSTOM_PICTURE_SLOT_PREFIX = "custom.button."
 
 /**
  * The slot custom button [id] draws through as a tool (#1345): a switch's or a
- * page's glyph slot, which an icon pack can dress, or for a shortcut a slot of
- * its own that [SlotIcon] draws with the shortcut's picture. Reads
- * [CustomButtonFaces], which is snapshot state, so a cell redraws when the
- * button changes.
+ * page's glyph slot, which an icon pack can dress, or for a shortcut, or any
+ * button given an icon of its own (#1375), a slot of its own that [SlotIcon]
+ * draws with that picture. Reads [CustomButtonFaces], which is snapshot state,
+ * so a cell redraws when the button changes.
  */
 fun customToolSlot(id: String): String {
     val button = CustomButtonFaces.byId(id) ?: return CUSTOM_SHORTCUT_SLOT
-    return if (button.kind == CustomButtonKind.SHORTCUT) CUSTOM_PICTURE_SLOT_PREFIX + id else customButtonSlot(button)
+    return if (button.kind == CustomButtonKind.SHORTCUT || button.icon.isNotEmpty()) {
+        CUSTOM_PICTURE_SLOT_PREFIX + id
+    } else {
+        customButtonSlot(button)
+    }
 }
 
 /** The shortcut button a slot from [customToolSlot] draws the picture of, or null for any other slot. */
@@ -188,6 +193,7 @@ fun customPageIcon(page: CustomPage): ImageVector = when (page) {
     CustomPage.BACKUP -> Icons.Outlined.Backup
     CustomPage.ACCESSIBILITY -> Icons.Outlined.Accessibility
     CustomPage.STATISTICS -> Icons.Outlined.BarChart
+    CustomPage.RESOURCES -> Icons.Outlined.Memory
 }
 
 @StringRes
@@ -241,6 +247,7 @@ fun customPageLabelRes(page: CustomPage): Int = when (page) {
     CustomPage.BACKUP -> R.string.ime_custom_page_backup
     CustomPage.ACCESSIBILITY -> R.string.ime_custom_page_accessibility
     CustomPage.STATISTICS -> R.string.ime_custom_page_statistics
+    CustomPage.RESOURCES -> R.string.ime_custom_page_resources
 }
 
 /**
@@ -279,6 +286,21 @@ object CustomButtonFaces {
      * where the caller can.
      */
     fun icon(context: Context, button: CustomButton, sizePx: Int): ImageBitmap? {
+        // An icon picked for it out of an installed icon pack (#1375), on any
+        // kind of button; one whose pack is gone falls back to its own.
+        if (button.icon.isNotEmpty()) {
+            val key = "${button.id}#${button.icon}@$sizePx"
+            icons.get(key)?.let { return it }
+            val picked = com.wasimaster.wmkeyboard.core.icons.SystemIconPacks.parseSource(button.icon)
+                ?.let { (pkg, name) ->
+                    com.wasimaster.wmkeyboard.core.icons.SystemIconPacks.drawable(context, pkg, name, sizePx)
+                }
+                ?.asImageBitmap()
+            if (picked != null) {
+                icons.put(key, picked)
+                return picked
+            }
+        }
         if (button.kind != CustomButtonKind.SHORTCUT) return null
         val file = iconFile(context, button.id)
         val stamp = runCatching { file.lastModified() }.getOrDefault(0L)
@@ -402,7 +424,9 @@ internal fun CustomShortcutPicture(
     }
     val shown = picture
     if (shown == null) {
-        SlotIcon(CUSTOM_SHORTCUT_SLOT, contentDescription = contentDescription, modifier = modifier, tint = tint)
+        // A switch or a page with a picked icon that is not there (yet): its own glyph.
+        val fallback = button?.takeIf { it.kind != CustomButtonKind.SHORTCUT }?.let(::customButtonSlot) ?: CUSTOM_SHORTCUT_SLOT
+        SlotIcon(fallback, contentDescription = contentDescription, modifier = modifier, tint = tint)
         return
     }
     Image(

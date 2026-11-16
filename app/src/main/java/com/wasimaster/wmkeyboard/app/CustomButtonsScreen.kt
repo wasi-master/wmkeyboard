@@ -10,6 +10,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -280,11 +281,11 @@ internal fun CustomButtonsScreen(
             button = edited,
             onToolbar = wasOnToolbar,
             onDismiss = { editing = null },
-            onSave = { label, onToolbar ->
+            onSave = { label, onToolbar, icon ->
                 editing = null
                 scope.launch {
                     repository.updateCustomButtons { list ->
-                        list.map { if (it.id == edited.id) it.copy(label = label) else it }
+                        list.map { if (it.id == edited.id) it.copy(label = label, icon = icon) else it }
                     }
                     if (onToolbar != wasOnToolbar) repository.setCustomButtonOnToolbar(edited.id, onToolbar)
                 }
@@ -650,11 +651,40 @@ private fun EditCustomButtonDialog(
     /** Whether the button is pinned to the toolbar now, by the tool lists. */
     onToolbar: Boolean,
     onDismiss: () -> Unit,
-    onSave: (label: String, onToolbar: Boolean) -> Unit,
+    onSave: (label: String, onToolbar: Boolean, icon: String) -> Unit,
 ) {
     val context = LocalContext.current
     var label by rememberSaveable(button.id) { mutableStateOf(button.label) }
     var pinned by rememberSaveable(button.id) { mutableStateOf(onToolbar) }
+    // An icon out of an installed icon pack (#1375), or blank for its own.
+    var icon by rememberSaveable(button.id) { mutableStateOf(button.icon) }
+    var choosingIcon by remember { mutableStateOf(false) }
+    val packs = rememberSystemIconPacks()
+    if (choosingIcon) {
+        AlertDialog(
+            onDismissRequest = { choosingIcon = false },
+            title = { Text(stringResource(R.string.custombuttons_icon_picker_title)) },
+            text = {
+                if (packs.isEmpty()) {
+                    Text(stringResource(R.string.custombuttons_icon_no_packs))
+                } else {
+                    SystemPackIconGrid(
+                        packs = packs,
+                        selected = icon.ifEmpty { null },
+                        onPick = { source ->
+                            icon = source
+                            choosingIcon = false
+                        },
+                        // A shortcut's own app first, where the pack themes it.
+                        leadFor = button.packageName.ifEmpty { null },
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { choosingIcon = false }) { Text(stringResource(CommonR.string.common_cancel)) }
+            },
+        )
+    }
     val fallback = remember(button) { CustomButtonFaces.name(context, button.copy(label = "")) }
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -682,10 +712,36 @@ private fun EditCustomButtonDialog(
                     }
                     Switch(checked = pinned, onCheckedChange = { pinned = it })
                 }
+                // Its icon, on the toolbar, in the toolbox and on the floating button (#1375).
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(stringResource(R.string.custombuttons_edit_icon))
+                        Text(
+                            if (icon.isEmpty()) {
+                                stringResource(R.string.custombuttons_edit_icon_own)
+                            } else {
+                                systemPackLabel(packs, icon)
+                                    ?.let { stringResource(R.string.custombuttons_edit_icon_from_pack, it) }
+                                    ?: stringResource(R.string.custombuttons_edit_icon_own)
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    if (icon.isNotEmpty()) {
+                        Box(Modifier.size(32.dp), contentAlignment = Alignment.Center) {
+                            ResolvedGlyph(rememberSystemPackIcon(icon))
+                        }
+                        TextButton(onClick = { icon = "" }) { Text(stringResource(R.string.custombuttons_edit_icon_reset)) }
+                    }
+                    TextButton(onClick = { choosingIcon = true }) {
+                        Text(stringResource(R.string.custombuttons_edit_icon_choose))
+                    }
+                }
             }
         },
         confirmButton = {
-            TextButton(onClick = { onSave(label.trim(), pinned) }) { Text(stringResource(CommonR.string.common_save)) }
+            TextButton(onClick = { onSave(label.trim(), pinned, icon) }) { Text(stringResource(CommonR.string.common_save)) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }

@@ -2339,6 +2339,19 @@ data class ToolbarBehavior(
      */
     val floatOnTap: Set<ToolbarTool> = emptySet(),
     /**
+     * A swipe up on a toolbar tool that floats opens it in its floating box
+     * over the app (#1378), as a hold bound to floating does; its button
+     * greys while it is out there, and a tap on it brings it back. On by
+     * default: a swipe up on a tool did nothing before.
+     */
+    val swipeUpFloats: Boolean = true,
+    /**
+     * How long, in ms, a tool takes to rise out of the keyboard into its
+     * floating box and to drop back into its button (#1378). 0 opens and
+     * closes the box at once, as reduce motion does. See [FloatMotionRange].
+     */
+    val floatMotionMs: Int = 240,
+    /**
      * The tools whose floating box does the opposite of
      * [SummonButtonSettings.boxClosesOutside] on a tap outside it (#1262):
      * stays open while the rest close, or closes while the rest stay. Read
@@ -9410,6 +9423,37 @@ enum class KaomojiStartView { LAST_USED, RECENT, FAVOURITES, ALL }
 /** How much taller than the keyboard the emoji, GIF and sticker panels may be set, in dp (#537). */
 val MediaPanelExtraHeightRange = 0..400
 
+/** Bounds for [ToolbarBehavior.floatMotionMs] (#1378). */
+val FloatMotionRange = 0..800
+
+/**
+ * The four heights the bar on top of a panel sets (#1381): the clipboard's,
+ * the emoji, GIF and sticker panels', a panel over the live keys', and a
+ * full-bleed tool's. Each is one value for every panel of its kind unless
+ * [LayoutBehaviorSettings.heightPerTool] is on.
+ */
+enum class PanelHeightKind(val range: IntRange) {
+    CLIPBOARD(ClipPanelExtraHeightRange),
+    MEDIA(MediaPanelExtraHeightRange),
+    OVER_KEYS(PanelOverKeysExtraHeightRange),
+    FULL_BLEED(FullBleedExtraHeightRange),
+}
+
+/** The key [LayoutBehaviorSettings.toolHeights] keeps [panel]'s own height of [kind] under. */
+fun toolHeightKey(kind: PanelHeightKind, panel: String): String = "${kind.name.lowercase()}:$panel"
+
+/** [LayoutBehaviorSettings.toolHeights] from its stored `key=dp` list, dropping anything unreadable. */
+fun decodeToolHeights(raw: String?): Map<String, Int> =
+    raw?.split(',')?.mapNotNull { entry ->
+        val at = entry.lastIndexOf('=')
+        if (at <= 0) return@mapNotNull null
+        entry.substring(at + 1).toIntOrNull()?.let { entry.substring(0, at) to it }
+    }?.toMap().orEmpty()
+
+/** [decodeToolHeights]'s inverse. */
+fun encodeToolHeights(heights: Map<String, Int>): String =
+    heights.entries.joinToString(",") { (key, dp) -> "$key=$dp" }
+
 /**
  * How much taller than its compact height a panel over the live keys may be
  * dragged, in dp (#615). The panel is fitted to the screen on top of this, so
@@ -11092,9 +11136,26 @@ data class LayoutBehaviorSettings(
      * See [FullBleedExtraHeightRange].
      */
     val fullBleedExtraHeightDp: Int = 0,
+    /**
+     * Each tool and panel keeps the height its bar is dragged to, instead of
+     * sharing one per kind of panel (#1381): making Search taller then leaves
+     * Emoji as it was. Off by default. A tool not yet dragged opens at the
+     * shared height.
+     */
+    val heightPerTool: Boolean = false,
+    /** The heights the tools kept while [heightPerTool] is on, by [toolHeightKey]; see [panelExtraHeight]. */
+    val toolHeights: Map<String, Int> = emptyMap(),
     /** The case the letter keys are drawn in; see [KeyLabelCase]. */
     val labelCase: KeyLabelCase = KeyLabelCase.FOLLOW_SHIFT,
 ) {
+    /**
+     * How much taller [panel] opens for its [kind] of height, given the
+     * [shared] one: its own while [heightPerTool] is on and it has one (#1381),
+     * else the shared one.
+     */
+    fun panelExtraHeight(kind: PanelHeightKind, panel: String, shared: Int): Int =
+        if (!heightPerTool) shared else toolHeights[toolHeightKey(kind, panel)]?.coerceIn(kind.range) ?: shared
+
     /** The characters that spring the symbols layer back, with the default applied. */
     fun symbolsReturnCharSet(): String =
         symbolsReturnChars.ifEmpty { DefaultSymbolsReturnChars }
@@ -12958,6 +13019,8 @@ class SettingsRepository(private val context: Context) {
         private val EDGE_SWIPE_BACK = booleanPreferencesKey("edge_swipe_back")
         private val PANEL_OVER_KEYS_EXTRA_HEIGHT_DP = intPreferencesKey("panel_over_keys_extra_height_dp")
         private val FULL_BLEED_EXTRA_HEIGHT_DP = intPreferencesKey("full_bleed_extra_height_dp")
+        private val PANEL_HEIGHT_PER_TOOL = booleanPreferencesKey("panel_height_per_tool")
+        private val PANEL_TOOL_HEIGHTS = stringPreferencesKey("panel_tool_heights")
         private val KEY_LABEL_CASE = stringPreferencesKey("key_label_case")
         private val HIDE_SYSTEM_KEYBOARD_BAR = booleanPreferencesKey("hide_system_keyboard_bar")
         private val FULL_HEIGHT_IME_WINDOW = booleanPreferencesKey("full_height_ime_window")
@@ -13505,6 +13568,8 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBAR_LANDSCAPE_COLUMN = stringPreferencesKey("toolbar_landscape_column")
         private val TOOLBAR_HOLD_ACTIONS = stringPreferencesKey("toolbar_hold_actions")
         private val TOOLBAR_FLOAT_ON_TAP = stringPreferencesKey("toolbar_float_on_tap")
+        private val TOOLBAR_SWIPE_UP_FLOATS = booleanPreferencesKey("toolbar_swipe_up_floats")
+        private val TOOLBAR_FLOAT_MOTION_MS = intPreferencesKey("toolbar_float_motion_ms")
         private val TOOLBAR_BOX_OUTSIDE_FLIPPED = stringPreferencesKey("toolbar_box_outside_flipped")
         /** The single tool #462 stored, before the strip took a list. Read as a one-tool list. */
         private val TOOLBAR_STRIP_SHORTCUT = stringPreferencesKey("toolbar_strip_shortcut")
@@ -16032,6 +16097,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.layoutBehavior.panelOverKeysExtraHeightDp,
             fullBleedExtraHeightDp = p[FULL_BLEED_EXTRA_HEIGHT_DP]?.coerceIn(FullBleedExtraHeightRange)
                 ?: defaults.layoutBehavior.fullBleedExtraHeightDp,
+            heightPerTool = p[PANEL_HEIGHT_PER_TOOL] ?: defaults.layoutBehavior.heightPerTool,
+            toolHeights = decodeToolHeights(p[PANEL_TOOL_HEIGHTS]),
             labelCase = p[KEY_LABEL_CASE]?.let { name -> KeyLabelCase.entries.firstOrNull { it.name == name } }
                 ?: defaults.layoutBehavior.labelCase,
             hintFlick = p[HINT_FLICK] ?: defaults.layoutBehavior.hintFlick,
@@ -16248,6 +16315,9 @@ class SettingsRepository(private val context: Context) {
                 ?.let { runCatching { ToolbarColumn.valueOf(it) }.getOrNull() }
                 ?: defaults.toolbarBehavior.landscapeColumn,
             holdActions = ToolHoldActions.decode(p[TOOLBAR_HOLD_ACTIONS]),
+            swipeUpFloats = p[TOOLBAR_SWIPE_UP_FLOATS] ?: defaults.toolbarBehavior.swipeUpFloats,
+            floatMotionMs = p[TOOLBAR_FLOAT_MOTION_MS]?.coerceIn(FloatMotionRange)
+                ?: defaults.toolbarBehavior.floatMotionMs,
             floatOnTap = p[TOOLBAR_FLOAT_ON_TAP]
                 ?.split(',')
                 ?.mapNotNull { name -> runCatching { ToolbarTool.valueOf(name) }.getOrNull()?.takeIf { it.floats } }
@@ -19504,6 +19574,14 @@ class SettingsRepository(private val context: Context) {
                 prefs[TOOLBAR_BOX_OUTSIDE_FLIPPED] = current.joinToString(",") { it.name }
             }
         }
+
+    /** See [ToolbarBehavior.swipeUpFloats] (#1378). */
+    suspend fun setToolbarSwipeUpFloats(value: Boolean) =
+        editPrefs { it[TOOLBAR_SWIPE_UP_FLOATS] = value }
+
+    /** See [ToolbarBehavior.floatMotionMs] (#1378). */
+    suspend fun setToolbarFloatMotionMs(value: Int) =
+        editPrefs { it[TOOLBAR_FLOAT_MOTION_MS] = value.coerceIn(FloatMotionRange) }
 
     /** A tap on [tool] opens it in the floating box (#1259), or as its panel again; see [ToolbarBehavior.floatOnTap]. */
     suspend fun setToolFloatsOnTap(tool: ToolbarTool, value: Boolean) =
@@ -24508,6 +24586,22 @@ class SettingsRepository(private val context: Context) {
     /** See [LayoutBehaviorSettings.fullBleedExtraHeightDp]. */
     suspend fun setFullBleedExtraHeightDp(value: Int) =
         editPrefs { it[FULL_BLEED_EXTRA_HEIGHT_DP] = value.coerceIn(FullBleedExtraHeightRange) }
+
+    /** See [LayoutBehaviorSettings.heightPerTool] (#1381). */
+    suspend fun setPanelHeightPerTool(value: Boolean) =
+        editPrefs { it[PANEL_HEIGHT_PER_TOOL] = value }
+
+    /** [panel]'s own height of [kind] (#1381); see [LayoutBehaviorSettings.toolHeights]. */
+    suspend fun setToolPanelExtraHeight(kind: PanelHeightKind, panel: String, value: Int) =
+        editPrefs { prefs ->
+            val heights = decodeToolHeights(prefs[PANEL_TOOL_HEIGHTS]).toMutableMap()
+            heights[toolHeightKey(kind, panel)] = value.coerceIn(kind.range)
+            prefs[PANEL_TOOL_HEIGHTS] = encodeToolHeights(heights)
+        }
+
+    /** Forgets every tool's own height (#1381): each opens at the shared one again. */
+    suspend fun clearToolPanelHeights() =
+        editPrefs { it.remove(PANEL_TOOL_HEIGHTS) }
 
     /** See [LayoutBehaviorSettings.labelCase]. */
     suspend fun setKeyLabelCase(value: KeyLabelCase) =

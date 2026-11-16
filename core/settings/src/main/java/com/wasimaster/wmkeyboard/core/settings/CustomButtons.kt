@@ -47,6 +47,13 @@ data class CustomButton(
      * tools (#1345). After that the lists decide, and a drag moves it.
      */
     val onToolbar: Boolean = true,
+    /**
+     * The icon it wears instead of its own (#1375): one out of a launcher
+     * icon pack installed on the phone, `s:<package>/<drawable>`, on the
+     * toolbar, in the toolbox and on the floating button alike. Blank wears
+     * the shortcut's picture, or the switch's or page's glyph.
+     */
+    val icon: String = "",
 ) {
     /** The switch this button flips, or null for another kind (or one this build dropped). */
     val toggle: CustomToggle?
@@ -195,6 +202,7 @@ enum class CustomPage(val route: String?) {
     BACKUP("backup"),
     ACCESSIBILITY("accessibility"),
     STATISTICS("statistics"),
+    RESOURCES("resources"),
 }
 
 /** The most buttons the list keeps: past this the toolbar has no room left for its tools. */
@@ -202,6 +210,9 @@ const val MAX_CUSTOM_BUTTONS = 24
 
 /** The longest name a button keeps. */
 const val CUSTOM_BUTTON_LABEL_MAX = 40
+
+/** What a [CustomButton.icon] out of an installed icon pack starts with; the icon library's `s:` source. */
+const val CUSTOM_ICON_PACK_PREFIX = "s:"
 
 /** Where launcher-shortcut targets start; see [CustomButton.target]. */
 const val CUSTOM_LAUNCHER_SHORTCUT_PREFIX = "ls:"
@@ -263,7 +274,7 @@ fun List<CustomButton>.normalizedCustomButtons(): List<CustomButton> {
 }
 
 /**
- * The stored form: a JSON array of `{"id", "kind", "target", "label", "pkg", "bar"}`.
+ * The stored form: a JSON array of `{"id", "kind", "target", "label", "pkg", "bar", "icon"}`.
  * Empty encodes as null, so the preference is removed rather than kept empty.
  */
 fun encodeCustomButtons(buttons: List<CustomButton>): String? {
@@ -278,6 +289,7 @@ fun encodeCustomButtons(buttons: List<CustomButton>): String? {
                     if (button.label.isNotEmpty()) put("label", JsonPrimitive(button.label))
                     if (button.packageName.isNotEmpty()) put("pkg", JsonPrimitive(button.packageName))
                     if (!button.onToolbar) put("bar", JsonPrimitive(false))
+                    if (button.icon.isNotEmpty()) put("icon", JsonPrimitive(button.icon))
                 },
             )
         }
@@ -299,6 +311,8 @@ fun decodeCustomButtons(raw: String?): List<CustomButton> {
                 label = obj["label"]?.jsonPrimitive?.contentOrNull.orEmpty(),
                 packageName = obj["pkg"]?.jsonPrimitive?.contentOrNull.orEmpty(),
                 onToolbar = obj["bar"]?.jsonPrimitive?.booleanOrNull ?: true,
+                // Only an installed pack's icon: nothing else is drawn from here.
+                icon = obj["icon"]?.jsonPrimitive?.contentOrNull?.takeIf { it.startsWith(CUSTOM_ICON_PACK_PREFIX) }.orEmpty(),
             )
         }.getOrNull()
     }.normalizedCustomButtons()

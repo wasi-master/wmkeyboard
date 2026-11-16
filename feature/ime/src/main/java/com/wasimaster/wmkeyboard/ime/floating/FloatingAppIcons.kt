@@ -57,16 +57,39 @@ object FloatingAppIcons {
         return label
     }
 
-    /** [app]'s icon at [sizePx], its profile's badge on it for a work app (#1138); null when it is gone. */
+    /**
+     * [app]'s icon at [sizePx], its profile's badge on it for a work app
+     * (#1138); null when it is gone. A work app wears the icon pack's icon
+     * too (#1377), badged the same way, so the two profiles look alike.
+     */
     fun icon(context: Context, app: FloatingAction.App, sizePx: Int): ImageBitmap? {
         val serial = app.profile ?: return icon(context, app.packageName, sizePx)
         val key = "${app.packageName}@$serial@$sizePx"
         icons.get(key)?.let { return it }
         val bitmap = runCatching {
-            entry(context, app.packageName, serial)?.getBadgedIcon(0)?.toBitmap(sizePx, sizePx)?.asImageBitmap()
+            val entry = entry(context, app.packageName, serial) ?: return@runCatching null
+            packedWorkIcon(context, entry, sizePx)
+                ?: entry.getBadgedIcon(0)?.toBitmap(sizePx, sizePx)?.asImageBitmap()
         }.getOrNull() ?: return null
         icons.put(key, bitmap)
         return bitmap
+    }
+
+    /**
+     * A work app's icon out of the icon pack in use or picked for it (#1377),
+     * with the work profile's badge drawn on, as the system draws one on the
+     * app's own icon; null where the pack leaves the app alone.
+     */
+    private fun packedWorkIcon(context: Context, entry: LauncherActivityInfo, sizePx: Int): ImageBitmap? {
+        val packed = AppIconPacks.icon(
+            context,
+            AppIconPacks.current,
+            entry.componentName.packageName,
+            entry.componentName.className,
+            sizePx,
+        ) ?: return null
+        val drawable = android.graphics.drawable.BitmapDrawable(context.resources, packed)
+        return context.packageManager.getUserBadgedIcon(drawable, entry.user).toBitmap(sizePx, sizePx).asImageBitmap()
     }
 
     /** [app]'s name, from its own profile; null when it is gone. */

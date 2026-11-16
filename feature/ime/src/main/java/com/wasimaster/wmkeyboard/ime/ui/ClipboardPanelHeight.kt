@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import com.wasimaster.wmkeyboard.core.settings.PanelHeightKind
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
@@ -252,7 +253,7 @@ internal class PanelOverKeysSize(
  */
 @Composable
 internal fun panelOverKeysSize(state: KeyboardUiState, wanted: Dp, floor: Dp): PanelOverKeysSize {
-    val setting = state.settings.layoutBehavior.panelOverKeysExtraHeightDp
+    val setting = panelExtraHeight(state, PanelHeightKind.OVER_KEYS, state.settings.layoutBehavior.panelOverKeysExtraHeightDp)
     val resize = rememberClipPanelResize(setting)
     val base = toolPanelHeight(state, wanted = wanted + ClipPanelBarHeight, floor = floor + ClipPanelBarHeight)
     val maxPanel = toolPanelHeight(
@@ -300,7 +301,7 @@ internal val LocalFullBleedHeight = staticCompositionLocalOf<(Int) -> Unit> { {}
  */
 @Composable
 internal fun fullBleedSize(state: KeyboardUiState, wanted: Dp, floor: Dp): PanelOverKeysSize {
-    val setting = state.settings.layoutBehavior.fullBleedExtraHeightDp
+    val setting = panelExtraHeight(state, PanelHeightKind.FULL_BLEED, state.settings.layoutBehavior.fullBleedExtraHeightDp)
     val resize = rememberClipPanelResize(setting)
     val base = toolPanelHeight(state, wanted = wanted, floor = floor)
     val maxPanel = toolPanelHeight(
@@ -323,6 +324,14 @@ internal fun fullBleedSize(state: KeyboardUiState, wanted: Dp, floor: Dp): Panel
         probe = probe,
     )
 }
+
+/**
+ * How much taller the open panel opens for its [kind] of height, given the
+ * [shared] value for every panel of that kind: the panel's own while each tool
+ * keeps its own height (#1381), else the shared one.
+ */
+internal fun panelExtraHeight(state: KeyboardUiState, kind: PanelHeightKind, shared: Int): Int =
+    state.settings.layoutBehavior.panelExtraHeight(kind, state.panel.name, shared)
 
 /**
  * The shortest a full-bleed tool can be dragged: its header, the bar over it

@@ -57,6 +57,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.absolutePadding
@@ -9782,6 +9783,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.MEDIA_CONTROL -> R.string.ime_tool_media_control
     ToolbarTool.KDE_CONNECT -> R.string.ime_tool_kde_connect
     ToolbarTool.STATISTICS -> R.string.ime_tool_statistics
+    ToolbarTool.RESOURCES -> R.string.ime_tool_resources
     ToolbarTool.FIND_REPLACE -> R.string.ime_tool_find_replace
     ToolbarTool.NOTES -> R.string.ime_tool_notes
     ToolbarTool.TODO -> R.string.ime_tool_todo
@@ -9890,6 +9892,8 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.DOC_SCAN -> state.panel == PanelMode.DOC_SCAN
     // Opens the settings app, like Settings: nothing on the keyboard to stay lit for.
     ToolbarTool.STATISTICS -> false
+    // A shortcut to a screen of the settings app, as Statistics is (#1380).
+    ToolbarTool.RESOURCES -> false
     ToolbarTool.FIND_REPLACE -> state.panel == PanelMode.FIND_REPLACE
     ToolbarTool.NOTES -> state.panel == PanelMode.NOTES
     ToolbarTool.TODO -> state.panel == PanelMode.TODO
@@ -9975,7 +9979,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
  * a ghost stand-in there so the surrounding icons make room ahead of the
  * drop.
  */
-private class ToolDragController {
+private class ToolDragController : AppCarry {
     /** The tool in flight: a built-in one or a plugin's ([ToolKey]). */
     var dragging by mutableStateOf<ToolKey?>(null)
         private set
@@ -10032,7 +10036,7 @@ private class ToolDragController {
      * when it is full, so the slot is counted from where the tools really are
      * rather than from a share of the row's width.
      */
-    val secondCentres = HashMap<ToolKey, Float>()
+    val secondCentres = CellCentres(vertical = false)
     /**
      * Width, in px, that the toolbar last gave one of its buttons.
      *
@@ -10094,22 +10098,104 @@ private class ToolDragController {
      * Tool layout and on how many there are.
      */
     var barVertical: Boolean = false
-    /** Each tool's centre down the screen in the column, in root coordinates, as last laid out. */
-    val columnCentres = HashMap<ToolKey, Float>()
+    /** Each tool's centre down the screen in the column, in root coordinates. */
+    val columnCentres = CellCentres(vertical = true)
     /**
-     * Each tool's centre across the screen on the bar, in root coordinates, as
-     * last laid out: where an app carried along the bar lands (#1258).
+     * Each tool's centre across the screen on the bar, in root coordinates:
+     * where an app carried along the bar lands (#1258), and where a tool
+     * dragged along a scrolling bar does (#1387).
      */
-    val rowCentres = HashMap<ToolKey, Float>()
+    val rowCentres = CellCentres(vertical = false)
+
+    /**
+     * Whether the bar's tools scroll (#1387). Its slots are then counted from
+     * where the tools really are, since a share of the visible width names a
+     * slot only while every tool is on screen.
+     */
+    var barScrolls: Boolean = false
 
     /** The slot among the drawn tools an app let go at [at] takes (#1258). */
-    fun appSlot(at: Offset): Int = appSlotAt(
-        at,
-        visibleTools,
-        if (barVertical) columnCentres else rowCentres,
-        vertical = barVertical,
-        rtl = barRtl,
-    )
+    fun appSlot(at: Offset): Int {
+        val centres = if (barVertical) columnCentres else rowCentres
+        return appSlotAt(at, visibleTools, centres.of(visibleTools), vertical = barVertical, rtl = barRtl)
+    }
+
+    // ---- an app carried along the bar (#1387) ----
+
+    override var carrying by mutableStateOf<String?>(null)
+        private set
+
+    /** What the carried app looks like, for the ghost on the bar and the one under the finger. */
+    var carriedFace: ToolbarAppFace? = null
+        private set
+
+    /** The slot the carried app would take if let go now, or null off the bar. */
+    var appBarSlot by mutableStateOf<Int?>(null)
+        private set
+
+    override fun startCarry(key: String, face: ToolbarAppFace, at: Offset) {
+        carriedFace = face
+        carrying = key
+        position = at
+        appBarSlot = carriedSlotAt(at)
+    }
+
+    override fun moveCarry(at: Offset) {
+        if (carrying == null) return
+        position = at
+        val slot = carriedSlotAt(at)
+        if (slot != appBarSlot) {
+            appBarSlot = slot
+            onSnap()
+        }
+    }
+
+    override fun endCarry(): Int? {
+        if (carrying == null) return null
+        val slot = carriedSlotAt(position)
+        carrying = null
+        carriedFace = null
+        appBarSlot = null
+        return slot
+    }
+
+    /** [appSlot] while [at] is over the bar (its box inflated like a tool's), else null. */
+    private fun carriedSlotAt(at: Offset): Int? {
+        val bar = toolbarBounds?.inflate(30f) ?: return null
+        return if (bar.contains(at)) appSlot(at) else null
+    }
+
+    /** Works the drop out again where the finger already is: the bar scrolled under it. */
+    fun retargetInPlace() {
+        if (dragging != null) move(position)
+        if (carrying != null) moveCarry(position)
+    }
+
+    // ---- a tool flying out to its floating box and back (#1378) ----
+
+    /** The tool on its way to or from its floating box, drawn over the keyboard; null while none is. */
+    var flight by mutableStateOf<ToolFlight?>(null)
+
+    /** How long a flight takes, in ms; 0 skips it. Set from the settings by the body. */
+    var flightMs: Int = 0
+
+    /**
+     * A swipe up on [tool]'s button, whose centre is [at]: the tool rises out
+     * of the keyboard and opens in its floating box as it gets there, or at
+     * once with the flight off.
+     */
+    fun swipeFloat(tool: ToolbarTool, at: Offset) {
+        if (flightMs <= 0) {
+            onFloat(tool)
+        } else {
+            flight = ToolFlight(tool, at, outward = true)
+        }
+    }
+
+    /** [tool], floating, comes back into its button at [at]; the tap that brings it is the caller's. */
+    fun dockFlight(tool: ToolbarTool, at: Offset) {
+        if (flightMs > 0) flight = ToolFlight(tool, at, outward = false)
+    }
     var onCommit: (List<ToolKey>) -> Unit = {}
     /** Haptic tick when the drop target changes: slot to slot, or on/off the bar. */
     var onSnap: () -> Unit = {}
@@ -10412,6 +10498,13 @@ private class ToolDragController {
         // the preview already in place, so the slot holds still while the
         // finger stays between two of them.
         if (barVertical) return without.count { (columnCentres[it] ?: Float.MAX_VALUE) < at.y }
+        // A scrolling bar: in front of the first tool, in reading order, whose
+        // centre is still past the finger, wherever the scroll has put them.
+        if (barScrolls) {
+            return without.count { other ->
+                if (barRtl) (rowCentres[other] ?: -Float.MAX_VALUE) > at.x else (rowCentres[other] ?: Float.MAX_VALUE) < at.x
+            }
+        }
         // Measured from the edge the row starts its tools at — the right one
         // when the bar draws RTL ([barRtl]), so the slot always counts in the
         // same direction the icons are laid out in.
@@ -10564,6 +10657,129 @@ private class ToolDragController {
  * side left for reordering.
  */
 private val ToolboxMergeZone = 0.38f..0.62f
+
+/**
+ * The bar's cells, kept as their live coordinates rather than as numbers
+ * written on every frame (#1393): a scrolling bar moved every one of them
+ * each frame, and each write was a callback and a snapshot write per tool.
+ * A cell's centre is read when a drag asks for it, unclipped, so a tool
+ * scrolled out of sight still counts where it really is.
+ */
+private class CellCentres(private val vertical: Boolean) {
+    private val cells = HashMap<ToolKey, LayoutCoordinates>()
+
+    fun put(tool: ToolKey, coords: LayoutCoordinates) {
+        cells[tool] = coords
+    }
+
+    fun clear() = cells.clear()
+
+    /** [tool]'s centre along the row's axis, in root coordinates, or null when it is not laid out. */
+    operator fun get(tool: ToolKey): Float? {
+        val coords = cells[tool]?.takeIf { it.isAttached } ?: return null
+        val at = coords.positionInRoot()
+        return if (vertical) at.y + coords.size.height / 2f else at.x + coords.size.width / 2f
+    }
+
+    /** The centres of [tools] that are laid out. */
+    fun of(tools: List<ToolKey>): Map<ToolKey, Float> = buildMap {
+        for (tool in tools) get(tool)?.let { put(tool, it) }
+    }
+}
+
+/** A tool on its way out to its floating box ([outward]) or back into its button (#1378), from or to [at]. */
+private class ToolFlight(val tool: ToolbarTool, val at: Offset, val outward: Boolean)
+
+/** How far over the keyboard a flying tool rises, in dp. */
+private val ToolFlightRise = 96.dp
+
+/** How far up a swipe on a tool has to go before it floats (#1378). */
+private val ToolSwipeUpDistance = 28.dp
+
+/**
+ * A tool's button on its way to its floating box or back from it (#1378),
+ * drawn over the keyboard: out, it rises from the button and fades; back, it
+ * drops into the button from above. Taking [durationMs], the speed set for it.
+ * Out, the box opens as it arrives, or at once should the flight be cut
+ * short.
+ */
+@Composable
+private fun ToolFlightGlyph(flight: ToolFlight, bodyOrigin: Offset, durationMs: Int, drag: ToolDragController) {
+    val kb = LocalKbTheme.current
+    val progress = remember(flight) { Animatable(0f) }
+    LaunchedEffect(flight) {
+        try {
+            progress.animateTo(1f, tween(durationMs.coerceAtLeast(1), easing = FastOutSlowInEasing))
+        } finally {
+            if (flight.outward) drag.onFloat(flight.tool)
+            if (drag.flight === flight) drag.flight = null
+        }
+    }
+    val rise = with(LocalDensity.current) { ToolFlightRise.toPx() }
+    val side = GhostSize
+    Box(
+        modifier = Modifier
+            .offset {
+                val half = side.toPx() / 2f
+                IntOffset(
+                    (flight.at.x - bodyOrigin.x - half).roundToInt(),
+                    (flight.at.y - bodyOrigin.y - half).roundToInt(),
+                )
+            }
+            .graphicsLayer {
+                val p = progress.value
+                val lifted = if (flight.outward) p else 1f - p
+                translationY = -rise * lifted
+                alpha = if (flight.outward) 1f - 0.8f * p else 0.2f + 0.8f * p
+                val scale = 1f + 0.15f * lifted
+                scaleX = scale
+                scaleY = scale
+            }
+            .size(side)
+            .background(kb.toolCircleActive, CircleShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        SlotIcon(
+            IconSlots.forTool(flight.tool),
+            contentDescription = null,
+            modifier = Modifier.size(kb.toolIconSizeDp.dp),
+            tint = kb.toolCircleActiveIcon,
+        )
+    }
+}
+
+/**
+ * An app carried along the bar (#1387), under the finger and over the whole
+ * keyboard, so nothing the bar clips can stop it.
+ */
+@Composable
+private fun CarriedAppGhost(face: ToolbarAppFace, at: Offset, state: KeyboardUiState) {
+    val kb = LocalKbTheme.current
+    Box(
+        modifier = Modifier
+            .offset {
+                IntOffset(
+                    (at.x - GhostSize.toPx() / 2f).roundToInt(),
+                    (at.y - GhostSize.toPx() / 2f).roundToInt(),
+                )
+            }
+            .size(GhostSize)
+            .background(kb.toolCircleActive, CircleShape),
+        contentAlignment = Alignment.Center,
+    ) { ToolbarAppIcon(face, state, toolbarAppIconSize(kb.toolIconSizeDp, labels = false)) }
+}
+
+/**
+ * A cell that takes no room in its row but keeps what it holds composed and
+ * laid out, unseen: an app's own button while it is carried to another slot
+ * (#1387), which still hosts the gesture doing the carrying.
+ */
+private fun Modifier.foldedAway(): Modifier = this
+    .layout { measurable, constraints ->
+        val placeable = measurable.measure(constraints.copy(minWidth = 0, minHeight = 0))
+        layout(0, 0) { placeable.place(0, 0) }
+    }
+    .graphicsLayer { alpha = 0f }
 
 /**
  * Distance a held tool has to travel before the gesture counts as a move
@@ -10759,9 +10975,18 @@ private fun DraggableTool(
     holdDelayMs: Int = 0,
     /** Whether this is a second-toolbar button (#1217): a pick-up then comes off that row, not the bar. */
     fromSecondRow: Boolean = false,
+    /**
+     * A swipe up that starts before the hold registers (#1378): the tool
+     * floats. Null where a swipe up means nothing, so travel is a scroll as
+     * it always was.
+     */
+    onSwipeUp: (() -> Unit)? = null,
     content: @Composable (Modifier) -> Unit,
 ) {
-    var origin by remember { mutableStateOf(Offset.Zero) }
+    // Read when the finger moves rather than written on every frame the bar
+    // scrolls (#1393): placed coordinates follow the scroll by themselves.
+    val placed = remember { arrayOfNulls<LayoutCoordinates>(1) }
+    fun origin(): Offset = placed[0]?.takeIf { it.isAttached }?.positionInRoot() ?: Offset.Zero
     val feedback = LocalKeyPressFeedback.current
     val scope = rememberCoroutineScope()
     // Read through a holder rather than keying pointerInput on the lambda:
@@ -10769,13 +10994,15 @@ private fun DraggableTool(
     // drop preview recomposes this row on every frame of a drag.
     val tapAction by rememberUpdatedState(onTap)
     val menuAction by rememberUpdatedState(onHoldMenu)
+    val swipeUpAction by rememberUpdatedState(onSwipeUp)
+    val swipeUpArmed = onSwipeUp != null
     content(
         Modifier
-            .onGloballyPositioned { origin = it.positionInRoot() }
+            .onPlaced { placed[0] = it }
             // Keyed on the interval too: it comes from a setting, so the handler
             // has to be rebuilt when it changes. A Long changes far more rarely
             // than the lambda above, which is why that one goes through a holder.
-            .pointerInput(enabled, tool, holdRepeatMs, holdArms, holdPanel, holdMenu, dragEnabled, holdDelayMs) {
+            .pointerInput(enabled, tool, holdRepeatMs, holdArms, holdPanel, holdMenu, dragEnabled, holdDelayMs, swipeUpArmed) {
                 if (!enabled) return@pointerInput
                 // Raw press-and-hold, mirroring the key rows' handler, instead
                 // of detectDragGesturesAfterLongPress: its long-press never
@@ -10783,18 +11010,23 @@ private fun DraggableTool(
                 // be dragged at all. An external timer plus a plain event
                 // loop is the pattern already proven by the repeat keys.
                 val dragSlop = ToolDragSlop.toPx()
+                val swipeUpPx = ToolSwipeUpDistance.toPx()
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false)
                     // Travel is measured in root coordinates, not from raw
                     // node-relative deltas: the row reflows around the drop
                     // preview while the finger is down, and a node that moves
                     // under a still finger reports deltas of its own.
-                    val downRoot = origin + down.position
+                    val downRoot = origin() + down.position
                     var rootPos = downRoot
                     var longPressed = false
                     var dragged = false
                     var released = false
                     var scrolled = false
+                    // Going up before the hold registered (#1378), and whether
+                    // it has gone far enough to float the tool.
+                    var swiping = false
+                    var swiped = false
                     // Whether selection mode is on because of *this* hold, so
                     // the release turns off exactly what the press turned on.
                     var armed = false
@@ -10863,12 +11095,30 @@ private fun DraggableTool(
                                 if (longPressed) change.consume()
                                 break
                             }
-                            rootPos = origin + change.position
+                            rootPos = origin() + change.position
                             val travel = (rootPos - downRoot).getDistance()
-                            if (!longPressed) {
+                            if (swiping) {
+                                // The swipe owns the rest of the gesture.
+                                change.consume()
+                                if (!swiped && downRoot.y - rootPos.y >= swipeUpPx) {
+                                    swiped = true
+                                    feedback()
+                                    swipeUpAction?.invoke()
+                                }
+                            } else if (!longPressed) {
                                 // Real drift before the hold registers is a
                                 // scroll (toolbox grid) — hand the gesture back.
+                                // Unless it heads up, on a tool that floats:
+                                // that is the swipe to float it (#1378).
                                 if (travel > viewConfiguration.touchSlop) {
+                                    val lift = downRoot.y - rootPos.y
+                                    val across = kotlin.math.abs(rootPos.x - downRoot.x)
+                                    if (swipeUpAction != null && lift > across) {
+                                        swiping = true
+                                        timer.cancel()
+                                        change.consume()
+                                        continue
+                                    }
                                     scrolled = true
                                     break
                                 }
@@ -10916,6 +11166,8 @@ private fun DraggableTool(
                             drag.onTrackpadHold(false)
                         }
                         when {
+                            // Floated, or a swipe let go short of it: no tap either way.
+                            swiping -> drag.cancel()
                             !longPressed -> {
                                 drag.cancel()
                                 if (released && !scrolled) tapAction()
@@ -11021,8 +11273,12 @@ private fun Modifier.animatePlacement(
         this
             .onPlaced { coords ->
                 val anchorCoords = anchor()?.takeIf { it.isAttached }
+                // Without the scroll (#1393): a scrolling bar places its tools
+                // as a moving frame, and counting that in read every relayout
+                // after a scroll as every icon having travelled the scroll's
+                // distance, so they all slid back across the bar.
                 val target = (
-                    anchorCoords?.localPositionOf(coords, Offset.Zero)
+                    anchorCoords?.localPositionOf(coords, Offset.Zero, includeMotionFrameOfReference = false)
                         ?: coords.positionInParent()
                     ).round()
                 val anchored = anchorCoords != null
@@ -11206,8 +11462,9 @@ private fun Modifier.animateSharedPlacement(
         this
             .onPlaced { coords ->
                 val anchorCoords = anchor()?.takeIf { it.isAttached }
+                // Without the scroll, as in [animatePlacement] (#1393).
                 val position = (
-                    anchorCoords?.localPositionOf(coords, Offset.Zero)
+                    anchorCoords?.localPositionOf(coords, Offset.Zero, includeMotionFrameOfReference = false)
                         ?: coords.positionInParent()
                     ).round()
                 val anchored = anchorCoords != null
@@ -12389,7 +12646,7 @@ private fun SecondToolbarRow(
                         state = state,
                         drag = drag,
                         onToolTap = onToolTap,
-                        cell = cell.onGloballyPositioned { drag.secondCentres[tool] = it.boundsInRoot().center.x },
+                        cell = cell.onPlaced { drag.secondCentres.put(tool, it) },
                         hint = null,
                         labelMaxWidthDp = labelMaxWidth,
                         inRow = true,
@@ -12530,6 +12787,9 @@ private fun ToolsColumn(
         if (toolboxSearchShown && !searchAtEnd && toolboxIsBack) toolboxSearch()
         // Apps carried in among the tools (#1258), as on the bar.
         val appsBySlot = toolbarAppsBySlot(state, displayTools.size)
+        // An app carried along the column (#1387): its own cell folds away and
+        // a ghost holds the slot it will take, as on the bar.
+        val ghostAt = drag.appBarSlot.takeIf { drag.carrying != null }
         @Composable
         fun appCell(app: String) {
             key("app:$app") {
@@ -12537,17 +12797,25 @@ private fun ToolsColumn(
                     key = app,
                     state = state,
                     callbacks = drag.apps,
-                    modifier = cell.animatePlacement(enabled = motion) { drag.bodyCoords },
-                    slotAt = drag::appSlot,
+                    modifier = (if (drag.carrying == app && ghostAt != null) Modifier.foldedAway() else cell)
+                        .animatePlacement(enabled = motion) { drag.bodyCoords },
+                    carry = drag,
                 )
             }
         }
+        @Composable
+        fun appGhost(slot: Int) {
+            if (ghostAt != slot) return
+            val face = drag.carriedFace ?: return
+            key("app-ghost") { ToolbarAppGhost(face, state, cell) }
+        }
         for ((index, tool) in displayTools.withIndex()) {
             appsBySlot[index]?.forEach { appCell(it) }
+            appGhost(index)
             key(tool) {
                 PinnedToolCell(
                     tool, state, drag, onToolTap,
-                    cell = cell.onGloballyPositioned { drag.columnCentres[tool] = it.boundsInRoot().center.y },
+                    cell = cell.onPlaced { drag.columnCentres.put(tool, it) },
                     hint = barHintSlot(tools, tool)?.let { hints?.label(HintSurface.TOOLBAR, it) },
                     labelMaxWidthDp = labelMaxWidth,
                     inRow = false,
@@ -12555,6 +12823,7 @@ private fun ToolsColumn(
             }
         }
         appsBySlot[displayTools.size]?.forEach { appCell(it) }
+        appGhost(displayTools.size)
         // Folders after the tools, as on the bar (#709).
         for (folder in pinnedFolders) {
             key("folder:${folder.id}") {
@@ -12750,6 +13019,31 @@ private fun RowScope.ToolbarRow(
     val toolsDirection = if (toolsRtl) LayoutDirection.Rtl else LayoutDirection.Ltr
     drag.barRtl = toolsRtl
     drag.barVertical = false
+    drag.barScrolls = scrollable
+    // A long bar that scrolls follows a tool or an app carried to either end
+    // of it (#1387), so every slot along it can be reached in one drag.
+    val barScroll = rememberScrollState()
+    if (scrollable) {
+        val carrying = drag.dragging != null || drag.carrying != null
+        val edgePx = with(LocalDensity.current) { BarEdgeScrollZone.toPx() }
+        val stepPx = with(LocalDensity.current) { BarEdgeScrollStep.toPx() }
+        LaunchedEffect(carrying, toolsRtl) {
+            if (!carrying) return@LaunchedEffect
+            while (true) {
+                withFrameNanos { }
+                val bounds = drag.toolbarBounds ?: continue
+                val x = drag.position.x
+                val towardStart = if (toolsRtl) x > bounds.right - edgePx else x < bounds.left + edgePx
+                val towardEnd = if (toolsRtl) x < bounds.left + edgePx else x > bounds.right - edgePx
+                val step = when {
+                    towardEnd -> stepPx
+                    towardStart -> -stepPx
+                    else -> 0f
+                }
+                if (step != 0f && barScroll.scrollBy(step) != 0f) drag.retargetInPlace()
+            }
+        }
+    }
     // The tools hug the toolbox launcher, which sits at the enclosing bar's
     // start. When the sub-row runs the other way that end is its own end, so
     // the packing spacer has to lead instead of trail.
@@ -12927,14 +13221,24 @@ private fun RowScope.ToolbarRow(
     // they sit before; the rest keep their place after the folders.
     val appsBySlot = toolbarAppsBySlot(state, displayTools.size)
     val trailingApps = if (appsBySlot.isEmpty()) pinnedApps else toolbarAppsTrailing(state)
+    // An app carried along the bar (#1387): the slot it would take now, while
+    // the finger is over the bar. Its own cell folds away and a ghost holds
+    // that slot, so the bar shows where it will land, as it does for a tool.
+    val appGhostAt = drag.appBarSlot.takeIf { drag.carrying != null }
     val toolCells: @Composable RowScope.() -> Unit = {
         // Apps the user put on the bar (#1159): like a folder, an app has no
         // place in the bar's stored list of tools, so its place is kept apart.
         @Composable
         fun RowScope.appCell(app: String) {
             key("app:$app") {
+                // Kept composed while carried: it hosts the gesture doing the carrying.
+                val away = drag.carrying == app && appGhostAt != null
                 Box(
-                    if (greedy) Modifier.weight(1f).fillMaxHeight() else Modifier.padding(horizontal = 3.dp),
+                    when {
+                        away -> Modifier.foldedAway()
+                        greedy -> Modifier.weight(1f).fillMaxHeight()
+                        else -> Modifier.padding(horizontal = 3.dp)
+                    },
                     contentAlignment = Alignment.Center,
                 ) {
                     PinnedAppButton(
@@ -12944,13 +13248,25 @@ private fun RowScope.ToolbarRow(
                         modifier = Modifier
                             .animatePlacement(enabled = motion, inRow = true) { drag.bodyCoords }
                             .graphicsLayer { alpha = contentAlpha() },
-                        slotAt = drag::appSlot,
+                        carry = drag,
                     )
                 }
             }
         }
+        @Composable
+        fun RowScope.appGhost(slot: Int) {
+            if (appGhostAt != slot) return
+            val face = drag.carriedFace ?: return
+            key("app-ghost") {
+                Box(
+                    if (greedy) Modifier.weight(1f).fillMaxHeight() else Modifier.padding(horizontal = 3.dp),
+                    contentAlignment = Alignment.Center,
+                ) { ToolbarAppGhost(face, state) }
+            }
+        }
         for ((index, tool) in displayTools.withIndex()) {
             appsBySlot[index]?.forEach { appCell(it) }
+            appGhost(index)
             key(tool) {
                 val cell = if (greedy) {
                     Modifier
@@ -12976,7 +13292,7 @@ private fun RowScope.ToolbarRow(
                 val fadeThis = !shared || fadeShared
                 PinnedToolCell(
                     tool, state, drag, onToolTap,
-                    cell.onGloballyPositioned { drag.rowCentres[tool] = it.boundsInRoot().center.x },
+                    cell.onPlaced { drag.rowCentres.put(tool, it) },
                     hint = barHintSlot(tools, tool)?.let { hints?.label(HintSurface.TOOLBAR, it) },
                     labelMaxWidthDp = labelMaxWidth,
                     inRow = true,
@@ -12987,6 +13303,7 @@ private fun RowScope.ToolbarRow(
             }
         }
         appsBySlot[displayTools.size]?.forEach { appCell(it) }
+        appGhost(displayTools.size)
         // Folders the user pinned (#709), after the tools: a folder has no
         // place in the bar's own stored list, so it cannot sit between them.
         for (folder in pinnedFolders) {
@@ -13092,7 +13409,7 @@ private fun RowScope.ToolbarRow(
                     // scrolling bar.
                     .then(
                         if (scrollable) {
-                            Modifier.horizontalScroll(rememberScrollState())
+                            Modifier.horizontalScroll(barScroll)
                         } else {
                             Modifier.shrinkToFit(
                                 anchorRight = toolsPackAtEnd != (toolsDirection == LayoutDirection.Rtl),
@@ -13199,7 +13516,23 @@ private fun PinnedToolCell(
     // this one cell, opens on the hold's lift and closes on a
     // pick or a tap outside, and nothing else needs to know.
     var voiceMenuOpen by remember { mutableStateOf(false) }
-    Box(cell, contentAlignment = Alignment.Center) {
+    // A tool that can float (#1378): a swipe up on it opens it in its box,
+    // and while it is out there its button greys a little and a tap on it
+    // brings it back into the keyboard.
+    val floatTool = tool.tool?.takeIf { it.floats }
+    val floatingNow = floatTool != null && state.appletPanel?.let(::floatingToolFor) == floatTool
+    val floatedAlpha by animateFloatAsState(
+        if (floatingNow) FloatedToolAlpha else 1f,
+        animationSpec = if (motion) tween(ToolbarMotionMs) else snap(),
+        label = "floatedTool",
+    )
+    val cellPlaced = remember { arrayOfNulls<LayoutCoordinates>(1) }
+    fun cellCentre(): Offset {
+        val coords = cellPlaced[0]?.takeIf { it.isAttached } ?: return Offset.Zero
+        return coords.positionInRoot() + Offset(coords.size.width / 2f, coords.size.height / 2f)
+    }
+    val swipeFloats = floatTool != null && state.settings.toolbarBehavior.swipeUpFloats
+    Box(cell.onPlaced { cellPlaced[0] = it }, contentAlignment = Alignment.Center) {
         // Drag is always live: hold-and-drag reorders the bar
         // (or unpins into an open toolbox); a hold that never
         // moves opens the tool's settings page instead — or,
@@ -13212,7 +13545,16 @@ private fun PinnedToolCell(
             fromToolbar = true,
             enabled = true,
             drag = drag,
-            onTap = { drag.tap(tool, onToolTap) },
+            onTap = {
+                // Back from its box with a little drop into the button.
+                if (floatingNow && floatTool != null) drag.dockFlight(floatTool, cellCentre())
+                drag.tap(tool, onToolTap)
+            },
+            onSwipeUp = if (swipeFloats && floatTool != null && !floatingNow) {
+                { drag.swipeFloat(floatTool, cellCentre()) }
+            } else {
+                null
+            },
             holdRepeatMs = holdRepeatMs(tool, state),
             holdAction = holdActionFor(tool, fromToolbar = true, state = state),
             dragEnabled = state.settings.toolbarBehavior.dragToRearrange,
@@ -13288,10 +13630,13 @@ private fun PinnedToolCell(
                         },
                     )
                     // Inside the slide, so the fade's buffer travels
-                    // with the icon rather than clipping it.
+                    // with the icon rather than clipping it. Greyed a
+                    // little while the tool is out in its box (#1378).
                     .then(
                         if (fadeThis) {
-                            Modifier.graphicsLayer { alpha = contentAlpha() }
+                            Modifier.graphicsLayer { alpha = contentAlpha() * floatedAlpha }
+                        } else if (floatingNow || floatedAlpha < 1f) {
+                            Modifier.graphicsLayer { alpha = floatedAlpha }
                         } else {
                             Modifier
                         },
@@ -13313,6 +13658,15 @@ private fun PinnedToolCell(
         }
     }
 }
+
+/** How near either end of a scrolling bar a carried tool or app scrolls it (#1387). */
+private val BarEdgeScrollZone = 40.dp
+
+/** How far a scrolling bar moves per frame under a tool or app held at its end (#1387). */
+private val BarEdgeScrollStep = 6.dp
+
+/** How faint a tool's button gets while the tool is out in its floating box (#1378). */
+private const val FloatedToolAlpha = 0.45f
 
 /**
  * The packed toolbar's tools at their own width while they fit, and scaled
@@ -15699,6 +16053,8 @@ private fun KeyboardBody(
     // put on the bar — that being the point of binding it (#31).
     drag.onHoldAction = toolHold.onHoldAction
     drag.onFloat = toolHold.onFloat
+    // The speed set for a tool's flight to its box and back (#1378); none under reduce motion.
+    drag.flightMs = if (state.settings.reduceMotion) 0 else state.settings.toolbarBehavior.floatMotionMs
     var bodyOrigin by remember { mutableStateOf(Offset.Zero) }
     // Kept alongside the origin so the drag-scope pill can park itself against
     // the bottom of the keyboard when the toolbar end is where the finger is.
@@ -17082,6 +17438,12 @@ private fun KeyboardBody(
             }
         }
         drag.draggingFolder?.let { FolderDragGhost(it, drag.position - bodyOrigin, state) }
+        // An app carried along the bar (#1387), over everything the bar clips.
+        if (drag.carrying != null) {
+            drag.carriedFace?.let { CarriedAppGhost(it, drag.position - bodyOrigin, state) }
+        }
+        // A tool flying out to its floating box or back into its button (#1378).
+        drag.flight?.let { ToolFlightGlyph(it, bodyOrigin, drag.flightMs, drag) }
         drag.dragging?.let { tool ->
             val kb = LocalKbTheme.current
             val ghost = drag.position - bodyOrigin

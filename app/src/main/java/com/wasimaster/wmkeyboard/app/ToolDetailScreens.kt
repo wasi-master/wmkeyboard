@@ -598,6 +598,16 @@ internal fun ToolDetailSettings(
                 ) { onNavigate("statistics") }
             }
         }
+        // The same for the Resources screen (#1380).
+        ToolbarTool.RESOURCES -> SettingsGroup {
+            item {
+                NavRow(
+                    R.string.about_resources_title,
+                    stringResource(R.string.about_resources_subtitle),
+                    route = "resources",
+                ) { onNavigate("resources") }
+            }
+        }
         // The search history lives in its own file, not in the settings (see
         // FindHistoryPrefs), so this page reads and writes that file directly.
         ToolbarTool.FIND_REPLACE -> {

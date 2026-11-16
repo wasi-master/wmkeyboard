@@ -736,6 +736,7 @@
     <string name="ime_tool_text_repeat">Repeat</string>
     <string name="ime_tool_typing_test">Typing speed</string>
     <string name="ime_tool_statistics">Statistics</string>
+    <string name="ime_tool_resources">Resources</string>
     <string name="ime_tool_media_control">Media</string>
     <string name="ime_tool_kde_connect" translatable="false">KDE Connect</string>
     <string name="ime_tool_plugins">Plugins</string>

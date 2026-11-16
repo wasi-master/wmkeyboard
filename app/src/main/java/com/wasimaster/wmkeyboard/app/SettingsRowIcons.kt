@@ -2711,6 +2711,9 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_box_close_outside_title) { Icons.Outlined.PictureInPictureAlt }
         put(R.string.tools_box_gestures_title) { Icons.Outlined.Gesture }
         put(R.string.tools_box_hold_to_move_title) { Icons.Outlined.OpenWith }
+        put(R.string.tools_swipe_up_float_title) { Icons.Outlined.SwipeUp }
+        put(R.string.tools_float_motion_title) { Icons.Outlined.Speed }
+        put(R.string.tools_height_per_tool_title) { Icons.Outlined.Height }
         put(R.string.tools_box_hide_title_title) { Icons.Outlined.Title }
         put(R.string.tools_box_hide_frame_title) { Icons.Outlined.BorderStyle }
     }

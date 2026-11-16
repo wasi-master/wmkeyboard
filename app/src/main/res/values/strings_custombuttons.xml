@@ -53,6 +53,13 @@
     <string name="custombuttons_edit_name">Name</string>
     <string name="custombuttons_edit_toolbar">On the toolbar</string>
     <string name="custombuttons_edit_toolbar_on">Pinned to the toolbar with your tools</string>
+    <string name="custombuttons_edit_icon">Icon</string>
+    <string name="custombuttons_edit_icon_own">Its own icon</string>
+    <string name="custombuttons_edit_icon_from_pack">From %1$s</string>
+    <string name="custombuttons_edit_icon_choose">Choose</string>
+    <string name="custombuttons_edit_icon_reset">Reset</string>
+    <string name="custombuttons_icon_picker_title">Icon from an icon pack</string>
+    <string name="custombuttons_icon_no_packs">No launcher icon pack is installed. Install one, such as Arcticons, and its icons show up here.</string>
     <string name="custombuttons_edit_toolbar_off">In the toolbox grid with your tools</string>
 
     <!-- Floating button picker. -->

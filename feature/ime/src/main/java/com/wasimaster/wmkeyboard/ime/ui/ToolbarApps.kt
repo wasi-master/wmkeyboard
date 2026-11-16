@@ -13,13 +13,12 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,7 +27,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -60,6 +60,27 @@ class ToolbarAppCallbacks(
     val onOpen: (String) -> Unit = {},
     val onMove: (key: String, slot: Int) -> Unit = { _, _ -> },
 )
+
+/**
+ * Where an app on the toolbar is carried while it is held and dragged
+ * (#1387). The bar's drag controller is one: it draws the app under the
+ * finger over the whole keyboard, so nothing the bar clips (its scroll, its
+ * edges) stops it, and the bar draws a ghost in the slot it will take.
+ */
+@Stable
+internal interface AppCarry {
+    /** The app in flight, by its launcher key, or null. Snapshot state. */
+    val carrying: String?
+
+    /** Picks [key] up at root position [at]. */
+    fun startCarry(key: String, face: ToolbarAppFace, at: Offset)
+
+    /** The finger carrying it moved to root position [at]. */
+    fun moveCarry(at: Offset)
+
+    /** Lets go: the slot among the drawn tools it lands in, or null where it goes back. */
+    fun endCarry(): Int?
+}
 
 /** The apps the toolbar shows after its tools and folders, in the user's order (#1159). */
 internal fun toolbarApps(state: KeyboardUiState): List<String> = state.settings.launcher.toolbarApps
@@ -107,8 +128,9 @@ internal fun <T> appSlotAt(
  * theme's tool shape and fill, at the Tool button width and height, with the
  * app's icon where a tool's glyph goes and its name under it when the bar
  * shows names. A tap opens the app. A hold that then travels picks the app up
- * and lets it go among the tools: [slotAt] says where, and
- * [ToolbarAppCallbacks.onMove] stores it. An app that is gone draws nothing;
+ * and lets it go among the tools: [carry] draws it under the finger and says
+ * where it lands, and [ToolbarAppCallbacks.onMove] stores it. An app that is
+ * gone draws nothing;
  * it comes off the bar from the launcher's hold menu or the tool's settings.
  */
 @Composable
@@ -117,8 +139,8 @@ internal fun PinnedAppButton(
     state: KeyboardUiState,
     callbacks: ToolbarAppCallbacks,
     modifier: Modifier = Modifier,
-    /** The slot under a root position, or null where the app cannot be moved. */
-    slotAt: ((Offset) -> Int)? = null,
+    /** What carries the app along the bar, or null where it cannot be moved. */
+    carry: AppCarry? = null,
 ) {
     // The icon pack and this app's picked icon (#1275) are keys too: changing
     // either reads the face again.
@@ -138,22 +160,21 @@ internal fun PinnedAppButton(
     } else {
         Modifier
     }
-    val iconSize = if (labels) {
-        (kb.toolIconSizeDp - 2).coerceAtMost(26) + TOOLBAR_APP_ICON_EXTRA_DP
-    } else {
-        kb.toolIconSizeDp + TOOLBAR_APP_ICON_EXTRA_DP
-    }
+    val iconSize = toolbarAppIconSize(kb.toolIconSizeDp, labels)
     val feedback = LocalKeyPressFeedback.current
     val scope = rememberCoroutineScope()
     val open by rememberUpdatedState<() -> Unit>({ callbacks.onOpen(key) })
-    val slotOf by rememberUpdatedState(slotAt)
+    val carrier by rememberUpdatedState(carry)
+    val shown by rememberUpdatedState(app)
     val holdDelayMs = state.settings.toolbarBehavior.holdDelayMs
     val dragEnabled = state.settings.toolbarBehavior.dragToRearrange
-    var origin by remember { mutableStateOf(Offset.Zero) }
-    // How far the app has been carried, drawn as an offset while it is held.
-    var carried by remember { mutableStateOf<Offset?>(null) }
+    // Where the button is, read when the finger moves rather than written on
+    // every frame the bar scrolls (#1393): a placed node's coordinates follow
+    // the scroll by themselves.
+    val placed = remember { arrayOfNulls<LayoutCoordinates>(1) }
+    fun origin(): Offset = placed[0]?.takeIf { it.isAttached }?.positionInRoot() ?: Offset.Zero
     val gesture = Modifier
-        .onGloballyPositioned { origin = it.positionInRoot() }
+        .onPlaced { placed[0] = it }
         .pointerInput(key, holdDelayMs, dragEnabled) {
             awaitEachGesture {
                 val down = awaitFirstDown(requireUnconsumed = false)
@@ -184,18 +205,22 @@ internal fun PinnedAppButton(
                                 scrolled = true
                                 break
                             }
-                        } else if (dragEnabled && slotOf != null) {
+                        } else if (dragEnabled && carrier != null) {
                             change.consume()
-                            if (travel > viewConfiguration.touchSlop) moved = true
-                            if (moved) carried = at - down.position
+                            val root = origin() + at
+                            if (!moved && travel > viewConfiguration.touchSlop) {
+                                moved = true
+                                carrier?.startCarry(key, shown, root)
+                            }
+                            if (moved) carrier?.moveCarry(root)
                         }
                     }
                 } finally {
                     timer.cancel()
-                    carried = null
                     when {
                         !held -> if (released && !scrolled) open()
-                        moved -> slotOf?.invoke(origin + at)?.let { slot -> callbacks.onMove(key, slot) }
+                        // A drop off the bar puts it back where it was.
+                        moved -> carrier?.endCarry()?.let { slot -> callbacks.onMove(key, slot) }
                     }
                 }
             }
@@ -204,33 +229,11 @@ internal fun PinnedAppButton(
             contentDescription = description
             onClick { open(); true }
         }
-    // The carry is drawn by a layer inside the gesture, never around it: the
-    // finger's positions stay in the button's resting place, so the offset
-    // they measure is the finger's own travel rather than chasing itself.
-    val lift = Modifier.graphicsLayer {
-        val by = carried
-        translationX = by?.x ?: 0f
-        translationY = by?.y ?: 0f
-        val grown = if (by != null) 1.08f else 1f
-        scaleX = grown
-        scaleY = grown
-    }
-    val icon: @Composable () -> Unit = {
-        val bitmap = app.icon
-        val iconShape = launcherIconShape(state.settings.launcher.iconShape)
-        if (bitmap != null) {
-            Image(
-                bitmap,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(iconSize.dp)
-                    .then(if (iconShape != null) Modifier.clip(iconShape) else Modifier),
-            )
-        } else {
-            // An icon that would not decode: the name's first letter keeps the slot recognisable.
-            Text(app.label.take(1), color = kb.toolbarIcon, fontSize = 14.sp)
-        }
-    }
+    // The carried app is drawn under the finger by the keyboard, over
+    // everything; its own button stays where it was, washed out until the bar
+    // folds its cell away for the ghost in the slot it is heading for.
+    val lift = Modifier.graphicsLayer { alpha = if (carry?.carrying == key) 0.35f else 1f }
+    val icon: @Composable () -> Unit = { ToolbarAppIcon(app, state, iconSize) }
     if (labels) {
         // As a labelled tool is: the button a size down, the name under it.
         Column(
@@ -269,6 +272,54 @@ internal fun PinnedAppButton(
             contentAlignment = Alignment.Center,
         ) { icon() }
     }
+}
+
+/** An app's icon as its toolbar button draws it, or its name's first letter when the icon would not decode. */
+@Composable
+internal fun ToolbarAppIcon(app: ToolbarAppFace, state: KeyboardUiState, sizeDp: Int, alpha: Float = 1f) {
+    val bitmap = app.icon
+    val iconShape = launcherIconShape(state.settings.launcher.iconShape)
+    if (bitmap != null) {
+        Image(
+            bitmap,
+            contentDescription = null,
+            alpha = alpha,
+            modifier = Modifier
+                .size(sizeDp.dp)
+                .then(if (iconShape != null) Modifier.clip(iconShape) else Modifier),
+        )
+    } else {
+        Text(app.label.take(1), color = LocalKbTheme.current.toolbarIcon.copy(alpha = alpha), fontSize = 14.sp)
+    }
+}
+
+/** The glyph size of an app on a toolbar button: [toolIconSizeDp] plus a little, as [PinnedAppButton] draws it. */
+internal fun toolbarAppIconSize(toolIconSizeDp: Int, labels: Boolean): Int = if (labels) {
+    (toolIconSizeDp - 2).coerceAtMost(26) + TOOLBAR_APP_ICON_EXTRA_DP
+} else {
+    toolIconSizeDp + TOOLBAR_APP_ICON_EXTRA_DP
+}
+
+/**
+ * The slot a carried app will take on the bar (#1387): the ghost a dragged
+ * tool leaves where it will land, in the app button's footprint, with the
+ * app's icon washed out in it.
+ */
+@Composable
+internal fun ToolbarAppGhost(app: ToolbarAppFace, state: KeyboardUiState, modifier: Modifier = Modifier) {
+    val kb = LocalKbTheme.current
+    val shape = kb.toolShape()
+    val labels = state.settings.toolbarLabels
+    Box(
+        modifier = modifier
+            .size(
+                width = (if (labels) (kb.toolWidthDp - 8).coerceAtLeast(30) else kb.toolWidthDp).dp,
+                height = (if (labels) 30 else kb.toolHeightDp).dp,
+            )
+            .background(kb.toolCircleActive.copy(alpha = 0.22f), shape)
+            .border(1.dp, kb.toolbarIcon.copy(alpha = 0.35f), shape),
+        contentAlignment = Alignment.Center,
+    ) { ToolbarAppIcon(app, state, toolbarAppIconSize(kb.toolIconSizeDp, labels), alpha = 0.45f) }
 }
 
 /** An app icon is a filled picture, a tool icon a glyph with air round it: a little more size evens them out. */
