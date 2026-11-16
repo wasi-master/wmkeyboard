@@ -58,6 +58,8 @@
     <string name="ime_symbols_unicode_search_hint">A name or a code: arrow, U+2192</string>
     <string name="ime_symbols_unicode_search_close">Close search</string>
     <string name="ime_ai_model_label">Model:</string>
+    <!-- AI panel: the row that picks the language the Translate action writes in. -->
+    <string name="ime_ai_translate_to_label">Translate into:</string>
     <string name="ime_ai_setup_body">Set up an AI provider in the settings of the tool to use AI.</string>
     <string name="ime_ai_setup_local_body">Set up an AI provider, or download a model to your device. Both are in the settings of the tool.</string>
     <string name="ime_ai_need_model_body">To use AI on your device, download a model in the settings of the tool first.</string>

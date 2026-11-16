@@ -75,6 +75,7 @@ import com.wasimaster.wmkeyboard.core.tools.AiToolActivity
 import com.wasimaster.wmkeyboard.core.tools.AiToolApproval
 import com.wasimaster.wmkeyboard.core.tools.BuiltInAiActions
 import com.wasimaster.wmkeyboard.core.tools.TextDiff
+import com.wasimaster.wmkeyboard.core.tools.TranslateClient
 import com.wasimaster.wmkeyboard.core.tools.visibleAiActions
 import com.wasimaster.wmkeyboard.ime.AiChatAction
 import com.wasimaster.wmkeyboard.ime.AiUi
@@ -160,6 +161,18 @@ internal fun AiPanel(
         }
         if (settings.ai.panelModelPicker && settings.ai.provider != AiProvider.ON_DEVICE && ai0 is AiUi.Idle) {
             ModelNameRow(state)
+        }
+        // Only Translate has a language to pick, so the row stands while
+        // Translate can be pressed or its result is on screen, and never under
+        // any other action's result.
+        val translateShown = when (ai0) {
+            AiUi.Idle -> actions.any { it.id == BuiltInAiActions.TRANSLATE_ID }
+            is AiUi.Ready -> ai0.action.id == BuiltInAiActions.TRANSLATE_ID && !ai0.generating
+            is AiUi.Error -> ai0.action.id == BuiltInAiActions.TRANSLATE_ID
+            else -> false
+        }
+        if (translateShown) {
+            TranslateToRow(state)
         }
         when (val ai = state.ai) {
             AiUi.NeedSetup -> Column(
@@ -913,6 +926,64 @@ private fun ModelNameRow(state: KeyboardUiState) {
             }
         }
     }
+}
+
+/**
+ * The language the Translate action writes in, and, once pressed, the others to
+ * pick from: the keyboard's own languages first, then every language the
+ * translate tool knows. A pick with a translation on screen redoes it.
+ */
+@Composable
+private fun TranslateToRow(state: KeyboardUiState) {
+    val kb = LocalKbTheme.current
+    val onPick = LocalAiSuggest.current.onPickTranslateTo
+    val current = state.settings.ai.translateTo
+    var open by remember { mutableStateOf(false) }
+    val choices = remember(current, state.settings.enabledLanguages, state.settings.translateTargetLang) {
+        translateToChoices(
+            current = current,
+            keyboard = state.settings.enabledLanguages.map { it.englishName },
+            translateTool = TranslateClient.languageName(state.settings.translateTargetLang),
+        )
+    }
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 5.dp),
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        item(key = "label") {
+            Text(
+                stringResource(R.string.ime_ai_translate_to_label),
+                color = kb.secondaryText,
+                fontSize = 11.sp,
+            )
+        }
+        item(key = "current") {
+            ToolPanelChip(current, selected = open) { open = !open }
+        }
+        if (open) {
+            items(choices, key = { it }) { name ->
+                ToolPanelChip(name, selected = false) {
+                    open = false
+                    onPick(name)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * What [TranslateToRow] offers besides [current]: the keyboard's languages, the
+ * translate tool's own target and English, then every language the translate
+ * tool lists. English names, because the name goes into the model's prompt.
+ */
+internal fun translateToChoices(current: String, keyboard: List<String>, translateTool: String): List<String> {
+    val first = keyboard.map { it.substringBefore(" (").trim() } + translateTool + "English"
+    return (first + TranslateClient.languages.map { it.second })
+        .filter { it.isNotBlank() && !it.equals(current.trim(), ignoreCase = true) }
+        .distinctBy { it.lowercase() }
 }
 
 @Composable

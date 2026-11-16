@@ -41,6 +41,8 @@ data class AiSuggestCallbacks(
     val onLoadModels: () -> Unit = {},
     /** One of those picked: the provider in use answers with it from now on. */
     val onPickModelName: (String) -> Unit = {},
+    /** The AI panel's Translate language picked: saved, and a shown translation redone in it. */
+    val onPickTranslateTo: (String) -> Unit = {},
     /**
      * The smart chip held, where a hold means something to the service: a date
      * chip steps to the user's next format (#1089). Here rather than in a

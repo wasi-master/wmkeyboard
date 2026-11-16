@@ -28966,6 +28966,25 @@ open class WMKeyboardService : InputMethodService() {
         serviceScope.launch { settingsRepository.setAiCurrentModel(ai, model) }
     }
 
+    /**
+     * The AI panel's Translate language picked. The state takes it at once, so a
+     * translation on screen is redone in the new language now rather than after
+     * the settings store echoes the write back.
+     */
+    private fun onAiPickTranslateTo(language: String) {
+        val name = language.trim()
+        if (name.isEmpty() || name == _uiState.value.settings.ai.translateTo) return
+        _uiState.update { it.copy(settings = it.settings.copy(ai = it.settings.ai.copy(translateTo = name))) }
+        serviceScope.launch { settingsRepository.setAiTranslateTo(name) }
+        val shown = _uiState.value.ai
+        val action = when (shown) {
+            is AiUi.Ready -> shown.action.takeIf { !shown.generating }
+            is AiUi.Error -> shown.action
+            else -> null
+        }
+        if (action?.id == BuiltInAiActions.TRANSLATE_ID) onAiAction(action) else vibrate()
+    }
+
     /** The AI chip was tapped: its continuation goes in after the caret's text. */
     fun onAiSuggestTapped() {
         val continuation = _uiState.value.aiSuggest ?: return
@@ -51445,6 +51464,7 @@ open class WMKeyboardService : InputMethodService() {
                 onHold = ::onAiSuggestSuppressed,
                 onLoadModels = ::onAiLoadModels,
                 onPickModelName = ::onAiPickModelName,
+                onPickTranslateTo = ::onAiPickTranslateTo,
                 onSmartHold = ::onSmartChipHeld,
             ),
             toolbox = toolboxCallbacks(),
