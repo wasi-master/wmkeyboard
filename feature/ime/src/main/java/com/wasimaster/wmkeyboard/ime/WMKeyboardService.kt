@@ -11537,8 +11537,12 @@ open class WMKeyboardService : InputMethodService() {
         if (_uiState.value.aiChatShown) AiChatController.declineRenameAsk()
         syncSummonButton()
         KeyboardControls.setUpOverOwnApp(false)
-        // The keyboard went away with a tool open: it may come back now.
-        markParkedToolsLeft()
+        // The keyboard going away is not the user leaving the app (#1406,
+        // #1367): Telegram's swipe back to the chat list, or an editor putting
+        // the keys down, hides it inside the same app, and marking the tool
+        // left here brought emoji or the clipboard back over the next chat. A
+        // tool is left when another app takes the keys, which every app does,
+        // a home screen or the shade included: onStartInput marks it there.
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
