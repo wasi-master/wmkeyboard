@@ -224,6 +224,7 @@ import com.wasimaster.wmkeyboard.core.prediction.GlideSandboxPolicy
 import com.wasimaster.wmkeyboard.core.settings.ScreenVariant
 import com.wasimaster.wmkeyboard.core.settings.ToolbarHeightRange
 import com.wasimaster.wmkeyboard.core.settings.holdSymbolList
+import com.wasimaster.wmkeyboard.core.settings.floats
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.sizingValuesFor
 import com.wasimaster.wmkeyboard.core.settings.activeThemeSpec
@@ -32780,6 +32781,12 @@ private fun Modifier.pointerInputKey(
                     // swipe, a hold or a space.
                     var arm: FlickDirection? = null
                     var flicked = false
+                    // Out to an arm with a return action and back (#1409): the
+                    // arm it went out to and the farthest point it reached.
+                    var returnFrom: FlickDirection? = null
+                    var returned = false
+                    var extreme = Offset.Zero
+                    var extremeDist = 0f
                     var armRepeat: Job? = null
                     var armRepeated = false
                     // With language switching on the short-swipe slot, holding
@@ -33028,6 +33035,14 @@ private fun Modifier.pointerInputKey(
                         if (armed && action == null && !holdPreviewShown && !spaceRepeated) {
                             val offset = change.position - down.position
                             val live = resolveFlickDirection(offset.x, offset.y, flickSlopPx, hasArm)
+                            if (offset.getDistance() > extremeDist) {
+                                extremeDist = offset.getDistance()
+                                extreme = change.position
+                            }
+                            // The arm the finger is out on now; one with no return
+                            // clears it, so a swipe on to another arm types that arm.
+                            if (live != null) returnFrom = live.takeIf { key.flickReturnKey(it) != null }
+                            returned = returnFrom != null && flickReturned(extremeDist, (change.position - extreme).getDistance())
                             if (live != arm) {
                                 arm = live
                                 setFlickDirection(live)
@@ -33498,6 +33513,9 @@ private fun Modifier.pointerInputKey(
                         hidden -> {}
                         // The arm already ran while held, or it runs now.
                         armRepeated -> {}
+                        // Out to an arm and more than halfway back: the arm's
+                        // return action, where it has one (#1409).
+                        returned && returnFrom != null -> key.flickReturnKey(returnFrom!!)?.let(onKey)
                         armKey != null -> onKey(armKey)
                         // Out to an arm and back inside the flick distance:
                         // the cancel it is on every flick key.

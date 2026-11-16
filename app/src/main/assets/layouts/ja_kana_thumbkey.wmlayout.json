@@ -1,0 +1,609 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_ja_kana_thumbkey",
+    "name": "japanese kana thumb-key",
+    "langId": "ja",
+    "composer": "ROMAJI",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ま",
+              "flick": {
+                "left": "め",
+                "up": "む",
+                "right": "み",
+                "down": "も"
+              },
+              "shiftLabel": "マ",
+              "flickShift": {
+                "left": "メ",
+                "up": "ム",
+                "right": "ミ",
+                "down": "モ"
+              }
+            },
+            {
+              "label": "は",
+              "flick": {
+                "left": "へ",
+                "up": "ふ",
+                "right": "ひ",
+                "down": "ほ"
+              },
+              "shiftLabel": "ハ",
+              "flickShift": {
+                "left": "ヘ",
+                "up": "フ",
+                "right": "ヒ",
+                "down": "ホ"
+              }
+            },
+            {
+              "label": "さ",
+              "flick": {
+                "left": "せ",
+                "up": "す",
+                "right": "し",
+                "down": "そ"
+              },
+              "shiftLabel": "サ",
+              "flickShift": {
+                "left": "セ",
+                "up": "ス",
+                "right": "シ",
+                "down": "ソ"
+              }
+            },
+            {
+              "label": "😊",
+              "action": {
+                "type": "emoji"
+              },
+              "flickActions": {
+                "left": {
+                  "action": {
+                    "type": "language_switch"
+                  }
+                },
+                "up": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "SETTINGS"
+                  }
+                },
+                "right": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "ONE_HANDED"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "switch_input_method"
+                  }
+                },
+                "down_left": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "VOICE"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": "や",
+              "flick": {
+                "left": "（",
+                "up": "ゆ",
+                "right": "）",
+                "down": "よ"
+              },
+              "shiftLabel": "ヤ",
+              "flickShift": {
+                "up": "ユ",
+                "down": "ヨ"
+              }
+            },
+            {
+              "label": "な",
+              "flick": {
+                "left": "ね",
+                "up": "ぬ",
+                "right": "に",
+                "down": "の"
+              },
+              "shiftLabel": "ナ",
+              "flickShift": {
+                "left": "ネ",
+                "up": "ヌ",
+                "right": "ニ",
+                "down": "ノ"
+              }
+            },
+            {
+              "label": "か",
+              "flick": {
+                "left": "け",
+                "up": "く",
+                "right": "き",
+                "down": "こ"
+              },
+              "shiftLabel": "カ",
+              "flickShift": {
+                "left": "ケ",
+                "up": "ク",
+                "right": "キ",
+                "down": "コ"
+              }
+            },
+            {
+              "label": "123",
+              "action": {
+                "type": "symbols"
+              },
+              "flickActions": {
+                "up_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "SELECT_ALL"
+                  }
+                },
+                "up": {
+                  "action": {
+                    "type": "edit",
+                    "op": "COPY"
+                  }
+                },
+                "up_right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "CUT"
+                  }
+                },
+                "down_right": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "REDO"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "edit",
+                    "op": "PASTE"
+                  }
+                },
+                "down_left": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "UNDO"
+                  }
+                }
+              },
+              "flickReturn": {
+                "up_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "SELECT_LINE"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "CLIPBOARD"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": "ら",
+              "flick": {
+                "left": "れ",
+                "up": "る",
+                "right": "り",
+                "down": "ろ"
+              },
+              "shiftLabel": "ラ",
+              "flickShift": {
+                "left": "レ",
+                "up": "ル",
+                "right": "リ",
+                "down": "ロ"
+              }
+            },
+            {
+              "label": "た",
+              "flick": {
+                "left": "て",
+                "up": "つ",
+                "right": "ち",
+                "down": "と"
+              },
+              "shiftLabel": "タ",
+              "flickShift": {
+                "left": "テ",
+                "up": "ツ",
+                "right": "チ",
+                "down": "ト"
+              }
+            },
+            {
+              "label": "あ",
+              "flick": {
+                "left": "え",
+                "up": "う",
+                "right": "い",
+                "down": "お"
+              },
+              "shiftLabel": "ア",
+              "flickShift": {
+                "left": "エ",
+                "up": "ウ",
+                "right": "イ",
+                "down": "オ"
+              }
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "flickActions": {
+                "right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "DELETE_WORD_FORWARD"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": "わ",
+              "flick": {
+                "left": "〜",
+                "up": "ん",
+                "right": "ー",
+                "down": "を"
+              },
+              "shiftLabel": "ワ",
+              "flickShift": {
+                "up": "ン",
+                "down": "ヲ"
+              }
+            },
+            {
+              "label": "ア",
+              "action": {
+                "type": "caps_lock"
+              },
+              "flick": {
+                "left": "「",
+                "up": "・",
+                "right": "」",
+                "down": " "
+              }
+            },
+            {
+              "label": "゛小",
+              "action": {
+                "type": "kana_variant"
+              },
+              "flick": {
+                "left": "。",
+                "up": "？",
+                "right": "、",
+                "down": "！"
+              }
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "newline"
+                  },
+                  "label": "↵"
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            }
+          ]
+        ],
+        "bottomRowAsLaidOut": true
+      },
+      "symbols": {
+        "rows": [
+          [
+            {
+              "label": "1",
+              "flick": {
+                "down_left": "$"
+              }
+            },
+            {
+              "label": "2",
+              "flick": {
+                "left": "+",
+                "up_left": "`",
+                "up": "^",
+                "up_right": "´",
+                "right": "!",
+                "down_right": "\\",
+                "down_left": "/"
+              }
+            },
+            {
+              "label": "3",
+              "flick": {
+                "left": "?",
+                "down_right": "€",
+                "down": "=",
+                "down_left": "£"
+              }
+            },
+            {
+              "label": "😊",
+              "action": {
+                "type": "emoji"
+              },
+              "flickActions": {
+                "left": {
+                  "action": {
+                    "type": "language_switch"
+                  }
+                },
+                "up": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "SETTINGS"
+                  }
+                },
+                "right": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "ONE_HANDED"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "switch_input_method"
+                  }
+                },
+                "down_left": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "VOICE"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": "4",
+              "flick": {
+                "left": "(",
+                "up_left": "{",
+                "up_right": "%",
+                "down_right": "_",
+                "down_left": "["
+              }
+            },
+            {
+              "label": "5"
+            },
+            {
+              "label": "6",
+              "flick": {
+                "up_left": "|",
+                "up_right": "}",
+                "right": ")",
+                "down_right": "]",
+                "down_left": "@"
+              }
+            },
+            {
+              "label": "ABC",
+              "action": {
+                "type": "letters"
+              },
+              "flickActions": {
+                "up_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "SELECT_ALL"
+                  }
+                },
+                "up": {
+                  "action": {
+                    "type": "edit",
+                    "op": "COPY"
+                  }
+                },
+                "up_right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "CUT"
+                  }
+                },
+                "down_right": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "REDO"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "edit",
+                    "op": "PASTE"
+                  }
+                },
+                "down_left": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "UNDO"
+                  }
+                }
+              },
+              "flickReturn": {
+                "up_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "SELECT_LINE"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "CLIPBOARD"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": "7",
+              "flick": {
+                "up_left": "~",
+                "down_right": ":",
+                "down_left": "<"
+              }
+            },
+            {
+              "label": "8",
+              "flick": {
+                "left": ",",
+                "up_left": "\"",
+                "up_right": "'",
+                "down_right": "-",
+                "down": ".",
+                "down_left": "*"
+              }
+            },
+            {
+              "label": "9",
+              "flick": {
+                "left": "#",
+                "up": "&",
+                "up_right": "°",
+                "down_right": ">",
+                "down_left": ";"
+              }
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "flickActions": {
+                "right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "DELETE_WORD_FORWARD"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": "0",
+              "width": 2
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "flickActions": {
+                "up": {
+                  "action": {
+                    "type": "edit",
+                    "op": "HOME"
+                  }
+                },
+                "down_right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "WORD_RIGHT"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "edit",
+                    "op": "END"
+                  }
+                },
+                "down_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "WORD_LEFT"
+                  }
+                }
+              },
+              "flickReturn": {
+                "up": {
+                  "action": {
+                    "type": "edit",
+                    "op": "DOC_START"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "edit",
+                    "op": "DOC_END"
+                  }
+                }
+              },
+              "spaceCycle": [
+                ", ",
+                ". ",
+                "? ",
+                "! ",
+                ": ",
+                "; "
+              ]
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "newline"
+                  },
+                  "label": "↵"
+                }
+              ]
+            }
+          ]
+        ],
+        "bottomRowAsLaidOut": true
+      }
+    }
+  }
+}

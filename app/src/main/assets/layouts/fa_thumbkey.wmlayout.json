@@ -1,0 +1,561 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_fa_thumbkey",
+    "name": "فارسی thumb-key",
+    "langId": "fa",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "د",
+              "flick": {
+                "down_right": "ص",
+                "down": "ض"
+              }
+            },
+            {
+              "label": "ر",
+              "flick": {
+                "right": "ژ",
+                "down_right": "ف",
+                "down": "ز",
+                "down_left": "ق"
+              }
+            },
+            {
+              "label": "و",
+              "flick": {
+                "up_right": "‏",
+                "down": "ء",
+                "down_left": "ع"
+              }
+            },
+            {
+              "label": "😊",
+              "action": {
+                "type": "emoji"
+              },
+              "flickActions": {
+                "left": {
+                  "action": {
+                    "type": "language_switch"
+                  }
+                },
+                "up": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "SETTINGS"
+                  }
+                },
+                "right": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "ONE_HANDED"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "switch_input_method"
+                  }
+                },
+                "down_left": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "VOICE"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": "ن",
+              "flick": {
+                "up_right": "ح",
+                "right": "ج",
+                "down_right": "چ"
+              }
+            },
+            {
+              "label": "ا",
+              "flick": {
+                "left": "خ",
+                "up_left": "ذ",
+                "up": "ب",
+                "up_right": "پ",
+                "right": "س",
+                "down_right": "ش",
+                "down": "ل",
+                "down_left": "آ"
+              }
+            },
+            {
+              "label": "م",
+              "flick": {
+                "left": "ک",
+                "up_left": "غ",
+                "down_left": "گ"
+              }
+            },
+            {
+              "label": "123",
+              "action": {
+                "type": "symbols"
+              },
+              "flickActions": {
+                "up_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "SELECT_ALL"
+                  }
+                },
+                "up": {
+                  "action": {
+                    "type": "edit",
+                    "op": "COPY"
+                  }
+                },
+                "up_right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "CUT"
+                  }
+                },
+                "down_right": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "REDO"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "edit",
+                    "op": "PASTE"
+                  }
+                },
+                "down_left": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "UNDO"
+                  }
+                }
+              },
+              "flickReturn": {
+                "up_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "SELECT_LINE"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "CLIPBOARD"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": "ت",
+              "flick": {
+                "up_right": "ث"
+              }
+            },
+            {
+              "label": "ی",
+              "flick": {
+                "left": "؟",
+                "up": "‌",
+                "right": "ئ",
+                "down_right": "ـ",
+                "down": ".",
+                "down_left": "*"
+              }
+            },
+            {
+              "label": "ه",
+              "flick": {
+                "left": "ۀ",
+                "up_left": "ط",
+                "up": "ظ"
+              }
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "flickActions": {
+                "right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "DELETE_WORD_FORWARD"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "flickActions": {
+                "up": {
+                  "action": {
+                    "type": "edit",
+                    "op": "HOME"
+                  }
+                },
+                "down_right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "WORD_RIGHT"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "edit",
+                    "op": "END"
+                  }
+                },
+                "down_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "WORD_LEFT"
+                  }
+                }
+              },
+              "flickReturn": {
+                "up": {
+                  "action": {
+                    "type": "edit",
+                    "op": "DOC_START"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "edit",
+                    "op": "DOC_END"
+                  }
+                }
+              },
+              "width": 3,
+              "spaceCycle": [
+                "، ",
+                ". ",
+                "؟ ",
+                "! ",
+                ": ",
+                "؛ "
+              ]
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "newline"
+                  },
+                  "label": "↵"
+                }
+              ]
+            }
+          ]
+        ],
+        "bottomRowAsLaidOut": true
+      },
+      "symbols": {
+        "rows": [
+          [
+            {
+              "label": "۱",
+              "flick": {
+                "right": "ّ",
+                "down": "٫",
+                "down_left": "﷼"
+              }
+            },
+            {
+              "label": "۲",
+              "flick": {
+                "left": "+",
+                "up_left": "`",
+                "up": "^",
+                "up_right": "´",
+                "right": "!",
+                "down_right": "\\",
+                "down_left": "/"
+              }
+            },
+            {
+              "label": "۳",
+              "flick": {
+                "left": "؟",
+                "down_right": "$",
+                "down": "="
+              }
+            },
+            {
+              "label": "😊",
+              "action": {
+                "type": "emoji"
+              },
+              "flickActions": {
+                "left": {
+                  "action": {
+                    "type": "language_switch"
+                  }
+                },
+                "up": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "SETTINGS"
+                  }
+                },
+                "right": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "ONE_HANDED"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "switch_input_method"
+                  }
+                },
+                "down_left": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "VOICE"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": "۴",
+              "flick": {
+                "left": ")",
+                "up_left": "}",
+                "up_right": "٪",
+                "down_right": "_",
+                "down_left": "]"
+              }
+            },
+            {
+              "label": "۵",
+              "flick": {
+                "up_left": "ُ",
+                "up_right": "َ",
+                "down": "ِ"
+              }
+            },
+            {
+              "label": "۶",
+              "flick": {
+                "up_left": "|",
+                "up_right": "{",
+                "right": "(",
+                "down_right": "[",
+                "down_left": "@"
+              }
+            },
+            {
+              "label": "ABC",
+              "action": {
+                "type": "letters"
+              },
+              "flickActions": {
+                "up_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "SELECT_ALL"
+                  }
+                },
+                "up": {
+                  "action": {
+                    "type": "edit",
+                    "op": "COPY"
+                  }
+                },
+                "up_right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "CUT"
+                  }
+                },
+                "down_right": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "REDO"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "edit",
+                    "op": "PASTE"
+                  }
+                },
+                "down_left": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "UNDO"
+                  }
+                }
+              },
+              "flickReturn": {
+                "up_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "SELECT_LINE"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "CLIPBOARD"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": "۷",
+              "flick": {
+                "left": "»",
+                "up_left": "~",
+                "up_right": "ً",
+                "down_right": ":",
+                "down_left": ">"
+              }
+            },
+            {
+              "label": "۸",
+              "flick": {
+                "left": "،",
+                "up_left": "\"",
+                "up_right": "'",
+                "down_right": "-",
+                "down": ".",
+                "down_left": "*"
+              }
+            },
+            {
+              "label": "۹",
+              "flick": {
+                "left": "#",
+                "up": "&",
+                "up_right": "°",
+                "right": "«",
+                "down_right": "<",
+                "down_left": "؛"
+              }
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "flickActions": {
+                "right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "DELETE_WORD_FORWARD"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": "۰",
+              "width": 2
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "flickActions": {
+                "up": {
+                  "action": {
+                    "type": "edit",
+                    "op": "HOME"
+                  }
+                },
+                "down_right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "WORD_RIGHT"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "edit",
+                    "op": "END"
+                  }
+                },
+                "down_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "WORD_LEFT"
+                  }
+                }
+              },
+              "flickReturn": {
+                "up": {
+                  "action": {
+                    "type": "edit",
+                    "op": "DOC_START"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "edit",
+                    "op": "DOC_END"
+                  }
+                }
+              },
+              "spaceCycle": [
+                "، ",
+                ". ",
+                "؟ ",
+                "! ",
+                ": ",
+                "؛ "
+              ]
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "newline"
+                  },
+                  "label": "↵"
+                }
+              ]
+            }
+          ]
+        ],
+        "bottomRowAsLaidOut": true
+      }
+    }
+  }
+}

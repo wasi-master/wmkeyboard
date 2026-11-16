@@ -1,0 +1,677 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_tok_thumbkey",
+    "name": "toki pona thumb-key",
+    "langId": "tok",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ala ",
+              "flick": {
+                "left": "utala ",
+                "up_left": "esun ",
+                "up": "kulupu ",
+                "up_right": "kute ",
+                "right": "sijelo ",
+                "down_right": "moli ",
+                "down": "pimeja ",
+                "down_left": "supa "
+              },
+              "shiftLabel": "insa "
+            },
+            {
+              "label": "sina ",
+              "flick": {
+                "left": "en ",
+                "up_left": "kalama ",
+                "up": "lape ",
+                "up_right": "mama ",
+                "right": "mani ",
+                "down_right": "poka ",
+                "down": "sike ",
+                "down_left": "lipu "
+              },
+              "shiftLabel": "nimi "
+            },
+            {
+              "label": "tawa ",
+              "flick": {
+                "left": "weka ",
+                "up_left": "soweli ",
+                "up": "pakala ",
+                "up_right": "awen ",
+                "right": "tu ",
+                "down_right": "nasa ",
+                "down": "ante ",
+                "down_left": "wan "
+              },
+              "shiftLabel": "seli ",
+              "flickShift": {
+                "left": "namako ",
+                "down_right": "tonsi ",
+                "down": "soko ",
+                "down_left": "oko "
+              }
+            },
+            {
+              "label": "😊",
+              "action": {
+                "type": "emoji"
+              },
+              "flickActions": {
+                "left": {
+                  "action": {
+                    "type": "language_switch"
+                  }
+                },
+                "up": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "SETTINGS"
+                  }
+                },
+                "right": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "ONE_HANDED"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "switch_input_method"
+                  }
+                },
+                "down_left": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "VOICE"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": "la ",
+              "flick": {
+                "left": "sewi ",
+                "up_left": "kin ",
+                "up": "sin ",
+                "up_right": "wawa ",
+                "right": "nasin ",
+                "down_right": "musi ",
+                "down": "sitelen ",
+                "down_left": "mije "
+              },
+              "shiftLabel": "kasi ",
+              "flickShift": {
+                "left": "kipisi ",
+                "up_left": "monsuta ",
+                "up": "misikeke ",
+                "up_right": "meso ",
+                "right": "leko ",
+                "down_right": "lanpan ",
+                "down": "ku ",
+                "down_left": "kokosila "
+              }
+            },
+            {
+              "label": "ni ",
+              "flick": {
+                "left": "moku ",
+                "up_left": "taso ",
+                "up": "meli ",
+                "up_right": "lawa ",
+                "right": "suli ",
+                "down_right": "anu ",
+                "down": "ilo ",
+                "down_left": "suno "
+              },
+              "shiftLabel": "luka ",
+              "flickShift": {
+                "left": "kala ",
+                "up_left": "kijetesantakalu ",
+                "up": "jasima ",
+                "up_right": "epiku ",
+                "right": "pu ",
+                "down_right": "mu ",
+                "down": "unpa ",
+                "down_left": "laso "
+              }
+            },
+            {
+              "label": "jan ",
+              "flick": {
+                "left": "ma ",
+                "up_left": "ijo ",
+                "up": "sama ",
+                "up_right": "telo ",
+                "right": "pana ",
+                "down_right": "kepeken ",
+                "down": "ike ",
+                "down_left": "ale "
+              },
+              "shiftLabel": "kon ",
+              "flickShift": {
+                "left": "waso ",
+                "up_left": "jelo ",
+                "up": "alasa ",
+                "up_right": "palisa ",
+                "right": "mun ",
+                "down_right": "pan ",
+                "down": "pipi ",
+                "down_left": "nena "
+              }
+            },
+            {
+              "label": "123",
+              "action": {
+                "type": "symbols"
+              },
+              "flickActions": {
+                "up_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "SELECT_ALL"
+                  }
+                },
+                "up": {
+                  "action": {
+                    "type": "edit",
+                    "op": "COPY"
+                  }
+                },
+                "up_right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "CUT"
+                  }
+                },
+                "down_right": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "REDO"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "edit",
+                    "op": "PASTE"
+                  }
+                },
+                "down_left": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "UNDO"
+                  }
+                }
+              },
+              "flickReturn": {
+                "up_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "SELECT_LINE"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "CLIPBOARD"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": "mi ",
+              "flick": {
+                "left": "tomo ",
+                "up_left": "pini ",
+                "up": "lili ",
+                "up_right": "pilin ",
+                "right": "jo ",
+                "down_right": "pali ",
+                "down": "lukin ",
+                "down_left": "tan "
+              },
+              "shiftLabel": "len ",
+              "flickShift": {
+                "left": "monsi ",
+                "up_left": "loje ",
+                "up": "ko ",
+                "up_right": "jaki ",
+                "right": "kili ",
+                "down_right": "walo ",
+                "down": "selo ",
+                "down_left": "a "
+              }
+            },
+            {
+              "label": "e ",
+              "flick": {
+                "left": "toki ",
+                "up_left": "sona ",
+                "up": "ken ",
+                "up_right": "o ",
+                "right": "wile ",
+                "down_right": ",",
+                "down": "."
+              },
+              "flickActions": {
+                "down_left": {
+                  "action": {
+                    "type": "shift"
+                  }
+                }
+              },
+              "flickReturn": {
+                "down_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "CASE_UP"
+                  }
+                }
+              },
+              "shiftLabel": "olin ",
+              "flickShift": {
+                "left": "uta ",
+                "up_left": "lupa ",
+                "up": "kule ",
+                "up_right": "akesi ",
+                "right": "lete "
+              }
+            },
+            {
+              "label": "li ",
+              "flick": {
+                "left": "lon ",
+                "up_left": "seme ",
+                "up": "kama ",
+                "up_right": "pona ",
+                "right": "mute ",
+                "down_right": "tenpo ",
+                "down": "ona ",
+                "down_left": "pi "
+              },
+              "shiftLabel": "open ",
+              "flickShift": {
+                "left": "poki ",
+                "up_left": "noka ",
+                "up": "linja ",
+                "up_right": "nanpa ",
+                "right": "anpa ",
+                "down_right": "kiwen ",
+                "down": "suwi ",
+                "down_left": "sinpin "
+              }
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "flickActions": {
+                "right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "DELETE_WORD_FORWARD"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "flickActions": {
+                "up": {
+                  "action": {
+                    "type": "edit",
+                    "op": "HOME"
+                  }
+                },
+                "down_right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "WORD_RIGHT"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "edit",
+                    "op": "END"
+                  }
+                },
+                "down_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "WORD_LEFT"
+                  }
+                }
+              },
+              "flickReturn": {
+                "up": {
+                  "action": {
+                    "type": "edit",
+                    "op": "DOC_START"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "edit",
+                    "op": "DOC_END"
+                  }
+                }
+              },
+              "width": 3,
+              "spaceCycle": [
+                ", ",
+                ". ",
+                "? ",
+                "! ",
+                ": ",
+                "; "
+              ]
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "newline"
+                  },
+                  "label": "↵"
+                }
+              ]
+            }
+          ]
+        ],
+        "bottomRowAsLaidOut": true
+      },
+      "symbols": {
+        "rows": [
+          [
+            {
+              "label": "1",
+              "flick": {
+                "down_left": "$"
+              }
+            },
+            {
+              "label": "2",
+              "flick": {
+                "left": "+",
+                "up_left": "`",
+                "up": "^",
+                "up_right": "´",
+                "right": "!",
+                "down_right": "\\",
+                "down_left": "/"
+              }
+            },
+            {
+              "label": "3",
+              "flick": {
+                "left": "?",
+                "down_right": "€",
+                "down": "=",
+                "down_left": "£"
+              }
+            },
+            {
+              "label": "😊",
+              "action": {
+                "type": "emoji"
+              },
+              "flickActions": {
+                "left": {
+                  "action": {
+                    "type": "language_switch"
+                  }
+                },
+                "up": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "SETTINGS"
+                  }
+                },
+                "right": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "ONE_HANDED"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "switch_input_method"
+                  }
+                },
+                "down_left": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "VOICE"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": "4",
+              "flick": {
+                "left": "(",
+                "up_left": "{",
+                "up_right": "%",
+                "down_right": "_",
+                "down_left": "["
+              }
+            },
+            {
+              "label": "5"
+            },
+            {
+              "label": "6",
+              "flick": {
+                "up_left": "|",
+                "up_right": "}",
+                "right": ")",
+                "down_right": "]",
+                "down_left": "@"
+              }
+            },
+            {
+              "label": "ABC",
+              "action": {
+                "type": "letters"
+              },
+              "flickActions": {
+                "up_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "SELECT_ALL"
+                  }
+                },
+                "up": {
+                  "action": {
+                    "type": "edit",
+                    "op": "COPY"
+                  }
+                },
+                "up_right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "CUT"
+                  }
+                },
+                "down_right": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "REDO"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "edit",
+                    "op": "PASTE"
+                  }
+                },
+                "down_left": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "UNDO"
+                  }
+                }
+              },
+              "flickReturn": {
+                "up_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "SELECT_LINE"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "CLIPBOARD"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": "7",
+              "flick": {
+                "up_left": "~",
+                "down_right": ":",
+                "down_left": "<"
+              }
+            },
+            {
+              "label": "8",
+              "flick": {
+                "left": ",",
+                "up_left": "\"",
+                "up_right": "'",
+                "down_right": "-",
+                "down": ".",
+                "down_left": "*"
+              }
+            },
+            {
+              "label": "9",
+              "flick": {
+                "left": "#",
+                "up": "&",
+                "up_right": "°",
+                "down_right": ">",
+                "down_left": ";"
+              }
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "flickActions": {
+                "right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "DELETE_WORD_FORWARD"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": "0",
+              "width": 2
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "flickActions": {
+                "up": {
+                  "action": {
+                    "type": "edit",
+                    "op": "HOME"
+                  }
+                },
+                "down_right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "WORD_RIGHT"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "edit",
+                    "op": "END"
+                  }
+                },
+                "down_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "WORD_LEFT"
+                  }
+                }
+              },
+              "flickReturn": {
+                "up": {
+                  "action": {
+                    "type": "edit",
+                    "op": "DOC_START"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "edit",
+                    "op": "DOC_END"
+                  }
+                }
+              },
+              "spaceCycle": [
+                ", ",
+                ". ",
+                "? ",
+                "! ",
+                ": ",
+                "; "
+              ]
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "newline"
+                  },
+                  "label": "↵"
+                }
+              ]
+            }
+          ]
+        ],
+        "bottomRowAsLaidOut": true
+      }
+    }
+  }
+}

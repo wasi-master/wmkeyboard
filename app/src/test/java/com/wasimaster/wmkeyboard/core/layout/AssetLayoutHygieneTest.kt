@@ -168,6 +168,9 @@ class AssetLayoutHygieneTest {
         ),
         // The 3×3 flick board, whose keys are Latin on all three: Avro and Khipro read them.
         setOf("bn_avro_flick", "bn_khipro_flick", "en_flick"),
+        // Thumb-Key's own Avro board is its English board letter for letter:
+        // Avro reads the Latin keys (#1409).
+        setOf("bn_avro_thumbkey", "en_thumbkey"),
         // Bengali-script minorities riding the Bengali grid.
         setOf("bpy_bengali", "syl_bengali"),
         // Gilaki and Mazanderani share the Persian alphabet outright.

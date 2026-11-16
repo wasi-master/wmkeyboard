@@ -1,0 +1,614 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_kn_thumbkey",
+    "name": "ಕನ್ನಡ thumb-key",
+    "langId": "kn",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ಕ",
+              "flick": {
+                "right": "ಙ",
+                "down_right": "ಞ"
+              },
+              "shiftLabel": "ಖ"
+            },
+            {
+              "label": "ಲ",
+              "flick": {
+                "down": "ಣ"
+              }
+            },
+            {
+              "label": "ಾ",
+              "flick": {
+                "left": "ೌ",
+                "up_left": "ಃ",
+                "up": "ೄ",
+                "down": "ೈ",
+                "down_left": "ೃ"
+              },
+              "shiftLabel": "ಆ",
+              "flickShift": {
+                "left": "ಔ",
+                "up_left": "ಅಃ",
+                "up": "ೠ",
+                "down": "ಐ",
+                "down_left": "ಋ"
+              }
+            },
+            {
+              "label": "😊",
+              "action": {
+                "type": "emoji"
+              },
+              "flickActions": {
+                "left": {
+                  "action": {
+                    "type": "language_switch"
+                  }
+                },
+                "up": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "SETTINGS"
+                  }
+                },
+                "right": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "ONE_HANDED"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "switch_input_method"
+                  }
+                },
+                "down_left": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "VOICE"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": "ತ",
+              "flick": {
+                "up_right": "ಶ",
+                "right": "ಚ",
+                "down_right": "ಜ"
+              },
+              "shiftLabel": "ಥ",
+              "flickShift": {
+                "up_right": "ಷ",
+                "right": "ಛ",
+                "down_right": "ಝ"
+              }
+            },
+            {
+              "label": "ನ",
+              "flick": {
+                "left": "ಡ",
+                "up_left": "ಟ",
+                "up": "ಹ",
+                "up_right": "ಬ",
+                "right": "ಳ",
+                "down_right": "ಮ",
+                "down": "ಯ",
+                "down_left": "ಪ"
+              },
+              "flickShift": {
+                "left": "ಢ",
+                "up_left": "ಠ",
+                "up_right": "ಭ",
+                "down_left": "ಫ"
+              }
+            },
+            {
+              "label": "ಿ",
+              "flick": {
+                "left": "ೊ",
+                "up_left": "ೂ",
+                "down_left": "ೋ"
+              },
+              "flickActions": {
+                "up": {
+                  "action": {
+                    "type": "shift"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "shift_off"
+                  }
+                }
+              },
+              "flickReturn": {
+                "up": {
+                  "action": {
+                    "type": "edit",
+                    "op": "CASE_UP"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "edit",
+                    "op": "CASE_DOWN"
+                  }
+                }
+              },
+              "shiftLabel": "ಇ",
+              "flickShift": {
+                "left": "ಒ",
+                "up_left": "ಊ",
+                "down_left": "ಓ"
+              }
+            },
+            {
+              "label": "123",
+              "action": {
+                "type": "symbols"
+              },
+              "flickActions": {
+                "up_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "SELECT_ALL"
+                  }
+                },
+                "up": {
+                  "action": {
+                    "type": "edit",
+                    "op": "COPY"
+                  }
+                },
+                "up_right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "CUT"
+                  }
+                },
+                "down_right": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "REDO"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "edit",
+                    "op": "PASTE"
+                  }
+                },
+                "down_left": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "UNDO"
+                  }
+                }
+              },
+              "flickReturn": {
+                "up_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "SELECT_LINE"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "CLIPBOARD"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": "ದ",
+              "flick": {
+                "up_right": "ವ",
+                "right": "ಸ"
+              },
+              "shiftLabel": "ಧ"
+            },
+            {
+              "label": "ರ",
+              "flick": {
+                "up": "ಗ"
+              },
+              "flickShift": {
+                "up": "ಘ"
+              }
+            },
+            {
+              "label": "್",
+              "flick": {
+                "left": "ಂ",
+                "up_left": "ೆ",
+                "up": "ು",
+                "down": "ೀ",
+                "down_left": "ೇ"
+              },
+              "shiftLabel": "ಅ",
+              "flickShift": {
+                "left": "ಅಂ",
+                "up_left": "ಎ",
+                "up": "ಉ",
+                "down": "ಈ",
+                "down_left": "ಏ"
+              }
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "flickActions": {
+                "right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "DELETE_WORD_FORWARD"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "flickActions": {
+                "up": {
+                  "action": {
+                    "type": "edit",
+                    "op": "HOME"
+                  }
+                },
+                "down_right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "WORD_RIGHT"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "edit",
+                    "op": "END"
+                  }
+                },
+                "down_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "WORD_LEFT"
+                  }
+                }
+              },
+              "flickReturn": {
+                "up": {
+                  "action": {
+                    "type": "edit",
+                    "op": "DOC_START"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "edit",
+                    "op": "DOC_END"
+                  }
+                }
+              },
+              "width": 3,
+              "spaceCycle": [
+                ", ",
+                ". ",
+                "? ",
+                "! ",
+                ": ",
+                "; "
+              ]
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "newline"
+                  },
+                  "label": "↵"
+                }
+              ]
+            }
+          ]
+        ],
+        "bottomRowAsLaidOut": true
+      },
+      "symbols": {
+        "rows": [
+          [
+            {
+              "label": "೧",
+              "flick": {
+                "down_left": "$"
+              }
+            },
+            {
+              "label": "೨",
+              "flick": {
+                "left": "+",
+                "up_left": "`",
+                "up": "^",
+                "up_right": "´",
+                "right": "!",
+                "down_right": "\\",
+                "down_left": "/"
+              }
+            },
+            {
+              "label": "೩",
+              "flick": {
+                "left": "?",
+                "down_right": "€",
+                "down": "=",
+                "down_left": "£"
+              }
+            },
+            {
+              "label": "😊",
+              "action": {
+                "type": "emoji"
+              },
+              "flickActions": {
+                "left": {
+                  "action": {
+                    "type": "language_switch"
+                  }
+                },
+                "up": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "SETTINGS"
+                  }
+                },
+                "right": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "ONE_HANDED"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "switch_input_method"
+                  }
+                },
+                "down_left": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "VOICE"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": "೪",
+              "flick": {
+                "left": "(",
+                "up_left": "{",
+                "up_right": "%",
+                "down_right": "_",
+                "down_left": "["
+              }
+            },
+            {
+              "label": "೫"
+            },
+            {
+              "label": "೬",
+              "flick": {
+                "up_left": "|",
+                "up_right": "}",
+                "right": ")",
+                "down_right": "]",
+                "down_left": "@"
+              }
+            },
+            {
+              "label": "ABC",
+              "action": {
+                "type": "letters"
+              },
+              "flickActions": {
+                "up_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "SELECT_ALL"
+                  }
+                },
+                "up": {
+                  "action": {
+                    "type": "edit",
+                    "op": "COPY"
+                  }
+                },
+                "up_right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "CUT"
+                  }
+                },
+                "down_right": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "REDO"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "edit",
+                    "op": "PASTE"
+                  }
+                },
+                "down_left": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "UNDO"
+                  }
+                }
+              },
+              "flickReturn": {
+                "up_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "SELECT_LINE"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "CLIPBOARD"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": "೭",
+              "flick": {
+                "up_left": "~",
+                "down_right": ":",
+                "down_left": "<"
+              }
+            },
+            {
+              "label": "೮",
+              "flick": {
+                "left": ",",
+                "up_left": "\"",
+                "up_right": "'",
+                "down_right": "-",
+                "down": ".",
+                "down_left": "*"
+              }
+            },
+            {
+              "label": "೯",
+              "flick": {
+                "left": "#",
+                "up": "&",
+                "up_right": "°",
+                "down_right": ">",
+                "down_left": ";"
+              }
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "flickActions": {
+                "right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "DELETE_WORD_FORWARD"
+                  }
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": "೦",
+              "width": 2
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "flickActions": {
+                "up": {
+                  "action": {
+                    "type": "edit",
+                    "op": "HOME"
+                  }
+                },
+                "down_right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "WORD_RIGHT"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "edit",
+                    "op": "END"
+                  }
+                },
+                "down_left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "WORD_LEFT"
+                  }
+                }
+              },
+              "flickReturn": {
+                "up": {
+                  "action": {
+                    "type": "edit",
+                    "op": "DOC_START"
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "edit",
+                    "op": "DOC_END"
+                  }
+                }
+              },
+              "spaceCycle": [
+                ", ",
+                ". ",
+                "? ",
+                "! ",
+                ": ",
+                "; "
+              ]
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "newline"
+                  },
+                  "label": "↵"
+                }
+              ]
+            }
+          ]
+        ],
+        "bottomRowAsLaidOut": true
+      }
+    }
+  }
+}

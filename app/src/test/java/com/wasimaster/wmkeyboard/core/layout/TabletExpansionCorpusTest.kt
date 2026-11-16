@@ -56,7 +56,7 @@ class TabletExpansionCorpusTest {
 
     @Test
     fun `the corpus is the whole shipped set`() {
-        assertEquals("built-ins plus hand-authored assets", 39 + 1_147, handAuthored.size)
+        assertEquals("built-ins plus hand-authored assets", 39 + 1_232, handAuthored.size)
         assertTrue(
             "converted Keyman grids are missing from the corpus",
             corpus.size - handAuthored.size > 800,
@@ -109,6 +109,23 @@ class TabletExpansionCorpusTest {
                 "en_unexpected_qwerty",
                 // Its Khipro and Avro twins (Telegram group), the same grid.
                 "bn_khipro_flick", "bn_avro_flick",
+                // The Thumb-Key and MessagEase grids (#1409): flick boards
+                // like en_flick, declined for the same reason.
+                "ar_levant_thumbkey", "be_thumbkey", "bn_avro_thumbkey", "bn_thumbkey", "br_fr_thumbkey", "cu_glagolitic_thumbkey",
+                "da_multilingual_thumbkey", "da_thumbkey", "de_en_thumbkey", "de_messagease", "de_multilingual_thumbkey",
+                "de_thumbkey", "el_thumbkey", "en_cs_thumbkey", "en_de_nl_thumbkey", "en_de_thumbkey", "en_ee_thumbkey",
+                "en_eo_thumbkey", "en_es_ca_thumbkey", "en_europe_thumbkey", "en_hr_messagease", "en_it_thumbkey",
+                "en_la_thumbkey", "en_lv_thumbkey", "en_mi_thumbkey", "en_nb_thumbkey", "en_pl_thumbkey", "en_ro_thumbkey",
+                "en_sk_thumbkey", "en_thumbkey", "en_tl_messagease", "eo_cyrillic_thumbkey", "eo_en_de_thumbkey",
+                "es_ca_messagease", "es_ca_thumbkey", "es_eo_thumbkey", "es_messagease", "es_thumbkey", "eu_es_thumbkey",
+                "eu_thumbkey", "fa_thumbkey", "fi_et_messagease", "fi_messagease", "fi_thumbkey", "fr_messagease",
+                "fr_thumbkey", "he_messagease", "he_thumbkey", "hi_thumbkey", "hr_thumbkey", "hu_thumbkey", "it_messagease",
+                "it_thumbkey", "iu_thumbkey", "ja_hiragana_thumbkey", "ja_kana_thumbkey", "ja_katakana_thumbkey",
+                "ka_thumbkey", "kk_thumbkey", "kn_thumbkey", "ko_thumbkey", "lt_thumbkey", "lv_ltg_thumbkey",
+                "my_thumbkey", "nb_thumbkey", "nl_thumbkey", "pl_messagease", "pl_thumbkey", "pt_en_thumbkey",
+                "pt_thumbkey", "ru_messagease", "ru_thumbkey", "sk_thumbkey", "sr_latn_en_de_thumbkey", "sr_latn_thumbkey",
+                "sr_thumbkey", "sv_messagease", "sv_scandinavian_messagease", "sv_thumbkey", "th_thumbkey", "tok_thumbkey",
+                "tr_thumbkey", "uk_be_ru_thumbkey", "uk_thumbkey", "vi_thumbkey",
                 "ipa", "music", "nqo_nko",
                 "zh_cangjie", "zh_cangjie_quick", "zh_pinyin_t9", "zh_wubi", "zh_zhuyin",
                 // Pinyin's shift slot is the '词 syllable separator (#580,

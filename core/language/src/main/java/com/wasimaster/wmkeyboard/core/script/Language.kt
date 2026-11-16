@@ -3860,7 +3860,8 @@ object LanguageRegistry {
     private val handWrittenAll: List<LanguageDef> = (handWritten + handWrittenMore + CorpusLanguages.all).map { lang ->
         val extra = KeymanLanguages.extraLayoutIds[lang.id].orEmpty() + GboardLanguages.extraLayoutIds[lang.id].orEmpty() +
             SamsungExtraLayouts.byLanguage[lang.id].orEmpty() + RomanizedLanguages.extraLayoutIds[lang.id].orEmpty() +
-            PortedLayouts.extraLayoutIds[lang.id].orEmpty() + HandwritingLanguages.layoutIds(lang.id)
+            PortedLayouts.extraLayoutIds[lang.id].orEmpty() + GridLayouts.extraLayoutIds[lang.id].orEmpty() +
+            HandwritingLanguages.layoutIds(lang.id)
         if (extra.isEmpty()) lang else lang.copy(layoutIds = lang.layoutIds + extra)
     }
 
@@ -3877,7 +3878,7 @@ object LanguageRegistry {
             } + GboardLanguages.all
         ).map { lang ->
             val extra = SamsungExtraLayouts.byLanguage[lang.id].orEmpty() + RomanizedLanguages.extraLayoutIds[lang.id].orEmpty() +
-                PortedLayouts.extraLayoutIds[lang.id].orEmpty()
+                PortedLayouts.extraLayoutIds[lang.id].orEmpty() + GridLayouts.extraLayoutIds[lang.id].orEmpty()
             if (extra.isEmpty()) lang else lang.copy(layoutIds = lang.layoutIds + extra)
         } + SamsungLanguages.all + RomanizedLanguages.all).map { lang ->
             val pad = HandwritingLanguages.layoutIds(lang.id)
