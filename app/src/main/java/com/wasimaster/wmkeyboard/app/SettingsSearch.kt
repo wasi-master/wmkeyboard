@@ -1175,6 +1175,7 @@ private fun SearchStrings.appearanceToolbarRows(): List<SettingsSearchEntry> {
         row(R.string.appearance_tool_width_title, R.string.appearance_tool_width_subtitle),
         row(R.string.appearance_tool_height_title, R.string.appearance_tool_height_subtitle),
         row(R.string.appearance_tool_icon_size_title, R.string.appearance_tool_icon_size_subtitle),
+        row(R.string.appearance_field_button_size_title, R.string.appearance_field_button_size_subtitle),
         row(R.string.appearance_toolbar_reset_title, R.string.appearance_toolbar_reset_subtitle),
         row(R.string.appearance_strip_buttons_show_title, R.string.appearance_strip_buttons_show_subtitle),
         row(R.string.appearance_strip_buttons_add_title, R.string.appearance_strip_buttons_add_subtitle),

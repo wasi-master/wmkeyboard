@@ -3873,7 +3873,7 @@ internal fun ClipEditText(
         val fieldHeight = minHeight
         Box(
             modifier = Modifier
-                .then(if (switchShown) Modifier.padding(end = FieldSwitchRoom) else Modifier)
+                .then(if (switchShown) Modifier.padding(end = LocalKbTheme.current.fieldButtonDp.dp + FieldSwitchGap) else Modifier)
                 .then(if (toApp) Modifier.alpha(FieldToAppAlpha) else Modifier)
                 .verticalScroll(scroll),
         ) {
@@ -3980,8 +3980,8 @@ internal fun ClipEditText(
     }
 }
 
-/** The room [ClipEditText] keeps clear down its end for the focus switch. */
-private val FieldSwitchRoom = 32.dp
+/** Past the focus switch's own size (#1153), the room [ClipEditText] keeps clear down its end for it. */
+private val FieldSwitchGap = 4.dp
 
 /** The editor's blinking bar; held solid under reduce motion, like the search caret. */
 @Composable

@@ -2266,6 +2266,14 @@ data class ToolbarBehavior(
      */
     val iconSizeDp: Int = 22,
     /**
+     * Side of the small round buttons on and beside the keyboard's own fields
+     * (#1153): the focus switch in a tool's search or text box, the paste and
+     * clear buttons in Translate's box, and the microphone, undo and
+     * keys-down buttons at the end of a field's strip. 32 by default, up from
+     * the 28 they were drawn at; those on a strip never outgrow its height.
+     */
+    val fieldButtonDp: Int = 32,
+    /**
      * Space above the toolbar's content, in dp, added to the strip's height.
      * 4 by default (#208): with none, the tool pills sat almost against the
      * keyboard's top edge, closer than any two key rows sit to each other.
@@ -11231,6 +11239,9 @@ val ToolWidthRange = 38..96
 /** Bounds for [ToolbarBehavior.toolHeightDp] (#1264). */
 val ToolHeightRange = 28..64
 
+/** Bounds for [ToolbarBehavior.fieldButtonDp] (#1153). */
+val FieldButtonRange = 24..48
+
 /**
  * Bounds for [ToolbarBehavior.paddingTopDp] and [ToolbarBehavior.paddingBottomDp].
  * Below zero takes height off the strip (#970), for a bar that is too tall even
@@ -13598,6 +13609,7 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBAR_TOOL_WIDTH = intPreferencesKey("toolbar_tool_width")
         private val TOOLBAR_ICON_SIZE = intPreferencesKey("toolbar_icon_size")
         private val TOOLBAR_TOOL_HEIGHT = intPreferencesKey("toolbar_tool_height")
+        private val FIELD_BUTTON_SIZE = intPreferencesKey("field_button_size")
         private val TOOLBAR_SIZE_OVER_THEME = booleanPreferencesKey("toolbar_size_over_theme")
         private val TOOLBAR_PADDING_TOP = intPreferencesKey("toolbar_padding_top")
         private val TOOLBAR_PADDING_BOTTOM = intPreferencesKey("toolbar_padding_bottom")
@@ -16346,6 +16358,8 @@ class SettingsRepository(private val context: Context) {
             toolWidthDp = p[TOOLBAR_TOOL_WIDTH] ?: defaults.toolbarBehavior.toolWidthDp,
             iconSizeDp = p[TOOLBAR_ICON_SIZE] ?: defaults.toolbarBehavior.iconSizeDp,
             toolHeightDp = p[TOOLBAR_TOOL_HEIGHT] ?: defaults.toolbarBehavior.toolHeightDp,
+            fieldButtonDp = p[FIELD_BUTTON_SIZE]?.coerceIn(FieldButtonRange)
+                ?: defaults.toolbarBehavior.fieldButtonDp,
             sizeOverTheme = p[TOOLBAR_SIZE_OVER_THEME] ?: defaults.toolbarBehavior.sizeOverTheme,
             paddingTopDp = p[TOOLBAR_PADDING_TOP] ?: defaults.toolbarBehavior.paddingTopDp,
             paddingBottomDp = p[TOOLBAR_PADDING_BOTTOM] ?: defaults.toolbarBehavior.paddingBottomDp,
@@ -19440,6 +19454,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setToolbarToolHeightDp(value: Int) =
         editPrefs { it[TOOLBAR_TOOL_HEIGHT] = value.coerceIn(ToolHeightRange.first, ToolHeightRange.last) }
+
+    suspend fun setFieldButtonDp(value: Int) =
+        editPrefs { it[FIELD_BUTTON_SIZE] = value.coerceIn(FieldButtonRange) }
 
     suspend fun setToolbarSizeOverTheme(value: Boolean) =
         editPrefs { it[TOOLBAR_SIZE_OVER_THEME] = value }
@@ -23649,6 +23666,7 @@ class SettingsRepository(private val context: Context) {
         it.remove(TOOLBAR_TOOL_WIDTH)
         it.remove(TOOLBAR_ICON_SIZE)
         it.remove(TOOLBAR_TOOL_HEIGHT)
+        it.remove(FIELD_BUTTON_SIZE)
         it.remove(TOOLBAR_SIZE_OVER_THEME)
         it.remove(TOOLBAR_PADDING_TOP)
         it.remove(TOOLBAR_PADDING_BOTTOM)

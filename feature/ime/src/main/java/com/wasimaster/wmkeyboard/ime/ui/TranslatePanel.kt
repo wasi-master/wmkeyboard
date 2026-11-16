@@ -954,7 +954,9 @@ private fun TranslateQueryBox(
     val shape = kb.cardShape()
     val hint = stringResource(R.string.ime_translate_hint)
     val clearable = state.mediaQuery.isNotEmpty()
-    val buttonsWidth = if (clearable) TranslatePasteSize * 2 else TranslatePasteSize
+    // As big as the other buttons on the keyboard's own fields (#1153).
+    val pasteSize = kb.fieldButtonDp.dp
+    val buttonsWidth = if (clearable) pasteSize * 2 else pasteSize
     Box(
         modifier = modifier
             .padding(top = if (singleLine) 4.dp else 2.dp, bottom = if (singleLine) 4.dp else 6.dp)
@@ -1005,7 +1007,7 @@ private fun TranslateQueryBox(
                     contentDescription = stringResource(CommonR.string.common_clear),
                     tint = kb.secondaryText,
                     modifier = Modifier
-                        .size(TranslatePasteSize)
+                        .size(pasteSize)
                         .clip(CircleShape)
                         .clickable(onClick = onClear)
                         .padding(4.dp),
@@ -1019,7 +1021,7 @@ private fun TranslateQueryBox(
                 contentDescription = stringResource(CommonR.string.common_paste),
                 tint = kb.secondaryText,
                 modifier = Modifier
-                    .size(TranslatePasteSize)
+                    .size(pasteSize)
                     .clip(CircleShape)
                     .clickable(onClick = onPaste)
                     .padding(4.dp),
@@ -1034,9 +1036,6 @@ private fun TranslateQueryBox(
  * the result keeps the rest.
  */
 private const val TranslateQueryIdleLines = 5
-
-/** The paste button in the text box's corner, padding included. */
-private val TranslatePasteSize = 28.dp
 
 /**
  * What the source chip says: the user's pick, or what was detected, or the

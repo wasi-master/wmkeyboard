@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Input
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapVert
@@ -134,7 +135,7 @@ internal fun FieldFocusSwitch(handle: CaptureCaretHandle, modifier: Modifier = M
         contentAlignment = Alignment.Center,
         modifier = modifier
             .padding(start = 4.dp)
-            .size(28.dp)
+            .size(kb.fieldButtonDp.dp)
             .clip(CircleShape)
             .frostGlass(kb, CircleShape, FrostSurface.CHIPS)
             .background(if (handle.toApp) kb.chipActive else kb.chip)
@@ -145,10 +146,16 @@ internal fun FieldFocusSwitch(handle: CaptureCaretHandle, modifier: Modifier = M
             if (handle.toApp) Icons.AutoMirrored.Outlined.Input else Icons.Outlined.SwapVert,
             contentDescription = description,
             tint = if (handle.toApp) kb.chipActiveText else kb.chipText,
-            modifier = Modifier.size(16.dp),
+            modifier = Modifier.size(fieldButtonIcon(kb.fieldButtonDp.dp)),
         )
     }
 }
+
+/**
+ * The glyph inside one of a field's small buttons (#1153), in the proportion
+ * the 28 dp buttons were drawn at: 16 dp in 28.
+ */
+internal fun fieldButtonIcon(side: Dp): Dp = side * 4 / 7
 
 /** How much a tool field fades while its keys go to the app's field (#665). */
 internal const val FieldToAppAlpha = 0.5f

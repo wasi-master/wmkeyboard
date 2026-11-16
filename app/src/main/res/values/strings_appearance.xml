@@ -193,6 +193,9 @@
     <string name="appearance_tool_icon_size_title">Tool icon size</string>
     <string name="appearance_tool_icon_size_subtitle">Size of the icon inside each tool button</string>
     <string name="appearance_tool_icon_size_info">Applies to the toolbar and the toolbox grid. The buttons keep their size, so the same number of tools still fit. 22 is the default.</string>
+    <string name="appearance_field_button_size_title">Field button size</string>
+    <string name="appearance_field_button_size_subtitle">The small round buttons on the keyboard\'s own search and text boxes</string>
+    <string name="appearance_field_button_size_info">The buttons inside a tool\'s box, like the switch that sends the keys to the app or Translate\'s Paste, and the microphone, undo and hide-keys buttons at the end of that box\'s suggestion strip. 32 is the default. On the strip they never grow past its height, so raise Toolbar height under Layout &amp; size for the biggest sizes.</string>
 
     <!-- Appearance screen, Toolbar group: the toolbox, the grid of all tools. -->
     <string name="appearance_toolbox_layout_title">Toolbox layout</string>

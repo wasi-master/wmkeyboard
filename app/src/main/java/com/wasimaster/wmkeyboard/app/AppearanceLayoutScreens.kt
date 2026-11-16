@@ -61,6 +61,7 @@ import com.wasimaster.wmkeyboard.core.settings.BoardCorner
 import com.wasimaster.wmkeyboard.core.settings.BoardCornerRadiusRange
 import com.wasimaster.wmkeyboard.core.settings.KeyGapAxisScaleRange
 import com.wasimaster.wmkeyboard.core.settings.SidePadScaleRange
+import com.wasimaster.wmkeyboard.core.settings.FieldButtonRange
 import com.wasimaster.wmkeyboard.core.settings.ToolHeightRange
 import com.wasimaster.wmkeyboard.core.settings.ToolWidthRange
 import com.wasimaster.wmkeyboard.core.settings.ToolbarHeightRange
@@ -988,6 +989,19 @@ internal fun AppearanceToolbarSettings(
                 info = stringResource(R.string.appearance_tool_icon_size_info),
                 default = SettingsDefaults.toolbarBehavior.iconSizeDp.toFloat(),
             ) { scope.launch { repository.setToolbarIconSizeDp(it.roundToInt()) } }
+        }
+        // The buttons on the keyboard's own fields (#1153): not the toolbar's,
+        // but sized alongside them, and there with the toolbar off too.
+        item(level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.appearance_field_button_size_title,
+                subtitle = stringResource(R.string.appearance_field_button_size_subtitle),
+                value = settings.watch { it.toolbarBehavior.fieldButtonDp }.toFloat(),
+                range = FieldButtonRange.first.toFloat()..FieldButtonRange.last.toFloat(),
+                display = { dpFormat.format(it.roundToInt()) },
+                info = stringResource(R.string.appearance_field_button_size_info),
+                default = SettingsDefaults.toolbarBehavior.fieldButtonDp.toFloat(),
+            ) { scope.launch { repository.setFieldButtonDp(it.roundToInt()) } }
         }
         // Drawn only once something has actually moved, like the group reset on
         // Layout & size. Which tools are pinned is not a slider and stays.

@@ -15818,33 +15818,36 @@ private fun CaptureStrip(state: KeyboardUiState, capture: CaptureCallbacks) {
         // One step back through this field's edits (#665), while it has any.
         // Matched on the text as well as the field, so a box reopened on other
         // text never offers to undo into the last one.
+        // The buttons take the size set for a field's buttons (#1153), but
+        // never more than the strip's own height holds.
+        val side = minOf(LocalKbTheme.current.fieldButtonDp, state.settings.toolbarHeightDp - 4).dp
         val undo = state.captureUndo
         if (undo != null && undo.key == state.captureKey() && undo.text == state.captureBuffer()) {
-            if (undo.canUndo) CaptureUndoButton(redo = false) { capture.onSelectionAction(CaptureSelectionAction.UNDO) }
-            if (undo.canRedo) CaptureUndoButton(redo = true) { capture.onSelectionAction(CaptureSelectionAction.REDO) }
+            if (undo.canUndo) CaptureUndoButton(redo = false, side) { capture.onSelectionAction(CaptureSelectionAction.UNDO) }
+            if (undo.canRedo) CaptureUndoButton(redo = true, side) { capture.onSelectionAction(CaptureSelectionAction.REDO) }
         }
         if (dictation) {
-            FieldVoiceMic(state.voice, mine = state.voice.field == state.captureKey()) {
+            FieldVoiceMic(state.voice, mine = state.voice.field == state.captureKey(), side = side) {
                 capture.onVoice(CaptureVoiceAction.TOGGLE)
             }
         }
         // The keys go down to show the panel under them (#961); a tap on the
         // field brings them back. Last, where a keyboard's strip keeps its own
         // hide button.
-        if (state.panelFieldTarget()?.lowersKeys == true) CaptureKeysLowerButton(capture.onKeysLower)
+        if (state.panelFieldTarget()?.lowersKeys == true) CaptureKeysLowerButton(side, capture.onKeysLower)
     }
 }
 
 /** The put-the-keys-down button at the end of a keyboard-owned field's strip (#961). */
 @Composable
-private fun CaptureKeysLowerButton(onLower: () -> Unit) {
+private fun CaptureKeysLowerButton(side: Dp, onLower: () -> Unit) {
     val kb = LocalKbTheme.current
     val description = stringResource(R.string.ime_capture_keys_lower_desc)
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .padding(start = 2.dp, end = 4.dp)
-            .size(28.dp)
+            .size(side)
             .clip(CircleShape)
             .frostGlass(kb, CircleShape, FrostSurface.CHIPS)
             .background(kb.chip)
@@ -15855,21 +15858,21 @@ private fun CaptureKeysLowerButton(onLower: () -> Unit) {
             Icons.Outlined.KeyboardHide,
             contentDescription = description,
             tint = kb.chipText,
-            modifier = Modifier.size(16.dp),
+            modifier = Modifier.size(fieldButtonIcon(side)),
         )
     }
 }
 
 /** The undo button at the end of a keyboard-owned field's strip (#665), or the redo one beside it. */
 @Composable
-private fun CaptureUndoButton(redo: Boolean, onUndo: () -> Unit) {
+private fun CaptureUndoButton(redo: Boolean, side: Dp, onUndo: () -> Unit) {
     val kb = LocalKbTheme.current
     val description = stringResource(if (redo) R.string.ime_capture_redo_desc else R.string.ime_capture_undo_desc)
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .padding(start = 2.dp, end = 4.dp)
-            .size(28.dp)
+            .size(side)
             .clip(CircleShape)
             .frostGlass(kb, CircleShape, FrostSurface.CHIPS)
             .background(kb.chip)
@@ -15880,7 +15883,7 @@ private fun CaptureUndoButton(redo: Boolean, onUndo: () -> Unit) {
             if (redo) Icons.AutoMirrored.Outlined.Redo else Icons.AutoMirrored.Outlined.Undo,
             contentDescription = description,
             tint = kb.chipText,
-            modifier = Modifier.size(16.dp),
+            modifier = Modifier.size(fieldButtonIcon(side)),
         )
     }
 }

@@ -607,6 +607,7 @@ internal object SettingsRowIcons {
         put(R.string.appearance_tool_height_title) { Icons.Outlined.Height }
         put(R.string.appearance_tool_size_over_theme_title) { Icons.Outlined.Palette }
         put(R.string.appearance_tool_icon_size_title) { Icons.Outlined.PhotoSizeSelectSmall }
+        put(R.string.appearance_field_button_size_title) { Icons.Outlined.TouchApp }
         put(R.string.appearance_reset_toolbox_order_title) { Icons.Outlined.Restore }
         put(R.string.appearance_reset_title) { Icons.Outlined.Restore }
 

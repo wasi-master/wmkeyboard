@@ -358,6 +358,8 @@ data class KbTheme(
     val toolHeightDp: Int = 38,
     /** Glyph size inside a tool button; a user setting a theme doesn't override. */
     val toolIconSizeDp: Int,
+    /** Side of a keyboard-owned field's small buttons (#1153); a user setting, which no theme sets. */
+    val fieldButtonDp: Int = 32,
     val animation: ThemeAnimation,
     val animationSpeed: Float,
     /**
@@ -1101,6 +1103,7 @@ internal fun defaultKbTheme(
         toolWidthDp = settings.toolbarBehavior.toolWidthDp,
         toolHeightDp = settings.toolbarBehavior.toolHeightDp,
         toolIconSizeDp = settings.toolbarBehavior.iconSizeDp,
+        fieldButtonDp = settings.toolbarBehavior.fieldButtonDp,
         animation = ThemeAnimation.NONE,
         animationSpeed = 1f,
         reduceMotion = settings.reduceMotion,
@@ -1291,6 +1294,7 @@ private fun specKbTheme(spec: ThemeSpec, settings: KeyboardSettings): KbTheme {
             ?: settings.toolbarBehavior.toolWidthDp,
         toolHeightDp = settings.toolbarBehavior.toolHeightDp,
         toolIconSizeDp = settings.toolbarBehavior.iconSizeDp,
+        fieldButtonDp = settings.toolbarBehavior.fieldButtonDp,
         animation = spec.animation,
         animationSpeed = spec.animationSpeed,
         reduceMotion = settings.reduceMotion,
@@ -2234,6 +2238,7 @@ private fun lerpKbTheme(a: KbTheme, b: KbTheme, t: Float): KbTheme {
         toolWidthDp = if (past) b.toolWidthDp else a.toolWidthDp,
         toolHeightDp = if (past) b.toolHeightDp else a.toolHeightDp,
         toolIconSizeDp = if (past) b.toolIconSizeDp else a.toolIconSizeDp,
+        fieldButtonDp = if (past) b.fieldButtonDp else a.fieldButtonDp,
         animation = if (past) b.animation else a.animation,
         animationSpeed = lerpF(a.animationSpeed, b.animationSpeed, t),
         reduceMotion = b.reduceMotion,
