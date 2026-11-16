@@ -232,6 +232,11 @@ object LayoutJsonDocs {
         "action:numpad" to "Opens the number pad. The keyboard makes this key by itself, and a layout does not use it.",
         "action:tool" to "Opens one of the keyboard's tools, the same as its toolbar button.",
         "action:tool.tool" to "Which tool the key opens.",
+        "action:tool.custom" to
+            "The id of one of your custom buttons to run instead of the tool, such as an app shortcut or a settings " +
+            "switch. The tool then only names the key for a build without custom buttons.",
+        "action:plugin" to "Opens one of your plugins in the Plugins panel, the way its toolbar tile does.",
+        "action:plugin.id" to "The plugin's id, from its manifest. A key naming a removed plugin opens the plugin list.",
         "action:layout" to "Shows one of your secondary layouts in place of the letters. A second press goes back.",
         "action:layout.id" to "The id of the secondary layout.",
         "action:layer" to

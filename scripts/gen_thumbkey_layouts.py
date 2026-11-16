@@ -963,13 +963,23 @@ def build(defn, out_stem, main_asset, notes):
         width = sum(k.get("width", 1) for k in letters[0])
         letters.append([{"label": " ", "action": {"type": "space"}, "width": width}])
         notes["space row added (grid had no space key)"] += 1
+    symbols = convert_grid(modes["numeric"], None, "numeric", notes)
+    # The number pad's way back to the letters says "ABC" on a Latin board; on
+    # any other it shows the board's own first three letters, as the kana pad's
+    # あいう key does, rather than Latin letters the board never types.
+    firsts = [k["label"] for k in letters[0][:3] if "action" not in k and k.get("label")]
+    if firsts and not any(c.isascii() and c.isalpha() for c in "".join(firsts)):
+        for row in symbols:
+            for k in row:
+                if k.get("action", {}).get("type") == "letters":
+                    k["label"] = "".join(f[0] for f in firsts)
     layout["layers"] = {
         "letters": {
             "rows": letters,
             "bottomRowAsLaidOut": True,
         },
         "symbols": {
-            "rows": convert_grid(modes["numeric"], None, "numeric", notes),
+            "rows": symbols,
             "bottomRowAsLaidOut": True,
         },
     }

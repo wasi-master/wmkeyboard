@@ -11,7 +11,7 @@
         "rows": [
           [
             {
-              "label": "ZWNJ",
+              "label": "◌│◌",
               "output": "‌",
               "longPress": [
                 "‍"

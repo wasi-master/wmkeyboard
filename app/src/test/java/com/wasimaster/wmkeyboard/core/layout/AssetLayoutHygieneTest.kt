@@ -92,10 +92,13 @@ class AssetLayoutHygieneTest {
      */
     private val latinByDesign = setOf(
         "asset_bn_avro_flick",
+        // Thumb-Key's Avro board: Avro reads its Latin keys (#1409).
+        "asset_bn_avro_thumbkey",
         "asset_bn_khipro_flick",
         "asset_ipa",
         "asset_ipa_qwerty",
         "asset_ipa_qwerty_g",
+        "asset_ja_flick",
         "asset_ja_godan",
         "asset_ja_romaji",
         "asset_music",

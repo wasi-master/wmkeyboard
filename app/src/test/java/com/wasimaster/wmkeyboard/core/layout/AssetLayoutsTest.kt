@@ -472,7 +472,11 @@ class AssetLayoutsTest {
         val file = layoutFiles.first { it.name == "$name.${LayoutFile.FILE_EXTENSION}" }
         return LayoutFile.decode(file.readText())!!.layout
             .layers.getValue(LayoutLayer.LETTERS.key).rows.flatten()
-            .associate { it.label to it.longPress }
+            // The first key wearing a label: Ergo-L has a `.` among its letters
+            // and the bottom row's own full stop, and the letter row's is the
+            // one its spec describes.
+            .groupBy { it.label }
+            .mapValues { (_, keys) -> keys.first().longPress }
     }
 
     /** Gap K7 of the 2026-11-13 comparison: the layouts AnySoftKeyboard ships that WM did not. */

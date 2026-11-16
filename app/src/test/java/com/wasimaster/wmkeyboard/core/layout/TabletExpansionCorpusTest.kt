@@ -56,7 +56,7 @@ class TabletExpansionCorpusTest {
 
     @Test
     fun `the corpus is the whole shipped set`() {
-        assertEquals("built-ins plus hand-authored assets", 39 + 1_232, handAuthored.size)
+        assertEquals("built-ins plus hand-authored assets", 39 + 1_270, handAuthored.size)
         assertTrue(
             "converted Keyman grids are missing from the corpus",
             corpus.size - handAuthored.size > 800,
@@ -143,7 +143,8 @@ class TabletExpansionCorpusTest {
                 // Toki Pona's fourteen letters fit on two short rows.
                 "tok_compact",
                 // Arabic as Gboard and AOSP draw it (#427): no shift key to mirror.
-                "ar_letters",
+                // SwiftKey's older Arabic board (b21b35f3c) has none either.
+                "ar_letters", "ar_legacy",
                 // Persian as Gboard draws it, and the alphabetical Devanagari
                 // pages: every letter on its own key, so no shift key either.
                 "fa_gboard", "hi_devanagari",
