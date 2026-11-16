@@ -6516,14 +6516,16 @@ private fun ThemeEditorContent(
             // One photo cut up across the keys: the glass samples the
             // picture on every key and the board is a plain colour between
             // them. Writes ordinary glass fields; see withPictureOnKeys.
+            val cut = look.watch { it.pictureOnKeys }
             ToggleSetting(
                 R.string.theme_picture_on_keys_title,
                 stringResource(
                     if (hasImage) R.string.theme_picture_on_keys_subtitle else R.string.theme_picture_on_keys_no_image,
                 ),
-                checked = look.watch { it.pictureOnKeys },
+                checked = cut,
                 info = stringResource(R.string.theme_picture_on_keys_info),
-                enabled = hasImage || look.watch { it.pictureOnKeys },
+                // Left on with no picture, it can still be turned off.
+                enabled = hasImage || cut,
                 disabledReason = DisabledReason(stringResource(R.string.theme_picture_on_keys_no_image)),
             ) { on -> update { t -> t.withPictureOnKeys(on) } }
         }
