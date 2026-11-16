@@ -15,6 +15,7 @@ A setting's **?** dialog can show a picture above its words. This page is for wh
 |---|---|---|
 | Shot list | `app/src/docShots/java/.../docshots/HelpShotList.kt` | One line per setting: what to show |
 | Renderer | `HelpShots.kt`, beside it | Boots the real keyboard on the JVM and saves whole screens |
+| Settings screens | `HelpScreens.kt`, beside it | Opens the settings app on a route, for the settings that change its own screens |
 | Builder | `tools/helpvisuals/build.py` | Cuts, scales, encodes, packs, writes the index |
 | Index | `app/src/main/assets/help/visuals.tsv` | Shipped in the APK: which setting has what, sizes, checksums |
 | Files and packs | `help/files/` and `help/packs/` in the [data repository](https://github.com/wasi-master/wmkeyboard-data) | What the app downloads |
@@ -51,6 +52,10 @@ clip("typing_glide_typing_title", typed { record { glide("hello"); hold(900) } }
 
 `toggle` and `compare` boot the keyboard twice, once per half, on seeds that differ in the one setting. Neither half is a flipped copy of the other, so each shows what a user with that value really sees. `gallery` takes one labelled state per option. A label is a string resource's name, or the words themselves behind `=` for a value that reads the same in every language.
 
+A tool's picture usually starts from the docs screenshot of that tool, `docs("tools/app-launcher-grid")`, which already fills the panel with fake apps, notes, search results or sensor readings, so nothing leaves the machine. `seededWith { }` adds one option on top of such a shot for a gallery. A theme editor option is a custom theme put on before the keyboard opens.
+
+Tools that keep their state outside the settings store are seeded in their own files, listed in `HelpShotList2.kt`: the clock's preferences, the notes and to-do JSON, a clipboard history with a pinned clip. The gallery tool reads `FakeMedia.kt`, a MediaStore provider that lists fourteen made-up photos and draws each one as a small landscape when its thumbnail is asked for.
+
 `typed { }` runs its steps on the keyboard under a plain field. `press("g")` puts a finger on a key and stops before the long press, so the key's bubble is up; `hold("e")` waits for the alternates; `glide("hello", lift = false)` stops a stroke with the finger still down. Pass `crop = HelpCrop.TEXT` when the difference lands in the text: the picture is then the changed line of the field set right over the part of the keyboard that changed, with the empty screen between them left out.
 
 ```bash
@@ -61,7 +66,7 @@ clip("typing_glide_typing_title", typed { record { glide("hello"); hold(900) } }
 python3 tools/helpvisuals/build.py --sheet /tmp/help-sheet
 ```
 
-The Gradle run renders only the keys the regex matches, in light and dark, into `app/build/helpshots/`. Each frame is a test, about eleven seconds, most of it the keyboard loading its dictionaries. `build.py` then does the rest and prints what it made. `--sheet` writes one PNG per visual to look over before anything is published.
+Add `--tests "*HelpScreens*"` to render the settings-app pictures as well; their list, `HELP_SCREENS`, is at the end of `HelpScreens.kt`. The Gradle run renders only the keys the regex matches, in light and dark, into `app/build/helpshots/`. Each frame is a test, about eleven seconds, most of it the keyboard loading its dictionaries. `build.py` then does the rest and prints what it made. `--sheet` writes one PNG per visual to look over before anything is published. A Gradle test run stops after 90 minutes, so a long list goes in parts of about 40 keys, each its own run.
 
 ## What the builder decides
 

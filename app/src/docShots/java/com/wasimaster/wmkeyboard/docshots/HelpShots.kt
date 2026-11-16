@@ -50,8 +50,8 @@ class HelpShots(
             val only = System.getProperty("wmkb.helpShots.only")?.takeIf { it.isNotBlank() }?.toRegex()
                 ?: return emptyList()
             val keys = HashSet<String>()
-            for (shot in HELP_SHOTS) require(keys.add(shot.key)) { "two help visuals for ${shot.key}" }
-            return HELP_SHOTS
+            for (shot in HELP_SHOTS + HELP_SHOTS_2) require(keys.add(shot.key)) { "two help visuals for ${shot.key}" }
+            return (HELP_SHOTS + HELP_SHOTS_2)
                 .filter { only.containsMatchIn(it.key) }
                 .flatMap { visual ->
                     visual.frames.indices.flatMap { index ->
@@ -163,6 +163,9 @@ private fun KbShot.seeded(extra: suspend Seed.() -> Unit): KbShot {
         extra()
     })
 }
+
+/** [this] shot with [extra] run after its own seed: one option of a gallery on a docs shot's state. */
+internal fun KbShot.seededWith(extra: suspend Seed.() -> Unit): KbShot = seeded(extra)
 
 /** The docs screenshot [id], as a help frame: one keyboard state, drawn once for both. */
 internal fun docs(id: String): KbShot = KB_SHOTS.first { it.id == id }
