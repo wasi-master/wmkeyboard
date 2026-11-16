@@ -173,7 +173,7 @@ Most widgets take `key=`, a stable id for when two widgets would look alike.
 | `ui.column(*children, gap=None, align=None)` | top to bottom |
 | `ui.row(*children, weights=None, gap=None, align=None)` | side by side. Buttons alone split the width evenly; beside a box or text they keep their own width and the rest share what is left. `weights=[2, 1]` sets the shares |
 | `ui.grid(*children, columns=3)` | equal cells |
-| `ui.card(*children, title=None, on_click=None)` | a group; `on_click()` |
+| `ui.card(*children, title=None, on_click=None, on_hold=None)` | a group; `on_click()`, and `on_hold()` on a long press |
 | `ui.section(title, *children, collapsible=False, open=True)` | a titled part |
 | `ui.scroll(*children, height=None)` | scrolls on its own |
 | `ui.tabs(*pages, on_change=None)` with `ui.page(title, *children)` | `on_change(index)`; up to four tabs share the width, more scroll sideways |
@@ -192,8 +192,8 @@ Most widgets take `key=`, a stable id for when two widgets would look alike.
 
 | Widget | Callback gets |
 |---|---|
-| `ui.button(text, on_click=None, primary=False, enabled=True, icon=None, color=None)` | nothing |
-| `ui.icon_button(icon, on_click=None, label=None, enabled=True)` | nothing |
+| `ui.button(text, on_click=None, primary=False, enabled=True, icon=None, color=None, on_hold=None)` | nothing; `on_hold` hears a long press |
+| `ui.icon_button(icon, on_click=None, label=None, enabled=True, on_hold=None)` | nothing |
 | `ui.input(label=None, value=None, on_change=None, on_submit=None, placeholder=None, multiline=False, kind="text")` | the text; `kind` is `text`, `number`, `email`, `url` or `password` |
 | `ui.search(placeholder=None, value=None, on_change=None, on_submit=None)` | the text |
 | `ui.toggle(label, value=False, on_change=None)`, `ui.checkbox(...)` | `True`/`False` |
@@ -336,6 +336,9 @@ clip.
 
 `from wm import share`. Needs `share`. `share.text(text, title=None)`,
 `share.open(url)` for an https link. The keyboard shows what goes where first.
+`share.open(url, ask=False)` opens an http or https link straight in the app
+the phone uses for it, and only in answer to something the user did in the
+panel ([more](/plugins/guides/phone-features/#share)).
 
 ## notify
 

@@ -98,8 +98,10 @@ Vibrate, turn on the flashlight, read text aloud, and read the battery level.
 
 ### `share` (API 5)
 
-Hand text to another app or open an https link. The keyboard always shows what
-is being shared, and where, before it goes.
+Hand text to another app or open a link. The keyboard shows what is shared,
+and where, before it goes. A link opened with `ask=False` skips that step and
+goes straight to the app the phone uses for it, so the keyboard allows it only
+while the plugin answers a tap or a hold of the user's own in its panel.
 
 ### `notifications` (API 5)
 

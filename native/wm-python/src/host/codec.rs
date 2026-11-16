@@ -41,10 +41,10 @@
 //! ```text
 //! column/row: + "gap":int|null, "align":s|null; row + "weights":[num]|null
 //! {"type":"label",…, "color":role|null}   style also "headline"
-//! {"type":"button",…, "icon":s|null, "color":role|null, "compact":b}
+//! {"type":"button",…, "icon":s|null, "color":role|null, "compact":b, "holdable":b}
 //! {"type":"input",…, "multiline":b, "kind":"text"|"number"|"email"|"url"|"password"|"phone", "live":b, "submit":b}
 //! {"type":"grid","columns":1..6,"children":[...]}
-//! {"type":"card","id":s,"title":s,"clickable":b,"children":[...]}
+//! {"type":"card","id":s,"title":s,"clickable":b,"holdable":b,"children":[...]}
 //! {"type":"section","id":s,"title":s,"collapsible":b,"open":b,"children":[...]}
 //! {"type":"scroll","height":int|null,"children":[...]}
 //! {"type":"markdown","text":s}
@@ -404,6 +404,7 @@ impl Walk {
                 "type": "button", "id": id(d), "text": self.text(d, "text"),
                 "primary": field(d, "style").as_str() == Some("primary"), "enabled": flag(d, "enabled", true),
                 "icon": icon_name(d, "icon"), "color": role(d, "color"), "compact": flag(d, "compact", false),
+                "holdable": has(d, "on_hold"),
             }),
             "input" => {
                 let kind = match field(d, "kind").as_str() {
@@ -416,7 +417,10 @@ impl Walk {
                 })
             }
             "grid" => json!({"type": "grid", "columns": num(d, "columns", 3.0).clamp(1.0, 6.0) as i64, "children": self.kids(d, depth)}),
-            "card" => json!({"type": "card", "id": id(d), "title": self.text(d, "title"), "clickable": has(d, "on_click"), "children": self.kids(d, depth)}),
+            "card" => json!({
+                "type": "card", "id": id(d), "title": self.text(d, "title"), "clickable": has(d, "on_click"),
+                "holdable": has(d, "on_hold"), "children": self.kids(d, depth),
+            }),
             "section" => json!({
                 "type": "section", "id": id(d), "title": self.text(d, "title"), "collapsible": flag(d, "collapsible", false),
                 "open": flag(d, "open", true), "children": self.kids(d, depth),

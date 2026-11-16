@@ -66,6 +66,8 @@ sealed interface PluginWidget {
         val icon: String? = null,
         val color: PluginColorRole? = null,
         val compact: Boolean = false,
+        /** API 5: the plugin hears a long press as a hold event. */
+        val holdable: Boolean = false,
     ) : PluginWidget
 
     data class Toggle(val id: String, val label: String, val checked: Boolean) : PluginWidget
@@ -122,7 +124,14 @@ sealed interface PluginWidget {
 
     data class Grid(val columns: Int, val children: List<PluginWidget>) : PluginWidget
 
-    data class Card(val id: String, val title: String, val clickable: Boolean, val children: List<PluginWidget>) : PluginWidget
+    data class Card(
+        val id: String,
+        val title: String,
+        val clickable: Boolean,
+        val children: List<PluginWidget>,
+        /** API 5: the plugin hears a long press on the card as a hold event. */
+        val holdable: Boolean = false,
+    ) : PluginWidget
 
     data class Section(
         val id: String,

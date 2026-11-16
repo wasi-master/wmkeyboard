@@ -46,10 +46,19 @@ from wm import share
 
 share.text("Meet at 6")            # the system share sheet
 share.open("https://example.com")  # the browser, after the user confirms
+
+def tapped():
+    share.open("http://192.168.1.20:8123", ask=False)  # straight to the browser
 ```
 
-The keyboard always shows what is shared, and where, before it goes. `open`
-takes https links only.
+The keyboard shows what is shared, and where, before it goes. `open` takes
+https links only and lets the user pick the app.
+
+`open(url, ask=False)` is for a link the user just tapped, like a saved
+bookmark: http or https, opened at once in the app the phone uses for links.
+It works only inside a callback for something the user did in the panel (a
+click, a hold, a submit); anywhere else it raises `PermissionError`. A bad
+address raises `ValueError`.
 
 ## notify
 
@@ -259,7 +268,7 @@ The web editor answers every call on this page so you can run your code:
 | `device.speak` | your browser's own voice |
 | `device.vibrate` | the browser's vibration, on a phone browser |
 | `device.battery` | 76%, not charging |
-| `share.text`, `share.open` | the browser's share sheet, and a new tab |
+| `share.text`, `share.open` | the browser's share sheet, and a new tab (also with `ask=False`) |
 | `notify.show`, `device.flashlight` | a line in the console |
 | `clock.alarm`, `clock.timer` | a line in the console |
 | `scan.qr`, `scan.text` | a pretend link, and a pretend line of text |

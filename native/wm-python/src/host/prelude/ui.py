@@ -130,8 +130,9 @@ def grid(*children, columns=3, key=None):
     return Container("grid", children, columns=columns, id=key)
 
 
-def card(*children, title=None, on_click=None, key=None):
-    return Container("card", children, title=title, on_click=on_click, id=key)
+def card(*children, title=None, on_click=None, on_hold=None, key=None):
+    """A raised box. on_click makes the whole card a button; on_hold() hears a long press on it."""
+    return Container("card", children, title=title, on_click=on_click, on_hold=on_hold, id=key)
 
 
 def section(title, *children, collapsible=False, open=True, key=None):
@@ -202,14 +203,15 @@ def empty(text, icon=None, action=None, on_click=None):
 
 # MARK: - controls
 
-def button(text, on_click=None, style=None, primary=False, enabled=True, icon=None, color=None, id=None, key=None):
-    """`ui.button("Go", on_click=go, primary=True)`."""
+def button(text, on_click=None, style=None, primary=False, enabled=True, icon=None, color=None, on_hold=None, id=None, key=None):
+    """`ui.button("Go", on_click=go, primary=True)`. on_hold() hears a long press."""
     return Widget("button", id=id or key, text=text, on_click=on_click, style="primary" if primary else style,
-                  enabled=enabled, icon=icon, color=_role(color))
+                  enabled=enabled, icon=icon, color=_role(color), on_hold=on_hold)
 
 
-def icon_button(icon, on_click=None, label=None, enabled=True, id=None, key=None):
-    return Widget("button", id=id or key, text=label or "", icon=icon, on_click=on_click, enabled=enabled, compact=True)
+def icon_button(icon, on_click=None, label=None, enabled=True, on_hold=None, id=None, key=None):
+    return Widget("button", id=id or key, text=label or "", icon=icon, on_click=on_click, enabled=enabled, compact=True,
+                  on_hold=on_hold)
 
 
 def toggle(label, value=False, on_change=None, id=None, key=None):

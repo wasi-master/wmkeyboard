@@ -182,6 +182,7 @@ internal class PluginKeyboardServices(
         "device.battery" -> battery()
         "share.text" -> share(call)
         "share.open" -> open(call)
+        "share.visit" -> visit(call)
         "secrets.get" -> PluginSecrets.of(context, call.plugin.id).get(name(call))?.let(::JsonPrimitive) ?: JsonNull
         "secrets.set" -> {
             PluginSecrets.of(context, call.plugin.id).set(name(call), call.string("value").orEmpty())
@@ -630,6 +631,31 @@ internal class PluginKeyboardServices(
         val view = Intent(Intent.ACTION_VIEW, Uri.parse(url))
         val chooser = Intent.createChooser(view, url).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         onMain { context.startActivity(chooser) }
+        return JsonNull
+    }
+
+    /**
+     * `share.open(url, ask=False)`: an http or https link straight to the app
+     * that handles it, no chooser. The interpreter lets this through only while
+     * the plugin answers the user's own tap, so a plugin can't open pages on
+     * its own; a saved link on the home network (http, an address) is allowed.
+     */
+    private fun visit(call: PluginCall): JsonElement {
+        val url = call.string("url").orEmpty().trim()
+        val uri = runCatching { java.net.URI(url) }.getOrNull()
+        val scheme = uri?.scheme?.lowercase()
+        if (uri == null || (scheme != "https" && scheme != "http") || uri.host.isNullOrEmpty() || uri.userInfo != null) {
+            throw PluginCallException("ValueError", "only http and https links can be opened")
+        }
+        val view = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            .addCategory(Intent.CATEGORY_BROWSABLE)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        onMain {
+            runCatching { context.startActivity(view) }.onFailure {
+                // Nothing claims the address: the chooser says so rather than nothing happening.
+                runCatching { context.startActivity(Intent.createChooser(view, url).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+            }
+        }
         return JsonNull
     }
 

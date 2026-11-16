@@ -496,6 +496,61 @@ def render():
 }
 
 #[test]
+fn opening_a_link_directly_needs_a_user_event_and_buttons_hear_a_hold() {
+    big(|| {
+        let mut s = session(&["share"], json!({}));
+        let ops = Rc::new(RefCell::new(Vec::<String>::new()));
+        let seen = ops.clone();
+        s.set_bridge(Some(Box::new(move |op: &str, args: &str| {
+            seen.borrow_mut().push(format!("{op} {args}"));
+            json!({"value": null}).to_string()
+        })));
+        let src = r#"
+from wm import plugin, share, ui
+got = plugin.state(early="", held="")
+try:
+    share.open("https://example.com", ask=False)
+    got.early = "opened at load"
+except PermissionError:
+    got.early = "refused at load"
+
+def go():
+    share.open("http://192.168.1.2:8123/", ask=False)
+
+def hold_button():
+    got.held = "button"
+
+def hold_card(x, y):
+    got.held = "card " + str(x)
+
+def render():
+    ui.label(got.early + "|" + got.held)
+    ui.button("Go", on_click=go, on_hold=hold_button, key="b")
+    ui.card(ui.label("Inside"), on_hold=hold_card, key="c")
+    ui.button("Plain", key="p")
+"#;
+        let r = parse(s.load(src));
+        ok(&r);
+        assert_eq!(find(&r["ui"], "label").unwrap()["text"], "refused at load|");
+        assert!(ops.borrow().is_empty());
+        let root = r["ui"]["root"].as_array().unwrap();
+        assert_eq!(root[1]["holdable"], true);
+        assert_eq!(root[2]["type"], "card");
+        assert_eq!(root[2]["holdable"], true);
+        assert_eq!(root[2]["clickable"], false);
+        assert_eq!(root[3]["holdable"], false);
+        ok(&parse(s.event(&json!({"type": "click", "id": "b"}).to_string())));
+        assert_eq!(*ops.borrow(), vec![r#"share.visit {"url":"http://192.168.1.2:8123/"}"#.to_string()]);
+        let r = parse(s.event(&json!({"type": "hold", "id": "b", "x": 0, "y": 0}).to_string()));
+        ok(&r);
+        assert_eq!(find(&r["ui"], "label").unwrap()["text"], "refused at load|button");
+        let r = parse(s.event(&json!({"type": "hold", "id": "c", "x": 0, "y": 0}).to_string()));
+        ok(&r);
+        assert_eq!(find(&r["ui"], "label").unwrap()["text"], "refused at load|card 0");
+    });
+}
+
+#[test]
 fn keyboard_language_needs_no_permission_and_answers_the_layout() {
     big(|| {
         let mut s = session(&[], json!({}));

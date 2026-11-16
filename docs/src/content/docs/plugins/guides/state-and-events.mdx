@@ -42,6 +42,7 @@ What a callback gets depends on the widget:
 | Callback | On | Gets |
 |---|---|---|
 | `on_click` | button, card, item, image, empty | nothing |
+| `on_hold` | button, icon button, card | nothing, after a long press; in the web editor, a right-click |
 | `on_change` | input, search, toggle, checkbox, slider, stepper, select, chips, date, tabs | the new value |
 | `on_submit` | input, search | the text, when the user presses Enter |
 | `on_select` | list | the index of the row pressed |

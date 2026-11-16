@@ -26,6 +26,15 @@ interface Props {
 const str = (d: Record<string, unknown>, k: string) => (d[k] === null || d[k] === undefined ? '' : String(d[k]));
 const num = (d: Record<string, unknown>, k: string, fallback = 0) => (typeof d[k] === 'number' ? (d[k] as number) : fallback);
 
+/** A held button or card: right-click here, a long press on a touch screen (both fire contextmenu). */
+const holdOf = (d: Record<string, unknown>, id: string, onEvent: Send) =>
+	d.holdable
+		? (e: MouseEvent) => {
+				e.preventDefault();
+				onEvent({ type: 'hold', id, x: 0, y: 0 });
+			}
+		: undefined;
+
 /** A colour role as the theme's colour; anything else as the text colour. */
 function roleColor(role: unknown): string | undefined {
 	switch (role) {
@@ -332,7 +341,7 @@ export function V5Widget(props: Props) {
 			return <div class="wm-w5-grid" style={{ gridTemplateColumns: `repeat(${num(d, 'columns', 3)}, minmax(0, 1fr))` }}>{kids()}</div>;
 		case 'card':
 			return (
-				<div class={`wm-w5-card ${d.clickable ? 'wm-w5-clickable' : ''}`} onClick={d.clickable ? () => onEvent({ type: 'click', id }) : undefined}>
+				<div class={`wm-w5-card ${d.clickable ? 'wm-w5-clickable' : ''}`} onClick={d.clickable ? () => onEvent({ type: 'click', id }) : undefined} onContextMenu={holdOf(d, id, onEvent)}>
 					{str(d, 'title') && <div class="wm-w-label-title">{str(d, 'title')}</div>}
 					<div class="wm-w-column">{kids()}</div>
 				</div>
@@ -373,7 +382,7 @@ export function V5Widget(props: Props) {
 			);
 		case 'button':
 			return (
-				<button type="button" class={`wm-w-button ${d.primary ? 'wm-w-button-primary' : ''}`} disabled={d.enabled === false} style={{ color: d.primary ? undefined : roleColor(d.color) }} onClick={() => onEvent({ type: 'click', id })}>
+				<button type="button" class={`wm-w-button ${d.primary ? 'wm-w-button-primary' : ''}`} disabled={d.enabled === false} style={{ color: d.primary ? undefined : roleColor(d.color) }} onClick={() => onEvent({ type: 'click', id })} onContextMenu={holdOf(d, id, onEvent)}>
 					{str(d, 'icon') && <Icon name={str(d, 'icon')} />} {str(d, 'text')}
 				</button>
 			);

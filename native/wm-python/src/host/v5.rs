@@ -39,13 +39,13 @@
 //! | `sensors.subscribe` `sensors.unsubscribe` `sensors.list` | sensors |
 //! | `scan.qr` `scan.text` | scan |
 //! | `device.vibrate` `device.flashlight` `device.speak` `device.battery` | device |
-//! | `share.text` `share.open` | share |
+//! | `share.text` `share.open` `share.visit` | share |
 //! | `notify.show` `notify.cancel` | notifications |
 //! | `secrets.get` `secrets.set` `secrets.remove` | storage |
 //! | `ui.toast` `ui.dialog` `plugin.close` `plugin.refresh` `plugin.open_settings` `keyboard.use` `keyboard.restore` `time.zone` | none |
 //!
-//! `field.selection`, `field.before`, `field.after`, `clipboard.get` and
-//! `plugin.open_settings` are refused outside an event the user caused in the panel (a click, a change,
+//! `field.selection`, `field.before`, `field.after`, `clipboard.get`,
+//! `plugin.open_settings` and `share.visit` (`share.open(url, ask=False)`) are refused outside an event the user caused in the panel (a click, a change,
 //! a submit, a choice, a tap, a hold, a key, a keyword or a header command), and
 //! every `field.*` op outside a panel.
 
@@ -100,7 +100,7 @@ pub const USER_EVENTS: &[&str] = &["click", "change", "submit", "select", "tap",
 
 /// Ops that read what the user typed elsewhere, or take the user out of the
 /// keyboard: only while answering something they did.
-const USER_ONLY: &[&str] = &["field.selection", "field.before", "field.after", "clipboard.get", "plugin.open_settings"];
+const USER_ONLY: &[&str] = &["field.selection", "field.before", "field.after", "clipboard.get", "plugin.open_settings", "share.visit"];
 
 /// Exception kinds a bridge may raise by name; anything else is a RuntimeError.
 const RAISABLE: &[&str] = &[
@@ -137,7 +137,7 @@ pub fn permission_for(op: &str) -> Option<Option<&'static str>> {
         ("sensors", "subscribe" | "unsubscribe" | "list") => Some("sensors"),
         ("scan", "qr" | "text") => Some("scan"),
         ("device", "vibrate" | "flashlight" | "speak" | "battery") => Some("device"),
-        ("share", "text" | "open") => Some("share"),
+        ("share", "text" | "open" | "visit") => Some("share"),
         ("notify", "show" | "cancel") => Some("notifications"),
         ("secrets", "get" | "set" | "remove") => Some("storage"),
         ("ui", "toast" | "dialog") | ("plugin", "close" | "refresh" | "open_settings") | ("keyboard", "use" | "restore") | ("time", "zone") => None,

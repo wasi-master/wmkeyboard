@@ -472,6 +472,12 @@ export function makeBridge(ctx: HostContext): Bridge {
 				window.open(url, '_blank', 'noopener');
 				return reply(null);
 			}
+			case 'share.visit': {
+				const url = String(args.url ?? '');
+				if (!/^https?:\/\/[^/@\s]+/i.test(url)) return fail('ValueError', 'only http and https links can be opened');
+				window.open(url, '_blank', 'noopener');
+				return reply(null);
+			}
 			case 'clock.alarm': {
 				const at = Number(args.at);
 				if (!Number.isFinite(at)) return fail('ValueError', 'at must be a number of seconds');

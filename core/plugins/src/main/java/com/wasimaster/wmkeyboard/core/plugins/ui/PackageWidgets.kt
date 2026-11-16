@@ -15,6 +15,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -144,7 +145,15 @@ internal fun PackageWidgetView(
             }
         }
 
-        is PluginWidget.Card -> CardBox(clickable = widget.clickable, onClick = { onEvent(PluginEvent.Click(widget.id)) }) {
+        is PluginWidget.Card -> CardBox(
+            clickable = widget.clickable,
+            onClick = { onEvent(PluginEvent.Click(widget.id)) },
+            onHold = if (widget.holdable) {
+                { onEvent(PluginEvent.Held(widget.id, 0f, 0f)) }
+            } else {
+                null
+            },
+        ) {
             if (widget.title.isNotEmpty()) Text(widget.title, color = style.onSurface, fontSize = 16.sp, fontWeight = FontWeight.Medium)
             PluginWidgetColumnContent(widget.children, host, onEvent, onInsert, onCopy, ringed)
         }
@@ -295,7 +304,7 @@ internal fun PackageWidgetView(
 }
 
 @Composable
-private fun CardBox(clickable: Boolean, onClick: () -> Unit, content: @Composable () -> Unit) {
+private fun CardBox(clickable: Boolean, onClick: () -> Unit, onHold: (() -> Unit)? = null, content: @Composable () -> Unit) {
     val style = LocalPluginPanelStyle.current
     Column(
         verticalArrangement = Arrangement.spacedBy(DEFAULT_GAP.dp),
@@ -305,7 +314,12 @@ private fun CardBox(clickable: Boolean, onClick: () -> Unit, content: @Composabl
             .then(style.glass(Modifier, style.cardShape))
             .background(style.surface)
             .then(style.cardBorder(Modifier, style.cardShape))
-            .then(if (clickable) Modifier.clickable(onClick = onClick) else Modifier)
+            .then(
+                when {
+                    clickable || onHold != null -> Modifier.combinedClickable(onLongClick = onHold, onClick = { if (clickable) onClick() })
+                    else -> Modifier
+                },
+            )
             .padding(horizontal = 16.dp, vertical = 14.dp),
     ) { content() }
 }

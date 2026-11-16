@@ -11,6 +11,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -240,6 +241,7 @@ internal fun PluginButton(
     enabled: Boolean = true,
     icon: String? = null,
     tint: Color? = null,
+    onHold: (() -> Unit)? = null,
     onClick: () -> Unit,
 ) {
     val style = LocalPluginPanelStyle.current
@@ -264,7 +266,7 @@ internal fun PluginButton(
             .then(if (kind == ButtonKind.TEXT) Modifier else style.glass(Modifier, shape))
             .background(fill)
             .then(if (kind == ButtonKind.TONAL) style.cardBorder(Modifier, shape) else Modifier)
-            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .combinedClickable(enabled = enabled, role = Role.Button, onLongClick = onHold, onClick = onClick)
             // Padding is room the label can't use: kept small, so a label in
             // a narrow share squeezes only when it has to.
             .padding(horizontal = 12.dp, vertical = 8.dp),
@@ -290,6 +292,7 @@ internal fun PluginIconButton(
     enabled: Boolean = true,
     tint: Color? = null,
     tonal: Boolean = false,
+    onHold: (() -> Unit)? = null,
     onClick: () -> Unit,
 ) {
     val style = LocalPluginPanelStyle.current
@@ -300,7 +303,7 @@ internal fun PluginIconButton(
             .alpha(if (enabled) 1f else DISABLED_ALPHA)
             .clip(CircleShape)
             .then(if (tonal) style.glass(Modifier, CircleShape).background(style.surface) else Modifier)
-            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .combinedClickable(enabled = enabled, role = Role.Button, onLongClick = onHold, onClick = onClick)
             .semantics { contentDescription = label },
     ) { style.icon(icon, tint ?: if (tonal) style.onSurface else style.secondaryText, 22.dp) }
 }
@@ -351,6 +354,11 @@ private fun PluginWidgetView(
                 enabled = widget.enabled,
                 tint = widget.color?.let { style.colorOf(it) } ?: style.text,
                 modifier = style.ring(Modifier, widget === ringed),
+                onHold = if (widget.holdable) {
+                    { onEvent(PluginEvent.Held(widget.id, 0f, 0f)) }
+                } else {
+                    null
+                },
             ) { onEvent(PluginEvent.Click(widget.id)) }
         } else {
             // In a row's share it fills the share; on a line of its own it
@@ -364,6 +372,11 @@ private fun PluginWidgetView(
                 icon = widget.icon,
                 tint = widget.color?.let { style.colorOf(it) },
                 modifier = style.ring(if (LocalOwnWidth.current) Modifier else Modifier.fillMaxWidth(), widget === ringed),
+                onHold = if (widget.holdable) {
+                    { onEvent(PluginEvent.Held(widget.id, 0f, 0f)) }
+                } else {
+                    null
+                },
             ) { onEvent(PluginEvent.Click(widget.id)) }
         }
 

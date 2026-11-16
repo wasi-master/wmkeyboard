@@ -151,6 +151,7 @@ object PluginUiCodec {
                     icon = icon(node, "icon"),
                     color = PluginColorRole.of(node.string("color")),
                     compact = node.bool("compact") ?: false,
+                    holdable = node.bool("holdable") ?: false,
                 )
 
                 "toggle" -> PluginWidget.Toggle(id(node), text(node, "label"), node.bool("checked") ?: false)
@@ -179,7 +180,13 @@ object PluginUiCodec {
                 "progress" -> node.float("value")?.let { PluginWidget.ProgressValue(it.coerceIn(0f, 1f)) } ?: PluginWidget.Progress
                 "tabs" -> tabs(node, depth)
                 "grid" -> PluginWidget.Grid((node.int("columns") ?: 3).coerceIn(1, MAX_COLUMNS), children(node["children"], depth + 1))
-                "card" -> PluginWidget.Card(id(node), text(node, "title"), node.bool("clickable") ?: false, children(node["children"], depth + 1))
+                "card" -> PluginWidget.Card(
+                    id(node),
+                    text(node, "title"),
+                    node.bool("clickable") ?: false,
+                    children(node["children"], depth + 1),
+                    holdable = node.bool("holdable") ?: false,
+                )
                 "section" -> PluginWidget.Section(
                     id(node),
                     text(node, "title"),
