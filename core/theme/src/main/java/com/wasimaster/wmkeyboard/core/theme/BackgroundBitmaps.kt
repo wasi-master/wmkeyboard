@@ -13,6 +13,8 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.BlurEffect
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
@@ -56,6 +58,8 @@ object BackgroundBitmapCache {
         val frost: Boolean = false,
         val saturationStep: Int = 0,
         val brightnessStep: Int = 0,
+        /** The theme's image brightness, in hundredths; see [ThemeSpec.backgroundImageBrightness]. */
+        val imageBrightnessStep: Int = 100,
     )
 
     private const val BUCKET_PX = 128
@@ -109,7 +113,8 @@ object BackgroundBitmapCache {
     /**
      * The backdrop the glass surfaces sample: the image at [path], sampled to
      * cover [targetW] x [targetH] like [load], then put through [FrostBake]
-     * with [blur], [saturation] and [brightness]. Baked on every API level —
+     * with [blur], [saturation] and [brightness], darkened to the theme's
+     * [imageBrightness]. Baked on every API level —
      * the surfaces need the blurred pixels, not a draw-time effect — and
      * cached under its own key, so the sharp board and its glass backdrop are
      * two entries that never evict each other by accident.
@@ -121,9 +126,11 @@ object BackgroundBitmapCache {
         brightness: Float,
         targetW: Int,
         targetH: Int,
+        imageBrightness: Float = 1f,
     ): Bitmap? {
         val stamp = File(path).lastModified().takeIf { it != 0L } ?: return null
         val key = frostedKey(path, stamp, blur, saturation, brightness, targetW, targetH)
+            .copy(imageBrightnessStep = (imageBrightness.coerceIn(IMAGE_BRIGHTNESS_MIN, 1f) * 100).roundToInt())
         return loadBaked(key) {
             decodeSharp(path, key)?.let { sharp ->
                 FrostBake.bake(
@@ -131,6 +138,7 @@ object BackgroundBitmapCache {
                     blur = key.blurStep.toFloat(),
                     saturation = key.saturationStep / SATURATION_STEPS,
                     brightness = key.brightnessStep / BRIGHTNESS_STEPS,
+                    scale = key.imageBrightnessStep / 100f,
                 )
             }
         }
@@ -254,6 +262,7 @@ fun BoxScope.ThemeBackgroundImage(
     opacity: Float,
     targetW: Int,
     targetH: Int,
+    brightness: Float = 1f,
 ) {
     val resolved = path?.takeIf { it.isNotBlank() } ?: return
     val blurStep = blur.roundToInt()
@@ -287,7 +296,23 @@ fun BoxScope.ThemeBackgroundImage(
                 }
             ),
         contentScale = ContentScale.Crop,
+        colorFilter = imageBrightnessFilter(brightness),
     )
+}
+
+/** The darkest a theme's background image may be drawn; see [ThemeSpec.backgroundImageBrightness]. */
+const val IMAGE_BRIGHTNESS_MIN = 0.2f
+
+/**
+ * The filter that draws a picture at [brightness] (#1222): every colour
+ * channel scaled, alpha left alone, so the picture darkens without anything
+ * behind it showing through. Null at full brightness, which draws nothing
+ * extra.
+ */
+fun imageBrightnessFilter(brightness: Float): ColorFilter? {
+    val b = brightness.coerceIn(IMAGE_BRIGHTNESS_MIN, 1f)
+    if (b >= 0.995f) return null
+    return ColorFilter.colorMatrix(ColorMatrix().apply { setToScale(b, b, b, 1f) })
 }
 
 /**

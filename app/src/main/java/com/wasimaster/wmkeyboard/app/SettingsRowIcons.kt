@@ -2018,6 +2018,7 @@ internal object SettingsRowIcons {
         put(R.string.theme_one_handed_icon_title) { SymbolIcons.MobileHandLeft }
         put(R.string.theme_image_opacity_title) { Icons.Outlined.Opacity }
         put(R.string.theme_image_blur_title) { Icons.Outlined.BlurOn }
+        put(R.string.theme_image_brightness_title) { Icons.Outlined.Contrast }
         put(R.string.theme_key_shape_title) { Icons.Outlined.Category }
         put(R.string.theme_letter_keys_title) { Icons.Outlined.Keyboard }
         put(R.string.theme_key_gradient_title) { Icons.Outlined.Gradient }

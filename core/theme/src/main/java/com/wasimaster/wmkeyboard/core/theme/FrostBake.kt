@@ -32,17 +32,18 @@ object FrostBake {
 
     /**
      * [source] blurred by [blur] (the editor's 0..25 scale), then saturated by
-     * [saturation] and shifted by [brightness] (a fraction of white, negative
+     * [saturation], scaled by [scale] (the theme's image brightness, 1 to
+     * leave it) and shifted by [brightness] (a fraction of white, negative
      * to darken), at [source]'s own size. Never recycles [source]: the cache
      * may still be handing it out as the sharp board.
      */
-    fun bake(source: Bitmap, blur: Float, saturation: Float, brightness: Float): Bitmap {
+    fun bake(source: Bitmap, blur: Float, saturation: Float, brightness: Float, scale: Float = 1f): Bitmap {
         val width = source.width
         val height = source.height
         // No blur: nothing gains from the quarter-size pass, and the upscale
         // back would soften a picture the keys are meant to show sharp (the
         // picture-on-keys look). Only the colour change runs, at full size.
-        if (blur < 0.5f) return recoloured(source, width, height, saturation, brightness)
+        if (blur < 0.5f) return recoloured(source, width, height, saturation, brightness, scale)
         val smallW = max(8, width / DOWNSCALE)
         val smallH = max(8, height / DOWNSCALE)
         val small = Bitmap.createScaledBitmap(source, smallW, smallH, true)
@@ -55,7 +56,7 @@ object FrostBake {
         }
         val blurred = Bitmap.createBitmap(smallW, smallH, Bitmap.Config.ARGB_8888)
         blurred.setPixels(pixels, 0, smallW, 0, 0, smallW, smallH)
-        val out = recoloured(blurred, width, height, saturation, brightness)
+        val out = recoloured(blurred, width, height, saturation, brightness, scale)
         blurred.recycle()
         return out
     }
@@ -72,10 +73,11 @@ object FrostBake {
         height: Int,
         saturation: Float,
         brightness: Float,
+        scale: Float,
     ): Bitmap {
         val out = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val paint = Paint(Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG).apply {
-            colorFilter = ColorMatrixColorFilter(colorMatrix(saturation, brightness))
+            colorFilter = ColorMatrixColorFilter(colorMatrix(saturation, brightness, scale))
         }
         Canvas(out).drawBitmap(from, null, Rect(0, 0, width, height), paint)
         return out
@@ -90,12 +92,14 @@ object FrostBake {
         (blur / 3f).roundToInt().coerceIn(0, max(1, minOf(width, height) / 4))
 
     /**
-     * Saturation first, then the brightness offset on every channel — the
+     * Saturation first, then the image's brightness as a scale, then the
+     * glass's brightness offset on every channel — the
      * order a photo editor applies them, and the one that keeps a lifted
      * image from washing out before it is re-saturated.
      */
-    fun colorMatrix(saturation: Float, brightness: Float): ColorMatrix {
+    fun colorMatrix(saturation: Float, brightness: Float, scale: Float = 1f): ColorMatrix {
         val matrix = ColorMatrix().apply { setSaturation(saturation) }
+        if (scale != 1f) matrix.postConcat(ColorMatrix().apply { setScale(scale, scale, scale, 1f) })
         if (brightness != 0f) {
             val shift = brightness * 255f
             matrix.postConcat(

@@ -341,6 +341,7 @@ import com.wasimaster.wmkeyboard.core.theme.dressedForGlass
 import com.wasimaster.wmkeyboard.core.theme.pictureOnKeys
 import com.wasimaster.wmkeyboard.core.theme.withPictureOnKeys
 import com.wasimaster.wmkeyboard.core.theme.withImageBlur
+import com.wasimaster.wmkeyboard.core.theme.IMAGE_BRIGHTNESS_MIN
 import com.wasimaster.wmkeyboard.core.theme.ThemeAnimation
 import com.wasimaster.wmkeyboard.core.theme.ThemeCodec
 import com.wasimaster.wmkeyboard.core.theme.FutoTheme
@@ -4539,6 +4540,18 @@ private fun ThemeEditorContent(
                     range = 0f..1f,
                     display = { "${(it * 100).toInt()}%" },
                 ) { update { t -> t.copy(backgroundImageOpacity = it) } }
+            }
+            // Darkens the picture itself (#1222), where lowering the opacity
+            // fades it into the board colour: over a light board that is
+            // lighter, never darker. Reaches the picture on the keys too.
+            item(level = SettingLevel.STANDARD) {
+                SliderRow(
+                    R.string.theme_image_brightness_title,
+                    value = look.watch { it.backgroundImageBrightness },
+                    range = IMAGE_BRIGHTNESS_MIN..1f,
+                    display = { "${(it * 100).roundToInt()}%" },
+                    info = stringResource(R.string.theme_image_brightness_info),
+                ) { update { t -> t.copy(backgroundImageBrightness = (it * 100).roundToInt() / 100f) } }
             }
             // Only for a picture that stands still (#1403): blurring a
             // moving one re-renders the effect every frame and broke it, so

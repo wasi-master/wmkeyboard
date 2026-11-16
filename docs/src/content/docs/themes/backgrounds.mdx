@@ -55,13 +55,14 @@ The photo grid in [Online photos](/themes/online-photos/) dims the parts of each
 
 ## Keeping keys readable
 
-A photo behind your keys can easily fight with legibility, so two sliders sit right below the image row, with a switch for an animated picture:
+A photo behind your keys can easily fight with legibility, so three sliders sit right below the image row, with a switch for an animated picture:
 
 - **Image opacity** fades the image itself, from fully transparent to fully opaque (the default). Below 100% the photo fades into the board color, laid solid under it, so the keyboard stays opaque; transparent areas in an image of your own show that color too. Before 0.6.7 the app behind the keyboard showed through instead, which read as a board that ignored its opacity. A theme with **Blur behind the keyboard** on still lets the app through.
+- **Image brightness** darkens the picture itself, from 100% (as the file has it, the default) down to 20%. Nothing behind the picture shows through, so it's the slider to reach for when a bright photo washes out the key labels, or when lowering the opacity would fade it toward a light board color. It darkens the picture on the board, a playing animation, and the pieces with [Picture on the keys](#picture-on-the-keys) on. New in 0.6.8; an older version shows the picture at full brightness.
 - **Image blur** softens the image from sharp (the default) up to a heavy blur. It's shown only while the picture stands still: blurring a running animation would re-render the effect on every frame and broke the picture, so from 0.6.8 the slider is hidden while an animation plays rather than being there to break it. With [Picture on the keys](#picture-on-the-keys) on, it blurs the pieces on the keys too.
 - **Play animated image** is shown only when the picture is a GIF or an animated WebP. It's on when you picked the picture as an animation. Turning it off shows the first frame and brings **Image blur** back, and turning it on zeroes the blur. The animation also stays still under reduce motion or power saving, and on app versions from before this feature the same file shows its first frame.
 
-There's no separate "dim" control. The board's own background color draws as a layer on top of the image, so raising that color's opacity tints or dims the photo. It's the same **Background** color row you'd use for a solid-color theme. A soft blur plus a translucent board color is usually enough to keep key labels legible over a busy photo.
+The board's own background color also draws as a layer on top of the image, so raising that color's opacity tints the photo toward that color. It's the same **Background** color row you'd use for a solid-color theme. A soft blur plus a translucent board color is usually enough to keep key labels legible over a busy photo.
 
 :::note
 Turning on **High contrast keys** in accessibility settings strips background images (and gradients and animation) from every theme while it's active, since a photo behind the keys works against the contrast that setting is trying to guarantee.

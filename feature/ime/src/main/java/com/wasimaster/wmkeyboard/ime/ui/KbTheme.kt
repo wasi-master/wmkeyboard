@@ -120,6 +120,8 @@ import com.wasimaster.wmkeyboard.core.theme.KeyTextureScale
 import com.wasimaster.wmkeyboard.core.theme.TextureSlice
 import com.wasimaster.wmkeyboard.core.theme.ThemeAnimation
 import com.wasimaster.wmkeyboard.core.theme.ThemeBackgroundImage
+import com.wasimaster.wmkeyboard.core.theme.IMAGE_BRIGHTNESS_MIN
+import com.wasimaster.wmkeyboard.core.theme.imageBrightnessFilter
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
 import com.wasimaster.wmkeyboard.core.theme.BOARD_EFFECT_DENSITY_RANGE
 import com.wasimaster.wmkeyboard.core.theme.BOARD_EFFECT_HALF_LIFE_RANGE
@@ -204,6 +206,8 @@ data class KbTheme(
     /** Landscape override for [backgroundImage]; null falls back to it. */
     val backgroundImageLandscape: String?,
     val backgroundImageOpacity: Float,
+    /** The picture's brightness; see [ThemeSpec.backgroundImageBrightness]. */
+    val backgroundImageBrightness: Float = 1f,
     val backgroundImageBlur: Float,
     /** Play the background as an animated image; see [ThemeSpec.backgroundAnimated]. */
     val backgroundAnimated: Boolean,
@@ -1159,6 +1163,7 @@ private fun specKbTheme(spec: ThemeSpec, settings: KeyboardSettings): KbTheme {
         backgroundImage = spec.backgroundImage,
         backgroundImageLandscape = spec.backgroundImageLandscape,
         backgroundImageOpacity = spec.backgroundImageOpacity,
+        backgroundImageBrightness = spec.backgroundImageBrightness.coerceIn(IMAGE_BRIGHTNESS_MIN, 1f),
         backgroundImageBlur = spec.backgroundImageBlur,
         // Blur wins when a theme file claims both: playing a blurred animation
         // re-renders the effect every frame, which the editor already forbids.
@@ -2124,6 +2129,8 @@ private fun lerpKbTheme(a: KbTheme, b: KbTheme, t: Float): KbTheme {
         backgroundImage = if (past) b.backgroundImage else a.backgroundImage,
         backgroundImageLandscape = if (past) b.backgroundImageLandscape else a.backgroundImageLandscape,
         backgroundImageOpacity = lerpF(a.backgroundImageOpacity, b.backgroundImageOpacity, t),
+        // Discrete, like the blur below: it is part of the glass bake's key.
+        backgroundImageBrightness = if (past) b.backgroundImageBrightness else a.backgroundImageBrightness,
         // Discrete, like the image path it belongs to. Interpolating it meant
         // every frame of the crossfade asked for a blur radius no cached decode
         // had, so switching between two themes whose blurs differed re-decoded
@@ -2402,6 +2409,7 @@ fun BoxScope.BoardBackground(
                 imageLoader = rememberMediaImageLoader(),
                 contentScale = ContentScale.Crop,
                 alpha = kb.backgroundImageOpacity,
+                colorFilter = imageBrightnessFilter(kb.backgroundImageBrightness),
                 modifier = Modifier.matchParentSize(),
             )
         }
@@ -2413,6 +2421,7 @@ fun BoxScope.BoardBackground(
                 opacity = kb.backgroundImageOpacity,
                 targetW = targetW,
                 targetH = targetH,
+                brightness = kb.backgroundImageBrightness,
             )
         }
     }
@@ -2452,6 +2461,7 @@ fun BoxScope.BoardBackground(
                     opacity = kb.backgroundImageOpacity,
                     targetW = targetW,
                     targetH = targetH,
+                    brightness = kb.backgroundImageBrightness,
                 )
             }
         }

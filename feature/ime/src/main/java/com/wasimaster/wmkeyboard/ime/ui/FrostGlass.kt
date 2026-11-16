@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.core.theme.BackgroundBitmapCache
 import com.wasimaster.wmkeyboard.core.theme.FrostNoise
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
+import com.wasimaster.wmkeyboard.core.theme.IMAGE_BRIGHTNESS_MIN
 import com.wasimaster.wmkeyboard.core.theme.brush
 import com.wasimaster.wmkeyboard.core.theme.KeyShapeKind
 import com.wasimaster.wmkeyboard.core.theme.WallpaperBackdrop
@@ -231,6 +232,22 @@ internal fun FrostBackdropLoader(
             if (backdrop.animated === drawable) backdrop.animated = null
         }
     }
+    // The picture's brightness on the playing slices too (#1222), set on the
+    // one drawable they share rather than decoded again for every step of
+    // the slider.
+    val sliceDrawable = backdrop.animated
+    val sliceBrightness = kb.backgroundImageBrightness.coerceIn(IMAGE_BRIGHTNESS_MIN, 1f)
+    LaunchedEffect(sliceDrawable, sliceBrightness) {
+        val drawable = sliceDrawable ?: return@LaunchedEffect
+        drawable.colorFilter = if (sliceBrightness >= 0.995f) {
+            null
+        } else {
+            android.graphics.ColorMatrixColorFilter(
+                android.graphics.ColorMatrix().apply { setScale(sliceBrightness, sliceBrightness, sliceBrightness, 1f) },
+            )
+        }
+        drawable.invalidateSelf()
+    }
     val context = LocalContext.current
     // A wallpaper change on Android 12+ arrives as a configuration change
     // (the dynamic colours move with it), which is what re-bakes the band.
@@ -240,13 +257,16 @@ internal fun FrostBackdropLoader(
     val blur = frost?.backdropBlur ?: 0f
     val saturation = frost?.saturation ?: 1f
     val brightness = frost?.brightness ?: 0f
+    // The picture's own brightness (#1222), baked in, so glass over it and
+    // a picture on the keys darken with the board.
+    val imageBrightness = kb.backgroundImageBrightness
     val band = frost?.wallpaperBand
     val dark = kb.dark
     // The theme's own colours, for a phone that publishes no wallpaper colours.
     val fallback = listOf(kb.board, kb.accent, kb.key).map { it.toArgb().toLong() and 0xFFFFFFFFL }
     LaunchedEffect(
         backdrop, kind, imagePath, playing, blur, saturation, brightness, band, dark, targetW, targetH,
-        configuration,
+        configuration, imageBrightness,
     ) {
         backdrop.bitmap = when {
             frost == null || kind == null -> null
@@ -254,7 +274,7 @@ internal fun FrostBackdropLoader(
                 null
             } else {
                 BackgroundBitmapCache
-                    .loadFrosted(imagePath, blur, saturation, brightness, targetW, targetH)
+                    .loadFrosted(imagePath, blur, saturation, brightness, targetW, targetH, imageBrightness)
                     ?.asImageBitmap()
             }
             else -> WallpaperBackdrop

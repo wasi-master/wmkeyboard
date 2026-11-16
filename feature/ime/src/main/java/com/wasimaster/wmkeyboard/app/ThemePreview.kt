@@ -96,6 +96,7 @@ import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.theme.KeyShapeKind
 import com.wasimaster.wmkeyboard.core.theme.ThemeAnimation
 import com.wasimaster.wmkeyboard.core.theme.ThemeBackgroundImage
+import com.wasimaster.wmkeyboard.core.theme.imageBrightnessFilter
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
 import com.wasimaster.wmkeyboard.core.theme.SkinSlotName
 import com.wasimaster.wmkeyboard.core.theme.resolveMaterial
@@ -385,12 +386,13 @@ private fun BoxScope.ThemePreviewBody(
     if (frost != null && backdrop != null && measured) {
         val context = LocalContext.current
         val configuration = LocalConfiguration.current
-        LaunchedEffect(backdrop, kind, frost.backdropBlur, frost.saturation, frost.brightness, frost.wallpaperBand, glassImage, targetW, targetH, configuration) {
+        LaunchedEffect(backdrop, kind, frost.backdropBlur, frost.saturation, frost.brightness, frost.wallpaperBand, glassImage, targetW, targetH, configuration, theme.backgroundImageBrightness) {
             backdrop.bitmap = when (kind) {
                 null -> null
                 BackdropKind.IMAGE -> glassImage?.let {
                     BackgroundBitmapCache.loadFrosted(
                         it, frost.backdropBlur, frost.saturation, frost.brightness, targetW, targetH,
+                        theme.backgroundImageBrightness,
                     )?.asImageBitmap()
                 }
                 else -> WallpaperBackdrop.loadFrosted(
@@ -435,6 +437,7 @@ private fun BoxScope.ThemePreviewBody(
                 .matchParentSize()
                 .alpha(theme.backgroundImageOpacity),
             contentScale = ContentScale.Crop,
+            colorFilter = imageBrightnessFilter(theme.backgroundImageBrightness),
         )
     } else if (measured && !(frost?.cutout == true && kind == BackdropKind.IMAGE)) {
         // A picture-on-keys theme leaves the picture to the keys' glass, a
@@ -446,6 +449,7 @@ private fun BoxScope.ThemePreviewBody(
             opacity = theme.backgroundImageOpacity,
             targetW = targetW,
             targetH = targetH,
+            brightness = theme.backgroundImageBrightness,
         )
     }
     // Static (phase 0) gradient — the preview doesn't animate.

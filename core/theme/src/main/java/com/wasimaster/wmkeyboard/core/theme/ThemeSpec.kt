@@ -200,6 +200,13 @@ data class ThemeSpec(
     val backgroundImageLandscape: String? = null,
     /** Alpha applied to the background image itself (shared by both orientations). */
     val backgroundImageOpacity: Float = 1f,
+    /**
+     * How bright the background image is drawn, 1 as the file has it and
+     * [IMAGE_BRIGHTNESS_MIN] at the darkest (#1222). Unlike the opacity it
+     * darkens the picture itself, so nothing behind it shows through, and it
+     * reaches the picture on the keys too. An older build ignores it.
+     */
+    val backgroundImageBrightness: Float = 1f,
     /** Blur radius applied to the background image (0 = sharp, 25 = heavy). */
     val backgroundImageBlur: Float = 0f,
     /**
