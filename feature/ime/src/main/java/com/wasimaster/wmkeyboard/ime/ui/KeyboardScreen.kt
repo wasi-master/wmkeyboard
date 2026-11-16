@@ -9832,6 +9832,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.HOME_ASSISTANT -> R.string.ime_tool_home_assistant
     ToolbarTool.SEND_FILES -> R.string.ime_tool_send_files
     ToolbarTool.FILES -> R.string.ime_tool_files
+    ToolbarTool.LINKS -> R.string.ime_tool_links
     ToolbarTool.TIMESTAMP -> R.string.ime_tool_timestamp
     ToolbarTool.GALLERY -> R.string.ime_tool_gallery
     ToolbarTool.PLUGINS -> R.string.ime_tool_plugins
@@ -9943,6 +9944,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.HOME_ASSISTANT -> state.panel == PanelMode.HOME_ASSISTANT
     ToolbarTool.SEND_FILES -> state.panel == PanelMode.SEND_FILES
     ToolbarTool.FILES -> state.panel == PanelMode.FILES
+    ToolbarTool.LINKS -> state.panel == PanelMode.LINKS
     ToolbarTool.GALLERY -> state.panel == PanelMode.GALLERY
     ToolbarTool.VOICE -> state.panel == PanelMode.VOICE || state.voice.strip || state.voice.bar
     ToolbarTool.GRAMMAR -> state.panel == PanelMode.GRAMMAR
@@ -15396,7 +15398,7 @@ private val FullBleedPanels = setOf(
     PanelMode.AI_REPLY, PanelMode.LOCATION, PanelMode.CLOCK, PanelMode.TODO, PanelMode.WM_PASS,
     PanelMode.GALLERY, PanelMode.HOME_ASSISTANT, PanelMode.MUSIC_ID,
     PanelMode.GALLERY, PanelMode.SEND_FILES, PanelMode.SHARE, PanelMode.FILES,
-    PanelMode.SPEED_TEST,
+    PanelMode.SPEED_TEST, PanelMode.LINKS,
 )
 
 /**
@@ -16750,6 +16752,12 @@ private fun KeyboardBody(
                     onClose = { onPanelChange(PanelMode.GALLERY) },
                 )
                 // A tool's pick, kept in the keyboard. Its back button goes to that tool, not to the keys.
+                // Saved links as buttons (#1214); its two boxes type on the key rows below.
+                PanelMode.LINKS -> com.wasimaster.wmkeyboard.ime.ui.links.LinkWalletPanel(
+                    state = state,
+                    callbacks = toolHold.links,
+                    onClose = { onPanelChange(PanelMode.LINKS) },
+                )
                 PanelMode.FILES -> com.wasimaster.wmkeyboard.ime.ui.files.FileManagerPanel(
                     state = state,
                     callbacks = toolHold.files,
@@ -35538,6 +35546,8 @@ data class ToolHoldCallbacks(
     val gallery: com.wasimaster.wmkeyboard.ime.gallery.GalleryCallbacks = com.wasimaster.wmkeyboard.ime.gallery.GalleryCallbacks(),
     /** The file manager; its state is the controller's, like [gallery]. */
     val files: com.wasimaster.wmkeyboard.ime.files.FileManagerCallbacks = com.wasimaster.wmkeyboard.ime.files.FileManagerCallbacks(),
+    /** The Link wallet (#1214); its state is the controller's, like [files]. */
+    val links: com.wasimaster.wmkeyboard.ime.links.LinkWalletCallbacks = com.wasimaster.wmkeyboard.ime.links.LinkWalletCallbacks(),
     /** The clipboard panel's editor and view switch; here for the same reason as [dictionaryBar]. */
     val clipboard: ClipboardPanelActions = ClipboardPanelActions(),
     /** The caret magnifier (discussion #303); here for the same reason as [dictionaryBar]. */

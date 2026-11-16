@@ -223,6 +223,10 @@ enum class ToolbarTool {
     // insert sheet is set to (competitor gap list item 6, HeliBoard's
     // timestamp key). The first Backspace after it takes it back whole.
     TIMESTAMP,
+    // Saved links as buttons (#1214): a tap opens one in the browser, a hold
+    // types, copies or shares it. No sync and no account; one file under
+    // filesDir, so not before the first unlock.
+    LINKS,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -463,7 +467,7 @@ private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.LANGUAGE,
     ToolbarTool.FLOATING, ToolbarTool.PERSISTENT, ToolbarTool.RESIZE, ToolbarTool.INCOGNITO, ToolbarTool.PRIVACY_SHADE,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.SOUND_HAPTICS,
-    ToolbarTool.EMOJI_MIX, ToolbarTool.MUSIC_ID, ToolbarTool.FILES, ToolbarTool.TIMESTAMP,
+    ToolbarTool.EMOJI_MIX, ToolbarTool.MUSIC_ID, ToolbarTool.FILES, ToolbarTool.LINKS, ToolbarTool.TIMESTAMP,
     ToolbarTool.QR_SCAN, ToolbarTool.QR_GEN, ToolbarTool.TEXT_REPEAT, ToolbarTool.READ_BACK, ToolbarTool.DOC_SCAN, ToolbarTool.CAMERA,
     ToolbarTool.FLASHLIGHT, ToolbarTool.SCREENSHOT, ToolbarTool.COMPASS, ToolbarTool.LEVEL, ToolbarTool.MOON_PHASE,
     // The one-tap cursor moves last: useful, but they would otherwise push

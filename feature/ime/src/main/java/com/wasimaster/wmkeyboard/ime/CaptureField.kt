@@ -470,6 +470,12 @@ enum class CaptureTarget(
     /** The file manager's box: a search over file names, a new name, or a new folder's. One line, and no words to offer. */
     FILES_TEXT(takesWords = false),
 
+    /** The Link wallet's address box (#1214): one line, no words to offer; Enter moves on to the name. */
+    LINK_URL(takesWords = false),
+
+    /** A saved link's name on its button: one line; Enter keeps the link. */
+    LINK_TITLE(takesWords = true),
+
     /** A calendar event's title in the Calendar composer: one line, Enter moves on to the place. */
     CALENDAR_TITLE(takesWords = true),
 
