@@ -119,6 +119,12 @@ object DeepLClient {
         }
     }
 
+    /** Where DeepL says how much of the billing period's characters are used (#1382). */
+    fun usageUrl(apiKey: String, endpoint: String): String = baseUrl(apiKey, endpoint) + "/v2/usage"
+
+    /** The [ServiceUsage] key DeepL's requests count under. */
+    const val USAGE_KEY = "deepl"
+
     /**
      * The root every path hangs off, without a trailing slash: the user's
      * [endpoint] when they gave one, else the host their key belongs to.
@@ -128,12 +134,6 @@ object DeepLClient {
      * out of a README; all of those reduce to the same root. A scheme other
      * than http/https is refused rather than guessed at.
      */
-    /** Where DeepL says how much of the billing period's characters are used (#1382). */
-    fun usageUrl(apiKey: String, endpoint: String): String = baseUrl(apiKey, endpoint) + "/v2/usage"
-
-    /** The [ServiceUsage] key DeepL's requests count under. */
-    const val USAGE_KEY = "deepl"
-
     internal fun baseUrl(apiKey: String, endpoint: String): String {
         val raw = endpoint.trim()
         if (raw.isEmpty()) return if (apiKey.trim().endsWith(":fx")) FREE_HOST else PRO_HOST
