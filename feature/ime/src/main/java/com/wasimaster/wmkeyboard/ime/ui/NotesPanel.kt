@@ -91,6 +91,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AttachFile
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Folder
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatQuote
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Inventory2
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Label
