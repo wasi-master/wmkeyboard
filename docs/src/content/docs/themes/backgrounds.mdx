@@ -24,7 +24,12 @@ This page covers a picture from your own device. A photo from Unsplash or Pexels
   ![Cropping a background image to the keyboard's own shape.](@assets/screens/themes/background-crop-dialog.webp)
 </PhoneFrame>
 
-Open a theme for editing. Scroll to the **Board** section. Tap **Background image** to open the **Select a background** dialog. **Add from this device** opens the system photo picker, which offers image files only. The app copies the picture you choose into its own storage, and it never reads the original file again.
+Open a theme for editing. Scroll to the **Board** section. Tap **Background image** to open the **Select a background** dialog. It asks what kind of picture you want before the system photo picker opens:
+
+- **Picture from this device** is for a photo or image that stays still. A GIF picked here shows its first frame, and **Image blur** is there to soften it.
+- **Animation from this device** is for a GIF or an animated WebP. It plays on the keyboard straight away, with no switch to find, and the blur slider is hidden while it plays. A still picture picked here simply stays still. Videos such as MP4 can't be used as a background.
+
+The app copies the picture you choose into its own storage, and it never reads the original file again.
 
 Picking an image changes two things about the theme so the photo is actually visible, both of which stay editable afterward:
 
@@ -50,11 +55,11 @@ The photo grid in [Online photos](/themes/online-photos/) dims the parts of each
 
 ## Keeping keys readable
 
-A photo behind your keys can easily fight with legibility, so two sliders and a switch sit right below the image row:
+A photo behind your keys can easily fight with legibility, so two sliders sit right below the image row, with a switch for an animated picture:
 
 - **Image opacity** fades the image itself, from fully transparent to fully opaque (the default). Below 100% the photo fades into the board color, laid solid under it, so the keyboard stays opaque; transparent areas in an image of your own show that color too. Before 0.6.7 the app behind the keyboard showed through instead, which read as a board that ignored its opacity. A theme with **Blur behind the keyboard** on still lets the app through.
-- **Image blur** softens the image from sharp (the default) up to a heavy blur.
-- **Play animated image** plays the background when it's a GIF or an animated WebP, and turns itself on when the picture you picked is one. Turning it on zeroes the blur, and raising the blur turns it off: blurring a running animation would re-render the effect on every frame. The animation also stays still under reduce motion or power saving, and on app versions from before this feature the same file shows its first frame.
+- **Image blur** softens the image from sharp (the default) up to a heavy blur. It's shown only while the picture stands still: blurring a running animation would re-render the effect on every frame and broke the picture, so from 0.6.8 the slider is hidden while an animation plays rather than being there to break it. With [Picture on the keys](#picture-on-the-keys) on, it blurs the pieces on the keys too.
+- **Play animated image** is shown only when the picture is a GIF or an animated WebP. It's on when you picked the picture as an animation. Turning it off shows the first frame and brings **Image blur** back, and turning it on zeroes the blur. The animation also stays still under reduce motion or power saving, and on app versions from before this feature the same file shows its first frame.
 
 There's no separate "dim" control. The board's own background color draws as a layer on top of the image, so raising that color's opacity tints or dims the photo. It's the same **Background** color row you'd use for a solid-color theme. A soft blur plus a translucent board color is usually enough to keep key labels legible over a busy photo.
 
@@ -64,18 +69,20 @@ Turning on **High contrast keys** in accessibility settings strips background im
 
 ## Picture on the keys
 
-**Picture on the keys**, below **Image blur**, cuts the image up across the keys instead of laying it behind them. Each key shows the piece of the photo that sits under it, and the board between the keys is a plain color, so the picture reads as one image seen through a grid of windows. Before this switch, getting that look meant slicing a photo into one texture per key with a script.
+<SettingsPath path="Appearance / Keyboard themes / (edit a theme) / Key caps art" />
+
+**Picture on the keys** cuts the image up across the keys instead of laying it behind them. From 0.6.8 it has a section of its own in the theme editor, **Key caps art**, next to **Key material**; until then it sat under **Image blur**. The switch needs a background image, set under **Board**. Each key shows the piece of the photo that sits under it, and the board between the keys is a plain color, so the picture reads as one image seen through a grid of windows. Before this switch, getting that look meant slicing a photo into one texture per key with a script.
 
 Turning it on changes a few ordinary theme settings, which you can adjust afterwards:
 
-- [Glass](/themes/glass/) goes on for the letter keys, the modifier keys, the Enter key and the space bar, with no blur, no color change, no rim and no grain, so each key shows its piece of the photo sharp.
+- [Glass](/themes/glass/) goes on for the letter keys, the modifier keys, the Enter key and the space bar, with no color change, no rim and no grain, so each key shows its piece of the photo as it is. The pieces take the image's own blur, and moving **Image blur** afterwards blurs them too.
 - The letter and modifier key colors become fully see-through. Raise their opacity again to tint the picture on every key.
 - The board's **Background** color becomes opaque, since it's now the color of the gaps between keys. Pick any color there.
 - The Enter key keeps its color, so it stays easy to find. Lower its opacity to put the picture there too.
 
-The **Crop image** frame decides which part of the photo lands on the keys. Key labels sit straight on the photo, so a busy picture may need a darker key tint or a different label color. Glass's **Backdrop blur**, **Backdrop saturation** and **Backdrop brightness** sliders still work on the pieces if you want them softer or dimmer. An animated image stays on the board while it plays, since the keys need a still frame to cut up.
+The **Crop image** frame decides which part of the photo lands on the keys. Key labels sit straight on the photo, so a busy picture may need a darker key tint or a different label color. Glass's **Backdrop saturation** and **Backdrop brightness** sliders still work on the pieces if you want them richer or dimmer. An animated image keeps playing on the keys, each key showing its own moving piece, on Android 9 and later; older phones show its first frame cut across the keys. Before 0.6.8 a playing image stayed on the board under the now-opaque gap color, so neither the keys nor the board showed it.
 
-Turning the switch off turns glass off and puts the image back behind the keys. Key colors left fully see-through get their opacity back.
+Turning the switch off turns glass off and puts back the board and key colors the theme had before you turned it on, so the image shows behind the keys again as it did. In 0.6.7 the board stayed opaque, which hid the image until it was picked again. A theme that had the switch on in 0.6.7 gets a see-through board and solid keys back.
 
 ## Separate landscape image
 

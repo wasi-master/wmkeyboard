@@ -45,6 +45,11 @@ import androidx.compose.ui.graphics.toArgb
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.foundation.layout.fillMaxSize
 import android.content.res.Configuration
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -2362,35 +2367,50 @@ fun BoxScope.BoardBackground(
         val solid = kb.board.copy(alpha = 1f)
         Box(modifier = Modifier.matchParentSize().drawBehind { drawRect(solid) })
     }
+    // A preview in the settings app crops the picture to the shape the real
+    // board last had, not to its own shorter box (#1379); see
+    // FrostBackdrop.imageAspect. The keyboard itself keeps its own box.
+    val backdrop = LocalFrostBackdrop.current
+    val previewHost = LocalKeyboardPreviewHost.current
+    val boardContext = LocalContext.current
+    val previewAspect = if (previewHost) {
+        remember(boardContext, landscape) { KeyboardBoardShape.aspect(boardContext, landscape) }
+    } else {
+        null
+    }
+    SideEffect { backdrop.imageAspect = previewAspect }
     // Animated backgrounds play through Coil (its loader already carries the
     // GIF/animated-WebP decoders for the media tools) and stop by themselves
     // when the keyboard leaves the screen. Reduce motion — which power saving
     // also sets — falls back to the still path below, whose BitmapFactory
     // decode of the same file is its first frame. Blur is structurally
     // excluded (editor + specKbTheme), so the two paths never fight.
-    if (kb.backgroundAnimated && !kb.reduceMotion && imagePath != null) {
-        AsyncImage(
-            model = remember(imagePath) { File(imagePath) },
-            contentDescription = null,
-            imageLoader = rememberMediaImageLoader(),
-            contentScale = ContentScale.Crop,
-            alpha = kb.backgroundImageOpacity,
-            modifier = Modifier.matchParentSize(),
-        )
+    if (kb.backgroundAnimated && !kb.reduceMotion && imagePath != null && !boardHidesImage(kb, imagePath)) {
+        PictureFrame(previewAspect) {
+            AsyncImage(
+                model = remember(imagePath) { File(imagePath) },
+                contentDescription = null,
+                imageLoader = rememberMediaImageLoader(),
+                contentScale = ContentScale.Crop,
+                alpha = kb.backgroundImageOpacity,
+                modifier = Modifier.matchParentSize(),
+            )
+        }
     } else if (!boardShowsFrostedImage(kb, imagePath) && !boardHidesImage(kb, imagePath)) {
-        ThemeBackgroundImage(
-            path = imagePath,
-            blur = kb.backgroundImageBlur,
-            opacity = kb.backgroundImageOpacity,
-            targetW = targetW,
-            targetH = targetH,
-        )
+        PictureFrame(previewAspect) {
+            ThemeBackgroundImage(
+                path = imagePath,
+                blur = kb.backgroundImageBlur,
+                opacity = kb.backgroundImageOpacity,
+                targetW = targetW,
+                targetH = targetH,
+            )
+        }
     }
     // The glass: what the surfaces sample — the image above, baked blurred,
     // or the wallpaper's band — and the board's own place for them to sample
     // it against. Nothing is composed for a theme without glass.
     val frost = kb.frost
-    val backdrop = LocalFrostBackdrop.current
     val blurLive = windowFrostLive(kb)
     val kind = frost?.backdropKind(hasImage = imagePath != null, blurLive = blurLive)
     if (frost != null) FrostBackdropLoader(kb, imagePath, kind, targetW, targetH)
@@ -2406,21 +2426,25 @@ fun BoxScope.BoardBackground(
     if (frostedBoard) {
         val picture = backdrop.bitmap
         if (picture != null) {
-            Image(
-                bitmap = picture,
-                contentDescription = null,
-                modifier = Modifier.matchParentSize(),
-                contentScale = ContentScale.Crop,
-                alpha = if (kind == BackdropKind.IMAGE) kb.backgroundImageOpacity else 1f,
-            )
+            PictureFrame(previewAspect) {
+                Image(
+                    bitmap = picture,
+                    contentDescription = null,
+                    modifier = Modifier.matchParentSize(),
+                    contentScale = ContentScale.Crop,
+                    alpha = if (kind == BackdropKind.IMAGE) kb.backgroundImageOpacity else 1f,
+                )
+            }
         } else if (kind == BackdropKind.IMAGE) {
-            ThemeBackgroundImage(
-                path = imagePath,
-                blur = kb.backgroundImageBlur,
-                opacity = kb.backgroundImageOpacity,
-                targetW = targetW,
-                targetH = targetH,
-            )
+            PictureFrame(previewAspect) {
+                ThemeBackgroundImage(
+                    path = imagePath,
+                    blur = kb.backgroundImageBlur,
+                    opacity = kb.backgroundImageOpacity,
+                    targetW = targetW,
+                    targetH = targetH,
+                )
+            }
         }
     }
     val boardModifier = if (frost != null) {
@@ -2487,19 +2511,45 @@ private fun boardShowsFrostedImage(kb: KbTheme, imagePath: String?): Boolean {
 }
 
 /**
- * Whether the board leaves its image to the keys: a still image under a theme
- * that shows its picture on the keys only (`FrostSpec.cutout`). The board is
- * then its own colour between the keys, and each key draws its slice of the
- * picture through the glass. A playing animation has no frame for the keys
- * to sample, so it stays on the board, and the look falls back to an
- * ordinary see-through-key theme until reduce motion stills it.
+ * Whether the board leaves its image to the keys: a theme that shows its
+ * picture on the keys only (`FrostSpec.cutout`). The board is then its own
+ * colour between the keys, and each key draws its slice of the picture
+ * through the glass: a still one baked, a playing one sliced from the moving
+ * drawable (see FrostBackdrop.animated). Before #1394 a playing picture stayed
+ * on the board, under a board colour the cut had made opaque, so neither the
+ * keys nor the board showed it.
  */
 private fun boardHidesImage(kb: KbTheme, imagePath: String?): Boolean {
     val frost = kb.frost ?: return false
     if (imagePath == null || !frost.cutout) return false
-    if (kb.backgroundAnimated && !kb.reduceMotion) return false
     return frost.backdrop == com.wasimaster.wmkeyboard.core.theme.FrostBackdropSource.AUTO ||
         frost.backdrop == com.wasimaster.wmkeyboard.core.theme.FrostBackdropSource.IMAGE
+}
+
+/**
+ * [content], a picture filling its box, laid into a frame of [aspect] (width
+ * over height) as wide as the board and running from its top, clipped to the
+ * board: the crop the real board gives the picture, on a preview whose own box
+ * is shorter (#1379). Null draws [content] in the board's own box.
+ */
+@Composable
+private fun BoxScope.PictureFrame(aspect: Float?, content: @Composable BoxScope.() -> Unit) {
+    if (aspect == null || aspect <= 0f) {
+        content()
+        return
+    }
+    Box(modifier = Modifier.matchParentSize().clipToBounds()) {
+        Box(
+            modifier = Modifier.fillMaxSize().layout { measurable, constraints ->
+                val width = constraints.maxWidth
+                val height = constraints.maxHeight
+                val frameHeight = maxOf(height, (width / aspect).roundToInt())
+                val placeable = measurable.measure(Constraints.fixed(width, frameHeight))
+                layout(width, height) { placeable.place(0, 0) }
+            },
+            content = content,
+        )
+    }
 }
 
 /** Every stop at least [floor] opaque; see the fallback note in [BoardBackground]. */

@@ -190,11 +190,39 @@ class FrostSpecTest {
         // Round-trips, so a shared theme keeps the look.
         assertTrue(ThemeCodec.decode(ThemeCodec.encode(on))!!.pictureOnKeys)
 
+        // Off gives back the colours from before, the see-through board
+        // included, so the picture shows on the board again (#1394, #1395).
         val off = on.withPictureOnKeys(false)
         assertFalse(off.pictureOnKeys)
         assertFalse(off.frost!!.enabled)
         assertEquals(0xFF303338L, off.keyBackground)
-        assertEquals(0xFF222428L, off.modifierKeyBackground)
+        assertEquals(0x80222428L, off.modifierKeyBackground)
+        assertEquals(0x0017181CL, off.boardBackground)
+        assertEquals(null, off.frost!!.beforeCutout)
+    }
+
+    @Test
+    fun `a theme cut by an older build gets a see-through board back`() {
+        val old = ThemeSpec(
+            id = "t", name = "T", backgroundImage = "/x.img",
+            boardBackground = 0xFF17181CL, keyBackground = 0x00303338L,
+            frost = FrostSpec(cutout = true),
+        )
+        val off = old.withPictureOnKeys(false)
+        assertEquals(0x0017181CL, off.boardBackground)
+        assertEquals(0xFF303338L, off.keyBackground)
+    }
+
+    @Test
+    fun `the image blur reaches the keys while the picture is on them`() {
+        val on = ThemeSpec(id = "t", name = "T", backgroundImageBlur = 6f).withPictureOnKeys(true)
+        assertEquals(6f, on.frost!!.backdropBlur)
+        val blurred = on.withImageBlur(12f)
+        assertEquals(12f, blurred.backgroundImageBlur)
+        assertEquals(12f, blurred.frost!!.backdropBlur)
+        // Off the keys, the slider leaves the glass alone.
+        val plain = ThemeSpec(id = "t", name = "T", frost = FrostSpec(backdropBlur = 3f)).withImageBlur(9f)
+        assertEquals(3f, plain.frost!!.backdropBlur)
     }
 
     @Test

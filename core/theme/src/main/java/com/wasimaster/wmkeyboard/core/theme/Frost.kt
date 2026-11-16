@@ -107,6 +107,13 @@ data class FrostSpec(
      * an image into per-key textures by hand. Set by [withPictureOnKeys].
      */
     val cutout: Boolean = false,
+    /**
+     * The board, letter-key and function-key colours as they were before
+     * [withPictureOnKeys] turned [cutout] on, so turning it off puts them back
+     * (#1394, #1395). Null on a theme that never had the picture on its keys,
+     * or one from a build before this was kept.
+     */
+    val beforeCutout: CutoutColors? = null,
 ) {
     val glassStyle: FrostStyle
         get() = FrostStyle.entries.firstOrNull { it.name.equals(style, ignoreCase = true) } ?: FrostStyle.FROSTED
@@ -266,17 +273,28 @@ val PICTURE_ON_KEYS_SURFACES: List<String> = listOf(
 val ThemeSpec.pictureOnKeys: Boolean
     get() = frost?.let { it.enabled && it.cutout } == true
 
+/** The colours [withPictureOnKeys] changes, kept to give back; see [FrostSpec.beforeCutout]. */
+@Serializable
+data class CutoutColors(
+    val board: Long,
+    val key: Long,
+    val modifierKey: Long,
+)
+
 /**
  * The theme with its background image spread across the keys ([on]) or back
- * on the board. On, the glass samples the image sharp — no blur, no colour
- * change, no rim or grain — on the four key surfaces only; the letter and
- * modifier fills go fully see-through so the picture shows as it is (the
- * Enter key keeps its colour, lower it to put the picture there too); and
- * the board colour goes opaque, since it is now the colour of the gaps.
+ * on the board. On, the glass samples the image on the four key surfaces
+ * only, at the image's own blur and with no colour change, rim or grain; the
+ * letter and modifier fills go fully see-through so the picture shows as it
+ * is (the Enter key keeps its colour, lower it to put the picture there too);
+ * and the board colour goes opaque, since it is now the colour of the gaps.
+ * The colours it changes are kept in [FrostSpec.beforeCutout].
  *
- * Off clears the flag and turns the glass off, and gives a fill this left
- * fully see-through its opacity back, so the keys do not vanish into the
- * picture now that it is on the board again.
+ * Off clears the flag, turns the glass off and puts those colours back, so
+ * the picture shows on the board again exactly as it did before (#1394,
+ * #1395): the board used to stay opaque and hide it. A theme turned on by a
+ * build that kept nothing gets the board's opacity back as picking a picture
+ * sets it, see-through, and keys at full opacity.
  */
 fun ThemeSpec.withPictureOnKeys(on: Boolean): ThemeSpec {
     fun Long.opaque(): Long = this or 0xFF000000L
@@ -284,6 +302,10 @@ fun ThemeSpec.withPictureOnKeys(on: Boolean): ThemeSpec {
     fun Long.restored(): Long = if ((this ushr 24) == 0L) opaque() else this
     val current = frost ?: FrostSpec()
     return if (on) {
+        // Kept only on the way in: a second "on" must not overwrite the
+        // colours from before the first with the see-through ones.
+        val before = current.beforeCutout?.takeIf { current.cutout }
+            ?: CutoutColors(boardBackground, keyBackground, modifierKeyBackground)
         copy(
             frost = current.copy(
                 enabled = true,
@@ -292,24 +314,47 @@ fun ThemeSpec.withPictureOnKeys(on: Boolean): ThemeSpec {
                 surfaces = PICTURE_ON_KEYS_SURFACES,
                 backdrop = FrostBackdropSource.IMAGE.name,
                 style = FrostStyle.FROSTED.name,
-                backdropBlur = 0f,
+                // The image's own blur slider reaches the keys (#1395).
+                backdropBlur = backgroundImageBlur.coerceIn(FROST_BACKDROP_BLUR_RANGE),
                 saturation = 1f,
                 brightness = 0f,
                 rim = 0f,
                 grain = 0f,
                 blurBoard = false,
+                beforeCutout = before,
             ),
             keyBackground = keyBackground.clear(),
             modifierKeyBackground = modifierKeyBackground.clear(),
             boardBackground = boardBackground.opaque(),
         )
     } else {
+        val before = current.beforeCutout
+        val hasImage = backgroundImage != null || backgroundImageLandscape != null
         copy(
-            frost = current.copy(enabled = false, cutout = false),
-            keyBackground = keyBackground.restored(),
-            modifierKeyBackground = modifierKeyBackground.restored(),
+            frost = current.copy(enabled = false, cutout = false, beforeCutout = null),
+            keyBackground = before?.key ?: keyBackground.restored(),
+            modifierKeyBackground = before?.modifierKey ?: modifierKeyBackground.restored(),
+            boardBackground = before?.board ?: if (hasImage) boardBackground.clear() else boardBackground,
         )
     }
+}
+
+/**
+ * The theme with its image blur set to [blur], on the board and, while the
+ * picture is on the keys, on the keys' slices too (#1395): the slider is the
+ * one blur the user sees, whichever of the two the picture is on.
+ */
+fun ThemeSpec.withImageBlur(blur: Float): ThemeSpec {
+    val current = frost
+    return copy(
+        backgroundImageBlur = blur,
+        backgroundAnimated = false,
+        frost = if (current != null && pictureOnKeys) {
+            current.copy(backdropBlur = blur.coerceIn(FROST_BACKDROP_BLUR_RANGE))
+        } else {
+            current
+        },
+    )
 }
 
 /**

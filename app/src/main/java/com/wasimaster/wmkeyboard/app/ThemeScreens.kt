@@ -79,6 +79,7 @@ import androidx.core.net.toUri
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Collections
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Animation
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PushPin
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Public
@@ -339,6 +340,7 @@ import com.wasimaster.wmkeyboard.core.theme.WallpaperBand
 import com.wasimaster.wmkeyboard.core.theme.dressedForGlass
 import com.wasimaster.wmkeyboard.core.theme.pictureOnKeys
 import com.wasimaster.wmkeyboard.core.theme.withPictureOnKeys
+import com.wasimaster.wmkeyboard.core.theme.withImageBlur
 import com.wasimaster.wmkeyboard.core.theme.ThemeAnimation
 import com.wasimaster.wmkeyboard.core.theme.ThemeCodec
 import com.wasimaster.wmkeyboard.core.theme.FutoTheme
@@ -3406,12 +3408,17 @@ private fun ThemeEditorContent(
         scope.launch { repository.upsertCustomTheme(family) }
     }
 
+    // Which kind of picture the device picker was opened for (#1403): a still
+    // one keeps its blur and never plays, an animated one plays straight away
+    // and has no blur, since blurring a moving picture breaks it.
+    var pickingAnimation by rememberSaveable { mutableStateOf(false) }
     val imagePicker = rememberLauncherForActivityResult(
         ActivityResultContracts.PickVisualMedia()
     ) { uri ->
         if (uri != null) {
             val (family, theme) = look.now() ?: return@rememberLauncherForActivityResult
             val keyOpacity = settings.value.photoBackground.keyOpacity
+            val wantsAnimation = pickingAnimation
             scope.launch(Dispatchers.IO) {
                 runCancellable {
                     val file = File(themeImagesDir(context), "${theme.id}_${System.currentTimeMillis()}.img")
@@ -3419,11 +3426,11 @@ private fun ThemeEditorContent(
                         file.outputStream().use { input.copyTo(it) }
                     }
                     theme.backgroundImage?.let { File(it).delete() }
-                    // A GIF picked from the gallery plays, without the user
-                    // having to find the switch below and wonder why their
-                    // moving picture is a still. Blur is the other half of that
-                    // pair and has to go, since the two exclude each other.
-                    val animated = isAnimatedImageFile(file)
+                    // Picked as an animation, a GIF or animated WebP plays at
+                    // once, without the user having to find a switch, and its
+                    // blur goes, since the two exclude each other. Picked as a
+                    // still picture, it stays still and keeps the blur (#1403).
+                    val animated = wantsAnimation && isAnimatedImageFile(file)
                     // Same treatment an online photo gets: the board goes
                     // see-through so the image shows, and the keys stop
                     // covering all of it. The user raises either back.
@@ -3456,6 +3463,7 @@ private fun ThemeEditorContent(
     ) { uri ->
         if (uri != null) {
             val (family, theme) = look.now() ?: return@rememberLauncherForActivityResult
+            val wantsAnimation = pickingAnimation
             scope.launch(Dispatchers.IO) {
                 runCancellable {
                     val file = File(
@@ -3470,7 +3478,7 @@ private fun ThemeEditorContent(
                     // per theme: a landscape GIF turns it on, and a still one
                     // leaves whatever the portrait image asked for alone rather
                     // than stopping an animation the user can still see.
-                    val animated = isAnimatedImageFile(file)
+                    val animated = wantsAnimation && isAnimatedImageFile(file)
                     repository.upsertCustomTheme(
                         family.replacingMember(theme.id) {
                             theme.copy(
@@ -3516,6 +3524,16 @@ private fun ThemeEditorContent(
     val soundOn = settings.watch { it.sound.enabled }
     val hasVariants = settings.watch { it.customThemes.findThemeFamily(themeId)?.variants?.isNotEmpty() == true }
     val hasImage = look.watch { it.backgroundImage != null }
+    val imagePlays = look.watch { it.backgroundAnimated }
+    // Whether either picture can play, read off the files: a still one has
+    // no use for the Play switch (#1403).
+    val portraitImage = look.watch { it.backgroundImage }
+    val landscapeImagePath = look.watch { it.backgroundImageLandscape }
+    val imageCanMove by produceState(initialValue = imagePlays, portraitImage, landscapeImagePath) {
+        value = withContext(Dispatchers.IO) {
+            listOfNotNull(portraitImage, landscapeImagePath).any { isAnimatedImageFile(File(it)) }
+        }
+    }
     val hasLandscapeImage = look.watch { it.backgroundImageLandscape != null }
     val photoCredit = look.watch { it.backgroundPhoto }
     val landscapePhotoCredit = look.watch { it.backgroundPhotoLandscape }
@@ -3545,8 +3563,9 @@ private fun ThemeEditorContent(
         val landscape = slot == BackgroundSlot.LANDSCAPE
         BackgroundSourceDialog(
             hasImage = if (landscape) hasLandscapeImage else hasImage,
-            onDevice = {
+            onDevice = { animation ->
                 sourceDialogSlot = null
+                pickingAnimation = animation
                 val request = PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                 if (landscape) imagePickerLandscape.launch(request) else imagePicker.launch(request)
             },
@@ -4521,29 +4540,22 @@ private fun ThemeEditorContent(
                     display = { "${(it * 100).toInt()}%" },
                 ) { update { t -> t.copy(backgroundImageOpacity = it) } }
             }
-            item(level = SettingLevel.STANDARD) {
+            // Only for a picture that stands still (#1403): blurring a
+            // moving one re-renders the effect every frame and broke it, so
+            // the row is not there to be reached while it plays. Turning the
+            // animation off below brings it back.
+            item(visible = !imagePlays, level = SettingLevel.STANDARD) {
                 SliderRow(
                     R.string.theme_image_blur_title,
                     value = look.watch { it.backgroundImageBlur },
                     range = 0f..25f,
                     display = { if (it < 0.5f) offLabel else it.toInt().toString() },
-                    // Blurring an animation re-renders the effect every frame,
-                    // so the two settings exclude each other: raising the blur
-                    // stops the animation, and the switch below zeroes the blur.
-                ) { update { t -> t.copy(backgroundImageBlur = it, backgroundAnimated = false) } }
+                    // On the keys' slices as well while the picture is on
+                    // them (#1395); see withImageBlur.
+                ) { update { t -> t.withImageBlur(it) } }
             }
-            item {
-                // One photo cut up across the keys: the glass samples the
-                // picture sharp on every key and the board is a plain colour
-                // between them. Writes ordinary glass fields; see withPictureOnKeys.
-                ToggleSetting(
-                    R.string.theme_picture_on_keys_title,
-                    stringResource(R.string.theme_picture_on_keys_subtitle),
-                    checked = look.watch { it.pictureOnKeys },
-                    info = stringResource(R.string.theme_picture_on_keys_info),
-                ) { on -> update { t -> t.withPictureOnKeys(on) } }
-            }
-            if (!reduceMotion) item(level = SettingLevel.STANDARD) {
+            // The switch only for a picture that can move at all.
+            if (!reduceMotion && imageCanMove) item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.theme_background_animated_title,
                     stringResource(R.string.theme_background_animated_subtitle),
@@ -6454,6 +6466,31 @@ private fun ThemeEditorContent(
             onPlayAnyway = { scope.launch { repository.setThemeEffectsWithReduceMotion(true) } },
         )
     }
+    // The background picture cut across the keys (#1396): a look of its own,
+    // beside the key material, rather than a row under the background image
+    // where nobody styling their keys went looking.
+    SettingsGroup(
+        stringResource(R.string.theme_key_caps_art_section_title),
+        foldKey = "theme/key_caps_art",
+        info = stringResource(R.string.theme_key_caps_art_section_body),
+    ) {
+        item {
+            // One photo cut up across the keys: the glass samples the
+            // picture on every key and the board is a plain colour between
+            // them. Writes ordinary glass fields; see withPictureOnKeys.
+            ToggleSetting(
+                R.string.theme_picture_on_keys_title,
+                stringResource(
+                    if (hasImage) R.string.theme_picture_on_keys_subtitle else R.string.theme_picture_on_keys_no_image,
+                ),
+                checked = look.watch { it.pictureOnKeys },
+                info = stringResource(R.string.theme_picture_on_keys_info),
+                enabled = hasImage || look.watch { it.pictureOnKeys },
+                disabledReason = DisabledReason(stringResource(R.string.theme_picture_on_keys_no_image)),
+            ) { on -> update { t -> t.withPictureOnKeys(on) } }
+        }
+    }
+
     // The picker tiles play each effect in the theme's own colours, and hold
     // still while motion is held, as the keyboard would.
     val swatchColors = look.watch { SwatchColors(it.boardBackground, it.keyBackground, it.keyText, it.accent) }
@@ -8789,7 +8826,8 @@ fun SectionHeaderPublic(text: String, info: String? = null) {
 @Composable
 private fun BackgroundSourceDialog(
     hasImage: Boolean,
-    onDevice: () -> Unit,
+    /** True for an animation, false for a still picture (#1403). */
+    onDevice: (Boolean) -> Unit,
     onOnline: () -> Unit,
     onSaved: () -> Unit,
     onRemove: () -> Unit,
@@ -8800,12 +8838,21 @@ private fun BackgroundSourceDialog(
         title = { Text(stringResource(R.string.theme_background_source_title)) },
         text = {
             Column {
+                // Still or moving asked here, rather than found out from the
+                // file afterwards and fixed with a switch (#1403).
                 ListItem(
-                    headlineContent = { Text(stringResource(R.string.photo_add_device_title)) },
-                    supportingContent = { Text(stringResource(R.string.photo_add_device_subtitle)) },
+                    headlineContent = { Text(stringResource(R.string.photo_add_device_still_title)) },
+                    supportingContent = { Text(stringResource(R.string.photo_add_device_still_subtitle)) },
                     leadingContent = { Icon(Icons.Outlined.PhotoLibrary, contentDescription = null) },
                     colors = transparentListColors(),
-                    modifier = Modifier.clickable(onClick = onDevice),
+                    modifier = Modifier.clickable { onDevice(false) },
+                )
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.photo_add_device_animated_title)) },
+                    supportingContent = { Text(stringResource(R.string.photo_add_device_animated_subtitle)) },
+                    leadingContent = { Icon(Icons.Outlined.Animation, contentDescription = null) },
+                    colors = transparentListColors(),
+                    modifier = Modifier.clickable { onDevice(true) },
                 )
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.photo_find_title)) },

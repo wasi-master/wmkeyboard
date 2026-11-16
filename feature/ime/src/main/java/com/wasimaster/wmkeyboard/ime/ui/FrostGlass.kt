@@ -27,7 +27,10 @@ import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.addOutline
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
@@ -60,8 +63,11 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.graphics.toArgb
 import kotlin.math.max
 import kotlin.math.min
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.withContext
 
 /*
  * Frosted glass on the keyboard (see `FrostSpec` for the model).
@@ -105,9 +111,58 @@ class FrostBackdrop {
      */
     var boardScale by mutableStateOf(1f)
 
+    /**
+     * The theme's picture while it plays, for a picture-on-keys theme (#1394):
+     * one animated drawable every key draws its own slice of, so the keys move
+     * with it instead of standing blank over an opaque board. Null while
+     * nothing plays, and below Android 9, which has no animated drawable a key
+     * can slice; there the first frame is baked into [bitmap] instead.
+     */
+    var animated by mutableStateOf<android.graphics.drawable.Drawable?>(null)
+
+    /**
+     * Width over height of the board the keyboard really draws, when this one
+     * is a preview of it (#1379); null on the keyboard itself. The settings
+     * app's previews stop short of the band the keyboard's window has under
+     * the keys for the system's bar, so a picture cropped to the preview's own
+     * box came out at another scale than on the keyboard. Cropped to a frame
+     * of the real board's shape, laid from the top, it lines up key for key.
+     */
+    var imageAspect by mutableStateOf<Float?>(null)
+
     /** [screen] (a point on the screen) in the board root's coordinates. */
     fun toBoardRoot(screen: Offset): Offset = screen - boardScreenOrigin + boardBounds.topLeft
+
+    /** The box the picture is centre-cropped to for [board]; see [imageAspect]. */
+    fun imageFrame(board: Rect): Rect {
+        val aspect = imageAspect?.takeIf { it > 0f } ?: return board
+        val height = max(board.height, board.width / aspect)
+        return Rect(board.left, board.top, board.right, board.top + height)
+    }
 }
+
+/** Whether a key can draw its slice of a playing picture: Android 9's AnimatedImageDrawable. */
+internal val animatedSlicesSupported: Boolean
+    get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+
+/**
+ * The picture at [path] as an animated drawable sampled to cover [targetW] x
+ * [targetH], its bounds at its own size, or null when it is not animated or
+ * cannot be read.
+ */
+@androidx.annotation.RequiresApi(Build.VERSION_CODES.P)
+private fun decodeAnimatedPicture(path: String, targetW: Int, targetH: Int): android.graphics.drawable.Drawable? =
+    runCatching {
+        android.graphics.ImageDecoder.decodeDrawable(
+            android.graphics.ImageDecoder.createSource(java.io.File(path)),
+        ) { decoder, info, _ ->
+            decoder.setTargetSampleSize(
+                BackgroundBitmapCache.sampleSizeFor(info.size.width, info.size.height, targetW, targetH),
+            )
+        }
+    }.getOrNull()
+        ?.takeIf { it is android.graphics.drawable.AnimatedImageDrawable }
+        ?.apply { setBounds(0, 0, intrinsicWidth.coerceAtLeast(1), intrinsicHeight.coerceAtLeast(1)) }
 
 /**
  * What the board paints over its picture, which every pane lays over its
@@ -136,7 +191,10 @@ val LocalFrostBackdrop = staticCompositionLocalOf { FrostBackdrop() }
  *
  * An animated image that is playing has no single frame to bake, so the glass
  * over it is its tint alone; reduce motion stills the image, and then its
- * first frame is baked like any other.
+ * first frame is baked like any other. A picture-on-keys theme is the
+ * exception (#1394): there the keys are the picture, so they draw it playing,
+ * each its own slice of one animated drawable, and a phone too old for that
+ * gets the first frame baked as if it were still.
  */
 @Composable
 internal fun FrostBackdropLoader(
@@ -148,7 +206,31 @@ internal fun FrostBackdropLoader(
 ) {
     val backdrop = LocalFrostBackdrop.current
     val frost = kb.frost
-    val playing = kb.backgroundAnimated && !kb.reduceMotion
+    val moving = kb.backgroundAnimated && !kb.reduceMotion
+    val cut = frost?.cutout == true && kind == BackdropKind.IMAGE
+    val slicesPlay = moving && cut && animatedSlicesSupported
+    // A cut picture is baked even while it plays: its first frame is what
+    // the keys show until the animation is decoded, and what they keep
+    // should it fail to decode as one.
+    val playing = moving && !cut
+    LaunchedEffect(backdrop, imagePath, slicesPlay, targetW, targetH) {
+        if (!slicesPlay || imagePath == null) {
+            backdrop.animated = null
+            return@LaunchedEffect
+        }
+        val drawable = withContext(Dispatchers.IO) {
+            if (animatedSlicesSupported) decodeAnimatedPicture(imagePath, targetW, targetH) else null
+        }
+        val playable = drawable as? android.graphics.drawable.Animatable
+        playable?.start()
+        backdrop.animated = drawable
+        try {
+            awaitCancellation()
+        } finally {
+            playable?.stop()
+            if (backdrop.animated === drawable) backdrop.animated = null
+        }
+    }
     val context = LocalContext.current
     // A wallpaper change on Android 12+ arrives as a configuration change
     // (the dynamic colours move with it), which is what re-bakes the band.
@@ -215,12 +297,14 @@ internal fun Modifier.frostLocalBoardBounds(backdrop: FrostBackdrop): Modifier =
  */
 class GlassPaint private constructor(
     private val outline: Outline,
-    private val brush: Brush,
+    private val brush: Brush?,
     private val fill: Brush?,
     /** The lens pressed, for a liquid pane; null draws [brush] either way. */
     private val pressedBrush: Brush?,
     /** True when [LiquidLens] draws this pane, rim of light included, so no [RimPaint] goes over it. */
     val lensed: Boolean,
+    /** A playing picture's slice instead of [brush]; see [FrostBackdrop.animated]. */
+    private val animated: AnimatedSlice? = null,
 ) {
 
     /**
@@ -232,8 +316,38 @@ class GlassPaint private constructor(
      * and at the toolbar.
      */
     fun draw(scope: DrawScope, pressed: Boolean = false) = with(scope) {
-        drawOutline(outline, if (pressed) pressedBrush ?: brush else brush)
+        if (animated != null) {
+            animated.draw(this)
+        } else {
+            val paint = if (pressed) pressedBrush ?: brush else brush
+            if (paint != null) drawOutline(outline, paint)
+        }
         fill?.let { drawOutline(outline, it) }
+    }
+
+    /**
+     * One pane's slice of a playing picture: the shared drawable, clipped to
+     * the pane's outline and moved so its own part of the picture lands on
+     * it. Drawn through the matrix rather than by setting the drawable's
+     * bounds, which every pane shares: the platform reads those when the frame
+     * is rendered, after the last pane set them, while a matrix is recorded
+     * with each pane's own draw. The animation runs on the render thread, so
+     * the panes move with it without being drawn again.
+     */
+    private class AnimatedSlice(
+        private val drawable: android.graphics.drawable.Drawable,
+        private val clip: androidx.compose.ui.graphics.Path,
+        private val matrix: android.graphics.Matrix,
+    ) {
+        fun draw(scope: DrawScope) = with(scope) {
+            clipPath(clip) {
+                val canvas = drawContext.canvas.nativeCanvas
+                val saved = canvas.save()
+                canvas.concat(matrix)
+                drawable.draw(canvas)
+                canvas.restoreToCount(saved)
+            }
+        }
     }
 
     companion object {
@@ -259,7 +373,11 @@ class GlassPaint private constructor(
             pxPerDp: Float = 1f,
             withPress: Boolean = false,
         ): GlassPaint? {
-            val bitmap = backdrop.bitmap ?: return null
+            // A cut picture that plays is drawn moving, over the baked
+            // first frame that stands in until it is decoded (#1394).
+            val moving = backdrop.animated?.takeIf { frost?.cutout == true }
+            val bitmap = backdrop.bitmap
+            if (bitmap == null && moving == null) return null
             // Back into the unscaled space the pane draws in (#1299).
             val layerScale = backdrop.boardScale.takeIf { it > 0f } ?: 1f
             val board = backdrop.boardBounds.let { measured ->
@@ -275,11 +393,25 @@ class GlassPaint private constructor(
                 }
             }
             val origin = if (layerScale == 1f) originInRoot else originInRoot / layerScale
-            if (board.isEmpty || bitmap.width == 0 || bitmap.height == 0) return null
-            // Centre-crop, the way the board itself draws the image.
-            val scale = max(board.width / bitmap.width, board.height / bitmap.height)
-            val dx = board.left + (board.width - bitmap.width * scale) / 2f - origin.x
-            val dy = board.top + (board.height - bitmap.height * scale) / 2f - origin.y
+            val pictureW = moving?.intrinsicWidth ?: bitmap?.width ?: 0
+            val pictureH = moving?.intrinsicHeight ?: bitmap?.height ?: 0
+            if (board.isEmpty || pictureW <= 0 || pictureH <= 0) return null
+            // Centre-crop, the way the board itself draws the image, into the
+            // real board's shape where this is a preview of it (#1379).
+            val frame = backdrop.imageFrame(board)
+            val scale = max(frame.width / pictureW, frame.height / pictureH)
+            val dx = frame.left + (frame.width - pictureW * scale) / 2f - origin.x
+            val dy = frame.top + (frame.height - pictureH * scale) / 2f - origin.y
+            // The see-through keys' own colour is the gaps', not a scrim; see below.
+            if (moving != null) {
+                val matrix = android.graphics.Matrix().apply {
+                    setScale(scale, scale)
+                    postTranslate(dx, dy)
+                }
+                val clip = androidx.compose.ui.graphics.Path().apply { addOutline(outline) }
+                return GlassPaint(outline, null, null, null, false, AnimatedSlice(moving, clip, matrix))
+            }
+            if (bitmap == null) return null
             val slice = ImageShader(bitmap, TileMode.Clamp, TileMode.Clamp)
             // Bilinear, not nearest: drawn straight a Paint filters the
             // bitmap, but sampled as a runtime shader's child it is read
@@ -716,6 +848,8 @@ private data class GlassPaintKey(
     val size: Size,
     val origin: Offset,
     val bitmap: ImageBitmap?,
+    val animated: android.graphics.drawable.Drawable?,
+    val aspect: Float?,
     val bounds: Rect,
     val layoutDirection: LayoutDirection,
 )
@@ -770,6 +904,8 @@ private class FrostGlassNode(
     private fun watchBackdrop() {
         observeReads {
             backdrop.bitmap
+            backdrop.animated
+            backdrop.imageAspect
             backdrop.boardBounds
             backdrop.boardScreenOrigin
             backdrop.boardScale
@@ -792,18 +928,19 @@ private class FrostGlassNode(
 
     override fun ContentDrawScope.draw() {
         val bitmap = if (sample) backdrop.bitmap else null
+        val animated = if (sample && frost.cutout) backdrop.animated else null
         val bounds = if (sample) backdrop.boardBounds else Rect.Zero
         // Where this pane is, in the board root's coordinates, found through
         // the screen so a pane in a window of its own (a popup, a menu) lands
         // on the board as truly as a key does. Read at draw, not at placement:
         // a popup window moves to its anchor without its content relaying out.
-        if (sample && bitmap != null && isAttached) {
+        if (sample && (bitmap != null || animated != null) && isAttached) {
             origin = backdrop.toBoardRoot(requireLayoutCoordinates().positionOnScreen())
         }
-        val key = GlassPaintKey(size, origin, bitmap, bounds, layoutDirection)
+        val key = GlassPaintKey(size, origin, bitmap, animated, backdrop.imageAspect, bounds, layoutDirection)
         if (key != builtFor) {
             val outline = shape.createOutline(size, layoutDirection, this)
-            glass = if (bitmap != null) {
+            glass = if (bitmap != null || animated != null) {
                 GlassPaint.of(
                     backdrop, outline, origin, frost, size,
                     lensRadiusPx(lensKind, lensRadiusDp, size, this), boardFill,

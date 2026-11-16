@@ -436,8 +436,10 @@ private fun BoxScope.ThemePreviewBody(
                 .alpha(theme.backgroundImageOpacity),
             contentScale = ContentScale.Crop,
         )
-    } else if (measured && !(frost?.cutout == true && kind == BackdropKind.IMAGE && !theme.backgroundAnimated)) {
-        // A picture-on-keys theme leaves the picture to the keys' glass.
+    } else if (measured && !(frost?.cutout == true && kind == BackdropKind.IMAGE)) {
+        // A picture-on-keys theme leaves the picture to the keys' glass, a
+        // moving one too: the card shows its first frame cut across the keys,
+        // where it used to sit on the board under the opaque gaps (#1394).
         ThemeBackgroundImage(
             path = remote ?: themeImage,
             blur = theme.backgroundImageBlur,

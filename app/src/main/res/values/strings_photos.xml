@@ -162,6 +162,10 @@
     <!-- Library -->
     <string name="photo_add_device_title">Add from this device</string>
     <string name="photo_add_device_subtitle">The app copies each photo, so it stays available</string>
+    <string name="photo_add_device_still_title">Picture from this device</string>
+    <string name="photo_add_device_still_subtitle">A photo or image that stays still. You can blur it</string>
+    <string name="photo_add_device_animated_title">Animation from this device</string>
+    <string name="photo_add_device_animated_subtitle">A GIF or animated WebP that plays on the keyboard. Videos are not supported</string>
     <string name="photo_storage_title">Storage in use</string>
     <string name="photo_library_empty_title">The collection is empty</string>
     <string name="photo_library_empty_body">Add photos from a service or from this device. The rotating background uses them.</string>
