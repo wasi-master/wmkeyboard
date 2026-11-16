@@ -42,6 +42,12 @@ enum class ServiceEndpoint(
 
     /** Mwmbl's free search API (#1207): its own index, no key. */
     MWMBL("mwmbl", "https://api.mwmbl.org", ServiceGroup.SEARCH),
+
+    /** Wiby's JSON search: keyless, GPLv2, self-hostable. */
+    WIBY("wiby", "https://wiby.me", ServiceGroup.SEARCH),
+
+    /** Marginalia Search's API: a free non-commercial key by e-mail, else the shared `public` one. */
+    MARGINALIA("marginalia", "https://api2.marginalia-search.com", ServiceGroup.SEARCH),
     KLIPY("klipy", "https://api.klipy.com", ServiceGroup.MEDIA),
     GIPHY("giphy", "https://api.giphy.com", ServiceGroup.MEDIA),
 

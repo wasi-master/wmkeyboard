@@ -989,7 +989,11 @@ internal fun searchAttribution(settings: KeyboardSettings): String? {
             "brave".takeIf { settings.providerCredential(UsageTypes.BRAVE.id)?.apiKey?.isNotBlank() == true }
         SearchBackend.TAVILY -> stringResource(R.string.ime_search_attribution_tavily) to "tavily"
         SearchBackend.MWMBL -> return stringResource(R.string.ime_search_attribution_mwmbl)
-        SearchBackend.SEARXNG, null -> return null
+        SearchBackend.WIBY -> return stringResource(R.string.ime_search_attribution_wiby)
+        // Its results are CC BY-NC-SA: the credit is a condition, not a courtesy.
+        SearchBackend.MARGINALIA -> return stringResource(R.string.ime_search_attribution_marginalia)
+        SearchBackend.WIKIPEDIA -> return stringResource(R.string.ime_search_attribution_wikipedia)
+        SearchBackend.SEARXNG, SearchBackend.BROWSER, null -> return null
     }
     // What the service last said is left this month (#1135), when it said;
     // on Brave's prepaid plans, which report no balance, the free credit

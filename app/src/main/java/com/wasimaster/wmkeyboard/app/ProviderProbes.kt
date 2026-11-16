@@ -20,7 +20,10 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderType
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.GifContentFilter
 import com.wasimaster.wmkeyboard.core.tools.BraveSearchClient
+import com.wasimaster.wmkeyboard.core.tools.MarginaliaSearchClient
 import com.wasimaster.wmkeyboard.core.tools.MwmblSearchClient
+import com.wasimaster.wmkeyboard.core.tools.WibySearchClient
+import com.wasimaster.wmkeyboard.core.tools.WikipediaSearchClient
 import com.wasimaster.wmkeyboard.core.tools.CommonsClient
 import com.wasimaster.wmkeyboard.core.tools.PhotoQuery
 import com.wasimaster.wmkeyboard.core.tools.PhotoSearchClient
@@ -181,6 +184,15 @@ internal object ProviderProbes {
             }
             ProviderTypes.MWMBL.id -> {
                 { MwmblSearchClient.webSearch(PROBE_WORD, 1) }
+            }
+            ProviderTypes.WIBY.id -> {
+                { WibySearchClient.webSearch(PROBE_WORD, 1) }
+            }
+            ProviderTypes.MARGINALIA.id -> {
+                { MarginaliaSearchClient.webSearch(PROBE_WORD, key, 1, true) }
+            }
+            ProviderTypes.WIKIPEDIA_SEARCH.id -> {
+                { WikipediaSearchClient.webSearch(PROBE_WORD, "en", 1) }
             }
             // One second of silence: it transcribes to nothing, so an answer at all is the pass.
             // Sent as dictation sends a clip, so a server that cannot read Opus is found out here.

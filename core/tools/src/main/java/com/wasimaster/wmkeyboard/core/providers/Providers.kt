@@ -556,6 +556,42 @@ object ProviderTypes {
         R.string.core_tools_provider_mwmbl, R.string.core_tools_provider_mwmbl_desc,
         freeSoftware = true,
     )
+    /** Wiby: the small, old-style web, keyless; its About page invites apps to use its JSON output. */
+    val WIBY = ProviderType(
+        "wiby", setOf(ProviderTool.SEARCH),
+        R.string.core_tools_provider_wiby, R.string.core_tools_provider_wiby_desc,
+        freeSoftware = true,
+    )
+
+    /**
+     * Marginalia Search: independent, non-commercial sites first. A key is
+     * optional: without one the shared `public` key is used, which is often
+     * rate-limited, and a free non-commercial key comes by e-mail.
+     */
+    val MARGINALIA = ProviderType(
+        "marginalia", setOf(ProviderTool.SEARCH),
+        R.string.core_tools_provider_marginalia, R.string.core_tools_provider_marginalia_desc,
+        CredentialSpec(key = Need.OPTIONAL), freeSoftware = true,
+    )
+
+    /** Wikipedia's own article search, keyless, in the Wikipedia tool's language. */
+    val WIKIPEDIA_SEARCH = ProviderType(
+        "wikipedia_search", setOf(ProviderTool.SEARCH),
+        R.string.core_tools_provider_wikipedia_search, R.string.core_tools_provider_wikipedia_search_desc,
+        freeSoftware = true,
+    )
+
+    /**
+     * The phone's browser (#1383): the query is handed to the default
+     * browser's own search and the keyboard does nothing more. Never asked
+     * by the AI's search tools, which need results back.
+     */
+    val BROWSER = ProviderType(
+        "browser", setOf(ProviderTool.SEARCH),
+        R.string.core_tools_provider_browser, R.string.core_tools_provider_browser_desc,
+        onDevice = true,
+    )
+
     val BRAVE = ProviderType(
         "brave", setOf(ProviderTool.SEARCH),
         R.string.core_tools_provider_brave, R.string.core_tools_provider_brave_desc,
@@ -984,7 +1020,7 @@ object ProviderTypes {
         VOCAB_PACKS, WIKTIONARY, WIKTIONARY_REST, DICTIONARY_API, OFFLINE_WIKTIONARY, OFFLINE_WORDNET, OFFLINE_BENGALI, OFFLINE_LANGUAGES,
         IMPORTED_DICTIONARIES, URBAN_DICTIONARY,
         DATAMUSE, SIMILAR_WORDS,
-        SEARXNG, TAVILY, BRAVE, MWMBL,
+        SEARXNG, TAVILY, BRAVE, MWMBL, WIBY, MARGINALIA, WIKIPEDIA_SEARCH, BROWSER,
         UNSPLASH, PEXELS,
         ER_API, FRANKFURTER, ALLRATESTODAY, COINBASE, CURRENCY_API, COINGECKO,
         HOME_ASSISTANT, GOOGLE_HOME, SMARTTHINGS, HUE, OPENHAB, TUYA, SWITCHBOT,

@@ -272,6 +272,8 @@ internal val ServiceEndpoint.labelRes: Int
         ServiceEndpoint.BRAVE_SEARCH -> R.string.servers_brave_search
         ServiceEndpoint.TAVILY -> R.string.servers_tavily
         ServiceEndpoint.MWMBL -> R.string.servers_mwmbl
+        ServiceEndpoint.WIBY -> R.string.servers_wiby
+        ServiceEndpoint.MARGINALIA -> R.string.servers_marginalia
         ServiceEndpoint.KLIPY -> R.string.servers_klipy
         ServiceEndpoint.GIPHY -> R.string.servers_giphy
         ServiceEndpoint.GIFCITIES -> R.string.servers_gifcities

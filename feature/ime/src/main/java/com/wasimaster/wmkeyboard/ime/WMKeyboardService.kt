@@ -49432,6 +49432,10 @@ open class WMKeyboardService : InputMethodService() {
     private fun runWebSearch(query: String) {
         if (query.isBlank()) return
         val settings = _uiState.value.settings
+        if (SearchProviders.handsToBrowser(settings, ProviderPicks.of(ProviderTool.SEARCH))) {
+            handSearchToBrowser(query)
+            return
+        }
         if (!ToolApiKeys.hasSearchProvider(settings)) {
             _uiState.update { it.copy(webSearch = WebSearchUi.NeedKey) }
             return
@@ -49498,9 +49502,23 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /**
+     * The search list's browser row is the one asked (#1383): the query goes
+     * to the default browser's own search and the panel does nothing more.
+     */
+    private fun handSearchToBrowser(query: String) {
+        vibrate()
+        val fallback = SearchProviders.browserUrl(_uiState.value.settings, query)
+        if (!BrowserSearch.open(this, query, fallback)) toast(R.string.ime_search_browser_failed)
+    }
+
     private fun runImageSearch(query: String) {
         if (query.isBlank()) return
         val settings = _uiState.value.settings
+        if (SearchProviders.handsToBrowser(settings, ProviderPicks.of(ProviderTool.SEARCH))) {
+            handSearchToBrowser(query)
+            return
+        }
         if (!ToolApiKeys.hasSearchProvider(settings)) {
             _uiState.update { it.copy(imageSearch = ImageSearchUi.NeedKey) }
             return

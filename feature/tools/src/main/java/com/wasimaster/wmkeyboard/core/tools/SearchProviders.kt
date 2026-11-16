@@ -10,7 +10,8 @@ import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 
 /**
  * The web and image search tools' providers: SearXNG instances, Tavily,
- * Brave, Mwmbl, in the user's order. The first that answers is the answer; one that
+ * Brave, Mwmbl, Wiby, Marginalia, Wikipedia, in the user's order, and the
+ * browser, which takes the query away instead of answering it (#1383). The first that answers is the answer; one that
  * fails hands the query to the next. Shared by the panels and the AI's
  * search tools, so they never disagree about where a query goes.
  *
@@ -28,13 +29,15 @@ object SearchProviders {
      * Brave is, and otherwise on DuckDuckGo, which needs no account.
      */
     fun browserUrl(settings: KeyboardSettings, query: String): String {
-        val first = rows(settings).firstOrNull()
+        val first = rows(settings).firstOrNull { backend(it) != SearchBackend.BROWSER }
         val q = ToolHttp.encode(query.trim())
         return when (first?.let(::backend)) {
             SearchBackend.SEARXNG -> runCatching { SearxClient.searchBase(first.url) + "?q=" + q }
                 .getOrDefault("https://duckduckgo.com/?q=$q")
             SearchBackend.BRAVE -> "https://search.brave.com/search?q=$q"
             SearchBackend.MWMBL -> "https://mwmbl.org/?q=$q"
+            SearchBackend.WIBY -> "https://wiby.me/?q=$q"
+            SearchBackend.MARGINALIA -> "https://marginalia-search.com/search?query=$q"
             else -> "https://duckduckgo.com/?q=$q"
         }
     }
@@ -46,11 +49,23 @@ object SearchProviders {
     fun searxFirst(settings: KeyboardSettings, pick: String? = null): Boolean =
         rows(settings, pick).firstOrNull()?.let(::backend) == SearchBackend.SEARXNG
 
+    /**
+     * Whether a search from the panel is handed to the browser (#1383): the
+     * browser row is the one picked, or the first in the list. [pick] as for
+     * [rows]; the AI's tools pass null and never get here.
+     */
+    fun handsToBrowser(settings: KeyboardSettings, pick: String? = null): Boolean =
+        rows(settings, pick).firstOrNull()?.let(::backend) == SearchBackend.BROWSER
+
     fun backend(row: ResolvedProvider): SearchBackend? = when (row.typeId) {
         ProviderTypes.SEARXNG.id -> SearchBackend.SEARXNG
         ProviderTypes.TAVILY.id -> SearchBackend.TAVILY
         ProviderTypes.BRAVE.id -> SearchBackend.BRAVE
         ProviderTypes.MWMBL.id -> SearchBackend.MWMBL
+        ProviderTypes.WIBY.id -> SearchBackend.WIBY
+        ProviderTypes.MARGINALIA.id -> SearchBackend.MARGINALIA
+        ProviderTypes.WIKIPEDIA_SEARCH.id -> SearchBackend.WIKIPEDIA
+        ProviderTypes.BROWSER.id -> SearchBackend.BROWSER
         else -> null
     }
 
@@ -70,7 +85,7 @@ object SearchProviders {
          * results would pass for the category's.
          */
         category: String? = null,
-    ): WebSearchPage = ask(settings, pick, searxOnly = category != null) { row, backend ->
+    ): WebSearchPage = ask(settings, pick, searxOnly = category != null, skip = setOf(SearchBackend.BROWSER)) { row, backend ->
         val page = more?.page ?: 0
         when (backend) {
             SearchBackend.SEARXNG -> SearxClient.webSearch(
@@ -96,6 +111,14 @@ object SearchProviders {
             SearchBackend.BRAVE ->
                 WebSearchPage(BraveSearchClient.webSearch(query, row.apiKey, count, safe, source = source, page = page))
             SearchBackend.MWMBL -> WebSearchPage(MwmblSearchClient.webSearch(query, count, source = source, page = page))
+            SearchBackend.WIBY -> WebSearchPage(WibySearchClient.webSearch(query, count, source = source, page = page))
+            SearchBackend.MARGINALIA ->
+                WebSearchPage(MarginaliaSearchClient.webSearch(query, row.apiKey, count, safe, source = source, page = page))
+            SearchBackend.WIKIPEDIA -> WebSearchPage(
+                WikipediaSearchClient.webSearch(query, settings.webSearch.wikiLanguage, count, source = source, page = page),
+            )
+            // Skipped above: the browser takes the query away rather than answering it.
+            SearchBackend.BROWSER -> WebSearchPage(emptyList())
         }
     }
 
@@ -107,8 +130,9 @@ object SearchProviders {
         pick: String? = null,
         more: SearchMore? = null,
     ): List<ImageResult> =
-        // Mwmbl has no image search: the Images tab asks the next provider.
-        ask(settings, pick, skip = SearchBackend.MWMBL) { row, backend ->
+        // Only SearXNG, Tavily and Brave search pictures: the Images tab asks
+        // the next of those on the list.
+        ask(settings, pick, skip = NO_IMAGES) { row, backend ->
             val page = more?.page ?: 0
             when (backend) {
                 SearchBackend.SEARXNG -> SearxClient.imageSearch(query, row.url, count, safe, page = page)
@@ -121,7 +145,7 @@ object SearchProviders {
                     excludeDomains = more?.excludeDomains.orEmpty(),
                 )
                 SearchBackend.BRAVE -> BraveSearchClient.imageSearch(query, row.apiKey, count, safe, page = page)
-                SearchBackend.MWMBL -> emptyList()
+                else -> emptyList()
             }
         }
 
@@ -129,12 +153,12 @@ object SearchProviders {
         settings: KeyboardSettings,
         pick: String?,
         searxOnly: Boolean = false,
-        skip: SearchBackend? = null,
+        skip: Set<SearchBackend> = emptySet(),
         call: (ResolvedProvider, SearchBackend) -> T,
     ): T {
         val rows = rows(settings, pick).filter {
             val backend = backend(it)
-            (!searxOnly || backend == SearchBackend.SEARXNG) && backend != skip
+            (!searxOnly || backend == SearchBackend.SEARXNG) && backend !in skip
         }
         if (rows.isEmpty()) throw NoSearchProviderException()
         val outcome = ProviderRunner.fallback(rows, key = { it.key }) { row -> call(row, requireNotNull(backend(row))) }
@@ -144,6 +168,10 @@ object SearchProviders {
             is ProviderRunner.Outcome.Failed -> throw outcome.error ?: NoSearchProviderException()
         }
     }
+
+    private val NO_IMAGES = setOf(
+        SearchBackend.MWMBL, SearchBackend.WIBY, SearchBackend.MARGINALIA, SearchBackend.WIKIPEDIA, SearchBackend.BROWSER,
+    )
 
     /** The search list has nothing on that can be asked. */
     class NoSearchProviderException : IllegalStateException("No search provider is on")
