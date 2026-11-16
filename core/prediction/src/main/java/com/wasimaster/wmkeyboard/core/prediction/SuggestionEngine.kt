@@ -6894,8 +6894,21 @@ class SuggestionEngine(
             return whole ?: accent
         }
         if (skipAllCapsAutocorrect && isAllCaps(word)) return NO_CORRECTION
-        val ordinary = decideOrdinary(word, lower, touch, timingMultiplier, keys, fastTyping)
+        val ordinary = keepHead(lower, decideOrdinary(word, lower, touch, timingMultiplier, keys, fastTyping))
         return withTaughtFix(word, lower, previousWord, ordinary)
+    }
+
+    /**
+     * [decision] without a fix that throws away the first letters of [lower]
+     * ([DroppedHead]): `unintereste` stays as typed rather than becoming
+     * *interested*. A fix the user taught is laid over this afterwards and
+     * keeps whatever they taught.
+     */
+    private fun keepHead(lower: String, decision: CorrectionDecision): CorrectionDecision {
+        val apply = decision.apply?.takeUnless { DroppedHead.drops(lower, it) }
+        val offer = decision.offer?.takeUnless { DroppedHead.drops(lower, it) }
+        if (apply == decision.apply && offer == decision.offer) return decision
+        return if (apply != null) decision.copy(offer = offer) else CorrectionDecision(offer = offer)
     }
 
     /**

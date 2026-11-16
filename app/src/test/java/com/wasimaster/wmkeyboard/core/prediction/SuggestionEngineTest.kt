@@ -628,6 +628,26 @@ class SuggestionEngineTest {
         UserLexicon(null),
     )
 
+    @Test fun aFixNeverDropsTheWordsPrefix() {
+        // The walk reaches the bare stem by spending its two edits on the
+        // prefix; a word the list lacks then reads as its opposite.
+        val e = SuggestionEngine(
+            Trie().apply {
+                insert("interested", 4005)
+                insert("интересно", 4000)
+            },
+            BengaliPhoneticIndex(emptyList()),
+            UserLexicon(null),
+        )
+        // The boldest slider, where a two-edit fix may fire.
+        e.autocorrectConfidence = 1.0
+        for (typed in listOf("uninterested", "unintereste", "неинтересно")) {
+            val decision = e.decideCorrection(typed)
+            assertNull(typed, decision.apply)
+            assertNull(typed, decision.offer)
+        }
+    }
+
     @Test fun aCandidateShortOfTheBarIsOfferedInstead() {
         val e = nearMissEngine()
         // Too tight to fire (0.5 < ln 3), loose enough to ask (0.5 > 0.35 ln 3).

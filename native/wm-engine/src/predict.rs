@@ -1894,7 +1894,7 @@ impl Predictor {
         if self.skip_all_caps && is_all_caps(word) {
             return Decision::default();
         }
-        let ordinary = self.decide_ordinary(word, &lower, timing);
+        let ordinary = keep_head(&lower, self.decide_ordinary(word, &lower, timing));
         self.with_taught_fix(word, &lower, previous, ordinary)
     }
 
@@ -2478,6 +2478,74 @@ fn capitalize_first(word: &str) -> String {
         None => String::new(),
         Some(first) => first.to_uppercase().chain(chars).collect(),
     }
+}
+
+/// `decision` without a fix that throws away the first letters of `lower`
+/// ([`drops_head`]): `unintereste` stays as typed rather than becoming
+/// *interested*. The phone's `SuggestionEngine.keepHead`.
+fn keep_head(lower: &str, decision: Decision) -> Decision {
+    let apply = decision.apply.clone().filter(|f| !drops_head(lower, f));
+    let offer = decision.offer.clone().filter(|f| !drops_head(lower, f));
+    if apply == decision.apply && offer == decision.offer {
+        return decision;
+    }
+    if apply.is_some() {
+        Decision { offer, ..decision }
+    } else {
+        Decision { offer, ..Decision::default() }
+    }
+}
+
+/// Whether `fixed` reads `typed` with its first two to four letters thrown
+/// away: `unintereste` as *interested*, `неинтересно` as *интересно*. The
+/// walk may spend both its edits on the first two letters, and a prefixed
+/// word the lists did not count then has the bare stem as its only near
+/// match. What stands there is a prefix, usually one that negates (un-, in-,
+/// dis-, не-, без-), so the fix says the opposite. One letter is left to the
+/// walk: a stray tap before a word is a real slip. The phone's `DroppedHead`.
+pub fn drops_head(typed: &str, fixed: &str) -> bool {
+    let t: Vec<char> = typed.to_lowercase().chars().collect();
+    let f: Vec<char> = fixed.to_lowercase().chars().collect();
+    if f.contains(&' ') || f == t {
+        return false;
+    }
+    for k in 2..=4usize {
+        let rest = &t[k.min(t.len())..];
+        if rest.len() < 3 {
+            break;
+        }
+        // The rest of the word, maybe completed by a letter, not the whole of
+        // it with a letter changed (`babana`, `banana`).
+        if f.len() > rest.len() + 1 || f.len() < 3 || f[..3] != rest[..3] {
+            continue;
+        }
+        if (rest.len() - 1..=rest.len() + 1).any(|m| osa(rest, &f[..m.min(f.len())]) <= 1) {
+            return true;
+        }
+    }
+    false
+}
+
+/// Edits (insert, delete, change, swap of neighbours) from `a` to `b`.
+fn osa(a: &[char], b: &[char]) -> usize {
+    let mut d = vec![vec![0usize; b.len() + 1]; a.len() + 1];
+    for (i, row) in d.iter_mut().enumerate() {
+        row[0] = i;
+    }
+    for j in 0..=b.len() {
+        d[0][j] = j;
+    }
+    for i in 1..=a.len() {
+        for j in 1..=b.len() {
+            let cost = usize::from(a[i - 1] != b[j - 1]);
+            let mut v = (d[i - 1][j] + 1).min(d[i][j - 1] + 1).min(d[i - 1][j - 1] + cost);
+            if i > 1 && j > 1 && a[i - 1] == b[j - 2] && a[i - 2] == b[j - 1] {
+                v = v.min(d[i - 2][j - 2] + 1);
+            }
+            d[i][j] = v;
+        }
+    }
+    d[a.len()][b.len()]
 }
 
 /// `suggestion` in the capitals `typed` was written in.
@@ -3459,5 +3527,41 @@ mod tests {
         assert_eq!("tomake", after[0], "{before:?} -> {after:?}");
         e.field_detection_shift = 0.0;
         assert_eq!("en", e.detected_language());
+    }
+
+    #[test]
+    fn a_fix_keeps_the_words_first_letters() {
+        // A prefix the walk can drop as two edits: the stem is never the fix.
+        for (typed, stem) in [
+            ("unintereste", "interested"),
+            ("uninterested", "interested"),
+            ("неинтересно", "интересно"),
+            ("небольшой", "большой"),
+            ("rereading", "reading"),
+            ("disagre", "agree"),
+        ] {
+            assert!(drops_head(typed, stem), "{typed} -> {stem}");
+        }
+        // Slips, a stray first tap, a doubled first letter and a changed
+        // letter are fixes as before.
+        for (typed, fixed) in [
+            ("babana", "banana"),
+            ("jjust", "just"),
+            ("wwhat", "what"),
+            ("athe", "the"),
+            ("unhapy", "unhappy"),
+            ("unknwn", "unknown"),
+            ("thsi", "this"),
+        ] {
+            assert!(!drops_head(typed, fixed), "{typed} -> {fixed}");
+        }
+        // The two-edit fix the slider's boldest end allows stays as typed.
+        let mut e = with(&[("interested", 4005), ("интересно", 4000)]);
+        e.autocorrect_confidence = 1.0;
+        for typed in ["uninterested", "неинтересно"] {
+            let d = e.decide(typed, 1.0);
+            assert_eq!(None, d.apply, "{typed}");
+            assert_eq!(None, d.offer, "{typed}");
+        }
     }
 }
