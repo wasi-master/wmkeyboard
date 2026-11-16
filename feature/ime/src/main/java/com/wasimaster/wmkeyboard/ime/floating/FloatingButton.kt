@@ -391,6 +391,14 @@ internal class FloatingButton(
         // the button wherever the window's last size put it (#1238).
         if (onPanel) {
             originChecks = 0
+            // A fixed button is out of sight until it is back where it was
+            // put (#926), so a keyboard growing or shrinking under it never
+            // shows it wandering while its corner is measured again.
+            if (setting.docked && appeared) {
+                current.animate().cancel()
+                current.alpha = 0f
+                appeared = false
+            }
             place()
             return
         }
@@ -532,7 +540,8 @@ internal class FloatingButton(
      * the gap together left the button floating well clear of the keys (#1126).
      */
     private fun ceiling(): Int? =
-        if (onPanel) null else ceilingPx?.let { it - windowH + shadowRoomPx - dp(KEYBOARD_GAP_DP) }
+        // Fixed in place, it is never lifted (#926).
+        if (onPanel || setting.docked) null else ceilingPx?.let { it - windowH + shadowRoomPx - dp(KEYBOARD_GAP_DP) }
 
     private val onLeft: Boolean get() = xFraction < 0.5f
 
@@ -548,14 +557,21 @@ internal class FloatingButton(
         return (width - windowW).coerceAtLeast(0) to (height - windowH).coerceAtLeast(0)
     }
 
+    /**
+     * The screen's size, read the same way over the keys and over the apps
+     * (#926): through the overlay's window context either way. Read through
+     * the keyboard's own window manager while the button was a panel, the
+     * room a place's fractions are measured in could differ from the
+     * overlay's, and the same saved place came out somewhere else.
+     */
     private fun screenSize(): Pair<Int, Int> =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val bounds = windowManager.currentWindowMetrics.bounds
+            val bounds = overlayManager.currentWindowMetrics.bounds
             bounds.width() to bounds.height()
         } else {
             val metrics = DisplayMetrics()
             @Suppress("DEPRECATION")
-            windowManager.defaultDisplay.getRealMetrics(metrics)
+            overlayManager.defaultDisplay.getRealMetrics(metrics)
             metrics.widthPixels to metrics.heightPixels
         }
 

@@ -264,8 +264,12 @@ fun SummonButtonSettings.ringOf(action: FloatingAction): List<FloatingAction>? =
     else -> null
 }
 
-/** Whether the button sits over the keys while the keyboard is up (#926), as set. */
-val SummonButtonSettings.floatsOverKeyboard: Boolean get() = whileTyping && overKeyboard
+/**
+ * Whether the button sits over the keys while the keyboard is up (#926), as
+ * set, or because it is fixed in place: a fixed button stays exactly where it
+ * was put whatever opens under it, rather than being lifted clear of the keys.
+ */
+val SummonButtonSettings.floatsOverKeyboard: Boolean get() = whileTyping && (overKeyboard || docked)
 
 /** The pill's touch area across, in dp (#1137): as set, but never thinner than the pill. */
 val SummonButtonSettings.pillTouchWidthDp: Int get() = maxOf(pillTouchDp, pillThicknessDp)

@@ -247,5 +247,8 @@ class FloatingButtonModelTest {
         assertFalse(button.floatsOverKeyboard)
         assertFalse(button.copy(overKeyboard = true, whileTyping = false).floatsOverKeyboard)
         assertTrue(button.copy(overKeyboard = true).floatsOverKeyboard)
+        // Fixed in place, it stays put over the keys too (#926).
+        assertTrue(button.copy(docked = true).floatsOverKeyboard)
+        assertFalse(button.copy(docked = true, whileTyping = false).floatsOverKeyboard)
     }
 }

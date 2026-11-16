@@ -561,7 +561,8 @@ internal fun FloatingButtonSettingsScreen(
                 info = stringResource(R.string.floating_button_while_typing_info),
             ) { scope.launch { repository.setFloatingButtonWhileTyping(it) } }
         }
-        item(visible = button.whileTyping, level = SettingLevel.ADVANCED) {
+        // A fixed button floats over the keys anyway (#926).
+        item(visible = button.whileTyping && !button.docked, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.floating_button_over_keyboard_title,
                 stringResource(R.string.floating_button_over_keyboard_subtitle),

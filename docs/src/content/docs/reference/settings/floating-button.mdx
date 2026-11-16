@@ -55,7 +55,7 @@ A preview heads the screen: a sketch of a phone with the button on the side it r
 | Faded opacity *(shown only when Fade when idle isn't Never)* | Slider, 15% to 100% | 45% |
 | Tuck into the edge *(shown only when Fade when idle isn't Never or Fixed in place is on, and Thin pill on the edge is off)* | Toggle | Off |
 | Show while typing | Toggle | On |
-| Float over the keyboard *(shown only while Show while typing is on)* | Toggle | Off |
+| Float over the keyboard *(shown only while Show while typing is on and Fixed in place is off)* | Toggle | Off |
 | Hide in landscape | Toggle | Off |
 | Vibrate on touch | Toggle | On |
 | Reset position *(shown only after the button has been moved)* | Link | |
@@ -131,7 +131,7 @@ With **Double tap** set to anything but **Nothing**, a single tap waits a moment
 
 You don't have to set all eight. A swipe goes to the nearest direction that has an action, as long as it's within about 67° of it, so with only up, down, left and right set, a swipe up and to the right still counts as up or right, whichever it's closer to. As soon as your finger leaves the button, every direction that has an action shows its icon around the button, placed where its swipe points. The one your finger is pointing at grows and gets a ring, and its name appears in a label above the ring, or below it when you're swiping upward, so your finger never covers it. The button itself shows the same icon, with a light tick each time it changes. Let go to run it. The icons go as soon as you lift your finger. A short swipe, under about 28 dp, doesn't count. Tap, double tap and press and hold still work as before, and pressing and holding still opens the quick menu.
 
-With **Tuck into the edge** on, a fixed button stays tucked half off its side the whole time, instead of sliding out at a touch and back when it fades, so it's always the same target in the same place. Its swipes and its quick menu work from there.
+A fixed button stays exactly where you put it at all times. While the keyboard is open it floats over the keys, as with **Float over the keyboard** on (that row is hidden while the button is fixed), instead of being lifted clear of them, and when the keyboard grows or shrinks under it, it fades out for a moment and back in at the same spot rather than being seen moving. With **Tuck into the edge** on, a fixed button stays tucked half off its side the whole time, instead of sliding out at a touch and back when it fades, so it's always the same target in the same place. Its swipes and its quick menu work from there.
 
 Move the button where you want it first, then fix it there. To move it later, turn **Fixed in place** off, drag it, and turn it back on. The cross for hiding the button only appears while dragging, so a fixed button is hidden with the **Hide the button** action instead. With TalkBack, each swipe that has an action is in the button's actions menu.
 
