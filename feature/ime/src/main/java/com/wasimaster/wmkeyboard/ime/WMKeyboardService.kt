@@ -14301,8 +14301,6 @@ open class WMKeyboardService : InputMethodService() {
             }
             // A search hands the keys back, a name is applied.
             CaptureTarget.FILES_TEXT -> state.filesText?.let(filesTool::onTextEnter)
-            // An address moves on to its name; a name keeps the link (#1214).
-            CaptureTarget.LINK_URL, CaptureTarget.LINK_TITLE -> state.linksText?.let(linksTool::onTextEnter)
             // A new note's name makes the note; a note's text and a capture are free text (#1211).
             CaptureTarget.VAULT_TEXT -> {
                 val entry = state.vaultText
@@ -14936,11 +14934,6 @@ open class WMKeyboardService : InputMethodService() {
                 val entry = _uiState.value.filesText?.copy(text = text.replace("\n", "").take(limit))
                 _uiState.update { it.copy(toolText = it.toolText.copy(files = entry)) }
                 entry?.let(filesTool::onText)
-            }
-            CaptureTarget.LINK_URL, CaptureTarget.LINK_TITLE -> {
-                val limit = com.wasimaster.wmkeyboard.ime.links.LinkWalletController.TEXT_MAX
-                val entry = _uiState.value.linksText?.copy(text = text.replace("\n", " ").take(limit))
-                _uiState.update { it.copy(toolText = it.toolText.copy(links = entry)) }
             }
             CaptureTarget.VAULT_TEXT -> {
                 val limit = com.wasimaster.wmkeyboard.ime.vault.VaultController.TEXT_MAX
@@ -37484,7 +37477,6 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.GALLERY -> openGalleryTool()
             ToolbarTool.SEND_FILES -> openSendTool()
             ToolbarTool.FILES -> openFilesTool()
-            ToolbarTool.LINKS -> onPanelChange(PanelMode.LINKS)
             ToolbarTool.TIMESTAMP -> insertTimestamp()
             ToolbarTool.MEDIA_CONTROL -> onPanelChange(PanelMode.MEDIA_CONTROL)
             ToolbarTool.KDE_CONNECT -> onPanelChange(PanelMode.KDE_CONNECT)
@@ -37648,11 +37640,6 @@ open class WMKeyboardService : InputMethodService() {
         if (_uiState.value.panel == PanelMode.NOTES_VAULT && vaultToolDelegate.isInitialized()) {
             vaultTool.onPanelClose()
             _uiState.update { it.copy(toolText = it.toolText.copy(vault = null)) }
-        }
-        // Leaving the Link wallet: its box gives the keys back (#1214).
-        if (_uiState.value.panel == PanelMode.LINKS && linksToolDelegate.isInitialized()) {
-            linksTool.onPanelClose()
-            _uiState.update { it.copy(toolText = it.toolText.copy(links = null)) }
         }
         // Leaving the file manager: its box gives the keys back, and the pick it was open for ends.
         if (_uiState.value.panel == PanelMode.FILES) {
@@ -37907,7 +37894,6 @@ open class WMKeyboardService : InputMethodService() {
             }
             PanelMode.GALLERY -> galleryTool.onPanelOpen()
             PanelMode.FILES -> filesTool.onPanelOpen()
-            PanelMode.LINKS -> linksTool.onPanelOpen()
             PanelMode.NOTES_VAULT -> vaultTool.onPanelOpen()
             // Whether the shared board is set up, and what this phone last saw of it (#1201).
             PanelMode.CLIPBOARD -> clipBoardTool.onClipboardOpen()
@@ -51779,7 +51765,6 @@ open class WMKeyboardService : InputMethodService() {
             homeAssistant = haTool.callbacks,
             gallery = galleryTool.callbacks,
             files = filesTool.callbacks,
-            links = linksTool.callbacks,
             vault = vaultTool.callbacks,
             send = sendTool.callbacks,
             wmPass = wmPassTool.callbacks,
@@ -52586,57 +52571,6 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
     private val filesTool by filesToolDelegate
-
-    // ---- Link wallet (#1214) ----
-
-    /** Saved links as buttons. Built on first use, like [filesTool]. */
-    private val linksToolDelegate = lazy {
-        com.wasimaster.wmkeyboard.ime.links.LinkWalletController(
-            context = this,
-            scope = serviceScope,
-            host = object : com.wasimaster.wmkeyboard.ime.links.LinkWalletController.Host {
-                override fun haptic() = vibrate()
-                override fun insertText(text: String) = onToolTextInsert(text)
-                override fun copyText(text: String) {
-                    KeyboardClipboard.copy(this@WMKeyboardService, text)
-                    maybeToastCopied()
-                }
-                override fun shareText(text: String) {
-                    shareVia(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text))
-                }
-                override fun openUrl(url: String): Boolean = runCatching {
-                    startActivity(
-                        Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                            .addCategory(Intent.CATEGORY_BROWSABLE)
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-                    )
-                    true
-                }.getOrDefault(false)
-                override fun clipText(): String = if (isClipboardAccessible()) captureClipText() else ""
-                override fun beginText(entry: com.wasimaster.wmkeyboard.ime.links.LinkTextEntry) {
-                    _uiState.update {
-                        it.copy(
-                            toolText = it.toolText.copy(links = entry),
-                            panelFocus = null,
-                            captureCaret = CaptureCaret(
-                                if (entry.field == com.wasimaster.wmkeyboard.ime.links.LinkTextField.TITLE) {
-                                    CaptureTarget.LINK_TITLE.name
-                                } else {
-                                    CaptureTarget.LINK_URL.name
-                                },
-                                entry.text.length,
-                                entry.text,
-                            ),
-                        )
-                    }
-                }
-                override fun endText() = _uiState.update { it.copy(toolText = it.toolText.copy(links = null)) }
-                override fun currentText() = _uiState.value.linksText
-                override fun toast(message: Int) = this@WMKeyboardService.toast(message)
-            },
-        )
-    }
-    private val linksTool by linksToolDelegate
 
     // ---- Notes vault (#1211) ----
 

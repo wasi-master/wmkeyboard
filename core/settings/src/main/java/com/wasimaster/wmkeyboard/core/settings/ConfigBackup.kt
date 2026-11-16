@@ -158,13 +158,6 @@ object ConfigBackup {
          * [AI_MEMORY] for the reason given on [VOCAB].
          */
         TODO("todo"),
-
-        /**
-         * The Link wallet (#1214): the saved links, their names and their
-         * order. Typed or pasted by hand, so nothing rebuilds them. Appended
-         * after [TODO] for the reason given on [VOCAB].
-         */
-        LINKS("links"),
         ;
 
         /**

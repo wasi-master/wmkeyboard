@@ -291,7 +291,6 @@ internal fun panelForTool(tool: ToolbarTool): PanelMode? = when (tool) {
     ToolbarTool.HOME_ASSISTANT -> PanelMode.HOME_ASSISTANT
     ToolbarTool.SEND_FILES -> PanelMode.SEND_FILES
     ToolbarTool.FILES -> PanelMode.FILES
-    ToolbarTool.LINKS -> PanelMode.LINKS
     ToolbarTool.GALLERY -> PanelMode.GALLERY
     ToolbarTool.MUSIC_ID -> PanelMode.MUSIC_ID
     ToolbarTool.TRANSLATE -> PanelMode.TRANSLATE

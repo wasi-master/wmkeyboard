@@ -5257,8 +5257,6 @@ data class AutoBackupSettings(
             ConfigBackup.Section.KAOMOJI.id,
             // Typed by hand like notes, and nothing else brings a task back.
             ConfigBackup.Section.TODO.id,
-            // Saved by hand too (#1214).
-            ConfigBackup.Section.LINKS.id,
         )
     }
 }
@@ -22415,9 +22413,6 @@ class SettingsRepository(private val context: Context) {
             // names rows of this phone's task app (see TodoProviderSync).
             readStore(TodoStore.FILE_PATH)?.let { out[ConfigBackup.Section.TODO] = it }
         }
-        if (ConfigBackup.Section.LINKS in sections) {
-            readStore(com.wasimaster.wmkeyboard.core.links.LinkWalletStore.FILE_PATH)?.let { out[ConfigBackup.Section.LINKS] = it }
-        }
         return out
     }
 
@@ -22458,7 +22453,6 @@ class SettingsRepository(private val context: Context) {
                     ConfigBackup.Section.AI_MEMORY -> element.jsonObject["memories"]?.jsonArray?.size ?: 0
                     // Tasks and their steps alike.
                     ConfigBackup.Section.TODO -> element.jsonObject["tasks"]?.jsonArray?.size ?: 0
-                    ConfigBackup.Section.LINKS -> element.jsonObject["links"]?.jsonArray?.size ?: 0
                 }
             }.getOrDefault(0)
             counts[section] = count
@@ -22703,13 +22697,6 @@ class SettingsRepository(private val context: Context) {
                 // The keyboard holds the notes in memory; without this it
                 // saves its own list over the one just restored.
                 bumpNotesVersion()
-            }
-        }
-        (parsed.sections[ConfigBackup.Section.LINKS] as? JsonObject)?.let { obj ->
-            // The keyboard reads the file again when the wallet next opens:
-            // its store checks the file's stamp, so no version bump is needed.
-            if (writeStore(com.wasimaster.wmkeyboard.core.links.LinkWalletStore.FILE_PATH, obj)) {
-                restored.add(ConfigBackup.Section.LINKS)
             }
         }
         (parsed.sections[ConfigBackup.Section.TODO] as? JsonObject)?.let { obj ->

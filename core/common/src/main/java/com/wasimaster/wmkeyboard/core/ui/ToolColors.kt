@@ -154,8 +154,6 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.CLEAR_FIELD -> Color(0xFFE57373)
     // A manila folder's amber.
     ToolbarTool.FILES -> Color(0xFFFFA000)
-    // A browser link's blue.
-    ToolbarTool.LINKS -> Color(0xFF1E88E5)
     ToolbarTool.LANGUAGE -> Color(0xFF26A69A)
     ToolbarTool.HOMOPHONES -> Color(0xFF26A69A)
 }

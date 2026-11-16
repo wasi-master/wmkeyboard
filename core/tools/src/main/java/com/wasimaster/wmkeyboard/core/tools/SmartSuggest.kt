@@ -2190,8 +2190,6 @@ object SmartSuggest {
         ToolbarTool.FIND_REPLACE to listOf("replace", "查找替换", "尋找取代", "検索置換", "찾기바꾸기"),
         ToolbarTool.NOTES to listOf("note", "notes", "笔记", "筆記", "备忘录", "備忘錄", "メモ", "ノート", "메모"),
         ToolbarTool.WM_PASS to listOf("wm pass", "wmpass", "vault", "password manager"),
-        // Not "link": a chat says it about every address it pastes.
-        ToolbarTool.LINKS to listOf("bookmarks", "linkwallet"),
         ToolbarTool.TODO to listOf("todo", "todos", "tasks", "待办", "待辦", "待办事项", "待辦事項", "やること", "할일"),
         ToolbarTool.TRACKPAD to listOf("trackpad", "触控板", "觸控板", "トラックパッド", "트랙패드"),
         // Not "send" alone: it is the commonest verb in a chat. The compound forms are meant.

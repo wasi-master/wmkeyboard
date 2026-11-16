@@ -889,13 +889,6 @@ enum class PanelMode {
     FILES,
 
     /**
-     * The Link wallet (#1214): saved links as buttons. Its state is the
-     * controller's, see `ime.links.LinkWalletUi`; its two boxes take the keys
-     * through [CaptureTarget.LINK_URL] and [CaptureTarget.LINK_TITLE].
-     */
-    LINKS,
-
-    /**
      * The notes vault (#1211): an Obsidian or Zettel Notes folder, opened from
      * the Notes panel. Its state is the controller's, see `ime.vault.VaultUi`;
      * its box takes the keys through [CaptureTarget.VAULT_TEXT].
@@ -1126,8 +1119,6 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     PanelMode.GALLERY -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     // The rows; the bar under them is touch, and typing reaches the box.
     PanelMode.FILES -> listOf(FocusRegion.RESULTS)
-    // The link buttons; a held link's actions are touch, and typing reaches the box.
-    PanelMode.LINKS -> listOf(FocusRegion.RESULTS)
     // The folder's rows; the header's chips are touch, and typing reaches the box.
     PanelMode.NOTES_VAULT -> listOf(FocusRegion.RESULTS)
     PanelMode.PASSWORD_GEN ->
@@ -4655,7 +4646,6 @@ data class KeyboardUiState(
     val haText: com.wasimaster.wmkeyboard.ime.homeassistant.HaTextEntry? get() = toolText.ha
     val galleryText: com.wasimaster.wmkeyboard.ime.gallery.GalleryTextEntry? get() = toolText.gallery
     val filesText: com.wasimaster.wmkeyboard.ime.files.FilesTextEntry? get() = toolText.files
-    val linksText: com.wasimaster.wmkeyboard.ime.links.LinkTextEntry? get() = toolText.links
     val vaultText: com.wasimaster.wmkeyboard.ime.vault.VaultTextEntry? get() = toolText.vault
     val calendarText: com.wasimaster.wmkeyboard.ime.calendar.CalendarTextEntry? get() = toolText.calendar
     val kaomojiText: com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiTextEntry? get() = toolText.kaomoji
@@ -5060,10 +5050,6 @@ data class KeyboardUiState(
     val filesTypingActive: Boolean
         get() = panel == PanelMode.FILES && filesText != null
 
-    /** Whether the Link wallet's box has the keys; panel *and* box, as [filesTypingActive]. */
-    val linksTypingActive: Boolean
-        get() = panel == PanelMode.LINKS && linksText != null
-
     /** Whether the notes vault's box has the keys; panel *and* box, as [filesTypingActive]. */
     val vaultTypingActive: Boolean
         get() = panel == PanelMode.NOTES_VAULT && vaultText != null
@@ -5180,12 +5166,6 @@ data class KeyboardUiState(
         todoTypingActive -> CaptureTarget.TODO_TEXT
         galleryTypingActive -> CaptureTarget.GALLERY_TEXT
         filesTypingActive -> CaptureTarget.FILES_TEXT
-        linksTypingActive ->
-            if (linksText?.field == com.wasimaster.wmkeyboard.ime.links.LinkTextField.TITLE) {
-                CaptureTarget.LINK_TITLE
-            } else {
-                CaptureTarget.LINK_URL
-            }
         vaultTypingActive -> CaptureTarget.VAULT_TEXT
         calendarTypingActive -> when (calendarText?.field) {
             com.wasimaster.wmkeyboard.ime.calendar.CalendarTextField.LOCATION -> CaptureTarget.CALENDAR_LOCATION
@@ -5311,7 +5291,6 @@ data class KeyboardUiState(
         CaptureTarget.REPEAT_SEPARATOR -> textRepeat.customSeparator
         CaptureTarget.GALLERY_TEXT -> galleryText?.text.orEmpty()
         CaptureTarget.FILES_TEXT -> filesText?.text.orEmpty()
-        CaptureTarget.LINK_URL, CaptureTarget.LINK_TITLE -> linksText?.text.orEmpty()
         CaptureTarget.VAULT_TEXT -> vaultText?.text.orEmpty()
         CaptureTarget.CALENDAR_TITLE, CaptureTarget.CALENDAR_LOCATION,
         CaptureTarget.CALENDAR_NOTES, CaptureTarget.CALENDAR_GUEST,
@@ -5714,8 +5693,6 @@ data class ToolTextEntries(
      * (#1077). The rest of the tool's state is the controller's.
      */
     val wmPass: com.wasimaster.wmkeyboard.ime.wmpass.WmPassTextEntry? = null,
-    /** The Link wallet's box while it has the keys: an address or a button's name (#1214). */
-    val links: com.wasimaster.wmkeyboard.ime.links.LinkTextEntry? = null,
     /** The notes vault's box while it has the keys: a new note's name, a note's text, a capture (#1211). */
     val vault: com.wasimaster.wmkeyboard.ime.vault.VaultTextEntry? = null,
     /**
