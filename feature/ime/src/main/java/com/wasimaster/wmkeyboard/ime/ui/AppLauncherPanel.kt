@@ -571,6 +571,18 @@ private fun LauncherGridBody(
                     }
                 }
             }
+            if (shortcuts.isNotEmpty() || shownCombos.isNotEmpty()) {
+                // A rule between the rows above and the grid: without it the
+                // pinned or recent icons ran straight into the first row of
+                // the list, and read as part of it (Telegram 10316).
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 4.dp)
+                        .height(1.dp)
+                        .background(kb.secondaryText.copy(alpha = 0.18f)),
+                )
+            }
             LazyVerticalGrid(
                 // Auto keeps the 68 dp cell of the default 42 dp icon and
                 // widens it with a bigger icon, so labels keep their room.
