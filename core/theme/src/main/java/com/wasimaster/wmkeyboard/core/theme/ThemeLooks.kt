@@ -170,7 +170,8 @@ val MATERIAL_SKIRT_RANGE = 0f..0.6f
 val MATERIAL_GLOSS_RANGE = 0f..1f
 val MATERIAL_LIGHT_RANGE = -60f..60f
 val MATERIAL_TEXTURE_OPACITY_RANGE = 0f..1f
-val MATERIAL_EDGE_WIDTH_RANGE = 0.5f..6f
+/** Down to 0.1 dp: a hairline edge on glass keys was asked for (Telegram, 2026-11-16, 0.2 dp). */
+val MATERIAL_EDGE_WIDTH_RANGE = 0.1f..6f
 val MATERIAL_IRIDESCENCE_RANGE = 0f..1f
 val MATERIAL_SOFT_SHADOW_RANGE = 0f..1f
 

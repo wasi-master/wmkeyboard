@@ -6408,7 +6408,7 @@ private fun ThemeEditorContent(
                     value = material.edgeWidthDp,
                     range = MATERIAL_EDGE_WIDTH_RANGE,
                     display = { "%.1f dp".format(it) },
-                ) { v -> updateMaterial { it.copy(edgeWidthDp = (v * 2).roundToInt() / 2f) } }
+                ) { v -> updateMaterial { it.copy(edgeWidthDp = (v * 10).roundToInt() / 10f) } }
             }
             item {
                 ChoiceSetting(
