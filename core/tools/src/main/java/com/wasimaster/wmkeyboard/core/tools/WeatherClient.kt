@@ -48,6 +48,50 @@ data class WeatherInfo(
     val tomorrowLowC: Double? = null,
     val tomorrowCode: Int? = null,
     val tomorrowPrecipProbabilityPercent: Int? = null,
+    /** The next 24 hours from the current one (#1369); empty from an older response. */
+    val hours: List<OutlookHour> = emptyList(),
+    /** Today and the six days after it (#1369). */
+    val days: List<OutlookDay> = emptyList(),
+)
+
+/** An air quality index pair (#1369): the European one and the US one; -1 where missing. */
+data class AirQuality(val european: Int, val us: Int) {
+    /** The index a reader of [fahrenheit] units expects: the US one for °F, else the European one. */
+    fun shown(fahrenheit: Boolean): Int = if (fahrenheit) us else european
+}
+
+/** One hour of the Weather panel's outlook (#1369), in the place's own time (`2026-11-16T14:00`). */
+data class OutlookHour(
+    val time: String,
+    val temperatureC: Double,
+    /** Negative when the API omits it. */
+    val precipProbabilityPercent: Int,
+    val precipitationMm: Double,
+    val windKmh: Double,
+    /** Negative when the API omits it. */
+    val uvIndex: Double,
+    val weatherCode: Int,
+    val isDay: Boolean,
+    val airQuality: AirQuality? = null,
+) {
+    /** Minutes after midnight, local to the place. */
+    val minuteOfDay: Int get() = time.substringAfter('T', "").split(':').let { p ->
+        (p.getOrNull(0)?.toIntOrNull() ?: 0) * 60 + (p.getOrNull(1)?.toIntOrNull() ?: 0)
+    }
+}
+
+/** One day of the outlook (#1369): `2026-11-16`, with its extremes. */
+data class OutlookDay(
+    val date: String,
+    val highC: Double,
+    val lowC: Double,
+    val precipProbabilityPercent: Int,
+    val precipitationMm: Double,
+    val windMaxKmh: Double,
+    val uvIndexMax: Double,
+    val weatherCode: Int,
+    /** The day's worst hour. */
+    val airQuality: AirQuality? = null,
 )
 
 /** One geocoding hit: a place the user can pick as the weather location. */
@@ -118,14 +162,62 @@ object WeatherClient {
                 "&current=temperature_2m,relative_humidity_2m,apparent_temperature," +
                 "is_day,weather_code,wind_speed_10m,wind_direction_10m," +
                 "surface_pressure,cloud_cover,precipitation" +
+                "&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,is_day," +
+                "wind_speed_10m,uv_index" +
                 "&daily=temperature_2m_max,temperature_2m_min,uv_index_max," +
-                "precipitation_probability_max,sunrise,sunset,weather_code" +
-                // Two days: the second feeds the "weather tomorrow" smart chip.
-                "&timezone=auto&forecast_days=2",
+                "precipitation_probability_max,precipitation_sum,wind_speed_10m_max,sunrise,sunset,weather_code" +
+                // A week: the panel's days (#1369); the second also feeds the
+                // "weather tomorrow" smart chip.
+                "&timezone=auto&forecast_days=$OUTLOOK_DAYS",
             latitude,
             longitude,
         )
-        return parse(get(url), System.currentTimeMillis())
+        val info = parse(get(url), System.currentTimeMillis())
+        // Air quality is a second service of Open-Meteo's; the forecast stands without it.
+        val air = runCatching { airQuality(latitude, longitude) }.getOrNull() ?: return info
+        return withAirQuality(info, air)
+    }
+
+    /** How many days the panel's outlook covers, today included. */
+    const val OUTLOOK_DAYS = 7
+
+    /**
+     * Blocking: Open-Meteo's air quality forecast, by hour in the place's own
+     * time (#1369). Throws on failure.
+     */
+    fun airQuality(latitude: Float, longitude: Float): Map<String, AirQuality> {
+        val url = ServiceEndpoints.base(ServiceEndpoint.OPEN_METEO_AIR_QUALITY) + String.format(
+            Locale.US,
+            "/v1/air-quality?latitude=%.4f&longitude=%.4f&hourly=european_aqi,us_aqi&timezone=auto&forecast_days=$OUTLOOK_DAYS",
+            latitude,
+            longitude,
+        )
+        return parseAirQuality(get(url))
+    }
+
+    internal fun parseAirQuality(body: String): Map<String, AirQuality> {
+        val hourly = Json.parseToJsonElement(body).jsonObject["hourly"]?.takeIf { it !is JsonNull }?.jsonObject ?: return emptyMap()
+        val times = hourly["time"]?.takeIf { it !is JsonNull }?.jsonArray ?: return emptyMap()
+        val out = LinkedHashMap<String, AirQuality>()
+        for (i in times.indices) {
+            val time = times[i].takeIf { it !is JsonNull }?.jsonPrimitive?.content ?: continue
+            val eu = hourly.optAt("european_aqi", i)?.toInt() ?: -1
+            val us = hourly.optAt("us_aqi", i)?.toInt() ?: -1
+            if (eu >= 0 || us >= 0) out[time] = AirQuality(eu, us)
+        }
+        return out
+    }
+
+    /** [info] with each hour's air quality, and each day's worst. */
+    internal fun withAirQuality(info: WeatherInfo, air: Map<String, AirQuality>): WeatherInfo {
+        if (air.isEmpty()) return info
+        val byDay = air.entries.groupBy { it.key.substringBefore('T') }.mapValues { (_, hours) ->
+            AirQuality(hours.maxOf { it.value.european }, hours.maxOf { it.value.us })
+        }
+        return info.copy(
+            hours = info.hours.map { h -> air[h.time]?.let { h.copy(airQuality = it) } ?: h },
+            days = info.days.map { d -> byDay[d.date]?.let { d.copy(airQuality = it) } ?: d },
+        )
     }
 
     /**
@@ -217,8 +309,55 @@ object WeatherClient {
             tomorrowLowC = daily.optAt("temperature_2m_min", 1),
             tomorrowCode = daily.optAt("weather_code", 1)?.toInt(),
             tomorrowPrecipProbabilityPercent = daily.optAt("precipitation_probability_max", 1)?.toInt(),
+            hours = root["hourly"]?.takeIf { it !is JsonNull }?.jsonObject
+                ?.let { outlookHours(it, current.optString("time")) }.orEmpty(),
+            days = outlookDays(daily),
         )
     }
+
+    /** The 24 hours from the current one; all of them when the response does not say what time it is. */
+    private fun outlookHours(hourly: JsonObject, now: String?): List<OutlookHour> {
+        val times = hourly["time"]?.takeIf { it !is JsonNull }?.jsonArray ?: return emptyList()
+        // ISO local times compare as text: "2026-11-16T23" is this hour.
+        val from = now?.take(13)
+        val out = ArrayList<OutlookHour>(OUTLOOK_HOURS)
+        for (i in times.indices) {
+            val time = times[i].takeIf { it !is JsonNull }?.jsonPrimitive?.content ?: continue
+            if (from != null && time.take(13) < from) continue
+            val temperature = hourly.optAt("temperature_2m", i) ?: continue
+            out += OutlookHour(
+                time = time,
+                temperatureC = temperature,
+                precipProbabilityPercent = hourly.optAt("precipitation_probability", i)?.toInt() ?: -1,
+                precipitationMm = hourly.optAt("precipitation", i) ?: 0.0,
+                windKmh = hourly.optAt("wind_speed_10m", i) ?: 0.0,
+                uvIndex = hourly.optAt("uv_index", i) ?: -1.0,
+                weatherCode = hourly.optAt("weather_code", i)?.toInt() ?: -1,
+                isDay = (hourly.optAt("is_day", i) ?: 1.0) >= 1.0,
+            )
+            if (out.size == OUTLOOK_HOURS) break
+        }
+        return out
+    }
+
+    private fun outlookDays(daily: JsonObject): List<OutlookDay> {
+        val dates = daily["time"]?.takeIf { it !is JsonNull }?.jsonArray ?: return emptyList()
+        return dates.indices.mapNotNull { i ->
+            val date = dates[i].takeIf { it !is JsonNull }?.jsonPrimitive?.content ?: return@mapNotNull null
+            OutlookDay(
+                date = date,
+                highC = daily.optAt("temperature_2m_max", i) ?: return@mapNotNull null,
+                lowC = daily.optAt("temperature_2m_min", i) ?: return@mapNotNull null,
+                precipProbabilityPercent = daily.optAt("precipitation_probability_max", i)?.toInt() ?: -1,
+                precipitationMm = daily.optAt("precipitation_sum", i) ?: 0.0,
+                windMaxKmh = daily.optAt("wind_speed_10m_max", i) ?: 0.0,
+                uvIndexMax = daily.optAt("uv_index_max", i) ?: -1.0,
+                weatherCode = daily.optAt("weather_code", i)?.toInt() ?: -1,
+            )
+        }
+    }
+
+    private const val OUTLOOK_HOURS = 24
 
     internal fun parseHourly(body: String, latitude: Float, longitude: Float, now: Long): HourlyForecast {
         val hourly = Json.parseToJsonElement(body).jsonObject.getValue("hourly").jsonObject

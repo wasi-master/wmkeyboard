@@ -290,6 +290,7 @@ internal val ServiceEndpoint.labelRes: Int
         ServiceEndpoint.WIKTIONARY -> R.string.servers_wiktionary
         ServiceEndpoint.OPEN_METEO -> R.string.servers_open_meteo
         ServiceEndpoint.OPEN_METEO_GEOCODING -> R.string.servers_open_meteo_geocoding
+        ServiceEndpoint.OPEN_METEO_AIR_QUALITY -> R.string.servers_open_meteo_air_quality
         ServiceEndpoint.NOMINATIM -> R.string.servers_nominatim
         ServiceEndpoint.AUDD -> R.string.servers_audd
         ServiceEndpoint.AUDIOTAG -> R.string.servers_audiotag

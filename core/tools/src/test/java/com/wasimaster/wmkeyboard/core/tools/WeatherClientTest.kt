@@ -179,4 +179,48 @@ class WeatherClientTest {
         assertEquals(null, forecast.hourAt(1_762_999_999_999L))
         assertEquals(null, forecast.hourAt(1_763_010_800_000L))
     }
+
+    @Test
+    fun `the outlook starts at the current hour and takes the day's worst air`() {
+        val body = """
+            {
+              "current": {"time": "2026-11-16T14:30", "temperature_2m": 25.0, "relative_humidity_2m": 50,
+                "apparent_temperature": 25.0, "is_day": 1, "weather_code": 1, "wind_speed_10m": 5.0},
+              "hourly": {
+                "time": ["2026-11-16T13:00", "2026-11-16T14:00", "2026-11-16T15:00"],
+                "temperature_2m": [24.0, 25.0, 26.0],
+                "precipitation_probability": [0, 10, 40],
+                "precipitation": [0.0, 0.0, 1.2],
+                "weather_code": [1, 2, 61],
+                "is_day": [1, 1, 1],
+                "wind_speed_10m": [4.0, 5.0, 9.0],
+                "uv_index": [5.0, 4.5, 3.0]
+              },
+              "daily": {
+                "time": ["2026-11-16", "2026-11-17"],
+                "temperature_2m_max": [29.5, 28.0],
+                "temperature_2m_min": [21.8, 20.0],
+                "uv_index_max": [5.75, 5.0],
+                "precipitation_probability_max": [40, 0],
+                "precipitation_sum": [1.2, 0.0],
+                "wind_speed_10m_max": [10.6, 8.0],
+                "weather_code": [61, 1]
+              }
+            }
+        """.trimIndent()
+        val info = WeatherClient.parse(body, now = 1L)
+        assertEquals(listOf("2026-11-16T14:00", "2026-11-16T15:00"), info.hours.map { it.time })
+        assertEquals(1.2, info.hours[1].precipitationMm, 1e-9)
+        assertEquals(14 * 60, info.hours[0].minuteOfDay)
+        assertEquals(2, info.days.size)
+        assertEquals(10.6, info.days[0].windMaxKmh, 1e-9)
+        val air = WeatherClient.parseAirQuality(
+            """{"hourly":{"time":["2026-11-16T14:00","2026-11-16T15:00","2026-11-17T09:00"],""" +
+                """"european_aqi":[30,55,20],"us_aqi":[60,null,40]}}""",
+        )
+        val merged = WeatherClient.withAirQuality(info, air)
+        assertEquals(AirQuality(30, 60), merged.hours[0].airQuality)
+        assertEquals(AirQuality(55, 60), merged.days[0].airQuality)
+        assertEquals(AirQuality(20, 40), merged.days[1].airQuality)
+    }
 }

@@ -83,6 +83,9 @@ enum class ServiceEndpoint(
     OPEN_METEO("open_meteo", "https://api.open-meteo.com", ServiceGroup.WEATHER),
     OPEN_METEO_GEOCODING("open_meteo_geocoding", "https://geocoding-api.open-meteo.com", ServiceGroup.WEATHER),
 
+    /** Open-Meteo's air quality forecast, for the Weather panel's hours and days (#1369). */
+    OPEN_METEO_AIR_QUALITY("open_meteo_air_quality", "https://air-quality-api.open-meteo.com", ServiceGroup.WEATHER),
+
     /**
      * The Location tool's address lookup (#350): any server that answers
      * Nominatim's `/reverse`, which a self-hosted Nominatim does.

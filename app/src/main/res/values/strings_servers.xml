@@ -65,6 +65,7 @@
     <string name="servers_wiktionary">Wiktionary</string>
     <string name="servers_open_meteo">Open-Meteo forecast</string>
     <string name="servers_open_meteo_geocoding">Open-Meteo place search</string>
+    <string name="servers_open_meteo_air_quality">Open-Meteo air quality</string>
     <string name="servers_nominatim">OpenStreetMap Nominatim</string>
     <string name="servers_audd" translatable="false">AudD</string>
     <string name="servers_audiotag" translatable="false">AudioTag</string>

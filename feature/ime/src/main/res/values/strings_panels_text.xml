@@ -294,6 +294,14 @@
     <string name="ime_weather_clouds_label">clouds</string>
     <!-- Caption under the highest ultraviolet index of the day. -->
     <string name="ime_weather_uv_label">UV max</string>
+    <!-- #1369: the Weather panel's outlook under the current conditions. -->
+    <string name="ime_weather_outlook_hours">Next 24 hours</string>
+    <string name="ime_weather_outlook_days">This week</string>
+    <string name="ime_weather_outlook_today">Today</string>
+    <!-- %1$s is the UV index, a small whole number. Keep it short. -->
+    <string name="ime_weather_outlook_uv">UV %1$s</string>
+    <!-- %1$d is the air quality index (European for °C, US for °F). Keep it short; AQI is the usual abbreviation. -->
+    <string name="ime_weather_outlook_aqi">AQI %1$d</string>
     <string name="ime_weather_sunrise_label">sunrise</string>
     <string name="ime_weather_sunset_label">sunset</string>
     <string name="ime_weather_progress">Loading the weather…</string>

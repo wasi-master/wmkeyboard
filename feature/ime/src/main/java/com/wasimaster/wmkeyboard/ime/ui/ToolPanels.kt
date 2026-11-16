@@ -1116,6 +1116,8 @@ internal fun WeatherPanel(
                             repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
                         }
                     }
+                    // The next 24 hours and the week (#1369).
+                    WeatherOutlook(info, fahrenheit)
                 }
             }
         }
