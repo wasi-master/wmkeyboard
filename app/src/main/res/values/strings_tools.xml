@@ -47,7 +47,7 @@
     <!-- Switches under the one above (#1373), shown while it is on. -->
     <string name="tools_box_hide_title_title">Hide the title bar</string>
     <string name="tools_box_hide_title_subtitle">A floating box shows only its tool, with no bar along the top</string>
-    <string name="tools_box_hide_title_info">Takes the title bar off a floating box, so the tool fills it. Move the box by dragging any part of the tool that doesn't scroll, with two fingers, or by holding it if Hold a floating box to move it is on. Throws still close, tuck or dock it. The see-through button and the double tap that rolls the box up go with the bar. This setting is off by default.</string>
+    <string name="tools_box_hide_title_info">Takes the title bar off a floating box, so the tool fills it. Move the box by dragging any part of the tool that doesn\'t scroll, with two fingers, or by holding it if Hold a floating box to move it is on. Throws still close, tuck or dock it. The see-through button and the double tap that rolls the box up go with the bar. This setting is off by default.</string>
     <string name="tools_box_hide_frame_title">Hide the outline and grip</string>
     <string name="tools_box_hide_frame_subtitle">No line round a floating box and no resize grip in its corner</string>
     <string name="tools_box_hide_frame_info">Takes the thin outline off a floating box, and the small grip in its corner that resizes it. Pinch the box with two fingers to resize it instead. This setting is off by default.</string>
