@@ -363,22 +363,28 @@ private fun CaretQueryText(
     val latestHandle by androidx.compose.runtime.rememberUpdatedState(handle)
     // Paste offered at the caret by a long press on no word (#434).
     var caretBar by remember(query) { mutableStateOf(false) }
+    val setCaretBar by androidx.compose.runtime.rememberUpdatedState<(Boolean) -> Unit>({ caretBar = it })
+    val latestQuery by androidx.compose.runtime.rememberUpdatedState(query)
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     Box(
         modifier = modifier
             .horizontalScroll(scroll)
-            .pointerInput(query, active) {
-                if (!active) return@pointerInput
-                detectTapGestures(
-                    onLongPress = { position ->
-                        caretBar = !fieldLongPress(query, layout, position, latestHandle)
-                    },
-                ) { position ->
-                    caretBar = false
-                    layout?.takeIf { it.layoutInput.text.text == query }?.let {
-                        latestHandle.onCaretTap(it.getOffsetForPosition(position))
-                    }
-                }
-            },
+            // A tap, a double tap, a hold and a drag on either end of a
+            // selection, each the way a real field takes it (#612).
+            .then(
+                if (active) {
+                    Modifier.fieldTextGestures(
+                        key = Unit,
+                        text = { latestQuery },
+                        layout = { layout },
+                        handle = { latestHandle },
+                        setCaretBar = { setCaretBar(it) },
+                        onHold = { haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress) },
+                    )
+                } else {
+                    Modifier
+                },
+            ),
     ) {
         Text(
             text = query,

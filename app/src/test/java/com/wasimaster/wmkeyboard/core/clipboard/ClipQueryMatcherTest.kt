@@ -38,4 +38,30 @@ class ClipQueryMatcherTest {
         assertTrue(clipQueryMatcher("(x", regex = true)(paren))
         assertFalse(clipQueryMatcher("[0-9", regex = true)(code))
     }
+
+    @Test fun `a pattern is not matched against the words for a clip's kind`() {
+        // Every text clip used to carry "text" and "plain", so these matched all of them.
+        assertEquals(emptyList<Long>(), ids("^\\w+$", regex = true))
+        assertEquals(emptyList<Long>(), ids("^\\w{1,5}$", regex = true))
+    }
+
+    @Test fun `whole clip matching`() {
+        val two = ClipItem(id = 5, text = "hello world", timestamp = 1_000)
+        val three = ClipItem(id = 6, text = "hello big world", timestamp = 1_000)
+        val clips = listOf(two, three, note)
+        fun whole(query: String) = clips.filter(clipQueryMatcher(query, regex = true, whole = true)).map { it.id }
+        assertEquals(listOf(5L), whole("\\w+ \\w+"))
+        assertEquals(listOf(5L, 6L, 3L), clips.filter(clipQueryMatcher("\\w+ \\w+", regex = true)).map { it.id })
+        assertEquals(listOf(5L), whole(".{1,11}"))
+    }
+
+    @Test fun `a count written with a space is read as one`() {
+        assertEquals(listOf(2L), ids("\\d{6, 6}", regex = true))
+    }
+
+    @Test fun `combine keeps only whole matches when asked`() {
+        val texts = listOf("hello world", "hello big world")
+        assertEquals("hello world", ClipCombine.combine(texts, "; ", append = "\\w+ \\w+", whole = true))
+        assertEquals("hello world; hello big", ClipCombine.combine(texts, "; ", append = "\\w+ \\w+"))
+    }
 }

@@ -3,6 +3,8 @@ package com.wasimaster.wmkeyboard.ime.ui
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -461,8 +463,39 @@ private fun ClipboardHistoryPage(
     val spec = state.panelLayout(PanelKind.CLIPBOARD).let { spec ->
         if (stacked && spec == BuiltInPanelLayouts.clipboard(keyRow = true)) BuiltInPanelLayouts.CLIPBOARD else spec
     }
+    val keysToggle: @Composable () -> Unit = {
+        ToolCircle(
+            slot = IconSlots.KEY_INPUT_METHOD_PICKER,
+            description = stringResource(
+                if (stacked) R.string.ime_clipboard_keys_hide_desc else R.string.ime_clipboard_keys_show_desc,
+            ),
+            active = stacked,
+            onClick = callbacks.clipboard.actions.onKeysToggle,
+            modifier = Modifier.padding(start = 2.dp),
+        )
+    }
+    // The search and the view switch put in the layout's last row, for the
+    // thumb (#414): the keyboard button goes down there with them, at the
+    // search's end, rather than staying alone in the header.
+    val lastRow = spec.grid.rows.lastOrNull().orEmpty()
+    val searchCell = lastRow.any { (it.action as? KeyAction.Field)?.kind == PanelFieldKind.CLIPBOARD_SEARCH }
+    val viewCell = lastRow.any { (it.action as? KeyAction.Field)?.kind == PanelFieldKind.CLIPBOARD_VIEW }
+    val keysBelow = state.settings.clipboard.fullBleed && spec.grid.rows.size >= 2 && (searchCell || viewCell)
+    val keysIn = when {
+        !keysBelow -> null
+        searchCell && clipSearchCellParts(session).isNotEmpty() -> PanelFieldKind.CLIPBOARD_SEARCH
+        viewCell && state.clipboardItems.isNotEmpty() -> PanelFieldKind.CLIPBOARD_VIEW
+        else -> null
+    }
     val fields: @Composable (PanelFieldKind) -> Unit = { kind ->
-        ClipboardField(kind, state, session, callbacks.clipboard)
+        if (kind == keysIn) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.weight(1f).fillMaxHeight()) { ClipboardField(kind, state, session, callbacks.clipboard) }
+                keysToggle()
+            }
+        } else {
+            ClipboardField(kind, state, session, callbacks.clipboard)
+        }
     }
     // The strips only exist when they have something to show, as before: a
     // row holding nothing but an empty strip takes no height.
@@ -491,17 +524,6 @@ private fun ClipboardHistoryPage(
     // No bar where the screen leaves no room to grow: it would drag nothing.
     val bar: (@Composable () -> Unit)? = if (maxExtra < 1.dp) null else {
         { ClipPanelHeightBar(resize, extra, maxExtra, callbacks.clipboard.actions.onPanelHeight) }
-    }
-    val keysToggle: @Composable () -> Unit = {
-        ToolCircle(
-            slot = IconSlots.KEY_INPUT_METHOD_PICKER,
-            description = stringResource(
-                if (stacked) R.string.ime_clipboard_keys_hide_desc else R.string.ime_clipboard_keys_show_desc,
-            ),
-            active = stacked,
-            onClick = callbacks.clipboard.actions.onKeysToggle,
-            modifier = Modifier.padding(start = 2.dp),
-        )
     }
     if (clipboard.fullBleed) {
         // Full-bleed: the toolbar row becomes the back header and the
@@ -547,7 +569,7 @@ private fun ClipboardHistoryPage(
                                 ) { fields(kind) }
                             }
                         }
-                        keysToggle()
+                        if (keysIn == null) keysToggle()
                     },
                 ) {
                     PanelLayoutGrid(
@@ -565,7 +587,7 @@ private fun ClipboardHistoryPage(
                     compact = stacked,
                     compactHeight = ClipStackedHeight,
                     topHandle = if (stacked) null else bar,
-                    headerActions = { keysToggle() },
+                    headerActions = { if (keysIn == null) keysToggle() },
                 ) {
                     PanelLayoutGrid(state, spec, callbacks, onClose, fields, Modifier.fillMaxSize(), collapsed)
                 }

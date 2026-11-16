@@ -1476,6 +1476,7 @@ internal object SettingsRowIcons {
         put(R.string.clipboard_pinned_folders_title) { Icons.Outlined.Folder }
         put(R.string.clipboard_search_title) { Icons.Outlined.Search }
         put(R.string.clipboard_search_regex_title) { Icons.Outlined.DataObject }
+        put(R.string.clipboard_regex_whole_title) { Icons.Outlined.SelectAll }
         put(R.string.clipboard_search_notes_title) { Icons.Outlined.StickyNote2 }
         put(R.string.clipboard_clear_button_title) { Icons.Outlined.DeleteSweep }
         put(R.string.clipboard_pinned_tabs_title) { Icons.Outlined.Tab }
@@ -1501,6 +1502,7 @@ internal object SettingsRowIcons {
         put(R.string.clipboard_key_row_title) { Icons.Outlined.SpaceBar }
         put(R.string.clipboard_password_paste_title) { Icons.Outlined.Password }
         put(R.string.clipboard_link_previews_title) { Icons.Outlined.Link }
+        put(R.string.clipboard_open_links_in_app_title) { Icons.AutoMirrored.Outlined.OpenInNew }
         put(R.string.clipboard_entities_title) { Icons.Outlined.Tag }
         put(R.string.clipboard_entity_icons_title) { Icons.Outlined.Category }
         put(R.string.clipboard_entity_to_clipboard_title) { Icons.Outlined.ContentCopy }

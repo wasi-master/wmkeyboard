@@ -362,6 +362,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import coil3.compose.AsyncImage
 import com.wasimaster.wmkeyboard.common.R as CommonR
@@ -544,6 +546,7 @@ import com.wasimaster.wmkeyboard.core.settings.shownWith
 import com.wasimaster.wmkeyboard.core.settings.customButtonById
 import com.wasimaster.wmkeyboard.core.settings.ClipRecentChipsMax
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VerticalAlignTop
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Sell
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Reorder
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Checklist
@@ -5539,8 +5542,10 @@ private fun RowScope.StripAnswerChips(
     callbacks: StripAnswerCallbacks,
 ): Boolean {
     // A copy the keyboard just made privately holds the row over a smart
-    // chip too, until the next key (#679).
-    val shownSmart = smart.takeUnless { state.clipChipHeld && recentClipChip }
+    // chip too, until the next key (#679). So does the row of recent copies,
+    // asked for by hand (#612): a sum's answer chip used to keep it off the
+    // strip altogether.
+    val shownSmart = smart.takeUnless { (state.clipChipHeld && recentClipChip) || recentClipsBar }
     val onToolTap = callbacks.onToolTap
     val onSmartOpen = callbacks.onSmartOpen
     val onSmartAccept = callbacks.onSmartAccept
@@ -5630,7 +5635,20 @@ private fun RowScope.StripAnswerChips(
             },
         )
     }
-    if (shownSmart != null && !keywordChip) return true
+    if (shownSmart != null && !keywordChip) {
+        // The last copy shares the row with the answer (#612) rather than
+        // waiting for it to go: both are things the user may want next.
+        val copy = state.clipboardSuggestion
+        if (recentClipChip && copy != null) {
+            ClipboardSuggestionChip(
+                clip = copy,
+                onPaste = { callbacks.onClipboardSuggestion(copy) },
+                onDismiss = callbacks.onClipboardSuggestionDismiss,
+                modifier = Modifier.widthIn(max = 120.dp).padding(end = 4.dp),
+            )
+        }
+        return true
+    }
     // The once-a-day word chip sits where a smart chip would, when none is up.
     val daily = state.vocabDaily
     if (shownSmart == null && daily != null) {
@@ -5693,7 +5711,15 @@ private fun RowScope.StripAnswerChips(
     // Text and pictures, never a secret: the kinds the single chip
     // shows. Pictures were left out, so a row of two or more lost the
     // screenshot the one chip had just been showing (#1284).
-    val clipBarChips = if (recentClipsBar && shownSmart == null) {
+    // A copy held and deleted from its chip (#612), with the clipboard shut:
+    // its Undo, on the strip where the delete was made.
+    val stripUndo = state.clipboardUndo?.takeIf { state.panel != PanelMode.CLIPBOARD }
+    val clipActions = LocalClipStripActions.current
+    if (stripUndo != null && clipActions != null) {
+        ClipStripUndoChip(stripUndo.items.size, clipActions.onUndo, Modifier.padding(horizontal = 4.dp))
+        if (!suggestionsShowing) return true
+    }
+    val clipBarChips = if (recentClipsBar) {
         state.clipboardItems
             .filter {
                 !it.sensitive && (it.kind == ClipKind.IMAGE || it.kind.isTextual && it.text.isNotBlank())
@@ -7690,9 +7716,22 @@ private fun ClipboardSuggestionChip(
 ) {
     val kb = LocalKbTheme.current
     val feedback = LocalKeyPressFeedback.current
-    // A press and hold deletes the copy (#612); not a part of one, whose
-    // clip is more than what the chip shows.
+    // A press and hold asks what to do with the copy (#612): delete it, or
+    // collect the next copies into it (#1312). It used to delete at once,
+    // and a hold made by accident went unnoticed. Not a part of a copy,
+    // whose clip is more than what the chip shows.
     val onDelete = LocalClipChipDelete.current?.takeIf { otp == null }
+    val onCollect = LocalClipStripActions.current?.onCollect?.takeIf { otp == null && clip.kind.isTextual && !clip.sensitive }
+    var asking by remember(clip.id) { mutableStateOf(false) }
+    if (asking && onDelete != null) {
+        ClipChipHoldRow(
+            onDelete = { asking = false; feedback(); onDelete(clip) },
+            onCollect = onCollect?.let { collect -> { asking = false; feedback(); collect(clip) } },
+            onCancel = { asking = false },
+            modifier = modifier,
+        )
+        return
+    }
     // The theme's own chip colours where it names them (gap list item 28),
     // else the accent tint the chip always wore.
     val tint = kb.clipChipInk()
@@ -7743,7 +7782,7 @@ private fun ClipboardSuggestionChip(
                 .fillMaxHeight()
                 .combinedClickable(
                     onLongClickLabel = onDelete?.let { stringResource(R.string.ime_clip_chip_delete_desc) },
-                    onLongClick = onDelete?.let { delete -> { feedback(); delete(clip) } },
+                    onLongClick = onDelete?.let { { feedback(); asking = true } },
                 ) {
                     feedback()
                     onPaste()
@@ -7866,6 +7905,101 @@ private fun ClipboardSuggestionChip(
                 modifier = Modifier.size(15.dp),
             )
         }
+    }
+}
+
+/**
+ * What a held copy chip offers (#612), in the chip's place: Delete, Collect
+ * copies here for a text copy (#1312), and a ✕ that puts the chip back.
+ */
+@Composable
+private fun ClipChipHoldRow(
+    onDelete: () -> Unit,
+    onCollect: (() -> Unit)?,
+    onCancel: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val kb = LocalKbTheme.current
+    val tint = kb.clipChipInk()
+    Row(
+        modifier = modifier
+            .fillMaxHeight()
+            .padding(vertical = 5.dp)
+            .clip(RoundedCornerShape(50))
+            .background(kb.clipChipFill())
+            .border(1.dp, tint.copy(alpha = 0.32f), RoundedCornerShape(50))
+            .semantics { liveRegion = LiveRegionMode.Polite },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        ClipChipHoldAction(Icons.Outlined.Delete, stringResource(CommonR.string.common_delete), MaterialTheme.colorScheme.error, onDelete)
+        if (onCollect != null) {
+            ClipChipHoldAction(Icons.Outlined.LibraryAdd, stringResource(R.string.ime_clip_collect), tint, onCollect)
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .clip(CircleShape)
+                .clickable(onClick = onCancel)
+                .padding(horizontal = 8.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                Icons.Outlined.Close,
+                contentDescription = stringResource(CommonR.string.common_cancel),
+                tint = tint.copy(alpha = 0.7f),
+                modifier = Modifier.size(15.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ClipChipHoldAction(icon: ImageVector, label: String, tint: Color, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxHeight()
+            .clip(RoundedCornerShape(50))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(15.dp))
+        Spacer(Modifier.width(5.dp))
+        Text(label, color = tint, fontSize = 13.sp, maxLines = 1)
+    }
+}
+
+/**
+ * "Clip deleted · Undo" on the strip (#612), after a copy's chip was held
+ * and deleted with the clipboard closed: the Undo bar lives in the panel,
+ * so a delete from the strip used to go unseen until the panel was opened.
+ */
+@Composable
+private fun ClipStripUndoChip(count: Int, onUndo: () -> Unit, modifier: Modifier = Modifier) {
+    val kb = LocalKbTheme.current
+    val tint = kb.clipChipInk()
+    Row(
+        modifier = modifier
+            .fillMaxHeight()
+            .padding(vertical = 5.dp)
+            .clip(RoundedCornerShape(50))
+            .background(kb.clipChipFill())
+            .border(1.dp, tint.copy(alpha = 0.32f), RoundedCornerShape(50))
+            .clickable(onClick = onUndo)
+            .semantics { liveRegion = LiveRegionMode.Polite }
+            .padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Outlined.Delete, contentDescription = null, tint = tint.copy(alpha = 0.8f), modifier = Modifier.size(15.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(
+            pluralStringResource(R.plurals.ime_clip_deleted, count, count),
+            color = kb.clipChipText ?: kb.suggestionText,
+            fontSize = 13.sp,
+            maxLines = 1,
+        )
+        Spacer(Modifier.width(10.dp))
+        Text(stringResource(R.string.ime_clip_undo_delete), color = tint, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
     }
 }
 
@@ -15800,9 +15934,69 @@ private fun CaptureStrip(state: KeyboardUiState, capture: CaptureCallbacks) {
         // strip, and while the phrase is being said the strip says so.
         // No microphone at all while voice typing is switched off (#578).
         val dictation = state.captureTarget()?.takesDictation == true && state.settings.voiceBar.enabled
+        // The copies on a tool field's strip too (#612): the row of recent
+        // copies when asked for (a flick, the tool), over the words, and the
+        // last copy beside them. A press types the copy into this field.
+        val clipActions = LocalClipStripActions.current
+        val fieldClips = if (clipActions != null && state.recentClipsOpen) {
+            state.clipboardItems
+                .filter { it.kind.isTextual && !it.sensitive && it.text.isNotBlank() }
+                .sortedByDescending { it.timestamp }
+                .take(recentClipsRowCount(state.settings.clipboard.recentChips))
+        } else {
+            emptyList()
+        }
+        val lastCopy = state.clipboardSuggestion?.takeIf {
+            clipActions != null && state.settings.clipboard.suggestRecent &&
+                it.kind.isTextual && !it.sensitive && it.text.isNotBlank()
+        }
         if (dictation && state.fieldVoiceSpeaks()) {
             FieldVoiceStatus(state.voice, capture.onVoice)
+        } else if (clipActions != null && fieldClips.isNotEmpty()) {
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                for (chip in fieldClips) {
+                    ClipboardSuggestionChip(
+                        clip = chip,
+                        onPaste = { clipActions.onFieldPaste(chip) },
+                        onDismiss = {},
+                        dismissible = false,
+                        modifier = Modifier.widthIn(max = 200.dp),
+                    )
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .clickable { clipActions.onDismiss() }
+                    .padding(horizontal = 8.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Outlined.Close,
+                    contentDescription = stringResource(R.string.ime_clip_chip_dismiss_desc),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
         } else {
+            if (clipActions != null && lastCopy != null) {
+                ClipboardSuggestionChip(
+                    clip = lastCopy,
+                    onPaste = { clipActions.onFieldPaste(lastCopy) },
+                    onDismiss = clipActions.onDismiss,
+                    modifier = Modifier
+                        .widthIn(max = if (state.captureSuggestions.isEmpty()) ClipChipMaxWidth else 140.dp)
+                        .padding(horizontal = 4.dp),
+                )
+            }
             LatinSuggestionChips(
                 candidates = state.captureSuggestions,
                 enabled = true,
@@ -36476,7 +36670,9 @@ internal fun ClipInfoPopup(
     onPick: (() -> Unit)? = null,
     /** The Reorder view (#612). */
     onReorder: (() -> Unit)? = null,
-    /** Show in history: close the search and scroll to this clip (#612); null outside a search. */
+    /** First in its group, nothing pasted (#970). */
+    onMoveTop: (() -> Unit)? = null,
+    /** Show in history: the clip among its neighbours (#612); null outside a search or a filter. */
     onJump: (() -> Unit)? = null,
     /** The clip's tags, in the editor (#612). */
     onTags: (() -> Unit)? = null,
@@ -36574,6 +36770,11 @@ internal fun ClipInfoPopup(
                                 modifier = Modifier.horizontalScroll(rememberScrollState()),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
+                                // First (#612): on a picture, which has the most
+                                // icons, it was the one scrolled out of reach.
+                                onJump?.let {
+                                    ClipTextActionIcon(Icons.Outlined.History, stringResource(R.string.ime_clip_show_in_history), tint, it)
+                                }
                                 onViewText?.let {
                                     ClipTextActionIcon(Icons.AutoMirrored.Outlined.Article, stringResource(R.string.ime_clip_view_text), tint, it)
                                 }
@@ -36583,8 +36784,8 @@ internal fun ClipInfoPopup(
                                 onReorder?.let {
                                     ClipTextActionIcon(Icons.Outlined.Reorder, stringResource(R.string.ime_clip_reorder), tint, it)
                                 }
-                                onJump?.let {
-                                    ClipTextActionIcon(Icons.Outlined.History, stringResource(R.string.ime_clip_show_in_history), tint, it)
+                                onMoveTop?.let {
+                                    ClipTextActionIcon(Icons.Outlined.VerticalAlignTop, stringResource(R.string.ime_clip_move_top), tint, it)
                                 }
                                 onTags?.let {
                                     ClipTextActionIcon(Icons.Outlined.Sell, stringResource(R.string.ime_clip_tags), tint, it)
@@ -37070,6 +37271,12 @@ internal fun ClipThumbnail(item: ClipItem) {
         }
     }
     val shape = RoundedCornerShape(8.dp)
+    // The picture's shape before its pixels (#1354): read from the file's
+    // header, once per file, so the card is its final height from the first
+    // frame. A card that came in 64 dp tall and grew when the picture had
+    // loaded moved every card packed under it, and scrolling back up over
+    // pictures, which lays them out afresh, shuffled the grid each time.
+    val known = remember(item.imagePath) { item.imagePath?.let(ClipImageRatios::of) }
     bitmap?.let {
         // The card takes the image's own aspect ratio, so there is no
         // letterboxing to leave dead space beside it — the staggered grid just
@@ -37092,9 +37299,38 @@ internal fun ClipThumbnail(item: ClipItem) {
     } ?: Box(
         Modifier
             .fillMaxWidth()
-            .height(64.dp)
+            .then(
+                if (known != null) {
+                    Modifier.aspectRatio(known.coerceIn(MIN_THUMBNAIL_RATIO, MAX_THUMBNAIL_RATIO))
+                } else {
+                    Modifier.height(64.dp)
+                },
+            )
             .background(MaterialTheme.colorScheme.surfaceContainerHigh, shape)
     )
+}
+
+/**
+ * Each image clip's width over height, by file (#1354): what [ClipThumbnail]
+ * sizes its card by before the picture is decoded. Read from the header
+ * alone, a few hundred bytes, and kept for as long as the keyboard runs.
+ */
+internal object ClipImageRatios {
+    private val known = object : LinkedHashMap<String, Float>(64, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Float>?) = size > MAX_KNOWN
+    }
+
+    fun of(path: String): Float? {
+        synchronized(known) { known[path]?.let { return it } }
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        runCatching { BitmapFactory.decodeFile(path, bounds) }
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+        val ratio = bounds.outWidth.toFloat() / bounds.outHeight
+        synchronized(known) { known[path] = ratio }
+        return ratio
+    }
+
+    private const val MAX_KNOWN = 500
 }
 
 private const val THUMBNAIL_TARGET_PX = 256

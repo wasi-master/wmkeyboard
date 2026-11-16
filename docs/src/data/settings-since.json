@@ -428,6 +428,8 @@
 		"clipboard_screenshots_title": "0.5.3",
 		"clipboard_search_notes_title": "0.6.5",
 		"clipboard_search_regex_title": "0.5.14",
+		"clipboard_regex_whole_title": "0.6.8",
+		"clipboard_open_links_in_app_title": "0.6.8",
 		"clipboard_search_title": "0.5.3",
 		"clipboard_secret_chip_title": "0.6.6",
 		"clipboard_sensitive_expiry_title": "0.5.3",

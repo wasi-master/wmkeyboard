@@ -1197,6 +1197,25 @@
     <string name="ime_clip_joiner_bar">Bar</string>
     <!-- Dragging clips into an order of the user's own (#612). -->
     <string name="ime_clip_reorder">Reorder</string>
+    <!-- #970: a held clip's button that puts it first in its group without pasting it. -->
+    <string name="ime_clip_move_top">Move to top</string>
+    <!-- #1354: what stands where a clip was deleted until the clipboard closes. -->
+    <string name="ime_clip_deleted_slot">Deleted</string>
+    <!-- #612: the round buttons over the clipboard history. -->
+    <string name="ime_clip_jump_top_desc">Back to the top</string>
+    <string name="ime_clip_trail_back_desc">Back to the clip you went to before</string>
+    <string name="ime_clip_trail_forward_desc">Forward to the next clip you went to</string>
+    <!-- #612: the menu beside the .* button in the clipboard search and Combine. -->
+    <string name="ime_clip_patterns_desc">Kept patterns and whole-clip matching</string>
+    <string name="ime_clip_regex_whole">Match the whole clip</string>
+    <string name="ime_clip_regex_whole_hint">A pattern has to match all of a clip\'s text, not just part of it</string>
+    <string name="ime_clip_pattern_save">Keep this pattern</string>
+    <string name="ime_clip_patterns_none">No kept patterns yet. Type one, then keep it here.</string>
+    <string name="ime_clip_pattern_remove_desc">Remove <xliff:g id="pattern" example="\\w+ \\w+">%1$s</xliff:g></string>
+    <plurals name="ime_clip_count_desc">
+        <item quantity="one">%1$d clip</item>
+        <item quantity="other">%1$d clips</item>
+    </plurals>
     <string name="ime_clip_reorder_hint">Drag a clip by its handle, or press and hold it, to move it. It stays where you put it.</string>
     <string name="ime_clip_reorder_done">Done</string>
     <string name="ime_clip_reorder_handle_desc">Drag to move this clip</string>

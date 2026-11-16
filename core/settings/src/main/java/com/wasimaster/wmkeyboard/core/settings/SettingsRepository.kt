@@ -8646,6 +8646,9 @@ enum class ClipHoldAction {
     SEND_TO_BOARD,
     SELECT,
     REORDER,
+
+    /** First in its group, and what pastes next, without pasting (#970). */
+    MOVE_TOP,
     SHOW_IN_HISTORY,
     KEEP_ONLY,
     EDIT,
@@ -9135,6 +9138,25 @@ data class ClipboardSettings(
     val combineTemplate: String = "",
     /** Combine deletes the clips it joined, with one Undo (#612). Off by default. */
     val combineDeleteOriginals: Boolean = false,
+    /**
+     * A pattern in the clipboard's search and in Combine must match a clip's
+     * whole text (#612), not only somewhere in it, so `\w+ \w+` finds the
+     * clips of exactly two words. Off by default; set beside the `.*`.
+     */
+    val regexWhole: Boolean = false,
+    /** Patterns kept for the search and Combine (#612), newest first, set from the `.*` menu. */
+    val savedPatterns: List<String> = emptyList(),
+    /**
+     * Open link on a held link clip offers the app that takes that site
+     * (YouTube, Reddit) beside the browser (#1312). Off, the link goes
+     * straight to the browser. On by default.
+     */
+    val openLinksInApp: Boolean = true,
+    /**
+     * The order the user dragged the tag chips into (#612), in the filter
+     * row and under the tags editor; tags not in it follow, most used first.
+     */
+    val tagOrder: List<String> = emptyList(),
     /**
      * How much taller than the keyboard the clipboard panel opens, in dp
      * (#414), set by dragging the bar on top of the panel. 0, the default, is
@@ -12488,6 +12510,17 @@ private fun decodeKeySoundPacksByLayout(raw: String): Map<String, String> =
 private fun decodeTrackerNames(raw: String): List<String> =
     raw.split('\n').map { it.trim() }.filter { it.isNotEmpty() }
 
+/**
+ * [SettingsRepository.setClipboardSavedPatterns]'s list as kept: one pattern a
+ * line (#612). A pattern is one line; a line break in one is kept as `\n`,
+ * which a pattern reads the same way.
+ */
+private fun encodeSavedPatterns(patterns: List<String>): String =
+    patterns.map { it.replace("\n", "\\n") }.filter { it.isNotBlank() }.distinct().joinToString("\n")
+
+private fun decodeSavedPatterns(raw: String): List<String> =
+    raw.split('\n').filter { it.isNotBlank() }
+
 private fun encodeScriptFontIds(map: Map<String, String>): String =
     map.entries
         .filter { it.key.isNotEmpty() && it.value.isNotEmpty() }
@@ -13458,6 +13491,10 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_PRIVATE_COPIES = booleanPreferencesKey("clipboard_private_copies")
         private val CLIPBOARD_COPY_RULES = stringPreferencesKey("clipboard_copy_rules")
         private val CLIPBOARD_COPY_RULES_TO_SYSTEM = booleanPreferencesKey("clipboard_copy_rules_to_system")
+        private val CLIPBOARD_REGEX_WHOLE = booleanPreferencesKey("clipboard_regex_whole")
+        private val CLIPBOARD_SAVED_PATTERNS = stringPreferencesKey("clipboard_saved_patterns")
+        private val CLIPBOARD_OPEN_LINKS_IN_APP = booleanPreferencesKey("clipboard_open_links_in_app")
+        private val CLIPBOARD_TAG_ORDER = stringPreferencesKey("clipboard_tag_order")
         private val CLIPBOARD_CLEAN_COPIED_LINKS = booleanPreferencesKey("clipboard_clean_copied_links")
         private val CLIPBOARD_EXTRA_TRACKERS = stringPreferencesKey("clipboard_extra_trackers")
         private val CLIPBOARD_STRIP_MEDIA_METADATA = booleanPreferencesKey("clipboard_strip_media_metadata")
@@ -15745,6 +15782,10 @@ class SettingsRepository(private val context: Context) {
             combineAppend = p[CLIPBOARD_COMBINE_APPEND] ?: defaults.clipboard.combineAppend,
             combineTemplate = p[CLIPBOARD_COMBINE_TEMPLATE] ?: defaults.clipboard.combineTemplate,
             combineDeleteOriginals = p[CLIPBOARD_COMBINE_DELETE] ?: defaults.clipboard.combineDeleteOriginals,
+            regexWhole = p[CLIPBOARD_REGEX_WHOLE] ?: defaults.clipboard.regexWhole,
+            savedPatterns = p[CLIPBOARD_SAVED_PATTERNS]?.let(::decodeSavedPatterns) ?: defaults.clipboard.savedPatterns,
+            openLinksInApp = p[CLIPBOARD_OPEN_LINKS_IN_APP] ?: defaults.clipboard.openLinksInApp,
+            tagOrder = p[CLIPBOARD_TAG_ORDER]?.let(::decodeTrackerNames) ?: defaults.clipboard.tagOrder,
             pinnedInPlace = p[CLIPBOARD_PINNED_IN_PLACE] ?: defaults.clipboard.pinnedInPlace,
             pinnedFolders = p[CLIPBOARD_PINNED_FOLDERS] ?: defaults.clipboard.pinnedFolders,
             cardShortcut = p[CLIPBOARD_CARD_SHORTCUT]
@@ -25727,6 +25768,21 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardSearchRegex(value: Boolean) =
         editPrefs { it[CLIPBOARD_SEARCH_REGEX] = value }
+
+    /** A pattern matches a clip's whole text, in the search and in Combine (#612). */
+    suspend fun setClipboardRegexWhole(value: Boolean) =
+        editPrefs { it[CLIPBOARD_REGEX_WHOLE] = value }
+
+    /** The patterns kept for the search and Combine (#612), newest first. */
+    suspend fun setClipboardSavedPatterns(patterns: List<String>) =
+        editPrefs { it[CLIPBOARD_SAVED_PATTERNS] = encodeSavedPatterns(patterns) }
+
+    suspend fun setClipboardOpenLinksInApp(value: Boolean) =
+        editPrefs { it[CLIPBOARD_OPEN_LINKS_IN_APP] = value }
+
+    /** The tag chips' dragged order (#612), one tag a line. */
+    suspend fun setClipboardTagOrder(order: List<String>) =
+        editPrefs { it[CLIPBOARD_TAG_ORDER] = order.map { tag -> tag.replace('\n', ' ').trim() }.filter { tag -> tag.isNotEmpty() }.joinToString("\n") }
 
     suspend fun setClipboardSearchNotes(value: Boolean) =
         editPrefs { it[CLIPBOARD_SEARCH_NOTES] = value }

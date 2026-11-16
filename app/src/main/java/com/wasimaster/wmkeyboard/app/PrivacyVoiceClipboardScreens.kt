@@ -1162,6 +1162,15 @@ internal fun ClipboardSettings(
         }
         item(visible = clipSearch) {
             ToggleSetting(
+                R.string.clipboard_regex_whole_title,
+                stringResource(R.string.clipboard_regex_whole_subtitle),
+                settings.watch { it.clipboard.regexWhole },
+                info = stringResource(R.string.clipboard_regex_whole_info),
+                default = SettingsDefaults.clipboard.regexWhole,
+            ) { scope.launch { repository.setClipboardRegexWhole(it) } }
+        }
+        item(visible = clipSearch) {
+            ToggleSetting(
                 R.string.clipboard_search_notes_title,
                 stringResource(R.string.clipboard_search_notes_subtitle),
                 settings.watch { it.clipboard.searchNotes },
@@ -1186,6 +1195,15 @@ internal fun ClipboardSettings(
                 default = SettingsDefaults.clipboard.linkPreviews,
                 info = stringResource(R.string.clipboard_link_previews_info),
             ) { scope.launch { repository.setClipboardLinkPreviews(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.clipboard_open_links_in_app_title,
+                stringResource(R.string.clipboard_open_links_in_app_subtitle),
+                settings.watch { it.clipboard.openLinksInApp },
+                info = stringResource(R.string.clipboard_open_links_in_app_info),
+                default = SettingsDefaults.clipboard.openLinksInApp,
+            ) { scope.launch { repository.setClipboardOpenLinksInApp(it) } }
         }
         item {
             ToggleSetting(
@@ -1721,6 +1739,7 @@ private fun clipHoldActionLabels(): Map<ClipHoldAction, String> = ClipHoldAction
             ClipHoldAction.SEND_TO_BOARD -> ImeR.string.ime_clip_send_to_board
             ClipHoldAction.SELECT -> ImeR.string.ime_clip_select
             ClipHoldAction.REORDER -> ImeR.string.ime_clip_reorder
+            ClipHoldAction.MOVE_TOP -> ImeR.string.ime_clip_move_top
             ClipHoldAction.SHOW_IN_HISTORY -> ImeR.string.ime_clip_show_in_history
             ClipHoldAction.KEEP_ONLY -> ImeR.string.ime_clip_keep_only
             ClipHoldAction.EDIT -> ImeR.string.ime_clip_edit

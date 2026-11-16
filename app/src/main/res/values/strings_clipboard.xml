@@ -165,6 +165,9 @@
     <string name="clipboard_search_regex_title">Regular expressions</string>
     <string name="clipboard_search_regex_subtitle">Read the search as a pattern, such as ^https or \\d{6}</string>
     <string name="clipboard_search_regex_info">With this setting on, what you type in the clipboard search is a regular expression instead of plain text. ^https finds clips that start with a web address, \\d{6} finds six digits in a row, and invoice|receipt finds either word. Case never matters. A pattern that is not finished yet, like an open bracket, searches as plain text until it is, so the list does not go blank while you type. This setting is off by default.</string>
+    <string name="clipboard_regex_whole_title">Match the whole clip</string>
+    <string name="clipboard_regex_whole_subtitle">A pattern has to match all of a clip\'s text, in the search and in Combine</string>
+    <string name="clipboard_regex_whole_info">Off, a pattern finds clips that hold a match anywhere in them, so \\w+ \\w+ finds every clip with two words in a row. On, the pattern has to match the clip\'s whole text: \\w+ \\w+ finds the clips of exactly two words, and .{1,20} the clips of up to 20 characters. Combine keeps only the clips the pattern matches whole. The same switch is in the menu beside the .* button in the clipboard. This setting is off by default.</string>
     <string name="clipboard_search_notes_title">Search notes too</string>
     <string name="clipboard_search_notes_subtitle">List passages from your notes that match the search, above the clips</string>
     <string name="clipboard_search_notes_info">With this setting on, the clipboard search also looks inside your notes and lists the paragraphs that match above the clips it finds. Tap a passage to type it, or press and hold it to open its note. The regular expressions switch and the tag filter work on notes too: a note tagged Quotes shows up under the Quotes tag like a clip with it. The Links, Images, Files, Pinned, Unpinned and Duplicates filters leave notes out. Locked notes are never searched. This setting is on by default.</string>
@@ -196,6 +199,9 @@
     <string name="clipboard_link_previews_title">Link previews</string>
     <string name="clipboard_link_previews_subtitle">Get the page title of a copied link and show it in the panel. This contacts the linked site</string>
     <string name="clipboard_link_previews_info">For a copied link, the keyboard gets the title of the page and shows it in the clipboard panel, so you can tell links apart. To get the title, the keyboard contacts the linked site, which then sees your IP address.</string>
+    <string name="clipboard_open_links_in_app_title">Open links in their app</string>
+    <string name="clipboard_open_links_in_app_subtitle">Open link on a clip offers the app for that site, such as YouTube, beside the browser</string>
+    <string name="clipboard_open_links_in_app_info">With this setting on, Open link on a held link clip brings up Android\'s picker when an app on your phone takes links to that site, such as YouTube or Reddit, so you can open the link there or in the browser. Off, every link opens straight in your browser with no picker. This setting is on by default.</string>
     <string name="clipboard_screenshots_title">Your screenshots</string>
     <string name="clipboard_screenshots_subtitle">Show your screenshots in the clipboard next to copied text and images</string>
     <string name="clipboard_screenshots_info">Shows your recent screenshots in the clipboard panel beside the copied text and pictures, so you can send one right after you take it.</string>

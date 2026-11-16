@@ -3071,6 +3071,11 @@ data class ClipEdit(
      * thing to save: it takes every tag off.
      */
     val tags: Boolean = false,
+    /**
+     * The clipboard search this editor was opened from (#612), to go back
+     * to when it closes, saved or not; null when it was not opened from one.
+     */
+    val returnQuery: String? = null,
 ) {
     /** Whether saving would change anything. Blank never saves a text. */
     val canSave: Boolean get() = if (tags) draft.trim().trimEnd(',').trim() != original else draft.isNotBlank() && draft.trim() != original
@@ -3116,6 +3121,8 @@ data class ClipCombineDraft(
     /** Combine deletes the clips it joined (#612). */
     val deleteOriginals: Boolean = false,
     val focused: ClipCombineField = ClipCombineField.JOINER,
+    /** The clipboard search Combine was opened from (#612), to go back to; null for none. */
+    val returnQuery: String? = null,
 ) {
     /** The box [focused] names. */
     val focusedText: String

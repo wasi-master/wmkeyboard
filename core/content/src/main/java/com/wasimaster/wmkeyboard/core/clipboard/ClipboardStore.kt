@@ -182,19 +182,59 @@ fun ClipItem.matchesQuery(query: String): Boolean = clipQueryMatcher(query, rege
  * compiled once rather than once per clip.
  *
  * With [regex] on (#414) the query is a case-insensitive regular expression,
- * found anywhere in any one of a clip's [searchParts]. A pattern that does not
- * compile, which is what one is halfway through being typed (`(htt`, `[0-9`),
- * searches as plain text instead, so the list never blanks out mid-word.
+ * looked for in what the clip says: its text, a file's name, a link's
+ * fetched title, its tags. Not in the words for its kind and format (#612):
+ * every text clip carries "text" and "plain" there, so `^\w+$` and
+ * `^\w{1,5}$` matched all of them and a pattern seemed to do nothing.
+ * With [whole] the pattern must match the whole of one of those rather than
+ * a part, so `\w+ \w+` finds the clips of exactly two words and `.{1,20}`
+ * the short ones. A pattern that does not compile, which is what one is
+ * halfway through being typed (`(htt`, `[0-9`), searches as plain text
+ * instead, so the list never blanks out mid-word.
  */
-fun clipQueryMatcher(query: String, regex: Boolean): (ClipItem) -> Boolean {
+fun clipQueryMatcher(query: String, regex: Boolean, whole: Boolean = false): (ClipItem) -> Boolean {
     val trimmed = query.trim()
     if (trimmed.isEmpty()) return { true }
-    val pattern = if (regex) runCatching { Regex(trimmed, RegexOption.IGNORE_CASE) }.getOrNull() else null
+    val pattern = if (regex) clipPattern(trimmed) else null
     return if (pattern != null) {
-        { item -> item.searchParts().any { pattern.containsMatchIn(it) } }
+        if (whole) {
+            { item -> item.patternParts().any { pattern.matches(it) } }
+        } else {
+            { item -> item.patternParts().any { pattern.containsMatchIn(it) } }
+        }
     } else {
         { item -> item.searchHaystack().contains(trimmed, ignoreCase = true) }
     }
+}
+
+/**
+ * [pattern] compiled the way the clipboard's search reads patterns (#612):
+ * case folded, `.` across line breaks, and a count written with a space in it,
+ * `\w{2, 5}`, read as `\w{2,5}` rather than refused, which sent it to the
+ * plain-text search and found nothing. Null when it does not compile.
+ */
+fun clipPattern(pattern: String, ignoreCase: Boolean = true, dotAll: Boolean = true): Regex? {
+    val tidy = CountWithSpaces.replace(pattern) { "{" + it.groupValues[1] + "," + it.groupValues[2] + "}" }
+    val options = buildSet {
+        if (dotAll) add(RegexOption.DOT_MATCHES_ALL)
+        if (ignoreCase) add(RegexOption.IGNORE_CASE)
+    }
+    return runCatching { Regex(tidy, options) }.getOrNull()
+}
+
+private val CountWithSpaces = Regex("""\{\s*(\d+)\s*,\s*(\d*)\s*}""")
+
+/** What a pattern is tried against (#612): what the clip says, never the words for its kind. */
+private fun ClipItem.patternParts(): List<String> = buildList {
+    add(text)
+    fileName?.let(::add)
+    linkPreview?.let { preview ->
+        if (!preview.failed) {
+            add(preview.title)
+            add(preview.description)
+        }
+    }
+    addAll(tags)
 }
 
 /**
@@ -207,30 +247,60 @@ val ClipItem.clipEditable: Boolean get() = kind.isTextual && !sensitive
 object ClipLinks {
 
     /**
-     * The endings a web address written without `https://` or `www.` is
-     * recognised by (#612): `x.com`, `youtu.be`, `wmkeyboard.pages.dev`. A
-     * list rather than any two letters, so `notes.txt`, `main.py`, `e.g.` and
-     * `Node.js` stay words and file names.
+     * The endings a web address written without `https://` or `www.` was
+     * first recognised by (#612): `x.com`, `youtu.be`, `wmkeyboard.pages.dev`.
+     * Always a link, whatever follows. Every other real ending ([ClipTlds])
+     * counts too, but see [FILE_ENDINGS].
      */
-    internal const val BARE_TLDS =
+    internal val BARE_TLDS: Set<String> = (
         "com|net|org|io|dev|app|co|me|tv|be|ly|gg|xyz|info|edu|gov|mil|int|biz|ai|cc|ws|" +
             "uk|us|ca|de|fr|es|it|nl|se|no|fi|dk|pl|ru|ua|jp|cn|kr|tw|hk|sg|au|nz|br|mx|ar|cl|za|ng|ke|" +
             "eg|tr|ir|pk|bd|lk|np|id|my|ph|th|vn|ch|at|ie|pt|gr|cz|hu|ro|il|sa|ae|eu|asia|in|" +
             "news|blog|site|online|store|shop|tech|page|link|club|live|wiki|social|art|design|cloud|" +
             "email|space|zone|top|fun|one|pro|fm"
+        ).split('|').toHashSet()
 
-    /** A host made of labels ending in one of [BARE_TLDS], with an optional port. */
-    internal const val BARE_HOST = """(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:$BARE_TLDS)(?::\d{1,5})?"""
+    /**
+     * Real endings that are as often a file's or a word's (#612): `main.py`,
+     * `install.sh`, `notes.md`, `such.as`. A bare address ending in one is a
+     * link only with a path, a query or a fragment after it, `bun.sh/docs`.
+     */
+    internal val FILE_ENDINGS: Set<String> = setOf(
+        "py", "md", "rs", "sh", "zip", "mov", "so", "ps", "gd", "pm", "name",
+        "ml", "ms", "is", "as", "am", "do", "by", "sb", "mk", "mo",
+    )
+
+    /**
+     * A host made of labels ending in two or more letters (or an `xn--`
+     * label), with an optional port. Only a shape: whether it is an address
+     * is [isBareHost]'s to say.
+     */
+    internal const val BARE_HOST = """(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:[a-z]{2,24}|xn--[a-z0-9-]{1,59})(?::\d{1,5})?"""
+
+    /**
+     * Whether [host], as [BARE_HOST] matched it, ends in a real top-level
+     * domain (#612); [hasPath] says something follows it, which an ending in
+     * [FILE_ENDINGS] needs.
+     */
+    fun isBareHost(host: String, hasPath: Boolean): Boolean {
+        val tld = host.substringBefore(':').substringAfterLast('.').lowercase()
+        if (tld in BARE_TLDS) return true
+        if (tld !in ClipTlds.ALL) return false
+        return hasPath || tld !in FILE_ENDINGS
+    }
 
     private val URL_REGEX = Regex(
-        """^(?:(?:https?://|www\.)[^\s<>"']+|$BARE_HOST(?:[/?#][^\s<>"']*)?)$""",
+        """^(?:(?:https?://|www\.)[^\s<>"']+|($BARE_HOST)([/?#][^\s<>"']*)?)$""",
         RegexOption.IGNORE_CASE,
     )
 
     /** The clip text as a URL, or null when it isn't a single bare link. */
     fun asUrl(text: String): String? {
         val trimmed = text.trim()
-        if (trimmed.length > 2048 || !URL_REGEX.matches(trimmed)) return null
+        if (trimmed.length > 2048) return null
+        val match = URL_REGEX.matchEntire(trimmed) ?: return null
+        val host = match.groups[1]?.value
+        if (host != null && !isBareHost(host, match.groups[2] != null)) return null
         val schemed = trimmed.startsWith("http://", ignoreCase = true) || trimmed.startsWith("https://", ignoreCase = true)
         return if (schemed) trimmed else "https://$trimmed"
     }

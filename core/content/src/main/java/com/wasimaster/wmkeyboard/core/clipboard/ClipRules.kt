@@ -140,6 +140,8 @@ object ClipCombine {
         base: String = "",
         append: String = "",
         template: String = "",
+        /** The pattern must match a clip's whole text (#612); a clip it does not is left out. */
+        whole: Boolean = false,
     ): String? {
         if (append.isEmpty()) {
             val kept = texts.filter { it.isNotEmpty() }
@@ -147,7 +149,7 @@ object ClipCombine {
             return base + kept.joinToString(joiner)
         }
         val pattern = appendPattern(append) ?: return null
-        val matches = texts.mapNotNull { pattern.find(it) }
+        val matches = texts.mapNotNull { if (whole) pattern.matchEntire(it) else pattern.find(it) }
         val parts = matches.map { match -> if (template.isEmpty()) match.value else expand(template, match) }
             .filter { it.isNotEmpty() }
         if (parts.isEmpty()) return null
@@ -160,15 +162,17 @@ object ClipCombine {
      * range of its text the pattern matched, or null for a clip it misses.
      * Every clip's whole text without a pattern.
      */
-    fun matchedRanges(texts: List<String>, append: String): List<IntRange?> {
+    fun matchedRanges(texts: List<String>, append: String, whole: Boolean = false): List<IntRange?> {
         if (append.isEmpty()) return texts.map { it.indices }
         val pattern = appendPattern(append) ?: return texts.map { null }
-        return texts.map { text -> pattern.find(text)?.range }
+        return texts.map { text -> (if (whole) pattern.matchEntire(text) else pattern.find(text))?.range }
     }
 
-    /** [append] compiled, or null when it does not compile. */
-    fun appendPattern(append: String): Regex? =
-        runCatching { Regex(append) }.getOrNull()
+    /**
+     * [append] compiled, or null when it does not compile. Case counts here,
+     * as it always has; a count written `{2, 5}` is read as `{2,5}` (#612).
+     */
+    fun appendPattern(append: String): Regex? = clipPattern(append, ignoreCase = false, dotAll = false)
 
     /**
      * [template] with `$0` to `$9` (or `${12}`) replaced by [match]'s groups,

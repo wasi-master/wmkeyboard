@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.LayoutCoordinates
@@ -900,6 +901,220 @@ internal fun fieldLongPress(text: String, layout: TextLayoutResult?, position: O
     }
     return span != null
 }
+
+/**
+ * Everything a finger does on a keyboard-owned field's text, the way a real
+ * text field answers it (#612):
+ *
+ * - a tap puts the caret under the finger at once. `detectTapGestures` with a
+ *   double tap held every single tap back for the double-tap timeout, which
+ *   is what made placing the caret feel laboured;
+ * - a second tap soon after, near the first, selects the word;
+ * - a press and hold selects the word, and the finger, still down, stretches
+ *   the selection a word at a time;
+ * - a drag that starts on either end of a selection moves that end. The
+ *   overlay's handles hang under the line and are small, so a finger aimed
+ *   at one often landed on the text instead, where the hold selected the
+ *   word under it: the selection jumped to another word instead of growing;
+ * - any other drag is left alone, for the field's scroll.
+ *
+ * Positions are in the text's own space, so this goes on the box the text is
+ * laid out at the top left of. [belowText] says a press under the last line
+ * is a press on the field's empty end: the caret goes to the end, and a hold
+ * there offers Paste.
+ */
+internal fun Modifier.fieldTextGestures(
+    key: Any?,
+    text: () -> String,
+    layout: () -> TextLayoutResult?,
+    handle: () -> CaptureCaretHandle,
+    setCaretBar: (Boolean) -> Unit,
+    onHold: () -> Unit = {},
+    belowText: Boolean = false,
+): Modifier = pointerInput(key) {
+    val slop = viewConfiguration.touchSlop
+    val holdMs = viewConfiguration.longPressTimeoutMillis
+    val doubleMs = viewConfiguration.doubleTapTimeoutMillis
+    val reach = FieldHandleReach.toPx()
+    val drop = FieldHandleDrop.toPx()
+    val doubleSlop = FieldDoubleTapSlop.toPx()
+    var lastUp = 0L
+    var lastAt = Offset.Zero
+    awaitEachGesture {
+        val down = awaitFirstDown()
+        val first = text()
+        fun current(): TextLayoutResult? = layout()?.takeIf { it.layoutInput.text.text == text() }
+        val startLayout = current()
+        val held = handle()
+        // Which end of the selection the finger is on, if either.
+        val grabbed = startLayout?.takeIf { held.hasSelection && held.selectionEnd <= first.length }
+            ?.let { selectionEndUnder(it, held, down.position, reach, drop) }
+        // Wait for the finger to lift, move off, or stay: a tap, a drag, a hold.
+        var outcome = FieldTouch.HOLD
+        var upTime = 0L
+        withTimeoutOrNull(holdMs) {
+            var done = false
+            while (!done) {
+                val event = awaitPointerEvent()
+                val change = event.changes.firstOrNull { it.id == down.id }
+                when {
+                    change == null -> { outcome = FieldTouch.GONE; done = true }
+                    change.changedToUp() -> {
+                        outcome = if (change.isConsumed) FieldTouch.GONE else FieldTouch.TAP
+                        upTime = change.uptimeMillis
+                        if (!change.isConsumed) change.consume()
+                        done = true
+                    }
+                    change.isConsumed -> { outcome = FieldTouch.GONE; done = true }
+                    (change.position - down.position).getDistance() > slop -> {
+                        outcome = if (grabbed != null) FieldTouch.DRAG_END else FieldTouch.GONE
+                        if (grabbed != null) change.consume()
+                        done = true
+                    }
+                }
+            }
+        }
+        when (outcome) {
+            FieldTouch.GONE -> Unit
+            FieldTouch.TAP -> {
+                val result = current() ?: return@awaitEachGesture
+                val now = handle()
+                val double = down.uptimeMillis - lastUp <= doubleMs && (down.position - lastAt).getDistance() <= doubleSlop
+                if (double) {
+                    lastUp = 0L
+                    setCaretBar(!fieldLongPress(text(), result, down.position, now))
+                    return@awaitEachGesture
+                }
+                lastUp = upTime
+                lastAt = down.position
+                setCaretBar(false)
+                val length = result.layoutInput.text.length
+                val offset = if (belowText && down.position.y > result.size.height) {
+                    length
+                } else {
+                    result.getOffsetForPosition(down.position).coerceIn(0, length)
+                }
+                now.onCaretTap(offset)
+            }
+            FieldTouch.DRAG_END -> {
+                val end = grabbed ?: return@awaitEachGesture
+                val result = startLayout ?: return@awaitEachGesture
+                // Where the finger is from the middle of the end's line, so the
+                // end follows the finger and not the point under it.
+                val grab = down.position - end.lineMiddle
+                val fixed = if (end.start) held.selectionEnd else held.selectionStart
+                var last = -1
+                while (true) {
+                    val event = awaitPointerEvent()
+                    val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                    if (!change.pressed) {
+                        change.consume()
+                        break
+                    }
+                    change.consume()
+                    val now = current() ?: result
+                    val length = now.layoutInput.text.length
+                    if (length == 0) continue
+                    val point = change.position - grab
+                    val line = now.getLineForVerticalPosition(point.y)
+                    val probe = Offset(point.x, (now.getLineTop(line) + now.getLineBottom(line)) / 2f)
+                    val offset = now.getOffsetForPosition(probe).coerceIn(0, length)
+                    // An end never crosses the other: one character stays selected.
+                    val moved = if (end.start) offset.coerceAtMost(fixed - 1).coerceAtLeast(0) else offset.coerceAtLeast(fixed + 1).coerceAtMost(length)
+                    if (moved == last) continue
+                    last = moved
+                    handle().onSelect(fixed, moved)
+                }
+            }
+            FieldTouch.HOLD -> {
+                val result = current()
+                val now = handle()
+                onHold()
+                if (result == null || (belowText && down.position.y > result.size.height)) {
+                    now.onCaretTap(text().length)
+                    setCaretBar(true)
+                    return@awaitEachGesture
+                }
+                val shown = text()
+                val length = result.layoutInput.text.length
+                val offset = result.getOffsetForPosition(down.position).coerceIn(0, length)
+                val span = CaretText.wordSpanAt(shown, offset)
+                if (span == null) {
+                    now.onCaretTap(offset)
+                    setCaretBar(true)
+                    return@awaitEachGesture
+                }
+                setCaretBar(false)
+                now.onSelect(span.first, span.last + 1)
+                // Still down: the selection stretches a word at a time.
+                var last = span.last + 1
+                while (true) {
+                    val event = awaitPointerEvent()
+                    val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                    if (!change.pressed) {
+                        change.consume()
+                        break
+                    }
+                    change.consume()
+                    val live = current() ?: continue
+                    val at = live.getOffsetForPosition(change.position).coerceIn(0, live.layoutInput.text.length)
+                    val word = CaretText.wordSpanAt(text(), at)
+                    val (anchor, caret) = if (at >= span.first) {
+                        span.first to maxOf(span.last + 1, word?.let { it.last + 1 } ?: at)
+                    } else {
+                        (span.last + 1) to (word?.first ?: at)
+                    }
+                    if (caret == last) continue
+                    last = caret
+                    handle().onSelect(anchor, caret)
+                }
+            }
+        }
+    }
+}
+
+/** What a finger on a field's text turned out to be; see [fieldTextGestures]. */
+private enum class FieldTouch { TAP, HOLD, DRAG_END, GONE }
+
+/** One end of a selection a finger landed on: which, and the middle of its line. */
+private class SelectionEndTouch(val start: Boolean, val lineMiddle: Offset)
+
+/**
+ * The end of [handle]'s selection [position] is on, or null: within [reach]
+ * of it across, and from the top of its line to [drop] under the line, where
+ * the handle hangs. The nearer end wins where both are in reach.
+ */
+private fun selectionEndUnder(
+    layout: TextLayoutResult,
+    handle: CaptureCaretHandle,
+    position: Offset,
+    reach: Float,
+    drop: Float,
+): SelectionEndTouch? {
+    val length = layout.layoutInput.text.length
+    var best: SelectionEndTouch? = null
+    var bestDistance = Float.MAX_VALUE
+    for (start in listOf(true, false)) {
+        val offset = (if (start) handle.selectionStart else handle.selectionEnd).coerceIn(0, length)
+        val rect = layout.getCursorRect(offset)
+        val dx = kotlin.math.abs(position.x - rect.left)
+        if (dx > reach || position.y < rect.top || position.y > rect.bottom + drop) continue
+        val middle = Offset(rect.left, (rect.top + rect.bottom) / 2f)
+        val distance = (position - Offset(rect.left, rect.bottom)).getDistance()
+        if (distance < bestDistance) {
+            bestDistance = distance
+            best = SelectionEndTouch(start, middle)
+        }
+    }
+    return best
+}
+
+/** How far across from a selection's end a drag still takes that end, and how far under its line. */
+private val FieldHandleReach: Dp = 22.dp
+private val FieldHandleDrop: Dp = 40.dp
+
+/** How near the first tap a second one has to land to be a double tap. */
+private val FieldDoubleTapSlop: Dp = 40.dp
 
 /** Touch box around one handle; the drop drawn in it is [HandleDrop] across. */
 private val HandleTouch: Dp = 36.dp

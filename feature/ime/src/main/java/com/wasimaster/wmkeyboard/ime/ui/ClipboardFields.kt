@@ -90,6 +90,9 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.GridView
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PushPin
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewAgenda
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandMore
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardArrowUp
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowForward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -129,6 +132,7 @@ import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
@@ -141,6 +145,8 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import androidx.compose.ui.layout.onSizeChanged
 import kotlin.math.roundToInt
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.clipboard.ClipEntities
@@ -283,6 +289,20 @@ data class ClipboardPanelActions(
     val onNotePassage: (NotePassageHit) -> Unit = {},
     /** A note's passage held: the Notes panel, editing the note it is from at the match (#1099). */
     val onNotePassageOpen: (NotePassageHit) -> Unit = {},
+    /** The `.*` menu's Whole clip (#612): a pattern must match a clip's whole text. */
+    val onRegexWhole: () -> Unit = {},
+    /** The `.*` menu's Save: this pattern kept for the search and Combine (#612). */
+    val onPatternSave: (String) -> Unit = {},
+    /** A kept pattern's ✕ in the `.*` menu (#612). */
+    val onPatternRemove: (String) -> Unit = {},
+    /** A kept pattern picked: into Combine's pattern box, or the search (#612). */
+    val onPatternUse: (String) -> Unit = {},
+    /** Move to top, from a clip's hold (#970): first in its group, nothing pasted. */
+    val onMoveTop: (ClipItem) -> Unit = {},
+    /** A clip's tags dragged into a new order on its card (#612). */
+    val onTagsReorder: (ClipItem, List<String>) -> Unit = { _, _ -> },
+    /** The tag chips dragged into a new order, in the filter row or under the tags editor (#612). */
+    val onTagOrder: (List<String>) -> Unit = {},
     /** The shared board (#1201): its view's state and actions; empty where there is no board, as in the floating box. */
     val board: com.wasimaster.wmkeyboard.ime.board.ClipBoardCallbacks = com.wasimaster.wmkeyboard.ime.board.ClipBoardCallbacks(),
 )
@@ -293,6 +313,106 @@ data class ClipboardPanelActions(
  * reaches the strip without one more parameter through `KeyboardScreen`.
  */
 val LocalClipChipDelete = androidx.compose.runtime.staticCompositionLocalOf<((ClipItem) -> Unit)?> { null }
+
+/**
+ * The rest of what a copy's chip on the strip can do (#612, #1312): collect
+ * the next copies into it, from its hold, and take back a delete made from
+ * its hold, from the Undo chip that takes its place. Provided by the service
+ * beside [LocalClipChipDelete], for the same reason.
+ */
+@Immutable
+class ClipStripActions(
+    val onCollect: (ClipItem) -> Unit,
+    val onUndo: () -> Unit,
+    /** A copy's chip on a tool field's strip (#612): its text typed into the field. */
+    val onFieldPaste: (ClipItem) -> Unit,
+    /** The ✕ of the copies on a tool field's strip: the row, then the chip, put away. */
+    val onDismiss: () -> Unit,
+)
+
+val LocalClipStripActions = androidx.compose.runtime.staticCompositionLocalOf<ClipStripActions?> { null }
+
+/**
+ * The held clip's popup that is up, if one is (#612), for Back: it closes the
+ * popup first, then the search, then the clipboard. A popup in the panel is
+ * not focusable, so Back reaches the service rather than the popup.
+ */
+object ClipHoldPopups {
+    private var dismiss by mutableStateOf<(() -> Unit)?>(null)
+
+    val open: Boolean get() = dismiss != null
+
+    fun close() {
+        val going = dismiss ?: return
+        dismiss = null
+        going()
+    }
+
+    internal fun shown(onDismiss: () -> Unit) {
+        dismiss = onDismiss
+    }
+
+    internal fun gone(onDismiss: () -> Unit) {
+        if (dismiss === onDismiss) dismiss = null
+    }
+}
+
+/**
+ * The places the history has been taken to (#612): where Show in history
+ * went, and the clips tagged or edited. The ← and → over the history walk
+ * them, the way a browser's buttons walk its pages; a new place goes at the
+ * end. For as long as the keyboard runs.
+ */
+internal object ClipTrail {
+    val points = androidx.compose.runtime.mutableStateListOf<Long>()
+
+    /** Where the walk is: an index into [points], or past its end after a clip was changed. */
+    var at by mutableIntStateOf(0)
+
+    /** A clip changed during a search, to go to when the search closes; null for none. */
+    var pendingJump: Long? = null
+
+    val canBack: Boolean get() = at > 0 && points.isNotEmpty()
+    val canForward: Boolean get() = at < points.size - 1
+
+    /** [id] as the newest place; [here] puts the walk on it, else just past it. */
+    fun push(id: Long, here: Boolean) {
+        points.remove(id)
+        points += id
+        while (points.size > CLIP_TRAIL_MAX) points.removeAt(0)
+        at = if (here) points.size - 1 else points.size
+    }
+
+    /** One place back or forward, skipping clips no longer in [live]; null when there is none. */
+    fun step(back: Boolean, live: Set<Long>): Long? {
+        var next = if (back) at - 1 else at + 1
+        while (next in points.indices) {
+            val id = points[next]
+            if (id in live) {
+                at = next
+                return id
+            }
+            next += if (back) -1 else 1
+        }
+        return null
+    }
+
+    private const val CLIP_TRAIL_MAX = 50
+}
+
+/**
+ * What each clip's tags and edit time were, to see which a save just changed
+ * (#612). Kept outside the panel, which the editor takes the place of while
+ * it is open.
+ */
+private object ClipChangeWatch {
+    var seen: Map<Long, Pair<Long?, List<String>>>? = null
+}
+
+/** Each card's last drawn height by clip, so a deleted clip's place keeps its size (#1354). */
+private class ClipHeights {
+    val px = HashMap<Long, Int>()
+}
 
 /**
  * Which clips the history shows (#612), on top of the search and the tabs.
@@ -440,15 +560,36 @@ private class ClipGridMemory {
     var drawn: List<ClipItem> = emptyList()
 }
 
-/** Every tag the clips in [items] carry (#612), each once whatever its case, the most used first. */
-internal fun clipTagsIn(items: List<ClipItem>): List<String> {
+/**
+ * Every tag the clips in [items] carry (#612), each once whatever its case:
+ * those in [order], the order the user dragged the chips into, first, then
+ * the rest, the most used first.
+ */
+internal fun clipTagsIn(items: List<ClipItem>, order: List<String> = emptyList()): List<String> {
     val counts = LinkedHashMap<String, Pair<String, Int>>()
     for (item in items) for (tag in item.tags) {
         val key = tag.lowercase()
         val seen = counts[key]
         counts[key] = (seen?.first ?: tag) to ((seen?.second ?: 0) + 1)
     }
-    return counts.values.sortedByDescending { it.second }.map { it.first }
+    val byUse = counts.values.sortedByDescending { it.second }.map { it.first }
+    if (order.isEmpty()) return byUse
+    val place = order.withIndex().associate { (index, tag) -> tag.lowercase() to index }
+    return byUse.sortedBy { place[it.lowercase()] ?: Int.MAX_VALUE }
+}
+
+/**
+ * [offered] for the tags editor's strip (#612): the tags that start with
+ * what is typed of the tag at the caret first, then the ones that hold it,
+ * then the rest, each group in the order it came in.
+ */
+internal fun clipTagsForTyping(offered: List<String>, draft: String, caret: Int): List<String> {
+    val typed = draft.substring(0, caret.coerceIn(0, draft.length)).substringAfterLast(',').substringAfterLast('\n')
+        .trim().trimStart('#').lowercase()
+    if (typed.isEmpty()) return offered
+    val (starts, rest) = offered.partition { it.lowercase().startsWith(typed) }
+    val (holds, others) = rest.partition { typed in it.lowercase() }
+    return starts + holds + others
 }
 
 /**
@@ -589,6 +730,8 @@ internal class ClipboardPanelSession(
     val oldest: MutableState<Boolean> = mutableStateOf(false),
     /** The filter row is open under the search. */
     val filtersOpen: MutableState<Boolean> = mutableStateOf(false),
+    /** The `.*` menu of kept patterns is open (#612). */
+    val patternsOpen: MutableState<Boolean> = mutableStateOf(false),
     /**
      * The clips picked for Combine or Delete, in the order picked (#612), or
      * null while the panel is not picking: a tap pastes as always.
@@ -644,7 +787,16 @@ internal class ClipboardPanelSession(
     val notePassages: List<NotePassageHit> = emptyList(),
     /** "Remind me" for the deadlines and birthdays in pinned clips (#1293), with the notes assistant on. */
     val reminders: List<com.wasimaster.wmkeyboard.core.notes.assist.NoteReminder> = emptyList(),
+    /** Each card's height as last drawn, for the place a deleted clip keeps (#1354). */
+    private val heights: ClipHeights = ClipHeights(),
 ) {
+    /** [id]'s card's last drawn height in pixels, or 0 for one never drawn. */
+    fun heightOf(id: Long): Int = heights.px[id] ?: 0
+
+    fun drawnAt(id: Long, px: Int) {
+        heights.px[id] = px
+    }
+
     /** The question is on screen: asked, and there is still something to delete. */
     val confirmingClear: Boolean get() = showClear && clearAsking.value
 
@@ -681,10 +833,13 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
         state.clipboardItems
     }
     val regexSearch = state.settings.clipboard.searchRegex
-    val matcher = remember(query, regexSearch) { clipQueryMatcher(query, regexSearch) }
+    // Match the whole clip (#612): a pattern must match all of a clip's text.
+    val regexWhole = state.settings.clipboard.regexWhole
+    val matcher = remember(query, regexSearch, regexWhole) { clipQueryMatcher(query, regexSearch, regexWhole) }
     val filters = remember { mutableStateOf(ClipPanelMemory.filters) }
     val oldest = remember { mutableStateOf(ClipPanelMemory.oldest) }
-    val clipTags = remember(state.clipboardItems) { clipTagsIn(state.clipboardItems) }
+    val tagOrder = state.settings.clipboard.tagOrder
+    val clipTags = remember(state.clipboardItems, tagOrder) { clipTagsIn(state.clipboardItems, tagOrder) }
     // The search looks inside the notes too (#1104), so their tags join the
     // clips' in the filter row: a note tagged Quotes is a chip like a clip's.
     val notesSearched = state.clipboardSearchActive && state.settings.clipboard.searchNotes && state.clipboardNotes.isNotEmpty()
@@ -704,6 +859,7 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     }
     val jumpTo = remember { mutableStateOf<Long?>(null) }
     val filtersOpen = remember { mutableStateOf(false) }
+    val patternsOpen = remember { mutableStateOf(false) }
     val selection = remember { mutableStateOf<List<Long>?>(null) }
     val reordering = remember { mutableStateOf(false) }
     val pinNotice = remember { mutableStateOf<ClipItem?>(null) }
@@ -838,6 +994,42 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     }
     val gridState = rememberLazyStaggeredGridState()
     val searchGridState = rememberLazyStaggeredGridState()
+    val heights = remember { ClipHeights() }
+    // Results start from the top (#612): when the clipboard opens, a filter
+    // or the order changes, the search opens or its words change. The grid
+    // keeps its place by the first clip it shows, so a new list used to
+    // open wherever that clip had landed in it. Not on the way to a clip
+    // Show in history is taking the history to.
+    LaunchedEffect(active, oldest.value, tab.value, searching) {
+        if (jumpTo.value == null) gridState.scrollToItem(0)
+    }
+    LaunchedEffect(query, active, oldest.value, searching) {
+        if (searching) searchGridState.scrollToItem(0)
+    }
+    // The clips tagged or edited go on the trail (#612), and one changed
+    // during a search is where the history goes when the search closes.
+    val changes = ClipChangeWatch
+    LaunchedEffect(state.clipboardItems) {
+        val now = state.clipboardItems.associate { it.id to (it.editedAt to it.tags) }
+        val before = changes.seen
+        changes.seen = now
+        if (before == null) return@LaunchedEffect
+        for ((id, mark) in now) {
+            val was = before[id] ?: continue
+            if (was != mark) {
+                ClipTrail.push(id, here = false)
+                if (state.clipboardSearchActive || state.clipEdit != null || state.clipCombine != null) ClipTrail.pendingJump = id
+            }
+        }
+    }
+    LaunchedEffect(searching) {
+        if (!searching) {
+            ClipTrail.pendingJump?.let { id ->
+                ClipTrail.pendingJump = null
+                if (state.clipboardItems.any { it.id == id }) jumpTo.value = id
+            }
+        }
+    }
     val tidy = state.settings.clipboard.copyRules.any { it.enabled } || state.settings.clipboard.plainLetters
     val list = state.settings.clipboard.view == ClipboardView.LIST
     val showNumbers = state.settings.clipboard.showNumbers
@@ -864,6 +1056,7 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
             active = active,
             oldest = oldest,
             filtersOpen = filtersOpen,
+            patternsOpen = patternsOpen,
             selection = selection,
             reordering = reordering,
             pinNotice = pinNotice,
@@ -881,6 +1074,7 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
             inFolder = inFolder,
             notePassages = notePassages,
             reminders = reminders,
+            heights = heights,
         )
     }
 }
@@ -929,6 +1123,7 @@ private fun ClipboardSearchFieldCell(
             when (parts.getOrNull(index)) {
                 ClipSearchPart.PILL -> callbacks.onSearchToggle()
                 ClipSearchPart.REGEX -> callbacks.actions.onRegexToggle()
+                ClipSearchPart.PATTERNS -> session.patternsOpen.value = !session.patternsOpen.value
                 ClipSearchPart.CLEAR -> if (session.confirmingClear) {
                     session.clearAsking.value = false
                     callbacks.actions.onClearUnpinned()
@@ -961,11 +1156,22 @@ private fun ClipboardSearchFieldCell(
                 on = session.regex,
                 focused = focused == parts.indexOf(ClipSearchPart.REGEX),
                 onClick = callbacks.actions.onRegexToggle,
+                modifier = Modifier.padding(end = 2.dp),
+            )
+            ClipPatternsButton(
+                state = state,
+                current = state.clipboardQuery,
+                open = session.patternsOpen,
+                focused = focused == parts.indexOf(ClipSearchPart.PATTERNS),
+                actions = callbacks.actions,
                 modifier = Modifier.padding(end = 4.dp),
             )
         } else {
             Spacer(Modifier.weight(1f))
         }
+        // How many clips are on show (#612), where the tabs, which count
+        // their own, are off.
+        if (!session.tabbed && state.clipboardItems.isNotEmpty()) ClipCountText(session.shownItems.size, Modifier.padding(end = 6.dp))
         if (session.showClear) {
             ClipboardClearButton(
                 asking = session.confirmingClear,
@@ -987,13 +1193,14 @@ private fun ClipboardSearchFieldCell(
 }
 
 /** What the search cell holds; see [clipSearchCellParts]. */
-internal enum class ClipSearchPart { PILL, REGEX, CLEAR, FRAGMENTS }
+internal enum class ClipSearchPart { PILL, REGEX, PATTERNS, CLEAR, FRAGMENTS }
 
 /** The search cell's parts, in the order they are drawn and the focus ring walks them. */
 internal fun clipSearchCellParts(session: ClipboardPanelSession): List<ClipSearchPart> = buildList {
     if (session.showSearch) {
         add(ClipSearchPart.PILL)
         add(ClipSearchPart.REGEX)
+        add(ClipSearchPart.PATTERNS)
     }
     if (session.showClear) add(ClipSearchPart.CLEAR)
     if (session.showFragments) add(ClipSearchPart.FRAGMENTS)
@@ -1042,6 +1249,188 @@ internal fun ClipRegexButton(
                 modifier = Modifier.clearAndSetSemantics {},
             )
         }
+    }
+}
+
+/** How many clips are on show (#612): the number alone, read out in words. */
+@Composable
+private fun ClipCountText(count: Int, modifier: Modifier = Modifier) {
+    val description = pluralStringResource(R.plurals.ime_clip_count_desc, count, count)
+    Text(
+        count.toString(),
+        fontSize = 12.sp,
+        lineHeight = 14.sp,
+        fontWeight = FontWeight.Medium,
+        maxLines = 1,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+        modifier = modifier
+            .widthIn(min = 18.dp)
+            .clearAndSetSemantics { contentDescription = description },
+    )
+}
+
+/**
+ * The ▾ beside the `.*` (#612), Mixplorer's way: a menu with Match the whole
+ * clip, the patterns kept for the search and Combine, and Save for the one
+ * typed now. [current] is the box the menu fills, the search or Combine's
+ * pattern.
+ */
+@Composable
+internal fun ClipPatternsButton(
+    state: KeyboardUiState,
+    current: String,
+    open: MutableState<Boolean>,
+    focused: Boolean,
+    actions: ClipboardPanelActions,
+    modifier: Modifier = Modifier,
+) {
+    val kb = LocalKbTheme.current
+    val shape = kb.cardShape()
+    val description = stringResource(R.string.ime_clip_patterns_desc)
+    val whole = state.settings.clipboard.regexWhole
+    Box(modifier) {
+        IconHint(description) {
+            Box(
+                modifier = Modifier
+                    .heightIn(max = 36.dp)
+                    .fillMaxHeight()
+                    .width(22.dp)
+                    .clip(shape)
+                    .frostGlass(kb, shape, FrostSurface.CHIPS)
+                    .background(if (whole) kb.toolCircleActive else kb.chip)
+                    .chipBorder(kb, shape)
+                    .focusRing(focused, shape)
+                    .semantics {
+                        role = Role.Button
+                        contentDescription = description
+                    }
+                    .clickable { open.value = !open.value },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Outlined.ExpandMore,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = if (whole) kb.toolCircleActiveIcon else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        if (open.value) {
+            ClipPatternsMenu(
+                saved = state.settings.clipboard.savedPatterns,
+                whole = whole,
+                current = current.trim(),
+                actions = actions,
+                onDismiss = { open.value = false },
+            )
+        }
+    }
+}
+
+/** [ClipPatternsButton]'s menu, in the hold popups' style. */
+@Composable
+private fun ClipPatternsMenu(
+    saved: List<String>,
+    whole: Boolean,
+    current: String,
+    actions: ClipboardPanelActions,
+    onDismiss: () -> Unit,
+) {
+    val kb = LocalKbTheme.current
+    ClipPopupRegistration(onDismiss)
+    Popup(popupPositionProvider = rememberAboveAnchorPopup(), onDismissRequest = onDismiss) {
+        GlassPopupBackdrop(kb, FrostSurface.MENUS)
+        Surface(
+            shape = kb.menuShape(),
+            color = kb.popupFill(FrostSurface.MENUS),
+            border = kb.popupSurfaceBorder(),
+            shadowElevation = elevationFor(kb.menuShapeKind, 6.dp),
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
+                .widthIn(min = 220.dp, max = ClipFullTextMaxWidth)
+                .frostGlass(kb, kb.menuShape(), FrostSurface.MENUS),
+        ) {
+            Column(modifier = Modifier.padding(vertical = 6.dp)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics(mergeDescendants = true) {
+                            role = Role.Switch
+                            selected = whole
+                        }
+                        .clickable(onClick = actions.onRegexWhole)
+                        .padding(horizontal = 14.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.ime_clip_regex_whole), fontSize = 14.sp, color = kb.popupText)
+                        Text(
+                            stringResource(R.string.ime_clip_regex_whole_hint),
+                            fontSize = 11.sp,
+                            lineHeight = 14.sp,
+                            color = kb.popupText.copy(alpha = 0.6f),
+                        )
+                    }
+                    androidx.compose.material3.Switch(checked = whole, onCheckedChange = null)
+                }
+                val canSave = current.isNotEmpty() && current !in saved
+                TextButton(
+                    onClick = { actions.onPatternSave(current) },
+                    enabled = canSave,
+                    modifier = Modifier.padding(horizontal = 4.dp),
+                ) { Text(stringResource(R.string.ime_clip_pattern_save)) }
+                if (saved.isEmpty()) {
+                    Text(
+                        stringResource(R.string.ime_clip_patterns_none),
+                        fontSize = 12.sp,
+                        color = kb.popupText.copy(alpha = 0.6f),
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                    )
+                } else {
+                    LazyColumn(modifier = Modifier.heightIn(max = 220.dp)) {
+                        items(saved, key = { it }) { pattern ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onDismiss()
+                                        actions.onPatternUse(pattern)
+                                    }
+                                    .padding(start = 14.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    pattern,
+                                    fontSize = 13.sp,
+                                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                                    color = kb.popupText,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                ClipTextActionIcon(
+                                    Icons.Outlined.Close,
+                                    stringResource(R.string.ime_clip_pattern_remove_desc, pattern),
+                                    kb.popupText.copy(alpha = 0.7f),
+                                ) { actions.onPatternRemove(pattern) }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Puts a clipboard popup where Back closes it first (#612), for as long as it is up. */
+@Composable
+private fun ClipPopupRegistration(onDismiss: () -> Unit) {
+    val latest by rememberUpdatedState(onDismiss)
+    val handle = remember { { latest() } }
+    androidx.compose.runtime.DisposableEffect(handle) {
+        ClipHoldPopups.shown(handle)
+        onDispose { ClipHoldPopups.gone(handle) }
     }
 }
 
@@ -1343,7 +1732,7 @@ private fun ClipboardListField(
                 }
             }
             if (!reordering && (session.filtersOpen.value || session.filtered)) {
-                ClipFilterRow(session)
+                ClipFilterRow(session, callbacks.actions.onTagOrder)
             }
             // A clip's own swipe (delete, pin) wins on the clip; elsewhere a
             // sideways swipe changes the tab. Not while the clips swipe too
@@ -1396,6 +1785,19 @@ private fun ClipboardListField(
                 .align(Alignment.TopCenter)
                 .padding(horizontal = 10.dp, vertical = 8.dp),
         )
+        // Not over the Undo bar or the pin's notice, nor while picking or reordering.
+        if (!reordering) {
+            ClipHistoryFloaters(
+                state = state,
+                session = session,
+                callbacks = guarded,
+                grid = if (searchPage) session.searchGridState else session.gridState,
+                hidden = state.clipboardUndo != null || session.pinNotice.value != null || selection != null,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+            )
+        }
         ClipPinNotice(
             notice = session.pinNotice,
             reduceMotion = state.settings.reduceMotion,
@@ -1668,7 +2070,7 @@ private fun ClipFolderHeader(name: String, onBack: () -> Unit) {
  * start so the chips do not move under the finger while they are being picked.
  */
 @Composable
-private fun ClipFilterRow(session: ClipboardPanelSession) {
+private fun ClipFilterRow(session: ClipboardPanelSession, onTagOrder: (List<String>) -> Unit) {
     val active = session.active
     val addLabel = stringResource(R.string.ime_clip_filter_add_desc)
     Row(
@@ -1712,25 +2114,30 @@ private fun ClipFilterRow(session: ClipboardPanelSession) {
         }
     }
     if (session.tags.isEmpty()) return
-    androidx.compose.foundation.lazy.LazyRow(
+    // The user's tags (#612). A press shows only the clips with the tag, a
+    // second shows only the ones without it (#1093), a third lets go. Held,
+    // a tag joins the ones set: any of them will do (#1187). Held and moved,
+    // it goes to a new place in the row, and keeps it (#612).
+    val feedback = LocalKeyPressFeedback.current
+    DragTagRow(
+        tags = session.tags,
+        onMove = onTagOrder,
         modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
         contentPadding = PaddingValues(horizontal = 6.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        // The user's tags (#612). A press shows only the clips with the tag,
-        // a second shows only the ones without it (#1093), a third lets go.
-        // Held, a tag joins the ones set: any of them will do (#1187).
-        items(session.tags, key = { "tag-$it" }) { tag ->
-            val chip = active.stateOfTag(tag)
-            ClipFilterChip(
-                label = if (chip == ClipChipState.NOT) stringResource(R.string.ime_clip_filter_without_tag, tag) else "#$tag",
-                selected = chip != ClipChipState.OFF,
-                icon = if (chip == ClipChipState.NOT) Icons.Outlined.Block else Icons.Outlined.Sell,
-                onLongClickLabel = addLabel,
-                onLongClick = { session.filters.value = active.heldTag(tag) },
-            ) { session.filters.value = active.tappedTag(tag) }
-        }
+        onTap = { tag -> session.filters.value = session.active.tappedTag(tag) },
+        onHold = { tag ->
+            feedback()
+            session.filters.value = session.active.heldTag(tag)
+        },
+    ) { tag, lifted ->
+        val chip = active.stateOfTag(tag)
+        ClipFilterChip(
+            label = if (chip == ClipChipState.NOT) stringResource(R.string.ime_clip_filter_without_tag, tag) else "#$tag",
+            selected = chip != ClipChipState.OFF || lifted,
+            icon = if (chip == ClipChipState.NOT) Icons.Outlined.Block else Icons.Outlined.Sell,
+            onLongClickLabel = addLabel,
+            gestures = false,
+        ) { session.filters.value = active.tappedTag(tag) }
     }
 }
 
@@ -1748,6 +2155,8 @@ private fun ClipFilterChip(
     description: String? = null,
     onLongClickLabel: String? = null,
     onLongClick: (() -> Unit)? = null,
+    /** False where a [DragTagRow] around the chip takes its touches; [onClick] is then only for TalkBack. */
+    gestures: Boolean = true,
     onClick: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
@@ -1776,7 +2185,10 @@ private fun ClipFilterChip(
                 },
             )
             .then(
-                if (onLongClick != null) {
+                if (!gestures) {
+                    val click = onClick
+                    Modifier.semantics { this.onClick(label = null) { click(); true } }
+                } else if (onLongClick != null) {
                     Modifier.combinedClickable(
                         onLongClickLabel = onLongClickLabel,
                         onLongClick = {
@@ -2196,8 +2608,10 @@ private fun ClipboardHistory(
                 picked = picked?.let { item.id in it },
                 onPick = { session.selection.value = listOf(item.id) },
                 onReorder = { session.reordering.value = true },
-                onJump = if (searchPage) {
-                    { clipJumpTo(session, item, callbacks) }
+                // From a search, and from a filtered history too (#612),
+                // whose clip it shows among its neighbours under All.
+                onJump = if (searchPage || session.filtered || session.inFolder) {
+                    { clipJumpTo(session, item, callbacks, searching = state.clipboardSearchActive) }
                 } else null,
                 onKeepOnly = if (duplicates) {
                     {
@@ -2209,13 +2623,18 @@ private fun ClipboardHistory(
                 shortcut = shortcut,
                 holdActions = clipboard.holdActions,
                 holdPaste = clipboard.holdPaste,
+                onTagTap = { tag -> session.filters.value = session.active.tappedTag(tag) },
             )
-            val outlined = (clipboard.outlinePinned && item.pinned) || item.id == flashId
+            val outlined = clipboard.outlinePinned && item.pinned
+            // The clip Show in history went to, and a picked one (#612), wear
+            // a mark of their own: they wore the pinned clips' outline, and
+            // beside a pinned clip there was no telling which was which.
+            val marked = item.id == flashId || hold.picked == true
             val ringed = index + passages.size == focused
             if (session.list) {
-                ClipRow(item, number, lines, time, focused = ringed, outlined, buttons, hold, callbacks)
+                ClipRow(item, number, lines, time, focused = ringed, outlined, marked, buttons, hold, callbacks)
             } else {
-                ClipCard(item, number, lines, time, focused = ringed, outlined, buttons, hold, callbacks)
+                ClipCard(item, number, lines, time, focused = ringed, outlined, marked, buttons, hold, callbacks)
             }
         }
     }
@@ -2299,18 +2718,21 @@ private fun ClipboardHistory(
             }
         } else {
             itemsIndexed(gridItems, key = { _, item -> item.id }) { index, item ->
-                // A deleted clip's slot (#612): nothing to draw, only the place.
+                // A deleted clip's place (#1354): as tall as its card was, saying
+                // Deleted, until the clipboard closes or the view changes, so
+                // no clip around it moves.
                 if (item.id in emptySlots) {
-                    Spacer(Modifier.fillMaxWidth().height(0.dp))
+                    ClipDeletedSlot(session.heightOf(item.id))
                     return@itemsIndexed
                 }
+                val measured = Modifier.onSizeChanged { session.drawnAt(item.id, it.height) }
                 clipCard(
                     index,
                     item,
                     if (state.settings.reduceMotion) {
-                        Modifier.padding(bottom = ClipItemGap)
+                        measured.padding(bottom = ClipItemGap)
                     } else {
-                        Modifier.padding(bottom = ClipItemGap).animateItem(
+                        measured.padding(bottom = ClipItemGap).animateItem(
                             fadeInSpec = tween(160),
                             placementSpec = spring(
                                 stiffness = Spring.StiffnessMediumLow,
@@ -2324,6 +2746,106 @@ private fun ClipboardHistory(
         }
     }
 }
+
+/**
+XX
+ * height with Deleted in it. The grid keeps every clip where it was, and
+ * the box says why there is a gap.
+ */
+@Composable
+private fun ClipDeletedSlot(heightPx: Int) {
+    val density = LocalDensity.current
+    val height = with(density) { heightPx.toDp() }
+    if (height < ClipItemGap + 8.dp) {
+        Spacer(Modifier.fillMaxWidth().height(0.dp))
+        return
+    }
+    val kb = LocalKbTheme.current
+    val shape = kb.cardShape()
+    val ink = MaterialTheme.colorScheme.onSurfaceVariant
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(height)
+            .padding(bottom = ClipItemGap)
+            .clip(shape)
+            .border(1.dp, ink.copy(alpha = 0.35f), shape),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            stringResource(R.string.ime_clip_deleted_slot),
+            fontSize = 12.sp,
+            color = ink.copy(alpha = 0.8f),
+            maxLines = 1,
+        )
+    }
+}
+
+/**
+ * The buttons that float over the history's bottom corners (#612): Back to
+ * the top at the start, once it has been scrolled down a few clips, and ←
+ * and → at the end, which walk the places Show in history went to and the
+ * clips tagged or edited ([ClipTrail]).
+ */
+@Composable
+private fun ClipHistoryFloaters(
+    state: KeyboardUiState,
+    session: ClipboardPanelSession,
+    callbacks: ClipboardFieldCallbacks,
+    grid: LazyStaggeredGridState,
+    hidden: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val down by remember(grid) { androidx.compose.runtime.derivedStateOf { grid.firstVisibleItemIndex >= ClipJumpTopAfter } }
+    val trail = ClipTrail.points.isNotEmpty()
+    if (hidden || (!down && !trail)) return
+    Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        if (down) {
+            ClipFloatButton(Icons.Outlined.KeyboardArrowUp, stringResource(R.string.ime_clip_jump_top_desc), enabled = true) {
+                scope.launch { grid.animateScrollToItem(0) }
+            }
+        }
+        Spacer(Modifier.weight(1f))
+        if (trail) {
+            val live = remember(state.clipboardItems) { state.clipboardItems.associateBy { it.id } }
+            fun go(back: Boolean) {
+                val id = ClipTrail.step(back, live.keys) ?: return
+                val item = live[id] ?: return
+                clipJumpTo(session, item, callbacks, searching = state.clipboardSearchActive, trail = false)
+            }
+            ClipFloatButton(Icons.AutoMirrored.Outlined.ArrowBack, stringResource(R.string.ime_clip_trail_back_desc), enabled = ClipTrail.canBack) { go(back = true) }
+            Spacer(Modifier.width(6.dp))
+            ClipFloatButton(Icons.AutoMirrored.Outlined.ArrowForward, stringResource(R.string.ime_clip_trail_forward_desc), enabled = ClipTrail.canForward) { go(back = false) }
+        }
+    }
+}
+
+/** One of [ClipHistoryFloaters]' round buttons, in the popups' colours so it stands off the cards. */
+@Composable
+private fun ClipFloatButton(icon: ImageVector, description: String, enabled: Boolean, onClick: () -> Unit) {
+    val kb = LocalKbTheme.current
+    IconHint(description) {
+        Surface(
+            shape = CircleShape,
+            color = kb.popupFill(FrostSurface.MENUS),
+            border = kb.popupSurfaceBorder(),
+            shadowElevation = elevationFor(kb.menuShapeKind, 4.dp),
+            modifier = Modifier
+                .size(36.dp)
+                .alpha(if (enabled) 1f else 0.4f)
+                .semantics { contentDescription = description }
+                .clickable(enabled = enabled, onClick = onClick),
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(icon, contentDescription = null, tint = kb.popupText, modifier = Modifier.size(18.dp))
+            }
+        }
+    }
+}
+
+/** How far down the history is scrolled, in clips, before Back to the top shows. */
+private const val ClipJumpTopAfter = 4
 
 /**
  * The panel while its search bar is capturing the keys: the pill and a couple
@@ -2341,9 +2863,15 @@ internal fun ClipboardSearchPanel(
     PanelFocusTarget(
         panel = PanelMode.CLIPBOARD,
         region = FocusRegion.SEARCH,
-        count = 2,
-        columns = 2,
-        onActivate = { index -> if (index == 0) callbacks.onSearchToggle() else callbacks.actions.onRegexToggle() },
+        count = 3,
+        columns = 3,
+        onActivate = { index ->
+            when (index) {
+                0 -> callbacks.onSearchToggle()
+                1 -> callbacks.actions.onRegexToggle()
+                else -> session.patternsOpen.value = !session.patternsOpen.value
+            }
+        },
     )
     // No fragment strip or view switch while searching; publish their regions
     // empty so a stale count cannot let Tab land on something nothing is drawing.
@@ -2396,20 +2924,16 @@ internal fun ClipboardSearchPanel(
                 onClick = callbacks.actions.onRegexToggle,
                 modifier = Modifier.padding(start = 6.dp),
             )
-            // How many clips the search and the filter leave (#612), and note passages (#1104).
-            val count = session.shownItems.size + session.notePassages.size
-            Text(
-                count.toString(),
-                fontSize = 12.sp,
-                lineHeight = 14.sp,
-                fontWeight = FontWeight.Medium,
-                maxLines = 1,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .padding(start = 8.dp)
-                    .widthIn(min = 18.dp),
-                textAlign = TextAlign.Center,
+            ClipPatternsButton(
+                state = state,
+                current = state.clipboardQuery,
+                open = session.patternsOpen,
+                focused = focused == 2,
+                actions = callbacks.actions,
+                modifier = Modifier.padding(start = 2.dp),
             )
+            // How many clips the search and the filter leave (#612), and note passages (#1104).
+            ClipCountText(session.shownItems.size + session.notePassages.size, Modifier.padding(start = 8.dp))
         }
         Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
             ClipboardListField(state, session, callbacks, searchPage = true)
@@ -2436,6 +2960,8 @@ private fun Modifier.clipSurface(
     focused: Boolean,
     outlined: Boolean,
     callbacks: ClipboardFieldCallbacks,
+    /** Picked, or the clip Show in history went to (#612): a wash and a thicker ring of another colour. */
+    marked: Boolean = false,
     onHold: () -> Unit,
 ): Modifier {
     val shape = kb.cardShape()
@@ -2453,6 +2979,15 @@ private fun Modifier.clipSurface(
         // A pinned clip's outline, when that is on (#371): the pin circle's
         // own accent, around the whole clip.
         .then(if (outlined) Modifier.border(PinnedOutlineWidth, MaterialTheme.colorScheme.primary, shape) else Modifier)
+        .then(
+            if (marked) {
+                Modifier
+                    .background(MaterialTheme.colorScheme.tertiary.copy(alpha = MarkedWashAlpha))
+                    .border(MarkedOutlineWidth, MaterialTheme.colorScheme.tertiary, shape)
+            } else {
+                Modifier
+            },
+        )
         .focusRing(focused, shape)
         .pointerInput(item.id) {
             detectTapGestures(
@@ -2503,6 +3038,8 @@ private class ClipHold(
     /** The web search and Wikipedia tools are on, for the hold popup's two searches (#914). */
     val webSearch: Boolean = false,
     val wikipedia: Boolean = false,
+    /** A tag on the card tapped (#612): the history filtered to it; null where there is no filter. */
+    val onTagTap: ((String) -> Unit)? = null,
 )
 
 /**
@@ -2510,12 +3047,23 @@ private class ClipHold(
  * history page scrolls to [item] on its tab, so the clips copied around it
  * are in view, the way a chat app's Go to message works.
  */
-private fun clipJumpTo(session: ClipboardPanelSession, item: ClipItem, callbacks: ClipboardFieldCallbacks) {
+private fun clipJumpTo(
+    session: ClipboardPanelSession,
+    item: ClipItem,
+    callbacks: ClipboardFieldCallbacks,
+    searching: Boolean,
+    trail: Boolean = true,
+) {
     session.filters.value = ClipFilters()
     session.filtersOpen.value = false
+    session.oldest.value = false
     session.tab.value = if (item.pinned) ClipTab.PINNED else ClipTab.UNPINNED
     session.jumpTo.value = item.id
-    callbacks.onSearchToggle()
+    // A place the ← and → over the history come back to (#612).
+    if (trail) ClipTrail.push(item.id, here = true)
+    // From a filtered history (#612) there is no search to close: the
+    // filters going is what puts the clip back among its neighbours.
+    if (searching) callbacks.onSearchToggle()
 }
 
 /** How long a clip reached by Show in history keeps its ring. */
@@ -2543,6 +3091,12 @@ private fun ClipHoldPopup(
     val textual = item.kind.isTextual && !item.sensitive && item.text.isNotEmpty()
     var fullText by remember { mutableStateOf(textual) }
     var extracting by remember { mutableStateOf(false) }
+    // Back closes this before the search or the clipboard (#612).
+    ClipPopupRegistration(onDismiss)
+    // Move to top (#970): first in its group, without pasting it.
+    val moveTop: (() -> Unit)? = if (hold.picked == null) {
+        { onDismiss(); callbacks.actions.onMoveTop(item) }
+    } else null
     val image = item.kind == ClipKind.IMAGE
     // Not a secret's: the panel never shows one's text, and the browser would.
     val link = item.kind.isTextual && !item.sensitive && ClipLinks.asUrl(item.text) != null
@@ -2595,6 +3149,7 @@ private fun ClipHoldPopup(
                 onSendToBoard = sendToBoard,
                 onPick = onPick,
                 onReorder = onReorder,
+                onMoveTop = moveTop,
                 onJump = hold.onJump?.let { jump -> { onDismiss(); jump() } },
                 onKeepOnly = hold.onKeepOnly?.let { keep -> { onDismiss(); keep() } },
                 onTags = if (hold.picked == null) {
@@ -2667,6 +3222,7 @@ private fun ClipHoldPopup(
         } else null,
         onPick = onPick,
         onReorder = onReorder,
+        onMoveTop = moveTop,
         onJump = hold.onJump?.let { jump -> { onDismiss(); jump() } },
         onTags = if (hold.picked == null) {
             { onDismiss(); callbacks.actions.onTags(item) }
@@ -2695,6 +3251,8 @@ private class ClipTextActions(
     val onPick: (() -> Unit)? = null,
     /** The Reorder view (#612). */
     val onReorder: (() -> Unit)? = null,
+    /** First in its group, nothing pasted (#970). */
+    val onMoveTop: (() -> Unit)? = null,
     /** Show in history, from a search (#612). */
     val onJump: (() -> Unit)? = null,
     /** Keep only this one of its duplicates (#612). */
@@ -2800,6 +3358,10 @@ private fun ClipFullTextPopup(
                                 )
                             }
                         }
+                    }
+                    // The clip's tags (#612), on a line that scrolls sideways.
+                    if (item.tags.isNotEmpty()) {
+                        ClipTagsLine(item, null, null, Modifier.padding(start = 14.dp, end = 14.dp, top = 2.dp))
                     }
                     val dark = kb.popupText.luminance() > 0.5f
                     LazyColumn(
@@ -2909,6 +3471,9 @@ private fun ClipTextActionButton(action: ClipHoldAction, item: ClipItem, actions
         }
         ClipHoldAction.REORDER -> actions.onReorder?.let {
             ClipTextActionIcon(Icons.Outlined.Reorder, stringResource(R.string.ime_clip_reorder), tint, it)
+        }
+        ClipHoldAction.MOVE_TOP -> actions.onMoveTop?.let {
+            ClipTextActionIcon(Icons.Outlined.VerticalAlignTop, stringResource(R.string.ime_clip_move_top), tint, it)
         }
         ClipHoldAction.SHOW_IN_HISTORY -> actions.onJump?.let {
             ClipTextActionIcon(Icons.Outlined.History, stringResource(R.string.ime_clip_show_in_history), tint, it)
@@ -3183,25 +3748,44 @@ private fun clipQrable(item: ClipItem): Boolean = item.kind.isTextual && !item.s
 /** The shortcut [clipShortcut] said [item] shows. */
 @Composable
 private fun ClipShortcutButton(item: ClipItem, hold: ClipHold, callbacks: ClipboardFieldCallbacks) {
+    // The glyph alone, the edited mark's size (#612): in a circle it was
+    // twice the mark's height, and switching between the two moved the card.
     when (hold.shortcut) {
-        ClipCardShortcut.EDIT -> ClipActionCircle(
-            icon = Icons.Outlined.Edit,
-            description = stringResource(R.string.ime_clip_edit),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        ) { callbacks.actions.onEdit(item) }
-        ClipCardShortcut.SELECT -> ClipActionCircle(
-            icon = Icons.Outlined.Checklist,
-            description = stringResource(R.string.ime_clip_select),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        ) { hold.onPick() }
-        ClipCardShortcut.QR -> ClipActionCircle(
-            icon = Icons.Outlined.QrCode2,
-            description = stringResource(R.string.ime_clip_qr),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        ) { callbacks.actions.onQr(item) }
+        ClipCardShortcut.EDIT -> ClipShortcutGlyph(Icons.Outlined.Edit, stringResource(R.string.ime_clip_edit)) {
+            callbacks.actions.onEdit(item)
+        }
+        ClipCardShortcut.SELECT -> ClipShortcutGlyph(Icons.Outlined.Checklist, stringResource(R.string.ime_clip_select)) {
+            hold.onPick()
+        }
+        ClipCardShortcut.QR -> ClipShortcutGlyph(Icons.Outlined.QrCode2, stringResource(R.string.ime_clip_qr)) {
+            callbacks.actions.onQr(item)
+        }
         else -> ClipEditedMark()
     }
 }
+
+/**
+ * A card's shortcut button as a bare glyph, the size [ClipEditedMark] is. The
+ * touch target is still a finger's: Compose widens a small target's touches
+ * to the minimum without making it take more room.
+ */
+@Composable
+private fun ClipShortcutGlyph(icon: ImageVector, description: String, onClick: () -> Unit) {
+    IconHint(description) {
+        Icon(
+            icon,
+            contentDescription = description,
+            modifier = Modifier
+                .size(ClipMarkSize)
+                .clip(CircleShape)
+                .clickable(onClick = onClick),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+/** The edited mark's glyph, and the shortcut glyphs that share its place. */
+private val ClipMarkSize = 15.dp
 
 /**
  * The mark on a clip whose text was edited (#576): the edit glyph alone, with
@@ -3262,6 +3846,7 @@ private fun ClipCard(
     time: String?,
     focused: Boolean,
     outlined: Boolean,
+    marked: Boolean,
     buttons: Boolean,
     hold: ClipHold,
     callbacks: ClipboardFieldCallbacks,
@@ -3274,13 +3859,13 @@ private fun ClipCard(
                 // Box and hands its child no minimum width, so a clip of one short
                 // word shrank to it and the grid looked broken (#414).
                 .fillMaxWidth()
-                .clipSurface(LocalKbTheme.current, item, focused, outlined || hold.picked == true, callbacks) { showInfo = true }
+                .clipSurface(LocalKbTheme.current, item, focused, outlined, callbacks, marked) { showInfo = true }
                 // An image card insets less: the picture is the content.
                 .padding(if (item.kind == ClipKind.IMAGE || item.kind == ClipKind.VIDEO) 5.dp else 10.dp),
         ) {
             if (showInfo) ClipHoldPopup(item, hold, callbacks) { showInfo = false }
             ClipBody(item, maxLines = lines, hold = hold)
-            if (item.tags.isNotEmpty()) ClipTagsLine(item.tags, Modifier.padding(top = 4.dp))
+            if (item.tags.isNotEmpty()) ClipTagsLine(item, hold, callbacks, Modifier.padding(top = 4.dp))
             val icons = hold.icons && hold.entities.isNotEmpty()
             val tag = item.kind == ClipKind.HTML && hold.typeTag
             // Per card: one clip may still have a number or a time to show while
@@ -3481,6 +4066,7 @@ private fun ClipRow(
     time: String?,
     focused: Boolean,
     outlined: Boolean,
+    marked: Boolean,
     buttons: Boolean,
     hold: ClipHold,
     callbacks: ClipboardFieldCallbacks,
@@ -3490,7 +4076,7 @@ private fun ClipRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clipSurface(LocalKbTheme.current, item, focused, outlined || hold.picked == true, callbacks) { showInfo = true }
+            .clipSurface(LocalKbTheme.current, item, focused, outlined, callbacks, marked) { showInfo = true }
             .padding(horizontal = 10.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -3522,7 +4108,7 @@ private fun ClipRow(
         } else {
             Column(modifier = Modifier.weight(1f)) {
                 ClipBody(item, maxLines = lines, hold = hold)
-                if (item.tags.isNotEmpty()) ClipTagsLine(item.tags, Modifier.padding(top = 2.dp))
+                if (item.tags.isNotEmpty()) ClipTagsLine(item, hold, callbacks, Modifier.padding(top = 2.dp))
                 if (item.kind == ClipKind.HTML && hold.typeTag) {
                     Text(
                         stringResource(R.string.ime_clip_type_rich_text),
@@ -3549,18 +4135,39 @@ private fun ClipRow(
     }
 }
 
-/** A clip's tags (#612), on one line under its body, each with its `#`, in the accent. */
+/**
+ * A clip's tags (#612), on one line under its body, each with its `#`, in the
+ * accent. The line scrolls sideways when the tags run past the card; a tag
+ * held and moved along it goes to a new place in the clip's order, and a tap
+ * on one shows the clips with that tag. Static where the clip is only shown.
+ */
 @Composable
-private fun ClipTagsLine(tags: List<String>, modifier: Modifier = Modifier) {
-    Text(
-        tags.joinToString("  ") { "#$it" },
-        fontSize = 11.sp,
-        lineHeight = 13.sp,
-        fontWeight = FontWeight.Medium,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        color = LocalKbTheme.current.accent,
+private fun ClipTagsLine(item: ClipItem, hold: ClipHold?, callbacks: ClipboardFieldCallbacks?, modifier: Modifier = Modifier) {
+    val accent = LocalKbTheme.current.accent
+    val tag: @Composable (String, Boolean) -> Unit = { name, lifted ->
+        Text(
+            "#$name",
+            fontSize = 11.sp,
+            lineHeight = 13.sp,
+            fontWeight = if (lifted) FontWeight.Bold else FontWeight.Medium,
+            maxLines = 1,
+            color = accent,
+        )
+    }
+    // Picking clips is all a tap does then.
+    if (callbacks == null || hold == null || hold.picked != null) {
+        Row(modifier = modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            for (name in item.tags) tag(name, false)
+        }
+        return
+    }
+    DragTagRow(
+        tags = item.tags,
+        onMove = { callbacks.actions.onTagsReorder(item, it) },
         modifier = modifier,
+        spacing = 8.dp,
+        onTap = hold.onTagTap,
+        tag = tag,
     )
 }
 
@@ -3630,6 +4237,10 @@ private val ListThumbnailMaxHeight = 80.dp
 
 /** A pinned clip's outline, when that setting is on: thin, a hairline over the card's own edge. */
 private val PinnedOutlineWidth = 1.5.dp
+
+/** A picked clip's, or one Show in history went to (#612): thicker, in another colour, over a wash. */
+private val MarkedOutlineWidth = 2.5.dp
+private const val MarkedWashAlpha = 0.14f
 
 /** The unpinned / pinned tabs' height. */
 private val ClipTabHeight = 32.dp
@@ -3806,18 +4417,29 @@ internal fun ClipEditDialog(
                     val have = remember(edit.draft) {
                         com.wasimaster.wmkeyboard.core.clipboard.parseClipTags(edit.draft).map { it.lowercase() }.toSet()
                     }
-                    val offered = remember(state.clipboardItems, have) {
-                        clipTagsIn(state.clipboardItems).filter { it.lowercase() !in have }
+                    val order = state.settings.clipboard.tagOrder
+                    val all = remember(state.clipboardItems, order) { clipTagsIn(state.clipboardItems, order) }
+                    // The tags that match what is typed of the tag at the
+                    // caret come first (#612), so the one meant is at hand.
+                    val caret = LocalCaptureCaret.current.at
+                    val offered = remember(all, have, edit.draft, caret) {
+                        clipTagsForTyping(all.filter { it.lowercase() !in have }, edit.draft, caret)
                     }
                     if (offered.isNotEmpty()) {
-                        androidx.compose.foundation.lazy.LazyRow(
+                        // Held and moved, a tag takes a new place here and in
+                        // the filter row (#612); the order is the one dragged
+                        // among every tag, the ones on this clip included.
+                        DragTagRow(
+                            tags = offered,
+                            onMove = { moved ->
+                                val rest = all.filter { tag -> moved.none { it.equals(tag, ignoreCase = true) } }
+                                actions.onTagOrder(moved + rest)
+                            },
                             modifier = Modifier.padding(top = 6.dp, end = 6.dp),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        ) {
-                            items(offered, key = { it }) { tag ->
-                                ClipFilterChip(label = "#$tag", selected = false, icon = Icons.Outlined.Sell) {
-                                    actions.onTagAdd(tag)
-                                }
+                            onTap = actions.onTagAdd,
+                        ) { tag, lifted ->
+                            ClipFilterChip(label = "#$tag", selected = lifted, icon = Icons.Outlined.Sell, gestures = false) {
+                                actions.onTagAdd(tag)
                             }
                         }
                     }
@@ -3858,9 +4480,13 @@ internal fun ClipEditText(
     val owner = remember { SelectionAnchor() }
     val selecting = handle.hasSelection && handle.selectionEnd <= text.length
     val latestHandle by rememberUpdatedState(handle)
+    val latestText by rememberUpdatedState(text)
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     // Paste offered at the caret by a long press on no word, or on the empty
     // draft (#434).
     var caretBar by remember(text) { mutableStateOf(false) }
+    // The gesture outlives this composition; it writes the bar of the text as it is now.
+    val setCaretBar by rememberUpdatedState<(Boolean) -> Unit>({ caretBar = it })
     // The box the text is set in reaches the bottom of the field, not only of
     // the text (#612): a press on the empty part under a short clip, or in an
     // empty one, landed on nothing, so a long press there to paste did
@@ -3881,29 +4507,17 @@ internal fun ClipEditText(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = fieldHeight)
-                    .pointerInput(text) {
-                        detectTapGestures(
-                            onLongPress = { position ->
-                                val result = layout?.takeIf { it.layoutInput.text.text == text }
-                                caretBar = if (result != null && position.y > result.size.height) {
-                                    latestHandle.onCaretTap(text.length)
-                                    true
-                                } else {
-                                    !fieldLongPress(text, layout, position, latestHandle)
-                                }
-                            },
-                            // A double tap selects the word under it (#612), as
-                            // in any field; it only ever worked by luck, when the
-                            // second tap happened to land as a long press.
-                            onDoubleTap = { position ->
-                                caretBar = !fieldLongPress(text, layout, position, latestHandle)
-                            },
-                        ) { position ->
-                            caretBar = false
-                            layout?.takeIf { it.layoutInput.text.text == text }
-                                ?.let { latestHandle.onCaretTap(it.getOffsetForPosition(position)) }
-                        }
-                    },
+                    // A tap, a double tap, a hold and a drag on either end of a
+                    // selection, each the way a real field takes it (#612).
+                    .fieldTextGestures(
+                        key = Unit,
+                        text = { latestText },
+                        layout = { layout },
+                        handle = { latestHandle },
+                        setCaretBar = { setCaretBar(it) },
+                        onHold = { haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress) },
+                        belowText = true,
+                    ),
             ) {
                 Text(
                     text = text,
@@ -4292,14 +4906,16 @@ internal fun ClipCombineDialog(
         com.wasimaster.wmkeyboard.core.clipboard.ClipCombine.appendPattern(combine.append) != null
     }
     val badPattern = combine.append.isNotEmpty() && !patternCompiles
-    val ruled = remember(texts, combine.joiner, combine.base, combine.append, combine.template) {
+    val whole = state.settings.clipboard.regexWhole
+    val ruled = remember(texts, combine.joiner, combine.base, combine.append, combine.template, whole) {
         com.wasimaster.wmkeyboard.core.clipboard.ClipCombine.combine(
-            texts, combine.joiner, combine.base, combine.append, combine.template,
+            texts, combine.joiner, combine.base, combine.append, combine.template, whole,
         )
     }
-    val ranges = remember(texts, combine.append) {
-        com.wasimaster.wmkeyboard.core.clipboard.ClipCombine.matchedRanges(texts, combine.append)
+    val ranges = remember(texts, combine.append, whole) {
+        com.wasimaster.wmkeyboard.core.clipboard.ClipCombine.matchedRanges(texts, combine.append, whole)
     }
+    val patternsOpen = remember { mutableStateOf(false) }
     val result = combine.result ?: ruled
     Box(modifier = modifier.padding(horizontal = 6.dp, vertical = 4.dp)) {
         Surface(
@@ -4376,6 +4992,17 @@ internal fun ClipCombineDialog(
                         focused = combine.focused == ClipCombineField.APPEND,
                         monospace = true,
                         onFocus = { actions.onCombineFocus(ClipCombineField.APPEND) },
+                        // The kept patterns and Match the whole clip (#612), as beside the search.
+                        trailing = {
+                            ClipPatternsButton(
+                                state = state,
+                                current = combine.append,
+                                open = patternsOpen,
+                                focused = false,
+                                actions = actions,
+                                modifier = Modifier.height(24.dp),
+                            )
+                        },
                     )
                     ClipCombineBox(
                         label = stringResource(R.string.ime_clip_combine_template),
@@ -4528,19 +5155,24 @@ private fun ClipCombineBox(
     showWhitespace: Boolean = false,
     monospace: Boolean = false,
     tall: Boolean = false,
+    /** Something at the end of the label's line: the pattern box's menu (#612). */
+    trailing: (@Composable () -> Unit)? = null,
 ) {
     val kb = LocalKbTheme.current
     val shape = RoundedCornerShape(8.dp)
     val ceiling = if (tall) 140.dp else 88.dp
     Column {
-        Text(
-            label,
-            fontSize = 11.sp,
-            lineHeight = 14.sp,
-            fontWeight = FontWeight.Medium,
-            color = kb.popupText.copy(alpha = 0.7f),
-            modifier = Modifier.padding(start = 2.dp, bottom = 2.dp),
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                label,
+                fontSize = 11.sp,
+                lineHeight = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = kb.popupText.copy(alpha = 0.7f),
+                modifier = Modifier.weight(1f).padding(start = 2.dp, bottom = 2.dp),
+            )
+            trailing?.invoke()
+        }
         Box(
             modifier = Modifier
                 .fillMaxWidth()

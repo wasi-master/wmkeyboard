@@ -105,10 +105,10 @@ object ClipEntities {
     /**
      * An address with no `https://` or `www.` in front (#612): `x.com`,
      * `m.youtube.com/watch?v=…`. Not part of an email address, a longer word
-     * or a path, and only with a known ending; see [ClipLinks.BARE_TLDS].
+     * or a path, and only with a real ending; see [ClipLinks.isBareHost].
      */
     private val BARE_URL = Regex(
-        """(?<![\w@./-])${ClipLinks.BARE_HOST}(?![\w@-])(?:[/?#][^\s<>"'`]*)?""",
+        """(?<![\w@./-])(${ClipLinks.BARE_HOST})(?![\w@-])([/?#][^\s<>"'`]*)?""",
         RegexOption.IGNORE_CASE,
     )
 
@@ -217,16 +217,20 @@ object ClipEntities {
         val claimed = ArrayList<Pair<Int, Int>>()
         val found = ArrayList<ClipEntity>()
 
-        fun claim(kind: ClipEntityKind, value: String, start: Int) {
-            if (value.isEmpty()) return
-            val end = start + value.length
-            if (claimed.any { (from, to) -> start < to && from < end }) return
+        // [end] apart from the value's own length for a link [ClipLinkChain]
+        // resolved, whose address is not the text it was written as.
+        fun claim(kind: ClipEntityKind, value: String, start: Int, end: Int = start + value.length): Boolean {
+            if (value.isEmpty()) return false
+            if (claimed.any { (from, to) -> start < to && from < end }) return false
             claimed += start to end
             found += ClipEntity(kind, value, sourceId, text, start, end)
+            return true
         }
 
         for (match in URL.findAll(text)) {
-            val url = trimUrlTail(match.value)
+            // A link run into the next one's tail (#612), `…?v=X,=Y`: only
+            // the first is this match's; the rest is left for the chain below.
+            val url = trimUrlTail(ClipLinkChain.head(match.value))
             // "www.x" and the like are noise; a real link has a dot and a TLD.
             if (url.length >= 8 && url.substringAfterLast('.').isNotBlank()) {
                 claim(ClipEntityKind.URL, url, match.range.first)
@@ -239,7 +243,20 @@ object ClipEntities {
         }
         // After the ones with a scheme, which claim their own host first.
         for (match in BARE_URL.findAll(text)) {
-            claim(ClipEntityKind.URL, trimUrlTail(match.value), match.range.first)
+            val host = match.groups[1]?.value ?: continue
+            val url = trimUrlTail(ClipLinkChain.head(match.value))
+            if (!ClipLinks.isBareHost(host, url.length > host.length)) continue
+            claim(ClipEntityKind.URL, url, match.range.first)
+        }
+        // Links written as the tail of the one before (#612), the way Combine
+        // writes them: `youtube.com/watch?v=X; =Y` or `github.com/a/b; /a/c`.
+        // Each takes the address of the nearest link before it.
+        if (found.any { it.kind == ClipEntityKind.URL }) {
+            for ((start, end, token) in ClipLinkChain.tokens(text)) {
+                val anchor = found.filter { it.kind == ClipEntityKind.URL && it.end <= start }.maxByOrNull { it.end } ?: continue
+                val resolved = ClipLinkChain.resolve(anchor.value, token) ?: continue
+                claim(ClipEntityKind.URL, resolved, start, end)
+            }
         }
 
         // Before codes and numbers: a Plus code is code-shaped, and the
@@ -310,7 +327,8 @@ object ClipEntities {
             val found = extract(text, item.id, phoneFormats)
                 .filter { it.value != whole }
                 .distinctBy { it.key }
-                .sortedBy { it.kind.ordinal }
+                // By kind, then where in the clip, so a run of links lists in the order written (#612).
+                .sortedWith(compareBy({ it.kind.ordinal }, { it.start }))
             if (found.isNotEmpty()) out[item.id] = found
         }
         return out

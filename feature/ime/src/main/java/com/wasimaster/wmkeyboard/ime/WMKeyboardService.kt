@@ -7171,6 +7171,7 @@ open class WMKeyboardService : InputMethodService() {
                 LocalWindowFrost provides windowFrost,
                 com.wasimaster.wmkeyboard.ime.ui.LocalSplitGapReport provides ::onSplitGaps,
                 com.wasimaster.wmkeyboard.ime.ui.LocalClipChipDelete provides ::onClipChipDelete,
+                com.wasimaster.wmkeyboard.ime.ui.LocalClipStripActions provides clipStripActions,
                 com.wasimaster.wmkeyboard.ime.ui.LocalScreenCapture provides ::onCaptureScreen,
                 com.wasimaster.wmkeyboard.ime.ui.LocalDocScanPages provides ::onDocScanPages,
                 com.wasimaster.wmkeyboard.ime.ui.LocalSearchActions provides searchActions,
@@ -13720,6 +13721,14 @@ open class WMKeyboardService : InputMethodService() {
         }
         if (kdeTypedUnderModifiers(target, text)) return true
         val before = state.captureCaretText() ?: return false
+        // Space in the tags editor ends the tag (#612): a comma goes in with
+        // it, and the strip under it starts over for the next tag. Nothing
+        // after a comma, where a tag has not started yet.
+        if (text == " " && target == CaptureTarget.CLIP_EDIT && state.clipEdit?.tags == true) {
+            val head = before.text.substring(0, before.selectionStart).trimEnd()
+            if (head.isNotEmpty() && !head.endsWith(",")) captureWrite(target, before, before.typed(", "))
+            return true
+        }
         // Only the very next backspace may take a correction back.
         captureCorrection = null
         // The space a mark left behind (#880), while the caret still sits
@@ -59449,6 +59458,32 @@ open class WMKeyboardService : InputMethodService() {
         onClipboardDelete(item)
     }
 
+    /** What a copy's chip on the strip does besides paste and delete (#612, #1312); see [ClipStripActions]. */
+    private val clipStripActions by lazy {
+        com.wasimaster.wmkeyboard.ime.ui.ClipStripActions(
+            onCollect = ::onClipboardCollect,
+            onUndo = ::onClipboardUndoDelete,
+            onFieldPaste = ::onFieldClipPaste,
+            onDismiss = ::onClipboardSuggestionDismiss,
+        )
+    }
+
+    /**
+     * A copy's chip on a tool field's own strip (#612): its text typed into
+     * that field, where the caret is, the way the field's Paste types it. The
+     * last copy's chip is spent by it, as on the keyboard's strip; the row of
+     * recent copies stays up for the next one.
+     */
+    fun onFieldClipPaste(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
+        if (!isClipboardAccessible() || !item.kind.isTextual || item.sensitive) return
+        vibrate()
+        if (!captureTyped(item.text)) return
+        if (_uiState.value.clipboardSuggestion?.id == item.id) {
+            spentChipClipId = item.id
+            clearClipboardSuggestion()
+        }
+    }
+
     fun onClipboardSuggestionDismiss() {
         if (_uiState.value.recentClipsOpen) {
             _uiState.update { it.copy(recentClipsOpen = false) }
@@ -60280,6 +60315,13 @@ open class WMKeyboardService : InputMethodService() {
         onSearch = ::onClipboardSearch,
         onPasteNext = ::onClipboardPasteNext,
         onCollect = ::onClipboardCollect,
+        onRegexWhole = ::onClipboardRegexWhole,
+        onPatternSave = ::onClipboardPatternSave,
+        onPatternRemove = ::onClipboardPatternRemove,
+        onPatternUse = ::onClipboardPatternUse,
+        onMoveTop = ::onClipboardMoveTop,
+        onTagsReorder = ::onClipTagsReorder,
+        onTagOrder = ::onClipTagOrder,
         onSendToBoard = { item ->
             vibrate()
             clipBoardTool.sendClip(item, quiet = true)
@@ -60371,7 +60413,8 @@ open class WMKeyboardService : InputMethodService() {
         val url = ClipLinks.asUrl(item.text) ?: return
         vibrate()
         val view = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-        val intent = if (linkHasOwnApp(view)) {
+        // Off (#1312), the link goes straight to the browser, with no picker.
+        val intent = if (_uiState.value.settings.clipboard.openLinksInApp && linkHasOwnApp(view)) {
             Intent.createChooser(view, null)
         } else {
             view
@@ -60684,6 +60727,8 @@ open class WMKeyboardService : InputMethodService() {
                     id = current.id,
                     original = current.text,
                     rich = current.kind == ClipKind.HTML,
+                    // Back to this search when the editor closes (#612).
+                    returnQuery = it.clipboardQuery.takeIf { _ -> it.clipboardSearchActive },
                 ),
                 // One field has the keys at a time: the editor takes them from
                 // the search, which gives its filter up with them.
@@ -60711,6 +60756,7 @@ open class WMKeyboardService : InputMethodService() {
                     original = listed,
                     draft = if (listed.isEmpty()) "" else "$listed, ",
                     tags = true,
+                    returnQuery = it.clipboardQuery.takeIf { _ -> it.clipboardSearchActive },
                 ),
                 clipboardSearchActive = false,
                 clipboardQuery = "",
@@ -60756,13 +60802,13 @@ open class WMKeyboardService : InputMethodService() {
             if (clipboardStore.setTags(edit.id, com.wasimaster.wmkeyboard.core.clipboard.parseClipTags(edit.draft))) {
                 saveClipboardSoon()
             }
-            _uiState.update { it.copy(clipEdit = null, clipboardItems = clipboardStore.items()) }
+            _uiState.update { backToClipSearch(it.copy(clipEdit = null, clipboardItems = clipboardStore.items()), edit.returnQuery) }
             return
         }
         if (edit.draft.isBlank()) return
         vibrate()
         if (!edit.canSave) {
-            _uiState.update { it.copy(clipEdit = null) }
+            _uiState.update { backToClipSearch(it.copy(clipEdit = null), edit.returnQuery) }
             return
         }
         val saved = clipboardStore.editText(edit.id, edit.draft)
@@ -60780,16 +60826,30 @@ open class WMKeyboardService : InputMethodService() {
             KeyboardClipboard.copy(this, saved.text)
         }
         _uiState.update { state ->
-            state.copy(
-                clipEdit = null,
-                clipboardItems = clipboardStore.items(),
-                // The strip's paste chip holds its own copy of the clip; one
-                // left on the old text would paste what was just corrected.
-                clipboardSuggestion = state.clipboardSuggestion?.let { chip ->
-                    if (chip.id == edit.id) saved else chip
-                },
+            backToClipSearch(
+                state.copy(
+                    clipEdit = null,
+                    clipboardItems = clipboardStore.items(),
+                    // The strip's paste chip holds its own copy of the clip; one
+                    // left on the old text would paste what was just corrected.
+                    clipboardSuggestion = state.clipboardSuggestion?.let { chip ->
+                        if (chip.id == edit.id) saved else chip
+                    },
+                ),
+                edit.returnQuery,
             )
         }
+    }
+
+    /**
+     * [state] with the clipboard search it left reopened on [query] (#612):
+     * tagging, editing or combining clips found by a search, or giving up on
+     * it, goes back to the search rather than to the whole history. The
+     * caret goes to the query's end. Null leaves [state] as it is.
+     */
+    private fun backToClipSearch(state: KeyboardUiState, query: String?): KeyboardUiState {
+        if (query == null || state.panel != PanelMode.CLIPBOARD) return state
+        return state.copy(clipboardSearchActive = true, clipboardQuery = query, panelFocus = null)
     }
 
     /**
@@ -60809,10 +60869,10 @@ open class WMKeyboardService : InputMethodService() {
 
     /** Leaves the editor with the clip as it was. */
     fun onClipEditCancel() {
-        if (_uiState.value.clipEdit == null) return
+        val edit = _uiState.value.clipEdit ?: return
         vibrate()
         boardEdit = null
-        _uiState.update { it.copy(clipEdit = null) }
+        _uiState.update { backToClipSearch(it.copy(clipEdit = null), edit.returnQuery) }
     }
 
     // ---- Shared clipboard board (#1201) ----
@@ -60874,6 +60934,7 @@ open class WMKeyboardService : InputMethodService() {
                     append = clipboard.combineAppend,
                     template = clipboard.combineTemplate,
                     deleteOriginals = clipboard.combineDeleteOriginals,
+                    returnQuery = it.clipboardQuery.takeIf { _ -> it.clipboardSearchActive },
                 ),
                 clipEdit = null,
                 clipboardSearchActive = false,
@@ -60903,6 +60964,7 @@ open class WMKeyboardService : InputMethodService() {
         val texts = combine.ids.mapNotNull { byId[it]?.takeIf { clip -> clip.kind.isTextual }?.text }
         return com.wasimaster.wmkeyboard.core.clipboard.ClipCombine.combine(
             texts, combine.joiner, combine.base, combine.append, combine.template,
+            whole = _uiState.value.settings.clipboard.regexWhole,
         )
     }
 
@@ -60932,24 +60994,34 @@ open class WMKeyboardService : InputMethodService() {
         val combine = _uiState.value.clipCombine ?: return
         val joined = combine.result?.takeIf { it.isNotBlank() } ?: combinedText(combine) ?: return
         vibrate()
+        // What the new clip takes from the ones it joins (#612): all their
+        // tags, the pin if any was pinned, and Paste next when the newest
+        // copy is among them, since that is what pasted next before.
+        val all = clipboardStore.items()
+        val sources = all.filter { it.id in combine.ids }
+        val tags = sources.flatMap { it.tags }.distinctBy { it.lowercase() }
+        val pinned = sources.any { it.pinned }
+        val newest = all.maxByOrNull { it.timestamp }?.id
+        val pasteNext = newest != null && newest in combine.ids
         // The joined clips go first, so the new one is not taken for one of
         // them (it can share a text with one), and with one Undo.
-        if (combine.deleteOriginals) {
-            val removed = if (_uiState.value.settings.clipboard.undoDelete) {
-                combine.ids.mapNotNull(clipboardStore::detach)
-            } else {
-                combine.ids.forEach(clipboardStore::remove)
-                emptyList()
-            }
-            clipboardStore.add(joined)
-            saveClipboardSoon()
-            _uiState.update { it.copy(clipCombine = null, clipboardItems = clipboardStore.items()) }
-            if (removed.isNotEmpty()) offerClipUndo(removed)
+        val removed = if (!combine.deleteOriginals) {
+            emptyList()
+        } else if (_uiState.value.settings.clipboard.undoDelete) {
+            combine.ids.mapNotNull(clipboardStore::detach)
         } else {
-            clipboardStore.add(joined)
-            saveClipboardSoon()
-            _uiState.update { it.copy(clipCombine = null, clipboardItems = clipboardStore.items()) }
+            combine.ids.forEach(clipboardStore::remove)
+            emptyList()
         }
+        val added = clipboardStore.add(joined)
+        if (added != null) {
+            if (tags.isNotEmpty()) clipboardStore.setTags(added.id, tags)
+            if (pinned && !added.pinned) clipboardStore.setPinned(added.id, true)
+        }
+        saveClipboardSoon()
+        _uiState.update { backToClipSearch(it.copy(clipCombine = null, clipboardItems = clipboardStore.items()), combine.returnQuery) }
+        if (removed.isNotEmpty()) offerClipUndo(removed)
+        if (pasteNext && added != null) holdClipForPaste(added)
         serviceScope.launch {
             settingsRepository.setClipboardCombineRule(combine.joiner, combine.base, combine.append, combine.template)
         }
@@ -60957,9 +61029,9 @@ open class WMKeyboardService : InputMethodService() {
 
     /** Leaves Combine; the picked clips are as they were. */
     fun onClipCombineCancel() {
-        if (_uiState.value.clipCombine == null) return
+        val combine = _uiState.value.clipCombine ?: return
         vibrate()
-        _uiState.update { it.copy(clipCombine = null) }
+        _uiState.update { backToClipSearch(it.copy(clipCombine = null), combine.returnQuery) }
     }
 
     /**
@@ -61069,6 +61141,71 @@ open class WMKeyboardService : InputMethodService() {
         vibrate()
         val next = !_uiState.value.settings.clipboard.searchRegex
         serviceScope.launch { settingsRepository.setClipboardSearchRegex(next) }
+    }
+
+    /** The `.*` menu's Whole clip (#612): a pattern must match a clip's whole text, in the search and Combine. */
+    fun onClipboardRegexWhole() {
+        vibrate()
+        val next = !_uiState.value.settings.clipboard.regexWhole
+        serviceScope.launch { settingsRepository.setClipboardRegexWhole(next) }
+    }
+
+    /** The `.*` menu's Save (#612): [pattern] kept at the top of the list, once. */
+    fun onClipboardPatternSave(pattern: String) {
+        val kept = pattern.trim().takeIf { it.isNotEmpty() } ?: return
+        vibrate()
+        val next = (listOf(kept) + _uiState.value.settings.clipboard.savedPatterns.filter { it != kept }).take(CLIP_SAVED_PATTERNS_MAX)
+        serviceScope.launch { settingsRepository.setClipboardSavedPatterns(next) }
+    }
+
+    /** A kept pattern's ✕ in the `.*` menu (#612). */
+    fun onClipboardPatternRemove(pattern: String) {
+        vibrate()
+        val next = _uiState.value.settings.clipboard.savedPatterns.filter { it != pattern }
+        serviceScope.launch { settingsRepository.setClipboardSavedPatterns(next) }
+    }
+
+    /**
+     * A kept pattern picked from the `.*` menu (#612): into Combine's pattern
+     * box while Combine is open, else into the search, which opens if it was
+     * not and reads patterns from then on.
+     */
+    fun onClipboardPatternUse(pattern: String) {
+        vibrate()
+        if (_uiState.value.clipCombine != null) {
+            onClipCombineFocus(ClipCombineField.APPEND)
+        } else {
+            if (!_uiState.value.settings.clipboard.searchRegex) {
+                serviceScope.launch { settingsRepository.setClipboardSearchRegex(true) }
+            }
+            if (!_uiState.value.clipboardSearchActive) {
+                _uiState.update { it.copy(clipboardSearchActive = true, clipEdit = null, panelFocus = null) }
+            }
+        }
+        val state = _uiState.value
+        val target = state.captureTarget() ?: return
+        val before = state.captureCaretText() ?: return
+        captureWrite(target, before, CaretText(pattern))
+    }
+
+    /** A clip's Move to top, from its hold (#970): first in its group, and what pastes next, nothing pasted. */
+    fun onClipboardMoveTop(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
+        if (!isClipboardAccessible()) return
+        vibrate()
+        onClipboardMove(item, 0)
+    }
+
+    /** A clip's tags dragged into a new order (#612). */
+    fun onClipTagsReorder(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem, tags: List<String>) {
+        if (!isClipboardAccessible()) return
+        if (!clipboardStore.setTags(item.id, tags)) return
+        saveClipboardSoon()
+        _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
+    }
+
+    /** The tag chips' own order (#612), dragged in the filter row or under the tags editor. */
+    fun onClipTagOrder(order: List<String>) {
+        serviceScope.launch { settingsRepository.setClipboardTagOrder(order) }
     }
 
     /** The fragments strip's ✕, or the scissors button that brings it back (#612). */
@@ -61370,8 +61507,14 @@ open class WMKeyboardService : InputMethodService() {
             state.panel == PanelMode.NOTES && state.notes.searchActive -> ::onNotesSearchToggle
             state.panel == PanelMode.NOTES && state.notes.held != null -> ({ onNoteHold(null) })
             state.panel == PanelMode.NOTES && state.notes.open != null -> ::onNotesBack
-            // And the clip editor before the clipboard panel it opened over.
+            // And the clip editor before the clipboard panel it opened over,
+            // and Combine (#612), which Back closed the whole panel from.
             state.clipEditActive -> ::onClipEditCancel
+            state.clipCombineActive -> ::onClipCombineCancel
+            // A held clip's popup, then the search, then the clipboard (#612).
+            state.panel == PanelMode.CLIPBOARD && com.wasimaster.wmkeyboard.ime.ui.ClipHoldPopups.open ->
+                com.wasimaster.wmkeyboard.ime.ui.ClipHoldPopups::close
+            state.panel == PanelMode.CLIPBOARD && state.clipboardSearchActive -> ::onClipboardSearchToggle
             // The one layer Back leaves alone: a panel layout whose author
             // switched "Keep this layer open" on. The nav bar's chevron is how
             // people put a keyboard away, and eating it to close the very panel
@@ -64803,6 +64946,9 @@ open class WMKeyboardService : InputMethodService() {
 
         /** The clipboard panel's Undo bar, before accessibility asks for longer. */
         private const val CLIP_UNDO_TIMEOUT_MS = 5_000
+
+        /** How many patterns the clipboard's `.*` menu keeps (#612). */
+        private const val CLIP_SAVED_PATTERNS_MAX = 30
 
         /** How long the note editor waits after a keystroke before writing the draft to the store (#560). */
         private const val NOTES_AUTOSAVE_MS = 600L
