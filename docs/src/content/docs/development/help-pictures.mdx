@@ -42,8 +42,8 @@ compare(
     labels = "=40 dp" to "=64 dp",
 ),
 
-// One state, with room kept above the keyboard for a popup.
-still("keypress_popup_title", typed { hold("e") }, aboveDp = 72),
+// A finger resting on a key, with room kept above the keyboard for the bubble.
+toggle("keypress_popup_title", typed { press("g") }, aboveDp = 72, crop = HelpCrop.KEYBOARD) { setKeyPopup(it) },
 
 // Something that moves.
 clip("typing_glide_typing_title", typed { record { glide("hello"); hold(900) } }, aboveDp = 96),
@@ -51,7 +51,7 @@ clip("typing_glide_typing_title", typed { record { glide("hello"); hold(900) } }
 
 `toggle` and `compare` boot the keyboard twice, once per half, on seeds that differ in the one setting. Neither half is a flipped copy of the other, so each shows what a user with that value really sees. `gallery` takes one labelled state per option. A label is a string resource's name, or the words themselves behind `=` for a value that reads the same in every language.
 
-`typed { }` runs its steps on the keyboard under a plain field. Pass `crop = HelpCrop.TEXT` when the difference lands in the text: the picture is then the changed line of the field set right over the part of the keyboard that changed, with the empty screen between them left out.
+`typed { }` runs its steps on the keyboard under a plain field. `press("g")` puts a finger on a key and stops before the long press, so the key's bubble is up; `hold("e")` waits for the alternates; `glide("hello", lift = false)` stops a stroke with the finger still down. Pass `crop = HelpCrop.TEXT` when the difference lands in the text: the picture is then the changed line of the field set right over the part of the keyboard that changed, with the empty screen between them left out.
 
 ```bash
 ./gradlew :app:testEnDebugUnitTest -Pwmkb.docShots=true --tests "*HelpShots*" -Pwmkb.helpShots.only='layout_number_row'
@@ -65,8 +65,8 @@ The Gradle run renders only the keys the regex matches, in light and dark, into 
 
 ## What the builder decides
 
-- **The cut.** `HelpCrop.DIFF`, the default for a comparison, keeps the part of the keyboard that differs between the frames. Its top and bottom move out to the gaps between rows of keys, and a cut wider than about half the screen becomes the full width, so no key is cut through. `KEYBOARD` keeps the keyboard from its first drawn row down, plus `aboveDp` of screen over it for a popup. Every frame of a visual gets the same cut, so they line up.
-- **Nothing to show.** A comparison whose frames come out identical is dropped and reported. That makes it cheap to try a setting: a candidate that shows no difference costs a render and nothing else.
+- **The cut.** `HelpCrop.DIFF`, the default for a comparison, keeps the part of the keyboard that differs between the frames. Its top and bottom move out to the gaps between rows of keys and its sides to the gaps between keys, so no key is cut through, and a cut wider than about two fifths of the screen becomes the full width. `KEYBOARD` keeps the keyboard from its first drawn row down, plus `aboveDp` of screen over it for a popup. `SCREEN` keeps everything below the band at the top that is empty in every frame. Every frame of a visual gets the same cut, so they line up.
+- **Nothing to show.** A comparison whose frames come out identical is dropped and reported, whatever its cut. That makes it cheap to try a setting: a candidate that shows no difference costs a render and nothing else.
 - **Size.** Stills are scaled to 720 px wide at most and written as lossy WebP, about 15 kB each. A clip is an animated WebP at 540 px; runs of identical frames become one frame held longer, and the last frame rests before the loop.
 - **Names.** Every file is named by the SHA-256 of its bytes. A picture that did not change keeps its name across versions, and the app refuses a file that does not hash to its name.
 - **Packs.** One zip per look, stored not compressed, with fixed timestamps, so the same pictures always make the same pack.
@@ -75,7 +75,7 @@ The Gradle run renders only the keys the regex matches, in light and dark, into 
 
 ## What the JVM cannot draw
 
-The renderer has no other apps, no system dialogs and no window blur. For those, record the phone and file the recording:
+The renderer has no other apps, no system dialogs and no window blur, and its field asks for no capitals, so auto-capitalise has nothing to change there. The comment at the top of `HelpShotList.kt` lists the settings that were tried and drew the same frame twice. For those, record the phone and file the recording:
 
 ```bash
 python3 tools/helpvisuals/build.py --take theme_glass_window_blur_title light.mp4 --dark dark.mp4

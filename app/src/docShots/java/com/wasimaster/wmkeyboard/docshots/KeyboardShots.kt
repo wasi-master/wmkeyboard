@@ -11,7 +11,9 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import android.widget.EditText
 import android.widget.FrameLayout
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
@@ -268,6 +270,13 @@ interface KbSteps {
     /** Holds the key showing [label] down, and leaves it held for the capture. */
     fun hold(label: String, millis: Long = 700)
 
+    /**
+     * Puts a finger on the key showing [label] and stops [millis] later, well
+     * short of a long press: the moment the key's own bubble is up and its
+     * alternates are not.
+     */
+    fun press(label: String, millis: Long = 120)
+
     /** Taps the node showing [text] (or described as it). */
     fun tap(text: String, substring: Boolean = false)
 
@@ -302,11 +311,12 @@ interface KbSteps {
 
     /**
      * Draws [word] as one glide stroke, key centre to key centre, the finger
-     * taking [perKeyMillis] between letters, then lifts. With [lift] off the
-     * finger stays down on the last letter, the trail and the preview still
-     * showing, for a picture of a glide under way.
+     * crossing one key's width in [perKeyMillis], then lifts. With [lift] off
+     * the finger stays down on the last letter and nothing waits afterwards,
+     * the trail and the preview still showing, for a picture of a glide under
+     * way.
      */
-    fun glide(word: String, perKeyMillis: Long = 180, lift: Boolean = true)
+    fun glide(word: String, perKeyMillis: Long = 110, lift: Boolean = true)
 
     /**
      * Everything [block] does is filmed, a frame each time the clock moves:
@@ -325,6 +335,13 @@ internal class KbStepsImpl(override val rule: ComposeTestRule) : KbSteps {
     /** Takes one frame of a clip, shown for the milliseconds it is handed; set by whoever is filming. */
     var onFrame: ((Long) -> Unit)? = null
     private var recording = false
+
+    /**
+     * Set by a step that leaves a finger down in a state time would end: a
+     * glide under way, a key's bubble before its long press. Nothing settles
+     * after it, the wait [withKeyboard] ends every shot with included.
+     */
+    private var frozen = false
 
     private val all = SemanticsMatcher("any") { true }
 
@@ -348,9 +365,13 @@ internal class KbStepsImpl(override val rule: ComposeTestRule) : KbSteps {
      */
     private fun tick() = step(100)
 
-    /** [tick] of any length, filmed while [record] is running. */
-    private fun step(millis: Long) {
-        rule.mainClock.advanceTimeBy(millis)
+    /**
+     * [tick] of any length, filmed while [record] is running. [compose] is
+     * how much of it the Compose clock still has to move, for a caller whose
+     * touch input has moved it part of the way already.
+     */
+    private fun step(millis: Long, compose: Long = millis) {
+        if (compose > 0) rule.mainClock.advanceTimeBy(compose)
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(millis))
         if (recording) onFrame?.invoke(millis)
     }
@@ -377,32 +398,43 @@ internal class KbStepsImpl(override val rule: ComposeTestRule) : KbSteps {
         val first = keys.first()
         // Touch input is given in the first key's own coordinates, so every
         // other key is placed relative to that key's corner.
-        val origin = first.fetchSemanticsNode().boundsInRoot.topLeft
-        val centers = keys.map { it.fetchSemanticsNode().boundsInRoot.center - origin }
-        first.performTouchInput { down(centers[0]) }
-        step(GLIDE_STEP_MS)
-        val pieces = (perKeyMillis / GLIDE_STEP_MS).toInt().coerceAtLeast(2)
+        val bounds = first.fetchSemanticsNode().boundsInRoot
+        val centers = keys.map { it.fetchSemanticsNode().boundsInRoot.center - bounds.topLeft }
+        // A finger moves a few pixels between two samples. The stroke is
+        // walked in steps that small, because the keyboard takes a sample
+        // that lands a key and a half from the last one for a glitch and
+        // drops it, and then sees a finger that has stopped.
+        val perFrame = bounds.width * GLIDE_STEP_MS / perKeyMillis
+        val stride = (perFrame / GLIDE_SAMPLES).coerceAtLeast(1f)
+        val path = ArrayList<Offset>()
         for (i in 1 until centers.size) {
             val from = centers[i - 1]
             val to = centers[i]
-            for (piece in 1..pieces) {
-                val at = from + (to - from) * (piece.toFloat() / pieces)
-                first.performTouchInput { moveTo(at) }
-                step(GLIDE_STEP_MS)
-            }
+            val pieces = ((to - from).getDistance() / stride).toInt()
+            for (piece in 1..pieces) path += from + (to - from) * (piece.toFloat() / pieces)
         }
+        first.performTouchInput { down(centers[0]) }
         step(GLIDE_STEP_MS)
+        for (samples in path.chunked(GLIDE_SAMPLES)) {
+            // Sending the samples moves the Compose clock on by their own
+            // spacing; the frame is topped up to its length, never past it.
+            val before = rule.mainClock.currentTime
+            first.performTouchInput { samples.forEach { moveTo(it, delayMillis = GLIDE_STEP_MS / GLIDE_SAMPLES) } }
+            step(GLIDE_STEP_MS, compose = (GLIDE_STEP_MS - (rule.mainClock.currentTime - before)).coerceAtLeast(0))
+        }
         if (!lift) {
-            // The trail fades behind a finger that stops, so the capture is
-            // taken a few frames after the last move, no later.
-            repeat(2) { step(GLIDE_STEP_MS) }
+            // A finger that stops is a finger that has finished: the trail
+            // fades and the word is written. The picture is of this instant.
+            frozen = true
             return
         }
         first.performTouchInput { up() }
         settle()
     }
 
-    override fun settle() = settle(first = false)
+    override fun settle() {
+        if (!frozen) settle(first = false)
+    }
 
     override fun type(text: String) {
         for (c in text) {
@@ -435,16 +467,35 @@ internal class KbStepsImpl(override val rule: ComposeTestRule) : KbSteps {
     /**
      * The key showing [label]. A letter key shows its capital while shift is
      * on, as it is at the start of an empty field, so a lone letter is matched
-     * in either case.
+     * in either case. With the screen reader mode at its default the key's
+     * face is cleared from semantics and the key carries its spoken name
+     * instead, which for a letter is the letter, so that is looked for second.
      */
-    private fun keyNode(label: String) =
-        rule.onAllNodesWithText(label, ignoreCase = label.length == 1).onFirst()
+    private fun keyNode(label: String): SemanticsNodeInteraction {
+        val anyCase = label.length == 1
+        val byText = rule.onAllNodesWithText(label, ignoreCase = anyCase)
+        return if (byText.fetchSemanticsNodes().isNotEmpty()) {
+            byText.onFirst()
+        } else {
+            rule.onAllNodesWithContentDescription(label, ignoreCase = anyCase).onFirst()
+        }
+    }
 
     override fun hold(label: String, millis: Long) {
         val node = keyNode(label)
         node.performTouchInput { down(center) }
         rule.mainClock.advanceTimeBy(millis)
         repeat(6) { tick() }
+    }
+
+    override fun press(label: String, millis: Long) {
+        keyNode(label).performTouchInput { down(center) }
+        var left = millis
+        while (left > 0) {
+            step(minOf(left, 40))
+            left -= 40
+        }
+        frozen = true
     }
 
     override fun copy(text: String) {
@@ -538,8 +589,11 @@ internal class KbStepsImpl(override val rule: ComposeTestRule) : KbSteps {
     }
 }
 
-/** A glide stroke moves, and is filmed, this often: 25 frames a second. */
+/** A glide stroke is filmed this often: 25 frames a second. */
 private const val GLIDE_STEP_MS = 40L
+
+/** Touch samples in one filmed frame of a glide: one every 8 ms, about what a phone's screen reports. */
+private const val GLIDE_SAMPLES = 5
 
 /** Every keyboard shot, by manifest id. */
 val KB_SHOTS: List<KbShot> = listOf(

@@ -65,10 +65,13 @@ CLIP_REST_MS = 1400
 DIFF_THRESHOLD = 18
 # A difference smaller than this many pixels is a cursor, not a setting.
 MIN_DIFF_AREA = 900
+# In the field one typed mark is the whole difference, a closing bracket say,
+# so the floor there is only what a cursor's bar covers.
+MIN_TEXT_AREA = 200
 DIFF_MARGIN = 36
 # A cut narrower than this share of the screen keeps its own width; anything
-# wider is the whole width, so a row is never cut mid-key.
-FULL_WIDTH_ABOVE = 0.55
+# wider is the whole width: most of a row reads better as the row.
+FULL_WIDTH_ABOVE = 0.42
 MIN_CUT = (300, 150)
 # A cut's top and bottom move out to the nearest row of one flat colour, the
 # gap between two rows of keys, looked for this far, so no key is cut through.
@@ -117,8 +120,8 @@ def keyboard_top(metas):
     return max(0, min(m["keyboardTop"] - round(m.get("above", 0) * DP) for m in metas))
 
 
-def diff_box(images, region):
-    """What differs between the frames inside [region], as one box; None when nothing does."""
+def diff_box(images, region, least=MIN_DIFF_AREA):
+    """What differs between the frames inside [region], as one box; None when less than [least] pixels do."""
     box = None
     first = images[0].crop(region)
     for other in images[1:]:
@@ -127,7 +130,7 @@ def diff_box(images, region):
         if found is None:
             continue
         box = found if box is None else (min(box[0], found[0]), min(box[1], found[1]), max(box[2], found[2]), max(box[3], found[3]))
-    if box is None or (box[2] - box[0]) * (box[3] - box[1]) < MIN_DIFF_AREA:
+    if box is None or (box[2] - box[0]) * (box[3] - box[1]) < least:
         return None
     return (box[0] + region[0], box[1] + region[1], box[2] + region[0], box[3] + region[1])
 
@@ -156,9 +159,23 @@ def snapped(box, images, floor, ceiling):
     return (x0, y0, x1, y1)
 
 
-def widened(box, size):
-    """[box] with a side margin, no narrower than a picture can be read at, and full width past half a screen."""
-    w, h = size
+def flat_column(images, x, y0, y1):
+    """Whether column [x] is one colour from [y0] to [y1] in every frame."""
+    for image in images:
+        for low, high in image.crop((x, y0, x + 1, y1)).getextrema():
+            if high - low > FLAT:
+                return False
+    return True
+
+
+def widened(box, images):
+    """
+    [box] with a side margin, no narrower than a picture can be read at, and
+    full width past half a screen. A narrower cut's sides move out to the
+    nearest column of one flat colour, the gap between two keys, and to the
+    edge of the screen when there is none in reach, so no key is cut through.
+    """
+    w, h = images[0].size
     x0, y0, x1, y1 = box
     x0, x1 = x0 - DIFF_MARGIN, x1 + DIFF_MARGIN
     if x1 - x0 < MIN_CUT[0]:
@@ -167,9 +184,25 @@ def widened(box, size):
     if y1 - y0 < MIN_CUT[1]:
         grow = (MIN_CUT[1] - (y1 - y0)) // 2
         y0, y1 = y0 - grow, y1 + grow
+    x0, y0, x1, y1 = max(0, x0), max(0, y0), min(w, x1), min(h, y1)
     if x1 - x0 > w * FULL_WIDTH_ABOVE:
-        x0, x1 = 0, w
-    return (max(0, x0), max(0, y0), min(w, x1), min(h, y1))
+        return (0, y0, w, y1)
+    left = next((x for x in range(x0, max(0, x0 - SNAP_REACH) - 1, -1) if flat_column(images, x, y0, y1)), None)
+    right = next((x for x in range(x1 - 1, min(w, x1 + SNAP_REACH)) if flat_column(images, x, y0, y1)), None)
+    x0 = 0 if left is None else max(0, left - SNAP_KEEP)
+    x1 = w if right is None else min(w, right + 1 + SNAP_KEEP)
+    if x1 - x0 > w * FULL_WIDTH_ABOVE:
+        return (0, y0, w, y1)
+    return (x0, y0, x1, y1)
+
+
+def screen_cut(images):
+    """The whole screen below the band at its top that is empty in every frame."""
+    w, h = images[0].size
+    y = 0
+    while y < h - 1 and flat_row(images, y, 0, w):
+        y += 1
+    return (0, max(0, y - TOP_KEEP), w, h)
 
 
 def keyboard_cut(metas, images):
@@ -191,22 +224,29 @@ def cuts(metas, images):
     """
     crop = metas[0]["crop"]
     w, h = images[0].size
+    # Whatever the cut, frames with nothing between them are not a picture of a setting.
+    if len(images) > 1 and diff_box(images, (0, 0, w, h), MIN_TEXT_AREA) is None:
+        return None
     if crop == "screen":
-        return [(0, 0, w, h)]
+        return [screen_cut(images)]
     if crop == "keyboard" or len(images) < 2:
         return [keyboard_cut(metas, images)]
     top = keyboard_top(metas)
     keys = diff_box(images, (0, top, w, h))
-    text = diff_box(images, (0, 0, w, top)) if top > 0 else None
+    text = diff_box(images, (0, 0, w, top), MIN_TEXT_AREA) if top > 0 else None
     if keys is not None:
-        keys = widened(snapped(keys, images, top, h), (w, h))
+        keys = widened(snapped(keys, images, top, h), images)
     if crop == "text" or keys is None:
         if text is None:
             return None if keys is None else [keys]
         field = snapped(text, images, 0, top)
         field = (0, max(0, field[1] - DIFF_MARGIN), w, min(top, field[3] + DIFF_MARGIN))
         # The words changed and the keys did not: the strip the words came from still says where they were typed.
-        below = (0, keys[1], w, keys[3]) if keys is not None else (0, keyboard_cut(metas, images)[1], w, min(h, keyboard_cut(metas, images)[1] + 2 * MIN_CUT[1]))
+        if keys is not None:
+            below = (0, keys[1], w, keys[3])
+        else:
+            first = keyboard_cut(metas, images)[1]
+            below = snapped((0, first, w, min(h, first + MIN_CUT[1])), images, first, h)
         return [field, below]
     return [keys]
 
