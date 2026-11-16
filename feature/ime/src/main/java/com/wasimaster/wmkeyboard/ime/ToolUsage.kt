@@ -25,7 +25,12 @@ class ToolUsage(storageFile: File?) {
     private data class Snapshot(
         val recents: List<String> = emptyList(),
         val counts: Map<String, Int> = emptyMap(),
+        /** When each tool last ran, epoch milliseconds (#1397); missing for runs before 0.6.8. */
+        val lastUsed: Map<String, Long> = emptyMap(),
     )
+
+    /** One tool's use, as the tool dashboard shows it (#1397). */
+    data class Use(val count: Int, val lastMs: Long?)
 
     /**
      * Every tool ever run, latest first. Bounded by the enum and the plugins
@@ -33,6 +38,7 @@ class ToolUsage(storageFile: File?) {
      */
     private val recents = ArrayDeque<ToolKey>()
     private val counts = HashMap<ToolKey, Int>()
+    private val lastUsed = HashMap<ToolKey, Long>()
     private val json = Json { ignoreUnknownKeys = true }
     private var dirty = false
     private val snapshotFile = storageFile?.let(::SnapshotFile)
@@ -49,6 +55,9 @@ class ToolUsage(storageFile: File?) {
                 for ((name, count) in snapshot.counts) {
                     toolOf(name)?.let { counts[it] = count }
                 }
+                for ((name, at) in snapshot.lastUsed) {
+                    toolOf(name)?.let { lastUsed[it] = at }
+                }
             }
         }
     }
@@ -60,9 +69,14 @@ class ToolUsage(storageFile: File?) {
         recents.remove(tool)
         recents.addFirst(tool)
         counts.merge(tool, 1, Int::plus)
+        lastUsed[tool] = System.currentTimeMillis()
         // Plugins come and go, so the list is capped where the enum never
         // needed it to be: the oldest drops off, count and all.
-        while (recents.size > MAX_ENTRIES) counts.remove(recents.removeLast())
+        while (recents.size > MAX_ENTRIES) {
+            val gone = recents.removeLast()
+            counts.remove(gone)
+            lastUsed.remove(gone)
+        }
         dirty = true
     }
 
@@ -88,6 +102,7 @@ class ToolUsage(storageFile: File?) {
             file.ticket() to Snapshot(
                 recents.map { it.token },
                 counts.entries.associate { it.key.token to it.value },
+                lastUsed.entries.associate { it.key.token to it.value },
             )
         }
         if (!file.write(ticket) { json.encodeToString(snapshot) }) markUnsaved()
@@ -100,6 +115,19 @@ class ToolUsage(storageFile: File?) {
 
     companion object {
         const val FILE_PATH = "learning/tool_usage.json"
+
+        /**
+         * Every tool's use as the keyboard last saved it, by [ToolKey.token],
+         * for the settings app's tool dashboard (#1397). The keyboard saves
+         * when it closes, so a tool used this minute may show next time.
+         */
+        fun read(file: File): Map<String, Use> = runCatching {
+            if (!file.isFile) return emptyMap()
+            val snapshot = Json { ignoreUnknownKeys = true }.decodeFromString<Snapshot>(file.readText())
+            (snapshot.counts.keys + snapshot.lastUsed.keys).associateWith { key ->
+                Use(snapshot.counts[key] ?: 0, snapshot.lastUsed[key])
+            }
+        }.getOrDefault(emptyMap())
 
         /** The most tools remembered: every built-in one, and room for a good many plugins. */
         const val MAX_ENTRIES = 256

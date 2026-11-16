@@ -243,6 +243,8 @@ internal object SettingsRoutes {
         "storage/{category}",
         "resources",
         "provider_credits",
+        "tool_dashboard",
+        "tool_dashboard/{tool}",
         "debug_info",
         "feature_libraries",
         "import_hub",

@@ -304,11 +304,23 @@ internal suspend fun setExtensionEnabled(repository: SettingsRepository, extensi
 internal fun ExtensionsSettings(
     repository: SettingsRepository,
     settings: LiveSettings,
+    /** Another screen by route: the tool dashboard (#1397). */
+    onOpenRoute: (String) -> Unit = {},
     onOpen: (Extension) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val enabled = settings.watch { it.extensionsResolved() }
     val total = Extension.entries.size
+    // Each tool's permissions, use and space, a step finer than the bundles (#1397).
+    SettingsGroup {
+        item {
+            NavRow(
+                R.string.tool_dashboard_title,
+                stringResource(R.string.tool_dashboard_subtitle),
+                route = TOOL_DASHBOARD_ROUTE,
+            ) { onOpenRoute(TOOL_DASHBOARD_ROUTE) }
+        }
+    }
     SettingsGroup(
         stringResource(R.string.extensions_group_title),
         info = stringResource(R.string.extensions_intro),

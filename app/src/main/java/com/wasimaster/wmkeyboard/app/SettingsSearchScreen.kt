@@ -937,6 +937,7 @@ internal object SettingsRouteIcons {
         "import_hub" to { Icons.Outlined.FileOpen },
         "storage" to { Icons.Outlined.PieChart },
         "resources" to { Icons.Outlined.Memory },
+        "tool_dashboard" to { Icons.Outlined.Handyman },
         "provider_credits" to { com.wasimaster.wmkeyboard.core.icons.symbols.PluginSymbols.Savings },
         "debug_info" to { Icons.Outlined.BugReport },
         "feature_libraries" to { Icons.Outlined.Extension },

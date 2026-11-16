@@ -2890,7 +2890,7 @@ private fun SettingsNavGraph(
                 { navController.popBackStack() },
                 route = ExtensionsRoute,
             ) {
-                ExtensionsSettings(repository, settings) { extension ->
+                ExtensionsSettings(repository, settings, onOpenRoute = { navController.navigate(it) }) { extension ->
                     navController.navigate(extensionRoute(extension))
                 }
             }
@@ -3189,6 +3189,27 @@ private fun SettingsNavGraph(
                 route = "resources",
             ) {
                 ResourcesScreen(useRoot = settings.watch { it.launcher.useRoot }) { navController.navigate(it) }
+            }
+        }
+        composable(TOOL_DASHBOARD_ROUTE) {
+            SettingsScreen(
+                stringResource(R.string.tool_dashboard_title),
+                { navController.popBackStack() },
+                route = TOOL_DASHBOARD_ROUTE,
+            ) {
+                ToolDashboardScreen { navController.navigate(it) }
+            }
+        }
+        composable(TOOL_DASHBOARD_TOOL_ROUTE) { backStackEntry ->
+            val tool = backStackEntry.arguments?.getString("tool")?.let { name -> ToolbarTool.entries.firstOrNull { it.name == name } }
+            if (tool != null) {
+                SettingsScreen(
+                    stringResource(toolTitle(tool)),
+                    { navController.popBackStack() },
+                    route = toolDashboardRoute(tool),
+                ) {
+                    ToolDashboardToolScreen(repository, tool) { navController.navigate(it) }
+                }
             }
         }
         composable(PROVIDER_CREDITS_ROUTE) {

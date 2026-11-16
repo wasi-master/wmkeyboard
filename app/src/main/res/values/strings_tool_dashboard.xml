@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- #1397: the tool dashboard, each tool with its permissions, use and space. -->
+    <string name="tool_dashboard_title">Tools: permissions and space</string>
+    <string name="tool_dashboard_subtitle">What each tool may reach, when it last ran, and what its downloads take</string>
+    <string name="tool_dashboard_info">Android gives a permission to the whole app, not to one tool, so taking one back stops every tool listed beside it. A permission that was never given asks again the next time a tool needs it. Use is counted by the keyboard each time a tool opens; it is saved when the keyboard closes.</string>
+    <string name="tool_dashboard_permissions_group">Permissions</string>
+    <string name="tool_dashboard_tools_group">Tools</string>
+    <!-- %1$s lists the tools. -->
+    <string name="tool_dashboard_used_by">Used by %1$s</string>
+    <!-- %1$s lists the permissions with their state, e.g. "Microphone (Allowed)". -->
+    <string name="tool_dashboard_uses">Uses %1$s</string>
+    <!-- %1$s is a size such as "120 MB". -->
+    <string name="tool_dashboard_space">Downloads and data: %1$s</string>
+    <string name="tool_dashboard_never_used">Not used yet</string>
+    <!-- %1$s is when, such as "3 days ago"; %2$s how often, such as "42 times". -->
+    <string name="tool_dashboard_last_used">Last used %1$s · %2$s</string>
+    <plurals name="tool_dashboard_times">
+        <item quantity="one">%d time</item>
+        <item quantity="other">%d times</item>
+    </plurals>
+    <string name="tool_dashboard_use_group">Use</string>
+    <string name="tool_dashboard_use_title">Last used</string>
+    <string name="tool_dashboard_settings_title">The tool\'s settings</string>
+    <string name="tool_dashboard_settings_subtitle">Its options, and its switch on the toolbar</string>
+    <string name="tool_dashboard_revoke_info">Allowed, a tap opens Android\'s page for this app, where the permission can be taken back. Not allowed, a tap opens the Permissions screen, which asks for it.</string>
+    <string name="tool_dashboard_revoke">Take it back on Android\'s page for the app</string>
+    <string name="tool_dashboard_grant">Allow it now, or let the tool ask when it needs it</string>
+    <!-- %1$s lists the other tools. -->
+    <string name="tool_dashboard_also_used_by">Also used by %1$s</string>
+    <string name="tool_dashboard_storage_group">Downloads and data</string>
+    <string name="tool_dashboard_delete_title">Delete all of it</string>
+    <!-- %1$s is the total size. -->
+    <string name="tool_dashboard_delete_subtitle">Frees %1$s. Models and packs can be downloaded again from the tool\'s settings.</string>
+    <string name="tool_dashboard_delete_action">Delete</string>
+    <!-- %1$s is the tool's name. -->
+    <string name="tool_dashboard_delete_confirm">Delete everything %1$s has downloaded or kept on this phone? Downloads can be fetched again; anything you made in it, such as notes or history, cannot.</string>
+    <string name="tool_dashboard_nothing_title">Nothing to show</string>
+    <string name="tool_dashboard_nothing_subtitle">This tool asks for no permission and keeps nothing of its own on the phone.</string>
+    <string name="search_kw_tool_dashboard">permissions tools dashboard space storage delete models downloads revoke last used microphone camera location</string>
+</resources>

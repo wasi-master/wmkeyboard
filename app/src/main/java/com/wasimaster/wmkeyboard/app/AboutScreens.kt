@@ -1788,6 +1788,14 @@ internal fun AboutSettings(
                 onClick = { onOpenRoute(PROVIDER_CREDITS_ROUTE) },
             )
         }
+        item(level = SettingLevel.STANDARD) {
+            NavRow(
+                R.string.tool_dashboard_title,
+                stringResource(R.string.tool_dashboard_subtitle),
+                route = TOOL_DASHBOARD_ROUTE,
+                onClick = { onOpenRoute(TOOL_DASHBOARD_ROUTE) },
+            )
+        }
         item(visible = FeatureLibraryList.offered, level = SettingLevel.STANDARD) { FeatureLibrariesNavRow() }
         item {
             NavRow(

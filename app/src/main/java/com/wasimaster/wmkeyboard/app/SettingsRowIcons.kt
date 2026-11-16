@@ -443,6 +443,7 @@ internal object SettingsRowIcons {
         put(R.string.about_resources_title) { Icons.Outlined.Memory }
         put(R.string.gallery_immich_save_data_title) { Icons.Outlined.DataSaverOn }
         put(R.string.gallery_immich_allow_delete_title) { Icons.Outlined.DeleteForever }
+        put(R.string.tool_dashboard_title) { Icons.Outlined.Handyman }
         put(R.string.providers_credits_title) { com.wasimaster.wmkeyboard.core.icons.symbols.PluginSymbols.Savings }
         put(R.string.about_debug_info_title) { Icons.Outlined.BugReport }
         put(R.string.statistics_title) { Icons.Outlined.QueryStats }
