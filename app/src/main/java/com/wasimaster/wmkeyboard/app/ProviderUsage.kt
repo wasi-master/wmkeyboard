@@ -18,9 +18,13 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DataUsage
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QueryStats
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.RestartAlt
+import com.wasimaster.wmkeyboard.core.icons.symbols.PluginSymbols
+import com.wasimaster.wmkeyboard.core.providers.ProviderEnvironment
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
+import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
+import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import com.wasimaster.wmkeyboard.core.tools.ServiceUsage
 import com.wasimaster.wmkeyboard.core.tools.ToolHttp
 import com.wasimaster.wmkeyboard.core.tools.UsageChecks
@@ -37,6 +41,8 @@ import java.text.NumberFormat
 internal fun usageKeyOf(row: ResolvedProvider, tool: ProviderTool): String? = when {
     row.typeId == ProviderTypes.BRAVE.id -> "brave"
     row.typeId == ProviderTypes.TAVILY.id -> "tavily"
+    // DeepL's character allowance (#1382); a proxy of the user's own has none to report.
+    row.typeId == ProviderTypes.DEEPL.id && row.apiKey.isNotBlank() -> "deepl"
     tool == ProviderTool.AI && row.typeId != ProviderTypes.ON_DEVICE_AI.id -> ServiceUsage.key(row.typeId, row.url)
     else -> null
 }
@@ -47,7 +53,7 @@ internal fun usageKeyOf(row: ResolvedProvider, tool: ProviderTool): String? = wh
  * services with an account endpoint, a button that asks.
  */
 @Composable
-internal fun ProviderUsageGroup(row: ResolvedProvider, tool: ProviderTool) {
+internal fun ProviderUsageGroup(row: ResolvedProvider, tool: ProviderTool, onNavigate: (String) -> Unit = {}) {
     val key = usageKeyOf(row, tool) ?: return
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -75,6 +81,17 @@ internal fun ProviderUsageGroup(row: ResolvedProvider, tool: ProviderTool) {
                             ""
                         },
                     icon = Icons.Outlined.QueryStats,
+                )
+            }
+        }
+        // Brave's prepaid plans report no balance (#1385): the free credit, less this phone's count.
+        val estimate = remember(version, key) { ServiceUsage.estimatedFreeLeft(key) }
+        item(visible = estimate != null) {
+            estimate?.let {
+                WmRow(
+                    title = stringResource(R.string.providers_usage_estimate_title),
+                    subtitle = estimateLine(context, key, it),
+                    icon = PluginSymbols.Savings,
                 )
             }
         }
@@ -110,6 +127,112 @@ internal fun ProviderUsageGroup(row: ResolvedProvider, tool: ProviderTool) {
                 onClick = { ServiceUsage.reset(key) },
             )
         }
+        // Every paid or limited service on one screen (#1382).
+        item {
+            NavRow(
+                title = stringResource(R.string.providers_credits_title),
+                subtitle = stringResource(R.string.providers_credits_link_subtitle),
+                icon = PluginSymbols.Savings,
+            ) { onNavigate(PROVIDER_CREDITS_ROUTE) }
+        }
+    }
+}
+
+/** "About 840 of 1,000 free searches left this month, by this phone's count". */
+internal fun estimateLine(context: Context, key: String, left: Long): String {
+    val number = NumberFormat.getIntegerInstance()
+    val free = ServiceUsage.FREE_MONTHLY[key] ?: left
+    return context.getString(R.string.providers_usage_estimate, number.format(left), number.format(free))
+}
+
+/** The overview of every paid or limited service (#1382), from the keyboard's credit readout too. */
+internal const val PROVIDER_CREDITS_ROUTE = "provider_credits"
+
+/** One service on the overview: where it is counted, and the list row it is set up on. */
+private data class CreditRow(val key: String, val tool: ProviderTool, val row: ResolvedProvider)
+
+/**
+ * Every row, on every tool's list, that is switched on and costs something
+ * to ask, once per usage key: a key shared by two tools (Brave for search
+ * and for Answers) is one balance.
+ */
+private fun creditRows(settings: KeyboardSettings): List<CreditRow> {
+    val env = ProviderEnvironment.current()
+    val seen = HashSet<String>()
+    return ProviderTool.entries.flatMap { tool ->
+        settings.resolveProviders(tool, env, all = true)
+            .filter { it.entry.enabled && it.type != null }
+            .mapNotNull { row -> usageKeyOf(row, tool)?.let { CreditRow(it, tool, row) } }
+    }.filter { seen.add(it.key) }
+}
+
+/**
+ * The overview (#1382): for each paid or limited service, what it last said
+ * is left, the phone's estimate where it says nothing, and this month's
+ * count, grouped by the tool it is set up on. A tap opens the provider's own
+ * screen; Check all asks every service that has an account endpoint.
+ */
+@Composable
+internal fun ProviderCreditsScreen(settings: LiveSettings, onNavigate: (String) -> Unit) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val version by ServiceUsage.version.collectAsState()
+    val rows = settings.watch { creditRows(it) }
+    var checking by remember { mutableStateOf(false) }
+    if (rows.isEmpty()) {
+        StateBanner(stringResource(R.string.providers_credits_empty))
+        return
+    }
+    val checkable = rows.filter { UsageChecks.canCheck(it.row.typeId, it.row.url) && it.row.apiKey.isNotBlank() }
+    if (checkable.isNotEmpty()) {
+        SettingsGroup {
+            item {
+                WmRow(
+                    title = stringResource(R.string.providers_credits_check_all_title),
+                    subtitle = stringResource(
+                        if (checking) R.string.providers_usage_checking else R.string.providers_credits_check_all_subtitle,
+                    ),
+                    icon = Icons.Outlined.Refresh,
+                    enabled = !checking,
+                    onClick = {
+                        checking = true
+                        scope.launch {
+                            val failures = withContext(Dispatchers.IO) {
+                                checkable.mapNotNull { credit ->
+                                    runCatching { UsageChecks.check(credit.row.typeId, credit.row.url, credit.row.apiKey, credit.key) }
+                                        .exceptionOrNull()?.let { providerTitle(context, credit.row) to it }
+                                }
+                            }
+                            checking = false
+                            failures.firstOrNull()?.let { (name, failure) ->
+                                Toast.makeText(context, "$name: " + ToolHttp.friendlyMessage(context, failure), Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    },
+                )
+            }
+        }
+    }
+    for ((tool, group) in rows.groupBy { it.tool }) {
+        SettingsGroup(title = stringResource(tool.labelRes)) {
+            for (credit in group) {
+                item {
+                    val record = remember(version, credit.key) { ServiceUsage.get(credit.key) }
+                    val estimate = remember(version, credit.key) { ServiceUsage.estimatedFreeLeft(credit.key) }
+                    val lines = listOfNotNull(
+                        record.reported?.let { reportedLine(context, it) },
+                        estimate?.let { estimateLine(context, credit.key, it) },
+                        context.getString(R.string.providers_credits_counted, countedLine(context, record)),
+                        if (credit.row.usesBuiltInKey) context.getString(R.string.providers_usage_shared_key) else null,
+                    )
+                    NavRow(
+                        title = providerTitle(context, credit.row),
+                        subtitle = lines.joinToString("\n"),
+                        icon = Icons.Outlined.DataUsage,
+                    ) { onNavigate(providerRoute(credit.tool, credit.row.key)) }
+                }
+            }
+        }
     }
 }
 
@@ -143,6 +266,7 @@ internal fun reportedLine(context: Context, reported: ServiceUsage.Reported): St
         ServiceUsage.Measure.REQUESTS -> context.getString(R.string.providers_usage_unit_requests)
         ServiceUsage.Measure.TOKENS -> context.getString(R.string.providers_usage_unit_tokens)
         ServiceUsage.Measure.CREDITS -> context.getString(R.string.providers_usage_unit_credits)
+        ServiceUsage.Measure.CHARACTERS -> context.getString(R.string.providers_usage_unit_characters)
         ServiceUsage.Measure.MONEY -> ""
     }
     val remaining = reported.remaining
@@ -152,6 +276,14 @@ internal fun reportedLine(context: Context, reported: ServiceUsage.Reported): St
         remaining != null && limit != null -> context.getString(R.string.providers_usage_left_of, amount(remaining), amount(limit), unit)
         remaining != null -> context.getString(R.string.providers_usage_left, amount(remaining), unit)
         used != null -> context.getString(R.string.providers_usage_used, amount(used), unit)
+        // Brave's prepaid plans: no monthly cap, and the balance is not in the headers (#1385).
+        reported.uncapped -> return listOfNotNull(
+            context.getString(R.string.providers_usage_uncapped),
+            context.getString(
+                R.string.providers_usage_seen,
+                DateUtils.getRelativeTimeSpanString(reported.atMs, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS).toString(),
+            ),
+        ).joinToString(" · ")
         else -> context.getString(R.string.providers_usage_none)
     }.replace("  ", " ")
     val window = when (reported.window) {

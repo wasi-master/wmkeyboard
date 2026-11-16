@@ -57,6 +57,23 @@ class ServiceUsageTest {
     }
 
     @Test
+    fun `a monthly limit of 0 is Brave's prepaid plan, with no cap rather than nothing left`() {
+        val reported = ServiceUsage.braveHeaders(
+            mapOf("X-RateLimit-Limit" to "50, 0", "X-RateLimit-Remaining" to "49, 0", "X-RateLimit-Reset" to "1, 0"),
+            november,
+        )!!
+        assertEquals(true, reported.uncapped)
+        assertNull(reported.remaining)
+        assertNull(reported.limit)
+        ServiceUsage.report("brave", reported, utc)
+        ServiceUsage.record("brave", nowMs = november, zone = utc)
+        ServiceUsage.record("brave", nowMs = november, zone = utc)
+        // Not "0 left": the free credit, less what this phone searched.
+        assertNull(ServiceUsage.allowanceLeft("brave", november))
+        assertEquals(ServiceUsage.Left(998, estimate = true), ServiceUsage.left("brave", november))
+    }
+
+    @Test
     fun `an AI service's rate-limit headers read as this minute's tokens`() {
         val anthropic = ServiceUsage.aiHeaders(
             mapOf(

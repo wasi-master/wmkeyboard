@@ -61,10 +61,17 @@ object ServiceUsage {
         /** A plan's name, where the service gave one. */
         val plan: String = "",
         val atMs: Long = 0,
+        /**
+         * The service said this window has no cap (#1385): Brave's prepaid
+         * plans send a monthly limit of 0, meaning searches are paid from a
+         * credit balance the headers do not carry. [remaining] is then null,
+         * and [estimatedFreeLeft] is the closest thing there is.
+         */
+        val uncapped: Boolean = false,
     )
 
     @Serializable
-    enum class Measure { REQUESTS, TOKENS, CREDITS, MONEY }
+    enum class Measure { REQUESTS, TOKENS, CREDITS, MONEY, CHARACTERS }
 
     @Serializable
     enum class Window { MINUTE, MONTH, PLAN, UNKNOWN }
@@ -153,6 +160,44 @@ object ServiceUsage {
 
     private const val STALE_AFTER_MS = 31L * 24 * 3_600_000
 
+    /**
+     * How many requests a month's free credit pays for, for the services
+     * that give one and do not report the balance: Brave's $5 a month at
+     * $5 per 1,000 searches (its pricing page, November 2026).
+     */
+    val FREE_MONTHLY: Map<String, Long> = mapOf(BRAVE to 1_000L)
+
+    /**
+     * About how much of [service]'s free monthly credit is left, from this
+     * phone's own count, when the service said it has no cap and so reports
+     * no balance (#1385). Searches from another device or app on the same
+     * key are not counted, which is why it is only an estimate.
+     */
+    fun estimatedFreeLeft(service: String, nowMs: Long = System.currentTimeMillis()): Long? {
+        val free = FREE_MONTHLY[service] ?: return null
+        val record = get(service, nowMs)
+        val reported = record.reported ?: return null
+        if (!reported.uncapped || nowMs - reported.atMs > STALE_AFTER_MS) return null
+        return (free - record.requests).coerceAtLeast(0)
+    }
+
+    /** What a panel shows beside a service's name: what is left, and whether that is the phone's estimate. */
+    data class Left(val amount: Long, val estimate: Boolean)
+
+    /** [allowanceLeft] when the service said, else [estimatedFreeLeft]; null when neither is known. */
+    fun left(service: String, nowMs: Long = System.currentTimeMillis()): Left? =
+        allowanceLeft(service, nowMs)?.let { Left(it, estimate = false) }
+            ?: estimatedFreeLeft(service, nowMs)?.let { Left(it, estimate = true) }
+
+    /** Every service with a record: what the usage overview lists besides the configured ones. */
+    @Synchronized
+    fun services(): Set<String> {
+        loadLocked()
+        return records.keys.toSet()
+    }
+
+    private const val BRAVE = "brave"
+
     /** Forgets [service]'s counts and what it reported. */
     @Synchronized
     fun reset(service: String) {
@@ -204,12 +249,26 @@ object ServiceUsage {
      * Brave Search's quota headers: each holds a comma-separated list, one
      * entry per window (`1, 15000` for a second and a month), so the last,
      * longest one is the month's. `X-RateLimit-Reset` counts seconds to go.
+     *
+     * A monthly limit of 0 means no cap (Brave's rate-limiting guide): the
+     * prepaid plans every key moved to in 2026 send `50, 0`, and their
+     * remaining count is 0 too, which read as "0 of 0 left" (#1385). That
+     * is reported as [Reported.uncapped], with no remaining figure.
      */
     fun braveHeaders(headers: Map<String, String>, nowMs: Long): Reported? {
         val lookup = headers.mapKeys { it.key.lowercase() }
         val remaining = lookup["x-ratelimit-remaining"]?.lastNumber() ?: return null
         val limit = lookup["x-ratelimit-limit"]?.lastNumber()
         val reset = lookup["x-ratelimit-reset"]?.lastNumber()
+        if (limit == 0.0) {
+            return Reported(
+                unit = Measure.REQUESTS,
+                window = Window.MONTH,
+                resetAtMs = reset?.takeIf { it > 0 }?.let { nowMs + (it * 1000).toLong() } ?: 0,
+                atMs = nowMs,
+                uncapped = true,
+            )
+        }
         return Reported(
             unit = Measure.REQUESTS,
             remaining = remaining,

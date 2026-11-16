@@ -16641,6 +16641,7 @@ private fun KeyboardBody(
                             onQueryTap = onMediaQueryTap,
                             onClear = onMediaQueryClear,
                             attribution = searchAttribution(state.settings),
+                            attributionOpensCredits = true,
                         )
                         SearchByPhotoButton { onPanelChange(PanelMode.CAMERA) }
                     },

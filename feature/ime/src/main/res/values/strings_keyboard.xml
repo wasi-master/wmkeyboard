@@ -818,6 +818,8 @@
     <string name="ime_search_attribution_tavily">via Tavily</string>
     <!-- The search service, then what it says is left of this month's searches or credits (#1135): "via Tavily · 812 left". -->
     <string name="ime_search_attribution_left">%1$s · %2$s left</string>
+    <!-- %1$s is "via Brave"; %2$s about how many free searches this month's credit still pays for, counted on this phone. -->
+    <string name="ime_search_attribution_free_left">%1$s · about %2$s free left</string>
     <string name="ime_unit_convert_title">Unit converter</string>
     <!-- The unit converter's tab when it and the currency converter share one panel (#1268). Keep it short. -->
     <string name="ime_converter_tab_units">Units</string>

@@ -138,6 +138,22 @@
     <string name="providers_usage_window_plan_named">on the %1$s plan</string>
     <string name="providers_usage_resets">starts again %1$s</string>
     <string name="providers_usage_seen">seen %1$s</string>
+    <string name="providers_usage_unit_characters">characters</string>
+    <!-- Brave's prepaid plans (#1385): the monthly quota header says 0, meaning no cap, and the account's credit is not reported. -->
+    <string name="providers_usage_uncapped">No monthly cap: searches are paid from your account\'s credit, which the service does not report</string>
+    <string name="providers_usage_estimate_title">Free credit left</string>
+    <!-- %1$s searches left, %2$s searches the month's free credit pays for (Brave: 1,000). -->
+    <string name="providers_usage_estimate">About %1$s of %2$s free searches left this month, by this phone\'s count. Searches made elsewhere with the same key are not counted.</string>
+    <!-- #1382: the screen listing every paid or limited service. -->
+    <string name="providers_credits_title">Credit and usage</string>
+    <string name="providers_credits_subtitle">What is left with each paid or limited service: search, AI, translation</string>
+    <string name="providers_credits_link_subtitle">Every paid or limited service on one screen</string>
+    <string name="providers_credits_empty">None of the services you have switched on is paid or limited. Brave Search, Tavily, DeepL with your own key and the online AI services are listed here once they are on.</string>
+    <string name="providers_credits_check_all_title">Check all</string>
+    <string name="providers_credits_check_all_subtitle">Asks each service that can say for what is left on your account</string>
+    <!-- %1$s is a count like "12 requests". -->
+    <string name="providers_credits_counted">This month on this phone: %1$s</string>
+    <string name="search_kw_provider_credits">credit credits balance quota usage limit remaining paid api key brave tavily deepl openrouter deepseek</string>
     <string name="providers_summary_privatemode_phone">Encrypted on this phone, attestation not checked</string>
     <string name="providers_summary_privatemode_proxy">Through your Privatemode proxy</string>
 

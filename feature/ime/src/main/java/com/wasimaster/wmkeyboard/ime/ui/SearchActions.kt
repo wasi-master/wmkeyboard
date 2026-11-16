@@ -26,6 +26,8 @@ internal class SearchActions(
     val onSaveImage: (ImageResult) -> Unit = {},
     /** Puts text in the field as it is: the answer, or one of its code blocks. */
     val onInsertText: (String) -> Unit = {},
+    /** The credit readout held (#1382): the settings app's overview of every paid service. */
+    val onCredits: () -> Unit = {},
 )
 
 internal val LocalSearchActions = staticCompositionLocalOf { SearchActions() }

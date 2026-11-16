@@ -287,6 +287,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VolunteerActivism
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tab
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TabletAndroid
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tag
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Title
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Terminal
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFields
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFormat
@@ -440,6 +441,7 @@ internal object SettingsRowIcons {
         put(R.string.backup_downloads_import_title) { Icons.Outlined.FileOpen }
         put(R.string.about_storage_title) { Icons.Outlined.PieChart }
         put(R.string.about_resources_title) { Icons.Outlined.Memory }
+        put(R.string.providers_credits_title) { com.wasimaster.wmkeyboard.core.icons.symbols.PluginSymbols.Savings }
         put(R.string.about_debug_info_title) { Icons.Outlined.BugReport }
         put(R.string.statistics_title) { Icons.Outlined.QueryStats }
         put(R.string.about_diagnostics_title) { Icons.AutoMirrored.Outlined.Article }
@@ -923,6 +925,9 @@ internal object SettingsRowIcons {
         put(R.string.floating_button_menu_labels_title) { Icons.AutoMirrored.Outlined.Label }
         put(R.string.floating_button_menu_reset_title) { Icons.Outlined.Restore }
         put(R.string.floating_button_menu_gap_title) { Icons.Outlined.SpaceBar }
+        put(R.string.floating_button_menu_item_size_title) { Icons.Outlined.ZoomOutMap }
+        put(R.string.floating_button_menu_hold_floats_title) { Icons.Outlined.PictureInPictureAlt }
+        put(R.string.floating_button_corner_title) { Icons.Outlined.RoundedCorner }
         put(R.string.floating_button_menu_animation_title) { Icons.Outlined.Animation }
         put(R.string.floating_button_animation_speed_title) { Icons.Outlined.Speed }
         put(R.string.floating_button_style_title) { Icons.Outlined.Palette }
@@ -2699,6 +2704,8 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_box_close_outside_title) { Icons.Outlined.PictureInPictureAlt }
         put(R.string.tools_box_gestures_title) { Icons.Outlined.Gesture }
         put(R.string.tools_box_hold_to_move_title) { Icons.Outlined.OpenWith }
+        put(R.string.tools_box_hide_title_title) { Icons.Outlined.Title }
+        put(R.string.tools_box_hide_frame_title) { Icons.Outlined.BorderStyle }
     }
 
     operator fun get(@StringRes id: Int): ImageVector? = map[id]?.invoke()

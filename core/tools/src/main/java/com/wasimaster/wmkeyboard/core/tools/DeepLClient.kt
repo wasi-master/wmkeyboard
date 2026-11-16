@@ -112,7 +112,7 @@ object DeepLClient {
                 headers = headers,
                 source = source,
                 route = path,
-            )
+            ).also { if (apiKey.isNotBlank()) ServiceUsage.record(USAGE_KEY) }
         } catch (e: ToolHttpException) {
             if (e.status == QUOTA_EXCEEDED) throw ToolHttpException(R.string.core_tools_error_deepl_quota, e.status)
             throw e
@@ -128,6 +128,12 @@ object DeepLClient {
      * out of a README; all of those reduce to the same root. A scheme other
      * than http/https is refused rather than guessed at.
      */
+    /** Where DeepL says how much of the billing period's characters are used (#1382). */
+    fun usageUrl(apiKey: String, endpoint: String): String = baseUrl(apiKey, endpoint) + "/v2/usage"
+
+    /** The [ServiceUsage] key DeepL's requests count under. */
+    const val USAGE_KEY = "deepl"
+
     internal fun baseUrl(apiKey: String, endpoint: String): String {
         val raw = endpoint.trim()
         if (raw.isEmpty()) return if (apiKey.trim().endsWith(":fx")) FREE_HOST else PRO_HOST

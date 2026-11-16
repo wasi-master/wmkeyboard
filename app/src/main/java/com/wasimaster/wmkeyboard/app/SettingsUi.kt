@@ -482,6 +482,7 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "debug_log" to Color(0xFF607D8B),
     "storage" to Color(0xFF546E7A),
     "resources" to Color(0xFF546E7A),
+    "provider_credits" to Color(0xFF546E7A),
     "debug_info" to Color(0xFF607D8B),
     "feature_libraries" to Color(0xFF90A4AE),
     "import_hub" to Color(0xFF546E7A),

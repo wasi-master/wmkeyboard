@@ -11,7 +11,8 @@ import kotlinx.serialization.json.JsonPrimitive
 /**
  * The services that will say what is left on an account when asked
  * (#1135), asked only when the user presses Check on a provider's screen:
- * Tavily's `/usage`, DeepSeek's `/user/balance` and OpenRouter's `/key`.
+ * Tavily's `/usage`, DeepSeek's `/user/balance`, OpenRouter's `/key` and
+ * DeepL's `/v2/usage` (#1382).
  * Brave and the AI services' rate limits come in the headers of ordinary
  * requests instead ([ServiceUsage.braveHeaders], [ServiceUsage.aiHeaders]);
  * the rest report nothing at all.
@@ -22,7 +23,7 @@ object UsageChecks {
 
     /** Whether a row of [typeId] at [url] has an account to ask. */
     fun canCheck(typeId: String, url: String): Boolean = when (typeId) {
-        TAVILY, DEEPSEEK -> true
+        TAVILY, DEEPSEEK, DEEPL -> true
         OPENAI_COMPATIBLE -> isOpenRouter(url)
         else -> false
     }
@@ -49,6 +50,15 @@ object UsageChecks {
                     headers = mapOf("Authorization" to "Bearer ${apiKey.trim()}"),
                     source = NetSource.AI,
                     route = "/user/balance",
+                ),
+                nowMs,
+            )
+            DEEPL -> parseDeepL(
+                ToolHttp.get(
+                    DeepLClient.usageUrl(apiKey, url),
+                    headers = mapOf("Authorization" to "DeepL-Auth-Key ${apiKey.trim()}"),
+                    source = NetSource.TRANSLATE,
+                    route = "/v2/usage",
                 ),
                 nowMs,
             )
@@ -99,6 +109,21 @@ object UsageChecks {
         }
     }
 
+    /** `{"character_count":180118,"character_limit":1250000}`: the billing period's characters. */
+    internal fun parseDeepL(body: String, nowMs: Long): ServiceUsage.Reported? {
+        val root = json.parseToJsonElement(body) as? JsonObject ?: return null
+        val used = root.number("character_count") ?: return null
+        val limit = root.number("character_limit")
+        return ServiceUsage.Reported(
+            unit = ServiceUsage.Measure.CHARACTERS,
+            remaining = limit?.let { (it - used).coerceAtLeast(0.0) },
+            limit = limit,
+            used = used,
+            window = ServiceUsage.Window.MONTH,
+            atMs = nowMs,
+        )
+    }
+
     /** `{"is_available":true,"balance_infos":[{"currency":"USD","total_balance":"110.00",…}]}`. */
     internal fun parseDeepSeek(body: String, nowMs: Long): ServiceUsage.Reported? {
         val root = json.parseToJsonElement(body) as? JsonObject ?: return null
@@ -133,5 +158,6 @@ object UsageChecks {
 
     private const val TAVILY = "tavily"
     private const val DEEPSEEK = "deepseek"
+    private const val DEEPL = "deepl"
     private const val OPENAI_COMPATIBLE = "openai_compatible"
 }

@@ -13,6 +13,15 @@ import org.junit.Test
 class UsageChecksTest {
 
     @Test
+    fun `DeepL's usage reads as characters left of the period's limit`() {
+        val reported = UsageChecks.parseDeepL("""{"character_count":180118,"character_limit":1250000}""", 0)!!
+        assertEquals(ServiceUsage.Measure.CHARACTERS, reported.unit)
+        assertEquals(1_069_882.0, reported.remaining!!, 0.0)
+        assertEquals(1_250_000.0, reported.limit!!, 0.0)
+        assertTrue(UsageChecks.canCheck("deepl", ""))
+    }
+
+    @Test
     fun `Tavily's key limit wins over the plan's`() {
         val keyed = UsageChecks.parseTavily(
             """{"key":{"usage":150,"limit":1000},"account":{"current_plan":"Bootstrap","plan_usage":500,"plan_limit":15000}}""",

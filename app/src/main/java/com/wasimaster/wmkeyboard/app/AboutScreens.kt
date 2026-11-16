@@ -1590,6 +1590,8 @@ internal fun AboutSettings(
     onOpenStatistics: () -> Unit = {},
     onOpenEggGame: () -> Unit = {},
     onReplayOnboarding: () -> Unit = {},
+    /** Any other screen by its route: the credit overview (#1382) and the tool dashboard (#1397). */
+    onOpenRoute: (String) -> Unit = {},
 ) {
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
@@ -1776,6 +1778,14 @@ internal fun AboutSettings(
                 stringResource(R.string.about_resources_subtitle),
                 route = "resources",
                 onClick = onOpenResources,
+            )
+        }
+        item(level = SettingLevel.STANDARD) {
+            NavRow(
+                R.string.providers_credits_title,
+                stringResource(R.string.providers_credits_subtitle),
+                route = PROVIDER_CREDITS_ROUTE,
+                onClick = { onOpenRoute(PROVIDER_CREDITS_ROUTE) },
             )
         }
         item(visible = FeatureLibraryList.offered, level = SettingLevel.STANDARD) { FeatureLibrariesNavRow() }

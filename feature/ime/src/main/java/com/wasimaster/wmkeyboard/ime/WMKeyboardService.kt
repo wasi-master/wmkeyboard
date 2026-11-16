@@ -4124,6 +4124,7 @@ open class WMKeyboardService : InputMethodService() {
             onOpen = ::openSearchLink,
             onSaveImage = ::onSearchImageSave,
             onInsertText = ::onSearchInsertText,
+            onCredits = { openRoute(PROVIDER_CREDITS_ROUTE) },
         )
     }
     private var imageSearchJob: Job? = null
@@ -65235,3 +65236,6 @@ internal fun modeKeyPick(id: String, activeModeId: String?): String? = if (activ
  */
 private class VoicePromptTooLong(val limit: Int, val parts: VoiceBias.PromptBreakdown) :
     java.io.IOException("Voice prompt over the server's $limit-character limit")
+
+/** The settings app's overview of every paid service's credit (#1382), opened by holding the search panel's readout. */
+private const val PROVIDER_CREDITS_ROUTE = "provider_credits"
