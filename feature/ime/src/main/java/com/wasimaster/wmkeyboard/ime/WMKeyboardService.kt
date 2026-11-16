@@ -26247,11 +26247,14 @@ open class WMKeyboardService : InputMethodService() {
             .partition { isEmojiCandidate(it) }
         val shown = withRestWords(words, state)
         nextWordPages(engine, state, shown, before, before2, before3)
-        return shown to if (state.settings.emojiPrediction) {
+        val predicted = if (state.settings.emojiPrediction) {
             emojiByUse((emojis + triggerEmojiForPreviousWord()).distinct())
         } else {
             emptyList()
         }
+        // The emoji just picked off the strip, for another tap (#1365).
+        val again = repeatEmojiHere()
+        return shown to if (again.isEmpty()) predicted else (again + predicted).distinct()
     }
 
     /**
@@ -31769,6 +31772,12 @@ open class WMKeyboardService : InputMethodService() {
 
     /** Fewest predictions asked for after a conversion commit; the strip scrolls. */
     private val CONVERSION_PREDICTIONS = 12
+
+    /** How far back [repeatEmojiHere] looks for the emoji just put in: a ZWJ family is up to 11 chars. */
+    private val REPEAT_EMOJI_LOOKBACK = 16
+
+    /** How many emoji [repeatEmoji] keeps (#1365). */
+    private val REPEAT_EMOJI_MAX = 5
 
     /** How many snippets a keypad's strip offers at once (#1020). */
     private val KEYPAD_SNIPPET_CHIPS = 8
@@ -58754,11 +58763,53 @@ open class WMKeyboardService : InputMethodService() {
         refreshSuggestions()
     }
 
+    /**
+     * The emoji a strip pick put in, with the others offered beside it, kept
+     * at the front of the emoji row while the caret is still right after one
+     * of them (#1365): a word turned into its emoji took the emoji off the
+     * strip with it, so putting in two or three meant typing the word again.
+     */
+    private var repeatEmoji: List<String> = emptyList()
+
+    /**
+     * Set by the pick, spent by the strip refresh straight after it: that one
+     * takes [repeatEmoji] on trust, since a field that answers from its last
+     * state (a Compose one) may not show the emoji just committed yet.
+     */
+    private var repeatEmojiJustPicked = false
+
+    /**
+     * [repeatEmoji] while the text before the caret still ends on one of them
+     * (a space after it allowed), else empty and forgotten. One short read of
+     * the field, and none at all while nothing is kept.
+     */
+    private fun repeatEmojiHere(): List<String> {
+        if (repeatEmoji.isEmpty()) return repeatEmoji
+        if (repeatEmojiJustPicked) {
+            repeatEmojiJustPicked = false
+            return repeatEmoji
+        }
+        val before = currentInputConnection?.getTextBeforeCursor(REPEAT_EMOJI_LOOKBACK, 0)?.toString()?.trimEnd(' ')
+        if (before == null || composing.isNotEmpty() || repeatEmoji.none { before.endsWith(it) }) {
+            repeatEmoji = emptyList()
+        }
+        return repeatEmoji
+    }
+
     fun onEmojiSuggestionTapped(emoji: String, held: Boolean = false) {
         vibrate()
         val ic = currentInputConnection ?: return
         lastGestureWord = null
         val word = composing.toString()
+        // Kept on the strip for another tap (#1365): this one first, then the
+        // others the word was offering. A character picked by its Unicode name
+        // is not an emoji and is not kept.
+        repeatEmoji = if (unicodeStripNames[emoji] != null && word.isNotEmpty()) {
+            emptyList()
+        } else {
+            (listOf(emoji) + _uiState.value.emojiSuggestions).distinct().take(REPEAT_EMOJI_MAX)
+        }
+        repeatEmojiJustPicked = repeatEmoji.isNotEmpty()
         val append = (_uiState.value.settings.emojiInsertMode == EmojiInsertMode.APPEND) != held
         val namedBy = unicodeStripNames[emoji]?.takeIf { word.isNotEmpty() }
         if (namedBy != null) {
