@@ -78,6 +78,15 @@ class BottomRowPresetTest {
     }
 
     @Test
+    fun `with emoji seats a globe the layout never drew`() {
+        val row = grid(symbols, comma, space, period, enter).arranged(BottomRowPreset.WITH_EMOJI).bottom()
+        assertEquals(
+            listOf(KeyAction.Symbols, KeyAction.Emoji, KeyAction.Text, KeyAction.LanguageSwitch, KeyAction.Space, KeyAction.Text, KeyAction.Enter),
+            row.map { it.action },
+        )
+    }
+
+    @Test
     fun `the authored keys are reused, holds and all`() {
         val row = builtIn().arranged(BottomRowPreset.CLASSIC).bottom()
         assertSame(symbols, row[0])

@@ -260,15 +260,19 @@ private fun seatsForPreset(rows: List<List<Seat>>, preset: BottomRowPreset): Lis
             symbols to 1.5f, (globe ?: Seat(PresetGlobe, FRESH_SEAT)) to 1.5f, space to 5f, enter to 2f,
         )
         BottomRowPreset.MINIMAL -> listOf(symbols to 1.5f, space to 6.5f, enter to 2f)
-        BottomRowPreset.WITH_EMOJI -> buildList {
-            add(symbols to 1.5f)
-            add((emoji ?: Seat(PresetEmoji, FRESH_SEAT)) to 1f)
-            add(commaSeat to 1f)
-            if (globe != null) add(globe to 1f)
-            add(space to if (globe != null) 3f else 4f)
-            add(periodSeat to 1f)
-            add(enter to 1.5f)
-        }
+        // The 🌐 key is seated whether or not the layout drew one, the way
+        // the iPhone row does: the row promises "?123 ☺ , 🌐 ␣ . ⏎", and a
+        // layout without one lost its only language key to it (Telegram
+        // 10139/10165). "Show the 🌐 key" off still takes it away, after this.
+        BottomRowPreset.WITH_EMOJI -> listOf(
+            symbols to 1.5f,
+            (emoji ?: Seat(PresetEmoji, FRESH_SEAT)) to 1f,
+            commaSeat to 1f,
+            (globe ?: Seat(PresetGlobe, FRESH_SEAT)) to 1f,
+            space to 3f,
+            periodSeat to 1f,
+            enter to 1.5f,
+        )
     }
     val unit = bottom.sumOf { it.key.width.toDouble() }.toFloat() / PRESET_ROW_UNITS
     val row = plan.map { (seat, share) -> seat.withSnappedWidth(share * unit) }
