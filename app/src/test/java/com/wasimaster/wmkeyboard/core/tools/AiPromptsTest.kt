@@ -65,7 +65,10 @@ class AiPromptsTest {
         val input = AiPrompts.onDeviceInput(fix, "French", "", "can you help me with this")
         assertTrue(input.startsWith("Task: fix all spelling"))
         assertTrue(input.contains("do not answer it"))
-        assertTrue(input.endsWith("<input>\ncan you help me with this\n</input>"))
+        assertTrue(input.contains("<input>\ncan you help me with this\n</input>"))
+        assertTrue(input.endsWith("Do not translate it."))
+        val translate = BuiltInAiActions.byId(BuiltInAiActions.TRANSLATE_ID)!!
+        assertTrue(AiPrompts.onDeviceInput(translate, "French", "", "x").endsWith("</input>"))
         val custom = BuiltInAiActions.byId(BuiltInAiActions.CUSTOM_ID)!!
         assertTrue(AiPrompts.onDeviceInput(custom, "French", "make it rhyme", "x").startsWith("Task: make it rhyme"))
         val raw = fix.copy(rawPrompt = true)
