@@ -4684,53 +4684,53 @@ private fun TopBar(
             enter = fadeIn(tween(motionMs)),
             exit = ExitTransition.None,
         ) {
-            IconHint(
-                stringResource(
-                    when {
-                        toolsOwnRow && toolsRowOpen -> R.string.ime_toolbar_hide_desc
-                        toolsOwnRow -> R.string.ime_toolbar_show_desc
-                        showToolbar -> R.string.ime_suggestions_show_desc
-                        else -> R.string.ime_toolbar_show_desc
-                    },
-                ),
-            ) {
-                IconButton(
-                    onClick = {
-                        feedback()
-                        when {
-                            toolsOwnRow -> onToolsRowToggle()
-                            else -> toolbarOverride = !toolbarOverride
-                        }
-                    },
-                    modifier = Modifier.size(36.dp),
+            val chevronDesc = stringResource(
+                when {
+                    toolsOwnRow && toolsRowOpen -> R.string.ime_toolbar_hide_desc
+                    toolsOwnRow -> R.string.ime_toolbar_show_desc
+                    showToolbar -> R.string.ime_suggestions_show_desc
+                    else -> R.string.ime_toolbar_show_desc
+                },
+            )
+            if (!toolsOwnRow) {
+                // The shared strip's arrow is the Show tools icon slot, so a
+                // pick in Icons reaches it (Telegram 8802). Only the shipped
+                // chevron turns: an icon the user chose stays the way up they
+                // chose it.
+                //
+                // Drawn as a tool button, not a bare IconButton: the tools on
+                // either side of it wear the theme's button shape, fill, edge
+                // and icon colour, and the arrow alone was left without them
+                // (Telegram 10184, "remains naked"). Same size as the strip's
+                // own buttons.
+                val ownIcon = LocalIconSet.current.resolve(IconSlots.CHROME_SUGGESTIONS_EXPAND) != null
+                val behavior = state.settings.toolbarBehavior
+                ToolCircle(
+                    slot = IconSlots.CHROME_SUGGESTIONS_EXPAND,
+                    description = chevronDesc,
+                    active = false,
+                    longPressLabel = chevronDesc,
+                    wide = true,
+                    widthDp = behavior.stripToolWidthDp.takeIf { behavior.stripOwnSize },
+                    iconSizeDp = behavior.stripIconSizeDp.takeIf { behavior.stripOwnSize },
+                    glyphTurn = if (ownIcon) null else ({ chevronTurn }),
                 ) {
-                    // A sideways chevron says "flip this row", which is what it does
-                    // on the shared strip. With a row of their own the tools open
-                    // above or below this one, so the chevron points that way and
-                    // turns to face back once the row is out.
-                    val chevronDesc = stringResource(
-                        when {
-                            toolsOwnRow && toolsRowOpen -> R.string.ime_toolbar_hide_desc
-                            toolsOwnRow -> R.string.ime_toolbar_show_desc
-                            showToolbar -> R.string.ime_suggestions_show_desc
-                            else -> R.string.ime_toolbar_show_desc
+                    feedback()
+                    toolbarOverride = !toolbarOverride
+                }
+            } else {
+                // A sideways chevron says "flip this row", which is what it
+                // does on the shared strip. With a row of their own the tools
+                // open above or below this one, so the chevron points that way
+                // and turns to face back once the row is out.
+                IconHint(chevronDesc) {
+                    IconButton(
+                        onClick = {
+                            feedback()
+                            onToolsRowToggle()
                         },
-                    )
-                    if (!toolsOwnRow) {
-                        // The shared strip's arrow is the Show tools icon slot,
-                        // so a pick in Icons reaches it (Telegram 8802). Only
-                        // the shipped chevron turns: an icon the user chose
-                        // stays the way up they chose it.
-                        val ownIcon = LocalIconSet.current.resolve(IconSlots.CHROME_SUGGESTIONS_EXPAND) != null
-                        SlotIcon(
-                            IconSlots.CHROME_SUGGESTIONS_EXPAND,
-                            contentDescription = chevronDesc,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier
-                                .size(24.dp)
-                                .graphicsLayer { if (!ownIcon) rotationZ = chevronTurn },
-                        )
-                    } else {
+                        modifier = Modifier.size(36.dp),
+                    ) {
                         Icon(
                             if (toolsRowAbove) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,
                             contentDescription = chevronDesc,
@@ -11414,6 +11414,10 @@ internal fun ToolCircle(
     // A change of [slot] or [active] animates (see [ToolGlyphSwap]) instead of
     // snapping: for the one button whose icon changes under the finger.
     morph: Boolean = false,
+    // Turns the glyph, never the button behind it: the strip's arrow spins
+    // round as the row flips, and a turning fill showed the shape spinning.
+    // Bare-icon form only.
+    glyphTurn: (() -> Float)? = null,
     onClick: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
@@ -11571,7 +11575,8 @@ internal fun ToolCircle(
                 // The icon steps up by half the badge's height so the badge sits
                 // under it rather than across it. The button's own 38 dp box is
                 // untouched, so nothing on the bar moves.
-                .offset(y = if (hint != null) -(HintBadgeHeight / 2) else 0.dp),
+                .offset(y = if (hint != null) -(HintBadgeHeight / 2) else 0.dp)
+                .then(if (glyphTurn != null) Modifier.graphicsLayer { rotationZ = glyphTurn() } else Modifier),
         )
         if (hint != null) {
             HintBadge(hint, modifier = Modifier.align(Alignment.BottomCenter))
