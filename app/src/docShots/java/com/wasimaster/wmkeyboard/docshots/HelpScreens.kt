@@ -151,7 +151,6 @@ val HELP_SCREENS: List<HelpScreen> = listOf(
     screenToggle("accessibility_row_icons_title", "typing") { setSettingsRowIcons(it) },
     screenToggle("favourites_button_title", "typing") { setFavouritesButton(it) },
     screenToggle("toolai_hub_chat_button_everywhere_title", "typing") { setAiChatButtonEverywhere(it) },
-    screenToggle("accessibility_keyboard_preview_title", "typing") { setKeyboardPreviewButton(it) },
     screenToggle("settings_switched_off_rows_title", "typing/gestures/glide") { setSwitchedOffRows(it) },
     screenToggle("settings_hidden_rows_title", "typing", base = { repo.setSettingsDepth(SettingsDepth.SIMPLE) }) { setHiddenSettingsRows(it) },
     HelpScreen(

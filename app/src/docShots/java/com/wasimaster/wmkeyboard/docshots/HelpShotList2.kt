@@ -6,7 +6,6 @@ import com.wasimaster.wmkeyboard.core.clock.WorldZone
 import com.wasimaster.wmkeyboard.core.clipboard.ClipboardStore
 import com.wasimaster.wmkeyboard.core.notes.NoteSort
 import com.wasimaster.wmkeyboard.core.notes.NoteStore
-import com.wasimaster.wmkeyboard.core.settings.AlternateGroup
 import com.wasimaster.wmkeyboard.core.settings.AppSortOrder
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings
@@ -25,7 +24,6 @@ import com.wasimaster.wmkeyboard.core.script.NumeralSystem
 import com.wasimaster.wmkeyboard.core.theme.KeyMaterialSpec
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
 import com.wasimaster.wmkeyboard.core.theme.TouchBloomSpec
-import com.wasimaster.wmkeyboard.core.settings.SwitcherExtraStop
 import com.wasimaster.wmkeyboard.core.todo.TodoStore
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.core.settings.QrEccLevel
@@ -369,12 +367,6 @@ val HELP_SHOTS_2: List<HelpShot> = listOf(
     toggle("toolai_chat_follow_ups_title", docs("tools/ai-chat-conversation"), crop = HelpCrop.KEYBOARD) { setAiChatFollowUps(it) },
     toggle("toolai_chat_enter_sends_title", docs("tools/ai-chat-keyboard"), crop = HelpCrop.KEYBOARD) { setAiChatEnterSends(it) },
     toggle("selection_macros_every_title", typed { type("hello world"); select("world") }) { setSelectionMacrosInEverySelection(it) },
-    gallery(
-        "langemoji_lang_switcher_extra_title",
-        "langemoji_lang_switcher_extra_none_label" to docs("languages/hold-drag-picker-list").seededWith { repo.setSwitcherExtraStop(SwitcherExtraStop.NONE) },
-        "langemoji_lang_switcher_extra_settings_label" to docs("languages/hold-drag-picker-list").seededWith { repo.setSwitcherExtraStop(SwitcherExtraStop.LANGUAGE_SETTINGS) },
-        "langemoji_lang_switcher_extra_keyboards_label" to docs("languages/hold-drag-picker-list").seededWith { repo.setSwitcherExtraStop(SwitcherExtraStop.KEYBOARDS) },
-    ),
     // ------------------------------------------------------------ gallery, on a made-up photo library
     galleryCompare("gallery_columns_title", labels = "=3" to "=5") { g, on -> g.copy(columns = if (on) 5 else 3) },
     galleryCompare("gallery_camera_tile_title") { g, on -> g.copy(cameraTile = on) },
@@ -439,7 +431,6 @@ val HELP_SHOTS_2: List<HelpShot> = listOf(
     compare("typing_glide_commit_scope_title", gliding.seededWith { repo.setGestureCommitColor(GlideCommitColor.ALWAYS) }, off = { repo.setGestureCommitColorScope(GlideCommitColorScope.STRIP) }, on = { repo.setGestureCommitColorScope(GlideCommitColorScope.STRIP_AND_PILL) }, crop = HelpCrop.KEYBOARD),
     compare("typing_glide_drawn_letters_title", typed { glide("qzxv") }.seededWith { repo.setGestureTyping(true) }, off = { repo.setGestureDrawnLetters(GlideDrawnLetters.OFF) }, on = { repo.setGestureDrawnLetters(GlideDrawnLetters.WHEN_UNSURE) }, crop = HelpCrop.KEYBOARD),
     compare("layout_board_corners_title", KbShot("", mode = "blank").seededWith { repo.setBoardCornerTopDp(28); repo.setBoardCornerBottomDp(28) }, off = { repo.setBoardCorners(BoardCorner.entries.toSet()) }, on = { repo.setBoardCorners(setOf(BoardCorner.TOP_LEFT, BoardCorner.TOP_RIGHT)) }, crop = HelpCrop.SCREEN, labels = "=All four" to "=Top two"),
-    compare("keypress_currency_keys_title", typed { key(Key(label = "", action = KeyAction.Symbols)); hold("$") }, off = { repo.setCurrencyKeys(emptyList()) }, on = { repo.setCurrencyKeys(listOf("$", "€", "₹", "₩")) }, crop = HelpCrop.KEYBOARD, labels = "=৳ € £ ¥ ₹ ₿" to "=$ € ₹ ₩"),
     toggle("typing_flick_hints_title", on("asset_en_flick"), crop = HelpCrop.KEYBOARD) { setFlickHints(it) },
     toggle("rows_recent_words_steady_title", KbShot("", mode = "blank").seededWith { repo.setRecentWordBar(true) }, crop = HelpCrop.SCREEN) { setRecentWordSteady(it) },
     toggle("typing_shift_recase_inside_title", typed { type("hello"); hardwareKey(android.view.KeyEvent.KEYCODE_DPAD_LEFT); hardwareKey(android.view.KeyEvent.KEYCODE_DPAD_LEFT); key(Key(label = "", action = KeyAction.Shift)); settle() }, crop = HelpCrop.TEXT) { setShiftRecasesWordAroundCaret(it) },
@@ -448,7 +439,6 @@ val HELP_SHOTS_2: List<HelpShot> = listOf(
     compare("appearance_suggestion_new_word_color_title", typed { type("zelkodyne") }, off = { }, on = { repo.setSuggestionNewWordColor(0xFF43A047) }, labels = "common_default" to "common_custom"),
     // ------------------------------------------------------------ batch 8: delete swipe, alternates, RTL toolbar, pinyin next words
     toggle("typing_backspace_preview_title", typed { type("see you at the station"); drag("Delete", -260f) }.seededWith { repo.setBackspaceSwipeDelete(true) }, crop = HelpCrop.SCREEN) { setBackspaceSwipePreview(it) },
-    compare("keypress_alternates_order_title", typed { hold("e") }, off = { repo.setAlternatesOrder(listOf(AlternateGroup.LAYOUT, AlternateGroup.ACCENTS, AlternateGroup.SHIFTED)) }, on = { repo.setAlternatesOrder(listOf(AlternateGroup.SHIFTED, AlternateGroup.ACCENTS, AlternateGroup.LAYOUT)) }, crop = HelpCrop.KEYBOARD, labels = "=Layout first" to "=Shifted first"),
     toggle("appearance_toolbar_rtl_title", on("builtin_arabic"), crop = HelpCrop.KEYBOARD) { setReverseToolbarForRtl(it) },
     toggle("typing_suggestion_pages_title", typed { type("th") }, crop = HelpCrop.KEYBOARD) { setSuggestionsSwipeForMore(it) },
     toggle("languages_cjk_prediction_title", pinyin.copy(steps = { type("nihao"); runCatching { tap("Dismiss") }; key(Key(label = "", action = KeyAction.Space)); settle() })) { setPinyinPrediction(it) },

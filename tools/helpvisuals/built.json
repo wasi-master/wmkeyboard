@@ -1,4 +1,35 @@
 {
+ "about_setting_links_title": {
+  "frames": [
+   {
+    "dark": {
+     "bytes": 32358,
+     "sha": "523d657c93c92016aa0acce1bf981e5d3ebdfac2707d0f103d10a994b13a1760"
+    },
+    "height": 871,
+    "label": "common_off",
+    "light": {
+     "bytes": 31210,
+     "sha": "3ff4df086bad1f8154e67f94b8a9fbd5e20600dc10d962b841602572962148db"
+    },
+    "width": 720
+   },
+   {
+    "dark": {
+     "bytes": 33118,
+     "sha": "7f26d0924dbf65ff60d59f5552c085c59dfe963a33708d509a08497f6759af46"
+    },
+    "height": 871,
+    "label": "about_setting_links_button",
+    "light": {
+     "bytes": 32110,
+     "sha": "bdb3e23f0c347670fb473390abb0c6f05ffa55e6f6debe1c332dfe1582f76e49"
+    },
+    "width": 720
+   }
+  ],
+  "kind": "gallery"
+ },
  "accessibility_bold_labels_title": {
   "frames": [
    {
@@ -117,6 +148,37 @@
     "light": {
      "bytes": 27260,
      "sha": "e8641bd53a806e4ae1b592c9970edb6f6a7b00ac0fc845d9d0d595a6eeb0eeef"
+    },
+    "width": 720
+   }
+  ],
+  "kind": "compare"
+ },
+ "accessibility_row_icons_title": {
+  "frames": [
+   {
+    "dark": {
+     "bytes": 53112,
+     "sha": "aef5ab97fc8e0f0954582e26a039c7d66e12146f941139470d8366c806b7f275"
+    },
+    "height": 1471,
+    "label": "common_off",
+    "light": {
+     "bytes": 58170,
+     "sha": "f69894af37989b554992d798533be9c7050f1c36ca3d50a17f54174ba7a3fa4e"
+    },
+    "width": 720
+   },
+   {
+    "dark": {
+     "bytes": 57262,
+     "sha": "ea8dfffcf8e948fc0f33c16c5215235eab124f6b573282fbc4f528354aa2f07d"
+    },
+    "height": 1471,
+    "label": "common_on",
+    "light": {
+     "bytes": 61856,
+     "sha": "81830790c8e33d24f0e65c34b1b226a6f666696399c3edbc3865a6e17a1cb590"
     },
     "width": 720
    }
@@ -626,6 +688,37 @@
     "light": {
      "bytes": 2254,
      "sha": "97ad6308175a699efeb73a3630a9ee818289cdf16a83473489e73493bfaa1b46"
+    },
+    "width": 720
+   }
+  ],
+  "kind": "compare"
+ },
+ "appearance_toolbar_rtl_title": {
+  "frames": [
+   {
+    "dark": {
+     "bytes": 18704,
+     "sha": "02515619f47e4bb56e23aba00c2480151b4a7f3ef7cbe96668505c96ae782673"
+    },
+    "height": 615,
+    "label": "common_off",
+    "light": {
+     "bytes": 16920,
+     "sha": "184c18c8a46574c6042cd9ff6ad266f2e69abbb4dbd8da5c1f899dabb9b2e735"
+    },
+    "width": 720
+   },
+   {
+    "dark": {
+     "bytes": 19000,
+     "sha": "55796c2fcc9c0a391f2bc098de33d7031d174ca679446320c6c829b4c30487c6"
+    },
+    "height": 615,
+    "label": "common_on",
+    "light": {
+     "bytes": 16942,
+     "sha": "0308b91fb4f9ed0c5d4b74d8710e5ea81f03efa3536a71d471b0de21afb3e482"
     },
     "width": 720
    }
@@ -2128,6 +2221,37 @@
   ],
   "kind": "compare"
  },
+ "favourites_button_title": {
+  "frames": [
+   {
+    "dark": {
+     "bytes": 596,
+     "sha": "764d234c57cbedd592c734a40554b18e6cc51e8f1f4af0133cd324b789951150"
+    },
+    "height": 150,
+    "label": "common_off",
+    "light": {
+     "bytes": 606,
+     "sha": "4e4c55f5febe4bed1b8438be96a930803d29a4d0e7dade84ee6271f624d711b3"
+    },
+    "width": 301
+   },
+   {
+    "dark": {
+     "bytes": 1164,
+     "sha": "83c3661aef37189679bb7ec1d998077dc0f551b0caba563c51deb7f1e94af366"
+    },
+    "height": 150,
+    "label": "common_on",
+    "light": {
+     "bytes": 1202,
+     "sha": "b3eaf867d5f5653c12624a02bc5d2c2a087998f40ba3092b8579d791864d0df8"
+    },
+    "width": 301
+   }
+  ],
+  "kind": "compare"
+ },
  "keypress_all_accents_title": {
   "frames": [
    {
@@ -2246,6 +2370,37 @@
     "light": {
      "bytes": 16468,
      "sha": "45a89b651d1213490082747d895e684a3459b04e575ff91e33781bfd976f5eb3"
+    },
+    "width": 720
+   }
+  ],
+  "kind": "compare"
+ },
+ "keypress_enter_emoji_title": {
+  "frames": [
+   {
+    "dark": {
+     "bytes": 17920,
+     "sha": "0b8212ad68f7bbaef5612b0a7e8af2daf6836521598fc9d862f13869110e3bb0"
+    },
+    "height": 615,
+    "label": "common_off",
+    "light": {
+     "bytes": 16052,
+     "sha": "6e1184fef3b0952beeda114cc018d4c04b2da1dfd535bf411e9f7a12c9d82c08"
+    },
+    "width": 720
+   },
+   {
+    "dark": {
+     "bytes": 18022,
+     "sha": "e7bfc5eb9b24fa19684a851118537c3fb44b7b98a00136201ea1328c3ad7b71d"
+    },
+    "height": 615,
+    "label": "common_on",
+    "light": {
+     "bytes": 16120,
+     "sha": "01ac563f33325f8de02c570ca348dfdd35d48ca2f3e1cf202d5133bdcbc396df"
     },
     "width": 720
    }
@@ -3195,6 +3350,68 @@
   ],
   "kind": "compare"
  },
+ "languages_cjk_fuzzy_title": {
+  "frames": [
+   {
+    "dark": {
+     "bytes": 2352,
+     "sha": "7e214a1bc3ba6f962614b7292fe90888c7d51aa7f075d71d6300816bed4d8976"
+    },
+    "height": 100,
+    "label": "common_off",
+    "light": {
+     "bytes": 2036,
+     "sha": "8c52d572305bced95d30a54d6c7a85810a55fdc0c2d6699e64377a23471ff898"
+    },
+    "width": 720
+   },
+   {
+    "dark": {
+     "bytes": 4352,
+     "sha": "2d541bfab0655f1d2973800f4410fbfce2b49b85dea5767148401c549b32244e"
+    },
+    "height": 100,
+    "label": "common_on",
+    "light": {
+     "bytes": 4098,
+     "sha": "84a40d032f9c302648cc0d0b7a9e45a00dc1de57b59e2399d5837567b4694437"
+    },
+    "width": 720
+   }
+  ],
+  "kind": "compare"
+ },
+ "languages_cjk_jianpin_title": {
+  "frames": [
+   {
+    "dark": {
+     "bytes": 2352,
+     "sha": "7e214a1bc3ba6f962614b7292fe90888c7d51aa7f075d71d6300816bed4d8976"
+    },
+    "height": 100,
+    "label": "common_off",
+    "light": {
+     "bytes": 2036,
+     "sha": "8c52d572305bced95d30a54d6c7a85810a55fdc0c2d6699e64377a23471ff898"
+    },
+    "width": 720
+   },
+   {
+    "dark": {
+     "bytes": 4598,
+     "sha": "dee8c651a16e17089094b57db8a6ecbd6fbfe740b6d79a71a87b3063a5bd22c1"
+    },
+    "height": 100,
+    "label": "common_on",
+    "light": {
+     "bytes": 4346,
+     "sha": "fac66ca8d46a9a44de585427dea7d41c402fd8346601a71b8b28281e6444a552"
+    },
+    "width": 720
+   }
+  ],
+  "kind": "compare"
+ },
  "languages_cjk_reading_in_field_title": {
   "frames": [
    {
@@ -3220,6 +3437,37 @@
     "light": {
      "bytes": 8006,
      "sha": "81cca02fa38889fc8811ba54c372a33d59dcdfc1d4d5d77461e8e8fb0af3e037"
+    },
+    "width": 720
+   }
+  ],
+  "kind": "compare"
+ },
+ "languages_cjk_shortcuts_title": {
+  "frames": [
+   {
+    "dark": {
+     "bytes": 2352,
+     "sha": "7e214a1bc3ba6f962614b7292fe90888c7d51aa7f075d71d6300816bed4d8976"
+    },
+    "height": 100,
+    "label": "common_off",
+    "light": {
+     "bytes": 2036,
+     "sha": "8c52d572305bced95d30a54d6c7a85810a55fdc0c2d6699e64377a23471ff898"
+    },
+    "width": 720
+   },
+   {
+    "dark": {
+     "bytes": 3982,
+     "sha": "edca505755c4c0289b4a757dc91cff032d21722ba9a5f6c72d8b8b72292e15ec"
+    },
+    "height": 100,
+    "label": "common_on",
+    "light": {
+     "bytes": 3828,
+     "sha": "b0789967d52c5d61d5240f7e168cbd88e784ef15b9a34a0c2743b816d228a45b"
     },
     "width": 720
    }
@@ -3284,6 +3532,37 @@
      "sha": "461028802ed559ab9012206368b11807bc69ae61c6e1d00a3e5811c7fb6b1e45"
     },
     "width": 273
+   }
+  ],
+  "kind": "compare"
+ },
+ "languages_fancy_style_row_title": {
+  "frames": [
+   {
+    "dark": {
+     "bytes": 21134,
+     "sha": "de857c0396b96ad8f2a06c75669d2784bac002ede64d31ebc4c197bcc6f9333e"
+    },
+    "height": 654,
+    "label": "=Bold script",
+    "light": {
+     "bytes": 19160,
+     "sha": "e525357cb52db16e201b4329b144b5a8255c0bd7e20256d05d12afc4a6d2a355"
+    },
+    "width": 720
+   },
+   {
+    "dark": {
+     "bytes": 20328,
+     "sha": "dee4bd4502cec6e8b1688f7942bcb429eb9bf565eef1ff567e5b7cbc9837ca2c"
+    },
+    "height": 654,
+    "label": "=Bold fraktur",
+    "light": {
+     "bytes": 18576,
+     "sha": "04b54ae5625e2cb5526bf129f2aaadde78686c2ebd3a6291ef49db0aea17463b"
+    },
+    "width": 720
    }
   ],
   "kind": "compare"
@@ -4616,6 +4895,81 @@
   ],
   "kind": "compare"
  },
+ "settings_depth_title": {
+  "frames": [
+   {
+    "dark": {
+     "bytes": 55162,
+     "sha": "155502ea3f38efa25fe58efbee6c186ad524f5080d0b5a8384f1e8509433372a"
+    },
+    "height": 1345,
+    "label": "settings_depth_simple",
+    "light": {
+     "bytes": 60332,
+     "sha": "c8213145ac5a49aec35b56392a6df9c54f2dddfeea2c48204bf33421e3b5f6e2"
+    },
+    "width": 720
+   },
+   {
+    "dark": {
+     "bytes": 55440,
+     "sha": "6ca3585fb7bef9e973d902461a6f886e53bd48bb79c48f55805e51dff8c56f9a"
+    },
+    "height": 1345,
+    "label": "settings_depth_standard",
+    "light": {
+     "bytes": 60608,
+     "sha": "78daaebb48793659f6da72195e2347562c4f44df2f6d9d87fd6cd57b3877a697"
+    },
+    "width": 720
+   },
+   {
+    "dark": {
+     "bytes": 46262,
+     "sha": "0324ab4da94e446d1de9472863d884778968fa29172d947a76d2623331918296"
+    },
+    "height": 1345,
+    "label": "settings_depth_everything",
+    "light": {
+     "bytes": 45544,
+     "sha": "51fc1431c1ef74267477940d4c5fc11065763b8ecc7d462935f6e87be2147e08"
+    },
+    "width": 720
+   }
+  ],
+  "kind": "gallery"
+ },
+ "settings_hidden_rows_title": {
+  "frames": [
+   {
+    "dark": {
+     "bytes": 55162,
+     "sha": "155502ea3f38efa25fe58efbee6c186ad524f5080d0b5a8384f1e8509433372a"
+    },
+    "height": 1348,
+    "label": "common_off",
+    "light": {
+     "bytes": 60388,
+     "sha": "2595e0a7ddded68da4bb466a57f675c444e31c43eb01619f0e94c1036071f37e"
+    },
+    "width": 720
+   },
+   {
+    "dark": {
+     "bytes": 28730,
+     "sha": "101cf016674c0baf444dd337cf95344b83c43df17a606da8472d47f09f12361f"
+    },
+    "height": 1348,
+    "label": "common_on",
+    "light": {
+     "bytes": 28274,
+     "sha": "5f41629bcfba95dbe20b658073c99e78f6677067f0dacd20e4e835cbf5298e8e"
+    },
+    "width": 720
+   }
+  ],
+  "kind": "compare"
+ },
  "theme_board_effect_title": {
   "frames": [
    {
@@ -5526,6 +5880,37 @@
   ],
   "kind": "compare"
  },
+ "toolai_hub_chat_button_everywhere_title": {
+  "frames": [
+   {
+    "dark": {
+     "bytes": 7696,
+     "sha": "7d412b41e7fc8b62a0b6f0e269da9ccc676c0fb7d3809fca70483d023ba86935"
+    },
+    "height": 238,
+    "label": "common_off",
+    "light": {
+     "bytes": 9196,
+     "sha": "055fb4f33880695e93b9a8de00be64c9df67572e30a27d06c2587072de020d6d"
+    },
+    "width": 720
+   },
+   {
+    "dark": {
+     "bytes": 8436,
+     "sha": "5a32f4528a464842938b3d48efad17a5ba376644dfb58a50e89840166ce52e5d"
+    },
+    "height": 238,
+    "label": "common_on",
+    "light": {
+     "bytes": 9752,
+     "sha": "e1db5cf458b41acc775ca4de0f8aded2db315e30a44e8f2e3ffbeb6909c00d95"
+    },
+    "width": 720
+   }
+  ],
+  "kind": "compare"
+ },
  "toolai_typing_numbers_title": {
   "frames": [
    {
@@ -5910,6 +6295,37 @@
    }
   ],
   "kind": "gallery"
+ },
+ "tooldetail_fancy_style_title": {
+  "frames": [
+   {
+    "dark": {
+     "bytes": 21878,
+     "sha": "071760c4fce83c32e6e77ef940542bed08c0cb1d5b253c62e0d2a157554ab376"
+    },
+    "height": 757,
+    "label": "=Bold",
+    "light": {
+     "bytes": 20096,
+     "sha": "5db16f031b17f0c3c1e86570f841f90968607b5ac9d3c7514dcc32b7e9a4f5bd"
+    },
+    "width": 720
+   },
+   {
+    "dark": {
+     "bytes": 23106,
+     "sha": "afe470ff93ff76ba62c105d24043a5aea93afe5a533f6f2bce1c6bf0528bd46e"
+    },
+    "height": 757,
+    "label": "=Double-struck",
+    "light": {
+     "bytes": 21548,
+     "sha": "138d859e67be822a136075d8c98d91ada721c625ceb782ac8267fd4e7f4a66b1"
+    },
+    "width": 720
+   }
+  ],
+  "kind": "compare"
  },
  "tooldetail_gif_recent_title": {
   "frames": [
@@ -6500,6 +6916,99 @@
   ],
   "kind": "compare"
  },
+ "tooldetail_passphrase_capitalize_title": {
+  "frames": [
+   {
+    "dark": {
+     "bytes": 15366,
+     "sha": "a994b70c456ec49912e3bd07473202b29aa239231462d4c66e6131751fe16fc2"
+    },
+    "height": 614,
+    "label": "common_off",
+    "light": {
+     "bytes": 14208,
+     "sha": "2b0a3b66bb2e4fcb3bce339731f31669739e24b91d2842e2eb664b786e142a83"
+    },
+    "width": 720
+   },
+   {
+    "dark": {
+     "bytes": 15892,
+     "sha": "11b81764b829c667f8dd4446a1ae43de26ffd2f224511fd78faa8a70e5732787"
+    },
+    "height": 614,
+    "label": "common_on",
+    "light": {
+     "bytes": 14584,
+     "sha": "e9f8799d8a99c04fb9ebe7be6dd958d2428aa2f41d4d6d0fd1a40e7891d1277b"
+    },
+    "width": 720
+   }
+  ],
+  "kind": "compare"
+ },
+ "tooldetail_passphrase_digit_title": {
+  "frames": [
+   {
+    "dark": {
+     "bytes": 15174,
+     "sha": "bc5292cf6b98385e1db913c181c5d5e2ee9dfa1c222ba7cb9183b72084b77afc"
+    },
+    "height": 614,
+    "label": "common_off",
+    "light": {
+     "bytes": 14504,
+     "sha": "6e0dc3c1ff63ccc02858c0105231a211fedb937d9c46077f08bb18da9749793d"
+    },
+    "width": 720
+   },
+   {
+    "dark": {
+     "bytes": 16026,
+     "sha": "3c56634f73484b1f0293fe08225d591ae87c828260b20c6e1dedda1ef0e12ad1"
+    },
+    "height": 614,
+    "label": "common_on",
+    "light": {
+     "bytes": 14668,
+     "sha": "28d46dc96de2ba4e6d8a941164dce4b32dc3663f9030fba1ff177fc05125250f"
+    },
+    "width": 720
+   }
+  ],
+  "kind": "compare"
+ },
+ "tooldetail_passphrase_words_title": {
+  "frames": [
+   {
+    "dark": {
+     "bytes": 14672,
+     "sha": "093ecbc3859e3314a8bb1cc9bd1b4dcaf5f9151eb554f8f1f1e594147b0f1f46"
+    },
+    "height": 614,
+    "label": "=3",
+    "light": {
+     "bytes": 13084,
+     "sha": "4bc9b2ff75df49ca4c8a976a8412155e07255e28e7168f174df4d54405a1e090"
+    },
+    "width": 720
+   },
+   {
+    "dark": {
+     "bytes": 16564,
+     "sha": "7f09f0564efb1b67ef2a22e359d42b9a329e55bfae77aded639730618444c540"
+    },
+    "height": 614,
+    "label": "=6",
+    "light": {
+     "bytes": 15484,
+     "sha": "70cfeb26eaeee5e54b85a8ae08b3f90819919af02badef07098ed7a6bbba0279"
+    },
+    "width": 720
+   }
+  ],
+  "kind": "compare"
+ },
  "tooldetail_password_ambiguous_title": {
   "frames": [
    {
@@ -6649,6 +7158,37 @@
     "light": {
      "bytes": 13578,
      "sha": "3a174634473f6f1f02f70d0e361fdd4b9384800b2c559e8d32f172e15c9337a3"
+    },
+    "width": 720
+   }
+  ],
+  "kind": "compare"
+ },
+ "tooldetail_pin_length_title": {
+  "frames": [
+   {
+    "dark": {
+     "bytes": 10858,
+     "sha": "005ade8da7f927b8e8362a0adb01a5b2ed163aefb0e2c1eecb6b8019799748a9"
+    },
+    "height": 614,
+    "label": "=4",
+    "light": {
+     "bytes": 10030,
+     "sha": "8d09b2891f017831b50ca032db1dac6c1836ed5d16ff3aaee8152fa254816bd0"
+    },
+    "width": 720
+   },
+   {
+    "dark": {
+     "bytes": 11496,
+     "sha": "ee72430c4a448b1a767a76eb558ed22d96b03ec670888b335ad2fd87dc19579e"
+    },
+    "height": 614,
+    "label": "=8",
+    "light": {
+     "bytes": 10596,
+     "sha": "ed594afaab4e1172e1fc1d1727bbe590d375c32822e9cf4b0c53c90ef883fe07"
     },
     "width": 720
    }
@@ -7450,6 +7990,37 @@
     "light": {
      "bytes": 7298,
      "sha": "1fbea1d569459deefb11ec608e87b080794f28bfeb7c48563711d8fd62bde051"
+    },
+    "width": 720
+   }
+  ],
+  "kind": "compare"
+ },
+ "typing_backspace_preview_title": {
+  "frames": [
+   {
+    "dark": {
+     "bytes": 21354,
+     "sha": "3cee646317025ffcb0a349f6cd0cb7dcc78edeaa4ca01e9df58e9990227f0418"
+    },
+    "height": 1348,
+    "label": "common_off",
+    "light": {
+     "bytes": 19512,
+     "sha": "dd6a0adf678e83f6ac803f2ec2599eadd3f4669b4f4384ced7fa58cd0f500f6c"
+    },
+    "width": 720
+   },
+   {
+    "dark": {
+     "bytes": 21994,
+     "sha": "34731c7f7b82b288bdb11061c59afabb8bcf117500439956c4f42df315d90887"
+    },
+    "height": 1348,
+    "label": "common_on",
+    "light": {
+     "bytes": 20318,
+     "sha": "4371e8ec2a5b388744c92835176f82ebcdac7ba9619939a631192d6ea5905e33"
     },
     "width": 720
    }
