@@ -26476,10 +26476,13 @@ private val KeyGapVertical = 4.dp
  * The gaps above, scaled by the user's key-spacing setting. Every gap-consuming
  * site reads these so the touch-cell padding and the height math in
  * [keyRowsHeight] scale together — the keyboard's height and the panels that
- * mirror it stay in step when the spacing changes.
+ * mirror it stay in step when the spacing changes. Each axis then takes its
+ * own multiplier on top (Telegram 10316: wider columns, tighter rows).
  */
-internal fun keyGapH(settings: KeyboardSettings): Dp = KeyGapHorizontal * settings.keyGapScale
-internal fun keyGapV(settings: KeyboardSettings): Dp = KeyGapVertical * settings.keyGapScale
+internal fun keyGapH(settings: KeyboardSettings): Dp =
+    KeyGapHorizontal * settings.keyGapScale * settings.layoutBehavior.keyGapColumnScale
+internal fun keyGapV(settings: KeyboardSettings): Dp =
+    KeyGapVertical * settings.keyGapScale * settings.layoutBehavior.keyGapRowScale
 
 /**
  * Peak extra glide-start slop applied the instant after a tap, on top of the

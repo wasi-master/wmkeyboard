@@ -10805,6 +10805,15 @@ data class LayoutBehaviorSettings(
     /** The same at the right edge. See [sidePadLeftScale]. */
     val sidePadRightScale: Float = 0f,
     /**
+     * The gaps between the keys of a row, on their own, as a multiple of what
+     * [KeyboardSettings.keyGapScale] makes them (Telegram 10316): wider
+     * columns with tight rows, say, for keys less square. 1 = Key spacing's
+     * gap, the default. See [KeyGapAxisScaleRange].
+     */
+    val keyGapColumnScale: Float = 1f,
+    /** The same for the gaps between rows. See [keyGapColumnScale]. */
+    val keyGapRowScale: Float = 1f,
+    /**
      * Keep the toolbar and the suggestion strip at the full window width while
      * [KeyboardSettings.keyboardWidthPercent] and the two side pads narrow only
      * the key rows, as Samsung Keyboard does on a tablet. Off by default: the
@@ -11090,6 +11099,13 @@ data class LayoutBehaviorSettings(
  * most 60% of the width — the keyboard's own minimum width takes it from there.
  */
 val SidePadScaleRange = 0f..0.3f
+
+/**
+ * Bounds for [LayoutBehaviorSettings.keyGapColumnScale] and
+ * [LayoutBehaviorSettings.keyGapRowScale], over Key spacing's own gap: none
+ * at all to twice as wide. The settings sliders share them.
+ */
+val KeyGapAxisScaleRange = 0f..2f
 
 /** Bounds for [LayoutBehaviorSettings.shiftCapsLockMs]; the settings slider shares them. */
 val ShiftCapsLockMsRange = 150..600
@@ -12979,6 +12995,8 @@ class SettingsRepository(private val context: Context) {
         private val SIDE_PAD_SCALE = floatPreferencesKey("side_pad_scale")
         private val SIDE_PAD_LEFT_SCALE = floatPreferencesKey("side_pad_left_scale")
         private val SIDE_PAD_RIGHT_SCALE = floatPreferencesKey("side_pad_right_scale")
+        private val KEY_GAP_COLUMN_SCALE = floatPreferencesKey("key_gap_column_scale")
+        private val KEY_GAP_ROW_SCALE = floatPreferencesKey("key_gap_row_scale")
         private val FULL_WIDTH_BARS = booleanPreferencesKey("full_width_bars")
         private val SPLIT_ONLY_LARGE = booleanPreferencesKey("split_only_large_screens")
         private val SPLIT_SPACEBAR = booleanPreferencesKey("split_spacebar")
@@ -16113,6 +16131,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.layoutBehavior.sidePadLeftScale,
             sidePadRightScale = p[SIDE_PAD_RIGHT_SCALE] ?: p[SIDE_PAD_SCALE]
                 ?: defaults.layoutBehavior.sidePadRightScale,
+            keyGapColumnScale = p[KEY_GAP_COLUMN_SCALE] ?: defaults.layoutBehavior.keyGapColumnScale,
+            keyGapRowScale = p[KEY_GAP_ROW_SCALE] ?: defaults.layoutBehavior.keyGapRowScale,
             fullWidthBars = p[FULL_WIDTH_BARS] ?: defaults.layoutBehavior.fullWidthBars,
             splitOnlyOnLargeScreens = p[SPLIT_ONLY_LARGE]
                 ?: defaults.layoutBehavior.splitOnlyOnLargeScreens,
@@ -23312,6 +23332,18 @@ class SettingsRepository(private val context: Context) {
                 value.coerceIn(SidePadScaleRange.start, SidePadScaleRange.endInclusive)
         }
 
+    suspend fun setKeyGapColumnScale(value: Float) =
+        editPrefs {
+            it[KEY_GAP_COLUMN_SCALE] =
+                value.coerceIn(KeyGapAxisScaleRange.start, KeyGapAxisScaleRange.endInclusive)
+        }
+
+    suspend fun setKeyGapRowScale(value: Float) =
+        editPrefs {
+            it[KEY_GAP_ROW_SCALE] =
+                value.coerceIn(KeyGapAxisScaleRange.start, KeyGapAxisScaleRange.endInclusive)
+        }
+
     suspend fun setSplitOnlyOnLargeScreens(value: Boolean) =
         editPrefs { it[SPLIT_ONLY_LARGE] = value }
 
@@ -23347,6 +23379,8 @@ class SettingsRepository(private val context: Context) {
         it.remove(KEYBOARD_WIDTH_PERCENT)
         it.remove(KEYBOARD_ALIGNMENT)
         it.remove(KEY_GAP_SCALE)
+        it.remove(KEY_GAP_COLUMN_SCALE)
+        it.remove(KEY_GAP_ROW_SCALE)
         it.remove(SIDE_PAD_SCALE)
         it.remove(SIDE_PAD_LEFT_SCALE)
         it.remove(SIDE_PAD_RIGHT_SCALE)

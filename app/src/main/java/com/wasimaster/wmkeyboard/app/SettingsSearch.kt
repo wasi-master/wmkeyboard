@@ -1279,6 +1279,8 @@ private fun SearchStrings.layoutSizeRows(): List<SettingsSearchEntry> {
         row(R.string.layout_side_padding_left_title, R.string.layout_side_padding_left_subtitle),
         row(R.string.layout_side_padding_right_title, R.string.layout_side_padding_right_subtitle),
         row(R.string.layout_key_spacing_title, R.string.layout_key_spacing_subtitle),
+        row(R.string.layout_key_spacing_columns_title, R.string.layout_key_spacing_columns_subtitle),
+        row(R.string.layout_key_spacing_rows_title, R.string.layout_key_spacing_rows_subtitle),
         row(R.string.layout_extend_edge_keys_title, R.string.layout_extend_edge_keys_subtitle),
         row(R.string.layout_keyboard_scale_title, R.string.layout_keyboard_scale_subtitle),
         row(R.string.layout_bottom_padding_title, R.string.layout_bottom_padding_subtitle),

@@ -59,6 +59,7 @@ import com.wasimaster.wmkeyboard.core.settings.BottomRowHeightRange
 import com.wasimaster.wmkeyboard.core.settings.GlobeTypingGuardMsRange
 import com.wasimaster.wmkeyboard.core.settings.BoardCorner
 import com.wasimaster.wmkeyboard.core.settings.BoardCornerRadiusRange
+import com.wasimaster.wmkeyboard.core.settings.KeyGapAxisScaleRange
 import com.wasimaster.wmkeyboard.core.settings.SidePadScaleRange
 import com.wasimaster.wmkeyboard.core.settings.ToolHeightRange
 import com.wasimaster.wmkeyboard.core.settings.ToolWidthRange
@@ -2074,6 +2075,8 @@ internal fun LayoutSizeSettings(
             s.keyboardWidthPercent != SettingsDefaults.keyboardWidthPercent ||
             s.keyboardAlignment != SettingsDefaults.keyboardAlignment ||
             s.keyGapScale != SettingsDefaults.keyGapScale ||
+            s.layoutBehavior.keyGapColumnScale != SettingsDefaults.layoutBehavior.keyGapColumnScale ||
+            s.layoutBehavior.keyGapRowScale != SettingsDefaults.layoutBehavior.keyGapRowScale ||
             s.keyCornerRadiusDp != SettingsDefaults.keyCornerRadiusDp ||
             s.layoutBehavior.sidePadLeftScale !=
             SettingsDefaults.layoutBehavior.sidePadLeftScale ||
@@ -2186,6 +2189,30 @@ internal fun LayoutSizeSettings(
                 disabledReason = pin,
                 default = SettingsDefaults.keyGapScale,
             ) { scope.launch { repository.setKeyGapScale(it) } }
+        }
+        // Each axis on its own, over Key spacing (Telegram 10316): keys less
+        // square, with wider columns and tight rows or the other way round.
+        item(level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.layout_key_spacing_columns_title,
+                subtitle = stringResource(R.string.layout_key_spacing_columns_subtitle),
+                value = settings.watch { it.layoutBehavior.keyGapColumnScale },
+                range = KeyGapAxisScaleRange,
+                display = { percentFormat.format((it * 100).toInt()) },
+                info = stringResource(R.string.layout_key_spacing_columns_info),
+                default = SettingsDefaults.layoutBehavior.keyGapColumnScale,
+            ) { scope.launch { repository.setKeyGapColumnScale(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.layout_key_spacing_rows_title,
+                subtitle = stringResource(R.string.layout_key_spacing_rows_subtitle),
+                value = settings.watch { it.layoutBehavior.keyGapRowScale },
+                range = KeyGapAxisScaleRange,
+                display = { percentFormat.format((it * 100).toInt()) },
+                info = stringResource(R.string.layout_key_spacing_rows_info),
+                default = SettingsDefaults.layoutBehavior.keyGapRowScale,
+            ) { scope.launch { repository.setKeyGapRowScale(it) } }
         }
         item(level = SettingLevel.ADVANCED) {
             // Issue #530: a tap in a short row's side gap types the key at that end.

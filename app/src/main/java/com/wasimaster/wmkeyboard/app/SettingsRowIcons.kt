@@ -855,6 +855,8 @@ internal object SettingsRowIcons {
         put(R.string.layout_side_padding_left_title) { Icons.Outlined.Padding }
         put(R.string.layout_side_padding_right_title) { Icons.Outlined.Padding }
         put(R.string.layout_key_spacing_title) { Icons.Outlined.SpaceBar }
+        put(R.string.layout_key_spacing_columns_title) { Icons.Outlined.SpaceBar }
+        put(R.string.layout_key_spacing_rows_title) { Icons.Outlined.SpaceBar }
         put(R.string.layout_extend_edge_keys_title) { Icons.Outlined.TouchApp }
         put(R.string.layout_keyboard_scale_title) { Icons.Outlined.ZoomOutMap }
         put(R.string.layout_bottom_padding_title) { Icons.Outlined.Padding }
