@@ -328,6 +328,28 @@ internal class FloatingButton(
             .setInterpolator(OvershootInterpolator(1.6f)).setDuration(paced(APPEAR_MS)).start()
     }
 
+    /**
+     * Puts the button back on top of an overlay window opened after it.
+     * Android stacks windows of one type in the order they were added, so a
+     * floating box opened while the button was up covered the button once
+     * dragged over it, and the button could not be reached through it
+     * (Telegram 10316). Not over the keys, where the button is a panel of the
+     * keyboard's window, nor mid-drag or with its menu open, which the
+     * re-add would cut short.
+     */
+    fun bringToFront() {
+        if (onPanel || menuView != null) return
+        val view = button ?: return
+        val layout = buttonParams ?: return
+        if (view.dragging || view.touching) return
+        runCatching { windowManager.removeViewImmediate(view) }
+        if (runCatching { windowManager.addView(view, layout) }.isFailure) {
+            button = null
+            buttonParams = null
+            lifecycle.onStop()
+        }
+    }
+
     /** Takes the button, and its menu and target, off screen. Safe to call when it is not there. */
     fun hide() {
         cancelPick()

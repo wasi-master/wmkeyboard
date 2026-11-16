@@ -8988,6 +8988,9 @@ open class WMKeyboardService : InputMethodService() {
             tool,
         )
         if (!opened) return
+        // The box is the newer overlay window, so it would sit over the
+        // floating button; the button goes back on top (Telegram 10316).
+        if (floatingButtonDelegate.isInitialized()) floatingButton.bringToFront()
         toolUsage.record(tool.key)
         appletTool = tool
         if (panel in BoxSearchPanels && previous != panel) openAppletSearch(panel, fromKeyboard)
@@ -28259,8 +28262,12 @@ open class WMKeyboardService : InputMethodService() {
         when (button.kind) {
             com.wasimaster.wmkeyboard.core.settings.CustomButtonKind.SHORTCUT -> {
                 vibrate()
-                if (!com.wasimaster.wmkeyboard.ime.ui.CustomShortcuts.launch(this, button)) {
-                    Toast.makeText(this, R.string.ime_custom_button_shortcut_failed, Toast.LENGTH_SHORT).show()
+                // Suspends only for an app screen opened through the shell (#1405).
+                serviceScope.launch {
+                    val service = this@WMKeyboardService
+                    if (!com.wasimaster.wmkeyboard.ime.ui.CustomShortcuts.start(service, button)) {
+                        Toast.makeText(service, R.string.ime_custom_button_shortcut_failed, Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
             com.wasimaster.wmkeyboard.core.settings.CustomButtonKind.SETTING -> {
