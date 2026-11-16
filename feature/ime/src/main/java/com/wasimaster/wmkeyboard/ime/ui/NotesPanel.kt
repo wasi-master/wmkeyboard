@@ -371,7 +371,11 @@ private fun RowScope.NotesListHeader(
         Spacer(Modifier.weight(1f))
     }
     // An Obsidian or Zettel Notes vault beside the keyboard's own notes (#1211).
-    NotesHeaderButton(Icons.Outlined.Folder, stringResource(R.string.ime_vault_open_desc), onClick = onVault)
+    // Not before the first unlock: where the vault is lives in storage that
+    // opens only then, the same reason the notes themselves wait.
+    if (notes.available) {
+        NotesHeaderButton(Icons.Outlined.Folder, stringResource(R.string.ime_vault_open_desc), onClick = onVault)
+    }
     NotesHeaderButton(
         Icons.Outlined.Search,
         stringResource(R.string.ime_notes_search_desc),

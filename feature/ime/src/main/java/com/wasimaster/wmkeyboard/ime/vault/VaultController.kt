@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
 import android.provider.DocumentsContract
+import com.wasimaster.wmkeyboard.core.directboot.DirectBoot
 import com.wasimaster.wmkeyboard.core.files.DocFiles
 import com.wasimaster.wmkeyboard.core.notes.vault.VaultMarkdown
 import com.wasimaster.wmkeyboard.ime.R
@@ -155,6 +156,12 @@ internal class VaultController(
     private var listening = false
 
     fun onPanelOpen() {
+        // The preferences that say where the vault is are credential-encrypted,
+        // and Android throws on opening them before the first unlock.
+        if (!DirectBoot.isUserUnlocked(app)) {
+            _state.value = VaultUi(message = R.string.ime_notes_unlock_info)
+            return
+        }
         if (!listening) {
             VaultPrefs.prefs(app).registerOnSharedPreferenceChangeListener(prefsListener)
             listening = true
