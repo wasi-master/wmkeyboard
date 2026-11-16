@@ -2033,6 +2033,7 @@ internal object SettingsRowIcons {
         put(R.string.theme_modifier_key_radius_title) { Icons.Outlined.RoundedCorner }
         put(R.string.theme_action_key_radius_title) { Icons.Outlined.RoundedCorner }
         put(R.string.theme_key_height_title) { Icons.Outlined.Height }
+        put(R.string.theme_honeycomb_title) { Icons.Outlined.Category }
         put(R.string.theme_key_gap_title) { Icons.Outlined.SpaceBar }
         put(R.string.theme_side_padding_left_title) { Icons.Outlined.Padding }
         put(R.string.theme_side_padding_right_title) { Icons.Outlined.Padding }

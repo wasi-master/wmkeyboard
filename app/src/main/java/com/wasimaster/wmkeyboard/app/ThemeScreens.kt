@@ -4794,6 +4794,16 @@ private fun ThemeEditorContent(
             )
         }
         item {
+            // Under the shape, since it is one (#1390): every layout drawn as
+            // a honeycomb, as a layout's own Honeycomb grid switch draws it.
+            ToggleSetting(
+                R.string.theme_honeycomb_title,
+                stringResource(R.string.theme_honeycomb_subtitle),
+                checked = look.watch { it.honeycomb },
+                info = stringResource(R.string.theme_honeycomb_info),
+            ) { on -> update { t -> t.copy(honeycomb = on) } }
+        }
+        item {
             ColorRow(
                 R.string.theme_letter_keys_title,
                 look.watch { it.keyBackground },

@@ -19141,6 +19141,10 @@ internal data class KeyPalette(
      */
     val modifierRadiusDp: Int? = null,
     val actionRadiusDp: Int? = null,
+    /** Every layout drawn as a honeycomb by the theme; see [KbTheme.honeycomb]. */
+    val honeycomb: Boolean = false,
+    /** How round a honeycomb's corners are, in dp (#1392); 0 keeps them pointed. */
+    val hexCornerRadiusDp: Float = 0f,
 )
 
 internal fun KbTheme.keyPalette(): KeyPalette = KeyPalette(
@@ -19160,7 +19164,18 @@ internal fun KbTheme.keyPalette(): KeyPalette = KeyPalette(
     keysHaveFaces = keysHaveFaces,
     modifierRadiusDp = modifierKeyRadiusDp,
     actionRadiusDp = actionKeyRadiusDp,
+    honeycomb = honeycomb,
+    // Rounded by the board's radius whatever the shape, but Sharp, which is
+    // the theme saying pointed; Pill and Circle round as far as an edge goes.
+    hexCornerRadiusDp = when (keyShapeKind) {
+        KeyShapeKind.SHARP -> 0f
+        KeyShapeKind.PILL, KeyShapeKind.CIRCLE -> HexFullRoundDp
+        else -> keyRadiusDp.toFloat()
+    },
 )
+
+/** A corner radius past any honeycomb edge's half, so the corner rounds as far as it can. */
+private const val HexFullRoundDp = 999f
 
 /**
  * Everything one key draws, resolved out of [KeyboardUiState] once per layout,
@@ -19760,7 +19775,7 @@ private fun rememberKeyGrid(
         }
         // A honeycomb is one band whatever its keys say: its rows interlock, so
         // no row of it can be drawn on its own (see [hexBandVisual]).
-        if (layout.hex && bodyRows.isNotEmpty()) {
+        if ((layout.hex || palette.honeycomb) && bodyRows.isNotEmpty()) {
             return@remember digits to listOf(
                 KeyGridBlock.Band(hexBandVisual(bodyRows, gridWeight, heights, settings, state, palette, fontScale)),
             )
@@ -19865,6 +19880,7 @@ private fun hexBandVisual(
                 zigBottom = board.joinedBelow(slot.row),
                 gapDp = gapH,
                 maxAmplitudeDp = maxAmplitude,
+                cornerRadiusDp = palette.hexCornerRadiusDp,
             )
             val cell = slot.touchWidth.takeIf { it > 0f } ?: 1f
             KeyBandSlot(
@@ -23282,15 +23298,12 @@ private fun KeyGridBlocks(
 ) {
     for ((blockIndex, block) in bodyBlocks.withIndex()) {
         val blockBelow = if (!arrowRow && blockIndex == bodyBlocks.lastIndex) touchBelow else 0.dp
-        if (lane > 0.dp) {
-            // A band stands for several rows, so it reserves several
-            // lanes — the words above its second row need somewhere to
-            // go as much as the ones above its first.
-            val rows = when (block) {
-                is KeyGridBlock.Row -> 1
-                is KeyGridBlock.Band -> block.band.rowHeights.size.coerceAtLeast(1)
-            }
-            Spacer(modifier = Modifier.height(lane * rows))
+        // A band lays a lane above each of its own rows (#1384): stacked
+        // here, all of them sat over its first row, a honeycomb's letters
+        // opened a gap of several lanes under the number row, and the words
+        // for its lower rows had nowhere above those rows to go.
+        if (lane > 0.dp && block is KeyGridBlock.Row) {
+            Spacer(modifier = Modifier.height(lane))
         }
         when (block) {
             is KeyGridBlock.Row -> KeyRow(
@@ -23326,6 +23339,7 @@ private fun KeyGridBlocks(
                 smartResolve = smartResolve,
                 onBurst = onBurst,
                 touchBelow = blockBelow,
+                lane = lane,
             )
         }
     }
@@ -24300,16 +24314,24 @@ private fun KeyBand(
     onBurst: ((Rect, String?) -> Unit)? = null,
     /** Touch area the keys on the band's last row reach below it (#649). */
     touchBelow: Dp = 0.dp,
+    /**
+     * Room above each row for the octopus's floating words, as an ordinary
+     * row has a lane above it (#1384); 0 while the octopus is off.
+     */
+    lane: Dp = 0.dp,
 ) {
     // Row pitch in px: the key height the row was given, plus the gap above and
     // below it, exactly as an ordinary KeyCell measures itself.
     val gap = keyGapV(settings)
+    val lanePx = with(LocalDensity.current) { lane.roundToPx() }
     val rowPitch = with(LocalDensity.current) {
         band.rowHeights.map { (it.dp + gap * 2).roundToPx() }
     }
-    // Row tops, and the band's own height as the last entry.
+    // Row tops, each under its own lane, and the band's own height as the
+    // last entry. A key starts below its row's lane, and one spanning rows
+    // takes the lanes between them.
     val tops = IntArray(rowPitch.size + 1).also {
-        for (i in rowPitch.indices) it[i + 1] = it[i] + rowPitch[i]
+        for (i in rowPitch.indices) it[i + 1] = it[i] + lanePx + rowPitch[i]
     }
     // A honeycomb's keys commit the key whose hexagon the touch went down in,
     // which in a point's corner is not the rectangle that took it.
@@ -24321,7 +24343,7 @@ private fun KeyBand(
         modifier = if (hex == null) {
             Modifier
         } else {
-            Modifier.hexTouchOwners(hex, band.rowHeights, gap, band.hexMaxAmplitudeDp, rtl, hexOwners)
+            Modifier.hexTouchOwners(hex, band.rowHeights, gap, band.hexMaxAmplitudeDp, rtl, hexOwners, lane)
         },
         content = {
             for (slot in band.slots) {
@@ -24362,13 +24384,13 @@ private fun KeyBand(
             measurable.measure(
                 Constraints.fixed(
                     width = (right - left).coerceIn(0, width),
-                    height = tops[slot.row + slot.span] - tops[slot.row],
+                    height = tops[slot.row + slot.span] - tops[slot.row] - lanePx,
                 ),
             )
         }
         layout(width, tops.last()) {
             placeables.forEachIndexed { index, placeable ->
-                placeable.placeRelative(lefts[index], tops[band.slots[index].row])
+                placeable.placeRelative(lefts[index], tops[band.slots[index].row] + lanePx)
             }
         }
     }
@@ -28112,7 +28134,10 @@ internal fun KeyButton(
                     } else {
                         kb.keyBorderWidthDp
                     }
-                    if (border != null && width > 0f) {
+                    if (border != null && width > 0f && keyShape is HexFaceShape) {
+                        // A honeycomb face draws its own (#1391).
+                        Modifier.hexFaceBorder(width.dp, border, keyShape)
+                    } else if (border != null && width > 0f) {
                         Modifier.border(width.dp, border, keyShape)
                     } else {
                         Modifier

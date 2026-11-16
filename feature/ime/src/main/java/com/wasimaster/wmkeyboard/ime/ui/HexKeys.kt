@@ -8,6 +8,11 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.addOutline
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.input.pointer.changedToDownIgnoreConsumed
@@ -50,18 +55,21 @@ data class HexFaceShape(
     val maxAmplitudeDp: Float,
     /** The outline's convex hull instead; see [forShadow]. */
     val convex: Boolean = false,
+    /**
+     * How far each corner is rounded off, in dp (#1392): the theme's key
+     * radius, 0 for a Sharp theme's pointed hexagons. Held under half of
+     * each edge it rounds, so a short slanted edge stays an edge.
+     */
+    val cornerRadiusDp: Float = 0f,
 ) : Shape {
     override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
         val points = points(size, density.density)
         // A right-to-left board is placed mirrored, so its faces are too.
-        val mirror = layoutDirection == LayoutDirection.Rtl
-        val path = Path()
-        for (i in 0 until points.size / 2) {
-            val x = if (mirror) size.width - points[i * 2] else points[i * 2]
-            val y = points[i * 2 + 1]
-            if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+        if (layoutDirection == LayoutDirection.Rtl) {
+            for (i in 0 until points.size / 2) points[i * 2] = size.width - points[i * 2]
         }
-        path.close()
+        val radius = cornerRadiusDp * density.density
+        val path = if (radius > 0f) roundedPolygon(points, radius) else straightPolygon(points)
         return Outline.Generic(path)
     }
 
@@ -106,6 +114,88 @@ data class HexFaceShape(
     fun forShadow(): HexFaceShape =
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && !convex) copy(convex = true) else this
 }
+
+/** A closed path through the corners in [points] (x, y pairs). */
+private fun straightPolygon(points: FloatArray): Path {
+    val path = Path()
+    for (i in 0 until points.size / 2) {
+        val x = points[i * 2]
+        val y = points[i * 2 + 1]
+        if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+    }
+    path.close()
+    return path
+}
+
+/**
+ * A closed path through [points] (x, y pairs) with every corner rounded:
+ * each edge is cut back from both of its corners by [radius], or by half its
+ * length where that is shorter, and the corner is a curve through those two
+ * cut points bent toward the corner itself. A point where the outline runs
+ * straight on is no corner and is passed through as it is.
+ */
+private fun roundedPolygon(points: FloatArray, radius: Float): Path {
+    val n = points.size / 2
+    if (n < 3) return straightPolygon(points)
+    fun x(i: Int) = points[((i % n + n) % n) * 2]
+    fun y(i: Int) = points[((i % n + n) % n) * 2 + 1]
+    // Where a corner's rounding starts (towards the previous point) and ends
+    // (towards the next one), or the corner itself where it is not one.
+    val startX = FloatArray(n)
+    val startY = FloatArray(n)
+    val endX = FloatArray(n)
+    val endY = FloatArray(n)
+    val round = BooleanArray(n)
+    for (i in 0 until n) {
+        val inX = x(i) - x(i - 1)
+        val inY = y(i) - y(i - 1)
+        val outX = x(i + 1) - x(i)
+        val outY = y(i + 1) - y(i)
+        val inLen = kotlin.math.hypot(inX, inY)
+        val outLen = kotlin.math.hypot(outX, outY)
+        val cross = inX * outY - inY * outX
+        val straight = inLen < 0.01f || outLen < 0.01f || kotlin.math.abs(cross) < 0.001f * inLen * outLen
+        if (straight) {
+            startX[i] = x(i); startY[i] = y(i); endX[i] = x(i); endY[i] = y(i)
+            continue
+        }
+        round[i] = true
+        val cutIn = minOf(radius, inLen / 2f)
+        val cutOut = minOf(radius, outLen / 2f)
+        startX[i] = x(i) - inX / inLen * cutIn
+        startY[i] = y(i) - inY / inLen * cutIn
+        endX[i] = x(i) + outX / outLen * cutOut
+        endY[i] = y(i) + outY / outLen * cutOut
+    }
+    val path = Path()
+    path.moveTo(endX[0], endY[0])
+    for (k in 1..n) {
+        val i = k % n
+        path.lineTo(startX[i], startY[i])
+        if (round[i]) path.quadraticTo(x(i), y(i), endX[i], endY[i])
+    }
+    path.close()
+    return path
+}
+
+/**
+ * The key's border drawn inside its honeycomb face (#1391): the outline
+ * stroked at twice the width and clipped to the face, so the whole width
+ * lands inside it, the way `Modifier.border` lays a rounded key's. That
+ * modifier draws a free-form outline through a cached mask cut out with a
+ * path operation, and on these faces, whose points reach past the key's
+ * own box, the mask ate stretches of the border.
+ */
+internal fun Modifier.hexFaceBorder(width: Dp, color: androidx.compose.ui.graphics.Color, shape: Shape): Modifier =
+    drawWithCache {
+        val outline = shape.createOutline(size, layoutDirection, this)
+        val path = Path().apply { addOutline(outline) }
+        val stroke = Stroke(width = width.toPx() * 2f, join = StrokeJoin.Round)
+        onDrawWithContent {
+            drawContent()
+            clipPath(path) { drawPath(path, color, style = stroke) }
+        }
+    }
 
 /** [this] as a platform shadow can be cast from; see [HexFaceShape.forShadow]. */
 internal fun Shape.forShadow(): Shape = (this as? HexFaceShape)?.forShadow() ?: this
@@ -176,10 +266,21 @@ internal fun Modifier.hexTouchOwners(
     maxAmplitudeDp: Float,
     rtl: Boolean,
     owners: HashMap<PointerId, Key>,
-): Modifier = pointerInput(board, rowHeightsDp, gapV, maxAmplitudeDp, rtl) {
+    /** The octopus's lane over each row, which the band lays out too (#1384). */
+    lane: Dp = 0.dp,
+): Modifier = pointerInput(board, rowHeightsDp, gapV, maxAmplitudeDp, rtl, lane) {
     val tops = FloatArray(rowHeightsDp.size + 1)
     for (i in rowHeightsDp.indices) {
         tops[i + 1] = tops[i] + (rowHeightsDp[i].dp + gapV * 2).roundToPx()
+    }
+    // The band's own row tops, lanes included, to take a touch back into the
+    // lane-free rows the board is laid out in.
+    val lanePx = lane.roundToPx().toFloat()
+    val laned = FloatArray(tops.size) { it * lanePx + tops[it] }
+    fun boardY(y: Float): Float {
+        var row = 0
+        while (row < rowHeightsDp.size - 1 && y >= laned[row + 1]) row++
+        return (y - lanePx * (row + 1)).coerceAtLeast(tops[row])
     }
     awaitPointerEventScope {
         while (true) {
@@ -192,7 +293,7 @@ internal fun Modifier.hexTouchOwners(
                 val width = size.width.toFloat()
                 val cell = if (board.weight > 0f) width / board.weight else 0f
                 val x = if (rtl) width - change.position.x else change.position.x
-                val y = change.position.y
+                val y = boardY(change.position.y)
                 val amplitude = hexAmplitude(cell, maxAmplitudeDp * density)
                 val hex = board.slotAt(x, y, tops, cell, amplitude)
                 val plain = board.slotAt(x, y, tops, cell, 0f)

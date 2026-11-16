@@ -261,6 +261,14 @@ data class ThemeSpec(
     // Keys
     val keyShape: KeyShapeKind = KeyShapeKind.ROUNDED,
     /**
+     * Draw every layout's keys as a honeycomb (#1390): hexagons, every other
+     * row half a key over, the rows fitted into each other, as a layout's own
+     * `grid: "hex"` draws its keys. A part of how the keys look, so it sits
+     * with the key shape; a layout that asks for a honeycomb gets one either
+     * way. Corners round by the key radius unless the shape is Sharp (#1392).
+     */
+    val honeycomb: Boolean = false,
+    /**
      * Absolute path of an image drawn on every letter key, clipped to the key
      * shape, over the key colour. Never set in exports — the bytes travel in
      * [assets] under `"keyTexture"`. The class-specific slots below fall back
