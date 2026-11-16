@@ -554,6 +554,11 @@ data class ThemeSpec(
     /** The floating style's bubble height, in dp; see [popupHeightDp]. */
     val popupFloatingHeightDp: Int? = null,
     val keyHeightDp: Int? = null,
+    /**
+     * The number row's height, in dp; 0 draws it at the key height, null
+     * follows the global setting (#1376).
+     */
+    val numberRowHeightDp: Int? = null,
     val keyGapScale: Float? = null,
     /**
      * Legacy symmetric side padding. Still honoured, and still written when a

@@ -133,7 +133,7 @@ fun KeyboardSettings.applyLayoutTheme(themeId: String?): KeyboardSettings {
  */
 fun KeyboardSettings.applyThemeOverrides(spec: ThemeSpec?): KeyboardSettings {
     if (spec == null) return this
-    val untouched = spec.toolbarHeightDp == null && spec.keyHeightDp == null &&
+    val untouched = spec.toolbarHeightDp == null && spec.keyHeightDp == null && spec.numberRowHeightDp == null &&
         spec.keyGapScale == null && spec.sidePadScale == null &&
         spec.sidePadLeftScale == null && spec.sidePadRightScale == null &&
         spec.fontScale == null && spec.boldKeyLabels == null &&
@@ -149,6 +149,7 @@ fun KeyboardSettings.applyThemeOverrides(spec: ThemeSpec?): KeyboardSettings {
         icons = if (spec.keyIcons.isEmpty()) icons else icons.copy(themeIcons = spec.keyIcons),
         toolbarHeightDp = spec.toolbarHeightDp ?: toolbarHeightDp,
         keyHeightDp = spec.keyHeightDp ?: keyHeightDp,
+        numberRowHeightDp = spec.numberRowHeightDp?.takeIf { it > 0 } ?: numberRowHeightDp,
         keyGapScale = spec.keyGapScale ?: keyGapScale,
         fontScale = spec.fontScale ?: fontScale,
         accessibility = spec.boldKeyLabels
@@ -158,7 +159,8 @@ fun KeyboardSettings.applyThemeOverrides(spec: ThemeSpec?): KeyboardSettings {
             ?.let { toolbarBehavior.copy(toolWidthDp = it) } ?: toolbarBehavior,
         layoutBehavior = if (
             spec.sidePadScale != null || spec.sidePadLeftScale != null ||
-            spec.sidePadRightScale != null || spec.hintFontScale != null
+            spec.sidePadRightScale != null || spec.hintFontScale != null ||
+            spec.numberRowHeightDp != null
         ) {
             layoutBehavior.copy(
                 // The per-edge overrides beat the legacy symmetric one, which
@@ -168,6 +170,10 @@ fun KeyboardSettings.applyThemeOverrides(spec: ThemeSpec?): KeyboardSettings {
                 sidePadRightScale = spec.sidePadRightScale ?: spec.sidePadScale
                     ?: layoutBehavior.sidePadRightScale,
                 hintFontScale = spec.hintFontScale ?: layoutBehavior.hintFontScale,
+                // A theme's number row height, or its "same as keys" (0),
+                // decides over the user's (#1376).
+                numberRowFollowsKeys = spec.numberRowHeightDp?.let { it == 0 }
+                    ?: layoutBehavior.numberRowFollowsKeys,
             )
         } else {
             layoutBehavior
@@ -263,3 +269,13 @@ fun KeyboardSettings.themePins(sharedPanels: List<PanelLayoutSpec>): List<ThemeP
     }
     return pins
 }
+
+/**
+ * [this] with the number row at the key height when it is set to follow it
+ * (#1376; [LayoutBehaviorSettings.numberRowFollowsKeys]). Runs last, after
+ * the theme and the screen shape have settled the key height it follows.
+ * The same instance when there is nothing to change, as the overlays above.
+ */
+fun KeyboardSettings.withNumberRowFollowingKeys(): KeyboardSettings =
+    if (!layoutBehavior.numberRowFollowsKeys || numberRowHeightDp == keyHeightDp) this
+    else copy(numberRowHeightDp = keyHeightDp)

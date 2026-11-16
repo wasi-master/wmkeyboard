@@ -229,6 +229,7 @@ import com.wasimaster.wmkeyboard.core.settings.sizingValuesFor
 import com.wasimaster.wmkeyboard.core.settings.activeThemeSpec
 import com.wasimaster.wmkeyboard.core.settings.applyLayoutTheme
 import com.wasimaster.wmkeyboard.core.settings.applyThemeOverrides
+import com.wasimaster.wmkeyboard.core.settings.withNumberRowFollowingKeys
 import com.wasimaster.wmkeyboard.core.settings.applyScreenDefaults
 import com.wasimaster.wmkeyboard.core.settings.resolvedFor
 import com.wasimaster.wmkeyboard.core.input.MorseCode
@@ -2203,6 +2204,8 @@ private fun KeyboardScreenFrame(
     val settings = remember(baseSettings, variant, activeSpec, layoutSizing) {
         baseSettings.applyScreenDefaults(variant).applyThemeOverrides(activeSpec)
             .applyLayoutSizing(layoutSizing).resolvedFor(variant)
+            // Last, at the key height all of the above settled on (#1376).
+            .withNumberRowFollowingKeys()
     }
     // The layout's own font, which is deliberately NOT part of that chain. The
     // chain produces one KeyboardSettings for the whole board, and a layout's

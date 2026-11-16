@@ -10857,6 +10857,14 @@ data class LayoutBehaviorSettings(
      */
     val bottomRowHeightDp: Int = 0,
     /**
+     * The number row drawn at the key height, whatever that is (#1376): the
+     * Number row height slider's leftmost stop, "Same as keys", stored as 0.
+     * Applied after the theme and the screen shape have settled the key
+     * height, by [withNumberRowFollowingKeys]. Off by default, so the row
+     * keeps its own height until asked.
+     */
+    val numberRowFollowsKeys: Boolean = false,
+    /**
      * Horizontal padding kept clear at the left edge of the keyboard, as a
      * fraction of its width (0 = none, the default; 0.15 = 15% shaved off that
      * side). Narrows the keys toward the centre for thumb reach without docking
@@ -13332,7 +13340,9 @@ class SettingsRepository(private val context: Context) {
         const val ONE_HANDED_HEIGHT_SCALE_MAX = 100
         // Docked sizing limits, shared by the sliders and the inline resize
         // tool so a drag can never store what a slider could not.
-        const val KEY_HEIGHT_MIN_DP = 32
+        // 24 rather than 32 (#1371): with tight row spacing it reaches the
+        // compact boards people come from, and still leaves a label room.
+        const val KEY_HEIGHT_MIN_DP = 24
         const val KEY_HEIGHT_MAX_DP = 100
         const val MAX_BOTTOM_PADDING_DP = 160
         // Per-orientation one-handed geometry. `portrait` = false suffix keeps
@@ -14677,7 +14687,10 @@ class SettingsRepository(private val context: Context) {
             appColors = readAppColors(p, defaults),
             photoBackground = readPhotoBackground(p, defaults),
             keyHeightDp = p[KEY_HEIGHT] ?: defaults.keyHeightDp,
-            numberRowHeightDp = p[NUMBER_ROW_HEIGHT] ?: p[KEY_HEIGHT] ?: defaults.numberRowHeightDp,
+            // 0 stored is "same as the keys" (#1376), applied once the key
+            // height is resolved; see withNumberRowFollowingKeys.
+            numberRowHeightDp = p[NUMBER_ROW_HEIGHT]?.takeIf { it > 0 } ?: p[KEY_HEIGHT]
+                ?: defaults.numberRowHeightDp,
             bottomPaddingDp = p[BOTTOM_PADDING],
             splitKeyboard = p[SPLIT_KEYBOARD] ?: defaults.splitKeyboard,
             splitGapPercent = p[SPLIT_GAP_PERCENT] ?: defaults.splitGapPercent,
@@ -16224,6 +16237,7 @@ class SettingsRepository(private val context: Context) {
                 ?.takeIf { it.isNotEmpty() } ?: defaults.layoutBehavior.customArrowRow,
             bottomRowHeightDp =
                 p[BOTTOM_ROW_HEIGHT] ?: defaults.layoutBehavior.bottomRowHeightDp,
+            numberRowFollowsKeys = p[NUMBER_ROW_HEIGHT] == 0,
             sidePadLeftScale = p[SIDE_PAD_LEFT_SCALE] ?: p[SIDE_PAD_SCALE]
                 ?: defaults.layoutBehavior.sidePadLeftScale,
             sidePadRightScale = p[SIDE_PAD_RIGHT_SCALE] ?: p[SIDE_PAD_SCALE]
@@ -20512,7 +20526,10 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[KEY_HEIGHT] = value.coerceIn(KEY_HEIGHT_MIN_DP, KEY_HEIGHT_MAX_DP) }
 
     suspend fun setNumberRowHeightDp(value: Int) =
-        editPrefs { it[NUMBER_ROW_HEIGHT] = value.coerceIn(KEY_HEIGHT_MIN_DP, KEY_HEIGHT_MAX_DP) }
+        editPrefs {
+            // Below the slider's floor is its "Same as keys" stop (#1376).
+            it[NUMBER_ROW_HEIGHT] = if (value < KEY_HEIGHT_MIN_DP) 0 else value.coerceAtMost(KEY_HEIGHT_MAX_DP)
+        }
 
     suspend fun setSplitKeyboard(value: Boolean) =
         editPrefs { it[SPLIT_KEYBOARD] = value }
@@ -20901,11 +20918,11 @@ class SettingsRepository(private val context: Context) {
     // lets the variant inherit portrait again.
 
     suspend fun setVariantKeyHeightDp(variant: ScreenVariant, value: Int?) =
-        editVariant(variant, KEY_HEIGHT, keyHeightKey(variant), value?.coerceIn(32, 100))
+        editVariant(variant, KEY_HEIGHT, keyHeightKey(variant), value?.coerceIn(KEY_HEIGHT_MIN_DP, KEY_HEIGHT_MAX_DP))
 
     suspend fun setVariantNumberRowHeightDp(variant: ScreenVariant, value: Int?) =
         editVariant(
-            variant, NUMBER_ROW_HEIGHT, numberRowHeightKey(variant), value?.coerceIn(32, 100),
+            variant, NUMBER_ROW_HEIGHT, numberRowHeightKey(variant), value?.coerceIn(KEY_HEIGHT_MIN_DP, KEY_HEIGHT_MAX_DP),
         )
 
     suspend fun setVariantBottomPaddingDp(variant: ScreenVariant, value: Int?) =

@@ -288,6 +288,7 @@
     <string name="theme_picture_on_keys_subtitle">Spread the image across the keys, each key showing its own piece, with the background color between them. Turns on glass for the keys and makes them see-through. Set the color between the keys with Background, and lower the Enter key\'s opacity to put the picture there too</string>
     <string name="theme_picture_on_keys_info">Spreads the background image across the keys. Each key shows its own piece of the picture, and the background colour shows between the keys. This turns on glass for the keys and makes them see-through.</string>
     <string name="theme_picture_on_keys_no_image">Pick a background image first, under Board, and this cuts it across the keys</string>
+    <string name="theme_number_row_height_title">Number row height</string>
     <string name="theme_honeycomb_title">Honeycomb grid</string>
     <string name="theme_honeycomb_subtitle">Draw the keys of every layout as hexagons, every other row half a key over, with the rows fitted into each other</string>
     <string name="theme_honeycomb_info">Draws every layout\'s keys as a honeycomb while this theme is on, the same as turning on Honeycomb grid for each layout in the layout editor. The corner radius rounds the hexagons\' corners; pick the Sharp shape to keep them pointed.</string>

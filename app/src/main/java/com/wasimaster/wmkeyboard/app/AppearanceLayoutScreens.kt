@@ -1632,15 +1632,7 @@ internal fun LayoutSettings(
             ) { scope.launch { repository.setNumberRow(it) } }
         }
         item(visible = numberRow, level = SettingLevel.ADVANCED) {
-            SliderSetting(
-                R.string.layout_number_row_height_title,
-                subtitle = stringResource(R.string.layout_number_row_height_subtitle),
-                value = settings.watch { it.numberRowHeightDp }.toFloat(),
-                range = 32f..100f,
-                display = { dpFormat.format(it.toInt()) },
-                info = stringResource(R.string.layout_number_row_height_info),
-                default = SettingsDefaults.numberRowHeightDp.toFloat(),
-            ) { scope.launch { repository.setNumberRowHeightDp(it.toInt()) } }
+            NumberRowHeightSlider(settings, repository, scope)
         }
         item(visible = numberRow, level = SettingLevel.ADVANCED) {
             ToggleSetting(
@@ -2100,6 +2092,7 @@ internal fun LayoutSizeSettings(
             s.toolbarHeightDp != SettingsDefaults.toolbarHeightDp
     }
     val preview = LocalKeyboardPreview.current
+    val sizeNumberRow = settings.watch { it.numberRow }
     SettingsGroup(stringResource(R.string.layout_size_position_title)) {
         // The sliders below, dragged on the keyboard itself (#912): opens the
         // test field and puts the keyboard that comes up into resize mode.
@@ -2122,13 +2115,18 @@ internal fun LayoutSizeSettings(
                 R.string.layout_key_height_title,
                 subtitle = pin?.text ?: stringResource(R.string.layout_key_height_subtitle),
                 value = settings.watch { it.keyHeightDp }.toFloat(),
-                range = 32f..100f,
+                range = SettingsRepository.KEY_HEIGHT_MIN_DP.toFloat()..SettingsRepository.KEY_HEIGHT_MAX_DP.toFloat(),
                 display = { dpFormat.format(it.toInt()) },
                 info = stringResource(R.string.layout_key_height_info),
                 enabled = pin == null,
                 disabledReason = pin,
                 default = SettingsDefaults.keyHeightDp.toFloat(),
             ) { scope.launch { repository.setKeyHeightDp(it.toInt()) } }
+        }
+        // Here too, beside the key height it can follow (#1376), and not only
+        // under the number row's own switch in Layout.
+        item(visible = sizeNumberRow, level = SettingLevel.ADVANCED) {
+            NumberRowHeightSlider(settings, repository, scope)
         }
         item(level = SettingLevel.ADVANCED) {
             val followKeys = stringResource(R.string.layout_bottom_row_follow_keys_label)
@@ -2480,7 +2478,7 @@ internal fun LayoutVariantSizeSettings(
                 R.string.layout_key_height_title,
                 value = settings.watch { it.sizingValuesFor(variant).keyHeightDp ?: it.keyHeightDp }
                     .toFloat(),
-                range = 32f..100f,
+                range = SettingsRepository.KEY_HEIGHT_MIN_DP.toFloat()..SettingsRepository.KEY_HEIGHT_MAX_DP.toFloat(),
                 display = { dpFormat.format(it.toInt()) },
                 info = stringResource(R.string.layout_key_height_info),
             ) { scope.launch { repository.setVariantKeyHeightDp(variant, it.toInt()) } }
@@ -2495,7 +2493,7 @@ internal fun LayoutVariantSizeSettings(
                 value = settings.watch {
                     it.sizingValuesFor(variant).numberRowHeightDp ?: it.numberRowHeightDp
                 }.toFloat(),
-                range = 32f..100f,
+                range = SettingsRepository.KEY_HEIGHT_MIN_DP.toFloat()..SettingsRepository.KEY_HEIGHT_MAX_DP.toFloat(),
                 display = { dpFormat.format(it.toInt()) },
                 info = stringResource(R.string.layout_number_row_height_info),
             ) {
@@ -3087,3 +3085,33 @@ private fun LongWordsPreview(fitting: TextFitting, textScale: Float) {
     }
 }
 
+/**
+ * The number row's height, with "Same as keys" at its leftmost stop (#1376),
+ * the way the bottom row's slider has one: the row then follows the key
+ * height however that is set. In Layout under the number row's switch and in
+ * Size and position beside the key height. A theme's own height pins it.
+ */
+@Composable
+private fun NumberRowHeightSlider(
+    settings: LiveSettings,
+    repository: SettingsRepository,
+    scope: kotlinx.coroutines.CoroutineScope,
+) {
+    val pin = themePin(settings) { it.numberRowHeightDp }
+    val follows = settings.watch { it.layoutBehavior.numberRowFollowsKeys }
+    val height = settings.watch { it.numberRowHeightDp }
+    val followStop = (SettingsRepository.KEY_HEIGHT_MIN_DP - 1).toFloat()
+    val sameAsKeys = stringResource(R.string.layout_number_row_follow_keys_label)
+    val dpFormat = stringResource(R.string.typing_value_dp)
+    SliderSetting(
+        R.string.layout_number_row_height_title,
+        subtitle = pin?.text ?: stringResource(R.string.layout_number_row_height_subtitle),
+        value = if (follows) followStop else height.toFloat(),
+        range = followStop..SettingsRepository.KEY_HEIGHT_MAX_DP.toFloat(),
+        display = { if (it < SettingsRepository.KEY_HEIGHT_MIN_DP) sameAsKeys else dpFormat.format(it.toInt()) },
+        info = stringResource(R.string.layout_number_row_height_info),
+        enabled = pin == null,
+        disabledReason = pin,
+        default = SettingsDefaults.numberRowHeightDp.toFloat(),
+    ) { scope.launch { repository.setNumberRowHeightDp(it.toInt()) } }
+}

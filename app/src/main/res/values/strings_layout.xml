@@ -9,7 +9,9 @@
     <string name="layout_number_row_info">The keyboard adds a row of digits from 1 to 0 above the letter keys, so you do not press and hold for a digit. The digits on the press and hold of the top letter row are not available while this is on. The keyboard becomes one row taller.</string>
     <string name="layout_number_row_height_title">Number row height</string>
     <string name="layout_number_row_height_subtitle">The height of the digit row, separate from the letter keys</string>
-    <string name="layout_number_row_height_info">A short digit row keeps fast access to the numbers. It adds less height to the keyboard than a full row.</string>
+    <string name="layout_number_row_height_info">A short digit row keeps fast access to the numbers. It adds less height to the keyboard than a full row. \"Same as keys\", at the far left, keeps the number row as tall as the letter keys whenever you change their height.</string>
+    <!-- Shown in place of a number when the number row uses the key height. -->
+    <string name="layout_number_row_follow_keys_label">Same as keys</string>
     <string name="layout_number_row_hints_title">Hints on the number row</string>
     <string name="layout_number_row_hints_subtitle">The small symbols in the corners of the digit keys. Off hides them on that row only</string>
     <string name="layout_number_row_hints_info">The digit keys of the number row show a small symbol in the corner, which a long press types. Turn this off for cleaner digit keys. The long press still works, and the hints on the letter keys are not changed. This setting is on by default.</string>

@@ -5900,6 +5900,11 @@ private fun ThemeEditorContent(
                             popupHeightDp = current.popup.onKeyHeightDp,
                             popupFloatingHeightDp = current.popup.floatingHeightDp,
                             keyHeightDp = current.keyHeightDp,
+                            numberRowHeightDp = if (current.layoutBehavior.numberRowFollowsKeys) {
+                                0
+                            } else {
+                                current.numberRowHeightDp
+                            },
                             keyGapScale = current.keyGapScale,
                             sidePadScale = current.layoutBehavior.sidePadLeftScale
                                 .takeIf { it == current.layoutBehavior.sidePadRightScale },
@@ -5918,6 +5923,7 @@ private fun ThemeEditorContent(
                             popupHeightDp = null,
                             popupFloatingHeightDp = null,
                             keyHeightDp = null,
+                            numberRowHeightDp = null,
                             keyGapScale = null,
                             sidePadScale = null,
                             sidePadLeftScale = null,
@@ -5978,9 +5984,31 @@ private fun ThemeEditorContent(
                 SliderRow(
                     R.string.theme_key_height_title,
                     value = look.watch { it.keyHeightDp ?: 48 }.toFloat(),
-                    range = 32f..100f,
+                    range = SettingsRepository.KEY_HEIGHT_MIN_DP.toFloat()..SettingsRepository.KEY_HEIGHT_MAX_DP.toFloat(),
                     display = { "${it.toInt()} dp" },
                 ) { update { t -> t.copy(keyHeightDp = it.toInt()) } }
+            }
+            item {
+                // The number row's own height for this theme (#1376), with
+                // "Same as keys" at the leftmost stop as in Size and position.
+                val sameAsKeys = stringResource(R.string.layout_number_row_follow_keys_label)
+                val followStop = (SettingsRepository.KEY_HEIGHT_MIN_DP - 1).toFloat()
+                SliderRow(
+                    R.string.theme_number_row_height_title,
+                    value = look.watchWith { s, t ->
+                        when (val own = t.numberRowHeightDp) {
+                            0 -> followStop
+                            null -> if (s.layoutBehavior.numberRowFollowsKeys) followStop else s.numberRowHeightDp.toFloat()
+                            else -> own.toFloat()
+                        }
+                    },
+                    range = followStop..SettingsRepository.KEY_HEIGHT_MAX_DP.toFloat(),
+                    display = { if (it < SettingsRepository.KEY_HEIGHT_MIN_DP) sameAsKeys else "${it.toInt()} dp" },
+                ) { value ->
+                    update { t ->
+                        t.copy(numberRowHeightDp = if (value < SettingsRepository.KEY_HEIGHT_MIN_DP) 0 else value.toInt())
+                    }
+                }
             }
             item {
                 SliderRow(
