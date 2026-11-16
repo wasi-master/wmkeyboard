@@ -578,6 +578,20 @@ enum class CaptureTarget(
 }
 
 /**
+ * Whether Close brackets for me, Close quotes for me and the selection wrap
+ * apply in this box (#612): the ones that hold text, Combine's three boxes
+ * included. Not the searches, where "(" closed would look for "()" (Find and
+ * replace's query is the exception: a pattern is written there), and not the
+ * numeric, address, password or one-mark boxes.
+ */
+val CaptureTarget.closesPairs: Boolean
+    get() = when (this) {
+        CaptureTarget.CLIP_JOINER, CaptureTarget.CLIP_BASE, CaptureTarget.CLIP_APPEND, CaptureTarget.FIND_QUERY -> true
+        CaptureTarget.WORD_SPELL, CaptureTarget.KDE_REMOTE -> false
+        else -> takesWords && movableCaret && !isSearch
+    }
+
+/**
  * Where a caret sits, in which buffer, and what that buffer held at the time.
  *
  * [key] identifies the buffer rather than only its [CaptureTarget], because two

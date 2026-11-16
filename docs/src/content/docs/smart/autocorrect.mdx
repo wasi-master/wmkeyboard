@@ -284,6 +284,8 @@ Two kinds of character are deliberately left out. **Quotes** (`"`, `'`, `` ` ``,
 
 **Your own pairs**, under the switch while it's on, adds the pairs you want closed too. Type each pair as its two characters, opener first, with a space between pairs: `<> «» ‹› “” ‘’ ¿? ¡! ⌊⌋ ⌈⌉ ⟪⟫ ⦇⦈`. Each one works like a built-in bracket: the opener types the pair where there's room for it, the closer steps over its own half, and one backspace takes an empty pair out. They [wrap a selection](/tools/text-editing/) too. A pair needs two different characters and the opener can't be a letter, a digit or a straight quote, which **Close quotes for me** handles; anything else in the box is skipped.
 
+These pairs, **Close quotes for me** and the selection wrap work in the keyboard's own text boxes as well as in apps, since 0.6.8: the clip editor, Combine's boxes, Find and replace, a note, a to-do and the rest. The search boxes are left out, where a closed `(` would search for `()`; Find and replace's search box is the exception, since a pattern is written there.
+
 The rule also stands down when the bracket lands in front of a word. `(` typed immediately before `world` is you putting brackets around that word by hand, and a closer dropped into the middle of it would only have to be deleted again. A space, a mark, another bracket or the end of the text all leave room for the pair. Passwords, email fields and number pads are untouched. Web addresses are not: a browser's address bar is a search box as often as an address box, and a bracket typed there pairs the same as anywhere else.
 
 The pair works the same in apps and web pages that handle typing their own way, Discord, browser-based editors and the like, where the cursor used to land outside the closing bracket.

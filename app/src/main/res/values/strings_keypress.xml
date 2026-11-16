@@ -230,7 +230,7 @@
     <string name="keypress_word_stops_digits_subtitle">\"word1\" goes as \"1\", then \"word\"</string>
     <string name="keypress_word_whole_addresses_title">Addresses go in one step</string>
     <string name="keypress_word_whole_addresses_subtitle">A web or email address goes whole, marks and all</string>
-    <string name="keypress_word_whole_addresses_info">On, a web or email address such as wmkeyboard.pages.dev/typing/ or test@pm.me counts as one word, so a word delete takes all of it in one step.\n\nOff, the word stops above apply inside an address too. In a browser\'s address bar a held delete then takes it a piece at a time, stopping at dots, slashes and the other marks.</string>
+    <string name="keypress_word_whole_addresses_info">On, a web or email address such as wmkeyboard.pages.dev/typing/ or test@pm.me counts as one word, so a word-delete key or one step of a swipe takes all of it.\n\nOff, the word stops above apply inside an address too, stopping at dots, slashes and the other marks.\n\nA held delete key always stops inside an address, whatever this says: its steps come on a timer, and one that took the address whole emptied a browser\'s address bar before you could lift.</string>
     <string name="keypress_word_stops_digits_info">When backspace deletes word by word, a change between letters and digits starts a new part. word1 is deleted as 1 first, then word. This setting is off by default.</string>
 
     <string name="keypress_word_delete_repeat_title">Word delete interval</string>

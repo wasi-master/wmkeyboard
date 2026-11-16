@@ -13751,10 +13751,10 @@ open class WMKeyboardService : InputMethodService() {
         } else {
             fixed?.first ?: before
         }
-        var after = base.typed(insert)
+        var after = if (run == null) capturePairs(state, target, base, insert) ?: base.typed(insert) else base.typed(insert)
         // A sentence typed into a tool's field spaces after its marks the way
         // the app's field does (#880), stepping over a space already there.
-        val spaced = target.prose && insert.length == 1 && captureSpacesAfterMark(state, after, insert[0])
+        val spaced = target.prose && insert.length == 1 && !after.hasSelection && captureSpacesAfterMark(state, after, insert[0])
         if (spaced) after = if (after.text.startsWith(" ", after.at)) after.caretAt(after.at + 1) else after.typed(" ")
         captureWrite(target, before, after)
         if (fixed != null) {
@@ -13903,9 +13903,65 @@ open class WMKeyboardService : InputMethodService() {
             rewriteCaptureComposition(state, target, before, run, keys)
             return true
         }
+        if (!before.hasSelection && captureDeletesEmptyPair(state, target, before)) {
+            val at = before.at
+            captureWrite(target, before, CaretText(before.text.substring(0, at - 1) + before.text.substring(at + 1), at - 1))
+            return true
+        }
         val length = charDeleteLength(before.text.substring(0, before.at))
         captureWrite(target, before, before.deletedBackward(length))
         return true
+    }
+
+    /**
+     * Close brackets for me, Close quotes for me and Wrap selection in a tool's
+     * own text box (#612): the clip editor, Combine, Find and replace and the
+     * rest, which typed a bare "(" where the app's field gets "()". The same
+     * rules as [autoCloseBracket], [typeOverCloser] and the wrap in
+     * [onText], applied to [before] instead of an editor. Null when [insert]
+     * is nothing to them, so it is typed as it is.
+     */
+    private fun capturePairs(state: KeyboardUiState, target: CaptureTarget, before: CaretText, insert: String): CaretText? {
+        if (insert.length != 1 || !target.closesPairs) return null
+        val c = insert[0]
+        val editing = state.settings.textEditing
+        val pairs = bracketPairs(state)
+        val quote = c == '"' || c == '\''
+        if (before.hasSelection) {
+            if (!editing.wrapSelectionWithPair) return null
+            val (opener, closer) = WRAP_PAIRS[c]?.let { insert to it }
+                ?: WRAP_OPENERS[c]?.let { it to insert }
+                ?: parseBracketPairs(editing.autoCloseCustomPairs)[c]?.let { insert to it }
+                ?: return null
+            val start = before.selectionStart
+            val selected = before.selectedText
+            val text = before.text.substring(0, start) + opener + selected + closer + before.text.substring(before.selectionEnd)
+            val inner = start + opener.length
+            return CaretText(text, inner + selected.length, inner)
+        }
+        val at = before.at
+        val ahead = before.text.substring(at)
+        val stepsOver = if (quote) editing.autoCloseQuotes && ahead.firstOrNull() == c
+        else editing.autoCloseBrackets && typesOverCloser(c, ahead, bracketClosers)
+        if (stepsOver) return before.caretAt(at + 1)
+        val closer = when {
+            quote && editing.autoCloseQuotes -> autoCloseQuoteFor(c, before.text.getOrNull(at - 1), ahead, bracketClosers)
+            !quote && editing.autoCloseBrackets -> autoCloseCloserFor(c, ahead, pairs, bracketClosers)
+            else -> null
+        } ?: return null
+        val typed = before.typed(insert)
+        return CaretText(typed.text.substring(0, typed.at) + closer + typed.text.substring(typed.at), typed.at)
+    }
+
+    /** One backspace between the halves of an empty pair takes both, in a tool's box as in the app's field. */
+    private fun captureDeletesEmptyPair(state: KeyboardUiState, target: CaptureTarget, before: CaretText): Boolean {
+        if (!target.closesPairs) return false
+        val head = before.text.substring(0, before.at)
+        val opener = head.lastOrNull() ?: return false
+        val editing = state.settings.textEditing
+        val pairs = bracketPairs(state)
+        val on = if (opener == '"' || opener == '\'') editing.autoCloseQuotes else editing.autoCloseBrackets && opener in pairs
+        return on && deletesEmptyPair(head, before.text.substring(before.at), pairs)
     }
 
     /**
@@ -18646,7 +18702,7 @@ open class WMKeyboardService : InputMethodService() {
      * the typing test, the computer's line) or a transliterator is mid-word,
      * so the caller deletes one character as before.
      */
-    private fun captureDeleteWord(forward: Boolean): Boolean {
+    private fun captureDeleteWord(forward: Boolean, held: Boolean = false): Boolean {
         val state = _uiState.value
         val target = state.captureTarget() ?: return false
         if (target == CaptureTarget.WORD_SPELL || target == CaptureTarget.KDE_REMOTE || !target.movableCaret) return false
@@ -18659,8 +18715,8 @@ open class WMKeyboardService : InputMethodService() {
         val at = before.at
         val head = before.text.substring(0, at)
         val tail = before.text.substring(at)
-        val length = if (forward) WordDelete.lengthAfter(tail, deleteWordBreaks())
-        else WordDelete.lengthBefore(head, deleteWordBreaks())
+        val length = if (forward) WordDelete.lengthAfter(tail, deleteWordBreaks(held))
+        else WordDelete.lengthBefore(head, deleteWordBreaks(held))
         if (length <= 0) return true
         val after = if (forward) {
             CaretText(head + tail.substring(length.coerceAtMost(tail.length)), at)
@@ -18672,12 +18728,12 @@ open class WMKeyboardService : InputMethodService() {
         return true
     }
 
-    private fun onForwardDeleteWord() {
+    private fun onForwardDeleteWord(held: Boolean = false) {
         // Every box that eats keystrokes has no "after the cursor" of its own,
         // which is the whole reason [onForwardDelete] stands down in one; a
         // word step has no more business reaching past it than a character one.
         if (!forwardDeletesInField()) {
-            if (!captureDeleteWord(forward = true)) onForwardDelete()
+            if (!captureDeleteWord(forward = true, held = held)) onForwardDelete()
             return
         }
         val ic = currentInputConnection ?: return
@@ -18701,7 +18757,7 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         val after = ic.getTextAfterCursor(AddressToken.LOOKBACK, 0) ?: return
-        val length = WordDelete.lengthAfter(after, deleteWordBreaks())
+        val length = WordDelete.lengthAfter(after, deleteWordBreaks(held))
         if (length <= 0) return
         revision?.expectDelete(0, length)
         if (expectedSelStart >= 0) noteDeletedForLearning(expectedSelStart, expectedSelStart + length)
@@ -19473,7 +19529,7 @@ open class WMKeyboardService : InputMethodService() {
         return covered
     }
 
-    private fun onDeleteWord() {
+    private fun onDeleteWord(held: Boolean = false) {
         // A panel search owns the backspace key while it is open; word-deleting
         // the real field behind it would edit text the user cannot see. The
         // same goes for every other box that eats keystrokes — a plugin's text
@@ -19482,7 +19538,7 @@ open class WMKeyboardService : InputMethodService() {
         // takes the word too (#612): a held delete set to clear words cleared
         // one letter at a time in the clip editor and Find and replace.
         if (backspaceEditsBuffer()) {
-            if (!captureDeleteWord(forward = false)) onDelete()
+            if (!captureDeleteWord(forward = false, held = held)) onDelete()
             return
         }
         val ic = currentInputConnection ?: return
@@ -19523,7 +19579,7 @@ open class WMKeyboardService : InputMethodService() {
             sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL)
             return
         }
-        val length = WordDelete.lengthBefore(before, deleteWordBreaks())
+        val length = WordDelete.lengthBefore(before, deleteWordBreaks(held))
         if (length > 0) {
             revision?.expectDelete(length, 0)
             if (expectedSelStart >= 0) noteDeletedForLearning(expectedSelStart - length, expectedSelStart)
@@ -19858,17 +19914,26 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * One tick of a held delete key that clears words (issue #216): a word at
+     * the word stops, an address included, never a whole address in one go
+     * (#1296), as the tick comes on a timer rather than a finger's say-so.
+     */
+    fun onDeleteHoldWord(forward: Boolean) {
+        if (forward) trackForwardDeletion { onForwardDeleteWord(held = true) }
+        else trackDeletion { onDeleteWord(held = true) }
+    }
+
+    /**
      * One step of a delete swipe that deletes as it goes (the preview turned
-     * off, or an editor that could not show one), and one tick of a hold that
-     * clears words (issue #216).
+     * off, or an editor that could not show one).
      */
     fun onDeleteSwipeUnit(byWord: Boolean, forward: Boolean) {
         if (forward) {
-            trackForwardDeletion(if (byWord) ::onForwardDeleteWord else ::onForwardDelete)
+            if (byWord) trackForwardDeletion { onForwardDeleteWord() } else trackForwardDeletion(::onForwardDelete)
             return
         }
         if (byWord) {
-            trackDeletion(::onDeleteWord)
+            trackDeletion { onDeleteWord() }
             return
         }
         // A swipe is not a tap: its first step must delete the character the
@@ -43714,6 +43779,7 @@ open class WMKeyboardService : InputMethodService() {
     private val deleteSwipeCallbacks by lazy {
         com.wasimaster.wmkeyboard.ime.ui.DeleteSwipeCallbacks(
             onDeleteUnit = ::onDeleteSwipeUnit,
+            onHoldWord = ::onDeleteHoldWord,
             onSelect = ::onDeleteSwipeSelect,
             onSelectAll = ::onDeleteSwipeSelectAll,
             onSelectLines = ::onDeleteSwipeSelectLines,
@@ -55925,7 +55991,7 @@ open class WMKeyboardService : InputMethodService() {
         // which already copes with the keyboard's own boxes and a null field.
         if (action == TextEditAction.DELETE_WORD || action == TextEditAction.DELETE_WORD_FORWARD) {
             if (haptic) vibrate()
-            if (action == TextEditAction.DELETE_WORD) trackDeletion(::onDeleteWord) else trackForwardDeletion(::onForwardDeleteWord)
+            if (action == TextEditAction.DELETE_WORD) trackDeletion { onDeleteWord() } else trackForwardDeletion { onForwardDeleteWord() }
             return
         }
         // A line at a time (#1162). Both ways go on the strip's undo chip, as
@@ -56684,14 +56750,17 @@ open class WMKeyboardService : InputMethodService() {
      * of a delete-by-word swipe takes "example.com/path" whole instead of
      * stopping at every dot and slash.
      */
-    private fun deleteWordBreaks(): WordBreaks = _uiState.value.settings.textEditing.let {
+    private fun deleteWordBreaks(held: Boolean = false): WordBreaks = _uiState.value.settings.textEditing.let {
         WordBreaks(
             punctuation = it.deleteWordStopsAtPunctuation,
             capitals = it.deleteWordStopsAtCapitals,
             digits = it.deleteWordStopsAtDigits,
             // Off, an address in a browser's bar goes piece by piece at the
-            // stops above instead of in one step (#1296).
-            addresses = it.deleteWordWholeAddresses,
+            // stops above instead of in one step (#1296). A held key's tick
+            // never takes one whole: it fires on a timer, so the first tick
+            // emptied the address bar before the finger could lift, word stops
+            // or not (#1296, 0.6.7). The hold already does the bulk.
+            addresses = it.deleteWordWholeAddresses && !held,
         )
     }
 

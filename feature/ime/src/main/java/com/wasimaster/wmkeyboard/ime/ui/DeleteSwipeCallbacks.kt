@@ -22,10 +22,15 @@ class DeleteSwipeCallbacks(
      * Delete one unit right now, with no preview: a word when [byWord],
      * otherwise one character, taken after the cursor when [forward] and
      * before it when not. The path used when the preview is turned off, the
-     * fallback when the editor cannot hold a selection, and what one tick of a
-     * word-clearing hold does.
+     * fallback when the editor cannot hold a selection.
      */
     val onDeleteUnit: (byWord: Boolean, forward: Boolean) -> Unit = { _, _ -> },
+    /**
+     * One tick of a held delete key that clears words: a word at the user's
+     * word stops, which inside a web address are kept too, since a tick on a
+     * timer that took the address whole emptied a browser's bar at once (#1296).
+     */
+    val onHoldWord: (forward: Boolean) -> Unit = { _ -> },
     /**
      * Select the [units] units past where the swipe started, so the user sees
      * what is about to go. Shrinking the number gives text back, and 0 puts

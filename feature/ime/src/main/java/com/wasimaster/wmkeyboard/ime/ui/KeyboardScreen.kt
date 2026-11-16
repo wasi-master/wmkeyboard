@@ -32826,7 +32826,7 @@ private fun Modifier.pointerInputKey(
                                             armRepeated = true
                                             while (true) {
                                                 repeatFeedback(vibrateOnRepeat, soundOnRepeat, onKeyPress, onKeySound, onKeyHaptic)
-                                                if (words) deleteSwipe.onDeleteUnit(true, armKey.action.deletesForward()) else onKeyRepeat(armKey)
+                                                if (words) deleteSwipe.onHoldWord(armKey.action.deletesForward()) else onKeyRepeat(armKey)
                                                 delay(if (words) keyRepeat.wordDeleteMs.toLong() else textEditing.repeatMs.toLong())
                                             }
                                         }
@@ -33470,7 +33470,7 @@ private fun Modifier.pointerInputKey(
                         // Through the swipe's own delete rather than the key's:
                         // a word clear is the swipe's one-step call, and going
                         // by the key would repeat a single character.
-                        if (holdWords) deleteSwipe.onDeleteUnit(true, forward) else onKeyRepeat(key)
+                        if (holdWords) deleteSwipe.onHoldWord(forward) else onKeyRepeat(key)
                         delay(repeatMs)
                     }
                 }
@@ -33547,7 +33547,7 @@ private fun Modifier.pointerInputKey(
                                                     if (more > linesShown) linesShown = more
                                                 } else if (words) {
                                                     // Words, as a held delete key takes them (#1296).
-                                                    deleteSwipe.onDeleteUnit(true, armKey.action.deletesForward())
+                                                    deleteSwipe.onHoldWord(armKey.action.deletesForward())
                                                 } else {
                                                     onKeyRepeat(armKey)
                                                 }
@@ -33919,7 +33919,7 @@ private fun Modifier.pointerInputKey(
                                     armRepeated = true
                                     while (true) {
                                         repeatFeedback(vibrateOnRepeat, soundOnRepeat, onKeyPress, onKeySound, onKeyHaptic)
-                                        if (words) deleteSwipe.onDeleteUnit(true, arm.action.deletesForward()) else onKeyRepeat(arm)
+                                        if (words) deleteSwipe.onHoldWord(arm.action.deletesForward()) else onKeyRepeat(arm)
                                         delay(intervalMs)
                                     }
                                 }
@@ -34163,7 +34163,7 @@ private fun Modifier.pointerInputKey(
                                                 // itself only ever takes one
                                                 // character.
                                                 if (holdWords) {
-                                                    deleteSwipe.onDeleteUnit(true, deletesFwd)
+                                                    deleteSwipe.onHoldWord(deletesFwd)
                                                 } else {
                                                     onKeyRepeat(key)
                                                 }
@@ -34209,7 +34209,7 @@ private fun Modifier.pointerInputKey(
                                                         vibrateOnRepeat, soundOnRepeat,
                                                         onKeyPress, onKeySound, onKeyHaptic,
                                                     )
-                                                    if (words) deleteSwipe.onDeleteUnit(true, deletesFwd) else onKeyRepeat(held)
+                                                    if (words) deleteSwipe.onHoldWord(deletesFwd) else onKeyRepeat(held)
                                                     delay(intervalMs)
                                                 }
                                             }
