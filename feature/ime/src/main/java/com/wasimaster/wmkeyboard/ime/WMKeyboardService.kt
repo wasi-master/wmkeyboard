@@ -52289,6 +52289,10 @@ open class WMKeyboardService : InputMethodService() {
                     runCatching { FileProvider.getUriForFile(this@WMKeyboardService, clipboardFileProviderAuthority, file) }.getOrNull()
                 override fun galleryShown(): Boolean =
                     isInputViewShown && _uiState.value.panel == PanelMode.GALLERY
+                // Off Wi-Fi with the Immich setting on, or with data saving on (#1374).
+                override fun immichSavingData(): Boolean =
+                    (settings.immichSaveData && networkWatcher.state.value.let { it.metered || !it.online }) ||
+                        dataSaverStatus.active
                 override fun uploadFailedNotice(failed: Int, refused: Boolean) {
                     val ctx = this@WMKeyboardService
                     com.wasimaster.wmkeyboard.core.notify.WmNotifications.post(

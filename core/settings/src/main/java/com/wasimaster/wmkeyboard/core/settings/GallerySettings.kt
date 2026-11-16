@@ -95,6 +95,15 @@ data class GallerySettings(
     val immichUrl: String = "",
     /** An Immich API key for [immichUrl]; in [SettingsBackup.SECRET_KEYS], so it stays out of backups. */
     val immichKey: String = "",
+    /**
+     * Save data off Wi-Fi (#1374): on a metered network, and whenever data
+     * saving is on, the grid shows only the server's thumbnails already on the
+     * phone, a tapped picture comes down as its preview, an original is fetched
+     * only when Original is picked, and nothing is uploaded.
+     */
+    val immichSaveData: Boolean = false,
+    /** The viewer may delete a server picture (#1366), after a warning each time. Off until the user turns it on. */
+    val immichAllowDelete: Boolean = false,
 ) {
     companion object {
         const val MIN_COLUMNS = 2
@@ -130,6 +139,8 @@ object GalleryPrefs {
     private val HIDDEN_FOLDERS = stringSetPreferencesKey("gallery_hidden_folders")
     private val IMMICH_URL = stringPreferencesKey("gallery_immich_url")
     private val IMMICH_KEY = stringPreferencesKey(IMMICH_KEY_NAME)
+    private val IMMICH_SAVE_DATA = booleanPreferencesKey("gallery_immich_save_data")
+    private val IMMICH_ALLOW_DELETE = booleanPreferencesKey("gallery_immich_allow_delete")
 
     /** The API key's DataStore name, for [SettingsBackup.SECRET_KEYS]. */
     const val IMMICH_KEY_NAME = "gallery_immich_key"
@@ -161,6 +172,8 @@ object GalleryPrefs {
         hiddenFolders = p[HIDDEN_FOLDERS] ?: d.hiddenFolders,
         immichUrl = p[IMMICH_URL] ?: d.immichUrl,
         immichKey = p[IMMICH_KEY] ?: d.immichKey,
+        immichSaveData = p[IMMICH_SAVE_DATA] ?: d.immichSaveData,
+        immichAllowDelete = p[IMMICH_ALLOW_DELETE] ?: d.immichAllowDelete,
     )
 
     /** Writes only what differs from [old], so a one-field change is a one-key edit. */
@@ -191,5 +204,7 @@ object GalleryPrefs {
         if (new.hiddenFolders != old.hiddenFolders) p[HIDDEN_FOLDERS] = new.hiddenFolders
         if (new.immichUrl != old.immichUrl) p[IMMICH_URL] = new.immichUrl.trim()
         if (new.immichKey != old.immichKey) p[IMMICH_KEY] = new.immichKey.trim()
+        if (new.immichSaveData != old.immichSaveData) p[IMMICH_SAVE_DATA] = new.immichSaveData
+        if (new.immichAllowDelete != old.immichAllowDelete) p[IMMICH_ALLOW_DELETE] = new.immichAllowDelete
     }
 }

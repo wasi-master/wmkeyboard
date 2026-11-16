@@ -10,6 +10,7 @@ import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import okio.BufferedSink
 import okio.source
@@ -186,6 +187,22 @@ class ImmichClient(server: String, private val apiKey: String) {
         if (sha1 != null) req.header("x-immich-checksum", sha1)
         val o = JSONObject(text(call(req.build())))
         return Uploaded(o.optString("id"), o.optString("status") == "duplicate")
+    }
+
+    /**
+     * Deletes [ids] on the server (#1366): `DELETE /assets` without `force`,
+     * so they go to Immich's trash, from which the server's own apps can
+     * restore them until it empties (30 days unless changed). A server with
+     * its trash switched off deletes them for good. The key needs Immich's
+     * `asset.delete` permission, or the server answers 403.
+     */
+    fun delete(ids: List<String>) {
+        if (ids.isEmpty()) return
+        val body = JSONObject().put("ids", JSONArray(ids)).put("force", false).toString()
+            .toRequestBody("application/json".toMediaTypeOrNull())
+        val req = Request.Builder().url(url("assets")).delete(body)
+            .header("x-api-key", apiKey).header("Accept", "application/json").build()
+        call(req).close()
     }
 
     // ---- Plumbing -----------------------------------------------------------

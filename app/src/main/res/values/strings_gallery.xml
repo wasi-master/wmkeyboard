@@ -106,4 +106,16 @@
     <string name="gallery_immich_check_refused">The server turned the key down (%1$d). Check the key and its permissions.</string>
     <string name="gallery_immich_check_failed">Could not reach the server: %1$s</string>
     <string name="gallery_immich_check_bad_url">That does not look like a web address</string>
+    <!-- #1374 -->
+    <string name="gallery_immich_save_data_title">Save data off Wi-Fi</string>
+    <string name="gallery_immich_save_data_subtitle">Off Wi-Fi: thumbnails already on the phone only, small copies unless you pick Original, no uploads</string>
+    <string name="gallery_immich_save_data_info">On mobile data (any metered network), and always while data saving is on: the grid shows only Immich thumbnails the phone already has, and fetches no new ones. Opening a picture downloads the server\'s preview, about 1440 pixels across, and that preview is what is sent or edited, unless you pick Original in the quality chip. Videos and uploads to Immich wait for Wi-Fi. Thumbnails and previews you have seen are kept on the phone, up to 64 MB, so they show again without the network.</string>
+    <!-- #1366 -->
+    <string name="gallery_immich_allow_delete_title">Delete from Immich in the viewer</string>
+    <string name="gallery_immich_allow_delete_subtitle">Adds a Delete button to server pictures, with a warning each time</string>
+    <string name="gallery_immich_allow_delete_info">A deleted picture goes to Immich\'s trash, for every device and app that uses the server, and the server deletes it for good when its trash empties. If the server\'s trash is turned off, it is gone at once. The API key needs the asset.delete permission.</string>
+    <string name="gallery_immich_delete_warning_title">Let the keyboard delete from your Immich server?</string>
+    <string name="gallery_immich_delete_warning_body">Deleting in the gallery viewer removes the picture from the server itself, not just from this phone: every device and app that uses the server loses it. It sits in Immich\'s trash until the server empties it, usually after 30 days; with the trash turned off on the server it is deleted for good straight away. The viewer still asks before each delete.</string>
+    <string name="gallery_immich_delete_warning_confirm">Turn on</string>
+    <string name="gallery_immich_delete_warning_cancel">Cancel</string>
 </resources>

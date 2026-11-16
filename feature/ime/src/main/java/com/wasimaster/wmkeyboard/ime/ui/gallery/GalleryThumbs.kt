@@ -119,7 +119,8 @@ private fun decodeBytes(bytes: ByteArray, side: Int): Bitmap? = runCatching {
  */
 private class ImmichPictureFetcher(private val uri: android.net.Uri, private val options: Options) : Fetcher {
     override suspend fun fetch(): FetchResult? {
-        val bytes = withContext(Dispatchers.IO) { ImmichLibrary.picture(uri, preview = true) } ?: return null
+        // A tap opened the viewer: its preview comes down even while saving data (#1374).
+        val bytes = withContext(Dispatchers.IO) { ImmichLibrary.picture(uri, preview = true, asked = true) } ?: return null
         return SourceFetchResult(
             source = ImageSource(Buffer().write(bytes), options.fileSystem),
             mimeType = null,

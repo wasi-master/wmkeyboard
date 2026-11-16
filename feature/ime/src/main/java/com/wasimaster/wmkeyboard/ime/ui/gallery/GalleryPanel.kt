@@ -586,6 +586,10 @@ private fun noticeText(n: GalleryNotice): String = when (n.kind) {
     GalleryNotice.Kind.UPLOADED -> pluralStringResource(R.plurals.ime_gallery_notice_uploaded, n.count, n.count)
     GalleryNotice.Kind.ALREADY_UPLOADED -> pluralStringResource(R.plurals.ime_gallery_notice_already_uploaded, n.count, n.count)
     GalleryNotice.Kind.UPLOAD_FAILED -> pluralStringResource(R.plurals.ime_gallery_notice_upload_failed, n.count, n.count)
+    GalleryNotice.Kind.IMMICH_DELETED -> stringResource(R.string.ime_gallery_notice_immich_deleted)
+    GalleryNotice.Kind.IMMICH_DELETE_REFUSED -> stringResource(R.string.ime_gallery_notice_immich_delete_refused)
+    GalleryNotice.Kind.IMMICH_UPLOAD_WAITS -> stringResource(R.string.ime_gallery_notice_immich_upload_waits)
+    GalleryNotice.Kind.IMMICH_VIDEO_WAITS -> stringResource(R.string.ime_gallery_notice_immich_video_waits)
 }
 
 private const val COVER_PX = 96

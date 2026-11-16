@@ -119,6 +119,18 @@
     <string name="ime_gallery_notice_save_failed">Could not save the photo</string>
     <string name="ime_gallery_notice_immich_failed">Could not reach your Immich server</string>
     <string name="ime_gallery_notice_immich_refused">Immich turned the API key down; check its permissions</string>
+    <!-- #1366: deleting a picture on the user's Immich server from the gallery viewer. -->
+    <string name="ime_gallery_immich_delete_desc">Delete from Immich</string>
+    <string name="ime_gallery_immich_delete_title">Delete this picture from your Immich server?</string>
+    <string name="ime_gallery_immich_delete_body">It goes to Immich\'s trash, for every device and app that uses the server, and is deleted for good when the trash empties (after 30 days, unless the server says otherwise). If the server\'s trash is turned off, it is deleted for good at once. The phone\'s own pictures are not touched.</string>
+    <string name="ime_gallery_immich_delete_cancel">Keep it</string>
+    <string name="ime_gallery_immich_delete_confirm">Delete</string>
+    <string name="ime_gallery_immich_deleting">Deleting…</string>
+    <string name="ime_gallery_notice_immich_deleted">Moved to Immich\'s trash</string>
+    <string name="ime_gallery_notice_immich_delete_refused">Immich would not delete it: give the API key the asset.delete permission</string>
+    <!-- #1374: saving data off Wi-Fi with an Immich server. -->
+    <string name="ime_gallery_notice_immich_upload_waits">Saving data: uploads to Immich wait for Wi-Fi</string>
+    <string name="ime_gallery_notice_immich_video_waits">Saving data: Immich videos wait for Wi-Fi</string>
     <plurals name="ime_gallery_notice_uploaded">
         <item quantity="one">Uploaded %d picture to Immich</item>
         <item quantity="other">Uploaded %d pictures to Immich</item>

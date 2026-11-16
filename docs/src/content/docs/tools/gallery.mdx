@@ -150,9 +150,25 @@ Without the phone's photo permission, the panel opens straight on the Immich tim
 
 Pick photos from the phone's own albums, hold **Send**, and choose **Upload to Immich**. Each one goes to the server as it is, at full size with its date and camera details, since it is going to your own library and not to someone else. The server checks each file's fingerprint first, so a photo it already has is not stored twice: the notice says how many were new and how many it had already. Pictures that came from the server are skipped. The selection stays, so you can still send it afterwards. If the keyboard or the gallery closes before an upload finishes and some pictures don't make it, a notification says how many, or that the server turned the API key down.
 
+### Saving data off Wi-Fi
+
+New in 0.6.8, **Save data off Wi-Fi** under <SettingsPath path="Tools / Gallery / Immich" /> keeps the gallery from spending mobile data on your server. It applies on any metered network (mobile data, a hotspot, most VPNs), and always while [data saving](/privacy/data-saver/) is on, even if the switch is off:
+
+- The grid shows only the thumbnails already on the phone and fetches no new ones; a picture you haven't seen before is a blank cell until you're back on Wi-Fi. The keyboard keeps the Immich thumbnails and previews it has shown, up to 64 MB, the least recently seen going first, so they show again without the network. They count under **Media** in <SettingsPath path="About / Storage" />.
+- Opening a picture in the viewer downloads only the server's preview, about 1440 pixels across.
+- Sending or editing an Immich picture uses that preview instead of the original. Pick **Original** in the quality chip first, or send it as a file, to download the full original on purpose.
+- Videos wait for Wi-Fi, since the only way to play or send one is its full file; the viewer says so instead of downloading.
+- **Upload to Immich** waits for Wi-Fi too: the panel says so and nothing is sent.
+
+The album and timeline lists are small and still load, so you can browse what's already on the phone.
+
+### Deleting from the server
+
+New in 0.6.8, and off until you turn it on: **Delete from Immich in the viewer** (under the Immich group's advanced rows) adds a delete button to the viewer's top bar for server pictures. Turning it on shows a warning first, and every delete asks again before anything happens. A deleted picture is removed from the server itself, for every device and app that uses it, not just from this phone. It goes to Immich's trash, where the server's own apps can restore it until the trash empties (after 30 days unless the server is set otherwise); if the server's trash is turned off, it is deleted for good at once. The phone's own pictures are never touched by this button. The API key needs Immich's `asset.delete` permission; without it the server refuses and the panel says so.
+
 ### What is sent
 
-Everything goes only to the server you entered, never through anyone else. The API key travels in a header, never in an address. Each request is listed under **Immich** in [Network activity](/privacy/network-activity/), with the asset and album ids left out of the address shown. The key stays on the phone and is left out of every [backup](/privacy/backup/) and export. Data saver leaves Immich alone, as it does other servers you run yourself.
+Everything goes only to the server you entered, never through anyone else. The API key travels in a header, never in an address. Each request is listed under **Immich** in [Network activity](/privacy/network-activity/), with the asset and album ids left out of the address shown. The key stays on the phone and is left out of every [backup](/privacy/backup/) and export. Data saver otherwise leaves Immich alone, as it does other servers you run yourself; see [Saving data off Wi-Fi](#saving-data-off-wi-fi) for what it does change.
 
 ## Privacy
 
@@ -168,7 +184,7 @@ The library is read only while the panel is open. Nothing is uploaded unless you
 
 ## Settings
 
-Everything above is under <SettingsPath path="Tools / Gallery" />: access, **Tap on a photo**, **Columns**, **Camera tile**, **Show videos**, **Fast scroll by month**, **Open at full height**, **Open the last album**, **Vibrate on each pick**, **Folders**, **Picture size**, **Pick up to**, **Caption**, **When the app does not take pictures**, **Close after sending**, **Keep edited photos**, the privacy switches, and the [Immich](#your-immich-server) server and key. The Play Store build shows only the ones that apply to the picker.
+Everything above is under <SettingsPath path="Tools / Gallery" />: access, **Tap on a photo**, **Columns**, **Camera tile**, **Show videos**, **Fast scroll by month**, **Open at full height**, **Open the last album**, **Vibrate on each pick**, **Folders**, **Picture size**, **Pick up to**, **Caption**, **When the app does not take pictures**, **Close after sending**, **Keep edited photos**, the privacy switches, and the [Immich](#your-immich-server) server and key, **Save data off Wi-Fi** and **Delete from Immich in the viewer**. The Play Store build shows only the ones that apply to the picker.
 
 **Folders** lists the folders on the phone that hold photos or videos as a tree under DCIM, Pictures and the rest, with a search and a tick for each, so a whole branch can go at once. Untick one and its photos leave the gallery altogether: its own album goes from the list, and nothing from it shows in **Recents**, **Favorites** or any other collection, or in a search. A folder of saved receipts or a messaging app's downloads can stay out of the way. Tick it again to bring it back.
 

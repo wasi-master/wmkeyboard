@@ -106,6 +106,9 @@ internal class GalleryController(
         /** [failed] pictures did not reach Immich with nobody watching the panel ([refused]: the key). */
         fun uploadFailedNotice(failed: Int, refused: Boolean) {}
 
+        /** Off Wi-Fi with the Immich data-saving setting on, or data saving on (#1374). */
+        fun immichSavingData(): Boolean = false
+
         /** [send] on the keyboard's share sheet, or Android's when that is off (#970). True when one opened. */
         fun share(send: Intent): Boolean
 
@@ -176,6 +179,9 @@ internal class GalleryController(
                 searchAvailable = host.photoSearchReady(),
                 search = null,
                 immich = ImmichLibrary.configured(s),
+                immichDelete = ImmichLibrary.configured(s) && s.immichAllowDelete,
+                immichLean = refreshLean(),
+                confirmDelete = null,
             )
         }
         // The server may have new pictures since the panel last opened.
@@ -187,6 +193,17 @@ internal class GalleryController(
         }
         GalleryPickActivity.consume().takeIf { it.isNotEmpty() }?.let(::addPicked)
     }
+
+    /** Whether the Immich server is to be spared the network now (#1374); tells the library too. */
+    private fun refreshLean(): Boolean {
+        ImmichLibrary.attach(app)
+        val lean = ImmichLibrary.configured(host.settings) && host.immichSavingData()
+        ImmichLibrary.lean = lean
+        return lean
+    }
+
+    /** An Immich picture comes down whole: not saving data, or Original asked for on purpose (#1374). */
+    private fun fullOriginal(quality: GalleryQuality): Boolean = !refreshLean() || quality == GalleryQuality.ORIGINAL
 
     fun onPanelClose() {
         open = false
@@ -532,8 +549,13 @@ internal class GalleryController(
             GalleryAction.ViewerInfo -> _state.update { s -> s.copy(viewer = s.viewer?.let { v -> v.copy(infoOpen = !v.infoOpen) }) }
             GalleryAction.CloseViewer -> {
                 endTextIfAny()
-                _state.update { it.copy(viewer = null) }
+                _state.update { it.copy(viewer = null, confirmDelete = null) }
             }
+            is GalleryAction.AskDeleteRemote -> if (action.item.isRemote && _state.value.immichDelete) {
+                host.haptic()
+                _state.update { it.copy(confirmDelete = action.item) }
+            }
+            is GalleryAction.DeleteRemote -> deleteRemote(action.confirm)
 
             is GalleryAction.SetQuality -> _state.update { it.copy(quality = action.quality) }
             GalleryAction.CaptionFocus -> {
@@ -735,11 +757,13 @@ internal class GalleryController(
         // Editing a photo is choosing it.
         if (_state.value.selection.none { it.id == id }) toggle(item)
         if (_state.value.selection.none { it.id == id }) return
-        // An Immich picture is edited from its original, fetched first (#1205).
+        // An Immich picture is edited from its original, fetched first (#1205),
+        // or from the server's preview while saving data (#1374).
         val picked = _state.value.selection.first { it.id == id }
         if (picked.isRemote) {
+            val full = fullOriginal(_state.value.quality)
             scope.launch {
-                val local = withContext(Dispatchers.IO) { ImmichLibrary.fetch(app, host.settings, picked) }
+                val local = withContext(Dispatchers.IO) { ImmichLibrary.fetch(app, host.settings, picked, full) }
                 if (local == null) {
                     notice(GalleryNotice.Kind.IMMICH_FAILED)
                     return@launch
@@ -905,6 +929,12 @@ internal class GalleryController(
     private fun uploadToImmich() {
         val items = _state.value.selection.filter { !it.isRemote && it.bucketId != ImmichLibrary.REMOTE_BUCKET }
         if (items.isEmpty() || sendJob?.isActive == true) return
+        // Nothing goes up off Wi-Fi while saving data (#1374).
+        if (refreshLean()) {
+            _state.update { it.copy(sendMenuOpen = false, immichLean = true) }
+            notice(GalleryNotice.Kind.IMMICH_UPLOAD_WAITS)
+            return
+        }
         host.haptic()
         _state.update { it.copy(sending = SendProgress(0, items.size), sendMenuOpen = false) }
         sendJob = scope.launch {
@@ -924,6 +954,53 @@ internal class GalleryController(
             } finally {
                 _state.update { it.copy(sending = null) }
             }
+        }
+    }
+
+    // ---- Immich delete ---------------------------------------------------------
+
+    /**
+     * The delete warning answered (#1366). A yes moves the picture to
+     * Immich's trash; it leaves the grid, the selection and the viewer, and
+     * the album is listed afresh next time.
+     */
+    private fun deleteRemote(confirm: Boolean) {
+        val item = _state.value.confirmDelete ?: return
+        if (!confirm) {
+            _state.update { it.copy(confirmDelete = null) }
+            return
+        }
+        if (_state.value.deleting) return
+        host.haptic()
+        _state.update { it.copy(deleting = true) }
+        scope.launch {
+            val result = withContext(Dispatchers.IO) { runCatching { ImmichLibrary.delete(host.settings, listOf(item)) } }
+            _state.update { s ->
+                if (result.isFailure) {
+                    s.copy(deleting = false, confirmDelete = null)
+                } else {
+                    val items = s.items.filterNot { it.id == item.id }
+                    val viewer = s.viewer?.let { v ->
+                        val left = if (v.fromSelection) s.selection.size - 1 else items.size
+                        if (left <= 0) null else v.copy(index = v.index.coerceAtMost(left - 1))
+                    }
+                    s.copy(
+                        deleting = false,
+                        confirmDelete = null,
+                        items = items,
+                        selection = s.selection.filterNot { it.id == item.id },
+                        edits = s.edits - item.id,
+                        viewer = viewer,
+                    )
+                }
+            }
+            result.fold(
+                onSuccess = { notice(GalleryNotice.Kind.IMMICH_DELETED) },
+                onFailure = { e ->
+                    val refused = (e as? ImmichClient.Failure)?.refused == true
+                    notice(if (refused) GalleryNotice.Kind.IMMICH_DELETE_REFUSED else GalleryNotice.Kind.IMMICH_FAILED)
+                },
+            )
         }
     }
 
@@ -1111,6 +1188,8 @@ internal class GalleryController(
         val captionSetting = host.settings.caption
         val caption = if (mode == SendMode.WITHOUT_CAPTION || captionSetting == GalleryCaption.OFF) "" else s.caption.trim()
         val quality = if (mode == SendMode.AS_FILE) GalleryQuality.ORIGINAL else s.quality
+        // Saving data (#1374): server pictures go as their previews unless Original was picked.
+        val full = fullOriginal(quality)
         val items = s.selection
         val edits = items.associate { it.id to s.editOf(it.id) }
         val field = host.field()
@@ -1123,9 +1202,15 @@ internal class GalleryController(
                 var failed = 0
                 for (item in items) {
                     _state.update { it.copy(sending = it.sending?.copy(preparingId = item.id)) }
-                    // An Immich picture's original comes down first (#1205).
+                    // An Immich picture's original comes down first (#1205), or
+                    // its preview while saving data (#1374); a video then waits.
                     val local = if (item.isRemote) {
-                        withContext(Dispatchers.IO) { ImmichLibrary.fetch(app, host.settings, item) }
+                        if (!full && item.isVideo) {
+                            notice(GalleryNotice.Kind.IMMICH_VIDEO_WAITS)
+                            null
+                        } else {
+                            withContext(Dispatchers.IO) { ImmichLibrary.fetch(app, host.settings, item, full) }
+                        }
                     } else {
                         item
                     }

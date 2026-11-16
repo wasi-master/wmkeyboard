@@ -62,6 +62,7 @@ import coil3.compose.AsyncImage
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Send
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Info
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Pause
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PlayArrow
@@ -201,6 +202,50 @@ internal fun GalleryViewer(ui: GalleryUi, viewer: ViewerUi, act: (GalleryAction)
             }
         }
         if (viewer.infoOpen) InfoCard(item, Modifier.align(Alignment.Center)) { act(GalleryAction.ViewerInfo) }
+        ui.confirmDelete?.let { DeleteWarning(ui.deleting, act, Modifier.align(Alignment.Center)) }
+    }
+}
+
+/**
+ * The warning before a server picture is deleted (#1366), drawn in the panel
+ * like the info card rather than as a dialog the keyboard window cannot host.
+ */
+@Composable
+private fun DeleteWarning(deleting: Boolean, act: (GalleryAction) -> Unit, modifier: Modifier) {
+    Column(
+        modifier
+            .padding(24.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.Black.copy(alpha = 0.9f))
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Text(stringResource(R.string.ime_gallery_immich_delete_title), color = OnPhoto, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+        Text(stringResource(R.string.ime_gallery_immich_delete_body), color = OnPhoto.copy(alpha = 0.85f), fontSize = 12.sp)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(R.string.ime_gallery_immich_delete_cancel),
+                color = OnPhoto,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .clickable(enabled = !deleting) { act(GalleryAction.DeleteRemote(confirm = false)) }
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                stringResource(if (deleting) R.string.ime_gallery_immich_deleting else R.string.ime_gallery_immich_delete_confirm),
+                color = Color.White,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(Color(0xFFC62828))
+                    .clickable(enabled = !deleting) { act(GalleryAction.DeleteRemote(confirm = true)) }
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+            )
+        }
     }
 }
 
@@ -239,6 +284,13 @@ private fun TopBar(
                 fontWeight = FontWeight.SemiBold,
             )
             if (item.dateMs > 0) Text(takenText(item.dateMs), color = OnPhoto.copy(alpha = 0.75f), fontSize = 11.sp, maxLines = 1)
+        }
+        // Deleting from the server, when the setting allows it (#1366).
+        if (item.isRemote && ui.immichDelete) {
+            PhotoButton(Icons.Outlined.Delete, stringResource(R.string.ime_gallery_immich_delete_desc)) {
+                act(GalleryAction.AskDeleteRemote(item))
+            }
+            Spacer(Modifier.width(8.dp))
         }
         PhotoButton(Icons.Outlined.Info, stringResource(R.string.ime_gallery_viewer_info), active = viewer.infoOpen) {
             act(GalleryAction.ViewerInfo)
@@ -397,7 +449,17 @@ private fun VideoPage(item: GalleryItem, current: Boolean, muted: Boolean, onTap
                 contentScale = ContentScale.Fit,
                 modifier = Modifier.fillMaxSize(),
             )
-            androidx.compose.material3.CircularProgressIndicator(color = OnPhoto)
+            // Saving data (#1374): a server video is its original, so it waits for Wi-Fi.
+            if (item.isRemote && com.wasimaster.wmkeyboard.ime.gallery.immich.ImmichLibrary.lean) {
+                Text(
+                    stringResource(R.string.ime_gallery_notice_immich_video_waits),
+                    color = OnPhoto,
+                    fontSize = 13.sp,
+                    modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(Color.Black.copy(alpha = 0.6f)).padding(12.dp),
+                )
+            } else {
+                androidx.compose.material3.CircularProgressIndicator(color = OnPhoto)
+            }
         }
         return
     }

@@ -76,6 +76,8 @@ free.
 | Speed test | a run of the [Internet speed test](/tools/speed-test/), which moves tens to hundreds of megabytes on purpose. Asks by default: the panel says how many megabytes a run is likely to cost, and **Run anyway** is the yes |
 | Transcription server | voice typing that sends each phrase to your [transcription server](/tools/transcription-server/), about 75 KB for every 30 seconds of speech, compressed as Opus (just under a megabyte to a server that reads only WAV, or before the compression library has been fetched). Allowed by default. At **Ask each time** the voice panel explains, and pressing the microphone again is the yes |
 
+Your own [Immich server](/tools/gallery/#your-immich-server) isn't in either table either, but from 0.6.8 data saving turns on its [off-Wi-Fi rules](/tools/gallery/#saving-data-off-wi-fi): only thumbnails already on the phone, previews instead of originals unless you pick Original, and no videos or uploads until data saving is off or you're on Wi-Fi.
+
 [Plugins](/plugins/permissions/#risky-permissions) aren't in either table. While data saver is on, nothing a plugin asks for goes out at all, whatever the rows above say, and the plugin hears a `ConnectionError`. A plugin is someone else's code, so there is no single moment where a yes from you would make sense.
 
 ## With no connection

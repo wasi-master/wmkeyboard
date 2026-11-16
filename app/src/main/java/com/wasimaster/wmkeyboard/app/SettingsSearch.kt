@@ -2351,6 +2351,8 @@ private fun SearchStrings.galleryRows(): List<SettingsSearchEntry> {
         row(R.string.gallery_immich_url_title, R.string.gallery_immich_group),
         row(R.string.gallery_immich_key_title, R.string.gallery_immich_group),
         row(R.string.gallery_immich_check_title, R.string.gallery_immich_check_subtitle),
+        row(R.string.gallery_immich_save_data_title, R.string.gallery_immich_save_data_subtitle),
+        row(R.string.gallery_immich_allow_delete_title, R.string.gallery_immich_allow_delete_subtitle),
     )
 }
 

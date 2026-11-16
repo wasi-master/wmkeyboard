@@ -331,6 +331,24 @@ private fun ImmichSettingsGroup(settings: LiveSettings, update: ((GallerySetting
     val key = settings.watch { it.gallery.immichKey }
     var checking by remember { mutableStateOf(false) }
     var result by remember(url, key) { mutableStateOf<String?>(null) }
+    var warnDelete by remember { mutableStateOf(false) }
+    if (warnDelete) {
+        // Turning deletes on is the scary half of #1366: said plainly, once, here.
+        AlertDialog(
+            onDismissRequest = { warnDelete = false },
+            title = { Text(stringResource(R.string.gallery_immich_delete_warning_title)) },
+            text = { Text(stringResource(R.string.gallery_immich_delete_warning_body)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    warnDelete = false
+                    update { it.copy(immichAllowDelete = true) }
+                }) { Text(stringResource(R.string.gallery_immich_delete_warning_confirm)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { warnDelete = false }) { Text(stringResource(R.string.gallery_immich_delete_warning_cancel)) }
+            },
+        )
+    }
     SettingsGroup(stringResource(R.string.gallery_immich_group), info = stringResource(R.string.gallery_immich_info)) {
         item {
             TextFieldSetting(
@@ -381,6 +399,26 @@ private fun ImmichSettingsGroup(settings: LiveSettings, update: ((GallerySetting
                     }
                 }
             }
+        }
+        // #1374: off Wi-Fi, only kept thumbnails, previews instead of originals, no uploads.
+        item {
+            ToggleSetting(
+                R.string.gallery_immich_save_data_title,
+                stringResource(R.string.gallery_immich_save_data_subtitle),
+                settings.watch { it.gallery.immichSaveData },
+                default = false,
+                info = stringResource(R.string.gallery_immich_save_data_info),
+            ) { v -> update { it.copy(immichSaveData = v) } }
+        }
+        // #1366: the viewer's Delete, behind a warning here and another each time.
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.gallery_immich_allow_delete_title,
+                stringResource(R.string.gallery_immich_allow_delete_subtitle),
+                settings.watch { it.gallery.immichAllowDelete },
+                default = false,
+                info = stringResource(R.string.gallery_immich_allow_delete_info),
+            ) { v -> if (v) warnDelete = true else update { it.copy(immichAllowDelete = false) } }
         }
     }
 }

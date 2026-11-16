@@ -80,6 +80,14 @@ data class GalleryUi(
      * and the send menu can upload phone pictures to it.
      */
     val immich: Boolean = false,
+    /** The viewer offers to delete a server picture (#1366): the setting is on. */
+    val immichDelete: Boolean = false,
+    /** Saving data off Wi-Fi now (#1374): only kept thumbnails, previews for sending, no uploads. */
+    val immichLean: Boolean = false,
+    /** The server picture waiting on the delete warning's answer (#1366). */
+    val confirmDelete: GalleryItem? = null,
+    /** A delete under way. */
+    val deleting: Boolean = false,
 ) {
     val selectedIds: Set<Long> get() = selection.mapTo(HashSet()) { it.id }
 
@@ -202,6 +210,18 @@ data class GalleryNotice(val kind: Kind, val count: Int = 0) {
         /** Every picture sent up was on the server already. */
         ALREADY_UPLOADED,
         UPLOAD_FAILED,
+
+        /** A server picture moved to Immich's trash (#1366). */
+        IMMICH_DELETED,
+
+        /** The server would not delete it: most often a key without asset.delete. */
+        IMMICH_DELETE_REFUSED,
+
+        /** Saving data off Wi-Fi (#1374): an upload waits for Wi-Fi. */
+        IMMICH_UPLOAD_WAITS,
+
+        /** Saving data off Wi-Fi: a server video is its original, so it waits too. */
+        IMMICH_VIDEO_WAITS,
     }
 }
 
@@ -281,6 +301,12 @@ sealed interface GalleryAction {
     data object ViewerChrome : GalleryAction
     data object ViewerMute : GalleryAction
     data object ViewerInfo : GalleryAction
+
+    /** The viewer's delete button on a server picture (#1366): the warning comes up. */
+    data class AskDeleteRemote(val item: GalleryItem) : GalleryAction
+
+    /** The warning answered: [confirm] deletes, else nothing happens. */
+    data class DeleteRemote(val confirm: Boolean) : GalleryAction
     data object CloseViewer : GalleryAction
 
     // Sending
