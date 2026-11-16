@@ -267,6 +267,27 @@ private fun EmojiPanelPage(
             }
         }
         if (state.settings.emojiFullBleed) {
+            // The same height bar as the GIF and sticker panels, over the same
+            // shared setting. Without one of its own the panel got the bar
+            // every full-bleed tool shares, which moves a different setting
+            // and adds to this one: dragging it left the emoji taller or
+            // shorter than the GIFs beside it (Telegram 10316).
+            val setting = state.settings.emoji.panelExtraHeightDp
+            val resize = rememberClipPanelResize(setting)
+            val base = keyRowsHeight(state) + fullBleedHiddenRows(state, macroRowAtPanelOpen(state))
+            val maxPanel = toolPanelHeight(state, wanted = base + MediaPanelExtraHeightRange.last.dp, floor = base)
+            val maxExtra = (maxPanel - base).coerceAtLeast(0.dp)
+            val extra = resize.shownDp(setting).dp.coerceIn(0.dp, maxExtra)
+            val maxPanelPx = with(LocalDensity.current) { maxPanel.roundToPx() }
+            SideEffect { resize.maxPanelPx = maxPanelPx }
+            val probe = remember(resize) { Modifier.clipPanelHeightProbe(resize) }
+            val barDescription = stringResource(R.string.ime_media_height_desc)
+            val bar: @Composable () -> Unit = {
+                ClipPanelHeightBar(resize, extra, maxExtra, callbacks.onMediaPanelHeight, barDescription)
+            }
+            // A handle of any kind keeps the shared full-bleed bar away; where
+            // the screen leaves no room to grow it is an empty one.
+            val handle: @Composable () -> Unit = if (maxExtra >= 1.dp) bar else ({})
             // Full-bleed spends the reclaimed toolbar row on the panel's own
             // strip, as it always has: a first row made only of the tabs and the
             // search pill moves up into the header beside the back button, and
@@ -275,30 +296,36 @@ private fun EmojiPanelPage(
             val strip = spec.leadingStrip()
             if (strip != null) {
                 val rest = spec.withoutLeadingRow()
-                FullBleedTool(
-                    state, title = "", onClose = onClose,
-                    extraHeight = mediaPanelExtraHeight(state),
-                    headerActions = {
-                        for (key in strip) {
-                            Box(
-                                modifier = Modifier
-                                    .weight(key.width)
-                                    .fillMaxHeight()
-                                    .padding(horizontal = 2.dp),
-                            ) { fields((key.action as KeyAction.Field).kind) }
-                        }
-                    },
-                ) {
-                    PanelLayoutGrid(state, rest, callbacks, onClose, fields, Modifier.fillMaxSize())
+                Box(modifier = probe) {
+                    FullBleedTool(
+                        state, title = "", onClose = onClose,
+                        extraHeight = extra,
+                        topHandle = handle,
+                        headerActions = {
+                            for (key in strip) {
+                                Box(
+                                    modifier = Modifier
+                                        .weight(key.width)
+                                        .fillMaxHeight()
+                                        .padding(horizontal = 2.dp),
+                                ) { fields((key.action as KeyAction.Field).kind) }
+                            }
+                        },
+                    ) {
+                        PanelLayoutGrid(state, rest, callbacks, onClose, fields, Modifier.fillMaxSize())
+                    }
                 }
             } else {
-                FullBleedTool(
-                    state,
-                    stringResource(R.string.ime_tool_emoji),
-                    onClose = onClose,
-                    extraHeight = mediaPanelExtraHeight(state),
-                ) {
-                    PanelLayoutGrid(state, spec, callbacks, onClose, fields, Modifier.fillMaxSize())
+                Box(modifier = probe) {
+                    FullBleedTool(
+                        state,
+                        stringResource(R.string.ime_tool_emoji),
+                        onClose = onClose,
+                        extraHeight = extra,
+                        topHandle = handle,
+                    ) {
+                        PanelLayoutGrid(state, spec, callbacks, onClose, fields, Modifier.fillMaxSize())
+                    }
                 }
             }
         } else {
