@@ -1040,6 +1040,10 @@
     <string name="typing_glide_strip_preview_subtitle">While you glide, show only the current word</string>
     <string name="typing_glide_strip_preview_info">While you glide, the suggestion strip shows every word that fits your stroke, and the words change as you move. Turn this on and the strip shows only the word that the keyboard reads now.\n\nThe other words come back on the strip when you lift your finger. If the ambiguity picker is on, it still offers them during the stroke. This does not change what a glide types.</string>
 
+    <string name="typing_glide_next_words_title">Next words after a glide</string>
+    <string name="typing_glide_next_words_subtitle">Show the words likely to follow, not other readings</string>
+    <string name="typing_glide_next_words_info">When a glided word lands, the suggestion strip shows the other words your stroke could have been, and a tap on one swaps it in. Turn this on and the strip shows the words likely to come next instead, the same ones you get after a word typed on the keys and a space. A tap types one after the glided word.\n\nBackspace still takes the glided word back in one press. Put the cursor back on the word and its other readings are offered again.</string>
+
     <string name="typing_trail_opacity_title">Trail opacity</string>
     <string name="typing_trail_opacity_info">How solid the glide trail is. A lower value lets the keys show through the trail. The default is a little over half.</string>
 

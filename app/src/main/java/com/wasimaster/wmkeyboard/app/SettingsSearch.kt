@@ -781,6 +781,10 @@ private fun SearchStrings.typingGlideRows(): List<SettingsSearchEntry> {
             R.string.typing_glide_strip_preview_title,
             R.string.typing_glide_strip_preview_subtitle,
         ),
+        row(
+            R.string.typing_glide_next_words_title,
+            R.string.typing_glide_next_words_subtitle,
+        ),
     )
 }
 

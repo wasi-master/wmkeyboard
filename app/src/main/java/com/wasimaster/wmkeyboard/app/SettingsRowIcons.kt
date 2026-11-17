@@ -1371,6 +1371,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_glide_preview_color_title) { Icons.Outlined.Palette }
         put(R.string.typing_glide_preview_text_color_title) { Icons.Outlined.Colorize }
         put(R.string.typing_glide_strip_preview_title) { Icons.Outlined.Lightbulb }
+        put(R.string.typing_glide_next_words_title) { Icons.Outlined.SwapHoriz }
         put(R.string.typing_spacebar_language_arrows_title) { Icons.Outlined.SwapHoriz }
         put(R.string.typing_spacebar_live_wpm_title) { Icons.Outlined.Speed }
         put(R.string.typing_language_echo_title) { Icons.Outlined.Timer }

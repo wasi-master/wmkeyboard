@@ -3218,6 +3218,15 @@ internal fun TypingGlideSettings(
                         default = SettingsDefaults.gesture.stripPreviewOnly,
                     ) { scope.launch { repository.setGestureStripPreviewOnly(it) } }
                 }
+                item(level = SettingLevel.STANDARD) {
+                    ToggleSetting(
+                        R.string.typing_glide_next_words_title,
+                        stringResource(R.string.typing_glide_next_words_subtitle),
+                        settings.watch { it.gesture.nextWordsAfterGlide },
+                        info = stringResource(R.string.typing_glide_next_words_info),
+                        default = SettingsDefaults.gesture.nextWordsAfterGlide,
+                    ) { scope.launch { repository.setGestureNextWordsAfterGlide(it) } }
+                }
             }
         }
     }

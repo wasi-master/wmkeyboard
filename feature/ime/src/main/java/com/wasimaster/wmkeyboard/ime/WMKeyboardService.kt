@@ -36685,7 +36685,9 @@ open class WMKeyboardService : InputMethodService() {
             // learning hop below, so the guard that exists for exactly this
             // could not win the race it was written for.
             lastGestureWord = word
-            stripReplacesGestureWord = true
+            // With next words on the strip instead of readings, a pick there
+            // follows the word rather than replacing it (#175).
+            stripReplacesGestureWord = !state.settings.gesture.nextWordsAfterGlide
             commitGestureSpace(ic, state, overSelection)
             armRevertGuard()
             recordStat {
@@ -36731,6 +36733,18 @@ open class WMKeyboardService : InputMethodService() {
             consumeShift()
             val floating = nextWordOctopus()
             val chips = nextWordEmoji()
+            // The user asked for what comes next rather than what the stroke
+            // could have been: the strip is the one a space after a typed word
+            // leaves, and a tap on it types after the glided word instead of
+            // replacing it. Backspace still takes the word back, and a caret
+            // put back on it still offers the readings remembered above.
+            if (state.settings.gesture.nextWordsAfterGlide) {
+                val (next, _) = nextWordStrip()
+                _uiState.update {
+                    it.copy(suggestions = next, octopus = floating, emojiSuggestions = chips)
+                }
+                return@launch
+            }
             glideStripPages(strip, word)
             _uiState.update {
                 it.copy(suggestions = strip, octopus = floating, emojiSuggestions = chips)
@@ -37268,7 +37282,7 @@ open class WMKeyboardService : InputMethodService() {
                 // the last stroke reads as a real caret move and disarms the
                 // very flag that was just set.
                 lastGestureWord = word
-                stripReplacesGestureWord = true
+                stripReplacesGestureWord = !state.settings.gesture.nextWordsAfterGlide
                 armRevertGuard()
                 recordStat {
                     onGlideWord(
@@ -37339,6 +37353,16 @@ open class WMKeyboardService : InputMethodService() {
                 consumeShift()
                 val floating = nextWordOctopus()
                 val chips = nextWordEmoji()
+                // Next words instead of the last word's readings: no runner-up
+                // phrase either, since a tap on the strip now types after it.
+                if (state.settings.gesture.nextWordsAfterGlide) {
+                    phraseChip = null
+                    val (next, _) = nextWordStrip()
+                    _uiState.update {
+                        it.copy(suggestions = next, octopus = floating, emojiSuggestions = chips)
+                    }
+                    return@launch
+                }
                 glideStripPages(lastWords, lastWords.firstOrNull().orEmpty())
                 // The runner-up phrase (#832), after the last word's own
                 // alternates: one tap changes an earlier word of the stroke.

@@ -9999,6 +9999,14 @@ data class GestureSettings(
      */
     val stripPreviewOnly: Boolean = false,
     /**
+     * What the strip shows once a glided word has landed. Off (the default),
+     * the stroke's other readings, any of which a tap swaps in for the word.
+     * On, the words likely to come next, as after a word typed on the keys
+     * and a space; a tap types one after the glided word. The readings stay
+     * on the word itself: a caret put back on it still offers them.
+     */
+    val nextWordsAfterGlide: Boolean = false,
+    /**
      * How much of the dictionary a swipe may answer with — see
      * [GlideVocabulary]. [GlideVocabulary.LARGE] by default, which is a no-op
      * on every word list of 300k words or fewer, the bundled ones included.
@@ -13053,6 +13061,7 @@ class SettingsRepository(private val context: Context) {
         private val GESTURE_WORD_PREVIEW_BACKGROUND = longPreferencesKey("gesture_word_preview_background")
         private val GESTURE_WORD_PREVIEW_TEXT_COLOR = longPreferencesKey("gesture_word_preview_text_color")
         private val GESTURE_STRIP_PREVIEW_ONLY = booleanPreferencesKey("gesture_strip_preview_only")
+        private val GESTURE_NEXT_WORDS_AFTER_GLIDE = booleanPreferencesKey("gesture_next_words_after_glide")
         private val GESTURE_VOCABULARY = stringPreferencesKey("gesture_vocabulary")
         private val GESTURE_SANDBOX = stringPreferencesKey("gesture_sandbox")
         private val GESTURE_PREVIEW_STEADINESS = stringPreferencesKey("gesture_preview_steadiness")
@@ -15429,6 +15438,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.gesture.wordPreviewTextColor,
             stripPreviewOnly = p[GESTURE_STRIP_PREVIEW_ONLY]
                 ?: defaults.gesture.stripPreviewOnly,
+            nextWordsAfterGlide = p[GESTURE_NEXT_WORDS_AFTER_GLIDE]
+                ?: defaults.gesture.nextWordsAfterGlide,
             vocabulary = p[GESTURE_VOCABULARY]
                 ?.let { runCatching { GlideVocabulary.valueOf(it) }.getOrNull() }
                 ?: defaults.gesture.vocabulary,
@@ -24603,6 +24614,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setGestureStripPreviewOnly(value: Boolean) =
         editPrefs { it[GESTURE_STRIP_PREVIEW_ONLY] = value }
+
+    suspend fun setGestureNextWordsAfterGlide(value: Boolean) =
+        editPrefs { it[GESTURE_NEXT_WORDS_AFTER_GLIDE] = value }
 
     suspend fun setGestureVocabulary(value: GlideVocabulary) =
         editPrefs { it[GESTURE_VOCABULARY] = value.name }
