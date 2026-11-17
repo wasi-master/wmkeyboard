@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.ime
 
 import com.wasimaster.wmkeyboard.core.input.composer.Composer
 import com.wasimaster.wmkeyboard.core.prediction.WordContext
+import com.wasimaster.wmkeyboard.core.prediction.WordSegments
 
 /**
  * The input-method half of the gate on re-arming the word a caret landed on as
@@ -147,7 +148,28 @@ internal fun resumableWordAt(before: CharSequence?, after: CharSequence?): Strin
             else -> break
         }
     }
-    return before.subSequence(start, before.length).toString().ifEmpty { null }
+    val run = before.subSequence(start, before.length).toString()
+    if (run.isEmpty()) return null
+    // Thai, Lao, Khmer and Burmese put no space between words, so the run is
+    // a phrase or a sentence: resumed whole, the strip showed the sentence
+    // and the next key typed onto it. Only the word the caret ends is taken.
+    if (!WordSegments.hasSegmentedScript(run)) return run
+    return run.substring(segmentStart(run, run.length, strict = true)).ifEmpty { null }
+}
+
+/**
+ * Where the word holding offset [caret] of [run] starts, by [WordSegments]:
+ * the last word start before it ([strict]), or at or before it. 0 when the
+ * segmenter finds none.
+ */
+private fun segmentStart(run: String, caret: Int, strict: Boolean): Int {
+    val at = WordSegments.ranges(run)
+    var start = 0
+    for (i in at.indices step 2) {
+        val s = at[i]
+        if (s < caret || (!strict && s == caret)) start = s else break
+    }
+    return start
 }
 
 /** The hyphen a compound is spelled with: `well-paid`, `что-то`, `e-mail`. */
@@ -209,5 +231,19 @@ internal fun caretWordAt(before: CharSequence?, after: CharSequence?): Pair<Stri
     val tail = after.toString().takeWhile { isComposingWordChar(it) }
     if (tail.isEmpty()) return null
     val head = before?.toString()?.takeLastWhile { isComposingWordChar(it) }.orEmpty()
-    return head to tail
+    val run = head + tail
+    if (!WordSegments.hasSegmentedScript(run)) return head to tail
+    // In a script without spaces the run is several words: the one the caret
+    // is in, from where it starts to where the next one does.
+    val at = WordSegments.ranges(run)
+    val from = segmentStart(run, head.length, strict = false)
+    var to = run.length
+    for (i in at.indices step 2) {
+        if (at[i] > head.length) {
+            to = at[i]
+            break
+        }
+    }
+    if (to <= head.length) return null
+    return run.substring(from, head.length) to run.substring(head.length, to)
 }

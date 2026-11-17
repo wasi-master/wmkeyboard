@@ -2639,6 +2639,16 @@ open class WMKeyboardService : InputMethodService() {
     private var wordEndedByPick = false
 
     /**
+     * Where the caret update that spent [wordEndedByPick] left the caret, or -1.
+     * An editor can answer one commit with more than one update, and the
+     * second one resumed the word after all. In Thai, Lao, Khmer or Burmese,
+     * where nothing but the pick ends a word, that put the picked word, and
+     * with it the sentence before it, back in the buffer instead of moving on
+     * to the next word (Reddit, 2026-11). Cleared with [wordEndedByPick].
+     */
+    private var pickEndCaret = -1
+
+    /**
      * The editor action the app asked for in an [APP_COMMAND_IME_ACTION]
      * private command, which outranks what its EditorInfo declared (#908).
      * Null until one arrives for this field; every start clears it.
@@ -12416,6 +12426,7 @@ open class WMKeyboardService : InputMethodService() {
         // all cannot leave it armed over the next word the user types.
         wordEndedByEnter = false
         wordEndedByPick = false
+        pickEndCaret = -1
         // Typing deliberately does NOT dismiss the recent-copy strip chip. It
         // used to (Gboard style), but the common case is typing a few words and
         // *then* wanting the copy — a username before a pasted password, a
@@ -19183,11 +19194,13 @@ open class WMKeyboardService : InputMethodService() {
         }
         // And for the caret settling at the end of a word just picked off the
         // strip with no space after it. See [wordEndedByPick].
-        if (wordEndedByPick) {
+        if (wordEndedByPick || (newSelStart == pickEndCaret && composing.isEmpty())) {
             wordEndedByPick = false
+            pickEndCaret = newSelStart
             refreshSmartSuggestion()
             return
         }
+        pickEndCaret = -1
         // And for the caret settling in the middle of a code being typed one
         // character at a time ([commitCodeToField]). Each of those commits
         // echoes back as a caret move, and none of them is the user arriving
@@ -32782,8 +32795,11 @@ open class WMKeyboardService : InputMethodService() {
         // before it, and the word it is part of goes on after it.
         val pickState = _uiState.value
         val after = ic.getTextAfterCursor(1, 0)
+        // Thai, Lao, Khmer and Burmese put no space between words: the pick
+        // ends the word on its own, and the next one starts against it.
         val autoSpace = pickState.settings.suggestionStrip.autoSpaceAfterSuggestionFor(pickState.language.id) &&
             suggestion.lastOrNull()?.isWhitespace() != true &&
+            suggestion.lastOrNull()?.let { WordSegments.isSegmentedScript(it.code) } != true &&
             !isLoneSign(suggestion) &&
             !spendNoSpaceOnPick() &&
             !composingInsideWord(ic, pickState, after)
@@ -63115,6 +63131,7 @@ open class WMKeyboardService : InputMethodService() {
         pendingAutoSpace = false
         wordEndedByEnter = false
         wordEndedByPick = false
+        pickEndCaret = -1
     }
 
     /**
