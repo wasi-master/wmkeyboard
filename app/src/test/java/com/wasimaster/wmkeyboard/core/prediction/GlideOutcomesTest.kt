@@ -111,6 +111,20 @@ class GlideOutcomesTest {
     }
 
     @Test
+    fun aPairTheLiftTellsApartIsNeverTaught() {
+        // Reddit, 2026-11: German `an` glided as `am` every time. Picking `am`
+        // over `an` three times taught the pair, and its lift overturned every
+        // stroke drawn to the `n`. Their last letters differ, so the stroke's
+        // end separates them and the pick stays a nudge.
+        val store = GlideOutcomes(null)
+        repeat(4) { store.observeAlternative("an", "am") }
+        assertTrue(store.isTaught("an", "am"))
+        assertEquals(GlideOutcomes.MAX_LIFT_NATS, deltas(store, "an", "am")!![1], 1e-9)
+        assertTrue(GlideOutcomes.sameEnds("machst", "Macht"))
+        assertFalse(GlideOutcomes.sameEnds("an", "am"))
+    }
+
+    @Test
     fun capacityEvictsTheWeakestFirst() {
         val store = GlideOutcomes(null)
         repeat(4) { store.observeAlternative("there", "three") }

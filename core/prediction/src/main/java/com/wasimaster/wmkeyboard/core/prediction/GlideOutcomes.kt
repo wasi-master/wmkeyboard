@@ -30,6 +30,9 @@ import java.io.File
  * [MAX_TAUGHT_LIFT_NATS], enough to overturn a reading a list counts a few
  * dozen times as often (#1051: German `machst` glided as `macht` however often
  * it was put right). One pick the other way drops it back under the line.
+ * Only for words with the same first and last letters, which a stroke cannot
+ * tell apart; `an` and `am` end on different keys, and a taught lift there
+ * turned every `an` into `am`.
  *
  * Nothing here is text. Words are stored as the first eight bytes of a
  * salted SHA-256, the salt is rotated when the store is cleared, and a row
@@ -94,7 +97,12 @@ class GlideOutcomes(private val storageFile: File?) {
                     val keyJ = keys[j] ?: continue
                     pairs[PairKey(keyJ, keyI)]?.let {
                         lift += it * CHOSEN_NATS
-                        if (it >= TAUGHT_STRENGTH) taught = true
+                        // Only a pair the stroke cannot tell apart is taught:
+                        // the decoder reads a word's first and last letters off
+                        // where the finger went down and lifted, so `an` and
+                        // `am` are told apart by the lift. Taught there, the
+                        // lift forced `am` on every `an` drawn to the `n`.
+                        if (it >= TAUGHT_STRENGTH && sameEnds(words[i], words[j])) taught = true
                     }
                     pairs[PairKey(keyI, keyJ)]?.let { drop += it * REJECTED_NATS }
                 }
@@ -373,6 +381,17 @@ class GlideOutcomes(private val storageFile: File?) {
          * word the lists barely hold.
          */
         const val MAX_TAUGHT_LIFT_NATS = 4.0
+
+        /**
+         * Whether [a] and [b] start and end on the same letters, case aside:
+         * a pair the decoder, which reads the ends off where the finger went
+         * down and lifted, cannot tell apart, and so one a pair can teach.
+         */
+        fun sameEnds(a: String, b: String): Boolean {
+            if (a.isEmpty() || b.isEmpty()) return false
+            return Character.toLowerCase(a.codePointAt(0)) == Character.toLowerCase(b.codePointAt(0)) &&
+                Character.toLowerCase(a.codePointBefore(a.length)) == Character.toLowerCase(b.codePointBefore(b.length))
+        }
 
         /** The most a word is ever sunk. */
         const val MAX_DROP_NATS = 0.4
