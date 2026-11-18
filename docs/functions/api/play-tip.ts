@@ -12,7 +12,7 @@
  * by the Play order id, so a retry (the app resends until it hears back)
  * writes the same key again rather than a second entry. Like the webhook, a
  * blank or "anonymous" name is not listed. The amount stored is the tier's
- * list price in US dollars from [PRICES], never a figure the app sends: Play
+ * list price in US dollars from [PRICES] for the buyer's income band, never a figure the app sends: Play
  * prices each tier per country, and an amount from the client could be made
  * up, so the website shows the tier's price rather than the local charge.
  *
@@ -24,16 +24,39 @@ import { type Env, KEY_PREFIX, asMetadata, cleanMessage, cleanName, json } from 
 const PACKAGE = 'com.wasimaster.wmkeyboard';
 const PRODUCT = /^tip_\d{1,3}$/;
 
-/** Each tier's base price in Play Console, kept in step with TipTier.usd in the app. */
-const PRICES: Record<string, number> = {
-	tip_1: 0.99,
-	tip_2: 1.99,
-	tip_5: 4.99,
-	tip_10: 9.99,
-	tip_20: 19.99,
-	tip_50: 49.99,
-	tip_100: 99.99,
+/**
+ * Each tier's USD base price per income band, kept in step with the regional
+ * prices set in Play Console. High-income countries (World Bank list) start
+ * the ladder at 4.99, low and lower-middle income ones at 0.49, and every
+ * other country pays the middle ladder. Play's ProductPurchase names the
+ * buyer's region, so the listed amount follows the band they paid in.
+ */
+const PRICES: Record<string, [high: number, middle: number, low: number]> = {
+	tip_1: [4.99, 0.99, 0.49],
+	tip_2: [7.99, 1.99, 0.99],
+	tip_5: [12.99, 4.99, 1.99],
+	tip_10: [19.99, 9.99, 3.99],
+	tip_20: [34.99, 19.99, 7.99],
+	tip_50: [59.99, 49.99, 14.99],
+	tip_100: [99.99, 99.99, 29.99],
 };
+const HIGH_INCOME = new Set(
+	('AD AE AG AT AU AW BE BG BH BM BN BS CA CH CL CW CY CZ DE DK EE ES FI FO FR GB GI GL GR GU GY HK HR HU ' +
+		'IE IL IM IS IT JP KN KR KW KY LI LT LU LV MC MO MT NC NL NO NR NZ OM PA PF PL PR PT QA RO RU SA SC SE ' +
+		'SG SI SK SM SX TC TT TW US UY VG VI').split(' ')
+);
+const LOW_INCOME = new Set(
+	('AF BF BI CD CF ER ET GM GN GW KP LR MG ML MW MZ NE RW SD SL SO SS SY TD TG UG YE AO BD BJ BO BT CG CI ' +
+		'CM CV DJ DZ EG FM GH HN HT IN IR JO KE KG KH KI LA LB LK LS MA MM MN MR NG NI NP PG PH PK PS SB SN ST ' +
+		'SZ TJ TL TN TZ UZ VN VU WS ZM ZW').split(' ')
+);
+
+function priceFor(productId: string, region: string | undefined): number {
+	const [high, middle, low] = PRICES[productId];
+	if (region && HIGH_INCOME.has(region)) return high;
+	if (region && LOW_INCOME.has(region)) return low;
+	return middle;
+}
 const SCOPE = 'https://www.googleapis.com/auth/androidpublisher';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 
@@ -49,6 +72,8 @@ interface ProductPurchase {
 	orderId?: string;
 	/** Set only for an order outside the normal flow; 0 is a license tester's. */
 	purchaseType?: number;
+	/** ISO 3166-1 alpha-2 country the order was placed in. */
+	regionCode?: string;
 }
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
@@ -103,7 +128,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 		name,
 		kind: 'tip',
 		at,
-		amount: PRICES[productId],
+		amount: priceFor(productId, purchase.regionCode),
 		currency: 'USD',
 		message: cleanMessage(body.message),
 	});

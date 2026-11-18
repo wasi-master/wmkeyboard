@@ -14,7 +14,6 @@ import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
 import com.android.billingclient.api.ConsumeParams
-import com.android.billingclient.api.GetBillingConfigParams
 import com.android.billingclient.api.PendingPurchasesParams
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
@@ -102,11 +101,7 @@ private class PlayTipJar(private val activity: Activity) : TipJar {
                     _offers.value = TipOffers.Unavailable
                     return
                 }
-                // The billing country decides which tiers are shown; a
-                // failed lookup shows them all rather than none.
-                client.getBillingConfigAsync(GetBillingConfigParams.newBuilder().build()) { _, config ->
-                    queryOffers(TipTier.offeredIn(config?.countryCode))
-                }
+                queryOffers()
                 recoverPurchases()
             }
 
@@ -147,8 +142,8 @@ private class PlayTipJar(private val activity: Activity) : TipJar {
         _purchase.value = TipPurchase.Idle
     }
 
-    private fun queryOffers(tiers: List<TipTier>) {
-        val products = tiers.map {
+    private fun queryOffers() {
+        val products = TipTier.entries.map {
             QueryProductDetailsParams.Product.newBuilder()
                 .setProductId(it.productId)
                 .setProductType(ProductType.INAPP)
@@ -166,7 +161,7 @@ private class PlayTipJar(private val activity: Activity) : TipJar {
             }.toMap()
             details = byTier
             // In tier order, not Play's: the row reads from small to large.
-            val offers = tiers.mapNotNull { tier ->
+            val offers = TipTier.entries.mapNotNull { tier ->
                 val product = byTier[tier] ?: return@mapNotNull null
                 val price = product.oneTimePurchaseOfferDetailsList?.firstOrNull()?.formattedPrice
                     ?: return@mapNotNull null

@@ -52,7 +52,8 @@ internal interface TipJar {
  * The products to create in Play Console › Monetize › In-app products, all
  * consumable so the same tier can be bought again. The id is what the code
  * and the server match on; the price is whatever Console says, localised by
- * Play, and [usd] is only the default it was created at.
+ * Play, and [usd] is only the middle band's price. High- and low-income
+ * countries are priced on their own ladders in Console (see play-tip.ts).
  */
 internal enum class TipTier(
     val productId: String,
@@ -76,23 +77,6 @@ internal enum class TipTier(
         val DEFAULT = LUNCH
 
         fun of(productId: String): TipTier? = entries.firstOrNull { it.productId == productId }
-
-        /**
-         * The tiers offered to a buyer whose Play account is in [country]
-         * (ISO 3166-1 alpha-2, from Play's billing config; null when Play did
-         * not say). High-income countries skip the two smallest tiers: there
-         * a 0.99 or 1.99 tip is mostly eaten by Play's fee and tax, while
-         * elsewhere it is a fair amount and stays.
-         */
-        fun offeredIn(country: String?): List<TipTier> =
-            if (country?.uppercase() in HIGH_INCOME) entries - setOf(THANKS, BOOST) else entries
-
-        /** World Bank high-income economies (FY2026 list), as Play region codes. */
-        private val HIGH_INCOME = (
-            "AD AE AG AT AU AW BE BG BH BM BN BS CA CH CL CW CY CZ DE DK EE ES FI FO FR GB GI GL " +
-                "GR GU GY HK HR HU IE IL IM IS IT JP KN KR KW KY LI LT LU LV MC MO MT NC NL NO NR NZ " +
-                "OM PA PF PL PR PT QA RO RU SA SC SE SG SI SK SM SX TC TT TW US UY VG VI"
-            ).split(' ').toSet()
     }
 }
 
