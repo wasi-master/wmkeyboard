@@ -327,7 +327,8 @@ class DownloadedModuleGate(
                 throw e
             } catch (@Suppress("TooGenericExceptionCaught") t: Throwable) {
                 DebugLog.w("NativeDelivery", "fetching $name failed: ${t.javaClass.simpleName}: ${t.message}")
-                ModuleState.Missing(failed = true)
+                val fault = ModuleFailure.faultOf(t)
+                ModuleState.Missing(failed = true, fault = fault?.first, faultCode = fault?.second)
             }
         }
     }

@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.app.StoredTextField
 import com.wasimaster.wmkeyboard.app.findActivity
+import com.wasimaster.wmkeyboard.app.moduleFailedText
 import com.wasimaster.wmkeyboard.core.homeassistant.HaFound
 import com.wasimaster.wmkeyboard.core.homeassistant.HaHttpException
 import com.wasimaster.wmkeyboard.core.homeassistant.backend.HaConnection
@@ -523,7 +524,7 @@ private fun GoogleHomeExtras(draft: ProviderCredential, onSave: (ProviderCredent
         when {
             !GoogleHomeSupport.AVAILABLE -> stringResource(R.string.gh_unavailable)
             module is ModuleState.Installing -> stringResource(R.string.gh_module_installing)
-            (module as? ModuleState.Missing)?.failed == true -> stringResource(R.string.gh_module_failed)
+            (module as? ModuleState.Missing)?.failed == true -> moduleFailedText(module, R.string.gh_module_failed)
             granted -> stringResource(R.string.gh_granted, draft.extra[HomeKeys.INSTANCE_NAME].orEmpty())
             else -> stringResource(R.string.gh_choose_subtitle)
         },

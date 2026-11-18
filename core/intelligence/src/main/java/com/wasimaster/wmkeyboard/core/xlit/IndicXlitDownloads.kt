@@ -9,6 +9,8 @@ import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.modules.DownloadedModuleGate
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules.awaitInstalled
+import com.wasimaster.wmkeyboard.core.modules.ModuleFailure
+import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.ocr.screenText
@@ -117,7 +119,7 @@ sealed class XlitDownloads(private val pack: IndicXlitModels.Pack) {
                             _status.value = Status.Downloading(bytes, total + modelBytes)
                         }
                     }
-                    if (!moduleHere) throw FailedException(OfflineBuild.library(R.string.core_intel_xlit_module_error))
+                    if (!moduleHere) throw libraryFailed(FeatureModules.onnx.state.value, R.string.core_intel_xlit_module_error)
                     download(dir, missing, alreadyFetched = runtimeBytes)
                     _status.value = Status.Downloaded
                 } catch (e: CancellationException) {
@@ -166,6 +168,10 @@ sealed class XlitDownloads(private val pack: IndicXlitModels.Pack) {
         }
         _status.value = Status.NotDownloaded
     }
+
+    /** The failure of [online]'s library, saying why when the connection is not the reason. */
+    private fun libraryFailed(state: ModuleState, @StringRes online: Int): FailedException =
+        ModuleFailure.message(state, online).let { FailedException(it.res, it.arg) }
 
     private class FailedException(@StringRes val messageRes: Int, val messageArg: String = "") : IOException()
 

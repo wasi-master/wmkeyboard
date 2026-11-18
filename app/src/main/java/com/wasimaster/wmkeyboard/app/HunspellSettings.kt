@@ -19,7 +19,6 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.dictionaries.VoikkoDictionaryDownloads
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
-import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
 import com.wasimaster.wmkeyboard.core.prediction.HunspellRuntime
 import com.wasimaster.wmkeyboard.core.prediction.VoikkoRuntime
@@ -145,13 +144,11 @@ private fun HunspellModuleBanner(module: ModuleState, onDownload: () -> Unit) {
         // F-Droid, before the user has opted in to library downloads.
         is ModuleState.Missing if module.consent != null -> NativeConsentBanner(module.consent.orEmpty(), "spell")
         is ModuleState.Missing -> StateBanner(
-            stringResource(
-                if (module.failed) {
-                    OfflineBuild.library(R.string.models_whisper_module_failed_info)
-                } else {
-                    R.string.languages_hunspell_module_missing_info
-                },
-            ),
+            if (module.failed) {
+                moduleFailedText(module, R.string.models_whisper_module_failed_info)
+            } else {
+                stringResource(R.string.languages_hunspell_module_missing_info)
+            },
             action = stringResource(
                 if (module.failed) CommonR.string.common_retry else CommonR.string.common_download,
             ),

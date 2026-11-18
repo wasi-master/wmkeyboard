@@ -1,16 +1,18 @@
 package com.wasimaster.wmkeyboard.core.imagegen
 
-import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
-import com.wasimaster.wmkeyboard.core.ocr.screenText
-import com.wasimaster.wmkeyboard.core.download.FileDownloader
-import com.wasimaster.wmkeyboard.core.download.DownloadException
 import android.content.Context
 import android.os.StatFs
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.download.DownloadException
+import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules.awaitInstalled
+import com.wasimaster.wmkeyboard.core.modules.ModuleFailure
+import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
+import com.wasimaster.wmkeyboard.core.ocr.screenText
 import com.wasimaster.wmkeyboard.intelligence.R
 import java.io.File
 import java.io.IOException
@@ -95,7 +97,7 @@ object ImageGenDownloads {
                     val here = FeatureModules.imagegen.awaitInstalled { bytes, all ->
                         if (all > 0) set(model.id, Status.Downloading(bytes, all + total))
                     }
-                    if (!here) throw FailedException(OfflineBuild.library(R.string.core_intel_imagegen_module_error))
+                    if (!here) throw libraryFailed(FeatureModules.imagegen.state.value, R.string.core_intel_imagegen_module_error)
                     download(dir, model, parts)
                     set(model.id, Status.Downloaded)
                 } catch (e: CancellationException) {
@@ -137,6 +139,10 @@ object ImageGenDownloads {
     private fun set(id: String, status: Status) {
         _states.update { it + (id to status) }
     }
+
+    /** The failure of [online]'s library, saying why when the connection is not the reason. */
+    private fun libraryFailed(state: ModuleState, @StringRes online: Int): FailedException =
+        ModuleFailure.message(state, online).let { FailedException(it.res, it.arg) }
 
     internal class FailedException(@StringRes val messageRes: Int, val messageArg: String = "") : IOException()
 

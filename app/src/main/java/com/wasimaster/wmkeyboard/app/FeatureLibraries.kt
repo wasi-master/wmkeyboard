@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.text.format.Formatter
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
@@ -18,6 +19,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.modules.DownloadedModuleGate
+import com.wasimaster.wmkeyboard.core.modules.ModuleFailure
+import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
 import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
 import com.wasimaster.wmkeyboard.core.modules.NativePin
@@ -247,3 +250,15 @@ internal fun nativeLibraryLinks(context: Context, pins: List<NativePin>): List<O
         }
         OfflineLink(label, url)
     }
+
+/**
+ * What a screen says when [state]'s library did not arrive: [online], the
+ * screen's own "did not download, check the connection" sentence, when the
+ * connection is the likely reason, and the real reason otherwise
+ * ([ModuleFailure]).
+ */
+@Composable
+internal fun moduleFailedText(state: ModuleState, @StringRes online: Int): String {
+    val message = ModuleFailure.message(state, online)
+    return if (message.arg.isEmpty()) stringResource(message.res) else stringResource(message.res, message.arg)
+}

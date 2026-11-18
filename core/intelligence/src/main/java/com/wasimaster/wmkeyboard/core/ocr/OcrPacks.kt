@@ -1,12 +1,14 @@
 package com.wasimaster.wmkeyboard.core.ocr
 
-import com.wasimaster.wmkeyboard.core.download.FileDownloader
-import com.wasimaster.wmkeyboard.core.download.DownloadException
 import android.os.StatFs
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.download.DownloadException
+import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules.awaitInstalled
+import com.wasimaster.wmkeyboard.core.modules.ModuleFailure
+import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.intelligence.R
@@ -120,7 +122,7 @@ object OcrPacks {
                     if (!isDownloaded(filesDir, pack)) {
                         if (pack == PaddleOcrModel.PACK) downloadPaddle(filesDir) else download(filesDir, pack)
                     }
-                    if (!module.awaitInstalled()) throw FailedException(OfflineBuild.library(R.string.core_intel_ocr_module_error))
+                    if (!module.awaitInstalled()) throw libraryFailed(module.state.value, R.string.core_intel_ocr_module_error)
                     set(pack, Status.Downloaded)
                 } catch (e: CancellationException) {
                     set(pack, Status.NotDownloaded)
@@ -229,6 +231,10 @@ object OcrPacks {
         File(PaddleOcrModel.dir(filesDir), "${part.fileName}.part")
 
     /** A failure that already knows its message; see [Status.Failed]. */
+    /** The failure of [online]'s library, saying why when the connection is not the reason. */
+    private fun libraryFailed(state: ModuleState, @StringRes online: Int): FailedException =
+        ModuleFailure.message(state, online).let { FailedException(it.res, it.arg) }
+
     private class FailedException(@StringRes val messageRes: Int, val messageArg: String = "") :
         IOException()
 

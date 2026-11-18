@@ -37,5 +37,5 @@ fun installTranslateDelivery(app: Application) {
 private fun translateState(state: ModuleState): TranslateModuleState = when (state) {
     ModuleState.Installed -> TranslateModuleState.Installed
     is ModuleState.Installing -> TranslateModuleState.Installing(state.bytes, state.totalBytes)
-    is ModuleState.Missing -> TranslateModuleState.Missing(state.failed)
+    is ModuleState.Missing -> TranslateModuleState.Missing(state.failed, cause = state)
 }

@@ -54,7 +54,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
-import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.script.LanguageDef
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
@@ -1086,13 +1085,11 @@ private fun WhisperModuleBanner(module: ModuleState, gateId: String, onDownload:
         // retry would only stop at the same place, so say where to turn it on.
         is ModuleState.Missing if module.consent != null -> NativeConsentBanner(module.consent.orEmpty(), gateId)
         is ModuleState.Missing -> StateBanner(
-            stringResource(
-                if (module.failed) {
-                    OfflineBuild.library(R.string.models_whisper_module_failed_info)
-                } else {
-                    R.string.models_whisper_module_missing_info
-                },
-            ),
+            if (module.failed) {
+                moduleFailedText(module, R.string.models_whisper_module_failed_info)
+            } else {
+                stringResource(R.string.models_whisper_module_missing_info)
+            },
             action = stringResource(
                 if (module.failed) CommonR.string.common_retry else CommonR.string.common_download,
             ),

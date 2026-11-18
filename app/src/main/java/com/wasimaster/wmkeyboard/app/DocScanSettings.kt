@@ -14,7 +14,6 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.docscan.DocScanNative
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
-import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.util.PlayServices
 
@@ -56,13 +55,11 @@ internal fun DocScanModuleBanner(settings: LiveSettings, builtIn: Boolean) {
         // F-Droid, before the user has opted in to library downloads.
         is ModuleState.Missing if state.consent != null -> NativeConsentBanner(state.consent.orEmpty(), "docscan")
         is ModuleState.Missing -> StateBanner(
-            stringResource(
-                if (state.failed) {
-                    OfflineBuild.library(R.string.models_whisper_module_failed_info)
-                } else {
-                    R.string.tooldetail_doc_scan_module_missing_info
-                },
-            ),
+            if (state.failed) {
+                moduleFailedText(state, R.string.models_whisper_module_failed_info)
+            } else {
+                stringResource(R.string.tooldetail_doc_scan_module_missing_info)
+            },
             action = stringResource(if (state.failed) CommonR.string.common_retry else CommonR.string.common_download),
             tone = if (state.failed) BannerTone.WARNING else BannerTone.INFO,
             onAction = download,

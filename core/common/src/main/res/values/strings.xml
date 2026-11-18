@@ -97,6 +97,22 @@
     <string name="common_offline_build_download">This is the offline build, so it cannot download this. Get the file on another device and import it: Settings › About › Storage › Import downloaded files takes it, or this screen\'s own Import row where it has one. Or install the standard build from the same release page over this one, and it downloads by itself. Your settings and learned words stay.</string>
     <!-- The offline build refusing to download a feature library (native code). -->
     <string name="common_offline_build_library">This is the offline build, so it cannot download the library this needs. Get its file on another device and import it in Settings › Privacy › Feature libraries, which lists the exact file. Or install the standard build from the same release page over this one, and it downloads by itself. Your settings and learned words stay.</string>
+    <!-- Why a feature library (the native code a feature runs on) did not arrive, when the connection is not the reason. Shown in place of the feature's own "did not download, check the connection" sentence. -->
+    <string name="common_module_failed_opt_in">This needs a feature library, and downloads of feature libraries are off. Turn them on in Settings › Privacy › Download feature libraries, then try again.</string>
+    <string name="common_module_failed_licence">This needs a feature library whose licence has not been accepted yet. Accept it in Settings › Privacy › Downloads, then try again.</string>
+    <string name="common_module_failed_play_confirm">Google Play wants your OK before it downloads the part this needs. Open WM Keyboard\'s settings and it will ask.</string>
+    <!-- %1$s: Google Play's error code, such as -2. -->
+    <string name="common_module_failed_play_unavailable">Google Play will not download the part this needs to this install (error %1$s). This happens when the app did not come from the Play Store, or Play is missing or signed out. Reinstall from the Play Store, or install the GitHub build, which needs no Play.</string>
+    <!-- %1$s: Google Play's error code. -->
+    <string name="common_module_failed_play">Google Play could not download the part this needs (error %1$s). Try again later; if it keeps failing, the GitHub build downloads it without Play.</string>
+    <string name="common_module_failed_no_space">The phone ran out of space downloading the part this needs. Free some space, then try again.</string>
+    <!-- %1$s: the HTTP status, such as 404. -->
+    <string name="common_module_failed_not_on_server">The part this needs is not on the server for this version (HTTP %1$s), so trying again will not help. Update the app, and report it if the newest version does the same.</string>
+    <!-- %1$s: the HTTP status, such as 503. -->
+    <string name="common_module_failed_server">The download server answered with an error (HTTP %1$s). Try again in a while. If you set a GitHub mirror in Settings › Privacy › Downloads, try without it.</string>
+    <string name="common_module_failed_wrong_file">The part this needs downloaded, but it was not the expected file, so it was deleted. Try again. If it repeats, clear the GitHub mirror in Settings › Privacy › Downloads, or try another network.</string>
+    <string name="common_module_failed_data_saving">Data saving held back the download of the part this needs. Switch to Wi-Fi or turn data saving off, then try again.</string>
+    <string name="common_module_failed_not_in_build">This build does not include the part this needs, and cannot download it.</string>
     <!-- A standard build whose internet permission the phone has switched off for this app (GrapheneOS calls it the Network permission). Not the offline build: never tell this user to install another build. -->
     <string name="common_error_network_permission_off">WM Keyboard\'s network access is switched off in your phone\'s settings, so this does not work. Turn it on in Android Settings › Apps › WM Keyboard › Permissions (on GrapheneOS, the Network permission), then try again.</string>
     <string name="common_error_timeout">The request took too long. Try again.</string>

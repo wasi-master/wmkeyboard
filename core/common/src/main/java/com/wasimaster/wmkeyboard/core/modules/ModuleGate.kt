@@ -35,12 +35,20 @@ sealed interface ModuleState {
      * [error] is Play's own error code for a failed fetch, when it gave one:
      * what a message shows so a report says why, rather than a "downloading"
      * that never ends (Telegram, 10216).
+     *
+     * [fault] is why a download of the library itself failed, on a build that
+     * fetches its own ([DownloadedModuleGate]), when it was something other
+     * than the connection; [faultCode] the HTTP status that came with it.
+     * Without them every failure read "check the connection", which sent
+     * people round in circles when the server or the file was the trouble.
      */
     data class Missing(
         val failed: Boolean = false,
         val consent: String? = null,
         val confirm: Boolean = false,
         val error: Int? = null,
+        val fault: LibraryFault? = null,
+        val faultCode: Int? = null,
     ) : ModuleState
 
     /** On its way from Play. Both figures are 0 before Play reports any. */
@@ -91,7 +99,8 @@ object AlwaysInstalled : ModuleGate {
  * and failed, so nothing waits for it, and there is nothing to fetch.
  */
 object NotInBuild : ModuleGate {
-    override val state: StateFlow<ModuleState> = MutableStateFlow(ModuleState.Missing(failed = true))
+    override val state: StateFlow<ModuleState> =
+        MutableStateFlow(ModuleState.Missing(failed = true, fault = LibraryFault.NOT_IN_BUILD))
 
     override fun requestInstall() = Unit
 }

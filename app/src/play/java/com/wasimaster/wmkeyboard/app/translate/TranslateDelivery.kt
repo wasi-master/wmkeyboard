@@ -2,10 +2,13 @@ package com.wasimaster.wmkeyboard.app.translate
 
 import android.app.Application
 import com.google.android.play.core.splitcompat.SplitCompat
+import com.google.android.play.core.splitinstall.SplitInstallException
 import com.google.android.play.core.splitinstall.SplitInstallManagerFactory
 import com.google.android.play.core.splitinstall.SplitInstallRequest
 import com.google.android.play.core.splitinstall.SplitInstallSessionState
 import com.google.android.play.core.splitinstall.model.SplitInstallSessionStatus
+import com.wasimaster.wmkeyboard.app.modules.PLAY_ERROR_UNKNOWN
+import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.translate.TranslateModule
 import com.wasimaster.wmkeyboard.core.translate.TranslateModuleGate
 import com.wasimaster.wmkeyboard.core.translate.TranslateModuleState
@@ -58,9 +61,10 @@ fun installTranslateDelivery(app: Application) {
             // Wi-Fi under the user's Play settings). A keyboard has no
             // activity to show that dialog from, so it reads as a failure
             // here and the settings screen's button is the place to retry.
-            SplitInstallSessionStatus.REQUIRES_USER_CONFIRMATION,
-            SplitInstallSessionStatus.FAILED,
-            -> TranslateModuleState.Missing(failed = true)
+            SplitInstallSessionStatus.REQUIRES_USER_CONFIRMATION ->
+                failedWith(ModuleState.Missing(failed = true, confirm = true))
+            SplitInstallSessionStatus.FAILED ->
+                failedWith(ModuleState.Missing(failed = true, error = session.errorCode()))
 
             SplitInstallSessionStatus.CANCELING,
             SplitInstallSessionStatus.CANCELED,
@@ -85,7 +89,13 @@ fun installTranslateDelivery(app: Application) {
             // no network) only reaches the failure listener, so it is mapped
             // there as well as above.
             manager.startInstall(SplitInstallRequest.newBuilder().addModule(TRANSLATE_MODULE).build())
-                .addOnFailureListener { state.value = TranslateModuleState.Missing(failed = true) }
+                .addOnFailureListener { e ->
+                    val code = (e as? SplitInstallException)?.errorCode ?: PLAY_ERROR_UNKNOWN
+                    state.value = failedWith(ModuleState.Missing(failed = true, error = code))
+                }
         }
     }
 }
+
+/** A failed fetch that keeps Play's reason, for [com.wasimaster.wmkeyboard.core.modules.ModuleFailure]. */
+private fun failedWith(cause: ModuleState.Missing) = TranslateModuleState.Missing(failed = true, cause = cause)

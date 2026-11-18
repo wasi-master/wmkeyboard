@@ -86,6 +86,8 @@ import com.wasimaster.wmkeyboard.core.settings.TranslateEngine
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.tools.TranslateClient
 import com.wasimaster.wmkeyboard.core.tools.TranslateProviders
+import com.wasimaster.wmkeyboard.core.modules.ModuleFailure
+import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.translate.OfflineModelState
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslateLanguages
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
@@ -1375,7 +1377,10 @@ private fun TranslateModuleOffer(translate: TranslateUi, modifier: Modifier = Mo
                 fontSize = 13.sp,
             )
             (module as? TranslateModuleState.Missing)?.failed == true -> Text(
-                stringResource(R.string.ime_translate_module_failed_error),
+                ModuleFailure.message(
+                    (module as TranslateModuleState.Missing).cause ?: ModuleState.Missing(failed = true),
+                    R.string.ime_translate_module_failed_error,
+                ).let { if (it.arg.isEmpty()) stringResource(it.res) else stringResource(it.res, it.arg) },
                 color = kb.accent,
                 fontSize = 13.sp,
             )

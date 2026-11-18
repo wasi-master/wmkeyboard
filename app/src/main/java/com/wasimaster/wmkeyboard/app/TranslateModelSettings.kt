@@ -477,13 +477,14 @@ private fun TranslateModuleBanner(module: TranslateModuleState, onDownload: () -
             },
         )
         is TranslateModuleState.Missing -> StateBanner(
-            stringResource(
-                if (module.failed) {
-                    R.string.tooldetail_translate_module_failed_info
-                } else {
-                    R.string.tooldetail_translate_module_missing_info
-                },
-            ),
+            if (module.failed) {
+                moduleFailedText(
+                    module.cause ?: ModuleState.Missing(failed = true),
+                    R.string.tooldetail_translate_module_failed_info,
+                )
+            } else {
+                stringResource(R.string.tooldetail_translate_module_missing_info)
+            },
             action = stringResource(
                 if (module.failed) CommonR.string.common_retry else CommonR.string.common_download,
             ),

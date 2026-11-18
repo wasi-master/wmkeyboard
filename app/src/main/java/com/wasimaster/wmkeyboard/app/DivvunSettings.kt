@@ -219,9 +219,11 @@ private fun SpellModuleBanner(module: ModuleState, onDownload: () -> Unit) {
         // F-Droid, before the user has opted in to library downloads.
         is ModuleState.Missing if module.consent != null -> NativeConsentBanner(module.consent.orEmpty(), "spell")
         is ModuleState.Missing -> StateBanner(
-            stringResource(
-                if (module.failed) OfflineBuild.library(R.string.models_whisper_module_failed_info) else R.string.languages_speller_module_missing_info,
-            ),
+            if (module.failed) {
+                moduleFailedText(module, R.string.models_whisper_module_failed_info)
+            } else {
+                stringResource(R.string.languages_speller_module_missing_info)
+            },
             action = stringResource(
                 if (module.failed) CommonR.string.common_retry else CommonR.string.common_download,
             ),

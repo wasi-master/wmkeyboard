@@ -103,6 +103,24 @@ Three ways back out of any open panel:
 
 See [The toolbar](/tools/overview/#panels-and-captured-keys) for the full explanation, including which tools are panels and which replace the key rows.
 
+## A feature says its download did not finish
+
+Several features run on a feature library, native code the app fetches the first time you use them: search by meaning, offline voice typing, the scanners, translation, on-device AI and more. When that fetch fails, the warning names the reason, so a retry is worth it only when the connection was the problem.
+
+| The warning says | What to do |
+|---|---|
+| Check the connection, then try again | The phone could not reach the server. Try again on a working connection. |
+| Downloads of feature libraries are off | F-Droid edition only. Turn on **Download feature libraries** in [Privacy › Downloads](/privacy/network/). |
+| A licence has not been accepted yet | Accept it in Privacy › Downloads (Qualcomm's, for the NPU). |
+| Google Play wants your OK | Open WM Keyboard's settings. Play asks there, never from the keyboard. |
+| Google Play will not download it to this install | The Play edition was installed some other way than the Play Store, or Play is missing or signed out. Reinstall from the Play Store, or use the GitHub edition. |
+| Google Play could not download it (error N) | Play's own failure. Try later. The GitHub edition fetches the same part without Play. |
+| The phone ran out of space | Free some space and try again. |
+| It is not on the server for this version (HTTP 404) | Retrying will not help. Update the app, and report it if the newest version says the same. |
+| The server answered with an error (HTTP N) | Try again in a while. Clear any **GitHub mirror** you set in Privacy › Downloads. |
+| It was not the expected file | The bytes did not match the checksum built into the app and were deleted. Retry, clear any GitHub mirror, or try another network. |
+| Data saving held it back | Switch to Wi-Fi or turn [Data saver](/privacy/data-saver/) off. |
+
 ## The Diagnostics screen
 
 <SettingsPath path="About / Diagnostics" />

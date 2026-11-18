@@ -81,8 +81,14 @@ sealed interface TranslateModuleState {
     /** The runtime is here: always, outside Play; after the download, on Play. */
     data object Installed : TranslateModuleState
 
-    /** Not here. [failed] when the last attempt to fetch it went wrong. */
-    data class Missing(val failed: Boolean = false) : TranslateModuleState
+    /**
+     * Not here. [failed] when the last attempt to fetch it went wrong;
+     * [cause] the gate's own state then, for [ModuleFailure] to say why.
+     */
+    data class Missing(
+        val failed: Boolean = false,
+        val cause: com.wasimaster.wmkeyboard.core.modules.ModuleState.Missing? = null,
+    ) : TranslateModuleState
 
     /** On its way from Play. Both figures are 0 before Play reports any. */
     data class Installing(val bytes: Long = 0, val totalBytes: Long = 0) : TranslateModuleState
