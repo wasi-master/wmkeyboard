@@ -373,7 +373,7 @@ The bar above the keys is either the toolbar or the suggestion strip, and each h
 The **Toolbar** section:
 
 - **Toolbar background** fills the bar behind the tools: their own row, when <SettingsPath path="Appearance / Toolbar" /> gives them one, and the suggestion strip while it is showing the tools instead of words. On Auto it matches **Suggestion strip** in the strip's section, which in turn matches the board, so the bars stay one colour until you pull this one apart. Alpha works here, so a half-transparent fill tints the strip's own colour rather than covering it. The strip takes its own colour back the moment words arrive, so a bar that flips between words and tools flips colour with them; if that reads as a flicker, leave the two the same and use the tools' own row instead.
-- **Tool background shape** is the outline of the background behind each toolbar tool, from the same twelve shapes. It follows <SettingsPath path="Appearance / Toolbar / Tool background shape" /> until you pick one here. Nothing draws at all while the tool radius is 0, which is the setting for bare icons.
+- **Tool background shape** is the outline of the background behind each toolbar tool, from the same twelve shapes. It follows <SettingsPath path="Appearance / Toolbar / Tool background shape" /> until you pick one here. None draws no background at all and leaves the icons bare, as a tool radius of 0 does.
 - **Tool icons** sets the toolbar's icon color, Auto by default.
 - **Tool circles** and **Active tool circle** paint the background behind a toolbar icon, at rest and while pressed or active. Both support alpha.
 - **Tool shadow** lifts that background off the bar.

@@ -481,6 +481,7 @@ internal fun AppearanceToolbarSettings(
             },
             onDismiss = { toolShapePickerOpen = false },
             title = R.string.appearance_tool_shape_title,
+            offerNone = true,
         )
     }
     if (confirmDisableToolbar) {

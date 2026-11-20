@@ -162,6 +162,7 @@ import com.wasimaster.wmkeyboard.core.theme.castsElevationShadow
 import com.wasimaster.wmkeyboard.core.theme.hueShift
 import com.wasimaster.wmkeyboard.core.theme.keyShapeFor
 import com.wasimaster.wmkeyboard.core.theme.keyShapeKindOrNull
+import com.wasimaster.wmkeyboard.core.theme.toolShapeKindOrNull
 import com.wasimaster.wmkeyboard.core.theme.keyTextureScaleOrDefault
 import com.wasimaster.wmkeyboard.core.theme.popupOnKeyOrNull
 import com.wasimaster.wmkeyboard.core.theme.safeContainerKind
@@ -1099,7 +1100,8 @@ internal fun defaultKbTheme(
         popupShapeKind = settings.popup.shape,
         menuShapeKind = safeContainerKind(settings.popup.shape),
         popupHeightDp = settings.popup.heightDp,
-        toolRadiusDp = settings.toolCircleRadiusDp,
+        // No shape is no background, which a radius of 0 already means everywhere.
+        toolRadiusDp = if (settings.toolShape == KeyShapeKind.NONE) 0 else settings.toolCircleRadiusDp,
         toolShapeKind = settings.toolShape,
         chipRadiusDp = DEFAULT_CHIP_RADIUS_DP,
         chipShapeKind = KeyShapeKind.ROUNDED,
@@ -1289,8 +1291,12 @@ private fun specKbTheme(spec: ThemeSpec, settings: KeyboardSettings): KbTheme {
         menuShapeKind = keyShapeKindOrNull(spec.menuShape)
             ?: safeContainerKind(keyShapeKindOrNull(spec.popupShape) ?: settings.popup.shape),
         popupHeightDp = popupHeightDp,
-        toolRadiusDp = spec.toolCircleRadiusDp ?: settings.toolCircleRadiusDp,
-        toolShapeKind = keyShapeKindOrNull(spec.toolShape) ?: settings.toolShape,
+        toolRadiusDp = if ((toolShapeKindOrNull(spec.toolShape) ?: settings.toolShape) == KeyShapeKind.NONE) {
+            0
+        } else {
+            spec.toolCircleRadiusDp ?: settings.toolCircleRadiusDp
+        },
+        toolShapeKind = toolShapeKindOrNull(spec.toolShape) ?: settings.toolShape,
         chipRadiusDp = spec.chipCornerRadiusDp ?: DEFAULT_CHIP_RADIUS_DP,
         chipShapeKind = keyShapeKindOrNull(spec.chipShape) ?: KeyShapeKind.ROUNDED,
         cardShapeKind = keyShapeKindOrNull(spec.cardShape)

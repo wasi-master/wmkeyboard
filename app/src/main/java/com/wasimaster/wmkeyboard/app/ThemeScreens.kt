@@ -353,6 +353,7 @@ import com.wasimaster.wmkeyboard.core.theme.withAlphaFraction
 import com.wasimaster.wmkeyboard.core.theme.brush
 import com.wasimaster.wmkeyboard.core.theme.keyShapeFor
 import com.wasimaster.wmkeyboard.core.theme.keyShapeKindOrNull
+import com.wasimaster.wmkeyboard.core.theme.toolShapeKindOrNull
 import com.wasimaster.wmkeyboard.core.theme.safeContainerKind
 import com.wasimaster.wmkeyboard.core.theme.findThemeFamily
 import com.wasimaster.wmkeyboard.core.theme.flattenedThemes
@@ -3866,7 +3867,7 @@ private fun ThemeEditorContent(
                     )
                 }
                 item(level = SettingLevel.STANDARD) {
-                    val toolShape = look.watchWith { s, t -> keyShapeKindOrNull(t.toolShape) ?: s.toolShape }
+                    val toolShape = look.watchWith { s, t -> toolShapeKindOrNull(t.toolShape) ?: s.toolShape }
                     WmRow(
                         title = stringResource(R.string.theme_tool_shape_title),
                         icon = SettingsRowIcons[R.string.theme_tool_shape_title],
@@ -4731,7 +4732,7 @@ private fun ThemeEditorContent(
     }
     if (toolShapePickerOpen) {
         KeyShapePickerDialog(
-            selected = look.watchWith { s, t -> keyShapeKindOrNull(t.toolShape) ?: s.toolShape },
+            selected = look.watchWith { s, t -> toolShapeKindOrNull(t.toolShape) ?: s.toolShape },
             radiusDp = look.watchWith { s, t -> t.toolCircleRadiusDp ?: s.toolCircleRadiusDp },
             onPick = { kind ->
                 update { t -> t.copy(toolShape = kind.name) }
@@ -4739,6 +4740,7 @@ private fun ThemeEditorContent(
             },
             onDismiss = { toolShapePickerOpen = false },
             title = R.string.theme_tool_shape_title,
+            offerNone = true,
         )
     }
     if (chipShapePickerOpen) {

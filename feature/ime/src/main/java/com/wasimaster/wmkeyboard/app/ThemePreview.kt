@@ -110,7 +110,7 @@ import com.wasimaster.wmkeyboard.ime.ui.skinPalette
 import androidx.compose.ui.draw.drawWithCache
 import com.wasimaster.wmkeyboard.core.theme.brush
 import com.wasimaster.wmkeyboard.core.theme.keyShapeFor
-import com.wasimaster.wmkeyboard.core.theme.keyShapeKindOrNull
+import com.wasimaster.wmkeyboard.core.theme.toolShapeKindOrNull
 import com.wasimaster.wmkeyboard.core.theme.rememberWallpaperFollowed
 
 /**
@@ -361,10 +361,11 @@ private fun BoxScope.ThemePreviewBody(
     // way and the row still reads as circles unless the theme says otherwise.
     val toolShape = remember(theme.toolShape, theme.toolCircleRadiusDp) {
         keyShapeFor(
-            keyShapeKindOrNull(theme.toolShape) ?: KeyShapeKind.ROUNDED,
+            toolShapeKindOrNull(theme.toolShape) ?: KeyShapeKind.ROUNDED,
             theme.toolCircleRadiusDp ?: 20,
         )
     }
+    val toolBackground = toolShapeKindOrNull(theme.toolShape) != KeyShapeKind.NONE
     val themeImage = if (landscape) {
         theme.backgroundImageLandscape ?: theme.backgroundImage
     } else {
@@ -549,7 +550,9 @@ private fun BoxScope.GlassPreviewKeys(
                     modifier = Modifier
                         .fillMaxHeight(TOOL_HEIGHT_FRACTION)
                         .aspectRatio(1f)
-                        .background(colorOf(theme.effectiveToolCircle()), toolShape),
+                        .then(
+                            if (toolBackground) Modifier.background(colorOf(theme.effectiveToolCircle()), toolShape) else Modifier,
+                        ),
                 )
             }
         }

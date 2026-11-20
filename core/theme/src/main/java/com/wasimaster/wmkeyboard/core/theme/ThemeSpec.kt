@@ -91,6 +91,14 @@ fun keyShapeKindOrNull(name: String?): KeyShapeKind? =
     }
 
 /**
+ * [keyShapeKindOrNull] for the tools' background, the one surface besides the
+ * keys that may be none (#1481): a tool is its icon, and with no shape behind
+ * it the icon still reads. Takes the place of a background radius of 0.
+ */
+fun toolShapeKindOrNull(name: String?): KeyShapeKind? =
+    name?.let { wanted -> KeyShapeKind.entries.firstOrNull { it.name == wanted } }
+
+/**
  * The shape a container (list-menu popup, panel card) may safely inherit from
  * a decorative key, chip or popup shape: the four plain outlines pass
  * through, everything else falls back to rounded. A hexagon or a scallop on
