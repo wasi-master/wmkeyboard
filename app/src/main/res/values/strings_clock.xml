@@ -60,7 +60,7 @@
     <string name="clock_insert_format_subtitle">A hold on your own clock types this one at once, and a hold on a city offers it first</string>
     <string name="clock_insert_format_info">The format in which a time is typed into your text. A hold on your own clock types the time in this format at once. A hold on a city shows this format first in its list.</string>
     <string name="clock_alarms_group">Alarms and timers</string>
-    <string name="clock_alarms_info">These apply to every alarm. An alarm can keep its own snooze length and vibration, set in its editor.</string>
+    <string name="clock_alarms_info">These apply to every alarm. An alarm can keep its own snooze length, set in its editor, and can be kept from vibrating.</string>
     <string name="clock_alarm_sound_title">Alarm sound</string>
     <string name="clock_channel_sound_title">Sound and vibration</string>
     <string name="clock_channel_sound_subtitle">Alarms and timers ring through Android\'s alarm notification. Pick its sound and vibration on Android\'s settings page for it.</string>
@@ -70,7 +70,7 @@
     <string name="clock_sound_silent">Silent, vibrate only</string>
     <string name="clock_vibrate_title">Vibrate</string>
     <string name="clock_vibrate_subtitle">While an alarm or a timer rings</string>
-    <string name="clock_vibrate_info">The phone vibrates while an alarm or a timer rings, together with the sound. This helps when the phone is in a pocket or the volume is low.</string>
+    <string name="clock_vibrate_info">The phone vibrates while an alarm or a timer rings, together with the sound. This helps when the phone is in a pocket or the volume is low. Off, nothing vibrates; on, a single alarm can still be kept from vibrating in its editor.</string>
     <string name="clock_snooze_title">Snooze length</string>
     <string name="clock_snooze_info">How long an alarm stays quiet after you press Snooze, before it rings again.</string>
     <string name="clock_fade_title">Fade in</string>

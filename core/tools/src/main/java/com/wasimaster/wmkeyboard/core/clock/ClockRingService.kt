@@ -125,7 +125,10 @@ class ClockRingService : Service() {
             RingKind.ALARM -> alarm?.sound ?: config.alarmSound
             RingKind.TIMER -> config.timerSound ?: config.alarmSound
         }
-        val vibrate = alarm?.vibrate ?: config.vibrate
+        // The tool's switch is the master one (#1448): an alarm's own is on
+        // unless turned off in its editor, so one made from the keyboard or by
+        // the AI vibrated with the tool's switch off.
+        val vibrate = config.vibrate && alarm?.vibrate != false
         val fade = alarm?.fadeInSeconds?.takeIf { it >= 0 } ?: config.fadeInSeconds
         // Timers do not creep up: someone waiting for the pasta wants it now.
         val fadeSeconds = if (first.kind == RingKind.TIMER) 0 else fade
