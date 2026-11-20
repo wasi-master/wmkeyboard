@@ -6893,7 +6893,7 @@ open class WMKeyboardService : InputMethodService() {
                 val offer = state.selectionMacros
                 state.copy(
                     selectionMacros = offer
-                        ?.let { selectionMacroOffer(it.text, settings, it.wholeField, it) },
+                        ?.let { selectionMacroOffer(it.text, settings, it.wholeField, it)?.copy(selectedChars = it.selectedChars) },
                 )
             }
         }
@@ -54498,7 +54498,10 @@ open class WMKeyboardService : InputMethodService() {
         if (_uiState.value.panel != PanelMode.FIND_REPLACE) {
             macroUndo.peek()?.let { if (!MacroUndo.stillHolds(it, selected)) macroUndo.clear() }
         }
-        publish(selectionMacroOffer(text, settings, selectionSpansField(ic, selStart, selEnd), _uiState.value.selectionMacros))
+        publish(
+            selectionMacroOffer(text, settings, selectionSpansField(ic, selStart, selEnd), _uiState.value.selectionMacros)
+                ?.copy(selectedChars = selected.codePointCount(0, selected.length)),
+        )
     }
 
     /**
@@ -54543,7 +54546,13 @@ open class WMKeyboardService : InputMethodService() {
             if (macros.isEmpty()) {
                 null
             } else {
-                SelectionMacroOffer(text = "", kind = SelectionKind.TEXT, macros = macros, wholeField = wholeField)
+                SelectionMacroOffer(
+                    text = "",
+                    kind = SelectionKind.TEXT,
+                    macros = macros,
+                    wholeField = wholeField,
+                    selectedChars = if (selStart >= 0 && selEnd > selStart) selEnd - selStart else 0,
+                )
             },
         )
     }
@@ -55309,6 +55318,7 @@ open class WMKeyboardService : InputMethodService() {
             null
         } else {
             selectionMacroOffer(text, _uiState.value.settings, previous?.wholeField == true, previous)
+                ?.copy(selectedChars = selected.orEmpty().let { it.codePointCount(0, it.length) })
         }
         _uiState.update { it.copy(selectionMacros = offer) }
     }

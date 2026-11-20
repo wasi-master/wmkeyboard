@@ -2923,6 +2923,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         // above; these are the switches on it.
         selectionMacro(R.string.selection_macros_placement_title, R.string.selection_macros_placement_subtitle),
         selectionMacro(R.string.selection_macros_every_title, R.string.selection_macros_every_subtitle),
+        selectionMacro(R.string.selection_macros_count_title, R.string.selection_macros_count_subtitle),
         selectionMacro(R.string.selection_macros_caret_title, R.string.selection_macros_caret_subtitle),
         selectionMacro(R.string.selection_macros_detect_title, R.string.selection_macros_detect_subtitle),
         entry(

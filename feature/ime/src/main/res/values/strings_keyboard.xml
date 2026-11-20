@@ -456,6 +456,10 @@
     <string name="ime_tool_resize">Resize</string>
     <string name="ime_resize_reset">Reset</string>
     <string name="ime_resize_done">Done</string>
+    <plurals name="ime_selection_count">
+        <item quantity="one">%1$d character</item>
+        <item quantity="other">%1$d characters</item>
+    </plurals>
     <string name="ime_resize_defaults">Back to defaults</string>
     <string name="ime_resize_defaults_confirm">Tap again to reset</string>
     <string name="ime_resize_full_width_bars">Full-width toolbar</string>

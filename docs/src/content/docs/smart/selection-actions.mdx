@@ -276,6 +276,7 @@ A plugin's script sees the selected text only when you tap its button, and never
 | Selection actions | Toggle | Off |
 | Where it appears | Choice of 2 | Own row |
 | Show on every selection | Toggle | Off |
+| Show how much is selected | Toggle | Off |
 | Show with nothing selected | Toggle | Off |
 | Read what is selected | Toggle | On |
 | Actions | Screen | 37 of 56 on |
@@ -284,6 +285,8 @@ A plugin's script sees the selected text only when you tap its button, and never
 | Time zones | Screen | UTC and your own |
 | WM Keyboard in the selection menu | Toggle | On |
 | WM Translate in the selection menu | Toggle | Off |
+
+**Show how much is selected** (since 0.6.8) puts the number of characters you selected, spaces included, at the start of the bar, so you can see how long a piece of text is without copying it to count. An emoji counts as one.
 
 **Show on every selection** keeps the bar up on a selection too long to read. The keyboard does not read a selection past about 4,000 characters, so by default such a selection takes the whole bar away, Copy and Paste included, even though neither of those ever needed the text read, because the app does that work itself. Turn this on and the bar stays, carrying Select all, Copy, Cut, Paste and Delete, whichever of them you have switched on. Everything else still waits for a shorter selection, since every other action begins by reading the text.
 

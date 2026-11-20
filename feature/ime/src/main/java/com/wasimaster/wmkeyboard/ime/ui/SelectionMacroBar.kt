@@ -82,6 +82,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -270,6 +271,16 @@ internal fun SelectionMacroBar(
             offer.caseLadder.map { BarItem.Macro(it) }
         } else {
             barItems(offer.macros, offer.aiDirect) + offer.plugin.map { BarItem.Plugin(it) }
+        }
+        // How much is selected (#1427), so a count needs no copy to find out.
+        if (open == null && state.settings.selectionMacros.showCount && offer.selectedChars > 0) {
+            Text(
+                pluralStringResource(R.plurals.ime_selection_count, offer.selectedChars, offer.selectedChars),
+                color = LocalKbTheme.current.keyText.copy(alpha = 0.7f),
+                fontSize = 12.sp,
+                maxLines = 1,
+                modifier = Modifier.padding(start = 8.dp),
+            )
         }
         LazyRow(
             modifier = Modifier.weight(1f),

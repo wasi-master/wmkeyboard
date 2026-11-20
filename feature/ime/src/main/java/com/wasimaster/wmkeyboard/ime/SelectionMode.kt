@@ -101,6 +101,8 @@ data class SelectionMacroOffer(
      * without reading the field again.
      */
     val wholeField: Boolean = false,
+    /** Characters selected, spaces included, for the count at the bar's head (#1427); 0 when unknown. */
+    val selectedChars: Int = 0,
     /** What the text holds: the colour, the moment, the place the ladders and intents act on. */
     val content: ContentFlags = ContentFlags.NONE,
     /** AI actions drawn as chips of their own right after the AI chip. */

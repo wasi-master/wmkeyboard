@@ -96,6 +96,16 @@ internal fun SelectionMacroSettingsScreen(
                 default = SettingsDefaults.selectionMacros.inEverySelection,
             ) { scope.launch { repository.setSelectionMacrosInEverySelection(it) } }
         }
+        // How much is selected, at the head of the bar (#1427).
+        item(visible = macrosOn, level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.selection_macros_count_title,
+                stringResource(R.string.selection_macros_count_subtitle),
+                settings.watch { it.selectionMacros.showCount },
+                info = stringResource(R.string.selection_macros_count_info),
+                default = SettingsDefaults.selectionMacros.showCount,
+            ) { scope.launch { repository.setSelectionMacrosShowCount(it) } }
+        }
         // The always-shown row (#763). Hidden on the strip placement, which it
         // does not apply to: there it would take the suggestions for good.
         item(visible = macrosOn && ownRow, level = SettingLevel.STANDARD) {

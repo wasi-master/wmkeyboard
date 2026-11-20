@@ -1717,6 +1717,7 @@ internal object SettingsRowIcons {
         put(R.string.selection_macros_title) { Icons.Outlined.HighlightAlt }
         put(R.string.selection_macros_placement_title) { Icons.Outlined.ViewStream }
         put(R.string.selection_macros_every_title) { Icons.Outlined.AllInclusive }
+        put(R.string.selection_macros_count_title) { Icons.Outlined.Numbers }
         put(R.string.selection_macros_caret_title) { Icons.Outlined.PushPin }
         put(R.string.selection_macros_detect_title) { Icons.Outlined.Sensors }
         put(R.string.text_actions_settings_actions_title) { Icons.Outlined.Keyboard }
