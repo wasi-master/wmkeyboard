@@ -2,7 +2,8 @@ package com.wasimaster.wmkeyboard.ime.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -82,47 +83,74 @@ internal fun CameraModeHost(
         return
     }
     val feedback = LocalKeyPressFeedback.current
-    Box {
-        content()
-        Column(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .padding(end = 8.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(Color.Black.copy(alpha = 0.35f))
-                .padding(3.dp),
-            verticalArrangement = Arrangement.spacedBy(3.dp),
-        ) {
-            for (mode in modes) {
-                val label = if (mode == CameraMode.PHOTO) {
-                    stringResource(R.string.ime_camera_mode_photo)
-                } else {
-                    stringResource(toolLabelRes(mode.tool))
-                }
-                val on = mode == current
-                IconHint(label) {
-                    IconButton(
-                        onClick = {
-                            if (on) return@IconButton
-                            feedback()
-                            val panel = mode.panel
-                            if (panel != null) onPanelChange(panel) else onTool(mode.tool)
-                        },
-                        modifier = Modifier
-                            .size(34.dp)
-                            .clip(CircleShape)
-                            .background(if (on) Color.White.copy(alpha = 0.9f) else Color.Transparent)
-                            .semantics { selected = on },
-                    ) {
-                        Icon(
-                            toolIcon(mode.tool),
-                            contentDescription = label,
-                            modifier = Modifier.size(18.dp),
-                            tint = if (on) Color.Black else Color.White,
-                        )
-                    }
+    val buttons: @Composable () -> Unit = {
+        for (mode in modes) {
+            val label = if (mode == CameraMode.PHOTO) {
+                stringResource(R.string.ime_camera_mode_photo)
+            } else {
+                stringResource(toolLabelRes(mode.tool))
+            }
+            val on = mode == current
+            IconHint(label) {
+                IconButton(
+                    onClick = {
+                        if (on) return@IconButton
+                        feedback()
+                        val panel = mode.panel
+                        if (panel != null) onPanelChange(panel) else onTool(mode.tool)
+                    },
+                    modifier = Modifier
+                        .size(ModeButton)
+                        .clip(CircleShape)
+                        .background(if (on) Color.White.copy(alpha = 0.9f) else Color.Transparent)
+                        .semantics { selected = on },
+                ) {
+                    Icon(
+                        toolIcon(mode.tool),
+                        contentDescription = label,
+                        modifier = Modifier.size(18.dp),
+                        tint = if (on) Color.Black else Color.White,
+                    )
                 }
             }
         }
     }
+    val rail = Modifier
+        .clip(RoundedCornerShape(20.dp))
+        .background(Color.Black.copy(alpha = 0.35f))
+        .padding(3.dp)
+    BoxWithConstraints {
+        content()
+        // Kept clear of the controls along the top and the shutter row along
+        // the bottom (#1457): centred on the whole panel, a short one put the
+        // rail over the lens button. Where the band between them is too short
+        // for the rail standing up, it lies down above the shutter row.
+        val band = maxHeight - RailTopClearance - RailBottomClearance
+        val tall = (ModeButton + 3.dp) * modes.size + 3.dp
+        if (band >= tall) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 8.dp, top = RailTopClearance, bottom = RailBottomClearance)
+                    .then(rail),
+                verticalArrangement = Arrangement.spacedBy(3.dp),
+            ) { buttons() }
+        } else {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = RailBottomClearance)
+                    .then(rail),
+                horizontalArrangement = Arrangement.spacedBy(3.dp),
+            ) { buttons() }
+        }
+    }
 }
+
+private val ModeButton = 34.dp
+
+/** The camera's own buttons along the top edge of the viewfinder. */
+private val RailTopClearance = 52.dp
+
+/** The shutter row along the bottom edge. */
+private val RailBottomClearance = 68.dp
