@@ -21109,6 +21109,32 @@ class SettingsRepository(private val context: Context) {
         }
     }
 
+    /**
+     * Forgets what the inline resize tool sets on [variant] (#1415): the key
+     * and number-row heights, the bottom padding, the edge pads, full-width
+     * bars and the toolbar height. On the portrait base that is the shipped
+     * defaults; on a screen shape of its own, the portrait values again.
+     */
+    suspend fun resetResizeValues(variant: ScreenVariant) = editPrefs { prefs ->
+        if (variant.isOverride) {
+            prefs.remove(keyHeightKey(variant))
+            prefs.remove(numberRowHeightKey(variant))
+            prefs.remove(bottomPaddingKey(variant))
+            prefs.remove(sidePadLeftScaleKey(variant))
+            prefs.remove(sidePadRightScaleKey(variant))
+            prefs.remove(fullWidthBarsKey(variant))
+            prefs.remove(variantToolbarHeightKey(variant))
+        } else {
+            prefs.remove(KEY_HEIGHT)
+            prefs.remove(NUMBER_ROW_HEIGHT)
+            prefs.remove(BOTTOM_PADDING)
+            prefs.remove(SIDE_PAD_LEFT_SCALE)
+            prefs.remove(SIDE_PAD_RIGHT_SCALE)
+            prefs.remove(FULL_WIDTH_BARS)
+            prefs.remove(TOOLBAR_HEIGHT)
+        }
+    }
+
     /** Clears every override on [variant], returning it to the portrait values. */
     suspend fun clearVariantSizing(variant: ScreenVariant) {
         if (!variant.isOverride) return

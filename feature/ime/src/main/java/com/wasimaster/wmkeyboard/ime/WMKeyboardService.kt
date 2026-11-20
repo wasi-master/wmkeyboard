@@ -7752,6 +7752,10 @@ open class WMKeyboardService : InputMethodService() {
                 _uiState.update { it.copy(resize = false) }
             }
             SizingAction.ResizeCancel -> _uiState.update { it.copy(resize = false) }
+            is SizingAction.ResizeDefaults -> {
+                serviceScope.launch { settingsRepository.resetResizeValues(action.variant) }
+                _uiState.update { it.copy(resize = false) }
+            }
         }
     }
 

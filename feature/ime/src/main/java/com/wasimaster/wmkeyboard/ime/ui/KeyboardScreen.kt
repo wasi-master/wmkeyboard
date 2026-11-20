@@ -2331,6 +2331,7 @@ private fun KeyboardScreenFrame(
                 onCommit = { result ->
                     onSizingAction(resizeCommitAction(variant, entry, result))
                 },
+                onDefaults = { onSizingAction(SizingAction.ResizeDefaults(variant)) },
                 // A theme's own toolbar height wins over the portrait value,
                 // so a drag there would be stored and never seen.
                 toolbarResizable = activeSpec?.toolbarHeightDp == null || variant.isOverride,

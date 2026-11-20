@@ -1624,6 +1624,9 @@ sealed interface SizingAction {
 
     /** Leave the inline resize tool without persisting anything. */
     data object ResizeCancel : SizingAction
+
+    /** The inline resize tool's Defaults (#1415): forget its sizes for [variant] and leave. */
+    data class ResizeDefaults(val variant: ScreenVariant) : SizingAction
 }
 
 /** One change made from the password generator panel (all persisted). */

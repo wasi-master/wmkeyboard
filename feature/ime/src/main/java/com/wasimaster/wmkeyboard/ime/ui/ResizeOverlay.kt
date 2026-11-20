@@ -37,7 +37,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
@@ -131,6 +134,8 @@ internal class ResizeSession(
     val toolbarResizable: Boolean = true,
     /** Bar rows the toolbar height applies to: two with the tools on a row of their own. */
     val barRows: Int = 1,
+    /** Defaults (#1415): forgets the stored sizes, where Reset only drops this session's drags. */
+    val onDefaults: () -> Unit = {},
 ) {
     val reservedPx: MutableIntState = mutableIntStateOf(0)
     val entryPx: MutableIntState = mutableIntStateOf(0)
@@ -661,6 +666,19 @@ internal fun BoxScope.ResizeOverlay(
                         },
                     )
                 }
+                // Two taps, the first only arming it: unlike Reset it throws
+                // away sizes that were stored before this session (#1415).
+                var defaultsArmed by remember { mutableStateOf(false) }
+                ResizePill(
+                    icon = Icons.Outlined.RestartAlt,
+                    label = stringResource(
+                        if (defaultsArmed) R.string.ime_resize_defaults_confirm else R.string.ime_resize_defaults,
+                    ),
+                    onClick = {
+                        haptic()
+                        if (defaultsArmed) session.onDefaults() else defaultsArmed = true
+                    },
+                )
                 // Only once the keys are narrower than the window: at full width
                 // the bars already span it and the chip would change nothing. It
                 // previews like the drags, and only Done stores it.
