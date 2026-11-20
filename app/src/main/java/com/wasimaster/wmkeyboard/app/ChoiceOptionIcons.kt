@@ -430,6 +430,7 @@ internal object ChoiceOptionIcons {
         put(EmojiBarContent.MOST_USED) { Icons.Outlined.TrendingUp }
         put(EmojiBarContent.RECENTS) { Icons.Outlined.History }
         put(EmojiBarContent.FAVOURITES) { Icons.Outlined.FavoriteBorder }
+        put(EmojiBarContent.TYPING) { Icons.Outlined.Keyboard }
 
         put(EmojiTabMode.RECENTS) { Icons.Outlined.History }
         put(EmojiTabMode.MOST_USED) { Icons.Outlined.TrendingUp }

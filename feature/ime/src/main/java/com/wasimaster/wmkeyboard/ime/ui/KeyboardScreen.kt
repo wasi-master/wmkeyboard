@@ -27919,6 +27919,7 @@ internal fun visibleEmojiBarItems(state: KeyboardUiState): List<String> =
         EmojiBarContent.MOST_USED -> state.emojiFrequents
         EmojiBarContent.RECENTS -> state.emojiRecents
         EmojiBarContent.FAVOURITES -> state.emojiFavourites
+        EmojiBarContent.TYPING -> state.emojiSuggestions.ifEmpty { state.emojiRecents }
     }.ifEmpty { DEFAULT_BAR_EMOJIS.map { emojiDisplay(state, it) } }
 
 /**

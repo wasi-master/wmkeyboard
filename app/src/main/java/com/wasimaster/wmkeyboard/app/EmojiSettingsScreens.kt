@@ -196,6 +196,8 @@ internal fun EmojiSettings(
                         stringResource(R.string.langemoji_emoji_recent_label),
                     EmojiBarContent.FAVOURITES to
                         stringResource(R.string.langemoji_emoji_favourites_label),
+                    EmojiBarContent.TYPING to
+                        stringResource(R.string.langemoji_emoji_bar_typing_label),
                 ),
                 selected = settings.watch { it.emojiBarContent },
                 default = SettingsDefaults.emojiBarContent,
@@ -826,6 +828,7 @@ private fun emojiBarContentDescRes(content: EmojiBarContent): Int = when (conten
     EmojiBarContent.MOST_USED -> R.string.langemoji_emoji_bar_content_most_used_desc
     EmojiBarContent.RECENTS -> R.string.langemoji_emoji_bar_content_recents_desc
     EmojiBarContent.FAVOURITES -> R.string.langemoji_emoji_bar_content_favourites_desc
+    EmojiBarContent.TYPING -> R.string.langemoji_emoji_bar_content_typing_desc
 }
 
 /** Which emoji set each answer draws, for the sheet. */

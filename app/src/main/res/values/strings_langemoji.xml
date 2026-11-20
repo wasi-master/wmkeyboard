@@ -208,6 +208,8 @@
     <string name="langemoji_emoji_bar_content_most_used_desc">The emoji that you use most often</string>
     <string name="langemoji_emoji_bar_content_recents_desc">The emoji that you used last</string>
     <string name="langemoji_emoji_bar_content_favourites_desc">Only the emoji that you marked as a favourite</string>
+    <string name="langemoji_emoji_bar_typing_label">For what you type</string>
+    <string name="langemoji_emoji_bar_content_typing_desc">Emoji for the word you are typing, and your recent ones in between. Needs emoji suggestions on</string>
     <string name="langemoji_emoji_bar_count_title">Emoji in the row</string>
     <string name="langemoji_emoji_bar_count_subtitle">How many fit across. A higher number packs them tighter</string>
     <string name="langemoji_emoji_bar_count_info">The row divides its width into this many slots and makes the emoji small enough to fit them. A higher number gives smaller emoji that are closer together. When scrolling is off, the row hides the emoji after the last slot. When scrolling is on, a swipe shows them.</string>

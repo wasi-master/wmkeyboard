@@ -1994,7 +1994,11 @@ enum class EmojiTabMode { RECENTS, MOST_USED, BOTH, OFF }
 enum class EmojiBarMode { OFF, BUTTON, ALWAYS }
 
 /** Which emojis the dedicated emoji row shows (favourites always lead). */
-enum class EmojiBarContent { MOST_USED, RECENTS, FAVOURITES }
+/**
+ * What the emoji row holds. [TYPING] is the emoji predicted for the word being
+ * typed (#1424), the ones the strip offers, with the recents while there are none.
+ */
+enum class EmojiBarContent { MOST_USED, RECENTS, FAVOURITES, TYPING }
 
 /**
  * Which font renders emojis on the keyboard itself (panel, emoji row,
