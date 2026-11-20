@@ -893,6 +893,8 @@ import com.wasimaster.wmkeyboard.core.input.composer.JyutpingSyllables
 import com.wasimaster.wmkeyboard.core.input.composer.PinyinSyllables
 import com.wasimaster.wmkeyboard.core.input.composer.Jianpin
 import com.wasimaster.wmkeyboard.core.input.composer.T9Pinyin
+import com.wasimaster.wmkeyboard.core.input.composer.T9PinyinComposer
+import com.wasimaster.wmkeyboard.core.input.composer.T9ZhuyinComposer
 import com.wasimaster.wmkeyboard.core.input.composer.ZhuyinSyllables
 import com.wasimaster.wmkeyboard.core.input.composer.CodeTableDictionary
 import com.wasimaster.wmkeyboard.core.input.composer.ConversionDictionary
@@ -13051,6 +13053,9 @@ open class WMKeyboardService : InputMethodService() {
         return true
     }
 
+    /** The key being typed is a 9-key pad's digit drawn as itself; see [onTextKey]. */
+    private var literalDigitKey = false
+
     private fun onTextKey(key: Key) {
         val output = keyOutput(key, _uiState.value)
         // What this key could have meant, for the append to pair with the
@@ -13068,6 +13073,13 @@ open class WMKeyboardService : InputMethodService() {
         // the popup keeps, and a key that repeats instead never opens one.
         pendingKeyHint = NumberPrediction.digitHint(key.longPress)
             ?.takeIf { key.opensAlternatesPopup() }
+        // A digit key on a 9-key Chinese pad that is drawn as the digit itself
+        // (the number row, a layout's own digit key) types the digit (#1486).
+        // The pad's own keys send the same digit under ABC or ㄅㄉㄚ, and the
+        // composer reads every digit as a letter group, so only the cap tells
+        // the two apart.
+        literalDigitKey = output.length == 1 && output[0] in '0'..'9' && key.label == output &&
+            (_uiState.value.composer === T9PinyinComposer || _uiState.value.composer === T9ZhuyinComposer)
         // No space armed for this key (#863) is spent by it.
         unspacedKey = _uiState.value.noSpaceArmed
         if (unspacedKey) setNoSpaceArmed(false)
@@ -13078,6 +13090,7 @@ open class WMKeyboardService : InputMethodService() {
             processTypedText(output, applyDeadKeys = keymanSession == null)
         } finally {
             unspacedKey = false
+            literalDigitKey = false
         }
         returnFromSymbolsAfter(output)
     }
@@ -15520,7 +15533,7 @@ open class WMKeyboardService : InputMethodService() {
         // in as it stands, the way a mode switch on a kana pad commits it, and
         // the key's text follows untouched by the composer that would have
         // read `a` as あ.
-        if (typesKeyCaps(state)) {
+        if (typesKeyCaps(state) || literalDigitKey) {
             if (composing.isNotEmpty()) commitComposing(ic, autocorrect = false)
             invalidateExpectedSelection()
             commitTypedCharacter(ic, text)
