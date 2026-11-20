@@ -283,8 +283,13 @@ object EspansoWriter {
         SnippetVariable.LANGUAGE,
     )
 
-    private val CUSTOM_DATE = Regex("""\{date([+-]\d{1,9})?(?::([^}\n]{1,40}))?\}""")
+    private val CUSTOM_DATE = Regex("""\{date(?:([+-]\d{1,9})([smhdwMy])?)?(?::([^}\n]{1,40}))?\}""")
     private val RANDOM = Regex("""\{random:([^}\n]{1,400})\}""")
+
+    /** Seconds in each unit a `{date±n…}` shift can name; a month and a year are approximate. */
+    private val OFFSET_SECONDS = mapOf(
+        "m" to 60L, "h" to 3_600L, "d" to 86_400L, "w" to 604_800L, "M" to 2_592_000L, "y" to 31_536_000L,
+    )
     private val REFERENCE = Regex("""\$(\d)|\$\{(\d):([a-z]{1,8})\}""")
 
     /**
@@ -311,10 +316,13 @@ object EspansoWriter {
         }
         out = CUSTOM_DATE.replace(out) { match ->
             val name = nextName()
-            val offset = match.groupValues[1].toLongOrNull()
-            val pattern2 = match.groupValues[2].ifEmpty { "d MMM yyyy" }
+            // Espanso's offset is in seconds, so a month or a year is the
+            // nearest whole number of days, and noted as not exact.
+            val unit = match.groupValues[2]
+            val offset = match.groupValues[1].toLongOrNull()?.let { it * (OFFSET_SECONDS[unit] ?: 1L) }
+            val pattern2 = match.groupValues[3].ifEmpty { "d MMM yyyy" }
             val strftime = EspansoDate.toStrftime(pattern2)
-            notes.addIf(strftime.dropped.isNotEmpty(), EspansoNote.DATE)
+            notes.addIf(strftime.dropped.isNotEmpty() || unit == "M" || unit == "y", EspansoNote.DATE)
             vars += dateVariable(name, strftime.value, offset)
             "{{$name}}"
         }

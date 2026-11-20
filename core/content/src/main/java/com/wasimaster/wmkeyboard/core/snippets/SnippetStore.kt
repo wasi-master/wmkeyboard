@@ -9,6 +9,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -1346,7 +1347,7 @@ class SnippetStore(private val storageFile: File?) {
          * of a `SimpleDateFormat` pattern, which may contain almost anything.
          * It is in seconds, which is the unit Espanso's `date` extension uses.
          */
-        private val CUSTOM_DATE = Regex("""\{date([+-]\d{1,9})?(?::([^}\n]{1,40}))?\}""")
+        private val CUSTOM_DATE = Regex("""\{date(?:([+-]\d{1,9})([smhdwMy])?)?(?::([^}\n]{1,40}))?\}""")
 
         /** `{location}` or `{location:link}`. */
         private val LOCATION = Regex("""\{location(?::([a-z_]{1,20}))?\}""")
@@ -1414,8 +1415,8 @@ class SnippetStore(private val storageFile: File?) {
             // Then {date...}, so a literal pattern can't be eaten by {date}.
             out = CUSTOM_DATE.replace(out) { match ->
                 val shift = match.groupValues[1].toLongOrNull() ?: 0L
-                val pattern = match.groupValues[2].ifEmpty { DEFAULT_DATE }
-                format(pattern, now + shift * 1000L)
+                val pattern = match.groupValues[3].ifEmpty { DEFAULT_DATE }
+                format(pattern, shifted(now, shift, match.groupValues[2]))
             }
             // Lists before {cursor} is resolved, so they can tell whether the
             // snippet already chose where the caret goes.
@@ -1680,6 +1681,27 @@ class SnippetStore(private val storageFile: File?) {
                 at(0) == 'R'.code && at(1) == 'I'.code && at(8) == 'W'.code && at(9) == 'E'.code -> "webp"
                 else -> null
             }
+        }
+
+        /**
+         * [now] moved by [amount] of [unit]: a bare number is seconds, as it
+         * always was, and a letter names a calendar unit (#1439), so
+         * `{date-1M:MMMM}` is last month's name whatever its length in days.
+         */
+        private fun shifted(now: Long, amount: Long, unit: String): Long {
+            val field = when (unit) {
+                "m" -> Calendar.MINUTE
+                "h" -> Calendar.HOUR_OF_DAY
+                "d" -> Calendar.DAY_OF_MONTH
+                "w" -> Calendar.WEEK_OF_YEAR
+                "M" -> Calendar.MONTH
+                "y" -> Calendar.YEAR
+                else -> return now + amount * 1000L
+            }
+            return Calendar.getInstance().apply {
+                timeInMillis = now
+                add(field, amount.coerceIn(Int.MIN_VALUE.toLong(), Int.MAX_VALUE.toLong()).toInt())
+            }.timeInMillis
         }
 
         private fun format(pattern: String, at: Long): String =

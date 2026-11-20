@@ -37,6 +37,15 @@ class SnippetVariableTest {
         assertEquals("[]", SnippetStore.expand("[{selection}]", now = fixedTime))
     }
 
+    @Test fun dateShiftsByCalendarUnits() {
+        // fixedTime is 19 July 2026.
+        assertEquals("June 2026", expand("{date-1M:MMMM yyyy}"))
+        assertEquals("2025", expand("{date-1y:yyyy}"))
+        assertEquals("2026-07-26", expand("{date+1w:yyyy-MM-dd}"))
+        assertEquals("2026-07-18", expand("{date-1d:yyyy-MM-dd}"))
+        assertEquals("2026-07-20", expand("{date+86400:yyyy-MM-dd}"))
+    }
+
     @Test fun dateParts() {
         assertEquals("2026-07-19", expand("{isodate}"))
         assertEquals("Sunday", expand("{weekday}"))
