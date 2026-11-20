@@ -59,6 +59,7 @@
     <string name="floating_button_menu_labels_info">Shows the name of each action under its icon in the button\'s menu. With this off, only the action under your finger is named, and the menu is smaller.</string>
     <string name="floating_button_menu_reset_title">Reset the menu</string>
     <string name="floating_button_menu_reset_subtitle">Voice typing, Ask AI, clipboard, emoji and the keyboard</string>
+    <string name="floating_button_menu_reset_confirm">Your own actions and their order in the quick menu are replaced by the standard ones.</string>
     <!-- How far the rings stand off the button, and how they come out (#923). -->
     <string name="floating_button_menu_gap_title">Distance from the button</string>
     <string name="floating_button_menu_gap_subtitle">How far out the actions sit, in the quick menu and in every category</string>

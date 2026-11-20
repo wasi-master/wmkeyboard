@@ -186,6 +186,7 @@ internal fun FloatingButtonSettingsScreen(
     var pickingPair by remember { mutableStateOf<FloatingPick?>(null) }
     // The category whose page is open (#923), by id.
     var editingCategory by remember { mutableStateOf<String?>(null) }
+    var confirmingMenuReset by remember { mutableStateOf(false) }
     val newCategoryName = stringResource(R.string.floating_button_category_default_name)
     val defaults = SettingsDefaults.summonButton
     val percentFormat = stringResource(R.string.typing_value_percent)
@@ -406,12 +407,6 @@ internal fun FloatingButtonSettingsScreen(
                 info = stringResource(R.string.floating_button_animation_speed_info),
             ) { scope.launch { repository.setFloatingButtonAnimationSpeed((it * 20).roundToInt() / 20f) } }
         }
-        item(visible = button.menu != DefaultFloatingMenu) {
-            NavRow(
-                R.string.floating_button_menu_reset_title,
-                subtitle = stringResource(R.string.floating_button_menu_reset_subtitle),
-            ) { scope.launch { repository.resetFloatingButtonMenu() } }
-        }
     }
 
     SettingsGroup(stringResource(R.string.floating_button_look_group)) {
@@ -595,6 +590,33 @@ internal fun FloatingButtonSettingsScreen(
                 subtitle = stringResource(R.string.floating_button_reset_position_subtitle),
             ) { scope.launch { repository.resetSummonButtonPosition() } }
         }
+        // Last on the page and behind a question (#1443): it sat under the
+        // menu's sliders, where a tap meant for them wiped a whole menu.
+        item(visible = button.menu != DefaultFloatingMenu) {
+            NavRow(
+                R.string.floating_button_menu_reset_title,
+                subtitle = stringResource(R.string.floating_button_menu_reset_subtitle),
+            ) { confirmingMenuReset = true }
+        }
+    }
+
+    if (confirmingMenuReset) {
+        AlertDialog(
+            onDismissRequest = { confirmingMenuReset = false },
+            title = { Text(stringResource(R.string.floating_button_menu_reset_title)) },
+            text = { Text(stringResource(R.string.floating_button_menu_reset_confirm)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmingMenuReset = false
+                    scope.launch { repository.resetFloatingButtonMenu() }
+                }) { Text(stringResource(CommonR.string.common_reset)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmingMenuReset = false }) {
+                    Text(stringResource(CommonR.string.common_cancel))
+                }
+            },
+        )
     }
 
     /** What the gesture a pick answers for is bound to now; null for the menu's add. */
