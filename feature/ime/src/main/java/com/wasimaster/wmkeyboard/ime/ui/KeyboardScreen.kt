@@ -27140,6 +27140,8 @@ private class AboveAnchorPopupPositionProvider(
      * edge stops at the edge rather than leaving the keyboard.
      */
     private val offsetXPx: Int = 0,
+    /** Under the anchor when there is no room above it, for a menu rather than a key's bubble. */
+    private val flipBelow: Boolean = false,
 ) : PopupPositionProvider {
     override fun calculatePosition(
         anchorBounds: IntRect,
@@ -27149,8 +27151,12 @@ private class AboveAnchorPopupPositionProvider(
     ): IntOffset {
         val x = (anchorBounds.left + (anchorBounds.width - popupContentSize.width) / 2 + offsetXPx)
             .coerceIn(0, (windowSize.width - popupContentSize.width).coerceAtLeast(0))
-        val y = (anchorBounds.top - popupContentSize.height - gapPx).coerceAtLeast(0)
-        return IntOffset(x, y)
+        val above = anchorBounds.top - popupContentSize.height - gapPx
+        // No room above (a floating box near the top of the screen, #1456):
+        // under the anchor instead, and never past either edge of the window.
+        if (!flipBelow) return IntOffset(x, above.coerceAtLeast(0))
+        val y = if (above >= 0) above else anchorBounds.bottom + gapPx
+        return IntOffset(x, y.coerceIn(0, (windowSize.height - popupContentSize.height).coerceAtLeast(0)))
     }
 }
 
@@ -27177,10 +27183,10 @@ private val OnKeyLabelBottomPadding = 4.dp
 private const val LabelLineHeightRatio = 1.2f
 
 @Composable
-internal fun rememberAboveAnchorPopup(): PopupPositionProvider {
+internal fun rememberAboveAnchorPopup(flipBelow: Boolean = false): PopupPositionProvider {
     val density = LocalDensity.current
-    return remember(density) {
-        AboveAnchorPopupPositionProvider(with(density) { KeyPopupGap.roundToPx() })
+    return remember(density, flipBelow) {
+        AboveAnchorPopupPositionProvider(with(density) { KeyPopupGap.roundToPx() }, flipBelow = flipBelow)
     }
 }
 
@@ -36771,7 +36777,7 @@ internal fun ClipInfoPopup(
         else -> characterCount
     }
     Popup(
-        popupPositionProvider = rememberAboveAnchorPopup(),
+        popupPositionProvider = rememberAboveAnchorPopup(flipBelow = true),
         onDismissRequest = onDismiss,
     ) {
         IconHintHost {

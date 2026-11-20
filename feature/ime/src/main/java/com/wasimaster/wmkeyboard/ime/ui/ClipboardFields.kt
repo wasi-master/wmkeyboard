@@ -1339,7 +1339,7 @@ private fun ClipPatternsMenu(
 ) {
     val kb = LocalKbTheme.current
     ClipPopupRegistration(onDismiss)
-    Popup(popupPositionProvider = rememberAboveAnchorPopup(), onDismissRequest = onDismiss) {
+    Popup(popupPositionProvider = rememberAboveAnchorPopup(flipBelow = true), onDismissRequest = onDismiss) {
         GlassPopupBackdrop(kb, FrostSurface.MENUS)
         Surface(
             shape = kb.menuShape(),
@@ -3303,7 +3303,7 @@ private fun ClipFullTextPopup(
     var formatted by remember(item.id) { mutableStateOf(true) }
     val renderMarkdown = shape == CodeSniff.Markdown && length <= ClipMarkdownRenderMax
     Popup(
-        popupPositionProvider = rememberAboveAnchorPopup(),
+        popupPositionProvider = rememberAboveAnchorPopup(flipBelow = true),
         onDismissRequest = onDismiss,
     ) {
         IconHintHost {
@@ -3979,7 +3979,7 @@ internal fun clipEntityIcon(kind: ClipEntityKind): ImageVector = when (kind) {
 private fun ClipExtractPopup(entities: List<ClipEntity>, onPick: (ClipEntity) -> Unit, onDismiss: () -> Unit) {
     val kb = LocalKbTheme.current
     Popup(
-        popupPositionProvider = rememberAboveAnchorPopup(),
+        popupPositionProvider = rememberAboveAnchorPopup(flipBelow = true),
         onDismissRequest = onDismiss,
     ) {
         GlassPopupBackdrop(kb, FrostSurface.MENUS)
