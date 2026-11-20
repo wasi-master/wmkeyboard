@@ -56,6 +56,9 @@ object ModuleFailure {
     private const val PLAY_INSUFFICIENT_STORAGE = -10
     private const val PLAY_STORE_NOT_FOUND = -14
 
+    /** Play does not count this install as owned: sideloaded, or a sandboxed Play such as GrapheneOS's (#1455). */
+    private const val PLAY_APP_NOT_OWNED = -15
+
     /**
      * The message for [state], the gate's state after its fetch failed.
      * [online] is the feature's own "did not download, check the connection"
@@ -73,7 +76,9 @@ object ModuleFailure {
             return when (code) {
                 PLAY_NETWORK_ERROR -> Message(online)
                 PLAY_INSUFFICIENT_STORAGE -> Message(R.string.common_module_failed_no_space)
-                PLAY_MODULE_UNAVAILABLE, PLAY_ACCESS_DENIED, PLAY_API_NOT_AVAILABLE, PLAY_STORE_NOT_FOUND ->
+                PLAY_MODULE_UNAVAILABLE, PLAY_ACCESS_DENIED, PLAY_API_NOT_AVAILABLE, PLAY_STORE_NOT_FOUND,
+                PLAY_APP_NOT_OWNED,
+                ->
                     Message(R.string.common_module_failed_play_unavailable, code.toString())
                 else -> Message(R.string.common_module_failed_play, code.toString())
             }

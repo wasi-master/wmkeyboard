@@ -102,7 +102,7 @@
     <string name="common_module_failed_licence">This needs a feature library whose licence has not been accepted yet. Accept it in Settings › Privacy › Downloads, then try again.</string>
     <string name="common_module_failed_play_confirm">Google Play wants your OK before it downloads the part this needs. Open WM Keyboard\'s settings and it will ask.</string>
     <!-- %1$s: Google Play's error code, such as -2. -->
-    <string name="common_module_failed_play_unavailable">Google Play will not download the part this needs to this install (error %1$s). This happens when the app did not come from the Play Store, or Play is missing or signed out. Reinstall from the Play Store, or install the GitHub build, which needs no Play.</string>
+    <string name="common_module_failed_play_unavailable">Google Play will not download the part this needs to this install (error %1$s). This happens when the app did not come from the Play Store, Play is missing or signed out, or Play does not count the install as yours, as with a sandboxed Play on GrapheneOS. Reinstall from the Play Store, or install the GitHub build, which needs no Play.</string>
     <!-- %1$s: Google Play's error code. -->
     <string name="common_module_failed_play">Google Play could not download the part this needs (error %1$s). Try again later; if it keeps failing, the GitHub build downloads it without Play.</string>
     <string name="common_module_failed_no_space">The phone ran out of space downloading the part this needs. Free some space, then try again.</string>
