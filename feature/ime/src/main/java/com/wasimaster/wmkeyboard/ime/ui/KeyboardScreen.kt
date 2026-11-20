@@ -33382,14 +33382,21 @@ private fun Modifier.pointerInputKey(
                                 val stepPx = spaceCursorStepPx(
                                     cursorStepPx, cursorRampX.travel, cursorRampStartPx, cursorRampEndPx, cursorTopSpeed,
                                 )
-                                var moved = false
+                                // The event's steps go as one move (#1474): one a
+                                // step queued a round-trip to the app for each,
+                                // and the caret walked on after the finger lifted.
+                                var steps = 0
                                 while (accumulated > stepPx) {
-                                    onCursorMove(1); accumulated -= stepPx; moved = true
+                                    steps++; accumulated -= stepPx
                                 }
                                 while (accumulated < -stepPx) {
-                                    onCursorMove(-1); accumulated += stepPx; moved = true
+                                    steps--; accumulated += stepPx
                                 }
-                                if (moved) change.consume()
+                                if (steps != 0) {
+                                    onCursorMove(steps)
+                                    change.consume()
+                                }
+                                val moved = steps != 0
                                 // The drag goes on by itself (#505): at once past
                                 // either end of the key, and after a pause when
                                 // the finger is held still well away from where

@@ -33140,8 +33140,14 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * Spacebar drag: move the cursor one position left (-1) or right (+1). The
+     * Spacebar drag: move the cursor [delta] positions, left when negative. The
      * volume keys land here too when they are set to move the caret.
+     *
+     * A drag sends each pointer event's steps as one call (#1474). One call a
+     * step made a fast swipe of sixty characters sixty blocking round-trips to
+     * the app in a row, and the caret went on walking after the finger lifted.
+     * The direct path now reads and sets the selection once for all of them,
+     * and the feedback plays once.
      *
      * With selection mode on — or a shift the user put up, lock included — the
      * step carries shift and drags the selection out instead, which is the
@@ -33149,6 +33155,7 @@ open class WMKeyboardService : InputMethodService() {
      * on) and the other scrubs the spacebar.
      */
     fun onCursorMove(delta: Int) {
+        if (delta == 0) return
         // A keyboard-owned field's own caret, asked before the field's is: a
         // scrub meant for a search query or a spelling draft used to walk the
         // app's caret behind the keyboard (#204, #161).
@@ -33170,40 +33177,46 @@ open class WMKeyboardService : InputMethodService() {
         // Under the setting a step sets the selection instead of pressing an
         // arrow (#505), a shifted one included: a search box reads Shift+Right
         // as a step through its dropdown just as it reads Right (#613).
+        val dir = if (delta < 0) -1 else 1
+        var left = kotlin.math.abs(delta)
         if (_uiState.value.settings.textEditing.spaceCursorDirect) {
-            val moved = if (_uiState.value.caretExtendsSelection) {
-                extendSelectionDirectly(ic, delta)
-            } else {
-                moveCaretDirectly(ic, delta)
+            if (_uiState.value.caretExtendsSelection) {
+                while (left > 0 && extendSelectionDirectly(ic, dir)) left--
+            } else if (moveCaretDirectly(ic, delta)) {
+                left = 0
             }
-            if (moved) return
         }
-        sendEditorKey(
-            if (delta < 0) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT,
-            shift = _uiState.value.caretExtendsSelection,
-        )
+        repeat(left) {
+            sendEditorKey(
+                if (dir < 0) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT,
+                shift = _uiState.value.caretExtendsSelection,
+            )
+        }
     }
 
     /**
-     * Moves the caret one character the way [delta] points by setting the
-     * selection (#505). False when the field has not said where its caret is,
-     * so the arrow key path runs instead. Steps over a whole surrogate pair,
-     * so an emoji is one step and the caret never lands inside one; at either
-     * end of the text the step is spent on nothing, as an arrow's would be.
+     * Moves the caret [delta] characters by setting the selection (#505), with
+     * one read and one selection change however many that is (#1474). False
+     * when the field has not said where its caret is, so the arrow key path
+     * runs instead. Steps over a whole surrogate pair, so an emoji is one step
+     * and the caret never lands inside one; at either end of the text the
+     * steps left are spent on nothing, as an arrow's would be.
      */
     private fun moveCaretDirectly(ic: InputConnection, delta: Int): Boolean {
         if (expectedSelStart < 0 || expectedSelStart != expectedSelEnd) return false
+        val steps = kotlin.math.abs(delta)
+        if (steps == 0) return true
         val from = expectedSelStart
-        val step = if (delta < 0) {
-            val before = ic.getTextBeforeCursor(2, 0) ?: return false
-            if (before.isEmpty()) return true
-            if (before.length == 2 && Character.isSurrogatePair(before[0], before[1])) 2 else 1
+        val reach = (steps * 2).coerceAtMost(DIRECT_CARET_STEP_REACH)
+        val chars = if (delta < 0) {
+            val before = ic.getTextBeforeCursor(reach, 0) ?: return false
+            caretStepChars(before, steps, backward = true)
         } else {
-            val after = ic.getTextAfterCursor(2, 0) ?: return false
-            if (after.isEmpty()) return true
-            if (after.length == 2 && Character.isSurrogatePair(after[0], after[1])) 2 else 1
+            val after = ic.getTextAfterCursor(reach, 0) ?: return false
+            caretStepChars(after, steps, backward = false)
         }
-        val to = (if (delta < 0) from - step else from + step).coerceAtLeast(0)
+        if (chars == 0) return true
+        val to = (if (delta < 0) from - chars else from + chars).coerceAtLeast(0)
         if (!ic.setSelection(to, to)) return false
         expectedSelStart = to
         expectedSelEnd = to
@@ -65549,6 +65562,9 @@ private const val GPU_STRANDED_KB = 256L * 1024
  * line lands this far along, and the next step goes on from there.
  */
 private const val DIRECT_CARET_EDGE_REACH = 10_000
+
+/** Most characters one direct caret move reads beside the caret: a drag's steps come in far fewer. */
+private const val DIRECT_CARET_STEP_REACH = 2_000
 
 /**
  * The longest selection a direct shifted step reads to find the character
