@@ -4577,8 +4577,11 @@ private fun TopBar(
                         swipeTools && !state.settings.toolbarBehavior.swipeDownHide &&
                             (if (toolsOwnRow) toolsRowOpen else toolbarOverride),
                     )
+                    val toolsUpClose = rememberUpdatedState(
+                        swipeTools && (if (toolsOwnRow) toolsRowOpen else toolbarOverride),
+                    )
                     Modifier.stripSwipes(
-                        pages, more, pagesOpen, hide, toolsUp, toolsDown, toolsSwiped,
+                        pages, more, pagesOpen, hide, toolsUp, toolsDown, toolsUpClose, toolsSwiped,
                         moreHold, suggestionHold, onSwipeDownHide,
                     )
                 } else {
@@ -12122,6 +12125,7 @@ private fun Modifier.stripSwipes(
     hide: State<Boolean>,
     toolsUp: State<Boolean>,
     toolsDown: State<Boolean>,
+    toolsUpClose: State<Boolean>,
     onTools: State<(Boolean) -> Unit>,
     hold: MoreSuggestionsHold,
     suggestionHold: SuggestionHoldCallbacks,
@@ -12197,6 +12201,12 @@ private fun Modifier.stripSwipes(
                             if (toolsDown.value) onTools.value(false)
                             else if (pages.value) suggestionHold.onPagesToggle(true)
                             else if (hide.value) onSwipeDownHide()
+                        }
+                        // A second swipe up puts the tools away again (#1438),
+                        // ahead of the words behind them for the same reason.
+                        total.y < -threshold && toolsUpClose.value -> {
+                            fired = true
+                            onTools.value(false)
                         }
                         total.y < -threshold && more.value -> {
                             fired = true
