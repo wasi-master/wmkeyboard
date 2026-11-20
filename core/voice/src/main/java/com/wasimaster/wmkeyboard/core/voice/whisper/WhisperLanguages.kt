@@ -3,8 +3,10 @@ package com.wasimaster.wmkeyboard.core.voice.whisper
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 
 /**
- * Whisper's own language table: the 99 codes its multilingual tokenizer knows,
+ * Whisper's own language table: the 100 codes its multilingual tokenizer knows,
  * in tokenizer order, plus the bridge to this keyboard's [LanguageRegistry] ids.
+ * The last, Cantonese, came with large-v3's vocabulary; models before it have
+ * 99, so [CANTONESE] is told apart where a model is asked for it.
  *
  * The order matters — a language's `<|xx|>` token id is [FIRST_TOKEN] plus its
  * index here, and that id is what the `serving_transcribe_lang` graphs take as
@@ -20,7 +22,10 @@ object WhisperLanguages {
     /** Token id of `<|en|>`, the first language token in the multilingual vocab. */
     const val FIRST_TOKEN = 50259
 
-    /** Whisper's 99 languages in tokenizer order, `code to English name`. */
+    /** Whisper code of Cantonese, the one language only the large-v3 vocabulary has (#1412). */
+    const val CANTONESE = "yue"
+
+    /** Whisper's 100 languages in tokenizer order, `code to English name`. */
     private val table: List<Pair<String, String>> = listOf(
         "en" to "English", "zh" to "Chinese", "de" to "German", "es" to "Spanish",
         "ru" to "Russian", "ko" to "Korean", "fr" to "French", "ja" to "Japanese",
@@ -48,6 +53,8 @@ object WhisperLanguages {
         "tl" to "Filipino", "mg" to "Malagasy", "as" to "Assamese", "tt" to "Tatar",
         "haw" to "Hawaiian", "ln" to "Lingala", "ha" to "Hausa", "ba" to "Bashkir",
         "jw" to "Javanese", "su" to "Sundanese",
+        // Added by large-v3 as `<|yue|>` (50358); earlier vocabularies end at su.
+        CANTONESE to "Cantonese",
     )
 
     /** Keyboard language id → Whisper code, for the ids the two tables spell differently. */

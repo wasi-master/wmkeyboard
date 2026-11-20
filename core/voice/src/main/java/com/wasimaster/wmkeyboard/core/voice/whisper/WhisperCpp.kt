@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
  *
  * Where the LiteRT graphs have the whole generation loop traced inside them,
  * whisper.cpp runs it here, so everything Whisper itself can do is reachable:
- * any of its 99 languages can be named rather than guessed, detection can be
+ * any of its languages can be named rather than guessed, detection can be
  * kept to the languages being dictated in, a prompt can carry the user's own
  * words, beam search can be asked for, text can be read while it decodes, a
  * transcription can be stopped part way, and a clip can run past 30 seconds.
@@ -109,7 +109,7 @@ object WhisperCpp {
      * [pcm] (16 kHz mono, in [-1, 1], any length) as text, or null when [abort]
      * stopped it.
      *
-     * @param languages Whisper codes. None lets the model detect among all 99;
+     * @param languages Whisper codes. None lets the model detect among all of them;
      *   one is forced; several are detected among those alone.
      * @param translate English out, whatever language comes in.
      * @param prompt words to steer spelling and vocabulary towards, or null.

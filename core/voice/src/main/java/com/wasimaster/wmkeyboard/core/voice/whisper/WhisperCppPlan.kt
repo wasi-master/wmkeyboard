@@ -61,7 +61,9 @@ object WhisperCppPlan {
     fun languages(model: WhisperModel, languageIds: List<String>): List<String> {
         model.decodeAs?.let { return listOf(it) }
         if (!model.multilingual) return emptyList()
-        return languageIds.mapNotNull(WhisperLanguages::codeForLanguage).distinct()
+        return languageIds.mapNotNull(WhisperLanguages::codeForLanguage)
+            .map { if (it == WhisperLanguages.CANTONESE && !model.knowsCantonese) "zh" else it }
+            .distinct()
     }
 
     /**

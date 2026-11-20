@@ -28,7 +28,7 @@ You feel that trade every time you dictate, because Whisper doesn't stream. It r
 Offline Whisper runs two kinds of model, and the catalog lists both.
 
 - **whisper.cpp models** run on [whisper.cpp](https://github.com/ggml-org/whisper.cpp), which is built into the app. They are the ones pointed at first, and they can do everything below that the other kind can't:
-  - **Any language, by name.** Each of Whisper's 99 languages, Bangla included, can be told to the model instead of left for it to guess. A dictation in [several languages](/tools/voice/#language-and-engine) is detected among those languages only, so a short phrase is never read as some third one.
+  - **Any language, by name.** Each of Whisper's languages, Bangla included, can be told to the model instead of left for it to guess. Cantonese is named to Large v3 and Turbo, the models that know it; an earlier model is told Chinese for it. A dictation in [several languages](/tools/voice/#language-and-engine) is detected among those languages only, so a short phrase is never read as some third one.
   - **Your own words.** The same **Words to listen for** list the system recognizer gets goes to the model as a prompt, so names and terms come out spelled your way.
   - **Words while it works.** The line under the microphone shows the transcript as it is decoded, instead of only saying "Transcribing".
   - **Longer clips.** A clip can run to two minutes instead of 30 seconds.

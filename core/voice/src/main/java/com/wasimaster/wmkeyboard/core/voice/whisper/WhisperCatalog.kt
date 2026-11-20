@@ -87,7 +87,7 @@ data class WhisperModel(
     val modelBytes: Long,
     val vocabBytes: Long,
     /**
-     * The Whisper language codes this graph can transcribe. Empty means all 99 —
+     * The Whisper language codes this graph can transcribe. Empty means all of them —
      * the `-transcribe-translate` models detect the language themselves.
      */
     val langCodes: Set<String> = emptySet(),
@@ -141,6 +141,15 @@ data class WhisperModel(
     /** Runs on whisper.cpp rather than LiteRT. */
     val ggml: Boolean get() = format == WhisperFormat.GGML
 
+    /**
+     * Whether this model's vocabulary has large-v3's `<|yue|>` token. Named to
+     * an earlier model, whisper.cpp would read Cantonese's id as a task token,
+     * so those are told Chinese instead, which they write Cantonese speech as.
+     */
+    val knowsCantonese: Boolean
+        get() = size == WhisperSize.TURBO || vocabFile.endsWith("-v3.bin") ||
+            modelFile.contains("v3", ignoreCase = true)
+
     /** Total download/footprint — used for the space preflight and progress fallback. */
     val sizeBytes: Long get() = modelBytes + vocabBytes
 
@@ -187,7 +196,7 @@ data class WhisperModel(
 
     companion object {
         /** Every language Whisper knows. An auto-detecting graph covers them all. */
-        const val ALL_LANGUAGES = 99
+        const val ALL_LANGUAGES = 100
     }
 }
 

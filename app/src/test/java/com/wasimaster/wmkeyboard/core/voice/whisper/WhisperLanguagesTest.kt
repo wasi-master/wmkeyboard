@@ -9,9 +9,15 @@ import org.junit.Test
 class WhisperLanguagesTest {
 
     @Test
-    fun `table holds whisper's 99 languages with no duplicates`() {
-        assertEquals(99, WhisperLanguages.codes.size)
-        assertEquals(99, WhisperLanguages.codes.toSet().size)
+    fun `table holds whisper's 100 languages with no duplicates`() {
+        assertEquals(100, WhisperLanguages.codes.size)
+        assertEquals(100, WhisperLanguages.codes.toSet().size)
+    }
+
+    @Test
+    fun `cantonese takes large-v3's token and has a model row`() {
+        assertEquals(50358, WhisperLanguages.tokenFor("yue"))
+        assertEquals("yue", WhisperLanguages.codeForLanguage("yue"))
     }
 
     /**
