@@ -4136,9 +4136,12 @@ private fun TopBar(
     // remembered ones are offered at the start of the field on purpose (#475).
     val atSentenceStart = state.caretAtFieldStart ||
         (state.suggestions.isNotEmpty() && state.suggestions == state.sentenceOpeners)
+    // A glide in flight is not at rest (#1444): its words on the strip are the
+    // stroke's, though nothing has reached the field to move the caret yet,
+    // and read as openers they left the first word's preview with no strip.
     val openersAtRest = !suggestionsFirst && atSentenceStart &&
         state.fieldKind != FieldKind.EMAIL &&
-        state.composingPreview.isEmpty() &&
+        state.composingPreview.isEmpty() && state.glideWord == null &&
         (state.suggestions.isNotEmpty() || state.emojiSuggestions.isNotEmpty())
     val hasSuggestions =
         (!openersAtRest && (state.suggestions.isNotEmpty() || state.emojiSuggestions.isNotEmpty())) ||
