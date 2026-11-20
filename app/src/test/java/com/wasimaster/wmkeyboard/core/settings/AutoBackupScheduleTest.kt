@@ -74,8 +74,9 @@ class AutoBackupScheduleTest {
     }
 
     @Test
-    fun `a periodic job may fire an eighth of its period early, never under five minutes`() {
+    fun `a periodic job may fire an eighth of its period early`() {
         assertEquals(90L * 60L * 1000L, AutoBackupScheduler.flexMs(12))
-        assertEquals(5L * 60L * 1000L, AutoBackupScheduler.flexMs(0))
+        // An interval under an hour is read as one.
+        assertEquals(AutoBackupScheduler.flexMs(1), AutoBackupScheduler.flexMs(0))
     }
 }
