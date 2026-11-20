@@ -365,7 +365,6 @@ private fun BoxScope.ThemePreviewBody(
             theme.toolCircleRadiusDp ?: 20,
         )
     }
-    val toolBackground = toolShapeKindOrNull(theme.toolShape) != KeyShapeKind.NONE
     val themeImage = if (landscape) {
         theme.backgroundImageLandscape ?: theme.backgroundImage
     } else {
@@ -551,7 +550,7 @@ private fun BoxScope.GlassPreviewKeys(
                         .fillMaxHeight(TOOL_HEIGHT_FRACTION)
                         .aspectRatio(1f)
                         .then(
-                            if (toolBackground) Modifier.background(colorOf(theme.effectiveToolCircle()), toolShape) else Modifier,
+                            if (toolShapeKindOrNull(theme.toolShape) != KeyShapeKind.NONE) Modifier.background(colorOf(theme.effectiveToolCircle()), toolShape) else Modifier,
                         ),
                 )
             }
@@ -753,7 +752,7 @@ private fun Modifier.previewKeyGrid(
         val toolTop = pad + (barH - toolD) / 2f
         repeat(TOOLBAR_CIRCLES) { index ->
             translate(pad + toolSpace * (index + 1) + toolD * index, toolTop) {
-                drawOutline(toolOutline, toolColor)
+                if (toolShapeKindOrNull(theme.toolShape) != KeyShapeKind.NONE) drawOutline(toolOutline, toolColor)
             }
         }
         for (key in keys) {
