@@ -8717,6 +8717,13 @@ val ClipMaxTextCharsSteps = listOf(0, 1_000, 2_000, 5_000, 10_000, 20_000, 50_00
 val ClipMaxItemsSteps = listOf(5, 10, 20, 50, 100, 200, 500, 1_000, 2_000, 5_000, 0)
 
 /**
+ * The stops of the history's expiry, in minutes; 0, the first, is never.
+ * Minutes up to the hour (#1332), then every hour of the first day, then days.
+ */
+val ClipExpiryMinuteSteps: List<Int> =
+    listOf(0, 5, 10, 15, 30, 45) + (1..24).map { it * 60 } + listOf(36, 48, 72, 96, 120, 144, 168).map { it * 60 }
+
+/**
  * How much taller than the keyboard the clipboard panel may be set, in dp
  * (#414). The panel is fitted to the screen on top of this, so the top of the
  * range is only reached on a tall one.
@@ -8753,11 +8760,15 @@ data class ClipboardSettings(
      * or an address is the whole point.
      */
     val pasteChipSeconds: Int = 5 * 60,
-    /** Remove unpinned items after this many hours (0 = never). */
-    val expiryHours: Int = 24,
+    /**
+     * Remove unpinned items after this many minutes (0 = never). Hours until
+     * #1332, which wanted 5, 10 and 15 minutes; a stored hour count is read
+     * as that many hours.
+     */
+    val expiryMinutes: Int = 24 * 60,
     /**
      * How many unpinned entries history keeps; older ones fall off the end.
-     * The other half of the bound [expiryHours] sets — a busy day of copying
+     * The other half of the bound [expiryMinutes] sets — a busy day of copying
      * can pile up hundreds of clips well inside the expiry window, and a panel
      * that long is not history, it is a haystack. 0 keeps every clip, leaving
      * the expiry as the only bound (#414). See [ClipMaxItemsSteps].
@@ -8784,7 +8795,7 @@ data class ClipboardSettings(
     val detectSensitive: Boolean = true,
     /**
      * How long a sensitive clip survives, in minutes. Independent of
-     * [expiryHours] and never capped by it: a short leash has to hold even when
+     * [expiryMinutes] and never capped by it: a short leash has to hold even when
      * history is set to keep everything.
      */
     val sensitiveExpiryMinutes: Int = 5,
@@ -13440,6 +13451,7 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_BOARD_LOCATION = stringPreferencesKey("clipboard_board_location")
         private val CLIPBOARD_BOARD_AUTO_SEND = booleanPreferencesKey("clipboard_board_auto_send")
         private val CLIPBOARD_EXPIRY_HOURS = intPreferencesKey("clipboard_expiry_hours")
+        private val CLIPBOARD_EXPIRY_MINUTES = intPreferencesKey("clipboard_expiry_minutes")
         private val CLIPBOARD_MAX_ITEMS = intPreferencesKey("clipboard_max_items")
         private val CLIPBOARD_SENSITIVE_HANDLING =
             stringPreferencesKey("clipboard_sensitive_handling")
@@ -15723,7 +15735,8 @@ class SettingsRepository(private val context: Context) {
             boardAutoSend = p[CLIPBOARD_BOARD_AUTO_SEND] ?: defaults.clipboard.boardAutoSend,
             pasteChipSeconds = p[CLIPBOARD_PASTE_CHIP_SECONDS]
                 ?: defaults.clipboard.pasteChipSeconds,
-            expiryHours = p[CLIPBOARD_EXPIRY_HOURS] ?: defaults.clipboard.expiryHours,
+            expiryMinutes = p[CLIPBOARD_EXPIRY_MINUTES] ?: p[CLIPBOARD_EXPIRY_HOURS]?.let { it * 60 }
+                ?: defaults.clipboard.expiryMinutes,
             maxItems = p[CLIPBOARD_MAX_ITEMS] ?: defaults.clipboard.maxItems,
             sensitiveHandling = p[CLIPBOARD_SENSITIVE_HANDLING]
                 ?.let { runCatching { SensitiveClipHandling.valueOf(it) }.getOrNull() }
@@ -25721,8 +25734,11 @@ class SettingsRepository(private val context: Context) {
     suspend fun setClipboardBoardAutoSend(value: Boolean) =
         editPrefs { it[CLIPBOARD_BOARD_AUTO_SEND] = value }
 
-    suspend fun setClipboardExpiryHours(value: Int) =
-        editPrefs { it[CLIPBOARD_EXPIRY_HOURS] = value.coerceIn(0, 24 * 7) }
+    suspend fun setClipboardExpiryMinutes(value: Int) =
+        editPrefs {
+            it[CLIPBOARD_EXPIRY_MINUTES] = value.coerceIn(0, 24 * 7 * 60)
+            it.remove(CLIPBOARD_EXPIRY_HOURS)
+        }
 
     /** Floor of 5: a cap below that turns history into a one-clip buffer. */
     /** 0 (or less) is no cap (#414); anything else is held to the slider's stops. */

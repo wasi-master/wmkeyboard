@@ -56,6 +56,7 @@ import com.wasimaster.wmkeyboard.core.settings.HoldToTalkRange
 import com.wasimaster.wmkeyboard.core.settings.VoiceSilenceStopRange
 import com.wasimaster.wmkeyboard.core.settings.ClipboardView
 import com.wasimaster.wmkeyboard.core.settings.ClipGridColumnsRange
+import com.wasimaster.wmkeyboard.core.settings.ClipExpiryMinuteSteps
 import com.wasimaster.wmkeyboard.core.settings.ClipMaxItemsSteps
 import com.wasimaster.wmkeyboard.core.settings.ClipMaxTextCharsSteps
 import com.wasimaster.wmkeyboard.core.settings.ClipPanelExtraHeightRange
@@ -1283,15 +1284,28 @@ internal fun ClipboardHistorySettings(
             // The readout lambda is not composable, so the "never" word
             // is resolved here and captured, like the hours format.
             val never = stringResource(R.string.clipboard_expiry_never)
+            val expiryMinutesFormat = stringResource(R.string.values_minutes)
+            // Stops, so 5, 10 and 15 minutes are reachable beside the hours (#1332).
+            val steps = ClipExpiryMinuteSteps
+            val stored = settings.watch { it.clipboard.expiryMinutes }
+            val index = steps.indices.minByOrNull { kotlin.math.abs(steps[it] - stored) } ?: 0
             SliderSetting(
                 R.string.clipboard_expiry_title,
                 subtitle = stringResource(R.string.clipboard_expiry_subtitle),
-                value = settings.watch { it.clipboard.expiryHours }.toFloat(),
-                range = 0f..168f,
-                display = { if (it.toInt() == 0) never else hoursFormat.format(it.toInt()) },
-                default = SettingsDefaults.clipboard.expiryHours.toFloat(),
+                value = index.toFloat(),
+                range = 0f..steps.lastIndex.toFloat(),
+                display = {
+                    val minutes = steps[it.roundToInt().coerceIn(steps.indices)]
+                    when {
+                        minutes == 0 -> never
+                        minutes < 60 -> expiryMinutesFormat.format(minutes)
+                        else -> hoursFormat.format(minutes / 60)
+                    }
+                },
+                default = steps.indexOf(SettingsDefaults.clipboard.expiryMinutes).coerceAtLeast(0).toFloat(),
+                typed = false,
                 info = stringResource(R.string.clipboard_expiry_info),
-            ) { scope.launch { repository.setClipboardExpiryHours(it.toInt()) } }
+            ) { scope.launch { repository.setClipboardExpiryMinutes(steps[it.roundToInt().coerceIn(steps.indices)]) } }
         }
         item(level = SettingLevel.ADVANCED) {
             // A slider over a handful of stops rather than every number: the

@@ -11306,7 +11306,7 @@ open class WMKeyboardService : InputMethodService() {
 
     /** Hands the clipboard settings the store enforces to [clipboardStore]. */
     private fun configureClipboardStore(settings: KeyboardSettings) {
-        clipboardStore.expiryMillis = settings.clipboard.expiryHours * 60L * 60 * 1000
+        clipboardStore.expiryMillis = settings.clipboard.expiryMinutes * 60L * 1000
         clipboardStore.maxItems = settings.clipboard.maxItems
         clipboardStore.maxTextChars = settings.clipboard.maxTextChars
         clipboardStore.keepRichText = settings.clipboard.keepRichText

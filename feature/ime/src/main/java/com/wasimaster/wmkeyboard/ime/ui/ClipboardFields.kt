@@ -4206,7 +4206,7 @@ private fun clipTimeText(item: ClipItem, label: ClipTimeLabel, clipboard: Clipbo
             } else {
                 0L
             }
-            item.expiresAt(clipboard.expiryHours * 60 * MinuteMs, sensitiveLeash)?.let { at ->
+            item.expiresAt(clipboard.expiryMinutes * MinuteMs, sensitiveLeash)?.let { at ->
                 val minutes = ((at - now).coerceAtLeast(0L) + MinuteMs - 1) / MinuteMs
                 when {
                     minutes < 60 -> minutes.coerceAtLeast(1L).toInt().let {

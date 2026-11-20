@@ -49,7 +49,7 @@
     <string name="clipboard_toast_info">This works for the copy actions of the keyboard: the A/C/V/X clipboard shortcuts and the copy button of the text editing panel. It works only for fields that give no copy feedback of their own. This setting is off by default.</string>
     <string name="clipboard_expiry_title">Clipboard expiry</string>
     <string name="clipboard_expiry_subtitle">Delete unpinned clips after this time</string>
-    <string name="clipboard_expiry_info">Clips that are not pinned are deleted after this time. Pinned clips are kept. A shorter time keeps less of what you copied on the phone. The default is 24 hours.</string>
+    <string name="clipboard_expiry_info">Clips that are not pinned are deleted after this time. Pinned clips are kept. A shorter time keeps less of what you copied on the phone; it goes down to 5 minutes. The default is 24 hours.</string>
     <!-- Slider readout when the clipboard expiry is set to zero, so clips never expire. -->
     <string name="clipboard_expiry_never">never</string>
     <string name="clipboard_max_title">Maximum entries</string>
