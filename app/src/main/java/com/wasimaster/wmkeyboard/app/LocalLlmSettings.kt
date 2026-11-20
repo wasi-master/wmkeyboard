@@ -275,6 +275,7 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
                 val id = LocalLlmStore.CUSTOM_PREFIX + file.name
                 CustomModelRow(
                     file = file,
+                    tooBigForRam = customModelRamMb(file.length()) > totalRamMb,
                     selected = settings.watch { it.ai.localModelId == id },
                     onSelect = { scope.launch { repository.setAiLocalModelId(id) } },
                     onDelete = {
@@ -685,6 +686,7 @@ private fun LlamaModuleBanner(settings: LiveSettings) {
 @Composable
 private fun CustomModelRow(
     file: File,
+    tooBigForRam: Boolean,
     selected: Boolean,
     onSelect: () -> Unit,
     onDelete: () -> Unit,
@@ -707,6 +709,16 @@ private fun CustomModelRow(
                     Text(formatBytes(file.length()))
                     if (file.extension.equals(ModelFormat.GGUF.extension, ignoreCase = true)) {
                         RuntimeLabel(LocalLlmRuntime.LLAMA_CPP)
+                    }
+                    // A model of your own is judged the way the catalog's are
+                    // (#1425): one too big for the phone's memory slows the
+                    // keyboard to a crawl and can bring it down mid-word.
+                    if (tooBigForRam) {
+                        Text(
+                            stringResource(R.string.models_llm_custom_too_big),
+                            color = MaterialTheme.colorScheme.error,
+                            fontWeight = FontWeight.Bold,
+                        )
                     }
                 }
             },
@@ -934,3 +946,14 @@ private fun importModel(context: Context, uri: android.net.Uri) {
 
 /** Shared with the AI panel, which draws the same readout on the keyboard. */
 internal fun formatBytes(bytes: Long): String = LocalLlmDownloadManager.formatBytes(bytes)
+
+/**
+ * About the memory a model file of [bytes] needs to run, in MB (#1425): the
+ * ratio the catalog's own minimums keep to their file sizes, never under the
+ * smallest of them.
+ */
+internal fun customModelRamMb(bytes: Long): Int =
+    maxOf(CUSTOM_MODEL_MIN_RAM_MB, (bytes * CUSTOM_MODEL_RAM_RATIO / (1024 * 1024)).toInt())
+
+private const val CUSTOM_MODEL_RAM_RATIO = 2.4
+private const val CUSTOM_MODEL_MIN_RAM_MB = 3072

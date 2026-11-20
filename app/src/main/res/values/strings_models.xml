@@ -180,6 +180,7 @@
     <string name="models_llm_row_subtitle"><xliff:g id="parameters" example="2B">%1$s</xliff:g>, <xliff:g id="size" example="2.6 GB">%2$s</xliff:g>. <xliff:g id="about">%3$s</xliff:g></string>
     <!-- Added to that subtitle when the device has less memory than the model asks for. -->
     <string name="models_llm_row_too_big">This model can be too large for your device.</string>
+    <string name="models_llm_custom_too_big">Too large for this phone\'s memory. Expect the keyboard to lag, and to close while you type.</string>
 
     <!-- Screen reader text for the lock beside a gated model. -->
     <string name="models_llm_gated_desc">This model needs a Hugging Face token</string>
