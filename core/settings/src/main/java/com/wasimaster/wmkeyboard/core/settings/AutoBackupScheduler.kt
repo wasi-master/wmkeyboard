@@ -60,6 +60,16 @@ object AutoBackupScheduler {
 
     private const val HOUR_MS = 60L * 60L * 1000L
 
+    /**
+     * How early in its period a periodic job may fire (#1471). Left to the
+     * platform, the window was the whole period: a 12-hour job could fire an
+     * hour after the last backup, find it not due and skip, and do the same
+     * the next period. An eighth of the period, never under five minutes, and
+     * the run takes a copy that is due within it ([AutoBackupRunner.isDue]).
+     */
+    fun flexMs(intervalHours: Int): Long =
+        (intervalHours.coerceAtLeast(1) * HOUR_MS / 8).coerceAtLeast(5L * 60L * 1000L)
+
     /** Retry delay after a failure the job asked to have retried. */
     private const val BACKOFF_MS = 30L * 60L * 1000L
 
@@ -187,6 +197,7 @@ object AutoBackupScheduler {
         // see — the worst shape a settings bug takes.
         if (pending != null &&
             pending.intervalMillis == intervalMs &&
+            pending.flexMillis == flexMs(intervalHours) &&
             pending.isRequireCharging == jobRequiresCharging(settings) &&
             pending.networkType == networkType
         ) {
@@ -194,7 +205,7 @@ object AutoBackupScheduler {
         }
 
         val job = JobInfo.Builder(id, ComponentName(context.packageName, SERVICE_CLASS))
-            .setPeriodic(intervalMs)
+            .setPeriodic(intervalMs, flexMs(intervalHours))
             // Deliberately without `setRequiresDeviceIdle`. Idle plus charging
             // is what makes the platform's own backups so hard to predict, and
             // the work here is a few seconds of file copying.

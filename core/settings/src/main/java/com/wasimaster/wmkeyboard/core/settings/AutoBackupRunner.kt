@@ -209,7 +209,12 @@ object AutoBackupRunner {
         if (!force && !settings.enabled) return Outcome.Skipped
         if (frequent && !settings.frequent.enabled) return Outcome.Skipped
         if (all.isEmpty()) return Outcome.Skipped
-        if (!force && frequent && !isDue(settings.frequent.lastRunAtMs, settings.frequent.intervalHours, nowMs)) {
+        if (!force && frequent && !isDue(
+                settings.frequent.lastRunAtMs,
+                settings.frequent.intervalHours,
+                nowMs + AutoBackupScheduler.flexMs(settings.frequent.intervalHours),
+            )
+        ) {
             return Outcome.Skipped
         }
         // Each location on its own schedule: the job fires as often as the
@@ -459,7 +464,14 @@ object AutoBackupRunner {
         val last = settings.locationStatus[location.id]?.backupAtMs ?: 0L
         if (last <= 0L || last > nowMs) return true
         val jobHours = AutoBackupScheduler.jobIntervalHours(settings)
-        val slackMs = if (interval > jobHours) jobHours * 60L * 60L * 1000L / 2 else 0L
+        // A location on the job's own schedule still gets the job's flex: the
+        // job may fire that much early, and without it a run a few minutes
+        // short of the interval skipped the copy for a whole period (#1471).
+        val slackMs = if (interval > jobHours) {
+            jobHours * 60L * 60L * 1000L / 2
+        } else {
+            AutoBackupScheduler.flexMs(jobHours)
+        }
         return nowMs - last + slackMs >= interval * 60L * 60L * 1000L
     }
 

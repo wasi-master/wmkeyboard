@@ -72,4 +72,10 @@ class AutoBackupScheduleTest {
         val sizes = mapOf(ConfigBackup.Section.STICKERS to 10 * mb, ConfigBackup.Section.ICONS to 5 * mb)
         assertEquals(emptySet<ConfigBackup.Section>(), AutoBackupRunner.sectionsToDrop(sizes.keys, 16 * mb) { sizes.getValue(it) })
     }
+
+    @Test
+    fun `a periodic job may fire an eighth of its period early, never under five minutes`() {
+        assertEquals(90L * 60L * 1000L, AutoBackupScheduler.flexMs(12))
+        assertEquals(5L * 60L * 1000L, AutoBackupScheduler.flexMs(0))
+    }
 }
