@@ -12844,7 +12844,10 @@ open class WMKeyboardService : InputMethodService() {
         // pressed is excluded there, and only there: on an arrow it would turn a
         // tap at a sentence start into a selection the next keystroke overwrites,
         // while on a letter it is the auto-capital that was asked for.
-        val shifted = if (caret) state.caretExtendsSelection else shift
+        // Not [KeyboardUiState.caretExtendsSelection]: its switch is about the
+        // spacebar swipe (#1421), and a layout's own arrow key with shift up is
+        // the plain shift+arrow every keyboard means.
+        val shifted = if (caret) state.selectingText || state.shiftSelectsText else shift
         if (shifted) meta = meta or KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON
         if (caret && shifted) {
             noteSelectionAnchor()

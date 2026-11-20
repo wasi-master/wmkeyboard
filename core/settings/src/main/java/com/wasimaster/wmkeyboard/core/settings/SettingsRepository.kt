@@ -7790,6 +7790,13 @@ data class TextEditingSettings(
      */
     val spaceCursorDirect: Boolean = false,
     /**
+     * Whether a shift that is up turns a spacebar cursor swipe (and the volume
+     * keys' caret moves) into a selection. On by default, as it always was;
+     * off for the people who scrub with a shift still up from a capital and
+     * want the caret to move (#1421). Selection mode still selects.
+     */
+    val spaceCursorShiftSelects: Boolean = true,
+    /**
      * A cursor drag parked past either end of the spacebar keeps the caret
      * moving that way, a step at a time, until the finger comes back or
      * lifts (#505). The spacebar runs out before a long line does; this is
@@ -13987,6 +13994,7 @@ class SettingsRepository(private val context: Context) {
         private val MAGNIFIER_FOLLOWS_TEXT = booleanPreferencesKey("magnifier_follows_text")
         private val SPACE_CURSOR_ACCELERATE = booleanPreferencesKey("space_cursor_accelerate")
         private val SPACE_CURSOR_DIRECT = booleanPreferencesKey("space_cursor_direct")
+        private val SPACE_CURSOR_SHIFT_SELECTS = booleanPreferencesKey("space_cursor_shift_selects")
         private val SPACE_CURSOR_EDGE_REPEAT = booleanPreferencesKey("space_cursor_edge_repeat")
         private val SPACE_CURSOR_WHOLE_KEYBOARD = booleanPreferencesKey("space_cursor_whole_keyboard")
         // Legacy switches, read only through spaceSwipeUpOf until SPACE_SWIPE_UP is written.
@@ -16862,6 +16870,7 @@ class SettingsRepository(private val context: Context) {
             spaceCursorAccelerate = p[SPACE_CURSOR_ACCELERATE]
                 ?: defaults.textEditing.spaceCursorAccelerate,
             spaceCursorDirect = p[SPACE_CURSOR_DIRECT] ?: defaults.textEditing.spaceCursorDirect,
+            spaceCursorShiftSelects = p[SPACE_CURSOR_SHIFT_SELECTS] ?: defaults.textEditing.spaceCursorShiftSelects,
             spaceCursorEdgeRepeat = p[SPACE_CURSOR_EDGE_REPEAT] ?: defaults.textEditing.spaceCursorEdgeRepeat,
             spaceCursorWholeKeyboard = p[SPACE_CURSOR_WHOLE_KEYBOARD]
                 ?: defaults.textEditing.spaceCursorWholeKeyboard,
@@ -18867,6 +18876,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSpaceCursorDirect(value: Boolean) =
         editPrefs { it[SPACE_CURSOR_DIRECT] = value }
+
+    suspend fun setSpaceCursorShiftSelects(value: Boolean) =
+        editPrefs { it[SPACE_CURSOR_SHIFT_SELECTS] = value }
 
     suspend fun setSpaceCursorEdgeRepeat(value: Boolean) =
         editPrefs { it[SPACE_CURSOR_EDGE_REPEAT] = value }

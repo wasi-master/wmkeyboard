@@ -3394,6 +3394,16 @@ internal fun TypingSpacebarSettings(
                     default = SettingsDefaults.textEditing.spaceCursorDirect,
                 ) { scope.launch { repository.setSpaceCursorDirect(it) } }
             }
+            // Issue #1421: a shift still up from a capital need not select.
+            item(level = SettingLevel.ADVANCED) {
+                ToggleSetting(
+                    R.string.typing_space_cursor_shift_selects_title,
+                    stringResource(R.string.typing_space_cursor_shift_selects_subtitle),
+                    settings.watch { it.textEditing.spaceCursorShiftSelects },
+                    info = stringResource(R.string.typing_space_cursor_shift_selects_info),
+                    default = SettingsDefaults.textEditing.spaceCursorShiftSelects,
+                ) { scope.launch { repository.setSpaceCursorShiftSelects(it) } }
+            }
             // Issue #505: the drag goes on past the end of the spacebar.
             item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(

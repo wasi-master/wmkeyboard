@@ -4739,7 +4739,7 @@ data class KeyboardUiState(
      * gestures that ignored it were the only caret paths that did.
      */
     val caretExtendsSelection: Boolean
-        get() = selectingText || shiftSelectsText
+        get() = selectingText || (shiftSelectsText && settings.textEditing.spaceCursorShiftSelects)
 
     /**
      * The action the Enter key should draw and fire, folding in the

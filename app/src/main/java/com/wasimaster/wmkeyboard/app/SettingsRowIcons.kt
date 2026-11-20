@@ -1383,6 +1383,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_space_swipe_distance_title) { Icons.Outlined.Straighten }
         put(R.string.typing_space_cursor_accelerate_title) { Icons.Outlined.FastForward }
         put(R.string.typing_space_cursor_direct_title) { Icons.Outlined.SwapHoriz }
+        put(R.string.typing_space_cursor_shift_selects_title) { Icons.Outlined.SelectAll }
         put(R.string.typing_space_cursor_edge_repeat_title) { Icons.Outlined.FastForward }
         put(R.string.typing_space_cursor_whole_keyboard_title) { Icons.Outlined.TouchApp }
         put(R.string.typing_space_swipe_up_title) { Icons.Outlined.SwipeUp }
