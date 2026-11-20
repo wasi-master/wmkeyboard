@@ -335,6 +335,17 @@ internal object VietnameseEngine {
     }
 
     /** Apply [mark] to the last letter whose base is in [targets]; returns success. */
+    /**
+     * Takes [mark] off the last of [targets] when that letter carries it, for
+     * VNI's repeated mark digit (#1490); false, changing nothing, otherwise.
+     */
+    private fun unmarkLast(letters: List<VLetter>, targets: String, mark: VMark): Boolean {
+        val last = letters.lastOrNull { it.base in targets } ?: return false
+        if (last.mark != mark) return false
+        last.mark = VMark.NONE
+        return true
+    }
+
     private fun applyMark(letters: List<VLetter>, targets: String, mark: VMark): Boolean {
         for (i in letters.indices.reversed()) {
             if (letters[i].base in targets) {
@@ -475,17 +486,37 @@ internal object VietnameseEngine {
                 // tone or nothing to mark — otherwise a number typed inside a
                 // word (`banana1`, an address, a model name) would silently
                 // lose its digits to a tone that had nowhere to land.
+                // The same digit again takes its mark back off *and* types the
+                // digit (#1490), as a repeated Telex key types its letter: `ha22`
+                // is `ha2`, the way Samsung's and Laban Key's VNI answer it, so a
+                // user name or an address with a digit in it can be typed.
+                val again = when (lc) {
+                    '1' -> VTone.ACUTE
+                    '2' -> VTone.GRAVE
+                    '3' -> VTone.HOOK
+                    '4' -> VTone.TILDE
+                    '5' -> VTone.DOT
+                    else -> null
+                }
+                if (again != null && tone == again) {
+                    tone = VTone.NONE
+                    letters.add(VLetter(lc, VMark.NONE, upper))
+                    continue
+                }
+                val markAgain = when (lc) {
+                    '6' -> unmarkLast(letters, "aeo", VMark.CIRCUMFLEX)
+                    '7' -> unmarkLast(letters, "ou", VMark.HORN)
+                    '8' -> unmarkLast(letters, "a", VMark.BREVE)
+                    '9' -> unmarkLast(letters, "d", VMark.STROKE)
+                    else -> false
+                }
+                if (markAgain) {
+                    letters.add(VLetter(lc, VMark.NONE, upper))
+                    continue
+                }
                 when (lc) {
                     '1', '2', '3', '4', '5' -> if (toneAllowed()) {
-                        toggleTone(
-                            when (lc) {
-                                '1' -> VTone.ACUTE
-                                '2' -> VTone.GRAVE
-                                '3' -> VTone.HOOK
-                                '4' -> VTone.TILDE
-                                else -> VTone.DOT
-                            },
-                        )
+                        toggleTone(requireNotNull(again))
                         continue
                     }
                     // `0` is VNI's XoaDauThanh, the rule Telex spells with `z`:

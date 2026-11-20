@@ -510,6 +510,19 @@ class VietnameseComposerTest {
     }
 
     @Test
+    fun vniSameDigitAgainTypesTheDigit() {
+        val c = VietnameseVniComposer
+        // #1490: the second press takes the mark off and types the digit.
+        assertEquals("ha2", c.composeBuffer("ha22"))
+        assertEquals("a1", c.composeBuffer("a11"))
+        assertEquals("a6", c.composeBuffer("a66"))
+        assertEquals("d9", c.composeBuffer("d99"))
+        assertEquals("hà", c.composeBuffer("ha2"))
+        // A different tone still swaps the mark.
+        assertEquals("há", c.composeBuffer("ha21"))
+    }
+
+    @Test
     fun vniLetterMarks() {
         val c = VietnameseVniComposer
         assertEquals("â", c.composeBuffer("a6"))

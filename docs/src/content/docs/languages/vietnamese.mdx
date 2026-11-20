@@ -79,6 +79,8 @@ VNI is the same engine with digits for the marks.
 
 A digit with nothing to mark is typed as the digit, so `banana1`, a street number or a model name keeps its numbers. `0` only does something when the word has a tone. Otherwise it's a 0.
 
+The same digit twice takes its mark back off and types the digit, the way a repeated Telex key types its letter: `ha2` is hà, and `ha22` is ha2, so a user name or an email address with a digit in it comes out as typed. `a66` is a6, and `d99` is d9.
+
 ## Backspace
 
 Backspace takes off the last letter you can see, not the last key you pressed. `huowngs` is hướng, and one press leaves hướn with the tone still on the ơ. `hif` is hì, and one press takes the whole ì, tone included.
