@@ -2319,6 +2319,18 @@ internal fun KeyLayoutEditorScreen(
         redo = emptyList()
     }
 
+    /**
+     * Drops the picked keys ahead of an undo or redo (#1449). They name seats
+     * in the layout being replaced: after undoing a drag that made a row, the
+     * pick pointed past the rows that were left, and the key sheet read it.
+     */
+    fun forgetPicks() {
+        selection = null
+        multi = null
+        extraSel = null
+        pendingSelect = null
+    }
+
     /** Restores a whole layout, for undo and redo. */
     fun save(next: LayoutSpec) {
         val stored = next.withLettersSwappedFor(pageKey)
@@ -2650,6 +2662,7 @@ internal fun KeyLayoutEditorScreen(
                 undo = undo.dropLast(1)
                 redo = redo + listOfNotNull(edited.now())
                 stepPushed = false
+                forgetPicks()
                 save(previous)
             },
         ) {
@@ -2665,6 +2678,7 @@ internal fun KeyLayoutEditorScreen(
                 redo = redo.dropLast(1)
                 undo = undo + listOfNotNull(edited.now())
                 stepPushed = false
+                forgetPicks()
                 save(next)
             },
         ) {
