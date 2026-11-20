@@ -2365,8 +2365,13 @@ private fun SettingsNavGraph(
             val layoutId = backStackEntry.arguments?.getString("layoutId").orEmpty()
             // The tab to open on, from a row of the gallery's layer list.
             val layer = backStackEntry.arguments?.getString("layer")?.takeIf { it.isNotEmpty() }
+            // The layout's own name over its editor (#1450), so it stays in
+            // sight while the name row scrolls away under the grid.
+            val layoutName = settings.watch {
+                com.wasimaster.wmkeyboard.core.layout.findLayout(it.customLayouts, layoutId)?.name
+            }
             SettingsScreen(
-                stringResource(R.string.home_screen_layout_edit_title),
+                layoutName?.takeIf { it.isNotBlank() } ?: stringResource(R.string.home_screen_layout_edit_title),
                 { navController.popBackStack() },
                 route = keyLayoutEditRoute(layoutId, layer),
             ) {
