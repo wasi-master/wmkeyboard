@@ -9128,6 +9128,8 @@ data class ClipboardSettings(
      * copy. Off by default.
      */
     val stripMediaMetadata: Boolean = false,
+    /** What a tapped picture does in a field that takes no pictures (#1472). */
+    val refusedImage: RefusedClipImage = RefusedClipImage.PASTE,
     /**
      * The last rule clips were combined with in the panel (#612): the text
      * between them, a text put in front, and a pattern that keeps only part
@@ -13512,6 +13514,7 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_CLEAN_COPIED_LINKS = booleanPreferencesKey("clipboard_clean_copied_links")
         private val CLIPBOARD_EXTRA_TRACKERS = stringPreferencesKey("clipboard_extra_trackers")
         private val CLIPBOARD_STRIP_MEDIA_METADATA = booleanPreferencesKey("clipboard_strip_media_metadata")
+        private val CLIPBOARD_REFUSED_IMAGE = stringPreferencesKey("clipboard_refused_image")
         private val CLIPBOARD_COMBINE_JOINER = stringPreferencesKey("clipboard_combine_joiner")
         private val CLIPBOARD_COMBINE_BASE = stringPreferencesKey("clipboard_combine_base")
         private val CLIPBOARD_COMBINE_APPEND = stringPreferencesKey("clipboard_combine_append")
@@ -15794,6 +15797,9 @@ class SettingsRepository(private val context: Context) {
             cleanCopiedLinks = p[CLIPBOARD_CLEAN_COPIED_LINKS] ?: defaults.clipboard.cleanCopiedLinks,
             extraTrackers = p[CLIPBOARD_EXTRA_TRACKERS]?.let(::decodeTrackerNames) ?: defaults.clipboard.extraTrackers,
             stripMediaMetadata = p[CLIPBOARD_STRIP_MEDIA_METADATA] ?: defaults.clipboard.stripMediaMetadata,
+            refusedImage = p[CLIPBOARD_REFUSED_IMAGE]
+                ?.let { runCatching { RefusedClipImage.valueOf(it) }.getOrNull() }
+                ?: defaults.clipboard.refusedImage,
             combineJoiner = p[CLIPBOARD_COMBINE_JOINER] ?: defaults.clipboard.combineJoiner,
             combineBase = p[CLIPBOARD_COMBINE_BASE] ?: defaults.clipboard.combineBase,
             combineAppend = p[CLIPBOARD_COMBINE_APPEND] ?: defaults.clipboard.combineAppend,
@@ -25963,6 +25969,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardStripMediaMetadata(value: Boolean) =
         editPrefs { it[CLIPBOARD_STRIP_MEDIA_METADATA] = value }
+
+    suspend fun setClipboardRefusedImage(value: RefusedClipImage) =
+        editPrefs { it[CLIPBOARD_REFUSED_IMAGE] = value.name }
 
     /** The user's own tracking parameters (#665), one name per entry. */
     suspend fun setClipboardExtraTrackers(names: List<String>) =

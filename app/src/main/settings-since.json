@@ -424,6 +424,7 @@
 		"clipboard_sensitive_expiry_title": "0.5.3",
 		"clipboard_sensitive_title": "0.5.3",
 		"clipboard_strip_media_title": "0.6.6",
+		"clipboard_refused_image_title": "0.6.8",
 		"clipboard_suggest_codes_title": "0.5.3",
 		"clipboard_suggest_recent_title": "0.5.3",
 		"clipboard_swipe_delete_title": "0.5.12",

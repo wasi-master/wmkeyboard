@@ -167,6 +167,7 @@ import com.wasimaster.wmkeyboard.core.settings.ManualModeDuration
 import com.wasimaster.wmkeyboard.core.settings.ClipboardView
 import com.wasimaster.wmkeyboard.core.settings.CopiedCodeChip
 import com.wasimaster.wmkeyboard.core.settings.SelectionMacroPlacement
+import com.wasimaster.wmkeyboard.core.settings.RefusedClipImage
 import com.wasimaster.wmkeyboard.core.settings.SensitiveClipHandling
 import com.wasimaster.wmkeyboard.core.settings.activeThemeSpec
 import com.wasimaster.wmkeyboard.core.settings.keySound
@@ -59836,14 +59837,51 @@ open class WMKeyboardService : InputMethodService() {
         commitImageFile(file, item.mimeType, refused = ::pasteRefusedImageClip)
     }
 
-    /** A clip picture the field did not take as content, pasted through the clipboard instead (#1178). */
+    /**
+     * A clip picture the field did not take as content: pasted through the
+     * clipboard (#1178), shared to the field's app, or only copied, as the
+     * user chose (#1472). A paste the field turned down goes to the share.
+     */
     private fun pasteRefusedImageClip(file: File) {
         val contentUri = runCatching {
             FileProvider.getUriForFile(this, clipboardFileProviderAuthority, file)
         }.getOrNull() ?: return
-        ClipboardWriteGate.writeUri(this, contentUri, "image")
-        currentInputConnection?.performContextMenuAction(android.R.id.paste)
-        toast(R.string.ime_clip_image_pasted_toast)
+        when (_uiState.value.settings.clipboard.refusedImage) {
+            RefusedClipImage.SHARE -> if (!shareRefusedImage(contentUri, file)) copyRefusedImage(contentUri)
+            RefusedClipImage.CLIPBOARD -> copyRefusedImage(contentUri)
+            RefusedClipImage.PASTE -> {
+                ClipboardWriteGate.writeUri(this, contentUri, "image")
+                if (currentInputConnection?.performContextMenuAction(android.R.id.paste) == true) {
+                    toast(R.string.ime_clip_image_pasted_toast)
+                } else if (!shareRefusedImage(contentUri, file)) {
+                    toast(R.string.ime_service_image_not_accepted_toast)
+                }
+            }
+        }
+    }
+
+    /** The picture to the field's own app through its share screen, else the chooser (0.6.6's way, #943). */
+    private fun shareRefusedImage(uri: Uri, file: File): Boolean {
+        val mime = SnippetStore.imageMime(file.name)
+        val intent = Intent(Intent.ACTION_SEND)
+            .putExtra(Intent.EXTRA_STREAM, uri)
+            .setType(mime)
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+        // The grant travels on the clip data; the extra alone carries none.
+        intent.clipData = ClipData(ClipDescription("image", arrayOf(mime)), ClipData.Item(uri))
+        val app = currentInputEditorInfo?.packageName
+        // The launch itself is the test: package visibility hides another
+        // app's share screen from a query, never from a launch.
+        val shared = (app != null && runCatching { startActivity(Intent(intent).setPackage(app)) }.isSuccess) ||
+            shareVia(intent)
+        if (shared) toast(resources.getQuantityString(R.plurals.ime_gallery_notice_shared, 1, 1))
+        return shared
+    }
+
+    /** The last resort: the picture on the clipboard, and a toast that says so. */
+    private fun copyRefusedImage(uri: Uri) {
+        ClipboardWriteGate.writeUri(this, uri, "image")
+        toast(R.string.ime_service_image_not_accepted_toast)
     }
 
     /**

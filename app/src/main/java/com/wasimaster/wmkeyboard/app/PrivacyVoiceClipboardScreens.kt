@@ -63,6 +63,7 @@ import com.wasimaster.wmkeyboard.core.settings.PanelOverKeysExtraHeightRange
 import com.wasimaster.wmkeyboard.core.settings.ClipPreviewLinesRange
 import com.wasimaster.wmkeyboard.core.settings.ClipTimeLabel
 import com.wasimaster.wmkeyboard.core.settings.CopiedCodeChip
+import com.wasimaster.wmkeyboard.core.settings.RefusedClipImage
 import com.wasimaster.wmkeyboard.core.settings.SensitiveClipHandling
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings
@@ -1661,6 +1662,21 @@ internal fun ClipboardRulesSettings(
                 info = stringResource(R.string.clipboard_strip_media_info),
                 default = SettingsDefaults.clipboard.stripMediaMetadata,
             ) { scope.launch { repository.setClipboardStripMediaMetadata(it) } }
+        }
+        // A picture the field will not take (#1472): pasted, shared or copied.
+        item(level = SettingLevel.ADVANCED) {
+            ChoiceSetting(
+                title = R.string.clipboard_refused_image_title,
+                subtitle = stringResource(R.string.clipboard_refused_image_subtitle),
+                info = stringResource(R.string.clipboard_refused_image_info),
+                options = listOf(
+                    RefusedClipImage.PASTE to stringResource(R.string.clipboard_refused_image_paste),
+                    RefusedClipImage.SHARE to stringResource(R.string.clipboard_refused_image_share),
+                    RefusedClipImage.CLIPBOARD to stringResource(R.string.clipboard_refused_image_copy),
+                ),
+                selected = settings.watch { it.clipboard.refusedImage },
+                default = SettingsDefaults.clipboard.refusedImage,
+            ) { scope.launch { repository.setClipboardRefusedImage(it) } }
         }
         item(level = SettingLevel.STANDARD) {
             ChoiceSetting(

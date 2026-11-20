@@ -1739,6 +1739,7 @@ private fun SearchStrings.clipboardRulesRows(): List<SettingsSearchEntry> {
         row(R.string.clipboard_private_copies_title, R.string.clipboard_private_copies_subtitle),
         row(R.string.clipboard_password_paste_title, R.string.clipboard_password_paste_subtitle),
         row(R.string.clipboard_strip_media_title, R.string.clipboard_strip_media_subtitle),
+        row(R.string.clipboard_refused_image_title, R.string.clipboard_refused_image_subtitle),
         row(R.string.clipboard_sensitive_title, R.string.clipboard_sensitive_subtitle),
         row(R.string.clipboard_detect_sensitive_title, R.string.clipboard_detect_sensitive_subtitle),
         row(R.string.clipboard_sensitive_expiry_title, R.string.clipboard_sensitive_expiry_subtitle),
