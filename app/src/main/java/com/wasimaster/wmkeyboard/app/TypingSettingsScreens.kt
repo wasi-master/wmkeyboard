@@ -861,7 +861,7 @@ internal fun TypingWritingSettings(
                 R.string.typing_double_space_window_title,
                 subtitle = stringResource(R.string.typing_double_space_window_subtitle),
                 value = settings.watch { it.textEditing.doubleSpaceWindowMs }.toFloat(),
-                range = 200f..800f,
+                range = 50f..800f,
                 display = { context.getString(R.string.keypress_value_ms, it.toInt()) },
                 info = stringResource(R.string.typing_double_space_window_info),
                 default = SettingsDefaults.textEditing.doubleSpaceWindowMs.toFloat(),

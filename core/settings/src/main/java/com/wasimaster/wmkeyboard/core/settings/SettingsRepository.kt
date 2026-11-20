@@ -18842,7 +18842,7 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[SELECTION_MODE_MULTI_TAP] = value }
 
     suspend fun setDoubleSpaceWindowMs(value: Int) =
-        editPrefs { it[DOUBLE_SPACE_WINDOW_MS] = value.coerceIn(200, 800) }
+        editPrefs { it[DOUBLE_SPACE_WINDOW_MS] = value.coerceIn(50, 800) }
 
     suspend fun setHideComposingUnderline(value: Boolean) =
         editPrefs { it[HIDE_COMPOSING_UNDERLINE] = value }
