@@ -30,4 +30,11 @@ class SnippetFieldFitTest {
         assertTrue(snippetFitsField("On my way!", FieldKind.TEXT))
         assertTrue(snippetFitsField("me@example.com", FieldKind.EMAIL))
     }
+
+    @Test
+    fun `prose without a variable is turned away before it is expanded`() {
+        assertFalse(couldFitKeypad("word1"))
+        assertTrue(couldFitKeypad("+44 20 7946"))
+        assertTrue(couldFitKeypad("{date:yyyy-MM-dd}"))
+    }
 }

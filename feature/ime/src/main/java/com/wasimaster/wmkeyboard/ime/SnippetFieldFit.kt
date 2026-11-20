@@ -17,3 +17,13 @@ internal fun snippetFitsField(text: String, kind: FieldKind): Boolean {
     }
     return text.isNotEmpty() && text.all { it.isDigit() || it in extra }
 }
+
+/**
+ * Whether a snippet's raw [text] could expand to something a keypad field
+ * takes (#1436). Only a `{variable}` can turn letters into digits, so text with
+ * a letter and no brace never fits, and is turned away without expanding it.
+ */
+internal fun couldFitKeypad(text: String): Boolean {
+    if (text.indexOf('{') >= 0) return true
+    return text.none { it.isLetter() }
+}

@@ -24226,9 +24226,15 @@ open class WMKeyboardService : InputMethodService() {
      * is what the field accepts ([snippetFitsField]).
      */
     private fun keypadSnippetOffer(state: KeyboardUiState): SnippetOfferSet? {
-        val context = snippetContext(currentInputConnection, withSelection = false)
+        // Read once, and only when a snippet is left to expand: a library of
+        // prose has none, and asking the app for nothing is still a round-trip.
+        val context by lazy(LazyThreadSafetyMode.NONE) { snippetContext(currentInputConnection, withSelection = false) }
         val chips = snippetStore.items().asSequence()
             .filter { it.trigger != null || it.triggerPattern.isNullOrBlank() }
+            // Before expanding, not after: with tens of thousands of word
+            // snippets every one was expanded on each digit to be turned away
+            // (#1436).
+            .filter { couldFitKeypad(it.text) }
             .mapNotNull { snippet ->
                 val expanded = SnippetStore.expandWithCursor(snippet.text, context = context)
                 if (!snippetFitsField(expanded.text, state.fieldKind)) return@mapNotNull null
