@@ -251,9 +251,22 @@
     <string name="langemoji_emoji_font_import_action">Import emoji font file</string>
     <string name="langemoji_emoji_hide_unrenderable_title">Hide emoji that your device cannot show</string>
     <string name="langemoji_emoji_hide_unrenderable_subtitle">Skip emoji that show as a blank box in the panel, the search and the suggestions</string>
-    <string name="langemoji_emoji_hide_unrenderable_info">Older devices, and some brands, have an emoji font that is older than the newest emoji. Those emoji then show as an empty \"tofu\" box. This setting hides every emoji that the emoji font of your device cannot draw. To see them all, set the emoji font above to \"Google\" (Noto Color Emoji). You can also install a complete emoji font from Addons, such as Twemoji or OpenMoji. WM Keyboard has no emoji font of its own. It uses the font that you select here.</string>
+    <string name="langemoji_emoji_hide_unrenderable_info">Older devices, and some brands, have an emoji font that is older than the newest emoji. Those emoji then show as an empty \"tofu\" box. This setting hides every emoji that the emoji font of your device cannot draw. To see them all, use \"Get the newest emoji\" above, which downloads the current Noto Color Emoji. The \"Google\" option often has an older version. You can also install a complete emoji font from Addons, such as Twemoji or OpenMoji. WM Keyboard has no emoji font of its own. It uses the font that you select here.</string>
     <!-- Second paragraph, added only when the user selected an emoji font of their own. -->
     <string name="langemoji_emoji_hide_unrenderable_own_font_info">The font that you selected above covers only the emoji that it was built with. Usually only the newest release has the newest emoji. The keyboard does not hide those emoji. It draws each one in the emoji font of your device, so you still see it, but in another style.</string>
+    <!-- Warning at the top of the Emoji screen, shown only while "Hide emoji
+         that your device cannot show" is off and the emoji font in use is
+         missing some of the keyboard's emoji. -->
+    <plurals name="langemoji_emoji_missing_banner">
+        <item quantity="one">%1$d emoji shows as an empty box on the keyboard. Your emoji font is older than the newest emoji.</item>
+        <item quantity="other">%1$d emoji show as empty boxes on the keyboard. Your emoji font is older than the newest emoji.</item>
+    </plurals>
+    <!-- Selects the Noto Color Emoji that is already downloaded. -->
+    <string name="langemoji_emoji_missing_use_noto_action">Use Noto Color Emoji</string>
+    <!-- Downloads the current Noto Color Emoji and selects it. -->
+    <string name="langemoji_emoji_missing_download_action">Get the newest emoji</string>
+    <!-- Turns on "Hide emoji that your device cannot show". -->
+    <string name="langemoji_emoji_missing_hide_action">Hide them</string>
     <string name="langemoji_emoji_unicode_search_title">Find any character by its Unicode name</string>
     <string name="langemoji_emoji_unicode_search_subtitle">The emoji search also finds symbols, letters and marks by the words of their name</string>
     <string name="langemoji_emoji_unicode_search_info">Type the words of a character\'s Unicode name in the emoji search and it appears after the emoji: em dash, copyright sign, greek small letter lambda, latin small letter a with ogonek. Tens of thousands of letters, marks and symbols are covered, music and maths symbols and old scripts included. Chinese, Japanese and Korean ideographs are not, because their names are only numbers. Tapping one inserts it. This setting is off by default.</string>

@@ -89,6 +89,8 @@ internal fun EmojiSettings(
     val barMode = settings.watch { it.emojiBarMode }
     val emojiRowOverridden = settings.watch { it.modesOverridingRow(BarRow.EMOJI).isNotEmpty() }
     val extensions = LocalExtensions.current
+    // Before anything else: while it shows, the keyboard is drawing boxes.
+    MissingEmojiBanner(repository, settings)
     SettingsGroup(stringResource(R.string.langemoji_emoji_access_title)) {
         item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
