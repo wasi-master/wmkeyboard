@@ -16032,6 +16032,16 @@ open class WMKeyboardService : InputMethodService() {
                 ic.getTextBeforeCursor(1, 0)?.lastOrNull()?.let(WordContext::isWordChar) == true ||
                 ic.getTextAfterCursor(1, 0)?.firstOrNull()?.let(::continuesWordAhead) == true
         }
+        // A cluster-shaping layout's letter going straight into the field: its
+        // echo is a word being typed, see [clusterKeyTyped].
+        if (state.composer.isClusterShaping && !composingMode && composing.isEmpty() && !overSelection &&
+            text.isNotEmpty() && text.all { isComposingWordChar(it) }
+        ) {
+            clusterKeyTyped = text
+            clusterKeyTypedAt = SystemClock.uptimeMillis()
+        } else {
+            clusterKeyTyped = null
+        }
         if (isWordChar && composingMode && !elisionBreak && duetTap(text)) {
             consumeShift()
         } else if (isWordChar && composingMode && !elisionBreak) {
@@ -16917,6 +16927,19 @@ open class WMKeyboardService : InputMethodService() {
     private class VowelGlide(val key: String, val text: String, val at: Long)
 
     private var lastVowelGlide: VowelGlide? = null
+
+    /**
+     * What a cluster-shaping layout's last key typed straight into the field,
+     * with no word composing, and when (#1309). Its echo is the user writing a
+     * word, not a caret landing on one, so [restartSuggestionsAtCursor] takes
+     * the letters behind the caret as the word even when another word touches
+     * it ahead: on Hindi or Marathi a word typed in front of an existing one
+     * otherwise got the strip of the two run together, where English, which
+     * composes from the first letter, only ever looks at what was typed.
+     * Spent by the next caret update whatever it is.
+     */
+    private var clusterKeyTyped: String? = null
+    private var clusterKeyTypedAt = 0L
 
     /**
      * Fixed Bengali layouts (Probhat, Jatiya): a vowel-sign key yields the
@@ -19331,6 +19354,10 @@ open class WMKeyboardService : InputMethodService() {
      * the composing region.
      */
     private fun restartSuggestionsAtCursor(ic: InputConnection, newSelStart: Int) {
+        // The letter a cluster-shaping layout just typed, if this is its echo
+        // (#1309); spent here whatever this update turns out to be.
+        val typedKey = clusterKeyTyped?.takeIf { SystemClock.uptimeMillis() - clusterKeyTypedAt < CLUSTER_KEY_ECHO_MS }
+        clusterKeyTyped = null
         // The caret went somewhere: the next word is not the one No space
         // meant to join on (#851). The echo of No space's own edit, landing
         // where it left the caret, is not that (#867).
@@ -19497,10 +19524,16 @@ open class WMKeyboardService : InputMethodService() {
             // character, so the wider window costs nothing extra (one read
             // either way).
             val after = ic.getTextAfterCursor(CARET_WORD_AHEAD, 0)
+            // The echo of a letter a cluster-shaping layout typed in front of a
+            // word that touches the caret ahead (#1309): the user is writing a
+            // word there, as English composes one from its first letter, so
+            // the word is what is behind the caret and the one ahead is left
+            // out of it, for the resume and the read-only strip alike.
+            val typingInFront = typedKey != null && before?.endsWith(typedKey) == true
             // The word the caret is parked at the end of, or null — see
             // [resumableWordAt], which is also where "what counts as part of a
             // word" lives now that the answer is not "a letter".
-            val word = resumableWordAt(before, after)
+            val word = resumableWordAt(before, after.takeUnless { typingInFront })
             if (word != null && before != null) {
                 // Mark the existing word as composing without disturbing it,
                 // then mirror it into the buffer so a keystroke extends it
@@ -19561,7 +19594,7 @@ open class WMKeyboardService : InputMethodService() {
             // moved past, a spelling the composer cannot read back. Read-only
             // too, with nothing ahead of the caret, so `word| to` still puts
             // the word on the strip instead of predicting past it (#413).
-            val touching = caretWordAt(before, after) ?: word?.let { it to "" }
+            val touching = caretWordAt(before, after).takeUnless { typingInFront } ?: word?.let { it to "" }
             if (touching != null) {
                 val (head, tail) = touching
                 // Context comes from the text ahead of the word, not from the
@@ -65145,6 +65178,13 @@ open class WMKeyboardService : InputMethodService() {
          * this is a long-word budget rather than a context window.
          */
         private const val CARET_WORD_AHEAD = 48
+
+        /**
+         * How long after a cluster-shaping layout's key its caret echo still
+         * counts as that key's ([clusterKeyTyped], #1309). An echo is back in
+         * a few frames; a caret update later than this is the user's own move.
+         */
+        private const val CLUSTER_KEY_ECHO_MS = 1_000L
 
         /** See [typedCaretAt]: how far one keystroke's echo can move the caret on, and how late it can come. */
         private const val TYPED_CARET_STEP_MAX = 4
