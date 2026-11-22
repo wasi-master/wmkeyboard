@@ -1207,6 +1207,9 @@
     <string name="ime_clip_reorder">Reorder</string>
     <!-- #970: a held clip's button that puts it first in its group without pasting it. -->
     <string name="ime_clip_move_top">Move to top</string>
+    <!-- #612: a held clip's button that keeps its whole text on its card, and the one that takes it back to a preview. -->
+    <string name="ime_clip_expand">Show it all on the card</string>
+    <string name="ime_clip_collapse">Show less on the card</string>
     <!-- #1354: what stands where a clip was deleted until the clipboard closes. -->
     <string name="ime_clip_deleted_slot">Deleted</string>
     <!-- #612: the round buttons over the clipboard history. -->

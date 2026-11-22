@@ -102,6 +102,13 @@ data class ClipItem(
      * Kept as typed, without a leading `#`, each one at most once.
      */
     val tags: List<String> = emptyList(),
+    /**
+     * The user asked for this clip's whole text on its card (#612), from its
+     * hold popup, rather than the few lines the preview setting gives every
+     * clip. Kept with the clip, so it stays open across panel opens and
+     * restarts until it is asked back.
+     */
+    val expanded: Boolean = false,
 )
 
 /**
@@ -795,6 +802,18 @@ class ClipboardStore(
         val index = items.indexOfFirst { it.id == id }
         if (index < 0 || items[index].tags == tags) return false
         items[index] = items[index].copy(tags = tags)
+        return true
+    }
+
+    /**
+     * Shows a clip's whole text on its card, or its preview again (#612; see
+     * [ClipItem.expanded]). Returns whether there was such a clip and it changed.
+     */
+    @Synchronized
+    fun setExpanded(id: Long, expanded: Boolean): Boolean {
+        val index = items.indexOfFirst { it.id == id }
+        if (index < 0 || items[index].expanded == expanded) return false
+        items[index] = items[index].copy(expanded = expanded)
         return true
     }
 

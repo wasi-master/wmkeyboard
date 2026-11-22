@@ -1784,6 +1784,7 @@ private fun clipHoldActionLabels(): Map<ClipHoldAction, String> = ClipHoldAction
     stringResource(
         when (it) {
             ClipHoldAction.DETAILS -> ImeR.string.ime_clip_details_desc
+            ClipHoldAction.EXPAND -> ImeR.string.ime_clip_expand
             ClipHoldAction.PASTE_NEXT -> ImeR.string.ime_clip_paste_next
             ClipHoldAction.COLLECT -> ImeR.string.ime_clip_collect
             ClipHoldAction.SEND_TO_BOARD -> ImeR.string.ime_clip_send_to_board

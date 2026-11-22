@@ -8758,6 +8758,9 @@ enum class ClipCardShortcut {
 enum class ClipHoldAction {
     DETAILS,
 
+    /** The clip's whole text on its card, kept that way, or its preview again (#612). */
+    EXPAND,
+
     /** What pastes next, without moving the clip in the history (#1178). */
     PASTE_NEXT,
 

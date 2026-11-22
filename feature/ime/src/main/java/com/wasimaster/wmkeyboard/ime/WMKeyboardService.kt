@@ -60882,6 +60882,7 @@ open class WMKeyboardService : InputMethodService() {
         onPatternRemove = ::onClipboardPatternRemove,
         onPatternUse = ::onClipboardPatternUse,
         onMoveTop = ::onClipboardMoveTop,
+        onExpand = ::onClipboardExpand,
         onTagsReorder = ::onClipTagsReorder,
         onTagOrder = ::onClipTagOrder,
         onSendToBoard = { item ->
@@ -61898,6 +61899,18 @@ open class WMKeyboardService : InputMethodService() {
         if (!isClipboardAccessible()) return
         vibrate()
         onClipboardMove(item, 0)
+    }
+
+    /**
+     * A clip's whole text kept on its card, or its preview back (#612), from
+     * its hold popup. Saved with the clip, so it stays that way.
+     */
+    fun onClipboardExpand(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem, expanded: Boolean) {
+        if (!isClipboardAccessible()) return
+        if (!clipboardStore.setExpanded(item.id, expanded)) return
+        vibrate()
+        saveClipboardSoon()
+        _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
     }
 
     /** A clip's tags dragged into a new order (#612). */

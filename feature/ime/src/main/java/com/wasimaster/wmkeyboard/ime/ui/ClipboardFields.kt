@@ -91,6 +91,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.GridView
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PushPin
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewAgenda
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandMore
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.UnfoldLess
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.UnfoldMore
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardArrowUp
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowForward
 import androidx.compose.material3.Icon
@@ -303,6 +305,8 @@ data class ClipboardPanelActions(
     val onPatternUse: (String) -> Unit = {},
     /** Move to top, from a clip's hold (#970): first in its group, nothing pasted. */
     val onMoveTop: (ClipItem) -> Unit = {},
+    /** A clip's whole text kept on its card (true), or its preview again (#612). */
+    val onExpand: (ClipItem, Boolean) -> Unit = { _, _ -> },
     /** A clip's tags dragged into a new order on its card (#612). */
     val onTagsReorder: (ClipItem, List<String>) -> Unit = { _, _ -> },
     /** The tag chips dragged into a new order, in the filter row or under the tags editor (#612). */
@@ -3180,6 +3184,10 @@ private fun ClipHoldPopup(
             plainLinks = hold.plainLinks,
             actions = ClipTextActions(
                 onInfo = { fullText = false },
+                // The whole text on the card from now on, or the preview again (#612).
+                onExpand = if (hold.picked == null) {
+                    { onDismiss(); callbacks.actions.onExpand(item, !item.expanded) }
+                } else null,
                 onPasteNext = pasteNext,
                 onCollect = collect,
                 onSendToBoard = sendToBoard,
@@ -3277,6 +3285,8 @@ private fun ClipHoldPopup(
 @Immutable
 private class ClipTextActions(
     val onInfo: () -> Unit,
+    /** The clip's whole text on its card, or its preview again (#612). */
+    val onExpand: (() -> Unit)? = null,
     /** What pastes next, the history left as it is (#1178). */
     val onPasteNext: (() -> Unit)? = null,
     /** New copies go into this clip (#1312). */
@@ -3493,6 +3503,14 @@ private fun ClipTextActionButton(action: ClipHoldAction, item: ClipItem, actions
     when (action) {
         ClipHoldAction.DETAILS ->
             ClipTextActionIcon(Icons.Outlined.Info, stringResource(R.string.ime_clip_details_desc), tint, actions.onInfo)
+        ClipHoldAction.EXPAND -> actions.onExpand?.let {
+            ClipTextActionIcon(
+                if (item.expanded) Icons.Outlined.UnfoldLess else Icons.Outlined.UnfoldMore,
+                stringResource(if (item.expanded) R.string.ime_clip_collapse else R.string.ime_clip_expand),
+                tint,
+                it,
+            )
+        }
         ClipHoldAction.PASTE_NEXT -> actions.onPasteNext?.let {
             ClipTextActionIcon(Icons.Outlined.ContentPaste, stringResource(R.string.ime_clip_paste_next), tint, it)
         }
@@ -3900,7 +3918,7 @@ private fun ClipCard(
                 .padding(if (item.kind == ClipKind.IMAGE || item.kind == ClipKind.VIDEO) 5.dp else 10.dp),
         ) {
             if (showInfo) ClipHoldPopup(item, hold, callbacks) { showInfo = false }
-            ClipBody(item, maxLines = lines, hold = hold)
+            ClipBody(item, maxLines = clipShownLines(item, lines), hold = hold)
             if (item.tags.isNotEmpty()) ClipTagsLine(item, hold, callbacks, Modifier.padding(top = 4.dp))
             val icons = hold.icons && hold.entities.isNotEmpty()
             val tag = item.kind == ClipKind.HTML && hold.typeTag
@@ -3940,6 +3958,16 @@ private fun ClipCard(
         hold.picked?.let { ClipPickMark(it, Modifier.align(Alignment.TopEnd).padding(5.dp)) }
     }
 }
+
+/**
+ * The lines [item]'s card or row shows: [lines], the preview setting's, or
+ * its whole text when the user asked for that from its hold popup (#612).
+ * Whole still means up to [CLIP_PREVIEW_CHAR_CAP] characters, cut before
+ * layout as every preview is; the hold popup reads on past that. Not for a
+ * secret's text, which is masked whatever the clip asks.
+ */
+private fun clipShownLines(item: ClipItem, lines: Int): Int =
+    if (item.expanded && item.kind.isTextual && !item.sensitive) Int.MAX_VALUE else lines
 
 /** The source app's icon, small, at the head of a card's or a row's footer (#970). */
 @Composable
@@ -4143,7 +4171,7 @@ private fun ClipRow(
             }
         } else {
             Column(modifier = Modifier.weight(1f)) {
-                ClipBody(item, maxLines = lines, hold = hold)
+                ClipBody(item, maxLines = clipShownLines(item, lines), hold = hold)
                 if (item.tags.isNotEmpty()) ClipTagsLine(item, hold, callbacks, Modifier.padding(top = 2.dp))
                 if (item.kind == ClipKind.HTML && hold.typeTag) {
                     Text(
