@@ -1334,16 +1334,18 @@
 
     <string name="typing_double_space_title">Double space</string>
     <string name="typing_double_space_subtitle">What two quick presses of space type</string>
-    <string name="typing_double_space_info">Press space two times quickly at the end of a word. Full stop replaces the first space with a full stop, so you can end a sentence with no change to the symbols layout. Tab replaces it with a tab character, which helps with indents and forms. Two spaces leaves both spaces as they are.</string>
+    <string name="typing_double_space_info">Press space two times quickly at the end of a word. Full stop replaces the first space with a full stop, so you can end a sentence with no change to the symbols layout. Tab replaces it with a tab character, which helps with indents and forms. Undo types no second space and undoes your last change instead, as the Undo tool does; it works in apps that support undo. Two spaces leaves both spaces as they are.</string>
     <string name="typing_double_space_none_label">Two spaces</string>
     <string name="typing_double_space_period_label">Full stop</string>
     <string name="typing_double_space_tab_label">Tab</string>
     <string name="typing_double_space_none_desc">Two presses type two spaces</string>
     <string name="typing_double_space_period_desc">The first space becomes a full stop</string>
     <string name="typing_double_space_tab_desc">The first space becomes a tab character</string>
+    <string name="typing_double_space_undo_label">Undo</string>
+    <string name="typing_double_space_undo_desc">The second space undoes your last change</string>
     <string name="typing_double_space_window_title">Double space speed</string>
     <string name="typing_double_space_window_subtitle">How quickly the two spaces have to follow each other</string>
-    <string name="typing_double_space_window_info">Two spaces closer together than this count as a double space and become a full stop or a tab. Raise it if you type slowly and never get the full stop. Lower it if you get full stops you did not mean. This setting is 400 ms by default.</string>
+    <string name="typing_double_space_window_info">Two spaces closer together than this count as a double space and become a full stop, a tab or an undo. Raise it if you type slowly and never get the double space action. Lower it if you get it when you meant two spaces. This setting is 400 ms by default.</string>
 
     <string name="typing_smart_date_formats_title">Date chip formats</string>
     <!-- Supporting text under the field; the patterns are Java date patterns and stay as they are. -->

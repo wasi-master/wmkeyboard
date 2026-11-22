@@ -3358,6 +3358,11 @@ data class AutoTextSettings(
     /** Double-tapping space inserts a tab character (wins over the period). */
     val doubleSpaceTab: Boolean = false,
     /**
+     * Double-tapping space sends Undo, as the toolbar's Undo does, in place
+     * of a second space (#1414). Wins over the tab and the period.
+     */
+    val doubleSpaceUndo: Boolean = false,
+    /**
      * Type a space by itself after sentence and clause punctuation, so
      * "hello,world" becomes "hello, world" without reaching for the spacebar.
      *
@@ -12882,6 +12887,7 @@ class SettingsRepository(private val context: Context) {
         private val AUTO_CAPITALIZE_ANY_FIELD = booleanPreferencesKey("auto_capitalize_any_field")
         private val DOUBLE_SPACE_PERIOD = booleanPreferencesKey("double_space_period")
         private val DOUBLE_SPACE_TAB = booleanPreferencesKey("double_space_tab")
+        private val DOUBLE_SPACE_UNDO = booleanPreferencesKey("double_space_undo")
         private val AUTO_SPACE_AFTER_PUNCTUATION =
             booleanPreferencesKey("auto_space_after_punctuation")
         private val AUTO_SPACE_PUNCTUATION_MARKS = stringPreferencesKey("auto_space_punctuation_marks")
@@ -15339,6 +15345,7 @@ class SettingsRepository(private val context: Context) {
             capitalizeAnyField = p[AUTO_CAPITALIZE_ANY_FIELD] ?: defaults.autoText.capitalizeAnyField,
             doubleSpacePeriod = p[DOUBLE_SPACE_PERIOD] ?: defaults.autoText.doubleSpacePeriod,
             doubleSpaceTab = p[DOUBLE_SPACE_TAB] ?: defaults.autoText.doubleSpaceTab,
+            doubleSpaceUndo = p[DOUBLE_SPACE_UNDO] ?: defaults.autoText.doubleSpaceUndo,
             spaceAfterPunctuation = p[AUTO_SPACE_AFTER_PUNCTUATION]
                 ?: defaults.autoText.spaceAfterPunctuation,
             spaceAfterPunctuationMarks = p[AUTO_SPACE_PUNCTUATION_MARKS]?.takeIf { it.isNotBlank() }
@@ -23377,6 +23384,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setDoubleSpaceTab(value: Boolean) =
         editPrefs { it[DOUBLE_SPACE_TAB] = value }
+
+    suspend fun setDoubleSpaceUndo(value: Boolean) =
+        editPrefs { it[DOUBLE_SPACE_UNDO] = value }
 
     suspend fun setAutoSpaceAfterPunctuation(value: Boolean) =
         editPrefs { it[AUTO_SPACE_AFTER_PUNCTUATION] = value }

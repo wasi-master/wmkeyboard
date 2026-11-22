@@ -218,7 +218,7 @@ Tapping the chip is itself evidence that the gate is too tight for that pair, so
 
 Two related rules ride along with autocorrect and share its "sentence in progress" bookkeeping. Each has its own toggle:
 
-- **Double space inserts a period.** Type two spaces in a row within a fraction of a second and the first space becomes `. `. Deleting a space and retyping it "undoes" nothing here; a following [Shift](#shift-cancels-a-pending-auto-space) is what cancels it. A separate, off-by-default setting can make a double space insert a tab instead, which takes priority over the period rule when both are on.
+- **Double space inserts a period.** Type two spaces in a row within a fraction of a second and the first space becomes `. `. Deleting a space and retyping it "undoes" nothing here; a following [Shift](#shift-cancels-a-pending-auto-space) is what cancels it. The same choice can make a double space insert a tab instead, or undo your last change the way the toolbar's Undo tool does.
 - **Punctuation auto-inserts the space after it.** Off by default. When it's on, a sentence-ending or clause mark inserts a trailing space automatically: period, exclamation point, question mark, comma, semicolon, colon, and the Bengali `।`. You don't need a separate spacebar tap before the next word. A mark typed straight after a digit is part of the number and gets no space, so `5,000`, `3.14` and `5:00` stay whole. A full stop inside an email address gets none either, so `test@pm.me` doesn't come out as `test@pm. Me`; a comma or question mark after the address still does. A run of marks like "..." or "?!" isn't pulled apart into "... !", because the space from the previous mark is taken back before the next one lands. A closing mark does the same thing: type `"hi.` and the closing quote hugs the full stop rather than landing a space past it. This is also gated off in password and structured fields, same as autocorrect itself.
 
 ### A space that is already there
@@ -388,8 +388,8 @@ Android has a spell checker of its own, separate from the keyboard: it draws the
 | Detection strength | Balanced (Gentle / Balanced / Aggressive) | Detect the language you type on |
 | Fix number row slips | On | the number row is shown |
 | Fix missing apostrophes | On | always |
-| Double space | Full stop (Two spaces / Full stop / Tab) | always |
-| Double space speed | 400 ms (range 50&ndash;800 ms) | Double space is Full stop or Tab |
+| Double space | Full stop (Two spaces / Full stop / Tab / Undo) | always |
+| Double space speed | 400 ms (range 50&ndash;800 ms) | Double space is Full stop, Tab or Undo |
 | Automatic space after punctuation | Off | always |
 | Remove a space before punctuation | On | always |
 | Marks that pull the space out | `.,?!;:।،؛؟۔` | Remove a space before punctuation on |

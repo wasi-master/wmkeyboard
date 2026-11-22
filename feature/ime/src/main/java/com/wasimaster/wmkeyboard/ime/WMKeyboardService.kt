@@ -20637,6 +20637,18 @@ open class WMKeyboardService : InputMethodService() {
             lastSpaceTime = 0
             return
         }
+        // Double-tap space is Undo (#1414): the second press types nothing and
+        // sends what the toolbar's Undo sends. The first space stays for the
+        // editor's own undo to take with the rest of the typing; deleting it
+        // here first would make that deletion the step Ctrl+Z reverts.
+        if (!committed && state.settings.autoText.doubleSpaceUndo && now - lastSpaceTime < doubleSpaceWindow) {
+            val before = ic.getTextBeforeCursor(1, 0)?.toString().orEmpty()
+            if (before == " ") {
+                lastSpaceTime = 0
+                onUndoRedo(redo = false)
+                return
+            }
+        }
         // Double-tap space inserts a tab. Checked before the period rule so
         // enabling it wins, and unlike the period it works anywhere a space
         // was just typed (indenting at a line start has no word before it).

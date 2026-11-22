@@ -153,6 +153,7 @@ import kotlinx.coroutines.launch
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Block
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FiberManualRecord
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardTab
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Undo
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /** One spacebar-swipe slot (quick or hold+swipe): nothing, language, cursor, … or another action. */
@@ -768,7 +769,12 @@ internal fun TypingWritingSettings(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     // What decides which rows the groups hold; each row reads its own value.
-    val doubleSpaceOn = settings.watch { it.autoText.doubleSpacePeriod || it.autoText.doubleSpaceTab }
+    val doubleSpaceOn = settings.watch {
+        it.autoText.doubleSpacePeriod || it.autoText.doubleSpaceTab || it.autoText.doubleSpaceUndo
+    }
+    // Undo on a double space is the choice that most needs the speed row: two
+    // spaces typed on purpose must stay slower than it (#1414).
+    val doubleSpaceUndoOn = settings.watch { it.autoText.doubleSpaceUndo }
     val autoSpaceOn = settings.watch { it.autoText.spaceAfterPunctuation }
     val hugOn = settings.watch { it.autoText.hugPunctuation }
     val closeBracketsOn = settings.watch { it.textEditing.autoCloseBrackets }
@@ -836,6 +842,7 @@ internal fun TypingWritingSettings(
         item {
             val doubleSpace = settings.watch {
                 when {
+                    it.autoText.doubleSpaceUndo -> DoubleSpaceAction.UNDO
                     it.autoText.doubleSpaceTab -> DoubleSpaceAction.TAB
                     it.autoText.doubleSpacePeriod -> DoubleSpaceAction.PERIOD
                     else -> DoubleSpaceAction.NONE
@@ -853,10 +860,14 @@ internal fun TypingWritingSettings(
                 scope.launch {
                     repository.setDoubleSpacePeriod(action == DoubleSpaceAction.PERIOD)
                     repository.setDoubleSpaceTab(action == DoubleSpaceAction.TAB)
+                    repository.setDoubleSpaceUndo(action == DoubleSpaceAction.UNDO)
                 }
             }
         }
-        item(visible = doubleSpaceOn, level = SettingLevel.ADVANCED) {
+        item(
+            visible = doubleSpaceOn,
+            level = if (doubleSpaceUndoOn) SettingLevel.BASIC else SettingLevel.ADVANCED,
+        ) {
             SliderSetting(
                 R.string.typing_double_space_window_title,
                 subtitle = stringResource(R.string.typing_double_space_window_subtitle),
@@ -4341,6 +4352,11 @@ private enum class DoubleSpaceAction(
         R.string.typing_double_space_tab_desc,
         Icons.Outlined.KeyboardTab,
     ),
+    UNDO(
+        R.string.typing_double_space_undo_label,
+        R.string.typing_double_space_undo_desc,
+        Icons.AutoMirrored.Outlined.Undo,
+    ),
 }
 
 /**
@@ -4381,6 +4397,7 @@ private enum class TrailStyle(
 private val DefaultTrailStyle = TrailStyle.of(SettingsDefaults.gesture)
 
 private val DefaultDoubleSpace = when {
+    SettingsDefaults.autoText.doubleSpaceUndo -> DoubleSpaceAction.UNDO
     SettingsDefaults.autoText.doubleSpaceTab -> DoubleSpaceAction.TAB
     SettingsDefaults.autoText.doubleSpacePeriod -> DoubleSpaceAction.PERIOD
     else -> DoubleSpaceAction.NONE
