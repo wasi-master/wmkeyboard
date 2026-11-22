@@ -442,7 +442,17 @@ class MainActivity : FragmentActivity() {
                     val stopAtKeyboard = Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM
                     if (stopAtKeyboard) ResizeForKeyboard()
                     val favouritesWanted by showFavourites.collectAsStateWithLifecycle()
-                    Box(if (stopAtKeyboard) Modifier.imePadding() else Modifier) {
+                    // Painted in the page's own colour before the padding, so
+                    // the strip the padding leaves is the page too (#614). Bare,
+                    // it showed the window's AppCompat background, a grey slab
+                    // on a dark theme, wherever the keyboard's reported height
+                    // ran ahead of the keys it drew: while it changed height,
+                    // jumped, or came up over a newly focused field.
+                    Box(
+                        Modifier
+                            .background(MaterialTheme.colorScheme.background)
+                            .then(if (stopAtKeyboard) Modifier.imePadding() else Modifier),
+                    ) {
                         SettingsNavHost(
                             repository = repository,
                             settings = settings,
