@@ -4541,6 +4541,13 @@ private fun TopBar(
     // the words keep the whole strip, centred.
     val swipeTools = (placement == ToolbarPlacement.ON_SWIPE || !state.settings.toolbarBehavior.toolsArrow) &&
         !toolsColumn && placement != ToolbarPlacement.ALWAYS_ROW && state.settings.toolbarBehavior.enabled
+    // With a toolbox button among the strip's own (#970), the swipe up that
+    // brings the tools is that button's alone (#1410): caught anywhere on the
+    // strip it took the swipe up meant for more suggestions whenever the strip
+    // had no words, and a second one closed a tools row over words that were
+    // still showing. Without that button the whole strip keeps it, since it is
+    // then the only way to the tools.
+    val stripButtonSwipes = state.settings.stripToolboxSwipes()
     val toolsSwiped = rememberUpdatedState(onPinnedTools)
     Box(
         Modifier
@@ -4575,7 +4582,7 @@ private fun TopBar(
                     val pagesOpen = rememberUpdatedState(state.panel == PanelMode.CANDIDATES)
                     val hide = rememberUpdatedState(state.settings.toolbarBehavior.swipeDownHide)
                     val toolsUp = rememberUpdatedState(
-                        swipeTools && state.panel == PanelMode.NONE &&
+                        swipeTools && !stripButtonSwipes && state.panel == PanelMode.NONE &&
                             !(if (toolsOwnRow) toolsRowOpen else wantToolbar),
                     )
                     // Swipe down to hide keeps its flick; the toolbar's own
@@ -4584,8 +4591,10 @@ private fun TopBar(
                         swipeTools && !state.settings.toolbarBehavior.swipeDownHide &&
                             (if (toolsOwnRow) toolsRowOpen else toolbarOverride),
                     )
+                    // Over the tools in the strip's place there are no words to
+                    // swipe for, so a swipe up anywhere still puts them away.
                     val toolsUpClose = rememberUpdatedState(
-                        swipeTools && (if (toolsOwnRow) toolsRowOpen else toolbarOverride),
+                        swipeTools && (if (toolsOwnRow) toolsRowOpen && !stripButtonSwipes else toolbarOverride),
                     )
                     Modifier.stripSwipes(
                         pages, more, pagesOpen, hide, toolsUp, toolsDown, toolsUpClose, toolsSwiped,
