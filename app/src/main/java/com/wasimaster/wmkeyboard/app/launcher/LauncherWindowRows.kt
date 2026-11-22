@@ -15,7 +15,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -28,6 +27,10 @@ import com.wasimaster.wmkeyboard.core.shell.ShellAccess
 import com.wasimaster.wmkeyboard.ime.launch.LaunchExecutor
 import com.wasimaster.wmkeyboard.ime.launch.LaunchRoute
 import com.wasimaster.wmkeyboard.ime.launch.RouteStore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 /**
@@ -39,10 +42,9 @@ import kotlinx.coroutines.launch
 @Composable
 internal fun LauncherRouteCheckRow() {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val executor = remember { LaunchExecutor(context) }
-    var running by remember { mutableStateOf(false) }
-    var version by remember { mutableIntStateOf(0) }
+    val executor = remember { LaunchExecutor(context.applicationContext) }
+    val running by RouteCheck.running.collectAsState()
+    val version by RouteCheck.finished.collectAsState()
     val floating = remember(version) { executor.known(LaunchRoute.Kind.FLOATING) }
     val split = remember(version) { executor.known(LaunchRoute.Kind.SPLIT) }
     val subtitle = when {
@@ -55,16 +57,35 @@ internal fun LauncherRouteCheckRow() {
         )
     }
     NavRow(R.string.tooldetail_launcher_check_title, subtitle = subtitle) {
-        if (running) return@NavRow
-        running = true
+        RouteCheck.start(context.applicationContext, executor)
+    }
+}
+
+/**
+ * The check outlives the screen that started it: its split test resizes the
+ * settings app into half the screen, which recreates the activity, and a
+ * check tied to the screen's own scope was cancelled there with its test
+ * window left up.
+ */
+private object RouteCheck {
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    val running = MutableStateFlow(false)
+    val finished = MutableStateFlow(0)
+
+    fun start(context: Context, executor: LaunchExecutor) {
+        if (running.value) return
+        running.value = true
         scope.launch {
-            ShellAccess.init(context)
-            executor.recalibrate(LaunchRoute.Kind.FLOATING, null)
-            executor.recalibrate(LaunchRoute.Kind.SPLIT, context.packageName)
-            running = false
-            version++
-            copy(context, executor.describe())
-            Toast.makeText(context, R.string.tooldetail_launcher_check_copied, Toast.LENGTH_SHORT).show()
+            try {
+                ShellAccess.init(context)
+                executor.recalibrate(LaunchRoute.Kind.FLOATING, null)
+                executor.recalibrate(LaunchRoute.Kind.SPLIT, context.packageName)
+                copy(context, executor.describe())
+                Toast.makeText(context, R.string.tooldetail_launcher_check_copied, Toast.LENGTH_SHORT).show()
+            } finally {
+                running.value = false
+                finished.value++
+            }
         }
     }
 }

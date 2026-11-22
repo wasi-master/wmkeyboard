@@ -25,9 +25,11 @@ import com.wasimaster.wmkeyboard.ime.launch.DeviceTraits.Companion.SDK_16
  * - **Split screen**: launch-adjacent works straight from a keyboard on 12L to
  *   13 before QPR1. From 13 QPR1 `ActivityStarter` drops the flag when no
  *   source activity is given, so the keyboard starts it from its trampoline.
- *   Huawei has its own split modes. The accessibility switch only works where
- *   a skin kept a handler for it (AOSP removed it in 12L), and the shell route
- *   is WM Shell's own `moveToSideStage` command, there from Android 14.
+ *   Huawei has its own split modes. ColorOS wraps a launch-adjacent start in
+ *   a split container around the starting activity, so the trampoline cannot
+ *   split there and the shell route leads. The accessibility switch only works
+ *   where a skin kept a handler for it (AOSP removed it in 12L), and the shell
+ *   route is WM Shell's own `moveToSideStage` command, there from Android 14.
  */
 object LaunchRoutePlanner {
 
@@ -60,8 +62,17 @@ object LaunchRoutePlanner {
 
     fun split(t: DeviceTraits): List<LaunchRoute> = buildList {
         if (!t.splitFramework) return@buildList
+        val shellSplit = t.shell && t.sdk >= SDK_14
         if (t.family == RomFamily.HUAWEI || t.family == RomFamily.HONOR) add(LaunchRoute.SPLIT_HUAWEI)
-        if (t.sdk >= SDK_12L) {
+        // ColorOS turns a launch-adjacent start into its own split container
+        // around the source activity, which is the trampoline: the trampoline
+        // closes, the container goes, and the app is left full screen
+        // (CPH2481, ColorOS 15). It only looked right when the app beside was
+        // the keyboard's own, which is what a check from settings splits with.
+        // The shell's split command is a real split there.
+        if (t.family == RomFamily.COLOROS) {
+            if (shellSplit) add(LaunchRoute.SPLIT_SHELL)
+        } else if (t.sdk >= SDK_12L) {
             if (t.adjacentNeedsSource) {
                 add(LaunchRoute.SPLIT_TRAMPOLINE_ADJ_FIRST)
                 add(LaunchRoute.SPLIT_TRAMPOLINE_PLAIN_FIRST)
@@ -73,7 +84,7 @@ object LaunchRoutePlanner {
         // The switch: below 12L it is AOSP's own; above, only where the skin
         // still lists it among the system actions (or nobody could ask yet).
         if (t.helperOn && (t.sdk < SDK_12L || t.toggleSplitAction != false)) add(LaunchRoute.SPLIT_HELPER)
-        if (t.shell && t.sdk >= SDK_14) add(LaunchRoute.SPLIT_SHELL)
+        if (shellSplit && LaunchRoute.SPLIT_SHELL !in this) add(LaunchRoute.SPLIT_SHELL)
     }
 
     /**

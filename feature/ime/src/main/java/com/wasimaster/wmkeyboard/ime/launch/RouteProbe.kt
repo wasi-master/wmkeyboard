@@ -19,6 +19,8 @@ data class ProbeReport(val width: Int, val height: Int, val screenWidth: Int, va
  * the window really floats or really sits in half the screen. The mode label
  * is never trusted: ColorOS's floating window reports `fullscreen`, and its
  * mode 6 says multi-window while drawing full screen (CPH2481, ColorOS 15).
+ * Calibration on such a phone is only as good as [verdict]: a wrong "no"
+ * stores the phone as having no floating window until the app updates.
  */
 object RouteProbe {
 
@@ -72,7 +74,10 @@ object RouteProbe {
     }
 
     /**
-     * Floating: narrower and shorter than the screen, and not a split half.
+     * Floating: smaller than the screen one way or both, and not a split half.
+     * One way is enough because ColorOS draws its floating window scaled down:
+     * the app keeps the screen's full width and is only shorter (1080×1920 on
+     * a 1080×2400 CPH2481), so "narrower and shorter" turned it down.
      * Split: one side the screen's full length, the other between a fifth and
      * three quarters of it.
      */
@@ -83,7 +88,7 @@ object RouteProbe {
         val half = (w >= FULL && h in HALF_MIN..HALF_MAX) || (h >= FULL && w in HALF_MIN..HALF_MAX)
         return when (kind) {
             LaunchRoute.Kind.SPLIT -> half
-            LaunchRoute.Kind.FLOATING -> !half && w < FLOAT_MAX && h < FLOAT_MAX
+            LaunchRoute.Kind.FLOATING -> !half && (w < FLOAT_MAX || h < FLOAT_MAX)
         }
     }
 }

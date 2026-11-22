@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Bundle
 import com.wasimaster.wmkeyboard.core.shell.ShellAccess
 import com.wasimaster.wmkeyboard.ime.launch.LaunchRoute.Kind
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 
 /**
@@ -176,19 +177,14 @@ class LaunchExecutor(private val context: Context) {
         }
         for (route in candidates) {
             RouteProbe.arm()
-            val launched = when (kind) {
-                Kind.FLOATING -> {
-                    val probe = probeIntent()
-                    if (route == LaunchRoute.FLOAT_SHELL) {
-                        shellFloat(probe, null, traits)
-                    } else {
-                        val options = LaunchOptions.floating(context, route, probe)
-                        options != null && start(probe, options)
-                    }
-                }
-                Kind.SPLIT -> runSplit(route, traits, probeIntent(), other, pair = false, userId = null)
+            val passed = try {
+                probe(kind, route, traits, other) && RouteProbe.await(kind)
+            } catch (e: CancellationException) {
+                // A cancelled check must not leave its test window on screen.
+                RouteProbe.finish()
+                throw e
             }
-            if (launched && RouteProbe.await(kind)) return route
+            if (passed) return route
             RouteProbe.finish()
             // Let the window manager put things back before the next try;
             // Android 16 also locks launch-adjacent for a second after a split.
@@ -196,6 +192,21 @@ class LaunchExecutor(private val context: Context) {
         }
         return null
     }
+
+    /** Launches the test window along [route]; whether anything started. */
+    private suspend fun probe(kind: Kind, route: LaunchRoute, traits: DeviceTraits, other: Intent?): Boolean =
+        when (kind) {
+            Kind.FLOATING -> {
+                val probe = probeIntent()
+                if (route == LaunchRoute.FLOAT_SHELL) {
+                    shellFloat(probe, null, traits)
+                } else {
+                    val options = LaunchOptions.floating(context, route, probe)
+                    options != null && start(probe, options)
+                }
+            }
+            Kind.SPLIT -> runSplit(route, traits, probeIntent(), other, pair = false, userId = null)
+        }
 
     private fun probeIntent(): Intent = Intent(context, RouteProbeActivity::class.java)
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)

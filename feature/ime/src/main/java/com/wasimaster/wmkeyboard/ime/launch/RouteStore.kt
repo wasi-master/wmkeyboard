@@ -2,14 +2,15 @@ package com.wasimaster.wmkeyboard.ime.launch
 
 import android.content.Context
 import android.os.Build
+import com.wasimaster.wmkeyboard.config.BuildConfig
 
 /**
  * The route that passed calibration on this phone, per kind. Device-local
  * plain preferences, never synced: a route is a fact about one build of one
  * skin. Each answer carries the build fingerprint and the [DeviceTraits] parts
- * that change which routes exist (helper, shell, freeform), so an update or a
- * newly granted Shizuku makes the keyboard look again instead of trusting an
- * answer that no longer holds.
+ * that change which routes exist (helper, shell, freeform) and the keyboard's
+ * version, so a system or keyboard update or a newly granted Shizuku makes the
+ * keyboard look again instead of trusting an answer that no longer holds.
  *
  * Three states per kind: a route ([Known.route] set), "none works" (route
  * null, kept so a phone with no floating route does not re-probe every time),
@@ -51,8 +52,13 @@ class RouteStore(context: Context) {
             "freeform=${traits.freeform}"
     }
 
+    /**
+     * The traits that change which routes exist, plus the keyboard's own
+     * version: a newer keyboard may judge a route differently (older ones
+     * turned ColorOS's floating window down), so an update checks again.
+     */
     private fun signature(t: DeviceTraits): String =
-        "h${t.helperOn.bit}s${t.shell.bit}f${t.freeform.bit}d${t.desktopDisplay.bit}"
+        "h${t.helperOn.bit}s${t.shell.bit}f${t.freeform.bit}d${t.desktopDisplay.bit}v${BuildConfig.VERSION_CODE}"
 
     private val Boolean.bit get() = if (this) 1 else 0
 

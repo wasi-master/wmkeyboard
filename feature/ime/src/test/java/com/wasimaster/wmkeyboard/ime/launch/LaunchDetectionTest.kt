@@ -76,10 +76,14 @@ class LaunchDetectionTest {
 
     @Test
     fun `coloros floating window measured on a CPH2481`() {
-        // Task bounds 104,282-1184,2202 on a 1240x2772 screen.
-        val r = ProbeReport(1080, 1920, 1240, 2772)
+        // Task bounds 104,282-1184,2202: the window keeps the screen's full
+        // width and ColorOS scales it down on screen. At the phone's default
+        // 1080x2400 resolution only the height is smaller.
+        val r = ProbeReport(1080, 1920, 1080, 2400)
         assertTrue(RouteProbe.verdict(LaunchRoute.Kind.FLOATING, r))
         assertFalse(RouteProbe.verdict(LaunchRoute.Kind.SPLIT, r))
+        // The same window at the phone's 1240x2772 resolution.
+        assertTrue(RouteProbe.verdict(LaunchRoute.Kind.FLOATING, ProbeReport(1080, 1920, 1240, 2772)))
     }
 
     @Test

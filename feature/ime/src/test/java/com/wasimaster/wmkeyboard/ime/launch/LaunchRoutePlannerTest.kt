@@ -129,6 +129,15 @@ class LaunchRoutePlannerTest {
     }
 
     @Test
+    fun `coloros never splits through the trampoline, the shell leads`() {
+        assertEquals(emptyList<LaunchRoute>(), LaunchRoutePlanner.split(traits(family = RomFamily.COLOROS)))
+        assertEquals(
+            listOf(LaunchRoute.SPLIT_SHELL, LaunchRoute.SPLIT_HELPER),
+            LaunchRoutePlanner.split(traits(family = RomFamily.COLOROS, shell = true, helperOn = true)),
+        )
+    }
+
+    @Test
     fun `shell split only from android 14`() {
         assertTrue(LaunchRoute.SPLIT_SHELL in LaunchRoutePlanner.split(traits(sdk = 34, shell = true)))
         assertFalse(LaunchRoute.SPLIT_SHELL in LaunchRoutePlanner.split(traits(sdk = 33, shell = true)))

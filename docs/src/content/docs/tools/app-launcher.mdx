@@ -95,9 +95,9 @@ Every phone maker opens apps floating or side by side its own way, and Android g
 
 ### How the keyboard finds what works
 
-The first time you open an app floating, or in split screen, the keyboard checks. It opens a small test window of its own, **Checking how this phone opens apps…**, the way it would open your app, and looks at where Android put it: a window smaller than the screen counts as floating, half the screen as split. It goes down the list for your phone until one works, keeps that one, and then opens your app. This takes a second or two, once. After that every floating or split launch goes straight the way that worked.
+The first time you open an app floating, or in split screen, the keyboard checks. It opens a small test window of its own, **Checking how this phone opens apps…**, the way it would open your app, and looks at where Android put it: a window smaller than the screen counts as floating, even when it is only shorter (ColorOS keeps a floating app at full width and shrinks it on screen), and half the screen as split. It goes down the list for your phone until one works, keeps that one, and then opens your app. This takes a second or two, once. After that every floating or split launch goes straight the way that worked.
 
-**Check what works on this phone**, in the options, runs the same check on demand and shows the result, for example "Floating: ColorOS floating window. Split screen: Android split screen". It also copies a line with your phone's model, Android version and result to the clipboard, which helps a lot in a bug report from a phone the keyboard hasn't met yet. The keyboard checks again by itself after a system update, or when you turn on the split screen helper, Shizuku or root, since any of those can change the answer.
+**Check what works on this phone**, in the options, runs the same check on demand and shows the result, for example "Floating: ColorOS floating window. Split screen: Android split screen". It also copies a line with your phone's model, Android version and result to the clipboard, which helps a lot in a bug report from a phone the keyboard hasn't met yet. The keyboard checks again by itself after a system update, after the keyboard itself updates, or when you turn on the split screen helper, Shizuku or root, since any of those can change the answer.
 
 If nothing works, the app opens normally and a short message says so. On a phone where the check found no floating window, the hold menu says "Opens full screen on this phone" under that item.
 
@@ -106,7 +106,7 @@ If nothing works, the app opens normally and a short message says so. On a phone
 | Phone | Floating window | Split screen |
 |---|---|---|
 | Stock Android 12L and later (Pixel, Nothing, Motorola, LineageOS and others) | Only with [Android's freeform windows](#androids-freeform-windows) on, [Shizuku or root](#shizuku-and-root), or the [emulated window](#emulated-window-experimental) | Android's split screen |
-| OPPO, OnePlus, realme (ColorOS, OxygenOS, realme UI) | ColorOS's floating window, the same one the Smart Sidebar opens | Android's split screen, then the [split screen helper](#split-screen-helper) |
+| OPPO, OnePlus, realme (ColorOS, OxygenOS, realme UI) | ColorOS's floating window, the same one the Smart Sidebar opens | Only with [Shizuku or root](#shizuku-and-root), then the [split screen helper](#split-screen-helper) |
 | Samsung (One UI) | Pop-up view | Android's split screen |
 | Xiaomi, Redmi, POCO (MIUI, HyperOS) | Xiaomi's small window, asked for the way its own sidebar does, then sized for it | Android's split screen, then the helper |
 | Huawei and Honor | Their floating window | Their own split screen, then Android's |
@@ -114,7 +114,7 @@ If nothing works, the app opens normally and a short message says so. On a phone
 | Meizu, Nubia and RedMagic | Their own floating window | Android's split screen |
 | Chromebooks, Samsung DeX, tablets in desktop mode | A normal resizable window | Android's split screen |
 
-Android's split screen means one thing on paper and three in practice. On Android 12L and early 13 the keyboard asks for it directly. From Android 13's first quarterly update, Android ignores that request unless it comes from a screen of an app, and a keyboard has none, so the keyboard opens an invisible screen of its own for a split second, which makes the request and closes. Android sometimes needs the two apps opened in the other order, so the check tries both.
+Android's split screen means one thing on paper and three in practice. On Android 12L and early 13 the keyboard asks for it directly. From Android 13's first quarterly update, Android ignores that request unless it comes from a screen of an app, and a keyboard has none, so the keyboard opens an invisible screen of its own for a split second, which makes the request and closes. Android sometimes needs the two apps opened in the other order, so the check tries both. ColorOS is the exception: it builds its own split around that invisible screen, which leaves your app full screen once the screen closes, so on OPPO, OnePlus and realme phones split screen goes through [Shizuku or root](#shizuku-and-root) instead.
 
 ### Split screen helper
 
