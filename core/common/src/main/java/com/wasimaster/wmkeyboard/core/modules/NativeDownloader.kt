@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.modules
 
 import com.wasimaster.wmkeyboard.core.download.DataMirror
+import com.wasimaster.wmkeyboard.core.download.DownloadException
 import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.endpoints.GitForge
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoints
@@ -14,6 +15,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.UnknownHostException
 import kotlin.coroutines.coroutineContext
 
 /**
@@ -94,17 +96,53 @@ object NativeDownloader {
             setRequestProperty("Accept-Encoding", "identity")
         }
 
+    /** Tries per request of a vendor's archive, the same as [FileDownloader]'s per piece plus one. */
+    private const val ATTEMPTS = 4
+
+    /** A server that answered a range request with something other than the range: no retry helps. */
+    private class NoRangeAnswer(message: String) : IOException(message)
+
+    private fun retryable(e: IOException): Boolean = when (e) {
+        is DownloadException.Http -> e.status >= 500
+        is NoRangeAnswer -> false
+        is UnknownHostException -> false
+        else -> true
+    }
+
+    /**
+     * [block] again after a dropped connection or a server error, waiting a
+     * little longer each time. Every request of a vendor's archive goes
+     * through here: one connection lost on a phone's mobile data used to
+     * fail the whole library, and the next try began again from nothing.
+     */
+    private fun <T> retrying(block: () -> T): T {
+        var attempt = 0
+        while (true) {
+            try {
+                return block()
+            } catch (e: IOException) {
+                attempt++
+                if (!retryable(e) || attempt >= ATTEMPTS) throw e
+                Thread.sleep(RETRY_BASE_MS shl attempt)
+            }
+        }
+    }
+
+    private const val RETRY_BASE_MS = 500L
+
     /** A remote file read with HTTP range requests, each one a [NetLog] row. */
     private class HttpRangeSource(private val url: String) : RangeSource {
 
-        override val length: Long by lazy {
+        override val length: Long by lazy { retrying { head() } }
+
+        private fun head(): Long {
             val connection = open(url)
             val call = NetLog.call(NetSource.DOWNLOAD_NATIVE, "HEAD", url, route = NetLog.pathOf(url))
             try {
                 connection.requestMethod = "HEAD"
                 call.status = connection.responseCode
-                if (connection.responseCode !in 200..299) throw IOException("HTTP ${connection.responseCode} for $url")
-                connection.contentLengthLong.takeIf { it > 0 } ?: throw IOException("no length for $url")
+                if (connection.responseCode !in 200..299) throw DownloadException.Http(connection.responseCode)
+                return connection.contentLengthLong.takeIf { it > 0 } ?: throw IOException("no length for $url")
             } catch (t: Throwable) {
                 call.fail(t)
                 throw t
@@ -126,14 +164,68 @@ object NativeDownloader {
                 out
             }
 
-        override fun open(offset: Long, count: Long): InputStream {
+        /**
+         * [count] bytes from [offset] that carry on where they stopped when
+         * the connection drops: the library inside an archive is one long
+         * stream of a few to a dozen megabytes, which a phone moving between
+         * networks rarely finishes in one go.
+         */
+        override fun open(offset: Long, count: Long): InputStream = Resuming(offset, count)
+
+        private inner class Resuming(private val offset: Long, private val count: Long) : InputStream() {
+            private var done = 0L
+            private var current: InputStream? = null
+            private var failures = 0
+
+            override fun read(): Int {
+                val one = ByteArray(1)
+                return if (read(one, 0, 1) < 0) -1 else one[0].toInt() and 0xFF
+            }
+
+            override fun read(b: ByteArray, off: Int, len: Int): Int {
+                if (len == 0) return 0
+                if (done >= count) return -1
+                while (true) {
+                    val n = try {
+                        val stream = current ?: retrying { range(offset + done, count - done) }.also { current = it }
+                        stream.read(b, off, minOf(len.toLong(), count - done).toInt())
+                    } catch (e: IOException) {
+                        drop()
+                        failures++
+                        if (!retryable(e) || failures >= ATTEMPTS) throw e
+                        Thread.sleep(RETRY_BASE_MS shl failures)
+                        continue
+                    }
+                    if (n < 0) {
+                        // The server closed before the range was done: ask for the rest.
+                        drop()
+                        failures++
+                        if (failures >= ATTEMPTS) throw IOException("short read from $url")
+                        continue
+                    }
+                    done += n
+                    return n
+                }
+            }
+
+            private fun drop() {
+                runCatching { current?.close() }
+                current = null
+            }
+
+            override fun close() = drop()
+        }
+
+        private fun range(offset: Long, count: Long): InputStream {
             val connection = open(url)
             val call = NetLog.call(NetSource.DOWNLOAD_NATIVE, "GET", url, route = NetLog.pathOf(url))
             try {
                 connection.setRequestProperty("Range", "bytes=$offset-${offset + count - 1}")
                 call.status = connection.responseCode
-                if (connection.responseCode != HttpURLConnection.HTTP_PARTIAL) {
-                    throw IOException("$url did not answer a range request (HTTP ${connection.responseCode})")
+                when (val status = connection.responseCode) {
+                    HttpURLConnection.HTTP_PARTIAL -> Unit
+                    in 200..299 -> throw NoRangeAnswer("$url did not answer a range request (status $status)")
+                    else -> throw DownloadException.Http(status)
                 }
             } catch (t: Throwable) {
                 call.fail(t)

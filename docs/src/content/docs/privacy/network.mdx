@@ -324,7 +324,11 @@ host as before. The pieces are written into a `.part` file with a small
 `.ranges` file beside it that records how far each piece got, so a download
 that stops, whether you cancelled it, lost the signal or the app was closed,
 asks next time only for the bytes it doesn't have. A server that won't answer
-a request for part of a file is read in one go instead. None of this changes
+a request for part of a file is read in one go instead.
+A feature library read out of another vendor's package on Maven comes as
+one stream of its own; when the connection drops partway, the keyboard asks
+for the rest from where it stopped, trying up to four times, instead of failing the
+library and starting over on the next try (since 0.6.8). None of this changes
 the checks in the table: a file is still measured and hashed whole before it
 is used. Word lists, word-pair data, emoji keywords and the other small packs
 that are unpacked as they arrive still come as one request, because a size
