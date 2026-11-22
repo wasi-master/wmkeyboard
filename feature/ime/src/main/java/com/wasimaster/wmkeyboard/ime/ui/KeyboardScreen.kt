@@ -29031,7 +29031,7 @@ internal fun KeyButton(
                                     .padding(horizontal = 2.dp)
                                     .background(
                                         if (selected) kb.pressedKey else Color.Transparent,
-                                        RoundedCornerShape(kb.popupRadiusDp.dp),
+                                        kb.popupShape(),
                                     )
                                     .padding(horizontal = 10.dp, vertical = 8.dp),
                             ) {
@@ -29742,15 +29742,19 @@ private fun AlternatesPopup(
                             // #504, this popup ignored for the pressed-key
                             // colour. Read in the draw phase, so it moves by
                             // repainting the popup and recomposes nothing.
+                            // In the popup's own shape, as the theme editor's
+                            // preview draws it (#1442): a slanted or arched
+                            // popup's selection was always a rounded rectangle.
                             Modifier.drawBehind {
                                 if (hold.selected.intValue >= 0) {
                                     val at = highlight.value
-                                    drawRoundRect(
-                                        color = kb.popupSelected,
-                                        topLeft = at.topLeft + lean.value,
-                                        size = at.size,
-                                        cornerRadius = CornerRadius(kb.popupRadiusDp.dp.toPx()),
-                                    )
+                                    if (at.width > 0f && at.height > 0f) {
+                                        val outline = kb.popupShape().createOutline(at.size, layoutDirection, this)
+                                        val origin = at.topLeft + lean.value
+                                        translate(origin.x, origin.y) {
+                                            drawOutline(outline, kb.popupSelected)
+                                        }
+                                    }
                                 }
                             }
                         },
