@@ -78,6 +78,8 @@
     <string name="storage_voice_models_subtitle">Speech recognition that runs on your device</string>
     <string name="storage_glide_models_title">Glide models</string>
     <string name="storage_glide_models_subtitle">FUTO Swipe, when it reads your glides</string>
+    <string name="storage_punct_model_title">Smart punctuation model</string>
+    <string name="storage_punct_model_subtitle">What the Smart punctuation key reads your sentence with. Once deleted, download it again from that setting.</string>
     <string name="storage_ai_models_title">AI models</string>
     <string name="storage_ai_models_subtitle">Language models that run on your device</string>
     <string name="storage_stickergen_title">Sticker generator</string>

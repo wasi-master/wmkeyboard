@@ -14,6 +14,7 @@ import com.wasimaster.wmkeyboard.core.helpvisuals.HelpVisualStore
 import com.wasimaster.wmkeyboard.core.addons.AddonStore
 import com.wasimaster.wmkeyboard.core.aihistory.AiHistoryStore
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
+import com.wasimaster.wmkeyboard.core.dictionaries.PunctuationModelDownloadManager
 import com.wasimaster.wmkeyboard.core.dictionaries.WordlistDownloadManager
 import com.wasimaster.wmkeyboard.core.emoji.EmojiDictDownloadManager
 import com.wasimaster.wmkeyboard.core.feedback.SoundStore
@@ -223,6 +224,12 @@ internal class StorageCategory(
     /** Direct children, largest first — right for a directory of packs or models. */
     private fun defaultItems(env: StorageEnv): List<StorageItem> =
         paths(env.roots).flatMap { childrenOf(it) }.map { env.namedItem(it) }
+}
+
+/** The local AI models' directories: models/ less the smart punctuation model's. */
+private fun aiModelDirs(files: File): List<File> {
+    val punct = PunctuationModelDownloadManager.modelFile(files).parentFile
+    return childrenOf(LocalLlmStore.modelsDir(files)).filter { it != punct }
 }
 
 /**
@@ -691,9 +698,12 @@ internal object StorageCategories {
             danger = Danger.REDOWNLOAD,
             manageRoute = "tool/AI",
             note = R.string.storage_note_mapped,
-            pathsOf = { listOf(LocalLlmStore.modelsDir(it.files)) },
+            // Each model directory rather than models/ itself, so the smart
+            // punctuation model under it is counted once, in its own row.
+            pathsOf = { roots -> aiModelDirs(roots.files) },
+            countOf = { roots -> aiModelDirs(roots.files).size },
             itemsOf = { env ->
-                childrenOf(LocalLlmStore.modelsDir(env.roots.files)).map { dir ->
+                aiModelDirs(env.roots.files).map { dir ->
                     StorageItem(
                         id = dir.name,
                         label = LocalLlmCatalog.models.firstOrNull { it.id == dir.name }?.displayName
@@ -709,9 +719,38 @@ internal object StorageCategories {
             },
             clearOf = { env ->
                 env.repository.setAiLocalModelId("")
-                emptyOut(LocalLlmStore.modelsDir(env.roots.files))
+                aiModelDirs(env.roots.files).forEach { it.deleteRecursively() }
                 LocalLlmDownloadManager.refresh(env.roots.files)
             },
+        ),
+        // The smart punctuation key's model (#1513). It lives under models/,
+        // where it used to show as a bare "punct" inside AI models.
+        StorageCategory(
+            id = "punct_model",
+            title = R.string.storage_punct_model_title,
+            subtitle = R.string.storage_punct_model_subtitle,
+            icon = Icons.Outlined.AutoAwesome,
+            accent = Color(0xFF7986CB),
+            group = StorageGroup.DOWNLOADS,
+            danger = Danger.REDOWNLOAD,
+            manageRoute = "typing/writing",
+            pathsOf = { listOfNotNull(PunctuationModelDownloadManager.modelFile(it.files).parentFile) },
+            countOf = { if (PunctuationModelDownloadManager.modelFile(it.files).isFile) 1 else 0 },
+            itemsOf = { env ->
+                val file = PunctuationModelDownloadManager.modelFile(env.roots.files)
+                listOfNotNull(
+                    file.takeIf { it.isFile }?.let {
+                        StorageItem(
+                            id = "punct",
+                            label = env.context.getString(R.string.typing_smart_punctuation_title),
+                            bytes = diskUsage(it, env.roots.blockSize),
+                            files = listOf(it),
+                        )
+                    },
+                )
+            },
+            deleteOne = { env, _ -> PunctuationModelDownloadManager.delete(env.roots.files) },
+            clearOf = { env -> PunctuationModelDownloadManager.delete(env.roots.files) },
         ),
         // Search by meaning: EmbeddingGemma's two packs, and the indexes built
         // from the user's own things with it. The indexes are what make the
