@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
@@ -143,7 +144,8 @@ internal fun EmojiMixSettings(
                 )
             }
         }
-        item {
+        // A source by its address is fetched; the offline build imports packs only.
+        item(visible = !OfflineBuild.isThisBuild, waitsOnSetting = false) {
             NavRow(
                 title = R.string.emojimix_add_title,
                 subtitle = stringResource(R.string.emojimix_add_subtitle),
@@ -253,7 +255,7 @@ internal fun EmojiMixSettings(
                 info = stringResource(R.string.emojimix_cell_size_info),
             ) { scope.launch { repository.setEmojiMixCellSize(it.roundToInt()) } }
         }
-        item(level = SettingLevel.ADVANCED) {
+        item(visible = !OfflineBuild.isThisBuild, level = SettingLevel.ADVANCED, waitsOnSetting = false) {
             ToggleSetting(
                 R.string.emojimix_auto_refresh_title,
                 stringResource(R.string.emojimix_auto_refresh_subtitle),
@@ -262,7 +264,7 @@ internal fun EmojiMixSettings(
                 info = stringResource(R.string.emojimix_auto_refresh_info),
             ) { scope.launch { repository.setEmojiMixAutoRefresh(it) } }
         }
-        item(level = SettingLevel.STANDARD) {
+        item(visible = !OfflineBuild.isThisBuild, level = SettingLevel.STANDARD, waitsOnSetting = false) {
             var size by remember { mutableStateOf<Long?>(null) }
             LaunchedEffect(Unit) { size = withContext(Dispatchers.IO) { store.imagesSize() } }
             NavRow(

@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.BugReport
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Share
 import com.wasimaster.wmkeyboard.app.share.ShareSheetRoute
@@ -1069,7 +1070,12 @@ internal fun SettingsSearchScreen(
                 c.index,
                 instances,
                 runnable = { _, type -> ProviderCatalog.runnable(type, env) },
-                listed = { tool, typeId -> current.providerChain(tool, env).entries.any { it.typeId == typeId } },
+                // The offline build hides an online service's row from its list
+                // ([ProvidersGroup]), so having it listed keeps nothing findable.
+                listed = { tool, typeId ->
+                    !(OfflineBuild.isThisBuild && ProviderCatalog.hiddenOffline(ProviderTypes.of(typeId))) &&
+                        current.providerChain(tool, env).entries.any { it.typeId == typeId }
+                },
             )
         }
     }

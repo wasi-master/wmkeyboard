@@ -2062,7 +2062,8 @@ fun ThemesScreen(
                 // collection of unlicensed third-party artwork from inside the
                 // app), so there is nothing to choose between and the row
                 // opens the file picker.
-                ThemeImportSource.GBOARD -> if (BuildConfig.ENABLE_PLAY_STORE) {
+                // The offline build cannot fetch the collection either.
+                ThemeImportSource.GBOARD -> if (BuildConfig.ENABLE_PLAY_STORE || OfflineBuild.isThisBuild) {
                     gboardLauncher.launch(GboardTheme.IMPORT_MIME_TYPES)
                 } else {
                     gboardChooser = true
@@ -4802,7 +4803,7 @@ private fun ThemeEditorContent(
         }
         // Likewise: somebody who never opens the online picker has no key to
         // manage. The picker's own "add a key" action reaches this screen.
-        item(visible = showServices, level = SettingLevel.STANDARD) {
+        item(visible = showServices && !OfflineBuild.isThisBuild, level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.photo_services_title,
                 subtitle = stringResource(R.string.photo_services_subtitle),

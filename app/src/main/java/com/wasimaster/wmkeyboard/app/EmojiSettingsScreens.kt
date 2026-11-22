@@ -337,8 +337,9 @@ internal fun EmojiSettings(
             )
             // The direct fetch of a current Noto, next to the choice it fixes:
             // "Google" above can only ask the system font provider, which
-            // serves the build it has rather than the newest one.
-            EmojiFontDownloadRow(
+            // serves the build it has rather than the newest one. A download,
+            // so not on the offline build; the file import below stays.
+            if (!OfflineBuild.isThisBuild) EmojiFontDownloadRow(
                 installedId = installedId,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             ) { fontId ->

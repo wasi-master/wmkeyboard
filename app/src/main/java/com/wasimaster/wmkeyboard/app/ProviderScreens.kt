@@ -101,6 +101,7 @@ import com.wasimaster.wmkeyboard.core.providers.AiPresets
 import com.wasimaster.wmkeyboard.core.providers.ChainMode
 import com.wasimaster.wmkeyboard.core.providers.CredentialSpec
 import com.wasimaster.wmkeyboard.core.providers.Need
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.providers.ProviderCatalog
 import com.wasimaster.wmkeyboard.core.providers.ProviderChain
 import com.wasimaster.wmkeyboard.core.providers.ProviderCredential
@@ -170,10 +171,20 @@ internal fun ProvidersGroup(
     /** After every saved change: for a cache that answered for the old setup. */
     onChanged: () -> Unit = {},
 ) {
+    // A list of online services only has nothing the offline build could run.
+    if (OfflineBuild.isThisBuild && !ProviderCatalog.anyOffline(tool)) return
     val scope = rememberCoroutineScope()
     val navigate = LocalSettingsNavigate.current
     val env = rememberProviderEnv(tool)
-    val rows = settings.watch { it.resolveProviders(tool, env, all = true) }
+    // The offline build shows only what runs on the phone: an online
+    // service's row is a switch that could never do anything there. The rows
+    // stay in the stored list, so a move to the standard build finds them.
+    val offlineBuild = OfflineBuild.isThisBuild
+    val rows = settings.watch { s ->
+        s.resolveProviders(tool, env, all = true).let { all ->
+            if (offlineBuild) all.filterNot { ProviderCatalog.hiddenOffline(it.type) } else all
+        }
+    }
     val mode = settings.watch { it.providerMode(tool, env) }
     val stored = settings.watch { tool in it.providers.chains }
     // Only a list that folds two of a kind, with some kind on it twice, has anything to decide here.

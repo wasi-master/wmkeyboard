@@ -91,7 +91,8 @@ internal fun LookupSettingsGroup(repository: SettingsRepository, settings: LiveS
             ) { url -> repository.updateLookup { it.copy(customSite = url) } }
         }
         // People saying the word (#1146): Wiktionary needs no key, Forvo the user's own.
-        item {
+        // Fetched, so not on the offline build.
+        item(visible = !OfflineBuild.isThisBuild, waitsOnSetting = false) {
             ToggleSetting(
                 R.string.lookup_settings_recordings_title,
                 stringResource(R.string.lookup_settings_recordings_subtitle),
@@ -100,7 +101,7 @@ internal fun LookupSettingsGroup(repository: SettingsRepository, settings: LiveS
                 default = SettingsDefaults.lookup.recordings,
             ) { on -> scope.launch { repository.updateLookup { it.copy(recordings = on) } } }
         }
-        if (recordingsOn) {
+        if (recordingsOn && !OfflineBuild.isThisBuild) {
             item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.lookup_settings_keep_recordings_title,

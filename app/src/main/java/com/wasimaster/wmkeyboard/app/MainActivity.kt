@@ -3817,7 +3817,8 @@ internal fun AdvancedSettings(onNavigate: (String) -> Unit) {
                 onNavigate("modes")
             }
         }
-        item {
+        // Add-ons come from repositories on the web, so not in the offline build.
+        item(visible = !OfflineBuild.isThisBuild, waitsOnSetting = false) {
             NavRow(R.string.home_addons_title, stringResource(R.string.home_addons_subtitle), route = "addons") {
                 onNavigate("addons")
             }

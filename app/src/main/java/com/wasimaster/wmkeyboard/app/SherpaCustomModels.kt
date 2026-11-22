@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -87,7 +88,8 @@ internal fun EtCustomModelsGroup(engine: EtEngine, settings: LiveSettings) {
                 problem?.let { CaptionText(stringResource(it), error = true) }
             }
         }
-        item {
+        // The row draws nothing on the offline build; no empty card for it either.
+        item(visible = !OfflineBuild.isThisBuild, waitsOnSetting = false) {
             HuggingFaceImportRow(
                 if (qwen3) HfTarget.QWEN3 else HfTarget.SHERPA,
                 settings,

@@ -456,11 +456,14 @@ internal fun CustomDictionarySettings(
                                 ),
                             )
                         }
-                        Spacer(Modifier.width(8.dp))
-                        OutlinedButton(
-                            enabled = !busy,
-                            onClick = { urlDialogFor = langId },
-                        ) { Text(stringResource(R.string.customdict_from_url_action)) }
+                        // A download, which the offline build cannot make.
+                        if (!OfflineBuild.isThisBuild) {
+                            Spacer(Modifier.width(8.dp))
+                            OutlinedButton(
+                                enabled = !busy,
+                                onClick = { urlDialogFor = langId },
+                            ) { Text(stringResource(R.string.customdict_from_url_action)) }
+                        }
                     }
                 }
             }
@@ -933,11 +936,13 @@ internal fun EmojiKeywordSettings(
                             ),
                         )
                     }
-                    Spacer(Modifier.width(8.dp))
-                    OutlinedButton(
-                        enabled = !busy,
-                        onClick = { urlDialogFor = languageId },
-                    ) { Text(stringResource(R.string.customdict_from_url_action)) }
+                    if (!OfflineBuild.isThisBuild) {
+                        Spacer(Modifier.width(8.dp))
+                        OutlinedButton(
+                            enabled = !busy,
+                            onClick = { urlDialogFor = languageId },
+                        ) { Text(stringResource(R.string.customdict_from_url_action)) }
+                    }
                 }
             }
         }

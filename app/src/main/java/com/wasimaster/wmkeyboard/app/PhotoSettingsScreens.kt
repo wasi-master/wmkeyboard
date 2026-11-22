@@ -358,7 +358,8 @@ fun PhotoRotationScreen(
                         onClick = { onNavigate("datasaver") },
                     )
                 }
-                item(level = SettingLevel.STANDARD) {
+                // Every photo service is online, so the offline build has none.
+                item(visible = !OfflineBuild.isThisBuild, level = SettingLevel.STANDARD, waitsOnSetting = false) {
                     NavRow(
                         title = R.string.photo_services_title,
                         subtitle = stringResource(R.string.photo_services_subtitle),

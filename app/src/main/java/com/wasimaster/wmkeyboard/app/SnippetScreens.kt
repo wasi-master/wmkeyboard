@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -736,7 +737,12 @@ internal fun SnippetSettings(
                 R.string.expander_source_csv to R.string.expander_source_csv_body,
                 R.string.expander_source_gboard to R.string.expander_source_gboard_body,
                 R.string.expander_source_text to R.string.expander_source_text_body,
-                R.string.expander_source_url to R.string.expander_source_url_body,
+                // Last, so dropping it on the offline build moves no index below.
+                *if (OfflineBuild.isThisBuild) {
+                    emptyArray<Pair<Int, Int>>()
+                } else {
+                    arrayOf(R.string.expander_source_url to R.string.expander_source_url_body)
+                },
             ),
             onDismiss = { importSource = false },
             onPick = { index ->

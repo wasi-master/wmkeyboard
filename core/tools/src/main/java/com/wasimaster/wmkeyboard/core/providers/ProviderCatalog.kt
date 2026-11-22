@@ -157,6 +157,22 @@ object ProviderCatalog {
             .filter { runnable(it, env) }
             .filter { tool.allowsAnother(it) || chain.entries.none { entry -> entry.typeId == it.id } }
 
+    /**
+     * Whether the offline build leaves [type] out of every list: a service
+     * reached over the network. Rows of the phone's own engines stay even
+     * when their library or model is missing, since an import brings those.
+     * Plugin rows stay too: whether one connects is the plugin's business.
+     */
+    fun hiddenOffline(type: ProviderType?): Boolean =
+        type != null && !type.onDevice && type !== ProviderTypes.PLUGIN
+
+    /**
+     * Whether [tool]'s list has anything at all for the offline build to
+     * show: a kind that runs on the phone. A list of online services only
+     * (photos, synonyms, exchange rates) is left out with its page.
+     */
+    fun anyOffline(tool: ProviderTool): Boolean = ProviderTypes.serving(tool).any { !hiddenOffline(it) && it !== ProviderTypes.PLUGIN }
+
     /** The plugin providers for [tool] that [chain] does not list yet, the ones whose plugin is off too. */
     fun addablePlugins(tool: ProviderTool, chain: ProviderChain, env: ProviderEnv): List<PluginProviders.Row> =
         if (env.offline) emptyList() else PluginProviders.rows(tool).filter { !chain.has(it.key) }

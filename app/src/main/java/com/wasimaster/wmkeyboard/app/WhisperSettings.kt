@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import android.content.Context
 import android.text.format.Formatter
@@ -347,7 +348,7 @@ internal fun WhisperModelManager(repository: SettingsRepository, settings: LiveS
             )
         }
         // A fine-tuned whisper.cpp model straight from its repository (#1437).
-        if (com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog.cppAvailable) item {
+        if (com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog.cppAvailable) item(visible = !OfflineBuild.isThisBuild, waitsOnSetting = false) {
             HuggingFaceImportRow(HfTarget.WHISPER, settings, onInstalled = { WhisperDownloadManager.refresh(filesDir) })
         }
     }

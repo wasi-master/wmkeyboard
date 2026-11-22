@@ -3926,7 +3926,7 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
  */
 internal val OfflineHiddenRoutes: Set<String> = setOf(
     "datasaver", "network_activity", "provider_credits", "kdeconnect/devices",
-    "send/instances", "send/history", "ai_mcp",
+    "send/instances", "send/history", "ai_mcp", "photos", "addons",
 )
 
 /**
@@ -3939,7 +3939,8 @@ internal val OfflineHiddenRows: Set<Int> = setOf(
     R.string.clipboard_link_previews_title, R.string.location_tiles_label,
     R.string.tooldetail_calendar_weather_title, R.string.invite_mobilizon_url_title, R.string.invite_pretix_url_title,
     R.string.tooldetail_camera_search_engine_title,
-    R.string.lookup_settings_forvo_title,
+    R.string.lookup_settings_forvo_title, R.string.lookup_settings_recordings_title,
+    R.string.lookup_settings_keep_recordings_title,
     R.string.tooldetail_power_drop_network_title,
     R.string.gallery_immich_url_title, R.string.gallery_immich_key_title, R.string.gallery_immich_check_title,
     R.string.gallery_immich_save_data_title,
@@ -3954,8 +3955,9 @@ internal val OfflineHiddenRows: Set<Int> = setOf(
     R.string.notify_downloads_title, R.string.notify_updates_title,
     R.string.update_row_check_title, R.string.update_row_auto_check_title, R.string.update_row_prompts_title,
     R.string.update_row_prereleases_title,
-    R.string.photo_find_title, R.string.home_datasaver_title, R.string.netlog_title, R.string.providers_credits_title,
+    R.string.photo_find_title, R.string.photo_services_title, R.string.home_datasaver_title, R.string.netlog_title, R.string.providers_credits_title,
     R.string.privacy_permissions_internet_title,
+    R.string.emojimix_add_title, R.string.emojimix_auto_refresh_title, R.string.emojimix_clear_cache_title,
 )
 
 /** The index in the language [res] is configured for. */
