@@ -885,7 +885,13 @@ internal fun shelfLayoutIds(lang: LanguageDef, settings: KeyboardSettings, overf
  */
 @Composable
 internal fun rememberOnFirst(ids: List<String>, settings: LiveSettings): List<String> {
-    val onAtOpen = remember { settings.value.enabledLayoutIds.toSet() }
+    // Read once without subscribing: a plain read here would recompose the
+    // caller on every settings change, which is what [LiveSettings.watch] is for.
+    val onAtOpen = remember {
+        androidx.compose.runtime.snapshots.Snapshot.withoutReadObservation {
+            settings.value.enabledLayoutIds.toSet()
+        }
+    }
     return remember(ids, onAtOpen) { ids.sortedBy { it !in onAtOpen } }
 }
 
