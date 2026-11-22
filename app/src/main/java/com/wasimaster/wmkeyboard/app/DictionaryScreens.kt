@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.app
 
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.annotation.StringRes
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -31,6 +32,8 @@ import com.wasimaster.wmkeyboard.app.lock.AppLockTargets
 import com.wasimaster.wmkeyboard.core.clipboard.PhoneFormats
 import com.wasimaster.wmkeyboard.core.clipboard.ClipCopyRule
 import com.wasimaster.wmkeyboard.core.clipboard.ClipCopyRules
+import com.wasimaster.wmkeyboard.core.selection.LinkCleaning
+import com.wasimaster.wmkeyboard.core.selection.LinkRewrite
 import com.wasimaster.wmkeyboard.core.selection.SelectionMacros
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Rule
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
@@ -2013,6 +2016,22 @@ internal fun CopyRuleSettings(repository: SettingsRepository, settings: LiveSett
             )
         }
     }
+    // Link Cleaner's ideas, each a choice (linkcleaner.app): by default only
+    // known trackers come off, because dropping anything else can break a link.
+    val linkRewrites = settings.watch { it.clipboard.linkRewrites }
+    SettingsGroup(stringResource(R.string.clipboard_link_rewrites_group)) {
+        for (row in LinkRewriteRows) {
+            item(key = row.rewrite, level = row.level) {
+                ToggleSetting(
+                    row.title,
+                    stringResource(row.subtitle),
+                    row.rewrite in linkRewrites,
+                    info = row.info?.let { stringResource(it) },
+                    default = row.rewrite in SettingsDefaults.clipboard.linkRewrites,
+                ) { on -> scope.launch { repository.setClipboardLinkRewrite(row.rewrite, on) } }
+            }
+        }
+    }
     if (rules.isEmpty()) {
         CaptionText(stringResource(R.string.copy_rules_empty))
     }
@@ -2090,9 +2109,10 @@ internal fun CopyRuleSettings(repository: SettingsRepository, settings: LiveSett
             .padding(horizontal = 16.dp, vertical = 8.dp),
     )
     if (sample.isNotBlank()) {
-        val kept = remember(sample, rules, cleanLinks, extraTrackers) {
+        val kept = remember(sample, rules, cleanLinks, extraTrackers, linkRewrites) {
             val tidied = ClipCopyRules.apply(sample, rules)
-            if (cleanLinks) SelectionMacros.stripTrackersInText(tidied, extraTrackers) ?: tidied else tidied
+            val links = LinkCleaning(extraTrackers, linkRewrites)
+            if (cleanLinks) SelectionMacros.stripTrackersInText(tidied, links) ?: tidied else tidied
         }
         Text(
             if (kept == sample) {
@@ -2776,3 +2796,33 @@ internal fun habitLabel(habit: CorrectionMemory.Habit): String {
         CorrectionMemory.HabitKind.MISSED_SPACE -> stringResource(R.string.typing_habit_missed_space)
     }
 }
+
+/** One switch of the Cleaning links further group. */
+private class LinkRewriteRow(
+    val rewrite: LinkRewrite,
+    @StringRes val title: Int,
+    @StringRes val subtitle: Int,
+    @StringRes val info: Int? = null,
+    val level: SettingLevel = SettingLevel.STANDARD,
+)
+
+/** The group in screen order: what changes the link least first. */
+private val LinkRewriteRows = listOf(
+    LinkRewriteRow(LinkRewrite.YOUTUBE_SHORT, R.string.clipboard_link_youtube_short_title, R.string.clipboard_link_youtube_short_subtitle),
+    LinkRewriteRow(LinkRewrite.YOUTUBE_SHORTS_AS_VIDEOS, R.string.clipboard_link_shorts_title, R.string.clipboard_link_shorts_subtitle),
+    LinkRewriteRow(LinkRewrite.YOUTUBE_MUSIC_AS_YOUTUBE, R.string.clipboard_link_music_title, R.string.clipboard_link_music_subtitle),
+    LinkRewriteRow(LinkRewrite.TWITTER_EMBEDS, R.string.clipboard_link_twitter_title, R.string.clipboard_link_twitter_subtitle),
+    LinkRewriteRow(LinkRewrite.BLUESKY_EMBEDS, R.string.clipboard_link_bluesky_title, R.string.clipboard_link_bluesky_subtitle),
+    LinkRewriteRow(
+        LinkRewrite.READABLE, R.string.clipboard_link_readable_title, R.string.clipboard_link_readable_subtitle,
+        R.string.clipboard_link_readable_info,
+    ),
+    LinkRewriteRow(
+        LinkRewrite.KNOWN_PAGES, R.string.clipboard_link_known_pages_title, R.string.clipboard_link_known_pages_subtitle,
+        R.string.clipboard_link_known_pages_info,
+    ),
+    LinkRewriteRow(
+        LinkRewrite.STRICT, R.string.clipboard_link_strict_title, R.string.clipboard_link_strict_subtitle,
+        R.string.clipboard_link_strict_info, SettingLevel.ADVANCED,
+    ),
+)

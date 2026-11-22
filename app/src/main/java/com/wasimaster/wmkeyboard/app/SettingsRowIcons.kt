@@ -2551,6 +2551,14 @@ internal object SettingsRowIcons {
         put(R.string.backup_sync_wifi_only_title) { Icons.Outlined.Wifi }
         put(R.string.backup_sync_keep_theme_title) { Icons.Outlined.Palette }
         put(R.string.clipboard_clean_links_title) { Icons.Outlined.LinkOff }
+        put(R.string.clipboard_link_youtube_short_title) { Icons.Outlined.Link }
+        put(R.string.clipboard_link_shorts_title) { Icons.Outlined.Link }
+        put(R.string.clipboard_link_music_title) { Icons.Outlined.Link }
+        put(R.string.clipboard_link_twitter_title) { Icons.Outlined.Link }
+        put(R.string.clipboard_link_bluesky_title) { Icons.Outlined.Link }
+        put(R.string.clipboard_link_readable_title) { Icons.Outlined.Link }
+        put(R.string.clipboard_link_known_pages_title) { Icons.Outlined.LinkOff }
+        put(R.string.clipboard_link_strict_title) { Icons.Outlined.LinkOff }
         put(R.string.kdeconnect_codes_title) { Icons.Outlined.Password }
         put(R.string.privacy_native_downloads_title) { Icons.Outlined.Download }
         put(R.string.privacy_qualcomm_licence_title) { Icons.Outlined.Memory }

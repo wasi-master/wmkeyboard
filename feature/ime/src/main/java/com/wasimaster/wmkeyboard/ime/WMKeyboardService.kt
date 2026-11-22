@@ -4661,7 +4661,7 @@ open class WMKeyboardService : InputMethodService() {
         // one that drops a trailing slash only matches once the query after
         // it is gone, and needed a second copy to.
         val cleaned = if (state.settings.clipboard.cleanCopiedLinks && !flaggedSensitive && !markedSecret && !secureKept) {
-            SelectionMacros.stripTrackersInText(ruled, state.settings.clipboard.extraTrackers)
+            SelectionMacros.stripTrackersInText(ruled, state.settings.clipboard.linkCleaning)
                 ?.let { tidyCopy(it, state.settings.clipboard) }
         } else {
             null
@@ -4808,7 +4808,7 @@ open class WMKeyboardService : InputMethodService() {
         // The links lose their trackers here too (#1215), as a system copy's
         // do in the listener: the keyboard's own Copy and Cut never reach it.
         val cleaned = if (state.settings.clipboard.cleanCopiedLinks && !secureKept && !flagged) {
-            SelectionMacros.stripTrackersInText(ruled, state.settings.clipboard.extraTrackers)
+            SelectionMacros.stripTrackersInText(ruled, state.settings.clipboard.linkCleaning)
                 ?.let { tidyCopy(it, state.settings.clipboard) }
         } else {
             null
@@ -55053,10 +55053,10 @@ open class WMKeyboardService : InputMethodService() {
         // it only when the rewrite would actually change something. On a link
         // whose whole rewrite is dropping trackers, Remove trackers already
         // says that, and two chips doing one thing is one too many.
-        val formatted = if (kind == SelectionKind.TEXT) null else SelectionMacros.format(text, kind, masks)
+        val formatted = if (kind == SelectionKind.TEXT) null else SelectionMacros.format(text, kind, masks, settings.clipboard.linkCleaning)
         val formattable = kind == SelectionKind.TEXT || (
             formatted != null &&
-                !(SelectionMacro.STRIP_TRACKERS in allowed && formatted == SelectionMacros.stripTrackers(text))
+                !(SelectionMacro.STRIP_TRACKERS in allowed && formatted == SelectionMacros.stripTrackers(text, settings.clipboard.linkCleaning))
             )
         // The dearer detectors run only while a macro that needs them is on.
         val content = SelectionMacros.detectContent(
@@ -55065,7 +55065,7 @@ open class WMKeyboardService : InputMethodService() {
                 dateTime = SelectionMacro.CALENDAR in allowed || SelectionMacro.TIME_ZONES in allowed,
                 place = SelectionMacro.MAP in allowed,
                 nowMillis = System.currentTimeMillis(),
-                extraTrackers = settings.clipboard.extraTrackers,
+                links = settings.clipboard.linkCleaning,
             ),
         )
         val aiReady = ToolbarTool.AI in settings.enabledTools && aiInitialState(settings) == AiUi.Idle
@@ -55296,7 +55296,7 @@ open class WMKeyboardService : InputMethodService() {
             SelectionMacro.REPEAT -> openTextRepeatTool(seed = text)
             // The selection stays selected behind the panel, for {selection} to read.
             SelectionMacro.SNIPPET -> onPanelChange(PanelMode.SNIPPETS)
-            SelectionMacro.FORMAT -> SelectionMacros.format(text, offer.kind, masks)?.let(::rewriteSelection)
+            SelectionMacro.FORMAT -> SelectionMacros.format(text, offer.kind, masks, settings.clipboard.linkCleaning)?.let(::rewriteSelection)
             SelectionMacro.CASE_LOWER, SelectionMacro.CASE_TITLE, SelectionMacro.CASE_UPPER, SelectionMacro.CASE_SENTENCE,
             SelectionMacro.CASE_CAMEL, SelectionMacro.CASE_SNAKE, SelectionMacro.CASE_KEBAB, SelectionMacro.CASE_CONSTANT ->
                 SelectionMacros.applyCase(text, macro)?.let(::rewriteSelection)
@@ -55322,7 +55322,7 @@ open class WMKeyboardService : InputMethodService() {
             SelectionMacro.BASE64_DECODE -> TextCodecs.base64Decode(text)?.let(::rewriteSelection)
             SelectionMacro.URL_DECODE -> TextCodecs.urlDecode(text)?.let(::rewriteSelection)
             SelectionMacro.STRIP_TRACKERS ->
-                SelectionMacros.stripTrackersInText(text, _uiState.value.settings.clipboard.extraTrackers)
+                SelectionMacros.stripTrackersInText(text, _uiState.value.settings.clipboard.linkCleaning)
                     ?.let(::rewriteSelection)
             SelectionMacro.CHAT_BOLD -> chatToggle(text, ChatStyle.BOLD)
             SelectionMacro.CHAT_ITALIC -> chatToggle(text, ChatStyle.ITALIC)

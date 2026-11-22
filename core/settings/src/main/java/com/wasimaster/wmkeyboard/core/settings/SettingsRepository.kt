@@ -9218,6 +9218,13 @@ data class ClipboardSettings(
      */
     val extraTrackers: List<String> = emptyList(),
     /**
+     * What Remove trackers and [cleanCopiedLinks] change in a link on top of
+     * its trackers: shorter YouTube links, Shorts as ordinary videos, X and
+     * Bluesky through their preview fixers, every parameter gone, letters
+     * shown as letters. None by default.
+     */
+    val linkRewrites: Set<com.wasimaster.wmkeyboard.core.selection.LinkRewrite> = emptySet(),
+    /**
      * Pictures and videos lose the metadata that identifies them (#1179): the
      * location, the camera or phone, its serial numbers, the owner and the
      * time taken. A picture is cleaned as the history keeps it and again as it
@@ -9267,7 +9274,11 @@ data class ClipboardSettings(
      * the keyboard's own height. See [ClipPanelExtraHeightRange].
      */
     val panelExtraHeightDp: Int = 0,
-)
+) {
+    /** How Remove trackers and [cleanCopiedLinks] clean a link: [extraTrackers] and [linkRewrites]. */
+    val linkCleaning: com.wasimaster.wmkeyboard.core.selection.LinkCleaning
+        get() = com.wasimaster.wmkeyboard.core.selection.LinkCleaning(extraTrackers, linkRewrites)
+}
 
 /** The most recent copies [ClipboardSettings.recentChips] may put on the strip. */
 const val ClipRecentChipsMax: Int = 5
@@ -13644,6 +13655,7 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_TAG_ORDER = stringPreferencesKey("clipboard_tag_order")
         private val CLIPBOARD_CLEAN_COPIED_LINKS = booleanPreferencesKey("clipboard_clean_copied_links")
         private val CLIPBOARD_EXTRA_TRACKERS = stringPreferencesKey("clipboard_extra_trackers")
+        private val CLIPBOARD_LINK_REWRITES = stringPreferencesKey("clipboard_link_rewrites")
         private val CLIPBOARD_STRIP_MEDIA_METADATA = booleanPreferencesKey("clipboard_strip_media_metadata")
         private val CLIPBOARD_REFUSED_IMAGE = stringPreferencesKey("clipboard_refused_image")
         private val CLIPBOARD_COMBINE_JOINER = stringPreferencesKey("clipboard_combine_joiner")
@@ -15942,6 +15954,9 @@ class SettingsRepository(private val context: Context) {
             copyRulesToSystem = p[CLIPBOARD_COPY_RULES_TO_SYSTEM] ?: defaults.clipboard.copyRulesToSystem,
             cleanCopiedLinks = p[CLIPBOARD_CLEAN_COPIED_LINKS] ?: defaults.clipboard.cleanCopiedLinks,
             extraTrackers = p[CLIPBOARD_EXTRA_TRACKERS]?.let(::decodeTrackerNames) ?: defaults.clipboard.extraTrackers,
+            linkRewrites = p[CLIPBOARD_LINK_REWRITES]
+                ?.let { com.wasimaster.wmkeyboard.core.selection.LinkRewrite.decode(it) }
+                ?: defaults.clipboard.linkRewrites,
             stripMediaMetadata = p[CLIPBOARD_STRIP_MEDIA_METADATA] ?: defaults.clipboard.stripMediaMetadata,
             refusedImage = p[CLIPBOARD_REFUSED_IMAGE]
                 ?.let { runCatching { RefusedClipImage.valueOf(it) }.getOrNull() }
@@ -26294,6 +26309,16 @@ class SettingsRepository(private val context: Context) {
     /** The user's own tracking parameters (#665), one name per entry. */
     suspend fun setClipboardExtraTrackers(names: List<String>) =
         editPrefs { it[CLIPBOARD_EXTRA_TRACKERS] = names.joinToString("\n") }
+
+    /** Turns one of the link rewrites Remove trackers makes on or off. */
+    suspend fun setClipboardLinkRewrite(rewrite: com.wasimaster.wmkeyboard.core.selection.LinkRewrite, on: Boolean) =
+        editPrefs { prefs ->
+            val current = prefs[CLIPBOARD_LINK_REWRITES]
+                ?.let { com.wasimaster.wmkeyboard.core.selection.LinkRewrite.decode(it) }
+                ?: SettingsDefaults.clipboard.linkRewrites
+            prefs[CLIPBOARD_LINK_REWRITES] = com.wasimaster.wmkeyboard.core.selection.LinkRewrite
+                .encode(if (on) current + rewrite else current - rewrite)
+        }
 
     /** The rule the panel's Combine last used (#612), offered again next time. */
     suspend fun setClipboardCombineRule(joiner: String, base: String, append: String, template: String = "") =

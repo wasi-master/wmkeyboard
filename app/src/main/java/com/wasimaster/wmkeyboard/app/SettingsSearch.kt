@@ -584,6 +584,14 @@ private fun SearchStrings.clipRulesRows(): List<SettingsSearchEntry> {
         row(R.string.clipboard_plain_letters_title, R.string.clipboard_plain_letters_subtitle),
         row(R.string.clipboard_clean_links_title, R.string.clipboard_clean_links_subtitle, R.string.search_kw_clean_links),
         row(R.string.clipboard_extra_trackers_title, keywords = R.string.search_kw_clean_links),
+        row(R.string.clipboard_link_youtube_short_title, R.string.clipboard_link_youtube_short_subtitle, R.string.search_kw_link_rewrites),
+        row(R.string.clipboard_link_shorts_title, R.string.clipboard_link_shorts_subtitle, R.string.search_kw_link_rewrites),
+        row(R.string.clipboard_link_music_title, R.string.clipboard_link_music_subtitle, R.string.search_kw_link_rewrites),
+        row(R.string.clipboard_link_twitter_title, R.string.clipboard_link_twitter_subtitle, R.string.search_kw_link_rewrites),
+        row(R.string.clipboard_link_bluesky_title, R.string.clipboard_link_bluesky_subtitle, R.string.search_kw_link_rewrites),
+        row(R.string.clipboard_link_readable_title, R.string.clipboard_link_readable_subtitle, R.string.search_kw_link_rewrites),
+        row(R.string.clipboard_link_known_pages_title, R.string.clipboard_link_known_pages_subtitle, R.string.search_kw_clean_links),
+        row(R.string.clipboard_link_strict_title, R.string.clipboard_link_strict_subtitle, R.string.search_kw_clean_links),
     )
 }
 

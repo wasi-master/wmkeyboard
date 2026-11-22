@@ -257,9 +257,9 @@ private fun sheetOffer(context: Context, text: String, settings: KeyboardSetting
     val allowed = prefs.macros.filterTo(mutableSetOf()) { it in REWRITES || it in DOORS }
     // As on the bar: an entity offers Format only when it would change
     // something that Remove trackers does not already say.
-    val formatted = if (kind == SelectionKind.TEXT) null else SelectionMacros.format(text, kind, masks)
+    val formatted = if (kind == SelectionKind.TEXT) null else SelectionMacros.format(text, kind, masks, settings.clipboard.linkCleaning)
     val formattable = kind == SelectionKind.TEXT || (
-        formatted != null && !(SelectionMacro.STRIP_TRACKERS in allowed && formatted == SelectionMacros.stripTrackers(text))
+        formatted != null && !(SelectionMacro.STRIP_TRACKERS in allowed && formatted == SelectionMacros.stripTrackers(text, settings.clipboard.linkCleaning))
         )
     val content = if (long) {
         ContentFlags.NONE
@@ -270,7 +270,7 @@ private fun sheetOffer(context: Context, text: String, settings: KeyboardSetting
                 dateTime = SelectionMacro.CALENDAR in allowed,
                 place = SelectionMacro.MAP in allowed,
                 nowMillis = System.currentTimeMillis(),
-                extraTrackers = settings.clipboard.extraTrackers,
+                links = settings.clipboard.linkCleaning,
             ),
         )
     }
@@ -442,7 +442,7 @@ private fun TextActionsScreen(
         val label = context.getString(macro.labelRes)
         when (macro) {
             SelectionMacro.FORMAT ->
-                if (offer.kind == SelectionKind.TEXT) ladder = Ladder.CASE else push(SelectionMacros.format(text, offer.kind, masks), label)
+                if (offer.kind == SelectionKind.TEXT) ladder = Ladder.CASE else push(SelectionMacros.format(text, offer.kind, masks, current.clipboard.linkCleaning), label)
             SelectionMacro.FANCY -> {
                 fancySource = text
                 fancyPicked = false
@@ -457,7 +457,7 @@ private fun TextActionsScreen(
             SelectionMacro.JSON_FORMAT -> push(JsonReformat.toggle(text), label)
             SelectionMacro.BASE64_DECODE -> push(TextCodecs.base64Decode(text), label)
             SelectionMacro.URL_DECODE -> push(TextCodecs.urlDecode(text), label)
-            SelectionMacro.STRIP_TRACKERS -> push(SelectionMacros.stripTrackersInText(text, current.clipboard.extraTrackers), label)
+            SelectionMacro.STRIP_TRACKERS -> push(SelectionMacros.stripTrackersInText(text, current.clipboard.linkCleaning), label)
             SelectionMacro.ZAWGYI -> launchAction(label) {
                 val source = text
                 push(withContext(Dispatchers.Default) { Zawgyi.convertEitherWay(source) }, label)

@@ -297,5 +297,25 @@
     <string name="clipboard_extra_trackers_none">None. Only the built-in list is removed</string>
     <string name="clipboard_extra_trackers_body">Query parameter names to remove from links, on top of the built-in list, one on each line. End a name with * to remove every parameter that starts with it, such as abc_*. Used by Remove trackers on the selection bar and by Remove trackers from copied links.</string>
     <string name="clipboard_extra_trackers_label">Parameter names</string>
+    <string name="clipboard_link_rewrites_group">Cleaning links further</string>
+    <string name="clipboard_link_known_pages_title">Known pages keep only what they need</string>
+    <string name="clipboard_link_known_pages_subtitle">A product, video or post loses every parameter it does not need, and a product link is cut to its number</string>
+    <string name="clipboard_link_known_pages_info">Off by default, only known trackers come off a link. With this on, pages whose address the keyboard fully knows lose everything else too: an Amazon, eBay, Walmart, Etsy or Best Buy product becomes just its number (amazon.com/dp/B0…), and a YouTube video, a post on X, Instagram, TikTok or Bluesky, a Spotify track or a Reddit thread keeps only what opens it. Shorter and cleaner, but a seller or a size picked in the link can go with the rest. Used by Remove trackers on the selection bar and by Remove trackers from copied links.</string>
+    <string name="clipboard_link_strict_title">Remove every parameter</string>
+    <string name="clipboard_link_strict_subtitle">On every site, everything after the ? goes except a search, an id or a page number</string>
+    <string name="clipboard_link_strict_info">Every query parameter comes off every link, tracker or not, except the few that say which page it is: q, query, search, id, v, p, page and the ones a known page needs. This is the shortest a link gets, and how Link Cleaner works, but some sites need a parameter to open the right page, a filter, a login or a size, and lose it. Press Undo right after pasting to get the link back. Includes Known pages keep only what they need. Off by default.</string>
+    <string name="clipboard_link_youtube_short_title">Short YouTube links</string>
+    <string name="clipboard_link_youtube_short_subtitle">youtube.com/watch?v=abc becomes youtu.be/abc, keeping the start time</string>
+    <string name="clipboard_link_shorts_title">YouTube Shorts as ordinary videos</string>
+    <string name="clipboard_link_shorts_subtitle">youtube.com/shorts/abc becomes youtube.com/watch?v=abc, which opens the normal player</string>
+    <string name="clipboard_link_music_title">YouTube Music as YouTube</string>
+    <string name="clipboard_link_music_subtitle">music.youtube.com links open on youtube.com, for people without YouTube Music</string>
+    <string name="clipboard_link_twitter_title">X links with previews</string>
+    <string name="clipboard_link_twitter_subtitle">x.com and twitter.com go through FxTwitter (fixupx.com, fxtwitter.com), so a post shows in full in Discord, Telegram and other chats</string>
+    <string name="clipboard_link_bluesky_title">Bluesky links with previews</string>
+    <string name="clipboard_link_bluesky_subtitle">bsky.app posts go through FxBluesky (fxbsky.app) for the same full previews</string>
+    <string name="clipboard_link_readable_title">Show letters in links</string>
+    <string name="clipboard_link_readable_subtitle" formatted="false">wiki/%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B0 becomes wiki/Москва. Spaces and symbols stay encoded</string>
+    <string name="clipboard_link_readable_info">Letters a link writes in percent codes are written as the letters they are, so a link in Bengali, Russian or Arabic can be read before it is sent. Only letters, marks, digits and symbols are decoded. A space, an encoded / or &amp;, and invisible characters such as direction marks stay encoded, so the link opens the same page and cannot hide what it is. Off by default.</string>
 
 </resources>

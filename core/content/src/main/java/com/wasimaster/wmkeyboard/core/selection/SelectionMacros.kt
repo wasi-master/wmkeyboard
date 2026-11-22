@@ -414,37 +414,120 @@ object SelectionMacros {
         val prefixes: List<String> = emptyList(),
         /** Only links under this path, for a host whose other pages use the same names. */
         val path: String = "/",
-        /** A tracking segment at the end of the path, taken off with the parameters. */
-        val pathJunk: Regex? = null,
+        /** Only paths this finds a match in, for a rule about one kind of page (a product, a post). */
+        val pathPattern: Regex? = null,
+        /**
+         * The page's whole list of parameters that matter, when it is known
+         * (the idea is Link Cleaner's): on a matching page every other
+         * parameter goes, tracker or not. Only for pages whose address is
+         * fully understood, a product or a post, never a whole site.
+         */
+        val keep: Set<String>? = null,
+        /** The path rewritten to its short form: a tracking segment or a product's name taken out. */
+        val pathRewrite: ((String) -> String)? = null,
     ) {
-        fun matches(host: String, linkPath: String): Boolean =
-            domains.any { hostMatches(host, it) } && linkPath.startsWith(path)
+        /**
+         * A rule that drops what is not a known tracker ([keep]) only runs
+         * when the user asked for it with [LinkRewrite.KNOWN_PAGES] or
+         * [LinkRewrite.STRICT]: by default nothing but trackers comes off.
+         */
+        val thorough: Boolean get() = keep != null
 
-        fun takes(name: String): Boolean = name in params || prefixes.any { name.startsWith(it) }
+        fun matches(host: String, linkPath: String): Boolean =
+            domains.any { hostMatches(host, it) } && linkPath.startsWith(path) &&
+                pathPattern?.containsMatchIn(linkPath) != false
+
+        fun takes(name: String): Boolean =
+            name in params || prefixes.any { name.startsWith(it) } || (keep != null && name !in keep)
 
         fun cleanPath(url: String): String {
-            val junk = pathJunk ?: return url
-            val authority = url.indexOf("://").let { if (it < 0) 0 else it + 3 }
-            val end = url.indexOfAny(charArrayOf('?', '#'), authority).let { if (it < 0) url.length else it }
-            val start = url.indexOf('/', authority)
-            if (start < 0 || start >= end) return url
-            val path = url.substring(start, end)
-            val cleaned = junk.replace(path, "")
-            return if (cleaned == path) url else url.substring(0, start) + cleaned + url.substring(end)
+            val rewrite = pathRewrite ?: return url
+            val parts = UrlParts.of(url)
+            if (parts.path.isEmpty()) return url
+            val cleaned = rewrite(parts.path)
+            return if (cleaned == parts.path) url else parts.copy(path = cleaned).toString()
         }
     }
 
+    /** An Amazon product number where the path names one: `/dp/B0…`, `/gp/product/B0…`. */
+    private val AMAZON_ASIN = Regex("""/(?:dp|gp/product|gp/aw/d|product|exec/obidos/asin)/([A-Z0-9]{10})(?=[/?#]|$)""")
+
+    private val AMAZON_REF = Regex("/ref=[^/]*$")
+
+    /** `/Lamp-Shade-Linen/dp/B0ABCDEFGH/ref=sr_1_3` is `/dp/B0ABCDEFGH`. */
+    private fun amazonPath(path: String): String =
+        AMAZON_ASIN.find(path)?.let { "/dp/" + it.groupValues[1] } ?: AMAZON_REF.replace(path, "")
+
+    private fun pathRewrite(pattern: Regex, replacement: String): (String) -> String = { path ->
+        if (pattern.matches(path)) pattern.replace(path, replacement) else path
+    }
+
     private val SITE_RULES = listOf(
+        // A product page is its number: the name in front of it, the
+        // referral after it and every parameter go, as Link Cleaner does.
+        // Amazon keeps nothing; a variant has a number of its own.
+        SiteRule(
+            listOf("amazon."),
+            pathPattern = AMAZON_ASIN,
+            keep = emptySet(),
+            pathRewrite = { amazonPath(it) },
+        ),
         SiteRule(
             listOf("amazon.", "amzn."),
             params = setOf(
                 "content-id", "crid", "sprefix", "dib", "dib_tag", "qid", "sr", "ref_", "_encoding",
                 "linkcode", "linkid", "camp", "creative", "creativeasin", "ascsubtag", "spla", "spia",
-                "social_share", "starsleft", "skipredirect", "smid_share",
+                "social_share", "starsleft", "skipredirect", "smid_share", "tag",
             ),
             prefixes = listOf("pd_rd_", "pf_rd_"),
-            pathJunk = Regex("/ref=[^/]*$"),
+            pathRewrite = { AMAZON_REF.replace(it, "") },
         ),
+        SiteRule(
+            listOf("bestbuy.com"),
+            pathPattern = Regex("""^/site/(?:.+/)?\d+\.p/?$"""),
+            keep = emptySet(),
+            pathRewrite = pathRewrite(Regex("""^/site/(?:.+/)?(\d+\.p)/?$"""), "/site/$1"),
+        ),
+        SiteRule(
+            listOf("walmart.com"),
+            pathPattern = Regex("""^/ip/(?:[^/]+/)?\d+/?$"""),
+            keep = emptySet(),
+            pathRewrite = pathRewrite(Regex("""^/ip/(?:[^/]+/)?(\d+)/?$"""), "/ip/$1"),
+        ),
+        SiteRule(
+            listOf("ebay."),
+            pathPattern = Regex("""^/itm/(?:[^/]+/)?\d+/?$"""),
+            keep = setOf("var"),
+            pathRewrite = pathRewrite(Regex("""^/itm/(?:[^/]+/)?(\d+)/?$"""), "/itm/$1"),
+        ),
+        SiteRule(
+            listOf("etsy.com"),
+            pathPattern = Regex("""^(?:/[a-z]{2}(?:-[a-z]{2})?)?/listing/\d+(?:/[^/]*)?$"""),
+            keep = emptySet(),
+            pathRewrite = pathRewrite(Regex("""^((?:/[a-z]{2}(?:-[a-z]{2})?)?/listing/\d+)(?:/[^/]*)?$"""), "$1"),
+        ),
+        SiteRule(listOf("aliexpress."), pathPattern = Regex("""^/item/\d+\.html$"""), keep = emptySet()),
+        SiteRule(listOf("youtube.com"), path = "/watch", keep = setOf("v", "t", "list", "index")),
+        SiteRule(listOf("youtube.com"), path = "/shorts/", keep = emptySet()),
+        SiteRule(listOf("youtu.be"), keep = setOf("t", "list", "index")),
+        SiteRule(listOf("twitter.com", "x.com"), pathPattern = Regex("""^/[^/]+/status/\d+"""), keep = emptySet()),
+        SiteRule(listOf("bsky.app"), pathPattern = Regex("""^/profile/[^/]+/post/"""), keep = emptySet()),
+        SiteRule(listOf("threads.net", "threads.com"), pathPattern = Regex("""^/@[^/]+/post/"""), keep = emptySet()),
+        SiteRule(listOf("instagram.com"), pathPattern = Regex("""^/(?:[^/]+/)?(?:p|reels?|tv)/"""), keep = setOf("img_index")),
+        SiteRule(listOf("tiktok.com"), pathPattern = Regex("""^/@[^/]+/(?:video|photo)/\d+"""), keep = emptySet()),
+        SiteRule(
+            listOf("open.spotify.com"),
+            pathPattern = Regex("""^/(?:intl-[a-z]+/)?(?:track|album|playlist|episode|show|artist)/"""),
+            keep = setOf("t"),
+        ),
+        SiteRule(listOf("reddit.com"), pathPattern = Regex("""^/r/[^/]+/comments/"""), keep = setOf("context")),
+        SiteRule(listOf("facebook.com"), pathPattern = Regex("""^/(?:story|permalink)\.php$"""), keep = setOf("story_fbid", "id")),
+        SiteRule(listOf("linkedin.com"), pathPattern = Regex("""^/(?:posts|feed/update|jobs/view)/"""), keep = emptySet()),
+        SiteRule(listOf("pinterest."), pathPattern = Regex("""^/pin/\d+"""), keep = emptySet()),
+        SiteRule(listOf("play.google.com"), path = "/store/apps/details", keep = setOf("id")),
+        SiteRule(listOf("xiaohongshu.com"), pathPattern = Regex("""^/(?:explore|discovery/item)/"""), keep = setOf("xsec_token")),
+        SiteRule(listOf("webtoons.com"), pathPattern = Regex("""/(?:viewer|list)$"""), keep = setOf("title_no", "episode_no")),
+        SiteRule(listOf("macys.com"), path = "/shop/product/", keep = setOf("id")),
         SiteRule(
             listOf("youtube.com", "youtu.be"),
             params = setOf("feature", "pp", "embeds_referring_euri", "embeds_referring_origin", "source_ve_path"),
@@ -525,9 +608,36 @@ object SelectionMacros {
      * that holds where (#762). Unwrapped only when that parameter is a whole
      * `http(s)` link, so a wrapper that encodes its target is left alone.
      */
-    private class Redirect(val domain: String, val path: String, val params: Set<String>)
+    private class Redirect(
+        val domain: String,
+        val path: String,
+        val params: Set<String>,
+        /** The target is the whole query, not one parameter: `href.li/?https://…`. */
+        val wholeQuery: Boolean = false,
+        /** The target is a path on this site: YouTube's `attribution_link?u=/watch…`. */
+        val relativeTo: String? = null,
+        /** The target is URL-safe Base64 after this prefix: Bing's `ck/a?u=a1aHR0…`. */
+        val base64Prefix: String? = null,
+    )
 
     private val REDIRECTS = listOf(
+        Redirect("href.li", "/", emptySet(), wholeQuery = true),
+        Redirect("anon.to", "/", emptySet(), wholeQuery = true),
+        Redirect("dereferer.me", "/", emptySet(), wholeQuery = true),
+        Redirect("nullrefer.com", "/", emptySet(), wholeQuery = true),
+        Redirect("youtube.com", "/attribution_link", setOf("u"), relativeTo = "https://www.youtube.com"),
+        Redirect("bing.com", "/ck/a", setOf("u"), base64Prefix = "a1"),
+        Redirect("cts.businesswire.com", "/", setOf("url")),
+        Redirect("l.wl.co", "/l", setOf("u")),
+        Redirect("link.zhihu.com", "/", setOf("target")),
+        Redirect("linkedin.com", "/safety/go", setOf("url")),
+        Redirect("pinterest.", "/offsite/", setOf("url")),
+        Redirect("getpocket.com", "/redirect", setOf("url")),
+        Redirect("t.me", "/iv", setOf("url")),
+        Redirect("deref-gmx.net", "/", setOf("redirecturl")),
+        Redirect("deref-web.de", "/", setOf("redirecturl")),
+        Redirect("statics.teams.cdn.office.net", "/", setOf("url")),
+        Redirect("away.vk.com", "/away.php", setOf("to")),
         Redirect("google.", "/url", setOf("q", "url")),
         Redirect("l.facebook.com", "/", setOf("u")),
         Redirect("lm.facebook.com", "/", setOf("u")),
@@ -807,12 +917,17 @@ object SelectionMacros {
      * do. Plain text is not handled here: its Format opens the case ladder
      * instead, and [applyCase] is what commits one of those.
      */
-    fun format(selection: String, kind: SelectionKind, phoneFormats: List<String> = emptyList()): String? {
+    fun format(
+        selection: String,
+        kind: SelectionKind,
+        phoneFormats: List<String> = emptyList(),
+        links: LinkCleaning = LinkCleaning(),
+    ): String? {
         val trimmed = selection.trim()
         val formatted = when (kind) {
             SelectionKind.PHONE -> formatPhone(trimmed, phoneFormats)
             SelectionKind.EMAIL -> trimmed.lowercase()
-            SelectionKind.URL -> formatUrl(trimmed)
+            SelectionKind.URL -> formatUrl(trimmed, links)
             SelectionKind.TEXT -> null
         } ?: return null
         return formatted.takeIf { it != trimmed }
@@ -872,25 +987,35 @@ object SelectionMacros {
     private const val MASK_WILDCARDS = "x#"
 
     /** [url] with its tracking parameters removed, and a scheme added when it had none. */
-    fun formatUrl(url: String): String? {
+    fun formatUrl(url: String, links: LinkCleaning = LinkCleaning()): String? {
         val withScheme = if (url.contains("://")) url else "https://$url"
-        return stripTrackers(withScheme) ?: withScheme
+        return stripTrackers(withScheme, links) ?: withScheme
     }
+
+    /** [stripTrackers] with only the user's own tracker names on top of the built-in ones. */
+    fun stripTrackers(url: String, extra: Collection<String> = emptyList()): String? =
+        stripTrackers(url, LinkCleaning(extra))
 
     /**
      * [url] without its tracking parameters, or null when it carries none.
      *
-     * Three things, all of them provably not about which page it is (#762):
+     * Four things, all of them provably not about which page it is (#762):
      * a redirect wrapper (Google's `/url?q=`, Facebook's `l.php?u=`, an
-     * Outlook safe link) is unwrapped to the link inside it; the query loses
-     * the global trackers plus the ones a known site adds ([SITE_RULES]); and
-     * on the few sites that keep their tracking in the path (Amazon's
-     * `/ref=…`) that segment goes. Anything else in a path, the fragment and
-     * the host stay, because rewriting those is how a "clean this link"
-     * feature quietly breaks the link. Nor is a scheme added: the link keeps
-     * the shape it was written in.
+     * Outlook safe link, Bing's Base64 `ck/a`) is unwrapped to the link
+     * inside it; the query loses the global trackers plus the ones a known
+     * site adds ([SITE_RULES]); Amazon's `/ref=…` path segment goes; and, only
+     * when the user switched on [LinkRewrite.KNOWN_PAGES], a page whose
+     * address is fully known (an Amazon product, a YouTube video, a post on
+     * X) loses every parameter it does not need and a product page's path is
+     * cut to its number, so `/Lamp-Shade/dp/B0ABCDEFGH/ref=sr_1_3` is
+     * `/dp/B0ABCDEFGH`. That is Link Cleaner's way and it can drop something
+     * that mattered (a seller, a variant), which is why it is a choice. The host,
+     * the fragment and any other path stay, because rewriting those is how a
+     * "clean this link" feature quietly breaks the link, unless the user
+     * asked for one of [LinkCleaning.rewrites]. Nor is a scheme added: the
+     * link keeps the shape it was written in.
      */
-    fun stripTrackers(url: String, extra: Collection<String> = emptyList()): String? {
+    fun stripTrackers(url: String, links: LinkCleaning): String? {
         val trimmed = url.trim()
         var link = trimmed
         // A wrapper can wrap another (an Outlook safe link round a Google
@@ -898,14 +1023,17 @@ object SelectionMacros {
         for (i in 0 until MAX_REDIRECT_DEPTH) link = unwrapRedirect(link) ?: break
         val host = hostOf(link)
         val path = pathOf(link)
-        val sites = SITE_RULES.filter { it.matches(host, path) }
-        link = stripQuery(link, extra, sites) ?: link
+        val strict = LinkRewrite.STRICT in links.rewrites
+        val thorough = strict || LinkRewrite.KNOWN_PAGES in links.rewrites
+        val sites = SITE_RULES.filter { (thorough || !it.thorough) && it.matches(host, path) }
+        link = stripQuery(link, links.extra, sites, strict) ?: link
         for (site in sites) link = site.cleanPath(link)
+        if (links.rewrites.isNotEmpty()) link = rewrite(link, links.rewrites)
         return link.takeIf { it != trimmed }
     }
 
     /** [url] without the query parameters [isTracker] names, or null when there are none. */
-    private fun stripQuery(url: String, extra: Collection<String>, sites: List<SiteRule>): String? {
+    private fun stripQuery(url: String, extra: Collection<String>, sites: List<SiteRule>, strict: Boolean): String? {
         val queryStart = url.indexOf('?')
         if (queryStart < 0) return null
         // A `?` inside the fragment is not a query.
@@ -921,7 +1049,7 @@ object SelectionMacros {
         val parts = query.split('&')
         val kept = parts.filter { part ->
             val name = part.substringBefore('=').lowercase()
-            name.isNotEmpty() && !isTracker(name, extra, sites)
+            name.isNotEmpty() && !isTracker(name, extra, sites) && !(strict && !strictKeeps(name, sites))
         }
         // Empty pieces (`a=1&&b=2`, a trailing `?`) go too, but on their own
         // they are not trackers and do not make a link worth offering to clean.
@@ -938,33 +1066,63 @@ object SelectionMacros {
         val host = hostOf(url)
         val path = pathOf(url)
         val rule = REDIRECTS.firstOrNull { hostMatches(host, it.domain) && path.startsWith(it.path) } ?: return null
+        if (rule.wholeQuery) {
+            // Everything after the first `?`, fragment and all: the target's
+            // own query and hash are part of it.
+            val raw = url.substringAfter('?', "")
+            val target = if (raw.contains("://")) raw else runCatching { URLDecoder.decode(raw, "UTF-8") }.getOrNull()
+            return target?.trim()?.takeIf { isWholeLink(it) }
+        }
         val query = url.substringAfter('?', "").substringBefore('#')
         if (query.isEmpty()) return null
         for (part in query.split('&')) {
             if (part.substringBefore('=').lowercase() !in rule.params) continue
-            val target = runCatching {
+            var target = runCatching {
                 URLDecoder.decode(part.substringAfter('=', ""), "UTF-8").trim()
             }.getOrNull() ?: continue
-            val isLink = target.startsWith("https://", ignoreCase = true) ||
-                target.startsWith("http://", ignoreCase = true)
-            if (isLink && target.none { it.isWhitespace() }) return target
+            val prefix = rule.base64Prefix
+            if (prefix != null) {
+                if (!target.startsWith(prefix)) continue
+                target = decodeBase64Url(target.removePrefix(prefix)) ?: continue
+            }
+            val base = rule.relativeTo
+            if (base != null && target.startsWith('/') && !target.startsWith("//")) target = base + target
+            if (isWholeLink(target)) return target
         }
         return null
     }
 
-    /** [url]'s host, lower case and without a leading `www.`; the link need not have a scheme. */
-    private fun hostOf(url: String): String {
-        val authority = url.substringAfter("://", url).takeWhile { it != '/' && it != '?' && it != '#' }
-        return authority.substringAfterLast('@').substringBefore(':').lowercase().removePrefix("www.")
+    private fun isWholeLink(target: String): Boolean {
+        val isLink = target.startsWith("https://", ignoreCase = true) ||
+            target.startsWith("http://", ignoreCase = true)
+        return isLink && target.none { it.isWhitespace() }
     }
 
+    /** URL-safe Base64, padded or not, as text; null when it is not. */
+    private fun decodeBase64Url(value: String): String? = runCatching {
+        val bytes = kotlin.io.encoding.Base64.UrlSafe
+            .withPadding(kotlin.io.encoding.Base64.PaddingOption.PRESENT_OPTIONAL)
+            .decode(value)
+        Charsets.UTF_8.newDecoder().decode(java.nio.ByteBuffer.wrap(bytes)).toString()
+    }.getOrNull()
+
+    /** [url]'s host, lower case and without a leading `www.`; the link need not have a scheme. */
+    private fun hostOf(url: String): String = UrlParts.of(url).host.removePrefix("www.")
+
     /** [url]'s path, `/` when it has none. */
-    private fun pathOf(url: String): String {
-        val rest = url.substringAfter("://", url)
-        val start = rest.indexOfFirst { it == '/' || it == '?' || it == '#' }
-        if (start < 0 || rest[start] != '/') return "/"
-        return rest.substring(start).takeWhile { it != '?' && it != '#' }
-    }
+    private fun pathOf(url: String): String = UrlParts.of(url).path.ifEmpty { "/" }
+
+    /**
+     * Parameters [LinkRewrite.STRICT] leaves on every site: the ones that are
+     * the page itself (a search, an id, a page number), plus whatever a
+     * matching site rule says its page needs.
+     */
+    private val STRICT_KEEPS = setOf(
+        "q", "query", "search", "search_query", "keyword", "keywords", "k", "s", "id", "v", "p", "page", "lang",
+    )
+
+    private fun strictKeeps(name: String, sites: List<SiteRule>): Boolean =
+        name in STRICT_KEEPS || sites.any { it.keep?.contains(name) == true }
 
     /**
      * Whether [host] is [domain] or under it. A domain ending in `.` is the
@@ -1004,16 +1162,20 @@ object SelectionMacros {
      * one ([isUrl]); punctuation a sentence closes it with stays outside it.
      * Everything else in the text is left exactly as it was.
      */
-    fun stripTrackersInText(text: String, extra: Collection<String> = emptyList()): String? {
-        if (!mayCarryTrackers(text)) return null
+    fun stripTrackersInText(text: String, extra: Collection<String> = emptyList()): String? =
+        stripTrackersInText(text, LinkCleaning(extra))
+
+    /** [stripTrackersInText] with the user's [links] options. */
+    fun stripTrackersInText(text: String, links: LinkCleaning): String? {
+        if (!mayCarryTrackers(text, links)) return null
         var changed = false
         val out = NON_SPACE_RUN.replace(text) { match ->
             val run = match.value
-            if (!mayCarryTrackers(run)) return@replace run
+            if (!mayCarryTrackers(run, links)) return@replace run
             val core = run.trimEnd { it in LINK_TRAILING_PUNCTUATION }
             val tail = run.substring(core.length)
             if (core.length > MAX_URL_LENGTH || !isUrl(core)) return@replace run
-            val clean = stripTrackers(core, extra) ?: return@replace run
+            val clean = stripTrackers(core, links) ?: return@replace run
             changed = true
             clean + tail
         }
@@ -1022,9 +1184,137 @@ object SelectionMacros {
 
     /**
      * The cheap test before the real one: every tracker [stripTrackers] takes
-     * sits in a query, except the path segment of [SITE_RULES] like Amazon's.
+     * sits in a query, except the product paths of [SITE_RULES] like Amazon's,
+     * and the [LinkCleaning.rewrites] each have a host or a `%` to look for.
      */
-    private fun mayCarryTrackers(text: String): Boolean = text.contains('?') || text.contains("/ref=")
+    private fun mayCarryTrackers(text: String, links: LinkCleaning = LinkCleaning()): Boolean {
+        if (text.contains('?') || text.contains("/ref=")) return true
+        val rewrites = links.rewrites
+        if (rewrites.isEmpty()) return false
+        val thorough = LinkRewrite.KNOWN_PAGES in rewrites || LinkRewrite.STRICT in rewrites
+        if (thorough && PATH_HINTS.any { text.contains(it) }) return true
+        return (LinkRewrite.YOUTUBE_SHORTS_AS_VIDEOS in rewrites && text.contains("/shorts/")) ||
+            (LinkRewrite.TWITTER_EMBEDS in rewrites && (text.contains("x.com") || text.contains("twitter.com"))) ||
+            (LinkRewrite.BLUESKY_EMBEDS in rewrites && text.contains("bsky.app")) ||
+            (LinkRewrite.YOUTUBE_SHORT in rewrites && text.contains("/shorts/")) ||
+            (LinkRewrite.READABLE in rewrites && text.contains('%'))
+    }
+
+    /** Paths [SITE_RULES] shorten without a query to go by. */
+    private val PATH_HINTS = listOf("/ref=", "/dp/", "/gp/", "/ip/", "/itm/", "/listing/", "/site/")
+
+    /**
+     * [link] with the user's [rewrites] made (Link Cleaner's options, and
+     * [LinkRewrite.READABLE]), after the trackers are off. The link keeps its
+     * scheme, or its lack of one.
+     */
+    private fun rewrite(link: String, rewrites: Set<LinkRewrite>): String {
+        var parts = UrlParts.of(link)
+        val host = parts.host.removePrefix("www.")
+        val youtube = host == "youtube.com" || host == "m.youtube.com" || host == "music.youtube.com"
+        if (youtube && LinkRewrite.YOUTUBE_SHORTS_AS_VIDEOS in rewrites) {
+            SHORTS_PATH.matchEntire(parts.path)?.let { m ->
+                parts = parts.copy(path = "/watch", query = joinQuery("v=" + m.groupValues[1], parts.query))
+            }
+        }
+        if (host == "music.youtube.com" && LinkRewrite.YOUTUBE_MUSIC_AS_YOUTUBE in rewrites &&
+            (parts.path == "/watch" || parts.path == "/playlist")
+        ) {
+            parts = parts.copy(authority = "www.youtube.com")
+        }
+        val stillMusic = parts.authority.lowercase() == "music.youtube.com"
+        if (youtube && !stillMusic && LinkRewrite.YOUTUBE_SHORT in rewrites) {
+            val shorts = SHORTS_PATH.matchEntire(parts.path)?.groupValues?.get(1)
+            val watched = if (parts.path == "/watch") queryValue(parts.query, "v") else null
+            val id = (shorts ?: watched)?.takeIf { VIDEO_ID.matches(it) }
+            if (id != null) {
+                val rest = parts.query?.split('&')
+                    ?.filter { it.isNotEmpty() && (shorts != null || it.substringBefore('=').lowercase() != "v") }
+                    ?.joinToString("&")?.ifEmpty { null }
+                parts = parts.copy(authority = "youtu.be", path = "/$id", query = rest)
+            }
+        }
+        if (LinkRewrite.TWITTER_EMBEDS in rewrites && parts.path.length > 1) {
+            when (host) {
+                "twitter.com", "mobile.twitter.com" -> parts = parts.copy(authority = "fxtwitter.com")
+                "x.com", "mobile.x.com" -> parts = parts.copy(authority = "fixupx.com")
+            }
+        }
+        if (LinkRewrite.BLUESKY_EMBEDS in rewrites && host == "bsky.app" && parts.path.contains("/post/")) {
+            parts = parts.copy(authority = "fxbsky.app")
+        }
+        if (LinkRewrite.READABLE in rewrites) {
+            parts = parts.copy(
+                path = readableLetters(parts.path),
+                query = parts.query?.let { readableLetters(it) },
+                fragment = parts.fragment?.let { readableLetters(it) },
+            )
+        }
+        return parts.toString()
+    }
+
+    private val SHORTS_PATH = Regex("""/shorts/([A-Za-z0-9_-]+)/?""")
+
+    /** A YouTube video's id: eleven of these, but nothing promises the count. */
+    private val VIDEO_ID = Regex("""[A-Za-z0-9_-]{6,20}""")
+
+    private fun joinQuery(first: String, rest: String?): String =
+        if (rest.isNullOrEmpty()) first else "$first&$rest"
+
+    private fun queryValue(query: String?, name: String): String? = query?.split('&')
+        ?.firstOrNull { it.substringBefore('=').lowercase() == name }
+        ?.substringAfter('=', "")
+        ?.ifEmpty { null }
+
+    /**
+     * [text] with each `%`-escaped run of UTF-8 written as its letters, when
+     * every character it decodes to is one somebody can see and that means
+     * nothing to a link (a letter, a mark, a digit, a dash, a symbol). An
+     * escaped ASCII character (`%20`, `%2F`, `%26`), a space of any kind, a
+     * control or an invisible direction mark stays escaped, so the link opens
+     * the same page and shows what it is.
+     */
+    internal fun readableLetters(text: String): String {
+        if (!text.contains('%')) return text
+        val out = StringBuilder(text.length)
+        var i = 0
+        while (i < text.length) {
+            val bytes = java.io.ByteArrayOutputStream()
+            var j = i
+            while (j < text.length && text[j] == '%') {
+                val byte = hexByte(text, j + 1) ?: break
+                if (byte < 0x80) break
+                bytes.write(byte)
+                j += 3
+            }
+            if (j == i) {
+                out.append(text[i])
+                i++
+                continue
+            }
+            val decoded = runCatching {
+                Charsets.UTF_8.newDecoder().decode(java.nio.ByteBuffer.wrap(bytes.toByteArray())).toString()
+            }.getOrNull()
+            out.append(if (decoded != null && decoded.all { isShowable(it) }) decoded else text.substring(i, j))
+            i = j
+        }
+        return out.toString()
+    }
+
+    private fun hexByte(text: String, at: Int): Int? {
+        if (at + 1 >= text.length) return null
+        val high = Character.digit(text[at], 16)
+        val low = Character.digit(text[at + 1], 16)
+        return if (high < 0 || low < 0) null else high * 16 + low
+    }
+
+    private fun isShowable(c: Char): Boolean = when (Character.getType(c).toByte()) {
+        Character.CONTROL, Character.FORMAT, Character.SPACE_SEPARATOR, Character.LINE_SEPARATOR,
+        Character.PARAGRAPH_SEPARATOR, Character.PRIVATE_USE, Character.UNASSIGNED,
+        -> false
+        // Lone halves are already refused by the decoder; a pair is an emoji or a rare letter.
+        else -> true
+    }
 
     private val NON_SPACE_RUN = Regex("""\S+""")
 
@@ -1197,7 +1487,7 @@ object SelectionMacros {
         val jsonShape = if (JsonReformat.looksStructured(trimmed)) JsonReformat.shape(trimmed) else JsonReformat.Shape.NONE
         val base64 = single && trimmed.length >= 8 && TextCodecs.looksBase64(trimmed)
         val urlEncoded = TextCodecs.isUrlEncoded(trimmed)
-        val hasTrackers = mayCarryTrackers(trimmed) && stripTrackersInText(trimmed, options.extraTrackers) != null
+        val hasTrackers = mayCarryTrackers(trimmed, options.links) && stripTrackersInText(trimmed, options.links) != null
         val couldBeMoment = single && trimmed.length <= DateTimes.MAX_LENGTH &&
             (hasDigit || trimmed.firstOrNull()?.isLetter() == true)
         val dateTime = if (options.dateTime && couldBeMoment) {
