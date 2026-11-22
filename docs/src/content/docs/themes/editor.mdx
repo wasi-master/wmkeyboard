@@ -362,7 +362,9 @@ A theme's sound is only ever a sound it can actually make. A theme whose sound i
 
 A theme can draw its own icon on the keyboard's own keys: delete, shift in its three states, enter in each wording, the globe, the emoji key and the rest of the Keys group on the [Icons](/themes/icon-packs/#what-you-can-replace) screen. Tap a key's row and pick a picture from [Your icons](/themes/icon-packs/#your-icons), or add one there. The theme keeps its own copy of the picture, so the icon goes with the theme when you export it, and deleting the picture from Your icons later leaves the theme alone. **Remove from the theme** takes it off again.
 
-A theme's icon comes last: an icon pack, or an icon you picked for that key on the Icons screen, wins over it. A row whose key is taken that way says so under its name. Themes imported from Gboard fill these rows with the glyphs they brought.
+**Icon set**, the first row, decides who has the last word on these keys. On **Follow settings**, the default, a theme's icon comes last: an icon pack, or an icon you picked for that key on the Icons screen, wins over it, and a row whose key is taken that way says so under its name. Pick **The app's own icons** or one of your installed icon packs instead, and the theme decides its keys itself while it is on. Each key draws the theme's own picture if it has one, and otherwise the icon from the set you picked; the Icons screen's pack and per-key picks no longer reach these keys. That's how a dark theme can wear white outlined glyphs and a light one a filled set, each switching in with its theme. Tool icons and the rest keep following the Icons screen.
+
+The set travels with an exported theme as the pack's id. A phone that has a pack with that id or that name uses it; one that doesn't treats the row as Follow settings, the same way a missing font falls back. Themes imported from Gboard fill the key rows with the glyphs they brought.
 
 ### Accent
 

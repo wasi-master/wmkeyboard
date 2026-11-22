@@ -273,6 +273,44 @@ class IconPipelineTest {
     }
 
     @Test
+    fun `a theme naming its own icon set decides its keys`() {
+        val file = temp.newFile("themeicon2.img").apply { writeText(coloured) }
+        val global = store.createPack("Global")!!
+        store.setIcon(global.id, IconSlots.KEY_SHIFT, monochrome)
+        store.setIcon(global.id, IconSlots.KEY_BACKSPACE, monochrome)
+        val ownSet = store.createPack("Theme set")!!
+        store.setIcon(ownSet.id, IconSlots.KEY_BACKSPACE, coloured)
+
+        // The built-in set: the theme's picture on Shift, and the global pack
+        // kept off the keys the theme has no picture for (#1488).
+        val builtin = buildIconSet(
+            IconSettings(
+                activePackId = global.id,
+                themeIcons = mapOf(IconSlots.KEY_SHIFT to file.absolutePath),
+                themePackId = "",
+            ),
+            store,
+        )
+        assertFalse(builtin.resolve(IconSlots.KEY_SHIFT)!!.monochrome)
+        assertNull(builtin.resolve(IconSlots.KEY_BACKSPACE))
+
+        // A pack of the theme's own, named by its name as an exported theme
+        // arriving on another phone would: its icon, not the global pack's.
+        val named = buildIconSet(
+            IconSettings(activePackId = global.id, themePackId = "Theme set"),
+            store,
+        )
+        assertFalse(named.resolve(IconSlots.KEY_BACKSPACE)!!.monochrome)
+
+        // A pack this phone does not have leaves the keys to the Icons screen.
+        val missing = buildIconSet(
+            IconSettings(activePackId = global.id, themePackId = "nowhere"),
+            store,
+        )
+        assertTrue(missing.resolve(IconSlots.KEY_BACKSPACE)!!.monochrome)
+    }
+
+    @Test
     fun `a theme icon pointing at nothing leaves the slot alone`() {
         val set = buildIconSet(
             IconSettings(themeIcons = mapOf(IconSlots.KEY_SHIFT to "/does/not/exist.png")),

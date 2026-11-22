@@ -778,9 +778,24 @@ data class ThemeSpec(
      * They reach the keyboard through `applyThemeOverrides`, which lays them
      * onto `IconSettings.themeIcons` — under the user's own icon pack and their
      * per-slot picks, so a theme dresses the slots nobody has claimed and never
-     * overrules a standing choice.
+     * overrules a standing choice. Unless the theme names its own icon set in
+     * [keyIconPack]: then these come first on the keys.
      */
     val keyIcons: Map<String, String> = emptyMap(),
+    /**
+     * The icon set this theme's keys wear (#1488), so a theme can have the
+     * glyphs that read on its own colours: an installed icon pack's id (or its
+     * name, which is what survives an export to another phone), or `""` for
+     * the app's own icons. Null follows the Icons screen, which is what every
+     * theme did before the field existed.
+     *
+     * Set, the theme decides the keys outright: its own [keyIcons] first, then
+     * this set, and the Icons screen's pack and per-key picks no longer reach
+     * the Keys group. Tools and every other icon keep following the Icons
+     * screen. A pack this phone does not have counts as null, the way a
+     * missing font does.
+     */
+    val keyIconPack: String? = null,
     /**
      * Key pictures drawn nine-slice rather than fitted, keyed by the picture's
      * transport slot ([ASSET_KEY_TEXTURE], [ASSET_KEY_TEXTURE_ENTER],

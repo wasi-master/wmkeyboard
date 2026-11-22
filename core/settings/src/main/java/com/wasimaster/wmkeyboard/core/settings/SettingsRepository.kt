@@ -10519,8 +10519,22 @@ data class IconSettings(
      * other theme override already travels and switching theme switches them.
      *
      * The weakest layer of the three, deliberately — see the class comment.
+     * Unless [themePackId] is set.
      */
     val themeIcons: Map<String, String> = emptyMap(),
+    /**
+     * The icon set the *active theme* names for its keys
+     * ([ThemeSpec.keyIconPack]): a pack id or name, `""` for the built-in
+     * icons, null when the theme follows the Icons screen. Laid on by
+     * [applyThemeOverrides] like [themeIcons], never persisted.
+     *
+     * Set to a pack this phone has (or to `""`), it turns the order round for
+     * the Keys group alone (#1488): [themeIcons], then this set, then the
+     * built-in glyph, with [activePackId] and [overrides] left out of those
+     * slots. The user picked that set for that theme, which is the more
+     * specific choice.
+     */
+    val themePackId: String? = null,
 )
 
 /** Where a key's corner hint sits ([LayoutBehaviorSettings.hintCorner]). */

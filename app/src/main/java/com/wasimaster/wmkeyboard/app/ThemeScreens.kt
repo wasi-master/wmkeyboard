@@ -7,6 +7,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.LocalContentColor
 import com.wasimaster.wmkeyboard.ime.ui.rememberIconFile
+import com.wasimaster.wmkeyboard.ime.ui.IconDefaults
+import com.wasimaster.wmkeyboard.ime.ui.ResolvedIcon
+import com.wasimaster.wmkeyboard.ime.ui.resolvePackIcon
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
 import com.wasimaster.wmkeyboard.core.icons.LibraryIcon
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
@@ -7208,11 +7211,13 @@ private fun ThemeEditorContent(
     ThemeKeyIconsSection(
         themeId = lookId,
         keyIcons = look.watch { it.keyIcons },
+        keyIconPack = look.watch { it.keyIconPack },
         onSet = { slot, path ->
             update { t ->
                 t.copy(keyIcons = if (path == null) t.keyIcons - slot else t.keyIcons + (slot to path))
             }
         },
+        onPack = { pack -> update { t -> t.copy(keyIconPack = pack) } },
     )
     Spacer(Modifier.height(24.dp))
 }
@@ -7223,64 +7228,147 @@ private fun ThemeEditorContent(
  * way a background photo is, so it travels in the theme's export and survives
  * being deleted from the library.
  *
- * A theme's icon is the weakest layer: an icon pack or an icon picked on the
- * Icons screen wins over it (see `IconSettings`). A row whose slot is taken
- * that way says so, rather than leaving a pick that seems to do nothing — the
- * same complaint the key font had.
+ * By default a theme's icon is the weakest layer: an icon pack or an icon
+ * picked on the Icons screen wins over it (see `IconSettings`). A row whose
+ * slot is taken that way says so, rather than leaving a pick that seems to do
+ * nothing — the same complaint the key font had.
+ *
+ * The Icon set row (#1488) turns that round for this theme: with a set picked,
+ * the theme's pictures come first on the keys, then that set, and the Icons
+ * screen no longer reaches them while the theme is on.
  */
 @Composable
 private fun ThemeKeyIconsSection(
     themeId: String,
     keyIcons: Map<String, String>,
+    keyIconPack: String?,
     onSet: (slot: String, path: String?) -> Unit,
+    onPack: (String?) -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val repository = remember(context) { SettingsRepository(context.applicationContext) }
     val stored by repository.settings.collectAsState(initial = null)
     val icons = stored?.icons
-    val packSlots = remember(icons?.activePackId) {
+    val store = remember(context) { IconPackStore.get(context) }
+    val revision by store.revision.collectAsState()
+    val packSlots = remember(icons?.activePackId, revision) {
         icons?.activePackId?.takeIf { it.isNotEmpty() }
-            ?.let { IconPackStore.get(context).pack(it)?.slots?.toSet() }
+            ?.let { store.pack(it)?.slots?.toSet() }
             .orEmpty()
     }
+    // The installed pack the theme's set resolves to, matched the way the
+    // keyboard matches it (IconResolver): by id, then by name.
+    val themePack = remember(keyIconPack, revision) {
+        keyIconPack?.takeIf { it.isNotEmpty() }?.let { wanted ->
+            store.pack(wanted) ?: store.packs().firstOrNull { it.name.equals(wanted, ignoreCase = true) }
+        }
+    }
+    // Whether the theme decides its keys: the built-in set, or a pack this
+    // phone has. A pack it lacks leaves the keys to the Icons screen.
+    val ownsKeys = keyIconPack != null && (keyIconPack.isEmpty() || themePack != null)
     var picking by remember { mutableStateOf<IconSlot?>(null) }
+    var pickingSet by remember { mutableStateOf(false) }
     SettingsGroup(
         stringResource(R.string.theme_key_icons_section_title),
         foldKey = "theme/key_icons",
         info = stringResource(R.string.theme_key_icons_section_body),
         level = SettingLevel.STANDARD,
     ) {
+        item(key = "icon_set") {
+            WmRow(
+                title = stringResource(R.string.theme_key_icon_set_title),
+                subtitle = when {
+                    keyIconPack == null -> stringResource(R.string.theme_follow_settings_label)
+                    keyIconPack.isEmpty() -> stringResource(R.string.theme_key_icon_set_builtin_label)
+                    themePack != null -> themePack.name
+                    else -> stringResource(R.string.theme_key_icon_set_missing_label, keyIconPack)
+                },
+                onClick = { pickingSet = true },
+            )
+        }
         for (slot in IconSlots.inGroup(IconSlotGroup.KEY)) {
             item(key = slot.id) {
                 val path = keyIcons[slot.id]
-                val hidden = path != null && (icons?.overrides?.containsKey(slot.id) == true || slot.id in packSlots)
+                val hidden = path != null && !ownsKeys &&
+                    (icons?.overrides?.containsKey(slot.id) == true || slot.id in packSlots)
                 val themed = rememberIconFile(path)
+                // What the theme's own set draws here, when it has a set and no
+                // picture for this key: the row shows the key as the theme has
+                // it, not as the Icons screen would.
+                val fromSet by produceState<ResolvedIcon?>(null, ownsKeys, themePack?.id, slot.id, revision) {
+                    val packId = themePack?.id
+                    value = if (ownsKeys && packId != null) {
+                        withContext(Dispatchers.IO) { resolvePackIcon(store, packId, slot.id) }
+                    } else {
+                        null
+                    }
+                }
                 WmRow(
                     title = slotLabel(context, slot),
                     subtitle = stringResource(
                         when {
                             hidden -> R.string.theme_key_icons_hidden_label
                             path != null -> R.string.theme_key_icons_from_theme_label
+                            ownsKeys -> R.string.theme_key_icons_from_set_label
                             else -> R.string.theme_follow_settings_label
                         },
                     ),
                     leading = {
-                        if (themed != null) {
-                            TintedResolvedIcon(
-                                themed,
+                        val shown = themed ?: fromSet
+                        val builtin = if (ownsKeys && themePack == null) IconDefaults.forSlot(slot.id) else null
+                        when {
+                            shown != null -> TintedResolvedIcon(
+                                shown,
                                 tint = LocalContentColor.current,
                                 contentDescription = null,
                                 modifier = Modifier.size(24.dp),
                             )
-                        } else {
-                            SlotIcon(slot.id, contentDescription = null, modifier = Modifier.size(24.dp))
+                            builtin != null -> Icon(builtin, contentDescription = null, modifier = Modifier.size(24.dp))
+                            else -> SlotIcon(slot.id, contentDescription = null, modifier = Modifier.size(24.dp))
                         }
                     },
                     onClick = { picking = slot },
                 )
             }
         }
+    }
+    if (pickingSet) {
+        val packs = remember(revision) { store.packs() }
+        // Follow settings, the app's own icons, then each installed pack.
+        val choices: List<Pair<String?, String>> = listOf(
+            null to stringResource(R.string.theme_follow_settings_label),
+            "" to stringResource(R.string.theme_key_icon_set_builtin_label),
+        ) + packs.map { it.id to it.name }
+        val current = if (keyIconPack.isNullOrEmpty()) keyIconPack else themePack?.id ?: keyIconPack
+        AlertDialog(
+            onDismissRequest = { pickingSet = false },
+            title = { Text(stringResource(R.string.theme_key_icon_set_title)) },
+            text = {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    for ((value, label) in choices) {
+                        val chosen = value == current
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .selectable(selected = chosen, role = Role.RadioButton, onClick = {
+                                    pickingSet = false
+                                    onPack(value)
+                                })
+                                .padding(vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            RadioButton(selected = chosen, onClick = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(label, modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { pickingSet = false }) { Text(stringResource(CommonR.string.common_cancel)) }
+            },
+        )
     }
     picking?.let { slot ->
         val current = keyIcons[slot.id]

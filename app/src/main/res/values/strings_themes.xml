@@ -802,7 +802,15 @@
 
     <!-- Theme editor: the glyphs the theme draws on the keyboard's own keys. -->
     <string name="theme_key_icons_section_title">Key icons</string>
-    <string name="theme_key_icons_section_body">The theme can draw its own icon on the delete, shift, enter and other keys. Pick a picture from Your icons. The theme keeps its own copy, so the icon goes with the theme when you export it. An icon pack or an icon you picked under Appearance, then Icons, comes first.</string>
+    <string name="theme_key_icons_section_body">The theme can draw its own icon on the delete, shift, enter and other keys. Pick a picture from Your icons. The theme keeps its own copy, so the icon goes with the theme when you export it.\n\nIcon set picks the icons for every key this theme leaves without a picture of its own. On Follow settings, an icon pack or an icon you picked under Appearance, then Icons, comes first, even over the theme\'s pictures. Pick a set and the theme decides its keys itself while it is on: its pictures, then that set. Tool icons always follow the Icons screen.</string>
+    <!-- Row title: which set of icons this theme's keys use. -->
+    <string name="theme_key_icon_set_title">Icon set</string>
+    <!-- Choice: the keyboard's own built-in key icons, whatever icon pack is chosen elsewhere. -->
+    <string name="theme_key_icon_set_builtin_label">The app\'s own icons</string>
+    <!-- Shown when the theme names an icon pack this phone does not have. %1$s is the pack's name. -->
+    <string name="theme_key_icon_set_missing_label">%1$s (not installed, so the Icons screen decides)</string>
+    <!-- Under a key's row: its icon comes from the icon set this theme picked. -->
+    <string name="theme_key_icons_from_set_label">From the theme\'s icon set</string>
     <string name="theme_key_icons_from_theme_label">From this theme</string>
     <string name="theme_key_icons_hidden_label">Hidden by your icon pack or the Icons screen</string>
     <string name="theme_key_icons_remove_action">Remove from the theme</string>

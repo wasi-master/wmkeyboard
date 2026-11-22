@@ -31,6 +31,7 @@ import com.wasimaster.wmkeyboard.core.icons.IconArt
 import com.wasimaster.wmkeyboard.core.icons.IconLibrary
 import com.wasimaster.wmkeyboard.core.icons.IconOverrides
 import com.wasimaster.wmkeyboard.core.icons.IconPackStore
+import com.wasimaster.wmkeyboard.core.icons.IconSlotGroup
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import com.wasimaster.wmkeyboard.core.icons.RasterIcons
 import com.wasimaster.wmkeyboard.core.icons.SvgParser
@@ -232,16 +233,31 @@ fun buildIconSet(
 
     val activePackId = settings.activePackId
     val themeIcons = settings.themeIcons
-    if (activePackId.isEmpty() && settings.overrides.isEmpty() && themeIcons.isEmpty()) {
+    // The pack the theme names for its keys (#1488), when this phone has it:
+    // "" is the built-in icons, an id or a name an installed pack. One that is
+    // not installed leaves the keys to the Icons screen, as a missing font does.
+    val themePack: String? = settings.themePackId?.let { wanted ->
+        if (wanted.isEmpty()) {
+            ""
+        } else {
+            (store.pack(wanted) ?: store.packs().firstOrNull { it.name.equals(wanted, ignoreCase = true) })?.id
+        }
+    }
+    if (activePackId.isEmpty() && settings.overrides.isEmpty() && themeIcons.isEmpty() && themePack.isNullOrEmpty()) {
         return IconSet.Builtin
     }
 
     val resolved = HashMap<String, ResolvedIcon>()
     // The theme's own icons are the weakest layer: they dress a board the user
     // picked, but the icon pack and the per-slot picks are standing choices
-    // about the whole keyboard, and a theme must not quietly undo one.
+    // about the whole keyboard, and a theme must not quietly undo one. Unless
+    // the theme names an icon set of its own; see the end.
+    val fromTheme = HashMap<String, ResolvedIcon>()
     for ((slot, path) in themeIcons) {
-        readIconFile(path)?.toResolvedIcon(slot, fitGlyph = true)?.let { resolved[slot] = it }
+        readIconFile(path)?.toResolvedIcon(slot, fitGlyph = true)?.let {
+            fromTheme[slot] = it
+            resolved[slot] = it
+        }
     }
     // Then the active pack, so a per-slot override written afterwards wins.
     // Its variants (`tool.gif@text`) are skipped here: they are only drawn for
@@ -286,6 +302,17 @@ fun buildIconSet(
         // of the catalog, leaves the slot on whatever the pack or the built-in
         // gives it rather than drawing nothing.
         if (icon != null) resolved[slot] = icon else resolved.remove(slot)
+    }
+    // A theme with an icon set of its own decides its keys outright (#1488):
+    // its own pictures, then its set, then the built-in glyph. The Icons
+    // screen's pack and per-key picks stay on everything else, the tools above
+    // all, which a theme's key icons have nothing to say about.
+    if (themePack != null) {
+        val themeArt = if (themePack.isNotEmpty()) store.art(themePack) else emptyMap()
+        for (slot in IconSlots.inGroup(IconSlotGroup.KEY)) {
+            val icon = fromTheme[slot.id] ?: themeArt[slot.id]?.toResolvedIcon(slot.id)
+            if (icon != null) resolved[slot.id] = icon else resolved.remove(slot.id)
+        }
     }
     return if (resolved.isEmpty()) IconSet.Builtin else IconSet(resolved)
 }

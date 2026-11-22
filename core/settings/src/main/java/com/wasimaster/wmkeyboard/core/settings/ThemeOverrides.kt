@@ -139,14 +139,19 @@ fun KeyboardSettings.applyThemeOverrides(spec: ThemeSpec?): KeyboardSettings {
         spec.fontScale == null && spec.boldKeyLabels == null &&
         spec.hintFontScale == null && spec.gestureTrailWidthDp == null &&
         spec.gestureTrailOpacity == null && spec.toolWidthDp == null &&
-        spec.keyIcons.isEmpty()
+        spec.keyIcons.isEmpty() && spec.keyIconPack == null
     // Instance-stable in the no-override case: the caller remembers on the
     // result, and a fresh-but-equal copy per frame would defeat that.
     if (untouched) return this
     return copy(
         // A theme's own key glyphs, which a Gboard theme is as likely to carry
-        // as a colour. The weakest icon layer: see [IconSettings.themeIcons].
-        icons = if (spec.keyIcons.isEmpty()) icons else icons.copy(themeIcons = spec.keyIcons),
+        // as a colour, and the icon set it names for its keys (#1488). See
+        // [IconSettings.themeIcons] and [IconSettings.themePackId] for who wins.
+        icons = if (spec.keyIcons.isEmpty() && spec.keyIconPack == null) {
+            icons
+        } else {
+            icons.copy(themeIcons = spec.keyIcons, themePackId = spec.keyIconPack)
+        },
         toolbarHeightDp = spec.toolbarHeightDp ?: toolbarHeightDp,
         keyHeightDp = spec.keyHeightDp ?: keyHeightDp,
         numberRowHeightDp = spec.numberRowHeightDp?.takeIf { it > 0 } ?: numberRowHeightDp,
