@@ -82,6 +82,8 @@
     <string name="core_tools_provider_brave">Brave Search</string>
     <string name="core_tools_provider_mwmbl" translatable="false">Mwmbl</string>
     <string name="core_tools_provider_mwmbl_desc">A free, non-profit search engine with its own index. No key. Web results only, no images.</string>
+    <string name="core_tools_provider_plugin">Plugin</string>
+    <string name="core_tools_provider_plugin_desc">A provider from a plugin you installed. It sends the request to the plugin, which may send it to the websites it lists.</string>
     <string name="core_tools_provider_metasearch">Built-in search</string>
     <string name="core_tools_provider_metasearch_desc">The keyboard\'s own search. It asks Mwmbl, Marginalia, Wikipedia and Wiby at the same time and merges their results on your phone. Pictures come from Wikimedia Commons. No key and nothing to set up.</string>
     <string name="core_tools_provider_wiby" translatable="false">Wiby</string>

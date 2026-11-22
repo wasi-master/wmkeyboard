@@ -282,7 +282,7 @@ private fun VocabCardField.titleRes(): Int = when (this) {
 
 /** Where a word not in the packs is looked up, in the order of the tool's provider list. */
 private fun vocabSources(settings: KeyboardSettings): List<VocabAutofill.Source> =
-    settings.resolveProviders(ProviderTool.VOCAB_AUTOFILL).mapNotNull { VocabAutofill.sourceOf(it.typeId) }
+    settings.resolveProviders(ProviderTool.VOCAB_AUTOFILL).mapNotNull { VocabAutofill.sourceOf(it.typeId, it.key) }
 
 /** The Vocabulary tool's settings page body, called from [ToolDetailSettings]. */
 @Composable

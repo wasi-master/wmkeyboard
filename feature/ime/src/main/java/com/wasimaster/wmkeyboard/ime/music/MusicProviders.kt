@@ -47,6 +47,7 @@ object MusicProviders {
         ProviderTypes.RAPID_SHAZAM.id -> RapidShazamClient(row.key, row.typeId, row.apiKey)
         ProviderTypes.AUDIOTAG.id -> AudioTagClient(row.key, row.typeId, row.apiKey)
         ProviderTypes.MUSIC_SERVER.id -> MusicServerClient(row.key, row.url, row.apiKey)
+        ProviderTypes.PLUGIN.id -> com.wasimaster.wmkeyboard.core.music.PluginMusicClient(row.key, row.customName)
         else -> null
     }
 

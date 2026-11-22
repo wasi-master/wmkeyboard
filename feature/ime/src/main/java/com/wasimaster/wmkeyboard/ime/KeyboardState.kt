@@ -3039,7 +3039,12 @@ sealed interface SynonymsStatus {
     data object Loading : SynonymsStatus
 
     /** [source] had synonyms; the ones before it in the user's order did not. */
-    data class Found(val groups: List<SynonymGroup>, val source: SynonymSource) : SynonymsStatus
+    data class Found(
+        val groups: List<SynonymGroup>,
+        val source: SynonymSource,
+        /** A plugin row's name, said in place of [source]'s. */
+        val name: String = "",
+    ) : SynonymsStatus
 
     /** Every source asked answered, and none listed synonyms for the word. */
     data object NotFound : SynonymsStatus

@@ -26,7 +26,7 @@ class DictionarySourcesTest {
             DictionarySourceChoice(DictionarySource.OFFLINE_LANGUAGES),
             DictionarySourceChoice(DictionarySource.URBAN_DICTIONARY),
         )
-        assertEquals(DictionarySource.entries.size, choices.size)
+        assertEquals(DictionarySource.builtIn.size, choices.size)
         assertEquals(choices, DictionarySources.decode(DictionarySources.encode(choices)))
     }
 

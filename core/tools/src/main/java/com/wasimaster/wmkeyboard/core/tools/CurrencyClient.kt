@@ -5,6 +5,7 @@ import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoint
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoints
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.providers.PluginProviders
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -84,7 +85,13 @@ object CurrencyClient {
         val chain = chain(providers, defaultFiatProviders) { it.fiat }
         var last: Throwable? = null
         for (provider in chain) {
-            runCatching { fetchFiat(provider) }
+            runCatching {
+                when (provider) {
+                    is Ask.BuiltIn -> fetchFiat(provider.provider)
+                    is Ask.Plugin -> PluginReplies.fiatRates(PluginProviders.call(provider.key, PluginReplies.fiatRequest()))
+                        ?: error("The plugin had no rates")
+                }
+            }
                 .onSuccess { return it }
                 .onFailure { last = it }
         }
@@ -104,7 +111,13 @@ object CurrencyClient {
         val chain = chain(providers, defaultCryptoProviders) { it.crypto }
         var last: Throwable? = null
         for (provider in chain) {
-            runCatching { fetchCrypto(provider, codes) }
+            runCatching {
+                when (provider) {
+                    is Ask.BuiltIn -> fetchCrypto(provider.provider, codes)
+                    is Ask.Plugin ->
+                        PluginReplies.cryptoRates(PluginProviders.call(provider.key, PluginReplies.cryptoRequest(codes)), codes)
+                }
+            }
                 .onSuccess { if (it.isNotEmpty()) return it }
                 .onFailure { last = it }
         }
@@ -112,14 +125,24 @@ object CurrencyClient {
         error("No coin provider")
     }
 
+    /** One source to ask: a built-in one, or a plugin's provider by its `plugin:` key. */
+    private sealed interface Ask {
+        data class BuiltIn(val provider: Provider) : Ask
+        data class Plugin(val key: String) : Ask
+    }
+
     private fun chain(
         ids: List<String>,
         fallback: List<String>,
         serves: (Provider) -> Boolean,
-    ): List<Provider> {
-        val picked = ids.mapNotNull(Provider::of).filter(serves)
-        return picked.ifEmpty { fallback.mapNotNull(Provider::of).filter(serves) }
+    ): List<Ask> {
+        val picked = ids.mapNotNull { id ->
+            if (id.startsWith(PLUGIN_PREFIX)) Ask.Plugin(id) else Provider.of(id)?.takeIf(serves)?.let(Ask::BuiltIn)
+        }
+        return picked.ifEmpty { fallback.mapNotNull(Provider::of).filter(serves).map(Ask::BuiltIn) }
     }
+
+    private const val PLUGIN_PREFIX = "plugin:"
 
     private fun fetchFiat(provider: Provider): Rates = when (provider) {
         Provider.ER_API -> parseErApi(get(url(ServiceEndpoint.ER_API, "/v6/latest/USD")))

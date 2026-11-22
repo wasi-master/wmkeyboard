@@ -532,3 +532,45 @@ object MusicBase64 {
         return out.toString()
     }
 }
+
+/**
+ * A plugin's provider for the Music ID list: the clip as 16-bit PCM, the
+ * song back as `{title, artist, album?, year?, label?, art?, isrc?,
+ * links: {"spotify": url, ...}}`, or None for no match.
+ */
+class PluginMusicClient(override val key: String, private val name: String) : MusicClient {
+    override val typeId: String = com.wasimaster.wmkeyboard.core.providers.ProviderTypes.PLUGIN.id
+
+    override fun recognize(samples: FloatArray, sampleRate: Int): MusicOutcome {
+        val reply = try {
+            com.wasimaster.wmkeyboard.core.providers.PluginProviders.call(
+                key,
+                com.wasimaster.wmkeyboard.core.tools.PluginReplies.audioRequest(samples, sampleRate),
+            )
+        } catch (e: java.io.IOException) {
+            return MusicOutcome.Failed(e.message.orEmpty(), e)
+        }
+        val o = reply as? kotlinx.serialization.json.JsonObject ?: return MusicOutcome.NoMatch
+        val title = o.pluginText("title")
+        if (title.isEmpty()) return MusicOutcome.NoMatch
+        val links = (o["links"] as? kotlinx.serialization.json.JsonObject).orEmpty().mapNotNull { (kind, url) ->
+            (url as? kotlinx.serialization.json.JsonPrimitive)?.content?.let { com.wasimaster.wmkeyboard.core.providers.webUrl(it) }?.let { kind to it }
+        }.toMap()
+        return MusicOutcome.Match(
+            SongMatch(
+                title = title,
+                artist = o.pluginText("artist"),
+                album = o.pluginText("album"),
+                year = o.pluginText("year"),
+                label = o.pluginText("label"),
+                links = links,
+                artUrl = com.wasimaster.wmkeyboard.core.providers.webUrl(o.pluginText("art")),
+                isrc = o.pluginText("isrc"),
+                via = name,
+            ),
+        )
+    }
+
+    private fun kotlinx.serialization.json.JsonObject.pluginText(key: String): String =
+        (this[key] as? kotlinx.serialization.json.JsonPrimitive)?.takeIf { it !is kotlinx.serialization.json.JsonNull }?.content?.trim().orEmpty()
+}

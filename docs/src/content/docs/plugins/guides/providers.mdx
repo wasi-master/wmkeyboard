@@ -1,0 +1,243 @@
+---
+title: "Answering for a provider list"
+description: "Make your plugin a web search engine, a translator, a dictionary, a GIF source, a music recogniser or a voice engine the keyboard's own tools can use."
+sidebar:
+  label: "Providers"
+  order: 5.045
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+Many of the keyboard's tools ask a **provider list**: web search asks Brave,
+SearXNG or the Built-in search, translate asks DeepL or Google, and so on (see
+[Provider lists](/tools/providers/)). A plugin can add rows to those lists. The
+tool then asks your plugin the same way it asks any other provider. It sends a
+request, you send results back, and the tool draws them as its own.
+
+This works for these lists:
+
+| `tool` | The list | You get | You return |
+|---|---|---|---|
+| `search` | Web search, and its Images tab with `"images": true` | a query | results |
+| `translate` | Translate | text and two languages | the translation |
+| `dictionary` | Dictionary | a word | entries |
+| `synonyms` | Synonyms | a word | words |
+| `vocab_autofill` | Vocabulary's look-up | a word | a vocabulary record |
+| `currency_fiat`, `currency_crypto` | Currency rates | a base | rates |
+| `grammar` | Grammar | text and a language | problems found |
+| `gif`, `sticker` | GIFs and stickers | a query | pictures by address |
+| `ocr` | Online text reading | a photo | its text |
+| `music` | Music ID | a sound clip | the song |
+| `voice` | Voice typing | a sound clip | its words |
+
+The AI list, smart homes, the sticker generator, photo translation, the speed
+test and background photos are not on it.
+
+## Declaring a provider
+
+List each provider in `plugin.json`, then answer it with
+`@plugin.provider(tool, id)`. A plugin can offer up to 8.
+
+```json title="plugin.json"
+{
+  "format": "wmkeyboard-plugin",
+  "id": "com.example.wikisearch",
+  "name": "Wiki search",
+  "pluginVersion": "1.0.0",
+  "apiVersion": 5,
+  "panel": false,
+  "permissions": ["network"],
+  "hosts": ["en.wikipedia.org"],
+  "providers": [
+    {"tool": "search", "id": "wiki", "name": "Wikipedia titles", "summary": "Article titles only"}
+  ]
+}
+```
+
+| Field | Required | Meaning |
+|---|---|---|
+| `tool` | yes | One of the lists in the table above. |
+| `id` | no | Lowercase letters, digits, `-` and `_`. The tool's name when left out. Unique for its tool. |
+| `name` | no | The row's name in the list. Your plugin's name when left out. |
+| `summary` | no | One line under the name in the **Add a provider** sheet. |
+| `images` | no | For `search` only: the Images tab asks you too. |
+
+A plugin with providers and nothing else sets `"panel": false`. It needs no
+panel and no selection actions.
+
+```python title="main.py"
+from wm import plugin, http
+
+@plugin.provider("search", "wiki")
+def search(request):
+    reply = http.get("https://en.wikipedia.org/w/api.php", params={
+        "action": "opensearch", "format": "json", "limit": request["count"], "search": request["query"],
+    })
+    _, titles, _, links = reply.json()
+    return [{"title": t, "url": u} for t, u in zip(titles, links)]
+```
+
+The function gets the request as a `dict` and returns plain data: dicts, lists,
+strings, numbers and `None`. Returning `None` or an empty list means "nothing
+found", and the list asks its next row.
+
+## How the user turns it on
+
+Installing a plugin adds nothing to any list. The user adds your row on the
+plugin's page, under **Providers**, or from the list's own **Add a provider**
+sheet, where your provider appears by name. From then on the list asks it in
+its turn: in fallback order only after the rows above it fail or find
+nothing, and first when the user moves it up or picks it in the panel.
+
+If the plugin is switched off or removed, the row stays in the list and reads
+"Its plugin is off or removed". It isn't asked until the plugin is back.
+
+## What each call gets
+
+Each call starts a fresh copy of your script, calls your function once and
+ends. It has the same limits as a selection action: about 3 seconds of your
+own work, with time spent waiting on `http` not counted. Storage and secrets
+work. Nothing that needs the field (`field`, `clipboard`, `share`) does,
+because the user is busy in the tool, not in your panel.
+
+`network` is a risky permission, so it does nothing until the user turns it on
+on your plugin's page. Until then a call that uses `http` fails, and the list
+moves on to its next row. Data saver, the hosts list and the network log apply
+as they do everywhere else; see [Internet and AI](/plugins/guides/internet-and-ai/).
+
+An exception you raise ends the call. The list moves on and, when nothing else
+answers, shows your message, so make it one a user can read:
+`raise RuntimeError("The service is busy, try again in a minute")`.
+
+## Requests and replies
+
+Every reply below can also be the list on its own when the shape is "an object
+with a list in it". Fields marked `?` may be left out. An item without its
+address, or with one that isn't `http` or `https`, is skipped.
+
+### search
+
+```python
+# request
+{"kind": "web", "query": "cats", "count": 10, "safe": True, "page": 0}
+{"kind": "images", "query": "cats", "count": 30, "safe": True, "page": 0}   # with "images": true
+
+# reply, web
+{"results": [{"title": "...", "url": "https://...", "snippet": "...", "thumbnail?": "https://..."}],
+ "answer?": "a short answer, drawn above the results"}
+
+# reply, images
+[{"image": "https://...", "thumb?": "https://...", "title?": "...", "page?": "https://...", "mime?": "image/png"}]
+```
+
+`page` counts from 0, for **More results**. Each result shows your row's name
+as the engine that found it.
+
+### translate
+
+```python
+{"text": "Good morning", "to": "de", "from": "auto"}   # request
+"Guten Morgen"                                        # reply, or {"text": "...", "from": "en"}
+```
+
+### dictionary, synonyms and vocab_autofill
+
+```python
+{"word": "serene"}   # request; vocab_autofill adds "translations": ["de", "bn"]
+
+# dictionary reply: entries
+[{"word": "serene", "phonetic?": "/səˈriːn/", "audio?": "https://...",
+  "meanings": [{"pos": "adjective",
+                "definitions": ["calm and untroubled", {"definition": "...", "example?": "..."}],
+                "synonyms?": ["calm"]}]}]
+
+# synonyms reply
+["calm", "peaceful"]          # or {"groups": [{"pos?": "adj", "sense?": "...", "words": [...]}]}
+```
+
+`vocab_autofill` takes the dictionary reply, or a vocabulary record as a pack
+stores it (`{"word", "senses": [{"pos", "definition", "example"}], ...}`).
+
+### currency_fiat and currency_crypto
+
+```python
+{"base": "USD"}                                    # fiat request
+{"base": "EUR", "rates": {"USD": 1.08, "GBP": 0.85}}   # reply: units of each for one of the base
+
+{"base": "USD", "codes": ["BTC", "ETH"]}           # crypto request
+{"BTC": 65000.0, "ETH": 3100.0}                    # reply: each coin's price in US dollars
+```
+
+A fiat reply against another base needs `USD` among its rates, so the keyboard
+can turn it into dollars.
+
+### grammar
+
+```python
+{"text": "Their is a cat.", "language": "en-US"}   # request
+[{"start": 0, "end": 5, "message": "Did you mean “There”?", "suggestions": ["There"],
+  "title?": "Wrong word", "rule?": "THEIR_THERE"}]
+```
+
+`start` and `end` count UTF-16 code units, as Kotlin and JavaScript strings do;
+for most text that is one per character. Grammar rows are never asked in a
+password field or incognito, and Data saver holds them like a server.
+
+### gif and sticker
+
+```python
+{"query": "happy", "kind": "gif", "limit": 24, "safe": True}   # "kind" is "sticker" for the sticker list
+[{"url": "https://...gif", "preview?": "https://...", "width?": 200, "height?": 150,
+  "title?": "...", "creator?": "...", "mime?": "image/gif"}]
+```
+
+### ocr
+
+```python
+{"image": "<base64 JPEG>", "mime": "image/jpeg"}   # request
+"the text in the photo"                            # reply, or {"text": "..."}
+```
+
+### music and voice
+
+```python
+{"audio": "<base64>", "encoding": "pcm16le", "sampleRate": 16000, "channels": 1,
+ "language?": "en"}        # voice sends the dictation language
+
+# music reply
+{"title": "...", "artist": "...", "album?": "...", "year?": "...", "art?": "https://...",
+ "links?": {"spotify": "https://..."}}       # None for no match
+
+# voice reply
+"what was said"                              # or {"text": "..."}
+```
+
+`audio` is the clip as 16-bit little-endian samples, mono. Decode it with
+`base64.b64decode`. A voice row is asked the way a transcription server is:
+once the user stops, with the whole clip.
+
+## Testing
+
+`wm-python-cli` calls a provider the way the keyboard does: through
+`transform`, with the action id `provider:<tool>/<id>` and the request as
+JSON. The reply comes back wrapped as `{"value": ...}`.
+
+```python title="test.py"
+import json, plugin_test
+
+s = plugin_test.session(mock={"http.request": {"status": 200, "text": '["cats", ["Cat"], [""], ["https://en.wikipedia.org/wiki/Cat"]]'}})
+s["load"]()
+r = s["transform"](json.dumps({"kind": "web", "query": "cats", "count": 5, "safe": True, "page": 0}), "provider:search/wiki")
+results = json.loads(r["value"])["value"]
+assert results[0]["url"] == "https://en.wikipedia.org/wiki/Cat"
+```
+
+See [Testing](/plugins/guides/testing/) for the rest of `plugin_test`.
+
+## Reaching websites
+
+A provider reaches only the hosts your manifest lists, over https. What you do
+with a site is between you and that site: read its terms before you depend on
+its pages, prefer a published API where there is one, and expect markup you
+parse to change. Plugins come from wherever their author shares them, so a
+provider that reads a site's pages lives in your plugin, not in the keyboard.

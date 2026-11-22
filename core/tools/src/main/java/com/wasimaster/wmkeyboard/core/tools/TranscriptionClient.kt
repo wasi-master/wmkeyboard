@@ -102,6 +102,12 @@ object TranscriptionClient {
         prompt: String? = null,
         path: String = "",
     ): String {
+        // A plugin's voice row stands where a server would, its key for an
+        // address: the clip goes to the plugin instead ([PluginProviders]).
+        if (url.startsWith(PLUGIN_PREFIX)) {
+            val request = PluginReplies.audioRequest(samples, PLUGIN_SAMPLE_RATE, language.orEmpty())
+            return PluginReplies.text(com.wasimaster.wmkeyboard.core.providers.PluginProviders.call(url, request)).orEmpty()
+        }
         val endpoint = endpoint(url, path)
         val fields = buildList {
             if (model.isNotBlank()) add("model" to model.trim())
@@ -193,4 +199,10 @@ object TranscriptionClient {
             Json.parseToJsonElement(trimmed).jsonObject["text"]?.jsonPrimitive?.content
         }.getOrNull()?.trim().orEmpty()
     }
+
+    private const val PLUGIN_PREFIX = "plugin:"
+
+    /** Dictation's clips are the microphone's 16 kHz. */
+    private const val PLUGIN_SAMPLE_RATE = 16_000
 }
+

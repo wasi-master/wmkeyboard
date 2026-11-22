@@ -64,6 +64,8 @@ data class InstalledPlugin(
      * reading the files. The script's own strings stay on disk ([PluginStore.strings]).
      */
     val labels: Map<String, Map<String, String>> = emptyMap(),
+    /** The providers it declared, copied here so the provider lists can name them without reading `plugin.json`. */
+    val providers: List<PluginProviderSpec> = emptyList(),
 ) {
     val isPython: Boolean
         get() = language == PluginManifestCodec.LANGUAGE_PYTHON
@@ -144,6 +146,32 @@ data class PluginActionRef(val plugin: InstalledPlugin, val action: PluginAction
             val slash = rest.lastIndexOf('/')
             if (slash <= 0 || slash == rest.length - 1) return null
             return rest.substring(0, slash) to rest.substring(slash + 1)
+        }
+    }
+}
+
+/** One provider a plugin offers, with the plugin. */
+data class PluginProviderRef(val plugin: InstalledPlugin, val provider: PluginProviderSpec) {
+    /** Stable across launches and unique across plugins: what a provider list's row keys on. */
+    val key: String
+        get() = keyOf(plugin.id, provider.key)
+
+    /** What the row is called: the provider's own name, else the plugin's. */
+    val name: String
+        get() = provider.name.ifBlank { plugin.name }
+
+    companion object {
+        const val PREFIX = "plugin:"
+
+        /** `plugin:<pluginId>/<tool>/<id>`. */
+        fun keyOf(pluginId: String, providerKey: String): String = "$PREFIX$pluginId/$providerKey"
+
+        /** The plugin id and the provider's `tool/id` in [key], or null when it is not a provider key. */
+        fun parse(key: String): Pair<String, String>? {
+            if (!key.startsWith(PREFIX)) return null
+            val parts = key.removePrefix(PREFIX).split('/')
+            if (parts.size != 3 || parts.any { it.isEmpty() }) return null
+            return parts[0] to (parts[1] + "/" + parts[2])
         }
     }
 }
@@ -489,6 +517,24 @@ class PluginStore(
     }
 
     /**
+     * Every provider of every installed plugin, the ones switched off too, in
+     * install order: a provider list shows a row whose plugin is off as off,
+     * rather than forgetting it.
+     */
+    @Synchronized
+    fun providers(): List<PluginProviderRef> =
+        pluginList.flatMap { plugin -> plugin.providers.map { PluginProviderRef(plugin, it) } }
+
+    /** The provider [key] names when it may run right now: subsystem on, plugin on. */
+    @Synchronized
+    fun runnableProvider(key: String): PluginProviderRef? {
+        if (!subsystem) return null
+        val (pluginId, providerKey) = PluginProviderRef.parse(key) ?: return null
+        val plugin = pluginList.firstOrNull { it.id == pluginId && it.enabled } ?: return null
+        return plugin.providers.firstOrNull { it.key == providerKey }?.let { PluginProviderRef(plugin, it) }
+    }
+
+    /**
      * The plugin's own directory, or null when the id is not a safe path segment
      * or there is nowhere to write. Never creates it.
      */
@@ -643,6 +689,7 @@ class PluginStore(
             settings = manifest.settings,
             settingValues = existing?.settingValues.orEmpty().filterKeys { key -> manifest.settings.any { it.key == key } },
             newSinceUpdate = added,
+            providers = manifest.providers,
             labels = locales.mapNotNull { (tag, text) ->
                 PluginLocales.parse(text)?.let { tag to PluginLocales.labels(it) }?.takeIf { it.second.isNotEmpty() }
             }.toMap(),

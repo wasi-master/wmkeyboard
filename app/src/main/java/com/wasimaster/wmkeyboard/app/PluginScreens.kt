@@ -22,6 +22,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ToggleOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Widgets
 import com.wasimaster.wmkeyboard.core.settings.PluginToolPlace
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.providerChain
 import com.wasimaster.wmkeyboard.core.settings.pluginToolPlaceIn
 import com.wasimaster.wmkeyboard.ime.ui.PluginIcon
 import com.wasimaster.wmkeyboard.ime.ui.toolColor
@@ -652,6 +653,50 @@ private fun UninstallPluginDialog(plugin: InstalledPlugin, onDismiss: () -> Unit
     )
 }
 
+/**
+ * The provider lists this plugin can answer for. Each row says whether its
+ * list has it, and a tap adds it at the end: never added by itself, since a
+ * row sends what the list asks (a search, a word, a clip) to the plugin.
+ */
+@Composable
+private fun PluginProvidersGroup(plugin: InstalledPlugin, repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    SettingsGroup(stringResource(R.string.plugins_providers_title), info = stringResource(R.string.plugins_providers_info)) {
+        for (provider in plugin.providers) {
+            val tool = com.wasimaster.wmkeyboard.core.providers.ProviderTool.entries.firstOrNull { it.id == provider.tool } ?: continue
+            val key = com.wasimaster.wmkeyboard.core.plugins.PluginProviderRef.keyOf(plugin.id, provider.key)
+            item(key = "provider:$key") {
+                val listed = settings.watch { it.providerChain(tool).has(key) }
+                val list = stringResource(tool.labelRes)
+                WmRow(
+                    title = provider.name.ifBlank { plugin.displayName },
+                    subtitle = if (listed) {
+                        stringResource(R.string.plugins_providers_listed, list)
+                    } else {
+                        stringResource(R.string.plugins_providers_add, list)
+                    },
+                    icon = providerIcon(com.wasimaster.wmkeyboard.core.providers.ProviderTypes.PLUGIN),
+                    onClick = if (listed) {
+                        null
+                    } else {
+                        {
+                            scope.launch {
+                                repository.saveProviders(
+                                    com.wasimaster.wmkeyboard.core.settings.ProviderEdits.addEntry(
+                                        settings.value,
+                                        tool,
+                                        com.wasimaster.wmkeyboard.core.providers.PluginProviders.entry(key),
+                                    ),
+                                )
+                            }
+                        }
+                    },
+                )
+            }
+        }
+    }
+}
+
 /** One plugin: what it may do, what it has stored, its log, and how to remove it. */
 @Composable
 internal fun PluginDetailScreen(
@@ -792,6 +837,8 @@ internal fun PluginDetailScreen(
             }
         }
     }
+
+    if (plugin.providers.isNotEmpty()) PluginProvidersGroup(plugin, repository, settings)
 
     SettingsGroup(stringResource(R.string.plugins_storage_title), level = SettingLevel.STANDARD) {
         item {

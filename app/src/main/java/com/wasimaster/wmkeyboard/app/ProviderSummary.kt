@@ -176,6 +176,7 @@ private fun problemSummary(row: ResolvedProvider): ProviderSummary? {
         ProviderProblem.NEEDS_PACKS -> R.string.providers_status_needs_packs
         ProviderProblem.UNAVAILABLE -> R.string.providers_status_unavailable
         ProviderProblem.UNKNOWN -> R.string.providers_status_unknown
+        ProviderProblem.PLUGIN_OFF -> R.string.providers_status_plugin_off
     }
     return ProviderSummary(listOf(SummaryPart.Phrase(res)), problem = true)
 }

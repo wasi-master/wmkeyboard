@@ -1001,6 +1001,8 @@ internal fun searchAttribution(settings: KeyboardSettings): String? {
         SearchBackend.WIKIPEDIA -> return stringResource(R.string.ime_search_attribution_wikipedia)
         // Each result also names its engines, Marginalia's credit among them.
         SearchBackend.METASEARCH -> return stringResource(R.string.ime_search_attribution_metasearch)
+        // Each result names the plugin as its engine.
+        SearchBackend.PLUGIN -> return null
         SearchBackend.SEARXNG, SearchBackend.BROWSER, null -> return null
     }
     // What the service last said is left this month (#1135), when it said;

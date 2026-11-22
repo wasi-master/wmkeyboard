@@ -223,7 +223,7 @@ private fun ColumnScope.Found(
         }
     }
     Text(
-        text = stringResource(R.string.ime_synonyms_from, stringResource(status.source.labelRes)),
+        text = stringResource(R.string.ime_synonyms_from, status.name.ifEmpty { stringResource(status.source.labelRes) }),
         fontSize = 12.sp,
         color = color.copy(alpha = 0.6f),
         modifier = Modifier.padding(top = 6.dp, bottom = 4.dp),

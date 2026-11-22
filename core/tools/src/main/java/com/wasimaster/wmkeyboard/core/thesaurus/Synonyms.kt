@@ -36,6 +36,9 @@ enum class SynonymSource(val id: String, val online: Boolean) {
      * words that can stand in for it.
      */
     SIMILAR_WORDS("similar_words", online = true),
+
+    /** A plugin's provider, which one being [SynonymRow.key]. Never in the stored source list. */
+    PLUGIN("plugin", online = true),
     ;
 
     /** The source's name, for the settings list and the sheet's "From …" line. */
@@ -47,6 +50,7 @@ enum class SynonymSource(val id: String, val online: Boolean) {
             WIKTIONARY -> R.string.core_tools_synonym_source_wiktionary
             DICTIONARY_API -> R.string.core_tools_synonym_source_dictionary_api
             SIMILAR_WORDS -> R.string.core_tools_synonym_source_similar_words
+            PLUGIN -> R.string.core_tools_provider_plugin
         }
 
     /** One line on what the source knows, under its name in settings. */
@@ -58,10 +62,21 @@ enum class SynonymSource(val id: String, val online: Boolean) {
             WIKTIONARY -> R.string.core_tools_synonym_source_wiktionary_desc
             DICTIONARY_API -> R.string.core_tools_synonym_source_dictionary_api_desc
             SIMILAR_WORDS -> R.string.core_tools_synonym_source_similar_words_desc
+            PLUGIN -> R.string.core_tools_provider_plugin_desc
         }
 
     companion object {
         fun of(id: String): SynonymSource? = entries.firstOrNull { it.id == id }
+
+        /** The built-in sources, the ones the stored list holds. */
+        val builtIn: List<SynonymSource> get() = entries.filter { it != PLUGIN }
+    }
+}
+
+/** One row of the synonym provider list: a built-in [source], or the plugin provider [key] names, called [name]. */
+data class SynonymRow(val source: SynonymSource, val key: String = source.id, val name: String = "") {
+    companion object {
+        fun plugin(key: String, name: String) = SynonymRow(SynonymSource.PLUGIN, key, name)
     }
 }
 
@@ -72,7 +87,7 @@ data class SynonymSourceChoice(val source: SynonymSource, val enabled: Boolean =
 object SynonymSources {
 
     /** Every source, on, in the order that suits most people: offline first, then the richest. */
-    val DEFAULT: List<SynonymSourceChoice> = SynonymSource.entries.map { SynonymSourceChoice(it) }
+    val DEFAULT: List<SynonymSourceChoice> = SynonymSource.builtIn.map { SynonymSourceChoice(it) }
 
     fun encode(choices: List<SynonymSourceChoice>): String =
         choices.joinToString(",") { (if (it.enabled) "" else "-") + it.source.id }
@@ -87,11 +102,11 @@ object SynonymSources {
         for (token in raw.split(',')) {
             val trimmed = token.trim()
             val off = trimmed.startsWith('-')
-            val source = SynonymSource.of(trimmed.removePrefix("-")) ?: continue
+            val source = SynonymSource.of(trimmed.removePrefix("-"))?.takeIf { it != SynonymSource.PLUGIN } ?: continue
             seen.putIfAbsent(source, !off)
         }
         return seen.map { (source, enabled) -> SynonymSourceChoice(source, enabled) } +
-            SynonymSource.entries.filter { it !in seen }.map { SynonymSourceChoice(it) }
+            SynonymSource.builtIn.filter { it !in seen }.map { SynonymSourceChoice(it) }
     }
 }
 
@@ -110,6 +125,8 @@ data class SynonymSet(
     val word: String,
     val source: SynonymSource,
     val groups: List<SynonymGroup>,
+    /** A plugin row's name, for the "From …" line; empty for a built-in source. */
+    val name: String = "",
 )
 
 /**

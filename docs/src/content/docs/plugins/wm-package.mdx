@@ -64,7 +64,8 @@ The editors complete these names as you type and show what each one does.
 | `tool` | no | Where the plugin opens from: `icon` (a Material Symbols name or `"assets/icon.svg"`, [more](/plugins/guides/pages-and-timers/#your-icon)), `color` (`"#RRGGBB"`), `tile`, `float`, `keyword`, `chip`, `height`, `fullBleed`. [More](/plugins/guides/pages-and-timers/#where-a-plugin-opens-from). |
 | `settings` | no | Rows on the plugin's settings page, up to 24. A `host` setting adds the server the user types to `hosts`. [More](/plugins/guides/saving-and-settings/#a-settings-page). |
 | `actions` | with `selection` | Buttons over selected text, up to 16. [More](/plugins/guides/text-and-selection/#buttons-over-selected-text). |
-| `panel` | no | `false` for a plugin made only of selection actions. |
+| `providers` | no | Rows for the keyboard's provider lists, such as web search or translate, up to 8. [More](/plugins/guides/providers/). |
+| `panel` | no | `false` for a plugin made only of selection actions or providers. |
 
 A manifest the app does not fully understand, such as one with an unknown
 permission, is refused at install rather than half-installed.
@@ -140,6 +141,7 @@ has more detail on the built-in modules, strings and dicts.
 | `@plugin.every(seconds=0, minutes=0, hours=0, name=None)` | again and again while the panel is open, at least one second apart |
 | `@plugin.action(id)` | for the selection action `id` with the selected text; returns the replacement, or `None` |
 | `@plugin.keyword(word)` | with the text after `@word` when the user presses your chip |
+| `@plugin.provider(tool, id=None)` | when a provider list the user added you to asks; gets the request as a dict and returns the reply. [More](/plugins/guides/providers/) |
 | `@plugin.command(label, icon=None, id=None)` | when the user presses this button in the panel's header (three at most) |
 | `@plugin.setting_changed(key)` | with the new value when the user changes that setting |
 

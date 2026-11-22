@@ -10,6 +10,8 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.providerMode
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
+import com.wasimaster.wmkeyboard.core.settings.dictionaryRow
+import com.wasimaster.wmkeyboard.core.settings.synonymRow
 import com.wasimaster.wmkeyboard.core.settings.toolKeywordScripts
 import android.app.AppOpsManager
 import android.app.KeyguardManager
@@ -48819,7 +48821,7 @@ open class WMKeyboardService : InputMethodService() {
         // The Dictionary tool's provider list, rows that are off or cannot be asked left out;
         // in pick mode, only the row the panel's chooser is on.
         val sources = settings.resolveProviders(ProviderTool.DICTIONARY, pick = ProviderPicks.of(ProviderTool.DICTIONARY))
-            .mapNotNull { DictionarySource.of(it.typeId) }
+            .mapNotNull { it.dictionaryRow() }
         if (sources.isEmpty()) {
             _uiState.update { it.copy(dictionary = DictionaryUi.NoSources) }
             return
@@ -48833,13 +48835,13 @@ open class WMKeyboardService : InputMethodService() {
             // The packs' index is the vocabulary tool's when it has one
             // loaded; otherwise the same shared copy, read with the same codes
             // so the cache is not thrashed.
-            val index = vocabIndex ?: if (DictionarySource.VOCAB_PACKS in sources && userUnlocked) {
+            val index = vocabIndex ?: if (sources.any { it.source == DictionarySource.VOCAB_PACKS } && userUnlocked) {
                 withContext(Dispatchers.IO) { VocabIndexCache.get(filesDir, codes) }.takeUnless { it.isEmpty }
             } else {
                 null
             }
             val fetch = DictionaryLookup.fetcher({ index }, translationCodes)
-            val ui = when (val result = DictionaryLookup.resolve(word, sources, fetch)) {
+            val ui = when (val result = DictionaryLookup.resolveRows(word, sources, fetch)) {
                 is DictionaryLookup.Result.Found -> {
                     val translations = result.entries.firstOrNull()
                         ?.let { DictionaryLookup.translationsFor(it, translationCodes) }
@@ -50020,6 +50022,16 @@ open class WMKeyboardService : InputMethodService() {
         GifSource.GIFCITIES ->
             if (sticker) emptyList()
             else com.wasimaster.wmkeyboard.core.tools.GifCitiesClient.search(query, limit = settings.gif.resultLimit)
+        GifSource.PLUGIN -> com.wasimaster.wmkeyboard.core.tools.PluginReplies.media(
+            com.wasimaster.wmkeyboard.core.providers.PluginProviders.call(
+                target.key,
+                com.wasimaster.wmkeyboard.core.tools.PluginReplies.mediaRequest(
+                    query, sticker, settings.gif.resultLimit,
+                    safe = settings.gif.contentFilter != com.wasimaster.wmkeyboard.core.settings.GifContentFilter.OFF,
+                ),
+            ),
+            target.key,
+        )
     }
 
     /** Provider chip on the GIF/sticker panel; [key] is the provider row's. */
@@ -50098,6 +50110,7 @@ open class WMKeyboardService : InputMethodService() {
         GifSource.COMMONS -> emptyList()
         // No categories either; the bundled row stands in.
         GifSource.GIFCITIES -> emptyList()
+        GifSource.PLUGIN -> emptyList()
         GifSource.OFFLINE -> com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks.categories()
     }
 
@@ -51878,6 +51891,19 @@ open class WMKeyboardService : InputMethodService() {
                     val language = LanguageToolLanguages.codeFor(languageTag, dialect)
                     val result = LanguageToolChecker.check(text, language, step.server)
                     return GrammarOutcome.Found(result.lints, via = step.name)
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    failure = e
+                }
+                is GrammarStep.Plugin -> try {
+                    val reply = withContext(Dispatchers.IO) {
+                        com.wasimaster.wmkeyboard.core.providers.PluginProviders.call(
+                            step.key,
+                            com.wasimaster.wmkeyboard.core.grammar.GrammarProviders.pluginRequest(text, languageTag),
+                        )
+                    }
+                    return GrammarOutcome.Found(com.wasimaster.wmkeyboard.core.grammar.GrammarProviders.pluginLints(reply, text), via = step.name)
                 } catch (e: kotlinx.coroutines.CancellationException) {
                     throw e
                 } catch (e: Exception) {
@@ -59299,12 +59325,12 @@ open class WMKeyboardService : InputMethodService() {
         synonymsJob?.cancel()
         val settings = _uiState.value.settings
         // The synonym provider list, rows that are off or cannot be asked left out.
-        val sources = settings.resolveProviders(ProviderTool.SYNONYMS).mapNotNull { SynonymSource.of(it.typeId) }
+        val sources = settings.resolveProviders(ProviderTool.SYNONYMS).mapNotNull { it.synonymRow() }
         if (sources.isEmpty()) {
             publishSynonyms(word, SynonymsStatus.NoSources)
             return
         }
-        val key = sources.joinToString(",") { it.id } + "|" + word.lowercase(Locale.ROOT)
+        val key = sources.joinToString(",") { it.key } + "|" + word.lowercase(Locale.ROOT)
         synonymsCache[key]?.let { cached ->
             publishSynonyms(word, synonymsStatusOf(cached))
             return
@@ -59317,19 +59343,19 @@ open class WMKeyboardService : InputMethodService() {
             // The packs' index is the vocabulary tool's when it has one
             // loaded; otherwise the same shared copy, read with the same codes
             // so the cache is not thrashed.
-            val index = vocabIndex ?: if (SynonymSource.VOCAB_PACKS in sources && userUnlocked) {
+            val index = vocabIndex ?: if (sources.any { it.source == SynonymSource.VOCAB_PACKS } && userUnlocked) {
                 withContext(Dispatchers.IO) { VocabIndexCache.get(filesDir, codes) }.takeUnless { it.isEmpty }
             } else {
                 null
             }
-            val result = SynonymLookup.resolve(word, sources, fetch = SynonymLookup.fetcher { index })
+            val result = SynonymLookup.resolveRows(word, sources, fetch = SynonymLookup.fetcher { index })
             if (result !is SynonymLookup.Result.Failed) synonymsCache[key] = result
             publishSynonyms(word, synonymsStatusOf(result))
         }
     }
 
     private fun synonymsStatusOf(result: SynonymLookup.Result): SynonymsStatus = when (result) {
-        is SynonymLookup.Result.Found -> SynonymsStatus.Found(result.set.groups, result.set.source)
+        is SynonymLookup.Result.Found -> SynonymsStatus.Found(result.set.groups, result.set.source, result.set.name)
         SynonymLookup.Result.NotFound -> SynonymsStatus.NotFound
         SynonymLookup.Result.Failed -> SynonymsStatus.Failed
     }

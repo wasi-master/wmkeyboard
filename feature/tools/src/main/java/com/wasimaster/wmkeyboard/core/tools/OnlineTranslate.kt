@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.tools
 
 import com.wasimaster.wmkeyboard.core.providers.ChainMode
+import com.wasimaster.wmkeyboard.core.providers.PluginProviders
 import com.wasimaster.wmkeyboard.core.providers.ProviderEnv
 import com.wasimaster.wmkeyboard.core.providers.ProviderEnvironment
 import com.wasimaster.wmkeyboard.core.providers.ProviderRunner
@@ -143,6 +144,10 @@ object OnlineTranslate {
                 apiKey = row.apiKey,
                 sourceLang = from,
             )
+            // A plugin that answers nothing for this text hands it to the next row.
+            ProviderTypes.PLUGIN.id -> PluginReplies.translation(
+                PluginProviders.call(row.key, PluginReplies.translateRequest(text, target, from), isActive),
+            ) ?: throw NoProviderException()
             else -> throw NoProviderException()
         }
 

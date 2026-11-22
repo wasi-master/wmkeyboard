@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.tools
 
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.providers.PluginProviders
 import com.wasimaster.wmkeyboard.core.providers.ProviderRunner
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
@@ -68,6 +69,7 @@ object SearchProviders {
         ProviderTypes.MARGINALIA.id -> SearchBackend.MARGINALIA
         ProviderTypes.WIKIPEDIA_SEARCH.id -> SearchBackend.WIKIPEDIA
         ProviderTypes.METASEARCH.id -> SearchBackend.METASEARCH
+        ProviderTypes.PLUGIN.id -> SearchBackend.PLUGIN
         ProviderTypes.BROWSER.id -> SearchBackend.BROWSER
         else -> null
     }
@@ -122,6 +124,10 @@ object SearchProviders {
             )
             SearchBackend.METASEARCH ->
                 WebSearchPage(MetaSearchClient.webSearch(query, count, safe, metaOptions(settings), source = source, page = page))
+            SearchBackend.PLUGIN -> PluginReplies.webPage(
+                PluginProviders.call(row.key, PluginReplies.webRequest(query, count, safe, page, category)),
+                engine = row.customName,
+            )
             // Skipped above: the browser takes the query away rather than answering it.
             SearchBackend.BROWSER -> WebSearchPage(emptyList())
         }
@@ -151,6 +157,10 @@ object SearchProviders {
                 )
                 SearchBackend.BRAVE -> BraveSearchClient.imageSearch(query, row.apiKey, count, safe, page = page)
                 SearchBackend.METASEARCH -> MetaSearchClient.imageSearch(query, count, metaOptions(settings), page = page)
+                // A plugin that only searches the web hands the Images tab to the next row.
+                SearchBackend.PLUGIN ->
+                    if (!PluginReplies.answersImages(row.key)) throw NoSearchProviderException()
+                    else PluginReplies.images(PluginProviders.call(row.key, PluginReplies.imagesRequest(query, count, safe, page)))
                 else -> emptyList()
             }
         }

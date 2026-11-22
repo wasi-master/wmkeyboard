@@ -5,6 +5,7 @@ import com.wasimaster.wmkeyboard.core.settings.fiatRateProviders
 import com.wasimaster.wmkeyboard.core.settings.cryptoRateProviders
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
+import com.wasimaster.wmkeyboard.core.settings.dictionaryRow
 import android.content.Intent
 import android.os.UserManager
 import android.provider.CalendarContract
@@ -653,7 +654,7 @@ class AiToolRunner(
      */
     private fun defineWord(call: AiToolCall): AiToolResult {
         val word = call.argument("word") ?: return missing(call, "word")
-        val sources = settings.resolveProviders(ProviderTool.DICTIONARY).mapNotNull { DictionarySource.of(it.typeId) }
+        val sources = settings.resolveProviders(ProviderTool.DICTIONARY).mapNotNull { it.dictionaryRow() }
         if (sources.isEmpty()) {
             return refused(
                 call,
@@ -663,7 +664,7 @@ class AiToolRunner(
         }
         val unlocked = context.getSystemService(UserManager::class.java)?.isUserUnlocked != false
         val result = runBlocking {
-            val index = if (DictionarySource.VOCAB_PACKS in sources && unlocked) {
+            val index = if (sources.any { it.source == DictionarySource.VOCAB_PACKS } && unlocked) {
                 val codes = VocabLanguages.wantedCodes(
                     settings.vocabulary.translationLangList,
                     settings.enabledLanguages.map { it.id },
@@ -672,7 +673,7 @@ class AiToolRunner(
             } else {
                 null
             }
-            DictionaryLookup.resolve(word, sources, DictionaryLookup.fetcher({ index }))
+            DictionaryLookup.resolveRows(word, sources, DictionaryLookup.fetcher({ index }))
         }
         return when (result) {
             is DictionaryLookup.Result.Found -> AiToolResult(call, formatDefinitions(result.entries))

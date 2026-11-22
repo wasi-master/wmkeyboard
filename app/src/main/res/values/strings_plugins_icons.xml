@@ -132,6 +132,12 @@
     <!-- A header over permissions the plugin cannot use until the user turns them on. -->
     <string name="plugins_install_risky_intro">If you turn them on later, it can also:</string>
     <!-- Heading over the buttons a plugin adds to the bar over selected text. -->
+    <string name="plugins_providers_title">Providers</string>
+    <string name="plugins_providers_info">Lists this plugin can answer for, such as web search or translate. A provider is only asked once you add it to its list, and then only when the providers above it do not answer. What the list asks, like a search or a word, goes to the plugin, and on to the websites it lists.</string>
+    <!-- %1$s is a provider list's name, such as Web search. -->
+    <string name="plugins_providers_listed">In the %1$s list</string>
+    <!-- %1$s is a provider list's name, such as Web search. -->
+    <string name="plugins_providers_add">Press to add to the %1$s list</string>
     <string name="plugins_actions_title">Selection actions</string>
     <string name="plugins_actions_info">Buttons this plugin adds to the bar over text you select. Tapping one hands the plugin that text, and it puts back what it made of it. Undo on the bar takes the change back.</string>
     <string name="plugins_actions_settings_link">Choose which ones the bar shows</string>

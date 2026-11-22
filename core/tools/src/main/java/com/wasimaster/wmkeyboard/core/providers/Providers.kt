@@ -582,6 +582,24 @@ object ProviderTypes {
     )
 
     /**
+     * A provider a plugin offers ([PluginProviders]): one row per provider,
+     * keyed by its `plugin:<id>/<tool>/<provider>` credential id, named by
+     * the plugin. Never added on its own: the add sheet offers each plugin's
+     * rows by name, since a row sends the request to the plugin's hosts.
+     */
+    val PLUGIN = ProviderType(
+        "plugin",
+        setOf(
+            ProviderTool.SEARCH, ProviderTool.TRANSLATE, ProviderTool.DICTIONARY, ProviderTool.SYNONYMS,
+            ProviderTool.VOCAB_AUTOFILL, ProviderTool.CURRENCY_FIAT, ProviderTool.CURRENCY_CRYPTO, ProviderTool.GRAMMAR,
+            ProviderTool.GIF, ProviderTool.STICKER,
+            ProviderTool.OCR, ProviderTool.MUSIC, ProviderTool.VOICE,
+        ),
+        R.string.core_tools_provider_plugin, R.string.core_tools_provider_plugin_desc,
+        multiInstance = true,
+    )
+
+    /**
      * The keyboard's own metasearch: Mwmbl, Marginalia, Wikipedia and Wiby
      * asked at once and merged on the phone, Commons for pictures. Nothing
      * to set up, so it is the search list's last row from the start, and
@@ -1023,6 +1041,10 @@ object ProviderTypes {
             QWEN3.id to "qwen3",
             VOSK.id to "vosk",
             TRANSCRIPTION_SERVER.id to ENGINE_SERVER,
+            // A plugin's voice row is asked the way a server is: the clip,
+            // whole, after the user stops ([TranscriptionClient]). After the
+            // server, so the server is what "server" means to voiceType.
+            PLUGIN.id to ENGINE_SERVER,
         )
     }
 
@@ -1052,6 +1074,7 @@ object ProviderTypes {
         REPLICATE, FAL, TOGETHER, HUGGING_FACE, CLOUDFLARE_AI, AUTOMATIC1111, COMFYUI, OPENAI_COMPATIBLE_IMAGE,
         AUDD, ACRCLOUD, AUDIOTAG, RAPID_SHAZAM, MUSIC_SERVER,
         CLOUDFLARE_SPEED, LIBRESPEED,
+        PLUGIN,
     )
 
     private val byId: Map<String, ProviderType> = all.associateBy { it.id }

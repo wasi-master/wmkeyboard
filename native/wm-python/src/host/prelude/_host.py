@@ -1,6 +1,7 @@
-"""What the keyboard calls: drawing, events, timers and selection actions.
-Plugins never import this."""
+"""What the keyboard calls: drawing, events, timers, selection actions and
+providers. Plugins never import this."""
 
+import json
 import _wm
 from wm import _core, plugin, ui
 
@@ -29,6 +30,7 @@ def _meta():
         "title": page_title or plugin._title[0],
         "actions": sorted(plugin._actions.keys()),
         "keywords": sorted(plugin._keywords.keys()),
+        "providers": sorted(plugin._providers.keys()),
         "pending": len(_core._pending),
     }
 
@@ -169,9 +171,26 @@ def _route(kind, e):
     return True
 
 
+# The action id the keyboard calls a provider by. No manifest action id can
+# hold a colon, so the two never meet.
+_PROVIDER = "provider:"
+
+
+def provide(key, request):
+    """One provider call: [request] is the JSON the keyboard sent, and the
+    reply goes back as JSON, wrapped so that None and a bare string survive."""
+    fn = plugin._providers.get(key)
+    if fn is None:
+        raise NotImplementedError("no provider " + key)
+    reply = _core.call_back(fn, json.loads(request) if request else {})
+    return json.dumps({"value": reply})
+
+
 def transform(text, action_id):
     """A selection action: the @plugin.action function for [action_id],
-    else the plugin's own transform()."""
+    else the plugin's own transform(). A provider call comes the same way."""
+    if action_id.startswith(_PROVIDER):
+        return provide(action_id[len(_PROVIDER):], text)
     fn = plugin._actions.get(action_id)
     if fn is not None:
         return _core.call_back(fn, text)

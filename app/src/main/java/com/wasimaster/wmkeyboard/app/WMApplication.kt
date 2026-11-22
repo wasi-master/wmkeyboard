@@ -193,6 +193,8 @@ open class WMApplication : Application() {
         com.wasimaster.wmkeyboard.core.layout.KeymanLayoutPack.attach(this)
         val repository = SettingsRepository(this)
         SyncWatcher.start(this, repository)
+        // The installed plugins' providers, as rows of the provider lists.
+        com.wasimaster.wmkeyboard.ime.PluginProviderBridge.start(this, repository)
         // A Keyman layout that is on, however it got on, brings its grids down.
         KeymanLayoutPackWatcher.start(this, repository)
         // "Ask AI" in other apps' selection menus follows its switch and the

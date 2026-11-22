@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.tools
 
+import com.wasimaster.wmkeyboard.core.providers.PluginProviders
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaries
@@ -74,6 +75,13 @@ enum class DictionarySource(
 
     /** Slang, written by anyone: many definitions are crude, so nobody gets it without asking. */
     URBAN_DICTIONARY("urban_dictionary", online = true, startsOff = true),
+
+    /**
+     * A plugin's provider: which one is [DictionaryRow.key]. Never in the
+     * stored source list, which only knows the built-in sources; plugin rows
+     * live in the provider list alone.
+     */
+    PLUGIN("plugin", online = true),
     ;
 
     /** The source's name, for the settings list and the panel's "From …" line. */
@@ -90,6 +98,7 @@ enum class DictionarySource(
             OFFLINE_LANGUAGES -> R.string.core_tools_dictionary_source_offline_languages
             IMPORTED -> R.string.core_tools_dictionary_source_imported
             URBAN_DICTIONARY -> R.string.core_tools_dictionary_source_urban_dictionary
+            PLUGIN -> R.string.core_tools_provider_plugin
         }
 
     /** One line on what the source knows, under its name in settings. */
@@ -106,10 +115,26 @@ enum class DictionarySource(
             OFFLINE_LANGUAGES -> R.string.core_tools_dictionary_source_offline_languages_desc
             IMPORTED -> R.string.core_tools_dictionary_source_imported_desc
             URBAN_DICTIONARY -> R.string.core_tools_dictionary_source_urban_dictionary_desc
+            PLUGIN -> R.string.core_tools_provider_plugin_desc
         }
 
     companion object {
         fun of(id: String): DictionarySource? = entries.firstOrNull { it.id == id }
+
+        /** The built-in sources, the ones the stored list holds. */
+        val builtIn: List<DictionarySource> get() = entries.filter { it != PLUGIN }
+    }
+}
+
+/**
+ * One row of the Dictionary tool's provider list as a look-up asks it: a
+ * built-in [source], or a plugin's provider, [key] being its
+ * `plugin:<id>/dictionary/<provider>` and [name] what the card's "From …"
+ * line says.
+ */
+data class DictionaryRow(val source: DictionarySource, val key: String = source.id, val name: String = "") {
+    companion object {
+        fun plugin(key: String, name: String) = DictionaryRow(DictionarySource.PLUGIN, key, name)
     }
 }
 
@@ -126,7 +151,7 @@ object DictionarySources {
      * network is not there.
      */
     val DEFAULT: List<DictionarySourceChoice> =
-        DictionarySource.entries.map { DictionarySourceChoice(it, enabled = !it.startsOff) }
+        DictionarySource.builtIn.map { DictionarySourceChoice(it, enabled = !it.startsOff) }
 
     fun encode(choices: List<DictionarySourceChoice>): String =
         choices.joinToString(",") { (if (it.enabled) "" else "-") + it.source.id }
@@ -142,11 +167,11 @@ object DictionarySources {
         for (token in raw.split(',')) {
             val trimmed = token.trim()
             val off = trimmed.startsWith('-')
-            val source = DictionarySource.of(trimmed.removePrefix("-")) ?: continue
+            val source = DictionarySource.of(trimmed.removePrefix("-"))?.takeIf { it != DictionarySource.PLUGIN } ?: continue
             seen.putIfAbsent(source, !off)
         }
         return seen.map { (source, enabled) -> DictionarySourceChoice(source, enabled) } +
-            DictionarySource.entries.filter { it !in seen }.map { DictionarySourceChoice(it, enabled = !it.startsOff) }
+            DictionarySource.builtIn.filter { it !in seen }.map { DictionarySourceChoice(it, enabled = !it.startsOff) }
     }
 }
 
@@ -183,15 +208,26 @@ object DictionaryLookup {
         fun entries(source: DictionarySource, word: String): List<DictEntry>
     }
 
-    suspend fun resolve(word: String, sources: List<DictionarySource>, fetch: Fetch): Result {
+    suspend fun resolve(word: String, sources: List<DictionarySource>, fetch: Fetch): Result =
+        resolveRows(word, sources.map { DictionaryRow(it) }, fetch)
+
+    /**
+     * [resolve] over the provider list's rows, a plugin's among them: a
+     * plugin row is asked through [PluginProviders], the rest through [fetch].
+     */
+    suspend fun resolveRows(word: String, rows: List<DictionaryRow>, fetch: Fetch): Result {
         val trimmed = word.trim()
-        if (trimmed.isEmpty() || sources.isEmpty()) return Result.NotFound
+        if (trimmed.isEmpty() || rows.isEmpty()) return Result.NotFound
+        val sources = rows.map { it.source }
         var answered = false
         var onlineAnswered = false
         var onlineFailed = false
-        for (source in sources) {
+        for (row in rows) {
+            val source = row.source
             val entries = try {
-                withContext(Dispatchers.IO) { fetch.entries(source, trimmed) }
+                withContext(Dispatchers.IO) {
+                    if (source == DictionarySource.PLUGIN) pluginEntries(row, trimmed) else fetch.entries(source, trimmed)
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (_: Exception) {
@@ -210,6 +246,11 @@ object DictionaryLookup {
             else -> Result.NotFound
         }
     }
+
+    /** A plugin row's entries, each saying which plugin it is from. */
+    private fun pluginEntries(row: DictionaryRow, word: String): List<DictEntry> =
+        PluginReplies.dictionary(PluginProviders.call(row.key, PluginReplies.wordRequest(word)), word)
+            .map { if (it.origin.isEmpty()) it.copy(origin = row.name) else it }
 
     /**
      * The same spelling in the other languages' packs on the device (#1085),
@@ -262,6 +303,8 @@ object DictionaryLookup {
             DictionarySource.OFFLINE_LANGUAGES -> OfflineDictionaries.lookupLanguages(word)
             DictionarySource.IMPORTED -> YomichanDictionaries.lookup(word)
             DictionarySource.URBAN_DICTIONARY -> UrbanDictionaryClient.lookup(word)
+            // Asked by resolveRows itself, which knows which plugin.
+            DictionarySource.PLUGIN -> emptyList()
         }
     }
 

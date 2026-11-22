@@ -1,7 +1,9 @@
 package com.wasimaster.wmkeyboard.core.thesaurus
 
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.providers.PluginProviders
 import com.wasimaster.wmkeyboard.core.tools.DictionaryClient
+import com.wasimaster.wmkeyboard.core.tools.PluginReplies
 import com.wasimaster.wmkeyboard.core.vocab.KaikkiClient
 import com.wasimaster.wmkeyboard.core.vocab.VocabIndex
 import kotlinx.coroutines.CancellationException
@@ -44,21 +46,36 @@ object SynonymLookup {
         sources: List<SynonymSource>,
         allowOnline: Boolean = true,
         fetch: Fetch,
+    ): Result = resolveRows(word, sources.map { SynonymRow(it) }, allowOnline, fetch)
+
+    /** [resolve] over the provider list's rows: a plugin row is asked through [PluginProviders]. */
+    suspend fun resolveRows(
+        word: String,
+        rows: List<SynonymRow>,
+        allowOnline: Boolean = true,
+        fetch: Fetch,
     ): Result {
         val trimmed = word.trim()
-        if (trimmed.isEmpty() || sources.isEmpty()) return Result.NotFound
+        if (trimmed.isEmpty() || rows.isEmpty()) return Result.NotFound
         var answered = false
-        for (source in sources) {
+        for (row in rows) {
+            val source = row.source
             if (source.online && !allowOnline) continue
             val groups = try {
-                withContext(Dispatchers.IO) { fetch.groups(source, trimmed) }
+                withContext(Dispatchers.IO) {
+                    if (source == SynonymSource.PLUGIN) {
+                        PluginReplies.synonymGroups(PluginProviders.call(row.key, PluginReplies.wordRequest(trimmed)))
+                    } else {
+                        fetch.groups(source, trimmed)
+                    }
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (_: Exception) {
                 continue
             }
             answered = true
-            if (groups.isNotEmpty()) return Result.Found(SynonymSet(trimmed, source, groups))
+            if (groups.isNotEmpty()) return Result.Found(SynonymSet(trimmed, source, groups, row.name))
         }
         return if (answered) Result.NotFound else Result.Failed
     }
@@ -83,6 +100,8 @@ object SynonymLookup {
             } catch (_: DictionaryClient.NotFoundException) {
                 emptyList()
             }
+            // Asked by resolveRows itself, which knows which plugin.
+            SynonymSource.PLUGIN -> emptyList()
         }
     }
 }

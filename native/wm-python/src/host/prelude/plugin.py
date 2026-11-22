@@ -14,6 +14,10 @@ tell the keyboard what it offers.
     @plugin.action("shout", name="Shout")
     def shout(text):
         return text.upper()
+
+    @plugin.provider("search", "ddg")
+    def ddg(request):
+        return [{"title": "...", "url": "...", "snippet": "..."}]
 """
 
 import json
@@ -35,6 +39,7 @@ _close_hooks = []
 _timers = {}
 _actions = {}
 _keywords = {}
+_providers = {}
 _commands = {}
 _setting_hooks = {}
 _states = []
@@ -237,6 +242,20 @@ def action(id, name=None, icon=None):
     replaces it (None leaves it). The manifest lists the same id."""
     def wrap(fn):
         _actions[id] = fn
+        return fn
+    return wrap
+
+
+def provider(tool, id=None):
+    """Answers for one of the keyboard's provider lists: "search",
+    "translate", "dictionary" and the rest. [fn] receives the request as a
+    dict and returns the reply as dicts, lists, strings and numbers, in the
+    shape the tool's guide gives. The manifest's `providers` lists the same
+    tool and id; [id] defaults to the tool's name."""
+    key = str(tool) + "/" + str(id or tool)
+
+    def wrap(fn):
+        _providers[key] = fn
         return fn
     return wrap
 

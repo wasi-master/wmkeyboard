@@ -103,6 +103,7 @@
     <string name="core_plugins_reject_bad_host">“%2$s” lists a website this version of WM Keyboard cannot allow: “%1$s”. Websites are names like api.example.com or *.example.com.</string>
     <!-- %1$s is the name of the plugin. -->
     <string name="core_plugins_reject_bad_setting">“%1$s” has a setting that is missing its key or label, repeats a key, or has a type this version cannot draw.</string>
+    <string name="core_plugins_reject_bad_provider">“%1$s” offers a provider for a list this version does not know, repeats one, or offers more than eight.</string>
     <!-- %1$s is the name of the plugin. -->
     <string name="core_plugins_reject_bad_tool">“%1$s” has a tool keyword that is not valid. A keyword is up to 16 lowercase letters and numbers.</string>
     <!-- %1$s is the name of the plugin. -->
@@ -163,6 +164,8 @@
     <!-- The script built a list or a piece of text larger than plugins may hold. -->
     <string name="core_plugins_stopped_memory">This plugin tried to hold too much data. The app stopped it.</string>
     <!-- Shown while the part of the app that runs plugins is downloaded on demand. -->
+    <string name="core_plugins_error_provider_too_long">The plugin\'s answer was too long.</string>
+    <string name="core_plugins_error_provider_unreadable">The plugin\'s answer could not be read.</string>
     <string name="core_plugins_error_not_ready">Plugins are still downloading. Try again in a moment.</string>
     <string name="core_plugins_stopped_unexpected">This plugin stopped unexpectedly.</string>
     <string name="core_plugins_stopped_not_responding">This plugin stopped responding. The app closed it.</string>

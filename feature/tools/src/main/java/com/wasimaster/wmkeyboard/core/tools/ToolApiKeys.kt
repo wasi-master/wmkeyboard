@@ -80,4 +80,4 @@ object ToolApiKeys {
 }
 
 /** The services behind the web and image search tools; see [ToolApiKeys.searchBackend]. */
-enum class SearchBackend { SEARXNG, TAVILY, BRAVE, MWMBL, WIBY, MARGINALIA, WIKIPEDIA, METASEARCH, BROWSER }
+enum class SearchBackend { SEARXNG, TAVILY, BRAVE, MWMBL, WIBY, MARGINALIA, WIKIPEDIA, METASEARCH, PLUGIN, BROWSER }

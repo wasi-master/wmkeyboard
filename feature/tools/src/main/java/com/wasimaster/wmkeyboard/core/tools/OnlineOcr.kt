@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.tools
 
+import com.wasimaster.wmkeyboard.core.providers.PluginProviders
 import com.wasimaster.wmkeyboard.core.providers.ProviderRunner
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
@@ -31,6 +32,8 @@ object OnlineOcr {
             when (row.typeId) {
                 ProviderTypes.VISION_OCR.id -> VisionOcrClient.read(row.url, row.model, row.apiKey, jpeg)
                 ProviderTypes.RENS.id -> RensClient.readText(jpeg, row.url)
+                ProviderTypes.PLUGIN.id ->
+                    PluginReplies.text(PluginProviders.call(row.key, PluginReplies.imageRequest(jpeg))) ?: throw NoReaderException()
                 else -> throw NoReaderException()
             }
         }

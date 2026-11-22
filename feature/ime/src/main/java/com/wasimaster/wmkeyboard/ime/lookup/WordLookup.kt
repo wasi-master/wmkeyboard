@@ -3,9 +3,11 @@ package com.wasimaster.wmkeyboard.ime.lookup
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
+import com.wasimaster.wmkeyboard.core.settings.dictionaryRow
 import com.wasimaster.wmkeyboard.core.tools.DictEntry
 import com.wasimaster.wmkeyboard.core.tools.DictionaryLookup
 import com.wasimaster.wmkeyboard.core.tools.DictionarySource
+import com.wasimaster.wmkeyboard.core.tools.DictionaryRow
 import com.wasimaster.wmkeyboard.core.vocab.VocabIndex
 import com.wasimaster.wmkeyboard.core.vocab.VocabIndexCache
 import com.wasimaster.wmkeyboard.core.vocab.VocabLanguages
@@ -46,8 +48,8 @@ object WordLookup {
     }
 
     /** The sources to ask, in order. [pick] is the keyboard panel's chooser, for a list in pick mode. */
-    fun sources(settings: KeyboardSettings, pick: String? = null): List<DictionarySource> =
-        settings.resolveProviders(ProviderTool.DICTIONARY, pick = pick).mapNotNull { DictionarySource.of(it.typeId) }
+    fun sources(settings: KeyboardSettings, pick: String? = null): List<DictionaryRow> =
+        settings.resolveProviders(ProviderTool.DICTIONARY, pick = pick).mapNotNull { it.dictionaryRow() }
 
     /**
      * The languages the Dictionary tool translates a word into (#764): the
@@ -71,7 +73,7 @@ object WordLookup {
      */
     fun asksWiktionaryForTranslations(answered: DictionarySource, codes: List<String>, settings: KeyboardSettings): Boolean {
         if (codes.isEmpty() || answered == DictionarySource.WIKTIONARY || answered == DictionarySource.IMPORTED) return false
-        return sources(settings).any { it == DictionarySource.WIKTIONARY }
+        return sources(settings).any { it.source == DictionarySource.WIKTIONARY }
     }
 
     /** The codes the vocabulary packs' index is read with. */
@@ -94,13 +96,13 @@ object WordLookup {
         val sources = sources(settings, pick)
         if (sources.isEmpty()) return Outcome.NoSources
         val translationCodes = translationCodes(settings)
-        val index = loaded ?: if (DictionarySource.VOCAB_PACKS in sources && unlocked) {
+        val index = loaded ?: if (sources.any { it.source == DictionarySource.VOCAB_PACKS } && unlocked) {
             withContext(Dispatchers.IO) { VocabIndexCache.get(filesDir, indexCodes(settings)) }.takeUnless { it.isEmpty }
         } else {
             null
         }
         val fetch = DictionaryLookup.fetcher({ index }, translationCodes)
-        return when (val result = DictionaryLookup.resolve(word, sources, fetch)) {
+        return when (val result = DictionaryLookup.resolveRows(word, sources, fetch)) {
             is DictionaryLookup.Result.Found -> found(result.entries, result.source, settings)
             DictionaryLookup.Result.NotFound -> Outcome.NotFound
             DictionaryLookup.Result.NotOnDevice -> Outcome.NotOnDevice

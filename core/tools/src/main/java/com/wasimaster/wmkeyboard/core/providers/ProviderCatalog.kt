@@ -139,6 +139,8 @@ object ProviderCatalog {
         type === ProviderTypes.ON_DEVICE_AI && !env.onDeviceAi -> false
         type === ProviderTypes.OCR_ML_KIT && !env.mlKitOcr -> false
         type === ProviderTypes.OCR_TESSERACT && !env.tesseract -> false
+        // Whether one row can run is the plugin's own state, read per row.
+        type === ProviderTypes.PLUGIN -> true
         ProviderTool.VOICE in type.serves -> ProviderTypes.VOICE_ENGINES[type.id] in env.voiceEngines
         else -> true
     }
@@ -150,6 +152,12 @@ object ProviderCatalog {
      */
     fun addable(tool: ProviderTool, chain: ProviderChain, env: ProviderEnv): List<ProviderType> =
         ProviderTypes.serving(tool)
+            // Plugin rows are offered one by one, by name: [addablePlugins].
+            .filter { it !== ProviderTypes.PLUGIN }
             .filter { runnable(it, env) }
             .filter { tool.allowsAnother(it) || chain.entries.none { entry -> entry.typeId == it.id } }
+
+    /** The plugin providers for [tool] that [chain] does not list yet, the ones whose plugin is off too. */
+    fun addablePlugins(tool: ProviderTool, chain: ProviderChain, env: ProviderEnv): List<PluginProviders.Row> =
+        if (env.offline) emptyList() else PluginProviders.rows(tool).filter { !chain.has(it.key) }
 }

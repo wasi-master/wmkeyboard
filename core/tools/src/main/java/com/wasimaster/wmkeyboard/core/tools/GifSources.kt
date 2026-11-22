@@ -23,7 +23,10 @@ import com.wasimaster.wmkeyboard.tools.R
  * carries no content rating.
  */
 enum class GifSource {
-    KLIPY, GIPHY, LOCAL, COMMONS, OFFLINE, GIFCITIES;
+    KLIPY, GIPHY, LOCAL, COMMONS, OFFLINE, GIFCITIES,
+
+    /** A plugin's provider ([PluginProviders]); which one is the target's key. */
+    PLUGIN;
 
     /** Files on the device rather than a provider: its own grid, never interleaved, never metered. */
     val onDevice: Boolean get() = this == LOCAL || this == OFFLINE
@@ -110,6 +113,7 @@ object GifSources {
         GifSource.COMMONS -> R.string.core_tools_gif_source_commons
         GifSource.OFFLINE -> R.string.core_tools_gif_source_offline
         GifSource.GIFCITIES -> R.string.core_tools_gif_source_gifcities
+        GifSource.PLUGIN -> R.string.core_tools_provider_plugin
     }
 
     /** The client a provider type is asked through, or null for a type that is not a GIF or sticker source. */
@@ -120,6 +124,7 @@ object GifSources {
         ProviderTypes.GIFCITIES.id -> GifSource.GIFCITIES
         ProviderTypes.OFFLINE_GIFS.id -> GifSource.OFFLINE
         ProviderTypes.STICKER_PACKS.id -> GifSource.LOCAL
+        ProviderTypes.PLUGIN.id -> GifSource.PLUGIN
         else -> null
     }
 

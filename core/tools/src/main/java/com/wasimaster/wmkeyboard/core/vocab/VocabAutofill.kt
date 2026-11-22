@@ -46,11 +46,30 @@ object VocabAutofill {
      * id, or null for a type that is not one. The list's default is
      * [defaultSources], in that order.
      */
-    fun sourceOf(typeId: String): Source? = when (typeId) {
+    fun sourceOf(typeId: String, key: String = typeId): Source? = when (typeId) {
         ProviderTypes.WIKTIONARY.id -> KaikkiClient
         ProviderTypes.WIKTIONARY_REST.id -> WiktionaryRestClient
         ProviderTypes.DICTIONARY_API.id -> DictionaryApiSource
+        ProviderTypes.PLUGIN.id -> PluginSource(key)
         else -> null
+    }
+
+    /**
+     * A plugin's provider, [key] naming it: asked with the word and the
+     * languages to bring glosses in, answering with a record or dictionary
+     * entries ([com.wasimaster.wmkeyboard.core.tools.PluginReplies.vocabWord]).
+     */
+    class PluginSource(private val key: String) : Source {
+        override fun lookup(lemma: String, translationCodes: List<String>): VocabWord? {
+            val request = kotlinx.serialization.json.buildJsonObject {
+                put("word", kotlinx.serialization.json.JsonPrimitive(lemma))
+                put("translations", kotlinx.serialization.json.JsonArray(translationCodes.map { kotlinx.serialization.json.JsonPrimitive(it) }))
+            }
+            return com.wasimaster.wmkeyboard.core.tools.PluginReplies.vocabWord(
+                com.wasimaster.wmkeyboard.core.providers.PluginProviders.call(key, request),
+                lemma,
+            )
+        }
     }
 
     sealed interface Result {

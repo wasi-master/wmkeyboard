@@ -291,6 +291,29 @@ class ProviderFrameworkTest {
     }
 
     @Test
+    fun `a plugin row is usable only while its plugin is, and is offered by name`() {
+        var on = true
+        val key = "plugin:com.example.ddg/search/web"
+        PluginProviders.install(object : PluginProviders.Directory {
+            override fun rows() = listOf(PluginProviders.Row(key, ProviderTool.SEARCH, "DDG", "", "DDG plugin", runnable = on))
+            override fun call(key: String, request: kotlinx.serialization.json.JsonObject, isActive: () -> Boolean) =
+                kotlinx.serialization.json.JsonNull
+        })
+        val chain = ProviderChain(listOf(PluginProviders.entry(key)))
+        val s = KeyboardSettings(providers = ProviderSettings(chains = mapOf(ProviderTool.SEARCH to chain)))
+        val row = s.resolveProviders(ProviderTool.SEARCH, play, all = true).single()
+        assertEquals(null, row.problem)
+        assertEquals("DDG", row.customName)
+        on = false
+        assertEquals(ProviderProblem.PLUGIN_OFF, s.resolveProviders(ProviderTool.SEARCH, play, all = true).single().problem)
+        // Never offered as a bare kind; by name, until the list has it.
+        assertFalse(ProviderTypes.PLUGIN in ProviderCatalog.addable(ProviderTool.SEARCH, ProviderChain(), play))
+        assertEquals(listOf(key), ProviderCatalog.addablePlugins(ProviderTool.SEARCH, ProviderChain(), play).map { it.key })
+        assertTrue(ProviderCatalog.addablePlugins(ProviderTool.SEARCH, chain, play).isEmpty())
+        assertTrue(ProviderCatalog.addablePlugins(ProviderTool.TRANSLATE, ProviderChain(), play).isEmpty())
+    }
+
+    @Test
     fun `a search list saved before the metasearch gains it, once`() {
         val before = ProviderChain(listOf(ProviderEntry("tavily")), known = listOf("searxng", "tavily", "brave"))
         assertEquals(listOf("tavily", "metasearch"), before.withNewTypes(ProviderTool.SEARCH).entries.map { it.typeId })

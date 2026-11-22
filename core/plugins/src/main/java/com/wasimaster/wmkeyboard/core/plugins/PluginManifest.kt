@@ -119,7 +119,56 @@ data class PluginManifest(
     val tool: PluginToolSpec = PluginToolSpec(),
     /** API 5: the plugin's settings page, drawn by the app. */
     val settings: List<PluginSettingSpec> = emptyList(),
+    /**
+     * API 5: the provider lists the plugin can answer for, each a row the
+     * user may add to that list. The script answers with `@plugin.provider`.
+     */
+    val providers: List<PluginProviderSpec> = emptyList(),
 )
+
+/**
+ * One provider a plugin offers: a row for one of the keyboard's provider
+ * lists (web search, translate, dictionary, …), answered by the script's
+ * `@plugin.provider(tool, id)` function with a JSON request and reply.
+ */
+@Serializable
+data class PluginProviderSpec(
+    /** The list it answers for: one of [TOOLS], the provider list's own id. */
+    val tool: String = "",
+    /** Unique for its tool within the plugin; defaults to the tool's name. */
+    val id: String = "",
+    /** The row's name in the list. Blank is the plugin's name. */
+    val name: String = "",
+    /** One line under the name. */
+    val summary: String = "",
+    /** For [TOOL_SEARCH]: it answers the Images tab too. */
+    val images: Boolean = false,
+) {
+    /** [id], or the tool's name when blank. */
+    val providerId: String get() = id.trim().ifEmpty { tool.trim() }
+
+    /** How the host and the script name this provider: `tool/id`. */
+    val key: String get() = tool.trim() + "/" + providerId
+
+    companion object {
+        const val TOOL_SEARCH = "search"
+
+        /**
+         * The lists a plugin may answer for, by `ProviderTool` id. Each one's
+         * request and reply are a JSON shape the plugin guide gives. Left out
+         * on purpose: AI (streams and tool calls; an OpenAI-compatible server
+         * covers it), smart home (a live connection), the image generator and
+         * photo translate (files), the speed test, and background photos
+         * (every source has its own credit, sizes and download rules).
+         */
+        val TOOLS = setOf(
+            TOOL_SEARCH, "translate", "dictionary", "synonyms", "vocab_autofill",
+            "currency_fiat", "currency_crypto", "grammar",
+            "gif", "sticker",
+            "ocr", "music", "voice",
+        )
+    }
+}
 
 /**
  * Where an API 5 plugin appears in the keyboard. Every placement is the
@@ -338,6 +387,10 @@ object PluginManifestCodec {
 
     /** More chips than this is a toolbar, not a plugin. */
     const val MAX_ACTIONS = 16
+
+    /** Providers one plugin may offer. */
+    const val MAX_PROVIDERS = 8
+    private const val MAX_PROVIDER_SUMMARY = 80
     const val MAX_ACTION_NAME = 24
     private const val MAX_ACTION_SUMMARY = 80
     private const val MAX_ACTION_ICON = 48
@@ -381,7 +434,7 @@ object PluginManifestCodec {
     fun encode(manifest: PluginManifest): String = json.encodeToString(manifest)
 
     /** The manifest fields a form edits, in the order [read] checks them. */
-    enum class Field { API_VERSION, ID, NAME, VERSION, AUTHOR, DESCRIPTION, ENTRY, PERMISSIONS, ACTIONS, HOSTS, TOOL, SETTINGS }
+    enum class Field { API_VERSION, ID, NAME, VERSION, AUTHOR, DESCRIPTION, ENTRY, PERMISSIONS, ACTIONS, HOSTS, TOOL, SETTINGS, PROVIDERS }
 
     /** One thing wrong with one field, in the same words [read] refuses with. */
     data class Problem(val field: Field, val text: PluginText)
@@ -426,6 +479,7 @@ object PluginManifestCodec {
                 color = raw.tool.color.trim().takeIf { raw.tool.colorArgb != null }.orEmpty(),
             ),
             settings = raw.settings.map { sanitiseSetting(it) },
+            providers = raw.providers.map { sanitiseProvider(it) },
         )
         return PluginManifestResult.Ok(manifest, permissions)
     }
@@ -504,14 +558,20 @@ object PluginManifestCodec {
                     (s.type.trim() == PluginSettingSpec.TYPE_SECRET && PluginPermission.Storage !in permissions)
             }
         if (badSetting) out += Problem(Field.SETTINGS, PluginText.of(R.string.core_plugins_reject_bad_setting, name))
+        val providers = manifest.providers.map { sanitiseProvider(it) }
+        val badProvider = providers.size > MAX_PROVIDERS ||
+            providers.map { it.key }.toSet().size != providers.size ||
+            providers.any { it.tool !in PluginProviderSpec.TOOLS || !ACTION_ID.matches(it.providerId) }
+        if (badProvider) out += Problem(Field.PROVIDERS, PluginText.of(R.string.core_plugins_reject_bad_provider, name))
         // A symbol name for the icon, its colour and full-bleed are the tool
         // fields older plugins may carry: they only change how the keyboard
         // draws them, and need nothing from the wm package. An SVG icon is a
         // file in `assets/`, which only API 5 archives ship.
         val iconOnly = tool.copy(icon = "", color = "", fullBleed = false) == PluginToolSpec() && !tool.icon.trim().startsWith("assets/")
-        val usesPackageFields = hosts.isNotEmpty() || settings.isNotEmpty() || (tool != PluginToolSpec() && !iconOnly)
+        val usesPackageFields = hosts.isNotEmpty() || settings.isNotEmpty() || providers.isNotEmpty() ||
+            (tool != PluginToolSpec() && !iconOnly)
         if (usesPackageFields && level < PACKAGE_API) {
-            out += Problem(Field.API_VERSION, PluginText.of(R.string.core_plugins_reject_permission_needs_api_5, "hosts/tool/settings", name))
+            out += Problem(Field.API_VERSION, PluginText.of(R.string.core_plugins_reject_permission_needs_api_5, "hosts/tool/settings/providers", name))
         }
         return out
     }
@@ -627,7 +687,7 @@ object PluginManifestCodec {
                 problem(Field.PERMISSIONS, R.string.core_plugins_reject_actions_need_selection)
             actions.isEmpty() && declaresSelection ->
                 problem(Field.ACTIONS, R.string.core_plugins_reject_selection_without_actions)
-            actions.isEmpty() && !manifest.panel ->
+            actions.isEmpty() && manifest.providers.isEmpty() && !manifest.panel ->
                 problem(Field.ACTIONS, R.string.core_plugins_reject_nothing_to_show)
             actions.size > MAX_ACTIONS -> problem(Field.ACTIONS, R.string.core_plugins_reject_too_many_actions)
         }
@@ -641,6 +701,15 @@ object PluginManifestCodec {
         }
         return out
     }
+
+    /** [provider] as [read] stores it: trimmed, its name and summary cut to their lengths. */
+    fun sanitiseProvider(provider: PluginProviderSpec): PluginProviderSpec = provider.copy(
+        tool = provider.tool.trim(),
+        id = provider.id.trim(),
+        name = displayText(provider.name, MAX_NAME),
+        summary = displayText(provider.summary, MAX_PROVIDER_SUMMARY),
+        images = provider.images && provider.tool.trim() == PluginProviderSpec.TOOL_SEARCH,
+    )
 
     /** [action] as [read] stores it: trimmed, and every displayed string cut to its length. */
     fun sanitiseAction(action: PluginActionSpec): PluginActionSpec = action.copy(
@@ -671,7 +740,7 @@ object PluginManifestCodec {
         Field.AUTHOR -> displayText(raw, MAX_AUTHOR)
         Field.DESCRIPTION -> displayText(raw, MAX_DESCRIPTION)
         Field.ENTRY -> displayText(raw, MAX_ENTRY).ifEmpty { DEFAULT_ENTRY }
-        Field.API_VERSION, Field.PERMISSIONS, Field.ACTIONS, Field.HOSTS, Field.TOOL, Field.SETTINGS -> raw.trim()
+        Field.API_VERSION, Field.PERMISSIONS, Field.ACTIONS, Field.HOSTS, Field.TOOL, Field.SETTINGS, Field.PROVIDERS -> raw.trim()
     }
 
     /**

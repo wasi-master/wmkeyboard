@@ -322,4 +322,48 @@ class PluginManifestCodecTest {
         val read = PluginManifestCodec.read(manifest(name = "Line\\none")) as PluginManifestResult.Ok
         assertEquals("Lineone", read.manifest.name)
     }
+
+    // ---- providers -----------------------------------------------------
+
+    @Test
+    fun `a plugin of providers alone installs, its ids defaulting to the tool`() {
+        val read = PluginManifestCodec.read(
+            manifest(extra = ""","panel": false, "providers": [{"tool": "search", "name": " DDG ", "images": true}, {"tool": "translate", "id": "deepish"}]"""),
+        ) as PluginManifestResult.Ok
+        val (search, translate) = read.manifest.providers
+        assertEquals("search/search", search.key)
+        assertEquals("DDG", search.name)
+        assertTrue(search.images)
+        assertEquals("translate/deepish", translate.key)
+        assertFalse(translate.images)
+    }
+
+    @Test
+    fun `a provider for a list plugins cannot serve, or a repeated one, is refused`() {
+        for (providers in listOf(
+            """[{"tool": "ai"}]""",
+            """[{"tool": "photos"}]""",
+            """[{"tool": "search"}, {"tool": "search"}]""",
+            """[{"tool": "search", "id": "Bad Id"}]""",
+        )) {
+            val read = PluginManifestCodec.read(manifest(extra = ""","providers": $providers"""))
+            assertTrue(providers, read is PluginManifestResult.Rejected)
+        }
+    }
+
+    @Test
+    fun `providers need the wm package`() {
+        val read = PluginManifestCodec.read(
+            manifest(apiVersion = PluginManifestCodec.PYTHON_ONLY_API, extra = ""","providers": [{"tool": "search"}]"""),
+        )
+        assertTrue(read is PluginManifestResult.Rejected)
+    }
+
+    @Test
+    fun `a provider key reads back into its plugin and provider`() {
+        val key = PluginProviderRef.keyOf("com.example.ddg", "search/web")
+        assertEquals("plugin:com.example.ddg/search/web", key)
+        assertEquals("com.example.ddg" to "search/web", PluginProviderRef.parse(key))
+        assertEquals(null, PluginProviderRef.parse("plugin:com.example.ddg/action"))
+    }
 }

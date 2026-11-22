@@ -47,6 +47,8 @@
     <string name="providers_status_needs_model">Needs a model name</string>
     <string name="providers_status_needs_packs">Import a GIF pack first</string>
     <string name="providers_status_unavailable">Not available in this build</string>
+    <string name="providers_type_plugin_by">From the plugin %1$s</string>
+    <string name="providers_status_plugin_off">Its plugin is off or removed</string>
     <string name="providers_status_unknown">Added by a newer version of the app</string>
     <string name="providers_status_off">Off</string>
     <!-- A LanguageTool row in the grammar tool's list. %1$s is the server's host. -->
