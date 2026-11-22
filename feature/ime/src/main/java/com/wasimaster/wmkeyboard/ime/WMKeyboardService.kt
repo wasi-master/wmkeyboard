@@ -11890,6 +11890,11 @@ open class WMKeyboardService : InputMethodService() {
         mediaController.stop()
         hwRecognizer.close()
         releaseTranslateEngine()
+        // An AI panel run has nobody to answer once the service is gone. The
+        // 30-second stop never comes on a phone that ends the service soon
+        // after the keyboard hides (#1219), and the model then answered to
+        // the end on the big cores; stopped, it is freed as the run lets go.
+        stopAiWhileHidden()
         LocalLlmEngine.release()
         WhisperEngine.release()
         WhisperCpp.release()

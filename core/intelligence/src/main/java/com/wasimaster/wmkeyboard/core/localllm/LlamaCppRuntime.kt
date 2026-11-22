@@ -271,6 +271,10 @@ internal class LlamaCppRuntime : LlmRuntime {
      */
     private val stops = AtomicInteger()
 
+    /** A [release] came while a request held the model; that request frees it as it ends. */
+    @Volatile
+    private var releaseWanted = false
+
     private val idleTimer = Executors.newSingleThreadScheduledExecutor { r ->
         Thread(r, "llama-idle").apply { isDaemon = true }
     }
@@ -386,8 +390,18 @@ internal class LlamaCppRuntime : LlmRuntime {
         system: String,
     ): LlmRuntime.Chat = Chat(context.applicationContext, modelFile, backend, contextTokens, system)
 
+    /**
+     * Frees the model now, or, while a request holds it, as that request ends
+     * ([releaseWanted]). It used to be skipped then, and the keyboard asks
+     * only once, so a model answering when its service ended or Unload was
+     * pressed stayed loaded (#1219).
+     */
     override fun release() {
-        if (!lock.tryLock()) return
+        if (!lock.tryLock()) {
+            releaseWanted = true
+            // It may have ended between the two: then nobody is left to see the flag.
+            if (!lock.tryLock()) return
+        }
         try {
             releaseLocked()
         } finally {
@@ -644,8 +658,15 @@ internal class LlamaCppRuntime : LlmRuntime {
                 throw IOException(context.getString(R.string.core_intel_llm_engine_error_memory), e)
             }
         } finally {
-            idleRelease = idleTimer.schedule({ release() }, IDLE_RELEASE_MS, TimeUnit.MILLISECONDS)
-            lock.unlock()
+            try {
+                if (releaseWanted) {
+                    releaseLocked()
+                } else {
+                    idleRelease = idleTimer.schedule({ release() }, IDLE_RELEASE_MS, TimeUnit.MILLISECONDS)
+                }
+            } finally {
+                lock.unlock()
+            }
         }
     }
 
@@ -829,6 +850,7 @@ internal class LlamaCppRuntime : LlmRuntime {
     )
 
     private fun releaseLocked() {
+        releaseWanted = false
         vision?.close()
         vision = null
         session?.close()

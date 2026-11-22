@@ -61,6 +61,16 @@ class LitertLmRuntime : LlmRuntime {
      */
     private val stops = AtomicInteger()
 
+    /**
+     * A [release] came while a request held the engine. It used to be
+     * dropped: the keyboard asks once (on hiding for good, on trim-memory,
+     * when its service ends, or from Resources' Unload), so a model that was
+     * answering at that moment stayed loaded with nothing left to free it
+     * (#1219). The request that holds the engine frees it as it finishes.
+     */
+    @Volatile
+    private var releaseWanted = false
+
     /** The conversation answering right now, for [stop]; guarded by [runningLock]. */
     private var running: Conversation? = null
     private val runningLock = Any()
@@ -164,6 +174,15 @@ class LitertLmRuntime : LlmRuntime {
                 throw generationFailure(context, modelFile, e)
             }
         } finally {
+            finishRun()
+        }
+    }
+
+    /** Ends a request: frees the engine if a [release] came meanwhile, then lets go of the lock. */
+    private fun finishRun() {
+        try {
+            if (releaseWanted) releaseLocked()
+        } finally {
             lock.unlock()
         }
     }
@@ -215,7 +234,7 @@ class LitertLmRuntime : LlmRuntime {
                 throw generationFailure(context, modelFile, e)
             }
         } finally {
-            lock.unlock()
+            finishRun()
         }
     }
 
@@ -304,7 +323,7 @@ class LitertLmRuntime : LlmRuntime {
                     throw generationFailure(context, modelFile, e)
                 }
             } finally {
-                lock.unlock()
+                finishRun()
             }
         }
 
@@ -580,11 +599,16 @@ class LitertLmRuntime : LlmRuntime {
 
     /**
      * Frees the cached engine. Non-blocking: when a generation is running the
-     * weights are in use anyway, so the release is skipped rather than making
-     * the caller (IME main thread on trim-memory) wait.
+     * weights are in use anyway, so rather than making the caller (IME main
+     * thread on trim-memory) wait, the request holding them frees them as it
+     * ends ([releaseWanted]).
      */
     override fun release() {
-        if (!lock.tryLock()) return
+        if (!lock.tryLock()) {
+            releaseWanted = true
+            // It may have ended between the two: then nobody is left to see the flag.
+            if (!lock.tryLock()) return
+        }
         try {
             releaseLocked()
         } finally {
@@ -790,6 +814,7 @@ class LitertLmRuntime : LlmRuntime {
     }
 
     private fun releaseLocked() {
+        releaseWanted = false
         drainRetired()
         // Sessions' conversations close before their engine, in dependency
         // order; the epoch bump tells each session to rebuild from its
