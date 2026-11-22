@@ -10958,6 +10958,7 @@ open class WMKeyboardService : InputMethodService() {
             revealDetourEnd = -1
             if (detour) return
         }
+        if (undoRevealBounce(newSelStart, newSelEnd)) return
         if (undoCaretSnapBack(newSelStart, newSelEnd)) return
         expectedSelStart = newSelStart
         expectedSelEnd = newSelEnd
@@ -54881,6 +54882,51 @@ open class WMKeyboardService : InputMethodService() {
     private var revealDetourEnd = -1
 
     /**
+     * Where [revealCaret]'s step aside went, the caret it stepped back to, and
+     * when; -1 when no step back is being watched. See [undoRevealBounce].
+     */
+    private var revealBounceAside = -1
+    private var revealBounceReturn = -1
+    private var revealBounceAt = 0L
+
+    /**
+     * Sets the caret back where [revealCaret] left it when the field threw the
+     * step back away and kept the step aside (#1363).
+     *
+     * A Compose text field built on a TextFieldValue (the settings app's own
+     * test field, and apps that use the same field) hands a change to the app
+     * only when it differs from the value it was last drawn with. The nudge's
+     * two moves reach it before it draws again, so the step back, which ends on
+     * exactly that value, counts as no change: the app keeps the step aside,
+     * the next frame draws it, and the caret ends a character to the left.
+     * Every time the keyboard grew under a caret in such a field (closing the
+     * Dictionary panel is one way) it went one more to the left.
+     *
+     * The field says so: a collapsed caret reported at the step aside, after
+     * the step's own echo has passed. By then the field has drawn the step
+     * aside, so the caret set again is a change it passes on. Returns true when
+     * it did, and the update is not acted on.
+     */
+    private fun undoRevealBounce(newSelStart: Int, newSelEnd: Int): Boolean {
+        val aside = revealBounceAside
+        if (aside < 0) return false
+        val back = revealBounceReturn
+        if (SystemClock.uptimeMillis() - revealBounceAt > REVEAL_BOUNCE_WINDOW_MS) {
+            revealBounceAside = -1
+            return false
+        }
+        // The step back's own echo: the field's editor took it, which is not
+        // yet the app taking it. Still watching.
+        if (newSelStart == back && newSelEnd == back) return false
+        revealBounceAside = -1
+        revealBounceReturn = -1
+        if (newSelStart != aside || newSelEnd != aside) return false
+        val ic = currentInputConnection ?: return false
+        DebugLog.d("ime", "caret nudge's step back to $back was dropped at $aside; setting it again")
+        return ic.setSelection(back, back)
+    }
+
+    /**
      * The caret [noteBoardGrowth] last nudged into view, or -1. The same
      * caret is not nudged twice in a row: in an editor that answers the nudge
      * with a re-layout (a code editor, #679), the board can shrink and grow
@@ -55012,6 +55058,10 @@ open class WMKeyboardService : InputMethodService() {
                 sendDownUpKeyEvents(if (back) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT)
                 sendDownUpKeyEvents(if (back) KeyEvent.KEYCODE_DPAD_RIGHT else KeyEvent.KEYCODE_DPAD_LEFT)
             } else {
+                // A Compose field can drop the step back (#1363); see [undoRevealBounce].
+                revealBounceAside = aside
+                revealBounceReturn = start
+                revealBounceAt = SystemClock.uptimeMillis()
                 ic.setSelection(aside, aside)
                 ic.setSelection(start, start)
             }
@@ -66204,6 +66254,12 @@ private const val FIND_VERIFY_WINDOW = 400
  * to the old word's end is put back; see [WMKeyboardService.undoCaretSnapBack].
  */
 private const val CARET_SNAP_BACK_WINDOW_MS = 600L
+
+/**
+ * How long after a caret nudge a field drawing its step aside is taken for one
+ * that dropped the step back; see [WMKeyboardService.undoRevealBounce].
+ */
+private const val REVEAL_BOUNCE_WINDOW_MS = 600L
 
 /** Echoes the reading caret waits for at most (#960); past it the oldest is long gone. */
 private const val READING_ECHOES_MAX = 16
