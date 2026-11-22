@@ -157,6 +157,13 @@ internal fun PanelLayoutGrid(
     var boxOrigin by remember { mutableStateOf(Offset.Zero) }
     var boxWindow by remember { mutableStateOf(Offset.Zero) }
     var boxSize by remember { mutableStateOf(IntSize.Zero) }
+    // The theme's touch bloom, as on the typing grid (#1491): its clock, the
+    // fingers on this grid's keys, and its light under and over them. Without
+    // them a panel's keys read the bloom's clock frozen where the typing grid
+    // left it, so the key under the last press there (the one that opened the
+    // Numpad, say) stayed dipped, and no light followed a finger here.
+    val touchBloom = LocalKbTheme.current.liveTouchBloom
+    touchBloom?.let { TouchBloomClock(it) }
     Box(
         modifier = modifier
             .padding(horizontal = KeyRowsPadHorizontal, vertical = KeyRowsPadVertical)
@@ -165,6 +172,15 @@ internal fun PanelLayoutGrid(
                 boxWindow = it.positionInWindow()
                 boxSize = it.size
             }
+            // Only a press on a key: a component's cell (the emoji grid, the
+            // trackpad) is not a key, and scrolling it should not light up.
+            .then(
+                if (touchBloom != null) {
+                    Modifier.touchBloomFingers({ boxOrigin }) { at -> liveRects.value.keyAt(at) != null }
+                } else {
+                    Modifier
+                },
+            )
             // After the padding, so a pointer arrives in the same space the
             // grids below record their cells in.
             .pointerInput(onPanelKey, trailMs, settings.longPressDelayMs, layerPeek) {
@@ -183,6 +199,7 @@ internal fun PanelLayoutGrid(
                 )
             },
     ) {
+        touchBloom?.let { TouchBloomLayer(it, behind = true, modifier = Modifier.matchParentSize()) }
         PanelKeyGrid(
             state, spec, callbacks, onPanelKey, fields, keyPreview, panelRects, collapsedFields,
             // Read in the layer block, so a peek starting and ending repaints
@@ -196,6 +213,7 @@ internal fun PanelLayoutGrid(
         if (peekSpec != null) {
             PanelKeyGrid(state, peekSpec, callbacks, onPanelKey, { _ -> }, keyPreview, peekRects)
         }
+        touchBloom?.let { TouchBloomLayer(it, behind = false, modifier = Modifier.matchParentSize()) }
         LayerPeekHighlight(peek, settings)
         if (trail.visible) {
             val kb = LocalKbTheme.current

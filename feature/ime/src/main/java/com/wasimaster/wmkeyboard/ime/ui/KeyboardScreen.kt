@@ -23367,30 +23367,7 @@ private fun KeyRows(
             // Initial pass, taps and glides alike, in root space. Never
             // consumes. Keyed on the bloom being on, so a theme without one
             // runs no loop at all.
-            .pointerInput(touchBloom != null) {
-                if (touchBloom == null) return@pointerInput
-                try {
-                    awaitPointerEventScope {
-                        while (true) {
-                            val event = awaitPointerEvent(PointerEventPass.Initial)
-                            val at = boxOrigin
-                            for (change in event.changes) {
-                                val x = change.position.x + at.x
-                                val y = change.position.y + at.y
-                                when {
-                                    change.changedToDownIgnoreConsumed() ->
-                                        TouchBloom.down(change.id.value, x, y, change.uptimeMillis)
-                                    change.pressed -> TouchBloom.move(change.id.value, x, y)
-                                    change.previousPressed -> TouchBloom.up(change.id.value, change.uptimeMillis)
-                                }
-                            }
-                        }
-                    }
-                } finally {
-                    // A grid torn down under a finger never sees it lift.
-                    TouchBloom.liftAll(SystemClock.uptimeMillis())
-                }
-            }
+            .then(if (touchBloom != null) Modifier.touchBloomFingers({ boxOrigin }) else Modifier)
             // Touch-position capture for the engine's typo model: record every
             // down, always on (unlike smart hit above). Never consumes; the
             // committed key reads the position via smartResolve on release.

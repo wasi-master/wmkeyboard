@@ -24,6 +24,9 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.changedToDownIgnoreConsumed
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import com.wasimaster.wmkeyboard.core.theme.KeyPressMotion
@@ -273,6 +276,44 @@ internal fun settleMs(wobble: Float): Long {
     // The envelope of a damped spring falls under 1% after ln(100) / (zeta * omega).
     val spring = (4.6f / (dampingFor(wobble) * RETURN_OMEGA) * 1000f).toLong()
     return max(LIGHT_FADE_MS, spring).coerceAtMost(MAX_SETTLE_MS)
+}
+
+/**
+ * Feeds [TouchBloom] from a key grid's own pointer pass: every down, move and
+ * lift on the Initial pass, in root space ([origin] is the grid's root offset,
+ * in the space its pointer positions arrive in). Never consumes. A down that
+ * [accepts] turns away (a panel's component cell, which is not a key) is not
+ * followed. A grid torn down under a finger never sees it lift, so leaving
+ * lifts every finger still down.
+ *
+ * Both grids run it: the typing grid and a panel's ([PanelLayoutGrid], the
+ * Numpad among them), whose keys dip and light like the typing grid's (#1491).
+ */
+internal fun Modifier.touchBloomFingers(
+    origin: () -> Offset,
+    accepts: (Offset) -> Boolean = { true },
+): Modifier = pointerInput(Unit) {
+    try {
+        awaitPointerEventScope {
+            while (true) {
+                val event = awaitPointerEvent(PointerEventPass.Initial)
+                val at = origin()
+                for (change in event.changes) {
+                    val x = change.position.x + at.x
+                    val y = change.position.y + at.y
+                    when {
+                        change.changedToDownIgnoreConsumed() -> if (accepts(change.position)) {
+                            TouchBloom.down(change.id.value, x, y, change.uptimeMillis)
+                        }
+                        change.pressed -> TouchBloom.move(change.id.value, x, y)
+                        change.previousPressed -> TouchBloom.up(change.id.value, change.uptimeMillis)
+                    }
+                }
+            }
+        }
+    } finally {
+        TouchBloom.liftAll(SystemClock.uptimeMillis())
+    }
 }
 
 // ---- drawing ----------------------------------------------------------------
