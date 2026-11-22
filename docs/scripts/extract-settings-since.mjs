@@ -118,7 +118,12 @@ const latest = version(tags[tags.length - 1]);
 // The version main is heading for: gradle.properties once it has been bumped
 // past the last tag, else the next patch release, which is the earliest the
 // next tag can be.
-const planned = /^wmkb\.versionName=(.+)$/m.exec(readFileSync(resolve(REPO, 'gradle.properties'), 'utf8'))?.[1]?.trim();
+// A pre-release (0.6.8rc1) dates its settings by the release it leads to,
+// which is the version they are "added in" for everyone not testing.
+const planned = /^wmkb\.versionName=(.+)$/m
+	.exec(readFileSync(resolve(REPO, 'gradle.properties'), 'utf8'))?.[1]
+	?.trim()
+	.replace(/^(\d+(?:\.\d+)*).*$/, '$1');
 const bumped = latest.split('.').map((n) => parseInt(n, 10) || 0);
 bumped[bumped.length - 1] += 1;
 const next = planned && compare(planned, latest) > 0 ? planned : bumped.join('.');

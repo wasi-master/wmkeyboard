@@ -421,7 +421,7 @@ Builds:
 AllowedAPKSigningKeys: d6c1f30a6116d33e4e778b372f335faa91dad35f657a84e4e7077b29641e7cad
 
 AutoUpdateMode: Version
-UpdateCheckMode: Tags
+UpdateCheckMode: Tags ^v[0-9]+\.[0-9]+\.[0-9]+$
 VercodeOperation:
   - 10*%c + 1
   - 10*%c + 2

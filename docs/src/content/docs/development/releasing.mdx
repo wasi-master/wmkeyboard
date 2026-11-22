@@ -325,6 +325,32 @@ inside a fence long enough that no backtick run in it can escape.
    code would send production back through review for nothing. 0.5.13 did
    this, as versionCode 28 on GitHub and F-Droid and 27 on Play.
 
+### Pre-releases
+
+A `wmkb.versionName` with anything after the numbers, such as `0.6.8rc1` or
+`0.7.0-beta.2`, makes the run a pre-release. Tag it `v0.6.8rc1` as usual. It
+still needs a versionCode of its own, one above the last release, so it
+installs over it, and the finished release then takes the next one. The run
+differs from a release in five places:
+
+- The GitHub release is marked as a pre-release and is never "latest", so the
+  download page and `/releases/latest` keep pointing at the stable version.
+  The in-app updater offers it only to people who turned on **Include
+  pre-releases**.
+- The `play` job stands down. Testers get the APK from GitHub.
+- The Telegram post goes to the beta testing topic (thread 12671) instead of
+  the announcements topic, and says it is a test version.
+- No issue is commented on. The stable release counts its range from the last
+  stable tag, past its own pre-releases, so every issue a pre-release fixed
+  hears about it once, when it ships for everyone. The settings "Added in"
+  dates skip pre-release tags for the same reason.
+- The bug report form keeps asking for the stable version.
+
+F-Droid's update bot reads every tag unless its recipe says otherwise, so
+fdroiddata's `UpdateCheckMode` has to carry the pattern
+`Tags ^v[0-9]+\.[0-9]+\.[0-9]+$`, as `fdroid/com.wasimaster.wmkeyboard.yml`
+does. Without it F-Droid builds the pre-release and ships it to everyone.
+
 6. **Pull the settings-link refresh.** Pushing the tag also starts the
    **Settings links** workflow (`.github/workflows/settings-links.yml`). It
    reruns `scripts/extract_settings_links.sh` and

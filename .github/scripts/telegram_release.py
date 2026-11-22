@@ -14,6 +14,10 @@ Usage:
         --dist dist
 
 The bot token is read from TELEGRAM_TOKEN environment variable (or --token).
+
+With --prerelease the post goes to the beta testing topic instead
+(https://t.me/c/wmkeyboard/12671), says it is a test version, and says how
+to get later ones.
 """
 
 from __future__ import annotations
@@ -35,6 +39,8 @@ from typing import BinaryIO
 
 DEFAULT_CHAT_ID = "@wmkeyboard"
 DEFAULT_THREAD_ID = 19
+# The beta testing topic, where pre-releases go (t.me/c/wmkeyboard/12671).
+BETA_THREAD_ID = 12671
 TELEGRAM_MAX_MESSAGE_LENGTH = 4096
 TELEGRAM_MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB Bot API hard limit
 
@@ -89,6 +95,9 @@ def parse_release_notes(raw_content: str) -> tuple[str, list[tuple[str, list[str
     # Strip top-level headers like <h2>What's new in ...</h2>
     cleaned = re.sub(r'<h[1-6][^>]*>.*?</h[1-6]>', '', cleaned, flags=re.IGNORECASE)
 
+    # Drop GitHub callouts (the pre-release warning): the post says it itself.
+    cleaned = re.sub(r'(?m)^\s*>.*$', '', cleaned)
+
     # Cut off at download or verification sections if present
     for marker in ('## Download', '## Verify'):
         if marker in cleaned:
@@ -140,11 +149,22 @@ def build_announcement_message(
     full_apk_name: str | None = None,
     full_apk_size: int | None = None,
     has_attached_apk: bool = False,
+    prerelease: bool = False,
 ) -> str:
     """Build the Telegram HTML announcement message respecting length limits."""
     release_url = f"https://github.com/{repo}/releases/tag/{tag}"
 
-    header = f"🚀 <b>WM Keyboard {html.escape(version)} is out!</b>\n\n"
+    if prerelease:
+        header = (
+            f"🧪 <b>WM Keyboard {html.escape(version)} is ready for testing</b>\n\n"
+            "A pre-release of the next version: new things early, and more "
+            "bugs than a release. Not on Play or F-Droid. Please report what "
+            "breaks here or on GitHub.\n"
+            "To get later test builds by itself, turn on <b>Settings › About › "
+            "Updates › Include pre-releases</b> in the GitHub build.\n\n"
+        )
+    else:
+        header = f"🚀 <b>WM Keyboard {html.escape(version)} is out!</b>\n\n"
 
     intro_block = ""
     if intro:
@@ -441,11 +461,14 @@ def main() -> None:
     parser.add_argument("--dist", default="dist", help="Directory containing built APKs")
     parser.add_argument("--token", default=os.environ.get("TELEGRAM_TOKEN"), help="Telegram bot token")
     parser.add_argument("--chat-id", default=DEFAULT_CHAT_ID, help="Telegram chat/supergroup ID")
-    parser.add_argument("--thread-id", type=int, default=DEFAULT_THREAD_ID, help="Topic message thread ID")
+    parser.add_argument("--thread-id", type=int, help="Topic message thread ID (default: announcements, or beta testing with --prerelease)")
+    parser.add_argument("--prerelease", action="store_true", help="A test version: post to the beta testing topic")
     parser.add_argument("--apk", help="Specific APK file path to attach instead of auto-detecting")
     parser.add_argument("--dry-run", action="store_true", help="Print message and exit without sending")
 
     args = parser.parse_args()
+    if args.thread_id is None:
+        args.thread_id = BETA_THREAD_ID if args.prerelease else DEFAULT_THREAD_ID
 
     tag = args.tag
     version = args.version or (tag[1:] if tag.startswith("v") else tag)
@@ -488,9 +511,11 @@ def main() -> None:
         full_apk_name=full_apk_name,
         full_apk_size=full_apk_size,
         has_attached_apk=has_attached_apk,
+        prerelease=args.prerelease,
     )
 
-    caption = f"WM Keyboard {version} (standard · arm64)" if has_attached_apk else ""
+    kind = "test build · standard · arm64" if args.prerelease else "standard · arm64"
+    caption = f"WM Keyboard {version} ({kind})" if has_attached_apk else ""
 
     if args.dry_run:
         print("=== DRY RUN MODE ===")

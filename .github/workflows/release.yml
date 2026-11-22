@@ -2,6 +2,15 @@ name: Release
 
 # Tag a commit `v0.3.0` and push it. The tag must match wmkb.versionName in
 # gradle.properties or the first job stops the run.
+#
+# A version with a pre-release suffix (`0.6.8rc1`, `0.7.0-beta.2`) is a
+# pre-release: GitHub only, marked as one and never "latest", so the in-app
+# updater offers it only to people who turned on "Include pre-releases". Play
+# is not uploaded to, the linked issues are not commented on (the stable
+# release tells them), the bug report form keeps asking for the stable
+# version, and Telegram gets it in the beta testing topic instead of the
+# announcements one. It still needs its own wmkb.versionCode, one above the
+# last release, so it installs over it; the stable release takes the next.
 on:
   push:
     tags: ['v*']
@@ -25,6 +34,7 @@ jobs:
     outputs:
       version: ${{ steps.v.outputs.version }}
       buildable: ${{ steps.v.outputs.buildable }}
+      prerelease: ${{ steps.v.outputs.prerelease }}
     steps:
       - uses: actions/checkout@v7
       - id: v
@@ -44,6 +54,13 @@ jobs:
           fi
           echo "buildable=true" >> "$GITHUB_OUTPUT"
           echo "version=$declared" >> "$GITHUB_OUTPUT"
+          # Plain X.Y.Z is a release; anything after it (rc1, -beta.2) is not.
+          if echo "$declared" | grep -qE '^[0-9]+(\.[0-9]+)*$'; then
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::$declared is a pre-release: GitHub and the Telegram beta topic only"
+          fi
           if [ "${{ github.ref_type }}" = 'tag' ]; then
             tag='${{ github.ref_name }}'
             if [ "v$declared" != "$tag" ]; then
@@ -846,10 +863,11 @@ jobs:
   # A release commit carrying `[skip play]` goes to GitHub and F-Droid only:
   # a version Play already has under an older versionCode, where a new upload
   # would only send production back through review for nothing.
+  # A pre-release is not uploaded either: testers get it from GitHub.
   play:
     name: Upload to Play (internal track)
     needs: [verify, bundle]
-    if: github.ref_type == 'tag' && !inputs.dry_run && !contains(github.event.head_commit.message, '[skip play]')
+    if: github.ref_type == 'tag' && !inputs.dry_run && needs.verify.outputs.prerelease != 'true' && !contains(github.event.head_commit.message, '[skip play]')
     runs-on: ubuntu-latest
     # The bundle upload alone can take most of an hour (see timeout: in the
     # Fastfile's internal lane).
@@ -1031,7 +1049,8 @@ jobs:
             "$code" \
             '${{ github.ref_name }}' \
             dist \
-            '${{ github.repository }}' > release-body.md
+            '${{ github.repository }}' \
+            '${{ needs.verify.outputs.prerelease }}' > release-body.md
           echo "--- release body ---"
           cat release-body.md
 
@@ -1057,6 +1076,7 @@ jobs:
           REPO: ${{ github.repository }}
           TAG: ${{ github.ref_name }}
           TITLE: WM Keyboard ${{ needs.verify.outputs.version }}
+          PRERELEASE: ${{ needs.verify.outputs.prerelease }}
         run: |
           shopt -s nullglob
           files=(dist/*.apk dist/*.dm dist/*-mapping.txt.gz dist/*-native-symbols.zip)
@@ -1077,12 +1097,19 @@ jobs:
             echo "uploading $(basename "$f")"
             gh release upload "$TAG" --repo "$REPO" --clobber "$f"
           done
-          gh release edit "$TAG" --repo "$REPO" --draft=false --latest
+          # A pre-release must never become "latest": /releases/latest is
+          # what the download page and everyone not testing reads.
+          if [ "$PRERELEASE" = true ]; then
+            gh release edit "$TAG" --repo "$REPO" --draft=false --prerelease --latest=false
+          else
+            gh release edit "$TAG" --repo "$REPO" --draft=false --prerelease=false --latest
+          fi
           echo "announce=$announce" >> "$GITHUB_OUTPUT"
 
       # Announce the new release on the Telegram community in the
-      # announcements and releases topic (#19), linking the standard English
-      # arm64 APK (telegram_release.py says what it attaches).
+      # announcements and releases topic (#19), or a pre-release in the beta
+      # testing topic (#12671), linking the standard English arm64 APK
+      # (telegram_release.py says what it attaches).
       # Once per release: not when this run only updated a published one.
       - name: Announce on Telegram
         if: steps.release.outputs.announce == 'true'
@@ -1091,26 +1118,30 @@ jobs:
           TAG: ${{ github.ref_name }}
           REPO: ${{ github.repository }}
           VERSION: ${{ needs.verify.outputs.version }}
+          PRERELEASE: ${{ needs.verify.outputs.prerelease }}
         run: |
           if [ -z "$TELEGRAM_TOKEN" ]; then
             echo "::warning::TELEGRAM_TOKEN is not set; skipping Telegram announcement"
             exit 0
           fi
-          python3 .github/scripts/telegram_release.py \
-            --tag "$TAG" \
-            --repo "$REPO" \
-            --version "$VERSION" \
-            --notes-file release-body.md \
-            --dist dist
+          args=(--tag "$TAG" --repo "$REPO" --version "$VERSION"
+                --notes-file release-body.md --dist dist)
+          if [ "$PRERELEASE" = true ]; then
+            args+=(--prerelease)
+          fi
+          python3 .github/scripts/telegram_release.py "${args[@]}"
 
   # Comments on every issue the release notes link, now that there is a
   # release to point at. A call rather than a `release: published` trigger in
   # that workflow, because the release above is published with this run's
   # token, and GitHub starts no workflow for an event that token caused.
+  # Not for a pre-release: the issues hear once, when the stable release
+  # ships, and that one counts from the last stable tag, so everything the
+  # pre-release carried is in it.
   issue-comments:
     name: Tell the linked issues
     needs: [verify, publish]
-    if: github.ref_type == 'tag' && !inputs.dry_run
+    if: github.ref_type == 'tag' && !inputs.dry_run && needs.verify.outputs.prerelease != 'true'
     permissions:
       contents: read
       issues: write
@@ -1126,11 +1157,11 @@ jobs:
   # are asked to confirm they are on it. Runs after publish, so a failed or
   # dry run never advertises a version nobody can download. Commits to main,
   # not the tag: a tag can be cut from an older commit and the form must
-  # follow main.
+  # follow main. A pre-release leaves it on the stable version.
   issue-template:
     name: Bump bug report version
     needs: [verify, publish]
-    if: github.ref_type == 'tag' && !inputs.dry_run
+    if: github.ref_type == 'tag' && !inputs.dry_run && needs.verify.outputs.prerelease != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

@@ -2,7 +2,10 @@
 # Builds the body of a GitHub release: highlights, a download grid with real
 # file sizes, and a grouped changelog of every commit since the previous tag.
 #
-#   release-notes.sh <version> <versionCode> <tag> <dist-dir> [<owner/repo>]
+#   release-notes.sh <version> <versionCode> <tag> <dist-dir> [<owner/repo>] [<prerelease>]
+#
+# <prerelease> is `true` for a test version (0.6.8rc1): the body opens by
+# saying so, and does not send readers to Play or F-Droid, which do not get it.
 #
 # Writes markdown to stdout. Needs the repo checked out with full history
 # (fetch-depth: 0) so the previous tag can be found.
@@ -21,6 +24,7 @@ code=${2:?versionCode}
 tag=${3:?tag}
 dist=${4:?dist directory}
 repo=${5:-${GITHUB_REPOSITORY:-wasi-master/wmkeyboard}}
+prerelease=${6:-false}
 
 base="https://github.com/${repo}/releases/download/${tag}"
 prefix="wmkeyboard-${version}-vc${code}"
@@ -59,6 +63,20 @@ cell() {
 notes_file="release-notes/${version}.md"
 store_changelog="fastlane/metadata/android/en-US/changelogs/${code}.txt"
 
+if [ "$prerelease" = true ]; then
+cat <<EOF
+> [!WARNING]
+> **This is a pre-release**, a test version of the next release for people who
+> want the new things early and are happy to report what breaks. It is not on
+> Google Play or F-Droid. The GitHub build updates itself to later pre-releases
+> and to the finished release when **Settings › About › Updates › Include
+> pre-releases** is on. Report problems on
+> [GitHub](https://github.com/${repo}/issues) or in the Telegram group's beta
+> testing topic.
+
+EOF
+fi
+
 # Open by default: a reader who wants the prose gets it without a click, and
 # one who came for the download can fold it away.
 echo '<details open>'
@@ -94,10 +112,12 @@ cat <<EOF
 ### **⭐ [Download WM Keyboard ${version}](${base}/${prefix}-full-en-arm64-v8a.apk)** · $(size_of "${prefix}-full-en-arm64-v8a.apk")
 
 This is the one for almost every phone from 2017 on. It installs over any earlier
-version from GitHub and keeps all your settings. Also on
+version from GitHub and keeps all your settings.$(if [ "$prerelease" != true ]; then
+printf '%s' " Also on
 [Google Play](https://play.google.com/store/apps/details?id=com.wasimaster.wmkeyboard)
 and [F-Droid](https://f-droid.org/packages/com.wasimaster.wmkeyboard/) (F-Droid is
-often a few days behind).
+often a few days behind)."
+fi)
 
 **In your language:** on Android 11 or later the app switches to your phone's
 language by itself a few seconds after it first opens (a small download, so it
@@ -392,7 +412,14 @@ fi
 # The release before this one by version, not by ancestry: a re-cut tag sits
 # on its own commit off main (0.6.2 did), and `git describe` skipped it and
 # counted 0.6.3 from 0.6.1. `prev..tag` is still the right range then.
-prev=$(git tag --list 'v*' --sort=-v:refname | awk -v t="$tag" 'f { print; exit } $0 == t { f = 1 }')
+# A stable release counts from the stable release before it, skipping the
+# pre-releases between, so its range holds everything people on the last
+# release have not had. A pre-release counts from whatever came before it.
+stable=1
+[[ ${tag#v} =~ ^[0-9]+(\.[0-9]+)*$ ]] || stable=0
+prev=$(git tag --list 'v*' --sort=-v:refname \
+  | awk -v t="$tag" -v stable="$stable" \
+      'f && !(stable && $0 !~ /^v[0-9.]+$/) { print; exit } $0 == t { f = 1 }')
 if [ -n "$prev" ]; then
   count=$(git log --no-merges --oneline "${prev}..${tag}" | wc -l | tr -d ' ')
   echo "${count} commits since [${prev#v}](https://github.com/${repo}/releases/tag/${prev}). [See every one](https://github.com/${repo}/compare/${prev}...${tag})."

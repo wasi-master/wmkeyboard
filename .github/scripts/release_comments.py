@@ -206,15 +206,32 @@ def previous_tag(tag: str) -> str | None:
     ``prev..tag`` is still the right range for a tag that is not an ancestor.
     """
     mine = version_key(tag)
+    # A stable release counts from the stable one before it, past its own
+    # pre-releases, which never comment: their issues hear from this one.
+    stable = not is_prerelease(tag)
     candidates = [
         t for t in git("tag", "--list", "v*").split()
-        if t != tag and version_key(t) < mine
+        if t != tag and version_key(t) < mine and not (stable and is_prerelease(t))
     ]
     return max(candidates, key=version_key) if candidates else None
 
 
+def is_prerelease(tag: str) -> bool:
+    """v0.6.8rc1 and v0.7.0-beta.2 are; v0.6.8 is not."""
+    return re.fullmatch(r"\d+(\.\d+)*", tag.lstrip("v")) is None
+
+
 def version_key(v: str) -> tuple:
-    return tuple(int(n) if n.isdigit() else 0 for n in re.split(r"[.\-]", v.lstrip("v")))
+    """Orders 0.6.7 < 0.6.8rc1 < 0.6.8rc2 < 0.6.8 < 0.6.9."""
+    m = re.match(r"(\d+(?:\.\d+)*)[-.]?(.*)", v.lstrip("v"))
+    if not m:
+        return ((0,), 0, ())
+    release = tuple(int(n) for n in m.group(1).split("."))
+    suffix = m.group(2)
+    if not suffix:
+        return (release, 1, ())
+    pre = tuple(int(n) if n.isdigit() else 0 for n in re.findall(r"\d+", suffix))
+    return (release, 0, pre)
 
 
 def string_names_at(ref: str | None) -> set[str]:
