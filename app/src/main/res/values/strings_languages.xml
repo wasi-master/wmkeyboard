@@ -269,7 +269,7 @@
     <string name="languages_numeral_system_subtitle">The digits that the number row and the keypad show while you type <xliff:g id="language" example="Arabic">%1$s</xliff:g></string>
     <!-- %1$s is the English name of the language. %2$s is the digits of that
          language, shown as a range, for example "٠-٩". -->
-    <string name="languages_numeral_system_info">You select the digits for <xliff:g id="language" example="Arabic">%1$s</xliff:g>: its own digits, which are <xliff:g id="numeral_system" example="٠-٩">%2$s</xliff:g>, or 0-9. This applies to this language only. The keys always show the digits that you select. To set where the keyboard also types them, open Layout &amp; size, then Numerals.</string>
+    <string name="languages_numeral_system_info">You select the digits for <xliff:g id="language" example="Arabic">%1$s</xliff:g>: its own digits, which are <xliff:g id="numeral_system" example="٠-٩">%2$s</xliff:g>, or 0-9. This applies to this language only. The keys always show the digits that you select. To set where the keyboard also types them, open Layout &amp; size, then Symbols layer, and look under Numerals.</string>
 
     <string name="languages_secondary_title">Also suggest from</string>
     <!-- %1$s is the English name of the language this screen is about. -->

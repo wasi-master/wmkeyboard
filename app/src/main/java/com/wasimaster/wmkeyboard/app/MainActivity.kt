@@ -1769,6 +1769,42 @@ private fun SettingsNavGraph(
                 LayoutSettings(repository, settings, onNavigate = { navController.navigate(it) })
             }
         }
+        composable("layout/numberrow") {
+            SettingsScreen(
+                stringResource(R.string.layout_number_row_title),
+                { navController.popBackStack() },
+                route = "layout/numberrow",
+            ) {
+                LayoutNumberRowSettings(repository, settings, onNavigate = { navController.navigate(it) })
+            }
+        }
+        composable("layout/arrowrow") {
+            SettingsScreen(
+                stringResource(R.string.layout_arrow_row_title),
+                { navController.popBackStack() },
+                route = "layout/arrowrow",
+            ) {
+                LayoutArrowRowSettings(repository, settings, onNavigate = { navController.navigate(it) })
+            }
+        }
+        composable("layout/symbols") {
+            SettingsScreen(
+                stringResource(R.string.layout_symbols_title),
+                { navController.popBackStack() },
+                route = "layout/symbols",
+            ) {
+                LayoutSymbolsSettings(repository, settings)
+            }
+        }
+        composable("layout/bottomrow") {
+            SettingsScreen(
+                stringResource(R.string.layout_bottom_row_keys_title),
+                { navController.popBackStack() },
+                route = "layout/bottomrow",
+            ) {
+                LayoutBottomRowSettings(repository, settings)
+            }
+        }
         composable("layout/size") {
             SettingsScreen(
                 stringResource(R.string.layout_size_position_title),

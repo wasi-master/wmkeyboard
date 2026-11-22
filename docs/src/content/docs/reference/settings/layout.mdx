@@ -12,8 +12,8 @@ import Shot from '@components/Shot.astro';
 
 The Layout & size screen collects every physical dimension WM Keyboard's keys can take: a digit row, key and row heights, per-screen-shape overrides, and one-handed, split and floating modes. The groups below appear in the same order they do on screen. This page is the field reference. The linked guides carry the reasoning and walk through each group in more depth.
 
-<PhoneFrame caption="The Layout & size screen, opening on Your layouts and the Number row group.">
-  <Shot id="reference/settings/layout-overview" alt="The Layout & size screen, opening on the Number row and Numerals groups." />
+<PhoneFrame caption="The Layout & size screen, opening on Your layouts.">
+  <Shot id="reference/settings/layout-overview" alt="The Layout & size screen, opening on Your layouts." />
 </PhoneFrame>
 
 You can reach this screen from the home screen's **Layout & size** tile, from Accessibility → Touch → **Key size & spacing**, or from the **Split**, **Floating**, and **One-handed** toolbar tools' own Options panels, each of which has an **All layout & size settings** row.
@@ -22,7 +22,7 @@ You can reach this screen from the home screen's **Layout & size** tile, from Ac
 
 <SettingsPath path="Layout & size" />
 
-Size and position (with the per-screen overrides), One-handed, split and floating, and Panel layouts are pages of their own; Your layouts, Import and export, Number row, Arrow keys row, Symbols layer, Numerals and Bottom-row keys stay on the hub. Key height, key spacing and side padding here apply to every layout. A layout can carry its own, set in its [layout editor](/languages/custom-layouts/), and those win on that layout.
+Your layouts and Import and export are on the hub itself. Under them is one group of rows, each opening a page of its own: Size and position (with the per-screen overrides), One-handed, split and floating, Number row, Arrow keys row, Symbols layer (with Numerals) and Bottom-row keys. Number row and Arrow keys row show whether they are on, and Bottom-row keys shows the bottom row in use. Number row, Arrow keys row, Symbols layer, Numerals and Bottom-row keys used to be laid out on the hub as groups; they moved behind rows like the others so the hub fits on about one screen. Panel layouts is a row in Your layouts. Key height, key spacing and side padding here apply to every layout. A layout can carry its own, set in its [layout editor](/languages/custom-layouts/), and those win on that layout.
 
 ### Your layouts
 
@@ -114,7 +114,7 @@ Only single-character keys count, so a `.com` key or an emoticon key never trigg
 
 ### Numerals
 
-<SettingsPath path="Layout & size / Numerals" />
+<SettingsPath path="Layout & size / Symbols layer / Numerals" />
 
 | Setting | Control | Options | Default |
 |---|---|---|---|
@@ -232,7 +232,7 @@ Full detail on all three (plus the floating panel's drag pill and resize grip) i
 
 ### Bottom-row keys
 
-<SettingsPath path="Layout & size / Bottom-row keys" />
+<SettingsPath path="Layout & size / Bottom row keys" />
 
 | Setting | Control | Default |
 |---|---|---|

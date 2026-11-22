@@ -1500,9 +1500,6 @@ internal fun LayoutSettings(
     // here and captured. The format also puts the number through the locale,
     // which is what gives Bengali or Arabic digits.
     val dpFormat = stringResource(R.string.typing_value_dp)
-    // What decides which rows the groups hold; each row reads its own value.
-    val numberRow = settings.watch { it.numberRow }
-    val symbolsReturn = settings.watch { it.layoutBehavior.symbolsReturnToLetters }
     // No pinned sketch of the keyboard here any more (issue #769): it took a
     // band of the screen and drew a board that was not the user's, and the
     // keyboard test button on every screen (#412) shows the real one.
@@ -1638,6 +1635,95 @@ internal fun LayoutSettings(
     // Bringing a layout in from a file, or sending the ones in use out to one
     // (#1318): beside the layouts they add to, not a screen further in.
     LayoutImportsGroup(repository, settings)
+    // The rest of the screen is doors (#1432): Number row, Arrow keys row,
+    // Symbols layer and Bottom row keys were groups laid out here, a long
+    // scroll of rows under headings beside the arrow rows Size and position
+    // and One-handed already were. Each is now a page of its own, the way
+    // #1318 split Key press and Appearance.
+    val onLabel = stringResource(CommonR.string.common_on)
+    val offLabel = stringResource(CommonR.string.common_off)
+    SettingsGroup {
+        item {
+            NavRow(
+                R.string.layout_size_position_title,
+                stringResource(R.string.layout_size_subtitle),
+                route = "layout/size",
+            ) {
+                onNavigate("layout/size")
+            }
+        }
+        item {
+            NavRow(
+                R.string.layout_one_handed_group_title,
+                stringResource(R.string.layout_one_handed_page_subtitle),
+                route = "layout/onehanded",
+            ) {
+                onNavigate("layout/onehanded")
+            }
+        }
+        item {
+            NavRow(
+                R.string.layout_number_row_title,
+                stringResource(R.string.layout_number_row_page_subtitle),
+                value = if (settings.watch { it.numberRow }) onLabel else offLabel,
+                route = LAYOUT_NUMBER_ROW_ROUTE,
+            ) {
+                onNavigate(LAYOUT_NUMBER_ROW_ROUTE)
+            }
+        }
+        item(level = SettingLevel.STANDARD) {
+            NavRow(
+                R.string.layout_arrow_row_title,
+                stringResource(R.string.layout_arrow_row_page_subtitle),
+                value = if (settings.watch { it.layoutBehavior.arrowRow }) onLabel else offLabel,
+                route = LAYOUT_ARROW_ROW_ROUTE,
+            ) {
+                onNavigate(LAYOUT_ARROW_ROW_ROUTE)
+            }
+        }
+        item {
+            NavRow(
+                R.string.layout_symbols_title,
+                stringResource(R.string.layout_symbols_page_nav_subtitle),
+                route = LAYOUT_SYMBOLS_ROUTE,
+            ) {
+                onNavigate(LAYOUT_SYMBOLS_ROUTE)
+            }
+        }
+        item {
+            NavRow(
+                R.string.layout_bottom_row_keys_title,
+                stringResource(R.string.layout_bottom_row_page_subtitle),
+                value = stringResource(bottomRowPresetLabel(settings.watch { it.bottomRow.preset })),
+                route = LAYOUT_BOTTOM_ROW_ROUTE,
+            ) {
+                onNavigate(LAYOUT_BOTTOM_ROW_ROUTE)
+            }
+        }
+    }
+}
+
+/** Layout & size › Number row (#1432). */
+internal const val LAYOUT_NUMBER_ROW_ROUTE = "layout/numberrow"
+
+/** Layout & size › Arrow keys row (#1432). */
+internal const val LAYOUT_ARROW_ROW_ROUTE = "layout/arrowrow"
+
+/** Layout & size › Symbols layer, with Numerals (#1432). */
+internal const val LAYOUT_SYMBOLS_ROUTE = "layout/symbols"
+
+/** Layout & size › Bottom row keys (#1432). */
+internal const val LAYOUT_BOTTOM_ROW_ROUTE = "layout/bottomrow"
+
+/** Layout & size › Number row: the row of digits over the letters (#1432). */
+@Composable
+internal fun LayoutNumberRowSettings(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+    onNavigate: (String) -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    val numberRow = settings.watch { it.numberRow }
     SettingsGroup(stringResource(R.string.layout_number_row_title)) {
         item {
             ToggleSetting(
@@ -1699,6 +1785,16 @@ internal fun LayoutSettings(
             ) { onNavigate(globalRowRoute(GlobalRow.NUMBER)) }
         }
     }
+}
+
+/** Layout & size › Arrow keys row (#1432). */
+@Composable
+internal fun LayoutArrowRowSettings(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+    onNavigate: (String) -> Unit,
+) {
+    val scope = rememberCoroutineScope()
     // Issue #369: the caret keys as a row of their own under the spacebar.
     val arrowRow = settings.watch { it.layoutBehavior.arrowRow }
     val customArrowRow = settings.watch { it.layoutBehavior.customArrowRow != null }
@@ -1760,6 +1856,16 @@ internal fun LayoutSettings(
         }
     }
 
+}
+
+/**
+ * Layout & size › Symbols layer (#1432), with Numerals under it: which digits
+ * the keyboard types is a question about the digits the symbols page offers.
+ */
+@Composable
+internal fun LayoutSymbolsSettings(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    val symbolsReturn = settings.watch { it.layoutBehavior.symbolsReturnToLetters }
     // The group was advanced-only until the Symbols page choice joined it;
     // its other rows still are.
     SettingsGroup(stringResource(R.string.layout_symbols_title)) {
@@ -1849,29 +1955,12 @@ internal fun LayoutSettings(
         }
     }
 
-    SettingsGroup {
-        item {
-            NavRow(
-                R.string.layout_size_position_title,
-                stringResource(R.string.layout_size_subtitle),
-                route = "layout/size",
-            ) {
-                onNavigate("layout/size")
-            }
-        }
-        item {
-            NavRow(
-                R.string.layout_one_handed_group_title,
-                stringResource(R.string.layout_one_handed_page_subtitle),
-                route = "layout/onehanded",
-            ) {
-                onNavigate("layout/onehanded")
-            }
-        }
-    }
+}
 
-
-
+/** Layout & size › Bottom row keys (#1432). */
+@Composable
+internal fun LayoutBottomRowSettings(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
     // The rows that act on the 🌐 key go with it: hidden, it has nothing for
     // them to change.
     val globeShown = settings.watch { it.showGlobeKey }

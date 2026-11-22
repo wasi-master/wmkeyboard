@@ -1230,41 +1230,53 @@ private fun SearchStrings.appearanceToolboxRows(): List<SettingsSearchEntry> {
 private fun SearchStrings.layoutRows(): List<SettingsSearchEntry> {
     fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, weight: EntryWeight = EntryWeight.NORMAL) =
         entry(title, subtitle, R.string.home_layout_title, "layout", weight = weight)
+    // The Number row, Arrow keys row, Symbols layer and Bottom row keys
+    // groups have pages of their own since #1432.
+    fun page(@StringRes screen: Int, route: String, @StringRes title: Int, @StringRes subtitle: Int = 0) =
+        entry(title, subtitle, screen, route, screenParent = R.string.home_layout_title)
+    fun numberRow(@StringRes title: Int, @StringRes subtitle: Int = 0) =
+        page(R.string.layout_number_row_title, "layout/numberrow", title, subtitle)
+    fun arrowRow(@StringRes title: Int, @StringRes subtitle: Int = 0) =
+        page(R.string.layout_arrow_row_title, "layout/arrowrow", title, subtitle)
+    fun symbols(@StringRes title: Int, @StringRes subtitle: Int = 0) =
+        page(R.string.layout_symbols_title, "layout/symbols", title, subtitle)
+    fun bottomRow(@StringRes title: Int, @StringRes subtitle: Int = 0) =
+        page(R.string.layout_bottom_row_keys_title, "layout/bottomrow", title, subtitle)
     return listOf(
-        row(R.string.layout_number_row_shift_symbols_title, R.string.layout_number_row_shift_symbols_subtitle),
-        row(R.string.layout_number_row_in_symbols_title, R.string.layout_number_row_in_symbols_subtitle),
-        row(R.string.layout_number_row_on_keypad_title, R.string.layout_number_row_on_keypad_subtitle),
-        row(R.string.layout_arrow_row_title, R.string.layout_arrow_row_subtitle),
-        row(R.string.layout_arrow_row_order_title, R.string.layout_arrow_row_order_subtitle),
-        row(R.string.layout_arrow_row_on_top_title, R.string.layout_arrow_row_on_top_subtitle),
-        row(R.string.layout_custom_number_row_title, R.string.layout_custom_number_row_caption),
-        row(R.string.layout_custom_arrow_row_title, R.string.layout_custom_arrow_row_caption),
-        row(R.string.layout_symbols_page_title, R.string.layout_symbols_page_subtitle),
-        row(R.string.layout_symbols_return_title, R.string.layout_symbols_return_subtitle),
-        row(R.string.layout_symbols_return_chars_title),
-        row(R.string.layout_symbols_return_space_title, R.string.layout_symbols_return_space_subtitle),
-        row(R.string.layout_back_leaves_symbols_title, R.string.layout_back_leaves_symbols_subtitle),
-        row(R.string.layout_numeral_scope_title, R.string.layout_numeral_scope_subtitle),
+        numberRow(R.string.layout_number_row_shift_symbols_title, R.string.layout_number_row_shift_symbols_subtitle),
+        numberRow(R.string.layout_number_row_in_symbols_title, R.string.layout_number_row_in_symbols_subtitle),
+        numberRow(R.string.layout_number_row_on_keypad_title, R.string.layout_number_row_on_keypad_subtitle),
+        arrowRow(R.string.layout_arrow_row_title, R.string.layout_arrow_row_subtitle),
+        arrowRow(R.string.layout_arrow_row_order_title, R.string.layout_arrow_row_order_subtitle),
+        arrowRow(R.string.layout_arrow_row_on_top_title, R.string.layout_arrow_row_on_top_subtitle),
+        numberRow(R.string.layout_custom_number_row_title, R.string.layout_custom_number_row_caption),
+        arrowRow(R.string.layout_custom_arrow_row_title, R.string.layout_custom_arrow_row_caption),
+        symbols(R.string.layout_symbols_page_title, R.string.layout_symbols_page_subtitle),
+        symbols(R.string.layout_symbols_return_title, R.string.layout_symbols_return_subtitle),
+        symbols(R.string.layout_symbols_return_chars_title),
+        symbols(R.string.layout_symbols_return_space_title, R.string.layout_symbols_return_space_subtitle),
+        symbols(R.string.layout_back_leaves_symbols_title, R.string.layout_back_leaves_symbols_subtitle),
+        symbols(R.string.layout_numeral_scope_title, R.string.layout_numeral_scope_subtitle),
         row(R.string.langemoji_lang_keymaps_title, R.string.langemoji_lang_keymaps_subtitle),
         // The width, the height and the side of the one-handed keyboard name
         // the orientation they belong to ("Portrait width"), so their titles
         // are format strings. The index has no orientation to put in one, and a
         // result reading "%1$s width" is worse than no result: the row above
         // opens the same group.
-        row(R.string.layout_comma_emoji_title, R.string.layout_comma_emoji_subtitle),
-        row(R.string.keypress_enter_emoji_title, R.string.keypress_enter_emoji_subtitle),
-        row(R.string.layout_symbols_numpad_key_title, R.string.layout_symbols_numpad_key_subtitle),
-        row(R.string.layout_symbols_text_edit_key_title, R.string.layout_symbols_text_edit_key_subtitle),
-        row(R.string.layout_show_globe_title, R.string.layout_show_globe_subtitle),
-        row(R.string.layout_globe_recent_title, R.string.layout_globe_recent_subtitle),
-        row(R.string.layout_globe_guard_title, R.string.layout_globe_guard_subtitle),
-        row(R.string.layout_globe_emoji_title, R.string.layout_globe_emoji_subtitle),
-        row(R.string.layout_globe_tool_title, R.string.layout_globe_tool_subtitle),
-        row(R.string.layout_bottom_row_preset_title, R.string.layout_bottom_row_preset_subtitle),
-        row(R.string.layout_hold_actions_key_title, R.string.layout_hold_actions_key_subtitle),
-        row(R.string.layout_hold_actions_title, R.string.layout_hold_actions_subtitle),
-        row(R.string.layout_swap_comma_globe_title, R.string.layout_swap_comma_globe_subtitle),
-        row(R.string.layout_globe_in_one_place_title, R.string.layout_globe_in_one_place_subtitle),
+        bottomRow(R.string.layout_comma_emoji_title, R.string.layout_comma_emoji_subtitle),
+        bottomRow(R.string.keypress_enter_emoji_title, R.string.keypress_enter_emoji_subtitle),
+        bottomRow(R.string.layout_symbols_numpad_key_title, R.string.layout_symbols_numpad_key_subtitle),
+        bottomRow(R.string.layout_symbols_text_edit_key_title, R.string.layout_symbols_text_edit_key_subtitle),
+        bottomRow(R.string.layout_show_globe_title, R.string.layout_show_globe_subtitle),
+        bottomRow(R.string.layout_globe_recent_title, R.string.layout_globe_recent_subtitle),
+        bottomRow(R.string.layout_globe_guard_title, R.string.layout_globe_guard_subtitle),
+        bottomRow(R.string.layout_globe_emoji_title, R.string.layout_globe_emoji_subtitle),
+        bottomRow(R.string.layout_globe_tool_title, R.string.layout_globe_tool_subtitle),
+        bottomRow(R.string.layout_bottom_row_preset_title, R.string.layout_bottom_row_preset_subtitle),
+        bottomRow(R.string.layout_hold_actions_key_title, R.string.layout_hold_actions_key_subtitle),
+        bottomRow(R.string.layout_hold_actions_title, R.string.layout_hold_actions_subtitle),
+        bottomRow(R.string.layout_swap_comma_globe_title, R.string.layout_swap_comma_globe_subtitle),
+        bottomRow(R.string.layout_globe_in_one_place_title, R.string.layout_globe_in_one_place_subtitle),
         // The import and export rows moved here from Key layouts (#1318).
         row(R.string.layout_editor_import_title, R.string.layout_editor_import_subtitle),
         row(R.string.layout_editor_bundle_title, R.string.layout_editor_bundle_subtitle),
@@ -3382,6 +3394,22 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
         under(
             R.string.panel_layouts_title, R.string.panel_layouts_nav_subtitle,
             R.string.home_layout_title, "layout/panels",
+        ),
+        under(
+            R.string.layout_number_row_title, R.string.layout_number_row_page_subtitle,
+            R.string.home_layout_title, "layout/numberrow",
+        ),
+        under(
+            R.string.layout_arrow_row_title, R.string.layout_arrow_row_page_subtitle,
+            R.string.home_layout_title, "layout/arrowrow",
+        ),
+        under(
+            R.string.layout_symbols_title, R.string.layout_symbols_page_nav_subtitle,
+            R.string.home_layout_title, "layout/symbols",
+        ),
+        under(
+            R.string.layout_bottom_row_keys_title, R.string.layout_bottom_row_page_subtitle,
+            R.string.home_layout_title, "layout/bottomrow",
         ),
         under(
             R.string.langemoji_emoji_panel_title, R.string.langemoji_emoji_panel_subtitle,

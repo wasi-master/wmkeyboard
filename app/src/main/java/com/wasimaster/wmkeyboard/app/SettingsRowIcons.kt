@@ -2511,6 +2511,8 @@ internal object SettingsRowIcons {
         put(R.string.layout_editor_ime_row_title) { Icons.Outlined.Keyboard }
         put(R.string.layout_editor_popup_preview_title) { Icons.Outlined.Preview }
         put(R.string.layout_bottom_row_keys_title) { Icons.Outlined.SpaceBar }
+        // The Symbols layer page's row on Layout & size (#1432).
+        put(R.string.layout_symbols_title) { Icons.Outlined.Tag }
         put(R.string.languages_picker_hidden_title) { Icons.Outlined.VisibilityOff }
         put(R.string.languages_vietnamese_strict_tones_title) { Icons.Outlined.Spellcheck }
         put(R.string.languages_vietnamese_restore_marks_title) { Icons.Outlined.AutoFixHigh }

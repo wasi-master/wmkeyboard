@@ -195,6 +195,12 @@
     <!-- Layout screen: one-handed, split and floating keyboards. -->
     <string name="layout_one_handed_group_title">One-handed, split and floating</string>
     <string name="layout_one_handed_page_subtitle">One-handed, split, floating</string>
+    <!-- Layout screen: the rows that open the Number row, Arrow keys row,
+         Symbols layer and Bottom row keys pages (#1432). -->
+    <string name="layout_number_row_page_subtitle">The row of digits over the letters</string>
+    <string name="layout_arrow_row_page_subtitle">Arrow keys in a row of their own</string>
+    <string name="layout_symbols_page_nav_subtitle">The symbols page, going back to the letters and the digits you type</string>
+    <string name="layout_bottom_row_page_subtitle">The keys beside the spacebar, and the 🌐 key</string>
     <string name="layout_one_handed_title">One-handed mode</string>
     <string name="layout_one_handed_subtitle">Make the keyboard smaller at one edge of the screen</string>
     <string name="layout_one_handed_info">Makes the keyboard smaller and puts it against one edge of the screen, so one thumb reaches every key. Pick the edge for the hand you type with. The default is Off.</string>

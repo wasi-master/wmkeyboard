@@ -77,6 +77,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AspectRatio
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Contrast
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Numbers
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenWith
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EmojiEmotions
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension
@@ -868,6 +870,10 @@ internal object SettingsRouteIcons {
         "layout/size" to { Icons.Outlined.FormatSize },
         "layout/onehanded" to { SymbolIcons.MobileHandLeft },
         "layout/panels" to { Icons.Outlined.Dashboard },
+        "layout/numberrow" to { Icons.Outlined.Numbers },
+        "layout/arrowrow" to { Icons.Outlined.OpenWith },
+        "layout/symbols" to { Icons.Outlined.Tag },
+        "layout/bottomrow" to { Icons.Outlined.SpaceBar },
         "keymaps" to { Icons.Outlined.GridOn },
         "rows" to { Icons.Outlined.ViewAgenda },
         "rows/symbol" to { Icons.Outlined.Tag },
