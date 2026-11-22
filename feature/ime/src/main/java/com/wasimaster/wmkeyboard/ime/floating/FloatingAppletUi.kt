@@ -23,8 +23,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -54,7 +56,14 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DragHandle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Opacity
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInFull
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Remove
+import com.wasimaster.wmkeyboard.ime.AiChatAction
 import com.wasimaster.wmkeyboard.ime.CaptureSelectionAction
+import com.wasimaster.wmkeyboard.ime.ui.LocalSelectionOverlay
+import com.wasimaster.wmkeyboard.ime.ui.LocalSelectionTools
+import com.wasimaster.wmkeyboard.ime.ui.SelectionOverlay
+import com.wasimaster.wmkeyboard.ime.ui.SelectionOverlayState
+import com.wasimaster.wmkeyboard.ime.ui.SelectionTools
+import com.wasimaster.wmkeyboard.ime.ui.selectionDismissObserver
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
@@ -118,6 +127,8 @@ internal class AppletCallbacks(
     val onCaretTap: (Int) -> Unit,
     val onSelect: (Int, Int) -> Unit,
     val onSelectionAction: (CaptureSelectionAction) -> Unit,
+    /** A read-only selection's bar (#1464): Copy, and Insert, which copies while the keyboard is down. */
+    val onAiChat: (AiChatAction) -> Unit,
     /** The tools that joined the box in #1265. */
     val box: AppletToolCallbacks,
     val plugins: AppletPluginCallbacks,
@@ -341,9 +352,20 @@ internal fun FloatingAppletFrame(
                 }
                 // Rolled up, the title bar is all there is (#1241).
                 if (!rolled) Box(Modifier.weight(1f).fillMaxWidth()) {
+                    // The box's own text selection (#1464): its handles and its
+                    // Copy/Paste bar are drawn by an overlay the keyboard's body
+                    // keeps, which is not in this window, so a selection in the
+                    // box showed its highlight and nothing to act on it. The box
+                    // keeps one of its own, over the tool, as the body does.
+                    val selectionOverlay = remember { SelectionOverlayState() }
+                    val selectionDismissable by remember(selectionOverlay) {
+                        derivedStateOf { selectionOverlay.session?.dismissOnOutsideTap == true }
+                    }
+                    val selectionTools = remember(callbacks.onAiChat) { SelectionTools(callbacks.onAiChat, askAi = false) }
                     Box(
                         Modifier
                             .fillMaxSize()
+                            .selectionDismissObserver(selectionOverlay, selectionDismissable)
                             .dragsWhereUnclaimed(state.settings.summonButton.boxHoldToMove, onBodyDrag),
                     ) {
                         // The tool's own text box takes the keyboard's caret handle,
@@ -364,9 +386,13 @@ internal fun FloatingAppletFrame(
                         CompositionLocalProvider(
                             LocalCaptureCaret provides caret,
                             com.wasimaster.wmkeyboard.ime.ui.LocalInFloatingBox provides true,
+                            LocalSelectionOverlay provides selectionOverlay,
+                            LocalSelectionTools provides selectionTools,
                         ) {
                             AppletPanel(panel, state, callbacks, onClose)
                         }
+                        // Last, over the tool; it takes no touch but its handles' and bar's.
+                        SelectionOverlay(selectionOverlay, Modifier.matchParentSize())
                     }
                     // With the bottom bar gone (#1262), the grip alone, over the corner,
                     // unless that went too (#1373): two fingers still pinch the box.

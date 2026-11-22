@@ -8846,6 +8846,10 @@ open class WMKeyboardService : InputMethodService() {
             onCaretTap = ::onCaptureCaretTap,
             onSelect = ::onCaptureSelect,
             onSelectionAction = ::onCaptureSelectionAction,
+            // A selection's bar in the box (#1464): Insert copies while there is no field.
+            onAiChat = { action ->
+                if (action is AiChatAction.Insert) boxField(copy = action.text) { onAiChatAction(action) } else onAiChatAction(action)
+            },
             plugins = com.wasimaster.wmkeyboard.ime.floating.AppletPluginCallbacks(
                 onOpen = ::onPluginOpen,
                 onEvent = ::onPluginEvent,
