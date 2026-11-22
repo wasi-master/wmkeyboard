@@ -446,6 +446,16 @@ object SoundPackFile {
             bytes.forEach { (name, data) -> File(samples, name).writeBytes(data) }
             File(staged, MANIFEST).writeText(json.encodeToString(normalised))
             if (!store.adoptDir(id, staged)) return SoundPackImportResult.Failed
+            // Every sample the manifest names must be on disk, at full size,
+            // before the pack is registered. A pack that half-installed used
+            // to show as complete and quietly fall back to the system click
+            // for most keys (#1510).
+            val missing = bytes.count { (name, data) -> store.sampleFile(id, name)?.length() != data.size.toLong() }
+            if (missing > 0) {
+                DebugLog.w("sound", "sound pack import: $missing of ${bytes.size} samples missing after install")
+                store.dirFor(id)?.deleteRecursively()
+                return SoundPackImportResult.Failed
+            }
         } catch (e: java.io.IOException) {
             DebugLog.e("sound", "sound pack import failed", e)
             staged.deleteRecursively()
