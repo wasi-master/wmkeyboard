@@ -148,6 +148,8 @@ fun toolKeySlot(key: ToolKey): String = when (key) {
     is ToolKey.Builtin -> com.wasimaster.wmkeyboard.core.icons.IconSlots.forTool(key.tool)
     is ToolKey.Plugin -> PluginToolIcons.slot(key.pluginId)
     is ToolKey.Custom -> customToolSlot(key.id)
+    // A pinned folder (#1497) draws its own face where it can; elsewhere, the toolbox's.
+    is ToolKey.Folder -> com.wasimaster.wmkeyboard.core.icons.IconSlots.CHROME_TOOLBOX
 }
 
 /**

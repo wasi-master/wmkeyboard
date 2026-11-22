@@ -20,15 +20,24 @@ import kotlinx.serialization.json.jsonPrimitive
  * plain ranking of tools and every mode's own order keeps working unchanged.
  * [tools] is the order inside the folder, which the user rearranges there.
  *
- * [pinned] puts the folder on the toolbar as well, after the pinned tools; a
- * tap on it there opens the toolbox at the folder.
+ * On the toolbar a folder is a [ToolKey.Folder] entry in the bar's own list
+ * (#1497), so it sits among the pinned tools wherever it was dropped and drags
+ * along the bar like one of them; a tap on it there opens the toolbox at the
+ * folder.
  */
 data class ToolboxFolder(
     val id: String,
     val name: String,
     /** Built-in tools and plugins alike (see [ToolKey]). */
     val tools: List<ToolKey>,
-    val pinned: Boolean = false,
+    /**
+     * The `pinned` flag a build before #1497 stored, when a pinned folder had
+     * no place among the tools and was drawn after them. Nothing draws by it:
+     * [placedToolbarFolders] turns it into a [ToolKey.Folder] at the end of
+     * the bar, where the folder already was, and clears it. Kept through
+     * every rewrite until then, so an old backup restored keeps its pins.
+     */
+    val legacyPinned: Boolean = false,
     /**
      * On the toolbar a tap runs the folder's first tool and a hold opens the
      * folder (#970), so the main tool of a group stays one tap away.
@@ -120,8 +129,9 @@ fun List<ToolboxFolder>.normalizedFolders(): List<ToolboxFolder> {
 }
 
 /**
- * The stored form: a JSON array of `{"id", "name", "tools": [tokens], "pinned"}`,
- * each token a [ToolKey.token].
+ * The stored form: a JSON array of `{"id", "name", "tools": [tokens]}`, each
+ * token a [ToolKey.token], with `"pinned"` only while [ToolboxFolder.legacyPinned]
+ * waits to be placed.
  * Empty encodes as null, so the preference is removed rather than kept empty.
  */
 fun encodeToolboxFolders(folders: List<ToolboxFolder>): String? {
@@ -133,7 +143,7 @@ fun encodeToolboxFolders(folders: List<ToolboxFolder>): String? {
                     put("id", JsonPrimitive(folder.id))
                     put("name", JsonPrimitive(folder.name))
                     put("tools", JsonArray(folder.tools.map { JsonPrimitive(it.token) }))
-                    if (folder.pinned) put("pinned", JsonPrimitive(true))
+                    if (folder.legacyPinned) put("pinned", JsonPrimitive(true))
                     if (folder.firstIsMain) put("firstIsMain", JsonPrimitive(true))
                 },
             )
@@ -156,7 +166,7 @@ fun decodeToolboxFolders(raw: String?): List<ToolboxFolder> {
                 id = id,
                 name = obj["name"]?.jsonPrimitive?.contentOrNull.orEmpty().take(TOOLBOX_FOLDER_NAME_MAX),
                 tools = tools,
-                pinned = obj["pinned"]?.jsonPrimitive?.booleanOrNull ?: false,
+                legacyPinned = obj["pinned"]?.jsonPrimitive?.booleanOrNull ?: false,
                 firstIsMain = obj["firstIsMain"]?.jsonPrimitive?.booleanOrNull ?: false,
             )
         }.getOrNull()
@@ -165,3 +175,29 @@ fun decodeToolboxFolders(raw: String?): List<ToolboxFolder> {
 
 /** [this] with plugin [pluginId] taken out of every folder, which can dissolve one. */
 fun List<ToolboxFolder>.withoutPlugin(pluginId: String): List<ToolboxFolder> = withoutTool(pluginToolKey(pluginId))
+
+/** [this] less the pinned folder entries whose folder is not among [ids]; every other entry kept. */
+fun List<ToolKey>.keepingFolders(ids: Set<String>): List<ToolKey> =
+    filter { key -> key.folderId.let { it == null || it in ids } }
+
+/** [this] with no pinned folder entry at all: for the lists a folder never belongs in. */
+fun List<ToolKey>.withoutFolders(): List<ToolKey> = filter { it !is ToolKey.Folder }
+
+/**
+ * The toolbar lists brought in line with [folders] (#1497): an entry whose
+ * folder is gone (ungrouped, dissolved) leaves [bar], and each folder a build
+ * before #1497 pinned ([ToolboxFolder.legacyPinned]) joins its end, which is
+ * where that build drew it. [bar] is the global bar or a mode's own.
+ */
+fun placedToolbarFolders(bar: List<ToolKey>, folders: List<ToolboxFolder>): List<ToolKey> {
+    val kept = bar.keepingFolders(folders.mapTo(HashSet()) { it.id })
+    val pins = folders
+        .filter { it.legacyPinned && isFolderToolId(it.id) }
+        .map { folderToolKey(it.id) }
+        .filterNot { it in kept }
+    return kept + pins
+}
+
+/** [this] with every [ToolboxFolder.legacyPinned] flag cleared, once [placedToolbarFolders] has placed them. */
+fun List<ToolboxFolder>.withLegacyPinsPlaced(): List<ToolboxFolder> =
+    map { if (it.legacyPinned) it.copy(legacyPinned = false) else it }

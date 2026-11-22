@@ -48789,14 +48789,17 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
-    /** Puts the folder on the toolbar, or takes it off. The tools inside stay where they are. */
+    /**
+     * Puts the folder at the end of the toolbar, or takes it off. The tools
+     * inside stay where they are. On the bar the folder is an entry of the
+     * bar's own list (#1497), so it then drags along it like a tool, and the
+     * write goes where a drag's would: to the mode that owns the tool order.
+     */
     fun onToolboxFolderPinToggle(id: String) {
-        vibrate()
-        serviceScope.launch {
-            settingsRepository.updateToolboxFolders { folders ->
-                folders.map { if (it.id == id) it.copy(pinned = !it.pinned) else it }
-            }
-        }
+        if (!com.wasimaster.wmkeyboard.core.settings.isFolderToolId(id)) return
+        val key = com.wasimaster.wmkeyboard.core.settings.folderToolKey(id)
+        val bar = _uiState.value.settings.toolbarTools
+        onToolbarToolsChange(if (key in bar) bar - key else bar + key)
     }
 
     /** A tap on the folder's toolbar button runs its first tool, and a hold opens it (#970). */
