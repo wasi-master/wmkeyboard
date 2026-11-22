@@ -209,6 +209,15 @@ internal fun NotesAssistSettingsGroup(repository: SettingsRepository, settings: 
                     info = stringResource(R.string.tooldetail_notes_assist_decks_info),
                 ) { on -> change { it.copy(decks = on) } }
             }
+            item {
+                ToggleSetting(
+                    R.string.tooldetail_notes_assist_organise_title,
+                    stringResource(R.string.tooldetail_notes_assist_organise_subtitle),
+                    assist.organise,
+                    default = d.organise,
+                    info = stringResource(R.string.tooldetail_notes_assist_organise_info),
+                ) { on -> change { it.copy(organise = on) } }
+            }
         }
     }
     // Off forgets what the model wrote: the answers are copies of the notes.

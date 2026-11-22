@@ -155,6 +155,25 @@
     <string name="appearance_toolbar_lock_title">Hide the toolbar and the clipboard on the lock screen</string>
     <string name="appearance_toolbar_lock_subtitle">Hide the top strip and block the clipboard while your device is locked</string>
     <string name="appearance_toolbar_lock_info">The keyboard opens over your lock screen when you answer a notification or use a search box there. This setting then hides the full top strip and blocks the clipboard panel. The strip holds the word suggestions and every pinned tool, so the clipboard tool and its paste chip also go. Copied text such as one-time codes and passwords stays off a screen that anyone can wake. This setting is off by default. When your device is unlocked, the keyboard does not change.</string>
+    <!-- #1453: the status icons at the toolbar's far end. -->
+    <string name="appearance_status_alarm_title">Alarm about to ring</string>
+    <string name="appearance_status_alarm_subtitle">An alarm icon on the toolbar before an alarm rings</string>
+    <string name="appearance_status_alarm_info">Before an alarm rings, the suggestion strip shows a chip with its time while nothing is being typed. Stop on the chip skips that ring, and a tap on its time opens the alarm. Close the chip and a small alarm icon stays at the end of the toolbar until the alarm rings; tap the icon to bring the chip back. It works for the Clock tool\'s alarms and for the next alarm of your phone\'s own clock app. For another app\'s alarm, Stop asks that app to dismiss it, and the app may ask you to confirm.</string>
+    <string name="appearance_status_alarm_minutes_title">How long before the alarm</string>
+    <string name="appearance_status_alarm_minutes_subtitle">When the alarm chip and icon appear</string>
+    <string name="appearance_status_alarm_minutes_info">How many minutes before an alarm the chip, or the icon, shows. The default is 30 minutes.</string>
+    <string name="appearance_status_special_days_title">Birthdays and countdowns today</string>
+    <string name="appearance_status_special_days_subtitle">A cake for a birthday in your notes, and the Clock\'s countdowns that end today</string>
+    <string name="appearance_status_special_days_info">On the day of a birthday written in one of your notes, such as \"Anna\'s birthday 14 March\", or of a countdown in the Clock tool, the suggestion strip shows a chip. Close it and a cake icon stays on the toolbar for the rest of the day. A tap on the chip opens the note or the countdown. The keyboard reads the notes on the phone only, and never a locked note.</string>
+    <string name="appearance_status_clock_title">Timers and the stopwatch</string>
+    <string name="appearance_status_clock_subtitle">An icon while a timer, a Pomodoro or the stopwatch runs</string>
+    <string name="appearance_status_clock_info">While a timer, a Pomodoro or the stopwatch of the Clock tool runs, a small icon shows at the end of the toolbar. Tap it to open the Clock tool on that timer or on the stopwatch.</string>
+    <string name="appearance_status_todo_title">Tasks that are due</string>
+    <string name="appearance_status_todo_subtitle">An icon for a due task once its chip is closed</string>
+    <string name="appearance_status_todo_info">When you close the chip of a task that has fallen due, or the task chip is off in the To-do tool, a list icon shows at the end of the toolbar while the task is still due. Tap it to open your list, with each task\'s time.</string>
+    <string name="appearance_status_chips_title">Show a chip first</string>
+    <string name="appearance_status_chips_subtitle">The alarm and the special day show on the strip, then as an icon once closed</string>
+    <string name="appearance_status_chips_info">On, an alarm about to ring and a special day first show as a chip on the suggestion strip while nothing is being typed, and as an icon once you close the chip. Off, they go straight to the icon, and the strip stays as it was.</string>
     <string name="appearance_toolbar_keep_tools_title">Keep a tool open when you switch apps</string>
     <string name="appearance_toolbar_keep_tools_subtitle">Come back to an app and find the tool you left open there</string>
     <string name="appearance_toolbar_keep_tools_info">Open a tool such as Notes or the clipboard, go to another app, and come back before the time below runs out (3 minutes unless you change it): the tool is open again with what you were doing in it, such as a note you were writing or a search you typed. Moving to another text box in the same app still closes it. A plugin starts again from what it saved. The camera, Music ID, WM Pass, Find and replace and Learn from text never reopen by themselves, and nothing reopens in a password box, an incognito field or on the lock screen.</string>

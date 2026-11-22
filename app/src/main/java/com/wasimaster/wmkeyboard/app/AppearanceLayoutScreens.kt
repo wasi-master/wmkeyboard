@@ -67,6 +67,7 @@ import com.wasimaster.wmkeyboard.core.settings.ToolHeightRange
 import com.wasimaster.wmkeyboard.core.settings.ToolWidthRange
 import com.wasimaster.wmkeyboard.core.settings.ToolbarHeightRange
 import com.wasimaster.wmkeyboard.core.settings.KeepToolsMinutesRange
+import com.wasimaster.wmkeyboard.core.settings.StatusIconSettings
 import com.wasimaster.wmkeyboard.core.settings.ToolbarPaddingRange
 import com.wasimaster.wmkeyboard.core.settings.stripToolboxSwipes
 import com.wasimaster.wmkeyboard.core.addons.AddonType
@@ -443,6 +444,7 @@ internal fun AppearanceToolbarSettings(
     val stripSwipes = settings.watch { it.stripToolboxSwipes() }
     val labelsOn = settings.watch { it.toolbarLabels }
     val keepTools = settings.watch { it.toolbarBehavior.keepToolsAcrossApps }
+    val alarmIconOn = settings.watch { it.toolbarBehavior.statusIcons.alarm }
     val toolCircleOn = settings.watch { it.toolCircleRadiusDp > 0 }
     val stripShown = settings.watch { it.toolbarBehavior.showStrip }
     val overTheme = settings.watch { it.toolbarBehavior.sizeOverTheme }
@@ -753,6 +755,65 @@ internal fun AppearanceToolbarSettings(
                 info = stringResource(R.string.appearance_toolbar_lock_info),
                 default = SettingsDefaults.toolbarBehavior.hideWhenLocked,
             ) { scope.launch { repository.setToolbarHideWhenLocked(it) } }
+        }
+        // The status icons at the toolbar's far end (#1453).
+        item {
+            ToggleSetting(
+                R.string.appearance_status_alarm_title,
+                stringResource(R.string.appearance_status_alarm_subtitle),
+                settings.watch { it.toolbarBehavior.statusIcons.alarm },
+                info = stringResource(R.string.appearance_status_alarm_info),
+                default = SettingsDefaults.toolbarBehavior.statusIcons.alarm,
+            ) { on -> scope.launch { repository.updateStatusIcons { it.copy(alarm = on) } } }
+        }
+        item(visible = alarmIconOn, level = SettingLevel.ADVANCED) {
+            val minutesFormat = stringResource(R.string.values_minutes)
+            val range = StatusIconSettings.AlarmMinutesRange
+            SliderSetting(
+                R.string.appearance_status_alarm_minutes_title,
+                subtitle = stringResource(R.string.appearance_status_alarm_minutes_subtitle),
+                value = settings.watch { it.toolbarBehavior.statusIcons.alarmMinutes }.toFloat(),
+                range = range.first.toFloat()..range.last.toFloat(),
+                display = { minutesFormat.format(it.roundToInt()) },
+                default = SettingsDefaults.toolbarBehavior.statusIcons.alarmMinutes.toFloat(),
+                info = stringResource(R.string.appearance_status_alarm_minutes_info),
+            ) { v -> scope.launch { repository.updateStatusIcons { it.copy(alarmMinutes = v.roundToInt()) } } }
+        }
+        item {
+            ToggleSetting(
+                R.string.appearance_status_special_days_title,
+                stringResource(R.string.appearance_status_special_days_subtitle),
+                settings.watch { it.toolbarBehavior.statusIcons.specialDays },
+                info = stringResource(R.string.appearance_status_special_days_info),
+                default = SettingsDefaults.toolbarBehavior.statusIcons.specialDays,
+            ) { on -> scope.launch { repository.updateStatusIcons { it.copy(specialDays = on) } } }
+        }
+        item {
+            ToggleSetting(
+                R.string.appearance_status_clock_title,
+                stringResource(R.string.appearance_status_clock_subtitle),
+                settings.watch { it.toolbarBehavior.statusIcons.clock },
+                info = stringResource(R.string.appearance_status_clock_info),
+                default = SettingsDefaults.toolbarBehavior.statusIcons.clock,
+            ) { on -> scope.launch { repository.updateStatusIcons { it.copy(clock = on) } } }
+        }
+        item {
+            ToggleSetting(
+                R.string.appearance_status_todo_title,
+                stringResource(R.string.appearance_status_todo_subtitle),
+                settings.watch { it.toolbarBehavior.statusIcons.todo },
+                info = stringResource(R.string.appearance_status_todo_info),
+                default = SettingsDefaults.toolbarBehavior.statusIcons.todo,
+            ) { on -> scope.launch { repository.updateStatusIcons { it.copy(todo = on) } } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.appearance_status_chips_title,
+                stringResource(R.string.appearance_status_chips_subtitle),
+                settings.watch { it.toolbarBehavior.statusIcons.chips },
+                info = stringResource(R.string.appearance_status_chips_info),
+                default = SettingsDefaults.toolbarBehavior.statusIcons.chips,
+            ) { on -> scope.launch { repository.updateStatusIcons { it.copy(chips = on) } } }
         }
         item {
             ToggleSetting(

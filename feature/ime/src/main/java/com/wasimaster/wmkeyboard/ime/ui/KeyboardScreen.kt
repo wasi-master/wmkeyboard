@@ -4197,6 +4197,8 @@ private fun TopBar(
         state.otpSuggestion != null ||
         // A task that has fallen due waits for just that moment too.
         state.todoDueChip != null ||
+        // So do an alarm about to ring and a special day (#1453).
+        state.status.chip != null ||
         // A field of WM Pass's own offering its buttons (#1077): they are
         // wanted while the field is still empty, with nothing typed yet.
         state.wmPassChips != null ||
@@ -5380,6 +5382,14 @@ private fun RowScope.StripOfferChips(
     val todoChip = state.todoDueChip
     if (todoChip != null) {
         TodoDueSuggestionChip(todoChip, Modifier.weight(1f).padding(horizontal = 4.dp))
+        return true
+    }
+    // An alarm about to ring, or a birthday today (#1453). Only while no
+    // words are on offer: it can stay up for half an hour, and the words of
+    // what is being typed come first.
+    val statusChip = state.status.chip
+    if (statusChip != null && !suggestionsShowing) {
+        StatusSuggestionChip(statusChip, Modifier.weight(1f).padding(horizontal = 4.dp))
         return true
     }
     // A snippet whose trigger matched but which was told to ask first.
@@ -13815,6 +13825,9 @@ private fun RowScope.ToolbarRow(
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
+    // The same corner for what is going on (#1453): an alarm about to ring,
+    // a birthday today, a timer or the stopwatch running, a task due.
+    if (state.status.icons.isNotEmpty()) StatusToolbarIcons(state.status.icons)
 }
 
 /**
@@ -37128,7 +37141,7 @@ private const val SOURCE_CONTEXT_CHARS = 60
  * Dashed rounded outline with no fill. Deliberately unlike every filled card in
  * the panel — it is the signal that what it wraps was cut out of something else.
  */
-private fun Modifier.dashedOutline(color: Color, radius: Dp, width: Dp = 1.dp) = drawBehind {
+internal fun Modifier.dashedOutline(color: Color, radius: Dp, width: Dp = 1.dp) = drawBehind {
     val line = width.toPx()
     drawRoundRect(
         color = color,

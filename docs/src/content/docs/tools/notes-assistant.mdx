@@ -39,7 +39,23 @@ A note with no title of its own, and at least six words, gets a suggested headin
 
 A note of 250 words or more gets a short summary at its top: two to four sentences, or a few bullet points when the note is a list of separate things. The model is told to keep names, dates, amounts and deadlines exactly as the note writes them, and to add nothing of its own. Change what counts as long under <SettingsPath path="Tools / Notes / Long means" />: 150, 250, 400 or 800 words.
 
+A shorter note, of 40 words or more, gets a **Summarize** chip in the row of actions under the assistant's part instead, since 0.6.8, so a summary is there when you want one and is not written for every short note by itself.
+
 The heading and the summary are written once, the first time you open the note, and kept. They are written again only when the note changes, or when you tap **Again**. A small spinner shows while the model works; the note is readable the whole time. On a phone, a summary of a long note takes from a few seconds to a minute, depending on the model.
+
+## Organise
+
+<SettingsPath path="Tools / Notes / Organise" />
+
+**Organise** asks the model to rewrite a note so it is quick to read: the main point or the next thing to do first, related lines gathered under `##` headings, separate points as a bullet list, steps as a numbered list and open tasks as task boxes. The model is told to keep every fact, name, date, amount, number, link and task exactly as written, to keep your own words where it can, and to add nothing.
+
+The rewrite does not touch the note at first. It shows at the top, under **Organised**, as plain text with its Markdown in view, so you can read it against the note below. Then:
+
+- **Replace the note** puts it in place of the note's text. **Put the old text back** then shows in the row of actions, and undoes it.
+- **Keep as a new note** saves it as a note of its own, with the same title and tags, and opens it. The old note stays as it was.
+- The ✕ throws it away.
+
+A rewrite that keeps less than 70% of the note's letters and digits is never shown, since the model has left something out; the note says so, and you can try again. A note of fewer than 15 words has nothing to arrange, and a note longer than the 6,000 characters the model reads is not offered, because a rewrite of a cut-off note would lose its end. Added in 0.6.8 (#1453).
 
 ## Key details
 

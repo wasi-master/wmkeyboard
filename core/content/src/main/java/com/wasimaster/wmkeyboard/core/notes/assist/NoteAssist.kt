@@ -33,6 +33,21 @@ object NoteAssistPrompts {
     /** The longest summary kept, in characters. */
     const val MAX_SUMMARY_CHARS = 900
 
+    /**
+     * A note needs this many words before Summarise is offered by hand
+     * (#1453); the automatic summary waits for the setting's length.
+     */
+    const val MIN_ON_DEMAND_SUMMARY_WORDS = 40
+
+    /** A note needs this many words before Organise is offered: a line or two has nothing to arrange. */
+    const val MIN_ORGANISE_WORDS = 15
+
+    /**
+     * The share of a note's letters and digits a rewrite must keep to be
+     * shown at all: less, and the model dropped part of the note.
+     */
+    const val MIN_ORGANISE_KEPT = 0.7
+
     /** The summary-length choices the settings offer, in words of the note. */
     val SUMMARY_WORD_CHOICES: List<Int> = listOf(150, 250, 400, 800)
 
@@ -50,6 +65,14 @@ object NoteAssistPrompts {
             "plain sentences, or up to five short '- ' bullet lines when the note is a list of separate points. " +
             "Keep every name, date, amount and deadline exactly as written. Add nothing the note does not say. " +
             "No heading, no preamble such as 'This note'. $GUARD"
+
+    fun organiseSystem(): String =
+        "You tidy a personal note for its owner so it is quick to read, without changing what it says. " +
+            "Answer with the whole note rewritten in Markdown: the most important point or the next thing to do first, " +
+            "related lines gathered under short '## ' headings, separate points as '- ' bullet lines, steps as a numbered list, " +
+            "open tasks as '- [ ] ' lines. Keep every fact, name, date, time, amount, number, link and task exactly as written, " +
+            "and keep the owner's own words wherever you can. Add nothing the note does not say and leave nothing out. " +
+            "No preamble, no closing remark, no code fence. $GUARD"
 
     fun deckSystem(): String =
         "You turn a study note into flashcards. Answer with one card per line in the form " +
@@ -104,6 +127,28 @@ object NoteAssistPrompts {
         return (if (end > MAX_SUMMARY_CHARS / 2) cut.substring(0, end + 1) else cut).trim() + "…"
     }
 
+    /**
+     * The rewritten note in [answer], or null when it is not worth showing
+     * (#1453): thinking and a wrapping code fence stripped, runs of blank
+     * lines closed up, and nothing that kept less than [MIN_ORGANISE_KEPT] of
+     * [body]'s letters and digits, or that is [body] again.
+     */
+    fun cleanOrganised(answer: String, body: String): String? {
+        var text = AiThinking.stripped(answer).trim()
+        FENCE.matchEntire(text)?.let { text = it.groupValues[1].trim() }
+        text = text.lines().joinToString("\n") { it.trimEnd() }.replace(BLANK_RUN, "\n\n").trim()
+        if (text.isEmpty() || text == body.trim()) return null
+        val before = body.count(Char::isLetterOrDigit)
+        val after = text.count(Char::isLetterOrDigit)
+        if (before > 0 && after < before * MIN_ORGANISE_KEPT) return null
+        return text
+    }
+
+    /** A whole answer inside one ``` fence, with or without a language. */
+    private val FENCE = Regex("""^```[\w-]*\n([\s\S]*?)\n?```$""")
+
+    private val BLANK_RUN = Regex("""\n{3,}""")
+
     /** "Title:", "Heading -", "Summary:" and their kin at the very start of an answer. */
     private val LABEL = Regex("""^\s*(?:\*\*)?(?:title|heading|summary|tl;?dr)(?:\*\*)?\s*[:\-–—]\s*""", RegexOption.IGNORE_CASE)
 }
@@ -142,6 +187,15 @@ object NoteAssistRules {
     /** A heading is worth suggesting: no title of its own, and enough words to say what it is. */
     fun wantsHeading(note: Note): Boolean =
         !note.locked && !note.inTrash && note.title.isBlank() && hasWords(note.body, NoteAssistPrompts.MIN_HEADING_WORDS)
+
+    /**
+     * Organise can be offered for [note] (#1453): readable, long enough to
+     * have something to arrange, and short enough for the model to read whole,
+     * since a rewrite of a cut-off note would lose its end.
+     */
+    fun canOrganise(note: Note): Boolean =
+        readable(note) && note.body.length <= NoteAssistPrompts.MAX_INPUT_CHARS &&
+            hasWords(note.body, NoteAssistPrompts.MIN_ORGANISE_WORDS)
 
     /** The note is long enough, by [threshold] words, to want a summary at its top. */
     fun wantsSummary(note: Note, threshold: Int): Boolean =

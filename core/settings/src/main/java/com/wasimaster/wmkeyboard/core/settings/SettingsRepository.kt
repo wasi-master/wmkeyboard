@@ -2507,6 +2507,8 @@ data class ToolbarBehavior(
      * tools are.
      */
     val secondRowTools: List<ToolKey> = DefaultSecondRowTools.toolKeys(),
+    /** The alarm, special-day, clock and to-do icons at the toolbar's far end (#1453). */
+    val statusIcons: StatusIconSettings = StatusIconSettings(),
 )
 
 /**
@@ -3603,6 +3605,15 @@ data class SuggestionSourceSettings(
     val typedNumbers: Boolean = false,
     /** Suggest the names of installed apps ("sign" → Signal). No permission needed. */
     val appNames: Boolean = false,
+    /**
+     * Suggest the words of recent clipboard items (#1453): a name, a code or
+     * a phrase copied a moment ago completes from its first letters, and the
+     * word after it follows on the strip. Pinned and recent text clips only,
+     * never one marked sensitive, and never in incognito.
+     */
+    val clipboardWords: Boolean = false,
+    /** The same for the words in notes (#1453), locked notes left out. */
+    val notesWords: Boolean = false,
     /**
      * Words the user never wants suggested or autocorrected to. Matched
      * case-insensitively; the word can still be typed and committed, it is
@@ -13254,6 +13265,8 @@ class SettingsRepository(private val context: Context) {
         private val TYPED_EMAIL_SUGGESTIONS = booleanPreferencesKey("typed_email_suggestions")
         private val TYPED_NUMBER_SUGGESTIONS = booleanPreferencesKey("typed_number_suggestions")
         private val APP_NAME_SUGGESTIONS = booleanPreferencesKey("app_name_suggestions")
+        private val CLIPBOARD_WORD_SUGGESTIONS = booleanPreferencesKey("clipboard_word_suggestions")
+        private val NOTES_WORD_SUGGESTIONS = booleanPreferencesKey("notes_word_suggestions")
         private val SUGGESTION_BLACKLIST = stringSetPreferencesKey("suggestion_blacklist")
         private val SUGGESTION_BLACKLIST_SCOPE = stringPreferencesKey("suggestion_blacklist_scope")
 
@@ -14321,6 +14334,7 @@ class SettingsRepository(private val context: Context) {
         private val NOTES_ASSIST_REMINDERS = booleanPreferencesKey("notes_assist_reminders")
         private val NOTES_ASSIST_RELATED = booleanPreferencesKey("notes_assist_related")
         private val NOTES_ASSIST_DECKS = booleanPreferencesKey("notes_assist_decks")
+        private val NOTES_ASSIST_ORGANISE = booleanPreferencesKey("notes_assist_organise")
         private val NOTES_VERSION = intPreferencesKey("notes_version")
         private val DOUBLE_SPACE_WINDOW_MS = intPreferencesKey("double_space_window_ms")
         private val HIDE_COMPOSING_UNDERLINE = booleanPreferencesKey("hide_composing_underline")
@@ -15705,6 +15719,8 @@ class SettingsRepository(private val context: Context) {
             typedEmails = p[TYPED_EMAIL_SUGGESTIONS] ?: defaults.suggestionSources.typedEmails,
             typedNumbers = p[TYPED_NUMBER_SUGGESTIONS] ?: defaults.suggestionSources.typedNumbers,
             appNames = p[APP_NAME_SUGGESTIONS] ?: defaults.suggestionSources.appNames,
+            clipboardWords = p[CLIPBOARD_WORD_SUGGESTIONS] ?: defaults.suggestionSources.clipboardWords,
+            notesWords = p[NOTES_WORD_SUGGESTIONS] ?: defaults.suggestionSources.notesWords,
             blacklist = p[SUGGESTION_BLACKLIST] ?: defaults.suggestionSources.blacklist,
             blacklistByLanguage = blacklistsByLanguage(p),
             blacklistScope = p[SUGGESTION_BLACKLIST_SCOPE]
@@ -16846,6 +16862,7 @@ class SettingsRepository(private val context: Context) {
             // Enum names before plugins could go on it, which decode the same.
             secondRowTools = p[TOOLBAR_SECOND_ROW_TOOLS]?.let(::decodeToolKeys)
                 ?: defaults.toolbarBehavior.secondRowTools,
+            statusIcons = StatusIconPrefs.read(p, defaults.toolbarBehavior.statusIcons),
         )
 
     private fun readEmoji(p: Preferences, defaults: KeyboardSettings) =
@@ -17340,6 +17357,7 @@ class SettingsRepository(private val context: Context) {
                 reminders = p[NOTES_ASSIST_REMINDERS] ?: defaults.notes.assist.reminders,
                 related = p[NOTES_ASSIST_RELATED] ?: defaults.notes.assist.related,
                 decks = p[NOTES_ASSIST_DECKS] ?: defaults.notes.assist.decks,
+                organise = p[NOTES_ASSIST_ORGANISE] ?: defaults.notes.assist.organise,
             ),
             version = p[NOTES_VERSION] ?: defaults.notes.version,
         )
@@ -19569,6 +19587,7 @@ class SettingsRepository(private val context: Context) {
             reminders = p[NOTES_ASSIST_REMINDERS] ?: defaults.reminders,
             related = p[NOTES_ASSIST_RELATED] ?: defaults.related,
             decks = p[NOTES_ASSIST_DECKS] ?: defaults.decks,
+            organise = p[NOTES_ASSIST_ORGANISE] ?: defaults.organise,
         )
         val new = change(old)
         if (new.enabled != old.enabled) p[NOTES_ASSIST] = new.enabled
@@ -19581,6 +19600,7 @@ class SettingsRepository(private val context: Context) {
         if (new.reminders != old.reminders) p[NOTES_ASSIST_REMINDERS] = new.reminders
         if (new.related != old.related) p[NOTES_ASSIST_RELATED] = new.related
         if (new.decks != old.decks) p[NOTES_ASSIST_DECKS] = new.decks
+        if (new.organise != old.organise) p[NOTES_ASSIST_ORGANISE] = new.organise
     }
 
     /**
@@ -19629,6 +19649,12 @@ class SettingsRepository(private val context: Context) {
      */
     suspend fun bumpNotesVersion() =
         editPrefs { it[NOTES_VERSION] = (it[NOTES_VERSION] ?: 0) + 1 }
+
+    /** One change to the toolbar's status icons (#1453); see [updateGallery]. */
+    suspend fun updateStatusIcons(change: (StatusIconSettings) -> StatusIconSettings) = editPrefs { p ->
+        val old = StatusIconPrefs.read(p, storedDefaults.toolbarBehavior.statusIcons)
+        StatusIconPrefs.write(p, old, change(old))
+    }
 
     /** One change to the To-do tool's settings (#920); see [updateGallery]. */
     suspend fun updateTodo(change: (TodoSettings) -> TodoSettings) = editPrefs { p ->
@@ -24875,6 +24901,14 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAppNameSuggestions(value: Boolean) =
         editPrefs { it[APP_NAME_SUGGESTIONS] = value }
+
+    /** See [SuggestionSourceSettings.clipboardWords] (#1453). */
+    suspend fun setClipboardWordSuggestions(value: Boolean) =
+        editPrefs { it[CLIPBOARD_WORD_SUGGESTIONS] = value }
+
+    /** See [SuggestionSourceSettings.notesWords] (#1453). */
+    suspend fun setNotesWordSuggestions(value: Boolean) =
+        editPrefs { it[NOTES_WORD_SUGGESTIONS] = value }
 
     /**
      * Adds a word to the never-suggest blacklist (lowercased, trimmed): the

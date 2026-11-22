@@ -306,6 +306,19 @@ The tool comes back once, in the app you left it in, and only after you really w
 
 Some tools never reopen by themselves: Camera, the scanners, Music ID and voice typing (they would switch on a camera or microphone), WM Pass, and the tools that work on the text of the field they were opened over (Find and replace, Learn from text, the typing test, and the share sheet). Nothing reopens in a password box, an incognito field or on the lock screen. Turn **Keep a tool open when you switch apps** off and nothing is remembered: every new text box opens on the keys.
 
+## Status icons
+
+<SettingsPath path="Appearance / Toolbar" />
+
+Since 0.6.8, small icons at the far end of the toolbar, beside the power-saving leaf, say that something is going on. Each is a tap from what it is about:
+
+- **An alarm about to ring.** Thirty minutes before an alarm, while nothing is being typed, the suggestion strip shows a chip with its time. **Stop** on the chip skips that ring (a one-off alarm turns off), and a tap on the time opens the alarm. Close the chip with its ✕ and an alarm icon stays on the toolbar until the alarm rings; tap it to bring the chip back. This covers the [Clock tool's](/tools/clock/) alarms and the next alarm of your phone's own clock app. For the clock app's alarm, Stop asks that app to dismiss it, and the app may ask you to confirm. Set how long before under **How long before the alarm**, from 5 minutes to 3 hours.
+- **A birthday or a countdown today.** On the day of a birthday written in one of your notes (a line like "Anna's birthday 14 March", found the way the [notes assistant](/tools/notes-assistant/#key-details) finds one), or of a Clock countdown, the strip shows "Today: …". Close it and a cake icon stays for the rest of the day; tap the chip to open the note or the countdown. Locked notes are never read.
+- **A timer, a Pomodoro or the stopwatch running.** An hourglass, a Pomodoro head or a stopwatch shows while one runs in the Clock tool. Tap it to open the Clock on that timer or on the stopwatch.
+- **A task that is due.** Close the [to-do](/tools/todo/) chip of a due task, or keep that chip off, and a list icon stays while the task is still due. Tap it to open your list with each task's time.
+
+The chips only take the strip while no words are on offer; start typing and your suggestions come back. Each icon has its own switch, all on by default, and **Show a chip first** (on) can be turned off to go straight to the icons and leave the strip alone.
+
 ## Which tools work before you unlock your phone
 
 **Direct boot** is the window right after a restart, before you've entered your PIN or pattern for the first time. The keyboard can't reach its stored data yet. Some tools work anyway.
@@ -334,6 +347,7 @@ The leader is one switch in a broader hardware-keyboard group. Arrow-key navigat
 - **Reverse order for RTL languages**: off by default. Mirrors the pinned tool order when the active layout's script runs right-to-left.
 - **Tool layout**: Spread out by default. Fixed size packs the pinned tools to the left at one size, Spread out splits the width evenly, and Scroll keeps each tool at a comfortable size and lets the bar scroll sideways.
 - **Hide toolbar & clipboard on lock screen**: off by default. See [above](#which-tools-work-before-you-unlock-your-phone).
+- **Alarm about to ring**, **Birthdays and countdowns today**, **Timers and the stopwatch**, **Tasks that are due**: on by default. **How long before the alarm**: 30 minutes, from 5 to 180. **Show a chip first**: on. See [Status icons](#status-icons).
 - **Toolbar top padding** and **Toolbar bottom padding**: 4dp and 0dp by default, each adjustable from −12 to 24dp. They add space above and below the tools, and the keyboard grows by the same amount. Below 0 they take height off the strip instead, for a toolbar that is too tall even with no padding, though the strip never gets shorter than 24dp.
 - **Tool labels**: off by default. Shows each tool's name under its icon. The label is 10sp by default.
 - **Reset pinned tools**: restores the toolbar to Emoji, Clipboard, and Settings, after a confirmation. This always resets the *global* row, even while a mode with its own pinned toolbar is active. To change what a mode itself pins, edit that mode instead. On a tablet, reset writes the shipped three and the tablet's own default immediately re-expands it, so you get five or seven back rather than three. It touches the pinned row alone; the grid has its own row below.

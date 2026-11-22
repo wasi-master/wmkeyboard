@@ -50,6 +50,15 @@ data class NoteAssistUi(
     val deckCards: Int = 0,
     /** A model run failed: its message, shown once under the summary. */
     val error: String? = null,
+    /** Summarise can be asked for by hand: shorter than the automatic length, long enough to say something (#1453). */
+    val canSummarise: Boolean = false,
+    /** Organise can be asked for: see `NoteAssistRules.canOrganise` (#1453). */
+    val canOrganise: Boolean = false,
+    val organiseBusy: Boolean = false,
+    /** The model's rewrite of the note under headings and lists, waiting to be kept or waved away. */
+    val organised: String? = null,
+    /** The note was replaced by its rewrite here, and the old text can be put back. */
+    val restorable: Boolean = false,
 )
 
 /**
@@ -101,6 +110,11 @@ internal class NoteAssistController(
     /** The note whose model run is under way, so a second ask for it does not queue another. */
     private var modelNoteId: Long? = null
 
+    private var organiseJob: Job? = null
+
+    /** A note's text from before Organise replaced it, by note: what Put back restores (#1453). */
+    private var replaced: Pair<Long, String>? = null
+
     /**
      * Brings the assist state up to date with [openId], the note open to
      * read (null when none, or while the editor is open). Cheap when nothing
@@ -133,6 +147,8 @@ internal class NoteAssistController(
     fun disable() {
         rulesJob?.cancel()
         modelJob?.cancel()
+        organiseJob?.cancel()
+        replaced = null
         modelNoteId = null
         current = null
         syncedKey = null
@@ -155,6 +171,11 @@ internal class NoteAssistController(
             reminders = current?.takeIf { it.noteId == note.id }?.reminders.orEmpty(),
             related = current?.takeIf { it.noteId == note.id }?.related.orEmpty(),
             deckCards = current?.takeIf { it.noteId == note.id }?.deckCards ?: 0,
+            canSummarise = settings.summaries && NoteAssistRules.readable(note) &&
+                NoteAssistRules.hasWords(note.body, NoteAssistPrompts.MIN_ON_DEMAND_SUMMARY_WORDS),
+            canOrganise = settings.organise && NoteAssistRules.canOrganise(note),
+            organiseBusy = organiseJob?.isActive == true && current?.noteId == note.id && current?.organiseBusy == true,
+            restorable = replaced?.first == note.id,
         )
         emit(base)
         rulesJob?.cancel()
@@ -229,7 +250,9 @@ internal class NoteAssistController(
         if (modelNoteId == note.id && modelJob?.isActive == true) return
         val wantHeading = settings.headings && NoteAssistRules.wantsHeading(note) &&
             cache.heading(note) == null && !cache.headingDismissed(note)
-        val wantSummary = settings.summaries && NoteAssistRules.wantsSummary(note, settings.summaryWords) &&
+        // By hand, a shorter note may be summarised too (#1453); by itself, only a long one.
+        val floor = if (force) minOf(settings.summaryWords, NoteAssistPrompts.MIN_ON_DEMAND_SUMMARY_WORDS) else settings.summaryWords
+        val wantSummary = settings.summaries && NoteAssistRules.wantsSummary(note, floor) &&
             (force || cache.summary(note) == null)
         if (!wantHeading && !wantSummary) return
         val model = host.modelFile() ?: return
@@ -264,6 +287,58 @@ internal class NoteAssistController(
             }
         }
     }
+
+    /**
+     * Organise (#1453): the model rewrites [note] under headings and lists,
+     * and the rewrite waits on [NoteAssistUi.organised] for the user to keep
+     * it or wave it away. Nothing is written to the note here.
+     */
+    fun organise(note: Note) {
+        val settings = host.settings().notes.assist
+        if (!settings.enabled || !settings.organise || !NoteAssistRules.canOrganise(note)) return
+        if (organiseJob?.isActive == true) return
+        val model = host.modelFile() ?: return
+        val ai = host.settings().ai
+        update(note.id) { it.copy(organiseBusy = true, organised = null, error = null) }
+        organiseJob = scope.launch {
+            try {
+                val answer = withContext(Dispatchers.IO) {
+                    LocalLlmEngine.generate(
+                        context, model, ai.localBackend, ai.localContextTokens,
+                        NoteAssistPrompts.organiseSystem(), NoteAssistPrompts.noteInput(note.title, note.body),
+                    )
+                }
+                val organised = NoteAssistPrompts.cleanOrganised(answer, note.body)
+                update(note.id) {
+                    it.copy(
+                        organised = organised,
+                        organiseBusy = false,
+                        error = if (organised == null) context.getString(R.string.ime_notes_assist_organise_failed) else null,
+                    )
+                }
+            } catch (e: java.io.IOException) {
+                update(note.id) { it.copy(organiseBusy = false, error = e.message) }
+            } catch (e: OutOfMemoryError) {
+                update(note.id) { it.copy(organiseBusy = false, error = e.message) }
+            } finally {
+                update(note.id) { it.copy(organiseBusy = false) }
+            }
+        }
+    }
+
+    /** The rewrite waved away, or kept: either way it leaves the panel. */
+    fun dropOrganised(noteId: Long) {
+        update(noteId) { it.copy(organised = null) }
+    }
+
+    /** [body] was the note's text before its rewrite replaced it; Put back restores it. */
+    fun rememberReplaced(noteId: Long, body: String) {
+        replaced = noteId to body
+    }
+
+    /** The text from before the rewrite, once: Put back has used it. */
+    fun takeReplaced(noteId: Long): String? =
+        replaced?.takeIf { it.first == noteId }?.second.also { if (it != null) replaced = null }
 
     /** The suggested heading waved away; not offered again for this text. */
     fun dismissHeading(note: Note) {

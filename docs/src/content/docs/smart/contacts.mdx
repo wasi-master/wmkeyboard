@@ -52,6 +52,14 @@ It learns only from fields that call themselves email fields, never from ordinar
 
 Turn on **Suggest app names** and installed-app labels complete the same way contact names do, but ranked lower. Ordinary words that happen to also be app names (Files, Photos, Clock) shouldn't outrank the dictionary, and you type a contact's name far more often than you reference an app by name. App names complete in the suggestion strip only. They don't extend into the system-wide spell checker below.
 
+### Words from the clipboard and your notes
+
+Since 0.6.8, two more sources work the same way for text you keep near at hand. **Suggest words from the clipboard** reads your 40 most recent text clips, pinned ones included, and **Suggest words from your notes** reads your notes. Both are off by default and need no permission.
+
+A word from one of them completes after its first two letters, so a name, a book title or an order number you copied a minute ago is one tap away: copy "Read Laxmikant chapter 5", type `la`, and Laxmikant is on the strip. Once you type two words of a copied passage or a note, the word that came next in it shows as the next word, so `Read Laxmikant` offers `chapter`. A word no word list knows chains on after one word, the way a contact's surname follows the first name. A common word like *the* never chains on by itself, or whatever followed it in a note would follow every *the* you type. These words rank above app names and below contact names, and autocorrect never changes one.
+
+Clips marked as sensitive, locked notes and notes in the trash are never read. Nothing is read in incognito mode, and the clipboard is not read while the phone is locked. The words are held in memory only and rebuilt when the clips or notes change; at most 200,000 characters are read in all, newest first.
+
 ## Options
 
 <SettingsPath path="Typing / Suggestions / Suggest contact names" />
@@ -63,6 +71,8 @@ Turn on **Suggest app names** and installed-app labels complete the same way con
 | Contact emails in email fields too | On (only shown while contact emails are on) | Nothing |
 | Remember email addresses you type | Off | Nothing |
 | Suggest app names | Off | Nothing |
+| Suggest words from the clipboard | Off | Nothing |
+| Suggest words from your notes | Off | Nothing |
 
 Turning on either of the two contact toggles requests the Contacts permission the first time, if it isn't already granted. Turning a toggle back off never prompts for anything. Both toggles use the same Android permission, so granting it for one covers the other automatically. App-name suggestions need no permission at all. They're covered by the app's existing ability to list installed launcher activities.
 

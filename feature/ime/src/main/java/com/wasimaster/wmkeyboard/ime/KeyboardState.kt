@@ -4222,6 +4222,8 @@ data class KeyboardUiState(
     val otpSuggestion: NotificationOtp? = null,
     /** A task that has fallen due, waiting on the strip. See [TodoDueChip]. */
     val todoDueChip: TodoDueChip? = null,
+    /** The alarm or special-day chip on the idle strip, and the toolbar's status icons (#1453). */
+    val status: StatusUi = StatusUi(),
     /**
      * The buttons a field of WM Pass's own offers the strip, such as Scan the
      * card, with the token of the WM Pass screen they press them on. Null in

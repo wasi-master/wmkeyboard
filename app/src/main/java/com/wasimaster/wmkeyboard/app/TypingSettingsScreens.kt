@@ -1524,6 +1524,25 @@ internal fun TypingSuggestionsSettings(
                 default = SettingsDefaults.suggestionSources.appNames,
             ) { scope.launch { repository.setAppNameSuggestions(it) } }
         }
+        // #1453: the words of recent clips and of notes.
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.typing_clipboard_words_title,
+                stringResource(R.string.typing_clipboard_words_subtitle),
+                settings.watch { it.suggestionSources.clipboardWords },
+                info = stringResource(R.string.typing_clipboard_words_info),
+                default = SettingsDefaults.suggestionSources.clipboardWords,
+            ) { scope.launch { repository.setClipboardWordSuggestions(it) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.typing_notes_words_title,
+                stringResource(R.string.typing_notes_words_subtitle),
+                settings.watch { it.suggestionSources.notesWords },
+                info = stringResource(R.string.typing_notes_words_info),
+                default = SettingsDefaults.suggestionSources.notesWords,
+            ) { scope.launch { repository.setNotesWordSuggestions(it) } }
+        }
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.typing_inline_emoji_search_title,

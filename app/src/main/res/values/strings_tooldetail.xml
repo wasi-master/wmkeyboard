@@ -1372,6 +1372,9 @@
     <string name="tooldetail_notes_assist_decks_title">Study decks</string>
     <string name="tooldetail_notes_assist_decks_subtitle">Turn a note of terms and meanings into Vocabulary flashcards</string>
     <string name="tooldetail_notes_assist_decks_info">When a note is a list of terms and their meanings, the assistant offers to turn it into flashcards for the Vocabulary tool.</string>
+    <string name="tooldetail_notes_assist_organise_title">Organise</string>
+    <string name="tooldetail_notes_assist_organise_subtitle">Rewrite a note under headings and lists, shown before it is kept</string>
+    <string name="tooldetail_notes_assist_organise_info">Organise asks the on-device model to rewrite an open note so it is quick to read: the main point first, related lines under headings, points as lists, tasks as task boxes. The rewrite shows at the top of the note first. Replace the note puts it in place of the text, and Put the old text back undoes that. Keep as a new note saves it beside the old one. A rewrite that leaves part of the note out is not shown. Notes too long for the model to read whole are not offered. The note never leaves the phone.</string>
     <string name="tooldetail_notes_markdown_subtitle">Show headings, lists and checklists formatted in the keyboard and in previews. Off, every note is plain text.</string>
     <string name="tooldetail_notes_panel_start_title">The keyboard panel opens on</string>
     <string name="tooldetail_notes_panel_start_subtitle">What you see when you tap the tool</string>

@@ -1393,5 +1393,18 @@
     <string name="ime_find_searching">Searching</string>
     <!-- The network activity dot on the toolbar. %1$s is a server name. -->
     <string name="ime_netlog_dot_desc">The keyboard is contacting <xliff:g id="host" example="translate.googleapis.com">%1$s</xliff:g></string>
+    <!-- #1453: the alarm and special-day chip on the idle strip, and the status icons at the toolbar's far end. %1$s is a time such as 7:00. -->
+    <string name="ime_status_alarm_chip">Alarm at <xliff:g id="time" example="7:00">%1$s</xliff:g></string>
+    <!-- %1$s is the alarm's label, %2$s its time. -->
+    <string name="ime_status_alarm_chip_label"><xliff:g id="label" example="Gym">%1$s</xliff:g> at <xliff:g id="time" example="7:00">%2$s</xliff:g></string>
+    <string name="ime_status_alarm_stop">Stop</string>
+    <!-- %1$s is the line of a note that names the birthday, or a countdown's title. -->
+    <string name="ime_status_special_day_chip">Today: <xliff:g id="what" example="Anna birthday">%1$s</xliff:g></string>
+    <string name="ime_status_chip_close_desc">Close, and keep it as an icon on the toolbar</string>
+    <string name="ime_status_timer_desc">A timer is running</string>
+    <string name="ime_status_pomodoro_desc">A Pomodoro is running</string>
+    <string name="ime_status_stopwatch_desc">The stopwatch is running</string>
+    <!-- %1$s is the task's words. -->
+    <string name="ime_status_todo_desc">Due: <xliff:g id="task" example="Read Laxmikant">%1$s</xliff:g></string>
 
 </resources>

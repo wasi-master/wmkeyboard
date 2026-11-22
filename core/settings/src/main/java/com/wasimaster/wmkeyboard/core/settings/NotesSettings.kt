@@ -101,6 +101,12 @@ data class NotesAssistSettings(
     val related: Boolean = true,
     /** "Make a study deck" turns a note into Vocabulary flashcards. */
     val decks: Boolean = true,
+    /**
+     * "Organise" has the model rewrite a note under headings and lists, shown
+     * first and kept only when the user says so (#1453). On-demand summaries
+     * of notes under [summaryWords] ride on [summaries].
+     */
+    val organise: Boolean = true,
 ) {
     /** Whether [part] runs: the master switch and its own. */
     fun on(part: Boolean): Boolean = enabled && part

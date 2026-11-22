@@ -120,6 +120,15 @@
     <string name="ime_notes_assist_details_label">Key details</string>
     <string name="ime_notes_assist_related_label">Related</string>
     <string name="ime_notes_assist_deck_action">Make a study deck</string>
+    <!-- #1453: Organise, the model rewriting a note under headings and lists, shown before it is kept. -->
+    <string name="ime_notes_assist_organise_action">Organise</string>
+    <string name="ime_notes_assist_organise_busy">Organising the note…</string>
+    <string name="ime_notes_assist_organised_label">Organised</string>
+    <string name="ime_notes_assist_organise_replace">Replace the note</string>
+    <string name="ime_notes_assist_organise_new">Keep as a new note</string>
+    <string name="ime_notes_assist_organise_discard_desc">Discard the organised version</string>
+    <string name="ime_notes_assist_organise_failed">The model left part of the note out, so its version is not shown. Try again.</string>
+    <string name="ime_notes_assist_put_back">Put the old text back</string>
     <plurals name="ime_notes_assist_deck_action_count">
         <item quantity="one">Make a study deck (%d card)</item>
         <item quantity="other">Make a study deck (%d cards)</item>

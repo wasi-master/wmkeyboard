@@ -354,6 +354,12 @@
     <string name="typing_app_names_title">Suggest app names</string>
     <string name="typing_app_names_subtitle">Complete the names of installed apps as you type</string>
     <string name="typing_app_names_info">The words in the names of your installed apps complete in the same way as the words in the word list. Example: \"sign\" gives Signal. Autocorrect never changes one. They rank below contact names, because ordinary words such as Files and Clock are also app names. The keyboard reads the names into memory only. It stores nothing and sends nothing, and it needs no permission.</string>
+    <string name="typing_clipboard_words_title">Suggest words from the clipboard</string>
+    <string name="typing_clipboard_words_subtitle">Complete the words of what you copied, and the words that follow them</string>
+    <string name="typing_clipboard_words_info">The words of your recent clipboard items complete like the words in the word list, so a name or a code you copied is offered after its first two letters. Once you type two words of a copied passage, the word that came next in it shows on the strip. Autocorrect never changes one of these words. Items marked as sensitive are left out, and nothing is read in incognito mode or while the phone is locked. The keyboard keeps the words in memory only.</string>
+    <string name="typing_notes_words_title">Suggest words from your notes</string>
+    <string name="typing_notes_words_subtitle">Complete the words you wrote in notes, and the words that follow them</string>
+    <string name="typing_notes_words_info">The words of your notes complete like the words in the word list, and once you type two words of a note, the word that came next in it shows on the strip. Locked notes and notes in the trash are left out, and nothing is read in incognito mode. The keyboard keeps the words in memory only.</string>
 
     <string name="typing_inline_emoji_search_title">Inline emoji search</string>
     <string name="typing_inline_emoji_search_subtitle">Type \":\" and a word to find emoji, such as :smi for 😄</string>

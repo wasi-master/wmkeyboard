@@ -210,6 +210,14 @@ data class NotesCallbacks(
     val onAssistRelated: (RelatedHit) -> Unit = {},
     /** Make a study deck out of the note. */
     val onAssistDeck: (Long) -> Unit = {},
+    /** Organise: the model rewrites the note under headings and lists, to be looked at first (#1453). */
+    val onAssistOrganise: (Long) -> Unit = {},
+    /** The rewrite kept: over the note (false), or as a new note beside it (true). */
+    val onAssistOrganiseKeep: (Long, Boolean) -> Unit = { _, _ -> },
+    /** The rewrite waved away. */
+    val onAssistOrganiseDrop: (Long) -> Unit = {},
+    /** The note's text from before its rewrite, back. */
+    val onAssistPutBack: (Long) -> Unit = {},
 )
 
 /** Settings routes the panel links to; `SettingsRoutesTest` scans these constants. */

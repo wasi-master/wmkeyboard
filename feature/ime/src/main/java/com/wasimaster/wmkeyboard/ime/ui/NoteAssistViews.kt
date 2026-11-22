@@ -32,12 +32,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Subject
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Undo
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bolt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Cake
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Call
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Event
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatListBulleted
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Hub
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Link
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mail
@@ -78,7 +80,8 @@ internal fun NoteAssistSection(state: KeyboardUiState, note: Note, assist: NoteA
                 }
             }
         }
-        if (settings.summaries && (assist.summary != null || assist.summaryBusy || (assist.wantsSummary && assist.modelReady))) {
+        val summaryShown = settings.summaries && (assist.summary != null || assist.summaryBusy || (assist.wantsSummary && assist.modelReady))
+        if (summaryShown) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
                 Row(Modifier.weight(1f)) { ShelfLabel(Icons.AutoMirrored.Outlined.Subject, stringResource(R.string.ime_notes_assist_summary_label)) }
                 if (!assist.summaryBusy && assist.modelReady && assist.wantsSummary) {
@@ -104,6 +107,18 @@ internal fun NoteAssistSection(state: KeyboardUiState, note: Note, assist: NoteA
                 )
             }
             assist.error?.let { Text(it, color = kb.secondaryText, fontSize = 10.sp, maxLines = 2, overflow = TextOverflow.Ellipsis) }
+        }
+        // Organise (#1453): the rewrite, at the top where it can be read
+        // against the note under it, until it is kept or waved away.
+        if (settings.organise) {
+            when {
+                assist.organiseBusy -> AssistBusyLine(stringResource(R.string.ime_notes_assist_organise_busy))
+                assist.organised != null -> OrganisedPreview(assist.organised, note.id, callbacks)
+            }
+            // A failed rewrite says why here when there is no summary row to say it.
+            if (!summaryShown && assist.error != null && !assist.organiseBusy && assist.organised == null) {
+                Text(assist.error, color = kb.secondaryText, fontSize = 10.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            }
         }
         if (settings.reminders && assist.reminders.isNotEmpty()) {
             AssistRow(Icons.Outlined.NotificationsActive, stringResource(R.string.ime_notes_assist_reminders_label)) {
@@ -138,16 +153,84 @@ internal fun NoteAssistSection(state: KeyboardUiState, note: Note, assist: NoteA
                 }
             }
         }
-        if (settings.decks && (assist.deckCards > 0 || assist.modelReady) && note.body.isNotBlank()) {
-            Row(Modifier.padding(top = 6.dp)) {
-                AssistPill(
-                    label = if (assist.deckCards > 0) {
-                        pluralStringResource(R.plurals.ime_notes_assist_deck_action_count, assist.deckCards, assist.deckCards)
-                    } else {
-                        stringResource(R.string.ime_notes_assist_deck_action)
-                    },
-                    icon = Icons.Outlined.School,
-                ) { callbacks.onAssistDeck(note.id) }
+        // What can be asked for by hand: a summary of a note under the
+        // automatic length, Organise, Put back after it, and the study deck.
+        val summariseByHand = settings.summaries && assist.modelReady && assist.canSummarise && !assist.wantsSummary &&
+            assist.summary == null && !assist.summaryBusy
+        val organiseOffer = settings.organise && assist.modelReady && assist.canOrganise &&
+            !assist.organiseBusy && assist.organised == null
+        val deck = settings.decks && (assist.deckCards > 0 || assist.modelReady) && note.body.isNotBlank()
+        if (summariseByHand || organiseOffer || assist.restorable || deck) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 6.dp).horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+            ) {
+                if (summariseByHand) {
+                    AssistPill(stringResource(R.string.ime_notes_assist_summarize_action), icon = Icons.Outlined.AutoAwesome) {
+                        callbacks.onAssistSummarize(note.id)
+                    }
+                }
+                if (organiseOffer) {
+                    AssistPill(stringResource(R.string.ime_notes_assist_organise_action), icon = Icons.Outlined.FormatListBulleted) {
+                        callbacks.onAssistOrganise(note.id)
+                    }
+                }
+                if (assist.restorable) {
+                    AssistPill(stringResource(R.string.ime_notes_assist_put_back), icon = Icons.AutoMirrored.Outlined.Undo) {
+                        callbacks.onAssistPutBack(note.id)
+                    }
+                }
+                if (deck) {
+                    AssistPill(
+                        label = if (assist.deckCards > 0) {
+                            pluralStringResource(R.plurals.ime_notes_assist_deck_action_count, assist.deckCards, assist.deckCards)
+                        } else {
+                            stringResource(R.string.ime_notes_assist_deck_action)
+                        },
+                        icon = Icons.Outlined.School,
+                    ) { callbacks.onAssistDeck(note.id) }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * The note as Organise rewrote it (#1453), in the summary's tinted box, with
+ * Replace, Keep as new and a ✕. Plain text, so the Markdown it wrote is seen
+ * as it will be saved.
+ */
+@Composable
+private fun OrganisedPreview(text: String, noteId: Long, callbacks: NotesCallbacks) {
+    val kb = LocalKbTheme.current
+    Column(Modifier.fillMaxWidth().padding(top = 6.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Row(Modifier.weight(1f)) { ShelfLabel(Icons.Outlined.FormatListBulleted, stringResource(R.string.ime_notes_assist_organised_label)) }
+            Icon(
+                Icons.Outlined.Close,
+                contentDescription = stringResource(R.string.ime_notes_assist_organise_discard_desc),
+                tint = kb.secondaryText,
+                modifier = Modifier.size(28.dp).clip(kb.chipShape()).clickable { callbacks.onAssistOrganiseDrop(noteId) }.padding(7.dp),
+            )
+        }
+        Text(
+            text,
+            color = kb.modifierKeyText.copy(alpha = 0.9f),
+            fontSize = 12.sp,
+            lineHeight = 16.sp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 3.dp)
+                .clip(kb.chipShape())
+                .background(kb.accent.copy(alpha = if (kb.dark) 0.12f else 0.08f))
+                .padding(horizontal = 10.dp, vertical = 7.dp),
+        )
+        Row(Modifier.padding(top = 5.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            AssistPill(stringResource(R.string.ime_notes_assist_organise_replace), strong = true) {
+                callbacks.onAssistOrganiseKeep(noteId, false)
+            }
+            AssistPill(stringResource(R.string.ime_notes_assist_organise_new)) {
+                callbacks.onAssistOrganiseKeep(noteId, true)
             }
         }
     }

@@ -3299,6 +3299,10 @@ open class WMKeyboardService : InputMethodService() {
     /** Installed-app label words for suggestions, when the setting allows. */
     private var appNames: AppNames = AppNames.EMPTY
 
+    /** The words of recent clips and notes (#1453), kept so a rebuilt engine gets them back. */
+    private var passageWords: com.wasimaster.wmkeyboard.core.prediction.PassageWords =
+        com.wasimaster.wmkeyboard.core.prediction.PassageWords.EMPTY
+
     /**
      * Accent armed by a dead key, waiting for the letter to combine with.
      * Mirrored into [KeyboardUiState.pendingDeadKey] for the strip chip.
@@ -5413,6 +5417,20 @@ open class WMKeyboardService : InputMethodService() {
         serviceScope.launch {
             _uiState.map { it.incognitoOn }.distinctUntilChanged().collect { NetLog.incognito = it }
         }
+        // The toolbar's status icons follow their settings (#1453).
+        serviceScope.launch {
+            _uiState.map { it.settings.toolbarBehavior.statusIcons }.distinctUntilChanged().collect { refreshStatusIcons() }
+        }
+        // The words of clips and notes follow their switches, incognito and the clipboard (#1453).
+        serviceScope.launch {
+            _uiState.map {
+                Triple(
+                    it.settings.suggestionSources.clipboardWords to it.settings.suggestionSources.notesWords,
+                    it.incognitoOn,
+                    if (it.settings.suggestionSources.clipboardWords) it.clipboardItems else null,
+                )
+            }.distinctUntilChanged().collect { refreshPassageWords() }
+        }
         // The spacebar's speed (#752, #796) starts again the moment the field
         // turns private or stops being private, before any key is typed in
         // it: the words behind it belong to the other side of the change.
@@ -6610,6 +6628,7 @@ open class WMKeyboardService : InputMethodService() {
                 contacts = contactNames
                 contactEmails = this@WMKeyboardService.contactEmails
                 apps = appNames
+                passages = passageWords
                 systemWordCases = systemDictionaryWords.shapes
                 systemDictionary = systemDictionaryWords.source
                 proximity = KeyProximity.forLayout(
@@ -9248,6 +9267,7 @@ open class WMKeyboardService : InputMethodService() {
             PanelMode.CLOCK -> {
                 clockTool.onPanelClose()
                 _uiState.update { it.copy(toolText = it.toolText.copy(clock = null)) }
+                refreshStatusIcons()
             }
             PanelMode.TODO -> {
                 todoTool.onPanelClose()
@@ -10054,6 +10074,7 @@ open class WMKeyboardService : InputMethodService() {
         if (info?.packageName != shadeDismissedIn) shadeDismissedIn = null
         if (::settingsRepository.isInitialized) updatePrivacyShade(_uiState.value.settings)
         refreshTodoDueChip()
+        refreshPassageWords()
         // A tap in another field, or before the keyboard went away, is not the
         // tap before this one.
         multitap.end()
@@ -38402,6 +38423,8 @@ open class WMKeyboardService : InputMethodService() {
         if (_uiState.value.panel == PanelMode.CLOCK) {
             clockTool.onPanelClose()
             _uiState.update { it.copy(toolText = it.toolText.copy(clock = null)) }
+            // A timer started or an alarm set there shows on the toolbar (#1453).
+            refreshStatusIcons()
         }
         // Leaving the Music ID panel: the microphone goes with it.
         if (_uiState.value.panel == PanelMode.MUSIC_ID) musicTool.onPanelClose()
@@ -53045,6 +53068,7 @@ open class WMKeyboardService : InputMethodService() {
         TodoChipActions.handler = ::onTodoChip
         if (!_uiState.value.settings.todo.dueChip || !userUnlocked) {
             if (_uiState.value.todoDueChip != null) _uiState.update { it.copy(todoDueChip = null) }
+            refreshStatusIcons()
             return
         }
         serviceScope.launch {
@@ -53055,6 +53079,201 @@ open class WMKeyboardService : InputMethodService() {
             }
             val chip = task?.let { TodoDueChip(it.id, it.text) }
             if (_uiState.value.todoDueChip != chip) _uiState.update { it.copy(todoDueChip = chip) }
+            // The to-do icon stands in for a closed chip, so it follows the chip.
+            refreshStatusIcons()
+        }
+    }
+
+    // ---- Status icons and the words of clips and notes (#1453) -------------
+
+    private val statusSource by lazy { StatusIconSource(this) }
+
+    /** Alarm and special-day chips closed by hand, by [StatusItem.key]: their icons stand in for them. */
+    private val closedStatusChips = HashSet<String>()
+    private var statusJob: Job? = null
+    private var statusTick: Job? = null
+
+    /**
+     * Works out the strip's status chip and the toolbar's status icons: an
+     * alarm about to ring, a birthday or countdown today, a timer, Pomodoro
+     * or stopwatch running, a due task whose chip was closed. Off the main
+     * thread, then again by itself when the next of those moments comes.
+     */
+    private fun refreshStatusIcons() {
+        StatusActions.handler = ::onStatusAction
+        val state = _uiState.value
+        val settings = state.settings.toolbarBehavior.statusIcons
+        if (!settings.alarm && !settings.specialDays && !settings.clock && !settings.todo) {
+            statusTick?.cancel()
+            if (state.status != StatusUi()) _uiState.update { it.copy(status = StatusUi()) }
+            return
+        }
+        val unlocked = userUnlocked
+        // A snapshot on the main thread, where the store lives; the reading is done on IO.
+        val notes = if (settings.specialDays && unlocked) {
+            noteStore.items(com.wasimaster.wmkeyboard.core.notes.NoteFilter(includeLocked = false))
+                .filterNot { it.locked || it.inTrash }
+                .sortedByDescending { it.updatedAt }
+                .map { Triple(it.id, it.body, it.updatedAt) }
+        } else {
+            emptyList()
+        }
+        val todoChipUp = state.todoDueChip != null
+        statusJob?.cancel()
+        statusJob = serviceScope.launch {
+            val now = System.currentTimeMillis()
+            val (items, upcoming) = withContext(Dispatchers.IO) {
+                val todoDue = if (settings.todo && unlocked && !todoChipUp) {
+                    com.wasimaster.wmkeyboard.core.todo.TodoReminders.firstDue(this@WMKeyboardService, now) { false }?.text
+                } else {
+                    null
+                }
+                statusSource.items(settings, { notes }, todoDue, now)
+            }
+            closedStatusChips.retainAll(items.mapTo(HashSet()) { it.key })
+            val ui = StatusLayout.arrange(items, closedStatusChips, settings.chips, stripBusy = _uiState.value.todoDueChip != null)
+            if (_uiState.value.status != ui) _uiState.update { it.copy(status = ui) }
+            scheduleStatusTick(items, upcoming, settings.alarmMinutes * 60_000L, now)
+        }
+    }
+
+    /** Refreshes the status icons again at the next moment they can change by themselves. */
+    private fun scheduleStatusTick(items: List<StatusItem>, upcoming: Long?, windowMs: Long, now: Long) {
+        statusTick?.cancel()
+        val zone = java.util.TimeZone.getDefault()
+        val midnight = com.wasimaster.wmkeyboard.core.notes.assist.NoteReminders.dayStart(now, zone) +
+            com.wasimaster.wmkeyboard.core.notes.assist.NoteReminder.DAY_MS
+        val next = StatusLayout.nextChange(items, upcoming, windowMs, now, midnight, STATUS_HORIZON_MS) ?: return
+        statusTick = serviceScope.launch {
+            delay((next - System.currentTimeMillis()).coerceAtLeast(0L) + STATUS_TICK_SLACK_MS)
+            refreshStatusIcons()
+        }
+    }
+
+    private fun onStatusAction(item: StatusItem, action: StatusAction) {
+        vibrate()
+        when (action) {
+            StatusAction.CLOSE -> {
+                closedStatusChips += item.key
+                refreshStatusIcons()
+            }
+            StatusAction.STOP -> stopStatusAlarm(item)
+            StatusAction.OPEN -> openStatus(item)
+            // A closed chip comes back, where it can; anything else opens.
+            StatusAction.ICON -> if (
+                item.chipFirst && item.key in closedStatusChips &&
+                _uiState.value.settings.toolbarBehavior.statusIcons.chips && _uiState.value.todoDueChip == null
+            ) {
+                closedStatusChips -= item.key
+                refreshStatusIcons()
+            } else {
+                openStatus(item)
+            }
+        }
+    }
+
+    /**
+     * The alarm chip's Stop: the Clock tool's alarm skips this ring (a
+     * one-off turns off), and another clock app's next alarm is asked to be
+     * dismissed by Android's alarm intent, which that app may confirm.
+     */
+    private fun stopStatusAlarm(item: StatusItem) {
+        if (!item.foreign && item.ref >= 0) {
+            serviceScope.launch {
+                withContext(Dispatchers.IO) { com.wasimaster.wmkeyboard.core.clock.ClockEngine.skipComing(this@WMKeyboardService, item.ref) }
+                refreshStatusIcons()
+            }
+            return
+        }
+        val dismiss = Intent(android.provider.AlarmClock.ACTION_DISMISS_ALARM)
+            .putExtra(android.provider.AlarmClock.EXTRA_ALARM_SEARCH_MODE, android.provider.AlarmClock.ALARM_SEARCH_MODE_NEXT)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (runCatching { startActivity(dismiss) }.isFailure) {
+            openStatus(item)
+            return
+        }
+        // The other app has it now; the icon stays until its alarm is gone.
+        closedStatusChips += item.key
+        refreshStatusIcons()
+    }
+
+    /** Where a status chip's face or icon leads: the Clock tab, the note, the list. */
+    private fun openStatus(item: StatusItem) {
+        when (item.kind) {
+            StatusKind.ALARM -> if (item.foreign) {
+                val clock = com.wasimaster.wmkeyboard.ime.clock.PhoneClock
+                if (!clock.showAlarms(this)) clock.missing(this)
+            } else {
+                openClockTab(com.wasimaster.wmkeyboard.core.clock.ClockTab.ALARMS)
+            }
+            StatusKind.SPECIAL_DAY -> if (item.fromNote) {
+                onPanelChange(PanelMode.NOTES)
+                onNoteOpen(item.ref)
+            } else {
+                openClockTab(com.wasimaster.wmkeyboard.core.clock.ClockTab.DATES)
+            }
+            StatusKind.TIMER, StatusKind.POMODORO -> openClockTab(com.wasimaster.wmkeyboard.core.clock.ClockTab.TIMERS)
+            StatusKind.STOPWATCH -> openClockTab(com.wasimaster.wmkeyboard.core.clock.ClockTab.STOPWATCH)
+            StatusKind.TODO -> onPanelChange(PanelMode.TODO)
+        }
+    }
+
+    /** Opens the Clock panel on [tab]: the panel opens on the tab it was last left on. */
+    private fun openClockTab(tab: com.wasimaster.wmkeyboard.core.clock.ClockTab) {
+        com.wasimaster.wmkeyboard.core.clock.ClockPrefs.update(this) { it.copy(lastTab = tab.id) }
+        onPanelChange(PanelMode.CLOCK)
+    }
+
+    /** What [passageWords] was last built from, so an unchanged field start rebuilds nothing. */
+    private var passageKey: Long? = null
+
+    /**
+     * Builds the strip's index of the words in recent clips and notes, when
+     * their switches are on (#1453). Never in incognito, never from a clip
+     * marked sensitive or a locked note, and never while the phone is locked.
+     */
+    private fun refreshPassageWords() {
+        val state = _uiState.value
+        val sources = state.settings.suggestionSources
+        val clips = sources.clipboardWords && !state.incognitoOn && isClipboardAccessible()
+        val notes = sources.notesWords && !state.incognitoOn && userUnlocked
+        if (!clips && !notes) {
+            if (passageKey != null) {
+                passageKey = null
+                passageWords = com.wasimaster.wmkeyboard.core.prediction.PassageWords.EMPTY
+                suggestionEngine?.passages = passageWords
+            }
+            return
+        }
+        val clipTexts = if (clips) {
+            state.clipboardItems.asSequence()
+                .filter { it.kind.isTextual && !it.sensitive && it.text.isNotBlank() }
+                .sortedByDescending { it.timestamp }
+                .take(PASSAGE_CLIPS)
+                .map { it.text }
+                .toList()
+        } else {
+            emptyList()
+        }
+        val noteTexts = if (notes) {
+            noteStore.items(com.wasimaster.wmkeyboard.core.notes.NoteFilter(includeLocked = false))
+                .filterNot { it.locked || it.inTrash }
+                .sortedByDescending { it.updatedAt }
+        } else {
+            emptyList()
+        }
+        val key = clipTexts.hashCode().toLong() * 31 + noteTexts.sumOf { it.id * 31 + it.updatedAt }
+        if (key == passageKey) return
+        passageKey = key
+        serviceScope.launch {
+            val built = withContext(Dispatchers.Default) {
+                com.wasimaster.wmkeyboard.core.prediction.PassageWords.of(
+                    clipTexts + noteTexts.map { if (it.title.isBlank()) it.body else it.title + "\n" + it.body },
+                )
+            }
+            if (passageKey != key) return@launch
+            passageWords = built
+            suggestionEngine?.passages = built
         }
     }
 
@@ -53975,6 +54194,10 @@ open class WMKeyboardService : InputMethodService() {
         onAssistRemind = ::onNoteAssistRemind,
         onAssistRelated = ::onNoteAssistRelated,
         onAssistDeck = ::onNoteAssistDeck,
+        onAssistOrganise = ::onNoteAssistOrganise,
+        onAssistOrganiseKeep = ::onNoteAssistOrganiseKeep,
+        onAssistOrganiseDrop = ::onNoteAssistOrganiseDrop,
+        onAssistPutBack = ::onNoteAssistPutBack,
     )
 
     /**
@@ -54717,6 +54940,54 @@ open class WMKeyboardService : InputMethodService() {
         val note = noteStore.item(id) ?: return
         vibrate()
         noteAssist.runModel(note, force = true)
+    }
+
+    /** Organise (#1453): the model rewrites the note; the panel shows the rewrite before anything changes. */
+    fun onNoteAssistOrganise(id: Long) {
+        val note = noteStore.item(id) ?: return
+        if (note.locked) {
+            toast(R.string.ime_notes_locked_toast)
+            return
+        }
+        vibrate()
+        noteAssist.organise(note)
+    }
+
+    /**
+     * The rewrite kept: over the note, with its old text held for Put back,
+     * or as a new note beside it, the old one left as it was.
+     */
+    fun onNoteAssistOrganiseKeep(id: Long, asNew: Boolean) {
+        val organised = _uiState.value.notes.assist?.takeIf { it.noteId == id }?.organised ?: return
+        val note = noteStore.item(id) ?: return
+        if (note.locked) return
+        vibrate()
+        noteAssist.dropOrganised(id)
+        if (asNew) {
+            val added = noteStore.add(organised, title = note.title, tags = note.tags)
+            saveNotesSoon()
+            publishNotes { it.copy(open = added.id, readExpanded = false, readFrom = null, held = null, confirm = null) }
+        } else {
+            noteAssist.rememberReplaced(id, note.body)
+            noteStore.update(note.copy(body = organised))
+            saveNotesSoon()
+            publishNotes()
+        }
+    }
+
+    fun onNoteAssistOrganiseDrop(id: Long) {
+        vibrate()
+        noteAssist.dropOrganised(id)
+    }
+
+    /** Put back: the note's text from before Organise replaced it. */
+    fun onNoteAssistPutBack(id: Long) {
+        val note = noteStore.item(id) ?: return
+        val old = noteAssist.takeReplaced(id) ?: return
+        vibrate()
+        noteStore.update(note.copy(body = old))
+        saveNotesSoon()
+        publishNotes()
     }
 
     /** A key detail tapped: it is typed into the field, as a clipboard fragment chip does. */
@@ -66788,6 +67059,15 @@ private const val KHIPRO_GLIDE = "bn_khipro"
 /** [romanizedGlides]' key for Khipro Dark, which spells words its own way. */
 private const val KHIPRO_DARK_GLIDE = "bn_khipro_dark"
 private const val TODO_SNOOZE_MS = 60L * 60 * 1000
+
+/** The furthest ahead the status icons schedule their own refresh (#1453); the next field start covers the rest. */
+private const val STATUS_HORIZON_MS = 6L * 60 * 60 * 1000
+
+/** A little past the moment, so an alarm whose time has come is gone from the store when it is read. */
+private const val STATUS_TICK_SLACK_MS = 1_500L
+
+/** Recent clips read for their words (#1453), newest first. */
+private const val PASSAGE_CLIPS = 40
 
 /** [romanizedGlides]' key for full Pinyin, whose spellings are readings (#580). */
 private const val PINYIN_GLIDE = "zh_pinyin"

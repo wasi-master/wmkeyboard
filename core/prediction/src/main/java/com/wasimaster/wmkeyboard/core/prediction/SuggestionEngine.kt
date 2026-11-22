@@ -97,6 +97,15 @@ class SuggestionEngine(
     var apps: AppNames = AppNames.EMPTY
 
     /**
+     * The words of recent clipboard items and notes (#1453), when the user
+     * turned those sources on: they complete like contact names, and a
+     * passage's words follow one another on the strip. Swapped in by the IME
+     * as the texts change, empty in incognito.
+     */
+    @Volatile
+    var passages: PassageWords = PassageWords.EMPTY
+
+    /**
      * Adjacency map for typo weighting, following the active Latin layout
      * (set by the IME on input-mode changes; AZERTY/Dvorak fat-fingers land
      * on different neighbours than QWERTY's).
@@ -3558,6 +3567,16 @@ class SuggestionEngine(
          * ("Files", "Photos", "Clock") that must not outrank the dictionary.
          */
         private const val APP_WEIGHT = 400
+
+        /**
+         * Words of recent clips and notes (#1453) rank between app names and
+         * contacts: they were copied or written by the user, but running text
+         * holds ordinary words the lists already weigh better.
+         */
+        private const val PASSAGE_WEIGHT = 1500
+
+        /** One letter would offer every word of every note; two narrow it. */
+        private const val PASSAGE_MIN_PREFIX = 2
         /** Split suggestions score slightly under their rarer half. */
         private const val WEIGHT_SPLIT = 0.8
 
@@ -4430,6 +4449,11 @@ class SuggestionEngine(
             }
             for (s in apps.complete(lower, limit)) {
                 merged.merge(s.word, flatScore(s.frequency, APP_WEIGHT), ::maxOf)
+            }
+            if (lower.length >= PASSAGE_MIN_PREFIX) {
+                for (s in passages.complete(lower, limit)) {
+                    merged.merge(s.word, flatScore(s.frequency, PASSAGE_WEIGHT), ::maxOf)
+                }
             }
             // Offered only while their own switch is on (#413), apart from
             // "Add missing spaces", which decides what space does. The join
@@ -6596,6 +6620,9 @@ class SuggestionEngine(
         }
         // A contact's name chains through the strip: "Wasi" offers "Mollik".
         ordered.addAll(contacts.nextWords(prev))
+        // So does a passage from the clipboard or a note (#1453), once two of
+        // its words are typed, or one no list holds.
+        if (!passages.isEmpty) ordered.addAll(passages.nextWords(previousWord2?.lowered(), prev) { inDictionaries(it) })
         // The user's own gappy habits (#195): what has followed the word two
         // back one word later, then the word three back two words later —
         // "how can someone" still offers "help". Personal, so above the
@@ -8025,7 +8052,9 @@ class SuggestionEngine(
         }
         if (knownCompound(lower)) return NO_CORRECTION
         // Contact and app names are known words too — never "corrected" away.
-        if (contacts.contains(lower) || apps.contains(lower)) return NO_CORRECTION
+        // So is a word of a clip or a note the user asked to have suggested
+        // (#1453): a name copied a moment ago is typed on purpose.
+        if (contacts.contains(lower) || apps.contains(lower) || passages.contains(lower)) return NO_CORRECTION
         // Digits: exactly one digit may be a number-row slip (when the IME
         // buffers those); anything more digit-heavy is deliberate input —
         // codes, model numbers — and is never rewritten.

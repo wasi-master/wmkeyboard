@@ -1,6 +1,8 @@
 package com.wasimaster.wmkeyboard.app
 
 import androidx.annotation.StringRes
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Cake
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatListBulleted
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.InvertColors
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.TrendingUp
@@ -574,6 +576,12 @@ internal object SettingsRowIcons {
         put(R.string.appearance_toolbar_hardware_only_title) { SymbolIcons.KeyboardExternalInput }
         put(R.string.appearance_toolbar_hardware_auto_hide_title) { Icons.Outlined.KeyboardHide }
         put(R.string.appearance_toolbar_lock_title) { Icons.Outlined.Lock }
+        put(R.string.appearance_status_alarm_title) { Icons.Outlined.Alarm }
+        put(R.string.appearance_status_alarm_minutes_title) { Icons.Outlined.Timer }
+        put(R.string.appearance_status_special_days_title) { Icons.Outlined.Cake }
+        put(R.string.appearance_status_clock_title) { Icons.Outlined.HourglassBottom }
+        put(R.string.appearance_status_todo_title) { Icons.Outlined.Checklist }
+        put(R.string.appearance_status_chips_title) { Icons.Outlined.ViewAgenda }
         put(R.string.appearance_toolbar_rtl_title) { Icons.AutoMirrored.Outlined.FormatTextdirectionRToL }
         put(R.string.appearance_toolbar_fit_title) { Icons.Outlined.SpaceBar }
         put(R.string.appearance_toolbar_padding_top_title) { Icons.Outlined.VerticalAlignTop }
@@ -1228,6 +1236,8 @@ internal object SettingsRowIcons {
         put(R.string.typing_typed_emails_title) { Icons.Outlined.History }
         put(R.string.typing_typed_numbers_title) { Icons.Outlined.History }
         put(R.string.typing_app_names_title) { Icons.Outlined.Apps }
+        put(R.string.typing_clipboard_words_title) { Icons.Outlined.ContentPaste }
+        put(R.string.typing_notes_words_title) { Icons.Outlined.StickyNote2 }
         put(R.string.typing_inline_emoji_search_title) { Icons.Outlined.EmojiEmotions }
         put(R.string.typing_inline_autofill_title) { Icons.Outlined.Password }
         put(R.string.typing_smart_replies_title) { Icons.Outlined.Quickreply }
@@ -2361,6 +2371,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_notes_assist_reminders_title) { Icons.Outlined.NotificationsActive }
         put(R.string.tooldetail_notes_assist_related_title) { Icons.Outlined.Hub }
         put(R.string.tooldetail_notes_assist_decks_title) { Icons.Outlined.School }
+        put(R.string.tooldetail_notes_assist_organise_title) { Icons.Outlined.FormatListBulleted }
         put(R.string.tooldetail_todo_list_title) { Icons.Outlined.Checklist }
 
         // ---- Music, speed test, location ----
