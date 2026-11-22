@@ -34,16 +34,33 @@ data class PrivacyShadeSettings(
      * Its close button takes it down until the keyboard opens in another app.
      */
     val apps: Set<String> = emptySet(),
+    /**
+     * The screen does not time out while the shade is up (#1428), for a video
+     * or a download left running under it. Off by default: it costs battery.
+     */
+    val keepScreenOn: Boolean = false,
+    /** The screen goes to its lowest brightness while the shade is up (#1428). */
+    val dimScreen: Boolean = false,
+    /**
+     * Minutes after which the shade takes itself down, counted from when it
+     * came up; 0 never (#1428). One of [TIMER_CHOICES].
+     */
+    val timerMinutes: Int = 0,
 ) {
     companion object {
         const val DEFAULT_OPACITY = 0.94f
         const val MIN_OPACITY = 0.5f
+
+        /** What the "Take the shade down after" row offers, in minutes; 0 is never. */
+        val TIMER_CHOICES = listOf(0, 5, 15, 30, 45, 60, 120)
     }
 }
 
 /** The shade's colour. Stored by [id]. */
 enum class PrivacyShadeStyle(val id: String) {
     DARK("dark"),
+    /** Pure black: on an OLED screen the pixels under it are off (#1428). */
+    BLACK("black"),
     GREY("grey"),
     LIGHT("light"),
     WARM("warm"),

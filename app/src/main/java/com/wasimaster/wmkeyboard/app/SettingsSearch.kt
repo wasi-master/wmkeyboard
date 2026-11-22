@@ -1868,6 +1868,13 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
         R.string.tooldetail_privacy_shade_opacity_subtitle,
     ),
     toolEntry(ToolbarTool.PRIVACY_SHADE, R.string.tooldetail_privacy_shade_touch_title),
+    toolEntry(
+        ToolbarTool.PRIVACY_SHADE,
+        R.string.tooldetail_privacy_shade_keep_on_title,
+        R.string.tooldetail_privacy_shade_keep_on_subtitle,
+    ),
+    toolEntry(ToolbarTool.PRIVACY_SHADE, R.string.tooldetail_privacy_shade_dim_title, R.string.tooldetail_privacy_shade_dim_subtitle),
+    toolEntry(ToolbarTool.PRIVACY_SHADE, R.string.tooldetail_privacy_shade_timer_title),
     toolEntry(ToolbarTool.PRIVACY_SHADE, R.string.tooldetail_privacy_shade_apps_title),
     toolEntry(ToolbarTool.PRIVACY_SHADE, R.string.tooldetail_privacy_shade_apps_add),
     toolEntry(ToolbarTool.COMPASS, R.string.tooldetail_compass_degrees_title, R.string.tooldetail_compass_degrees_subtitle),

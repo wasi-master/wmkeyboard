@@ -1911,6 +1911,7 @@ internal fun ToolDetailSettings(
                         R.string.tooldetail_privacy_shade_style_title,
                         options = listOf(
                             PrivacyShadeStyle.DARK to stringResource(R.string.tooldetail_privacy_shade_style_dark),
+                            PrivacyShadeStyle.BLACK to stringResource(R.string.tooldetail_privacy_shade_style_black),
                             PrivacyShadeStyle.GREY to stringResource(R.string.tooldetail_privacy_shade_style_grey),
                             PrivacyShadeStyle.LIGHT to stringResource(R.string.tooldetail_privacy_shade_style_light),
                             PrivacyShadeStyle.WARM to stringResource(R.string.tooldetail_privacy_shade_style_warm),
@@ -1945,6 +1946,40 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.privacyShade.touchThrough,
                         info = stringResource(R.string.tooldetail_privacy_shade_touch_info),
                     ) { scope.launch { repository.setPrivacyShadeTouchThrough(it) } }
+                }
+                // A black screen over a video or a download (#1428).
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_privacy_shade_keep_on_title,
+                        stringResource(R.string.tooldetail_privacy_shade_keep_on_subtitle),
+                        settings.watch { it.privacyShade.keepScreenOn },
+                        default = SettingsDefaults.privacyShade.keepScreenOn,
+                        info = stringResource(R.string.tooldetail_privacy_shade_keep_on_info),
+                    ) { scope.launch { repository.setPrivacyShadeKeepScreenOn(it) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_privacy_shade_dim_title,
+                        stringResource(R.string.tooldetail_privacy_shade_dim_subtitle),
+                        settings.watch { it.privacyShade.dimScreen },
+                        default = SettingsDefaults.privacyShade.dimScreen,
+                        info = stringResource(R.string.tooldetail_privacy_shade_dim_info),
+                    ) { scope.launch { repository.setPrivacyShadeDimScreen(it) } }
+                }
+                item {
+                    ChoiceSetting(
+                        R.string.tooldetail_privacy_shade_timer_title,
+                        options = PrivacyShadeSettings.TIMER_CHOICES.map { minutes ->
+                            minutes to if (minutes == 0) {
+                                stringResource(R.string.tooldetail_privacy_shade_timer_never)
+                            } else {
+                                pluralStringResource(R.plurals.tooldetail_privacy_shade_timer_minutes, minutes, minutes)
+                            }
+                        },
+                        selected = settings.watch { it.privacyShade.timerMinutes },
+                        default = SettingsDefaults.privacyShade.timerMinutes,
+                        info = stringResource(R.string.tooldetail_privacy_shade_timer_info),
+                    ) { scope.launch { repository.setPrivacyShadeTimerMinutes(it) } }
                 }
             }
             PrivacyShadeAppsGroup(repository, settings)

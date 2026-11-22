@@ -5336,8 +5336,10 @@ open class WMKeyboardService : InputMethodService() {
         }
         // A screen timing out mid-sentence closes the keyboard, and the keyboard
         // closing ends the dictation with the clip still unsent (#1081).
+        // The privacy shade asks for the same while it is up, if set to (#1428).
         serviceScope.launch {
             _uiState.map { it.settings.voiceBar.keepScreenOn && it.voice.status in VoiceKeepsScreenOn }
+                .combine(shadeKeepsScreenOn) { voice, shade -> voice || shade }
                 .distinctUntilChanged()
                 .collect { keep ->
                     val flag = android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
@@ -7632,6 +7634,70 @@ open class WMKeyboardService : InputMethodService() {
         // A glass theme's blur keeps the window as tall as the keyboard; the
         // shade needs the whole height, so it wins while it is up.
         win?.let(::fitImeWindowHeight)
+        val up = privacyShade.showing
+        shadeKeepsScreenOn.value = up && shade.keepScreenOn
+        win?.let { dimForShade(it, up && shade.dimScreen) }
+        armShadeTimer(if (up) shade.timerMinutes else 0)
+    }
+
+    /** The shade is up and set to keep the screen from timing out (#1428). */
+    private val shadeKeepsScreenOn = MutableStateFlow(false)
+
+    /**
+     * The lowest brightness while the shade is up, set to (#1428). The
+     * window's own brightness override: the system takes it from the topmost
+     * window that has one, which is the keyboard's while it shows, and drops
+     * it by itself when the keyboard goes away.
+     */
+    private fun dimForShade(win: android.view.Window, dim: Boolean) {
+        val want = if (dim) {
+            WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF
+        } else {
+            WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+        }
+        val attrs = win.attributes
+        if (attrs.screenBrightness == want) return
+        attrs.screenBrightness = want
+        try {
+            win.attributes = attrs
+        } catch (detached: IllegalArgumentException) {
+            // Not attached yet; the value is kept on the attributes and
+            // applied when the window is added.
+            DebugLog.w("ime", "IME window not attached while dimming it: ${detached.message}")
+        }
+    }
+
+    /** The countdown that takes the shade down (#1428), and the length it was armed with. */
+    private var shadeTimer: Job? = null
+    private var shadeTimerMs = 0L
+
+    /**
+     * Takes the shade down [minutes] after it came up; 0 cancels. Counted on
+     * the clock that keeps running while the phone sleeps, in steps of at
+     * most a minute, since a plain delay stops while the phone sleeps.
+     */
+    private fun armShadeTimer(minutes: Int) {
+        val wanted = minutes * 60_000L
+        if (wanted <= 0L) {
+            shadeTimer?.cancel()
+            shadeTimer = null
+            shadeTimerMs = 0L
+            return
+        }
+        if (shadeTimer != null && shadeTimerMs == wanted) return
+        shadeTimer?.cancel()
+        shadeTimerMs = wanted
+        val deadline = SystemClock.elapsedRealtime() + wanted
+        shadeTimer = serviceScope.launch {
+            while (true) {
+                val left = deadline - SystemClock.elapsedRealtime()
+                if (left <= 0L) break
+                delay(minOf(left, 60_000L))
+            }
+            shadeTimer = null
+            shadeTimerMs = 0L
+            closePrivacyShade()
+        }
     }
 
     /** The Privacy shade tool: up or down. Floating, there is no band above the board to cover. */

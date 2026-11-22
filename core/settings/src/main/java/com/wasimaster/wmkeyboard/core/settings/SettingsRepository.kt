@@ -14012,6 +14012,9 @@ class SettingsRepository(private val context: Context) {
         private val PRIVACY_SHADE_OPACITY = floatPreferencesKey("privacy_shade_opacity")
         private val PRIVACY_SHADE_TOUCH_THROUGH = booleanPreferencesKey("privacy_shade_touch_through")
         private val PRIVACY_SHADE_APPS = stringSetPreferencesKey("privacy_shade_apps")
+        private val PRIVACY_SHADE_KEEP_SCREEN_ON = booleanPreferencesKey("privacy_shade_keep_screen_on")
+        private val PRIVACY_SHADE_DIM_SCREEN = booleanPreferencesKey("privacy_shade_dim_screen")
+        private val PRIVACY_SHADE_TIMER_MINUTES = intPreferencesKey("privacy_shade_timer_minutes")
         private val FEEDBACK_SHAKE = booleanPreferencesKey("feedback_shake")
         private val FEEDBACK_SCREENSHOT = booleanPreferencesKey("feedback_screenshot")
         private val FEEDBACK_TELEGRAM_ROUTE = stringPreferencesKey("feedback_telegram_route")
@@ -15174,6 +15177,10 @@ class SettingsRepository(private val context: Context) {
                     .coerceIn(PrivacyShadeSettings.MIN_OPACITY, 1f),
                 touchThrough = p[PRIVACY_SHADE_TOUCH_THROUGH] ?: defaults.privacyShade.touchThrough,
                 apps = p[PRIVACY_SHADE_APPS] ?: defaults.privacyShade.apps,
+                keepScreenOn = p[PRIVACY_SHADE_KEEP_SCREEN_ON] ?: defaults.privacyShade.keepScreenOn,
+                dimScreen = p[PRIVACY_SHADE_DIM_SCREEN] ?: defaults.privacyShade.dimScreen,
+                timerMinutes = (p[PRIVACY_SHADE_TIMER_MINUTES] ?: defaults.privacyShade.timerMinutes)
+                    .takeIf { it in PrivacyShadeSettings.TIMER_CHOICES } ?: defaults.privacyShade.timerMinutes,
             ),
             feedbackShortcuts = FeedbackShortcutSettings(
                 shake = p[FEEDBACK_SHAKE] ?: defaults.feedbackShortcuts.shake,
@@ -18653,6 +18660,14 @@ class SettingsRepository(private val context: Context) {
     }
 
     suspend fun setPrivacyShadeTouchThrough(value: Boolean) = editPrefs { it[PRIVACY_SHADE_TOUCH_THROUGH] = value }
+
+    suspend fun setPrivacyShadeKeepScreenOn(value: Boolean) = editPrefs { it[PRIVACY_SHADE_KEEP_SCREEN_ON] = value }
+
+    suspend fun setPrivacyShadeDimScreen(value: Boolean) = editPrefs { it[PRIVACY_SHADE_DIM_SCREEN] = value }
+
+    suspend fun setPrivacyShadeTimerMinutes(value: Int) = editPrefs {
+        it[PRIVACY_SHADE_TIMER_MINUTES] = value.takeIf { m -> m in PrivacyShadeSettings.TIMER_CHOICES } ?: 0
+    }
 
     /** Adds [pkg] to the apps the shade comes up in by itself, or takes it off. */
     suspend fun setPrivacyShadeApp(pkg: String, on: Boolean) = editPrefs {

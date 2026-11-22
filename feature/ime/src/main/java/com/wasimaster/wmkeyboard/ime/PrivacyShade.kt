@@ -144,6 +144,12 @@ internal class PrivacyShade(
         private var drawn = false
         private var touchThrough = true
 
+        /**
+         * Whether the hint is written on the cover. Not on the black one,
+         * which is there to leave an OLED screen's pixels off (#1428).
+         */
+        private var showHint = true
+
         /** Lifted by a held finger, with touch-through off. */
         private var peeking = false
 
@@ -169,6 +175,7 @@ internal class PrivacyShade(
         fun apply(next: PrivacyShadeSettings, show: Boolean) {
             drawn = show
             touchThrough = next.touchThrough
+            showHint = next.style != PrivacyShadeStyle.BLACK
             val (cover, ink) = colours(next.style)
             coverPaint.color = cover
             coverPaint.alpha = (next.opacity.coerceIn(PrivacyShadeSettings.MIN_OPACITY, 1f) * 255).roundToInt()
@@ -243,7 +250,7 @@ internal class PrivacyShade(
             canvas.drawLine(ccx - arm, cy - arm, ccx + arm, cy + arm, closePaint)
             canvas.drawLine(ccx - arm, cy + arm, ccx + arm, cy - arm, closePaint)
             // What the handle is for, in the middle of the cover while there is room.
-            if (bottom > dp(HINT_ROOM_DP)) {
+            if (showHint && bottom > dp(HINT_ROOM_DP)) {
                 canvas.drawText(hint, cx, bottom / 2f, hintPaint)
             }
         }
@@ -331,6 +338,7 @@ internal class PrivacyShade(
         /** The cover's colour and the colour its handle and hint are drawn in. */
         fun colours(style: PrivacyShadeStyle): Pair<Int, Int> = when (style) {
             PrivacyShadeStyle.DARK -> Color.rgb(0x12, 0x13, 0x16) to Color.WHITE
+            PrivacyShadeStyle.BLACK -> Color.BLACK to Color.WHITE
             PrivacyShadeStyle.GREY -> Color.rgb(0x5F, 0x63, 0x68) to Color.WHITE
             PrivacyShadeStyle.LIGHT -> Color.rgb(0xF1, 0xF3, 0xF4) to Color.rgb(0x20, 0x21, 0x24)
             PrivacyShadeStyle.WARM -> Color.rgb(0x3E, 0x2F, 0x26) to Color.rgb(0xFF, 0xE0, 0xC2)

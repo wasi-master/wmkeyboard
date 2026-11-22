@@ -2048,6 +2048,18 @@
             </intent-filter>
         </service>
 
+        <!-- The privacy shade up and down as a Quick Settings tile (#1428). -->
+        <service
+            android:name="com.wasimaster.wmkeyboard.app.PrivacyShadeTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_qs_privacy_shade"
+            android:label="@string/qs_privacy_shade_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
         <!-- Started by the Show keyboard tile only because a tile closes the
              shade by starting an activity. It draws no window and finishes in
              onCreate, so the app underneath keeps the focus; taskAffinity=""

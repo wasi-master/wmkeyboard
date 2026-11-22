@@ -1580,11 +1580,26 @@
     <string name="tooldetail_privacy_shade_on_subtitle">Covers the app above the keyboard. Drag its handle up to see the last lines, and tap the handle to cover them again.</string>
     <string name="tooldetail_privacy_shade_on_info">Covers the app above the keyboard with a shade, so a person beside you cannot read your chat. Drag the handle of the shade up to see the last lines, and tap the handle to cover them again. This setting is off by default.</string>
     <string name="tooldetail_privacy_shade_style_title">Colour</string>
-    <string name="tooldetail_privacy_shade_style_info">The colour of the privacy shade that covers the app: dark, grey, light or warm.</string>
+    <string name="tooldetail_privacy_shade_style_info">The colour of the privacy shade that covers the app: dark, black, grey, light or warm. Black is pure black with no hint written on it, so an OLED screen keeps those pixels off.</string>
     <string name="tooldetail_privacy_shade_style_dark">Dark</string>
     <string name="tooldetail_privacy_shade_style_grey">Grey</string>
     <string name="tooldetail_privacy_shade_style_light">Light</string>
     <string name="tooldetail_privacy_shade_style_warm">Warm</string>
+    <string name="tooldetail_privacy_shade_style_black">Black</string>
+    <!-- #1428: the shade as a black screen over a video or a download. -->
+    <string name="tooldetail_privacy_shade_keep_on_title">Keep the screen on</string>
+    <string name="tooldetail_privacy_shade_keep_on_subtitle">The screen does not turn off while the shade is up</string>
+    <string name="tooldetail_privacy_shade_keep_on_info">While the shade is up, the screen does not turn off by itself, so a video or a download under it keeps going. The keyboard has to stay open for this. This uses more battery, so it is off by default.</string>
+    <string name="tooldetail_privacy_shade_dim_title">Lowest brightness</string>
+    <string name="tooldetail_privacy_shade_dim_subtitle">Dims the screen while the shade is up</string>
+    <string name="tooldetail_privacy_shade_dim_info">While the shade is up, the screen goes to its lowest brightness, keys included. The brightness comes back when the shade goes down or the keyboard closes. With the Black colour at 100% opacity, an OLED screen keeps the pixels under the shade off. This setting is off by default.</string>
+    <string name="tooldetail_privacy_shade_timer_title">Take down after</string>
+    <string name="tooldetail_privacy_shade_timer_info">The shade goes down by itself this long after it came up, and with it the screen is free to turn off again. The time keeps counting while the keyboard is closed. The default is never.</string>
+    <string name="tooldetail_privacy_shade_timer_never">Never</string>
+    <plurals name="tooldetail_privacy_shade_timer_minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
     <string name="tooldetail_privacy_shade_opacity_title">Opacity</string>
     <string name="tooldetail_privacy_shade_opacity_subtitle">Lower lets you make out your own messages up close, while someone a seat away cannot</string>
     <string name="tooldetail_privacy_shade_opacity_info">How solid the privacy shade is. At a lower value you can still read your own messages from close up, while a person one seat away cannot.</string>
