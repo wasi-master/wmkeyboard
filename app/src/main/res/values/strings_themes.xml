@@ -655,6 +655,14 @@
     <string name="theme_key_override_gradient_angle_title">Gradient angle</string>
     <string name="theme_key_override_glow_title">Glow</string>
     <string name="theme_key_override_glow_size_title">Glow reach</string>
+    <!-- How much of a key's glow washes over the keys beside it, as a percentage. -->
+    <string name="theme_key_override_glow_spill_title">Light on nearby keys</string>
+    <string name="theme_key_override_glow_spill_info">The keys round this one take on its glow on the side that faces it, as if it lit them.</string>
+    <!-- The glow's colour while the key is held down. -->
+    <string name="theme_key_override_pressed_glow_title">Glow while held</string>
+    <!-- How bright the glow is while the key is held, as a percentage of the glow at rest. -->
+    <string name="theme_key_override_pressed_glow_strength_title">Held glow brightness</string>
+    <string name="theme_key_override_pressed_glow_strength_info">Under 100% dims the glow while the key is held, over 100% makes it brighter. The light on nearby keys follows.</string>
     <string name="theme_key_override_radius_title">Corner radius</string>
     <string name="theme_key_override_radius_info">Gives this key its own corner radius, apart from the radius of the other keys.</string>
     <string name="theme_key_background_title">Key background</string>

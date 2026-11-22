@@ -2129,6 +2129,9 @@ internal object SettingsRowIcons {
         put(R.string.theme_key_override_gradient_angle_title) { Icons.Outlined.Architecture }
         put(R.string.theme_key_override_glow_title) { Icons.Outlined.LightMode }
         put(R.string.theme_key_override_glow_size_title) { Icons.Outlined.BlurOn }
+        put(R.string.theme_key_override_glow_spill_title) { Icons.Outlined.Highlight }
+        put(R.string.theme_key_override_pressed_glow_title) { Icons.Outlined.TouchApp }
+        put(R.string.theme_key_override_pressed_glow_strength_title) { Icons.Outlined.Lightbulb }
         put(R.string.theme_key_override_radius_title) { Icons.Outlined.RoundedCorner }
         put(R.string.theme_decal_x_title) { Icons.Outlined.SwapHoriz }
         put(R.string.theme_decal_y_title) { Icons.Outlined.SwapVert }
