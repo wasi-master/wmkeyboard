@@ -56,6 +56,21 @@ class VoiceInputEngine(private val context: Context) {
 
         /** Terminal: the recognizer is already released when this fires. */
         fun onError(kind: ErrorKind)
+
+        /**
+         * One finished phrase of a segmented session (#1507): final, as
+         * [onFinal]'s text is, but the session goes on listening, and the
+         * partials after it are the next phrase's alone. Sent only when
+         * [start] asked for segments and the recognizer agreed.
+         */
+        fun onSegment(text: String) {}
+
+        /**
+         * Terminal: a segmented session ended after delivering its phrases
+         * through [onSegment], with nothing left over to deliver. The
+         * recognizer is already released when this fires.
+         */
+        fun onSegmentsEnd() {}
     }
 
     private var recognizer: SpeechRecognizer? = null
@@ -160,6 +175,13 @@ class VoiceInputEngine(private val context: Context) {
      * a switch mid-phrase; [languageTag] stays the one it starts in. Earlier
      * versions, and recognizers that ignore the extras, hear [languageTag]
      * alone.
+     *
+     * [segmented] asks for one session that hears phrase after phrase
+     * (#1507, Android 13+): each one comes to [Listener.onSegment] as it is
+     * settled and the session ends with [Listener.onSegmentsEnd] after a
+     * long silence, instead of every pause closing the microphone and losing
+     * the words said while the next session opens. A recognizer that does not
+     * do segments answers in [Listener.onFinal] as it always has.
      */
     fun start(
         languageTag: String,
@@ -169,6 +191,7 @@ class VoiceInputEngine(private val context: Context) {
         bias: VoiceBiasRequest = VoiceBiasRequest.NONE,
         alsoListenFor: List<String> = emptyList(),
         maskOffensive: Boolean = false,
+        segmented: Boolean = false,
     ) {
         cancel()
         lastErrorCode = 0
@@ -181,13 +204,16 @@ class VoiceInputEngine(private val context: Context) {
         // Every one of them deaf to this language leaves nothing, and then
         // they are all asked again: the user may have put that right since.
         val routes = all.filterNot { (it to languageTag) in deaf }.ifEmpty { all }
-        listen(Request(languageTag, listener, formatting, bias, alsoListenFor, maskOffensive), routes, 0, emptyList())
+        listen(
+            Request(languageTag, listener, formatting, bias, alsoListenFor, maskOffensive, segmented),
+            routes, 0, emptyList(),
+        )
     }
 
     /**
      * What [start] was asked for, carried from one recognizer to the next.
      * [bare] is the second pass [VoiceRoutes.retriesBare] allows: the
-     * language alone, no extras.
+     * language alone, no extras, segments included.
      */
     private class Request(
         val languageTag: String,
@@ -196,9 +222,11 @@ class VoiceInputEngine(private val context: Context) {
         val bias: VoiceBiasRequest,
         val alsoListenFor: List<String>,
         val maskOffensive: Boolean,
+        val segmented: Boolean,
         val bare: Boolean = false,
     ) {
-        fun bare(): Request = Request(languageTag, listener, false, VoiceBiasRequest.NONE, emptyList(), maskOffensive, bare = true)
+        fun bare(): Request =
+            Request(languageTag, listener, false, VoiceBiasRequest.NONE, emptyList(), maskOffensive, segmented = false, bare = true)
     }
 
     private fun open(route: VoiceRoute): SpeechRecognizer = when (route) {
@@ -240,6 +268,10 @@ class VoiceInputEngine(private val context: Context) {
         // The newest partial, which stands in for the result of a recognizer
         // that never sends one.
         var lastPartial = ""
+        // Phrases a segmented session has delivered (#1507). A session that
+        // has sent any ends without an error even when nothing is left over:
+        // its words are already in the field.
+        var segments = 0
         // Every recognizer is trusted to end a session in onResults or
         // onError. Transcribro (a Whisper recognition service people install
         // where there is no Google) ends one on its own pause detection with
@@ -255,7 +287,11 @@ class VoiceInputEngine(private val context: Context) {
             val check = Runnable {
                 if (recognizer === session) {
                     cancel()
-                    if (lastPartial.isBlank()) report(listener, VoiceRoutes.ERROR_NO_MATCH) else listener.onFinal(lastPartial)
+                    when {
+                        lastPartial.isNotBlank() -> listener.onFinal(lastPartial)
+                        segments > 0 -> listener.onSegmentsEnd()
+                        else -> report(listener, VoiceRoutes.ERROR_NO_MATCH)
+                    }
                 }
             }
             resultCheck = check
@@ -301,6 +337,13 @@ class VoiceInputEngine(private val context: Context) {
                 // the first report has already moved the phrase on.
                 if (recognizer !== session) return
                 val kind = errorKind(error)
+                // A segmented session that has delivered phrases and then
+                // timed out on silence has simply ended: what it heard is in.
+                if (segments > 0 && kind == ErrorKind.NO_SPEECH) {
+                    release(session)
+                    if (lastPartial.isNotBlank()) listener.onFinal(lastPartial) else listener.onSegmentsEnd()
+                    return
+                }
                 // Ended before the stall check ran: the same stall.
                 val stall = onDevice && !heard && kind == ErrorKind.NO_SPEECH
                 if (stall || kind == ErrorKind.LANGUAGE) deaf += route to ask.languageTag
@@ -341,7 +384,42 @@ class VoiceInputEngine(private val context: Context) {
                     return
                 }
                 release(session)
-                if (text.isBlank()) report(listener, VoiceRoutes.ERROR_NO_MATCH) else listener.onFinal(text)
+                when {
+                    text.isNotBlank() -> listener.onFinal(text)
+                    // A segmented session closing with an empty result: its
+                    // phrases came as segments.
+                    segments > 0 -> listener.onSegmentsEnd()
+                    else -> report(listener, VoiceRoutes.ERROR_NO_MATCH)
+                }
+            }
+
+            override fun onSegmentResults(segmentResults: Bundle) {
+                if (recognizer !== session) return
+                val text = segmentResults
+                    .getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    ?.firstOrNull()
+                    .orEmpty()
+                heard = true
+                // The partials so far were this phrase's; the next ones start
+                // the next phrase, and must not stand in for its result.
+                lastPartial = ""
+                // Still going: a wait for the result started by an end of
+                // speech starts over from this phrase.
+                if (resultCheck != null) waitForResult(RESULT_MS)
+                if (text.isNotBlank()) {
+                    segments++
+                    listener.onSegment(text)
+                }
+            }
+
+            override fun onEndOfSegmentedSession() {
+                if (recognizer !== session) return
+                release(session)
+                when {
+                    lastPartial.isNotBlank() -> listener.onFinal(lastPartial)
+                    segments > 0 -> listener.onSegmentsEnd()
+                    else -> report(listener, VoiceRoutes.ERROR_NO_MATCH)
+                }
             }
 
             override fun onPartialResults(partialResults: Bundle?) {
@@ -364,7 +442,7 @@ class VoiceInputEngine(private val context: Context) {
             if (ask.bare) {
                 bareRecognizerIntent(ask.languageTag)
             } else {
-                recognizerIntent(ask.languageTag, ask.formatting, ask.bias, ask.alsoListenFor, ask.maskOffensive)
+                recognizerIntent(ask.languageTag, ask.formatting, ask.bias, ask.alsoListenFor, ask.maskOffensive, ask.segmented)
             },
         )
     }
@@ -384,6 +462,7 @@ class VoiceInputEngine(private val context: Context) {
         bias: VoiceBiasRequest = VoiceBiasRequest.NONE,
         alsoListenFor: List<String> = emptyList(),
         maskOffensive: Boolean = false,
+        segmented: Boolean = false,
     ): Intent =
         Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(
@@ -428,6 +507,18 @@ class VoiceInputEngine(private val context: Context) {
                 putStringArrayListExtra(RecognizerIntent.EXTRA_LANGUAGE_DETECTION_ALLOWED_LANGUAGES, allowed)
                 putExtra(RecognizerIntent.EXTRA_ENABLE_LANGUAGE_SWITCH, RecognizerIntent.LANGUAGE_SWITCH_BALANCED)
                 putStringArrayListExtra(RecognizerIntent.EXTRA_LANGUAGE_SWITCH_ALLOWED_LANGUAGES, allowed)
+            }
+            // One session for a whole dictation (#1507): phrases come as
+            // segments, and only a long silence ends it. The extra named as
+            // the segment type has to be in the intent too. A recognizer that
+            // does no segments may still take the silence length, and then
+            // only waits longer before it ends the phrase.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && segmented) {
+                putExtra(
+                    RecognizerIntent.EXTRA_SEGMENTED_SESSION,
+                    RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,
+                )
+                putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, SEGMENTED_SILENCE_MS)
             }
         }
 
@@ -593,6 +684,12 @@ class VoiceInputEngine(private val context: Context) {
          * the words are known, only the recognizer's result is missing.
          */
         const val RESULT_AFTER_PARTIAL_MS = 3_000L
+
+        /**
+         * The silence that ends a segmented session (#1507). Pauses shorter
+         * than this only close a phrase; the recognizer decides where.
+         */
+        const val SEGMENTED_SILENCE_MS = 5_000L
     }
 
     private fun errorKind(code: Int): ErrorKind = when (code) {

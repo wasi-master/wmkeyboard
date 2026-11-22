@@ -39350,6 +39350,7 @@ open class WMKeyboardService : InputMethodService() {
             alsoListenFor = languageIds.drop(1).map(::voiceTagOf),
             // Off, Google's recognizer is asked to stop putting "f***" in.
             maskOffensive = _uiState.value.settings.voiceBar.maskSwearing,
+            segmented = voiceSegmented(),
             listener = object : VoiceInputEngine.Listener {
                 override fun onListening() {
                     if (generation != voiceGeneration) return
@@ -39409,6 +39410,32 @@ open class WMKeyboardService : InputMethodService() {
                     val landed = commitVoiceUtterance(text, tag)
                     voiceSilentRetries = 0
                     tidyVoiceThen(landed) { afterVoiceFinal() }
+                }
+
+                override fun onSegment(text: String) {
+                    if (generation != voiceGeneration) return
+                    // One phrase of a segmented session (#1507): into the
+                    // field the way a final result goes, with the microphone
+                    // left open for the next. [voiceSegmented] keeps the
+                    // rewrites that hold the next phrase back out of these.
+                    commitVoiceUtterance(text, tag)
+                    voiceSilentRetries = 0
+                    // The next phrase's listening time, for the statistics.
+                    voiceListenStartedAt = SystemClock.uptimeMillis()
+                    // A segment means the session is still listening, even if
+                    // the recognizer said the speech had ended before it.
+                    _uiState.update {
+                        val status = if (it.voice.status == VoiceStatus.FINISHING) VoiceStatus.LISTENING else it.voice.status
+                        it.copy(voice = it.voice.copy(status = status, partial = "", canUndo = true))
+                    }
+                }
+
+                override fun onSegmentsEnd() {
+                    if (generation != voiceGeneration) return
+                    voiceGeneration++
+                    micBlockWatcher.stop()
+                    // Every phrase is in the field already.
+                    afterVoiceFinal()
                 }
 
                 /** The phrase is in the field, tidied or not: chain or come to rest. */
@@ -40710,6 +40737,22 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun voiceChains(): Boolean =
         !voiceSessionForField && (_uiState.value.settings.voiceContinuous || interactiveVoice())
+
+    /**
+     * Whether the system recognizer is asked for one segmented session that
+     * hears phrase after phrase (#1507), rather than a session per phrase
+     * with the words said while the next one opened lost. Only for a
+     * dictation that chains anyway. Not when the AI tidy or the romanized
+     * respelling may rewrite a phrase after it lands: both hold the next
+     * phrase back until they are done, which a session that goes on
+     * listening cannot do.
+     */
+    private fun voiceSegmented(): Boolean {
+        if (!voiceChains()) return false
+        val voiceBar = _uiState.value.settings.voiceBar
+        if (voiceBar.aiTidy && !voiceBar.plainTyping()) return false
+        return !latinXlitApplies(voiceRomanizedIds())
+    }
 
     /** See [VOICE_SILENT_RETRIES]. */
     private fun voiceSilentRetryLimit(): Int =
