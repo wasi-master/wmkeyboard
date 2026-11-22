@@ -256,10 +256,13 @@ internal fun panelOverKeysSize(state: KeyboardUiState, wanted: Dp, floor: Dp): P
     val setting = panelExtraHeight(state, PanelHeightKind.OVER_KEYS, state.settings.layoutBehavior.panelOverKeysExtraHeightDp)
     val resize = rememberClipPanelResize(setting)
     val base = toolPanelHeight(state, wanted = wanted + ClipPanelBarHeight, floor = floor + ClipPanelBarHeight)
+    // With the keys put down (#961) [toolPanelHeight] adds their rows to the
+    // floor as well, and [base] has them already.
+    val putDown = if (state.captureKeysLowered) keyRowsHeight(state) else 0.dp
     val maxPanel = toolPanelHeight(
         state,
         wanted = wanted + ClipPanelBarHeight + PanelOverKeysExtraHeightRange.last.dp,
-        floor = base,
+        floor = base - putDown,
     )
     val maxExtra = (maxPanel - base).coerceAtLeast(0.dp)
     val probe = remember(resize) { Modifier.clipPanelHeightProbe(resize) }

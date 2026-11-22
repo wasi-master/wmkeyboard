@@ -14024,14 +14024,25 @@ private fun ToolboxPanel(
     // The search is full-bleed: the toolbar and the rows with it hide, and
     // the panel takes their height so the window keeps its size.
     val bled = if (searching) fullBleedHiddenRows(state, macroRowAtPanelOpen(state)) else 0.dp
-    val height = if (typing) {
-        toolPanelHeight(
+    // Over the keys it wears the height bar every panel over them wears
+    // (#615), which it alone went without (#1501).
+    val overKeys = if (typing && keyRowsUnderPanelOrPutDown(state)) {
+        panelOverKeysSize(
             state,
             wanted = ClipboardSearchHeight - captureStripHeight(state) + bled,
             floor = ToolboxHeaderHeight,
         )
     } else {
-        keyRowsHeight(state) + bled
+        null
+    }
+    val height = when {
+        overKeys != null -> overKeys.height
+        typing -> toolPanelHeight(
+            state,
+            wanted = ClipboardSearchHeight - captureStripHeight(state) + bled,
+            floor = ToolboxHeaderHeight,
+        )
+        else -> keyRowsHeight(state) + bled
     }
     // First open: always show the drag hint. After it was dismissed once,
     // resurface it only rarely as a reminder. Rolled once per panel open.
@@ -14054,11 +14065,12 @@ private fun ToolboxPanel(
         }
     }
     Column(
-        modifier = Modifier
+        modifier = (overKeys?.probe ?: Modifier)
             .fillMaxWidth()
             .height(height)
             .onGloballyPositioned { drag.toolboxViewport = it.boundsInRoot() },
     ) {
+        overKeys?.bar?.invoke()
         // A slim header carrying the drag hint until it's dismissed. Resetting
         // the pinned tools now lives in Settings → Appearance ("Reset pinned
         // tools"), so the toolbox no longer shows its own reset control.
@@ -15708,7 +15720,9 @@ internal fun FullBleedTool(
     // Collapsed over the live keys, the panel wears a bar of its own that
     // drags it taller (#615), the one height every such panel shares. Not a
     // panel that only collapses to make way for the toolbar: no keys under it.
-    val overKeys = if (!inBox && compact && keyRowsUnderPanel(state)) {
+    // Kept with the keys put down (#961, #1501): the panel takes their rows
+    // and keeps its bar, rather than losing the bar and the height it set.
+    val overKeys = if (!inBox && compact && keyRowsUnderPanelOrPutDown(state)) {
         panelOverKeysSize(state, wanted = compactHeight - captureStripHeight(state), floor = FullBleedHeaderHeight)
     } else {
         null
@@ -27622,6 +27636,15 @@ internal fun keyRowsUnderPanel(state: KeyboardUiState): Boolean =
 internal fun boxFieldTakesStrip(state: KeyboardUiState): Boolean =
     state.panel == PanelMode.NONE && state.appletPanel != null &&
         state.captureTarget() != null && captureStripShown(state)
+
+/**
+ * [keyRowsUnderPanel], or the same rows put down to see the panel (#961).
+ * A panel sized over the keys stays sized that way with them down, the
+ * rows' height added to it ([toolPanelHeight]), so it keeps its height bar
+ * and the keyboard keeps its height (#1501).
+ */
+internal fun keyRowsUnderPanelOrPutDown(state: KeyboardUiState): Boolean =
+    state.panel != PanelMode.NONE && keyRowsUnderPanelRaised(state)
 
 /** [keyRowsUnderPanel] for a field whose keys are up. */
 private fun keyRowsUnderPanelRaised(state: KeyboardUiState): Boolean = when (state.panelFieldTarget()) {
