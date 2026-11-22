@@ -135,6 +135,14 @@ interface LlmModuleGate {
      * then says so instead of "downloading" (Telegram, 10216).
      */
     fun lastError(): Int? = null
+
+    /**
+     * The library's state, where it is a gate of its own: on a build that
+     * downloads its libraries (GitHub), so that a download that failed says
+     * why rather than "downloading" (#1518). Null on Play, which says it
+     * with [lastError], and wherever the runtime is built in.
+     */
+    fun state(): com.wasimaster.wmkeyboard.core.modules.ModuleState? = null
 }
 
 object LlmModule {

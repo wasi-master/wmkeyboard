@@ -23,6 +23,8 @@ fun installLlmDelivery(app: Application) {
         override fun requestInstall() = gate.requestInstall()
 
         override fun missingConsent(): String? = (gate.state.value as? ModuleState.Missing)?.consent
+
+        override fun state(): ModuleState = gate.state.value
     }
 }
 

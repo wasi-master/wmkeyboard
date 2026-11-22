@@ -65,17 +65,19 @@ object LocalLlmEngine {
             // Read before the retry below, which clears it while Play tries
             // again: a fetch that failed says so, with Play's code, instead
             // of "downloading" on every try (Telegram, 10216).
+            // A GitHub build's failed download likewise, with its reason (#1518).
             val failed = LlmModule.gate.lastError()
+            val before = LlmModule.gate.state()
             LlmModule.gate.requestInstall()
             // Play may be waiting for a yes it can ask only in the settings
             // app; "try again in a moment" never came true then (Telegram, 4529).
-            if (LlmModule.gate.waitingForConfirmation()) {
-                throw IOException(context.getString(R.string.core_intel_llm_module_confirm))
-            }
-            if (failed != null) {
-                throw IOException(context.getString(R.string.core_intel_llm_module_failed, failed))
-            }
-            throw IOException(context.getString(R.string.core_intel_llm_module_downloading))
+            throw LlmLibraryState.notHere(
+                context,
+                before,
+                LlmModule.gate.state(),
+                LlmModule.gate.waitingForConfirmation(),
+                failed,
+            )
         }
         // LiteRT-LM loads its library by name; a delivered one goes in first.
         if (!NativeDelivery.preload("litertlm_jni")) {
