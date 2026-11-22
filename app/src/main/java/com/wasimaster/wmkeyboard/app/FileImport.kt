@@ -19,6 +19,27 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProvideTextStyle
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -1354,8 +1375,9 @@ internal fun ImportFileDialog(
         else -> null
     }
 
-    AlertDialog(
+    ImportShell(
         onDismissRequest = { if (!waiting && !working) onClose() },
+        showButtons = !waiting,
         title = if (title != null) {
             { Text(title) }
         } else {
@@ -1475,6 +1497,88 @@ internal fun ImportFileDialog(
             },
             onDismiss = { pickingLanguage = false },
         )
+    }
+}
+
+/**
+ * An alert dialog whose window never changes size.
+ *
+ * The import's steps (reading, the offer, the work, the result) are one
+ * dialog that changes its text. A platform dialog window wraps its content,
+ * so each change resized the window a frame behind the content and the card
+ * landed in a corner before snapping back. Here the window fills the screen
+ * and only the card inside it changes, centred and animating its own size.
+ * The look is the Material alert dialog's: same shape, colour, padding and
+ * type.
+ */
+@Composable
+private fun ImportShell(
+    onDismissRequest: () -> Unit,
+    title: (@Composable () -> Unit)?,
+    text: @Composable () -> Unit,
+    confirmButton: @Composable () -> Unit,
+    dismissButton: @Composable () -> Unit,
+    /** False while there is only a spinner, so no empty button row sits under it. */
+    showButtons: Boolean = true,
+) {
+    val reduceMotion = LocalReduceMotion.current
+    Dialog(
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
+        // The window is the whole screen, so a tap beside the card is a tap
+        // on this box: it dismisses, as the scrim of a wrapped dialog would.
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onDismissRequest,
+                )
+                .systemBarsPadding()
+                .imePadding()
+                .padding(horizontal = 24.dp, vertical = 24.dp),
+        ) {
+            // A Surface consumes the taps that land on it, so the box's
+            // dismiss only fires outside the card.
+            Surface(
+                shape = AlertDialogDefaults.shape,
+                color = AlertDialogDefaults.containerColor,
+                tonalElevation = AlertDialogDefaults.TonalElevation,
+                modifier = Modifier
+                    .widthIn(min = 280.dp, max = 560.dp)
+                    .then(if (reduceMotion) Modifier else Modifier.animateContentSize()),
+            ) {
+                Column(Modifier.padding(24.dp)) {
+                    if (title != null) {
+                        ProvideTextStyle(MaterialTheme.typography.headlineSmall) {
+                            Box(Modifier.padding(bottom = 16.dp)) {
+                                CompositionLocalProvider(
+                                    LocalContentColor provides AlertDialogDefaults.titleContentColor,
+                                ) { title() }
+                            }
+                        }
+                    }
+                    Box(Modifier.weight(1f, fill = false)) {
+                        ProvideTextStyle(MaterialTheme.typography.bodyMedium) {
+                            CompositionLocalProvider(
+                                LocalContentColor provides AlertDialogDefaults.textContentColor,
+                            ) { text() }
+                        }
+                    }
+                    if (showButtons) Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+                    ) {
+                        dismissButton()
+                        confirmButton()
+                    }
+                }
+            }
+        }
     }
 }
 
