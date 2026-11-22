@@ -57,4 +57,16 @@ class DeadKeysTest {
         // rather than silently attaching to the previous character.
         assertEquals("◌̖", DeadKeys.standalone('̖'))
     }
+
+    @Test fun stackedAccentsComposeInPressOrder() {
+        assertEquals("ấ", DeadKeys.applyAll("\u0302\u0301", "a"))
+        assertEquals("ǭ", DeadKeys.applyAll("\u0328\u0304", "o"))
+        // No precomposed letter: the letter keeps its marks, composed as far as Unicode goes.
+        assertEquals("q\u0302\u0301", DeadKeys.applyAll("\u0302\u0301", "q"))
+        // A non-letter takes no accents.
+        assertEquals("^´1", DeadKeys.applyAll("\u0302\u0301", "1"))
+        // One mark behaves as before.
+        assertEquals("~q", DeadKeys.applyAll("\u0303", "q"))
+        assertEquals("^´", DeadKeys.standaloneAll("\u0302\u0301"))
+    }
 }

@@ -3234,7 +3234,7 @@ open class WMKeyboardService : InputMethodService() {
 
     /** [raw] as every edit sees it; a test's own field goes through here too. */
     internal fun fieldConnection(raw: InputConnection): InputConnection {
-        val base = traced(raw)
+        val base = curled(traced(raw))
         fancyOutputStyle(_uiState.value)?.let { style ->
             fancyConnection?.let { if (it.base === base && it.style == style) return it }
             return FancyOutputConnection(base, style).also { fancyConnection = it }
@@ -3242,6 +3242,16 @@ open class WMKeyboardService : InputMethodService() {
         val encoding = outputEncoding ?: return base
         legacyConnection?.let { if (it.base === base && it.encoding == encoding) return it }
         return LegacyOutputConnection(base, encoding).also { legacyConnection = it }
+    }
+
+    /** The curling connection handed out last, kept for as long as its field lasts. */
+    private var curlyConnection: CurlyApostropheConnection? = null
+
+    /** [base] seen through [CurlyApostropheConnection] while "Curly apostrophes" is on. */
+    private fun curled(base: InputConnection): InputConnection {
+        if (!_uiState.value.settings.autoText.curlyApostrophe) return base
+        curlyConnection?.let { if (it.base === base) return it }
+        return CurlyApostropheConnection(base).also { curlyConnection = it }
     }
 
     /** The connection [traced] last decided about, and what it decided. */
@@ -3304,10 +3314,11 @@ open class WMKeyboardService : InputMethodService() {
         com.wasimaster.wmkeyboard.core.prediction.PassageWords.EMPTY
 
     /**
-     * Accent armed by a dead key, waiting for the letter to combine with.
-     * Mirrored into [KeyboardUiState.pendingDeadKey] for the strip chip.
+     * Accents armed by dead keys, in press order, waiting for the letter to
+     * combine with (several stack: ˆ ´ a → ấ). Mirrored into
+     * [KeyboardUiState.pendingDeadKey] for the strip chip.
      */
-    private var pendingDeadKey: Char? = null
+    private var pendingDeadKey: String? = null
 
     /** Word lists the user imported, one trie per language (empty when none). */
     private var customDictionaries: Map<String, WordSource> = emptyMap()
@@ -15780,17 +15791,20 @@ open class WMKeyboardService : InputMethodService() {
 
         if (applyDeadKeys) {
             // Dead keys: the accent arms and waits, then fuses with the next
-            // letter. Pressing the same accent twice types it literally, which
-            // is the standard escape hatch for wanting the accent on its own.
+            // letter. Accents stack, so ˆ ´ a gives ấ. Pressing the one armed
+            // accent again types it literally, the standard escape hatch for
+            // wanting the accent on its own.
             val pressedMark = DeadKeys.markOf(text)
             val armedMark = pendingDeadKey
             when {
-                pressedMark != null && pressedMark == armedMark -> {
+                pressedMark != null && armedMark == pressedMark.toString() -> {
                     setPendingDeadKey(null)
                     text = DeadKeys.standalone(pressedMark)
                 }
                 pressedMark != null -> {
-                    setPendingDeadKey(pressedMark)
+                    // The same accent twice in a stack means nothing; skip it.
+                    val stack = armedMark.orEmpty()
+                    setPendingDeadKey(if (pressedMark in stack) stack else stack + pressedMark)
                     // Nothing typed yet; the letter the accent lands on spends it.
                     deferredWordSpace = spaceOwed
                     consumeShift()
@@ -15798,7 +15812,7 @@ open class WMKeyboardService : InputMethodService() {
                 }
                 armedMark != null -> {
                     setPendingDeadKey(null)
-                    text = DeadKeys.apply(armedMark, text)
+                    text = DeadKeys.applyAll(armedMark, text)
                 }
             }
         }
@@ -29307,9 +29321,9 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /** Arms or clears the dead-key accent, keeping the strip chip in step. */
-    private fun setPendingDeadKey(mark: Char?) {
-        pendingDeadKey = mark
-        val label = mark?.let { DeadKeys.standalone(it) }
+    private fun setPendingDeadKey(marks: String?) {
+        pendingDeadKey = marks?.takeIf { it.isNotEmpty() }
+        val label = pendingDeadKey?.let { DeadKeys.standaloneAll(it) }
         if (_uiState.value.pendingDeadKey != label) {
             _uiState.update { it.copy(pendingDeadKey = label) }
         }

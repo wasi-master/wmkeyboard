@@ -3414,6 +3414,12 @@ data class AutoTextSettings(
     val wordChars: String = "",
     /** Fix missing apostrophes on commit: arent → aren't, im → I'm. */
     val apostrophe: Boolean = true,
+    /**
+     * Words the keyboard commits get the typographic apostrophe ’ in place of
+     * the straight ' between two letters: a glided "I'm", a strip pick, a
+     * repaired "dont", a word typed with the ' key. A lone ' stays straight.
+     */
+    val curlyApostrophe: Boolean = false,
     /** Capitalize the first letter of a sentence. */
     val capitalize: Boolean = true,
     /**
@@ -13104,6 +13110,7 @@ class SettingsRepository(private val context: Context) {
         private val EMOJI_FONT = stringPreferencesKey("emoji_font")
         private val EMOJI_FONT_INSTALLED_ID = stringPreferencesKey("emoji_font_installed_id")
         private val AUTO_APOSTROPHE = booleanPreferencesKey("auto_apostrophe")
+        private val CURLY_APOSTROPHE = booleanPreferencesKey("curly_apostrophe")
         private val HAPTIC = booleanPreferencesKey("haptic")
         private val HAPTIC_STRENGTH = intPreferencesKey("haptic_strength")
         private val HAPTIC_AMPLITUDE = intPreferencesKey("haptic_amplitude")
@@ -15690,6 +15697,7 @@ class SettingsRepository(private val context: Context) {
     private fun readAutoText(p: Preferences, defaults: KeyboardSettings) =
         AutoTextSettings(
             apostrophe = p[AUTO_APOSTROPHE] ?: defaults.autoText.apostrophe,
+            curlyApostrophe = p[CURLY_APOSTROPHE] ?: defaults.autoText.curlyApostrophe,
             capitalize = p[AUTO_CAPITALIZE] ?: defaults.autoText.capitalize,
             capitalizeWords = p[AUTO_CAPITALIZE_WORDS] ?: defaults.autoText.capitalizeWords,
             capitalizeAnyField = p[AUTO_CAPITALIZE_ANY_FIELD] ?: defaults.autoText.capitalizeAnyField,
@@ -23789,6 +23797,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAutoApostrophe(value: Boolean) =
         editPrefs { it[AUTO_APOSTROPHE] = value }
+
+    suspend fun setCurlyApostrophe(value: Boolean) =
+        editPrefs { it[CURLY_APOSTROPHE] = value }
 
     suspend fun setHapticFeedback(value: Boolean) =
         editPrefs { it[HAPTIC] = value }

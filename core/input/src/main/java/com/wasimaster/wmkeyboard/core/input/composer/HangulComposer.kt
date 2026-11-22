@@ -30,6 +30,14 @@ package com.wasimaster.wmkeyboard.core.input.composer
  * Whatever comes in, isolated jamo go out as compatibility jamo — a lone
  * conjoining ᆫ draws as a dotted circle with a final hanging off it, and the
  * two-set layout has always left ㄴ behind for the same keystroke.
+ *
+ * **Old Hangul.** Obsolete jamo (ㆍ ㅿ ㆁ ㆆ ㅸ and the rest, as compatibility
+ * letters U+3165–318E or as conjoining jamo from the old-Hangul ranges) have
+ * no precomposed syllables, so a syllable holding one goes out as a run of
+ * conjoining jamo, initial + medial (+ final), which a font with old-Hangul
+ * support draws as one block: ㅎ ㆍ ㄴ → ᄒᆞᆫ. Compatibility letters
+ * still find their place by position the two-set way, ㆍ ㅣ makes ᆡ and
+ * ㆍ ㆍ makes ᆢ.
  */
 object HangulComposer : Composer {
 
@@ -80,6 +88,100 @@ object HangulComposer : Composer {
         'ㄱ' to 'ㄲ', 'ㄷ' to 'ㄸ', 'ㅂ' to 'ㅃ', 'ㅅ' to 'ㅆ', 'ㅈ' to 'ㅉ',
     )
 
+    /** A jamo's conjoining initial, medial and final forms; 0 where it has none. */
+    private class Forms(val l: Int, val v: Int, val t: Int)
+
+    /** The obsolete compatibility letters, from their Unicode names. */
+    private val OLD_COMPAT: Map<Char, Forms> = mapOf(
+        'ㅥ' to Forms(0x1114, 0, 0x11FF), // ssangnieun
+        'ㅦ' to Forms(0x1115, 0, 0x11C6), // nieun-tikeut
+        'ㅧ' to Forms(0x115B, 0, 0x11C7), // nieun-sios
+        'ㅨ' to Forms(0, 0, 0x11C8), // nieun-pansios
+        'ㅩ' to Forms(0, 0, 0x11CC), // rieul-kiyeok-sios
+        'ㅪ' to Forms(0xA966, 0, 0x11CE), // rieul-tikeut
+        'ㅫ' to Forms(0, 0, 0x11D3), // rieul-pieup-sios
+        'ㅬ' to Forms(0, 0, 0x11D7), // rieul-pansios
+        'ㅭ' to Forms(0, 0, 0x11D9), // rieul-yeorinhieuh
+        'ㅮ' to Forms(0x111C, 0, 0x11DC), // mieum-pieup
+        'ㅯ' to Forms(0xA971, 0, 0x11DD), // mieum-sios
+        'ㅰ' to Forms(0, 0, 0x11DF), // mieum-pansios
+        'ㅱ' to Forms(0x111D, 0, 0x11E2), // kapyeounmieum
+        'ㅲ' to Forms(0x111E, 0, 0), // pieup-kiyeok
+        'ㅳ' to Forms(0x1120, 0, 0xD7E3), // pieup-tikeut
+        'ㅴ' to Forms(0x1122, 0, 0), // pieup-sios-kiyeok
+        'ㅵ' to Forms(0x1123, 0, 0xD7E7), // pieup-sios-tikeut
+        'ㅶ' to Forms(0x1127, 0, 0xD7E8), // pieup-cieuc
+        'ㅷ' to Forms(0x1129, 0, 0), // pieup-thieuth
+        'ㅸ' to Forms(0x112B, 0, 0x11E6), // kapyeounpieup
+        'ㅹ' to Forms(0x112C, 0, 0), // kapyeounssangpieup
+        'ㅺ' to Forms(0x112D, 0, 0x11E7), // sios-kiyeok
+        'ㅻ' to Forms(0x112E, 0, 0), // sios-nieun
+        'ㅼ' to Forms(0x112F, 0, 0x11E8), // sios-tikeut
+        'ㅽ' to Forms(0x1132, 0, 0x11EA), // sios-pieup
+        'ㅾ' to Forms(0x1136, 0, 0xD7EF), // sios-cieuc
+        'ㅿ' to Forms(0x1140, 0, 0x11EB), // pansios
+        'ㆀ' to Forms(0x1147, 0, 0x11EE), // ssangieung
+        'ㆁ' to Forms(0x114C, 0, 0x11F0), // yesieung
+        'ㆂ' to Forms(0, 0, 0x11F1), // yesieung-sios
+        'ㆃ' to Forms(0, 0, 0x11F2), // yesieung-pansios
+        'ㆄ' to Forms(0x1157, 0, 0x11F4), // kapyeounphieuph
+        'ㆅ' to Forms(0x1158, 0, 0), // ssanghieuh
+        'ㆆ' to Forms(0x1159, 0, 0x11F9), // yeorinhieuh
+        'ㆇ' to Forms(0, 0x1184, 0), // yo-ya
+        'ㆈ' to Forms(0, 0x1185, 0), // yo-yae
+        'ㆉ' to Forms(0, 0x1188, 0), // yo-i
+        'ㆊ' to Forms(0, 0x1191, 0), // yu-yeo
+        'ㆋ' to Forms(0, 0x1192, 0), // yu-ye
+        'ㆌ' to Forms(0, 0x1194, 0), // yu-i
+        'ㆍ' to Forms(0, 0x119E, 0), // araea
+        'ㆎ' to Forms(0, 0x11A1, 0), // araeae
+    )
+
+    /** Conjoining initials, medials and finals outside the modern 19/21/27. */
+    private fun isOldInitial(code: Int) = code in 0x1113..0x115E || code in 0xA960..0xA97C
+    private fun isOldMedial(code: Int) = code in 0x1176..0x11A7 || code in 0xD7B0..0xD7C6
+    private fun isOldFinal(code: Int) = code in 0x11C3..0x11FF || code in 0xD7CB..0xD7FB
+
+    private fun isOld(c: Char): Boolean =
+        c in OLD_COMPAT || isOldInitial(c.code) || isOldMedial(c.code) || isOldFinal(c.code)
+
+    private const val CHOSEONG_FILLER = 0x115F
+    private const val JUNGSEONG_FILLER = 0x1160
+    private const val ARAEA = 0x119E
+
+    /** Medial pairs in conjoining form: the modern compounds plus ㆍㅣ → ᆡ and ㆍㆍ → ᆢ. */
+    private val OLD_COMPOUND_MEDIAL: Map<Pair<Int, Int>, Int> by lazy {
+        COMPOUND_MEDIAL.entries.associate { (pair, out) ->
+            (JUNGSEONG_FIRST + vIndex(pair.first) to JUNGSEONG_FIRST + vIndex(pair.second)) to JUNGSEONG_FIRST + vIndex(out)
+        } + mapOf((ARAEA to JUNGSEONG_FIRST + vIndex('ㅣ')) to 0x11A1, (ARAEA to ARAEA) to 0x11A2)
+    }
+
+    /** What a compatibility jamo [c] can be, in conjoining form; null when it is not one. */
+    private fun compatForms(c: Char): Forms? {
+        OLD_COMPAT[c]?.let { return it }
+        val ci = lIndex(c)
+        val vi = vIndex(c)
+        val ti = tIndex(c)
+        if (ci < 0 && vi < 0 && ti <= 0) return null
+        return Forms(
+            if (ci >= 0) CHOSEONG_FIRST + ci else 0,
+            if (vi >= 0) JUNGSEONG_FIRST + vi else 0,
+            if (ti > 0) JONGSEONG_FIRST + ti - 1 else 0,
+        )
+    }
+
+    /** The compatibility letter a lone conjoining jamo shows as, or itself. */
+    private fun lone(code: Int): String {
+        when (code) {
+            in CHOSEONG_FIRST..CHOSEONG_LAST -> return CHOSEONG[code - CHOSEONG_FIRST].toString()
+            in JUNGSEONG_FIRST..JUNGSEONG_LAST -> return JUNGSEONG[code - JUNGSEONG_FIRST].toString()
+            in JONGSEONG_FIRST..JONGSEONG_LAST -> return JONGSEONG[code - JONGSEONG_FIRST + 1].toString()
+        }
+        OLD_COMPAT.entries.firstOrNull { it.value.l == code || it.value.v == code || it.value.t == code }
+            ?.let { return it.key.toString() }
+        return String(Character.toChars(code))
+    }
+
     private fun lIndex(c: Char) = CHOSEONG.indexOf(c)
     private fun vIndex(c: Char) = JUNGSEONG.indexOf(c)
     private fun tIndex(c: Char) = JONGSEONG.indexOf(c) // 0 = none, >0 = a real final
@@ -93,13 +195,110 @@ object HangulComposer : Composer {
         var v = -1 // jungseong index, -1 none
         var t = 0 // jongseong index, 0 none
 
+        // An old-Hangul syllable, in conjoining code points (0 = empty slot).
+        // While [old] is set these hold the syllable and l, v, t stay empty.
+        var old = false
+        var xl = 0
+        var xv = 0
+        var xt = 0
+        var xtCompat: Char? = null // the compatibility letter the final was typed as
+
         fun flush() {
+            if (old) {
+                when {
+                    xv == 0 && xt == 0 && xl != 0 -> out.append(lone(xl))
+                    xl == 0 && xt == 0 && xv != 0 -> out.append(lone(xv))
+                    // A syllable that ended up all modern (the one after an old
+                    // one, typed while the run was still in conjoining form)
+                    // goes out precomposed, like any other.
+                    xl in CHOSEONG_FIRST..CHOSEONG_LAST && xv in JUNGSEONG_FIRST..JUNGSEONG_LAST &&
+                        (xt == 0 || xt in JONGSEONG_FIRST..JONGSEONG_LAST) ->
+                        out.append(
+                            syllable(xl - CHOSEONG_FIRST, xv - JUNGSEONG_FIRST, if (xt == 0) 0 else xt - JONGSEONG_FIRST + 1),
+                        )
+                    xl != 0 || xv != 0 -> {
+                        out.appendCodePoint(if (xl != 0) xl else CHOSEONG_FILLER)
+                        out.appendCodePoint(if (xv != 0) xv else JUNGSEONG_FILLER)
+                        if (xt != 0) out.appendCodePoint(xt)
+                    }
+                    xt != 0 -> out.append(lone(xt))
+                }
+                old = false; xl = 0; xv = 0; xt = 0; xtCompat = null
+                return
+            }
             when {
                 l >= 0 && v >= 0 -> out.append(syllable(l, v, t))
                 l >= 0 -> out.append(CHOSEONG[l])
                 v >= 0 -> out.append(JUNGSEONG[v])
             }
             l = -1; v = -1; t = 0
+        }
+
+        /** Carries the modern syllable open so far over into conjoining form. */
+        fun goOld() {
+            if (old) return
+            xl = if (l >= 0) CHOSEONG_FIRST + l else 0
+            xv = if (v >= 0) JUNGSEONG_FIRST + v else 0
+            xt = if (t > 0) JONGSEONG_FIRST + t - 1 else 0
+            xtCompat = if (t > 0) JONGSEONG[t] else null
+            l = -1; v = -1; t = 0
+            old = true
+        }
+
+        fun oldVowel(vc: Int, positional: Boolean) {
+            when {
+                xv == 0 && xt == 0 -> xv = vc
+                xt == 0 -> {
+                    val cm = OLD_COMPOUND_MEDIAL[xv to vc]
+                    if (cm != null) xv = cm else { flush(); old = true; xv = vc }
+                }
+                positional || xtCompat == null -> { flush(); old = true; xv = vc }
+                else -> {
+                    // Two-set: the final moves on to be the next syllable's initial.
+                    val typed = xtCompat!!
+                    val split = FINAL_SPLIT[typed]
+                    val kept = split?.first
+                    val moved = compatForms(split?.second ?: typed)?.l ?: 0
+                    if (moved == 0) { flush(); old = true; xv = vc; return }
+                    xt = kept?.let { JONGSEONG_FIRST + tIndex(it) - 1 } ?: 0
+                    flush(); old = true; xl = moved; xv = vc
+                }
+            }
+        }
+
+        fun oldConsonant(c: Char, forms: Forms, positional: Boolean) {
+            fun startInitial() {
+                flush()
+                if (forms.l != 0) { old = true; xl = forms.l } else out.append(c)
+            }
+            when {
+                positional && forms.l != 0 -> if (xl == 0 && xv == 0 && xt == 0) xl = forms.l else startInitial()
+                positional -> if (xv != 0 && xt == 0) { xt = forms.t; xtCompat = null } else { flush(); out.append(lone(forms.t)) }
+                xv == 0 -> if (xl == 0 && forms.l != 0) xl = forms.l else startInitial()
+                xt == 0 -> if (forms.t != 0) { xt = forms.t; xtCompat = c } else startInitial()
+                else -> {
+                    val cf = xtCompat?.let { COMPOUND_FINAL[it to c] }
+                    if (cf != null) { xt = JONGSEONG_FIRST + tIndex(cf) - 1; xtCompat = cf } else startInitial()
+                }
+            }
+        }
+
+        /** Any jamo, once the syllable is an old-Hangul one. */
+        fun oldJamo(c: Char) {
+            val code = c.code
+            when {
+                code in CHOSEONG_FIRST..CHOSEONG_LAST || isOldInitial(code) -> oldConsonant(c, Forms(code, 0, 0), true)
+                code in JUNGSEONG_FIRST..JUNGSEONG_LAST || isOldMedial(code) -> oldVowel(code, true)
+                code in JONGSEONG_FIRST..JONGSEONG_LAST || isOldFinal(code) -> oldConsonant(c, Forms(0, 0, code), true)
+                else -> {
+                    val forms = compatForms(c)
+                    when {
+                        forms == null -> { flush(); out.append(c) }
+                        forms.v != 0 -> oldVowel(forms.v, false)
+                        else -> oldConsonant(c, forms, false)
+                    }
+                }
+            }
         }
 
         /** A vowel, from either block: only the re-split differs. */
@@ -161,6 +360,11 @@ object HangulComposer : Composer {
 
         for (c in jamos) {
             val code = c.code
+            if (old || isOld(c)) {
+                goOld()
+                oldJamo(c)
+                continue
+            }
             when {
                 code in CHOSEONG_FIRST..CHOSEONG_LAST -> choseong(code - CHOSEONG_FIRST)
                 code in JUNGSEONG_FIRST..JUNGSEONG_LAST ->

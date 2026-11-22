@@ -130,4 +130,27 @@ class HangulComposerTest {
         assertEquals(compose("ㅇㅏㄴㄴㅕㅇㅎㅏㅅㅔㅇㅛ"), compose(threeSet))
         assertEquals("안녕하세요", compose(threeSet))
     }
+
+    @Test fun `old jamo build a syllable out of conjoining jamo`() {
+        assertEquals("\u1112\u119E\u11AB", compose("ㅎㆍㄴ")) // ᄒᆞᆫ
+        assertEquals("\u1140\u1161", compose("ㅿㅏ")) // ᅀᅡ
+        assertEquals("\u1100\u1161\u11F0", compose("ㄱㅏㆁ")) // 가ᇰ
+        assertEquals("\u1159\u1173", compose("ㆆㅡ")) // ᅙᅳ
+    }
+
+    @Test fun `an old syllable hands its final on and the next syllable is modern`() {
+        assertEquals("\u1112\u119E나", compose("ㅎㆍㄴㅏ"))
+        assertEquals("\u1140\u1161가", compose("ㅿㅏㄱㅏ"))
+    }
+
+    @Test fun `araea compounds and lone old jamo stay letters`() {
+        assertEquals("ㆎ", compose("ㆍㅣ"))
+        assertEquals("ㆍ", compose("ㆍ"))
+        assertEquals("ㅿ", compose("ㅿ"))
+        assertEquals("\u1109\u11A2", compose("ㅅㆍㆍ")) // ᄉᆢ
+    }
+
+    @Test fun `conjoining old jamo compose by their own position`() {
+        assertEquals("\u1140\u119E\u11EB", compose("\u1140\u119E\u11EB"))
+    }
 }

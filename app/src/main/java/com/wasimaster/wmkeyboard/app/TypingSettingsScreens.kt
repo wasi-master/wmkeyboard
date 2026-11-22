@@ -762,6 +762,15 @@ internal fun TypingCorrectionsSettings(
                 default = SettingsDefaults.autoText.apostrophe,
             ) { scope.launch { repository.setAutoApostrophe(it) } }
         }
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.typing_curly_apostrophe_title,
+                stringResource(R.string.typing_curly_apostrophe_subtitle),
+                settings.watch { it.autoText.curlyApostrophe },
+                info = stringResource(R.string.typing_curly_apostrophe_info),
+                default = SettingsDefaults.autoText.curlyApostrophe,
+            ) { scope.launch { repository.setCurlyApostrophe(it) } }
+        }
     }
     // The other half of what this page used to hold: capitals, the double
     // space, brackets and lists. A page of its own now, reached from here and

@@ -1200,6 +1200,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_number_prediction_title) { Icons.Outlined.Numbers }
         put(R.string.typing_block_offensive_title) { Icons.Outlined.Block }
         put(R.string.typing_auto_apostrophe_title) { Icons.Outlined.Spellcheck }
+        put(R.string.typing_curly_apostrophe_title) { Icons.Outlined.FormatQuote }
         put(R.string.typing_auto_capitalize_title) { Icons.Outlined.KeyboardCapslock }
         put(R.string.typing_auto_capitalize_words_title) { Icons.Outlined.KeyboardCapslock }
         put(R.string.typing_auto_capitalize_any_field_title) { Icons.Outlined.KeyboardCapslock }

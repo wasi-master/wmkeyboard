@@ -78,4 +78,21 @@ object DeadKeys {
         val base = text.singleOrNull() ?: return standalone(mark) + text
         return combine(base, mark) ?: (standalone(mark) + text)
     }
+
+    /**
+     * What to output when several accents are armed, in the order they were
+     * pressed, and the user types [text] (ˆ ´ a → ấ, ˛ ¯ o → ǭ). The letter
+     * and its marks are NFC-composed, so Unicode's precomposed letter comes
+     * out where one exists and the letter with its combining marks where not.
+     * One armed mark keeps [apply]'s fallback to the spacing accent.
+     */
+    fun applyAll(marks: String, text: String): String {
+        if (marks.length == 1) return apply(marks[0], text)
+        val base = text.singleOrNull()
+        if (base == null || !base.isLetter()) return marks.map(::standalone).joinToString("") + text
+        return Normalizer.normalize(base + marks, Normalizer.Form.NFC)
+    }
+
+    /** The strip chip's text for a stack of armed accents. */
+    fun standaloneAll(marks: String): String = marks.map(::standalone).joinToString("")
 }

@@ -204,6 +204,9 @@
     <string name="typing_auto_apostrophe_title">Fix missing apostrophes</string>
     <!-- Example data. The words are English spellings and are not translated. -->
     <string name="typing_auto_apostrophe_subtitle" translatable="false">arent → aren\'t, im → I\'m, dont → don\'t</string>
+    <string name="typing_curly_apostrophe_title">Curly apostrophes</string>
+    <string name="typing_curly_apostrophe_subtitle">I\'m becomes I’m, don\'t becomes don’t</string>
+    <string name="typing_curly_apostrophe_info">Words the keyboard types get the curly apostrophe ’ instead of the straight \' between two letters. That covers a word you glide, a suggestion you pick, an apostrophe the keyboard puts back, and a word you type with the \' key. A \' on its own, such as a quote mark, stays straight.</string>
     <string name="typing_auto_apostrophe_info">You type a contraction without its apostrophe (arent, isnt, youre, oclock…). When you press space, the keyboard puts the apostrophe back, and a lone \"i\" becomes \"I\". The keyboard leaves alone the words that are also real English words without the apostrophe (its, well, ill, shell…). This setting works even when autocorrect is off.</string>
 
     <string name="typing_auto_capitalize_title">Automatic capital letters</string>

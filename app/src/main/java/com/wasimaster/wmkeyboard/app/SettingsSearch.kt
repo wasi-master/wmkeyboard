@@ -453,6 +453,7 @@ private fun SearchStrings.typingCorrectionsRows(): List<SettingsSearchEntry> {
             R.string.typing_number_row_corrections_subtitle,
         ),
         row(R.string.typing_auto_apostrophe_title, R.string.typing_auto_apostrophe_subtitle),
+        row(R.string.typing_curly_apostrophe_title, R.string.typing_curly_apostrophe_subtitle),
     )
 }
 
