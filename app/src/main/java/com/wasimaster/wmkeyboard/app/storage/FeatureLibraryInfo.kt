@@ -45,6 +45,7 @@ internal class FeatureLibraryInfo(@StringRes val description: Int, val route: St
             "ocr" to FeatureLibraryInfo(R.string.storage_lib_ocr, SCANNER),
             "rime" to FeatureLibraryInfo(R.string.storage_lib_rime, LANGUAGES),
             "mozc" to FeatureLibraryInfo(R.string.storage_lib_mozc, LANGUAGES),
+            "chewing" to FeatureLibraryInfo(R.string.storage_lib_chewing, LANGUAGES),
             "bergamot" to FeatureLibraryInfo(R.string.storage_lib_bergamot, TRANSLATE),
             "langid" to FeatureLibraryInfo(R.string.storage_lib_langid, TRANSLATE),
             "ct2" to FeatureLibraryInfo(R.string.storage_lib_ct2, TRANSLATE),

@@ -695,6 +695,35 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
     <string name="languages_mozc_clear_subtitle">Clears the conversions, predictions and reading boundaries Mozc learned from your picks. The dictionary stays.</string>
     <string name="languages_mozc_clear_done">Cleared.</string>
 
+    <!-- The Chewing engine for Zhuyin (libchewing, 新酷音). Chewing is the
+         engine's name and stays in Latin letters; Zhuyin is the input method. -->
+    <string name="languages_chewing_group_title">Zhuyin conversion</string>
+    <string name="languages_chewing_group_info">The built-in engine converts Zhuyin with the pinyin dictionary, a word at a time. Chewing (新酷音) is the open-source engine behind many of Taiwan\'s Zhuyin keyboards: you type a whole sentence and it converts it phrase by phrase, learning the phrases you pick. It needs its own library and dictionary.</string>
+    <string name="languages_chewing_engine_title">Zhuyin engine</string>
+    <string name="languages_chewing_engine_info">The engine that converts Zhuyin (bopomofo) into characters on the Zhuyin layout. With Chewing, the composing text shows the sentence converted as you type, and the strip offers the whole sentence first, then the phrases it can start with. Enter writes what the composing text shows. The 12-key Zhuyin pad stays on the built-in engine. Chewing writes Traditional characters.</string>
+    <string name="languages_chewing_engine_chewing">Chewing</string>
+    <string name="languages_chewing_engine_subtitle">With Chewing, the Zhuyin layout converts whole sentences phrase by phrase, as Taiwan\'s Zhuyin keyboards do. Tone marks are optional.</string>
+    <!-- %1$s is a size such as 560 KB. -->
+    <string name="languages_chewing_library_missing">Chewing needs its library, about <xliff:g id="size" example="560 KB">%1$s</xliff:g>. The built-in engine types until it is here.</string>
+    <string name="languages_chewing_library_missing_unsized">Chewing needs its library. The built-in engine types until it is here.</string>
+    <!-- %1$s and %2$s are sizes such as 120 KB and 560 KB. -->
+    <string name="languages_chewing_library_installing">Downloading the Chewing library: <xliff:g id="done" example="120 KB">%1$s</xliff:g> of <xliff:g id="total" example="560 KB">%2$s</xliff:g></string>
+    <string name="languages_chewing_library_installing_unsized">Downloading the Chewing library…</string>
+    <string name="languages_chewing_library_failed">The Chewing library did not download.</string>
+    <string name="languages_chewing_status_title">Chewing status</string>
+    <string name="languages_chewing_status_off">Chewing starts when you pick it above.</string>
+    <string name="languages_chewing_status_locked">Chewing starts after you unlock the phone. Until then the built-in engine types.</string>
+    <string name="languages_chewing_status_needs_library">Waiting for the Chewing library.</string>
+    <string name="languages_chewing_status_needs_data">Download the Chewing dictionary below. Chewing starts when it is here.</string>
+    <string name="languages_chewing_status_starting">Starting…</string>
+    <!-- %1$s is the dictionary's release, such as 2026.3.22. -->
+    <string name="languages_chewing_status_ready">Ready, dictionary <xliff:g id="version" example="2026.3.22">%1$s</xliff:g></string>
+    <!-- %1$s is libchewing's own error message, in English. -->
+    <string name="languages_chewing_status_failed">Chewing did not start: <xliff:g id="detail" example="dictionary: invalid data">%1$s</xliff:g></string>
+    <string name="languages_chewing_clear_title">Forget what Chewing learned</string>
+    <string name="languages_chewing_clear_subtitle">Clears the phrases Chewing learned from your picks. The dictionary stays.</string>
+    <string name="languages_chewing_clear_done">Cleared.</string>
+
     <string name="languages_cjk_traditional_title">Traditional characters</string>
     <string name="languages_cjk_traditional_subtitle">The keyboard converts candidates to Traditional (繁體). With the phrase table pack, it converts word by word, so 头发 becomes 頭髮.</string>
     <!-- Info text for the Traditional characters toggle. The Chinese characters

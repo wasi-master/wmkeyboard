@@ -67,6 +67,7 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.voice.OpusEncoder
 import com.wasimaster.wmkeyboard.core.voice.VoiceDenoise
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtNative
+import com.wasimaster.wmkeyboard.core.input.chewing.ChewingRuntime
 import com.wasimaster.wmkeyboard.core.input.mozc.MozcRuntime
 import com.wasimaster.wmkeyboard.core.input.rime.RimeRuntime
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
@@ -662,6 +663,20 @@ private val bundledAttributions: List<Attribution> = buildList {
                 "Copyright 2010-2026 Google Inc.",
                 "BSD-3-Clause", "mozc-third-party.txt",
                 "https://github.com/google/mozc",
+            ),
+        )
+    }
+    if (ChewingRuntime.libraryShipped) {
+        // The optional Chewing engine for Zhuyin: libchewing in a library of
+        // its own (LGPL, so it can be replaced on its own), and the
+        // libchewing-data dictionary it downloads, under the same licence.
+        add(
+            Attribution(
+                "libchewing",
+                R.string.about_bundled_chewing_used,
+                "Copyright libchewing Core Team",
+                "LGPL-2.1-or-later", "lgpl-2.1-chewing.txt",
+                "https://github.com/chewing/libchewing",
             ),
         )
     }

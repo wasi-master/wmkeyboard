@@ -268,6 +268,15 @@ Finnish dictionary (voikko-fi, GPL 2+) is not in the APK or the library
 either: the phone downloads it from the data repository, where it sits
 beside the source tarball it is built from.
 
+The script also builds `native/chewing-jni` (libchewing 0.13.1, the
+`chewing` crate from crates.io, LGPL-2.1-or-later, with a JNI bridge) into
+`core/input/src/chewing/jniLibs`: the optional Chewing engine for Zhuyin. A
+plain Rust crate like Harper, every dependency at the version `Cargo.lock`
+pins, no C code. Its dictionary is not in the APK or the library: it is a CJK
+pack download, compiled from libchewing-data by the same crate
+(`build.sh --data`). The next entry's `scandelete` needs that path added; the
+copy of the recipe here already has it.
+
 The reproducible build is what makes this delicate. The reference APK carries
 these libraries too, so F-Droid's copies must come out byte for byte the same
 as the release workflow's. Each script maps every path of the build machine

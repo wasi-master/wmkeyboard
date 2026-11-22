@@ -868,6 +868,8 @@ import com.wasimaster.wmkeyboard.core.input.composer.resolvedComposer
 import com.wasimaster.wmkeyboard.core.input.composer.ConversionEngines
 import com.wasimaster.wmkeyboard.core.input.rime.RimeEngine
 import com.wasimaster.wmkeyboard.core.input.mozc.MozcEngine
+import com.wasimaster.wmkeyboard.core.input.chewing.ChewingEngine
+import com.wasimaster.wmkeyboard.core.input.chewing.ChewingRuntime
 import com.wasimaster.wmkeyboard.core.input.mozc.MozcRuntime
 import com.wasimaster.wmkeyboard.core.input.composer.Composer
 import com.wasimaster.wmkeyboard.core.input.composer.BornoPhoneticComposer
@@ -5905,6 +5907,8 @@ open class WMKeyboardService : InputMethodService() {
                 RimeEngine.configure(this@WMKeyboardService, settings.cjk.rimeLanguages, settings.cjk.rimeSchemas)
                 // The same for Japanese on Mozc.
                 MozcEngine.configure(this@WMKeyboardService, settings.cjk.mozcJapanese, settings.cjk.kanaLooseMarks)
+                // And Zhuyin on Chewing.
+                ChewingEngine.configure(this@WMKeyboardService, settings.cjk.chewingZhuyin)
                 // A field-scoped override (FORCE_ASCII, hintLocales) outlives
                 // settings emissions — otherwise saving any unrelated setting
                 // would drop the field back to a layout it cannot accept.
@@ -10227,10 +10231,11 @@ open class WMKeyboardService : InputMethodService() {
         if (loadedCjkPackToken != cjkTablesToken()) {
             serviceScope.launch { loadCjkConversionTables() }
         }
-        // Mozc picked but not open yet: its library or dictionary may have
+        // Mozc or Chewing picked but not open yet: its library or dictionary may have
         // landed since (a download, an offline import), or the phone was
         // unlocked. Opening runs in the background; asking again is cheap.
         if (MozcEngine.enabled && !MozcRuntime.ready) MozcRuntime.prepare(this)
+        if (ChewingEngine.enabled && !ChewingRuntime.ready) ChewingRuntime.prepare(this)
         // Likewise an input method imported in Settings, or a layout bound to
         // one switched on there.
         reloadImportedInputMethods()

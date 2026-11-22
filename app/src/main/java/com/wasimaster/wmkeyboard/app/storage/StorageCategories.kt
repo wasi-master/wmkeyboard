@@ -60,6 +60,7 @@ import com.wasimaster.wmkeyboard.core.upscale.UpscaleModels
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictDownloadManager
 import com.wasimaster.wmkeyboard.core.input.composer.CjkLearning
+import com.wasimaster.wmkeyboard.core.input.chewing.ChewingRuntime
 import com.wasimaster.wmkeyboard.core.input.mozc.MozcRuntime
 import com.wasimaster.wmkeyboard.core.input.rime.RimeRuntime
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmCatalog
@@ -403,7 +404,12 @@ internal object StorageCategories {
             danger = Danger.REDOWNLOAD,
             manageRoute = "languages",
             note = R.string.storage_note_mapped,
-            pathsOf = { listOf(File(it.files, "dict"), File(it.files, "cjk_dicts"), File(it.files, "rime"), File(it.files, "mozc")) },
+            pathsOf = {
+                listOf(
+                    File(it.files, "dict"), File(it.files, "cjk_dicts"), File(it.files, "rime"),
+                    File(it.files, "mozc"), File(it.files, "chewing"),
+                )
+            },
             itemsOf = { env ->
                 // RIME's unpacked and compiled schemas, with the words it learned:
                 // one item, since they only make sense together.
@@ -429,7 +435,18 @@ internal object StorageCategories {
                         directory = true,
                     )
                 }
-                listOfNotNull(rime, mozc) +
+                // The phrases Chewing learned; its dictionary is a CJK pack too.
+                val chewing = File(env.roots.files, "chewing").takeIf(File::isDirectory)?.let { dir ->
+                    StorageItem(
+                        id = dir.absolutePath,
+                        label = env.context.getString(R.string.storage_chewing_label),
+                        detail = dir.name,
+                        bytes = diskUsage(dir, env.roots.blockSize),
+                        files = listOf(dir),
+                        directory = true,
+                    )
+                }
+                listOfNotNull(rime, mozc, chewing) +
                     languageItems(env, File(env.roots.files, "dict")) +
                     childrenOf(File(env.roots.files, "cjk_dicts")).map { dir ->
                         // These are named after the input method rather than a
@@ -449,6 +466,7 @@ internal object StorageCategories {
                 // A running Mozc keeps its history in memory and would write
                 // it back, so it forgets it as well.
                 if (item.id == File(env.roots.files, "mozc").absolutePath) MozcRuntime.clearHistory(env.context)
+                if (item.id == File(env.roots.files, "chewing").absolutePath) ChewingRuntime.clearHistory(env.context)
                 item.files.forEach { it.deleteRecursively() }
                 refreshWordlists(env)
             },
@@ -458,6 +476,8 @@ internal object StorageCategories {
                 File(env.roots.files, "rime").deleteRecursively()
                 MozcRuntime.clearHistory(env.context)
                 File(env.roots.files, "mozc").deleteRecursively()
+                ChewingRuntime.clearHistory(env.context)
+                File(env.roots.files, "chewing").deleteRecursively()
                 refreshWordlists(env)
             },
         ),

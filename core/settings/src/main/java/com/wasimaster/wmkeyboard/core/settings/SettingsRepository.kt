@@ -215,6 +215,7 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import com.wasimaster.wmkeyboard.core.input.composer.CjkLearning
+import com.wasimaster.wmkeyboard.core.input.chewing.ChewingRuntime
 import com.wasimaster.wmkeyboard.core.input.rime.RimeStore
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -7051,6 +7052,13 @@ data class CjkSettings(
      * dictionary downloaded, the built-in engine only its kana dictionary.
      */
     val mozcJapanese: Boolean = false,
+    /**
+     * Whether Chinese Zhuyin converts on libchewing (the Chewing engine)
+     * instead of the built-in one. Off by default: Chewing needs its library
+     * and its own dictionary downloaded, the built-in engine only its pinyin
+     * dictionary.
+     */
+    val chewingZhuyin: Boolean = false,
 )
 
 /**
@@ -13681,6 +13689,7 @@ class SettingsRepository(private val context: Context) {
         // "METHOD=schema_id" entries.
         private val RIME_SCHEMAS = stringSetPreferencesKey("rime_schemas")
         private val MOZC_JAPANESE = booleanPreferencesKey("mozc_japanese")
+        private val CHEWING_ZHUYIN = booleanPreferencesKey("chewing_zhuyin")
         private val VI_STRICT_TONES = booleanPreferencesKey("vi_strict_tones")
         private val VI_RESTORE_MARKS = booleanPreferencesKey("vi_restore_marks")
         private val ONE_HANDED_MODE = stringPreferencesKey("one_handed_mode")
@@ -16017,6 +16026,7 @@ class SettingsRepository(private val context: Context) {
                 ?.toMap()
                 ?: defaults.cjk.rimeSchemas,
             mozcJapanese = p[MOZC_JAPANESE] ?: defaults.cjk.mozcJapanese,
+            chewingZhuyin = p[CHEWING_ZHUYIN] ?: defaults.cjk.chewingZhuyin,
         )
 
     private fun readVietnamese(p: Preferences, defaults: KeyboardSettings) =
@@ -22143,6 +22153,9 @@ class SettingsRepository(private val context: Context) {
     private val LEARNED_CORRECTIONS_KEY = "learnedCorrections"
     private val RIME_LAYER_KEY = "rimeUserLayer"
 
+    /** The phrases the Chewing engine learned, its user dictionary as base64 (libchewing's own file). */
+    private val CHEWING_LEARNED_KEY = "chewingUserPhrases"
+
     /** Which word was picked for which reading: the conversion half of the same vocabulary (#1072). */
     private val CJK_HISTORY_KEY = "cjkHistory"
     private val CJK_HISTORY_FILE = "learning/cjk_history.json"
@@ -22985,6 +22998,8 @@ class SettingsRepository(private val context: Context) {
                 val corrections = readStore(LEARNED_CORRECTIONS_FILE) as? JsonObject
                 val taps = readStore(TAP_MODEL_FILE) as? JsonObject
                 val rime = rimeLayerSection()
+                val chewing = ChewingRuntime.exportLearned(context.filesDir)
+                    ?.let { JsonPrimitive(android.util.Base64.encodeToString(it, android.util.Base64.NO_WRAP)) }
                 val cjkHistory = readStore(CJK_HISTORY_FILE) as? JsonObject
                 out[ConfigBackup.Section.DICTIONARY] = if (lexicon is JsonObject) {
                     JsonObject(
@@ -22993,6 +23008,7 @@ class SettingsRepository(private val context: Context) {
                             corrections?.let { LEARNED_CORRECTIONS_KEY to it },
                             taps?.let { TAP_MODEL_KEY to it },
                             rime?.let { RIME_LAYER_KEY to it },
+                            chewing?.let { CHEWING_LEARNED_KEY to it },
                             cjkHistory?.let { CJK_HISTORY_KEY to it },
                         ),
                     )
@@ -23267,9 +23283,13 @@ class SettingsRepository(private val context: Context) {
             val corrections = obj[LEARNED_CORRECTIONS_KEY] as? JsonObject
             val taps = obj[TAP_MODEL_KEY] as? JsonObject
             (obj[RIME_LAYER_KEY] as? JsonObject)?.let(::restoreRimeLayer)
+            (obj[CHEWING_LEARNED_KEY] as? JsonPrimitive)?.contentOrNull
+                ?.let { runCatching { android.util.Base64.decode(it, android.util.Base64.NO_WRAP) }.getOrNull() }
+                ?.let { runCatching { ChewingRuntime.restoreLearned(context.filesDir, it) } }
             val cjkHistory = obj[CJK_HISTORY_KEY] as? JsonObject
             val lexicon = JsonObject(
-                obj - WORD_RANKS_KEY - LEARNED_CORRECTIONS_KEY - TAP_MODEL_KEY - RIME_LAYER_KEY - CJK_HISTORY_KEY,
+                obj - WORD_RANKS_KEY - LEARNED_CORRECTIONS_KEY - TAP_MODEL_KEY - RIME_LAYER_KEY - CHEWING_LEARNED_KEY -
+                    CJK_HISTORY_KEY,
             )
             if (writeStore("learning/user_lexicon.json", lexicon)) {
                 if (ranks != null) writeStore("learning/word_ranks.json", ranks)
@@ -26280,6 +26300,9 @@ class SettingsRepository(private val context: Context) {
 
     /** Whether Japanese converts on Mozc rather than the built-in engine. */
     suspend fun setMozcJapanese(value: Boolean) = editPrefs { it[MOZC_JAPANESE] = value }
+
+    /** Whether Zhuyin converts on Chewing rather than the built-in engine. */
+    suspend fun setChewingZhuyin(value: Boolean) = editPrefs { it[CHEWING_ZHUYIN] = value }
 
     /** The RIME schema [method] types through; null goes back to the default. */
     suspend fun setRimeSchema(method: String, schemaId: String?) = editPrefs { p ->

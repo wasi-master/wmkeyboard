@@ -1772,6 +1772,12 @@ internal fun LanguageDetailScreen(
         MozcEngineGroup(repository, settings)
     }
 
+    // Chinese Zhuyin can convert on Chewing (libchewing) instead: the engine
+    // choice, its library, its dictionary and its learning.
+    if (langId == "zh") {
+        ChewingEngineGroup(repository, settings)
+    }
+
     // Removing the only language would leave nothing to type in, so it is only
     // offered when another language is enabled.
     if (settings.watch { it.enabledLanguages.size > 1 }) {

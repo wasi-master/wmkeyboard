@@ -113,7 +113,7 @@ The features the keyboard has
 - **Bangla, done properly.** Avro phonetic, Probhat with aspirates on shift, Jatiya, Khipro Classic and Dark,
   conjunct-aware backspace, and Bangla-English mixing in one field.
 - **CJK input** with composers for pinyin, jyutping, kana and hangul, plus Vietnamese Telex.
-  RIME for Chinese and Mozc for Japanese are there as optional engines.
+  RIME for Chinese, Mozc for Japanese and Chewing for Zhuyin are there as optional engines.
 - **Layouts you can edit**, build from JSON, or import from FlorisBoard, HeliBoard, FUTO, and Keyman.
 - **Odd ones too:** musical notation, braille chording, Morse, fancy-text alphabets, and a
   T9 keypad for languages that had one.
@@ -473,7 +473,7 @@ the same files.
 - [Bergamot](https://github.com/browsermt/bergamot-translator) (Firefox Translations) and [CTranslate2](https://github.com/OpenNMT/CTranslate2) with NLLB-200 for on-device translation.
 - [Tesseract](https://github.com/tesseract-ocr/tesseract) and Leptonica, and PaddleOCR on [MNN](https://github.com/alibaba/MNN), for OCR beyond the languages ML Kit covers. [zxing-cpp](https://github.com/zxing-cpp/zxing-cpp) for codes and [OpenCV](https://opencv.org/) for the built-in document scanner.
 - [zinnia](https://taku910.github.io/zinnia/) with Tegaki's models for Chinese and Japanese handwriting, and PaddleOCR's per-script recognisers for handwriting in other scripts without ML Kit.
-- [librime](https://github.com/rime/librime) and [Mozc](https://github.com/google/mozc) for the optional Chinese and Japanese engines.
+- [librime](https://github.com/rime/librime), [Mozc](https://github.com/google/mozc) and [libchewing](https://github.com/chewing/libchewing) for the optional Chinese, Japanese and Zhuyin engines.
 - [Hunspell](https://hunspell.github.io/), [divvunspell](https://github.com/divvun/divvunspell) and [Voikko](https://voikko.puimula.org/) for spell checking with imported dictionaries.
 - [Gemoji](https://github.com/github/gemoji), [KEmoji](https://invent.kde.org/libraries/kemoji) and Unicode CLDR for emoji names and keywords. [Noto](https://notofonts.github.io/) for fonts and animated emoji.
 - [Keyman](https://keyman.com) for the keyboard import format, and [Khipro](https://khipro.khiproteam.com/) for the Bangla layout of the same name.

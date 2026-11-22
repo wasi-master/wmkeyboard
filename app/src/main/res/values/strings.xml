@@ -50,6 +50,9 @@
     <!-- :feature:mozc, Google's Mozc behind the optional Mozc engine for
          Japanese. Mozc is the engine's name and stays in Latin letters. -->
     <string name="mozc_module_title">Mozc Japanese engine</string>
+    <!-- :feature:chewing, libchewing behind the optional Chewing engine for
+         Zhuyin. Chewing is the engine's name and stays in Latin letters. -->
+    <string name="chewing_module_title">Chewing Zhuyin engine</string>
     <string name="bergamot_module_title">Firefox Translations engine</string>
     <string name="ct2_module_title">NLLB translation engine</string>
     <string name="zinnia_module_title">Chinese and Japanese handwriting</string>
@@ -166,6 +169,7 @@
     <string name="offline_import_xlit_ready">Transliteration model is ready</string>
     <string name="offline_import_xlit_waiting">Transliteration model file in place; import the other two files of the model as well</string>
     <string name="offline_import_mozc_subtitle">The Mozc dictionary, fetched on another device</string>
+    <string name="offline_import_chewing_subtitle">The Chewing dictionary, fetched on another device</string>
     <string name="offline_import_futo_subtitle">The two model files, fetched on another device. Agree to FUTO\'s licence above first</string>
     <string name="offline_import_futo_ready">FUTO Swipe glide models are ready</string>
     <string name="offline_import_futo_waiting">FUTO Swipe file in place; import the other model_fp32.pte as well</string>

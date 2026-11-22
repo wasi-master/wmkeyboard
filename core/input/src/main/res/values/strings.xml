@@ -67,6 +67,10 @@
          stays in Latin letters. -->
     <string name="core_input_mozc_pack_title">Mozc dictionary</string>
     <string name="core_input_mozc_pack_subtitle">Mozc\'s own system dictionary, with its connection costs, segmenter and suggestion filter. The Mozc engine converts with this; the built-in engine does not use it.</string>
+    <!-- libchewing's dictionary, for the optional Chewing engine for Zhuyin.
+         Chewing and libchewing-data stay in Latin letters. -->
+    <string name="core_input_chewing_pack_title">Chewing dictionary</string>
+    <string name="core_input_chewing_pack_subtitle">libchewing-data\'s characters and phrases, about 4.5 MB. The Chewing engine converts with this; the built-in engine does not use it.</string>
     <string name="core_input_zinnia_ja_pack_title">Japanese handwriting model</string>
     <string name="core_input_zinnia_zh_hans_pack_title">Simplified Chinese handwriting model</string>
     <string name="core_input_zinnia_zh_hant_pack_title">Traditional Chinese handwriting model</string>

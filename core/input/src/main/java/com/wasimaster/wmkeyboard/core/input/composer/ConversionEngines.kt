@@ -8,7 +8,8 @@ import kotlinx.coroutines.flow.update
 
 /**
  * A native conversion engine that can stand in for one of the built-in
- * conversion composers: RIME for Chinese today, Mozc for Japanese next.
+ * conversion composers: RIME for Chinese, Mozc for Japanese, Chewing for
+ * Zhuyin.
  *
  * The built-in composer stays what the layout asks for ([composerFor]); an
  * engine only offers a replacement for it, per language, when the user has
@@ -18,8 +19,16 @@ import kotlinx.coroutines.flow.update
  */
 interface ConversionEngine {
 
-    /** Stable id, as the settings store it (`rime`, later `mozc`). */
+    /** Stable id, as the settings store it (`rime`, `mozc`, `chewing`). */
     val id: String
+
+    /**
+     * Which engine answers first when two would replace the same composer:
+     * the higher. An engine picked for one method (Chewing, for Zhuyin) goes
+     * ahead of one picked for a whole language (RIME), since picking it there
+     * was the more particular choice.
+     */
+    val priority: Int get() = 0
 
     /**
      * The composer to type through instead of [base], the built-in composer
@@ -49,10 +58,14 @@ object ConversionEngines {
     /** Bumped whenever an engine's answer for some layout may have changed. */
     val changes: StateFlow<Int> = generation.asStateFlow()
 
-    /** Adds [engine] once; a second registration of the same id replaces the first. */
+    /**
+     * Adds [engine] once; a second registration of the same id replaces the
+     * first. Kept by [ConversionEngine.priority], highest first, and among
+     * equals in the order they registered.
+     */
     @Synchronized
     fun register(engine: ConversionEngine) {
-        engines = engines.filterNot { it.id == engine.id } + engine
+        engines = (engines.filterNot { it.id == engine.id } + engine).sortedByDescending { it.priority }
         changed()
     }
 

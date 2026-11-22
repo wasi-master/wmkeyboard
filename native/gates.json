@@ -246,6 +246,15 @@
       ]
     },
     {
+      "id": "chewing",
+      "property": "chewing",
+      "doc": "`:feature:chewing`: libchewing (`libwmchewing`, `native/chewing-jni`, `:core:input`), behind the optional Chewing engine for Zhuyin, which converts whole phrases the way Taiwan's Chewing (新酷音) does. LGPL-2.1-or-later, so its own library and its own gate, replaceable on its own. Its dictionary is a separate download; the built-in Zhuyin composer needs neither.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmchewing.so", "dir": "core/input/src/chewing/jniLibs", "fdroidBuild": "native/chewing-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.input.chewing.ChewingNative"] }
+      ]
+    },
+    {
       "id": "langid",
       "property": "langid",
       "doc": "`:feature:langid`: language identification on builds without ML Kit's identifier (F-Droid, offline): fastText's lid.176 (`libwmfasttext`, model compiled in) first and CLD3 (`libwmcld3`) when it is unsure, both `:core:intelligence`. Reads the source language for the translate tool's Bergamot and NLLB engines and the sticker prompt. Fetched the first time it is asked.",

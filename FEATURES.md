@@ -1072,6 +1072,15 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Exact prefix commit — Spans are Mozc's own `consumed_key_size` and segment keys, in kana, mapped back to romaji through the transducer's spans
     - Learns — Conversions, boundaries and predictions go to Mozc's user history, written a few seconds after a pick. Not in incognito or password fields
     - Before first unlock — Mozc's dictionary and history are credential-protected, so a locked phone types on the built-in engine
+  - Chewing engine `RARE` — Zhuyin Engine = Built-in | Chewing; with Chewing the Zhuyin layout converts whole sentences phrase by phrase through libchewing 0.13.1 (新酷音), the way Taiwan's Zhuyin keyboards do. Built-in stays the default
+    - Own library on its own gate — `libwmchewing.so` (native/chewing-jni: the `chewing` Rust crate behind a JNI bridge; ~550 KB arm64, 16 KB pages, JNI symbols only, reproducible) behind the `chewing` gate: `:feature:chewing` on Play, NativeDelivery elsewhere, F-Droid behind its opt-in. LGPL-2.1, so a separately replaceable library
+    - Its own dictionary — libchewing-data 2026.3.22's characters and phrases compiled into one trie (`chewing-dictc`, deterministic), ~4.5 MB, as a checksum-pinned CJK pack; not in the library
+    - Sentence first — The strip leads with the whole sentence and Chewing's next two conversions (台灣 / 臺灣), then the phrases the reading starts with, longest first; a phrase commits its syllables and the rest converts again
+    - Chewing's composing text — The field shows the complete syllables converted and the one being typed as bopomofo; Enter writes what it shows
+    - Tones optional — libchewing's fuzzy lookup: the next initial closes a toneless syllable, which matches any tone
+    - Learns phrases — A pick goes to libchewing's user dictionary; a sentence teaches its phrases and runs of single characters, a toneless pick is learned under the dictionary's tones. Written a few seconds after a pick, carried by the settings backup. Not in incognito or password fields
+    - Ahead of RIME on Zhuyin — An engine picked for one method answers before one picked for the whole language
+    - Before first unlock — The dictionary and learned phrases are credential-protected, so a locked phone types on the built-in engine
   - Candidate surface — The suggestion strip is replaced by ranked candidates while a buffer is composing
     - Expanded grid — Ranked to depth 128 for lattice methods so a tap in the wrapping grid still resolves
     - Prefix-consistency contract — candidates(b,100).take(12) must equal candidates(b,12) or strip and grid would disagree

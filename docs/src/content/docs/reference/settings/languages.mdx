@@ -166,6 +166,7 @@ Braille and Hebrew get the same kind of group for their downloads. Braille (6-ke
 - Chinese only: a **Double Pinyin** scheme list sits below that. Off is the default, meaning full Pinyin, and five two-key schemes follow (Microsoft, Sogou, Xiaohe, Ziranma and Pinyin++). All five ship their key tables, so all five are selectable. The last entry, **Custom**, types with a key table you write yourself.
 - Chinese and Cantonese: a separate **Conversion engine** group under the options picks **Built-in** or **RIME** for that language. With RIME it also holds the library download, one row per RIME schema pack, **RIME status** with **Compile**, **Import RIME schemas**, a schema picker per kind of layout and **Delete RIME data**. See [The RIME engine](/languages/cjk/#the-rime-engine).
 - Japanese: a separate **Conversion engine** group picks **Built-in** or **Mozc** under **Japanese engine**. With Mozc it also holds the library download, the **Mozc dictionary** row, **Mozc status** and **Forget what Mozc learned**. See [The Mozc engine](/languages/cjk/#the-mozc-engine).
+- Chinese: a separate **Zhuyin conversion** group picks **Built-in** or **Chewing** under **Zhuyin engine**, for the Zhuyin layout. With Chewing it also holds the library download, the **Chewing dictionary** row, **Chewing status** and **Forget what Chewing learned**. See [The Chewing engine](/languages/cjk/#the-chewing-engine).
 - Chinese only: **Custom Double Pinyin scheme** opens that table in a text editor, in fcitx's `sp.dat` format, with Copy, Paste, Import, Export and Start from a scheme in its menu. Picking Custom for the first time opens it on a copy of the scheme you had. Save applies it and switches the list to Custom. See [Your own scheme](/languages/cjk/#your-own-scheme).
 
 ## Options
@@ -225,6 +226,7 @@ Braille and Hebrew get the same kind of group for their downloads. Braille (6-ke
 | Engine (Built-in / RIME) | Languages → *zh* or *yue* → Conversion engine | Built-in, per language |
 | RIME schema per layout (Pinyin, 9-key Pinyin, Zhuyin, Cangjie, Stroke, Jyutping) | Languages → *zh* or *yue* → Conversion engine | Automatic |
 | Japanese engine (Built-in / Mozc) | Languages → *ja* → Conversion engine | Built-in |
+| Zhuyin engine (Built-in / Chewing) | Languages → *zh* → Zhuyin conversion | Built-in |
 
 Two related settings live outside this screen entirely: **where** a numeral choice gets typed, not just drawn, is <SettingsPath path="Layout & size / Symbols layer / Numerals" />; custom word-list import is <SettingsPath path="Typing / Suggestions / Custom dictionaries" /> (also reachable from a language's own Dictionary group above).
 

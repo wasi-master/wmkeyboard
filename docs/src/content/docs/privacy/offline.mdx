@@ -15,7 +15,7 @@ Typing never needs the internet. Layouts, prediction, autocorrect, gesture typin
 Every GitHub release has an **offline** build: the standard app with the internet permission taken out, so Android refuses every connection it tries. From 0.6.4 it is about the size of the standard build, because it leaves out the same two things the standard build downloads only when you want them:
 
 - **Interface languages.** The app's own screens are in English. Each of the other 48 languages is one small file on the release page, `wmkeyboard-<version>-vc<code>-lang-<code>.apk`, about 2 MB.
-- **Feature libraries.** The native code behind offline voice typing, grammar and spell checking, the scanners, handwriting, the RIME and Mozc engines, Firefox Translations and on-device AI. Each library is one file.
+- **Feature libraries.** The native code behind offline voice typing, grammar and spell checking, the scanners, handwriting, the RIME, Mozc and Chewing engines, Firefox Translations and on-device AI. Each library is one file.
 
 Typing, prediction, autocorrect, gesture typing, the clipboard and every tool that needs neither of those work straight after install. For the rest, fetch the files you want on another device and import them; nothing is pushed at you that you never use. Up to 0.6.3 the offline build carried all of it: 275 MB for `arm64-v8a`, against about 22 MB now.
 
@@ -75,6 +75,7 @@ The libraries come from two places:
 | Offline text scanning with Tesseract | `libwmtess.so` |
 | The RIME engine for Chinese | `libwmrime.so` |
 | The Mozc engine for Japanese | `libwmmozc.so` |
+| The Chewing engine for Zhuyin | `libwmchewing.so` |
 | Firefox Translations (Bergamot), the on-device translation engine | `libwmbergamot.so` |
 | Chinese and Japanese handwriting without Google | `libwmzinnia.so` |
 | On-device AI with any GGUF model (llama.cpp) | `libwmllama.so`, `libwmllama_v82.so`, `libwmllama_i8mm.so` |

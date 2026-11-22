@@ -102,8 +102,8 @@ fun KeyboardSettings.restrictedToDirectBoot(): KeyboardSettings {
         // RIME's schemas and the user dictionary it learns into are under
         // filesDir, so Chinese types through the built-in engine until unlock
         // (whose own downloaded dictionaries are behind the lock as well).
-        // Mozc's dictionary and what it learns are there too.
-        cjk = cjk.copy(rimeLanguages = emptySet(), mozcJapanese = false),
+        // Mozc's and Chewing's dictionaries and what they learn are there too.
+        cjk = cjk.copy(rimeLanguages = emptySet(), mozcJapanese = false, chewingZhuyin = false),
         // Emoji mixes read each source's index and pack from filesDir. Loaded
         // here they came up empty, and the keyboard kept that empty load for
         // the same list of sources after the unlock: mixes stayed gone after

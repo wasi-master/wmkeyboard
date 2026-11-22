@@ -1,0 +1,40 @@
+[package]
+name = "chewing-jni"
+version = "0.1.0"
+edition = "2024"
+publish = false
+# libchewing is LGPL-2.1-or-later and is linked into this library, so the
+# library as a whole is too. It is its own .so, delivered by its own gate
+# (`chewing` in native/gates.json), so it stays replaceable on its own.
+license = "LGPL-2.1-or-later"
+
+[lib]
+name = "wmchewing"
+crate-type = ["cdylib"]
+
+[[bin]]
+# Compiles libchewing-data's CSV sources into the one dictionary file the
+# engine opens. Host-only: `cargo run --features dictc --bin chewing-dictc`.
+name = "chewing-dictc"
+# Not under src/bin: the repository ignores every bin/ directory.
+path = "src/dictc.rs"
+required-features = ["dictc"]
+
+[features]
+dictc = []
+
+[dependencies]
+# Exact: the dictionary pack and the user's learned phrases are in this
+# release's trie format, and build.sh pins the bytes of the library.
+chewing = "=0.13.1"
+jni = "0.21"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = "symbols"
+# Unwind, not abort: every JNI entry point catches a panic and answers "no
+# answer", so an assertion inside libchewing costs one keystroke's candidates,
+# not the keyboard process.
+panic = "unwind"
+opt-level = "z"

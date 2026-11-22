@@ -820,6 +820,9 @@ internal object SettingsRowIcons {
         put(R.string.languages_mozc_engine_title) { Icons.Outlined.Settings }
         put(R.string.languages_mozc_status_title) { Icons.Outlined.Info }
         put(R.string.languages_mozc_clear_title) { Icons.Outlined.DeleteSweep }
+        put(R.string.languages_chewing_engine_title) { Icons.Outlined.Settings }
+        put(R.string.languages_chewing_status_title) { Icons.Outlined.Info }
+        put(R.string.languages_chewing_clear_title) { Icons.Outlined.DeleteSweep }
         put(R.string.languages_cjk_jianpin_title) { Icons.AutoMirrored.Outlined.ShortText }
         put(R.string.languages_cjk_prediction_title) { Icons.Outlined.AutoAwesome }
         put(R.string.languages_cjk_shortcuts_title) { Icons.Outlined.Today }

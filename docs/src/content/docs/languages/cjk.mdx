@@ -59,7 +59,7 @@ Chinese carries ten typing layouts. Adding it from the language catalogue turns 
 | Pinyin | Romanized syllables (`ni`, `hao`) | Prefix: a multi-syllable buffer offers the whole phrase plus its leading syllables |
 | ClearFlow Pinyin | The same syllables on the [ClearFlow](/languages/overview/) grid | Prefix |
 | T9 Pinyin | Same syllables on a 9-key/T9 grid (`ABC`/`DEF`/`GHI`…) | Prefix |
-| Zhuyin (Bopomofo) | ㄅㄆㄇㄈ… symbols, with four dedicated tone-mark keys (ˇˋˊ˙) | Prefix |
+| Zhuyin (Bopomofo) | ㄅㄆㄇㄈ… symbols, with four dedicated tone-mark keys (ˇˋˊ˙). Can also convert on [Chewing](#the-chewing-engine) | Prefix |
 | 12-key Zhuyin | The same symbols on ten keys of three or four each. The tone key only ends a syllable, since the dictionary has no tones | Prefix |
 | Cangjie (倉頡) | Up to five radical keys, <KeyCap>a</KeyCap>–<KeyCap>y</KeyCap>, each printed as its radical glyph | Whole buffer: one code run is one character |
 | Cangjie Quick (速成) | Just the first and last radical of a character | Whole buffer |
@@ -572,6 +572,29 @@ On a physical keyboard it works as on a desktop: <KeyCap>Shift</KeyCap>+<KeyCap>
 
 **Learning.** Mozc learns from each pick: which conversion a reading takes, where you put the boundaries, and what you type after what, which is how its predictions get better. Like the rest of the keyboard's learning, it learns nothing in incognito or a password field. What it learns is written to the app's credential-protected storage a few seconds after you pick. **Forget what Mozc learned** clears it and keeps the dictionary.
 
+
+## The Chewing engine
+
+<SettingsPath path="Languages & layouts / Chinese / Zhuyin conversion / Zhuyin engine" />
+
+The Zhuyin layout can convert on [Chewing](https://github.com/chewing/libchewing) (新酷音, libchewing) instead of the keyboard's own engine, since 0.6.8. Chewing is the open-source engine behind many of Taiwan's Zhuyin keyboards. Where the built-in engine converts a word at a time from the Pinyin dictionary, Chewing takes a whole sentence of bopomofo and converts it phrase by phrase, with its own Taiwanese dictionary: `ㄐㄧㄣㄊㄧㄢㄊㄧㄢㄑㄧˋㄏㄣˇㄏㄠˇ` comes out as 今天天氣很好 in one pick.
+
+**Zhuyin engine** picks **Built-in** or **Chewing**, and Built-in is the default. Only the Zhuyin layout converts through Chewing: the keys don't change, and the 12-key Zhuyin pad stays on the built-in engine, since each of its keys stands for several symbols. If you also switched Chinese to [RIME](#the-rime-engine), the Zhuyin layout uses Chewing and the other layouts use RIME.
+
+Chewing needs two downloads before it takes over, and the group lists them as they arrive:
+
+1. **Its library**, about 560 KB. The Google Play edition fetches it from Play, the GitHub edition from the project's data repository, and the F-Droid edition from the same place once **Download feature libraries** is on under Privacy. Picking Chewing asks for it, after the usual question on a metered connection. libchewing is LGPL-2.1, so it is a library of its own that you can replace with one built from its source (`native/chewing-jni` in the repository).
+2. **The Chewing dictionary**, about 4.5 MB: libchewing-data's characters and phrases, release 2026.3.22, compiled into libchewing's own format. Picking Chewing starts this download too, and it is checked against a SHA-256 built into the app like the other conversion dictionaries. A phone that can't download gets an import row under it, with a link to the file to fetch on another device. The same file installs offline through **Import** on the [Storage](/reference/settings/about/) screen.
+
+**Chewing status** says where it stands. Until both are in place, and before the phone's first unlock, Zhuyin keeps typing on the built-in engine, so switching never leaves you unable to type.
+
+**Typing.** Type the bopomofo of a whole sentence. The tone marks are optional, as on the built-in engine: the next initial ends a syllable typed without one, and it matches any tone, so `ㄐㄧㄣㄊㄧㄢ` finds 今天 as well. The text field shows the sentence converted as you go, with the syllable you are still typing as bopomofo at its end. Enter writes what the field shows.
+
+**The candidates.** The strip shows the whole sentence first, then Chewing's next two readings of it (台灣 and 臺灣, for instance), then the phrases the sentence can start with, the longest first, down to the first character's alternatives. Picking a phrase commits that much and leaves the rest of the sentence composing, with its own candidates already up. The expanded grid pages further down the same list.
+
+**Learning.** Chewing learns from each pick: a picked phrase moves up for that reading, and a picked sentence teaches its phrases and makes a new phrase of each run of single characters in it, the way Chewing learns when you press Enter on a desktop. A phrase picked without tones is learned under the tones the dictionary gives it, so typing it later with the tones finds it too. Like the rest of the keyboard's learning, it learns nothing in incognito or a password field. What it learns is written to the app's credential-protected storage a few seconds after you pick, and the settings backup carries it with your other learned words. **Forget what Chewing learned** clears it and keeps the dictionary.
+
+**Characters.** Chewing writes Traditional characters as Taiwan writes them, whatever **Traditional characters** is set to.
 
 ## Details & edge cases
 

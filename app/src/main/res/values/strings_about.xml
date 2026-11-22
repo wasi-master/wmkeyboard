@@ -233,6 +233,7 @@
     <string name="about_bundled_whisper_cpp_used">The engine that runs the faster Offline Whisper models on your device, and those models</string>
     <string name="about_bundled_rime_used">The optional RIME engine for Chinese and Cantonese, with LevelDB, yaml-cpp, marisa-trie, OpenCC and Boost</string>
     <string name="about_bundled_mozc_used">The optional Mozc engine for Japanese, with Abseil and Protocol Buffers, and the Mozc dictionary it downloads (IPAdic, the Okinawa dictionary and the Japanese usage dictionary)</string>
+    <string name="about_bundled_chewing_used">The optional Chewing engine for Zhuyin (native library, which you can replace with one built from its source) and the libchewing-data dictionary it downloads</string>
     <string name="about_bundled_executorch_used">The engine that runs the Offline Asr4All models on your device</string>
     <!-- Asr4All is a model name and is not translated. -->
     <string name="about_bundled_futo_swipe_used">Glide typing powered by FUTO Swipe: the neural glide models, downloaded on request when that glide engine is picked</string>

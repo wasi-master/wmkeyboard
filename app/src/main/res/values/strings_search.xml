@@ -165,6 +165,7 @@
     <string name="search_kw_languages_cjk_traditional">taiwan hong kong hanzi</string>
     <string name="search_kw_languages_cjk_kyujitai">japanese kanji kyujitai shinjitai old new forms traditional</string>
     <string name="search_kw_languages_rime_engine">librime trime weasel squirrel 中州韻 deploy</string>
+    <string name="search_kw_languages_chewing_engine">chewing 新酷音 酷音 注音 zhuyin bopomofo taiwan traditional phrase sentence libchewing</string>
     <string name="search_kw_languages_mozc_engine">google input 日本語入力 変換 文節 bunsetsu segment kanji</string>
     <string name="search_kw_languages_conjunct_backspace">hindi devanagari indic akshara cluster</string>
     <string name="search_kw_languages_fancy_style_row">unicode aesthetic cursive strikethrough</string>

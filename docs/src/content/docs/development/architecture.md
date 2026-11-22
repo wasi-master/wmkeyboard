@@ -121,7 +121,7 @@ from it. Nothing in the engine or the service names Hindi.
 ### Native conversion engines
 
 The CJK composers are Kotlin, and a native engine (RIME for Chinese, Mozc for
-Japanese) stands in for one of them rather than beside it.
+Japanese, Chewing for Zhuyin) stands in for one of them rather than beside it.
 `LayoutSpec.resolvedComposer()` builds the layout's built-in composer, then
 asks `ConversionEngines` (`core/input/.../composer/ConversionEngines.kt`)
 whether a registered `ConversionEngine` replaces it for the layout's
@@ -194,6 +194,25 @@ Mozc's half (`core/input/.../mozc/`):
   segment in the composing region; the composer replays the operations from
   Mozc's own split on each call, and a pick commits the segments up to the
   focused one. `remainderAfterCommit` keeps the rest split.
+
+Chewing's half (`core/input/.../chewing/`):
+
+- `ChewingEngine` replaces the composer for `ComposerType.ZHUYIN` in
+  Chinese, ahead of RIME: `ConversionEngine.priority` puts an engine picked
+  for one method before one picked for a whole language.
+- `ChewingRuntime` opens libchewing once both the library (`chewing` gate,
+  LGPL, so its own `.so`) and the dictionary (`ChewingData`, libchewing-data
+  compiled into one trie by `native/chewing-jni`'s `chewing-dictc`) are on
+  the device, and guards every call with `tryLock`. Learned phrases live in
+  `filesDir/chewing/user/chewing.dat` (libchewing's own trie format); the
+  settings backup carries the file under the dictionary section.
+- The bridge keeps no state between calls: each one replays the bopomofo
+  into a fresh libchewing `Editor` as Dai Chien keys, with the fuzzy lookup
+  so toneless syllables close at the next initial, and reads back the
+  sentence (`display`), its next conversions (Tab) and the candidate window
+  at the front of the reading. `ChewingComposer` keeps the keys on the
+  built-in `ZhuyinComposer` and passes the bopomofo through untouched, so
+  lengths need no mapping: one bopomofo is one UTF-16 unit.
 
 ### Prediction
 

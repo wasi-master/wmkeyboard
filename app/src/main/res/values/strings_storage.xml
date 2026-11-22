@@ -67,6 +67,8 @@
     <string name="storage_rime_label">RIME schemas and learned words</string>
     <!-- One item in Word lists: what the Mozc engine learned from the user's picks. Mozc stays in Latin letters. -->
     <string name="storage_mozc_label">Mozc learned conversions</string>
+    <!-- One item in Word lists: the phrases the Chewing engine learned from the user's picks. Chewing stays in Latin letters. -->
+    <string name="storage_chewing_label">Chewing learned phrases</string>
     <string name="storage_wordlists_subtitle">Dictionaries you downloaded for prediction</string>
     <string name="storage_bundled_dicts_title">Built-in dictionaries</string>
     <string name="storage_bundled_dicts_subtitle">Unpacked from the app. They come back when you next type.</string>
@@ -125,6 +127,7 @@
     <string name="storage_lib_ocr">Tesseract, for offline text scanning</string>
     <string name="storage_lib_rime">The RIME engine for Chinese</string>
     <string name="storage_lib_mozc">The Mozc engine for Japanese</string>
+    <string name="storage_lib_chewing">The Chewing engine for Zhuyin</string>
     <string name="storage_lib_langid">fastText and CLD3, which tell the Translate tool what language a text is in on builds without Google\'s</string>
     <string name="storage_lib_bergamot">Bergamot, the free on-device engine in the Translate tool</string>
     <string name="storage_lib_ct2">The NLLB engine in the Translate tool</string>
