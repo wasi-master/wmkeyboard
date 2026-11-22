@@ -239,6 +239,9 @@
     <string name="appearance_toolbox_cell_spacing_subtitle">Above and below each tool in the toolbox grid. Less fits more rows on a page</string>
     <string name="appearance_toolbox_cell_spacing_info">The space above and below each tool in the toolbox grid. Less space fits more rows of tools on one page. More space makes each tool easier to hit. The default is 10 dp.</string>
     <string name="appearance_toolbox_sort_info">Your order is the order you make by dragging tools around the toolbox. Most used puts the tools you open most often first. Recently used puts the tool you opened last first. Tools you have never opened come after them, in your order. The toolbox sorts itself each time it opens, so tools do not move while you tap them. A folder sits where its first tool falls, and keeps its own order inside. Dragging a tool still changes your order, and you get it back when you choose Your order again.</string>
+    <string name="appearance_toolbox_hold_title">Press and hold the toolbox button</string>
+    <string name="appearance_toolbox_hold_subtitle">On the toolbar and beside the suggestions</string>
+    <string name="appearance_toolbox_hold_settings_value">Opens the toolbox settings</string>
     <string name="appearance_toolbox_search_sort_title">Search order before typing</string>
     <string name="appearance_toolbox_search_sort_subtitle">How the toolbox search lists the tools until you type</string>
     <string name="appearance_toolbox_search_sort_info">The toolbox search lists every tool until you type something. Your order lists them the way you arranged the toolbox. Most used puts the tools you open most often first. Recently used puts the tool you opened last first. Once you type, the names that start with what you typed come first.</string>

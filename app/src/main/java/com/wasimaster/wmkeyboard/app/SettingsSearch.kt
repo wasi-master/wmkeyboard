@@ -1222,6 +1222,7 @@ private fun SearchStrings.appearanceToolboxRows(): List<SettingsSearchEntry> {
         row(R.string.appearance_toolbox_search_button_title, R.string.appearance_toolbox_search_button_subtitle),
         row(R.string.appearance_toolbox_search_at_end_title, R.string.appearance_toolbox_search_at_end_subtitle),
         row(R.string.appearance_toolbox_search_sort_title, R.string.appearance_toolbox_search_sort_subtitle),
+        row(R.string.appearance_toolbox_hold_title, R.string.appearance_toolbox_hold_subtitle),
         row(R.string.appearance_toolbox_reset_title, R.string.appearance_toolbox_reset_subtitle),
     )
 }

@@ -87,6 +87,7 @@ import com.wasimaster.wmkeyboard.core.settings.oneHandedLayoutChoices
 import com.wasimaster.wmkeyboard.core.script.NumeralCommitScope
 import com.wasimaster.wmkeyboard.core.settings.DefaultToolbarTools
 import com.wasimaster.wmkeyboard.core.settings.ToolKey
+import com.wasimaster.wmkeyboard.core.settings.ToolHoldAction
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.key
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
@@ -1457,6 +1458,7 @@ internal fun AppearanceToolboxSettings(
                 default = SettingsDefaults.toolbox.searchSort,
             ) { scope.launch { repository.setToolboxSearchSort(it) } }
         }
+        item(level = SettingLevel.STANDARD) { ToolboxHoldRow(repository, settings) }
         // Drawn only once something has actually moved, like the group reset on
         // Layout & size. The order of the tools has its own reset above.
         item(visible = toolboxMoved, level = SettingLevel.STANDARD) {
@@ -1469,6 +1471,54 @@ internal fun AppearanceToolboxSettings(
         }
     }
 }
+/**
+ * What a press and hold on the toolbox button does (#1516): the same picker a
+ * tool's "Press and hold on the toolbar" opens, with this page as the default
+ * and "Does nothing" for a hold that should only buzz.
+ */
+@Composable
+private fun ToolboxHoldRow(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    var editing by remember { mutableStateOf(false) }
+    val bound = settings.watch { it.toolbox.buttonHold }
+    NavRow(
+        title = R.string.appearance_toolbox_hold_title,
+        subtitle = stringResource(R.string.appearance_toolbox_hold_subtitle),
+        value = when (bound) {
+            null, ToolHoldAction.OpenSettings, ToolHoldAction.Floating ->
+                stringResource(R.string.appearance_toolbox_hold_settings_value)
+            ToolHoldAction.None -> stringResource(R.string.tooldetail_hold_nothing_value)
+            is ToolHoldAction.Run -> stringResource(toolTitle(bound.tool))
+            is ToolHoldAction.RunCustom -> customButtonName(bound.id)
+        },
+    ) { editing = true }
+    if (!editing) return
+    ToolPickerDialog(
+        title = stringResource(R.string.appearance_toolbox_hold_title),
+        current = (bound as? ToolHoldAction.Run)?.tool,
+        options = ToolbarTool.entries.filter(::isSupportedTool),
+        noneTitle = stringResource(R.string.tooldetail_hold_default_title),
+        noneSubtitle = stringResource(R.string.appearance_toolbox_hold_settings_value),
+        nothingSubtitle = stringResource(R.string.tooldetail_hold_nothing_subtitle),
+        nothingSelected = bound == ToolHoldAction.None,
+        onPickNothing = {
+            editing = false
+            scope.launch { repository.setToolboxButtonHold(ToolHoldAction.None) }
+        },
+        onDismiss = { editing = false },
+        onPick = { picked ->
+            editing = false
+            scope.launch { repository.setToolboxButtonHold(picked?.let(ToolHoldAction::Run)) }
+        },
+        customCurrent = (bound as? ToolHoldAction.RunCustom)?.id,
+        onPickCustom = { id ->
+            editing = false
+            scope.launch { repository.setToolboxButtonHold(ToolHoldAction.RunCustom(id)) }
+        },
+        memoryKey = "toolbox-hold",
+    )
+}
+
 /** The orders the toolbox and its search can take. */
 @Composable
 private fun toolboxSortOptions(): List<Pair<ToolboxSort, String>> = listOf(

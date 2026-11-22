@@ -12483,7 +12483,7 @@ private fun StripTools(
     val drawn: List<Any?> = order + customIds.map { StripCustomEntry(it) }
     for (entry in if (stripToolsHeldLtr(state)) drawn.asReversed() else drawn) {
         when (entry) {
-            null -> key("§toolbox") { StripToolboxButton(state, onPinnedTools, onToolbox) }
+            null -> key("§toolbox") { StripToolboxButton(state, drag, onPinnedTools, onToolbox) }
             is StripCustomEntry -> key("§custom:${entry.id}") { StripCustomButton(state, entry.id, drag) }
             is ToolbarTool -> {
                 // Only the switch added by itself is a step down in size.
@@ -12561,7 +12561,12 @@ private fun Modifier.toolboxSwipes(onSwipe: (up: Boolean) -> Unit): Modifier = p
 
 /** The toolbox launcher among the buttons beside the suggestions (#970). */
 @Composable
-private fun StripToolboxButton(state: KeyboardUiState, onPinnedTools: (Boolean) -> Unit, onToolbox: () -> Unit) {
+private fun StripToolboxButton(
+    state: KeyboardUiState,
+    drag: ToolDragController,
+    onPinnedTools: (Boolean) -> Unit,
+    onToolbox: () -> Unit,
+) {
     val behavior = state.settings.toolbarBehavior
     val label = stringResource(R.string.ime_toolbox_desc)
     val swiped by rememberUpdatedState(onPinnedTools)
@@ -12573,6 +12578,8 @@ private fun StripToolboxButton(state: KeyboardUiState, onPinnedTools: (Boolean) 
         // swipe down puts them away again.
         modifier = Modifier.toolboxSwipes { up -> swiped(up) },
         longPressLabel = label,
+        // The hold the user picked for the toolbox button, as on the toolbar (#1516).
+        onLongPress = { drag.toolboxHold(state.settings.toolbox.buttonHold) },
         wide = true,
         widthDp = behavior.stripToolWidthDp.takeIf { behavior.stripOwnSize },
         iconSizeDp = behavior.stripIconSizeDp.takeIf { behavior.stripOwnSize },
@@ -13027,6 +13034,8 @@ private fun ToolsColumn(
                 )
                 .animatePlacement(enabled = motion) { drag.bodyCoords },
             longPressLabel = toolboxDesc.takeUnless { labels },
+            // As on the bar (#1516).
+            onLongPress = { drag.toolboxHold(state.settings.toolbox.buttonHold) },
             wide = true,
             hint = hints?.label(HintSurface.TOOLBAR, 0),
         ) { onPanelChange(PanelMode.TOOLBOX) }
@@ -13444,6 +13453,8 @@ private fun RowScope.ToolbarRow(
                 // The tooltip is what the labels setting replaces; the labelled
                 // variant never draws it anyway.
                 longPressLabel = toolboxButtonDesc.takeUnless { labels },
+                // The hold the user picked for this button, its settings page by default (#1516).
+                onLongPress = { drag.toolboxHold(state.settings.toolbox.buttonHold) },
                 wide = true,
                 hint = hints?.label(HintSurface.TOOLBAR, 0),
             ) { onPanelChange(PanelMode.TOOLBOX) }
@@ -27947,7 +27958,23 @@ data class ToolboxCallbacks(
     val onPluginSettings: (String) -> Unit = {},
     /** The second toolbar's tools after a drop on, off or along it (#1217). */
     val onSecondRowChange: (List<ToolKey>) -> Unit = {},
+    /** The toolbox's own page in Settings: the toolbox button's hold by default (#1516). */
+    val onToolboxSettings: () -> Unit = {},
 )
+
+/**
+ * A press and hold on the toolbox button, on the toolbar or beside the
+ * suggestions (#1516): what [ToolboxSettings.buttonHold] says, the toolbox's
+ * settings page by default. Through the controller, as a tool's bound hold is.
+ */
+private fun ToolDragController.toolboxHold(action: ToolHoldAction?) {
+    when (action) {
+        null, ToolHoldAction.OpenSettings, ToolHoldAction.Floating -> toolbox.onToolboxSettings()
+        ToolHoldAction.None -> Unit
+        is ToolHoldAction.Run -> onHoldAction(action.tool)
+        is ToolHoldAction.RunCustom -> custom.onTap(action.id)
+    }
+}
 
 /** One cell of the toolbox grid: a tool, or a folder of them (#709). */
 internal sealed interface ToolboxCell {

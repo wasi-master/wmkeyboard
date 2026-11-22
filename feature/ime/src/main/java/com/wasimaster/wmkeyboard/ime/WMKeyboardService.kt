@@ -48668,6 +48668,7 @@ open class WMKeyboardService : InputMethodService() {
         onPluginTool = ::onPluginToolTap,
         onPluginSettings = { id -> openRoute("plugin/$id") },
         onSecondRowChange = ::onSecondToolbarToolsChange,
+        onToolboxSettings = { openRoute("appearance/toolbox") },
     )
 
     // ---- plugins as tools ----

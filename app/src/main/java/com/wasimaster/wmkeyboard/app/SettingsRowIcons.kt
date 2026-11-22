@@ -596,6 +596,7 @@ internal object SettingsRowIcons {
         put(R.string.appearance_toolbox_search_at_end_title) { Icons.Outlined.AlignHorizontalRight }
         put(R.string.appearance_toolbox_sort_title) { Icons.AutoMirrored.Outlined.Sort }
         put(R.string.appearance_toolbox_search_sort_title) { Icons.AutoMirrored.Outlined.Sort }
+        put(R.string.appearance_toolbox_hold_title) { Icons.Outlined.TouchApp }
         put(R.string.appearance_suggestion_text_size_title) { Icons.Outlined.FormatSize }
         put(R.string.appearance_long_words_title) { Icons.Outlined.TextFields }
         put(R.string.appearance_narrowest_letters_title) { Icons.Outlined.Compress }

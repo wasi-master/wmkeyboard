@@ -2690,6 +2690,28 @@ object ToolHoldActions {
             "${tool.name}=$token"
         }
 
+    /**
+     * One action on its own, in the vocabulary of [encode]'s right-hand side:
+     * the toolbox button's hold (#1516), which belongs to no tool.
+     */
+    fun encodeAction(action: ToolHoldAction): String = when (action) {
+        ToolHoldAction.None -> NONE_TOKEN
+        ToolHoldAction.OpenSettings -> SETTINGS_TOKEN
+        ToolHoldAction.Floating -> FLOAT_TOKEN
+        is ToolHoldAction.Run -> action.tool.name
+        is ToolHoldAction.RunCustom -> CUSTOM_PREFIX + action.id
+    }
+
+    /** The inverse of [encodeAction]; null for a token this build does not know. */
+    fun decodeAction(token: String): ToolHoldAction? = when {
+        token == NONE_TOKEN -> ToolHoldAction.None
+        token == SETTINGS_TOKEN -> ToolHoldAction.OpenSettings
+        token == FLOAT_TOKEN -> ToolHoldAction.Floating
+        token.startsWith(CUSTOM_PREFIX) -> token.removePrefix(CUSTOM_PREFIX).takeIf { it.isNotEmpty() }
+            ?.let(ToolHoldAction::RunCustom)
+        else -> toolOrNull(token)?.let(ToolHoldAction::Run)
+    }
+
     private fun toolOrNull(name: String): ToolbarTool? =
         runCatching { ToolbarTool.valueOf(name) }.getOrNull()
 }
@@ -2813,6 +2835,13 @@ data class ToolboxSettings(
      * end of the box's strip already does.
      */
     val backLowersKeys: Boolean = false,
+    /**
+     * What a press and hold on the toolbox button does (#1516), on the
+     * toolbar and beside the suggestions alike: another tool's tap, one of the
+     * user's own buttons, or nothing ([ToolHoldAction.None]). Null is the
+     * default, the toolbox's settings page.
+     */
+    val buttonHold: ToolHoldAction? = null,
     /**
      * The user's own buttons (#1213, #1236): app shortcuts, setting switches
      * and settings pages. See [CustomButton]. Where each one is, on the bar or
@@ -14165,6 +14194,7 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBOX_SORT = stringPreferencesKey("toolbox_sort")
         private val TOOLBOX_SEARCH_SORT = stringPreferencesKey("toolbox_search_sort")
         private val TOOLBOX_BACK_LOWERS_KEYS = booleanPreferencesKey("toolbox_back_lowers_keys")
+        private val TOOLBOX_BUTTON_HOLD = stringPreferencesKey("toolbox_button_hold")
         private val CUSTOM_BUTTONS = stringPreferencesKey("custom_buttons")
         private val SUGGESTION_TEXT_SCALE = floatPreferencesKey("suggestion_text_scale")
         private val SUGGESTION_LONG_WORDS = stringPreferencesKey("suggestion_long_words")
@@ -16652,6 +16682,7 @@ class SettingsRepository(private val context: Context) {
             searchSort = p[TOOLBOX_SEARCH_SORT]?.let { runCatching { ToolboxSort.valueOf(it) }.getOrNull() }
                 ?: defaults.toolbox.searchSort,
             backLowersKeys = p[TOOLBOX_BACK_LOWERS_KEYS] ?: defaults.toolbox.backLowersKeys,
+            buttonHold = p[TOOLBOX_BUTTON_HOLD]?.let(ToolHoldActions::decodeAction),
             customButtons = decodeCustomButtons(p[CUSTOM_BUTTONS]),
             converterTabs = p[TOOLBOX_CONVERTER_TABS] ?: defaults.toolbox.converterTabs,
         )
@@ -19442,6 +19473,17 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setToolboxBackLowersKeys(value: Boolean) =
         editPrefs { it[TOOLBOX_BACK_LOWERS_KEYS] = value }
+
+    /**
+     * What a press and hold on the toolbox button does (#1516); null puts back
+     * the default, its settings page. [ToolHoldAction.Floating] has no meaning
+     * for the toolbox and is stored as the default.
+     */
+    suspend fun setToolboxButtonHold(action: ToolHoldAction?) =
+        editPrefs { prefs ->
+            val token = action?.takeUnless { it == ToolHoldAction.Floating }?.let(ToolHoldActions::encodeAction)
+            if (token == null) prefs.remove(TOOLBOX_BUTTON_HOLD) else prefs[TOOLBOX_BUTTON_HOLD] = token
+        }
 
     suspend fun setToolboxSort(value: ToolboxSort) =
         editPrefs { it[TOOLBOX_SORT] = value.name }
@@ -23930,6 +23972,7 @@ class SettingsRepository(private val context: Context) {
         it.remove(TOOLBOX_SEARCH_AT_END)
         it.remove(TOOLBOX_SORT)
         it.remove(TOOLBOX_SEARCH_SORT)
+        it.remove(TOOLBOX_BUTTON_HOLD)
     }
 
     suspend fun setHoldToTalkMs(value: Int) = editPrefs {
