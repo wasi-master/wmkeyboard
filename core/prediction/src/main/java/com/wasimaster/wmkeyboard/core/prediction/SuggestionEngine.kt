@@ -644,12 +644,13 @@ class SuggestionEngine(
         } catch (_: UnsatisfiedLinkError) {
             return null
         }
-        fun usable(text: String): Boolean = text.isNotEmpty() && text != committed &&
+        // In the keyboard's own capitals, and never a case change alone (#1358).
+        fun usable(text: String): Boolean = text.isNotEmpty() && text.lowered() != committed &&
             text.split(' ').none { suppressed(it) } &&
             correctionStats.penalty(taps.typed, text) == CorrectionStats.Penalty.NONE
-        val apply = found.getOrNull(0)?.takeIf(::usable)
-        val text = apply ?: found.getOrNull(1)?.takeIf(::usable) ?: return null
-        return Revision(wrong, matchCase(wrong, displayForm(text)), followers, sure = apply != null)
+        val apply = found.getOrNull(0)?.let(::readingCase)?.takeIf(::usable)
+        val text = apply ?: found.getOrNull(1)?.let(::readingCase)?.takeIf(::usable) ?: return null
+        return Revision(wrong, matchCase(wrong, text), followers, sure = apply != null)
     }
 
     /**
@@ -707,7 +708,7 @@ class SuggestionEngine(
             text.isNotEmpty() && text.split(' ').none { suppressed(it) } &&
                 correctionStats.penalty(typed, text) == CorrectionStats.Penalty.NONE
         } ?: return null
-        return Revision(w1, matchCase(w1, displayForm(apply)), listOf(w2), sure = true, join = true)
+        return Revision(w1, matchCase(w1, readingCase(apply)), listOf(w2), sure = true, join = true)
     }
 
     /**
@@ -760,7 +761,7 @@ class SuggestionEngine(
         // A lone `i` stands as `I` for the pronoun's sake, not the user's: its
         // capital says nothing about `in`. The service capitalises a sentence's
         // first word itself.
-        val shown = if (word == "I") displayForm(fixed) else matchCase(word, displayForm(fixed))
+        val shown = if (word == "I") readingCase(fixed) else matchCase(word, readingCase(fixed))
         if (shown == word) return null
         return word to shown
     }
@@ -8388,11 +8389,14 @@ class SuggestionEngine(
         ) } catch (_: UnsatisfiedLinkError) {
             return null
         }
-        fun usable(text: String): Boolean = text.isNotEmpty() && text != lower &&
+        // A reading that only changes the case of what was typed is no
+        // correction: the capital came from a list's spelling, which is
+        // [dictionaryCapital]'s question, asked before this one (#1358).
+        fun usable(text: String): Boolean = text.isNotEmpty() && text.lowered() != lower &&
             text.split(' ').none { suppressed(it) } &&
             correctionStats.penalty(lower, text) == CorrectionStats.Penalty.NONE
-        var apply = verdict.getOrNull(0)?.takeIf(::usable)
-        var offer = verdict.getOrNull(1)?.takeIf(::usable)
+        var apply = verdict.getOrNull(0)?.let(::readingCase)?.takeIf(::usable)
+        var offer = verdict.getOrNull(1)?.let(::readingCase)?.takeIf(::usable)
         // German writes `hierhergestellt` and `zweihundertachtundneunzig` as
         // one word whether or not a list holds it; read as words with the
         // spaces put back they came out as *hier hergestellt* and, a letter
@@ -8404,6 +8408,36 @@ class SuggestionEngine(
         }
         val margin = WHOLE_READING_MARGIN * scale
         return WholeReading(apply, offer, if (apply != null) certaintyOf(out[0], margin.coerceAtLeast(1e-6)) else 0.0)
+    }
+
+    /**
+     * A decoder reading in the capitals the keyboard writes its words with
+     * (#1358). The decoder reads a capital on its own lower-case key for free
+     * and hands each word back as the list it came from spells it, and the
+     * bundled AOSP list ([phraseList]) keeps thousands of words with a
+     * capital: `Will`, `Mark`, `Ham`, `Curry`, and names that are everyday
+     * words in a language typed in Latin letters. Those capitals were put in
+     * mid-sentence on the space bar, while the strip and a glide, which never
+     * read that list, gave the same word in small letters.
+     *
+     * Each word is decided as [displayForm] decides every other: the user's
+     * own spelling, Android's dictionary, then a list's capital under
+     * "Capitals from the word list". A word that no list or learned word holds
+     * in small letters keeps the capital the decoder found, since a name is
+     * all it is known as.
+     */
+    private fun readingCase(text: String): String {
+        if (text.isEmpty()) return text
+        return text.split(' ').joinToString(" ") { word ->
+            val key = word.lowered()
+            if (key == word) return@joinToString displayForm(word)
+            val shown = displayForm(key)
+            when {
+                shown != key -> shown
+                inDictionaries(key) || userLexicon.contains(key) -> key
+                else -> word
+            }
+        }
     }
 
     /**
