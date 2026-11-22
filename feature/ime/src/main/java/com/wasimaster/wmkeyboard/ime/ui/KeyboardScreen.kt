@@ -18997,7 +18997,29 @@ internal fun Key.flickShiftedText(direction: FlickDirection): String? {
  */
 internal fun Key?.startsPossessiveSwipe(possessiveChar: Char?): Boolean =
     possessiveChar != null && this?.action == KeyAction.Text &&
-        (output ?: label).singleOrNull() == possessiveChar
+        slotPunctuation() == possessiveChar
+
+/**
+ * The punctuation this key stands for when a setting names "the comma key" or
+ * "the full stop key": the mark its slot was laid out with, whatever it shows.
+ *
+ * The period slot changes its face as the user types (#1479): the smart
+ * punctuation key shows `?` or `!`, a remembered pick shows the mark picked
+ * last, and a script with its own sentence mark shows `।` or `。`. Matching on
+ * the character typed lost the key each time, so "Swipe to add 's" set to the
+ * full stop stopped working whenever the smart key guessed a question. The
+ * slot's [Key.role] does not change with the face, so it answers instead.
+ * An email box's `@` sits in the comma slot and is not a comma.
+ */
+internal fun Key.slotPunctuation(): Char? {
+    val text = (output ?: label).singleOrNull()
+    val slot = when (role) {
+        KeyRole.Period -> '.'
+        KeyRole.Comma -> ','
+        else -> null
+    }
+    return if (slot != null && text != '@') slot else text
+}
 
 /**
  * Whether a stroke that starts on this key belongs to it as a delete key
@@ -25394,7 +25416,9 @@ private fun Key.glidePunctuationCodePoint(): Int? {
     }
     return when {
         mark != null && (action == KeyAction.Text || action == KeyAction.KanaVariant) -> mark.code
-        action == KeyAction.Text -> text.code.takeIf { it in GlidePunctuationCodePoints }
+        // By slot, so the period key showing the smart key's `?` is still
+        // where "the full stop key" is (#1479).
+        action == KeyAction.Text -> (slotPunctuation() ?: text).code.takeIf { it in GlidePunctuationCodePoints }
         else -> null
     }
 }
@@ -26722,6 +26746,14 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
             // never reaches here, its role being neither slot.
             if (smartMark != null && role == KeyRole.Period) {
                 mapped = mapped.withSmartPunctuation(smartMark)
+            }
+            // Issue #1479: a slot whose role came from its "." or "," face
+            // keeps it once the passes above change that face, so
+            // [slotPunctuation] still finds the comma and full stop keys.
+            if ((role == KeyRole.Period || role == KeyRole.Comma) && mapped.role == null &&
+                mapped.action == KeyAction.Text
+            ) {
+                mapped = mapped.copy(role = role)
             }
             if (currencyOnHolds != null && mapped.action == KeyAction.Text && rowKey !in state.layouts.authoredHolds) {
                 mapped = mapped.holdingCurrency(currencyOnHolds)
