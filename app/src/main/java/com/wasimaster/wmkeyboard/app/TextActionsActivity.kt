@@ -105,6 +105,9 @@ import com.wasimaster.wmkeyboard.core.selection.Places
 import com.wasimaster.wmkeyboard.core.selection.SelectionKind
 import com.wasimaster.wmkeyboard.core.selection.SelectionMacro
 import com.wasimaster.wmkeyboard.core.selection.SelectionMacros
+import com.wasimaster.wmkeyboard.core.selection.ScriptConvert
+import com.wasimaster.wmkeyboard.core.transliteration.Lipi
+import com.wasimaster.wmkeyboard.core.transliteration.LipiScheme
 import com.wasimaster.wmkeyboard.core.selection.TextCodecs
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.DataSaverStatus
@@ -211,7 +214,7 @@ private class TextActionsRequest(
 )
 
 /** A row of choices shown in place of the rewrites, as the bar's ladders are. */
-private enum class Ladder { NONE, CASE, FANCY }
+private enum class Ladder { NONE, CASE, FANCY, SCRIPT }
 
 /**
  * The selection bar's actions that work outside a text field, from the
@@ -227,6 +230,7 @@ private val REWRITES = setOf(
     SelectionMacro.LINES_BULLET, SelectionMacro.LINES_CHECKBOX,
     SelectionMacro.DIGITS_LATIN, SelectionMacro.ZAWGYI, SelectionMacro.JSON_FORMAT,
     SelectionMacro.BASE64_DECODE, SelectionMacro.URL_DECODE, SelectionMacro.STRIP_TRACKERS,
+    SelectionMacro.CONVERT_SCRIPT,
 )
 
 private val DOORS = setOf(
@@ -261,6 +265,9 @@ private fun sheetOffer(context: Context, text: String, settings: KeyboardSetting
     val formattable = kind == SelectionKind.TEXT || (
         formatted != null && !(SelectionMacro.STRIP_TRACKERS in allowed && formatted == SelectionMacros.stripTrackers(text, settings.clipboard.linkCleaning))
         )
+    // vidyut-lipi is a download of its own; the text is only read for its
+    // script once it is here.
+    val scriptConvert = SelectionMacro.CONVERT_SCRIPT in allowed && Lipi.ready
     val content = if (long) {
         ContentFlags.NONE
     } else {
@@ -271,6 +278,7 @@ private fun sheetOffer(context: Context, text: String, settings: KeyboardSetting
                 place = SelectionMacro.MAP in allowed,
                 nowMillis = System.currentTimeMillis(),
                 links = settings.clipboard.linkCleaning,
+                scripts = scriptConvert,
             ),
         )
     }
@@ -281,6 +289,7 @@ private fun sheetOffer(context: Context, text: String, settings: KeyboardSetting
         // There is no field around the text here, so nothing to widen to.
         wholeField = true,
         ttsAvailable = false,
+        scriptConvert = scriptConvert,
         content = content,
     )
     val row = SelectionMacros.offer(kind, allowed, gates, prefs.order)
@@ -327,6 +336,10 @@ private fun TextActionsScreen(
     // another pick replaces that one rather than styling it again.
     var fancySource by remember { mutableStateOf("") }
     var fancyPicked by remember { mutableStateOf(false) }
+    // The same for Convert script: what it converts, and where it can go.
+    var scriptSource by remember { mutableStateOf("") }
+    var scriptPicked by remember { mutableStateOf(false) }
+    var scriptTargets by remember { mutableStateOf(emptyList<LipiScheme>()) }
     // Data Saver's question is answered by tapping the action again.
     var meteredGranted by remember { mutableStateOf(false) }
 
@@ -448,6 +461,13 @@ private fun TextActionsScreen(
                 fancyPicked = false
                 ladder = Ladder.FANCY
             }
+            // No keyboard language here, so the romanisations lead the targets.
+            SelectionMacro.CONVERT_SCRIPT -> ScriptConvert.choices(text, current.selectionMacros.scriptLatinInput, "")?.let { (_, targets) ->
+                scriptSource = text
+                scriptPicked = false
+                scriptTargets = targets
+                ladder = Ladder.SCRIPT
+            }
             SelectionMacro.LINES_SORT -> push(LineEdits.sort(text), label)
             SelectionMacro.LINES_DEDUPE -> push(LineEdits.dedupe(text), label)
             SelectionMacro.LINES_NUMBER -> push(LineEdits.number(text), label)
@@ -521,6 +541,16 @@ private fun TextActionsScreen(
                             val before = history.size
                             push(FancyStyles.transform(fancySource, style), style.name)
                             fancyPicked = history.size > before
+                        }
+                    }
+                }
+                Ladder.SCRIPT -> LadderRow(onBack = { ladder = Ladder.NONE }) {
+                    scriptTargets.forEach { target ->
+                        ActionChip(target.label, null, enabled = busy == null) {
+                            if (scriptPicked && history.size > 1) history.removeAt(history.lastIndex)
+                            val before = history.size
+                            push(ScriptConvert.convert(scriptSource, current.selectionMacros.scriptLatinInput, target.native), target.label)
+                            scriptPicked = history.size > before
                         }
                     }
                 }

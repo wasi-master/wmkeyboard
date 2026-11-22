@@ -1,0 +1,102 @@
+Third-party code in the Indic script converter
+==============================================
+
+Convert script and Sanskrit's Write in another script run in a native
+library (libwmlipi.so, built from native/lipi-jni) on vidyut-lipi, Arun
+Prasad's transliterator for the Ambuda project
+(https://github.com/ambuda-org/vidyut), released under the MIT licence
+below, and the Rust crates listed after it. vidyut-lipi declares MIT in its
+Cargo metadata and its repository's README and ships no licence file of its
+own, so the standard MIT text is given here with its author's name.
+
+Each other crate remains under its own licence; the SPDX licence expression
+from its Cargo metadata is listed beside it. "A OR B" means the crate is
+offered under either licence at the user's option; this app receives every
+crate under the permissive option of its expression. The proc-macro crates
+(clap_derive, heck, proc-macro2, quote, syn, thiserror-impl, the
+wasm-bindgen macros) run while the library is built and are not part of it.
+The licence texts accompany each crate's source at
+https://crates.io/crates/<name>. The Apache-2.0 text is bundled in this app
+(apache-2.0.txt).
+
+
+vidyut-lipi
+-----------
+
+MIT License
+
+Copyright (c) Arun Prasad
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+This is the complete set of crates in the build of the Android library
+(native/lipi-jni/Cargo.lock, vidyut-lipi 0.2.0).
+
+Crate                                     Licence (SPDX)
+-----                                     --------------
+anstream 1.0.0                            MIT OR Apache-2.0
+anstyle 1.0.14                            MIT OR Apache-2.0
+anstyle-parse 1.0.0                       MIT OR Apache-2.0
+anstyle-query 1.1.5                       MIT OR Apache-2.0
+bumpalo 3.20.4                            MIT OR Apache-2.0
+bytes 1.12.2                              MIT
+cesu8 1.1.0                               Apache-2.0/MIT
+cfg-if 1.0.5                              MIT OR Apache-2.0
+clap 4.6.9                                MIT OR Apache-2.0
+clap_builder 4.6.7                        MIT OR Apache-2.0
+clap_derive 4.6.9                         MIT OR Apache-2.0
+clap_lex 1.1.2                            MIT OR Apache-2.0
+colorchoice 1.0.5                         MIT OR Apache-2.0
+combine 4.6.9                             MIT
+console_error_panic_hook 0.1.7            Apache-2.0/MIT
+futures-core 0.3.34                       MIT OR Apache-2.0
+futures-task 0.3.34                       MIT OR Apache-2.0
+futures-util 0.3.34                       MIT OR Apache-2.0
+heck 0.5.0                                MIT OR Apache-2.0
+is_terminal_polyfill 1.70.2               MIT OR Apache-2.0
+jni 0.21.1                                MIT/Apache-2.0
+jni-sys 0.3.1                             MIT OR Apache-2.0
+jni-sys 0.4.1                             MIT OR Apache-2.0
+jni-sys-macros 0.4.1                      MIT OR Apache-2.0
+js-sys 0.3.107                            MIT OR Apache-2.0
+log 0.4.35                                MIT OR Apache-2.0
+memchr 2.8.3                              Unlicense OR MIT
+pin-project-lite 0.2.18                   Apache-2.0 OR MIT
+proc-macro2 1.0.107                       MIT OR Apache-2.0
+quote 1.0.47                              MIT OR Apache-2.0
+rustc-hash 2.1.3                          Apache-2.0 OR MIT
+serde 1.0.229                             MIT OR Apache-2.0
+serde-wasm-bindgen 0.4.5                  MIT
+serde_core 1.0.229                        MIT OR Apache-2.0
+slab 0.4.12                               MIT
+strsim 0.11.1                             MIT
+syn 2.0.119                               MIT OR Apache-2.0
+syn 3.0.10                                MIT OR Apache-2.0
+thiserror 1.0.69                          MIT OR Apache-2.0
+thiserror-impl 1.0.69                     MIT OR Apache-2.0
+tinyvec 1.13.3                            Zlib OR Apache-2.0 OR MIT
+unicode-ident 1.0.27                      (MIT OR Apache-2.0) AND Unicode-3.0
+unicode-normalization 0.1.26              (MIT OR Apache-2.0) AND Unicode-3.0
+utf8parse 0.2.2                           Apache-2.0 OR MIT
+vidyut-lipi 0.2.0                         MIT
+wasm-bindgen 0.2.130                      MIT OR Apache-2.0
+wasm-bindgen-macro 0.2.130                MIT OR Apache-2.0
+wasm-bindgen-macro-support 0.2.130        MIT OR Apache-2.0
+wasm-bindgen-shared 0.2.130               MIT OR Apache-2.0

@@ -12,8 +12,8 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Area | Families | Features | Capabilities |
 |---|---|---|---|
 | Typing core: prediction, autocorrect, learning, spell check | 9 | 50 | 205 |
-| Input behaviour: glide, gestures, cursor, editing, keys | 11 | 80 | 220 |
-| Languages, scripts, layouts, transliteration | 11 | 65 | 220 |
+| Input behaviour: glide, gestures, cursor, editing, keys | 11 | 80 | 221 |
+| Languages, scripts, layouts, transliteration | 11 | 66 | 224 |
 | Themes and appearance | 14 | 73 | 183 |
 | Emoji, GIFs, stickers, kaomoji | 16 | 96 | 94 |
 | Toolbar and the tool set | 10 | 88 | 364 |
@@ -23,7 +23,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Accessibility, form factors, platform integration | 13 | 61 | 111 |
 | Extensibility: addons, plugins, imports, formats | 5 | 35 | 164 |
 | Modes, rows, field adaptation, runtime | 12 | 97 | 203 |
-| **Total** | **134** | **830** | **2288** |
+| **Total** | **134** | **831** | **2293** |
 
 ## Typing core: prediction, autocorrect, learning, spell check
 
@@ -586,6 +586,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Banglish both ways — To Bangla through the spelling map, then the phonetic index under the strip's own confidence rule, then literal Avro, letter runs only; to Banglish through the inverted map and a rule romaniser with the inherent vowel dropped where speech drops it
     - Hinglish both ways — To Hindi and To Hinglish, the same converter over the Hindi scheme; back to Latin through a schwa-deleting romaniser (करना to karna, नमस्ते to namaste), offered only while the Hindi phonetic layout is enabled
     - Zawgyi both ways — Zawgyi ⇄ Unicode on Burmese text, the direction picked by myanmar-tools' detector; written past a Zawgyi field's own conversion so it is never converted twice
+    - Convert script `RARE` — Indic text, or IAST/ISO 15919/ITRANS, rewritten in any of 49 scripts and romanisations from a ladder (vidyut-lipi, its own `lipi` gate); the source read from the Unicode block or the marked letters, plain letters only on the Sanskrit keyboard and read as the user's chosen scheme; in the PROCESS_TEXT sheet too
     - Grammar, AI and speech — Harper over the selection alone with every fix committed at once; AI buttons that run a chosen action on the selection and land in the AI panel, whose Replace now swaps the selection rather than the field; reading aloud through the vocabulary speaker with a chip that reads Stop
     - Intents with fallbacks — Contacts, Maps and Calendar each try two intents and toast when no app takes them; Calendar first opens the Calendar tool's composer, prefilled, while that tool is on and saves in the keyboard
     - One-time list reset — The on-list and the order carry a list version; a list stored under an older one reads as the shipped list, so every existing user gets the new actions once
@@ -819,6 +820,11 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Per-script pinned fonts `uncommon` — 25 scripts map to a specific Google font; Music to Noto Music, Braille to Noto Sans Symbols 2
     - Per-script font pickers — Curated alternative families per script, shown only while a language on that script is enabled
     - Per-glyph fallback — A glyph the pinned face lacks falls back to the system font rather than blanking
+  - Indic script conversion `RARE` — vidyut-lipi 0.2.0 (MIT, Ambuda) in its own on-demand gate (`lipi`, 858 KB arm64), not in the engine every keyboard start loads
+    - 41 scripts, 8 romanisations — Devanagari to Gunjala Gondi, Thai, Khmer, Tibetan and Javanese among them; IAST, ISO 15919, ITRANS, Harvard-Kyoto, SLP1, Velthuis, WX, Baraha
+    - Source from the text — The Unicode block most letters are in (Grantha and Brahmi by code point), Assamese told from Bengali by ৰ/ৱ, IAST from ṛ ṃ ṣ and ISO from ṁ/r̥, ITRANS from R^i and ~N; Pinyin, Latvian and Polish vowels are not read as a romanisation
+    - Sanskrit in another script — The Sanskrit layout keeps typing Devanagari while each word reaches the field in IAST, ISO 15919, Grantha, Kannada, Telugu, Malayalam, Tamil, Bengali, Sharada, Siddham or seven more, through the legacy-font output path and its strip button
+    - Built from source for F-Droid — A plain Rust crate, byte-identical between two builds, in the table's fdroidBuild list
   - Zawgyi for Burmese `RARE` — Google myanmar-tools' Markov detector and its CLDR-derived converters, ported into the Rust engine (no download) and held to upstream's own corpus and compatibility table
     - Zawgyi output — A strip button on Burmese layouts writes Zawgyi; typing, the strip and prediction stay Unicode and the commit is converted, a letter-by-letter run rewritten whole so ေ lands in front of its consonant
     - Context read back as Unicode — The text before the cursor goes through Zawgyi to Unicode before prediction reads it, in a Zawgyi field or one already holding Zawgyi

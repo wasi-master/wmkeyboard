@@ -250,7 +250,9 @@ class SelectionMacrosTest {
                 SelectionMacro.ADD_NIKUD +
                 SelectionMacro.ADD_TASHKEEL +
                 SelectionMacro.ADD_FURIGANA +
-                SelectionMacro.RESTORE_YO,
+                SelectionMacro.RESTORE_YO +
+                // vidyut-lipi's library is a download into storage too.
+                SelectionMacro.CONVERT_SCRIPT,
             unsafe,
         )
         assertEquals(

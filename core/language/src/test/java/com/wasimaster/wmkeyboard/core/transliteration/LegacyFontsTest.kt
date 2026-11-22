@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.core.transliteration
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -362,6 +363,28 @@ class LegacyFontsTest {
         // Every badge tells its font apart on the strip.
         assertEquals(LegacyFonts.Font.entries.size, LegacyFonts.Font.entries.map { it.badge }.toSet().size)
         assertEquals(listOf(LegacyFonts.Font.FM_ABHAYA), LegacyFonts.fontsFor("si"))
+    }
+
+    /** Sanskrit's other scripts (vidyut-lipi) are offered apart from the fonts, and only for Sanskrit. */
+    @Test
+    fun sanskritOffersItsScriptsApart() {
+        val scripts = LegacyFonts.scriptsFor("sa")
+        assertEquals(LegacyFonts.Font.LIPI_IAST, scripts.first())
+        assertTrue(scripts.all { it.lipi != null })
+        assertTrue(LegacyFonts.fontsFor("sa").none { it.lipi != null })
+        assertEquals(emptyList<LegacyFonts.Font>(), LegacyFonts.scriptsFor("hi"))
+        assertEquals(LegacyFonts.Font.LIPI_GRANTHA, LegacyFonts.Font.of("lipi_grantha"))
+    }
+
+    /** Without the library a word goes in as the Devanagari it was typed in. */
+    @Test
+    fun aScriptWithoutItsLibraryWritesDevanagari() {
+        val word = "राम"
+        assertTrue(LegacyFonts.needsConversion(LegacyFonts.Font.LIPI_IAST, word))
+        assertFalse(LegacyFonts.needsConversion(LegacyFonts.Font.LIPI_IAST, "rama"))
+        assertEquals(word, LegacyFonts.convert(LegacyFonts.Font.LIPI_IAST, word))
+        assertFalse(LegacyFonts.isScriptChar(LegacyFonts.Font.LIPI_IAST, '।'))
+        assertTrue(LegacyFonts.isScriptChar(LegacyFonts.Font.LIPI_IAST, 'र'))
     }
 
     @Test

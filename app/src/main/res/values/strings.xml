@@ -56,6 +56,9 @@
     <string name="bergamot_module_title">Firefox Translations engine</string>
     <string name="ct2_module_title">NLLB translation engine</string>
     <string name="zinnia_module_title">Chinese and Japanese handwriting</string>
+    <!-- :feature:lipi, the converter between Indic scripts and romanisations
+         such as IAST, behind Convert script. -->
+    <string name="lipi_module_title">Indic script converter</string>
     <!-- :feature:llama, llama.cpp behind GGUF models for on-device AI.
          llama.cpp and GGUF stay in Latin letters. -->
     <string name="llama_module_title">llama.cpp for GGUF models</string>

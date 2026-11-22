@@ -57,9 +57,12 @@ object LegacyFonts {
      * A legacy encoding, by the id the settings store, with the [badge] its
      * strip button shows and the [title] its toast and the settings name. A
      * font with a [block] is one of [GlyphFontTables]', written by
-     * [GlyphTableEncoding] for that Unicode block.
+     * [GlyphTableEncoding] for that Unicode block. A font with a [lipi] is
+     * not a font at all but another script or a romanisation, which
+     * vidyut-lipi writes ([Lipi]): Sanskrit typed in Devanagari and written
+     * in IAST or Grantha, through the same output path as the fonts.
      */
-    enum class Font(val id: String, val badge: String, val title: String, val block: Int = 0) {
+    enum class Font(val id: String, val badge: String, val title: String, val block: Int = 0, val lipi: LipiScheme? = null) {
         KRUTI_DEV("krutidev", "KD", "Kruti Dev"),
         CHANAKYA("chanakya", "WC", "Walkman Chanakya"),
         SANSKRIT_99("sanskrit99", "S9", "Sanskrit 99"),
@@ -98,6 +101,26 @@ object LegacyFonts {
         KALAKAUMUDI("kalakaumudi", "KK", "Kalakaumudi", 0xD00),
         DR_CHATRIK("drchatrik", "DC", "DrChatrik", 0xA00),
         AKRUTI_ORI("akrutiori", "AK", "Akruti Ori Sarala", 0xB00),
+
+        // Sanskrit in another script (scriptsFor): vidyut-lipi, from Devanagari.
+        LIPI_IAST("lipi_iast", "IA", LipiScheme.IAST.label, lipi = LipiScheme.IAST),
+        LIPI_ISO_15919("lipi_iso15919", "IS", LipiScheme.ISO_15919.label, lipi = LipiScheme.ISO_15919),
+        LIPI_GRANTHA("lipi_grantha", "GR", LipiScheme.GRANTHA.label, lipi = LipiScheme.GRANTHA),
+        LIPI_KANNADA("lipi_kannada", "KN", LipiScheme.KANNADA.label, lipi = LipiScheme.KANNADA),
+        LIPI_TELUGU("lipi_telugu", "TE", LipiScheme.TELUGU.label, lipi = LipiScheme.TELUGU),
+        LIPI_MALAYALAM("lipi_malayalam", "MA", LipiScheme.MALAYALAM.label, lipi = LipiScheme.MALAYALAM),
+        LIPI_TAMIL("lipi_tamil", "TA", LipiScheme.TAMIL.label, lipi = LipiScheme.TAMIL),
+        LIPI_BENGALI("lipi_bengali", "BN", LipiScheme.BENGALI.label, lipi = LipiScheme.BENGALI),
+        LIPI_ODIA("lipi_odia", "OR", LipiScheme.ODIA.label, lipi = LipiScheme.ODIA),
+        LIPI_GUJARATI("lipi_gujarati", "GJ", LipiScheme.GUJARATI.label, lipi = LipiScheme.GUJARATI),
+        LIPI_GURMUKHI("lipi_gurmukhi", "GM", LipiScheme.GURMUKHI.label, lipi = LipiScheme.GURMUKHI),
+        LIPI_SINHALA("lipi_sinhala", "SI", LipiScheme.SINHALA.label, lipi = LipiScheme.SINHALA),
+        LIPI_SHARADA("lipi_sharada", "SR", LipiScheme.SHARADA.label, lipi = LipiScheme.SHARADA),
+        LIPI_SIDDHAM("lipi_siddham", "SH", LipiScheme.SIDDHAM.label, lipi = LipiScheme.SIDDHAM),
+        LIPI_NEWA("lipi_newa", "NW", LipiScheme.NEWA.label, lipi = LipiScheme.NEWA),
+        LIPI_MODI("lipi_modi", "MO", LipiScheme.MODI.label, lipi = LipiScheme.MODI),
+        LIPI_TIRHUTA("lipi_tirhuta", "TI", LipiScheme.TIRHUTA.label, lipi = LipiScheme.TIRHUTA),
+        LIPI_BRAHMI("lipi_brahmi", "BR", LipiScheme.BRAHMI.label, lipi = LipiScheme.BRAHMI),
         ;
 
         companion object {
@@ -137,11 +160,21 @@ object LegacyFonts {
         else -> emptyList()
     }
 
+    /**
+     * The other scripts [languageId]'s Devanagari can be written in, in the
+     * order the settings list them: Sanskrit only, which is printed in every
+     * script of India and in IAST, where a Hindi or Marathi word in Grantha
+     * is nothing anybody reads. They need vidyut-lipi's library ([Lipi]); a
+     * word goes in as Devanagari while it is missing.
+     */
+    fun scriptsFor(languageId: String): List<Font> =
+        if (languageId == "sa") Font.entries.filter { it.lipi != null } else emptyList()
+
     /** Whether [text] holds anything [font] writes differently. */
     fun needsConversion(font: Font, text: CharSequence): Boolean = text.any { converts(font, it) }
 
     /** Whether [c] is a character [font] changes. */
-    fun converts(font: Font, c: Char): Boolean = if (font.block != 0) c.code - font.block in 0..0x7F || c == '\u0964' || c == '\u0965' else when (font) {
+    fun converts(font: Font, c: Char): Boolean = if (font.lipi != null) c in '\u0900'..'\u097F' else if (font.block != 0) c.code - font.block in 0..0x7F || c == '\u0964' || c == '\u0965' else when (font) {
         Font.KRUTI_DEV -> c in '\u0900'..'\u097F' || c in KRUTI_DEV_MARKS
         Font.CHANAKYA -> c in '\u0900'..'\u097F' || c in ChanakyaEncoding.MARKS
         Font.SANSKRIT_99 -> c in '\u0900'..'\u097F'
@@ -156,7 +189,9 @@ object LegacyFonts {
     }
 
     /** A letter or sign of [font]'s script, or a joiner: what a word is made of. */
-    fun isScriptChar(font: Font, c: Char): Boolean = c == '\u200C' || c == '\u200D' || if (font.block != 0) {
+    fun isScriptChar(font: Font, c: Char): Boolean = c == '\u200C' || c == '\u200D' || if (font.lipi != null) {
+        c in '\u0900'..'\u0963' || c in '\u0966'..'\u097F'
+    } else if (font.block != 0) {
         c.code - font.block in 0..0x7F && (font.block != 0x900 || c != '\u0964' && c != '\u0965')
     } else when (font) {
         Font.KRUTI_DEV, Font.PREETI, Font.CHANAKYA, Font.SANSKRIT_99 -> c in '\u0900'..'\u0963' || c in '\u0966'..'\u097F'
@@ -171,6 +206,7 @@ object LegacyFonts {
     /** Unicode [text] in [font]. Text with nothing for the font to change comes back as it was. */
     fun convert(font: Font, text: String): String {
         if (!needsConversion(font, text)) return text
+        font.lipi?.let { return Lipi.convert(text, LipiScheme.DEVANAGARI, it) ?: text }
         if (font.block != 0) return GlyphFontTables.encoding(font.id)?.convert(text) ?: text
         return when (font) {
             Font.KRUTI_DEV -> toKrutiDev(text)

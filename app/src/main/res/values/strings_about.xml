@@ -203,6 +203,7 @@
     <string name="about_bundled_opencv_used">Finds, flattens and cleans up pages in the built-in document scanner (native library)</string>
     <string name="about_bundled_hunspell_used">Checks spelling and compound words against imported Hunspell dictionaries (native library)</string>
     <string name="about_bundled_zinnia_used">Reads Chinese and Japanese handwriting on the device without Google services (native library)</string>
+    <string name="about_bundled_lipi_used">Converts text between Indic scripts and IAST, ITRANS and the other romanisations, for Convert script and Sanskrit in another script (native library)</string>
     <string name="about_bundled_divvunspell_used">Checks spelling against GiellaLT finite-state spellers for Sámi, Greenlandic, Faroese and other languages (native library)</string>
     <string name="about_bundled_voikko_used">Checks Finnish spelling, compound words and inflections against the downloaded voikko-fi dictionary (native library)</string>
     <string name="about_bundled_harper_used">Checks the grammar and the style offline (native library)</string>

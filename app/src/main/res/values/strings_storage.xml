@@ -132,6 +132,7 @@
     <string name="storage_lib_bergamot">Bergamot, the free on-device engine in the Translate tool</string>
     <string name="storage_lib_ct2">The NLLB engine in the Translate tool</string>
     <string name="storage_lib_zinnia">Offline handwriting for Chinese and Japanese</string>
+    <string name="storage_lib_lipi">vidyut-lipi, for Convert script on Indic text and Sanskrit written in another script</string>
     <string name="storage_lib_llama">On-device AI, for GGUF models</string>
     <string name="storage_lib_docscan">The built-in document scanner</string>
     <string name="storage_lib_zxing">The built-in QR code scanner</string>

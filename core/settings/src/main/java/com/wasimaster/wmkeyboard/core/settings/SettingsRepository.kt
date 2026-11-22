@@ -6806,6 +6806,12 @@ data class SelectionMacroSettings(
     /** How many characters are selected, at the head of the bar (#1427). */
     val showCount: Boolean = false,
     /**
+     * What Convert script reads a selection of plain letters as: a
+     * romanisation's `LipiScheme.native` name (`Itrans`, `HarvardKyoto`…).
+     * Marked letters (ṛ, ṃ) and the scripts say what they are themselves.
+     */
+    val scriptLatinInput: String = "Itrans",
+    /**
      * Keep the row up with nothing selected (#763), offering what a bare
      * caret can use: Select all and Paste. Select all then brings the full
      * bar for the whole text, so Copy, Translate and the rest are one tap
@@ -14621,6 +14627,7 @@ class SettingsRepository(private val context: Context) {
         private val SELECTION_MACROS_EVERY_SELECTION =
             booleanPreferencesKey("selection_macros_every_selection")
         private val SELECTION_MACROS_SHOW_COUNT = booleanPreferencesKey("selection_macros_show_count")
+        private val SELECTION_MACROS_SCRIPT_LATIN = stringPreferencesKey("selection_macros_script_latin")
         private val SELECTION_MACROS_WITHOUT_SELECTION =
             booleanPreferencesKey("selection_macros_without_selection")
         private val SELECTION_MACROS_SYSTEM_MENU = booleanPreferencesKey("selection_macros_system_menu")
@@ -17512,6 +17519,7 @@ class SettingsRepository(private val context: Context) {
             inEverySelection = p[SELECTION_MACROS_EVERY_SELECTION]
                 ?: defaults.selectionMacros.inEverySelection,
             showCount = p[SELECTION_MACROS_SHOW_COUNT] ?: defaults.selectionMacros.showCount,
+            scriptLatinInput = p[SELECTION_MACROS_SCRIPT_LATIN] ?: defaults.selectionMacros.scriptLatinInput,
             withoutSelection = p[SELECTION_MACROS_WITHOUT_SELECTION]
                 ?: defaults.selectionMacros.withoutSelection,
             iconOnly = p[SELECTION_MACROS_ICON_ONLY]
@@ -28062,6 +28070,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSelectionMacrosShowCount(value: Boolean) =
         editPrefs { it[SELECTION_MACROS_SHOW_COUNT] = value }
+
+    /** See [SelectionMacroSettings.scriptLatinInput]. */
+    suspend fun setSelectionMacrosScriptLatin(value: String) =
+        editPrefs { it[SELECTION_MACROS_SCRIPT_LATIN] = value }
 
     suspend fun setSelectionMacrosWithoutSelection(value: Boolean) =
         editPrefs { it[SELECTION_MACROS_WITHOUT_SELECTION] = value }

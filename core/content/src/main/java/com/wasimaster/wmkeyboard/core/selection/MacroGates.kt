@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.selection
 
+import com.wasimaster.wmkeyboard.core.transliteration.LipiScheme
 import java.util.Locale
 import java.util.TimeZone
 
@@ -40,6 +41,12 @@ data class ContentFlags(
     val urlEncoded: Boolean = false,
     /** A query parameter [SelectionMacros.stripTrackers] would take away. */
     val hasTrackers: Boolean = false,
+    /**
+     * The script the text is in, or the romanisation its marks show, for
+     * Convert script; null for plain letters and for text it was not asked
+     * about ([DetectOptions.scripts]).
+     */
+    val lipiSource: LipiScheme? = null,
 ) {
     companion object {
         val NONE = ContentFlags()
@@ -59,6 +66,8 @@ data class DetectOptions(
     val locale: Locale = Locale.getDefault(),
     /** The user's own tracking parameters and link rewrites; see [SelectionMacros.stripTrackers]. */
     val links: LinkCleaning = LinkCleaning(),
+    /** Read the script for Convert script: only while it is on and its library is here. */
+    val scripts: Boolean = false,
 )
 
 /**
@@ -95,6 +104,8 @@ data class MacroGates(
     val japaneseFurigana: Boolean = false,
     /** The list of words with ё is on the phone. */
     val russianYo: Boolean = false,
+    /** vidyut-lipi's library is on the phone, for Convert script. */
+    val scriptConvert: Boolean = false,
     /** The `LanguageDef.id` being typed, for an action that only makes sense in it. */
     val languageId: String = "",
     /** The host app is in [ChatSyntax]'s table. */

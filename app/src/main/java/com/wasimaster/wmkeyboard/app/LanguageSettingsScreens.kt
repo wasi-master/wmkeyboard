@@ -52,6 +52,7 @@ import com.wasimaster.wmkeyboard.core.layout.resolveLayoutName
 import com.wasimaster.wmkeyboard.core.transliteration.BijoyAnsi
 import com.wasimaster.wmkeyboard.core.transliteration.KhiproSpecs
 import com.wasimaster.wmkeyboard.core.transliteration.LegacyFonts
+import com.wasimaster.wmkeyboard.core.transliteration.Lipi
 import com.wasimaster.wmkeyboard.core.dictionaries.AvroDictionaryDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCatalog
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryEntry
@@ -1713,10 +1714,43 @@ internal fun LanguageDetailScreen(
                     info = stringResource(R.string.languages_legacy_font_info),
                     options = listOf("" to stringResource(R.string.languages_legacy_font_off)) +
                         legacyFonts.map { font -> font.id to (legacyFontLabel(font)?.let { stringResource(it) } ?: font.title) },
-                    selected = settings.watch { it.suggestionStrip.legacyFonts[langId].orEmpty() },
+                    // A script picked below shares the setting: Off here, then.
+                    selected = settings.watch { s ->
+                        s.suggestionStrip.legacyFonts[langId].orEmpty().takeIf { id -> LegacyFonts.Font.of(id)?.lipi == null }.orEmpty()
+                    },
                     default = "",
-                ) { scope.launch { repository.setLegacyFont(langId, it) } }
+                ) { id ->
+                    // Off, while a script below holds the setting, is already true: leave that script be.
+                    val held = LegacyFonts.Font.of(settings.value.suggestionStrip.legacyFonts[langId])
+                    if (id.isNotEmpty() || held?.lipi == null) scope.launch { repository.setLegacyFont(langId, id) }
+                }
             }
+        }
+    }
+
+    // Sanskrit in IAST, Grantha, Kannada and the rest (vidyut-lipi): the same
+    // output path, strip button and stored choice as the fonts above, so one
+    // of the two is on at a time.
+    val lipiScripts = LegacyFonts.scriptsFor(langId)
+    if (lipiScripts.isNotEmpty() && Lipi.shipped) {
+        SettingsGroup(stringResource(R.string.lipi_output_group), level = SettingLevel.ADVANCED) {
+            item {
+                ChoiceSetting(
+                    R.string.lipi_output_title,
+                    subtitle = stringResource(R.string.lipi_output_subtitle),
+                    info = stringResource(R.string.lipi_output_info),
+                    options = listOf("" to stringResource(R.string.lipi_output_off)) + lipiScripts.map { font -> font.id to font.title },
+                    selected = settings.watch { s ->
+                        s.suggestionStrip.legacyFonts[langId].orEmpty().takeIf { id -> LegacyFonts.Font.of(id)?.lipi != null }.orEmpty()
+                    },
+                    default = "",
+                ) { id ->
+                    // Devanagari, while a legacy font holds the setting, is the same: leave the font be.
+                    val held = LegacyFonts.Font.of(settings.value.suggestionStrip.legacyFonts[langId])
+                    if (id.isNotEmpty() || held == null || held.lipi != null) scope.launch { repository.setLegacyFont(langId, id) }
+                }
+            }
+            item { LipiLibraryRow() }
         }
     }
 

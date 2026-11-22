@@ -268,6 +268,14 @@ Finnish dictionary (voikko-fi, GPL 2+) is not in the APK or the library
 either: the phone downloads it from the data repository, where it sits
 beside the source tarball it is built from.
 
+The script also builds `native/lipi-jni` (vidyut-lipi 0.2.0, MIT, from
+crates.io, with a JNI bridge) into `core/language/src/lipi/jniLibs`: the
+converter between Indic scripts and IAST and the other romanisations, behind
+Convert script and Sanskrit's Write in another script. It is a plain Rust
+crate like Harper, every dependency from crates.io at the version `Cargo.lock`
+pins, with no C code and no data fetched. The next entry's `scandelete` needs
+that path added; the copy of the recipe here already has it.
+
 The script also builds `native/chewing-jni` (libchewing 0.13.1, the
 `chewing` crate from crates.io, LGPL-2.1-or-later, with a JNI bridge) into
 `core/input/src/chewing/jniLibs`: the optional Chewing engine for Zhuyin. A

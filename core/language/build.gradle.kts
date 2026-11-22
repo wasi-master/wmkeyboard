@@ -1,5 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
+    // vidyut-lipi's library sits in src/lipi/jniLibs, a gate of its own (native/gates.json).
+    id("wmkeyboard.native-libs")
     id("wmkeyboard.detekt")
     alias(libs.plugins.kotlin.compose)
     id("wmkeyboard.compose-metrics")

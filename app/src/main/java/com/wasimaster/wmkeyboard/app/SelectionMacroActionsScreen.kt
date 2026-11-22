@@ -345,6 +345,7 @@ internal fun macroDescription(macro: SelectionMacro): Int = when (macro) {
     SelectionMacro.ADD_TASHKEEL -> R.string.selection_macros_desc_add_tashkeel
     SelectionMacro.ADD_FURIGANA -> R.string.selection_macros_desc_add_furigana
     SelectionMacro.SWITCH_SCRIPT -> R.string.selection_macros_desc_switch_script
+    SelectionMacro.CONVERT_SCRIPT -> R.string.selection_macros_desc_convert_script
     SelectionMacro.RESTORE_YO -> R.string.selection_macros_desc_restore_yo
     SelectionMacro.PERSIAN_SPACING -> R.string.selection_macros_desc_persian_spacing
     SelectionMacro.COLOUR -> R.string.selection_macros_desc_colour

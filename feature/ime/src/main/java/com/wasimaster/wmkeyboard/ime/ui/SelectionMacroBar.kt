@@ -110,6 +110,7 @@ import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.script.FancyStyles
+import com.wasimaster.wmkeyboard.core.selection.ScriptConvert
 import com.wasimaster.wmkeyboard.core.selection.Colour
 import com.wasimaster.wmkeyboard.core.selection.ColourCodes
 import com.wasimaster.wmkeyboard.core.selection.DateTimeHit
@@ -157,6 +158,8 @@ private sealed interface MacroLadder {
     data class Fancy(val source: String) : MacroLadder
     data class Colour(val source: String, val choices: List<Pair<String, String>>) : MacroLadder
     data class Zones(val source: String, val choices: List<Pair<String, String>>) : MacroLadder
+    /** Convert script's targets: each scheme's vidyut name and the chip's label. */
+    data class Scripts(val source: String, val choices: List<Pair<String, String>>) : MacroLadder
 }
 
 /** One thing on the row: a macro chip, or an AI action drawn as a chip of its own. */
@@ -265,6 +268,13 @@ internal fun SelectionMacroBar(
                 }
                 return@Row
             }
+            is MacroLadder.Scripts -> {
+                PickLadder(open.choices, chips, modifier = Modifier.weight(1f)) { arg ->
+                    feedback()
+                    callbacks.onPick(SelectionMacro.CONVERT_SCRIPT, arg, open.source)
+                }
+                return@Row
+            }
             MacroLadder.Case, null -> {}
         }
         val items: List<BarItem> = if (open == MacroLadder.Case) {
@@ -335,6 +345,13 @@ internal fun SelectionMacroBar(
                                                 offer.text,
                                                 zoneChoices(hit, state.settings, DateFormat.is24HourFormat(context)),
                                             )
+                                        }
+                                        macro == SelectionMacro.CONVERT_SCRIPT -> ScriptConvert.choices(
+                                            offer.text,
+                                            state.settings.selectionMacros.scriptLatinInput,
+                                            state.language.id,
+                                        )?.let { (_, targets) ->
+                                            ladder = MacroLadder.Scripts(offer.text, targets.map { it.native to it.label })
                                         }
                                         else -> callbacks.onMacro(macro)
                                     }
@@ -766,7 +783,7 @@ fun selectionMacroIcon(macro: SelectionMacro): ImageVector? = when (macro) {
     SelectionMacro.ZAWGYI -> Icons.Outlined.SwapHoriz
     SelectionMacro.KOREAN_SPACING -> Icons.Outlined.SwapHoriz
     SelectionMacro.ADD_NIKUD, SelectionMacro.ADD_TASHKEEL, SelectionMacro.ADD_FURIGANA -> Icons.Outlined.SwapHoriz
-    SelectionMacro.SWITCH_SCRIPT, SelectionMacro.RESTORE_YO, SelectionMacro.PERSIAN_SPACING -> Icons.Outlined.SwapHoriz
+    SelectionMacro.SWITCH_SCRIPT, SelectionMacro.CONVERT_SCRIPT, SelectionMacro.RESTORE_YO, SelectionMacro.PERSIAN_SPACING -> Icons.Outlined.SwapHoriz
     SelectionMacro.DIGITS_LATIN -> Icons.Outlined.Pin
     SelectionMacro.COLOUR -> Icons.Outlined.Palette
     SelectionMacro.JSON_FORMAT -> Icons.Outlined.DataObject

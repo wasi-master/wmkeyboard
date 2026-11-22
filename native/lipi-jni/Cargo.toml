@@ -1,0 +1,24 @@
+[package]
+name = "lipi-jni"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+name = "wmlipi"
+crate-type = ["cdylib"]
+
+[dependencies]
+# Pinned exactly: Scheme's variant names are the contract with LipiScheme in
+# :core:language (README.md), and a minor release may rename or add one.
+vidyut-lipi = "=0.2.0"
+jni = "0.21"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = "symbols"
+panic = "abort"
+# Size over speed: a selection or a committed word is a few hundred
+# characters at most, and the mapping tables dominate the library anyway.
+opt-level = "z"

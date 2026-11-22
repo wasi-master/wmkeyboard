@@ -20,7 +20,9 @@ The Selection actions screen is the switch and two choices, then four doors: the
 | Show on every selection | Toggle | Off |
 | Show with nothing selected | Toggle | Off |
 | Read what is selected | Toggle | On |
-| Actions | Screen | 37 of 56 on |
+| Actions | Screen | 45 of 64 on |
+| Indic script converter | Download | Not downloaded, listed while Convert script is on |
+| Plain letters are read as | Choice of 6 | ITRANS, listed while Convert script is on |
 | Icon only | Screen | None |
 | AI buttons | Screen | None |
 | Time zones | Screen | UTC and the device's zone |
@@ -42,6 +44,10 @@ The Selection actions screen is the switch and two choices, then four doors: the
 **Show with nothing selected** keeps the own row up while the field has only a caret. Offered then are Select all and Paste, out of the actions you have on; Paste is drawn whether or not the clipboard holds anything, so the row does not change shape under your thumb, and a paste of nothing does nothing. Selecting text replaces it with the usual row for that selection, and collapsing the selection brings the caret row back. The row is not drawn while a panel is open, the same as for a selection. The switch is only listed with **Where it appears** set to **Own row**, and has no effect on the strip placement. Password fields are excluded whichever way this is set.
 
 **Read what is selected** decides whether a selection is read as a phone number, an address or a link, or only ever as plain text. With it off you keep every action that works on any text and lose Call, Message, WhatsApp, Email, Open, QR and Contact, because none of those mean anything without the reading. Phone shapes come from the formats you saved under [Phone number formats](/reference/settings/phone-formats/).
+
+**Indic script converter** is vidyut-lipi's library, about 860&nbsp;KB, which **Convert script** needs. It is only listed while that action is on and in a build that can have the library; Play delivers it as an on-demand module, the other builds fetch it when you tap **Download** (F-Droid's build behind its download opt-in).
+
+**Plain letters are read as** picks what Convert script reads a selection of plain letters as, such as `kRShNa`: ITRANS, Harvard-Kyoto, SLP1, Velthuis, WX or Baraha. A selection in an Indic script, or in IAST or ISO 15919, says what it is, and carets and tildes (`R^i`, `~N`) are read as ITRANS whatever this says. Plain letters are only offered while you type Sanskrit.
 
 **WM Keyboard in the selection menu** adds **WM Keyboard** to the menu apps show over selected text, in the apps whose menu lists other apps' entries ([which ones](/smart/selection-actions/#when-the-entry-is-missing)). It opens a sheet with Translate, the AI actions and the rewrites and Open in actions from the **Actions** list below, in the order set there; see [In any app's selection menu](/smart/selection-actions/#in-any-apps-selection-menu). The sheet uses the same list as the bar whether or not the bar is on.
 
@@ -85,6 +91,7 @@ The list is an allow list, not a guarantee: an action that is on is drawn only w
 | Add tashkeel | Convert | On | Arabic text, [once its downloads are on the phone](/languages/downloads/#arabic-tashkeel) |
 | Add furigana | Convert | On | Japanese text, [once its download is on the phone](/languages/downloads/#japanese-furigana) |
 | Switch script | Convert | On | Text in either alphabet while you type Serbian or Uzbek. Rewrites Cyrillic as Latin or Latin as Cyrillic, going by which most of it is in. Foreign words and web addresses stay as they are |
+| Convert script | Convert | On | Text in an Indic script, or in IAST, ISO 15919 or ITRANS, [once the Indic script converter is on the phone](/smart/selection-actions/#convert); plain letters only while you type Sanskrit. Opens a row of the 48 other scripts and romanisations. Since 0.6.8 |
 | Restore ё | Convert | On | Cyrillic text while you type Russian, once **Words with ё** is downloaded under Languages → Russian → Russian options. Only words that can't be read with е change, so все stays все |
 | Fix half-spaces | Convert | On | Persian text. Adds half-spaces to forms such as می‌روم and کتاب‌ها, replaces Arabic ي and ك, and tidies spaces around punctuation |
 | Colour | Convert | On | A colour code |

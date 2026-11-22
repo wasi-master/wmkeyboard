@@ -50,6 +50,7 @@ internal class FeatureLibraryInfo(@StringRes val description: Int, val route: St
             "langid" to FeatureLibraryInfo(R.string.storage_lib_langid, TRANSLATE),
             "ct2" to FeatureLibraryInfo(R.string.storage_lib_ct2, TRANSLATE),
             "zinnia" to FeatureLibraryInfo(R.string.storage_lib_zinnia, "tool/HANDWRITING"),
+            "lipi" to FeatureLibraryInfo(R.string.storage_lib_lipi, "selection_macros/actions"),
             "llama" to FeatureLibraryInfo(R.string.storage_lib_llama, AI),
             "llamagpu" to FeatureLibraryInfo(R.string.storage_lib_llama, AI),
             "llamavulkan" to FeatureLibraryInfo(R.string.storage_lib_llama, AI),

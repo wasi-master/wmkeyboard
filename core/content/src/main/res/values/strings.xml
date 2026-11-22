@@ -375,6 +375,8 @@
     <string name="core_content_selection_macro_add_tashkeel">Add tashkeel</string>
     <string name="core_content_selection_macro_add_furigana">Add furigana</string>
     <string name="core_content_selection_macro_switch_script">Switch script</string>
+    <!-- Selection action: rewrite Indic text in another script, or in a romanisation such as IAST. -->
+    <string name="core_content_selection_macro_convert_script">Convert script</string>
     <string name="core_content_selection_macro_restore_yo">Restore ё</string>
     <string name="core_content_selection_macro_persian_spacing">Fix half-spaces</string>
     <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>

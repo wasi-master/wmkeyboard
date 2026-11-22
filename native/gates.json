@@ -292,6 +292,15 @@
       ]
     },
     {
+      "id": "lipi",
+      "property": "lipi",
+      "doc": "`:feature:lipi`: vidyut-lipi, the transliterator between the Brahmic scripts and IAST, ISO 15919, ITRANS and the other romanisations (`libwmlipi`, `native/lipi-jni`, `:core:language`), behind the Convert script selection action and Sanskrit's Write in another script. About 860 KB, so its own gate rather than part of `wm_engine`, which loads at every keyboard start.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmlipi.so", "dir": "core/language/src/lipi/jniLibs", "fdroidBuild": "native/lipi-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.transliteration.LipiNative"] }
+      ]
+    },
+    {
       "id": "llama",
       "property": "llama",
       "doc": "`:feature:llama`: llama.cpp, the on-device AI runtime for GGUF models (`:core:intelligence`), with libmtmd for vision models' projectors; the OpenCL build for Adreno GPUs is the `llamagpu` gate. LiteRT-LM, the default runtime, has its own gate (`LlmModule`); only a GGUF model asks for this one.",

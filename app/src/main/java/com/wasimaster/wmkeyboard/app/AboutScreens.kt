@@ -290,6 +290,17 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/taku910/zinnia",
         ),
     )
+    // Convert script and Sanskrit in another script: the `lipi` gate, packaged,
+    // pinned for download or a Play split in every build. See native/lipi-jni.
+    add(
+        Attribution(
+            "vidyut-lipi",
+            R.string.about_bundled_lipi_used,
+            "Copyright Arun Prasad, and the respective crate authors",
+            "MIT / Apache-2.0 / others", "lipi-third-party.txt",
+            "https://github.com/ambuda-org/vidyut",
+        ),
+    )
     // GiellaLT grammar checkers: divvun-runtime with its VISL CG-3 and HFST
     // ports, a library of its own, never in an APK (downloaded or Play's
     // split). GPL-3.0, unlike the rest of the app. See native/divvungrammar-jni;

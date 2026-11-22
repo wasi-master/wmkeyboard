@@ -124,6 +124,7 @@ import com.wasimaster.wmkeyboard.core.clipboard.ClipEntityKind
 import com.wasimaster.wmkeyboard.core.selection.PersianCleanup
 import com.wasimaster.wmkeyboard.core.selection.RussianYo
 import com.wasimaster.wmkeyboard.core.selection.ScriptSwitch
+import com.wasimaster.wmkeyboard.core.selection.ScriptConvert
 import com.wasimaster.wmkeyboard.core.selection.SelectionKind
 import com.wasimaster.wmkeyboard.core.selection.ChatStyle
 import com.wasimaster.wmkeyboard.core.selection.ChatSyntax
@@ -55460,6 +55461,9 @@ open class WMKeyboardService : InputMethodService() {
             formatted != null &&
                 !(SelectionMacro.STRIP_TRACKERS in allowed && formatted == SelectionMacros.stripTrackers(text, settings.clipboard.linkCleaning))
             )
+        // vidyut-lipi lives behind a download, and its files behind the lock.
+        val scriptConvert = SelectionMacro.CONVERT_SCRIPT in allowed && userUnlocked &&
+            com.wasimaster.wmkeyboard.core.transliteration.Lipi.ready
         // The dearer detectors run only while a macro that needs them is on.
         val content = SelectionMacros.detectContent(
             text,
@@ -55468,6 +55472,7 @@ open class WMKeyboardService : InputMethodService() {
                 place = SelectionMacro.MAP in allowed,
                 nowMillis = System.currentTimeMillis(),
                 links = settings.clipboard.linkCleaning,
+                scripts = scriptConvert,
             ),
         )
         val aiReady = ToolbarTool.AI in settings.enabledTools && aiInitialState(settings) == AiUi.Idle
@@ -55492,6 +55497,7 @@ open class WMKeyboardService : InputMethodService() {
             arabicTashkeel = userUnlocked && ArabicTashkeel.ready(filesDir),
             japaneseFurigana = userUnlocked && JapaneseFurigana.ready(filesDir),
             russianYo = userUnlocked && CjkDictStore.downloadedFileFor(filesDir, CjkDictCatalog.RUSSIAN_YO_PACK) != null,
+            scriptConvert = scriptConvert,
             languageId = suggestionEngine?.primaryLanguageId.orEmpty(),
             chatSyntax = ChatSyntax.forPackage(currentPackage),
             oneWord = selectedWord(text) != null,
@@ -55757,7 +55763,7 @@ open class WMKeyboardService : InputMethodService() {
             SelectionMacro.MAP -> openMap(offer)
             SelectionMacro.CALENDAR -> addCalendarEvent(offer)
             // Doors to ladders: the bar opens them and never sends the tap.
-            SelectionMacro.FANCY, SelectionMacro.COLOUR, SelectionMacro.TIME_ZONES -> {}
+            SelectionMacro.FANCY, SelectionMacro.COLOUR, SelectionMacro.TIME_ZONES, SelectionMacro.CONVERT_SCRIPT -> {}
         }
     }
 
@@ -55785,17 +55791,25 @@ open class WMKeyboardService : InputMethodService() {
                         android.text.format.DateFormat.is24HourFormat(this), System.currentTimeMillis(),
                     )
                 }
+            // [arg] is the target's LipiScheme.native; the source is read
+            // from [source] itself, so a second pick converts the original.
+            SelectionMacro.CONVERT_SCRIPT ->
+                ScriptConvert.convert(source, _uiState.value.settings.selectionMacros.scriptLatinInput, arg)
             else -> null
         } ?: return
         vibrate()
         // The pick is the text it should be; Fancy Text's field styling would
-        // restyle it in the keyboard's own style (#950).
+        // restyle it in the keyboard's own style (#950), and Sanskrit's own
+        // Write in another script would convert a Devanagari result again.
         val fancy = currentInputConnection as? FancyOutputConnection
+        val legacy = (currentInputConnection as? LegacyOutputConnection).takeIf { macro == SelectionMacro.CONVERT_SCRIPT }
         fancy?.passThrough = true
+        legacy?.passThrough = true
         try {
             rewriteSelection(out)
         } finally {
             fancy?.passThrough = false
+            legacy?.passThrough = false
         }
     }
 

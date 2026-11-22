@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     vidyut-lipi, the converter between Indic scripts and their romanisations
+     (IAST, ITRANS, Harvard-Kyoto…): Convert script on the selection bar and
+     Sanskrit's Write in another script. Scheme names (IAST, ITRANS,
+     Harvard-Kyoto, ISO 15919, SLP1, Velthuis, WX, Baraha) are proper names
+     and stay in Latin letters.
+-->
+<resources>
+    <string name="lipi_library_title">Indic script converter</string>
+    <string name="lipi_library_ready">On this phone</string>
+    <string name="lipi_library_installing">Downloading</string>
+    <string name="lipi_library_missing">About 860 KB. Convert script and Write in another script need it.</string>
+    <string name="lipi_latin_input_title">Plain letters are read as</string>
+    <string name="lipi_latin_input_subtitle">How Convert script reads a selection typed on the letter keys, like kRShNa</string>
+    <string name="lipi_latin_input_info">A selection in an Indic script, or in IAST or ISO 15919 with their marked letters (ṛ, ṃ, ṣ), says what it is. Plain letters could be any of the schemes that type on an ordinary keyboard, so Convert script reads them as the one picked here. Carets and tildes (R^i, ~N) are read as ITRANS whatever this says. Plain letters are only offered on the Sanskrit keyboard, where they are most likely to be a romanisation and not English.</string>
+    <string name="lipi_output_group">Write in another script</string>
+    <string name="lipi_output_title">Script the words go in as</string>
+    <string name="lipi_output_subtitle">Type Sanskrit as usual and each word reaches the field in IAST, Grantha, Kannada or another script</string>
+    <string name="lipi_output_info">Sanskrit is printed in every script of India and in IAST. Pick one and the Sanskrit layouts get a button beside the suggestions, the same one the legacy fonts use. With it lit, every word goes into the field in that script, while the keyboard goes on typing, predicting and correcting in Devanagari. The conversion is vidyut-lipi\'s and needs its library, a download of about 860 KB; until it is on the phone, words go in as Devanagari. Picking a script here turns off a legacy font, and the other way round. Off by default.</string>
+    <string name="lipi_output_off">Devanagari</string>
+</resources>

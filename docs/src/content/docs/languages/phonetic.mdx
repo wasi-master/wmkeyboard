@@ -149,6 +149,12 @@ Sanskrit phonetic reads ITRANS and Harvard-Kyoto, the two schemes Sanskrit is ty
 
 There is no known-spellings list for Sanskrit, since these schemes leave nothing to guess. With the Sanskrit word list installed the strip also offers listed words that sound like what you typed.
 
+#### Writing Sanskrit in another script
+
+Sanskrit is printed in every script of India and in IAST, so since 0.6.8 the Sanskrit layouts can write in one of those while you go on typing ITRANS or Harvard-Kyoto. Pick the script under **Write in another script** on Sanskrit's own screen: IAST, ISO 15919, Grantha, Kannada, Telugu, Malayalam, Tamil, Bangla, Odia, Gujarati, Gurmukhi, Sinhala, Sharada, Siddham, Newa, Modi, Tirhuta or Brahmi. The layouts then get a button beside the suggestions, the one the [legacy fonts](/languages/overview/#writing-for-legacy-fonts) use, labelled with the script's two letters (**IA** for IAST, **GR** for Grantha). With it lit, each word goes into the text box in that script as you finish it: `saMskRtam` writes `saṃskṛtam` in IAST, or 𑌸𑌂𑌸𑍍𑌕𑍃𑌤𑌮𑍍 in Grantha. The strip, prediction and correction still work in Devanagari. A script picked here replaces a legacy font, and the other way round, since a word can only go in one way.
+
+The conversion is [vidyut-lipi](https://github.com/ambuda-org/vidyut)'s and needs its library, the **Indic script converter**, about 860&nbsp;KB; the same screen has **Download** for it. Until it is on the phone, words go in as Devanagari. To convert text already written, select it and use [Convert script](/smart/selection-actions/#convert).
+
 ### Odia, Tamil, Telugu, Kannada and Malayalam
 
 These languages pronounce every vowel, so people type every vowel: `amma`, `nanna`, `avan`. A consonant straight after a consonant is a conjunct, and a word-final consonant takes a virama (Tamil's pulli, Malayalam's chillu).
