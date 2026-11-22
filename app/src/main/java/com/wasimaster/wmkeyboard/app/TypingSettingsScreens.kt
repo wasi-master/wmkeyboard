@@ -291,6 +291,15 @@ internal fun TypingSettings(
                 default = SettingsDefaults.layoutBehavior.shiftEnterNewline,
             ) { scope.launch { repository.setShiftEnterNewline(it) } }
         }
+        item {
+            ToggleSetting(
+                R.string.typing_enter_hold_newline_title,
+                stringResource(R.string.typing_enter_hold_newline_subtitle),
+                settings.watch { it.layoutBehavior.enterHoldNewline },
+                info = stringResource(R.string.typing_enter_hold_newline_info),
+                default = SettingsDefaults.layoutBehavior.enterHoldNewline,
+            ) { scope.launch { repository.setEnterHoldNewline(it) } }
+        }
     }
 
     SettingsGroup(stringResource(R.string.typing_group_volume_title), level = SettingLevel.ADVANCED) {

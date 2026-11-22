@@ -388,6 +388,7 @@ private fun SearchStrings.typingRows(): List<SettingsSearchEntry> {
         // The Backspace group moved to Key press (#136); its rows are indexed
         // there, and the gesture rows on the three pages under Gestures.
         row(R.string.typing_shift_enter_title, R.string.typing_shift_enter_subtitle),
+        row(R.string.typing_enter_hold_newline_title, R.string.typing_enter_hold_newline_subtitle),
         row(R.string.typing_volume_cursor_title, R.string.typing_volume_cursor_subtitle),
         row(R.string.typing_volume_cursor_media_title, R.string.typing_volume_cursor_media_subtitle),
     )

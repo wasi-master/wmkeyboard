@@ -1263,7 +1263,9 @@ private fun Key.withEnterHoldFor(state: KeyboardUiState): Key {
     val field = state.enterAction
     if (field == EnterAction.DEFAULT || state.effectiveEnterAction != EnterAction.DEFAULT) return this
     val index = actionAlternates.indexOfFirst { it.action == KeyAction.Newline }
-    if (index < 0) return this
+    // With the hold's line break turned off (#1430) there is nothing to swap,
+    // but the corner still promises the field's action, so the hold gains it.
+    if (index < 0 && state.settings.layoutBehavior.enterHoldNewline) return this
     val fieldAction = KeyAlternate(
         action = KeyAction.EditorAction,
         // An app's own wording is text, and it is the whole of what the key
@@ -1273,6 +1275,7 @@ private fun Key.withEnterHoldFor(state: KeyboardUiState): Key {
         // has no field to read one from (see [AlternateAction]).
         icon = IconDefaults.enterActionSlot(field),
     )
+    if (index < 0) return copy(actionAlternates = actionAlternates + fieldAction)
     return copy(actionAlternates = actionAlternates.toMutableList().apply { this[index] = fieldAction })
 }
 
@@ -26599,7 +26602,11 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     // Keyed on the field's own action rather than [effectiveEnterAction], which
     // folds in the live shift: reading that here would rebuild the whole grid on
     // every shift press, and the entry belongs in the popup either way.
-    val newlineAlternate = state.enterAction != EnterAction.DEFAULT
+    //
+    // Unless the user turned it off (#1430). A keyboard mode that makes Enter
+    // a line break keeps it, as that hold is where the field's action went.
+    val newlineAlternate = state.enterAction != EnterAction.DEFAULT &&
+        (state.settings.layoutBehavior.enterHoldNewline || state.settings.layoutBehavior.enterAlwaysNewline)
     // Opt-in: the emoji panel under a hold on enter, for a bottom row with no
     // emoji key. See [LayoutBehaviorSettings.enterLongPressEmoji].
     val emojiAlternate = state.settings.layoutBehavior.enterLongPressEmoji

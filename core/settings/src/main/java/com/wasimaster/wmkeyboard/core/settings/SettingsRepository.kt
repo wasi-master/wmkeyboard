@@ -10888,6 +10888,13 @@ data class LayoutBehaviorSettings(
      */
     val shiftEnterNewline: Boolean = true,
     /**
+     * A hold on an Enter key that shows the field's action (Send, Go, Search)
+     * offers a line break (#1430). Off for someone who never wants one there
+     * and keeps catching it. A keyboard mode's [enterAlwaysNewline] keeps the
+     * hold whatever this says, since the hold is where its field action went.
+     */
+    val enterHoldNewline: Boolean = true,
+    /**
      * Enter types a line break and leaves the field's action to its hold. No
      * setting of its own and never stored: only a keyboard mode turns it on, in
      * the view of the settings it applies ([applyMode]).
@@ -13286,6 +13293,7 @@ class SettingsRepository(private val context: Context) {
         private val NUMERAL_SYSTEM_BY_LANG = stringPreferencesKey("numeral_system_by_lang")
         private val NUMERAL_COMMIT_SCOPE = stringPreferencesKey("numeral_commit_scope")
         private val SHIFT_ENTER_NEWLINE = booleanPreferencesKey("shift_enter_newline")
+        private val ENTER_HOLD_NEWLINE = booleanPreferencesKey("enter_hold_newline")
         private val PS_MANUAL = booleanPreferencesKey("power_saving_manual")
         private val PS_TRIGGER = stringPreferencesKey("power_saving_trigger")
         private val PS_BATTERY_PERCENT = intPreferencesKey("power_saving_battery_percent")
@@ -16371,6 +16379,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.layoutBehavior.numeralCommitScope,
             shiftEnterNewline =
                 p[SHIFT_ENTER_NEWLINE] ?: defaults.layoutBehavior.shiftEnterNewline,
+            enterHoldNewline =
+                p[ENTER_HOLD_NEWLINE] ?: defaults.layoutBehavior.enterHoldNewline,
             numberRowInSymbols =
                 p[NUMBER_ROW_IN_SYMBOLS] ?: defaults.layoutBehavior.numberRowInSymbols,
             numberRowOnKeypad =
@@ -25074,6 +25084,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setShiftEnterNewline(value: Boolean) =
         editPrefs { it[SHIFT_ENTER_NEWLINE] = value }
+
+    suspend fun setEnterHoldNewline(value: Boolean) =
+        editPrefs { it[ENTER_HOLD_NEWLINE] = value }
 
     // ---- power saving ----
 

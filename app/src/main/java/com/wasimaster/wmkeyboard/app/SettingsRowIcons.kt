@@ -1415,6 +1415,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_backspace_step_title) { Icons.AutoMirrored.Outlined.Backspace }
         put(R.string.typing_backspace_char_step_title) { Icons.Outlined.Speed }
         put(R.string.typing_shift_enter_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }
+        put(R.string.typing_enter_hold_newline_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }
         put(R.string.typing_volume_cursor_title) { Icons.AutoMirrored.Outlined.VolumeUp }
         put(R.string.typing_volume_cursor_media_title) { Icons.Outlined.MusicNote }
         put(R.string.typing_hardware_input_title) { SymbolIcons.KeyboardExternalInput }
