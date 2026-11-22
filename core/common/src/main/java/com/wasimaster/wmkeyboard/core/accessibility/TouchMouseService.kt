@@ -2,11 +2,9 @@ package com.wasimaster.wmkeyboard.core.accessibility
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
-import android.content.ComponentName
 import android.content.Context
 import android.graphics.Path
 import android.os.Build
-import android.provider.Settings
 import android.view.accessibility.AccessibilityEvent
 import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.annotation.RequiresApi
@@ -34,20 +32,54 @@ import androidx.annotation.RequiresApi
  */
 class TouchMouseService : AccessibilityService() {
 
+    private val part = TouchMouse(this)
+
     override fun onServiceConnected() {
         super.onServiceConnected()
-        current = this
+        current = part
     }
 
     override fun onDestroy() {
-        if (current === this) current = null
-        stroke = null
+        if (current === part) current = null
+        part.reset()
         super.onDestroy()
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) = Unit
 
-    override fun onInterrupt() {
+    override fun onInterrupt() = part.reset()
+
+    companion object {
+        /** How long each piece of a continued stroke lasts; short, so the finger follows the trackpad closely. */
+        const val SEGMENT_MS = 16L
+
+        /**
+         * The connected mouse, from this service or the combined
+         * [WMAccessibilityService], or null while neither is on.
+         */
+        @Volatile
+        var current: TouchMouse? = null
+            internal set
+
+        /** Whether a held stroke can be continued: Android 8 and later. */
+        @get:ChecksSdkIntAtLeast(api = Build.VERSION_CODES.O)
+        val canContinue: Boolean get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+
+        /**
+         * Whether the user has turned the service on in Settings › Accessibility,
+         * this one or the combined one standing in for it. Read from the secure
+         * setting rather than [current], which is only set once the system has
+         * bound it.
+         */
+        fun isEnabled(context: Context): Boolean = AccessibilityEntries.isOn(context, TouchMouseService::class.java)
+    }
+}
+
+/** What [TouchMouseService] does, for whichever service hosts it. */
+class TouchMouse internal constructor(private val host: AccessibilityService) {
+
+    /** Drops a held stroke: the system cancelled it, or the service is going. */
+    internal fun reset() {
         stroke = null
     }
 
@@ -103,7 +135,7 @@ class TouchMouseService : AccessibilityService() {
      * run its time, or the system cancels the stroke.
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    fun pressDown(x: Float, y: Float, durationMs: Long = SEGMENT_MS): Boolean {
+    fun pressDown(x: Float, y: Float, durationMs: Long = TouchMouseService.SEGMENT_MS): Boolean {
         val first = GestureDescription.StrokeDescription(point(x, y), 0, durationMs.coerceAtLeast(1), true)
         stroke = first
         strokeX = x
@@ -117,7 +149,7 @@ class TouchMouseService : AccessibilityService() {
      * goes out, so a finger held still stays down.
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    fun continueTo(x: Float, y: Float, durationMs: Long = SEGMENT_MS, last: Boolean = false): Boolean {
+    fun continueTo(x: Float, y: Float, durationMs: Long = TouchMouseService.SEGMENT_MS, last: Boolean = false): Boolean {
         val held = stroke ?: return false
         val path = Path().apply {
             moveTo(strokeX, strokeY)
@@ -136,36 +168,10 @@ class TouchMouseService : AccessibilityService() {
     private fun point(x: Float, y: Float) = Path().apply { moveTo(x, y) }
 
     private fun dispatch(gesture: GestureDescription): Boolean =
-        runCatching { dispatchGesture(gesture, null, null) }.getOrDefault(false)
+        runCatching { host.dispatchGesture(gesture, null, null) }.getOrDefault(false)
 
-    companion object {
-        private const val TAP_MS = 40L
-        private const val DOUBLE_GAP_MS = 60L
-
-        /** How long each piece of a continued stroke lasts; short, so the finger follows the trackpad closely. */
-        const val SEGMENT_MS = 16L
-
-        /** The connected service, or null while it is off. */
-        @Volatile
-        var current: TouchMouseService? = null
-            private set
-
-        /** Whether a held stroke can be continued: Android 8 and later. */
-        @get:ChecksSdkIntAtLeast(api = Build.VERSION_CODES.O)
-        val canContinue: Boolean get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-
-        /**
-         * Whether the user has turned the service on in Settings › Accessibility.
-         * Read from the secure setting rather than [current], which is only set
-         * once the system has bound it.
-         */
-        fun isEnabled(context: Context): Boolean {
-            val own = ComponentName(context, TouchMouseService::class.java)
-            val enabled = Settings.Secure.getString(
-                context.contentResolver,
-                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
-            ) ?: return false
-            return enabled.split(':').any { ComponentName.unflattenFromString(it) == own }
-        }
+    private companion object {
+        const val TAP_MS = 40L
+        const val DOUBLE_GAP_MS = 60L
     }
 }

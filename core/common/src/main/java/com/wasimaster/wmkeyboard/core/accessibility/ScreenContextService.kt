@@ -1,13 +1,11 @@
 package com.wasimaster.wmkeyboard.core.accessibility
 
 import android.accessibilityservice.AccessibilityService
-import android.content.ComponentName
 import android.content.Context
 import android.graphics.Rect
 import android.graphics.RectF
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityWindowInfo
@@ -21,36 +19,94 @@ import android.view.accessibility.AccessibilityWindowInfo
  * chat, the error dialog. Window content is only handed to an accessibility
  * service, so this is one, with exactly that one power and nothing else:
  *
- *  * it reads nothing on its own. The service is idle until [read] or
- *    [textAt] is called: [read] only from the floating button's Ask AI,
- *    [textAt] only from its Look up, once the user has tapped a word;
- *  * what [read] reads is the visible text of the app in front, once, handed
+ *  * it reads nothing on its own. The service is idle until [ScreenReader.read] or
+ *    [ScreenReader.textAt] is called: [ScreenReader.read] only from the floating button's Ask AI,
+ *    [ScreenReader.textAt] only from its Look up, once the user has tapped a word;
+ *  * what [ScreenReader.read] reads is the visible text of the app in front, once, handed
  *    to the AI chat as the message's attachment, where the user sees it
- *    before anything is sent. What [textAt] reads is the one piece of text
+ *    before anything is sent. What [ScreenReader.textAt] reads is the one piece of text
  *    under the finger, with where its characters are, for the Look up card;
  *  * it performs no actions, injects no input and keeps no copy.
  *
- * It runs in the app's main process, beside the keyboard, so [read] is a plain
+ * It runs in the app's main process, beside the keyboard, so [ScreenReader.read] is a plain
  * in-process call through [current]. Separate from [TouchPassthroughService]
  * on purpose: that one promises it cannot read the screen, and turning on
  * TalkBack gestures must never be the same switch as letting the AI see.
  */
 class ScreenContextService : AccessibilityService() {
 
+    private val part = ScreenReader(this)
+
     override fun onServiceConnected() {
         super.onServiceConnected()
-        current = this
+        current = part
     }
 
     override fun onDestroy() {
-        if (current === this) current = null
+        if (current === part) current = null
         super.onDestroy()
     }
 
-    /** Events are not used; the tree is read on demand in [read]. */
+    /** Events are not used; the tree is read on demand in [ScreenReader.read]. */
     override fun onAccessibilityEvent(event: AccessibilityEvent?) = Unit
 
     override fun onInterrupt() = Unit
+
+    /** What [ScreenReader.read] found: whose screen, and the text on it. */
+    data class Screen(val packageName: String, val text: String)
+
+    /**
+     * What [ScreenReader.textAt] found. [text] is a window of the tapped text and
+     * [offset] the tapped character in it (-1 when it could not be placed).
+     * [rects] are screen boxes, four ints each, of the characters from
+     * [rectsFrom] in [text] on; [bounds] is the text's own box.
+     */
+    class Tap(
+        val packageName: String,
+        val text: String,
+        val offset: Int,
+        val rects: IntArray?,
+        val rectsFrom: Int,
+        val bounds: IntArray,
+    )
+
+    companion object {
+        /** The most text one read hands over; a long page is cut, not refused. */
+        const val MAX_CHARS = 12_000
+
+        /** Characters [ScreenReader.textAt] keeps on each side of the tap. */
+        internal const val TAP_WINDOW = 400
+
+        /** Character boxes kept on each side of the tap, for marking the word. */
+        internal const val TAP_RECTS = 24
+
+        /** Characters measured per request, and at most in all. */
+        internal const val BOX_SLICE = 500
+        internal const val MAX_MEASURED = 10_000
+
+        /** Nodes a read or a tap looks through before it gives up. */
+        internal const val MAX_NODES = 4_000
+
+        /**
+         * The connected reader, from this service or the combined
+         * [WMAccessibilityService], or null while neither is on.
+         */
+        @Volatile
+        var current: ScreenReader? = null
+            internal set
+
+        /**
+         * Whether the user has turned the service on in Settings › Accessibility,
+         * this one or the combined one standing in for it. Read from the secure
+         * setting rather than [current], which is only set once the system has
+         * bound it.
+         */
+        fun isEnabled(context: Context): Boolean = AccessibilityEntries.isOn(context, ScreenContextService::class.java)
+    }
+}
+
+/** What [ScreenContextService] does, for whichever service hosts it. */
+class ScreenReader internal constructor(private val host: AccessibilityService) {
 
     /**
      * The app in front, as its package and its visible text in reading order,
@@ -60,10 +116,10 @@ class ScreenContextService : AccessibilityService() {
      * Every node is a call into the app's process, and in a Chromium browser
      * the first one starts the page's accessibility engine (#1462), so this
      * blocks for as long as the app takes to answer: never call it on the
-     * main thread. A page of empty boxes never reaches [MAX_CHARS], so the
+     * main thread. A page of empty boxes never reaches [ScreenContextService.MAX_CHARS], so the
      * walk also stops at [MAX_NODES].
      */
-    fun read(): Screen? {
+    fun read(): ScreenContextService.Screen? {
         val root = appRoot() ?: return null
         val packageName = root.packageName?.toString().orEmpty()
         val lines = ArrayList<String>()
@@ -71,7 +127,7 @@ class ScreenContextService : AccessibilityService() {
         var visited = 0
         val stack = ArrayDeque<AccessibilityNodeInfo>()
         stack.addLast(root)
-        while (stack.isNotEmpty() && length < MAX_CHARS && visited < MAX_NODES) {
+        while (stack.isNotEmpty() && length < ScreenContextService.MAX_CHARS && visited < ScreenContextService.MAX_NODES) {
             val node = stack.removeLast()
             visited++
             if (!node.isVisibleToUser) continue
@@ -87,8 +143,8 @@ class ScreenContextService : AccessibilityService() {
                 node.getChild(index)?.let { stack.addLast(it) }
             }
         }
-        val body = lines.joinToString("\n").take(MAX_CHARS)
-        return Screen(packageName, body)
+        val body = lines.joinToString("\n").take(ScreenContextService.MAX_CHARS)
+        return ScreenContextService.Screen(packageName, body)
     }
 
     /**
@@ -97,17 +153,14 @@ class ScreenContextService : AccessibilityService() {
      * focus; the window list is the fallback for the moments it is not.
      */
     private fun appRoot(): AccessibilityNodeInfo? {
-        rootInActiveWindow?.takeIf { it.packageName?.toString() != packageName }?.let { return it }
+        host.rootInActiveWindow?.takeIf { it.packageName?.toString() != host.packageName }?.let { return it }
         return runCatching {
-            windows.asSequence()
+            host.windows.asSequence()
                 .filter { it.type == AccessibilityWindowInfo.TYPE_APPLICATION }
                 .mapNotNull { it.root }
-                .firstOrNull { it.packageName?.toString() != packageName }
+                .firstOrNull { it.packageName?.toString() != host.packageName }
         }.getOrNull()
     }
-
-    /** What [read] found: whose screen, and the text on it. */
-    data class Screen(val packageName: String, val text: String)
 
     /**
      * The text under a tap at ([x], [y]) on screen (#765): the smallest
@@ -120,7 +173,7 @@ class ScreenContextService : AccessibilityService() {
      * round it for the card to mark the word. Without them the offset is -1
      * and the card lets the user pick the word from the text.
      */
-    fun textAt(x: Int, y: Int): Tap? {
+    fun textAt(x: Int, y: Int): ScreenContextService.Tap? {
         val root = appRoot() ?: return null
         val node = nodeAt(root, x, y) ?: return null
         val full = node.text?.toString() ?: node.contentDescription?.toString() ?: return null
@@ -128,13 +181,13 @@ class ScreenContextService : AccessibilityService() {
         val bounds = Rect().also(node::getBoundsInScreen)
         val boxes = if (node.text != null) characterBoxes(node, full.length, x, y) else null
         val offset = boxes?.let { indexAt(it, x, y) } ?: -1
-        val start = if (offset >= 0) (offset - TAP_WINDOW).coerceAtLeast(0) else 0
-        val end = if (offset >= 0) (offset + TAP_WINDOW).coerceAtMost(full.length) else full.length.coerceAtMost(TAP_WINDOW * 2)
+        val start = if (offset >= 0) (offset - ScreenContextService.TAP_WINDOW).coerceAtLeast(0) else 0
+        val end = if (offset >= 0) (offset + ScreenContextService.TAP_WINDOW).coerceAtMost(full.length) else full.length.coerceAtMost(ScreenContextService.TAP_WINDOW * 2)
         var rects: IntArray? = null
         var rectsFrom = 0
         if (boxes != null && offset >= 0) {
-            val from = (offset - TAP_RECTS).coerceAtLeast(0)
-            val until = (offset + TAP_RECTS).coerceAtMost(full.length)
+            val from = (offset - ScreenContextService.TAP_RECTS).coerceAtLeast(0)
+            val until = (offset + ScreenContextService.TAP_RECTS).coerceAtMost(full.length)
             rectsFrom = from - start
             rects = IntArray((until - from) * 4)
             for (index in from until until) {
@@ -146,7 +199,7 @@ class ScreenContextService : AccessibilityService() {
                 rects[at + 3] = box.bottom.toInt()
             }
         }
-        return Tap(
+        return ScreenContextService.Tap(
             packageName = root.packageName?.toString().orEmpty(),
             text = full.substring(start, end),
             offset = if (offset >= 0) offset - start else -1,
@@ -164,7 +217,7 @@ class ScreenContextService : AccessibilityService() {
         val stack = ArrayDeque<AccessibilityNodeInfo>()
         stack.addLast(root)
         var visited = 0
-        while (stack.isNotEmpty() && visited < MAX_NODES) {
+        while (stack.isNotEmpty() && visited < ScreenContextService.MAX_NODES) {
             val node = stack.removeLast()
             visited++
             if (!node.isVisibleToUser) continue
@@ -193,8 +246,8 @@ class ScreenContextService : AccessibilityService() {
         if (key !in node.availableExtraData) return null
         val out = arrayOfNulls<RectF>(length)
         var start = 0
-        while (start < length && start < MAX_MEASURED) {
-            val count = minOf(BOX_SLICE, length - start)
+        while (start < length && start < ScreenContextService.MAX_MEASURED) {
+            val count = minOf(ScreenContextService.BOX_SLICE, length - start)
             val args = Bundle().apply {
                 putInt(AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_START_INDEX, start)
                 putInt(AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_LENGTH, count)
@@ -214,7 +267,7 @@ class ScreenContextService : AccessibilityService() {
                 if (next < length) {
                     val tail = Bundle().apply {
                         putInt(AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_START_INDEX, next)
-                        putInt(AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_LENGTH, minOf(TAP_RECTS, length - next))
+                        putInt(AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_LENGTH, minOf(ScreenContextService.TAP_RECTS, length - next))
                     }
                     if (node.refreshWithExtraData(key, tail)) {
                         @Suppress("DEPRECATION")
@@ -244,57 +297,5 @@ class ScreenContextService : AccessibilityService() {
             }
         }
         return best
-    }
-
-    /**
-     * What [textAt] found. [text] is a window of the tapped text and
-     * [offset] the tapped character in it (-1 when it could not be placed).
-     * [rects] are screen boxes, four ints each, of the characters from
-     * [rectsFrom] in [text] on; [bounds] is the text's own box.
-     */
-    class Tap(
-        val packageName: String,
-        val text: String,
-        val offset: Int,
-        val rects: IntArray?,
-        val rectsFrom: Int,
-        val bounds: IntArray,
-    )
-
-    companion object {
-        /** The most text one read hands over; a long page is cut, not refused. */
-        const val MAX_CHARS = 12_000
-
-        /** Characters [textAt] keeps on each side of the tap. */
-        private const val TAP_WINDOW = 400
-
-        /** Character boxes kept on each side of the tap, for marking the word. */
-        private const val TAP_RECTS = 24
-
-        /** Characters measured per request, and at most in all. */
-        private const val BOX_SLICE = 500
-        private const val MAX_MEASURED = 10_000
-
-        /** Nodes a read or a tap looks through before it gives up. */
-        private const val MAX_NODES = 4_000
-
-        /** The connected service, or null while it is off. */
-        @Volatile
-        var current: ScreenContextService? = null
-            private set
-
-        /**
-         * Whether the user has turned the service on in Settings › Accessibility.
-         * Read from the secure setting rather than [current], which is only set
-         * once the system has bound it.
-         */
-        fun isEnabled(context: Context): Boolean {
-            val own = ComponentName(context, ScreenContextService::class.java)
-            val enabled = Settings.Secure.getString(
-                context.contentResolver,
-                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
-            ) ?: return false
-            return enabled.split(':').any { ComponentName.unflattenFromString(it) == own }
-        }
     }
 }

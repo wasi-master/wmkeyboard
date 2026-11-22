@@ -8,12 +8,17 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
+import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -22,6 +27,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.app.updates.UpdateChannel
+import com.wasimaster.wmkeyboard.core.accessibility.AccessibilityEntries
 import com.wasimaster.wmkeyboard.core.accessibility.KeyboardPassthrough
 import com.wasimaster.wmkeyboard.core.accessibility.ScreenContextService
 import com.wasimaster.wmkeyboard.core.accessibility.SystemButtonsService
@@ -186,6 +192,34 @@ internal fun PermissionsSettings(repository: SettingsRepository) {
                 SpecialAccess.FULL_SCREEN,
                 ClockNotifications::canUseFullScreen,
             )
+        }
+        // The five accessibility services below as one entry in Android's
+        // list. Not a stored setting: the components' enabled state is the
+        // answer, so the switch reads it back on every return.
+        item(visible = ChannelFeatures.GESTURE_PASSTHROUGH, level = SettingLevel.ADVANCED) {
+            val context = LocalContext.current
+            val merged = rememberGrantState(AccessibilityEntries::isMerged)
+            var shown by remember(merged) { mutableStateOf(merged) }
+            ToggleSetting(
+                R.string.privacy_permissions_one_entry_title,
+                stringResource(R.string.privacy_permissions_one_entry_subtitle),
+                shown,
+                info = stringResource(R.string.privacy_permissions_one_entry_info),
+                default = false,
+            ) { on ->
+                val carried = AccessibilityEntries.setMerged(context, on)
+                shown = AccessibilityEntries.isMerged(context)
+                if (!carried) {
+                    // A grant was on and could not be moved: the new entry
+                    // is off until the user turns it on there.
+                    Toast.makeText(context, R.string.privacy_permissions_one_entry_turn_on, Toast.LENGTH_LONG).show()
+                    runCatching {
+                        context.startActivity(
+                            Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                        )
+                    }
+                }
+            }
         }
         item(visible = ChannelFeatures.GESTURE_PASSTHROUGH, level = SettingLevel.STANDARD) {
             SpecialAccessRow(

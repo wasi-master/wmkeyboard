@@ -89,6 +89,8 @@ The system screens for all of them carry broad, alarming warnings, because the *
 
 All of them are revoked the same way they were granted, from the relevant system Settings screen, and the features fall back cleanly: media controls show their "needs access" panel, clips are saved with no source app, the floating button stops appearing, its Ask AI chat opens without the screen's text, and the gestures mode behaves like Explore by touch.
 
+Android lists each of these services on its own, so that each one can be given only its own power. If you'd rather turn on one entry than four or five, [One accessibility entry](/reference/settings/permissions/#one-accessibility-entry) under Privacy → Permissions lists a single **WM Keyboard** service instead. Turning it on gives the keyboard all of those powers at once.
+
 ### Accessibility services and browsers
 
 Chrome, Brave and other browsers built on Chromium watch which accessibility services are on, from any app, and size their own accessibility work to match. The engine for a page starts once Android first asks the page for its accessibility tree, which is what a service reading the screen does, and from then on the browser keeps it going, in every tab, for as long as any service stays on. Of WM Keyboard's services, only screen reading reads pages, and only when you use **Ask AI about this screen** or **Look up a word**. On a slower phone a browser running its engine can lag, in its pages and in the keyboard typing into them, and fields can be slow to bring the keyboard up.

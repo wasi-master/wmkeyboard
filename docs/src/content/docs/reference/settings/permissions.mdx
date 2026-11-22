@@ -24,7 +24,7 @@ This page is the field reference. For what each permission is used for, and what
 
 The top row of the [Privacy](/reference/settings/privacy/) screen opens it. Settings search finds it too, under "permissions".
 
-The screen opens on a caption. The keyboard works without all of these, and each one unlocks a single optional feature. Press a row to give the permission. Press a granted row to open the system settings, where you can take it back. Then come three groups, none of which holds a toggle. Every row is either a link out or a plain label.
+The screen opens on a caption. The keyboard works without all of these, and each one unlocks a single optional feature. Press a row to give the permission. Press a granted row to open the system settings, where you can take it back. Then come three groups. Apart from **One accessibility entry** and the Shizuku switches, every row is either a link out or a plain label.
 
 ### Permissions
 
@@ -59,16 +59,25 @@ The grants Android won't prompt for. Each one is a switch on a system screen, so
 | Display over other apps | The [floating button](/reference/settings/floating-button/) over other apps | Android's "Display over other apps" page for WM Keyboard |
 | Alarms and reminders | Clock tool alarms and timers ring at the exact minute (Android 12 and later) | Android's "Alarms & reminders" page for WM Keyboard |
 | Full-screen notifications | A ringing clock alarm shows its screen over the lock screen (Android 14 and later; not in the Play Store build) | Android's full-screen notification page for WM Keyboard |
+| One accessibility entry | A switch, not a link: list WM Keyboard once in Android's accessibility settings instead of once per feature (not in the Play Store build; an Advanced row). See [One accessibility entry](#one-accessibility-entry) | Stays here, or Android's accessibility list when a service you had on needs turning on again |
 | Accessibility service | Keep the keyboard gestures while TalkBack is on (not in the Play Store build) | Android's accessibility list |
 | Accessibility service for split screen | Let the app launcher press Android's split screen switch (not on stock Android 12L and later, not in the Play Store build; an Advanced row). See the [split screen helper](/tools/app-launcher/#split-screen-helper) | Android's accessibility list |
 | Do Not Disturb access | Let the floating button's Ringer mode action put the phone on silent (an Advanced row). See [Phone controls](/reference/settings/floating-button/#phone-controls) | Android's Do Not Disturb access list, where you find WM Keyboard yourself |
 | Install updates | Install a new version of this app that you downloaded from its release page | Android's "install unknown apps" page for WM Keyboard |
 
-They all go through the explanation every time, granted or not, because the system screen you land on is also where you turn them off.
+The links all go through the explanation every time, granted or not, because the system screen you land on is also where you turn them off.
 
 **Install updates** is the one row that depends on where your copy came from. It's drawn only on a build downloaded from the project's GitHub releases, which is the only build that installs its own updates, and only on Android 8 and later, where the switch is per app rather than one global setting. A Play Store build hands updates to the Play Store and an F-Droid build hands them to F-Droid, so neither one asks for this and neither one declares the permission behind it. What the app does with it is narrow: it installs one app, itself, from one place, after checking the file against the release checksum and against your install's own signing key. See [Updating the app](/reference/settings/about/#updating-the-app).
 
 Notification access is the one place a row from this screen lands somewhere broader than the equivalent row inside the keyboard. Asked for from here, it opens the whole listener list. Asked for by the media tool on the keyboard itself, it opens WM Keyboard's own row on the per-app listener page where Android has one (API 30 and up).
+
+#### One accessibility entry
+
+The keyboard has five accessibility services, and Android lists each one on its own: **WM Keyboard gestures**, **WM Keyboard AI screen reading**, **WM Keyboard split screen**, **WM Keyboard system buttons** and **WM Keyboard touch mouse**. They're separate so that each feature gets only the power it needs. Off by default.
+
+Turn the switch on and Android lists one service instead, called **WM Keyboard**. Turning that one on gives the keyboard all five powers at once: screen reader gestures, reading the screen for Ask AI and Look up, the split screen switch, the system buttons and touching the screen for the touch mouse. Each part still acts only when you use its feature, the same as the separate services. The rows below it read **Granted** once the single service is on.
+
+Switching hides the old entries and shows the new ones, and Android keeps a grant per entry. If you had any of them on, the keyboard turns the new entry on for you when it holds **Write secure settings** (see [Shizuku or root](#shizuku-or-root)). Otherwise a message asks you to turn it on and Android's accessibility list opens. Turning the switch off brings back the five, and with **Write secure settings** the ones you had on before come back on.
 
 ### Shizuku or root
 
@@ -114,7 +123,7 @@ The screen closes on a caption saying as much. Android gives that last group out
 - **The Fingerprint row is not a reader of your fingerprint.** `USE_BIOMETRIC` asks Android to run its own prompt and report a yes or a no. The fingerprint never reaches the app. Nothing requests the prompt unless you turn the [App lock](/reference/settings/app-lock/) on.
 - **The "Included with the app" group lists five rows, not every install-time permission in the APK.** **Ring alarms** stands for three the [Clock](/tools/clock/) tool declares together: `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_SYSTEM_EXEMPTED` and `WAKE_LOCK`, used only while an alarm or a timer rings. The Play Store build has no ring service, so the row isn't there and the group has four rows. Every build but F-Droid's carries one more that never shows up here and never produces a prompt, `RECEIVE_BOOT_COMPLETED`. It arrives in the merged manifest from androidx.work, which ML Kit pulls in, and the app schedules no WorkManager job of its own and registers no boot receiver. Lite builds don't declare it at all.
 - **The labels re-read themselves every time the screen comes back.** Both directions of a change happen on a system screen this one sends you to, so a row would otherwise be stale the moment you pressed Back. Grant something in Android's Settings, return to the keyboard, and the row already says **Granted**.
-- **Nothing on this screen is a setting**, so no row grows the usual restore button. What a row reflects is a grant held by Android, not a value stored by the app; see [Putting one setting back](/reference/settings/#putting-one-setting-back) for where that button does apply.
+- **Nothing on this screen is a setting**, so no row grows the usual restore button. What a row reflects is a grant held by Android, not a value stored by the app. **One accessibility entry** is no exception: it reads which services the app has listed, and it isn't part of a settings backup; see [Putting one setting back](/reference/settings/#putting-one-setting-back) for where that button does apply.
 - **Contacts is one permission behind two features.** Contact-name suggestions and contact-email suggestions both read the same grant. This screen asks for it once, with the name-suggestions wording. The two settings on the [Typing](/reference/settings/typing/) screen each have their own.
 - **The notification row's explanation covers both of its features.** It says the listener reads nothing at all for media controls. The optional one-time-code chip is the only thing that ever reads notification text, on the device, looking for a code. Turning that chip on is a separate decision on the Typing screen. See [One-time codes](/smart/one-time-codes/).
 - **A permission Android has stopped prompting for still works from here.** Refuse the same one twice and Android quietly stops showing the dialog. The disclosure notices, and turns the button into **Open settings** rather than firing a request that would do nothing visible. See [If Android stops asking](/privacy/permissions/#if-android-stops-asking).

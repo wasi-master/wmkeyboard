@@ -45,10 +45,36 @@ import kotlinx.coroutines.launch
  */
 class TouchPassthroughService : AccessibilityService() {
 
+    private val part = GesturePassthrough(this)
+
+    override fun onServiceConnected() {
+        super.onServiceConnected()
+        part.connect()
+    }
+
+    override fun onUnbind(intent: Intent?): Boolean {
+        part.disconnect()
+        return super.onUnbind(intent)
+    }
+
+    /** Nothing is subscribed — [AccessibilityServiceInfo.eventTypes] is 0. */
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) = Unit
+
+    override fun onInterrupt() = Unit
+}
+
+/**
+ * The pass-through itself, apart from the service that runs it: either
+ * [TouchPassthroughService] or, with the user's single-entry choice, the
+ * combined [WMAccessibilityService]. Everything [TouchPassthroughService]
+ * says about it holds for both hosts.
+ */
+internal class GesturePassthrough(private val host: AccessibilityService) {
+
     private var scope: CoroutineScope? = null
 
     private val accessibilityManager: AccessibilityManager?
-        get() = getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
+        get() = host.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
 
     private val stateListener = AccessibilityManager.AccessibilityStateChangeListener {
         refreshTouchExplorationFlag()
@@ -59,8 +85,7 @@ class TouchPassthroughService : AccessibilityService() {
             refreshTouchExplorationFlag()
         }
 
-    override fun onServiceConnected() {
-        super.onServiceConnected()
+    fun connect() {
         KeyboardPassthrough.setServiceConnected(true)
         accessibilityManager?.apply {
             addAccessibilityStateChangeListener(stateListener)
@@ -98,7 +123,7 @@ class TouchPassthroughService : AccessibilityService() {
         }
     }
 
-    override fun onUnbind(intent: Intent?): Boolean {
+    fun disconnect() {
         // Drop the carve-out before going away: a stale region would leave a
         // slab of the screen bypassing touch exploration with no keyboard
         // under it.
@@ -110,13 +135,7 @@ class TouchPassthroughService : AccessibilityService() {
         scope?.cancel()
         scope = null
         KeyboardPassthrough.setServiceConnected(false)
-        return super.onUnbind(intent)
     }
-
-    /** Nothing is subscribed — [AccessibilityServiceInfo.eventTypes] is 0. */
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) = Unit
-
-    override fun onInterrupt() = Unit
 
     /**
      * Mirrors [KeyboardPassthrough.region] into the framework. Both the touch
@@ -128,8 +147,8 @@ class TouchPassthroughService : AccessibilityService() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
         val region = if (rect == null || rect.isEmpty) Region() else Region(rect)
         runCatching {
-            setTouchExplorationPassthroughRegion(Display.DEFAULT_DISPLAY, region)
-            setGestureDetectionPassthroughRegion(Display.DEFAULT_DISPLAY, region)
+            host.setTouchExplorationPassthroughRegion(Display.DEFAULT_DISPLAY, region)
+            host.setGestureDetectionPassthroughRegion(Display.DEFAULT_DISPLAY, region)
         }
     }
 
@@ -140,12 +159,12 @@ class TouchPassthroughService : AccessibilityService() {
      * screen reader is running would turn explore-by-touch on by itself.
      */
     private fun refreshTouchExplorationFlag() {
-        val info = serviceInfo ?: return
+        val info = host.serviceInfo ?: return
         val flag = AccessibilityServiceInfo.FLAG_REQUEST_TOUCH_EXPLORATION_MODE
         val wanted = otherServiceExploresByTouch()
         if ((info.flags and flag != 0) == wanted) return
         info.flags = if (wanted) info.flags or flag else info.flags and flag.inv()
-        runCatching { serviceInfo = info }
+        runCatching { host.serviceInfo = info }
         // Changing the service info resets what the framework holds for this
         // service, so restate the region under the new flags.
         applyRegion(KeyboardPassthrough.region.value)
@@ -153,7 +172,7 @@ class TouchPassthroughService : AccessibilityService() {
 
     private fun otherServiceExploresByTouch(): Boolean {
         val manager = accessibilityManager ?: return false
-        val ownClass = javaClass.name
+        val ownClass = host.javaClass.name
         return runCatching {
             manager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
                 .any { service ->

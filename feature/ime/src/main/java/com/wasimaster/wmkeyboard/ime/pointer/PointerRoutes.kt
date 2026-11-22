@@ -5,6 +5,7 @@ import android.os.Looper
 import android.os.SystemClock
 import android.view.MotionEvent
 import android.view.ViewConfiguration
+import com.wasimaster.wmkeyboard.core.accessibility.TouchMouse
 import com.wasimaster.wmkeyboard.core.accessibility.TouchMouseService
 import com.wasimaster.wmkeyboard.core.shell.ShellAccess
 import kotlin.math.hypot
@@ -121,7 +122,7 @@ internal class ShellRoute(private val displayId: () -> Int, private val notchPx:
 internal class GestureRoute(private val band: () -> android.graphics.RectF) : PointerRoute {
 
     private val handler = Handler(Looper.getMainLooper())
-    private val service: TouchMouseService? get() = TouchMouseService.current
+    private val service: TouchMouse? get() = TouchMouseService.current
 
     /** Where the held touch is, where it was asked to go next, and where it started. */
     private var heldX = 0f

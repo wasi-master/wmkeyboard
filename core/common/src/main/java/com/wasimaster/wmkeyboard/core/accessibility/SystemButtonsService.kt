@@ -1,10 +1,8 @@
 package com.wasimaster.wmkeyboard.core.accessibility
 
 import android.accessibilityservice.AccessibilityService
-import android.content.ComponentName
 import android.content.Context
 import android.os.Build
-import android.provider.Settings
 import android.view.accessibility.AccessibilityEvent
 import com.wasimaster.wmkeyboard.core.settings.SystemButton
 
@@ -36,13 +34,15 @@ import com.wasimaster.wmkeyboard.core.settings.SystemButton
  */
 class SystemButtonsService : AccessibilityService() {
 
+    private val part = SystemButtons(this)
+
     override fun onServiceConnected() {
         super.onServiceConnected()
-        current = this
+        current = part
     }
 
     override fun onDestroy() {
-        if (current === this) current = null
+        if (current === part) current = null
         super.onDestroy()
     }
 
@@ -50,10 +50,35 @@ class SystemButtonsService : AccessibilityService() {
 
     override fun onInterrupt() = Unit
 
+    companion object {
+        /**
+         * The connected buttons, from this service or the combined
+         * [WMAccessibilityService], or null while neither is on.
+         */
+        @Volatile
+        var current: SystemButtons? = null
+            internal set
+
+        /** Android 9 is where the screenshot action arrived; before it the Screenshot tool has nothing to press. */
+        val supported: Boolean get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+
+        /**
+         * Whether the user has turned the service on in Settings › Accessibility,
+         * this one or the combined one standing in for it. Read from the secure
+         * setting rather than [current], which is only set once the system has
+         * bound it.
+         */
+        fun isEnabled(context: Context): Boolean = AccessibilityEntries.isOn(context, SystemButtonsService::class.java)
+    }
+}
+
+/** What [SystemButtonsService] does, for whichever service hosts it. */
+class SystemButtons internal constructor(private val host: AccessibilityService) {
+
     /** Presses Android's screenshot button. False when the system refused it, or before Android 9. */
     fun takeScreenshot(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return false
-        return runCatching { performGlobalAction(GLOBAL_ACTION_TAKE_SCREENSHOT) }.getOrDefault(false)
+        return runCatching { host.performGlobalAction(AccessibilityService.GLOBAL_ACTION_TAKE_SCREENSHOT) }.getOrDefault(false)
     }
 
     /**
@@ -63,47 +88,23 @@ class SystemButtonsService : AccessibilityService() {
     fun press(button: SystemButton): Boolean {
         if (!button.available) return false
         val action = when (button) {
-            SystemButton.BACK -> GLOBAL_ACTION_BACK
-            SystemButton.RECENTS -> GLOBAL_ACTION_RECENTS
-            SystemButton.NOTIFICATIONS -> GLOBAL_ACTION_NOTIFICATIONS
-            SystemButton.QUICK_SETTINGS -> GLOBAL_ACTION_QUICK_SETTINGS
-            SystemButton.HOME -> GLOBAL_ACTION_HOME
-            SystemButton.POWER_DIALOG -> GLOBAL_ACTION_POWER_DIALOG
+            SystemButton.BACK -> AccessibilityService.GLOBAL_ACTION_BACK
+            SystemButton.RECENTS -> AccessibilityService.GLOBAL_ACTION_RECENTS
+            SystemButton.NOTIFICATIONS -> AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS
+            SystemButton.QUICK_SETTINGS -> AccessibilityService.GLOBAL_ACTION_QUICK_SETTINGS
+            SystemButton.HOME -> AccessibilityService.GLOBAL_ACTION_HOME
+            SystemButton.POWER_DIALOG -> AccessibilityService.GLOBAL_ACTION_POWER_DIALOG
             SystemButton.LOCK_SCREEN -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                GLOBAL_ACTION_LOCK_SCREEN
+                AccessibilityService.GLOBAL_ACTION_LOCK_SCREEN
             } else {
                 return false
             }
             SystemButton.APP_DRAWER -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                GLOBAL_ACTION_ACCESSIBILITY_ALL_APPS
+                AccessibilityService.GLOBAL_ACTION_ACCESSIBILITY_ALL_APPS
             } else {
                 return false
             }
         }
-        return runCatching { performGlobalAction(action) }.getOrDefault(false)
-    }
-
-    companion object {
-        /** The connected service, or null while it is off. */
-        @Volatile
-        var current: SystemButtonsService? = null
-            private set
-
-        /** Android 9 is where the screenshot action arrived; before it the Screenshot tool has nothing to press. */
-        val supported: Boolean get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
-
-        /**
-         * Whether the user has turned the service on in Settings › Accessibility.
-         * Read from the secure setting rather than [current], which is only set
-         * once the system has bound it.
-         */
-        fun isEnabled(context: Context): Boolean {
-            val own = ComponentName(context, SystemButtonsService::class.java)
-            val enabled = Settings.Secure.getString(
-                context.contentResolver,
-                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
-            ) ?: return false
-            return enabled.split(':').any { ComponentName.unflattenFromString(it) == own }
-        }
+        return runCatching { host.performGlobalAction(action) }.getOrDefault(false)
     }
 }

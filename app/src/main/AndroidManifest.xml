@@ -1880,6 +1880,27 @@
                 android:resource="@xml/touch_mouse_service" />
         </service>
 
+        <!-- All five services above as one entry (WMAccessibilityService), for
+             the user who picks Privacy › Permissions › One accessibility
+             entry. Disabled here, so it is not listed until that switch turns
+             it on and the five off (AccessibilityEntries.setMerged); the two
+             are never listed together. It runs the same parts as the five,
+             each only when its feature asks. Same process as the keyboard.
+             Never rename the component: the grant is stored against it. -->
+        <service
+            android:name="com.wasimaster.wmkeyboard.core.accessibility.WMAccessibilityService"
+            android:enabled="false"
+            android:exported="true"
+            android:label="@string/combined_accessibility_service_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/combined_accessibility_service" />
+        </service>
+
         <!-- Notification listener with two jobs, both user-visible. The
              media-control tool needs it because the platform hands the active
              media session only to an enabled listener. One-time-code capture

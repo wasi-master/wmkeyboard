@@ -1,10 +1,8 @@
 package com.wasimaster.wmkeyboard.core.accessibility
 
 import android.accessibilityservice.AccessibilityService
-import android.content.ComponentName
 import android.content.Context
 import android.graphics.Rect
-import android.provider.Settings
 import android.os.Build
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityWindowInfo
@@ -46,15 +44,43 @@ import kotlinx.coroutines.withTimeoutOrNull
  */
 class SplitScreenHelperService : AccessibilityService() {
 
+    private val part = SplitScreenHelper(this)
+
     override fun onServiceConnected() {
         super.onServiceConnected()
-        current = this
+        current = part
     }
 
     override fun onDestroy() {
-        if (current === this) current = null
+        if (current === part) current = null
         super.onDestroy()
     }
+
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) = part.onEvent(event)
+
+    override fun onInterrupt() = Unit
+
+    companion object {
+        /**
+         * The connected helper, from this service or the combined
+         * [WMAccessibilityService], or null while neither is on.
+         */
+        @Volatile
+        var current: SplitScreenHelper? = null
+            internal set
+
+        /**
+         * Whether the user has turned the service on in Settings › Accessibility,
+         * this one or the combined one standing in for it. Read from the secure
+         * setting rather than [current], which is only set once the system has
+         * bound it.
+         */
+        fun isEnabled(context: Context): Boolean = AccessibilityEntries.isOn(context, SplitScreenHelperService::class.java)
+    }
+}
+
+/** What [SplitScreenHelperService] does, for whichever service hosts it. */
+class SplitScreenHelper internal constructor(private val host: AccessibilityService) {
 
     @Volatile
     private var waiting: Pair<String, CompletableDeferred<Unit>>? = null
@@ -63,7 +89,7 @@ class SplitScreenHelperService : AccessibilityService() {
      * Only one use: [awaitWindowOf] waiting for an app's window. The event's
      * package name is compared and dropped; no content is ever read.
      */
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+    fun onEvent(event: AccessibilityEvent?) {
         val wait = waiting ?: return
         if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && event.packageName == wait.first) {
             wait.second.complete(Unit)
@@ -93,12 +119,10 @@ class SplitScreenHelperService : AccessibilityService() {
      */
     fun toggleSplitListed(): Boolean? =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            runCatching { systemActions.any { it.id == GLOBAL_ACTION_TOGGLE_SPLIT_SCREEN } }.getOrNull()
+            runCatching { host.systemActions.any { it.id == AccessibilityService.GLOBAL_ACTION_TOGGLE_SPLIT_SCREEN } }.getOrNull()
         } else {
             null
         }
-
-    override fun onInterrupt() = Unit
 
     /**
      * Puts the app in front into split screen, unless split screen is already
@@ -108,7 +132,7 @@ class SplitScreenHelperService : AccessibilityService() {
      */
     fun enterSplit(): Boolean {
         if (inSplit()) return false
-        return runCatching { performGlobalAction(GLOBAL_ACTION_TOGGLE_SPLIT_SCREEN) }.getOrDefault(false)
+        return runCatching { host.performGlobalAction(AccessibilityService.GLOBAL_ACTION_TOGGLE_SPLIT_SCREEN) }.getOrDefault(false)
     }
 
     /**
@@ -118,33 +142,12 @@ class SplitScreenHelperService : AccessibilityService() {
      * dialog over its app overlaps it, so it never counts as a second half.
      */
     fun inSplit(): Boolean {
-        val listed = runCatching { windows }.getOrNull() ?: return false
+        val listed = runCatching { host.windows }.getOrNull() ?: return false
         if (listed.any { it.type == AccessibilityWindowInfo.TYPE_SPLIT_SCREEN_DIVIDER }) return true
         val apps = listed
             .filter { it.type == AccessibilityWindowInfo.TYPE_APPLICATION }
             .map { Rect().also(it::getBoundsInScreen) }
             .filterNot { it.isEmpty }
         return apps.any { a -> apps.any { b -> a !== b && !Rect.intersects(a, b) } }
-    }
-
-    companion object {
-        /** The connected service, or null while it is off. */
-        @Volatile
-        var current: SplitScreenHelperService? = null
-            private set
-
-        /**
-         * Whether the user has turned the service on in Settings › Accessibility.
-         * Read from the secure setting rather than [current], which is only set
-         * once the system has bound it.
-         */
-        fun isEnabled(context: Context): Boolean {
-            val own = ComponentName(context, SplitScreenHelperService::class.java)
-            val enabled = Settings.Secure.getString(
-                context.contentResolver,
-                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
-            ) ?: return false
-            return enabled.split(':').any { ComponentName.unflattenFromString(it) == own }
-        }
     }
 }

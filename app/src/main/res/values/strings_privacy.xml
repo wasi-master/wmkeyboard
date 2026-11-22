@@ -336,6 +336,10 @@
     <string name="privacy_permissions_full_screen_title">Full-screen notifications</string>
     <string name="privacy_permissions_full_screen_subtitle">A ringing clock alarm shows its screen over the lock screen</string>
 
+    <string name="privacy_permissions_one_entry_title">One accessibility entry</string>
+    <string name="privacy_permissions_one_entry_subtitle">List WM Keyboard once in Android\'s accessibility settings, instead of once per feature</string>
+    <string name="privacy_permissions_one_entry_info">The keyboard has five accessibility services: screen reader gestures, AI screen reading, split screen, system buttons and the touch mouse. Each one is separate so you can give it only the power it needs. With this on, Android lists one WM Keyboard service instead, and turning it on gives the keyboard all five powers at once. Each part still acts only when you use its feature.\n\nSwitching hides the old entries, so turn the new one on in Android\'s accessibility settings afterwards. With Write secure settings granted through Shizuku or root, the keyboard does that for you.</string>
+    <string name="privacy_permissions_one_entry_turn_on">Turn on the WM Keyboard entry in Android\'s accessibility settings</string>
     <string name="privacy_permissions_accessibility_title">Accessibility service</string>
     <string name="privacy_permissions_accessibility_subtitle">Keep the keyboard gestures while TalkBack is on</string>
     <string name="privacy_permissions_screen_content_title">Accessibility service for the AI button</string>

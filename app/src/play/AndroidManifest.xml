@@ -125,6 +125,11 @@
             android:name="com.wasimaster.wmkeyboard.core.accessibility.TouchMouseService"
             tools:node="remove" />
 
+        <!-- The five above as one entry, for the same reason again. -->
+        <service
+            android:name="com.wasimaster.wmkeyboard.core.accessibility.WMAccessibilityService"
+            tools:node="remove" />
+
         <!-- See the permission above. -->
         <service
             android:name="com.wasimaster.wmkeyboard.core.clock.ClockRingService"

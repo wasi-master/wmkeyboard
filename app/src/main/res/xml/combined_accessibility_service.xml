@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     The single entry (WMAccessibilityService) that stands in for the five
+     separate services when the user asks for one. Its capabilities are the
+     union of theirs and nothing more: window content for screen reading and
+     the split screen check (passthrough_service.xml, screen_context_service.xml,
+     split_screen_helper_service.xml), gestures for the touch mouse
+     (touch_mouse_service.xml), and the touch exploration capability the
+     pass-through needs. As in passthrough_service.xml, the touch exploration
+     *flag* stays out of accessibilityFlags and is added at runtime only while
+     a screen reader already explores by touch. Window-state events only,
+     which screen reading and the split screen wait need.
+     Not an accessibility tool (isAccessibilityTool is false): most of what it
+     does is not for using the device with a disability, and the separate
+     pass-through service is still there for a user who wants only that.
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:accessibilityEventTypes="typeWindowStateChanged"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagRetrieveInteractiveWindows"
+    android:canPerformGestures="true"
+    android:canRequestTouchExplorationMode="true"
+    android:canRetrieveWindowContent="true"
+    android:description="@string/combined_accessibility_service_description"
+    android:isAccessibilityTool="false"
+    android:notificationTimeout="100"
+    android:summary="@string/combined_accessibility_service_summary"
+    tools:ignore="UnusedAttribute" />

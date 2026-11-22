@@ -8,6 +8,7 @@ import android.content.res.Resources
 import android.os.Build
 import android.provider.Settings
 import com.wasimaster.wmkeyboard.app.ChannelFeatures
+import com.wasimaster.wmkeyboard.core.accessibility.SplitScreenHelper
 import com.wasimaster.wmkeyboard.core.accessibility.SplitScreenHelperService
 import com.wasimaster.wmkeyboard.core.shell.ShellAccess
 import kotlin.math.max
@@ -68,7 +69,7 @@ object DeviceTraitsReader {
 
     private val STOCK_LIKE = setOf(RomFamily.AOSP, RomFamily.MOTOROLA, RomFamily.CHROMEOS)
 
-    fun helper(): SplitScreenHelperService? = SplitScreenHelperService.current?.takeIf { helperApplies }
+    fun helper(): SplitScreenHelper? = SplitScreenHelperService.current?.takeIf { helperApplies }
 
     /**
      * AOSP's `ActivityTaskManager.supportsSplitScreenMultiWindow`, rebuilt from

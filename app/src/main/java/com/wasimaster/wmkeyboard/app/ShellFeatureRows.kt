@@ -15,6 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.app.launcher.LauncherShizukuRow
+import com.wasimaster.wmkeyboard.core.accessibility.AccessibilityEntries
 import com.wasimaster.wmkeyboard.core.accessibility.ScreenContextService
 import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
 import com.wasimaster.wmkeyboard.core.otp.NotificationOtpCapture
@@ -166,7 +167,11 @@ internal fun ShellFeaturesGroup(repository: SettingsRepository) {
                 stringResource(R.string.shell_access_screen_content_subtitle),
                 value = statusText(granted),
             ) {
-                if (!granted) run { ShellGrants.enableAccessibilityService(context, ScreenContextService::class.java.name) }
+                if (!granted) {
+                    // The single entry, when the user chose one, stands in for it.
+                    val service = AccessibilityEntries.activeComponent(context, ScreenContextService::class.java)
+                    run { ShellGrants.enableAccessibilityService(context, service.className) }
+                }
             }
         }
         item(visible = enabled) {

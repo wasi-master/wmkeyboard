@@ -1,10 +1,7 @@
 package com.wasimaster.wmkeyboard.core.accessibility
 
-import android.accessibilityservice.AccessibilityServiceInfo
-import android.content.ComponentName
 import android.content.Context
 import android.graphics.Rect
-import android.view.accessibility.AccessibilityManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -46,7 +43,8 @@ object KeyboardPassthrough {
     private val _serviceConnected = MutableStateFlow(false)
 
     /**
-     * Whether [TouchPassthroughService] is bound right now. The keyboard falls
+     * Whether the pass-through is bound right now, through
+     * [TouchPassthroughService] or the combined [WMAccessibilityService]. The keyboard falls
      * back to letting TalkBack drive the keys when it is not: pass-through
      * without the service would leave a screen-reader user with keys that
      * neither announce nor honour explore-by-touch.
@@ -82,13 +80,6 @@ object KeyboardPassthrough {
      * [serviceConnected] because the settings app has to answer this before
      * the service has ever run.
      */
-    fun isServiceEnabled(context: Context): Boolean {
-        val manager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
-            ?: return false
-        val own = ComponentName(context, TouchPassthroughService::class.java)
-        return runCatching {
-            manager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
-                .any { it.resolveInfo?.serviceInfo?.name == own.className }
-        }.getOrDefault(false)
-    }
+    fun isServiceEnabled(context: Context): Boolean =
+        AccessibilityEntries.isOn(context, TouchPassthroughService::class.java)
 }
