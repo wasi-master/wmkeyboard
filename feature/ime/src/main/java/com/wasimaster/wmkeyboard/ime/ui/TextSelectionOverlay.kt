@@ -505,7 +505,12 @@ private fun SelectionBar(session: SelectionSession) {
     val shape = kb.chipShape()
     Row(
         modifier = Modifier
-            .shadow(kb.popupElevation.coerceAtLeast(2.dp), shape)
+            // Through elevationFor like every other raised surface (#1327): a
+            // scalloped chip shape (Sakura breeze) is concave, and Skia's
+            // concave shadow never finishes on its rim of bumps. The bar went
+            // up on the first selection in a tool's field or text, the
+            // RenderThread spun, and Android offered to close the keyboard.
+            .shadow(elevationFor(kb.chipShapeKind, kb.popupElevation.coerceAtLeast(2.dp)), shape)
             .clip(shape)
             .background(kb.popup)
             .padding(horizontal = 2.dp),

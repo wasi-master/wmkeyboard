@@ -4777,7 +4777,14 @@ private fun ClipReorderList(
                 modifier = Modifier
                     .zIndex(if (dragging) 1f else 0f)
                     .graphicsLayer { translationY = if (dragging) dragOffset else shown }
-                    .then(if (dragging) Modifier.shadow(6.dp, LocalKbTheme.current.cardShape()) else Modifier)
+                    // A theme may name a concave card shape; it lifts with no shadow (#1327).
+                    .then(
+                        if (dragging) {
+                            Modifier.shadow(elevationFor(LocalKbTheme.current.cardShapeKind, 6.dp), LocalKbTheme.current.cardShape())
+                        } else {
+                            Modifier
+                        },
+                    )
                     // The whole row after a hold (#612): a handle alone was a
                     // small target for a finger aiming at one clip of many.
                     .pointerInput(item.id) {
