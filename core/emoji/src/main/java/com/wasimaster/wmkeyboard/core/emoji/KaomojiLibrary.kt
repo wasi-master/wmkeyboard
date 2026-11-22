@@ -93,8 +93,10 @@ data class KaomojiLibrary(
      * Entries matching [query] in their text or a tag, ignoring case. A tag
      * hit that starts the tag ranks ahead of one inside it, and both ahead of
      * a match in the face itself, which is the rarer thing to search by.
+     * Last come the faces [stemmed] accepts: a tag holding another form of
+     * the query's words ("laughing" finds the faces tagged laugh).
      */
-    fun search(query: String, kind: KaomojiKind?): List<Kaomoji> {
+    fun search(query: String, kind: KaomojiKind?, stemmed: ((Kaomoji) -> Boolean)? = null): List<Kaomoji> {
         val needle = query.trim().lowercase(Locale.ROOT)
         if (needle.isEmpty()) return items(kind)
         val ranked = ArrayList<Pair<Int, Kaomoji>>()
@@ -105,6 +107,7 @@ data class KaomojiLibrary(
                 tags.any { it.startsWith(needle) } -> 1
                 tags.any { it.contains(needle) } -> 2
                 item.text.lowercase(Locale.ROOT).contains(needle) -> 3
+                stemmed?.invoke(item) == true -> 4
                 else -> continue
             }
             ranked.add(rank to item)

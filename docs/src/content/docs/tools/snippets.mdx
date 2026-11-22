@@ -26,7 +26,7 @@ If you've made any [folders](#folders), the panel opens on them instead: folder 
 
 The panel re-reads the snippet file every time you open it. Settings and the keyboard share that file, so an edit you make in Settings shows up the next time you switch to this panel, not while it's already open.
 
-The magnifier in the panel's header opens a search. The keys come back under a shorter panel that keeps a couple of rows of matches in view, with a bar on top that [drags it taller](/tools/overview/#making-a-panel-over-the-keys-taller) so more matches show, and as you type the grid narrows to the snippets whose label, text or trigger contains what you typed, from every folder at once. With [Search by meaning](/smart/search-by-meaning/) on, the snippets that mean what you typed follow them. The × in the search, or Back, closes it and brings the full list and the folders back. **Panel columns** under [Options](#options) sets how many tiles sit side by side, two unless you change it.
+The magnifier in the panel's header opens a search. The keys come back under a shorter panel that keeps a couple of rows of matches in view, with a bar on top that [drags it taller](/tools/overview/#making-a-panel-over-the-keys-taller) so more matches show, and as you type the grid narrows to the snippets whose label, text or trigger contains what you typed, from every folder at once, followed by the ones holding [another form of its words](/tools/overview/#other-forms-of-a-word). With [Search by meaning](/smart/search-by-meaning/) on, the snippets that mean what you typed follow them. The × in the search, or Back, closes it and brings the full list and the folders back. **Panel columns** under [Options](#options) sets how many tiles sit side by side, two unless you change it.
 
 ## Auto-expanding as you type
 
@@ -152,7 +152,7 @@ A snippet can also point at other snippets, and typing its trigger offers those 
 
 This is the part that turns a snippet list into something closer to a map of the words you use. Give "continent" the links Asia, Africa and Europe, and typing "continent" offers all three. Give "address" the links Home, Work and Email, and one trigger covers all the addresses you own.
 
-Add them under **Linked snippets** in the editor. The picker searches by name, trigger or tag, and you can pick several at once. The editor also tells you which snippets point *at* the one you're editing, under "Linked from", because a snippet can sit under more than one parent and there's otherwise no way to see it: Tehran belongs under Iran, under Capitals and under Cities all at once.
+Add them under **Linked snippets** in the editor. The picker searches by name, trigger or tag, other forms of a word included, and you can pick several at once. The editor also tells you which snippets point *at* the one you're editing, under "Linked from", because a snippet can sit under more than one parent and there's otherwise no way to see it: Tehran belongs under Iran, under Capitals and under Cities all at once.
 
 On the suggestion bar, a linked snippet shows as one chip carrying its default expansion. If that snippet has more of its own, whether other expansions or links, the chip grows a **›** on the end. Press the chip to insert what it says; press the **›** (or hold the chip) to go one level in, and the bar fills with what *that* snippet offers, with a back arrow to climb out. So "continent" → Asia → Iran → Tehran walks down as far as you've built it.
 

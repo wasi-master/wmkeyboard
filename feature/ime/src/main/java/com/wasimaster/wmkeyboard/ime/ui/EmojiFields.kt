@@ -468,7 +468,9 @@ internal fun EmojiGridField(
             // Faces whose tag or text matches, after the emoji, when the
             // kaomoji tab is on and the user left them in search.
             val faces = if (state.settings.emoji.kaomojiTabs && state.settings.emoji.kaomoji.inSearch) {
-                kaomoji.library.search(state.emojiQuery, null).take(KaomojiSearchLimit)
+                kaomoji.library.search(
+                    state.emojiQuery, null, kaomojiStemMatcher(state.language.localeTag, state.emojiQuery),
+                ).take(KaomojiSearchLimit)
             } else {
                 emptyList()
             }

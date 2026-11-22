@@ -67,8 +67,9 @@ Search understands more than an exact keyword match, layered in this order, wher
 2. **A shortcode prefix.** `thumb` starts narrowing toward `:thumbsup:` and its neighbors.
 3. **An exact keyword.** `cat` matches every emoji tagged with the word "cat".
 4. **A synonym.** A small hand-curated list expands common searches. `party` also surfaces 🍾 via "celebration", and `happy` also reaches emoji tagged "joy" or "cheerful". Bangla concepts expand the same way (খুশি → হাসি, আনন্দ).
-5. **A keyword prefix.** `cele` starts matching "celebration" before you finish typing it.
-6. **A one-typo fuzzy match.** `hapy` still finds 😀, for query words of four letters or more.
+5. **Another form of the word.** `cats` also finds the emoji filed under "cat", and `dancing` the ones under "dance" ([other forms of a word](/tools/overview/#other-forms-of-a-word)). Always under an exact keyword.
+6. **A keyword prefix.** `cele` starts matching "celebration" before you finish typing it.
+7. **A one-typo fuzzy match.** `hapy` still finds 😀, for query words of four letters or more.
 
 Turn on **Find any character by its Unicode name** under <SettingsPath path="Emoji / Emoji style" /> (off by default) and the same search also reaches tens of thousands of other characters by the words of their official names: `em dash` finds —, `copyright` finds ©, `lambda` finds λ and Λ, `ogonek` finds ą, ę and the rest, and `g clef` finds 𝄞. Music and maths symbols and old scripts are in it. Chinese, Japanese and Korean ideographs are not, because Unicode names them by number only. Those come after the emoji results, and a character the catalogue already knows as an emoji is listed once. Tapping one inserts it like an emoji; a hold shows its name. These characters have no colour of their own, so the panel and the emoji row draw them in the theme's text colour, and they stay readable on a dark theme, in Recent too.
 

@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.notes.searchedText
 import android.net.Uri
 import android.provider.DocumentsContract
 import androidx.activity.compose.BackHandler
@@ -261,16 +262,23 @@ internal fun NotesListScreen(
         }
         val tagged = tagFilter?.let { tag -> base.filter { it.hasTag(tag) } } ?: base
         val needle = query.trim()
-        val searched = if (needle.isEmpty()) {
-            tagged
+        val sorted = tagged.sortedWith(noteComparator(sort))
+        if (needle.isEmpty()) {
+            sorted
         } else {
-            tagged.filter { note ->
-                note.displayTitle().contains(needle, ignoreCase = true) ||
-                    note.tags.any { it.contains(needle, ignoreCase = true) } ||
-                    (!note.locked && note.body.contains(needle, ignoreCase = true))
-            }
+            // What was typed first, then other forms of its words.
+            com.wasimaster.wmkeyboard.core.text.StemMatch.literalFirst(
+                sorted,
+                literal = { note ->
+                    note.displayTitle().contains(needle, ignoreCase = true) ||
+                        note.tags.any { it.contains(needle, ignoreCase = true) } ||
+                        (!note.locked && note.body.contains(needle, ignoreCase = true))
+                },
+                stemmed = com.wasimaster.wmkeyboard.core.engine.SearchStems.matcher(null, needle) {
+                    it.searchedText(lockedBodies = false)
+                },
+            )
         }
-        searched.sortedWith(noteComparator(sort))
     }
     val selecting = selected.isNotEmpty()
     BackHandler(enabled = selecting) { selected = emptySet() }

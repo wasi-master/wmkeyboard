@@ -24,6 +24,8 @@
 //!   learns from, behind `CorrectionMemory` and `CorrectionStats`.
 //! - [`words`]: `PredictionNative` again, the word key, the learnability
 //!   gate and the word segmenter for Thai, Lao, Khmer and Burmese.
+//! - [`stem`]: `NativeEngine` again, the light stemmers the text searches
+//!   match word forms with.
 //! - [`gif`]: `GifNative` (core/content), the GIF encoder behind
 //!   `GifEncoder`.
 //! - [`cjk`]: `CjkNative` (core/input), the conversion decoder and its
@@ -54,5 +56,6 @@ mod lm;
 mod punct;
 mod rerank;
 mod sources;
+mod stem;
 mod transliteration;
 mod words;

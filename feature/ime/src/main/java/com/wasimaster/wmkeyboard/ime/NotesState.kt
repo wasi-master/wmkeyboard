@@ -178,7 +178,8 @@ object NotesLogic {
      * names, [Pinned][NotesFilter.Pinned] narrowed to pinned notes, the query
      * searched over titles, tags and unlocked bodies, locked notes dropped
      * entirely while the device is locked. The trash is shown only when asked
-     * for: a search never surfaces what was thrown away.
+     * for: a search never surfaces what was thrown away. Other forms of the
+     * query's words, stemmed in [languageTag], match after what was typed.
      */
     fun visible(
         store: NoteStore,
@@ -187,12 +188,13 @@ object NotesLogic {
         sort: NoteSort,
         deviceLocked: Boolean,
         now: Long = System.currentTimeMillis(),
+        languageTag: String? = null,
     ): List<Note> {
         val base = filter.storeFilter.copy(includeLocked = !deviceLocked)
         val rows = if (query.isBlank()) {
             store.items(base, sort, now)
         } else {
-            store.search(query, base, sort, searchLockedBodies = false, now = now)
+            store.search(query, base, sort, searchLockedBodies = false, now = now, languageTag = languageTag)
         }
         return if (filter == NotesFilter.Pinned) rows.filter { it.pinned } else rows
     }

@@ -5401,8 +5401,16 @@ data class KeyboardUiState(
         val query = snippetQuery.trim()
         if (query.isNotEmpty()) {
             // Then what only search by meaning found, when it is on.
+            // What was typed first, then other forms of its words.
+            val found = com.wasimaster.wmkeyboard.core.text.StemMatch.literalFirst(
+                snippets,
+                literal = { it.matchesQuery(query) },
+                stemmed = com.wasimaster.wmkeyboard.core.engine.SearchStems.matcher(language.localeTag, query) {
+                    it.searchedText()
+                },
+            )
             return com.wasimaster.wmkeyboard.ime.semantic.MeaningHits.append(
-                snippets.filter { it.matchesQuery(query) },
+                found,
                 snippets,
                 meaning.snippets.forQuery(query),
             ) { it.id.toString() }
@@ -5413,6 +5421,13 @@ data class KeyboardUiState(
             else -> snippets.filter { it.folderId == 0L }
         }
     }
+}
+
+/** The snippet's label, text and triggers, for matching other forms of a query's words. */
+private fun Snippet.searchedText(): String = buildString {
+    append(label).append(' ').append(text)
+    trigger?.let { append(' ').append(it) }
+    for (alias in aliases) append(' ').append(alias)
 }
 
 /** Whether [query] appears in this snippet's label, its text, or any of its triggers. */

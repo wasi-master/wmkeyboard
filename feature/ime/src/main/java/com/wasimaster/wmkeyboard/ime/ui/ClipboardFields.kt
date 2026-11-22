@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import com.wasimaster.wmkeyboard.core.text.StemMatch
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VisibilityThreshold
@@ -844,6 +845,11 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     // Match the whole clip (#612): a pattern must match all of a clip's text.
     val regexWhole = state.settings.clipboard.regexWhole
     val matcher = remember(query, regexSearch, regexWhole) { clipQueryMatcher(query, regexSearch, regexWhole) }
+    // Then the clips holding another form of the query's words.
+    val clipLanguage = state.language.localeTag
+    val stemMatcher = remember(query, regexSearch, clipLanguage) {
+        com.wasimaster.wmkeyboard.core.clipboard.clipStemMatcher(query, regexSearch, clipLanguage)
+    }
     val filters = remember { mutableStateOf(ClipPanelMemory.filters) }
     val oldest = remember { mutableStateOf(ClipPanelMemory.oldest) }
     val tagOrder = state.settings.clipboard.tagOrder
@@ -898,10 +904,11 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     // Then the clips only search by meaning found, best first; only from
     // [ordered], so the tab, tag and kind filters still hold.
     val meaningIds = state.meaning.clips.forQuery(query)
+    val found = if (query.isEmpty()) ordered else StemMatch.literalFirst(ordered, matcher, stemMatcher)
     val matched = when {
         query.isEmpty() -> ordered
-        meaningIds.isEmpty() -> ordered.filter(matcher)
-        else -> com.wasimaster.wmkeyboard.ime.semantic.MeaningHits.append(ordered.filter(matcher), ordered, meaningIds) { it.id.toString() }
+        meaningIds.isEmpty() -> found
+        else -> com.wasimaster.wmkeyboard.ime.semantic.MeaningHits.append(found, ordered, meaningIds) { it.id.toString() }
     }
     val shownItems = if (oldest.value) {
         remember(matched, searching) { if (searching) matched.reversed() else oldestFirst(matched) }

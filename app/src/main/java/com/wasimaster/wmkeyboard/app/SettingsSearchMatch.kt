@@ -2,7 +2,11 @@ package com.wasimaster.wmkeyboard.app
 
 import android.content.res.Resources
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.engine.SearchStems
+import com.wasimaster.wmkeyboard.core.text.StemMatch
 import java.text.Normalizer
+import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -64,7 +68,21 @@ internal enum class MatchField(val percent: Int, val correctsSpelling: Boolean) 
 internal class SearchText(val field: MatchField, raw: String) {
     val text: String = normalizeForSearch(raw)
     val words: List<String> = text.split(' ').filter { it.isNotEmpty() }
-    val stemmedWords: List<String> = words.map { stem(it) }
+
+    /**
+     * The words' stems from the engine's light stemmers, set for the whole
+     * index at once by [resolveStems]. Null until then, and for good when the
+     * library is missing; [stemmedWords] is the plural rule then.
+     */
+    @Volatile
+    internal var engineStems: List<String>? = null
+
+    @Volatile
+    internal var stemsTried: Boolean = false
+
+    private val pluralStems: List<String> by lazy { words.map { stem(it) } }
+
+    val stemmedWords: List<String> get() = engineStems ?: pluralStems
 
     /**
      * The words run together. It is what lets "2d" find "2-D cursor touchpad"
@@ -86,7 +104,11 @@ private const val TIER_WORD_EXACT = 70
 /** A word of the field starts with it: "sugg" on "Suggestions". */
 private const val TIER_WORD_PREFIX = 60
 
-/** A word of the field with the plural or the -y/-ies ending taken off. */
+/**
+ * A word of the field with the same stem: "themes" and "Theme", "typing" and
+ * "Type", "dictionaries" and "Dictionary". Under a whole word, so the row
+ * named with the word as typed comes first.
+ */
 private const val TIER_WORD_STEM = 65
 
 /** The word is inside the field, across word boundaries and all. */
@@ -213,9 +235,44 @@ internal fun settingsSearchVocabulary(res: Resources): SettingsSearchVocabulary 
     settingsSearchVocabulary(ResourceSearchStrings(res))
 
 /**
+ * The words of every field of [index] stemmed by the engine ([SearchStems]),
+ * in the language the app is drawn in, in one crossing for every field not
+ * yet stemmed. A field whose stems do not line up with its words, which only
+ * a word the two tokenizers split differently can cause, keeps the plural
+ * rule, and so does every field when the library is missing.
+ */
+internal fun resolveStems(index: List<SettingsSearchEntry>) {
+    val pending = ArrayList<SearchText>()
+    for (entry in index) for (text in entry.searchText) if (!text.stemsTried) pending.add(text)
+    if (pending.isEmpty()) return
+    val stems = SearchStems.stemAll(stemLanguage(), pending.map { it.text })
+    for ((i, text) in pending.withIndex()) {
+        val words = stems?.get(i)?.let(StemMatch::words)
+        if (words != null && words.size == text.words.size) text.engineStems = words
+        text.stemsTried = true
+    }
+}
+
+private fun stemLanguage(): String = Locale.getDefault().toLanguageTag()
+
+/** Query words' engine stems, for the length of a screen's searching. */
+private val tokenStems = ConcurrentHashMap<String, String>()
+
+/** [token]'s stem the way the engine stems a field's words, or the plural rule without it. */
+private fun engineStem(token: String): String {
+    tokenStems[token]?.let { return it }
+    val stemmed = SearchStems.cached(stemLanguage(), token)?.takeIf { it.isNotEmpty() && ' ' !in it } ?: stem(token)
+    if (tokenStems.size > TOKEN_STEMS_MAX) tokenStems.clear()
+    tokenStems[token] = stemmed
+    return stemmed
+}
+
+private const val TOKEN_STEMS_MAX = 512
+
+/**
  * The plural taken off, so "themes" finds "Theme" and "dictionaries" finds
- * "Dictionary". Deliberately only the plural: an -ing or -ed rule turns real
- * words into each other and costs more accuracy than it buys.
+ * "Dictionary": the stem a field's words get when the engine's stemmers are
+ * not there ([resolveStems]).
  */
 private fun stem(word: String): String = when {
     word.length > 4 && word.endsWith("ies") -> word.dropLast(3) + "y"
@@ -277,7 +334,7 @@ private fun SearchText.tier(token: String, spellCorrect: Boolean = true): Int {
     if (text == token) return TIER_FIELD_EXACT
     if (text.startsWith(token)) return TIER_FIELD_PREFIX
     var best = 0
-    val tokenStemmed = stem(token)
+    val tokenStemmed = if (engineStems != null) engineStem(token) else stem(token)
     for (i in words.indices) {
         val word = words[i]
         if (word == token) return TIER_WORD_EXACT
@@ -474,6 +531,7 @@ internal fun rankSettings(
 ): SearchResults {
     val tokens = searchTokens(query, vocabulary)
     if (tokens.isEmpty()) return SearchResults.EMPTY
+    resolveStems(index)
     val phrase = tokens.joinToString(" ")
     val scored = index.mapNotNull { rank(it, tokens, phrase, vocabulary, boost) }
     if (scored.isEmpty()) return SearchResults.EMPTY

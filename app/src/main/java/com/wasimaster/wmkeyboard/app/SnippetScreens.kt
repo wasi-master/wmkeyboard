@@ -2717,11 +2717,21 @@ private fun SnippetPickerDialog(
     var query by remember { mutableStateOf("") }
     val picked = remember { mutableStateListOf<Long>().also { it.addAll(selected) } }
     val reduceMotion = LocalReduceMotion.current
-    val shown = candidates.filter { snippet ->
-        query.isBlank() ||
-            snippet.label.contains(query, ignoreCase = true) ||
-            snippet.tags.any { it.contains(query, ignoreCase = true) } ||
-            snippet.spellings().any { it.contains(query, ignoreCase = true) }
+    // What was typed first, then other forms of its words.
+    val shown = if (query.isBlank()) {
+        candidates
+    } else {
+        com.wasimaster.wmkeyboard.core.text.StemMatch.literalFirst(
+            candidates,
+            literal = { snippet ->
+                snippet.label.contains(query, ignoreCase = true) ||
+                    snippet.tags.any { it.contains(query, ignoreCase = true) } ||
+                    snippet.spellings().any { it.contains(query, ignoreCase = true) }
+            },
+            stemmed = com.wasimaster.wmkeyboard.core.engine.SearchStems.matcher(null, query) { snippet ->
+                (listOf(snippet.label) + snippet.tags + snippet.spellings()).joinToString(" ")
+            },
+        )
     }
     AlertDialog(
         onDismissRequest = onDismiss,

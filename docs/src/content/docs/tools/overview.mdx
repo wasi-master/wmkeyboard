@@ -206,6 +206,16 @@ Hold a folder and drag it to move the whole folder around the grid. Back, the ar
 
 While the toolbox is open, the toolbar shows a magnifier at its far end, after your pinned tools. Tap it and the search takes over the whole keyboard, the toolbar included, with a back button of its own at the left of the search box. The keys come back underneath, and you type the name with the keyboard itself. Every tool that matches is listed, including the ones inside folders, with names that start with what you typed first. Tap one to use it, or press Enter to open the first match. Results fade in one after another, and slide to their new places as you keep typing. Close the search with its back button, its X button or the system back gesture, and the toolbox is the way you left it. To take the magnifier off the toolbar, turn off **Toolbox search** under <SettingsPath path="Appearance / Toolbox" />. To have it next to the back button instead, turn off **Search button at the far end** on the same screen.
 
+The names holding another [form of a word](#other-forms-of-a-word) you typed come last: *translating* finds Translate.
+
+## Other forms of a word
+
+The keyboard's searches find a word in its other forms. Search the clipboard for *meetings* and a clip that says "meeting at 5" turns up; *running* finds "run", *studies* finds "study", *chats* finds "chat". The same goes for emoji and kaomoji, snippets, notes, the toolbox, the Tools page in settings and settings search.
+
+What you typed, spelled the way you typed it, always comes first. The clips, notes or emoji that only hold another form of the word follow them, in the order the search would show them anyway. A [regular expression](/tools/clipboard/#regular-expressions) search on the clipboard matches only what the pattern says.
+
+The keyboard works this out on the phone with small rules for each language that take endings off a word: the plural, the case endings, *-ing* and *-ed*. It knows English, French, Spanish, Portuguese, Italian, Galician, German, Swedish, Norwegian, Russian, Bulgarian, Czech, Finnish, Hungarian, Latvian, Greek, Hindi, Bengali, Indonesian and Malay, Arabic and Persian. A word is read in the keyboard's language when it is written in that language's script, and otherwise by its own script, so English words in a Bengali note still find their other forms. Irregular forms such as *ran* for *run* are not matched. Settings search reads words in the language the settings app is drawn in.
+
 ## Browsing every tool
 
 <SettingsPath path="Tools" />

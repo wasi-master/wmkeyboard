@@ -279,6 +279,8 @@
     <!-- Zawgyi is the name of a Burmese font encoding. Keep it as it is. -->
     <string name="about_bundled_myanmar_tools_used">Tells Zawgyi Burmese from Unicode, and converts between the two</string>
     <string name="about_bundled_cldr_zawgyi_used">The rules the Zawgyi and Unicode converters follow</string>
+    <string name="about_bundled_lucene_stemmers_used">Lets the keyboard\'s searches find other forms of a word, \"running\" for \"run\": 18 of the 21 languages\' stemmers are ports of these (native engine)</string>
+    <string name="about_bundled_savoy_stemmers_used">The French, Spanish, Portuguese, Italian, German, Swedish, Norwegian, Russian, Finnish, Hungarian and Bengali search stemmers the Lucene ports follow</string>
     <string name="about_bundled_icu4x_used">Lowercases and normalises words for the prediction engine, and finds the words in Thai, Lao, Khmer and Burmese text</string>
     <string name="about_bundled_futo_layouts_used">The key grids of the layouts converted from FUTO Keyboard\'s layout files</string>
     <string name="about_bundled_floris_layouts_used">The key grids of the layouts converted from FlorisBoard\'s layout files</string>

@@ -418,14 +418,19 @@ internal fun ToolsSettings(
     val searchIndex = rememberToolSearchIndex(extensions)
     // Every word of the query has to be somewhere in the tool's name or its
     // description. Substring rather than whole word, because a name is found
-    // halfway through typing it.
+    // halfway through typing it. After those, the tools whose name or
+    // description holds another form of each word ("translating" finds
+    // Translate), by each word's own script.
     val matches = remember(query, searchIndex) {
         val tokens = normalizeForSearch(query).split(' ').filter { it.isNotEmpty() }
         if (tokens.isEmpty()) emptyList()
-        else searchIndex.keys.filter { tool ->
-            val haystack = searchIndex.getValue(tool)
-            tokens.all { haystack.contains(it) }
-        }
+        else com.wasimaster.wmkeyboard.core.text.StemMatch.literalFirst(
+            searchIndex.keys.toList(),
+            literal = { tool -> searchIndex.getValue(tool).let { haystack -> tokens.all { haystack.contains(it) } } },
+            stemmed = com.wasimaster.wmkeyboard.core.engine.SearchStems.matcher(null, tokens.joinToString(" ")) {
+                searchIndex.getValue(it)
+            },
+        )
     }
     val searching = query.isNotBlank()
     // A page scrolled down the long list stays as tall as where the reader

@@ -975,6 +975,26 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/unicode-org/icu4x",
         ),
     )
+    // The search stemmers in wm-engine (native/wm-engine/src/stem): most are
+    // ports of Lucene's light stemmers, several of those after Savoy's.
+    add(
+        Attribution(
+            "Apache Lucene light stemmers",
+            R.string.about_bundled_lucene_stemmers_used,
+            "Copyright The Apache Software Foundation",
+            "Apache-2.0", "apache-2.0.txt",
+            "https://github.com/apache/lucene",
+        ),
+    )
+    add(
+        Attribution(
+            "UniNE light stemmers",
+            R.string.about_bundled_savoy_stemmers_used,
+            "Copyright (c) 2005, Jacques Savoy",
+            "BSD-3-Clause", "bsd-3-clause-savoy.txt",
+            "http://members.unine.ch/jacques.savoy/clef/",
+        ),
+    )
     add(
         Attribution(
             "gemoji",

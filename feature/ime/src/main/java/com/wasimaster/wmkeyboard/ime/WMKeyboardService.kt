@@ -6737,7 +6737,7 @@ open class WMKeyboardService : InputMethodService() {
                 return@launch
             }
             emojiEntries = catalog
-            emojiSearch = EmojiSearch(catalog, emojiShortcodes)
+            emojiSearch = EmojiSearch(catalog, emojiShortcodes, ::emojiStems)
             emojiSuggester = EmojiSuggester(catalog, emojiTriggers, emojiShortcodes)
             _uiState.update {
                 it.copy(
@@ -6861,6 +6861,13 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
 
+    /**
+     * The emoji search's stems: by each word's own script, since the index
+     * holds the keywords of every language pack merged into one.
+     */
+    private fun emojiStems(words: List<String>): List<String>? =
+        com.wasimaster.wmkeyboard.core.engine.SearchStems.stemAll(null, words)
+
     private suspend fun reloadEmojiCatalog() {
         if (!userUnlocked) return
         // IO, not Default: this reads an asset and walks the packs folder, and
@@ -6875,7 +6882,7 @@ open class WMKeyboardService : InputMethodService() {
             }.getOrNull()
         } ?: return
         emojiEntries = catalog
-        emojiSearch = EmojiSearch(catalog, emojiShortcodes)
+        emojiSearch = EmojiSearch(catalog, emojiShortcodes, ::emojiStems)
         emojiSuggester = EmojiSuggester(catalog, emojiTriggers, emojiShortcodes)
         _uiState.update { it.copy(emojiCatalog = catalog, emojiNamesByLang = emojiPackNames) }
         recomputeHiddenEmoji(_uiState.value.settings)
@@ -53754,7 +53761,10 @@ open class WMKeyboardService : InputMethodService() {
             // trash's timer, has nothing left to show.
             val open = notes.open?.takeIf { noteStore.item(it) != null }
             val sort = state.settings.notes.sort
-            val byWords = NotesLogic.visible(noteStore, notes.filter, notes.query, sort, deviceLocked)
+            val byWords = NotesLogic.visible(
+                noteStore, notes.filter, notes.query, sort, deviceLocked,
+                languageTag = _uiState.value.language.localeTag,
+            )
             // Then the notes only search by meaning found, from the same shelf.
             val meaningIds = state.meaning.notes.forQuery(notes.query)
             val items = if (meaningIds.isEmpty()) {

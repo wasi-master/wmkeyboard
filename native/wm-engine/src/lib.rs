@@ -67,6 +67,9 @@
 //!   aarch64 NEON version picked at run time, with the parity tests between
 //!   them.
 //!
+//! - [`stem`]: light suffix-stripping stemmers for twenty-one languages,
+//!   which the keyboard's text searches match word forms with.
+//!
 //! Still Kotlin: Avro's dictionary walk, the phonetic strips, touch scoring
 //! and glide.
 //!
@@ -128,6 +131,7 @@ pub mod sanskrit;
 pub mod segment;
 pub mod sexp;
 pub mod sort;
+pub mod stem;
 pub mod strict_math;
 pub mod tamil;
 pub mod telugu;

@@ -288,6 +288,27 @@ object NativeEngine {
             false
         }
 
+    /**
+     * The words of [text], lowercased, each stemmed by the light stemmer of
+     * [languageTag] (`en`, `pt-BR`, `bn`) when it is in that language's
+     * script and by its own script's otherwise, joined by single spaces:
+     * "Running late" is "run late". Digits and words of a script without a
+     * stemmer come through lowercased. For the text searches, through
+     * [SearchStems]; never on the key-press path.
+     */
+    fun stemText(languageTag: String, text: String): String {
+        requireLoaded()
+        return nativeStemText(languageTag, text)
+    }
+
+    /** [stemText] over every one of [texts], in one crossing. */
+    fun stemTexts(languageTag: String, texts: Array<String>): Array<String> {
+        requireLoaded()
+        return nativeStemTexts(languageTag, texts)
+    }
+
+    private external fun nativeStemText(languageTag: String, text: String): String
+    private external fun nativeStemTexts(languageTag: String, texts: Array<String>): Array<String>
     private external fun setForceScalar(on: Boolean)
     private external fun nativeCpuFeatures(): Int
     private external fun nativeDotRows(query: FloatArray, matrix: FloatArray, dim: Int, out: FloatArray): Int

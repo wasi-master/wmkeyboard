@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.core.notes
 
+import com.wasimaster.wmkeyboard.core.engine.SearchStems
+import com.wasimaster.wmkeyboard.core.text.StemMatch
 import com.wasimaster.wmkeyboard.core.clipboard.capClipText
 import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
 import com.wasimaster.wmkeyboard.core.util.SnapshotFile
@@ -97,6 +99,10 @@ class NoteStore(private val storageFile: File?) {
      * A locked note's body is never searched unless [searchLockedBodies]: the
      * keyboard masks locked notes, and a filter that matched on their text
      * would leak it one word at a time.
+     *
+     * After the notes holding [query] as typed come the ones holding another
+     * form of its words ("meetings" finds a note about a meeting), stemmed in
+     * [languageTag] ([SearchStems]), each group in [sort] order.
      */
     @Synchronized
     fun search(
@@ -105,14 +111,19 @@ class NoteStore(private val storageFile: File?) {
         sort: NoteSort = NoteSort.UPDATED,
         searchLockedBodies: Boolean = false,
         now: Long = System.currentTimeMillis(),
+        languageTag: String? = null,
     ): List<Note> {
         val needle = query.trim()
         if (needle.isEmpty()) return items(filter, sort, now)
-        return items(filter, sort, now).filter { note ->
-            note.displayTitle().contains(needle, ignoreCase = true) ||
-                note.tags.any { it.contains(needle, ignoreCase = true) } ||
-                ((!note.locked || searchLockedBodies) && note.body.contains(needle, ignoreCase = true))
-        }
+        return StemMatch.literalFirst(
+            items(filter, sort, now),
+            literal = { note ->
+                note.displayTitle().contains(needle, ignoreCase = true) ||
+                    note.tags.any { it.contains(needle, ignoreCase = true) } ||
+                    ((!note.locked || searchLockedBodies) && note.body.contains(needle, ignoreCase = true))
+            },
+            stemmed = SearchStems.matcher(languageTag, needle) { note -> note.searchedText(searchLockedBodies) },
+        )
     }
 
     /** The live note edited most recently, for "add to the last note" and the panel's start. */
@@ -490,4 +501,14 @@ class NoteStore(private val storageFile: File?) {
         private val CRLF = Regex("""\r\n""")
         private const val BOM = "﻿"
     }
+}
+
+/**
+ * What a search looks for another form of its words in: the title, the tags,
+ * and the body unless the note is locked and [lockedBodies] is off.
+ */
+fun Note.searchedText(lockedBodies: Boolean): String = buildString {
+    append(displayTitle())
+    for (tag in tags) append(' ').append(tag)
+    if (!locked || lockedBodies) append(' ').append(body)
 }

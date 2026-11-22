@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.clipboard
 
+import com.wasimaster.wmkeyboard.core.engine.SearchStems
 import com.wasimaster.wmkeyboard.core.util.SnapshotFile
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -213,6 +214,16 @@ fun clipQueryMatcher(query: String, regex: Boolean, whole: Boolean = false): (Cl
         { item -> item.searchHaystack().contains(trimmed, ignoreCase = true) }
     }
 }
+
+/**
+ * The second half of a plain-text clipboard search: clips holding another
+ * form of [query]'s words, "meetings" finding "meeting at 5", stemmed in
+ * [languageTag] ([SearchStems]). The panel lists them after the clips
+ * [clipQueryMatcher] finds, which hold the query as typed. Null for a regex
+ * search, which means exactly what it says, and for a blank query.
+ */
+fun clipStemMatcher(query: String, regex: Boolean, languageTag: String?): ((ClipItem) -> Boolean)? =
+    if (regex) null else SearchStems.matcher(languageTag, query) { it.searchHaystack() }
 
 /**
  * [pattern] compiled the way the clipboard's search reads patterns (#612):

@@ -28218,8 +28218,9 @@ internal fun toolboxCells(tools: List<ToolKey>, folders: List<ToolboxFolder>): L
  * The tools the toolbox search lists (#687): every toolbox tool, folders or
  * not, whose name as [label] spells it contains the query, ignoring case. The
  * names that start with it come first, then the ones with a word that does,
- * then the rest, each group in toolbox order. Everything while the query is
- * empty, in the order [ToolboxSettings.searchSort] asks for.
+ * then the rest, then the names holding another form of the query's words
+ * ("translating" finds Translate), each group in toolbox order. Everything
+ * while the query is empty, in the order [ToolboxSettings.searchSort] asks for.
  *
  * [label] is a parameter so the service, which has no composition, can ask the
  * same question when Enter opens the first match.
@@ -28228,12 +28229,13 @@ internal fun toolboxSearchMatches(state: KeyboardUiState, label: (ToolKey) -> St
     val tools = visibleToolboxTools(state)
     val query = state.toolboxView.query.trim()
     if (query.isEmpty()) return sortedByUse(tools, state.settings.toolbox.searchSort, state)
+    val stemmed = com.wasimaster.wmkeyboard.core.engine.SearchStems.matcher(state.language.localeTag, query, label)
     return tools
         .mapNotNull { tool ->
             val name = label(tool)
             val at = name.indexOf(query, ignoreCase = true)
             when {
-                at < 0 -> null
+                at < 0 -> if (stemmed?.invoke(tool) == true) tool to 3 else null
                 at == 0 -> tool to 0
                 !name[at - 1].isLetterOrDigit() -> tool to 1
                 else -> tool to 2

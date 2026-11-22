@@ -1497,7 +1497,8 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Animated-emoji index `RARE` — animated.txt: 881 code-point spellings that have a Noto Animated Emoji asset.
   - Regeneration pipeline in-repo `uncommon` — tools/emoji/: generate_catalog, generate_gemoji, generate_animated, generate_dict_catalog, export_keyword_pack, add_names.
 - **Emoji search** `uncommon` — Semantic, multilingual, typo-tolerant search over the merged catalogue.
-  - Six scoring layers that stack `RARE` — Exact shortcode 1000 > shortcode prefix 500 > exact keyword 100 > synonym 60 > keyword prefix 40 > fuzzy 30.
+  - Seven scoring layers that stack `RARE` — Exact shortcode 1000 > shortcode prefix 500 > exact keyword 100 > synonym 60 > same stem 50 > keyword prefix 40 > fuzzy 30.
+    - Other forms of a word — "cats" finds 🐈 under "cat", "dancing" the "dance" emoji; a lazily built stem index beside the keyword index, each word by its own script
     - One-typo fuzzy matching — Damerau-Levenshtein distance exactly 1, for query tokens of 4+ characters
     - Curated synonym expansion — 43 concept keys (7 Bengali): party→celebration/confetti, fire→flame/comet
     - Underscore-as-space normalisation — face_with_monocle reaches the catalogue directly, so the shortcode table only carries names that differ
@@ -2418,6 +2419,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Searchable text beyond the clip's own — File name, link-preview title/description/site, source app and MIME subtype
     - Clips with no text findable by what they are — Kind words "image picture screenshot", "folder directory", "video movie" indexed
     - One matchesQuery predicate shared by the panel filter and store.search
+    - Other forms of the query's words after the literal hits — "meetings" finds "meeting at 5" (clipStemMatcher, keyboard language else script); off for a regex search
   - Link previews `uncommon` — Off by default; makes a direct request to the copied site
     - Title, description and site name fetched on panel open — Max 8 pending links per pass
     - A failed fetch is recorded so it is not retried on every open
@@ -4119,6 +4121,11 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Skip on every page but the last; a replay has no Skip
     - Miniature keyboard previews for the layout, digit-row and globe-key choices
     - Languages and haptic style seeded from the device on a fresh run only
+- **Search finds other forms of a word** `RARE` — Own light stemmers in wm-engine (native/wm-engine/src/stem, +52 KB arm64): en (Porter step 1), fr/es/pt/it/de/sv/no/ru/fi/hu/bg/cs/lv/hi/bn/id/ar/fa ported from Lucene's light stemmers, gl and el our own; 21 languages, no Snowball
+  - Used by clipboard, emoji, kaomoji, snippets (panel and picker), notes (panel and settings), toolbox, the Tools page and settings search
+  - Literal matches always first (StemMatch.literalFirst), then stem-only matches in the search's own order
+  - Keyboard language for a word in its script, else the word's own script (English words in a Bengali clip still stem)
+  - Matches Lucene's reference output exactly on fr/de/es/pt/it/ru/sv/hu vocabularies (~260k words); candidates' stems cached (SearchStems, 1.5M-char budget)
 - **Settings search** `RARE` — About 500 hand-written index entries plus one per supported toolbar tool
   - Index structure
     - Every entry carries title, subtitle, breadcrumb, route and the title's string resource

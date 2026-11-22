@@ -793,7 +793,10 @@ private fun KaomojiField(
 
 @Composable
 private fun KaomojiSearchBody(state: KeyboardUiState, ui: KaomojiUi, act: (KaomojiAction) -> Unit, query: String) {
-    val results = remember(ui.library, query) { ui.library.search(query, null) }
+    val language = state.language.localeTag
+    val results = remember(ui.library, query, language) {
+        ui.library.search(query, null, kaomojiStemMatcher(language, query))
+    }
     Column(modifier = Modifier.fillMaxSize()) {
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = KaomojiCellMin),
@@ -939,3 +942,12 @@ private val KaomojiChipEstimate = 72.dp
 
 /** The panel's own height while one of its boxes has the keys. */
 private val KaomojiTypingPanelHeight = 128.dp
+
+/**
+ * Faces with a tag holding another form of [query]'s words, stemmed in
+ * [languageTag]: the kaomoji search's last group.
+ */
+internal fun kaomojiStemMatcher(languageTag: String?, query: String): ((Kaomoji) -> Boolean)? =
+    com.wasimaster.wmkeyboard.core.engine.SearchStems.matcher<Kaomoji>(languageTag, query) {
+        it.tags.joinToString(" ")
+    }

@@ -10,17 +10,26 @@ package com.wasimaster.wmkeyboard.core.emoji
  *  - synonyms and related concepts ("party" also surfaces 🍾 via
  *    "celebration"; "fire" surfaces 💥 and ☄️);
  *  - prefix matching while the user is still typing;
+ *  - other forms of a word: with a [stem] function (the engine's light
+ *    stemmers), "cats" finds the emoji filed under "cat" and "dancing" those
+ *    under "dance";
  *  - fuzzy matching for one-typo queries ("hapy" still finds 😀);
  *  - multilingual queries — Bengali keywords live in the same index, so
  *    বিড়াল finds the cat emojis and হাসি the smiles.
  *
  * Scoring: exact shortcode > shortcode prefix > exact keyword >
- * synonym-expanded > keyword prefix > fuzzy; matches on multiple query tokens
- * accumulate.
+ * synonym-expanded > same stem > keyword prefix > fuzzy; matches on multiple
+ * query tokens accumulate, and an exact keyword always outweighs a stem.
+ *
+ * [stem] turns words into their stems in one batch, a list in and the same
+ * size out (each a word's stem; a phrase's stems joined by spaces), or null
+ * when it cannot. It is first called on the first search, never while the
+ * keyboard starts.
  */
 class EmojiSearch(
     private val entries: List<EmojiEntry>,
     private val shortcodes: EmojiShortcodes = EmojiShortcodes.EMPTY,
+    private val stem: ((List<String>) -> List<String>?)? = null,
 ) {
 
     // The keyword index, packed: every term sorted in [terms], and term `t`'s
@@ -68,6 +77,32 @@ class EmojiSearch(
         }
     }
 
+    /**
+     * The terms grouped by stem: `stems` sorted, and the [terms] slots of
+     * stem `i` at `slots[start[i] until start[i + 1]]`. One int a term, the
+     * stem strings shared with [terms] where stemming changed nothing.
+     */
+    private class StemIndex(val stems: Array<String>, val start: IntArray, val slots: IntArray)
+
+    private val stemIndex: StemIndex? by lazy {
+        val stemmed = stem?.invoke(terms.asList())?.takeIf { it.size == terms.size } ?: return@lazy null
+        val grouped = HashMap<String, MutableList<Int>>()
+        for ((t, s) in stemmed.withIndex()) {
+            if (s.isEmpty()) continue
+            grouped.getOrPut(if (s == terms[t]) terms[t] else s) { ArrayList(1) }.add(t)
+        }
+        val stems = grouped.keys.toTypedArray().also { it.sort() }
+        val start = IntArray(stems.size + 1)
+        val slots = IntArray(stemmed.size)
+        var at = 0
+        for ((i, s) in stems.withIndex()) {
+            start[i] = at
+            for (t in grouped.getValue(s)) slots[at++] = t
+        }
+        start[stems.size] = at
+        StemIndex(stems, start, slots.copyOf(at))
+    }
+
     /** [term]'s slot in [terms], or -1. */
     private fun termIndex(term: String): Int = terms.binarySearch(term).let { if (it < 0) -1 else it }
 
@@ -105,8 +140,11 @@ class EmojiSearch(
                 indexByEmoji[emoji]?.let { scores.merge(it, 500 - rank, Int::plus) }
             }
         }
-        for (token in tokens) {
+        // The query's stems, one crossing for all its words.
+        val stems = stemIndex?.let { stem?.invoke(tokens) }?.takeIf { it.size == tokens.size }
+        for ((i, token) in tokens.withIndex()) {
             score(token, weight = 100, scores)
+            stems?.get(i)?.let { scoreStem(token, it, scores) }
             for (synonym in SYNONYMS[token].orEmpty()) {
                 score(synonym, weight = 60, scores)
             }
@@ -200,6 +238,24 @@ class EmojiSearch(
             .map { it.key }
     }
 
+    /**
+     * The emoji filed under another form of [token]: every term whose stem
+     * is [tokenStem], [token] itself left to the exact layer.
+     */
+    private fun scoreStem(token: String, tokenStem: String, scores: HashMap<Int, Int>) {
+        val index = stemIndex ?: return
+        if (tokenStem.isEmpty()) return
+        val i = index.stems.binarySearch(tokenStem)
+        if (i < 0) return
+        val reached = HashSet<Int>()
+        for (k in index.start[i] until index.start[i + 1]) {
+            val t = index.slots[k]
+            if (terms[t] != token) forEachPosting(t) { reached.add(it) }
+        }
+        // Once per emoji, however many forms of the word it is filed under.
+        for (entry in reached) scores.merge(entry, STEM_WEIGHT, Int::plus)
+    }
+
     private fun score(token: String, weight: Int, scores: HashMap<Int, Int>) {
         val t = termIndex(token)
         if (t >= 0) forEachPosting(t) { scores.merge(it, weight, Int::plus) }
@@ -248,6 +304,13 @@ class EmojiSearch(
          * so asking for exactly the slots on offer would usually leave none.
          */
         private const val SHORTCODE_OVERDRAW = 8
+
+        /**
+         * A keyword another form of the query word stems to: under an exact
+         * keyword (100) and a synonym (60), over a keyword the query only
+         * starts (40).
+         */
+        private const val STEM_WEIGHT = 50
 
         /**
          * Concept expansion for common searches. Keys are query tokens,
