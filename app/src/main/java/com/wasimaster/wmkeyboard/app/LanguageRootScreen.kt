@@ -28,6 +28,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.material.icons.Icons
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -77,6 +81,7 @@ internal fun LanguageSettings(
     // What decides which rows the groups hold; each row reads its own value.
     val canReorder = settings.watch { it.enabledLayoutIds.size > 1 }
     val languages = settings.watch { it.enabledLanguages }
+    val languagesOff = settings.watch { it.languagesOff }
     val appLayoutsSaved = settings.watch { it.perAppLanguage.layoutByPackage.isNotEmpty() }
     val osSwitcher = settings.watch { it.osLanguageSwitcher }
     // The two states of the list are one card stack growing or shrinking into
@@ -167,6 +172,44 @@ internal fun LanguageSettings(
                         onNavigate("language/${language.id}")
                     }
                 }
+            }
+        }
+        // Languages switched off with their downloads kept (#1484): greyed and
+        // struck through, with the switch that brings each back. A swipe
+        // removes one for good, downloads and all, as for a language that is on.
+        for ((offId, offLayouts) in languagesOff) {
+            if (editing) break
+            item(key = "off:$offId") {
+                val offLanguage = LanguageRegistry.byId(offId)
+                val layoutNames = settings.watch { s ->
+                    offLayouts.joinToString { resolveLayout(s.customLayouts, it).name }
+                }
+                val removeLabel = stringResource(R.string.languages_remove_action, offLanguage.englishName)
+                WmRow(
+                    title = offLanguage.displayName,
+                    titleContent = {
+                        Text(
+                            offLanguage.displayName,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textDecoration = TextDecoration.LineThrough,
+                        )
+                    },
+                    subtitle = stringResource(R.string.languages_off_row_subtitle, layoutNames),
+                    trailing = {
+                        Switch(
+                            checked = false,
+                            onCheckedChange = { on ->
+                                if (on) scope.launch { switchLanguageOn(repository, settings, offId) }
+                            },
+                        )
+                    },
+                    swipeActions = listOf(
+                        deleteSwipeAction(removeLabel) {
+                            scope.launch { removeOffLanguage(context, repository, settings, offId) }
+                        },
+                    ),
+                )
             }
         }
         item {

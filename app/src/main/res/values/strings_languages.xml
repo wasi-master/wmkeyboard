@@ -274,6 +274,15 @@
     <string name="languages_secondary_title">Also suggest from</string>
     <!-- %1$s is the English name of the language this screen is about. -->
     <string name="languages_picker_hidden_group">Language switcher</string>
+    <!-- A language switched off with its downloads kept (#1484), on its own
+         page and on the Languages screen. -->
+    <string name="languages_off_title">Use this language</string>
+    <string name="languages_off_subtitle">Off keeps its downloads, but takes it out of the switcher and of suggestions</string>
+    <!-- %1$s is the English name of the language. -->
+    <string name="languages_off_info">Switched off, <xliff:g id="language" example="Swedish">%1$s</xliff:g> is out of the language switcher, and no keyboard suggests its words through Also suggest from, as if you had removed it. Nothing it downloaded is deleted, so switching it back on is instant: it comes back with its layouts and its Also suggest from picks as they were. It stays on the Languages screen, struck through, with a switch to turn it back on. To keep a language for its words only, use Do not show in the language switcher instead.</string>
+    <!-- Under a switched-off language on the Languages screen. %1$s is its
+         layouts, separated by commas. -->
+    <string name="languages_off_row_subtitle">Off, downloads kept · <xliff:g id="layouts" example="QWERTY, Dvorak">%1$s</xliff:g></string>
     <string name="languages_picker_hidden_title">Do not show in the language switcher</string>
     <string name="languages_picker_hidden_subtitle">Keep this language for its suggestions only</string>
     <string name="languages_picker_hidden_info"><xliff:g id="language" example="Bangla (Romanized)">%1$s</xliff:g> stays on, but the globe key, the spacebar swipe and the language list do not stop at it. Its words continue to show on each keyboard that has it below Also suggest from. Use this when you want a language only for its words, such as English suggestions on a Swedish keyboard, and one keyboard less to switch through.</string>

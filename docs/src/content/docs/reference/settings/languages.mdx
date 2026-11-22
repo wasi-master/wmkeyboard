@@ -22,6 +22,8 @@ The Languages screen is where you enable languages and layouts, reorder the swit
 
 The **Your languages** group lists each enabled language once, in switch order, one row per entry in `enabledLanguages`. A row's subtitle is a comma-joined list of that language's currently-enabled layout names. Bangla, for example, reads "Avro phonetic, প্রভাত (Probhat), জাতীয় (National)" once all three are on. With one layout enabled the subtitle is that layout's name alone. Tap any row to open that language's own screen (below).
 
+A language you switched off (see [Switching a language off](#switching-a-language-off)) stays in the group after the ones that are on, its name greyed and struck through, with its layouts under it after "Off, downloads kept", and a switch that turns it back on. Swipe it away to remove it for good, downloads and all.
+
 A trailing **Add language** row always closes the group, subtitled "Type in any of 1,556 languages" (that's the size of the whole catalogue, not just what's installed).
 
 Below that sits a **Language data** group with three toggles, on by default except **Download data automatically**, which starts off on F-Droid builds, plus a **Forget remembered apps** row that only turns up once at least one app has a language pinned to it (see Per-app language below).
@@ -124,7 +126,17 @@ Whether the emoji keywords and word pairs download by themselves depends on **Do
 
 **`{Language} options`** (Chinese, Japanese, and Cantonese only). See below.
 
+**Use this language**: the first row of the Language switcher group, on by default, and only shown while another language is on. Turning it off is [Switching a language off](#switching-a-language-off): the screen closes, and the language waits on the Languages screen until you switch it back on.
+
 **Remove `{language}`**: a button at the very bottom, shown only once more than one language is enabled, so the last one can never be removed from here. Removing takes every layout belonging to that language out of the switch ring in one step. If that language has a downloaded word list, emoji keywords or word pairs, a **Delete the downloaded files?** dialog asks first and names the storage it would free. Either answer removes the language; the dialog is only about the files.
+
+### Switching a language off
+
+<SettingsPath path="Languages & layouts / Your languages" />
+
+Turning **Use this language** off takes the language out of use without deleting anything it downloaded. Its layouts leave the switch ring, so the globe key, the spacebar swipe and the picker skip it, and no keyboard suggests its words through **Also suggest from**, the same as if you had removed it. Its word list, emoji keywords, word pairs and other downloads stay on the phone, and so do the other languages' **Also suggest from** picks of it. Switch it back on from the Languages screen and it returns with the same layouts, at the end of the switch order, and those picks work again straight away, with nothing to download.
+
+This is different from **Do not show in the language switcher**, which keeps the language on for its words and only takes away its stop in the switcher. The last language that is on can't be switched off, since the keyboard needs one to type in.
 
 ### Chinese, Japanese, and Cantonese options
 

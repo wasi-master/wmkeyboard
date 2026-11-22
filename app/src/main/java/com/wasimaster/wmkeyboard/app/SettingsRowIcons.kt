@@ -2517,6 +2517,8 @@ internal object SettingsRowIcons {
         // The Symbols layer page's row on Layout & size (#1432).
         put(R.string.layout_symbols_title) { Icons.Outlined.Tag }
         put(R.string.languages_picker_hidden_title) { Icons.Outlined.VisibilityOff }
+        // A language switched off with its downloads kept (#1484).
+        put(R.string.languages_off_title) { Icons.Outlined.PowerSettingsNew }
         put(R.string.languages_vietnamese_strict_tones_title) { Icons.Outlined.Spellcheck }
         put(R.string.languages_vietnamese_restore_marks_title) { Icons.Outlined.AutoFixHigh }
         put(R.string.languages_bengali_vowel_twice_title) { Icons.Outlined.TouchApp }

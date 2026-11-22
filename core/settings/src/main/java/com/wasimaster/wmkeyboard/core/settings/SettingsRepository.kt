@@ -4022,6 +4022,16 @@ data class KeyboardSettings(
      */
     val secondaryLanguages: Map<String, List<String>> = emptyMap(),
     /**
+     * Languages switched off without deleting what they downloaded (#1484),
+     * by language id, each with the layouts it had in [enabledLayoutIds] when
+     * it went off, in order. Off, a language is out of [enabledLayoutIds], so
+     * it leaves the switcher and stops lending its words through
+     * [secondaryLanguages] exactly as a removed one does; turning it on puts
+     * those layouts back, and the stored "Also suggest from" picks with them.
+     * A language that is on again is never listed here.
+     */
+    val languagesOff: Map<String, List<String>> = emptyMap(),
+    /**
      * The language of [activeLayoutId], resolved from its layout's `langId`. The
      * registry-era replacement for [inputMode]/[KeyboardLanguage]: dictionary,
      * dictation and handwriting keyed by [LanguageDef.id], and [script] behaviour
@@ -12408,6 +12418,17 @@ private fun decodeSecondaryLanguages(raw: String): Map<String, List<String>> =
         }
         .toMap()
 
+/** Reads [KeyboardSettings.languagesOff] from its `langId<TAB>id,id` entries. */
+private fun decodeLanguagesOff(entries: Set<String>?): Map<String, List<String>> =
+    entries.orEmpty()
+        .mapNotNull { entry ->
+            val lang = entry.substringBefore('\t', "")
+            val ids = entry.substringAfter('\t', "").split(',').filter { it.isNotEmpty() }
+            if (lang.isEmpty() || ids.isEmpty()) null else lang to ids
+        }
+        .sortedBy { it.first }
+        .toMap()
+
 /** Serializes the per-app layout map to a compact `pkg=layoutId;...` string. */
 private fun encodePerAppLayouts(map: Map<String, String>): String =
     map.entries
@@ -12664,6 +12685,9 @@ class SettingsRepository(private val context: Context) {
         private val CUSTOM_LAYOUTS = stringPreferencesKey("custom_layouts")
         private val LAYOUT_DISPLAY_NAMES = stringPreferencesKey("layout_display_names")
         private val SECONDARY_LANGUAGES = stringPreferencesKey("secondary_languages")
+        // Languages switched off with their downloads kept (#1484): one
+        // "langId<TAB>layoutId,layoutId" entry each. See [KeyboardSettings.languagesOff].
+        private val LANGUAGES_OFF = stringSetPreferencesKey("languages_off")
         private val AUTO_PAIR_ROMANIZED_DONE =
             booleanPreferencesKey("auto_pair_romanized_done")
         private val RAW_CLIPBOARD_SHORTCUTS = booleanPreferencesKey("raw_clipboard_shortcuts")
@@ -14847,6 +14871,11 @@ class SettingsRepository(private val context: Context) {
                     val on = layoutSelection.enabledLanguages.mapTo(HashSet()) { it.id }
                     picks.mapValues { (_, ids) -> ids.filter { it in on } }.filterValues { it.isNotEmpty() }
                 },
+            // A language added back by hand is on, whatever an old entry says.
+            languagesOff = decodeLanguagesOff(p[LANGUAGES_OFF]).let { off ->
+                val on = layoutSelection.enabledLanguages.mapTo(HashSet()) { it.id }
+                off.filterKeys { it !in on }
+            },
             language = layoutSelection.active.language(),
             script = layoutSelection.active.script(),
             themeMode = p[THEME_MODE]?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() }
@@ -19948,7 +19977,48 @@ class SettingsRepository(private val context: Context) {
 
     /** Replaces the secondary-language map (primary langId → secondary langIds). */
     suspend fun setSecondaryLanguages(map: Map<String, List<String>>) =
-        editPrefs { it[SECONDARY_LANGUAGES] = encodeSecondaryLanguages(map) }
+        editPrefs { prefs ->
+            // A pick of a language switched off (#1484) is not in what the
+            // caller read ([KeyboardSettings.secondaryLanguages] holds only
+            // languages that are on), so it would be lost by writing the map
+            // back; it is carried over from storage to work again once the
+            // language is back on.
+            val off = decodeLanguagesOff(prefs[LANGUAGES_OFF]).keys
+            val stored = if (off.isEmpty()) emptyMap() else prefs[SECONDARY_LANGUAGES]?.let(::decodeSecondaryLanguages).orEmpty()
+            val merged = (map.keys + stored.keys).associateWith { primary ->
+                (map[primary].orEmpty() + stored[primary].orEmpty().filter { it in off }).distinct()
+            }
+            prefs[SECONDARY_LANGUAGES] = encodeSecondaryLanguages(merged)
+        }
+
+    /**
+     * Drops [langId] from the stored secondary-language map, as a primary and
+     * as a pick, and leaves every other pick as stored. Works on the stored
+     * map rather than [KeyboardSettings.secondaryLanguages], which leaves out
+     * picks of languages that are not on: writing that back would lose the
+     * picks of a language switched off (#1484) for good.
+     */
+    suspend fun forgetSecondaryLanguage(langId: String) =
+        editPrefs { prefs ->
+            val stored = prefs[SECONDARY_LANGUAGES]?.let(::decodeSecondaryLanguages) ?: return@editPrefs
+            val next = stored.filterKeys { it != langId }
+                .mapValues { (_, ids) -> ids - langId }
+                .filterValues { it.isNotEmpty() }
+            if (next != stored) prefs[SECONDARY_LANGUAGES] = encodeSecondaryLanguages(next)
+        }
+
+    /**
+     * Records [langId] as switched off with [layoutIds] to bring back, or
+     * forgets it with null (#1484). The layouts themselves leave or rejoin
+     * the enabled set through [setEnabledLayoutIds]. See
+     * [KeyboardSettings.languagesOff].
+     */
+    suspend fun setLanguageOff(langId: String, layoutIds: List<String>?) =
+        editPrefs { prefs ->
+            val others = prefs[LANGUAGES_OFF].orEmpty().filterNotTo(HashSet()) { it.substringBefore('\t') == langId }
+            val next = if (layoutIds.isNullOrEmpty()) others else others + "$langId\t${layoutIds.joinToString(",")}"
+            if (next.isEmpty()) prefs.remove(LANGUAGES_OFF) else prefs[LANGUAGES_OFF] = next
+        }
 
     /**
      * Cross-wires every enabled romanized language with the enabled languages

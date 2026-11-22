@@ -607,8 +607,10 @@ private val AUTO_DOWNLOAD_SIZE = DictionaryCatalog.DictionarySize.LARGE
 private fun orphanedNeuralModel(context: Context, settings: KeyboardSettings, langId: String): File? {
     val neural = settings.suggestionStrip.neuralPhoneticLangs
     if (langId !in neural) return null
-    val othersUsing = settings.enabledLayoutIds
-        .map { resolveLayout(settings.customLayouts, it).language().id }
+    // A language switched off (#1484) still has a use for it: its downloads
+    // are kept for the moment it is back on.
+    val othersUsing = (settings.enabledLayoutIds.map { resolveLayout(settings.customLayouts, it).language().id } +
+        settings.languagesOff.keys)
         .any { it != langId && it in neural }
     if (othersUsing) return null
     // The pack's own directory, which holds nothing else.
@@ -752,6 +754,9 @@ internal suspend fun deleteLanguageData(
     CjkDictCatalog.forLang(langId).forEach { CjkDictDownloadManager.delete(filesDir, it) }
     if (langId == PhoneticSchemes.BENGALI.languageId) AvroDictionaryDownloads.delete(filesDir)
     if (neural) deleteNeuralPhonetic(context, repository, settings)
+    // Nothing kept any more, so nothing for a switched-off entry (#1484) to
+    // bring back: the language is gone, not off.
+    repository.setLanguageOff(langId, null)
 }
 
 /**
@@ -800,14 +805,12 @@ internal suspend fun removeLanguage(
  * Drops [langId] from every language's "Also suggest from". Its switch is only
  * drawn while it is enabled, so a pick left behind could never be turned off.
  */
+@Suppress("UNUSED_PARAMETER")
 internal suspend fun forgetAsSecondary(repository: SettingsRepository, settings: KeyboardSettings, langId: String) {
-    val current = settings.secondaryLanguages
-    if (current.none { (primary, ids) -> primary == langId || langId in ids }) return
-    repository.setSecondaryLanguages(
-        current.filterKeys { it != langId }
-            .mapValues { (_, ids) -> ids - langId }
-            .filterValues { it.isNotEmpty() },
-    )
+    // On the stored map, not on [settings]: that one holds only the picks of
+    // languages that are on, and writing it back lost every pick of a
+    // language switched off (#1484).
+    repository.forgetSecondaryLanguage(langId)
 }
 
 /**
@@ -1204,7 +1207,29 @@ internal fun LanguageDetailScreen(
     // another one: Banglish on English (#473), English on Swedish (#618).
     // Hidden, it stays on and keeps lending them, and the switcher has one
     // stop fewer.
+    // Off without losing the downloads (#1484): out of the switcher and out of
+    // every language's suggestions, as if removed, until it is switched back
+    // on here or on the Languages screen. Not for the last language on.
+    val languageOff = settings.watch { langId in it.languagesOff }
+    val othersOn = settings.watch { s -> s.enabledLanguages.any { it.id != langId } }
     SettingsGroup(stringResource(R.string.languages_picker_hidden_group)) {
+        item(visible = othersOn || languageOff) {
+            ToggleSetting(
+                R.string.languages_off_title,
+                stringResource(R.string.languages_off_subtitle),
+                !languageOff,
+                info = stringResource(R.string.languages_off_info, lang.englishName),
+                default = true,
+            ) { on ->
+                scope.launch {
+                    if (on) {
+                        switchLanguageOn(repository, settings, langId)
+                    } else if (switchLanguageOff(repository, settings, langId)) {
+                        onRemoved()
+                    }
+                }
+            }
+        }
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.languages_picker_hidden_title,
