@@ -131,6 +131,10 @@
     <string name="keypress_popup_radius_subtitle">How round the corners of a popup are</string>
     <string name="keypress_popup_radius_info">This is the corner radius of every popup. A value of 0 gives square corners. A high value makes the corners fully round.\n\nOnly the rounded and the cut popup shapes use this value. A theme can carry its own radius, and it wins over this setting.</string>
 
+    <string name="keypress_alternates_tiles_title">Alternates as separate keys</string>
+    <string name="keypress_alternates_tiles_subtitle">Show each press-and-hold alternate as a key of its own</string>
+    <string name="keypress_alternates_tiles_info">Off: the alternates that open when you hold a key share one bubble.\n\nOn: there is no bubble. Each alternate gets its own small key with a gap around it, in the popup colour, popup shape, border and key material of your theme. The one under your finger lights up.\n\nThis changes only the look. Each alternate still reaches as far as it does in the bubble, so sliding and lifting pick the same alternate either way.</string>
+
     <string name="keypress_preview_width_title">Preview bubble width</string>
     <string name="keypress_preview_width_subtitle">How wide the character bubble is, against its usual width</string>
     <string name="keypress_preview_width_info">At ×1.00 the bubble is as wide as it has always been: a little wider than the key when it covers the key, and just wide enough for the character when it floats. A larger value makes it wider, in proportion to the key. A smaller value makes it narrower and takes away the space on each side of the character first.</string>

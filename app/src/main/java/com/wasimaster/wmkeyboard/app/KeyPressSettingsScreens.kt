@@ -1779,6 +1779,17 @@ internal fun KeyPressPopupSettings(
                 default = SettingsDefaults.popup.cornerRadiusDp.toFloat(),
             ) { scope.launch { repository.setKeyPopupCornerRadiusDp(it.toInt()) } }
         }
+        // The long-press popup's look beside the shape it is drawn in (#1461).
+        // Not tied to the switch at the top: that one is the preview bubble.
+        item {
+            ToggleSetting(
+                R.string.keypress_alternates_tiles_title,
+                stringResource(R.string.keypress_alternates_tiles_subtitle),
+                settings.watch { it.popup.alternatesTiles },
+                info = stringResource(R.string.keypress_alternates_tiles_info),
+                default = SettingsDefaults.popup.alternatesTiles,
+            ) { scope.launch { repository.setAlternatesTiles(it) } }
+        }
         // Gap list item 30: the preview bubble's own width and corners, beside
         // its height. These two stop at the bubble; the radius above is every
         // popup's, and the bubble follows it until its own is set.

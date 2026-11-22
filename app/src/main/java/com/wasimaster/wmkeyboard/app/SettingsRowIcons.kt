@@ -711,6 +711,7 @@ internal object SettingsRowIcons {
         put(R.string.keypress_alternates_hold_title) { Icons.Outlined.Gesture }
         put(R.string.keypress_popup_shape_title) { Icons.Outlined.Category }
         put(R.string.keypress_popup_radius_title) { Icons.Outlined.RoundedCorner }
+        put(R.string.keypress_alternates_tiles_title) { Icons.Outlined.Apps }
         put(R.string.keypress_long_press_delay_title) { Icons.Outlined.Timer }
         put(R.string.keypress_long_press_system_title) { Icons.Outlined.Accessibility }
         put(R.string.keypress_multitap_timeout_title) { Icons.Outlined.Dialpad }

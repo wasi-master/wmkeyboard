@@ -1024,6 +1024,7 @@ private fun SearchStrings.keypressPopupRows(): List<SettingsSearchEntry> {
         row(R.string.keypress_popup_text_color_title, R.string.keypress_popup_text_color_subtitle),
         row(R.string.keypress_popup_shape_title, R.string.keypress_popup_shape_subtitle),
         row(R.string.keypress_popup_radius_title, R.string.keypress_popup_radius_subtitle),
+        row(R.string.keypress_alternates_tiles_title, R.string.keypress_alternates_tiles_subtitle),
         row(R.string.keypress_preview_width_title, R.string.keypress_preview_width_subtitle),
         row(R.string.keypress_preview_radius_title, R.string.keypress_preview_radius_subtitle),
         row(R.string.keypress_pop_text_title, R.string.keypress_pop_text_subtitle),

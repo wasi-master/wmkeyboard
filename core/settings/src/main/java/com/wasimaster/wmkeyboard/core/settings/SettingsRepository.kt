@@ -562,6 +562,13 @@ data class KeyPopupSettings(
      */
     val alternatesCentred: Boolean = true,
     /**
+     * Whether each alternate draws as a key of its own (#1461): no shared
+     * bubble, a tile per entry in the popup's colour, shape and material, with
+     * a small gap between neighbours. Only the drawing changes; the entries are
+     * laid out, and matched against the finger, exactly as in the bubble.
+     */
+    val alternatesTiles: Boolean = false,
+    /**
      * The order of the groups in a letter's popup (#385): the layout's own
      * alternates, the accents the passes add, and the capital or shifted
      * form. The default is the order they were always assembled in. See
@@ -12989,6 +12996,7 @@ class SettingsRepository(private val context: Context) {
         private val ALTERNATES_BY_USE = booleanPreferencesKey("alternates_by_use")
         private val ALTERNATE_PICKS = stringPreferencesKey("alternate_picks")
         private val ALTERNATES_CENTRED = booleanPreferencesKey("alternates_centred")
+        private val ALTERNATES_TILES = booleanPreferencesKey("alternates_tiles")
         private val ALTERNATES_ORDER = stringPreferencesKey("alternates_order")
         private val ALTERNATES_HOLD_TO_SELECT = booleanPreferencesKey("alternates_hold_to_select")
         private val ALTERNATES_CLASSIC = booleanPreferencesKey("alternates_classic")
@@ -21637,6 +21645,7 @@ class SettingsRepository(private val context: Context) {
             alternatesNearestFirst = p[ALTERNATES_NEAREST_FIRST]
                 ?: defaults.popup.alternatesNearestFirst,
             alternatesCentred = p[ALTERNATES_CENTRED] ?: defaults.popup.alternatesCentred,
+            alternatesTiles = p[ALTERNATES_TILES] ?: defaults.popup.alternatesTiles,
             alternatesOrder = p[ALTERNATES_ORDER]?.let(::decodeAlternatesOrder)
                 ?: defaults.popup.alternatesOrder,
             alternatesHoldToSelect = p[ALTERNATES_HOLD_TO_SELECT]
@@ -23532,6 +23541,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAlternatesCentred(value: Boolean) =
         editPrefs { it[ALTERNATES_CENTRED] = value }
+
+    suspend fun setAlternatesTiles(value: Boolean) =
+        editPrefs { it[ALTERNATES_TILES] = value }
 
     /** Off forgets the picks too, so turning it back on starts from the layout. */
     suspend fun setRememberPunctuationPick(value: Boolean) =

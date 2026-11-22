@@ -29942,6 +29942,17 @@ private fun AlternatesPopup(
     // step. The lean is a few percent of the entry, never enough to look like
     // the highlight is on the wrong one.
     val lean = remember { Animatable(Offset.Zero, Offset.VectorConverter) }
+    // Each entry its own key rather than one bubble (#1461): the entries draw
+    // their tiles and their share of the highlight; see [AlternateTiles].
+    val tiles = popup.alternatesTiles
+    val tileSet = remember(tiles, hold) {
+        if (!tiles) {
+            null
+        } else {
+            val lit: (() -> Rect?)? = hold?.let { held -> { highlight.value.takeIf { held.selected.intValue >= 0 } } }
+            AlternateTiles(entryRects, lit)
+        }
+    }
     val reduceMotion = kb.reduceMotion
     val still = reduceMotion || classic
     if (hold != null) {
@@ -30025,15 +30036,17 @@ private fun AlternatesPopup(
             // hold-drag reads the grid's window position and its entries'
             // laid-out rects, and a layer transform would shift both for as
             // long as the popup was growing. The layer's alpha moves nothing.
+            //
+            // Drawn as separate keys, the Surface is only a clear frame: the
+            // glass, the material, the shadow and the border are each tile's.
             modifier = Modifier
                 .graphicsLayer { alpha = if (shown) 1f else 0f }
                 .growFrom(pivot = { growPivot.value }) { grow.value }
-                .frostGlass(kb, kb.popupShape(), FrostSurface.POPUPS)
-                .popupDressingOnly(kb, kb.popupShape(), elevationFor(kb.popupShapeKind, 8.dp)),
-            shape = kb.popupShape(),
-            color = kb.popupSurfaceColor(),
-            border = kb.popupSurfaceBorder(),
-            shadowElevation = kb.popupSurfaceElevation(elevationFor(kb.popupShapeKind, 8.dp)),
+                .alternatesBubble(kb, tiles),
+            shape = if (tiles) RectangleShape else kb.popupShape(),
+            color = if (tiles) Color.Transparent else kb.popupSurfaceColor(),
+            border = if (tiles) null else kb.popupSurfaceBorder(),
+            shadowElevation = if (tiles) 0.dp else kb.popupSurfaceElevation(elevationFor(kb.popupShapeKind, 8.dp)),
         ) {
             AlternatesGrid(
                 // The key's own count wins, and 0 there means it has none of its
@@ -30066,7 +30079,9 @@ private fun AlternatesPopup(
                         publishFirst()
                     }
                     .then(
-                        if (hold == null) {
+                        // Separate keys paint the highlight on their own tiles,
+                        // which would cover one drawn here.
+                        if (hold == null || tiles) {
                             Modifier
                         } else {
                             // The theme's Selected highlight, which the editor
@@ -30102,6 +30117,7 @@ private fun AlternatesPopup(
                             hold = hold,
                             fontSize = (18 * fontScale).sp,
                             modifier = Modifier
+                                .alternateTile(index, tileSet)
                                 .clickable { onText(entry.text) }
                                 .alternateMagnify(index, hold)
                                 .alternatePadding(entryPadding),
@@ -30112,7 +30128,7 @@ private fun AlternatesPopup(
                             hold = hold,
                             fontScale = fontScale,
                             padding = entryPadding,
-                            modifier = Modifier.alternateMagnify(index, hold),
+                            modifier = Modifier.alternateTile(index, tileSet).alternateMagnify(index, hold),
                         ) {
                             onAction(
                                 Key(

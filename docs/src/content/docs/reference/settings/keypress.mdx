@@ -100,6 +100,7 @@ A theme can carry a key sound of its own, and where it does, it wins over everyt
 | Popup sideways shift *(same)* | Slider | −64–64 dp | 0 dp |
 | Popup shape | Nav row (shape picker) | the twelve key shapes | Rounded |
 | Popup corner radius | Slider | 0–40 dp | 12 dp |
+| Alternates as separate keys | Toggle | On / Off | Off |
 | Preview bubble width *(shown only while Key popup is on)* | Slider | ×0.60–×2.00 | ×1.00 |
 | Preview bubble corner radius *(same)* | Slider | Same as popups, or 0–40 dp | Same as popups |
 | Popup color *(shown only while Key popup is on)* | Color picker | any color, or Automatic | Automatic |
@@ -116,6 +117,8 @@ A theme can carry a key sound of its own, and where it does, it wins over everyt
 **Popup color** and **Popup text color** are the bubble's background and the character inside it. Both read **Automatic** until you pick one, which means the bubble follows the keyboard theme. A color picked here wins over the theme, and the reset control on the row puts it back to Automatic. Unlike the shape and the radius, these two stop at the preview bubble: press-and-hold alternates, the language picker and the panel menus stay on the theme's popup color. A per-key style from a layout still overrides both.
 
 **Popup shape** and **Popup corner radius** reach past the preview bubble. They set the outline of every popup surface the keyboard draws, press-and-hold alternates, the language picker and the panel menus included. The radius applies only to the rounded and cut shapes. The rest size their corners off the popup itself. A theme can override either one.
+
+**Alternates as separate keys** changes how the press-and-hold popup is drawn. Off, the alternates share one bubble. On, there is no bubble: each alternate is a small key of its own with a small gap around it, in the popup color, the popup shape and outline, and the theme's key material, each with its own shadow (none for the concave shapes, as with the bubble). The highlight under your finger lights the whole key it is on and slides from one key to the next. Only the drawing changes. Every alternate reaches exactly as far as it did in the bubble, gap included, so sliding and lifting pick the same alternate either way. The row sits here rather than under Alternate keys because it follows the popup's look, and it works whether **Key popup** is on or off.
 
 **Preview bubble width** and **Preview bubble corner radius** stop at the character bubble. At ×1.00 the width is what the bubble has always drawn: a little wider than the key in the on-key style, and when it floats, wide enough for an n (an N for a capital), so an i, a q and an n all get the same size of bubble. The wide letters, m and w, and longer labels such as a word or a ligature, still widen it. Above that the bubble grows in proportion to the key under it, in either style. Below it the bubble narrows by giving up the space on each side of the character first, and the shared letter width shrinks with it. The corner radius starts at **Same as popups**, which follows **Popup corner radius** (or the theme's popup radius); move it up and the bubble keeps a radius of its own while the alternates and menus keep the shared one. Like the shared radius, it only changes the rounded and cut shapes.
 
