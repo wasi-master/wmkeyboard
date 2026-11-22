@@ -582,6 +582,18 @@ object ProviderTypes {
     )
 
     /**
+     * The keyboard's own metasearch: Mwmbl, Marginalia, Wikipedia and Wiby
+     * asked at once and merged on the phone, Commons for pictures. Nothing
+     * to set up, so it is the search list's last row from the start, and
+     * the row a list saved before it existed gains.
+     */
+    val METASEARCH = ProviderType(
+        "metasearch", setOf(ProviderTool.SEARCH),
+        R.string.core_tools_provider_metasearch, R.string.core_tools_provider_metasearch_desc,
+        freeSoftware = true,
+    )
+
+    /**
      * The phone's browser (#1383): the query is handed to the default
      * browser's own search and the keyboard does nothing more. Never asked
      * by the AI's search tools, which need results back.
@@ -1027,7 +1039,7 @@ object ProviderTypes {
         VOCAB_PACKS, WIKTIONARY, WIKTIONARY_REST, DICTIONARY_API, OFFLINE_WIKTIONARY, OFFLINE_WORDNET, OFFLINE_BENGALI, OFFLINE_LANGUAGES,
         IMPORTED_DICTIONARIES, URBAN_DICTIONARY,
         DATAMUSE, SIMILAR_WORDS,
-        SEARXNG, TAVILY, BRAVE, MWMBL, WIBY, MARGINALIA, WIKIPEDIA_SEARCH, BROWSER,
+        SEARXNG, TAVILY, BRAVE, MWMBL, WIBY, MARGINALIA, WIKIPEDIA_SEARCH, METASEARCH, BROWSER,
         UNSPLASH, PEXELS,
         ER_API, FRANKFURTER, ALLRATESTODAY, COINBASE, CURRENCY_API, COINGECKO,
         HOME_ASSISTANT, GOOGLE_HOME, SMARTTHINGS, HUE, OPENHAB, TUYA, SWITCHBOT,
@@ -1165,6 +1177,7 @@ data class ProviderChain(
     fun withNewTypes(tool: ProviderTool): ProviderChain {
         if (known.isEmpty()) return this
         if (tool == ProviderTool.TRANSLATE) return withNewDeviceEngines()
+        if (tool == ProviderTool.SEARCH) return withNewMetasearch()
         if (tool !in APPENDING) return this
         val added = ProviderTypes.serving(tool)
             .filter { it.id !in known && it.credential.none && !it.multiInstance }
@@ -1179,6 +1192,19 @@ data class ProviderChain(
      * at the end of the list Automatic would never reach it. Text sent to
      * the phone goes nowhere, so this cannot break a "my server only" list.
      */
+    /**
+     * A search list saved before the keyboard had its own metasearch gains
+     * it at the end, on: a backup behind whatever the user set up, so a key
+     * that runs out or a server that is down no longer leaves search with
+     * nothing. Only that row; the single engines it asks stay for the user
+     * to add.
+     */
+    private fun withNewMetasearch(): ProviderChain {
+        val type = ProviderTypes.METASEARCH
+        if (type.id in known || entries.any { it.typeId == type.id }) return this
+        return copy(entries = entries + ProviderEntry(type.id))
+    }
+
     private fun withNewDeviceEngines(): ProviderChain {
         val added = ProviderTypes.serving(ProviderTool.TRANSLATE)
             .filter { it.onDevice && it.id !in known }

@@ -82,6 +82,8 @@
     <string name="core_tools_provider_brave">Brave Search</string>
     <string name="core_tools_provider_mwmbl" translatable="false">Mwmbl</string>
     <string name="core_tools_provider_mwmbl_desc">A free, non-profit search engine with its own index. No key. Web results only, no images.</string>
+    <string name="core_tools_provider_metasearch">Built-in search</string>
+    <string name="core_tools_provider_metasearch_desc">The keyboard\'s own search. It asks Mwmbl, Marginalia, Wikipedia and Wiby at the same time and merges their results on your phone. Pictures come from Wikimedia Commons. No key and nothing to set up.</string>
     <string name="core_tools_provider_wiby" translatable="false">Wiby</string>
     <string name="core_tools_provider_wiby_desc">A search engine for the small web: personal and hobby pages, the way the web used to be. No key. Web results only, no images.</string>
     <string name="core_tools_provider_marginalia" translatable="false">Marginalia Search</string>

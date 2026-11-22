@@ -280,7 +280,23 @@ class ProviderFrameworkTest {
             webSearch = WebSearchSettings(braveApiKey = "b", tavilyApiKey = "t"),
             selfHosted = SelfHostedSettings(searxUrl = "https://sx"),
         )
-        assertEquals(listOf("searxng", "tavily", "brave"), ids(s.providerChain(ProviderTool.SEARCH, play)))
+        assertEquals(listOf("searxng", "tavily", "brave", "metasearch"), ids(s.providerChain(ProviderTool.SEARCH, play)))
+    }
+
+    @Test
+    fun `search works with nothing set up`() {
+        // Brave may come first, on a build that carries its key.
+        assertEquals("metasearch", ids(KeyboardSettings().providerChain(ProviderTool.SEARCH, fdroid)).last())
+        assertTrue("metasearch" in KeyboardSettings().resolveProviders(ProviderTool.SEARCH, fdroid).map { it.typeId })
+    }
+
+    @Test
+    fun `a search list saved before the metasearch gains it, once`() {
+        val before = ProviderChain(listOf(ProviderEntry("tavily")), known = listOf("searxng", "tavily", "brave"))
+        assertEquals(listOf("tavily", "metasearch"), before.withNewTypes(ProviderTool.SEARCH).entries.map { it.typeId })
+        // Removed by the user after it came: stamped as known, so it stays away.
+        val removed = before.copy(known = before.known + "metasearch")
+        assertEquals(listOf("tavily"), removed.withNewTypes(ProviderTool.SEARCH).entries.map { it.typeId })
     }
 
     @Test

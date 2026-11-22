@@ -823,6 +823,7 @@
     <string name="ime_search_attribution_brave">via Brave</string>
     <string name="ime_search_attribution_mwmbl">via Mwmbl</string>
     <string name="ime_search_attribution_wiby">via Wiby</string>
+    <string name="ime_search_attribution_metasearch">via Mwmbl, Marginalia, Wikipedia and Wiby</string>
     <string name="ime_search_attribution_marginalia">via Marginalia</string>
     <string name="ime_search_attribution_wikipedia">via Wikipedia</string>
     <!-- The search list's "Search in the browser" row is on, but no app would open the search (#1383). -->

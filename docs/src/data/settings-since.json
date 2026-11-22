@@ -535,6 +535,7 @@
 		"core_tools_provider_libretranslate": "0.6.2",
 		"core_tools_provider_lingva": "0.6.2",
 		"core_tools_provider_lm_studio": "0.6.2",
+		"core_tools_provider_metasearch": "0.6.8",
 		"core_tools_provider_mlkit": "0.6.2",
 		"core_tools_provider_moonshine": "0.6.2",
 		"core_tools_provider_mozhi": "0.6.2",

@@ -21,6 +21,7 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.GifContentFilter
 import com.wasimaster.wmkeyboard.core.tools.BraveSearchClient
 import com.wasimaster.wmkeyboard.core.tools.MarginaliaSearchClient
+import com.wasimaster.wmkeyboard.core.tools.MetaSearchClient
 import com.wasimaster.wmkeyboard.core.tools.MwmblSearchClient
 import com.wasimaster.wmkeyboard.core.tools.WibySearchClient
 import com.wasimaster.wmkeyboard.core.tools.WikipediaSearchClient
@@ -193,6 +194,9 @@ internal object ProviderProbes {
             }
             ProviderTypes.WIKIPEDIA_SEARCH.id -> {
                 { WikipediaSearchClient.webSearch(PROBE_WORD, "en", 1) }
+            }
+            ProviderTypes.METASEARCH.id -> {
+                { MetaSearchClient.webSearch(PROBE_WORD, 1, true) }
             }
             // One second of silence: it transcribes to nothing, so an answer at all is the pass.
             // Sent as dictation sends a clip, so a server that cannot read Opus is found out here.

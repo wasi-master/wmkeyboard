@@ -6,11 +6,13 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
+import com.wasimaster.wmkeyboard.core.settings.providerCredential
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 
 /**
  * The web and image search tools' providers: SearXNG instances, Tavily,
- * Brave, Mwmbl, Wiby, Marginalia, Wikipedia, in the user's order, and the
+ * Brave, Mwmbl, Wiby, Marginalia, Wikipedia, the keyboard's own metasearch
+ * over the keyless ones ([MetaSearchClient]), in the user's order, and the
  * browser, which takes the query away instead of answering it (#1383). The first that answers is the answer; one that
  * fails hands the query to the next. Shared by the panels and the AI's
  * search tools, so they never disagree about where a query goes.
@@ -65,6 +67,7 @@ object SearchProviders {
         ProviderTypes.WIBY.id -> SearchBackend.WIBY
         ProviderTypes.MARGINALIA.id -> SearchBackend.MARGINALIA
         ProviderTypes.WIKIPEDIA_SEARCH.id -> SearchBackend.WIKIPEDIA
+        ProviderTypes.METASEARCH.id -> SearchBackend.METASEARCH
         ProviderTypes.BROWSER.id -> SearchBackend.BROWSER
         else -> null
     }
@@ -117,6 +120,8 @@ object SearchProviders {
             SearchBackend.WIKIPEDIA -> WebSearchPage(
                 WikipediaSearchClient.webSearch(query, settings.webSearch.wikiLanguage, count, source = source, page = page),
             )
+            SearchBackend.METASEARCH ->
+                WebSearchPage(MetaSearchClient.webSearch(query, count, safe, metaOptions(settings), source = source, page = page))
             // Skipped above: the browser takes the query away rather than answering it.
             SearchBackend.BROWSER -> WebSearchPage(emptyList())
         }
@@ -130,8 +135,8 @@ object SearchProviders {
         pick: String? = null,
         more: SearchMore? = null,
     ): List<ImageResult> =
-        // Only SearXNG, Tavily and Brave search pictures: the Images tab asks
-        // the next of those on the list.
+        // Only SearXNG, Tavily, Brave and the metasearch (through Commons)
+        // search pictures: the Images tab asks the next of those on the list.
         ask(settings, pick, skip = NO_IMAGES) { row, backend ->
             val page = more?.page ?: 0
             when (backend) {
@@ -145,9 +150,21 @@ object SearchProviders {
                     excludeDomains = more?.excludeDomains.orEmpty(),
                 )
                 SearchBackend.BRAVE -> BraveSearchClient.imageSearch(query, row.apiKey, count, safe, page = page)
+                SearchBackend.METASEARCH -> MetaSearchClient.imageSearch(query, count, metaOptions(settings), page = page)
                 else -> emptyList()
             }
         }
+
+    /**
+     * What the metasearch's engines read from the settings: a Marginalia key
+     * the user set up on its own row, the Wikipedia tool's language, and the
+     * MediaWiki the photo list points Commons at.
+     */
+    private fun metaOptions(settings: KeyboardSettings) = MetaSearchClient.Options(
+        marginaliaKey = ToolApiKeys.key(settings, ProviderTypes.MARGINALIA),
+        wikiLanguage = settings.webSearch.wikiLanguage.ifBlank { "en" },
+        commonsEndpoint = settings.providerCredential(ProviderTypes.COMMONS.id)?.url?.trim().orEmpty(),
+    )
 
     private inline fun <T> ask(
         settings: KeyboardSettings,

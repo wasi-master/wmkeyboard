@@ -444,12 +444,15 @@ object LegacyProviders {
             )
             // The more deliberate the setup, the earlier: a named SearXNG
             // instance, then a Tavily key only the user can have put there,
-            // then Brave, whose key may be the build's.
+            // then Brave, whose key may be the build's. The keyboard's own
+            // metasearch last, always: search works with nothing set up, and
+            // anything that is set up comes first.
             ProviderTool.SEARCH -> ProviderChain(
                 buildList {
                     if (has(ProviderTypes.SEARXNG)) add(entry(ProviderTypes.SEARXNG))
                     if (hasKey(ProviderTypes.TAVILY)) add(entry(ProviderTypes.TAVILY))
                     if (hasKey(ProviderTypes.BRAVE)) add(entry(ProviderTypes.BRAVE))
+                    add(entry(ProviderTypes.METASEARCH))
                 },
             )
             ProviderTool.PHOTOS -> ProviderChain(

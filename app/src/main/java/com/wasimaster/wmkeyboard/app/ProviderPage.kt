@@ -133,6 +133,9 @@ internal val ProviderEndpoints: Map<String, List<ServiceEndpoint>> = mapOf(
     ProviderTypes.WIBY.id to listOf(ServiceEndpoint.WIBY),
     ProviderTypes.MARGINALIA.id to listOf(ServiceEndpoint.MARGINALIA),
     ProviderTypes.WIKIPEDIA_SEARCH.id to listOf(ServiceEndpoint.WIKIPEDIA),
+    ProviderTypes.METASEARCH.id to listOf(
+        ServiceEndpoint.MWMBL, ServiceEndpoint.MARGINALIA, ServiceEndpoint.WIKIPEDIA, ServiceEndpoint.WIBY,
+    ),
     ProviderTypes.UNSPLASH.id to listOf(ServiceEndpoint.UNSPLASH),
     ProviderTypes.PEXELS.id to listOf(ServiceEndpoint.PEXELS),
     ProviderTypes.WIKTIONARY.id to listOf(ServiceEndpoint.KAIKKI),

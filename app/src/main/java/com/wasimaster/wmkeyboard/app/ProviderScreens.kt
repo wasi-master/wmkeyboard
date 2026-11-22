@@ -933,6 +933,7 @@ internal fun providerAccent(type: ProviderType?): Color = when (type?.id) {
     ProviderTypes.WIBY.id -> Color(0xFF2E7D32)
     ProviderTypes.MARGINALIA.id -> Color(0xFF6D4C41)
     ProviderTypes.WIKIPEDIA_SEARCH.id -> Color(0xFF3A3A3A)
+    ProviderTypes.METASEARCH.id -> Color(0xFF5E35B1)
     ProviderTypes.BROWSER.id -> Color(0xFF00838F)
     ProviderTypes.UNSPLASH.id -> Color(0xFF111111)
     ProviderTypes.PEXELS.id -> Color(0xFF05A081)
