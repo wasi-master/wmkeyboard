@@ -65,28 +65,38 @@ fi
 got=$(git -C "$SRC" rev-parse HEAD)
 [ "$got" = "$SHERPA_COMMIT" ] || { echo "sherpa-onnx is at $got, expected $SHERPA_COMMIT" >&2; exit 1; }
 
-ORT=${ORT_SRC:-}
-if [ -z "$ORT" ]; then
-    ORT=$WORK/onnxruntime
-    retry fresh_clone "$ORT" --quiet --depth 1 --branch "$ORT_TAG" --filter=blob:none --sparse \
-        https://github.com/microsoft/onnxruntime
-    git -C "$ORT" sparse-checkout set --no-cone /include/onnxruntime/core/session \
-        /include/onnxruntime/core/providers/cpu /include/onnxruntime/core/providers/nnapi
+# ORT_HEADERS skips the checkout: the flat headers/ folder of the same
+# version's onnxruntime-android AAR (the one the phone loads), for when
+# GitHub cannot serve microsoft/onnxruntime.
+if [ -n "${ORT_HEADERS:-}" ]; then
+    HEADERS=$(cd "$ORT_HEADERS" && pwd -P)
+    [ -f "$HEADERS/onnxruntime_cxx_api.h" ] || { echo "no ONNX Runtime headers in $HEADERS" >&2; exit 1; }
+else
+    ORT=${ORT_SRC:-}
+    if [ -z "$ORT" ]; then
+        ORT=$WORK/onnxruntime
+        retry fresh_clone "$ORT" --quiet --depth 1 --branch "$ORT_TAG" --filter=blob:none --sparse \
+            https://github.com/microsoft/onnxruntime
+        git -C "$ORT" sparse-checkout set --no-cone /include/onnxruntime/core/session \
+            /include/onnxruntime/core/providers/cpu /include/onnxruntime/core/providers/nnapi
+    fi
+    got=$(git -C "$ORT" rev-parse HEAD)
+    [ "$got" = "$ORT_COMMIT" ] || { echo "onnxruntime is at $got, expected $ORT_COMMIT" >&2; exit 1; }
+    # The flat header directory the AAR's headers/ folder has.
+    HEADERS=$WORK/ort-headers
+    mkdir -p "$HEADERS"
+    cp "$ORT"/include/onnxruntime/core/session/*.h "$ORT"/include/onnxruntime/core/session/*.inc "$HEADERS"/ 2>/dev/null || true
+    cp "$ORT"/include/onnxruntime/core/providers/cpu/cpu_provider_factory.h \
+       "$ORT"/include/onnxruntime/core/providers/nnapi/nnapi_provider_factory.h "$HEADERS"/
+    [ -f "$HEADERS/onnxruntime_cxx_api.h" ] || { echo "no ONNX Runtime headers in $ORT" >&2; exit 1; }
 fi
-got=$(git -C "$ORT" rev-parse HEAD)
-[ "$got" = "$ORT_COMMIT" ] || { echo "onnxruntime is at $got, expected $ORT_COMMIT" >&2; exit 1; }
-# The flat header directory the AAR's headers/ folder has.
-HEADERS=$WORK/ort-headers
-mkdir -p "$HEADERS"
-cp "$ORT"/include/onnxruntime/core/session/*.h "$ORT"/include/onnxruntime/core/session/*.inc "$HEADERS"/ 2>/dev/null || true
-cp "$ORT"/include/onnxruntime/core/providers/cpu/cpu_provider_factory.h \
-   "$ORT"/include/onnxruntime/core/providers/nnapi/nnapi_provider_factory.h "$HEADERS"/
-[ -f "$HEADERS/onnxruntime_cxx_api.h" ] || { echo "no ONNX Runtime headers in $ORT" >&2; exit 1; }
 
 # Every path on the build machine is mapped out of the library (__FILE__ in
 # asserts, the NDK's libc++ headers), so two machines with the same NDK build
 # the same bytes. F-Droid's reproducible build relies on that.
 MAP="-ffile-prefix-map=$SRC=sherpa-onnx -ffile-prefix-map=$WORK=build -ffile-prefix-map=$HERE=. -ffile-prefix-map=$NDK=ndk"
+# Headers from outside the build tree map to where a checkout would put them.
+if [ -n "${ORT_HEADERS:-}" ]; then MAP="$MAP -ffile-prefix-map=$HEADERS=build/ort-headers"; fi
 
 # clang target triple per ABI, for the link stub.
 triple() {
