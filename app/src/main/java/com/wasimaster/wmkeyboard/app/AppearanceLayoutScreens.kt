@@ -1675,6 +1675,11 @@ internal fun LayoutSettings(
                 }
             }
         }
+    }
+    // The pages and the store in a group of their own (#1318): in the same
+    // card stack as the layouts, under the Your layouts heading, their icons
+    // read as parts of the layout above them rather than rows of the page.
+    SettingsGroup {
         item(level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.langemoji_lang_keymaps_title,
