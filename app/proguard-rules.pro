@@ -221,6 +221,17 @@
     public static *** connectivityWaived();
 }
 
+# --- Shizuku / Sui user service ------------------------------------------------
+# Shizuku (and Sui) start ShellUserService in their own process from this APK,
+# by class name, with its no-argument constructor. Nothing in the app ever
+# constructs it, so R8 made it abstract and stripped the constructor and every
+# IShellService method (0.6.7 shipped it that way): the service never bound,
+# and every Shizuku command came back as "no access" (#1512).
+-keep class com.wasimaster.wmkeyboard.core.shell.ShellUserService {
+    <init>();
+    *;
+}
+
 # --- JSch (SFTP backup location) ----------------------------------------------
 # JSch builds every algorithm with Class.forName on a name from its config
 # table, so R8 sees no reference to any of them and would strip them all. Keep

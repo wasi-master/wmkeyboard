@@ -127,12 +127,29 @@ object ShellAccess {
         Request.ASKED
     }.getOrDefault(Request.UNAVAILABLE)
 
-    /** Whether an `su` binary is on the usual paths. Says nothing about whether it will grant. */
-    val suPresent: Boolean by lazy {
-        listOf("/system/bin/su", "/system/xbin/su", "/sbin/su", "/su/bin/su", "/debug_ramdisk/su", "/data/adb/ksu/bin/su")
-            .any { File(it).exists() } ||
-            System.getenv("PATH").orEmpty().split(':').any { File(it, "su").exists() }
-    }
+    /**
+     * Whether an `su` binary is on the usual paths. Says nothing about whether
+     * it will grant.
+     *
+     * Looked up on every read rather than once per process: KernelSU and
+     * APatch show `su` only to apps already allowed root, so an answer taken
+     * before the user allowed the keyboard stayed "no" for as long as the
+     * keyboard's process lived, hiding the Use root switch (#1512). A handful
+     * of stat calls.
+     */
+    val suPresent: Boolean
+        get() = SU_PATHS.any { File(it).exists() } ||
+            System.getenv("PATH").orEmpty().split(':').any { it.isNotEmpty() && File(it, "su").exists() }
+
+    private val SU_PATHS = listOf(
+        "/system/bin/su",
+        "/system/xbin/su",
+        "/sbin/su",
+        "/su/bin/su",
+        "/debug_ramdisk/su",
+        "/data/adb/ksu/bin/su",
+        "/data/adb/ap/bin/su",
+    )
 
     /** Which door a command would take now, without starting anything. */
     fun kind(): ShellKind = when {
