@@ -1073,6 +1073,20 @@ internal fun ClipboardSettings(
                 icon = Icons.Outlined.Reorder,
             ) { scope.launch { repository.setClipboardHoldActions(it) } }
         }
+        // Issue #970: the ones never used, left out so the rest fit the row.
+        item(level = SettingLevel.ADVANCED) {
+            val labels = clipHoldActionLabels()
+            val order = settings.watch { it.clipboard.holdActions }
+            val hidden = settings.watch { it.clipboard.holdHidden }
+            MultiChoiceSetting(
+                R.string.clipboard_hold_shown_title,
+                subtitle = stringResource(R.string.clipboard_hold_shown_subtitle),
+                info = stringResource(R.string.clipboard_hold_shown_info),
+                options = order.map { it to labels.getValue(it) },
+                selected = ClipHoldAction.entries.toSet() - hidden,
+                default = ClipHoldAction.entries.toSet(),
+            ) { shown -> scope.launch { repository.setClipboardHoldHidden(ClipHoldAction.entries.toSet() - shown) } }
+        }
         item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.clipboard_hold_paste_title,

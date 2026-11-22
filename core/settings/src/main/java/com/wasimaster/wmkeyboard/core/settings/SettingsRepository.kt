@@ -8801,6 +8801,14 @@ enum class ClipHoldAction {
             val named = stored.split(',').mapNotNull { name -> entries.firstOrNull { it.name == name.trim() } }.distinct()
             return named + entries.filter { it !in named }
         }
+
+        /**
+         * [stored], a comma-separated list of names, as a set (#970): names
+         * this version does not know are dropped, so an action that was
+         * renamed or removed never hides one it does not mean.
+         */
+        fun hiddenOf(stored: String): Set<ClipHoldAction> =
+            stored.split(',').mapNotNullTo(LinkedHashSet()) { name -> entries.firstOrNull { it.name == name.trim() } }
     }
 }
 
@@ -8974,6 +8982,12 @@ data class ClipboardSettings(
      * pastes it too, so a one-handed user may rather have the room.
      */
     val holdPaste: Boolean = true,
+    /**
+     * The icons under a held text clip the user turned off (#970), so the
+     * rest fit the row. None by default; [holdActions] keeps their place for
+     * when they come back.
+     */
+    val holdHidden: Set<ClipHoldAction> = emptySet(),
     /**
      * Copies written in decorated Unicode letters (bold, italic, script,
      * double-struck, full width, circled) are kept as the plain letters they
@@ -13747,6 +13761,7 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_CARD_SHORTCUT = stringPreferencesKey("clipboard_card_shortcut")
         private val CLIPBOARD_HOLD_ACTIONS = stringPreferencesKey("clipboard_hold_actions")
         private val CLIPBOARD_HOLD_PASTE = booleanPreferencesKey("clipboard_hold_paste")
+        private val CLIPBOARD_HOLD_HIDDEN = stringPreferencesKey("clipboard_hold_hidden")
         private val CLIPBOARD_PLAIN_LETTERS = booleanPreferencesKey("clipboard_plain_letters")
         private val CLIPBOARD_RECENT_CHIPS = intPreferencesKey("clipboard_recent_chips")
         private val CLIPBOARD_COMPACT_PASTE_CHIP = booleanPreferencesKey("clipboard_compact_paste_chip")
@@ -16076,6 +16091,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.clipboard.cardShortcut,
             holdActions = ClipHoldAction.orderOf(p[CLIPBOARD_HOLD_ACTIONS]),
             holdPaste = p[CLIPBOARD_HOLD_PASTE] ?: defaults.clipboard.holdPaste,
+            holdHidden = p[CLIPBOARD_HOLD_HIDDEN]?.let { ClipHoldAction.hiddenOf(it) } ?: defaults.clipboard.holdHidden,
             plainLetters = p[CLIPBOARD_PLAIN_LETTERS] ?: defaults.clipboard.plainLetters,
             recentChips = p[CLIPBOARD_RECENT_CHIPS]?.coerceIn(1, ClipRecentChipsMax)
                 ?: defaults.clipboard.recentChips,
@@ -26556,6 +26572,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardHoldPaste(value: Boolean) =
         editPrefs { it[CLIPBOARD_HOLD_PASTE] = value }
+
+    suspend fun setClipboardHoldHidden(value: Set<ClipHoldAction>) =
+        editPrefs { it[CLIPBOARD_HOLD_HIDDEN] = ClipHoldAction.entries.filter { a -> a in value }.joinToString(",") { a -> a.name } }
 
     suspend fun setClipboardPlainLetters(value: Boolean) =
         editPrefs { it[CLIPBOARD_PLAIN_LETTERS] = value }

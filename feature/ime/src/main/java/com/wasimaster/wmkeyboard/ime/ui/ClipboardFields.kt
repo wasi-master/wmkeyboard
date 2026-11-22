@@ -2661,7 +2661,8 @@ private fun ClipboardHistory(
                     }
                 } else null,
                 shortcut = shortcut,
-                holdActions = clipboard.holdActions,
+                // The ones the user turned off leave the row (#970).
+                holdActions = clipboard.holdActions.filterNot { it in clipboard.holdHidden },
                 holdPaste = clipboard.holdPaste,
                 onTagTap = { tag -> session.filters.value = session.active.tappedTag(tag) },
             )

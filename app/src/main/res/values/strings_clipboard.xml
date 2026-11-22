@@ -104,6 +104,9 @@
     <string name="clipboard_card_shortcut_subtitle">What the small button at the end of a clip does</string>
     <string name="clipboard_card_shortcut_info">Edited mark shows a pencil on a clip you edited, and does nothing when pressed. Nothing hides it. Edit puts an edit button on every clip you can edit, so you do not have to press and hold the clip first. Select starts selecting clips with that one, for Combine, Tidy or Delete. QR code puts a QR button on every text clip, which opens the QR code tool on the clip\'s text, ready to send as a picture. Edited mark is the default.</string>
     <string name="clipboard_hold_order_title">Order of a held clip\'s buttons</string>
+    <string name="clipboard_hold_shown_title">Buttons on a held clip</string>
+    <string name="clipboard_hold_shown_subtitle">Untick the ones you never use, so the rest fit</string>
+    <string name="clipboard_hold_shown_info">Press and hold a text clip and a row of buttons opens under its whole text. A button you untick here leaves that row, and the others close up. It keeps its place in Order of a held clip\'s buttons for when you tick it again. Each button still only shows on the clips it works on. All of them are on by default.</string>
     <string name="clipboard_hold_paste_title">Paste button on a held clip</string>
     <string name="clipboard_hold_paste_subtitle">Show Paste at the end of a held clip\'s buttons</string>
     <string name="clipboard_hold_paste_info">Press and hold a text clip and its whole text opens, with a row of buttons under it and Paste at the end. Paste does what a tap on the clip does, so you can turn it off and give the row\'s other buttons its room. This setting is on by default.</string>

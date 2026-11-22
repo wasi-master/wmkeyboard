@@ -1714,6 +1714,7 @@ private fun SearchStrings.clipboardRows(): List<SettingsSearchEntry> {
         row(R.string.clipboard_card_buttons_title, R.string.clipboard_card_buttons_subtitle),
         row(R.string.clipboard_card_shortcut_title, R.string.clipboard_card_shortcut_subtitle),
         row(R.string.clipboard_hold_order_title),
+        row(R.string.clipboard_hold_shown_title, R.string.clipboard_hold_shown_subtitle),
         row(R.string.clipboard_hold_paste_title, R.string.clipboard_hold_paste_subtitle),
         row(R.string.clipboard_type_out_title, R.string.clipboard_type_out_subtitle),
         row(R.string.clipboard_bump_on_paste_title, R.string.clipboard_bump_on_paste_subtitle),
