@@ -132,9 +132,10 @@ object OmnilingualEngine {
         }
         check(liveStreams == 0) { "an Omnilingual phrase is still open" }
         release()
-        // A gigabyte beside Sherpa's own model would not fit next to the
-        // keyboard on most phones.
+        // A gigabyte beside Sherpa's own model, or Qwen3-ASR's, would not fit
+        // next to the keyboard on most phones.
         SherpaEngine.release()
+        Qwen3AsrEngine.release()
         val tokensFile = EtStore.file(filesDir, model, "tokens.txt")
         val handle = SherpaNative.nativeOmnilingual(
             EtStore.file(filesDir, model, "model.int8.onnx").path,

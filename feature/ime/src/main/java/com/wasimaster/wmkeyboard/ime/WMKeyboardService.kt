@@ -804,6 +804,7 @@ import com.wasimaster.wmkeyboard.core.voice.parakeet.ParakeetEngine
 import com.wasimaster.wmkeyboard.core.voice.punctuation.DictationPunctuation
 import com.wasimaster.wmkeyboard.core.voice.VoiceSwearing
 import com.wasimaster.wmkeyboard.core.voice.sherpa.OmnilingualEngine
+import com.wasimaster.wmkeyboard.core.voice.sherpa.Qwen3AsrEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
 import com.wasimaster.wmkeyboard.core.voice.vad.SmartTurn
@@ -12190,12 +12191,13 @@ open class WMKeyboardService : InputMethodService() {
             }
         }
         if (asr4allJob?.isActive != true &&
-            (SherpaEngine.isOpen || OmnilingualEngine.isOpen || DictationPunctuation.isOpen)
+            (SherpaEngine.isOpen || OmnilingualEngine.isOpen || Qwen3AsrEngine.isOpen || DictationPunctuation.isOpen)
         ) {
             serviceScope.launch(SherpaNative.dispatcher) {
                 if (asr4allJob?.isActive != true) {
                     SherpaEngine.release()
                     OmnilingualEngine.release()
+                    Qwen3AsrEngine.release()
                     DictationPunctuation.release()
                 }
             }
@@ -39791,6 +39793,8 @@ open class WMKeyboardService : InputMethodService() {
         return when (model.engine) {
             EtEngine.SHERPA -> SherpaEngine.newStream(filesDir, model, pauseMs, words, vad)
             EtEngine.OMNILINGUAL -> OmnilingualEngine.newStream(filesDir, model, pauseMs, voiceLanguageIds(), vad)
+            // Told the language when there is one, and the words to listen for (#1437).
+            EtEngine.QWEN3 -> Qwen3AsrEngine.newStream(filesDir, model, pauseMs, voiceLanguageIds(), words, vad)
             // Vosk's own pauses only split its utterances; the phrase ends at the user's.
             EtEngine.VOSK -> VoiceVad.endpointed(
                 VoskEngine.newStream(filesDir, model),
@@ -39821,16 +39825,17 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * The words a [model] that streams is told to listen for: the system
-     * recognizer's list for Sherpa, whose transducers take hotwords; none for
-     * the others. Read on the main thread, where the list is kept.
+     * recognizer's list for Sherpa, whose transducers take hotwords, and for
+     * Qwen3-ASR, whose prompt does; none for the others. Read on the main
+     * thread, where the list is kept.
      */
     private fun liveBias(model: EtModel): List<String> =
-        if (model.engine == EtEngine.SHERPA) recognizerBias().words else emptyList()
+        if (model.engine == EtEngine.SHERPA || model.engine == EtEngine.QWEN3) recognizerBias().words else emptyList()
 
     /** [pcm] through a [model] that downloads file by file, in one go. On [liveDispatcher] only. */
     private fun transcribeWithEt(model: EtModel, pcm: FloatArray, words: List<String>): String = when (model.engine) {
         // The streaming loop run to its end.
-        EtEngine.ASR4ALL, EtEngine.SHERPA, EtEngine.OMNILINGUAL, EtEngine.VOSK -> newLiveStream(model, words).run {
+        EtEngine.ASR4ALL, EtEngine.SHERPA, EtEngine.OMNILINGUAL, EtEngine.QWEN3, EtEngine.VOSK -> newLiveStream(model, words).run {
             feed(pcm)
             finish()
         }
@@ -64660,8 +64665,8 @@ open class WMKeyboardService : InputMethodService() {
         /** The most learned words, commonest first, checked against the word lists for voice bias. */
         private const val VOICE_BIAS_SCAN = 5_000
 
-        /** The engines that take the user's words as a hint (#305, #548, #440), Sherpa's as hotwords. */
-        private val VOICE_BIAS_ENGINES = setOf("system", "whistle", "whisper", EtEngine.SHERPA.id)
+        /** The engines that take the user's words as a hint (#305, #548, #440), Sherpa's and Qwen3-ASR's as hotwords. */
+        private val VOICE_BIAS_ENGINES = setOf("system", "whistle", "whisper", EtEngine.SHERPA.id, EtEngine.QWEN3.id)
 
         /** How often the line under the microphone reads whisper.cpp's decoding so far. */
         private const val VOICE_PARTIAL_POLL_MS = 200L

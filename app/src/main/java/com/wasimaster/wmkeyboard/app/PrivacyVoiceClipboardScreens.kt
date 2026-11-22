@@ -558,10 +558,13 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 info = stringResource(R.string.voice_punctuation_info),
             ) { scope.launch { repository.setVoiceSpokenPunctuation(it) } }
         }
-        // Only Sherpa, Omnilingual and Vosk write bare words; plain voice
-        // typing takes the words exactly as said.
+        // Only Sherpa, Omnilingual and Vosk write bare words (Qwen3-ASR
+        // punctuates itself); plain voice typing takes the words exactly as said.
         if (typingMode != com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.TYPING_PLAIN &&
-            etListed.any { it.onnx || it == com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine.VOSK }
+            etListed.any {
+                (it.onnx && it != com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine.QWEN3) ||
+                    it == com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine.VOSK
+            }
         ) {
             item { VoicePunctuationSetting(repository, settings, scope) }
         }
@@ -743,10 +746,12 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
     }
     // The group shows for the engines that read it (#305): Whistle takes it as
     // keywords (#548), offline Whisper's whisper.cpp models as their prompt
-    // (#440), and Sherpa's transducers as hotwords. Where only LiteRT graphs
-    // run, Whisper has no way to take a hint. asr4all, Parakeet, Moonshine and
-    // Omnilingual have no way to take one either.
-    val etTakesWords = etEngine == null || etEngine == com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine.SHERPA
+    // (#440), Sherpa's transducers as hotwords and Qwen3-ASR in its prompt
+    // (#1437). Where only LiteRT graphs run, Whisper has no way to take a
+    // hint. asr4all, Parakeet, Moonshine and Omnilingual have no way to take
+    // one either.
+    val etTakesWords = etEngine == null || etEngine == com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine.SHERPA ||
+        etEngine == com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine.QWEN3
     if ((!usingWhisper || WhisperCatalog.cppAvailable) && etTakesWords) {
         SettingsGroup(stringResource(R.string.voice_bias_group), foldKey = "voice_bias") {
             item {

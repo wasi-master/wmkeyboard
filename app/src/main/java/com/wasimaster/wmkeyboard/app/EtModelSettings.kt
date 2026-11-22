@@ -83,7 +83,7 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
     }.toSet()
 
     // The runtime itself is an on-demand part off the APK: ONNX Runtime for
-    // Sherpa and Omnilingual, Vosk's own library for Vosk (#1165), ExecuTorch
+    // Sherpa, Omnilingual and Qwen3-ASR, Vosk's own library for Vosk (#1165), ExecuTorch
     // (shared with the FUTO Swipe glide engine) for the others.
     when {
         engine.onnx -> OnnxModuleBanner(settings)
@@ -99,6 +99,7 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
                 EtEngine.MOONSHINE -> R.string.voice_moonshine_group
                 EtEngine.SHERPA -> R.string.voice_sherpa_group
                 EtEngine.OMNILINGUAL -> R.string.voice_omnilingual_group
+                EtEngine.QWEN3 -> R.string.voice_qwen3_group
                 EtEngine.VOSK -> R.string.voice_vosk_group
             },
         ),
@@ -109,6 +110,7 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
                 EtEngine.MOONSHINE -> R.string.voice_moonshine_model_info
                 EtEngine.SHERPA -> R.string.voice_sherpa_model_info
                 EtEngine.OMNILINGUAL -> R.string.voice_omnilingual_model_info
+                EtEngine.QWEN3 -> R.string.voice_qwen3_model_info
                 EtEngine.VOSK -> R.string.voice_vosk_model_info
             },
         ),

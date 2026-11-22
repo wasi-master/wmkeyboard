@@ -864,6 +864,15 @@ private val bundledAttributions: List<Attribution> = buildList {
         )
         add(
             Attribution(
+                "Qwen3-ASR",
+                R.string.about_bundled_qwen3_asr_used,
+                "Copyright 2026 Alibaba Cloud, the Qwen team",
+                "Apache-2.0", "apache-2.0.txt",
+                "https://github.com/QwenLM/Qwen3-ASR",
+            ),
+        )
+        add(
+            Attribution(
                 "Silero VAD",
                 R.string.about_bundled_silero_used,
                 "Copyright (c) 2020-present Silero Team",

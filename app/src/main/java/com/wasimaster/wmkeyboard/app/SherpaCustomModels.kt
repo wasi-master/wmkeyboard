@@ -25,6 +25,7 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtCustomModels
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -32,14 +33,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * The Sherpa models the user brought (#1005): what is here, and the import.
+ * The models the user brought to [engine] (#1005 for Sherpa, #1437 for
+ * Qwen3-ASR): what is here, the import from files picked on the phone, and the
+ * one from a Hugging Face repository.
  */
 @Composable
-internal fun SherpaCustomModels(settings: LiveSettings) {
+internal fun EtCustomModelsGroup(engine: EtEngine, settings: LiveSettings) {
     val context = LocalContext.current
     val filesDir = context.filesDir
     val scope = rememberCoroutineScope()
-    var models by remember { mutableStateOf(EtCustomModels.load(filesDir)) }
+    var models by remember(engine) { mutableStateOf(EtCustomModels.forEngine(filesDir, engine)) }
     var picked by remember { mutableStateOf<List<Uri>>(emptyList()) }
     var busy by remember { mutableStateOf(false) }
     var problem by remember { mutableStateOf<Int?>(null) }
@@ -47,9 +50,10 @@ internal fun SherpaCustomModels(settings: LiveSettings) {
         problem = null
         picked = uris
     }
+    val qwen3 = engine == EtEngine.QWEN3
     SettingsGroup(
         stringResource(R.string.voice_sherpa_custom_group),
-        info = stringResource(R.string.voice_sherpa_custom_info),
+        info = stringResource(if (qwen3) R.string.voice_qwen3_custom_info else R.string.voice_sherpa_custom_info),
     ) {
         for (model in models) {
             item {
@@ -59,7 +63,7 @@ internal fun SherpaCustomModels(settings: LiveSettings) {
                     trailing = {
                         IconButton(onClick = {
                             EtCustomModels.delete(filesDir, model)
-                            models = EtCustomModels.models
+                            models = EtCustomModels.forEngine(filesDir, engine)
                         }) {
                             Icon(
                                 Icons.Outlined.Delete,
@@ -74,12 +78,21 @@ internal fun SherpaCustomModels(settings: LiveSettings) {
             Column {
                 WmRow(
                     title = stringResource(R.string.voice_sherpa_custom_add_title),
-                    subtitle = stringResource(R.string.voice_sherpa_custom_add_subtitle),
+                    subtitle = stringResource(
+                        if (qwen3) R.string.voice_qwen3_custom_add_subtitle else R.string.voice_sherpa_custom_add_subtitle,
+                    ),
                     leading = { Icon(Icons.Outlined.Add, contentDescription = null) },
                     onClick = { if (!busy) pick.launch(arrayOf("*/*")) },
                 )
                 problem?.let { CaptionText(stringResource(it), error = true) }
             }
+        }
+        item {
+            HuggingFaceImportRow(
+                if (qwen3) HfTarget.QWEN3 else HfTarget.SHERPA,
+                settings,
+                onInstalled = { models = EtCustomModels.forEngine(filesDir, engine) },
+            )
         }
     }
     if (picked.isEmpty()) return
@@ -92,14 +105,8 @@ internal fun SherpaCustomModels(settings: LiveSettings) {
         onBusy = { busy = it },
         install = { files, name, languages -> EtCustomModels.install(filesDir, files, name, languages) },
     ) { outcome ->
-        models = EtCustomModels.models
-        problem = when (outcome) {
-            EtCustomModels.Result.INSTALLED -> null
-            EtCustomModels.Result.NOT_TRANSDUCER -> R.string.voice_sherpa_custom_not_transducer
-            EtCustomModels.Result.NOT_STREAMING -> R.string.voice_sherpa_custom_not_streaming
-            EtCustomModels.Result.NEEDS_VAD -> R.string.voice_sherpa_custom_needs_vad
-            null -> R.string.voice_sherpa_custom_failed
-        }
+        models = EtCustomModels.forEngine(filesDir, engine)
+        problem = customModelProblem(outcome)
     }
 }
 

@@ -792,6 +792,12 @@ object ProviderTypes {
         onDevice = true, freeSoftware = true,
     )
 
+    /** Alibaba's Qwen3-ASR (#1437): 30 languages and 22 Chinese dialects in one model, punctuated. */
+    val QWEN3 = ProviderType(
+        "qwen3", VOICE, R.string.core_tools_provider_qwen3, R.string.core_tools_provider_qwen3_desc,
+        onDevice = true, freeSoftware = true,
+    )
+
     /** Alpha Cephei's Vosk (#1165): small Kaldi models, one per language. */
     val VOSK = ProviderType(
         "vosk", VOICE, R.string.core_tools_provider_vosk, R.string.core_tools_provider_vosk_desc,
@@ -1002,6 +1008,7 @@ object ProviderTypes {
             MOONSHINE.id to "moonshine",
             SHERPA.id to "sherpa",
             OMNILINGUAL.id to "omnilingual",
+            QWEN3.id to "qwen3",
             VOSK.id to "vosk",
             TRANSCRIPTION_SERVER.id to ENGINE_SERVER,
         )
@@ -1026,7 +1033,8 @@ object ProviderTypes {
         HOME_ASSISTANT, GOOGLE_HOME, SMARTTHINGS, HUE, OPENHAB, TUYA, SWITCHBOT,
         OCR_ON_DEVICE, OCR_ML_KIT, OCR_TESSERACT, VISION_OCR, RENS,
         ANTHROPIC, OPENAI, GEMINI, XAI, DEEPSEEK, BRAVE_ANSWERS, PRIVATEMODE, OLLAMA, LM_STUDIO, OPENAI_COMPATIBLE, ON_DEVICE_AI,
-        SYSTEM_RECOGNIZER, WHISTLE, WHISPER, ASR4ALL, PARAKEET, MOONSHINE, SHERPA, OMNILINGUAL, VOSK, TRANSCRIPTION_SERVER,
+        SYSTEM_RECOGNIZER, WHISTLE, WHISPER, ASR4ALL, PARAKEET, MOONSHINE, SHERPA, OMNILINGUAL, QWEN3, VOSK,
+        TRANSCRIPTION_SERVER,
         HARPER, LANGUAGETOOL,
         ON_DEVICE_IMAGE, POLLINATIONS, AI_HORDE, OPENAI_IMAGE, GEMINI_IMAGE, XAI_IMAGE, STABILITY, BFL, RECRAFT,
         REPLICATE, FAL, TOGETHER, HUGGING_FACE, CLOUDFLARE_AI, AUTOMATIC1111, COMFYUI, OPENAI_COMPATIBLE_IMAGE,

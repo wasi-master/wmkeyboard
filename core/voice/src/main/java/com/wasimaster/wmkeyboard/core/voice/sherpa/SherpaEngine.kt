@@ -168,8 +168,9 @@ object SherpaEngine {
         if (recognizer != 0L) SherpaNative.nativeRecognizerFree(recognizer)
         recognizer = 0L
         recognizerDir = null
-        // Omnilingual's gigabyte goes back first.
+        // Omnilingual's and Qwen3-ASR's gigabytes go back first.
         OmnilingualEngine.release()
+        Qwen3AsrEngine.release()
         fun part(prefix: String) = model.files.first { it.name.startsWith(prefix) }.let { EtStore.file(filesDir, model, it) }.path
         val beamed = if (wanted) {
             try {

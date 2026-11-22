@@ -740,10 +740,11 @@ fun availableVoiceEngines(): Set<String> = buildSet {
         add("moonshine")
     }
     // sherpa-onnx on ONNX Runtime, the `onnx` gate: Sherpa's streaming
-    // models and Meta's Omnilingual.
+    // models, Meta's Omnilingual and Alibaba's Qwen3-ASR (#1437).
     if (com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative.shipped) {
         add("sherpa")
         add("omnilingual")
+        add("qwen3")
     }
     // Alpha Cephei's library, the `vosk` gate (#1165); not in F-Droid's build.
     if (com.wasimaster.wmkeyboard.core.voice.vosk.VoskNative.shipped) add("vosk")

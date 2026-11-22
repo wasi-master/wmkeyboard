@@ -250,6 +250,7 @@
     <string name="about_bundled_smart_turn_used">The model behind Smart Turn, downloaded on request, which hears whether you have finished speaking</string>
     <string name="about_bundled_vosk_library_used">Offline Vosk\'s speech recognition library, downloaded from Maven Central when you pick it, and the models it downloads from alphacephei.com on request</string>
     <string name="about_bundled_kaldi_used">Built into the Vosk library: the speech recognition toolkit and the transducer library its models run on</string>
+    <string name="about_bundled_qwen3_asr_used">Offline Qwen3-ASR\'s speech recognition model for 30 languages, downloaded on request</string>
     <string name="about_bundled_omnilingual_used">Offline Omnilingual\'s speech recognition model for 1,600 languages, downloaded on request</string>
     <string name="about_bundled_opus_used">Compresses voice recordings before they are sent to a transcription server</string>
     <string name="about_bundled_rnnoise_used">Reduce background noise at Light, in front of the offline voice engines</string>

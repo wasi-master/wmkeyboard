@@ -238,6 +238,7 @@ internal fun voiceEngineName(engine: String): String = stringResource(
         "moonshine" -> R.string.ime_voice_engine_moonshine
         "sherpa" -> R.string.ime_voice_engine_sherpa
         "omnilingual" -> R.string.ime_voice_engine_omnilingual
+        "qwen3" -> R.string.ime_voice_engine_qwen3
         "vosk" -> R.string.ime_voice_engine_vosk
         "server" -> R.string.ime_voice_engine_server
         else -> R.string.ime_voice_engine_system

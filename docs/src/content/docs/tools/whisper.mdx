@@ -137,6 +137,8 @@ A phone that cannot download can import a model instead. Below the catalog, **Ge
 
 The keyboard can't tell which languages a fine-tune was trained for, so with other models on the phone it picks one per language by the usual rules and the fine-tune may not be the one it lands on. Open **Model per language** and pick it for the languages it was made for. A file with the same name and size as a catalog model but different contents also imports this way: several fine-tunes are published as `ggml-model-q5_0.bin`, and a catalog file is told apart from the others by its hash. Its row has no translate option, since a fine-tune may not have kept that task. Importing a file with the same name again replaces the earlier copy, and deleting the model removes it for good, since there's nothing to download it from again. Builds without whisper.cpp can't import one.
 
+**Get from Hugging Face**, under the import, saves the trip through a browser. Type the repository's name or paste its address, and the keyboard lists the `.bin` files in it with ggml or whisper in their names, smallest first. Pick one, give it a name, and it downloads that file from the commit it listed, checked against the SHA-256 Hugging Face publishes, then reads its header and keeps it under **Your models** as above. The download goes on if you leave the screen. For a gated or private repository, add your Hugging Face token on the On-device AI screen first.
+
 When exactly one model is on disk, the app quietly adopts it as that fallback, so dictation works right after your first download with no setup step in between. It does the same again if you delete whichever model was holding the job.
 
 ## Options

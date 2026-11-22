@@ -209,6 +209,46 @@ object SherpaNative {
         allowed: BooleanArray?,
     ): ByteArray
 
+    // Qwen3-ASR (#1437, qwen3_jni.cpp) through sherpa-onnx's offline
+    // recognizer, a whole phrase at a time. [tokenizerDir] holds vocab.json,
+    // merges.txt and tokenizer_config.json. 0 when it will not load. Not in a
+    // bridge built before it: that one throws [UnsatisfiedLinkError].
+    @JvmStatic external fun nativeQwen3(
+        convFrontend: String,
+        encoder: String,
+        decoder: String,
+        tokenizerDir: String,
+        threads: Int,
+        maxTotalLen: Int,
+        maxNewTokens: Int,
+    ): Long
+
+    @JvmStatic external fun nativeQwen3Free(model: Long)
+
+    /**
+     * The first [count] samples of a phrase (16 kHz mono, in [-1, 1]) as text,
+     * UTF-8. [language] (UTF-8) is Qwen3's own name for the language to write
+     * in ([com.wasimaster.wmkeyboard.core.voice.sherpa.Qwen3Languages]), null
+     * to let the model tell; [hotwords] (UTF-8) the words to listen for,
+     * comma-separated, or null; [maxNewTokens] caps what it may write.
+     */
+    @JvmStatic external fun nativeQwen3Decode(
+        model: Long,
+        samples: FloatArray,
+        count: Int,
+        language: ByteArray?,
+        hotwords: ByteArray?,
+        maxNewTokens: Int,
+    ): ByteArray
+
+    /**
+     * Whether three ONNX files are graphs sherpa-onnx's Qwen3-ASR loader takes
+     * (it exits the process on any other): 0 when they are, 1 for a file ONNX
+     * Runtime cannot open, 2 for graphs of another shape. Opens each, which
+     * takes seconds and memory for a large decoder; for an import only.
+     */
+    @JvmStatic external fun nativeQwen3Probe(convFrontend: String, encoder: String, decoder: String): Int
+
     // Online punctuation: CNN-BiLSTM over BPE pieces, punctuation and capitals.
     @JvmStatic external fun nativePunctuation(model: String, vocab: String): Long
 

@@ -41,6 +41,7 @@ import com.wasimaster.wmkeyboard.core.voice.parakeet.ParakeetEngine
 import com.wasimaster.wmkeyboard.core.voice.punctuation.DictationPunctuation
 import com.wasimaster.wmkeyboard.core.voice.recognitionServices
 import com.wasimaster.wmkeyboard.core.voice.sherpa.OmnilingualEngine
+import com.wasimaster.wmkeyboard.core.voice.sherpa.Qwen3AsrEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
 import com.wasimaster.wmkeyboard.core.voice.vosk.VoskEngine
@@ -479,6 +480,7 @@ class AppDictation(
         return when (model.engine) {
             EtEngine.SHERPA -> SherpaEngine.newStream(filesDir, model, pauseMs, words, vad)
             EtEngine.OMNILINGUAL -> OmnilingualEngine.newStream(filesDir, model, pauseMs, languageIds, vad)
+            EtEngine.QWEN3 -> Qwen3AsrEngine.newStream(filesDir, model, pauseMs, languageIds, words, vad)
             EtEngine.VOSK -> VoiceVad.endpointed(
                 VoskEngine.newStream(filesDir, model),
                 VoiceVad.phraseEnd(filesDir, vad, null, pauseMs),
@@ -591,7 +593,7 @@ class AppDictation(
 
     /** [pcm] through a file-by-file [model] in one go. On [liveDispatcher] only. */
     private fun transcribeWithEt(model: EtModel, pcm: FloatArray): String = when (model.engine) {
-        EtEngine.ASR4ALL, EtEngine.SHERPA, EtEngine.OMNILINGUAL, EtEngine.VOSK -> newLiveStream(model, liveWords(model)).let { stream ->
+        EtEngine.ASR4ALL, EtEngine.SHERPA, EtEngine.OMNILINGUAL, EtEngine.QWEN3, EtEngine.VOSK -> newLiveStream(model, liveWords(model)).let { stream ->
             try {
                 stream.feed(pcm)
                 stream.finish()
@@ -758,7 +760,11 @@ class AppDictation(
         VoiceBias.select(VoiceBias.parseList(settings.whisper.biasWords), emptyList(), limit)
 
     private fun liveWords(model: EtModel): List<String> =
-        if (model.engine == EtEngine.SHERPA) biasWords(VoiceBias.RECOGNIZER_LIMIT) else emptyList()
+        if (model.engine == EtEngine.SHERPA || model.engine == EtEngine.QWEN3) {
+            biasWords(VoiceBias.RECOGNIZER_LIMIT)
+        } else {
+            emptyList()
+        }
 
     private fun liveEngine(engine: EtEngine): Boolean = engine.live
 

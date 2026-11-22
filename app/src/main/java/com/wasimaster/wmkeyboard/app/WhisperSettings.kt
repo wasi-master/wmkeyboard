@@ -346,6 +346,10 @@ internal fun WhisperModelManager(repository: SettingsRepository, settings: LiveS
                 onImported = { WhisperDownloadManager.refresh(filesDir) },
             )
         }
+        // A fine-tuned whisper.cpp model straight from its repository (#1437).
+        if (com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog.cppAvailable) item {
+            HuggingFaceImportRow(HfTarget.WHISPER, settings, onInstalled = { WhisperDownloadManager.refresh(filesDir) })
+        }
     }
 
     if (storageUsed > 0) {

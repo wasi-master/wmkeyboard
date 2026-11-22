@@ -1,0 +1,64 @@
+---
+title: "Offline voice (Qwen3-ASR)"
+description: "Alibaba's Qwen3-ASR on your phone: 30 languages and 22 Chinese dialects in one model, with its own punctuation."
+sidebar:
+  order: 4.72
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+Offline Qwen3-ASR runs [Qwen3-ASR](https://github.com/QwenLM/Qwen3-ASR), Alibaba's speech recognition model, on your phone with ONNX Runtime, the engine [Offline Sherpa](/tools/sherpa/) and [Offline Omnilingual](/tools/omnilingual/) run on. It is an audio encoder in front of a small Qwen3 language model, so it writes full sentences with punctuation and capitals instead of bare words. One model covers 30 languages and 22 Chinese dialects. Once the model is downloaded, no audio leaves the phone.
+
+## Setting it up
+
+<SettingsPath path="Voice typing" />
+
+1. Add **Qwen3-ASR** to the **Recognition engine** list and move it to the top, or pick it for one language under **Engine for each language**.
+2. Press **Qwen3-ASR** on the list to open its screen. The first time, a banner offers ONNX Runtime, shared with Sherpa and Omnilingual: a one-time download of about 33 MB (arm64), from Google Play on the Play build and from Maven Central on the GitHub and F-Droid builds; the offline build carries it already. The F-Droid build asks you to turn on **Download feature libraries** first.
+3. Download **Qwen3-ASR 0.6B**: 989 MB from Hugging Face at a fixed revision, every file checked against its published SHA-256. On mobile data it asks first.
+
+| Model | Languages | Download | Licence |
+|---|---|---|---|
+| Qwen3-ASR 0.6B | 30 languages and 22 Chinese dialects | 989 MB | Apache-2.0 |
+
+The download includes Silero VAD (2 MB), the voice detector that cuts your speech into phrases.
+
+**Languages.** Chinese, English, Cantonese, Arabic, German, French, Spanish, Portuguese, Indonesian, Italian, Korean, Russian, Thai, Vietnamese, Japanese, Turkish, Hindi, Malay, Dutch, Swedish, Danish, Finnish, Polish, Czech, Filipino, Persian, Greek, Hungarian, Macedonian and Romanian. The Chinese dialects, from Sichuan to Minnan and Wu, come under Chinese.
+
+## How it works
+
+Qwen3-ASR is not a streaming model: it reads a whole phrase at once. While you talk, Silero listens for the short pause at the end of each phrase (half a second) and hands that phrase to the model while you go on to the next one. **Phrase end detector** on the Voice typing screen can put FireRedVAD, plain loudness or a model of your own in Silero's place; see [Hearing the end of a phrase](/tools/voice/#hearing-the-end-of-a-phrase). The words arrive a phrase at a time, as underlined composing text in the field and on the line under the microphone. A phrase that runs past 15 seconds without a pause is cut at the next short breath, so the model's memory of the phrase never fills.
+
+**Language.** When you dictate in one language, the keyboard tells the model which one, so a short or unclear phrase is not written in a neighbouring language. A dictation that listens for several languages at once leaves the model to tell them apart, which it does well: that is how it handles a phrase that mixes Chinese and English.
+
+**Punctuation.** The model writes full stops, commas, question marks and capitals itself, so [Add punctuation and capitals](/tools/voice/#adding-punctuation-and-capitals) does not touch what it writes, and its Chinese and Japanese phrases follow each other without a space. Spoken punctuation ("comma", "full stop") still works.
+
+**Words to listen for.** The names and terms under [Words to listen for](/tools/voice/#words-to-listen-for) go into the model's prompt, up to 24 of them per phrase, so a name it would otherwise spell by sound comes out the way you spell it.
+
+**Memory and speed.** The 0.6B model's files come to almost 1 GB, and it needs more than that while it is open (about 1.5 GB is the estimate; it has not been measured on a phone yet), so it suits a recent phone. The keyboard frees it when Android asks for memory back, and opening it closes Sherpa's and Omnilingual's models first.
+
+## Your own models
+
+<SettingsPath path="Voice typing / Recognition engine / Qwen3-ASR / Your own models" />
+
+Any Qwen3-ASR model exported for sherpa-onnx works here: a fine-tune for a language or a field, or the larger 1.7B model, which is more accurate and needs about twice the memory. There are two ways to bring one.
+
+**Get from Hugging Face.** Type the repository's name, such as `thieunv-asilla/sherpa-onnx-qwen3-asr-1.7B-int8`, or paste its address; a link to a folder inside it works too. The keyboard reads the repository's file list, finds the three graphs (`conv_frontend.onnx`, the encoder and the decoder, `int8` copies first) and the tokenizer's `vocab.json`, `merges.txt` and `tokenizer_config.json`, and says how much it is going to download. Give it a name and its language codes, and it downloads just those files from the commit it listed, checking each against the SHA-256 Hugging Face publishes for it. The download carries on if you leave the screen, resumes where it stopped, and asks first on mobile data. A decoder that keeps its weights in a separate `.onnx.data` file comes with it. For a gated or private repository, add your Hugging Face token on the On-device AI screen first.
+
+**Import a model.** Download the same six files elsewhere and pick them together.
+
+- Before it is kept, the model is opened once to check that its graphs are the shape sherpa-onnx runs. That takes a few seconds, longer for a large decoder. Files of another shape are refused with a note.
+- It's used before the listed model for the languages you give it. Delete it to go back.
+- It also needs `silero_vad.onnx`. Pick it with the rest, or have any Sherpa, Omnilingual or Qwen3-ASR model downloaded and its copy is used.
+
+## Qwen3-ASR, Whisper or the others
+
+Qwen3-ASR is the engine here that knows Chinese dialects and Cantonese, and its authors rank the 1.7B model first among open-source recognizers on their benchmarks, with the 0.6B as the quicker, lighter one. It punctuates by itself. It is also the largest download. [Whisper](/tools/whisper/) covers more languages and has smaller models, [Sherpa](/tools/sherpa/) shows the words while you speak rather than a phrase at a time, [Parakeet](/tools/parakeet/) is quicker for its 25 European languages, and [Omnilingual](/tools/omnilingual/) covers about 380 keyboard languages that the others do not.
+
+## Details & edge cases
+
+**Silence.** A phrase that holds no speech comes back empty: sherpa-onnx skips a clip that is quiet all the way through before the model can make something up.
+
+**A phrase that repeats.** Each phrase may write only about ten words' worth of text per second of speech, so a phrase the model starts to repeat stops close to its own length.
+
+**The licences.** Qwen3-ASR is Alibaba's under Apache-2.0, exported for sherpa-onnx by Wasser1462 and published by k2-fsa. sherpa-onnx is Apache-2.0, ONNX Runtime is Microsoft's under MIT, and Silero VAD is MIT. All of them are credited in the app's About screen. A model you bring has its own licence, on its repository's page.

@@ -16,6 +16,16 @@ sherpa-onnx's preprocessing (the raw waveform, normalised to zero mean and
 unit variance) and does the greedy CTC pick itself, over the tokens
 `OmnilingualScriptMask` flags for the dictation's scripts.
 
+Offline Qwen3-ASR (#1437) goes through sherpa-onnx's own offline recognizer
+(`qwen3_jni.cpp`, driven by `Qwen3AsrEngine`): a convolutional front end, an
+audio encoder and a Qwen3 decoder with a KV cache, three ONNX files, and the
+Qwen tokenizer's `vocab.json`, `merges.txt` and `tokenizer_config.json`.
+Silero cuts the audio into phrases here too, and each phrase can carry the
+language to write in and the words to listen for, which sherpa-onnx puts
+into the decoder's prompt. sherpa-onnx exits on graphs of the wrong shape,
+so `nativeQwen3Probe` opens a model the user brings with plain ONNX Runtime
+first and makes the same checks.
+
 The same library reads text aloud with Meta's MMS-TTS voices
 (`vits_jni.cpp`, driven by `core.voice.speech.MmsSpeech`). That part is not
 sherpa-onnx: it runs the VITS network through ONNX Runtime's C++ API. An MMS

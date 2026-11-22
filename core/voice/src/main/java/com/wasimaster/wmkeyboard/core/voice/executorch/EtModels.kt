@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.core.voice.executorch
 
 import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.voice.sherpa.OmnilingualLanguages
+import com.wasimaster.wmkeyboard.core.voice.sherpa.Qwen3Languages
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaQnnNative
 import com.wasimaster.wmkeyboard.core.voice.vosk.VoskNative
@@ -50,6 +51,14 @@ enum class EtEngine(val id: String, val dirName: String, val languages: Set<Stri
     OMNILINGUAL("omnilingual", "omnilingual", OmnilingualLanguages.codes),
 
     /**
+     * Alibaba's Qwen3-ASR (#1437) on the same sherpa-onnx runtime: an audio
+     * encoder in front of a Qwen3 language model, 30 languages and 22 Chinese
+     * dialects in one model, with punctuation of its own. Like Omnilingual it
+     * decodes a whole phrase at a time, cut at each pause by Silero.
+     */
+    QWEN3("qwen3", "qwen3", Qwen3Languages.codes),
+
+    /**
      * Vosk (#1165): Alpha Cephei's small Kaldi models on their own library
      * (the `vosk` gate), one per language, each downloaded as one zip from
      * alphacephei.com and decoded while the user speaks.
@@ -64,7 +73,10 @@ enum class EtEngine(val id: String, val dirName: String, val languages: Set<Stri
     ;
 
     /** Whether the engine runs on ONNX Runtime (the `onnx` gate) rather than ExecuTorch. */
-    val onnx: Boolean get() = this == SHERPA || this == OMNILINGUAL
+    val onnx: Boolean get() = this == SHERPA || this == OMNILINGUAL || this == QWEN3
+
+    /** Whether the user can bring models of their own to it ([EtCustomModels]). */
+    val takesCustomModels: Boolean get() = this == SHERPA || this == QWEN3
 
     /** Whether this build has the runtime the engine needs, counting a module not fetched yet. */
     val runtimeShipped: Boolean
@@ -76,11 +88,13 @@ enum class EtEngine(val id: String, val dirName: String, val languages: Set<Stri
 
     /**
      * Whether the engine decodes while the user speaks rather than when the
-     * clip ends. Omnilingual counts: it decodes each phrase at the pause after
-     * it. So does Parakeet (#1168), which passes over the clip as it grows.
+     * clip ends. Omnilingual and Qwen3-ASR count: they decode each phrase at
+     * the pause after it. So does Parakeet (#1168), which passes over the clip
+     * as it grows.
      */
     val live: Boolean
-        get() = this == ASR4ALL || this == SHERPA || this == OMNILINGUAL || this == VOSK || this == PARAKEET
+        get() = this == ASR4ALL || this == SHERPA || this == OMNILINGUAL || this == QWEN3 || this == VOSK ||
+            this == PARAKEET
 
     /** The one thread the engine's model calls run on. */
     val dispatcher: CoroutineDispatcher
@@ -93,7 +107,7 @@ enum class EtEngine(val id: String, val dirName: String, val languages: Set<Stri
     /** Whether [languageId] (a keyboard language id such as `en_GB` or `de`) is one this engine transcribes. */
     fun supports(languageId: String): Boolean =
         languageId.trim().lowercase().substringBefore('-').substringBefore('_') in languages ||
-            (this == SHERPA && EtCustomModels.models.any { it.supports(languageId) })
+            (takesCustomModels && EtCustomModels.models.any { it.engine == this && it.supports(languageId) })
 
     companion object {
         fun byId(id: String): EtEngine? = entries.firstOrNull { it.id == id }
@@ -655,6 +669,24 @@ object EtCatalog {
                 EtFile("model.int8.onnx", 365_352_120L, "e7c4e54ee4c4c47829cc6667d5d00ed8ea7bef1dcfeef0fce766f77752a2726c"),
             ),
         ),
+        // Alibaba's Qwen3-ASR 0.6B (Apache-2.0), int8 encoder and decoder,
+        // exported for sherpa-onnx by Wasser1462 and published by k2-fsa
+        // (#1437). The tokenizer's three files sit beside the graphs, which
+        // is where the engine points sherpa-onnx's tokenizer folder.
+        EtModel(
+            "qwen3-asr-0.6b", EtEngine.QWEN3, "0.6b", "Qwen3-ASR 0.6B", 600,
+            "csukuangfj2/sherpa-onnx-qwen3-asr-0.6B-int8-2026-03-25",
+            "68818b2313fe77bd06f6a7c5068ff3ef59d02b8a",
+            listOf(
+                EtFile("tokenizer/tokenizer_config.json", 12_487L, "4942d005604266809309cabc9f4e9cb89ce855d59b14681fdc0e1cc62ea26c4c"),
+                EtFile("tokenizer/merges.txt", 1_671_853L, "8831e4f1a044471340f7c0a83d7bd71306a5b867e95fd870f74d0c5308a904d5"),
+                EtFile("tokenizer/vocab.json", 2_776_833L, "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"),
+                SILERO_VAD,
+                EtFile("conv_frontend.onnx", 44_148_281L, "d22dc4423e0940e49884e903d2ea2f7e5567c14fc1aed97e4e26d6b8f208ef9e"),
+                EtFile("encoder.int8.onnx", 182_491_662L, "60748d3e6744a57c9c91e1b17424a6c2990567e8adceb0783940c03ed98fa9d9"),
+                EtFile("decoder.int8.onnx", 755_914_231L, "4f6885be5959ae26af3089d38ee7972c5fafbeeb1cf8d5e76eab6d8b61ca5771"),
+            ),
+        ),
         // Alpha Cephei's small Vosk models (#1165), every one their list did
         // not mark obsolete: one zip each, unpacked on the phone. Licences
         // as Alpha Cephei's model page gives them.
@@ -876,7 +908,10 @@ object EtStore {
 
     /** The dictation models of [engine] on the device; never a helper such as punctuation. */
     fun downloaded(filesDir: File, engine: EtEngine): List<EtModel> =
-        (EtCatalog.forEngine(engine) + if (engine == EtEngine.SHERPA) EtCustomModels.load(filesDir) else emptyList())
+        (
+            EtCatalog.forEngine(engine) +
+                if (engine.takesCustomModels) EtCustomModels.load(filesDir).filter { it.engine == engine } else emptyList()
+            )
             .filter { !it.punctuation && isDownloaded(filesDir, it) }
 
     /**

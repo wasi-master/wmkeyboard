@@ -18,6 +18,7 @@ import com.wasimaster.wmkeyboard.core.voice.executorch.EtNative
 import com.wasimaster.wmkeyboard.core.voice.futoswipe.FutoSwipe
 import com.wasimaster.wmkeyboard.core.voice.punctuation.DictationPunctuation
 import com.wasimaster.wmkeyboard.core.voice.sherpa.OmnilingualEngine
+import com.wasimaster.wmkeyboard.core.voice.sherpa.Qwen3AsrEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.QnnSpeech
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
@@ -124,6 +125,11 @@ object ResidentModels {
             "omnilingual", ModelKind.VOICE_TYPING,
             { OmnilingualEngine.loadedModel()?.let { model("omnilingual", ModelKind.VOICE_TYPING, it) } },
             { withContext(SherpaNative.dispatcher) { OmnilingualEngine.release() } },
+        ),
+        Part(
+            "qwen3", ModelKind.VOICE_TYPING,
+            { Qwen3AsrEngine.loadedModel()?.let { model("qwen3", ModelKind.VOICE_TYPING, it) } },
+            { withContext(SherpaNative.dispatcher) { Qwen3AsrEngine.release() } },
         ),
         Part(
             "vosk", ModelKind.VOICE_TYPING,
