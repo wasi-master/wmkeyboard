@@ -847,6 +847,35 @@ internal val LocalSendAction = staticCompositionLocalOf<(com.wasimaster.wmkeyboa
 internal val LocalAiSuggest = staticCompositionLocalOf { AiSuggestCallbacks() }
 
 /**
+ * What holding an emoji on the emoji row reaches (#1420): the panel's own
+ * long-press popup, its animated version included. A local, not parameters,
+ * because the row is drawn in two places ([KeyboardBody]'s bar and the
+ * strip's button mode in [TopBar]) on a call chain that is against the
+ * method ceiling.
+ */
+internal class EmojiBarHold(
+    val onLongPress: (String) -> Unit = {},
+    val onLongPressEnd: () -> Unit = {},
+    val onAnimatedSend: (String) -> Unit = {},
+    val onStickerSend: (String) -> Unit = {},
+    val onFavourite: (String) -> Unit = {},
+)
+
+internal val LocalEmojiBarHold = staticCompositionLocalOf { EmojiBarHold() }
+
+/** [EmojiBarHold] built once for the service's bound callbacks, which compare equal pass to pass. */
+@Composable
+private fun rememberEmojiBarHold(
+    onLongPress: (String) -> Unit,
+    onLongPressEnd: () -> Unit,
+    onAnimatedSend: (String) -> Unit,
+    onStickerSend: (String) -> Unit,
+    onFavourite: (String) -> Unit,
+): EmojiBarHold = remember(onLongPress, onLongPressEnd, onAnimatedSend, onStickerSend, onFavourite) {
+    EmojiBarHold(onLongPress, onLongPressEnd, onAnimatedSend, onStickerSend, onFavourite)
+}
+
+/**
  * Whether an alternates popup has a finger steering it right now.
  *
  * One flag for the whole board, because it answers a question only the grid-wide
@@ -1957,6 +1986,9 @@ fun KeyboardScreen(
         LocalSelectionHold provides toolHold.onSelectionHold,
         LocalSendAction provides toolHold.send.onAction,
         LocalAiSuggest provides toolHold.aiSuggest,
+        LocalEmojiBarHold provides rememberEmojiBarHold(
+            onEmojiLongPress, onEmojiLongPressEnd, onAnimatedEmojiSend, onEmojiStickerSend, onEmojiFavourite,
+        ),
         LocalCanDelete provides canDelete,
         LocalCanDeleteField provides canDeleteField,
         LocalCanForwardDelete provides canForwardDelete,
@@ -8682,7 +8714,7 @@ private fun EmojiBarStrip(
                 ) {
                     itemsIndexed(emojis) { index, emoji ->
                         EmojiBarCell(
-                            emoji, slot, fontSize, onEmoji,
+                            emoji, slot, fontSize, onEmoji, state,
                             hint = hints?.label(HintSurface.EMOJI_ROW, index),
                         )
                     }
@@ -8697,7 +8729,7 @@ private fun EmojiBarStrip(
                 ) {
                     emojis.take(count).forEachIndexed { index, emoji ->
                         EmojiBarCell(
-                            emoji, slot, fontSize, onEmoji,
+                            emoji, slot, fontSize, onEmoji, state,
                             hint = hints?.label(HintSurface.EMOJI_ROW, index),
                         )
                     }
@@ -8707,15 +8739,25 @@ private fun EmojiBarStrip(
     }
 }
 
-/** One tappable emoji slot of [EmojiBarStrip], sized by the row's packing. */
+/**
+ * One tappable emoji slot of [EmojiBarStrip], sized by the row's packing.
+ * A hold opens the panel's long-press popup (#1420), the way a recent
+ * emoji in the panel does: the animated version when Animated emoji is on
+ * and one is published, the sticker, favourite and skin tones. The row's
+ * entries are exact sequences, so a pick in it commits as it is.
+ */
 @Composable
 private fun EmojiBarCell(
     emoji: String,
     width: Dp,
     fontSize: TextUnit,
     onEmoji: (String) -> Unit,
+    state: KeyboardUiState,
     hint: String? = null,
 ) {
+    val hold = LocalEmojiBarHold.current
+    val onHaptic = LocalHapticFeedback.current
+    var held by remember { mutableStateOf(false) }
     Box(contentAlignment = Alignment.Center) {
         Text(
             // Drawn as this font spells it; onEmoji still commits the standard form.
@@ -8725,7 +8767,16 @@ private fun EmojiBarCell(
                 // Lifted so the badge sits under the emoji rather than over it;
                 // the cell's own size is unchanged.
                 .offset(y = if (hint != null) -(HintBadgeHeight / 2) else 0.dp)
-                .clickable { onEmoji(emoji) }
+                .combinedClickable(
+                    // The haptic is the keyboard's own, under its long-press setting, as in the panel.
+                    hapticFeedbackEnabled = false,
+                    onLongClick = {
+                        if (state.settings.haptics.onLongPress) onHaptic()
+                        held = true
+                        hold.onLongPress(emoji)
+                    },
+                    onClick = { onEmoji(emoji) },
+                )
                 .padding(vertical = 4.dp),
             fontSize = fontSize,
             fontFamily = emojiFamilyFor(emoji),
@@ -8742,6 +8793,40 @@ private fun EmojiBarCell(
         )
         if (hint != null) {
             HintBadge(hint, modifier = Modifier.align(Alignment.BottomCenter))
+        }
+        if (held) {
+            val close = {
+                held = false
+                hold.onLongPressEnd()
+            }
+            EmojiVariantPopup(
+                base = emoji,
+                display = emoji,
+                name = if (state.settings.emojiLongPressName) {
+                    EmojiNames.of(
+                        catalog = state.emojiCatalog,
+                        emoji = emoji,
+                        base = emoji,
+                        localised = state.emojiNamesByLang[state.language.id].orEmpty(),
+                    )
+                } else {
+                    null
+                },
+                index = state.emojiVariants,
+                genderVariants = emptyList(),
+                favourite = emoji in state.emojiFavourites,
+                animated = state.animatedEmojiOffer(emoji),
+                onAnimatedSend = { hold.onAnimatedSend(emoji) },
+                sticker = state.canSendEmojiSticker(),
+                stickerSending = state.mediaDownloadingId == emojiStickerJobId(emoji),
+                onStickerSend = { hold.onStickerSend(emoji) },
+                onDismiss = close,
+                onPick = {
+                    close()
+                    onEmoji(it)
+                },
+                onFavourite = hold.onFavourite,
+            )
         }
     }
 }
