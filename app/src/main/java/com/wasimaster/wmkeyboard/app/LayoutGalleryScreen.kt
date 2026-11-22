@@ -56,7 +56,9 @@ internal fun LayoutGalleryScreen(
     val lang = LanguageRegistry.byId(langId)
     val toggle = rememberLayoutToggle(settings, repository, scope) {}
     val overflow = settings.watch { overflowLayoutIds(lang, it) }
-    val listed = settings.watch { shelfLayoutIds(lang, it, overflow) }
+    // In the row's order, on layouts first (#1517), so each card lands where
+    // the reader saw it leave.
+    val listed = rememberOnFirst(settings.watch { shelfLayoutIds(lang, it, overflow) }, settings)
     val names = rememberLayoutNames(listed, settings)
 
     WmLazyScreen(

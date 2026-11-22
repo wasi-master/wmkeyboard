@@ -872,6 +872,24 @@ internal fun shelfLayoutIds(lang: LanguageDef, settings: KeyboardSettings, overf
 }
 
 /**
+ * [ids] with the layouts that were on when the screen opened at the front, each
+ * half in its own order (#1517).
+ *
+ * The user's own layouts come last on the shelf, so switching off a layout made
+ * in the editor meant scrolling past every shipped one to reach it. What is on
+ * is what someone opens the screen to change; the rest is browsing.
+ *
+ * Taken when the screen composes, not live: a card that jumped to the front
+ * the moment it was tapped would leave the reader's finger over a different
+ * card. Coming back to the screen puts whatever is on now first.
+ */
+@Composable
+internal fun rememberOnFirst(ids: List<String>, settings: LiveSettings): List<String> {
+    val onAtOpen = remember { settings.value.enabledLayoutIds.toSet() }
+    return remember(ids, onAtOpen) { ids.sortedBy { it !in onAtOpen } }
+}
+
+/**
  * The Layouts group for one language: the layouts we wrote for it plus whichever
  * converted ones are switched on, as a row of keyboard cards (see
  * [LayoutCarousel]) that ends on a card down to the rest.
@@ -900,8 +918,15 @@ private fun LayoutsGroup(
     val toggle = rememberLayoutToggle(settings, repository, scope) { rulesRefresh++ }
 
     val overflow = settings.watch { overflowLayoutIds(lang, it) }
-    val listed = settings.watch { shelfLayoutIds(lang, it, overflow) }
+    val listed = rememberOnFirst(settings.watch { shelfLayoutIds(lang, it, overflow) }, settings)
     val title = stringResource(R.string.languages_layouts_title)
+    // The whole shelf at once, as a grid the cards fly out to. Only once there
+    // is more than the row shows at a glance.
+    val galleryShown = listed.size + (if (overflow.isEmpty()) 0 else 1) > 2
+    // The More layouts page, whose search box is pinned at its top, straight
+    // from the heading (#1431). Its only other way in is the row's last card,
+    // which on English is twenty-odd cards of sideways scrolling away.
+    val searchShown = overflow.isNotEmpty()
 
     HighlightableRow(title, coarse = true) {
         Column {
@@ -909,16 +934,25 @@ private fun LayoutsGroup(
                 title,
                 info = stringResource(R.string.languages_layouts_info),
                 modifier = Modifier.padding(start = 32.dp, end = 16.dp, top = 4.dp, bottom = 8.dp),
-                // The whole shelf at once, as a grid the cards fly out to. Only
-                // once there is more than the row shows at a glance.
-                action = if (listed.size + (if (overflow.isEmpty()) 0 else 1) > 2) {
+                action = if (galleryShown || searchShown) {
                     {
-                        IconButton(onClick = { onNavigate(layoutGalleryRoute(lang.id)) }) {
-                            Icon(
-                                Icons.Outlined.OpenInFull,
-                                contentDescription = stringResource(R.string.languages_layouts_gallery_open),
-                                modifier = Modifier.size(18.dp),
-                            )
+                        if (searchShown) {
+                            IconButton(onClick = { onNavigate(moreLayoutsRoute(lang.id)) }) {
+                                Icon(
+                                    Icons.Outlined.Search,
+                                    contentDescription = stringResource(R.string.languages_layouts_search_open),
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            }
+                        }
+                        if (galleryShown) {
+                            IconButton(onClick = { onNavigate(layoutGalleryRoute(lang.id)) }) {
+                                Icon(
+                                    Icons.Outlined.OpenInFull,
+                                    contentDescription = stringResource(R.string.languages_layouts_gallery_open),
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            }
                         }
                     }
                 } else {

@@ -52,6 +52,8 @@
     <string name="languages_layouts_title">Layouts</string>
     <!-- Description of the button beside the Layouts heading that opens every layout card of the language in a full-screen grid. -->
     <string name="languages_layouts_gallery_open">Show all layouts</string>
+    <!-- Description of the search button beside the Layouts heading that opens the language's More layouts page, where the layout search box is. -->
+    <string name="languages_layouts_search_open">Search more layouts</string>
     <string name="languages_layouts_info">Each card shows the keyboard as it looks with your theme and settings. Tap a card to turn that layout on or off. Scroll the row sideways to see all the layouts.</string>
     <string name="languages_layout_keep_one">At least one layout must stay on.</string>
 
