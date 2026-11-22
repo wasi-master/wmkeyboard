@@ -20,6 +20,12 @@ object NoteChecklist {
 
     fun progress(body: String): Progress {
         if ('[' !in body) return Progress(0, 0)
+        // The whole parse only for a body with a line that reads as a task
+        // (#1466). Every card on the Notes shelf asks this as it is drawn, and
+        // a note holding a pasted file's bytes has a `[` somewhere in it: the
+        // full Markdown pass over hundreds of kilobytes of that, card after
+        // card, held the panel for seconds on the way back to the list.
+        if (body.lineSequence().none { AiMarkdownBlocks.task(it) != null }) return Progress(0, 0)
         var done = 0
         var total = 0
         for (block in AiMarkdownBlocks.parse(body)) {

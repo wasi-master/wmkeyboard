@@ -53,9 +53,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -1159,13 +1162,22 @@ private fun Modifier.noteTint(colour: Color): Modifier =
 private fun NoteReminderMark(state: KeyboardUiState, note: Note, size: Dp) {
     val assist = state.settings.notes.assist
     if (!assist.enabled || !assist.reminders || note.locked) return
-    val due = remember(note.id, note.updatedAt) {
-        val now = System.currentTimeMillis()
-        com.wasimaster.wmkeyboard.core.notes.assist.NoteReminders.upcoming(
-            com.wasimaster.wmkeyboard.core.notes.assist.NoteHighlights.find(note.body, note.updatedAt),
-            now,
-            limit = 1,
-        ).isNotEmpty()
+    // Off the main thread, and kept past the card (#1466): the scan reads
+    // up to 20,000 characters of the body for dates, and every card ran it
+    // while it was drawn, again each time the shelf came back from a note.
+    val key = note.id to note.updatedAt
+    val due by produceState(initialValue = reminderMarks.get(key) ?: false, key) {
+        if (reminderMarks.get(key) != null) return@produceState
+        val body = note.body
+        val found = withContext(Dispatchers.Default) {
+            com.wasimaster.wmkeyboard.core.notes.assist.NoteReminders.upcoming(
+                com.wasimaster.wmkeyboard.core.notes.assist.NoteHighlights.find(body, key.second),
+                System.currentTimeMillis(),
+                limit = 1,
+            ).isNotEmpty()
+        }
+        reminderMarks.put(key, found)
+        value = found
     }
     if (!due) return
     Icon(
@@ -1175,6 +1187,11 @@ private fun NoteReminderMark(state: KeyboardUiState, note: Note, size: Dp) {
         modifier = Modifier.padding(end = 4.dp).size(size),
     )
 }
+
+/** Whether a note, by id and the time it was last edited, has a reminder ahead; see [NoteReminderMark]. */
+private val reminderMarks = android.util.LruCache<Pair<Long, Long>, Boolean>(REMINDER_MARKS_KEPT)
+
+private const val REMINDER_MARKS_KEPT = 512
 
 /** The checklist ring, or the lock, that leads a card's footer; nothing for a plain note. */
 @Composable
