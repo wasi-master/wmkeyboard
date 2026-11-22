@@ -5863,16 +5863,27 @@ private fun calendarReminderLabel(minutes: Int): String = when {
 }
 
 /**
- * The Trackpad tool's mouse mode (#1411): which door its clicks go through,
- * and the pointer's feel. The mode itself is switched on the trackpad.
+ * The Trackpad tool's mouse mode (#1411): the switch that offers it on the
+ * trackpad, which door its clicks go through, and the pointer's feel. Which
+ * mode the trackpad is in is switched on the trackpad itself.
  */
 @Composable
 private fun TrackpadMouseSettings(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val percentFormat = stringResource(R.string.typing_value_percent)
+    val enabled = settings.watch { it.trackpad.mouseEnabled }
+    LaunchedEffect(Unit) {
+        ShellAccess.init(context)
+        ShellAccess.refresh()
+    }
+    // The keyboard's Shizuku switch, the same one Privacy › Permissions ›
+    // Shizuku or root keeps: it lives in device preferences, not the settings
+    // store, so this page holds its own copy for the row.
+    var shellOn by remember { mutableStateOf(ShellFeatures.isEnabled(context)) }
+    val shizukuGranted by ShellAccess.shizukuGranted.collectAsState()
     val serviceOn = rememberGrantState { TouchMouseService.isEnabled(it) }
-    val shell = remember { ShellFeatures.isEnabled(context) && ShellAccess.canInject }
+    val shell = shellOn && shizukuGranted
     val ask = rememberDisclosedSpecialAccess(SpecialAccess.TOUCH_MOUSE)
     val range = TrackpadSpeedRange.first.toFloat()..TrackpadSpeedRange.last.toFloat()
     SettingsGroup(
@@ -5881,6 +5892,14 @@ private fun TrackpadMouseSettings(repository: SettingsRepository, settings: Live
         level = SettingLevel.STANDARD,
     ) {
         item {
+            ToggleSetting(
+                R.string.tooldetail_trackpad_mouse_enabled_title,
+                stringResource(R.string.tooldetail_trackpad_mouse_enabled_subtitle),
+                enabled,
+                default = SettingsDefaults.trackpad.mouseEnabled,
+            ) { scope.launch { repository.setTrackpadMouseEnabled(it) } }
+        }
+        item(visible = enabled) {
             NavRow(
                 R.string.tooldetail_trackpad_mouse_route_title,
                 subtitle = stringResource(
@@ -5890,9 +5909,36 @@ private fun TrackpadMouseSettings(repository: SettingsRepository, settings: Live
                         else -> R.string.tooldetail_trackpad_mouse_route_off
                     },
                 ),
-            ) { ask() }
+            ) {
+                when {
+                    // Already clicking through Shizuku: nothing to set here.
+                    shell -> Unit
+                    // On already: no disclosure for a grant that is given.
+                    // Android's page is where it is turned off again.
+                    serviceOn -> runCatching {
+                        context.startActivity(
+                            Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                        )
+                    }
+                    else -> ask()
+                }
+            }
         }
-        item {
+        // Shizuku's door, for anyone who has it: the master switch and the
+        // row that gets, starts or allows it, as on the permissions page.
+        item(visible = enabled && ShellFeatures.offered) {
+            ToggleSetting(
+                R.string.tooldetail_trackpad_mouse_shizuku_title,
+                stringResource(R.string.tooldetail_trackpad_mouse_shizuku_subtitle),
+                shellOn,
+                default = false,
+            ) {
+                shellOn = it
+                ShellFeatures.setEnabled(context, it)
+            }
+        }
+        item(visible = enabled && ShellFeatures.offered && shellOn) { LauncherShizukuRow() }
+        item(visible = enabled) {
             SliderSetting(
                 R.string.tooldetail_trackpad_pointer_speed_title,
                 subtitle = stringResource(R.string.tooldetail_trackpad_pointer_speed_subtitle),
@@ -5902,7 +5948,7 @@ private fun TrackpadMouseSettings(repository: SettingsRepository, settings: Live
                 default = SettingsDefaults.trackpad.pointerSpeed.toFloat(),
             ) { scope.launch { repository.setTrackpadPointerSpeed(it.toInt()) } }
         }
-        item {
+        item(visible = enabled) {
             ToggleSetting(
                 R.string.tooldetail_trackpad_pointer_accel_title,
                 stringResource(R.string.tooldetail_trackpad_pointer_accel_subtitle),
@@ -5910,7 +5956,7 @@ private fun TrackpadMouseSettings(repository: SettingsRepository, settings: Live
                 default = SettingsDefaults.trackpad.pointerAcceleration,
             ) { scope.launch { repository.setTrackpadPointerAcceleration(it) } }
         }
-        item {
+        item(visible = enabled) {
             SliderSetting(
                 R.string.tooldetail_trackpad_scroll_speed_title,
                 subtitle = stringResource(R.string.tooldetail_trackpad_scroll_speed_subtitle),
@@ -5920,7 +5966,7 @@ private fun TrackpadMouseSettings(repository: SettingsRepository, settings: Live
                 default = SettingsDefaults.trackpad.scrollSpeed.toFloat(),
             ) { scope.launch { repository.setTrackpadScrollSpeed(it.toInt()) } }
         }
-        item {
+        item(visible = enabled) {
             ToggleSetting(
                 R.string.tooldetail_trackpad_natural_scroll_title,
                 stringResource(R.string.tooldetail_trackpad_natural_scroll_subtitle),

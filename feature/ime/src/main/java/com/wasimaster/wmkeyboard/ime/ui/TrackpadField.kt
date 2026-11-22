@@ -84,9 +84,10 @@ import kotlin.math.min
 internal fun TrackpadField(settings: TrackpadSettings, callbacks: TrackpadFieldCallbacks) {
     val kb = LocalKbTheme.current
     val pointer = callbacks.mouse.pointer
-    // Read once per composition: the lock screen, the channel and a docked
-    // board decide it, and the panel recomposes whenever any of those can change.
-    val mouseOffered = pointer != null && pointer.offered()
+    // Off until turned on in the tool's settings. Then read once per
+    // composition: the lock screen, the channel and a docked board decide it,
+    // and the panel recomposes whenever any of those can change.
+    val mouseOffered = settings.mouseEnabled && pointer != null && pointer.offered()
     val mouseOn = mouseOffered && settings.mouseMode
     if (pointer != null) {
         DisposableEffect(pointer, mouseOn) {

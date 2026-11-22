@@ -43,7 +43,7 @@ Every move is a real arrow key sent to the field, the same event a hardware keyb
 
 ## Mouse mode
 
-The chip in the trackpad's top corner switches it between **Cursor**, everything above, and **Mouse**. In mouse mode an arrow pointer appears over the app above the keyboard and the surface drives it the way a laptop's pad drives its pointer: you can press buttons, open links, scroll lists and drag things in the app without reaching up to touch them. The panel remembers which mode you left it in, so the next time you open the trackpad it comes back the same way. Tap the chip again, or the <KeyCap>abc</KeyCap> key, to go back.
+Mouse mode is off until you turn it on: <SettingsPath path="Tools / Trackpad / Mouse mode" />. Once it's on, a chip in the trackpad's top corner switches it between **Cursor**, everything above, and **Mouse**. In mouse mode an arrow pointer appears over the app above the keyboard and the surface drives it the way a laptop's pad drives its pointer: you can press buttons, open links, scroll lists and drag things in the app without reaching up to touch them. The panel remembers which mode you left it in, so the next time you open the trackpad it comes back the same way. Tap the chip again, or the <KeyCap>abc</KeyCap> key, to go back.
 
 | Gesture | What it does |
 |---|---|
@@ -60,7 +60,7 @@ The pointer stays in the part of the screen the app has above the keyboard, sinc
 
 Android doesn't let one app click in another on its own, so mouse mode works through one of two routes, and the tool's settings page says which one is in use.
 
-- **Shizuku.** If you've turned on [Shizuku or root for keyboard features](/reference/settings/permissions/#shizuku-or-root) and granted the keyboard in Shizuku (Sui counts too), clicks go in as events from a real mouse. Apps treat them exactly as they would a USB or Bluetooth mouse: a right click opens the context menu where an app has one, scrolling is a mouse wheel, and links and buttons see the pointer hover over them.
+- **Shizuku.** Turn on **Use Shizuku or root** in the Mouse mode settings (the same switch as [Shizuku or root for keyboard features](/reference/settings/permissions/#shizuku-or-root)) and allow the keyboard from the **Shizuku** row under it, which also helps you get or start Shizuku. With the keyboard allowed (Sui counts too), clicks go in as events from a real mouse. Apps treat them exactly as they would a USB or Bluetooth mouse: a right click opens the context menu where an app has one, scrolling is a mouse wheel, and links and buttons see the pointer hover over them.
 - **The touch mouse service.** Without Shizuku, the keyboard uses an accessibility service of its own, **WM Keyboard touch mouse**, which you turn on once. It touches the screen where the pointer is: a click is a tap, a right click is a long press, a scroll is a slow swipe that stops before it lifts so the page doesn't fling, and a drag is a held touch that starts with a long press, which is what launchers and lists wait for before they pick an item up. The service reads nothing on screen and does nothing unless you're clicking on the trackpad. On Android 7 a drag or a scroll is played back as one swipe when you lift your fingers, because that version can't keep a touch going while it moves.
 
 With neither set up, the pointer still moves, and a line on the surface offers to open the touch mouse service's explanation and then Android's accessibility settings.
@@ -109,7 +109,11 @@ The trackpad is a [panel layout](/languages/custom-layouts/#panel-layouts) like 
 
 Not in the Google Play build.
 
-**How clicks reach the app**: which [route](#how-clicks-reach-the-app) the mouse is using now. Tap it for the touch mouse service's explanation and Android's accessibility settings, where the service is turned on or off.
+**Mouse mode**: off by default. Puts the Cursor / Mouse chip on the trackpad. The rows below show once it's on.
+
+**How clicks reach the app**: which [route](#how-clicks-reach-the-app) the mouse is using now. While neither route is set up, a tap explains the touch mouse service and then opens Android's accessibility settings; with the service on, a tap goes straight to those settings, where it's turned off again.
+
+**Use Shizuku or root**: the keyboard's Shizuku switch, the same one as on the permissions page. When it's on, the **Shizuku** row under it says what's missing and takes you there: getting Shizuku, starting it, or allowing the keyboard in it.
 
 **Pointer speed**: default **100%**, adjustable from 25% to 400%. How far the pointer moves for each drag on the trackpad.
 

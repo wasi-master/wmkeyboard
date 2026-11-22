@@ -362,11 +362,15 @@
     <string name="tooldetail_trackpad_info">One finger moves the cursor. Hold, then drag to select. Two fingers move a word at a time, and a two-finger tap types a space.</string>
     <!-- The Trackpad tool's mouse mode (#1411). -->
     <string name="tooldetail_trackpad_mouse_group">Mouse mode</string>
-    <string name="tooldetail_trackpad_mouse_info">Switch the trackpad to Mouse with the chip in its corner and it moves a pointer over the app above the keyboard. Tap to click, tap with two fingers to right-click, drag with two fingers to scroll, and hold, then drag, to drag and drop. Clicks go through Shizuku when the keyboard may use it, otherwise through the touch mouse service.</string>
+    <string name="tooldetail_trackpad_mouse_info">Turn on Mouse mode, then switch the trackpad to Mouse with the chip in its corner, and it moves a pointer over the app above the keyboard. Tap to click, tap with two fingers to right-click, drag with two fingers to scroll, and hold, then drag, to drag and drop. Clicks go through Shizuku when the keyboard may use it, otherwise through the touch mouse service.</string>
+    <string name="tooldetail_trackpad_mouse_enabled_title">Mouse mode</string>
+    <string name="tooldetail_trackpad_mouse_enabled_subtitle">Show a Cursor / Mouse switch on the trackpad, so it can move a pointer over the app and click</string>
+    <string name="tooldetail_trackpad_mouse_shizuku_title">Use Shizuku or root</string>
+    <string name="tooldetail_trackpad_mouse_shizuku_subtitle">Click as a real mouse through Shizuku: right-click menus, wheel scrolling and hover. The same switch as Privacy › Permissions › Shizuku or root</string>
     <string name="tooldetail_trackpad_mouse_route_title">How clicks reach the app</string>
     <string name="tooldetail_trackpad_mouse_route_shell">Through Shizuku, as a real mouse: right-click menus, wheel scrolling and hover work as with a mouse plugged in</string>
-    <string name="tooldetail_trackpad_mouse_route_service">Through the touch mouse service: a click is a tap at the pointer, a right-click a long press, a scroll a swipe</string>
-    <string name="tooldetail_trackpad_mouse_route_off">Off. Turn on the touch mouse service, or Shizuku for the keyboard, so the pointer can click</string>
+    <string name="tooldetail_trackpad_mouse_route_service">Through the touch mouse service: a click is a tap at the pointer, a right-click a long press, a scroll a swipe. Tap to open Android\'s accessibility settings</string>
+    <string name="tooldetail_trackpad_mouse_route_off">Not set up. Tap to turn on the touch mouse service, or use Shizuku below, so the pointer can click</string>
     <string name="tooldetail_trackpad_pointer_speed_title">Pointer speed</string>
     <string name="tooldetail_trackpad_pointer_speed_subtitle">How far the pointer moves for each drag on the trackpad</string>
     <string name="tooldetail_trackpad_pointer_accel_title">Pointer acceleration</string>

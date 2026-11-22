@@ -8211,6 +8211,12 @@ data class TrackpadSettings(
      * chip on the surface itself.
      */
     val mouseMode: Boolean = false,
+    /**
+     * Whether mouse mode is offered at all: the Cursor / Mouse chip on the
+     * surface. Off by default, so the trackpad stays the caret pad it always
+     * was until the user turns the mouse on in the tool's settings.
+     */
+    val mouseEnabled: Boolean = false,
     /** The pointer's speed in mouse mode, as a percentage of finger travel. */
     val pointerSpeed: Int = 100,
     /**
@@ -14309,6 +14315,7 @@ class SettingsRepository(private val context: Context) {
         private val TRACKPAD_TRAIL = booleanPreferencesKey("trackpad_trail")
         private val TRACKPAD_MAGNIFIER = booleanPreferencesKey("trackpad_magnifier")
         private val TRACKPAD_MOUSE_MODE = booleanPreferencesKey("trackpad_mouse_mode")
+        private val TRACKPAD_MOUSE_ENABLED = booleanPreferencesKey("trackpad_mouse_enabled")
         private val TRACKPAD_POINTER_SPEED = intPreferencesKey("trackpad_pointer_speed")
         private val TRACKPAD_POINTER_ACCEL = booleanPreferencesKey("trackpad_pointer_accel")
         private val TRACKPAD_SCROLL_SPEED = intPreferencesKey("trackpad_scroll_speed")
@@ -17343,6 +17350,7 @@ class SettingsRepository(private val context: Context) {
             trail = p[TRACKPAD_TRAIL] ?: defaults.trackpad.trail,
             magnifier = p[TRACKPAD_MAGNIFIER] ?: defaults.trackpad.magnifier,
             mouseMode = p[TRACKPAD_MOUSE_MODE] ?: defaults.trackpad.mouseMode,
+            mouseEnabled = p[TRACKPAD_MOUSE_ENABLED] ?: defaults.trackpad.mouseEnabled,
             pointerSpeed = p[TRACKPAD_POINTER_SPEED] ?: defaults.trackpad.pointerSpeed,
             pointerAcceleration = p[TRACKPAD_POINTER_ACCEL] ?: defaults.trackpad.pointerAcceleration,
             scrollSpeed = p[TRACKPAD_SCROLL_SPEED] ?: defaults.trackpad.scrollSpeed,
@@ -19510,6 +19518,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setTrackpadMouseMode(value: Boolean) =
         editPrefs { it[TRACKPAD_MOUSE_MODE] = value }
+
+    suspend fun setTrackpadMouseEnabled(value: Boolean) =
+        editPrefs { it[TRACKPAD_MOUSE_ENABLED] = value }
 
     suspend fun setTrackpadPointerSpeed(value: Int) =
         editPrefs { it[TRACKPAD_POINTER_SPEED] = value.coerceIn(TrackpadSpeedRange) }
