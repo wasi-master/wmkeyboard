@@ -190,24 +190,21 @@ internal fun HuggingFaceImportRow(target: HfTarget, settings: LiveSettings, onIn
     if (!InternetPermission.granted) return
     var open by remember { mutableStateOf(false) }
     val state by HuggingFaceImports.state.collectAsState()
+    val downloadingHere = (state as? HuggingFaceImports.State.Downloading)?.target == target
+    val cancelLabel = stringResource(R.string.models_cancel_download_desc)
+    val cancel: @Composable () -> Unit = {
+        IconButton(onClick = { HuggingFaceImports.cancel() }) {
+            Icon(Icons.Outlined.Close, contentDescription = cancelLabel)
+        }
+    }
     Column {
         WmRow(
             title = stringResource(R.string.voice_hf_import_title),
             subtitle = stringResource(R.string.voice_hf_import_subtitle),
             leading = { Icon(Icons.Outlined.CloudDownload, contentDescription = null) },
-            enabled = !HuggingFaceImports.isBusy,
-            onClick = { open = true },
-            trailing = if (state is HuggingFaceImports.State.Downloading &&
-                (state as HuggingFaceImports.State.Downloading).target == target
-            ) {
-                {
-                    IconButton(onClick = { HuggingFaceImports.cancel() }) {
-                        Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.models_cancel_download_desc))
-                    }
-                }
-            } else {
-                null
-            },
+            // Kept enabled while downloading, so its cancel button can be pressed.
+            onClick = { if (!HuggingFaceImports.isBusy) open = true },
+            trailing = if (downloadingHere) cancel else null,
         )
         when (val s = state) {
             is HuggingFaceImports.State.Downloading -> if (s.target == target) {
