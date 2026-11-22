@@ -139,25 +139,46 @@ object ClockNotifications {
      * An alarm's notice (#970): while it is snoozed, the time it rings again
      * and a button that ends the snooze; in the minutes before it rings, when
      * [ClockConfig.upcomingNoticeMinutes] asks, the time and a button that
-     * skips it. Not while it rings: the ring has a notification of its own.
+     * skips it. With that set to [ClockConfig.UPCOMING_ALWAYS], the alarm that
+     * rings next has its notice from the moment it is set, the way alarm apps
+     * keep one in the shade, so an alarm set and forgotten does not come as a
+     * surprise. Not while it rings: the ring has a notification of its own.
      */
     private fun postAlarmNotices(context: Context, data: ClockData, wanted: MutableSet<Int>) {
         val config = ClockPrefs.get(context)
         val now = System.currentTimeMillis()
         val zone = java.util.TimeZone.getDefault()
         val hour24 = android.text.format.DateFormat.is24HourFormat(context)
+        val always = config.upcomingNoticeMinutes == ClockConfig.UPCOMING_ALWAYS
         val window = config.upcomingNoticeMinutes * 60_000L
+        // Always: the one alarm that rings first, not every alarm that is on.
+        val first = if (always) {
+            AlarmMath.nextOfAll(
+                data.alarms.filterNot { a -> data.ringing.any { it.kind == RingKind.ALARM && it.ref == a.id } },
+                now,
+                zone,
+            )?.first?.id
+        } else null
         for (alarm in data.alarms) {
             if (data.ringing.any { it.kind == RingKind.ALARM && it.ref == alarm.id }) continue
             val snoozed = alarm.enabled && alarm.snoozedUntil > now
-            val next = if (snoozed || window <= 0) null else AlarmMath.nextFire(alarm, now, zone)
-            val coming = next != null && next - now <= window
+            val next = if (snoozed || (window <= 0 && !always)) null else AlarmMath.nextFire(alarm, now, zone)
+            val coming = next != null && if (always) alarm.id == first else next - now <= window
             if (!(snoozed && config.snoozedNotice) && !coming) continue
             val id = NotificationIds.forAlarmNotice(alarm.id)
             wanted += id
             val at = if (snoozed) alarm.snoozedUntil else next!!
             val title = alarm.label.ifEmpty { context.getString(R.string.core_tools_clock_alarm) }
-            val time = ClockFormats.time(at, zone, hour24)
+            // A day as well once it is not today: an always-on notice can be days ahead.
+            val time = if (ClockFormats.dayKey(at, zone) == ClockFormats.dayKey(now, zone)) {
+                ClockFormats.time(at, zone, hour24)
+            } else {
+                context.getString(
+                    R.string.core_tools_clock_day_time,
+                    ClockFormats.weekday(at, zone),
+                    ClockFormats.time(at, zone, hour24),
+                )
+            }
             WmNotifications.post(context, NotificationKind.CLOCK, id, NotificationSubChannel.CLOCK_ALARMS) {
                 // An icon each in the status bar (#970): a snooze, or a ring to come.
                 setSmallIcon(if (snoozed) R.drawable.core_tools_ic_snooze else R.drawable.core_tools_ic_alarm_on)

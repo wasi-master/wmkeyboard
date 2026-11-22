@@ -98,7 +98,9 @@
     <string name="clock_ringing_now_timer">A timer. Tap to answer it</string>
     <string name="clock_upcoming_title">Notice before an alarm</string>
     <string name="clock_upcoming_subtitle">Shows the next alarm in the notifications this long before it rings, with a button to skip it</string>
-    <string name="clock_upcoming_info">Shows a notification this long before an alarm rings. The notification names the alarm and has a button to skip it, for the days you wake up before it.</string>
+    <string name="clock_upcoming_info">Shows a notification this long before an alarm rings. The notification names the alarm and has a button to skip it, for the days you wake up before it. Always keeps the next alarm in the notifications from the moment you set it, with its day and time, the way alarm apps do, so you can see an alarm is set without opening the clock.</string>
+    <!-- #970: the choice that keeps the next alarm in the notifications all the time. -->
+    <string name="clock_upcoming_always">Always</string>
     <string name="clock_snoozed_notice_title">Notice while snoozed</string>
     <string name="clock_snoozed_notice_subtitle">Shows a snoozed alarm in the notifications, with a button to end the snooze</string>
     <string name="clock_snoozed_notice_info">While an alarm is snoozed, a notification shows when it rings again. Its button ends the snooze, so the alarm does not ring a second time.</string>

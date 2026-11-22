@@ -230,8 +230,13 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
             ChoiceSetting(
                 title = R.string.clock_upcoming_title,
                 subtitle = stringResource(R.string.clock_upcoming_subtitle),
-                options = listOf(0, 15, 30, 60, 120).map { m ->
-                    m to if (m == 0) stringResource(R.string.clock_fade_off) else minutes(m.toFloat())
+                // Always (#970): the next alarm in the shade from when it is set.
+                options = listOf(0, 15, 30, 60, 120, ClockConfig.UPCOMING_ALWAYS).map { m ->
+                    m to when (m) {
+                        0 -> stringResource(R.string.clock_fade_off)
+                        ClockConfig.UPCOMING_ALWAYS -> stringResource(R.string.clock_upcoming_always)
+                        else -> minutes(m.toFloat())
+                    }
                 },
                 selected = config.upcomingNoticeMinutes,
                 default = defaults.upcomingNoticeMinutes,

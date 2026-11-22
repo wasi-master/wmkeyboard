@@ -44,7 +44,8 @@ data class ClockConfig(
     val autoSnoozes: Int = 0,
     /**
      * Minutes before an alarm a notice says it is coming, with a button that
-     * skips it (#970). 0, the default, posts none.
+     * skips it (#970). 0, the default, posts none; [UPCOMING_ALWAYS] keeps the
+     * next alarm in the shade from the moment it is set, as alarm apps do.
      */
     val upcomingNoticeMinutes: Int = 0,
     /** A notice in the shade while an alarm is snoozed, with a button that ends the snooze (#970). */
@@ -72,6 +73,13 @@ data class ClockConfig(
     companion object {
         /** [autoSnoozes] for an alarm that snoozes itself until someone answers it (#970). */
         const val SNOOZE_UNTIL_ANSWERED = Int.MAX_VALUE
+
+        /**
+         * [upcomingNoticeMinutes] for a notice that is always there (#970): the
+         * alarm that rings next, however far off, so a set alarm is never a
+         * surprise. Negative so no reading of it as minutes can mean anything.
+         */
+        const val UPCOMING_ALWAYS = -1
     }
     val pomodoro: PomodoroPlan
         get() = PomodoroPlan(focusMinutes, shortBreakMinutes, longBreakMinutes, longBreakEvery)

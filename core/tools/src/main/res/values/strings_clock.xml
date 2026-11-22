@@ -17,6 +17,8 @@
     <string name="core_tools_clock_skip">Skip</string>
     <string name="core_tools_clock_snoozed_until">Snoozed until %1$s</string>
     <string name="core_tools_clock_coming_at">Rings at %1$s</string>
+    <!-- #970: an alarm's day and time in its notice, once it is not today, as "Tue 7:00". -->
+    <string name="core_tools_clock_day_time">%1$s %2$s</string>
     <string name="core_tools_clock_missed_title">Missed: %1$s</string>
     <!-- After an update took the full-screen alerts grant while alarms are set (#1287). -->
     <string name="core_tools_clock_full_screen_lost_title">Alarms can\'t light up the lock screen</string>
