@@ -325,6 +325,18 @@ inside a fence long enough that no backtick run in it can escape.
    code would send production back through review for nothing. 0.5.13 did
    this, as versionCode 28 on GitHub and F-Droid and 27 on Play.
 
+6. **Pull the settings-link refresh.** Pushing the tag also starts the
+   **Settings links** workflow (`.github/workflows/settings-links.yml`). It
+   reruns `scripts/extract_settings_links.sh` and
+   `scripts/extract-settings-since.mjs`, which read the tags to find which
+   release first has each settings screen and row, and commits
+   `src/data/settings-since.json` back to `main`. The `/open/` page, the link
+   builder and the settings chips show that as "Added in version …". Until the
+   workflow finishes, what the new tag shipped still reads **Not released yet**
+   on the site. Pull `main` before you push again.
+
+</Steps>
+
 ### Pre-releases
 
 A `wmkb.versionName` with anything after the numbers, such as `0.6.8rc1` or
@@ -350,18 +362,6 @@ F-Droid's update bot reads every tag unless its recipe says otherwise, so
 fdroiddata's `UpdateCheckMode` has to carry the pattern
 `Tags ^v[0-9]+\.[0-9]+\.[0-9]+$`, as `fdroid/com.wasimaster.wmkeyboard.yml`
 does. Without it F-Droid builds the pre-release and ships it to everyone.
-
-6. **Pull the settings-link refresh.** Pushing the tag also starts the
-   **Settings links** workflow (`.github/workflows/settings-links.yml`). It
-   reruns `scripts/extract_settings_links.sh` and
-   `scripts/extract-settings-since.mjs`, which read the tags to find which
-   release first has each settings screen and row, and commits
-   `src/data/settings-since.json` back to `main`. The `/open/` page, the link
-   builder and the settings chips show that as "Added in version …". Until the
-   workflow finishes, what the new tag shipped still reads **Not released yet**
-   on the site. Pull `main` before you push again.
-
-</Steps>
 
 ### Telling the issues
 
