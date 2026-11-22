@@ -112,17 +112,30 @@ internal fun CustomButtonsScreen(
 
     fun add(kind: CustomButtonKind, target: String, label: String = "", pkg: String = "", icon: android.graphics.drawable.Drawable? = null) {
         scope.launch {
-            var made: String? = null
+            // The picture is on disk before the button is in the list (#1489).
+            // Written after, the keyboard and this page could read the new
+            // button first, find no file, fall back to the app's own icon, and
+            // keep that one: a picture is loaded once per button, not again
+            // when its file turns up. So it is drawn to a file of its own
+            // first and moved under the button's id in the same write that
+            // adds the button, once the id is known.
+            val staged = if (kind == CustomButtonKind.SHORTCUT) {
+                withContext(Dispatchers.IO) { CustomShortcutSources.stageIcon(context, icon) }
+            } else {
+                null
+            }
+            var added = false
             repository.updateCustomButtons { current ->
                 if (current.size >= MAX_CUSTOM_BUTTONS) return@updateCustomButtons current
                 val id = current.nextCustomButtonId()
-                made = id
+                // Moved, or for a shortcut with no picture cleared: an id is
+                // reused, and a deleted button's picture must not come back.
+                if (kind == CustomButtonKind.SHORTCUT) CustomShortcutSources.placeIcon(context, staged, id)
+                added = true
                 current + CustomButton(id = id, kind = kind, target = target, label = label, packageName = pkg)
             }
-            val id = made
-            if (id != null && kind == CustomButtonKind.SHORTCUT) {
-                withContext(Dispatchers.IO) { CustomShortcutSources.saveIcon(context, id, icon) }
-            }
+            // Not added (the list filled up meanwhile): no picture left behind.
+            if (!added && staged != null) withContext(Dispatchers.IO) { runCatching { staged.delete() } }
         }
     }
 

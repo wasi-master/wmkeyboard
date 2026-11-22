@@ -13,6 +13,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Process
 import android.os.UserManager
+import java.io.File
 import androidx.core.graphics.drawable.toBitmap
 import com.wasimaster.wmkeyboard.core.settings.CUSTOM_LAUNCHER_SHORTCUT_PREFIX
 import com.wasimaster.wmkeyboard.core.settings.shellActivityTarget
@@ -145,17 +146,31 @@ internal object CustomShortcutSources {
         }.getOrNull()
     }
 
-    /** Draws [drawable] into the button's picture file, so the keyboard can show it later. */
-    fun saveIcon(context: Context, id: String, drawable: Drawable?) {
-        val file = CustomButtonFaces.iconFile(context, id)
-        if (drawable == null) {
-            file.delete()
-            return
-        }
-        runCatching {
-            file.parentFile?.mkdirs()
+    /**
+     * Draws [drawable] into a picture file not yet any button's, for
+     * [placeIcon] to move under the new button's id. Null when there is no
+     * picture or it could not be written.
+     */
+    fun stageIcon(context: Context, drawable: Drawable?): File? {
+        if (drawable == null) return null
+        return runCatching {
+            val dir = CustomButtonFaces.iconFile(context, "staged").parentFile ?: return null
+            dir.mkdirs()
+            val file = File.createTempFile("staged", ".png", dir)
             val bitmap = drawable.toBitmap(ICON_PX, ICON_PX, Bitmap.Config.ARGB_8888)
             file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            file
+        }.getOrNull()
+    }
+
+    /** Makes [staged] button [id]'s picture, or with none clears whatever picture that id had. */
+    fun placeIcon(context: Context, staged: File?, id: String) {
+        val file = CustomButtonFaces.iconFile(context, id)
+        runCatching {
+            if (staged == null || !staged.renameTo(file)) {
+                file.delete()
+                staged?.delete()
+            }
         }
     }
 
