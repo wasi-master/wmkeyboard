@@ -170,6 +170,8 @@ class AiToolRunner(
         // Only with a picture in the chat, and the reader only for a model
         // that cannot look at the picture itself.
         AiTools.READ_IMAGE_TEXT -> host.let { it != null && it.imageCount > 0 && it.canReadImageText && !it.modelSeesImages }
+        // The same, with a model that sees picked under "Describe pictures with".
+        AiTools.DESCRIBE_IMAGE -> host.let { it != null && it.imageCount > 0 && it.canDescribeImage && !it.modelSeesImages }
         AiTools.REVERSE_IMAGE_SEARCH -> (host?.imageCount ?: 0) > 0
         else -> true
     }
@@ -487,6 +489,7 @@ class AiToolRunner(
         AiTools.HOME_ASSISTANT -> homeAssistant(call)
         AiTools.HOME_ASSISTANT_STATES -> homeAssistantStates(call)
         AiTools.READ_IMAGE_TEXT -> readImageText(call)
+        AiTools.DESCRIBE_IMAGE -> describeImage(call)
         AiTools.REVERSE_IMAGE_SEARCH -> reverseImageSearch(call)
         else -> refused(
             call,
@@ -1280,6 +1283,13 @@ class AiToolRunner(
         val number = pictureNumber(call) ?: return noPicture(call)
         val text = requireNotNull(host).readImageText(number).getOrThrow()
         return AiToolResult(call, if (text.isBlank()) "Picture $number has no text in it." else "The text in picture $number:\n$text")
+    }
+
+    /** One of the user's pictures as the model that sees describes it, with the question the call asked. */
+    private fun describeImage(call: AiToolCall): AiToolResult {
+        val number = pictureNumber(call) ?: return noPicture(call)
+        val description = requireNotNull(host).describeImage(number, call.argument("question").orEmpty()).getOrThrow()
+        return AiToolResult(call, description)
     }
 
     /**

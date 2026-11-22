@@ -167,6 +167,7 @@
     <string name="models_llm_get_npu_build_action">Get the NPU build, <xliff:g id="size" example="689 MB">%1$s</xliff:g></string>
     <string name="models_llm_get_standard_build_action">Get the standard build, <xliff:g id="size" example="584 MB">%1$s</xliff:g></string>
     <!-- Under a model row when its NPU build is on the phone. -->
+    <string name="models_llm_reads_pictures">Reads pictures</string>
     <string name="models_llm_npu_build_label">NPU build on this phone</string>
 
     <!-- Model storage. %1$s is how much space the models use. -->

@@ -315,6 +315,14 @@
     <string name="toolai_ai_builtin_calendar_none">No calendar on this phone can take new events.</string>
     <string name="toolai_ai_builtin_read_image_text_title">Read text in a picture</string>
     <string name="toolai_ai_builtin_read_image_text_subtitle">For a model that can\'t see pictures: reads the text in one you sent, on your device, or with the scan text tool\'s online engine if you picked that</string>
+    <string name="toolai_ai_pictures_group_title">Pictures</string>
+    <string name="toolai_ai_picture_describer_title">Describe pictures with</string>
+    <string name="toolai_ai_picture_describer_subtitle">A model that sees, looking at pictures for one that can\'t</string>
+    <string name="toolai_ai_picture_describer_none">No model that reads pictures is set up yet</string>
+    <string name="toolai_ai_picture_describer_off">None</string>
+    <string name="toolai_ai_picture_describer_info">When the model you chat with can\'t see pictures, this model looks at them for it: the chat\'s Look at a picture tool asks it to describe a picture you sent, and the reply tool can have it write out a screenshot of a chat. It can be a downloaded model marked Reads pictures, or one of your AI providers. A model on a provider gets the picture sent to it, so pick one on this phone to keep pictures here. None leaves pictures to reading their text on this device.</string>
+    <string name="toolai_ai_builtin_describe_image_title">Look at a picture</string>
+    <string name="toolai_ai_builtin_describe_image_subtitle">For a model that can\'t see pictures: the model under Describe pictures with looks at one you sent and describes it, with any text in it</string>
     <string name="toolai_ai_builtin_reverse_image_search_title">Search by picture</string>
     <string name="toolai_ai_builtin_reverse_image_search_subtitle">Uploads a picture you sent to the camera tool\'s search site and gives you the link to the results</string>
 
@@ -677,11 +685,12 @@
     <string name="toolai_reply_shots_title">Screenshots</string>
     <string name="toolai_reply_image_mode_title">How screenshots are read</string>
     <string name="toolai_reply_image_mode_subtitle">Sent to the AI as a picture, or read on this device first</string>
-    <string name="toolai_reply_image_mode_info">How a screenshot of the chat reaches the model. It can be sent as a picture, which needs a model that reads pictures, or its text can be read on this device first and sent as text. Automatic picks by what the model can do. The default is Automatic.</string>
+    <string name="toolai_reply_image_mode_info">How a screenshot of the chat reaches the model. It can be sent as a picture, which needs a model that reads pictures, or its text can be read on this device first and sent as text. Or the model under Describe pictures with, one that sees, can write the chat out as text, each message marked as yours or theirs. Automatic sends the picture to a model that reads pictures, and otherwise has it written out when a model is picked there, or read on this device when none is. The default is Automatic.</string>
     <!-- Send the picture where the provider can take one, read it here otherwise. -->
     <string name="toolai_reply_image_mode_auto">Automatic</string>
     <string name="toolai_reply_image_mode_image">Send the picture</string>
     <string name="toolai_reply_image_mode_ocr">Read on this device</string>
+    <string name="toolai_reply_image_mode_describe">Written out by another model</string>
 
     <string name="toolai_reply_after_title">After a reply</string>
     <string name="toolai_reply_tidy_title">Clear what it used</string>

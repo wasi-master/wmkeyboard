@@ -276,6 +276,31 @@ internal fun AiToolSettings(
             }
         }
     }
+    // A model that sees, looking at pictures for one that cannot: the chat's
+    // "Look at a picture" tool and the reply tool's screenshots.
+    val describerContext = LocalContext.current
+    // Read again only when the AI settings or the provider lists change: it
+    // looks at which models are on disk.
+    val describerAi = settings.watch { it.ai }
+    val describerRows = settings.watch { it.providers }
+    val describers = remember(describerAi, describerRows) {
+        com.wasimaster.wmkeyboard.ime.aichat.PictureDescriber.candidates(describerContext, settings.value)
+    }
+    SettingsGroup(stringResource(R.string.toolai_ai_pictures_group_title), level = SettingLevel.STANDARD) {
+        item {
+            ChoiceSetting(
+                R.string.toolai_ai_picture_describer_title,
+                subtitle = stringResource(
+                    if (describers.isEmpty()) R.string.toolai_ai_picture_describer_none else R.string.toolai_ai_picture_describer_subtitle,
+                ),
+                options = listOf("" to stringResource(R.string.toolai_ai_picture_describer_off)) +
+                    describers.map { it.key to com.wasimaster.wmkeyboard.ime.aichat.PictureDescriber.label(describerContext, it) },
+                selected = settings.watch { s -> s.ai.pictureDescriber.takeIf { key -> describers.any { it.key == key } }.orEmpty() },
+                default = "",
+                info = stringResource(R.string.toolai_ai_picture_describer_info),
+            ) { key -> scope.launch { repository.setAiPictureDescriber(key) } }
+        }
+    }
     // The on-device model manager, each service's extra headers and its
     // F-Droid server address are on that provider's own screen.
     SettingsGroup(stringResource(R.string.toolai_ai_output_title)) {

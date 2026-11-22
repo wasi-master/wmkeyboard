@@ -163,6 +163,25 @@ Some services want more in a request than a key. OpenCode Go, for one, reads a s
 - A name with a space or other character a header can't hold, or a value with a line break, is left out of the request rather than failing it.
 - A backup without secrets leaves the headers out, the same as API keys.
 
+### Pictures, and models that can't see them
+
+Whether a model reads pictures is decided model by model, not only by its service. A service with somewhere to put a picture (Claude, OpenAI, Gemini, Grok, Ollama, LM Studio, an OpenAI-compatible service) is sent one unless the keyboard knows its model can't read it. It finds out three ways:
+
+- **What the service says.** OpenRouter's model list names each model's inputs, Ollama lists a vision capability for a model that has one, and LM Studio's own list marks a model that sees. The keyboard asks the first time a picture is about to go, and keeps the answer for a day.
+- **What the model's name says.** Names with VL, Vision or Omni in them, GPT-4o and later, Claude, Gemini, Llama 4, Pixtral and Gemma 3 and 4 see. DeepSeek's chat models, GPT-3.5, o1-mini, o3-mini, gpt-oss, coder models and Llama 3.1 and 3.3 don't.
+- **What a request taught.** A service that turns a picture down because its model can't read it gets the question again without the picture, and that model is treated as one that can't see until the app restarts.
+
+A model nothing is known about is sent the picture, as before, so a model that can see is never kept from it by a guess.
+
+In the [chat's](/tools/ai-chat/) model chips, a picture mark after a name means the model is known to read pictures. In the [local models](#local-models) catalog the same models carry a **Reads pictures** chip.
+
+<SettingsPath path="Tools / AI writing tools / Describe pictures with" /> picks a model that sees to look at pictures for one that can't. It can be a downloaded model marked **Reads pictures**, an imported GGUF model with its `mmproj` file, or any of your AI providers whose model isn't known to be blind. With one picked:
+
+- **In a chat**, a model that can't see gets the **Look at a picture** tool beside **Read text in a picture** (see [The keyboard's own tools](#the-keyboards-own-tools)). It asks the picked model to describe a picture you sent, with any text in it, and can ask about something in particular. The answer says which model looked.
+- **In the [reply tool](/tools/ai-reply/#screenshots)**, a screenshot can be written out by the picked model, each message marked as yours or theirs, instead of being read on the device.
+
+A model on one of your providers gets the picture sent to it, the same as if you chatted with it, so pick a downloaded model to keep pictures on the phone. With both models on the phone, the two take turns in memory: each picture means loading the one that looks, then the one you chat with again, which takes a few seconds. **None**, the default, leaves pictures to reading their text on the device.
+
 ### Self-hosted servers
 
 **Ollama** and **LM Studio** point at a server on your own network instead of a cloud API. No key is needed, only an address like `http://192.168.0.10:11434` (Ollama) or `http://192.168.0.10:1234` (LM Studio). Set `OLLAMA_HOST=0.0.0.0` so Ollama listens beyond localhost. Turn on LM Studio's local-server option. Add one row for each server you run. Ollama defaults its model field to `qwen3` when you leave it blank. LM Studio has no default model to fall back to, so it uses whatever the server currently has loaded.
@@ -205,7 +224,7 @@ Two of the eleven are gated and need a Hugging Face account. Paste a token into 
 
 #### GGUF models on llama.cpp
 
-Below them sits a second list, **GGUF models (llama.cpp)**. These run on [llama.cpp](https://github.com/ggml-org/llama.cpp), a second engine that loads any GGUF file, the format most open models are published in. Each row says **Runs on llama.cpp**, and its name ends in "(GGUF)", which keeps it apart from a LiteRT-LM model of the same name in the panel's and the chat's model pickers. Picking one of these models is how you pick the engine: the keyboard routes every request to whichever engine runs the model in use. On the F-Droid build this is the only list: it has llama.cpp but not LiteRT-LM.
+Below them sits a second list, **GGUF models (llama.cpp)**. These run on [llama.cpp](https://github.com/ggml-org/llama.cpp), a second engine that loads any GGUF file, the format most open models are published in. Each row says **Runs on llama.cpp**, and its name ends in "(GGUF)", which keeps it apart from a LiteRT-LM model of the same name in the panel's and the chat's model pickers. Picking one of these models is how you pick the engine: the keyboard routes every request to whichever engine runs the model in use. A model that reads pictures, in either list, has a **Reads pictures** chip beside its name. On the F-Droid build this is the only list: it has llama.cpp but not LiteRT-LM.
 
 | Model | Params | Size | Tier | Licence |
 |---|---|---|---|---|
@@ -404,6 +423,7 @@ Each tool has its own **Run**, **Ask** or **Off**, the same three choices an [MC
 | **Read your home** | Lists what is on or open across every home of the [Smart home tool](/tools/home-assistant/), or whatever matches a home, room, device or sensor name. Only listed while a home is set up. | Ask |
 | **Control your home** | Works one device on any home of the [Smart home tool](/tools/home-assistant/): lights, fans, temperature, scenes, locks. The model finds the device with **Read your home** first. With a Home Assistant on the list it can also send one plain sentence to Assist. | Ask |
 | **Read text in a picture** | For a model that can't see pictures: reads the text in one you [sent in the chat](/tools/ai-chat/#sending-pictures), with ML Kit on your device <Flavor edition="google" />, or the [scan text tool's](/tools/scanner/) online engine if you picked that. | Run |
+| **Look at a picture** | For a model that can't see pictures: the model under [Describe pictures with](#pictures-and-models-that-cant-see-them) describes one you sent, with any text in it, and answers what the model asked about it. Only listed while one is picked. | Run |
 | **Search by picture** | Uploads a picture you sent to the [camera tool's](/tools/camera/) search site (Google Lens unless you changed it) and gives you the link to the results. The model can't read that page itself. | Off |
 
 The tools that read what's on your phone, and the ones that change something, start on **Ask**. A web page the model reads could carry instructions of its own, and **Ask** means nothing it says reaches your calendar or your notes without you seeing the request first. None of the tools can delete or edit anything: they only read, add or start. **Always allow** on the request card switches that tool to **Run**.

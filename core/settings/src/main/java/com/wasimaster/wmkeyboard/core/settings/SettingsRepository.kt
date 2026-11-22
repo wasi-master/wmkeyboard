@@ -6100,6 +6100,14 @@ data class AiSettings(
      */
     val stripSuggestVia: AiSettings? = null,
     /**
+     * The model that looks at a picture for a model that cannot: its
+     * `AiChatController.ModelChoice.key`, a downloaded on-device model that
+     * sees or an AI providers row whose model does. Blank for none, which
+     * leaves the pictures to on-device text reading. The chat's "Look at a
+     * picture" tool and the reply tool's screenshots use it.
+     */
+    val pictureDescriber: String = "",
+    /**
      * Let the model search the web when it needs to (#470).
      *
      * On by default, but only reachable once a search service is set up — the
@@ -14716,6 +14724,7 @@ class SettingsRepository(private val context: Context) {
         private val AI_STRIP_SUGGEST_PROMPT = stringPreferencesKey("ai_strip_suggest_prompt")
         private val AI_STRIP_SUGGEST_OFF_LANGUAGES = stringSetPreferencesKey("ai_strip_suggest_off_languages")
         private val AI_STRIP_SUGGEST_PROVIDER = stringPreferencesKey("ai_strip_suggest_provider")
+        private val AI_PICTURE_DESCRIBER = stringPreferencesKey("ai_picture_describer")
         private val AI_DIFF_VIEW = booleanPreferencesKey("ai_diff_view")
         private val AI_TOOL_WEB_SEARCH = booleanPreferencesKey("ai_tool_web_search")
         private val AI_TOOL_WEB_FETCH = booleanPreferencesKey("ai_tool_web_fetch")
@@ -17635,6 +17644,7 @@ class SettingsRepository(private val context: Context) {
             stripSuggestPrompt = p[AI_STRIP_SUGGEST_PROMPT] ?: defaults.ai.stripSuggestPrompt,
             stripSuggestOffLanguages = p[AI_STRIP_SUGGEST_OFF_LANGUAGES] ?: defaults.ai.stripSuggestOffLanguages,
             stripSuggestProvider = p[AI_STRIP_SUGGEST_PROVIDER] ?: defaults.ai.stripSuggestProvider,
+            pictureDescriber = p[AI_PICTURE_DESCRIBER] ?: defaults.ai.pictureDescriber,
             toolWebSearch = p[AI_TOOL_WEB_SEARCH] ?: defaults.ai.toolWebSearch,
             toolWebFetch = p[AI_TOOL_WEB_FETCH] ?: defaults.ai.toolWebFetch,
             toolMaxRounds = p[AI_TOOL_MAX_ROUNDS] ?: defaults.ai.toolMaxRounds,
@@ -24429,6 +24439,10 @@ class SettingsRepository(private val context: Context) {
     /** The AI providers row the strip asks, by key; blank for the AI tool's own. */
     suspend fun setAiStripSuggestProvider(key: String) =
         editPrefs { if (key.isBlank()) it.remove(AI_STRIP_SUGGEST_PROVIDER) else it[AI_STRIP_SUGGEST_PROVIDER] = key }
+
+    /** The model that looks at pictures for one that cannot, by its choice key; blank for none. */
+    suspend fun setAiPictureDescriber(key: String) =
+        editPrefs { if (key.isBlank()) it.remove(AI_PICTURE_DESCRIBER) else it[AI_PICTURE_DESCRIBER] = key }
 
     suspend fun setAiStripSuggestWordOnly(value: Boolean) =
         editPrefs { it[AI_STRIP_SUGGEST_WORD_ONLY] = value }

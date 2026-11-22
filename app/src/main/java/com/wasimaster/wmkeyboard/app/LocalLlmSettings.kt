@@ -481,6 +481,7 @@ private fun CatalogModelRow(
                         )
                     }
                     TierBadge(model.tier)
+                    if (model.vision) PicturesBadge()
                 }
             },
             supporting = {
@@ -781,6 +782,22 @@ private fun SelectionHighlight(
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
             .animateContentSize(),
         content = content,
+    )
+}
+
+/** "Reads pictures" next to a model's name: one that looks at a screenshot or a picture itself. */
+@Composable
+private fun PicturesBadge() {
+    Text(
+        stringResource(R.string.models_llm_reads_pictures),
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSecondaryContainer,
+        maxLines = 1,
+        softWrap = false,
+        modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(MaterialTheme.colorScheme.secondaryContainer)
+            .padding(horizontal = 6.dp, vertical = 2.dp),
     )
 }
 

@@ -52,6 +52,8 @@ import com.wasimaster.wmkeyboard.core.tools.AiToolProtocol
 import com.wasimaster.wmkeyboard.core.tools.AiTools
 import com.wasimaster.wmkeyboard.core.tools.AiToolResult
 import com.wasimaster.wmkeyboard.core.tools.AiToolRunner
+import com.wasimaster.wmkeyboard.core.tools.AiPictureText
+import com.wasimaster.wmkeyboard.core.tools.AiVision
 import com.wasimaster.wmkeyboard.core.tools.ToolHttp
 import com.wasimaster.wmkeyboard.core.tools.ToolHttpException
 import com.wasimaster.wmkeyboard.ime.aimemory.AiMemoryRecall
@@ -847,11 +849,43 @@ object AiChatController {
         val conversation = store(context).get(conversationId)
         val kept = conversation?.messages.orEmpty().withIndex().filter { !it.value.failed }
         // Pictures travel with the newest question only, and only to a
-        // provider with somewhere to put them (#698). Older ones stay marks:
+        // model that can read them (#698): one whose provider has somewhere
+        // to put them and that nothing says is blind. Older ones stay marks:
         // sending every picture again with every turn would cost the user
         // for pictures the model has already answered about.
         val newestUser = kept.lastOrNull { it.value.role == AiChatMessage.ROLE_USER }?.index
-        val sendsPictures = AiClient.supportsImages(choice.provider)
+        val newestImages = newestUser?.let { kept.firstOrNull { k -> k.index == it }?.value?.images }.orEmpty()
+        if (newestImages.isNotEmpty()) AiVision.learn(config)
+        return try {
+            remoteRound(context, settings, conversationId, choice, user, seq, privateChat, pages, config, chosen, kept, newestUser, AiVision.sees(config))
+        } catch (e: Exception) {
+            // The service turned the picture down: its model cannot see. It
+            // is remembered as blind, and the question goes again without
+            // the picture, so the picture tools can look at it instead.
+            if (newestImages.isEmpty() || !AiVision.sees(config) || !AiVision.refusedPicture(e) || seq != runSeq) throw e
+            AiVision.markBlind(config)
+            remoteRound(context, settings, conversationId, choice, user, seq, privateChat, pages, config, chosen, kept, newestUser, false)
+        }
+    }
+
+    /** One try of [runRemote], with or without the newest question's pictures. */
+    @Suppress("LongParameterList")
+    private fun remoteRound(
+        context: Context,
+        settings: KeyboardSettings,
+        conversationId: Long,
+        choice: ModelChoice,
+        user: String,
+        seq: Int,
+        privateChat: Boolean,
+        pages: String,
+        config: AiClient.Config,
+        chosen: AiSettings,
+        kept: List<IndexedValue<AiChatMessage>>,
+        newestUser: Int?,
+        sendsPictures: Boolean,
+    ): String {
+        val conversation = store(context).get(conversationId)
         val turns = kept.map { (index, message) ->
             AiClient.ChatTurn(
                 if (message.role == AiChatMessage.ROLE_USER) {
@@ -876,7 +910,7 @@ object AiChatController {
         // A cloud model gets memory only once the user has allowed it.
         val memory = AiMemoryRecall.access(context, settings, onDevice = false, incognito = privateChat, conversationId = conversationId)
         val runner = AiToolRunner(
-            context, settings, toolApprover(seq), toolHost(context, settings, conversationId, choice), memory,
+            context, settings, toolApprover(seq), toolHost(context, settings, conversationId, choice, sendsPictures), memory,
         )
         val memoryPart = memoryTail(
             context, settings, conversationId,
@@ -1216,6 +1250,8 @@ object AiChatController {
         settings: KeyboardSettings,
         conversationId: Long,
         choice: ModelChoice,
+        /** The model in use is sent the pictures itself; false for one on the phone, which reads them through tools. */
+        seesImages: Boolean = false,
     ): KeyboardAiToolHost = KeyboardAiToolHost(
         context,
         hints = settings.enabledLanguages.map { it.id },
@@ -1223,7 +1259,18 @@ object AiChatController {
         homePrefs = settings.homeAssistant,
         homes = settings.homes(),
         images = store(context).get(conversationId)?.images.orEmpty(),
-        seesImages = choice.provider != AiProvider.ON_DEVICE && AiClient.supportsImages(choice.provider),
+        seesImages = seesImages,
+        // The model picked to look at pictures for one that cannot; none
+        // when it is the model in use, which looks for itself.
+        describer = PictureDescriber.chosen(context, settings)?.takeIf { it.key != choice.key }?.let { describer ->
+            { jpeg: ByteArray, question: String ->
+                PictureDescriber.look(
+                    context, settings, describer, jpeg,
+                    AiPictureText.DESCRIBE_SYSTEM, AiPictureText.describeRequest(question),
+                )
+            }
+        },
+        describerName = PictureDescriber.chosen(context, settings)?.let { PictureDescriber.label(context, it) }.orEmpty(),
         scanner = settings.scanner,
         ocrReaders = if (settings.scanner.ocrEngine == OcrEngine.ONLINE) OnlineOcr.rows(settings) else emptyList(),
         semantic = settings.semanticSearch,

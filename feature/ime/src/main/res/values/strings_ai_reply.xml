@@ -65,6 +65,7 @@
     <!-- The chosen AI provider has no way to accept a picture. -->
     <string name="ime_reply_notice_no_vision">This AI provider cannot read pictures. Choose another, or set screenshots to be read on the device.</string>
     <!-- This build has no on-device text reader. -->
+    <string name="ime_reply_notice_no_describer">Pick a model under Describe pictures with in the AI tool\'s settings to have screenshots written out.</string>
     <string name="ime_reply_notice_no_ocr">This version cannot read screenshots on the device. Choose a provider that reads pictures instead.</string>
     <string name="ime_reply_notice_nothing_read">No text was found in that screenshot.</string>
     <string name="ime_reply_notice_no_context">Add their message first.</string>

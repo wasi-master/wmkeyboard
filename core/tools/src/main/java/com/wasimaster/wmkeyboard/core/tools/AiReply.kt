@@ -143,7 +143,11 @@ enum class ReplyEmoji {
 
 /** How a screenshot reaches the model. */
 enum class ReplyImageMode {
-    /** Send the picture to models that take pictures, read it with OCR otherwise. */
+    /**
+     * Send the picture to models that take pictures. For one that does not,
+     * the picture describer writes it out when one is picked, and OCR reads
+     * it otherwise.
+     */
     AUTO,
 
     /** Always send the picture; fail rather than fall back to reading it here. */
@@ -151,6 +155,13 @@ enum class ReplyImageMode {
 
     /** Always read it on the device and send the text. */
     OCR,
+
+    /**
+     * Always have the picture describer, a model that sees, write the chat
+     * out as text, each message marked as the user's or the other person's,
+     * and send that: the model in use need not see at all.
+     */
+    DESCRIBE,
 }
 
 /**

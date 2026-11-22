@@ -168,10 +168,10 @@ object AiClient {
     /**
      * Whether a provider's request shape has anywhere to put a picture.
      *
-     * Per provider, not per model: the keyboard cannot know whether the model
-     * name somebody typed into the settings is one with eyes. A provider that
-     * accepts the field will refuse the request itself if its model cannot read
-     * it, and that error is a better answer than silently dropping the picture.
+     * Per provider. Whether the model behind it reads pictures is
+     * [AiVision]'s question, which every caller that sends one asks too; a
+     * model nothing knows about is sent the picture, and a refusal is caught
+     * ([AiVision.refusedPicture]).
      *
      * Brave answers from the web and takes a query, not a conversation with
      * attachments. The on-device engine is a text runtime here: litert-lm has a

@@ -125,9 +125,11 @@ The **+** button in the message box opens a sheet with **Pictures from the galle
 
 What the model does with them depends on what it can take:
 
-- **A cloud or self-hosted model that reads pictures** (Claude, OpenAI, Gemini, Grok, Ollama, LM Studio, any OpenAI-compatible service) is sent the pictures with your newest message. Older pictures aren't sent again with every reply after it; the model remembers what it said about them.
+- **A cloud or self-hosted model that reads pictures** (Claude, OpenAI, Gemini, Grok, Ollama, LM Studio, any OpenAI-compatible service) is sent the pictures with your newest message, unless its model is known not to read them ([how the keyboard knows](/tools/ai/#pictures-and-models-that-cant-see-them)). Older pictures aren't sent again with every reply after it; the model remembers what it said about them. If the service turns the picture down because its model can't see, the message goes again without it, and the model is treated as the next bullet says.
 - **An on-device GGUF model that reads pictures** ([Qwen 2.5 VL and SmolVLM](/tools/ai/#gguf-models-on-llamacpp), or one you imported with its `mmproj` file) is given the pictures of your newest message itself, on the phone. Older pictures stay numbered marks, as below.
-- **Any other on-device model, or a provider with no place for pictures** (Brave and DeepSeek among them) can't take one. It is told each one is there, numbered, and can use **Read text in a picture** from the [keyboard's own tools](/tools/ai/#the-keyboards-own-tools) to read what it says.
+- **Any other model** (an on-device one that can't see, a provider with no place for pictures such as Brave and DeepSeek, or a model known to be text only) can't take one. It is told each one is there, numbered, and can use **Read text in a picture** from the [keyboard's own tools](/tools/ai/#the-keyboards-own-tools) to read what it says. With a model picked under [Describe pictures with](/tools/ai/#pictures-and-models-that-cant-see-them), it can also use **Look at a picture**, and that model describes the picture for it.
+
+A picture mark after a model's name in the chips above the message box means the model is known to read pictures.
 
 Either way, with **Search by picture** turned on the model can look a picture up on the web through the [camera tool's](/tools/camera/) search site, and hands you the link to the results.
 

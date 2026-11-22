@@ -184,6 +184,25 @@ object ReplyShots {
         ?.let { runCatching { Base64.decode(it.base64, Base64.NO_WRAP) }.getOrNull() }
 
     /**
+     * [jpeg] of the part of the screenshot above [bottomCut], a fraction of
+     * its height: the keyboard, when it was on screen, is cut off, so a model
+     * asked to write the chat out does not read the keys.
+     */
+    fun jpegAbove(context: Context, uri: Uri, bottomCut: Float): ByteArray? = runCatching {
+        val bitmap = bitmap(context, uri) ?: return null
+        val height = (bitmap.height * bottomCut.coerceIn(MIN_KEPT, 1f)).toInt().coerceIn(1, bitmap.height)
+        val kept = if (height < bitmap.height) {
+            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, height).also { bitmap.recycle() }
+        } else {
+            bitmap
+        }
+        encodeBitmap(kept)?.let { Base64.decode(it.base64, Base64.NO_WRAP) }
+    }.getOrNull()
+
+    /** The least of a screenshot [jpegAbove] keeps, whatever the cut says. */
+    private const val MIN_KEPT = 0.2f
+
+    /**
      * The system's own "allow this app to delete…" request for gallery
      * entries the keyboard did not create, or null where there is none.
      *

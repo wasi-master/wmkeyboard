@@ -727,6 +727,11 @@ private val builtInLabels: Map<String, ToolLabels> = mapOf(
         R.string.ime_ai_tool_read_image_text_running,
         R.string.ime_ai_tool_read_image_text_done,
     ),
+    AiTools.DESCRIBE_IMAGE to ToolLabels(
+        R.string.ime_ai_tool_name_describe_image,
+        R.string.ime_ai_tool_describe_image_running,
+        R.string.ime_ai_tool_describe_image_done,
+    ),
     AiTools.REVERSE_IMAGE_SEARCH to ToolLabels(
         R.string.ime_ai_tool_name_reverse_image_search,
         R.string.ime_ai_tool_reverse_image_search_running,

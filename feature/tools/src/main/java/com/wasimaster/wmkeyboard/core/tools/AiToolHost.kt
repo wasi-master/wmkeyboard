@@ -111,4 +111,15 @@ interface AiToolHost {
     /** The text in picture [number], counted from 1; empty when it has none. Blocking. */
     fun readImageText(number: Int): Result<String> =
         Result.failure(UnsupportedOperationException("no picture reader here"))
+
+    /** Whether [describeImage] has a model that sees to ask: the "Describe pictures with" setting. */
+    val canDescribeImage: Boolean get() = false
+
+    /**
+     * Picture [number], counted from 1, described by the model that sees,
+     * with [question] (blank for none) as what the user wants to know.
+     * Already says which model looked. Blocking.
+     */
+    fun describeImage(number: Int, question: String): Result<String> =
+        Result.failure(UnsupportedOperationException("no picture describer here"))
 }

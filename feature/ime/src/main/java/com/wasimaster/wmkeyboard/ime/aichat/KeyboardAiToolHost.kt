@@ -80,6 +80,13 @@ class KeyboardAiToolHost(
      * Null where there is no chat: the AI panel's actions.
      */
     private val renamer: ((String) -> String?)? = null,
+    /**
+     * Describes a picture's JPEG with the model that sees, the question
+     * beside it; null when no describer is set up. [describerName] is that
+     * model's name, which the model in use is told.
+     */
+    private val describer: ((ByteArray, String) -> String)? = null,
+    private val describerName: String = "",
 ) : AiToolHost {
 
     override val canRenameChat: Boolean get() = renamer != null
@@ -384,6 +391,14 @@ class KeyboardAiToolHost(
         // The language the user types in, active first, picks the recognizer.
         val script = hints.firstOrNull()?.let { OcrLanguages.mlKitRecognizer(LanguageRegistry.byId(it)) }
         runBlocking { ChatImageOcr.read(bitmap, script ?: MlKitScript.LATIN) }
+    }
+
+    override val canDescribeImage: Boolean get() = describer != null
+
+    override fun describeImage(number: Int, question: String): Result<String> = runCatching {
+        val describe = describer ?: throw UnsupportedOperationException("no picture describer here")
+        val jpeg = imageJpeg(number) ?: error("the picture is gone")
+        com.wasimaster.wmkeyboard.core.tools.AiPictureText.described(number, describerName, describe(jpeg, question))
     }
 
     private companion object {

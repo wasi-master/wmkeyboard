@@ -144,6 +144,10 @@ internal val builtInToolText: Map<String, BuiltInToolText> = mapOf(
         R.string.toolai_ai_builtin_read_image_text_title,
         R.string.toolai_ai_builtin_read_image_text_subtitle,
     ),
+    AiTools.DESCRIBE_IMAGE to BuiltInToolText(
+        R.string.toolai_ai_builtin_describe_image_title,
+        R.string.toolai_ai_builtin_describe_image_subtitle,
+    ),
     AiTools.REVERSE_IMAGE_SEARCH to BuiltInToolText(
         R.string.toolai_ai_builtin_reverse_image_search_title,
         R.string.toolai_ai_builtin_reverse_image_search_subtitle,

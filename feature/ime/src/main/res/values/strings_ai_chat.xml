@@ -223,6 +223,10 @@
     <!-- %1$s is the picture's number in the chat, such as 2. -->
     <string name="ime_ai_tool_read_image_text_running">Reading the text in picture %1$s…</string>
     <string name="ime_ai_tool_read_image_text_done">Read the text in picture %1$s</string>
+    <string name="ime_ai_model_reads_pictures">Reads pictures</string>
+    <string name="ime_ai_tool_name_describe_image">Looking at a picture</string>
+    <string name="ime_ai_tool_describe_image_running">Looking at picture %1$s…</string>
+    <string name="ime_ai_tool_describe_image_done">Looked at picture %1$s</string>
     <string name="ime_ai_tool_reverse_image_search_running">Searching the web by picture %1$s…</string>
     <string name="ime_ai_tool_reverse_image_search_done">Searched the web by picture %1$s</string>
     <!-- The chat composer's picture sources (#698), now in its "+" menu. -->

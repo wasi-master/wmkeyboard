@@ -114,6 +114,9 @@ internal fun ToolPanelChip(
     icon: ImageVector? = null,
     // What holding the chip says while it is greyed out; see [IconHint].
     disabledReason: DisabledReason? = null,
+    // A small mark after the words, read out as [markLabel]: a model that reads pictures.
+    mark: ImageVector? = null,
+    markLabel: String? = null,
     onClick: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
@@ -135,6 +138,22 @@ internal fun ToolPanelChip(
             val content = (if (selected) kb.chipActiveText else kb.chipText).dim()
             if (icon != null) {
                 Icon(icon, contentDescription = label, tint = content, modifier = Modifier.size(16.dp))
+            } else if (mark != null) {
+                androidx.compose.foundation.layout.Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                    Text(
+                        label,
+                        color = content,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                    )
+                    Icon(
+                        mark,
+                        contentDescription = markLabel,
+                        tint = content,
+                        modifier = Modifier.padding(start = 4.dp).size(12.dp),
+                    )
+                }
             } else {
                 Text(
                     label,

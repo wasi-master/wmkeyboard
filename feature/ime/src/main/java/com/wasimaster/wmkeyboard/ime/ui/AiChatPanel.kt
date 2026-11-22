@@ -44,6 +44,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Description
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatQuote
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoCamera
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PictureAsPdf
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Screenshot
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VideoFile
@@ -277,7 +278,10 @@ internal fun AiChatPanel(
                 // The picker steps aside while typing: every dp there belongs
                 // to the conversation and the composer.
                 if (!chat.composing && choices.size > 1) {
-                    ModelRow(choices, choice, enabled = run == null, onChat)
+                    val seeing = remember(choices, state.settings.ai, state.settings.providers) {
+                        choices.filter { com.wasimaster.wmkeyboard.ime.aichat.PictureDescriber.seesPictures(context, state.settings, it) }.mapTo(HashSet()) { it.key }
+                    }
+                    ModelRow(choices, choice, enabled = run == null, onChat, seeing)
                 }
                 val reasoning = remember(choice, state.settings.ai, state.settings.providers) {
                     AiChatController.reasoningSwitch(state.settings, choice)
@@ -338,6 +342,8 @@ private fun ModelRow(
     choice: ModelChoice?,
     enabled: Boolean,
     onChat: (AiChatAction) -> Unit,
+    /** The keys of the choices known to read pictures, which carry a mark. */
+    seeing: Set<String> = emptySet(),
 ) {
     val kb = LocalKbTheme.current
     LazyRow(
@@ -363,6 +369,8 @@ private fun ModelRow(
                 selected = option == choice,
                 enabled = enabled,
                 modifier = Modifier.animateItem(),
+                mark = Icons.Outlined.Image.takeIf { option.key in seeing },
+                markLabel = stringResource(R.string.ime_ai_model_reads_pictures),
             ) { onChat(AiChatAction.PickModel(option.key)) }
         }
     }

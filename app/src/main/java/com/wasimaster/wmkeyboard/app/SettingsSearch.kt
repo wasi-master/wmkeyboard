@@ -2623,6 +2623,7 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.AI, R.string.toolai_strip_suggest_composing_timeout_title),
     toolEntry(ToolbarTool.AI, R.string.toolai_strip_suggest_only_unsure_title, R.string.toolai_strip_suggest_only_unsure_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_strip_suggest_provider_title, R.string.toolai_strip_suggest_provider_subtitle),
+    toolEntry(ToolbarTool.AI, R.string.toolai_ai_picture_describer_title, R.string.toolai_ai_picture_describer_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_strip_suggest_temperature_title, R.string.toolai_strip_suggest_temperature_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_strip_suggest_prompt_title, R.string.toolai_strip_suggest_prompt_hint),
     toolEntry(ToolbarTool.AI, R.string.toolai_strip_suggest_languages_title, R.string.toolai_strip_suggest_languages_info),

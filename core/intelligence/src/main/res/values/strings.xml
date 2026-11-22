@@ -80,7 +80,7 @@
 
     <string name="core_intel_llm_engine_error_load">The model did not load. The file is probably damaged. Delete the model in settings and download it again.</string>
     <!-- Compute is the name of the setting that selects the GPU or the CPU. -->
-    <string name="core_intel_llm_engine_error_vision">This model can\'t read pictures. Gemma 4 can, and so can Qwen 2.5 VL and SmolVLM. A GGUF model that you imported also needs its mmproj file.</string>
+    <string name="core_intel_llm_engine_error_vision">This model can\'t read pictures. The models marked Reads pictures in the catalog can, and a model under Describe pictures with can look at a picture for this one. A GGUF model that you imported also needs its mmproj file.</string>
     <string name="core_intel_llm_engine_error_gpu">The model failed on the GPU. The GPU memory is much smaller than the system memory. The next try uses the CPU. To always use the CPU, set Compute to CPU in settings. You can also select a smaller model.</string>
     <string name="core_intel_llm_engine_error_memory">The model ran out of memory, or it failed. Select a smaller model.</string>
     <!-- NPU is the phone's AI accelerator, a hardware acronym that stays in

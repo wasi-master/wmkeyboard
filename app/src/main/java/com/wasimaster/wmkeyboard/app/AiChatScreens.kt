@@ -26,6 +26,7 @@ import com.wasimaster.wmkeyboard.app.AiChatPickActivity
 import com.wasimaster.wmkeyboard.core.aichat.AiChatFile
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ArrowUpward
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AttachFile
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DriveFileRenameOutline
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SelectAll
 import androidx.activity.compose.BackHandler
@@ -809,11 +810,15 @@ internal fun AiChatScreen(
                 NoBackendState(onOpenAiSettings)
                 return@Column
             }
+            val seeing = remember(choices) {
+                choices.filter { com.wasimaster.wmkeyboard.ime.aichat.PictureDescriber.seesPictures(context, settings.value, it) }.mapTo(HashSet()) { it.key }
+            }
             ModelChips(
                 choices = choices,
                 choice = choice,
                 enabled = run == null,
                 onPick = { choice = it },
+                seeing = seeing,
             )
             notice?.invoke()
             // Only the newest turn can be redone or taken back: doing either
@@ -1286,6 +1291,8 @@ private fun ModelChips(
     choice: ModelChoice?,
     enabled: Boolean,
     onPick: (ModelChoice) -> Unit,
+    /** The keys of the choices known to read pictures, which carry a mark. */
+    seeing: Set<String> = emptySet(),
 ) {
     if (choices.size < 2) return
     LazyRow(
@@ -1308,6 +1315,17 @@ private fun ModelChips(
                         },
                         maxLines = 1,
                     )
+                },
+                trailingIcon = if (option.key in seeing) {
+                    {
+                        Icon(
+                            Icons.Outlined.Image,
+                            contentDescription = stringResource(R.string.models_llm_reads_pictures),
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                } else {
+                    null
                 },
             )
         }

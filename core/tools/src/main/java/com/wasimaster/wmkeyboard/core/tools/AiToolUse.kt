@@ -344,6 +344,9 @@ object AiTools {
     const val HOME_ASSISTANT = "home_assistant"
     const val HOME_ASSISTANT_STATES = "home_assistant_states"
     const val READ_IMAGE_TEXT = "read_image_text"
+
+    /** Has a model that sees describe a picture, for a model that cannot see it. */
+    const val DESCRIBE_IMAGE = "describe_image"
     const val REVERSE_IMAGE_SEARCH = "reverse_image_search"
     const val REMEMBER = "remember"
     const val FORGET = "forget"
@@ -565,6 +568,21 @@ object AiTools {
             AiToolGroup.PICTURE,
             McpToolPolicy.ALLOW,
         ),
+        // A model that sees looks at it for one that cannot: the model the
+        // user picked under "Describe pictures with", on the phone or online.
+        AiBuiltInTool(
+            AiToolSpec(
+                DESCRIBE_IMAGE,
+                "Have another model, one that can see, look at a picture the user sent and describe it, " +
+                    "with any text in it, when you cannot see pictures yourself. Ask what you need to know about it.",
+                schema(
+                    param("image", "The picture's number, from its <image n=\"…\"/> mark.", type = "integer"),
+                    param("question", "What you want to know about the picture, if anything in particular.", required = false),
+                ),
+            ),
+            AiToolGroup.PICTURE,
+            McpToolPolicy.ALLOW,
+        ),
         AiBuiltInTool(
             AiToolSpec(
                 REVERSE_IMAGE_SEARCH,
@@ -692,7 +710,7 @@ object AiTools {
         START_TIMER -> call.argument("duration")
         OPEN_APP -> call.argument("name")
         MEDIA_CONTROL -> call.argument("action")
-        READ_IMAGE_TEXT, REVERSE_IMAGE_SEARCH -> call.argument("image")
+        READ_IMAGE_TEXT, DESCRIBE_IMAGE, REVERSE_IMAGE_SEARCH -> call.argument("image")
         SEND_TO_PC -> call.argument("text")?.let { if (it.length > TARGET_CHARS) it.take(TARGET_CHARS - 1) + "…" else it }
         HOME_ASSISTANT -> (call.argument("request") ?: listOfNotNull(call.argument("action"), call.argument("entity_id")).joinToString(" ").ifEmpty { null })
             ?.let { if (it.length > TARGET_CHARS) it.take(TARGET_CHARS - 1) + "…" else it }

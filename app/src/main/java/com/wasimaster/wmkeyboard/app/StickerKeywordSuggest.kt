@@ -263,9 +263,14 @@ private fun aiReady(context: Context, settings: KeyboardSettings): Boolean =
         AiClient.isConfigured(settings.ai)
     }
 
-/** Whether the provider in use is sent the pictures. The on-device model tries, and says when it cannot. */
+/**
+ * Whether the model in use is sent the pictures: a cloud model nothing says is
+ * blind ([com.wasimaster.wmkeyboard.core.tools.AiVision]). The on-device model
+ * tries, and says when it cannot.
+ */
 private fun seesPictures(settings: KeyboardSettings): Boolean =
-    settings.ai.provider == AiProvider.ON_DEVICE || AiClient.supportsImages(settings.ai.provider)
+    settings.ai.provider == AiProvider.ON_DEVICE ||
+        com.wasimaster.wmkeyboard.core.tools.AiVision.sees(AiClient.config(settings.ai))
 
 private fun localModel(context: Context, settings: KeyboardSettings): File? =
     LocalLlmStore.selectedModelFile(context.filesDir, settings.ai.localModelId)

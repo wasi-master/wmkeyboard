@@ -5686,6 +5686,7 @@ private fun AiReplyToolSettings(
                     ReplyImageMode.AUTO to stringResource(R.string.toolai_reply_image_mode_auto),
                     ReplyImageMode.IMAGE to stringResource(R.string.toolai_reply_image_mode_image),
                     ReplyImageMode.OCR to stringResource(R.string.toolai_reply_image_mode_ocr),
+                    ReplyImageMode.DESCRIBE to stringResource(R.string.toolai_reply_image_mode_describe),
                 ),
                 selected = settings.watch { it.ai.reply.imageMode },
                 default = SettingsDefaults.ai.reply.imageMode,

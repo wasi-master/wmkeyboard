@@ -641,6 +641,7 @@ import com.wasimaster.wmkeyboard.ime.aimemory.AiMemoryRecall
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatImages
 import com.wasimaster.wmkeyboard.ime.aichat.AskAiLaunch
 import com.wasimaster.wmkeyboard.ime.aichat.KeyboardAiToolHost
+import com.wasimaster.wmkeyboard.ime.aichat.PictureDescriber
 import com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeEvent
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeModifiers
@@ -666,6 +667,8 @@ import com.wasimaster.wmkeyboard.core.localllm.LocalLlmEngine
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmDownloadManager
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmStore
 import com.wasimaster.wmkeyboard.core.tools.AiClient
+import com.wasimaster.wmkeyboard.core.tools.AiPictureText
+import com.wasimaster.wmkeyboard.core.tools.AiVision
 import com.wasimaster.wmkeyboard.core.tools.AiContinuation
 import com.wasimaster.wmkeyboard.core.tools.AiPrompts
 import com.wasimaster.wmkeyboard.core.tools.AiReplyParse
@@ -676,6 +679,7 @@ import com.wasimaster.wmkeyboard.core.tools.ReplyStyle
 import com.wasimaster.wmkeyboard.core.reply.ReplyShots
 import com.wasimaster.wmkeyboard.ime.reply.ReplyOcr
 import com.wasimaster.wmkeyboard.core.tools.ReplyOcrLines
+import com.wasimaster.wmkeyboard.core.tools.ReplyTurn
 import com.wasimaster.wmkeyboard.core.tools.AiToolActivity
 import com.wasimaster.wmkeyboard.core.tools.AiToolLoop
 import com.wasimaster.wmkeyboard.core.tools.AiToolRunner
@@ -45660,6 +45664,7 @@ open class WMKeyboardService : InputMethodService() {
                     aiReply = it.aiReply.copy(canSendPicture = replyCanSendPicture(updated)),
                 )
             }
+            learnReplyVision(updated)
         }
     }
 
@@ -45804,17 +45809,61 @@ open class WMKeyboardService : InputMethodService() {
     /**
      * Whether a screenshot can go to the model as a picture.
      *
-     * Cloud: the provider's own word ([AiClient.supportsImages]). On the
-     * device: a model the catalog says has eyes, or an imported one nobody
-     * has told us about yet — the engine answers that cleanly by trying, and
-     * [readShotsInstead] picks up the pieces if it cannot.
+     * Cloud: the model's own word where something says ([AiVision]), its
+     * provider's otherwise. On the device: a model the catalog says has
+     * eyes, or an imported one nobody has told us about yet — the engine
+     * answers that cleanly by trying, and [readShotsInstead] picks up the
+     * pieces if it cannot.
      */
     private fun replyCanSendPicture(settings: KeyboardSettings): Boolean {
-        if (settings.ai.provider != AiProvider.ON_DEVICE) return AiClient.supportsImages(settings.ai.provider)
+        if (settings.ai.provider != AiProvider.ON_DEVICE) return AiVision.sees(AiClient.config(settings.ai))
         if (!BuildConfig.ENABLE_LOCAL_LLM) return false
         val id = effectiveLocalModelId(settings) ?: return false
         if (id == replyVisionRefusedModel) return false
         return LocalLlmCatalog.canSee(id) != false
+    }
+
+    /**
+     * Asks the cloud service whether its model reads pictures ([AiVision.learn]),
+     * off the main thread, and puts the panel's Picture chip right once it knows.
+     */
+    private fun learnReplyVision(settings: KeyboardSettings) {
+        if (settings.ai.provider == AiProvider.ON_DEVICE) return
+        val config = runCatching { AiClient.config(settings.ai) }.getOrNull() ?: return
+        serviceScope.launch {
+            withContext(Dispatchers.IO) { AiVision.learn(config) }
+            _uiState.update { it.copy(aiReply = it.aiReply.copy(canSendPicture = replyCanSendPicture(it.settings))) }
+        }
+    }
+
+    /** The model picked to look at screenshots for one that cannot ([PictureDescriber]); null for none. */
+    private fun replyDescriber(settings: KeyboardSettings): AiChatController.ModelChoice? =
+        PictureDescriber.chosen(this, settings)
+
+    /** Whether a screenshot the model cannot see can still be read: by the describer, or on this device. */
+    private fun replyCanReadShots(settings: KeyboardSettings): Boolean =
+        replyDescriber(settings) != null || ReplyOcr.available
+
+    /**
+     * One screenshot as the conversation's lines: written out by the
+     * describer when one is picked, else read on this device. A describer
+     * that fails falls back on this device's reader where there is one.
+     * Call off the main thread.
+     */
+    private suspend fun readShotLines(settings: KeyboardSettings, uri: String, frame: ReplyOcrLines.ReplyOcrFrame): List<ReplyTurn> {
+        val describer = replyDescriber(settings)
+        if (describer != null) {
+            val turns = runCatching {
+                val jpeg = ReplyShots.jpegAbove(this, android.net.Uri.parse(uri), frame.bottomCut) ?: return@runCatching emptyList()
+                AiPictureText.chatTurns(
+                    PictureDescriber.look(this, settings, describer, jpeg, AiPictureText.CHAT_SYSTEM, AiPictureText.CHAT_REQUEST),
+                )
+            }.getOrDefault(emptyList())
+            if (turns.isNotEmpty() || !ReplyOcr.available) return turns
+        }
+        if (!ReplyOcr.available) return emptyList()
+        val bitmap = ReplyShots.bitmap(this, android.net.Uri.parse(uri)) ?: return emptyList()
+        return ReplyOcr.read(bitmap, frame, OcrLanguages.mlKitRecognizer(_uiState.value.language))
     }
 
     /**
@@ -45854,6 +45903,7 @@ open class WMKeyboardService : InputMethodService() {
                 ),
             )
         }
+        learnReplyVision(settings)
         addRecentClipsForReply()
         addScreenForReply()
         if (settings.ai.reply.catchScreenshots && canReadImages()) {
@@ -46458,7 +46508,7 @@ open class WMKeyboardService : InputMethodService() {
         val sendable = replyCanSendPicture(settings)
         val asImage = when (mode) {
             ReplyImageMode.IMAGE -> true
-            ReplyImageMode.OCR -> false
+            ReplyImageMode.OCR, ReplyImageMode.DESCRIBE -> false
             ReplyImageMode.AUTO -> sendable
         }
         if (asImage) {
@@ -46478,18 +46528,23 @@ open class WMKeyboardService : InputMethodService() {
             )
             return
         }
-        if (!ReplyOcr.available) {
+        // Read on this device, or written out by the describer: always under
+        // Describe, and for a model that cannot see under Automatic. Read on
+        // this device keeps to this device.
+        val describe = mode == ReplyImageMode.DESCRIBE || mode == ReplyImageMode.AUTO
+        val reader = if (describe) settings else settings.copy(ai = settings.ai.copy(pictureDescriber = ""))
+        if (mode == ReplyImageMode.DESCRIBE && replyDescriber(settings) == null) {
+            replyNotice(R.string.ime_reply_notice_no_describer)
+            return
+        }
+        if (!replyCanReadShots(reader)) {
             replyNotice(R.string.ime_reply_notice_no_ocr)
             return
         }
         _uiState.update { it.copy(aiReply = it.aiReply.copy(reading = true, notice = null)) }
         val frame = replyOcrFrame(boardTopPx)
         serviceScope.launch {
-            val turns = withContext(Dispatchers.IO) {
-                val bitmap = ReplyShots.bitmap(this@WMKeyboardService, android.net.Uri.parse(uriString))
-                    ?: return@withContext emptyList()
-                ReplyOcr.read(bitmap, frame, OcrLanguages.mlKitRecognizer(_uiState.value.language))
-            }
+            val turns = withContext(Dispatchers.IO) { readShotLines(reader, uriString, frame) }
             _uiState.update { it.copy(aiReply = it.aiReply.copy(reading = false)) }
             if (turns.isEmpty()) {
                 replyNotice(R.string.ime_reply_notice_nothing_read)
@@ -46564,7 +46619,7 @@ open class WMKeyboardService : InputMethodService() {
         // phone and go on, rather than sending a picture to be refused.
         val pending = _uiState.value.aiReply.images
         if (pending.isNotEmpty() && !replyCanSendPicture(settings)) {
-            if (ReplyOcr.available) {
+            if (replyCanReadShots(settings)) {
                 readShotsInstead(tone, instruction, pending)
             } else {
                 replyNotice(R.string.ime_reply_notice_no_vision)
@@ -46690,8 +46745,15 @@ open class WMKeyboardService : InputMethodService() {
                     // The on-device model has no eyes: read the screenshots on
                     // the phone instead and run again, rather than stopping at
                     // an error about something the user did not choose.
-                    if (e is VisionUnsupportedException && onDevice && shots.isNotEmpty() && ReplyOcr.available) {
+                    if (e is VisionUnsupportedException && onDevice && shots.isNotEmpty() && replyCanReadShots(settings)) {
                         replyVisionRefusedModel = effectiveLocalModelId(settings)
+                        readShotsInstead(tone, instruction, shots)
+                        return@fold
+                    }
+                    // The same for a cloud model the service says cannot see:
+                    // remembered as blind, so the next screenshot is read first.
+                    if (!onDevice && shots.isNotEmpty() && AiVision.refusedPicture(e) && replyCanReadShots(settings)) {
+                        AiVision.markBlind(config)
                         readShotsInstead(tone, instruction, shots)
                         return@fold
                     }
@@ -46761,6 +46823,8 @@ open class WMKeyboardService : InputMethodService() {
         instruction: String,
         shots: List<ReplyEntry>,
         @StringRes notice: Int? = R.string.ime_reply_notice_reading_instead,
+        /** Read on this device only, the describer left out: the panel's Text switch, or the setting that says so. */
+        deviceOnly: Boolean = _uiState.value.settings.ai.reply.imageMode == ReplyImageMode.OCR,
     ) {
         _uiState.update {
             it.copy(
@@ -46773,14 +46837,13 @@ open class WMKeyboardService : InputMethodService() {
                 ),
             )
         }
+        val settings = _uiState.value.settings.let { if (deviceOnly) it.copy(ai = it.ai.copy(pictureDescriber = "")) else it }
         serviceScope.launch {
             val frames = shots.associateWith { replyOcrFrame(it.boardTopPx) }
             val read = withContext(Dispatchers.IO) {
                 shots.associateWith { entry ->
                     val uri = entry.shotUri ?: return@associateWith emptyList()
-                    val bitmap = ReplyShots.bitmap(this@WMKeyboardService, android.net.Uri.parse(uri))
-                        ?: return@associateWith emptyList()
-                    ReplyOcr.read(bitmap, frames.getValue(entry), OcrLanguages.mlKitRecognizer(_uiState.value.language))
+                    readShotLines(settings, uri, frames.getValue(entry))
                 }
             }
             var anyText = false
@@ -46859,7 +46922,7 @@ open class WMKeyboardService : InputMethodService() {
             }
             serviceScope.launch { settingsRepository.setAiReplyImageMode(ReplyImageMode.OCR) }
             val shots = state.aiReply.images
-            if (shots.isNotEmpty()) readShotsInstead(null, "", shots, notice = null)
+            if (shots.isNotEmpty()) readShotsInstead(null, "", shots, notice = null, deviceOnly = true)
         }
     }
 
