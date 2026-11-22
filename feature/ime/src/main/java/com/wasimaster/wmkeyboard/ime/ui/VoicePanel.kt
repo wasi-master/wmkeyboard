@@ -68,6 +68,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -182,7 +184,14 @@ internal fun VoicePanel(
     val micChipVisible = micUsable && hasPermission && state.voiceMicSwitchVisible()
     // The engine chip, only with "Change engine from the voice tool" on.
     val engineChipVisible = micUsable && hasPermission && state.voiceEngineChipVisible()
+    // ...drawn as one pill per engine instead, with that setting on too (#1477).
+    val enginePills = state.settings.voiceBar.enginePills
     var engineMenuOpen by remember { mutableStateOf(false) }
+    // Whisper's translate-to-English switch (#1477): a small round button
+    // under the language chip, out of the way of the engine chip and the
+    // status line it used to sit between.
+    val translateVisible = micUsable && hasPermission && voice.clipBased && voice.whisper &&
+        !voice.whisperNeedsModel && !voice.serverNeedsSetup
     fun collapseToBar() = onRailKey(
         VoiceBarAction.SwitchSurface(VoiceBarSettings.MODE_BAR),
     )
@@ -194,7 +203,19 @@ internal fun VoicePanel(
         if (languageChipVisible) add { feedback(); languageMenuOpen = true }
         if (collapseVisible) add { feedback(); collapseToBar() }
         if (micChipVisible) add { feedback(); onRailKey(VoiceBarAction.CycleMic) }
-        if (engineChipVisible) add { feedback(); engineMenuOpen = true }
+        if (engineChipVisible) {
+            if (enginePills) {
+                // The pills have no list to open: the press moves to the next one (#1477).
+                add {
+                    voice.nextEngineKey()?.let { key ->
+                        feedback()
+                        onRailKey(VoiceBarAction.PickEngine(voice.engineLanguage, key))
+                    }
+                }
+            } else {
+                add { feedback(); engineMenuOpen = true }
+            }
+        }
     }
     PanelFocusTarget(
         panel = PanelMode.VOICE,
@@ -313,7 +334,6 @@ internal fun VoicePanel(
                     state = state,
                     onToggle = onToggle,
                     onDownloadModel = onDownloadModel,
-                    onToggleTranslate = onToggleTranslate,
                     onOpenVoiceSettings = onOpenVoiceSettings,
                     onUseSystemEngine = onUseSystemEngine,
                     onLastResort = { onRailKey(VoiceBarAction.LastResort) },
@@ -411,7 +431,17 @@ internal fun VoicePanel(
             }
             // Which engine the language being dictated uses, bottom left,
             // opposite the microphone switch.
-            if (engineChipVisible) {
+            if (engineChipVisible && enginePills) {
+                VoiceEnginePills(
+                    state = state,
+                    focused = focusedAction == engineRingIndex,
+                    onAction = onRailKey,
+                    // Clear of the microphone switch in the other corner.
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(end = if (micChipVisible) 48.dp else 0.dp),
+                )
+            } else if (engineChipVisible) {
                 VoiceEngineChip(
                     state = state,
                     focused = focusedAction == engineRingIndex,
@@ -420,6 +450,16 @@ internal fun VoicePanel(
                     menuOpen = engineMenuOpen,
                     onMenuOpen = { engineMenuOpen = it },
                     modifier = Modifier.align(Alignment.BottomStart),
+                )
+            }
+            if (translateVisible) {
+                VoiceTranslateButton(
+                    on = state.settings.whisper.translate,
+                    onToggle = onToggleTranslate,
+                    // Under the language chip when there is one, in its corner when not.
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(top = if (languageChipVisible) 40.dp else 0.dp),
                 )
             }
             val micNotice = rememberVoiceMicNotice(state)
@@ -573,13 +613,44 @@ internal fun VoicePanel(
     }
 }
 
+/**
+ * Whisper's translate-to-English switch as a small round button (#1477), the
+ * size of the collapse arrow across the panel: filled while dictation comes
+ * out in English. It used to be a wide pill under the status line, where it
+ * ran into the engine chip in the corner below it.
+ */
+@Composable
+private fun VoiceTranslateButton(on: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier) {
+    val kb = LocalKbTheme.current
+    val feedback = LocalKeyPressFeedback.current
+    val shape = RoundedCornerShape(kb.toolRadiusDp.dp)
+    Icon(
+        Icons.Outlined.Translate,
+        contentDescription = stringResource(
+            if (on) R.string.ime_voice_translate_on_label else R.string.ime_voice_translate_label,
+        ),
+        tint = if (on) kb.chipActiveText else kb.toolbarIcon,
+        modifier = modifier
+            .padding(4.dp)
+            .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
+            .background(if (on) kb.chipActive else kb.chip)
+            .semantics { selected = on }
+            .clickable {
+                feedback()
+                onToggle()
+            }
+            .padding(7.dp)
+            .size(18.dp),
+    )
+}
+
 /** The mic button with pulse ring, and the session status underneath. */
 @Composable
 private fun MicContent(
     state: KeyboardUiState,
     onToggle: () -> Unit,
     onDownloadModel: () -> Unit,
-    onToggleTranslate: () -> Unit,
     onOpenVoiceSettings: () -> Unit,
     onUseSystemEngine: () -> Unit,
     onLastResort: () -> Unit,
@@ -755,38 +826,9 @@ private fun MicContent(
                         onClick = onUseSystemEngine,
                     )
                 }
-            } else if (voice.whisper) {
-                val translate = state.settings.whisper.translate
-                val toggleShape = kb.chipShape()
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(top = 8.dp)
-                        .clip(toggleShape)
-                        .frostGlass(kb, toggleShape, FrostSurface.CHIPS)
-                        .background(if (translate) kb.chipActive else kb.chip)
-                        .chipBorder(kb, toggleShape)
-                        .clickable { onToggleTranslate() }
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                ) {
-                    Icon(
-                        Icons.Outlined.Translate,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = if (translate) kb.chipActiveText else kb.secondaryText,
-                    )
-                    Text(
-                        if (translate) {
-                            stringResource(R.string.ime_voice_translate_on_label)
-                        } else {
-                            stringResource(R.string.ime_voice_translate_label)
-                        },
-                        color = if (translate) kb.chipActiveText else kb.secondaryText,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(start = 5.dp),
-                    )
-                }
             }
+            // Whisper's translate switch is the panel's, under the language
+            // chip ([VoiceTranslateButton], #1477), not a pill down here.
             return@Column
         }
 

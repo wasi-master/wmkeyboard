@@ -1827,6 +1827,8 @@ internal object SettingsRowIcons {
         put(R.string.voice_mic_title) { Icons.Outlined.HeadsetMic }
         put(R.string.voice_mic_switch_title) { Icons.Outlined.HeadsetMic }
         put(R.string.voice_engine_picker_title) { Icons.Outlined.TouchApp }
+        put(R.string.voice_engines_shown_title) { Icons.Outlined.Checklist }
+        put(R.string.voice_engine_pills_title) { Icons.Outlined.ViewWeek }
         put(R.string.voice_system_input_title) { Icons.Outlined.Apps }
         put(R.string.voice_system_input_pick_title) { Icons.Outlined.OpenInNew }
         put(R.string.voice_system_on_device_title) { Icons.Outlined.Memory }

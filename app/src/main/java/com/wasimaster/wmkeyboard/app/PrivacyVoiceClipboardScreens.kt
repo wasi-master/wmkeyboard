@@ -615,6 +615,8 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
         }
     }
     // What most people never change: kept in reach, out of the way.
+    // The engine chip's own rows (#1477) only mean something with the chip on.
+    val enginePickerOn = settings.watch { it.voiceBar.enginePicker }
     SettingsGroup(
         stringResource(R.string.tooldetail_advanced_group),
         foldKey = "voice_advanced",
@@ -701,6 +703,19 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 info = stringResource(R.string.voice_engine_picker_info),
                 default = SettingsDefaults.voiceBar.enginePicker,
             ) { scope.launch { repository.setVoiceEnginePicker(it) } }
+        }
+        // #1477: which engines the chip offers, and pills to tap between instead.
+        item(level = SettingLevel.ADVANCED, visible = enginePickerOn) {
+            VoiceEnginesShownRow(repository, settings)
+        }
+        item(level = SettingLevel.ADVANCED, visible = enginePickerOn) {
+            ToggleSetting(
+                R.string.voice_engine_pills_title,
+                stringResource(R.string.voice_engine_pills_subtitle),
+                settings.watch { it.voiceBar.enginePills },
+                info = stringResource(R.string.voice_engine_pills_info),
+                default = SettingsDefaults.voiceBar.enginePills,
+            ) { scope.launch { repository.setVoiceEnginePills(it) } }
         }
         // Only the panel's mic reads a hold: the strip and collapsed-bar mics
         // are plain taps, and the panel is never opened in those modes.

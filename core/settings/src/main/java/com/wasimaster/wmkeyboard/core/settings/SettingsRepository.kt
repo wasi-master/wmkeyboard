@@ -7290,6 +7290,19 @@ data class VoiceBarSettings(
      */
     val enginePicker: Boolean = false,
     /**
+     * Engines the [enginePicker] chip's list and [enginePills] leave out
+     * (#1477), by engine id (`system`, `whisper`, `parakeet`, `server`, …).
+     * The per-language engine setting still lists them all; an engine left out
+     * here that a language already uses keeps working.
+     */
+    val hiddenEngines: Set<String> = emptySet(),
+    /**
+     * With [enginePicker] on, the voice panel shows the engines that can take
+     * the language as a row of pills to tap between (#1477), instead of one
+     * chip that opens a list. Off by default.
+     */
+    val enginePills: Boolean = false,
+    /**
      * Each dictated phrase is tidied by the AI tool's provider after it lands
      * (#499): filler words, false starts and spoken self-corrections taken out,
      * the way Gboard's "Rambler" does it on Google's servers. Off by default:
@@ -14015,6 +14028,8 @@ class SettingsRepository(private val context: Context) {
         private val VOICE_MIC = stringPreferencesKey("voice_mic")
         private val VOICE_MIC_SWITCH = booleanPreferencesKey("voice_mic_switch")
         private val VOICE_ENGINE_PICKER = booleanPreferencesKey("voice_engine_picker")
+        private val VOICE_HIDDEN_ENGINES = stringPreferencesKey("voice_hidden_engines")
+        private val VOICE_ENGINE_PILLS = booleanPreferencesKey("voice_engine_pills")
         private val VOICE_SYSTEM_ON_DEVICE = booleanPreferencesKey("voice_system_on_device")
         private val VOICE_SYSTEM_SERVICE = stringPreferencesKey("voice_system_service")
         private val VOICE_BY_LANG = stringPreferencesKey("voice_by_lang")
@@ -16855,6 +16870,9 @@ class SettingsRepository(private val context: Context) {
             mic = p[VOICE_MIC]?.takeIf { it in VoiceBarSettings.MICS } ?: defaults.voiceBar.mic,
             micSwitch = p[VOICE_MIC_SWITCH] ?: defaults.voiceBar.micSwitch,
             enginePicker = p[VOICE_ENGINE_PICKER] ?: defaults.voiceBar.enginePicker,
+            hiddenEngines = p[VOICE_HIDDEN_ENGINES]?.split(',')?.filter { it.isNotBlank() }?.toSet()
+                ?: defaults.voiceBar.hiddenEngines,
+            enginePills = p[VOICE_ENGINE_PILLS] ?: defaults.voiceBar.enginePills,
             aiTidy = p[VOICE_AI_TIDY] ?: defaults.voiceBar.aiTidy,
             maskSwearing = p[VOICE_MASK_SWEARING] ?: defaults.voiceBar.maskSwearing,
             suppressSymbols = p[VOICE_SUPPRESS_SYMBOLS] ?: defaults.voiceBar.suppressSymbols,
@@ -18797,6 +18815,17 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setVoiceEnginePicker(value: Boolean) =
         editPrefs { it[VOICE_ENGINE_PICKER] = value }
+
+    /** The engines the voice tool's engine chip and pills leave out (#1477); empty shows them all. */
+    suspend fun setVoiceHiddenEngines(engines: Set<String>) =
+        editPrefs { prefs ->
+            val kept = engines.filter { it.isNotBlank() }.sorted()
+            if (kept.isEmpty()) prefs.remove(VOICE_HIDDEN_ENGINES)
+            else prefs[VOICE_HIDDEN_ENGINES] = kept.joinToString(",")
+        }
+
+    suspend fun setVoiceEnginePills(value: Boolean) =
+        editPrefs { it[VOICE_ENGINE_PILLS] = value }
 
     suspend fun setVoiceSystemOnDevice(value: Boolean) =
         editPrefs { it[VOICE_SYSTEM_ON_DEVICE] = value }

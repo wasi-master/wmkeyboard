@@ -2,9 +2,13 @@ package com.wasimaster.wmkeyboard.ime.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.DropdownMenu
@@ -16,6 +20,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -92,6 +98,82 @@ internal fun VoiceEngineChip(
             )
         }
     }
+}
+
+/**
+ * The engine chip as pills (#1477): every engine that can take the language
+ * being dictated, minus the ones left out in settings, side by side to tap
+ * between, the one in use filled. A tap is the same pick the chip's list
+ * makes. Scrolls sideways when they do not fit.
+ */
+@Composable
+internal fun VoiceEnginePills(
+    state: KeyboardUiState,
+    focused: Boolean,
+    onAction: (VoiceBarAction) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val kb = LocalKbTheme.current
+    val feedback = LocalKeyPressFeedback.current
+    val voice = state.voice
+    val shape = RoundedCornerShape(kb.toolRadiusDp.dp)
+    val choices = voice.engineChoices
+    val current = voice.currentEngineKey()
+    Row(
+        modifier = modifier
+            .horizontalScroll(rememberScrollState())
+            .focusRing(focused, shape)
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        for (choice in choices) {
+            val on = choice.key == current
+            val name = voiceEngineName(choice.engine)
+            // A second model of the same engine is told apart by its model's name.
+            val label = if (choice.modelLabel != null && choices.count { it.engine == choice.engine } > 1) {
+                "$name · ${choice.modelLabel}"
+            } else {
+                name
+            }
+            Text(
+                text = label,
+                color = if (on) kb.chipActiveText else kb.secondaryText,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                modifier = Modifier
+                    .clip(shape)
+                    .frostGlass(kb, shape, FrostSurface.CHIPS)
+                    .background(if (on) kb.chipActive else kb.chip)
+                    .semantics { selected = on }
+                    .clickable {
+                        if (on) return@clickable
+                        feedback()
+                        onAction(VoiceBarAction.PickEngine(voice.engineLanguage, choice.key))
+                    }
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+            )
+        }
+    }
+}
+
+/**
+ * The pill for the engine dictation uses now: the language's own pick when it
+ * has one, else the first choice on the engine it follows from settings.
+ */
+internal fun com.wasimaster.wmkeyboard.ime.VoiceUi.currentEngineKey(): String =
+    engineChoice.ifEmpty {
+        engineChoices.firstOrNull { it.engine == engine }?.key.orEmpty()
+    }
+
+/**
+ * The focus ring's press on the pills: the next engine along, round to the
+ * first after the last, so the keys can walk them as a tap would.
+ */
+internal fun com.wasimaster.wmkeyboard.ime.VoiceUi.nextEngineKey(): String? {
+    if (engineChoices.isEmpty()) return null
+    val at = engineChoices.indexOfFirst { it.key == currentEngineKey() }
+    return engineChoices[(at + 1).mod(engineChoices.size)].key
 }
 
 @Composable

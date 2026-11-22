@@ -274,6 +274,14 @@
     <string name="voice_engine_picker_title">Change engine from the voice tool</string>
     <string name="voice_engine_picker_subtitle">A chip on the voice panel picks the engine and model for the language you dictate in</string>
     <string name="voice_engine_picker_info">Shows a chip in the bottom left corner of the voice panel. It names the engine that the language you dictate in uses. Tap it to pick another engine or model for that language. Only the models on your phone are listed. The pick is the same as the one under Engine for each language.</string>
+    <string name="voice_engines_shown_title">Engines in the voice tool</string>
+    <string name="voice_engines_shown_subtitle">Which engines the voice panel lets you pick</string>
+    <string name="voice_engines_shown_info">Untick an engine you never use and it leaves the voice panel\'s engine list and pills. Engine for each language still lists every engine, and a language already set to an engine you untick keeps using it.</string>
+    <string name="voice_engines_shown_all_value">All</string>
+    <string name="voice_engines_shown_hidden_value">All but %1$s</string>
+    <string name="voice_engine_pills_title">Engines as pills</string>
+    <string name="voice_engine_pills_subtitle">Tap between engines on the voice panel instead of opening a list</string>
+    <string name="voice_engine_pills_info">Instead of one chip that opens a list, the voice panel shows every engine it can use for the language you dictate in as a row of pills. The one in use is filled. Tap another to switch to it for that language, the same pick the list makes. The engines you untick under Engines in the voice tool are left out.</string>
     <string name="voice_pause_media_info">When voice typing starts, the keyboard asks other apps to pause their sound. Music, podcasts and video stop while the microphone listens. They continue a moment after voice typing stops. An app that ignores the request continues to play.</string>
     <!-- #499: each dictated phrase is cleaned up by the model of the AI tool. -->
     <string name="voice_ai_tidy_title">Tidy dictation with AI</string>

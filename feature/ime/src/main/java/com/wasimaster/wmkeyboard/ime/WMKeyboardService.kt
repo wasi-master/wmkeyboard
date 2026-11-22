@@ -38993,7 +38993,7 @@ open class WMKeyboardService : InputMethodService() {
                 filesDir, languageId,
                 whisperEnabled = isWhisperEnabled(),
                 serverConfigured = s.whisper.serverFor(languageId).url.isNotBlank(),
-            )
+            ).filter { it.engine !in s.voiceBar.hiddenEngines } // the engines left out on purpose (#1477)
         } else {
             emptyList()
         }
