@@ -196,6 +196,9 @@
     <string name="ime_service_zawgyi_off_toast">Burmese is written as Unicode</string>
     <string name="ime_service_traditional_on_toast">Chinese is written in Traditional characters (繁體)</string>
     <string name="ime_service_traditional_off_toast">Chinese is written in Simplified characters (简体)</string>
+    <!-- Dictation last resorts, on the voice panel under an error when the phone's recognizer would not start. %1$s is another keyboard's name, such as Gboard. -->
+    <string name="ime_voice_last_resort_keyboard">Use %1$s voice typing</string>
+    <string name="ime_voice_last_resort_window">Open the phone\'s voice window</string>
     <string name="ime_service_kyujitai_on_toast">Japanese is written in the old character forms (舊字體)</string>
     <string name="ime_service_kyujitai_off_toast">Japanese is written in the new character forms (新字体)</string>
     <string name="ime_zawgyi_field_toast">Writing Zawgyi in this text box</string>
