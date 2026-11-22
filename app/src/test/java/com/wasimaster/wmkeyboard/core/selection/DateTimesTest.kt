@@ -122,7 +122,7 @@ class DateTimesTest {
         assertEquals(at(2026, 9, 15), parse("tmr")!!.startMillis)
         assertEquals(at(2026, 9, 21), parse("next monday")!!.startMillis)
         assertEquals(at(2026, 9, 15), parse("the 15th")!!.startMillis)
-        assertEquals(at(2026, 9, 15), parse("আগামীকাল")!!.startMillis)
+        // আগামীকাল comes from ICU, which is a stub here: DateTimesIcuTest.
         assertEquals(at(2026, 9, 21), parse("সোমবার")!!.startMillis)
         assertEquals(at(2026, 9, 14), parse("আজ")!!.startMillis)
     }

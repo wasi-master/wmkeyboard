@@ -81,9 +81,16 @@ class NoteHighlightsTest {
     }
 
     @Test
-    fun `Bengali text reads back in English for the date parser`() {
-        assertEquals("20 november 2026", NoteHighlights.toLatin("২০শে নভেম্বর ২০২৬"))
-        assertEquals("tomorrow", NoteHighlights.toLatin("আগামীকাল"))
-        assertEquals("3 Dec", NoteHighlights.toLatin("3 Dec"))
+    fun `Bengali dates are read in Bengali whatever the locale`() {
+        // The note's script brings its language in: Locale.UK here. A year
+        // written after the month is kept, and আগামী before a weekday is the
+        // coming one (the anchor is a Friday, so a week on).
+        val found = find("সভা ২০শে নভেম্বর ২০২৬\nজমা আগামী শুক্রবার বিকেলে").associateBy { it.text }
+        assertEquals(setOf("২০শে নভেম্বর ২০২৬", "আগামী শুক্রবার"), found.keys)
+        assertEquals(NoteHighlightKind.DATE, found.getValue("২০শে নভেম্বর ২০২৬").kind)
+        assertEquals(at(2026, 11, 20), found.getValue("২০শে নভেম্বর ২০২৬").whenMillis)
+        // জমা (hand in) before it makes the weekday a deadline.
+        assertEquals(NoteHighlightKind.DEADLINE, found.getValue("আগামী শুক্রবার").kind)
+        assertEquals(at(2026, 11, 20), found.getValue("আগামী শুক্রবার").whenMillis)
     }
 }

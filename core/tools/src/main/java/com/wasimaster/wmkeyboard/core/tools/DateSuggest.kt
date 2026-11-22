@@ -11,6 +11,11 @@ import java.util.Locale
  * no java.time). Today comes in as a JDN so [find] stays deterministic and
  * testable; only forward dates resolve, because "last friday" needs no
  * annotating and a calendar opened on the past helps nobody.
+ *
+ * English is read by the hand rules below. Every other language — the
+ * keyboard's, and the one of any script the text is written in — is read by
+ * [DatePhrases] from the phone's own ICU data, and its chip speaks that
+ * language too: "morgen (Di., 11. Aug.)".
  */
 object DateSuggest {
 
@@ -38,13 +43,13 @@ object DateSuggest {
     /** Every spelling of a weekday → 0 (Sunday) .. 6, matching [CalendarSystems.dayOfWeek]. */
     private val weekdayNames: Map<String, Int> = buildMap {
         fun day(index: Int, vararg names: String) = names.forEach { put(it, index) }
-        day(0, "sunday", "sun", "রবিবার")
-        day(1, "monday", "mon", "সোমবার")
-        day(2, "tuesday", "tue", "tues", "মঙ্গলবার")
-        day(3, "wednesday", "wed", "বুধবার")
-        day(4, "thursday", "thu", "thur", "thurs", "বৃহস্পতিবার")
-        day(5, "friday", "fri", "শুক্রবার")
-        day(6, "saturday", "sat", "শনিবার")
+        day(0, "sunday", "sun")
+        day(1, "monday", "mon")
+        day(2, "tuesday", "tue", "tues")
+        day(3, "wednesday", "wed")
+        day(4, "thursday", "thu", "thur", "thurs")
+        day(5, "friday", "fri")
+        day(6, "saturday", "sat")
     }
 
     private val monthNames: Map<String, Int> = buildMap {
@@ -66,8 +71,6 @@ object DateSuggest {
     /** Fixed relative phrases → days from today. Longest first so "day after tomorrow" wins. */
     private val relativeDays: List<Pair<String, Int>> = listOf(
         "day after tomorrow" to 2,
-        "আগামীকাল" to 1,
-        "পরশু" to 2,
         "tomorrow" to 1,
         "tmrw" to 1,
         "tmr" to 1,
@@ -116,8 +119,23 @@ object DateSuggest {
     /** "next month" keeps the day where the shorter month allows it. */
     private val NEXT_MONTH_TAIL = Regex("""(?<![\p{L}])next\s+month$""", RegexOption.IGNORE_CASE)
 
-    fun find(text: String, todayJdn: Long): Hit? {
+    /**
+     * The forward date phrase that ends [text], or null. [languages] are the
+     * keyboard's languages as locale tags ("de", "bn-BD"); English is always
+     * read, and so is the language of any non-Latin script in [text].
+     */
+    fun find(text: String, todayJdn: Long, languages: List<String> = emptyList()): Hit? {
         if (todayJdn <= 0 || text.isEmpty()) return null
+        english(text, todayJdn)?.let { return it }
+        val match = DatePhrases.findAtEnd(text, todayJdn, languages) ?: return null
+        // "Today" is a note's business, not a plan's.
+        if (match.jdn <= todayJdn || match.end != text.length) return null
+        val (annotation, display) = DatePhrases.describe(match.jdn, todayJdn, match.language, match.names)
+        if (annotation.isBlank() || display.isBlank()) return null
+        return Hit(text.substring(match.start), match.start, match.jdn, annotation, display)
+    }
+
+    private fun english(text: String, todayJdn: Long): Hit? {
         val lower = text.lowercase(Locale.ROOT)
 
         for ((phrase, days) in relativeDays) {

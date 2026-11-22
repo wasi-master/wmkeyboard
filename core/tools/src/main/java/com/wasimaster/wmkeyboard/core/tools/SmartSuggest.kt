@@ -270,6 +270,11 @@ object SmartSuggest {
         val dateChips: Boolean = true,
         /** Today as a Julian Day Number; date chips stay off at the default. */
         val todayJdn: Long = -1,
+        /**
+         * The keyboard's languages as locale tags, whose own date words the
+         * date chip reads too ("morgen", "dans 3 jours"). See [DatePhrases].
+         */
+        val dateLanguages: List<String> = emptyList(),
         /** The user's date patterns (#1089); empty keeps the chip's own wording. */
         val dateFormats: List<String> = emptyList(),
         /** Which of [dateFormats] the chip shows, counted from the first and wrapping. */
@@ -1625,7 +1630,7 @@ object SmartSuggest {
 
     private fun detectDate(tail: String, ctx: Context): SmartHit? {
         if (ctx.todayJdn <= 0 || !toolOn(ToolbarTool.CALENDAR, ctx)) return null
-        val d = DateSuggest.find(tail, ctx.todayJdn) ?: return null
+        val d = DateSuggest.find(tail, ctx.todayJdn, ctx.dateLanguages) ?: return null
         val date = CalendarSystems.jdnToGregorian(d.jdn)
         // The user's own format, when one is set and reads (#1089): it is both
         // what the chip shows and what a tap writes.

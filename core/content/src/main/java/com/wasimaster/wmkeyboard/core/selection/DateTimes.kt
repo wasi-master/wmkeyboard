@@ -33,7 +33,8 @@ data class DateTimeHit(
 /**
  * Reads dates and times the way people write them in a message, without
  * `java.time` (minSdk 24): numeric dates in either order, month names in
- * English and Bengali, the forward phrases `DateSuggest` already knows, and
+ * English and Bengali, the forward phrases `DateSuggest` already knows (in
+ * the locale's language and the text's script as well as English), and
  * clock times with or without am/pm. Everything is anchored to a caller's
  * `now`, zone and locale, so a test can pin every answer.
  */
@@ -375,7 +376,9 @@ object DateTimes {
         val todayJdn = CalendarSystems.gregorianToJdn(
             today.get(Calendar.YEAR), today.get(Calendar.MONTH) + 1, today.get(Calendar.DAY_OF_MONTH),
         )
-        val hit = DateSuggest.find(text, todayJdn) ?: return null
+        // The locale's own words too ("morgen", "nächsten Freitag"), and those
+        // of the script the text is in: a Bengali selection on an English phone.
+        val hit = DateSuggest.find(text, todayJdn, listOf(locale.toLanguageTag())) ?: return null
         if (hit.start != 0) return null
         val date = CalendarSystems.jdnToGregorian(hit.jdn)
         return Day(date.year, date.month, date.day, false)

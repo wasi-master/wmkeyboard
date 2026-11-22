@@ -2089,6 +2089,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - App screens — Tools › Notes: search, filter chips, sort, long-press bulk select (pin/archive/tag/lock/trash with undo), autosaving editor with Markdown preview and tickable checklists, tag manager (rename merges on a collision, nine-swatch colour, remove), trash with restore and delete forever, export all as a zip of Markdown, import .txt/.md
     - Locked notes — Body masked everywhere on the keyboard and never inserted, copied, shared or body-searched; the app asks the fingerprint lock's bare prompt before opening one (skipped when the Notes screen is itself locked); left out of backups unless secrets are included, and a restore keeps the locked notes the file left out
     - Save as note — SelectionMacro.SAVE_NOTE on the selection bar: a new note per selection, or appended to the last note edited (setting); refused in a password field and before the first unlock
+    - Dates in any language — The notes assistant's key details and reminders read the phone language's and the note script's date words from the same ICU tables as the date chip, with a following clock time ("nächsten Freitag 14:30")
     - Settings — NotesSettings nested in KeyboardSettings: sort, preview lines, Markdown on/off, panel opens on list or last note, append mode, trash retention 7/30/90/never; `notesVersion` reload signal after a restore or sync
   - To-do list `uncommon` — Tasks with one level of steps in the keyboard and the settings app (#920); one JSON file (`todo/tasks.json`) shared by both processes, replacing the Todo List plugin
     - Keyboard panel — Tick a box, tap the words to open the steps and Add a step, hold to edit (Delete, Type it, Add a step); Enter adds and keeps the box open; Hide done, Clear done with Undo
@@ -2237,6 +2238,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Weekend presets — Seven options including Fri&Sat, Thu&Fri, and none
     - Hijri day adjustment −2..+2 — Tabular calendar can miss local sighting by a day or two
     - Chinese computed astronomically — Real new-moon and solar-longitude calculations
+    - Date chip in every language ICU knows — "morgen", "nächsten Freitag", "dans 3 jours", "через 5 дней", "明後日", "8月14日", "আগামীকাল" resolve from Android's own CLDR data (RelativeDateTimeFormatter, DateFormatSymbols, DateTimePatternGenerator), 0 bytes added; keyboard languages plus the text's script, case- and accent-insensitive, forward only, the bracketed date in that language; two-way words (Hindi कल) and morning words ("guten Morgen") stay quiet
   - Weather `RARE` — Open-Meteo current conditions, no key
     - Fetch the forecast as you type — Off on F-Droid, where a weather chip reads "Get the forecast" and fetches nothing until it is tapped
     - Location typed, searched, or read once (#350) — Open-Meteo geocoding, manual latitude/longitude, or Use my location; the saved place never follows the phone afterwards

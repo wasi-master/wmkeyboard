@@ -78,9 +78,13 @@ class DateSuggestTest {
 
     @Test
     fun `bengali weekday and relative words resolve`() {
+        // Read by DatePhrases for the script, with no language asked for. The
+        // weekday names come from java.text here, since android.icu is a stub
+        // on the JVM; আগামীকাল needs ICU and is in DatePhrasesTest.
         assertEquals(today + 4, find("শুক্রবার")?.jdn)
-        assertEquals(today + 1, find("আগামীকাল")?.jdn)
+        assertEquals(today + 4, find("আগামী শুক্রবার")?.jdn)
         assertEquals(today + 2, find("পরশু")?.jdn)
+        assertNull(find("আমি ভালো"))
     }
 
     @Test

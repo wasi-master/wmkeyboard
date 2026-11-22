@@ -29772,6 +29772,7 @@ open class WMKeyboardService : InputMethodService() {
             caseSensitiveKeywords = state.settings.toolKeywordCase,
             dateChips = state.settings.smartChips.dates,
             todayJdn = todayJdn(),
+            dateLanguages = dateLanguages(state),
             dateFormats = state.settings.smartChips.dateFormats,
             dateFormatStep = dateFormatStep,
             weatherChips = state.settings.smartChips.weather,
@@ -29818,6 +29819,12 @@ open class WMKeyboardService : InputMethodService() {
             // A copy, for the same reason as vocabRetired.
             repeatRetired = repeatChipsRetired.toSet(),
         )
+
+    /** The active language and its secondaries as locale tags, for the date chip's own-language words. */
+    private fun dateLanguages(state: KeyboardUiState): List<String> =
+        (listOf(state.language.localeTag) +
+            state.settings.secondaryLanguages[state.language.id].orEmpty().map { LanguageRegistry.byId(it).localeTag })
+            .distinct()
 
     private fun todayJdn(): Long = Calendar.getInstance().let {
         CalendarSystems.gregorianToJdn(

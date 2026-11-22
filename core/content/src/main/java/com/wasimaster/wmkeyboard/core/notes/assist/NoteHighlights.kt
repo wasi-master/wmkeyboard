@@ -4,6 +4,9 @@ import com.wasimaster.wmkeyboard.core.clipboard.ClipEntities
 import com.wasimaster.wmkeyboard.core.clipboard.ClipEntityKind
 import com.wasimaster.wmkeyboard.core.notes.Note
 import com.wasimaster.wmkeyboard.core.selection.DateTimes
+import com.wasimaster.wmkeyboard.core.tools.CalendarSystems
+import com.wasimaster.wmkeyboard.core.tools.DatePhrases
+import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
 
@@ -63,9 +66,12 @@ data class NoteHighlight(
  * which is why the AI features use it first and the model only for what
  * rules cannot do (a heading, a summary).
  *
- * Dates are found by shape here and read by [DateTimes], the parser the
- * selection bar's "Add to calendar" uses, so a date means the same thing in
- * both places. A phrase without a year, or a relative one ("tomorrow"),
+ * English dates are found by shape here and read by [DateTimes], the parser
+ * the selection bar's "Add to calendar" uses, so a date means the same thing
+ * in both places. Every other language's ("morgen", "২০শে নভেম্বর",
+ * "来週の金曜日") is read by [DatePhrases] from the phone's own ICU data, in
+ * the languages asked for and in that of any script the note is written in.
+ * A phrase without a year, or a relative one ("tomorrow"),
  * resolves against [find]'s `anchorMillis`: for a note, when it was last
  * edited, because "tomorrow" in a note written last week meant last week's
  * tomorrow.
@@ -80,6 +86,9 @@ object NoteHighlights {
 
     /** How far ahead of a date its deadline word may sit, in characters, on the same line. */
     private const val KEYWORD_REACH = 48
+
+    /** How far after a date phrase its clock time may start, in characters. */
+    private const val TIME_REACH = 24
 
     private const val MONTHS = "january|february|march|april|may|june|july|august|september|october|november|december|" +
         "jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec"
@@ -101,68 +110,13 @@ object NoteHighlights {
         // tomorrow, day after tomorrow, next week, next friday, this sat, friday
         """(?<![\p{L}])(?:day after tomorrow|tomorrow|tonight|today|next week|next month|""" +
             """(?:next|this|coming)\s+(?:$WEEKDAYS|$SHORT_WEEKDAYS)|(?:$WEEKDAYS))(?![\p{L}])""",
-    ).map { Regex(it + TIME_TAIL, RegexOption.IGNORE_CASE) } + bengaliShapes()
+    ).map { Regex(it + TIME_TAIL, RegexOption.IGNORE_CASE) } +
+        // ২০/১১/২০২৬: DateTimes reads the digits of any script, but the
+        // shapes above only find ASCII ones. Bengali's words are DatePhrases'.
+        Regex("""(?<![\d০-৯/.-])[০-৯]{1,2}([/.\-])[০-৯]{1,2}\1(?:[০-৯]{4}|[০-৯]{2})(?![\d০-৯/.-])""")
 
-    /**
-     * Bengali dates (#1293): the English months as Bengali writes them, with
-     * Bengali digits or ASCII ones, ordinal endings (১লা, ২০শে), the weekdays
-     * and the next-day words. [toLatin] reads a match back in English for
-     * [DateTimes], so both scripts mean the same date.
-     */
-    private val BN_MONTH_NAMES: List<Pair<String, String>> = listOf(
-        "জানুয়ারি" to "january", "জানুয়ারী" to "january", "ফেব্রুয়ারি" to "february", "ফেব্রুয়ারী" to "february",
-        "মার্চ" to "march", "এপ্রিল" to "april", "মে" to "may", "জুন" to "june", "জুলাই" to "july",
-        "আগস্ট" to "august", "আগষ্ট" to "august", "সেপ্টেম্বর" to "september", "অক্টোবর" to "october",
-        "নভেম্বর" to "november", "ডিসেম্বর" to "december",
-    )
-    private val BN_WEEKDAYS: List<Pair<String, String>> = listOf(
-        "শনিবার" to "saturday", "রবিবার" to "sunday", "সোমবার" to "monday", "মঙ্গলবার" to "tuesday",
-        "বুধবার" to "wednesday", "বৃহস্পতিবার" to "thursday", "শুক্রবার" to "friday",
-    )
-    private val BN_RELATIVE: List<Pair<String, String>> = listOf(
-        "আগামী সপ্তাহ" to "next week", "আগামী মাস" to "next month", "আগামীকাল" to "tomorrow",
-        "পরশু" to "day after tomorrow", "আজ" to "today", "আগামী" to "next",
-    )
-
-    /** Bengali's ordinal endings on a day: ১লা, ২রা, ৪ঠা, ৫ই, ২০শে. */
-    private const val BN_ORDINAL = "(?:লা|রা|ঠা|ই|শে)?"
-
-    /** [word] matching য় written as one letter or as য and its dot. */
-    private fun bnAlt(word: String): String =
-        word.split('\u09DF').joinToString("(?:\u09DF|\u09AF\u09BC)") { part -> Regex.escape(part) }
-
-    private fun bengaliShapes(): List<Regex> {
-        val months = BN_MONTH_NAMES.sortedByDescending { it.first.length }.joinToString("|") { bnAlt(it.first) }
-        val weekdays = BN_WEEKDAYS.joinToString("|") { bnAlt(it.first) }
-        val digit = "[\\d০-৯]"
-        val notWord = "(?![\\p{L}\\p{M}])"
-        return listOf(
-            // ২০/১১/২০২৬
-            """(?<![\d০-৯/.-])[০-৯]{1,2}([/.\-])[০-৯]{1,2}\1(?:[০-৯]{4}|[০-৯]{2})(?![\d০-৯/.-])""",
-            // ২০শে নভেম্বর ২০২৬, 20 নভেম্বর
-            """(?<![\p{L}\p{M}\d০-৯])$digit{1,2}$BN_ORDINAL\s*(?:$months)$notWord(?:,?\s+$digit{4}(?![\d০-৯]))?""",
-            // নভেম্বর ২০, ২০২৬
-            """(?<![\p{L}\p{M}])(?:$months)\s+$digit{1,2}$BN_ORDINAL(?![\d০-৯\p{L}\p{M}])(?:,?\s+$digit{4}(?![\d০-৯]))?""",
-            // আগামীকাল, পরশু, আগামী শুক্রবার, শুক্রবার
-            """(?<![\p{L}\p{M}])(?:আগামী সপ্তাহ|আগামী মাস|আগামীকাল|পরশু|আজ|(?:আগামী\s+)?(?:$weekdays))$notWord""",
-        ).map { Regex(it) }
-    }
-
-    /**
-     * A Bengali date match in the English [DateTimes] reads: digits to ASCII,
-     * the ordinal endings off, months, weekdays and next-day words to English.
-     * Latin text comes back as it was. Public for its test, which lives in
-     * :app with the rest of the unit tests and cannot see `internal`.
-     */
-    fun toLatin(raw: String): String {
-        if (raw.none { it in '\u0980'..'\u09FF' }) return raw
-        var out = raw.replace("\u09AF\u09BC", "\u09DF")
-        out = out.map { if (it in '০'..'৯') '0' + (it - '০') else it }.joinToString("")
-        for ((bn, en) in BN_MONTH_NAMES + BN_WEEKDAYS) out = out.replace(bn.replace("\u09AF\u09BC", "\u09DF"), " $en ")
-        for ((bn, en) in BN_RELATIVE) out = out.replace(bn, " $en ")
-        out = out.replace(Regex("(\\d)(?:লা|রা|ঠা|ই|শে)"), "$1")
-        return out.replace(Regex("\\s+"), " ").trim()
-    }
+    /** A clock time right after a phrase [DatePhrases] found: "morgen 14:30", "আগামীকাল at 5pm". */
+    private val TIME_AFTER = Regex("^$TIME_TAIL", RegexOption.IGNORE_CASE)
 
     /**
      * The words that make a date a deadline, read on the date's own line
@@ -201,7 +155,8 @@ object NoteHighlights {
      * Every highlight in [text], de-duplicated, ordered by [NoteHighlightKind]
      * then by where it sits, at most [limit]. Dates resolve against
      * [anchorMillis] in [zone]; numeric dates like `04/05/2026` are read in
-     * [locale]'s order.
+     * [locale]'s order, and date words in [languages] (locale tags) as well
+     * as English and the language of the note's script.
      */
     fun find(
         text: String,
@@ -209,6 +164,7 @@ object NoteHighlights {
         zone: TimeZone = TimeZone.getDefault(),
         locale: Locale = Locale.getDefault(),
         limit: Int = MAX_HIGHLIGHTS,
+        languages: List<String> = listOf(locale.toLanguageTag()),
     ): List<NoteHighlight> {
         val scanned = if (text.length > MAX_SCANNED_CHARS) text.substring(0, MAX_SCANNED_CHARS) else text
         if (scanned.isBlank()) return emptyList()
@@ -235,7 +191,7 @@ object NoteHighlights {
             claim(NoteHighlight(kind, entity.value, entity.start, entity.end, lineAt(scanned, entity.start)))
         }
 
-        for (date in dates(scanned, anchorMillis, zone, locale)) {
+        for (date in dates(scanned, anchorMillis, zone, locale, languages)) {
             if (free(date.start, date.end)) claim(date)
         }
 
@@ -259,7 +215,13 @@ object NoteHighlights {
     }
 
     /** The dated highlights of [text]; what [find] uses, and what a reminder needs. */
-    internal fun dates(text: String, anchorMillis: Long, zone: TimeZone, locale: Locale): List<NoteHighlight> {
+    internal fun dates(
+        text: String,
+        anchorMillis: Long,
+        zone: TimeZone,
+        locale: Locale,
+        languages: List<String> = listOf(locale.toLanguageTag()),
+    ): List<NoteHighlight> {
         val spans = ArrayList<NoteHighlight>()
         for (shape in DATE_SHAPES) {
             for (match in shape.findAll(text)) {
@@ -268,28 +230,83 @@ object NoteHighlights {
                 val end = start + raw.length
                 if (spans.any { start < it.end && it.start < end }) continue
                 if (raw.length > DateTimes.MAX_LENGTH) continue
-                val hit = DateTimes.parse(toLatin(raw), anchorMillis, zone, locale) ?: continue
+                val hit = DateTimes.parse(raw, anchorMillis, zone, locale) ?: continue
                 if (!hit.hasDate) continue
-                val line = lineAt(text, start)
-                val lineStart = text.lastIndexOf('\n', start - 1) + 1
-                val kind = when {
-                    BIRTHDAY_WORDS.containsMatchIn(lineText(text, start)) -> NoteHighlightKind.BIRTHDAY
-                    deadlineBefore(text, lineStart, start) -> NoteHighlightKind.DEADLINE
-                    else -> NoteHighlightKind.DATE
-                }
                 spans += NoteHighlight(
-                    kind = kind,
+                    kind = kindAt(text, start),
                     text = raw,
                     start = start,
                     end = end,
-                    line = line,
+                    line = lineAt(text, start),
                     whenMillis = hit.startMillis,
                     hasTime = hit.hasTime,
                     zoneId = hit.zoneId,
                 )
             }
         }
+        for (phrase in phrases(text, anchorMillis, zone, locale, languages)) {
+            if (spans.none { phrase.start < it.end && it.start < phrase.end }) spans += phrase
+        }
         return spans.sortedBy { it.start }
+    }
+
+    /**
+     * The dates [DatePhrases] reads in [languages] and the note's scripts,
+     * each with a clock time when one follows it.
+     */
+    private fun phrases(
+        text: String,
+        anchorMillis: Long,
+        zone: TimeZone,
+        locale: Locale,
+        languages: List<String>,
+    ): List<NoteHighlight> {
+        val anchor = Calendar.getInstance(zone).apply { timeInMillis = anchorMillis }
+        val anchorJdn = CalendarSystems.gregorianToJdn(
+            anchor.get(Calendar.YEAR), anchor.get(Calendar.MONTH) + 1, anchor.get(Calendar.DAY_OF_MONTH),
+        )
+        return DatePhrases.findAll(text, anchorJdn, languages).mapNotNull { match ->
+            if (match.end - match.start > DateTimes.MAX_LENGTH) return@mapNotNull null
+            val date = CalendarSystems.jdnToGregorian(match.jdn)
+            val day = Calendar.getInstance(zone).apply {
+                clear()
+                set(date.year, date.month - 1, date.day, 0, 0, 0)
+            }
+            var end = match.end
+            var hasTime = false
+            TIME_AFTER.find(text.substring(end, minOf(text.length, end + TIME_REACH)))
+                ?.takeIf { it.value.isNotBlank() }
+                ?.let { time ->
+                    val clock = time.value.trim().trimStart(',', '@').trim().removePrefix("at ").trim()
+                    val hit = DateTimes.parse(clock, anchorMillis, zone, locale) ?: return@let
+                    if (hit.hasDate || !hit.hasTime) return@let
+                    val at = Calendar.getInstance(zone).apply { timeInMillis = hit.startMillis }
+                    day.set(Calendar.HOUR_OF_DAY, at.get(Calendar.HOUR_OF_DAY))
+                    day.set(Calendar.MINUTE, at.get(Calendar.MINUTE))
+                    hasTime = true
+                    end += time.value.trimEnd().length
+                }
+            NoteHighlight(
+                kind = kindAt(text, match.start),
+                text = text.substring(match.start, end),
+                start = match.start,
+                end = end,
+                line = lineAt(text, match.start),
+                whenMillis = day.timeInMillis,
+                hasTime = hasTime,
+                zoneId = zone.id,
+            )
+        }
+    }
+
+    /** Birthday, deadline or plain date, by the words on the line around [start]. */
+    private fun kindAt(text: String, start: Int): NoteHighlightKind {
+        val lineStart = text.lastIndexOf('\n', start - 1) + 1
+        return when {
+            BIRTHDAY_WORDS.containsMatchIn(lineText(text, start)) -> NoteHighlightKind.BIRTHDAY
+            deadlineBefore(text, lineStart, start) -> NoteHighlightKind.DEADLINE
+            else -> NoteHighlightKind.DATE
+        }
     }
 
     /** Whether a deadline word sits on the line before [start], close enough to be about this date. */
