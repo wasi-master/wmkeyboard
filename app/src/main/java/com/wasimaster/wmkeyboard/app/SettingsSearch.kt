@@ -1876,6 +1876,8 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
     ),
     toolEntry(ToolbarTool.PRIVACY_SHADE, R.string.tooldetail_privacy_shade_dim_title, R.string.tooldetail_privacy_shade_dim_subtitle),
     toolEntry(ToolbarTool.PRIVACY_SHADE, R.string.tooldetail_privacy_shade_timer_title),
+    // The photo's opacity row shows only once there is a photo, so search leads to the pick.
+    toolEntry(ToolbarTool.PRIVACY_SHADE, R.string.tooldetail_privacy_shade_photo_pick_title),
     toolEntry(ToolbarTool.PRIVACY_SHADE, R.string.tooldetail_privacy_shade_apps_title),
     toolEntry(ToolbarTool.PRIVACY_SHADE, R.string.tooldetail_privacy_shade_apps_add),
     toolEntry(ToolbarTool.COMPASS, R.string.tooldetail_compass_degrees_title, R.string.tooldetail_compass_degrees_subtitle),

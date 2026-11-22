@@ -2751,6 +2751,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_privacy_shade_keep_on_title) { Icons.Outlined.LightMode }
         put(R.string.tooldetail_privacy_shade_dim_title) { Icons.Outlined.Bedtime }
         put(R.string.tooldetail_privacy_shade_timer_title) { Icons.Outlined.Timer }
+        put(R.string.tooldetail_privacy_shade_photo_opacity_title) { Icons.Outlined.Opacity }
         put(R.string.tooldetail_translate_manual_title) { Icons.Outlined.Translate }
         put(R.string.tooldetail_translate_live_delay_title) { Icons.Outlined.Timer }
         put(R.string.files_tool_two_panes_title) { Icons.Outlined.VerticalSplit }

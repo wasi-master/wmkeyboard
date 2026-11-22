@@ -2,12 +2,17 @@ package com.wasimaster.wmkeyboard.ime
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Region
+import android.os.Handler
+import android.os.Looper
 import android.text.TextPaint
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
@@ -16,8 +21,10 @@ import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.view.Window
 import android.widget.FrameLayout
+import com.wasimaster.wmkeyboard.core.settings.PrivacyShadePhoto
 import com.wasimaster.wmkeyboard.core.settings.PrivacyShadeSettings
 import com.wasimaster.wmkeyboard.core.settings.PrivacyShadeStyle
+import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -87,6 +94,9 @@ internal class PrivacyShade(
         val wasTouches = takesTouches
         settings = next
         showing = next.on && drawable
+        // Held only while the shade is up: the keyboard's process has no
+        // use for a screen-sized picture the rest of the time.
+        loadPhoto(if (showing) next.photo else null)
         view?.apply(next, showing)
         if (!showing) view?.coverAll()
         if (wasShowing != showing || wasTouches != takesTouches) requestInsets()
@@ -117,12 +127,55 @@ internal class PrivacyShade(
     /** Called back from the view when the user closes the shade with its button. */
     var onClose: () -> Unit = {}
 
+    /** The user's photo on the cover (#1417), decoded; and the file name it was decoded from. */
+    private var photo: Bitmap? = null
+    private var photoName: String? = null
+    private val main = Handler(Looper.getMainLooper())
+
+    /**
+     * Decodes the photo [name] names off the main thread, no larger than the
+     * screen needs, and hands it to the view; null lets go of the one held.
+     */
+    private fun loadPhoto(name: String?) {
+        if (name == photoName) return
+        photoName = name
+        photo = null
+        view?.invalidate()
+        val file = PrivacyShadePhoto.file(context.filesDir, name) ?: return
+        if (!file.isFile) {
+            // Not there yet (a restore writes it a moment before the setting),
+            // or locked away before the first unlock: look again next time.
+            photoName = null
+            return
+        }
+        val metrics = context.resources.displayMetrics
+        val screen = maxOf(metrics.widthPixels, metrics.heightPixels)
+        thread(name = "privacy-shade-photo", isDaemon = true) {
+            val decoded = runCatching {
+                val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                BitmapFactory.decodeFile(file.path, bounds)
+                var sample = 1
+                while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= screen) sample *= 2
+                BitmapFactory.decodeFile(file.path, BitmapFactory.Options().apply { inSampleSize = sample })
+            }.getOrNull()
+            main.post {
+                // A newer pick, or the shade gone down, while this one decoded.
+                if (photoName == name) {
+                    photo = decoded
+                    view?.invalidate()
+                }
+            }
+        }
+    }
+
     @SuppressLint("ViewConstructor")
     private inner class ShadeView(context: Context) : View(context) {
         private val density = resources.displayMetrics.density
         private fun dp(v: Float) = v * density
 
         private val coverPaint = Paint()
+        private val photoPaint = Paint(Paint.FILTER_BITMAP_FLAG)
+        private val photoMatrix = Matrix()
         private val handlePaint = Paint(Paint.ANTI_ALIAS_FLAG)
         private val edgePaint = Paint()
         private val hintPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -149,6 +202,10 @@ internal class PrivacyShade(
          * which is there to leave an OLED screen's pixels off (#1428).
          */
         private var showHint = true
+
+        /** The cover's opacity and the photo's against its colour; see [PrivacyShadeSettings.photoOpacity]. */
+        private var coverOpacity = PrivacyShadeSettings.DEFAULT_OPACITY
+        private var photoOpacity = PrivacyShadeSettings.DEFAULT_PHOTO_OPACITY
 
         /** Lifted by a held finger, with touch-through off. */
         private var peeking = false
@@ -178,7 +235,8 @@ internal class PrivacyShade(
             showHint = next.style != PrivacyShadeStyle.BLACK
             val (cover, ink) = colours(next.style)
             coverPaint.color = cover
-            coverPaint.alpha = (next.opacity.coerceIn(PrivacyShadeSettings.MIN_OPACITY, 1f) * 255).roundToInt()
+            coverOpacity = next.opacity.coerceIn(PrivacyShadeSettings.MIN_OPACITY, 1f)
+            photoOpacity = next.photoOpacity.coerceIn(PrivacyShadeSettings.MIN_PHOTO_OPACITY, 1f)
             handlePaint.color = ink
             handlePaint.alpha = HANDLE_ALPHA
             edgePaint.color = ink
@@ -235,7 +293,7 @@ internal class PrivacyShade(
             if (!drawn || boardTop <= 0 || peeking) return
             val bottom = coverBottom().toFloat()
             if (bottom <= 0f) return
-            canvas.drawRect(0f, 0f, width.toFloat(), bottom, coverPaint)
+            drawCover(canvas, bottom)
             canvas.drawRect(0f, bottom - dp(1f), width.toFloat(), bottom, edgePaint)
             // The handle: a pill on the edge, the grip a drag takes.
             val cx = width / 2f
@@ -253,6 +311,36 @@ internal class PrivacyShade(
             if (showHint && bottom > dp(HINT_ROOM_DP)) {
                 canvas.drawText(hint, cx, bottom / 2f, hintPaint)
             }
+        }
+
+        /**
+         * The colour, and the photo over it when there is one (#1417). The
+         * two together let through exactly as much of the app as the colour
+         * alone would at [coverOpacity]: with c that opacity and p the
+         * photo's, the photo goes on at c*p over the colour at
+         * c(1-p)/(1-cp), which leaves 1-c of the app.
+         */
+        private fun drawCover(canvas: Canvas, bottom: Float) {
+            val bmp = photo
+            if (bmp == null) {
+                coverPaint.alpha = (coverOpacity * 255).roundToInt()
+                canvas.drawRect(0f, 0f, width.toFloat(), bottom, coverPaint)
+                return
+            }
+            val onTop = coverOpacity * photoOpacity
+            val under = if (onTop >= 0.999f) 0f else coverOpacity * (1f - photoOpacity) / (1f - onTop)
+            coverPaint.alpha = (under * 255).roundToInt()
+            canvas.drawRect(0f, 0f, width.toFloat(), bottom, coverPaint)
+            // Cropped to fill the whole band above the board, and fixed there:
+            // dragging the edge uncovers the app, it does not slide the photo.
+            val scale = maxOf(width.toFloat() / bmp.width, boardTop.toFloat() / bmp.height)
+            photoMatrix.setScale(scale, scale)
+            photoMatrix.postTranslate((width - bmp.width * scale) / 2f, (boardTop - bmp.height * scale) / 2f)
+            photoPaint.alpha = (onTop * 255).roundToInt()
+            canvas.save()
+            canvas.clipRect(0f, 0f, width.toFloat(), bottom)
+            canvas.drawBitmap(bmp, photoMatrix, photoPaint)
+            canvas.restore()
         }
 
         @SuppressLint("ClickableViewAccessibility")

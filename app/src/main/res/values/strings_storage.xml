@@ -321,6 +321,8 @@
     <string name="storage_file_photo_device_label">Photo from your gallery</string>
     <string name="storage_file_photo_source_label">Photo from a search</string>
     <string name="storage_file_photo_pool_label">The list of saved photos</string>
+    <!-- #1417: the user's photo on the privacy shade -->
+    <string name="storage_file_privacy_shade_photo_label">Photo on the privacy shade</string>
 
     <!-- camera and scans -->
     <string name="storage_file_camera_shot_label">Photo you took</string>

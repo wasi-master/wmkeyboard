@@ -1600,6 +1600,18 @@
         <item quantity="one">%d minute</item>
         <item quantity="other">%d minutes</item>
     </plurals>
+    <!-- #1417: the user's own photo on the shade. -->
+    <string name="tooldetail_privacy_shade_photo_group">Photo on the shade</string>
+    <string name="tooldetail_privacy_shade_photo_group_info">Shows one of your photos on the shade, see-through over its colour. The keyboard keeps its own smaller copy of the photo, with no location or camera details, in its private storage. A full backup carries the copy, and sync does not. This is off by default.</string>
+    <string name="tooldetail_privacy_shade_photo_pick_title">Choose a photo</string>
+    <string name="tooldetail_privacy_shade_photo_change_title">Change the photo</string>
+    <string name="tooldetail_privacy_shade_photo_none">No photo. The shade shows only its colour</string>
+    <string name="tooldetail_privacy_shade_photo_set">Your photo is on the shade</string>
+    <string name="tooldetail_privacy_shade_photo_remove_desc">Take the photo off the shade</string>
+    <string name="tooldetail_privacy_shade_photo_failed">The keyboard could not read that photo</string>
+    <string name="tooldetail_privacy_shade_photo_opacity_title">Photo opacity</string>
+    <string name="tooldetail_privacy_shade_photo_opacity_subtitle">How much of the photo shows against the shade\'s colour</string>
+    <string name="tooldetail_privacy_shade_photo_opacity_info">How strongly the photo shows against the colour of the shade. At 100% you see only the photo. The app under the shade stays as hidden as the Opacity setting makes it, whatever this value is. The default is 50%.</string>
     <string name="tooldetail_privacy_shade_opacity_title">Opacity</string>
     <string name="tooldetail_privacy_shade_opacity_subtitle">Lower lets you make out your own messages up close, while someone a seat away cannot</string>
     <string name="tooldetail_privacy_shade_opacity_info">How solid the privacy shade is. At a lower value you can still read your own messages from close up, while a person one seat away cannot.</string>

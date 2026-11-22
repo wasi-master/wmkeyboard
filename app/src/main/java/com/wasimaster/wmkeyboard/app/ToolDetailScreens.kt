@@ -1982,6 +1982,7 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setPrivacyShadeTimerMinutes(it) } }
                 }
             }
+            PrivacyShadePhotoGroup(repository, settings)
             PrivacyShadeAppsGroup(repository, settings)
         }
         ToolbarTool.POWER_SAVING -> {

@@ -27,7 +27,7 @@ its own switch:
 
 | Section | Default | What it covers |
 |---|---|---|
-| Settings | On | Every keyboard preference |
+| Settings | On | Every keyboard preference, and the photo on the [privacy shade](/privacy/privacy-shade/#a-photo-on-the-shade) if you set one |
 | Include API keys | Off | Translate, GIF, search and AI keys (only shown while Settings is on) |
 | Themes | On | Your custom themes, including their background images |
 | Dictionary | Off | Words and next-word patterns the keyboard learned from you |
@@ -518,6 +518,9 @@ moves fine as a file you export by hand.
   embedded in the export file and written back to local storage on import,
   so a restore on a different phone gets a working theme with the image
   included rather than just the color settings.
+- **So does the privacy shade's photo.** The keyboard's own copy of it rides
+  in the Settings section and is written back on import. Sync leaves it
+  out, along with the setting that names it, so each phone keeps its own.
 - **A failed write leaves nothing behind.** If the app can't write to the
   file you chose, you get "The app could not write that file." rather than a
   half-written export. An automatic backup goes further. It writes the file

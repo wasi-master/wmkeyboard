@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.app.storage
 
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.settings.PrivacyShadePhoto
 import java.io.File
 
 /**
@@ -36,6 +37,7 @@ internal object StorageNames {
             THEME_PHOTOS -> themePhotoOf(name)?.let { return it }
             CAMERA -> if (isImage(name)) return R.string.storage_file_camera_shot_label
             DOC_SCAN -> if (isImage(name)) return R.string.storage_file_scan_label
+            PrivacyShadePhoto.DIR -> if (isImage(name)) return R.string.storage_file_privacy_shade_photo_label
         }
         return 0
     }

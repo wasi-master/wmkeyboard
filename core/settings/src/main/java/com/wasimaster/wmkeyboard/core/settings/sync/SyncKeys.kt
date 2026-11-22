@@ -44,6 +44,9 @@ object SyncKeys {
         "custom_buttons",
         // The shared clipboard board's place (#1201): a backup place of this device's.
         "clipboard_board_location",
+        // The privacy shade's photo (#1417): a file here, which a backup
+        // carries beside the setting and a settings sync cannot.
+        "privacy_shade_photo", "privacy_shade_photo_data",
         // Current state rather than a choice.
         "active_layout_id", "input_mode", "incognito", "privacy_shade_on", "data_saver_manual", "power_saving_manual",
         "recent_layout_ids", "globe_recent_order", "symbol_recents", "unit_convert_last",

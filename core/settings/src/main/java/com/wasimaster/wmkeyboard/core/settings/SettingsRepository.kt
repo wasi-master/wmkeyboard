@@ -14024,6 +14024,8 @@ class SettingsRepository(private val context: Context) {
         private val PRIVACY_SHADE_KEEP_SCREEN_ON = booleanPreferencesKey("privacy_shade_keep_screen_on")
         private val PRIVACY_SHADE_DIM_SCREEN = booleanPreferencesKey("privacy_shade_dim_screen")
         private val PRIVACY_SHADE_TIMER_MINUTES = intPreferencesKey("privacy_shade_timer_minutes")
+        private val PRIVACY_SHADE_PHOTO = stringPreferencesKey("privacy_shade_photo")
+        private val PRIVACY_SHADE_PHOTO_OPACITY = floatPreferencesKey("privacy_shade_photo_opacity")
         private val FEEDBACK_SHAKE = booleanPreferencesKey("feedback_shake")
         private val FEEDBACK_SCREENSHOT = booleanPreferencesKey("feedback_screenshot")
         private val FEEDBACK_TELEGRAM_ROUTE = stringPreferencesKey("feedback_telegram_route")
@@ -15190,6 +15192,9 @@ class SettingsRepository(private val context: Context) {
                 dimScreen = p[PRIVACY_SHADE_DIM_SCREEN] ?: defaults.privacyShade.dimScreen,
                 timerMinutes = (p[PRIVACY_SHADE_TIMER_MINUTES] ?: defaults.privacyShade.timerMinutes)
                     .takeIf { it in PrivacyShadeSettings.TIMER_CHOICES } ?: defaults.privacyShade.timerMinutes,
+                photo = p[PRIVACY_SHADE_PHOTO]?.takeIf { it.isNotEmpty() } ?: defaults.privacyShade.photo,
+                photoOpacity = (p[PRIVACY_SHADE_PHOTO_OPACITY] ?: defaults.privacyShade.photoOpacity)
+                    .coerceIn(PrivacyShadeSettings.MIN_PHOTO_OPACITY, 1f),
             ),
             feedbackShortcuts = FeedbackShortcutSettings(
                 shake = p[FEEDBACK_SHAKE] ?: defaults.feedbackShortcuts.shake,
@@ -18681,6 +18686,22 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPrivacyShadeTimerMinutes(value: Int) = editPrefs {
         it[PRIVACY_SHADE_TIMER_MINUTES] = value.takeIf { m -> m in PrivacyShadeSettings.TIMER_CHOICES } ?: 0
+    }
+
+    /**
+     * The shade's photo (#1417): [name] is a file the picker already wrote
+     * under [PrivacyShadePhoto.dir], or null for none. Any other photo there
+     * is deleted once the setting no longer names it.
+     */
+    suspend fun setPrivacyShadePhoto(name: String?) {
+        editPrefs { if (name == null) it.remove(PRIVACY_SHADE_PHOTO) else it[PRIVACY_SHADE_PHOTO] = name }
+        withContext(Dispatchers.IO) {
+            PrivacyShadePhoto.dir(context.filesDir).listFiles()?.forEach { if (it.name != name) it.delete() }
+        }
+    }
+
+    suspend fun setPrivacyShadePhotoOpacity(value: Float) = editPrefs {
+        it[PRIVACY_SHADE_PHOTO_OPACITY] = value.coerceIn(PrivacyShadeSettings.MIN_PHOTO_OPACITY, 1f)
     }
 
     /** Adds [pkg] to the apps the shade comes up in by itself, or takes it off. */
@@ -22299,6 +22320,42 @@ class SettingsRepository(private val context: Context) {
         }
     }
 
+    /**
+     * The settings section with the privacy shade's photo (#1417) beside the
+     * setting that names it, the way the snippets section carries its
+     * pictures. Left out when there is none, or it is missing or oversized.
+     */
+    private fun withShadePhoto(settings: JsonObject, name: String?): JsonObject {
+        val file = PrivacyShadePhoto.file(context.filesDir, name)
+            ?.takeIf { it.isFile && it.length() in 1..PrivacyShadePhoto.MAX_BYTES }
+            ?: return settings
+        val bytes = runCatching { file.readBytes() }.getOrNull() ?: return settings
+        val entry = buildJsonObject {
+            put("type", JsonPrimitive("file"))
+            put("name", JsonPrimitive(file.name))
+            put("value", JsonPrimitive(Base64.encodeToString(bytes, Base64.NO_WRAP)))
+        }
+        return JsonObject(settings + (PrivacyShadePhoto.BACKUP_KEY to entry))
+    }
+
+    /**
+     * Writes a backup's shade photo back. Only under a name this app gives a
+     * photo ([PrivacyShadePhoto.file]), so a file someone else wrote cannot
+     * name a place outside the photo's folder.
+     */
+    private fun restoreShadePhoto(entry: JsonObject) {
+        val name = (entry["name"] as? JsonPrimitive)?.contentOrNull
+        val target = PrivacyShadePhoto.file(context.filesDir, name) ?: return
+        val bytes = (entry["value"] as? JsonPrimitive)?.contentOrNull
+            ?.let { runCatching { Base64.decode(it, Base64.DEFAULT) }.getOrNull() }
+            ?.takeIf { it.isNotEmpty() && it.size <= PrivacyShadePhoto.MAX_BYTES }
+            ?: return
+        runCatching {
+            target.parentFile?.mkdirs()
+            target.writeBytes(bytes)
+        }
+    }
+
     /** Relative path of the icon-pack manifest, the one file that isn't binary. */
     private val iconManifestPath = "${IconPackStore.DIR_NAME}/packs.json"
 
@@ -22807,12 +22864,14 @@ class SettingsRepository(private val context: Context) {
         val prefs = context.dataStore.data.first()
         val out = LinkedHashMap<ConfigBackup.Section, JsonElement>()
         if (ConfigBackup.Section.SETTINGS in sections) {
-            out[ConfigBackup.Section.SETTINGS] =
+            out[ConfigBackup.Section.SETTINGS] = withShadePhoto(
                 SettingsBackup.encodeSettings(
                     prefs,
                     includeSecrets,
                     exclude = SettingsBackup.THEME_KEYS + SettingsBackup.TRANSIENT_KEYS + excludeKeys,
-                )
+                ),
+                prefs[PRIVACY_SHADE_PHOTO],
+            )
         }
         if (ConfigBackup.Section.THEMES in sections) {
             prefs[CUSTOM_THEMES]?.takeIf { it.isNotBlank() }?.let { raw ->
@@ -23079,7 +23138,9 @@ class SettingsRepository(private val context: Context) {
         var settingsFailed = false
 
         (parsed.sections[ConfigBackup.Section.SETTINGS] as? JsonObject)?.let { obj ->
-            val (entries, _) = SettingsBackup.decodeSettings(obj)
+            // The shade's photo first, so the restored setting names a file that is there.
+            (obj[PrivacyShadePhoto.BACKUP_KEY] as? JsonObject)?.let(::restoreShadePhoto)
+            val (entries, _) = SettingsBackup.decodeSettings(JsonObject(obj - PrivacyShadePhoto.BACKUP_KEY))
             val snapshot = context.dataStore.data.first()
             editPrefs { prefs ->
                 entries.forEach { prefs.put(it) }

@@ -46,10 +46,24 @@ data class PrivacyShadeSettings(
      * came up; 0 never (#1428). One of [TIMER_CHOICES].
      */
     val timerMinutes: Int = 0,
+    /**
+     * The user's own photo laid into the cover (#1417): a file name in
+     * [PrivacyShadePhoto.dir], or null for none, the default.
+     */
+    val photo: String? = null,
+    /**
+     * How much of the photo shows against the shade's colour, from
+     * [MIN_PHOTO_OPACITY] to 1. The cover as a whole stays as solid as
+     * [opacity] says, so the photo never hides more of the app than the
+     * colour alone would.
+     */
+    val photoOpacity: Float = DEFAULT_PHOTO_OPACITY,
 ) {
     companion object {
         const val DEFAULT_OPACITY = 0.94f
         const val MIN_OPACITY = 0.5f
+        const val DEFAULT_PHOTO_OPACITY = 0.5f
+        const val MIN_PHOTO_OPACITY = 0.1f
 
         /** What the "Take the shade down after" row offers, in minutes; 0 is never. */
         val TIMER_CHOICES = listOf(0, 5, 15, 30, 45, 60, 120)
@@ -69,4 +83,39 @@ enum class PrivacyShadeStyle(val id: String) {
     companion object {
         fun of(id: String?): PrivacyShadeStyle? = entries.firstOrNull { it.id == id }
     }
+}
+
+/**
+ * Where the shade's photo lives (#1417): one downscaled JPEG in the app's
+ * private files, named by when it was picked so a new pick never reads as the
+ * old one to a keyboard that still holds it. The copy carries no EXIF, so no
+ * place or camera from the original travels with it. `.img`, as every image
+ * saved for a look is, so no gallery takes it for one of the user's photos.
+ */
+object PrivacyShadePhoto {
+    const val DIR = "privacy_shade"
+
+    /**
+     * The settings backup's key for the photo itself, next to the setting
+     * that names it, as `{ type: "file", name, value: base64 }`. A build that
+     * does not know the type skips the entry and restores the rest.
+     */
+    const val BACKUP_KEY = "privacy_shade_photo_data"
+
+    /** Larger than any photo the picker writes; a backup's copy past it is turned away. */
+    const val MAX_BYTES = 8L * 1024 * 1024
+
+    private val NAME = Regex("""photo_\d{1,20}\.img""")
+
+    fun dir(filesDir: java.io.File): java.io.File = java.io.File(filesDir, DIR)
+
+    /** A new name for a photo picked now. */
+    fun newName(): String = "photo_${System.currentTimeMillis()}.img"
+
+    /**
+     * The file [name] stands for, or null when it is not a name this app
+     * gives a photo, so a name read from a backup cannot point elsewhere.
+     */
+    fun file(filesDir: java.io.File, name: String?): java.io.File? =
+        name?.takeIf { NAME.matches(it) }?.let { java.io.File(dir(filesDir), it) }
 }

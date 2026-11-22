@@ -77,6 +77,7 @@ import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.semantic.SemanticDownloads
 import com.wasimaster.wmkeyboard.core.semantic.SemanticModels
 import com.wasimaster.wmkeyboard.core.settings.LockedSettings
+import com.wasimaster.wmkeyboard.core.settings.PrivacyShadePhoto
 import com.wasimaster.wmkeyboard.core.settings.SemanticSearchMode
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.stickers.CutoutModel
@@ -1161,7 +1162,14 @@ internal object StorageCategories {
             group = StorageGroup.LOOKS,
             danger = Danger.PERSONAL,
             manageRoute = "themes",
-            pathsOf = { listOf(File(it.files, "theme_images"), File(it.files, "theme_photos")) },
+            // The privacy shade's photo (#1417) is a look's picture too.
+            pathsOf = {
+                listOf(
+                    File(it.files, "theme_images"),
+                    File(it.files, "theme_photos"),
+                    PrivacyShadePhoto.dir(it.files),
+                )
+            },
             deleteOne = { env, item ->
                 // A photo in the rotation pool is listed in pool.json as well as
                 // being a file, so it has to leave through the pool's own door.
