@@ -35,6 +35,13 @@
     <string name="floating_button_flick_down_left_title">Swipe down and left</string>
     <string name="floating_button_flick_left_title">Swipe left</string>
     <string name="floating_button_flick_up_left_title">Swipe up and left</string>
+    <string name="floating_button_flick_distance_title">Swipe distance</string>
+    <string name="floating_button_flick_distance_subtitle">How far a swipe from the fixed button goes before it counts</string>
+    <string name="floating_button_flick_distance_info">How far your finger has to travel from where it came down on the fixed button before the move counts as a swipe. Shorter lets a quick, short flick count. Longer stops a tap that drifts a little from turning into a swipe.</string>
+    <!-- %1$s: one of the swipe rows above, such as "Swipe up". -->
+    <string name="floating_button_flick_angle_title">%1$s angle</string>
+    <string name="floating_button_flick_angle_subtitle">How wide a fan of swipes counts as this direction</string>
+    <string name="floating_button_flick_angle_info">Each direction with an action answers to a fan of swipes centred on it. A swipe counts for it while it stays within half the fan on either side. Where two fans overlap, the wider one takes more of the space between them. The default, 135°, is 67.5° either side, so with all eight directions set each gets its own 45°. Make up and down narrow and right wide, for example, and a sideways swipe that drifts up still counts as right.</string>
     <string name="floating_button_pick_title">%1$s does</string>
 
     <!-- The tap and double tap again, for while the keyboard is up (#626). -->

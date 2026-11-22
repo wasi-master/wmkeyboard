@@ -55,11 +55,13 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.accessibility.ScreenContextService
 import com.wasimaster.wmkeyboard.core.accessibility.SystemButtonsService
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Architecture
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Folder
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Straighten
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VerticalSplit
 import com.wasimaster.wmkeyboard.core.settings.AppletTools
 import com.wasimaster.wmkeyboard.core.settings.DefaultFloatingMenu
@@ -71,7 +73,11 @@ import com.wasimaster.wmkeyboard.core.settings.FloatingButtonShape
 import com.wasimaster.wmkeyboard.core.settings.FloatingButtonSizeRange
 import com.wasimaster.wmkeyboard.core.settings.FloatingButtonStyle
 import com.wasimaster.wmkeyboard.core.settings.FloatingCategory
+import com.wasimaster.wmkeyboard.core.settings.DEFAULT_FLICK_ANGLE
+import com.wasimaster.wmkeyboard.core.settings.FlickAngleRange
 import com.wasimaster.wmkeyboard.core.settings.FlickDirection
+import com.wasimaster.wmkeyboard.core.settings.FlickDistanceDpRange
+import com.wasimaster.wmkeyboard.core.settings.flickAngleOf
 import com.wasimaster.wmkeyboard.core.settings.FloatingMenuAnimation
 import com.wasimaster.wmkeyboard.core.settings.LauncherSplitCombo
 import com.wasimaster.wmkeyboard.core.settings.FloatingAnimationSpeedRange
@@ -120,6 +126,9 @@ import kotlinx.coroutines.launch
 internal const val FloatingButtonRoute = "floating_button"
 
 /** Which gesture a picker is choosing for, or the quick menu's add. */
+/** A swipe fan's slider moves in steps of this many degrees (#1171). */
+private const val FLICK_ANGLE_STEP = 5
+
 private enum class FloatingPick { TAP, DOUBLE_TAP, HOLD, TAP_TYPING, DOUBLE_TAP_TYPING, MENU_ADD, FLICK }
 
 /** A swipe direction's row on the page (#1171). */
@@ -191,6 +200,7 @@ internal fun FloatingButtonSettingsScreen(
     val defaults = SettingsDefaults.summonButton
     val percentFormat = stringResource(R.string.typing_value_percent)
     val dpFormat = stringResource(R.string.typing_value_dp)
+    val degreesFormat = stringResource(R.string.theme_color_degrees_value)
     val menuOpens = FloatingAction.Menu in button.gestureActions()
 
     SettingsGroup {
@@ -281,6 +291,38 @@ internal fun FloatingButtonSettingsScreen(
                 ) {
                     flickPicking = direction
                     picking = FloatingPick.FLICK
+                }
+            }
+        }
+        // How far a swipe goes before it counts, and how wide a fan each
+        // bound direction answers to (#1171), like a gesture handle's angles.
+        val swipesSet = button.docked && button.flicks.isNotEmpty()
+        item(visible = swipesSet, level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.floating_button_flick_distance_title,
+                subtitle = stringResource(R.string.floating_button_flick_distance_subtitle),
+                value = button.flickDistanceDp.toFloat(),
+                range = FlickDistanceDpRange.first.toFloat()..FlickDistanceDpRange.last.toFloat(),
+                display = { dpFormat.format(it.roundToInt()) },
+                icon = Icons.Outlined.Straighten,
+                default = defaults.flickDistanceDp.toFloat(),
+                info = stringResource(R.string.floating_button_flick_distance_info),
+            ) { scope.launch { repository.setFloatingButtonFlickDistance(it.roundToInt()) } }
+        }
+        for (direction in FlickDirection.entries) {
+            item(visible = swipesSet && direction in button.flicks, level = SettingLevel.ADVANCED) {
+                SliderSetting(
+                    title = stringResource(R.string.floating_button_flick_angle_title, stringResource(flickTitle(direction))),
+                    subtitle = stringResource(R.string.floating_button_flick_angle_subtitle),
+                    value = flickAngleOf(direction, button.flickAngles).toFloat(),
+                    range = FlickAngleRange.first.toFloat()..FlickAngleRange.last.toFloat(),
+                    display = { degreesFormat.format(it.roundToInt()) },
+                    info = stringResource(R.string.floating_button_flick_angle_info),
+                    icon = Icons.Outlined.Architecture,
+                    default = DEFAULT_FLICK_ANGLE.toFloat(),
+                ) { degrees ->
+                    val snapped = (degrees / FLICK_ANGLE_STEP).roundToInt() * FLICK_ANGLE_STEP
+                    scope.launch { repository.setFloatingButtonFlickAngle(direction, snapped) }
                 }
             }
         }

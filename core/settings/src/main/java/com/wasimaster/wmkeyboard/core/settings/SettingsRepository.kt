@@ -12920,6 +12920,8 @@ class SettingsRepository(private val context: Context) {
         private val FLOATING_BUTTON_PILL = booleanPreferencesKey("floating_button_pill")
         private val FLOATING_BUTTON_DOCKED = booleanPreferencesKey("floating_button_docked")
         private val FLOATING_BUTTON_FLICKS = stringPreferencesKey("floating_button_flicks")
+        private val FLOATING_BUTTON_FLICK_ANGLES = stringPreferencesKey("floating_button_flick_angles")
+        private val FLOATING_BUTTON_FLICK_DISTANCE = intPreferencesKey("floating_button_flick_distance")
         private val FLOATING_BUTTON_ANIMATION_SPEED = floatPreferencesKey("floating_button_animation_speed")
         private val FLOATING_BUTTON_PILL_THICKNESS = intPreferencesKey("floating_button_pill_thickness")
         private val FLOATING_BUTTON_PILL_LENGTH = intPreferencesKey("floating_button_pill_length")
@@ -21148,6 +21150,9 @@ class SettingsRepository(private val context: Context) {
             docked = p[FLOATING_BUTTON_DOCKED] ?: d.docked,
             flicks = (p[FLOATING_BUTTON_FLICKS]?.let(::decodeFloatingFlicks) ?: d.flicks)
                 .filterValues { known(it) != null },
+            flickAngles = p[FLOATING_BUTTON_FLICK_ANGLES]?.let(::decodeFlickAngles) ?: d.flickAngles,
+            flickDistanceDp = (p[FLOATING_BUTTON_FLICK_DISTANCE] ?: d.flickDistanceDp)
+                .coerceIn(FlickDistanceDpRange.first, FlickDistanceDpRange.last),
             categories = categories,
             menuLabels = p[FLOATING_BUTTON_MENU_LABELS] ?: d.menuLabels,
             menuGapDp = (p[FLOATING_BUTTON_MENU_GAP] ?: d.menuGapDp)
@@ -21373,6 +21378,21 @@ class SettingsRepository(private val context: Context) {
             if (action == null || action == FloatingAction.None) flicks.remove(direction) else flicks[direction] = action
             val encoded = encodeFloatingFlicks(flicks)
             if (encoded.isEmpty()) prefs.remove(FLOATING_BUTTON_FLICKS) else prefs[FLOATING_BUTTON_FLICKS] = encoded
+        }
+
+    /** How wide a fan of swipes [direction] answers to, in degrees (#1171); null puts the default back. */
+    suspend fun setFloatingButtonFlickAngle(direction: com.wasimaster.wmkeyboard.core.settings.FlickDirection, degrees: Int?) =
+        editFloatingButton { prefs ->
+            val angles = decodeFlickAngles(prefs[FLOATING_BUTTON_FLICK_ANGLES]).toMutableMap()
+            if (degrees == null) angles.remove(direction) else angles[direction] = degrees
+            val encoded = encodeFlickAngles(angles)
+            if (encoded.isEmpty()) prefs.remove(FLOATING_BUTTON_FLICK_ANGLES) else prefs[FLOATING_BUTTON_FLICK_ANGLES] = encoded
+        }
+
+    /** How far a swipe from the fixed button goes before it counts, in dp (#1171). */
+    suspend fun setFloatingButtonFlickDistance(value: Int) =
+        editFloatingButton {
+            it[FLOATING_BUTTON_FLICK_DISTANCE] = value.coerceIn(FlickDistanceDpRange.first, FlickDistanceDpRange.last)
         }
 
     /** The thin pill against the edge in place of the disc (#1137). */

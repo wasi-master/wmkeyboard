@@ -1421,6 +1421,7 @@ private fun SearchStrings.floatingButtonRows(): List<SettingsSearchEntry> {
         row(R.string.floating_button_flick_down_left_title),
         row(R.string.floating_button_flick_left_title),
         row(R.string.floating_button_flick_up_left_title),
+        row(R.string.floating_button_flick_distance_title, R.string.floating_button_flick_distance_subtitle),
         row(R.string.floating_button_tap_typing_title),
         row(R.string.floating_button_double_tap_typing_title),
         row(R.string.floating_button_menu_add_title),

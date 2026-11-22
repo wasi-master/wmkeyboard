@@ -130,6 +130,25 @@ class FloatingButtonModelTest {
     }
 
     @Test
+    fun aWiderFanTakesGroundFromItsNeighbours() {
+        val three = listOf(FlickDirection.UP, FlickDirection.UP_RIGHT, FlickDirection.RIGHT)
+        // 30° above level: nearer up-right (15° off) than right (30° off).
+        val dx = 86.6f
+        val dy = -50f
+        assertEquals(FlickDirection.UP_RIGHT, flickDirectionOf(dx, dy, three))
+        // Right's fan at 200° (100° either side) against up-right's 40°: 30/100 beats 15/20.
+        val angles = mapOf(FlickDirection.RIGHT to 200, FlickDirection.UP_RIGHT to 40)
+        assertEquals(FlickDirection.RIGHT, flickDirectionOf(dx, dy, three, angles))
+        // A narrow fan with nothing beside it stops short: 30° off up is past up's 20° either side.
+        assertNull(flickDirectionOf(-50f, -86.6f, listOf(FlickDirection.UP), mapOf(FlickDirection.UP to 40)))
+        // Stored and read back, the default left out and out-of-range values clamped.
+        val stored = encodeFlickAngles(mapOf(FlickDirection.UP to 60, FlickDirection.LEFT to DEFAULT_FLICK_ANGLE))
+        assertEquals("UP=60", stored)
+        assertEquals(mapOf(FlickDirection.UP to 60), decodeFlickAngles(stored))
+        assertEquals(FlickAngleRange.last, decodeFlickAngles("DOWN=999,SIDEWAYS=10")[FlickDirection.DOWN])
+    }
+
+    @Test
     fun swipesRoundTripThroughTheirStoredForm() {
         val flicks = mapOf(
             FlickDirection.UP to voice,

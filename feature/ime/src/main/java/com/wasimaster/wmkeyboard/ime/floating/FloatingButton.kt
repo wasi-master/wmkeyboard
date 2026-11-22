@@ -1468,8 +1468,9 @@ internal class FloatingButton(
                 // What each direction runs, round the button (#1270).
                 showFlickGuide()
             }
-            val far = dx * dx + dy * dy >= (FLICK_MIN_DP * density).let { it * it }
-            val direction = if (far) flickDirectionOf(dx, dy, setting.activeFlicks.keys) else null
+            // How far, and how wide each direction's fan, are the user's (#1171).
+            val far = dx * dx + dy * dy >= (setting.flickDistanceDp * density).let { it * it }
+            val direction = if (far) flickDirectionOf(dx, dy, setting.activeFlicks.keys, setting.flickAngles) else null
             if (direction == flickDirection) return
             flickDirection = direction
             flickGuide.hovered = direction
@@ -1674,9 +1675,6 @@ internal class FloatingButton(
     private companion object {
         /** Room left between the button's disc and the top of a docked keyboard. */
         const val KEYBOARD_GAP_DP = 4f
-
-        /** How far a swipe from the fixed button goes before it counts as one (#1171). */
-        const val FLICK_MIN_DP = 28f
 
         /** How long a hold's finger rests on a category before its ring opens (#923). */
         const val CATEGORY_DWELL_MS = 380L
