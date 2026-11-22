@@ -1754,6 +1754,7 @@
 		"typing_auto_space_punctuation_title": "0.5.3",
 		"typing_autocorrect_adaptive_title": "0.5.3",
 		"typing_autocorrect_confidence_title": "0.5.3",
+		"typing_autocorrect_in_address_fields_title": "0.6.8",
 		"typing_autocorrect_mark_title": "0.6.7",
 		"typing_autocorrect_on_emoji_title": "0.6.7",
 		"typing_autocorrect_on_enter_title": "0.5.13",

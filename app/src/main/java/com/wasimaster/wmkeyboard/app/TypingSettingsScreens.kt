@@ -497,6 +497,15 @@ internal fun TypingCorrectionsSettings(
             }
             item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
+                    R.string.typing_autocorrect_in_address_fields_title,
+                    stringResource(R.string.typing_autocorrect_in_address_fields_subtitle),
+                    settings.watch { it.correction.inAddressFields },
+                    info = stringResource(R.string.typing_autocorrect_in_address_fields_info),
+                    default = SettingsDefaults.correction.inAddressFields,
+                ) { scope.launch { repository.setAutocorrectInAddressFields(it) } }
+            }
+            item(level = SettingLevel.ADVANCED) {
+                ToggleSetting(
                     R.string.typing_autocorrect_splits_title,
                     stringResource(R.string.typing_autocorrect_splits_subtitle),
                     settings.watch { it.suggestionStrip.autocorrectSplits },

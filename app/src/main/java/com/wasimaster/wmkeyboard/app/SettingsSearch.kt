@@ -425,6 +425,7 @@ private fun SearchStrings.typingCorrectionsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_autocorrect_mark_title, R.string.typing_autocorrect_mark_subtitle),
         row(R.string.typing_autocorrect_on_punctuation_title, R.string.typing_autocorrect_on_punctuation_subtitle),
         row(R.string.typing_autocorrect_on_emoji_title, R.string.typing_autocorrect_on_emoji_subtitle),
+        row(R.string.typing_autocorrect_in_address_fields_title, R.string.typing_autocorrect_in_address_fields_subtitle),
         row(R.string.typing_dictionary_capitals_title, R.string.typing_dictionary_capitals_subtitle),
         row(R.string.typing_block_offensive_title, R.string.typing_block_offensive_subtitle),
         row(R.string.typing_context_rerank_title, R.string.typing_context_rerank_subtitle),

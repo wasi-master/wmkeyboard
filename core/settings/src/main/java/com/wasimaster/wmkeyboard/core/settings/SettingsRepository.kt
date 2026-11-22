@@ -3300,6 +3300,15 @@ data class AutocorrectSettings(
      */
     val onEmoji: Boolean = true,
     /**
+     * Whether autocorrect also runs in a web address field (#1483): the
+     * address bar of every browser, which Android reports as a URI field and
+     * which is a search box at least as often. Off by default, because an
+     * address is not prose to second-guess; on, a word is corrected there the
+     * way it is in a text box, a piece of an address ("example.com/pathh")
+     * is still left as typed, and nothing typed there is learned.
+     */
+    val inAddressFields: Boolean = false,
+    /**
      * Whether a word the word list spells with a capital and never without
      * one ("Haus", "Berlin") is written that way when it is typed or swiped
      * in lower case (#481). German writes every noun like this.
@@ -12891,6 +12900,7 @@ class SettingsRepository(private val context: Context) {
         private val AUTOCORRECT_MARK_IN_FIELD = booleanPreferencesKey("autocorrect_mark_in_field")
         private val AUTOCORRECT_ON_PUNCTUATION = booleanPreferencesKey("autocorrect_on_punctuation")
         private val AUTOCORRECT_ON_EMOJI = booleanPreferencesKey("autocorrect_on_emoji")
+        private val AUTOCORRECT_IN_ADDRESS_FIELDS = booleanPreferencesKey("autocorrect_in_address_fields")
         private val AUTOCORRECT_OFF_LANGS = stringSetPreferencesKey("autocorrect_off_langs")
         private val DICTIONARY_CAPITALS = booleanPreferencesKey("dictionary_capitals")
         private val AUTO_CAPITALIZE = booleanPreferencesKey("auto_capitalize")
@@ -15345,6 +15355,7 @@ class SettingsRepository(private val context: Context) {
             markInField = p[AUTOCORRECT_MARK_IN_FIELD] ?: defaults.correction.markInField,
             onPunctuation = p[AUTOCORRECT_ON_PUNCTUATION] ?: defaults.correction.onPunctuation,
             onEmoji = p[AUTOCORRECT_ON_EMOJI] ?: defaults.correction.onEmoji,
+            inAddressFields = p[AUTOCORRECT_IN_ADDRESS_FIELDS] ?: defaults.correction.inAddressFields,
             dictionaryCapitals = p[DICTIONARY_CAPITALS] ?: defaults.correction.dictionaryCapitals,
             offLanguages = p[AUTOCORRECT_OFF_LANGS] ?: defaults.correction.offLanguages,
         )
@@ -23416,6 +23427,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAutocorrectOnEmoji(value: Boolean) =
         editPrefs { it[AUTOCORRECT_ON_EMOJI] = value }
+
+    suspend fun setAutocorrectInAddressFields(value: Boolean) =
+        editPrefs { it[AUTOCORRECT_IN_ADDRESS_FIELDS] = value }
 
     suspend fun setDictionaryCapitals(value: Boolean) =
         editPrefs { it[DICTIONARY_CAPITALS] = value }

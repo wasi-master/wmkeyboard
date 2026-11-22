@@ -4792,6 +4792,17 @@ data class KeyboardUiState(
         get() = !secureField && !nullField && fieldKind == FieldKind.TEXT
 
     /**
+     * Whether autocorrect may replace a word here: wherever
+     * [allowsTypingIntelligence] says, and in a browser's address bar when
+     * "Autocorrect in web address fields" asks for it (#1483). Only the
+     * correction widens; apostrophe fixes, learning and phonetic composing
+     * keep to [allowsTypingIntelligence].
+     */
+    val correctsWords: Boolean
+        get() = allowsTypingIntelligence ||
+            (!secureField && !nullField && fieldKind == FieldKind.URI && settings.correction.inAddressFields)
+
+    /**
      * Whether a glide may be decoded and committed here. Wider than
      * [allowsTypingIntelligence] by one field kind: a URL bar is a search box
      * as much as an address box, and a browser's omnibox is typed
@@ -4843,7 +4854,11 @@ data class KeyboardUiState(
     val composesWords: Boolean
         get() = !secureField && !nullField && !settings.autoText.commitAsTyped && (
             fieldKind == FieldKind.TEXT && (settings.suggestions || settings.correction.enabledFor(language.id)) ||
-                (fieldKind == FieldKind.URI && settings.suggestions && !fieldNoSuggestions)
+                (fieldKind == FieldKind.URI && settings.suggestions && !fieldNoSuggestions) ||
+                // Autocorrect reads this buffer, so a URL bar it is asked into
+                // composes with the strip hidden too, as a text field does (#1483).
+                (fieldKind == FieldKind.URI && settings.correction.inAddressFields &&
+                    settings.correction.enabledFor(language.id))
             )
 
     /**

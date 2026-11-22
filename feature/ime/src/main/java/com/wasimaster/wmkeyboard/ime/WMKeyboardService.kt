@@ -23075,7 +23075,9 @@ open class WMKeyboardService : InputMethodService() {
         // anchors in its place (issue #145).
         val fieldText = composedPreview(state, typed)
         // Read once for both tests below: far enough back for a whole address.
-        val behind = if (state.allowsTypingIntelligence && !state.composer.isTransliterating) {
+        // A URL bar autocorrect was asked into (#1483) reads it too, so the
+        // piece of an address below is still left as typed there.
+        val behind = if (state.correctsWords && !state.composer.isTransliterating) {
             ic.getTextBeforeCursor(maxOf(AddressToken.LOOKBACK, fieldText.length + ELISION_LOOKBACK), 0)
         } else {
             null
@@ -23239,7 +23241,7 @@ open class WMKeyboardService : InputMethodService() {
             state.layouts.ambiguousKeys && !gluedToWord ->
                 (pre?.ambiguousTop ?: ambiguousDecode(typed)) ?: typed
             apostrophized != null -> apostrophized
-            autocorrect && state.allowsTypingIntelligence && !gluedToWord -> {
+            autocorrect && state.correctsWords && !gluedToWord -> {
                 val decision = if (pre != null && !pre.isPhonetic) {
                     SuggestionEngine.CorrectionDecision(
                         pre.correction, pre.offer, pre.certainty, pre.complexity,
@@ -31130,7 +31132,7 @@ open class WMKeyboardService : InputMethodService() {
             // asks the engine about that word and not about the keystrokes. A
             // resolution computed over "tieengs" could only be discarded.
             !isVietnameseTransliterator(state) &&
-            state.settings.correction.enabledFor(state.language.id) && state.allowsTypingIntelligence
+            state.settings.correction.enabledFor(state.language.id) && state.correctsWords
 
     /**
      * Whether the composer writes Vietnamese by transliteration, Telex or VNI.
