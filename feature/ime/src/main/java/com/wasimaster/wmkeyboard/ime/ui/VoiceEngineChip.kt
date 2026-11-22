@@ -30,6 +30,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Settings
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.voice.VoiceChoice
+import com.wasimaster.wmkeyboard.core.voice.VoiceChoices
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.VoiceBarAction
@@ -62,7 +63,7 @@ internal fun VoiceEngineChip(
     val description = stringResource(R.string.ime_voice_engine_desc)
     Box(modifier = modifier) {
         Text(
-            text = voiceEngineName(engine),
+            text = voiceChoiceName(engine, voice.engineServerName),
             color = if (voice.engineChoice.isEmpty()) kb.secondaryText else kb.toolbarIcon,
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
@@ -84,6 +85,7 @@ internal fun VoiceEngineChip(
             VoiceEngineMenu(
                 languageId = voice.engineLanguage,
                 choices = voice.engineChoices,
+                serverName = voice.engineServerName,
                 current = voice.engineChoice,
                 onDismiss = { onMenuOpen(false) },
                 onPick = { key ->
@@ -128,7 +130,7 @@ internal fun VoiceEnginePills(
     ) {
         for (choice in choices) {
             val on = choice.key == current
-            val name = voiceEngineName(choice.engine)
+            val name = voiceChoiceName(choice.engine, voice.engineServerName)
             // A second model of the same engine is told apart by its model's name.
             val label = if (choice.modelLabel != null && choices.count { it.engine == choice.engine } > 1) {
                 "$name · ${choice.modelLabel}"
@@ -180,6 +182,7 @@ internal fun com.wasimaster.wmkeyboard.ime.VoiceUi.nextEngineKey(): String? {
 private fun VoiceEngineMenu(
     languageId: String,
     choices: List<VoiceChoice>,
+    serverName: String,
     current: String,
     onDismiss: () -> Unit,
     onPick: (String) -> Unit,
@@ -202,7 +205,7 @@ private fun VoiceEngineMenu(
         val entries = buildList {
             add("" to stringResource(R.string.ime_voice_engine_default))
             for (choice in choices) {
-                val name = voiceEngineName(choice.engine)
+                val name = voiceChoiceName(choice.engine, serverName)
                 add(choice.key to (choice.modelLabel?.let { "$name · $it" } ?: name))
             }
         }
@@ -226,6 +229,15 @@ private fun VoiceEngineMenu(
         )
     }
 }
+
+/**
+ * What the chip, its list and the pills call [engine]: the name the user gave
+ * the transcription server when it is that and has one (#1477), else
+ * [voiceEngineName].
+ */
+@Composable
+internal fun voiceChoiceName(engine: String, serverName: String): String =
+    if (engine == VoiceChoices.SERVER && serverName.isNotBlank()) serverName.trim() else voiceEngineName(engine)
 
 /** The engine's own short name, as the chip and the menu show it. */
 @Composable

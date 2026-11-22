@@ -813,6 +813,17 @@ fun KeyboardSettings.aiThrough(key: String, env: ProviderEnv = choiceEnv()): AiS
 fun KeyboardSettings.voiceRows(env: ProviderEnv = choiceEnv()): List<ResolvedProvider> =
     resolveProviders(ProviderTool.VOICE, env)
 
+/**
+ * The name the user gave the transcription server dictation in [languageId]
+ * goes to, for the voice panel's engine chip and pills (#1477); empty when
+ * it has none, or when the language has a server of its own, which is
+ * entered by address and never named.
+ */
+fun KeyboardSettings.voiceServerName(languageId: String, env: ProviderEnv = choiceEnv()): String {
+    if (!whisper.serverByLang[languageId]?.url.isNullOrBlank()) return ""
+    return voiceRows(env).firstOrNull { it.typeId == ProviderTypes.TRANSCRIPTION_SERVER.id }?.customName.orEmpty()
+}
+
 /** The OCR list's row for [engine], or null for [OcrEngine.ONLINE], which is the online rows. */
 fun ocrEngineType(engine: OcrEngine): ProviderType? = when (engine) {
     OcrEngine.AUTO -> ProviderTypes.OCR_ON_DEVICE

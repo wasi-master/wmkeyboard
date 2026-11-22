@@ -423,6 +423,7 @@ import com.wasimaster.wmkeyboard.core.settings.serverFor
 import com.wasimaster.wmkeyboard.core.settings.dictationLanguages
 import com.wasimaster.wmkeyboard.core.settings.VoiceChoiceRef
 import com.wasimaster.wmkeyboard.core.settings.voiceFor
+import com.wasimaster.wmkeyboard.core.settings.voiceServerName
 import com.wasimaster.wmkeyboard.core.settings.restrictedToDirectBoot
 import com.wasimaster.wmkeyboard.core.settings.withoutModes
 import com.wasimaster.wmkeyboard.core.settings.PowerSavingSettings
@@ -39067,10 +39068,13 @@ open class WMKeyboardService : InputMethodService() {
             emptyList()
         }
         val own = s.whisper.voiceByLang[languageId].orEmpty()
+        // The server's own name on the chip and pills, in place of "Server" (#1477).
+        val serverName = if (s.voiceBar.enginePicker) s.voiceServerName(languageId) else ""
         _uiState.update {
             it.copy(
                 voice = it.voice.copy(
                     engine = engine, engineLanguage = languageId, engineChoices = choices, engineChoice = own,
+                    engineServerName = serverName,
                 ),
             )
         }

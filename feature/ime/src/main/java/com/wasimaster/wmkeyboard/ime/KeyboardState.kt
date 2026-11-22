@@ -1387,6 +1387,12 @@ data class VoiceUi(
      * chip is switched on: engines and downloaded models that serve it.
      */
     val engineChoices: List<com.wasimaster.wmkeyboard.core.voice.VoiceChoice> = emptyList(),
+    /**
+     * The name the user gave the transcription server [engineLanguage] goes
+     * to, shown in place of "Server" on the chip and pills (#1477); empty
+     * when it has none.
+     */
+    val engineServerName: String = "",
     /** [engineLanguage]'s stored pick (`engine` or `engine:modelId`), empty when it follows the global engine. */
     val engineChoice: String = "",
     /**
