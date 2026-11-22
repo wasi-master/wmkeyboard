@@ -54357,8 +54357,12 @@ open class WMKeyboardService : InputMethodService() {
      * caret: the magnifier over it (discussion #303), when that surface has it
      * switched on. Not for a keyboard-owned field, whose caret is on the
      * keyboard already.
+     *
+     * Also kept in [caretDragsDown] whatever the magnifier's switch says, so a
+     * caret nudge ([noteBoardGrowth]) waits out the drag.
      */
     fun onCaretDrag(source: CaretDragSource, down: Boolean) {
+        if (down) caretDragsDown.add(source) else caretDragsDown.remove(source)
         if (!down) {
             caretMagnifier.end(source)
             return
@@ -54650,11 +54654,20 @@ open class WMKeyboardService : InputMethodService() {
      * Not while a word is being typed, which the editor follows on its own, nor
      * while a commit's one-shot undo is armed: the nudge moves the caret, which
      * would disarm it.
+     *
+     * Nor while the keyboard itself is moving the caret ([caretInMotion]): a
+     * moving caret is one the editor scrolls to anyway, and the nudge's step
+     * back lands on [expectedSelStart], which an arrow key has already left
+     * before its echo comes in. A spacebar drag under "Hide the strip until
+     * there are words" unfolds the strip whenever the caret rests on a word,
+     * and the nudge then put the caret back where the drag had just taken it
+     * from: one character back, every time (#1440).
      */
     private fun noteBoardGrowth(top: Int) {
         val last = boardTopForReveal
         boardTopForReveal = top
         if (last < 0 || top >= last || !keyboardVisible) return
+        if (caretInMotion()) return
         val state = _uiState.value
         if (state.panel != PanelMode.NONE && state.panel != PanelMode.FIND_REPLACE) return
         if (composing.isNotEmpty() && composing.toString() != resumedWord) return
@@ -54681,9 +54694,24 @@ open class WMKeyboardService : InputMethodService() {
         caretRevealJob?.cancel()
         caretRevealJob = serviceScope.launch {
             delay(MACRO_ROW_REVEAL_DELAY_MS)
+            // A drag that set off during the wait: the cached caret is not
+            // where its arrow keys have taken the real one (#1440).
+            if (caretInMotion()) return@launch
             if (expectedSelStart == start && expectedSelEnd == end) revealCaret()
         }
     }
+
+    /**
+     * The spacebar or the trackpad is dragging the caret, or a caret step went
+     * out within [CARET_SCRUB_WINDOW_MS]. An arrow key's move reaches
+     * [expectedSelStart] only with its echo, so until then the cache names a
+     * caret the editor has already left.
+     */
+    private fun caretInMotion(): Boolean =
+        caretDragsDown.isNotEmpty() || SystemClock.uptimeMillis() - lastCaretScrubMs < CARET_SCRUB_WINDOW_MS
+
+    /** The caret drags under way, by surface; see [onCaretDrag]. */
+    private val caretDragsDown = mutableSetOf<CaretDragSource>()
 
     /**
      * Asks the editor to scroll its caret, or its selection, into view.
