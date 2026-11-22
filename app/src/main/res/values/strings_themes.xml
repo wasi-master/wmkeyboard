@@ -349,6 +349,51 @@
     <!-- The corners curve inwards, like a cinema ticket. -->
     <string name="theme_key_shape_ticket_label">Ticket</string>
     <string name="theme_key_shape_circle_label">Circle</string>
+    <!-- A circle whose edge has twelve small waves, like a cookie. -->
+    <string name="theme_key_shape_cookie_label">Cookie</string>
+    <!-- A circle with eight soft points, like a drawing of the sun. -->
+    <string name="theme_key_shape_sunny_label">Sun</string>
+    <string name="theme_key_shape_flower_label">Flower</string>
+    <!-- Four round leaves, like a four-leaf clover. -->
+    <string name="theme_key_shape_clover_label">Clover</string>
+    <string name="theme_key_shape_oval_label">Oval</string>
+    <string name="theme_key_shape_semicircle_label">Semicircle</string>
+    <string name="theme_key_shape_triangle_label">Triangle</string>
+    <!-- A rounded arrowhead pointing up. -->
+    <string name="theme_key_shape_arrow_label">Arrow</string>
+    <!-- A quarter of a circle, like a folding fan. -->
+    <string name="theme_key_shape_fan_label">Fan</string>
+    <string name="theme_key_shape_diamond_label">Diamond</string>
+    <!-- A wide hexagon with soft corners, like a clam's shell. -->
+    <string name="theme_key_shape_clamshell_label">Clamshell</string>
+    <string name="theme_key_shape_pentagon_label">Pentagon</string>
+    <!-- A cut gemstone seen from above. -->
+    <string name="theme_key_shape_gem_label">Gem</string>
+    <!-- The sun shape with deeper, sharper points. -->
+    <string name="theme_key_shape_very_sunny_label">Very sunny</string>
+    <!-- The cookie shape with only four, six, seven or nine waves. -->
+    <string name="theme_key_shape_cookie_4_label">4-sided cookie</string>
+    <string name="theme_key_shape_cookie_6_label">6-sided cookie</string>
+    <string name="theme_key_shape_cookie_7_label">7-sided cookie</string>
+    <string name="theme_key_shape_cookie_9_label">9-sided cookie</string>
+    <string name="theme_key_shape_clover_8_label">8-leaf clover</string>
+    <!-- A star with twelve sharp points, like a starburst sticker. -->
+    <string name="theme_key_shape_burst_label">Burst</string>
+    <string name="theme_key_shape_soft_burst_label">Soft burst</string>
+    <!-- A star with many long, thin points, like a comic-book explosion. -->
+    <string name="theme_key_shape_boom_label">Boom</string>
+    <string name="theme_key_shape_soft_boom_label">Soft boom</string>
+    <!-- Small round bumps all the way round, like a cloud. -->
+    <string name="theme_key_shape_puffy_label">Puffy</string>
+    <string name="theme_key_shape_puffy_diamond_label">Puffy diamond</string>
+    <!-- Round on top, with two little lobes at the bottom, like a cartoon ghost. -->
+    <string name="theme_key_shape_ghost_label">Ghost</string>
+    <!-- A circle drawn in square pixels, like in an old video game. -->
+    <string name="theme_key_shape_pixel_circle_label">Pixel circle</string>
+    <string name="theme_key_shape_pixel_triangle_label">Pixel triangle</string>
+    <!-- Two rounded halves pinched in the middle, like a burger bun. -->
+    <string name="theme_key_shape_bun_label">Bun</string>
+    <string name="theme_key_shape_heart_label">Heart</string>
     <string name="theme_letter_keys_title">Letter keys</string>
     <string name="theme_key_gradient_title">Key gradient</string>
     <string name="theme_key_gradient_subtitle">The keyboard paints this sheen over the letter keys</string>
@@ -655,14 +700,6 @@
     <string name="theme_key_override_gradient_angle_title">Gradient angle</string>
     <string name="theme_key_override_glow_title">Glow</string>
     <string name="theme_key_override_glow_size_title">Glow reach</string>
-    <!-- How much of a key's glow washes over the keys beside it, as a percentage. -->
-    <string name="theme_key_override_glow_spill_title">Light on nearby keys</string>
-    <string name="theme_key_override_glow_spill_info">The keys round this one take on its glow on the side that faces it, as if it lit them.</string>
-    <!-- The glow's colour while the key is held down. -->
-    <string name="theme_key_override_pressed_glow_title">Glow while held</string>
-    <!-- How bright the glow is while the key is held, as a percentage of the glow at rest. -->
-    <string name="theme_key_override_pressed_glow_strength_title">Held glow brightness</string>
-    <string name="theme_key_override_pressed_glow_strength_info">Under 100% dims the glow while the key is held, over 100% makes it brighter. The light on nearby keys follows.</string>
     <string name="theme_key_override_radius_title">Corner radius</string>
     <string name="theme_key_override_radius_info">Gives this key its own corner radius, apart from the radius of the other keys.</string>
     <string name="theme_key_background_title">Key background</string>

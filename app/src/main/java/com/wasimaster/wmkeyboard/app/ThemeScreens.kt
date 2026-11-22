@@ -159,7 +159,12 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
@@ -219,7 +224,6 @@ import com.wasimaster.wmkeyboard.core.settings.AppColorScope
 import com.wasimaster.wmkeyboard.core.theme.AppColorSource
 import com.wasimaster.wmkeyboard.core.theme.DEFAULT_KEY_GLOW_DP
 import com.wasimaster.wmkeyboard.core.theme.KEY_GLOW_RANGE
-import com.wasimaster.wmkeyboard.core.theme.KEY_PRESSED_GLOW_STRENGTH_RANGE
 import com.wasimaster.wmkeyboard.core.theme.KEY_OVERRIDE_RADIUS_RANGE
 import com.wasimaster.wmkeyboard.core.theme.LooseTheme
 import com.wasimaster.wmkeyboard.core.theme.ORB_SPOT_POSITION_RANGE
@@ -940,6 +944,36 @@ internal fun keyShapeName(kind: KeyShapeKind): String = stringResource(
         KeyShapeKind.SCALLOP -> R.string.theme_key_shape_scallop_label
         KeyShapeKind.TICKET -> R.string.theme_key_shape_ticket_label
         KeyShapeKind.CIRCLE -> R.string.theme_key_shape_circle_label
+        KeyShapeKind.COOKIE -> R.string.theme_key_shape_cookie_label
+        KeyShapeKind.SUNNY -> R.string.theme_key_shape_sunny_label
+        KeyShapeKind.FLOWER -> R.string.theme_key_shape_flower_label
+        KeyShapeKind.CLOVER -> R.string.theme_key_shape_clover_label
+        KeyShapeKind.OVAL -> R.string.theme_key_shape_oval_label
+        KeyShapeKind.SEMICIRCLE -> R.string.theme_key_shape_semicircle_label
+        KeyShapeKind.TRIANGLE -> R.string.theme_key_shape_triangle_label
+        KeyShapeKind.ARROW -> R.string.theme_key_shape_arrow_label
+        KeyShapeKind.FAN -> R.string.theme_key_shape_fan_label
+        KeyShapeKind.DIAMOND -> R.string.theme_key_shape_diamond_label
+        KeyShapeKind.CLAMSHELL -> R.string.theme_key_shape_clamshell_label
+        KeyShapeKind.PENTAGON -> R.string.theme_key_shape_pentagon_label
+        KeyShapeKind.GEM -> R.string.theme_key_shape_gem_label
+        KeyShapeKind.VERY_SUNNY -> R.string.theme_key_shape_very_sunny_label
+        KeyShapeKind.COOKIE_4 -> R.string.theme_key_shape_cookie_4_label
+        KeyShapeKind.COOKIE_6 -> R.string.theme_key_shape_cookie_6_label
+        KeyShapeKind.COOKIE_7 -> R.string.theme_key_shape_cookie_7_label
+        KeyShapeKind.COOKIE_9 -> R.string.theme_key_shape_cookie_9_label
+        KeyShapeKind.CLOVER_8 -> R.string.theme_key_shape_clover_8_label
+        KeyShapeKind.BURST -> R.string.theme_key_shape_burst_label
+        KeyShapeKind.SOFT_BURST -> R.string.theme_key_shape_soft_burst_label
+        KeyShapeKind.BOOM -> R.string.theme_key_shape_boom_label
+        KeyShapeKind.SOFT_BOOM -> R.string.theme_key_shape_soft_boom_label
+        KeyShapeKind.PUFFY -> R.string.theme_key_shape_puffy_label
+        KeyShapeKind.PUFFY_DIAMOND -> R.string.theme_key_shape_puffy_diamond_label
+        KeyShapeKind.GHOST -> R.string.theme_key_shape_ghost_label
+        KeyShapeKind.PIXEL_CIRCLE -> R.string.theme_key_shape_pixel_circle_label
+        KeyShapeKind.PIXEL_TRIANGLE -> R.string.theme_key_shape_pixel_triangle_label
+        KeyShapeKind.BUN -> R.string.theme_key_shape_bun_label
+        KeyShapeKind.HEART -> R.string.theme_key_shape_heart_label
     },
 )
 
@@ -1052,11 +1086,19 @@ private const val THUMB_DECODE_PX = 96
 /** What chips draw with when a theme sets no chip radius; mirrors the keyboard. */
 private const val DefaultChipRadiusDp = 12
 
+/** Width of one tile in [KeyShapePickerDialog]: room for "4-sided cookie" on two lines. */
+private const val ShapeTileWidthDp = 64
+
 /**
- * Radio list of every key shape, each row with the shape drawn beside its name.
- * Shared by every shape a theme sets (keys, popups, tools, chips, menus and
- * cards), hence the caller's [title].
+ * Grid of every key shape, each drawn over its name, the picked one on a filled
+ * tile. Shared by every shape a theme sets (keys, popups, tools, chips, menus
+ * and cards), hence the caller's [title].
+ *
+ * A grid rather than the radio list it was: with the Material shapes of #1515
+ * there are over forty, and a list of them was a long scroll in which the shape
+ * the eye picks by sat at the far end of each row from the button.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun KeyShapePickerDialog(
     selected: KeyShapeKind?,
@@ -1072,11 +1114,20 @@ internal fun KeyShapePickerDialog(
     // shape picker is the one caller that passes true.
     offerNone: Boolean = false,
 ) {
+    val scroll = rememberScrollState()
+    // Where the grid sits in the column and where the picked tile sits in the
+    // grid, so the dialog opens scrolled to the shape in use (the Heart is
+    // eleven rows down).
+    var gridTop by remember { mutableIntStateOf(-1) }
+    var pickedTop by remember { mutableIntStateOf(-1) }
+    LaunchedEffect(gridTop, pickedTop) {
+        if (gridTop >= 0 && pickedTop > 0) scroll.scrollTo(gridTop + pickedTop)
+    }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(title)) },
         text = {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+            Column(modifier = Modifier.verticalScroll(scroll)) {
                 if (onAuto != null) {
                     Row(
                         modifier = Modifier
@@ -1093,31 +1144,52 @@ internal fun KeyShapePickerDialog(
                         )
                     }
                 }
-                for (kind in KeyShapeKind.entries) {
-                    if (kind == KeyShapeKind.NONE && !offerNone) continue
-                    val picked = kind == selected
-                    ScrollAnchor(picked) {
-                        Row(
+                FlowRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onPlaced { gridTop = it.positionInParent().y.roundToInt() },
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    for (kind in KeyShapeKind.entries) {
+                        if (kind == KeyShapeKind.NONE && !offerNone) continue
+                        val picked = kind == selected
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onPick(kind) }
+                                .width(ShapeTileWidthDp.dp)
+                                .then(
+                                    if (picked) {
+                                        Modifier.onPlaced { pickedTop = it.positionInParent().y.roundToInt() }
+                                    } else {
+                                        Modifier
+                                    },
+                                )
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(
+                                    if (picked) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+                                )
+                                .selectable(selected = picked, role = Role.RadioButton, onClick = { onPick(kind) })
                                 .padding(vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            RadioButton(selected = picked, onClick = { onPick(kind) })
-                            Spacer(Modifier.width(8.dp))
-                            Text(keyShapeName(kind), modifier = Modifier.weight(1f))
-                            Spacer(Modifier.width(8.dp))
                             KeyShapeSwatch(
                                 kind = kind,
                                 radiusDp = radiusDp,
-                                // The picked shape carries the accent, so the row
+                                // The picked shape carries the accent, so the tile
                                 // that is on reads at a glance from the swatches.
                                 color = if (picked) {
                                     MaterialTheme.colorScheme.primary
                                 } else {
                                     MaterialTheme.colorScheme.onSurfaceVariant
                                 },
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                keyShapeName(kind),
+                                style = MaterialTheme.typography.labelSmall,
+                                textAlign = TextAlign.Center,
+                                maxLines = 2,
+                                modifier = Modifier.padding(horizontal = 2.dp),
                             )
                         }
                     }
@@ -8072,35 +8144,6 @@ private fun KeyOverrideDialog(
                     range = KEY_GLOW_RANGE,
                     display = { "${it.roundToInt()} dp" },
                 ) { v -> onChange(override.copy(glowDp = v.roundToInt().toFloat())) }
-            }
-            NullableColorRow(
-                R.string.theme_key_override_pressed_glow_title,
-                override.pressedGlow, fallback = override.glow ?: theme.accent,
-                supportsAlpha = true,
-                onChange = { onChange(override.copy(pressedGlow = it)) },
-            )
-            // The two that need a glow to work on: at rest, held, or both.
-            if (override.glow != null || override.pressedGlow != null) {
-                SliderRow(
-                    R.string.theme_key_override_pressed_glow_strength_title,
-                    value = override.pressedGlowStrength ?: 1f,
-                    range = KEY_PRESSED_GLOW_STRENGTH_RANGE,
-                    display = { "${(it * 100).roundToInt()}%" },
-                    info = stringResource(R.string.theme_key_override_pressed_glow_strength_info),
-                ) { v ->
-                    val snapped = (v * 20f).roundToInt() / 20f
-                    onChange(override.copy(pressedGlowStrength = snapped.takeIf { it != 1f }))
-                }
-                SliderRow(
-                    R.string.theme_key_override_glow_spill_title,
-                    value = override.glowSpill ?: 0f,
-                    range = 0f..1f,
-                    display = { "${(it * 100).roundToInt()}%" },
-                    info = stringResource(R.string.theme_key_override_glow_spill_info),
-                ) { v ->
-                    val snapped = (v * 20f).roundToInt() / 20f
-                    onChange(override.copy(glowSpill = snapped.takeIf { it > 0f }))
-                }
             }
             if (popupsShown) {
                 NullableColorRow(

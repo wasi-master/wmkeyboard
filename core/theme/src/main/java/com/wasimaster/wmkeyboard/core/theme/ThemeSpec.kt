@@ -53,7 +53,9 @@ data class GradientSpec(
  * [keyShapeKindOrNull] turns NONE away there.
  *
  * Order is the order the shape picker lists them in: no shape first, then the
- * four plain outlines, then the decorative ones.
+ * four plain outlines, then the decorative ones, then the catalogue of
+ * Material 3 Expressive shapes (#1515), cookies and stars and a heart, which
+ * came last and so sit at the end: a new value only ever goes on the end.
  *
  * A value added here is not readable by an older build — `ThemeCodec.decode`
  * drops a theme whose enum name it does not know — so a theme exported with
@@ -74,6 +76,36 @@ enum class KeyShapeKind {
     SCALLOP,
     TICKET,
     CIRCLE,
+    COOKIE,
+    SUNNY,
+    FLOWER,
+    CLOVER,
+    OVAL,
+    SEMICIRCLE,
+    TRIANGLE,
+    ARROW,
+    FAN,
+    DIAMOND,
+    CLAMSHELL,
+    PENTAGON,
+    GEM,
+    VERY_SUNNY,
+    COOKIE_4,
+    COOKIE_6,
+    COOKIE_7,
+    COOKIE_9,
+    CLOVER_8,
+    BURST,
+    SOFT_BURST,
+    BOOM,
+    SOFT_BOOM,
+    PUFFY,
+    PUFFY_DIAMOND,
+    GHOST,
+    PIXEL_CIRCLE,
+    PIXEL_TRIANGLE,
+    BUN,
+    HEART,
 }
 
 /**
@@ -133,6 +165,31 @@ fun safeContainerKind(kind: KeyShapeKind): KeyShapeKind = when (kind) {
  */
 fun castsElevationShadow(kind: KeyShapeKind): Boolean = when (kind) {
     KeyShapeKind.SCALLOP, KeyShapeKind.TICKET -> false
+    // Every outline of the #1515 catalogue that curves inwards anywhere: the
+    // waves, the lobes, the points, the steps and the heart's cleft.
+    KeyShapeKind.COOKIE,
+    KeyShapeKind.SUNNY,
+    KeyShapeKind.FLOWER,
+    KeyShapeKind.CLOVER,
+    KeyShapeKind.ARROW,
+    KeyShapeKind.VERY_SUNNY,
+    KeyShapeKind.COOKIE_4,
+    KeyShapeKind.COOKIE_6,
+    KeyShapeKind.COOKIE_7,
+    KeyShapeKind.COOKIE_9,
+    KeyShapeKind.CLOVER_8,
+    KeyShapeKind.BURST,
+    KeyShapeKind.SOFT_BURST,
+    KeyShapeKind.BOOM,
+    KeyShapeKind.SOFT_BOOM,
+    KeyShapeKind.PUFFY,
+    KeyShapeKind.PUFFY_DIAMOND,
+    KeyShapeKind.GHOST,
+    KeyShapeKind.PIXEL_CIRCLE,
+    KeyShapeKind.PIXEL_TRIANGLE,
+    KeyShapeKind.BUN,
+    KeyShapeKind.HEART,
+    -> false
     // Draws the rounded outline wherever it draws at all.
     KeyShapeKind.NONE,
     KeyShapeKind.ROUNDED,
@@ -145,6 +202,15 @@ fun castsElevationShadow(kind: KeyShapeKind): Boolean = when (kind) {
     KeyShapeKind.SLANT,
     KeyShapeKind.HEXAGON,
     KeyShapeKind.CIRCLE,
+    // Convex: rounding a corner off with a curve keeps a polygon convex.
+    KeyShapeKind.OVAL,
+    KeyShapeKind.SEMICIRCLE,
+    KeyShapeKind.TRIANGLE,
+    KeyShapeKind.FAN,
+    KeyShapeKind.DIAMOND,
+    KeyShapeKind.CLAMSHELL,
+    KeyShapeKind.PENTAGON,
+    KeyShapeKind.GEM,
     -> true
 }
 
@@ -929,26 +995,6 @@ data class KeyOverride(
     /** How far that halo reaches past the key, in dp; null is [DEFAULT_KEY_GLOW_DP]. */
     val glowDp: Float? = null,
     /**
-     * How much of this key's glow lands on the keys round it, 0..1: their
-     * faces take a wash of the glow's colour on the side that faces this key,
-     * strongest at the edge nearest it, the way a lit key colours its
-     * neighbours (#1473). Null or 0 keeps the light in the gaps. See
-     * [KEY_GLOW_SPILL_RANGE].
-     */
-    val glowSpill: Float? = null,
-    /**
-     * The glow's colour while the key is held; null keeps [glow]. Set on a key
-     * with no glow at rest, the key lights up only under the finger.
-     */
-    val pressedGlow: Long? = null,
-    /**
-     * How bright the glow is while the key is held, as a multiple of how it
-     * looks at rest: under 1 dims it, over 1 brightens it, and the light on
-     * the neighbouring keys follows. Null is 1. See
-     * [KEY_PRESSED_GLOW_STRENGTH_RANGE].
-     */
-    val pressedGlowStrength: Float? = null,
-    /**
      * This key's own corner radius for the rounded and cut shapes, in dp;
      * null follows the board's. See [KEY_OVERRIDE_RADIUS_RANGE].
      */
@@ -968,8 +1014,7 @@ data class KeyOverride(
             pressedBackground == null &&
             labelScale == null && bold == null && shape == null &&
             gradient == null && glow == null && glowDp == null && cornerRadiusDp == null &&
-            glass == null && pressedText == null &&
-            glowSpill == null && pressedGlow == null && pressedGlowStrength == null
+            glass == null && pressedText == null
 
     /**
      * The kind of burst this key throws on its own, or null when it follows
@@ -1031,12 +1076,6 @@ val KEY_GLOW_RANGE = 1f..16f
 
 /** What [KeyOverride.glowDp] means when the key names a glow and no reach. */
 const val DEFAULT_KEY_GLOW_DP = 4f
-
-/** Bounds of [KeyOverride.glowSpill]. */
-val KEY_GLOW_SPILL_RANGE = 0f..1f
-
-/** Bounds of [KeyOverride.pressedGlowStrength]: from dark under the finger to three times as bright. */
-val KEY_PRESSED_GLOW_STRENGTH_RANGE = 0f..3f
 
 /** Bounds of [KeyOverride.cornerRadiusDp]; the board's own radius slider shares them. */
 val KEY_OVERRIDE_RADIUS_RANGE = 0..28

@@ -151,7 +151,7 @@ That is a translucent face. For no face at all, pick **None** under [Key shape](
 
 ### Key shapes
 
-The picker lists **None** first, then the twelve shapes in this order. The five simple ones come first, then the seven decorative ones:
+The picker is a grid of every shape drawn at the size of a real key, with its name under it and the one in use on a filled tile. **None** comes first, then the twelve original shapes in this order. The five simple ones come first, then the seven decorative ones:
 
 | Shape | What it looks like | Reads the radius slider? |
 |---|---|---|
@@ -169,6 +169,18 @@ The picker lists **None** first, then the twelve shapes in this order. The five 
 | Ticket | Corners bitten inwards by a circle, like a cinema ticket | No |
 | Circle | A round cap centred in the key, like a typewriter's; wide keys (space, enter) keep a stadium | No |
 
+After those come thirty shapes from the Material 3 Expressive set, none of which reads the radius slider:
+
+| Group | Shapes |
+|---|---|
+| Waves round a circle | Cookie (twelve waves), and the 4-, 6-, 7- and 9-sided cookies |
+| Points and petals | Sun, Very sunny, Flower, Clover, 8-leaf clover, Puffy, Puffy diamond |
+| Stars | Burst and Boom with sharp points, Soft burst and Soft boom with rounded ones |
+| Plain geometry | Oval, Semicircle, Triangle, Arrow, Fan (a quarter circle), Diamond, Clamshell (a wide hexagon), Pentagon, Gem |
+| Pictures | Ghost, Pixel circle, Pixel triangle, Bun, Heart |
+
+Each of them stretches over the whole key rather than sitting in its middle, so the space bar gets one long cookie or heart and a letter key a tall one. They're there for the popups, the tool backgrounds and the chips too, since every shape row in the editor opens this same grid. A shape drawn too small to make out, such as a popup in the first frames of opening, is a plain rectangle until it grows.
+
 The shapes that ignore the slider aren't being lazy about it. Their whole look is a proportion of the key rather than a corner size, so they measure themselves off the key's own width and height. The arch is always half the key's height. The hexagon's points are always a sixth of its width. The scallops count out at roughly the same size whether it's a letter key or a spacebar, up to 64 along a side; a box only a few pixels tall, such as a panel sliding open, is drawn as a plain rectangle until it is big enough for bumps. Wire them to a 0–28dp slider instead and one end of it flattens them into plain rectangles.
 
 Only the drawing changes. Touch targets stay rectangular for every shape, so the gap between two hexagons still belongs to one key or the other, and nothing gets harder to hit.
@@ -185,7 +197,7 @@ Slanted is the one shape that draws slightly outside its key. A parallelogram ke
 
 **Key shadow colour** shows up once there is a shadow. Unset, it's the usual black; pick any colour, and lower its opacity for a soft glow rather than a hard edge. Themes imported from Gboard and FlorisBoard bring their own. Android 8 and older draw every shadow black whatever this says.
 
-Two shapes stay flat however far you push it. Scallop and Ticket are concave, and Android tessellates a concave shadow through a path that pins the render thread hard enough for the system to kill the keyboard, so they keep the shape and lose the shadow. A key you can see through at all stays flat too, even at 90% opacity: the shadow fills the key's whole outline, and through a translucent face it reads as a lighter box inset in every key. That's what keeps a borderless theme looking borderless.
+Some shapes stay flat however far you push it. Scallop and Ticket are concave, and so are most of the Material shapes: the cookies, suns, flowers, clovers, stars, the puffy pair, Arrow, Ghost, the two pixel shapes, Bun and Heart. Android tessellates a concave shadow through a path that pins the render thread hard enough for the system to kill the keyboard, so they keep the shape and lose the shadow. A key you can see through at all stays flat too, even at 90% opacity: the shadow fills the key's whole outline, and through a translucent face it reads as a lighter box inset in every key. That's what keeps a borderless theme looking borderless.
 
 #### No key shape
 
@@ -196,7 +208,7 @@ The keys still answer your finger. A pressed key flashes a rounded shape at your
 **High contrast keys** and **Key outlines** in [Accessibility](/accessibility/overview/) both bring rounded keys back while they're on. Keys without visible edges are exactly what those two settings are there to fix.
 
 :::note
-Only Rounded, Pill, Cut and Squircle shipped with the first version of the format. The other eight, Square among them, came later, and so did None. A theme exported with one of them won't import into a version of the app that predates it: the importer drops a theme whose shape name it doesn't recognise rather than guessing. Stick to Rounded, Pill, Cut, or Squircle in a theme you plan to share widely.
+Only Rounded, Pill, Cut and Squircle shipped with the first version of the format. The other eight, Square among them, came later, and so did None and the thirty Material shapes. A theme exported with one of them won't import into a version of the app that predates it: the importer drops a theme whose shape name it doesn't recognise rather than guessing. Stick to Rounded, Pill, Cut, or Squircle in a theme you plan to share widely.
 :::
 
 ### Key textures
@@ -224,9 +236,6 @@ The key's style opens on the page straight under the preview, which stays pinned
 - **Colors**: its face, its label, its hint, its border, and the two colors of the popup bubble it shows.
 - **Gradient face**: the face as two colors running into each other, with **Gradient start**, **Gradient end** and **Gradient angle** (in steps of 15°). Turned on, it starts from the face the key has and shades it darker. A press still paints the plain pressed color, so you can see the hit. This is how a red-to-crimson Enter key is made.
 - **Glow**: a soft halo of one color round the key, showing in the gaps beside it. **Glow reach** sets how far it spreads, 1 to 16 dp; the color's own opacity sets how strong it is.
-- **Glow while held**: the glow's color while your finger is on the key. Left alone, a held key keeps its resting glow. Set on a key with no glow of its own, the key lights up only while you press it, which works on a letter as well as on Enter or Shift.
-- **Held glow brightness**: how bright that glow is while the key is held, from 0% to 300% of its resting brightness. Under 100% the key dims as you press it; over 100% it flares.
-- **Light on nearby keys**: how much of the glow lands on the keys round this one, 0% to 100%. Each neighbor takes on the glow's color on the side that faces the lit key, strongest at its nearest edge and fading over about one key's width, so an orange Shift tints the near sides of A and Z. The light brightens or dims with the held glow, so pressing the key makes its neighbors flare too. At 0% the light stays in the gaps.
 - **Key image**: a picture for this one key, drawn with the same Crop/Stretch/Tile fit and opacity the board's [key textures](#key-textures) use, so a dressed key still reads as part of the set. It beats the class texture it would otherwise wear, and a key image works on a board with no class textures at all.
 - **Press effect**: the burst this key throws: Stars, Hearts, Sparkle, Confetti, or Emoji with its own field for the emoji. It overrides the board's [key press effect](#key-press-effect) for this key alone, and a board whose only effect is one key's still bursts on that key. The board's Intensity, Colour and the physics sliders shape every burst; a single-key style picks what is thrown, not how. Images aren't offered per key.
 - **Key shape**: this one key's outline. Automatic follows the board's shape; pick one to make a single key round, pill, cut or anything else in the list, including None. The shapes that measure themselves off the key (circle, pill, hexagon and the rest) ignore the corner radius as they always do. This is how a round Enter key on a grid of soft rectangles is made, and it is what carries over from an imported FlorisBoard theme built that way.

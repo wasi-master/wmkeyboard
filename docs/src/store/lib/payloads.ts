@@ -96,7 +96,10 @@ export interface ThemeSpec {
 	[extra: string]: unknown;
 }
 
-export const KEY_SHAPES = ['NONE', 'ROUNDED', 'SHARP', 'PILL', 'CUT', 'SQUIRCLE', 'ARCH', 'LEAF', 'SLANT', 'HEXAGON', 'SCALLOP', 'TICKET', 'CIRCLE'] as const;
+export const KEY_SHAPES = ['NONE', 'ROUNDED', 'SHARP', 'PILL', 'CUT', 'SQUIRCLE', 'ARCH', 'LEAF', 'SLANT', 'HEXAGON', 'SCALLOP', 'TICKET', 'CIRCLE',
+	'COOKIE', 'SUNNY', 'FLOWER', 'CLOVER', 'OVAL', 'SEMICIRCLE', 'TRIANGLE', 'ARROW', 'FAN', 'DIAMOND', 'CLAMSHELL', 'PENTAGON', 'GEM',
+	'VERY_SUNNY', 'COOKIE_4', 'COOKIE_6', 'COOKIE_7', 'COOKIE_9', 'CLOVER_8', 'BURST', 'SOFT_BURST', 'BOOM', 'SOFT_BOOM', 'PUFFY',
+	'PUFFY_DIAMOND', 'GHOST', 'PIXEL_CIRCLE', 'PIXEL_TRIANGLE', 'BUN', 'HEART'] as const;
 export const GRADIENT_TYPES = ['LINEAR', 'RADIAL', 'SWEEP'] as const;
 export const THEME_ANIMATIONS = ['NONE', 'FLOW', 'HUE_CYCLE'] as const;
 export const KEY_EFFECTS = ['STARS', 'HEARTS', 'SPARKLE', 'CONFETTI', 'EMOJI', 'CUSTOM_IMAGE'] as const;

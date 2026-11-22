@@ -430,8 +430,6 @@ import com.wasimaster.wmkeyboard.core.theme.KEY_OVERRIDE_LABEL_SCALE_RANGE
 import com.wasimaster.wmkeyboard.core.theme.DEFAULT_KEY_GLOW_DP
 import com.wasimaster.wmkeyboard.core.theme.GradientSpec
 import com.wasimaster.wmkeyboard.core.theme.KEY_GLOW_RANGE
-import com.wasimaster.wmkeyboard.core.theme.KEY_GLOW_SPILL_RANGE
-import com.wasimaster.wmkeyboard.core.theme.KEY_PRESSED_GLOW_STRENGTH_RANGE
 import com.wasimaster.wmkeyboard.core.theme.KEY_OVERRIDE_RADIUS_RANGE
 import com.wasimaster.wmkeyboard.core.theme.KeyOverride
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
@@ -20154,12 +20152,6 @@ internal data class KeyVisual(
     /** A halo behind this key, and how far it reaches in dp; null draws none. */
     val glow: Color? = null,
     val glowDp: Float = DEFAULT_KEY_GLOW_DP,
-    /** How much of that glow washes over the neighbouring keys, 0..1 (#1473); 0 keeps it in the gaps. */
-    val glowSpill: Float = 0f,
-    /** The halo's colour while held; null keeps [glow]. */
-    val pressedGlow: Color? = null,
-    /** How bright the halo is while held, against its brightness at rest. */
-    val pressedGlowStrength: Float = 1f,
     /**
      * The roman this key feeds a transliterating layout's buffer, shift
      * included ([transliterationRoman]), for the corner to ask the composer
@@ -20398,11 +20390,6 @@ internal fun keyVisual(
             ?.takeIf { it.colors.isNotEmpty() && (latch == null || latch == ModifierState.OFF) },
         glow = override?.glow?.let { Color(it.toInt()) }?.takeIf { it.alpha > 0f },
         glowDp = override?.glowDp?.takeIf { it.isFinite() }?.coerceIn(KEY_GLOW_RANGE) ?: DEFAULT_KEY_GLOW_DP,
-        glowSpill = override?.glowSpill?.takeIf { it.isFinite() }?.coerceIn(KEY_GLOW_SPILL_RANGE) ?: 0f,
-        pressedGlow = override?.pressedGlow?.let { Color(it.toInt()) }?.takeIf { it.alpha > 0f },
-        pressedGlowStrength = override?.pressedGlowStrength
-            ?.takeIf { it.isFinite() }
-            ?.coerceIn(KEY_PRESSED_GLOW_STRENGTH_RANGE) ?: 1f,
         transliterationRoman = transliterationRoman(key, state),
         alternatesShifted = key.longPress.isNotEmpty() && state.shiftCasesText(),
         flickShiftOn = key.hasFlicks() && state.shiftState != ShiftState.OFF,
@@ -21710,12 +21697,6 @@ private fun KeyRows(
     // The eight colours the keys themselves are painted with. Remembered so the
     // resolved rows below compare it by identity rather than by value.
     val palette = remember(kbTheme) { kbTheme.keyPalette() }
-    // Where the keys whose glow falls on their neighbours are (#1473), for
-    // those neighbours to light themselves from. None on a theme without such
-    // a key, so the keys of every other theme read nothing for it.
-    val glowSpill = remember(layout, kbTheme.keyOverrides) {
-        if (kbTheme.keyOverrides.values.any { (it.glowSpill ?: 0f) > 0f }) KeyGlowSpill() else null
-    }
     // The key-press particle burst. The field and its glyphs exist only while
     // the theme carries an effect (reduce motion and power saving both zero
     // the count); the spawn lambda is what the keys see, and it reads the box
@@ -23651,184 +23632,181 @@ private fun KeyRows(
         }
         // The touch bloom's light, the full half: across the board under the keys.
         touchBloom?.let { TouchBloomLayer(it, behind = true, modifier = Modifier.matchParentSize()) }
-        // The glowing keys' light on their neighbours, for every key of the grid.
-        CompositionLocalProvider(LocalKeyGlowSpill provides glowSpill) {
-            // No spacing between cells: each key's touch target fills its whole
-            // grid cell (gaps included) so a press landing between two keys
-            // still hits the nearest one. The visual gap comes from per-key
-            // padding inside KeyButton.
-            Column(
-                modifier = Modifier
-                    .keyGridRasterCache()
-                    .fillMaxWidth()
-                    .padding(horizontal = KeyRowsPadHorizontal, vertical = KeyRowsPadVertical),
-            ) {
-                // Records the spacebar's rect in *root* coordinates for the
-                // multi-word split. Stored root-relative rather than box-relative on
-                // purpose: this callback can fire before the Box's own
-                // onGloballyPositioned has set `boxOrigin`, and unlike the letter
-                // centres (a state map the keys keep re-reporting) it fires only
-                // once, so subtracting a still-zero `boxOrigin` here would leave the
-                // rect stuck in absolute space and the containment test — which runs
-                // in box space — would never hit. The gesture loop adds the live
-                // `boxOrigin` at test time instead, when the Box is laid out.
-                val onSpacePositioned: (LayoutCoordinates) -> Unit = remember(spaceRect) {
-                    { coords -> spaceRect.value = coords.boundsInRoot() }
-                }
-                // A layer may show or hide its flick arms over the setting (#588).
-                val settings = remember(state.settings, layout.flickHints) {
-                    state.settings.withLayerFlickHints(layout.flickHints)
-                }
-                val split = settings.splitKeyboard
-                val splitGapPercent = settings.splitGapPercent
-                // The focused field wants a keypad, which suppresses the preview
-                // bubble unless the user opted back in.
-                val numericField = state.fieldKind.isNumericPad
-                // The layer the grid is *drawing*, which a peek (issue #108) moves
-                // and the board's own state does not follow. Everything else here
-                // reads [KeyboardUiState.layoutMode] directly, so the row keeps its
-                // digits and the board keeps its height while a peek is up.
-                val mode = layerPeek.mode ?: state.layoutMode
-                // The digits keep the same slot on every layer, so switching
-                // layers moves neither the row nor the pad below it. The `?123`
-                // layer leads with its own digit row, which would be a second
-                // copy directly underneath — `bodyRows` swaps that one out for
-                // the symbols the layer otherwise has no room for.
-                val numberRow = numberRowShown(state)
-                // Whether the `?123` layer gives its digit row away. Keyed off the
-                // *global* number row rather than [numberRowShown], because the
-                // digits are already up on the letters layer whenever that switch
-                // is on — including when the user has kept the row off the symbol
-                // layers. That is what makes "number row in symbols" hide the
-                // digits and nothing else. Reading the visible row instead put the
-                // digit row back on top of ?123 and took the fill row away with
-                // it, so the option looked like it deleted a row of symbols
-                // (issue #93).
-                val symbolsGiveUpDigits = state.settings.numberRow &&
-                    state.layoutMode != LayoutMode.SECONDARY
-                // Remembered, not written inline: this and the spacebar's callback
-                // above are parameters of every row and every key, so a fresh
-                // instance per composition would be enough on its own to stop the
-                // whole grid from skipping. It reads what it writes to — the centres
-                // map, the rect table, the box origin — when the layout calls it, so
-                // holding one instance changes nothing it sees.
-                //
-                // The token is how the rect table learns that the rows it holds are
-                // the old ones: everything that can move a key is in it, and the
-                // first key to report under a new one wipes the table. Identity
-                // rather than a value, so two grids that compare equal still count
-                // as two (see [KeyRects.record]).
-                val gridToken = remember(
-                    layout, boxOrigin, boxSize, split, settings.layoutBehavior.splitSpacebar,
-                    mode, numberRow, symbolsGiveUpDigits,
-                ) { Any() }
-                // Read live rather than captured, so a grid that moves does not also
-                // hand every key a new lambda and cost the whole board a skip.
-                val liveToken = rememberUpdatedState(gridToken)
-                val onKeyPositioned: (Key, LayoutCoordinates) -> Unit =
-                    remember(keyCenters, keyRects, keyBounds, carrierCenters) {
-                        { key, coords ->
-                            keyRects.record(liveToken.value, key, coords.boundsInRoot())
-                            // The key's centre is reported under the first character
-                            // it writes, which is the same character the glide grid
-                            // anchors it by. Not `singleOrNull`: a Bengali nukta key
-                            // (ড়, ঢ়, য়) writes two characters, and keying it by
-                            // "exactly one" drops the key — and its shifted twin —
-                            // off the grid.
-                            //
-                            // The comma, full stop and apostrophe keys report too,
-                            // because the apostrophe-in-a-glide setting needs to know
-                            // where they are. They are not letters and nothing treats
-                            // them as letters: both consumers of the map that are
-                            // about letters filter them back out (see
-                            // [GlidePunctuationCodePoints]).
-                            // A multi-letter key (Klingon's `ch`) reports under
-                            // the letter it carries on the glide grid, when it has one.
-                            val letter = key.glideAnchor() ?: liveLayouts.value.digraphAnchors[key]
-                                ?: key.glidePunctuationCodePoint()
-                            if (letter == null && key.carriedGlideSpellings().isNotEmpty()) {
-                                val topLeft = coords.positionInRoot() - boxOrigin
-                                carrierCenters[key] = Offset(
-                                    topLeft.x + coords.size.width / 2f,
-                                    topLeft.y + coords.size.height / 2f,
-                                )
-                            }
-                            if (letter != null) {
-                                val topLeft = coords.positionInRoot() - boxOrigin
-                                val center = Offset(
-                                    topLeft.x + coords.size.width / 2f,
-                                    topLeft.y + coords.size.height / 2f,
-                                )
-                                val bounds = Rect(
-                                    topLeft,
-                                    Size(
-                                        coords.size.width.toFloat(),
-                                        coords.size.height.toFloat(),
-                                    ),
-                                )
-                                keyCenters[Character.toLowerCase(letter)] = center
-                                keyBounds[Character.toLowerCase(letter)] = bounds
-                                // Every letter of an ambiguous key reports the same
-                                // centre and the same rect, because they are the
-                                // same key. That is what puts all of `abc` into the
-                                // touch model — so the decoder can price a reading
-                                // through any of them — and it costs nothing on the
-                                // 1:1 boards, where the set is the anchor alone. A
-                                // set letter with a key of its own (One-row QWERTY's
-                                // overlapping sets) reports from that key only.
-                                for (code in key.lettersPlacedHere(liveLayouts.value.letterOwners)) {
-                                    if (code == Character.toLowerCase(letter)) continue
-                                    keyCenters[code] = center
-                                    keyBounds[code] = bounds
-                                }
+        // No spacing between cells: each key's touch target fills its whole
+        // grid cell (gaps included) so a press landing between two keys
+        // still hits the nearest one. The visual gap comes from per-key
+        // padding inside KeyButton.
+        Column(
+            modifier = Modifier
+                .keyGridRasterCache()
+                .fillMaxWidth()
+                .padding(horizontal = KeyRowsPadHorizontal, vertical = KeyRowsPadVertical),
+        ) {
+            // Records the spacebar's rect in *root* coordinates for the
+            // multi-word split. Stored root-relative rather than box-relative on
+            // purpose: this callback can fire before the Box's own
+            // onGloballyPositioned has set `boxOrigin`, and unlike the letter
+            // centres (a state map the keys keep re-reporting) it fires only
+            // once, so subtracting a still-zero `boxOrigin` here would leave the
+            // rect stuck in absolute space and the containment test — which runs
+            // in box space — would never hit. The gesture loop adds the live
+            // `boxOrigin` at test time instead, when the Box is laid out.
+            val onSpacePositioned: (LayoutCoordinates) -> Unit = remember(spaceRect) {
+                { coords -> spaceRect.value = coords.boundsInRoot() }
+            }
+            // A layer may show or hide its flick arms over the setting (#588).
+            val settings = remember(state.settings, layout.flickHints) {
+                state.settings.withLayerFlickHints(layout.flickHints)
+            }
+            val split = settings.splitKeyboard
+            val splitGapPercent = settings.splitGapPercent
+            // The focused field wants a keypad, which suppresses the preview
+            // bubble unless the user opted back in.
+            val numericField = state.fieldKind.isNumericPad
+            // The layer the grid is *drawing*, which a peek (issue #108) moves
+            // and the board's own state does not follow. Everything else here
+            // reads [KeyboardUiState.layoutMode] directly, so the row keeps its
+            // digits and the board keeps its height while a peek is up.
+            val mode = layerPeek.mode ?: state.layoutMode
+            // The digits keep the same slot on every layer, so switching
+            // layers moves neither the row nor the pad below it. The `?123`
+            // layer leads with its own digit row, which would be a second
+            // copy directly underneath — `bodyRows` swaps that one out for
+            // the symbols the layer otherwise has no room for.
+            val numberRow = numberRowShown(state)
+            // Whether the `?123` layer gives its digit row away. Keyed off the
+            // *global* number row rather than [numberRowShown], because the
+            // digits are already up on the letters layer whenever that switch
+            // is on — including when the user has kept the row off the symbol
+            // layers. That is what makes "number row in symbols" hide the
+            // digits and nothing else. Reading the visible row instead put the
+            // digit row back on top of ?123 and took the fill row away with
+            // it, so the option looked like it deleted a row of symbols
+            // (issue #93).
+            val symbolsGiveUpDigits = state.settings.numberRow &&
+                state.layoutMode != LayoutMode.SECONDARY
+            // Remembered, not written inline: this and the spacebar's callback
+            // above are parameters of every row and every key, so a fresh
+            // instance per composition would be enough on its own to stop the
+            // whole grid from skipping. It reads what it writes to — the centres
+            // map, the rect table, the box origin — when the layout calls it, so
+            // holding one instance changes nothing it sees.
+            //
+            // The token is how the rect table learns that the rows it holds are
+            // the old ones: everything that can move a key is in it, and the
+            // first key to report under a new one wipes the table. Identity
+            // rather than a value, so two grids that compare equal still count
+            // as two (see [KeyRects.record]).
+            val gridToken = remember(
+                layout, boxOrigin, boxSize, split, settings.layoutBehavior.splitSpacebar,
+                mode, numberRow, symbolsGiveUpDigits,
+            ) { Any() }
+            // Read live rather than captured, so a grid that moves does not also
+            // hand every key a new lambda and cost the whole board a skip.
+            val liveToken = rememberUpdatedState(gridToken)
+            val onKeyPositioned: (Key, LayoutCoordinates) -> Unit =
+                remember(keyCenters, keyRects, keyBounds, carrierCenters) {
+                    { key, coords ->
+                        keyRects.record(liveToken.value, key, coords.boundsInRoot())
+                        // The key's centre is reported under the first character
+                        // it writes, which is the same character the glide grid
+                        // anchors it by. Not `singleOrNull`: a Bengali nukta key
+                        // (ড়, ঢ়, য়) writes two characters, and keying it by
+                        // "exactly one" drops the key — and its shifted twin —
+                        // off the grid.
+                        //
+                        // The comma, full stop and apostrophe keys report too,
+                        // because the apostrophe-in-a-glide setting needs to know
+                        // where they are. They are not letters and nothing treats
+                        // them as letters: both consumers of the map that are
+                        // about letters filter them back out (see
+                        // [GlidePunctuationCodePoints]).
+                        // A multi-letter key (Klingon's `ch`) reports under
+                        // the letter it carries on the glide grid, when it has one.
+                        val letter = key.glideAnchor() ?: liveLayouts.value.digraphAnchors[key]
+                            ?: key.glidePunctuationCodePoint()
+                        if (letter == null && key.carriedGlideSpellings().isNotEmpty()) {
+                            val topLeft = coords.positionInRoot() - boxOrigin
+                            carrierCenters[key] = Offset(
+                                topLeft.x + coords.size.width / 2f,
+                                topLeft.y + coords.size.height / 2f,
+                            )
+                        }
+                        if (letter != null) {
+                            val topLeft = coords.positionInRoot() - boxOrigin
+                            val center = Offset(
+                                topLeft.x + coords.size.width / 2f,
+                                topLeft.y + coords.size.height / 2f,
+                            )
+                            val bounds = Rect(
+                                topLeft,
+                                Size(
+                                    coords.size.width.toFloat(),
+                                    coords.size.height.toFloat(),
+                                ),
+                            )
+                            keyCenters[Character.toLowerCase(letter)] = center
+                            keyBounds[Character.toLowerCase(letter)] = bounds
+                            // Every letter of an ambiguous key reports the same
+                            // centre and the same rect, because they are the
+                            // same key. That is what puts all of `abc` into the
+                            // touch model — so the decoder can price a reading
+                            // through any of them — and it costs nothing on the
+                            // 1:1 boards, where the set is the anchor alone. A
+                            // set letter with a key of its own (One-row QWERTY's
+                            // overlapping sets) reports from that key only.
+                            for (code in key.lettersPlacedHere(liveLayouts.value.letterOwners)) {
+                                if (code == Character.toLowerCase(letter)) continue
+                                keyCenters[code] = center
+                                keyBounds[code] = bounds
                             }
                         }
                     }
-                val fillRow = state.layouts.symbolsFillRow ?: BuiltInLayouts.SYMBOLS_FILL_ROW
-                val bodyRows = remember(layout, mode, symbolsGiveUpDigits, fillRow) {
-                    // Only when that first row really is the digits. A custom
-                    // symbols layer that leads with something else would otherwise
-                    // lose its top row outright, with nothing on screen to explain
-                    // where it went.
-                    if (symbolsGiveUpDigits && mode == LayoutMode.SYMBOLS && leadsWithDigitRow(layout.rows)) {
-                        listOf(fillRow) + layout.rows.drop(1)
-                    } else {
-                        layout.rows
-                    }
                 }
-                // Hoisted out of the render loop so the digit row resolves in the
-                // same pass as the body rows below; null when it is not shown.
-                // Issue #673: "symbols on shift" follows the finger on shift, not
-                // the shift latch, so a tap for one capital (or the board's own
-                // sentence-start capital) leaves the digits where they are.
-                val extraRow = if (numberRow) rememberExtraRow(state, fillRow, chordDrag.shifted) else null
-                KeyGridRows(
-                    state = state,
-                    gridState = gridState,
-                    layout = layout,
-                    bodyRows = bodyRows,
-                    extraRow = extraRow,
-                    palette = palette,
-                    gridWeight = gridWeight,
-                    settings = settings,
-                    split = split,
-                    numericField = numericField,
-                    mode = mode,
-                    keyPreview = keyPreview,
-                    onKey = keyTapOnKey,
-                    onText = stampedOnText,
-                    onCursorMove = onCursorMove,
-                    onLayoutSelect = onLayoutSelect,
-                    onKeyPositioned = onKeyPositioned,
-                    onSpacePositioned = onSpacePositioned,
-                    smartResolve = smartResolve,
-                    onBurst = onBurst,
-                    onHandwritingStroke = onKeyboardHandwritingStroke,
-                    onHandwritingUndo = onHandwritingUndo,
-                    onHandwritingDownload = onHandwritingDownload,
-                    keyRects = keyRects,
-                )
+            val fillRow = state.layouts.symbolsFillRow ?: BuiltInLayouts.SYMBOLS_FILL_ROW
+            val bodyRows = remember(layout, mode, symbolsGiveUpDigits, fillRow) {
+                // Only when that first row really is the digits. A custom
+                // symbols layer that leads with something else would otherwise
+                // lose its top row outright, with nothing on screen to explain
+                // where it went.
+                if (symbolsGiveUpDigits && mode == LayoutMode.SYMBOLS && leadsWithDigitRow(layout.rows)) {
+                    listOf(fillRow) + layout.rows.drop(1)
+                } else {
+                    layout.rows
+                }
             }
+            // Hoisted out of the render loop so the digit row resolves in the
+            // same pass as the body rows below; null when it is not shown.
+            // Issue #673: "symbols on shift" follows the finger on shift, not
+            // the shift latch, so a tap for one capital (or the board's own
+            // sentence-start capital) leaves the digits where they are.
+            val extraRow = if (numberRow) rememberExtraRow(state, fillRow, chordDrag.shifted) else null
+            KeyGridRows(
+                state = state,
+                gridState = gridState,
+                layout = layout,
+                bodyRows = bodyRows,
+                extraRow = extraRow,
+                palette = palette,
+                gridWeight = gridWeight,
+                settings = settings,
+                split = split,
+                numericField = numericField,
+                mode = mode,
+                keyPreview = keyPreview,
+                onKey = keyTapOnKey,
+                onText = stampedOnText,
+                onCursorMove = onCursorMove,
+                onLayoutSelect = onLayoutSelect,
+                onKeyPositioned = onKeyPositioned,
+                onSpacePositioned = onSpacePositioned,
+                smartResolve = smartResolve,
+                onBurst = onBurst,
+                onHandwritingStroke = onKeyboardHandwritingStroke,
+                onHandwritingUndo = onHandwritingUndo,
+                onHandwritingDownload = onHandwritingDownload,
+                keyRects = keyRects,
+            )
         }
 
         // The theme's stickers, laid over the keys and under the transient
@@ -28668,33 +28646,6 @@ internal fun KeyButton(
     // The popups' own colours; the key's face is already resolved in [visual].
     val kb = LocalKbTheme.current
     val faceProbe = LocalKeyFaceProbe.current
-    // The board's glowing keys (#1473): a key whose style throws its glow on
-    // its neighbours says where it is, and every key takes the light of those
-    // that reach it. Null on a theme with no such key.
-    val glowSpill = LocalKeyGlowSpill.current
-    if (glowSpill != null && visual.glowSpill > 0f && (visual.glow != null || visual.pressedGlow != null)) {
-        LaunchedEffect(glowSpill, visual.glow, visual.pressedGlow, visual.glowSpill, visual.pressedGlowStrength) {
-            try {
-                snapshotFlow { keyBounds.value }.collect { bounds ->
-                    if (!bounds.isEmpty) {
-                        glowSpill.put(
-                            pressed,
-                            GlowSource(
-                                bounds = bounds,
-                                color = visual.glow,
-                                pressedColor = visual.pressedGlow,
-                                pressedStrength = visual.pressedGlowStrength,
-                                spill = visual.glowSpill,
-                                pressed = pressed,
-                            ),
-                        )
-                    }
-                }
-            } finally {
-                glowSpill.remove(pressed)
-            }
-        }
-    }
     // The touch bloom's dip, when the theme has one that moves the keys. Off
     // the static theme local, so it costs the press path nothing.
     val dipBloom = kb.liveTouchBloom?.takeIf { it.dip > 0f }
@@ -29075,20 +29026,12 @@ internal fun KeyButton(
                 // the GLOW key lighting draws one: cheaper than a blur and
                 // close enough at the width of a key gap.
                 val glowColor = visual.glow
-                // Held, the halo may take a colour and a brightness of its
-                // own, and a key with no glow at rest may light up only then.
-                val heldGlow = visual.pressedGlow ?: glowColor
                 val glowReach = visual.glowDp * density
                 val glowCorner = when (visual.shapeKind ?: kb.keyShapeKind) {
                     KeyShapeKind.PILL, KeyShapeKind.CIRCLE -> size.minDimension / 2f
                     KeyShapeKind.SHARP -> 0f
                     else -> (visual.cornerRadiusDp ?: kb.keyRadiusDp) * density
                 }
-                // The light the glowing keys round this one throw on its face.
-                // Which of them reach it is a question of where the keys are,
-                // so it is asked here; their presses are read in the draw.
-                val spill = glowSpill?.near(keyBounds.value, pressed)
-                    ?.let { SpillPaint.of(it, keyBounds.value.topLeft) }
                 // The theme's texture for this key class, prepared here so the
                 // press-path draw below only picks between ready-made values.
                 // The clip path and tile brush depend on size/shape alone —
@@ -29135,15 +29078,12 @@ internal fun KeyButton(
                 }
                 onDrawBehind {
                     val down = pressed.value
-                    val halo = if (down) heldGlow else glowColor
-                    val haloStrength = if (down) visual.pressedGlowStrength else 1f
-                    if (halo != null && haloStrength > 0f) {
+                    if (glowColor != null) {
                         val steps = 4
                         for (step in steps downTo 1) {
                             val grow = glowReach * step / steps
-                            val ring = halo.alpha * 0.3f * haloStrength * (1f - (step - 1f) / steps)
                             drawRoundRect(
-                                halo.copy(alpha = ring.coerceAtMost(1f)),
+                                glowColor.copy(alpha = glowColor.alpha * 0.3f * (1f - (step - 1f) / steps)),
                                 Offset(-grow, -grow),
                                 Size(size.width + grow * 2, size.height + grow * 2),
                                 CornerRadius(glowCorner + grow),
@@ -29153,7 +29093,6 @@ internal fun KeyButton(
                     glass?.draw(this, down)
                     if (skin != null) {
                         skin.draw(this, down)
-                        spill?.draw(this, outline)
                         return@onDrawBehind
                     }
                     material?.drawUnder(this, down)
@@ -29169,7 +29108,6 @@ internal fun KeyButton(
                     }
                     if (faceBrush != null && !down) drawOutline(outline, faceBrush)
                     if (sheen != null && !down) drawOutline(outline, sheen)
-                    spill?.draw(this, outline)
                     material?.drawOver(this, down)
                     rim?.draw(this)
                     grain?.draw(this)
