@@ -2256,9 +2256,11 @@ internal fun ModeEditor(
                 // toolTitle() hands back a resource id, and the reorder dialog
                 // takes a plain (T) -> String, so the names are resolved here.
                 val pluginNames = rememberPluginToolNames()
+                // A folder pinned among the mode's tools (#1497) goes by its name.
+                val folderNames = settings.watch { s -> s.toolbox.folders.associate { it.id to it.name } }
                 val toolNames = mutableMapOf<ToolKey, String>()
                 for (tool in pinned) {
-                    toolNames[tool] = toolKeyTitle(tool, pluginNames)
+                    toolNames[tool] = toolKeyTitle(tool, pluginNames, folderNames)
                 }
                 ReorderableColumn(
                     pinned,

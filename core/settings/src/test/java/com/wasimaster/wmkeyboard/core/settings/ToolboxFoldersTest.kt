@@ -53,7 +53,7 @@ class ToolboxFoldersTest {
     @Test
     fun theStoredFormRoundTrips() {
         val folders = listOf(
-            ToolboxFolder("f1", "Language", listOf(d, g), pinned = true),
+            ToolboxFolder("f1", "Language", listOf(d, g), legacyPinned = true),
             ToolboxFolder("f2", "Copy, \"paste\"", listOf(t, c)),
         )
         assertEquals(folders, decodeToolboxFolders(encodeToolboxFolders(folders)))
@@ -68,6 +68,30 @@ class ToolboxFoldersTest {
         // f1 is down to one tool; f3 loses TRANSLATE to f2, which had it first.
         assertEquals(listOf(ToolboxFolder("f2", "B", listOf(g, t))), decodeToolboxFolders(raw))
         assertTrue(decodeToolboxFolders("not json").isEmpty())
+    }
+
+    @Test
+    fun aFolderPinnedBeforeFoldersHadAPlaceJoinsTheEndOfTheBar() {
+        // A build before #1497 drew a pinned folder after the tools: that is where it lands.
+        val raw = """[{"id":"f1","name":"Language","tools":["DICTIONARY","GRAMMAR"],"pinned":true},""" +
+            """{"id":"f2","name":"B","tools":["TRANSLATE","CLIPBOARD"]}]"""
+        val folders = decodeToolboxFolders(raw)
+        val bar = listOf(ToolbarTool.EMOJI.key, ToolbarTool.VOICE.key)
+        assertEquals(bar + folderToolKey("f1"), placedToolbarFolders(bar, folders))
+        // Placed once: the flag is cleared, and a bar that has it already is left alone.
+        val placed = folders.withLegacyPinsPlaced()
+        assertTrue(placed.none { it.legacyPinned })
+        assertTrue("pinned" !in encodeToolboxFolders(placed)!!)
+        val moved = listOf(folderToolKey("f1")) + bar
+        assertEquals(moved, placedToolbarFolders(moved, folders))
+    }
+
+    @Test
+    fun aPinnedFolderThatIsGoneLeavesTheBar() {
+        val folders = listOf(ToolboxFolder("f2", "B", listOf(t, c)))
+        val bar = listOf(ToolbarTool.EMOJI.key, folderToolKey("f1"), folderToolKey("f2"))
+        assertEquals(listOf(ToolbarTool.EMOJI.key, folderToolKey("f2")), placedToolbarFolders(bar, folders))
+        assertEquals(listOf(folderToolKey("f2")), decodeToolKeys(encodeToolKeys(listOf(folderToolKey("f2")))))
     }
 
     @Test

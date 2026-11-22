@@ -562,6 +562,8 @@ import com.wasimaster.wmkeyboard.core.settings.ToolboxSettings
 import com.wasimaster.wmkeyboard.core.settings.ToolboxSort
 import com.wasimaster.wmkeyboard.core.settings.ToolboxFolder
 import com.wasimaster.wmkeyboard.core.settings.folderById
+import com.wasimaster.wmkeyboard.core.settings.folderToolKey
+import com.wasimaster.wmkeyboard.core.settings.isFolderToolId
 import com.wasimaster.wmkeyboard.core.settings.folderOf
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.isUsableTool
@@ -10174,6 +10176,14 @@ private class ToolDragController : AppCarry {
     /** Whether a tool or a folder is in flight. */
     val active: Boolean get() = dragging != null || draggingFolder != null
     /**
+     * What the bar previews a drop of: the tool in flight, or the folder off
+     * the grid as the entry it becomes on the bar (#1497).
+     */
+    val draggingKey: ToolKey?
+        get() = dragging ?: draggingFolder?.id?.takeIf(::isFolderToolId)?.let(::folderToolKey)
+    /** The toolbox folders, registered by the bar: what a pinned folder's tap and hold need (#1497). */
+    var folders: List<ToolboxFolder> = emptyList()
+    /**
      * The cell a dragged tool is held over the middle of (#709). Letting go
      * there files the tool with that cell's tool in a new folder, or into that
      * folder. While it is set there is no [boxSlot]: nothing makes room, so the
@@ -10392,6 +10402,8 @@ private class ToolDragController : AppCarry {
             is ToolKey.Builtin -> onOpenSettings(tool.tool)
             is ToolKey.Plugin -> toolbox.onPluginSettings(tool.pluginId)
             is ToolKey.Custom -> custom.onSettings(tool.id)
+            // A pinned folder's hold opens it, as it always did (#970).
+            is ToolKey.Folder -> toolbox.onFolderOpen(tool.id)
         }
     }
 
@@ -10405,6 +10417,12 @@ private class ToolDragController : AppCarry {
             is ToolKey.Builtin -> onToolTap(tool.tool)
             is ToolKey.Plugin -> toolbox.onPluginTool(tool.pluginId)
             is ToolKey.Custom -> custom.onTap(tool.id)
+            // A pinned folder (#1497) opens the toolbox at itself, or runs its
+            // first tool when the user starred that one (#970).
+            is ToolKey.Folder -> {
+                val main = folders.folderById(tool.id)?.takeIf { it.firstIsMain }?.tools?.firstOrNull()
+                if (main != null && main !is ToolKey.Folder) tap(main, onToolTap) else toolbox.onFolderOpen(tool.id)
+            }
         }
     }
 
@@ -10579,10 +10597,10 @@ private class ToolDragController : AppCarry {
         val exit = overFolderExit
         cancel()
         if (folder != null) {
-            // A folder goes on the toolbar as a whole, after the pinned tools,
-            // or to another place in the grid as a whole.
+            // A folder goes on the toolbar as a whole, at the slot it was let
+            // go over (#1497), or to another place in the grid as a whole.
             if (bar != null) {
-                if (!folder.pinned) toolbox.onPinToggle(folder.id)
+                if (isFolderToolId(folder.id)) onCommit(barWith(folderToolKey(folder.id), bar))
             } else if (box != null) {
                 val next = folderOrderWith(folder, box)
                 onOrderPreview(next)
@@ -10591,6 +10609,17 @@ private class ToolDragController : AppCarry {
             return
         }
         tool ?: return
+        if (tool is ToolKey.Folder) {
+            // A pinned folder (#1497) moves along the bar, or comes off it when
+            // let go over the open toolbox: never into the grid's order or a
+            // folder, since the grid draws a folder where its first tool is.
+            if (bar != null) {
+                onCommit(barWith(tool, bar))
+            } else if (fromToolbar && toolboxViewport != null) {
+                leaveRows(tool)
+            }
+            return
+        }
         val view = folderView
         if (exit) {
             toolbox.onTakeOut(tool)
@@ -10644,7 +10673,7 @@ private class ToolDragController : AppCarry {
      */
     private fun secondSlotAt(at: Offset): Int? {
         val row = secondBounds ?: return null
-        val tool = dragging ?: return null
+        val tool = dragging?.takeIf { it !is ToolKey.Folder } ?: return null
         if (!row.inflate(30f).contains(at)) return null
         return (secondVisible - tool).count { other ->
             val centre = secondCentres[other] ?: return@count false
@@ -10669,9 +10698,8 @@ private class ToolDragController : AppCarry {
     private fun slotAt(at: Offset): Int? {
         val bar = toolbarBounds?.inflate(30f) ?: return null
         if (!bar.contains(at)) return null
-        // A folder lands after the pinned tools, wherever it is let go (#709).
-        if (draggingFolder != null) return visibleTools.size
-        val tool = dragging ?: return null
+        // A folder off the grid lands at the slot under the finger like a tool (#1497).
+        val tool = draggingKey ?: return null
         val without = visibleTools - tool
         if (without.isEmpty()) return 0
         // Down a column: in front of the first tool whose centre is still
@@ -10752,7 +10780,7 @@ private class ToolDragController : AppCarry {
     /** Whether a tool held here can be filed with the cell under it (#709). */
     private fun mergesHere(): Boolean {
         val tool = dragging ?: return false
-        return folderView == null && tool !in toolboxHidden
+        return folderView == null && tool !in toolboxHidden && tool !is ToolKey.Folder
     }
 
     /**
@@ -10776,6 +10804,9 @@ private class ToolDragController : AppCarry {
         val tool = dragging
         if (tool == null && draggingFolder == null) return null
         if (tool != null && tool in toolboxHidden) return null
+        // A pinned folder off the bar has no slot of its own in the grid (#1497):
+        // let go there, it just comes off the bar.
+        if (tool is ToolKey.Folder) return null
         val (local, within) = toolboxCellAt(at) ?: return null
         val count = cellsWithout().size
         val after = if (mergesHere() && within > ToolboxMergeZone.endInclusive) 1 else 0
@@ -12907,13 +12938,13 @@ private fun ToolsColumn(
     val motion = !state.settings.reduceMotion
     val dpadRing = LocalDpadRing.current
     val tools = visibleToolbarTools(state)
-    val pinnedFolders = state.settings.toolbox.folders.filter { it.pinned }
     drag.visibleTools = tools
+    drag.folders = state.settings.toolbox.folders
     drag.barRtl = false
     drag.barVertical = true
     // The drop preview moves the dragged tool's own cell to the slot under
     // the finger, as on the bar (see [ToolbarRow]).
-    val dragTool = drag.dragging
+    val dragTool = drag.draggingKey
     val ghostSlot = drag.barSlot
     val displayTools: List<ToolKey> = if (dragTool != null && ghostSlot != null) {
         (tools - dragTool).toMutableList().apply {
@@ -13036,20 +13067,7 @@ private fun ToolsColumn(
         }
         appsBySlot[displayTools.size]?.forEach { appCell(it) }
         appGhost(displayTools.size)
-        // Folders after the tools, as on the bar (#709).
-        for (folder in pinnedFolders) {
-            key("folder:${folder.id}") {
-                PinnedFolderButton(
-                    folder = folder,
-                    state = state,
-                    open = customizing && state.toolboxView.folderOpen == folder.id,
-                    onOpen = { drag.toolbox.onFolderOpen(folder.id) },
-                    onMain = { drag.tap(it, onToolTap) },
-                    modifier = cell.animatePlacement(enabled = motion) { drag.bodyCoords },
-                )
-            }
-        }
-        // Apps never carried in among the tools after the folders, as on the bar (#1159).
+        // Apps never carried in among the tools after them, as on the bar (#1159).
         for (app in if (appsBySlot.isEmpty()) toolbarApps(state) else toolbarAppsTrailing(state)) appCell(app)
         if (toolboxSearchShown && searchAtEnd) toolboxSearch()
         // The keys called up over the toolbar-only view go away from here too (#642).
@@ -13220,13 +13238,13 @@ private fun RowScope.ToolbarRow(
     // sake, so a mirrored list flipped it a second time and every drag landed
     // on the slot opposite the finger (issue #79).
     val tools = visibleToolbarTools(state)
-    val pinnedFolders = state.settings.toolbox.folders.filter { it.pinned }
     val pinnedApps = toolbarApps(state)
     // The D-pad ring reaches the bar as well as the keys: without it a remote
     // could type but never open a tool, change a setting or start voice input.
     // Each button registers where it is while it is drawn (see [dpadTarget]).
     val dpadRing = LocalDpadRing.current
     drag.visibleTools = tools
+    drag.folders = state.settings.toolbox.folders
     val toolsRtl = toolbarReadsRtl(state)
     val toolsDirection = if (toolsRtl) LayoutDirection.Rtl else LayoutDirection.Ltr
     drag.barRtl = toolsRtl
@@ -13273,7 +13291,7 @@ private fun RowScope.ToolbarRow(
     // A keyed move is enough here. Row re-measures and re-places its children
     // on a pure reorder — unlike FlowRow, which is why the toolbox grid has to
     // re-key its ghost per slot instead (see [ToolboxGrid]).
-    val dragTool = drag.dragging
+    val dragTool = drag.draggingKey
     val ghostSlot = drag.barSlot
     val displayTools: List<ToolKey> = if (dragTool != null && ghostSlot != null) {
         (tools - dragTool).toMutableList().apply {
@@ -13516,30 +13534,9 @@ private fun RowScope.ToolbarRow(
         }
         appsBySlot[displayTools.size]?.forEach { appCell(it) }
         appGhost(displayTools.size)
-        // Folders the user pinned (#709), after the tools: a folder has no
-        // place in the bar's own stored list, so it cannot sit between them.
-        for (folder in pinnedFolders) {
-            key("folder:${folder.id}") {
-                Box(
-                    if (greedy) Modifier.weight(1f).fillMaxHeight() else Modifier.padding(horizontal = 3.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    PinnedFolderButton(
-                        folder = folder,
-                        state = state,
-                        open = customizing && state.toolboxView.folderOpen == folder.id,
-                        onOpen = { drag.toolbox.onFolderOpen(folder.id) },
-                        onMain = { drag.tap(it, onToolTap) },
-                        // Slides when the tools before it move, and fades with the
-                        // rest of the bar, like a pinned tool.
-                        modifier = Modifier
-                            .animatePlacement(enabled = motion, inRow = true) { drag.bodyCoords }
-                            .graphicsLayer { alpha = contentAlpha() },
-                    )
-                }
-            }
-        }
-        // The apps never carried in among the tools, after the folders.
+        // Folders the user pinned (#709) are among the tools above: each is an
+        // entry of the bar's own list (#1497), drawn by [PinnedToolCell].
+        // The apps never carried in among the tools, after them.
         for (app in trailingApps) appCell(app)
     }
     if (greedy) {
@@ -13552,7 +13549,7 @@ private fun RowScope.ToolbarRow(
         val gridCells = (if (panelOpen && !toolboxIsBack) 1 else 0) +
             (if (toolboxSearchShown) 1 else 0) +
             (if (barToolboxShown(state)) 1 else 0) +
-            (displayTools.size + pinnedFolders.size + pinnedApps.size).coerceAtLeast(1)
+            (displayTools.size + pinnedApps.size).coerceAtLeast(1)
         val gridInset = gridCut?.let { cut ->
             cut.cutIn()?.let { insetToCut(gridCells, cut.laidOutWidth.toFloat(), it) }
         }
@@ -13588,7 +13585,7 @@ private fun RowScope.ToolbarRow(
             CompositionLocalProvider(LocalLayoutDirection provides toolsDirection) {
                 Row(
                     modifier = Modifier
-                        .weight((displayTools.size + pinnedFolders.size + pinnedApps.size).coerceAtLeast(1).toFloat())
+                        .weight((displayTools.size + pinnedApps.size).coerceAtLeast(1).toFloat())
                         .fillMaxHeight()
                         .onGloballyPositioned { drag.toolbarBounds = it.boundsInRoot() },
                     verticalAlignment = Alignment.CenterVertically,
@@ -13718,6 +13715,12 @@ private fun PinnedToolCell(
     /** A second-toolbar button (#1217): drags off that row and has a D-pad target of its own. */
     secondRow: Boolean = false,
 ) {
+    // A pinned folder (#1497) holds its place among the tools, and drags and
+    // holds as they do, but wears the folder's face.
+    if (tool is ToolKey.Folder) {
+        PinnedFolderCell(tool, state, drag, onToolTap, cell, inRow, fadeThis, contentAlpha, secondRow)
+        return
+    }
     val customizing = state.panel == PanelMode.TOOLBOX
     val labels = state.settings.toolbarLabels
     val labelSize = state.settings.toolbarLabelSize
@@ -14996,15 +14999,17 @@ private fun ToolboxFolderHeader(state: KeyboardUiState, folder: ToolboxFolder, d
             Spacer(Modifier.width(6.dp))
             Icon(Icons.Outlined.Edit, contentDescription = renameDesc, modifier = Modifier.size(14.dp), tint = tint)
         }
+        // On the bar while the bar's own list holds it (#1497).
+        val pinned = folderToolKey(folder.id) in state.settings.toolbarTools
         val pinDesc = stringResource(
-            if (folder.pinned) R.string.ime_toolbox_folder_unpin_desc else R.string.ime_toolbox_folder_pin_desc,
+            if (pinned) R.string.ime_toolbox_folder_unpin_desc else R.string.ime_toolbox_folder_pin_desc,
         )
         ToolboxHeaderButton(pinDesc, { callbacks.onPinToggle(folder.id) }) {
             Icon(
-                if (folder.pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                if (pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
                 contentDescription = pinDesc,
                 modifier = Modifier.size(18.dp),
-                tint = if (folder.pinned) kb.toolCircleActiveIcon else tint,
+                tint = if (pinned) kb.toolCircleActiveIcon else tint,
             )
         }
         val mainDesc = stringResource(R.string.ime_toolbox_folder_main_desc)
@@ -15261,16 +15266,68 @@ private fun FolderDragGhost(folder: ToolboxFolder, at: Offset, state: KeyboardUi
 }
 
 /**
- * A folder pinned to the toolbar (#709), after the pinned tools. A tap opens
- * the toolbox at the folder; it comes off the bar from the folder's own header.
+ * A folder pinned to the toolbar (#709), in the place it holds among the
+ * pinned tools (#1497). [PinnedToolCell] hands it here, so it takes the same
+ * gesture a tool does ([DraggableTool]): a tap opens the toolbox at the folder,
+ * or runs its first tool when that one is starred (#970); a hold opens it; a
+ * hold that travels picks it up to move it along the bar, or off the bar onto
+ * the open toolbox to unpin it. The folder's own header unpins it too.
  */
+@Composable
+private fun PinnedFolderCell(
+    tool: ToolKey.Folder,
+    state: KeyboardUiState,
+    drag: ToolDragController,
+    onToolTap: (ToolbarTool) -> Unit,
+    cell: Modifier,
+    inRow: Boolean,
+    fadeThis: Boolean,
+    contentAlpha: () -> Float,
+    secondRow: Boolean,
+) {
+    val folder = state.settings.toolbox.folders.folderById(tool.id) ?: return
+    val motion = !state.settings.reduceMotion
+    val dpadRing = LocalDpadRing.current
+    val customizing = state.panel == PanelMode.TOOLBOX
+    Box(cell, contentAlignment = Alignment.Center) {
+        DraggableTool(
+            tool,
+            fromToolbar = true,
+            enabled = true,
+            drag = drag,
+            onTap = { drag.tap(tool, onToolTap) },
+            dragEnabled = state.settings.toolbarBehavior.dragToRearrange,
+            holdDelayMs = state.settings.toolbarBehavior.holdDelayMs,
+            fromSecondRow = secondRow,
+        ) { dragModifier ->
+            PinnedFolderButton(
+                folder = folder,
+                state = state,
+                open = customizing && state.toolboxView.folderOpen == folder.id,
+                // Washed out where it will land while it is the one in flight,
+                // as a dragged tool's own cell is.
+                ghost = tool == drag.dragging || (tool == drag.draggingKey && drag.barSlot != null),
+                modifier = dragModifier
+                    .panelOrigin()
+                    .then(
+                        if (dpadRing) Modifier.dpadTarget(tool) { drag.tap(tool, onToolTap) } else Modifier,
+                    )
+                    // Slides when the tools around it move, and fades with the
+                    // rest of the bar, like a pinned tool.
+                    .animatePlacement(enabled = motion, inRow = inRow) { drag.bodyCoords }
+                    .then(if (fadeThis) Modifier.graphicsLayer { alpha = contentAlpha() } else Modifier),
+            )
+        }
+    }
+}
+
+/** The face of a pinned folder on the toolbar (#709): the gesture is [PinnedFolderCell]'s. */
 @Composable
 private fun PinnedFolderButton(
     folder: ToolboxFolder,
     state: KeyboardUiState,
     open: Boolean,
-    onOpen: () -> Unit,
-    onMain: (ToolKey) -> Unit,
+    ghost: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val labels = state.settings.toolbarLabels
@@ -15280,25 +15337,23 @@ private fun PinnedFolderButton(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
-            .then(
-                if (main != null) {
-                    Modifier.combinedClickable(onLongClick = onOpen, onClick = { onMain(main) })
-                } else {
-                    Modifier.clickable(onClickLabel = description, onClick = onOpen)
-                },
-            )
-            .semantics { contentDescription = description },
+            .semantics {
+                contentDescription = description
+                role = Role.Button
+            },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         if (main != null) {
             SlotIcon(
                 toolKeySlot(main),
                 contentDescription = null,
-                modifier = Modifier.size(LocalKbTheme.current.toolIconSizeDp.dp),
+                modifier = Modifier
+                    .size(LocalKbTheme.current.toolIconSizeDp.dp)
+                    .graphicsLayer { alpha = if (ghost) 0.45f else 1f },
                 tint = LocalKbTheme.current.toolbarIcon,
             )
         } else {
-            FolderFace(folder.tools, state, ghost = false, active = open)
+            FolderFace(folder.tools, state, ghost = ghost, active = open && !ghost)
         }
         if (labels) {
             Text(
@@ -15504,6 +15559,8 @@ private fun ToolPill(
             is ToolKey.Builtin -> toolOpensScreen(tool.tool)
             is ToolKey.Plugin -> true
             is ToolKey.Custom -> false
+            // Never in the grid; a folder opens the toolbox at itself.
+            is ToolKey.Folder -> true
         }
         if (opensScreen) {
             Icon(
@@ -17739,13 +17796,19 @@ private fun KeyboardBody(
             }
         }
         drag.draggingFolder?.let { FolderDragGhost(it, drag.position - bodyOrigin, state) }
+        // A pinned folder picked up off the bar (#1497) wears its own face too.
+        (drag.dragging as? ToolKey.Folder)?.let { pinned ->
+            state.settings.toolbox.folders.folderById(pinned.id)?.let {
+                FolderDragGhost(it, drag.position - bodyOrigin, state)
+            }
+        }
         // An app carried along the bar (#1387), over everything the bar clips.
         if (drag.carrying != null) {
             drag.carriedFace?.let { CarriedAppGhost(it, drag.position - bodyOrigin, state) }
         }
         // A tool flying out to its floating box or back into its button (#1378).
         drag.flight?.let { ToolFlightGlyph(it, bodyOrigin, drag.flightMs, drag) }
-        drag.dragging?.let { tool ->
+        drag.dragging?.takeIf { it !is ToolKey.Folder }?.let { tool ->
             val kb = LocalKbTheme.current
             val ghost = drag.position - bodyOrigin
             // The thing under the finger is the thing that will land, in the
@@ -27758,10 +27821,11 @@ internal fun visibleToolbarTools(state: KeyboardUiState): List<ToolKey> =
  * and this build can run (#1345).
  */
 internal fun toolShown(tool: ToolKey, state: KeyboardUiState): Boolean =
-    if (tool is ToolKey.Custom) {
-        state.settings.toolbox.customButtons.customButtonById(tool.id)?.usable == true
-    } else {
-        tool.shownWith(state.pluginTools.keys) {
+    when (tool) {
+        is ToolKey.Custom -> state.settings.toolbox.customButtons.customButtonById(tool.id)?.usable == true
+        // A pinned folder (#1497) while it is still a folder.
+        is ToolKey.Folder -> state.settings.toolbox.folders.folderById(tool.id) != null
+        else -> tool.shownWith(state.pluginTools.keys) {
             it in state.settings.enabledTools && isSupportedTool(it) && isUsableTool(it, state.settings)
         }
     }
@@ -27784,6 +27848,7 @@ internal fun toolLabel(tool: ToolKey, state: KeyboardUiState): String = when (to
         val buttons = state.settings.toolbox.customButtons
         remember(buttons, tool.id, context) { customToolName(context, buttons, tool.id) }
     }
+    is ToolKey.Folder -> state.settings.toolbox.folders.folderById(tool.id)?.name ?: tool.id
 }
 
 /** [toolLabel] for a caller with no composition: the service, the search's ranking. */
@@ -27791,6 +27856,7 @@ internal fun toolKeyName(context: android.content.Context, tool: ToolKey, state:
     is ToolKey.Builtin -> context.getString(toolLabelRes(tool.tool))
     is ToolKey.Plugin -> state.pluginTools[tool.pluginId]?.name ?: tool.pluginId
     is ToolKey.Custom -> customToolName(context, state.settings.toolbox.customButtons, tool.id)
+    is ToolKey.Folder -> state.settings.toolbox.folders.folderById(tool.id)?.name ?: tool.id
 }
 
 /**
@@ -27804,6 +27870,7 @@ private fun toolActive(tool: ToolKey, state: KeyboardUiState): Boolean = when (t
         (state.plugins as? PluginPanelUi.Running)?.plugin?.id == tool.pluginId
     is ToolKey.Custom -> state.settings.toolbox.customButtons.customButtonById(tool.id)
         ?.toggle?.isOn(state.settings) == true
+    is ToolKey.Folder -> state.panel == PanelMode.TOOLBOX && state.toolboxView.folderOpen == tool.id
 }
 
 /** A built-in tool's colours; a plugin wears the theme's own tool colour. */
@@ -27820,6 +27887,8 @@ private fun toolAccentPaint(tool: ToolKey, settings: KeyboardSettings): ToolPain
     }
     // A custom button wears the theme's own tool colour; a shortcut, its picture.
     is ToolKey.Custom -> null
+    // A pinned folder wears its tools' colours on its face.
+    is ToolKey.Folder -> null
 }
 
 /**

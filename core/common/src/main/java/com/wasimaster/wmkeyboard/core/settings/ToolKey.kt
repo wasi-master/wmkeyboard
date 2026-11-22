@@ -10,7 +10,8 @@ package com.wasimaster.wmkeyboard.core.settings
  * filed, pinned, searched and ranked exactly as Calculator is. What a tool
  * *does* stays on [ToolbarTool]; a plugin entry always opens its plugin.
  *
- * Stored as [token]: a built-in's enum name, `plugin:<id>` or `custom:<id>`.
+ * Stored as [token]: a built-in's enum name, `plugin:<id>` or `custom:<id>`,
+ * and on the toolbar alone `folder:<id>` for a pinned folder (#1497).
  * All live in the same comma-joined preferences the enum names always did,
  * and a build that does not know an entry's kind skips it as it skips any
  * name it does not know.
@@ -49,6 +50,21 @@ sealed interface ToolKey {
         override fun toString(): String = token
     }
 
+    /**
+     * A toolbox folder pinned to the toolbar (#1497), by the id it has in
+     * [ToolboxSettings.folders]. Only ever in a toolbar list, the bar's own
+     * or a mode's, where it holds a place among the tools like any of them:
+     * dragged along the bar, or off it to unpin. Never in the toolbox order,
+     * the hidden tools or a folder, since a folder is drawn in the grid where
+     * its first tool is ranked.
+     */
+    data class Folder(val id: String) : ToolKey {
+        override val token: String get() = FOLDER_TOOL_PREFIX + id
+        override val tool: ToolbarTool? get() = null
+        override val pluginId: String? get() = null
+        override fun toString(): String = token
+    }
+
     companion object {
         /** The entry [token] spells, or null for a name this build does not know or a malformed id. */
         fun of(token: String): ToolKey? {
@@ -60,6 +76,10 @@ sealed interface ToolKey {
             if (t.startsWith(CUSTOM_TOOL_PREFIX)) {
                 val id = t.removePrefix(CUSTOM_TOOL_PREFIX)
                 return if (isCustomToolId(id)) Custom(id) else null
+            }
+            if (t.startsWith(FOLDER_TOOL_PREFIX)) {
+                val id = t.removePrefix(FOLDER_TOOL_PREFIX)
+                return if (isFolderToolId(id)) Folder(id) else null
             }
             return ToolByName[t]?.key
         }
@@ -91,6 +111,18 @@ fun customToolKey(id: String): ToolKey.Custom = ToolKey.Custom(id)
 
 /** The custom button this entry is, by id, or null for a built-in tool or a plugin. */
 val ToolKey.customButtonId: String? get() = (this as? ToolKey.Custom)?.id
+
+/** What a pinned folder's [ToolKey.token] starts with (#1497). */
+const val FOLDER_TOOL_PREFIX = "folder:"
+
+/** Whether [id] can be a toolbox folder's id inside a stored list: letters and digits (`f1`, `f2`, …). */
+fun isFolderToolId(id: String): Boolean = CustomToolId.matches(id)
+
+/** Toolbox folder [id] as a toolbar entry (#1497). */
+fun folderToolKey(id: String): ToolKey.Folder = ToolKey.Folder(id)
+
+/** The toolbox folder this entry is, by id, or null for anything else. */
+val ToolKey.folderId: String? get() = (this as? ToolKey.Folder)?.id
 
 private val ToolByName: Map<String, ToolbarTool> = ToolbarTool.entries.associateBy { it.name }
 
@@ -131,19 +163,22 @@ fun List<ToolKey>.withoutPlugin(pluginId: String): List<ToolKey> = filterNot { i
  * Whether an entry may be shown: a built-in tool by the caller's own test, a
  * plugin only while it is in [livePlugins], the installed plugins that are
  * switched on and draw a panel, and a custom button only while it is in
- * [liveCustom], the buttons that exist and this build can run. An uninstalled
- * or switched-off plugin keeps its place in the stored lists, so turning it
- * back on returns it where it was, but nothing draws it.
+ * [liveCustom], the buttons that exist and this build can run, and a pinned
+ * folder only while it is in [liveFolders], the folders that exist. An
+ * uninstalled or switched-off plugin keeps its place in the stored lists, so
+ * turning it back on returns it where it was, but nothing draws it.
  */
 inline fun ToolKey.shownWith(
     livePlugins: Set<String>,
     liveCustom: Set<String> = emptySet(),
+    liveFolders: Set<String> = emptySet(),
     builtin: (ToolbarTool) -> Boolean,
 ): Boolean =
     when (this) {
         is ToolKey.Builtin -> builtin(tool)
         is ToolKey.Plugin -> pluginId in livePlugins
         is ToolKey.Custom -> id in liveCustom
+        is ToolKey.Folder -> id in liveFolders
     }
 
 /** [DefaultToolbarTools] as entries: what a fresh install pins. */

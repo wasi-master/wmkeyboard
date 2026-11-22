@@ -906,9 +906,17 @@ internal fun rememberPluginToolNames(): Map<String, String> {
     }
 }
 
-/** A toolbox entry's name in Settings: a built-in tool's title, its plugin's name, or its custom button's. */
+/**
+ * A toolbox entry's name in Settings: a built-in tool's title, its plugin's
+ * name, its custom button's, or a pinned folder's (#1497) from [folderNames],
+ * by id.
+ */
 @Composable
-internal fun toolKeyTitle(tool: ToolKey, pluginNames: Map<String, String>): String = when (tool) {
+internal fun toolKeyTitle(
+    tool: ToolKey,
+    pluginNames: Map<String, String>,
+    folderNames: Map<String, String> = emptyMap(),
+): String = when (tool) {
     is ToolKey.Builtin -> stringResource(toolTitle(tool.tool))
     is ToolKey.Plugin -> pluginNames[tool.pluginId] ?: tool.pluginId
     is ToolKey.Custom -> {
@@ -916,6 +924,7 @@ internal fun toolKeyTitle(tool: ToolKey, pluginNames: Map<String, String>): Stri
         val buttons = com.wasimaster.wmkeyboard.ime.ui.CustomButtonFaces.buttons
         remember(buttons, tool.id, context) { com.wasimaster.wmkeyboard.ime.ui.customToolName(context, buttons, tool.id) }
     }
+    is ToolKey.Folder -> folderNames[tool.id] ?: tool.id
 }
 
 /**
