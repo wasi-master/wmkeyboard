@@ -116,7 +116,7 @@
     <string name="floating_button_pick_group_device">Phone controls</string>
     <string name="floating_button_pick_system_subtitle">Presses Android\'s own button for you</string>
     <string name="floating_button_pick_system_off_title">Turn on system buttons</string>
-    <string name="floating_button_pick_system_off_subtitle">Back, Recent apps, the app drawer, notifications and quick settings need the system buttons service. Tap to see what it does</string>
+    <string name="floating_button_pick_system_off_subtitle">Back, Home, Recent apps, the app drawer, notifications, quick settings, the power menu and Lock screen need the system buttons service. Tap to see what it does</string>
     <string name="floating_button_pick_applet_subtitle">Opens the tool in a box over the app, without the keyboard</string>
     <string name="floating_button_pick_pair_subtitle">Two apps together, from the app launcher\'s split screen pairs</string>
     <string name="floating_button_pair_picker_title">Pick an app pair</string>

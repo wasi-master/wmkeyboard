@@ -9,9 +9,11 @@ import android.content.Intent
 import android.media.AudioManager
 import android.net.wifi.WifiManager
 import android.os.Build
+import android.os.SystemClock
 import android.os.Vibrator
 import android.provider.Settings
 import android.telephony.TelephonyManager
+import android.view.KeyEvent
 import android.widget.Toast
 import com.wasimaster.wmkeyboard.app.SpecialAccess
 import com.wasimaster.wmkeyboard.app.SpecialAccessActivity
@@ -43,7 +45,7 @@ object DeviceControls {
 
     /** Whether [control] is flipped by the keyboard itself on this phone now, rather than opening a page. */
     fun switchesItself(context: Context, control: DeviceControl): Boolean = when (control) {
-        DeviceControl.RINGER -> true
+        DeviceControl.RINGER, DeviceControl.PLAY_PAUSE, DeviceControl.PREVIOUS_TRACK, DeviceControl.NEXT_TRACK -> true
         DeviceControl.VOLUME_PANEL, DeviceControl.HOTSPOT -> false
         DeviceControl.WIFI -> Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || shell(context)
         DeviceControl.BLUETOOTH -> Build.VERSION.SDK_INT < Build.VERSION_CODES.S || shell(context)
@@ -64,6 +66,9 @@ object DeviceControls {
                 DeviceControl.BLUETOOTH ->
                     if (itself) R.string.ime_floating_device_bluetooth_desc else R.string.ime_floating_device_bluetooth_page_desc
                 DeviceControl.HOTSPOT -> R.string.ime_floating_device_hotspot_desc
+                DeviceControl.PLAY_PAUSE -> R.string.ime_floating_device_play_pause_desc
+                DeviceControl.PREVIOUS_TRACK -> R.string.ime_floating_device_previous_track_desc
+                DeviceControl.NEXT_TRACK -> R.string.ime_floating_device_next_track_desc
             },
         )
         // A switch that opens a page here, in a build that can reach Shizuku or root.
@@ -80,6 +85,9 @@ object DeviceControls {
         DeviceControl.MOBILE_DATA -> R.string.ime_floating_device_data
         DeviceControl.BLUETOOTH -> R.string.ime_floating_device_bluetooth
         DeviceControl.HOTSPOT -> R.string.ime_floating_device_hotspot
+        DeviceControl.PLAY_PAUSE -> R.string.ime_floating_device_play_pause
+        DeviceControl.PREVIOUS_TRACK -> R.string.ime_floating_device_previous_track
+        DeviceControl.NEXT_TRACK -> R.string.ime_floating_device_next_track
     }
 
     /**
@@ -94,6 +102,23 @@ object DeviceControls {
             DeviceControl.MOBILE_DATA -> toggleMobileData(context)
             DeviceControl.BLUETOOTH -> toggleBluetooth(context)
             DeviceControl.HOTSPOT -> openHotspotPage(context)
+            DeviceControl.PLAY_PAUSE -> mediaKey(context, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
+            DeviceControl.PREVIOUS_TRACK -> mediaKey(context, KeyEvent.KEYCODE_MEDIA_PREVIOUS)
+            DeviceControl.NEXT_TRACK -> mediaKey(context, KeyEvent.KEYCODE_MEDIA_NEXT)
+        }
+    }
+
+    /**
+     * Presses a media key (#1171), down and up, the way a headset's button
+     * does: Android hands it to the app whose media session is playing, or
+     * last played. Needs no permission.
+     */
+    private fun mediaKey(context: Context, code: Int) {
+        val audio = context.getSystemService(AudioManager::class.java) ?: return
+        val now = SystemClock.uptimeMillis()
+        runCatching {
+            audio.dispatchMediaKeyEvent(KeyEvent(now, now, KeyEvent.ACTION_DOWN, code, 0))
+            audio.dispatchMediaKeyEvent(KeyEvent(now, now, KeyEvent.ACTION_UP, code, 0))
         }
     }
 
@@ -119,7 +144,9 @@ object DeviceControls {
      * is one read of a system service or a setting.
      */
     fun isOn(context: Context, control: DeviceControl): Boolean? = when (control) {
-        DeviceControl.RINGER, DeviceControl.VOLUME_PANEL -> null
+        DeviceControl.RINGER, DeviceControl.VOLUME_PANEL,
+        DeviceControl.PLAY_PAUSE, DeviceControl.PREVIOUS_TRACK, DeviceControl.NEXT_TRACK,
+        -> null
         DeviceControl.WIFI -> runCatching {
             context.applicationContext.getSystemService(WifiManager::class.java)?.isWifiEnabled
         }.getOrNull()

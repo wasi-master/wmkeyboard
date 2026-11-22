@@ -93,6 +93,9 @@ Then **System buttons**, **Phone controls**, **Your buttons**, **Plugins** and *
 - **App drawer** opens your launcher's list of every app. Android 12 and later.
 - **Notifications** pulls down the notification shade.
 - **Quick settings** pulls down quick settings, with the Wi-Fi and Bluetooth tiles.
+- **Home** goes to the home screen.
+- **Lock screen** turns the screen off and locks the phone, as a press of the power key does. Android 9 and later.
+- **Power menu** opens the menu a long press of the power key brings up, with restart and power off.
 
 Android lets another app press these only through an accessibility service, so they need **WM Keyboard system buttons** turned on in Android's accessibility settings, the same service the [Screenshot](/tools/instruments/#screenshot) tool uses. It presses the one button you asked for and reads nothing on screen. Until it's on, the group shows a single **Turn on system buttons** row instead, which explains the service and then opens Android's page for it. If one of these actions is already set and the service is turned off later, pressing it explains the service again, and a row under the switch at the top of this screen says what's missing. Not in the Play Store build.
 
@@ -104,6 +107,7 @@ Android lets another app press these only through an accessibility service, so t
 - **Volume panel** opens Android's volume panel, with a slider for media, calls, the ringer and alarms, the one the settings app opens. On a phone without that panel, and before Android 10, it shows the volume slider a volume key brings up.
 - **Wi-Fi**, **Mobile data** and **Bluetooth** turn their switch on if it's off and off if it's on, then say which.
 - **Hotspot** opens Android's hotspot page.
+- **Play or pause**, **Previous track** and **Next track** press the media key a headset's button would, for whatever app is playing music or video, or played it last. They need no permission.
 
 Android lets an app flip those three switches only in some cases, so each picks the first way that works on your phone, and its row in the list says which it'll be:
 

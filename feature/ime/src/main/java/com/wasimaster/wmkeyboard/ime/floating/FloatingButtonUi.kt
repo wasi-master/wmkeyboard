@@ -76,10 +76,16 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardHide
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PictureInPictureAlt
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PlayArrow
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PowerSettingsNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.GridView
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Home
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lock
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Notifications
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.NotificationsActive
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SignalCellularAlt
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SkipNext
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SkipPrevious
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ToggleOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VerticalSplit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewCarousel
@@ -200,6 +206,9 @@ fun systemButtonIcon(button: SystemButton): ImageVector = when (button) {
     SystemButton.APP_DRAWER -> Icons.Outlined.GridView
     SystemButton.NOTIFICATIONS -> Icons.Outlined.Notifications
     SystemButton.QUICK_SETTINGS -> Icons.Outlined.ToggleOn
+    SystemButton.HOME -> Icons.Outlined.Home
+    SystemButton.LOCK_SCREEN -> Icons.Outlined.Lock
+    SystemButton.POWER_DIALOG -> Icons.Outlined.PowerSettingsNew
 }
 
 /** The glyph of one of the phone's controls (#1326). */
@@ -210,6 +219,9 @@ fun deviceControlIcon(control: DeviceControl): ImageVector = when (control) {
     DeviceControl.MOBILE_DATA -> Icons.Outlined.SignalCellularAlt
     DeviceControl.BLUETOOTH -> Icons.Outlined.Bluetooth
     DeviceControl.HOTSPOT -> Icons.Outlined.WifiTethering
+    DeviceControl.PLAY_PAUSE -> Icons.Outlined.PlayArrow
+    DeviceControl.PREVIOUS_TRACK -> Icons.Outlined.SkipPrevious
+    DeviceControl.NEXT_TRACK -> Icons.Outlined.SkipNext
 }
 
 /** What one of Android's system buttons is called (#1170). */
@@ -219,6 +231,9 @@ fun systemButtonLabelRes(button: SystemButton): Int = when (button) {
     SystemButton.APP_DRAWER -> R.string.ime_floating_system_app_drawer
     SystemButton.NOTIFICATIONS -> R.string.ime_floating_system_notifications
     SystemButton.QUICK_SETTINGS -> R.string.ime_floating_system_quick_settings
+    SystemButton.HOME -> R.string.ime_floating_system_home
+    SystemButton.LOCK_SCREEN -> R.string.ime_floating_system_lock_screen
+    SystemButton.POWER_DIALOG -> R.string.ime_floating_system_power_dialog
 }
 
 /**

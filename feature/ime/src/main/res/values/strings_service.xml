@@ -307,6 +307,9 @@
     <string name="ime_floating_system_app_drawer">App drawer</string>
     <string name="ime_floating_system_notifications">Notifications</string>
     <string name="ime_floating_system_quick_settings">Quick settings</string>
+    <string name="ime_floating_system_home">Home</string>
+    <string name="ime_floating_system_lock_screen">Lock screen</string>
+    <string name="ime_floating_system_power_dialog">Power menu</string>
     <string name="ime_floating_system_failed">Android did not press that button</string>
     <!-- The floating button's phone controls (#1326). -->
     <string name="ime_floating_device_ringer">Ringer mode</string>
@@ -324,6 +327,12 @@
     <string name="ime_floating_device_bluetooth_desc">Turns Bluetooth on or off</string>
     <string name="ime_floating_device_bluetooth_page_desc">Opens Android\'s Bluetooth page</string>
     <string name="ime_floating_device_hotspot_desc">Opens Android\'s hotspot page</string>
+    <string name="ime_floating_device_play_pause">Play or pause</string>
+    <string name="ime_floating_device_previous_track">Previous track</string>
+    <string name="ime_floating_device_next_track">Next track</string>
+    <string name="ime_floating_device_play_pause_desc">Plays or pauses the music or video that is playing, or last played</string>
+    <string name="ime_floating_device_previous_track_desc">Goes back a track in the music that is playing</string>
+    <string name="ime_floating_device_next_track_desc">Skips to the next track in the music that is playing</string>
     <!-- After a page or panel description above, in builds with Shizuku or root support. -->
     <string name="ime_floating_device_shell_hint">%1$s. Allow the keyboard in Shizuku, or turn on Use root, and it switches it itself</string>
     <!-- Toasts: "Wi-Fi on", "Bluetooth off". %1$s is the control's name above. -->

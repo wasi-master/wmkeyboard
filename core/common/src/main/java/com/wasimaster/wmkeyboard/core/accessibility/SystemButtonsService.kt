@@ -11,8 +11,9 @@ import com.wasimaster.wmkeyboard.core.settings.SystemButton
 /**
  * Presses Android's own system buttons for the keyboard: the screenshot, for
  * the Screenshot tool and the floating button (#1148), and Back, recent apps,
- * the app drawer, the notification shade and quick settings, for the
- * floating button's system button actions (#1170). A screenshot is the one
+ * the app drawer, the notification shade, quick settings, Home, the lock
+ * screen and the power menu, for the floating button's system button
+ * actions (#1170, #1171). A screenshot is the one
  * the power and volume keys take, and Android saves it and shows its own
  * preview.
  *
@@ -66,6 +67,13 @@ class SystemButtonsService : AccessibilityService() {
             SystemButton.RECENTS -> GLOBAL_ACTION_RECENTS
             SystemButton.NOTIFICATIONS -> GLOBAL_ACTION_NOTIFICATIONS
             SystemButton.QUICK_SETTINGS -> GLOBAL_ACTION_QUICK_SETTINGS
+            SystemButton.HOME -> GLOBAL_ACTION_HOME
+            SystemButton.POWER_DIALOG -> GLOBAL_ACTION_POWER_DIALOG
+            SystemButton.LOCK_SCREEN -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                GLOBAL_ACTION_LOCK_SCREEN
+            } else {
+                return false
+            }
             SystemButton.APP_DRAWER -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 GLOBAL_ACTION_ACCESSIBILITY_ALL_APPS
             } else {

@@ -3,8 +3,9 @@ package com.wasimaster.wmkeyboard.core.settings
 /**
  * One of the phone's own controls the floating button can work (#1326): the
  * ringer, the volume panel, and the Wi-Fi, mobile data, Bluetooth and hotspot
- * switches. Stored by [name], so a control a later build drops reads back as
- * nothing.
+ * switches, and since #1171 play/pause and the previous and next track of
+ * whatever is playing. Stored by [name], so a control a later build drops
+ * reads back as nothing.
  *
  * An app may flip only some of these itself, and only on some Android
  * versions: Wi-Fi before Android 10, Bluetooth before Android 12. Past that,
@@ -23,6 +24,15 @@ enum class DeviceControl {
 
     /** No app can start the hotspot on current Android, so this one always opens its page. */
     HOTSPOT,
+
+    /** Play or pause whatever is playing (#1171), as a headset's button does. */
+    PLAY_PAUSE,
+
+    /** The previous track of whatever is playing. */
+    PREVIOUS_TRACK,
+
+    /** The next track of whatever is playing. */
+    NEXT_TRACK,
 }
 
 /** The phone's ringer, as [DeviceControl.RINGER] cycles it. */
