@@ -169,7 +169,7 @@ internal fun MusicHistoryScreen(settings: LiveSettings) {
                     )
                 }
             }
-            item(visible = data.entries.isNotEmpty()) {
+            item(visible = data.entries.isNotEmpty(), waitsOnSetting = false) {
                 NavRow(R.string.music_history_clear_title, stringResource(R.string.music_history_clear_subtitle)) { history.clear() }
             }
         }

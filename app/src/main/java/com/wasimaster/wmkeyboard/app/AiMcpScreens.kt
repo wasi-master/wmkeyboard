@@ -140,7 +140,7 @@ internal fun AiMcpSettings(
     ) {
         // The group draws nothing at all with no rows, and its "?" with it, so
         // an empty list still holds one line saying how to fill it.
-        item(visible = servers.isEmpty()) {
+        item(visible = servers.isEmpty(), waitsOnSetting = false) {
             Text(
                 stringResource(R.string.toolai_ai_mcp_empty),
                 style = MaterialTheme.typography.bodyMedium,
@@ -752,7 +752,7 @@ internal fun AiMcpEditor(
             stringResource(R.string.toolai_ai_mcp_tools_title),
             info = stringResource(R.string.toolai_ai_mcp_tools_info),
         ) {
-            item(visible = entry.tools.isEmpty()) {
+            item(visible = entry.tools.isEmpty(), waitsOnSetting = false) {
                 Text(
                     stringResource(R.string.toolai_ai_mcp_tools_empty),
                     style = MaterialTheme.typography.bodyMedium,

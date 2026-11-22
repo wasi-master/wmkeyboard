@@ -110,7 +110,7 @@ internal fun LanguageSettings(
             }
         } else null,
     ) {
-        item(visible = editing) {
+        item(visible = editing, waitsOnSetting = false) {
             val customLayouts = settings.watch { it.customLayouts }
             val displayNames = settings.watch { it.layoutDisplayNames }
             ReorderableColumn(

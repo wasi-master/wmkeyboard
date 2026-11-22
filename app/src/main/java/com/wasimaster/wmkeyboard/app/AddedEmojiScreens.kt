@@ -137,7 +137,7 @@ internal fun AddedEmojiSettings(repository: SettingsRepository, settings: LiveSe
         }
     }
     SettingsGroup(stringResource(R.string.langemoji_emoji_added_list_title)) {
-        item(visible = added.isEmpty()) { CaptionText(stringResource(R.string.langemoji_emoji_added_empty)) }
+        item(visible = added.isEmpty(), waitsOnSetting = false) { CaptionText(stringResource(R.string.langemoji_emoji_added_empty)) }
         for (entry in added) item(key = entry.emoji) {
             val builtIn = remember(bundled, entry.emoji) { EmojiCatalog.find(bundled, entry.emoji) != null }
             val label = entry.name.ifEmpty { entry.emoji }
@@ -161,7 +161,7 @@ internal fun AddedEmojiSettings(repository: SettingsRepository, settings: LiveSe
                 ),
             ) { editing = entry }
         }
-        item(visible = added.isNotEmpty()) {
+        item(visible = added.isNotEmpty(), waitsOnSetting = false) {
             ActionRow(
                 title = R.string.langemoji_emoji_added_clear_title,
                 subtitle = pluralStringResource(R.plurals.langemoji_emoji_added_count, added.size, added.size),

@@ -1632,7 +1632,7 @@ private fun SharedBoardGroup(repository: SettingsRepository, settings: LiveSetti
             ) { scope.launch { repository.setClipboardBoardLocation(it) } }
         }
         // Every copy onto the board as well (#1201), not only those sent by hand.
-        item(visible = boardPicked.isNotEmpty() && boardPlaces.any { it.id == boardPicked }) {
+        item(visible = boardPicked.isNotEmpty() && boardPlaces.any { it.id == boardPicked }, waitsOnSetting = false) {
             ToggleSetting(
                 R.string.clipboard_board_auto_title,
                 stringResource(R.string.clipboard_board_auto_subtitle),

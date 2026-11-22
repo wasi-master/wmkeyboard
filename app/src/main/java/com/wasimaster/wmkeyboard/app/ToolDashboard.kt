@@ -299,7 +299,7 @@ internal fun ToolDashboardToolScreen(repository: SettingsRepository, tool: Toolb
                 }
             }
             val total = sizes.values.sum()
-            item(visible = total > 0) {
+            item(visible = total > 0, waitsOnSetting = false) {
                 ActionRow(
                     R.string.tool_dashboard_delete_title,
                     subtitle = stringResource(R.string.tool_dashboard_delete_subtitle, Formatter.formatShortFileSize(context, total)),

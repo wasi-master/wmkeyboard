@@ -1016,7 +1016,7 @@ internal fun KeyPressDeleteSettings(
         }
         // Each direction on its own (#1269), so one can be kept without the
         // other. While Swipe up to clear all is on, it has the swipe up.
-        if (lineSwipes) {
+        dependsOn(lineSwipes) {
             item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.typing_backspace_lines_up_title,

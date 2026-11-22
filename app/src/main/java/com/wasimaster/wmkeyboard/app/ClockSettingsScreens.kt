@@ -376,14 +376,19 @@ internal fun ClockGrantsGroup() {
     val askExact = rememberDisclosedSpecialAccess(SpecialAccess.EXACT_ALARMS)
     val askFull = rememberDisclosedSpecialAccess(SpecialAccess.FULL_SCREEN)
     val askNotify = rememberNotificationPermissionRequest { }
+    // Each row goes once its grant is in hand, for good: none waits on a
+    // setting, so Show switched-off settings leaves them out (#1112).
     SettingsGroup(stringResource(R.string.clock_grants_group), info = stringResource(R.string.clock_grants_info)) {
-        item(visible = !exact && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        item(visible = !exact && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S, waitsOnSetting = false) {
             NavRow(R.string.clock_grant_exact_title, stringResource(R.string.clock_grant_exact_subtitle), onClick = askExact)
         }
-        item(visible = !full && ChannelFeatures.CLOCK_FULL_SCREEN && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        item(
+            visible = !full && ChannelFeatures.CLOCK_FULL_SCREEN && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE,
+            waitsOnSetting = false,
+        ) {
             NavRow(R.string.clock_grant_full_title, stringResource(R.string.clock_grant_full_subtitle), onClick = askFull)
         }
-        item(visible = !notify) {
+        item(visible = !notify, waitsOnSetting = false) {
             NavRow(R.string.clock_grant_notify_title, stringResource(R.string.clock_grant_notify_subtitle), onClick = askNotify)
         }
     }

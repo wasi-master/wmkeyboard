@@ -3985,6 +3985,8 @@ internal class SettingsGroupScope {
         val level: SettingLevel = SettingLevel.BASIC,
         /** What the row costs to compose, in ordinary rows; see [item]. */
         val weight: Int = 1,
+        /** Hidden because another setting is off, so Show switched-off settings may grey it in; see [item]. */
+        val waitsOnSetting: Boolean = true,
         val content: @Composable () -> Unit,
     )
 
@@ -4032,15 +4034,58 @@ internal class SettingsGroupScope {
      * body that would crash once [visible] has gone false — one that reads
      * through a null check the condition is doing, say — wants the `if` after
      * all.
+     *
+     * [waitsOnSetting] false is for a row that hides because its job is done
+     * or cannot be done here, not because another setting is off: an "Allow"
+     * row whose permission is already granted (#1112). Show switched-off
+     * settings leaves it hidden instead of greying it in, since there is no
+     * setting that would ever bring it back.
      */
     fun item(
         visible: Boolean,
         key: Any? = null,
         level: SettingLevel = SettingLevel.BASIC,
         weight: Int = 1,
+        waitsOnSetting: Boolean = true,
         content: @Composable () -> Unit,
     ) {
-        items += Entry(visible = visible, conditional = true, key = key, level = level, weight = weight, content = content)
+        items += Entry(
+            visible = visible,
+            conditional = true,
+            key = key,
+            level = level,
+            weight = weight,
+            waitsOnSetting = waitsOnSetting,
+            content = content,
+        )
+    }
+
+    /**
+     * Several rows that all wait on one setting, [on]: autocorrect's own
+     * rows, say, under the Autocorrect switch. Each row of [rows] is added as
+     * if it had been given `visible = on` (and its own visibility, if it had
+     * one), so the run expands into place like any conditional row, and Show
+     * switched-off settings greys the whole run in while [on] is off (#1112).
+     * Wrapped in an `if` instead, the rows were simply not there, and no
+     * setting could show them before their parent was turned on.
+     *
+     * The rows of [rows] are listed whatever [on] is, so a row there that
+     * reads through a null check [on] stands for still wants an `if` of its own.
+     */
+    fun dependsOn(on: Boolean, rows: SettingsGroupScope.() -> Unit) {
+        for (e in SettingsGroupScope().apply(rows).items) {
+            items += Entry(
+                visible = on && e.visible,
+                conditional = true,
+                key = e.key,
+                level = e.level,
+                weight = e.weight,
+                // A row hidden for a reason of its own (a permission already
+                // granted) stays hidden; one that would show waits on [on].
+                waitsOnSetting = e.waitsOnSetting || (!on && e.visible),
+                content = e.content,
+            )
+        }
     }
 }
 
@@ -4097,7 +4142,7 @@ internal fun SettingsGroup(
     // depends on is turned on.
     if (depthControl.switchedOffRows || (LocalDepthReveal.current?.arrived ?: SettingsHighlight.pending)) {
         scope.items.replaceAll { e ->
-            if (!e.conditional || e.visible) {
+            if (!e.conditional || e.visible || !e.waitsOnSetting) {
                 e
             } else {
                 SettingsGroupScope.Entry(true, true, e.key, e.level, e.weight) { SwitchedOffRow(e.content) }

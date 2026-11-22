@@ -256,7 +256,7 @@ internal fun ProviderPage(
             row?.let { ProviderEdits.usedBy(s, it.entry.credentialKey, tool, env) }.orEmpty()
         }
         SettingsGroup {
-            item(visible = usedBy.isNotEmpty()) {
+            item(visible = usedBy.isNotEmpty(), waitsOnSetting = false) {
                 WmRow(
                     title = stringResource(R.string.providers_page_used_by_title),
                     subtitle = usedBy.joinToString(", ") { context.getString(it.labelRes) },

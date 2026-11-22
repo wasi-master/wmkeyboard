@@ -83,7 +83,7 @@ internal fun CustomFancyFontsGroup(repository: SettingsRepository, settings: Liv
                 enabled = fonts.size < MAX_CUSTOM_FANCY_FONTS,
             ) { editing = CustomFancyFont(id = "", name = "", lower = "") }
         }
-        item(visible = fonts.isEmpty()) { CaptionText(stringResource(R.string.languages_fancy_fonts_empty)) }
+        item(visible = fonts.isEmpty(), waitsOnSetting = false) { CaptionText(stringResource(R.string.languages_fancy_fonts_empty)) }
         for (font in fonts) item(key = font.id) {
             val style = remember(font) { font.toFancyStyle() }
             WmRow(
@@ -313,7 +313,7 @@ internal fun ZalgoStylesGroup(repository: SettingsRepository, settings: LiveSett
                 enabled = entries.size < MAX_ZALGO_STYLES,
             ) { editing = ZalgoStyle(id = "", level = NEW_ZALGO_LEVEL) }
         }
-        item(visible = entries.isEmpty()) { CaptionText(stringResource(R.string.languages_fancy_zalgo_empty)) }
+        item(visible = entries.isEmpty(), waitsOnSetting = false) { CaptionText(stringResource(R.string.languages_fancy_zalgo_empty)) }
         for (entry in entries) item(key = entry.id) {
             val style = remember(entry) { entry.toFancyStyle() }
             // The name plain and the level in words: a stack of marks in a

@@ -349,7 +349,9 @@ internal fun TypingCorrectionsSettings(
                 default = SettingsDefaults.correction.enabled,
             ) { scope.launch { repository.setAutocorrect(it) } }
         }
-        if (autocorrectOn) {
+        // Rows that wait on the switch rather than vanish behind it, so Show
+        // switched-off settings can grey them in with autocorrect off (#1112).
+        dependsOn(autocorrectOn) {
             item(level = SettingLevel.ADVANCED) {
                 val valueFormat = stringResource(R.string.typing_value_multiplier_prefix)
                 SliderSetting(
@@ -1131,7 +1133,7 @@ internal fun TypingSuggestionsSettings(
         }
         // The strip refresh returns before it reads any of this while
         // suggestions are off, so the chips never get built.
-        if (suggestionsOn) item {
+        item(visible = suggestionsOn) {
             ToggleSetting(
                 R.string.typing_punctuation_suggestions_title,
                 stringResource(R.string.typing_punctuation_suggestions_subtitle),
@@ -1142,7 +1144,7 @@ internal fun TypingSuggestionsSettings(
         }
         // Next-word suggestions: one switch over the empty strip, and how
         // eagerly it guesses (the engine's NextWordReach).
-        if (suggestionsOn) item {
+        item(visible = suggestionsOn) {
             ChoiceSetting(
                 R.string.typing_next_words_title,
                 subtitle = stringResource(R.string.typing_next_words_subtitle),
@@ -1365,7 +1367,7 @@ internal fun TypingSuggestionsSettings(
         }
         // A near miss is only ever offered from the autocorrect branch, so
         // with autocorrect off there is nothing to widen.
-        if (autocorrectOn) item {
+        item(visible = autocorrectOn) {
             ToggleSetting(
                 R.string.typing_offer_near_miss_title,
                 stringResource(R.string.typing_offer_near_miss_subtitle),
@@ -1405,7 +1407,7 @@ internal fun TypingSuggestionsSettings(
                 default = SettingsDefaults.suggestionSources.inAllFields,
             ) { scope.launch { repository.setShowSuggestionsInAllFields(it) } }
         }
-        if (suggestionsOn) item {
+        item(visible = suggestionsOn) {
             ToggleSetting(
                 R.string.typing_suggestions_first_title,
                 stringResource(R.string.typing_suggestions_first_subtitle),
@@ -2397,8 +2399,10 @@ internal fun TypingCodesSettings(
                 if (on && !hasNotificationAccess(accessContext)) codesAccess()
             }
         }
-        if (otpOn) {
-            item(visible = !notificationCodesGranted) {
+        // Waiting on the switch rather than gone behind it (#1112); the two
+        // notices go for good once access is there, so they never grey in.
+        dependsOn(otpOn) {
+            item(visible = !notificationCodesGranted, waitsOnSetting = false) {
                 val codesAccessRow =
                     rememberDisclosedSpecialAccess(SpecialAccess.NOTIFICATION_CODES)
                 NavRow(
@@ -2407,7 +2411,7 @@ internal fun TypingCodesSettings(
                 ) { codesAccessRow() }
             }
             // Android's own redaction: said here because the chip simply never comes.
-            item(visible = codesRedacted && !codesUnblocked) {
+            item(visible = codesRedacted && !codesUnblocked, waitsOnSetting = false) {
                 RedactedCodesRow(settings) { codesUnblocked = true }
             }
             item(level = SettingLevel.ADVANCED) {

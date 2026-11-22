@@ -126,7 +126,7 @@ internal fun AiMemoryScreen(repository: SettingsRepository, settings: LiveSettin
                 )
             }
         }
-        item(visible = memories.isNotEmpty()) {
+        item(visible = memories.isNotEmpty(), waitsOnSetting = false) {
             ActionRow(
                 title = R.string.toolai_memory_delete_all_title,
                 subtitle = stringResource(R.string.toolai_memory_delete_all_subtitle),

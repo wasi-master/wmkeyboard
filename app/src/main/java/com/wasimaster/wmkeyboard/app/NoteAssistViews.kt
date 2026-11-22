@@ -127,8 +127,10 @@ internal fun NotesAssistSettingsGroup(repository: SettingsRepository, settings: 
                 default = d.enabled,
             ) { on -> change { it.copy(enabled = on) } }
         }
-        if (assist.enabled) {
-            if (!modelReady) {
+        // Its parts wait on the switch rather than vanish behind it, so Show
+        // switched-off settings greys them in while it is off (#1112).
+        dependsOn(assist.enabled) {
+            if (assist.enabled && !modelReady) {
                 item {
                     NavRow(
                         R.string.tooldetail_notes_assist_model_title,
@@ -159,7 +161,7 @@ internal fun NotesAssistSettingsGroup(repository: SettingsRepository, settings: 
                     info = stringResource(R.string.tooldetail_notes_assist_summaries_info),
                 ) { on -> change { it.copy(summaries = on) } }
             }
-            if (assist.summaries && modelReady) {
+            if (assist.enabled && assist.summaries && modelReady) {
                 item {
                     ChoiceSetting(
                         R.string.tooldetail_notes_assist_summary_words_title,

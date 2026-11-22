@@ -598,7 +598,9 @@ internal fun SnippetSettings(
             }
         } else null,
     ) {
-        item(visible = editingFolders && canEditFolders) {
+        // The reorder list is a mode of this group, not a setting: Show
+        // switched-off settings greyed it in over the folders (#1112).
+        item(visible = editingFolders && canEditFolders, waitsOnSetting = false) {
             ReorderableColumn(
                 folders,
                 label = { it.name },
@@ -944,7 +946,7 @@ internal fun SnippetFolderScreen(
         // One option for every snippet here at once (#1122): the built-in
         // folders hold dozens, and the editor changes one at a time.
         val inFolder = snippets.count { it.folderId == folderId }
-        item(visible = inFolder > 0) {
+        item(visible = inFolder > 0, waitsOnSetting = false) {
             WmRow(
                 title = stringResource(R.string.expander_folder_bulk_title),
                 subtitle = pluralStringResource(R.plurals.expander_folder_bulk_subtitle, inFolder, inFolder),
