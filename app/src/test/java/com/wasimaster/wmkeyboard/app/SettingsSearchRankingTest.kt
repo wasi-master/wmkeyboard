@@ -90,7 +90,9 @@ class SettingsSearchRankingTest {
         screen("size", "layout/size"),
         screen("theme", "themes"),
         screen("themes", "themes"),
-        screen("dark mode", "themes"),
+        // The mode switch has been on Theme modes since #1451; either page
+        // answers the question.
+        Case("dark mode", "screen themes or themes/modes") { it.at("themes") || it.at("themes/modes") },
         screen("wallpaper", "themes"),
         screen("language", "languages"),
         screen("languages", "languages"),
