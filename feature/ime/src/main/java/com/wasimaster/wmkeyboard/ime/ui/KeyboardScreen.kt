@@ -16533,6 +16533,12 @@ private fun KeyboardBody(
                             // session's only status and its only way out.
                             state.settings.toolbarBehavior.stripHidden && !state.voiceStripShown() -> {}
                             stripGivenToCapture && !state.voiceStripShown() -> {}
+                            // A note or a label typed in the floating box
+                            // (#1446): its words, at the strip's own height.
+                            boxFieldTakesStrip(state) && !state.voiceStripShown() -> Box(
+                                Modifier.fillMaxWidth().height(topBarHeight(state.settings)),
+                                contentAlignment = Alignment.Center,
+                            ) { CaptureStrip(state, capture) }
                             else -> {
                                 // Avro's candidate list, when the phonetic layout's
                                 // language asks for it in a row of its own, sits
@@ -27623,8 +27629,22 @@ internal fun barClipboardSearching(state: KeyboardUiState): Boolean =
  * [FullBleedTool], which has to leave them room.
  */
 internal fun keyRowsUnderPanel(state: KeyboardUiState): Boolean =
-    // The field's keys were put down to see the panel (#961) until it is tapped.
-    !state.captureKeysLowered && keyRowsUnderPanelRaised(state)
+    // No panel, no second set: the floating box's text box (#1155) takes the
+    // keys with no panel open, and the board's own rows are already the ones
+    // it types on. Asked without this, a note or a clock label tapped in the
+    // box drew the rows a second time, a strip over them (#1446, #1460).
+    state.panel != PanelMode.NONE &&
+        // The field's keys were put down to see the panel (#961) until it is tapped.
+        !state.captureKeysLowered && keyRowsUnderPanelRaised(state)
+
+/**
+ * The floating box's text box (#1155) has the keys with no panel open: its
+ * own words take the suggestion strip's row, as the strip over a panel's
+ * keys does, since a word the app's strip offered would go to the app.
+ */
+internal fun boxFieldTakesStrip(state: KeyboardUiState): Boolean =
+    state.panel == PanelMode.NONE && state.appletPanel != null &&
+        state.captureTarget() != null && captureStripShown(state)
 
 /** [keyRowsUnderPanel] for a field whose keys are up. */
 private fun keyRowsUnderPanelRaised(state: KeyboardUiState): Boolean = when (state.panelFieldTarget()) {
