@@ -236,8 +236,27 @@ object DateSuggest {
         val date = CalendarSystems.jdnToGregorian(jdn)
         return runCatching {
             val day = java.util.GregorianCalendar(date.year, date.month - 1, date.day)
-            java.text.SimpleDateFormat(pattern, Locale.getDefault()).apply { calendar = day }.format(day.time)
+            java.text.SimpleDateFormat(monthNotMinutes(pattern), Locale.getDefault())
+                .apply { calendar = day }.format(day.time)
         }.getOrNull()?.takeIf { it.isNotBlank() }
+    }
+
+    /**
+     * [pattern] with every unquoted `m` read as `M` (#1504).
+     *
+     * In `SimpleDateFormat` lowercase `m` is minutes, but a date chip has no
+     * time, so "dd.mm.yyyy" could only ever print "22.00.2026". Everyone who
+     * writes `mm` in a date means the month. Quoted literals ('…') are left
+     * alone.
+     */
+    internal fun monthNotMinutes(pattern: String): String {
+        val out = StringBuilder(pattern.length)
+        var quoted = false
+        for (c in pattern) {
+            if (c == '\'') quoted = !quoted
+            out.append(if (c == 'm' && !quoted) 'M' else c)
+        }
+        return out.toString()
     }
 
     /** "Tue 11 Aug" — for phrases that name neither the weekday nor the date. */
