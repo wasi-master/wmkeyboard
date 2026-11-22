@@ -700,6 +700,11 @@ const PLUGIN_API_5_PERMISSIONS = new Set(PLUGIN_PERMISSIONS.slice(3));
 export const PLUGIN_RISKY_PERMISSIONS = ['network', 'network.local', 'ai', 'field.read', 'clipboard.read', 'location', 'files', 'calendar', 'todo'] as const;
 const PLUGIN_HOST = /^(\*\.)?([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
 const PLUGIN_ACTION_ID = /^[a-z0-9_-]{1,32}$/;
+/** The provider lists a plugin may answer for: `PluginProviderSpec.TOOLS` in the app. */
+const PLUGIN_PROVIDER_TOOLS = new Set([
+	'search', 'translate', 'dictionary', 'synonyms', 'vocab_autofill',
+	'currency_fiat', 'currency_crypto', 'grammar', 'gif', 'sticker', 'ocr', 'music', 'voice',
+]);
 export const PLUGIN_ID_PATTERN = /^[a-z0-9][a-z0-9._-]{2,63}$/;
 /** PluginManifestCodec's ICON: a Material Symbols name, or an SVG under assets/. */
 export const PLUGIN_ICON_PATTERN = /^([a-z0-9_]{0,48}|assets\/[a-z0-9][a-z0-9_.-]{0,59}\.svg)$/;
@@ -742,7 +747,17 @@ export function readPlugin(bytes: Uint8Array): PluginRead {
 	const selection = permissions.includes('selection');
 	if (actions.length && !selection) problems.push('"actions" without the "selection" permission; the app refuses it.');
 	if (!actions.length && selection) problems.push('"selection" permission without any "actions"; the app refuses it.');
-	if (!actions.length && raw.panel === false) problems.push('No panel and no actions; the app refuses it.');
+	// Providers: rows for the keyboard's provider lists (PluginProviderSpec in the app).
+	const providers: { tool?: unknown; id?: unknown }[] = Array.isArray(raw.providers) ? raw.providers : [];
+	if (providers.length && apiVersion < 5) problems.push('"providers" needs "apiVersion": 5.');
+	if (providers.length > 8) problems.push(`${providers.length} providers; the app caps at 8.`);
+	const providerKeys = providers.map((p) => {
+		const tool = String(p?.tool ?? '').trim();
+		return tool + '/' + (String(p?.id ?? '').trim() || tool);
+	});
+	if (providers.some((p) => !PLUGIN_PROVIDER_TOOLS.has(String(p?.tool ?? '').trim()))) problems.push(`A provider's "tool" is not one of ${[...PLUGIN_PROVIDER_TOOLS].join(', ')}; the app refuses it.`);
+	if (providerKeys.some((k) => !PLUGIN_ACTION_ID.test(k.split('/')[1])) || new Set(providerKeys).size !== providerKeys.length) problems.push(`Provider ids must be unique for their tool and match ${PLUGIN_ACTION_ID}.`);
+	if (!actions.length && !providers.length && raw.panel === false) problems.push('No panel, no actions and no providers; the app refuses it.');
 	if (actions.length > 16) problems.push(`${actions.length} actions; the app caps at 16.`);
 	const actionIds = actions.map((a) => String(a?.id ?? '').trim());
 	if (actionIds.some((a) => !PLUGIN_ACTION_ID.test(a)) || new Set(actionIds).size !== actionIds.length) problems.push(`Action ids must be unique and match ${PLUGIN_ACTION_ID}.`);
