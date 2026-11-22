@@ -437,12 +437,17 @@ internal object FontMotionDriver {
                 if (!item.allKeys && !node.letter) continue
                 val level = levelOf(item, cell, index, now, glideFrom)
                 if (abs(level) > LEVEL_EPSILON) live = true
-                // The size follows the level itself, so it moves every frame;
-                // the axes follow it in steps, each a cut of the font made
-                // ahead. A growing letter hides the step between two cuts.
-                val g = (item.scale - 1f) * level
+                // Size and axes both move on the one grid of steps. A size that
+                // followed the level every frame drew each growing letter at a
+                // new pixel size every frame, and the renderer rasterizes and
+                // uploads a glyph per size: that, not the labels' own drawing,
+                // was what dropped frames. On the grid a label redraws only
+                // when its step changes, and every size it reaches is one the
+                // glyph cache has already seen. A step is under 2% of size.
+                val snapped = snapLevel(level, steps)
+                val g = (item.scale - 1f) * snapped
                 if (abs(g) > abs(grow)) grow = g
-                if (variations != null && item.axes.isNotEmpty()) moves += item.axes to snapLevel(level, steps)
+                if (variations != null && item.axes.isNotEmpty()) moves += item.axes to snapped
             }
             val rest = node.rest(fonts)
             val step = if (variations == null || moves.isEmpty()) {
@@ -450,7 +455,7 @@ internal object FontMotionDriver {
             } else {
                 morphedAxes(rest, variations, moves).takeIf { it != rest }
             }
-            val scale = 1f + (grow * SCALE_GRAIN).roundToInt() / SCALE_GRAIN
+            val scale = 1f + grow
             if (step != node.step || scale != node.scale) {
                 node.step = step
                 node.scale = scale
@@ -550,8 +555,6 @@ internal object FontMotionDriver {
     /** Steps between rest and peak: each a cut of the font, all made ahead of the first press. */
     private const val STEPS_NORMAL = 24
     private const val STEPS_REDUCED = 12
-    /** The size is held to hundredths, so a label still at 1.004 is not redrawn every frame. */
-    private const val SCALE_GRAIN = 100f
     private const val SHIFT_EASE_MS = 180f
     /** How far a finger has to travel before it counts as gliding, in dp. */
     private const val GLIDE_FROM_DP = 18f

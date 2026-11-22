@@ -377,7 +377,7 @@ A theme on a [variable font](/themes/fonts/#variable-fonts-and-their-axes) can s
 
 Each motion moves the letter keys only, unless **Move all key labels** is on, which brings in the words on ?123, Enter and the other function keys. Where two motions move the same axis, the one that moves it further wins at that moment.
 
-**Size** makes the letters grow as they move, ×1.30 being a third bigger at the peak. The size changes smoothly on every frame, which makes a motion far easier to see than the axes alone, and it works on any font, static ones included. A new motion starts at ×1.30.
+**Size** makes the letters grow as they move, ×1.30 being a third bigger at the peak. Growth makes a motion far easier to see than the axes alone, and it works on any font, static ones included. It moves on the same steps as the axes, each under 2% of the letter's size, so a moving letter is only redrawn when its step changes. A new motion starts at ×1.30.
 
 The motion draws at the screen's full frame rate, 30 frames a second while the phone is busy, and only while something is moving: a still keyboard asks for no frames. The axes move in steps rather than continuously, since each step is a separate cut of the font: 24 between rest and the value you set, 12 while the phone is busy. The keyboard cuts every step in the background as the theme loads, so the first presses don't stall while it does. The motion's sliders save when you lift your finger. Reduce motion and power saving stop it, as they stop the lighting and touch bloom, and **Theme effects with Reduce motion** brings it back. High contrast drops it with the rest of the decoration. Corner hints, suggestions and popups keep their own axis values but don't move.
 
