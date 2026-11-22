@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Builds libwmxlit.so (xlit_jni.cpp + xlit.cpp, IndicXlit's beam search over
 # ONNX Runtime) for every ABI and copies it into core/voice/src/onnx/jniLibs/,
-# beside libwmsherpa, so it rides the same `onnx` delivery gate. Fetches ONNX
-# Runtime's headers at the pinned commit unless ORT_SRC points at a checkout.
+# beside libwmsherpa, so it rides the same `onnx` delivery gate. Reads ONNX
+# Runtime's headers from native/onnxruntime-headers unless ORT_SRC points at a
+# checkout.
 # Plain clang from the NDK, no CMake: two source files. See README.md.
 #
 #   ANDROID_NDK=/path/to/ndk native/indicxlit-jni/build.sh
@@ -39,21 +40,21 @@ fresh_clone() {  # dir, then git clone arguments
     rm -rf "$dir" && git clone "$@" "$dir"
 }
 
+# The headers the repository carries (see native/onnxruntime-headers/README.md),
+# unless ORT_SRC points at an ONNX Runtime checkout at ORT_COMMIT.
 ORT=${ORT_SRC:-}
-if [ -z "$ORT" ]; then
-    ORT=$WORK/onnxruntime
-    retry fresh_clone "$ORT" --quiet --depth 1 --branch "$ORT_TAG" --filter=blob:none --sparse \
-        https://github.com/microsoft/onnxruntime
-    git -C "$ORT" sparse-checkout set --no-cone /include/onnxruntime/core/session
+if [ -n "$ORT" ]; then
+    got=$(git -C "$ORT" rev-parse HEAD)
+    [ "$got" = "$ORT_COMMIT" ] || { echo "onnxruntime is at $got, expected $ORT_COMMIT" >&2; exit 1; }
+    HEADERS=$ORT/include/onnxruntime/core/session
+else
+    HEADERS=$REPO/native/onnxruntime-headers
 fi
-got=$(git -C "$ORT" rev-parse HEAD)
-[ "$got" = "$ORT_COMMIT" ] || { echo "onnxruntime is at $got, expected $ORT_COMMIT" >&2; exit 1; }
-HEADERS=$ORT/include/onnxruntime/core/session
-[ -f "$HEADERS/onnxruntime_cxx_api.h" ] || { echo "no ONNX Runtime headers in $ORT" >&2; exit 1; }
+[ -f "$HEADERS/onnxruntime_cxx_api.h" ] || { echo "no ONNX Runtime headers in $HEADERS" >&2; exit 1; }
 
 # Build-machine paths are mapped out of the library, so two machines with the
 # same NDK make the same bytes (F-Droid's reproducible build relies on it).
-MAP="-ffile-prefix-map=$WORK=build -ffile-prefix-map=$HERE=. -ffile-prefix-map=$NDK=ndk -ffile-prefix-map=$ORT=onnxruntime"
+MAP="-ffile-prefix-map=$WORK=build -ffile-prefix-map=$HERE=. -ffile-prefix-map=$NDK=ndk -ffile-prefix-map=$HEADERS=onnxruntime/include/onnxruntime/core/session"
 
 triple() {
     case $1 in

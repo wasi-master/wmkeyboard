@@ -74,8 +74,8 @@ no audio I/O, no servers). ONNX Runtime is not linked in. `libwmsherpa.so`
 names `libonnxruntime.so` as a dependency and calls one symbol of it,
 `OrtGetApiBase`; everything else goes through the table that function
 returns. At build time the linker sees a stub (`ort_stub.c`, built per ABI
-with the soname `libonnxruntime.so`) and the runtime's headers, cloned at the
-pinned tag. At run time `SherpaNative` loads Microsoft's own
+with the soname `libonnxruntime.so`) and the runtime's headers, the copy in
+`../onnxruntime-headers`. At run time `SherpaNative` loads Microsoft's own
 `libonnxruntime.so` first and this library second, and the dynamic linker
 binds the dependency by soname to the copy already loaded. So:
 
@@ -98,9 +98,9 @@ from `src/main/jniLibs` because they ride their own delivery gate, `onnx`
 ANDROID_NDK=~/Library/Android/sdk/ndk/27.3.13750724 native/sherpa-onnx-jni/build.sh
 ```
 
-It needs CMake and Ninja on `PATH`, and fetches sherpa-onnx and the ONNX
-Runtime headers at their pinned commits unless `SHERPA_SRC` / `ORT_SRC` point
-at checkouts. sherpa-onnx's own CMake fetches its dependencies. One ABI takes
+It needs CMake and Ninja on `PATH`, and fetches sherpa-onnx at its pinned
+commit unless `SHERPA_SRC` points at a checkout; the ONNX Runtime headers are
+the repository's own copy in `../onnxruntime-headers`. sherpa-onnx's own CMake fetches its dependencies. One ABI takes
 about four minutes.
 
 ## Provenance

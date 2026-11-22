@@ -19,7 +19,8 @@ output vocabulary's size off `logp`.
 (`xlit.cpp`) and a JNI layer (`xlit_jni.cpp`). It links ONNX Runtime the way
 `libwmsherpa` does (see `../sherpa-onnx-jni/README.md`): at build time
 against `ort_stub.c` (one unversioned `OrtGetApiBase`, soname
-`libonnxruntime.so`) and the runtime's headers at a pinned tag; at run time
+`libonnxruntime.so`) and the runtime's headers in
+`../onnxruntime-headers`; at run time
 `XlitNative` loads Microsoft's `libonnxruntime.so` first, and the dependency
 binds to it. No ONNX Runtime binary is in the repository or the build.
 
