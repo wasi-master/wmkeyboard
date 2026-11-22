@@ -21,6 +21,36 @@ import java.io.File
 internal object EmojiFontProbe {
 
     /**
+     * [coverage] as this phone will actually draw it: marked undrawable when a
+     * sample emoji leaves no ink, and marked unjoined when a sample sequence
+     * comes out as more than one glyph.
+     */
+    fun check(file: File, coverage: EmojiFontCoverage): EmojiFontCoverage {
+        if (!draws(file, coverage)) return coverage.undrawable()
+        return if (joins(file, coverage)) coverage else coverage.unjoined()
+    }
+
+    /**
+     * True when a sequence the font maps every part of lays out as one glyph in
+     * it (#1492).
+     *
+     * [Paint.hasGlyph] is the right question here, though not for a single
+     * emoji (see [EmojiRenderCheck]): every code point of the sample is in the
+     * font, which comes first in its collection, so the run is the font's own
+     * and the answer is about its shaping, whatever the rules are written in.
+     * For more than one character the call answers true only when the run
+     * shaped to a single glyph. As with [draws], a probe that cannot run, or a
+     * font with no sample to try, answers true.
+     */
+    fun joins(file: File, coverage: EmojiFontCoverage): Boolean {
+        val sample = coverage.sampleSequence() ?: return true
+        return runCatching {
+            val text = buildString { for (cp in sample) appendCodePoint(cp) }
+            Paint().apply { typeface = Typeface.createFromFile(file) }.hasGlyph(text)
+        }.getOrDefault(true)
+    }
+
+    /**
      * True when drawing a sample emoji the font maps leaves ink on a bitmap.
      * Anything that goes wrong while testing answers true: a probe that cannot
      * run must not take a working font away.

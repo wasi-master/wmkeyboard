@@ -133,6 +133,27 @@ class EmojiFontShapingTest {
         assertEquals(fogUnqualified, font.shape(fog))
     }
 
+    /**
+     * #1492: a font this phone was seen to draw sequences of as their parts
+     * (a hand followed by a skin-tone swatch) hands every sequence to the
+     * system font, ligature tables or not, and keeps its single emoji.
+     */
+    @Test
+    fun `a font that does not join on this phone gives its sequences away`() {
+        val tables = EmojiFontShaping.forCoverage(
+            fakeCoverage(setOf(FACE, ZWJ, CLOUD, FIRE), emptySet(), emptySet()).unjoined(),
+        )
+        assertTrue(tables.drawsWithSystemFont(fog))
+        assertEquals(fog, tables.shape(fog))
+        assertFalse(tables.drawsWithSystemFont("🔥"))
+        assertFalse(tables.joinsSequences)
+
+        val ligating = EmojiFontShaping.forCoverage(
+            fakeCoverage(setOf(0x1F44D, 0x1F3FD), emptySet(), setOf(listOf(0x1F44D, 0x1F3FD))).unjoined(),
+        )
+        assertTrue(ligating.drawsWithSystemFont("👍🏽"))
+    }
+
     @Test
     fun `a single covered code point is never rewritten`() {
         val font = coverage(covered = setOf(FIRE))
