@@ -224,6 +224,7 @@ import com.wasimaster.wmkeyboard.core.settings.AppColorScope
 import com.wasimaster.wmkeyboard.core.theme.AppColorSource
 import com.wasimaster.wmkeyboard.core.theme.DEFAULT_KEY_GLOW_DP
 import com.wasimaster.wmkeyboard.core.theme.KEY_GLOW_RANGE
+import com.wasimaster.wmkeyboard.core.theme.KEY_PRESSED_GLOW_STRENGTH_RANGE
 import com.wasimaster.wmkeyboard.core.theme.KEY_OVERRIDE_RADIUS_RANGE
 import com.wasimaster.wmkeyboard.core.theme.LooseTheme
 import com.wasimaster.wmkeyboard.core.theme.ORB_SPOT_POSITION_RANGE
@@ -8144,6 +8145,35 @@ private fun KeyOverrideDialog(
                     range = KEY_GLOW_RANGE,
                     display = { "${it.roundToInt()} dp" },
                 ) { v -> onChange(override.copy(glowDp = v.roundToInt().toFloat())) }
+            }
+            NullableColorRow(
+                R.string.theme_key_override_pressed_glow_title,
+                override.pressedGlow, fallback = override.glow ?: theme.accent,
+                supportsAlpha = true,
+                onChange = { onChange(override.copy(pressedGlow = it)) },
+            )
+            // The two that need a glow to work on: at rest, held, or both.
+            if (override.glow != null || override.pressedGlow != null) {
+                SliderRow(
+                    R.string.theme_key_override_pressed_glow_strength_title,
+                    value = override.pressedGlowStrength ?: 1f,
+                    range = KEY_PRESSED_GLOW_STRENGTH_RANGE,
+                    display = { "${(it * 100).roundToInt()}%" },
+                    info = stringResource(R.string.theme_key_override_pressed_glow_strength_info),
+                ) { v ->
+                    val snapped = (v * 20f).roundToInt() / 20f
+                    onChange(override.copy(pressedGlowStrength = snapped.takeIf { it != 1f }))
+                }
+                SliderRow(
+                    R.string.theme_key_override_glow_spill_title,
+                    value = override.glowSpill ?: 0f,
+                    range = 0f..1f,
+                    display = { "${(it * 100).roundToInt()}%" },
+                    info = stringResource(R.string.theme_key_override_glow_spill_info),
+                ) { v ->
+                    val snapped = (v * 20f).roundToInt() / 20f
+                    onChange(override.copy(glowSpill = snapped.takeIf { it > 0f }))
+                }
             }
             if (popupsShown) {
                 NullableColorRow(
