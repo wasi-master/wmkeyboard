@@ -429,7 +429,8 @@ object SmartSuggest {
             return SmartHit(
                 kind = Kind.CONTACT,
                 query = contact.name,
-                result = contact.number,
+                // Shown the way the phone writes numbers; the prefill keeps the contact's own spelling.
+                result = com.wasimaster.wmkeyboard.core.phone.PhoneNumbers.format(contact.number) ?: contact.number,
                 insert = null,
                 replaceSpan = 0,
                 tool = ToolbarTool.SELECTION_ACTIONS,
@@ -2014,7 +2015,8 @@ object SmartSuggest {
             return SmartHit(
                 kind = Kind.CONTACT,
                 query = contact.name,
-                result = contact.number,
+                // Shown the way the phone writes numbers; the prefill keeps the contact's own spelling.
+                result = com.wasimaster.wmkeyboard.core.phone.PhoneNumbers.format(contact.number) ?: contact.number,
                 insert = null,
                 replaceSpan = 0,
                 // No tool of its own; the selection macros are the other place

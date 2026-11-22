@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.core.clipboard
 
+import com.wasimaster.wmkeyboard.core.phone.PhoneNumbers
+
 /**
  * One phone-number shape, parsed out of a mask the user wrote.
  *
@@ -12,6 +14,11 @@ package com.wasimaster.wmkeyboard.core.clipboard
 data class PhoneMask(
     val countryCode: String?,
     val national: String,
+    /**
+     * The mask as written, separators and all, which [PhoneFormats.render]
+     * copies into the number it writes. Empty for a mask built in code.
+     */
+    val raw: String = "",
 )
 
 /**
@@ -102,14 +109,15 @@ object PhoneFormats {
         }
         if (template.length !in MIN_DIGITS..MAX_DIGITS) return null
         val digits = template.toString()
-        if (!international) return PhoneMask(null, digits)
+        if (!international) return PhoneMask(null, digits, trimmed)
         val split = if (codeEnd > 0) codeEnd else dialCodeLength(digits)
         val code = digits.take(split)
         if (code.length >= digits.length) return null
         // A dial code spelled `+XX` names no country, so the mask keeps only
-        // what follows it and reads as a national one.
+        // what follows it and reads as a national one. Nothing renders through
+        // it: the `+XX` would have no digits to fill it.
         if (code.any { it == ANY }) return PhoneMask(null, digits.drop(split))
-        return PhoneMask(code, digits.drop(split))
+        return PhoneMask(code, digits.drop(split), trimmed)
     }
 
     /** True when [raw] is a mask this can use. */
@@ -346,6 +354,54 @@ object PhoneFormats {
         "AU" -> "+61 XXX-XXX-XXX"
         "NZ" -> "+64 XX-XXX-XXXX"
         else -> null
+    }
+
+    /**
+     * [number] written in the first of [masks] it matches: the mask's
+     * separators copied across and its digit slots filled, with the mask's
+     * dial code added back when the number was written without one. Null when
+     * no mask matches, or the one that does cannot be rendered.
+     *
+     * The user's masks win over every other formatting: where one matches,
+     * the number is shown the way they wrote the mask, not the OS's way.
+     */
+    fun render(number: String, masks: List<PhoneMask>): String? {
+        val digits = number.filter { it.isDigit() }
+        if (digits.isEmpty()) return null
+        val mask = masks.firstOrNull { it.raw.isNotEmpty() && matches(number, listOf(it)) } ?: return null
+        val national = digits.takeLast(mask.national.length)
+        if (national.length < mask.national.length) return null
+        return fill(mask.raw, mask.countryCode.orEmpty() + national)
+    }
+
+    /**
+     * [number] as a chip or a list shows it: in the user's mask where one
+     * matches ([render]), the way the OS writes numbers for the phone's
+     * country otherwise ([PhoneNumbers.format]), and as it was written when
+     * neither can say.
+     */
+    fun display(number: String, masks: List<PhoneMask>): String =
+        render(number, masks) ?: PhoneNumbers.format(number) ?: number.trim()
+
+    /**
+     * Fills [mask]'s digit slots with [digits], copying everything else
+     * across. A slot is a digit or an [ANY] (or one of its aliases); a
+     * separator, a bracket or the leading `+` is decoration. Null when the
+     * two do not line up.
+     */
+    private fun fill(mask: String, digits: String): String? {
+        val out = StringBuilder(mask.length)
+        var next = 0
+        for (ch in mask.trim()) {
+            if (ch.isDigit() || ch == ANY || ch in ANY_ALIASES) {
+                if (next >= digits.length) return null
+                out.append(digits[next])
+                next++
+            } else {
+                out.append(ch)
+            }
+        }
+        return if (next == digits.length) out.toString() else null
     }
 
     /** How many of these digits are the dial code. See [TWO_DIGIT_CODES]. */

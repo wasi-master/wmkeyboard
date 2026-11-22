@@ -246,6 +246,17 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/zxing/zxing",
         ),
     )
+    // Numbering plans only (assets/phone/phone_meta.tsv, tools/phonemeta);
+    // the library itself is the copy inside Android.
+    add(
+        Attribution(
+            "libphonenumber metadata",
+            R.string.about_bundled_libphonenumber_used,
+            "Copyright (C) 2009 The Libphonenumber Authors",
+            "Apache-2.0", "apache-2.0.txt",
+            "https://github.com/google/libphonenumber",
+        ),
+    )
     // The interpreter every plugin runs in (native/wm-python), ported from PyMini.
     add(
         Attribution(

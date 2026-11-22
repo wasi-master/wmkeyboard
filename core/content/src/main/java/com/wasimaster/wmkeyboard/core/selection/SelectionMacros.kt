@@ -961,7 +961,10 @@ object SelectionMacros {
         // Punctuation that never appears in a phone number rules one out even
         // where the digit run would have passed.
         if (trimmed.any { !it.isDigit() && it != '+' && it !in PHONE_SEPARATORS }) return false
-        return PhoneFormats.matches(trimmed, PhoneFormats.parseAll(phoneFormats))
+        val masks = PhoneFormats.parseAll(phoneFormats)
+        if (masks.isNotEmpty()) return PhoneFormats.matches(trimmed, masks)
+        // No masks: the numbering plans, where there is a table and a country.
+        return com.wasimaster.wmkeyboard.core.phone.PhoneNumbers.check(trimmed) ?: true
     }
 
     private const val MIN_PHONE_DIGITS = 7
@@ -1090,48 +1093,22 @@ object SelectionMacros {
      * without one, which is the whole point of the action for anybody who
      * stores numbers internationally and copies them nationally.
      *
-     * With no matching mask the fallback is E.164 when the number already
-     * declares a country code, and the bare digit run otherwise. Both are
-     * tidier than a number carrying whatever spacing it was pasted with.
+     * With no matching mask, the number is written the way the OS writes
+     * numbers for the phone's country (its own copy of libphonenumber; see
+     * `PhoneNumbers.format`): national for a local number, international for
+     * a foreign one. Where the OS cannot say, E.164 when the number already
+     * declares a country code, and the bare digit run otherwise.
      */
     fun formatPhone(number: String, phoneFormats: List<String>): String? {
         val digits = number.filter { it.isDigit() }
         if (digits.isEmpty()) return null
+        val masks = PhoneFormats.parseAll(phoneFormats)
+        // The user's masks win wherever one matches (see PhoneFormats.render).
+        if (masks.any { PhoneFormats.matches(number, listOf(it)) }) return PhoneFormats.render(number, masks)
+        com.wasimaster.wmkeyboard.core.phone.PhoneNumbers.format(number)?.let { return it }
         val explicit = number.trimStart().startsWith("+")
-        val raw = phoneFormats.firstOrNull { mask ->
-            PhoneFormats.parse(mask)?.let { PhoneFormats.matches(number, listOf(it)) } == true
-        } ?: return if (explicit) "+$digits" else digits
-        val mask = PhoneFormats.parse(raw) ?: return null
-        val national = digits.takeLast(mask.national.length)
-        if (national.length < mask.national.length) return null
-        return renderMask(raw, mask.countryCode.orEmpty() + national)
+        return if (explicit) "+$digits" else digits
     }
-
-    /**
-     * Fills [mask]'s digit slots with [digits], copying everything else across.
-     *
-     * A slot is a digit or an [PhoneFormats.ANY] in the mask; a separator, a
-     * bracket or the leading `+` is decoration and travels unchanged. Null when
-     * the two do not line up, which the caller has already ruled out but which
-     * a mask edited between the match and the render could still cause.
-     */
-    private fun renderMask(mask: String, digits: String): String? {
-        val out = StringBuilder(mask.length)
-        var next = 0
-        for (ch in mask.trim()) {
-            if (ch.isDigit() || ch == PhoneFormats.ANY || ch in MASK_WILDCARDS) {
-                if (next >= digits.length) return null
-                out.append(digits[next])
-                next++
-            } else {
-                out.append(ch)
-            }
-        }
-        return if (next == digits.length) out.toString() else null
-    }
-
-    /** How a hand-written mask can spell "any digit"; canonical form is `X`. */
-    private const val MASK_WILDCARDS = "x#"
 
     /** [url] with its tracking parameters removed, and a scheme added when it had none. */
     fun formatUrl(url: String, links: LinkCleaning = LinkCleaning()): String? {
@@ -1546,15 +1523,17 @@ object SelectionMacros {
 
     /**
      * The number to dial, as `tel:` and `wa.me` want it: digits only, with the
-     * dial code when the selection or a mask supplies one.
+     * dial code when the selection or a mask supplies one, or, failing both,
+     * the numbering plans of the phone's country (`PhoneNumbers.e164`), which
+     * is what lets `wa.me` open a national number at all.
      */
     fun dialDigits(number: String, phoneFormats: List<String>): String {
         val digits = number.filter { it.isDigit() }
         if (number.trimStart().startsWith("+")) return digits
         val mask = PhoneFormats.parseAll(phoneFormats)
             .firstOrNull { PhoneFormats.matches(number, listOf(it)) }
-        val code = mask?.countryCode ?: return digits
-        return code + digits.takeLast(mask.national.length)
+        mask?.countryCode?.let { code -> return code + digits.takeLast(mask.national.length) }
+        return com.wasimaster.wmkeyboard.core.phone.PhoneNumbers.e164(number)?.drop(1) ?: digits
     }
 
     /** The link as something a browser will take: a bare domain gains `https://`. */

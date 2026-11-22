@@ -86,6 +86,10 @@ open class WMApplication : Application() {
         // Where a Khipro spec set newer than the bundled one is kept (#909);
         // loaded the first time Khipro types, not here.
         com.wasimaster.wmkeyboard.core.transliteration.KhiproSpecs.attach(this)
+        // Phone-number validity for every country (libphonenumber's plans,
+        // 86 KB) and the region a national number is read in. The table is
+        // read on a thread of its own; formatting is the OS's.
+        com.wasimaster.wmkeyboard.core.phone.PhoneNumbers.init(this)
         // Where the jquery.ime methods that ship are read from; each is read
         // the first time a layout types through it, not here.
         val appAssets = assets

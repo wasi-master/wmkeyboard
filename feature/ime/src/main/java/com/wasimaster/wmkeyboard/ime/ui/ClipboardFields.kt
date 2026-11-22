@@ -4092,7 +4092,7 @@ private fun ClipExtractPopup(entities: List<ClipEntity>, onPick: (ClipEntity) ->
                             )
                             Spacer(Modifier.width(10.dp))
                             Text(
-                                entity.value,
+                                entity.display,
                                 fontSize = 14.sp,
                                 color = kb.popupText,
                                 maxLines = 2,

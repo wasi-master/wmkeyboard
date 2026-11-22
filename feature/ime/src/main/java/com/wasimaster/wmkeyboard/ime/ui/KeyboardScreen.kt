@@ -37038,8 +37038,10 @@ private fun ClipEntityChip(
             maxLines = 1,
         )
         Spacer(Modifier.width(6.dp))
+        // A phone number in the user's mask or the phone's own format; the
+        // tap still pastes what the clip holds.
         Text(
-            entity.value,
+            entity.display,
             fontSize = 13.sp,
             lineHeight = 16.sp,
             maxLines = 1,

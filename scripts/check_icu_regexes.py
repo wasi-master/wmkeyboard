@@ -298,15 +298,49 @@ def default_roots():
     return sorted(roots)
 
 
+# Generated data files whose cells are compiled as regexes on the phone:
+# (path under the repo, the tab-separated columns that hold patterns).
+DATA_TABLES = [
+    # tools/phonemeta/build_phone_meta.py: intl, npp, lead, general, fixed, mobile, other.
+    ('app/src/main/assets/phone/phone_meta.tsv', (2, 4, 6, 10, 11, 12, 13)),
+]
+
+
+def check_table(path, columns):
+    """Every pattern cell of one data table, as (rejected, checked)."""
+    rejected, checked = [], 0
+    with open(path, encoding='utf-8') as f:
+        for number, line in enumerate(f, 1):
+            if line.startswith('#'):
+                continue
+            cells = line.rstrip('\n').split('\t')
+            for index in columns:
+                pattern = cells[index] if index < len(cells) else ''
+                if not pattern or pattern == '=':
+                    continue
+                checked += 1
+                error = icu_error(pattern)
+                if error:
+                    rejected.append((path, number, error, pattern))
+    return rejected, checked
+
+
 def main(argv):
     verbose = '-v' in argv
-    roots = [a for a in argv if a != '-v'] or default_roots()
+    named = [a for a in argv if a != '-v']
+    roots = named or default_roots()
     rejected, non_literal, checked = [], [], 0
     for path in source_files(roots):
         r, nl, c = check_file(path)
         rejected += r
         non_literal += nl
         checked += c
+    for table, columns in DATA_TABLES:
+        path = os.path.join(REPO, table)
+        if os.path.exists(path) and (not named or any(os.path.abspath(path).startswith(os.path.abspath(n)) for n in named)):
+            r, c = check_table(path, columns)
+            rejected += r
+            checked += c
     rel = lambda p: os.path.relpath(p, REPO)
     for path, line, error, pattern in rejected:
         print(f'{rel(path)}:{line}: ICU rejects this regex ({error})\n    {pattern}')

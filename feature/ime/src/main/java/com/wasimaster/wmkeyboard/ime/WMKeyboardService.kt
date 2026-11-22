@@ -30069,7 +30069,10 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun contactMessageIntent(number: String, app: com.wasimaster.wmkeyboard.core.settings.ContactMessageApp): Intent {
         val sms = Intent(Intent.ACTION_SENDTO, Uri.fromParts("smsto", number, null))
-        val digits = number.filter { it.isDigit() }
+        // The chat links want the dial code, which a contact saved the
+        // national way (`01712 345678`) does not carry: the numbering plans
+        // of the phone's country supply it.
+        val digits = com.wasimaster.wmkeyboard.core.phone.PhoneNumbers.e164(number)?.drop(1) ?: number.filter { it.isDigit() }
         val chats = listOf(
             com.wasimaster.wmkeyboard.core.settings.ContactMessageApp.WHATSAPP to
                 Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/$digits")).setPackage("com.whatsapp"),

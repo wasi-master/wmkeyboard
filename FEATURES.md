@@ -570,7 +570,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Selection macros `RARE` — With text selected, the keyboard offers what that shape of text is for and what any text is for: Undo, Select all, then Call | Message | WhatsApp | Contact on a number, Email first on an address, Open, Remove trackers and QR on a link, and the edits, a find and replace, line tools, case and chat formatting, conversions, grammar, AI, both Bengali directions, speech, maps and calendars on prose. Off by default
     - Reads the selection whole — A sentence with a number in it is a sentence, and two lines are never one thing; its own pass over the selection rather than the clipboard's fragment scan, which is the surface that has room to show what it found and where
     - Four readings — Phone, address, link, plain text; bare domains need an ending off a short allow list so a selected filename is not a link, and phone shapes reuse the clipboard's own PhoneFormats masks
-    - Format is entity-aware — A number is re-rendered into the user's own mask separators and all (01712345678 to +880 1712-345678), a link loses utm_*/fbclid/gclid and about twenty more while its path and fragment survive, an address is lower-cased; the chip is dropped when the rewrite would change nothing
+    - Format is entity-aware — A number is re-rendered into the user's own mask separators and all (01712345678 to +880 1712-345678), or the OS's format for the phone's country with no mask; with no mask a selection has to be a real number in the numbering plans to read as one, and Call/WhatsApp gain its dial code from them; a link loses utm_*/fbclid/gclid and about twenty more while its path and fragment survive, an address is lower-cased; the chip is dropped when the rewrite would change nothing
     - Case ladder behind Format on prose — lower / Title / UPPER / Sentence in place of the row, each chip written in the case it applies; acronyms survive Title and Sentence unless the whole selection is capitals, and the result stays selected so the chips chain
     - Two placements — Its own BarRow.MACROS, animated in and out and reorderable with every other row, or over the suggestion strip at no height cost, since nothing is being typed while text is selected
     - Forty-nine actions in seven groups behind one allow list — Editing, Lines, Format, Convert, Language, Look up, Open in; twenty-eight shipped on, the chat markers, programmer's cases, decoders, speech, zones, maps, calendars, Search and Translate off because each is a taste or a round trip
@@ -2457,7 +2457,13 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Google's G- branding prefix stripped from the pasted value — Pasting "G-123456" into a six-box OTP field would be wrong
     - Shape rules — Digits required; alphanumeric codes need ≥2 digits; 4-digit years 1900–2099 rejected
   - Phone-number extraction `RARE`
-    - 7–15 digits by shape, 4–15 once masks are set
+    - Every country's numbering plans `RARE` — libphonenumber's metadata (Apache-2.0) cut to validity: per region dial code, international and trunk prefixes, possible lengths, general/fixed-line/mobile/other patterns; an 86 KB asset (27 KB compressed) instead of the 360 KB library, built by `tools/phonemeta/build_phone_meta.py` and ICU-checked in CI
+    - Only real numbers become chips — With no masks set, a run has to be a number some type of the plan has, in the phone's country or the one its `+`/`00`/international prefix names; invoice totals and order ids drop out
+    - Phone's country — Mobile network, then SIM, then the app locale's region; no permission; re-read every five minutes for travel
+    - Mobiles first — Among the phone chips, a number that can take an SMS goes ahead of a landline or a hotline
+    - One number, one chip — 01712-345678 and +880 1712 345678 de-duplicate on E.164
+    - Chip shows the number formatted, pastes it as copied — The user's mask where one matches, else the OS's own libphonenumber (PhoneNumberUtils), costing the APK nothing
+    - 7–15 digits by shape, 4–15 once masks are set — The shape rules alone decide only without the table or a country
     - Date shapes rejected as whole matches — yyyy-m-d and d-m-yy only, so 555-12-3456 still counts as a number
     - Runs after #, $, £ or € rejected — Order numbers and totals share the shape
     - Unpunctuated, unprefixed runs over 11 digits rejected
@@ -2474,11 +2480,12 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Dial-code length derived from E.164 zones — Zones 1 and 7 = 1 digit, a 44-entry two-digit set, everything else 3
     - Live test field in settings — Paste a number and see match / no match / "all numbers pass" before trusting it
     - Masks can only remove numbers, never add one back — Every impostor guard still applies on top
+    - Masks win over the numbering plans — Where masks are set they decide what is a number, and a matching mask decides how it is written
   - Fragment chips in the panel `RARE`
     - Dashed cut-out styling, deliberately unlike a filled history card
     - Kind tag printed above the value — CODE / PHONE / LINK plus a per-kind icon
     - Long-press shows the fragment highlighted inside its source clip — ±60 chars of surrounding text, ellipsised
-    - De-duplicated across clips by kind+value
+    - De-duplicated across clips by kind+value, phone numbers by E.164
 - **One-time codes from notifications** `RARE` — Verification code lifted off the shade onto the suggestion strip; off by default
   - Capture path `RARE`
     - Single notification-listener component shared with the media tool — Renaming it would silently revoke the grant existing users gave

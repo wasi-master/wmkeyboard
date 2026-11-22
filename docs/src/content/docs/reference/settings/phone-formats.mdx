@@ -11,7 +11,7 @@ import Shot from '@components/Shot.astro';
 
 <SettingsPath path="Clipboard / Phone number formats" />
 
-The clipboard's [entity chips](/tools/clipboard/#pulling-codes-and-links-out-of-a-clip) pull one-time codes, links and phone numbers out of what you copy. A code has a shape and a link has a scheme, but a phone number is only digits, so with nothing to go on the detector keeps every run of 7 to 15 of them. That's how an invoice total, an order reference or a column out of a spreadsheet ends up wearing a phone chip. This screen is where you tell it what your numbers look like, and it stops guessing.
+The clipboard's [entity chips](/tools/clipboard/#pulling-codes-and-links-out-of-a-clip) pull one-time codes, links and phone numbers out of what you copy. A code has a shape and a link has a scheme, but a phone number is only digits. With your list empty, the keyboard checks each run against the numbering plan of your phone's country (or of the country a `+` names), taken from Google's libphonenumber, and keeps only real numbers. This screen is where you tell it what your numbers look like instead. Saved masks take over from the numbering plans: they decide what counts, and a number one of them matches is shown in that mask.
 
 The list is not empty to begin with. It starts with one mask for your own country, read off your phone's region the same way the calendar tool picks its alternate calendars: a phone in Bangladesh opens on `+880 XXXX-XXXXXX`, one in the US on `+1 XXX-XXX-XXXX`. The table covers about 110 regions, and it's mobile numbers, so a country whose landlines run to a different length will drop those. Edit the mask, add a second one, or delete it and go back to catching every number. A region the table doesn't know, and one it deliberately leaves out because its numbers have no single length (Germany and Austria), start with nothing.
 
@@ -81,7 +81,7 @@ Nothing you type here is saved or matched against anything but your own masks.
 
 ## What the formats change
 
-With no formats saved, the detector falls back to shape alone: 7 to 15 digits, and no more than 11 of them if the run has no punctuation and no `+`. Save even one format and those stand-ins step aside, because you've told it something better: the floor drops to 4 digits and your masks decide the length.
+With no formats saved, the numbering plans decide: a run has to be a number of some kind (mobile, landline, toll-free and the rest) at a length its country uses. Shape alone decides only when the phone gives no country and the run names none, and then it's 7 to 15 digits, no more than 11 of them if the run has no punctuation and no `+`. Save even one format and both step aside, because you've told it something better: the floor drops to 4 digits and your masks decide the length. A matching mask also decides how the number is written, on the chip and by the selection bar's **Format**; a number no mask matches is written the way your phone writes numbers.
 
 Everything else stays exactly as it was. A mask can only take numbers away, never add one back, so a run still has to be found as a number first, and the guards around that don't move: a bare year or date is never a phone number, and neither is a run of digits sitting right after `#`, `$`, `£` or `€`.
 

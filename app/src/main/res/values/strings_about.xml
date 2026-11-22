@@ -192,6 +192,7 @@
     <string name="about_bundled_apng_used">Reads animated PNG stickers</string>
     <string name="about_bundled_lottie_used">Draws animated Telegram stickers</string>
     <string name="about_bundled_zxing_used">Makes the QR codes</string>
+    <string name="about_bundled_libphonenumber_used">Tells real phone numbers, and mobiles, from other digit runs in every country</string>
     <string name="about_bundled_zxingcpp_used">Reads QR codes and barcodes on the device without Google services (native library)</string>
     <string name="about_bundled_zueci_used">Converts the character sets codes are written in, inside the zxing-cpp reader (native library)</string>
     <string name="about_bundled_pymini_plugins">The Python interpreter, ported to Rust, that runs plugins and Clink actions</string>

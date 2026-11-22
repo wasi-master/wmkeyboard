@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.content.R
 import com.wasimaster.wmkeyboard.core.location.LocationParser
 import com.wasimaster.wmkeyboard.core.location.ParsedLocation
+import com.wasimaster.wmkeyboard.core.phone.PhoneNumbers
 
 /**
  * A kind of fragment worth pulling out of a clip on its own: the six digits
@@ -64,6 +65,13 @@ data class ClipEntity(
     val sourceText: String,
     val start: Int,
     val end: Int,
+    /**
+     * What a chip prints. [value] for every kind but a phone number, which is
+     * written in the user's mask or the OS's format for the phone's country
+     * ([PhoneFormats.display]). Pasting still inserts [value], the text the
+     * clip actually holds.
+     */
+    val display: String = value,
 ) {
     /** Identity for de-duplicating the same fragment found in several clips. */
     val key: String get() = "${kind.name}:$value"
@@ -219,11 +227,17 @@ object ClipEntities {
 
         // [end] apart from the value's own length for a link [ClipLinkChain]
         // resolved, whose address is not the text it was written as.
-        fun claim(kind: ClipEntityKind, value: String, start: Int, end: Int = start + value.length): Boolean {
+        fun claim(
+            kind: ClipEntityKind,
+            value: String,
+            start: Int,
+            end: Int = start + value.length,
+            display: String = value,
+        ): Boolean {
             if (value.isEmpty()) return false
             if (claimed.any { (from, to) -> start < to && from < end }) return false
             claimed += start to end
-            found += ClipEntity(kind, value, sourceId, text, start, end)
+            found += ClipEntity(kind, value, sourceId, text, start, end, display)
             return true
         }
 
@@ -271,7 +285,12 @@ object ClipEntities {
 
         for (match in PHONE.findAll(text)) {
             if (isDiallable(match.value, text, match.range.first, phoneFormats)) {
-                claim(ClipEntityKind.PHONE, match.value, match.range.first)
+                claim(
+                    ClipEntityKind.PHONE,
+                    match.value,
+                    match.range.first,
+                    display = PhoneFormats.display(match.value, phoneFormats),
+                )
             }
         }
 
@@ -300,12 +319,34 @@ object ClipEntities {
             val whole = text.trim()
             for (entity in extract(text, item.id, phoneFormats)) {
                 if (entity.value == whole) continue
-                if (seen.add(entity.key)) found += entity
+                if (seen.add(sameKey(entity))) found += entity
             }
         }
         // Stable sort: codes first, then phones, then links, each still in
-        // newest-clip-first order because that is how [items] arrives.
-        return found.sortedBy { it.kind.ordinal }.take(MAX_ENTITIES)
+        // newest-clip-first order because that is how [items] arrives. Among
+        // the phones a mobile goes ahead of a landline or a hotline: it is
+        // the one a chat app or an SMS can take.
+        return found.sortedWith(compareBy({ it.kind.ordinal }, { phoneRank(it) })).take(MAX_ENTITIES)
+    }
+
+    /**
+     * [ClipEntity.key], except that two spellings of one phone number
+     * (`01712-345678` and `+880 1712 345678`) are one fragment.
+     */
+    private fun sameKey(entity: ClipEntity): String {
+        if (entity.kind != ClipEntityKind.PHONE) return entity.key
+        val number = PhoneNumbers.e164(entity.value) ?: return entity.key
+        return "${entity.kind.name}:$number"
+    }
+
+    /**
+     * 0 for a number that can be a mobile, 1 for anything else, including
+     * every number while there is no table to ask, so the order stays the
+     * clips' own.
+     */
+    private fun phoneRank(entity: ClipEntity): Int {
+        if (entity.kind != ClipEntityKind.PHONE) return 0
+        return if (PhoneNumbers.type(entity.value).canBeMobile) 0 else 1
     }
 
     /**
@@ -326,7 +367,7 @@ object ClipEntities {
             val whole = text.trim()
             val found = extract(text, item.id, phoneFormats)
                 .filter { it.value != whole }
-                .distinctBy { it.key }
+                .distinctBy(::sameKey)
                 // By kind, then where in the clip, so a run of links lists in the order written (#612).
                 .sortedWith(compareBy({ it.kind.ordinal }, { it.start }))
             if (found.isNotEmpty()) out[item.id] = found
@@ -405,6 +446,12 @@ object ClipEntities {
      * so the shape rules that stand in for that knowledge step aside and the
      * masks decide the length. The impostor guards stay either way: a mask can
      * only take numbers away, never add one back.
+     *
+     * With no masks, the numbering plans decide where they can
+     * ([PhoneNumbers.check]): a run that is no real number in the phone's
+     * country, or in the country its `+` names, is not offered. Only when
+     * there is no table, or no country to read a national number in, do the
+     * shape rules below decide alone.
      */
     private fun isDiallable(
         raw: String,
@@ -422,6 +469,7 @@ object ClipEntities {
         val previous = text.getOrNull(start - 1)
         if (previous == '#' || previous == '$' || previous == '£' || previous == '€') return false
         if (phoneFormats.isNotEmpty()) return PhoneFormats.matches(raw, phoneFormats)
+        PhoneNumbers.check(raw)?.let { return it }
         val punctuated = raw.any { it in PHONE_SEPARATORS }
         // Unpunctuated and unprefixed: only lengths people actually dial.
         if (!punctuated && !raw.startsWith("+") && digits > 11) return false

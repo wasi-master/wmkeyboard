@@ -97,7 +97,7 @@ The keyboard reads your selection as a whole. That is the rule behind every resu
 
 Pulling a fragment out of a longer span is a different job, and the [clipboard](/tools/clipboard/) already does it. That surface has the room to show you what it found and where it found it. This one does not, so it does not guess.
 
-Phone numbers use the same formats as the clipboard, under [Phone formats](/reference/settings/phone-formats/). With a format saved, a number has to match it, which is what keeps an invoice total or a row of figures from offering to dial itself. With no format saved, the plain shape rules apply.
+Phone numbers use the same formats as the clipboard, under [Phone formats](/reference/settings/phone-formats/). With a format saved, a number has to match it, which is what keeps an invoice total or a row of figures from offering to dial itself. With no format saved, it has to be a real number in the numbering plan of your phone's country, or of the country its `+` names, the same check the [clipboard's chips](/tools/clipboard/#pulling-codes-and-links-out-of-a-clip) make. **Call**, **Message** and **WhatsApp** add the dial code a national number leaves out, from your format or else from your phone's country, so `01712345678` opens WhatsApp on `+880 1712345678`.
 
 On top of that reading, a few actions look at what the text holds: whether it has several lines, Bengali or Latin letters, digits in another script, a colour code, a date or time, a place. Those checks are cheap, and the dearer ones (dates, places) only run while an action that needs them is switched on.
 
@@ -186,7 +186,7 @@ With two or more lines selected, four chips appear. **Sort** puts them in order,
 
 **Format** rewrites the selection in place. What it does follows what the selection is:
 
-- **A phone number** is written back in your own saved format. If you keep `+880 1XXX-XXXXXX`, then `01712345678` becomes `+880 1712-345678`. The separators come from the format you wrote, not from a shape the keyboard invented. With no format saved, a number that names a country code becomes E.164 (`+8801712345678`) and any other number becomes its bare digits.
+- **A phone number** is written back in your own saved format. If you keep `+880 1XXX-XXXXXX`, then `01712345678` becomes `+880 1712-345678`. The separators come from the format you wrote, not from a shape the keyboard invented. With no format saved, the number is written the way your phone writes numbers for your country: `01712345678` becomes `01712-345678` in Bangladesh, and a foreign number comes out in its international form. Where the phone can't format it, a number that names a country code becomes E.164 (`+8801712345678`) and any other number becomes its bare digits.
 - **A link** loses its tracking parameters. `utm_*`, `fbclid`, `gclid`, `igshid` and about twenty others go; everything else in the query, the path and the fragment stay exactly as they were. A link with no scheme gains `https://`.
 - **An address** is lower-cased.
 - **Anything else** opens the case options instead.
