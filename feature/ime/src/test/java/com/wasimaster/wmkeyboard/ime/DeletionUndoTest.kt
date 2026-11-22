@@ -1,7 +1,9 @@
 package com.wasimaster.wmkeyboard.ime
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DeletionUndoTest {
@@ -60,5 +62,35 @@ class DeletionUndoTest {
         val label = DeletionUndo.label(long)
         assertEquals(40, label.length)
         assertEquals('…', label.last())
+    }
+
+    @Test
+    fun `a letter or two off a word gets no chip`() {
+        assertFalse(DeletionUndo.holdsWord("o", left = "I said hel", right = "", forward = false))
+        assertFalse(DeletionUndo.holdsWord("lo", left = "I said hel", right = "", forward = false))
+        assertFalse(DeletionUndo.holdsWord(" ", left = "I said hello", right = "", forward = false))
+        // A vowel sign is part of its word, so the word is not whole yet.
+        assertFalse(DeletionUndo.holdsWord("\u09A4", left = "\u0995\u09BF", right = "", forward = false))
+    }
+
+    @Test
+    fun `a whole word gets the chip`() {
+        assertTrue(DeletionUndo.holdsWord("hello", left = "I said ", right = "", forward = false))
+        assertTrue(DeletionUndo.holdsWord("hello", left = "", right = "", forward = false))
+        assertTrue(DeletionUndo.holdsWord("lo world", left = "hel", right = "", forward = false))
+        assertTrue(DeletionUndo.holdsWord("a", left = "I ", right = "", forward = false))
+    }
+
+    @Test
+    fun `a forward run needs a word's end`() {
+        assertFalse(DeletionUndo.holdsWord("he", left = "", right = "llo", forward = true))
+        assertTrue(DeletionUndo.holdsWord("hello", left = "", right = " there", forward = true))
+        assertTrue(DeletionUndo.holdsWord("one t", left = "", right = "wo", forward = true))
+    }
+
+    @Test
+    fun `a long run counts whatever it holds`() {
+        assertTrue(DeletionUndo.holdsWord("\u4F60\u597D".repeat(5), left = "\u6211", right = "", forward = false))
+        assertFalse(DeletionUndo.holdsWord("\u4F60\u597D", left = "\u6211", right = "", forward = false))
     }
 }

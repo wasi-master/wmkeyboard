@@ -17548,7 +17548,10 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     private fun showDeletionChip() {
-        val chip = deletionRun?.let { DeletionChip(DeletionUndo.label(it.text), it.restored) }
+        // A run shows once it holds a whole word (#1434); one put back keeps its chip for the redo.
+        val chip = deletionRun?.takeIf {
+            it.restored || DeletionUndo.holdsWord(it.text, left = it.gone, right = it.ahead, forward = it.forward)
+        }?.let { DeletionChip(DeletionUndo.label(it.text), it.restored) }
         if (_uiState.value.deletionUndo != chip) _uiState.update { it.copy(undoChips = it.undoChips.copy(deletionUndo = chip)) }
     }
 

@@ -81,6 +81,46 @@ object DeletionUndo {
         return null
     }
 
+    /**
+     * Whether a run is worth a chip (#1434): it took at least one whole word,
+     * or [LONG_RUN] characters, which is a word's worth in a script that puts
+     * no spaces between words. A letter or two taken off the end of a word
+     * being fixed is not, and gets no chip, since the backspace that took it
+     * is as quick as the chip would be.
+     *
+     * A word is whole when its start is in the run: the character in front
+     * of it, in the run or, for its first character, the last one of
+     * [left] (the field before the run), is no word character, or there is
+     * none. For a [forward] run it is the word's end that must be in the
+     * run, with [right] the field after it. The other end is wherever the
+     * cursor stood, which is where the person chose to start deleting.
+     */
+    fun holdsWord(text: String, left: String, right: String, forward: Boolean): Boolean {
+        if (text.codePointCount(0, text.length) >= LONG_RUN) return true
+        val points = text.codePoints().toArray()
+        for (i in points.indices) {
+            if (!isWordPoint(points[i])) continue
+            val neighbour = if (forward) {
+                if (i + 1 < points.size) points[i + 1] else right.firstOrNull()?.let { right.codePointAt(0) }
+            } else {
+                if (i > 0) points[i - 1] else left.lastOrNull()?.let { left.codePointBefore(left.length) }
+            }
+            if (neighbour == null || !isWordPoint(neighbour)) return true
+        }
+        return false
+    }
+
+    /** Letters, digits and the marks that sit on them (Indic vowel signs), plus the apostrophes inside "don't". */
+    private fun isWordPoint(cp: Int): Boolean = Character.isLetterOrDigit(cp) || when (Character.getType(cp)) {
+        Character.NON_SPACING_MARK.toInt(), Character.COMBINING_SPACING_MARK.toInt(),
+        Character.ENCLOSING_MARK.toInt(),
+        -> true
+        else -> cp == '\''.code || cp == '’'.code || cp == '‌'.code || cp == '‍'.code
+    }
+
+    /** Characters a run takes before it counts as a word's worth whatever it holds; see [holdsWord]. */
+    const val LONG_RUN = 10
+
     /** The chip's line: the run on one line, cut short where it would not fit anyway. */
     fun label(text: String): String {
         val line = text.replace('\n', ' ').trim()
