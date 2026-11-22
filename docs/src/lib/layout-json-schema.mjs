@@ -268,7 +268,9 @@ function parseActions(src, constants) {
 		if (m[2] === 'class') {
 			const open = m.index + m[0].length;
 			const inner = balanced(src, src.indexOf('(', open));
-			fields = splitTop(stripLineComments(inner)).map((param) => {
+			// Block comments first: a KDoc on a field (Tool.custom) holds commas
+			// splitTop would cut at, and may hold a `//` of a URL.
+			fields = splitTop(stripLineComments(inner.replace(/\/\*[\s\S]*?\*\//g, ''))).map((param) => {
 				const p = must(param.match(/^val\s+(\w+):\s*([^=]+?)(?:\s*=\s*([\s\S]+))?$/), `field of ${m[3]}`);
 				return { name: p[1], type: p[2].trim(), required: p[3] == null, default: jsonDefault(p[3], constants) };
 			});
