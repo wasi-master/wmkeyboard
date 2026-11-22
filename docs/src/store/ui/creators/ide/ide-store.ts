@@ -26,6 +26,8 @@ export interface PluginManifest {
 	actions?: { id: string; name: string; summary?: string; icon?: string; replaces?: boolean; input?: string }[];
 	/** False for a plugin made of selection actions alone. */
 	panel?: boolean;
+	/** API 5: the provider lists it answers (PluginProviderSpec). */
+	providers?: { tool: string; id?: string; name?: string; summary?: string; images?: boolean }[];
 }
 
 export type SnapshotReason = 'manual' | 'periodic' | 'before_restore' | 'publish' | 'import';
@@ -326,22 +328,21 @@ export function fileNameOf(manifest: PluginManifest): string {
 
 /** The plugin a new draft starts as (PluginIdeState.BLANK_PLUGIN_SCRIPT). */
 export const BLANK_PLUGIN_SCRIPT = `# A plugin draws a panel in the keyboard. render() says what the panel shows,
-# and on_event(e) hears what the user pressed.
+# and a button names the function that runs when it is pressed.
 
-count = 0
+from wm import plugin, ui
+
+state = plugin.state(count=0)
 
 
-def on_event(e):
-    global count
-    if e.type == "click" and e.id == "add":
-        count += 1
+def add():
+    state.count += 1
 
 
 def render():
-    return ui.column(
-        ui.label("Pressed " + str(count) + " times", style="title"),
-        ui.button("add", "Press me", style="primary"),
-    )
+    with ui.column():
+        ui.label(f"Pressed {state.count} times", style="title")
+        ui.button("Press me", on_click=add, primary=True, id="add")
 `;
 
 /** The code key row's arrangement (CodeKeyPrefs). */

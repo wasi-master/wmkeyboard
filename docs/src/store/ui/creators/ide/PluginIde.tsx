@@ -23,6 +23,7 @@ import { API4_PERMISSIONS, ID_PATTERN, MAX_HOSTS, MAX_NAME, MAX_SCRIPT_BYTES, PA
 import { TEMPLATES, type PluginTemplate } from './templates';
 import { S, relativeTime } from './strings';
 import { V5Widget } from './V5Widgets';
+import { FixStrip, HelpStrip, ManifestRows, TryPane, fixEdit, fixLabel, fixableAt, helpAt, manifestWith } from './PluginIdeSmart';
 import './ide.css';
 
 const AUTOSAVE_MS = 400;
@@ -37,7 +38,7 @@ const MAX_BUDGET_HISTORY = 20;
 const WARN_SHARE = 0.8;
 const PANEL_FRACTION = 0.42;
 
-type IdePanel = 'CLOSED' | 'PREVIEW' | 'CONSOLE' | 'PROBLEMS' | 'OUTLINE' | 'EVENTS' | 'STORAGE' | 'DETAILS';
+type IdePanel = 'CLOSED' | 'PREVIEW' | 'CONSOLE' | 'PROBLEMS' | 'OUTLINE' | 'EVENTS' | 'STORAGE' | 'TRY' | 'DETAILS';
 
 /** Wide enough for the desktop layout: the code on the left, the live preview and a docked pane on the right. */
 const DESKTOP_QUERY = '(min-width: 1024px)';
@@ -411,12 +412,19 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 	const [renderHistory, setRenderHistory] = useState<number[]>([]);
 	const [inspection, setInspection] = useState<Inspection>({ diagnostics: [], outline: [] });
 	const [matches, setMatches] = useState<E.Range[]>([]);
-	const [docOpen, setDocOpen] = useState<string | null>(null);
-	const keyboard = useMemo(hardwareKeyboardAttached, []);
+const keyboard = useMemo(hardwareKeyboardAttached, []);
 	const suggestionBar = useMemo(() => ({ shown: signal(null as PyCompletions | null), choose: (item: PyCompletionItem) => controller.value?.choose(item) }), [controller]);
 	const storage = manifest.permissions.includes(STORAGE_PERMISSION);
 	const reminders = manifest.permissions.includes(REMINDERS_PERMISSION);
-	const host = useMemo<PyHost>(() => ({ storage, reminders, panel: true, selection: false, actions: [] }), [storage, reminders]);
+	// The checks and suggestions read plugin.json as it is now: permissions, hosts, providers, actions, settings, keyword.
+	const host = useMemo<PyHost>(() => ({
+		storage,
+		reminders,
+		panel: manifest.panel !== false,
+		selection: manifest.permissions.includes('selection'),
+		actions: (manifest.actions ?? []).map((a) => a.id),
+		manifest: sanitised(manifest),
+	}), [manifest, storage, reminders]);
 
 	const c = controller.value;
 	// Read for its subscription: the screen re-renders on every change of the text or the caret.
@@ -426,7 +434,7 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 	const lineStarts = useMemo(() => E.lineStartOffsets(text), [text]);
 	const positionLine = E.lineOf(lineStarts, caret);
 	const positionColumn = caret - lineStarts[positionLine]!;
-	const apiHere = useMemo(() => (c ? Py.apiAt(text, caret) : null), [c, text, caret]);
+	const help = useMemo(() => (c ? helpAt(text, caret, host) : null), [c, text, caret, host]);
 
 	// ---- saving, versions, running ----------------------------------------------------
 	const save = useCallback((current: string) => {
@@ -497,6 +505,21 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 	}, [text, find.query, find.options, findOpen]);
 	const failureLine = previewState.failure?.line ? previewState.failure.line - 1 : null;
 	const diagnostics = inspection.diagnostics;
+	const fixable = useMemo(() => fixableAt(diagnostics, caret), [diagnostics, caret]);
+	// A fix changes the script, or plugin.json, never both.
+	const applyFix = (d: PyDiagnostic) => {
+		const ed = controller.value;
+		if (!d.fix || !ed) return;
+		const edit = fixEdit(d, ed.selection.end);
+		if (edit) return ed.applyEdit(edit);
+		const updated = manifestWith(manifest, d.fix);
+		if (!updated) return;
+		const withFormat = sanitised(updated);
+		if (workspace.writeManifest(draftId, withFormat)) {
+			setManifest(withFormat);
+			showToast(S.fixManifestSaved);
+		}
+	};
 	useEffect(() => {
 		if (!c) return;
 		const marks = new Map<number, Severity>();
@@ -674,10 +697,11 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 		<>
 			{panel === 'PREVIEW' && previewPane}
 			{panel === 'CONSOLE' && <ConsolePane preview={preview} revision={previewState.consoleRevision} onJump={(line) => controller.value?.moveTo(E.offsetOfLine(controller.value.text, line - 1))} />}
-			{panel === 'PROBLEMS' && <ProblemsPane diagnostics={diagnostics} lineStarts={lineStarts} onJump={(r) => controller.value?.select(r)} />}
+			{panel === 'PROBLEMS' && <ProblemsPane diagnostics={diagnostics} lineStarts={lineStarts} onJump={(r) => controller.value?.select(r)} onFix={applyFix} />}
 			{panel === 'OUTLINE' && <OutlinePane outline={inspection.outline} lineStarts={lineStarts} onJump={(r) => controller.value?.select(r)} />}
 			{panel === 'EVENTS' && <EventsPane targets={previewState.targets} earlier={replayable} onSend={(e) => preview.send(e)} />}
 			{panel === 'STORAGE' && <StoragePane storage={preview.storageOf(draftId)} declared={storage} busy={previewState.busy} />}
+			{panel === 'TRY' && <TryPane manifest={manifest} script={() => controller.value?.text ?? savedText.current} identity={identity} storage={() => (storage ? preview.storageOf(draftId).entries() : null)} />}
 			{panel === 'DETAILS' && <DetailsPane manifest={manifest} script={text} onManifest={(m) => { const withFormat = sanitised(m); setManifest(withFormat); workspace.writeManifest(draftId, withFormat); }} onExport={exportFile} />}
 		</>
 	);
@@ -746,17 +770,13 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 					/>
 				)}
 				<CodeSurface controller={controller} initial={savedText.current} options={surfaceOptions} wrap={wrap} fontSize={textSize} />
-				{apiHere && (
-					<div class={`wm-doc ${docOpen === apiHere.path ? 'wm-doc-open' : ''}`} role="button" aria-label={docOpen === apiHere.path ? S.docLess : S.docMore} onClick={() => setDocOpen(docOpen === apiHere.path ? null : apiHere.path)}>
-						<div class="wm-doc-signature">{apiHere.signature ? (apiHere.parent ? `${apiHere.parent}.${apiHere.signature}` : apiHere.signature) : apiHere.path}</div>
-						<div class="wm-doc-body">{apiHere.doc}</div>
-					</div>
-				)}
+				{fixable && <FixStrip diagnostic={fixable} onFix={() => applyFix(fixable)} />}
+				{help && <HelpStrip help={help} />}
 				<div class="wm-chipbar">
 					<div class="wm-chipbar-scroll">
-						{(desktop ? (['CONSOLE', 'PROBLEMS', 'OUTLINE', 'EVENTS', 'STORAGE', 'DETAILS'] as const) : (['PREVIEW', 'CONSOLE', 'PROBLEMS', 'OUTLINE', 'EVENTS', 'STORAGE', 'DETAILS'] as const)).map((p) => (
+						{(desktop ? (['CONSOLE', 'PROBLEMS', 'OUTLINE', 'EVENTS', 'STORAGE', 'TRY', 'DETAILS'] as const) : (['PREVIEW', 'CONSOLE', 'PROBLEMS', 'OUTLINE', 'EVENTS', 'STORAGE', 'TRY', 'DETAILS'] as const)).map((p) => (
 							<button key={p} type="button" class={`st-chip ${panel === p ? 'st-chip-on' : ''}`} aria-pressed={panel === p} onClick={() => setPanel(panel === p ? 'CLOSED' : p)}>
-								{{ PREVIEW: S.previewLabel, CONSOLE: S.consoleLabel, PROBLEMS: S.problemsLabel, OUTLINE: S.outlineLabel, EVENTS: S.eventsLabel, STORAGE: S.storageLabel, DETAILS: S.detailsLabel }[p]}
+								{{ PREVIEW: S.previewLabel, CONSOLE: S.consoleLabel, PROBLEMS: S.problemsLabel, OUTLINE: S.outlineLabel, EVENTS: S.eventsLabel, STORAGE: S.storageLabel, TRY: S.tryLabel, DETAILS: S.detailsLabel }[p]}
 								{p === 'PROBLEMS' && diagnostics.length > 0 && <span class="wm-badge">{numbers.format(diagnostics.length)}</span>}
 							</button>
 						))}
@@ -780,7 +800,7 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 					</section>
 					{panel !== 'CLOSED' && panel !== 'PREVIEW' && (
 						<section class="wm-dock-pane">
-							<h2 class="wm-dock-title">{{ CONSOLE: S.consoleLabel, PROBLEMS: S.problemsLabel, OUTLINE: S.outlineLabel, EVENTS: S.eventsLabel, STORAGE: S.storageLabel, DETAILS: S.detailsLabel }[panel]}</h2>
+							<h2 class="wm-dock-title">{{ CONSOLE: S.consoleLabel, PROBLEMS: S.problemsLabel, OUTLINE: S.outlineLabel, EVENTS: S.eventsLabel, STORAGE: S.storageLabel, TRY: S.tryLabel, DETAILS: S.detailsLabel }[panel]}</h2>
 							{pane}
 						</section>
 					)}
@@ -921,7 +941,7 @@ function ConsoleLine({ entry, onJump }: { entry: ConsoleEntry; onJump: (line: nu
 	);
 }
 
-function ProblemsPane({ diagnostics, lineStarts, onJump }: { diagnostics: PyDiagnostic[]; lineStarts: number[]; onJump: (r: E.Range) => void }) {
+function ProblemsPane({ diagnostics, lineStarts, onJump, onFix }: { diagnostics: PyDiagnostic[]; lineStarts: number[]; onJump: (r: E.Range) => void; onFix: (d: PyDiagnostic) => void }) {
 	if (!diagnostics.length) return <div class="wm-pane-empty">{S.problemsEmpty}</div>;
 	const rank = { ERROR: 0, WARNING: 1, INFO: 2 };
 	const ordered = [...diagnostics].sort((a, b) => rank[a.severity] - rank[b.severity] || a.start - b.start);
@@ -934,6 +954,7 @@ function ProblemsPane({ diagnostics, lineStarts, onJump }: { diagnostics: PyDiag
 					<div key={i} class="wm-problem" onClick={() => onJump({ start: d.start, end: d.end })}>
 						<span class="wm-dot" role="img" aria-label={sev === 'ERROR' ? S.severityError : sev === 'WARNING' ? S.severityWarning : S.severityInfo} style={{ background: sev === 'ERROR' ? 'var(--wmc-problem)' : sev === 'WARNING' ? 'var(--wmc-warning)' : 'var(--wmc-gutter-text)' }} />
 						<span style="flex:1 1 auto">{Py.diagnosticText(d)}</span>
+						{d.fix && <button type="button" class="st-btn st-btn-sm st-btn-ghost" onClick={(e) => { e.stopPropagation(); onFix(d); }}>{fixLabel(d.fix)}</button>}
 						<span class="wm-line-chip">{S.lineLabel(line)}</span>
 					</div>
 				);
@@ -1122,6 +1143,7 @@ function DetailsPane({ manifest, script, onManifest, onExport }: { manifest: Plu
 			</label>
 			<div class="wm-caption">{S.detailsIconHint} <a href={`https://fonts.google.com/icons${draft.tool?.icon?.trim() ? `?icon.query=${encodeURIComponent(draft.tool.icon.trim())}` : ''}`} target="_blank" rel="noopener noreferrer">Material Symbols</a></div>
 			<PermissionFields manifest={draft} onChange={commit} />
+			<ManifestRows manifest={draft} onChange={commit} />
 			{problems.map((p, i) => <div key={i} class="wm-error-text">{p}</div>)}
 			<ManifestJson manifest={draft} onChange={commit} />
 			<hr class="wm-w-divider" />
@@ -1419,6 +1441,7 @@ function PluginDetailsDialog({ manifest, onDismiss, onSave }: { manifest: Plugin
 			{field(S.detailsAuthor, author, setAuthor)}
 			<label class="st-field"><span>{S.detailsDescription}</span><textarea class="st-input" rows={3} value={description} onInput={(e) => setDescription((e.target as HTMLTextAreaElement).value)} /></label>
 			<PermissionFields manifest={access} onChange={setAccess} />
+			<ManifestRows manifest={access} onChange={setAccess} />
 			{problems.map((p, i) => <div key={i} class="wm-error-text">{p}</div>)}
 		</Dialog>
 	);

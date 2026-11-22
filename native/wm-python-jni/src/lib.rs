@@ -408,3 +408,37 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_plugins_PythonNative_
 ) -> jstring {
     guarded!(env, wm_python_tooling::api_json::api_entries())
 }
+
+#[no_mangle]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_plugins_PythonNative_nativeSignature(
+    mut env: JNIEnv,
+    _class: JClass,
+    source: JString,
+    caret: jint,
+    host: JString,
+) -> jstring {
+    let source = text(&mut env, &source);
+    let host = text(&mut env, &host);
+    guarded!(env, wm_python_tooling::api_json::signature(&source, i64::from(caret), &host))
+}
+
+#[no_mangle]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_plugins_PythonNative_nativeHover(
+    mut env: JNIEnv,
+    _class: JClass,
+    source: JString,
+    offset: jint,
+    host: JString,
+) -> jstring {
+    let source = text(&mut env, &source);
+    let host = text(&mut env, &host);
+    guarded!(env, wm_python_tooling::api_json::hover(&source, i64::from(offset), &host))
+}
+
+#[no_mangle]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_plugins_PythonNative_nativeProviderTools(
+    mut env: JNIEnv,
+    _class: JClass,
+) -> jstring {
+    guarded!(env, wm_python_tooling::api_json::provider_tools())
+}

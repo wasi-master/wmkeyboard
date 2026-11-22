@@ -115,7 +115,16 @@ export interface PyHost {
 	selection?: boolean;
 	panel?: boolean;
 	actions?: string[];
+	/** The whole plugin.json: its permissions, hosts, providers, settings and keyword feed the API 5 checks and suggestions. */
+	manifest?: object;
 }
+
+/** What one tap does about a diagnostic: a change to the script, or to plugin.json. */
+export type PyFix =
+	| { kind: 'replace'; text: string }
+	| { kind: 'insert'; at: number; text: string }
+	| { kind: 'permission' | 'host' | 'action' | 'keyword' | 'setting'; value: string }
+	| { kind: 'provider'; tool: string; id: string };
 
 export interface PyDiagnostic {
 	code: string;
@@ -123,6 +132,7 @@ export interface PyDiagnostic {
 	start: number;
 	end: number;
 	args: string[];
+	fix?: PyFix | null;
 }
 
 export interface PyOutlineItem {
@@ -165,7 +175,7 @@ export function analyse(source: string, host: PyHost | null): PyAnalysis {
 	if (!loaded) return EMPTY_ANALYSIS;
 	const shape = host ? { ...host, verdict: check(source) } : {};
 	const raw = JSON.parse(wasm.analyse(source, JSON.stringify(shape))) as {
-		diagnostics: { code: string; severity: string; start: number; end: number; args: string[] }[];
+		diagnostics: { code: string; severity: string; start: number; end: number; args: string[]; fix: PyFix | null }[];
 		outline: PyOutlineItem[];
 		folds: [number, number][];
 	};
@@ -205,6 +215,10 @@ export interface PyCompletionItem {
 	caret: number;
 	detail: string | null;
 	docPath: string | null;
+	/** Its doc, one paragraph. */
+	doc?: string | null;
+	/** Choosing it leaves a blank with suggestions of its own: the list opens again. */
+	reopen?: boolean;
 }
 
 export interface PyCompletions {
@@ -284,6 +298,65 @@ export function apiEntries(): PyApi {
 export function apiAt(source: string, caret: number): PyApiEntry | null {
 	if (!loaded) return null;
 	return JSON.parse(wasm.apiAt(source, caret)) as PyApiEntry | null;
+}
+
+// ---------------------------------------------------------------------------
+// Signature help, hover and the provider lists
+// ---------------------------------------------------------------------------
+
+export interface PySignature {
+	/** `http.get(url, params=None, **options)`. */
+	label: string;
+	/** Each parameter's place in `label`. */
+	params: [number, number][];
+	names: string[];
+	/** The parameter the caret is in. */
+	active: number | null;
+	doc: string;
+	/** What the active parameter takes, in words. */
+	paramDoc: string | null;
+	values: string[];
+	path: string | null;
+}
+
+/** The call around `caret`, with the argument being typed; null outside a call. */
+export function signature(source: string, caret: number, host: PyHost | null): PySignature | null {
+	if (!loaded || typeof wasm.signature !== 'function') return null;
+	return JSON.parse(wasm.signature(source, caret, JSON.stringify(host ?? {}))) as PySignature | null;
+}
+
+export interface PyHover {
+	start: number;
+	end: number;
+	title: string;
+	doc: string;
+	kind: string;
+	path: string | null;
+}
+
+/** What the name at `offset` is: an API entry, the file's own function, a provider's request, a setting. */
+export function hover(source: string, offset: number, host: PyHost | null): PyHover | null {
+	if (!loaded || typeof wasm.hover !== 'function') return null;
+	return JSON.parse(wasm.hover(source, offset, JSON.stringify(host ?? {}))) as PyHover | null;
+}
+
+export interface PyProviderTool {
+	tool: string;
+	label: string;
+	/** The request's keys, each with what it holds. */
+	request: [string, string][];
+	/** A request as the keyboard sends one, as JSON. */
+	sample: string;
+	reply: string;
+}
+
+let tools: PyProviderTool[] | null = null;
+
+/** The provider lists a plugin can answer. */
+export function providerTools(): PyProviderTool[] {
+	if (!loaded || typeof wasm.providerTools !== 'function') return [];
+	if (!tools) tools = JSON.parse(wasm.providerTools()) as PyProviderTool[];
+	return tools;
 }
 
 // ---------------------------------------------------------------------------

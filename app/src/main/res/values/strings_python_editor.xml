@@ -61,6 +61,21 @@
     <string name="py_diag_too_many_tabs">A tab strip shows at most 8 pages.</string>
     <string name="py_diag_loop_never_ends">This loop never ends: nothing in it breaks out or returns.</string>
     <string name="py_diag_unreachable">This code never runs: it comes after a return, raise, break or continue.</string>
+    <string name="py_diag_permission_missing">%1$s needs the “%2$s” permission in plugin.json.</string>
+    <string name="py_diag_host_missing">“%1$s” is not in plugin.json\'s hosts, so this request is refused.</string>
+    <string name="py_diag_unknown_provider_tool">There is no provider list “%1$s”.</string>
+    <string name="py_diag_provider_tool_typo">There is no provider list “%1$s”. Did you mean “%2$s”?</string>
+    <string name="py_diag_provider_not_declared">plugin.json\'s providers list no %1$s provider “%2$s”, so nothing asks this.</string>
+    <string name="py_diag_provider_unanswered">plugin.json declares the %1$s provider “%2$s”, but no @plugin.provider answers it.</string>
+    <string name="py_diag_action_unanswered">plugin.json lists the action “%1$s”, but no @plugin.action answers it.</string>
+    <string name="py_diag_keyword_not_declared">plugin.json\'s tool.keyword is not “%1$s”, so this never runs.</string>
+    <string name="py_diag_unknown_setting">plugin.json has no setting “%1$s”.</string>
+    <string name="py_diag_setting_typo">plugin.json has no setting “%1$s”. Did you mean “%2$s”?</string>
+    <string name="py_diag_unknown_argument">%2$s() has no argument “%1$s”.</string>
+    <string name="py_diag_argument_typo">There is no argument “%1$s” here. Did you mean “%2$s”?</string>
+    <string name="py_diag_unknown_value">“%1$s” is not one of: %2$s.</string>
+    <string name="py_diag_value_typo">“%1$s” is not an option here. Did you mean “%2$s”?</string>
+    <string name="py_diag_wm_not_imported">“%1$s” comes from the wm package. Add “from wm import %1$s” at the top.</string>
     <!-- A problem the editor found that this version of the app has no sentence for. -->
     <string name="py_diag_unknown">Something here is not right.</string>
     <!-- What the parser expected, filling %2$s of py_diag_syntax_expected and %1$s of py_diag_syntax_at_end. -->

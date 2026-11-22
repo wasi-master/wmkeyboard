@@ -335,17 +335,17 @@ interface WireResult {
 	phases: { phase: 'load' | 'event' | 'render' | 'action'; steps: number; stepsLimit: number; elapsedMicros: number; millisLimit: number }[];
 }
 
-function configOf(plugin: PluginIdentity, storage: Record<string, string> | null): string {
+function configOf(plugin: PluginIdentity, storage: Record<string, string> | null, mode: 'panel' | 'action' = 'panel'): string {
 	const permissions = isV5(plugin) && plugin.permissions
 		? plugin.permissions
 		: [...(plugin.storage ? ['storage'] : []), ...(plugin.reminders ? ['reminders'] : [])];
 	const dark = typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches;
 	return JSON.stringify({
-		id: plugin.id, version: plugin.version, permissions, mode: 'panel', storage: storage ?? {},
+		id: plugin.id, version: plugin.version, permissions, mode, storage: storage ?? {},
 		...(plugin.apiVersion ? { apiVersion: plugin.apiVersion } : {}),
 		...(isV5(plugin) ? {
 			settings: plugin.settings ?? {},
-			context: { locale: typeof navigator !== 'undefined' ? navigator.language : 'en', theme: dark ? 'dark' : 'light', surface: 'panel' },
+			context: { locale: typeof navigator !== 'undefined' ? navigator.language : 'en', theme: dark ? 'dark' : 'light', surface: mode },
 		} : {}),
 	});
 }
@@ -672,6 +672,56 @@ export function renderOnce(plugin: PluginIdentity, script: string): RenderedUi |
 		return result.ok && result.ui ? uiOf(result.ui, isV5(plugin)) : null;
 	} catch {
 		return null;
+	} finally {
+		try {
+			py?.free();
+		} catch {
+			/* trapped */
+		}
+	}
+}
+
+/** What one call of a provider or a selection action came to. */
+export interface TryOutcome {
+	/** The reply as the script returned it: JSON in `{"value": …}` for a provider, the text for an action. */
+	value: string | null;
+	error: string | null;
+	line: number | null;
+	log: string[];
+	millis: number;
+}
+
+/**
+ * Calls a draft's provider (`provider:<tool>/<id>`) or selection action once,
+ * as the keyboard would (PluginTryRunner.kt): a fresh session in action mode,
+ * the script loaded, [actionId] asked with [input], the session freed. `http`
+ * reaches the manifest's hosts for real; everything else gets the preview's
+ * pretend answers.
+ */
+export function tryOnce(plugin: PluginIdentity, script: string, actionId: string, input: string, storage: Record<string, string> | null): TryOutcome {
+	const started = performance.now();
+	const log: string[] = [];
+	let py: PySession | null = null;
+	const done = (value: string | null, error: string | null, line: number | null = null): TryOutcome => ({ value, error, line, log, millis: Math.round(performance.now() - started) });
+	try {
+		py = new PySession(configOf(plugin, storage, 'action'));
+		if (isV5(plugin)) {
+			py.setBridge(makeBridge({
+				hosts: plugin.hosts ?? [],
+				settings: plugin.settingSpecs ?? [],
+				deliver: () => {},
+				log: (text) => log.push(text),
+			}));
+		}
+		const loaded = JSON.parse(py.load(script)) as WireResult;
+		log.push(...loaded.log);
+		if (loaded.error) return done(null, loaded.error.message || loaded.error.kind, loaded.error.line);
+		const result = JSON.parse(py.transform(input, actionId)) as WireResult & { value?: string | null };
+		log.push(...result.log);
+		if (result.error) return done(null, result.error.message || result.error.kind, result.error.line);
+		return done(result.value ?? null, null);
+	} catch (e) {
+		return done(null, String((e as Error)?.message ?? e));
 	} finally {
 		try {
 			py?.free();

@@ -69,6 +69,21 @@ internal val PY_DIAGNOSTICS: Map<String, Int> = mapOf(
     "too_many_tabs" to R.string.py_diag_too_many_tabs,
     "loop_never_ends" to R.string.py_diag_loop_never_ends,
     "unreachable" to R.string.py_diag_unreachable,
+    "permission_missing" to R.string.py_diag_permission_missing,
+    "host_missing" to R.string.py_diag_host_missing,
+    "unknown_provider_tool" to R.string.py_diag_unknown_provider_tool,
+    "provider_tool_typo" to R.string.py_diag_provider_tool_typo,
+    "provider_not_declared" to R.string.py_diag_provider_not_declared,
+    "provider_unanswered" to R.string.py_diag_provider_unanswered,
+    "action_unanswered" to R.string.py_diag_action_unanswered,
+    "keyword_not_declared" to R.string.py_diag_keyword_not_declared,
+    "unknown_setting" to R.string.py_diag_unknown_setting,
+    "setting_typo" to R.string.py_diag_setting_typo,
+    "unknown_argument" to R.string.py_diag_unknown_argument,
+    "argument_typo" to R.string.py_diag_argument_typo,
+    "unknown_value" to R.string.py_diag_unknown_value,
+    "value_typo" to R.string.py_diag_value_typo,
+    "wm_not_imported" to R.string.py_diag_wm_not_imported,
 )
 
 /** The parser's placeholders for what it expected, in the reader's words. */

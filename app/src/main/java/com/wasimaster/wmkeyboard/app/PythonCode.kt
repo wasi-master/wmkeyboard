@@ -93,8 +93,16 @@ internal object PythonCode : CodeLanguage {
     override fun foldRegions(source: String): List<TextRange> =
         PythonTooling.analyse(source, null).folds.map { TextRange(it.start, it.end) }
 
+    /**
+     * The manifest of the plugin being edited, for suggestions that come from
+     * it: provider lists, action ids, settings, hosts. The editor screen sets it
+     * as plugin.json changes; null suggests from the code alone.
+     */
+    @Volatile
+    var host: PyHostShape? = null
+
     override fun completions(source: String, caret: Int, explicit: Boolean): CodeCompletions? {
-        val found = PythonTooling.complete(source, caret, explicit, null) ?: return null
+        val found = PythonTooling.complete(source, caret, explicit, host) ?: return null
         if (found.items.isEmpty()) return null
         return CodeCompletions(TextRange(found.replace.start, found.replace.end), found.items.map { it.toCodeCompletion() })
     }
@@ -228,6 +236,8 @@ internal fun PyCompletionItem.toCodeCompletion(): CodeCompletion = CodeCompletio
     insert = insert,
     caret = if (caret in 0..insert.length) caret else insert.length,
     detail = detail,
+    reopen = reopen,
+    doc = doc,
 )
 
 /** A problem as the code field draws it, its words from [pyDiagnosticMessage]. */
@@ -241,6 +251,7 @@ internal fun PyDiagnostic.toCodeDiagnostic(): CodeDiagnostic = CodeDiagnostic(
     messageRes = pyDiagnosticMessage(code),
     arg1 = args.getOrNull(0),
     arg2 = args.getOrNull(1),
+    fix = fix,
 )
 
 /**

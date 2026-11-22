@@ -28,7 +28,7 @@ export interface PluginTemplate {
 }
 
 export const TEMPLATES: PluginTemplate[] = [
-	{ id: 'BLANK', name: S.templateBlankName, description: S.templateBlankDescription, script: BLANK_PLUGIN_SCRIPT, permissions: [] },
+	{ id: 'BLANK', name: S.templateBlankName, description: S.templateBlankDescription, script: BLANK_PLUGIN_SCRIPT, permissions: [], apiVersion: 5 },
 	{ id: 'TEXT_TOOLS', name: S.templateTextToolsName, description: S.templateTextToolsDescription, script: textTools, permissions: [] },
 	{ id: 'CIPHER', name: S.templateCipherName, description: S.templateCipherDescription, script: cipher, permissions: [] },
 	{ id: 'TODO', name: S.templateTodoName, description: S.templateTodoDescription, script: todo, permissions: ['storage', 'reminders'] },

@@ -39,7 +39,13 @@ internal enum class PluginTemplate(
     /** The settings page the manifest declares. */
     val settings: List<PluginSettingSpec> = emptyList(),
 ) {
-    BLANK(R.string.plugin_ide_template_blank_name, R.string.plugin_ide_template_blank_description, null, emptyList()),
+    BLANK(
+        R.string.plugin_ide_template_blank_name,
+        R.string.plugin_ide_template_blank_description,
+        null,
+        emptyList(),
+        apiVersion = PluginManifestCodec.PACKAGE_API,
+    ),
     TEXT_TOOLS(
         R.string.plugin_ide_template_text_tools_name,
         R.string.plugin_ide_template_text_tools_description,

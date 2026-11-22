@@ -10,8 +10,10 @@ export const complete: (a: number, b: number, c: number, d: number, e: number, f
 export const definition: (a: number, b: number, c: number) => [number, number];
 export const diagnosticCodes: () => [number, number];
 export const format: (a: number, b: number) => [number, number];
+export const hover: (a: number, b: number, c: number, d: number, e: number) => [number, number];
 export const inInert: (a: number, b: number, c: number) => number;
 export const opensBlock: (a: number, b: number) => number;
+export const providerTools: () => [number, number];
 export const pysession_cancel: (a: number) => void;
 export const pysession_event: (a: number, b: number, c: number) => [number, number];
 export const pysession_load: (a: number, b: number, c: number) => [number, number];
@@ -25,6 +27,7 @@ export const pysession_transform: (a: number, b: number, c: number, d: number, e
 export const pysession_usage: (a: number) => [number, number];
 export const references: (a: number, b: number, c: number) => [number, number];
 export const rename: (a: number, b: number, c: number, d: number, e: number) => [number, number];
+export const signature: (a: number, b: number, c: number, d: number, e: number) => [number, number];
 export const tokens: (a: number, b: number) => [number, number];
 export const __wbindgen_malloc: (a: number, b: number) => number;
 export const __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;

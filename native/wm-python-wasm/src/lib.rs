@@ -201,6 +201,24 @@ pub fn api_entries() -> String {
     wm_python_tooling::api_json::api_entries()
 }
 
+/// Signature help at the caret; see `api_json::signature`.
+#[wasm_bindgen]
+pub fn signature(source: &str, caret: i32, host: &str) -> String {
+    wm_python_tooling::api_json::signature(source, i64::from(caret), host)
+}
+
+/// What the name at an offset is; see `api_json::hover`.
+#[wasm_bindgen]
+pub fn hover(source: &str, offset: i32, host: &str) -> String {
+    wm_python_tooling::api_json::hover(source, i64::from(offset), host)
+}
+
+/// The provider lists a plugin can answer, with a sample request each.
+#[wasm_bindgen(js_name = providerTools)]
+pub fn provider_tools() -> String {
+    wm_python_tooling::api_json::provider_tools()
+}
+
 #[wasm_bindgen(js_name = inInert)]
 pub fn in_inert(source: &str, offset: i32) -> bool {
     wm_python_tooling::api_json::in_inert(source, i64::from(offset))

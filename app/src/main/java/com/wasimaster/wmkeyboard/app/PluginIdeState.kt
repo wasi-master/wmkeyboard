@@ -203,8 +203,8 @@ internal fun newBlankDraft(workspace: PluginWorkspace, store: PluginStore, name:
         id = uniquePluginId(name, taken),
         name = PluginManifestCodec.sanitise(name, PluginManifestCodec.Field.NAME),
         pluginVersion = "0.1.0",
-        // The blank script uses the API 4 globals.
-        apiVersion = PluginManifestCodec.PYTHON_ONLY_API,
+        // The blank script imports what it uses from the wm package.
+        apiVersion = PluginManifestCodec.PACKAGE_API,
     )
     return workspace.create(manifest, BLANK_PLUGIN_SCRIPT, "blank")
 }
@@ -224,20 +224,19 @@ internal fun uniquePluginId(name: String, taken: Set<String>): String {
 
 /** The plugin a new draft starts as: small, working, and in the house style. */
 internal const val BLANK_PLUGIN_SCRIPT = """# A plugin draws a panel in the keyboard. render() says what the panel shows,
-# and on_event(e) hears what the user pressed.
+# and a button names the function that runs when it is pressed.
 
-count = 0
+from wm import plugin, ui
+
+state = plugin.state(count=0)
 
 
-def on_event(e):
-    global count
-    if e.type == "click" and e.id == "add":
-        count += 1
+def add():
+    state.count += 1
 
 
 def render():
-    return ui.column(
-        ui.label("Pressed " + str(count) + " times", style="title"),
-        ui.button("add", "Press me", style="primary"),
-    )
+    with ui.column():
+        ui.label(f"Pressed {state.count} times", style="title")
+        ui.button("Press me", on_click=add, primary=True, id="add")
 """

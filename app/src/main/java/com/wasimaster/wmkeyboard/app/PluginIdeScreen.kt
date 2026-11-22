@@ -91,6 +91,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -124,7 +125,11 @@ import com.wasimaster.wmkeyboard.core.plugins.PluginSnapshot
 import com.wasimaster.wmkeyboard.core.plugins.PluginStorage
 import com.wasimaster.wmkeyboard.core.plugins.PluginStore
 import com.wasimaster.wmkeyboard.core.plugins.PluginWorkspace
-import com.wasimaster.wmkeyboard.core.plugins.PyApiEntry
+import com.wasimaster.wmkeyboard.core.plugins.PluginActionSpec
+import com.wasimaster.wmkeyboard.core.plugins.PluginProviderSpec
+import com.wasimaster.wmkeyboard.core.plugins.PluginSettingSpec
+import com.wasimaster.wmkeyboard.core.plugins.PluginTryRunner
+import com.wasimaster.wmkeyboard.ime.PluginProviderBridge
 import com.wasimaster.wmkeyboard.core.plugins.PyHostShape
 import com.wasimaster.wmkeyboard.core.plugins.PyOutlineItem
 import com.wasimaster.wmkeyboard.core.plugins.PythonNative
@@ -143,7 +148,7 @@ import kotlinx.coroutines.withContext
 /** How long typing has to pause before the draft is written. */
 private const val AUTOSAVE_MS = 400L
 
-private enum class IdePanel { CLOSED, PREVIEW, CONSOLE, PROBLEMS, OUTLINE, EVENTS, STORAGE }
+private enum class IdePanel { CLOSED, PREVIEW, CONSOLE, PROBLEMS, OUTLINE, EVENTS, STORAGE, TRY }
 
 /** What one pass of the checks found: the problems, and the outline of the last text that parsed. */
 private data class IdeInspection(val diagnostics: List<CodeDiagnostic>, val outline: List<PyOutlineItem>) {
@@ -358,7 +363,12 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
     val ide = remember(draftId) { PluginIdeState(draftId, WorkspaceIdePorts(workspace, store, draftId)) }
     val editor = rememberCodeEditorState(draftId, rules = PythonSmartRules, keepHistory = true) { ide.savedText }
     val scope = rememberCoroutineScope()
-    val preview = remember(draftId) { PluginPreviewSession(workspace, store, post = { body -> scope.launch { body() } }) }
+    // The draft's http and AI reach what its manifest allows, as an installed plugin's do.
+    val editorServices = remember { PluginProviderBridge.editorServices(context) }
+    val preview = remember(draftId) {
+        PluginPreviewSession(workspace, store, post = { body -> scope.launch { body() } }, services = editorServices)
+    }
+    val tryRunner = remember { PluginTryRunner(editorServices) }
     val previewState by preview.state.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     var panel by rememberSaveable { mutableStateOf(IdePanel.CLOSED) }
@@ -445,8 +455,12 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
     val caretNow = editor.value.selection.end
     val positionLine = lineOf(lineStarts, caretNow.coerceIn(0, text.length))
     val positionColumn = caretNow.coerceIn(0, text.length) - lineStarts[positionLine]
-    val apiHere by produceState<PyApiEntry?>(null, text, caretNow) {
-        value = withContext(Dispatchers.Default) { PythonCode.apiAt(text, caretNow) }
+    val host = remember(ide.manifest) { PyHostShape.of(ide.manifest) }
+    // Suggestions read plugin.json as it is now, not as it was saved.
+    SideEffect { PythonCode.host = host }
+    DisposableEffect(Unit) { onDispose { PythonCode.host = null } }
+    val helpHere by produceState<IdeHelp?>(null, text, caretNow, host) {
+        value = withContext(Dispatchers.Default) { ideHelpAt(text, caretNow, host) }
     }
     // The events from runs before this one, taken as it starts, for the Events tab to send again.
     val replayable = remember(previewState.runs) { preview.recordedEvents() }
@@ -459,7 +473,6 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
     }
     // The permission checks follow the manifest as it is edited, not as it was saved.
     val storage = PluginPermission.Storage.wire in ide.manifest.permissions
-    val host = remember(ide.manifest) { PyHostShape.of(ide.manifest) }
     // The tooling is in the on-demand library: the checks wait for it, and the
     // module is asked for as the editor opens.
     val toolingState by PythonNative.moduleState.collectAsStateWithLifecycle()
@@ -530,6 +543,20 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
             } else {
                 snackbar.showSnackbar(context.getString(R.string.plugin_ide_no_definition_message))
             }
+        }
+    }
+    // A fix changes the script, or plugin.json, never both.
+    val applyFix: (CodeDiagnostic) -> Unit = applyFix@{ diagnostic ->
+        val fix = diagnostic.fix ?: return@applyFix
+        val edit = fixEdit(fix, diagnostic.range, editor.value.selection.end)
+        if (edit != null) {
+            editor.applyEdit(edit)
+            return@applyFix
+        }
+        val updated = manifestWith(ide.manifest, fix) ?: return@applyFix
+        scope.launch {
+            val saved = withContext(Dispatchers.IO) { ide.updateManifest(updated) }
+            snackbar.showSnackbar(context.getString(if (saved) R.string.plugin_ide_fix_manifest_message else R.string.plugin_ide_fix_manifest_failed_error))
         }
     }
     val startRename: () -> Unit = {
@@ -861,7 +888,10 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
                 onCommand = onCommand,
                 focusRequester = editorFocus,
             )
-            apiHere?.let { ApiDocStrip(it, rememberCodeColors()) }
+            val codeColors = rememberCodeColors()
+            val fixable = remember(diagnostics, caretNow) { fixableAt(diagnostics, caretNow) }
+            fixable?.let { FixStrip(it, codeColors) { applyFix(it) } }
+            helpHere?.let { IdeHelpStrip(it, codeColors) }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.weight(1f)) {
                     IdePanelBar(panel, problems = diagnostics.size) { chosen -> panel = if (panel == chosen) IdePanel.CLOSED else chosen }
@@ -882,10 +912,11 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
                         IdePanel.CONSOLE -> ConsolePane(preview, previewState.consoleRevision) { line ->
                             editor.moveTo(offsetOfLine(editor.text, line - 1))
                         }
-                        IdePanel.PROBLEMS -> ProblemsPane(diagnostics, lineStarts) { range -> editor.select(range) }
+                        IdePanel.PROBLEMS -> ProblemsPane(diagnostics, lineStarts, onFix = applyFix) { range -> editor.select(range) }
                         IdePanel.OUTLINE -> OutlinePane(inspection.outline, lineStarts) { range -> editor.select(range) }
                         IdePanel.EVENTS -> EventsPane(previewState.targets, replayable, preview::send)
                         IdePanel.STORAGE -> StoragePane(preview.storageOf(draftId), declared = storage, busy = previewState.busy, installed = installedStorage)
+                        IdePanel.TRY -> TryPane(draftId, ide.manifest, { editor.text }, workspace, tryRunner)
                         IdePanel.CLOSED -> Unit
                     }
                 }
@@ -1110,6 +1141,11 @@ private fun IdePanelBar(panel: IdePanel, problems: Int, onSelect: (IdePanel) -> 
             onClick = { onSelect(IdePanel.STORAGE) },
             label = { Text(stringResource(R.string.plugin_ide_storage_label)) },
         )
+        FilterChip(
+            selected = panel == IdePanel.TRY,
+            onClick = { onSelect(IdePanel.TRY) },
+            label = { Text(stringResource(R.string.plugin_ide_try_label)) },
+        )
     }
 }
 
@@ -1263,6 +1299,10 @@ private fun PluginDetailsDialog(manifest: PluginManifest, onDismiss: () -> Unit,
     var hosts by rememberSaveable { mutableStateOf(manifest.hosts.joinToString(", ")) }
     var keyword by rememberSaveable { mutableStateOf(manifest.tool.keyword) }
     var tile by rememberSaveable { mutableStateOf(manifest.tool.tile) }
+    var hasPanel by rememberSaveable { mutableStateOf(manifest.panel) }
+    var providers by rememberSaveableList(manifest.providers, PluginProviderSpec.serializer())
+    var actions by rememberSaveableList(manifest.actions, PluginActionSpec.serializer())
+    var settings by rememberSaveableList(manifest.settings, PluginSettingSpec.serializer())
     val edited = manifest.copy(
         format = PluginManifestCodec.FORMAT,
         name = name,
@@ -1274,6 +1314,10 @@ private fun PluginDetailsDialog(manifest: PluginManifest, onDismiss: () -> Unit,
         permissions = PluginPermission.all.map { it.wire }.filter { it in granted },
         hosts = hosts.split(',', ' ', '\n').map { it.trim() }.filter { it.isNotEmpty() },
         tool = manifest.tool.copy(keyword = keyword.trim(), tile = tile, chip = keyword.isNotBlank()),
+        panel = hasPanel,
+        actions = actions,
+        providers = if (api5) providers else manifest.providers,
+        settings = if (api5) settings else manifest.settings,
     )
     val problems = remember(edited) { PluginManifestCodec.problems(edited) }
     AlertDialog(
@@ -1297,6 +1341,10 @@ private fun PluginDetailsDialog(manifest: PluginManifest, onDismiss: () -> Unit,
                         Checkbox(checked = tile, onCheckedChange = { tile = it })
                         Text(stringResource(R.string.plugin_ide_details_tile_label))
                     }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(checked = hasPanel, onCheckedChange = { hasPanel = it })
+                        Text(stringResource(R.string.plugin_ide_details_panel_label))
+                    }
                 }
                 for (permission in PluginPermission.all.filter { api5 || it.sinceApi < PluginManifestCodec.PACKAGE_API }) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1308,6 +1356,11 @@ private fun PluginDetailsDialog(manifest: PluginManifest, onDismiss: () -> Unit,
                         )
                         Text((if (permission.isRisky) "⚠ " else "") + stringResource(permission.labelRes))
                     }
+                }
+                ActionFields(actions) { actions = it }
+                if (api5) {
+                    ProviderFields(providers) { providers = it }
+                    SettingFields(settings) { settings = it }
                 }
                 for (problem in problems) {
                     Text(

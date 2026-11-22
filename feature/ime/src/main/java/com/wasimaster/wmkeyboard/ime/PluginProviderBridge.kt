@@ -77,6 +77,13 @@ object PluginProviderBridge {
     }
 
     /**
+     * The same services for the plugin editor, whose preview and Try pane run a
+     * draft with no keyboard on screen: the network and the AI, under the
+     * draft's own permissions, hosts and Data saver.
+     */
+    fun editorServices(context: Context): PluginServices = background(context.applicationContext)
+
+    /**
      * The services a provider call gets away from a field: the network, the
      * AI, the plugin's storage and secrets. Everything that needs the field
      * or the keyboard on screen answers that it cannot here.

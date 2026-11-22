@@ -61,7 +61,10 @@ class PluginIdeStateTest {
 
     @Test
     fun `the blank plugin runs and draws its counter`() {
-        val ui = PluginThumbnail.render(InstalledPlugin(id = "my.counter", name = "Counter", version = "0.1.0"), BLANK_PLUGIN_SCRIPT)
+        val ui = PluginThumbnail.render(
+            InstalledPlugin(id = "my.counter", name = "Counter", version = "0.1.0", apiVersion = PluginManifestCodec.PACKAGE_API),
+            BLANK_PLUGIN_SCRIPT,
+        )
         val column = ui!!.root.single() as PluginWidget.Column
         assertEquals("Pressed 0 times", (column.children.first() as PluginWidget.Label).text)
         assertTrue(column.children.any { it is PluginWidget.Button && it.id == "add" && it.primary })

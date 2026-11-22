@@ -225,8 +225,9 @@ pub fn entries(leak: &dyn Fn(String) -> &'static str) -> Vec<ApiEntry> {
     for (path, signature, doc) in MEMBERS {
         out.push(ApiEntry {
             path: leak(format!("{ROOT}.{path}")),
-            kind: ApiKind::Function,
-            signature: Some(signature),
+            // An attribute has no call shape.
+            kind: if signature.is_empty() { ApiKind::Constant } else { ApiKind::Function },
+            signature: (!signature.is_empty()).then_some(*signature),
             permission: None,
             doc,
         });
@@ -234,8 +235,22 @@ pub fn entries(leak: &dyn Fn(String) -> &'static str) -> Vec<ApiEntry> {
     out
 }
 
-/// `(path under wm, signature, doc)` for methods on module-level objects.
+/// `(path under wm, signature, doc)` for the members of module-level objects
+/// and of the classes the package returns; an empty signature is an attribute.
 const MEMBERS: &[(&str, &str, &str)] = &[
+    ("http.Response.status_code", "", "The HTTP status: 200 for a page that came back, 404 for one that does not exist."),
+    ("http.Response.ok", "", "True when the status is under 400."),
+    ("http.Response.headers", "", "The reply's headers, by lowercase name."),
+    ("http.Response.text", "", "The reply's body as text."),
+    ("http.Response.content", "", "The reply's body as bytes."),
+    ("http.Response.url", "", "The address that answered."),
+    ("http.Response.reason", "", "The status in words, such as \"Not Found\"."),
+    ("http.Response.json", "json()", "The body read as JSON: a dict, a list, a string or a number."),
+    ("http.Response.raise_for_status", "raise_for_status()", "Raises http.HTTPError when the status is 400 or more; returns the response otherwise."),
+    ("http.HTTPError.response", "", "The Response that failed, or None."),
+    ("plugin.State.update", "update(**fields)", "Sets several fields at once: state.update(count=0, name=\"\")."),
+    ("plugin.State.as_dict", "as_dict()", "Every field and its value, as a dict."),
+    ("plugin.State.save", "save()", "With persist=True, saves now instead of after the event."),
     (
         "plugin.settings.get",
         "get(name, default=None)",

@@ -75,6 +75,25 @@
     <!-- The word the user types after @ to open this plugin. -->
     <string name="plugin_ide_details_keyword_label">Keyword</string>
     <string name="plugin_ide_details_tile_label">Put it in the toolbox on install</string>
+    <string name="plugin_ide_details_panel_label">It has a panel</string>
+    <string name="plugin_ide_details_add_action">Add</string>
+    <string name="plugin_ide_details_providers_title">Providers</string>
+    <string name="plugin_ide_details_provider_id_label">Id</string>
+    <string name="plugin_ide_details_provider_name_label">Name in the list</string>
+    <string name="plugin_ide_details_provider_images_label">Answers the Images tab too</string>
+    <string name="plugin_ide_details_actions_title">Selection actions</string>
+    <string name="plugin_ide_details_action_id_label">Id</string>
+    <string name="plugin_ide_details_action_name_label">Button text</string>
+    <string name="plugin_ide_details_settings_title">Settings page</string>
+    <string name="plugin_ide_details_setting_key_label">Key</string>
+    <string name="plugin_ide_details_setting_label_label">Label</string>
+    <string name="plugin_ide_details_setting_options_label">Options, comma separated</string>
+    <string name="plugin_ide_details_setting_text">Text</string>
+    <string name="plugin_ide_details_setting_switch">Switch</string>
+    <string name="plugin_ide_details_setting_number">Number</string>
+    <string name="plugin_ide_details_setting_choice">Choice</string>
+    <string name="plugin_ide_details_setting_host">Server address</string>
+    <string name="plugin_ide_details_setting_secret">Secret</string>
 
     <!-- ================================================================== -->
     <!-- The panel under the code: the preview and the console.             -->
@@ -253,4 +272,35 @@
 
     <string name="plugin_ide_code_keys_action">Code keys</string>
 
+    <!-- One-tap fixes, on the strip under the code and in Problems -->
+    <string name="plugin_ide_fix_replace">Change to %1$s</string>
+    <string name="plugin_ide_fix_import">Add the import</string>
+    <string name="plugin_ide_fix_stub">Add a stub</string>
+    <string name="plugin_ide_fix_permission">Add the %1$s permission</string>
+    <string name="plugin_ide_fix_host">Add %1$s to hosts</string>
+    <string name="plugin_ide_fix_provider">Declare it in plugin.json</string>
+    <string name="plugin_ide_fix_action">Add the action</string>
+    <string name="plugin_ide_fix_keyword">Use @%1$s</string>
+    <string name="plugin_ide_fix_setting">Add a setting %1$s</string>
+    <string name="plugin_ide_fix_manifest_message">plugin.json updated</string>
+    <string name="plugin_ide_fix_manifest_failed_error">Couldn\'t save plugin.json</string>
+    <!-- The Try pane: call a provider or a selection action the way the keyboard would -->
+    <string name="plugin_ide_try_label">Try</string>
+    <string name="plugin_ide_try_empty">Declare a provider or a selection action in Details, then try it here as the keyboard would call it.</string>
+    <string name="plugin_ide_try_request_label">Request (JSON)</string>
+    <string name="plugin_ide_try_text_label">Selected text</string>
+    <string name="plugin_ide_try_run_action">Try it</string>
+    <string name="plugin_ide_try_took">%1$d ms</string>
+    <string name="plugin_ide_try_reply_label">Reply</string>
+    <string name="plugin_ide_try_bad_json">The request isn\'t valid JSON.</string>
+    <string name="plugin_ide_try_not_ready">The plugin library isn\'t downloaded yet.</string>
+    <string name="plugin_ide_try_too_long">It took too long and was stopped.</string>
+    <string name="plugin_ide_try_error_line">%1$s (line %2$d)</string>
+    <string name="plugin_ide_try_nothing">It returned nothing, so the list asks its next row.</string>
+    <string name="plugin_ide_try_unread">The list finds nothing it can use in this reply.</string>
+    <string name="plugin_ide_try_returned">It returned this. Check its shape against the providers guide.</string>
+    <plurals name="plugin_ide_try_read">
+        <item quantity="one">The list reads %d item from this reply.</item>
+        <item quantity="other">The list reads %d items from this reply.</item>
+    </plurals>
 </resources>

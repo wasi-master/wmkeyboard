@@ -111,8 +111,7 @@ html[data-theme='dark'] {
 	z-index: 5;
 	min-width: 180px;
 	max-width: 320px;
-	max-height: calc(36px * 5);
-	overflow-y: auto;
+	overflow: hidden;
 	background: var(--wmc-gutter);
 	border: 1px solid var(--wmc-border);
 	border-radius: 8px;
@@ -142,6 +141,57 @@ html[data-theme='dark'] {
 .wmc-kind-value { color: var(--wmc-string); }
 .wmc-label { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .wmc-detail { margin-left: 10px; color: var(--wmc-gutter-text); font-size: 0.85em; overflow: hidden; text-overflow: ellipsis; }
+.wmc-completion-items { max-height: calc(36px * 5); overflow-y: auto; }
+.wmc-completion-doc {
+	padding: 6px 10px;
+	border-top: 1px solid var(--wmc-border);
+	color: var(--wmc-gutter-text);
+	font-family: var(--st-font, system-ui, sans-serif);
+	font-size: 0.8em;
+	white-space: normal;
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+/* a mouse resting on a name */
+.wmc-hover {
+	position: absolute;
+	z-index: 6;
+	max-width: 320px;
+	padding: 6px 10px;
+	background: var(--wmc-gutter);
+	border: 1px solid var(--wmc-border);
+	border-radius: 6px;
+	box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+	pointer-events: none;
+	font-size: 0.8rem;
+}
+.wmc-hover-title { font-family: var(--wmc-mono); color: var(--wmc-function); overflow-wrap: anywhere; }
+.wmc-hover-doc { color: var(--wmc-text); margin-top: 2px; }
+
+/* the call being typed, and the fix for the problem at the caret */
+.wm-sig-active { color: var(--wmc-keyword); font-weight: 700; text-decoration: underline; }
+.wm-sig-param { color: var(--wmc-text); white-space: normal; }
+.wm-sig-param code { color: var(--wmc-keyword); margin-right: 6px; }
+.wm-fix {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 2px 4px 2px 12px;
+	background: var(--wmc-gutter);
+	font-size: 0.8rem;
+}
+.wm-fix-text { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wm-fix-error { color: var(--wmc-problem); }
+.wm-fix-warning { color: var(--wmc-warning); }
+.wm-fix-info { color: var(--wmc-gutter-text); }
+.wm-try textarea { font-family: var(--wmc-mono); width: 100%; }
+.wm-try pre { font-family: var(--wmc-mono); font-size: 0.8rem; white-space: pre-wrap; margin: 4px 0; }
+.wm-rows { display: flex; flex-direction: column; gap: 6px; }
+.wm-rows-item { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.wm-rows-item .st-input { flex: 1 1 120px; min-width: 0; }
 
 /* ---------- the screen ---------- */
 .wm-ide {

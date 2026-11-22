@@ -371,6 +371,38 @@ export function format(source) {
 }
 
 /**
+ * What the name at an offset is; see `api_json::hover`.
+ * @param {string} source
+ * @param {number} offset
+ * @param {string} host
+ * @returns {string}
+ */
+export function hover(source, offset, host) {
+    let deferred4_0;
+    let deferred4_1;
+    try {
+        const val3 = +offset;
+        let ptr0, len0, ptr1, len1;
+        try {
+            ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            len0 = WASM_VECTOR_LEN;
+            ptr1 = passStringToWasm0(host, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            len1 = WASM_VECTOR_LEN;
+        } catch (e) {
+            if (ptr1) { wasm.__wbindgen_free(ptr1, len1 * 1, 1); }
+            if (ptr0) { wasm.__wbindgen_free(ptr0, len0 * 1, 1); }
+            throw e;
+        }
+        const ret = wasm.hover(ptr0, len0, val3, ptr1, len1);
+        deferred4_0 = ret[0];
+        deferred4_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred4_0, deferred4_1, 1);
+    }
+}
+
+/**
  * @param {string} source
  * @param {number} offset
  * @returns {boolean}
@@ -392,6 +424,23 @@ export function opensBlock(line) {
     const len0 = WASM_VECTOR_LEN;
     const ret = wasm.opensBlock(ptr0, len0);
     return ret !== 0;
+}
+
+/**
+ * The provider lists a plugin can answer, with a sample request each.
+ * @returns {string}
+ */
+export function providerTools() {
+    let deferred1_0;
+    let deferred1_1;
+    try {
+        const ret = wasm.providerTools();
+        deferred1_0 = ret[0];
+        deferred1_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+    }
 }
 
 /**
@@ -438,6 +487,38 @@ export function rename(source, caret, new_name) {
             throw e;
         }
         const ret = wasm.rename(ptr0, len0, val3, ptr1, len1);
+        deferred4_0 = ret[0];
+        deferred4_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred4_0, deferred4_1, 1);
+    }
+}
+
+/**
+ * Signature help at the caret; see `api_json::signature`.
+ * @param {string} source
+ * @param {number} caret
+ * @param {string} host
+ * @returns {string}
+ */
+export function signature(source, caret, host) {
+    let deferred4_0;
+    let deferred4_1;
+    try {
+        const val3 = +caret;
+        let ptr0, len0, ptr1, len1;
+        try {
+            ptr0 = passStringToWasm0(source, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            len0 = WASM_VECTOR_LEN;
+            ptr1 = passStringToWasm0(host, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            len1 = WASM_VECTOR_LEN;
+        } catch (e) {
+            if (ptr1) { wasm.__wbindgen_free(ptr1, len1 * 1, 1); }
+            if (ptr0) { wasm.__wbindgen_free(ptr0, len0 * 1, 1); }
+            throw e;
+        }
+        const ret = wasm.signature(ptr0, len0, val3, ptr1, len1);
         deferred4_0 = ret[0];
         deferred4_1 = ret[1];
         return getStringFromWasm0(ret[0], ret[1]);

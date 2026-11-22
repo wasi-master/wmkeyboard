@@ -4,7 +4,7 @@ mod common;
 
 use common::*;
 use wm_python_tooling::diagnostics::{Code, Severity, MAX_DIAGNOSTICS};
-use wm_python_tooling::document::{Host, Verdict};
+use wm_python_tooling::document::{Host, SettingSpec, Verdict};
 
 fn host() -> Host {
     Host::default()
@@ -18,6 +18,66 @@ fn with(f: impl FnOnce(&mut Host)) -> Host {
     let mut h = Host::default();
     f(&mut h);
     h
+}
+
+
+/// An API 5 plugin whose manifest lists nothing, changed by [f].
+fn manifest(f: impl FnOnce(&mut Host)) -> Host {
+    let mut h = Host {
+        api: Some(5),
+        permissions: Some(vec!["network".into(), "storage".into()]),
+        hosts: Some(vec![]),
+        providers: Some(vec![]),
+        settings: Some(vec![]),
+        keyword: Some(String::new()),
+        actions: Some(vec![]),
+        panel: Some(true),
+        ..Host::default()
+    };
+    f(&mut h);
+    h
+}
+
+fn network() -> Host {
+    manifest(|h| h.hosts = Some(vec!["api.example.com".into()]))
+}
+
+fn declared(providers: &[(&str, &str)]) -> Host {
+    manifest(|h| h.providers = Some(providers.iter().map(|(t, i)| (t.to_string(), i.to_string())).collect()))
+}
+
+fn units() -> Host {
+    manifest(|h| h.settings = Some(vec![SettingSpec { key: "units".into(), kind: "choice".into(), label: String::new(), options: vec![] }]))
+}
+
+/// A provider plugin answering [tool], as [id] when one is given.
+fn provider(tool: &str, id: &str) -> String {
+    let args = if id.is_empty() { format!("\"{tool}\"") } else { format!("\"{tool}\", \"{id}\"") };
+    format!("from wm import plugin\n\n\n@plugin.provider({args})\ndef answer(request):\n    return request\n")
+}
+
+/// A case whose near miss needs a different manifest than its earning script.
+trait WithMiss {
+    fn with_miss(self, f: impl FnOnce(&mut Host)) -> Host;
+}
+
+impl WithMiss for Host {
+    fn with_miss(self, f: impl FnOnce(&mut Host)) -> Host {
+        let mut miss = self.clone();
+        f(&mut miss);
+        MISS_HOSTS.with(|m| m.borrow_mut().push((format!("{self:?}"), miss)));
+        self
+    }
+}
+
+thread_local! {
+    static MISS_HOSTS: std::cell::RefCell<Vec<(String, Host)>> = const { std::cell::RefCell::new(Vec::new()) };
+}
+
+/// The host a near miss is judged with: its case's own, unless the case set another.
+fn miss_host(earns: &Host) -> Host {
+    let key = format!("{earns:?}");
+    MISS_HOSTS.with(|m| m.borrow().iter().find(|(k, _)| *k == key).map(|(_, h)| h.clone())).unwrap_or_else(|| earns.clone())
 }
 
 const ON_EVENT: &str = "def render():\n    return ui.column(ui.button(\"ok\", \"OK\"))\n\n\ndef on_event(e):\n";
@@ -81,6 +141,21 @@ fn cases() -> Vec<(&'static str, String, String, Host)> {
         ("too_many_tabs", format!("x = ui.tabs('t', {})\n", vec!["ui.page('p')"; 9].join(", ")), format!("x = ui.tabs('t', {})\n", vec!["ui.page('p')"; 8].join(", ")), host()),
         ("loop_never_ends", s("while True:\n    x = 1\n"), s("while True:\n    x = 1\n    break\n"), host()),
         ("unreachable", s("def f():\n    return 1\n    x = 2\n"), s("def f():\n    x = 2\n    return x\n"), host()),
+        ("permission_missing", s("from wm import http\n"), s("from wm import http\n"), manifest(|h| h.permissions = Some(vec![])).with_miss(|h| h.permissions = Some(vec!["network".into()]))),
+        ("host_missing", s("from wm import http\nr = http.get(\"https://elsewhere.org/x\")\n"), s("from wm import http\nr = http.get(\"https://api.example.com/x\")\n"), network()),
+        ("unknown_provider_tool", s(&provider("zzzzzzzz", "")), s(&provider("search", "")), declared(&[("search", "search")])),
+        ("provider_tool_typo", s(&provider("serch", "")), s(&provider("search", "")), declared(&[("search", "search")])),
+        ("provider_not_declared", s(&provider("search", "ddg")), s(&provider("search", "")), declared(&[("search", "search")])),
+        ("provider_unanswered", s("from wm import plugin\n\nx = plugin.id\n"), s(&provider("search", "")), declared(&[("search", "search")])),
+        ("action_unanswered", s("from wm import plugin\n\nx = plugin.id\n"), s("from wm import plugin\n\n\n@plugin.action(\"shout\")\ndef shout(text):\n    return text\n"), manifest(|h| h.actions = Some(vec!["shout".into()]))),
+        ("keyword_not_declared", s("from wm import plugin\n\n\n@plugin.keyword(\"define\")\ndef f(text):\n    return text\n"), s("from wm import plugin\n\n\n@plugin.keyword(\"define\")\ndef f(text):\n    return text\n"), manifest(|h| h.keyword = Some(String::new())).with_miss(|h| h.keyword = Some("define".into()))),
+        ("unknown_setting", s("from wm import plugin\n\nx = plugin.settings.zzzzzzzz\n"), s("from wm import plugin\n\nx = plugin.settings.units\n"), units()),
+        ("setting_typo", s("from wm import plugin\n\nx = plugin.settings.unit\n"), s("from wm import plugin\n\nx = plugin.settings.units\n"), units()),
+        ("unknown_argument", s("from wm import ui\n\nx = ui.label(\"a\", zzzzzzzz=1)\n"), s("from wm import ui\n\nx = ui.label(\"a\", style=\"title\")\n"), host()),
+        ("argument_typo", s("from wm import ui\n\nx = ui.label(\"a\", styel=\"title\")\n"), s("from wm import ui\n\nx = ui.label(\"a\", style=\"title\")\n"), host()),
+        ("unknown_value", s("from wm import ui\n\nx = ui.label(\"a\", style=\"zzzzzzzz\")\n"), s("from wm import ui\n\nx = ui.label(\"a\", style=\"title\")\n"), host()),
+        ("value_typo", s("from wm import ui\n\nx = ui.label(\"a\", style=\"titel\")\n"), s("from wm import ui\n\nx = ui.label(\"a\", style=\"title\")\n"), host()),
+        ("wm_not_imported", s("x = plugin.id\n"), s("from wm import plugin\n\nx = plugin.id\n"), host()),
     ]
 }
 
@@ -90,7 +165,7 @@ fn every_code_has_a_case_that_earns_it_and_a_near_miss_that_does_not() {
     for (code, earns, misses, host) in &cases {
         let found = codes(earns, host);
         assert!(found.contains(code), "{code}: {earns:?} gave {found:?}");
-        let near = codes(misses, host);
+        let near = codes(misses, &miss_host(host));
         assert!(!near.contains(code), "{code}: near miss {misses:?} gave {near:?}");
     }
     // will_not_run is the verdict, tested below; every other code is covered here.

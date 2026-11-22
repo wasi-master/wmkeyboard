@@ -5,6 +5,7 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -62,7 +63,70 @@ class PyTokens(val source: String, private val packed: IntArray) {
 enum class PySeverity { ERROR, WARNING, INFO }
 
 /** One problem. [code] names its message (`py_diag_<code>` in the app); [args] fill it. */
-data class PyDiagnostic(val code: String, val severity: PySeverity, val span: PySpan, val args: List<String>)
+data class PyDiagnostic(
+    val code: String,
+    val severity: PySeverity,
+    val span: PySpan,
+    val args: List<String>,
+    /** What one tap does about it, when there is one obvious thing. */
+    val fix: PyFix? = null,
+)
+
+/** A change that settles a diagnostic: to the script, or to plugin.json. */
+sealed interface PyFix {
+    /** Put [text] in place of the diagnostic's span. */
+    data class Replace(val text: String) : PyFix
+
+    /** Insert [text] at [at]. */
+    data class Insert(val at: Int, val text: String) : PyFix
+
+    /** Add the permission [wire] to plugin.json. */
+    data class Permission(val wire: String) : PyFix
+
+    /** Add [host] to plugin.json's hosts. */
+    data class Host(val host: String) : PyFix
+
+    /** Declare the provider [tool]/[id] in plugin.json. */
+    data class Provider(val tool: String, val id: String) : PyFix
+
+    /** List the selection action [id] in plugin.json. */
+    data class Action(val id: String) : PyFix
+
+    /** Set plugin.json's tool.keyword to [word]. */
+    data class Keyword(val word: String) : PyFix
+
+    /** Add a text setting [key] to plugin.json. */
+    data class Setting(val key: String) : PyFix
+}
+
+/** The call around the caret, with the argument being typed. */
+data class PySignature(
+    /** `http.get(url, params=None, **options)`. */
+    val label: String,
+    /** Each parameter's place in [label]. */
+    val params: List<PySpan>,
+    val names: List<String>,
+    /** The parameter the caret is in, or -1. */
+    val active: Int,
+    val doc: String,
+    /** What the active parameter takes, in words, when the editor knows. */
+    val paramDoc: String?,
+    val values: List<String>,
+)
+
+/** What a name is: for a long press, or a pointer resting on it. */
+data class PyHover(val span: PySpan, val title: String, val doc: String, val kind: String)
+
+/** A provider list a plugin can answer, with a request as the keyboard sends one. */
+data class PyProviderTool(
+    val tool: String,
+    val label: String,
+    /** The request's keys, each with what it holds. */
+    val request: List<Pair<String, String>>,
+    /** A request to try the provider with, as JSON. */
+    val sample: String,
+    val reply: String,
+)
 
 /** A named thing for the outline, [depth] levels inside other functions. */
 data class PyOutlineItem(val name: String, val kind: String, val depth: Int, val span: PySpan, val nameSpan: PySpan)
@@ -82,6 +146,10 @@ data class PyCompletionItem(
     val caret: Int,
     val detail: String?,
     val docPath: String?,
+    /** Its doc, one paragraph. */
+    val doc: String? = null,
+    /** Choosing it leaves a blank with suggestions of its own, so the list opens again. */
+    val reopen: Boolean = false,
 )
 
 data class PyCompletions(val replace: PySpan, val items: List<PyCompletionItem>)
@@ -116,9 +184,16 @@ data class PyHostShape(
     val selection: Boolean,
     val panel: Boolean,
     val actions: List<String>,
+    /**
+     * The whole plugin.json, for the API 5 checks and suggestions: its
+     * permissions, hosts, providers, settings and keyword.
+     */
+    val manifest: PluginManifest? = null,
+    /** The plugin's own other modules, by dotted name. */
+    val modules: List<String> = emptyList(),
 ) {
     companion object {
-        fun of(manifest: PluginManifest): PyHostShape {
+        fun of(manifest: PluginManifest, modules: List<String> = emptyList()): PyHostShape {
             val permissions = manifest.permissions.mapNotNull { PluginPermission.parse(it) }.toSet()
             return PyHostShape(
                 storage = PluginPermission.Storage in permissions,
@@ -126,6 +201,8 @@ data class PyHostShape(
                 selection = PluginPermission.SelectedText in permissions,
                 panel = manifest.panel,
                 actions = manifest.actions.map { it.id },
+                manifest = manifest,
+                modules = modules,
             )
         }
     }
@@ -179,6 +256,8 @@ object PythonTooling {
                 caret = item.int("caret") ?: -1,
                 detail = item.string("detail"),
                 docPath = item.string("docPath"),
+                doc = item.string("doc"),
+                reopen = (item["reopen"] as? JsonPrimitive)?.booleanOrNull ?: false,
             )
         }
         return PyCompletions(PySpan(start, end), items)
@@ -211,6 +290,72 @@ object PythonTooling {
         return (parse(PythonNative.nativeApiAt(source, caret)) as? JsonObject)?.let { apiEntry(it) }
     }
 
+    /**
+     * The call around [caret] and the argument being typed, or null outside a
+     * call. Null too on a library older than signature help.
+     */
+    fun signature(source: String, caret: Int, host: PyHostShape?): PySignature? {
+        if (!ready) return null
+        val text = newer { PythonNative.nativeSignature(source, caret, hostJson(host, null)) } ?: return null
+        val root = parse(text) as? JsonObject ?: return null
+        return PySignature(
+            label = root.string("label") ?: return null,
+            params = root.array("params").mapNotNull { pair(it) },
+            names = root.array("names").mapNotNull { (it as? JsonPrimitive)?.contentOrNull },
+            active = root.int("active") ?: -1,
+            doc = root.string("doc").orEmpty(),
+            paramDoc = root.string("paramDoc"),
+            values = root.array("values").mapNotNull { (it as? JsonPrimitive)?.contentOrNull },
+        )
+    }
+
+    /** What the name at [offset] is, or null. */
+    fun hover(source: String, offset: Int, host: PyHostShape?): PyHover? {
+        if (!ready) return null
+        val text = newer { PythonNative.nativeHover(source, offset, hostJson(host, null)) } ?: return null
+        val root = parse(text) as? JsonObject ?: return null
+        return PyHover(
+            span = PySpan(root.int("start") ?: return null, root.int("end") ?: return null),
+            title = root.string("title") ?: return null,
+            doc = root.string("doc").orEmpty(),
+            kind = root.string("kind").orEmpty(),
+        )
+    }
+
+    /** The provider lists a plugin can answer, read once. */
+    val providerTools: List<PyProviderTool>
+        get() = cachedTools ?: run {
+            if (!ready) return emptyList()
+            val text = newer { PythonNative.nativeProviderTools() } ?: return emptyList()
+            (parse(text) as? JsonArray).orEmpty().mapNotNull { element ->
+                val item = element as? JsonObject ?: return@mapNotNull null
+                PyProviderTool(
+                    tool = item.string("tool") ?: return@mapNotNull null,
+                    label = item.string("label").orEmpty(),
+                    request = item.array("request").mapNotNull { pair ->
+                        val array = pair as? JsonArray ?: return@mapNotNull null
+                        val key = (array.getOrNull(0) as? JsonPrimitive)?.contentOrNull ?: return@mapNotNull null
+                        key to ((array.getOrNull(1) as? JsonPrimitive)?.contentOrNull.orEmpty())
+                    },
+                    sample = item.string("sample") ?: "{}",
+                    reply = item.string("reply").orEmpty(),
+                )
+            }.also { cachedTools = it }
+        }
+
+    @Volatile
+    private var cachedTools: List<PyProviderTool>? = null
+
+    /**
+     * A call into a part of the library added after the first release: the
+     * library is downloaded on its own, so an older copy may lack it.
+     */
+    private inline fun newer(call: () -> String): String? = try {
+        call()
+    } catch (_: UnsatisfiedLinkError) {
+        null
+    }
+
     /** The whole API, read once. Empty while the library is missing, and then asked again next time. */
     val api: PyApiModel
         get() = cachedApi ?: run {
@@ -230,11 +375,13 @@ object PythonTooling {
 
     private fun hostJson(host: PyHostShape?, verdict: String?): String = buildJsonObject {
         if (host != null) {
+            host.manifest?.let { manifest -> parse(PluginManifestCodec.encode(manifest))?.let { put("manifest", it) } }
             put("storage", host.storage)
             put("reminders", host.reminders)
             put("selection", host.selection)
             put("panel", host.panel)
             put("actions", buildJsonArray { host.actions.forEach { add(JsonPrimitive(it)) } })
+            if (host.modules.isNotEmpty()) put("modules", buildJsonArray { host.modules.forEach { add(JsonPrimitive(it)) } })
         }
         verdict?.let { parse(it) }?.let { put("verdict", it) }
     }.toString()
@@ -250,7 +397,23 @@ object PythonTooling {
             },
             span = PySpan(item.int("start") ?: return null, item.int("end") ?: return null),
             args = item.array("args").mapNotNull { (it as? JsonPrimitive)?.contentOrNull },
+            fix = (item["fix"] as? JsonObject)?.let { fix(it) },
         )
+    }
+
+    private fun fix(item: JsonObject): PyFix? {
+        val value = item.string("value")
+        return when (item.string("kind")) {
+            "replace" -> PyFix.Replace(item.string("text") ?: return null)
+            "insert" -> PyFix.Insert(item.int("at") ?: return null, item.string("text") ?: return null)
+            "permission" -> PyFix.Permission(value ?: return null)
+            "host" -> PyFix.Host(value ?: return null)
+            "provider" -> PyFix.Provider(item.string("tool") ?: return null, item.string("id") ?: return null)
+            "action" -> PyFix.Action(value ?: return null)
+            "keyword" -> PyFix.Keyword(value ?: return null)
+            "setting" -> PyFix.Setting(value ?: return null)
+            else -> null
+        }
     }
 
     private fun outline(element: JsonElement): PyOutlineItem? {

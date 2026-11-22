@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.app
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 private val ROW_HEIGHT = 36.dp
@@ -53,6 +55,8 @@ internal data class CodeCompletion(
      * opens again at the new caret.
      */
     val reopen: Boolean = false,
+    /** What it is, one paragraph, shown under the list while it is the lit row. */
+    val doc: String? = null,
 )
 
 /** Suggestions for one caret, and the text a chosen one replaces. */
@@ -99,15 +103,19 @@ internal fun CodeCompletionList(
     LaunchedEffect(chosen) {
         if (chosen in completions.items.indices) list.scrollToItem(maxOf(0, chosen - VISIBLE_ROWS + 1))
     }
-    LazyColumn(
-        state = list,
+    // The lit row's doc, or the first row's while nothing is lit: what a tap would write.
+    val doc = (completions.items.getOrNull(chosen) ?: completions.items.firstOrNull())?.doc
+    Column(
         modifier = modifier
             .widthIn(min = 180.dp, max = 320.dp)
-            .heightIn(max = ROW_HEIGHT * VISIBLE_ROWS)
             .shadow(6.dp, shape)
             .clip(shape)
             .background(colors.gutter)
             .border(1.dp, colors.border, shape),
+    ) {
+    LazyColumn(
+        state = list,
+        modifier = Modifier.heightIn(max = ROW_HEIGHT * VISIBLE_ROWS),
     ) {
         itemsIndexed(completions.items) { index, item ->
             Row(
@@ -147,9 +155,26 @@ internal fun CodeCompletionList(
             }
         }
     }
+    if (!doc.isNullOrBlank()) {
+        Text(
+            doc,
+            color = colors.gutterText,
+            style = style.copy(fontSize = style.fontSize * DETAIL_SCALE, fontFamily = null),
+            maxLines = DOC_LINES,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(Dp.Hairline, colors.border)
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+        )
+    }
+    }
 }
 
 private const val DETAIL_SCALE = 0.85f
+
+/** How much of a suggestion's doc shows under the list; the strip under the code has the rest. */
+private const val DOC_LINES = 3
 
 /** A mark in code characters rather than words, so nothing here needs translating. */
 private fun kindMark(kind: CodeCompletionKind): String = when (kind) {

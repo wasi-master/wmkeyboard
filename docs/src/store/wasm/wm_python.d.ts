@@ -71,13 +71,28 @@ export function diagnosticCodes(): string;
 
 export function format(source: string): string;
 
+/**
+ * What the name at an offset is; see `api_json::hover`.
+ */
+export function hover(source: string, offset: number, host: string): string;
+
 export function inInert(source: string, offset: number): boolean;
 
 export function opensBlock(line: string): boolean;
 
+/**
+ * The provider lists a plugin can answer, with a sample request each.
+ */
+export function providerTools(): string;
+
 export function references(source: string, caret: number): string;
 
 export function rename(source: string, caret: number, new_name: string): string;
+
+/**
+ * Signature help at the caret; see `api_json::signature`.
+ */
+export function signature(source: string, caret: number, host: string): string;
 
 /**
  * Triples `word, start, end`; `word = kind | unterminated << 8 | name_style << 12`.
@@ -97,8 +112,10 @@ export interface InitOutput {
     readonly definition: (a: number, b: number, c: number) => [number, number];
     readonly diagnosticCodes: () => [number, number];
     readonly format: (a: number, b: number) => [number, number];
+    readonly hover: (a: number, b: number, c: number, d: number, e: number) => [number, number];
     readonly inInert: (a: number, b: number, c: number) => number;
     readonly opensBlock: (a: number, b: number) => number;
+    readonly providerTools: () => [number, number];
     readonly pysession_cancel: (a: number) => void;
     readonly pysession_event: (a: number, b: number, c: number) => [number, number];
     readonly pysession_load: (a: number, b: number, c: number) => [number, number];
@@ -112,6 +129,7 @@ export interface InitOutput {
     readonly pysession_usage: (a: number) => [number, number];
     readonly references: (a: number, b: number, c: number) => [number, number];
     readonly rename: (a: number, b: number, c: number, d: number, e: number) => [number, number];
+    readonly signature: (a: number, b: number, c: number, d: number, e: number) => [number, number];
     readonly tokens: (a: number, b: number) => [number, number];
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;

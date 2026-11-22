@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -38,7 +39,12 @@ import com.wasimaster.wmkeyboard.core.plugins.PyOutlineItem
  * its sentence and its line. A tap selects the text the problem is about.
  */
 @Composable
-internal fun ProblemsPane(diagnostics: List<CodeDiagnostic>, lineStarts: List<Int>, onJump: (TextRange) -> Unit) {
+internal fun ProblemsPane(
+    diagnostics: List<CodeDiagnostic>,
+    lineStarts: List<Int>,
+    onFix: (CodeDiagnostic) -> Unit = {},
+    onJump: (TextRange) -> Unit,
+) {
     if (diagnostics.isEmpty()) {
         EmptyPane(R.string.plugin_ide_problems_empty)
         return
@@ -82,6 +88,11 @@ internal fun ProblemsPane(diagnostics: List<CodeDiagnostic>, lineStarts: List<In
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.weight(1f).padding(start = 10.dp),
                 )
+                diagnostic.fix?.let { fix ->
+                    TextButton(onClick = { onFix(diagnostic) }, modifier = Modifier.padding(start = 4.dp)) {
+                        Text(fixLabel(context, fix), style = MaterialTheme.typography.labelSmall, maxLines = 1)
+                    }
+                }
                 Text(
                     stringResource(R.string.plugin_ide_console_line_label, line),
                     style = MaterialTheme.typography.labelSmall,

@@ -10,7 +10,38 @@ use crate::api::{self, ApiKind};
 use crate::ast::*;
 use crate::diagnostics::{Code, Diagnostic};
 use crate::document::{Document, Host};
+use crate::keyboard::{self, Decorated};
 use crate::text::{closest, Span};
+
+/// Package modules a plugin uses by name once imported from `wm`.
+const WM_MODULES: &[&str] = &[
+    "plugin", "http", "ai", "field", "clipboard", "location", "files", "sensors", "scan", "device", "share", "notify",
+    "secrets", "reminders", "storage", "calendar", "todo", "keyboard", "clock",
+];
+
+/// The permission a package name needs, beyond what its module's entry says.
+fn permission_of(short: &str) -> Option<&'static str> {
+    Some(match short {
+        "storage" | "secrets" => "storage",
+        "clipboard.get" | "clipboard.paste" => "clipboard.read",
+        "clipboard.set" | "clipboard.copy" => "clipboard.write",
+        "field.text_before" | "field.text_after" | "field.selection" | "field.info" => "field.read",
+        "field.replace_selection" | "field.delete" | "field.insert" => "field.write",
+        _ => {
+            let module = short.split('.').next().unwrap_or(short);
+            let path = format!("{}.{module}", crate::package::ROOT);
+            return api::model().find(&path).and_then(|e| e.permission);
+        }
+    })
+}
+
+/// The host of an address: `api.example.com` for `https://api.example.com:8443/x?y`.
+fn host_of(url: &str) -> Option<String> {
+    let rest = url.strip_prefix("https://").or_else(|| url.strip_prefix("http://"))?;
+    let host: String = rest.chars().take_while(|c| !matches!(c, '/' | ':' | '?' | '#')).collect();
+    let host = host.rsplit('@').next().unwrap_or(&host).trim_end_matches('.').to_lowercase();
+    (!host.is_empty() && !host.contains('{')).then_some(host)
+}
 
 pub fn run(doc: &Document, host: &Host, out: &mut Vec<Diagnostic>) {
     let mut c = Checks { doc, a: &doc.analysis, host, out };
@@ -25,6 +56,7 @@ pub fn run(doc: &Document, host: &Host, out: &mut Vec<Diagnostic>) {
     c.contract(clean);
     c.events();
     c.widgets();
+    c.keyboard(clean);
     c.flow();
 }
 
@@ -69,6 +101,8 @@ impl<'a> Checks<'a> {
                 self.add(Code::MissingBuiltin, o.span, &[name]);
             } else if api::MODULES.contains(&name) {
                 self.add(Code::ModuleNotImported, o.span, &[name]);
+            } else if WM_MODULES.contains(&name) && self.host.api != Some(4) {
+                self.add(Code::WmNotImported, o.span, &[name]);
             } else {
                 let mut known: Vec<String> = a.visible_at(o.span.start).iter().map(|s| s.name.clone()).collect();
                 known.extend(api::API_GLOBALS.iter().map(|s| s.to_string()));
@@ -276,7 +310,9 @@ impl<'a> Checks<'a> {
             self.add(Code::MissingRender, first_line, &[]);
         }
         let has_actions = self.host.actions.as_ref().is_some_and(|v| !v.is_empty());
-        if clean && has_actions && !defined("transform") {
+        // API 5 answers actions with @plugin.action; action_unanswered covers it.
+        let package = self.host.api5() || keyboard::imports_wm(a);
+        if clean && has_actions && !defined("transform") && !package {
             self.add(Code::MissingTransform, first_line, &[]);
         }
         if let Some(f) = a.top_function("render") {
@@ -457,6 +493,271 @@ impl<'a> Checks<'a> {
                     }
                 }
             }
+        }
+    }
+
+    // ---- the keyboard ------------------------------------------------------
+
+    fn keyboard(&mut self, clean: bool) {
+        let a = self.a;
+        let h = self.host;
+        let decorated = keyboard::decorated(&self.doc.module, a);
+        self.permissions();
+        self.package_calls();
+        for d in &decorated {
+            self.decorator(d);
+        }
+        self.settings_used();
+        let package = h.api5() || keyboard::imports_wm(a);
+        if !clean || !package {
+            return;
+        }
+        let units = self.doc.units();
+        let first_line = self.doc.lines.trimmed(units, 1);
+        let anchor = if first_line.is_empty() { Span::new(0, self.doc.lines.end(units, 0)) } else { first_line };
+        let answered: HashSet<(String, String)> = decorated
+            .iter()
+            .filter(|d| d.what == "plugin.provider")
+            .filter_map(|d| d.provider().map(|(t, i, _)| (t, i)))
+            .collect();
+        for (tool, id) in h.providers.iter().flatten() {
+            if keyboard::provider_tool(tool).is_some() && !answered.contains(&(tool.clone(), id.clone())) {
+                self.add(Code::ProviderUnanswered, anchor, &[tool, id]);
+            }
+        }
+        if a.module_symbol("transform").is_none() {
+            let actions: HashSet<&str> = decorated.iter().filter(|d| d.what == "plugin.action").filter_map(|d| d.literal(0, "id").map(|(v, _)| v)).collect();
+            for id in h.actions.iter().flatten() {
+                if !actions.contains(id.as_str()) {
+                    self.add(Code::ActionUnanswered, anchor, &[id]);
+                }
+            }
+        }
+    }
+
+    /// Package names whose permission plugin.json does not declare.
+    fn permissions(&mut self) {
+        let h = self.host;
+        if h.permissions.is_none() {
+            return;
+        }
+        let mut found: Vec<(String, &'static str, Span)> = Vec::new();
+        let mut seen: HashSet<&'static str> = HashSet::new();
+        let missing = |perm: &str| h.has_permission(perm) == Some(false);
+        walk_stmts(&self.doc.module.body, &mut |stmt| {
+            if let StmtKind::ImportFrom { module, module_span, names, .. } = &stmt.kind {
+                if module == "wm" {
+                    for n in names {
+                        if let Some(p) = permission_of(&n.name).filter(|p| missing(p)) {
+                            found.push((n.name.clone(), p, n.span));
+                        }
+                    }
+                } else if let Some(rest) = module.strip_prefix("wm.") {
+                    if let Some(p) = permission_of(rest).filter(|p| missing(p)) {
+                        found.push((rest.to_string(), p, *module_span));
+                    }
+                }
+            }
+        });
+        // Calls that need more than their module: clipboard.get, field.text_before, plugin.state(persist=True).
+        all_exprs(&self.doc.module.body, &mut |e| match &e.kind {
+            ExprKind::Attribute { attr_span, .. } => {
+                if let Some(path) = keyboard::api_path(self.a, e) {
+                    let short = keyboard::short(&path);
+                    if short.contains('.') && (short.starts_with("clipboard.") || short.starts_with("field.")) {
+                        if let Some(p) = permission_of(short).filter(|p| missing(p)) {
+                            found.push((short.to_string(), p, *attr_span));
+                        }
+                    }
+                }
+            }
+            ExprKind::Call { func, keywords, .. } => {
+                let persist = keywords.iter().any(|k| k.name == "persist" && matches!(k.value.kind, ExprKind::Const("True")));
+                if persist && keyboard::api_path(self.a, func).is_some_and(|p| keyboard::short(&p) == "plugin.state") && missing("storage") {
+                    found.push(("plugin.state(persist=True)".into(), "storage", func.span));
+                }
+            }
+            _ => {}
+        });
+        for (name, perm, span) in found {
+            // One mark per permission for a module; every call for the narrower ones.
+            if name.contains('.') || name.contains('(') || seen.insert(perm) {
+                self.add(Code::PermissionMissing, span, &[&name, perm]);
+            }
+        }
+    }
+
+    /// Calls into the package: arguments it does not take, values it does not
+    /// know, and addresses on hosts plugin.json does not list.
+    fn package_calls(&mut self) {
+        let mut found: Vec<(Code, Span, Vec<String>)> = Vec::new();
+        let h = self.host;
+        all_exprs(&self.doc.module.body, &mut |e| {
+            let ExprKind::Call { func, args, keywords, .. } = &e.kind else { return };
+            let Some(path) = keyboard::api_path(self.a, func) else { return };
+            if !path.starts_with(crate::package::ROOT) {
+                return;
+            }
+            let short = keyboard::short(&path).to_string();
+            let Some(sig) = api::model().find(&path).and_then(|x| x.signature) else { return };
+            let params = keyboard::sig_params(sig);
+            // http.get(url, **options) hands its options to http.request: check them against it.
+            let mut accepted = params.clone();
+            if short.starts_with("http.") && short != "http.request" && keyboard::takes_any_keyword(&params) {
+                if let Some(request) = api::model().find(&format!("{}.http.request", crate::package::ROOT)).and_then(|x| x.signature) {
+                    accepted.retain(|p| p.star != 2);
+                    accepted.extend(keyboard::sig_params(request).into_iter().filter(|p| p.name != "method"));
+                }
+            }
+            if !keyboard::takes_any_keyword(&accepted) {
+                let names: Vec<&str> = accepted.iter().filter(|p| p.star == 0).map(|p| p.name.as_str()).collect();
+                for k in keywords {
+                    if !names.contains(&k.name.as_str()) {
+                        match closest(&k.name, names.iter().copied()) {
+                            Some(near) => found.push((Code::ArgumentTypo, k.name_span, vec![k.name.clone(), near])),
+                            None => found.push((Code::UnknownArgument, k.name_span, vec![k.name.clone(), short.clone()])),
+                        }
+                    }
+                }
+            }
+            // Literal values of parameters that take a few.
+            let positional: Vec<&keyboard::SigParam> = params.iter().take_while(|p| p.star == 0).collect();
+            for p in params.iter().filter(|p| p.star == 0) {
+                let Some(values) = keyboard::values_for(&path, &p.name) else { continue };
+                if keyboard::is_open_set(values) || (short == "plugin.provider" && p.name == "tool") {
+                    continue;
+                }
+                let given = keywords.iter().find(|k| k.name == p.name).map(|k| &k.value).or_else(|| {
+                    let i = positional.iter().position(|x| x.name == p.name)?;
+                    args.get(i)
+                });
+                let Some(given) = given else { continue };
+                let Some(value) = str_value(given) else { continue };
+                if !values.contains(&value) {
+                    match closest(value, values.iter().copied()) {
+                        Some(near) => found.push((Code::ValueTypo, given.span, vec![value.into(), near])),
+                        None => found.push((Code::UnknownValue, given.span, vec![value.into(), values.join(", ")])),
+                    }
+                }
+            }
+            // An address the plugin may not reach.
+            if short.starts_with("http.") && h.hosts.is_some() {
+                let index = if short == "http.request" { 1 } else { 0 };
+                let url = keywords.iter().find(|k| k.name == "url").map(|k| &k.value).or_else(|| args.get(index));
+                if let Some(url) = url {
+                    let text = str_value(url).map(str::to_string).or_else(|| self.constant_str(url));
+                    if let Some(host) = text.as_deref().and_then(host_of) {
+                        if h.allows_host(&host) == Some(false) {
+                            found.push((Code::HostMissing, url.span, vec![host]));
+                        }
+                    }
+                }
+            }
+        });
+        for (code, span, args) in found {
+            let args: Vec<&str> = args.iter().map(String::as_str).collect();
+            self.add(code, span, &args);
+        }
+    }
+
+    /// The string a module-level name is bound to once and never again: `FORECAST` for `FORECAST = "https://..."`.
+    fn constant_str(&self, e: &Expr) -> Option<String> {
+        let ExprKind::Name(_) = &e.kind else { return None };
+        let Target::Symbol(id) = self.a.occurrence_at(e.span.start)?.target else { return None };
+        let s = &self.a.symbols[id];
+        if s.scope != 0 || !s.writes.is_empty() || s.kind != SymbolKind::Variable {
+            return None;
+        }
+        self.doc.module.body.iter().find_map(|stmt| match &stmt.kind {
+            StmtKind::Assign { targets, value } if targets.len() == 1 && targets[0].span == s.declaration => str_value(value).map(str::to_string),
+            _ => None,
+        })
+    }
+
+    fn decorator(&mut self, d: &Decorated) {
+        let h = self.host;
+        match d.what.as_str() {
+            "plugin.provider" => {
+                let Some((tool, id, span)) = d.provider() else { return };
+                if keyboard::provider_tool(&tool).is_none() {
+                    match closest(&tool, keyboard::provider_tool_names()) {
+                        Some(near) => self.add(Code::ProviderToolTypo, span, &[&tool, &near]),
+                        None => self.add(Code::UnknownProviderTool, span, &[&tool]),
+                    }
+                } else if let Some(declared) = &h.providers {
+                    if !declared.iter().any(|(t, i)| *t == tool && *i == id) {
+                        let at = d.literal(1, "id").map(|(_, s)| span.cover(s)).unwrap_or(span);
+                        self.add(Code::ProviderNotDeclared, at, &[&tool, &id]);
+                    }
+                }
+            }
+            "plugin.action" => {
+                let (Some((id, span)), Some(actions)) = (d.literal(0, "id"), &h.actions) else { return };
+                if !actions.iter().any(|a| a == id) {
+                    match closest(id, actions.iter().map(String::as_str)) {
+                        Some(near) => self.add(Code::ActionTypo, span, &[id, &near]),
+                        None => self.add(Code::UnknownAction, span, &[id]),
+                    }
+                }
+            }
+            "plugin.keyword" => {
+                let (Some((word, span)), Some(keyword)) = (d.literal(0, "word"), &h.keyword) else { return };
+                if keyword != word {
+                    self.add(Code::KeywordNotDeclared, span, &[word]);
+                }
+            }
+            "plugin.setting_changed" => {
+                if let Some((key, span)) = d.literal(0, "key") {
+                    let key = key.to_string();
+                    self.setting(&key, span);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    /// `plugin.settings.units`, `plugin.settings["units"]` and `plugin.settings.get("units")`.
+    fn settings_used(&mut self) {
+        if self.host.settings.is_none() {
+            return;
+        }
+        let mut found: Vec<(String, Span)> = Vec::new();
+        let is_settings = |e: &Expr| keyboard::api_path(self.a, e).is_some_and(|p| keyboard::short(&p) == "plugin.settings");
+        all_exprs(&self.doc.module.body, &mut |e| match &e.kind {
+            ExprKind::Attribute { value, attr, attr_span } if is_settings(value) && !matches!(attr.as_str(), "get" | "set" | "reset") => {
+                found.push((attr.clone(), *attr_span));
+            }
+            ExprKind::Subscript { value, index } if is_settings(value) => {
+                if let Some(v) = str_value(index) {
+                    found.push((v.to_string(), index.span));
+                }
+            }
+            ExprKind::Call { func, args, .. } => {
+                if let ExprKind::Attribute { value, attr, .. } = &func.kind {
+                    if is_settings(value) && matches!(attr.as_str(), "get" | "set" | "reset") {
+                        if let Some(first) = args.first() {
+                            if let Some(v) = str_value(first) {
+                                found.push((v.to_string(), first.span));
+                            }
+                        }
+                    }
+                }
+            }
+            _ => {}
+        });
+        for (key, span) in found {
+            self.setting(&key, span);
+        }
+    }
+
+    fn setting(&mut self, key: &str, span: Span) {
+        let Some(settings) = &self.host.settings else { return };
+        if settings.iter().any(|s| s.key == key) {
+            return;
+        }
+        match closest(key, settings.iter().map(|s| s.key.as_str())) {
+            Some(near) => self.add(Code::SettingTypo, span, &[key, &near]),
+            None => self.add(Code::UnknownSetting, span, &[key]),
         }
     }
 

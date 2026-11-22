@@ -76,7 +76,7 @@ pub fn symbol_types(module: &Module, analysis: &Analysis) -> HashMap<usize, &'st
     let mut by_span: HashMap<Span, &'static str> = HashMap::new();
     walk_stmts(&module.body, &mut |stmt| {
         if let StmtKind::Assign { targets, value } = &stmt.kind {
-            if let Some(ty) = type_of(value) {
+            if let Some(ty) = type_of(value).or_else(|| package_type(analysis, value)) {
                 for t in targets {
                     if let ExprKind::Name(_) = t.kind {
                         by_span.insert(t.span, ty);
@@ -106,3 +106,28 @@ pub fn type_at(analysis: &Analysis, types: &HashMap<usize, &'static str>, span: 
         _ => None,
     }
 }
+
+/// The type a call into the `wm` package returns, as a model path:
+/// `wm5.http.Response` for `http.get(url)`.
+pub fn package_type(analysis: &Analysis, e: &Expr) -> Option<&'static str> {
+    let ExprKind::Call { func, keywords, .. } = &e.kind else { return None };
+    // A call given then= answers later and returns nothing now.
+    if keywords.iter().any(|k| k.name == "then") {
+        return None;
+    }
+    if let ExprKind::Attribute { value, attr, .. } = &func.kind {
+        if attr == "raise_for_status" && package_type(analysis, value) == Some(RESPONSE) {
+            return Some(RESPONSE);
+        }
+    }
+    let path = crate::keyboard::api_path(analysis, func)?;
+    Some(match crate::keyboard::short(&path) {
+        "http.get" | "http.post" | "http.put" | "http.patch" | "http.delete" | "http.request" => RESPONSE,
+        "plugin.state" => "wm5.plugin.State",
+        "location.get" => "dict",
+        "sensors.available" | "reminders.list" => "list",
+        _ => return None,
+    })
+}
+
+pub const RESPONSE: &str = "wm5.http.Response";

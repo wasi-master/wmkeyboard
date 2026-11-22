@@ -122,6 +122,22 @@ codes! {
     StyleTypo = "style_typo", Warning, "“{0}” is not a style. Did you mean “{1}”?";
     DuplicateId = "duplicate_id", Info, "Another widget already has the id “{0}”.";
     TooManyTabs = "too_many_tabs", Warning, "A tab strip shows at most 8 pages.";
+    // ---- the keyboard: plugin.json and the wm package ----------------------
+    PermissionMissing = "permission_missing", Warning, "{0} needs the “{1}” permission in plugin.json.";
+    HostMissing = "host_missing", Warning, "“{0}” is not in plugin.json's hosts, so this request is refused.";
+    UnknownProviderTool = "unknown_provider_tool", Error, "There is no provider list “{0}”.";
+    ProviderToolTypo = "provider_tool_typo", Error, "There is no provider list “{0}”. Did you mean “{1}”?";
+    ProviderNotDeclared = "provider_not_declared", Warning, "plugin.json's providers list no {0} provider “{1}”, so nothing asks this.";
+    ProviderUnanswered = "provider_unanswered", Warning, "plugin.json declares the {0} provider “{1}”, but no @plugin.provider answers it.";
+    ActionUnanswered = "action_unanswered", Warning, "plugin.json lists the action “{0}”, but no @plugin.action answers it.";
+    KeywordNotDeclared = "keyword_not_declared", Warning, "plugin.json's tool.keyword is not “{0}”, so this never runs.";
+    UnknownSetting = "unknown_setting", Warning, "plugin.json has no setting “{0}”.";
+    SettingTypo = "setting_typo", Warning, "plugin.json has no setting “{0}”. Did you mean “{1}”?";
+    UnknownArgument = "unknown_argument", Warning, "{1}() has no argument “{0}”.";
+    ArgumentTypo = "argument_typo", Warning, "There is no argument “{0}” here. Did you mean “{1}”?";
+    UnknownValue = "unknown_value", Warning, "“{0}” is not one of: {1}.";
+    ValueTypo = "value_typo", Warning, "“{0}” is not an option here. Did you mean “{1}”?";
+    WmNotImported = "wm_not_imported", Warning, "“{0}” comes from the wm package. Add “from wm import {0}” at the top.";
     // ---- flow --------------------------------------------------------------
     LoopNeverEnds = "loop_never_ends", Warning, "This loop never ends: nothing in it breaks out or returns.";
     Unreachable = "unreachable", Warning, "This code never runs: it comes after a return, raise, break or continue.";
@@ -132,11 +148,34 @@ pub struct Diagnostic {
     pub code: Code,
     pub span: Span,
     pub args: Vec<String>,
+    /// What one tap does about it, when there is one obvious thing.
+    pub fix: Option<Fix>,
+}
+
+/// A change that settles a diagnostic.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum Fix {
+    /// Put this text in place of the diagnostic's span.
+    Replace(String),
+    /// Insert this text at an offset.
+    Insert(u32, String),
+    /// Add a permission to plugin.json.
+    Permission(String),
+    /// Add a website to plugin.json's hosts.
+    Host(String),
+    /// Declare a provider `(tool, id)` in plugin.json.
+    Provider(String, String),
+    /// List a selection action in plugin.json.
+    Action(String),
+    /// Set plugin.json's tool.keyword.
+    Keyword(String),
+    /// Add a text setting with this key to plugin.json.
+    Setting(String),
 }
 
 impl Diagnostic {
     pub fn new(code: Code, span: Span, args: &[&str]) -> Diagnostic {
-        Diagnostic { code, span, args: args.iter().map(|s| s.to_string()).collect() }
+        Diagnostic { code, span, args: args.iter().map(|s| s.to_string()).collect(), fix: None }
     }
 
     pub fn severity(&self) -> Severity {
@@ -170,6 +209,7 @@ pub fn diagnose(doc: &Document, host: &Host) -> Report {
         out.push(Diagnostic::new(Code::Unsupported, *span, &[what]));
     }
     checks::run(doc, host, &mut out);
+    crate::fixes::attach(doc, &mut out);
     let verdict_used = verdict(doc, host, &mut out);
     let mut seen = std::collections::HashSet::new();
     out.retain(|d| seen.insert(d.clone()));

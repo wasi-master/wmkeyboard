@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use wm_python_tooling::diagnostics::{diagnose, Diagnostic, Severity};
-use wm_python_tooling::document::{Document, Host};
+use wm_python_tooling::document::{Document, Host, SettingSpec};
 
 pub const FIXTURES: &[&str] = &["cipher", "todo", "text_actions", "text_tools", "kitchen_sink", "text_generator", "weather"];
 
@@ -11,9 +11,25 @@ pub fn fixture(name: &str) -> String {
 
 /// The host each fixture's plugin.json describes.
 pub fn fixture_host(name: &str) -> Host {
-    let mut host = Host { storage: Some(false), reminders: Some(false), selection: Some(false), panel: Some(true), actions: Some(vec![]), modules: None, verdict: None };
+    let mut host = Host { storage: Some(false), reminders: Some(false), selection: Some(false), panel: Some(true), actions: Some(vec![]), api: Some(4), ..Host::default() };
     match name {
-        "weather" => host.storage = Some(true),
+        "weather" => {
+            host.storage = Some(true);
+            host.api = Some(5);
+            host.permissions = Some(vec!["network".into(), "storage".into()]);
+            host.hosts = Some(vec!["api.open-meteo.com".into(), "geocoding-api.open-meteo.com".into()]);
+            host.providers = Some(vec![]);
+            host.keyword = Some(String::new());
+            host.settings = Some(vec![SettingSpec { key: "units".into(), kind: "choice".into(), label: "Units".into(), options: vec!["metric".into(), "imperial".into()] }]);
+        }
+        "text_generator" => {
+            host.api = Some(5);
+            host.permissions = Some(vec![]);
+            host.hosts = Some(vec![]);
+            host.providers = Some(vec![]);
+            host.settings = Some(vec![]);
+            host.keyword = Some(String::new());
+        }
         "todo" => {
             host.storage = Some(true);
             host.reminders = Some(true);

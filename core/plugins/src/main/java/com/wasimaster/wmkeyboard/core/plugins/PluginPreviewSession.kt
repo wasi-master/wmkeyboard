@@ -93,6 +93,29 @@ class PluginPreviewSession(
     private val runtime = PluginRuntime(store, RuntimeListener(), limits, post, RuntimeObserver(), services = services)
 
     companion object {
+        /**
+         * The draft [draftId] as the runtime sees a plugin: [manifest]'s
+         * permissions honoured exactly as an install would, and every risky one
+         * it declares granted, since the author is the one running it.
+         */
+        fun draftPlugin(draftId: String, manifest: PluginManifest): InstalledPlugin {
+            val permissions = manifest.permissions.mapNotNull { PluginPermission.parse(it) }.distinct()
+            return InstalledPlugin(
+                id = PluginManifestCodec.sanitise(manifest.id, PluginManifestCodec.Field.ID).ifBlank { draftId },
+                name = manifest.name,
+                version = manifest.pluginVersion,
+                author = manifest.author,
+                description = manifest.description,
+                apiVersion = manifest.apiVersion,
+                permissions = permissions.map { it.wire },
+                granted = permissions.filter { it.isRisky }.map { it.wire },
+                hosts = manifest.hosts.map(PluginManifestCodec::normaliseHost),
+                tool = manifest.tool,
+                settings = manifest.settings,
+                language = PluginManifestCodec.LANGUAGE_PYTHON,
+            )
+        }
+
         const val MAX_CONSOLE = 500
         const val MAX_EVENTS = 200
 
@@ -107,22 +130,7 @@ class PluginPreviewSession(
 
     /** Runs [source] as the draft [draftId] with [manifest], replacing any run in flight. */
     fun run(draftId: String, source: String, manifest: PluginManifest, modules: Map<String, String> = emptyMap()) {
-        val permissions = manifest.permissions.mapNotNull { PluginPermission.parse(it) }.distinct()
-        val plugin = InstalledPlugin(
-            id = PluginManifestCodec.sanitise(manifest.id, PluginManifestCodec.Field.ID).ifBlank { draftId },
-            name = manifest.name,
-            version = manifest.pluginVersion,
-            author = manifest.author,
-            description = manifest.description,
-            apiVersion = manifest.apiVersion,
-            permissions = permissions.map { it.wire },
-            // The author's own draft: every risky permission it declares is on.
-            granted = permissions.filter { it.isRisky }.map { it.wire },
-            hosts = manifest.hosts.map(PluginManifestCodec::normaliseHost),
-            tool = manifest.tool,
-            settings = manifest.settings,
-            language = PluginManifestCodec.LANGUAGE_PYTHON,
-        )
+        val plugin = draftPlugin(draftId, manifest)
         // The files live in the draft's preview folder whether or not the
         // manifest asks for them; the permissions decide what the script reaches.
         val storage = workspace.previewStorageFile(draftId)

@@ -62,6 +62,61 @@ pub struct Host {
     pub modules: Option<Vec<String>>,
     /// The interpreter's own verdict on whether the script will run.
     pub verdict: Option<Verdict>,
+    /// The manifest's `apiVersion`.
+    pub api: Option<i64>,
+    /// Every permission the manifest declares, as it spells them: `network`, `clipboard.read`.
+    pub permissions: Option<Vec<String>>,
+    /// The websites `wm.http` may reach: `api.example.com`, `*.example.org`.
+    pub hosts: Option<Vec<String>>,
+    /// The manifest's providers, as `(tool, id)` with the id defaulted to the tool.
+    pub providers: Option<Vec<(String, String)>>,
+    /// The manifest's settings.
+    pub settings: Option<Vec<SettingSpec>>,
+    /// `tool.keyword`, empty when the plugin has none.
+    pub keyword: Option<String>,
+}
+
+/// One row of the manifest's settings page.
+#[derive(Clone, Debug, Default)]
+pub struct SettingSpec {
+    pub key: String,
+    /// `switch`, `text`, `number`, `choice`, `host` or `secret`.
+    pub kind: String,
+    pub label: String,
+    pub options: Vec<String>,
+}
+
+impl Host {
+    /// Whether the plugin is written for the API 5 `wm` package.
+    pub fn api5(&self) -> bool {
+        self.api.is_some_and(|v| v >= 5)
+    }
+
+    /// Whether the manifest declares [permission]; None when the list is not known.
+    pub fn has_permission(&self, permission: &str) -> Option<bool> {
+        self.permissions.as_ref().map(|p| p.iter().any(|x| x == permission))
+    }
+
+    /// Whether [host] is one `wm.http` may reach: listed, or under a `*.` entry. None when unknown.
+    pub fn allows_host(&self, host: &str) -> Option<bool> {
+        let allowed = self.hosts.as_ref()?;
+        // A host setting adds whatever server the user types.
+        if self.settings.as_ref().is_some_and(|s| s.iter().any(|x| x.kind == "host")) {
+            return Some(true);
+        }
+        let h = host.trim_end_matches('.').to_lowercase();
+        Some(allowed.iter().any(|entry| {
+            let entry = entry.trim().to_lowercase();
+            match entry.strip_prefix("*.") {
+                Some(base) => h == base || h.ends_with(&format!(".{base}")),
+                None => h == entry,
+            }
+        }))
+    }
+
+    pub fn setting(&self, key: &str) -> Option<&SettingSpec> {
+        self.settings.as_ref()?.iter().find(|s| s.key == key)
+    }
 }
 
 #[derive(Clone, Debug)]

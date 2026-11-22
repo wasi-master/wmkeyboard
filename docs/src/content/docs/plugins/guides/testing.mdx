@@ -26,10 +26,48 @@ stop typing. The tabs under the code show what is going on:
 | **Outline** | Your functions, to jump between them |
 | **Events** | Every button, switch, box and tab in the panel, with a button to send each one an event. **Any event** sends one you write yourself, such as a `keyword` event |
 | **Storage** | What the plugin saved, which you can edit or delete |
-| **Details** | The name, permissions and hosts, the whole `plugin.json`, and the file's size |
+| **Try** | Calls one of your providers or selection actions the way the keyboard would, and shows the reply |
+| **Details** | The name, permissions and hosts, providers, selection actions and the settings page, the whole `plugin.json`, and the file's size |
 
-The editor completes names as you type (`plugin.`, `ui.`, `from wm import `),
-and shows what each one does when you point at it.
+### What the editor knows about your plugin
+
+The editor reads your `plugin.json` as well as your code, so its suggestions
+and checks are about this plugin and this keyboard, not Python in general.
+
+- **Suggestions.** `@` at the start of a line offers the decorators
+  (`@plugin.action`, `@plugin.provider`, `@plugin.keyword` and the rest).
+  Inside them, the strings come from your manifest: the provider lists, your
+  provider and action ids, your keyword and your setting keys. A widget or
+  `http` call offers the arguments it takes and, where it takes only a few
+  values, those values (`style=`, `color=`, `kind=`, icon names). `on_click=`
+  offers your own functions. `http.get("` offers your hosts. Inside a
+  provider, `request["` offers the keys that list sends.
+- **Values the package returns.** After `r = http.get(...)`, `r.` offers
+  `status_code`, `json()` and the rest; after `state = plugin.state(count=0)`,
+  `state.` offers `count`. `plugin.settings.` offers your settings.
+- **Help while you type.** Inside a call, the strip under the code shows its
+  parameters with the one you are typing marked, and what that one takes.
+  Elsewhere it explains the name at the caret. On the web, resting the mouse
+  on a name shows the same.
+- **Checks.** Beyond Python mistakes, the editor flags a module used without
+  its permission, an address on a host `plugin.json` does not list, a provider
+  or action the manifest does not declare (or one it declares that nothing
+  answers), a keyword or setting that does not match, and an argument or value
+  a widget does not take.
+- **Fixes.** Most of those checks come with a fix. Put the caret on the
+  problem, or open **Problems**, and press the button: it adds the
+  permission, host, provider, action or setting to `plugin.json`, corrects a
+  typo, adds the missing import, or writes a stub for a provider that has
+  none.
+
+### Trying a provider or an action
+
+**Try** lists the providers and selection actions your `plugin.json`
+declares. Pick one and press **Try it**. A provider gets the request its list
+sends, filled in with an example you can edit; an action gets a line of
+text. The pane shows the reply, what `print()` wrote, how long the call took,
+and, for a provider, whether the list can read the reply and how many results
+it finds in it. See [Answering for a provider list](/plugins/guides/providers/).
 
 ### What the preview can and cannot do
 
@@ -46,9 +84,13 @@ rest, it does what a browser can:
 
 ## On the phone
 
-The editor on the phone works the same way, with a preview beside the code.
-It runs inside the real keyboard, so it is the place to check how the panel
-looks in your theme and how the field calls behave.
+The editor on the phone works the same way, with a preview beside the code,
+the same suggestions, checks, fixes and **Try** tab, and the strip under the
+code in place of a mouse hover. It runs inside the real keyboard, so it is the
+place to check how the panel looks in your theme and how the field calls
+behave. Its preview and **Try** reach your hosts and the AI as an installed
+plugin would. Providers, selection actions and the settings page are in
+**Details** in its menu.
 
 <SettingsPath path="Tools / Plugins / Write a plugin" />
 

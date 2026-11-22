@@ -11,7 +11,7 @@ import { Annotation, Compartment, EditorState, RangeSet, RangeSetBuilder, StateE
 import { Decoration, EditorView, GutterMarker, drawSelection, gutterLineClass, highlightActiveLine, highlightActiveLineGutter, keymap, lineNumbers, type DecorationSet, type KeyBinding, type ViewUpdate } from '@codemirror/view';
 import { codeFolding, foldEffect, foldGutter as cmFoldGutter, foldService, foldedRanges, unfoldEffect } from '@codemirror/language';
 import { cursorPageDown, cursorPageUp, selectPageDown, selectPageUp } from '@codemirror/commands';
-import { complete, folds, lex, PyNameStyle, PyTokenKind, type PyCompletionItem, type PyCompletionKind, type PyCompletions, type PyHost, type PyTokens } from '../../../lib/python';
+import { complete, folds, hover, lex, PyNameStyle, PyTokenKind, type PyCompletionItem, type PyCompletionKind, type PyCompletions, type PyHost, type PyHover, type PyTokens } from '../../../lib/python';
 import * as E from './edits';
 
 export { E };
@@ -58,6 +58,8 @@ export const NO_DECORATIONS: CodeDecorations = { matches: [], activeMatch: -1, s
 const setDecorations = StateEffect.define<CodeDecorations>();
 const historyKind = Annotation.define<'push' | 'skip'>();
 
+/** How long a mouse rests on a name before it is explained. */
+const HOVER_MS = 450;
 const UNDO_DEPTH = 100;
 const COALESCE_MS = 700;
 const MAX_SQUIGGLES = 200;
@@ -288,6 +290,9 @@ export class CodeEditorController {
 	readonly suggestions = signal<PyCompletions | null>(null);
 	readonly chosen = signal(0);
 	readonly compact = signal(false);
+	/** What the name under a resting mouse pointer is, and where the pointer rests. */
+	readonly hoverTip = signal<{ x: number; y: number; info: PyHover } | null>(null);
+	private hoverTimer: ReturnType<typeof setTimeout> | null = null;
 	private past: Snapshot[] = [];
 	private future: Snapshot[] = [];
 	private lastEditAt = 0;
@@ -345,6 +350,31 @@ export class CodeEditorController {
 		this.view.contentDOM.addEventListener('focus', () => (this.focusedFlag = true));
 		this.view.contentDOM.addEventListener('blur', () => (this.focusedFlag = false));
 		this.view.contentDOM.addEventListener('keydown', (e) => this.onKeyDown(e), true);
+		// A mouse resting on a name explains it, as a desktop editor's hover does. Touch has the strip under the code.
+		this.view.contentDOM.addEventListener('mousemove', (e) => this.onPointer(e));
+		this.view.contentDOM.addEventListener('mouseleave', () => this.clearHover());
+		this.view.scrollDOM.addEventListener('scroll', () => this.clearHover());
+	}
+
+	private onPointer(e: MouseEvent) {
+		if (this.hoverTimer) clearTimeout(this.hoverTimer);
+		const shown = this.hoverTip.value;
+		if (shown && Math.abs(shown.x - e.clientX) < 4 && Math.abs(shown.y - e.clientY) < 4) return;
+		if (shown) this.hoverTip.value = null;
+		const x = e.clientX;
+		const y = e.clientY;
+		this.hoverTimer = setTimeout(() => {
+			const pos = this.view.posAtCoords({ x, y }, false);
+			if (pos === null || this.suggestions.value) return;
+			const info = hover(this.text, pos, this.options.host?.() ?? null);
+			this.hoverTip.value = info ? { x, y, info } : null;
+		}, HOVER_MS);
+	}
+
+	clearHover() {
+		if (this.hoverTimer) clearTimeout(this.hoverTimer);
+		this.hoverTimer = null;
+		if (this.hoverTip.value) this.hoverTip.value = null;
 	}
 
 	// ---- reading -------------------------------------------------------------
@@ -569,6 +599,8 @@ export class CodeEditorController {
 		this.applyEdit({ range: shown.replace, text: item.insert, selection: E.rangeAt(start + Math.min(Math.max(item.caret, 0), item.insert.length)) });
 		this.publish();
 		this.view.focus();
+		// `style="|"` has values of its own: the list opens again in the blank it left.
+		if (item.reopen) setTimeout(() => this.ask(true), 0);
 	};
 
 	closeSuggestions() {
@@ -855,6 +887,7 @@ export class CodeEditorController {
 	}
 
 	destroy() {
+		this.clearHover();
 		this.view.destroy();
 	}
 }
@@ -960,6 +993,22 @@ export function CodeSurface({ controller, initial, options, wrap, fontSize, clas
 		<div class={`wmc-surface ${cls ?? ''}`} style={{ '--wmc-font-size': `${fontSize}px` }}>
 			<div ref={host} class="wmc-host" />
 			<CompletionList controller={controller} host={host} />
+			<HoverTip controller={controller} host={host} />
+		</div>
+	);
+}
+
+/** What the name under the mouse is: its signature or kind, and a paragraph of doc. */
+function HoverTip({ controller, host }: { controller: Signal<CodeEditorController | null>; host: { current: HTMLDivElement | null } }) {
+	const tip = controller.value?.hoverTip.value ?? null;
+	if (!tip || !host.current) return null;
+	const frame = host.current.getBoundingClientRect();
+	const x = Math.min(Math.max(tip.x - frame.left, 0), Math.max(0, frame.width - 320));
+	const below = tip.y - frame.top + 18;
+	return (
+		<div class="wmc-hover" role="tooltip" style={{ left: `${x}px`, top: `${below}px` }}>
+			<div class="wmc-hover-title">{tip.info.title}</div>
+			{tip.info.doc && <div class="wmc-hover-doc">{tip.info.doc}</div>}
 		</div>
 	);
 }
@@ -994,20 +1043,25 @@ function CompletionList({ controller, host }: { controller: Signal<CodeEditorCon
 		view.scrollDOM.addEventListener('scroll', place);
 		return () => view.scrollDOM.removeEventListener('scroll', place);
 	}, [c, shown, compact, host, c?.revision.value]);
+	const items = useRef<HTMLDivElement>(null);
 	useEffect(() => {
-		const el = list.current?.children[chosen] as HTMLElement | undefined;
+		const el = items.current?.children[chosen] as HTMLElement | undefined;
 		el?.scrollIntoView({ block: 'nearest' });
 	}, [chosen]);
 	if (!c || !shown || compact || !pos) return null;
+	const doc = (shown.items[chosen] ?? shown.items[0])?.doc;
 	return (
-		<div ref={list} class="wmc-completions" role="listbox" style={{ left: `${pos.x}px`, top: `${pos.y}px` }} onMouseDown={(e) => e.preventDefault()}>
-			{shown.items.map((item, index) => (
-				<div key={index} role="option" aria-selected={index === chosen} class={`wmc-completion ${index === chosen ? 'wmc-chosen' : ''}`} onClick={() => c.choose(item)}>
-					<span class={`wmc-kind wmc-kind-${kindClass(item.kind)}`} aria-hidden="true">{kindMark(item.kind)}</span>
-					<span class="wmc-label">{item.label}</span>
-					{item.detail && <span class="wmc-detail">{item.detail}</span>}
-				</div>
-			))}
+		<div ref={list} class="wmc-completions" style={{ left: `${pos.x}px`, top: `${pos.y}px` }} onMouseDown={(e) => e.preventDefault()}>
+			<div ref={items} class="wmc-completion-items" role="listbox">
+				{shown.items.map((item, index) => (
+					<div key={index} role="option" aria-selected={index === chosen} class={`wmc-completion ${index === chosen ? 'wmc-chosen' : ''}`} onClick={() => c.choose(item)} onMouseEnter={() => (c.chosen.value = index)}>
+						<span class={`wmc-kind wmc-kind-${kindClass(item.kind)}`} aria-hidden="true">{kindMark(item.kind)}</span>
+						<span class="wmc-label">{item.label}</span>
+						{item.detail && <span class="wmc-detail">{item.detail}</span>}
+					</div>
+				))}
+			</div>
+			{doc && <div class="wmc-completion-doc">{doc}</div>}
 		</div>
 	);
 }

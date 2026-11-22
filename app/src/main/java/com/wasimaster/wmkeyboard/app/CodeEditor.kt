@@ -162,6 +162,8 @@ internal data class CodeDiagnostic(
     val arg2: String? = null,
     /** A layout check's own message, which carries its resource and arguments itself. Wins over [messageRes]. */
     val note: LayoutMessage? = null,
+    /** What one tap does about it, when the Python tooling knows. */
+    val fix: com.wasimaster.wmkeyboard.core.plugins.PyFix? = null,
 )
 
 /**

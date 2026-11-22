@@ -151,4 +151,13 @@ object PythonNative {
 
     /** The whole API model with docs and event types. */
     @JvmStatic external fun nativeApiEntries(): String
+
+    /** Signature help at [caret]: `null` or `{"label", "params", "names", "active", "doc", "paramDoc", "values"}`. */
+    @JvmStatic external fun nativeSignature(source: String, caret: Int, host: String): String
+
+    /** What the name at [offset] is: `null` or `{"start", "end", "title", "doc", "kind"}`. */
+    @JvmStatic external fun nativeHover(source: String, offset: Int, host: String): String
+
+    /** `[{"tool", "label", "request": [[key, doc]], "sample", "reply"}]`. */
+    @JvmStatic external fun nativeProviderTools(): String
 }
