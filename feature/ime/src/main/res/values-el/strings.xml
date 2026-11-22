@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Αντικατάσταση</string>
     <string name="ime_ai_report_action">Αναφορά</string>
     <string name="ime_ai_research_declined">Απορρίψατε το σχέδιο έρευνας. Δοκιμάστε ξανά για να το σχεδιάσετε εκ νέου ή ζητήστε το με άλλον τρόπο.</string>
-    <string name="ime_ai_research_needs_model">Η βαθιά έρευνα χρειάζεται ένα μοντέλο cloud ή διακομιστή που μπορεί να καλέσει εργαλεία. Αυτό δεν μπορεί: επιλέξτε άλλο μοντέλο.</string>
     <string name="ime_ai_research_needs_search">Η βαθιά έρευνα απαιτεί έναν πάροχο αναζήτησης στο διαδίκτυο. Ορίστε έναν στις ρυθμίσεις του εργαλείου αναζήτησης.</string>
     <string name="ime_ai_research_nothing_found">Η εν τω βάθει αναζήτηση δεν βρήκε αποτελέσματα.</string>
     <string name="ime_ai_research_plan_ask">Να ερευνηθούν αυτές οι ερωτήσεις;</string>

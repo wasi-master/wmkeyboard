@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Pakeisti</string>
     <string name="ime_ai_report_action">Pranešti</string>
     <string name="ime_ai_research_declined">Jūs atsisakėte tyrimų plano. Bandykite dar kartą suplanuoti arba paklauskite kitu būdu.</string>
-    <string name="ime_ai_research_needs_model">Išsamiam tyrimui reikalingas debesies arba serverio modelis, galintis iškviesti įrankius. Šis negali: pasirinkite kitą modelį.</string>
     <string name="ime_ai_research_needs_search">Giliajai paieškai reikia žiniatinklio paieškos teikėjo. Nustatykite jį paieškos įrankio nustatymuose.</string>
     <string name="ime_ai_research_nothing_found">Išsami paieška rezultatų nerado.</string>
     <string name="ime_ai_research_plan_ask">Ištirti šiuos klausimus?</string>

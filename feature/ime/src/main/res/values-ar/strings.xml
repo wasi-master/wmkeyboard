@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">استبدال</string>
     <string name="ime_ai_report_action">إبلاغ</string>
     <string name="ime_ai_research_declined">لقد رفضت خطة البحث. أعد المحاولة لتخطيطها مرة أخرى، أو اطلبها بطريقة أخرى.</string>
-    <string name="ime_ai_research_needs_model">يتطلب البحث العميق نموذجًا سحابيًا أو خادمًا يمكنه استدعاء الأدوات. هذا النموذج لا يستطيع ذلك: اختر نموذجًا آخر.</string>
     <string name="ime_ai_research_needs_search">يتطلب البحث العميق موفر بحث على الويب. قم بإعداد واحد في إعدادات أداة البحث.</string>
     <string name="ime_ai_research_nothing_found">لم يعثر البحث العميق على أي نتائج.</string>
     <string name="ime_ai_research_plan_ask">هل تود البحث في هذه الأسئلة؟</string>

@@ -146,6 +146,36 @@ class AiResearchTest {
     }
 
     @Test
+    fun `a phone model's window shrinks the page text to fit`() {
+        val cloud = AiResearch.limits(AiResearchDepth.STANDARD)
+        val phone = AiResearch.limits(AiResearchDepth.STANDARD, contextTokens = 4096)
+        assertEquals(AiResearch.SOURCE_CHARS, cloud.sourceChars)
+        assertTrue(phone.sourceChars < 4096 * 2)
+        assertTrue(phone.pages in 2 until cloud.pages)
+        assertTrue(phone.maxSources < cloud.maxSources)
+        assertTrue(phone.pageChars <= phone.sourceChars / 2)
+        // Plan and look-again keep their shape: only the reading shrinks.
+        assertEquals(cloud.questions, phone.questions)
+        assertEquals(cloud.rounds, phone.rounds)
+        // A big window is treated like a server's.
+        assertEquals(cloud.pages, AiResearch.limits(AiResearchDepth.STANDARD, contextTokens = 32_768).pages)
+    }
+
+    @Test
+    fun `a phone model gets no more sources than its limits allow`() {
+        val web = FakeWeb()
+        var reportInput = ""
+        val model = AiResearch.Model { system, user, stream, _ ->
+            if (stream) reportInput = user
+            FakeModel().complete(system, user, stream) {}
+        }
+        val limits = AiResearch.limits(AiResearchDepth.QUICK, contextTokens = 4096)
+        AiResearch(limits, model, web).run("Q", AiAnswerFormat.AUTO, "")
+        assertTrue(web.fetches.size <= limits.pages)
+        assertFalse(reportInput.contains("[${limits.maxSources + 1}] "))
+    }
+
+    @Test
     fun `queries lose numbering, bullets, quotes, reasoning and DONE`() {
         assertEquals(
             listOf("one", "two", "three"),

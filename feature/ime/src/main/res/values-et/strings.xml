@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Asenda</string>
     <string name="ime_ai_report_action">Teata</string>
     <string name="ime_ai_research_declined">Keeldusid uurimisplaanist. Proovi uuesti planeerida või küsi teistmoodi.</string>
-    <string name="ime_ai_research_needs_model">Süvauuringud vajavad pilve- või serverimudelit, mis oskab tööriistu kutsuda. See mudel seda ei saa: vali mõni teine mudel.</string>
     <string name="ime_ai_research_needs_search">Põhjalikuks uurimiseks on vaja veebiotsingu pakkujat. Seadistage see otsingutööriista seadetes.</string>
     <string name="ime_ai_research_nothing_found">Põhjalik otsing ei leidnud tulemusi.</string>
     <string name="ime_ai_research_plan_ask">Kas uurida neid küsimusi?</string>

@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Erstatt</string>
     <string name="ime_ai_report_action">Rapporter</string>
     <string name="ime_ai_research_declined">Du avslo forskningsplanen. Prøv på nytt for å planlegge den igjen, eller spør på en annen måte.</string>
-    <string name="ime_ai_research_needs_model">Dyp forskning krever en sky- eller servermodell som kan kalle på verktøy. Denne kan ikke det: velg en annen modell.</string>
     <string name="ime_ai_research_needs_search">Dyp forskning krever en nettsøkeleverandør. Sett opp en i søkeverktøyets innstillinger.</string>
     <string name="ime_ai_research_nothing_found">Dyptgående undersøkelser fant ingen søkeresultater.</string>
     <string name="ime_ai_research_plan_ask">Vil du undersøke disse spørsmålene?</string>

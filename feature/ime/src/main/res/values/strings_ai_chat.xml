@@ -290,7 +290,7 @@
     <string name="ime_ai_chat_composer_hint_research">What should I research?</string>
     <string name="ime_ai_chat_composer_hint_summarize">A link or text to summarize</string>
     <string name="ime_ai_chat_composer_hint_compare">What should I compare?</string>
-    <string name="ime_ai_research_needs_model">Deep research needs a cloud or server model that can call tools. This one can\'t: pick another model.</string>
+    <string name="ime_ai_research_needs_chat_model">Deep research can\'t use Brave Answers, which takes one message and searches by itself. Pick another model.</string>
     <string name="ime_ai_research_needs_search">Deep research needs a web search provider. Set one up in the search tool\'s settings.</string>
     <string name="ime_ai_research_declined">You turned down the research plan. Retry to plan it again, or ask it another way.</string>
     <string name="ime_ai_research_nothing_found">Deep research found no search results.</string>

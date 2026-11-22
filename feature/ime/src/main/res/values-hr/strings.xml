@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Zamijeni</string>
     <string name="ime_ai_report_action">Prijavi</string>
     <string name="ime_ai_research_declined">Odbili ste plan istraživanja. Pokušajte ponovno ili pitajte na drugi način.</string>
-    <string name="ime_ai_research_needs_model">Dubinsko istraživanje zahtijeva model u oblaku ili na poslužitelju koji može pozivati alate. Ovaj to ne može: odaberite drugi model.</string>
     <string name="ime_ai_research_needs_search">Dubinsko istraživanje zahtijeva pružatelja pretraživanja weba. Postavite ga u postavkama alata za pretraživanje.</string>
     <string name="ime_ai_research_nothing_found">Dubinsko istraživanje nije pronašlo rezultate pretraživanja.</string>
     <string name="ime_ai_research_plan_ask">Istražiti ova pitanja?</string>

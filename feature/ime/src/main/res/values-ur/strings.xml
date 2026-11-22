@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">تبدیل کریں</string>
     <string name="ime_ai_report_action">رپورٹ کریں</string>
     <string name="ime_ai_research_declined">آپ نے تحقیقی منصوبہ مسترد کر دیا ہے۔ اسے دوبارہ ترتیب دینے کے لیے دوبارہ کوشش کریں، یا اسے کسی اور انداز میں پوچھیں۔</string>
-    <string name="ime_ai_research_needs_model">گہری تحقیق کے لیے کلاؤڈ یا سرور ماڈل کی ضرورت ہوتی ہے جو ٹولز کو کال کر سکے۔ یہ ماڈل ایسا نہیں کر سکتا: کوئی دوسرا ماڈل منتخب کریں۔</string>
     <string name="ime_ai_research_needs_search">گہری تحقیق کے لیے ویب سرچ فراہم کنندہ درکار ہے۔ سرچ ٹول کی ترتیبات میں ایک سیٹ اپ کریں۔</string>
     <string name="ime_ai_research_nothing_found">گہری تحقیق میں تلاش کے کوئی نتائج نہیں ملے۔</string>
     <string name="ime_ai_research_plan_ask">کیا ان سوالات پر تحقیق کرنی ہے؟</string>

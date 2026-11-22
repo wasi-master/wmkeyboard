@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Erstat</string>
     <string name="ime_ai_report_action">Rapportér</string>
     <string name="ime_ai_research_declined">Du afviste forskningsplanen. Prøv igen for at planlægge den, eller spørg på en anden måde.</string>
-    <string name="ime_ai_research_needs_model">Dybdegående research kræver en cloud- eller servermodel, der kan kalde værktøjer. Denne kan ikke: vælg en anden model.</string>
     <string name="ime_ai_research_needs_search">Dybdegående research kræver en websøgningsudbyder. Opsæt en i søgeværktøjets indstillinger.</string>
     <string name="ime_ai_research_nothing_found">Dybdegående søgning fandt ingen søgeresultater.</string>
     <string name="ime_ai_research_plan_ask">Undersøg disse spørgsmål?</string>

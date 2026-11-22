@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Ganti</string>
     <string name="ime_ai_report_action">Laporkan</string>
     <string name="ime_ai_research_declined">Anda menolak rencana penelitian. Coba lagi untuk merencanakannya kembali, atau tanyakan dengan cara lain.</string>
-    <string name="ime_ai_research_needs_model">Riset mendalam memerlukan model cloud atau server yang dapat memanggil alat. Model ini tidak bisa: pilih model lain.</string>
     <string name="ime_ai_research_needs_search">Riset mendalam memerlukan penyedia pencarian web. Siapkan satu di pengaturan alat pencarian.</string>
     <string name="ime_ai_research_nothing_found">Penelitian mendalam tidak menemukan hasil pencarian.</string>
     <string name="ime_ai_research_plan_ask">Riset pertanyaan ini?</string>

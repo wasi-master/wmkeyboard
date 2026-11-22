@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Zamenjaj</string>
     <string name="ime_ai_report_action">Prijavi</string>
     <string name="ime_ai_research_declined">Zavrnili ste raziskovalni načrt. Poskusite znova, da ga načrtujete, ali pa vprašajte na drug način.</string>
-    <string name="ime_ai_research_needs_model">Poglobljeno raziskovanje potrebuje model v oblaku ali na strežniku, ki lahko kliče orodja. Ta model tega ne zmore: izberite drug model.</string>
     <string name="ime_ai_research_needs_search">Poglobljeno raziskovanje potrebuje ponudnika spletnega iskanja. Nastavite ga v nastavitvah orodja za iskanje.</string>
     <string name="ime_ai_research_nothing_found">Poglobljeno raziskovanje ni našlo nobenih rezultatov iskanja.</string>
     <string name="ime_ai_research_plan_ask">Raziščete ta vprašanja?</string>

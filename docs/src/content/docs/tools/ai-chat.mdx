@@ -220,7 +220,7 @@ The formats are **Auto format**, **Plain text**, **Markdown**, **Bullet points**
 
 ### Deep research
 
-Deep research answers a question from the web the way a research agent does, in steps you can watch. It needs two things: a cloud or server model that can call tools (any provider except **On your device** and Brave), and a [web search provider](/tools/search/) (SearXNG, Tavily or Brave). With either missing, a line above the message box says which, and the send button waits.
+Deep research answers a question from the web the way a research agent does, in steps you can watch. It needs two things: a model, and a [web search provider](/tools/search/). Any model works, **On your device** included, because the keyboard runs the steps itself and asks the model only for text. Brave Answers is the one exception, since it takes a single message and does its own searching. With either missing, a line above the message box says which, and the send button waits.
 
 1. **Plan.** The model breaks your question into sub-questions, from the general (what it is, why it matters) to the specific (details, numbers, recent changes), and gives each one to three searches. The plan appears as a checklist at the top of the answer.
 2. **Gather.** One sub-question at a time, its searches run and the best results are read, no more than two pages from one site. Each search and each page is a step on the chain, as a tool call is, and its sub-question is ticked once it's covered. A page that can't be read, or is a PDF or a video, is skipped.
@@ -238,6 +238,8 @@ The model doing every step is the one picked in the chat. The plan and the look-
 | Deep | up to 6 | 9 | twice | 14 |
 
 Each page is a request to its site, and up to 6,000 characters of it go to the model, with about 48,000 characters of page text in all for the report. Deeper reports take longer and cost more tokens. A Standard report on a fast cloud model takes about half a minute.
+
+A model on your device has a much smaller window, so the report is written from what fits in it: with the usual 4,096 tokens, about 6,900 characters of page text from up to 4 pages, with a few search snippets beside them. A larger **Context size** on the model's page lets it read more, up to the same 8 pages and 48,000 characters as a cloud model. The plan and the look-again are the same at every size. Each step loads the prompt afresh, so a report on the phone takes a few minutes.
 
 Turn on <SettingsPath path="Tools / AI writing tools / Review the research plan first" /> to see the plan before anything is searched. A card under the plan asks **Research these questions?** with **Start** and **Cancel**. Cancel ends the run with a **Retry**; rephrase the question if the plan missed the point. With the setting off, the plan runs as soon as it's made, and **Stop** ends a run at its next step, keeping the steps so far.
 

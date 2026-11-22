@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Ersetzen</string>
     <string name="ime_ai_report_action">Melden</string>
     <string name="ime_ai_research_declined">Du hast den Rechercheplan abgelehnt. Versuche es erneut, um ihn wieder zu planen, oder frage auf eine andere Weise.</string>
-    <string name="ime_ai_research_needs_model">Für eine intensive Recherche wird ein Cloud- oder Servermodell benötigt, das Werkzeuge aufrufen kann. Dieses Modell kann das nicht: Wähle ein anderes Modell.</string>
     <string name="ime_ai_research_needs_search">Tiefgreifende Recherche erfordert einen Websuchanbieter. Richte einen in den Einstellungen des Suchwerkzeugs ein.</string>
     <string name="ime_ai_research_nothing_found">Die tiefgehende Suche ergab keine Suchergebnisse.</string>
     <string name="ime_ai_research_plan_ask">Diese Fragen recherchieren?</string>

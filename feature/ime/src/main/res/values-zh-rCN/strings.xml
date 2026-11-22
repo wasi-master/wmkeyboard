@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">替换</string>
     <string name="ime_ai_report_action">举报</string>
     <string name="ime_ai_research_declined">您拒绝了研究计划。请重试以再次规划，或以其他方式询问。</string>
-    <string name="ime_ai_research_needs_model">深度研究需要一个可以调用工具的云端或服务器模型。当前模型无法做到：请选择另一个模型。</string>
     <string name="ime_ai_research_needs_search">深度研究需要网络搜索提供商。请在搜索工具的设置中进行设置。</string>
     <string name="ime_ai_research_nothing_found">深度搜索未找到搜索结果。</string>
     <string name="ime_ai_research_plan_ask">研究这些问题吗？</string>

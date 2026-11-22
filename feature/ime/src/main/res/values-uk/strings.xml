@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Замінити</string>
     <string name="ime_ai_report_action">Повідомити</string>
     <string name="ime_ai_research_declined">Ви відхилили план дослідження. Спробуйте ще раз, щоб запланувати його знову, або запитайте іншим способом.</string>
-    <string name="ime_ai_research_needs_model">Глибоке дослідження потребує хмарної або серверної моделі, яка може викликати інструменти. Ця модель не може: виберіть іншу модель.</string>
     <string name="ime_ai_research_needs_search">Для глибокого дослідження потрібен постачальник веб-пошуку. Налаштуйте його в параметрах інструменту пошуку.</string>
     <string name="ime_ai_research_nothing_found">Глибоке дослідження не дало результатів пошуку.</string>
     <string name="ime_ai_research_plan_ask">Дослідити ці питання?</string>

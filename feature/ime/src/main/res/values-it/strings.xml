@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Sostituisci</string>
     <string name="ime_ai_report_action">Segnala</string>
     <string name="ime_ai_research_declined">Hai rifiutato il piano di ricerca. Riprova per pianificarlo di nuovo o chiedi in un altro modo.</string>
-    <string name="ime_ai_research_needs_model">La ricerca approfondita richiede un modello cloud o server in grado di utilizzare strumenti. Questo non lo può fare: scegli un altro modello.</string>
     <string name="ime_ai_research_needs_search">La ricerca approfondita richiede un provider di ricerca web. Impostane uno nelle impostazioni dello strumento di ricerca.</string>
     <string name="ime_ai_research_nothing_found">La ricerca approfondita non ha trovato alcun risultato.</string>
     <string name="ime_ai_research_plan_ask">Ricercare queste domande?</string>

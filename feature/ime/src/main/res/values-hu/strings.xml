@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Csere</string>
     <string name="ime_ai_report_action">Jelentés</string>
     <string name="ime_ai_research_declined">Elutasítottad a kutatási tervet. Próbáld újra a tervezést, vagy kérdezz rá más módon.</string>
-    <string name="ime_ai_research_needs_model">A mélyreható kutatáshoz olyan felhő- vagy szervermodell szükséges, amely képes eszközöket hívni. Ez a modell nem képes rá: válassz másikat.</string>
     <string name="ime_ai_research_needs_search">A mélyreható kutatáshoz webszolgáltatóra van szükség. Állítson be egyet a keresőeszköz beállításaiban.</string>
     <string name="ime_ai_research_nothing_found">A mélyreható kutatás nem talált találatokat.</string>
     <string name="ime_ai_research_plan_ask">Kutatod ezeket a kérdéseket?</string>

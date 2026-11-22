@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Substituir</string>
     <string name="ime_ai_report_action">Denunciar</string>
     <string name="ime_ai_research_declined">Você recusou o plano de pesquisa. Tente novamente para planejar de novo ou peça de outra forma.</string>
-    <string name="ime_ai_research_needs_model">A pesquisa profunda requer um modelo de nuvem ou servidor que possa chamar ferramentas. Este não pode: escolha outro modelo.</string>
     <string name="ime_ai_research_needs_search">A pesquisa profunda precisa de um provedor de pesquisa na web. Configure um nas configurações da ferramenta de pesquisa.</string>
     <string name="ime_ai_research_nothing_found">A pesquisa profunda não encontrou resultados.</string>
     <string name="ime_ai_research_plan_ask">Pesquisar estas perguntas?</string>

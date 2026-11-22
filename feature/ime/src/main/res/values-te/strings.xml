@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">భర్తీ చేయి</string>
     <string name="ime_ai_report_action">నివేదించు</string>
     <string name="ime_ai_research_declined">మీరు పరిశోధన ప్రణాళికను తిరస్కరించారు. దాన్ని మళ్ళీ ప్లాన్ చేయడానికి ప్రయత్నించండి లేదా వేరే విధంగా అడగండి.</string>
-    <string name="ime_ai_research_needs_model">డీప్ రీసెర్చ్ కోసం టూల్స్‌ను ఉపయోగించగల క్లౌడ్ లేదా సర్వర్ మోడల్ అవసరం. ఇది అలా చేయలేదు: వేరే మోడల్‌ను ఎంచుకోండి.</string>
     <string name="ime_ai_research_needs_search">డీప్ రీసెర్చ్ కోసం వెబ్ సెర్చ్ ప్రొవైడర్ అవసరం. సెర్చ్ టూల్ సెట్టింగ్స్‌లో ఒకదాన్ని సెటప్ చేయండి.</string>
     <string name="ime_ai_research_nothing_found">డీప్ రీసెర్చ్‌లో ఎటువంటి శోధన ఫలితాలు కనుగొనబడలేదు.</string>
     <string name="ime_ai_research_plan_ask">ఈ ప్రశ్నలను పరిశోధించాలా?</string>

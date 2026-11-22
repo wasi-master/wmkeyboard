@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">แทนที่</string>
     <string name="ime_ai_report_action">รายงาน</string>
     <string name="ime_ai_research_declined">คุณปฏิเสธแผนการค้นคว้าแล้ว โปรดลองใหม่อีกครั้งเพื่อวางแผนใหม่ หรือสอบถามด้วยวิธีอื่น</string>
-    <string name="ime_ai_research_needs_model">การวิจัยเชิงลึกจำเป็นต้องใช้โมเดลบนคลาวด์หรือเซิร์ฟเวอร์ที่สามารถเรียกใช้เครื่องมือได้ โมเดลนี้ไม่สามารถทำได้ โปรดเลือกโมเดลอื่น</string>
     <string name="ime_ai_research_needs_search">การวิจัยเชิงลึกจำเป็นต้องมีผู้ให้บริการการค้นหาเว็บ โปรดตั้งค่าในหน้าการตั้งค่าของเครื่องมือค้นหา</string>
     <string name="ime_ai_research_nothing_found">การวิจัยเชิงลึกไม่พบผลลัพธ์การค้นหา</string>
     <string name="ime_ai_research_plan_ask">ค้นหาคำถามเหล่านี้หรือไม่</string>

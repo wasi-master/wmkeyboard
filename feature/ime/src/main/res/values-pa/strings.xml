@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">ਬਦਲੋ</string>
     <string name="ime_ai_report_action">ਰਿਪੋਰਟ ਕਰੋ</string>
     <string name="ime_ai_research_declined">ਤੁਸੀਂ ਖੋਜ ਯੋਜਨਾ ਨੂੰ ਅਸਵੀਕਾਰ ਕਰ ਦਿੱਤਾ ਹੈ। ਇਸਨੂੰ ਦੁਬਾਰਾ ਯੋਜਨਾਬੱਧ ਕਰਨ ਲਈ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ, ਜਾਂ ਕਿਸੇ ਹੋਰ ਤਰੀਕੇ ਨਾਲ ਪੁੱਛੋ।</string>
-    <string name="ime_ai_research_needs_model">ਡੂੰਘੀ ਖੋਜ ਲਈ ਇੱਕ ਕਲਾਉਡ ਜਾਂ ਸਰਵਰ ਮਾਡਲ ਦੀ ਲੋੜ ਹੁੰਦੀ ਹੈ ਜੋ ਟੂਲਸ ਨੂੰ ਕਾਲ ਕਰ ਸਕੇ। ਇਹ ਨਹੀਂ ਕਰ ਸਕਦਾ: ਕੋਈ ਹੋਰ ਮਾਡਲ ਚੁਣੋ।</string>
     <string name="ime_ai_research_needs_search">ਡੂੰਘੀ ਖੋਜ ਲਈ ਇੱਕ ਵੈੱਬ ਖੋਜ ਪ੍ਰਦਾਤਾ ਦੀ ਲੋੜ ਹੁੰਦੀ ਹੈ। ਖੋਜ ਟੂਲ ਦੀਆਂ ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਇੱਕ ਸੈੱਟ ਅੱਪ ਕਰੋ।</string>
     <string name="ime_ai_research_nothing_found">ਡੂੰਘੀ ਖੋਜ ਵਿੱਚ ਕੋਈ ਖੋਜ ਨਤੀਜੇ ਨਹੀਂ ਮਿਲੇ।</string>
     <string name="ime_ai_research_plan_ask">ਕੀ ਇਹਨਾਂ ਸਵਾਲਾਂ \'ਤੇ ਖੋਜ ਕਰਨੀ ਹੈ?</string>

@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">ಬದಲಾಯಿಸಿ</string>
     <string name="ime_ai_report_action">ವರದಿ ಮಾಡಿ</string>
     <string name="ime_ai_research_declined">ನೀವು ಸಂಶೋಧನಾ ಯೋಜನೆಯನ್ನು ತಿರಸ್ಕರಿಸಿದ್ದೀರಿ. ಅದನ್ನು ಮತ್ತೆ ಯೋಜಿಸಲು ಮರುಪ್ರಯತ್ನಿಸಿ, ಅಥವಾ ಬೇರೆ ರೀತಿಯಲ್ಲಿ ಕೇಳಿ.</string>
-    <string name="ime_ai_research_needs_model">ಡೀಪ್ ರಿಸರ್ಚ್‌ಗೆ ಉಪಕರಣಗಳನ್ನು ಕರೆಯಬಲ್ಲ ಕ್ಲೌಡ್ ಅಥವಾ ಸರ್ವರ್ ಮಾಡೆಲ್ ಅಗತ್ಯವಿದೆ. ಇದು ಸಾಧ್ಯವಿಲ್ಲ: ಬೇರೆ ಮಾಡೆಲ್ ಅನ್ನು ಆಯ್ಕೆ ಮಾಡಿ.</string>
     <string name="ime_ai_research_needs_search">ಡೀಪ್ ರಿಸರ್ಚ್‌ಗೆ ವೆಬ್ ಹುಡುಕಾಟ ಪೂರೈಕೆದಾರರ ಅಗತ್ಯವಿದೆ. ಹುಡುಕಾಟ ಉಪಕರಣದ ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಒಂದನ್ನು ಹೊಂದಿಸಿ.</string>
     <string name="ime_ai_research_nothing_found">ಡೀಪ್ ರಿಸರ್ಚ್ ಯಾವುದೇ ಹುಡುಕಾಟ ಫಲಿತಾಂಶಗಳನ್ನು ಕಂಡುಕೊಂಡಿಲ್ಲ.</string>
     <string name="ime_ai_research_plan_ask">ಈ ಪ್ರಶ್ನೆಗಳ ಕುರಿತು ಸಂಶೋಧನೆ ಮಾಡಬೇಕೇ?</string>

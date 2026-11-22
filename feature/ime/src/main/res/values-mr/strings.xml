@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">बदला</string>
     <string name="ime_ai_report_action">रिपोर्ट करा</string>
     <string name="ime_ai_research_declined">तुम्ही संशोधन योजना नाकारली आहे. पुन्हा योजना करण्यासाठी प्रयत्न करा किंवा दुसऱ्या मार्गाने विचारा.</string>
-    <string name="ime_ai_research_needs_model">डीप रिसर्चसाठी क्लाउड किंवा सर्व्हर मॉडेलची आवश्यकता असते जे टूल्स कॉल करू शकते. हे मॉडेल तसे करू शकत नाही: दुसरे मॉडेल निवडा.</string>
     <string name="ime_ai_research_needs_search">डीप रिसर्चसाठी वेब सर्च प्रोव्हायडरची आवश्यकता आहे. सर्च टूलच्या सेटिंग्जमध्ये एक सेट करा.</string>
     <string name="ime_ai_research_nothing_found">डीप रिसर्चमध्ये कोणतेही शोध निकाल सापडले नाहीत.</string>
     <string name="ime_ai_research_plan_ask">हे प्रश्न शोधायचे आहेत का?</string>

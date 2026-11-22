@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Nahradit</string>
     <string name="ime_ai_report_action">Nahlásit</string>
     <string name="ime_ai_research_declined">Odmítli jste plán výzkumu. Zkuste to znovu nebo se zeptejte jiným způsobem.</string>
-    <string name="ime_ai_research_needs_model">Hloubkový výzkum vyžaduje cloudový nebo serverový model, který umí volat nástroje. Tento to neumí: vyberte jiný model.</string>
     <string name="ime_ai_research_needs_search">Hloubkový výzkum vyžaduje poskytovatele webového vyhledávání. Nastavte jej v nastavení vyhledávacího nástroje.</string>
     <string name="ime_ai_research_nothing_found">Hloubkový průzkum nenalezl žádné výsledky vyhledávání.</string>
     <string name="ime_ai_research_plan_ask">Prozkoumat tyto otázky?</string>

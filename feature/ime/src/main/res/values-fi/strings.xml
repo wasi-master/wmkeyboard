@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Korvaa</string>
     <string name="ime_ai_report_action">Ilmoita</string>
     <string name="ime_ai_research_declined">Hylkäsit tutkimussuunnitelman. Yritä uudelleen suunnitellaksesi sen uudelleen tai kysy toisella tavalla.</string>
-    <string name="ime_ai_research_needs_model">Syvällinen tutkimus vaatii pilvi- tai palvelinmallin, joka voi käyttää työkaluja. Tämä malli ei pysty siihen: valitse toinen malli.</string>
     <string name="ime_ai_research_needs_search">Syvä tutkimus vaatii verkkohakupalvelun. Määritä sellainen hakutyökalun asetuksista.</string>
     <string name="ime_ai_research_nothing_found">Syväanalyysi ei löytänyt hakutuloksia.</string>
     <string name="ime_ai_research_plan_ask">Tutkitaanko näitä kysymyksiä?</string>

@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Faka esikhundleni</string>
     <string name="ime_ai_report_action">Bika</string>
     <string name="ime_ai_research_declined">Uwenqabile uhlelo locwaningo. Zama futhi ukuluhlela, noma ubuze ngenye indlela.</string>
-    <string name="ime_ai_research_needs_model">Ucwaningo olujulile ludinga imodeli yefu noma yeseva engabiza amathuluzi. Le ayikwazi: khetha enye imodeli.</string>
     <string name="ime_ai_research_needs_search">Ucwaningo olujulile ludinga umhlinzeki wosesho lwewebhu. Setha owodwa kuzilungiselelo zethuluzi lokusesha.</string>
     <string name="ime_ai_research_nothing_found">Ucwaningo olujulile alutholanga miphumela yokusesha.</string>
     <string name="ime_ai_research_plan_ask">Cwaninga le mibuzo?</string>

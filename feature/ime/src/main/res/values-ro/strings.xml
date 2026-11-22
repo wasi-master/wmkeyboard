@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Înlocuiește</string>
     <string name="ime_ai_report_action">Raportează</string>
     <string name="ime_ai_research_declined">Ați refuzat planul de cercetare. Încercați din nou să îl planificați sau întrebați în alt mod.</string>
-    <string name="ime_ai_research_needs_model">Cercetarea aprofundată necesită un model cloud sau server care poate apela instrumente. Acesta nu poate: alege un alt model.</string>
     <string name="ime_ai_research_needs_search">Cercetarea aprofundată necesită un furnizor de căutare web. Configurează unul în setările instrumentului de căutare.</string>
     <string name="ime_ai_research_nothing_found">Cercetarea aprofundată nu a găsit niciun rezultat.</string>
     <string name="ime_ai_research_plan_ask">Cercetezi aceste întrebări?</string>

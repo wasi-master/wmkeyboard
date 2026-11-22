@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Reemplazar</string>
     <string name="ime_ai_report_action">Informar</string>
     <string name="ime_ai_research_declined">Rechazaste el plan de investigación. Vuelve a intentarlo para planificarlo de nuevo o pregúntalo de otra manera.</string>
-    <string name="ime_ai_research_needs_model">La investigación profunda necesita un modelo en la nube o servidor que pueda llamar a herramientas. Este no puede: elige otro modelo.</string>
     <string name="ime_ai_research_needs_search">La investigación profunda necesita un proveedor de búsqueda web. Configura uno en los ajustes de la herramienta de búsqueda.</string>
     <string name="ime_ai_research_nothing_found">La investigación profunda no encontró resultados de búsqueda.</string>
     <string name="ime_ai_research_plan_ask">¿Investigar estas preguntas?</string>

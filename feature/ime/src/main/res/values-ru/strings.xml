@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Заменить</string>
     <string name="ime_ai_report_action">Пожаловаться</string>
     <string name="ime_ai_research_declined">Вы отклонили план исследования. Попробуйте снова, чтобы запланировать его, или задайте вопрос иначе.</string>
-    <string name="ime_ai_research_needs_model">Для глубокого исследования требуется облачная или серверная модель, способная вызывать инструменты. Эта модель не может этого делать: выберите другую.</string>
     <string name="ime_ai_research_needs_search">Для глубокого исследования требуется поисковый провайдер. Настройте его в настройках инструмента поиска.</string>
     <string name="ime_ai_research_nothing_found">Глубокий поиск не дал результатов.</string>
     <string name="ime_ai_research_plan_ask">Исследовать эти вопросы?</string>

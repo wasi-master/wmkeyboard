@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Reemplaça</string>
     <string name="ime_ai_report_action">Informa</string>
     <string name="ime_ai_research_declined">Heu rebutjat el pla de recerca. Torneu-ho a intentar per planificar-ho de nou o pregunteu-ho d\'una altra manera.</string>
-    <string name="ime_ai_research_needs_model">La investigació profunda necessita un model de núvol o servidor que pugui cridar eines. Aquest no pot: trieu un altre model.</string>
     <string name="ime_ai_research_needs_search">La recerca profunda necessita un proveïdor de cerca web. Configura\'n un a la configuració de l\'eina de cerca.</string>
     <string name="ime_ai_research_nothing_found">La cerca profunda no ha trobat resultats.</string>
     <string name="ime_ai_research_plan_ask">Investigar aquestes preguntes?</string>

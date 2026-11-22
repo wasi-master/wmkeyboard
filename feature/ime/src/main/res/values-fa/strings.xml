@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">جایگزینی</string>
     <string name="ime_ai_report_action">گزارش</string>
     <string name="ime_ai_research_declined">شما طرح پژوهشی را رد کردید. برای برنامه‌ریزی مجدد آن تلاش کنید یا به روش دیگری از آن درخواست کنید.</string>
-    <string name="ime_ai_research_needs_model">تحقیق عمیق به یک مدل ابری یا سروری نیاز دارد که بتواند ابزارها را فراخوانی کند. این مدل نمی‌تواند: مدل دیگری را انتخاب کنید.</string>
     <string name="ime_ai_research_needs_search">تحقیق عمیق به یک ارائه‌دهنده جستجوی وب نیاز دارد. یکی را در تنظیمات ابزار جستجو تنظیم کنید.</string>
     <string name="ime_ai_research_nothing_found">جستجوی عمیق نتیجه‌ای پیدا نکرد.</string>
     <string name="ime_ai_research_plan_ask">این پرسش‌ها تحقیق شوند؟</string>

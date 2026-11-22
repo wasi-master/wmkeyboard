@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Thay thế</string>
     <string name="ime_ai_report_action">Báo cáo</string>
     <string name="ime_ai_research_declined">Bạn đã từ chối kế hoạch nghiên cứu. Thử lại để lập kế hoạch lần nữa, hoặc hỏi theo cách khác.</string>
-    <string name="ime_ai_research_needs_model">Nghiên cứu chuyên sâu cần một mô hình đám mây hoặc máy chủ có thể gọi các công cụ. Mô hình này không thể: hãy chọn mô hình khác.</string>
     <string name="ime_ai_research_needs_search">Nghiên cứu chuyên sâu cần một nhà cung cấp tìm kiếm web. Hãy thiết lập một nhà cung cấp trong cài đặt của công cụ tìm kiếm.</string>
     <string name="ime_ai_research_nothing_found">Nghiên cứu chuyên sâu không tìm thấy kết quả nào.</string>
     <string name="ime_ai_research_plan_ask">Nghiên cứu các câu hỏi này?</string>

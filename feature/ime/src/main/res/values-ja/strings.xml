@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">置換</string>
     <string name="ime_ai_report_action">報告</string>
     <string name="ime_ai_research_declined">リサーチプランを拒否しました。再試行して再度計画するか、別の方法で質問してください。</string>
-    <string name="ime_ai_research_needs_model">詳細な調査には、ツールを呼び出せるクラウドまたはサーバーモデルが必要です。これは呼び出せません。別のモデルを選択してください。</string>
     <string name="ime_ai_research_needs_search">詳細な調査にはウェブ検索プロバイダーが必要です。検索ツールの設定で設定してください。</string>
     <string name="ime_ai_research_nothing_found">詳細検索の結果は見つかりませんでした。</string>
     <string name="ime_ai_research_plan_ask">これらの質問を調査しますか？</string>

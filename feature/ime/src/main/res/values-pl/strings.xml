@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Zastąp</string>
     <string name="ime_ai_report_action">Zgłoś</string>
     <string name="ime_ai_research_declined">Odrzuciłeś plan badawczy. Spróbuj zaplanować go ponownie lub zapytaj w inny sposób.</string>
-    <string name="ime_ai_research_needs_model">Głębokie wyszukiwanie wymaga modelu chmurowego lub serwerowego, który potrafi wywoływać narzędzia. Ten tego nie potrafi: wybierz inny model.</string>
     <string name="ime_ai_research_needs_search">Głębokie wyszukiwanie wymaga dostawcy wyszukiwania internetowego. Skonfiguruj go w ustawieniach narzędzia wyszukiwania.</string>
     <string name="ime_ai_research_nothing_found">Głębokie wyszukiwanie nie znalazło żadnych wyników.</string>
     <string name="ime_ai_research_plan_ask">Wyszukać te pytania?</string>

@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">மாற்று</string>
     <string name="ime_ai_report_action">புகாரளிக்கவும்</string>
     <string name="ime_ai_research_declined">நீங்கள் ஆராய்ச்சித் திட்டத்தை நிராகரித்துவிட்டீர்கள். மீண்டும் திட்டமிட முயற்சிக்கவும் அல்லது வேறு வழியில் கேட்கவும்.</string>
-    <string name="ime_ai_research_needs_model">ஆழ்ந்த ஆராய்ச்சிக்கு கருவிகளை அழைக்கக்கூடிய கிளவுட் அல்லது சர்வர் மாடல் தேவை. இது முடியாது: மற்றொரு மாடலைத் தேர்ந்தெடுக்கவும்.</string>
     <string name="ime_ai_research_needs_search">ஆழ்ந்த ஆராய்ச்சிக்கு ஒரு இணையத் தேடல் வழங்கல் தேவை. தேடல் கருவியின் அமைப்புகளில் ஒன்றைப் பதிவேற்றவும்.</string>
     <string name="ime_ai_research_nothing_found">ஆழ்ந்த ஆராய்ச்சியில் தேடல் முடிவுகள் எதுவும் கிடைக்கவில்லை.</string>
     <string name="ime_ai_research_plan_ask">இந்தக் கேள்விகளை ஆய்வு செய்யவா?</string>

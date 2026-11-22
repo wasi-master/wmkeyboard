@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Badilisha</string>
     <string name="ime_ai_report_action">Ripoti</string>
     <string name="ime_ai_research_declined">Ulikataa mpango wa utafiti. Jaribu tena kuupanga, au uulize kwa njia nyingine.</string>
-    <string name="ime_ai_research_needs_model">Utafiti wa kina unahitaji mfano wa wingu au seva unaoweza kupiga zana. Huu hauwezi: chagua mfano mwingine.</string>
     <string name="ime_ai_research_needs_search">Utafiti wa kina unahitaji mtoa huduma wa utafutaji wa wavuti. Sanidi mmoja katika mipangilio ya zana ya utafutaji.</string>
     <string name="ime_ai_research_nothing_found">Utafiti wa kina haukupata matokeo yoyote ya utafutaji.</string>
     <string name="ime_ai_research_plan_ask">Kutafiti maswali haya?</string>

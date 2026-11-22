@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Замяна</string>
     <string name="ime_ai_report_action">Докладване</string>
     <string name="ime_ai_research_declined">Отказахте плана за изследване. Опитайте отново, за да го планирате, или попитайте по друг начин.</string>
-    <string name="ime_ai_research_needs_model">За задълбочено проучване е необходим облачен или сървърен модел, който може да извиква инструменти. Този модел не може: изберете друг.</string>
     <string name="ime_ai_research_needs_search">За задълбочено проучване е необходим доставчик за търсене в мрежата. Настройте такъв в настройките на инструмента за търсене.</string>
     <string name="ime_ai_research_nothing_found">Задълбоченото проучване не намери резултати.</string>
     <string name="ime_ai_research_plan_ask">Да се проучат ли тези въпроси?</string>

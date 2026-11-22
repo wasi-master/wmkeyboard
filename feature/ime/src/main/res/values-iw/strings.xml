@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">החלף</string>
     <string name="ime_ai_report_action">דווח</string>
     <string name="ime_ai_research_declined">דחית את תוכנית המחקר. נסה שוב לתכנן אותה, או בקש זאת בדרך אחרת.</string>
-    <string name="ime_ai_research_needs_model">מחקר עומק דורש מודל ענן או שרת שיכול להפעיל כלים. זה לא יכול: בחר מודל אחר.</string>
     <string name="ime_ai_research_needs_search">מחקר עומק דורש ספק חיפוש באינטרנט. הגדר אחד בהגדרות כלי החיפוש.</string>
     <string name="ime_ai_research_nothing_found">מחקר עומק לא מצא תוצאות חיפוש.</string>
     <string name="ime_ai_research_plan_ask">לחקור את השאלות האלה?</string>

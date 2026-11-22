@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">બદલો</string>
     <string name="ime_ai_report_action">રિપોર્ટ કરો</string>
     <string name="ime_ai_research_declined">તમે સંશોધન યોજનાને નકારી કાઢી છે. તેને ફરીથી પ્લાન કરવા માટે ફરી પ્રયાસ કરો, અથવા તેને બીજી રીતે પૂછો.</string>
-    <string name="ime_ai_research_needs_model">ઊંડા સંશોધન માટે ક્લાઉડ અથવા સર્વર મોડેલની જરૂર છે જે ટૂલ્સને કૉલ કરી શકે. આ મોડેલ તે કરી શકતું નથી: બીજું મોડેલ પસંદ કરો.</string>
     <string name="ime_ai_research_needs_search">ડીપ રિસર્ચ માટે વેબ સર્ચ પ્રોવાઈડરની જરૂર છે. સર્ચ ટૂલના સેટિંગ્સમાં એક સેટઅપ કરો.</string>
     <string name="ime_ai_research_nothing_found">ડીપ રિસર્ચમાં કોઈ શોધ પરિણામો મળ્યા નથી.</string>
     <string name="ime_ai_research_plan_ask">આ પ્રશ્નો પર સંશોધન કરવું છે?</string>

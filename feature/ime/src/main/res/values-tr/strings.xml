@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Değiştir</string>
     <string name="ime_ai_report_action">Bildir</string>
     <string name="ime_ai_research_declined">Araştırma planını reddettiniz. Tekrar planlamak için yeniden deneyin veya başka bir şekilde sorun.</string>
-    <string name="ime_ai_research_needs_model">Derin araştırma, araçları çağırabilen bir bulut veya sunucu modeli gerektirir. Bu model bunu yapamaz: başka bir model seçin.</string>
     <string name="ime_ai_research_needs_search">Kapsamlı araştırma için bir web arama sağlayıcısı gerekir. Arama aracının ayarlarından birini yapılandırın.</string>
     <string name="ime_ai_research_nothing_found">Derin araştırma hiçbir arama sonucu bulamadı.</string>
     <string name="ime_ai_research_plan_ask">Bu soruları araştır?</string>

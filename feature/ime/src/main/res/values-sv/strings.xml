@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Ersätt</string>
     <string name="ime_ai_report_action">Rapportera</string>
     <string name="ime_ai_research_declined">Du avböjde forskningsplanen. Försök igen för att planera den på nytt, eller fråga på ett annat sätt.</string>
-    <string name="ime_ai_research_needs_model">Djupforskning kräver en moln- eller servermodell som kan anropa verktyg. Den här kan inte det: välj en annan modell.</string>
     <string name="ime_ai_research_needs_search">Djupgående forskning kräver en webbsökningsleverantör. Ställ in en i sökverktygets inställningar.</string>
     <string name="ime_ai_research_nothing_found">Djupforskning hittade inga sökresultat.</string>
     <string name="ime_ai_research_plan_ask">Undersök dessa frågor?</string>

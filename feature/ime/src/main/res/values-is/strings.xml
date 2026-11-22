@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Skipta út</string>
     <string name="ime_ai_report_action">Tilkynna</string>
     <string name="ime_ai_research_declined">Þú hafnaðir rannsóknaráætluninni. Reyndu aftur til að skipuleggja hana eða spurðu á annan hátt.</string>
-    <string name="ime_ai_research_needs_model">Djúp rannsókn þarfnast skýja- eða netþjónalíkans sem getur kallað á verkfæri. Þetta líkan getur það ekki: veldu annað líkan.</string>
     <string name="ime_ai_research_needs_search">Djúp leit þarf vefleitarveitu. Settu upp eina slíka í stillingum leitarverkfærisins.</string>
     <string name="ime_ai_research_nothing_found">Djúprannsókn fann engar leitarniðurstöður.</string>
     <string name="ime_ai_research_plan_ask">Rannsaka þessar spurningar?</string>

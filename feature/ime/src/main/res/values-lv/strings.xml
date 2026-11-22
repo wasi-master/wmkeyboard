@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Aizstāt</string>
     <string name="ime_ai_report_action">Ziņot</string>
     <string name="ime_ai_research_declined">Jūs noraidījāt pētniecības plānu. Mēģiniet vēlreiz, lai plānotu to no jauna, vai jautājiet citā veidā.</string>
-    <string name="ime_ai_research_needs_model">Padziļinātai izpētei nepieciešams mākoņpakalpojuma vai servera modelis, kas var izsaukt rīkus. Šis to nespēj: izvēlieties citu modeli.</string>
     <string name="ime_ai_research_needs_search">Padziļinātai izpētei nepieciešams meklētājprogrammas pakalpojumu sniedzējs. Iestatiet to meklēšanas rīka iestatījumos.</string>
     <string name="ime_ai_research_nothing_found">Padziļinātā izpēte neatrada nekādus meklēšanas rezultātus.</string>
     <string name="ime_ai_research_plan_ask">Izpētīt šos jautājumus?</string>

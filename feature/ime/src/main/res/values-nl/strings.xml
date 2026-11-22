@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">Vervangen</string>
     <string name="ime_ai_report_action">Rapporteren</string>
     <string name="ime_ai_research_declined">Je hebt het onderzoeksplan afgewezen. Probeer het opnieuw te plannen of vraag het op een andere manier.</string>
-    <string name="ime_ai_research_needs_model">Diepgaand onderzoek vereist een cloud- of servermodel dat tools kan aanroepen. Dit model kan dat niet: kies een ander model.</string>
     <string name="ime_ai_research_needs_search">Diepgaand onderzoek vereist een zoekmachineprovider. Stel er een in bij de instellingen van de zoektool.</string>
     <string name="ime_ai_research_nothing_found">Diepgaand onderzoek leverde geen zoekresultaten op.</string>
     <string name="ime_ai_research_plan_ask">Deze vragen onderzoeken?</string>

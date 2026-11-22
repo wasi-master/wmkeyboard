@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">बदलें</string>
     <string name="ime_ai_report_action">रिपोर्ट करें</string>
     <string name="ime_ai_research_declined">आपने शोध योजना को अस्वीकार कर दिया है। इसे फिर से योजनाबद्ध करने के लिए पुनः प्रयास करें, या इसे किसी अन्य तरीके से पूछें।</string>
-    <string name="ime_ai_research_needs_model">गहन शोध (डीप रिसर्च) के लिए क्लाउड या सर्वर मॉडल की आवश्यकता होती है जो टूल का उपयोग कर सके। यह मॉडल ऐसा नहीं कर सकता: कोई दूसरा मॉडल चुनें।</string>
     <string name="ime_ai_research_needs_search">गहन शोध के लिए एक वेब खोज प्रदाता की आवश्यकता होती है। सर्च टूल की सेटिंग्स में एक सेट करें।</string>
     <string name="ime_ai_research_nothing_found">गहन शोध में कोई खोज परिणाम नहीं मिला।</string>
     <string name="ime_ai_research_plan_ask">इन सवालों पर शोध करें?</string>

@@ -203,7 +203,6 @@
     <string name="ime_ai_replace">প্রতিস্থাপন করুন</string>
     <string name="ime_ai_report_action">রিপোর্ট করুন</string>
     <string name="ime_ai_research_declined">আপনি গবেষণা পরিকল্পনাটি প্রত্যাখ্যান করেছেন। এটি পুনরায় পরিকল্পনা করতে আবার চেষ্টা করুন, অথবা অন্য কোনো উপায়ে জিজ্ঞাসা করুন।</string>
-    <string name="ime_ai_research_needs_model">গভীর গবেষণার জন্য এমন একটি ক্লাউড বা সার্ভার মডেল প্রয়োজন যা টুল কল করতে পারে। এটি তা পারে না: অন্য একটি মডেল বেছে নিন।</string>
     <string name="ime_ai_research_needs_search">গভীর গবেষণার জন্য একটি ওয়েব সার্চ প্রোভাইডার প্রয়োজন। সার্চ টুলের সেটিংসে একটি সেট আপ করুন।</string>
     <string name="ime_ai_research_nothing_found">গভীর গবেষণায় কোনো সার্চ ফলাফল পাওয়া যায়নি।</string>
     <string name="ime_ai_research_plan_ask">এই প্রশ্নগুলো নিয়ে গবেষণা করবেন?</string>

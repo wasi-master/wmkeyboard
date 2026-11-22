@@ -76,6 +76,10 @@ class AiResearch(
         val sourceChars: Int = SOURCE_CHARS,
         /** New searches one look-again may add. */
         val followUps: Int = FOLLOW_UPS,
+        /** Sources the report is given, pages read first and then search snippets. */
+        val maxSources: Int = MAX_SOURCES,
+        /** Characters of each page the look-again step sees. */
+        val noteChars: Int = AiResearchText.NOTE_CHARS,
     )
 
     /** One model call: [stream] says the text is the report, worth showing as it forms. */
@@ -283,7 +287,7 @@ class AiResearch(
     /** Step 3: what is still missing, as new searches; empty when the model says it has enough. */
     private fun lookAgain(today: String): List<String>? {
         listener.started(step(AiTools.RESEARCH_REVIEW))
-        val notes = AiResearchText.notes(found.values.map { Triple(it.title, it.hit, it.text) })
+        val notes = AiResearchText.notes(found.values.map { Triple(it.title, it.hit, it.text) }, limits.maxSources, limits.noteChars)
         val raw = model.complete(
             AiResearchText.reviewPrompt(limits.followUps, today),
             AiResearchText.reviewInput(question, plan.map { it.question }, searched, notes),
@@ -311,12 +315,12 @@ class AiResearch(
     /**
      * The sources the report is written from, numbered: every page read
      * first, in the order found, then the best of the rest by their snippets,
-     * up to [MAX_SOURCES] in all.
+     * up to [Limits.maxSources] in all.
      */
     private fun numbered(): List<Source> {
         val read = found.values.filter { it.text.isNotEmpty() }
         val rest = found.values.filter { it.text.isEmpty() }.sortedWith(compareBy({ it.rank }, { it.query }))
-        return (read + rest).take(MAX_SOURCES).mapIndexed { index, it ->
+        return (read + rest).take(limits.maxSources).mapIndexed { index, it ->
             Source(index + 1, it.title.trim().ifEmpty { AiToolActivity.domainOf(it.hit.url) }, it.hit.url, it.hit.snippet.trim(), it.text)
         }
     }
@@ -336,17 +340,34 @@ class AiResearch(
         /**
          * The bounds for [depth]. [dataSaver] halves the pages: the user asked
          * for less data on this network, and a report from fewer pages is still
-         * a report. [compact] is for a model with a small context, whose share
-         * of page text has to be smaller.
+         * a report.
+         *
+         * [contextTokens] is the window of a model on the phone, whose every
+         * prompt (plan, look-again, report) must fit in it with the report's
+         * own words still to come; 0 is a cloud or server model, for which
+         * the defaults fit. A small window gets less page text, fewer pages
+         * to fetch for it, and fewer snippets beside them: a page read and
+         * then cut to a paragraph is a request for nothing.
          */
-        fun limits(depth: AiResearchDepth, dataSaver: Boolean = false, compact: Boolean = false): Limits = Limits(
-            questions = depth.questions,
-            queries = depth.queries,
-            rounds = depth.rounds,
-            pages = if (dataSaver) (depth.pages + 1) / 2 else depth.pages,
-            pageChars = if (compact) PAGE_CHARS / 2 else PAGE_CHARS,
-            sourceChars = if (compact) SOURCE_CHARS / 4 else SOURCE_CHARS,
-        )
+        fun limits(depth: AiResearchDepth, dataSaver: Boolean = false, contextTokens: Int = 0): Limits {
+            val pages = if (dataSaver) (depth.pages + 1) / 2 else depth.pages
+            if (contextTokens <= 0) {
+                return Limits(questions = depth.questions, queries = depth.queries, rounds = depth.rounds, pages = pages)
+            }
+            val sourceChars = ((contextTokens - RESERVED_TOKENS) * CHARS_PER_TOKEN).coerceIn(MIN_SOURCE_CHARS, SOURCE_CHARS)
+            val fit = (sourceChars / MIN_SHARE_CHARS).coerceAtLeast(2)
+            val maxSources = (fit + 2).coerceAtMost(MAX_SOURCES)
+            return Limits(
+                questions = depth.questions,
+                queries = depth.queries,
+                rounds = depth.rounds,
+                pages = minOf(pages, fit),
+                pageChars = minOf(PAGE_CHARS, sourceChars / 2),
+                sourceChars = sourceChars,
+                maxSources = maxSources,
+                noteChars = (sourceChars / maxSources).coerceIn(MIN_NOTE_CHARS, AiResearchText.NOTE_CHARS),
+            )
+        }
 
         const val PAGE_CHARS = 6_000
 
@@ -358,6 +379,20 @@ class AiResearch(
         const val SOURCE_CHARS = 48_000
         const val FOLLOW_UPS = 3
         const val MAX_SOURCES = 20
+
+        /**
+         * Tokens of a phone model's window kept from page text: the prompt's
+         * instructions, the question and plan, and the report it writes.
+         */
+        private const val RESERVED_TOKENS = 1_800
+
+        /** Characters a token stands for, on the low side, so a non-Latin page still fits. */
+        private const val CHARS_PER_TOKEN = 3
+        private const val MIN_SOURCE_CHARS = 3_000
+
+        /** The least of a page worth reading it for. */
+        private const val MIN_SHARE_CHARS = 1_500
+        private const val MIN_NOTE_CHARS = 200
         private const val QUESTION_CHARS = 4_000
         private const val QUERY_CHARS = 200
         private const val MIN_PAGE_CHARS = 300
@@ -506,11 +541,15 @@ object AiResearchText {
      * of what was found but not read. Enough to see what is covered, a
      * fraction of what the report is later written from.
      */
-    fun notes(found: List<Triple<String, AiResearch.Hit, String>>): String = buildString {
-        for ((title, hit, text) in found.take(AiResearch.MAX_SOURCES)) {
+    fun notes(
+        found: List<Triple<String, AiResearch.Hit, String>>,
+        max: Int = AiResearch.MAX_SOURCES,
+        noteChars: Int = NOTE_CHARS,
+    ): String = buildString {
+        for ((title, hit, text) in found.take(max)) {
             if (isNotEmpty()) append("\n\n")
             append("- ").append(title.trim().ifEmpty { hit.title }).append(" (").append(AiToolActivity.domainOf(hit.url)).append(")\n")
-            append(if (text.isNotEmpty()) cut(text, NOTE_CHARS) else hit.snippet.trim())
+            append(if (text.isNotEmpty()) cut(text, noteChars) else hit.snippet.trim())
         }
     }
 
@@ -633,7 +672,7 @@ object AiResearchText {
     private const val PER_SITE = 2
     private const val MAX_QUERY = 200
     private const val MAX_RANGE = 9
-    private const val NOTE_CHARS = 1_200
+    const val NOTE_CHARS = 1_200
     private const val TARGET_CHARS = 48
     private const val CHECK_MARK = 4
 }
