@@ -598,9 +598,11 @@ object KeyboardFonts {
             val font = platformFont(context, id, held) ?: return null
             return runCatching { PlatformFontFamily.Builder(font).build() }.getOrNull()
         }
-        val base = held[WGHT] ?: weight.default
+        val tuned = held[WGHT]
+        val base = tuned ?: weight.clamp(400f)
+        val boldWeight = weight.clamp(if (tuned == null) 700f else tuned + BOLD_STEP)
         val regular = platformFont(context, id, held + (WGHT to base), weight = 400) ?: return null
-        val bold = platformFont(context, id, held + (WGHT to weight.clamp(base + BOLD_STEP)), weight = 700)
+        val bold = platformFont(context, id, held + (WGHT to boldWeight), weight = 700)
         return runCatching {
             PlatformFontFamily.Builder(regular).apply { if (bold != null) addFont(bold) }.build()
         }.getOrElse { runCatching { PlatformFontFamily.Builder(regular).build() }.getOrNull() }
@@ -1071,22 +1073,25 @@ object KeyboardFonts {
 
     /**
      * The four weights the keys draw in, and what each asks of a variable
-     * font: Normal and Medium at the user's weight (the labels' everyday
-     * weight, which is the one they are tuning), SemiBold and Bold that much
-     * heavier, held to the axis. A font with no weight axis takes [axes] as
-     * they are at every weight, and the platform's synthetic bold does the rest.
+     * font. Untuned, each weight draws at its own number (400, 500, 600, 700),
+     * the way CSS and Compose cut a variable font: a font's default instance
+     * can be anywhere, and Anybody's is a hairline. Tuned, Normal and Medium
+     * draw at the user's weight (the labels' everyday weight, which is the one
+     * they are tuning) and SemiBold and Bold that much heavier, held to the
+     * axis. A font with no weight axis takes [axes] as they are at every
+     * weight, and the platform's synthetic bold does the rest.
      */
     private fun settingsFor(axes: Map<String, Float>, wght: com.wasimaster.wmkeyboard.core.fonts.FontAxis?, weight: FontWeight): FontVariation.Settings {
         val values = if (wght == null) {
             axes
         } else {
-            val base = axes[WGHT] ?: wght.default
+            val tuned = axes[WGHT]
             val step = when (weight) {
                 FontWeight.SemiBold -> SEMIBOLD_STEP
                 FontWeight.Bold -> BOLD_STEP
                 else -> 0f
             }
-            axes + (WGHT to wght.clamp(base + step))
+            axes + (WGHT to wght.clamp(if (tuned == null) weight.weight.toFloat() else tuned + step))
         }
         return FontVariation.Settings(*values.map { (tag, value) -> FontVariation.Setting(tag, value) }.toTypedArray())
     }

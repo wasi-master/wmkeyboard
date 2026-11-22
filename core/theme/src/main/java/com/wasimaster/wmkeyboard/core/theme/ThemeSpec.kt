@@ -2027,6 +2027,31 @@ private val FrostTheme: ThemeSpec = ThemeSpec(
 )
 
 /**
+ * The font-motion showcase: the system font, whose Roboto is variable on most
+ * phones from Android 12, swelling a weight step heavier under the finger and
+ * leaning heavier while Shift is on. On a phone whose system font is static it
+ * is an ordinary warm dark theme: the motions have no axes to move.
+ */
+private val SwellTheme: ThemeSpec =
+    themeFromSeed("builtin_swell", "Swell", 0xFFE0A030, dark = true).copy(
+        fontMotions = listOf(
+            FontMotionSpec(
+                trigger = FontMotionTrigger.TOUCH.name,
+                axes = mapOf("wght" to 760f),
+                radiusDp = 110f,
+                decayMs = 450,
+                wobble = 0.35f,
+            ),
+            FontMotionSpec(
+                trigger = FontMotionTrigger.SHIFT.name,
+                axes = mapOf("wght" to 640f),
+                target = FontMotionTarget.ALL.name,
+                wobble = 0.2f,
+            ),
+        ),
+    )
+
+/**
  * Built-in gallery themes. Users can't edit these in place — the editor
  * duplicates one into a custom theme instead — so ids stay stable.
  *
@@ -2085,30 +2110,6 @@ val BuiltInThemes: List<ThemeSpec> = listOf(
     SwellTheme,
 ) + ExpressiveThemes + PaletteThemes
 
-/**
- * The font-motion showcase: the system font, whose Roboto is variable on most
- * phones from Android 12, swelling a weight step heavier under the finger and
- * leaning heavier while Shift is on. On a phone whose system font is static it
- * is an ordinary warm dark theme: the motions have no axes to move.
- */
-private val SwellTheme: ThemeSpec =
-    themeFromSeed("builtin_swell", "Swell", 0xFFE0A030, dark = true).copy(
-        fontMotions = listOf(
-            FontMotionSpec(
-                trigger = FontMotionTrigger.TOUCH.name,
-                axes = mapOf("wght" to 760f),
-                radiusDp = 110f,
-                decayMs = 450,
-                wobble = 0.35f,
-            ),
-            FontMotionSpec(
-                trigger = FontMotionTrigger.SHIFT.name,
-                axes = mapOf("wght" to 640f),
-                target = FontMotionTarget.ALL.name,
-                wobble = 0.2f,
-            ),
-        ),
-    )
 
 /**
  * The name resource of every theme in [BuiltInThemes], keyed by the id of the

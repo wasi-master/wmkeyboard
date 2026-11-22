@@ -60,7 +60,7 @@ import kotlin.math.sqrt
 
 /** One [FontMotionSpec] with its trigger known and its ranges enforced. */
 @Immutable
-internal data class KbFontMotionItem(
+data class KbFontMotionItem(
     val trigger: FontMotionTrigger,
     val pattern: KeyLightingPattern,
     val axes: Map<String, Float>,
@@ -73,7 +73,7 @@ internal data class KbFontMotionItem(
 
 /** A theme's font motions, ready to drive; see [ThemeSpec.fontMotions]. */
 @Immutable
-internal data class KbFontMotion(val items: List<KbFontMotionItem>) {
+data class KbFontMotion(val items: List<KbFontMotionItem>) {
     /** Whether a finger has to be followed: touch and glide motions. */
     val followsFingers: Boolean
         get() = items.any { it.trigger == FontMotionTrigger.TOUCH || it.trigger == FontMotionTrigger.GLIDE }
@@ -124,7 +124,7 @@ internal fun morphedAxes(
         if (abs(level) < LEVEL_EPSILON) continue
         for ((tag, peak) in peaks) {
             val axis = variations.axis(tag) ?: continue
-            val from = rest[tag] ?: axis.default
+            val from = rest[tag] ?: variations.restValue(tag, LABEL_WEIGHT) ?: axis.default
             val d = (axis.clamp(peak) - from) * level
             if (abs(d) > abs(delta[tag] ?: 0f)) delta[tag] = d
         }
@@ -133,7 +133,8 @@ internal fun morphedAxes(
     val out = HashMap(rest)
     for ((tag, d) in delta) {
         val axis = variations.axis(tag) ?: continue
-        out[tag] = axis.clamp((rest[tag] ?: axis.default) + d)
+        val from = rest[tag] ?: variations.restValue(tag, LABEL_WEIGHT) ?: axis.default
+        out[tag] = axis.clamp(from + d)
     }
     return out
 }
@@ -173,6 +174,9 @@ internal fun swellEnvelope(sinceDownMs: Long, heldMs: Long, decayMs: Int, wobble
 }
 
 private const val SWELL_RISE_MS = 60f
+
+/** The weight key labels are asked for (Medium), which an untuned weight axis rests at. */
+private const val LABEL_WEIGHT = 500
 private const val LEVEL_EPSILON = 0.01f
 
 // ---- fingers ----------------------------------------------------------------

@@ -24,8 +24,9 @@ class FontMotionLevelsTest {
 
     @Test
     fun `a level moves the axis that far toward its peak`() {
+        // An untuned weight rests at the labels' Medium, 500.
         val out = morphedAxes(emptyMap(), font, listOf(mapOf("wght" to 800f) to 0.5f))
-        assertEquals(600f, out.getValue("wght"), 0.001f)
+        assertEquals(650f, out.getValue("wght"), 0.001f)
         assertTrue("wdth" !in out)
     }
 
@@ -42,7 +43,7 @@ class FontMotionLevelsTest {
             font,
             listOf(mapOf("wght" to 900f) to 0.2f, mapOf("wght" to 100f) to 1f),
         )
-        // +100 against -300: the second wins.
+        // From 500: +80 against -400, so the second wins.
         assertEquals(100f, out.getValue("wght"), 0.001f)
     }
 

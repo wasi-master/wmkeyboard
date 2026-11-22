@@ -53,25 +53,39 @@ data class FontVariations(
     fun axis(tag: String): FontAxis? = axes.firstOrNull { it.tag == tag }
 
     /**
-     * [values] cut down to what this font can draw: tags it has no axis for go,
-     * every value is held inside its axis, and a value equal to the axis default
-     * is dropped since asking for it changes nothing. Ordered by the font's own
-     * axis order, so the same setting always produces the same string and the
-     * caches keyed on it hit.
+     * [values] cut down to what this font can draw: tags it has no axis for go
+     * and every value is held inside its axis. A value equal to the axis's own
+     * default is kept, since for weight it is not where an untuned label draws
+     * (see [restValue]). Ordered by the font's own axis order, so the same
+     * setting always produces the same string and the caches keyed on it hit.
      */
     fun clamp(values: Map<String, Float>): Map<String, Float> {
         if (values.isEmpty() || axes.isEmpty()) return emptyMap()
         val out = LinkedHashMap<String, Float>()
         for (axis in axes) {
             val value = values[axis.tag] ?: continue
-            val held = axis.clamp(value)
-            if (held != axis.default) out[axis.tag] = held
+            out[axis.tag] = axis.clamp(value)
         }
         return out
     }
 
+    /**
+     * Where [tag] draws when nobody set it, for text asked for at [weight]:
+     * the weight axis follows the weight asked for, the way CSS and Compose
+     * both cut a variable font (Anybody's default instance is a hairline 100,
+     * and nobody wants keys in it), every other axis rests at the font's own
+     * default. Null for a tag the font has no axis for.
+     */
+    fun restValue(tag: String, weight: Int = 400): Float? {
+        val axis = axis(tag) ?: return null
+        return if (tag == WGHT_TAG) axis.clamp(weight.toFloat()) else axis.default
+    }
+
     companion object {
         val STATIC = FontVariations()
+
+        /** The weight axis, the one axis whose rest depends on the weight asked for. */
+        const val WGHT_TAG = "wght"
     }
 }
 

@@ -140,12 +140,21 @@ class FontAxesReaderTest {
     }
 
     @Test
-    fun `clamp holds values to the axes, drops unknown tags and defaults`() {
+    fun `clamp holds values to the axes and drops unknown tags`() {
         val v = FontAxesReader.read(flexLike)!!
-        val held = v.clamp(mapOf("wght" to 5000f, "wdth" to 100f, "XXXX" to 1f, "GRAD" to -50f))
-        assertEquals(mapOf("wght" to 1000f, "GRAD" to -50f), held)
+        val held = v.clamp(mapOf("GRAD" to -50f, "wdth" to 100f, "XXXX" to 1f, "wght" to 5000f))
+        assertEquals(mapOf("wght" to 1000f, "wdth" to 100f, "GRAD" to -50f), held)
         // In the font's own axis order, so the signature is stable.
-        assertEquals(listOf("wght", "GRAD"), held.keys.toList())
+        assertEquals(listOf("wght", "wdth", "GRAD"), held.keys.toList())
+    }
+
+    @Test
+    fun `an untuned weight rests at the weight asked for, other axes at their default`() {
+        val v = FontAxesReader.read(flexLike)!!
+        assertEquals(400f, v.restValue("wght"))
+        assertEquals(700f, v.restValue("wght", 700))
+        assertEquals(100f, v.restValue("wdth"))
+        assertNull(v.restValue("XXXX"))
     }
 
     @Test

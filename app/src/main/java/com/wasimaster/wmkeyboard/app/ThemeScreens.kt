@@ -8458,7 +8458,7 @@ private fun KeyOverrideFontAxes(theme: ThemeSpec, override: KeyOverride, onChang
     for (axis in variations.axes.filter { !it.hidden }) {
         SliderRow(
             title = axis.name.ifBlank { axis.tag },
-            value = own[axis.tag] ?: base[axis.tag] ?: axis.default,
+            value = own[axis.tag] ?: base[axis.tag] ?: variations.restValue(axis.tag, 500) ?: axis.default,
             range = axis.min..axis.max,
             display = { formatAxisValue(axis, it) },
         ) { v -> onChange(override.copy(fontAxes = own + (axis.tag to axis.clamp(v)))) }

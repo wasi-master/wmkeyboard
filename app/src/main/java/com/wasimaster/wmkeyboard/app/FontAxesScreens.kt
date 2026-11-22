@@ -234,7 +234,7 @@ internal fun FontAxesEditor(
 
     SettingsGroup {
         for (axis in visible) {
-            item(key = axis.tag) { AxisSlider(axis, current, ::write) }
+            item(key = axis.tag) { AxisSlider(axis, variations, current, ::write) }
         }
         item {
             WmRow(
@@ -261,19 +261,27 @@ internal fun FontAxesEditor(
             info = stringResource(R.string.fonts_axes_hidden_group_info),
         ) {
             for (axis in hidden) {
-                item(key = axis.tag) { AxisSlider(axis, current, ::write) }
+                item(key = axis.tag) { AxisSlider(axis, variations, current, ::write) }
             }
         }
     }
 }
 
 @Composable
-private fun AxisSlider(axis: FontAxis, current: Map<String, Float>, write: (Map<String, Float>) -> Unit) {
-    val defaultText = formatAxisValue(axis, axis.default)
+private fun AxisSlider(
+    axis: FontAxis,
+    variations: FontVariations,
+    current: Map<String, Float>,
+    write: (Map<String, Float>) -> Unit,
+) {
+    // Where the axis draws untouched, which for weight is the regular 400
+    // rather than wherever the font's own default instance happens to sit.
+    val rest = variations.restValue(axis.tag) ?: axis.default
+    val defaultText = formatAxisValue(axis, rest)
     val valueFormat = stringResource(R.string.fonts_axes_value)
     SliderRow(
         title = axis.name.ifBlank { axis.tag },
-        value = current[axis.tag] ?: axis.default,
+        value = current[axis.tag] ?: rest,
         range = axis.min..axis.max,
         display = { v -> String.format(valueFormat, formatAxisValue(axis, v), defaultText) },
     ) { v -> write(current + (axis.tag to v)) }

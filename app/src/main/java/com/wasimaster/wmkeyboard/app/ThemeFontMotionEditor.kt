@@ -258,7 +258,7 @@ private fun FontMotionsEditor(
 internal fun newFontMotion(variations: FontVariations): FontMotionSpec {
     val wght = variations.axis("wght")
     val axes = if (wght != null) {
-        mapOf("wght" to wght.clamp(wght.default + 300f))
+        mapOf("wght" to wght.clamp((variations.restValue("wght", 500) ?: wght.default) + 300f))
     } else {
         variations.axes.firstOrNull { !it.hidden }?.let { mapOf(it.tag to it.max) }.orEmpty()
     }
