@@ -64334,7 +64334,7 @@ open class WMKeyboardService : InputMethodService() {
         // [caretAfterLetter]: the caller has seen a letter right before the
         // caret, where every caps mode but the whole-field one says no
         // capital. That one is answered from the EditorInfo, with no read.
-        val capCharacters = (currentInputEditorInfo?.inputType ?: 0) and
+        val capCharacters = capsModeFlags(currentInputEditorInfo?.inputType ?: 0) and
             InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS != 0
         val target = if (caretAfterLetter && !capCharacters) {
             ShiftState.OFF
@@ -64394,11 +64394,13 @@ open class WMKeyboardService : InputMethodService() {
         if (info.inputType and InputType.TYPE_MASK_CLASS != InputType.TYPE_CLASS_TEXT) {
             return ShiftState.OFF
         }
-        if (info.inputType and InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS != 0) {
+        // The flags as the user's per-app choice and settings leave them (#1341).
+        val asked = capsModeFlags(info.inputType)
+        if (asked and InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS != 0) {
             return ShiftState.CAPS_LOCK
         }
         val ic = currentInputConnection
-        val caps = knownCaps ?: ic?.getCursorCapsMode(capsModeFlags(info.inputType)) ?: info.initialCapsMode
+        val caps = knownCaps ?: ic?.getCursorCapsMode(asked) ?: (info.initialCapsMode and asked)
         if (caps == 0) return ShiftState.OFF
         // A sentence capital only, and the mark that earned it ended a quotation
         // or a bracket inside the sentence: `An "exclamation!" is` goes on in
@@ -64463,19 +64465,36 @@ open class WMKeyboardService : InputMethodService() {
      * for words when sentences are asked for too; a sentence start follows a
      * space as well, so it still gets its capital. A field asking for no
      * capitals at all (an address, a password) is left as it is.
+     *
+     * An app the user listed under Capitals by app (#1341) goes first: set to
+     * none, every caps flag it asks for is dropped; set to sentences only, a
+     * field asking for word or whole-field capitals is asked for sentence ones,
+     * and "Capitalize every word" leaves it alone.
      */
     private fun capsModeFlags(inputType: Int): Int {
         val autoText = _uiState.value.settings.autoText
         val asked = InputType.TYPE_TEXT_FLAG_CAP_SENTENCES or InputType.TYPE_TEXT_FLAG_CAP_WORDS
-        // "Capitals in every field" (#1341): a text field that asked for no
-        // capitals is asked for sentence ones, unless what it holds is never
-        // capitalized.
-        val type = if (autoText.capitalizeAnyField && inputType and asked == 0 && mayCapitalizeUnasked(inputType)) {
-            inputType or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+        val allCaps = asked or InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
+        val appChoice = if (autoText.capitalsByApp.isEmpty()) {
+            null
+        } else {
+            currentInputEditorInfo?.packageName?.let { autoText.capitalsByApp[it] }
+        }
+        if (appChoice == false) return inputType and allCaps.inv()
+        val own = if (appChoice == true && inputType and (allCaps and InputType.TYPE_TEXT_FLAG_CAP_SENTENCES.inv()) != 0) {
+            (inputType and allCaps.inv()) or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
         } else {
             inputType
         }
-        if (!autoText.capitalizeWords) return type
+        // "Capitals in every field" (#1341): a text field that asked for no
+        // capitals is asked for sentence ones, unless what it holds is never
+        // capitalized.
+        val type = if (autoText.capitalizeAnyField && own and asked == 0 && mayCapitalizeUnasked(own)) {
+            own or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+        } else {
+            own
+        }
+        if (!autoText.capitalizeWords || appChoice == true) return type
         if (type and asked == 0) return type
         return (type and InputType.TYPE_TEXT_FLAG_CAP_SENTENCES.inv()) or InputType.TYPE_TEXT_FLAG_CAP_WORDS
     }

@@ -3410,6 +3410,14 @@ data class AutoTextSettings(
      * in an email address, a web address, a password or a list filter.
      */
     val capitalizeAnyField: Boolean = false,
+    /**
+     * Apps whose own capitals the user has overruled, by package (#1341): true,
+     * sentence capitals only, so an app that asks for every word capitalized
+     * (or for all capitals) gets a capital at a sentence start and nowhere
+     * else; false, no automatic capitals at all. An app missing from the map
+     * goes by what its fields ask for.
+     */
+    val capitalsByApp: Map<String, Boolean> = emptyMap(),
     /** Double-tapping space commits ". " in place of the two spaces. */
     val doubleSpacePeriod: Boolean = true,
     /** Double-tapping space inserts a tab character (wins over the period). */
@@ -13068,6 +13076,7 @@ class SettingsRepository(private val context: Context) {
         private val AUTO_CAPITALIZE = booleanPreferencesKey("auto_capitalize")
         private val AUTO_CAPITALIZE_WORDS = booleanPreferencesKey("auto_capitalize_words")
         private val AUTO_CAPITALIZE_ANY_FIELD = booleanPreferencesKey("auto_capitalize_any_field")
+        private val CAPITALS_BY_APP = stringSetPreferencesKey("capitals_by_app")
         private val DOUBLE_SPACE_PERIOD = booleanPreferencesKey("double_space_period")
         private val DOUBLE_SPACE_TAB = booleanPreferencesKey("double_space_tab")
         private val DOUBLE_SPACE_UNDO = booleanPreferencesKey("double_space_undo")
@@ -15550,6 +15559,11 @@ class SettingsRepository(private val context: Context) {
             capitalize = p[AUTO_CAPITALIZE] ?: defaults.autoText.capitalize,
             capitalizeWords = p[AUTO_CAPITALIZE_WORDS] ?: defaults.autoText.capitalizeWords,
             capitalizeAnyField = p[AUTO_CAPITALIZE_ANY_FIELD] ?: defaults.autoText.capitalizeAnyField,
+            // "1:com.example" is sentence capitals only, "0:com.example" none.
+            capitalsByApp = p[CAPITALS_BY_APP]?.mapNotNull { entry ->
+                val pkg = entry.substringAfter(':', "")
+                if (pkg.isEmpty()) null else pkg to entry.startsWith("1:")
+            }?.toMap() ?: defaults.autoText.capitalsByApp,
             doubleSpacePeriod = p[DOUBLE_SPACE_PERIOD] ?: defaults.autoText.doubleSpacePeriod,
             doubleSpaceTab = p[DOUBLE_SPACE_TAB] ?: defaults.autoText.doubleSpaceTab,
             doubleSpaceUndo = p[DOUBLE_SPACE_UNDO] ?: defaults.autoText.doubleSpaceUndo,
@@ -23788,6 +23802,12 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[AUTO_CAPITALIZE_WORDS] = value }
     suspend fun setAutoCapitalizeAnyField(value: Boolean) =
         editPrefs { it[AUTO_CAPITALIZE_ANY_FIELD] = value }
+
+    /** Sets [pkg]'s capitals: sentence ones only (true), none (false), or null to follow its fields again. */
+    suspend fun setCapitalsForApp(pkg: String, sentencesOnly: Boolean?) = editPrefs { prefs ->
+        val kept = prefs[CAPITALS_BY_APP].orEmpty().filterNot { it.substringAfter(':', "") == pkg }.toSet()
+        prefs[CAPITALS_BY_APP] = if (sentencesOnly == null) kept else kept + "${if (sentencesOnly) 1 else 0}:$pkg"
+    }
 
     suspend fun setDoubleSpacePeriod(value: Boolean) =
         editPrefs { it[DOUBLE_SPACE_PERIOD] = value }

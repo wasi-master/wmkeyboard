@@ -856,6 +856,8 @@ internal fun TypingWritingSettings(
             ) { scope.launch { repository.setShiftRecasesWordAroundCaret(it) } }
         }
     }
+    // Apps whose own capitals are overruled (#1341).
+    if (capitalizeOn) CapitalsAppsGroup(repository, settings)
     SettingsGroup(stringResource(R.string.typing_group_punctuation_title)) {
         item {
             val doubleSpace = settings.watch {

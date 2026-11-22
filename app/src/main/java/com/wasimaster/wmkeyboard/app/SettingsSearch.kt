@@ -465,6 +465,7 @@ private fun SearchStrings.typingWritingRows(): List<SettingsSearchEntry> {
         row(R.string.typing_auto_capitalize_title, R.string.typing_auto_capitalize_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.typing_auto_capitalize_words_title, R.string.typing_auto_capitalize_words_subtitle),
         row(R.string.typing_auto_capitalize_any_field_title, R.string.typing_auto_capitalize_any_field_subtitle),
+        row(R.string.typing_capitals_apps_title, R.string.typing_capitals_apps_add),
         row(R.string.typing_shift_recase_title, R.string.typing_shift_recase_subtitle),
         row(R.string.typing_shift_recase_caret_title, R.string.typing_shift_recase_caret_subtitle),
         row(R.string.typing_shift_recase_inside_title, R.string.typing_shift_recase_inside_subtitle),
