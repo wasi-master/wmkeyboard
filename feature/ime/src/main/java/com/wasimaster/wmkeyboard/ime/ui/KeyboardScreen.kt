@@ -15172,12 +15172,14 @@ private fun RowScope.HeaderSearchPill(
     closeIcon: ImageVector = Icons.Outlined.Close,
 ) {
     val kb = LocalKbTheme.current
+    // Every panel's search bar has the theme's search-bar outline (#1501).
+    val shape = kb.cardShape()
     Row(
         modifier = Modifier
             .weight(1f)
             .padding(start = 6.dp, end = 4.dp)
-            .clip(RoundedCornerShape(18.dp))
-            .frostGlass(kb, RoundedCornerShape(18.dp), FrostSurface.CHIPS)
+            .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(kb.chip)
             .padding(start = 12.dp, end = 4.dp, top = 2.dp, bottom = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -35188,7 +35190,8 @@ internal fun EmojiSearchField(
     val quietInk = kb.emojiSearchText?.copy(alpha = 0.7f) ?: MaterialTheme.colorScheme.onSurfaceVariant
     Row(
         modifier = modifier
-            .background(kb.emojiSearchFill(MaterialTheme.colorScheme.surfaceContainer), RoundedCornerShape(20.dp))
+            // The theme's search-bar outline, as every panel's search bar (#1501).
+            .background(kb.emojiSearchFill(MaterialTheme.colorScheme.surfaceContainer), kb.cardShape())
             .clickable { onEmojiQueryTap() }
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,

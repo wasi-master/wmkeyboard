@@ -87,12 +87,14 @@ internal fun RowScope.DictionaryHeaderSearchBar(
     onLookup: (String) -> Unit,
 ) {
     val kb = LocalKbTheme.current
+    // The theme's search-bar outline, as every panel's search bar (#1501).
+    val shape = kb.cardShape()
     Row(
         modifier = Modifier
             .weight(1f)
             .padding(start = 6.dp, end = 4.dp)
-            .clip(RoundedCornerShape(18.dp))
-            .frostGlass(kb, RoundedCornerShape(18.dp), FrostSurface.CHIPS)
+            .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(kb.chip)
             .clickable { onSearchToggle() }
             .padding(start = 12.dp, end = 4.dp, top = 2.dp, bottom = 2.dp),

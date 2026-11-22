@@ -403,7 +403,7 @@ private fun EmojiSearchFieldCell(state: KeyboardUiState, callbacks: EmojiFieldCa
                 onClear = callbacks.onSearchClear,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .focusRing(focused, RoundedCornerShape(20.dp)),
+                    .focusRing(focused, LocalKbTheme.current.cardShape()),
             )
         }
     }

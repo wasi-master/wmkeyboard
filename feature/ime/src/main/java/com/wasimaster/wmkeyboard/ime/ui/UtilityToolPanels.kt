@@ -610,7 +610,8 @@ internal fun RowScope.UnicodeSearchBar(state: KeyboardUiState, onClose: () -> Un
             .weight(1f)
             .padding(horizontal = 6.dp)
             .height(32.dp)
-            .clip(RoundedCornerShape(16.dp))
+            // The theme's search-bar outline, as every panel's search bar (#1501).
+            .clip(kb.cardShape())
             .background(kb.modifierKey)
             .padding(start = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
