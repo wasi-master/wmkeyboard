@@ -271,6 +271,10 @@ data class ClipboardPanelActions(
     val onTidy: (List<Long>) -> Unit = {},
     /** The selection bar's Zawgyi: these clips' Burmese between Zawgyi and Unicode. */
     val onZawgyi: (List<Long>) -> Unit = {},
+    /** The selection bar's Share (#1494): the picked text and pictures to the share sheet in one go. */
+    val onShareMany: (List<Long>) -> Unit = {},
+    /** The selection bar's Insert (#1494): the picked pictures into the field, one after another. */
+    val onInsertImages: (List<Long>) -> Unit = {},
     /** The hold popup's Tags: the editor opens on this clip's tags (#612). */
     val onTags: (ClipItem) -> Unit = {},
     /** A tag already in the history, pressed under the tags editor (#612). */
@@ -1150,7 +1154,7 @@ private fun ClipboardSearchFieldCell(
                 modifier = Modifier
                     .weight(1f)
                     .padding(horizontal = 4.dp)
-                    .focusRing(focused == parts.indexOf(ClipSearchPart.PILL), RoundedCornerShape(18.dp)),
+                    .focusRing(focused == parts.indexOf(ClipSearchPart.PILL), LocalKbTheme.current.cardShape()),
             )
             ClipRegexButton(
                 on = session.regex,
@@ -1660,7 +1664,6 @@ private fun ClipboardListField(
         )
     }
     val deleteAsked = session.deleteAsking.value
-    val clipContext = androidx.compose.ui.platform.LocalContext.current
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             when {
@@ -1687,8 +1690,16 @@ private fun ClipboardListField(
                     },
                     onShare = {
                         session.selection.value = null
-                        shareClips(clipContext, selection, state.clipboardItems)
+                        callbacks.actions.onShareMany(selection)
                     },
+                    // Only where the field takes pictures at all (#1494): in
+                    // any other the insert could only end at the clipboard.
+                    onInsertImages = if (state.acceptsRichMedia) {
+                        {
+                            session.selection.value = null
+                            callbacks.actions.onInsertImages(selection)
+                        }
+                    } else null,
                     onTidy = if (session.tidy) {
                         {
                             session.selection.value = null
@@ -1870,8 +1881,10 @@ private fun ClipSelectionBar(
     onSelectAll: () -> Unit,
     onCombine: () -> Unit,
     onDelete: () -> Unit,
-    /** Hands the picked text clips to another app through the share sheet: the clipboard's export. */
+    /** Hands the picked text clips and pictures to another app through the share sheet in one go (#1494). */
     onShare: (() -> Unit)? = null,
+    /** Puts the picked pictures into the field one after another (#1494); null where the field takes none. */
+    onInsertImages: (() -> Unit)? = null,
     /** Runs the copy rules over the picked clips (#612); none without rules. */
     onTidy: (() -> Unit)? = null,
     /** Converts the picked clips between Zawgyi and Unicode; shown while one holds Burmese. */
@@ -1885,6 +1898,16 @@ private fun ClipSelectionBar(
     val burmese = remember(picked, items) {
         val byId = items.associateBy { it.id }
         picked.any { id -> byId[id]?.takeIf { it.kind.isTextual && !it.sensitive }?.let { Zawgyi.hasMyanmar(it.text) } == true }
+    }
+    // What Share and Insert can send (#1494): text that is not marked
+    // sensitive, and pictures.
+    val shareable = remember(picked, items) {
+        val byId = items.associateBy { it.id }
+        picked.count { id -> byId[id]?.let { !it.sensitive && (it.kind.isTextual || it.kind == ClipKind.IMAGE) } == true }
+    }
+    val pictures = remember(picked, items) {
+        val byId = items.associateBy { it.id }
+        picked.count { id -> byId[id]?.let { !it.sensitive && it.kind == ClipKind.IMAGE } == true }
     }
     Row(
         modifier = Modifier
@@ -1950,13 +1973,26 @@ private fun ClipSelectionBar(
                 Text(stringResource(R.string.ime_clip_combine))
             }
         }
+        if (onInsertImages != null && pictures >= 1) {
+            val insert = stringResource(R.string.ime_clip_insert_pictures_desc)
+            IconHint(insert) {
+                IconButton(onClick = onInsertImages, modifier = Modifier.size(36.dp)) {
+                    Icon(
+                        Icons.Outlined.ContentPaste,
+                        contentDescription = insert,
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
         if (onShare != null) {
             val share = stringResource(R.string.ime_clip_share_desc)
             IconHint(
                 share,
-                disabledReason = DisabledReason(stringResource(R.string.ime_disabled_clip_share)).takeIf { textual < 1 },
+                disabledReason = DisabledReason(stringResource(R.string.ime_disabled_clip_share)).takeIf { shareable < 1 },
             ) {
-                IconButton(onClick = onShare, enabled = textual >= 1, modifier = Modifier.size(36.dp)) {
+                IconButton(onClick = onShare, enabled = shareable >= 1, modifier = Modifier.size(36.dp)) {
                     Icon(
                         Icons.Outlined.Share,
                         contentDescription = share,
@@ -5215,26 +5251,5 @@ private fun ClipCombineBox(
                 )
             }
         }
-    }
-}
-
-/**
- * The picked text clips, in the order they were picked, one after another
- * with a blank line between, handed to the share sheet: how a batch of clips
- * leaves the keyboard for a file, a note app or a chat. Clips marked
- * sensitive (passwords, codes) stay out, as they do from every other export.
- */
-private fun shareClips(context: android.content.Context, picked: List<Long>, items: List<ClipItem>) {
-    val byId = items.associateBy { it.id }
-    val text = picked.mapNotNull { id -> byId[id]?.takeIf { it.kind.isTextual && !it.sensitive }?.text }
-        .joinToString("\n\n")
-    if (text.isEmpty()) return
-    val send = android.content.Intent(android.content.Intent.ACTION_SEND)
-        .setType("text/plain")
-        .putExtra(android.content.Intent.EXTRA_TEXT, text)
-    runCatching {
-        context.startActivity(
-            android.content.Intent.createChooser(send, null).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK),
-        )
     }
 }

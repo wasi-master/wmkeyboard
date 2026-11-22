@@ -60869,6 +60869,8 @@ open class WMKeyboardService : InputMethodService() {
         onCombineDeleteToggle = ::onClipCombineDeleteToggle,
         onTidy = ::onClipboardTidy,
         onZawgyi = ::onClipboardZawgyi,
+        onShareMany = ::onClipboardShareMany,
+        onInsertImages = ::onClipboardInsertImages,
         onTags = ::onClipTagsStart,
         onTagAdd = ::onClipTagAdd,
         onQr = ::onClipboardQr,
@@ -61034,6 +61036,149 @@ open class WMKeyboardService : InputMethodService() {
         // The grant travels on the clip data; the extra alone carries none.
         intent.clipData = ClipData(ClipDescription("image", arrayOf(mime)), ClipData.Item(uri))
         shareVia(intent)
+    }
+
+    /**
+     * The clip selection bar's Share (#1494): every picked clip in one go.
+     * Text clips go as one text, a blank line between them, in the order
+     * picked; pictures go together, one ACTION_SEND_MULTIPLE through the
+     * history's FileProvider, with that text beside them. Clips marked
+     * sensitive stay out, as they do from every other export, and with
+     * Remove photo details on each picture goes as its cleaned copy (#1179).
+     */
+    fun onClipboardShareMany(ids: List<Long>) {
+        if (!isClipboardAccessible() || ids.isEmpty()) return
+        val byId = clipboardStore.items().associateBy { it.id }
+        val picked = ids.mapNotNull(byId::get).filter { !it.sensitive }
+        val text = picked.filter { it.kind.isTextual }.joinToString("\n\n") { it.text }.trim()
+        val images = picked.filter { it.kind == ClipKind.IMAGE }
+        if (text.isEmpty() && images.isEmpty()) return
+        vibrate()
+        if (images.isEmpty()) {
+            shareClipBatch(text, emptyList())
+            return
+        }
+        serviceScope.launch {
+            val files = clipImageFiles(images)
+            if (files.isEmpty() && text.isEmpty()) return@launch
+            shareClipBatch(text, files)
+        }
+    }
+
+    /**
+     * The clip selection bar's Insert (#1494): the picked pictures into the
+     * field through commitContent, one after another in the order picked, a
+     * moment apart, for as long as the field keeps the keyboard and takes
+     * them. Offered only where the field takes pictures at all.
+     *
+     * What the field stops taking goes to its app's share screen together,
+     * the way a scan's pages do ([commitScanPages]); WhatsApp, whose send
+     * screen opens on the first picture and ends the field, gets them all
+     * there at once, as one album.
+     */
+    fun onClipboardInsertImages(ids: List<Long>) {
+        if (!isClipboardAccessible() || ids.isEmpty()) return
+        val byId = clipboardStore.items().associateBy { it.id }
+        val images = ids.mapNotNull(byId::get).filter { it.kind == ClipKind.IMAGE && !it.sensitive }
+        if (images.isEmpty()) return
+        vibrate()
+        if (images.size == 1) {
+            commitImageClip(images.single())
+            return
+        }
+        fun field() = currentInputEditorInfo?.let { it.packageName to it.fieldId }
+        val asked = field()
+        serviceScope.launch {
+            val files = clipImageFiles(images)
+            if (files.isEmpty()) return@launch
+            val app = asked?.first
+            if (app != null && app in ONE_PICTURE_CHATS) {
+                shareClipBatch("", files, app = app)
+                return@launch
+            }
+            for ((index, clip) in files.withIndex()) {
+                if (index > 0) delay(MEDIA_QUEUE_GAP_MS)
+                // The keyboard gone means the field went with it, even before
+                // the next field's info replaces this one's.
+                if (!keyboardVisible || field() != asked || !commitClipPicture(clip)) {
+                    shareClipBatch("", files.subList(index, files.size), app = asked?.first)
+                    return@launch
+                }
+            }
+        }
+    }
+
+    /**
+     * One picture of [onClipboardInsertImages] as the field takes it: the
+     * first type it advertises that the picture can go as. False when it
+     * advertises none, or turned the commit down.
+     */
+    private fun commitClipPicture(clip: MediaScrub.Clean): Boolean {
+        val accepted = currentInputEditorInfo
+            ?.let { EditorInfoCompat.getContentMimeTypes(it).toList() }
+            .orEmpty()
+        val chosen = MediaMime.candidates(clip.mime, MediaSendMode.IMAGE).firstOrNull { candidate ->
+            accepted.any { ClipDescription.compareMimeTypes(candidate, it) }
+        } ?: return false
+        return tryCommit(clip.file, chosen)
+    }
+
+    /**
+     * The picture files behind [images], in their order, read off the main
+     * thread: each clip's kept file, or its cleaned copy while Remove photo
+     * details is on (#1179). A picture whose file is gone, or that could not
+     * be cleaned, is left out rather than sent with its details; a toast says
+     * so for the latter.
+     */
+    private suspend fun clipImageFiles(
+        images: List<com.wasimaster.wmkeyboard.core.clipboard.ClipItem>,
+    ): List<MediaScrub.Clean> {
+        val strip = _uiState.value.settings.clipboard.stripMediaMetadata
+        var failed = false
+        val files = withContext(Dispatchers.IO) {
+            images.mapNotNull { item ->
+                val file = item.imagePath?.let(::File)?.takeIf { it.exists() } ?: return@mapNotNull null
+                if (!strip) return@mapNotNull MediaScrub.Clean(file, item.mimeType)
+                MediaScrub.imageCopy(this@WMKeyboardService, file, item.mimeType).also { if (it == null) failed = true }
+            }
+        }
+        if (failed) toast(R.string.ime_clip_metadata_failed_toast)
+        return files
+    }
+
+    /**
+     * [text] and [files] to the share sheet as one share (#1494): text alone
+     * as text, one picture as ACTION_SEND, more as ACTION_SEND_MULTIPLE, the
+     * text riding along as EXTRA_TEXT. With [app], that app's share screen
+     * first, as a scan's pages go, then the sheet.
+     */
+    private fun shareClipBatch(text: String, files: List<MediaScrub.Clean>, app: String? = null) {
+        val uris = files.mapNotNull {
+            runCatching { FileProvider.getUriForFile(this, clipboardFileProviderAuthority, it.file) }.getOrNull()
+        }
+        if (uris.isEmpty() && text.isEmpty()) return
+        val intent = when (uris.size) {
+            0 -> Intent(Intent.ACTION_SEND).setType("text/plain")
+            1 -> Intent(Intent.ACTION_SEND).putExtra(Intent.EXTRA_STREAM, uris.single())
+            else -> Intent(Intent.ACTION_SEND_MULTIPLE).putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
+        }
+        if (uris.isNotEmpty()) {
+            val mimes = files.map { it.mime }.distinct()
+            intent.setType(mimes.singleOrNull() ?: if (mimes.all { it.startsWith("image/") }) "image/*" else "*/*")
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            // The grant travels on the clip data; the extra alone carries none.
+            intent.clipData = ClipData(ClipDescription("images", mimes.toTypedArray()), ClipData.Item(uris.first()))
+                .also { clip -> uris.drop(1).forEach { clip.addItem(ClipData.Item(it)) } }
+        }
+        if (text.isNotEmpty()) intent.putExtra(Intent.EXTRA_TEXT, text)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        // The launch itself is the test: package visibility hides another
+        // app's share screen from a query, never from a launch.
+        val shared = (app != null && runCatching { startActivity(Intent(intent).setPackage(app)) }.isSuccess) ||
+            shareVia(intent)
+        if (shared && app != null && uris.isNotEmpty()) {
+            toast(resources.getQuantityString(R.plurals.ime_gallery_notice_shared, uris.size, uris.size))
+        }
     }
 
     fun onClipboardViewImage(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
@@ -64189,7 +64334,7 @@ open class WMKeyboardService : InputMethodService() {
         // [caretAfterLetter]: the caller has seen a letter right before the
         // caret, where every caps mode but the whole-field one says no
         // capital. That one is answered from the EditorInfo, with no read.
-        val capCharacters = (currentInputEditorInfo?.inputType ?: 0) and
+        val capCharacters = capsModeFlags(currentInputEditorInfo?.inputType ?: 0) and
             InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS != 0
         val target = if (caretAfterLetter && !capCharacters) {
             ShiftState.OFF
@@ -64249,11 +64394,13 @@ open class WMKeyboardService : InputMethodService() {
         if (info.inputType and InputType.TYPE_MASK_CLASS != InputType.TYPE_CLASS_TEXT) {
             return ShiftState.OFF
         }
-        if (info.inputType and InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS != 0) {
+        // The flags as the user's per-app choice and settings leave them (#1341).
+        val asked = capsModeFlags(info.inputType)
+        if (asked and InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS != 0) {
             return ShiftState.CAPS_LOCK
         }
         val ic = currentInputConnection
-        val caps = knownCaps ?: ic?.getCursorCapsMode(capsModeFlags(info.inputType)) ?: info.initialCapsMode
+        val caps = knownCaps ?: ic?.getCursorCapsMode(asked) ?: (info.initialCapsMode and asked)
         if (caps == 0) return ShiftState.OFF
         // A sentence capital only, and the mark that earned it ended a quotation
         // or a bracket inside the sentence: `An "exclamation!" is` goes on in
@@ -64318,19 +64465,36 @@ open class WMKeyboardService : InputMethodService() {
      * for words when sentences are asked for too; a sentence start follows a
      * space as well, so it still gets its capital. A field asking for no
      * capitals at all (an address, a password) is left as it is.
+     *
+     * An app the user listed under Capitals by app (#1341) goes first: set to
+     * none, every caps flag it asks for is dropped; set to sentences only, a
+     * field asking for word or whole-field capitals is asked for sentence ones,
+     * and "Capitalize every word" leaves it alone.
      */
     private fun capsModeFlags(inputType: Int): Int {
         val autoText = _uiState.value.settings.autoText
         val asked = InputType.TYPE_TEXT_FLAG_CAP_SENTENCES or InputType.TYPE_TEXT_FLAG_CAP_WORDS
-        // "Capitals in every field" (#1341): a text field that asked for no
-        // capitals is asked for sentence ones, unless what it holds is never
-        // capitalized.
-        val type = if (autoText.capitalizeAnyField && inputType and asked == 0 && mayCapitalizeUnasked(inputType)) {
-            inputType or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+        val allCaps = asked or InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
+        val appChoice = if (autoText.capitalsByApp.isEmpty()) {
+            null
+        } else {
+            currentInputEditorInfo?.packageName?.let { autoText.capitalsByApp[it] }
+        }
+        if (appChoice == false) return inputType and allCaps.inv()
+        val own = if (appChoice == true && inputType and (allCaps and InputType.TYPE_TEXT_FLAG_CAP_SENTENCES.inv()) != 0) {
+            (inputType and allCaps.inv()) or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
         } else {
             inputType
         }
-        if (!autoText.capitalizeWords) return type
+        // "Capitals in every field" (#1341): a text field that asked for no
+        // capitals is asked for sentence ones, unless what it holds is never
+        // capitalized.
+        val type = if (autoText.capitalizeAnyField && own and asked == 0 && mayCapitalizeUnasked(own)) {
+            own or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+        } else {
+            own
+        }
+        if (!autoText.capitalizeWords || appChoice == true) return type
         if (type and asked == 0) return type
         return (type and InputType.TYPE_TEXT_FLAG_CAP_SENTENCES.inv()) or InputType.TYPE_TEXT_FLAG_CAP_WORDS
     }
