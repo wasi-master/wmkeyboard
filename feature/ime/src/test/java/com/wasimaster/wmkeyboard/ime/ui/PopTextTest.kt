@@ -22,6 +22,9 @@ class PopTextTest {
         assertFalse(popTextWanted(PopTextMode.WORDS, still = false, word = false, corrected = false))
         assertTrue(popTextWanted(PopTextMode.EVERY_KEY, still = false, word = false, corrected = false))
         assertTrue(popTextWanted(PopTextMode.EVERY_KEY, still = false, word = true, corrected = false))
+        assertTrue(popTextWanted(PopTextMode.KEYS, still = false, word = false, corrected = false))
+        assertFalse(popTextWanted(PopTextMode.KEYS, still = false, word = true, corrected = false))
+        assertFalse(popTextWanted(PopTextMode.KEYS, still = false, word = true, corrected = true))
     }
 
     @Test

@@ -517,7 +517,6 @@ import com.wasimaster.wmkeyboard.core.settings.LetterSwipeAction
 import com.wasimaster.wmkeyboard.core.settings.KeyLabelCase
 import com.wasimaster.wmkeyboard.core.settings.KeyPreviewRadiusRange
 import com.wasimaster.wmkeyboard.core.settings.KeyPreviewWidthScaleRange
-import com.wasimaster.wmkeyboard.core.settings.PopTextMode
 import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeAction
 import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeUp
 import com.wasimaster.wmkeyboard.core.settings.pressedAction
@@ -21705,8 +21704,8 @@ private fun KeyRows(
         { k: Key ->
             shiftHold.route(k)?.let { routed ->
                 stampedOnKey(routed)
-                // Every key: the character rises from the key that typed it.
-                if (popText.mode == PopTextMode.EVERY_KEY && routed.action == KeyAction.Text) {
+                // Every key (or keys only): the character rises from the key that typed it.
+                if (popTextKeys(popText.mode) && routed.action == KeyAction.Text) {
                     liveRects.value.rectOf(k)?.let { cell ->
                         popText.key(popKeyText(routed, liveShift.value), cell.center)
                     }

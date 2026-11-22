@@ -1849,6 +1849,7 @@ internal fun KeyPressPopupSettings(
                     PopTextMode.NEVER to stringResource(R.string.keypress_pop_text_never),
                     PopTextMode.CORRECTIONS to stringResource(R.string.keypress_pop_text_corrections),
                     PopTextMode.WORDS to stringResource(R.string.keypress_pop_text_words),
+                    PopTextMode.KEYS to stringResource(R.string.keypress_pop_text_keys),
                     PopTextMode.EVERY_KEY to stringResource(R.string.keypress_pop_text_every_key),
                 ),
                 selected = settings.watch { it.popup.popText },

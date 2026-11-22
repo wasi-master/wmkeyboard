@@ -109,8 +109,9 @@ internal class PopTextField(private val clock: () -> Long = { android.os.SystemC
 
 /**
  * Whether [mode] shows a pop: never while [still]; a key's only on
- * [PopTextMode.EVERY_KEY]; a word on [PopTextMode.WORDS] and up; a corrected
- * word on everything but [PopTextMode.NEVER].
+ * [PopTextMode.EVERY_KEY] and [PopTextMode.KEYS]; a word on
+ * [PopTextMode.WORDS] and [PopTextMode.EVERY_KEY]; a corrected word on those
+ * and [PopTextMode.CORRECTIONS]. [PopTextMode.KEYS] shows no word at all (#1476).
  */
 internal fun popTextWanted(mode: PopTextMode, still: Boolean, word: Boolean, corrected: Boolean): Boolean {
     if (still) return false
@@ -119,8 +120,12 @@ internal fun popTextWanted(mode: PopTextMode, still: Boolean, word: Boolean, cor
         PopTextMode.CORRECTIONS -> word && corrected
         PopTextMode.WORDS -> word
         PopTextMode.EVERY_KEY -> true
+        PopTextMode.KEYS -> !word
     }
 }
+
+/** Whether [mode] floats each typed character up from its key. */
+internal fun popTextKeys(mode: PopTextMode): Boolean = mode == PopTextMode.EVERY_KEY || mode == PopTextMode.KEYS
 
 /**
  * Where a pop is at [fraction] of its life: how far it has risen, as a share of

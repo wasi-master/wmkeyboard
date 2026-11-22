@@ -1469,8 +1469,11 @@ enum class KeyLabelCase { FOLLOW_SHIFT, LOWER, UPPER }
  *  - [WORDS] — every word as it is finished, from the spacebar.
  *  - [EVERY_KEY] — every character, from the key that typed it, and every
  *    finished word as well.
+ *  - [KEYS] — every character, from the key that typed it, and no word
+ *    rising from the spacebar after it (#1476). Last so a stored name never
+ *    shifts; the settings row lists it before [EVERY_KEY].
  */
-enum class PopTextMode { NEVER, CORRECTIONS, WORDS, EVERY_KEY }
+enum class PopTextMode { NEVER, CORRECTIONS, WORDS, EVERY_KEY, KEYS }
 
 /** Bounds for [KeyPopupSettings.previewWidthScale]. */
 val KeyPreviewWidthScaleRange = 0.6f..2f
