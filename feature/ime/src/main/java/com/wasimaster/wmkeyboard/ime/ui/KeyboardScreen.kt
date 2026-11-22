@@ -18788,6 +18788,15 @@ private const val SpaceCursorEdgeLineRepeatMs = 200L
 private const val SpaceSwipeUpTouchpadDp = 80
 
 /**
+ * How far sideways a swipe up may drift, as a multiple of how far up it has
+ * gone, and still be the swipe up (#1413). Applies once the finger has
+ * started upward past the slop: a thumb sweeps an arc, and asking for more
+ * up than sideways the whole 80 dp read most thumb swipes as a language or
+ * cursor swipe instead.
+ */
+private const val SpaceSwipeUpDriftRatio = 2f
+
+/**
  * How long the finger that opened the touchpad with a swipe up must rest
  * before going on upward moves the caret a line (#682). Until then, or until
  * it turns down, the rest of that swipe is the swipe, not a line up.
@@ -32810,6 +32819,10 @@ private fun Modifier.pointerInputKey(
                     // still travelling up from that swipe, and the caret should
                     // not take it as a line up. Cleared by a pause or a turn.
                     var padSettling = false
+                    // Set once the finger has gone up past the slop while more
+                    // up than sideways (#1413): from then on the swipe up
+                    // tolerates the sideways drift of a thumb's arc.
+                    var upStarted = false
                     var langIndex = enabledLayoutIds.indexOf(currentLayoutId).takeIf { it >= 0 }
                         ?: enabledLayoutIds.indexOf(languageAnchor.value).coerceAtLeast(0)
                     // The stops the language swipe walks: the layouts, plus the
@@ -33182,9 +33195,22 @@ private fun Modifier.pointerInputKey(
                             // same debounce the touchpad waits for.
                             // Or the action bound to the swipe up (competitor gap
                             // list item 3), the same distance, run at the lift.
+                            // Issue #1413: "more up than sideways" holds only
+                            // until the finger is past the slop going up; after
+                            // that the swipe stays a swipe up while its sideways
+                            // drift is under SpaceSwipeUpDriftRatio times the
+                            // climb. One that starts sideways still resolves
+                            // sideways below, as it always did.
+                            val upTravel = -totalDy
+                            if (!upStarted && upTravel > slopPx && upTravel > abs(totalDx)) upStarted = true
+                            val goingUp = if (upStarted) {
+                                abs(totalDx) < upTravel * SpaceSwipeUpDriftRatio
+                            } else {
+                                upTravel > abs(totalDx)
+                            }
                             val upPress = textEditing.spaceSwipeUp
                                 .pressedAction(textEditing.spaceSwipeBinding(SpaceSwipeSlot.UP))
-                            if (upPress != null && -totalDy > abs(totalDx)) {
+                            if (upPress != null && goingUp) {
                                 if (-totalDy > swipeUpPx) {
                                     if (holdPreviewShown) {
                                         holdPreviewShown = false
@@ -33202,8 +33228,8 @@ private fun Modifier.pointerInputKey(
                                 }
                                 continue
                             }
-                            if (textEditing.spaceSwipeUp == SpaceSwipeUp.TOUCHPAD && -totalDy > abs(totalDx)) {
-                                if (-totalDy > swipeUpPx) {
+                            if (textEditing.spaceSwipeUp == SpaceSwipeUp.TOUCHPAD && goingUp) {
+                                if (upTravel > swipeUpPx) {
                                     touchpadActivatedAt = change.uptimeMillis
                                     action = SpaceSwipeAction.CURSOR
                                     padVertical = true
