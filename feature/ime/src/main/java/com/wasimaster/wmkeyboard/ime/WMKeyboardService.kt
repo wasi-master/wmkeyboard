@@ -38089,6 +38089,7 @@ open class WMKeyboardService : InputMethodService() {
             is com.wasimaster.wmkeyboard.core.settings.ToolKey.Builtin -> onToolTap(tool.tool)
             is com.wasimaster.wmkeyboard.core.settings.ToolKey.Plugin -> onPluginToolTap(tool.pluginId)
             is com.wasimaster.wmkeyboard.core.settings.ToolKey.Custom -> onCustomButtonTap(tool.id)
+            is com.wasimaster.wmkeyboard.core.settings.ToolKey.Folder -> onToolboxFolderOpen(tool.id)
         }
     }
 
