@@ -129,6 +129,12 @@ data class FontMotionSpec(
     val decayMs: Int = 500,
     /** How far past rest the label rings on the way back, 0..1; 0 settles with no overshoot. */
     val wobble: Float = 0.3f,
+    /**
+     * How big the label draws at the motion's peak, 1 for its own size; see
+     * [FONT_MOTION_SCALE_RANGE]. Moves smoothly between the font's cuts, so a
+     * swell reads as one growing letter rather than a run of weights.
+     */
+    val scale: Float = 1f,
 )
 
 const val MAX_FONT_MOTIONS = 4
@@ -136,6 +142,7 @@ val FONT_MOTION_SPEED_RANGE = 0.25f..4f
 val FONT_MOTION_RADIUS_RANGE = 24f..240f
 val FONT_MOTION_DECAY_RANGE = 100..2400
 val FONT_MOTION_WOBBLE_RANGE = 0f..1f
+val FONT_MOTION_SCALE_RANGE = 0.5f..2f
 
 fun fontMotionTriggerOrNull(name: String?): FontMotionTrigger? =
     FontMotionTrigger.entries.firstOrNull { it.name == name }

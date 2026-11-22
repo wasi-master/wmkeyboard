@@ -5,6 +5,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import com.wasimaster.wmkeyboard.core.fonts.FontVariations
 import com.wasimaster.wmkeyboard.core.script.ScriptId
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
@@ -58,11 +59,38 @@ internal class BoardFonts(
     /** One answer of [withAxes], a null one (a face that cannot be cut) included. */
     private class Cut(val family: FontFamily?)
 
+    /**
+     * The platform typeface for [withAxes] at [weight], loaded: what a moving
+     * label draws with straight onto the canvas, with no text layout behind
+     * it. Kept per setting and weight, a null answer included, so a frame of
+     * motion is a map lookup per label. Safe off the main thread, which is
+     * where [FontMotionLayer] fills it ahead of the first press.
+     */
+    fun typefaceAt(axes: Map<String, Float>, weight: FontWeight, resolver: FontFamily.Resolver): android.graphics.Typeface? {
+        val key = TypefaceKey(axes, weight.weight)
+        synchronized(typefaces) { typefaces[key]?.let { return it.typeface } }
+        val family = withAxes(axes)
+        val typeface = family?.let {
+            runCatching { resolver.resolve(it, weight).value as? android.graphics.Typeface }.getOrNull()
+        }
+        synchronized(typefaces) {
+            if (typefaces.size >= MEMO_SIZE * 2) typefaces.remove(typefaces.keys.first())
+            typefaces[key] = Loaded(typeface)
+        }
+        return typeface
+    }
+
+    private data class TypefaceKey(val axes: Map<String, Float>, val weight: Int)
+
+    private class Loaded(val typeface: android.graphics.Typeface?)
+
+    private val typefaces = LinkedHashMap<TypefaceKey, Loaded>(16, 0.75f, true)
+
     private val memo = LinkedHashMap<Map<String, Float>, Cut>(16, 0.75f, true)
 
     companion object {
         val None = BoardFonts(null, null, null, null, emptyMap(), null)
-        private const val MEMO_SIZE = 256
+        private const val MEMO_SIZE = 384
     }
 }
 

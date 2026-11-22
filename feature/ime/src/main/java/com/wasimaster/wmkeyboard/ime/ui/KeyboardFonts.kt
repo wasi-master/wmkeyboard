@@ -1101,8 +1101,13 @@ object KeyboardFonts {
     private const val SEMIBOLD_STEP = 200f
     private const val BOLD_STEP = 300f
 
-    /** The bound on axis-carrying families kept at once; the plain ones are a handful and kept for good. */
-    private const val MAX_AXIS_FAMILIES = 128
+    /**
+     * The bound on axis-carrying families kept at once; the plain ones are a
+     * handful and kept for good. Room for a theme's four motions at 24 steps
+     * each and their overshoot, so the cuts made ahead are still here when
+     * the first press asks for them.
+     */
+    private const val MAX_AXIS_FAMILIES = 256
 
     private fun cached(key: String, build: () -> FontFamily): FontFamily = synchronized(cache) {
         cache[key]?.let { return it }

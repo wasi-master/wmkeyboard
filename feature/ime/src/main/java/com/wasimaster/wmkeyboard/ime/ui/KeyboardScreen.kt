@@ -21767,10 +21767,11 @@ private fun KeyRows(
     // clock sleeps whenever nothing is moving.
     val touchBloom = kbTheme.liveTouchBloom
     touchBloom?.let { TouchBloomClock(it) }
-    // The theme's font motion: the labels' axes moving. Only with a variable
-    // font under the labels; a static face has nothing to move.
+    // The theme's font motion: the labels' axes moving, and their size. The
+    // axes only with a variable font under the labels; a motion that grows
+    // the labels moves a static face too.
     val boardFonts = LocalBoardFonts.current
-    val fontMotion = kbTheme.liveFontMotion?.takeIf { boardFonts.variations != null }
+    val fontMotion = kbTheme.liveFontMotion?.takeIf { boardFonts.variations != null || it.scales }
     // The moving board's press kinds (paint, ink, light and the rest) splash
     // over the keys rather than move behind them. They have no still picture,
     // so reduce motion (unless the theme's effects were let through it) and
@@ -32049,8 +32050,9 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                 val labelSize = (baseSize * fontScale * (if (strip) 1f else fit.scale)).sp
                 val labelWeight = if (visual.bold ?: settings.accessibility.boldLabels) FontWeight.Bold else FontWeight.Medium
                 // The theme's font motion redraws this label at its moving
-                // axes; only while one runs on a variable font. See fontMorph.
-                val morph = if (LocalKbTheme.current.liveFontMotion != null && LocalBoardFonts.current.variations != null) {
+                // axes and size: axes on a variable font, size on any. See fontMorph.
+                val liveMotion = LocalKbTheme.current.liveFontMotion
+                val morph = if (liveMotion != null && (LocalBoardFonts.current.variations != null || liveMotion.scales)) {
                     Modifier.fontMorph(
                         text,
                         labelStyle.merge(TextStyle(color = contentColor, fontSize = labelSize, fontWeight = labelWeight)),

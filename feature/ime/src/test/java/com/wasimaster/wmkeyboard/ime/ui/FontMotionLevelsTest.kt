@@ -101,4 +101,14 @@ class FontMotionLevelsTest {
         assertTrue(m.followsFingers)
         assertTrue(m.readsPresses)
     }
+
+    @Test
+    fun `a motion that only grows the labels is kept, one that moves nothing is dropped`() {
+        val grows = resolveFontMotion(listOf(FontMotionSpec(trigger = FontMotionTrigger.TOUCH.name, scale = 1.3f)))!!
+        assertEquals(1.3f, grows.items.single().scale, 0f)
+        assertTrue(grows.scales)
+        assertNull(resolveFontMotion(listOf(FontMotionSpec(trigger = FontMotionTrigger.TOUCH.name))))
+        val wild = resolveFontMotion(listOf(FontMotionSpec(trigger = FontMotionTrigger.TOUCH.name, scale = 9f)))!!
+        assertEquals(2f, wild.items.single().scale, 0f)
+    }
 }

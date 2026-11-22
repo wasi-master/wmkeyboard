@@ -39,6 +39,7 @@ import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.theme.FONT_MOTION_DECAY_RANGE
 import com.wasimaster.wmkeyboard.core.theme.FONT_MOTION_RADIUS_RANGE
 import com.wasimaster.wmkeyboard.core.theme.FONT_MOTION_SPEED_RANGE
+import com.wasimaster.wmkeyboard.core.theme.FONT_MOTION_SCALE_RANGE
 import com.wasimaster.wmkeyboard.core.theme.FONT_MOTION_WOBBLE_RANGE
 import com.wasimaster.wmkeyboard.core.theme.FontAxesSpec
 import com.wasimaster.wmkeyboard.core.theme.FontMotionSpec
@@ -252,17 +253,24 @@ private fun FontMotionsEditor(
 
 /**
  * A first motion that already shows something: the letters under the finger
- * swelling a weight step heavier, or, on a font with no weight axis, its first
- * axis moved to the far end.
+ * swelling well heavier and a third bigger, or, on a font with no weight axis,
+ * its first axis moved to the far end. A single weight step read as barely
+ * moving on the phone.
  */
 internal fun newFontMotion(variations: FontVariations): FontMotionSpec {
     val wght = variations.axis("wght")
     val axes = if (wght != null) {
-        mapOf("wght" to wght.clamp((variations.restValue("wght", 500) ?: wght.default) + 300f))
+        mapOf("wght" to wght.clamp((variations.restValue("wght", 500) ?: wght.default) + 400f))
     } else {
         variations.axes.firstOrNull { !it.hidden }?.let { mapOf(it.tag to it.max) }.orEmpty()
     }
-    return FontMotionSpec(trigger = FontMotionTrigger.TOUCH.name, axes = axes)
+    return FontMotionSpec(
+        trigger = FontMotionTrigger.TOUCH.name,
+        axes = axes,
+        radiusDp = 110f,
+        wobble = 0.45f,
+        scale = 1.3f,
+    )
 }
 
 @Composable
@@ -386,6 +394,16 @@ private fun FontMotionCard(
                     live = false,
                 ) { onChange(motion.copy(wobble = it)) }
             }
+        }
+        item {
+            SliderRow(
+                R.string.theme_motion_scale_title,
+                motion.scale,
+                FONT_MOTION_SCALE_RANGE,
+                { "×" + String.format(java.util.Locale.getDefault(), "%.2f", it) },
+                info = stringResource(R.string.theme_motion_scale_body),
+                live = false,
+            ) { onChange(motion.copy(scale = it)) }
         }
         item {
             OutlinedButton(

@@ -1215,4 +1215,6 @@
     <string name="theme_key_override_axes_title">Font axes for this key</string>
     <string name="theme_key_override_axes_body">Give this key its own weight, width or other axes. An axis that you do not move uses the value of the theme.</string>
     <string name="theme_motion_wobble_body">How far the letters go past their usual value when they go back. 0 has no bounce.</string>
+    <string name="theme_motion_scale_title">Size</string>
+    <string name="theme_motion_scale_body">How big the letters get at the peak of the motion. ×1 keeps their size. The size moves smoothly while the axes move in steps, so a little growth makes the motion easier to see.</string>
 </resources>

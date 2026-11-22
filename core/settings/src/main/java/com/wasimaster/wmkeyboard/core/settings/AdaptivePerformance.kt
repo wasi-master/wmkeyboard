@@ -107,11 +107,13 @@ data class MotionBudget(
     val boardEffectFps: Int,
     val themeFlowFps: Int,
     /**
-     * The theme's font motion (the key labels' axes moving). Each frame can
-     * re-cut and re-lay out every moving label, so it runs below the board
-     * effect's rate; the eye reads a swelling letter at 30 frames as smooth.
+     * The theme's font motion (the key labels' axes moving). Uncapped on a
+     * normal budget: it was held to 30 on the guess that a swelling letter
+     * reads as smooth there, and on the phone it read as stepping. A frame
+     * only redraws the labels whose step or size changed, and every cut of
+     * the font is made ahead ([FontMotionLayer]), so a frame is cheap.
      */
-    val fontMotionFps: Int = 30,
+    val fontMotionFps: Int = 0,
 ) {
     /** The wait between two frames of a board effect, in ms; 0 for no cap. */
     val boardEffectGapMs: Long get() = gapFor(boardEffectFps)
@@ -131,8 +133,8 @@ data class MotionBudget(
         private const val MILLIS_PER_SECOND = 1_000L
         private const val VSYNC_SLACK_MS = 4L
 
-        val NORMAL = MotionBudget(boardEffectFps = 60, themeFlowFps = 30, fontMotionFps = 30)
-        val ELEVATED = MotionBudget(boardEffectFps = 30, themeFlowFps = 15, fontMotionFps = 15)
+        val NORMAL = MotionBudget(boardEffectFps = 60, themeFlowFps = 30, fontMotionFps = 0)
+        val ELEVATED = MotionBudget(boardEffectFps = 30, themeFlowFps = 15, fontMotionFps = 30)
 
         /** The budget for [load]; under [LoadLevel.HEAVY] the theme is held still anyway. */
         fun of(load: DeviceLoad): MotionBudget =

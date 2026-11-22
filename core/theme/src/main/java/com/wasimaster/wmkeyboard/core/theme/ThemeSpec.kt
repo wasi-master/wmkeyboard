@@ -2037,16 +2037,25 @@ private val SwellTheme: ThemeSpec =
         fontMotions = listOf(
             FontMotionSpec(
                 trigger = FontMotionTrigger.TOUCH.name,
-                axes = mapOf("wght" to 760f),
-                radiusDp = 110f,
+                axes = mapOf("wght" to 900f),
+                radiusDp = 120f,
+                decayMs = 550,
+                wobble = 0.5f,
+                scale = 1.35f,
+            ),
+            FontMotionSpec(
+                trigger = FontMotionTrigger.GLIDE.name,
+                axes = mapOf("wght" to 800f),
+                radiusDp = 90f,
                 decayMs = 450,
-                wobble = 0.35f,
+                scale = 1.25f,
             ),
             FontMotionSpec(
                 trigger = FontMotionTrigger.SHIFT.name,
-                axes = mapOf("wght" to 640f),
+                axes = mapOf("wght" to 700f),
                 target = FontMotionTarget.ALL.name,
-                wobble = 0.2f,
+                wobble = 0.3f,
+                scale = 1.1f,
             ),
         ),
     )

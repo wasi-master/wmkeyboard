@@ -16,6 +16,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.isSpecified
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -24,23 +28,18 @@ import androidx.compose.ui.node.CompositionLocalConsumerModifierNode
 import androidx.compose.ui.node.DrawModifierNode
 import androidx.compose.ui.node.LayoutAwareModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
-import androidx.compose.ui.node.currentValueOf
 import androidx.compose.ui.node.invalidateDraw
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFontFamilyResolver
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntSize
 import com.wasimaster.wmkeyboard.core.fonts.FontVariations
 import com.wasimaster.wmkeyboard.core.settings.MotionBudget
 import com.wasimaster.wmkeyboard.core.theme.FONT_MOTION_DECAY_RANGE
 import com.wasimaster.wmkeyboard.core.theme.FONT_MOTION_RADIUS_RANGE
+import com.wasimaster.wmkeyboard.core.theme.FONT_MOTION_SCALE_RANGE
 import com.wasimaster.wmkeyboard.core.theme.FONT_MOTION_SPEED_RANGE
 import com.wasimaster.wmkeyboard.core.theme.FONT_MOTION_WOBBLE_RANGE
 import com.wasimaster.wmkeyboard.core.theme.FontMotionSpec
@@ -72,6 +71,8 @@ data class KbFontMotionItem(
     val radiusDp: Float,
     val decayMs: Int,
     val wobble: Float,
+    /** The label's size at the peak, 1 for unchanged. */
+    val scale: Float = 1f,
 )
 
 /** A theme's font motions, ready to drive; see [ThemeSpec.fontMotions]. */
@@ -80,6 +81,10 @@ data class KbFontMotion(val items: List<KbFontMotionItem>) {
     /** Whether a finger has to be followed: touch and glide motions. */
     val followsFingers: Boolean
         get() = items.any { it.trigger == FontMotionTrigger.TOUCH || it.trigger == FontMotionTrigger.GLIDE }
+
+    /** Whether any motion changes the labels' size, which needs no variable font. */
+    val scales: Boolean
+        get() = items.any { it.scale != 1f }
 
     /** Whether the press path has to feed [ThemePulse]: reactive patterns and typing speed. */
     val readsPresses: Boolean
@@ -93,7 +98,8 @@ internal fun resolveFontMotion(specs: List<FontMotionSpec>): KbFontMotion? {
     val items = specs.take(MAX_FONT_MOTIONS).mapNotNull { spec ->
         val trigger = fontMotionTriggerOrNull(spec.trigger) ?: return@mapNotNull null
         val axes = spec.axes.filterValues { it.isFinite() }
-        if (axes.isEmpty()) return@mapNotNull null
+        val scale = spec.scale.finite(1f).coerceIn(FONT_MOTION_SCALE_RANGE)
+        if (axes.isEmpty() && scale == 1f) return@mapNotNull null
         KbFontMotionItem(
             trigger = trigger,
             pattern = keyLightingPatternOrNull(spec.pattern) ?: KeyLightingPattern.WAVE,
@@ -103,6 +109,7 @@ internal fun resolveFontMotion(specs: List<FontMotionSpec>): KbFontMotion? {
             radiusDp = spec.radiusDp.finite(96f).coerceIn(FONT_MOTION_RADIUS_RANGE),
             decayMs = spec.decayMs.coerceIn(FONT_MOTION_DECAY_RANGE),
             wobble = spec.wobble.finite(0f).coerceIn(FONT_MOTION_WOBBLE_RANGE),
+            scale = scale,
         )
     }
     return items.takeIf { it.isNotEmpty() }?.let(::KbFontMotion)
@@ -176,7 +183,8 @@ internal fun swellEnvelope(sinceDownMs: Long, heldMs: Long, decayMs: Int, wobble
     return atLift * (1f - springStep(sinceLift / 1000f, omega, zeta))
 }
 
-private const val SWELL_RISE_MS = 60f
+/** Short enough that a quick tap, down for 70 ms or so, reaches nearly the whole swell. */
+private const val SWELL_RISE_MS = 30f
 
 /** The weight key labels are asked for (Medium), which an untuned weight axis rests at. */
 private const val LABEL_WEIGHT = 500
@@ -376,10 +384,6 @@ internal object FontMotionDriver {
     private var shiftTo = 0f
     private var shiftSince = 0L
 
-    /** One measurer for every moving label, its cache shared across them. */
-    private var measurer: TextMeasurer? = null
-    private var measurerKey: Any? = null
-
     fun register(node: FontMorphNode) {
         nodes += node
     }
@@ -406,14 +410,11 @@ internal object FontMotionDriver {
 
     fun shiftMoving(now: Long): Boolean = now - shiftSince < SHIFT_EASE_MS * 3
 
-    fun measurer(resolver: FontFamily.Resolver, density: androidx.compose.ui.unit.Density, direction: androidx.compose.ui.unit.LayoutDirection): TextMeasurer {
-        val key = Triple(resolver, density.density, direction)
-        measurer?.takeIf { measurerKey == key }?.let { return it }
-        return TextMeasurer(resolver, density, direction, MEASURE_CACHE).also {
-            measurer = it
-            measurerKey = key
-        }
-    }
+    /** The resolver the labels' typefaces are loaded through; set with the motion. */
+    var resolver: FontFamily.Resolver? = null
+
+    /** One paint for every moving label: they draw one after another on the main thread. */
+    val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG or android.graphics.Paint.SUBPIXEL_TEXT_FLAG)
 
     /**
      * One tick: every label's step worked out and the changed ones redrawn.
@@ -421,8 +422,8 @@ internal object FontMotionDriver {
      */
     fun tick(now: Long, budget: MotionBudget): Boolean {
         val m = motion ?: return false
-        val variations = fonts.variations ?: return false
-        val steps = if (budget == MotionBudget.NORMAL) STEPS_NORMAL else STEPS_REDUCED
+        val variations = fonts.variations
+        val steps = levelSteps(budget)
         val glideFrom = GLIDE_FROM_DP * density
         var live = false
         val moves = ArrayList<Pair<Map<String, Float>, Float>>(m.items.size)
@@ -431,22 +432,42 @@ internal object FontMotionDriver {
             val cell = node.cell
             if (cell.isEmpty) continue
             moves.clear()
+            var grow = 0f
             for (item in m.items) {
                 if (!item.allKeys && !node.letter) continue
                 val level = levelOf(item, cell, index, now, glideFrom)
                 if (abs(level) > LEVEL_EPSILON) live = true
-                moves += item.axes to level
+                // The size follows the level itself, so it moves every frame;
+                // the axes follow it in steps, each a cut of the font made
+                // ahead. A growing letter hides the step between two cuts.
+                val g = (item.scale - 1f) * level
+                if (abs(g) > abs(grow)) grow = g
+                if (variations != null && item.axes.isNotEmpty()) moves += item.axes to snapLevel(level, steps)
             }
             val rest = node.rest(fonts)
-            val morphed = morphedAxes(rest, variations, moves)
-            val step = if (morphed == rest) null else quantizeAxes(morphed, variations, steps)
-            if (step != node.step) {
+            val step = if (variations == null || moves.isEmpty()) {
+                null
+            } else {
+                morphedAxes(rest, variations, moves).takeIf { it != rest }
+            }
+            val scale = 1f + (grow * SCALE_GRAIN).roundToInt() / SCALE_GRAIN
+            if (step != node.step || scale != node.scale) {
                 node.step = step
+                node.scale = scale
                 node.redraw()
             }
         }
         return live || m.items.any { item -> itemRunning(item, now) }
     }
+
+    /**
+     * [level] snapped to [steps] steps between rest and peak. Snapped by level
+     * rather than across each axis's whole range, so a motion over a short
+     * stretch of an axis still moves in as many steps as one over all of it.
+     */
+    private fun snapLevel(level: Float, steps: Int): Float = (level * steps).roundToInt() / steps.toFloat()
+
+    private fun levelSteps(budget: MotionBudget): Int = if (budget == MotionBudget.NORMAL) STEPS_NORMAL else STEPS_REDUCED
 
     /**
      * Every cut of the font [motion] can ask for on its own, one motion at a
@@ -457,17 +478,22 @@ internal object FontMotionDriver {
      */
     fun warmPlan(motion: KbFontMotion, fonts: BoardFonts, budget: MotionBudget): List<Map<String, Float>> {
         val variations = fonts.variations ?: return emptyList()
-        val steps = if (budget == MotionBudget.NORMAL) STEPS_NORMAL else STEPS_REDUCED
+        val steps = levelSteps(budget)
+        val over = steps / WARM_OVERSHOOT_DIVISOR
         val rest = fonts.keyAxes
         val out = LinkedHashSet<Map<String, Float>>()
         for (item in motion.items) {
-            for (k in -WARM_OVERSHOOT..steps + WARM_OVERSHOOT) {
+            if (item.axes.isEmpty()) continue
+            for (k in -over..steps + over) {
                 val morphed = morphedAxes(rest, variations, listOf(item.axes to k / steps.toFloat()))
-                if (morphed != rest) out += quantizeAxes(morphed, variations, steps)
+                if (morphed != rest) out += morphed
             }
         }
         return out.toList()
     }
+
+    /** Where the labels rest, for the ones whose own axes differ from the board's. */
+    fun restSettings(): List<Map<String, Float>> = nodes.mapTo(LinkedHashSet()) { it.rest(fonts) }.toList()
 
     /** The weights the moving labels draw in, Medium and Normal before any has been laid out. */
     fun labelWeights(): List<FontWeight> {
@@ -478,8 +504,9 @@ internal object FontMotionDriver {
     /** Puts every label back to rest, as the motion goes away. */
     fun rest() {
         for (node in nodes) {
-            if (node.step != null) {
+            if (node.step != null || node.scale != 1f) {
                 node.step = null
+                node.scale = 1f
                 node.redraw()
             }
         }
@@ -520,20 +547,23 @@ internal object FontMotionDriver {
         FontMotionTrigger.ENERGY -> ThemePulse.energy(now, item.decayMs) > LEVEL_EPSILON
     }
 
-    private const val STEPS_NORMAL = 12
-    private const val STEPS_REDUCED = 8
+    /** Steps between rest and peak: each a cut of the font, all made ahead of the first press. */
+    private const val STEPS_NORMAL = 24
+    private const val STEPS_REDUCED = 12
+    /** The size is held to hundredths, so a label still at 1.004 is not redrawn every frame. */
+    private const val SCALE_GRAIN = 100f
     private const val SHIFT_EASE_MS = 180f
-    private const val MEASURE_CACHE = 512
     /** How far a finger has to travel before it counts as gliding, in dp. */
     private const val GLIDE_FROM_DP = 18f
     private const val REACTIVE_TAIL_MS = 600L
-    /** Steps past each end [warmPlan] covers, for the springs that ring past rest and peak. */
-    private const val WARM_OVERSHOOT = 4
+    /** A third of the steps again past each end, for the springs that ring past rest and peak. */
+    private const val WARM_OVERSHOOT_DIVISOR = 3
 }
 
 /**
  * Runs the font motion's clock for a key grid while the theme has a motion
- * and the font has axes: a frame loop, paced by [MotionBudget.fontMotionFps],
+ * and the font has axes (or a motion grows the labels): a frame loop, paced
+ * by [MotionBudget.fontMotionFps], every frame on a normal budget,
  * that sleeps whenever nothing moves and wakes on a press, a finger or Shift.
  */
 @Composable
@@ -560,14 +590,15 @@ internal fun FontMotionLayer(motion: KbFontMotion, fonts: BoardFonts, shifted: B
     // first sweep of a motion builds a cut per step inside the draw pass, a
     // file opened and parsed per new step, and the first presses stutter.
     val resolver = LocalFontFamilyResolver.current
+    FontMotionDriver.resolver = resolver
     LaunchedEffect(motion, fonts, resolver) {
         withFrameMillis { }
         val plan = FontMotionDriver.warmPlan(motion, fonts, ThemeFramePacing.budget)
         val weights = FontMotionDriver.labelWeights()
+        val rests = FontMotionDriver.restSettings()
         withContext(Dispatchers.Default) {
-            for (axes in plan) {
-                val family = fonts.withAxes(axes) ?: continue
-                for (weight in weights) runCatching { resolver.resolve(family, weight) }
+            for (axes in rests + plan) {
+                for (weight in weights) fonts.typefaceAt(axes, weight, resolver)
             }
         }
     }
@@ -600,7 +631,11 @@ internal fun FontMotionLayer(motion: KbFontMotion, fonts: BoardFonts, shifted: B
  * label's own `Text` draws it; [own] the key's own axes over the board's.
  */
 internal fun Modifier.fontMorph(text: String, style: TextStyle, letter: Boolean, own: Map<String, Float>?): Modifier =
-    this then FontMorphElement(text, style, letter, own)
+    // A layer of its own, so a frame that redraws this label re-records this
+    // label alone. Without it the redraw reached the key's whole drawing
+    // (the shape, its border, its lighting), and every moving label paid
+    // that each frame: 22 ms frames against 15 on a still theme.
+    this.graphicsLayer() then FontMorphElement(text, style, letter, own)
 
 private data class FontMorphElement(
     val text: String,
@@ -633,6 +668,9 @@ internal class FontMorphNode(
     /** The axes to draw at; null at rest. Set by the driver. */
     var step: Map<String, Float>? = null
 
+    /** How big to draw the label, 1 at rest. Set by the driver. */
+    var scale: Float = 1f
+
     private var size = IntSize.Zero
 
     /** Where the label rests: the board's own values, with the key's laid over them. */
@@ -652,6 +690,7 @@ internal class FontMorphNode(
     override fun onDetach() {
         FontMotionDriver.unregister(this)
         step = null
+        scale = 1f
     }
 
     override fun onRemeasured(size: IntSize) {
@@ -665,39 +704,51 @@ internal class FontMorphNode(
 
     override fun ContentDrawScope.draw() {
         val at = step
-        val family = at?.let { FontMotionDriver.fonts.withAxes(it) }
-        if (family == null) {
-            drawContent()
+        val grow = scale
+        val pivot = Offset(this.size.width / 2f, this.size.height / 2f)
+        val resolver = FontMotionDriver.resolver
+        val typeface = if (at == null || resolver == null) {
+            null
+        } else {
+            FontMotionDriver.fonts.typefaceAt(at, style.fontWeight ?: FontWeight.Normal, resolver)
+        }
+        if (typeface == null) {
+            // Only the size moves, or the cut is not there: the label as laid
+            // out, scaled about its centre.
+            if (grow == 1f) drawContent() else scale(grow, pivot = pivot) { this@draw.drawContent() }
             return
         }
-        val measurer = FontMotionDriver.measurer(
-            currentValueOf(LocalFontFamilyResolver),
-            this,
-            currentValueOf(LocalLayoutDirection),
-        )
-        val result = measurer.measure(
-            text = text,
-            style = style.copy(fontFamily = family),
-            overflow = TextOverflow.Visible,
-            softWrap = false,
-            maxLines = 1,
-            constraints = Constraints(),
-        )
-        val w = result.size.width.toFloat()
-        val h = result.size.height.toFloat()
-        // A heavier or wider cut is let spill a little round its box, which
-        // the key has room for; past that it is drawn smaller rather than
-        // over the next key.
-        val room = this.size.width * SPILL
-        val shrink = if (w > room && w > 0f) room / w else 1f
-        val left = (this.size.width - w) / 2f
-        val top = (this.size.height - h) / 2f
-        scale(shrink, pivot = Offset(this.size.width / 2f, this.size.height / 2f)) {
-            drawText(result, topLeft = Offset(left, top))
+        // The cut drawn straight from its typeface: one glyph run, no text
+        // layout, which a moving label would otherwise build afresh nearly
+        // every frame (24 steps a motion, past any layout cache's reach).
+        val paint = FontMotionDriver.paint
+        paint.typeface = typeface
+        paint.textSize = if (style.fontSize.isSp) style.fontSize.toPx() else paint.textSize
+        paint.color = style.color.takeIf { it.isSpecified }?.toArgb() ?: android.graphics.Color.WHITE
+        val shadow = style.shadow
+        if (shadow != null && shadow.color.isSpecified && shadow.blurRadius > 0f) {
+            paint.setShadowLayer(shadow.blurRadius, shadow.offset.x, shadow.offset.y, shadow.color.toArgb())
+        } else {
+            paint.clearShadowLayer()
         }
+        val w = paint.measureText(text)
+        val metrics = paint.fontMetrics
+        // Centred the way the label's own Text sits in its box: a box one
+        // line tall, the baseline the ascent down from its top.
+        val baseline = this.size.height / 2f - (metrics.ascent + metrics.descent) / 2f
+        // A heavier or wider cut, and a grown one, is let spill a little
+        // round its box, which the key has room for; past that it is drawn
+        // smaller rather than over the next key.
+        val room = this.size.width * SPILL
+        val drawn = if (w * grow > room && w > 0f) room / w else grow
+        val canvas = drawContext.canvas.nativeCanvas
+        canvas.save()
+        canvas.scale(drawn, drawn, pivot.x, pivot.y)
+        canvas.drawText(text, pivot.x - w / 2f, baseline, paint)
+        canvas.restore()
     }
 
     private companion object {
-        const val SPILL = 1.6f
+        const val SPILL = 2.2f
     }
 }
