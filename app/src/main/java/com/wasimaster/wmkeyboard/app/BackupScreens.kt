@@ -1063,6 +1063,14 @@ private fun SyncGroupDialog(
 }
 
 /**
+ * Whether Export to file seals the bundle (#970): Protect with a passphrase
+ * is on and a passphrase, with its salt, is set. The same test the clipboard
+ * board's sync makes before it encrypts.
+ */
+internal fun exportSealed(auto: AutoBackupSettings): Boolean =
+    auto.encrypt && auto.passphrase.isNotEmpty() && auto.kdfSalt.isNotEmpty()
+
+/**
  * The "include API keys" switch, which asks before it goes on without a
  * passphrase. It does not refuse: the keys and the storage are the user's.
  * It says plainly what the file will then hold.
@@ -1145,27 +1153,40 @@ internal fun BackupSettings(
         }
     }
 
-    val exportLauncher = rememberLauncherForActivityResult(
-        CreateDocumentAt(ConfigBackup.MIME_TYPE, PickerPlaces.BACKUP_EXPORT),
-    ) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
+    // Export to file, sealed under the backup passphrase while Protect with a
+    // passphrase is on and one is set (#970): the same container the automatic
+    // backups write, which the import below already opens by asking for it.
+    // Plain JSON otherwise, as before.
+    val writeExport: (Uri) -> Unit = { uri ->
         PickerPlaces.remember(context, PickerPlaces.BACKUP_EXPORT, uri)
-        val requested = settings.value.autoBackup.exportSectionSet
-        val includeSecrets = settings.value.autoBackup.includeSecrets
+        val auto = settings.value.autoBackup
+        val requested = auto.exportSectionSet
+        val includeSecrets = auto.includeSecrets
+        val sealed = exportSealed(auto)
         scope.launch {
             var skipped = emptySet<ConfigBackup.Section>()
             val written = runCancellable {
                 withContext(Dispatchers.IO) {
                     skipped = AutoBackupRunner.exportSectionsToDrop(repository, requested)
                     context.contentResolver.requireOutputStream(uri).use { raw ->
-                        BufferedOutputStream(raw).use { out ->
-                            repository.exportConfigTo(
+                        BufferedOutputStream(raw).use { file ->
+                            suspend fun bundleTo(out: java.io.OutputStream) = repository.exportConfigTo(
                                 out = out,
                                 sections = requested - skipped,
                                 includeSecrets = includeSecrets,
                                 appVersion = BuildConfig.VERSION_CODE,
                                 appVersionName = BuildConfig.VERSION_NAME,
                             )
+                            if (sealed) {
+                                // The cipher finishes at the close, after the bundle is written.
+                                BackupCrypto.encrypting(
+                                    out = file,
+                                    passphrase = auto.passphrase.toCharArray(),
+                                    salt = android.util.Base64.decode(auto.kdfSalt, android.util.Base64.NO_WRAP),
+                                ).buffered().use { bundleTo(it) }
+                            } else {
+                                bundleTo(file)
+                            }
                         }
                     }
                 }
@@ -1179,12 +1200,21 @@ internal fun BackupSettings(
                     WMFileTypes.displayName(context, uri),
                     skipped.joinToString { sectionLabelLowercase(context, it) },
                 )
+                sealed -> context.getString(R.string.backup_export_done_encrypted)
                 ConfigBackup.Section.SETTINGS in requested && includeSecrets ->
                     context.getString(R.string.backup_export_done_with_keys)
                 else -> context.getString(R.string.backup_export_done)
             }
         }
     }
+    val exportLauncher = rememberLauncherForActivityResult(
+        CreateDocumentAt(ConfigBackup.MIME_TYPE, PickerPlaces.BACKUP_EXPORT),
+    ) { uri -> if (uri != null) writeExport(uri) }
+    // The encrypted automatic backups' type and name, so a file manager and
+    // the import treat a sealed export the same way.
+    val sealedExportLauncher = rememberLauncherForActivityResult(
+        CreateDocumentAt(ConfigBackup.ENCRYPTED_MIME_TYPE, PickerPlaces.BACKUP_EXPORT),
+    ) { uri -> if (uri != null) writeExport(uri) }
 
     // Another keyboard's backup goes through the same dialog an opened file
     // does, which reads it and lists what is inside before anything is written.
@@ -1263,7 +1293,11 @@ internal fun BackupSettings(
     val exportGuarded = rememberLockGuard(AppLockTargets["action_export_settings"]) {
         // Datestamped, Locale.US: see the automatic backup's names.
         val stamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())
-        exportLauncher.launch("wmkeyboard-backup-$stamp.${ConfigBackup.FILE_EXTENSION}")
+        if (exportSealed(settings.value.autoBackup)) {
+            sealedExportLauncher.launch("wmkeyboard-backup-$stamp.${ConfigBackup.ENCRYPTED_FILE_EXTENSION}")
+        } else {
+            exportLauncher.launch("wmkeyboard-backup-$stamp.${ConfigBackup.FILE_EXTENSION}")
+        }
     }
 
     BackupStatusCard(repository, settings) { message = it }

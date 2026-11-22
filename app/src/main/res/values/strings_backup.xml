@@ -352,6 +352,8 @@
     <string name="backup_import_note">An import of settings changes only the settings that the file names. The other settings stay as they are. The dictionary, the clipboard and the snippets in the file replace the ones on your device.</string>
 
     <string name="backup_export_done">The app exported the backup.</string>
+    <!-- #970: Export to file while Protect with a passphrase is on. -->
+    <string name="backup_export_done_encrypted">The app exported the backup, encrypted with your passphrase. You need the passphrase to import it.</string>
     <!-- Shown after an export that holds the keys for the network tools. -->
     <string name="backup_export_done_with_keys">The app exported the backup with your API keys in it. Keep that file as safe as a password.</string>
     <string name="backup_export_write_error">The app could not write that file.</string>
@@ -460,8 +462,8 @@
     <string name="backup_auto_charging_subtitle">Wait until your device is plugged in</string>
     <string name="backup_auto_charging_info">This is what the app always did. Turn it off if you rarely charge your device for long enough, because a backup that never finds a charger never runs, and nothing tells you that it did not. The work itself is a few seconds of copying, so it costs little battery.</string>
     <string name="backup_auto_encrypt_title">Protect with a passphrase</string>
-    <string name="backup_auto_encrypt_subtitle">The app encrypts each backup. You need the passphrase to restore one.</string>
-    <string name="backup_auto_encrypt_info">The app stores the passphrase on this device, because an automatic backup has nobody to type it. This protects the backup file where it goes, for example in a cloud folder. It does not protect it from a person who holds your unlocked device. Write the passphrase down: without it, a backup cannot be restored.</string>
+    <string name="backup_auto_encrypt_subtitle">The app encrypts each backup, Export to a file included. You need the passphrase to restore one.</string>
+    <string name="backup_auto_encrypt_info">The app stores the passphrase on this device, because an automatic backup has nobody to type it. This protects the backup file where it goes, for example in a cloud folder. A file you save with Export to a file is encrypted the same way while this is on, and importing it asks for the passphrase. It does not protect it from a person who holds your unlocked device. Write the passphrase down: without it, a backup cannot be restored.</string>
     <string name="backup_auto_passphrase_label">Passphrase</string>
     <string name="backup_auto_passphrase_show">Show the passphrase</string>
     <string name="backup_auto_passphrase_hide">Hide the passphrase</string>

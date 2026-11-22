@@ -57,7 +57,12 @@ anything you typed.
 
 Tap **Export to a file** to write a `wmkeyboard-backup-<date>-<time>.wmconfig.json`
 file through Android's own save dialog. It goes wherever you choose, not to
-any WM Keyboard server. What you pick is remembered. The automatic backup and
+any WM Keyboard server. With **Protect with a passphrase** on and a passphrase
+set (see [Automatic backup](#automatic-backup)), the file is encrypted under that
+passphrase, the same way the automatic backups are, and is named
+`.wmconfig.enc` instead. Importing it asks for the passphrase. Without a
+passphrase, the file is plain JSON that any text editor can read, clips and
+notes included. What you pick is remembered. The automatic backup and
 sync each have a list of their own, because a file you hand to someone, a copy
 for yourself and what your devices share are three different decisions.
 
@@ -226,7 +231,7 @@ you need the passphrase to restore it. The app stores that passphrase on your
 device, because a backup that runs while you're asleep has nobody to type it.
 So it protects the file where it lands, in a cloud folder for instance, and
 not against a person holding your unlocked device. Write it down. Without it,
-a backup cannot be restored. The same passphrase protects the sync files.
+a backup cannot be restored. The same passphrase protects the sync files, and a file you save with **Export to a file** while it is on.
 The file is sealed with AES-256-GCM under a key derived from the passphrase
 over a random salt kept on this device. A backup of up to 4 MiB, which is
 nearly all of them, is sealed in one piece under PBKDF2-HMAC-SHA256 at
