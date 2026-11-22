@@ -22157,6 +22157,16 @@ class SettingsRepository(private val context: Context) {
     }
 
     /**
+     * Takes back what was changed on settings page [page] since [since]
+     * (#1242): the page's own "Undo the changes made here", which puts it
+     * back the way it was when it was opened.
+     */
+    suspend fun undoSettingsOnPage(page: String, since: Long): HistoryResult {
+        history.load()
+        return undoSettingsBatches(history.undoableOnPage(page, since))
+    }
+
+    /**
      * Takes back the one batch [id]. An undo's batch taken back puts the
      * changes it undid in place again, and marks them as not undone.
      */

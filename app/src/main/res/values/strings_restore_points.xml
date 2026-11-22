@@ -23,6 +23,11 @@
         <item quantity="one">Put %d setting back</item>
         <item quantity="other">Put %d settings back</item>
     </plurals>
+    <!-- The page's own undo button in its top bar; %d is how many changes made on the page since it was opened it would take back. -->
+    <plurals name="restore_page_undo_desc">
+        <item quantity="one">Undo %d change made on this page</item>
+        <item quantity="other">Undo %d changes made on this page</item>
+    </plurals>
     <string name="restore_nothing_to_undo">There is nothing to undo.</string>
     <string name="restore_rolled_back">That left the settings unreadable, so nothing was changed.</string>
 

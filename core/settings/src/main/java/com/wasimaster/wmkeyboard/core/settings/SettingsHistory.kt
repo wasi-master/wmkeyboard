@@ -94,6 +94,13 @@ class SettingsHistory internal constructor(
         val label: String? = null,
         val undone: Boolean = false,
         val undid: List<Long> = emptyList(),
+        /**
+         * The settings page on screen when the change was made, as its route
+         * ("typing/chips"), or null for a change made anywhere else: the
+         * keyboard, an import, the app in the background. What a page's own
+         * "Undo the changes made here" picks out (#1242).
+         */
+        val page: String? = null,
     ) {
         val keys: Set<String> get() = changes.mapTo(LinkedHashSet()) { it.key }
     }
@@ -173,6 +180,7 @@ class SettingsHistory internal constructor(
         changes: List<Change>,
         label: String? = null,
         undid: List<Long> = emptyList(),
+        page: String? = currentPage,
     ): Batch? = mutex.withLock {
         ensureLoaded()
         val kept = changes.filter { tracked(it.key) && it.small() }
@@ -181,13 +189,14 @@ class SettingsHistory internal constructor(
         val list = _batches.value
         val last = list.firstOrNull()
         val joins = kind == Kind.EDIT && last != null && last.kind == Kind.EDIT && !last.undone &&
-            now - last.at in 0..COALESCE_MS && last.keys == kept.mapTo(HashSet()) { it.key }
+            now - last.at in 0..COALESCE_MS && last.page == page &&
+            last.keys == kept.mapTo(HashSet()) { it.key }
         // A join that cancels out (a slider dragged back to where it started)
         // takes the batch away altogether.
         val (batch, rest) = if (joins && last != null) {
             coalesce(last, kept, now) to list.drop(1)
         } else {
-            Batch(nextId++, now, kind, kept, label, undid = undid) to list
+            Batch(nextId++, now, kind, kept, label, undid = undid, page = page) to list
         }
         // Undoing a batch marks it; undoing an undo hands its batches back.
         val marked = if (kind == Kind.UNDO && undid.isNotEmpty()) {
@@ -217,6 +226,13 @@ class SettingsHistory internal constructor(
         val since = clock() - windowMs
         return _batches.value.filter { it.undoable && it.at >= since }
     }
+
+    /**
+     * The changes made on settings page [page] since [since] that an undo can
+     * still take back, newest first (#1242).
+     */
+    fun undoableOnPage(page: String, since: Long): List<Batch> =
+        _batches.value.filter { it.undoable && it.page == page && it.at >= since }
 
     /** Forgets the whole history; restore points stay. */
     suspend fun clearHistory() = mutex.withLock {
@@ -322,6 +338,18 @@ class SettingsHistory internal constructor(
          * their own undo; a restore point still holds them.
          */
         const val MAX_VALUE_CHARS = 20_000
+
+        /**
+         * The route of the settings page in front of the user, or null while
+         * none is (the app is in the background, or on a screen that is not a
+         * settings page). Set by the settings app; every batch recorded is
+         * tagged with it, so a page can undo what was changed on it (#1242).
+         * The keyboard writes from the same process, and only ever while the
+         * settings app is paused or showing its own test field, where the tag
+         * is still the page's: a change tried out there was made from it.
+         */
+        @Volatile
+        var currentPage: String? = null
 
         /** Whether the change history is kept. On by default; stored like any setting. */
         const val ENABLED_KEY = "settings_history_enabled"
@@ -486,6 +514,7 @@ class SettingsHistory internal constructor(
                                 put("at", batch.at)
                                 put("kind", batch.kind.id)
                                 batch.label?.let { put("label", it) }
+                                batch.page?.let { put("page", it) }
                                 if (batch.undone) put("undone", true)
                                 if (batch.undid.isNotEmpty()) {
                                     put("undid", buildJsonArray { batch.undid.forEach { add(JsonPrimitive(it)) } })
@@ -534,6 +563,7 @@ class SettingsHistory internal constructor(
                         label = (obj["label"] as? JsonPrimitive)?.contentOrNull,
                         undone = (obj["undone"] as? JsonPrimitive)?.booleanOrNull == true,
                         undid = (obj["undid"] as? JsonArray).orEmpty().mapNotNull { (it as? JsonPrimitive)?.longOrNull },
+                        page = (obj["page"] as? JsonPrimitive)?.contentOrNull,
                     ).takeIf { it.changes.isNotEmpty() }
                 }.getOrNull()
             }

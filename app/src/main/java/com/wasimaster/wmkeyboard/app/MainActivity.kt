@@ -952,6 +952,7 @@ private fun SettingsNavHost(
         val reduceMotion = settings.watch { it.reduceMotion }
         CompositionLocalProvider(
             LocalSettingsNavigate provides navigate,
+            LocalSettingsRepository provides repository,
             LocalSharedTransition provides if (twoPane) null else shared,
             LocalSettingsCrumbTrail provides crumbs,
             LocalAdvancedFolds provides folds,

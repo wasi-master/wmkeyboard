@@ -3200,6 +3200,8 @@ private fun WmScreenFrame(
                                     // menu keeps the bar's last place (#898).
                                     SettingsSearchButton(route)
                                     FavouritesButton(crumbTitle ?: title)
+                                    // Shows only once this visit changed something (#1242).
+                                    PageUndoButton()
                                     actions()
                                 },
                             )
