@@ -311,7 +311,8 @@ private fun FeatureLibraryRowView(row: FeatureLibraryRow, canFetch: Boolean, onD
     val states = row.gates.mapNotNull(FeatureLibraryList::gateOf).map { it.state.collectAsState().value }
     val installed = states.all { it == ModuleState.Installed }
     val installing = states.filterIsInstance<ModuleState.Installing>()
-    val failed = states.any { it is ModuleState.Missing && it.failed && it.consent == null }
+    val failedState = states.firstOrNull { it is ModuleState.Missing && it.failed && it.consent == null }
+    val failed = failedState != null
     val files = row.files.joinToString(", ")
     WmRow(
         title = stringResource(row.info.description),
@@ -321,14 +322,14 @@ private fun FeatureLibraryRowView(row: FeatureLibraryRow, canFetch: Boolean, onD
                     Text(if (row.bytes > 0L) stringResource(R.string.offline_import_native_label, files, formatBytes(row.bytes)) else files)
                 }
                 Text(
-                    stringResource(
-                        when {
-                            installed -> R.string.feature_libraries_state_here
-                            installing.isNotEmpty() -> R.string.feature_libraries_downloading
-                            failed -> R.string.feature_libraries_state_failed
-                            else -> R.string.feature_libraries_state_missing
-                        },
-                    ),
+                    when {
+                        installed -> stringResource(R.string.feature_libraries_state_here)
+                        installing.isNotEmpty() -> stringResource(R.string.feature_libraries_downloading)
+                        // Why, when it was not the connection: a bare "did not
+                        // finish" gave a report nothing to go on (#1498).
+                        failedState != null -> moduleFailedText(failedState, R.string.feature_libraries_state_failed)
+                        else -> stringResource(R.string.feature_libraries_state_missing)
+                    },
                     style = MaterialTheme.typography.bodySmall,
                     color = if (failed && !installed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                 )

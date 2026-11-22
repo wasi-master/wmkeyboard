@@ -5008,6 +5008,22 @@ private fun missingSubtitle(tag: String, installedBytes: Long): String {
     )
 }
 
+/**
+ * Why [tag]'s download failed. When it stopped at the engine library, the
+ * library's own reason (a server error, a full phone, data saving), which the
+ * row used to hide behind "check your network connection" whatever happened
+ * (#1498); the model's own failure keeps that sentence.
+ */
+@Composable
+private fun failedSubtitle(tag: String): String {
+    val library = HandwritingModels.libraryGateFor(tag).state.collectAsState().value
+    return if (library is ModuleState.Missing && library.failed) {
+        moduleFailedText(library, R.string.privacy_handwriting_status_failed)
+    } else {
+        stringResource(R.string.privacy_handwriting_status_failed)
+    }
+}
+
 /** How long with nothing arriving before the row admits it is stuck. */
 private const val HANDWRITING_STALL_HINT_MS = 20_000L
 
@@ -5106,7 +5122,7 @@ private fun HandwritingModelManager(settings: LiveSettings) {
                             "checking" -> stringResource(R.string.privacy_handwriting_status_checking)
                             "downloaded" -> stringResource(R.string.privacy_handwriting_status_downloaded)
                             "downloading" -> downloadSubtitle(progress[language.tag])
-                            "error" -> stringResource(R.string.privacy_handwriting_status_failed)
+                            "error" -> failedSubtitle(language.tag)
                             else -> missingSubtitle(language.tag, sizes[language.tag] ?: 0L)
                         },
                     trailing = {
