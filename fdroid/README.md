@@ -276,6 +276,14 @@ crate like Harper, every dependency from crates.io at the version `Cargo.lock`
 pins, with no C code and no data fetched. The next entry's `scandelete` needs
 that path added; the copy of the recipe here already has it.
 
+The script also builds `native/numbat-jni` (Numbat 1.24, MIT OR Apache-2.0,
+the `numbat` crate from crates.io, with a JNI bridge) into
+`core/tools/src/numbat/jniLibs`: the calculator language behind sums with
+units in the calculator tool and the calculator chip. A plain Rust crate like
+Harper, every dependency at the version `Cargo.lock` pins, no C code and no
+data fetched. The next entry's `scandelete` needs that path added too; the
+copy of the recipe here already has it.
+
 The script also builds `native/chewing-jni` (libchewing 0.13.1, the
 `chewing` crate from crates.io, LGPL-2.1-or-later, with a JNI bridge) into
 `core/input/src/chewing/jniLibs`: the optional Chewing engine for Zhuyin. A
