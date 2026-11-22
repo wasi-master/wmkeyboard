@@ -59,19 +59,6 @@ class EmojiShaper internal constructor(source: (() -> EmojiFontCoverage?)?) {
     /** True when this one emoji should be drawn in the system emoji font. */
     fun drawsWithSystemFont(emoji: String): Boolean = spelling(emoji).systemFont
 
-    /**
-     * False when this phone draws none of the font's pictures, so every emoji
-     * comes from the system font. True for the system font itself and for a
-     * font whose tables could not be read.
-     */
-    val drawsPictures: Boolean get() = coverage?.drawable ?: true
-
-    /**
-     * False when this phone draws the font's skin tones, families, flags and
-     * other sequences as their parts, so those come from the system font.
-     */
-    val joinsSequences: Boolean get() = coverage?.joins ?: true
-
     /** Both answers at once, computed once per emoji and cached. */
     fun spelling(emoji: String): EmojiSpelling {
         if (identity || emoji.isEmpty()) return EmojiSpelling(emoji, systemFont = false)
@@ -157,9 +144,9 @@ object EmojiFontShaping {
         // main thread would cost rather more.
         // Then one emoji drawn from it: nothing in the tables says whether
         // this phone's renderer supports the font's colour format (#1175).
-        // And one sequence laid out from it: nothing in the tables says whether
-        // the renderer joins the font's sequences either (#1492).
-        val read = EmojiFontCoverage.read(file)?.let { tables -> EmojiFontProbe.check(file, tables) }
+        val read = EmojiFontCoverage.read(file)?.let { tables ->
+            if (EmojiFontProbe.draws(file, tables)) tables else tables.undrawable()
+        }
         synchronized(coverageCache) {
             if (coverageCache.size >= MAX_CACHED_FONTS) coverageCache.clear()
             coverageCache[key] = read
@@ -200,10 +187,8 @@ object EmojiFontShaping {
      * True when the font can draw [codePoints] as one glyph.
      *
      * A font with no ligatures at all gets the benefit of the doubt: it may be
-     * assembling sequences with contextual substitutions or `morx`, which are
-     * not read, and refusing to draw its whole catalog would be the worse
-     * mistake. Unless a sequence laid out from it on this phone came out in
-     * parts: then [EmojiFontCoverage.joins] is false and none of them draw.
+     * assembling sequences with contextual substitutions, which are not read,
+     * and refusing to draw its whole catalog would be the worse mistake.
      */
     internal fun draws(tables: EmojiFontCoverage, codePoints: IntArray): Boolean {
         if (codePoints.isEmpty()) return false
@@ -219,9 +204,6 @@ object EmojiFontShaping {
         }
         for (cp in codePoints) if (!tables.covers(cp)) return false
         if (codePoints.size == 1) return true
-        // A font this phone draws sequences of as their parts draws none of
-        // them as one picture, whatever its tables say (#1492).
-        if (!tables.joins) return false
         return !tables.hasLigatures || tables.ligates(codePoints)
     }
 

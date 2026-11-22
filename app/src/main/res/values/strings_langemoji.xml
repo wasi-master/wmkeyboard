@@ -373,8 +373,6 @@
     <string name="langemoji_emoji_added_list_title">Your added emoji</string>
     <string name="langemoji_emoji_added_empty">You have not added any emoji.</string>
     <string name="langemoji_emoji_added_built_in">The keyboard now includes this emoji. You can delete it here.</string>
-    <string name="langemoji_emoji_font_undrawable">Your phone cannot draw the pictures in this font, so the keyboard shows your phone\'s own emoji instead. A bitmap (CBDT) emoji font draws on every phone.</string>
-    <string name="langemoji_emoji_font_unjoined">Your phone draws this font\'s skin tones, families and flags as separate pieces, so the keyboard shows those in your phone\'s own emoji. Every other emoji uses this font.</string>
     <string name="langemoji_emoji_added_undrawable_short">Your emoji font cannot draw this emoji yet</string>
     <string name="langemoji_emoji_added_undrawable">Your emoji font cannot draw this emoji yet. It shows as a box or as separate parts, but the keyboard types it correctly and other apps can show it.</string>
     <!-- %1$s is the emoji's name, or the emoji itself. -->
