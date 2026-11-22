@@ -1258,6 +1258,8 @@ internal fun enterActionIcon(action: EnterAction): ImageVector = IconDefaults.fo
  * instead of one replacing the other: the face draws what Enter does now, the
  * corner keeps the other one in view.
  *
+ * Drawn only while Press and hold hints are on (#1430), like every corner.
+ *
  * Null wherever there is no second thing to draw — the setting is off, the
  * field declared no action of its own, or the action is [EnterAction.CUSTOM]
  * and the shift has the key (an app's own wording is text, and the corner lane
@@ -31674,13 +31676,15 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
             }
             // The other thing this key does right now, drawn small in the same
             // corner lane a letter puts its alternate in (see [enterHintSlot]).
-            // It answers to no hint switch: it is not an annotation of a hold
-            // but half of a pair with the face below it, and the pair is the
-            // whole point — a shift swaps them over rather than making the
-            // field's action disappear (issue #107). `hideHint` still silences
-            // it, since that is an author asking for a clean corner, and the
-            // face still names whatever Enter does.
-            val hint = if (key.hideHint) null else visual.enterHint
+            // Half of a pair with the face below it — a shift swaps them over
+            // rather than making the field's action disappear (issue #107) —
+            // and also what the hold offers, so it follows Press and hold
+            // hints like every other corner (#1430): with them off, a search
+            // box's Enter drew a second magnifier no switch could take off.
+            // `forceHint` keeps it on that one key, `hideHint` silences it,
+            // and the face still names whatever Enter does.
+            val showEnterHint = settings.longPressHints || key.forceHint
+            val hint = if (key.hideHint || !showEnterHint) null else visual.enterHint
             if (hint != null) {
                 SlotIcon(
                     hint,
