@@ -532,8 +532,15 @@ internal class GboardMapper(
         val function = fill(FUNCTION_KEY)
         // Gboard's enter key is often no key face at all but a round badge
         // behind its icon, which the sheets colour as a separate element.
-        val enter = fill(ENTER)?.takeIf { it.isVisible() }
-            ?: style.color(ENTER_BADGE, FG)?.takeIf { it.isVisible() }
+        // When the theme says outright that both are see-through, the key is
+        // drawn that way, as Gboard does: the 3D packs' borderless looks
+        // leave every face clear, enter included, and filling enter with the
+        // accent made it the one orange slab on a black board.
+        val enterFace = fill(ENTER)
+        val enterBadge = style.color(ENTER_BADGE, FG)
+        val enter = enterFace?.takeIf { it.isVisible() }
+            ?: enterBadge?.takeIf { it.isVisible() }
+            ?: TRANSPARENT.takeIf { enterFace != null && enterBadge != null }
         val accent = accentColor(enter, boardSeen)
         val enterFill = enter ?: accent
         val enterSeen = composite(enterFill, boardSeen)
@@ -559,6 +566,26 @@ internal class GboardMapper(
         val (shape, radius) = keyShape()
         val edgeWidth = style.number(KEY, EDGE_WIDTH)?.takeIf { it > 0f }
         val edgeColor = style.color(KEY, EDGE_COLOR)?.takeIf { it.isVisible() }
+        val elevation = style.number(KEY, ELEVATION)?.takeIf { it > 0f }?.coerceAtMost(MAX_ELEVATION_DP)
+        val shadowColor = style.color(KEY, SHADOW_COLOR)?.takeIf { it.isVisible() }
+        // Gboard draws a key's lift as a hard band of the shadow colour under
+        // the face, not as a soft blur. A theme that colours it (the 3D packs'
+        // orange slab) is drawn as such, by a skin; see [GboardKeySkin].
+        val raised = if (elevation != null && shadowColor != null && shape != KeyShapeKind.NONE &&
+            (key ushr 24) == 0xFFL
+        ) {
+            GboardKeySkin.raised(
+                depth = elevation,
+                radius = when (shape) {
+                    KeyShapeKind.SHARP -> 0f
+                    KeyShapeKind.PILL -> Float.MAX_VALUE
+                    else -> radius?.toFloat() ?: GboardKeySkin.DEFAULT_RADIUS
+                },
+                edge = if (edgeWidth != null && edgeColor != null) edgeWidth.coerceAtMost(MAX_EDGE_DP) else 0f,
+            )
+        } else {
+            null
+        }
 
         val theme = ThemeSpec(
             id = "",
@@ -578,8 +605,9 @@ internal class GboardMapper(
             hintText = style.color(HINT, FG)?.takeIf { it.isVisible() },
             keyBorderColor = if (edgeWidth != null) edgeColor else null,
             keyBorderWidthDp = if (edgeColor != null) edgeWidth?.coerceAtMost(MAX_EDGE_DP) ?: 0f else 0f,
-            keyElevationDp = style.number(KEY, ELEVATION)?.takeIf { it > 0f }?.coerceAtMost(MAX_ELEVATION_DP) ?: 0f,
-            keyShadowColor = style.color(KEY, SHADOW_COLOR)?.takeIf { it.isVisible() },
+            keyElevationDp = elevation ?: 0f,
+            keyShadowColor = shadowColor,
+            keySkin = raised,
             keyShape = shape,
             keyCornerRadiusDp = radius,
             accent = accent,
@@ -779,7 +807,12 @@ internal class GboardMapper(
         val KEY = setOf(KEYTOP)
         val FUNCTION_KEY = setOf(KEYTOP, "dark")
         val SPACE = setOf(KEYTOP, "for-space-bar", "space_bar")
-        val ENTER = setOf(KEYTOP, "for-action-key")
+        // The plain enter key carries `for-action-default-key` too, and the
+        // bordered flavours style it there: the 3D packs paint
+        // `.keytop.for-action-key` orange for Search and Send but leave the
+        // default enter `.keytop.for-action-key.for-action-default-key` black.
+        // Asked without the class, every such theme got the orange one.
+        val ENTER = setOf(KEYTOP, "for-action-key", "for-action-default-key")
         val LABEL = setOf("label")
         val FUNCTION_LABEL = setOf("label", "for-function-key")
         val FUNCTION_ICON = setOf("icon", "for-function-key")
@@ -808,7 +841,10 @@ internal class GboardMapper(
         val TOOL_ICON = setOf("icon", "for-access-point-icon", "v2")
 
         /** The elements whose pictures do land: the board and the four key classes. */
-        val IMAGE_ELEMENTS = setOf(BACKGROUND, BODY, KEY, FUNCTION_KEY, ENTER, setOf(KEYTOP, "for-space-bar"), setOf("space_bar"))
+        val IMAGE_ELEMENTS = setOf(
+            BACKGROUND, BODY, KEY, FUNCTION_KEY, ENTER, setOf(KEYTOP, "for-action-key"),
+            setOf(KEYTOP, "for-space-bar"), setOf("space_bar"),
+        )
 
         const val TRANSPARENT = 0x00000000L
         const val OPAQUE_BLACK = 0xFF000000L

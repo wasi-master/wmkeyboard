@@ -360,6 +360,59 @@ class GboardThemeTest {
         assertEquals(0xFF112233L, converted.looks.first().converted.theme.enterKeyText)
     }
 
+    /** Cut down from Rboard's 3D_BlackMcLaren: black keys, orange edge, orange slab under each. */
+    @Test
+    fun `a 3D pack theme keeps its black enter key and its hard key slab`() {
+        val main = """
+            @def color_base #000000FF;
+            @def color_label #FFFFFFFF;
+            @def color_state_key #00000000;
+            @def color_state_key_transparent #00000000;
+            @def default_background_corner_radius 7;
+            .keyboard-body-area { background_color: @color_base; }
+            .keytop { background_color: @color_state_key; }
+            .keytop.for-action-key { background_color: #00000000; }
+            .background-icon.for-action-key { color: @color_state_key_transparent; }
+            .track.for-gesture { color: #E0610EFF; }
+            .keytop { background_shape: rectangle; background_corner_radius: @default_background_corner_radius; }
+        """.trimIndent()
+        // The stray brace on its second line is in the shipped file.
+        val border = """
+            /* Color */
+            }
+            @def color_state_border_key_action #E0610EFF;
+            @def color_state_key #000000FF;
+            @def color_state_key_dark #000000FF;
+            .keytop { elevation: 4; shadow_color: #FF6E10FF; edge_width: 1; edge_color: #E0610EFF; }
+            .keytop.for-action-key { background_color: @color_state_border_key_action; }
+            .keytop.for-action-key.for-action-default-key { background_color: @color_state_key_dark; }
+        """.trimIndent()
+        val converted = theme(
+            read(
+                zip(
+                    metadata(),
+                    "style_sheet_md2.css" to main.toByteArray(),
+                    "style_sheet_md2_border.css" to border.toByteArray(),
+                ),
+            ),
+        )
+        val flat = converted.looks.first { !it.bordered }.converted.theme
+        // Every face clear, enter's too: not the accent.
+        assertEquals(0x00000000L, flat.enterKeyBackground)
+        assertNull(flat.keySkin)
+
+        val bordered = converted.looks.first { it.bordered }.converted.theme
+        assertEquals(0xFF000000L, bordered.keyBackground)
+        assertEquals(0xFF000000L, bordered.enterKeyBackground)
+        assertEquals(0xFFE0610EL, bordered.keyBorderColor)
+        assertEquals(0xFFFF6E10L, bordered.keyShadowColor)
+        assertNotNull(bordered.keySkin)
+        val slot = bordered.keySkin!!.slots.getValue(SkinSlotName.LETTER)
+        // Slab, face, held colour, edge.
+        assertEquals(listOf("shadow", "face", "keyPressed", null), slot.layers.map { it.fill?.color })
+        assertEquals("border", slot.layers.last().stroke?.color)
+    }
+
     @Test
     fun `the rule count is honest about what landed`() {
         val converted = theme(read(zip(metadata(flavors = ""), "style_sheet_md2.css" to mainSheet)))
