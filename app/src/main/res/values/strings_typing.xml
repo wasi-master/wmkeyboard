@@ -1572,6 +1572,9 @@
     <string name="typing_pinch_merge_value">Merge the keyboard</string>
     <string name="typing_pinch_reset_title">Reset pinch actions</string>
     <string name="typing_pinch_reset_subtitle">Put pinch and stretch back to splitting and merging</string>
+    <string name="typing_group_shake_title">Shake the phone</string>
+    <string name="typing_shake_action_title">Shake the phone</string>
+    <string name="typing_shake_action_subtitle">Runs an action while the keyboard is on screen</string>
     <string name="typing_group_one_finger_title">One-finger swipes</string>
     <string name="typing_one_finger_swipes_title">One-finger swipes</string>
     <string name="typing_one_finger_swipes_subtitle">Swipe one finger across the letters to run an action</string>

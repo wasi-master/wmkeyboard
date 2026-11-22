@@ -1307,6 +1307,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_stretch_row_title) { Icons.Outlined.OpenInFull }
         put(R.string.typing_pinch_row_title) { Icons.Outlined.CloseFullscreen }
         put(R.string.typing_pinch_reset_title) { Icons.Outlined.RestartAlt }
+        put(R.string.typing_shake_action_title) { Icons.Outlined.Vibration }
         put(R.string.typing_symbol_chords_title) { Icons.Outlined.TouchApp }
         put(R.string.typing_symbol_chord_add_title) { Icons.Outlined.Add }
         put(R.string.typing_symbol_chords_reset_title) { Icons.Outlined.RestartAlt }

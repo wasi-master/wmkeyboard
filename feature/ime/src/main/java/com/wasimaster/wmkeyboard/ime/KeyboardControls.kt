@@ -76,6 +76,22 @@ object KeyboardControls {
         _upOverOwnApp.value = value
     }
 
+    /**
+     * True while the keyboard is on screen with a shake action set and is
+     * listening for it (#1429). The settings app's shake-to-send-feedback
+     * stands aside while this is true, so one shake over the settings app with
+     * the keyboard up runs the keyboard's action and does not also open the
+     * feedback form. Same process, so a plain field carries it.
+     */
+    @Volatile
+    var shakeClaimed: Boolean = false
+        private set
+
+    /** Set by the keyboard's [ShakeDetector] as it starts and stops listening. */
+    fun setShakeClaimed(value: Boolean) {
+        shakeClaimed = value
+    }
+
     /** Intent action: put the keyboard back on screen. */
     const val ACTION_SHOW = "com.wasimaster.wmkeyboard.action.SHOW_KEYBOARD"
 

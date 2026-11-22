@@ -94,6 +94,7 @@ import com.wasimaster.wmkeyboard.core.layout.FingerSwipeCodec
 import com.wasimaster.wmkeyboard.core.layout.DefaultPinchGestures
 import com.wasimaster.wmkeyboard.core.layout.PinchGesture
 import com.wasimaster.wmkeyboard.core.layout.PinchGestureCodec
+import com.wasimaster.wmkeyboard.core.layout.ShakeActionCodec
 import com.wasimaster.wmkeyboard.core.layout.OneFingerSwipeCodec
 import com.wasimaster.wmkeyboard.core.layout.SwipeDirection
 import com.wasimaster.wmkeyboard.core.layout.SpaceSwipeBindingCodec
@@ -9872,6 +9873,14 @@ data class GestureSettings(
      */
     val chords: Map<String, KeyAlternate> = emptyMap(),
     /**
+     * What shaking the phone runs while the keyboard is on screen (#1429):
+     * anything a multi-finger swipe can be bound to. Null, the default, is no
+     * action, and then the accelerometer is not listened to at all. While the
+     * keyboard is up with an action set, a shake over the settings app runs
+     * this action rather than opening the feedback form.
+     */
+    val shakeAction: KeyAlternate? = null,
+    /**
      * Whether [keySwipes] are put on the keys. On by default, which changes
      * nothing until a key has arms; off keeps them stored and out of the way.
      */
@@ -13139,6 +13148,7 @@ class SettingsRepository(private val context: Context) {
         private val GESTURE_ONE_FINGER_BINDINGS = stringPreferencesKey("gesture_one_finger_bindings")
         private val GESTURE_SYMBOL_CHORDS = booleanPreferencesKey("gesture_symbol_chords")
         private val GESTURE_CHORDS = stringPreferencesKey("gesture_chords")
+        private val GESTURE_SHAKE_ACTION = stringPreferencesKey("gesture_shake_action")
         private val GESTURE_KEY_SWIPES_ON = booleanPreferencesKey("gesture_key_swipes_on")
         private val GESTURE_KEY_SWIPES = stringPreferencesKey("gesture_key_swipes")
         private val GESTURE_SWIPE_CONTINUES_TYPED = booleanPreferencesKey("gesture_swipe_continues_typed")
@@ -15532,6 +15542,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.gesture.oneFingerBindings,
             symbolChords = p[GESTURE_SYMBOL_CHORDS] ?: defaults.gesture.symbolChords,
             chords = p[GESTURE_CHORDS]?.let(SymbolChordCodec::decode) ?: defaults.gesture.chords,
+            shakeAction = p[GESTURE_SHAKE_ACTION]?.let(ShakeActionCodec::decode) ?: defaults.gesture.shakeAction,
             keySwipesOn = p[GESTURE_KEY_SWIPES_ON] ?: defaults.gesture.keySwipesOn,
             keySwipes = p[GESTURE_KEY_SWIPES]?.let(KeySwipeCodec::decode) ?: defaults.gesture.keySwipes,
             swipeContinuesTyped = p[GESTURE_SWIPE_CONTINUES_TYPED] ?: defaults.gesture.swipeContinuesTyped,
@@ -24652,6 +24663,17 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSymbolChords(value: Boolean) =
         editPrefs { it[GESTURE_SYMBOL_CHORDS] = value }
+
+    /**
+     * What shaking the phone runs while the keyboard is up (#1429). Null or a
+     * binding to `KeyAction.None` clears it, back to the default of nothing.
+     */
+    suspend fun setShakeAction(binding: KeyAlternate?) =
+        editPrefs { prefs ->
+            val kept = binding?.takeUnless { it.action == com.wasimaster.wmkeyboard.core.layout.KeyAction.None }
+            if (kept == null) prefs.remove(GESTURE_SHAKE_ACTION)
+            else prefs[GESTURE_SHAKE_ACTION] = ShakeActionCodec.encode(kept)
+        }
 
     /**
      * Binds a `?123` chord on the key typing [token] to [binding] (issue #754).

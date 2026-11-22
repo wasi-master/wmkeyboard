@@ -857,6 +857,7 @@ private fun SearchStrings.typingFlicksRows(): List<SettingsSearchEntry> {
         row(R.string.typing_stretch_row_title),
         row(R.string.typing_pinch_row_title),
         row(R.string.typing_pinch_reset_title, R.string.typing_pinch_reset_subtitle),
+        row(R.string.typing_shake_action_title, R.string.typing_shake_action_subtitle),
         row(R.string.typing_one_finger_swipes_title, R.string.typing_one_finger_swipes_subtitle),
         row(R.string.typing_one_finger_up_title),
         row(R.string.typing_one_finger_down_title),

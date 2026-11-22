@@ -1166,6 +1166,38 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var windowOnScreen = false
 
+    /** The shake action's listener (#1429); made the first time one is wanted. */
+    private var shakeDetector: ShakeDetector? = null
+
+    /**
+     * Listens for a shake only while the keyboard is on screen and a shake
+     * action is set (#1429). Called as the window comes and goes and as the
+     * settings change; asking for the state it is already in costs nothing.
+     */
+    private fun syncShakeListener(settings: KeyboardSettings = _uiState.value.settings) {
+        val wanted = windowOnScreen && settings.gesture.shakeAction != null
+        if (!wanted && shakeDetector == null) return
+        val detector = shakeDetector ?: ShakeDetector(this) { onShake() }.also { shakeDetector = it }
+        detector.setListening(wanted)
+    }
+
+    /**
+     * A shake while the keyboard is up (#1429): runs the action bound to it the
+     * way a multi-finger swipe runs its binding. Not during a typing test,
+     * whose keys are the score.
+     */
+    private fun onShake() {
+        if (!windowOnScreen) return
+        val state = _uiState.value
+        if (state.typingTestActive) return
+        val binding = state.settings.gesture.shakeAction ?: return
+        if (binding.action == KeyAction.Text) {
+            if (binding.label.isNotEmpty()) onText(binding.label)
+        } else {
+            onKey(Key(label = binding.label, action = binding.action))
+        }
+    }
+
     private lateinit var settingsRepository: SettingsRepository
     private var suggestionEngine: SuggestionEngine? = null
     private var emojiSearch: EmojiSearch? = null
@@ -6984,6 +7016,8 @@ open class WMKeyboardService : InputMethodService() {
             userScreenshotsEnabled = screenshotsWanted
             refreshScreenshotObserver(settings)
         }
+        // A shake action set or cleared while the keyboard is up (#1429).
+        syncShakeListener(settings)
         if (!settings.floatingFor(landscapeNow())) floatingPanelBounds = null
         // App icons out of an installed icon pack (#1275): the floating
         // button reads the choice from here, and drops what it drew before.
@@ -11495,6 +11529,7 @@ open class WMKeyboardService : InputMethodService() {
         windowOnScreen = true
         KeyboardPassthrough.setKeyboardShown(true)
         syncSummonButton()
+        syncShakeListener()
         // A tool the floating button asked for while the keyboard was down,
         // now that there is a keyboard for its panel (#755). Posted, not run
         // here: serviceScope is Main.immediate, and run in place the panel it
@@ -11595,6 +11630,8 @@ open class WMKeyboardService : InputMethodService() {
         // composition stops being handed new state — see [_shownState].
         windowOnScreen = false
         KeyboardPassthrough.setKeyboardShown(false)
+        // The shake action is the keyboard's; off screen nothing listens (#1429).
+        syncShakeListener()
         keyguardWatchJob?.cancel()
         forcedShowUp = false
         lifecycleOwner.onStop()
@@ -11841,6 +11878,8 @@ open class WMKeyboardService : InputMethodService() {
         // service's own inner object, so it held every instance it was
         // registered from for the rest of the process.
         updateScreenshotObserver(false)
+        // The sensor service holds its listener the same way (#1429).
+        shakeDetector?.setListening(false)
         // So is the floating button: it is the keyboard's, and another one is
         // in charge now.
         if (floatingButtonDelegate.isInitialized()) floatingButton.hide()

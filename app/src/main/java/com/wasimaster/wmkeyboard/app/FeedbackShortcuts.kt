@@ -64,6 +64,7 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.settings.TelegramFeedbackRoute
 import com.wasimaster.wmkeyboard.core.support.Support
+import com.wasimaster.wmkeyboard.ime.KeyboardControls
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.io.File
 import java.net.URLEncoder
@@ -133,6 +134,9 @@ internal fun FeedbackFormHost(settings: LiveSettings) {
             var lastShake = 0L
             val listener = object : SensorEventListener {
                 override fun onSensorChanged(event: SensorEvent) {
+                    // The keyboard is up over this app with a shake action of
+                    // its own (#1429): that action takes the shake.
+                    if (KeyboardControls.shakeClaimed) return
                     val (x, y, z) = Triple(event.values[0], event.values[1], event.values[2])
                     val g = sqrt(x * x + y * y + z * z) / SensorManager.GRAVITY_EARTH
                     if (g < SHAKE_G) return
