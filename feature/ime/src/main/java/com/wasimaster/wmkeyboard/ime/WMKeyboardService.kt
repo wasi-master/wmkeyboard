@@ -11799,6 +11799,17 @@ open class WMKeyboardService : InputMethodService() {
         KeyboardControls.host = null
         KeyboardControls.clear(this)
         KeyboardAutomation.host = null
+        // Bound to this instance: left set, they kept the whole destroyed
+        // service (its emoji index, layouts, state and stores) alive while
+        // the next one built its own, until that one's first field. A phone
+        // that ends the service at every hide ran its heap out exactly there,
+        // in the new instance's dictionary and layout loading (#1506).
+        TodoChipActions.handler = { _, _ -> }
+        com.wasimaster.wmkeyboard.ime.wmpass.WmPassChipActions.handler = {}
+        // The system keeps a registered observer, and this one is the
+        // service's own inner object, so it held every instance it was
+        // registered from for the rest of the process.
+        updateScreenshotObserver(false)
         // So is the floating button: it is the keyboard's, and another one is
         // in charge now.
         if (floatingButtonDelegate.isInitialized()) floatingButton.hide()

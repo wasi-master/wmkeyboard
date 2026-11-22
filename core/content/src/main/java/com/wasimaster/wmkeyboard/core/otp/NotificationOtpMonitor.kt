@@ -86,7 +86,7 @@ object NotificationOtpMonitor {
             // to log a line too, and pushed everything else out of the log.
             if (redacted) {
                 DebugLog.d(TAG, "${sbn.packageName}: text hidden by Android")
-            } else if (DIGIT_RUN.containsMatchIn(text)) {
+            } else if (DIGIT_RUN.containsMatchIn(text) && noCodeLogDue(sbn.packageName)) {
                 DebugLog.d(TAG, "${sbn.packageName}: digits but no code, ${text.length} chars")
             }
             return false
@@ -103,6 +103,28 @@ object NotificationOtpMonitor {
                 postedAt = sbn.postTime,
             ),
         )
+        return true
+    }
+
+    /**
+     * When each app's "digits but no code" line was last written. An app that
+     * updates one notification every second, such as a password manager's
+     * countdown (#1506), wrote one a second and pushed everything else out of
+     * the diagnostics log; once a minute still says it happened.
+     */
+    private val noCodeLogged = HashMap<String, Long>()
+
+    private const val NO_CODE_LOG_EVERY_MS = 60_000L
+
+    private fun noCodeLogDue(packageName: String): Boolean {
+        val now = android.os.SystemClock.elapsedRealtime()
+        synchronized(noCodeLogged) {
+            val last = noCodeLogged[packageName]
+            if (last != null && now - last < NO_CODE_LOG_EVERY_MS) return false
+            // Apps that post notifications are a short list; this only keeps it from growing for ever.
+            if (noCodeLogged.size >= 64) noCodeLogged.clear()
+            noCodeLogged[packageName] = now
+        }
         return true
     }
 
