@@ -115,6 +115,7 @@ import com.wasimaster.wmkeyboard.core.settings.GlideCommitColor
 import com.wasimaster.wmkeyboard.core.settings.GlideCommitColorScope
 import com.wasimaster.wmkeyboard.core.settings.GlideLookAhead
 import com.wasimaster.wmkeyboard.core.settings.GlideDrawnLetters
+import com.wasimaster.wmkeyboard.core.settings.GlidePauseLetters
 import com.wasimaster.wmkeyboard.core.settings.GlidePreviewSteadiness
 import com.wasimaster.wmkeyboard.core.settings.GlideSandbox
 import com.wasimaster.wmkeyboard.core.settings.GlideVocabulary
@@ -2603,6 +2604,7 @@ internal fun TypingGlideSettings(
     // back when it is turned off, but say so instead of their usual line.
     val offWithTwoThumb = stringResource(R.string.typing_off_with_two_thumb)
     val pickerOn = settings.watch { it.gesture.ambiguityPicker }
+    val pauseLettersOn = settings.watch { it.gesture.pauseLetters }
     val pickerAsksAtEveryPause =
         settings.watch { it.gesture.pickerSensitivity == GlidePickerSensitivity.EVERY_PAUSE }
     val learnSwipeStyle = settings.watch { it.gesture.learnSwipeStyle }
@@ -2849,6 +2851,10 @@ internal fun TypingGlideSettings(
                             detail = { tier -> ChoiceDetail(stringResource(glidePickerSensitivityDescRes(tier))) },
                         )
                     }
+                }
+                // The hold is shared with the letters a pause offers (#1519),
+                // so it shows while either of them is on.
+                if (pickerOn || pauseLettersOn) {
                     item(level = SettingLevel.ADVANCED) {
                         val msFormat = stringResource(R.string.typing_value_milliseconds)
                         SliderSetting(
@@ -2862,8 +2868,8 @@ internal fun TypingGlideSettings(
                         ) { scope.launch { repository.setGesturePickerDwellMs(it.roundToInt()) } }
                     }
                     // Redundant under "Every pause", which already asks at
-                    // the first hold.
-                    item(visible = !pickerAsksAtEveryPause, level = SettingLevel.ADVANCED) {
+                    // the first hold; the word picker's alone.
+                    item(visible = pickerOn && !pickerAsksAtEveryPause, level = SettingLevel.ADVANCED) {
                         ToggleSetting(
                             R.string.typing_glide_picker_hold_title,
                             if (twoThumb) offWithTwoThumb else stringResource(R.string.typing_glide_picker_hold_subtitle),
@@ -2872,6 +2878,8 @@ internal fun TypingGlideSettings(
                             default = SettingsDefaults.gesture.pickerHoldToAsk,
                         ) { scope.launch { repository.setGesturePickerHoldToAsk(it) } }
                     }
+                }
+                if (pickerOn) {
                     item(level = SettingLevel.ADVANCED) {
                         val numberFormat = stringResource(R.string.values_number)
                         SliderSetting(
@@ -2884,6 +2892,28 @@ internal fun TypingGlideSettings(
                             default = SettingsDefaults.gesture.pickerChoices.toFloat(),
                         ) { scope.launch { repository.setGesturePickerChoices(it.roundToInt()) } }
                     }
+                }
+                // A pause on a key offers its extra letters mid-glide (#1519):
+                // the other thing holding still can ask for.
+                item(level = SettingLevel.STANDARD) {
+                    ToggleSetting(
+                        R.string.typing_glide_pause_letters_title,
+                        if (twoThumb) offWithTwoThumb else stringResource(R.string.typing_glide_pause_letters_subtitle),
+                        pauseLettersOn,
+                        info = stringResource(R.string.typing_glide_pause_letters_info),
+                        default = SettingsDefaults.gesture.pauseLetters,
+                    ) { scope.launch { repository.setGesturePauseLetters(it) } }
+                }
+                item(visible = pauseLettersOn, level = SettingLevel.STANDARD) {
+                    ChoiceSetting(
+                        title = R.string.typing_glide_pause_letter_source_title,
+                        subtitle = if (twoThumb) offWithTwoThumb else stringResource(R.string.typing_glide_pause_letter_source_subtitle),
+                        info = stringResource(R.string.typing_glide_pause_letter_source_info),
+                        options = GlidePauseLetters.entries.map { it to stringResource(it.labelRes) },
+                        selected = settings.watch { it.gesture.pauseLetterSource },
+                        onChange = { scope.launch { repository.setGesturePauseLetterSource(it) } },
+                        default = SettingsDefaults.gesture.pauseLetterSource,
+                    )
                 }
                 item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(

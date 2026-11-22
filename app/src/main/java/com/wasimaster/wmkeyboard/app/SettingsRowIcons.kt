@@ -1282,6 +1282,8 @@ internal object SettingsRowIcons {
         put(R.string.typing_glide_picker_dwell_title) { Icons.Outlined.Timer }
         put(R.string.typing_glide_picker_hold_title) { Icons.Outlined.TouchApp }
         put(R.string.typing_glide_picker_choices_title) { Icons.Outlined.Numbers }
+        put(R.string.typing_glide_pause_letters_title) { Icons.Outlined.Abc }
+        put(R.string.typing_glide_pause_letter_source_title) { Icons.Outlined.Tune }
         put(R.string.typing_glide_swipe_style_title) { Icons.Outlined.School }
         put(R.string.typing_glide_vocabulary_title) { Icons.AutoMirrored.Outlined.MenuBook }
         put(R.string.typing_glide_sandbox_title) { Icons.Outlined.Person }

@@ -1917,6 +1917,20 @@ enum class GlideDrawnLetters(@StringRes val labelRes: Int) {
 }
 
 /**
+ * Which letters a pause on a key offers in the middle of a glide (#1519),
+ * once [GestureSettings.pauseLetters] is on. Letters only, either way: a
+ * symbol, a digit or anything longer than one letter is left off, since the
+ * pick goes into the word being drawn.
+ */
+enum class GlidePauseLetters(@StringRes val labelRes: Int) {
+    /** The key's flick arms: what a swipe off it types, laid out the way the arms point. */
+    FLICKS(R.string.core_settings_glide_pause_letters_flicks_label),
+
+    /** The key's long-press letters, the ones its alternates popup lists. */
+    ALTERNATES(R.string.core_settings_glide_pause_letters_alternates_label),
+}
+
+/**
  * Which decoder reads a glide.
  *
  * [BUILT_IN] is `GlideBeam`, the app's own decoder, for every language and
@@ -10050,6 +10064,21 @@ data class GestureSettings(
      */
     val pickerChoices: Int = 3,
     /**
+     * Pausing on a key in the middle of a glide offers the key's extra letters
+     * around the finger (#1519): slide onto one and it goes into the word being
+     * drawn, then carry on to the next key without lifting. The word read at
+     * the lift is one that has the letter, or failing any, the letters the
+     * stroke marked with it put in. Which letters is [pauseLetterSource].
+     *
+     * The pause is [pickerDwellMs]. On a key with letters to offer the pause
+     * is theirs and the word picker does not open there; every other key
+     * pauses for the word picker as before. Off by default. One-finger glide
+     * only: two-thumb typing reads its strokes another way.
+     */
+    val pauseLetters: Boolean = false,
+    /** Which letters [pauseLetters] offers; see [GlidePauseLetters]. Flick letters by default, as #1519 asked. */
+    val pauseLetterSource: GlidePauseLetters = GlidePauseLetters.FLICKS,
+    /**
      * Which key a glide reads as an apostrophe, so "it's" can be drawn as
      * `i → t → ' → s` instead of being guessed from "its". [GlideApostropheKey.OFF]
      * by default, which is exactly today's behaviour.
@@ -13279,6 +13308,8 @@ class SettingsRepository(private val context: Context) {
         private val GESTURE_PICKER_SENSITIVITY = stringPreferencesKey("gesture_picker_sensitivity")
         private val GESTURE_PICKER_HOLD_TO_ASK = booleanPreferencesKey("gesture_picker_hold_to_ask")
         private val GESTURE_PICKER_CHOICES = intPreferencesKey("gesture_picker_choices")
+        private val GESTURE_PAUSE_LETTERS = booleanPreferencesKey("gesture_pause_letters")
+        private val GESTURE_PAUSE_LETTER_SOURCE = stringPreferencesKey("gesture_pause_letter_source")
         private val GESTURE_APOSTROPHE_KEY = stringPreferencesKey("gesture_apostrophe_key")
         private val GESTURE_POSSESSIVE_KEY = stringPreferencesKey("gesture_possessive_key")
         /** The toggle the possessive swipe shipped as, read only to migrate it. */
@@ -15705,6 +15736,10 @@ class SettingsRepository(private val context: Context) {
             pickerHoldToAsk = p[GESTURE_PICKER_HOLD_TO_ASK] ?: defaults.gesture.pickerHoldToAsk,
             pickerChoices = (p[GESTURE_PICKER_CHOICES] ?: defaults.gesture.pickerChoices)
                 .coerceIn(GlidePickerChoicesRange),
+            pauseLetters = p[GESTURE_PAUSE_LETTERS] ?: defaults.gesture.pauseLetters,
+            pauseLetterSource = p[GESTURE_PAUSE_LETTER_SOURCE]
+                ?.let { runCatching { GlidePauseLetters.valueOf(it) }.getOrNull() }
+                ?: defaults.gesture.pauseLetterSource,
             apostropheKey = p[GESTURE_APOSTROPHE_KEY]
                 ?.let { runCatching { GlideApostropheKey.valueOf(it) }.getOrNull() }
                 ?: defaults.gesture.apostropheKey,
@@ -25017,6 +25052,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setGesturePickerChoices(value: Int) =
         editPrefs { it[GESTURE_PICKER_CHOICES] = value.coerceIn(GlidePickerChoicesRange) }
+
+    suspend fun setGesturePauseLetters(value: Boolean) =
+        editPrefs { it[GESTURE_PAUSE_LETTERS] = value }
+
+    suspend fun setGesturePauseLetterSource(value: GlidePauseLetters) =
+        editPrefs { it[GESTURE_PAUSE_LETTER_SOURCE] = value.name }
 
     suspend fun setGestureApostropheKey(value: GlideApostropheKey) =
         editPrefs { it[GESTURE_APOSTROPHE_KEY] = value.name }

@@ -18327,6 +18327,12 @@ internal class GlidePickerState {
         get() = words.isNotEmpty()
 
     /**
+     * The letters a pause on a key offers mid-glide (#1519), carried here
+     * because the pointer loop and the stroke overlay already share this.
+     */
+    val letters = GlideLetterPadState()
+
+    /**
      * Puts the first [limit] of [choices] on offer, anchored at [x], [y], on a
      * key [keyPx] tall — the spacing unit for the targets, and the same height
      * the cancel zone is measured in.
@@ -20923,7 +20929,7 @@ internal val LocalKeyPreviewState = staticCompositionLocalOf<KeyPreviewState?> {
  * last key to the next one, and starts wherever it was parked — which is the bug
  * this replaced. The bubbles move inside it instead, which is ordinary layout.
  */
-private class GridOverlayPositionProvider(private val headroomPx: Int) : PopupPositionProvider {
+internal class GridOverlayPositionProvider(private val headroomPx: Int) : PopupPositionProvider {
     override fun calculatePosition(
         anchorBounds: IntRect,
         windowSize: IntSize,
@@ -22656,6 +22662,8 @@ private fun KeyRows(
                 }
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                    // A pad a cancelled stroke left up goes with the next touch.
+                    picker.letters.close()
                     // A drag off a modifier key is a chord (issue #67) and one
                     // off `?123`/`ABC` looks through to that layer (issue #108),
                     // neither of them a word. Answered at the down, where it
@@ -22814,6 +22822,10 @@ private fun KeyRows(
                     // The letter grid, built once per stroke rather than per
                     // preview: it cannot change while a finger is down.
                     var keyList: List<KeyCenter>? = null
+                    // Letters picked off keys by pausing on them (#1519), and
+                    // the pad that offers them.
+                    val picks = GlideLetterPicks()
+                    val pad = picker.letters
                     seg.add(GesturePoint(down.position.x, down.position.y, down.uptimeMillis))
                     dwell.reset(down.position.x, down.position.y, down.uptimeMillis)
                     // The finger has held still long enough: freeze the stroke
@@ -22845,6 +22857,22 @@ private fun KeyRows(
                         // threading a callback for it would mean another
                         // KeyboardScreen parameter on a function already at
                         // the method-size limit.
+                        if (hapticOn.value) pickerHaptic()
+                    }
+                    // The finger has paused on a key with letters to offer
+                    // (#1519): they come up around it. The pause itself goes
+                    // into the word as a sample where the finger stopped, so
+                    // the decoder still reads it as a mark on this key, and
+                    // nothing more is added until a letter is picked or the
+                    // finger leaves the pad. When the key went from under the
+                    // finger meanwhile nothing opens and the clock restarts.
+                    fun openPad(now: Long) {
+                        val cell = liveRects.value.cellAt(Offset(dwell.stillX, dwell.stillY) + boxOrigin)
+                        if (cell == null || !pad.open(dwell.stillX, dwell.stillY, cell.width, cell.height)) {
+                            dwell.reset(dwell.stillX, dwell.stillY, now)
+                            return
+                        }
+                        seg.add(GesturePoint(dwell.stillX, dwell.stillY, now))
                         if (hapticOn.value) pickerHaptic()
                     }
                     // The stroke is a glide from here on: the trail starts,
@@ -22924,10 +22952,18 @@ private fun KeyRows(
                         // Only an unfrozen stroke off the spacebar is on a
                         // clock: a finger resting on the spacebar mid-phrase
                         // is thinking, not asking.
-                        val timeout = if (isGesture && !picker.isOpen && !crossings.overBar) {
-                            dwell.timeout(SystemClock.uptimeMillis(), closeCall, holdToAsk, dwellMs)
-                        } else {
-                            null
+                        val onClock = isGesture && !picker.isOpen && !pad.isOpen && !crossings.overBar
+                        // A pause on a key with letters to offer is theirs
+                        // (#1519), after the same hold; every other key's is
+                        // the word picker's, as before.
+                        val padHere = onClock && glideSettings.value.pauseLetters &&
+                            pad.offersAt(dwell.stillSince, glideSettings.value.pauseLetterSource) {
+                                liveRects.value.keyAt(Offset(dwell.stillX, dwell.stillY) + boxOrigin)
+                            }
+                        val timeout = when {
+                            padHere -> dwell.stillSince + dwellMs - SystemClock.uptimeMillis()
+                            onClock -> dwell.timeout(SystemClock.uptimeMillis(), closeCall, holdToAsk, dwellMs)
+                            else -> null
                         }
                         val event = if (timeout == null) {
                             awaitPointerEvent(PointerEventPass.Initial)
@@ -22943,6 +22979,10 @@ private fun KeyRows(
                         }
                         if (event == null) {
                             val now = SystemClock.uptimeMillis()
+                            if (padHere) {
+                                if (now >= dwell.stillSince + dwellMs) openPad(now)
+                                continue
+                            }
                             val choices = glideChoices.value.size
                             when (dwell.onTimeout(now, closeCall, holdToAsk, dwellMs, choices)) {
                                 GlideDwell.Action.OPEN -> askHere()
@@ -22957,6 +22997,7 @@ private fun KeyRows(
                         // is retired the way a cancelled stroke's is.
                         if (fingerGate.claimed) {
                             picker.close()
+                            pad.close()
                             trail.clear()
                             if (previewedSeg) {
                                 keyList?.let { onGesture(seg, it, keyWidth.value, GlideVerdict.Cancel) }
@@ -23046,6 +23087,23 @@ private fun KeyRows(
                                 if (entered && hapticOn.value) pickerHaptic()
                                 continue
                             }
+                            // The letters a pause offered (#1519). Nothing is
+                            // added to the word while the finger is choosing;
+                            // landing on a letter picks it, leaving the pad
+                            // without one picks nothing, and either way the
+                            // stroke carries on from here.
+                            if (pad.isOpen) {
+                                trail.add(change.position.x, change.position.y, change.uptimeMillis, trailMs)
+                                val step = pad.track(change.position.x, change.position.y)
+                                if (step == PAD_CHOOSING) continue
+                                val letter = pad.letters.getOrNull(step)
+                                val keys = keyList
+                                if (letter != null && keys != null) {
+                                    keyList = picks.pick(seg, letter, pad, change.position.x, change.position.y, keys)
+                                    if (hapticOn.value) pickerHaptic()
+                                }
+                                pad.close()
+                            }
                             // Crossing the spacebar ends the current word and
                             // begins the next, so a stroke can chain words
                             // without lifting. Spacebar points anchor no letter,
@@ -23116,7 +23174,7 @@ private fun KeyRows(
                                 SpacebarCrossings.Step.CROSSED -> if (seg.size >= 3) {
                                     val (points, case) = glideSegment(
                                         seg, shiftCuts, shiftCenter, keyWidth.value, letterGlide.value,
-                                        endedOnShift = false,
+                                        endedOnShift = false, picks = picks,
                                     )
                                     segments.add(points)
                                     segCases.add(case)
@@ -23177,7 +23235,7 @@ private fun KeyRows(
                                     previewedSeg = true
                                     val (points, case) = glideSegment(
                                         crossings.withHeld(seg), shiftCuts, shiftCenter, keyWidth.value,
-                                        letterGlide.value, endedOnShift = wasOverShift,
+                                        letterGlide.value, endedOnShift = wasOverShift, picks = picks,
                                     )
                                     onGesturePreview(
                                         points, keys, keyWidth.value,
@@ -23187,6 +23245,8 @@ private fun KeyRows(
                             }
                         }
                     }
+                    // A lift while letters were up picks none of them.
+                    pad.close()
                     if (isGesture) {
                         // A short flick down off the key it began on is its hint,
                         // not a word (#178). Asked before the picker's verdict and
@@ -23309,7 +23369,7 @@ private fun KeyRows(
                         if (seg.size >= floor) {
                             val (points, case) = glideSegment(
                                 seg, shiftCuts, shiftCenter, keyWidth.value, letterGlide.value,
-                                endedOnShift = wasOverShift,
+                                endedOnShift = wasOverShift, picks = picks,
                             )
                             segments.add(points)
                             segCases.add(case)
@@ -24671,7 +24731,9 @@ private fun GlideStrokeOverlay(
     // board's shift never changes for a drawn gesture, and the crossings
     // ride in on the preview instead.
     val pillWord = state.glideWord
-        ?.takeIf { glide.wordPreview && trail.visible && !trail.released && picker.words.isEmpty() }
+        ?.takeIf {
+            glide.wordPreview && trail.visible && !trail.released && picker.words.isEmpty() && !picker.letters.isOpen
+        }
         ?.let { word ->
             state.glideCased[word]
                 ?: displayCaseForShift(word, shiftForGlide(state.shiftState, state.glideCase))
@@ -24698,6 +24760,8 @@ private fun GlideStrokeOverlay(
         val pillText = if (phrase.isEmpty() || pillWord == null) pillWord else (phrase + pillWord).joinToString(" ")
         GlideOverlay(trail, picker, pillText, glide, boxSize, pillPromise, pillExpansion, state.glideExpansions)
     }
+    // The letters a pause offers (#1519), around the finger.
+    GlideLetterPadOverlay(picker.letters, boxSize)
 }
 
 /** A dictation under way: hearing, finishing a phrase, or transcribing one. */
@@ -32631,7 +32695,7 @@ private fun displayLabel(key: Key, state: KeyboardUiState): String {
  * must never intercept touches, or rapid re-taps land on the bubble window
  * and get dropped before the keyboard sees them.
  */
-private val PreviewPopupProperties = PopupProperties(
+internal val PreviewPopupProperties = PopupProperties(
     flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
         WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
 )
@@ -37808,14 +37872,17 @@ private const val MAX_THUMBNAIL_RATIO = 2.2f
  */
 private fun glideSegment(
     seg: List<GesturePoint>,
-    cuts: List<Int>,
+    shiftCuts: List<Int>,
     shiftCenter: GesturePoint?,
     keyWidth: Float,
     letters: Boolean,
     endedOnShift: Boolean,
+    /** The stroke's letters picked off keys (#1519), whose walks out are cut first. */
+    picks: GlideLetterPicks,
 ): Pair<List<GesturePoint>, GlideCase> {
-    if (cuts.isEmpty()) return seg.toList() to GlideCase.None
-    val trimmed = GlideShiftDetour.trim(seg, cuts.toIntArray(), keyWidth, key = shiftCenter)
+    val (drawn, cuts) = picks.cut(seg, shiftCuts, keyWidth)
+    if (cuts.isEmpty()) return drawn to GlideCase.None
+    val trimmed = GlideShiftDetour.trim(drawn, cuts.toIntArray(), keyWidth, key = shiftCenter)
     val case = if (letters) GlideCase.Letters(trimmed.cuts, endedOnShift) else GlideCase.None
     return trimmed.points to case
 }

@@ -34196,6 +34196,16 @@ open class WMKeyboardService : InputMethodService() {
             )
         }
 
+        /** This reading with only the words at [keep], in that order, and what it says about them. */
+        fun only(keep: List<Int>): GlideReading {
+            val kept = keep.map { words[it] }
+            return GlideReading(
+                kept, closeCall, sandboxAnswered,
+                if (scores.size == words.size) keep.map { scores[it] } else scores,
+                guesses.filterKeys { it in kept }, sure.filterTo(HashSet()) { it in kept }, leaderCost,
+            )
+        }
+
         /** This reading with its words in [order], any it does not name after them. */
         fun ordered(order: List<String>): GlideReading {
             val indices = order.map { words.indexOf(it) }.filter { it >= 0 }
@@ -34438,7 +34448,32 @@ open class WMKeyboardService : InputMethodService() {
         /** A frame of a stroke still being drawn, which may decode under a smaller budget. */
         preview: Boolean = false,
     ): GlideReading = trace(ImeTrace.GLIDE_DECODE) {
-        decodeStroke(points, keys, keyWidthPx, guessAhead, openHead, openTail, phrase, preview)
+        val reading = decodeStroke(points, keys, keyWidthPx, guessAhead, openHead, openTail, phrase, preview)
+        pinnedReading(reading, points, keys, keyWidthPx)
+    }
+
+    /**
+     * [reading] held to the letters picked off keys while [points] was drawn
+     * (#1519): only its words that have them, in the order picked. The picks
+     * are on the stroke's grid ([GlidePins.pinned]), so a word that has one is
+     * a word the decoder could read; when none does, the word no list has is
+     * typed instead, the letters the stroke marked ([GlideLiteral]) with the
+     * picks put in. The same decode serves the previews and the lift, so what
+     * the pill shows after a pick is what the lift types.
+     */
+    private fun pinnedReading(
+        reading: GlideReading,
+        points: List<GesturePoint>,
+        keys: List<KeyCenter>,
+        keyWidthPx: Float,
+    ): GlideReading {
+        val pins = GlidePins.on(keys, points)
+        if (pins.isEmpty()) return reading
+        val keep = reading.words.indices.filter { GlidePins.spells(reading.words[it], pins) }
+        if (keep.isNotEmpty()) return reading.only(keep)
+        val literal = if (keyWidthPx > 0f) GlideLiteral.read(points, rawKeyMapFor(keys, keyWidthPx), keyWidthPx) else null
+        val word = GlidePins.splice(literal, pins, GlidePins.fractions(points, pins))
+        return GlideReading(listOf(word), closeCall = false, scores = listOf(reading.scores.firstOrNull() ?: 0.0))
     }
 
     /**

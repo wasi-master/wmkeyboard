@@ -443,6 +443,10 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Free to ignore — Lifting off a target commits the decoder's own first choice, outlined so it can be told apart
     - Drag down to cancel — More than a key below the anchor the targets dim and a lift types nothing
     - Chained strokes — A pause on the last word of a spacebar-crossing stroke asks for that word
+  - Pause to pick a letter `RARE` — Off by default (Typing > Gestures > Glide typing). Hold still mid-glide on a key with flick letters (or long-press letters, by choice) and they appear around the finger on the flick cross's 3×3 pad; slide onto one and keep gliding (#1519)
+    - A constraint, not a keystroke — The pick goes on the stroke's grid at its key's centre and the word read at the lift must contain it, in pick order; with no such word, the stroke's drawn letters (GlideLiteral) with the pick spliced in
+    - Walk cut out — The walk out to the letter and on to its first bend is dropped like the Shift detour (#163); the pause stays, so the decoder's pause mark places the letter on its key
+    - Letters only — Symbols, digits and multi-letter arms are left off; a key with letters takes the pause from the word picker, every other key keeps it
   - Live preview while swiping — Decoded word drawn over the keys and pushed to the strip at a 40 ms wall-clock cadence (rate-independent of digitizer Hz)
   - Auto-space after a glided word `uncommon` — Keyboard's own space: punctuation typed after takes it back, a space press is spent confirming it
   - One-backspace glide undo — Backspace straight after a swipe removes the whole word plus its auto-space, then re-derives bigram context
