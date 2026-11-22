@@ -12584,6 +12584,11 @@ private fun StripToolButton(
                 enabled = !state.settings.reduceMotion,
             ) { drag.bodyCoords },
         longPressLabel = label,
+        // The hold the toolbar's own copy has (#1514): the user's binding,
+        // else the tool's settings. Null where that hold has another job
+        // (repeat, selection, trackpad, voice mode) or is bound to nothing,
+        // which leaves the name tooltip.
+        onLongPress = stripHoldAction(tool, state, drag),
         // Matches the toolbar's pinned footprint, so the shared-placement slide
         // lands on an identical shape.
         wide = true,
@@ -12592,6 +12597,16 @@ private fun StripToolButton(
         iconSizeDp = behavior.stripIconSizeDp.takeIf { behavior.stripOwnSize },
     ) { onToolTap(tool) }
 }
+
+/** What a hold on [tool]'s copy beside the suggestions runs, the same as on the toolbar; see [StripToolButton]. */
+private fun stripHoldAction(tool: ToolbarTool, state: KeyboardUiState, drag: ToolDragController): (() -> Unit)? =
+    when (val bound = holdActionFor(tool, fromToolbar = true, state = state)) {
+        null, ToolHoldAction.None -> null
+        ToolHoldAction.OpenSettings -> { { drag.openSettings(ToolKey.Builtin(tool)) } }
+        is ToolHoldAction.Run -> { { drag.onHoldAction(bound.tool) } }
+        is ToolHoldAction.RunCustom -> { { drag.custom.onTap(bound.id) } }
+        ToolHoldAction.Floating -> { { drag.onFloat(tool) } }
+    }
 
 /**
  * Whether the strip offers a Reply chip beside a fresh copy: the setting is
