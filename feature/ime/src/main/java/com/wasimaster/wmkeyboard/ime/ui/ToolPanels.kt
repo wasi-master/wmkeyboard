@@ -130,6 +130,13 @@ import com.wasimaster.wmkeyboard.app.ThemePreview
 import com.wasimaster.wmkeyboard.core.theme.BuiltInThemes
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.theme.flattenedThemes
+import com.wasimaster.wmkeyboard.core.theme.brush
+import com.wasimaster.wmkeyboard.core.theme.findThemeFamily
+import com.wasimaster.wmkeyboard.core.theme.selfAndVariants
+import com.wasimaster.wmkeyboard.core.settings.themeGalleryGrouped
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
 import com.wasimaster.wmkeyboard.core.theme.PaletteStyle
 import com.wasimaster.wmkeyboard.ime.AppColors
@@ -1198,11 +1205,24 @@ internal fun ThemesPanel(
     // was taken off the list — a live theme with no card reads as a bug.
     val shortlist = state.settings.toolbarBehavior.themesPanelBuiltIns
         ?: DefaultThemesPanelBuiltIns
-    // Families flatten: the pinned set names variants directly, and every
-    // custom variant is a card of its own — this panel has no room for dots.
-    val themes = BuiltInThemes.flattenedThemes()
+    // The pinned set names looks directly, and every custom look is listed.
+    val customThemes = state.settings.customThemes
+    val listed = BuiltInThemes.flattenedThemes()
         .filter { it.id in shortlist || it.id == selectedId } +
-        state.settings.customThemes.flattenedThemes()
+        customThemes.flattenedThemes()
+    // Grouped the way the settings gallery is (#1505): one card per family,
+    // showing the look in use or the first one listed, with a dot under it
+    // for every look the family has, so Aurora's other looks are a press away
+    // here as they are in Settings. Flat, a card per look and no dots, when
+    // the gallery is set to flat.
+    val grouped = state.settings.themeGalleryGrouped()
+    val cards = if (grouped) {
+        themePanelCards(listed, selectedId, customThemes)
+    } else {
+        listed.map { it to emptyList<ThemeSpec>() }
+    }
+    val themes = cards.map { it.first }
+    val looks = cards.filter { it.second.isNotEmpty() }.associate { it.first.id to it.second }
     val context = LocalContext.current
     val packStore = remember(context) { IconPackStore.get(context) }
     val packRevision by packStore.revision.collectAsState()
@@ -1256,7 +1276,7 @@ internal fun ThemesPanel(
         val tabs = ThemesPanelTab.entries
         Box(Modifier.fillMaxSize().swipeTabs(tab.ordinal, tabs.size) { tab = tabs[it] }) {
             ThemesPanelBody(
-                state, kb, tab, locked, selectedId, auto, themes,
+                state, kb, tab, locked, selectedId, auto, themes, looks,
                 packs, packStore, packRevision, faces,
                 scriptTabs, fontScript, { fontScript = it }, fontStore, fontRevision,
                 modeTheme, autoOn, darkSlot, randomSlot,
@@ -1290,6 +1310,7 @@ private fun ThemesPanelBody(
     selectedId: String,
     auto: KbTheme,
     themes: List<ThemeSpec>,
+    looks: Map<String, List<ThemeSpec>>,
     packs: List<IconPack>,
     packStore: IconPackStore,
     packRevision: Int,
@@ -1453,13 +1474,18 @@ private fun ThemesPanelBody(
                 ) { AutoThemePreview(auto) }
             }
             itemsIndexed(themes, key = { _, theme -> theme.id }) { index, theme ->
-                ThemeCard(
-                    name = theme.name,
-                    selected = selectedId == theme.id,
-                    nameOnDark = Color(theme.boardBackground.toInt()).luminance() < 0.5f,
-                    focused = focused == index + 1,
-                    onClick = { if (!locked) onThemeSelect(theme.id) },
-                ) { ThemePreview(theme, cached = true) }
+                Column {
+                    ThemeCard(
+                        name = theme.name,
+                        selected = selectedId == theme.id,
+                        nameOnDark = Color(theme.boardBackground.toInt()).luminance() < 0.5f,
+                        focused = focused == index + 1,
+                        onClick = { if (!locked) onThemeSelect(theme.id) },
+                    ) { ThemePreview(theme, cached = true) }
+                    looks[theme.id]?.let { family ->
+                        ThemeLookDots(family, shownId = theme.id) { look -> if (!locked) onThemeSelect(look.id) }
+                    }
+                }
             }
             getMoreItem(
                 labelRes = R.string.ime_themes_more_label,
@@ -2209,6 +2235,82 @@ private fun IconPackCard(
                 .align(Alignment.BottomStart)
                 .padding(start = 8.dp, bottom = 4.dp),
         )
+    }
+}
+
+/**
+ * The appearance panel's cards with families grouped (#1505): each entry is the
+ * look a card shows and, for a family of more than one look, all its looks for
+ * the dots under the card; a theme on its own has none.
+ *
+ * A family takes the place of the first of its looks in [listed], and shows the
+ * look in use when it is one of them, so picking a dot repaints the card where
+ * it stands instead of moving it. The dots offer every look of the family,
+ * the built-ins the panel's shortlist left out included: that is the point.
+ */
+internal fun themePanelCards(
+    listed: List<ThemeSpec>,
+    selectedId: String,
+    customThemes: List<ThemeSpec>,
+): List<Pair<ThemeSpec, List<ThemeSpec>>> {
+    val seen = HashSet<String>()
+    val cards = ArrayList<Pair<ThemeSpec, List<ThemeSpec>>>(listed.size)
+    for (theme in listed) {
+        val family = customThemes.findThemeFamily(theme.id) ?: BuiltInThemes.findThemeFamily(theme.id)
+        val members = family?.selfAndVariants().orEmpty()
+        if (family == null || members.size < 2) {
+            cards += theme to emptyList()
+            continue
+        }
+        if (!seen.add(family.id)) continue
+        cards += (members.firstOrNull { it.id == selectedId } ?: theme) to members
+    }
+    return cards
+}
+
+/**
+ * One dot per look of a family, under its card in the appearance panel: the
+ * look's board, its gradient when it has one, with the accent as a small core,
+ * as the settings gallery draws them. A press applies that look.
+ *
+ * Scrolls sideways rather than wrapping, since a family can have twelve looks
+ * and the card is half the panel wide.
+ */
+@Composable
+private fun ThemeLookDots(looks: List<ThemeSpec>, shownId: String, onPick: (ThemeSpec) -> Unit) {
+    val kb = LocalKbTheme.current
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(start = 4.dp, top = 6.dp),
+    ) {
+        looks.forEach { look ->
+            val shown = look.id == shownId
+            // Opaque even when the look's board is see-through over a photo:
+            // a transparent dot reads as a hole.
+            val fill = look.boardGradient?.brush() ?: SolidColor(Color(look.boardBackground or 0xFF000000L))
+            Box(
+                modifier = Modifier
+                    .size(22.dp)
+                    .clip(CircleShape)
+                    .border(if (shown) 2.dp else 1.dp, if (shown) kb.accent else kb.divider, CircleShape)
+                    .semantics { contentDescription = look.name }
+                    .clickable { onPick(look) }
+                    .padding(3.dp)
+                    .clip(CircleShape)
+                    .background(fill),
+                contentAlignment = Alignment.Center,
+            ) {
+                Box(
+                    Modifier
+                        .size(6.dp)
+                        .clip(CircleShape)
+                        .background(Color(look.accent)),
+                )
+            }
+        }
     }
 }
 
