@@ -17691,8 +17691,6 @@ class SettingsRepository(private val context: Context) {
             val folders = decodeToolboxFolders(prefs[TOOLBOX_FOLDERS]).withoutPlugin(pluginId)
             val encodedFolders = encodeToolboxFolders(folders)
             if (encodedFolders == null) prefs.remove(TOOLBOX_FOLDERS) else prefs[TOOLBOX_FOLDERS] = encodedFolders
-            // A folder the plugin's going dissolved leaves the bar (#1497).
-            placeToolbarFoldersIn(prefs)
             prefs[KEYBOARD_MODES]?.let { KeyboardModeCodec.decodeList(it) }?.let { modes ->
                 prefs[KEYBOARD_MODES] = KeyboardModeCodec.encodeList(modes.map { it.withoutPlugin(pluginId) })
             }
@@ -17733,45 +17731,7 @@ class SettingsRepository(private val context: Context) {
             val next = edit(decodeToolboxFolders(prefs[TOOLBOX_FOLDERS])).normalizedFolders()
             val encoded = encodeToolboxFolders(next)
             if (encoded == null) prefs.remove(TOOLBOX_FOLDERS) else prefs[TOOLBOX_FOLDERS] = encoded
-            // A folder ungrouped or dissolved leaves the toolbar in the same write (#1497).
-            placeToolbarFoldersIn(prefs)
         }
-
-    /**
-     * The toolbar lists brought in line with the toolbox folders (#1497), inside
-     * an edit: a pinned folder that is gone leaves the bar, the modes' own bars
-     * and any list a folder never belongs in, and a folder pinned by a build
-     * before folders had a place among the tools is pinned at the end of the
-     * bar, where that build drew it ([placedToolbarFolders]). Writes only what
-     * changed, so a start with nothing to do leaves the store alone. Run on
-     * every start through [placeCustomButtonTools], and after every rewrite of
-     * the folders, so an old backup restored keeps its pinned folders.
-     */
-    private fun placeToolbarFoldersIn(prefs: MutablePreferences) {
-        val folders = decodeToolboxFolders(prefs[TOOLBOX_FOLDERS])
-        val bar = prefs[TOOLBAR_TOOLS]?.let(::decodeToolKeys) ?: DefaultToolbarKeys
-        val nextBar = placedToolbarFolders(bar, folders)
-        if (nextBar != bar) prefs[TOOLBAR_TOOLS] = encodeToolKeys(nextBar)
-        // The lists a folder never sits in: the second toolbar holds tools only.
-        for (pref in listOf(TOOLBOX_ORDER, TOOLBAR_SECOND_ROW_TOOLS, TOOLBOX_HIDDEN_TOOLS)) {
-            val raw = prefs[pref] ?: continue
-            val list = decodeToolKeys(raw)
-            val kept = list.withoutFolders()
-            if (kept != list) prefs[pref] = encodeToolKeys(kept)
-        }
-        prefs[KEYBOARD_MODES]?.let { KeyboardModeCodec.decodeList(it) }?.let { modes ->
-            val placed = modes.map { mode ->
-                mode.copy(
-                    toolbarTools = mode.toolbarTools?.let { placedToolbarFolders(it, folders) },
-                    toolboxOrder = mode.toolboxOrder?.withoutFolders(),
-                )
-            }
-            if (placed != modes) prefs[KEYBOARD_MODES] = KeyboardModeCodec.encodeList(placed)
-        }
-        if (folders.any { it.legacyPinned }) {
-            encodeToolboxFolders(folders.withLegacyPinsPlaced())?.let { prefs[TOOLBOX_FOLDERS] = it }
-        }
-    }
 
     /**
      * Rewrites the custom buttons (#1213, #1236) through [edit], applied to
@@ -17856,9 +17816,6 @@ class SettingsRepository(private val context: Context) {
             val kept = modes.map { it.keepingCustom(ids) }
             if (kept != modes) prefs[KEYBOARD_MODES] = KeyboardModeCodec.encodeList(kept)
         }
-        // A folder a deleted button dissolved leaves the bar; and, on every
-        // start, a folder pinned before #1497 takes its place on it.
-        placeToolbarFoldersIn(prefs)
     }
 
     /** Replaces the whole enabled set at once (the onboarding tools page). */

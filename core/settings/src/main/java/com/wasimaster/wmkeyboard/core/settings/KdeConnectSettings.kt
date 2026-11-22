@@ -61,7 +61,7 @@ data class KdeConnectSettings(
      * clipboard for as long as it sits there.
      */
     val clearSecretsMinutes: Int = 1,
-    /** The computer's keyboard may type into the focused field while this keyboard is showing. */
+    /** The computer's keyboard may type into the field this keyboard was opened in, shown or hidden (#1511). */
     val remoteTyping: Boolean = true,
     /**
      * Run the computer's keystrokes through the typing pipeline — the layout's

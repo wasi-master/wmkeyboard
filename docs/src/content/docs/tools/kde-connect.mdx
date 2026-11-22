@@ -109,7 +109,7 @@ Big **previous** and **next** buttons for a presentation, **Start** (F5) and **E
 
 ## What the computer can do
 
-- **Type into the phone.** On the computer, open the phone in KDE Connect and use its remote keyboard box. What you type lands in the field on the phone. Arrows, <KeyCap>Home</KeyCap>, <KeyCap>End</KeyCap>, selection with <KeyCap>Shift</KeyCap>, word moves with <KeyCap>Ctrl</KeyCap>, <KeyCap>Ctrl</KeyCap>+<KeyCap>A</KeyCap> <KeyCap>C</KeyCap> <KeyCap>X</KeyCap> <KeyCap>V</KeyCap> <KeyCap>Z</KeyCap>, and <KeyCap>Enter</KeyCap> all do what you expect. This works only while the keyboard is on screen and the phone is unlocked.
+- **Type into the phone.** On the computer, open the phone in KDE Connect and use its remote keyboard box. What you type lands in the field on the phone. Arrows, <KeyCap>Home</KeyCap>, <KeyCap>End</KeyCap>, selection with <KeyCap>Shift</KeyCap>, word moves with <KeyCap>Ctrl</KeyCap>, <KeyCap>Ctrl</KeyCap>+<KeyCap>A</KeyCap> <KeyCap>C</KeyCap> <KeyCap>X</KeyCap> <KeyCap>V</KeyCap> <KeyCap>Z</KeyCap>, and <KeyCap>Enter</KeyCap> all do what you expect. This works while the keyboard is on screen, and keeps working after you hide it, as long as the field you opened it in stays selected: open the keyboard once in Termux, hide it, and the terminal gets the whole screen while you type from the desk. Opening another app or another field ends it until the keyboard shows again, and nothing is typed while the phone is locked. While the keyboard is hidden the link stays up under *Keyboard showing* too, though a phone that pauses hidden keyboards can still drop it.
 - **Share its clipboard.** Text copied on the computer is ready to paste on the phone, and shows up as the paste suggestion.
 - **Send text, links and files.** Text and links arrive on the clipboard. Files are saved to **Downloads/WM Keyboard** and added to the [clipboard history](/tools/clipboard/), so you can paste a picture from the computer straight into a chat.
 - **See the phone's battery**, and **control the phone's media** if you allow it.
@@ -147,7 +147,7 @@ KDE Connect is the **KDE Connect** bundle on [Extensions](/reference/settings/ex
 
 **Clear received passwords**: default **1 minute**, up to 30, or *Never*. Text from the computer that looks like a password or a one-time code is taken off the phone's clipboard after this long, along with its unpinned copy in clipboard history. It is only cleared if it is still the latest clip, so something you copied since stays. Ordinary text from the computer is never cleared.
 
-**Let the computer type here**: default on.
+**Let the computer type here**: default on. The computer types into the field you opened the keyboard in, with the keyboard shown or hidden.
 
 **Use the keyboard language**: default off. Off, what the computer sends is typed exactly. On, its keys go through the keyboard's layout the way a [hardware keyboard's](/typing/hardware-keyboard/) do, so a Latin keyboard on your desk can write Bengali through Avro, with suggestions and autocorrect.
 

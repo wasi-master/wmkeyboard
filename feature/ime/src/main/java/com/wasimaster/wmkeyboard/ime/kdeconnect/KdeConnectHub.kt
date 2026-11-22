@@ -89,6 +89,13 @@ object KdeConnectHub {
         /** The keyboard is on screen. Enough under [KdeLinkLifetime.KEYBOARD] and ALWAYS. */
         KEYBOARD,
 
+        /**
+         * The keyboard is hidden over the field it was shown for, which a
+         * computer may still type into (#1511). Enough where [KEYBOARD] is, but
+         * it is not the keyboard being up: requests still go to a notification.
+         */
+        FIELD,
+
         /** The tool's panel is open, a settings screen is showing devices, or a share is in flight. Always enough. */
         PANEL, SETTINGS, SHARE,
 
@@ -301,8 +308,9 @@ object KdeConnectHub {
         val lingering = System.currentTimeMillis() - keyboardLeftAtMs < KEYBOARD_LINGER_MS
         return when (settings.lifetime) {
             KdeLinkLifetime.PANEL -> false
-            KdeLinkLifetime.KEYBOARD -> Reason.KEYBOARD in reasons || lingering
-            KdeLinkLifetime.ALWAYS -> Reason.SERVICE in reasons || Reason.KEYBOARD in reasons || lingering
+            KdeLinkLifetime.KEYBOARD -> Reason.KEYBOARD in reasons || Reason.FIELD in reasons || lingering
+            KdeLinkLifetime.ALWAYS -> Reason.SERVICE in reasons || Reason.KEYBOARD in reasons ||
+                Reason.FIELD in reasons || lingering
         }
     }
 

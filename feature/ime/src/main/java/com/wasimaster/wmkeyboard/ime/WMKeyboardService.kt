@@ -4169,6 +4169,19 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var keyboardVisible = false
 
+    /**
+     * The field the keyboard was last shown for, by package and field id,
+     * while focus stays on it (#1511). A keyboard hidden over a terminal keeps
+     * its input connection, so a paired computer may go on typing into it: this
+     * is what tells that field from the one Android hands a keyboard that was
+     * never asked up (a home screen's fallback connection). Cleared when input
+     * starts on any other field.
+     */
+    private var kdeShownField: Pair<String?, Int>? = null
+
+    /** Between onStartInput and onFinishInput: a field has the keys, shown or not. */
+    private var kdeInputOpen = false
+
     // ---- voice input state ----
     private val voiceEngine = VoiceInputEngine(this)
     /** Bumped when a session ends/aborts so late recognizer callbacks drop. */
@@ -9684,6 +9697,14 @@ open class WMKeyboardService : InputMethodService() {
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
         inputStarts++
+        // #1511: a computer typing into a hidden keyboard keeps to the field
+        // that keyboard was shown for; any other field ends it.
+        val kdeTyping = kdeCanType()
+        kdeInputOpen = true
+        if (kdeShownField != null && kdeShownField != (attribute?.packageName to (attribute?.fieldId ?: 0))) {
+            kdeShownField = null
+        }
+        if (kdeCanType() != kdeTyping) syncKdeConnect()
         // A new field gets a new Back dispatcher from its app (#1352).
         refreshPanelBackCallback()
         // Runs for every field even while the soft view stays hidden
@@ -9911,6 +9932,7 @@ open class WMKeyboardService : InputMethodService() {
         // (the media one re-checks notification access there) would otherwise
         // ask about a keyboard this flag still calls hidden.
         keyboardVisible = true
+        kdeShownField = info?.packageName to (info?.fieldId ?: 0)
         // Back on screen inside the idle window: whatever is still loaded stays.
         idleReleaseJob?.cancel()
         idleReleaseJob = null
@@ -11597,6 +11619,15 @@ open class WMKeyboardService : InputMethodService() {
         // a home screen or the shade included: onStartInput marks it there.
     }
 
+    override fun onFinishInput() {
+        super.onFinishInput()
+        // #1511: the field a hidden keyboard was taking a computer's keys for
+        // has let go of them; the computer's keyboard box goes with it.
+        val kdeTyping = kdeCanType()
+        kdeInputOpen = false
+        if (kdeTyping) syncKdeConnect()
+    }
+
     override fun onFinishInputView(finishingInput: Boolean) {
         // Before the base class lets go of the connection: the address is
         // read off the field that is closing.
@@ -11875,6 +11906,7 @@ open class WMKeyboardService : InputMethodService() {
         // outlives it only for as long as a settings screen still wants it.
         KdeConnectHub.release(KdeConnectHub.Reason.PANEL)
         KdeConnectHub.release(KdeConnectHub.Reason.KEYBOARD)
+        KdeConnectHub.release(KdeConnectHub.Reason.FIELD)
         KdeConnectHub.release(KdeConnectHub.Reason.SERVICE)
         com.wasimaster.wmkeyboard.ime.homeassistant.SmartHomeHub.release(com.wasimaster.wmkeyboard.ime.homeassistant.SmartHomeHub.Reason.PANEL)
         com.wasimaster.wmkeyboard.ime.homeassistant.SmartHomeHub.release(com.wasimaster.wmkeyboard.ime.homeassistant.SmartHomeHub.Reason.KEYBOARD)
@@ -38325,6 +38357,9 @@ open class WMKeyboardService : InputMethodService() {
             KdeConnectHub.applySettings(kde)
             hold(KdeConnectHub.Reason.SERVICE, kde.enabled)
             hold(KdeConnectHub.Reason.KEYBOARD, kde.enabled && keyboardVisible)
+            // A computer typing into the field a hidden keyboard still holds
+            // (#1511) keeps the link as an open keyboard would.
+            hold(KdeConnectHub.Reason.FIELD, kde.enabled && !keyboardVisible && kdeCanType())
             hold(KdeConnectHub.Reason.PANEL, kde.enabled && panelOpen)
             // The list of nearby devices is up when nothing is paired yet, or when
             // the user opened it: only then are strangers on the network linked.
@@ -38333,9 +38368,9 @@ open class WMKeyboardService : InputMethodService() {
                 kde.enabled && panelOpen && (state.kde.showDevices || !KdeConnectHub.hasPairedDevices()),
             )
         }
-        // A computer may type only into a keyboard that is on screen, over a
-        // device that is unlocked.
-        KdeConnectHub.engine?.setKeyboardShown(kde.enabled && keyboardVisible && !state.deviceLocked)
+        // A computer may type only into a keyboard that is on screen, or hidden
+        // over the field it was shown for (#1511), on a device that is unlocked.
+        KdeConnectHub.engine?.setKeyboardShown(kde.enabled && kdeCanType() && !state.deviceLocked)
         if (!panelOpen && (state.kde.typing || state.kde.hostEntry || state.kde.line.isNotEmpty())) {
             _uiState.update { it.copy(kde = it.kde.copy(typing = false, hostEntry = false, hostDraft = "", line = "")) }
         }
@@ -38346,6 +38381,17 @@ open class WMKeyboardService : InputMethodService() {
             kdeEventsJob = null
         }
     }
+
+    /**
+     * Whether a paired computer's keyboard may type here: while this keyboard
+     * is on screen, or, with remote typing on, while it is hidden over the
+     * field it was last shown for (#1511). Hiding the keyboard does not take
+     * the field's input connection away, so a terminal can be typed into from
+     * the desk without the keyboard covering half of it.
+     */
+    private fun kdeCanType(): Boolean = keyboardVisible ||
+        (kdeInputOpen && kdeShownField != null && currentInputConnection != null &&
+            _uiState.value.settings.kdeConnect.remoteTyping)
 
     /** The paired computer the panel is about: the one picked, else the first connected. */
     private fun kdeDeviceId(): String? {
@@ -38644,7 +38690,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun onKdeRemoteKey(key: KdeEvent.RemoteKey) {
         val state = _uiState.value
-        if (!keyboardVisible || state.deviceLocked || !state.settings.kdeConnect.remoteTyping) return
+        if (!kdeCanType() || state.deviceLocked || !state.settings.kdeConnect.remoteTyping) return
         val special = key.special
         if (special == null) {
             if (key.ctrl && !key.alt) {
@@ -48743,17 +48789,14 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
-    /**
-     * Puts the folder at the end of the toolbar, or takes it off. The tools
-     * inside stay where they are. On the bar the folder is an entry of the
-     * bar's own list (#1497), so it then drags along it like a tool, and the
-     * write goes where a drag's would: to the mode that owns the tool order.
-     */
+    /** Puts the folder on the toolbar, or takes it off. The tools inside stay where they are. */
     fun onToolboxFolderPinToggle(id: String) {
-        if (!com.wasimaster.wmkeyboard.core.settings.isFolderToolId(id)) return
-        val key = com.wasimaster.wmkeyboard.core.settings.folderToolKey(id)
-        val bar = _uiState.value.settings.toolbarTools
-        onToolbarToolsChange(if (key in bar) bar - key else bar + key)
+        vibrate()
+        serviceScope.launch {
+            settingsRepository.updateToolboxFolders { folders ->
+                folders.map { if (it.id == id) it.copy(pinned = !it.pinned) else it }
+            }
+        }
     }
 
     /** A tap on the folder's toolbar button runs its first tool, and a hold opens it (#970). */

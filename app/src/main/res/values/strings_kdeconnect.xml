@@ -54,8 +54,8 @@
     <!-- Typing from the computer -->
     <string name="kdeconnect_group_typing">Typing from the computer</string>
     <string name="kdeconnect_remote_typing_title">Let the computer type here</string>
-    <string name="kdeconnect_remote_typing_subtitle">Its keyboard types into the field, while this keyboard is showing and the phone is unlocked</string>
-    <string name="kdeconnect_remote_typing_info">Lets a paired computer\'s keyboard type into the text field on this phone. It works only while this keyboard is showing and the phone is unlocked.</string>
+    <string name="kdeconnect_remote_typing_subtitle">Its keyboard types into the field you opened this keyboard in, shown or hidden, while the phone is unlocked</string>
+    <string name="kdeconnect_remote_typing_info">Lets a paired computer\'s keyboard type into the text field on this phone. It works while this keyboard is showing, and after you hide it, for as long as the field you opened it in stays selected, so a terminal can use the whole screen. Opening another app or field ends it until the keyboard shows again. It never works while the phone is locked.</string>
     <string name="kdeconnect_pipeline_title">Use the keyboard language</string>
     <string name="kdeconnect_pipeline_subtitle">Run its keys through this keyboard\'s layout, like a hardware keyboard</string>
     <string name="kdeconnect_pipeline_info">Off: what the computer sends is typed exactly. On: a Latin keyboard on the desk writes Bengali through Avro, and suggestions and autocorrect apply.</string>
