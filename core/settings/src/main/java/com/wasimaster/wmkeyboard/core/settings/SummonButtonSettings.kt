@@ -239,7 +239,8 @@ fun SummonButtonSettings.readsScreen(): Boolean {
  */
 fun SummonButtonSettings.pressesSystemButtons(): Boolean =
     (gestureActions() + opensMenuItems()).any {
-        it is FloatingAction.System || it == FloatingAction.Tool(ToolbarTool.SCREENSHOT)
+        it is FloatingAction.System || it == FloatingAction.Tool(ToolbarTool.SCREENSHOT) ||
+            (it is FloatingAction.Tool && it.tool in SystemButtonTools)
     }
 
 /** Whether any of the button's gestures, or its quick menu, cycles the ringer (#1326), which wants Do Not Disturb access for silent. */

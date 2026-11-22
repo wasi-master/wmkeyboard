@@ -201,6 +201,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Vibration
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VideoFile
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Videocam
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewAgenda
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewCarousel
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewHeadline
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VisibilityOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VpnKey
@@ -446,6 +447,7 @@ object BuiltinIcons {
         "Videocam" to { Icons.Outlined.Videocam },
         "VideoFile" to { Icons.Outlined.VideoFile },
         "ViewAgenda" to { Icons.Outlined.ViewAgenda },
+        "ViewCarousel" to { Icons.Outlined.ViewCarousel },
         "ViewHeadline" to { Icons.Outlined.ViewHeadline },
         "VisibilityOff" to { Icons.Outlined.VisibilityOff },
         "VolumeOff" to { Icons.AutoMirrored.Outlined.VolumeOff },

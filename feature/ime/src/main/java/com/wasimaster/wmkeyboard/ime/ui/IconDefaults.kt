@@ -70,6 +70,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.GraphicEq
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.GridView
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.HighlightAlt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Home
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.HomeIotDevice
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ImageSearch
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Interests
@@ -119,6 +120,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TravelExplore
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tune
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VerticalSplit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Vibration
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewCarousel
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewHeadline
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VisibilityOff
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
@@ -150,6 +152,9 @@ object IconDefaults {
         ToolbarTool.RECENT_COPIES -> Icons.Outlined.History
         ToolbarTool.LEAVE_FIELD -> Icons.Outlined.Close
         ToolbarTool.SCREENSHOT -> Icons.Outlined.Screenshot
+        ToolbarTool.SYSTEM_BACK -> Icons.AutoMirrored.Outlined.ArrowBack
+        ToolbarTool.SYSTEM_HOME -> Icons.Outlined.Home
+        ToolbarTool.SYSTEM_RECENTS -> Icons.Outlined.ViewCarousel
         ToolbarTool.PRIVACY_SHADE -> Icons.Outlined.Blinds
         ToolbarTool.QUICK_NOTE -> Icons.Outlined.EditNote
         ToolbarTool.DEBUG_INFO -> Icons.Outlined.BugReport

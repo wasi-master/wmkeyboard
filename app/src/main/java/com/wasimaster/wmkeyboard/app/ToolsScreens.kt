@@ -121,6 +121,9 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.RECENT_COPIES -> ImeR.string.ime_tool_recent_copies
     ToolbarTool.LEAVE_FIELD -> ImeR.string.ime_tool_leave_field
     ToolbarTool.SCREENSHOT -> ImeR.string.ime_tool_screenshot
+    ToolbarTool.SYSTEM_BACK -> ImeR.string.ime_tool_system_back
+    ToolbarTool.SYSTEM_HOME -> ImeR.string.ime_tool_system_home
+    ToolbarTool.SYSTEM_RECENTS -> ImeR.string.ime_tool_system_recents
     ToolbarTool.PRIVACY_SHADE -> ImeR.string.ime_tool_privacy_shade
     ToolbarTool.QUICK_NOTE -> ImeR.string.ime_tool_quick_note
     ToolbarTool.DEBUG_INFO -> ImeR.string.ime_tool_debug_info
@@ -231,6 +234,9 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.RECENT_COPIES -> R.string.fonts_tool_recent_copies_desc
     ToolbarTool.LEAVE_FIELD -> R.string.fonts_tool_leave_field_desc
     ToolbarTool.SCREENSHOT -> R.string.fonts_tool_screenshot_desc
+    ToolbarTool.SYSTEM_BACK -> R.string.fonts_tool_system_back_desc
+    ToolbarTool.SYSTEM_HOME -> R.string.fonts_tool_system_home_desc
+    ToolbarTool.SYSTEM_RECENTS -> R.string.fonts_tool_system_recents_desc
     ToolbarTool.PRIVACY_SHADE -> R.string.fonts_tool_privacy_shade_desc
     ToolbarTool.QUICK_NOTE -> R.string.fonts_tool_quick_note_desc
     ToolbarTool.DEBUG_INFO -> R.string.fonts_tool_debug_info_desc
@@ -870,6 +876,7 @@ private fun buildToolGroups(splitPanels: Boolean): List<Pair<Int, List<ToolbarTo
             ToolbarTool.FLASHLIGHT, ToolbarTool.SCREENSHOT, ToolbarTool.COMPASS, ToolbarTool.LEVEL,
             ToolbarTool.CALENDAR, ToolbarTool.CLOCK, ToolbarTool.TIMESTAMP, ToolbarTool.WEATHER, ToolbarTool.LOCATION, ToolbarTool.HOME_ASSISTANT,
             ToolbarTool.MOON_PHASE, ToolbarTool.PLUGINS,
+            ToolbarTool.SYSTEM_BACK, ToolbarTool.SYSTEM_HOME, ToolbarTool.SYSTEM_RECENTS,
         ),
     )
     val grouped = flatMapTo(HashSet()) { it.second }

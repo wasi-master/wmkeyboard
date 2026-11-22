@@ -10,7 +10,7 @@ import SettingsPath from '@components/SettingsPath.astro';
 import KeyCap from '@components/KeyCap.astro';
 import Shot from '@components/Shot.astro';
 
-"Instruments" is this site's name for five small utility tools that Settings groups together as "Utilities," alongside [Calendar](/tools/calendar/) and [Plugins](/plugins/overview/): **Flashlight**, **Compass**, **Bubble level**, **Moon phase** and **Weather**. None of them makes you leave the keyboard to check something. Four open as a panel that replaces the key rows. Flashlight is the odd one out, a single tap with no panel at all. The same group also holds [Screenshot](#screenshot), another single tap.
+"Instruments" is this site's name for five small utility tools that Settings groups together as "Utilities," alongside [Calendar](/tools/calendar/) and [Plugins](/plugins/overview/): **Flashlight**, **Compass**, **Bubble level**, **Moon phase** and **Weather**. None of them makes you leave the keyboard to check something. Four open as a panel that replaces the key rows. Flashlight is the odd one out, a single tap with no panel at all. The same group also holds [Screenshot](#screenshot) and [Back, Home and Recent apps](#back-home-and-recent-apps), each another single tap.
 
 <PhoneFrame caption="The Utilities group under Settings → Tools: Flashlight, Compass, Bubble level, Calendar, Weather, Moon phase and Plugins.">
   <Shot id="tools/instruments-settings-utilities-group" alt="The Utilities group under Settings → Tools: Flashlight, Compass, Bubble level, Calendar, Weather and Moon phase." />
@@ -128,6 +128,16 @@ The flashlight, the compass, the bubble level and the moon phase are the **Instr
 Android lets another app take a screenshot only through an accessibility service, so the tool needs one of its own, **WM Keyboard system buttons**, turned on in Android's accessibility settings. It presses Android's own buttons when you ask: the screenshot for this tool, and Back, recent apps and the like for the [floating button](/reference/settings/floating-button/#system-buttons). It reads nothing on screen. The first press while it's off explains this and then opens Android's accessibility settings; the tool's page under <SettingsPath path="Tools / Screenshot" /> has a **System buttons service** row that says whether it's on and takes you there too. See [Permissions](/privacy/permissions/).
 
 It needs Android 9 or later, and it isn't in the Play Store build, which ships without accessibility services that aren't its main purpose. It doesn't work before your first unlock after a restart.
+
+## Back, Home and Recent apps
+
+**Go back**, **Home screen** and **Recent apps** press those three of Android's own buttons, the ones the floating button already offers as [system buttons](/reference/settings/floating-button/#system-buttons), from the toolbar instead. Pin them from the toolbox like any tool, or bind them to a key, a flick, a long press or a multi-finger swipe in the [layout editor](/languages/custom-layouts/), so a browser's back or a chat app's way out of a menu is a tap away without reaching for the gesture.
+
+**Go back** is for the app, not the keyboard. Pressed while the keyboard is up, Android's Back would only put the keyboard away, so the tool puts it away first and presses Back a quarter of a second later: one tap goes back a page in a browser or a level in a chat. With the keyboard down, say from the floating button or a hardware shortcut, it presses Back straight away. **Recent apps** opens the recent apps screen, to switch to another app.
+
+There's no Forward. Android has no system Forward button for another app to press, so a browser's forward stays in the browser's own menu.
+
+They use the same **WM Keyboard system buttons** service as Screenshot, and the first press while it's off explains it and opens Android's accessibility settings. Each tool's page under <SettingsPath path="Tools" /> has the same **System buttons service** row. They work on every Android version the keyboard runs on and, like Screenshot, aren't in the Play Store build. In the floating button's action list they stay under System buttons, where they already were, rather than appearing twice.
 
 ## Details & edge cases
 

@@ -9415,6 +9415,27 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * The Back tool (#1521), from the toolbar, a key or a gesture: Android's
+     * own Back, for the app behind the keyboard, a browser's history or a
+     * chat's menus. With the keyboard up, Back would only put the keyboard
+     * away, so the keyboard goes down first and Back follows, the way a
+     * second press of the phone's own Back would; with the keyboard down it
+     * goes straight through.
+     */
+    private fun pressBackFromTool() {
+        val button = com.wasimaster.wmkeyboard.core.settings.SystemButton.BACK
+        if (SystemButtonsService.current == null || !windowOnScreen) {
+            pressSystemButton(button)
+            return
+        }
+        requestHideSelf(0)
+        serviceScope.launch {
+            delay(SYSTEM_BACK_KEYBOARD_SETTLE_MS)
+            pressSystemButton(button)
+        }
+    }
+
+    /**
      * One of the phone's controls from the floating button (#1326): the
      * ringer, the volume panel, or a radio's switch, flipped here where this
      * phone lets the keyboard and opened as Android's page where it does not.
@@ -38194,6 +38215,9 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.RECENT_COPIES -> onRecentClipsToggle()
             ToolbarTool.LEAVE_FIELD -> onLeaveField()
             ToolbarTool.SCREENSHOT -> takeScreenshot()
+            ToolbarTool.SYSTEM_BACK -> pressBackFromTool()
+            ToolbarTool.SYSTEM_HOME -> pressSystemButton(com.wasimaster.wmkeyboard.core.settings.SystemButton.HOME)
+            ToolbarTool.SYSTEM_RECENTS -> pressSystemButton(com.wasimaster.wmkeyboard.core.settings.SystemButton.RECENTS)
             ToolbarTool.DEBUG_INFO -> showDebugInfo()
             ToolbarTool.HOMOPHONES -> showHomophones()
             ToolbarTool.TYPE_CLIPBOARD -> onTextEdit(TextEditAction.TYPE_CLIPBOARD)
@@ -66164,7 +66188,15 @@ open class WMKeyboardService : InputMethodService() {
         // flashlight is the phone's, not the keyboard's (#1238).
         private val FloatingToolsWithoutKeyboard = setOf(
             ToolbarTool.SETTINGS, ToolbarTool.LEAVE_FIELD, ToolbarTool.SCREENSHOT, ToolbarTool.FLASHLIGHT,
+            ToolbarTool.SYSTEM_BACK, ToolbarTool.SYSTEM_HOME, ToolbarTool.SYSTEM_RECENTS,
         )
+
+        /**
+         * How long the keyboard gets to go down before the Back tool presses
+         * Back (#1521). Pressed with the keyboard up, Android's Back only hides
+         * the keyboard; the app sees it once the keyboard has stopped showing.
+         */
+        private const val SYSTEM_BACK_KEYBOARD_SETTLE_MS = 250L
 
         /** How long the keyboard gets to slide away before a screenshot (#1148). */
         private const val SCREENSHOT_KEYBOARD_SETTLE_MS = 380L

@@ -224,7 +224,20 @@ enum class ToolbarTool {
     // insert sheet is set to (competitor gap list item 6, HeliBoard's
     // timestamp key). The first Backspace after it takes it back whole.
     TIMESTAMP,
+    // Android's own Back, Home and Recent apps buttons as tools (#1521), the
+    // floating button's system buttons on the toolbar, a key or a gesture.
+    // Pressed through SystemButtonsService like SCREENSHOT; not in the Play build.
+    SYSTEM_BACK,
+    SYSTEM_HOME,
+    SYSTEM_RECENTS,
 }
+
+/** The tools that press one of Android's own buttons (#1521), each with its button. */
+val SystemButtonTools: Map<ToolbarTool, SystemButton> = mapOf(
+    ToolbarTool.SYSTEM_BACK to SystemButton.BACK,
+    ToolbarTool.SYSTEM_HOME to SystemButton.HOME,
+    ToolbarTool.SYSTEM_RECENTS to SystemButton.RECENTS,
+)
 
 /** The cursor tools, in the order they read on the toolbar. */
 val CursorTools: List<ToolbarTool> = listOf(
@@ -343,6 +356,7 @@ fun toolOpensScreen(tool: ToolbarTool): Boolean = when (tool) {
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.LANGUAGE,
     ToolbarTool.RECENT_COPIES, ToolbarTool.READ_BACK, ToolbarTool.SCREENSHOT, ToolbarTool.PRIVACY_SHADE,
     ToolbarTool.CLEAR_FIELD, ToolbarTool.TIMESTAMP, ToolbarTool.HOMOPHONES, ToolbarTool.TYPE_CLIPBOARD,
+    ToolbarTool.SYSTEM_BACK, ToolbarTool.SYSTEM_HOME, ToolbarTool.SYSTEM_RECENTS,
     -> false
     // The cursor moves nudge the caret and nothing else, and the clipboard trio
     // acts on the selection in place.
@@ -378,6 +392,8 @@ fun isSupportedTool(tool: ToolbarTool): Boolean = when {
     // Android has no screenshot action to press before 9.
     tool == ToolbarTool.SCREENSHOT ->
         com.wasimaster.wmkeyboard.app.ChannelFeatures.SYSTEM_BUTTONS && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+    // Back, Home and Recent apps (#1521): the same service, which Android has had since 4.1.
+    tool in SystemButtonTools -> com.wasimaster.wmkeyboard.app.ChannelFeatures.SYSTEM_BUTTONS
     // The document scanner is offered everywhere: Google's (an activity
     // inside Play services) where it can run, the built-in OpenCV one
     // everywhere else, F-Droid's build and phones without Play services.
@@ -485,6 +501,7 @@ private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.EMOJI_MIX, ToolbarTool.MUSIC_ID, ToolbarTool.FILES, ToolbarTool.TIMESTAMP,
     ToolbarTool.QR_SCAN, ToolbarTool.QR_GEN, ToolbarTool.TEXT_REPEAT, ToolbarTool.READ_BACK, ToolbarTool.DOC_SCAN, ToolbarTool.CAMERA,
     ToolbarTool.FLASHLIGHT, ToolbarTool.SCREENSHOT, ToolbarTool.COMPASS, ToolbarTool.LEVEL, ToolbarTool.MOON_PHASE,
+    ToolbarTool.SYSTEM_BACK, ToolbarTool.SYSTEM_HOME, ToolbarTool.SYSTEM_RECENTS,
     // The one-tap cursor moves last: useful, but they would otherwise push
     // every other tool a full row down in the toolbox.
     ToolbarTool.CURSOR_LEFT, ToolbarTool.CURSOR_RIGHT,

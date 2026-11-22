@@ -148,6 +148,8 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.HIDE_KEYBOARD, ToolbarTool.LEAVE_FIELD, ToolbarTool.DEBUG_INFO -> Color(0xFF607D8B)
     // A viewfinder's teal, apart from the camera's and the scanners'.
     ToolbarTool.SCREENSHOT -> Color(0xFF00897B)
+    // Navigation's blue-grey, beside Hide keyboard's.
+    ToolbarTool.SYSTEM_BACK, ToolbarTool.SYSTEM_HOME, ToolbarTool.SYSTEM_RECENTS -> Color(0xFF546E7A)
     // A blind's slate, beside incognito's grey.
     ToolbarTool.PRIVACY_SHADE -> Color(0xFF546E7A)
     // The delete keys' red.

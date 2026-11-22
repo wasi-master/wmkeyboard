@@ -3977,8 +3977,9 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.LOCATION -> LocationToolSettings(repository, settings)
-        // Its one setting is Android's: the service that presses the button (#1148).
-        ToolbarTool.SCREENSHOT -> {
+        // Its one setting is Android's: the service that presses the button
+        // (#1148), and the same for Back, Home and Recent apps (#1521).
+        ToolbarTool.SCREENSHOT, ToolbarTool.SYSTEM_BACK, ToolbarTool.SYSTEM_HOME, ToolbarTool.SYSTEM_RECENTS -> {
             val on = rememberGrantState { SystemButtonsService.isEnabled(it) }
             val ask = rememberDisclosedSpecialAccess(SpecialAccess.SYSTEM_BUTTONS)
             SettingsGroup {
@@ -3986,10 +3987,11 @@ internal fun ToolDetailSettings(
                     NavRow(
                         R.string.tooldetail_screenshot_service_title,
                         subtitle = stringResource(
-                            if (on) {
-                                R.string.tooldetail_screenshot_service_on_subtitle
-                            } else {
-                                R.string.tooldetail_screenshot_service_off_subtitle
+                            when {
+                                tool == ToolbarTool.SCREENSHOT && on -> R.string.tooldetail_screenshot_service_on_subtitle
+                                tool == ToolbarTool.SCREENSHOT -> R.string.tooldetail_screenshot_service_off_subtitle
+                                on -> R.string.tooldetail_system_button_service_on_subtitle
+                                else -> R.string.tooldetail_system_button_service_off_subtitle
                             },
                         ),
                     ) { ask() }

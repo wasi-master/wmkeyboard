@@ -92,6 +92,7 @@ import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.SummonButtonSettings
 import com.wasimaster.wmkeyboard.core.settings.SystemButton
+import com.wasimaster.wmkeyboard.core.settings.SystemButtonTools
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.categoryById
 import com.wasimaster.wmkeyboard.core.settings.categoryItems
@@ -1398,7 +1399,10 @@ private fun FloatingActionPicker(
             onPick = { onPick(action) },
         )
     } + listOfNotNull(appRow, pairRow, categoryRow)
-    val supported = ToolbarTool.entries.filter { isSupportedTool(it) && offered(FloatingAction.Tool(it)) }.toSet()
+    // Back, Home and Recent apps are already the System buttons group's (#1521).
+    val supported = ToolbarTool.entries.filter {
+        isSupportedTool(it) && it !in SystemButtonTools && offered(FloatingAction.Tool(it))
+    }.toSet()
     val grouped = ToolGroups.withExtensions(LocalExtensions.current)
         .map { (titleRes, tools) -> titleRes to tools.filter { it in supported } }
     val placed = grouped.flatMapTo(HashSet()) { it.second }

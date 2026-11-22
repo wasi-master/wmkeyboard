@@ -10115,6 +10115,9 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.HIDE_KEYBOARD -> R.string.ime_tool_hide_keyboard
     ToolbarTool.LANGUAGE -> R.string.ime_tool_language
     ToolbarTool.SCREENSHOT -> R.string.ime_tool_screenshot
+    ToolbarTool.SYSTEM_BACK -> R.string.ime_tool_system_back
+    ToolbarTool.SYSTEM_HOME -> R.string.ime_tool_system_home
+    ToolbarTool.SYSTEM_RECENTS -> R.string.ime_tool_system_recents
     ToolbarTool.PRIVACY_SHADE -> R.string.ime_tool_privacy_shade
     ToolbarTool.PAGE_UP -> R.string.ime_tool_page_up
     ToolbarTool.PAGE_DOWN -> R.string.ime_tool_page_down
@@ -10253,6 +10256,8 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.HIDE_KEYBOARD, ToolbarTool.LEAVE_FIELD -> false
     // Takes the picture and is done.
     ToolbarTool.SCREENSHOT -> false
+    // Press Android's button and are done.
+    ToolbarTool.SYSTEM_BACK, ToolbarTool.SYSTEM_HOME, ToolbarTool.SYSTEM_RECENTS -> false
     // Takes the report and opens it in the settings app.
     ToolbarTool.DEBUG_INFO -> false
     // Puts its list on the strip and is done.
