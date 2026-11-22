@@ -1935,6 +1935,8 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.CALENDAR, R.string.tooldetail_calendar_second_title, R.string.tooldetail_calendar_second_subtitle),
     toolEntry(ToolbarTool.CALENDAR, R.string.toolai_weekend_title, R.string.toolai_weekend_subtitle),
     toolEntry(ToolbarTool.CALENDAR, R.string.tooldetail_calendar_hijri_title, R.string.tooldetail_calendar_hijri_subtitle),
+    toolEntry(ToolbarTool.CALENDAR, R.string.tooldetail_calendar_swipe_view_title, R.string.tooldetail_calendar_swipe_view_subtitle),
+    toolEntry(ToolbarTool.CALENDAR, R.string.tooldetail_calendar_agenda_middle_title, R.string.tooldetail_calendar_agenda_middle_subtitle),
     toolEntry(ToolbarTool.CALENDAR, R.string.tooldetail_calendar_save_mode_title, R.string.tooldetail_calendar_save_mode_subtitle),
     toolEntry(ToolbarTool.CALENDAR, R.string.tooldetail_calendar_default_calendar_title, R.string.tooldetail_calendar_default_calendar_subtitle),
     toolEntry(ToolbarTool.CALENDAR, R.string.tooldetail_calendar_default_length_title, R.string.tooldetail_calendar_default_length_subtitle),

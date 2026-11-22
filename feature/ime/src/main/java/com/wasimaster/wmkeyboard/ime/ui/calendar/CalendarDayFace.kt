@@ -74,7 +74,6 @@ import com.wasimaster.wmkeyboard.ime.ui.clock.EmptyState
 import com.wasimaster.wmkeyboard.ime.ui.clock.PillButton
 import com.wasimaster.wmkeyboard.ime.ui.focusRing
 import com.wasimaster.wmkeyboard.ime.ui.frostGlass
-import com.wasimaster.wmkeyboard.ime.ui.swipeTabs
 import java.util.TimeZone
 import kotlin.math.roundToInt
 
@@ -132,7 +131,7 @@ internal fun DayFace(state: KeyboardUiState, ui: CalendarUi, act: (CalendarActio
             Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .swipeTabs(index = 1, count = 3) { act(CalendarAction.SelectDay(day.plusDays(if (it == 0) -1L else 1L))) },
+                .calendarSwipe { act(CalendarAction.SelectDay(day.plusDays(it.toLong()))) },
         ) {
             when {
                 !ui.canRead -> EmptyState(

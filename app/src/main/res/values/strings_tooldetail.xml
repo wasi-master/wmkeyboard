@@ -148,6 +148,11 @@
     <string name="tooldetail_calendar_save_keyboard_label">In the keyboard</string>
     <string name="tooldetail_calendar_save_app_label">In the calendar app</string>
     <string name="tooldetail_calendar_weather_group">Weather</string>
+    <string name="tooldetail_calendar_swipe_view_title">Swipe to change the view</string>
+    <string name="tooldetail_calendar_swipe_view_subtitle">A swipe moves between Month, Day and Agenda; arrows step the date</string>
+    <string name="tooldetail_calendar_swipe_view_info">Out of the box, a swipe left or right across the calendar moves to the next or previous month, or the next or previous day on the Day view, and the pill at the top picks the view. With this on, a swipe across the calendar moves to the view beside it instead, in the pill\'s order. The pill gives way to two arrows that step the date: a month on Month and Agenda, a day on Day. A swipe along the month\'s name at the top steps the date too.</string>
+    <string name="tooldetail_calendar_agenda_middle_title">Agenda in the middle</string>
+    <string name="tooldetail_calendar_agenda_middle_subtitle">Order the views Month, Agenda, Day</string>
     <string name="tooldetail_calendar_weather_title">Weather on events</string>
     <string name="tooldetail_calendar_weather_subtitle">The forecast for the time and place of each event, up to 16 days ahead</string>
     <string name="tooldetail_calendar_weather_info">An event card shows a weather icon and the temperature for its start, at the place of the event. If the event has no place, or the keyboard cannot find it, the card uses the location of the weather tool. Tap the icon to see the forecast for each hour of that day, with the chance of rain.\n\nThe keyboard sends the place of each event to the place search of Open-Meteo, and gets the forecast from Open-Meteo. It does not send the title or any other part of the event. It refreshes the forecast when it is older than the refresh time of the weather tool. While data saving is on or you are offline, the cards show only a forecast that the keyboard already has. This setting needs the weather tool to be turned on.</string>

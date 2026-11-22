@@ -44,8 +44,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
@@ -54,6 +56,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
@@ -216,20 +219,35 @@ internal fun CalendarPanel(
             if (typing != null) {
                 TypingBody(ui, typing, act)
             } else {
-                MotionCrossfade(
-                    target = face,
-                    animate = kb.motion.panels && !reduce,
-                    modifier = Modifier.fillMaxSize(),
-                    label = "calendar-face",
-                ) { shown ->
-                    Box(Modifier.fillMaxSize().blockTouches(shown != face)) {
-                        when (shown) {
-                            Face.MONTH -> MonthFace(state, ui, animate, act)
-                            Face.AGENDA -> AgendaFace(state, ui, animate, act)
-                            Face.DAY -> DayFace(state, ui, act)
-                            Face.DETAIL -> ui.detail?.let { EventSheet(it, ui, animate, act) }
-                            Face.COMPOSE -> ui.draft?.let { CalendarComposer(it, ui, act) }
-                            Face.INVITE -> ui.invite?.let { InviteFace(it, ui, animate, act) }
+                // With the setting on (#1445) a sideways swipe across a face
+                // moves to the view beside it, in the header pill's order,
+                // and the header's arrows step the date instead.
+                val order = pickedFaces(state.settings.calendarTool.agendaInMiddle)
+                val viewSwipe: ((Int) -> Unit)? = if (state.settings.calendarTool.swipeChangesView) {
+                    { step ->
+                        val at = order.indexOf(local.face)
+                        val next = (at + step).coerceIn(0, order.lastIndex)
+                        if (at >= 0 && next != at) local.face = order[next]
+                    }
+                } else {
+                    null
+                }
+                CompositionLocalProvider(LocalCalendarViewSwipe provides viewSwipe) {
+                    MotionCrossfade(
+                        target = face,
+                        animate = kb.motion.panels && !reduce,
+                        modifier = Modifier.fillMaxSize(),
+                        label = "calendar-face",
+                    ) { shown ->
+                        Box(Modifier.fillMaxSize().blockTouches(shown != face)) {
+                            when (shown) {
+                                Face.MONTH -> MonthFace(state, ui, animate, act)
+                                Face.AGENDA -> AgendaFace(state, ui, animate, act)
+                                Face.DAY -> DayFace(state, ui, act)
+                                Face.DETAIL -> ui.detail?.let { EventSheet(it, ui, animate, act) }
+                                Face.COMPOSE -> ui.draft?.let { CalendarComposer(it, ui, act) }
+                                Face.INVITE -> ui.invite?.let { InviteFace(it, ui, animate, act) }
+                            }
                         }
                     }
                 }
@@ -257,8 +275,32 @@ internal fun CalendarPanel(
 /** What the panel shows: the controller's view, split where the panel adds a face of its own. */
 private enum class Face { MONTH, DAY, AGENDA, DETAIL, COMPOSE, INVITE }
 
-/** The faces the header's pill picks between, in its order. */
-private val PICKED_FACES = listOf(Face.MONTH, Face.DAY, Face.AGENDA)
+/**
+ * The faces the header's pill picks between, in its order: Month, Day,
+ * Agenda, or with Agenda in the middle (#1445) Month, Agenda, Day. A swipe
+ * between views walks the same order.
+ */
+private fun pickedFaces(agendaInMiddle: Boolean): List<Face> =
+    if (agendaInMiddle) listOf(Face.MONTH, Face.AGENDA, Face.DAY) else listOf(Face.MONTH, Face.DAY, Face.AGENDA)
+
+/**
+ * Set while a sideways swipe across the month, day or agenda changes the view
+ * (#1445): called with -1 for the view before and 1 for the one after. Null,
+ * the default, leaves the swipe stepping the date.
+ */
+private val LocalCalendarViewSwipe = compositionLocalOf<((Int) -> Unit)?> { null }
+
+/**
+ * A sideways swipe across a face: [step] with -1 or 1 to move the date, or,
+ * with swipes set to change the view (#1445), to the view beside instead.
+ */
+internal fun Modifier.calendarSwipe(step: (Int) -> Unit): Modifier = composed {
+    val viewSwipe = LocalCalendarViewSwipe.current
+    swipeTabs(index = 1, count = 3) {
+        val dir = if (it == 0) -1 else 1
+        if (viewSwipe != null) viewSwipe(dir) else step(dir)
+    }
+}
 
 /** The panel's own state, which the controller has no reason to carry. */
 private class CalendarPanelLocal {
@@ -305,12 +347,21 @@ private fun RowScope.MonthHeader(state: KeyboardUiState, ui: CalendarUi, local: 
     val label = remember(ui.shownYear, ui.shownMonth) { CalendarText.monthShort(ui.shownYear, ui.shownMonth) }
     val focusedAction = state.focusedIndex(FocusRegion.ACTIONS)
     val shape = kb.chipShape()
+    val tool = state.settings.calendarTool
+    val order = pickedFaces(tool.agendaInMiddle)
+    // The date a step moves: a day on the day's timeline, a month elsewhere (#1445).
+    val stepDate: (Int) -> Unit = { by ->
+        if (local.face == Face.DAY) act(CalendarAction.SelectDay(ui.selected.plusDays(by.toLong())))
+        else act(CalendarAction.Month(by))
+    }
     Row(
         Modifier
             .weight(1f)
             .padding(start = 2.dp)
             .clip(shape)
             .focusRing(focusedAction == 0 || focusedAction == 2, shape)
+            // With swipes changing the view, a swipe along the date still steps it (#1445).
+            .swipeTabs(index = 1, count = 3, enabled = tool.swipeChangesView) { stepDate(if (it == 0) -1 else 1) }
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
                 feedback()
                 local.monthPicker = !local.monthPicker
@@ -343,17 +394,38 @@ private fun RowScope.MonthHeader(state: KeyboardUiState, ui: CalendarUi, local: 
         act(CalendarAction.Today)
     }
     Spacer(Modifier.width(6.dp))
-    SegmentedPill(
-        labels = listOf(
-            stringResource(R.string.ime_calendar_view_month),
-            stringResource(R.string.ime_calendar_view_day),
-            stringResource(R.string.ime_calendar_view_agenda),
-        ),
-        selected = PICKED_FACES.indexOf(local.face).coerceAtLeast(0),
-        onSelect = { local.face = PICKED_FACES[it] },
-        segmentWidth = VIEW_SEGMENT,
-        height = 28.dp,
-    )
+    if (tool.swipeChangesView) {
+        // The view is a swipe away (#1445), so the pill's room goes to arrows
+        // that step the date: a month, or a day on the day's timeline.
+        val day = local.face == Face.DAY
+        RoundButton(
+            Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
+            stringResource(if (day) R.string.ime_calendar_previous_day_desc else R.string.ime_calendar_previous_month_desc),
+            size = 30.dp,
+        ) { stepDate(-1) }
+        Spacer(Modifier.width(4.dp))
+        RoundButton(
+            Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+            stringResource(if (day) R.string.ime_calendar_next_day_desc else R.string.ime_calendar_next_month_desc),
+            size = 30.dp,
+        ) { stepDate(1) }
+    } else {
+        SegmentedPill(
+            labels = order.map { face ->
+                stringResource(
+                    when (face) {
+                        Face.DAY -> R.string.ime_calendar_view_day
+                        Face.AGENDA -> R.string.ime_calendar_view_agenda
+                        else -> R.string.ime_calendar_view_month
+                    },
+                )
+            },
+            selected = order.indexOf(local.face).coerceAtLeast(0),
+            onSelect = { local.face = order[it] },
+            segmentWidth = VIEW_SEGMENT,
+            height = 28.dp,
+        )
+    }
     Spacer(Modifier.width(6.dp))
     RoundButton(Icons.Outlined.Add, stringResource(R.string.ime_calendar_new_event), size = 30.dp, primary = true) {
         act(CalendarAction.NewEvent())
@@ -591,7 +663,7 @@ private fun MonthFace(state: KeyboardUiState, ui: CalendarUi, animate: Boolean, 
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .swipeTabs(index = 1, count = 3) { act(CalendarAction.Month(if (it == 0) -1 else 1)) },
+                .calendarSwipe { act(CalendarAction.Month(it)) },
         )
         DaySummary(ui, altCalendars, hijriAdjust)
         DayCards(ui, animate, act, Modifier.fillMaxWidth())
@@ -1284,7 +1356,7 @@ private fun AgendaFace(state: KeyboardUiState, ui: CalendarUi, animate: Boolean,
     Box(
         Modifier
             .fillMaxSize()
-            .swipeTabs(index = 1, count = 3) { act(CalendarAction.Month(if (it == 0) -1 else 1)) },
+            .calendarSwipe { act(CalendarAction.Month(it)) },
     ) {
         when {
             !ui.canRead -> EmptyState(

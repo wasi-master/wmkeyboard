@@ -1285,6 +1285,24 @@ internal fun ToolDetailSettings(
                         scope.launch { repository.setCalendarWeekend(it) }
                     }
                 }
+                // #1445: swipes between the views, arrows for the date.
+                item(level = SettingLevel.STANDARD) {
+                    ToggleSetting(
+                        R.string.tooldetail_calendar_swipe_view_title,
+                        stringResource(R.string.tooldetail_calendar_swipe_view_subtitle),
+                        settings.watch { it.calendarTool.swipeChangesView },
+                        info = stringResource(R.string.tooldetail_calendar_swipe_view_info),
+                        default = SettingsDefaults.calendarTool.swipeChangesView,
+                    ) { scope.launch { repository.setCalendarSwipeChangesView(it) } }
+                }
+                item(level = SettingLevel.ADVANCED) {
+                    ToggleSetting(
+                        R.string.tooldetail_calendar_agenda_middle_title,
+                        stringResource(R.string.tooldetail_calendar_agenda_middle_subtitle),
+                        settings.watch { it.calendarTool.agendaInMiddle },
+                        default = SettingsDefaults.calendarTool.agendaInMiddle,
+                    ) { scope.launch { repository.setCalendarAgendaInMiddle(it) } }
+                }
                 item(visible = showsHijri, level = SettingLevel.ADVANCED) {
                     SliderSetting(
                         R.string.tooldetail_calendar_hijri_title,

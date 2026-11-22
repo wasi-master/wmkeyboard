@@ -89,6 +89,12 @@ Since 0.6.7 the **Day** side of the switch shows the selected day as a timeline:
 
 Moving an event across days isn't possible on the timeline. Open the event and change its date instead.
 
+## Swiping between the views
+
+Out of the box a sideways swipe steps the date: a month on Month and Agenda, a day on Day. Turn on **Swipe to change the view** in the [options](#options) and a swipe moves to the view beside instead, in the switch's order, so a swipe from Month goes to Day and the next one to Agenda. The **Month | Day | Agenda** switch then gives way to two arrows that step the date, a month or a day as above, and a swipe along the month's name at the top steps it too.
+
+**Agenda in the middle** reorders the switch to **Month | Agenda | Day**, and the swipes between views follow that order.
+
 ## Adding an event
 
 Tap the round **+** in the header, or press and hold a day in the grid. The composer opens on the selected day with the title already taking your typing, and the panel folds down so the keys show underneath; while you type, the folded panel shows the event's preview card so you keep your bearings. **Done** (or Enter) moves you from the title to the place.
@@ -168,6 +174,8 @@ Like every tool, Calendar opens with a **Turn on** switch and, while [colorful t
 - **First calendar**: the default depends on your phone's region. That's the Bengali calendar in Bangladesh, era years in Japan, Hindu (Saka) in India, Hijri across much of the Arab world, and **None** where no second calendar is in common use. Choose from Bengali, Hijri, Chinese, Hebrew, Hindu (Saka), Persian (Solar Hijri), Buddhist (Thai solar), Japanese (era years), or None. Its day number is the one that also shows up inside each day cell. Buddhist and Japanese days line up one-to-one with Gregorian, so if you pick either the cell falls back to Second calendar's day number instead, where that one has its own.
 - **Second calendar**: the same nine choices, also region-defaulted. Bangladesh gets Hijri alongside the Bengali calendar, Japan gets the Chinese calendar alongside era years, and most places get **None**. It shows in the month header and under the selected day, alongside First calendar.
 - **Weekend**: which weekday initials the month grid tints. Seven presets: Saturday & Sunday, Friday & Saturday, Thursday & Friday, Friday, Saturday, Sunday, or no weekend at all. The default comes from your phone's region: Friday and Saturday across much of the Middle East, Friday in Bangladesh, Thursday and Friday in Iran and Afghanistan, Saturday in Nepal, Sunday alone in India, Mexico and the Philippines, and Saturday and Sunday everywhere else.
+- **Swipe to change the view**: off by default. On, a sideways swipe moves between Month, Day and Agenda, and arrows in the header step the date (see [Swiping between the views](#swiping-between-the-views)).
+- **Agenda in the middle**: off by default. On, the views are ordered Month, Agenda, Day.
 - **Hijri day adjustment**: a slider from −2 to +2 days, default 0. It only appears when First or Second calendar is set to Hijri. The tool computes Hijri dates with the tabular (arithmetic) calendar rather than real moon sighting, so real Islamic months can start a day or two off from the tables. Use this to match your local authority's sighting-based calendar.
 
 Under **New events**:

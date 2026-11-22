@@ -350,6 +350,8 @@
     <string name="ime_calendar_permission_info">See the events of the day from your calendar here.</string>
     <string name="ime_calendar_previous_month_desc">Previous month</string>
     <string name="ime_calendar_next_month_desc">Next month</string>
+    <string name="ime_calendar_previous_day_desc">Previous day</string>
+    <string name="ime_calendar_next_day_desc">Next day</string>
     <!-- Gives the keyboard permission to read the calendar of the device. -->
     <string name="ime_calendar_allow_action">Allow</string>
     <string name="ime_calendar_no_events_empty">No events</string>

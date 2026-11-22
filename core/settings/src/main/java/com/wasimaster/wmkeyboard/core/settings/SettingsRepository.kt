@@ -3740,6 +3740,14 @@ data class CalendarToolSettings(
      * events' places to Open-Meteo's place search.
      */
     val weatherOnEvents: Boolean = false,
+    /**
+     * A sideways swipe across the month, day or agenda moves to the view
+     * beside it, and the header's view pill gives way to arrows that step the
+     * date (#1445). Off by default: the swipe steps the date, as it always has.
+     */
+    val swipeChangesView: Boolean = false,
+    /** The header's view pill reads Month, Agenda, Day rather than Month, Day, Agenda (#1445). */
+    val agendaInMiddle: Boolean = false,
     /** The accounts an event can be published to as an online invitation (#1274). */
     val invites: InviteSettings = InviteSettings(),
 )
@@ -13960,6 +13968,8 @@ class SettingsRepository(private val context: Context) {
         private val CALENDAR_DEFAULT_REMINDER = intPreferencesKey("calendar_default_reminder")
         private val CALENDAR_SAVE_MODE = stringPreferencesKey("calendar_save_mode")
         private val CALENDAR_EVENT_WEATHER = booleanPreferencesKey("calendar_event_weather")
+        private val CALENDAR_SWIPE_VIEW = booleanPreferencesKey("calendar_swipe_view")
+        private val CALENDAR_AGENDA_MIDDLE = booleanPreferencesKey("calendar_agenda_middle")
         private val HANDWRITING_STYLUS_ONLY = booleanPreferencesKey("handwriting_stylus_only")
         private val HANDWRITING_COMMIT_DELAY = intPreferencesKey("handwriting_commit_delay")
         private val HANDWRITING_AUTO_SPACE = booleanPreferencesKey("handwriting_auto_space")
@@ -16798,6 +16808,8 @@ class SettingsRepository(private val context: Context) {
             saveMode = p[CALENDAR_SAVE_MODE]?.let { v -> CalendarSaveMode.entries.firstOrNull { it.name == v } }
                 ?: defaults.calendarTool.saveMode,
             weatherOnEvents = p[CALENDAR_EVENT_WEATHER] ?: defaults.calendarTool.weatherOnEvents,
+            swipeChangesView = p[CALENDAR_SWIPE_VIEW] ?: defaults.calendarTool.swipeChangesView,
+            agendaInMiddle = p[CALENDAR_AGENDA_MIDDLE] ?: defaults.calendarTool.agendaInMiddle,
             invites = InvitePrefs.read(p, defaults.calendarTool.invites),
         )
 
@@ -18649,6 +18661,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setCalendarWeatherOnEvents(value: Boolean) =
         editPrefs { it[CALENDAR_EVENT_WEATHER] = value }
+
+    suspend fun setCalendarSwipeChangesView(value: Boolean) =
+        editPrefs { it[CALENDAR_SWIPE_VIEW] = value }
+
+    suspend fun setCalendarAgendaInMiddle(value: Boolean) =
+        editPrefs { it[CALENDAR_AGENDA_MIDDLE] = value }
 
     /**
      * The device's region, for the settings whose sensible default depends on

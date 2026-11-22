@@ -1535,6 +1535,8 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_weather_auto_fetch_title) { Icons.Outlined.CloudDownload }
         put(R.string.tooldetail_weather_refresh_title) { Icons.Outlined.Schedule }
         put(R.string.tooldetail_calendar_hijri_title) { Icons.Outlined.CalendarMonth }
+        put(R.string.tooldetail_calendar_swipe_view_title) { Icons.Outlined.Swipe }
+        put(R.string.tooldetail_calendar_agenda_middle_title) { Icons.Outlined.ViewWeek }
         put(R.string.toolai_weekend_title) { Icons.Outlined.Weekend }
         // Gallery (#708).
         put(R.string.gallery_access_title) { Icons.Outlined.PhotoLibrary }
