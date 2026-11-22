@@ -121,12 +121,14 @@ import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.ReadingOnSwitch
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.SuggestionTextScaleRange
 import com.wasimaster.wmkeyboard.core.settings.TransliterationHintMode
 import com.wasimaster.wmkeyboard.core.xlit.IndicXlitModels
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Locale
+import kotlin.math.roundToInt
 
 /**
  * The screens that make the [LanguageRegistry] reachable: a searchable list to
@@ -1271,6 +1273,35 @@ internal fun LanguageDetailScreen(
                 info = stringResource(R.string.languages_space_after_suggestion_info, lang.englishName),
                 default = langId !in DefaultSpaceAfterSuggestionOffLangs,
             ) { scope.launch { repository.setAutoSpaceAfterSuggestionForLanguage(langId, it) } }
+        }
+    }
+
+    // The strip's text size, per language (#1480): Chinese read through a font
+    // with Pinyin over the characters wants larger candidates than the English
+    // typed beside it. Follows Appearance › Toolbar until moved; the row's
+    // reset puts it back to following.
+    val ownTextScale = settings.watch { it.suggestionStrip.textScaleByLang[langId] }
+    val globalTextScale = settings.watch { it.suggestionStrip.textScale }
+    val textScalePercent = stringResource(R.string.typing_value_percent)
+    val followGlobalTextScale: () -> Unit = {
+        scope.launch { repository.setSuggestionTextScaleForLanguage(langId, null) }
+    }
+    SettingsGroup(stringResource(R.string.languages_suggestion_text_group)) {
+        item(level = SettingLevel.STANDARD) {
+            SliderSetting(
+                R.string.appearance_suggestion_text_size_title,
+                subtitle = if (ownTextScale != null) {
+                    stringResource(R.string.languages_suggestion_text_size_own, lang.englishName)
+                } else {
+                    stringResource(R.string.languages_suggestion_text_size_global)
+                },
+                value = ownTextScale ?: globalTextScale,
+                range = SuggestionTextScaleRange,
+                display = { textScalePercent.format((it * 100).roundToInt()) },
+                info = stringResource(R.string.languages_suggestion_text_size_info, lang.englishName),
+                default = globalTextScale,
+                onReset = if (ownTextScale != null) followGlobalTextScale else null,
+            ) { scope.launch { repository.setSuggestionTextScaleForLanguage(langId, it) } }
         }
     }
 

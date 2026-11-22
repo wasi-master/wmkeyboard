@@ -168,6 +168,12 @@
     <string name="languages_space_after_suggestion_subtitle">Add a space when you select a word from the suggestion strip</string>
     <!-- %1$s is the English name of the language, for example "Bengali". -->
     <string name="languages_space_after_suggestion_info">Turn this off to type a word you select from the suggestion strip in <xliff:g id="language" example="Bengali">%1$s</xliff:g> without a space after it, so you can add an ending straight away. Other languages still get the space. The Space after a suggestion switch in Typing turns the space off for all languages.</string>
+    <string name="languages_suggestion_text_group">Suggestion text</string>
+    <!-- %1$s is the English name of the language, for example "Chinese". -->
+    <string name="languages_suggestion_text_size_own">Set for <xliff:g id="language" example="Chinese">%1$s</xliff:g> only</string>
+    <string name="languages_suggestion_text_size_global">Same as in Appearance › Toolbar</string>
+    <!-- %1$s is the English name of the language, for example "Chinese". -->
+    <string name="languages_suggestion_text_size_info">Gives <xliff:g id="language" example="Chinese">%1$s</xliff:g> its own size for the words in the suggestion strip, and for the candidate row in Chinese, Japanese and Cantonese. Your other languages keep the size in Appearance › Toolbar. Use it for a script that needs larger text to read, such as a font with Pinyin over the characters. Reset the row to follow Appearance › Toolbar again.</string>
     <string name="languages_glide_group">Glide typing</string>
     <string name="languages_glide_radius_own">Set for <xliff:g id="language" example="Japanese">%1$s</xliff:g> only</string>
     <string name="languages_glide_radius_global">Same as in Typing › Gestures › Glide typing</string>

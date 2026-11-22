@@ -261,7 +261,7 @@
 
     <string name="appearance_suggestion_text_size_title">Suggestion text size</string>
     <string name="appearance_suggestion_text_size_subtitle">How large the words in the suggestion strip are</string>
-    <string name="appearance_suggestion_text_size_info">Key labels have their own size setting and the suggestions above them did not, so large keys could still come with small suggestions. This also sizes the candidate row for Chinese, Japanese and Cantonese input, since it is the same row in a different mode. This setting is 100% by default.</string>
+    <string name="appearance_suggestion_text_size_info">Key labels have their own size setting and the suggestions above them did not, so large keys could still come with small suggestions. This also sizes the candidate row for Chinese, Japanese and Cantonese input, since it is the same row in a different mode. A language can have a size of its own, set on its page in Languages. This setting is 100% by default.</string>
     <string name="appearance_long_words_title">Long words</string>
     <string name="appearance_long_words_subtitle">What a word does when it is too long for its space</string>
     <string name="appearance_long_words_info">A word that does not fit its space in the suggestion strip can narrow its letters, get smaller, do both, or be cut short with an ellipsis straight away. Narrowing first keeps a long word as tall as the words beside it. Buttons in plugins fit their labels the same way. While Scroll the suggestions is on, words keep their natural size and this does nothing in the strip. This setting is Narrow, then shrink by default.</string>

@@ -8221,6 +8221,9 @@ val GlobeTypingGuardMsRange = 0..1000
 /** Bounds for [LayoutBehaviorSettings.languageEchoMs]; 0 is off. The slider shares them. */
 val LanguageEchoMsRange = 0..1000
 
+/** Bounds for [SuggestionStripSettings.textScale] and its per-language sizes. The sliders share them. */
+val SuggestionTextScaleRange = 0.8f..1.6f
+
 /** How many languages the user said they type in during onboarding. */
 enum class PersonaLanguages { UNSET, ONE, MANY }
 
@@ -11614,6 +11617,14 @@ data class SuggestionStripSettings(
      */
     val textScale: Float = 1f,
     /**
+     * A language's own [textScale] (#1480), set on its settings page: Chinese
+     * read through a font with Pinyin over the characters wants larger
+     * candidates than the English typed beside it. Only languages given a size
+     * of their own are stored; the rest follow [textScale]. Read it through
+     * [textScaleFor].
+     */
+    val textScaleByLang: Map<String, Float> = emptyMap(),
+    /**
      * What a word too long for its slot does before it is cut short with "…":
      * narrow its letters, shrink it, both in either order, or neither.
      * Narrowing first is Gboard's way and keeps a long word as tall as its
@@ -12388,6 +12399,9 @@ data class SuggestionStripSettings(
     /** [longWords] and its two limits as one value, built once per settings change. */
     val fitting: TextFitting = TextFitting(longWords, narrowestLetters, smallestText)
 
+    /** The suggestion text size while [langId] feeds the strip: its own, else the global [textScale]. */
+    fun textScaleFor(langId: String): Float = textScaleByLang[langId] ?: textScale
+
     /** Whether a word picked from the strip while typing [langId] gets a space after it. */
     fun autoSpaceAfterSuggestionFor(langId: String): Boolean =
         autoSpaceAfterSuggestion && langId !in spaceAfterSuggestionOffLangs
@@ -12583,6 +12597,24 @@ private fun decodeOctopusKinds(raw: String): Set<OctopusKind> =
         .filter { it.isNotEmpty() }
         .mapNotNull { runCatching { OctopusKind.valueOf(it) }.getOrNull() }
         .toSet()
+
+/** Serializes the per-language suggestion text sizes to a compact `lang=1.25;...` string. */
+private fun encodeTextScales(map: Map<String, Float>): String =
+    map.entries
+        .filter { it.key.isNotEmpty() }
+        .joinToString(";") { (language, scale) -> "$language=$scale" }
+
+/** Reads [encodeTextScales]' string back, dropping malformed entries and clamping each size to the slider. */
+private fun decodeTextScales(raw: String): Map<String, Float> =
+    raw.split(';')
+        .filter { it.isNotEmpty() }
+        .mapNotNull { entry ->
+            val eq = entry.indexOf('=')
+            if (eq <= 0 || eq == entry.length - 1) return@mapNotNull null
+            val scale = entry.substring(eq + 1).toFloatOrNull() ?: return@mapNotNull null
+            entry.substring(0, eq) to scale.coerceIn(SuggestionTextScaleRange)
+        }
+        .toMap()
 
 private fun decodeNumeralSystems(raw: String): Map<String, NumeralSystem> =
     raw.split(';')
@@ -14298,6 +14330,7 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBOX_BUTTON_HOLD = stringPreferencesKey("toolbox_button_hold")
         private val CUSTOM_BUTTONS = stringPreferencesKey("custom_buttons")
         private val SUGGESTION_TEXT_SCALE = floatPreferencesKey("suggestion_text_scale")
+        private val SUGGESTION_TEXT_SCALE_BY_LANG = stringPreferencesKey("suggestion_text_scale_by_lang")
         private val SUGGESTION_LONG_WORDS = stringPreferencesKey("suggestion_long_words")
         private val SUGGESTION_NARROWEST_LETTERS = floatPreferencesKey("suggestion_narrowest_letters")
         private val SUGGESTION_SMALLEST_TEXT = floatPreferencesKey("suggestion_smallest_text")
@@ -16144,6 +16177,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.suggestionStrip.punctuationChips,
             slotCount = p[SUGGESTION_SLOT_COUNT] ?: defaults.suggestionStrip.slotCount,
             textScale = p[SUGGESTION_TEXT_SCALE] ?: defaults.suggestionStrip.textScale,
+            textScaleByLang = p[SUGGESTION_TEXT_SCALE_BY_LANG]?.let { decodeTextScales(it) }
+                ?: defaults.suggestionStrip.textScaleByLang,
             longWords = p[SUGGESTION_LONG_WORDS]?.let { name -> LongWordFit.entries.firstOrNull { it.name == name } }
                 ?: defaults.suggestionStrip.longWords,
             narrowestLetters = p[SUGGESTION_NARROWEST_LETTERS] ?: defaults.suggestionStrip.narrowestLetters,
@@ -19635,7 +19670,28 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[TOOLBOX_LABEL_SIZE] = if (value <= 0) 0 else value.coerceIn(7, 16) }
 
     suspend fun setSuggestionTextScale(value: Float) =
-        editPrefs { it[SUGGESTION_TEXT_SCALE] = value.coerceIn(0.8f, 1.6f) }
+        editPrefs { it[SUGGESTION_TEXT_SCALE] = value.coerceIn(SuggestionTextScaleRange) }
+
+    /**
+     * Gives [langId] its own suggestion text size (#1480). Null drops the
+     * entry, so the language follows the global size again and the map stays
+     * compact.
+     */
+    suspend fun setSuggestionTextScaleForLanguage(langId: String, value: Float?) =
+        editPrefs { prefs ->
+            val current = prefs[SUGGESTION_TEXT_SCALE_BY_LANG]?.let { decodeTextScales(it) }.orEmpty()
+            val next = if (value == null) {
+                current - langId
+            } else {
+                current + (langId to value.coerceIn(SuggestionTextScaleRange))
+            }
+            if (next == current) return@editPrefs
+            if (next.isEmpty()) {
+                prefs.remove(SUGGESTION_TEXT_SCALE_BY_LANG)
+            } else {
+                prefs[SUGGESTION_TEXT_SCALE_BY_LANG] = encodeTextScales(next)
+            }
+        }
 
     suspend fun setSuggestionLongWords(value: LongWordFit) =
         editPrefs { it[SUGGESTION_LONG_WORDS] = value.name }

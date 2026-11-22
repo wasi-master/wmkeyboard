@@ -6029,7 +6029,7 @@ private fun RowScope.StripWords(
             candidates = shownSuggestions,
             enabled = suggestionsShowing,
             alpha = stripContentFade,
-            textScale = state.settings.suggestionStrip.textScale,
+            textScale = state.settings.suggestionStrip.textScaleFor(state.language.id),
             hints = if (suggestionsShowing) suggestionHintPlan(state) else null,
             highlighted = state.candidateCursor,
             adjustable = state.composer.adjustsChoices,
@@ -6125,7 +6125,7 @@ private fun RowScope.StripWords(
             alpha = stripContentFade,
             slotCount = wordSlots,
             weight = wordSlots.toFloat(),
-            textScale = state.settings.suggestionStrip.textScale,
+            textScale = state.settings.suggestionStrip.textScaleFor(state.language.id),
             scrollable = state.settings.suggestionStrip.scrollable,
             textPadding = state.settings.suggestionStrip.chipPadding.dp,
             centerPrimaryEnabled = state.settings.suggestionStrip.suggestionPrimaryCenter &&
@@ -7464,7 +7464,7 @@ private fun CandidateGridPanel(
     onCandidate: (String, Int) -> Unit,
     onAdjust: (String, Int, CandidateAdjustment) -> Unit = { _, _, _ -> },
 ) {
-    val textScale = state.settings.suggestionStrip.textScale
+    val textScale = state.settings.suggestionStrip.textScaleFor(state.language.id)
     var menuFor by remember(state.expandedCandidates) { mutableIntStateOf(-1) }
     val adjustable = state.composer.isConversion && state.composer.adjustsChoices
     Column(
@@ -12386,7 +12386,7 @@ private fun MoreSuggestionsPopup(state: KeyboardUiState, hold: MoreSuggestionsHo
     val selected = hold.selected.intValue
     val columns = state.settings.suggestionStrip.slotCount.coerceAtLeast(1)
     val grid = state.settings.suggestionStrip.expandedGrid
-    val textScale = state.settings.suggestionStrip.textScale
+    val textScale = state.settings.suggestionStrip.textScaleFor(state.language.id)
     val provider = remember {
         object : PopupPositionProvider {
             override fun calculatePosition(
@@ -16227,7 +16227,7 @@ private fun CaptureStrip(state: KeyboardUiState, capture: CaptureCallbacks) {
                 enabled = true,
                 alpha = { 1f },
                 slotCount = state.settings.suggestionStrip.slotCount,
-                textScale = state.settings.suggestionStrip.textScale,
+                textScale = state.settings.suggestionStrip.textScaleFor(state.language.id),
                 scrollable = state.settings.suggestionStrip.scrollable,
                 textPadding = state.settings.suggestionStrip.chipPadding.dp,
                 centerPrimaryEnabled = state.settings.suggestionStrip.suggestionPrimaryCenter,
@@ -16334,7 +16334,7 @@ private fun TypingTestStrip(state: KeyboardUiState, onTypingTestAction: (TypingT
             enabled = true,
             alpha = { 1f },
             slotCount = state.settings.suggestionStrip.slotCount,
-            textScale = state.settings.suggestionStrip.textScale,
+            textScale = state.settings.suggestionStrip.textScaleFor(state.language.id),
             scrollable = state.settings.suggestionStrip.scrollable,
             textPadding = state.settings.suggestionStrip.chipPadding.dp,
             centerPrimaryEnabled = state.settings.suggestionStrip.suggestionPrimaryCenter &&
