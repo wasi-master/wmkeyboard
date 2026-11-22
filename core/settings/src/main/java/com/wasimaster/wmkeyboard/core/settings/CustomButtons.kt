@@ -118,7 +118,7 @@ enum class CustomToggle(val settingRow: String?, val route: String) {
      * like, even from Follow the system. An automatic day and night theme
      * pair still decides over it.
      */
-    DARK_THEME(null, "themes"),
+    DARK_THEME(null, "themes/modes"),
     ;
 
     fun isOn(s: KeyboardSettings): Boolean = when (this) {

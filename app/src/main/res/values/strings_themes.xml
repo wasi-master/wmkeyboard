@@ -6,6 +6,10 @@
     <!-- The name of the theme that follows the system colours. Shown in the
          theme gallery and in every theme picker. -->
     <string name="theme_default_name">Default (system)</string>
+    <!-- Row at the top of Keyboard themes, and the title of the page it opens:
+         the light or dark mode, Auto theme and App colors (#1451). -->
+    <string name="theme_modes_title">Theme modes</string>
+    <string name="theme_modes_subtitle">Light or dark, Auto theme and app colors</string>
     <string name="theme_mode_section_title">Mode</string>
     <!-- Caption over the light/dark choice. It says which two things the
          choice applies to, because the option names do not. -->

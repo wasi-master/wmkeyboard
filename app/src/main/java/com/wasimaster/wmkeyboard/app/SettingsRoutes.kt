@@ -134,6 +134,7 @@ internal object SettingsRoutes {
         "icons",
         "icons/library",
         "themes",
+        "themes/modes",
         "theme_edit/{themeId}",
         "theme_assets/{themeId}",
         "theme_rules/{themeId}",

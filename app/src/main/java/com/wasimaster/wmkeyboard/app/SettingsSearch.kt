@@ -1096,6 +1096,12 @@ private fun SearchStrings.appearanceRows(): List<SettingsSearchEntry> {
         screenParent = R.string.home_appearance_title,
         weight = weight,
     )
+    // Light or dark, Auto theme and App colors have a page of their own
+    // under Keyboard themes since #1451.
+    fun modes(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.theme_modes_title, "themes/modes",
+        screenParent = R.string.home_screen_themes_title, screenRoot = R.string.home_appearance_title,
+    )
     // The key rows have a page of their own since #1318.
     fun keys(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
         title, subtitle, R.string.appearance_keys_section_title, "appearance/keys",
@@ -1105,18 +1111,19 @@ private fun SearchStrings.appearanceRows(): List<SettingsSearchEntry> {
         // Keyboard themes, Keyboard font and Icons are rows here, but each
         // opens its own screen. They are indexed once in sectionRows,
         // pointing at that screen.
-        theme(R.string.theme_auto_title, R.string.theme_auto_subtitle),
-        theme(R.string.theme_auto_light_title),
-        theme(R.string.theme_auto_dark_title),
-        theme(R.string.theme_auto_light_from_title),
-        theme(R.string.theme_auto_dark_from_title),
-        theme(R.string.theme_shuffle_interval_title, R.string.theme_shuffle_interval_subtitle),
-        theme(R.string.theme_shuffle_now_title, R.string.theme_shuffle_now_subtitle),
-        theme(R.string.theme_app_colors_title, R.string.theme_app_colors_subtitle),
-        theme(R.string.theme_app_colors_scope_title),
-        theme(R.string.theme_app_colors_source_title),
-        theme(R.string.theme_app_colors_style_title, R.string.theme_app_colors_style_subtitle),
-        theme(R.string.theme_app_colors_reset_title),
+        modes(R.string.theme_material_you_title, R.string.theme_material_you_subtitle),
+        modes(R.string.theme_auto_title, R.string.theme_auto_subtitle),
+        modes(R.string.theme_auto_light_title),
+        modes(R.string.theme_auto_dark_title),
+        modes(R.string.theme_auto_light_from_title),
+        modes(R.string.theme_auto_dark_from_title),
+        modes(R.string.theme_shuffle_interval_title, R.string.theme_shuffle_interval_subtitle),
+        modes(R.string.theme_shuffle_now_title, R.string.theme_shuffle_now_subtitle),
+        modes(R.string.theme_app_colors_title, R.string.theme_app_colors_subtitle),
+        modes(R.string.theme_app_colors_scope_title),
+        modes(R.string.theme_app_colors_source_title),
+        modes(R.string.theme_app_colors_style_title, R.string.theme_app_colors_style_subtitle),
+        modes(R.string.theme_app_colors_reset_title),
         theme(R.string.theme_background_image_landscape_title),
         icon(R.string.plugins_icons_pack_title),
         icon(R.string.plugins_icons_import_title, R.string.plugins_icons_import_subtitle),
@@ -3354,6 +3361,11 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
         under(
             R.string.appearance_toolbar_section_title, R.string.appearance_toolbar_section_subtitle,
             R.string.home_appearance_title, "appearance/toolbar",
+        ),
+        under(
+            R.string.theme_modes_title, R.string.theme_modes_subtitle,
+            R.string.home_screen_themes_title, "themes/modes",
+            parent = R.string.home_appearance_title,
         ),
         under(
             R.string.appearance_toolbox_section_title, R.string.appearance_toolbox_section_subtitle,

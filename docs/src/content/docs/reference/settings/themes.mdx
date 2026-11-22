@@ -11,17 +11,23 @@ import Shot from '@components/Shot.astro';
 
 Two screens live behind **Keyboard themes**. One is a gallery for picking, creating, and managing themes. The other is an editor for building one from scratch. This page is the field reference for both. For the reasoning and the bigger picture, read [Theming overview](/themes/overview/) and [Theme editor](/themes/editor/) instead.
 
-<PhoneFrame caption="The theme gallery: Mode, Auto (light + dark), and the Themes grid.">
-<Shot id="reference/settings/themes-gallery-overview" alt="The theme gallery: Mode, Auto (light + dark), and the Themes grid." />
+<PhoneFrame caption="The theme gallery, with Theme modes above it.">
+<Shot id="reference/settings/themes-gallery-overview" alt="The theme gallery, with the Theme modes row above it." />
 </PhoneFrame>
 
 ## Theme list
 
 <SettingsPath path="Appearance / Keyboard themes" />
 
-Reach it from **Appearance → Style → Keyboard themes**, or by searching "themes" in settings search. The whole screen is one scroll, in three groups.
+Reach it from **Appearance → Style → Keyboard themes**, or by searching "themes" in settings search. Its first row, **Theme modes**, opens a page of its own with three groups: Mode, Auto (light + dark) and App colors. They used to sit above the gallery, so reaching a theme meant scrolling past them first. The rest of the screen is the gallery.
 
-### Mode
+### Theme modes
+
+<SettingsPath path="Appearance / Keyboard themes / Theme modes" />
+
+The row shows the current mode beside its name.
+
+#### Mode
 
 | Setting | Control | Options | Default |
 |---|---|---|---|
@@ -30,7 +36,7 @@ Reach it from **Appearance → Style → Keyboard themes**, or by searching "the
 
 Both apply to the settings app itself and to the **Default (system)** theme only. Every built-in and custom theme carries its own fixed palette regardless of either setting. Amoled always renders dark, and it forces the Default theme's board to pure black. System instead waits on the phone's own light/dark setting.
 
-### Auto (light + dark)
+#### Auto (light + dark)
 
 | Setting | Control | Options | Default |
 |---|---|---|---|
@@ -45,7 +51,7 @@ Both apply to the settings app itself and to the **Default (system)** theme only
 | Light theme from *(Time of day only)* | Time picker | Any clock time | 7:00 AM |
 | Dark theme from *(Time of day only)* | Time picker | Any clock time | 7:00 PM |
 
-**Sunrise & sunset** shows explanatory text instead of a control. It reads the location already saved in the weather tool and works the times out locally, with no network call. With no location saved, it falls back to System light/dark. While Auto theme is on, the Themes grid below still shows which card is selected, but tapping one only previews it. A note above the grid says so.
+**Sunrise & sunset** shows explanatory text instead of a control. It reads the location already saved in the weather tool and works the times out locally, with no network call. With no location saved, it falls back to System light/dark. While Auto theme is on, the Themes grid on Keyboard themes still shows which card is selected, but tapping one only previews it. A note above the grid says so.
 
 Each half of the pair is independent: one can hold a single theme while the other selects from a set. A random half shows how many themes it selects from in place of a theme name. The picker's list is the same either way, with radio buttons for One theme and checkboxes for Random, and a checkbox on each family name that ticks or unticks every look in it.
 
@@ -57,9 +63,9 @@ Each half of the pair is independent: one can hold a single theme while the othe
 <Shot id="reference/settings/themes-auto-schedule" alt="Auto theme on, with Time of day chosen and both clock rows visible." />
 </PhoneFrame>
 
-### App colors
+#### App colors
 
-<SettingsPath path="Appearance / Keyboard themes / Match the app colors" />
+<SettingsPath path="Appearance / Keyboard themes / Theme modes / Match the app colors" />
 
 | Setting | Control | Options | Default |
 |---|---|---|---|

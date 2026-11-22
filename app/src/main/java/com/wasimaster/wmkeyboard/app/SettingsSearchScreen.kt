@@ -76,6 +76,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Accessibility
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AspectRatio
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Contrast
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EmojiEmotions
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension
@@ -856,6 +857,7 @@ internal object SettingsRouteIcons {
         "appearance/toolbar" to { Icons.Outlined.ViewDay },
         "appearance/toolbox" to { Icons.Outlined.Apps },
         "themes" to { Icons.Outlined.Palette },
+        "themes/modes" to { Icons.Outlined.Contrast },
         "photos" to { Icons.Outlined.Wallpaper },
         "photo_browse" to { Icons.Outlined.PhotoLibrary },
         "photo_library" to { Icons.Outlined.Collections },

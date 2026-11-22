@@ -438,7 +438,7 @@ Deleting the layout deletes the method's data with it, unless a copy of the layo
 
 A `.flex` file is FlorisBoard's theme package. Pick one and the app converts every theme inside it. You can also open a `.flex` straight from a file manager.
 
-A FlorisBoard extension that holds both a day and a night version becomes one theme with two looks, not two separate entries, and an extension with more themes than that becomes one theme with that many looks. The first look heads the family and the rest become variants of it. The family takes the title the extension declares for itself, or the first look's own name when it declares none. Auto theme addresses the looks individually, so you can still put the day one in one slot and the night one in the other under <SettingsPath path="Appearance / Keyboard themes / Auto theme" />. The result message says so too: "The app saved *name* with 2 looks."
+A FlorisBoard extension that holds both a day and a night version becomes one theme with two looks, not two separate entries, and an extension with more themes than that becomes one theme with that many looks. The first look heads the family and the rest become variants of it. The family takes the title the extension declares for itself, or the first look's own name when it declares none. Auto theme addresses the looks individually, so you can still put the day one in one slot and the night one in the other under <SettingsPath path="Appearance / Keyboard themes / Theme modes / Auto theme" />. The result message says so too: "The app saved *name* with 2 looks."
 
 Converted themes are saved but not turned on. They go into your themes list for you to look at first, and the theme editor is where you finish the parts that did not carry over.
 
@@ -539,7 +539,7 @@ Kinetica stores where its colours come from and whether they are light or dark, 
 | Default, dark or light | Kinetica's own grey palette with its blue accent |
 | Custom colour (`#RRGGBB`) | The colour spread over the keys, the board, the suggestion bar and the popups by Kinetica's own rules, so a dark colour dims the board as it did there |
 | Material You | Kinetica's grey palette with the theme's **Follow wallpaper colors** switch on, so it takes the wallpaper's colours from Android 12 on |
-| Light or dark: follow the system | One theme with a dark look and a light look, ready for the two slots of <SettingsPath path="Appearance / Keyboard themes / Auto theme" /> |
+| Light or dark: follow the system | One theme with a dark look and a light look, ready for the two slots of <SettingsPath path="Appearance / Keyboard themes / Theme modes / Auto theme" /> |
 | Key borders and their width | A border in the hint colour, 1 to 4 dp |
 | Swipe trail: theme, a preset or a typed colour | The glide trail colour |
 
@@ -573,7 +573,7 @@ Clink is a keyboard for iPhone and iPad. A theme from it is a `.clinktheme` file
 | Inner shadow, on a plain key | A pressed-in top edge |
 | (Clink has no popup colours of its own) | The key preview grows out of the key in the letter keys' colours, shape and outline, the way Clink's callout does |
 | Moving background: snow, rain, bokeh, starfield, warp speed, fireflies, embers, bubbles, confetti, fireworks, aurora, nebula, lava, waves | The [moving background](/themes/editor/#moving-background) of the same name, with its colours, amount, speed, brightness, size and how much it reacts to typing. Rain on a terminal or monospaced theme is code rain |
-| A light and a dark look that switch with the phone | One theme with a dark look and a light look, ready for the two slots of <SettingsPath path="Appearance / Keyboard themes / Auto theme" /> |
+| A light and a dark look that switch with the phone | One theme with a dark look and a light look, ready for the two slots of <SettingsPath path="Appearance / Keyboard themes / Theme modes / Auto theme" /> |
 
 The finer touches of a Clink finish (its painted edges, the glitch of a terminal theme) are drawn the way the nearest preset draws them, and the material's controls in the editor can take a converted theme further. A material or a moving background that a later Clink adds, and that this version has no preset for, comes across as plain keys or a still board, and the result message says so. It also says when a key outline was dashed or dotted, which becomes a solid one. A Clink theme file never carries pictures, so a theme that used one needs it added again in the [theme editor](/themes/editor/).
 

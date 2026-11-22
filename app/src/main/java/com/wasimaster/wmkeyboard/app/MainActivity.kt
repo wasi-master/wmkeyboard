@@ -1857,6 +1857,15 @@ private fun SettingsNavGraph(
                 ) { id -> navController.navigate("theme_edit/$id") }
             }
         }
+        composable("themes/modes") {
+            SettingsScreen(
+                stringResource(R.string.theme_modes_title),
+                { navController.popBackStack() },
+                route = "themes/modes",
+            ) {
+                ThemeModesSettings(repository, settings)
+            }
+        }
         // Not in the Play build at all, so nothing can reach it there: see
         // the Themes screen's Gboard button.
         if (!BuildConfig.ENABLE_PLAY_STORE) {

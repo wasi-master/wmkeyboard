@@ -1985,6 +1985,8 @@ internal object SettingsRowIcons {
         put(R.string.keypress_alternates_group_title) { Icons.Outlined.MoreHoriz }
         put(R.string.keypress_timing_group_title) { Icons.Outlined.Timer }
         put(R.string.appearance_keys_section_title) { Icons.Outlined.RoundedCorner }
+        // Keyboard themes › Theme modes (#1451).
+        put(R.string.theme_modes_title) { Icons.Outlined.Contrast }
         put(R.string.panel_layouts_title) { Icons.Outlined.Dashboard }
         put(R.string.typing_strip_look_title) { Icons.Outlined.FormatSize }
         put(R.string.languages_translit_hints_row_title) { Icons.Outlined.Translate }

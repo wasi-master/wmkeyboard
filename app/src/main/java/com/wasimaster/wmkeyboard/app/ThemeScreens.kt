@@ -1725,176 +1725,20 @@ fun ThemesScreen(
         }
     }
 
-    SettingsGroup(stringResource(R.string.theme_mode_section_title)) {
-        item {
-            ChoiceControl(
-                options = ThemeMode.entries.map { it to stringResource(themeModeLabelRes(it)) },
-                selected = settings.watch { it.themeMode },
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                label = stringResource(R.string.theme_mode_choice_label),
-                detail = { mode -> ChoiceDetail(stringResource(themeModeDescRes(mode))) },
-            ) { mode -> scope.launch { repository.setThemeMode(mode) } }
-        }
-        item {
-            ToggleSetting(
-                R.string.theme_material_you_title,
-                stringResource(R.string.theme_material_you_subtitle),
-                checked = settings.watch { it.dynamicColor },
-                default = SettingsDefaults.dynamicColor,
-                info = stringResource(R.string.theme_material_you_info),
-            ) { scope.launch { repository.setDynamicColor(it) } }
-        }
-    }
-
-    // null = closed; true = choosing the light theme; false = the dark theme.
-    var pickerForLight by remember { mutableStateOf<Boolean?>(null) }
-    // null = closed; true = editing when day starts, false = when night does.
-    var timePickerForDay by remember { mutableStateOf<Boolean?>(null) }
-    // What decides which rows the auto group holds, and what its "?" says;
-    // each row reads its own value.
+    // Light or dark, Auto (light and dark) and App colors have a page of their
+    // own (#1451). Laid out here they stood between the title and the gallery,
+    // and the gallery is what nearly every visit to this screen is for.
     val autoOn = settings.watch { it.autoTheme.enabled }
-    val autoTrigger = settings.watch { it.autoTheme.trigger }
-    val shuffles = settings.watch { it.autoTheme.usesRandomSlot }
-    // The chosen trigger's explanation rides in the section's "?" with the
-    // rest; the one state that needs doing something about — sun times with
-    // no place to compute them for — is a banner instead.
-    val hasSunLocation = settings.watch { it.weather.latitude != null && it.weather.longitude != null }
-    val sunPlace = settings.watch { it.weather.placeName }.takeIf { it.isNotBlank() }
-        ?: stringResource(R.string.theme_auto_trigger_sun_place_fallback)
-    val triggerNote = when (autoTrigger) {
-        AutoThemeTrigger.SYSTEM -> stringResource(R.string.theme_auto_trigger_system_body)
-        AutoThemeTrigger.SUN ->
-            if (hasSunLocation) stringResource(R.string.theme_auto_trigger_sun_body, sunPlace) else null
-        else -> null
-    }
-    SettingsGroup(
-        stringResource(R.string.theme_auto_section_title),
-        info = listOfNotNull(stringResource(R.string.theme_auto_section_body), triggerNote)
-            .joinToString("\n\n"),
-        level = SettingLevel.STANDARD,
-    ) {
+    SettingsGroup {
         item {
-            ToggleSetting(
-                R.string.theme_auto_title,
-                stringResource(R.string.theme_auto_subtitle),
-                checked = autoOn,
-                default = SettingsDefaults.autoTheme.enabled,
-                info = stringResource(R.string.theme_auto_info),
-            ) { scope.launch { repository.setAutoThemeEnabled(it) } }
-        }
-        if (autoOn) {
-            item {
-                NavRow(
-                    R.string.theme_auto_light_title,
-                    value = autoSlotSummary(settings, darkSlot = false),
-                ) { pickerForLight = true }
-            }
-            item {
-                NavRow(
-                    R.string.theme_auto_dark_title,
-                    value = autoSlotSummary(settings, darkSlot = true),
-                ) { pickerForLight = false }
-            }
-            item(visible = shuffles, level = SettingLevel.ADVANCED) {
-                ChoiceSetting(
-                    title = R.string.theme_shuffle_interval_title,
-                    subtitle = stringResource(R.string.theme_shuffle_interval_subtitle),
-                    options = RotationInterval.entries
-                        .map { it to stringResource(it.labelRes) },
-                    selected = settings.watch { it.autoTheme.shuffleInterval },
-                    default = SettingsDefaults.autoTheme.shuffleInterval,
-                    info = stringResource(R.string.theme_shuffle_interval_info),
-                ) { value -> scope.launch { repository.setAutoThemeShuffleInterval(value) } }
-            }
-            item(visible = shuffles) {
-                ActionRow(
-                    title = R.string.theme_shuffle_now_title,
-                    subtitle = stringResource(R.string.theme_shuffle_now_subtitle),
-                    action = stringResource(R.string.theme_shuffle_now_action),
-                ) { scope.launch { repository.shuffleAutoThemeNow() } }
-            }
-            item {
-                ChoiceControl(
-                    options = AutoThemeTrigger.entries.map { it to stringResource(it.labelRes) },
-                    selected = autoTrigger,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    label = stringResource(R.string.theme_auto_trigger_label),
-                    detail = { trigger ->
-                        ChoiceDetail(stringResource(autoTriggerDescRes(trigger)))
-                    },
-                ) { trigger -> scope.launch { repository.setAutoThemeTrigger(trigger) } }
-            }
-            when (autoTrigger) {
-                AutoThemeTrigger.SYSTEM -> Unit
-                AutoThemeTrigger.SCHEDULE -> {
-                    item {
-                        NavRow(
-                            R.string.theme_auto_light_from_title,
-                            value = formatMinutesOfDay(settings.watch { it.autoTheme.dayStartMinutes }),
-                        ) { timePickerForDay = true }
-                    }
-                    item {
-                        NavRow(
-                            R.string.theme_auto_dark_from_title,
-                            value = formatMinutesOfDay(settings.watch { it.autoTheme.nightStartMinutes }),
-                        ) { timePickerForDay = false }
-                    }
-                }
-                AutoThemeTrigger.SUN -> if (!hasSunLocation) {
-                    item { StateBanner(stringResource(R.string.theme_auto_trigger_sun_no_location_body)) }
-                }
-            }
+            NavRow(
+                R.string.theme_modes_title,
+                stringResource(R.string.theme_modes_subtitle),
+                value = stringResource(themeModeLabelRes(settings.watch { it.themeMode })),
+                route = THEME_MODES_ROUTE,
+            ) { onNavigate(THEME_MODES_ROUTE) }
         }
     }
-    timePickerForDay?.let { forDay ->
-        TimeOfDayPickerDialog(
-            title = stringResource(
-                if (forDay) R.string.theme_auto_light_from_title
-                else R.string.theme_auto_dark_from_title,
-            ),
-            minutes = settings.watch {
-                if (forDay) it.autoTheme.dayStartMinutes else it.autoTheme.nightStartMinutes
-            },
-            onPick = { picked ->
-                scope.launch {
-                    if (forDay) repository.setAutoThemeDayStart(picked)
-                    else repository.setAutoThemeNightStart(picked)
-                }
-                timePickerForDay = null
-            },
-            onDismiss = { timePickerForDay = null },
-        )
-    }
-    pickerForLight?.let { forLight ->
-        val darkSlot = !forLight
-        ThemePickerDialog(
-            title = stringResource(
-                if (forLight) R.string.theme_auto_light_title else R.string.theme_auto_dark_title,
-            ),
-            settings = settings,
-            selectedId = settings.watch { it.autoTheme.slotFixedId(darkSlot) },
-            randomOn = settings.watch { it.autoTheme.slotRandom(darkSlot) },
-            poolIds = settings.watch { it.autoTheme.slotPool(darkSlot) },
-            onModeChange = { on ->
-                scope.launch { repository.setAutoThemeSlotRandom(darkSlot, on) }
-            },
-            onPick = { id ->
-                scope.launch {
-                    if (forLight) repository.setAutoThemeLightId(id)
-                    else repository.setAutoThemeDarkId(id)
-                }
-                // Selecting one theme closes the dialog; assembling a set does
-                // not, because that takes more than one press.
-                pickerForLight = null
-            },
-            onToggle = { id, inPool ->
-                scope.launch { repository.setAutoThemePoolMember(darkSlot, id, inPool) }
-            },
-            onDismiss = { pickerForLight = null },
-        )
-    }
-
-    AppColorsGroup(repository, settings)
 
     // The gallery is a grid of theme cards, which are their own surfaces, so
     // it keeps a plain header rather than being wrapped in a settings card.
@@ -2460,6 +2304,190 @@ fun ThemesScreen(
             },
         )
     }
+}
+
+/** Keyboard themes › Theme modes (#1451). */
+internal const val THEME_MODES_ROUTE = "themes/modes"
+
+/**
+ * Keyboard themes › Theme modes: light or dark, Auto (light and dark) and App
+ * colors. They sat over the theme gallery until #1451, so every visit to pick
+ * or edit a theme began with a scroll past rows that are set once.
+ */
+@Composable
+internal fun ThemeModesSettings(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    SettingsGroup(stringResource(R.string.theme_mode_section_title)) {
+        item {
+            ChoiceControl(
+                options = ThemeMode.entries.map { it to stringResource(themeModeLabelRes(it)) },
+                selected = settings.watch { it.themeMode },
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                label = stringResource(R.string.theme_mode_choice_label),
+                detail = { mode -> ChoiceDetail(stringResource(themeModeDescRes(mode))) },
+            ) { mode -> scope.launch { repository.setThemeMode(mode) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.theme_material_you_title,
+                stringResource(R.string.theme_material_you_subtitle),
+                checked = settings.watch { it.dynamicColor },
+                default = SettingsDefaults.dynamicColor,
+                info = stringResource(R.string.theme_material_you_info),
+            ) { scope.launch { repository.setDynamicColor(it) } }
+        }
+    }
+
+    // null = closed; true = choosing the light theme; false = the dark theme.
+    var pickerForLight by remember { mutableStateOf<Boolean?>(null) }
+    // null = closed; true = editing when day starts, false = when night does.
+    var timePickerForDay by remember { mutableStateOf<Boolean?>(null) }
+    // What decides which rows the auto group holds, and what its "?" says;
+    // each row reads its own value.
+    val autoOn = settings.watch { it.autoTheme.enabled }
+    val autoTrigger = settings.watch { it.autoTheme.trigger }
+    val shuffles = settings.watch { it.autoTheme.usesRandomSlot }
+    // The chosen trigger's explanation rides in the section's "?" with the
+    // rest; the one state that needs doing something about — sun times with
+    // no place to compute them for — is a banner instead.
+    val hasSunLocation = settings.watch { it.weather.latitude != null && it.weather.longitude != null }
+    val sunPlace = settings.watch { it.weather.placeName }.takeIf { it.isNotBlank() }
+        ?: stringResource(R.string.theme_auto_trigger_sun_place_fallback)
+    val triggerNote = when (autoTrigger) {
+        AutoThemeTrigger.SYSTEM -> stringResource(R.string.theme_auto_trigger_system_body)
+        AutoThemeTrigger.SUN ->
+            if (hasSunLocation) stringResource(R.string.theme_auto_trigger_sun_body, sunPlace) else null
+        else -> null
+    }
+    SettingsGroup(
+        stringResource(R.string.theme_auto_section_title),
+        info = listOfNotNull(stringResource(R.string.theme_auto_section_body), triggerNote)
+            .joinToString("\n\n"),
+        level = SettingLevel.STANDARD,
+    ) {
+        item {
+            ToggleSetting(
+                R.string.theme_auto_title,
+                stringResource(R.string.theme_auto_subtitle),
+                checked = autoOn,
+                default = SettingsDefaults.autoTheme.enabled,
+                info = stringResource(R.string.theme_auto_info),
+            ) { scope.launch { repository.setAutoThemeEnabled(it) } }
+        }
+        if (autoOn) {
+            item {
+                NavRow(
+                    R.string.theme_auto_light_title,
+                    value = autoSlotSummary(settings, darkSlot = false),
+                ) { pickerForLight = true }
+            }
+            item {
+                NavRow(
+                    R.string.theme_auto_dark_title,
+                    value = autoSlotSummary(settings, darkSlot = true),
+                ) { pickerForLight = false }
+            }
+            item(visible = shuffles, level = SettingLevel.ADVANCED) {
+                ChoiceSetting(
+                    title = R.string.theme_shuffle_interval_title,
+                    subtitle = stringResource(R.string.theme_shuffle_interval_subtitle),
+                    options = RotationInterval.entries
+                        .map { it to stringResource(it.labelRes) },
+                    selected = settings.watch { it.autoTheme.shuffleInterval },
+                    default = SettingsDefaults.autoTheme.shuffleInterval,
+                    info = stringResource(R.string.theme_shuffle_interval_info),
+                ) { value -> scope.launch { repository.setAutoThemeShuffleInterval(value) } }
+            }
+            item(visible = shuffles) {
+                ActionRow(
+                    title = R.string.theme_shuffle_now_title,
+                    subtitle = stringResource(R.string.theme_shuffle_now_subtitle),
+                    action = stringResource(R.string.theme_shuffle_now_action),
+                ) { scope.launch { repository.shuffleAutoThemeNow() } }
+            }
+            item {
+                ChoiceControl(
+                    options = AutoThemeTrigger.entries.map { it to stringResource(it.labelRes) },
+                    selected = autoTrigger,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    label = stringResource(R.string.theme_auto_trigger_label),
+                    detail = { trigger ->
+                        ChoiceDetail(stringResource(autoTriggerDescRes(trigger)))
+                    },
+                ) { trigger -> scope.launch { repository.setAutoThemeTrigger(trigger) } }
+            }
+            when (autoTrigger) {
+                AutoThemeTrigger.SYSTEM -> Unit
+                AutoThemeTrigger.SCHEDULE -> {
+                    item {
+                        NavRow(
+                            R.string.theme_auto_light_from_title,
+                            value = formatMinutesOfDay(settings.watch { it.autoTheme.dayStartMinutes }),
+                        ) { timePickerForDay = true }
+                    }
+                    item {
+                        NavRow(
+                            R.string.theme_auto_dark_from_title,
+                            value = formatMinutesOfDay(settings.watch { it.autoTheme.nightStartMinutes }),
+                        ) { timePickerForDay = false }
+                    }
+                }
+                AutoThemeTrigger.SUN -> if (!hasSunLocation) {
+                    item { StateBanner(stringResource(R.string.theme_auto_trigger_sun_no_location_body)) }
+                }
+            }
+        }
+    }
+    timePickerForDay?.let { forDay ->
+        TimeOfDayPickerDialog(
+            title = stringResource(
+                if (forDay) R.string.theme_auto_light_from_title
+                else R.string.theme_auto_dark_from_title,
+            ),
+            minutes = settings.watch {
+                if (forDay) it.autoTheme.dayStartMinutes else it.autoTheme.nightStartMinutes
+            },
+            onPick = { picked ->
+                scope.launch {
+                    if (forDay) repository.setAutoThemeDayStart(picked)
+                    else repository.setAutoThemeNightStart(picked)
+                }
+                timePickerForDay = null
+            },
+            onDismiss = { timePickerForDay = null },
+        )
+    }
+    pickerForLight?.let { forLight ->
+        val darkSlot = !forLight
+        ThemePickerDialog(
+            title = stringResource(
+                if (forLight) R.string.theme_auto_light_title else R.string.theme_auto_dark_title,
+            ),
+            settings = settings,
+            selectedId = settings.watch { it.autoTheme.slotFixedId(darkSlot) },
+            randomOn = settings.watch { it.autoTheme.slotRandom(darkSlot) },
+            poolIds = settings.watch { it.autoTheme.slotPool(darkSlot) },
+            onModeChange = { on ->
+                scope.launch { repository.setAutoThemeSlotRandom(darkSlot, on) }
+            },
+            onPick = { id ->
+                scope.launch {
+                    if (forLight) repository.setAutoThemeLightId(id)
+                    else repository.setAutoThemeDarkId(id)
+                }
+                // Selecting one theme closes the dialog; assembling a set does
+                // not, because that takes more than one press.
+                pickerForLight = null
+            },
+            onToggle = { id, inPool ->
+                scope.launch { repository.setAutoThemePoolMember(darkSlot, id, inPool) }
+            },
+            onDismiss = { pickerForLight = null },
+        )
+    }
+
+    AppColorsGroup(repository, settings)
+    Spacer(Modifier.height(24.dp))
 }
 
 // ---- gallery windowing ----
