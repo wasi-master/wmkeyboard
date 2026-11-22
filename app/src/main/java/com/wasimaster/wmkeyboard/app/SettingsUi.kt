@@ -145,6 +145,7 @@ import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -1877,12 +1878,15 @@ internal fun ReflowingText(
     // drawn outside any row keeps the word layout from the start.
     val untouched = LocalRowTouch.current?.touched == false
     if (LocalReduceMotion.current || words.size < 2 || crossDirection || untouched) {
-        Text(text, modifier = modifier, style = resolved)
+        // Greedy breaking, as the word flow below does. Android's default
+        // balances the lines, so the first press moved words between lines.
+        Text(text, modifier = modifier, style = resolved.copy(lineBreak = LineBreak.Simple))
         return
     }
     FlowRow(
         modifier = modifier
             .animateContentSize(animationSpec = TitleHeightSpring)
+            .wrappedTakesFullWidth()
             .clearAndSetSemantics { this.text = AnnotatedString(text) },
         horizontalArrangement = Arrangement.spacedBy(rememberSpaceWidth(resolved)),
     ) {
@@ -1892,6 +1896,21 @@ internal fun ReflowingText(
             Text(word, style = resolved, softWrap = false, modifier = Modifier.animatePlacement())
         }
     }
+}
+
+/**
+ * Sizes a [ReflowingText]'s word flow the way [Text] sizes itself: as wide as
+ * its words while they fit on one line, the whole width it was offered once
+ * they wrap. A `FlowRow` is only ever as wide as its longest line, so a
+ * two-line name got narrower the moment the row was first pressed and the
+ * "?" and link after it jumped from the row's end to the name's side.
+ */
+private fun Modifier.wrappedTakesFullWidth(): Modifier = layout { measurable, constraints ->
+    val placeable = measurable.measure(constraints)
+    val wraps = constraints.hasBoundedWidth &&
+        measurable.maxIntrinsicWidth(constraints.maxHeight) > constraints.maxWidth
+    val width = if (wraps) constraints.maxWidth else placeable.width
+    layout(width, placeable.height) { placeable.placeRelative(0, 0) }
 }
 
 /**
