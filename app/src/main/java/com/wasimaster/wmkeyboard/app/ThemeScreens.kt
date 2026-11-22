@@ -6672,7 +6672,9 @@ private fun ThemeEditorContent(
     // animations does the same on the keyboard, though not in this preview.
     // Either way the theme's effects can be let through it, which is the
     // second way out the note offers; once they are, it has nothing to say.
-    val anyMotion = look.watch { it.boardEffect != null || it.keyLighting != null || it.touchBloom != null }
+    val anyMotion = look.watch {
+        it.boardEffect != null || it.keyLighting != null || it.touchBloom != null || it.fontMotions.isNotEmpty()
+    }
     val motionHeld = settings.watch { it.reduceMotion }
     val effectsLetThrough = settings.watch { it.accessibility.themeEffectsWithReduceMotion }
     val systemStill = remember { SystemMotion.animationsOff(context) }
@@ -7136,6 +7138,21 @@ private fun ThemeEditorContent(
                 R.string.theme_script_font_add_title,
                 subtitle = stringResource(R.string.theme_script_font_add_body),
             ) { scriptPickerOpen = true }
+        }
+        // Only with a variable font in play: the theme's own, or one in the
+        // library the theme could switch to. Otherwise greyed, saying why.
+        item(level = SettingLevel.STANDARD) {
+            val fontsReady = look.watch { t -> themeFontsAvailable(context, t) }
+            WmRow(
+                title = stringResource(R.string.theme_fonts_title),
+                subtitle = stringResource(R.string.theme_fonts_row_body),
+                icon = SettingsRowIcons[R.string.theme_fonts_title],
+                flightTo = "theme_fonts",
+                enabled = fontsReady,
+                disabledReason = DisabledReason(stringResource(R.string.theme_fonts_unavailable_reason)),
+                highlightKey = R.string.theme_fonts_title,
+                onClick = { onNavigate(themeFontsRoute(lookId)) },
+            )
         }
         // A theme's sound is resolved past the key-sound gate, so with key
         // sounds off there is nothing for it to replace.
@@ -8415,7 +8432,42 @@ private fun KeyOverrideDialog(
                     display = { "${(it * 100).toInt()}%" },
                 ) { onChange(override.copy(labelScale = (it * 20).toInt() / 20f)) }
             }
+            KeyOverrideFontAxes(theme, override, onChange)
         }
+    }
+}
+
+/**
+ * One key's own font axes, for a theme whose key font is variable: a heavier
+ * Enter, a narrower space bar. A slider the key has not moved shows the
+ * theme's value, and only the axes that were moved are stored, so the rest
+ * keep following the theme.
+ */
+@Composable
+private fun KeyOverrideFontAxes(theme: ThemeSpec, override: KeyOverride, onChange: (KeyOverride) -> Unit) {
+    if (!fontAxesSupported) return
+    val lookup = rememberFontAxes(theme.fontId ?: KeyboardFonts.DEFAULT_ID)
+    val variations = (lookup as? AxesLookup.Variable)?.variations ?: return
+    val own = override.fontAxes.orEmpty()
+    val base = theme.fontAxes?.keys.orEmpty()
+    WmRow(
+        title = stringResource(R.string.theme_key_override_axes_title),
+        subtitle = stringResource(R.string.theme_key_override_axes_body),
+        icon = SettingsRowIcons[R.string.fonts_axes_title],
+    )
+    for (axis in variations.axes.filter { !it.hidden }) {
+        SliderRow(
+            title = axis.name.ifBlank { axis.tag },
+            value = own[axis.tag] ?: base[axis.tag] ?: axis.default,
+            range = axis.min..axis.max,
+            display = { formatAxisValue(axis, it) },
+        ) { v -> onChange(override.copy(fontAxes = own + (axis.tag to axis.clamp(v)))) }
+    }
+    if (own.isNotEmpty()) {
+        WmRow(
+            title = stringResource(R.string.fonts_axes_reset_title),
+            onClick = { onChange(override.copy(fontAxes = null)) },
+        )
     }
 }
 
@@ -9389,7 +9441,7 @@ private fun boardEffectLabel(value: BoardEffectKind): Int = when (value) {
     BoardEffectKind.MELD -> R.string.theme_board_effect_kind_meld_label
 }
 @StringRes
-private fun lightingPatternLabel(value: KeyLightingPattern): Int = when (value) {
+internal fun lightingPatternLabel(value: KeyLightingPattern): Int = when (value) {
     KeyLightingPattern.STEADY -> R.string.theme_lighting_pattern_steady_label
     KeyLightingPattern.BREATHE -> R.string.theme_lighting_pattern_breathe_label
     KeyLightingPattern.WAVE -> R.string.theme_lighting_pattern_wave_label

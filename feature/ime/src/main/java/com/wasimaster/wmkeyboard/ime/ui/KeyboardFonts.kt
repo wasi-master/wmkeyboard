@@ -16,11 +16,16 @@ import androidx.core.provider.FontsContractCompat
 import com.wasimaster.wmkeyboard.core.util.PlayServices
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.text.googlefonts.Font as DownloadableFont
 import com.wasimaster.wmkeyboard.ime.R
+import com.wasimaster.wmkeyboard.core.fonts.FontAxesReader
 import com.wasimaster.wmkeyboard.core.fonts.FontStore
+import com.wasimaster.wmkeyboard.core.fonts.FontVariations
+import com.wasimaster.wmkeyboard.core.fonts.axesCss
+import com.wasimaster.wmkeyboard.core.fonts.axesSignature
 import com.wasimaster.wmkeyboard.core.fonts.LayoutFonts
 import com.wasimaster.wmkeyboard.core.script.ScriptId
 import com.wasimaster.wmkeyboard.core.settings.EmojiFontChoice
@@ -462,9 +467,10 @@ object KeyboardFonts {
         layoutFontId: String? = null,
         themeScriptId: String? = null,
         unicodeMyanmar: Boolean = false,
+        axesOf: (String) -> Map<String, Float> = { emptyMap() },
     ): FontFamily? =
         scriptFontId(context, scriptId, selectedId, layoutFontId, themeScriptId, unicodeMyanmar)
-            ?.let { family(context, it) }
+            ?.let { family(context, it, axesOf(it)) }
 
     /**
      * The font id [scriptFamily] draws with, by the same order, or null where it
@@ -538,30 +544,81 @@ object KeyboardFonts {
      * milliseconds, but a Google face is a provider round trip, so a pair with
      * one is asked for off the main thread. Kept for the process per pair.
      */
-    fun latinFirstFamily(context: Context, latinId: String, scriptFontId: String): FontFamily? {
+    fun latinFirstFamily(
+        context: Context,
+        latinId: String,
+        scriptFontId: String,
+        latinAxes: Map<String, Float> = emptyMap(),
+        scriptAxes: Map<String, Float> = emptyMap(),
+    ): FontFamily? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return null
-        val key = "chain:$latinId|$scriptFontId"
+        val key = chainKey(latinId, scriptFontId, latinAxes, scriptAxes)
         synchronized(chains) { chains[key]?.let { return it } }
-        val latin = platformFont(context, latinId) ?: return null
-        val script = platformFont(context, scriptFontId) ?: return null
+        val latin = platformFamily(context, latinId, latinAxes) ?: return null
+        val script = platformFamily(context, scriptFontId, scriptAxes) ?: return null
         val typeface = runCatching {
-            Typeface.CustomFallbackBuilder(PlatformFontFamily.Builder(latin).build())
-                .addCustomFallback(PlatformFontFamily.Builder(script).build())
+            Typeface.CustomFallbackBuilder(latin)
+                .addCustomFallback(script)
                 .build()
         }.getOrNull() ?: return null
         val family = FontFamily(typeface)
-        synchronized(chains) { chains[key] = family }
+        synchronized(chains) {
+            // A chain per axis setting a motion asks for, so held to a bound
+            // rather than kept for the process like the plain pairs.
+            if (chains.size >= MAX_CHAINS) chains.keys.firstOrNull { it.contains('#') }?.let(chains::remove)
+            chains[key] = family
+        }
         return family
+    }
+
+    private fun chainKey(
+        latinId: String,
+        scriptFontId: String,
+        latinAxes: Map<String, Float>,
+        scriptAxes: Map<String, Float>,
+    ): String =
+        if (latinAxes.isEmpty() && scriptAxes.isEmpty()) {
+            "chain:$latinId|$scriptFontId"
+        } else {
+            "chain:$latinId|$scriptFontId#${axesSignature(latinAxes)}|${axesSignature(scriptAxes)}"
+        }
+
+    /**
+     * [id] as a platform font family: one font, or for a variable font with a
+     * weight axis, a regular and a bold instance cut from the same file, so a
+     * bold label on a chained board draws the font's own bold rather than a
+     * smeared regular.
+     */
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun platformFamily(context: Context, id: String, axes: Map<String, Float>): PlatformFontFamily? {
+        val variations = variations(context, id)
+        val held = variations?.clamp(axes).orEmpty()
+        val weight = variations?.axis(WGHT)
+        if (weight == null) {
+            val font = platformFont(context, id, held) ?: return null
+            return runCatching { PlatformFontFamily.Builder(font).build() }.getOrNull()
+        }
+        val base = held[WGHT] ?: weight.default
+        val regular = platformFont(context, id, held + (WGHT to base), weight = 400) ?: return null
+        val bold = platformFont(context, id, held + (WGHT to weight.clamp(base + BOLD_STEP)), weight = 700)
+        return runCatching {
+            PlatformFontFamily.Builder(regular).apply { if (bold != null) addFont(bold) }.build()
+        }.getOrElse { runCatching { PlatformFontFamily.Builder(regular).build() }.getOrNull() }
     }
 
     /** Whether [id] is a font on this device, not a Google face the provider has to serve. */
     fun isLocal(id: String): Boolean = !id.startsWith(GOOGLE_PREFIX)
 
     /** [latinFirstFamily] if it has already been built, without building it. */
-    fun cachedLatinFirstFamily(latinId: String, scriptFontId: String): FontFamily? =
-        synchronized(chains) { chains["chain:$latinId|$scriptFontId"] }
+    fun cachedLatinFirstFamily(
+        latinId: String,
+        scriptFontId: String,
+        latinAxes: Map<String, Float> = emptyMap(),
+        scriptAxes: Map<String, Float> = emptyMap(),
+    ): FontFamily? = synchronized(chains) { chains[chainKey(latinId, scriptFontId, latinAxes, scriptAxes)] }
 
-    private val chains = HashMap<String, FontFamily>()
+    private val chains = LinkedHashMap<String, FontFamily>()
+    private const val MAX_CHAINS = 96
 
     /**
      * A font id as a platform [PlatformFont], read from its file: the imported or
@@ -569,31 +626,135 @@ object KeyboardFonts {
      * `google:` id (regular weight, the one the keys draw with).
      */
     @RequiresApi(Build.VERSION_CODES.Q)
-    private fun platformFont(context: Context, id: String): PlatformFont? = runCatching {
+    private fun platformFont(
+        context: Context,
+        id: String,
+        axes: Map<String, Float> = emptyMap(),
+        weight: Int? = null,
+    ): PlatformFont? = runCatching {
+        fun PlatformFont.Builder.dressed(): PlatformFont {
+            if (axes.isNotEmpty()) setFontVariationSettings(axesCss(axes))
+            if (weight != null) setWeight(weight)
+            return build()
+        }
         if (id == DEFAULT_ID) {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return null
-            systemLatinFont()
+            val system = systemLatinFont() ?: return null
+            if (axes.isEmpty() && weight == null) system else PlatformFont.Builder(system).dressed()
         } else if (id.startsWith(GOOGLE_PREFIX)) {
             if (!PlayServices.hasFontProvider(context)) return null
-            val request = FontRequest(
-                "com.google.android.gms.fonts",
-                "com.google.android.gms",
-                id.removePrefix(GOOGLE_PREFIX),
-                R.array.com_google_android_gms_fonts_certs,
-            )
-            val result = FontsContractCompat.fetchFonts(context, null, request)
-            if (result.statusCode != FontsContractCompat.FontFamilyResult.STATUS_OK) return null
-            val info = result.fonts
-                .filter { it.resultCode == FontsContractCompat.Columns.RESULT_CODE_OK }
-                .minByOrNull { kotlin.math.abs(it.weight - 400) + if (it.isItalic) 1000 else 0 }
-                ?: return null
+            val name = id.removePrefix(GOOGLE_PREFIX)
+            // Asking with axes is what gets the variable file rather than a
+            // static cut of it: the provider keys the two apart.
+            val info = fetchGoogleFont(context, name, variable = axes.isNotEmpty()) ?: return null
             context.contentResolver.openFileDescriptor(info.uri, "r")?.use { fd ->
-                PlatformFont.Builder(fd).setTtcIndex(info.ttcIndex).build()
+                PlatformFont.Builder(fd).setTtcIndex(info.ttcIndex).dressed()
             }
         } else {
-            fontFile(context, id)?.let { PlatformFont.Builder(it).build() }
+            fontFile(context, id)?.let { PlatformFont.Builder(it).dressed() }
         }
     }.getOrNull()
+
+    /**
+     * The provider's file for a Google face, regular upright: blocking, a
+     * provider round trip, and the one time in a device's life a download.
+     * [variable] asks for the variable file, which a face that has one serves
+     * under its own identifier.
+     */
+    private fun fetchGoogleFont(context: Context, name: String, variable: Boolean): FontsContractCompat.FontInfo? {
+        val request = if (variable) {
+            FontRequest(
+                "com.google.android.gms.fonts",
+                "com.google.android.gms",
+                "name=$name&weight=400&italic=0&besteffort=true",
+                R.array.com_google_android_gms_fonts_certs,
+                "'wght' 400",
+            )
+        } else {
+            FontRequest(
+                "com.google.android.gms.fonts",
+                "com.google.android.gms",
+                name,
+                R.array.com_google_android_gms_fonts_certs,
+            )
+        }
+        val result = FontsContractCompat.fetchFonts(context, null, request)
+        if (result.statusCode != FontsContractCompat.FontFamilyResult.STATUS_OK) return null
+        return result.fonts
+            .filter { it.resultCode == FontsContractCompat.Columns.RESULT_CODE_OK }
+            .minByOrNull { kotlin.math.abs(it.weight - 400) + if (it.isItalic) 1000 else 0 }
+    }
+
+    // ---- variations ----------------------------------------------------
+
+    /**
+     * What [id]'s font declares about its axes, or null when it has none or
+     * cannot be read here: a static face, a Google face not yet probed
+     * ([probeGoogleAxes]), the system font below Android 12.
+     *
+     * Cheap: an installed font answers from the library's manifest, a file
+     * from a per-process cache keyed on its stamp, a Google face from the probe
+     * cache. Never a provider call, so it is safe on the main thread.
+     */
+    fun variations(context: Context, id: String): FontVariations? {
+        val found = when {
+            id == DEFAULT_ID -> systemVariations()
+            id.startsWith(GOOGLE_PREFIX) -> GoogleFontAxes.cached(context, id.removePrefix(GOOGLE_PREFIX))
+            id == CUSTOM_ID || id == CUSTOM_BENGALI_ID -> fontFile(context, id)?.let(::fileVariations)
+            else -> {
+                val storeId = FontStore.storeIdOf(id)
+                val store = FontStore.get(context)
+                storeId?.let(store::variationsOf)
+                    ?: installedFontFile(context, id)?.let(::fileVariations)
+            }
+        }
+        return found?.takeIf { it.isVariable }
+    }
+
+    /** Whether [id] is a variable font, by [variations]. */
+    fun isVariable(context: Context, id: String): Boolean = variations(context, id) != null
+
+    /**
+     * Reads a Google face's axes from the provider's variable file and keeps the
+     * answer on disk. Blocking: call it off the main thread, once per face the
+     * picker shows.
+     */
+    fun probeGoogleAxes(context: Context, name: String): FontVariations? {
+        GoogleFontAxes.known(context, name)?.let { return it.takeIf { v -> v.isVariable } }
+        if (!PlayServices.hasFontProvider(context)) return null
+        val read = runCatching {
+            val info = fetchGoogleFont(context, name, variable = true) ?: return null
+            context.contentResolver.openFileDescriptor(info.uri, "r")?.use { fd ->
+                FontAxesReader.read(fd.fileDescriptor)
+            }
+        }.getOrNull() ?: return null
+        GoogleFontAxes.remember(context, name, read)
+        return read.takeIf { it.isVariable }
+    }
+
+    private val fileVariationCache = HashMap<String, FontVariations>()
+
+    private fun fileVariations(file: File): FontVariations? {
+        val key = "${file.path}:${file.lastModified()}:${file.length()}"
+        synchronized(fileVariationCache) { fileVariationCache[key]?.let { return it } }
+        val read = FontAxesReader.read(file) ?: FontVariations.STATIC
+        synchronized(fileVariationCache) { fileVariationCache[key] = read }
+        return read
+    }
+
+    /** The system Latin font's axes, Android 12 and later: Roboto is variable on most phones. */
+    private fun systemVariations(): FontVariations? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return null
+        return systemFontFile()?.let(::fileVariations)
+    }
+
+    /** The system Latin font's own file, when it is the first face in it; else null. */
+    private fun systemFontFile(): File? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return null
+        return runCatching {
+            systemLatinFont()?.takeIf { it.ttcIndex == 0 }?.file?.takeIf { it.canRead() }
+        }.getOrNull()
+    }
 
     /**
      * The font the system draws a Latin letter in by default: asked of the
@@ -660,20 +821,48 @@ object KeyboardFonts {
         )
     }
 
-    private val cache = HashMap<String, FontFamily>()
+    private val cache = LinkedHashMap<String, FontFamily>()
 
-    /** The family for a stored font id, or null for the system default. */
-    fun family(context: Context, id: String): FontFamily? = when {
-        id == CUSTOM_ID -> fileFamily(customFontFile(context))
-        id == CUSTOM_BENGALI_ID -> fileFamily(customFontFile(context, CUSTOM_BENGALI_ID))
+    /** Files [fileFamily] has already seen the platform parse, by path and stamp. */
+    private val validated = HashSet<String>()
+
+    /**
+     * The family for a stored font id, or null for the system default.
+     *
+     * [axes] are variable-font axis values by tag. They are held to the font's
+     * own axes and anything it has none for is dropped, so a static font, or a
+     * value from a theme written for another font, draws exactly as without
+     * them. The system default only takes them on Android 12 and later, where
+     * its file can be read; there a non-empty [axes] returns the system font as
+     * a family of its own, and an empty one still returns null.
+     */
+    fun family(context: Context, id: String, axes: Map<String, Float> = emptyMap()): FontFamily? = when {
+        id == DEFAULT_ID -> if (axes.isEmpty()) null else systemFamily(axes)
+        id == CUSTOM_ID -> fileFamily(customFontFile(context), axes)
+        id == CUSTOM_BENGALI_ID -> fileFamily(customFontFile(context, CUSTOM_BENGALI_ID), axes)
         // A `google:` id arrives in imported themes and layouts too, so it has
         // to be refused here rather than only kept out of the pickers.
         id.startsWith(GOOGLE_PREFIX) ->
-            if (PlayServices.hasFontProvider(context)) googleFamily(id.removePrefix(GOOGLE_PREFIX)) else null
+            if (PlayServices.hasFontProvider(context)) {
+                val name = id.removePrefix(GOOGLE_PREFIX)
+                val known = GoogleFontAxes.cached(context, name)
+                googleFamily(name, known?.clamp(axes) ?: axes, known)
+            } else {
+                null
+            }
         // A font installed into the library, from a repository or the user's
         // own file. Null when it has since been deleted, which falls back to
         // the system face rather than leaving keys blank.
-        else -> installedFontFile(context, id)?.let { fileFamily(it) }
+        else -> installedFontFile(context, id)?.let { file ->
+            val storeId = FontStore.storeIdOf(id)
+            fileFamily(file, axes, storeId?.let { FontStore.get(context).variationsOf(it) })
+        }
+    }
+
+    private fun systemFamily(axes: Map<String, Float>): FontFamily? {
+        val file = systemFontFile() ?: return null
+        val variations = fileVariations(file)?.takeIf { it.isVariable } ?: return null
+        return variableFamily(file, variations, variations.clamp(axes))
     }
 
     /**
@@ -841,28 +1030,120 @@ object KeyboardFonts {
 
     private const val NOTO_COLOR_EMOJI = "Noto Color Emoji"
 
-    /** Family for any Google Fonts name (also used directly by tool panels). */
-    fun googleFamily(name: String): FontFamily = cache.getOrPut("google:$name") {
-        val font = GoogleFont(name)
-        FontFamily(
-            DownloadableFont(googleFont = font, fontProvider = provider, weight = FontWeight.Normal),
-            DownloadableFont(googleFont = font, fontProvider = provider, weight = FontWeight.Medium),
-            DownloadableFont(googleFont = font, fontProvider = provider, weight = FontWeight.SemiBold),
-            DownloadableFont(googleFont = font, fontProvider = provider, weight = FontWeight.Bold),
-        )
+    /**
+     * Family for any Google Fonts name (also used directly by tool panels).
+     *
+     * With [axes], each of the four weights asks for the variable file with
+     * those values; the weight axis, when the face has one ([known]), moves
+     * with the requested weight from the user's own value, the same way
+     * [variableFamily] does for a file.
+     */
+    fun googleFamily(
+        name: String,
+        axes: Map<String, Float> = emptyMap(),
+        known: FontVariations? = null,
+    ): FontFamily {
+        val key = if (axes.isEmpty()) "google:$name" else "google:$name#${axesSignature(axes)}"
+        return cached(key) {
+            val font = GoogleFont(name)
+            if (axes.isEmpty()) {
+                FontFamily(
+                    DownloadableFont(googleFont = font, fontProvider = provider, weight = FontWeight.Normal),
+                    DownloadableFont(googleFont = font, fontProvider = provider, weight = FontWeight.Medium),
+                    DownloadableFont(googleFont = font, fontProvider = provider, weight = FontWeight.SemiBold),
+                    DownloadableFont(googleFont = font, fontProvider = provider, weight = FontWeight.Bold),
+                )
+            } else {
+                val wght = known?.axis(WGHT)
+                FontFamily(
+                    LABEL_WEIGHTS.map { weight ->
+                        DownloadableFont(
+                            googleFont = font,
+                            fontProvider = provider,
+                            weight = weight,
+                            variationSettings = settingsFor(axes, wght, weight),
+                        )
+                    },
+                )
+            }
+        }
     }
 
-    private fun fileFamily(file: File): FontFamily? {
+    /**
+     * The four weights the keys draw in, and what each asks of a variable
+     * font: Normal and Medium at the user's weight (the labels' everyday
+     * weight, which is the one they are tuning), SemiBold and Bold that much
+     * heavier, held to the axis. A font with no weight axis takes [axes] as
+     * they are at every weight, and the platform's synthetic bold does the rest.
+     */
+    private fun settingsFor(axes: Map<String, Float>, wght: com.wasimaster.wmkeyboard.core.fonts.FontAxis?, weight: FontWeight): FontVariation.Settings {
+        val values = if (wght == null) {
+            axes
+        } else {
+            val base = axes[WGHT] ?: wght.default
+            val step = when (weight) {
+                FontWeight.SemiBold -> SEMIBOLD_STEP
+                FontWeight.Bold -> BOLD_STEP
+                else -> 0f
+            }
+            axes + (WGHT to wght.clamp(base + step))
+        }
+        return FontVariation.Settings(*values.map { (tag, value) -> FontVariation.Setting(tag, value) }.toTypedArray())
+    }
+
+    private val LABEL_WEIGHTS = listOf(FontWeight.Normal, FontWeight.Medium, FontWeight.SemiBold, FontWeight.Bold)
+    private const val WGHT = "wght"
+    private const val SEMIBOLD_STEP = 200f
+    private const val BOLD_STEP = 300f
+
+    /** The bound on axis-carrying families kept at once; the plain ones are a handful and kept for good. */
+    private const val MAX_AXIS_FAMILIES = 128
+
+    private fun cached(key: String, build: () -> FontFamily): FontFamily = synchronized(cache) {
+        cache[key]?.let { return it }
+        if (key.contains('#')) {
+            val axisKeys = cache.keys.filter { it.contains('#') }
+            if (axisKeys.size >= MAX_AXIS_FAMILIES) cache.remove(axisKeys.first())
+        }
+        build().also { cache[key] = it }
+    }
+
+    private fun fileFamily(
+        file: File,
+        axes: Map<String, Float> = emptyMap(),
+        known: FontVariations? = null,
+    ): FontFamily? {
         if (!file.exists()) return null
         // Key on the modification time so re-importing a different file
         // under the same fixed name is picked up immediately.
-        val key = "file:${file.path}:${file.lastModified()}"
-        cache[key]?.let { return it }
+        val plainKey = "file:${file.path}:${file.lastModified()}"
+        // A variable font draws its real weights even untuned; see variableFamily.
+        val variations = (known ?: fileVariations(file))?.takeIf { it.isVariable }
+        val held = variations?.clamp(axes).orEmpty()
+        val key = if (held.isEmpty()) plainKey else "$plainKey#${axesSignature(held)}"
+        synchronized(cache) { cache[key]?.let { return it } }
         // Reject files Android cannot parse up front; otherwise the lazy
-        // resolver would throw mid-frame instead.
-        val parsed = runCatching { android.graphics.Typeface.createFromFile(file) }.getOrNull()
-            ?: return null
-        if (parsed == android.graphics.Typeface.DEFAULT) return null
-        return FontFamily(Font(file)).also { cache[key] = it }
+        // resolver would throw mid-frame instead. Once per file and stamp: a
+        // moving font asks for a new cut of the same file step after step.
+        if (synchronized(validated) { plainKey !in validated }) {
+            val parsed = runCatching { android.graphics.Typeface.createFromFile(file) }.getOrNull()
+                ?: return null
+            if (parsed == android.graphics.Typeface.DEFAULT) return null
+            synchronized(validated) { validated += plainKey }
+        }
+        return cached(key) {
+            if (variations == null) FontFamily(Font(file)) else variableFamily(file, variations, held)
+        }
+    }
+
+    /**
+     * A variable font file as the four weights the keys draw in, each cut at
+     * [axes] (see [settingsFor]). Below Android 8 the platform has no variation
+     * settings and every entry draws the file's default instance, as before.
+     */
+    private fun variableFamily(file: File, variations: FontVariations, axes: Map<String, Float>): FontFamily {
+        val wght = variations.axis(WGHT)
+        if (wght == null && axes.isEmpty()) return FontFamily(Font(file))
+        return FontFamily(LABEL_WEIGHTS.map { weight -> Font(file, weight, variationSettings = settingsFor(axes, wght, weight)) })
     }
 }

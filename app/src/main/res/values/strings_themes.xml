@@ -1169,4 +1169,50 @@
         <item quantity="one">Ungrouped into <xliff:g id="count" example="1">%1$d</xliff:g> theme</item>
         <item quantity="other">Ungrouped into <xliff:g id="count" example="3">%1$d</xliff:g> themes</item>
     </plurals>
+
+    <!-- ==================================================================== -->
+    <!-- Theme editor > Font axes and motion.                                  -->
+    <!-- ==================================================================== -->
+    <string name="theme_fonts_title">Font axes and motion</string>
+    <string name="theme_fonts_row_body">Set the axes of a variable font for this theme, and make the key labels move.</string>
+    <string name="theme_fonts_unavailable_reason">This needs a variable font. Give the theme a variable font in Font and sound, or import one on the Fonts screen.</string>
+    <string name="theme_fonts_missing_body">This theme is not available. It can be a built-in theme, which you cannot change.</string>
+    <string name="theme_fonts_font_group_title">Font</string>
+    <string name="theme_fonts_key_font_chip">Key font</string>
+    <string name="theme_fonts_axes_info">These values apply to this theme\'s font. If you set values for the same font on the Fonts screen, your values apply instead.</string>
+    <string name="theme_fonts_user_tuned_body">You set values for this font on the Fonts screen. The keyboard shows your values, not these values.</string>
+    <string name="theme_fonts_static_body">This font is not variable. Select a variable font for the theme below, or in Font and sound.</string>
+    <string name="theme_fonts_use_font_title">Use <xliff:g id="font" example="Roboto Flex">%1$s</xliff:g></string>
+    <string name="theme_fonts_use_font_body">A variable font from your library</string>
+    <string name="theme_motion_section_title">Font motion</string>
+    <string name="theme_motion_section_body">Font motion changes the axes of the key labels while you type. Each motion moves the axes that you add to it, from their usual value to the value that you set here. Reduce motion and power saving stop it.</string>
+    <string name="theme_motion_static_body">Font motion needs a variable font for the keys.</string>
+    <string name="theme_motion_item_title">Motion <xliff:g id="number" example="1">%1$d</xliff:g></string>
+    <string name="theme_motion_add_action">Add a motion</string>
+    <string name="theme_motion_remove_action">Remove this motion</string>
+    <string name="theme_motion_trigger_title">What moves the font</string>
+    <string name="theme_motion_trigger_pattern">Lighting pattern</string>
+    <string name="theme_motion_trigger_pattern_body">A pattern from key lighting moves the letters. Some patterns run all the time, and some answer your key presses.</string>
+    <string name="theme_motion_trigger_touch">Finger</string>
+    <string name="theme_motion_trigger_touch_body">The letters near your finger change when you press, and go back when you lift it.</string>
+    <string name="theme_motion_trigger_glide">Glide</string>
+    <string name="theme_motion_trigger_glide_body">The letters near your finger change as you glide, and go back after the finger moves on.</string>
+    <string name="theme_motion_trigger_shift">Shift</string>
+    <string name="theme_motion_trigger_shift_body">All the labels change while Shift or Caps Lock is on.</string>
+    <string name="theme_motion_trigger_energy">Typing speed</string>
+    <string name="theme_motion_trigger_energy_body">All the labels change more when you type faster, and go back when you stop.</string>
+    <string name="theme_motion_pattern_title">Pattern</string>
+    <string name="theme_motion_axes_title">Axes to move</string>
+    <string name="theme_motion_axes_body">Add an axis, then set the value it moves to.</string>
+    <string name="theme_motion_axis_peak"><xliff:g id="axis" example="Weight">%1$s</xliff:g>: moves to</string>
+    <string name="theme_motion_axis_remove_desc">Stop moving <xliff:g id="axis" example="Weight">%1$s</xliff:g></string>
+    <string name="theme_motion_all_keys_title">Move all key labels</string>
+    <string name="theme_motion_all_keys_body">Off, only the keys that type a character move. On, the words on the function keys move too.</string>
+    <string name="theme_motion_speed_title">Speed</string>
+    <string name="theme_motion_reach_title">Reach</string>
+    <string name="theme_motion_settle_title">Time to go back</string>
+    <string name="theme_motion_wobble_title">Bounce</string>
+    <string name="theme_key_override_axes_title">Font axes for this key</string>
+    <string name="theme_key_override_axes_body">Give this key its own weight, width or other axes. An axis that you do not move uses the value of the theme.</string>
+    <string name="theme_motion_wobble_body">How far the letters go past their usual value when they go back. 0 has no bounce.</string>
 </resources>

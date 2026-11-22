@@ -28,6 +28,12 @@ internal suspend fun paceBoardEffectFrame() {
     if (gap > 0L) delay(gap)
 }
 
+/** The same for the theme's font motion ([FontMotionLayer]). */
+internal suspend fun paceFontMotionFrame() {
+    val gap = ThemeFramePacing.budget.fontMotionGapMs
+    if (gap > 0L) delay(gap)
+}
+
 /** The same for the theme's colour flow (the FLOW and HUE_CYCLE animations). */
 internal suspend fun paceThemeFlowFrame() {
     val gap = ThemeFramePacing.budget.themeFlowGapMs

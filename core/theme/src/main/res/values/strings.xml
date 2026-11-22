@@ -56,6 +56,7 @@
     <string name="core_theme_builtin_sunset_drift_label">Sunset drift</string>
     <!-- Green and blue, and the colours turn slowly. Named after the northern lights. -->
     <string name="core_theme_builtin_aurora_label">Aurora</string>
+    <string name="core_theme_builtin_swell_label">Swell</string>
     <!-- Dark blue, darkest at the edges. -->
     <string name="core_theme_builtin_deep_sea_label">Deep sea</string>
 

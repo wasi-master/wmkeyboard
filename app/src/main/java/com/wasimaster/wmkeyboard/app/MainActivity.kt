@@ -1544,7 +1544,18 @@ private fun SettingsNavGraph(
                 { navController.popBackStack() },
                 route = "fonts",
             ) {
-                FontPickerScreen(repository, settings, script)
+                FontPickerScreen(repository, settings, script) { route -> navController.navigate(route) }
+            }
+        }
+        composable("fonts/axes/{script}/{fontId}") { backStackEntry ->
+            val script = backStackEntry.arguments?.getString("script").orEmpty()
+            val fontId = backStackEntry.arguments?.getString("fontId").orEmpty()
+            SettingsScreen(
+                stringResource(R.string.fonts_axes_title),
+                { navController.popBackStack() },
+                route = "fonts/axes",
+            ) {
+                FontAxesScreen(repository, settings, script, fontId)
             }
         }
         composable("backup") {
@@ -1973,6 +1984,23 @@ private fun SettingsNavGraph(
             }
             // Its own Scaffold, like the layout's JSON: the code needs the height.
             ThemeRuleSheetScreen(repository, settings, themeId) { navController.popBackStack() }
+        }
+        composable("theme_fonts/{themeId}") { backStackEntry ->
+            val requested = backStackEntry.arguments?.getString("themeId").orEmpty()
+            // Same reading of a copied link as theme_edit above.
+            val darkSlot = isSystemInDarkTheme()
+            val themeId = settings.watch { s ->
+                SettingLinks.themeEditTarget(requested, s.effectiveThemeId(darkSlot)) { id ->
+                    s.customThemes.findThemeFamily(id) != null
+                }
+            }
+            SettingsScreen(
+                stringResource(R.string.theme_fonts_title),
+                { navController.popBackStack() },
+                route = "theme_fonts",
+            ) {
+                ThemeFontsScreen(repository, settings, themeId)
+            }
         }
         composable("theme_assets/{themeId}") { backStackEntry ->
             val requested = backStackEntry.arguments?.getString("themeId").orEmpty()

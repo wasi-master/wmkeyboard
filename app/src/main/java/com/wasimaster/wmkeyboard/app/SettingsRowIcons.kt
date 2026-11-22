@@ -552,6 +552,7 @@ internal object SettingsRowIcons {
         put(R.string.theme_bold_labels_title) { Icons.Outlined.FormatBold }
         put(R.string.theme_font_title) { Icons.Outlined.TextFormat }
         put(R.string.theme_script_font_title) { Icons.Outlined.Translate }
+        put(R.string.theme_fonts_title) { Icons.Outlined.Tune }
         put(R.string.theme_script_font_add_title) { Icons.Outlined.Add }
         put(R.string.theme_sound_title) { Icons.AutoMirrored.Outlined.VolumeUp }
         put(R.string.appearance_font_title) { Icons.Outlined.TextFields }
@@ -2214,6 +2215,7 @@ internal object SettingsRowIcons {
         put(R.string.layout_symbols_return_chars_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }
         put(R.string.home_reset_pinned_tools_title) { Icons.Outlined.Restore }
         put(R.string.fonts_script_header) { Icons.Outlined.TextFields }
+        put(R.string.fonts_axes_title) { Icons.Outlined.Tune }
         put(R.string.languages_keyman_rules_title_for) { Icons.AutoMirrored.Outlined.Rule }
         put(R.string.languages_cjk_flex_import_title) { Icons.Outlined.FileOpen }
 

@@ -35,6 +35,13 @@ data class InstalledFont(
      * anyone means to make.
      */
     val emoji: Boolean = false,
+    /**
+     * The font's variation axes, read from its `fvar` table at import. Null
+     * means not read yet (a font imported before axes existed), which
+     * [FontStore.backfillVariations] fills in; a static font reads as
+     * [FontVariations.STATIC], so it is never read twice.
+     */
+    val variations: FontVariations? = null,
 )
 
 /**
@@ -158,6 +165,42 @@ class FontStore(private var baseDir: File?) {
 
     @Synchronized
     fun font(id: String?): InstalledFont? = fonts.firstOrNull { it.id == id }
+
+    /**
+     * Whether any text face in the library is a variable font: what lets the
+     * axis rows in the theme editor show for a theme whose own font is static.
+     */
+    @Synchronized
+    fun hasVariableFont(): Boolean = fonts.any { !it.emoji && it.variations?.isVariable == true }
+
+    /** The installed font's axes, or null when it has none or is not in the library. */
+    @Synchronized
+    fun variationsOf(id: String): FontVariations? = font(id)?.variations?.takeIf { it.isVariable }
+
+    /**
+     * Reads the axes of every font imported before they were recorded. Blocking
+     * file reads, a few kilobytes each, so it is called off the main thread.
+     * Returns whether anything changed.
+     */
+    fun backfillVariations(read: (File) -> FontVariations? = FontAxesReader::read): Boolean {
+        val pending = synchronized(this) { fonts.filter { it.variations == null }.map { it.id } }
+        if (pending.isEmpty()) return false
+        val found = pending.associateWith { id ->
+            existingFileFor(id)?.let(read) ?: FontVariations.STATIC
+        }
+        synchronized(this) {
+            var changed = false
+            for (i in fonts.indices) {
+                val v = found[fonts[i].id] ?: continue
+                if (fonts[i].variations == null) {
+                    fonts[i] = fonts[i].copy(variations = v)
+                    changed = true
+                }
+            }
+            if (changed) save()
+            return changed
+        }
+    }
 
     /** The file backing [id], whether or not it exists. */
     fun fileFor(id: String): File? = baseDir?.let { File(it, fileNameFor(id)) }

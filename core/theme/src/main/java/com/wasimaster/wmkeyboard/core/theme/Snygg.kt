@@ -647,6 +647,7 @@ internal class Stylesheet(
             for (name in listOf("border width", "outline width")) put(name, PROP_BORDER_WIDTH)
             put("font weight", PROP_FONT_WEIGHT)
             put("font size", PROP_FONT_SIZE)
+            for (name in listOf("font variation", "font variation settings")) put(name, PROP_FONT_VARIATION)
             for (name in listOf("shadow elevation", "elevation")) put(name, PROP_ELEVATION)
             put("shadow color", PROP_SHADOW_COLOR)
             for (name in listOf("background image", "image")) put(name, PROP_IMAGE)
@@ -771,6 +772,8 @@ internal const val PROP_BORDER_COLOR = "borderColor"
 internal const val PROP_BORDER_WIDTH = "borderWidth"
 internal const val PROP_FONT_WEIGHT = "fontWeight"
 internal const val PROP_FONT_SIZE = "fontSize"
+/** Variable-font axes, in CSS's `font-variation-settings` form: `'wght' 700, 'wdth' 80`. */
+internal const val PROP_FONT_VARIATION = "fontVariation"
 internal const val PROP_ELEVATION = "elevation"
 internal const val PROP_SHADOW_COLOR = "shadowColor"
 internal const val PROP_IMAGE = "image"

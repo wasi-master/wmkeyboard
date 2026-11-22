@@ -6678,7 +6678,8 @@ internal fun RowScope.LatinSuggestionChips(
     ) {
         val measurer = LocalStripTextMeasurer.current ?: rememberTextMeasurer()
         val density = LocalDensity.current
-        val baseStyle = LocalTextStyle.current
+        // In the strip's own face when its font axes were tuned apart.
+        val baseStyle = LocalTextStyle.current.inRoleFont(LocalBoardFonts.current.strip)
         // The user's own text scale rides on whichever base is in force, so a
         // theme that sets its own suggestion size is scaled rather than replaced.
         val baseSize = (
@@ -20158,6 +20159,8 @@ internal data class KeyVisual(
     val labelScale: Float? = null,
     /** Whether the theme made this one key's label bold; null follows the board. */
     val bold: Boolean? = null,
+    /** A single-key style's own font axes ([KeyOverride.fontAxes]); null draws the board's. */
+    val fontAxes: Map<String, Float>? = null,
     /** This key's own say on being glass (single-key styles); null follows its class. */
     val glass: Boolean? = null,
     /**
@@ -20414,6 +20417,7 @@ internal fun keyVisual(
             ?.takeIf { it.isFinite() }
             ?.coerceIn(KEY_OVERRIDE_LABEL_SCALE_RANGE),
         bold = override?.bold,
+        fontAxes = override?.fontAxes?.takeIf { it.isNotEmpty() },
         glass = override?.glass,
         stripLetter = stripLetter,
         shapeKind = overrideShape,
@@ -21209,7 +21213,7 @@ private fun KeyPreviewBubble(
     val border = kb.popupSurfaceBorder()
     val widthScale = popup.previewWidthScale.takeIf { it.isFinite() }?.coerceIn(KeyPreviewWidthScaleRange) ?: 1f
     val keyWidth = with(density) { preview.size.width.toDp() }
-    val labelStyle = LocalTextStyle.current.merge(
+    val labelStyle = LocalTextStyle.current.inRoleFont(LocalBoardFonts.current.popup).merge(
         TextStyle(fontSize = ((if (onKeyStyle) OnKeyLabelSp else FloatingLabelSp) * popup.fontScale).sp),
     )
     // One letter's bubble is as wide as a mid-width letter in its case, so
@@ -21763,6 +21767,10 @@ private fun KeyRows(
     // clock sleeps whenever nothing is moving.
     val touchBloom = kbTheme.liveTouchBloom
     touchBloom?.let { TouchBloomClock(it) }
+    // The theme's font motion: the labels' axes moving. Only with a variable
+    // font under the labels; a static face has nothing to move.
+    val boardFonts = LocalBoardFonts.current
+    val fontMotion = kbTheme.liveFontMotion?.takeIf { boardFonts.variations != null }
     // The moving board's press kinds (paint, ink, light and the rest) splash
     // over the keys rather than move behind them. They have no still picture,
     // so reduce motion (unless the theme's effects were let through it) and
@@ -21772,6 +21780,7 @@ private fun KeyRows(
     }
     val pulseOn = themeEffects && (
         keyLighting?.pattern?.reactive == true ||
+            fontMotion?.readsPresses == true ||
             pressEffect != null ||
             kbTheme.boardEffect?.let { it.reactive > 0f || it.kind in PRESS_DRAWN_EFFECTS } == true
         )
@@ -23696,7 +23705,13 @@ private fun KeyRows(
             // Initial pass, taps and glides alike, in root space. Never
             // consumes. Keyed on the bloom being on, so a theme without one
             // runs no loop at all.
-            .then(if (touchBloom != null) Modifier.touchBloomFingers({ boxOrigin }) else Modifier)
+            .then(
+                if (touchBloom != null || fontMotion?.followsFingers == true) {
+                    Modifier.touchBloomFingers({ boxOrigin })
+                } else {
+                    Modifier
+                },
+            )
             // Touch-position capture for the engine's typo model: record every
             // down, always on (unlike smart hit above). Never consumes; the
             // committed key reads the position via smartResolve on release.
@@ -23733,6 +23748,15 @@ private fun KeyRows(
         }
         // The touch bloom's light, the full half: across the board under the keys.
         touchBloom?.let { TouchBloomLayer(it, behind = true, modifier = Modifier.matchParentSize()) }
+        // The font motion's clock; it draws nothing itself, the labels do.
+        fontMotion?.let {
+            FontMotionLayer(
+                it,
+                boardFonts,
+                shifted = state.shiftState != ShiftState.OFF,
+                modifier = Modifier.matchParentSize(),
+            )
+        }
         // The glowing keys' light on their neighbours, for every key of the grid.
         CompositionLocalProvider(LocalKeyGlowSpill provides glowSpill) {
             // No spacing between cells: each key's touch target fills its whole
@@ -30724,6 +30748,7 @@ private fun AlternateAction(
                 // legends use for it.
                 text = alternate.drawnLabel().ifBlank { AlternateSpaceGlyph },
                 fontSize = (18 * fontScale).sp,
+                fontFamily = LocalBoardFonts.current.popup,
                 color = tint,
                 maxLines = 1,
             )
@@ -30829,6 +30854,7 @@ private fun AlternateCharacter(
         text = text,
         modifier = modifier,
         fontSize = fontSize,
+        fontFamily = LocalBoardFonts.current.popup,
         color = if (selected) kb.popupSelectedText else kb.popupText,
     )
 }
@@ -31609,6 +31635,7 @@ private fun ShiftKeyLabel(visual: KeyVisual, settings: KeyboardSettings, fontSca
         Text(
             text = visual.label,
             fontSize = (baseSize * fontScale * fit.scale).sp,
+            fontFamily = keyOwnFontFamily(visual.fontAxes),
             fontWeight = if (visual.bold ?: settings.accessibility.boldLabels) FontWeight.Bold else FontWeight.Medium,
             color = tint,
             maxLines = 1,
@@ -32014,13 +32041,28 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                 // letters readable over a photo, drawn by the text itself.
                 val outline = LocalKbTheme.current.labelOutline
                 val outlinePx = with(LocalDensity.current) { LabelOutlineDp.dp.toPx() }
+                val labelStyle = if (outline == null) {
+                    LocalTextStyle.current
+                } else {
+                    LocalTextStyle.current.copy(shadow = androidx.compose.ui.graphics.Shadow(outline, blurRadius = outlinePx))
+                }
+                val labelSize = (baseSize * fontScale * (if (strip) 1f else fit.scale)).sp
+                val labelWeight = if (visual.bold ?: settings.accessibility.boldLabels) FontWeight.Bold else FontWeight.Medium
+                // The theme's font motion redraws this label at its moving
+                // axes; only while one runs on a variable font. See fontMorph.
+                val morph = if (LocalKbTheme.current.liveFontMotion != null && LocalBoardFonts.current.variations != null) {
+                    Modifier.fontMorph(
+                        text,
+                        labelStyle.merge(TextStyle(color = contentColor, fontSize = labelSize, fontWeight = labelWeight)),
+                        letter = key.action == KeyAction.Text,
+                        own = visual.fontAxes,
+                    )
+                } else {
+                    Modifier
+                }
                 Text(
                     text = text,
-                    style = if (outline == null) {
-                        LocalTextStyle.current
-                    } else {
-                        LocalTextStyle.current.copy(shadow = androidx.compose.ui.graphics.Shadow(outline, blurRadius = outlinePx))
-                    },
+                    style = labelStyle,
                     modifier = Modifier
                         .align(Alignment.Center)
                         // Moved off the centre when the user asked (#970), to
@@ -32037,13 +32079,12 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                         .padding(
                             horizontal = if (sideArms) FlickArmInsetDp else 0.dp,
                             vertical = if (endArms) FlickArmInsetDp else 0.dp,
-                        ),
-                    fontSize = (baseSize * fontScale * (if (strip) 1f else fit.scale)).sp,
-                    fontWeight = if (visual.bold ?: settings.accessibility.boldLabels) {
-                        FontWeight.Bold
-                    } else {
-                        FontWeight.Medium
-                    },
+                        )
+                        .then(morph),
+                    fontSize = labelSize,
+                    // A single-key style's own axes; null keeps the board's face.
+                    fontFamily = keyOwnFontFamily(visual.fontAxes),
+                    fontWeight = labelWeight,
                     color = contentColor,
                     maxLines = 1,
                     softWrap = false,
@@ -32512,7 +32553,9 @@ internal fun hintTextStyle(): TextStyle {
 @Composable
 private fun keyHintTextStyle(): TextStyle {
     val base = hintTextStyle()
-    return remember(base) { base.copy(lineHeight = TextUnit.Unspecified) }
+    // The hints' own face, when their font axes were tuned apart from the keys'.
+    val family = LocalBoardFonts.current.hint
+    return remember(base, family) { base.copy(lineHeight = TextUnit.Unspecified).inRoleFont(family) }
 }
 
 private val NoFontPadding = TextStyle(

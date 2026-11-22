@@ -62,6 +62,8 @@ import com.wasimaster.wmkeyboard.core.layout.resolveLayout
 import com.wasimaster.wmkeyboard.core.fonts.LayoutFonts
 import com.wasimaster.wmkeyboard.core.emoji.EmojiFontShaping
 import com.wasimaster.wmkeyboard.core.settings.withRotation
+import com.wasimaster.wmkeyboard.core.settings.axesFor
+import com.wasimaster.wmkeyboard.core.theme.FontRole
 import com.wasimaster.wmkeyboard.core.settings.rotates
 import com.wasimaster.wmkeyboard.core.settings.RotationState
 import com.wasimaster.wmkeyboard.core.settings.AutoThemeTrigger
@@ -396,6 +398,8 @@ data class KbTheme(
     val touchBloom: KbTouchBloom? = null,
     /** Hand-drawn key art that replaces the faces; null draws them from the colours. */
     val keySkin: KeySkinSpec? = null,
+    /** How the key labels' font moves, resolved; null is still. Read through [liveFontMotion]. */
+    val fontMotion: KbFontMotion? = null,
     /**
      * Draw [boardEffect] as one frame and stop its clock, as reduce motion
      * does, without stilling anything else. Set by power saving's moving-theme
@@ -504,6 +508,14 @@ internal fun resolveTouchBloom(spec: TouchBloomSpec, accent: Color): KbTouchBloo
  */
 internal val KbTheme.liveTouchBloom: KbTouchBloom?
     get() = touchBloom?.takeIf { motion.themeEffects }
+
+/**
+ * The font motion as the keyboard runs it: off under reduce motion and power
+ * saving, like the touch bloom, and under power saving's moving-theme drop.
+ * The rest axes still apply; only the moving stops.
+ */
+internal val KbTheme.liveFontMotion: KbFontMotion?
+    get() = fontMotion?.takeIf { motion.themeEffects && !boardEffectStill }
 
 internal fun resolveLighting(spec: KeyLightingSpec, accent: Color): KbLighting? {
     val pattern = keyLightingPatternOrNull(spec.pattern) ?: return null
@@ -892,6 +904,30 @@ private fun latinFirstIds(
 }
 
 internal val LocalScriptLabelFont = staticCompositionLocalOf<(ScriptId) -> FontFamily?> { { null } }
+
+/** A Latin-first chain ([KeyboardFonts.latinFirstFamily]) with the axes each half draws at. */
+internal data class ChainSpec(
+    val latinId: String,
+    val scriptId: String,
+    val latinAxes: Map<String, Float>,
+    val scriptAxes: Map<String, Float>,
+) {
+    /** Blocking; a Google half is a provider round trip. */
+    fun build(context: Context): FontFamily? =
+        KeyboardFonts.latinFirstFamily(context, latinId, scriptId, latinAxes, scriptAxes)
+}
+
+/**
+ * [chain] if it is cached or can be had now: both halves local files, a few
+ * milliseconds. Null for a pair with a Google half not yet built.
+ */
+internal fun buildChainNow(context: Context, chain: ChainSpec): FontFamily? =
+    KeyboardFonts.cachedLatinFirstFamily(chain.latinId, chain.scriptId, chain.latinAxes, chain.scriptAxes)
+        ?: if (KeyboardFonts.isLocal(chain.latinId) && KeyboardFonts.isLocal(chain.scriptId)) {
+            chain.build(context)
+        } else {
+            null
+        }
 
 /**
  * Respells an emoji for whatever [LocalEmojiFontFamily] resolves to — see
@@ -1315,6 +1351,7 @@ private fun specKbTheme(spec: ThemeSpec, settings: KeyboardSettings): KbTheme {
         boardEffect = spec.boardEffect?.let { resolveBoardEffect(it, accent, keyText) },
         keyLighting = spec.keyLighting?.let { resolveLighting(it, accent) },
         touchBloom = spec.touchBloom?.let { resolveTouchBloom(it, accent) },
+        fontMotion = resolveFontMotion(spec.fontMotions),
         keySkin = spec.keySkin?.bounded()?.takeIf { it.slots.isNotEmpty() || it.board != null },
     )
 }
@@ -1546,6 +1583,7 @@ internal fun KbTheme.accessibilityAdjusted(settings: KeyboardSettings): KbTheme 
             boardEffect = null,
             keyLighting = null,
             touchBloom = null,
+            fontMotion = null,
             keySkin = null,
             key = key,
             modifierKey = modifier,
@@ -1589,6 +1627,7 @@ internal fun KbTheme.accessibilityAdjusted(settings: KeyboardSettings): KbTheme 
             keyEffect = null,
             keyLighting = null,
             touchBloom = null,
+            fontMotion = null,
             boardEffectStill = true,
         )
     }
@@ -1827,7 +1866,15 @@ fun KeyboardThemeProvider(
     // Burmese's Unicode key font: Myanmar in the keyboard's own Noto face, for
     // a phone whose Myanmar font is a Zawgyi one.
     val unicodeMyanmar = settings.suggestionStrip.burmeseUnicodeKeysOn
-    val keyFontFamily = remember(
+    // The font that wins, by id: the script's face where the board has one,
+    // else the Latin side — the user's own pick, then the layout's face, then
+    // the theme's. Only a deliberate pick counts: "default" is the absence of
+    // one and lets the layout and theme speak. The user's face used to sit last
+    // there, so any theme or layout carrying a font silently overruled the
+    // English font setting while the per-script ones kept winning (#561).
+    // An id rather than a family, because a variable font's axes are looked up
+    // for the font that actually draws ([boardFontAxes]).
+    val boardPick = remember(
         scriptId,
         layoutFontId,
         layoutFontsInstalled,
@@ -1839,23 +1886,16 @@ fun KeyboardThemeProvider(
         settings.customScriptFontNames,
         unicodeMyanmar,
     ) {
-        KeyboardFonts.scriptFamily(
-            context,
-            scriptId,
-            settings.scriptFontIds[scriptId.name] ?: KeyboardFonts.DEFAULT_ID,
-            layoutFontId,
-            themeScriptFontId,
-            unicodeMyanmar,
-        ) // The Latin/Cyrillic/Greek side of the same order: the user's own
-            // pick, then the layout's face, then the theme's. Only a deliberate
-            // pick counts — "default" is the absence of one and lets the layout
-            // and theme speak. The user's face used to sit last here, so any
-            // theme or layout carrying a font silently overruled the English
-            // font setting while the per-script ones above kept winning (#561).
-            ?: settings.keyFontId.takeIf { it != KeyboardFonts.DEFAULT_ID }
-                ?.let { KeyboardFonts.family(context, it) }
-            ?: layoutFontId?.let { KeyboardFonts.family(context, it) }
-            ?: themeFontId?.let { KeyboardFonts.family(context, it) }
+        boardFontPick(context, settings, scriptId, layoutFontId, themeFontId, themeScriptFontId, unicodeMyanmar)
+    }
+    // The theme the font axes come from: its own, and its per-script ones.
+    val fontTheme = remember(settings, darkSlot) { settings.activeThemeSpec(darkSlot) }
+    val axesOf: (String, Boolean, FontRole) -> Map<String, Float> = remember(settings.fontAxes, fontTheme, scriptId) {
+        { id, latinSide, role -> boardFontAxes(settings, fontTheme, scriptId, id, latinSide, role) }
+    }
+    val keyAxes = remember(boardPick, axesOf) { axesOf(boardPick.id, boardPick.latinSide, FontRole.KEYS) }
+    val keyFontFamily = remember(boardPick, keyAxes) {
+        KeyboardFonts.family(context, boardPick.id, keyAxes)
     }
     // A non-Latin board draws in its script's face, and a FontFamily never
     // looks for a glyph in another font, so every Latin character on it — an
@@ -1888,6 +1928,7 @@ fun KeyboardThemeProvider(
         settings.enabledLayoutIds,
         settings.customLayouts,
         themeFontId,
+        settings.fontAxes,
         settings.keyFontId,
         settings.scriptFontIds,
         settings.customFontName,
@@ -1909,7 +1950,13 @@ fun KeyboardThemeProvider(
                     themeSpec?.scriptFontIds?.get(script.name),
                     unicodeMyanmar,
                 ) ?: continue
-                KeyboardFonts.latinFirstFamily(context, latinId, scriptFontId)
+                KeyboardFonts.latinFirstFamily(
+                    context,
+                    latinId,
+                    scriptFontId,
+                    boardFontAxes(settings, themeSpec, script, latinId, true, FontRole.KEYS),
+                    boardFontAxes(settings, themeSpec, script, scriptFontId, false, FontRole.KEYS),
+                )
             }
         }
     }
@@ -1918,28 +1965,67 @@ fun KeyboardThemeProvider(
     // label jump on a switch to Avro. Built from local files that takes a few
     // milliseconds, once per process. A Google face is a provider round trip,
     // so that pair alone is built off the main thread and lands a frame late.
-    val chainNow = remember(latinFirstIds) {
+    // The pair with the axes each half draws at, per place on the board. The
+    // Latin half takes the Latin side's axes, the script half its own.
+    val chains = remember(latinFirstIds, axesOf) {
         latinFirstIds?.let { (latinId, scriptFontId) ->
-            KeyboardFonts.cachedLatinFirstFamily(latinId, scriptFontId)
-                ?: if (KeyboardFonts.isLocal(latinId) && KeyboardFonts.isLocal(scriptFontId)) {
-                    KeyboardFonts.latinFirstFamily(context, latinId, scriptFontId)
-                } else {
-                    null
-                }
+            FontRole.entries.associateWith { role ->
+                ChainSpec(latinId, scriptFontId, axesOf(latinId, true, role), axesOf(scriptFontId, false, role))
+            }
         }
     }
+    val keyChain = chains?.get(FontRole.KEYS)
+    val chainNow = remember(keyChain) { keyChain?.let { buildChainNow(context, it) } }
     // Keyed by the pair it was built for: produceState keeps its last value
     // until the effect runs, and a chain for the previous board must not draw
     // a frame of this one.
-    val chainLate by produceState<Pair<Pair<String, String>, FontFamily?>?>(null, latinFirstIds) {
-        val ids = latinFirstIds ?: return@produceState
+    val chainLate by produceState<Pair<ChainSpec, FontFamily?>?>(null, keyChain) {
+        val chain = keyChain ?: return@produceState
         if (chainNow != null) return@produceState
-        value = ids to withContext(Dispatchers.IO) {
-            KeyboardFonts.latinFirstFamily(context, ids.first, ids.second)
+        value = chain to withContext(Dispatchers.IO) { chain.build(context) }
+    }
+    val chainedFontFamily = chainNow ?: chainLate?.takeIf { it.first == keyChain }?.second
+    val boardFontFamily = chainedFontFamily ?: keyFontFamily
+    // The hints', the strip's and the bubbles' faces, where their axes were
+    // pulled apart from the keys'; null follows the typography. A chained
+    // board's Google half is a provider round trip, so those are built off the
+    // main thread and arrive a frame late; every other face is local or a
+    // Compose download, and is had here.
+    val roleFamilies by produceState<Map<FontRole, FontFamily?>>(emptyMap(), boardPick, chains, axesOf) {
+        val out = HashMap<FontRole, FontFamily?>()
+        for (role in listOf(FontRole.HINTS, FontRole.STRIP, FontRole.POPUP)) {
+            val chain = chains?.get(role)
+            out[role] = if (chain != null) {
+                if (chain == keyChain) null else withContext(Dispatchers.IO) { chain.build(context) }
+            } else {
+                val axes = axesOf(boardPick.id, boardPick.latinSide, role)
+                if (axes == keyAxes) null else KeyboardFonts.family(context, boardPick.id, axes)
+            }
+        }
+        value = out
+    }
+    val boardFonts = remember(boardPick, keyAxes, keyChain, roleFamilies, chainedFontFamily != null) {
+        val labelId = keyChain?.latinId ?: boardPick.id
+        val variations = KeyboardFonts.variations(context, labelId)
+            ?: keyChain?.let { KeyboardFonts.variations(context, it.scriptId) }
+        if (variations == null && roleFamilies.values.all { it == null }) {
+            BoardFonts.None
+        } else {
+            val build: (Map<String, Float>) -> FontFamily? = if (keyChain != null && chainedFontFamily != null) {
+                { axes -> buildChainNow(context, keyChain.copy(latinAxes = axes, scriptAxes = keyChain.scriptAxes + axes)) }
+            } else {
+                { axes -> KeyboardFonts.family(context, boardPick.id, axes) }
+            }
+            BoardFonts(
+                hint = roleFamilies[FontRole.HINTS],
+                strip = roleFamilies[FontRole.STRIP],
+                popup = roleFamilies[FontRole.POPUP],
+                variations = variations,
+                keyAxes = variations?.clamp(keyChain?.latinAxes ?: keyAxes).orEmpty(),
+                build = build,
+            )
         }
     }
-    val chainedFontFamily = chainNow ?: chainLate?.takeIf { it.first == latinFirstIds }?.second
-    val boardFontFamily = chainedFontFamily ?: keyFontFamily
     // See [LocalScriptLabelFont]. Resolved per script on first ask, then kept
     // for as long as the font settings and the theme stay what they are.
     val themeScriptFonts = remember(settings, darkSlot) {
@@ -1948,6 +2034,8 @@ fun KeyboardThemeProvider(
     val scriptLabelFont = remember(
         themeFontId,
         themeScriptFonts,
+        settings.fontAxes,
+        axesOf,
         settings.keyFontId,
         settings.scriptFontIds,
         settings.customFontName,
@@ -1957,8 +2045,8 @@ fun KeyboardThemeProvider(
     ) {
         val latin by lazy {
             settings.keyFontId.takeIf { it != KeyboardFonts.DEFAULT_ID }
-                ?.let { KeyboardFonts.family(context, it) }
-                ?: themeFontId?.let { KeyboardFonts.family(context, it) }
+                ?.let { KeyboardFonts.family(context, it, settings.axesFor(it)?.keys.orEmpty()) }
+                ?: themeFontId?.let { KeyboardFonts.family(context, it, axesOf(it, true, FontRole.KEYS)) }
         }
         val resolved = HashMap<ScriptId, FontFamily?>()
         val resolve: (ScriptId) -> FontFamily? = { script ->
@@ -1973,6 +2061,7 @@ fun KeyboardThemeProvider(
                         null,
                         themeScriptFonts[script.name],
                         unicodeMyanmar,
+                        axesOf = { id -> settings.axesFor(id)?.keys.orEmpty() },
                     ) ?: latin ?: FontFamily.Default
                 ).also { resolved[script] = it }
             }
@@ -2017,6 +2106,7 @@ fun KeyboardThemeProvider(
             LocalEmojiFontFamily provides emojiFontFamily,
             LocalEmojiShaper provides emojiShaper,
             LocalScriptLabelFont provides scriptLabelFont,
+            LocalBoardFonts provides boardFonts,
             content = content,
         )
     }
@@ -2263,6 +2353,7 @@ private fun lerpKbTheme(a: KbTheme, b: KbTheme, t: Float): KbTheme {
         keyLighting = if (past) b.keyLighting else a.keyLighting,
         touchBloom = if (past) b.touchBloom else a.touchBloom,
         keySkin = if (past) b.keySkin else a.keySkin,
+        fontMotion = if (past) b.fontMotion else a.fontMotion,
         boardEffectStill = if (past) b.boardEffectStill else a.boardEffectStill,
     )
 }

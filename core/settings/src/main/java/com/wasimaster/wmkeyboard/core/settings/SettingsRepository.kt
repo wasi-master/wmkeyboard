@@ -151,6 +151,7 @@ import android.util.Base64
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
 import com.wasimaster.wmkeyboard.core.theme.AppColorSource
 import com.wasimaster.wmkeyboard.core.theme.DEFAULT_THEME_ID
+import com.wasimaster.wmkeyboard.core.theme.FontAxesSpec
 import com.wasimaster.wmkeyboard.core.theme.KeyShapeKind
 import com.wasimaster.wmkeyboard.core.theme.PaletteStyle
 import com.wasimaster.wmkeyboard.core.theme.PhotoAttribution
@@ -4218,6 +4219,12 @@ data class KeyboardSettings(
      * an entry; the Latin one is [customFontName], since it is not per script.
      */
     val customScriptFontNames: Map<String, String> = emptyMap(),
+    /**
+     * Variable-font axis values the user set, per font id; see
+     * [FontAxesSpec] and [axesFor]. A font the user never tuned draws at its
+     * own defaults, or at the active theme's values for it.
+     */
+    val fontAxes: Map<String, FontAxesSpec> = emptyMap(),
     /**
      * Bumped by the settings app whenever it edits the learned-words file
      * directly, so the IME (which keeps the lexicon in memory) reloads it.
@@ -13063,6 +13070,7 @@ class SettingsRepository(private val context: Context) {
         private val CUSTOM_FONT_NAME = stringPreferencesKey("custom_font_name")
         private val SCRIPT_FONT_IDS = stringPreferencesKey("script_font_ids")
         private val CUSTOM_SCRIPT_FONT_NAMES = stringPreferencesKey("custom_script_font_names")
+        private val FONT_AXES = stringPreferencesKey("font_axes")
 
         /**
          * Bengali's own font keys, from when it was the one script with a picker
@@ -15162,6 +15170,7 @@ class SettingsRepository(private val context: Context) {
             customFontName = p[CUSTOM_FONT_NAME] ?: defaults.customFontName,
             scriptFontIds = scriptFontIdsFromPrefs(p, defaults),
             customScriptFontNames = customScriptFontNamesFromPrefs(p, defaults),
+            fontAxes = p[FONT_AXES]?.let(::decodeFontAxes) ?: defaults.fontAxes,
             lexiconVersion = p[LEXICON_VERSION] ?: defaults.lexiconVersion,
             customDictVersion = p[CUSTOM_DICT_VERSION] ?: defaults.customDictVersion,
             autoDownloadLanguageData = p[AUTO_DOWNLOAD_LANGUAGE_DATA]
@@ -21860,6 +21869,19 @@ class SettingsRepository(private val context: Context) {
     suspend fun setKeyFontId(value: String) =
         editPrefs { it[KEY_FONT_ID] = value }
 
+    /**
+     * The user's axis values for [fontId]; null, or a spec with nothing in it,
+     * puts the font back on its own defaults.
+     */
+    suspend fun setFontAxes(fontId: String, axes: FontAxesSpec?) =
+        editPrefs { prefs ->
+            val current = prefs[FONT_AXES]?.let(::decodeFontAxes).orEmpty()
+            val next = if (axes == null || axes.isEmpty) current - fontId else current + (fontId to axes)
+            if (next != current) {
+                if (next.isEmpty()) prefs.remove(FONT_AXES) else prefs[FONT_AXES] = encodeFontAxes(next)
+            }
+        }
+
     /** Records both the imported file's display name and selects it. */
     suspend fun setCustomFont(name: String) =
         editPrefs {
@@ -23732,6 +23754,12 @@ class SettingsRepository(private val context: Context) {
             val scripts = prefs[SCRIPT_FONT_IDS]?.let { decodeScriptFontIds(it) }.orEmpty()
             val next = scripts.filterValues { it != fontId }
             if (next.size != scripts.size) prefs[SCRIPT_FONT_IDS] = encodeScriptFontIds(next)
+            // The tuning goes with the file: a later import gets a new id anyway.
+            val axes = prefs[FONT_AXES]?.let(::decodeFontAxes).orEmpty()
+            if (fontId in axes) {
+                val left = axes - fontId
+                if (left.isEmpty()) prefs.remove(FONT_AXES) else prefs[FONT_AXES] = encodeFontAxes(left)
+            }
         }
 
     /**

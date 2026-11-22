@@ -3856,6 +3856,8 @@ private fun SearchStrings.storageRows(): List<SettingsSearchEntry> {
 /** Rows that live on one of those screens rather than naming it. */
 private fun SearchStrings.sectionChildRows(): List<SettingsSearchEntry> = listOf(
     entry(R.string.fonts_installed_header, 0, R.string.home_screen_fonts_title, "fonts", screenParent = R.string.home_appearance_title),
+    // On a variable font's own page; the search lands on Fonts, one tap from it.
+    entry(R.string.fonts_axes_title, R.string.fonts_axes_row_body, R.string.home_screen_fonts_title, "fonts", screenParent = R.string.home_appearance_title),
     entry(
         R.string.customdict_emoji_auto_download_title,
         R.string.customdict_emoji_auto_download_subtitle,

@@ -12,6 +12,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.addons.AddonType
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileOpen
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -19,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -147,7 +149,12 @@ internal fun FontSettings(
  * Cyrillic and Greek share the English list.
  */
 @Composable
-internal fun FontPickerScreen(repository: SettingsRepository, settings: LiveSettings, scriptArg: String) {
+internal fun FontPickerScreen(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+    scriptArg: String,
+    onNavigate: (String) -> Unit = {},
+) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val fontStore = remember { FontStore.get(context) }
@@ -155,6 +162,9 @@ internal fun FontPickerScreen(repository: SettingsRepository, settings: LiveSett
     // Text faces only: an emoji font is chosen on the Emoji screen, and picking
     // one for the key labels would draw the alphabet as coloured pictograms.
     val installedFonts = remember(fontRevision) { fontStore.textFonts() }
+    // Fonts imported before axes were recorded are read once, so the tune
+    // buttons below find out which of them are variable.
+    LaunchedEffect(Unit) { withContext(Dispatchers.IO) { fontStore.backfillVariations() } }
     // The failure to show, still unresolved; see [FontMessage].
     var fontMessage by remember { mutableStateOf<FontMessage?>(null) }
 
@@ -225,6 +235,16 @@ internal fun FontPickerScreen(repository: SettingsRepository, settings: LiveSett
     }
     val chosen = ScriptId.entries.firstOrNull { it.name == scriptArg } ?: ScriptId.LATIN
     val choices = KeyboardFonts.scriptFontChoices(chosen)
+    // The axes of the font this list has selected, at the top where it is
+    // found: only for a variable one, so a static pick shows nothing new.
+    val selectedForAxes = if (choices == null) {
+        settings.watch { it.keyFontId }
+    } else {
+        settings.watch { it.scriptFontIds[choices.script.name] } ?: KeyboardFonts.DEFAULT_ID
+    }
+    val axesScript = choices?.script ?: ScriptId.LATIN
+    SelectedFontAxesRow(selectedForAxes, axesScript, fontRevision, onNavigate)
+    val onTune: (String) -> Unit = { id -> onNavigate(fontAxesRoute(axesScript, id)) }
     if (choices == null) {
         FontPickerSection(
             header = stringResource(R.string.fonts_english_header),
@@ -242,6 +262,7 @@ internal fun FontPickerScreen(repository: SettingsRepository, settings: LiveSett
             // picker of their own — a font claiming any of the three belongs here.
             scripts = setOf(ScriptId.LATIN, ScriptId.CYRILLIC, ScriptId.GREEK),
             onDeleteInstalled = ::deleteInstalled,
+            onTune = onTune,
         )
     } else {
         val script = choices.script.name
@@ -276,6 +297,7 @@ internal fun FontPickerScreen(repository: SettingsRepository, settings: LiveSett
             installedTitle = stringResource(R.string.fonts_installed_script_header, scriptName),
             scripts = setOf(choices.script),
             onDeleteInstalled = ::deleteInstalled,
+            onTune = onTune,
         )
     }
     Spacer(Modifier.height(16.dp))
@@ -314,8 +336,14 @@ private fun FontPickerSection(
     installedTitle: String = stringResource(R.string.fonts_installed_header),
     scripts: Set<ScriptId> = emptySet(),
     onDeleteInstalled: ((InstalledFont) -> Unit)? = null,
+    /** Opens a variable font's axes; its row gets a tune button. */
+    onTune: ((String) -> Unit)? = null,
 ) {
     val context = LocalContext.current
+    // Which rows are variable, from what is known without asking anything:
+    // the library's manifest, a file's own table, a Google face probed before.
+    fun tuneFor(id: String): (() -> Unit)? =
+        onTune?.takeIf { fontAxesSupported && KeyboardFonts.isVariable(context, id) }?.let { tune -> { tune(id) } }
     val importFont = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenMultipleDocuments(),
     ) { uris -> uris.forEach { uri -> onImport?.invoke(uri) } }
@@ -358,6 +386,7 @@ private fun FontPickerSection(
                             sample = sample,
                             selected = selectedId == id,
                             onDelete = onDeleteInstalled?.let { delete -> { delete(font) } },
+                            onTune = if (font.variations?.isVariable == true) tuneFor(id) else null,
                         ) { onSelect(id) }
                     }
                 }
@@ -371,6 +400,8 @@ private fun FontPickerSection(
                 family = null,
                 sample = sample,
                 selected = selectedId == KeyboardFonts.DEFAULT_ID,
+                // The system font is variable on most phones from Android 12.
+                onTune = if (customId == KeyboardFonts.CUSTOM_ID) tuneFor(KeyboardFonts.DEFAULT_ID) else null,
             ) { onSelect(KeyboardFonts.DEFAULT_ID) }
         }
         for (name in googleFontNames) {
@@ -381,6 +412,7 @@ private fun FontPickerSection(
                     family = remember(id) { KeyboardFonts.family(context, id) },
                     sample = sample,
                     selected = selectedId == id,
+                    onTune = tuneFor(id),
                 ) { onSelect(id) }
             }
         }
@@ -396,6 +428,7 @@ private fun FontPickerSection(
                     family = remember(customName) { KeyboardFonts.family(context, customId) },
                     sample = sample,
                     selected = selectedId == customId,
+                    onTune = tuneFor(customId),
                 ) { onSelect(customId) }
             }
         }
@@ -409,6 +442,7 @@ private fun FontChoiceRow(
     sample: String,
     selected: Boolean,
     onDelete: (() -> Unit)? = null,
+    onTune: (() -> Unit)? = null,
     onClick: () -> Unit,
 ) {
     val deleteDesc = stringResource(R.string.fonts_delete_desc, label)
@@ -425,9 +459,17 @@ private fun FontChoiceRow(
                 maxLines = 1,
             )
         },
-        trailing = if (selected || onDelete != null) {
+        trailing = if (selected || onDelete != null || onTune != null) {
             {
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (onTune != null) {
+                        IconButton(onClick = onTune) {
+                            Icon(
+                                Icons.Outlined.Tune,
+                                contentDescription = stringResource(R.string.fonts_axes_tune_desc, label),
+                            )
+                        }
+                    }
                     if (selected) {
                         Icon(
                             Icons.Outlined.Check,
@@ -491,4 +533,25 @@ internal fun importFontFile(context: Context, uri: android.net.Uri, dest: java.i
             if (index >= 0 && cursor.moveToFirst()) cursor.getString(index) else null
         } ?: dest.name
     }.getOrNull()
+}
+
+/**
+ * "Font axes" for the font a list has selected, when it is variable. A Google
+ * face is asked about here, once, since the provider only says when asked;
+ * every other font answers from what is already known.
+ */
+@Composable
+private fun SelectedFontAxesRow(fontId: String, script: ScriptId, revision: Int, onNavigate: (String) -> Unit) {
+    if (!fontAxesSupported) return
+    val lookup = rememberFontAxes(fontId, revision)
+    if (lookup !is AxesLookup.Variable) return
+    SettingsGroup {
+        item {
+            NavRow(
+                R.string.fonts_axes_title,
+                subtitle = stringResource(R.string.fonts_axes_row_body),
+                route = "fonts/axes",
+            ) { onNavigate(fontAxesRoute(script, fontId)) }
+        }
+    }
 }

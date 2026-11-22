@@ -63,6 +63,33 @@ The filter only curates which fonts a picker *offers*. It isn't what keeps keys 
   <Shot id="themes/font-picker-script" alt="A script-specific picker (Devanagari): the automatic Noto face, a short curated list, and any installed fonts that declare coverage for the script." />
 </PhoneFrame>
 
+## Variable fonts and their axes
+
+A variable font carries a whole range of styles in one file, along named axes: weight, width, slant, optical size, and whatever else its designer added (Roboto Flex has grade and the counter and stroke widths, Recursive has casual and monospace). When the font a section has selected is variable, a **Font axes** row appears at the top of that section, and every variable font in the lists gets a tune button beside it. Static fonts show neither, so nothing changes for a font with no axes.
+
+The axes screen has one slider per axis, each running over the range the font itself sets and showing its default alongside. A preview line at the top draws the sample in the font at exactly the values the sliders hold. If the font names its own styles (Bold Condensed, Light Italic), they sit above the sliders as chips, and a tap moves every axis to that style. Axes the font marks as for experts are kept in a **More axes** fold rather than hidden outright. **Reset to the font defaults** clears every value.
+
+Four tabs split the board into places that can differ:
+
+- **Keys**: the labels on the keys.
+- **Hints**: the small corner characters and flick arms.
+- **Suggestions**: the words on the suggestion strip.
+- **Popups**: the key preview bubble and the long-press alternates.
+
+Hints, suggestions and popups use the key values until you tap **Set different values** on their tab, so a font tuned once looks the same everywhere. Light corner hints under heavy key labels, or a condensed strip that fits longer words, are one tab away. **Use the key values** puts a tab back on following the keys.
+
+Values are kept per font, not per section: tune Roboto Flex for English and it keeps those numbers wherever it's picked, and switching to another font and back finds them waiting. Your values also beat a theme's. A theme can bring its own axis values for the font it names (see [the theme editor](/themes/editor/#font-axes-and-motion)), and they apply only to a font you haven't tuned yourself.
+
+A variable font with a weight axis also draws real bold. Bold labels, the bold key-label switch and bold suggestions take the font's own heavier weight, 300 above whatever weight you set (200 for semi-bold), instead of a regular face thickened by the system.
+
+Which fonts count:
+
+- **Imported and installed fonts** are read when they arrive. A font imported before this existed is read the first time the Fonts screen opens.
+- **Google Fonts** are asked about once, when one is the selected font: the keyboard fetches that face's variable file from the font provider and remembers what it found. Inter, Roboto, Montserrat, Open Sans, Nunito, Rubik, Lora, Playfair Display, JetBrains Mono and several others on the curated lists are variable. A face already asked about shows its tune button in the lists from then on.
+- **System default** is variable on most phones from Android 12, where Roboto ships as one variable file. Older phones, and ROMs that replace the system font with a static one, don't offer it.
+
+Font axes need Android 8 or later. On Android 7 the screen says so and fonts draw as before. Before the phone is first unlocked after a restart, only the system font's values apply, since every other font file is still locked.
+
 ## Emoji fonts are separate
 
 The font you pick here never touches emoji: key labels and emoji are two independent settings, with their own pickers, their own addon type, and their own defaults. See [Emoji customization](/emoji/customization/) for choosing between your phone's system emoji set, Google's Noto Color Emoji, an installed addon font, or a custom file.
@@ -73,6 +100,7 @@ The font you pick here never touches emoji: key labels and emoji are two indepen
 
 - **English font** takes the system default, one of 20 Google Fonts, or an imported or installed file. It also governs Cyrillic and Greek. Default: system default.
 - **One section per enabled script**: the script's Automatic (Noto) face, one of its curated Google Fonts, or anything in the library that covers it. Default: Automatic (Noto). English and Bengali also keep a legacy single-file slot.
+- **Font axes**, for a variable font: one slider per axis, its named styles, and separate values for keys, hints, suggestions and popups. Shown only while the selected font is variable. Default: the font's own defaults.
 - **Installed fonts** is the shared library. A section lists the fonts that declare its script or declare no coverage at all, and the heading stays hidden when none of them fit. Delete a font from any section that lists it.
 
 A related but separate control: <SettingsPath path="Accessibility / Readable font" /> is a one-tap shortcut that sets the English font to Atkinson Hyperlegible, the Braille Institute's low-vision face where lookalike characters (capital I, lowercase l, digit 1) are drawn distinctly. It's the same setting as the English font picker above, just reached from Accessibility instead.

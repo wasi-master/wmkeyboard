@@ -244,6 +244,7 @@ The key's style opens on the page straight under the preview, which stays pinned
 - **Key shape**: this one key's outline. Automatic follows the board's shape; pick one to make a single key round, pill, cut or anything else in the list, including None. The shapes that measure themselves off the key (circle, pill, hexagon and the rest) ignore the corner radius as they always do. This is how a round Enter key on a grid of soft rectangles is made, and it is what carries over from an imported FlorisBoard theme built that way.
 - **Corner radius**: how round this one key's corners are, 0 to 28 dp, for the rounded and cut shapes. Off, the key follows the board's corner radius.
 - **Bold label** and **Label size**: how the label is drawn. Bold is a three-way choice: Automatic follows the board, On and Off answer for this key. Label size replaces the automatic rule rather than scaling it, which is how you get a `?123` drawn at full letter size. A size the *layout* gave the key in the [layout editor](/languages/custom-layouts/#editing-a-key) wins over the theme's, since the layout is the more specific answer.
+- **Font axes for this key**, when the theme's key font is variable: one slider per axis, so Enter can be heavier or the space bar narrower than the rest. An axis you don't move keeps the theme's value, and **Reset to the font defaults** clears the key's own.
 - **Frosted glass**, on a [glass theme](#glass) only: Automatic follows the key's class (the theme's glass may cover letters but not Enter, say), On makes this one key a pane of glass, and Off keeps it solid. It's how a solid accent Enter sits on a glass board.
 
 An armed or locked modifier still shows the accent or pressed face whatever color you gave it, because state has to stay visible. A key image and a press effect travel inside the exported theme the same way the board's do. High-contrast accessibility drops single-key styles with the rest of the decoration, and a press effect never plays under reduce motion or power saving.
@@ -275,7 +276,7 @@ Each rule is a selector and the properties it sets. The selector names the part 
 | ``class=`letter` ``, `modifier`, `enter`, `space` | A whole kind of key. A plain `key` with no brackets is the letters |
 | nothing, then `:pressed` | The same keys while held |
 
-The properties are `background`, `foreground`, `border-color`, `shape` (`circle()`, `rounded-corner(8dp)`, `rectangle()`, `cut-corner(6dp)`), `font-size` in sp and `font-weight`. `@defines` holds variables, used as `var(--name)`, and one body can serve several selectors separated by commas. A later rule wins over an earlier one.
+The properties are `background`, `foreground`, `border-color`, `shape` (`circle()`, `rounded-corner(8dp)`, `rectangle()`, `cut-corner(6dp)`), `font-size` in sp, `font-weight` and `font-variation`. `font-variation` takes variable-font axes in CSS's own form, `"'wght' 700, 'wdth' 80"`: on a key it sets that key's own axes, on `` key[class=`letter`] `` the board's, and on `key-hint` or `key-popup` the hints' or the popups' values. A font without the axis ignores it. `@defines` holds variables, used as `var(--name)`, and one body can serve several selectors separated by commas. A later rule wins over an earlier one.
 
 The sheet is applied each time the theme is drawn and is never saved into the theme's colors, so it always wins over the rows above it, and deleting a line takes its effect away. A key's own style from **Pick on keyboard** keeps whatever the sheet doesn't set. Under the editor, a line says how many rules change the theme, and each rule that does nothing says why: an element other than the three above, a state other than `:pressed`, a code with no key here, or a property that part does not take. **Example** fills an empty sheet with a short one to start from, and **Apply** saves it.
 
@@ -357,6 +358,28 @@ Your own pick in Appearance → Fonts still beats the theme's, the English one i
 For a theme you plan to share, use the forms that travel. Google Font ids (`google:Caveat`) resolve the same on every device, and an installed sound or font can be named by its catalogue name: "Typewriter" for a sound, `installed:Bloxat` for a font. The ids the libraries mint locally differ from phone to phone.
 
 A theme's sound is only ever a sound it can actually make. A theme whose sound is missing on this device (never installed, or since deleted) falls back to the global **Key press → Sound style** pick, and so does a theme file whose `soundStyle` is `CUSTOM` or `PACK` with no `soundCustomId` beside it. Those two styles name something installed rather than a waveform of their own, so without a name there is nothing to play, and overriding your own pick with silence-turned-system-click would leave the whole keyboard clicking with nothing on screen to say why.
+
+### Font axes and motion
+
+<SettingsPath path="Appearance / Keyboard themes / (edit a theme) / Font and sound / Font axes and motion" />
+
+A theme on a [variable font](/themes/fonts/#variable-fonts-and-their-axes) can set the font's axes and make the key labels move. The row is greyed out until there's a variable font to work with: the theme's own key font or one of its script fonts, or at least one variable font in your library. A long press on the greyed row says so.
+
+**Font axes** is the same editor as the Fonts screen's, kept in the theme rather than in your settings: sliders per axis, the font's named styles, and separate values for keys, hints, suggestions and popups. Chips at the top switch between the key font and each script font the theme names. A theme with no key font of its own uses the system font, so a theme can tune Roboto's weight on phones where it's variable. If the theme's font is static, the screen says so and lists the variable fonts in your library, any of which becomes the theme's key font with one tap. Values you set for the same font on the Fonts screen win over the theme's, and the screen tells you when that's the case.
+
+**Font motion** moves the key labels while you type. A theme holds up to four motions, and each one moves the axes you add to it from where they rest to the value you set:
+
+- **Lighting pattern** uses one of the [key lighting](#key-lighting) patterns. The idle ones (Wave, Breathe, Sweep, Twinkle, Heartbeat, Steady) run on their own, and the press ones (Pressed key, Ripple, Echo, Splash, Cross, Rain) start from the key you press. A theme with Wave lighting and a Wave motion swells its letters in step with the light.
+- **Finger**: the letters near your finger swell as you press and settle back when you lift. **Reach** sets how far from the finger, **Time to go back** how long they take, and **Bounce** how far past rest they ring on the way.
+- **Glide**: the letters swell as a gliding finger passes over them and settle behind it, so the path shows as a wake.
+- **Shift**: every label eases to the motion's values while Shift or Caps Lock is on, instead of snapping.
+- **Typing speed**: the whole board leans toward the motion's values the faster you type, and settles when you stop.
+
+Each motion moves the letter keys only, unless **Move all key labels** is on, which brings in the words on ?123, Enter and the other function keys. Where two motions move the same axis, the one that moves it further wins at that moment.
+
+The motion draws at 30 frames a second, 15 while the phone is busy, and only while something is moving: a still keyboard asks for no frames. Each motion moves in steps (12 across an axis's range, 8 while the phone is busy) rather than continuously, since each step is a separate cut of the font. Reduce motion and power saving stop it, as they stop the lighting and touch bloom, and **Theme effects with Reduce motion** brings it back. High contrast drops it with the rest of the decoration. Corner hints, suggestions and popups keep their own axis values but don't move.
+
+The built-in **Swell** theme shows it off on the system font: letters swell a weight step under the finger, and everything leans heavier while Shift is on.
 
 ### Key icons
 

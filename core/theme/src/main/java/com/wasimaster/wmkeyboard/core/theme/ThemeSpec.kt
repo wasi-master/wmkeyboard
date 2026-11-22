@@ -694,6 +694,23 @@ data class ThemeSpec(
      */
     val scriptFontIds: Map<String, String> = emptyMap(),
     /**
+     * Variable-font axis values for [fontId], per place on the board; see
+     * [FontAxesSpec]. Null draws the font at its own defaults. Like the font,
+     * these lose to the user's own tuning of the font that ends up drawn: a
+     * font the user tuned on the Fonts screen keeps their numbers whichever
+     * theme wears it. One unknown key to an older build.
+     */
+    val fontAxes: FontAxesSpec? = null,
+    /** The same for each of [scriptFontIds], keyed the same way. */
+    val scriptFontAxes: Map<String, FontAxesSpec> = emptyMap(),
+    /**
+     * How the key labels' font moves, up to [MAX_FONT_MOTIONS]; see
+     * [FontMotionSpec]. Only a variable font can move: on a static face these
+     * draw nothing. Held still by reduce motion and power saving, like the
+     * board effect.
+     */
+    val fontMotions: List<FontMotionSpec> = emptyList(),
+    /**
      * Key sound, as a KeySoundStyle name. A string rather than the enum for
      * the reason spelled out above [PhotoAttribution]; an unknown name costs
      * the field, not the theme. Null follows the global sound setting.
@@ -1041,9 +1058,16 @@ data class KeyOverride(
      * class out; false keeps one key solid. Nothing on a theme without glass.
      */
     val glass: Boolean? = null,
+    /**
+     * This key's label in its own variable-font axes, by tag: a heavier Enter,
+     * a condensed space bar. Laid over the board's own values for the label,
+     * so a key that only widens keeps the theme's weight. Set by a rule sheet's
+     * `font-variation` too. A font without the axis ignores it.
+     */
+    val fontAxes: Map<String, Float>? = null,
 ) {
     val isEmpty: Boolean
-        get() = background == null && text == null && border == null &&
+        get() = fontAxes.isNullOrEmpty() && background == null && text == null && border == null &&
             popupBackground == null && popupText == null && hint == null &&
             texture == null && pressedTexture == null && effect == null && effectParam == null &&
             pressedBackground == null &&
@@ -2058,7 +2082,33 @@ val BuiltInThemes: List<ThemeSpec> = listOf(
         keyBorderWidthDp = 1f,
     ),
     FrostTheme,
+    SwellTheme,
 ) + ExpressiveThemes + PaletteThemes
+
+/**
+ * The font-motion showcase: the system font, whose Roboto is variable on most
+ * phones from Android 12, swelling a weight step heavier under the finger and
+ * leaning heavier while Shift is on. On a phone whose system font is static it
+ * is an ordinary warm dark theme: the motions have no axes to move.
+ */
+private val SwellTheme: ThemeSpec =
+    themeFromSeed("builtin_swell", "Swell", 0xFFE0A030, dark = true).copy(
+        fontMotions = listOf(
+            FontMotionSpec(
+                trigger = FontMotionTrigger.TOUCH.name,
+                axes = mapOf("wght" to 760f),
+                radiusDp = 110f,
+                decayMs = 450,
+                wobble = 0.35f,
+            ),
+            FontMotionSpec(
+                trigger = FontMotionTrigger.SHIFT.name,
+                axes = mapOf("wght" to 640f),
+                target = FontMotionTarget.ALL.name,
+                wobble = 0.2f,
+            ),
+        ),
+    )
 
 /**
  * The name resource of every theme in [BuiltInThemes], keyed by the id of the
@@ -2082,6 +2132,7 @@ private val BuiltInThemeNameRes: Map<String, Int> = mapOf(
     "builtin_nebula" to R.string.core_theme_builtin_nebula_label,
     "builtin_sunset_drift" to R.string.core_theme_builtin_sunset_drift_label,
     "builtin_aurora" to R.string.core_theme_builtin_aurora_label,
+    "builtin_swell" to R.string.core_theme_builtin_swell_label,
     "builtin_deep_sea" to R.string.core_theme_builtin_deep_sea_label,
     "builtin_glacier" to R.string.core_theme_builtin_glacier_label,
     "builtin_bubble" to R.string.core_theme_builtin_bubble_label,

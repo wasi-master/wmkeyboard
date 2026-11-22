@@ -40,6 +40,8 @@ fun KeyboardSettings.restrictedToDirectBoot(): KeyboardSettings {
         // the system face rather than to no glyphs at all.
         keyFontId = "default",
         scriptFontIds = emptyMap(),
+        // Only the system face is left to draw with, so only its tuning stays.
+        fontAxes = fontAxes.filterKeys { it == "default" },
         emojiFont = EmojiFontChoice.SYSTEM,
         // An installed key sound is a file under filesDir too, and a sound pack
         // is a whole directory of them. Unlike the fonts there is no per-glyph

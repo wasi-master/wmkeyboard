@@ -279,7 +279,7 @@ internal fun settleMs(wobble: Float): Long {
 }
 
 /**
- * Feeds [TouchBloom] from a key grid's own pointer pass: every down, move and
+ * Feeds [TouchBloom] (and the font motion's [FontMotionFingers]) from a key grid's own pointer pass: every down, move and
  * lift on the Initial pass, in root space ([origin] is the grid's root offset,
  * in the space its pointer positions arrive in). Never consumes. A down that
  * [accepts] turns away (a panel's component cell, which is not a key) is not
@@ -304,15 +304,23 @@ internal fun Modifier.touchBloomFingers(
                     when {
                         change.changedToDownIgnoreConsumed() -> if (accepts(change.position)) {
                             TouchBloom.down(change.id.value, x, y, change.uptimeMillis)
+                            FontMotionFingers.down(change.id.value, x, y, change.uptimeMillis)
                         }
-                        change.pressed -> TouchBloom.move(change.id.value, x, y)
-                        change.previousPressed -> TouchBloom.up(change.id.value, change.uptimeMillis)
+                        change.pressed -> {
+                            TouchBloom.move(change.id.value, x, y)
+                            FontMotionFingers.move(change.id.value, x, y, change.uptimeMillis)
+                        }
+                        change.previousPressed -> {
+                            TouchBloom.up(change.id.value, change.uptimeMillis)
+                            FontMotionFingers.up(change.id.value, change.uptimeMillis)
+                        }
                     }
                 }
             }
         }
     } finally {
         TouchBloom.liftAll(SystemClock.uptimeMillis())
+        FontMotionFingers.liftAll(SystemClock.uptimeMillis())
     }
 }
 

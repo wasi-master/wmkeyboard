@@ -21,7 +21,8 @@ import kotlin.math.abs
  *   "key[code=10]": { "background": "var(--hot)", "shape": "circle()" },
  *   "key[code=10]:pressed": { "background": "#AA2233" },
  *   "key[output=`a`],key[output=`e`]": { "foreground": "var(--hot)" },
- *   "key-hint[code=113]": { "foreground": "#888888" }
+ *   "key-hint[code=113]": { "foreground": "#888888" },
+ *   "key[code=32]": { "font-variation": "'wdth' 75" }
  * }
  * ```
  *
@@ -247,6 +248,10 @@ object KeyRuleSheet {
                     used += PROP_FONT_WEIGHT
                     next = next.copy(bold = isBold(weight))
                 }
+                fontVariation(rule.value(PROP_FONT_VARIATION))?.let {
+                    used += PROP_FONT_VARIATION
+                    next = next.copy(fontAxes = (next.fontAxes.orEmpty() + it))
+                }
             }
             EL_HINT -> if (rule.state == null) colour(PROP_FOREGROUND)?.let { next = next.copy(hint = it) }
             EL_POPUP -> if (rule.state == null) {
@@ -292,12 +297,30 @@ object KeyRuleSheet {
                         used += PROP_FONT_WEIGHT
                         next = next.copy(boldKeyLabels = isBold(weight))
                     }
+                    // The board's own axes: `key[class=letter]` is every label.
+                    fontVariation(rule.value(PROP_FONT_VARIATION))?.let {
+                        used += PROP_FONT_VARIATION
+                        val axes = next.fontAxes ?: FontAxesSpec()
+                        next = next.copy(fontAxes = axes.copy(keys = axes.keys + it))
+                    }
                 }
             }
-            EL_HINT -> if (letters && rule.state == null) colour(PROP_FOREGROUND)?.let { next = next.copy(hintText = it) }
+            EL_HINT -> if (letters && rule.state == null) {
+                colour(PROP_FOREGROUND)?.let { next = next.copy(hintText = it) }
+                fontVariation(rule.value(PROP_FONT_VARIATION))?.let {
+                    used += PROP_FONT_VARIATION
+                    val axes = next.fontAxes ?: FontAxesSpec()
+                    next = next.copy(fontAxes = axes.copy(hints = axes.role(FontRole.HINTS) + it))
+                }
+            }
             EL_POPUP -> if (letters && rule.state == null) {
                 colour(PROP_BACKGROUND)?.let { next = next.copy(popupBackground = it) }
                 colour(PROP_FOREGROUND)?.let { next = next.copy(popupText = it) }
+                fontVariation(rule.value(PROP_FONT_VARIATION))?.let {
+                    used += PROP_FONT_VARIATION
+                    val axes = next.fontAxes ?: FontAxesSpec()
+                    next = next.copy(fontAxes = axes.copy(popup = axes.role(FontRole.POPUP) + it))
+                }
             }
         }
         return next to used
@@ -310,6 +333,10 @@ object KeyRuleSheet {
         if (abs(scale - 1f) < SCALE_EPSILON) return null
         return scale.coerceIn(KEY_OVERRIDE_LABEL_SCALE_RANGE)
     }
+
+    /** A `font-variation` value (`'wght' 700, 'wdth' 80`) as axis values, or null when it names none. */
+    private fun fontVariation(raw: String?): Map<String, Float>? =
+        raw?.let(::parseAxesCss)?.takeIf { it.isNotEmpty() }
 
     private fun isBold(weight: String): Boolean {
         val text = weight.trim().lowercase()

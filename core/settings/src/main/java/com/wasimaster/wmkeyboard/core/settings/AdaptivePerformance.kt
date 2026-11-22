@@ -103,12 +103,24 @@ private const val LOW_TV_IDLE_RELEASE_MS = 15_000L
  * gradient cycles over many seconds, and 30 frames a second is already more
  * than the eye can tell apart from 120.
  */
-data class MotionBudget(val boardEffectFps: Int, val themeFlowFps: Int) {
+data class MotionBudget(
+    val boardEffectFps: Int,
+    val themeFlowFps: Int,
+    /**
+     * The theme's font motion (the key labels' axes moving). Each frame can
+     * re-cut and re-lay out every moving label, so it runs below the board
+     * effect's rate; the eye reads a swelling letter at 30 frames as smooth.
+     */
+    val fontMotionFps: Int = 30,
+) {
     /** The wait between two frames of a board effect, in ms; 0 for no cap. */
     val boardEffectGapMs: Long get() = gapFor(boardEffectFps)
 
     /** The wait between two frames of the theme's colour flow, in ms; 0 for no cap. */
     val themeFlowGapMs: Long get() = gapFor(themeFlowFps)
+
+    /** The wait between two frames of the font motion, in ms; 0 for no cap. */
+    val fontMotionGapMs: Long get() = gapFor(fontMotionFps)
 
     private fun gapFor(fps: Int): Long =
         // A little under the frame time, so the frame that follows the wait
@@ -119,8 +131,8 @@ data class MotionBudget(val boardEffectFps: Int, val themeFlowFps: Int) {
         private const val MILLIS_PER_SECOND = 1_000L
         private const val VSYNC_SLACK_MS = 4L
 
-        val NORMAL = MotionBudget(boardEffectFps = 60, themeFlowFps = 30)
-        val ELEVATED = MotionBudget(boardEffectFps = 30, themeFlowFps = 15)
+        val NORMAL = MotionBudget(boardEffectFps = 60, themeFlowFps = 30, fontMotionFps = 30)
+        val ELEVATED = MotionBudget(boardEffectFps = 30, themeFlowFps = 15, fontMotionFps = 15)
 
         /** The budget for [load]; under [LoadLevel.HEAVY] the theme is held still anyway. */
         fun of(load: DeviceLoad): MotionBudget =

@@ -192,4 +192,31 @@
     <string name="fonts_tool_learn_from_text_desc">List the words in what you have written that the keyboard does not know yet, and add them to your personal dictionary</string>
     <string name="fonts_tool_speed_test_title">Internet speed test</string>
     <string name="fonts_tool_speed_test_desc">Measure download, upload and ping, and send the result as a picture</string>
+
+    <!-- ==================================================================== -->
+    <!-- Appearance > Fonts > Font axes: variable-font axis sliders.          -->
+    <!-- ==================================================================== -->
+    <string name="fonts_axes_title">Font axes</string>
+    <string name="fonts_axes_row_body">This font is variable. Change its weight, width and other axes.</string>
+    <string name="fonts_axes_tune_desc">Change the axes of <xliff:g id="font" example="Roboto Flex">%1$s</xliff:g></string>
+    <string name="fonts_axes_info">A variable font has axes, such as weight, width and slant. Each axis has a range that the font sets. Move a slider to change one axis. The keyboard keeps these values for this font, and a theme cannot change them.</string>
+    <string name="fonts_axes_static_body">This font is not variable. It has no axes to change.</string>
+    <string name="fonts_axes_old_android_body">Font axes need Android 8 or later.</string>
+    <string name="fonts_axes_checking_body">Checking the font for axes…</string>
+    <string name="fonts_axes_preview_title">Preview</string>
+    <string name="fonts_axes_role_keys">Keys</string>
+    <string name="fonts_axes_role_hints">Hints</string>
+    <string name="fonts_axes_role_strip">Suggestions</string>
+    <string name="fonts_axes_role_popup">Popups</string>
+    <string name="fonts_axes_role_info">Keys are the labels on the keys. Hints are the small characters in the corners. Suggestions are the words in the suggestion strip. Popups are the key preview and the alternate characters. Hints, suggestions and popups use the key values until you give them their own.</string>
+    <string name="fonts_axes_follow_keys_title">Same as keys</string>
+    <string name="fonts_axes_follow_keys_body">These use the values that you set for the keys.</string>
+    <string name="fonts_axes_own_values_action">Set different values</string>
+    <string name="fonts_axes_follow_keys_action">Use the key values</string>
+    <string name="fonts_axes_instances_title">Named styles</string>
+    <string name="fonts_axes_hidden_group_title">More axes</string>
+    <string name="fonts_axes_hidden_group_info">The font marks these axes as for experts. They can make the font hard to read.</string>
+    <string name="fonts_axes_reset_title">Reset to the font defaults</string>
+    <string name="fonts_axes_reset_axis_desc">Reset <xliff:g id="axis" example="Weight">%1$s</xliff:g></string>
+    <string name="fonts_axes_value"><xliff:g id="value" example="650">%1$s</xliff:g> (default <xliff:g id="default" example="400">%2$s</xliff:g>)</string>
 </resources>

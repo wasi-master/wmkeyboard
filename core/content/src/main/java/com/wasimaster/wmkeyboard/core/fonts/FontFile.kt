@@ -84,6 +84,7 @@ object FontFile {
         emoji: Boolean = false,
         now: Long = System.currentTimeMillis(),
         loader: (File) -> Boolean = PLATFORM_LOADER,
+        readVariations: (File) -> FontVariations? = FontAxesReader::read,
     ): FontImportResult {
         if (store.fonts().size >= FontStore.MAX_FONTS) return FontImportResult.TooManyFonts
         val staging = store.stagingDir()
@@ -116,6 +117,9 @@ object FontFile {
                 return FontImportResult.NotAFont(R.string.core_content_font_error_load)
             }
 
+            // Read now, from the staged copy, so the picker knows whether to
+            // offer the axes the moment the font lands.
+            val variations = readVariations(staged) ?: FontVariations.STATIC
             val id = store.freeId(now)
             if (!store.adoptFile(id, staged)) {
                 return FontImportResult.Failed(R.string.core_content_font_error_save)
@@ -130,6 +134,7 @@ object FontFile {
                     addedAt = now,
                     langIds = langIds.map { it.trim() }.filter { it.isNotEmpty() }.distinct(),
                     emoji = emoji,
+                    variations = variations,
                 ),
             )
             if (font == null) {

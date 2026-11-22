@@ -175,23 +175,10 @@ private fun DrawScope.paintLighting(
         val cell = cellRoot.translate(-origin.x, -origin.y)
         val center = cell.center
         val u = center.x / width
-        val level = when (lighting.pattern) {
-            KeyLightingPattern.STEADY -> 1f
-            KeyLightingPattern.BREATHE -> 0.25f + 0.75f * (0.5f + 0.5f * sin(t * 1.4f))
-            KeyLightingPattern.WAVE -> 0.5f + 0.5f * sin((t * 0.6f - u) * 2f * PI.toFloat())
-            KeyLightingPattern.SWEEP -> {
-                val head = (t * 0.35f) % 1.4f - 0.2f
-                exp(-((u - head) * 7f).pow(2))
-            }
-            KeyLightingPattern.TWINKLE -> {
-                val phase = hash(index) * 20f
-                max(0f, sin(t * (1f + hash(index + 99)) + phase)).pow(6)
-            }
-            KeyLightingPattern.HEARTBEAT -> {
-                val beat = (t * 0.9f) % 1f
-                max(exp(-((beat - 0.1f) * 22f).pow(2)), 0.7f * exp(-((beat - 0.28f) * 22f).pow(2)))
-            }
-            else -> reactiveLevel(lighting, kit, cell, origin, now)
+        val level = if (lighting.pattern.reactive) {
+            reactiveLevel(lighting, kit, cell, origin, now)
+        } else {
+            idleLightingLevel(lighting.pattern, t, u, index)
         }
         if (level <= 0.01f) continue
         val drift = if (lighting.pattern == KeyLightingPattern.STEADY) 0f else t * 20f
@@ -379,43 +366,85 @@ private fun reactiveLevel(lighting: KbLighting, kit: LightingKit, cell: Rect, or
     val keySpan = max(cell.width, cell.height)
     ThemePulse.forEachRecent(now, lighting.decayMs + REACTIVE_TAIL_MS) { px, py, ageMs ->
         val press = Offset(px - origin.x, py - origin.y)
-        val age = ageMs / decay
-        val fade = (1f - age).coerceIn(0f, 1f)
-        val dist = (press - cell.center).getDistance() / keySpan
-        val hit = when (lighting.pattern) {
-            KeyLightingPattern.KEY -> if (cell.contains(press)) fade else 0f
-            KeyLightingPattern.RIPPLE -> {
-                val ring = age * 6f * lighting.speed
-                max(0f, 1f - abs(dist - ring) * 1.4f) * fade
-            }
-            KeyLightingPattern.ECHO -> {
-                var best = 0f
-                for (k in 0 until 3) {
-                    val ring = (age - k * 0.18f) * 5f * lighting.speed
-                    if (ring > 0f) best = max(best, max(0f, 1f - abs(dist - ring) * 1.6f) * (1f - k * 0.3f))
-                }
-                best * fade
-            }
-            KeyLightingPattern.SPLASH -> if (dist <= age * 4f * lighting.speed) fade.pow(0.7f) else 0f
-            KeyLightingPattern.CROSS -> {
-                val sameRow = abs(press.y - cell.center.y) < cell.height / 2
-                val sameCol = abs(press.x - cell.center.x) < cell.width / 2
-                if ((sameRow || sameCol) && dist <= age * 8f * lighting.speed + 0.5f) fade else 0f
-            }
-            KeyLightingPattern.RAIN -> {
-                // A drop falling from the pressed key down its column.
-                val sameCol = abs(press.x - cell.center.x) < cell.width / 2
-                val below = (cell.center.y - press.y) / cell.height
-                if (sameCol && below >= 0f) max(0f, 1f - abs(below - age * 4f * lighting.speed)) * fade else 0f
-            }
-            else -> 0f
-        }
+        val hit = pressLightingLevel(lighting.pattern, lighting.speed, cell, press, ageMs / decay, keySpan)
         if (hit > level) {
             level = hit
             kit.winnerAt = now - ageMs
         }
     }
     return level
+}
+
+/**
+ * How lit a key is by an idle pattern, 0..1: [t] is seconds scaled by the
+ * pattern's speed, [u] the key's place across the board (0 left, 1 right) and
+ * [index] a number of its own, for the patterns that give each key a phase.
+ * Shared by the key lighting and the font motion ([FontMotion]), so a theme
+ * whose letters swell to a wave swells them in step with its light.
+ */
+internal fun idleLightingLevel(pattern: KeyLightingPattern, t: Float, u: Float, index: Int): Float = when (pattern) {
+    KeyLightingPattern.STEADY -> 1f
+    KeyLightingPattern.BREATHE -> 0.25f + 0.75f * (0.5f + 0.5f * sin(t * 1.4f))
+    KeyLightingPattern.WAVE -> 0.5f + 0.5f * sin((t * 0.6f - u) * 2f * PI.toFloat())
+    KeyLightingPattern.SWEEP -> {
+        val head = (t * 0.35f) % 1.4f - 0.2f
+        exp(-((u - head) * 7f).pow(2))
+    }
+    KeyLightingPattern.TWINKLE -> {
+        val phase = hash(index) * 20f
+        max(0f, sin(t * (1f + hash(index + 99)) + phase)).pow(6)
+    }
+    KeyLightingPattern.HEARTBEAT -> {
+        val beat = (t * 0.9f) % 1f
+        max(exp(-((beat - 0.1f) * 22f).pow(2)), 0.7f * exp(-((beat - 0.28f) * 22f).pow(2)))
+    }
+    else -> 0f
+}
+
+/**
+ * How lit the key [cell] is by one press at [press], [age] of the way through
+ * its decay (0 fresh, 1 gone), for a pattern that answers presses. [keySpan]
+ * is the size distances are counted in. 0 for an idle pattern. Shared with the
+ * font motion, as [idleLightingLevel] is.
+ */
+internal fun pressLightingLevel(
+    pattern: KeyLightingPattern,
+    speed: Float,
+    cell: Rect,
+    press: Offset,
+    age: Float,
+    keySpan: Float = max(cell.width, cell.height),
+): Float {
+    val fade = (1f - age).coerceIn(0f, 1f)
+    val dist = (press - cell.center).getDistance() / keySpan.coerceAtLeast(1f)
+    return when (pattern) {
+        KeyLightingPattern.KEY -> if (cell.contains(press)) fade else 0f
+        KeyLightingPattern.RIPPLE -> {
+            val ring = age * 6f * speed
+            max(0f, 1f - abs(dist - ring) * 1.4f) * fade
+        }
+        KeyLightingPattern.ECHO -> {
+            var best = 0f
+            for (k in 0 until 3) {
+                val ring = (age - k * 0.18f) * 5f * speed
+                if (ring > 0f) best = max(best, max(0f, 1f - abs(dist - ring) * 1.6f) * (1f - k * 0.3f))
+            }
+            best * fade
+        }
+        KeyLightingPattern.SPLASH -> if (dist <= age * 4f * speed) fade.pow(0.7f) else 0f
+        KeyLightingPattern.CROSS -> {
+            val sameRow = abs(press.y - cell.center.y) < cell.height / 2
+            val sameCol = abs(press.x - cell.center.x) < cell.width / 2
+            if ((sameRow || sameCol) && dist <= age * 8f * speed + 0.5f) fade else 0f
+        }
+        KeyLightingPattern.RAIN -> {
+            // A drop falling from the pressed key down its column.
+            val sameCol = abs(press.x - cell.center.x) < cell.width / 2
+            val below = (cell.center.y - press.y) / cell.height.coerceAtLeast(1f)
+            if (sameCol && below >= 0f) max(0f, 1f - abs(below - age * 4f * speed)) * fade else 0f
+        }
+        else -> 0f
+    }
 }
 
 private fun hash(i: Int): Float {
