@@ -285,7 +285,7 @@ A web or email address is the exception: it goes in one step, marks and all. `ht
 A few things a word-delete step does specially, rather than falling back to plain character deletion:
 
 - If there's an active text selection, one step clears the whole selection instead of doing word math.
-- If a word is still mid-composition (a transliteration buffer, for a phonetic layout), one step clears the entire composing word in one go.
+- If a word is still mid-composition as a spelling rather than the text itself (a transliteration buffer, for a phonetic layout), one step clears the entire composing word in one go. A word still being typed on an ordinary layout, or one the keyboard picked back up because the cursor sits at its end, goes by the same word stops as finished text, so a held delete takes `myVariable_name` a piece at a time there too.
 - Inside a panel's own search box (emoji, clipboard or dictionary search, a plugin's text field, the typing-test box) or mid-stroke on a handwriting panel, word deletion steps down to one character at a time. Word-deleting the field hidden behind the overlay would be invisible and wrong, so it doesn't try.
 
 See [Sound & vibration](/typing/feedback/) for the **Vibrate on delete swipe** haptic that ticks on each word this gesture removes.

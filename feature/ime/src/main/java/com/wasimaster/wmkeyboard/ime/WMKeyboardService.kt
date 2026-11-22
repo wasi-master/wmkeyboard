@@ -19881,6 +19881,36 @@ open class WMKeyboardService : InputMethodService() {
         }
         // A word in progress lives in the composing buffer, not the field.
         if (composing.isNotEmpty()) {
+            // The word stops hold inside it too (#1296): `myVariable_name` or
+            // `well-paid` still being typed, or a word the caret came back to
+            // and the keyboard picked up again, which is what a held delete
+            // lands on after every word it takes. That word used to go whole
+            // whatever the stops said, so a held delete in an ordinary app
+            // field skipped its capitals, hyphens and underscores. Only where
+            // the buffer is the text the field shows; a spelling (Avro's
+            // roman, a Telex word) still goes as one.
+            val state = _uiState.value
+            val buffer = composing.toString()
+            val keep = if (composedPreview(state, buffer) == buffer) {
+                (buffer.length - WordDelete.lengthBefore(buffer, deleteWordBreaks(held))).coerceAtLeast(0)
+            } else {
+                0
+            }
+            if (keep in 1 until buffer.length) {
+                composing.setLength(keep)
+                repeat(buffer.length - keep) {
+                    composingTouch.removeLastOrNull()
+                    composingKeys.removeLastOrNull()
+                    composingHints.removeLastOrNull()
+                }
+                duetWord.clear()
+                ambiguousReading = null
+                phoneticKeyed = null
+                keystrokeTiming.reset()
+                updateComposingText(ic)
+                refreshSuggestions()
+                return
+            }
             composing.setLength(0)
             duetWord.clear()
             composingTouch.clear()
