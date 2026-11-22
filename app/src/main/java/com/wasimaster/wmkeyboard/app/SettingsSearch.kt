@@ -11,6 +11,7 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.barcode.BarcodeEngine
 import com.wasimaster.wmkeyboard.core.settings.AutomationPermission
 import com.wasimaster.wmkeyboard.core.settings.Extension
+import com.wasimaster.wmkeyboard.core.settings.ScreenVariant
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderType
@@ -1304,12 +1305,23 @@ private fun SearchStrings.layoutSizeRows(): List<SettingsSearchEntry> {
         row(R.string.layout_toolbar_height_title, R.string.layout_toolbar_height_subtitle),
         row(R.string.layout_keyboard_position_title, R.string.layout_keyboard_position_info),
         row(R.string.layout_variant_follows_portrait_label),
-        row(R.string.layout_font_size_title),
-        row(R.string.layout_variant_allow_one_handed_title, R.string.layout_variant_allow_one_handed_subtitle),
-        row(R.string.layout_variant_allow_split_title, R.string.layout_variant_allow_split_subtitle),
-        row(R.string.layout_follow_portrait_title),
+        // These four are only on a screen shape's own page (Per-screen
+        // sizing), never on this one, so they open Landscape's: the shape
+        // most people mean. Indexed under layout/size they landed on a page
+        // without them (#1496).
+        variantRow(R.string.layout_font_size_title),
+        variantRow(R.string.layout_variant_allow_one_handed_title, R.string.layout_variant_allow_one_handed_subtitle),
+        variantRow(R.string.layout_variant_allow_split_title, R.string.layout_variant_allow_split_subtitle),
+        variantRow(R.string.layout_follow_portrait_title),
     )
 }
+
+/** A row of a screen shape's own size page, opened on Landscape's. */
+private fun SearchStrings.variantRow(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+    title, subtitle, ScreenVariant.LANDSCAPE.labelRes,
+    VARIANT_SIZE_ROUTE_PREFIX + ScreenVariant.LANDSCAPE.name.lowercase(),
+    screenParent = R.string.layout_size_position_title, screenRoot = R.string.home_layout_title,
+)
 
 /** Rows on the layout/onehanded page, in screen order. */
 private fun SearchStrings.layoutOnehandedRows(): List<SettingsSearchEntry> {
