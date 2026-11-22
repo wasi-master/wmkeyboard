@@ -574,6 +574,42 @@ app:
 The URL is percent-encoded and resolved by the same rules as pasted input
 (§4). **`https` only.**
 
+Most READMEs, chat apps and Markdown renderers refuse to make a
+`wmkeyboard://` link tappable. Write the same link as an `https` address on
+this site's `/open/` page instead, which the app claims as an App Link: on a
+phone with WM Keyboard it opens the app directly, and anywhere else the page
+loads and offers a button.
+
+| Link | Same as |
+|---|---|
+| `https://wmkeyboard.app/open/?repo=<repo URL>` | `wmkeyboard://repo?url=<repo URL>` |
+| `https://wmkeyboard.app/open/?repo=<repo URL>&id=<addonId>` | `wmkeyboard://addon?repo=<repo URL>&id=<addonId>` |
+
+The [link builder](/reference/link-builder/) writes and checks either kind.
+
+### The "Add repository" badge
+
+For the top of a README, next to the store badges people already know:
+
+<img src="/badges/add-repository.png" alt="Add repository to WM Keyboard" height="72" />
+
+Put your repository's address, percent-encoded, after `?repo=`:
+
+```html
+<a href="https://wmkeyboard.app/open/?repo=https%3A%2F%2Fgithub.com%2Fyou%2Fyour-addons"><img src="https://wmkeyboard.app/badges/add-repository.png" alt="Add repository to WM Keyboard" height="72"></a>
+```
+
+Or in Markdown, where there is no `height`:
+
+```md
+[![Add repository to WM Keyboard](https://wmkeyboard.app/badges/add-repository.png)](https://wmkeyboard.app/open/?repo=https%3A%2F%2Fgithub.com%2Fyou%2Fyour-addons)
+```
+
+The image is the size of the Google Play, F-Droid and Obtainium "Get it on"
+badges, margin included, so all of them line up at one `height`. Tapping it
+opens the add-repository dialog with your address filled in; nothing is
+fetched until the user taps **Add**.
+
 :::note[A link is a shortcut, not an install button]
 A link can never install anything or add a repository on its own. It navigates
 to a page showing the repository's host, the addon and its author, and the user
