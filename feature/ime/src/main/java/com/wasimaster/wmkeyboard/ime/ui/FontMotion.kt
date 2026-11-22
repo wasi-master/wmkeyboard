@@ -33,6 +33,7 @@ import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntSize
@@ -50,6 +51,8 @@ import com.wasimaster.wmkeyboard.core.theme.MAX_FONT_MOTIONS
 import com.wasimaster.wmkeyboard.core.theme.fontMotionTargetOrDefault
 import com.wasimaster.wmkeyboard.core.theme.fontMotionTriggerOrNull
 import com.wasimaster.wmkeyboard.core.theme.keyLightingPatternOrNull
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlin.math.abs
 import kotlin.math.exp
 import kotlin.math.max
@@ -445,6 +448,33 @@ internal object FontMotionDriver {
         return live || m.items.any { item -> itemRunning(item, now) }
     }
 
+    /**
+     * Every cut of the font [motion] can ask for on its own, one motion at a
+     * time, from a little past rest on the far side (a spring's overshoot) to
+     * a little past its peak: what [warm] builds ahead of the first press.
+     * Two motions meeting on one key ask for cuts outside this list, and
+     * those are built when they come.
+     */
+    fun warmPlan(motion: KbFontMotion, fonts: BoardFonts, budget: MotionBudget): List<Map<String, Float>> {
+        val variations = fonts.variations ?: return emptyList()
+        val steps = if (budget == MotionBudget.NORMAL) STEPS_NORMAL else STEPS_REDUCED
+        val rest = fonts.keyAxes
+        val out = LinkedHashSet<Map<String, Float>>()
+        for (item in motion.items) {
+            for (k in -WARM_OVERSHOOT..steps + WARM_OVERSHOOT) {
+                val morphed = morphedAxes(rest, variations, listOf(item.axes to k / steps.toFloat()))
+                if (morphed != rest) out += quantizeAxes(morphed, variations, steps)
+            }
+        }
+        return out.toList()
+    }
+
+    /** The weights the moving labels draw in, Medium and Normal before any has been laid out. */
+    fun labelWeights(): List<FontWeight> {
+        val seen = nodes.mapTo(LinkedHashSet()) { it.style.fontWeight ?: FontWeight.Normal }
+        return if (seen.isEmpty()) listOf(FontWeight.Medium, FontWeight.Normal) else seen.toList()
+    }
+
     /** Puts every label back to rest, as the motion goes away. */
     fun rest() {
         for (node in nodes) {
@@ -497,6 +527,8 @@ internal object FontMotionDriver {
     /** How far a finger has to travel before it counts as gliding, in dp. */
     private const val GLIDE_FROM_DP = 18f
     private const val REACTIVE_TAIL_MS = 600L
+    /** Steps past each end [warmPlan] covers, for the springs that ring past rest and peak. */
+    private const val WARM_OVERSHOOT = 4
 }
 
 /**
@@ -521,6 +553,22 @@ internal fun FontMotionLayer(motion: KbFontMotion, fonts: BoardFonts, shifted: B
             val t = withFrameMillis { SystemClock.uptimeMillis() }
             if (!FontMotionDriver.tick(t, ThemeFramePacing.budget)) break
             paceFontMotionFrame()
+        }
+    }
+    // Cuts the font at every step the motion will ask for, and loads each
+    // one's typeface, off the main thread as the theme arrives. Without it the
+    // first sweep of a motion builds a cut per step inside the draw pass, a
+    // file opened and parsed per new step, and the first presses stutter.
+    val resolver = LocalFontFamilyResolver.current
+    LaunchedEffect(motion, fonts, resolver) {
+        withFrameMillis { }
+        val plan = FontMotionDriver.warmPlan(motion, fonts, ThemeFramePacing.budget)
+        val weights = FontMotionDriver.labelWeights()
+        withContext(Dispatchers.Default) {
+            for (axes in plan) {
+                val family = fonts.withAxes(axes) ?: continue
+                for (weight in weights) runCatching { resolver.resolve(family, weight) }
+            }
         }
     }
     androidx.compose.runtime.DisposableEffect(motion) {

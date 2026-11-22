@@ -9045,8 +9045,9 @@ internal fun SliderRow(
     range: ClosedFloatingPointRange<Float>,
     display: (Float) -> String,
     info: String? = null,
+    live: Boolean = true,
     onChange: (Float) -> Unit,
-) = SliderRow(stringResource(title), value, range, display, info, SettingsRowIcons[title], onChange)
+) = SliderRow(stringResource(title), value, range, display, info, SettingsRowIcons[title], live, onChange)
 
 /** [SliderRow] for a title that is not one fixed resource. */
 @Composable
@@ -9057,11 +9058,18 @@ internal fun SliderRow(
     display: (Float) -> String,
     info: String? = null,
     icon: ImageVector? = null,
+    /**
+     * Whether to keep writing while the finger is down. On by default: most
+     * of these rows sit under a preview of the theme being edited, which has
+     * to follow the thumb. Off for a row whose effect the preview cannot show
+     * while it is being dragged (a font motion's peak only shows under a
+     * finger on the keys), where each write would be a whole theme saved and
+     * redrawn for nothing.
+     */
+    live: Boolean = true,
     onChange: (Float) -> Unit,
 ) {
-    // One of the few sliders that keeps writing while the finger is down
-    // (`live`): this row's own screen draws the theme it is editing, so the
-    // preview above it has to follow the thumb. See rememberLiveSlider.
+    // See rememberLiveSlider for what `live` costs.
     SliderSetting(
         title = title,
         value = value,
@@ -9069,7 +9077,7 @@ internal fun SliderRow(
         display = display,
         info = info,
         icon = icon,
-        live = true,
+        live = live,
         onChange = onChange,
     )
 }

@@ -348,6 +348,7 @@ private fun FontMotionCard(
                     motion.speed,
                     FONT_MOTION_SPEED_RANGE,
                     { "×" + String.format(java.util.Locale.getDefault(), "%.2f", it) },
+                    live = false,
                 ) { onChange(motion.copy(speed = it)) }
             }
         }
@@ -358,6 +359,7 @@ private fun FontMotionCard(
                     motion.radiusDp,
                     FONT_MOTION_RADIUS_RANGE,
                     { "${it.roundToInt()} dp" },
+                    live = false,
                 ) { onChange(motion.copy(radiusDp = it)) }
             }
         }
@@ -369,6 +371,7 @@ private fun FontMotionCard(
                     motion.decayMs.toFloat(),
                     FONT_MOTION_DECAY_RANGE.first.toFloat()..FONT_MOTION_DECAY_RANGE.last.toFloat(),
                     { "${it.roundToInt()} ms" },
+                    live = false,
                 ) { onChange(motion.copy(decayMs = it.roundToInt())) }
             }
         }
@@ -380,6 +383,7 @@ private fun FontMotionCard(
                     FONT_MOTION_WOBBLE_RANGE,
                     { String.format(java.util.Locale.getDefault(), "%.2f", it) },
                     info = stringResource(R.string.theme_motion_wobble_body),
+                    live = false,
                 ) { onChange(motion.copy(wobble = it)) }
             }
         }
@@ -402,6 +406,7 @@ private fun MotionAxisRow(axis: FontAxis, peak: Float, onSet: (Float) -> Unit, o
                 value = peak,
                 range = axis.min..axis.max,
                 display = { formatAxisValue(axis, it) },
+                live = false,
             ) { onSet(it) }
         }
         IconButton(onClick = onRemove) {

@@ -15,17 +15,22 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,6 +44,7 @@ import com.wasimaster.wmkeyboard.core.theme.FontAxesSpec
 import com.wasimaster.wmkeyboard.core.theme.FontRole
 import com.wasimaster.wmkeyboard.ime.ui.KeyboardFonts
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.abs
@@ -152,7 +158,14 @@ internal fun FontAxesEditor(
     var role by rememberSaveable(fontId) { mutableStateOf(FontRole.KEYS) }
     val owns = value.ownsRole(role)
     val current = value.role(role)
-    val family = remember(fontId, current) { KeyboardFonts.family(context, fontId, current) }
+    // The values under a finger mid-drag, ahead of the store: the sliders
+    // write once, on release, and the preview follows this meanwhile. Dropped
+    // as soon as anything new comes back from the store, the write's own echo
+    // included.
+    var draft by remember(fontId, role) { mutableStateOf<Map<String, Float>?>(null) }
+    LaunchedEffect(current) { draft = null }
+    val shown = draft ?: current
+    val family = rememberAxesFamily(fontId, shown, variations)
     fun write(values: Map<String, Float>) = onChange(value.withRole(role, variations.clamp(values)))
     val visible = variations.axes.filter { !it.hidden }
     val hidden = variations.axes.filter { it.hidden }
@@ -222,7 +235,7 @@ internal fun FontAxesEditor(
                     for (instance in variations.instances) {
                         val held = variations.clamp(instance.coords)
                         FilterChip(
-                            selected = held == variations.clamp(current),
+                            selected = held == variations.clamp(shown),
                             onClick = { write(instance.coords) },
                             label = { Text(instance.name) },
                         )
@@ -234,7 +247,7 @@ internal fun FontAxesEditor(
 
     SettingsGroup {
         for (axis in visible) {
-            item(key = axis.tag) { AxisSlider(axis, variations, current, ::write) }
+            item(key = axis.tag) { AxisSlider(axis, variations, shown, { draft = it }, ::write) }
         }
         item {
             WmRow(
@@ -261,7 +274,7 @@ internal fun FontAxesEditor(
             info = stringResource(R.string.fonts_axes_hidden_group_info),
         ) {
             for (axis in hidden) {
-                item(key = axis.tag) { AxisSlider(axis, variations, current, ::write) }
+                item(key = axis.tag) { AxisSlider(axis, variations, shown, { draft = it }, ::write) }
             }
         }
     }
@@ -272,6 +285,7 @@ private fun AxisSlider(
     axis: FontAxis,
     variations: FontVariations,
     current: Map<String, Float>,
+    drag: (Map<String, Float>) -> Unit,
     write: (Map<String, Float>) -> Unit,
 ) {
     // Where the axis draws untouched, which for weight is the regular 400
@@ -279,13 +293,56 @@ private fun AxisSlider(
     val rest = variations.restValue(axis.tag) ?: axis.default
     val defaultText = formatAxisValue(axis, rest)
     val valueFormat = stringResource(R.string.fonts_axes_value)
-    SliderRow(
+    // Not live: a write is a settings emission the whole app and the keyboard
+    // answer, and a new cut of the font. The preview follows [drag] instead.
+    SliderSetting(
         title = axis.name.ifBlank { axis.tag },
         value = current[axis.tag] ?: rest,
         range = axis.min..axis.max,
         display = { v -> String.format(valueFormat, formatAxisValue(axis, v), defaultText) },
+        preview = { v -> drag(current + (axis.tag to v)) },
     ) { v -> write(current + (axis.tag to v)) }
 }
+
+/**
+ * [fontId] cut at [axes], for a preview that follows a slider: built off the
+ * main thread, its typefaces loaded there too, and only ever the newest value
+ * asked for once the last build is done, so a fast drag skips steps rather
+ * than queueing them. The values are snapped to [PREVIEW_STEPS] steps across
+ * each axis, so dragging back over a stretch reuses the cuts already made.
+ * Until the first build lands it is the one built here and now.
+ */
+@Composable
+internal fun rememberAxesFamily(fontId: String, axes: Map<String, Float>, variations: FontVariations): FontFamily? {
+    val context = LocalContext.current
+    val resolver = LocalFontFamilyResolver.current
+    val wanted by rememberUpdatedState(snapAxes(variations.clamp(axes), variations))
+    var family by remember(fontId) { mutableStateOf(KeyboardFonts.family(context, fontId, wanted)) }
+    LaunchedEffect(fontId, resolver) {
+        snapshotFlow { wanted }
+            .conflate()
+            .collect { values ->
+                family = withContext(Dispatchers.Default) {
+                    KeyboardFonts.family(context, fontId, values)?.also { built ->
+                        // Loads every weight's typeface here, so laying the
+                        // sample out on the main thread finds them ready.
+                        runCatching { resolver.preload(built) }
+                    }
+                }
+            }
+    }
+    return family
+}
+
+/** [axes] on a grid of [PREVIEW_STEPS] steps per axis: fine enough to read as smooth. */
+private fun snapAxes(axes: Map<String, Float>, variations: FontVariations): Map<String, Float> =
+    axes.mapValues { (tag, value) ->
+        val axis = variations.axis(tag) ?: return@mapValues value
+        val span = axis.max - axis.min
+        if (span <= 0f) value else axis.min + (((value - axis.min) / span) * PREVIEW_STEPS).roundToInt() * span / PREVIEW_STEPS
+    }
+
+private const val PREVIEW_STEPS = 120
 
 /**
  * An axis value as people read one: whole numbers on the wide axes (weight

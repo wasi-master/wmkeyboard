@@ -42,12 +42,27 @@ internal class BoardFonts(
      */
     fun withAxes(axes: Map<String, Float>): FontFamily? {
         val v = variations ?: return null
-        val held = v.clamp(axes)
-        return build?.invoke(held)
+        val build = build ?: return null
+        // A moving label asks for the same few snapped settings frame after
+        // frame, from its draw pass; answered here, they skip the clamp, the
+        // cache key strings and the locks behind [KeyboardFonts] each time.
+        synchronized(memo) { memo[axes]?.let { return it.family } }
+        val family = build(v.clamp(axes))
+        synchronized(memo) {
+            if (memo.size >= MEMO_SIZE) memo.remove(memo.keys.first())
+            memo[axes] = Cut(family)
+        }
+        return family
     }
+
+    /** One answer of [withAxes], a null one (a face that cannot be cut) included. */
+    private class Cut(val family: FontFamily?)
+
+    private val memo = LinkedHashMap<Map<String, Float>, Cut>(16, 0.75f, true)
 
     companion object {
         val None = BoardFonts(null, null, null, null, emptyMap(), null)
+        private const val MEMO_SIZE = 256
     }
 }
 
