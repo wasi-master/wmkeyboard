@@ -369,6 +369,17 @@ over 4 MiB is the one exception (see the passphrase section above): an
 older release can't open it, and from this release on the screen says the
 other device runs a newer version instead of blaming the passphrase.
 
+A sync holds its sections in memory, and a large sticker collection or set of
+themes with photos can be more than a phone has room for. Before it reads
+anything, each sync checks how much the pictures in themes, sticker packs,
+icon packs and word lists would take. A section too big for the phone's
+memory is left out of that sync whole, and the sync screen names it as too
+big for this device to sync. Everything else still syncs, and the section
+picks up where it left off on a sync that has room for it. A sync file from
+another device too big to read is passed over the same way. The sync at app
+start is skipped when a sync ran or was tried in the last five minutes, so a
+sync that keeps failing can't hold the keyboard up each time it starts.
+
 Sync settings are never exported, backed up or synced themselves, the pause
 and the sync group included. A phone restored from a backup doesn't start
 syncing until you turn it on.

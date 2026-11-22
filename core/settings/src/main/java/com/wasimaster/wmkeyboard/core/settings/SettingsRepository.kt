@@ -159,6 +159,7 @@ import com.wasimaster.wmkeyboard.core.theme.findThemeFamily
 import com.wasimaster.wmkeyboard.core.theme.replacingMember
 import com.wasimaster.wmkeyboard.core.theme.selfAndVariants
 import com.wasimaster.wmkeyboard.core.theme.withEmbeddedImages
+import com.wasimaster.wmkeyboard.core.theme.embeddedImageBytes
 import com.wasimaster.wmkeyboard.core.theme.withExtractedImages
 import com.wasimaster.wmkeyboard.core.aihistory.AiHistoryStore
 import com.wasimaster.wmkeyboard.core.tools.AiActionCodec
@@ -5387,6 +5388,13 @@ data class SyncSettings(
     val lastRunAtMs: Long = 0L,
     /** A `SinkError` name, a sync-specific reason, or empty. */
     val lastError: String = "",
+    /**
+     * When a pass last started, whether or not it got anywhere. The pull at
+     * process start keys off this as well as [lastRunAtMs], so a pass that
+     * fails, or takes the process down with it, is not started again at every
+     * start (#1508).
+     */
+    val lastAttemptAtMs: Long = 0L,
     /** Until when scheduled passes wait, as [AutoBackupSettings.pausedUntilMs]. */
     val pausedUntilMs: Long = 0L,
     /**
@@ -13632,6 +13640,7 @@ class SettingsRepository(private val context: Context) {
         private val SYNC_KEEP_LOCAL = stringSetPreferencesKey(SettingsBackup.SYNC_KEEP_LOCAL)
         private val SYNC_LAST_RUN_AT = longPreferencesKey(SettingsBackup.SYNC_LAST_RUN_AT)
         private val SYNC_LAST_ERROR = stringPreferencesKey(SettingsBackup.SYNC_LAST_ERROR)
+        private val SYNC_LAST_ATTEMPT_AT = longPreferencesKey(SettingsBackup.SYNC_LAST_ATTEMPT_AT)
         private val SYNC_PAUSED_UNTIL = longPreferencesKey(SettingsBackup.SYNC_PAUSED_UNTIL)
         private val SYNC_GROUP = stringPreferencesKey(SettingsBackup.SYNC_GROUP)
         private val AUTO_BACKUP_PAUSED_UNTIL = longPreferencesKey(SettingsBackup.AUTO_BACKUP_PAUSED_UNTIL)
@@ -15947,6 +15956,7 @@ class SettingsRepository(private val context: Context) {
                 keepLocal = p[SYNC_KEEP_LOCAL] ?: defaults.autoBackup.sync.keepLocal,
                 lastRunAtMs = p[SYNC_LAST_RUN_AT] ?: defaults.autoBackup.sync.lastRunAtMs,
                 lastError = p[SYNC_LAST_ERROR] ?: defaults.autoBackup.sync.lastError,
+                lastAttemptAtMs = p[SYNC_LAST_ATTEMPT_AT] ?: defaults.autoBackup.sync.lastAttemptAtMs,
                 pausedUntilMs = p[SYNC_PAUSED_UNTIL] ?: defaults.autoBackup.sync.pausedUntilMs,
                 // Read through the slug as well: a hand-edited or future value
                 // must not put a name on disk that no device would match.
@@ -22347,6 +22357,42 @@ class SettingsRepository(private val context: Context) {
     }
 
     /**
+     * Bytes of base64 each of [sections] would carry in [exportSections],
+     * for the sections that embed files (themes, stickers, icons, word
+     * lists); the rest are left out. Sizes on disk only, nothing read: sync
+     * asks before it builds an export, so a library too big for the heap is
+     * turned away before it is in it (#1508). Only the files the export
+     * would read, so a sticker's original photo does not count.
+     */
+    suspend fun embeddedBytesBySection(sections: Set<ConfigBackup.Section>): Map<ConfigBackup.Section, Long> {
+        fun size(file: File?): Long = file?.takeIf { it.isFile }?.length() ?: 0L
+        val out = LinkedHashMap<ConfigBackup.Section, Long>()
+        if (ConfigBackup.Section.THEMES in sections) {
+            val raw = context.dataStore.data.first()[CUSTOM_THEMES].orEmpty()
+            out[ConfigBackup.Section.THEMES] = ThemeCodec.decodeList(raw).sumOf { it.embeddedImageBytes() }
+        }
+        if (ConfigBackup.Section.STICKERS in sections) {
+            val root = File(context.filesDir, StickerPackStore.DIR_NAME)
+            out[ConfigBackup.Section.STICKERS] = StickerPackStore.get(context).packs().sumOf { pack ->
+                pack.stickers.sumOf { size(File(File(root, pack.id), it.fileName)) }
+            }
+        }
+        if (ConfigBackup.Section.ICONS in sections) {
+            val store = IconPackStore.get(context)
+            out[ConfigBackup.Section.ICONS] = store.packs().sumOf { pack ->
+                pack.slots.sumOf { size(store.fileFor(pack.id, it)) }
+            }
+        }
+        if (ConfigBackup.Section.WORDLISTS in sections) {
+            val root = CustomDictionaries.root(context.filesDir)
+            out[ConfigBackup.Section.WORDLISTS] = root.listFiles().orEmpty().filter { it.isDirectory }.sumOf { dir ->
+                CustomDictionaries.lists(context.filesDir, dir.name).sumOf { size(it) }
+            }
+        }
+        return out.mapValues { (_, bytes) -> bytes * 4 / 3 }
+    }
+
+    /**
      * Builds a full-config bundle from the chosen [sections]. A section whose
      * store is empty or absent is simply left out of the file.
      */
@@ -26440,11 +26486,24 @@ class SettingsRepository(private val context: Context) {
                 .sumOf { (it.key.name to it.value.toString()).hashCode() }
         }.distinctUntilChanged()
 
-    /** Records how a sync pass ended. [error] empty means it worked. */
-    suspend fun setSyncOutcome(ranAtMs: Long, error: String) = editPrefs {
-        if (error.isEmpty()) it[SYNC_LAST_RUN_AT] = ranAtMs
+    /**
+     * Records how a sync pass ended. [worked] is whether it counts as a sync
+     * for "last synced"; a pass that left a section out for want of memory
+     * did sync the rest, and says why in [error] all the same.
+     */
+    suspend fun setSyncOutcome(ranAtMs: Long, error: String, worked: Boolean = error.isEmpty()) = editPrefs {
+        if (worked) it[SYNC_LAST_RUN_AT] = ranAtMs
+        it[SYNC_LAST_ATTEMPT_AT] = ranAtMs
         it[SYNC_LAST_ERROR] = error
     }
+
+    /**
+     * Records that a sync pass is starting, before it reads anything big. A
+     * pass that runs the process out of memory never reaches
+     * [setSyncOutcome]; this is what stops the next start from running it
+     * straight away again (#1508).
+     */
+    suspend fun setSyncAttempt(atMs: Long) = editPrefs { it[SYNC_LAST_ATTEMPT_AT] = atMs }
 
     suspend fun setLongPressDelayMs(value: Int) =
         editPrefs { it[LONG_PRESS_DELAY] = value.coerceIn(100, 3000) }

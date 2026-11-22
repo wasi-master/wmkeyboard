@@ -66,6 +66,51 @@ object SyncRunner {
      */
     const val ERROR_NEWER = "SYNC_NEWER"
 
+    /**
+     * A sync-only reason: sections this phone left out of a pass because
+     * holding them would have run it out of memory, as
+     * `SYNC_TOO_BIG:stickers,themes` (#1508). Everything else synced.
+     */
+    const val ERROR_TOO_BIG = "SYNC_TOO_BIG"
+
+    /** A sync-only reason: another device's file was too big to read here, and was passed over. */
+    const val ERROR_TOO_BIG_REMOTE = "SYNC_TOO_BIG_REMOTE"
+
+    /** A sync-only reason: a pass ran out of memory all the same, and stopped. */
+    const val ERROR_MEMORY = "SYNC_MEMORY"
+
+    /** The sections an [ERROR_TOO_BIG] reason names, or null for any other reason. */
+    fun tooBigSections(reason: String): List<ConfigBackup.Section>? {
+        if (!reason.startsWith("$ERROR_TOO_BIG:")) return null
+        val ids = reason.substringAfter(':').split(',').toSet()
+        return ConfigBackup.Section.entries.filter { it.id in ids }
+    }
+
+    /** One pass plans to fill at most this share of the heap with embedded files. */
+    private const val HEAP_SHARE = 4
+
+    /**
+     * Copies of a section's files one pass holds at its worst: this phone's
+     * export, the winning copy from the other devices, and the export read
+     * again after applying.
+     */
+    private const val PASS_COPIES = 3
+
+    /**
+     * The sections in [estimates] (base64 bytes each) a pass with [budget]
+     * bytes leaves out: the smallest are kept while they fit, so one huge
+     * sticker library does not also cost the themes their sync.
+     */
+    fun oversized(estimates: Map<ConfigBackup.Section, Long>, budget: Long): Set<ConfigBackup.Section> {
+        var used = 0L
+        val skipped = LinkedHashSet<ConfigBackup.Section>()
+        for ((section, bytes) in estimates.entries.sortedBy { it.value }) {
+            val cost = bytes * PASS_COPIES
+            if (used + cost <= budget) used += cost else skipped += section
+        }
+        return skipped
+    }
+
 
     /** Whether the active network costs data; true with none, which is no Wi-Fi either. */
     private fun onMeteredNetwork(context: Context): Boolean {
@@ -74,8 +119,17 @@ object SyncRunner {
     }
 
     sealed interface Outcome {
-        /** [applied] entries changed here; [devices] other devices were read. */
-        data class Done(val applied: Int, val devices: Int, val failed: Map<String, String>) : Outcome
+        /**
+         * [applied] entries changed here; [devices] other devices were read.
+         * [tooBig] is [ERROR_TOO_BIG] or [ERROR_TOO_BIG_REMOTE] when part of
+         * the pass was left out for want of memory, else empty.
+         */
+        data class Done(
+            val applied: Int,
+            val devices: Int,
+            val failed: Map<String, String>,
+            val tooBig: String = "",
+        ) : Outcome
         data object Skipped : Outcome
         data object Locked : Outcome
         data class Failed(val reason: String) : Outcome
@@ -91,7 +145,11 @@ object SyncRunner {
         try {
             runCancellable { runLocked(context.applicationContext, repository, force, nowMs) }
                 .getOrElse { failure ->
-                    val reason = sinkErrorOf(failure).name
+                    // The last resort (#1508): the budget below should keep a
+                    // pass well inside the heap, and a pass that ran out all
+                    // the same says so rather than passing for a network error.
+                    // Its big locals are gone with its frame by now.
+                    val reason = if (failure is OutOfMemoryError) ERROR_MEMORY else sinkErrorOf(failure).name
                     BackupLog.w("sync failed: $reason", failure)
                     repository.setSyncOutcome(nowMs, reason)
                     Outcome.Failed(reason)
@@ -113,14 +171,37 @@ object SyncRunner {
         // A pause keeps the jobs in place (see BackupPause); each firing ends here.
         if (!force && sync.paused(nowMs)) return Outcome.Skipped
         val targets = sync.targets(auto.locations)
-        val sections = sync.sectionSet
-        if (targets.isEmpty() || sections.isEmpty()) return Outcome.Skipped
+        val allSections = sync.sectionSet
+        if (targets.isEmpty() || allSections.isEmpty()) return Outcome.Skipped
         if (!DirectBoot.isUserUnlocked(context)) return Outcome.Locked
         // Wi-Fi only (#928). The job already waits for an unmetered network,
         // but a "soon" pass runs at its deadline whatever the network, and
         // a pass can be asked for from elsewhere: on mobile data it waits.
         if (!force && sync.wifiOnly && targets.any { it.type.needsNetwork } && onMeteredNetwork(context)) {
             return Outcome.Skipped
+        }
+
+        // Stamped before anything heavy is read: a pass that takes the
+        // process down with it never reaches the outcome below, and the pull
+        // at the next start must not run it straight away again (#1508).
+        repository.setSyncAttempt(nowMs)
+
+        // A section whose files would not fit this pass's share of the heap
+        // stays out of the pass whole: not read, not merged, and remembered
+        // as it was, so the next pass that can hold it carries on from there.
+        // Its pictures alone could not be left out instead: a theme or a pack
+        // without them would look like an edit made here, and go to the other
+        // devices as one. Sized from the files on disk, before any is read.
+        val budget = Runtime.getRuntime().maxMemory() / HEAP_SHARE
+        val tooBig = oversized(repository.embeddedBytesBySection(allSections), budget)
+        val sections = allSections - tooBig
+        val skippedIds = tooBig.mapTo(HashSet()) { syncId(it) }
+        val keep = sections.mapTo(HashSet()) { syncId(it) }
+        val tooBigReason = if (tooBig.isEmpty()) "" else "$ERROR_TOO_BIG:" + tooBig.joinToString(",") { it.id }
+        if (tooBig.isNotEmpty()) BackupLog.w("sync: too big for this pass: ${tooBig.joinToString { it.id }}")
+        if (sections.isEmpty()) {
+            repository.setSyncOutcome(nowMs, tooBigReason)
+            return Outcome.Failed(tooBigReason)
         }
 
         val encrypt = auto.encrypt && auto.passphrase.isNotEmpty()
@@ -133,9 +214,15 @@ object SyncRunner {
         // Before this file existed there was no choice to have changed.
         val lastFilter = SyncFilter.decode(runCatching { filterFile.readText() }.getOrNull()) ?: filter
 
-        // Every other device's newest file, from every target. The same device
-        // can turn up at two locations; its later file wins.
-        val remotes = LinkedHashMap<String, SyncFile>()
+        // Every other device's newest file, from every target, folded into one
+        // table of winning entries as each is read, and let go of before the
+        // next (#1508): holding every file until the merge held one copy of a
+        // sticker library per device. The same device can turn up at two
+        // locations; its later file wins. An older copy read first can only
+        // add entries the later one no longer carries.
+        val remoteBest = LinkedHashMap<String, MutableMap<String, Stamped>>()
+        val deviceWrittenAt = HashMap<String, Long>()
+        var remoteTooBig = false
         val failed = LinkedHashMap<String, String>()
         val readable = ArrayList<Pair<BackupLocation, BackupSink>>()
         // Locations that already hold this device's file under exactly the
@@ -152,14 +239,23 @@ object SyncRunner {
             }
             val group = groupAt(location, sync.group)
             val name = SyncNaming.name(me, device, encrypt, group).also { names[location.id] = it }
-            val read = runCancellable { readRemotes(sink, me, auto, group) }
-            read.onSuccess { (files, passphraseMiss, mine, newerMiss) ->
+            val read = runCancellable {
+                // Half the budget: a file is parsed whole, and parsed it
+                // takes more room than it did on disk.
+                readRemotes(sink, me, auto, group, maxBytes = budget / 2) { file ->
+                    val known = deviceWrittenAt[file.installId]
+                    if (known == null || file.writtenAtMs > known) {
+                        deviceWrittenAt[file.installId] = file.writtenAtMs
+                        SyncMerge.fold(remoteBest, file.table, keep)
+                    }
+                }
+            }
+            // Out of memory here is the whole pass's problem, not this location's.
+            read.exceptionOrNull()?.let { if (it is OutOfMemoryError) throw it }
+            read.onSuccess { (passphraseMiss, mine, newerMiss, fileTooBig) ->
                 readable += location to sink
                 if (name in mine) hasMine += location.id
-                for (file in files) {
-                    val known = remotes[file.installId]
-                    if (known == null || file.writtenAtMs > known.writtenAtMs) remotes[file.installId] = file
-                }
+                if (fileTooBig) remoteTooBig = true
                 if (passphraseMiss) {
                     failed[location.id] = ERROR_PASSPHRASE
                 } else if (newerMiss) {
@@ -207,7 +303,7 @@ object SyncRunner {
         val result = SyncMerge.merge(
             local = local,
             remembered = rememberedHere,
-            remotes = remotes.values.map { file -> settingsOnly(file.table.filterKeys { it in local }) },
+            remotes = listOf(settingsOnly(remoteBest.filterKeys { it in local })),
             me = me,
             nowMs = nowMs,
             firstSync = firstSync,
@@ -221,18 +317,25 @@ object SyncRunner {
             },
             owned = { section, key -> SyncStatistics.owned(section, key, me) },
         )
+        // The winners are in the result now; the copies that lost can go.
+        val devices = deviceWrittenAt.size
+        remoteBest.clear()
         val applied = apply(repository, result, local, me)
 
         // What is remembered is what this phone holds after applying, so the
         // next pass does not mistake a store's own formatting of a value it was
-        // just given for a change made here.
-        val after = if (applied > 0) localEntries(repository, sections, filter, me) else local
+        // just given for a change made here. Only the sections something was
+        // written to are read again: the others are as [local] has them, and
+        // a second export of everything beside the first was this pass's
+        // other peak (#1508).
+        val written = sections.filterTo(LinkedHashSet()) { syncId(it) in result.changes }
+        val after = if (written.isEmpty()) local else local + localEntries(repository, written, filter, me)
         val nextState = result.remembered.mapValues { (section, entries) ->
             val now = after[section].orEmpty()
             entries.mapValues { (key, r) ->
                 if (r.hash != null && key in now) r.copy(hash = SyncMerge.hash(now[key])) else r
             }
-        }
+        } + rememberedHere.filterKeys { it in skippedIds }
 
         // Nothing new anywhere: the file already there says all of it. This is
         // the common pass, the one a synced change sets off on the phone that
@@ -260,9 +363,12 @@ object SyncRunner {
 
         recordLocations(repository, targets, failed, nowMs)
         val wrote = readable.any { (location, _) -> location.id !in failed }
-        repository.setSyncOutcome(nowMs, if (wrote) "" else failed.values.firstOrNull().orEmpty())
-        BackupLog.d("sync: devices=${remotes.size} applied=$applied failed=$failed first=$firstSync")
-        return Outcome.Done(applied, remotes.size, failed)
+        // A pass that left something out still synced the rest, and says
+        // what it left out where a failure would show.
+        val left = if (tooBigReason.isNotEmpty()) tooBigReason else if (remoteTooBig) ERROR_TOO_BIG_REMOTE else ""
+        repository.setSyncOutcome(nowMs, if (wrote) left else failed.values.firstOrNull().orEmpty(), worked = wrote)
+        BackupLog.d("sync: devices=$devices applied=$applied failed=$failed first=$firstSync left=$left")
+        return Outcome.Done(applied, devices, failed, left)
     }
 
     /**
@@ -382,24 +488,29 @@ object SyncRunner {
     }
 
     private data class Remote(
-        val files: List<SyncFile>,
         val passphraseMiss: Boolean,
         val mine: Set<String>,
         /** A file was sealed by a newer version, in a form this one cannot open. */
         val newerMiss: Boolean = false,
+        /** A file was larger than this phone could parse, and was passed over. */
+        val tooBig: Boolean = false,
     )
 
     /**
-     * The other devices' newest files in [group] at one location, whether any
-     * would not open, and every name this device's own files have there, in
-     * any group. Another group's files are not even downloaded: they are other
-     * people's, and merged here they would become this person's settings.
+     * Hands each of the other devices' newest files in [group] at one
+     * location to [onFile] as it is read, so none outlives its own turn; says
+     * whether any would not open, and every name this device's own files have
+     * there, in any group. Another group's files are not even downloaded: they
+     * are other people's, and merged here they would become this person's
+     * settings. A file over [maxBytes] is not downloaded either.
      */
     private suspend fun readRemotes(
         sink: BackupSink,
         me: String,
         auto: AutoBackupSettings,
         group: String,
+        maxBytes: Long,
+        onFile: (SyncFile) -> Unit,
     ): Remote {
         sink.readiness().getOrThrow()
         val all = sink.list().getOrThrow().filter { SyncNaming.isOurs(it.name) }
@@ -407,34 +518,51 @@ object SyncRunner {
         val newest = SyncNaming.newestOfOthers(all, me, group)
         var passphraseMiss = false
         var newerMiss = false
-        val files = newest.mapNotNull { entry ->
-            // Read from the stream, not from a copy of the whole file: a plain
-            // file is parsed as it comes, and an encrypted one is opened a
-            // piece at a time (#1080). The parse reads to the end of the
-            // file, so a piece that fails its tag fails the parse before
-            // anything parsed is used; a file from before the pieces is still
-            // held once, by the cipher.
-            sink.read(entry).getOrNull()?.buffered()?.use { input ->
-                if (looksEncrypted(input)) {
-                    var newer = false
-                    val opened = auto.passphrase.takeIf { it.isNotEmpty() }?.let {
-                        BackupCrypto.decrypting(input, it.toCharArray()) { why ->
-                            newer = why == BackupCrypto.DecryptResult.UnsupportedVersion
-                        }
+        var tooBig = false
+        for (entry in newest) {
+            if (entry.sizeBytes > maxBytes) {
+                BackupLog.w("sync: ${entry.name} is ${entry.sizeBytes} bytes, past $maxBytes")
+                tooBig = true
+                continue
+            }
+            val file = readRemote(sink, entry, auto, onNewer = { newerMiss = true }, onPassphrase = { passphraseMiss = true })
+            file?.let(onFile)
+        }
+        return Remote(passphraseMiss, mine, newerMiss, tooBig)
+    }
+
+    /** One other device's file, or null when it would not read or open. */
+    private suspend fun readRemote(
+        sink: BackupSink,
+        entry: SinkEntry,
+        auto: AutoBackupSettings,
+        onNewer: () -> Unit,
+        onPassphrase: () -> Unit,
+    ): SyncFile? =
+        // Read from the stream, not from a copy of the whole file: a plain
+        // file is parsed as it comes, and an encrypted one is opened a piece
+        // at a time (#1080). The parse reads to the end of the file, so a
+        // piece that fails its tag fails the parse before anything parsed is
+        // used; a file from before the pieces is still held once, by the
+        // cipher.
+        sink.read(entry).getOrNull()?.buffered()?.use { input ->
+            if (looksEncrypted(input)) {
+                var newer = false
+                val opened = auto.passphrase.takeIf { it.isNotEmpty() }?.let {
+                    BackupCrypto.decrypting(input, it.toCharArray()) { why ->
+                        newer = why == BackupCrypto.DecryptResult.UnsupportedVersion
                     }
-                    // Not the passphrase's fault when the file is from a newer
-                    // version: saying so would send the user to change a
-                    // passphrase that is right.
-                    if (opened == null && newer) newerMiss = true
-                    if (opened == null && !newer) passphraseMiss = true
-                    opened?.let { SyncFile.decode(it.buffered()) }
-                } else {
-                    SyncFile.decode(input)
                 }
+                // Not the passphrase's fault when the file is from a newer
+                // version: saying so would send the user to change a
+                // passphrase that is right.
+                if (opened == null && newer) onNewer()
+                if (opened == null && !newer) onPassphrase()
+                opened?.let { SyncFile.decode(it.buffered()) }
+            } else {
+                SyncFile.decode(input)
             }
         }
-        return Remote(files, passphraseMiss, mine, newerMiss)
-    }
 
     /** Whether [input] starts like an encrypted file, leaving it where it was. */
     private fun looksEncrypted(input: InputStream): Boolean {

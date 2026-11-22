@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 /**
  * The process-wide half of "soon after a change": keeps the jobs in line with
  * the settings, pushes a minute after a synced setting changes, and pulls
- * when the process starts if the last pass is old.
+ * when the process starts if the last pass, or the last try at one, is old.
  *
  * Started once from the application, so it covers the keyboard and the
  * settings app alike: they share one process. What it watches is the settings
@@ -81,7 +81,12 @@ object SyncWatcher {
         }
         scope.launch {
             val auto = repository.settings.first().autoBackup
-            if (System.currentTimeMillis() - auto.sync.lastRunAtMs > STALE_MS) {
+            // The last attempt counts too: a pass that keeps failing, or that
+            // took the process down, would otherwise run again at every start
+            // and take it down again each time (#1508). The hourly pull is
+            // still there to retry it.
+            val last = maxOf(auto.sync.lastRunAtMs, auto.sync.lastAttemptAtMs)
+            if (System.currentTimeMillis() - last > STALE_MS) {
                 SyncScheduler.requestSoon(app, auto, delayMs = 0L)
             }
         }

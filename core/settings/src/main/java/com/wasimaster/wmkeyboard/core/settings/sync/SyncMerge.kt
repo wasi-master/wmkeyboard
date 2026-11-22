@@ -175,10 +175,30 @@ object SyncMerge {
         return Result(merged, changes, nextRemembered)
     }
 
+    /**
+     * [remote]'s entries folded into [into], each key keeping whichever copy
+     * [beats] the other. Only the sections in [keep].
+     */
+    fun fold(into: MutableMap<String, MutableMap<String, Stamped>>, remote: SyncTable, keep: Set<String>) {
+        for ((section, entries) in remote) {
+            if (section !in keep) continue
+            val winners = into.getOrPut(section) { LinkedHashMap() }
+            for ((key, theirs) in entries) {
+                val known = winners[key]
+                if (known == null || beats(theirs, known)) winners[key] = theirs
+            }
+        }
+    }
+
     /** The author of an entry a joining phone brought: sorts below every installation id. */
     private const val JOINER = ""
 
-    /** Later stamp wins; on a tie the larger installation id, the same answer on every device. */
-    private fun beats(a: Stamped, b: Stamped): Boolean =
+    /**
+     * Later stamp wins; on a tie the larger installation id, the same answer
+     * on every device. A strict order, so the other devices' files can be
+     * folded into one table of winners as they are read, and [merge] given
+     * that table alone returns what it would given every file (#1508).
+     */
+    fun beats(a: Stamped, b: Stamped): Boolean =
         a.t > b.t || (a.t == b.t && a.by > b.by)
 }

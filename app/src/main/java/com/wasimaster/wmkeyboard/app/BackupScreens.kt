@@ -476,6 +476,7 @@ private fun syncOutcomeText(context: Context, outcome: SyncRunner.Outcome, auto:
                 context.getString(R.string.backup_sync_error_passphrase)
             SyncRunner.ERROR_NEWER in outcome.failed.values ->
                 context.getString(R.string.backup_sync_error_newer)
+            outcome.tooBig.isNotEmpty() -> syncErrorText(context, outcome.tooBig, auto)
             outcome.applied == 0 -> context.getString(R.string.backup_sync_done_nothing)
             else -> context.resources.getQuantityString(
                 R.plurals.backup_sync_done_changes,
@@ -494,6 +495,13 @@ private fun syncErrorText(context: Context, reason: String, auto: AutoBackupSett
         context.getString(R.string.backup_sync_error_passphrase)
     } else if (reason == SyncRunner.ERROR_NEWER) {
         context.getString(R.string.backup_sync_error_newer)
+    } else if (reason == SyncRunner.ERROR_TOO_BIG_REMOTE) {
+        context.getString(R.string.backup_sync_error_too_big_remote)
+    } else if (reason == SyncRunner.ERROR_MEMORY) {
+        context.getString(R.string.backup_sync_error_memory)
+    } else if (SyncRunner.tooBigSections(reason) != null) {
+        val names = SyncRunner.tooBigSections(reason).orEmpty().joinToString { sectionLabel(context, it) }
+        context.getString(R.string.backup_sync_error_too_big, names)
     } else {
         val type = auto.sync.targets(auto.locations).firstOrNull()?.type ?: BackupDestination.FOLDER
         autoBackupErrorText(context, reason, type) ?: context.getString(R.string.backup_auto_error_io)

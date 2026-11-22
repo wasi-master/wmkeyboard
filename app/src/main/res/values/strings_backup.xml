@@ -693,6 +693,9 @@
     <string name="backup_sync_first_note">Each device keeps one sync file at a location. Every device reads the files of the others, and the newest change to each setting wins. The first time a device syncs, the settings of your other devices win, and anything that only this device has goes to the others.</string>
     <string name="backup_sync_error_passphrase">Another device uses a different passphrase. Use the same passphrase on every device.</string>
     <string name="backup_sync_error_newer">Another device runs a newer version of WM Keyboard, and its changes are sealed in a way this version cannot open. Update the app on this device.</string>
+    <string name="backup_sync_error_too_big">Too big for this device to sync: %1$s. Everything else synced.</string>
+    <string name="backup_sync_error_too_big_remote">A file from another device is too big for this device to read, so its changes were left out. Untick stickers or themes on that device.</string>
+    <string name="backup_sync_error_memory">This device ran out of memory while syncing. Untick stickers or themes in what syncs, then sync again.</string>
     <string name="backup_sync_done_nothing">Synced. Nothing was new.</string>
     <plurals name="backup_sync_done_changes">
         <item quantity="one">Synced. %1$d change came from your other devices.</item>

@@ -99,6 +99,8 @@ object SettingsBackup {
     const val SYNC_KEEP_LOCAL = "sync_keep_local"
     const val SYNC_LAST_RUN_AT = "sync_last_run_at"
     const val SYNC_LAST_ERROR = "sync_last_error"
+    /** When a sync pass last started; see SyncSettings.lastAttemptAtMs. */
+    const val SYNC_LAST_ATTEMPT_AT = "sync_last_attempt_at"
 
     /**
      * Until when scheduled syncs wait; see [BackupPause]. Transient like the
@@ -261,6 +263,7 @@ object SettingsBackup {
         SYNC_KEEP_LOCAL,
         SYNC_LAST_RUN_AT,
         SYNC_LAST_ERROR,
+        SYNC_LAST_ATTEMPT_AT,
         SYNC_PAUSED_UNTIL,
         SYNC_GROUP,
     )

@@ -1222,6 +1222,23 @@ fun ThemeSpec.withEmbeddedImages(): ThemeSpec {
     )
 }
 
+/**
+ * Bytes on disk of every image [withEmbeddedImages] would read, without
+ * reading any of them: what a caller checks before it builds the payload,
+ * so a theme library too big for the heap is turned away first (#1508).
+ */
+fun ThemeSpec.embeddedImageBytes(): Long {
+    fun size(path: String?): Long = path?.let { runCatching { File(it).length() }.getOrNull() } ?: 0L
+    var total = size(backgroundImage) + size(backgroundImageLandscape)
+    for ((_, path) in assetPaths()) total += size(path)
+    for (decal in decals) total += size(decal.image)
+    for (path in keyEffectImages) total += size(path)
+    for ((_, override) in keyOverrides) total += size(override.texture) + size(override.pressedTexture)
+    for ((_, path) in keyIcons) total += size(path)
+    for (variant in variants) total += variant.embeddedImageBytes()
+    return total
+}
+
 /** Slot name → local path, for every auxiliary image field. */
 private fun ThemeSpec.assetPaths(): List<Pair<String, String?>> = listOf(
     ASSET_KEY_TEXTURE to keyTexture,
