@@ -44,6 +44,13 @@ object GlideGuessGate {
      * Cost, not score, for the comparison itself: the two searches weight
      * their sources differently and only the geometry means the same thing in
      * both (see [GlideSandboxLadder.SANDBOX_MARGIN]).
+     *
+     * When a learned reading wins, it leads the *full* decode's list rather
+     * than replacing it ([winnerFirst], #1250). Returning the learned list
+     * whole left nothing but the user's own words on the strip, so "Prefer
+     * my words" read like "Only my words": once a written word (`notes`) fit
+     * as well, a word never written (`nodes`) could not even be picked off
+     * the strip.
      */
     fun preferLearned(
         learned: List<GlideBeam.Candidate>,
@@ -55,8 +62,49 @@ object GlideGuessGate {
             fullBest == null ||
                 reading.shapeCost <= fullBest.shapeCost + GlideSandboxLadder.SANDBOX_MARGIN
             )
-        return if (takeLearned) learned else splice(full, learned)
+        if (!takeLearned || reading == null) return splice(full, learned)
+        if (fullBest == null) return learned
+        return splice(winnerFirst(reading, learned, full), learned)
     }
+
+    /**
+     * The learned [winner] first, then the full decode's other words, on the
+     * learned decode's scale.
+     *
+     * The ambiguity picker measures the gap between the first two words of
+     * this list, and that gap has to stay the one it measured when the
+     * learned list was returned whole: the winner against the learned
+     * decode's next reading. So the winner keeps its own score, and the full
+     * decode's other words are moved as one block, their gaps to each other
+     * kept, until the best of them sits exactly where that next reading did.
+     * A winner with no learned reading behind it put no second word on the
+     * strip, and no close call; the block then sits [LONE_WINNER_GAP] under
+     * it, past every finite margin the picker can be set to. Guesses are
+     * spliced in afterwards by score, as they were among the learned words.
+     */
+    private fun winnerFirst(
+        winner: GlideBeam.Candidate,
+        learned: List<GlideBeam.Candidate>,
+        full: List<GlideBeam.Candidate>,
+    ): List<GlideBeam.Candidate> {
+        val winnerKey = WordKey.of(winner.word)
+        val others = full.filter { it.ahead == 0 && WordKey.of(it.word) != winnerKey }
+        if (others.isEmpty()) return listOf(winner)
+        val next = learned.firstOrNull { it !== winner && it.ahead == 0 && it.score <= winner.score }
+        val anchor = next?.score ?: (winner.score - LONE_WINNER_GAP)
+        val shift = anchor - others.maxOf { it.score }
+        val merged = ArrayList<GlideBeam.Candidate>(others.size + 1)
+        merged.add(winner)
+        for (c in others) merged.add(GlideBeam.Candidate(c.word, c.score + shift, c.shapeCost, c.tier, c.ahead))
+        return merged
+    }
+
+    /**
+     * How far under a learned winner with no learned runner-up the full
+     * decode's words sit, in nats: past the widest finite picker margin
+     * (2.5, "Any doubt"), so such a stroke still never asks.
+     */
+    private const val LONE_WINNER_GAP = 10.0
 
     /**
      * [decoded] with its guesses kept only where they clear [margin] — nats

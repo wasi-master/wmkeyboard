@@ -50,7 +50,29 @@ class GlideGuessGateTest {
         val learned = listOf(read("safeway", 11.0, 3.0))
         val full = listOf(read("safe", 5.0, 4.0))
 
-        assertEquals(learned, GlideGuessGate.preferLearned(learned, full))
+        val decoded = GlideGuessGate.preferLearned(learned, full)
+
+        assertEquals(listOf("safeway", "safe"), decoded.map { it.word })
+        // A lone learned reading asked nothing before, and still asks nothing.
+        assertTrue(!SuggestionEngine.glideIsAmbiguous(decoded, 2.5))
+    }
+
+    @Test
+    fun `a winning learned reading leads the full decode, not just the learned words`() {
+        // #1250: "notes" written before and fitting as well as anything, so it
+        // wins; "nodes", never written, has to stay on the strip to pick.
+        val learned = listOf(read("notes", 9.0, 3.0), read("knots", 8.5, 5.0))
+        val full = listOf(read("notes", 8.0, 3.0), read("nodes", 7.6, 3.2), read("knots", 6.0, 5.0))
+
+        val decoded = GlideGuessGate.preferLearned(learned, full)
+
+        assertEquals(listOf("notes", "nodes", "knots"), decoded.map { it.word })
+        // The picker's gap is the one the learned list had: notes against knots.
+        assertEquals(0.5, decoded[0].score - decoded[1].score, 1e-9)
+        assertEquals(
+            SuggestionEngine.glideIsAmbiguous(learned),
+            SuggestionEngine.glideIsAmbiguous(decoded),
+        )
     }
 
     @Test
