@@ -5,6 +5,9 @@
     "id": "asset_ur_nla",
     "name": "معیاری (Standard)",
     "langId": "ur",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 2,
     "layers": {
       "letters": {

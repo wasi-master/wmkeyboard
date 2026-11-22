@@ -5,6 +5,9 @@
     "id": "asset_gb_phr_pahari_pothwari",
     "name": "Pahari-Potwari Pahari-Pothwari (Gboard)",
     "langId": "phr",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

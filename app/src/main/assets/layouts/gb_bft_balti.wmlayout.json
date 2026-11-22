@@ -5,6 +5,9 @@
     "id": "asset_gb_bft_balti",
     "name": "Balti (Gboard)",
     "langId": "bft",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

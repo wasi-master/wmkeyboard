@@ -5,6 +5,9 @@
     "id": "asset_gb_nod_thai",
     "name": "Northern Thai (Gboard)",
     "langId": "nod",
+    "ruleSets": [
+      "thai"
+    ],
     "version": 1,
     "layers": {
       "letters": {

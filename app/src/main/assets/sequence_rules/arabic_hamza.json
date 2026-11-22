@@ -1,0 +1,49 @@
+{
+  "format": "wmkeyboard-sequence-rules",
+  "id": "arabic_hamza",
+  "name": "Arabic script hamza and madda",
+  "description": "A letter followed by a hamza or madda mark becomes the one letter Unicode has for the pair: ا with ٔ is أ, ی with ٔ is ئ, ے with ٔ is ۓ.",
+  "characterGroups": {},
+  "sequenceRules": [
+    {
+      "pattern": "أ",
+      "replace": "أ"
+    },
+    {
+      "pattern": "إ",
+      "replace": "إ"
+    },
+    {
+      "pattern": "آ",
+      "replace": "آ"
+    },
+    {
+      "pattern": "ؤ",
+      "replace": "ؤ"
+    },
+    {
+      "pattern": "ئ",
+      "replace": "ئ"
+    },
+    {
+      "pattern": "یٔ",
+      "replace": "ئ"
+    },
+    {
+      "pattern": "ۓ",
+      "replace": "ۓ"
+    },
+    {
+      "pattern": "ۂ",
+      "replace": "ۂ"
+    },
+    {
+      "pattern": "ۀ",
+      "replace": "ۀ"
+    },
+    {
+      "pattern": "هٔ",
+      "replace": "ۀ"
+    }
+  ]
+}

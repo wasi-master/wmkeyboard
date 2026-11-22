@@ -985,6 +985,7 @@ internal object SettingsRowIcons {
         put(R.string.layout_editor_flick_hints_title) { Icons.Outlined.OpenWith }
         put(R.string.layout_editor_theme_title) { Icons.Outlined.Palette }
         put(R.string.layout_editor_json_title) { Icons.Outlined.DataObject }
+        put(R.string.layout_editor_rules_title) { Icons.Outlined.SwapHoriz }
         put(R.string.layout_editor_composer_title) { Icons.Outlined.Keyboard }
         put(R.string.layout_editor_actual_size_title) { Icons.Outlined.Height }
         put(R.string.layout_editor_tool_row_title) { Icons.Outlined.Widgets }

@@ -5,6 +5,9 @@
     "id": "asset_tts_t9",
     "name": "T9 (ภาษาอีสาน)",
     "langId": "tts",
+    "ruleSets": [
+      "thai"
+    ],
     "layers": {
       "letters": {
         "rows": [

@@ -5,6 +5,9 @@
     "id": "asset_gb_gwc_kalam_kohistani",
     "name": "Gawri Kalami (Gboard)",
     "langId": "gwc",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

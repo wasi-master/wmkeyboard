@@ -5,6 +5,9 @@
     "id": "asset_th_pattachote",
     "name": "ปัตตะโชติ (Pattachote)",
     "langId": "th",
+    "ruleSets": [
+      "thai"
+    ],
     "version": 2,
     "layers": {
       "letters": {

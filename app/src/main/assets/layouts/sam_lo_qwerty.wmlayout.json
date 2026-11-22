@@ -5,6 +5,9 @@
     "id": "asset_sam_lo_qwerty",
     "name": "ລາວ QWERTY (Samsung)",
     "langId": "lo",
+    "ruleSets": [
+      "lao"
+    ],
     "version": 2,
     "layers": {
       "letters": {

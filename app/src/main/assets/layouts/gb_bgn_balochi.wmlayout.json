@@ -5,6 +5,9 @@
     "id": "asset_gb_bgn_balochi",
     "name": "Western Balochi (Gboard)",
     "langId": "bgn",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

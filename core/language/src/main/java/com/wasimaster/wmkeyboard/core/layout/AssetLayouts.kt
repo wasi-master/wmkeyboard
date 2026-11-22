@@ -1235,6 +1235,9 @@ object AssetLayouts {
         if (loaded) return
         this.assets = assets
         KeymanLayoutPack.load(assets)
+        // The typing-rule sets the layouts name: one folder listing, the
+        // files themselves read when a layout first asks for one.
+        SequenceRuleSets.load(assets)
         val fromIndex = runCatching {
             assets.open(INDEX).bufferedReader().useLines { lines ->
                 lines.mapNotNull { line ->

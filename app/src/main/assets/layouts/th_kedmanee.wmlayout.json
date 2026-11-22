@@ -5,6 +5,9 @@
     "id": "asset_th_kedmanee",
     "name": "ไทย (Thai)",
     "langId": "th",
+    "ruleSets": [
+      "thai"
+    ],
     "version": 2,
     "layers": {
       "letters": {

@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.layout.json
 
+import com.wasimaster.wmkeyboard.core.layout.SequenceRuleSets
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 
 /** One value worth offering, with the name a person knows it by. */
@@ -15,8 +16,14 @@ data class JsonValueHint(val value: String, val label: String? = null)
 interface JsonValueSource {
 
     /** Values worth offering for [domain], in the order to offer them. */
-    fun values(domain: JsonValueDomain): List<JsonValueHint> =
-        if (domain == JsonValueDomain.LANGUAGE) languages else emptyList()
+    fun values(domain: JsonValueDomain): List<JsonValueHint> = when (domain) {
+        JsonValueDomain.LANGUAGE -> languages
+        // The shipped sets, by id and name: this module ships them.
+        JsonValueDomain.RULE_SET -> SequenceRuleSets.ids().map { id ->
+            JsonValueHint(id, SequenceRuleSets.byId(id)?.name?.takeIf { it.isNotEmpty() })
+        }
+        else -> emptyList()
+    }
 
     /**
      * Whether [value] names something in [domain], or null when this source

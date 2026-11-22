@@ -38,6 +38,7 @@ const CORE = 'core/language/src/main/java/com/wasimaster/wmkeyboard/core/';
 const SETTINGS = 'core/common/src/main/java/com/wasimaster/wmkeyboard/core/settings/';
 const FILES = {
 	spec: `${CORE}layout/LayoutSpec.kt`,
+	sequence: `${CORE}layout/SequenceRules.kt`,
 	keyboard: `${CORE}layout/KeyboardLayout.kt`,
 	actions: `${CORE}layout/KeyActions.kt`,
 	panel: `${CORE}layout/PanelLayoutSpec.kt`,
@@ -339,6 +340,7 @@ export function layoutJsonSchema() {
 		PanelLayoutSpec: objectOf('PanelLayoutSpec', src.panel),
 		InputMethodBinding: objectOf('InputMethodBinding', src.inputMethod),
 		KeymanBinding: objectOf('KeymanBinding', src.spec),
+		SequenceRule: objectOf('SequenceRule', src.sequence),
 	};
 
 	const actions = parseActions(src.actions, constants)

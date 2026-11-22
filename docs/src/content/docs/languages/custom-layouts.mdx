@@ -189,6 +189,45 @@ One layer can differ from the rest: `"grid": "rect"` on a layer keeps that page 
 
 Everything the theme draws over the keys follows the hexagons too: key lighting, the press colour while a drag passes over a key, Autopilot's grown letters and its outlines, and the corner hint, which moves down out of the slant of the key's top edge. The flick arms a key draws on its face stay in its corners, and the press splashes of the Meld effect still round off the key's rectangle. On Android 9 and older, a key's shadow is cast from the hexagons' outer outline.
 
+### Typing rules
+
+**Typing rules** in the editor lists rules that rewrite what you just typed. When the text before the cursor, with the key you just pressed, ends in a rule's pattern, that ending becomes the rule's replacement. This is how a layout puts a Thai tone mark after its vowel when you typed the tone first, turns ํ then า into the single letter ำ, or writes ā when you type a then 1. Rules are tried in the order listed and the first one that matches wins, once per key, so a rule and its reverse can't keep undoing each other. A rule only fires on the key that completes it: text already in the field, or pasted in, is left as it is.
+
+A pattern is made of characters as they are and groups. A **character group** has a name and a list of characters, and `{name}` in a pattern matches any one of them, so one rule can cover every tone mark. An item of a group may be a few characters long, and the longest one that fits is matched first. In the replacement, `{name}` writes back the character that group matched (the second `{name}` the second one, and so on), `$1` to `$9` the groups in the order the pattern has them, and `{to:from}` the character of group `to` in the place where `from` matched in its own group. That last one is what lets four rules do all of pinyin's tone numbers: a group of plain vowels, a group of the same vowels with each tone, and `{plain}1` becomes `{tone1:plain}`. `{{` and `}}` are literal braces and `$$` a literal dollar sign. In the editor's fields, `\u0E33` writes a character by its code, which is the easy way to put in a combining mark.
+
+**Backspace puts back what was typed**, on a rule, makes the Backspace right after it undo the rewrite instead of deleting a character: ā goes back to a1. The Thai and Lao ordering rules leave it off, since nobody wants a tone mark back in front of its vowel.
+
+**Try it**, at the top of the screen, runs whatever you type through the rules character by character and names the rule behind the last change. A rule that can't work, such as one naming a group that no longer exists, says what is wrong under it in the list and is skipped while typing until you fix it.
+
+**Shared rule sets** are rules that come with the app, used by name so that every layout of a script shares one copy:
+
+| Set | What it does | Used by |
+| --- | --- | --- |
+| Thai typing order | A tone mark typed before the vowel above or below goes after it; Sara Am goes after its tone mark; ํ then า is ำ; two เ are แ | Every Thai layout |
+| Lao typing order | The same for Lao, and ຫນ and ຫມ become the letters ໜ and ໝ | Every Lao layout |
+| Arabic script hamza and madda | A letter then a hamza or madda mark becomes the one letter Unicode has for the pair: ا then ٔ is أ, ی then ٔ is ئ, ے then ٔ is ۓ | Every Arabic-script layout with a hamza key |
+| Pinyin tone numbers | a then 1 is ā, v then 3 is ǚ, with Backspace undo | None; add it yourself |
+| Accent then letter | ´ then e is é, ¨ then u is ü, ~ then n is ñ, ° then a is å, with Backspace undo | None; add it yourself |
+| Latin ligatures | ae is æ and oe is œ, with Backspace undo | None; add it yourself |
+
+Each set has a switch on the Typing rules screen. **See and copy its rules** shows what a set does, and **Copy into this layout** turns its rules into the layout's own so you can change them, switching the set off. A group whose name the layout already uses for other characters comes in under the set's name, `thai_tones` for instance.
+
+In the JSON the same things are three properties of the layout: `characterGroups`, `sequenceRules` (each entry a `pattern`, a `replace` and an optional `undo`) and `ruleSets`:
+
+```json
+"characterGroups": {
+  "tones": ["\u0E48", "\u0E49", "\u0E4A", "\u0E4B"],
+  "vowels": ["\u0E34", "\u0E35", "\u0E38", "\u0E39"]
+},
+"sequenceRules": [
+  { "pattern": "{tones}{vowels}", "replace": "{vowels}{tones}" },
+  { "pattern": "\u0E4D\u0E32", "replace": "\u0E33" }
+],
+"ruleSets": ["arabic_hamza"]
+```
+
+Rules also suit layouts that put a base shape and its dots on separate keys: a rule per pair, like `ٮ` then a two-dot key making ت, gives a compact board for several Arabic-script languages at once. Rules don't run on a [Keyman layout](/languages/keyman/) whose own rules are loaded, since those decide its output, or while a phonetic layout like Avro is spelling a word.
+
 ### Reaching the raw JSON
 
 "Edit as JSON" at the bottom of the grid editor opens the layout as text, for anything the grid editor has no control for: clipboard actions, or pasting in a grid you built elsewhere.

@@ -5,6 +5,9 @@
     "id": "asset_sam_scl_arabic_urdu",
     "name": "Shina (Samsung arabic urdu)",
     "langId": "scl",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 2,
     "layers": {
       "letters": {

@@ -21,6 +21,7 @@ const ANCHORS: Record<string, string> = {
 	LayoutAppearance: 'json-appearance',
 	InputMethodBinding: 'json-appearance',
 	KeymanBinding: 'json-appearance',
+	SequenceRule: 'json-rules',
 	PanelLayoutSpec: 'json-panels',
 	PanelKind: 'json-panels',
 	PanelFieldKind: 'json-panels',
@@ -82,6 +83,12 @@ const tables = [
 		title: 'appearance, keyman and inputMethod',
 		note: 'The small objects a layout can carry.',
 		props: [...s.objects.LayoutAppearance, ...s.objects.KeymanBinding, ...s.objects.InputMethodBinding],
+	},
+	{
+		id: 'json-rules',
+		title: 'A typing rule',
+		note: 'Each entry of sequenceRules. See Typing rules above for the placeholders.',
+		props: s.objects.SequenceRule,
 	},
 ];
 const tablesBeforeActions = tables.slice(0, 3);

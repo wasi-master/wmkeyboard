@@ -5,6 +5,9 @@
     "id": "asset_gb_mve_marwari_arabic",
     "name": "Marwari (Pakistan) (Gboard)",
     "langId": "mve",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

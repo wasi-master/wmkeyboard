@@ -5,6 +5,9 @@
     "id": "asset_ajp",
     "name": "اللهجة الشامية الجنوبية (South Levantine Arabic)",
     "langId": "ajp",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

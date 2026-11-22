@@ -5,6 +5,9 @@
     "id": "asset_gb_bcc_balochi",
     "name": "Southern Balochi (Gboard)",
     "langId": "bcc",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

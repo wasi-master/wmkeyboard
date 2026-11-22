@@ -5,6 +5,9 @@
     "id": "asset_gb_doi_arab_dogri_arabic",
     "name": "Dogri (Arabic) (Gboard)",
     "langId": "doi-Arab",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

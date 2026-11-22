@@ -259,6 +259,7 @@ private class Walker(
             JsonValueDomain.ICON -> issue(scalar, JsonSeverity.WARNING, JsonIssueCode.UNKNOWN_ICON, scalar.text)
             JsonValueDomain.THEME -> issue(scalar, JsonSeverity.INFO, JsonIssueCode.UNKNOWN_THEME, scalar.text)
             JsonValueDomain.SECONDARY_LAYOUT -> issue(scalar, JsonSeverity.WARNING, JsonIssueCode.UNKNOWN_SECONDARY_LAYOUT, scalar.text)
+            JsonValueDomain.RULE_SET -> issue(scalar, JsonSeverity.WARNING, JsonIssueCode.UNKNOWN_RULE_SET, scalar.text)
             JsonValueDomain.FONT -> Unit
         }
     }

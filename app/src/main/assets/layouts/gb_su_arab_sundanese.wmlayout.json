@@ -5,6 +5,9 @@
     "id": "asset_gb_su_arab_sundanese",
     "name": "Sundanese (Arabic) (Gboard)",
     "langId": "su-Arab",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

@@ -76,6 +76,7 @@
     <string name="json_diag_unknown_theme">This device has no theme <xliff:g id="id" example="ocean">%1$s</xliff:g>. The layout keeps the id for when the theme arrives.</string>
     <!-- %1$s is the layout id. -->
     <string name="json_diag_unknown_secondary_layout">You have no secondary layout with the id <xliff:g id="id" example="custom_1700000000">%1$s</xliff:g>, so the key does nothing.</string>
+    <string name="json_diag_unknown_rule_set">This version of the app has no rule set called <xliff:g id="id" example="thai">%1$s</xliff:g>. Apply takes it off the layout.</string>
     <string name="json_diag_field_outside_panel">Only a panel can hold a component cell. Apply deletes this key.</string>
     <!-- %1$s is the property name. -->
     <string name="json_diag_set_by_keyboard">The keyboard sets <xliff:g id="name" example="actionAlternatesFirst">%1$s</xliff:g> itself, so there is no need to write it.</string>

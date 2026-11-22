@@ -3954,6 +3954,17 @@ internal fun KeyLayoutEditorScreen(
                 info = stringResource(R.string.layout_editor_hex_grid_info),
             ) { on -> edit { it.copy(grid = if (on) HexGridKind else null) } }
         }
+        // The rules that rewrite what is typed (#1493): Thai's tone after its
+        // vowel, a then 1 as ā. Its own screen, since a rule is two fields and
+        // a list of groups, not a value a row can hold.
+        if (!secondary) item(level = SettingLevel.STANDARD) {
+            val spec = edited.watch { it }
+            NavRow(
+                R.string.layout_editor_rules_title,
+                subtitle = layoutRulesSummary(spec),
+                route = layoutRulesRoute(layoutId),
+            ) { onNavigate(layoutRulesRoute(layoutId)) }
+        }
         item(level = SettingLevel.ADVANCED) {
             NavRow(
                 R.string.layout_editor_json_title,

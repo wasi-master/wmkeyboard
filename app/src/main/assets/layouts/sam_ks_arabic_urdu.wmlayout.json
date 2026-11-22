@@ -5,6 +5,9 @@
     "id": "asset_sam_ks_arabic_urdu",
     "name": "کٲشُر (Samsung arabic urdu)",
     "langId": "ks",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 2,
     "layers": {
       "letters": {

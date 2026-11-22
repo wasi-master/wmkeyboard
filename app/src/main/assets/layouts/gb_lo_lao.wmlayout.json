@@ -5,6 +5,9 @@
     "id": "asset_gb_lo_lao",
     "name": "Lao (Gboard)",
     "langId": "lo",
+    "ruleSets": [
+      "lao"
+    ],
     "version": 1,
     "layers": {
       "letters": {

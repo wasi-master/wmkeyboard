@@ -5,6 +5,9 @@
     "id": "asset_ayl",
     "name": "اللهجة الليبية (Libyan Arabic)",
     "langId": "ayl",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

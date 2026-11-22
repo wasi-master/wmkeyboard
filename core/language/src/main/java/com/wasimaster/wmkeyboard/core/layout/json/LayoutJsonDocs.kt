@@ -80,6 +80,23 @@ object LayoutJsonDocs {
         "LayoutSpec.themeId" to "A theme of this layout's own, used while the layout is on screen. A layer's themeId beats it.",
         "LayoutSpec.version" to "The revision of the layout format. The app brings an older one up to date when it reads it.",
         "LayoutSpec.basedOn" to "The repository addon this layout was installed from, so a copy edited from it still credits the original when shared. Set by the app.",
+        "LayoutSpec.characterGroups" to
+            "Named lists of characters for the typing rules, such as \"tones\": [\"\u0E48\", \"\u0E49\"]. A rule writes {tones} to " +
+            "match any one of them. An item may be one character or a short cluster.",
+        "LayoutSpec.sequenceRules" to
+            "Typing rules, tried in order on every key: when the text before the cursor, with the key just typed, ends in a " +
+            "rule's pattern, that ending becomes its replace. The first rule that matches wins, once per key.",
+        "LayoutSpec.ruleSets" to
+            "Shared rule sets that ship with the app, by id, such as \"thai\" or \"arabic_hamza\". They run after this " +
+            "layout's own rules.",
+        "SequenceRule.pattern" to
+            "What the text before the cursor has to end in, the key just typed included. Characters as they are, {group} for " +
+            "any one item of a character group, {{ and }} for a brace.",
+        "SequenceRule.replace" to
+            "What the matched ending becomes. {group} writes back what that group matched, $1 to $9 the groups by place, and " +
+            "{to:from} the item of to at the place from matched. $$ is a dollar sign.",
+        "SequenceRule.undo" to
+            "Whether the Backspace right after this rule puts back what was typed, so a then 1 that became ā goes back to a1.",
 
         "LayerSpec.rows" to "The rows of keys, top to bottom. Each row is a list of keys, left to right.",
         "LayerSpec.numberRow" to

@@ -5,6 +5,9 @@
     "id": "asset_gb_pa_arab_punjabi_pakistan",
     "name": "Punjabi (Arabic) (Gboard)",
     "langId": "pa-Arab",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

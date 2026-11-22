@@ -519,7 +519,28 @@ class Decider:
         self.new_layouts[file_id] = dict(
             id=f"asset_{file_id}", name=f"{title} (Gboard)", langId=lang_id, version=1, layers=layers
         )
+        sets = rule_sets(layers)
+        if sets:
+            self.new_layouts[file_id]["ruleSets"] = sets
         self.extra[lang_id].append(f"asset_{file_id}")
+
+
+def rule_sets(layers):
+    """The shipped typing-rule sets (app assets/sequence_rules) a new layout names:
+    Thai or Lao order on a board of that script's letters, the hamza forms on a
+    board with a hamza or madda mark. Counted on the letters, so a baht sign on a
+    symbols page does not make a Latin board Thai."""
+    letters = json.dumps(layers.get("letters", {}), ensure_ascii=False)
+    everything = json.dumps(layers, ensure_ascii=False)
+    sets = []
+    if sum("\u0e01" <= c <= "\u0e2e" for c in letters) >= 10:
+        sets.append("thai")
+    if sum("\u0e81" <= c <= "\u0eae" for c in letters) >= 10:
+        sets.append("lao")
+    arabic = sum("\u0621" <= c <= "\u064a" or "\u0671" <= c <= "\u06d3" for c in letters)
+    if arabic >= 10 and any(c in everything for c in "\u0653\u0654\u0655"):
+        sets.append("arabic_hamza")
+    return sets
 
 
 BUILTIN_GRIDS = {}

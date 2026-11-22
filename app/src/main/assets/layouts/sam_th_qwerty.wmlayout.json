@@ -5,6 +5,9 @@
     "id": "asset_sam_th_qwerty",
     "name": "ไทย QWERTY (Samsung)",
     "langId": "th",
+    "ruleSets": [
+      "thai"
+    ],
     "version": 2,
     "layers": {
       "letters": {

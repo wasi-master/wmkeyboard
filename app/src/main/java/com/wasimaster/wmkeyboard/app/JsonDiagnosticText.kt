@@ -49,6 +49,7 @@ internal val JsonIssueCode.messageRes: Int
         JsonIssueCode.UNKNOWN_ICON -> R.string.json_diag_unknown_icon
         JsonIssueCode.UNKNOWN_THEME -> R.string.json_diag_unknown_theme
         JsonIssueCode.UNKNOWN_SECONDARY_LAYOUT -> R.string.json_diag_unknown_secondary_layout
+        JsonIssueCode.UNKNOWN_RULE_SET -> R.string.json_diag_unknown_rule_set
         JsonIssueCode.FIELD_OUTSIDE_PANEL -> R.string.json_diag_field_outside_panel
         JsonIssueCode.SET_BY_KEYBOARD -> R.string.json_diag_set_by_keyboard
     }

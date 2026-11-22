@@ -5,6 +5,9 @@
     "id": "asset_fa_gboard",
     "name": "فارسی (Gboard)",
     "langId": "fa",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

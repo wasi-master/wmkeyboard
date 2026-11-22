@@ -5,6 +5,9 @@
     "id": "asset_ar_lulua",
     "name": "لؤلؤة (Arabic Lulua)",
     "langId": "ar",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 2,
     "layers": {
       "letters": {

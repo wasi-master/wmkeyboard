@@ -5,6 +5,9 @@
     "id": "asset_acm",
     "name": "اللهجة العراقية (Mesopotamian Arabic)",
     "langId": "acm",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

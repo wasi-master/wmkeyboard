@@ -5,6 +5,9 @@
     "id": "asset_th_manoonchai",
     "name": "มนูญชัย (Manoonchai)",
     "langId": "th",
+    "ruleSets": [
+      "thai"
+    ],
     "version": 2,
     "layers": {
       "letters": {

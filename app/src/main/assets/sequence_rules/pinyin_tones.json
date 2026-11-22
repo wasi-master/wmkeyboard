@@ -1,0 +1,110 @@
+{
+  "format": "wmkeyboard-sequence-rules",
+  "id": "pinyin_tones",
+  "name": "Pinyin tone numbers",
+  "description": "A vowel then a tone number writes the vowel with its tone mark: a then 1 is ā, v then 3 is ǚ. Backspace right after puts the number back.",
+  "characterGroups": {
+    "plain": [
+      "a",
+      "e",
+      "i",
+      "o",
+      "u",
+      "ü",
+      "v",
+      "A",
+      "E",
+      "I",
+      "O",
+      "U",
+      "Ü",
+      "V"
+    ],
+    "tone1": [
+      "ā",
+      "ē",
+      "ī",
+      "ō",
+      "ū",
+      "ǖ",
+      "ǖ",
+      "Ā",
+      "Ē",
+      "Ī",
+      "Ō",
+      "Ū",
+      "Ǖ",
+      "Ǖ"
+    ],
+    "tone2": [
+      "á",
+      "é",
+      "í",
+      "ó",
+      "ú",
+      "ǘ",
+      "ǘ",
+      "Á",
+      "É",
+      "Í",
+      "Ó",
+      "Ú",
+      "Ǘ",
+      "Ǘ"
+    ],
+    "tone3": [
+      "ǎ",
+      "ě",
+      "ǐ",
+      "ǒ",
+      "ǔ",
+      "ǚ",
+      "ǚ",
+      "Ǎ",
+      "Ě",
+      "Ǐ",
+      "Ǒ",
+      "Ǔ",
+      "Ǚ",
+      "Ǚ"
+    ],
+    "tone4": [
+      "à",
+      "è",
+      "ì",
+      "ò",
+      "ù",
+      "ǜ",
+      "ǜ",
+      "À",
+      "È",
+      "Ì",
+      "Ò",
+      "Ù",
+      "Ǜ",
+      "Ǜ"
+    ]
+  },
+  "sequenceRules": [
+    {
+      "pattern": "{plain}1",
+      "replace": "{tone1:plain}",
+      "undo": true
+    },
+    {
+      "pattern": "{plain}2",
+      "replace": "{tone2:plain}",
+      "undo": true
+    },
+    {
+      "pattern": "{plain}3",
+      "replace": "{tone3:plain}",
+      "undo": true
+    },
+    {
+      "pattern": "{plain}4",
+      "replace": "{tone4:plain}",
+      "undo": true
+    }
+  ]
+}

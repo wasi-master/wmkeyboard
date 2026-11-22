@@ -5,6 +5,9 @@
     "id": "asset_gb_sd_sindhi_arabic",
     "name": "Sindhi (Gboard)",
     "langId": "sd",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

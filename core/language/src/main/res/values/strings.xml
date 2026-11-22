@@ -117,6 +117,33 @@
     <string name="core_lang_repair_space_key_added">The letters layer had no space key. The app added one.</string>
     <string name="core_lang_repair_enter_key_added">The letters layer had no enter key. The app added one.</string>
 
+    <!-- Typing rules (#1493). %1$d is the rule's number in the layout's list, from 1. -->
+    <string name="core_lang_repair_rule_empty">Typing rule %1$d had no pattern. The app removed it.</string>
+    <!-- %2$s is the group name the rule used. -->
+    <string name="core_lang_repair_rule_unknown_group">Typing rule %1$d uses the group <xliff:g id="group" example="tones">%2$s</xliff:g>, which the layout does not have. The app removed the rule.</string>
+    <!-- %2$s is the text that is not a valid placeholder, such as {to or }. -->
+    <string name="core_lang_repair_rule_bad_placeholder">Typing rule %1$d has <xliff:g id="text" example="{tones">%2$s</xliff:g>, which does not name a group. The app removed the rule.</string>
+    <!-- %2$d is the most characters a pattern may have. -->
+    <string name="core_lang_repair_rule_too_long">Typing rule %1$d matched more than %2$d characters. The app removed it.</string>
+    <!-- %2$s is the group name or $1 to $9 that the replacement wrote. -->
+    <string name="core_lang_repair_rule_no_slot">Typing rule %1$d writes back <xliff:g id="ref" example="tones">%2$s</xliff:g>, which its pattern does not match. The app removed the rule.</string>
+    <!-- %2$s is the pair of groups, such as tone1:plain. -->
+    <string name="core_lang_repair_rule_uneven_map">Typing rule %1$d maps <xliff:g id="pair" example="tone1:plain">%2$s</xliff:g>, and the first group has fewer characters than the second. The app removed the rule.</string>
+    <!-- %1$d is how many rules the layout had, and picks the wording. %2$d is how many the app kept. -->
+    <plurals name="core_lang_repair_rules_trimmed">
+        <item quantity="one">The layout had %1$d typing rule. The app keeps the first %2$d.</item>
+        <item quantity="other">The layout had %1$d typing rules. The app keeps the first %2$d.</item>
+    </plurals>
+    <!-- %1$s is the group name as written. -->
+    <string name="core_lang_repair_group_bad_name">The character group <xliff:g id="group" example="tones!">%1$s</xliff:g> has a name with characters other than letters, digits, _ and -. The app removed it.</string>
+    <string name="core_lang_repair_group_empty">The character group <xliff:g id="group" example="tones">%1$s</xliff:g> had no characters. The app removed it.</string>
+    <!-- %2$d is how many characters it had, %3$d how many the app kept. -->
+    <string name="core_lang_repair_group_trimmed">The character group <xliff:g id="group" example="tones">%1$s</xliff:g> had %2$d characters. The app keeps the first %3$d.</string>
+    <!-- %1$d is how many groups the layout had, %2$d how many the app kept. -->
+    <string name="core_lang_repair_groups_trimmed">The layout had %1$d character groups. The app keeps the first %2$d.</string>
+    <!-- %1$s is the rule set id, such as thai. -->
+    <string name="core_lang_repair_rule_set_unknown">This version of the app has no rule set called <xliff:g id="set" example="thai">%1$s</xliff:g>. The app took it off the layout.</string>
+
     <!-- %1$s is the layer name. ABC is the label drawn on the new key. -->
     <string name="core_lang_repair_letters_key_added">The <xliff:g id="layer" example="symbols">%1$s</xliff:g> layer had no key that goes back to the letters. The app added an ABC key.</string>
 

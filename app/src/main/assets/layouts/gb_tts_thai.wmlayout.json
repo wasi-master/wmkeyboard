@@ -5,6 +5,9 @@
     "id": "asset_gb_tts_thai",
     "name": "Isan Thai (Gboard)",
     "langId": "tts",
+    "ruleSets": [
+      "thai"
+    ],
     "version": 1,
     "layers": {
       "letters": {

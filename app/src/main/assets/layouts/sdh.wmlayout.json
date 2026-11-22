@@ -5,6 +5,9 @@
     "id": "asset_sdh",
     "name": "کوردی خوارین (Southern Kurdish)",
     "langId": "sdh",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

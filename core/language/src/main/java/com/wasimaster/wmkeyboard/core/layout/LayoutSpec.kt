@@ -455,6 +455,28 @@ data class LayoutSpec(
      * no format-version bump, for the reason [tabletExpand] gives.
      */
     val basedOn: RemixCredit? = null,
+    /**
+     * Named lists of characters for [sequenceRules] to match by group (#1493):
+     * `"tones": ["่", "้"]` lets one rule stand for every tone mark. Each item
+     * is one character or a short cluster. Null, every layout without rules.
+     *
+     * Additive and defaulted, so no format-version bump, for the reason
+     * [tabletExpand] gives.
+     */
+    val characterGroups: Map<String, List<String>>? = null,
+    /**
+     * This layout's own typing rules, tried in order on every key (see
+     * [SequenceRule]): Thai's tone after its vowel, ํ then า as ำ, a then 1 as
+     * ā. Null, the normal case, types every key as it is.
+     */
+    val sequenceRules: List<SequenceRule>? = null,
+    /**
+     * Shipped rule sets this layout types with, by id (`thai`, `lao`,
+     * `arabic_hamza`, …; see [SequenceRuleSets]), tried after its own
+     * [sequenceRules]. An id this build does not ship is dropped by the
+     * repair pass.
+     */
+    val ruleSets: List<String>? = null,
     /** Format revision, bumped by [LayoutCodec] migrations. */
     val version: Int = CurrentLayoutSpecVersion,
 ) {

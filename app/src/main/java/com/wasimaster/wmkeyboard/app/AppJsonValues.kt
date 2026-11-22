@@ -49,7 +49,7 @@ internal class AppJsonValues(private val context: Context, private val settings:
     }
 
     override fun values(domain: JsonValueDomain): List<JsonValueHint> = when (domain) {
-        JsonValueDomain.LANGUAGE -> super.values(domain)
+        JsonValueDomain.LANGUAGE, JsonValueDomain.RULE_SET -> super.values(domain)
         JsonValueDomain.THEME -> themes
         JsonValueDomain.FONT -> fonts
         JsonValueDomain.ICON -> icons

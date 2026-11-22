@@ -5,6 +5,9 @@
     "id": "asset_gb_bgq_bagri_arabic",
     "name": "Bagri (Gboard)",
     "langId": "bgq",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

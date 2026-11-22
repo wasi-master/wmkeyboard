@@ -13,6 +13,7 @@ import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.layout.PanelLayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.compile
+import com.wasimaster.wmkeyboard.core.layout.compiledSequenceRules
 import com.wasimaster.wmkeyboard.core.layout.compileNamed
 import com.wasimaster.wmkeyboard.core.layout.expandForTablet
 import com.wasimaster.wmkeyboard.core.layout.fillRowFor
@@ -134,6 +135,7 @@ fun compileLayoutSet(
         handwriting = safe.handwriting,
         strip = safe.strip,
         authoredHolds = authored,
+        sequenceRules = safe.compiledSequenceRules(),
     )
 }
 

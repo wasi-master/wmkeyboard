@@ -5,6 +5,9 @@
     "id": "asset_qxq",
     "name": "قشقایی (Qashqai)",
     "langId": "qxq",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

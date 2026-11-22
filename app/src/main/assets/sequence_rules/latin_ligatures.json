@@ -1,0 +1,39 @@
+{
+  "format": "wmkeyboard-sequence-rules",
+  "id": "latin_ligatures",
+  "name": "Latin ligatures",
+  "description": "ae is æ and oe is œ, in either case. Backspace right after puts the two letters back.",
+  "characterGroups": {},
+  "sequenceRules": [
+    {
+      "pattern": "ae",
+      "replace": "æ",
+      "undo": true
+    },
+    {
+      "pattern": "AE",
+      "replace": "Æ",
+      "undo": true
+    },
+    {
+      "pattern": "Ae",
+      "replace": "Æ",
+      "undo": true
+    },
+    {
+      "pattern": "oe",
+      "replace": "œ",
+      "undo": true
+    },
+    {
+      "pattern": "OE",
+      "replace": "Œ",
+      "undo": true
+    },
+    {
+      "pattern": "Oe",
+      "replace": "Œ",
+      "undo": true
+    }
+  ]
+}

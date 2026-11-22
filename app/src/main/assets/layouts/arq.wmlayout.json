@@ -5,6 +5,9 @@
     "id": "asset_arq",
     "name": "الدارجة الجزائرية (Algerian Arabic)",
     "langId": "arq",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

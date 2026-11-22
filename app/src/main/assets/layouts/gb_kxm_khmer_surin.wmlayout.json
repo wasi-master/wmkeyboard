@@ -5,6 +5,9 @@
     "id": "asset_gb_kxm_khmer_surin",
     "name": "Khmer Surin (Gboard)",
     "langId": "kxm",
+    "ruleSets": [
+      "thai"
+    ],
     "version": 1,
     "layers": {
       "letters": {

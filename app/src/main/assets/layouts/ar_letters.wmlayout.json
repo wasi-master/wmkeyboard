@@ -5,6 +5,9 @@
     "id": "asset_ar_letters",
     "name": "العربية (Arabic, all letters on keys)",
     "langId": "ar",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 2,
     "layers": {
       "letters": {

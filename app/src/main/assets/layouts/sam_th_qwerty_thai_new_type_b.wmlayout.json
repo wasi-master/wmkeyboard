@@ -5,6 +5,9 @@
     "id": "asset_sam_th_qwerty_thai_new_type_b",
     "name": "ไทย (Samsung qwerty thai new type b)",
     "langId": "th",
+    "ruleSets": [
+      "thai"
+    ],
     "version": 2,
     "layers": {
       "letters": {

@@ -2445,6 +2445,17 @@ private fun SettingsNavGraph(
                 }
             }
         }
+        // A layout's typing rules (#1493).
+        composable("keymap_rules/{layoutId}") { backStackEntry ->
+            val layoutId = backStackEntry.arguments?.getString("layoutId").orEmpty()
+            SettingsScreen(
+                stringResource(R.string.layout_editor_rules_title),
+                { navController.popBackStack() },
+                route = layoutRulesRoute(layoutId),
+            ) {
+                LayoutRulesScreen(repository, settings, layoutId)
+            }
+        }
         // Its own Scaffold rather than SettingsScreen, like the plugin editor:
         // the code needs the window's height, and brings its own top bar.
         composable("keymap_json/{layoutId}") { backStackEntry ->

@@ -11067,6 +11067,14 @@ open class WMKeyboardService : InputMethodService() {
                 if (undoChain.lastOrNull() !== newest) showNextUndo()
             }
         }
+        // And for a typing rule's undo (#1493), at the caret its edit left.
+        sequenceUndo?.let { undo ->
+            when {
+                newSelStart != newSelEnd -> sequenceUndo = null
+                undo.caret == -1 -> sequenceUndo = undo.copy(caret = newSelStart)
+                newSelStart != undo.caret -> sequenceUndo = null
+            }
+        }
         // Same rule for the text a chip's gear took out: only at the caret the
         // delete left, recorded from its echo when it was not known up front.
         chipOpenRestore?.let { restore ->
@@ -13202,7 +13210,12 @@ open class WMKeyboardService : InputMethodService() {
         // key, not to every letter its cycle passes through.
         val step = if (tap.replaces == null) key else key.copy(output = tap.text, shiftLabel = null, multitap = emptyList())
         multitapWrote = keyOutput(step, _uiState.value)
-        onTextKey(step)
+        typingMultitapStep = true
+        try {
+            onTextKey(step)
+        } finally {
+            typingMultitapStep = false
+        }
         if (fromField) {
             // The step taken back may have ended a sentence and armed a capital
             // that the step replacing it (`.` becoming `,`) does not earn.
@@ -13224,6 +13237,12 @@ open class WMKeyboardService : InputMethodService() {
     private fun takeBackMultitapStep(wrote: String): Boolean? {
         // A keyboard-owned field has the keys, so the step is in its buffer.
         if (_uiState.value.captureTarget() != null) return takeBackCaptureMultitapStep(wrote)
+        // A typing rule rewrote the step (#1493): the step is wound back with
+        // what the rule took out, so the next one meets the same text this one did.
+        sequenceRewind?.let { rewind ->
+            sequenceRewind = null
+            return rewindSequenceStep(rewind)
+        }
         val ic = currentInputConnection ?: return null
         if (composing.isNotEmpty()) {
             if (!composing.endsWith(wrote)) return null
@@ -13997,6 +14016,10 @@ open class WMKeyboardService : InputMethodService() {
             rewriteCaptureComposition(state, target, before, run, run?.keys.orEmpty() + text)
             return true
         }
+        captureSequenceUndo = null
+        // The layout's typing rules (#1493), as in the app's field: Thai
+        // typed into Search or Translate comes out in the same order.
+        if (run == null && !typesKeyCaps(state) && captureSequenceRule(state, target, before, text)) return true
         // What each field will take of what was typed. The two numeric ones
         // filter rather than accept, and the cluster-shaping scripts need to
         // know the character the new one lands *after* — which, with a caret,
@@ -14102,6 +14125,37 @@ open class WMKeyboardService : InputMethodService() {
     /** The space [captureTyped] put after a mark: in which field, and the text and caret it left. */
     private data class CaptureMarkSpace(val key: String, val text: String, val at: Int)
 
+    /**
+     * A typing rule in a keyboard-owned field (#1493): the same edit
+     * [typeSequenceRule] makes in the app's, made to the box's own text. Not
+     * in the calculator and converter boxes, which take numbers, nor for a
+     * multitap step, whose next tap could not find what it typed.
+     */
+    private fun captureSequenceRule(state: KeyboardUiState, target: CaptureTarget, before: CaretText, text: String): Boolean {
+        val rules = state.layouts.sequenceRules ?: return false
+        if (!rules.mayFire(text) || typingMultitapStep || before.hasSelection) return false
+        if (target == CaptureTarget.CALC || target == CaptureTarget.CONVERTER) return false
+        val edit = rules.edit(before.text.substring(0, before.at), text) ?: return false
+        val start = before.at - edit.delete
+        val after = CaretText(before.text.substring(0, start) + edit.text + before.text.substring(before.at), start + edit.text.length)
+        captureWrite(target, before, after)
+        val key = state.captureKey()
+        val written = _uiState.value.captureCaretText()
+        val restore = edit.restore
+        if (restore != null && key != null && written != null) {
+            captureSequenceUndo = CaptureSequenceUndo(key, written.text, written.at, SequenceUndo(edit.text, restore, written.at))
+        }
+        return true
+    }
+
+    /** A typing rule's undo in a keyboard-owned box, valid while the box still reads [text] with the caret at [at]. */
+    private data class CaptureSequenceUndo(val key: String, val text: String, val at: Int, val undo: SequenceUndo)
+
+    private var captureSequenceUndo: CaptureSequenceUndo? = null
+
+    /** Set while a multitap key's step is typed, so the paths it reaches can tell it from an ordinary key. */
+    private var typingMultitapStep = false
+
     private var captureMarkSpace: CaptureMarkSpace? = null
 
     /**
@@ -14147,6 +14201,18 @@ open class WMKeyboardService : InputMethodService() {
             else -> Unit
         }
         val before = state.captureCaretText() ?: return false
+        captureSequenceUndo?.let { pending ->
+            captureSequenceUndo = null
+            if (pending.key == state.captureKey() && pending.text == before.text && pending.at == before.at && !before.hasSelection) {
+                val head = before.text.substring(0, before.at)
+                SequenceRuleSeam.undo(head, pending.undo.inserted, pending.undo.restore)?.let { (delete, restore) ->
+                    val start = before.at - delete
+                    val restored = before.text.substring(0, start) + restore + before.text.substring(before.at)
+                    captureWrite(target, before, CaretText(restored, start + restore.length))
+                    return true
+                }
+            }
+        }
         val undo = captureCorrection
         captureCorrection = null
         if (undo != null && undo.key == state.captureKey() && undo.text == before.text && undo.at == before.at &&
@@ -15658,6 +15724,10 @@ open class WMKeyboardService : InputMethodService() {
         // Any new input ends the window in which backspace reverts the
         // previous autocorrect.
         lastRevertible = null
+        // And the one in which it puts back what a typing rule rewrote, and
+        // the rule's own record for a multitap step to wind back.
+        sequenceUndo = null
+        sequenceRewind = null
         clearSwapOffer()
         // The mid-word strip is about the field as it was before this
         // keystroke; the caret's own settle re-derives it afterwards.
@@ -15751,6 +15821,10 @@ open class WMKeyboardService : InputMethodService() {
             _uiState.update {
                 it.copy(composingPreview = "", suggestions = emptyList(), emojiSuggestions = emptyList(), octopus = emptyMap())
             }
+            return
+        }
+        if (fancyStyle == null && typeSequenceRule(ic, text)) {
+            consumeShift()
             return
         }
         if (!fancyByKey && typeMyanmarVisualOrder(ic, text)) {
@@ -16990,6 +17064,122 @@ open class WMKeyboardService : InputMethodService() {
      * invalid কাআ — and the independent vowel (আ, ই, …) at a word start.
      */
     /**
+     * The layout's typing rules (#1493; `LayoutSpec.sequenceRules` and the
+     * shipped sets it names): when the text before the caret with [text] after
+     * it ends in a rule's pattern, the rule rewrites that ending. True when the
+     * key was typed here.
+     *
+     * The key is tested against the characters any rule can end on before the
+     * field is read, so a layout's rules cost a keystroke nothing unless the
+     * key can complete one. Not on a converted Keyman layout, whose own rules
+     * own its output, not over a selection, and not while a transliterating
+     * board is spelling a word, since its buffer is not the text on screen.
+     * Fancy Text stays out too: the field holds styled letters the rules were
+     * never written for.
+     */
+    private fun typeSequenceRule(ic: InputConnection, text: String): Boolean {
+        val state = _uiState.value
+        val rules = state.layouts.sequenceRules ?: return false
+        if (!rules.mayFire(text) || keymanSession != null) return false
+        if (!SequenceRuleSeam.bufferReadable(composing.length, state.composer.isTransliterating, readingCaret)) return false
+        if (hasSelection(ic)) return false
+        val before = ic.getTextBeforeCursor(rules.lookback, 0) ?: return false
+        val edit = rules.edit(before, text) ?: return false
+        when (val plan = SequenceRuleSeam.plan(edit, composing.length)) {
+            is SequenceRuleSeam.RewriteBuffer -> {
+                // The bookkeeping a backspace does on the buffer, then the
+                // rule's text appended like any other multi-character insert:
+                // its characters are not keystrokes the touch model can read.
+                val drop = composing.length - plan.keep
+                composing.setLength(plan.keep)
+                repeat(drop) {
+                    composingTouch.removeLastOrNull()
+                    composingKeys.removeLastOrNull()
+                    composingHints.removeLastOrNull()
+                }
+                ambiguousReading = null
+                phoneticKeyed = null
+                pendingTouch = null
+                pendingKeyLetters = null
+                pendingKeyHint = null
+                if (plan.text.isNotEmpty()) appendComposing(plan.text)
+                invalidateExpectedSelection()
+                updateComposingText(ic)
+                refreshSuggestions()
+            }
+            is SequenceRuleSeam.EditField -> {
+                if (plan.commitFirst) commitComposing(ic, autocorrect = false)
+                ic.beginBatchEdit()
+                if (plan.delete > 0) {
+                    revision?.expectDelete(plan.delete, 0)
+                    ic.deleteSurroundingText(plan.delete, 0)
+                }
+                if (plan.text.isNotEmpty()) commitTypedCharacter(ic, plan.text)
+                ic.endBatchEdit()
+                invalidateExpectedSelection()
+                _uiState.update {
+                    it.copy(composingPreview = "", suggestions = emptyList(), emojiSuggestions = emptyList(), octopus = emptyMap())
+                }
+            }
+        }
+        sequenceUndo = edit.restore?.let { SequenceUndo(inserted = edit.text, restore = it, caret = -1) }
+        sequenceRewind = SequenceUndo(inserted = edit.text, restore = edit.deleted, caret = -1)
+        return true
+    }
+
+    /**
+     * What the Backspace right after an `undo` typing rule puts back ([SequenceUndo]).
+     * Spent by the next key, by any caret move other than the edit's own echo,
+     * and by the Backspace itself.
+     */
+    private var sequenceUndo: SequenceUndo? = null
+
+    /**
+     * The last key's rule edit, as the text it wrote and the text it took out,
+     * so the next tap of a multitap key can wind it back before typing its own
+     * step: a tone typed before ิ swapped to ิ้, and the second tap of that
+     * vowel key has to find ้ before ิ again to make ี of it.
+     */
+    private var sequenceRewind: SequenceUndo? = null
+
+    /**
+     * Winds [rewind] back out of the buffer or the field. Null when what it
+     * wrote is no longer in either place; otherwise whether it came out of the
+     * field, as [takeBackMultitapStep] answers.
+     */
+    private fun rewindSequenceStep(rewind: SequenceUndo): Boolean? {
+        val ic = currentInputConnection ?: return null
+        if (composing.isNotEmpty() && composing.length >= rewind.inserted.length && composing.endsWith(rewind.inserted)) {
+            val drop = rewind.inserted.length
+            composing.setLength(composing.length - drop)
+            repeat(drop) {
+                composingTouch.removeLastOrNull()
+                composingKeys.removeLastOrNull()
+                composingHints.removeLastOrNull()
+            }
+            ambiguousReading = null
+            phoneticKeyed = null
+            pendingTouch = null
+            pendingKeyLetters = null
+            pendingKeyHint = null
+            if (rewind.restore.isNotEmpty()) appendComposing(rewind.restore)
+            invalidateExpectedSelection()
+            updateComposingText(ic)
+            return false
+        }
+        if (composing.isNotEmpty()) return null
+        val edit = SequenceRuleSeam.undo(ic.getTextBeforeCursor(rewind.inserted.length, 0), rewind.inserted, rewind.restore)
+            ?: return null
+        ic.beginBatchEdit()
+        revision?.expectDelete(edit.first, 0)
+        ic.deleteSurroundingText(edit.first, 0)
+        if (edit.second.isNotEmpty()) ic.commitText(edit.second, 1)
+        ic.endBatchEdit()
+        invalidateExpectedSelection()
+        return true
+    }
+
+    /**
      * Burmese typed in drawn order ([MyanmarVisualOrder]): a consonant after a
      * ေ that is still waiting for one goes in front of it, and a medial after
      * a consonant's ေ goes in front of the ေ. True when the key was typed here.
@@ -17970,6 +18160,19 @@ open class WMKeyboardService : InputMethodService() {
             invalidateExpectedSelection()
             ic.commitText("", 1)
             return
+        }
+        // The text an `undo` typing rule rewrote comes back on the first
+        // backspace after it (#1493): ā goes back to a1. Through the buffer
+        // when the rule wrote into the word being typed.
+        sequenceUndo?.let { undo ->
+            sequenceUndo = null
+            sequenceRewind = null
+            if (undo.caret < 0 || undo.caret == expectedSelStart) {
+                if (rewindSequenceStep(undo) != null) {
+                    refreshSuggestions()
+                    return
+                }
+            }
         }
         // The text a chip's gear took out comes back on the first backspace
         // after its tool, while nothing has been typed since (#665).

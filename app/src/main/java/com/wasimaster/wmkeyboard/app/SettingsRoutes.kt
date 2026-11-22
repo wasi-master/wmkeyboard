@@ -179,6 +179,7 @@ internal object SettingsRoutes {
         "sticker_pack/{packId}/edit/{stickerId}",
         "keymap_edit/{layoutId}",
         "keymap_json/{layoutId}",
+        "keymap_rules/{layoutId}",
         "panel_edit/{panel}",
         "panel_json/{panel}",
         "global_row/{row}",

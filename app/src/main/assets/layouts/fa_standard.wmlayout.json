@@ -5,6 +5,9 @@
     "id": "asset_fa_standard",
     "name": "فارسی (Persian)",
     "langId": "fa",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 2,
     "layers": {
       "letters": {

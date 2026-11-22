@@ -5,6 +5,9 @@
     "id": "asset_ug_full",
     "name": "ئۇيغۇرچە تولۇق (Uyghur, all letters on keys)",
     "langId": "ug",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 2,
     "layers": {
       "letters": {

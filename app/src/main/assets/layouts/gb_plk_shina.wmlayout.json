@@ -5,6 +5,9 @@
     "id": "asset_gb_plk_shina",
     "name": "Kohistani Shina (Gboard)",
     "langId": "plk",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

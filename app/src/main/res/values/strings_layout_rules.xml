@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Layout editor › Typing rules (#1493): rules that rewrite what was just typed. -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="layout_editor_rules_title">Typing rules</string>
+    <string name="layout_editor_rules_subtitle_none">Rewrite what you type, like a tone mark moved after its vowel</string>
+    <!-- %1$d is how many rules the layout has of its own. -->
+    <plurals name="layout_editor_rules_subtitle_count">
+        <item quantity="one">%1$d rule of its own</item>
+        <item quantity="other">%1$d rules of its own</item>
+    </plurals>
+    <!-- %1$s is the names of the rule sets, joined with commas. -->
+    <string name="layout_editor_rules_subtitle_sets">Uses <xliff:g id="sets" example="Thai typing order">%1$s</xliff:g></string>
+    <!-- Joins the two subtitles above: %1$s is the count, %2$s the sets. -->
+    <string name="layout_editor_rules_subtitle_both"><xliff:g id="count" example="2 rules of its own">%1$s</xliff:g> · <xliff:g id="sets" example="Uses Thai typing order">%2$s</xliff:g></string>
+
+    <string name="layout_rules_intro">When the text before the cursor, with the key you just typed, ends in a rule\'s pattern, the rule rewrites that ending. The first rule that matches wins, once per key. Groups stand for any one of their characters: {tones} matches any tone mark in the group tones.</string>
+    <string name="layout_rules_missing">This layout is gone.</string>
+
+    <string name="layout_rules_try_group">Try it</string>
+    <string name="layout_rules_try_label">Type here</string>
+    <string name="layout_rules_try_help">Each character goes through the rules as if you typed it on this layout.</string>
+    <!-- %1$s is the text the rules made of what was typed. -->
+    <string name="layout_rules_try_result">With these rules: <xliff:g id="text" example="กู้">%1$s</xliff:g></string>
+    <!-- %1$s is the rule that made the last change, as pattern → replacement. %2$s is where it comes from. -->
+    <string name="layout_rules_try_last">Last change: <xliff:g id="rule" example="{tones}{vowels} → {vowels}{tones}">%1$s</xliff:g>, from <xliff:g id="source" example="Thai typing order">%2$s</xliff:g></string>
+    <string name="layout_rules_try_none">No rule has changed anything yet.</string>
+    <string name="layout_rules_source_own">this layout</string>
+
+    <string name="layout_rules_own_group">This layout\'s rules</string>
+    <string name="layout_rules_add_rule">Add a rule</string>
+    <string name="layout_rules_reorder">Reorder the rules</string>
+    <string name="layout_rules_reorder_subtitle">The first rule that matches wins</string>
+    <string name="layout_rules_undo_subtitle">Backspace right after puts back what you typed</string>
+    <string name="layout_rules_none">No rules of its own yet.</string>
+
+    <string name="layout_rules_groups_group">Character groups</string>
+    <string name="layout_rules_add_group">Add a group</string>
+    <string name="layout_rules_groups_none">No groups yet. A group lets one rule stand for several characters.</string>
+
+    <string name="layout_rules_sets_group">Shared rule sets</string>
+    <string name="layout_rules_sets_info">Rule sets that come with the app. They run after this layout\'s own rules. Turn one off to type without it, or copy it here to change it.</string>
+    <!-- %1$d is how many rules the set has. -->
+    <plurals name="layout_rules_set_rules">
+        <item quantity="one">%1$d rule</item>
+        <item quantity="other">%1$d rules</item>
+    </plurals>
+    <string name="layout_rules_set_view">See and copy its rules</string>
+    <string name="layout_rules_set_copy">Copy into this layout</string>
+    <string name="layout_rules_set_copied">Copied. The set is off now, and its rules are this layout\'s own.</string>
+
+    <string name="layout_rules_rule_add_title">New rule</string>
+    <string name="layout_rules_rule_edit_title">Edit rule</string>
+    <string name="layout_rules_pattern_label">When the text ends in</string>
+    <string name="layout_rules_replace_label">Write instead</string>
+    <string name="layout_rules_pattern_help">Characters as they are, {group} for any one of a group, \\u0E33 for a character by its code.</string>
+    <string name="layout_rules_replace_help">{group} writes back what the group matched, $1 to $9 the groups in order, {to:from} the character of to at the place from matched.</string>
+    <string name="layout_rules_undo_label">Backspace puts back what was typed</string>
+    <string name="layout_rules_insert_group">Insert a group</string>
+
+    <string name="layout_rules_error_empty">The pattern is empty.</string>
+    <!-- %1$s is the group name. -->
+    <string name="layout_rules_error_unknown_group">There is no group called <xliff:g id="group" example="tones">%1$s</xliff:g>.</string>
+    <!-- %1$s is the text at fault. -->
+    <string name="layout_rules_error_bad_placeholder"><xliff:g id="text" example="{tones">%1$s</xliff:g> does not name a group. Write {name}, or {{ for a brace.</string>
+    <!-- %1$d is the most characters a pattern may have. -->
+    <string name="layout_rules_error_too_long">A pattern can be at most %1$d characters.</string>
+    <!-- %1$s is the group name or $n. -->
+    <string name="layout_rules_error_no_slot">The pattern has no <xliff:g id="ref" example="tones">%1$s</xliff:g> to write back.</string>
+    <!-- %1$s is the pair, such as tone1:plain. -->
+    <string name="layout_rules_error_uneven_map">In <xliff:g id="pair" example="tone1:plain">%1$s</xliff:g>, the first group needs at least as many characters as the second.</string>
+
+    <string name="layout_rules_group_add_title">New group</string>
+    <string name="layout_rules_group_edit_title">Edit group</string>
+    <string name="layout_rules_group_name_label">Name</string>
+    <string name="layout_rules_group_name_help">Letters, digits, _ and -</string>
+    <string name="layout_rules_group_name_taken">This layout already has a group with that name.</string>
+    <string name="layout_rules_group_items_label">Characters</string>
+    <string name="layout_rules_group_items_help">Separated by spaces. An item can be a few characters, and \\u0E48 writes a character by its code.</string>
+    <!-- %1$d is how many rules use the group. -->
+    <plurals name="layout_rules_group_used">
+        <item quantity="one">%1$d rule uses this group. Without it, that rule stops working.</item>
+        <item quantity="other">%1$d rules use this group. Without it, those rules stop working.</item>
+    </plurals>
+</resources>

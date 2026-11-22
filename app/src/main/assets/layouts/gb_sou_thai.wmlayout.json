@@ -5,6 +5,9 @@
     "id": "asset_gb_sou_thai",
     "name": "Southern Thai (Gboard)",
     "langId": "sou",
+    "ruleSets": [
+      "thai"
+    ],
     "version": 1,
     "layers": {
       "letters": {

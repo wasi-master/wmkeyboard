@@ -5,6 +5,9 @@
     "id": "asset_gb_ur_urdu_in",
     "name": "Urdu (Gboard)",
     "langId": "ur",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

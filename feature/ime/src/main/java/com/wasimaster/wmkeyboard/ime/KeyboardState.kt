@@ -9,6 +9,7 @@ import com.wasimaster.wmkeyboard.core.gesture.GlideCase
 import com.wasimaster.wmkeyboard.core.gesture.KeyCenter
 import com.wasimaster.wmkeyboard.core.emoji.EmojiEntry
 import com.wasimaster.wmkeyboard.core.emoji.EmojiVariantIndex
+import com.wasimaster.wmkeyboard.core.layout.CompiledSequenceRules
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.BuiltInPanelLayouts
 import com.wasimaster.wmkeyboard.core.layout.PanelKind
@@ -443,6 +444,12 @@ data class LayoutSet(
      * [authoredHolds].
      */
     val authoredHolds: Set<Key> = emptySet(),
+    /**
+     * The layout's typing rules (`LayoutSpec.sequenceRules` and the shipped
+     * sets it names, #1493), compiled once with the grids. Null for a layout
+     * with none, which is the test the keypress path makes first.
+     */
+    val sequenceRules: CompiledSequenceRules? = null,
 ) {
     /**
      * Rows the key grid reserves.

@@ -5,6 +5,9 @@
     "id": "asset_tts",
     "name": "ภาษาอีสาน (Isan)",
     "langId": "tts",
+    "ruleSets": [
+      "thai"
+    ],
     "version": 1,
     "layers": {
       "letters": {

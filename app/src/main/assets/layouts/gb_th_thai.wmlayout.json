@@ -5,6 +5,9 @@
     "id": "asset_gb_th_thai",
     "name": "Thai (Gboard)",
     "langId": "th",
+    "ruleSets": [
+      "thai"
+    ],
     "version": 1,
     "layers": {
       "letters": {

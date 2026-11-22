@@ -5,6 +5,9 @@
     "id": "asset_gb_gjk_kachi_koli",
     "name": "Kachi Koli (Gboard)",
     "langId": "gjk",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

@@ -5,6 +5,9 @@
     "id": "asset_chg",
     "name": "چغتای (Chagatai)",
     "langId": "chg",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

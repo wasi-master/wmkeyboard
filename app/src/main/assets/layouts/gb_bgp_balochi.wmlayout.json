@@ -5,6 +5,9 @@
     "id": "asset_gb_bgp_balochi",
     "name": "Eastern Balochi (Gboard)",
     "langId": "bgp",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

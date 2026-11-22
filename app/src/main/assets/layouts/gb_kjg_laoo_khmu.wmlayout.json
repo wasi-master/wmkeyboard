@@ -5,6 +5,9 @@
     "id": "asset_gb_kjg_laoo_khmu",
     "name": "Khmu (Lao) (Gboard)",
     "langId": "kjg-Laoo",
+    "ruleSets": [
+      "lao"
+    ],
     "version": 1,
     "layers": {
       "letters": {

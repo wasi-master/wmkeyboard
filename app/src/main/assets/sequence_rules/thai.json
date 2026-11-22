@@ -1,0 +1,47 @@
+{
+  "format": "wmkeyboard-sequence-rules",
+  "id": "thai",
+  "name": "Thai typing order",
+  "description": "Tone marks after the vowel above or below, however they were typed; Sara Am after its tone mark; nikhahit and sara aa as one Sara Am; two sara e as sara ae.",
+  "characterGroups": {
+    "tones": [
+      "่",
+      "้",
+      "๊",
+      "๋",
+      "์",
+      "็"
+    ],
+    "vowels": [
+      "ั",
+      "ิ",
+      "ี",
+      "ึ",
+      "ื",
+      "ุ",
+      "ู"
+    ]
+  },
+  "sequenceRules": [
+    {
+      "pattern": "{tones}{vowels}",
+      "replace": "{vowels}{tones}"
+    },
+    {
+      "pattern": "ำ{tones}",
+      "replace": "{tones}ำ"
+    },
+    {
+      "pattern": "ํา",
+      "replace": "ำ"
+    },
+    {
+      "pattern": "ํ{tones}า",
+      "replace": "{tones}ำ"
+    },
+    {
+      "pattern": "เเ",
+      "replace": "แ"
+    }
+  ]
+}

@@ -5,6 +5,9 @@
     "id": "asset_lo_t9",
     "name": "T9 (ລາວ)",
     "langId": "lo",
+    "ruleSets": [
+      "lao"
+    ],
     "layers": {
       "letters": {
         "rows": [

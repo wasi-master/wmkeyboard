@@ -5,6 +5,9 @@
     "id": "asset_sam_pnb_arabic_urdu",
     "name": "پنجابی (Samsung arabic urdu)",
     "langId": "pnb",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 2,
     "layers": {
       "letters": {

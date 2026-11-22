@@ -5,6 +5,9 @@
     "id": "asset_lo_lao",
     "name": "ລາວ (Lao)",
     "langId": "lo",
+    "ruleSets": [
+      "lao"
+    ],
     "version": 2,
     "layers": {
       "letters": {

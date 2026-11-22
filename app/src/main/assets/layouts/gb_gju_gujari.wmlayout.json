@@ -5,6 +5,9 @@
     "id": "asset_gb_gju_gujari",
     "name": "Gujari (Arabic) (Gboard)",
     "langId": "gju",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

@@ -1,0 +1,56 @@
+{
+  "format": "wmkeyboard-sequence-rules",
+  "id": "lao",
+  "name": "Lao typing order",
+  "description": "Tone marks after the vowel above or below, however they were typed; Sara Am after its tone mark; niggahita and sara aa as one Sara Am; two sara e as sara ae; ຫນ and ຫມ as the letters ໜ and ໝ.",
+  "characterGroups": {
+    "tones": [
+      "່",
+      "້",
+      "໊",
+      "໋",
+      "໌"
+    ],
+    "vowels": [
+      "ັ",
+      "ິ",
+      "ີ",
+      "ຶ",
+      "ື",
+      "ຸ",
+      "ູ",
+      "ົ",
+      "ຼ"
+    ]
+  },
+  "sequenceRules": [
+    {
+      "pattern": "{tones}{vowels}",
+      "replace": "{vowels}{tones}"
+    },
+    {
+      "pattern": "ຳ{tones}",
+      "replace": "{tones}ຳ"
+    },
+    {
+      "pattern": "ໍາ",
+      "replace": "ຳ"
+    },
+    {
+      "pattern": "ໍ{tones}າ",
+      "replace": "{tones}ຳ"
+    },
+    {
+      "pattern": "ເເ",
+      "replace": "ແ"
+    },
+    {
+      "pattern": "ຫນ",
+      "replace": "ໜ"
+    },
+    {
+      "pattern": "ຫມ",
+      "replace": "ໝ"
+    }
+  ]
+}

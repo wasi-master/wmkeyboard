@@ -5,6 +5,9 @@
     "id": "asset_th_t9",
     "name": "T9 (ไทย)",
     "langId": "th",
+    "ruleSets": [
+      "thai"
+    ],
     "layers": {
       "letters": {
         "rows": [

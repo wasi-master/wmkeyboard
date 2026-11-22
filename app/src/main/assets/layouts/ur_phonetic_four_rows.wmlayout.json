@@ -5,6 +5,9 @@
     "id": "asset_ur_phonetic_four_rows",
     "name": "اردو صوتی چار قطاریں (Urdu phonetic, 4 rows)",
     "langId": "ur",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 2,
     "layers": {
       "letters": {

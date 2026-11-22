@@ -5,6 +5,9 @@
     "id": "asset_gb_scl_shina",
     "name": "Shina (Gboard)",
     "langId": "scl",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

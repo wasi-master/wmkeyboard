@@ -572,7 +572,7 @@ fun LayoutSpec.repair(): RepairedLayout {
         }
     }
 
-    return RepairedLayout(copy(layers = layers), repairs)
+    return RepairedLayout(copy(layers = layers).withRepairedSequenceRules(repairs), repairs)
 }
 
 /**

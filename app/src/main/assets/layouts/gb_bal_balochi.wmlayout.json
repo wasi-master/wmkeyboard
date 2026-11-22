@@ -5,6 +5,9 @@
     "id": "asset_gb_bal_balochi",
     "name": "Baluchi (Gboard)",
     "langId": "bal",
+    "ruleSets": [
+      "arabic_hamza"
+    ],
     "version": 1,
     "layers": {
       "letters": {

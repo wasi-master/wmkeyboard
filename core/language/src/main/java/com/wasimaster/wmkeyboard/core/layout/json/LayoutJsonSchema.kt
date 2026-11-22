@@ -25,6 +25,7 @@ import com.wasimaster.wmkeyboard.core.layout.MinRowHeightScale
 import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.layout.PanelLayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.RectGridKind
+import com.wasimaster.wmkeyboard.core.layout.SequenceRule
 import com.wasimaster.wmkeyboard.core.layout.layoutJson
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.PolymorphicKind
@@ -108,7 +109,7 @@ class NumberShape(val whole: Boolean) : JsonShape
 data object BooleanShape : JsonShape
 
 /** Where the values of a free-text property come from, when something on the device knows them. */
-enum class JsonValueDomain { LANGUAGE, THEME, FONT, ICON, SECONDARY_LAYOUT }
+enum class JsonValueDomain { LANGUAGE, THEME, FONT, ICON, SECONDARY_LAYOUT, RULE_SET }
 
 /** A value worth offering for a property, as JSON, with a few words about it. */
 data class JsonValueExample(val value: String, val note: String? = null)
@@ -278,6 +279,7 @@ object LayoutJsonSchema {
             "InputMethodBinding",
             layoutJson.encodeToJsonElement(InputMethodBinding.serializer(), InputMethodBinding(id = "")),
         )
+        take("SequenceRule", layoutJson.encodeToJsonElement(SequenceRule.serializer(), SequenceRule(pattern = "")))
         take(
             "PanelLayoutSpec",
             layoutJson.encodeToJsonElement(PanelLayoutSpec.serializer(), PanelLayoutSpec(PanelKind.EMOJI, LayerSpec(emptyList()))),
@@ -323,6 +325,7 @@ object LayoutJsonHints {
             // Written by the addon installer, never typed.
             "LayoutSpec.basedOn" to PropertyHint(hidden = true),
             "LayoutSpec.layers" to PropertyHint(keys = layerNames),
+            "LayoutSpec.ruleSets" to PropertyHint(domain = JsonValueDomain.RULE_SET),
             "LayoutSpec.grid" to PropertyHint(examples = listOf(JsonValueExample("\"$HexGridKind\""))),
             "LayerSpec.grid" to PropertyHint(
                 examples = listOf(JsonValueExample("\"$HexGridKind\""), JsonValueExample("\"$RectGridKind\"")),
