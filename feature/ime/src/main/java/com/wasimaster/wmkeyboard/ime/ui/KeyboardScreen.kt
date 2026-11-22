@@ -8794,6 +8794,10 @@ private fun EmojiBarCell(
             // style's, so the style itself is copied.)
             style = LocalTextStyle.current.copy(lineHeight = TextUnit.Unspecified),
             overflow = TextOverflow.Visible,
+            // The strip's colour for a plain glyph in the row (a character
+            // found by its name, then used): the default content colour is
+            // black, unreadable on a dark row (#1492). Colour emoji ignore it.
+            color = LocalKbTheme.current.suggestionText.copy(alpha = 1f),
         )
         if (hint != null) {
             HintBadge(hint, modifier = Modifier.align(Alignment.BottomCenter))
@@ -35397,6 +35401,11 @@ internal fun EmojiCell(
                 .padding(6.dp),
             fontSize = state.settings.emoji.gridEmojiSize.sp,
             fontFamily = emojiFamilyFor(display),
+            // A colour emoji ignores this. A plain glyph does not: a character
+            // found by its Unicode name, or one picked from there that sits in
+            // Recent, took the default content colour, black, and was all but
+            // invisible on a dark panel (#1492), as it was on the strip (#1152).
+            color = MaterialTheme.colorScheme.onSurface,
         )
         if (showVariants) {
             EmojiVariantPopup(

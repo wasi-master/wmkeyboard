@@ -47,6 +47,16 @@ class EmojiFontCoverage internal constructor(
      * is decided by drawing one, see [EmojiFontProbe].
      */
     val drawable: Boolean = true,
+    /**
+     * False when this phone draws the font's multi-character emoji as their
+     * parts: 👋🏻 as a hand followed by a skin-tone swatch, a family as its
+     * people. The tables cannot say this on their own. A font may join its
+     * sequences with rules this reader does not see (Apple's `morx`,
+     * contextual substitutions), or with none at all, and the shaper used to
+     * trust any font with no readable ligature with every sequence (#1492).
+     * Decided by laying out one sequence the font maps, see [EmojiFontProbe].
+     */
+    val joins: Boolean = true,
 ) {
 
     /** True when the font declares any ligature at all — see the class note. */
@@ -54,7 +64,20 @@ class EmojiFontCoverage internal constructor(
 
     /** The same coverage, marked as drawing nothing on this phone. */
     internal fun undrawable(): EmojiFontCoverage =
-        EmojiFontCoverage(glyphs, variationSequences, ligatures, drawable = false)
+        EmojiFontCoverage(glyphs, variationSequences, ligatures, drawable = false, joins = joins)
+
+    /** The same coverage, marked as drawing every sequence as its parts on this phone. */
+    internal fun unjoined(): EmojiFontCoverage =
+        EmojiFontCoverage(glyphs, variationSequences, ligatures, drawable = drawable, joins = false)
+
+    /**
+     * A sequence a join test should lay out: one whose every code point the
+     * font maps, and, when the font declares ligatures, one of those. Null when
+     * the font maps none of the candidates, so there is nothing to test.
+     */
+    fun sampleSequence(): IntArray? = JOIN_SAMPLES.firstOrNull { sample ->
+        sample.all { covers(it) } && (!hasLigatures || ligates(sample))
+    }
 
     /**
      * The code point a draw test should try: the grinning face when the font
@@ -93,6 +116,18 @@ class EmojiFontCoverage internal constructor(
     }
 
     companion object {
+
+        /**
+         * Sequences nearly every emoji font has, in the order a join test tries
+         * them: a toned thumbs up and waving hand, a flag, a family, a keycap.
+         */
+        private val JOIN_SAMPLES = listOf(
+            intArrayOf(0x1F44D, 0x1F3FD),
+            intArrayOf(0x1F44B, 0x1F3FB),
+            intArrayOf(0x1F1FA, 0x1F1F3),
+            intArrayOf(0x1F468, 0x200D, 0x1F469, 0x200D, 0x1F467),
+            intArrayOf(0x0023, 0x20E3),
+        )
 
         private const val GRINNING_FACE = 0x1F600
         private const val FIRST_PICTOGRAPH = 0x1F300

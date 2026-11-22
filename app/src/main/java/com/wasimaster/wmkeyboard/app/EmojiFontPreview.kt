@@ -73,17 +73,37 @@ internal fun EmojiFontPreviewRow(
         withContext(Dispatchers.Default) { EmojiFontShaping.warm(file) }
         value = EmojiFontShaping.forFontFile(file)
     }
-    // One Text per emoji: emoji fonts often have no space glyph, so drawing
-    // them as a single spaced string makes the glyphs overlap.
-    Row(modifier = modifier) {
-        for (emoji in PREVIEW_EMOJI) {
-            val spelling = shaper.spelling(emoji)
+    Column(modifier = modifier) {
+        // One Text per emoji: emoji fonts often have no space glyph, so drawing
+        // them as a single spaced string makes the glyphs overlap.
+        Row {
+            for (emoji in PREVIEW_EMOJI) {
+                val spelling = shaper.spelling(emoji)
+                Text(
+                    spelling.text,
+                    fontSize = 24.sp,
+                    fontFamily = if (spelling.systemFont) null else family,
+                    maxLines = 1,
+                    modifier = Modifier.padding(end = 6.dp),
+                )
+            }
+        }
+        // What the keyboard quietly works around, said out loud (#1492): a
+        // font whose pictures this phone cannot draw at all, or one whose skin
+        // tones and other sequences it draws as their parts. The preview alone
+        // would show the phone's emoji, or nothing odd, and leave the panel to
+        // look inconsistent without a reason.
+        val limit = when {
+            !shaper.drawsPictures -> R.string.langemoji_emoji_font_undrawable
+            !shaper.joinsSequences -> R.string.langemoji_emoji_font_unjoined
+            else -> null
+        }
+        if (limit != null) {
             Text(
-                spelling.text,
-                fontSize = 24.sp,
-                fontFamily = if (spelling.systemFont) null else family,
-                maxLines = 1,
-                modifier = Modifier.padding(end = 6.dp),
+                stringResource(limit),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
             )
         }
     }

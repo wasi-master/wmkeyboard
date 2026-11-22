@@ -44,6 +44,23 @@ class EmojiFontProbeTest {
     }
 
     @Test
+    fun `the join sample is a sequence the font maps every part of`() {
+        assertEquals(
+            listOf(0x1F44B, 0x1F3FB),
+            coverage(0x1F44B, 0x1F3FB, 0x1F44D).sampleSequence()?.toList(),
+        )
+        assertNull(coverage(0x1F44D, GRIN).sampleSequence())
+    }
+
+    @Test
+    fun `a font with ligatures is tested on one it declares`() {
+        val glyphs = mapOf(0x1F44D to 1, 0x1F3FD to 2, 0x1F1FA to 3, 0x1F1F3 to 4)
+        // The thumbs up is mapped but not joined; the flag is.
+        val tables = EmojiFontCoverage(glyphs, emptySet(), setOf(charArrayOf(3.toChar(), 4.toChar()).concatToString()))
+        assertEquals(listOf(0x1F1FA, 0x1F1F3), tables.sampleSequence()?.toList())
+    }
+
+    @Test
     fun `ink is any pixel that is not fully transparent`() {
         assertFalse(EmojiFontProbe.hasInk(IntArray(16)))
         assertTrue(EmojiFontProbe.hasInk(IntArray(16).also { it[7] = 0x01000000 }))
