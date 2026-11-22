@@ -489,35 +489,34 @@ internal fun VoicePanel(
                 )
             }
 
-            // Undo the last dictated utterance (whole, in one tap).
+            // Undo the last dictated utterance (whole, in one tap): a small
+            // round button under the collapse arrow (#1477). It used to be a
+            // labelled chip in the bottom left corner, where it sat on top of
+            // the engine chip and pills and took the presses meant for them.
             if (undoVisible) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                val undoShape = RoundedCornerShape(kb.toolRadiusDp.dp)
+                IconHint(
+                    stringResource(R.string.ime_voice_undo_action),
                     modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(4.dp)
-                        .clip(RoundedCornerShape(kb.toolRadiusDp.dp))
-                        .focusRing(
-                            focusedAction == undoRingIndex,
-                            RoundedCornerShape(kb.toolRadiusDp.dp),
-                        )
-                        .clickable {
-                            feedback()
-                            onUndo()
-                        }
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                        .align(Alignment.TopEnd)
+                        .padding(top = if (collapseVisible) 40.dp else 0.dp),
                 ) {
                     Icon(
                         Icons.AutoMirrored.Outlined.Undo,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
+                        contentDescription = stringResource(R.string.ime_voice_strip_undo_desc),
                         tint = kb.toolbarIcon,
-                    )
-                    Text(
-                        stringResource(R.string.ime_voice_undo_action),
-                        color = kb.toolbarIcon,
-                        fontSize = 13.sp,
-                        modifier = Modifier.padding(start = 4.dp),
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .clip(undoShape)
+                            .frostGlass(kb, undoShape, FrostSurface.CHIPS)
+                            .background(kb.chip)
+                            .focusRing(focusedAction == undoRingIndex, undoShape)
+                            .clickable {
+                                feedback()
+                                onUndo()
+                            }
+                            .padding(7.dp)
+                            .size(18.dp),
                     )
                 }
             }
