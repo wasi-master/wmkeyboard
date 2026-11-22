@@ -28985,11 +28985,11 @@ internal fun KeyButton(
                     modifier = Modifier
                         .alpha(if (previewExit.exiting) 0f else 1f)
                         .frostGlass(kb, kb.popupShape(), FrostSurface.POPUPS)
-                        .popupDressingOnly(kb, kb.popupShape()),
+                        .popupDressingOnly(kb, kb.popupShape(), elevationFor(kb.popupShapeKind, 8.dp)),
                     shape = kb.popupShape(),
                     color = kb.popupSurfaceColor(),
                     border = kb.popupSurfaceBorder(),
-                    shadowElevation = elevationFor(kb.popupShapeKind, 8.dp),
+                    shadowElevation = kb.popupSurfaceElevation(elevationFor(kb.popupShapeKind, 8.dp)),
                 ) {
                     Row(
                         modifier = Modifier
@@ -29697,11 +29697,11 @@ private fun AlternatesPopup(
                 .graphicsLayer { alpha = if (shown) 1f else 0f }
                 .growFrom(pivot = { growPivot.value }) { grow.value }
                 .frostGlass(kb, kb.popupShape(), FrostSurface.POPUPS)
-                .popupDressingOnly(kb, kb.popupShape()),
+                .popupDressingOnly(kb, kb.popupShape(), elevationFor(kb.popupShapeKind, 8.dp)),
             shape = kb.popupShape(),
             color = kb.popupSurfaceColor(),
             border = kb.popupSurfaceBorder(),
-            shadowElevation = elevationFor(kb.popupShapeKind, 8.dp),
+            shadowElevation = kb.popupSurfaceElevation(elevationFor(kb.popupShapeKind, 8.dp)),
         ) {
             AlternatesGrid(
                 // The key's own count wins, and 0 there means it has none of its

@@ -3,6 +3,9 @@ package com.wasimaster.wmkeyboard.ime.ui
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.background
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawOutline
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
@@ -330,10 +333,26 @@ internal fun Modifier.popupDressing(kb: KbTheme, shape: Shape, fill: Color, labe
  * own modifier, under its content, and [popupSurfaceColor] turns the Surface's
  * own fill off so it does not cover the dressing. A theme with nothing to
  * dress changes nothing.
+ *
+ * The popup's shadow moves out here too, under the dressing, and
+ * [popupSurfaceElevation] takes it off the Surface (#1487). The Surface's
+ * shadow belongs to a layer inside this modifier, so it was drawn after the
+ * dressing, over it, and a layer whose own fill is clear shows its whole
+ * shadow: the grey and white bars across every dressed popup. Cast by a layer
+ * the dressing is drawn in, the shadow stays under the fill, as it does for a
+ * plain popup.
  */
 @androidx.compose.runtime.Composable
-internal fun Modifier.popupDressingOnly(kb: KbTheme, shape: Shape): Modifier =
-    if (kb.popupDressed) popupDressing(kb, shape, kb.popupFill(FrostSurface.POPUPS), kb.popupText) else this
+internal fun Modifier.popupDressingOnly(kb: KbTheme, shape: Shape, elevation: Dp = 0.dp): Modifier =
+    if (kb.popupDressed) {
+        shadow(elevation, shape, clip = false)
+            .popupDressing(kb, shape, kb.popupFill(FrostSurface.POPUPS), kb.popupText)
+    } else {
+        this
+    }
+
+/** The Surface's own shadow: none when [popupDressingOnly] casts it instead. */
+internal fun KbTheme.popupSurfaceElevation(elevation: Dp): Dp = if (popupDressed) 0.dp else elevation
 
 @androidx.compose.runtime.Composable
 internal fun KbTheme.popupSurfaceColor(): Color =
