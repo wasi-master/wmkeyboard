@@ -1285,8 +1285,26 @@ private fun StripButtonsSettings(repository: SettingsRepository, settings: LiveS
 internal fun AppearanceToolboxSettings(
     repository: SettingsRepository,
     settings: LiveSettings,
+    onNavigate: (String) -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
+    // The grid's tools as a list the screen high (#1475): drag one to move
+    // it, switch one off to leave it out of the grid but on everywhere else.
+    SettingsGroup {
+        item {
+            val pluginNames = rememberPluginToolNames()
+            val counts = settings.watch { s ->
+                val all = arrangeableToolboxTools(s, pluginNames.keys)
+                all.count { it !in s.toolbox.hiddenTools } to all.size
+            }
+            NavRow(
+                R.string.toolbox_arrange_title,
+                stringResource(R.string.toolbox_arrange_subtitle),
+                value = stringResource(R.string.toolbox_arrange_count, counts.first, counts.second),
+                route = TOOLBOX_ARRANGE_ROUTE,
+            ) { onNavigate(TOOLBOX_ARRANGE_ROUTE) }
+        }
+    }
     val spFormat = stringResource(R.string.values_sp)
     val dpFormat = stringResource(R.string.typing_value_dp)
     // What decides which rows the group holds; each row reads its own value.

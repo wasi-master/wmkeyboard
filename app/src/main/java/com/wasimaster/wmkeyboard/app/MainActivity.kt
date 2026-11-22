@@ -1757,7 +1757,17 @@ private fun SettingsNavGraph(
             ) {
                 AppearanceToolboxSettings(
                     repository, settings,
+                    onNavigate = { navController.navigate(it) },
                 )
+            }
+        }
+        composable("appearance/toolbox/arrange") {
+            SettingsScreen(
+                stringResource(R.string.toolbox_arrange_title),
+                { navController.popBackStack() },
+                route = "appearance/toolbox/arrange",
+            ) {
+                ToolboxArrangeScreen(repository, settings)
             }
         }
         composable("layout") {

@@ -45,6 +45,7 @@
   {"title":"Theme modes","name":"theme_modes_title","route":"themes/modes","screens":["Appearance","Keyboard themes"],"screen":true,"description":"Light or dark, Auto theme and app colors"},
   {"title":"Toolbar","name":"appearance_toolbar_section_title","route":"appearance/toolbar","screens":["Appearance"],"screen":true,"description":"The bar above the keys"},
   {"title":"Toolbox","name":"appearance_toolbox_section_title","route":"appearance/toolbox","screens":["Appearance"],"screen":true,"description":"The tool grid behind the toolbar"},
+  {"title":"Arrange the toolbox","name":"toolbox_arrange_title","route":"appearance/toolbox/arrange","screens":["Appearance","Toolbox"],"screen":true,"description":"Drag tools into order, and leave out the ones you reach another way"},
   {"title":"Size and position","name":"layout_size_position_title","route":"layout/size","screens":["Layout & size"],"screen":true,"description":"Key height and keyboard size"},
   {"title":"One-handed, split and floating","name":"layout_one_handed_group_title","route":"layout/onehanded","screens":["Layout & size"],"screen":true,"description":"One-handed, split, floating"},
   {"title":"Number row","name":"layout_number_row_title","route":"layout/numberrow","screens":["Layout & size"],"screen":true,"description":"The row of digits over the letters"},

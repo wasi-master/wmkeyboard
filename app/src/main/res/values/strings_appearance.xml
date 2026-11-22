@@ -321,6 +321,16 @@
     <string name="appearance_reset_toolbox_order_title">Reset toolbox order</string>
     <string name="appearance_reset_toolbox_order_subtitle">Put the tools in the toolbox grid back in their original order</string>
     <string name="appearance_reset_toolbox_order_confirm">The tools in the toolbox grid go back to the order they shipped in. Which tools are switched on, and which are pinned to the toolbar, are not affected.</string>
+    <!-- Appearance › Toolbox: the row and the page that list the toolbox's
+         tools to drag into order and to leave out of the grid (#1475). -->
+    <string name="toolbox_arrange_title">Arrange the toolbox</string>
+    <string name="toolbox_arrange_subtitle">Drag tools into order, and leave out the ones you reach another way</string>
+    <!-- %1$d is how many tools the toolbox shows, %2$d how many it could show. -->
+    <string name="toolbox_arrange_count">%1$d of %2$d shown</string>
+    <string name="toolbox_arrange_group_title">Tools in the toolbox</string>
+    <string name="toolbox_arrange_info">Drag a tool by its handle to move it in the toolbox grid. Switch a tool off to leave it out of the grid: it stays on, so the toolbar, the toolbox search, selection actions and shortcuts still open it, and the emoji key still reaches GIFs and stickers. Tools pinned to the toolbar are not in the grid, so they are not listed here. To turn a tool off everywhere, use its page under Tools. A keyboard mode with a toolbox order of its own keeps that order while it is on.</string>
+    <string name="toolbox_arrange_sorted_body">The toolbox is sorted by use or by name, so it does not show the order you set here.</string>
+    <string name="toolbox_arrange_sorted_action">Use this order</string>
     <string name="appearance_toolbar_drag_title">Rearrange by dragging</string>
     <string name="appearance_toolbar_drag_subtitle">Press and hold a tool on the toolbar, then drag it to a new place</string>
     <string name="appearance_toolbar_hold_delay_title">Press and hold delay</string>

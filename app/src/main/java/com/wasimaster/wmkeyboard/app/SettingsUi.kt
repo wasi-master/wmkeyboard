@@ -394,6 +394,7 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "appearance/keys" to Color(0xFFEC407A),
     "appearance/toolbar" to Color(0xFFEC407A),
     "appearance/toolbox" to Color(0xFFEC407A),
+    "appearance/toolbox/arrange" to Color(0xFFEC407A),
     "themes" to Color(0xFFEC407A),
     "themes/modes" to Color(0xFFEC407A),
     "photos" to Color(0xFF00ACC1),

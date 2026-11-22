@@ -124,6 +124,7 @@ internal object SettingsRoutes {
         "appearance/keys",
         "appearance/toolbar",
         "appearance/toolbox",
+        "appearance/toolbox/arrange",
         "layout",
         "layout/size",
         "layout/size/{variant}",

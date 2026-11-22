@@ -3387,6 +3387,11 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
             R.string.appearance_toolbox_section_title, R.string.appearance_toolbox_section_subtitle,
             R.string.home_appearance_title, "appearance/toolbox",
         ),
+        under(
+            R.string.toolbox_arrange_title, R.string.toolbox_arrange_subtitle,
+            R.string.appearance_toolbox_section_title, "appearance/toolbox/arrange",
+            parent = R.string.home_appearance_title,
+        ),
         under(R.string.layout_size_position_title, R.string.layout_size_subtitle, R.string.home_layout_title, "layout/size"),
         under(
             R.string.layout_one_handed_group_title, R.string.layout_one_handed_page_subtitle,
