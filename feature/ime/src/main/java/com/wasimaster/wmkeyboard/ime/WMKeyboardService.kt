@@ -36962,7 +36962,16 @@ open class WMKeyboardService : InputMethodService() {
             ?: snippetStore.matchImmediateWord(word)
 
     /** The shortcut phrase a glided [word] expands to, or null. */
-    private fun glidedShortcut(state: KeyboardUiState, word: String): String? = shortcutExpansion(state, word)
+    private fun glidedShortcut(state: KeyboardUiState, word: String): String? {
+        val key = word.lowercase()
+        if (state.settings.suggestionStrip.expandUserDictShortcuts) userDictShortcuts[key]?.let { return it }
+        // An imported dictionary's word → emoji shortcut ("mango" → 🥭) is a
+        // suggestion, not something the user set up to replace the word. A
+        // glide commits on lift with nowhere to offer it, so it used to turn
+        // every such word into its emoji (#1502). Typing still offers it as
+        // a chip; a glide keeps the word.
+        return activeImportedShortcuts()[key]?.takeUnless { EmojiGraphemes.isEmojiOnly(it) }
+    }
 
     /**
      * What typing [word] in full offers as a shortcut: the personal
