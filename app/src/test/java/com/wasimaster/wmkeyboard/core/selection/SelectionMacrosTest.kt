@@ -481,6 +481,35 @@ class SelectionMacrosTest {
     }
 
     @Test
+    fun `a TikTok share link comes back as just the video, by default (#1470)`() {
+        val shared = "https://www.tiktok.com/@someone/video/7123456789012345678?_r=1&u_code=e549&preview_pb=0" +
+            "&sharer_language=en&_d=f2877&share_item_id=77094&source=h5_m&timestamp=1795010922&user_id=7170" +
+            "&sec_user_id=MS4w&social_share_type=0&utm_source=whatsapp&utm_campaign=client_share&share_iid=7707" +
+            "&share_link_id=eeb3&share_app_id=1233&ugbiz_name=MAIN&ug_btm=b2001&sp_root_share_link_id=eeb3" +
+            "&link_reflow_popup_iteration_sharer=%7B%22click_empty_to_play%22%3A1%7D&panel_source_v2=share_panel" +
+            "&share_enter_from=homepage_hot&item_author_type=2&enable_checksum=1&sp_level=1&sp_root_u=e549&sp_root_d=f2877"
+        assertEquals("https://www.tiktok.com/@someone/video/7123456789012345678", SelectionMacros.stripTrackers(shared))
+        // Pages with no parameters of their own keep only what opens them.
+        assertEquals("https://x.com/u/status/1", SelectionMacros.stripTrackers("https://x.com/u/status/1?lang=en&xyz=1"))
+        assertEquals(
+            "https://www.instagram.com/p/AbC/?img_index=2",
+            SelectionMacros.stripTrackers("https://www.instagram.com/p/AbC/?img_index=2&igsh=x&new=1"),
+        )
+        assertEquals(
+            "https://open.spotify.com/episode/1?t=30",
+            SelectionMacros.stripTrackers("https://open.spotify.com/episode/1?si=a&t=30&context=b"),
+        )
+        // Other cleaners' trackers, generic and per site.
+        assertEquals("https://shop.example/p?id=1", SelectionMacros.stripTrackers("https://shop.example/p?id=1&itm_source=hp&elqtrackid=9&ysclid=k"))
+        assertEquals("https://www.temu.com/g-1.html", SelectionMacros.stripTrackers("https://www.temu.com/g-1.html?_x_ads_id=1&refer_page_id=2"))
+        assertEquals(
+            "https://www.amazon.com/s?k=lamp",
+            SelectionMacros.stripTrackers("https://www.amazon.com/s?k=lamp&hvadid=1&hvdev=c&adgrpid=2"),
+        )
+        assertEquals("https://example.com/p", SelectionMacros.stripTrackers("https://www.googleadservices.com/pagead/aclk?sa=L&adurl=https%3A%2F%2Fexample.com%2Fp"))
+    }
+
+    @Test
     fun `known pages keep only what opens them and products are cut to their number`() {
         val known = LinkCleaning(rewrites = setOf(LinkRewrite.KNOWN_PAGES))
         assertEquals(

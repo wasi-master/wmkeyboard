@@ -10,7 +10,8 @@ package com.wasimaster.wmkeyboard.core.selection
 enum class LinkRewrite {
     /**
      * On pages whose address is fully known (an Amazon, eBay, Walmart or
-     * Best Buy product, a YouTube video, a post on X, Instagram or TikTok)
+     * Best Buy product, a YouTube video, a Reddit thread; posts and TikTok
+     * videos get this without asking)
      * every parameter the page does not need goes, tracker or not, and a
      * product's path is cut to its number. Shorter and cleaner, but a
      * parameter nobody listed (a seller, a size) can go with the rest.

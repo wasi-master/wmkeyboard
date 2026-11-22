@@ -397,10 +397,45 @@ object SelectionMacros {
         "hsctatracking", "_branch_match_id", "_branch_referrer", "li_fat_id", "s_kwcid", "ef_id",
         "cjevent", "cjdata", "_bta_tid", "_bta_c", "sms_click", "sms_source", "sms_uph", "rtd_cid",
         "ocid", "__s",
+        // Shared by ClearURLs, AdGuard's URL tracking filter and uBlock
+        // Origin's privacy list (#1470): names no page reads, only an ad
+        // network, a mail tool or an app-install tracker.
+        "__twitter_impression", "action_object_map", "action_type_map", "action_ref_map",
+        "fb_action_ids", "fb_action_types", "fb_source", "fb_ref", "fb_comment_id", "fbadid",
+        "mc_tc", "os_ehash", "tracking_source", "wtrid", "wt_mc", "wt_zmc", "echobox", "cmpid", "gs_l",
+        "__io_lv", "_io_session_id", "_bdadid", "_bhlid", "_clde", "_cldee", "_ly_c", "_ly_r", "_ope", "_zucks_suid",
+        "adc_publisher", "adc_token", "adfrom", "admitad_uid", "adobe_mc_ref", "adobe_mc_sdid",
+        "adsterra_clid", "adsterra_placement_id", "aiad_clid", "analytics_context", "analytics_trace_id",
+        "adj_campaign", "adj_creative", "adj_label", "adj_t",
+        "af_ad", "af_adset", "af_click_lookback", "af_force_deeplink", "af_xp",
+        "at_campaign", "at_campaign_type", "at_creation", "at_emailtype", "at_link", "at_link_id", "at_link_origin",
+        "at_link_type", "at_medium", "at_ptr_name", "at_recipient_id", "at_recipient_list", "at_send_date", "at_custom",
+        "asgtbndr", "awc", "bance_xuid", "bemobdata", "beyond_uzcvid", "beyond_uzmcvid", "btag",
+        "cm_cr", "cm_me", "cm_mmc", "cstrackid", "cx_click", "cx_recsorder", "cx_recswidget",
+        "elq", "elqaid", "elqak", "elqat", "elqcampaignid", "elqtrackid", "emcs_t", "eml-mediaplan", "eml-name",
+        "eml-publisher", "ems_dl", "erid", "external_click_id", "famad_xuid", "ftag", "gci", "gps_adid",
+        "guccounter", "guce_referrer", "guce_referrer_sig", "iclid", "int_campaign", "int_content", "int_medium",
+        "int_source", "int_term", "ir_adid", "ir_campaignid", "ir_partnerid", "is_retargeting", "janet", "jmtyclid",
+        "ldtag_cl", "line_uid", "loclid", "lt_r", "maf", "mindbox-click-id", "mindbox-message-key",
+        "mt_adset", "mt_campaign", "mt_click_id", "mt_creative", "mt_link_id", "mt_medium", "mt_network",
+        "mt_sub1", "mt_sub2", "mt_sub3", "mt_sub4", "mt_sub5", "nb_expid_meta", "nb_placement", "nx_source",
+        "ns_campaign", "ns_mchannel", "ns_source", "ns_linkname", "ns_fee", "oprtrack", "pjclid",
+        "raneaid", "ranmid", "ransiteid", "rtkcid", "sscid", "spot_im_redirect_source", "srclt", "taid",
+        "tcsack", "tduid", "tgclid", "tw_medium", "tw_profile_id", "tw_source", "unicorn_click_id",
+        "user_email_address", "usqp", "uzcid", "vc_lpp", "vs_campaign_id", "vsm_cid", "vsm_pid", "vsm_type",
+        "winflncrtag", "x-a-medium", "x-clickref", "x-source", "xtor", "yj_r", "ym_tracking_id", "ymid", "ysclid",
+        "dpg_campaign", "dpg_content", "dpg_medium", "dpg_source", "personaclick_input_query",
+        "personaclick_search_query", "recommended_by", "recommended_code", "ebisadid", "ck_subscriber_id",
+        "ss_email_id", "clickid", "sp_cid",
     )
 
     /** Google Analytics, Matomo, Piwik, HubSpot and Oracle campaigns: a family each. */
-    private val TRACKING_PREFIXES = listOf("utm_", "mtm_", "matomo_", "pk_", "hsa_", "oft_")
+    private val TRACKING_PREFIXES = listOf(
+        "utm_", "mtm_", "matomo_", "pk_", "hsa_", "oft_",
+        // Internal and on-site campaigns, Blueshift, Adjust, Yahoo's
+        // e-commerce ids, Sendgrid's tags (#1470).
+        "itm_", "otm_", "hmb_", "bsft_", "adjust_", "ebisother", "_sgm_",
+    )
 
     /**
      * Trackers one site adds, taken only on that site (#762). Names that mean
@@ -425,13 +460,16 @@ object SelectionMacros {
         val keep: Set<String>? = null,
         /** The path rewritten to its short form: a tracking segment or a product's name taken out. */
         val pathRewrite: ((String) -> String)? = null,
+        /** A [keep] list safe without asking: the page has no parameters of its own (a post, a TikTok video). */
+        val always: Boolean = false,
     ) {
         /**
          * A rule that drops what is not a known tracker ([keep]) only runs
          * when the user asked for it with [LinkRewrite.KNOWN_PAGES] or
-         * [LinkRewrite.STRICT]: by default nothing but trackers comes off.
+         * [LinkRewrite.STRICT]: by default nothing but trackers comes off,
+         * except on the [always] pages.
          */
-        val thorough: Boolean get() = keep != null
+        val thorough: Boolean get() = keep != null && !always
 
         fun matches(host: String, linkPath: String): Boolean =
             domains.any { hostMatches(host, it) } && linkPath.startsWith(path) &&
@@ -478,6 +516,11 @@ object SelectionMacros {
                 "content-id", "crid", "sprefix", "dib", "dib_tag", "qid", "sr", "ref_", "_encoding",
                 "linkcode", "linkid", "camp", "creative", "creativeasin", "ascsubtag", "spla", "spia",
                 "social_share", "starsleft", "skipredirect", "smid_share", "tag",
+                // Paid-search and affiliate ids (#1470).
+                "hvadid", "hvbmt", "hvdev", "hvlocphy", "hvnetw", "hvqmt", "hvrand", "hvtargid", "hvpone",
+                "hvptwo", "hvpos", "hydadcr", "adgrpid", "associatetag", "dchild", "aaxitk", "refrid", "reftag",
+                "store_ref", "twitchreferral", "ytwchpos", "lp_asin", "visitid", "ts_id",
+                "shoppingportalenabled", "isdramintegrated", "muclientname", "ingress", "plattr", "pbs",
             ),
             prefixes = listOf("pd_rd_", "pf_rd_"),
             pathRewrite = { AMAZON_REF.replace(it, "") },
@@ -510,15 +553,19 @@ object SelectionMacros {
         SiteRule(listOf("youtube.com"), path = "/watch", keep = setOf("v", "t", "list", "index")),
         SiteRule(listOf("youtube.com"), path = "/shorts/", keep = emptySet()),
         SiteRule(listOf("youtu.be"), keep = setOf("t", "list", "index")),
-        SiteRule(listOf("twitter.com", "x.com"), pathPattern = Regex("""^/[^/]+/status/\d+"""), keep = emptySet()),
-        SiteRule(listOf("bsky.app"), pathPattern = Regex("""^/profile/[^/]+/post/"""), keep = emptySet()),
-        SiteRule(listOf("threads.net", "threads.com"), pathPattern = Regex("""^/@[^/]+/post/"""), keep = emptySet()),
-        SiteRule(listOf("instagram.com"), pathPattern = Regex("""^/(?:[^/]+/)?(?:p|reels?|tv)/"""), keep = setOf("img_index")),
-        SiteRule(listOf("tiktok.com"), pathPattern = Regex("""^/@[^/]+/(?:video|photo)/\d+"""), keep = emptySet()),
+        // Posts and videos whose every parameter is about the share, never
+        // about the page (#1470): these keep only what opens them even by
+        // default, because nothing a reader needs can be lost.
+        SiteRule(listOf("twitter.com", "x.com"), pathPattern = Regex("""^/[^/]+/status/\d+"""), keep = emptySet(), always = true),
+        SiteRule(listOf("bsky.app"), pathPattern = Regex("""^/profile/[^/]+/post/"""), keep = emptySet(), always = true),
+        SiteRule(listOf("threads.net", "threads.com"), pathPattern = Regex("""^/@[^/]+/post/"""), keep = emptySet(), always = true),
+        SiteRule(listOf("instagram.com"), pathPattern = Regex("""^/(?:[^/]+/)?(?:p|reels?|tv)/"""), keep = setOf("img_index"), always = true),
+        SiteRule(listOf("tiktok.com"), pathPattern = Regex("""^/@[^/]*/(?:video|photo)/\d+"""), keep = emptySet(), always = true),
         SiteRule(
             listOf("open.spotify.com"),
             pathPattern = Regex("""^/(?:intl-[a-z]+/)?(?:track|album|playlist|episode|show|artist)/"""),
             keep = setOf("t"),
+            always = true,
         ),
         SiteRule(listOf("reddit.com"), pathPattern = Regex("""^/r/[^/]+/comments/"""), keep = setOf("context")),
         SiteRule(listOf("facebook.com"), pathPattern = Regex("""^/(?:story|permalink)\.php$"""), keep = setOf("story_fbid", "id")),
@@ -530,14 +577,25 @@ object SelectionMacros {
         SiteRule(listOf("macys.com"), path = "/shop/product/", keep = setOf("id")),
         SiteRule(
             listOf("youtube.com", "youtu.be"),
-            params = setOf("feature", "pp", "embeds_referring_euri", "embeds_referring_origin", "source_ve_path"),
+            params = setOf("feature", "pp", "kw", "embeds_referring_euri", "embeds_referring_origin", "source_ve_path"),
         ),
         SiteRule(listOf("twitter.com", "x.com"), params = setOf("s", "t", "cn", "ref_src", "ref_url")),
-        SiteRule(listOf("instagram.com"), params = setOf("igsh", "igshid", "ig_rid")),
+        SiteRule(
+            listOf("instagram.com"),
+            params = setOf(
+                "igsh", "igshid", "ig_rid", "igsi", "click_source", "cplk", "dlrf", "exln", "mdxt", "ndid", "obrf",
+                "psln", "rpxt", "srtk", "stkn", "vrfl", "xtok",
+            ),
+        ),
         SiteRule(listOf("threads.net", "threads.com"), params = setOf("xmt", "slof")),
         SiteRule(
             listOf("facebook.com", "fb.com", "fb.watch", "messenger.com"),
-            params = setOf("mibextid", "rdid", "share_url", "sfnsn", "extid", "paipv", "eav", "comment_tracking"),
+            params = setOf(
+                "mibextid", "rdid", "share_url", "sfnsn", "extid", "paipv", "eav", "comment_tracking",
+                "_rdr", "_nc_x", "action_history", "dti", "ftentidentifier", "ls_ref", "referral_code",
+                "referral_story_type", "tracking", "video_source", "wtsid", "hc_ref", "hc_location", "notif_id",
+                "notif_t", "ref_component", "ref_page", "acontext", "privacy_mutation_token",
+            ),
             prefixes = listOf("__tn__", "__cft__", "__xts__", "__eep__"),
         ),
         SiteRule(
@@ -547,18 +605,29 @@ object SelectionMacros {
                 "share_link_id", "share_item_id", "share_author_id", "tt_from", "u_code", "timestamp",
                 "user_id", "social_sharing", "checksum", "sec_user_id", "enter_from", "is_copy_url",
                 "web_id", "refer",
+                // What a TikTok share link carries besides the video (#1470).
+                "_d", "preview_pb", "sharer_language", "share_iid", "share_app_name", "share_region", "share_source",
+                "social_share_type", "ugbiz_name", "ug_btm", "sp_root_share_link_id", "sp_level", "sp_root_u",
+                "sp_root_d", "link_reflow_popup_iteration_sharer", "panel_source_v2", "share_enter_from",
+                "item_author_type", "enable_checksum", "embed_source", "enter_method", "referer_url",
+                "referer_video_id", "sec_uid", "cachesdk", "trackparams", "region", "source", "_source_",
             ),
         ),
         SiteRule(
             listOf("reddit.com", "redd.it"),
-            params = setOf("share_id", "rdt", "\$deep_link", "\$3p", "correlation_id", "ref_campaign", "ref_source"),
+            params = setOf(
+                "share_id", "rdt", "\$deep_link", "\$3p", "\$original_url", "%24deep_link", "%243p", "%24original_url",
+                "correlation_id", "ref_campaign", "ref_source", "_branch_match_id", "entry_point", "post_fullname",
+                "post_index", "referrer_domain", "referrer_url", "target_user", "geoip_country",
+            ),
         ),
-        SiteRule(listOf("spotify.com"), params = setOf("si", "nd", "pi", "dl_branch")),
+        SiteRule(listOf("spotify.com"), params = setOf("si", "nd", "pi", "dl_branch", "dlsi", "referral", "sp_cid", "context")),
         SiteRule(
             listOf("linkedin.com"),
             params = setOf(
                 "trk", "trkinfo", "trackingid", "lipi", "midtoken", "midsig", "eid", "otptoken",
-                "refid", "originalsubdomain", "rcm", "lici",
+                "refid", "originalsubdomain", "rcm", "lici", "isss", "original_referer", "originalreferer",
+                "referenceid", "upsellorderorigin", "courseclaim", "u",
             ),
         ),
         SiteRule(
@@ -567,6 +636,7 @@ object SelectionMacros {
                 "scm", "pvid", "algo_pvid", "algo_exp_id", "btsid", "ws_ab_test", "terminal_id",
                 "gatewayadapt", "_randl_currency", "_randl_shipto", "gps-id", "pdp_npi", "pdp_ext_f",
                 "utparam", "sk", "af", "cv", "cn", "dp", "src", "sourcetype",
+                "algo_expid", "mall_affr", "curpageloguid", "scm-url", "scm_id", "utparam-url", "spm",
             ),
             prefixes = listOf("aff_"),
         ),
@@ -574,7 +644,7 @@ object SelectionMacros {
             listOf("ebay."),
             params = setOf(
                 "_trkparms", "_trksid", "amdata", "hash", "mkcid", "mkevt", "mkrid", "campid", "toolid",
-                "customid", "_from", "ssspo", "sssrc", "ssuid", "widget_ver", "itmmeta",
+                "customid", "_from", "ssspo", "sssrc", "ssuid", "widget_ver", "itmmeta", "itmprp", "_skw", "epid",
             ),
         ),
         SiteRule(
@@ -586,6 +656,69 @@ object SelectionMacros {
             prefixes = listOf("ga_"),
         ),
         SiteRule(listOf("medium.com"), params = setOf("source")),
+        // More of what ClearURLs, AdGuard and uBlock Origin take per site (#1470).
+        SiteRule(listOf("play.google.com"), params = setOf("referrer", "pcampaignid")),
+        SiteRule(
+            listOf("temu.com"),
+            params = setOf(
+                "adg_ctx", "freesia_scene", "from_share", "mrk_rec", "refer_page_el_sn", "refer_page_id",
+                "refer_page_name", "refer_page_sn", "refer_share_channel", "refer_share_id", "refer_share_suin",
+                "refer_source", "share_img", "spec_gallery_id", "top_gallery_url", "g_ccy", "g_lg", "g_region", "g_site",
+            ),
+            prefixes = listOf("_x_", "_oak_", "_p_", "_bg_"),
+        ),
+        SiteRule(
+            listOf("bilibili.com", "b23.tv"),
+            params = setOf(
+                "bbid", "broadcast_type", "buvid", "callback", "from", "from_source", "from_spmid", "from_spm_id",
+                "is_room_feed", "is_story_h5", "mid", "msource", "csource", "plat_id", "refer_from", "seid",
+                "session_id", "share_from", "share_medium", "share_plat", "share_session_id", "share_source",
+                "share_tag", "spm_id_from", "spmid", "timestamp", "ts", "unique_k", "up_id", "vd_source", "visit_id",
+                "caid", "creative_id", "linked_creative_id", "request_id", "resource_id", "track_id", "trackid",
+            ),
+        ),
+        SiteRule(
+            listOf("taobao.com", "tmall.com"),
+            params = setOf(
+                "abbucket", "abtest", "acm", "algo_expid", "algo_pvid", "ali_refid", "ali_trackid", "bftrwd", "bfttag",
+                "cpp", "impid", "lygclk", "mytmenu", "ns", "pvid", "scm", "share_crt_v", "shareurl", "short_name",
+                "sourcetype", "sp_tk", "spm", "suid", "trackinfo", "turing_bucket", "un", "ut_sk", "utkn", "utparam",
+                "app_pvid", "traceid", "xid", "activityid", "ptl",
+            ),
+        ),
+        SiteRule(
+            listOf("lazada."),
+            params = setOf(
+                "abid", "ad_src", "clicktrackinfo", "did", "impsrc", "mp", "pa", "pid_pvid", "pos", "pvid", "scm",
+                "spm", "src", "laz_trackid", "from",
+            ),
+        ),
+        SiteRule(listOf("daraz."), params = setOf("spm", "scm", "pvid", "clicktrackinfo", "mp", "from", "laz_trackid")),
+        SiteRule(listOf("shopee."), params = setOf("publish_id", "sp_atk", "xptdk", "uls_trackid", "smtt")),
+        SiteRule(
+            listOf("flipkart.com"),
+            params = setOf(
+                "cid", "lid", "pid_ref", "collection-tab-name", "ctx", "fm", "hpid", "nnc", "otracker", "otracker1",
+                "ppn", "ppt", "qh", "srno", "ssid", "_refid", "affid", "iid", "pageuid", "pwsvid", "store",
+            ),
+        ),
+        SiteRule(listOf("netflix.com"), params = setOf("tctx", "trackid", "source")),
+        SiteRule(listOf("imdb.com"), params = setOf("ref_"), prefixes = listOf("pf_rd_")),
+        SiteRule(listOf("twitch.tv"), params = setOf("tt_content", "tt_medium", "web_only")),
+        SiteRule(listOf("apple.com"), params = setOf("itscg", "itsct", "app", "ct", "pt", "mttnsubad")),
+        SiteRule(listOf("nytimes.com"), params = setOf("smid", "smtyp", "impression_id", "referringsource", "sgrp")),
+        SiteRule(listOf("washingtonpost.com"), params = setOf("itid")),
+        SiteRule(listOf("substack.com"), params = setOf("isfreemail", "triedredirect", "r")),
+        SiteRule(listOf("github.com"), params = setOf("email_source", "email_token", "reference_location")),
+        SiteRule(listOf("weibo.com", "weibo.cn"), params = setOf("dt_dapp", "weibo_id")),
+        SiteRule(listOf("snapchat.com"), params = setOf("sc_referrer", "sc_ua", "share_id", "sender_web_id")),
+        SiteRule(listOf("quora.com"), params = setOf("al_imp", "share")),
+        SiteRule(listOf("airbnb."), params = setOf("federated_search_id", "search_type", "source_impression_id", "source")),
+        SiteRule(listOf("zillow.com"), params = setOf("rtoken")),
+        SiteRule(listOf("walmart.com"), params = setOf("u1"), prefixes = listOf("ath")),
+        SiteRule(listOf("bestbuy.com"), params = setOf("acampid", "intl", "loc", "mpid", "adcampaignid", "sharedid", "subid1", "subid2", "subid3", "svlink", "vehicle")),
+        SiteRule(listOf("store.steampowered.com", "steamcommunity.com"), params = setOf("snr")),
+        SiteRule(listOf("yahoo.com"), params = setOf("guccounter", "guce_referrer", "guce_referrer_sig", "ncid", "__ysp", "soc_src", "soc_trk")),
         SiteRule(listOf("pinterest.", "pin.it"), params = setOf("invite_code", "sender", "sfo")),
         SiteRule(
             listOf("google."),
@@ -593,6 +726,7 @@ object SelectionMacros {
                 "ved", "ei", "sca_esv", "sca_upv", "oq", "gs_lcrp", "gs_lp", "gs_lcp", "gs_ssp", "sourceid",
                 "sxsrf", "iflsig", "sclient", "rlz", "bih", "biw", "dpr", "uact", "aqs", "client", "stick",
                 "sei", "mstk", "csui", "prmd", "fbs", "vet", "sa", "source", "ie",
+                "atyp", "cad", "cd", "cshid", "dcr", "esrc", "ictx", "je", "uds", "sstk", "g_ep", "gws_rd", "gfe_rd",
             ),
             path = "/search",
         ),
@@ -622,6 +756,19 @@ object SelectionMacros {
 
     private val REDIRECTS = listOf(
         Redirect("href.li", "/", emptySet(), wholeQuery = true),
+        Redirect("google.", "/aclk", setOf("adurl")),
+        Redirect("googleadservices.com", "/", setOf("adurl")),
+        Redirect("rover.ebay.", "/", setOf("mpre")),
+        Redirect("click.redditmail.com", "/", setOf("url")),
+        Redirect("exactag.com", "/", setOf("url")),
+        Redirect("flexlinkspro.com", "/", setOf("url")),
+        Redirect("awin1.com", "/", setOf("ued", "p")),
+        Redirect("tradedoubler.com", "/", setOf("url")),
+        Redirect("go.skimresources.com", "/", setOf("url")),
+        Redirect("shareasale.com", "/r.cfm", setOf("urllink")),
+        Redirect("t.cfjump.com", "/", setOf("url")),
+        Redirect("prf.hn", "/", setOf("destination")),
+        Redirect("app.adjust.com", "/", setOf("redirect", "fallback")),
         Redirect("anon.to", "/", emptySet(), wholeQuery = true),
         Redirect("dereferer.me", "/", emptySet(), wholeQuery = true),
         Redirect("nullrefer.com", "/", emptySet(), wholeQuery = true),
