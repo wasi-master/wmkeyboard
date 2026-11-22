@@ -227,6 +227,8 @@ Every rule that types a space after something, the space bar after a word, the s
 
 Web pages and app screens built on one are the exception: there the space is always typed. A page can show text after the cursor that isn't really there, such as Gmail's grey Smart Compose suggestion, and the keyboard has no way to tell the two apart. Stepping over that suggestion's first space made Gmail close the keyboard.
 
+A glided word is the exception. In front of a space a page reports, it holds its own space back for whatever you type next: a letter gets the space first, and the next glided word gets its usual space in front. So a word glided into the middle of a sentence in a browser keeps the one gap, and in front of a Smart Compose suggestion your next word still starts with a space.
+
 A word the cursor only landed on is not a word you ended, so a space pressed there with nothing typed into the word is an ordinary space.
 
 ### Shift cancels a pending auto-space

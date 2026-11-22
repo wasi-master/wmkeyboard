@@ -37344,10 +37344,20 @@ open class WMKeyboardService : InputMethodService() {
         // the space that was already there; the caret goes past it, ready for
         // the next word, the same as after a typed one (#662).
         if (stepOverFollowingSpace(ic, trustWeb = replacedSelection)) return
+        val next = ic.getTextAfterCursor(1, 0)
         // In front of a mark that closes up onto the word ("question⌶?") the
         // space waits for a letter, as a strip pick's does (#679): typed now,
         // a word glided back in before a full stop read "word ." (#974).
-        if (markHugsCaretWord(ic.getTextAfterCursor(1, 0))) {
+        //
+        // So does one in front of a space a web editor reports after the
+        // caret, which is not stepped over there (#760). Typing another in
+        // front of it doubled every word glided into the middle of a sentence
+        // in a browser (#955), as it did a pick over a word (#1286). Held back,
+        // the field keeps its one gap, and where that "space" is the start of
+        // a suggestion the page draws after the caret (Gmail's Smart Compose)
+        // and not text, the next letter still gets its space, and the next
+        // glided word its leading one.
+        if (markHugsCaretWord(next) || spacedAfterCaret(next)) {
             deferredWordSpace = true
             armRevertGuard()
             return
@@ -37376,6 +37386,7 @@ open class WMKeyboardService : InputMethodService() {
     private fun commitGestureLeadingSpace(ic: InputConnection, state: KeyboardUiState) {
         // A space owed to the next letter after a closing mark (#974) is owed
         // no longer: this word brings its own, or joins on as asked.
+        val spaceOwed = deferredWordSpace
         deferredWordSpace = false
         glideSpentNoSpace = false
         // No space asked for this word to join the one before it (#851), or
@@ -37397,7 +37408,12 @@ open class WMKeyboardService : InputMethodService() {
             setNoSpaceArmed(false)
             return
         }
-        if (!state.settings.gesture.autoSpaceBeforeGlide || !_uiState.value.settings.gesture.autoSpaceBeforeGlide) return
+        if (!state.settings.gesture.autoSpaceBeforeGlide || !_uiState.value.settings.gesture.autoSpaceBeforeGlide) {
+            // The space the glided word before held back for what came next
+            // (#955): this word is it, so it is typed after all.
+            if (spaceOwed) ic.commitText(" ", 1)
+            return
+        }
         val before = ic.getTextBeforeCursor(QUOTE_CONTEXT_CHARS, 0)?.toString().orEmpty()
         if (spacesBeforeGlidedWord(before, state.fieldKind)) ic.commitText(" ", 1)
     }
