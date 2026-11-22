@@ -792,7 +792,7 @@ private fun RequiresAwareInstall(
     manifestUrl: String,
     repo: AddonRepoInfo,
     all: List<AddonEntry>,
-    content: @Composable (request: (AddonEntry) -> Unit) -> Unit,
+    content: @Composable (request: (AddonEntry) -> Unit, requestAll: (List<AddonEntry>) -> Unit) -> Unit,
 ) {
     val context = LocalContext.current
     val notifyDownload = rememberDownloadNotifier()
@@ -840,18 +840,30 @@ private fun RequiresAwareInstall(
     val enabledLangIds by remember(context) {
         SettingsRepository(context).settings.map { settings -> settings.enabledLanguages.map { it.id } }
     }.collectAsStateWithLifecycle(initialValue = emptyList())
-    content { requested ->
+    // A localized addon, or "install all" of an addon's variants, is several
+    // installs. All but the last ride along the way dependencies do, under
+    // the same single-install lock.
+    val launch: (List<AddonEntry>) -> Unit = launch@{ targets ->
         // Following a link doesn't add the repository; choosing to install
         // from it does. No-op when it is already there.
         store.addRepo(manifestUrl)
-        // A localized addon is several installs. All but the last ride along
-        // the way dependencies do, under the same single-install lock.
-        val targets = installTargets(store, repo.id, requested, enabledLangIds)
-        val entry = targets.lastOrNull() ?: return@content
+        val entry = targets.lastOrNull() ?: return@launch
         val extra = targets.dropLast(1)
         val missing = missingRequirements(store, repo.id, all, entry)
         if (missing.isEmpty()) start(entry, extra) else prompt = RequiresPrompt(entry, missing, extra)
     }
+    content(
+        { requested -> launch(installTargets(store, repo.id, requested, enabledLangIds)) },
+        { requested ->
+            val installed = store.installed()
+            launch(
+                requested.filter { variant ->
+                    val record = installed[variant.key(repo.id)]
+                    record == null || Semver.isNewer(variant.version, record.version)
+                },
+            )
+        },
+    )
     prompt?.let { (entry, missing, extra) ->
         AlertDialog(
             onDismissRequest = { prompt = null },
@@ -905,9 +917,11 @@ private fun RequiresAwareInstall(
  *
  * A plain addon is itself. A localized one is: its installed languages that
  * have a newer version, when there are any (the card's Update badge); else the
- * languages [AddonLocales] picks for this user that are not installed yet. A
- * single language row on the addon's page requests that variant directly, which
- * is not localized and so comes back as itself.
+ * languages [AddonLocales] picks for this user that are not installed yet. One
+ * with variants is its installed variants that have a newer version, else its
+ * own build when that is not installed. A single language or variant row on
+ * the addon's page requests that one directly, which has neither and so comes
+ * back as itself.
  */
 private fun installTargets(
     store: AddonStore,
@@ -915,12 +929,15 @@ private fun installTargets(
     requested: AddonEntry,
     enabledLangIds: List<String>,
 ): List<AddonEntry> {
-    if (!requested.isLocalized) return listOf(requested)
+    if (!requested.isLocalized && !requested.hasStyles) return listOf(requested)
     val installed = store.installed()
-    val outdated = requested.variants.filter { variant ->
+    val outdated = requested.installables.filter { variant ->
         installed[variant.key(repoId)]?.let { Semver.isNewer(variant.version, it.version) } == true
     }
     if (outdated.isNotEmpty()) return outdated
+    // A variant the user has not picked is not fetched behind their back: the
+    // card installs the entry's own build, and the page has the others.
+    if (requested.hasStyles) return listOf(requested).filter { installed[it.key(repoId)] == null }
     val deviceLocales = androidx.core.os.LocaleListCompat.getAdjustedDefault().toLanguageTags().split(',')
     return AddonLocales.pick(requested, enabledLangIds, deviceLocales)
         .filter { installed[it.key(repoId)] == null }
@@ -1265,7 +1282,7 @@ internal fun AddonRepoScreen(
     // addon's first screenshot, which a list row cannot, and screenshots are
     // most of what tells two themes apart.
     Spacer(Modifier.height(8.dp))
-    RequiresAwareInstall(store, manifestUrl, manifest.repo, manifest.addons) { request ->
+    RequiresAwareInstall(store, manifestUrl, manifest.repo, manifest.addons) { request, _ ->
         for (row in shown.chunked(2)) {
             Row(modifier = Modifier.padding(horizontal = 12.dp)) {
                 for (entry in row) {
@@ -1442,7 +1459,7 @@ private fun cardStatus(
     entry: AddonEntry,
     repoId: String,
 ): AddonDownloadManager.AddonStatus {
-    val all = entry.variants.map { states[it.key(repoId)] ?: AddonDownloadManager.AddonStatus.NotInstalled }
+    val all = entry.installables.map { states[it.key(repoId)] ?: AddonDownloadManager.AddonStatus.NotInstalled }
     return all.firstOrNull { it.isBusy }
         ?: all.firstOrNull { it is AddonDownloadManager.AddonStatus.UpdateAvailable }
         ?: all.firstOrNull { it is AddonDownloadManager.AddonStatus.Installed }
@@ -1716,8 +1733,11 @@ internal fun AddonDetailScreen(
         AddonDownloadManager.refresh(store, loaded.repo.id, loaded)
     }
 
+    // An addon with variants shows every variant's screenshots, so the
+    // choice below can be made by looking.
     val previews = remember(entry, manifestUrl) {
-        entry.previews.mapNotNull { AddonRepoCodec.resolveAsset(manifestUrl, it) }
+        entry.installables.flatMap { it.previews }.distinct()
+            .mapNotNull { AddonRepoCodec.resolveAsset(manifestUrl, it) }
     }
     // The page is headed with the addon's type, in the type's own colour, so
     // the card's own type label is what grew into that heading — and the name
@@ -1839,7 +1859,17 @@ internal fun AddonDetailScreen(
         ) { AddonType.Plugin.openSettings(onNavigate) }
     }
 
-    if (entry.isLocalized) {
+    if (entry.hasStyles) {
+        StyledAddonActions(
+            entry = entry,
+            repo = loaded.repo,
+            manifestUrl = manifestUrl,
+            store = store,
+            allEntries = loaded.addons,
+            blocked = tooOld || pluginsOff,
+            onNavigate = onNavigate,
+        )
+    } else if (entry.isLocalized) {
         LocalizedAddonActions(
             entry = entry,
             repo = loaded.repo,
@@ -2160,7 +2190,7 @@ private fun AddonActions(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                RequiresAwareInstall(store, manifestUrl, repo, allEntries) { request ->
+                RequiresAwareInstall(store, manifestUrl, repo, allEntries) { request, _ ->
                     Button(
                         onClick = { request(entry) },
                         enabled = !blocked && !installed,
@@ -2239,12 +2269,12 @@ private fun LocalizedAddonActions(
         SettingsRepository(context).settings.map { settings -> settings.enabledLanguages.map { it.id } }
     }.collectAsStateWithLifecycle(initialValue = emptyList())
     val variants = remember(entry, enabledLangIds) {
-        entry.variants.sortedBy { variant ->
+        entry.installables.sortedBy { variant ->
             enabledLangIds.indexOf(variant.langId).let { if (it < 0) Int.MAX_VALUE else it }
         }
     }
 
-    RequiresAwareInstall(store, manifestUrl, repo, allEntries) { request ->
+    RequiresAwareInstall(store, manifestUrl, repo, allEntries) { request, _ ->
         SettingsGroup(
             stringResource(R.string.addon_languages_section_title),
             info = stringResource(R.string.addon_languages_section_info),
@@ -2252,7 +2282,8 @@ private fun LocalizedAddonActions(
             for (variant in variants) {
                 item(key = variant.id) {
                     val status = states[variant.key(repo.id)] ?: AddonDownloadManager.AddonStatus.NotInstalled
-                    LanguageVariantRow(
+                    VariantRow(
+                        label = localeLabel(variant.locale),
                         variant = variant,
                         status = status,
                         blocked = blocked,
@@ -2288,17 +2319,121 @@ private fun LocalizedAddonActions(
     }
 }
 
-/** One language of a localized addon: its name, its state, and the one thing to do about it. */
+/**
+ * The actions of an addon with variants: one row per build, each with its own
+ * install, update or uninstall, then Install all, then Use once any is in.
+ *
+ * Every variant is its own install (see [AddonEntry.styled]), so the user can
+ * keep one, several or all of them, and for a single-slot type (an emoji font,
+ * a theme) switch between them where that type is chosen.
+ */
 @Composable
-private fun LanguageVariantRow(
+private fun StyledAddonActions(
+    entry: AddonEntry,
+    repo: AddonRepoInfo,
+    manifestUrl: String,
+    store: AddonStore,
+    allEntries: List<AddonEntry>,
+    blocked: Boolean,
+    onNavigate: (String) -> Unit,
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val states by AddonDownloadManager.states.collectAsStateWithLifecycle()
+    val revision by store.revision.collectAsStateWithLifecycle()
+    val variants = remember(entry) { entry.installables }
+    val standard = stringResource(R.string.addon_variant_standard_label)
+    fun tooOld(variant: AddonEntry) = (variant.minAppVersion ?: 0) > BuildConfig.VERSION_CODE
+
+    RequiresAwareInstall(store, manifestUrl, repo, allEntries) { request, requestAll ->
+        SettingsGroup(
+            stringResource(R.string.addon_variants_section_title),
+            info = stringResource(R.string.addon_variants_section_info),
+        ) {
+            for (variant in variants) {
+                item(key = variant.id) {
+                    val status = states[variant.key(repo.id)] ?: AddonDownloadManager.AddonStatus.NotInstalled
+                    val isBase = variant.id == entry.id
+                    VariantRow(
+                        label = variant.variantName?.takeIf { it.isNotBlank() } ?: standard,
+                        variant = variant,
+                        status = status,
+                        blocked = blocked || tooOld(variant),
+                        note = when {
+                            tooOld(variant) -> stringResource(R.string.addon_detail_needs_newer_app)
+                            isBase || variant.description == entry.description -> ""
+                            else -> variant.description
+                        },
+                        onInstall = { request(variant) },
+                        onUninstall = {
+                            scope.launch {
+                                AddonDownloadManager.uninstall(context, store, variant.key(repo.id), variant)
+                            }
+                        },
+                    )
+                }
+            }
+        }
+        val missing = remember(revision, states, variants) {
+            val installed = store.installed()
+            variants.filter { variant ->
+                !tooOld(variant) && installed[variant.key(repo.id)].let {
+                    it == null || Semver.isNewer(variant.version, it.version)
+                }
+            }
+        }
+        val busy = variants.any { states[it.key(repo.id)]?.isBusy == true }
+        if (missing.size > 1) {
+            Button(
+                onClick = { requestAll(missing) },
+                enabled = !blocked && !busy,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            ) {
+                Text(
+                    stringResource(
+                        R.string.addon_variants_install_all_action,
+                        formatBytes(missing.sumOf { it.sizeBytes ?: 0L }),
+                    ),
+                )
+            }
+        }
+    }
+
+    val localRef = remember(revision, variants) {
+        variants.firstNotNullOfOrNull { store.installed(it.key(repo.id))?.localRef }
+    }
+    if (localRef != null) {
+        OutlinedButton(
+            onClick = { entry.type.openSettings(onNavigate, localRef) },
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+        ) {
+            Icon(
+                Icons.AutoMirrored.Outlined.OpenInNew,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.addon_use_open_action, stringResource(entry.type.useLabelRes)))
+        }
+    }
+}
+
+/**
+ * One language or variant of an addon: its name, its state, and the one thing
+ * to do about it. [label] is the language, or the variant's name.
+ */
+@Composable
+private fun VariantRow(
+    label: String,
     variant: AddonEntry,
     status: AddonDownloadManager.AddonStatus,
     blocked: Boolean,
     onInstall: () -> Unit,
     onUninstall: () -> Unit,
+    /** Under the size line of a variant not installed yet: what sets it apart. */
+    note: String = "",
 ) {
     val context = LocalContext.current
-    val label = localeLabel(variant.locale)
     val subtitle = when (status) {
         is AddonDownloadManager.AddonStatus.Installed ->
             stringResource(R.string.addon_language_installed_status, status.version)
@@ -2312,7 +2447,10 @@ private fun LanguageVariantRow(
         AddonDownloadManager.AddonStatus.Verifying -> stringResource(R.string.addon_checking_progress)
         AddonDownloadManager.AddonStatus.Installing -> stringResource(CommonR.string.common_installing)
         is AddonDownloadManager.AddonStatus.Failed -> status.text.resolve(context)
-        AddonDownloadManager.AddonStatus.NotInstalled -> addonMetaLine(variant.version, variant.sizeBytes, "")
+        AddonDownloadManager.AddonStatus.NotInstalled -> listOf(
+            addonMetaLine(variant.version, variant.sizeBytes, ""),
+            note,
+        ).filter { it.isNotBlank() }.joinToString("\n")
     }
     val installed = status is AddonDownloadManager.AddonStatus.Installed ||
         status is AddonDownloadManager.AddonStatus.UpdateAvailable

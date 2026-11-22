@@ -121,6 +121,27 @@ data class AddonEntry(
      */
     val localizations: List<AddonLocalization> = emptyList(),
     /**
+     * Other builds of the same addon, for a user to pick between: Fluent
+     * Emoji's 3D, Flat and High Contrast sets, or a large and a compact build
+     * of one emoji font.
+     *
+     * The entry's own [path] is the first choice (named by [variantName]) and
+     * each variant adds another. Like [localizations], every one installs,
+     * updates and uninstalls on its own, tracked under the parent id plus
+     * [AddonLocalization.SEPARATOR] plus the variant's id, and the user may
+     * install one, several or all of them. An older build ignores the field and
+     * offers the entry's own payload alone, which is why the entry keeps a
+     * complete payload of its own. Not used by the per-language types, whose
+     * choices are [localizations].
+     */
+    val variants: List<AddonVariant> = emptyList(),
+    /**
+     * What the entry's own payload is called among its [variants]: "3D",
+     * "Standard". Shown on the addon's page only; blank reads as "Standard".
+     * On an installable made by [styled] it is that variant's name.
+     */
+    val variantName: String? = null,
+    /**
      * The addon this one remixes, as its install key `"<repoId>/<addonId>"`.
      * Set by the community repository's bot from what the app sent with the
      * submission; the detail page credits the original. Informational only.
@@ -134,12 +155,44 @@ data class AddonEntry(
     val isLocalized: Boolean
         get() = type.perLanguage && localizations.isNotEmpty()
 
+    /** True when this entry offers other builds of itself to choose from. */
+    val hasStyles: Boolean
+        get() = !type.perLanguage && variants.isNotEmpty()
+
     /**
-     * The base list followed by every localization, each as an installable
-     * entry of its own. Just `[this]` for an entry without localizations.
+     * The entry's own payload followed by every localization or variant, each
+     * as an installable entry of its own. Just `[this]` for a plain entry.
      */
-    val variants: List<AddonEntry>
-        get() = if (isLocalized) listOf(this) + localizations.map(::localized) else listOf(this)
+    val installables: List<AddonEntry>
+        get() = when {
+            isLocalized -> listOf(this) + localizations.map(::localized)
+            hasStyles -> listOf(this) + variants.map(::styled)
+            else -> listOf(this)
+        }
+
+    /**
+     * [variant] as a standalone entry, the way [localized] makes one for a
+     * language. Its name carries the variant's ("Fluent Emoji (Flat)"), since
+     * that is what the installed font or theme is listed under elsewhere in
+     * the app, beside the other variants.
+     */
+    fun styled(variant: AddonVariant): AddonEntry {
+        val label = variant.name?.takeIf { it.isNotBlank() } ?: variant.id
+        return copy(
+            id = "$id${AddonLocalization.SEPARATOR}${variant.id}",
+            name = "$name ($label)",
+            version = variant.version?.takeIf { it.isNotBlank() } ?: version,
+            description = variant.description?.takeIf { it.isNotBlank() } ?: description,
+            path = variant.path,
+            sha256 = variant.sha256,
+            sizeBytes = variant.sizeBytes,
+            previews = variant.previews.ifEmpty { previews },
+            minAppVersion = variant.minAppVersion ?: minAppVersion,
+            localizations = emptyList(),
+            variants = emptyList(),
+            variantName = label,
+        )
+    }
 
     /**
      * [localization] as a standalone entry: its own payload and language, the
@@ -163,6 +216,8 @@ data class AddonEntry(
     /** The locale this entry stands for: a localization's tag, or the base [langId]. */
     val locale: String
         get() = id.substringAfter(AddonLocalization.SEPARATOR, missingDelimiterValue = "")
+            .takeIf { type.perLanguage }
+            .orEmpty()
             .ifEmpty { langId.orEmpty() }
 
     /** [langId] and [langIds] as one list, deduplicated and blank-free. */
@@ -222,13 +277,40 @@ data class AddonLocalization(
 }
 
 /**
- * The entry [id] names: a top-level entry, or one localization of one, as
- * [AddonEntry.localized] spells it. Null when neither exists.
+ * One alternative build of an addon; see [AddonEntry.variants].
+ *
+ * Carries what differs between builds. Type, author, licence and tags are the
+ * parent entry's.
+ */
+@Serializable
+data class AddonVariant(
+    /** Unique within the entry, file-name-like (`flat`, `high-contrast`). Never recycled. */
+    val id: String = "",
+    /** What the user picks it by: "Flat", "High contrast". Falls back to [id]. */
+    val name: String? = null,
+    /** Payload location, resolved like [AddonEntry.path]. */
+    val path: String = "",
+    val sha256: String? = null,
+    val sizeBytes: Long? = null,
+    /** Own semver, for a build updated on its own schedule. Falls back to the parent's. */
+    val version: String? = null,
+    /** One line on what sets this build apart. Falls back to the parent's description. */
+    val description: String? = null,
+    /** Screenshots of this build. Falls back to the parent's. */
+    val previews: List<String> = emptyList(),
+    /** App `versionCode` floor for this build alone, such as a file only newer builds take. */
+    val minAppVersion: Int? = null,
+)
+
+/**
+ * The entry [id] names: a top-level entry, or one localization or variant of
+ * one, as [AddonEntry.localized] and [AddonEntry.styled] spell it. Null when
+ * none exists.
  */
 fun List<AddonEntry>.findVariant(id: String): AddonEntry? {
     firstOrNull { it.id == id }?.let { return it }
     val parent = firstOrNull { it.id == id.substringBefore(AddonLocalization.SEPARATOR) } ?: return null
-    return parent.variants.firstOrNull { it.id == id }
+    return parent.installables.firstOrNull { it.id == id }
 }
 
 /**
@@ -323,9 +405,11 @@ enum class AddonType {
             EmojiKeywords -> 8L * 1024 * 1024
             IconPack -> 8L * 1024 * 1024
             Stickers -> 64L * 1024 * 1024
-            // A colour emoji font carries thousands of bitmap or COLR glyphs,
-            // so it runs several times the size of a text face.
-            Font, EmojiFont -> 64L * 1024 * 1024
+            Font -> 64L * 1024 * 1024
+            // A colour emoji font carries thousands of bitmap glyphs, and a
+            // large-picture build (Noto 3D at 128 px) runs to 150 MB. Same cap
+            // as FontStore.MAX_EMOJI_BYTES, which the importer enforces.
+            EmojiFont -> 256L * 1024 * 1024
             Sound -> 4L * 1024 * 1024
             // A pack is many recordings of one keyboard, each of which
             // the importer caps at the same 4 MB a lone sound gets.

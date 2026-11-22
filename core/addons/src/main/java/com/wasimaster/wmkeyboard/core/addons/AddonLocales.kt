@@ -33,7 +33,7 @@ object AddonLocales {
      * something.
      */
     fun pick(entry: AddonEntry, enabledLangIds: List<String>, deviceLocales: List<String>): List<AddonEntry> {
-        val variants = entry.variants
+        val variants = entry.installables
         if (variants.size == 1) return variants
         val picked = enabledLangIds.distinct().mapNotNull { lang ->
             bestForLanguage(variants.filter { it.langId == lang }, lang, deviceLocales)

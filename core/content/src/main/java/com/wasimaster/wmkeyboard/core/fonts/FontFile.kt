@@ -20,7 +20,7 @@ sealed interface FontImportResult {
     data class NotAFont(@StringRes val messageRes: Int) : FontImportResult
 
     /**
-     * Over [FontStore.MAX_BYTES], unreadable, or nowhere to write.
+     * Over [FontStore.maxBytes], unreadable, or nowhere to write.
      *
      * [messageArgs] fills the format arguments of [messageRes], in order.
      */
@@ -98,10 +98,10 @@ object FontFile {
                     val read = input.read(buffer)
                     if (read <= 0) break
                     written += read
-                    if (written > FontStore.MAX_BYTES) {
+                    if (written > FontStore.maxBytes(emoji)) {
                         return FontImportResult.Failed(
                             R.string.core_content_font_error_too_large,
-                            listOf(FontStore.MAX_BYTES / (1024 * 1024)),
+                            listOf(FontStore.maxBytes(emoji) / (1024 * 1024)),
                         )
                     }
                     sink.write(buffer, 0, read)

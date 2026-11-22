@@ -50,7 +50,11 @@ object AddonRepoCodec {
             it.id.isNotBlank() && it.path.isNotBlank() && it.type != AddonType.Unknown &&
                 !it.id.contains(AddonLocalization.SEPARATOR)
         }
-        return manifest.copy(addons = usable.map { it.copy(localizations = usableLocalizations(it)) })
+        return manifest.copy(
+            addons = usable.map {
+                it.copy(localizations = usableLocalizations(it), variants = usableVariants(it))
+            },
+        )
     }
 
     /** `owner/repository`, GitHub's own shorthand: no scheme, no host, two parts. */
@@ -70,6 +74,21 @@ object AddonRepoCodec {
         entry.langId?.takeIf { it.isNotBlank() }?.let { seen += it.lowercase() }
         return entry.localizations.filter {
             it.path.isNotBlank() && LOCALE.matches(it.locale) && seen.add(it.locale.lowercase())
+        }
+    }
+
+    /** A variant id: file-name-like, so it can sit in an install key. */
+    private val VARIANT_ID = Regex("""[A-Za-z0-9][A-Za-z0-9._-]*""")
+
+    /**
+     * The variants worth offering: well-formed, with a payload, one per id. A
+     * per-language type's alternatives are its localizations instead.
+     */
+    private fun usableVariants(entry: AddonEntry): List<AddonVariant> {
+        if (entry.type.perLanguage) return emptyList()
+        val seen = HashSet<String>()
+        return entry.variants.filter {
+            it.path.isNotBlank() && VARIANT_ID.matches(it.id) && seen.add(it.id.lowercase())
         }
     }
 

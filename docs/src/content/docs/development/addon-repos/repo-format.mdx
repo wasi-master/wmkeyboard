@@ -138,6 +138,8 @@ problem with your manifest.
 | `licenseText` | | Full licence text, inline. |
 | `licenseFile` | | Licence text as a file, relative or absolute; fetched when the user opens it. |
 | `localizations` | | The same `dictionary`, `emoji_keywords` or `vocabulary` addon in other languages, one payload each. See [Localized addons](#localized-addons). Ignored for every other type. |
+| `variants` | | Other builds of the same addon for the user to choose between, such as an emoji font in 3D, flat and high-contrast styles. See [Addons with variants](#addons-with-variants). Ignored for the per-language types, whose choices are `localizations`. |
+| `variantName` | | What the entry's own payload is called among its `variants`, such as `"3D"`. Defaults to "Standard". |
 | `requires` | | Ids of other entries **in this same manifest** the addon was designed with, such as a theme naming its font and sound. Soft: the install screen offers to download them together, and skipping them still installs a working addon that falls back to the user's global choices. Ids that don't resolve in the manifest are ignored. Only the addon the user actually tapped is offered as something to switch to afterwards. Its dependencies install quietly, and the theme is what turns them on. |
 
 ### Licensing
@@ -227,6 +229,55 @@ phone's region, then `-419` for a phone set to a Latin American country, then th
 list with no region. A user who types none of the addon's languages gets the base
 list. An older app ignores `localizations` and offers the base list alone.
 
+### Addons with variants
+
+Some addons come in several builds of the same thing: Fluent Emoji in its 3D,
+flat and high-contrast sets, or an emoji font at two picture sizes. Publish them
+as one entry. The entry's own `path` is the first build, named by `variantName`,
+and each item in `variants` adds another:
+
+```json title="An emoji font in three styles"
+{
+  "id": "fluent-emoji",
+  "type": "emoji_font",
+  "name": "Fluent Emoji",
+  "version": "1.1.0",
+  "path": "fonts/fluent-emoji.ttf",
+  "variantName": "3D",
+  "license": "MIT",
+  "variants": [
+    { "id": "flat", "name": "Flat", "path": "fonts/fluent-emoji-flat.ttf",
+      "previews": ["previews/fluent-emoji-flat.jpg"] },
+    { "id": "high-contrast", "name": "High contrast", "path": "fonts/fluent-emoji-high-contrast.ttf",
+      "description": "Black and white, with strong outlines." }
+  ]
+}
+```
+
+| Field | Req | Notes |
+|---|---|---|
+| `id` | ✔ | Unique within the entry. Letters, digits, `.`, `_` and `-`. Never reuse one: it is part of the install key. |
+| `path` | ✔ | This build's payload, resolved like the entry's own `path`. |
+| `name` | | What the user picks it by. Defaults to `id`. |
+| `sha256`, `sizeBytes` | | As on the entry, for this payload. |
+| `version` | | Semver for this build alone. Defaults to the entry's `version`. |
+| `description` | | One line on what sets this build apart, shown in its row. |
+| `previews` | | Screenshots of this build. The addon's page shows every variant's screenshots together. |
+| `minAppVersion` | | An app floor for this build alone, such as a file larger than older apps accept. |
+
+Everything else (type, author, licence, tags, `requires`) is the entry's. A
+variant with no `path`, a malformed `id`, or an `id` used twice is dropped, and
+the rest of the addon still loads.
+
+The app shows one card. On the addon's page, each build is a row with its own
+install, update and uninstall, tracked under `<repoId>/<id>@<variant id>` and
+installed under the entry's name with the variant's after it, as in
+"Fluent Emoji (Flat)". The user can install one, several, or all of them with
+**Install all**, and switch between installed ones wherever that type is
+chosen. The download arrow on the card installs the entry's own build. An older
+app ignores `variants` and offers the entry's own build alone, so keep that one
+a complete addon.
+
 ## 4. Path & URL resolution (hybrid model)
 
 `path`, `previews[]` and `repo.icon` are each either:
@@ -271,7 +322,7 @@ into your repo.
 | `stickers` | `*.wmstickers` | ZIP archive containing a `pack.json` envelope (`"format":"wmkeyboard-stickers"`, `"version":1`, `pack` metadata with its `stickers[]`) and the image files under `stickers/`. See [Sticker packs](#sticker-packs). |
 | `icon_pack` | `*.wmicons` | ZIP archive containing a `pack.json` envelope (`"format":"wmkeyboard-icons"`, `"version":1`, `pack` metadata) and one icon per replaced slot under `icons/`, named for its slot: an SVG, or a PNG, WebP, JPEG or GIF. See [Icon packs](#icon-packs). |
 | `font` | `*.ttf`, `*.otf` | Standard TrueType or OpenType font file used for keyboard key labels and text typography. Declare `langIds` when the face only covers some scripts. |
-| `emoji_font` | `*.ttf`, `*.otf` | A font whose glyphs are emoji, like Twemoji or OpenMoji. Same file format as `font`, kept a separate type because it is chosen in a different place (Emoji settings, not the key-label pickers) and because a colour emoji font on the key labels is not a choice anyone makes on purpose. Colour builds (`COLR`/`CBDT`) draw in colour on Android 8+. A monochrome outline build takes the keyboard's text colour. There is exactly one emoji slot, and the app offers to fill it once the font is installed. |
+| `emoji_font` | `*.ttf`, `*.otf` | A font whose glyphs are emoji, like Twemoji or OpenMoji. Same file format as `font`, kept a separate type because it is chosen in a different place (Emoji settings, not the key-label pickers) and because a colour emoji font on the key labels is not a choice anyone makes on purpose. Colour builds (`COLR`/`CBDT`) draw in colour on Android 8+. A monochrome outline build takes the keyboard's text colour. There is exactly one emoji slot, and the app offers to fill it once the font is installed. Up to 256 MB (64 MB for a `font`); apps before version code 46 take 64 MB, so give a larger build `"minAppVersion": 46`. |
 | `sound` | `*.mp3` | A single short key-press sound. Keep it under ~300 ms and a few tens of KB: it is loaded into a `SoundPool` and replayed on every keystroke. |
 | `sound_pack` | `*.wmsoundpack` | ZIP archive containing a `pack.json` envelope (`"format":"wmkeyboard-sound-pack"`, `"version":1`) and the recordings under `sounds/`. Many recordings of one keyboard, one picked per key press and optionally another when the finger lifts, with an optional separate set for the spacebar and the other key roles. Set `minAppVersion`: older builds have no way to install this type. See [Sound packs](/development/addon-repos/sound-packs/). |
 | `vocabulary` | `*.wmvocab.json`, `*.wmvocab.json.gz` | A vocabulary pack (`"format":"wmkeyboard-vocab"`) for the Vocabulary tool: lemmas with parts of speech, senses, examples and pronunciation, up to 5 000 words. `langId` is required. Gzip is detected by magic bytes on every import path. The same file the app exports from Settings › Vocabulary. |

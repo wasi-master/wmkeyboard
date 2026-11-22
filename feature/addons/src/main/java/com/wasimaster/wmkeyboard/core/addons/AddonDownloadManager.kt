@@ -298,8 +298,8 @@ object AddonDownloadManager {
     fun refresh(store: AddonStore, repoId: String, manifest: AddonRepoManifest) {
         val installed = store.installed()
         _states.update { current ->
-            // Every language of a localized addon is tracked on its own key.
-            current + manifest.addons.flatMap { it.variants }.associate { entry ->
+            // Every language or variant of an addon is tracked on its own key.
+            current + manifest.addons.flatMap { it.installables }.associate { entry ->
                 val key = entry.key(repoId)
                 key to when {
                     key == activeKey && isBusy -> current[key] ?: AddonStatus.NotInstalled
@@ -478,7 +478,13 @@ object AddonDownloadManager {
                             manifestUrl = manifestUrl,
                             description = current.description,
                             author = current.author,
-                            locale = current.id.substringAfter(AddonLocalization.SEPARATOR, ""),
+                            // A variant's id carries the separator too, but
+                            // only a language is worth labelling the row with.
+                            locale = if (current.type.perLanguage) {
+                                current.id.substringAfter(AddonLocalization.SEPARATOR, "")
+                            } else {
+                                ""
+                            },
                         )
                         store.markInstalled(key, record)
                         val questionRes = AddonApply.questionRes(current.type)
@@ -646,7 +652,7 @@ object AddonDownloadManager {
             if (e.reason != FailReason.CHECKSUM) throw e
             val fresh = fetchManifest(manifestUrl, context.cacheDir, store)
                 ?.addons
-                ?.flatMap { it.variants }
+                ?.flatMap { it.installables }
                 ?.firstOrNull { it.id == entry.id && it.type == entry.type }
                 ?.takeIf { !it.sha256.isNullOrBlank() && !it.sha256.equals(entry.sha256, ignoreCase = true) }
                 ?: throw e

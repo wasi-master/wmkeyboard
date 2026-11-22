@@ -128,7 +128,9 @@ class EmojiFontCoverage internal constructor(
 
         // A colour emoji font is a few MB; anything far past that is not one,
         // and mapping it would be the expensive way to find that out.
-        private const val MAX_FONT_BYTES = 64L * 1024 * 1024
+        // Matches FontStore.MAX_EMOJI_BYTES (no dependency on :core:content
+        // here): only cmap and GSUB are read, so a big file costs no memory.
+        private const val MAX_FONT_BYTES = 256L * 1024 * 1024
 
         private const val TAG_CMAP = 0x636D6170 // 'cmap'
         private const val TAG_GSUB = 0x47535542 // 'GSUB'

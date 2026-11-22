@@ -113,6 +113,18 @@ class FontStore(private var baseDir: File?) {
         const val MAX_BYTES = 64L * 1024 * 1024
 
         /**
+         * The cap for an emoji font, larger than [MAX_BYTES]. Bitmap emoji
+         * fonts grow with their picture size: Noto's 3D set is 148 MB at 128 px,
+         * and Fluent Emoji's untrimmed build is 87 MB. Neither costs memory to
+         * use, since the platform maps the file and decodes only the glyphs it
+         * draws, so the cap only guards the disk and the download.
+         */
+        const val MAX_EMOJI_BYTES = 256L * 1024 * 1024
+
+        /** The size cap for a font, by whether it is an emoji font. */
+        fun maxBytes(emoji: Boolean): Long = if (emoji) MAX_EMOJI_BYTES else MAX_BYTES
+
+        /**
          * Prefix marking a font id in the settings' font-id string, alongside
          * `google:` and the fixed `custom` ids. Resolved by `KeyboardFonts`.
          */

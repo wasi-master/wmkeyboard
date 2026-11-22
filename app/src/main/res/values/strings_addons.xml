@@ -115,6 +115,17 @@
     <!-- Status line of one language of an add-on that has a newer version.
          %1$s is the installed version, %2$s the newer one. -->
     <string name="addon_language_update_status">Version %1$s installed. Version %2$s is available.</string>
+    <!-- Section on the page of an add-on that comes in several builds, such as an
+         emoji font in 3D, flat and high-contrast styles. Each row is one build,
+         with its own Install or Uninstall button. -->
+    <string name="addon_variants_section_title">Variants</string>
+    <string name="addon_variants_section_info">This add-on comes in more than one version. Install the one that you want, or several of them. Each one installs, updates and uninstalls on its own, and you can change between the ones that you installed.</string>
+    <!-- Name of the main build of an add-on that has variants, when the repository
+         does not name it. -->
+    <string name="addon_variant_standard_label">Standard</string>
+    <!-- Button that installs every variant of an add-on that is not installed yet.
+         %1$s is their total size, such as "52 MB". -->
+    <string name="addon_variants_install_all_action">Install all (<xliff:g id="size" example="52 MB">%1$s</xliff:g>)</string>
     <!-- Shown for a repository the user reached from a link but did not add. -->
     <string name="addon_detail_repo_not_added">This repository is not in your list. Installing adds it.</string>
     <!-- Name shown for a repository that states no name of its own. -->

@@ -53,7 +53,7 @@ class AddonLocalizationTest {
         val entry = AddonRepoCodec.decode(manifest(theme))!!.addons.single()
         assertTrue(entry.localizations.isEmpty())
         assertFalse(entry.isLocalized)
-        assertEquals(listOf(entry), entry.variants)
+        assertEquals(listOf(entry), entry.installables)
     }
 
     @Test
@@ -65,7 +65,7 @@ class AddonLocalizationTest {
     @Test
     fun `a localization installs as its own entry`() {
         val entry = decodeMedical()
-        val latam = entry.variants.single { it.locale == "es-419" }
+        val latam = entry.installables.single { it.locale == "es-419" }
         assertEquals("medical@es-419", latam.id)
         assertEquals("test/medical@es-419", latam.key("test"))
         assertEquals("es", latam.langId)
@@ -73,9 +73,9 @@ class AddonLocalizationTest {
         assertEquals("1.1.0", latam.version)
         assertEquals("Medical", latam.name)
         assertFalse(latam.isLocalized)
-        assertEquals("Médico", entry.variants.single { it.locale == "es" }.name)
-        assertEquals("1.0.0", entry.variants.single { it.locale == "es" }.version)
-        assertEquals("en", entry.variants.first().locale)
+        assertEquals("Médico", entry.installables.single { it.locale == "es" }.name)
+        assertEquals("1.0.0", entry.installables.single { it.locale == "es" }.version)
+        assertEquals("en", entry.installables.first().locale)
     }
 
     @Test
