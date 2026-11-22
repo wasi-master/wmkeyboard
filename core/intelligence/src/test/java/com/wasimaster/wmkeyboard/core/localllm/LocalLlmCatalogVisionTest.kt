@@ -10,7 +10,14 @@ class LocalLlmCatalogVisionTest {
     @Test
     fun `the Gemma 4 rows and the GGUF vision rows say they can see`() {
         val seeing = LocalLlmCatalog.models.filter { it.vision }.map { it.id }.toSet()
-        assertEquals(setOf("gemma4-e2b", "gemma4-e4b", "gguf-qwen2.5-vl-3b", "gguf-smolvlm-500m"), seeing)
+        assertEquals(
+            setOf(
+                "gemma4-e2b", "gemma4-e4b",
+                "gguf-qwen3-vl-4b", "gguf-ministral3-3b", "gguf-qwen2.5-vl-3b", "gguf-qwen3-vl-2b",
+                "gguf-minicpm-v4.7-1b", "gguf-smolvlm-500m",
+            ),
+            seeing,
+        )
     }
 
     @Test

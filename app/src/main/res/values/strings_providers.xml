@@ -170,6 +170,8 @@
     <string name="providers_type_use_existing">Use %1$s</string>
     <string name="providers_type_existing_key">%1$s, key ending %2$s</string>
     <string name="providers_type_new_server">Add another server</string>
+    <string name="providers_preset_online">OpenAI-compatible service at %1$s. Paste its key and pick a model.</string>
+    <string name="providers_preset_server">OpenAI-compatible server you run. The address points at this phone; change it to your computer\'s.</string>
     <string name="providers_tag_free">Free software</string>
     <string name="providers_tag_on_device">On the phone</string>
     <string name="providers_tag_self_hosted">Your own server</string>

@@ -95,6 +95,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
 import com.wasimaster.wmkeyboard.app.homeassistant.HomeProviderExtras
 import com.wasimaster.wmkeyboard.app.homeassistant.homeReady
 import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeKind
+import com.wasimaster.wmkeyboard.core.providers.AiPreset
+import com.wasimaster.wmkeyboard.core.providers.AiPresets
 import com.wasimaster.wmkeyboard.core.providers.ChainMode
 import com.wasimaster.wmkeyboard.core.providers.CredentialSpec
 import com.wasimaster.wmkeyboard.core.providers.Need
@@ -331,6 +333,10 @@ internal fun ProvidersGroup(
                     is ProviderPick.Add -> save(ProviderEdits.addEntry(settings.value, tool, pick.entry, env))
                     is ProviderPick.Edit -> editing = pick.target
                 }
+            },
+            onPreset = { preset ->
+                adding = false
+                editing = ProviderEditTarget(ProviderTypes.OPENAI_COMPATIBLE, AiPresets.credential(preset), isNew = true)
             },
             onDismiss = { adding = false },
         )
@@ -1000,7 +1006,9 @@ private val ClearOfStatusBar = Modifier.statusBarsPadding()
 /**
  * "Add a provider" as a sheet of kinds, the build's suggestions first. A
  * server kind also lists the servers set up for another tool, so a
- * LibreTranslate server added once can be used again.
+ * LibreTranslate server added once can be used again. Under the
+ * OpenAI-compatible kind come the services it reaches by name
+ * ([AiPresets]), each opening its editor with the address filled in.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1010,6 +1018,7 @@ internal fun ProviderTypeSheet(
     chain: ProviderChain,
     credentials: List<ProviderCredential>,
     onPick: (ProviderType, ProviderCredential?) -> Unit,
+    onPreset: (AiPreset) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val types = remember(tool, env, chain) { ProviderCatalog.addable(tool, chain, env) }
@@ -1054,6 +1063,20 @@ internal fun ProviderTypeSheet(
                             title = stringResource(R.string.providers_type_use_existing, credentialLabel(type, credential)),
                             icon = if (credential.url.isNotBlank()) Icons.Outlined.Dns else Icons.Outlined.Key,
                             onClick = { onPick(type, credential) },
+                        )
+                    }
+                }
+                if (type === ProviderTypes.OPENAI_COMPATIBLE) {
+                    for (preset in AiPresets.all) {
+                        WmRow(
+                            title = preset.label,
+                            subtitle = if (preset.selfHosted) {
+                                stringResource(R.string.providers_preset_server)
+                            } else {
+                                stringResource(R.string.providers_preset_online, hostOf(preset.url))
+                            },
+                            icon = if (preset.selfHosted) Icons.Outlined.Dns else Icons.Outlined.Public,
+                            onClick = { onPreset(preset) },
                         )
                     }
                 }

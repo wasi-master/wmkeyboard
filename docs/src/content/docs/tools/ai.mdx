@@ -143,6 +143,8 @@ Pictures aren't sent to Privatemode, and extra headers aren't added to its encry
 - **API key**: optional. A gateway on your own network often wants none.
 - **Endpoint path**: optional, for a server whose chat route isn't `/chat/completions`. What you type is added to the address as typed (`/v1/generate`), and a whole address starting `https://` replaces the address for chat. Leave it empty for `/chat/completions`. The transcription server has the same field for its own route.
 
+You rarely have to look the address up. Under **OpenAI-compatible service**, **Add a provider** lists the services it reaches by name: OpenRouter, Groq, Cerebras, Mistral AI, Together AI, Fireworks AI, Venice, Perplexity, Qwen (Alibaba Cloud), Kimi (Moonshot AI), GLM (Z.ai) and SiliconFlow, then the servers you run yourself, llama.cpp server, KoboldCpp, LocalAI, vLLM and Jan. Picking one opens the OpenAI-compatible setup with the name and address filled in, so what's left is the key and a model, which **List models** fetches. OpenRouter starts on `openrouter/auto`, which lets OpenRouter choose the model, and Perplexity on `sonar`, because Perplexity has no model list to fetch. For Qwen, Kimi, GLM and SiliconFlow the address is the international one; an account opened in mainland China uses that service's own address instead. A server you run starts at its default port on this phone (`http://127.0.0.1:8080/v1` for llama.cpp server), which is right for one running in Termux; for one on your computer, put in the computer's address. The row that comes out is an ordinary OpenAI-compatible row, named after the service, and everything in it can be changed.
+
 :::note
 An `http://` address works, for a service on your own network, and that traffic is plain HTTP. Keep the server on a network you trust.
 :::
@@ -181,23 +183,25 @@ A small model tends to treat whatever it was handed last as a message to answer,
   <Shot id="tools/ai-settings-local-catalog" alt="The on-device model catalog, with tier badges and a size/RAM subtitle per model." />
 </PhoneFrame>
 
-The catalog has two lists. The first is nine models in LiteRT-LM's format, the engine the keyboard has always used and still the default. They're ordered best-first rather than smallest-first:
+The catalog has two lists. The first is eleven models in LiteRT-LM's format, the engine the keyboard has always used and still the default. They're ordered best-first rather than smallest-first:
 
 | Model | Params | Size | Tier | Gated |
 |---|---|---|---|---|
 | Gemma 4 E2B | 2B | 2.59 GB | Recommended | |
 | Gemma 4 E4B | 4B | 3.66 GB | Recommended | |
 | Nemotron 3.5 Bolt E4B | 4B | 4.40 GB | Standard | |
+| Phi-4-mini | 3.8B | 3.91 GB | Untested | |
 | Gemma 3 1B | 1B | 584 MB | Untested | Yes |
 | Qwen 2.5 1.5B | 1.5B | 1.6 GB | Standard | |
+| DeepSeek R1 Distill 1.5B | 1.5B | 1.83 GB | Untested | |
 | Qwen 3 0.6B | 0.6B | 347 MB | Experimental | |
 | Qwen 2.5 0.5B | 0.5B | 546 MB | Experimental | |
 | Gemma 3 270M | 270M | 304 MB | Untested | Yes |
 | SmolLM2 135M | 135M | 143 MB | Experimental | |
 
-Each row names the licence its weights are published under, and **Licence and model page** under an undownloaded row opens the repository where the text is. Gemma 3 comes under Google's Gemma Terms of Use; Gemma 4, Qwen and SmolLM2 are Apache-2.0. Nemotron 3.5 Bolt E4B is NVIDIA's further training of Gemma 4 E4B for following instructions and calling tools, under the OpenMDW 1.1 licence, which allows commercial use; this conversion reads text only. About, Licences lists the same under downloadable data packs.
+Each row names the licence its weights are published under, and **Licence and model page** under an undownloaded row opens the repository where the text is. Gemma 3 comes under Google's Gemma Terms of Use; Gemma 4, Qwen and SmolLM2 are Apache-2.0, and Phi-4-mini and DeepSeek R1 Distill are MIT. Nemotron 3.5 Bolt E4B is NVIDIA's further training of Gemma 4 E4B for following instructions and calling tools, under the OpenMDW 1.1 licence, which allows commercial use; this conversion reads text only. DeepSeek R1 Distill 1.5B is Qwen 2.5 1.5B trained on the reasoning of DeepSeek's R1, so it thinks before it answers, like Qwen 3; that makes it slow for a quick rewrite. About, Licences lists the same under downloadable data packs.
 
-Two of the nine are gated and need a Hugging Face account. Paste a token into the **Access token** field under **Hugging Face account**, above the catalog. Then accept the model's license on its Hugging Face page, once per model.
+Two of the eleven are gated and need a Hugging Face account. Paste a token into the **Access token** field under **Hugging Face account**, above the catalog. Then accept the model's license on its Hugging Face page, once per model.
 
 #### GGUF models on llama.cpp
 
@@ -205,24 +209,30 @@ Below them sits a second list, **GGUF models (llama.cpp)**. These run on [llama.
 
 | Model | Params | Size | Tier | Licence |
 |---|---|---|---|---|
+| Qwen3-VL 4B | 4B | 2.95 GB | Untested | Apache-2.0 |
+| Ministral 3 3B | 3B | 2.99 GB | Untested | Apache-2.0 |
 | Qwen 2.5 VL 3B | 3B | 2.77 GB | Untested | Qwen Research License |
+| Qwen3-VL 2B | 2B | 1.55 GB | Untested | Apache-2.0 |
 | Qwen 3 1.7B | 1.7B | 1.83 GB | Untested | Apache-2.0 |
+| LFM2.5 1.2B | 1.2B | 731 MB | Untested | LFM Open License 1.0 |
 | Llama 3.2 1B | 1B | 808 MB | Untested | Llama 3.2 Community License |
 | Gemma 3 1B | 1B | 806 MB | Untested | Gemma Terms of Use |
+| MiniCPM-V 4.7 1B | 1B | 1.78 GB | Untested | Apache-2.0 |
 | Qwen 3 0.6B | 0.6B | 639 MB | Experimental | Apache-2.0 |
 | Qwen 2.5 0.5B | 0.5B | 491 MB | Experimental | Apache-2.0 |
 | SmolVLM 500M | 500M | 546 MB | Experimental | Apache-2.0 |
+| LFM2.5 350M | 350M | 379 MB | Experimental | LFM Open License 1.0 |
 | SmolLM2 360M | 360M | 386 MB | Experimental | Apache-2.0 |
 | Gemma 3 270M | 270M | 292 MB | Experimental | Gemma Terms of Use |
 
-None of them is gated, so no Hugging Face token is needed, Gemma 3 included. Each one is fetched from a fixed commit of its repository and checked against a SHA-256 before it counts as downloaded. A file that doesn't match is deleted and the row asks you to download it again. The Qwen 3, Qwen 2.5 and SmolLM2 files come from the makers' own repositories, Gemma, Qwen 2.5 VL and SmolVLM from ggml-org (the llama.cpp project), and Llama 3.2 from bartowski's conversion of Meta's model.
+None of them is gated, so no Hugging Face token is needed, Gemma 3 included. Each one is fetched from a fixed commit of its repository and checked against a SHA-256 before it counts as downloaded. A file that doesn't match is deleted and the row asks you to download it again. The Qwen 3, Qwen3-VL, Qwen 2.5, Ministral 3, LFM2.5, MiniCPM-V and SmolLM2 files come from the makers' own repositories, Gemma, Qwen 2.5 VL and SmolVLM from ggml-org (the llama.cpp project), and Llama 3.2 from bartowski's conversion of Meta's model. LFM2.5 comes under Liquid AI's LFM Open License, which is free for personal use and for companies under US$10 million a year in revenue.
 
-Qwen 2.5 VL 3B and SmolVLM 500M read pictures. Each brings a second file, its projector (the `mmproj` file), which the download fetches first; the sizes above count both. Qwen 2.5 VL reads the text in a chat screenshot well, but needs a phone with 8 GB of RAM, and its licence allows research use only. SmolVLM is small enough for most phones, and tells you what a picture shows, but often gets the words in a screenshot wrong.
+Qwen3-VL 4B and 2B, Ministral 3 3B, Qwen 2.5 VL 3B, MiniCPM-V 4.7 1B and SmolVLM 500M read pictures. Each brings a second file, its projector (the `mmproj` file), which the download fetches first; the sizes above count both. Qwen3-VL 4B and Ministral 3 need a phone with 8 GB of RAM, Qwen3-VL 2B and MiniCPM-V one with 6 GB. MiniCPM-V's model is small, but its projector is over 1 GB, more than the model itself. Qwen 2.5 VL reads the text in a chat screenshot well, but needs 8 GB of RAM too, and its licence allows research use only, which Qwen3-VL's doesn't restrict. SmolVLM is small enough for most phones, and tells you what a picture shows, but often gets the words in a screenshot wrong.
 
 What's different about them:
 
 - **GPU.** With **Compute** on **GPU**, a GGUF model runs on the phone's GPU: on a Snapdragon chip (an Adreno GPU) through llama.cpp's OpenCL code, which Qualcomm wrote for these GPUs, and on a Mali, Xclipse or PowerVR GPU through llama.cpp's Vulkan code. A phone with neither runs it on the CPU's big cores, whatever that row says. See [Compute](#compute-and-gguf-models) below.
-- **Pictures, for the models that read them.** Qwen 2.5 VL and SmolVLM look at a picture themselves: a screenshot in the [reply tool](/tools/ai-reply/), and the pictures in the newest message of a [chat](/tools/ai-chat/#sending-pictures). For every other GGUF model, the reply tool reads a screenshot another way, as it does for any model that can't see.
+- **Pictures, for the models that read them.** The six models above that read pictures look at one themselves: a screenshot in the [reply tool](/tools/ai-reply/), and the pictures in the newest message of a [chat](/tools/ai-chat/#sending-pictures). For every other GGUF model, the reply tool reads a screenshot another way, as it does for any model that can't see.
 - **The model's own chat template.** llama.cpp formats each conversation with the template stored in the GGUF file, so a model you import is prompted the way its makers trained it. Text from your field is kept as text: it can't open a turn of its own, even if it contains the template's markers.
 - **Memory is checked first.** Before a model loads, the keyboard compares what it needs (the file, plus room for the context) with the memory free on the phone. If it's short, the context shrinks first. If even that won't fit, you get a message with both figures instead of a crash. A loaded model is unloaded after three minutes with nothing to do, and the keyboard lets go of it earlier when it hides.
 

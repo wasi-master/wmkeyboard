@@ -47,6 +47,14 @@
     <string name="core_intel_llm_model_gguf_qwen25_vl_3b_subtitle">Reads pictures and screenshots well, the text in them too. It needs a high-end device. Its licence allows research use only.</string>
     <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">A very small model that can read pictures. It describes a picture, but often misreads the text in a screenshot.</string>
     <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Small and fast. It is good for quick rewrites on a basic device.</string>
+    <string name="core_intel_llm_model_phi4_mini_subtitle">Microsoft\'s small Phi. It writes and reasons well for its size, but it needs a powerful device.</string>
+    <string name="core_intel_llm_model_deepseek_r1_15b_subtitle">A small model trained on DeepSeek R1\'s reasoning. It thinks before it answers, which makes it slow for quick rewrites.</string>
+    <string name="core_intel_llm_model_gguf_qwen3_vl_4b_subtitle">Reads pictures and screenshots, the text in them too, and writes well. It needs a high-end device.</string>
+    <string name="core_intel_llm_model_gguf_ministral3_3b_subtitle">Mistral\'s small model. It writes well in European languages and can read pictures. It needs a high-end device.</string>
+    <string name="core_intel_llm_model_gguf_qwen3_vl_2b_subtitle">A smaller Qwen3-VL. It reads pictures and screenshots on a mid-range device.</string>
+    <string name="core_intel_llm_model_gguf_lfm25_12b_subtitle">Liquid AI\'s model built for phones. It answers quickly and writes well for its size.</string>
+    <string name="core_intel_llm_model_gguf_minicpm_v47_1b_subtitle">A small model that reads pictures, the text in screenshots too. Its picture reader is a large download of its own.</string>
+    <string name="core_intel_llm_model_gguf_lfm25_350m_subtitle">Liquid AI\'s smallest model. It is fast on a basic device and good for short rewrites.</string>
 
     <!-- ================================================================== -->
     <!-- On-device model download: why a download stopped.                  -->
