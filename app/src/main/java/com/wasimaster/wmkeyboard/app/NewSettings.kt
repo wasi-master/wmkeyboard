@@ -275,6 +275,21 @@ internal object NewSettings {
         show(bar = emptyList(), borders = bordered)
     }
 
+    /**
+     * The bar and every gold border go at once (#1242), for an update whose
+     * new rows the user does not mean to look through. Until the next update;
+     * About › New settings still brings them back.
+     */
+    fun clearAll(context: Context) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putBoolean(KEY_BAR, false)
+            .putStringSet(KEY_FRESH, emptySet())
+            .putStringSet(KEY_SEEN, emptySet())
+            .apply()
+        seenAt.clear()
+        show(bar = emptyList(), borders = emptyList())
+    }
+
     /** About's way back in: the latest update's rows, bar and borders again, from the first, each with a fresh day. */
     fun replay(context: Context) {
         seenAt.clear()
@@ -385,6 +400,10 @@ internal fun NewSettingsBar(onOpen: (SettingsSearchEntry) -> Unit, modifier: Mod
                 modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 4.dp),
             ) {
                 if (open == null) {
+                    // Closing the bar keeps the borders; this takes both (#1242).
+                    TextButton(onClick = { NewSettings.clearAll(context) }) {
+                        Text(stringResource(R.string.shell_new_settings_clear))
+                    }
                     Spacer(Modifier.weight(1f))
                     TextButton(onClick = { go(0) }) { Text(stringResource(R.string.shell_new_settings_show)) }
                 } else {

@@ -31,6 +31,8 @@
     <string name="shell_new_settings_hint">Each one opens on its own screen with a gold border around it</string>
     <!-- The button that opens the first new setting. -->
     <string name="shell_new_settings_show">Show me</string>
+    <!-- Beside Show me: puts the bar away and takes the gold border off every new setting at once (#1242). -->
+    <string name="shell_new_settings_clear">Clear the borders</string>
     <!-- Under the name of a new setting the walk opened that another setting on its page is hiding, so it is drawn greyed out. -->
     <string name="shell_new_settings_hidden">Greyed out: it only appears once another setting on this page allows it</string>
     <!-- The button that goes back to the new setting before the open one. -->
