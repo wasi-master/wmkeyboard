@@ -48,6 +48,12 @@ If letters themselves are landing late rather than the strip just being slow to 
 
 To confirm it is the suggestion pass before you start changing things, turn **Suggestions** off under <SettingsPath path="Typing / Suggestions" /> and type a line. If the lag goes away, it's the pass, and one of the levers above will help. If it doesn't, it's something else and worth [filing](#filing-a-useful-bug-report) with a diagnostics report attached.
 
+## Text seems to jump back with a glass theme
+
+If words you type seem to vanish, or the field seems to jump back to what it said a moment ago, while taps still land in the right place, look at the theme before anything else. With **Blur behind the keyboard** on, some phones show an old picture of the app above the keyboard: the phone draws that blur itself, and on these phones it keeps showing a frame or two from before your last keystroke. The text in the app is right; only the picture of it is late.
+
+Turn off **Blur behind the keyboard** in the theme editor's Frosted glass section, or pick a theme without it. The glass keeps working over your wallpaper or the board colour. See [Frosted glass](/themes/glass/) for what the setting does.
+
 ## The settings app is slow to open screens
 
 On a slower phone, turn off <SettingsPath path="Accessibility / Settings app / Screen transitions" />. Screens then open with a plain slide instead of moving the setting's icon and name into the new screen's heading, and each one skips a second layout pass. The keyboard isn't affected. See [Faster settings screens](/accessibility/overview/#faster-settings-screens).
