@@ -5856,7 +5856,6 @@
     <string name="layout_editor_foreign_language_search">搜索语言</string>
     <string name="layout_editor_foreign_language_title">语言</string>
     <string name="layout_editor_foreign_subtitle">读取 FlorisBoard 或 HeliBoard 的布局文件</string>
-    <string name="layout_editor_foreign_title">从其他键盘导入</string>
     <string name="layout_editor_foreign_wrong_file_error">应用无法将该文件读取为布局。FlorisBoard 和 HeliBoard 布局为 .json 或 .txt 文件。要导入 FlorisBoard 主题 (.flex)，请前往“主题”。</string>
     <string name="layout_editor_gallery_caption">布局即按键网格。它会输入其所基于的布局语言。即使您重新排列孟加拉语网格，它仍会使用孟加拉语词库。</string>
     <string name="layout_editor_height_decrease_desc">使行变短</string>
@@ -5889,7 +5888,6 @@
     <string name="layout_editor_im_busy">正在读取输入法。较大的 Rime 词库可能需要一分钟。</string>
     <string name="layout_editor_im_failed">应用无法保存输入法。请确保设备上有可用空间。</string>
     <string name="layout_editor_im_subtitle">读取 .cin 表格、带有词典的 Rime 方案或 m17n .mim 文件。请同时选择该输入法所需的所有文件。</string>
-    <string name="layout_editor_im_title">导入输入法</string>
     <string name="layout_editor_im_too_large">文件太大，无法导入。</string>
     <string name="layout_editor_ime_picker_empty">没有开启其他键盘。请先在设备的键盘设置中启用一个。</string>
     <string name="layout_editor_ime_picker_title">选择键盘</string>

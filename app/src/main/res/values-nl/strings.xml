@@ -5868,7 +5868,6 @@
     <string name="layout_editor_foreign_language_search">Zoek talen</string>
     <string name="layout_editor_foreign_language_title">Taal</string>
     <string name="layout_editor_foreign_subtitle">Lees een lay-outbestand van FlorisBoard of HeliBoard</string>
-    <string name="layout_editor_foreign_title">Importeren van een ander toetsenbord</string>
     <string name="layout_editor_foreign_wrong_file_error">De app kan dat bestand niet lezen als een lay-out. FlorisBoard- en HeliBoard-lay-outs zijn .json- of .txt-bestanden. Ga naar Thema\'s om een FlorisBoard-thema (.flex) te importeren.</string>
     <string name="layout_editor_gallery_caption">Een lay-out is een toetsenraster. Het typt de taal van de lay-out waarop het is gebaseerd. Een Bengaals raster dat je herschikt, gebruikt nog steeds de Bengaalse woordenlijst.</string>
     <string name="layout_editor_height_decrease_desc">Maak de rij korter</string>
@@ -5901,7 +5900,6 @@
     <string name="layout_editor_im_busy">Invoermethode wordt gelezen. Een groot Rime-woordenboek kan een minuut duren.</string>
     <string name="layout_editor_im_failed">De app kon de invoermethode niet opslaan. Zorg ervoor dat er vrije ruimte op het apparaat is.</string>
     <string name="layout_editor_im_subtitle">Lees een .cin-tabel, een Rime-schema met zijn woordenboeken, of een m17n .mim-bestand. Kies alle bestanden die de methode nodig heeft tegelijkertijd.</string>
-    <string name="layout_editor_im_title">Een invoermethode importeren</string>
     <string name="layout_editor_im_too_large">De bestanden zijn te groot om te importeren.</string>
     <string name="layout_editor_ime_picker_empty">Er zijn geen andere toetsenborden ingeschakeld. Schakel er eerst een in via de toetsenbordinstellingen van je apparaat.</string>
     <string name="layout_editor_ime_picker_title">Welk toetsenbord</string>

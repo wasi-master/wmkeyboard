@@ -5862,7 +5862,6 @@
     <string name="layout_editor_foreign_language_search">Etsi kieliä</string>
     <string name="layout_editor_foreign_language_title">Kieli</string>
     <string name="layout_editor_foreign_subtitle">Lue asettelutiedosto FlorisBoardista tai HeliBoardista</string>
-    <string name="layout_editor_foreign_title">Tuo toisesta näppäimistöstä</string>
     <string name="layout_editor_foreign_wrong_file_error">Sovellus ei voi lukea kyseistä tiedostoa asetteluna. FlorisBoard- ja HeliBoard-asettelut ovat .json- tai .txt-tiedostoja. Jos haluat tuoda FlorisBoard-teeman (.flex), siirry Teemoihin.</string>
     <string name="layout_editor_gallery_caption">Asettelu on näppäinruudukko. Se kirjoittaa sen kielen mukaan, johon asettelu perustuu. Bengali-ruudukko, jota muokkaat, käyttää edelleen bengalin kielen sanaluetteloa.</string>
     <string name="layout_editor_height_decrease_desc">Tee rivistä matalampi</string>
@@ -5895,7 +5894,6 @@
     <string name="layout_editor_im_busy">Luetaan syöttötapaa. Suuri Rime-sanakirja voi viedä minuutin.</string>
     <string name="layout_editor_im_failed">Sovellus ei voinut tallentaa syöttötapaa. Varmista, että laitteessa on vapaata tilaa.</string>
     <string name="layout_editor_im_subtitle">Lue .cin-taulukko, Rime-skeema sanakirjoineen tai m17n .mim-tiedosto. Valitse kaikki menetelmän tarvitsemat tiedostot samanaikaisesti.</string>
-    <string name="layout_editor_im_title">Tuo syöttötapa</string>
     <string name="layout_editor_im_too_large">Tiedostot ovat liian suuria tuotavaksi.</string>
     <string name="layout_editor_ime_picker_empty">Muita näppäimistöjä ei ole käytössä. Ota jokin niistä käyttöön laitteesi näppäimistöasetuksista.</string>
     <string name="layout_editor_ime_picker_title">Mikä näppäimistö</string>

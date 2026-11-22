@@ -5865,7 +5865,6 @@
     <string name="layout_editor_foreign_language_search">Cerca idiomes</string>
     <string name="layout_editor_foreign_language_title">Llengua</string>
     <string name="layout_editor_foreign_subtitle">Llegiu un fitxer de disseny de FlorisBoard o HeliBoard</string>
-    <string name="layout_editor_foreign_title">Importa des d\'un altre teclat</string>
     <string name="layout_editor_foreign_wrong_file_error">L\'aplicació no pot llegir aquest fitxer com a disseny. Els dissenys de FlorisBoard i HeliBoard són fitxers .json o .txt. Per importar un tema de FlorisBoard (.flex), aneu a Temes.</string>
     <string name="layout_editor_gallery_caption">Una disposició és una graella de tecles. Escriu en l\'idioma de la disposició en què es basa. Una graella bengalí que reordenis continua utilitzant la llista de paraules bengalís.</string>
     <string name="layout_editor_height_decrease_desc">Fes la fila més curta</string>
@@ -5898,7 +5897,6 @@
     <string name="layout_editor_im_busy">S\'està llegint el mètode d\'entrada. Un diccionari Rime gran pot trigar un minut.</string>
     <string name="layout_editor_im_failed">L\'aplicació no ha pogut desar el mètode d\'entrada. Assegureu-vos que hi hagi espai lliure al dispositiu.</string>
     <string name="layout_editor_im_subtitle">Llegeix una taula .cin, un esquema Rime amb els seus diccionaris o un fitxer .mim m17n. Tria tots els fitxers que necessita el mètode alhora.</string>
-    <string name="layout_editor_im_title">Importa un mètode d\'entrada</string>
     <string name="layout_editor_im_too_large">Els fitxers són massa grans per importar-los.</string>
     <string name="layout_editor_ime_picker_empty">No hi ha cap altre teclat activat. Primer activeu-ne un a la configuració del teclat del vostre dispositiu.</string>
     <string name="layout_editor_ime_picker_title">Quin teclat</string>

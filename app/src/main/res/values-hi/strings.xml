@@ -5875,7 +5875,6 @@
     <string name="layout_editor_foreign_language_search">भाषाएँ खोजें</string>
     <string name="layout_editor_foreign_language_title">भाषा</string>
     <string name="layout_editor_foreign_subtitle">FlorisBoard या HeliBoard से लेआउट फ़ाइल पढ़ें</string>
-    <string name="layout_editor_foreign_title">दूसरे कीबोर्ड से आयात करें</string>
     <string name="layout_editor_foreign_wrong_file_error">ऐप उस फाइल को लेआउट के रूप में नहीं पढ़ सकता है। FlorisBoard और HeliBoard लेआउट .json या .txt फाइलें हैं। FlorisBoard थीम (.flex) आयात करने के लिए, थीम्स पर जाएं।</string>
     <string name="layout_editor_gallery_caption">लेआउट एक मुख्य ग्रिड है। यह उस लेआउट की भाषा टाइप करता है जिस पर यह आधारित है। एक बंगाली ग्रिड जिसे आप पुनर्व्यवस्थित करते हैं, वह अभी भी बंगाली शब्द सूची का उपयोग करता है।</string>
     <string name="layout_editor_height_decrease_desc">पंक्ति को छोटा करें</string>
@@ -5908,7 +5907,6 @@
     <string name="layout_editor_im_busy">इनपुट विधि पढ़ी जा रही है। एक बड़ा Rime शब्दकोश एक मिनट ले सकता है।</string>
     <string name="layout_editor_im_failed">ऐप इनपुट विधि को सहेज नहीं सका। सुनिश्चित करें कि डिवाइस पर खाली जगह है।</string>
     <string name="layout_editor_im_subtitle">एक .cin टेबल, अपने शब्दकोशों के साथ एक Rime स्कीमा, या एक m17n .mim फ़ाइल पढ़ें। विधि के लिए आवश्यक सभी फ़ाइलें एक ही समय में चुनें।</string>
-    <string name="layout_editor_im_title">इनपुट विधि आयात करें</string>
     <string name="layout_editor_im_too_large">फ़ाइलें आयात करने के लिए बहुत बड़ी हैं।</string>
     <string name="layout_editor_ime_picker_empty">कोई अन्य कीबोर्ड चालू नहीं है। पहले अपने डिवाइस की कीबोर्ड सेटिंग में एक को सक्षम करें।</string>
     <string name="layout_editor_ime_picker_title">कौन सा कीबोर्ड</string>

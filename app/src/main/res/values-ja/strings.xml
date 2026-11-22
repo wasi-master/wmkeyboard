@@ -5863,7 +5863,6 @@
     <string name="layout_editor_foreign_language_search">言語を検索</string>
     <string name="layout_editor_foreign_language_title">言語</string>
     <string name="layout_editor_foreign_subtitle">FlorisBoardまたはHeliBoardのレイアウトファイルを読み込む</string>
-    <string name="layout_editor_foreign_title">他のキーボードからインポート</string>
     <string name="layout_editor_foreign_wrong_file_error">アプリはそのファイルをレイアウトとして読み取れません。FlorisBoardおよびHeliBoardのレイアウトは.jsonまたは.txtファイルです。FlorisBoardテーマ（.flex）をインポートするには、「テーマ」に移動してください。</string>
     <string name="layout_editor_gallery_caption">レイアウトとはキーグリッドのことです。そのレイアウトの基となる言語で入力されます。ベンガル語のグリッドを並べ替えても、ベンガル語の単語リストが使用されます。</string>
     <string name="layout_editor_height_decrease_desc">行の高さを短くする</string>
@@ -5896,7 +5895,6 @@
     <string name="layout_editor_im_busy">入力メソッドを読み込んでいます。Rimeの辞書が大きい場合、1分ほどかかることがあります。</string>
     <string name="layout_editor_im_failed">入力メソッドを保存できませんでした。デバイスに十分な空き容量があることを確認してください。</string>
     <string name="layout_editor_im_subtitle">.cinテーブル、辞書付きのRimeスキーマ、またはm17n .mimファイルを読み込みます。メソッドに必要なすべてのファイルを同時に選択してください。</string>
-    <string name="layout_editor_im_title">入力メソッドをインポート</string>
     <string name="layout_editor_im_too_large">ファイルが大きすぎてインポートできません。</string>
     <string name="layout_editor_ime_picker_empty">他に有効なキーボードがありません。デバイスのキーボード設定で先に有効にしてください。</string>
     <string name="layout_editor_ime_picker_title">どのキーボード</string>

@@ -5873,7 +5873,6 @@
     <string name="layout_editor_foreign_language_search">Išči jezike</string>
     <string name="layout_editor_foreign_language_title">Jezik</string>
     <string name="layout_editor_foreign_subtitle">Preberi datoteko postavitve iz FlorisBoard ali HeliBoard</string>
-    <string name="layout_editor_foreign_title">Uvozi iz druge tipkovnice</string>
     <string name="layout_editor_foreign_wrong_file_error">Aplikacija ne more prebrati te datoteke kot postavitve. Postavitve FlorisBoard in HeliBoard so datoteke .json ali .txt. Za uvoz teme FlorisBoard (.flex) pojdite na Teme.</string>
     <string name="layout_editor_gallery_caption">Postavitev je ključna mreža. Določa jezik postavitve, na kateri temelji. Bengalska mreža, ki jo preuredite, še vedno uporablja bengalski seznam besed.</string>
     <string name="layout_editor_height_decrease_desc">Skrajšaj vrstico</string>
@@ -5906,7 +5905,6 @@
     <string name="layout_editor_im_busy">Branje načina vnosa. Velik slovar Rime lahko vzame minuto.</string>
     <string name="layout_editor_im_failed">Aplikacija ni mogla shraniti načina vnosa. Prepričajte se, da je v napravi dovolj prostora.</string>
     <string name="layout_editor_im_subtitle">Preberite tabelo .cin, shemo Rime z njenimi slovarji ali datoteko m17n .mim. Izberite vse datoteke, ki jih metoda potrebuje hkrati.</string>
-    <string name="layout_editor_im_title">Uvozi način vnosa</string>
     <string name="layout_editor_im_too_large">Datoteke so prevelike za uvoz.</string>
     <string name="layout_editor_ime_picker_empty">Nobena druga tipkovnica ni vklopljena. Najprej jo omogočite v nastavitvah tipkovnice vaše naprave.</string>
     <string name="layout_editor_ime_picker_title">Katera tipkovnica</string>

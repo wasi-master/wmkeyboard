@@ -5871,7 +5871,6 @@
     <string name="layout_editor_foreign_language_search">Søk etter språk</string>
     <string name="layout_editor_foreign_language_title">Språk</string>
     <string name="layout_editor_foreign_subtitle">Les en oppsettfil fra FlorisBoard eller HeliBoard</string>
-    <string name="layout_editor_foreign_title">Importer fra et annet tastatur</string>
     <string name="layout_editor_foreign_wrong_file_error">Appen kan ikke lese den filen som et oppsett. FlorisBoard- og HeliBoard-oppsett er .json- eller .txt-filer. For å importere et FlorisBoard-tema (.flex), gå til Temaer.</string>
     <string name="layout_editor_gallery_caption">Et oppsett er et tastenett. Det skriver språket til oppsettet det er basert på. Et bengalsk rutenett som du omorganiserer, bruker fortsatt den bengalske ordlisten.</string>
     <string name="layout_editor_height_decrease_desc">Gjør raden kortere</string>
@@ -5904,7 +5903,6 @@
     <string name="layout_editor_im_busy">Leser inndatametoden. En stor Rime-ordbok kan ta et minutt.</string>
     <string name="layout_editor_im_failed">Appen kunne ikke lagre inndatametoden. Sørg for at det er ledig plass på enheten.</string>
     <string name="layout_editor_im_subtitle">Les en .cin-tabell, et Rime-skjema med tilhørende ordbøker, eller en m17n .mim-fil. Velg alle filene metoden trenger samtidig.</string>
-    <string name="layout_editor_im_title">Importer en inndatametode</string>
     <string name="layout_editor_im_too_large">Filene er for store til å importeres.</string>
     <string name="layout_editor_ime_picker_empty">Ingen andre tastaturer er aktivert. Aktiver et i enhetens tastaturinnstillinger først.</string>
     <string name="layout_editor_ime_picker_title">Hvilket tastatur</string>

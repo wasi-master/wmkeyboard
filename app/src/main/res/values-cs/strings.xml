@@ -5862,7 +5862,6 @@
     <string name="layout_editor_foreign_language_search">Hledat jazyky</string>
     <string name="layout_editor_foreign_language_title">Jazyk</string>
     <string name="layout_editor_foreign_subtitle">Načíst soubor rozvržení z FlorisBoard nebo HeliBoard</string>
-    <string name="layout_editor_foreign_title">Importovat z jiné klávesnice</string>
     <string name="layout_editor_foreign_wrong_file_error">Aplikace nemůže tento soubor přečíst jako rozvržení. Rozvržení FlorisBoard a HeliBoard jsou soubory .json nebo .txt. Chcete-li importovat motiv FlorisBoard (.flex), přejděte do Motivů.</string>
     <string name="layout_editor_gallery_caption">Rozvržení je mřížka kláves. Píše jazykem rozvržení, na kterém je založeno. Bengálská mřížka, kterou si přeuspořádáte, stále používá bengálský seznam slov.</string>
     <string name="layout_editor_height_decrease_desc">Zmenšit výšku řádku</string>
@@ -5895,7 +5894,6 @@
     <string name="layout_editor_im_busy">Načítání metody vstupu. Velký slovník Rime může trvat minutu.</string>
     <string name="layout_editor_im_failed">Aplikaci se nepodařilo uložit metodu vstupu. Ujistěte se, že je v zařízení volné místo.</string>
     <string name="layout_editor_im_subtitle">Načtěte tabulku .cin, schéma Rime s jeho slovníky nebo soubor .mim m17n. Vyberte všechny soubory, které metoda potřebuje, najednou.</string>
-    <string name="layout_editor_im_title">Importovat metodu zadávání</string>
     <string name="layout_editor_im_too_large">Soubory jsou příliš velké pro import.</string>
     <string name="layout_editor_ime_picker_empty">Nejsou zapnuty žádné další klávesnice. Nejprve jednu povolte v nastavení klávesnice vašeho zařízení.</string>
     <string name="layout_editor_ime_picker_title">Která klávesnice</string>

@@ -5871,7 +5871,6 @@
     <string name="layout_editor_foreign_language_search">Caută limbi</string>
     <string name="layout_editor_foreign_language_title">Limbă</string>
     <string name="layout_editor_foreign_subtitle">Citește un fișier de layout de la FlorisBoard sau HeliBoard</string>
-    <string name="layout_editor_foreign_title">Importă de la o altă tastatură</string>
     <string name="layout_editor_foreign_wrong_file_error">Aplicația nu poate citi acel fișier ca aspect. Aspectele FlorisBoard și HeliBoard sunt fișiere .json sau .txt. Pentru a importa o temă FlorisBoard (.flex), accesează Teme.</string>
     <string name="layout_editor_gallery_caption">Un aspect este o grilă de taste. Acesta scrie în limba aspectului pe care se bazează. O grilă bengaleză pe care o rearanjați folosește în continuare lista de cuvinte bengaleze.</string>
     <string name="layout_editor_height_decrease_desc">Fă rândul mai scurt</string>
@@ -5904,7 +5903,6 @@
     <string name="layout_editor_im_busy">Se citește metoda de introducere. Un dicționar Rime mare poate dura un minut.</string>
     <string name="layout_editor_im_failed">Aplicația nu a putut salva metoda de introducere. Asigură-te că există spațiu liber pe dispozitiv.</string>
     <string name="layout_editor_im_subtitle">Citește un tabel .cin, o schemă Rime cu dicționarele sale sau un fișier .mim m17n. Alege toate fișierele de care are nevoie metoda în același timp.</string>
-    <string name="layout_editor_im_title">Importă o metodă de introducere</string>
     <string name="layout_editor_im_too_large">Fișierele sunt prea mari pentru a fi importate.</string>
     <string name="layout_editor_ime_picker_empty">Nu sunt activate alte tastaturi. Mai întâi activați una din setările de tastatură ale dispozitivului.</string>
     <string name="layout_editor_ime_picker_title">Ce tastatură</string>

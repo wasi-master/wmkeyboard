@@ -5867,7 +5867,6 @@
     <string name="layout_editor_foreign_language_search">Søg efter sprog</string>
     <string name="layout_editor_foreign_language_title">Sprog</string>
     <string name="layout_editor_foreign_subtitle">Læs en layoutfil fra FlorisBoard eller HeliBoard</string>
-    <string name="layout_editor_foreign_title">Importer fra et andet tastatur</string>
     <string name="layout_editor_foreign_wrong_file_error">Appen kan ikke læse den fil som et layout. FlorisBoard- og HeliBoard-layouts er .json- eller .txt-filer. For at importere et FlorisBoard-tema (.flex), gå til Temaer.</string>
     <string name="layout_editor_gallery_caption">Et layout er et tastaturgitter. Det bruger sproget fra det layout, det er baseret på. Et bengalsk gitter, som du omarrangerer, bruger stadig den bengalske ordliste.</string>
     <string name="layout_editor_height_decrease_desc">Gør rækken kortere</string>
@@ -5900,7 +5899,6 @@
     <string name="layout_editor_im_busy">Læser inputmetoden. En stor Rime-ordbog kan tage et minut.</string>
     <string name="layout_editor_im_failed">Appen kunne ikke gemme inputmetoden. Sørg for, at der er ledig plads på enheden.</string>
     <string name="layout_editor_im_subtitle">Læs en .cin-tabel, et Rime-skema med dets ordbøger eller en m17n .mim-fil. Vælg alle de filer, metoden har brug for, på samme tid.</string>
-    <string name="layout_editor_im_title">Importér en inputmetode</string>
     <string name="layout_editor_im_too_large">Filerne er for store til at importere.</string>
     <string name="layout_editor_ime_picker_empty">Ingen andre tastaturer er aktiveret. Aktivér et i din enheds tastaturindstillinger først.</string>
     <string name="layout_editor_ime_picker_title">Hvilket tastatur</string>

@@ -27,6 +27,13 @@
     <string name="layout_editor_import_title">Import a layout</string>
     <!-- .wmlayout.json is a file name ending. Do not translate it. -->
     <string name="layout_editor_import_subtitle">Opens a .wmlayout.json file that someone shared</string>
+    <!-- Layout & size: the row that opens every way of importing a layout, and
+         the sheet it opens. The sheet lists a layout file, a layout from
+         another keyboard and an input method. -->
+    <string name="layout_import_row_subtitle">From a layout file, another keyboard or an input method</string>
+    <string name="layout_import_file_title">Layout file</string>
+    <string name="layout_import_foreign_title">Another keyboard</string>
+    <string name="layout_import_im_title">Input method</string>
     <string name="layout_editor_built_in_title">Built in</string>
 
     <!-- Name given to the copy of a layout. %1$s is the name of the layout the
@@ -79,7 +86,6 @@
 
     <!-- Layouts made for a different keyboard app. The app reads the file and
          writes a layout of its own from it. -->
-    <string name="layout_editor_foreign_title">Import from another keyboard</string>
     <string name="layout_editor_foreign_subtitle">Read a layout file from FlorisBoard, HeliBoard, FUTO, Samsung Keyboard (Keys Cafe), Multiling O, Unexpected Keyboard, or a Windows, Mac or Linux computer</string>
     <string name="layout_editor_foreign_wrong_file_error">The app cannot read that file as a layout. FlorisBoard and HeliBoard layouts are .json or .txt files, FUTO layouts are .yaml files, Samsung Keyboard layouts shared from Keys Cafe are .kcf files, Multiling O layouts are text files with an OK_Layout_Begin block, a DIY layout or a settings export, and Unexpected Keyboard layouts are .xml files. Computer layouts are .klc files from Windows, .keylayout files from a Mac, and XKB symbols files from Linux. To import a FlorisBoard theme (.flex), go to Themes.</string>
     <!-- %1$s is the name of the layout the app made from the file. -->
@@ -105,7 +111,6 @@
     <!-- The language a converted layout types in. The file does not say, so the
          app makes a guess from the letters on the keys. -->
     <!-- ".cin", "Rime", "m17n", ".mim" and "jquery.ime" are the names of formats; do not translate them. -->
-    <string name="layout_editor_im_title">Import an input method</string>
     <string name="layout_editor_im_subtitle">Read a .cin table, a Rime schema with its dictionaries, an m17n .mim file, or a jquery.ime rule file. Pick all the files the method needs at the same time.</string>
     <string name="layout_editor_im_busy">Reading the input method. A large Rime dictionary can take a minute.</string>
     <string name="layout_editor_im_too_large">The files are too large to import.</string>

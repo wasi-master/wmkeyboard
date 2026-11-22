@@ -40,12 +40,13 @@ The Key layouts screen has its own, differently scoped **Your layouts** section:
 
 <SettingsPath path="Layout & size / Import a layout" />
 
-Four rows under Your layouts bring layouts in from a file or send the ones in use out to one. They used to sit at the foot of Key layouts.
+Two rows under Your layouts bring layouts in from a file or send the ones in use out to one. They used to sit at the foot of Key layouts.
 
-- **Import a layout** opens a `.wmlayout.json` file, or a `.wmlayouts.json` file of several.
+- **Import a layout** ("From a layout file, another keyboard or an input method") opens a sheet with three sources:
+  - **Layout file** opens a `.wmlayout.json` file, or a `.wmlayouts.json` file of several.
+  - **Another keyboard** reads a layout from FlorisBoard, HeliBoard, FUTO, Samsung Keyboard (Keys Cafe), Multiling O, Unexpected Keyboard or a computer's keyboard layout file. See [Importing from other keyboards](/reference/importing-other-keyboards/).
+  - **Input method** reads a `.cin` table, a Rime schema with its dictionaries, an m17n `.mim` file, or a jquery.ime rule file. While a large one is still being read, the row says so and can't be picked again.
 - **Export layouts in use** writes every layout that is on, and every one of your own, to one file.
-- **Import from another keyboard** reads a layout from FlorisBoard, HeliBoard, FUTO, Samsung Keyboard (Keys Cafe), Multiling O, Unexpected Keyboard or a computer's keyboard layout file. See [Importing from other keyboards](/reference/importing-other-keyboards/).
-- **Import an input method** reads a `.cin` table, a Rime schema with its dictionaries, an m17n `.mim` file, or a jquery.ime rule file.
 
 What each import asks before it adds anything is described on [Key layouts](/reference/settings/keymaps/#managing-your-layouts).
 

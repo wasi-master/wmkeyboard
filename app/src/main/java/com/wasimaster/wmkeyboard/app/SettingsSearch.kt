@@ -1303,10 +1303,10 @@ private fun SearchStrings.layoutRows(): List<SettingsSearchEntry> {
         bottomRow(R.string.layout_swap_comma_globe_title, R.string.layout_swap_comma_globe_subtitle),
         bottomRow(R.string.layout_globe_in_one_place_title, R.string.layout_globe_in_one_place_subtitle),
         // The import and export rows moved here from Key layouts (#1318).
-        row(R.string.layout_editor_import_title, R.string.layout_editor_import_subtitle),
+        // Import a layout opens a sheet of its three sources: a layout file,
+        // another keyboard, an input method.
+        row(R.string.layout_editor_import_title, R.string.layout_import_row_subtitle),
         row(R.string.layout_editor_bundle_title, R.string.layout_editor_bundle_subtitle),
-        row(R.string.layout_editor_foreign_title, R.string.layout_editor_foreign_subtitle),
-        row(R.string.layout_editor_im_title, R.string.layout_editor_im_subtitle),
         entry(
             R.string.layout_editor_tablet_expand_title,
             R.string.layout_editor_tablet_expand_subtitle,

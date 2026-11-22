@@ -5866,7 +5866,6 @@
     <string name="layout_editor_foreign_language_search">ભાષાઓ શોધો</string>
     <string name="layout_editor_foreign_language_title">ભાષા</string>
     <string name="layout_editor_foreign_subtitle">FlorisBoard અથવા HeliBoard માંથી લેઆઉટ ફાઇલ વાંચો</string>
-    <string name="layout_editor_foreign_title">અન્ય કીબોર્ડમાંથી આયાત કરો</string>
     <string name="layout_editor_foreign_wrong_file_error">એપ્લિકેશન તે ફાઇલને લેઆઉટ તરીકે વાંચી શકતી નથી. FlorisBoard અને HeliBoard લેઆઉટ .json અથવા .txt ફાઇલો છે. FlorisBoard થીમ (.flex) આયાત કરવા માટે, થીમ્સ પર જાઓ.</string>
     <string name="layout_editor_gallery_caption">લેઆઉટ એ એક કી ગ્રીડ છે. તે જે લેઆઉટ પર આધારિત છે તેની ભાષા ટાઈપ કરે છે. તમે ફરીથી ગોઠવેલી બંગાળી ગ્રીડ પણ બંગાળી શબ્દ સૂચિનો જ ઉપયોગ કરે છે.</string>
     <string name="layout_editor_height_decrease_desc">રો (row) ને ટૂંકી કરો</string>
@@ -5899,7 +5898,6 @@
     <string name="layout_editor_im_busy">ઇનપુટ પદ્ધતિ વાંચી રહ્યા છીએ. એક મોટી Rime ડિક્શનરીમાં એક મિનિટ લાગી શકે છે.</string>
     <string name="layout_editor_im_failed">એપ ઇનપુટ મેથડ સાચવી શકી નથી. ખાતરી કરો કે ઉપકરણ પર ખાલી જગ્યા છે.</string>
     <string name="layout_editor_im_subtitle">એક .cin ટેબલ, તેના શબ્દકોશો સાથેનું Rime સ્કીમા, અથવા m17n .mim ફાઇલ વાંચો. પદ્ધતિને જે ફાઇલોની જરૂર હોય તે બધી એકસાથે પસંદ કરો.</string>
-    <string name="layout_editor_im_title">ઇનપુટ પદ્ધતિ આયાત કરો</string>
     <string name="layout_editor_im_too_large">ફાઇલો આયાત કરવા માટે ખૂબ મોટી છે.</string>
     <string name="layout_editor_ime_picker_empty">બીજા કોઈ કીબોર્ડ ચાલુ નથી. પહેલા તમારા ઉપકરણના કીબોર્ડ સેટિંગ્સમાં એક સક્ષમ કરો.</string>
     <string name="layout_editor_ime_picker_title">કયું કીબોર્ડ</string>

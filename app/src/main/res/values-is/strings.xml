@@ -5862,7 +5862,6 @@
     <string name="layout_editor_foreign_language_search">Leita að tungumálum</string>
     <string name="layout_editor_foreign_language_title">Tungumál</string>
     <string name="layout_editor_foreign_subtitle">Lesa skipulagsskrá frá FlorisBoard eða HeliBoard</string>
-    <string name="layout_editor_foreign_title">Flytja inn frá öðru lyklaborði</string>
     <string name="layout_editor_foreign_wrong_file_error">Forritið getur ekki lesið þessa skrá sem útlit. FlorisBoard og HeliBoard útlit eru .json eða .txt skrár. Til að flytja inn FlorisBoard-þema (.flex), farðu í Þemu.</string>
     <string name="layout_editor_gallery_caption">Skipulag er lykilnet. Það skrifar tungumálið sem skipulagið byggist á. Bengalskt net sem þú endurraðar notar enn bengalska orðalistann.</string>
     <string name="layout_editor_height_decrease_desc">Gera röðina styttri</string>
@@ -5895,7 +5894,6 @@
     <string name="layout_editor_im_busy">Les inn innsláttaraðferð. Stór Rime-orðabók getur tekið mínútu.</string>
     <string name="layout_editor_im_failed">Forritið gat ekki vistað innsláttaraðferðina. Gakktu úr skugga um að það sé laust pláss á tækinu.</string>
     <string name="layout_editor_im_subtitle">Lesa .cin-töflu, Rime-skema með orðabókum þess, eða m17n .mim-skrá. Veldu allar skrárnar sem aðferðin þarfnast í einu.</string>
-    <string name="layout_editor_im_title">Flytja inn innsláttaraðferð</string>
     <string name="layout_editor_im_too_large">Skrárnar eru of stórar til að flytja inn.</string>
     <string name="layout_editor_ime_picker_empty">Engin önnur lyklaborð eru virk. Virkjaðu eitt í lyklaborðsstillingum tækisins þíns fyrst.</string>
     <string name="layout_editor_ime_picker_title">Hvaða lyklaborð</string>

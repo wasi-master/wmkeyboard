@@ -5869,7 +5869,6 @@
     <string name="layout_editor_foreign_language_search">Търсене на езици</string>
     <string name="layout_editor_foreign_language_title">Език</string>
     <string name="layout_editor_foreign_subtitle">Четене на файл с оформление от FlorisBoard или HeliBoard</string>
-    <string name="layout_editor_foreign_title">Импортиране от друга клавиатура</string>
     <string name="layout_editor_foreign_wrong_file_error">Приложението не може да прочете този файл като оформление. Оформленията на FlorisBoard и HeliBoard са .json или .txt файлове. За да импортирате тема на FlorisBoard (.flex), отидете в Теми.</string>
     <string name="layout_editor_gallery_caption">Оформлението е ключова мрежа. То въвежда езика на оформлението, на което се базира. Бенгалска мрежа, която пренаредите, все още използва списъка с бенгалски думи.</string>
     <string name="layout_editor_height_decrease_desc">Направете реда по-нисък</string>
@@ -5902,7 +5901,6 @@
     <string name="layout_editor_im_busy">Четене на метода за въвеждане. Голям речник Rime може да отнеме около минута.</string>
     <string name="layout_editor_im_failed">Приложението не успя да запише метода на въвеждане. Уверете се, че на устройството има свободно място.</string>
     <string name="layout_editor_im_subtitle">Прочетете .cin таблица, Rime схема с нейните речници или m17n .mim файл. Изберете всички файлове, от които методът се нуждае, едновременно.</string>
-    <string name="layout_editor_im_title">Импортиране на метод за въвеждане</string>
     <string name="layout_editor_im_too_large">Файловете са твърде големи за импортиране.</string>
     <string name="layout_editor_ime_picker_empty">Няма включени други клавиатури. Първо активирайте една в настройките на клавиатурата на вашето устройство.</string>
     <string name="layout_editor_ime_picker_title">Коя клавиатура</string>

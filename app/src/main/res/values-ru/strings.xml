@@ -5873,7 +5873,6 @@
     <string name="layout_editor_foreign_language_search">Поиск языков</string>
     <string name="layout_editor_foreign_language_title">Язык</string>
     <string name="layout_editor_foreign_subtitle">Чтение файла раскладки из FlorisBoard или HeliBoard</string>
-    <string name="layout_editor_foreign_title">Импорт с другой клавиатуры</string>
     <string name="layout_editor_foreign_wrong_file_error">Приложение не может прочитать этот файл как раскладку. Раскладки FlorisBoard и HeliBoard — это файлы .json или .txt. Чтобы импортировать тему FlorisBoard (.flex), перейдите в раздел «Темы».</string>
     <string name="layout_editor_gallery_caption">Раскладка — это сетка клавиш. Она печатает на языке, на котором основана раскладка. Бенгальская сетка, которую вы переставляете, по-прежнему использует бенгальский список слов.</string>
     <string name="layout_editor_height_decrease_desc">Уменьшить высоту строки</string>
@@ -5906,7 +5905,6 @@
     <string name="layout_editor_im_busy">Чтение метода ввода. Большой словарь Rime может загружаться около минуты.</string>
     <string name="layout_editor_im_failed">Приложению не удалось сохранить метод ввода. Убедитесь, что на устройстве достаточно свободного места.</string>
     <string name="layout_editor_im_subtitle">Прочитайте таблицу .cin, схему Rime с её словарями или файл .mim m17n. Выберите все файлы, необходимые для метода, одновременно.</string>
-    <string name="layout_editor_im_title">Импортировать метод ввода</string>
     <string name="layout_editor_im_too_large">Файлы слишком велики для импорта.</string>
     <string name="layout_editor_ime_picker_empty">Другие клавиатуры не включены. Сначала включите одну из них в настройках клавиатуры вашего устройства.</string>
     <string name="layout_editor_ime_picker_title">Какую клавиатуру</string>

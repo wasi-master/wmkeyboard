@@ -5879,7 +5879,6 @@
     <string name="layout_editor_foreign_language_search">ਭਾਸ਼ਾਵਾਂ ਖੋਜੋ</string>
     <string name="layout_editor_foreign_language_title">ਭਾਸ਼ਾ</string>
     <string name="layout_editor_foreign_subtitle">FlorisBoard ਜਾਂ HeliBoard ਤੋਂ ਇੱਕ ਲੇਆਉਟ ਫਾਈਲ ਪੜ੍ਹੋ</string>
-    <string name="layout_editor_foreign_title">ਕਿਸੇ ਹੋਰ ਕੀਬੋਰਡ ਤੋਂ ਇੰਪੋਰਟ ਕਰੋ</string>
     <string name="layout_editor_foreign_wrong_file_error">ਐਪ ਉਸ ਫਾਈਲ ਨੂੰ ਲੇਆਉਟ ਵਜੋਂ ਨਹੀਂ ਪੜ੍ਹ ਸਕਦੀ। FlorisBoard ਅਤੇ HeliBoard ਲੇਆਉਟ .json ਜਾਂ .txt ਫਾਈਲਾਂ ਹਨ। FlorisBoard ਥੀਮ (.flex) ਨੂੰ ਆਯਾਤ ਕਰਨ ਲਈ, ਥੀਮ \'ਤੇ ਜਾਓ।</string>
     <string name="layout_editor_gallery_caption">ਲੇਆਉਟ ਇੱਕ ਕੁੰਜੀ ਗਰਿੱਡ ਹੈ। ਇਹ ਉਸ ਲੇਆਉਟ ਦੀ ਭਾਸ਼ਾ ਟਾਈਪ ਕਰਦਾ ਹੈ ਜਿਸ \'ਤੇ ਇਹ ਅਧਾਰਤ ਹੈ। ਇੱਕ ਬੰਗਾਲੀ ਗਰਿੱਡ ਜਿਸਨੂੰ ਤੁਸੀਂ ਮੁੜ-ਵਿਵਸਥਿਤ ਕਰਦੇ ਹੋ, ਉਹ ਅਜੇ ਵੀ ਬੰਗਾਲੀ ਸ਼ਬਦ ਸੂਚੀ ਦੀ ਵਰਤੋਂ ਕਰਦਾ ਹੈ।</string>
     <string name="layout_editor_height_decrease_desc">ਕਤਾਰ ਨੂੰ ਛੋਟਾ ਕਰੋ</string>
@@ -5912,7 +5911,6 @@
     <string name="layout_editor_im_busy">ਇਨਪੁਟ ਵਿਧੀ ਪੜ੍ਹ ਰਿਹਾ ਹੈ। ਇੱਕ ਵੱਡੀ Rime ਡਿਕਸ਼ਨਰੀ ਵਿੱਚ ਇੱਕ ਮਿੰਟ ਲੱਗ ਸਕਦਾ ਹੈ।</string>
     <string name="layout_editor_im_failed">ਐਪ ਇਨਪੁਟ ਵਿਧੀ ਨੂੰ ਸੁਰੱਖਿਅਤ ਨਹੀਂ ਕਰ ਸਕੀ। ਯਕੀਨੀ ਬਣਾਓ ਕਿ ਡਿਵਾਈਸ \'ਤੇ ਖਾਲੀ ਥਾਂ ਹੈ।</string>
     <string name="layout_editor_im_subtitle">ਇੱਕ .cin ਟੇਬਲ, ਇਸਦੇ ਸ਼ਬਦਕੋਸ਼ਾਂ ਦੇ ਨਾਲ ਇੱਕ Rime ਸਕੀਮਾ, ਜਾਂ ਇੱਕ m17n .mim ਫਾਈਲ ਪੜ੍ਹੋ। ਉਹ ਸਾਰੀਆਂ ਫਾਈਲਾਂ ਚੁਣੋ ਜਿਨ੍ਹਾਂ ਦੀ ਵਿਧੀ ਨੂੰ ਇੱਕੋ ਸਮੇਂ ਲੋੜ ਹੈ।</string>
-    <string name="layout_editor_im_title">ਇੱਕ ਇਨਪੁਟ ਵਿਧੀ ਆਯਾਤ ਕਰੋ</string>
     <string name="layout_editor_im_too_large">ਫਾਈਲਾਂ ਇੰਪੋਰਟ ਕਰਨ ਲਈ ਬਹੁਤ ਵੱਡੀਆਂ ਹਨ।</string>
     <string name="layout_editor_ime_picker_empty">ਕੋਈ ਹੋਰ ਕੀਬੋਰਡ ਚਾਲੂ ਨਹੀਂ ਹੈ। ਪਹਿਲਾਂ ਆਪਣੀ ਡਿਵਾਈਸ ਦੀਆਂ ਕੀਬੋਰਡ ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਇੱਕ ਨੂੰ ਸਮਰੱਥ ਬਣਾਓ।</string>
     <string name="layout_editor_ime_picker_title">ਕਿਹੜਾ ਕੀਬੋਰਡ</string>

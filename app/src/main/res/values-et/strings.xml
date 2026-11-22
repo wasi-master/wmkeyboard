@@ -5870,7 +5870,6 @@
     <string name="layout_editor_foreign_language_search">Otsi keeli</string>
     <string name="layout_editor_foreign_language_title">Keel</string>
     <string name="layout_editor_foreign_subtitle">Loe paigutusfaili FlorisBoardist või HeliBoardist</string>
-    <string name="layout_editor_foreign_title">Impordi teisest klaviatuurist</string>
     <string name="layout_editor_foreign_wrong_file_error">Rakendus ei saa seda faili paigutusena lugeda. FlorisBoardi ja HeliBoardi paigutused on .json või .txt failid. FlorisBoardi teema (.flex) importimiseks minge jaotisse Teemad.</string>
     <string name="layout_editor_gallery_caption">Paigutus on klahvide ruudustik. See kirjutab selle keele paigutuses, millel see põhineb. Bengali ruudustik, mida ümber korraldate, kasutab endiselt bengali keele sõnaloendit.</string>
     <string name="layout_editor_height_decrease_desc">Tee rida lühemaks</string>
@@ -5903,7 +5902,6 @@
     <string name="layout_editor_im_busy">Loen sisestusmeetodit. Suur Rime\'i sõnastik võib võtta minuti.</string>
     <string name="layout_editor_im_failed">Rakendusel ei õnnestunud sisestusmeetodit salvestada. Veenduge, et seadmes on vaba ruumi.</string>
     <string name="layout_editor_im_subtitle">Lugege .cin-tabelit, Rime\'i skeemi koos selle sõnastikega või m17n .mim-faili. Valige kõik meetodi jaoks vajalikud failid korraga.</string>
-    <string name="layout_editor_im_title">Impordi sisestusmeetod</string>
     <string name="layout_editor_im_too_large">Failid on importimiseks liiga suured.</string>
     <string name="layout_editor_ime_picker_empty">Muid klaviatuure pole sisse lülitatud. Lubage mõni oma seadme klaviatuuriseadetes kõigepealt.</string>
     <string name="layout_editor_ime_picker_title">Milline klaviatuur</string>

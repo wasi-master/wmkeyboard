@@ -5866,7 +5866,6 @@
     <string name="layout_editor_foreign_language_search">Pesquisar idiomas</string>
     <string name="layout_editor_foreign_language_title">Idioma</string>
     <string name="layout_editor_foreign_subtitle">Ler um arquivo de layout do FlorisBoard ou HeliBoard</string>
-    <string name="layout_editor_foreign_title">Importar de outro teclado</string>
     <string name="layout_editor_foreign_wrong_file_error">O aplicativo não consegue ler esse arquivo como um layout. Layouts do FlorisBoard e HeliBoard são arquivos .json ou .txt. Para importar um tema do FlorisBoard (.flex), vá para Temas.</string>
     <string name="layout_editor_gallery_caption">Um layout é uma grade de teclas. Ele digita o idioma do layout no qual se baseia. Uma grade bengali que você reorganiza ainda usa a lista de palavras em bengali.</string>
     <string name="layout_editor_height_decrease_desc">Tornar a linha mais curta</string>
@@ -5899,7 +5898,6 @@
     <string name="layout_editor_im_busy">Lendo o método de entrada. Um dicionário Rime grande pode levar um minuto.</string>
     <string name="layout_editor_im_failed">O aplicativo não conseguiu salvar o método de entrada. Certifique-se de que haja espaço livre no dispositivo.</string>
     <string name="layout_editor_im_subtitle">Leia uma tabela .cin, um esquema Rime com seus dicionários ou um arquivo .mim m17n. Escolha todos os arquivos que o método precisa ao mesmo tempo.</string>
-    <string name="layout_editor_im_title">Importar um método de entrada</string>
     <string name="layout_editor_im_too_large">Os arquivos são grandes demais para importar.</string>
     <string name="layout_editor_ime_picker_empty">Nenhum outro teclado está ativado. Ative um nas configurações de teclado do seu dispositivo primeiro.</string>
     <string name="layout_editor_ime_picker_title">Qual teclado</string>

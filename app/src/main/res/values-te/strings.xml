@@ -5872,7 +5872,6 @@
     <string name="layout_editor_foreign_language_search">భాషల కోసం వెతకండి</string>
     <string name="layout_editor_foreign_language_title">భాష</string>
     <string name="layout_editor_foreign_subtitle">FlorisBoard లేదా HeliBoard నుండి లేఅవుట్ ఫైల్‌ను చదవండి</string>
-    <string name="layout_editor_foreign_title">మరో కీబోర్డ్ నుండి దిగుమతి చేసుకోండి</string>
     <string name="layout_editor_foreign_wrong_file_error">యాప్ ఆ ఫైల్‌ను లేఅవుట్‌గా చదవలేదు. FlorisBoard మరియు HeliBoard లేఅవుట్‌లు .json లేదా .txt ఫైళ్లు. FlorisBoard థీమ్‌ను (.flex) దిగుమతి చేసుకోవడానికి, థీమ్‌లకు వెళ్లండి.</string>
     <string name="layout_editor_gallery_caption">లేఅవుట్ అనేది ఒక కీ గ్రిడ్. ఇది ఏ లేఅవుట్ ఆధారంగా ఉందో ఆ భాషను టైప్ చేస్తుంది. మీరు మార్చిన బెంగాలీ గ్రిడ్ ఇప్పటికీ బెంగాలీ పదాల జాబితాను ఉపయోగిస్తుంది.</string>
     <string name="layout_editor_height_decrease_desc">అడ్డు వరుసను చిన్నదిగా చేయండి</string>
@@ -5905,7 +5904,6 @@
     <string name="layout_editor_im_busy">ఇన్‌పుట్ పద్ధతిని చదువుతోంది. పెద్ద రైమ్ (Rime) డిక్షనరీకి ఒక నిమిషం పట్టవచ్చు.</string>
     <string name="layout_editor_im_failed">యాప్ ఇన్‌పుట్ పద్ధతిని సేవ్ చేయలేకపోయింది. పరికరంలో ఖాళీ స్థలం ఉందని నిర్ధారించుకోండి.</string>
     <string name="layout_editor_im_subtitle">.cin టేబుల్, దాని నిఘంటువులతో కూడిన Rime స్కీమా లేదా m17n .mim ఫైల్‌ను చదవండి. ఈ పద్ధతికి అవసరమైన అన్ని ఫైళ్లను ఒకేసారి ఎంచుకోండి.</string>
-    <string name="layout_editor_im_title">ఇన్‌పుట్ పద్ధతిని దిగుమతి చేయండి</string>
     <string name="layout_editor_im_too_large">ఫైల్‌లు దిగుమతి చేసుకోవడానికి చాలా పెద్దవిగా ఉన్నాయి.</string>
     <string name="layout_editor_ime_picker_empty">వేరే కీబోర్డులు ఏవీ ఆన్ చేయలేదు. ముందుగా మీ పరికరం యొక్క కీబోర్డ్ సెట్టింగ్‌లలో ఒకదాన్ని ఎనేబుల్ చేయండి.</string>
     <string name="layout_editor_ime_picker_title">ఏ కీబోర్డ్</string>

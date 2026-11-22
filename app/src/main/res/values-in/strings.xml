@@ -5865,7 +5865,6 @@
     <string name="layout_editor_foreign_language_search">Cari bahasa</string>
     <string name="layout_editor_foreign_language_title">Bahasa</string>
     <string name="layout_editor_foreign_subtitle">Membaca file tata letak dari FlorisBoard atau HeliBoard</string>
-    <string name="layout_editor_foreign_title">Impor dari papan ketik lain</string>
     <string name="layout_editor_foreign_wrong_file_error">Aplikasi tidak dapat membaca file tersebut sebagai tata letak. Tata letak FlorisBoard dan HeliBoard adalah file .json atau .txt. Untuk mengimpor tema FlorisBoard (.flex), buka Tema.</string>
     <string name="layout_editor_gallery_caption">Tata letak adalah kisi kunci. Ini mengetik bahasa dari tata letak yang menjadi dasarnya. Kisi bahasa Bengali yang Anda susun ulang tetap menggunakan daftar kata bahasa Bengali.</string>
     <string name="layout_editor_height_decrease_desc">Buat baris lebih pendek</string>
@@ -5898,7 +5897,6 @@
     <string name="layout_editor_im_busy">Membaca metode input. Kamus Rime yang besar bisa memakan waktu satu menit.</string>
     <string name="layout_editor_im_failed">Aplikasi gagal menyimpan metode input. Pastikan ada ruang kosong pada perangkat.</string>
     <string name="layout_editor_im_subtitle">Membaca tabel .cin, skema Rime beserta kamusnya, atau file .mim m17n. Pilih semua file yang dibutuhkan metode tersebut secara bersamaan.</string>
-    <string name="layout_editor_im_title">Impor metode input</string>
     <string name="layout_editor_im_too_large">File terlalu besar untuk diimpor.</string>
     <string name="layout_editor_ime_picker_empty">Tidak ada keyboard lain yang diaktifkan. Aktifkan salah satu di setelan keyboard perangkat Anda terlebih dahulu.</string>
     <string name="layout_editor_ime_picker_title">Papan ketik mana</string>

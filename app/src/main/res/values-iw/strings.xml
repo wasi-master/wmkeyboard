@@ -5867,7 +5867,6 @@
     <string name="layout_editor_foreign_language_search">חפש שפות</string>
     <string name="layout_editor_foreign_language_title">שפה</string>
     <string name="layout_editor_foreign_subtitle">קרא קובץ פריסה מ-FlorisBoard או HeliBoard</string>
-    <string name="layout_editor_foreign_title">ייבוא ממקלדת אחרת</string>
     <string name="layout_editor_foreign_wrong_file_error">האפליקציה אינה יכולה לקרוא את הקובץ הזה כפריסה. פריסות FlorisBoard ו-HeliBoard הן קבצי .json או .txt. כדי לייבא ערכת נושא של FlorisBoard (.flex), עבור אל ערכות נושא.</string>
     <string name="layout_editor_gallery_caption">פריסה היא רשת מקשים. היא מגדירה את שפת הפריסה שעליה היא מבוססת. רשת בנגלית שסידרת מחדש עדיין משתמשת ברשימת המילים הבנגלית.</string>
     <string name="layout_editor_height_decrease_desc">הפוך את השורה לקצרה יותר</string>
@@ -5900,7 +5899,6 @@
     <string name="layout_editor_im_busy">קורא את שיטת הקלט. מילון Rime גדול עשוי לקחת דקה.</string>
     <string name="layout_editor_im_failed">היישום לא הצליח לשמור את שיטת הקלט. ודא שקיים שטח פנוי במכשיר.</string>
     <string name="layout_editor_im_subtitle">קרא טבלת .cin, סכימת Rime עם המילונים שלה, או קובץ .mim של m17n. בחר את כל הקבצים שהשיטה צריכה בו-זמנית.</string>
-    <string name="layout_editor_im_title">ייבוא שיטת קלט</string>
     <string name="layout_editor_im_too_large">הקבצים גדולים מדי לייבוא.</string>
     <string name="layout_editor_ime_picker_empty">אין מקלדות אחרות מופעלות. הפעל אחת בהגדרות המקלדת של המכשיר שלך תחילה.</string>
     <string name="layout_editor_ime_picker_title">איזו מקלדת</string>

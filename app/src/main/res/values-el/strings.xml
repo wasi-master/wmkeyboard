@@ -5865,7 +5865,6 @@
     <string name="layout_editor_foreign_language_search">Αναζήτηση γλωσσών</string>
     <string name="layout_editor_foreign_language_title">Γλώσσα</string>
     <string name="layout_editor_foreign_subtitle">Ανάγνωση αρχείου διάταξης από το FlorisBoard ή το HeliBoard</string>
-    <string name="layout_editor_foreign_title">Εισαγωγή από άλλο πληκτρολόγιο</string>
     <string name="layout_editor_foreign_wrong_file_error">Η εφαρμογή δεν μπορεί να διαβάσει αυτό το αρχείο ως διάταξη. Οι διατάξεις FlorisBoard και HeliBoard είναι αρχεία .json ή .txt. Για να εισαγάγετε ένα θέμα FlorisBoard (.flex), μεταβείτε στα Θέματα.</string>
     <string name="layout_editor_gallery_caption">Μια διάταξη είναι ένα πλέγμα πλήκτρων. Πληκτρολογεί τη γλώσσα της διάταξης στην οποία βασίζεται. Ένα πλέγμα Βεγγαλικών που αναδιατάσσετε εξακολουθεί να χρησιμοποιεί τη λίστα λέξεων των Βεγγαλικών.</string>
     <string name="layout_editor_height_decrease_desc">Μείωση ύψους σειράς</string>
@@ -5898,7 +5897,6 @@
     <string name="layout_editor_im_busy">Ανάγνωση της μεθόδου εισαγωγής. Ένα μεγάλο λεξικό Rime μπορεί να πάρει ένα λεπτό.</string>
     <string name="layout_editor_im_failed">Η εφαρμογή δεν μπόρεσε να αποθηκεύσει τη μέθοδο εισαγωγής. Βεβαιωθείτε ότι υπάρχει ελεύθερος χώρος στη συσκευή.</string>
     <string name="layout_editor_im_subtitle">Διαβάστε έναν πίνακα .cin, ένα σχήμα Rime με τα λεξικά του ή ένα αρχείο .mim m17n. Επιλέξτε όλα τα αρχεία που χρειάζεται η μέθοδος ταυτόχρονα.</string>
-    <string name="layout_editor_im_title">Εισαγωγή μεθόδου εισαγωγής</string>
     <string name="layout_editor_im_too_large">Τα αρχεία είναι πολύ μεγάλα για εισαγωγή.</string>
     <string name="layout_editor_ime_picker_empty">Δεν είναι ενεργοποιημένα άλλα πληκτρολόγια. Ενεργοποιήστε ένα πρώτα από τις ρυθμίσεις πληκτρολογίου της συσκευής σας.</string>
     <string name="layout_editor_ime_picker_title">Ποιο πληκτρολόγιο</string>

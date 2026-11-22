@@ -5880,7 +5880,6 @@
     <string name="layout_editor_foreign_language_search">ಭಾಷೆಗಳನ್ನು ಹುಡುಕಿ</string>
     <string name="layout_editor_foreign_language_title">ಭಾಷೆ</string>
     <string name="layout_editor_foreign_subtitle">FlorisBoard ಅಥವಾ HeliBoard ನಿಂದ ಲೇಔಟ್ ಫೈಲ್ ಅನ್ನು ಓದಿ</string>
-    <string name="layout_editor_foreign_title">ಮತ್ತೊಂದು ಕೀಬೋರ್ಡ್‌ನಿಂದ ಆಮದು ಮಾಡಿ</string>
     <string name="layout_editor_foreign_wrong_file_error">ಆ್ಯಪ್ ಆ ಫೈಲ್ ಅನ್ನು ಲೇಔಟ್ ಆಗಿ ಓದಲು ಸಾಧ್ಯವಿಲ್ಲ. FlorisBoard ಮತ್ತು HeliBoard ಲೇಔಟ್‌ಗಳು .json ಅಥವಾ .txt ಫೈಲ್‌ಗಳಾಗಿವೆ. FlorisBoard ಥೀಮ್ (.flex) ಅನ್ನು ಆಮದು ಮಾಡಲು, ಥೀಮ್‌ಗಳಿಗೆ ಹೋಗಿ.</string>
     <string name="layout_editor_gallery_caption">ಲೇಔಟ್ ಎಂದರೆ ಕೀ ಗ್ರಿಡ್. ಇದು ಆಧಾರಿತವಾಗಿರುವ ಲೇಔಟ್‌ನ ಭಾಷೆಯನ್ನು ಟೈಪ್ ಮಾಡುತ್ತದೆ. ನೀವು ಮರುಹೊಂದಿಸಿದ ಬಂಗಾಳಿ ಗ್ರಿಡ್ ಇನ್ನೂ ಬಂಗಾಳಿ ಪದಗಳ ಪಟ್ಟಿಯನ್ನೇ ಬಳಸುತ್ತದೆ.</string>
     <string name="layout_editor_height_decrease_desc">ಸಾಲನ್ನು ಚಿಕ್ಕದಾಗಿಸಿ</string>
@@ -5913,7 +5912,6 @@
     <string name="layout_editor_im_busy">ಇನ್‌ಪುಟ್ ವಿಧಾನವನ್ನು ಓದಲಾಗುತ್ತಿದೆ. ದೊಡ್ಡ ರೈಮ್ (Rime) ನಿಘಂಟಿಗೆ ಒಂದು ನಿಮಿಷ ಬೇಕಾಗಬಹುದು.</string>
     <string name="layout_editor_im_failed">ಆ್ಯಪ್ ಇನ್‌ಪುಟ್ ಮೆಥಡ್ ಅನ್ನು ಉಳಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ಸಾಧನದಲ್ಲಿ ಖಾಲಿ ಜಾಗವಿದೆಯೇ ಎಂದು ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಿ.</string>
     <string name="layout_editor_im_subtitle">.cin ಟೇಬಲ್, ಅದರ ನಿಘಂಟುಗಳೊಂದಿಗೆ Rime ಸ್ಕೀಮಾ ಅಥವಾ m17n .mim ಫೈಲ್ ಅನ್ನು ಓದಿ. ವಿಧಾನಕ್ಕೆ ಅಗತ್ಯವಿರುವ ಎಲ್ಲಾ ಫೈಲ್‌ಗಳನ್ನು ಒಂದೇ ಸಮಯದಲ್ಲಿ ಆಯ್ಕೆಮಾಡಿ.</string>
-    <string name="layout_editor_im_title">ಇನ್‌ಪುಟ್ ವಿಧಾನವನ್ನು ಆಮದು ಮಾಡಿ</string>
     <string name="layout_editor_im_too_large">ಫೈಲ್‌ಗಳು ಆಮದು ಮಾಡಿಕೊಳ್ಳಲು ತುಂಬಾ ದೊಡ್ಡದಾಗಿವೆ.</string>
     <string name="layout_editor_ime_picker_empty">ಬೇರೆ ಯಾವುದೇ ಕೀಬೋರ್ಡ್‌ಗಳನ್ನು ಆನ್ ಮಾಡಲಾಗಿಲ್ಲ. ಮೊದಲು ನಿಮ್ಮ ಸಾಧನದ ಕೀಬೋರ್ಡ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಒಂದನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ.</string>
     <string name="layout_editor_ime_picker_title">ಯಾವ ಕೀಬೋರ್ಡ್</string>

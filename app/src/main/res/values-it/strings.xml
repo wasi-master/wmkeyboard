@@ -5861,7 +5861,6 @@
     <string name="layout_editor_foreign_language_search">Cerca lingue</string>
     <string name="layout_editor_foreign_language_title">Lingua</string>
     <string name="layout_editor_foreign_subtitle">Leggi un file di layout da FlorisBoard o HeliBoard</string>
-    <string name="layout_editor_foreign_title">Importa da un\'altra tastiera</string>
     <string name="layout_editor_foreign_wrong_file_error">L\'app non può leggere quel file come layout. I layout di FlorisBoard e HeliBoard sono file .json o .txt. Per importare un tema FlorisBoard (.flex), vai su Temi.</string>
     <string name="layout_editor_gallery_caption">Un layout è una griglia di tasti. Definisce la lingua del layout su cui si basa. Una griglia bengalese che riorganizzi utilizza comunque l\'elenco di parole bengalesi.</string>
     <string name="layout_editor_height_decrease_desc">Rendi la riga più corta</string>
@@ -5894,7 +5893,6 @@
     <string name="layout_editor_im_busy">Lettura del metodo di input. Un dizionario Rime di grandi dimensioni può richiedere un minuto.</string>
     <string name="layout_editor_im_failed">L\'app non è riuscita a salvare il metodo di input. Assicurati che ci sia spazio libero sul dispositivo.</string>
     <string name="layout_editor_im_subtitle">Leggi una tabella .cin, uno schema Rime con i suoi dizionari o un file .mim m17n. Scegli tutti i file necessari al metodo contemporaneamente.</string>
-    <string name="layout_editor_im_title">Importa un metodo di input</string>
     <string name="layout_editor_im_too_large">I file sono troppo grandi per essere importati.</string>
     <string name="layout_editor_ime_picker_empty">Nessun\'altra tastiera è attiva. Abilitane una prima nelle impostazioni della tastiera del tuo dispositivo.</string>
     <string name="layout_editor_ime_picker_title">Quale tastiera</string>

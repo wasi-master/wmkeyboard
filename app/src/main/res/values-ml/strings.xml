@@ -5876,7 +5876,6 @@
     <string name="layout_editor_foreign_language_search">ഭാഷകൾക്കായി തിരയുക</string>
     <string name="layout_editor_foreign_language_title">ഭാഷ</string>
     <string name="layout_editor_foreign_subtitle">FlorisBoard അല്ലെങ്കിൽ HeliBoard-ൽ നിന്ന് ഒരു ലേഔട്ട് ഫയൽ വായിക്കുക</string>
-    <string name="layout_editor_foreign_title">മറ്റൊരു കീബോർഡിൽ നിന്ന് ഇറക്കുമതി ചെയ്യുക</string>
     <string name="layout_editor_foreign_wrong_file_error">ആപ്പിന് ആ ഫയൽ ഒരു ലേഔട്ടായി വായിക്കാൻ കഴിയില്ല. FlorisBoard, HeliBoard ലേഔട്ടുകൾ .json അല്ലെങ്കിൽ .txt ഫയലുകളാണ്. ഒരു FlorisBoard തീം (.flex) ഇമ്പോർട്ട് ചെയ്യാൻ, തീമുകളിലേക്ക് പോകുക.</string>
     <string name="layout_editor_gallery_caption">ഒരു ലേഔട്ട് എന്നത് ഒരു കീ ഗ്രിഡ് ആണ്. അത് അടിസ്ഥാനമാക്കിയുള്ള ലേഔട്ടിന്റെ ഭാഷയാണ് ടൈപ്പ് ചെയ്യുന്നത്. നിങ്ങൾ പുനഃക്രമീകരിക്കുന്ന ഒരു ബംഗാളി ഗ്രിഡ് ഇപ്പോഴും ബംഗാളി വേഡ് ലിസ്റ്റ് തന്നെയാണ് ഉപയോഗിക്കുന്നത്.</string>
     <string name="layout_editor_height_decrease_desc">വരിയുടെ ഉയരം കുറയ്ക്കുക</string>
@@ -5909,7 +5908,6 @@
     <string name="layout_editor_im_busy">ഇൻപുട്ട് രീതി വായിക്കുന്നു. വലിയൊരു Rime ഡിക്ഷണറിക്ക് ഒരു മിനിറ്റ് സമയം എടുത്തേക്കാം.</string>
     <string name="layout_editor_im_failed">ആപ്പിന് ഇൻപുട്ട് രീതി സേവ് ചെയ്യാൻ കഴിഞ്ഞില്ല. ഉപകരണത്തിൽ ആവശ്യത്തിന് സ്ഥലമുണ്ടെന്ന് ഉറപ്പാക്കുക.</string>
     <string name="layout_editor_im_subtitle">ഒരു .cin ടേബിൾ, അതിന്റെ നിഘണ്ടുവുള്ള ഒരു Rime സ്കീമ, അല്ലെങ്കിൽ ഒരു m17n .mim ഫയൽ എന്നിവ വായിക്കുക. രീതിക്ക് ആവശ്യമായ എല്ലാ ഫയലുകളും ഒരേസമയം തിരഞ്ഞെടുക്കുക.</string>
-    <string name="layout_editor_im_title">ഒരു ഇൻപുട്ട് രീതി ഇറക്കുമതി ചെയ്യുക</string>
     <string name="layout_editor_im_too_large">ഫയലുകൾ ഇംപോർട്ട് ചെയ്യാൻ കഴിയാത്തത്ര വലുതാണ്.</string>
     <string name="layout_editor_ime_picker_empty">മറ്റ് കീബോർഡുകളൊന്നും ഓണാക്കിയിട്ടില്ല. ആദ്യം നിങ്ങളുടെ ഉപകരണത്തിന്റെ കീബോർഡ് ക്രമീകരണങ്ങളിൽ ഒന്ന് പ്രവർത്തനക്ഷമമാക്കുക.</string>
     <string name="layout_editor_ime_picker_title">ഏത് കീബോർഡ്</string>

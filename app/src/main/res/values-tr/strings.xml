@@ -5862,7 +5862,6 @@
     <string name="layout_editor_foreign_language_search">Dilleri ara</string>
     <string name="layout_editor_foreign_language_title">Dil</string>
     <string name="layout_editor_foreign_subtitle">FlorisBoard veya HeliBoard\'dan bir düzen dosyası oku</string>
-    <string name="layout_editor_foreign_title">Başka bir klavyeden içe aktar</string>
     <string name="layout_editor_foreign_wrong_file_error">Uygulama bu dosyayı düzen olarak okuyamıyor. FlorisBoard ve HeliBoard düzenleri .json veya .txt dosyalarıdır. Bir FlorisBoard teması (.flex) içe aktarmak için Temalar\'a gidin.</string>
     <string name="layout_editor_gallery_caption">Düzen bir tuş ızgarasıdır. Temel aldığı düzenin dilini yazar. Yeniden düzenlediğiniz bir Bengalce ızgara yine de Bengalce kelime listesini kullanır.</string>
     <string name="layout_editor_height_decrease_desc">Satırı kısalt</string>
@@ -5895,7 +5894,6 @@
     <string name="layout_editor_im_busy">Giriş yöntemi okunuyor. Büyük bir Rime sözlüğü bir dakika sürebilir.</string>
     <string name="layout_editor_im_failed">Uygulama giriş yöntemini kaydedemedi. Cihazda boş yer olduğundan emin olun.</string>
     <string name="layout_editor_im_subtitle">Bir .cin tablosunu, sözlükleriyle birlikte bir Rime şemasını veya bir m17n .mim dosyasını okuyun. Yöntemin ihtiyaç duyduğu tüm dosyaları aynı anda seçin.</string>
-    <string name="layout_editor_im_title">Bir giriş yöntemi içe aktar</string>
     <string name="layout_editor_im_too_large">Dosyalar içe aktarılamayacak kadar büyük.</string>
     <string name="layout_editor_ime_picker_empty">Başka klavye açık değil. Önce cihazınızın klavye ayarlarından birini etkinleştirin.</string>
     <string name="layout_editor_ime_picker_title">Hangi klavye</string>

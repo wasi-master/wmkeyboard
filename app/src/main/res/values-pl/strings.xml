@@ -5869,7 +5869,6 @@
     <string name="layout_editor_foreign_language_search">Szukaj języków</string>
     <string name="layout_editor_foreign_language_title">Język</string>
     <string name="layout_editor_foreign_subtitle">Wczytaj plik układu z FlorisBoard lub HeliBoard</string>
-    <string name="layout_editor_foreign_title">Importuj z innej klawiatury</string>
     <string name="layout_editor_foreign_wrong_file_error">Aplikacja nie może odczytać tego pliku jako układu. Układy FlorisBoard i HeliBoard to pliki .json lub .txt. Aby zaimportować motyw FlorisBoard (.flex), przejdź do Motywów.</string>
     <string name="layout_editor_gallery_caption">Układ to siatka klawiszy. Pisze w języku układu, na którym jest oparty. Bengalska siatka, którą zmienisz, nadal używa bengalskiej listy słów.</string>
     <string name="layout_editor_height_decrease_desc">Zmniejsz wysokość rzędu</string>
@@ -5902,7 +5901,6 @@
     <string name="layout_editor_im_busy">Odczytywanie metody wprowadzania. Duży słownik Rime może zająć minutę.</string>
     <string name="layout_editor_im_failed">Aplikacja nie mogła zapisać metody wprowadzania. Upewnij się, że na urządzeniu jest wolne miejsce.</string>
     <string name="layout_editor_im_subtitle">Odczytaj tabelę .cin, schemat Rime wraz z jego słownikami lub plik .mim m17n. Wybierz wszystkie pliki, których potrzebuje metoda, w tym samym czasie.</string>
-    <string name="layout_editor_im_title">Zaimportuj metodę wprowadzania</string>
     <string name="layout_editor_im_too_large">Pliki są zbyt duże, aby je zaimportować.</string>
     <string name="layout_editor_ime_picker_empty">Żadne inne klawiatury nie są włączone. Najpierw włącz jedną z nich w ustawieniach klawiatury swojego urządzenia.</string>
     <string name="layout_editor_ime_picker_title">Która klawiatura</string>

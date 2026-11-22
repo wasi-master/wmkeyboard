@@ -5871,7 +5871,6 @@
     <string name="layout_editor_foreign_language_search">Sök språk</string>
     <string name="layout_editor_foreign_language_title">Språk</string>
     <string name="layout_editor_foreign_subtitle">Läs en layoutfil från FlorisBoard eller HeliBoard</string>
-    <string name="layout_editor_foreign_title">Importera från ett annat tangentbord</string>
     <string name="layout_editor_foreign_wrong_file_error">Appen kan inte läsa den filen som en layout. FlorisBoard- och HeliBoard-layouter är .json- eller .txt-filer. För att importera ett FlorisBoard-tema (.flex), gå till Teman.</string>
     <string name="layout_editor_gallery_caption">En layout är ett tangentrutnät. Den skriver språket för den layout den är baserad på. Ett bengaliskt rutnät som du arrangerar om använder fortfarande den bengaliska ordlistan.</string>
     <string name="layout_editor_height_decrease_desc">Gör raden kortare</string>
@@ -5904,7 +5903,6 @@
     <string name="layout_editor_im_busy">Läser inmatningsmetoden. En stor Rime-ordbok kan ta en minut.</string>
     <string name="layout_editor_im_failed">Appen kunde inte spara inmatningsmetoden. Se till att det finns ledigt utrymme på enheten.</string>
     <string name="layout_editor_im_subtitle">Läs en .cin-tabell, ett Rime-schema med dess ordböcker, eller en m17n .mim-fil. Välj alla filer som metoden behöver samtidigt.</string>
-    <string name="layout_editor_im_title">Importera en inmatningsmetod</string>
     <string name="layout_editor_im_too_large">Filerna är för stora för att importeras.</string>
     <string name="layout_editor_ime_picker_empty">Inga andra tangentbord är aktiverade. Aktivera ett i enhetens tangentbordsinställningar först.</string>
     <string name="layout_editor_ime_picker_title">Vilket tangentbord</string>

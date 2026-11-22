@@ -5872,7 +5872,6 @@
     <string name="layout_editor_foreign_language_search">البحث عن لغات</string>
     <string name="layout_editor_foreign_language_title">اللغة</string>
     <string name="layout_editor_foreign_subtitle">قراءة ملف تخطيط من FlorisBoard أو HeliBoard</string>
-    <string name="layout_editor_foreign_title">استيراد من لوحة مفاتيح أخرى</string>
     <string name="layout_editor_foreign_wrong_file_error">لا يمكن للتطبيق قراءة هذا الملف كتخطيط. تخطيطات FlorisBoard و HeliBoard هي ملفات .json أو .txt. لاستيراد سمة FlorisBoard (.flex)، انتقل إلى السمات.</string>
     <string name="layout_editor_gallery_caption">التخطيط هو شبكة مفاتيح. يكتب بلغة التخطيط الذي يعتمد عليه. شبكة البنغالية التي تعيد ترتيبها لا تزال تستخدم قائمة كلمات البنغالية.</string>
     <string name="layout_editor_height_decrease_desc">اجعل الصف أقصر</string>
@@ -5905,7 +5904,6 @@
     <string name="layout_editor_im_busy">جاري قراءة طريقة الإدخال. قد يستغرق قاموس Rime الكبير دقيقة.</string>
     <string name="layout_editor_im_failed">لم يتمكن التطبيق من حفظ طريقة الإدخال. تأكد من وجود مساحة خالية على الجهاز.</string>
     <string name="layout_editor_im_subtitle">اقرأ جدول .cin، أو مخطط Rime مع قواميسه، أو ملف .mim الخاص بـ m17n. اختر جميع الملفات التي تحتاجها الطريقة في نفس الوقت.</string>
-    <string name="layout_editor_im_title">استيراد طريقة إدخال</string>
     <string name="layout_editor_im_too_large">الملفات كبيرة جداً بحيث لا يمكن استيرادها.</string>
     <string name="layout_editor_ime_picker_empty">لا توجد لوحات مفاتيح أخرى مفعلة. قم بتفعيل واحدة من إعدادات لوحة المفاتيح في جهازك أولاً.</string>
     <string name="layout_editor_ime_picker_title">أي لوحة مفاتيح</string>

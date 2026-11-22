@@ -5872,7 +5872,6 @@
     <string name="layout_editor_foreign_language_search">Meklēt valodas</string>
     <string name="layout_editor_foreign_language_title">Valoda</string>
     <string name="layout_editor_foreign_subtitle">Nolasīt izkārtojuma failu no FlorisBoard vai HeliBoard</string>
-    <string name="layout_editor_foreign_title">Importēt no citas tastatūras</string>
     <string name="layout_editor_foreign_wrong_file_error">Lietotne nevar nolasīt šo failu kā izkārtojumu. FlorisBoard un HeliBoard izkārtojumi ir .json vai .txt faili. Lai importētu FlorisBoard tēmu (.flex), dodieties uz Tēmas.</string>
     <string name="layout_editor_gallery_caption">Izkārtojums ir taustiņu režģis. Tas raksta tās valodas izkārtojumā, uz kuras tas balstīts. Bengāļu režģis, kuru pārkārtojat, joprojām izmanto bengāļu vārdu sarakstu.</string>
     <string name="layout_editor_height_decrease_desc">Padarīt rindu īsāku</string>
@@ -5905,7 +5904,6 @@
     <string name="layout_editor_im_busy">Notiek ievades metodes nolasīšana. Liela Rime vārdnīca var aizņemt minūti.</string>
     <string name="layout_editor_im_failed">Lietotnei neizdevās saglabāt ievades metodi. Pārliecinieties, vai ierīcē ir brīva vieta.</string>
     <string name="layout_editor_im_subtitle">Nolasiet .cin tabulu, Rime shēmu ar tās vārdnīcām vai m17n .mim failu. Atlasiet visus ievades metodei nepieciešamos failus vienlaikus.</string>
-    <string name="layout_editor_im_title">Importēt ievades metodi</string>
     <string name="layout_editor_im_too_large">Faili ir pārāk lieli, lai tos importētu.</string>
     <string name="layout_editor_ime_picker_empty">Citas tastatūras nav ieslēgtas. Vispirms iespējojiet vienu no tām savas ierīces tastatūras iestatījumos.</string>
     <string name="layout_editor_ime_picker_title">Kura tastatūra</string>

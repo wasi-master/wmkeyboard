@@ -5865,7 +5865,6 @@
     <string name="layout_editor_foreign_language_search">மொழிகளைத் தேடு</string>
     <string name="layout_editor_foreign_language_title">மொழி</string>
     <string name="layout_editor_foreign_subtitle">FlorisBoard அல்லது HeliBoard இலிருந்து தளவமைப்பு கோப்பை வாசிக்கவும்</string>
-    <string name="layout_editor_foreign_title">மற்றொரு விசைப்பலகையிலிருந்து இறக்குமதி செய்யவும்</string>
     <string name="layout_editor_foreign_wrong_file_error">இந்தச் செயலியால் அந்தக் கோப்பை அமைப்பாகப் படிக்க முடியாது. FlorisBoard மற்றும் HeliBoard அமைப்புகள் .json அல்லது .txt கோப்புகள். FlorisBoard தீம் (.flex) இறக்குமதி செய்ய, தீம்களுக்குச் செல்லவும்.</string>
     <string name="layout_editor_gallery_caption">தளவமைப்பு என்பது ஒரு முக்கிய கட்டமாகும். இது எந்த தளவமைப்பை அடிப்படையாகக் கொண்டதோ அந்த மொழியைத் தட்டச்சு செய்கிறது. நீங்கள் மறுசீரமைக்கும் பெங்காலி கட்டம் இன்னும் பெங்காலி வார்த்தைப் பட்டியலையே பயன்படுத்துகிறது.</string>
     <string name="layout_editor_height_decrease_desc">வரிசையைச் சிறியதாக்கு</string>
@@ -5898,7 +5897,6 @@
     <string name="layout_editor_im_busy">உள்ளீட்டு முறையை வாசிக்கிறது. ஒரு பெரிய Rime அகராதிக்கு ஒரு நிமிடம் ஆகலாம்.</string>
     <string name="layout_editor_im_failed">ஆப்ஸால் உள்ளீட்டு முறையைச் சேமிக்க முடியவில்லை. சாதனத்தில் போதிய இடம் இருப்பதை உறுதி செய்யவும்.</string>
     <string name="layout_editor_im_subtitle">.cin அட்டவணை, அதன் அகராதிகளுடன் கூடிய Rime ஸ்கீமா அல்லது m17n .mim கோப்பை வாசிக்கவும். முறைக்குத் தேவையான அனைத்து கோப்புகளையும் ஒரே நேரத்தில் தேர்ந்தெடுக்கவும்.</string>
-    <string name="layout_editor_im_title">உள்ளீட்டு முறையை இறக்குமதி செய்</string>
     <string name="layout_editor_im_too_large">கோப்புகள் இறக்குமதி செய்ய முடியாத அளவுக்கு பெரியவை.</string>
     <string name="layout_editor_ime_picker_empty">வேறு எந்த விசைப்பலகைகளும் ஆன் செய்யப்படவில்லை. முதலில் உங்கள் சாதனத்தின் விசைப்பலகை அமைப்புகளில் ஒன்றை இயக்கவும்.</string>
     <string name="layout_editor_ime_picker_title">எந்த விசைப்பலகை</string>

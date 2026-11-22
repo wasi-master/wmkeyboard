@@ -5873,7 +5873,6 @@
     <string name="layout_editor_foreign_language_search">جستجوی زبان‌ها</string>
     <string name="layout_editor_foreign_language_title">زبان</string>
     <string name="layout_editor_foreign_subtitle">خواندن یک فایل طرح‌بندی از FlorisBoard یا HeliBoard</string>
-    <string name="layout_editor_foreign_title">وارد کردن از صفحه‌کلید دیگر</string>
     <string name="layout_editor_foreign_wrong_file_error">برنامه نمی‌تواند آن فایل را به عنوان طرح‌بندی بخواند. طرح‌بندی‌های FlorisBoard و HeliBoard فایل‌های .json یا .txt هستند. برای وارد کردن تم FlorisBoard (.flex)، به بخش تم‌ها بروید.</string>
     <string name="layout_editor_gallery_caption">طرح‌بندی یک شبکه کلیدی است. این طرح‌بندی به زبانی که بر اساس آن ساخته شده تایپ می‌کند. یک شبکه بنگالی که دوباره مرتب می‌کنید همچنان از لیست کلمات بنگالی استفاده می‌کند.</string>
     <string name="layout_editor_height_decrease_desc">ردیف را کوتاه‌تر کنید</string>
@@ -5906,7 +5905,6 @@
     <string name="layout_editor_im_busy">در حال خواندن روش ورودی. یک فرهنگ لغت بزرگ Rime ممکن است یک دقیقه طول بکشد.</string>
     <string name="layout_editor_im_failed">برنامه نتوانست روش ورودی را ذخیره کند. مطمئن شوید که فضای خالی روی دستگاه وجود دارد.</string>
     <string name="layout_editor_im_subtitle">یک جدول .cin، یک طرح Rime با فرهنگ‌های لغت آن، یا یک فایل .mim m17n را بخوانید. تمام فایل‌های مورد نیاز روش را همزمان انتخاب کنید.</string>
-    <string name="layout_editor_im_title">وارد کردن یک روش ورودی</string>
     <string name="layout_editor_im_too_large">فایل‌ها برای وارد کردن بیش از حد بزرگ هستند.</string>
     <string name="layout_editor_ime_picker_empty">هیچ صفحه‌کلید دیگری فعال نیست. ابتدا یکی را در تنظیمات صفحه‌کلید دستگاه خود فعال کنید.</string>
     <string name="layout_editor_ime_picker_title">کدام صفحه‌کلید</string>

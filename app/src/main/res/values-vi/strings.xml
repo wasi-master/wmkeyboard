@@ -5861,7 +5861,6 @@
     <string name="layout_editor_foreign_language_search">Tìm kiếm ngôn ngữ</string>
     <string name="layout_editor_foreign_language_title">Ngôn ngữ</string>
     <string name="layout_editor_foreign_subtitle">Đọc tệp bố cục từ FlorisBoard hoặc HeliBoard</string>
-    <string name="layout_editor_foreign_title">Nhập từ bàn phím khác</string>
     <string name="layout_editor_foreign_wrong_file_error">Ứng dụng không thể đọc tệp đó dưới dạng bố cục. Bố cục của FlorisBoard và HeliBoard là các tệp .json hoặc .txt. Để nhập chủ đề FlorisBoard (.flex), hãy đi tới phần Chủ đề.</string>
     <string name="layout_editor_gallery_caption">Bố cục là một lưới phím. Nó nhập ngôn ngữ của bố cục mà nó dựa trên. Một lưới tiếng Bengal mà bạn sắp xếp lại vẫn sử dụng danh sách từ tiếng Bengal.</string>
     <string name="layout_editor_height_decrease_desc">Làm cho hàng thấp hơn</string>
@@ -5894,7 +5893,6 @@
     <string name="layout_editor_im_busy">Đang đọc phương thức nhập liệu. Một từ điển Rime lớn có thể mất một phút.</string>
     <string name="layout_editor_im_failed">Ứng dụng không thể lưu phương thức nhập liệu. Hãy đảm bảo thiết bị còn dung lượng trống.</string>
     <string name="layout_editor_im_subtitle">Đọc bảng .cin, lược đồ Rime cùng các từ điển của nó, hoặc tệp .mim m17n. Chọn tất cả các tệp mà phương thức cần cùng một lúc.</string>
-    <string name="layout_editor_im_title">Nhập phương thức nhập liệu</string>
     <string name="layout_editor_im_too_large">Các tệp quá lớn để nhập.</string>
     <string name="layout_editor_ime_picker_empty">Không có bàn phím nào khác được bật. Hãy bật một bàn phím trong cài đặt bàn phím của thiết bị trước.</string>
     <string name="layout_editor_ime_picker_title">Bàn phím nào</string>

@@ -5861,7 +5861,6 @@
     <string name="layout_editor_foreign_language_search">언어 검색</string>
     <string name="layout_editor_foreign_language_title">언어</string>
     <string name="layout_editor_foreign_subtitle">FlorisBoard 또는 HeliBoard의 레이아웃 파일 읽기</string>
-    <string name="layout_editor_foreign_title">다른 키보드에서 가져오기</string>
     <string name="layout_editor_foreign_wrong_file_error">앱에서 해당 파일을 레이아웃으로 읽을 수 없습니다. FlorisBoard 및 HeliBoard 레이아웃은 .json 또는 .txt 파일입니다. FlorisBoard 테마(.flex)를 가져오려면 테마 메뉴로 이동하세요.</string>
     <string name="layout_editor_gallery_caption">레이아웃은 키 그리드입니다. 기반이 되는 레이아웃의 언어로 입력됩니다. 재배치한 벵골어 그리드도 여전히 벵골어 단어 목록을 사용합니다.</string>
     <string name="layout_editor_height_decrease_desc">행을 더 짧게 만들기</string>
@@ -5894,7 +5893,6 @@
     <string name="layout_editor_im_busy">입력기를 읽는 중입니다. Rime 사전이 크면 1분 정도 걸릴 수 있습니다.</string>
     <string name="layout_editor_im_failed">입력 방식을 저장할 수 없습니다. 기기에 여유 공간이 있는지 확인하세요.</string>
     <string name="layout_editor_im_subtitle">.cin 테이블, 사전이 포함된 Rime 스키마 또는 m17n .mim 파일을 읽습니다. 입력기가 필요로 하는 모든 파일을 한 번에 선택하세요.</string>
-    <string name="layout_editor_im_title">입력 방식 가져오기</string>
     <string name="layout_editor_im_too_large">파일이 너무 커서 가져올 수 없습니다.</string>
     <string name="layout_editor_ime_picker_empty">다른 키보드가 활성화되어 있지 않습니다. 먼저 기기의 키보드 설정에서 하나를 활성화하세요.</string>
     <string name="layout_editor_ime_picker_title">사용할 키보드</string>

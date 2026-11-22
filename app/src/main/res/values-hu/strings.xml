@@ -5861,7 +5861,6 @@
     <string name="layout_editor_foreign_language_search">Nyelvek keresése</string>
     <string name="layout_editor_foreign_language_title">Nyelv</string>
     <string name="layout_editor_foreign_subtitle">Elrendezésfájl olvasása a FlorisBoardból vagy a HeliBoardból</string>
-    <string name="layout_editor_foreign_title">Importálás másik billentyűzetből</string>
     <string name="layout_editor_foreign_wrong_file_error">Az alkalmazás nem tudja elrendezésként olvasni ezt a fájlt. A FlorisBoard és HeliBoard elrendezések .json vagy .txt fájlok. FlorisBoard téma (.flex) importálásához lépjen a Témák menüpontba.</string>
     <string name="layout_editor_gallery_caption">Az elrendezés egy billentyűrács. Annak az elrendezésnek a nyelvén ír, amelyen alapul. Egy bengáli rács, amelyet átrendezel, továbbra is a bengáli szójegyzéket használja.</string>
     <string name="layout_editor_height_decrease_desc">Sor rövidítése</string>
@@ -5894,7 +5893,6 @@
     <string name="layout_editor_im_busy">Beviteli mód olvasása. Egy nagy Rime-szótár eltarthat egy percig.</string>
     <string name="layout_editor_im_failed">Az alkalmazás nem tudta elmenteni a beviteli módot. Győződjön meg róla, hogy van szabad hely az eszközön.</string>
     <string name="layout_editor_im_subtitle">Olvasson be egy .cin táblázatot, egy Rime sémát a szótáraival együtt, vagy egy m17n .mim fájlt. Jelölje ki egyszerre az összes szükséges fájlt a módszerhez.</string>
-    <string name="layout_editor_im_title">Beviteli mód importálása</string>
     <string name="layout_editor_im_too_large">A fájlok túl nagyok az importáláshoz.</string>
     <string name="layout_editor_ime_picker_empty">Nincs más billentyűzet bekapcsolva. Először engedélyezzen egyet az eszköz billentyűzetbeállításaiban.</string>
     <string name="layout_editor_ime_picker_title">Melyik billentyűzet</string>

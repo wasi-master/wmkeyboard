@@ -5865,7 +5865,6 @@
     <string name="layout_editor_foreign_language_search">زبانیں تلاش کریں</string>
     <string name="layout_editor_foreign_language_title">زبان</string>
     <string name="layout_editor_foreign_subtitle">FlorisBoard یا HeliBoard سے لے آؤٹ فائل پڑھیں</string>
-    <string name="layout_editor_foreign_title">کسی دوسرے کی بورڈ سے درآمد کریں</string>
     <string name="layout_editor_foreign_wrong_file_error">ایپ اس فائل کو لے آؤٹ کے طور پر نہیں پڑھ سکتی۔ FlorisBoard اور HeliBoard کے لے آؤٹ .json یا .txt فائلیں ہوتے ہیں۔ FlorisBoard تھیم (.flex) درآمد کرنے کے لیے، تھیمز میں جائیں۔</string>
     <string name="layout_editor_gallery_caption">لے آؤٹ ایک کلیدی گرڈ ہے۔ یہ اس زبان میں ٹائپ کرتا ہے جس پر لے آؤٹ مبنی ہے۔ ایک بنگالی گرڈ جسے آپ دوبارہ ترتیب دیتے ہیں، اب بھی بنگالی الفاظ کی فہرست استعمال کرتا ہے۔</string>
     <string name="layout_editor_height_decrease_desc">قطار کو چھوٹا کریں</string>
@@ -5898,7 +5897,6 @@
     <string name="layout_editor_im_busy">ان پٹ میتھڈ پڑھا جا رہا ہے۔ ایک بڑی Rime لغت میں ایک منٹ لگ سکتا ہے۔</string>
     <string name="layout_editor_im_failed">ایپ ان پٹ طریقہ محفوظ نہیں کر سکی۔ یقینی بنائیں کہ ڈیوائس پر خالی جگہ موجود ہے۔</string>
     <string name="layout_editor_im_subtitle">.cin ٹیبل، ڈکشنریوں کے ساتھ Rime اسکیمہ، یا m17n .mim فائل پڑھیں۔ میتھڈ کے لیے درکار تمام فائلیں ایک ہی وقت میں منتخب کریں۔</string>
-    <string name="layout_editor_im_title">ان پٹ کا طریقہ درآمد کریں</string>
     <string name="layout_editor_im_too_large">فائلیں درآمد کرنے کے لیے بہت بڑی ہیں۔</string>
     <string name="layout_editor_ime_picker_empty">کوئی دوسرا کی بورڈ آن نہیں ہے۔ پہلے اپنے آلے کی کی بورڈ سیٹنگز میں ایک کو فعال کریں۔</string>
     <string name="layout_editor_ime_picker_title">کون سا کی بورڈ</string>

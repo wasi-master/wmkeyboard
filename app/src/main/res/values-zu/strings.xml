@@ -5876,7 +5876,6 @@
     <string name="layout_editor_foreign_language_search">Sesha izilimi</string>
     <string name="layout_editor_foreign_language_title">Ulimi</string>
     <string name="layout_editor_foreign_subtitle">Funda ifayela lesakhiwo kusuka ku-FlorisBoard noma i-HeliBoard</string>
-    <string name="layout_editor_foreign_title">Ngenisa kusuka kwelinye ikhibhodi</string>
     <string name="layout_editor_foreign_wrong_file_error">Uhlelo lokusebenza alukwazi ukufunda lelo fayela njengesakhiwo. Izakhiwo ze-FlorisBoard ne-HeliBoard amafayela we-.json noma .txt. Ukuze ungenise itimu ye-FlorisBoard (.flex), hamba ku-Themes.</string>
     <string name="layout_editor_gallery_caption">Isakhiwo iyigridi yokhiye. Ithayipha ulimi lwesakhiwo esisekelwe kuso. Igridi yesi-Bengali oyihlelayo isasebenzisa uhlu lwamagama esi-Bengali.</string>
     <string name="layout_editor_height_decrease_desc">Yenza umugqa ube mfushane</string>
@@ -5909,7 +5908,6 @@
     <string name="layout_editor_im_busy">Iyafunda indlela yokufaka. Isichazamazwi esikhulu se-Rime singathatha umzuzu.</string>
     <string name="layout_editor_im_failed">Uhlelo lokusebenza alukwazanga ukulondoloza indlela yokufaka. Qinisekisa ukuthi kukhona isikhala samahhala kudivayisi.</string>
     <string name="layout_editor_im_subtitle">Funda ithebula le-.cin, isikimu se-Rime nezichazamazwi aso, noma ifayela le-.mim le-m17n. Khetha wonke amafayela adingwa yindlela ngesikhathi esisodwa.</string>
-    <string name="layout_editor_im_title">Ngenisa indlela yokufaka</string>
     <string name="layout_editor_im_too_large">Amafayela makhulu kakhulu ukuthi angangeniswa.</string>
     <string name="layout_editor_ime_picker_empty">Azikho ezinye izikhibhodi ezivuliwe. Nika amandla eyodwa kuzilungiselelo zekhibhodi yedivayisi yakho kuqala.</string>
     <string name="layout_editor_ime_picker_title">Iyiphi ikhibhodi</string>

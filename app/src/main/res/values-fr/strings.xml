@@ -5860,7 +5860,6 @@
     <string name="layout_editor_foreign_language_search">Rechercher des langues</string>
     <string name="layout_editor_foreign_language_title">Langue</string>
     <string name="layout_editor_foreign_subtitle">Lire un fichier de disposition depuis FlorisBoard ou HeliBoard</string>
-    <string name="layout_editor_foreign_title">Importer depuis un autre clavier</string>
     <string name="layout_editor_foreign_wrong_file_error">L\'application ne peut pas lire ce fichier en tant que disposition. Les dispositions FlorisBoard et HeliBoard sont des fichiers .json ou .txt. Pour importer un thème FlorisBoard (.flex), allez dans Thèmes.</string>
     <string name="layout_editor_gallery_caption">Une disposition est une grille de touches. Elle saisit la langue de la disposition sur laquelle elle est basée. Une grille bengali que vous réorganisez utilise toujours la liste de mots bengali.</string>
     <string name="layout_editor_height_decrease_desc">Réduire la hauteur de la ligne</string>
@@ -5893,7 +5892,6 @@
     <string name="layout_editor_im_busy">Lecture de la méthode de saisie. Un gros dictionnaire Rime peut prendre une minute.</string>
     <string name="layout_editor_im_failed">L\'application n\'a pas pu enregistrer la méthode de saisie. Vérifiez que l\'espace de stockage est suffisant sur l\'appareil.</string>
     <string name="layout_editor_im_subtitle">Lisez une table .cin, un schéma Rime avec ses dictionnaires, ou un fichier .mim m17n. Sélectionnez tous les fichiers nécessaires à la méthode en même temps.</string>
-    <string name="layout_editor_im_title">Importer une méthode de saisie</string>
     <string name="layout_editor_im_too_large">Les fichiers sont trop volumineux pour être importés.</string>
     <string name="layout_editor_ime_picker_empty">Aucun autre clavier n\'est activé. Activez-en un dans les paramètres de clavier de votre appareil d\'abord.</string>
     <string name="layout_editor_ime_picker_title">Quel clavier</string>

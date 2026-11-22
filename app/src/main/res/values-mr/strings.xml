@@ -5869,7 +5869,6 @@
     <string name="layout_editor_foreign_language_search">भाषा शोधा</string>
     <string name="layout_editor_foreign_language_title">भाषा</string>
     <string name="layout_editor_foreign_subtitle">FlorisBoard किंवा HeliBoard वरून लेआउट फाइल वाचा</string>
-    <string name="layout_editor_foreign_title">दुसऱ्या कीबोर्डवरून आयात करा</string>
     <string name="layout_editor_foreign_wrong_file_error">ॲप ती फाइल लेआउट म्हणून वाचू शकत नाही. FlorisBoard आणि HeliBoard लेआउट्स .json किंवा .txt फाइल्स आहेत. FlorisBoard थीम (.flex) इंपोर्ट करण्यासाठी, थीम्सवर जा.</string>
     <string name="layout_editor_gallery_caption">लेआउट म्हणजे की ग्रिड. ते ज्या लेआउटवर आधारित आहे त्या भाषेमध्ये टाईप करते. तुम्ही पुन्हा मांडलेली बंगाली ग्रिड अजूनही बंगाली शब्द सूची वापरते.</string>
     <string name="layout_editor_height_decrease_desc">रो ची उंची कमी करा</string>
@@ -5902,7 +5901,6 @@
     <string name="layout_editor_im_busy">इनपुट पद्धत वाचत आहे. मोठ्या Rime शब्दकोशाला एक मिनिट लागू शकतो.</string>
     <string name="layout_editor_im_failed">ॲप इनपुट पद्धत सेव्ह करू शकले नाही. डिव्हाइसवर मोकळी जागा असल्याची खात्री करा.</string>
     <string name="layout_editor_im_subtitle">.cin टेबल, त्याच्या शब्दकोशांसह Rime स्कीमा किंवा m17n .mim फाइल वाचा. पद्धतीला आवश्यक असलेल्या सर्व फाइल्स एकाच वेळी निवडा.</string>
-    <string name="layout_editor_im_title">इनपुट पद्धत आयात करा</string>
     <string name="layout_editor_im_too_large">फाईल्स खूप मोठ्या असल्याने इंपोर्ट करता येत नाहीत.</string>
     <string name="layout_editor_ime_picker_empty">इतर कोणतेही कीबोर्ड चालू नाहीत. प्रथम तुमच्या डिव्हाइसच्या कीबोर्ड सेटिंग्जमध्ये एक सक्षम करा.</string>
     <string name="layout_editor_ime_picker_title">कोणता कीबोर्ड</string>

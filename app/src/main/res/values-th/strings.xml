@@ -5860,7 +5860,6 @@
     <string name="layout_editor_foreign_language_search">ค้นหาภาษา</string>
     <string name="layout_editor_foreign_language_title">ภาษา</string>
     <string name="layout_editor_foreign_subtitle">อ่านไฟล์เค้าโครงจาก FlorisBoard หรือ HeliBoard</string>
-    <string name="layout_editor_foreign_title">นำเข้าจากคีย์บอร์ดอื่น</string>
     <string name="layout_editor_foreign_wrong_file_error">แอปไม่สามารถอ่านไฟล์นั้นเป็นเค้าโครงได้ เค้าโครงของ FlorisBoard และ HeliBoard เป็นไฟล์ .json หรือ .txt หากต้องการนำเข้าธีม FlorisBoard (.flex) ให้ไปที่ธีม</string>
     <string name="layout_editor_gallery_caption">เค้าโครงคือตารางปุ่ม มันจะพิมพ์ภาษาตามเค้าโครงที่ใช้ ตารางภาษาเบงกาลีที่คุณจัดเรียงใหม่ยังคงใช้รายการคำศัพท์ภาษาเบงกาลี</string>
     <string name="layout_editor_height_decrease_desc">ทำให้แถวสั้นลง</string>
@@ -5893,7 +5892,6 @@
     <string name="layout_editor_im_busy">กำลังอ่านวิธีการป้อนข้อมูล พจนานุกรม Rime ขนาดใหญ่อาจใช้เวลาสักครู่</string>
     <string name="layout_editor_im_failed">แอปไม่สามารถบันทึกวิธีการป้อนข้อมูลได้ ตรวจสอบให้แน่ใจว่ามีพื้นที่ว่างบนอุปกรณ์</string>
     <string name="layout_editor_im_subtitle">อ่านตาราง .cin, สคีมา Rime พร้อมพจนานุกรม, หรือไฟล์ .mim ของ m17n เลือกไฟล์ทั้งหมดที่วิธีนี้ต้องการในเวลาเดียวกัน</string>
-    <string name="layout_editor_im_title">นำเข้าวิธีการป้อนข้อมูล</string>
     <string name="layout_editor_im_too_large">ไฟล์มีขนาดใหญ่เกินกว่าจะนำเข้าได้</string>
     <string name="layout_editor_ime_picker_empty">ไม่มีแป้นพิมพ์อื่นเปิดใช้งานอยู่ โปรดเปิดใช้งานในส่วนการตั้งค่าแป้นพิมพ์ของอุปกรณ์ก่อน</string>
     <string name="layout_editor_ime_picker_title">แป้นพิมพ์ใด</string>

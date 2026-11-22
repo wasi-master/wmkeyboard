@@ -5868,7 +5868,6 @@
     <string name="layout_editor_foreign_language_search">Ieškoti kalbų</string>
     <string name="layout_editor_foreign_language_title">Kalba</string>
     <string name="layout_editor_foreign_subtitle">Skaityti išdėstymo failą iš „FlorisBoard“ arba „HeliBoard“</string>
-    <string name="layout_editor_foreign_title">Importuoti iš kitos klaviatūros</string>
     <string name="layout_editor_foreign_wrong_file_error">Programa negali nuskaityti šio failo kaip išdėstymo. „FlorisBoard“ ir „HeliBoard“ išdėstymai yra .json arba .txt failai. Norėdami importuoti „FlorisBoard“ temą (.flex), eikite į „Temos“.</string>
     <string name="layout_editor_gallery_caption">Išdėstymas yra klavišų tinklelis. Jis rašo ta kalba, kuria pagrįstas išdėstymas. Bengalų kalbos tinklelis, kurį pertvarkote, vis tiek naudoja bengalų kalbos žodžių sąrašą.</string>
     <string name="layout_editor_height_decrease_desc">Sutrumpinti eilutę</string>
@@ -5901,7 +5900,6 @@
     <string name="layout_editor_im_busy">Skaitomas įvesties metodas. Didelis „Rime“ žodynas gali užtrukti minutę.</string>
     <string name="layout_editor_im_failed">Programai nepavyko išsaugoti įvesties metodo. Įsitikinkite, kad įrenginyje yra laisvos vietos.</string>
     <string name="layout_editor_im_subtitle">Perskaitykite .cin lentelę, Rime schemą su jos žodynais arba m17n .mim failą. Pasirinkite visus metodui reikalingus failus vienu metu.</string>
-    <string name="layout_editor_im_title">Importuoti įvesties metodą</string>
     <string name="layout_editor_im_too_large">Failai per dideli importuoti.</string>
     <string name="layout_editor_ime_picker_empty">Jokia kita klaviatūra nėra įjungta. Pirmiausia įgalinkite vieną iš jų savo įrenginio klaviatūros nustatymuose.</string>
     <string name="layout_editor_ime_picker_title">Kuri klaviatūra</string>

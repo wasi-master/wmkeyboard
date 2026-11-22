@@ -5871,7 +5871,6 @@
     <string name="layout_editor_foreign_language_search">Buscar idiomas</string>
     <string name="layout_editor_foreign_language_title">Idioma</string>
     <string name="layout_editor_foreign_subtitle">Leer un archivo de diseño de FlorisBoard o HeliBoard</string>
-    <string name="layout_editor_foreign_title">Importar desde otro teclado</string>
     <string name="layout_editor_foreign_wrong_file_error">La aplicación no puede leer ese archivo como un diseño. Los diseños de FlorisBoard y HeliBoard son archivos .json o .txt. Para importar un tema de FlorisBoard (.flex), ve a Temas.</string>
     <string name="layout_editor_gallery_caption">Un diseño es una cuadrícula de teclas. Escribe en el idioma en el que se basa el diseño. Una cuadrícula bengalí que reorganices seguirá usando la lista de palabras en bengalí.</string>
     <string name="layout_editor_height_decrease_desc">Hacer la fila más corta</string>
@@ -5904,7 +5903,6 @@
     <string name="layout_editor_im_busy">Leyendo el método de entrada. Un diccionario Rime grande puede tardar un minuto.</string>
     <string name="layout_editor_im_failed">La aplicación no pudo guardar el método de entrada. Asegúrate de que haya espacio libre en el dispositivo.</string>
     <string name="layout_editor_im_subtitle">Lee una tabla .cin, un esquema Rime con sus diccionarios o un archivo .mim m17n. Selecciona todos los archivos que el método necesita al mismo tiempo.</string>
-    <string name="layout_editor_im_title">Importar un método de entrada</string>
     <string name="layout_editor_im_too_large">Los archivos son demasiado grandes para importarlos.</string>
     <string name="layout_editor_ime_picker_empty">No hay otros teclados activados. Primero activa uno en la configuración de teclado de tu dispositivo.</string>
     <string name="layout_editor_ime_picker_title">Qué teclado</string>

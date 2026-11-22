@@ -5877,7 +5877,6 @@
     <string name="layout_editor_foreign_language_search">Tafuta lugha</string>
     <string name="layout_editor_foreign_language_title">Lugha</string>
     <string name="layout_editor_foreign_subtitle">Soma faili ya mpangilio kutoka FlorisBoard au HeliBoard</string>
-    <string name="layout_editor_foreign_title">Ingiza kutoka kwa kibodi nyingine</string>
     <string name="layout_editor_foreign_wrong_file_error">Programu haiwezi kusoma faili hiyo kama mpangilio. Mipangilio ya FlorisBoard na HeliBoard ni faili za .json au .txt. Ili kuleta mandhari ya FlorisBoard (.flex), nenda kwenye Mandhari.</string>
     <string name="layout_editor_gallery_caption">Mpangilio ni gridi ya vitufe. Inaandika lugha ya mpangilio iliyojengwa juu yake. Gridi ya Kibengali unayopanga upya bado inatumia orodha ya maneno ya Kibengali.</string>
     <string name="layout_editor_height_decrease_desc">Fanya safu iwe fupi</string>
@@ -5910,7 +5909,6 @@
     <string name="layout_editor_im_busy">Inasoma mbinu ya ingizo. Kamusi kubwa ya Rime inaweza kuchukua dakika.</string>
     <string name="layout_editor_im_failed">Programu haikuweza kuhifadhi mbinu ya uingizaji. Hakikisha kuna nafasi ya bure kwenye kifaa.</string>
     <string name="layout_editor_im_subtitle">Soma jedwali la .cin, mpangilio wa Rime pamoja na kamusi zake, au faili ya m17n .mim. Chagua faili zote ambazo mbinu inahitaji kwa wakati mmoja.</string>
-    <string name="layout_editor_im_title">Ingiza mbinu ya kuingiza data</string>
     <string name="layout_editor_im_too_large">Faili ni kubwa mno kuingizwa.</string>
     <string name="layout_editor_ime_picker_empty">Hakuna kibodi nyingine iliyowashwa. Washa moja katika mipangilio ya kibodi ya kifaa chako kwanza.</string>
     <string name="layout_editor_ime_picker_title">Ni kibodi ipi</string>
