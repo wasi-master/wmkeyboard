@@ -274,8 +274,6 @@ internal fun ImportLinkFlow(
     }
 
     when (val current = stage) {
-        is LinkStage.Failed -> MessageDialog(current.text, onClose)
-
         is LinkStage.Confirm -> LinkConfirmDialog(
             target = current.target,
             hasToken = remember(store) { store.forgeToken().isNotBlank() },
@@ -297,11 +295,16 @@ internal fun ImportLinkFlow(
             onDismiss = onClose,
         )
 
-        is LinkStage.Working -> AlertDialog(
-            onDismissRequest = {},
-            title = { Text(stringResource(R.string.import_link_progress_title)) },
-            text = { WorkingBody(current) },
-            confirmButton = {},
+        // The wait, the download's result and the file importer's own offer
+        // are one branch, so they are one dialog: its text changes as the
+        // download lands instead of the window closing and another opening.
+        is LinkStage.Working, is LinkStage.Ready, is LinkStage.Failed -> ImportFileDialog(
+            repository = repository,
+            uri = (current as? LinkStage.Ready)?.uri,
+            pendingTitle = stringResource(R.string.import_link_progress_title),
+            pendingBody = { (current as? LinkStage.Working)?.let { WorkingBody(it) } },
+            failure = (current as? LinkStage.Failed)?.text,
+            onClose = onClose,
         )
 
         is LinkStage.Pick -> PickDialog(
@@ -357,9 +360,6 @@ internal fun ImportLinkFlow(
             },
         )
 
-        // From here the link is a file like any other, and the dialog that
-        // knows every format takes over.
-        is LinkStage.Ready -> ImportFileDialog(repository, current.uri, onClose = onClose)
     }
 }
 
@@ -519,17 +519,6 @@ private fun WorkingBody(stage: LinkStage.Working) {
             CircularProgressIndicator()
         }
     }
-}
-
-@Composable
-private fun MessageDialog(text: String, onClose: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onClose,
-        text = { Text(text) },
-        confirmButton = {
-            TextButton(onClick = onClose) { Text(stringResource(CommonR.string.common_ok)) }
-        },
-    )
 }
 
 // ---- plumbing ----------------------------------------------------------

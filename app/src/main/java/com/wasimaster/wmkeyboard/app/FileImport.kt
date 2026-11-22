@@ -1252,7 +1252,13 @@ private fun proposalTitle(proposal: ImportProposal): String {
 @Composable
 internal fun ImportFileDialog(
     repository: SettingsRepository,
-    uri: Uri,
+    /**
+     * The file to import. Null while a caller is still fetching it: the dialog
+     * is already up and shows [pendingTitle] and [pendingBody], so the
+     * download's wait and the import's offer are one dialog that changes its
+     * text, not one window closing as another opens.
+     */
+    uri: Uri?,
     /**
      * Called once a backup has been restored: one of ours, or another
      * keyboard's. The setup wizard listens for it, because a restored phone
@@ -1261,195 +1267,199 @@ internal fun ImportFileDialog(
     onImported: () -> Unit = {},
     /** Offered when the file cannot be opened, by a caller that can pick again. */
     onChooseAnother: (() -> Unit)? = null,
+    /** The heading while [uri] is null. */
+    pendingTitle: String? = null,
+    /** What is drawn while [uri] is null, such as a download's progress. */
+    pendingBody: (@Composable () -> Unit)? = null,
+    /** A caller's own failure, shown in place of the import (a download that did not finish). */
+    failure: String? = null,
     onClose: () -> Unit,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val scope = rememberCoroutineScope()
 
-    var opened by remember { mutableStateOf<WMFileTypes.Opened?>(null) }
+    var opened by remember(uri) { mutableStateOf<WMFileTypes.Opened?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
     var working by remember { mutableStateOf(false) }
 
     LaunchedEffect(uri) {
+        if (uri == null) return@LaunchedEffect
         opened = withContext(Dispatchers.IO) {
             WMFileTypes.identify(context, uri, WMFileTypes.displayName(context, uri))
         }
     }
 
-    val messageText = message
-    if (messageText != null) {
-        AlertDialog(
-            onDismissRequest = onClose,
-            text = { Text(messageText) },
-            confirmButton = {
-                TextButton(onClick = onClose) { Text(stringResource(CommonR.string.common_ok)) }
-            },
-        )
-        return
-    }
-
+    val messageText = message ?: failure
     val state = opened
-    if (state == null) {
-        // Reading a backup with sticker packs in it is not instant.
-        AlertDialog(
-            onDismissRequest = {},
-            title = { Text(stringResource(R.string.import_progress_reading)) },
-            text = { CircularProgressIndicator() },
-            confirmButton = {},
-        )
-        return
+
+    // These three are UIs of their own rather than a question in this
+    // dialog, so they still take over from it.
+    if (messageText == null && uri != null) {
+        // A whole backup from another keyboard is a list to choose from, not
+        // one question, so it has a dialog of its own.
+        if (state is WMFileTypes.Opened.ForeignBackupFile) {
+            ForeignBackupDialog(
+                backup = state.backup,
+                repository = repository,
+                onDone = { result ->
+                    message = result
+                    onImported()
+                },
+                onDismiss = onClose,
+            )
+            return
+        }
+
+        // A sticker pack, the app's own or a WhatsApp one, opens on a page of
+        // its stickers to tick before any of them is converted (#965).
+        if (state == WMFileTypes.Opened.Stickers || state is WMFileTypes.Opened.WhatsAppStickers) {
+            StickerFileImport(uri) { report -> if (report == null) onClose() else message = report }
+            return
+        }
+
+        // Word lists and the rest install through the download screens' own
+        // import, which brings its own choice of list, progress and report.
+        if (state is WMFileTypes.Opened.OfflineFiles) {
+            OfflineFilesDialog(uri, state.kind, onClose)
+            return
+        }
     }
 
-    if (state == WMFileTypes.Opened.Unreadable && onChooseAnother != null) {
-        AlertDialog(
-            onDismissRequest = onClose,
-            title = { Text(stringResource(R.string.import_unreadable_title)) },
-            text = { Text(stringResource(R.string.import_unreadable_body)) },
-            confirmButton = {
-                TextButton(onClick = onChooseAnother) { Text(stringResource(R.string.import_choose_another)) }
-            },
-            dismissButton = {
-                TextButton(onClick = onClose) { Text(stringResource(CommonR.string.common_cancel)) }
-            },
-        )
-        return
+    val unreadable = state == WMFileTypes.Opened.Unreadable && onChooseAnother != null
+    // Everything else is one dialog, called from this one place: the wait
+    // for a download, reading the file, the offer, the work and the result
+    // all change its text instead of swapping the window for another one.
+    val proposal = if (messageText == null && uri != null && state != null && !unreadable) {
+        rememberProposal(state, repository, context, uri, onImported)
+    } else {
+        null
     }
-
-    // A whole backup from another keyboard is a list to choose from, not one
-    // question, so it has a dialog of its own.
-    if (state is WMFileTypes.Opened.ForeignBackupFile) {
-        ForeignBackupDialog(
-            backup = state.backup,
-            repository = repository,
-            onDone = { result ->
-                message = result
-                onImported()
-            },
-            onDismiss = onClose,
-        )
-        return
-    }
-
-    // A sticker pack, the app's own or a WhatsApp one, opens on a page of its
-    // stickers to tick before any of them is converted (#965).
-    if (state == WMFileTypes.Opened.Stickers || state is WMFileTypes.Opened.WhatsAppStickers) {
-        StickerFileImport(uri) { report -> if (report == null) onClose() else message = report }
-        return
-    }
-
-    // Word lists and the rest install through the download screens' own
-    // import, which brings its own choice of list, progress and report.
-    if (state is WMFileTypes.Opened.OfflineFiles) {
-        OfflineFilesDialog(uri, state.kind, onClose)
-        return
-    }
-
-    val proposal = rememberProposal(state, repository, context, uri, onImported)
     var passphrase by remember { mutableStateOf("") }
-    var language by remember(proposal) { mutableStateOf(proposal.language.orEmpty()) }
+    var language by remember(proposal) { mutableStateOf(proposal?.language.orEmpty()) }
     var pickingLanguage by remember { mutableStateOf(false) }
-    val needsPassphrase = proposal.applyWithPassphrase != null
+    val needsPassphrase = proposal?.applyWithPassphrase != null
     // Writing it out is not instant either. The dialog stays, its title says
-    // so, and the spinner sits in the button that was pressed rather than the
-    // whole dialog being swapped for another one.
+    // so, and the spinner sits in the button that was pressed.
     val phase = if (working) RunPhase.RUNNING else RunPhase.IDLE
+    val waiting = messageText == null && (uri == null || state == null)
+
+    val title: String? = when {
+        messageText != null -> null
+        uri == null -> pendingTitle
+        // Reading a backup with sticker packs in it is not instant.
+        state == null -> stringResource(R.string.import_progress_reading)
+        unreadable -> stringResource(R.string.import_unreadable_title)
+        working -> stringResource(R.string.import_progress_importing)
+        proposal != null -> proposalTitle(proposal)
+        else -> null
+    }
+
     AlertDialog(
-        onDismissRequest = { if (!working) onClose() },
-        title = { Text(if (working) stringResource(R.string.import_progress_importing) else proposalTitle(proposal)) },
+        onDismissRequest = { if (!waiting && !working) onClose() },
+        title = if (title != null) {
+            { Text(title) }
+        } else {
+            null
+        },
         text = {
-            // Scrolls: a preview, a long backup summary and a list of repairs
-            // together are taller than a dialog on a short screen, and a
-            // dialog that cannot reach its own text is worse than no preview.
-            Column(Modifier.verticalScroll(rememberScrollState())) {
-                ImportFilePreview(state, uri)
-                Text(proposal.body)
-                if (proposal.repairs.isNotEmpty()) {
-                    Spacer(Modifier.height(8.dp))
-                    // Future tense: this dialog is the *offer*, and its
-                    // button says Import. The past-tense heading belongs to
-                    // the messages shown once an import has happened.
-                    Text(
-                        stringResource(R.string.import_repairs_pending_title),
-                        fontWeight = FontWeight.Medium,
-                    )
-                    for (line in proposal.repairs) Text("• $line")
-                }
-                if (proposal.language != null) {
-                    Spacer(Modifier.height(8.dp))
-                    WmRow(
-                        title = stringResource(R.string.layout_editor_foreign_language_title),
-                        subtitle = LanguageRegistry.byId(language).displayName,
-                        onClick = { pickingLanguage = true },
-                    )
-                }
-                if (needsPassphrase) {
-                    Spacer(Modifier.height(16.dp))
-                    OutlinedTextField(
-                        value = passphrase,
-                        onValueChange = { passphrase = it },
-                        singleLine = true,
-                        label = { Text(stringResource(R.string.import_encrypted_label)) },
-                        visualTransformation = PasswordVisualTransformation(),
-                        // A password field, so this keyboard does not learn the
-                        // passphrase into the dictionary that the backup carries.
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    )
-                }
+            when {
+                messageText != null -> Text(messageText)
+                uri == null -> if (pendingBody != null) pendingBody() else CircularProgressIndicator()
+                state == null -> CircularProgressIndicator()
+                unreadable -> Text(stringResource(R.string.import_unreadable_body))
+                proposal != null && state != null ->
+                    // Scrolls: a preview, a long backup summary and a list of
+                    // repairs together are taller than a dialog on a short
+                    // screen, and a dialog that cannot reach its own text is
+                    // worse than no preview.
+                    Column(Modifier.verticalScroll(rememberScrollState())) {
+                        ImportFilePreview(state, uri)
+                        Text(proposal.body)
+                        if (proposal.repairs.isNotEmpty()) {
+                            Spacer(Modifier.height(8.dp))
+                            // Future tense: this dialog is the *offer*, and its
+                            // button says Import. The past-tense heading belongs
+                            // to the messages shown once an import has happened.
+                            Text(
+                                stringResource(R.string.import_repairs_pending_title),
+                                fontWeight = FontWeight.Medium,
+                            )
+                            for (line in proposal.repairs) Text("• $line")
+                        }
+                        if (proposal.language != null) {
+                            Spacer(Modifier.height(8.dp))
+                            WmRow(
+                                title = stringResource(R.string.layout_editor_foreign_language_title),
+                                subtitle = LanguageRegistry.byId(language).displayName,
+                                onClick = { pickingLanguage = true },
+                            )
+                        }
+                        if (needsPassphrase) {
+                            Spacer(Modifier.height(16.dp))
+                            OutlinedTextField(
+                                value = passphrase,
+                                onValueChange = { passphrase = it },
+                                singleLine = true,
+                                label = { Text(stringResource(R.string.import_encrypted_label)) },
+                                visualTransformation = PasswordVisualTransformation(),
+                                // A password field, so this keyboard does not
+                                // learn the passphrase into the dictionary that
+                                // the backup carries.
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            )
+                        }
+                    }
             }
         },
         confirmButton = {
-            val apply = proposal.apply
-            val applyWithPassphrase = proposal.applyWithPassphrase
-            val applyWithLanguage = proposal.applyWithLanguage
-            val open = proposal.open
             when {
-                // Closes on the way out: the screen it opens is the result, and
-                // a dialog left behind it would be waiting on a finished import.
-                open != null -> TextButton(onClick = {
-                    open()
-                    onClose()
-                }) { Text(stringResource(proposal.confirmLabelRes)) }
-
-                applyWithLanguage != null -> TextButton(onClick = {
-                    // Left enabled while it works, so the spinner in it is
-                    // drawn in the button's colour rather than greyed out.
-                    if (working) return@TextButton
-                    working = true
-                    scope.launch { message = applyWithLanguage(language); working = false }
-                }) {
-                    RunGlyph(phase)
-                    Text(stringResource(proposal.confirmLabelRes))
-                }
-
-                applyWithPassphrase != null -> TextButton(
-                    enabled = passphrase.isNotEmpty(),
-                    onClick = {
-                        if (working) return@TextButton
-                        working = true
-                        scope.launch { message = applyWithPassphrase(passphrase); working = false }
-                    },
-                ) {
-                    RunGlyph(phase)
-                    Text(stringResource(proposal.confirmLabelRes))
-                }
-
-                apply != null -> TextButton(onClick = {
-                    if (working) return@TextButton
-                    working = true
-                    scope.launch { message = apply(); working = false }
-                }) {
-                    RunGlyph(phase)
-                    Text(stringResource(proposal.confirmLabelRes))
-                }
-
-                else -> TextButton(onClick = onClose) {
+                messageText != null -> TextButton(onClick = onClose) {
                     Text(stringResource(CommonR.string.common_ok))
                 }
+                waiting -> Unit
+                unreadable -> TextButton(onClick = { onChooseAnother?.invoke() }) {
+                    Text(stringResource(R.string.import_choose_another))
+                }
+                proposal != null -> ProposalConfirm(
+                    proposal = proposal,
+                    phase = phase,
+                    passphrase = passphrase,
+                    onOpen = {
+                        proposal.open?.invoke()
+                        // Closes on the way out: the screen it opens is the
+                        // result, and a dialog left behind it would be waiting
+                        // on a finished import.
+                        onClose()
+                    },
+                    onRun = { run ->
+                        if (!working) {
+                            working = true
+                            scope.launch {
+                                message = run()
+                                working = false
+                            }
+                        }
+                    },
+                    run = {
+                        val applyWithLanguage = proposal.applyWithLanguage
+                        val applyWithPassphrase = proposal.applyWithPassphrase
+                        val apply = proposal.apply
+                        when {
+                            applyWithLanguage != null -> applyWithLanguage(language)
+                            applyWithPassphrase != null -> applyWithPassphrase(passphrase)
+                            apply != null -> apply()
+                            else -> ""
+                        }
+                    },
+                    onClose = onClose,
+                )
             }
         },
         dismissButton = {
-            if (proposal.actionable) {
-                TextButton(onClick = onClose, enabled = !working) { Text(stringResource(CommonR.string.common_cancel)) }
+            if (unreadable || proposal?.actionable == true) {
+                TextButton(onClick = onClose, enabled = !working) {
+                    Text(stringResource(CommonR.string.common_cancel))
+                }
             }
         },
     )
@@ -1465,6 +1475,39 @@ internal fun ImportFileDialog(
             },
             onDismiss = { pickingLanguage = false },
         )
+    }
+}
+
+/**
+ * The offer's confirm button: opens a screen, runs the import with whatever
+ * the proposal needs, or only closes when there is nothing to do. The work
+ * runs through [onRun] so the dialog owns the busy state and the result.
+ */
+@Composable
+private fun ProposalConfirm(
+    proposal: ImportProposal,
+    phase: RunPhase,
+    passphrase: String,
+    onOpen: () -> Unit,
+    onRun: (suspend () -> String) -> Unit,
+    run: suspend () -> String,
+    onClose: () -> Unit,
+) {
+    when {
+        proposal.open != null -> TextButton(onClick = onOpen) {
+            Text(stringResource(proposal.confirmLabelRes))
+        }
+        proposal.applyWithLanguage != null || proposal.applyWithPassphrase != null || proposal.apply != null ->
+            TextButton(
+                // Left enabled while it works, so the spinner in it is drawn in
+                // the button's colour rather than greyed out.
+                enabled = proposal.applyWithPassphrase == null || passphrase.isNotEmpty(),
+                onClick = { onRun(run) },
+            ) {
+                RunGlyph(phase)
+                Text(stringResource(proposal.confirmLabelRes))
+            }
+        else -> TextButton(onClick = onClose) { Text(stringResource(CommonR.string.common_ok)) }
     }
 }
 
