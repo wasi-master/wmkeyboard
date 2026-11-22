@@ -698,6 +698,8 @@ import com.wasimaster.wmkeyboard.core.tools.SmartSuggest
 import com.wasimaster.wmkeyboard.core.tools.TextRepeat
 import com.wasimaster.wmkeyboard.core.tools.QrCodeGen
 import com.wasimaster.wmkeyboard.core.tools.CalcEngine
+import com.wasimaster.wmkeyboard.core.tools.CalcRouting
+import com.wasimaster.wmkeyboard.core.tools.Numbat
 import com.wasimaster.wmkeyboard.core.tools.MediaProviders
 import com.wasimaster.wmkeyboard.core.tools.MediaTarget
 import com.wasimaster.wmkeyboard.core.tools.ToolApiKeys
@@ -29696,6 +29698,43 @@ open class WMKeyboardService : InputMethodService() {
         clearAiSuggest()
     }
 
+    private var numbatWarmUp: Job? = null
+
+    /**
+     * Numbat before its library is here: the first sum with units typed on
+     * the strip asks for it, once a process and only where data saving lets
+     * downloads through, and nothing answers until it has come. A plain sum
+     * never reaches this, since CalcEngine answers it first.
+     */
+    private val numbatFetch = SmartSuggest.NumbatLookup {
+        if (!numbatAsked && dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) {
+            numbatAsked = true
+            Numbat.requestLibrary()
+        }
+        null
+    }
+
+    @Volatile private var numbatAsked = false
+
+    /**
+     * The strip's way into Numbat. Detection runs off the main thread, so a
+     * warm Numbat (about a millisecond a sum) answers in place; a cold one
+     * says "not yet", loads its prelude in the background and has the strip
+     * read the text again once it can answer.
+     */
+    private fun numbatLookup(rates: CurrencyClient.Rates?) = SmartSuggest.NumbatLookup { expression ->
+        if (Numbat.warm) {
+            Numbat.evaluate(expression, Numbat.DEFAULT_DIGITS, rates) ?: Numbat.Outcome.Failure("missing")
+        } else {
+            if (numbatWarmUp?.isActive != true) {
+                numbatWarmUp = serviceScope.launch {
+                    if (withContext(Dispatchers.Default) { Numbat.warmUp(rates) }) refreshSmartSuggestion()
+                }
+            }
+            null
+        }
+    }
+
     private fun smartContext(state: KeyboardUiState): SmartSuggest.Context =
         SmartSuggest.Context(
             calcEnabled = state.settings.smartCalc,
@@ -29718,6 +29757,13 @@ open class WMKeyboardService : InputMethodService() {
             // unless the fetch a tap started is still running.
             ratesOnTap = !state.settings.rateSources.autoFetch && currencyJob?.isActive != true,
             weatherOnTap = !state.settings.weather.autoFetch && weatherJob?.isActive != true,
+            // Sums with units, once Numbat's library is on the phone; a state
+            // read only, so building the context never loads the library.
+            numbat = when {
+                !state.settings.smartCalc -> null
+                Numbat.gate.installed -> numbatLookup((state.currency as? CurrencyUi.Ready)?.rates)
+                else -> numbatFetch
+            },
             unitLast = state.settings.unitConvertLast,
             compoundUnits = state.settings.compoundUnits,
             enabledTools = usableTools(state.settings),
@@ -44487,6 +44533,19 @@ open class WMKeyboardService : InputMethodService() {
             )
         }
         result.onSuccess { collapsed -> calcEdit { collapsed } }
+        // A sum with units goes to Numbat, when its library is here; the
+        // display already shows the same answer, this only collapses to it.
+        if (result.isFailure && CalcRouting.route(expression, state.settings.calcDegrees) == CalcRouting.Route.NUMBAT) {
+            val rates = (state.currency as? CurrencyUi.Ready)?.rates
+            serviceScope.launch {
+                val outcome = withContext(Dispatchers.Default) {
+                    Numbat.evaluate(CalcRouting.forNumbat(expression), Numbat.DEFAULT_DIGITS, rates)
+                }
+                val answer = outcome as? Numbat.Outcome.Answer ?: return@launch
+                if (_uiState.value.calcExpression != expression) return@launch
+                calcEdit { Numbat.format(answer, _uiState.value.settings.calcPrecision) }
+            }
+        }
     }
 
     // ---- plugins ----

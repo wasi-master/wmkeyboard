@@ -218,6 +218,17 @@
     <string name="core_tools_calc_error_function_undefined"><xliff:g id="name" example="sqrt">%1$s</xliff:g> is undefined there</string>
     <!-- nPr and nCr count picks out of a set, as in "5p3". -->
     <string name="core_tools_calc_error_bad_counts">nPr and nCr need whole numbers, and r cannot be more than n</string>
+    <!-- Sums with units (Numbat). %1$s is a word the calculator does not know
+         as a unit, constant or function, such as "flurbs". -->
+    <string name="core_tools_calc_error_unknown_name">Unknown unit or name “<xliff:g id="name" example="flurbs">%1$s</xliff:g>”</string>
+    <!-- Units that cannot be added or converted into each other, such as metres and seconds. -->
+    <string name="core_tools_calc_error_units_mismatch">Those units do not go together</string>
+    <!-- Temperatures in a sum: the unit converter tool converts them instead. -->
+    <string name="core_tools_calc_error_temperature">For temperatures, use the unit converter</string>
+    <!-- The library that works out sums with units is downloading. -->
+    <string name="core_tools_calc_error_units_fetching">Getting the calculator units library…</string>
+    <!-- The library that works out sums with units is not on the phone and cannot come yet. -->
+    <string name="core_tools_calc_error_units_missing">Sums with units need the calculator units library, under Feature libraries</string>
 
     <!-- ================================================================== -->
     <!-- Network tools: what a failed request tells the user.               -->

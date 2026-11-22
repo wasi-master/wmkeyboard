@@ -1,0 +1,107 @@
+Third-party Rust crates in the Numbat calculator library
+========================================================
+
+Sums with units in the calculator ship as a native library (libwmnumbat.so)
+built from David Peter's Numbat (numbat 1.24.0, MIT OR Apache-2.0) and the
+Rust crates listed below, with plotting and exchange-rate fetching left out.
+Each crate remains under its own licence; the SPDX licence expression from
+its crates.io metadata is listed beside it. "A OR B" (or "A/B") means the
+crate is offered under either licence at the user's option; this app
+receives every crate under the permissive option of its expression.
+
+The licence texts involved (Apache-2.0, MIT, BSD-2-Clause, BSL-1.0,
+Unlicense, Unicode-3.0, MPL-2.0) accompany each crate's source, available at
+https://crates.io/crates/<name>. The Apache-2.0 text is also bundled in this
+app (apache-2.0.txt; the MIT text appears in the other mit-*.txt notices).
+
+The one MPL-2.0 crate (option-ext) is included unmodified; its complete
+source code is available from crates.io at the address above, which
+satisfies MPL-2.0 section 3.2.
+
+This is the set of crates the Android library is built from, procedural
+macros included (they run at build time and leave no code of their own).
+
+Crate                                     Licence (SPDX)
+-----                                     --------------
+arrayvec 0.7.8                            MIT OR Apache-2.0
+block-buffer 0.12.1                       MIT OR Apache-2.0
+bytes 1.12.2                              MIT
+castaway 0.2.4                            MIT
+cesu8 1.1.0                               Apache-2.0/MIT
+cfg-if 1.0.5                              MIT OR Apache-2.0
+codespan-reporting 0.12.0                 Apache-2.0
+combine 4.6.9                             MIT
+compact_str 0.9.1                         MIT
+const-oid 0.10.3                          Apache-2.0 OR MIT
+cpufeatures 0.3.1                         MIT OR Apache-2.0
+crypto-common 0.2.2                       MIT OR Apache-2.0
+digest 0.11.3                             MIT OR Apache-2.0
+dirs 6.0.0                                MIT OR Apache-2.0
+dirs-sys 0.5.0                            MIT OR Apache-2.0
+either 1.19.0                             MIT OR Apache-2.0
+equivalent 1.0.3                          Apache-2.0 OR MIT
+getrandom 0.3.4                           MIT OR Apache-2.0
+hashbrown 0.17.2                          MIT OR Apache-2.0
+heck 0.5.0                                MIT OR Apache-2.0
+hybrid-array 0.4.15                       MIT OR Apache-2.0
+indexmap 2.14.2                           Apache-2.0 OR MIT
+itertools 0.14.0                          MIT OR Apache-2.0
+itoa 1.0.19                               MIT OR Apache-2.0
+jiff 0.2.46                               Unlicense OR MIT
+jiff-core 0.1.8                           Unlicense OR MIT
+jni 0.21.1                                MIT/Apache-2.0
+jni-sys 0.3.1                             MIT OR Apache-2.0
+jni-sys 0.4.1                             MIT OR Apache-2.0
+jni-sys-macros 0.4.1                      MIT OR Apache-2.0
+libc 0.2.191                              MIT OR Apache-2.0
+log 0.4.35                                MIT OR Apache-2.0
+memchr 2.8.3                              Unlicense OR MIT
+mendeleev 0.8.4                           MIT OR Apache-2.0
+mime 0.3.18                               MIT OR Apache-2.0
+mime_guess 2.0.5                          MIT
+num-bigint 0.4.8                          MIT OR Apache-2.0
+num-format 0.4.4                          MIT/Apache-2.0
+num-integer 0.1.47                        MIT OR Apache-2.0
+num-rational 0.4.2                        MIT OR Apache-2.0
+num-traits 0.2.19                         MIT OR Apache-2.0
+numbat 1.24.0                             MIT OR Apache-2.0
+numbat-exchange-rates 0.6.0               MIT OR Apache-2.0
+option-ext 0.2.0                          MPL-2.0
+ppv-lite86 0.2.21                         MIT OR Apache-2.0
+pretty_dtoa 0.3.0                         MIT OR Apache-2.0
+proc-macro2 1.0.107                       MIT OR Apache-2.0
+quick-xml 0.37.5                          MIT
+quote 1.0.47                              MIT OR Apache-2.0
+rand 0.9.5                                MIT OR Apache-2.0
+rand_chacha 0.9.0                         MIT OR Apache-2.0
+rand_core 0.9.5                           MIT OR Apache-2.0
+rust-embed 8.14.0                         MIT
+rust-embed-impl 8.14.0                    MIT
+rust-embed-utils 8.14.0                   MIT
+rustversion 1.0.23                        MIT OR Apache-2.0
+ryu 1.0.23                                Apache-2.0 OR BSL-1.0
+ryu_floating_decimal 0.1.0                Apache-2.0
+same-file 1.0.6                           Unlicense/MIT
+serde 1.0.229                             MIT OR Apache-2.0
+serde_core 1.0.229                        MIT OR Apache-2.0
+serde_derive 1.0.229                      MIT OR Apache-2.0
+serde_json 1.0.154                        MIT OR Apache-2.0
+sha2 0.11.1                               MIT OR Apache-2.0
+shellexpand 3.1.2                         MIT/Apache-2.0
+static_assertions 1.1.0                   MIT OR Apache-2.0
+strfmt 0.2.6                              MIT
+strsim 0.11.1                             MIT
+syn 2.0.119                               MIT OR Apache-2.0
+syn 3.0.10                                MIT OR Apache-2.0
+termcolor 1.4.1                           Unlicense OR MIT
+thiserror 1.0.69                          MIT OR Apache-2.0
+thiserror 2.0.21                          MIT OR Apache-2.0
+thiserror-impl 1.0.69                     MIT OR Apache-2.0
+thiserror-impl 2.0.21                     MIT OR Apache-2.0
+typenum 1.20.1                            MIT OR Apache-2.0
+unicase 2.10.0                            MIT OR Apache-2.0
+unicode-ident 1.0.27                      (MIT OR Apache-2.0) AND Unicode-3.0
+unicode-width 0.2.3                       MIT OR Apache-2.0
+walkdir 2.5.1                             Unlicense/MIT
+zerocopy 0.8.64                           BSD-2-Clause OR Apache-2.0 OR MIT
+zmij 1.0.23                               MIT

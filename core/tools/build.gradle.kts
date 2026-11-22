@@ -1,5 +1,8 @@
 plugins {
     alias(libs.plugins.android.library)
+    // This module's jniLibs of on-demand gates, per channel (native/gates.json):
+    // Numbat's, in src/numbat/jniLibs.
+    id("wmkeyboard.native-libs")
     id("wmkeyboard.detekt")
     alias(libs.plugins.kotlin.compose)
     id("wmkeyboard.compose-metrics")

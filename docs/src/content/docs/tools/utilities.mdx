@@ -28,10 +28,22 @@ The panel evaluates your expression live as you type. It takes `+ - × ÷ * / mo
 - **=** replaces the expression with its result, so `12*4` becomes `48` and the next thing you type carries on from that number.
 - An **Insert** chip appears next to the live result whenever it evaluates successfully, and types the formatted number at the cursor.
 - Opening Calculator from a [smart chip](/smart/chips/) (the inline `96` that appears when you type `12*8` on the strip) prefills the expression with what you already typed.
+- **=** and **Insert** work the same on a [sum with units](#sums-with-units): `=` leaves `1.824 m` in the display, and **Insert** types it.
 
 The custom keypad (`7 8 9 ÷ ⌫`, `4 5 6 × (`, `1 2 3 − )`, `0 . % + =`, or `1 2 3` on top with **Phone layout**) replaces the letter rows entirely while the panel is open. There's nothing to type past what the calculator itself accepts.
 
 On a phone turned sideways there's no room for a row of chips over the keypad, so the functions move beside it instead: `C`, the eleven functions and the **deg**/**rad** toggle become keys, four to a row, to the keypad's left.
+
+### Sums with units
+
+The calculator also does sums with units in them, through [Numbat](https://numbat.dev), a calculator language built for physical units. `3 km/h * 20 min` comes to `1 km`, `5 ft + 30 cm -> m` to `1.824 m`, `500 W * 3 h -> kWh` to `1.5 kWh` and `1 GiB / (10 Mbit/s)` to about `859 s`. Physical constants have their names, so `c * 2 s -> km` is how far light goes in two seconds, and dates count too: `now() + 3 weeks`, or `date("2026-12-25") - now() -> days`. Units that don't go together, like metres plus seconds, say so instead of answering.
+
+- **Convert with `->`**, `→` or `to`. At the end of a sum, `in`, `into` and `as` work too, so `5 ft + 30 cm in m` is the same sum. Anywhere else Numbat reads `in` as inches.
+- **Write the units out or short**: `ft`, `feet` and `foot` are one unit. Units sit next to their number with a space, and two side by side multiply, so `2 h 30 min` is not two and a half hours: write `2 h + 30 min`.
+- **Money counts as a unit** too, at the exchange rates the [Currency converter](#converting-units-and-currencies) last fetched: `10 USD * 3 -> BDT` works offline with those rates. Numbat never fetches rates of its own.
+- **Temperatures stay with the unit converter.** Numbat has no `°C` or `°F`, so a sum with one in it gets "For temperatures, use the unit converter".
+
+Plain arithmetic never goes near Numbat: anything the calculator could already work out is answered at once, exactly as before. Numbat is a feature library of about 2 MB that comes the first time a sum with units needs it, from Google Play or the app's own release page, and is listed under [Feature libraries](/privacy/offline/#feature-libraries) like the others. Until it's there the display reads "Getting the calculator units library…". The keypad has no letters, so a sum with units reaches the calculator from a [smart chip's](/smart/chips/#sums-with-units) gear or a hardware keyboard.
 
 ### Options
 
@@ -243,7 +255,7 @@ The calculator and the two converters are the **Calculator and converters** bund
 
 ## Details & edge cases
 
-- **What's offline, and what's direct-boot safe.** All eight tools work with no network connection except Currency, which needs one to fetch rates. Separately, Symbols, Calculator, Unit converter, Password generator, QR generator and Text repeat all still work during **direct boot**, the window right after a restart before you've unlocked the device for the first time (Text repeat's recent texts read empty until then). Currency doesn't, having no network yet, and neither does Typing test, for reasons the app doesn't surface anywhere. See [The toolbar](/tools/overview/#which-tools-work-before-you-unlock-your-phone) for the full direct-boot picture across every tool.
+- **What's offline, and what's direct-boot safe.** All eight tools work with no network connection except Currency, which needs one to fetch rates. Sums with units need their library downloaded once, and then work offline too. Separately, Symbols, Calculator, Unit converter, Password generator, QR generator and Text repeat all still work during **direct boot**, the window right after a restart before you've unlocked the device for the first time (Text repeat's recent texts read empty until then). Currency doesn't, having no network yet, and neither does Typing test, for reasons the app doesn't surface anywhere. See [The toolbar](/tools/overview/#which-tools-work-before-you-unlock-your-phone) for the full direct-boot picture across every tool.
 - **Hardware shortcuts.** With a [physical keyboard](/typing/hardware-keyboard/) attached, double-tap <KeyCap>Ctrl</KeyCap> then a letter: <KeyCap>Y</KeyCap> for Symbols, <KeyCap>L</KeyCap> for Calculator, <KeyCap>U</KeyCap> for Unit converter, <KeyCap>Q</KeyCap> for QR generator, <KeyCap>P</KeyCap> for Password generator. Currency converter, Text repeat and Typing test have no default letter. Reach them through the toolbox (<KeyCap>T</KeyCap>) or [assign one yourself](/reference/shortcuts/).
 - **Discoverable by typing.** Typing one of a tool's keywords as a standalone word offers a [smart chip](/smart/chips/) straight into it: `symbol`/`symbols`, `calc`/`calculator`, `convert`/`unit`, `currency`/`forex`, `qr`, `password`/`passgen`, `repeat`, `wpm`. Each list is editable per tool under that tool's own **Keyword shortcut** field.
 - **None of these eight are build-gated.** Unlike the scanners and handwriting, which lean on ML Kit, every build ships all eight identically (see [Which build you have](/start/editions/) if you're comparing builds).

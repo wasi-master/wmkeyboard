@@ -2039,6 +2039,11 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Insert chip — Types the formatted result at the cursor
     - Precision 0–12 decimals — Default 8, trailing zeros stripped, scientific fallback past 1e15/1e-9
     - Localised error messages — Errors carry a string res plus one detail argument, not English strings
+    - Sums with units `RARE` — Numbat 1.24 (MIT/Apache-2.0) behind its own on-demand gate (`numbat`, 1.9 MB arm64): `3 km/h * 20 min` is 1 km, `5 ft + 30 cm -> m` is 1.824 m, physical constants by name (`c * 2 s -> km`), dates (`now() + 3 weeks`), dimension errors worded as such
+      - CalcEngine first, always — `CalcRouting` hands Numbat only what CalcEngine refuses and that has a letter in it, so plain sums stay instant and never wait on a download
+      - Money as a unit, offline — Currency units rebuilt from the keyboard's own CurrencyClient table (ECB list plus every other code it holds, coins included); Numbat's own fetching compiled out
+      - Calculator chip too — "5 ft + 30 cm", "1 h + 30 min" on the strip, only for arithmetic on a quantity or a conversion; `am`/`pm`/`a`/`at`-style words Numbat would read as units keep a sentence a sentence; the first such sum fetches the library, behind data saving
+      - Guarded for a long-lived in-process context — Definitions, lists, recursive prelude functions and temperatures refused; context rebuilt every 256 sums
   - Unit converter `uncommon` — 14 categories, 118 units, all local
     - Categories — Length, mass, temperature, area, volume, speed, time, data, energy, power, pressure, angle, frequency, fuel economy
     - Reciprocal units — Fuel economy handled as base = factor / value, so mpg↔L/100km is right

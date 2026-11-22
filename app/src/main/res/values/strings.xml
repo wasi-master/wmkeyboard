@@ -39,6 +39,8 @@
     <string name="opus_module_title">Voice upload compression</string>
     <string name="executorch_module_title">Offline voice and glide models</string>
     <string name="grammar_module_title">Grammar checker</string>
+    <!-- :feature:numbat, Numbat behind sums with units in the calculator. -->
+    <string name="numbat_module_title">Calculator units</string>
     <string name="plugins_module_title">Plugins</string>
     <string name="spell_module_title">Hunspell spell checker</string>
     <string name="ocr_module_title">Offline text reader</string>

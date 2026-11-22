@@ -344,6 +344,15 @@
       ]
     },
     {
+      "id": "numbat",
+      "property": "numbat",
+      "doc": "`:feature:numbat`: Numbat, the calculator language behind sums with units, constants and dates in the calculator tool and the calculator chip (`libwmnumbat`, `native/numbat-jni`, `:core:tools`). About 2 MB, so its own gate rather than part of `wm_engine`; plain arithmetic never needs it, since `CalcEngine` answers that first. Asked for the first time a sum with units is typed on the strip or in the calculator.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmnumbat.so", "dir": "core/tools/src/numbat/jniLibs", "fdroidBuild": "native/numbat-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.tools.NumbatNative"] }
+      ]
+    },
+    {
       "id": "imagegen",
       "property": "imagegen",
       "doc": "`:feature:imagegen`: the sticker generator's runtimes (`:core:intelligence`): MNN on the CPU (`libwmimagegen`, also the scanner's PaddleOCR runtime in builds without LiteRT, F-Droid's, the handwriting panel's PaddleOCR reader wherever ML Kit has no model, and the upscaler's in every build) and, arm64 only, the runner that drives Qualcomm AI Hub's Stable Diffusion on the NPU through the Qualcomm runtime (`libwmimagegen_qnn`, never built for F-Droid: it is compiled against Qualcomm's QNN headers). Only the libraries move; the models are separate downloads.",

@@ -132,6 +132,7 @@
     <string name="storage_lib_llama">On-device AI, for GGUF models</string>
     <string name="storage_lib_docscan">The built-in document scanner</string>
     <string name="storage_lib_zxing">The built-in QR code scanner</string>
+    <string name="storage_lib_numbat">Numbat, for sums with units, constants and dates in the calculator</string>
     <string name="storage_lib_imagegen">The sticker generator, and text scanning with PaddleOCR</string>
     <string name="storage_lib_npu">On-device AI on the phone\'s NPU</string>
     <string name="storage_lib_scanner">ML Kit\'s text and barcode readers, for the scanner tools</string>

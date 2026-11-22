@@ -206,6 +206,7 @@
     <string name="about_bundled_divvunspell_used">Checks spelling against GiellaLT finite-state spellers for Sámi, Greenlandic, Faroese and other languages (native library)</string>
     <string name="about_bundled_voikko_used">Checks Finnish spelling, compound words and inflections against the downloaded voikko-fi dictionary (native library)</string>
     <string name="about_bundled_harper_used">Checks the grammar and the style offline (native library)</string>
+    <string name="about_bundled_numbat_used">Works out sums with units, constants and dates in the calculator (native library)</string>
     <string name="about_bundled_bergamot_used">Translates on the device without Google services (native library, 64-bit Android 9 and later)</string>
     <string name="about_bundled_bergamot_libs_used">Built into the Bergamot translator\'s native library</string>
     <string name="about_bundled_ct2_used">Runs the NLLB-200 translation model on the device (native library, 64-bit phones)</string>

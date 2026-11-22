@@ -58,6 +58,7 @@ internal class FeatureLibraryInfo(@StringRes val description: Int, val route: St
             "whistle" to FeatureLibraryInfo(R.string.storage_lib_whistle, VOICE),
             "docscan" to FeatureLibraryInfo(R.string.storage_lib_docscan, "tool/DOC_SCAN"),
             "zxing" to FeatureLibraryInfo(R.string.storage_lib_zxing, "tool/QR_SCAN"),
+            "numbat" to FeatureLibraryInfo(R.string.storage_lib_numbat, "tool/CALCULATOR"),
             "imagegen" to FeatureLibraryInfo(R.string.storage_lib_imagegen, "sticker_generator"),
             "npu" to FeatureLibraryInfo(R.string.storage_lib_npu, AI),
             "scanner" to FeatureLibraryInfo(R.string.storage_lib_scanner, SCANNER),

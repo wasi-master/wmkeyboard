@@ -392,6 +392,26 @@ private val bundledAttributions: List<Attribution> = buildList {
             ),
         )
     }
+    // Sums with units in the calculator: the `numbat` gate, packaged,
+    // pinned for download or a Play split in every build. See native/numbat-jni.
+    add(
+        Attribution(
+            "Numbat",
+            R.string.about_bundled_numbat_used,
+            "Copyright David Peter and Numbat contributors",
+            "MIT OR Apache-2.0", "apache-2.0.txt",
+            "https://github.com/sharkdp/numbat",
+        ),
+    )
+    add(
+        Attribution(
+            "Rust crates used by Numbat",
+            R.string.about_bundled_rust_crates_used,
+            "Copyright the respective crate authors",
+            "MIT / Apache-2.0 / others", "numbat-third-party.txt",
+            "https://crates.io",
+        ),
+    )
     // GGUF models for on-device AI, in every build that has the On-device
     // provider: packaged, pinned for download, or a Play split. See
     // native/llamacpp-jni.
