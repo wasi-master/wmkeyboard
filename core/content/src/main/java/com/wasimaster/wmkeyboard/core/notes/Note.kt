@@ -73,7 +73,11 @@ data class Note(
     fun displayTitle(): String {
         if (title.isNotBlank()) return title
         if (locked) return ""
-        val line = firstContentLine() ?: return ""
+        // Only the line's start: the title is cut to DISPLAY_TITLE_CHARS
+        // anyway, and a note holding a pasted file's text can open on one line
+        // hundreds of kilobytes long, which every card and every sort by title
+        // ran a regex and the Markdown reader over, on the main thread (#1466).
+        val line = firstContentLine(TITLE_SCAN_CHARS) ?: return ""
         return cleanTitleLine(line)
     }
 
@@ -97,11 +101,32 @@ data class Note(
     /** The body's task boxes, ticked and in total. */
     fun checklist(): NoteChecklist.Progress = NoteChecklist.progress(body)
 
-    private fun firstContentLine(): String? = body.lineSequence().firstOrNull { it.isNotBlank() }
+    /**
+     * The first line of the body that is not blank, cut to [limit] characters,
+     * or null. Lines end where [lineSequence] ends them: `\n`, `\r\n` or `\r`.
+     * Only that line is copied, not every line before it or the rest of it.
+     */
+    private fun firstContentLine(limit: Int = Int.MAX_VALUE): String? {
+        val n = body.length
+        var start = 0
+        while (start <= n) {
+            var end = start
+            while (end < n && body[end] != '\n' && body[end] != '\r') end++
+            var i = start
+            while (i < end && body[i].isWhitespace()) i++
+            if (i < end) return body.substring(start, if (end - start > limit) start + limit else end)
+            if (end >= n) return null
+            start = if (body[end] == '\r' && end + 1 < n && body[end + 1] == '\n') end + 2 else end + 1
+        }
+        return null
+    }
 
     companion object {
         /** Longest derived title. Stored titles are capped by [NoteStore.MAX_TITLE_LENGTH]. */
         const val DISPLAY_TITLE_CHARS = 80
+
+        /** How much of the first line [displayTitle] reads: room for markers and Markdown around 80 characters. */
+        private const val TITLE_SCAN_CHARS = 1_000
 
         private val WHITESPACE = Regex("""\s+""")
 

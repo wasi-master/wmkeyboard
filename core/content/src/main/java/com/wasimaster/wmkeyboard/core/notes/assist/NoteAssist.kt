@@ -117,13 +117,35 @@ object NoteAssistRules {
 
     fun wordCount(body: String): Int = body.split(WHITESPACE).count { it.isNotEmpty() }
 
+    /**
+     * Whether [body] holds at least [count] words, as [wordCount] counts
+     * them, read only as far as the last one needed (#1466). The assistant
+     * asks this on the main thread as a note opens; splitting a long note
+     * into all of its words for a yes or no cost a list the size of the note.
+     */
+    fun hasWords(body: String, count: Int): Boolean {
+        if (count <= 0) return true
+        var words = 0
+        var inWord = false
+        for (c in body) {
+            // The characters `\s` matches, which is what [wordCount] splits on.
+            if (c == ' ' || c == '\t' || c == '\n' || c == '\u000B' || c == '\u000C' || c == '\r') {
+                inWord = false
+            } else if (!inWord) {
+                inWord = true
+                if (++words >= count) return true
+            }
+        }
+        return false
+    }
+
     /** A heading is worth suggesting: no title of its own, and enough words to say what it is. */
     fun wantsHeading(note: Note): Boolean =
-        !note.locked && !note.inTrash && note.title.isBlank() && wordCount(note.body) >= NoteAssistPrompts.MIN_HEADING_WORDS
+        !note.locked && !note.inTrash && note.title.isBlank() && hasWords(note.body, NoteAssistPrompts.MIN_HEADING_WORDS)
 
     /** The note is long enough, by [threshold] words, to want a summary at its top. */
     fun wantsSummary(note: Note, threshold: Int): Boolean =
-        !note.locked && !note.inTrash && wordCount(note.body) >= threshold
+        !note.locked && !note.inTrash && hasWords(note.body, threshold)
 
     /** Whether the assistant may read [note] at all. */
     fun readable(note: Note): Boolean = !note.locked && !note.inTrash
@@ -133,12 +155,30 @@ object NoteAssistRules {
      * changes and no longer: FNV-1a over the title and the body.
      */
     fun stamp(title: String, body: String): Long {
+        // Opening a note asks for the same stamps several times over (the
+        // heading's, the summary's, whether the heading was dismissed), each a
+        // pass over the whole body on the main thread (#1466). The same two
+        // strings, by identity, have the same stamp.
+        synchronized(stamps) {
+            stamps.firstOrNull { it.title === title && it.body === body }?.let { return it.stamp }
+        }
         var hash = FNV_OFFSET
         for (c in title) hash = (hash xor c.code.toLong()) * FNV_PRIME
         hash = (hash xor 0x1FL) * FNV_PRIME
         for (c in body) hash = (hash xor c.code.toLong()) * FNV_PRIME
+        synchronized(stamps) {
+            stamps.addFirst(Stamped(title, body, hash))
+            while (stamps.size > STAMPS_KEPT) stamps.removeLast()
+        }
         return hash
     }
+
+    private class Stamped(val title: String, val body: String, val stamp: Long)
+
+    /** The last few stamps worked out, newest first; see [stamp]. */
+    private val stamps = ArrayDeque<Stamped>()
+
+    private const val STAMPS_KEPT = 4
 
     private val WHITESPACE = Regex("""\s+""")
     private const val FNV_OFFSET = -0x340d631b7bdddcdbL
