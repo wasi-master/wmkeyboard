@@ -628,11 +628,18 @@ object KeySoundPlayer {
         p.setOnLoadCompleteListener { _, sampleId, status ->
             if (status == 0) synchronized(this) { loadedIds.add(sampleId) }
         }
-        val dir = File(context.cacheDir, "keysounds").apply { mkdirs() }
-        for (style in SYNTHESIZED_STYLES) {
-            val file = cacheFileFor(dir, style)
-            if (!file.exists()) writeWav(file, synthesize(style))
-            soundIds[style] = p.load(file.path, 1)
+        // Runs on the keystroke path, so nothing here may throw: before the
+        // first unlock (direct boot) the cache directory can be missing or
+        // unwritable, and a failed write here used to take the whole IME
+        // down (#1509). A style whose file is not on disk simply gets no id,
+        // and play() already falls back to the system click for that.
+        val dir = runCatching { cacheDir(context) }.getOrNull()
+        if (dir != null) {
+            for (style in SYNTHESIZED_STYLES) {
+                val file = cacheFileFor(dir, style)
+                if (!file.exists()) runCatching { writeWav(file, synthesize(style)) }
+                if (file.exists()) soundIds[style] = p.load(file.path, 1)
+            }
         }
         pool = p
         return p
