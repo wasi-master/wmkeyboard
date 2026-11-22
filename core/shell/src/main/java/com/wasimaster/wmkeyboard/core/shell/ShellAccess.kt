@@ -248,6 +248,28 @@ object ShellAccess {
     fun injectKeyNow(event: KeyEvent, displayId: Int): Boolean =
         runCatching { service.value?.injectKey(event, displayId) ?: false }.getOrDefault(false)
 
+    /**
+     * One mouse event for the Trackpad tool's mouse mode (#1411), through the
+     * already-bound service; see [IShellService.injectMouse]. False when the
+     * service is not up or refused it. Call [connect] when the mode turns on.
+     */
+    fun injectMouseNow(
+        action: Int,
+        x: Float,
+        y: Float,
+        buttons: Int,
+        actionButton: Int = 0,
+        hScroll: Float = 0f,
+        vScroll: Float = 0f,
+        downTime: Long = 0L,
+        displayId: Int = 0,
+    ): Boolean = runCatching {
+        service.value?.injectMouse(action, x, y, buttons, actionButton, hScroll, vScroll, downTime, displayId) ?: false
+    }.getOrDefault(false)
+
+    /** Whether the user service is bound right now, so the fast calls above reach it. */
+    val connected: Boolean get() = service.value?.asBinder()?.isBinderAlive == true
+
     /** Binds the user service ahead of [injectMotionNow]; true once it is up. */
     suspend fun connect(context: Context): Boolean = userService(context) != null
 
@@ -286,5 +308,5 @@ object ShellAccess {
     }
 
     /** Bump when [IShellService] changes, so Shizuku replaces a running old copy. */
-    private const val SERVICE_VERSION = 2
+    private const val SERVICE_VERSION = 3
 }

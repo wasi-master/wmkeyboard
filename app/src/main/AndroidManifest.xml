@@ -1859,6 +1859,27 @@
                 android:resource="@xml/system_buttons_service" />
         </service>
 
+        <!-- The Trackpad tool's mouse mode (#1411) on a phone without Shizuku.
+             Its one action is touching the screen where the keyboard's own
+             mouse pointer is (dispatchGesture), and only while the user
+             clicks, scrolls or drags on the trackpad. Reads nothing: no window
+             content, no window list, no events. Off until the user enables it
+             in Settings › Accessibility, behind its own disclosure. Same
+             process as the keyboard, which calls it directly. See
+             TouchMouseService. -->
+        <service
+            android:name="com.wasimaster.wmkeyboard.core.accessibility.TouchMouseService"
+            android:exported="true"
+            android:label="@string/touch_mouse_service_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/touch_mouse_service" />
+        </service>
+
         <!-- Notification listener with two jobs, both user-visible. The
              media-control tool needs it because the platform hands the active
              media session only to an enabled listener. One-time-code capture

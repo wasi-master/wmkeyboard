@@ -8180,7 +8180,32 @@ data class TrackpadSettings(
      * on the pad can see where the caret is without looking for it.
      */
     val magnifier: Boolean = true,
+    /**
+     * Mouse mode (#1411): the surface drives a pointer over the app instead
+     * of the caret, and taps click where it points. Kept between openings, so
+     * the panel comes back in the mode it was left in, and switched by the
+     * chip on the surface itself.
+     */
+    val mouseMode: Boolean = false,
+    /** The pointer's speed in mouse mode, as a percentage of finger travel. */
+    val pointerSpeed: Int = 100,
+    /**
+     * A quick flick carries the pointer further than a slow drag of the same
+     * length, as a laptop's pad does, so one swipe crosses the screen and a
+     * slow one still lands on a small button.
+     */
+    val pointerAcceleration: Boolean = true,
+    /** How far a two-finger drag scrolls in mouse mode, as a percentage. */
+    val scrollSpeed: Int = 100,
+    /**
+     * Two fingers move the page the way a finger on the screen would: drag up
+     * and the page goes up. Off, it scrolls the other way, like a mouse wheel.
+     */
+    val naturalScroll: Boolean = true,
 )
+
+/** Bounds for [TrackpadSettings.pointerSpeed] and [TrackpadSettings.scrollSpeed]. */
+val TrackpadSpeedRange = 25..400
 
 /** How recognised handwriting leaves the canvas (#1038). */
 enum class InkFade { DISSOLVE, FADE, SHRINK, RISE, NONE }
@@ -14255,6 +14280,11 @@ class SettingsRepository(private val context: Context) {
         private val TRACKPAD_HAPTICS = booleanPreferencesKey("trackpad_haptics")
         private val TRACKPAD_TRAIL = booleanPreferencesKey("trackpad_trail")
         private val TRACKPAD_MAGNIFIER = booleanPreferencesKey("trackpad_magnifier")
+        private val TRACKPAD_MOUSE_MODE = booleanPreferencesKey("trackpad_mouse_mode")
+        private val TRACKPAD_POINTER_SPEED = intPreferencesKey("trackpad_pointer_speed")
+        private val TRACKPAD_POINTER_ACCEL = booleanPreferencesKey("trackpad_pointer_accel")
+        private val TRACKPAD_SCROLL_SPEED = intPreferencesKey("trackpad_scroll_speed")
+        private val TRACKPAD_NATURAL_SCROLL = booleanPreferencesKey("trackpad_natural_scroll")
         private val VOCAB_NUDGES = booleanPreferencesKey("vocab_nudges")
         private val VOCAB_NUDGE_SELF = booleanPreferencesKey("vocab_nudge_self")
         private val VOCAB_NUDGE_SCOPE = stringPreferencesKey("vocab_nudge_scope")
@@ -17278,6 +17308,11 @@ class SettingsRepository(private val context: Context) {
             haptics = p[TRACKPAD_HAPTICS] ?: defaults.trackpad.haptics,
             trail = p[TRACKPAD_TRAIL] ?: defaults.trackpad.trail,
             magnifier = p[TRACKPAD_MAGNIFIER] ?: defaults.trackpad.magnifier,
+            mouseMode = p[TRACKPAD_MOUSE_MODE] ?: defaults.trackpad.mouseMode,
+            pointerSpeed = p[TRACKPAD_POINTER_SPEED] ?: defaults.trackpad.pointerSpeed,
+            pointerAcceleration = p[TRACKPAD_POINTER_ACCEL] ?: defaults.trackpad.pointerAcceleration,
+            scrollSpeed = p[TRACKPAD_SCROLL_SPEED] ?: defaults.trackpad.scrollSpeed,
+            naturalScroll = p[TRACKPAD_NATURAL_SCROLL] ?: defaults.trackpad.naturalScroll,
         )
 
     private fun readNotes(p: Preferences, defaults: KeyboardSettings) =
@@ -19437,6 +19472,21 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setTrackpadMagnifier(value: Boolean) =
         editPrefs { it[TRACKPAD_MAGNIFIER] = value }
+
+    suspend fun setTrackpadMouseMode(value: Boolean) =
+        editPrefs { it[TRACKPAD_MOUSE_MODE] = value }
+
+    suspend fun setTrackpadPointerSpeed(value: Int) =
+        editPrefs { it[TRACKPAD_POINTER_SPEED] = value.coerceIn(TrackpadSpeedRange) }
+
+    suspend fun setTrackpadPointerAcceleration(value: Boolean) =
+        editPrefs { it[TRACKPAD_POINTER_ACCEL] = value }
+
+    suspend fun setTrackpadScrollSpeed(value: Int) =
+        editPrefs { it[TRACKPAD_SCROLL_SPEED] = value.coerceIn(TrackpadSpeedRange) }
+
+    suspend fun setTrackpadNaturalScroll(value: Boolean) =
+        editPrefs { it[TRACKPAD_NATURAL_SCROLL] = value }
 
     suspend fun setVocabNudges(value: Boolean) = editPrefs { it[VOCAB_NUDGES] = value }
 

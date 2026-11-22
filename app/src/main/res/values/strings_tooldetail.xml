@@ -360,6 +360,21 @@
     <string name="tooldetail_trackpad_magnifier_subtitle">Show the text at the cursor, larger, above the cursor while you drag</string>
     <string name="tooldetail_trackpad_magnifier_info">The magnifier shows the line of text around the cursor. It goes above the cursor when the app tells the keyboard where the cursor is. If the app does not, it goes above the keyboard.</string>
     <string name="tooldetail_trackpad_info">One finger moves the cursor. Hold, then drag to select. Two fingers move a word at a time, and a two-finger tap types a space.</string>
+    <!-- The Trackpad tool's mouse mode (#1411). -->
+    <string name="tooldetail_trackpad_mouse_group">Mouse mode</string>
+    <string name="tooldetail_trackpad_mouse_info">Switch the trackpad to Mouse with the chip in its corner and it moves a pointer over the app above the keyboard. Tap to click, tap with two fingers to right-click, drag with two fingers to scroll, and hold, then drag, to drag and drop. Clicks go through Shizuku when the keyboard may use it, otherwise through the touch mouse service.</string>
+    <string name="tooldetail_trackpad_mouse_route_title">How clicks reach the app</string>
+    <string name="tooldetail_trackpad_mouse_route_shell">Through Shizuku, as a real mouse: right-click menus, wheel scrolling and hover work as with a mouse plugged in</string>
+    <string name="tooldetail_trackpad_mouse_route_service">Through the touch mouse service: a click is a tap at the pointer, a right-click a long press, a scroll a swipe</string>
+    <string name="tooldetail_trackpad_mouse_route_off">Off. Turn on the touch mouse service, or Shizuku for the keyboard, so the pointer can click</string>
+    <string name="tooldetail_trackpad_pointer_speed_title">Pointer speed</string>
+    <string name="tooldetail_trackpad_pointer_speed_subtitle">How far the pointer moves for each drag on the trackpad</string>
+    <string name="tooldetail_trackpad_pointer_accel_title">Pointer acceleration</string>
+    <string name="tooldetail_trackpad_pointer_accel_subtitle">A quick flick moves the pointer further than a slow drag of the same length</string>
+    <string name="tooldetail_trackpad_scroll_speed_title">Scroll speed</string>
+    <string name="tooldetail_trackpad_scroll_speed_subtitle">How far a two-finger drag scrolls the app</string>
+    <string name="tooldetail_trackpad_natural_scroll_title">Natural scrolling</string>
+    <string name="tooldetail_trackpad_natural_scroll_subtitle">Two fingers move the page the way a finger on the screen would. Off, they scroll the other way, like a mouse wheel</string>
 
     <!-- Numpad tool. -->
     <string name="tooldetail_numpad_calc_title">Calculator layout</string>

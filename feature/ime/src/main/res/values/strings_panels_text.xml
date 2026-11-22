@@ -605,5 +605,12 @@
     <!-- Trackpad tool panel: the hint drawn on the idle surface, and its spoken name. -->
     <string name="ime_trackpad_hint">Drag to move the cursor</string>
     <string name="ime_trackpad_surface_desc">Trackpad. Drag to move the cursor, hold and drag to select, tap twice to select a word</string>
+    <!-- The Trackpad tool's mouse mode (#1411). The two chip labels switch the surface between moving the text cursor and moving a mouse pointer over the app. -->
+    <string name="ime_trackpad_mode_cursor">Cursor</string>
+    <string name="ime_trackpad_mode_mouse">Mouse</string>
+    <string name="ime_trackpad_mouse_hint">Drag to move the pointer, tap to click</string>
+    <string name="ime_trackpad_mouse_surface_desc">Trackpad in mouse mode. Drag to move the pointer, tap to click, tap with two fingers to right-click, drag with two fingers to scroll, hold and drag to drag and drop</string>
+    <!-- Shown on the trackpad in mouse mode when neither Shizuku nor the touch mouse accessibility service is set up. Tapping it explains the service and opens Android's accessibility settings. -->
+    <string name="ime_trackpad_mouse_setup">Clicks need the touch mouse service. Tap to turn it on</string>
 
 </resources>

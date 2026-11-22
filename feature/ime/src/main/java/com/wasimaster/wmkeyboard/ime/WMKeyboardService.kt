@@ -10025,8 +10025,11 @@ open class WMKeyboardService : InputMethodService() {
         _uiState.update { it.copy(keyFaces = it.keyFaces.copy(enterAction = face, enterActionLabel = null)) }
     }
 
-    override fun onStartInputView(info: EditorInfo?, restarting: Boolean) =
+    override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         trace(ImeTrace.START_INPUT_VIEW) { startInputView(info, restarting) }
+        // A field the trackpad's mouse was left up over gets it back (#1411).
+        resumeTrackpadPointer()
+    }
 
     private fun startInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
@@ -11700,6 +11703,7 @@ open class WMKeyboardService : InputMethodService() {
         if (screenshotObserver == null && _uiState.value.settings.clipboard.let { it.userScreenshots && !it.textOnly }) {
             refreshScreenshotObserver()
         }
+        resumeTrackpadPointer()
     }
 
     /**
@@ -11716,6 +11720,8 @@ open class WMKeyboardService : InputMethodService() {
         updatePanelBackCallback(false)
         // Off screen: a screenshot from now on has no keyboard in it (#234).
         noteBoardTop(0)
+        // The mouse pointer is drawn on this window; it goes with it (#1411).
+        endTrackpadPointer()
         // Nothing to draw from here until the window comes back, so the
         // composition stops being handed new state — see [_shownState].
         windowOnScreen = false
@@ -11782,6 +11788,8 @@ open class WMKeyboardService : InputMethodService() {
         lastMicNotice = null
         // The drag that put it up cannot finish with the keyboard gone.
         caretMagnifier.stop()
+        // Nor can a mouse button held on the trackpad (#1411).
+        endTrackpadPointer()
         // Sent copies the app has long since read go from the media cache.
         if (galleryToolDelegate.isInitialized()) galleryTool.onFinish()
         // The ring belongs to the board that is going away: a new session gets
@@ -52548,6 +52556,7 @@ open class WMKeyboardService : InputMethodService() {
                 onDrag = ::onCaretDrag,
                 state = caretMagnifier.state,
             ),
+            trackpadMouse = trackpadMouseSeam,
             learnFromText = com.wasimaster.wmkeyboard.ime.ui.LearnFromTextCallbacks(
                 onToggle = ::onLearnToggle,
                 onToggleAll = ::onLearnToggleAll,
@@ -54891,6 +54900,59 @@ open class WMKeyboardService : InputMethodService() {
                 onPanelChange(PanelMode.TRACKPAD, haptic = false)
             }
         }
+    }
+
+    /**
+     * The Trackpad tool's mouse pointer (#1411). Offered only where a click
+     * can land somewhere worth it and nothing could go wrong behind the
+     * keyboard: not in the Play build, not on the lock screen, and only with
+     * a docked board that leaves the app a band above it, where the pointer
+     * lives. The trackpad surface starts and ends it as it shows in mouse mode.
+     */
+    private val trackpadPointerDelegate = lazy {
+        com.wasimaster.wmkeyboard.ime.pointer.PointerController(
+            context = this,
+            scope = serviceScope,
+            decor = { window?.window?.decorView },
+            boardTop = { boardTopInWindow },
+            allowed = {
+                com.wasimaster.wmkeyboard.app.ChannelFeatures.TOUCH_MOUSE &&
+                    !isDeviceLocked() && !floatingNow() && !isFullscreenMode
+            },
+        )
+    }
+    private val trackpadPointer by trackpadPointerDelegate
+
+    /** The mouse seam the trackpad surface reads, built once. */
+    private val trackpadMouseSeam by lazy {
+        com.wasimaster.wmkeyboard.ime.ui.TrackpadMouseSeam(
+            pointer = trackpadPointer,
+            onMode = { on -> serviceScope.launch { settingsRepository.setTrackpadMouseMode(on) } },
+            onSetup = {
+                runCatching {
+                    startActivity(
+                        SpecialAccessActivity.intent(this, SpecialAccess.TOUCH_MOUSE).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                    )
+                }
+            },
+        )
+    }
+
+    /**
+     * Brings the mouse pointer back on a show or a new field, when the
+     * trackpad was left open in mouse mode: the surface's composition outlived
+     * the hide, so it will not start the pointer itself. Posted, so the insets
+     * that place the band have been worked out first.
+     */
+    private fun resumeTrackpadPointer() {
+        val state = _uiState.value
+        if (state.panel != PanelMode.TRACKPAD || !state.settings.trackpad.mouseMode) return
+        window?.window?.decorView?.post { if (_uiState.value.panel == PanelMode.TRACKPAD) trackpadPointer.begin() }
+    }
+
+    /** Puts the mouse pointer away, if it is up: the keyboard is going, so is anything it held. */
+    private fun endTrackpadPointer() {
+        if (trackpadPointerDelegate.isInitialized()) trackpadPointer.end()
     }
 
     /**

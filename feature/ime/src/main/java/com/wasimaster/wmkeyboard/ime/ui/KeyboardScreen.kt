@@ -17043,6 +17043,7 @@ private fun KeyboardBody(
                     onKey = onKey,
                     onSelectionHold = toolHold.onSelectionHold,
                     onCaretDrag = { toolHold.caretMagnifier.onDrag(CaretDragSource.TRACKPAD, it) },
+                    mouse = toolHold.trackpadMouse,
                 ),
                 onMediaPanelHeight = toolHold.onMediaPanelHeight,
             )
@@ -36271,6 +36272,8 @@ data class ToolHoldCallbacks(
     val clipboard: ClipboardPanelActions = ClipboardPanelActions(),
     /** The caret magnifier (discussion #303); here for the same reason as [dictionaryBar]. */
     val caretMagnifier: CaretMagnifierSeam = CaretMagnifierSeam(),
+    /** The Trackpad tool's mouse mode (#1411); here for the same reason as [dictionaryBar]. */
+    val trackpadMouse: TrackpadMouseSeam = TrackpadMouseSeam(),
     /** The camera's and the text scanner's copy, save and translate (#807); same reason as [dictionaryBar]. */
     val photo: PhotoCallbacks = PhotoCallbacks(),
     /**

@@ -120,4 +120,42 @@ class TrackpadTest {
         // A hold that never moved armed and released selection: not a tap.
         assertEquals(TrackpadRelease.NONE, classifyRelease(moved = false, longPressed = true, maxFingers = 1))
     }
+
+    @Test
+    fun `mouse mode clicks on a tap and right-clicks on a two-finger tap`() {
+        assertEquals(MouseRelease.CLICK, classifyMouseRelease(moved = false, longPressed = false, maxFingers = 1))
+        assertEquals(MouseRelease.RIGHT_CLICK, classifyMouseRelease(moved = false, longPressed = false, maxFingers = 2))
+        // A drag moved the pointer and a hold was a held button: neither clicks.
+        assertEquals(MouseRelease.NONE, classifyMouseRelease(moved = true, longPressed = false, maxFingers = 1))
+        assertEquals(MouseRelease.NONE, classifyMouseRelease(moved = false, longPressed = true, maxFingers = 1))
+        assertEquals(MouseRelease.NONE, classifyMouseRelease(moved = true, longPressed = false, maxFingers = 2))
+    }
+
+    @Test
+    fun `a slow drag moves the pointer at the base speed`() {
+        val motion = PointerMotion(speed = 1.5f, acceleration = true, density = 2f)
+        // 4 px over 16 ms on a 2x screen is 0.125 dp/ms: careful aiming.
+        assertEquals(1.5f, motion.gain(4f, 0f, 16), 0.0001f)
+        assertEquals(1.5f, PointerMotion(1.5f, acceleration = false, density = 2f).gain(400f, 0f, 16), 0.0001f)
+    }
+
+    @Test
+    fun `a flick earns more travel, up to the cap`() {
+        val motion = PointerMotion(speed = 1f, acceleration = true, density = 1f)
+        // 0.75 dp/ms: 0.5 over the floor, times the slope.
+        assertEquals(1f + 0.5f * PointerMotion.ACCEL_SLOPE, motion.gain(12f, 0f, 16), 0.0001f)
+        // Far past the floor, the gain stops at the cap.
+        assertEquals(PointerMotion.MAX_BOOST, motion.gain(1_000f, 0f, 16), 0.0001f)
+        // No time passed: no speed to read, the base gain.
+        assertEquals(1f, motion.gain(50f, 0f, 0), 0.0001f)
+    }
+
+    @Test
+    fun `the pointer stays inside the band above the keyboard`() {
+        assertEquals(0f, clampToBand(-30f, 0f, 500f), 0f)
+        assertEquals(499f, clampToBand(900f, 0f, 500f), 0f)
+        assertEquals(120f, clampToBand(120f, 0f, 500f), 0f)
+        // No band at all: the floor, not a crash.
+        assertEquals(0f, clampToBand(40f, 0f, 0f), 0f)
+    }
 }

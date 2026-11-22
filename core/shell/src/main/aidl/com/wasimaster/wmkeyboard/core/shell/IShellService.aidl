@@ -30,4 +30,15 @@ interface IShellService {
      * [exec]'s string and 64 KiB cap cannot carry. Null when it failed to start.
      */
     ParcelFileDescriptor execStream(String command) = 4;
+
+    /**
+     * Injects one mouse event, built here rather than in the keyboard because
+     * a mouse button event needs the hidden MotionEvent.setActionButton, which
+     * this process may call. [action] is a MotionEvent action, [buttons] the
+     * button state, [actionButton] the button a BUTTON_PRESS or BUTTON_RELEASE
+     * is about (0 otherwise), the scrolls are AXIS_HSCROLL and AXIS_VSCROLL for
+     * ACTION_SCROLL. [downTime] is the press's uptime, or the event's own for a
+     * hover or a scroll. For the Trackpad tool's mouse mode (#1411).
+     */
+    boolean injectMouse(int action, float x, float y, int buttons, int actionButton, float hScroll, float vScroll, long downTime, int displayId) = 5;
 }

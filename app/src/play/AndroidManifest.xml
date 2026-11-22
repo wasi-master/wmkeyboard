@@ -116,6 +116,15 @@
             android:name="com.wasimaster.wmkeyboard.core.accessibility.SystemButtonsService"
             tools:node="remove" />
 
+        <!--
+           The touch mouse service (#1411), for the same reason again.
+           ChannelFeatures.TOUCH_MOUSE keeps the Trackpad tool's mouse mode
+           and its grant rows out of the Play build.
+        -->
+        <service
+            android:name="com.wasimaster.wmkeyboard.core.accessibility.TouchMouseService"
+            tools:node="remove" />
+
         <!-- See the permission above. -->
         <service
             android:name="com.wasimaster.wmkeyboard.core.clock.ClockRingService"

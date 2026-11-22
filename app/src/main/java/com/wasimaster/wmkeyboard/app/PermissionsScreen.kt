@@ -221,6 +221,14 @@ internal fun PermissionsSettings(repository: SettingsRepository) {
                 { SystemButtonsService.isEnabled(it) },
             )
         }
+        item(visible = ChannelFeatures.TOUCH_MOUSE, level = SettingLevel.ADVANCED) {
+            SpecialAccessRow(
+                R.string.privacy_permissions_touch_mouse_title,
+                R.string.privacy_permissions_touch_mouse_subtitle,
+                SpecialAccess.TOUCH_MOUSE,
+                { com.wasimaster.wmkeyboard.core.accessibility.TouchMouseService.isEnabled(it) },
+            )
+        }
         // The floating button's ringer action (#1326): silent needs it.
         item(level = SettingLevel.ADVANCED) {
             SpecialAccessRow(

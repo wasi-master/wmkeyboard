@@ -109,3 +109,57 @@ fun classifyRelease(moved: Boolean, longPressed: Boolean, maxFingers: Int): Trac
     maxFingers >= 2 -> TrackpadRelease.TWO_FINGER_TAP
     else -> TrackpadRelease.TAP
 }
+
+/**
+ * Finger travel to pointer travel for the Trackpad tool's mouse mode (#1411).
+ *
+ * [speed] is the base gain (1 = the pointer moves as far as the finger).
+ * With [acceleration], a fast flick earns more: the gain climbs with the
+ * finger's speed above [ACCEL_FLOOR_DP_PER_MS], up to [MAX_BOOST] times, the
+ * curve laptop pads use so one swipe crosses the screen while a slow drag
+ * still lands on a small button. Speeds are in dp per millisecond, so the feel
+ * is the same on every screen density.
+ */
+class PointerMotion(private val speed: Float, private val acceleration: Boolean, private val density: Float) {
+
+    /** The gain for a move of ([dx], [dy]) pixels over [dtMs]. */
+    fun gain(dx: Float, dy: Float, dtMs: Long): Float {
+        if (!acceleration || dtMs <= 0) return speed
+        val dpPerMs = kotlin.math.hypot(dx, dy) / density / dtMs
+        val over = (dpPerMs - ACCEL_FLOOR_DP_PER_MS).coerceAtLeast(0f)
+        return speed * (1f + (over * ACCEL_SLOPE).coerceAtMost(MAX_BOOST - 1f))
+    }
+
+    companion object {
+        /** Below this a drag is careful aiming and moves one for one with [speed]. */
+        const val ACCEL_FLOOR_DP_PER_MS = 0.25f
+        const val ACCEL_SLOPE = 1.6f
+        const val MAX_BOOST = 4f
+    }
+}
+
+/**
+ * A gesture on the trackpad surface in mouse mode, read once every finger has
+ * lifted: what the release clicks, if anything. The drag, the scroll and the
+ * held button already did their work while the fingers were down.
+ */
+enum class MouseRelease { NONE, CLICK, RIGHT_CLICK }
+
+/**
+ * What a release means in mouse mode. A still tap clicks; two fingers down
+ * and up together with no travel right-click, as on a laptop's pad. A hold is
+ * a held button and its release is the button coming up, not a click.
+ */
+fun classifyMouseRelease(moved: Boolean, longPressed: Boolean, maxFingers: Int): MouseRelease =
+    when (classifyRelease(moved, longPressed, maxFingers)) {
+        TrackpadRelease.NONE -> MouseRelease.NONE
+        TrackpadRelease.TAP -> MouseRelease.CLICK
+        TrackpadRelease.TWO_FINGER_TAP -> MouseRelease.RIGHT_CLICK
+    }
+
+/**
+ * Keeps a point inside a band: the pointer's tip never leaves the strip of
+ * screen above the keyboard, where a click reaches the app.
+ */
+fun clampToBand(value: Float, min: Float, max: Float): Float =
+    if (max <= min) min else value.coerceIn(min, max - 1f)

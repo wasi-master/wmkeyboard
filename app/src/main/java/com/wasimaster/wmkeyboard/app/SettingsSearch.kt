@@ -2070,6 +2070,11 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.TRACKPAD, R.string.tooldetail_trackpad_haptics_title, R.string.tooldetail_trackpad_haptics_subtitle),
     toolEntry(ToolbarTool.TRACKPAD, R.string.tooldetail_trackpad_trail_title, R.string.tooldetail_trackpad_trail_subtitle),
     toolEntry(ToolbarTool.TRACKPAD, R.string.tooldetail_trackpad_magnifier_title, R.string.tooldetail_trackpad_magnifier_subtitle),
+    toolEntry(ToolbarTool.TRACKPAD, R.string.tooldetail_trackpad_mouse_route_title, R.string.tooldetail_trackpad_mouse_group).takeIf { ChannelFeatures.TOUCH_MOUSE },
+    toolEntry(ToolbarTool.TRACKPAD, R.string.tooldetail_trackpad_pointer_speed_title, R.string.tooldetail_trackpad_pointer_speed_subtitle).takeIf { ChannelFeatures.TOUCH_MOUSE },
+    toolEntry(ToolbarTool.TRACKPAD, R.string.tooldetail_trackpad_pointer_accel_title, R.string.tooldetail_trackpad_pointer_accel_subtitle).takeIf { ChannelFeatures.TOUCH_MOUSE },
+    toolEntry(ToolbarTool.TRACKPAD, R.string.tooldetail_trackpad_scroll_speed_title, R.string.tooldetail_trackpad_scroll_speed_subtitle).takeIf { ChannelFeatures.TOUCH_MOUSE },
+    toolEntry(ToolbarTool.TRACKPAD, R.string.tooldetail_trackpad_natural_scroll_title, R.string.tooldetail_trackpad_natural_scroll_subtitle).takeIf { ChannelFeatures.TOUCH_MOUSE },
     // One switch drawn on all eight caret tools' pages, indexed once. Eight
     // results with the same title would read as a broken search, and the switch
     // is the same one wherever it is flipped — so the first of them answers for

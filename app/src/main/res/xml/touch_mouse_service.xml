@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     The touch mouse service (#1411). Its one power is touching the screen
+     where the Trackpad tool's mouse pointer is (dispatchGesture: a tap, a long
+     press, a swipe or a drag), and only while the user clicks, scrolls or
+     drags on the trackpad in mouse mode. It subscribes to no events and may
+     not retrieve windows or their content: the keyboard knows where its own
+     pointer is, so the service never needs to see the screen. No key
+     filtering, no touch exploration.
+
+     Not an accessibility tool (isAccessibilityTool is false): it is a mouse
+     for anyone who wants one, and the Settings screen should file it
+     accordingly.
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:canPerformGestures="true"
+    android:canRetrieveWindowContent="false"
+    android:description="@string/touch_mouse_service_description"
+    android:isAccessibilityTool="false"
+    android:summary="@string/touch_mouse_service_summary"
+    tools:ignore="UnusedAttribute" />

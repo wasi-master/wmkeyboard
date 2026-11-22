@@ -1,6 +1,6 @@
 ---
 title: "Trackpad"
-description: "Turn the key area into a trackpad: drag to move the cursor, hold and drag to select, two fingers for words."
+description: "Turn the key area into a trackpad: drag to move the cursor, hold and drag to select, two fingers for words, or switch to mouse mode and point and click in the app above."
 sidebar:
   order: 15
 ---
@@ -41,6 +41,40 @@ Every move is a real arrow key sent to the field, the same event a hardware keyb
 
 **Two fingers** move by words: Ctrl+Arrow to the field, in the direction you drag. Both fingers down and up together with no travel is a space, so you can separate words without leaving the pad. A third finger counts as two.
 
+## Mouse mode
+
+The chip in the trackpad's top corner switches it between **Cursor**, everything above, and **Mouse**. In mouse mode an arrow pointer appears over the app above the keyboard and the surface drives it the way a laptop's pad drives its pointer: you can press buttons, open links, scroll lists and drag things in the app without reaching up to touch them. The panel remembers which mode you left it in, so the next time you open the trackpad it comes back the same way. Tap the chip again, or the <KeyCap>abc</KeyCap> key, to go back.
+
+| Gesture | What it does |
+|---|---|
+| One finger drag | Move the pointer |
+| Tap | Click |
+| Two quick taps | Double click |
+| Two finger tap | Right click |
+| Two finger drag | Scroll |
+| Hold, then drag | Drag and drop. The button stays down until you lift the finger |
+
+The pointer stays in the part of the screen the app has above the keyboard, since a click on the keys themselves would only type. A quick flick carries it further than a slow drag of the same length, so one swipe crosses the screen and a careful drag still lands on a small button; [Options](#options) has the speed and a switch for that.
+
+### How clicks reach the app
+
+Android doesn't let one app click in another on its own, so mouse mode works through one of two routes, and the tool's settings page says which one is in use.
+
+- **Shizuku.** If you've turned on [Shizuku or root for keyboard features](/reference/settings/permissions/#shizuku-or-root) and granted the keyboard in Shizuku (Sui counts too), clicks go in as events from a real mouse. Apps treat them exactly as they would a USB or Bluetooth mouse: a right click opens the context menu where an app has one, scrolling is a mouse wheel, and links and buttons see the pointer hover over them.
+- **The touch mouse service.** Without Shizuku, the keyboard uses an accessibility service of its own, **WM Keyboard touch mouse**, which you turn on once. It touches the screen where the pointer is: a click is a tap, a right click is a long press, a scroll is a slow swipe that stops before it lifts so the page doesn't fling, and a drag is a held touch that starts with a long press, which is what launchers and lists wait for before they pick an item up. The service reads nothing on screen and does nothing unless you're clicking on the trackpad. On Android 7 a drag or a scroll is played back as one swipe when you lift your fingers, because that version can't keep a touch going while it moves.
+
+With neither set up, the pointer still moves, and a line on the surface offers to open the touch mouse service's explanation and then Android's accessibility settings.
+
+Root without Shizuku or Sui uses the touch mouse service. The Google Play build has neither route, so it has no mouse mode and the chip doesn't appear.
+
+### When mouse mode isn't offered
+
+- On the lock screen. A keyboard there must not click around behind it, so the chip is hidden until you unlock.
+- With the keyboard floating, or in the full-screen text box some apps use in landscape. The pointer needs the strip of app above a docked keyboard to live in.
+- When the app leaves less than about a finger's width of screen above the keyboard.
+
+Clicking something that takes the focus away from the text box you're typing in closes the keyboard, and the trackpad with it, as it would if you'd tapped there. Turn on [Keep on screen](/typing/size-position/#keeping-the-keyboard-on-screen) to have the keyboard come straight back.
+
 ## Visual feedback
 
 The tool's button is lit on the toolbar while the panel is open, however it was opened. On the surface, a trail follows your finger and a crosshair marks where it is now; both go the moment you lift. The trail can be turned off under [Options](#options). A faint hint in the middle of the surface fades while you are touching it.
@@ -71,11 +105,26 @@ The trackpad is a [panel layout](/languages/custom-layouts/#panel-layouts) like 
 
 **Panel layout** opens the layout editor described above.
 
+### Mouse mode
+
+Not in the Google Play build.
+
+**How clicks reach the app**: which [route](#how-clicks-reach-the-app) the mouse is using now. Tap it for the touch mouse service's explanation and Android's accessibility settings, where the service is turned on or off.
+
+**Pointer speed**: default **100%**, adjustable from 25% to 400%. How far the pointer moves for each drag on the trackpad.
+
+**Pointer acceleration**: on by default. A quick flick moves the pointer further than a slow drag of the same length.
+
+**Scroll speed**: default **100%**, adjustable from 25% to 400%. How far a two-finger drag scrolls.
+
+**Natural scrolling**: on by default. Two fingers move the page the way a finger on the screen would: drag up and the page goes up. Turn it off to scroll the other way, like a mouse wheel.
+
 ## Details and edge cases
 
 - The trackpad is a panel, so opening it closes whatever panel was open and puts down any pending shift, Ctrl or Alt.
 - The bottom row's <KeyCap>space</KeyCap> is an ordinary spacebar, swipes included, so the language switch and the spacebar cursor swipe still work from inside the panel.
 - The panel never goes full-bleed, because the toolbar has to stay for the hold gesture that may have opened it.
 - With a hardware keyboard, the panel has no focus ring: it is a pointing surface with nothing to arrow between, like the handwriting canvas. Bind a leader letter to open it under <SettingsPath path="Typing / Physical keyboard" />; the tool ships without one because every letter is taken.
-- The trackpad works before the first unlock after a restart, since it only touches the field it is typing into.
+- The trackpad works before the first unlock after a restart, since in cursor mode it only touches the field it is typing into. Mouse mode is hidden on the lock screen.
+- The mouse pointer is drawn by the keyboard, so it goes away whenever the keyboard does, and a held drag lets go if the keyboard closes under it.
 - If the keyboard closes while you are holding the tool, the hold ends with it; there is no release to wait for.

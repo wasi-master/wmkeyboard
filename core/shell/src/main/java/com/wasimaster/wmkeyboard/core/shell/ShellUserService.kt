@@ -2,6 +2,8 @@ package com.wasimaster.wmkeyboard.core.shell
 
 import android.os.Build
 import android.os.ParcelFileDescriptor
+import android.os.SystemClock
+import android.view.InputDevice
 import android.view.InputEvent
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -13,7 +15,8 @@ import kotlin.system.exitProcess
  * The process Shizuku starts from this APK as the shell user (uid 2000), or as
  * root under Sui or a root-started Shizuku. It never touches the keyboard's
  * own state: it runs the commands [ShellAccess] sends and injects the touches
- * of the experimental emulated window, nothing else.
+ * of the experimental emulated window and the Trackpad tool's mouse events,
+ * nothing else.
  *
  * Shizuku calls the no-argument constructor by reflection, so it must stay.
  */
@@ -40,6 +43,50 @@ class ShellUserService : IShellService.Stub() {
     override fun injectMotion(event: MotionEvent, displayId: Int): Boolean = inject(event, displayId)
 
     override fun injectKey(event: KeyEvent, displayId: Int): Boolean = inject(event, displayId)
+
+    /**
+     * One event of the Trackpad tool's mouse (#1411), from a real-looking
+     * mouse: tool type mouse, source mouse, with its button state. Apps read
+     * it as they read a USB or Bluetooth mouse, so a secondary press opens a
+     * context menu and a scroll is a wheel notch, not a swipe.
+     */
+    override fun injectMouse(
+        action: Int,
+        x: Float,
+        y: Float,
+        buttons: Int,
+        actionButton: Int,
+        hScroll: Float,
+        vScroll: Float,
+        downTime: Long,
+        displayId: Int,
+    ): Boolean = runCatching {
+        exempt()
+        val now = SystemClock.uptimeMillis()
+        val properties = MotionEvent.PointerProperties().apply {
+            id = 0
+            toolType = MotionEvent.TOOL_TYPE_MOUSE
+        }
+        val coords = MotionEvent.PointerCoords().apply {
+            this.x = x
+            this.y = y
+            pressure = if (buttons != 0) 1f else 0f
+            size = 1f
+            setAxisValue(MotionEvent.AXIS_HSCROLL, hScroll)
+            setAxisValue(MotionEvent.AXIS_VSCROLL, vScroll)
+        }
+        val event = MotionEvent.obtain(
+            if (downTime > 0) downTime else now, now, action, 1,
+            arrayOf(properties), arrayOf(coords),
+            0, buttons, 1f, 1f, 0, 0, InputDevice.SOURCE_MOUSE, 0,
+        )
+        try {
+            if (actionButton != 0) HiddenApiBypass.invoke(MotionEvent::class.java, event, "setActionButton", actionButton)
+            inject(event, displayId)
+        } finally {
+            event.recycle()
+        }
+    }.getOrDefault(false)
 
     /**
      * `InputEvent.setDisplayId` and `injectInputEvent` are hidden; the shell

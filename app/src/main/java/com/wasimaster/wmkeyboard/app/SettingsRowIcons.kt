@@ -1667,6 +1667,11 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_trackpad_haptics_title) { Icons.Outlined.Vibration }
         put(R.string.tooldetail_trackpad_trail_title) { Icons.Outlined.Gesture }
         put(R.string.tooldetail_trackpad_magnifier_title) { Icons.Outlined.ZoomIn }
+        put(R.string.tooldetail_trackpad_mouse_route_title) { Icons.Outlined.Mouse }
+        put(R.string.tooldetail_trackpad_pointer_speed_title) { Icons.Outlined.Speed }
+        put(R.string.tooldetail_trackpad_pointer_accel_title) { Icons.AutoMirrored.Outlined.TrendingUp }
+        put(R.string.tooldetail_trackpad_scroll_speed_title) { Icons.Outlined.SwipeVertical }
+        put(R.string.tooldetail_trackpad_natural_scroll_title) { Icons.Outlined.SwapVert }
         put(R.string.tooldetail_numpad_calc_title) { Icons.Outlined.Calculate }
         put(R.string.tooldetail_incognito_learning_title) { Icons.Outlined.School }
         put(R.string.tooldetail_incognito_clipboard_title) { Icons.Outlined.ContentPaste }

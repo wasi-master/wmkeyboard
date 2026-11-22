@@ -35,6 +35,7 @@ import com.wasimaster.wmkeyboard.core.settings.LauncherOpenMode
 import com.wasimaster.wmkeyboard.core.settings.MAX_SEARCH_RESULTS
 import com.wasimaster.wmkeyboard.ime.AppLaunchModes
 import com.wasimaster.wmkeyboard.core.accessibility.SystemButtonsService
+import com.wasimaster.wmkeyboard.core.accessibility.TouchMouseService
 import com.wasimaster.wmkeyboard.core.accessibility.SplitScreenHelperService
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoint
 import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
@@ -45,12 +46,14 @@ import com.wasimaster.wmkeyboard.core.settings.AppSortOrder
 import com.wasimaster.wmkeyboard.core.settings.LauncherFloatFallback
 import com.wasimaster.wmkeyboard.core.settings.LauncherIconShape
 import com.wasimaster.wmkeyboard.core.shell.ShellAccess
+import com.wasimaster.wmkeyboard.core.shell.ShellFeatures
 import com.wasimaster.wmkeyboard.app.launcher.LauncherFreeformRow
 import com.wasimaster.wmkeyboard.app.launcher.LauncherRouteCheckRow
 import com.wasimaster.wmkeyboard.app.launcher.LauncherShizukuRow
 import com.wasimaster.wmkeyboard.core.settings.PhotoSearchEngine
 import com.wasimaster.wmkeyboard.core.settings.PhotoSearchTarget
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
+import com.wasimaster.wmkeyboard.core.settings.TrackpadSpeedRange
 import com.wasimaster.wmkeyboard.core.settings.toolKeywordScripts
 import com.wasimaster.wmkeyboard.core.settings.HandwritingFullScreenMode
 import com.wasimaster.wmkeyboard.core.tools.PasswordGen
@@ -1728,6 +1731,7 @@ internal fun ToolDetailSettings(
                     ) { onNavigate(panelEditRoute(PanelKind.TRACKPAD)) }
                 }
             }
+            if (ChannelFeatures.TOUCH_MOUSE) TrackpadMouseSettings(repository, settings)
         }
         ToolbarTool.SELECT_MODE -> {
             SettingsGroup(
@@ -5846,4 +5850,73 @@ private fun calendarReminderLabel(minutes: Int): String = when {
     minutes % 1440 == 0 -> pluralStringResource(R.plurals.tooldetail_calendar_days_before, minutes / 1440, minutes / 1440)
     minutes % 60 == 0 -> pluralStringResource(R.plurals.tooldetail_calendar_hours_before, minutes / 60, minutes / 60)
     else -> pluralStringResource(R.plurals.tooldetail_calendar_minutes_before, minutes, minutes)
+}
+
+/**
+ * The Trackpad tool's mouse mode (#1411): which door its clicks go through,
+ * and the pointer's feel. The mode itself is switched on the trackpad.
+ */
+@Composable
+private fun TrackpadMouseSettings(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val percentFormat = stringResource(R.string.typing_value_percent)
+    val serviceOn = rememberGrantState { TouchMouseService.isEnabled(it) }
+    val shell = remember { ShellFeatures.isEnabled(context) && ShellAccess.canInject }
+    val ask = rememberDisclosedSpecialAccess(SpecialAccess.TOUCH_MOUSE)
+    val range = TrackpadSpeedRange.first.toFloat()..TrackpadSpeedRange.last.toFloat()
+    SettingsGroup(
+        stringResource(R.string.tooldetail_trackpad_mouse_group),
+        info = stringResource(R.string.tooldetail_trackpad_mouse_info),
+        level = SettingLevel.STANDARD,
+    ) {
+        item {
+            NavRow(
+                R.string.tooldetail_trackpad_mouse_route_title,
+                subtitle = stringResource(
+                    when {
+                        shell -> R.string.tooldetail_trackpad_mouse_route_shell
+                        serviceOn -> R.string.tooldetail_trackpad_mouse_route_service
+                        else -> R.string.tooldetail_trackpad_mouse_route_off
+                    },
+                ),
+            ) { ask() }
+        }
+        item {
+            SliderSetting(
+                R.string.tooldetail_trackpad_pointer_speed_title,
+                subtitle = stringResource(R.string.tooldetail_trackpad_pointer_speed_subtitle),
+                value = settings.watch { it.trackpad.pointerSpeed }.toFloat(),
+                range = range,
+                display = { percentFormat.format(it.toInt()) },
+                default = SettingsDefaults.trackpad.pointerSpeed.toFloat(),
+            ) { scope.launch { repository.setTrackpadPointerSpeed(it.toInt()) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.tooldetail_trackpad_pointer_accel_title,
+                stringResource(R.string.tooldetail_trackpad_pointer_accel_subtitle),
+                settings.watch { it.trackpad.pointerAcceleration },
+                default = SettingsDefaults.trackpad.pointerAcceleration,
+            ) { scope.launch { repository.setTrackpadPointerAcceleration(it) } }
+        }
+        item {
+            SliderSetting(
+                R.string.tooldetail_trackpad_scroll_speed_title,
+                subtitle = stringResource(R.string.tooldetail_trackpad_scroll_speed_subtitle),
+                value = settings.watch { it.trackpad.scrollSpeed }.toFloat(),
+                range = range,
+                display = { percentFormat.format(it.toInt()) },
+                default = SettingsDefaults.trackpad.scrollSpeed.toFloat(),
+            ) { scope.launch { repository.setTrackpadScrollSpeed(it.toInt()) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.tooldetail_trackpad_natural_scroll_title,
+                stringResource(R.string.tooldetail_trackpad_natural_scroll_subtitle),
+                settings.watch { it.trackpad.naturalScroll },
+                default = SettingsDefaults.trackpad.naturalScroll,
+            ) { scope.launch { repository.setTrackpadNaturalScroll(it) } }
+        }
+    }
 }

@@ -50,6 +50,13 @@ object ChannelFeatures {
     val SYSTEM_BUTTONS: Boolean = !BuildConfig.ENABLE_PLAY_STORE
 
     /**
+     * The Trackpad tool's mouse mode (#1411). Its clicks go through
+     * TouchMouseService, or through Shizuku or root, which the Play build has
+     * none of either (ShellFeatures.offered), so the mode goes as a whole.
+     */
+    val TOUCH_MOUSE: Boolean = !BuildConfig.ENABLE_PLAY_STORE
+
+    /**
      * The clock tool's ring service, a foreground service of type
      * systemExempted that plays an alarm while it rings. Play keeps that type
      * for apps whose core job is an alarm clock, and a keyboard is not one.

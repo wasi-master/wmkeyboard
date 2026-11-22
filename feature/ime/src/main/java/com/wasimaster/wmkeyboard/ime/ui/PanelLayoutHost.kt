@@ -79,10 +79,26 @@ internal class TrackpadFieldCallbacks(
     private val onKey: (Key) -> Unit,
     val onSelectionHold: (Boolean) -> Unit,
     val onCaretDrag: (Boolean) -> Unit = {},
+    /** Mouse mode (#1411): the pointer and the switch between the two modes. */
+    val mouse: TrackpadMouseSeam = TrackpadMouseSeam(),
 ) {
     fun onEdit(op: TextEditAction) = onKey(Key("", action = KeyAction.Edit(op)))
     fun onSpace() = onKey(Key(" ", action = KeyAction.Space))
 }
+
+/**
+ * The Trackpad tool's mouse mode (#1411), from the service: the pointer the
+ * surface drives, the mode switch (stored, so the panel opens in the mode it
+ * was left in) and the way to the touch mouse service's disclosure when no
+ * door is open for clicks. Rides [ToolHoldCallbacks] for the reason
+ * [CaretMagnifierSeam] does.
+ */
+@Immutable
+class TrackpadMouseSeam(
+    val pointer: com.wasimaster.wmkeyboard.ime.pointer.PointerController? = null,
+    val onMode: (Boolean) -> Unit = {},
+    val onSetup: () -> Unit = {},
+)
 
 /**
  * The layout the keyboard draws for [kind]: the typing layout's own grid when
