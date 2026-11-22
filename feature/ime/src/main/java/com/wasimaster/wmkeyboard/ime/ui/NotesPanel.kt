@@ -86,7 +86,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.common.R as CommonR
-import com.wasimaster.wmkeyboard.core.clipboard.clipPreviewText
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Subject
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Alarm
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
@@ -1592,7 +1591,7 @@ private fun rememberNoteLook(state: KeyboardUiState, note: Note, now: Long, tagC
     val preview = when {
         note.locked -> lockedLabel
         previewLines <= 0 -> ""
-        else -> remember(note.body, note.title, previewLines) { clipPreviewText(note.previewBody(), previewLines) }
+        else -> remember(note.body, note.title, previewLines) { note.preview(previewLines) }
     }
     val relative = if (note.inTrash) {
         stringResource(R.string.ime_notes_deleted_ago, DateUtils.getRelativeTimeSpanString(note.deletedAt ?: now, now, DateUtils.MINUTE_IN_MILLIS))

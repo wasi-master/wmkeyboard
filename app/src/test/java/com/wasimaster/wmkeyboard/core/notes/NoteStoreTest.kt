@@ -226,6 +226,22 @@ class NoteStoreTest {
     }
 
     @Test
+    fun `previews skip the title line, trim, and copy only what a row can show`() {
+        assertEquals("", Note(1, "only a title line").previewBody())
+        assertEquals("", Note(1, " \n \n").previewBody())
+        assertEquals("body", Note(1, "\r\n# Head\r\n\n  body \n\n").previewBody())
+        assertEquals("first\nsecond", Note(1, "\nfirst\nsecond\n", title = "Typed").previewBody())
+        assertEquals("abc", Note(1, "head\nabcdef").previewBody(limit = 3))
+        // A surrogate pair is not split at the cut.
+        assertEquals("a", Note(1, "head\na😀b").previewBody(limit = 2))
+
+        // One line hundreds of kilobytes long, as a pasted file leaves it (#1466).
+        val huge = Note(1, "https://example.com/file\n" + "x".repeat(300_000))
+        assertEquals(3 * Note.PREVIEW_CHARS_PER_LINE, huge.preview(lines = 3).length)
+        assertEquals("one\ntwo\nthree", Note(1, "head\none\ntwo\nthree\nfour\nfive").preview(lines = 2))
+    }
+
+    @Test
     fun `lists are pinned first then by the chosen sort, the trash newest-deleted first`() {
         val store = NoteStore(null)
         val old = store.add("old", title = "Zed", now = t0)

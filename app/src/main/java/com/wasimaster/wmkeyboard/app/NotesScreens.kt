@@ -668,7 +668,7 @@ private fun NoteListRow(
                 trailingOnTitleLine = true,
                 supporting = {
                     Column {
-                        val preview = if (note.locked) stringResource(R.string.notes_locked_preview) else note.previewBody()
+                        val preview = if (note.locked) stringResource(R.string.notes_locked_preview) else note.preview(lines = 2)
                         if (preview.isNotBlank()) {
                             Text(
                                 preview,

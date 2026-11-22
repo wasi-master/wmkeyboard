@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.core.notes
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.content.R
 import com.wasimaster.wmkeyboard.core.clipboard.capClipText
+import com.wasimaster.wmkeyboard.core.clipboard.clipPreviewText
 import com.wasimaster.wmkeyboard.core.tools.AiMarkdownBlocks
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -83,14 +84,36 @@ data class Note(
 
     /**
      * The body for a list preview: when the title was read off the first line,
-     * that line is left out so the row does not say it twice.
+     * that line is left out so the row does not say it twice. At most [limit]
+     * characters of it, and only those are copied: a list asks this of every
+     * row as it draws, and a note can hold a pasted file's hundreds of
+     * kilobytes (#1466).
      */
-    fun previewBody(): String {
-        if (title.isNotBlank()) return body.trim()
-        val first = firstContentLine() ?: return ""
-        val index = body.indexOf(first)
-        if (index < 0) return body.trim()
-        return body.substring(index + first.length).trim()
+    fun previewBody(limit: Int = Int.MAX_VALUE): String {
+        val n = body.length
+        var start = if (title.isNotBlank()) 0 else lineEnd(firstContentLineStart() ?: return "")
+        while (start < n && body[start].isWhitespace()) start++
+        var end = n
+        while (end > start && body[end - 1].isWhitespace()) end--
+        if (end - start > limit) {
+            end = start + limit.coerceAtLeast(0)
+            if (end > start && Character.isHighSurrogate(body[end - 1])) end--
+        }
+        return body.substring(start, end)
+    }
+
+    /**
+     * What a list row shows under the title in [lines] lines: [previewBody],
+     * cut after the line break past the last line that shows, and never more
+     * than [PREVIEW_CHARS_PER_LINE] a line. Text layout measures every
+     * character it is handed, however few lines are drawn, so a row that
+     * shows three lines of a long paragraph is handed a few hundred
+     * characters of it, not the whole (#1466).
+     */
+    fun preview(lines: Int): String {
+        val shown = lines.coerceAtLeast(1)
+        val cap = shown * PREVIEW_CHARS_PER_LINE
+        return clipPreviewText(previewBody(cap), shown, cap)
     }
 
     /** Words in the body, as whitespace separates them. */
@@ -107,18 +130,34 @@ data class Note(
      * Only that line is copied, not every line before it or the rest of it.
      */
     private fun firstContentLine(limit: Int = Int.MAX_VALUE): String? {
+        val start = firstContentLineStart() ?: return null
+        val end = lineEnd(start)
+        return body.substring(start, if (end - start > limit) start + limit else end)
+    }
+
+    /** Where the first line that is not blank starts, or null for a blank body. */
+    private fun firstContentLineStart(): Int? {
         val n = body.length
         var start = 0
         while (start <= n) {
             var end = start
-            while (end < n && body[end] != '\n' && body[end] != '\r') end++
-            var i = start
-            while (i < end && body[i].isWhitespace()) i++
-            if (i < end) return body.substring(start, if (end - start > limit) start + limit else end)
+            var content = false
+            while (end < n && body[end] != '\n' && body[end] != '\r') {
+                if (!content && !body[end].isWhitespace()) content = true
+                end++
+            }
+            if (content) return start
             if (end >= n) return null
             start = if (body[end] == '\r' && end + 1 < n && body[end + 1] == '\n') end + 2 else end + 1
         }
         return null
+    }
+
+    /** Where the line starting at [start] ends: its `\n` or `\r`, or the body's end. */
+    private fun lineEnd(start: Int): Int {
+        var end = start
+        while (end < body.length && body[end] != '\n' && body[end] != '\r') end++
+        return end
     }
 
     companion object {
@@ -127,6 +166,13 @@ data class Note(
 
         /** How much of the first line [displayTitle] reads: room for markers and Markdown around 80 characters. */
         private const val TITLE_SCAN_CHARS = 1_000
+
+        /**
+         * The most characters a preview line is handed: more than the widest
+         * row fits of the narrowest letters, so a cut preview still overflows
+         * its lines and ends in an ellipsis.
+         */
+        const val PREVIEW_CHARS_PER_LINE = 200
 
         private val WHITESPACE = Regex("""\s+""")
 
