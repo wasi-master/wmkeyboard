@@ -29,13 +29,13 @@ The exported file is the whole theme, written as plain JSON with no wrapper or f
 
 ## Importing a theme
 
-There are three ways a theme gets imported, and they don't all behave the same way: two apply the theme immediately, one doesn't. Eight more buttons on the same row, **FlorisBoard**, **HeliBoard**, **FUTO**, **Multiling O**, **Kinetica**, **Clink**, **Kyng** and **Gboard**, read someone else's format rather than this one, and **Screenshot** reads a picture. They're covered separately below.
+There are three ways a theme gets imported, and they don't all behave the same way: two apply the theme immediately, one doesn't. The **Import a theme** row near the top of Keyboard themes opens a sheet with every source in one list. **Theme file** reads this app's own format and **Screenshot** reads a picture. Under **From another keyboard**, the eight entries **FlorisBoard**, **HeliBoard**, **FUTO**, **Multiling O**, **Kinetica**, **Clink**, **Kyng** and **Gboard** read someone else's format rather than this one. The other formats and the screenshot are covered separately below. In this page, a "button" for one of these sources is its entry in that sheet.
 
-### From the Import button
+### From a theme file
 
-<SettingsPath path="Appearance / Keyboard themes" />
+<SettingsPath path="Appearance / Keyboard themes / Import a theme" />
 
-The **Import** button, first of the row above the cards, opens a file picker scoped to JSON-ish files. It's intentionally permissive about the exact MIME type, since file providers report a `.json` file as `text/plain` or `application/octet-stream` about as often as they get it right. Pick a `.wmtheme.json` file and it's added to Your themes under a freshly generated ID.
+**Theme file**, first in the **Import a theme** sheet, opens a file picker scoped to JSON-ish files. It's intentionally permissive about the exact MIME type, since file providers report a `.json` file as `text/plain` or `application/octet-stream` about as often as they get it right. Pick a `.wmtheme.json` file and it's added to Your themes under a freshly generated ID.
 
 A JSON theme in no format at all also imports here: the kind a chat assistant writes when asked for "a keyboard theme", or a file made for some other keyboard. The app reads it for the colours it names (`background`, `keyText`, `keys.enter.background`, `accent` and the like), along with gradients, a pill or rounded key and its corner radius, key opacity, glass keys, a jelly press, glows on single keys and placed colour pools. Anything it has no name for is left out. A file that names no board colour and no key colour isn't treated as a theme at all. The same file also opens from a file manager when no other format claims it. The ID stored inside the file itself is discarded, so importing the same file twice creates two separate custom themes rather than updating one in place. Any embedded background image is written back out to local storage as part of the import.
 
@@ -43,9 +43,9 @@ Importing this way both adds the theme and switches the keyboard to it immediate
 
 ### Several files at once
 
-Every import button that opens a file picker takes more than one file: **Import**, **FlorisBoard**, **FUTO**, **Kinetica**, **Clink**, **Gboard**, and **Open a file** under **HeliBoard** and **Multiling O**. Hold a file in the picker to start selecting, tick the rest, then confirm. The files are read one after another through the same reader a single file goes through, and the import ends on one message instead of a dialog per file: how many themes came in (*"The app imported 7 themes"*), then, under it, the names of any files that could not be read (*"The app could not read 1 file: notes.txt"*). A file that fails doesn't stop the ones after it.
+Every import source that opens a file picker takes more than one file: **Theme file**, **FlorisBoard**, **FUTO**, **Kinetica**, **Clink**, **Gboard**, and **Open a file** under **HeliBoard** and **Multiling O**. Hold a file in the picker to start selecting, tick the rest, then confirm. The files are read one after another through the same reader a single file goes through, and the import ends on one message instead of a dialog per file: how many themes came in (*"The app imported 7 themes"*), then, under it, the names of any files that could not be read (*"The app could not read 1 file: notes.txt"*). A file that fails doesn't stop the ones after it.
 
-A batch saves without switching the keyboard to anything, even from the **Import** button, which applies a single file straight away. There's no theme in a batch you picked over the others, so the keyboard keeps what it's wearing until you tap a card. A Gboard file skips its preview in a batch, and an Rboard pack in the batch adds every theme inside it, the way **Add all** does. **Screenshot** isn't a batch import: the pictures it takes are views of one keyboard, read together into one theme.
+A batch saves without switching the keyboard to anything, even from **Theme file**, which applies a single file straight away. There's no theme in a batch you picked over the others, so the keyboard keeps what it's wearing until you tap a card. A Gboard file skips its preview in a batch, and an Rboard pack in the batch adds every theme inside it, the way **Add all** does. **Screenshot** isn't a batch import: the pictures it takes are views of one keyboard, read together into one theme.
 
 From a file manager or another app, select several theme files and share them to WM Keyboard (**Import into WM Keyboard** in the share sheet). They come in one after another, each with the same confirm dialog a single file opened from the Files app shows, up to 50 files per share.
 

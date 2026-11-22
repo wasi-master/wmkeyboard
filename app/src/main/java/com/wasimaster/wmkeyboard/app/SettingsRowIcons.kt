@@ -1988,6 +1988,8 @@ internal object SettingsRowIcons {
         put(R.string.appearance_keys_section_title) { Icons.Outlined.RoundedCorner }
         // Keyboard themes › Theme modes (#1451).
         put(R.string.theme_modes_title) { Icons.Outlined.Contrast }
+        // Keyboard themes › Import a theme (#1452).
+        put(R.string.theme_import_row_title) { Icons.Outlined.Download }
         put(R.string.panel_layouts_title) { Icons.Outlined.Dashboard }
         put(R.string.typing_strip_look_title) { Icons.Outlined.FormatSize }
         put(R.string.languages_translit_hints_row_title) { Icons.Outlined.Translate }

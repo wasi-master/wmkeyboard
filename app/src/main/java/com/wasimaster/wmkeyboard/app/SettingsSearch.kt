@@ -1112,6 +1112,7 @@ private fun SearchStrings.appearanceRows(): List<SettingsSearchEntry> {
         // Keyboard themes, Keyboard font and Icons are rows here, but each
         // opens its own screen. They are indexed once in sectionRows,
         // pointing at that screen.
+        theme(R.string.theme_import_row_title, R.string.theme_import_row_subtitle),
         modes(R.string.theme_material_you_title, R.string.theme_material_you_subtitle),
         modes(R.string.theme_auto_title, R.string.theme_auto_subtitle),
         modes(R.string.theme_auto_light_title),

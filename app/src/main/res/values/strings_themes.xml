@@ -188,6 +188,24 @@
     <!-- Button that makes a theme from a screenshot of a keyboard. Keep it short:
          it sits beside Import, FlorisBoard and HeliBoard. -->
     <string name="theme_copy_action">Screenshot</string>
+    <!-- Keyboard themes: the row that opens every way of importing a theme,
+         and the sheet it opens (#1452). The sheet lists a theme file, a
+         screenshot, then the other keyboards by name. -->
+    <string name="theme_import_row_title">Import a theme</string>
+    <string name="theme_import_row_subtitle">From a theme file, a screenshot or another keyboard</string>
+    <string name="theme_import_file_title">Theme file</string>
+    <string name="theme_import_file_subtitle">A WM Keyboard theme, or a ZIP of several</string>
+    <string name="theme_import_screenshot_subtitle">The colors, key shape and background, read off a picture of a keyboard</string>
+    <string name="theme_import_other_keyboards_heading">From another keyboard</string>
+    <string name="theme_import_floris_subtitle">A .flex theme file</string>
+    <string name="theme_import_heli_subtitle">HeliBoard or LeanType colors, pasted or from a file</string>
+    <string name="theme_import_futo_subtitle">A FUTO Keyboard theme ZIP</string>
+    <string name="theme_import_multiling_subtitle">The colors from its settings export, pasted or from a file</string>
+    <string name="theme_import_kinetica_subtitle">The theme in a Kinetica backup file</string>
+    <string name="theme_import_clink_subtitle">A .clinktheme file</string>
+    <string name="theme_import_kyng_subtitle">A share code copied to the clipboard</string>
+    <string name="theme_import_gboard_subtitle">A Gboard theme ZIP or an Rboard pack, or the Rboard collection</string>
+    <string name="theme_import_gboard_file_subtitle">A Gboard theme ZIP or an Rboard pack</string>
     <!-- Title of the dialog that shows a theme read from a screenshot. -->
     <string name="theme_copy_title">Theme from a screenshot</string>
     <!-- Name given to a theme read from a screenshot. The user can change it. -->

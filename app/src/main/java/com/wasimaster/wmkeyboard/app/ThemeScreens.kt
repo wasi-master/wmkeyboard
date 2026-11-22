@@ -119,6 +119,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import com.wasimaster.wmkeyboard.core.ui.ScrollRail
+import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -1729,6 +1734,10 @@ fun ThemesScreen(
     // own (#1451). Laid out here they stood between the title and the gallery,
     // and the gallery is what nearly every visit to this screen is for.
     val autoOn = settings.watch { it.autoTheme.enabled }
+    // Every way of bringing a theme in, behind one row (#1452): they were ten
+    // buttons over the gallery, five rows of them on a phone, for something
+    // done now and then.
+    var importSheetOpen by remember { mutableStateOf(false) }
     SettingsGroup {
         item {
             NavRow(
@@ -1737,6 +1746,12 @@ fun ThemesScreen(
                 value = stringResource(themeModeLabelRes(settings.watch { it.themeMode })),
                 route = THEME_MODES_ROUTE,
             ) { onNavigate(THEME_MODES_ROUTE) }
+        }
+        item {
+            NavRow(
+                R.string.theme_import_row_title,
+                stringResource(R.string.theme_import_row_subtitle),
+            ) { importSheetOpen = true }
         }
     }
 
@@ -1766,7 +1781,20 @@ fun ThemesScreen(
     val newThemeName = stringResource(R.string.theme_new_default_name)
     val newThemeDark = isSystemInDarkTheme()
     val customs = settings.watch { it.customThemes }.sortedBy { it.name.lowercase() }
-    val customEntries = if (grouped) customs else customs.flattenedThemes()
+    // The theme in use leads Your themes (#1452), so editing it does not start
+    // with a hunt down an alphabetical list. Taken as the screen opens and not
+    // after every tap: a card that jumped to the top the moment it was pressed
+    // would pull the rest of the list out from under the finger.
+    val inUseId = settings.watch {
+        if (it.autoTheme.enabled) it.effectiveThemeId(it.autoDarkSlotNow()) else it.keyboardThemeId
+    }
+    val leadId = remember { inUseId }
+    val customEntries = (if (grouped) customs else customs.flattenedThemes()).let { entries ->
+        val lead = entries.indexOfFirst { entry ->
+            if (grouped) entry.selfAndVariants().any { it.id == leadId } else entry.id == leadId
+        }
+        if (lead <= 0) entries else listOf(entries[lead]) + entries.filterIndexed { index, _ -> index != lead }
+    }
     // Which look each family's card is showing, when the user tapped a dot.
     // Falls back to the selected member, then the parent, in the card logic.
     val shownVariant = remember { mutableStateMapOf<String, String>() }
@@ -1935,73 +1963,33 @@ fun ThemesScreen(
             },
         )
     }
-    FlowRow(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        OutlinedButton(onClick = { importLauncher.launch(ThemeCodec.IMPORT_MIME_TYPES + PackBundle.MIME_TYPE) }) {
-            Icon(Icons.Outlined.FileDownload, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(stringResource(CommonR.string.common_import))
-        }
-        OutlinedButton(onClick = { themeCopyOpen = true }) {
-            Icon(Icons.Outlined.Screenshot, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(stringResource(R.string.theme_copy_action))
-        }
-        OutlinedButton(onClick = { florisLauncher.launch(FlexTheme.IMPORT_MIME_TYPES) }) {
-            Icon(Icons.Outlined.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(stringResource(R.string.theme_import_floris_action))
-        }
-        OutlinedButton(onClick = { heliChooser = true }) {
-            Icon(Icons.Outlined.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(stringResource(R.string.theme_import_heli_action))
-        }
-        OutlinedButton(onClick = { futoLauncher.launch(FutoTheme.IMPORT_MIME_TYPES) }) {
-            Icon(Icons.Outlined.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(stringResource(R.string.theme_import_futo_action))
-        }
-        OutlinedButton(onClick = { multilingChooser = true }) {
-            Icon(Icons.Outlined.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(stringResource(R.string.theme_import_multiling_action))
-        }
-        OutlinedButton(onClick = { kineticaLauncher.launch(KineticaTheme.IMPORT_MIME_TYPES) }) {
-            Icon(Icons.Outlined.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(stringResource(R.string.theme_import_kinetica_action))
-        }
-        OutlinedButton(onClick = { clinkLauncher.launch(ClinkTheme.IMPORT_MIME_TYPES) }) {
-            Icon(Icons.Outlined.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(stringResource(R.string.theme_import_clink_action))
-        }
+    if (importSheetOpen) {
         val kyngClipboard = LocalClipboardManager.current
-        OutlinedButton(onClick = {
-            val pasted = kyngClipboard.getText()?.text
-            scope.launch { applyKyngTheme(pasted) }
-        }) {
-            Icon(Icons.Outlined.ContentPaste, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(stringResource(R.string.theme_import_kyng_action))
-        }
-        // The Play build has no Rboard browser (it would fetch a collection of
-        // unlicensed third-party artwork from inside the app), so there is
-        // nothing to choose between and the button opens the file picker.
-        OutlinedButton(onClick = {
-            if (BuildConfig.ENABLE_PLAY_STORE) {
-                gboardLauncher.launch(GboardTheme.IMPORT_MIME_TYPES)
-            } else {
-                gboardChooser = true
+        ThemeImportSheet(onDismiss = { importSheetOpen = false }) { source ->
+            importSheetOpen = false
+            when (source) {
+                ThemeImportSource.FILE -> importLauncher.launch(ThemeCodec.IMPORT_MIME_TYPES + PackBundle.MIME_TYPE)
+                ThemeImportSource.SCREENSHOT -> { themeCopyOpen = true }
+                ThemeImportSource.FLORIS -> florisLauncher.launch(FlexTheme.IMPORT_MIME_TYPES)
+                ThemeImportSource.HELI -> { heliChooser = true }
+                ThemeImportSource.FUTO -> futoLauncher.launch(FutoTheme.IMPORT_MIME_TYPES)
+                ThemeImportSource.MULTILING -> { multilingChooser = true }
+                ThemeImportSource.KINETICA -> kineticaLauncher.launch(KineticaTheme.IMPORT_MIME_TYPES)
+                ThemeImportSource.CLINK -> clinkLauncher.launch(ClinkTheme.IMPORT_MIME_TYPES)
+                ThemeImportSource.KYNG -> {
+                    val pasted = kyngClipboard.getText()?.text
+                    scope.launch { applyKyngTheme(pasted) }
+                }
+                // The Play build has no Rboard browser (it would fetch a
+                // collection of unlicensed third-party artwork from inside the
+                // app), so there is nothing to choose between and the row
+                // opens the file picker.
+                ThemeImportSource.GBOARD -> if (BuildConfig.ENABLE_PLAY_STORE) {
+                    gboardLauncher.launch(GboardTheme.IMPORT_MIME_TYPES)
+                } else {
+                    gboardChooser = true
+                }
             }
-        }) {
-            Icon(Icons.Outlined.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(stringResource(R.string.theme_import_gboard_action))
         }
     }
     if (gboardChooser) {
@@ -2303,6 +2291,75 @@ fun ThemesScreen(
                 }
             },
         )
+    }
+}
+
+/** One way into Your themes, as the Import a theme sheet lists them (#1452). */
+private enum class ThemeImportSource(@StringRes val title: Int, @StringRes val subtitle: Int) {
+    FILE(R.string.theme_import_file_title, R.string.theme_import_file_subtitle),
+    SCREENSHOT(R.string.theme_copy_action, R.string.theme_import_screenshot_subtitle),
+    FLORIS(R.string.theme_import_floris_action, R.string.theme_import_floris_subtitle),
+    HELI(R.string.theme_import_heli_action, R.string.theme_import_heli_subtitle),
+    FUTO(R.string.theme_import_futo_action, R.string.theme_import_futo_subtitle),
+    MULTILING(R.string.theme_import_multiling_action, R.string.theme_import_multiling_subtitle),
+    KINETICA(R.string.theme_import_kinetica_action, R.string.theme_import_kinetica_subtitle),
+    CLINK(R.string.theme_import_clink_action, R.string.theme_import_clink_subtitle),
+    KYNG(R.string.theme_import_kyng_action, R.string.theme_import_kyng_subtitle),
+    GBOARD(R.string.theme_import_gboard_action, R.string.theme_import_gboard_subtitle),
+}
+
+/**
+ * Import a theme, as a sheet of sources: a theme file, a screenshot, then the
+ * other keyboards one by one. Not a [ChoiceSheet], whose radio buttons read as
+ * a setting with a current answer; nothing here is selected.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ThemeImportSheet(onDismiss: () -> Unit, onPick: (ThemeImportSource) -> Unit) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    ) {
+        // The sheet keeps its content clear of the navigation bar itself, so
+        // no padding for it here (see ChoiceSheet).
+        ScrollRail(state = rememberScrollRailState(), fadeColor = BottomSheetDefaults.ContainerColor) {
+            Text(
+                stringResource(R.string.theme_import_row_title),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(horizontal = 24.dp),
+            )
+            Spacer(Modifier.height(8.dp))
+            for (source in ThemeImportSource.entries) {
+                if (source == ThemeImportSource.FLORIS) {
+                    Text(
+                        stringResource(R.string.theme_import_other_keyboards_heading),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 4.dp),
+                    )
+                }
+                WmRow(
+                    title = stringResource(source.title),
+                    subtitle = stringResource(
+                        // The Play build opens a Gboard file straight away: it
+                        // has no Rboard collection to offer beside it.
+                        if (source == ThemeImportSource.GBOARD && BuildConfig.ENABLE_PLAY_STORE) {
+                            R.string.theme_import_gboard_file_subtitle
+                        } else {
+                            source.subtitle
+                        },
+                    ),
+                    icon = when (source) {
+                        ThemeImportSource.FILE -> Icons.Outlined.FileDownload
+                        ThemeImportSource.SCREENSHOT -> Icons.Outlined.Screenshot
+                        ThemeImportSource.KYNG -> Icons.Outlined.ContentPaste
+                        else -> Icons.Outlined.SwapHoriz
+                    },
+                    onClick = { onPick(source) },
+                )
+            }
+            Spacer(Modifier.height(32.dp))
+        }
     }
 }
 
