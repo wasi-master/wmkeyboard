@@ -3315,7 +3315,9 @@ class SuggestionEngine(
      */
     fun spellsInLowerCase(word: String): Boolean {
         val lower = word.lowered()
-        return lower !in systemWordCases && inDictionaries(lower) && listSpelling(lower) == null
+        if (!inDictionaries(lower) || listSpelling(lower) != null) return false
+        // Android's capital counts only where [displayForm] would write it.
+        return platformCapital(lower, null) == null
     }
 
     /**
@@ -8836,8 +8838,25 @@ class SuggestionEngine(
         // Pinned with no spelling on file is pinned in small letters: the
         // store keeps no shape for "ok", so nothing else may give it one (#1043).
         if (userLexicon.isCasePinned(key)) return word
-        return systemWordCases[key] ?: listSpelling(key) ?: word
+        val listed = listSpelling(key)
+        return platformCapital(key, listed) ?: listed ?: word
     }
+
+    /**
+     * The capital Android's personal dictionary gives [key], when a word list
+     * does not write the word in small letters ([listed] is the lists' own
+     * capital, if any). Other keyboards write to that dictionary as they
+     * learn: Samsung's and Gboard's leave "Make", "Where", "What" and "FOR"
+     * there from a sentence start or caps lock, and every one of them was
+     * offered mid-sentence and committed off a glide in that case. Respelling
+     * the word on the word card helped only while its capitals stayed kept:
+     * switched off, Android's entry answered again (#1359, #1433).
+     * [dictionaryCapital] has asked this of a capital it applies since #620;
+     * a name added on purpose ("Wasi", "Boston") is no list's word and keeps
+     * its capital.
+     */
+    private fun platformCapital(key: String, listed: String?): String? =
+        systemWordCases[key]?.takeIf { it == listed || !inDictionaries(key, includePlatform = false) }
 
     private fun displayForm(word: String): String = displayOf(word)
 
