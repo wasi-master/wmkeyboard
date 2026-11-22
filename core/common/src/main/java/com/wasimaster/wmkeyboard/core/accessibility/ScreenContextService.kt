@@ -56,16 +56,24 @@ class ScreenContextService : AccessibilityService() {
      * The app in front, as its package and its visible text in reading order,
      * or null when there is no app window to read. The keyboard's own window
      * and its floating buttons are skipped: the question is about the app.
+     *
+     * Every node is a call into the app's process, and in a Chromium browser
+     * the first one starts the page's accessibility engine (#1462), so this
+     * blocks for as long as the app takes to answer: never call it on the
+     * main thread. A page of empty boxes never reaches [MAX_CHARS], so the
+     * walk also stops at [MAX_NODES].
      */
     fun read(): Screen? {
         val root = appRoot() ?: return null
         val packageName = root.packageName?.toString().orEmpty()
         val lines = ArrayList<String>()
         var length = 0
+        var visited = 0
         val stack = ArrayDeque<AccessibilityNodeInfo>()
         stack.addLast(root)
-        while (stack.isNotEmpty() && length < MAX_CHARS) {
+        while (stack.isNotEmpty() && length < MAX_CHARS && visited < MAX_NODES) {
             val node = stack.removeLast()
+            visited++
             if (!node.isVisibleToUser) continue
             val text = node.text?.toString()?.trim().orEmpty()
                 .ifEmpty { node.contentDescription?.toString()?.trim().orEmpty() }
@@ -267,7 +275,7 @@ class ScreenContextService : AccessibilityService() {
         private const val BOX_SLICE = 500
         private const val MAX_MEASURED = 10_000
 
-        /** Nodes a tap looks through before it gives up. */
+        /** Nodes a read or a tap looks through before it gives up. */
         private const val MAX_NODES = 4_000
 
         /** The connected service, or null while it is off. */

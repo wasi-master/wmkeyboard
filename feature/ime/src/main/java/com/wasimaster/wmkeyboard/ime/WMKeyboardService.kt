@@ -9542,9 +9542,26 @@ open class WMKeyboardService : InputMethodService() {
      * here and now, before the sheet opens, because once it is up the screen
      * in front is the sheet. The text travels as an extra; the service caps
      * it well under what an intent can carry.
+     *
+     * Read off the main thread, like Look up's: every node is a call into the
+     * app, and a browser starts its whole accessibility engine on the first
+     * one (#1462). Read here, it froze the keyboard and the floating button
+     * for as long as the page took to answer.
      */
     private fun askAiAboutScreen() {
-        val screen = runCatching { ScreenContextService.current?.read() }.getOrNull()
+        val service = ScreenContextService.current
+        if (service == null) {
+            openAskAiSheet(null)
+            return
+        }
+        serviceScope.launch {
+            val screen = withContext(Dispatchers.IO) { runCatching { service.read() }.getOrNull() }
+            openAskAiSheet(screen)
+        }
+    }
+
+    /** Opens the Ask AI sheet, with [screen]'s text attached when there is any. */
+    private fun openAskAiSheet(screen: ScreenContextService.Screen?) {
         val intent = Intent()
             .setClassName(packageName, AskAiLaunch.ACTIVITY)
             // A fresh sheet every press: a sheet still open from the last one
