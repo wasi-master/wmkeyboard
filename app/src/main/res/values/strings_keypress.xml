@@ -147,7 +147,7 @@
     <string name="keypress_pop_text_title">Pop text</string>
     <string name="keypress_pop_text_subtitle">Typed text floats up from the keys and fades</string>
     <string name="keypress_pop_text_still_subtitle">Off while Reduce motion or power saving stills animations</string>
-    <string name="keypress_pop_text_info">A small decoration: what you type floats up out of the keyboard and fades away. With "Corrections", a word that autocorrect changed floats up from the space bar. With "Words", every word you finish does. With "Keys only", each character floats up from the key you pressed and finished words don't. With "Every key", each character floats up from its key and every finished word from the space bar.\n\nIt never shows while Reduce motion is on, or while power saving stops animations.</string>
+    <string name="keypress_pop_text_info">A small decoration: what you type floats up out of the keyboard and fades away. With \"Corrections\", a word that autocorrect changed floats up from the space bar. With \"Words\", every word you finish does. With \"Keys only\", each character floats up from the key you pressed and finished words don\'t. With \"Every key\", each character floats up from its key and every finished word from the space bar.\n\nIt never shows while Reduce motion is on, or while power saving stops animations.</string>
     <string name="keypress_pop_text_never">Never</string>
     <string name="keypress_pop_text_corrections">Corrections</string>
     <string name="keypress_pop_text_words">Words</string>
