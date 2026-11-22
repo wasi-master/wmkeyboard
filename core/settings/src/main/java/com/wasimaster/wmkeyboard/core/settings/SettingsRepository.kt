@@ -2405,6 +2405,13 @@ data class ToolbarBehavior(
     /** Side of the glyph in each button beside the suggestions, in dp, under [stripOwnSize]. */
     val stripIconSizeDp: Int = 22,
     /**
+     * Space each button beside the suggestions keeps on either side, in dp
+     * (#1478): from its neighbours, and from the strip's edge for the
+     * outermost one. 0 is the look the strip always had, buttons touching.
+     * Not under [stripOwnSize]: it is the gap, not the button.
+     */
+    val stripToolGapDp: Int = 0,
+    /**
      * The buttons beside the suggestions that sit after the words, at the
      * strip's far end; every other one sits before them, at its start (the
      * default). Each tool picks its own side, so the emoji button can be on
@@ -13791,6 +13798,7 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBAR_STRIP_OWN_SIZE = booleanPreferencesKey("toolbar_strip_own_size")
         private val TOOLBAR_STRIP_TOOL_WIDTH = intPreferencesKey("toolbar_strip_tool_width")
         private val TOOLBAR_STRIP_ICON_SIZE = intPreferencesKey("toolbar_strip_icon_size")
+        private val TOOLBAR_STRIP_TOOL_GAP = intPreferencesKey("toolbar_strip_tool_gap")
         /** The one switch that put every strip button at the end, before each had a side. */
         private val TOOLBAR_STRIP_AT_END = booleanPreferencesKey("toolbar_strip_at_end")
         private val TOOLBAR_STRIP_END_TOOLS = stringPreferencesKey("toolbar_strip_end_tools")
@@ -16576,6 +16584,7 @@ class SettingsRepository(private val context: Context) {
             stripOwnSize = p[TOOLBAR_STRIP_OWN_SIZE] ?: defaults.toolbarBehavior.stripOwnSize,
             stripToolWidthDp = p[TOOLBAR_STRIP_TOOL_WIDTH] ?: defaults.toolbarBehavior.stripToolWidthDp,
             stripIconSizeDp = p[TOOLBAR_STRIP_ICON_SIZE] ?: defaults.toolbarBehavior.stripIconSizeDp,
+            stripToolGapDp = p[TOOLBAR_STRIP_TOOL_GAP] ?: defaults.toolbarBehavior.stripToolGapDp,
             stripEndTools = readStripEndTools(p) ?: defaults.toolbarBehavior.stripEndTools,
             stripCustomButtons = p[TOOLBAR_STRIP_CUSTOM]?.split(',')?.filter { it.isNotEmpty() }?.distinct()
                 ?: defaults.toolbarBehavior.stripCustomButtons,
@@ -19788,6 +19797,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setStripIconSizeDp(value: Int) =
         editPrefs { it[TOOLBAR_STRIP_ICON_SIZE] = value.coerceIn(14, 30) }
+
+    suspend fun setStripToolGapDp(value: Int) =
+        editPrefs { it[TOOLBAR_STRIP_TOOL_GAP] = value.coerceIn(0, 12) }
 
     /**
      * Puts one of the strip's buttons after the words ([atEnd]) or before

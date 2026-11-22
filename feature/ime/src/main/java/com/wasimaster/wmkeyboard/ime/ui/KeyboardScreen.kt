@@ -529,6 +529,7 @@ import com.wasimaster.wmkeyboard.core.settings.TransliterationHintMode
 import com.wasimaster.wmkeyboard.core.settings.SuggestionHotkeyMode
 import com.wasimaster.wmkeyboard.core.settings.FunctionKeyToolbarMode
 import com.wasimaster.wmkeyboard.core.settings.SuggestionOverflow
+import com.wasimaster.wmkeyboard.core.settings.ToolbarBehavior
 import com.wasimaster.wmkeyboard.core.settings.ToolbarPlacement
 import com.wasimaster.wmkeyboard.core.settings.ToolbarColumn
 import com.wasimaster.wmkeyboard.core.settings.ToolHoldAction
@@ -4778,6 +4779,7 @@ private fun TopBar(
                     slot = IconSlots.CHROME_SUGGESTIONS_EXPAND,
                     description = chevronDesc,
                     active = false,
+                    modifier = Modifier.stripToolGap(behavior),
                     longPressLabel = chevronDesc,
                     wide = true,
                     widthDp = behavior.stripToolWidthDp.takeIf { behavior.stripOwnSize },
@@ -12516,6 +12518,7 @@ private fun StripCustomButton(state: KeyboardUiState, id: String, drag: ToolDrag
         slot = customToolSlot(id),
         description = label,
         active = false,
+        modifier = Modifier.stripToolGap(behavior),
         longPressLabel = label,
         wide = true,
         widthDp = behavior.stripToolWidthDp.takeIf { behavior.stripOwnSize },
@@ -12585,7 +12588,7 @@ private fun StripToolboxButton(
         active = false,
         // A swipe up does what the chevron does: the pinned tools (#970). A
         // swipe down puts them away again.
-        modifier = Modifier.toolboxSwipes { up -> swiped(up) },
+        modifier = Modifier.stripToolGap(behavior).toolboxSwipes { up -> swiped(up) },
         longPressLabel = label,
         // The hold the user picked for the toolbox button, as on the toolbar (#1516).
         onLongPress = { drag.toolboxHold(state.settings.toolbox.buttonHold) },
@@ -12594,6 +12597,14 @@ private fun StripToolboxButton(
         iconSizeDp = behavior.stripIconSizeDp.takeIf { behavior.stripOwnSize },
     ) { onToolbox() }
 }
+
+/**
+ * The space a button beside the suggestions keeps on either side (#1478):
+ * from its neighbours, and from the strip's edge for the outermost one.
+ * Nothing at the default 0, the strip as it always looked.
+ */
+private fun Modifier.stripToolGap(behavior: ToolbarBehavior): Modifier =
+    if (behavior.stripToolGapDp > 0) padding(horizontal = behavior.stripToolGapDp.dp) else this
 
 /** One of [StripTools]' buttons. */
 @Composable
@@ -12626,7 +12637,9 @@ private fun StripToolButton(
         active = toolActive(tool, state),
         tint = paint?.color,
         tintBrush = paint?.brush,
+        // The gap goes outside the slide, which then tracks the button itself.
         modifier = Modifier
+            .stripToolGap(behavior)
             .then(if (pinnedWidth != null) Modifier.widthIn(max = pinnedWidth) else Modifier)
             .animateSharedPlacement(
                 drag.placementOf(tool),

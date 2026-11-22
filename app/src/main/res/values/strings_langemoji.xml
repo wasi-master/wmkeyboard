@@ -85,6 +85,9 @@
     <string name="langemoji_strip_icon_size_title">Button icon size</string>
     <string name="langemoji_strip_icon_size_subtitle">How big the icon in each button beside the suggestions is</string>
     <string name="langemoji_strip_icon_size_info">The size of the icon in each button beside the suggestions. The default is 22 dp.</string>
+    <string name="langemoji_strip_tool_gap_title">Space beside each button</string>
+    <string name="langemoji_strip_tool_gap_subtitle">How much room each button beside the suggestions keeps on its sides</string>
+    <string name="langemoji_strip_tool_gap_info">Space on the left and right of each button beside the suggestions, so the buttons stand apart from each other and from the edge of the strip. It works whether or not these buttons have their own size. The default, 0 dp, has the buttons touching.</string>
     <string name="langemoji_emoji_full_bleed_title">Full-screen emoji panel</string>
     <string name="langemoji_emoji_full_bleed_subtitle">Hide the toolbar and move the category tabs up, next to a back button</string>
     <string name="langemoji_emoji_full_bleed_info">The emoji panel fills the whole keyboard. The toolbar, the emoji row and the symbol row go away. The category tabs move into the row that they leave, next to a back button. Turn this off to keep the toolbar in reach while you select emoji.</string>

@@ -1199,6 +1199,7 @@ private fun SearchStrings.appearanceToolbarRows(): List<SettingsSearchEntry> {
         row(R.string.langemoji_strip_own_size_title, R.string.langemoji_strip_own_size_subtitle),
         row(R.string.langemoji_strip_tool_width_title, R.string.langemoji_strip_tool_width_subtitle),
         row(R.string.langemoji_strip_icon_size_title, R.string.langemoji_strip_icon_size_subtitle),
+        row(R.string.langemoji_strip_tool_gap_title, R.string.langemoji_strip_tool_gap_subtitle),
     )
 }
 

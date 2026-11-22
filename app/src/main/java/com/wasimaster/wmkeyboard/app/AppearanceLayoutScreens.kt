@@ -1278,6 +1278,18 @@ private fun StripButtonsSettings(repository: SettingsRepository, settings: LiveS
                 info = stringResource(R.string.langemoji_strip_icon_size_info),
             ) { scope.launch { repository.setStripIconSizeDp(it.roundToInt()) } }
         }
+        // The gap around them (#1478), with or without a size of their own.
+        item(visible = buttonsOn, level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.langemoji_strip_tool_gap_title,
+                subtitle = stringResource(R.string.langemoji_strip_tool_gap_subtitle),
+                value = settings.watch { it.toolbarBehavior.stripToolGapDp }.toFloat(),
+                range = 0f..12f,
+                display = { dpFormat.format(it.roundToInt()) },
+                default = SettingsDefaults.toolbarBehavior.stripToolGapDp.toFloat(),
+                info = stringResource(R.string.langemoji_strip_tool_gap_info),
+            ) { scope.launch { repository.setStripToolGapDp(it.roundToInt()) } }
+        }
     }
 }
 
