@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -77,7 +78,7 @@ internal fun AiMemoryScreen(repository: SettingsRepository, settings: LiveSettin
                 default = SettingsDefaults.ai.memory.enabled,
             ) { scope.launch { repository.setAiMemoryEnabled(it) } }
         }
-        item(visible = on) {
+        item(visible = on && !OfflineBuild.isThisBuild) {
             ToggleSetting(
                 R.string.toolai_memory_cloud_title,
                 stringResource(R.string.toolai_memory_cloud_subtitle),

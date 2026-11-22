@@ -13,7 +13,7 @@ import Shot from '@components/Shot.astro';
 WM Keyboard is one app built from one source tree. Up to 0.6.2 it came in two editions, Full and Lite. From 0.6.3 there is no Lite: every build has the same features, and what differs is where the larger parts come from.
 
 - **Standard**, from GitHub and Google Play. Feature libraries such as the handwriting recogniser or the offline voice engines are not in the APK. Each one downloads the first time its feature is used, from Play on a Play install and from the project's own data repository otherwise.
-- **Offline**, from GitHub. The same app with no internet permission at all. Like the standard build it leaves the feature libraries and the other interface languages out, and since it can't fetch them, you [import](/privacy/offline/#the-offline-build) the ones you want from files fetched elsewhere. An all-languages version, for Android 7 to 10, has the 48 languages built in.
+- **Offline**, from GitHub. The same app with no internet permission at all. Like the standard build it leaves the feature libraries and the other interface languages out, and since it can't fetch them, you [import](/privacy/offline/#the-offline-build) the ones you want from files fetched elsewhere. An all-languages version, for Android 7 to 10, has the 48 languages built in. Tools and settings that only work online are [left out](/privacy/offline/#what-cannot-work-offline).
 - **F-Droid.** The standard build without Google's SDKs (ML Kit, LiteRT and LiteRT-LM), which F-Droid does not accept. Its feature libraries download only after you agree to it under Privacy, since that skips F-Droid's own checks. F-Droid serves it with all 48 interface languages. From 0.6.7 each GitHub release also carries an English-only copy for `arm64-v8a` (`-fdroid-en.apk`), the same build without the translations, for anyone who wants no Google code and no languages they won't use. F-Droid doesn't serve that one, so its updates come from the releases page.
 
 <PhoneFrame caption="The Tools panel on a standard build: Handwriting, Text scan, QR & barcode, Document scanner and Grammar check all appear.">
@@ -66,7 +66,7 @@ The F-Droid build is a build with fewer Google parts, not a more private one. Ev
   <Shot id="start/editions-about-version" alt="Settings → About → Version names the build, build type, store and version code." />
 </PhoneFrame>
 
-The Version row shows "Standard build (release) · code …", or "Offline build" for the offline one, with " · F-Droid" or " · Play Store" after the build type when the app came from a store. Under it, a second line names the source commit the build was made from. The toolbox doesn't tell them apart: every tool is in both.
+The Version row shows "Standard build (release) · code …", or "Offline build" for the offline one, with " · F-Droid" or " · Play Store" after the build type when the app came from a store. Under it, a second line names the source commit the build was made from. The toolbox tells the offline build apart: it leaves out the tools that only work online, such as Weather and Web search (see [What cannot work offline](/privacy/offline/#what-cannot-work-offline)).
 
 ## Switching builds
 

@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.core.settings
 
 import android.os.Build
 import com.wasimaster.wmkeyboard.config.BuildConfig
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 
 // Extracted from SettingsRepository.kt so the low-level modules (icons, tools,
 // media) can reference these types without depending on the settings module —
@@ -348,12 +349,30 @@ fun toolOpensScreen(tool: ToolbarTool): Boolean = when (tool) {
     else -> tool !in CursorTools && tool !in ClipboardTools
 }
 
+/**
+ * Tools that do nothing without a connection, left out of the offline build
+ * entirely ([isSupportedTool]): no tile, no page, no search result, no chip.
+ * Without the internet permission Android refuses every socket, the local
+ * network's too, so the servers on the user's own Wi-Fi (Home Assistant, KDE
+ * Connect, a nearby phone) are as far off as the web.
+ *
+ * Tools with an offline half stay: translate and the dictionary read
+ * imported files, the AI tools run a local model, GIFs read offline packs.
+ */
+val NetworkOnlyTools: Set<ToolbarTool> = setOf(
+    ToolbarTool.WEATHER, ToolbarTool.WEB_SEARCH, ToolbarTool.IMAGE_SEARCH, ToolbarTool.WIKIPEDIA,
+    ToolbarTool.CURRENCY, ToolbarTool.HOME_ASSISTANT, ToolbarTool.KDE_CONNECT, ToolbarTool.SEND_FILES,
+    ToolbarTool.MUSIC_ID, ToolbarTool.SPEED_TEST,
+)
+
 // Handwriting is in every build: where ML Kit's recogniser is not
 // (F-Droid's), zinnia still reads Chinese and Japanese, and the panel says
 // so for any other language. So is the QR scanner, which reads with
 // zxing-cpp where ML Kit's barcode reader is not, and text scan, which reads
 // with PaddleOCR on MNN where neither ML Kit nor LiteRT is.
 fun isSupportedTool(tool: ToolbarTool): Boolean = when {
+    // Nothing but a connection to offer, so not in the offline build (#292).
+    OfflineBuild.isThisBuild && tool in NetworkOnlyTools -> false
     !BuildConfig.ENABLE_GRAMMAR && tool == ToolbarTool.GRAMMAR -> false
     // An accessibility service's action (#1148): not in the Play build, and
     // Android has no screenshot action to press before 9.

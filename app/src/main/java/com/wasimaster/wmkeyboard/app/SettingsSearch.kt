@@ -17,6 +17,7 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderType
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.ActionOnlyTools
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
@@ -3910,10 +3911,52 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
         layoutOnehandedRows() + floatingButtonRows() + shareSheetRows() + languageRows() + emojiRows() +
         emojiPanelRows() + emojiMixRows() + kaomojiRows() +
         voiceRows() + clipboardRows() + clipboardHistoryRows() + clipboardChipsRows() + clipboardRulesRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + galleryRows() + sendRows() + vocabRows() + notesRows() + todoRows() + storageRows() + otherRows()
+    val offline = OfflineBuild.isThisBuild
     // A provider's screen goes with the tool page its list is on.
     all.filterNot { it.route in unsupported || it.tool?.let { tool -> "tool/${tool.name}" in unsupported } == true }
+        .filterNot { offline && (it.route in OfflineHiddenRoutes || it.titleRes in OfflineHiddenRows) }
         .distinctBy { it.key }
 }
+
+/**
+ * Screens the offline build leaves out: each one only ever talks to the
+ * network, so on a build that can never connect it would be a page of
+ * switches that do nothing. Their rows elsewhere are hidden by the screen
+ * that draws them, behind the same [OfflineBuild.isThisBuild].
+ */
+internal val OfflineHiddenRoutes: Set<String> = setOf(
+    "datasaver", "network_activity", "provider_credits", "kdeconnect/devices",
+    "send/instances", "send/history", "ai_mcp",
+)
+
+/**
+ * Single rows the offline build leaves out, by their title, on screens that
+ * stay. Each one fetches something or names a server. Keep in step with the
+ * screens: every row here is drawn behind [OfflineBuild.isThisBuild] too.
+ */
+internal val OfflineHiddenRows: Set<Int> = setOf(
+    R.string.typing_smart_currency_title, R.string.typing_smart_weather_title,
+    R.string.clipboard_link_previews_title, R.string.location_tiles_label,
+    R.string.tooldetail_calendar_weather_title, R.string.invite_mobilizon_url_title, R.string.invite_pretix_url_title,
+    R.string.tooldetail_camera_search_engine_title,
+    R.string.lookup_settings_forvo_title,
+    R.string.tooldetail_power_drop_network_title,
+    R.string.gallery_immich_url_title, R.string.gallery_immich_key_title, R.string.gallery_immich_check_title,
+    R.string.gallery_immich_save_data_title,
+    R.string.tooldetail_qr_scan_preview_title,
+    R.string.paperless_url_title, R.string.paperless_token_title, R.string.paperless_wifi_only_title,
+    R.string.toolai_ai_tool_search_title, R.string.toolai_ai_tool_fetch_title, R.string.toolai_ai_mcp_title,
+    R.string.toolai_research_depth_title,
+    R.string.toolai_research_review_plan_title, R.string.toolai_memory_cloud_title,
+    R.string.backup_auto_drive_title,
+    R.string.import_signal_row_title, R.string.import_telegram_row_title,
+    R.string.privacy_download_mirror_title, R.string.privacy_verify_checksums_title,
+    R.string.notify_downloads_title, R.string.notify_updates_title,
+    R.string.update_row_check_title, R.string.update_row_auto_check_title, R.string.update_row_prompts_title,
+    R.string.update_row_prereleases_title,
+    R.string.photo_find_title, R.string.home_datasaver_title, R.string.netlog_title, R.string.providers_credits_title,
+    R.string.privacy_permissions_internet_title,
+)
 
 /** The index in the language [res] is configured for. */
 internal fun settingsSearchIndex(res: Resources): List<SettingsSearchEntry> =

@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -369,7 +370,7 @@ internal fun IconsScreen(
     SettingsGroup {
         // Beside the file importer, because both answer "where do I get more of
         // these" — one from a file the user already has, one from the store.
-        item { AddonStoreRow(AddonType.IconPack, onNavigate) }
+        item(visible = !OfflineBuild.isThisBuild, waitsOnSetting = false) { AddonStoreRow(AddonType.IconPack, onNavigate) }
         item {
             val count = remember(libraryRevision) { library.icons().size }
             WmRow(

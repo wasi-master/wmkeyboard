@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
@@ -85,7 +86,8 @@ internal fun NotificationSettingsScreen(settings: LiveSettings) {
         stringResource(R.string.notify_kinds_group),
         info = stringResource(R.string.notify_kinds_info),
     ) {
-        item {
+        // Nothing downloads and no update is ever looked for in the offline build.
+        item(visible = !OfflineBuild.isThisBuild, waitsOnSetting = false) {
             ToggleSetting(
                 R.string.notify_downloads_title,
                 stringResource(R.string.notify_downloads_subtitle),
@@ -97,7 +99,7 @@ internal fun NotificationSettingsScreen(settings: LiveSettings) {
                 NotificationSwitches.set(context, NotificationKind.DOWNLOADS, it)
             }
         }
-        item {
+        item(visible = !OfflineBuild.isThisBuild, waitsOnSetting = false) {
             ToggleSetting(
                 R.string.notify_updates_title,
                 stringResource(R.string.notify_updates_subtitle),

@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import android.content.Intent
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
@@ -416,7 +417,8 @@ internal fun CommunityAddonsRow(type: AddonType, onNavigate: (String) -> Unit) {
 /** [AddonStoreRow] as a group of its own, for a screen that has nowhere to put it. */
 @Composable
 internal fun AddonStoreGroup(type: AddonType, onNavigate: (String) -> Unit) {
-    SettingsGroup { item { AddonStoreRow(type, onNavigate) } }
+    // The stores are catalogues on the web, so the offline build has none to open.
+    if (!OfflineBuild.isThisBuild) SettingsGroup { item { AddonStoreRow(type, onNavigate) } }
 }
 
 /** [ReturnAnchor] key for the Addons screen — its repositories and its installs. */

@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -472,7 +473,7 @@ private fun InstalledSoundSection(
         }
         // Beside the file importer: the store is the other way to get a sound,
         // and it is the one that works when the user has no file to import.
-        AddonStoreRow(AddonType.Sound, onNavigate)
+        if (!OfflineBuild.isThisBuild) AddonStoreRow(AddonType.Sound, onNavigate)
         OutlinedButton(
             onClick = { importLauncher.launch(SoundFile.IMPORT_MIME_TYPES) },
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -687,7 +688,7 @@ private fun InstalledSoundPackSection(
             }
         }
         PerLayoutSoundPackSection(repository, settings, packs)
-        AddonStoreRow(AddonType.SoundPack, onNavigate)
+        if (!OfflineBuild.isThisBuild) AddonStoreRow(AddonType.SoundPack, onNavigate)
         OutlinedButton(
             onClick = { importLauncher.launch(SoundPackFile.IMPORT_MIME_TYPES) },
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),

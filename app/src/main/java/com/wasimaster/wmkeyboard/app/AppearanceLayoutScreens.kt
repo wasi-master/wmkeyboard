@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.settings.DefaultToolbarKeys
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -1709,7 +1710,7 @@ internal fun LayoutSettings(
         // One row for getting one (#1318): the community repository is one of
         // the stores the add-on screen lists, so a second row for it only
         // split the same catalogue in two.
-        item {
+        item(visible = !OfflineBuild.isThisBuild, waitsOnSetting = false) {
             AddonStoreRow(
                 AddonType.Layout,
                 onNavigate,

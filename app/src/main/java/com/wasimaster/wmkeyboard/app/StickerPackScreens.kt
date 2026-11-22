@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.BackHandler
@@ -369,8 +370,9 @@ internal fun StickerPacksScreen(onNavigate: (String) -> Unit) {
                 )
             }
         }
-        item { AddonStoreRow(AddonType.Stickers, onNavigate) }
-        item {
+        item(visible = !OfflineBuild.isThisBuild, waitsOnSetting = false) { AddonStoreRow(AddonType.Stickers, onNavigate) }
+        // Both read a pack off its servers by its link, so not in the offline build.
+        item(visible = !OfflineBuild.isThisBuild, waitsOnSetting = false) {
             WmRow(
                 title = stringResource(R.string.import_signal_row_title),
                 subtitle = stringResource(R.string.import_signal_row_subtitle),
@@ -380,7 +382,7 @@ internal fun StickerPacksScreen(onNavigate: (String) -> Unit) {
                 onClick = { onNavigate(SIGNAL_STICKERS_ROUTE) },
             )
         }
-        item {
+        item(visible = !OfflineBuild.isThisBuild, waitsOnSetting = false) {
             WmRow(
                 title = stringResource(R.string.import_telegram_row_title),
                 subtitle = stringResource(R.string.import_telegram_row_subtitle),

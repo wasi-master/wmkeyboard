@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.annotation.StringRes
 import androidx.activity.result.contract.ActivityResultContracts
@@ -393,7 +394,7 @@ internal fun EmojiSettings(
         }
         // Straight after the picker, because "Installed" is the option that
         // needs a font to have arrived from somewhere first.
-        item(level = SettingLevel.STANDARD) { AddonStoreRow(AddonType.EmojiFont, onNavigate) }
+        item(visible = !OfflineBuild.isThisBuild, level = SettingLevel.STANDARD, waitsOnSetting = false) { AddonStoreRow(AddonType.EmojiFont, onNavigate) }
         item(level = SettingLevel.STANDARD) {
             // The phone is always the one to blame here: an emoji the chosen
             // font is missing is drawn in the phone's own emoji font instead,

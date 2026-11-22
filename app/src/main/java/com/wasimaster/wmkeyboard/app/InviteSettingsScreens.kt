@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
@@ -37,6 +38,8 @@ import kotlinx.coroutines.withContext
  */
 @Composable
 internal fun InviteSettingsGroup(repository: SettingsRepository, settings: LiveSettings) {
+    // A server, which the offline build can never reach.
+    if (OfflineBuild.isThisBuild) return
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val inv = settings.watch { it.calendarTool.invites }

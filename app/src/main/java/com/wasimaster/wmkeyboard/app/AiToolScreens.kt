@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -562,7 +563,7 @@ internal fun AiToolSettings(
         ),
         level = SettingLevel.STANDARD,
     ) {
-        item(visible = searchReady) {
+        item(visible = searchReady && !OfflineBuild.isThisBuild) {
             ToggleSetting(
                 R.string.toolai_ai_tool_search_title,
                 stringResource(R.string.toolai_ai_tool_search_subtitle),
@@ -578,7 +579,7 @@ internal fun AiToolSettings(
                 onClick = { onNavigate(toolRoute(ToolbarTool.WEB_SEARCH)) },
             )
         }
-        item {
+        item(visible = !OfflineBuild.isThisBuild, waitsOnSetting = false) {
             ToggleSetting(
                 R.string.toolai_ai_tool_fetch_title,
                 stringResource(R.string.toolai_ai_tool_fetch_subtitle),
@@ -596,7 +597,8 @@ internal fun AiToolSettings(
                 onClick = { onNavigate(AI_BUILT_IN_TOOLS_ROUTE) },
             )
         }
-        item(level = SettingLevel.ADVANCED) {
+        // An MCP server is reached over a socket, which the offline build may not open.
+        item(visible = !OfflineBuild.isThisBuild, level = SettingLevel.ADVANCED, waitsOnSetting = false) {
             // The count is of the servers that are on, which is what decides
             // whether the model is offered anything from them at all.
             val enabledServers = settings.watch { s -> s.ai.mcpServers.count { it.enabled } }
@@ -685,8 +687,8 @@ internal fun AiToolSettings(
             ) { scope.launch { repository.setAiChatSpeak(it) } }
         }
         // The chat's Deep research mode: how far a report goes, and whether
-        // its plan waits for Start.
-        item(level = SettingLevel.STANDARD) {
+        // its plan waits for Start. It researches the web, so not offline.
+        item(visible = !OfflineBuild.isThisBuild, level = SettingLevel.STANDARD, waitsOnSetting = false) {
             ChoiceSetting(
                 R.string.toolai_research_depth_title,
                 subtitle = stringResource(R.string.toolai_research_depth_subtitle),
@@ -700,7 +702,7 @@ internal fun AiToolSettings(
                 info = stringResource(R.string.toolai_research_depth_info),
             ) { scope.launch { repository.setAiResearchDepth(it) } }
         }
-        item(level = SettingLevel.ADVANCED) {
+        item(visible = !OfflineBuild.isThisBuild, level = SettingLevel.ADVANCED, waitsOnSetting = false) {
             ToggleSetting(
                 R.string.toolai_research_review_plan_title,
                 stringResource(R.string.toolai_research_review_plan_subtitle),

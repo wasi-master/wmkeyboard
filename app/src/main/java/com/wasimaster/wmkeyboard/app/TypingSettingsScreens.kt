@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.compose.foundation.layout.Column
@@ -2056,7 +2057,7 @@ internal fun TypingSmartChipsSettings(
                 ) { scope.launch { repository.setSmartCalc(it) } }
             }
             chipToolsOffItem(SmartSuggest.Family.CALC, calcOn, usable, repository)
-            item(level = SettingLevel.STANDARD) {
+            item(visible = !OfflineBuild.isThisBuild, level = SettingLevel.STANDARD, waitsOnSetting = false) {
                 ToggleSetting(
                     R.string.typing_smart_currency_title,
                     stringResource(R.string.typing_smart_currency_subtitle, settings.watch { it.currencyTo }),
@@ -2104,7 +2105,7 @@ internal fun TypingSmartChipsSettings(
                 ) { repository.setSmartChipDateFormats(it) }
             }
             chipToolsOffItem(SmartSuggest.Family.DATES, datesOn, usable, repository)
-            item(level = SettingLevel.STANDARD) {
+            item(visible = !OfflineBuild.isThisBuild, level = SettingLevel.STANDARD, waitsOnSetting = false) {
                 ToggleSetting(
                     R.string.typing_smart_weather_title,
                     stringResource(R.string.typing_smart_weather_subtitle),

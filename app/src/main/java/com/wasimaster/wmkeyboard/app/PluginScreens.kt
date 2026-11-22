@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.util.requireOutputStream
 import androidx.activity.compose.BackHandler
 import android.net.Uri
@@ -353,7 +354,7 @@ internal fun PluginsScreen(repository: SettingsRepository, settings: LiveSetting
             stringResource(R.string.plugins_add_title),
             info = stringResource(R.string.plugins_install_repo_info),
         ) {
-            item { AddonStoreRow(AddonType.Plugin, onNavigate) }
+            item(visible = !OfflineBuild.isThisBuild, waitsOnSetting = false) { AddonStoreRow(AddonType.Plugin, onNavigate) }
             item {
                 WmRow(
                     title = stringResource(R.string.plugins_install_file_title),

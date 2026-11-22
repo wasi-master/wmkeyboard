@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -325,6 +326,8 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
  */
 @Composable
 private fun ImmichSettingsGroup(settings: LiveSettings, update: ((GallerySettings) -> GallerySettings) -> Unit) {
+    // A server, which the offline build can never reach.
+    if (OfflineBuild.isThisBuild) return
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val url = settings.watch { it.gallery.immichUrl }

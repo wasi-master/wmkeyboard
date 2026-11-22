@@ -29,6 +29,17 @@ object OfflineBuild {
      */
     val active: Boolean get() = !InternetPermission.granted
 
+    /**
+     * Whether this is the offline build itself: the manifest never asks for
+     * the permission, so nothing that needs a connection can ever work here.
+     * The settings and the keyboard leave those features out altogether
+     * rather than showing switches that do nothing; a user who installed
+     * this build chose it. A standard build whose permission the system
+     * switched off is not this build, and keeps everything: the permission
+     * can be switched back on there.
+     */
+    val isThisBuild: Boolean get() = !InternetPermission.declared
+
     /** [online] for a service the app talks to (search, AI, a server, the updater). */
     @StringRes
     fun network(@StringRes online: Int): Int = refusal(R.string.common_error_no_internet_permission) ?: online

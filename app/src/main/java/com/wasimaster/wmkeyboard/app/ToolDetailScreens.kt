@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.settings.key
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import android.content.ComponentName
@@ -1322,7 +1323,8 @@ internal fun ToolDetailSettings(
                 }
             }
             CalendarNewEventRows(repository, settings)
-            SettingsGroup(stringResource(R.string.tooldetail_calendar_weather_group), level = SettingLevel.STANDARD) {
+            // The forecast is fetched, so the offline build leaves the group out.
+            if (!OfflineBuild.isThisBuild) SettingsGroup(stringResource(R.string.tooldetail_calendar_weather_group), level = SettingLevel.STANDARD) {
                 item {
                     ToggleSetting(
                         R.string.tooldetail_calendar_weather_title,
@@ -1480,7 +1482,13 @@ internal fun ToolDetailSettings(
                         info = stringResource(R.string.tooldetail_camera_search_with_info),
                         options = listOf(
                             PhotoSearchTarget.LENS to stringResource(R.string.tooldetail_camera_search_with_lens),
-                            PhotoSearchTarget.WEB to stringResource(R.string.tooldetail_camera_search_with_web),
+                            // An upload, which the offline build cannot make; Lens
+                            // and the share sheet hand the photo to another app.
+                            *if (OfflineBuild.isThisBuild) {
+                                emptyArray<Pair<PhotoSearchTarget, String>>()
+                            } else {
+                                arrayOf(PhotoSearchTarget.WEB to stringResource(R.string.tooldetail_camera_search_with_web))
+                            },
                             PhotoSearchTarget.SHARE to stringResource(R.string.tooldetail_camera_search_with_share),
                         ),
                         selected = settings.watch { it.camera.searchWith },
@@ -1498,7 +1506,7 @@ internal fun ToolDetailSettings(
                         },
                     ) { scope.launch { repository.setCameraSearchWith(it) } }
                 }
-                item(visible = onWeb) {
+                item(visible = onWeb && !OfflineBuild.isThisBuild) {
                     ChoiceSetting(
                         R.string.tooldetail_camera_search_engine_title,
                         info = stringResource(R.string.tooldetail_camera_search_engine_info),
@@ -2174,7 +2182,7 @@ internal fun ToolDetailSettings(
                 }
             }
             SettingsGroup(stringResource(R.string.tooldetail_power_drop_background_group), level = SettingLevel.ADVANCED) {
-                item {
+                item(visible = !OfflineBuild.isThisBuild, waitsOnSetting = false) {
                     ToggleSetting(
                         R.string.tooldetail_power_drop_network_title,
                         stringResource(R.string.tooldetail_power_drop_network_subtitle),
@@ -3265,7 +3273,7 @@ internal fun ToolDetailSettings(
                         info = stringResource(R.string.tooldetail_qr_scan_haptics_info),
                     ) { scope.launch { repository.setQrScanHaptics(it) } }
                 }
-                item {
+                item(visible = !OfflineBuild.isThisBuild, waitsOnSetting = false) {
                     ToggleSetting(
                         R.string.tooldetail_qr_scan_preview_title,
                         stringResource(R.string.tooldetail_qr_scan_preview_subtitle),

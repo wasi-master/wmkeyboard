@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -852,7 +853,7 @@ internal fun EmojiKeywordSettings(
                 default = SettingsDefaults.emoji.autoDownloadKeywords,
             ) { scope.launch { repository.setEmojiAutoDownloadKeywords(it) } }
         }
-        item { AddonStoreRow(AddonType.EmojiKeywords, onNavigate) }
+        item(visible = !OfflineBuild.isThisBuild, waitsOnSetting = false) { AddonStoreRow(AddonType.EmojiKeywords, onNavigate) }
     }
 
     for (languageId in languageIds) {

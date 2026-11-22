@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import android.content.Intent
 import android.provider.Settings
 import android.widget.Toast
@@ -143,7 +144,8 @@ internal fun LocationToolSettings(repository: SettingsRepository, settings: Live
         serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.NOMINATIM), level = SettingLevel.ADVANCED)
     }
 
-    SettingsGroup(
+    // Map tiles come from a server, so the offline build has no use for one.
+    if (!OfflineBuild.isThisBuild) SettingsGroup(
         stringResource(R.string.location_tiles_group),
         info = stringResource(R.string.location_tiles_info),
         level = SettingLevel.ADVANCED,

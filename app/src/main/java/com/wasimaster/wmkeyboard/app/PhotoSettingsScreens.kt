@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import androidx.activity.compose.rememberLauncherForActivityResult
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import androidx.activity.result.PickVisualMediaRequest
@@ -349,7 +350,7 @@ fun PhotoRotationScreen(
                         info = stringResource(R.string.photo_rotation_metered_info),
                     ) { scope.launch { repository.setPhotoFetchOnMetered(it) } }
                 }
-                item(visible = saverStops, level = SettingLevel.STANDARD) {
+                item(visible = saverStops && !OfflineBuild.isThisBuild, level = SettingLevel.STANDARD) {
                     NavRow(
                         title = R.string.home_datasaver_title,
                         subtitle = stringResource(R.string.photo_rotation_metered_saver_nav_subtitle),

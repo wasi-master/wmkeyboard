@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
 import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 import com.wasimaster.wmkeyboard.core.download.DataMirror
@@ -113,7 +114,7 @@ internal fun PrivacySettings(
                 route = "permissions",
             ) { onNavigate("permissions") }
         }
-        item(level = SettingLevel.ADVANCED) {
+        item(visible = !OfflineBuild.isThisBuild, level = SettingLevel.ADVANCED, waitsOnSetting = false) {
             NavRow(
                 R.string.netlog_title,
                 stringResource(R.string.netlog_subtitle),
@@ -186,8 +187,8 @@ internal fun PrivacySettings(
         stringResource(R.string.privacy_downloads_group_title),
         level = if (libraryChoice) SettingLevel.BASIC else SettingLevel.STANDARD,
     ) {
-        item(level = SettingLevel.STANDARD, weight = 2) { DownloadMirrorRow(repository, settings) }
-        item(level = SettingLevel.ADVANCED) { VerifyChecksumsRow(repository, settings) }
+        item(visible = !OfflineBuild.isThisBuild, level = SettingLevel.STANDARD, weight = 2, waitsOnSetting = false) { DownloadMirrorRow(repository, settings) }
+        item(visible = !OfflineBuild.isThisBuild, level = SettingLevel.ADVANCED, waitsOnSetting = false) { VerifyChecksumsRow(repository, settings) }
         item(visible = FeatureLibraryList.offered) { FeatureLibrariesNavRow() }
         item { FeatureLibrariesRows() }
     }
@@ -1223,7 +1224,7 @@ internal fun ClipboardSettings(
                 default = SettingsDefaults.clipboard.clearButton,
             ) { scope.launch { repository.setClipboardClearButton(it) } }
         }
-        item {
+        item(visible = !OfflineBuild.isThisBuild, waitsOnSetting = false) {
             ToggleSetting(
                 R.string.clipboard_link_previews_title,
                 stringResource(R.string.clipboard_link_previews_subtitle),

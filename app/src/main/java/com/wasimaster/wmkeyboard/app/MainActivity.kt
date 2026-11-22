@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.app.share.ShareSheetSettingsScreen
 import com.wasimaster.wmkeyboard.app.share.ShareSheetRoute
 import android.app.AppOpsManager
@@ -3821,7 +3822,8 @@ internal fun AdvancedSettings(onNavigate: (String) -> Unit) {
                 onNavigate("addons")
             }
         }
-        item {
+        // Data saving means nothing to a build that never connects.
+        item(visible = !OfflineBuild.isThisBuild, waitsOnSetting = false) {
             NavRow(
                 R.string.home_datasaver_title, stringResource(R.string.home_datasaver_subtitle), route = "datasaver",
             ) { onNavigate("datasaver") }

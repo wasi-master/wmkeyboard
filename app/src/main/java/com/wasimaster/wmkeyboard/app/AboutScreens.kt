@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.app.share.AppShareSheet
 import android.content.Intent
 import android.content.ClipData
@@ -1877,7 +1878,8 @@ internal fun AboutSettings(
                 onClick = onOpenResources,
             )
         }
-        item(level = SettingLevel.STANDARD) {
+        // What is left with each online service: none to ask in the offline build.
+        item(visible = !OfflineBuild.isThisBuild, level = SettingLevel.STANDARD, waitsOnSetting = false) {
             NavRow(
                 R.string.providers_credits_title,
                 stringResource(R.string.providers_credits_subtitle),

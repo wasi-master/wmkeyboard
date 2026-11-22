@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.fonts.FontFile
 import com.wasimaster.wmkeyboard.core.fonts.FontImportResult
 import com.wasimaster.wmkeyboard.content.R as ContentR
@@ -2323,7 +2324,7 @@ fun ThemesScreen(
     // One row for getting more (#43), as Layout & size has (#1318): the
     // community repository is one of the stores the add-on screen lists, so
     // a second row for it only split the same catalogue in two.
-    SettingsGroup {
+    if (!OfflineBuild.isThisBuild) SettingsGroup {
         item {
             AddonStoreRow(AddonType.Theme, onNavigate, subtitle = stringResource(R.string.theme_get_more_subtitle))
         }
@@ -9185,7 +9186,8 @@ private fun BackgroundSourceDialog(
                     colors = transparentListColors(),
                     modifier = Modifier.clickable { onDevice(true) },
                 )
-                ListItem(
+                // A search of online photo sites, so not in the offline build.
+                if (!OfflineBuild.isThisBuild) ListItem(
                     headlineContent = { Text(stringResource(R.string.photo_find_title)) },
                     supportingContent = { Text(stringResource(R.string.photo_find_subtitle)) },
                     leadingContent = { Icon(Icons.Outlined.Search, contentDescription = null) },

@@ -545,7 +545,8 @@ internal fun UpdateSettings(settings: LiveSettings) {
     val updater = LocalAppUpdater.current
     val state by updater.state.collectAsStateWithLifecycle()
     val switching by updater.switchingToAllLanguages.collectAsStateWithLifecycle()
-    if (state is UpdateState.Unsupported) return
+    // The offline build can never reach a release page, so it has no update rows.
+    if (state is UpdateState.Unsupported || OfflineBuild.isThisBuild) return
 
     // These settings live in SharedPreferences, not in the settings DataStore,
     // so they are not snapshot state and a write would not recompose anything

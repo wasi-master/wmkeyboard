@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -46,6 +47,8 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
  */
 @Composable
 internal fun PaperlessSettingsGroup(repository: SettingsRepository, settings: LiveSettings) {
+    // A server, which the offline build can never reach.
+    if (OfflineBuild.isThisBuild) return
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val d = SettingsDefaults.scanner.paperless
