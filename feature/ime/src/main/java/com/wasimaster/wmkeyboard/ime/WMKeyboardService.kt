@@ -2446,6 +2446,9 @@ open class WMKeyboardService : InputMethodService() {
         if (_uiState.value.glideWordListOffer != null) clearGlideWordListOffer()
         // And to the one about a paste, which no longer sits behind the caret.
         if (_uiState.value.zawgyiOffer is ZawgyiOffer.Pasted) clearZawgyiOffer()
+        // A letter typed under the shift makes it the word's own case again,
+        // which the engine's suggestions already follow (#1422).
+        if (_uiState.value.shiftMidWord) _uiState.update { it.copy(shiftMidWord = false) }
         if (composing.isEmpty()) {
             // A new reading is read afresh for where it sits (#973).
             hiddenReadingCaret = -1
@@ -16998,6 +17001,9 @@ open class WMKeyboardService : InputMethodService() {
                 // The one place a shift is the user's own doing, which is what
                 // Shift+Enter's newline override keys off.
                 shiftPressedByUser = next != ShiftState.OFF,
+                // Pressed with letters already typed: the strip cycles the
+                // word's case rather than following it (#1195, #1422).
+                shiftMidWord = next != ShiftState.OFF && composing.isNotEmpty(),
             )
         }
     }
@@ -17015,7 +17021,11 @@ open class WMKeyboardService : InputMethodService() {
         _uiState.update {
             val next =
                 if (it.shiftState == ShiftState.CAPS_LOCK) ShiftState.OFF else ShiftState.CAPS_LOCK
-            it.copy(shiftState = next, shiftPressedByUser = next != ShiftState.OFF)
+            it.copy(
+                shiftState = next,
+                shiftPressedByUser = next != ShiftState.OFF,
+                shiftMidWord = next != ShiftState.OFF && composing.isNotEmpty(),
+            )
         }
     }
 
@@ -31191,6 +31201,8 @@ open class WMKeyboardService : InputMethodService() {
         // returns below so none of them leaves it stale.
         val typing = composing.isNotEmpty()
         if (_uiState.value.wordComposing != typing) _uiState.update { it.copy(wordComposing = typing) }
+        // A word that ended takes its mid-word shift with it (#1422).
+        if (!typing && _uiState.value.shiftMidWord) _uiState.update { it.copy(shiftMidWord = false) }
         // The smart punctuation key reads the word being typed too, so it is
         // right when the sentence's last word is done and the mark is next.
         schedulePunctuationGuess()

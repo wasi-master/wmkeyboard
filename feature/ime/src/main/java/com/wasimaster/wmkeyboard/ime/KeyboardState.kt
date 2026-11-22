@@ -113,8 +113,14 @@ fun cycleCaseForShift(word: String, shift: ShiftState): String {
     }
 }
 
-/** Whether the strip reads [cycleCaseForShift] rather than [displayCaseForShift] (#1195). */
-fun KeyboardUiState.shiftCyclesCase(): Boolean = wordComposing && shiftPressedByUser && shiftState != ShiftState.OFF
+/**
+ * Whether the strip reads [cycleCaseForShift] rather than [displayCaseForShift]
+ * (#1195): only for a shift pressed after the word's last letter. A word typed
+ * under caps lock already comes back from the engine in capitals, and taking
+ * that for "already UPPER" turned every suggestion lower case (#1422).
+ */
+fun KeyboardUiState.shiftCyclesCase(): Boolean =
+    wordComposing && shiftMidWord && shiftPressedByUser && shiftState != ShiftState.OFF
 
 fun displayCaseForShift(word: String, shift: ShiftState): String {
     if (word.isEmpty() || '@' in word) return word
@@ -3663,6 +3669,14 @@ data class KeyboardUiState(
      * the state alone would stop the first line of every message from sending.
      */
     val shiftPressedByUser: Boolean = false,
+    /**
+     * The shift now up was pressed after the last letter of the word being
+     * typed, which is when the strip cycles the words' case ([shiftCyclesCase]).
+     * Cleared by the next letter: a shift the word is typed under (caps lock
+     * held through a word) is how the word is written, and the engine's
+     * suggestions already follow it (#1422).
+     */
+    val shiftMidWord: Boolean = false,
     /**
      * Ctrl/Alt/Meta latches waiting to be folded into the next key event.
      * Session state, never persisted: a Ctrl left locked in one app must not
