@@ -1,10 +1,14 @@
 package com.wasimaster.wmkeyboard.app
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import com.wasimaster.wmkeyboard.core.notify.BackgroundTasks
 import com.wasimaster.wmkeyboard.core.notify.DownloadNotifications
 import com.wasimaster.wmkeyboard.core.notify.DownloadProgress
 import com.wasimaster.wmkeyboard.core.notify.NotificationSwitches
+import com.wasimaster.wmkeyboard.core.notify.TaskState
 import com.wasimaster.wmkeyboard.core.notify.WmNotifications
 import kotlinx.coroutines.flow.Flow
 
@@ -95,4 +99,33 @@ internal fun rememberNotificationPermissionOffer(): () -> Unit {
             ask()
         }
     }
+}
+
+/**
+ * Starting a long job on [BackgroundTasks] from a screen (#1522), so it keeps
+ * running when the screen goes and the shade shows how far along it is. The
+ * first time, it offers the notification permission, as a download does.
+ * Returns false when a job under the same key is already running.
+ */
+@Composable
+internal fun rememberTaskStarter(): (
+    key: String,
+    title: String,
+    failure: String,
+    work: suspend (BackgroundTasks.Progress) -> BackgroundTasks.Outcome,
+) -> Boolean {
+    val context = LocalContext.current
+    val offerPermission = rememberNotificationPermissionOffer()
+    return { key, title, failure, work ->
+        val started = BackgroundTasks.start(context, key, title, failure, work)
+        if (started) offerPermission()
+        started
+    }
+}
+
+/** The job under [key] as it stands, or null when there is none to show. */
+@Composable
+internal fun rememberTaskState(key: String): TaskState? {
+    val all by BackgroundTasks.all.collectAsState()
+    return all[key]
 }

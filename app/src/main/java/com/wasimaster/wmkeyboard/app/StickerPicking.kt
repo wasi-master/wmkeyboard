@@ -39,7 +39,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,6 +66,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SelectAll
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
 import com.wasimaster.wmkeyboard.core.stickers.StagedStickerPack
+import com.wasimaster.wmkeyboard.core.notify.BackgroundTasks
+import com.wasimaster.wmkeyboard.core.notify.TaskState
 import com.wasimaster.wmkeyboard.core.stickers.StickerImportResult
 import com.wasimaster.wmkeyboard.core.stickers.StickerPack
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackFile
@@ -76,7 +77,6 @@ import com.wasimaster.wmkeyboard.core.stickers.whatsapp.WaStickersFile
 import com.wasimaster.wmkeyboard.core.util.requireInputStream
 import com.wasimaster.wmkeyboard.ime.ui.rememberMediaImageLoader
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /*
@@ -345,9 +345,12 @@ internal fun importStickerFilesWhole(
     context: Context,
     store: StickerPackStore,
     uris: List<Uri>,
+    /** Files read so far of [uris], and packs read so far, as it goes (#1522). */
+    onProgress: (files: Int, total: Int, packs: Int) -> Unit = { _, _, _ -> },
 ): List<Pair<String, StickerImportResult>> = buildList {
     val fallbackName = context.getString(ContentR.string.core_content_sticker_pack_imported_label)
-    for (uri in uris) {
+    for ((index, uri) in uris.withIndex()) {
+        onProgress(index, uris.size, size)
         val name = WMFileTypes.displayName(context, uri)
         if (PackBundle.isBundle(context, uri, StickerPackFile.FILE_EXTENSION)) {
             runCatching {
@@ -356,6 +359,7 @@ internal fun importStickerFilesWhole(
                         runCatching { StickerPackFile.import(it, store, fallbackName) }.getOrDefault(StickerImportResult.Failed)
                     } ?: StickerImportResult.Failed
                     add(entry to result)
+                    onProgress(index, uris.size, size)
                 }
             }.onFailure { add(name to StickerImportResult.Failed) }
         } else {
@@ -383,11 +387,23 @@ internal fun importStickerFilesWhole(
 @Composable
 internal fun StickerFileImport(uri: Uri, onFinished: (String?) -> Unit) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     val store = remember { StickerPackStore.get(context) }
     var staged by remember(uri) { mutableStateOf<StagedStickerPack?>(null) }
     var chosen by remember(uri) { mutableStateOf<Set<Int>>(emptySet()) }
-    var progress by remember(uri) { mutableStateOf<Pair<Int, Int>?>(null) }
+    // Adding what was ticked runs as a background task (#1522), so leaving
+    // the page leaves it running and the shade shows how far along it is.
+    // Only the ending of a task this page started is reported here.
+    val startTask = rememberTaskStarter()
+    val taskKey = remember(uri) { "sticker-file/$uri" }
+    var startedTask by remember(uri) { mutableStateOf(false) }
+    val task = rememberTaskState(taskKey)
+    val progress = (task as? TaskState.Running)?.let { it.done.toInt() to it.total.toInt() }
+    if (startedTask && task is TaskState.Ended) {
+        LaunchedEffect(task) {
+            BackgroundTasks.dismiss(taskKey)
+            onFinished(task.message)
+        }
+    }
     // Set while the staged pack still owns its directory, so leaving the page
     // any way at all lets go of the pictures. Adopting clears it first.
     var owned by remember(uri) { mutableStateOf<StagedStickerPack?>(null) }
@@ -444,15 +460,18 @@ internal fun StickerFileImport(uri: Uri, onFinished: (String?) -> Unit) {
         progress = progress,
         onAdd = {
             owned = null
-            progress = 0 to chosen.size
+            val app = context.applicationContext
             val picked = chosen.mapTo(HashSet()) { pickable[it] }
-            scope.launch {
-                val result = withContext(Dispatchers.IO) {
-                    runCatching {
-                        pack.adopt(store, picked) { done, total -> progress = done to total }
-                    }.getOrDefault(StickerImportResult.Failed)
-                }
-                onFinished(result.describe(context))
+            startedTask = startTask(
+                taskKey,
+                context.getString(R.string.import_stickers_task_title, pack.name),
+                StickerImportResult.Failed.describe(context),
+            ) { report ->
+                report.update(0, picked.size.toLong(), null)
+                val result = runCatching {
+                    pack.adopt(store, picked) { done, total -> report.update(done.toLong(), total.toLong(), null) }
+                }.getOrDefault(StickerImportResult.Failed)
+                BackgroundTasks.Outcome(result.describe(app), ok = result is StickerImportResult.Imported)
             }
         },
         onDismiss = {

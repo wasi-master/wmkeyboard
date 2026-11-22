@@ -17,8 +17,8 @@
     <string name="notify_kinds_info">The keyboard posts these four kinds and nothing else: no tips, no suggestions, no advertising. Each one is about something that finishes while you are somewhere else, which is the only reason a keyboard has to interrupt you at all.</string>
 
     <string name="notify_downloads_title">Downloads</string>
-    <string name="notify_downloads_subtitle">Progress for dictionaries, voice models and add-ons, and a line when one finishes or fails</string>
-    <string name="notify_downloads_info">Shows a notification while a dictionary, a voice model or an add-on downloads, with its progress, and one line when the download finishes or fails.</string>
+    <string name="notify_downloads_subtitle">Progress for downloads, saving and restoring files, and sticker imports, and a line when one finishes or fails</string>
+    <string name="notify_downloads_info">Shows a notification while a dictionary, a voice model or an add-on downloads, while the downloaded files are saved to a zip or restored from one, and while a sticker pack is imported or saved, with its progress, and one line when it finishes or fails. Leaving the screen does not stop these.</string>
 
     <string name="notify_updates_title">App updates</string>
     <string name="notify_updates_subtitle">An update downloading, one waiting to be installed, and one just installed</string>

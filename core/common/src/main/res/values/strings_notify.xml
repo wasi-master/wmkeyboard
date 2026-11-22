@@ -7,8 +7,8 @@
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
-    <string name="common_notify_channel_downloads_title">Downloads</string>
-    <string name="common_notify_channel_downloads_body">Progress for dictionaries, voice models, add-ons and other files the keyboard fetches, and a line when one finishes or fails.</string>
+    <string name="common_notify_channel_downloads_title">Downloads and file jobs</string>
+    <string name="common_notify_channel_downloads_body">Progress for dictionaries, voice models, add-ons and other files the keyboard fetches, for saving or restoring downloaded files and for sticker imports and exports, and a line when one finishes or fails.</string>
 
     <string name="common_notify_channel_updates_title">App updates</string>
     <string name="common_notify_channel_updates_body">A new version to install, an update waiting for you to press install, and confirmation once one is installed.</string>

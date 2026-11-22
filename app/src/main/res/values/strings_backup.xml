@@ -186,6 +186,20 @@
     <string name="backup_downloads_import_title">Restore downloaded files</string>
     <string name="backup_downloads_import_subtitle">From a zip saved here. Restart the keyboard afterwards</string>
     <string name="backup_downloads_import_action">Open</string>
+    <!-- The row and the notification while the zip is being written or read (#1522). -->
+    <string name="backup_export_running">Exporting settings to a file</string>
+    <string name="backup_downloads_export_running">Saving downloaded files</string>
+    <string name="backup_downloads_import_running">Restoring downloaded files</string>
+    <!-- %1$s is the size done so far, %2$s the whole size, both formatted ("120 MB"); %3$d is how many files are done. -->
+    <plurals name="backup_downloads_progress">
+        <item quantity="one">%1$s of %2$s, %3$d file</item>
+        <item quantity="other">%1$s of %2$s, %3$d files</item>
+    </plurals>
+    <!-- The same while the whole size is not known. %1$s is the size read so far. -->
+    <plurals name="backup_downloads_progress_unsized">
+        <item quantity="one">%1$s read, %2$d file</item>
+        <item quantity="other">%1$s read, %2$d files</item>
+    </plurals>
     <string name="backup_downloads_failed">Couldn\'t finish. Check that there is enough free space and try again.</string>
     <plurals name="backup_downloads_exported">
         <item quantity="one">Saved %1$d file.</item>

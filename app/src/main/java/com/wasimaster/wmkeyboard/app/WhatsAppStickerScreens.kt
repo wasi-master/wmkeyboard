@@ -21,6 +21,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,6 +34,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.notify.BackgroundTasks
+import com.wasimaster.wmkeyboard.core.notify.TaskState
 import com.wasimaster.wmkeyboard.core.stickers.StickerImportResult
 import com.wasimaster.wmkeyboard.core.stickers.StickerPack
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackAdoption
@@ -112,8 +115,12 @@ internal fun WhatsAppStickersScreen(onNavigate: (String) -> Unit) {
     val store = remember { StickerPackStore.get(context) }
 
     var busy by remember { mutableStateOf(false) }
-    var progress by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
+    // The folder's import runs as a background task (#1522): leaving this
+    // screen leaves it running, and coming back shows where it is.
+    val startTask = rememberTaskStarter()
+    val task = rememberTaskState(WHATSAPP_FOLDER_TASK)
+    val progress = (task as? TaskState.Running)?.let { it.done.toInt() to it.total.toInt() }
     var scan by remember { mutableStateOf<FolderScan?>(null) }
     var picked by remember { mutableStateOf<List<Uri>?>(null) }
     var namingPack by remember { mutableStateOf<String?>(null) }
@@ -160,35 +167,44 @@ internal fun WhatsAppStickersScreen(onNavigate: (String) -> Unit) {
     }
 
     fun addFolder(found: FolderScan.Found, chosen: Set<Int>) {
+        val app = context.applicationContext
         val wanted = found.stickers.filterIndexed { index, _ -> index in chosen }
-        busy = true
-        progress = 0 to minOf(wanted.size, StickerPackStore.MAX_STICKERS_PER_PACK)
-        scope.launch {
-            val result = withContext(Dispatchers.IO) {
-                runCatching {
-                    StickerPackAdoption.adopt(
-                        store = store,
-                        name = folderPackName,
-                        incoming = wanted.map { sticker ->
-                            StickerPackAdoption.Incoming(
-                                label = sticker.name,
-                                addedAt = sticker.modified,
-                                read = {
-                                    runCatching {
-                                        context.contentResolver.readBytesCapped(sticker.uri)
-                                    }.getOrNull()
-                                },
-                            )
-                        },
-                        source = StickerPack.whatsappSource(),
-                        onProgress = { done, total -> progress = done to total },
-                    )
-                }.getOrDefault(StickerImportResult.Failed)
-            }
+        val total = minOf(wanted.size, StickerPackStore.MAX_STICKERS_PER_PACK)
+        startTask(
+            WHATSAPP_FOLDER_TASK,
+            context.getString(R.string.import_stickers_task_title, folderPackName),
+            StickerImportResult.Failed.describe(context),
+        ) { report ->
+            report.update(0, total.toLong(), app.getString(R.string.import_whatsapp_adding, 0, total))
+            val result = runCatching {
+                StickerPackAdoption.adopt(
+                    store = store,
+                    name = folderPackName,
+                    incoming = wanted.map { sticker ->
+                        StickerPackAdoption.Incoming(
+                            label = sticker.name,
+                            addedAt = sticker.modified,
+                            read = {
+                                runCatching {
+                                    app.contentResolver.readBytesCapped(sticker.uri)
+                                }.getOrNull()
+                            },
+                        )
+                    },
+                    source = StickerPack.whatsappSource(),
+                    onProgress = { done, all ->
+                        report.update(done.toLong(), all.toLong(), app.getString(R.string.import_whatsapp_adding, done, all))
+                    },
+                )
+            }.getOrDefault(StickerImportResult.Failed)
+            BackgroundTasks.Outcome(result.describe(app), ok = result is StickerImportResult.Imported)
+        }
+    }
+    if (task is TaskState.Ended) {
+        LaunchedEffect(task) {
             scan = null
-            progress = null
-            busy = false
-            message = result.describe(context)
+            message = task.message
+            BackgroundTasks.dismiss(WHATSAPP_FOLDER_TASK)
         }
     }
 
@@ -213,7 +229,7 @@ internal fun WhatsAppStickersScreen(onNavigate: (String) -> Unit) {
                 icon = Icons.Outlined.FileOpen,
                 accent = routeAccent("sticker_packs"),
                 highlightKey = R.string.import_whatsapp_file_title,
-                enabled = !busy,
+                enabled = !busy && progress == null,
                 onClick = { fileLauncher.launch(WaStickersFile.IMPORT_MIME_TYPES) },
             )
         }
@@ -253,7 +269,7 @@ internal fun WhatsAppStickersScreen(onNavigate: (String) -> Unit) {
                 icon = Icons.Outlined.PhotoLibrary,
                 accent = routeAccent("sticker_packs"),
                 highlightKey = R.string.import_whatsapp_pick_title,
-                enabled = !busy,
+                enabled = !busy && progress == null,
                 onClick = { pickLauncher.launch(PICK_MIME_TYPES) },
             )
         }
@@ -411,3 +427,6 @@ private fun scanStickerFolder(resolver: ContentResolver, tree: Uri): FolderScan.
     stickers.sortByDescending { it.modified }
     return FolderScan.Found(folderName, stickers)
 }
+
+/** The [BackgroundTasks] key of the folder import (#1522). */
+private const val WHATSAPP_FOLDER_TASK = "whatsapp-sticker-folder"

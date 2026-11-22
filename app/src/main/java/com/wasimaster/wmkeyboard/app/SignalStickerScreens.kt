@@ -18,7 +18,6 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.OpenIn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Link
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -47,6 +46,9 @@ import com.wasimaster.wmkeyboard.core.addons.ImportLink
 import com.wasimaster.wmkeyboard.core.addons.SignalStickerDownloads
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.stickers.ApngFrames
+import com.wasimaster.wmkeyboard.core.notify.BackgroundTasks
+import com.wasimaster.wmkeyboard.core.notify.TaskState
+import com.wasimaster.wmkeyboard.core.stickers.StickerImportResult
 import com.wasimaster.wmkeyboard.core.stickers.StickerPack
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
 import com.wasimaster.wmkeyboard.core.stickers.signal.SignalPackManifest
@@ -192,7 +194,8 @@ private sealed interface PackLoad {
 }
 
 /** An import in flight: which half of it, and how far along. */
-private data class PackProgress(val phase: SignalStickerDownloads.Phase, val done: Int, val total: Int)
+/** The [BackgroundTasks] key of one pack's import (#1522). */
+private fun signalImportTask(packId: String): String = "signal-stickers/$packId"
 
 /**
  * One Signal pack, shown before it is added.
@@ -219,9 +222,21 @@ internal fun SignalPackScreen(
     var load by remember { mutableStateOf<PackLoad>(PackLoad.Waiting) }
     var askMetered by remember { mutableStateOf(false) }
     var blockedMetered by remember { mutableStateOf(false) }
-    var progress by remember { mutableStateOf<PackProgress?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
     var revision by remember { mutableIntStateOf(0) }
+    // The import runs as a background task (#1522): leaving this page leaves
+    // it running, and coming back shows where it is.
+    val startTask = rememberTaskStarter()
+    val taskKey = signalImportTask(packId)
+    val task = rememberTaskState(taskKey)
+    val progress = task as? TaskState.Running
+    if (task is TaskState.Ended) {
+        LaunchedEffect(task) {
+            revision++
+            message = task.message
+            BackgroundTasks.dismiss(taskKey)
+        }
+    }
     val mine = remember(revision) {
         store.packs().firstOrNull { it.source == StickerPack.signalSource(packId) }
     }
@@ -261,21 +276,29 @@ internal fun SignalPackScreen(
     }
 
     fun add(manifest: SignalPackManifest) {
+        val app = context.applicationContext
         val fallbackName = context.getString(ContentR.string.core_content_sticker_pack_imported_label)
         val only = chosen
-        progress = PackProgress(SignalStickerDownloads.Phase.DOWNLOADING, 0, only.size)
-        scope.launch {
-            val text = try {
-                SignalStickerDownloads.import(
+        startTask(
+            taskKey,
+            context.getString(R.string.import_stickers_task_title, manifest.title.ifBlank { fallbackName }),
+            StickerImportResult.Failed.describe(context),
+        ) { report ->
+            report.update(0, only.size.toLong(), app.getString(R.string.import_signal_downloading, 0, only.size))
+            try {
+                val result = SignalStickerDownloads.import(
                     store, packId, packKey, manifest, fallbackName, cacheDir, only,
-                ) { phase, done, total -> progress = PackProgress(phase, done, total) }
-                    .describe(context)
+                ) { phase, done, total ->
+                    val line = when (phase) {
+                        SignalStickerDownloads.Phase.DOWNLOADING -> R.string.import_signal_downloading
+                        SignalStickerDownloads.Phase.ADDING -> R.string.import_signal_adding
+                    }
+                    report.update(done.toLong(), total.toLong(), app.getString(line, done, total))
+                }
+                BackgroundTasks.Outcome(result.describe(app), ok = result is StickerImportResult.Imported)
             } catch (e: IOException) {
-                ToolHttp.friendlyMessage(context, e)
+                BackgroundTasks.Outcome(ToolHttp.friendlyMessage(app, e), ok = false)
             }
-            progress = null
-            revision++
-            message = text
         }
     }
 
@@ -345,7 +368,7 @@ private fun LoadedPack(
     packKey: String,
     cacheDir: File,
     mine: StickerPack?,
-    progress: PackProgress?,
+    progress: TaskState.Running?,
     chosen: Set<Int>,
     onChosenChange: (Set<Int>) -> Unit,
     onAdd: () -> Unit,
@@ -367,26 +390,11 @@ private fun LoadedPack(
     SettingsGroup {
         item {
             when {
-                progress != null -> WmRow(
-                    title = stringResource(
-                        when (progress.phase) {
-                            SignalStickerDownloads.Phase.DOWNLOADING -> R.string.import_signal_downloading
-                            SignalStickerDownloads.Phase.ADDING -> R.string.import_signal_adding
-                        },
-                        progress.done,
-                        progress.total,
-                    ),
+                progress != null -> TaskProgressRow(
+                    title = progress.text.orEmpty(),
+                    task = progress.copy(text = null),
                     icon = Icons.Outlined.Add,
                     accent = routeAccent("sticker_packs"),
-                    enabled = false,
-                    supporting = {
-                        LinearProgressIndicator(
-                            progress = { if (progress.total > 0) progress.done.toFloat() / progress.total else 0f },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp),
-                        )
-                    },
                 )
 
                 mine != null -> WmRow(

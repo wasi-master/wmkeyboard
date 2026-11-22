@@ -639,6 +639,24 @@
     </plurals>
     <string name="import_stickers_pick_caption">Untick the stickers you do not want. The app converts only the ticked ones, so leaving out animated stickers makes the import faster.</string>
     <string name="import_stickers_reading">Reading the pack…</string>
+    <!-- Long sticker jobs as the shade and the screen show them while they run (#1522). -->
+    <!-- %1$s is the pack or set's name. -->
+    <string name="import_stickers_task_title">Importing %1$s</string>
+    <string name="import_sticker_pack_saving">Saving %1$s</string>
+    <string name="import_sticker_packs_saving_row">Saving sticker packs</string>
+    <plurals name="import_sticker_packs_saving">
+        <item quantity="one">Saving %1$d sticker pack</item>
+        <item quantity="other">Saving %1$d sticker packs</item>
+    </plurals>
+    <!-- %1$d packs written so far, of %2$d. -->
+    <plurals name="import_sticker_packs_progress">
+        <item quantity="one">%1$d of %2$d pack</item>
+        <item quantity="other">%1$d of %2$d packs</item>
+    </plurals>
+    <plurals name="import_sticker_packs_read">
+        <item quantity="one">%1$d pack read so far</item>
+        <item quantity="other">%1$d packs read so far</item>
+    </plurals>
     <string name="import_stickers_adding_progress" tools:ignore="PluralsCandidate">Adding %1$d of %2$d</string>
     <!-- %1$d is how many stickers are selected. -->
     <plurals name="import_stickers_selected">
