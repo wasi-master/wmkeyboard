@@ -222,6 +222,10 @@
     <init>();
     *;
 }
+# Looked up by name from libdigitalink.so when native init or recognition fails.
+-keep class com.google.mlkit.vision.digitalink.recognition.internal.NativeDigitalInkRecognitionException {
+    public <init>(int, java.lang.String);
+}
 # Called from ML Kit's own downloader, rewritten at build time to reach it
 # (InkOfflineImportsTransform, #666). On Play the callers sit in the split, so
 # the names must survive the base's shrink as written.
