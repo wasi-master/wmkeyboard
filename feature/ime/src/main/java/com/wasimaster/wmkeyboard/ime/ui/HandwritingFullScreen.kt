@@ -72,6 +72,10 @@ class HandwritingFullScreenControls(
     val onInkToggle: () -> Unit = {},
     /** The compact bar's rectangle in window pixels, for the touchable region. */
     val onBarBounds: (IntRect) -> Unit = {},
+    /** Hold recognition while a stylus or finger stroke is actively down. */
+    val onStrokeStart: () -> Unit = {},
+    /** Re-arm pending recognition when a started gesture finishes empty. */
+    val onStrokeCancel: () -> Unit = {},
 )
 
 val LocalHandwritingFullScreen = staticCompositionLocalOf { HandwritingFullScreenControls() }

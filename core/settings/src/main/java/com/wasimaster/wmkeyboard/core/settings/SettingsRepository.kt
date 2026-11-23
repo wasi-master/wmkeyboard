@@ -8346,6 +8346,8 @@ val HandwritingPenWidthRange = 1f..12f
 /** The handwriting canvas's look and size (#1038). */
 data class HandwritingInkSettings(
     val penWidthDp: Float = 4f,
+    /** Device-local Onyx raw-ink prototype; compiled only in BOOX builds. */
+    val onyxPen: Boolean = false,
     /** ARGB, or null for the theme's accent. */
     val penColor: Long? = null,
     val fade: InkFade = InkFade.DISSOLVE,
@@ -14461,6 +14463,7 @@ class SettingsRepository(private val context: Context) {
         private val CALENDAR_SWIPE_VIEW = booleanPreferencesKey("calendar_swipe_view")
         private val CALENDAR_AGENDA_MIDDLE = booleanPreferencesKey("calendar_agenda_middle")
         private val HANDWRITING_STYLUS_ONLY = booleanPreferencesKey("handwriting_stylus_only")
+        private val HANDWRITING_ONYX_PEN = booleanPreferencesKey("handwriting_onyx_pen")
         private val HANDWRITING_COMMIT_DELAY = intPreferencesKey("handwriting_commit_delay")
         private val HANDWRITING_AUTO_SPACE = booleanPreferencesKey("handwriting_auto_space")
         private val HANDWRITING_FULL_SCREEN_MODE = stringPreferencesKey("handwriting_full_screen_mode")
@@ -15655,6 +15658,7 @@ class SettingsRepository(private val context: Context) {
             handwritingInk = HandwritingInkSettings(
                 penWidthDp = p[HANDWRITING_PEN_WIDTH]?.coerceIn(HandwritingPenWidthRange)
                     ?: defaults.handwritingInk.penWidthDp,
+                onyxPen = p[HANDWRITING_ONYX_PEN] ?: defaults.handwritingInk.onyxPen,
                 penColor = p[HANDWRITING_PEN_COLOR],
                 fade = p[HANDWRITING_INK_FADE]?.let { runCatching { InkFade.valueOf(it) }.getOrNull() }
                     ?: defaults.handwritingInk.fade,
@@ -19391,6 +19395,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setHandwritingStylusOnly(value: Boolean) =
         editPrefs { it[HANDWRITING_STYLUS_ONLY] = value }
+
+    suspend fun setHandwritingOnyxPen(value: Boolean) =
+        editPrefs { it[HANDWRITING_ONYX_PEN] = value }
 
     suspend fun setHandwritingZinnia(value: Boolean) =
         editPrefs { it[HANDWRITING_ZINNIA] = value }

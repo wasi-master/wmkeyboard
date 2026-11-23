@@ -24,10 +24,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,6 +62,11 @@ import com.wasimaster.wmkeyboard.ime.HandwritingStatus
 import com.wasimaster.wmkeyboard.ime.HandwritingUi
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.R
+import com.wasimaster.wmkeyboard.ime.handwriting.onyx.OnyxChromeRegions
+import com.wasimaster.wmkeyboard.ime.handwriting.onyx.OnyxInkCanvas
+import com.wasimaster.wmkeyboard.ime.handwriting.onyx.OnyxInkSupport
+import com.wasimaster.wmkeyboard.ime.handwriting.onyx.OnyxInputState
+import com.wasimaster.wmkeyboard.ime.handwriting.onyx.OnyxPenStyle
 import com.wasimaster.wmkeyboard.core.layout.PanelFieldKind
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -93,23 +98,35 @@ internal fun HandwritingCanvasField(
     val hw = state.handwriting
     val feedback = LocalKeyPressFeedback.current
 
+    val languages = state.settings.enabledLanguages
+        .ifEmpty { listOf(LanguageRegistry.byId("en")) }
+        .filter { HandwritingModels.tagFor(it) != null }
+    val distinctTags = languages.mapNotNull { HandwritingModels.tagFor(it) }.distinct()
+    val hasLanguageChip = distinctTags.size > 1
+    val onyxActive = state.settings.handwritingInk.onyxPen && OnyxInkSupport.runtimeAvailable
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(2.dp),
     ) {
-        HandwritingStatusBody(state, onStroke, onDownloadModel)
+        HandwritingStatusBody(
+            state = state,
+            onStroke = onStroke,
+            onDownloadModel = onDownloadModel,
+            enableOnyxInk = true,
+            onyxChrome = OnyxChromeRegions(
+                languageChip = hasLanguageChip,
+                fullScreenButton = hw.status == HandwritingStatus.READY,
+            ),
+        )
 
         // Language chip: shows the active model, tap cycles through the
         // handwriting languages of the enabled modes.
         // Only languages a recogniser can actually read belong on the chip;
         // cycling onto one with no model would strand the panel on a
         // download that can never complete.
-        val languages = state.settings.enabledLanguages
-            .ifEmpty { listOf(LanguageRegistry.byId("en")) }
-            .filter { HandwritingModels.tagFor(it) != null }
-        val distinctTags = languages.mapNotNull { HandwritingModels.tagFor(it) }.distinct()
-        if (distinctTags.size > 1) {
+        if (hasLanguageChip) {
             Text(
                 text = HandwritingModels.shortLabel(hw.languageTag),
                 color = kb.secondaryText,
@@ -136,8 +153,11 @@ internal fun HandwritingCanvasField(
             )
         }
 
-        // Undo the last stroke while ink is still on the canvas.
-        UndoStrokeButton(hw, onUndoStroke, Modifier.align(Alignment.BottomStart))
+        // In BOOX raw mode the Compose surface stays 100% static so hardware
+        // ink never competes with mid-word software redraws.
+        if (!onyxActive) {
+            UndoStrokeButton(hw, onUndoStroke, Modifier.align(Alignment.BottomStart))
+        }
 
         // Blow the canvas up over the whole app (issue #386).
         if (hw.status == HandwritingStatus.READY) {
@@ -192,12 +212,19 @@ internal fun HandwritingStatusBody(
     state: KeyboardUiState,
     onStroke: (HwStroke, IntSize) -> Unit,
     onDownloadModel: () -> Unit,
+    enableOnyxInk: Boolean = false,
+    onyxChrome: OnyxChromeRegions = OnyxChromeRegions(),
 ) {
     val kb = LocalKbTheme.current
     val hw = state.handwriting
     val feedback = LocalKeyPressFeedback.current
     when (hw.status) {
-        HandwritingStatus.READY -> WritingCanvas(state, onStroke)
+        HandwritingStatus.READY -> WritingCanvas(
+            state = state,
+            onStroke = onStroke,
+            enableOnyxInk = enableOnyxInk,
+            onyxChrome = onyxChrome,
+        )
         HandwritingStatus.CHECKING ->
             StatusMessage(stringResource(R.string.ime_handwriting_checking_progress))
         HandwritingStatus.UNSUPPORTED ->
@@ -411,19 +438,31 @@ internal fun WritingCanvas(
     onStroke: (HwStroke, IntSize) -> Unit,
     /** The "write here" line; off over an app, where it would sit on the app's own text. */
     showHint: Boolean = true,
+    /** The first device spike is the docked panel only; other canvases stay on Compose. */
+    enableOnyxInk: Boolean = false,
+    onyxChrome: OnyxChromeRegions = OnyxChromeRegions(),
 ) {
     val kb = LocalKbTheme.current
     val hw = state.handwriting
     val stylusOnly = state.settings.handwritingStylusOnly
+    val hwControls = LocalHandwritingFullScreen.current
+    val hwControlsState = rememberUpdatedState(hwControls)
 
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
     var activeStroke by remember { mutableStateOf<List<HwPoint>>(emptyList()) }
+    var onyxFailed by remember { mutableStateOf(false) }
+    val onyxInput = remember { OnyxInputState() }
+    val onyxRequested = enableOnyxInk && state.settings.handwritingInk.onyxPen &&
+        OnyxInkSupport.runtimeAvailable && !onyxFailed
+    // Hardware eligibility is Compose state; actual ownership is read directly below.
+    val onyxRequestedState = rememberUpdatedState(onyxRequested)
     // Palm rejection: after stylus ink, finger touches are ignored briefly
     // so a knuckle or palm resting on the screen never draws.
-    var lastStylusTime by remember { mutableLongStateOf(0L) }
-    val dissolve = rememberInkDissolve(hw)
+    val lastStylusTime = remember { longArrayOf(0L) }
+    val dissolve = rememberInkDissolve(if (onyxRequested) HandwritingUi() else hw)
     val pen = state.settings.handwritingInk
     val penColor = pen.penColor?.let { Color(it) } ?: kb.accent
+    val onyxPenColor = pen.penColor?.let { Color(it) } ?: if (kb.dark) Color.White else Color.Black
 
     Box(
         modifier = Modifier
@@ -433,10 +472,17 @@ internal fun WritingCanvas(
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
                     val isStylus = down.type == PointerType.Stylus
-                    if (isStylus) lastStylusTime = down.uptimeMillis
+                    if (isStylus) lastStylusTime[0] = down.uptimeMillis
+                    // Raw input owns the stylus while available. Consuming it
+                    // here as well would recognize every stroke twice.
+                    if (isStylus && onyxRequestedState.value && onyxInput.rawCaptureActive) {
+                        return@awaitEachGesture
+                    }
                     val rejectFinger = !isStylus &&
-                        (stylusOnly || down.uptimeMillis - lastStylusTime < STYLUS_PRIORITY_MS)
+                        (stylusOnly || down.uptimeMillis - lastStylusTime[0] < STYLUS_PRIORITY_MS)
                     if (rejectFinger) return@awaitEachGesture
+                    if (isStylus) onyxInput.fallbackStylusActive = true
+                    hwControlsState.value.onStrokeStart()
                     down.consume()
                     val points = ArrayList<HwPoint>()
                     points.add(HwPoint(down.position.x, down.position.y, down.uptimeMillis))
@@ -444,7 +490,7 @@ internal fun WritingCanvas(
                     while (true) {
                         val event = awaitPointerEvent(PointerEventPass.Initial)
                         val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                        if (isStylus) lastStylusTime = change.uptimeMillis
+                        if (isStylus) lastStylusTime[0] = change.uptimeMillis
                         if (!change.pressed) {
                             change.consume()
                             break
@@ -462,12 +508,28 @@ internal fun WritingCanvas(
                         // the recognizer a two-point stroke so it registers.
                         points.add(points.first().copy(t = points.first().t + 1))
                     }
+                    if (isStylus) onyxInput.fallbackStylusActive = false
                     onStroke(HwStroke(points.toList()), canvasSize)
                     activeStroke = emptyList()
                 }
             },
     ) {
-        if (showHint && hw.strokes.isEmpty() && activeStroke.isEmpty() && !hw.recognizing) {
+        if (onyxRequested) {
+            OnyxInkCanvas(
+                modifier = Modifier.fillMaxSize(),
+                style = OnyxPenStyle(onyxPenColor, pen.penWidthDp),
+                chrome = onyxChrome,
+                handwriting = hw,
+                inputState = onyxInput,
+                onStrokeStart = hwControls.onStrokeStart,
+                onStrokeCancel = hwControls.onStrokeCancel,
+                onStroke = onStroke,
+                onStylusActivity = { lastStylusTime[0] = it },
+                onFailure = { onyxFailed = true },
+            )
+        }
+        val canvasEmpty = hw.strokes.isEmpty() && activeStroke.isEmpty() && !hw.recognizing
+        if (showHint && !onyxRequested && canvasEmpty) {
             Text(
                 stringResource(R.string.ime_handwriting_canvas_hint),
                 color = kb.secondaryText.copy(alpha = 0.45f),
@@ -475,19 +537,23 @@ internal fun WritingCanvas(
                 modifier = Modifier.align(Alignment.Center),
             )
         }
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val strokeStyle = Stroke(
-                width = pen.penWidthDp.dp.toPx(),
-                cap = StrokeCap.Round,
-                join = StrokeJoin.Round,
-            )
-            val inkColor = if (hw.recognizing) penColor.copy(alpha = 0.45f) else penColor
-            drawDissolvingInk(dissolve, penColor.copy(alpha = 0.45f), strokeStyle, pen.fade)
-            for (stroke in hw.strokes) {
-                drawPath(pathOf(stroke.points), color = inkColor, style = strokeStyle)
-            }
-            if (activeStroke.size > 1) {
-                drawPath(pathOf(activeStroke), color = penColor, style = strokeStyle)
+        if (!onyxRequested || activeStroke.size > 1) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val strokeStyle = Stroke(
+                    width = pen.penWidthDp.dp.toPx(),
+                    cap = StrokeCap.Round,
+                    join = StrokeJoin.Round,
+                )
+                if (!onyxRequested) {
+                    val inkColor = if (hw.recognizing) penColor.copy(alpha = 0.45f) else penColor
+                    drawDissolvingInk(dissolve, penColor.copy(alpha = 0.45f), strokeStyle, pen.fade)
+                    for (stroke in hw.strokes) {
+                        drawPath(pathOf(stroke.points), color = inkColor, style = strokeStyle)
+                    }
+                }
+                if (activeStroke.size > 1) {
+                    drawPath(pathOf(activeStroke), color = penColor, style = strokeStyle)
+                }
             }
         }
     }

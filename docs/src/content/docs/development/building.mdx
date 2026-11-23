@@ -47,6 +47,21 @@ Up to 0.6.2 every module carried a `capabilities` flavor dimension, `full` and `
 
 Most code is the same either way and asks at runtime whether its library is there (`FeatureModules`, `GatedLibrary`, and on F-Droid a `NotInBuild` gate for each Google runtime). The few classes that call ML Kit directly live in `src/google/` in `:core:content`, `:core:intelligence` and `:feature:ime`, each with a stand-in of the same shape in `src/nogoogle/`, and `:app`'s `src/google/` holds the application class that starts WorkManager for ML Kit's downloads; the module's build file adds one or the other, the same way `:app` picks `src/gms` or `src/nogms`. `core/config` turns the switch into `BuildConfig` booleans (`GOOGLE_SDKS` and the `ENABLE_*` flags) so library modules can read them without depending on `:app`.
 
+## The BOOX raw-ink prototype
+
+`-Pwmkb.enableOnyxPen=true` compiles `feature/ime/src/onyx/` and adds Onyx Pen SDK 1.5.4 instead of the usual `src/onyxstub/` facade. It is excluded from Play even if that channel flag is also set. It can be built in standard and F-Droid-like channel configurations:
+
+```bash
+./gradlew assembleEnDebug -Pwmkb.enableOnyxPen=true
+./gradlew assembleEnDebug -Pwmkb.enableOnyxPen=true -Pwmkb.enableFdroid=true
+```
+
+The latter is a private F-Droid-like device build, not an F-Droid distribution candidate: it omits Google's SDKs and uses the alternative handwriting recognizers, but still carries the proprietary Onyx SDK. Its Privacy screen therefore has F-Droid's explicit feature-library download opt-in. Both variants are debug device experiments; ordinary F-Droid builds leave `wmkb.enableOnyxPen` off and remain unchanged.
+
+On a device that identifies itself as Onyx/BOOX, **Handwriting → Advanced → BOOX low-latency ink (prototype)** enables raw stylus preview in the docked handwriting panel. It is off by default and deliberately excluded from settings sync. Recognition, stored strokes, candidates, and text commitment use the ordinary pipeline. Full-screen handwriting, dedicated handwriting layouts, write-on-keys, and Android 14 stylus handwriting stay on their existing renderers. Initialization or rendering failure falls back to ordinary Compose ink for that composition.
+
+This is a debug device experiment, not a release/packaging route: Play distribution, R8, SDK licensing/redistribution, F-Droid source scanning, release variants, other handwriting surfaces, and non-BOOX hardware remain out of scope. The BOOX repository is registered only for an explicitly enabled build; ordinary and F-Droid dependency resolution does not contact it.
+
 ## The languages dimension
 
 `:app` carries a second flavour dimension that the library modules do not. `intl` packages the app's own text in 48 languages besides English; `en` packages English alone. So `:app`'s variants are `intlDebug` and `enDebug`, while every `core/*` and `feature/*` module is plain `debug`.

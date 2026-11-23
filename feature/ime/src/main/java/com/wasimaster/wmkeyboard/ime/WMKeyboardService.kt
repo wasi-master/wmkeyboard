@@ -86,6 +86,7 @@ import androidx.core.view.inputmethod.InputContentInfoCompat
 import androidx.core.graphics.createBitmap
 import androidx.tracing.trace
 import com.wasimaster.wmkeyboard.config.BuildConfig
+import com.wasimaster.wmkeyboard.ime.handwriting.onyx.OnyxInkLifecycle
 import com.wasimaster.wmkeyboard.app.CameraPermissionActivity
 import com.wasimaster.wmkeyboard.app.DocScanActivity
 import com.wasimaster.wmkeyboard.app.MainActivityContract
@@ -7925,6 +7926,8 @@ open class WMKeyboardService : InputMethodService() {
         onToggle = ::onHandwritingFullScreenToggle,
         onInkToggle = ::onHandwritingInkToggle,
         onBarBounds = ::onHandwritingFullScreenBarBounds,
+        onStrokeStart = ::onHandwritingStrokeStart,
+        onStrokeCancel = ::onHandwritingStrokeCancel,
     )
 
     /**
@@ -12165,6 +12168,7 @@ open class WMKeyboardService : InputMethodService() {
      * the first one on a given device.
      */
     private fun onScreenAgain() {
+        OnyxInkLifecycle.resumeAll()
         // The floating button lifts above the keyboard and its keyboard
         // action turns into a hide (#697); a drop that put it away lasted
         // until exactly now. Only on a real arrival: this also runs for every
@@ -12266,6 +12270,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     override fun onWindowHidden() {
         super.onWindowHidden()
+        OnyxInkLifecycle.suspendAll()
         // Nothing of the keyboard's is on screen for Back to close, and a
         // callback left registered would still be ahead of the app's own
         // (#1352). The next show registers it again if it is wanted.
@@ -12314,6 +12319,7 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
+        OnyxInkLifecycle.suspendAll()
         // Before the base class lets go of the connection: the address is
         // read off the field that is closing.
         rememberTypedEmail()
@@ -12512,6 +12518,7 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     override fun onDestroy() {
+        OnyxInkLifecycle.suspendAll()
         DebugLog.i("ime", "service destroyed")
         hideGrace.cancel()
         com.wasimaster.wmkeyboard.ime.files.FilePicks.panel = null
@@ -13193,6 +13200,7 @@ open class WMKeyboardService : InputMethodService() {
         // are coming, before the first one has a chance to run late.
         if (typingCadence.noteKey(SystemClock.uptimeMillis())) typingLane.loadUp()
         if (!deferBehindDuet(key)) handleKey(key)
+        if (_uiState.value.panel == PanelMode.HANDWRITING) OnyxInkLifecycle.pulseForExternalUpdate()
     }
 
     /**
@@ -34112,6 +34120,11 @@ open class WMKeyboardService : InputMethodService() {
 
     fun onSuggestionTapped(suggestion: String) {
         if (takeHomophone(suggestion)) return
+        handleSuggestionTapped(suggestion)
+        if (_uiState.value.panel == PanelMode.HANDWRITING) OnyxInkLifecycle.pulseForExternalUpdate()
+    }
+
+    private fun handleSuggestionTapped(suggestion: String) {
         noSpaceEndToArm()
         replacedGlideShape = null
         stopVoiceForManualInput()
@@ -44511,6 +44524,20 @@ open class WMKeyboardService : InputMethodService() {
                     },
                 )
             }
+        }
+    }
+
+    /** Hold recognition while a stylus or finger is actively drawing on the canvas. */
+    fun onHandwritingStrokeStart() {
+        hwJob?.cancel()
+        hwJob = null
+        hwGeneration++
+    }
+
+    /** If a started gesture produced no stroke, re-arm recognition for any ink already waiting. */
+    fun onHandwritingStrokeCancel() {
+        if (_uiState.value.handwriting.strokes.isNotEmpty() && hwJob == null) {
+            scheduleHandwritingRecognition()
         }
     }
 

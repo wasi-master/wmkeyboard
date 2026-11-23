@@ -27,6 +27,7 @@ import com.wasimaster.wmkeyboard.core.translate.NllbTranslator
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
 import com.wasimaster.wmkeyboard.ime.AppLaunchModes
+import com.wasimaster.wmkeyboard.ime.handwriting.onyx.OnyxInkSupport
 
 /**
  * How much an entry is worth next to the others, as a percentage applied to
@@ -2430,6 +2431,11 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
         weight = EntryWeight.MIRROR,
     ),
     toolEntry(ToolbarTool.HANDWRITING, R.string.tooldetail_handwriting_stylus_title, R.string.tooldetail_handwriting_stylus_subtitle),
+    toolEntry(
+        ToolbarTool.HANDWRITING,
+        R.string.tooldetail_handwriting_onyx_pen_title,
+        R.string.tooldetail_handwriting_onyx_pen_subtitle,
+    ).takeIf { OnyxInkSupport.deviceSupported },
     toolEntry(
         ToolbarTool.HANDWRITING,
         R.string.tooldetail_handwriting_auto_space_title,
