@@ -16,6 +16,23 @@ plugins {
 }
 // Convention plugins (per-module type-resolved detekt).
 includeBuild("build-logic")
+
+val localProperties = java.util.Properties()
+file("local.properties").takeIf { it.exists() }?.inputStream()?.use(localProperties::load)
+
+// Same precedence as `flag()` in app/build.gradle.kts: -P, then
+// local.properties, then the environment, then the default.
+fun wmkbFlag(name: String, env: String, default: Boolean): Boolean =
+    (providers.gradleProperty(name).orNull
+        ?: localProperties.getProperty(name)
+        ?: System.getenv(env)
+        ?: default.toString()).toBoolean()
+
+// The BOOX repository is present only for the explicit non-Play prototype
+// build; ordinary and F-Droid resolution never contacts it.
+val onyxPen = wmkbFlag("wmkb.enableOnyxPen", "WMKB_ENABLE_ONYX_PEN", default = false) &&
+    !wmkbFlag("wmkb.enablePlayStore", "WMKB_ENABLE_PLAY_STORE", default = false)
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -28,6 +45,17 @@ dependencyResolutionManagement {
                 content {
                     includeModule("com.google.android.gms", "play-services-home")
                     includeModule("com.google.android.gms", "play-services-home-types")
+                }
+            }
+        }
+        if (onyxPen) {
+            maven {
+                url = uri("https://repo.boox.com/repository/maven-public/")
+                content {
+                    includeGroup("com.onyx.android.sdk")
+                    // Legacy runtime dependencies mirrored by Onyx's repository.
+                    includeModule("pub.devrel", "easypermissions")
+                    includeModule("com.tencent", "mmkv")
                 }
             }
         }
@@ -78,17 +106,6 @@ include(":feature:ime")
 // when the channel that consumes them is. Developers who want them in the IDE
 // have wmkb.enablePlayStore=true in local.properties already, since that is
 // what building for Play needs.
-val localProperties = java.util.Properties()
-file("local.properties").takeIf { it.exists() }?.inputStream()?.use(localProperties::load)
-
-// Same precedence as `flag()` in app/build.gradle.kts: -P, then
-// local.properties, then the environment, then the default.
-fun wmkbFlag(name: String, env: String, default: Boolean): Boolean =
-    (providers.gradleProperty(name).orNull
-        ?: localProperties.getProperty(name)
-        ?: System.getenv(env)
-        ?: default.toString()).toBoolean()
-
 if (wmkbFlag("wmkb.enablePlayStore", "WMKB_ENABLE_PLAY_STORE", default = false)) {
     @Suppress("UNCHECKED_CAST")
     val gates = (groovy.json.JsonSlurper().parse(file("native/gates.json")) as Map<String, Any?>)["gates"] as List<Map<String, Any?>>

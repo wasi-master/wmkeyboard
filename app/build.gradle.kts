@@ -229,6 +229,10 @@ val translatedLocales: String = run {
 // splits as conflicting ways of saying the same thing.
 val splitApks = flag("wmkb.splitApks", "WMKB_SPLIT_APKS")
 
+// Private BOOX/debug builds only; :feature:ime resolves the SDK with the same
+// channel constraints. Keep its packaging conflict out of every other build.
+val onyxPen = flag("wmkb.enableOnyxPen", "WMKB_ENABLE_ONYX_PEN") && !playStoreChannel
+
 // The ABIs a release ships, and the last digit each gives the versionCode.
 // Every APK and bundle carries `wmkb.versionCode * 10 + digit` in its manifest
 // (from 0.6.2): 0 for one that holds every ABI (the universal APK, the Play
@@ -538,6 +542,8 @@ android {
             // 16 KB page-size requirement wants and what lets the loader mmap
             // the library straight out of the APK, in every channel.
             useLegacyPackaging = false
+            // Onyx pen, pen-native and MMKV each bundle the same STL runtime.
+            if (onyxPen) pickFirst("lib/**/libc++_shared.so")
             // In :feature:webrtc on Play; native delivery leaves it out elsewhere.
             if (playStoreChannel) excludes += "**/libjingle_peerconnection_so.so"
             // No keepDebugSymbols override: AGP strips as usual. Every .so we
