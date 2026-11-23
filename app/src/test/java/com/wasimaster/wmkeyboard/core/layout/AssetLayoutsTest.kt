@@ -97,6 +97,24 @@ class AssetLayoutsTest {
     }
 
     @Test
+    fun `BEKL adds historical Bulgarian letters and symbol holds`() {
+        val layout = LayoutFile.decode(
+            layoutFiles.first { it.name == "bg_bekl.${LayoutFile.FILE_EXTENSION}" }.readText(),
+        )!!.layout
+        assertEquals("bg", layout.langId)
+        assertEquals("asset_bg_bekl", layout.id)
+        val rows = layout.layers.getValue("letters").rows
+        assertEquals(listOf(11, 11, 11, 6), rows.map { it.size })
+        assertEquals("ѣ", rows[2][4].label)
+        assertTrue("ѭ" in rows[2][2].longPress)
+        assertTrue("ѫ" in rows[2][3].longPress)
+        assertTrue("ѝ" in rows[0][2].longPress)
+        assertTrue("@" in rows[1][0].longPress)
+        assertTrue("€" in rows[1][2].longPress)
+        assertTrue(AssetLayouts.BG_BEKL_ID in LanguageRegistry.byId("bg").layoutIds)
+    }
+
+    @Test
     fun `the japanese flick layout carries flick arms and a kana-variant key`() {
         val file = layoutFiles.first { it.name == "ja_flick.${LayoutFile.FILE_EXTENSION}" }
         val keys = LayoutFile.decode(file.readText())!!.layout

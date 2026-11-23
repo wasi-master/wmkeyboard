@@ -1,0 +1,63 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_bg_bekl",
+    "name": "BEKL (Bulgarian Enhanced)",
+    "langId": "bg",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            { "label": "у", "longPress": ["1"] },
+            { "label": "е", "longPress": ["2"] },
+            { "label": "и", "longPress": ["3", "ѝ"] },
+            { "label": "ш", "longPress": ["4"] },
+            { "label": "щ", "longPress": ["5"] },
+            { "label": "к", "longPress": ["6"] },
+            { "label": "с", "longPress": ["7"] },
+            { "label": "д", "longPress": ["8"] },
+            { "label": "з", "longPress": ["9"] },
+            { "label": "ц", "longPress": ["0"] },
+            { "label": "б" }
+          ],
+          [
+            { "label": "ь", "longPress": ["@"] },
+            { "label": "я", "longPress": ["#"] },
+            { "label": "а", "longPress": ["€"] },
+            { "label": "о", "longPress": ["_"] },
+            { "label": "ж", "longPress": ["&"] },
+            { "label": "г", "longPress": ["-"] },
+            { "label": "т", "longPress": ["+"] },
+            { "label": "н", "longPress": ["("] },
+            { "label": "в", "longPress": [")"] },
+            { "label": "м", "longPress": ["/"] },
+            { "label": "ч", "longPress": ["="] }
+          ],
+          [
+            { "label": "⇧", "action": { "type": "shift" }, "width": 1.5 },
+            { "label": "ю", "longPress": ["*"] },
+            { "label": "й", "longPress": ["\"", "ѭ"] },
+            { "label": "ъ", "longPress": ["'", "ѫ"] },
+            { "label": "ѣ", "longPress": [":"] },
+            { "label": "ф", "longPress": [";"] },
+            { "label": "х", "longPress": ["!"] },
+            { "label": "п", "longPress": ["?"] },
+            { "label": "р", "longPress": ["~"] },
+            { "label": "л", "longPress": ["%"] },
+            { "label": "⌫", "action": { "type": "delete" }, "width": 1.5 }
+          ],
+          [
+            { "label": "?123", "action": { "type": "symbols" }, "width": 1.5 },
+            { "label": ",", "longPress": ["!", "?"], "role": "Comma" },
+            { "label": "🌐", "action": { "type": "language_switch" } },
+            { "label": " ", "action": { "type": "space" }, "width": 4 },
+            { "label": ".", "longPress": ["…", ",", "?", "!", ":", ";"], "role": "Period" },
+            { "label": "⏎", "action": { "type": "enter" }, "width": 1.5 }
+          ]
+        ]
+      }
+    }
+  }
+}
