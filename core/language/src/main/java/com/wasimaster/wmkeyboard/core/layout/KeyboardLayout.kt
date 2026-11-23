@@ -903,6 +903,11 @@ data class KeyboardLayout(
      * resolved against the layer's own [LayerSpec.grid]); see [hexBoard].
      */
     val hex: Boolean = false,
+    /**
+     * [LayerSpec.rowPages] by row, for the rows that can show them; see
+     * [pagesByRow]. Empty on almost every grid.
+     */
+    val rowPages: Map<Int, List<RowPage>> = emptyMap(),
 )
 
 /**

@@ -168,6 +168,19 @@
     <!-- Height of one row, as a multiple of the standard key height.
          %1$.2f is the multiple, for example 1.25. -->
     <string name="layout_editor_row_height_label">Row height ×<xliff:g id="multiple" example="1.25">%1$.2f</xliff:g></string>
+    <!-- Layout editor, selected row: extra pages a swipe across the row brings in, in the row's place. -->
+    <string name="layout_editor_row_pages_title">Row pages</string>
+    <string name="layout_editor_row_pages_subtitle">Swipe across this row on the keyboard to show another set of keys in its place. Swipe back to return. With glide typing on, swipe fast and straight across the row.</string>
+    <string name="layout_editor_row_pages_add">Add a page</string>
+    <!-- Content description of the button that removes one page from the row's list. -->
+    <string name="layout_editor_row_pages_remove_desc">Remove page <xliff:g id="number" example="2">%1$d</xliff:g></string>
+    <string name="layout_editor_row_pages_picker_title">Add a page to row <xliff:g id="row" example="1">%1$d</xliff:g></string>
+    <string name="layout_editor_row_page_emoji">The emoji you use most</string>
+    <string name="layout_editor_row_page_digits">Digits 1 to 0</string>
+    <!-- A page filled from one of the symbol row's sets, such as "Math symbols". -->
+    <string name="layout_editor_row_page_symbols"><xliff:g id="set" example="Math">%1$s</xliff:g> symbols</string>
+    <string name="layout_editor_row_page_keys">Keys you type</string>
+    <string name="layout_editor_row_page_keys_hint">Characters, with a space between keys</string>
     <!-- Name of the field you type an exact row height into. -->
     <string name="layout_editor_height_field_label">Height</string>
     <!-- Buttons that change the height of the row by a small step. -->

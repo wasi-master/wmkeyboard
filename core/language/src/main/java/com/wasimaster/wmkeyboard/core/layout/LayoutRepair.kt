@@ -493,7 +493,53 @@ private fun repairOneLayer(
     // left the row count untouched (it never reorders, only drops/adds). Drop
     // them otherwise rather than let them land on the wrong rows.
     val heights = layerSpec.rowHeights?.takeIf { rows.size == layerSpec.rows.size }
-    return layerSpec.copy(rows = rows, rowHeights = heights)
+    // Row pages are positional for the same reason, and a page's own keys get
+    // the key rules every row does.
+    val pages = layerSpec.rowPages?.let { entries ->
+        if (rows.size != layerSpec.rows.size) {
+            repairs += LayoutMessage(R.string.core_lang_repair_row_pages_dropped, args = listOf(key))
+            null
+        } else {
+            repairRowPages(key, entries, rows, repairs)
+        }
+    }
+    return layerSpec.copy(rows = rows, rowHeights = heights, rowPages = pages)
+}
+
+/**
+ * [entries] with nothing in them the keyboard could not draw: a row that is
+ * not there or holds a tall key, a page with neither keys nor a fill, a row
+ * with no page left, pages past [MaxRowPages]. Null when nothing is left.
+ */
+private fun repairRowPages(
+    layerKey: String,
+    entries: List<RowPages>,
+    rows: List<List<Key>>,
+    repairs: MutableList<LayoutMessage>,
+): List<RowPages>? {
+    var dropped = false
+    val seen = HashSet<Int>()
+    val kept = entries.mapNotNull { entry ->
+        if (rowTouchedBySpan(rows, entry.row) || !seen.add(entry.row)) {
+            dropped = true
+            return@mapNotNull null
+        }
+        val pages = entry.pages.mapNotNull { page ->
+            if (page.fill != null) return@mapNotNull page.copy(keys = emptyList())
+            val keys = page.keys.mapNotNull { it.repairKey(layerKey, repairs) }
+                .map { if (it.rowSpan > 1) it.copy(rowSpan = 1) else it }
+            if (keys.isEmpty()) {
+                dropped = true
+                null
+            } else {
+                page.copy(keys = keys, symbolSet = null)
+            }
+        }
+        if (pages.size > MaxRowPages) dropped = true
+        pages.take(MaxRowPages).takeIf { it.isNotEmpty() }?.let { entry.copy(pages = it) }
+    }
+    if (dropped) repairs += LayoutMessage(R.string.core_lang_repair_row_pages_dropped, args = listOf(layerKey))
+    return kept.takeIf { it.isNotEmpty() }
 }
 
 /**

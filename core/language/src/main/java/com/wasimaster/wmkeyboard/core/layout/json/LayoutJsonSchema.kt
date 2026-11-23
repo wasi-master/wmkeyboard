@@ -25,6 +25,8 @@ import com.wasimaster.wmkeyboard.core.layout.MinRowHeightScale
 import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.layout.PanelLayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.RectGridKind
+import com.wasimaster.wmkeyboard.core.layout.RowPage
+import com.wasimaster.wmkeyboard.core.layout.RowPages
 import com.wasimaster.wmkeyboard.core.layout.SequenceRule
 import com.wasimaster.wmkeyboard.core.layout.layoutJson
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -280,6 +282,8 @@ object LayoutJsonSchema {
             layoutJson.encodeToJsonElement(InputMethodBinding.serializer(), InputMethodBinding(id = "")),
         )
         take("SequenceRule", layoutJson.encodeToJsonElement(SequenceRule.serializer(), SequenceRule(pattern = "")))
+        take("RowPages", layoutJson.encodeToJsonElement(RowPages.serializer(), RowPages(row = 0)))
+        take("RowPage", layoutJson.encodeToJsonElement(RowPage.serializer(), RowPage()))
         take(
             "PanelLayoutSpec",
             layoutJson.encodeToJsonElement(PanelLayoutSpec.serializer(), PanelLayoutSpec(PanelKind.EMOJI, LayerSpec(emptyList()))),

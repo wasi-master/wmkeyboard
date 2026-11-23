@@ -121,6 +121,16 @@ object LayoutJsonDocs {
         "LayerSpec.grid" to
             "This layer's own grid, over the layout's: \"hex\" for a honeycomb, \"rect\" for plain rows on a honeycomb layout. " +
             "Leave it out to follow the layout.",
+        "LayerSpec.rowPages" to
+            "More pages for some rows. Swipe across such a row and the next page slides in where it was; swipe back to return. " +
+            "With glide typing on, the swipe has to be fast, straight and cross most of the row.",
+        "RowPages.row" to "Which row the pages are for, counting the top row of rows as 0.",
+        "RowPages.pages" to "The row's extra pages, in the order a swipe to the left brings them in.",
+        "RowPage.keys" to "The keys of this page, like a row of rows. Ignored when fill is set.",
+        "RowPage.fill" to
+            "Fills the page by itself: \"emoji\" for the emoji you use most, \"symbols\" for a symbol row set, \"digits\" for 1 to 0.",
+        "RowPage.symbolSet" to
+            "For a symbols fill, the id of the set, such as builtin_math or builtin_coding. Leave it out for Math.",
         "LayerSpec.direct" to
             "Keys on this layer type exactly what they say, past the layout's composer: an ABC page on a Japanese kana pad " +
             "types a, not あ. A reading still being typed is committed first.",

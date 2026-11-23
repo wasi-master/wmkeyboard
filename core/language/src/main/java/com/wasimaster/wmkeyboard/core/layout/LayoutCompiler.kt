@@ -78,6 +78,8 @@ fun LayoutSpec.compile(
         digitPad = layer == LayoutLayer.SYMBOLS && carriesDigitPad(rows),
         // Only a grid this layout wrote: a borrowed page keeps its rows.
         hex = own != null && drawsHex(own),
+        // A honeycomb's rows interlock, so none of them can change pages alone.
+        rowPages = if (own != null && !drawsHex(own)) own.pagesByRow() else emptyMap(),
     )
     compileCache[cacheKey] = this to built
     built
@@ -107,6 +109,7 @@ fun LayoutSpec.compileNamed(name: String): KeyboardLayout? = synchronized(namedC
         keymanFrames = resolved.keymanFrames.orEmpty(),
         direct = resolved.direct,
         hex = drawsHex(resolved),
+        rowPages = if (drawsHex(resolved)) emptyMap() else resolved.pagesByRow(),
     )
     namedCompileCache[cacheKey] = this to built
     built

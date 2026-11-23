@@ -208,6 +208,15 @@ data class LayerSpec(
      * Additive and defaulted, so no format-version bump.
      */
     val grid: String? = null,
+    /**
+     * More pages for some of this layer's rows: a swipe across such a row
+     * slides the next page in where it was, and a swipe the other way goes
+     * back. A row of emoji behind the top letters, a row of symbols behind the
+     * middle ones. See [RowPage]; a row with a tall key in it has no pages.
+     *
+     * Additive and defaulted, so no format-version bump.
+     */
+    val rowPages: List<RowPages>? = null,
 )
 
 /**

@@ -2188,6 +2188,7 @@ internal object SettingsRowIcons {
         put(R.string.layout_editor_reorder_rows_title) { Icons.Outlined.Reorder }
         put(R.string.layout_editor_reorder_keys_title) { Icons.Outlined.SwapHoriz }
         put(R.string.layout_editor_row_height_label) { Icons.Outlined.Height }
+        put(R.string.layout_editor_row_pages_title) { Icons.Outlined.ViewCarousel }
         put(R.string.layout_editor_key_width_label) { Icons.Outlined.Straighten }
         put(R.string.layout_editor_key_label_scale_label) { Icons.Outlined.FormatSize }
         put(R.string.layout_editor_key_row_span_hint) { Icons.Outlined.UnfoldMore }

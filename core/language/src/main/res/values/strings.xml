@@ -112,6 +112,8 @@
 
     <!-- %1$s is the layer name. -->
     <string name="core_lang_repair_layer_replaced">The <xliff:g id="layer" example="symbols">%1$s</xliff:g> layer had no keys that work. It now uses the built-in grid.</string>
+    <!-- Repair note: a layer's extra row pages (swipe a row to swap it) pointed at rows that no longer exist, held a tall key, or had nothing on them. -->
+    <string name="core_lang_repair_row_pages_dropped">Some extra row pages on the <xliff:g id="layer" example="letters">%1$s</xliff:g> layer were removed. Their row is gone, has a tall key, or the page had no keys.</string>
 
     <string name="core_lang_repair_delete_key_added">The letters layer had no delete key. The app added one.</string>
     <string name="core_lang_repair_space_key_added">The letters layer had no space key. The app added one.</string>

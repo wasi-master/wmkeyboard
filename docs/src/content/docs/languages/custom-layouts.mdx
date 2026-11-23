@@ -109,6 +109,12 @@ A row narrower than the grid is centred, with equal gaps at both ends. That's ho
 
 Below the grid: "Add a row" appends an empty one, "Reorder rows" opens a drag-reorder dialog, "Reorder keys in row N" appears once a multi-key row is selected, and "Reset this layer" (shown only on an authored layer) drops your changes and falls back to the inherited grid.
 
+### Row pages
+
+A row can hold more than one set of keys. Select a key in the row and, under the row height, **Row pages** lists the row's extra pages with **Add a page** below them. A page can be the emoji you use most, the digits 1 to 0, one of the [symbol row's](/typing/modes/) sets (Math, Coding, Web, Email, Punctuation or one of your own), or keys you type in yourself, with a space between keys. The × beside a page removes it. A page filled from your emoji or a symbol set takes as many keys as the row is wide and is worked out each time it is drawn, so the emoji page follows what you use.
+
+On the keyboard, swipe across the row to the left and its next page slides in where it was; swipe to the right to go back. After the last page comes the row's own keys again. With glide typing off any sideways swipe along the row does it. With glide typing on, a sideways swipe over the letters is a word, so only a fast, straight swipe that crosses most of the row and stays in it changes the page; a swipe that slows, bends or leaves the row is still typed as a word. The row stays on its page until you swipe it back or switch to another layout. A row that a tall key stands in can't have pages, and a honeycomb layout has none. Pages of keys that do more than type text, such as an arrow or a tool, are written in the JSON editor as `rowPages`.
+
 ### Copying a layer
 
 Two rows above "Reset this layer" move one layer at a time. **Copy this layer** puts the grid you're looking at on the system clipboard, and **Paste a layer** replaces the grid you're looking at with whatever layer is on the clipboard. That covers four jobs with one pair of buttons: duplicate the Date pad into the Time tab, carry a symbols page from one layout to another, hand someone a layout's letters grid in a chat message, or keep a plain-text backup of a layer you're about to rewrite.

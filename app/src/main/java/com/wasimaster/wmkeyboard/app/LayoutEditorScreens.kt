@@ -273,6 +273,10 @@ import com.wasimaster.wmkeyboard.core.layout.isHexGrid
 import com.wasimaster.wmkeyboard.core.layout.spanRowWidths
 import com.wasimaster.wmkeyboard.core.layout.spanSlots
 import com.wasimaster.wmkeyboard.core.layout.validateLayout
+import com.wasimaster.wmkeyboard.core.layout.reindexed
+import com.wasimaster.wmkeyboard.core.layout.rowTouchedBySpan
+import com.wasimaster.wmkeyboard.core.layout.withRowPagesAt
+import com.wasimaster.wmkeyboard.core.tools.resolveSymbolSets
 import com.wasimaster.wmkeyboard.core.plugins.displayName
 import com.wasimaster.wmkeyboard.core.script.ComposerType
 import com.wasimaster.wmkeyboard.core.settings.KeyboardMode
@@ -3358,6 +3362,7 @@ internal fun KeyLayoutEditorScreen(
                         ls.copy(
                             rows = src.map { ls.rows[it] },
                             rowHeights = pickHeights(ls.rowHeights, src),
+                            rowPages = ls.rowPages.reindexed(src),
                         )
                     }
                 },
@@ -3367,6 +3372,7 @@ internal fun KeyLayoutEditorScreen(
                         ls.copy(
                             rows = src.map { ls.rows[it] },
                             rowHeights = pickHeights(ls.rowHeights, src),
+                            rowPages = ls.rowPages.reindexed(src),
                         )
                     }
                     selection = null
@@ -3405,6 +3411,17 @@ internal fun KeyLayoutEditorScreen(
                 rowIndex = sel.row,
                 height = rowHeights?.getOrNull(sel.row) ?: 1f,
             ) { setRowHeight(sel.row, it) }
+            // More pages for this row, brought in by a swipe across it. Not on
+            // a row a tall key stands in, which could not change on its own.
+            if (!rowTouchedBySpan(rows, sel.row)) {
+                val rowPagesNow = edited.watch { it.layer(layer)?.rowPages }
+                val symbolSets = settings.watch { resolveSymbolSets(it.customSymbolSets) }
+                RowPagesSetting(
+                    rowIndex = sel.row,
+                    pages = rowPagesNow.orEmpty().firstOrNull { it.row == sel.row }?.pages.orEmpty(),
+                    symbolSets = symbolSets,
+                ) { pages -> editLayer { ls -> ls.withRowPagesAt(sel.row, pages) } }
+            }
             // Ctrl, Alt, Tab, the arrows and the rest, made in one step with
             // the right action and the label the keyboard draws for it.
             OutlinedButton(
@@ -3582,6 +3599,7 @@ internal fun KeyLayoutEditorScreen(
                     ls.copy(
                         rows = order.map { ls.rows[it] },
                         rowHeights = pickHeights(ls.rowHeights, order),
+                        rowPages = ls.rowPages.reindexed(order),
                     )
                 }
             }
@@ -4226,16 +4244,17 @@ internal fun LayerSpec.withKeysInNewRow(keys: List<KeyRef>, at: Int): LayerSpec 
     val picked = keys.toSet()
     val moved = rows.flatMapIndexed { r, row -> row.filterIndexed { c, _ -> KeyRef(r, c) in picked } }
     if (moved.isEmpty()) return this
-    class Line(val keys: List<Key>, val height: Float, val emptied: Boolean)
+    class Line(val keys: List<Key>, val height: Float, val emptied: Boolean, val source: Int)
     val lines = rows.mapIndexed { r, row ->
         val left = row.filterIndexed { c, _ -> KeyRef(r, c) !in picked }
-        Line(left, rowHeights?.getOrNull(r) ?: 1f, left.isEmpty() && row.isNotEmpty())
+        Line(left, rowHeights?.getOrNull(r) ?: 1f, left.isEmpty() && row.isNotEmpty(), r)
     }.toMutableList()
-    lines.add(at.coerceIn(0, lines.size), Line(moved, 1f, emptied = false))
+    lines.add(at.coerceIn(0, lines.size), Line(moved, 1f, emptied = false, source = -1))
     val kept = lines.filterNot { it.emptied }
     return copy(
         rows = kept.map { it.keys },
         rowHeights = kept.map { it.height }.takeUnless { heights -> heights.all { it == 1f } },
+        rowPages = rowPages.reindexed(kept.map { it.source }),
     )
 }
 
