@@ -5647,8 +5647,6 @@
     <string name="layout_editor_action_position_info">Akcje zazwyczaj znajdują się po wszystkich alternatywach. Umieść je po znaku, a będą krótkim przesunięciem od klawisza, podczas gdy zwykłe naciśnięcie i przytrzymanie nadal wpisuje pierwszą alternatywę. Umieść je na początku, a zwykłe naciśnięcie i przytrzymanie uruchomi pierwszą akcję. Akcje pozostają razem, w swojej własnej kolejności. Wymaga to opcji „Wybierz bez podnoszenia” w sekcji „Naciśnięcie klawisza”, „Klawisze alternatywne”.</string>
     <string name="layout_editor_action_position_subtitle">Ich miejsce wśród alternatyw w wyskakującym okienku</string>
     <string name="layout_editor_action_position_title">Gdzie umieścić akcje</string>
-    <string name="layout_editor_action_reading_column_detail">Przewijana lista w miejscu klawisza. Podczas pisania na klawiaturze T9 pinyin wyświetla sylaby, które można utworzyć z użyciem tych klawiszy, aby wybrać jedną z nich; w przeciwnym razie wyświetla znaki dostępne po długim naciśnięciu klawisza</string>
-    <string name="layout_editor_action_reading_column_title">Lista sylab Pinyin</string>
     <string name="layout_editor_action_row_title">Akcja</string>
     <string name="layout_editor_action_sequence_detail">Wykonuje je po kolei, na przykład początek wiersza, a następnie stronę w górę</string>
     <string name="layout_editor_action_sequence_title">Kilka akcji edycji tekstu</string>

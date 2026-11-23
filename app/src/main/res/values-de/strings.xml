@@ -5646,8 +5646,6 @@
     <string name="layout_editor_action_position_info">Die Aktionen kommen normalerweise nach allen Alternativen. Platzieren Sie sie nach einem Zeichen und sie sind ein kurzes Wischen von der Taste entfernt, während ein einfaches Drücken und Halten immer noch die erste Alternative tippt. Platzieren Sie sie zuerst und ein einfaches Drücken und Halten führt die erste Aktion aus. Die Aktionen bleiben zusammen, in ihrer eigenen Reihenfolge. Dies erfordert Auswahl ohne Anheben unter Tastendruck, Alternative Tasten.</string>
     <string name="layout_editor_action_position_subtitle">Ihre Position unter den Alternativen im Popup</string>
     <string name="layout_editor_action_position_title">Wo die Aktionen platziert werden</string>
-    <string name="layout_editor_action_reading_column_detail">Eine scrollbare Liste anstelle der Taste. Während Sie auf einem T9-Pinyin-Pad tippen, werden die Silben aufgelistet, die Ihre Tasten buchstabieren könnten, um eine auszuwählen; andernfalls werden die Zeichen aufgelistet, die bei langem Drücken der Taste erscheinen</string>
-    <string name="layout_editor_action_reading_column_title">Pinyin-Silbenliste</string>
     <string name="layout_editor_action_row_title">Aktion</string>
     <string name="layout_editor_action_sequence_detail">Führt sie nacheinander aus, wie Zeilenanfang und dann Bild-auf</string>
     <string name="layout_editor_action_sequence_title">Mehrere Textbearbeitungsaktionen</string>

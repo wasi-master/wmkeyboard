@@ -5643,8 +5643,6 @@
     <string name="layout_editor_action_position_info">Les accions solen anar després de tots els alternatius. Posa-les després d\'un caràcter i seran un lliscament curt des de la tecla, mentre que una pressió simple mantinguda encara escriu el primer alternatiu. Posa-les primer i una pressió simple mantinguda executa la primera acció. Les accions es mantenen juntes, en el seu propi ordre. Això requereix Tria sense aixecar, sota Premsa de tecla, Tecles alternatives.</string>
     <string name="layout_editor_action_position_subtitle">El seu lloc entre les alternatives a la finestra emergent</string>
     <string name="layout_editor_action_position_title">On van les accions</string>
-    <string name="layout_editor_action_reading_column_detail">Una llista de desplaçament en lloc de la tecla. Mentre escrius en un teclat pinyin T9, llista les síl·labes que les tecles podrien formar, per triar-ne una; en cas contrari, llista els caràcters de premsa llarga de la tecla</string>
-    <string name="layout_editor_action_reading_column_title">Llista de síl·labes Pinyin</string>
     <string name="layout_editor_action_row_title">Acció</string>
     <string name="layout_editor_action_sequence_detail">Els executa un rere l\'altre, com ara l\'inici de línia i després la pàgina amunt</string>
     <string name="layout_editor_action_sequence_title">Diverses accions d\'edició de text</string>

@@ -5638,8 +5638,6 @@
     <string name="layout_editor_action_position_info">Les actions se placent généralement après toutes les alternatives. Placez-les après un caractère et elles seront accessibles par un court glissement depuis la touche, tandis qu\'un appui long simple saisira toujours la première alternative. Placez-les en premier et un appui long simple exécutera la première action. Les actions restent regroupées, dans leur propre ordre. Cela nécessite Choisir sans lever le doigt, sous Appui sur une touche, Touches alternatives.</string>
     <string name="layout_editor_action_position_subtitle">Leur place parmi les variantes dans la fenêtre contextuelle</string>
     <string name="layout_editor_action_position_title">Où vont les actions</string>
-    <string name="layout_editor_action_reading_column_detail">Une liste déroulante à la place de la touche. Lorsque vous tapez sur un pavé T9 pinyin, elle liste les syllabes que vos touches pourraient former, pour en choisir une ; sinon, elle liste les caractères accessibles par appui long sur la touche</string>
-    <string name="layout_editor_action_reading_column_title">Liste des syllabes Pinyin</string>
     <string name="layout_editor_action_row_title">Action</string>
     <string name="layout_editor_action_sequence_detail">Les exécute tour à tour, par exemple début de ligne puis page précédente</string>
     <string name="layout_editor_action_sequence_title">Plusieurs actions d\'édition de texte</string>

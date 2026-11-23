@@ -5649,8 +5649,6 @@
     <string name="layout_editor_action_position_info">Дії зазвичай йдуть після всіх альтернативних символів. Розмістіть їх після символу, і вони будуть доступні коротким свайпом від клавіші, тоді як звичайне натискання з утриманням все одно вводитиме перший альтернативний символ. Розмістіть їх першими, і звичайне натискання з утриманням виконуватиме першу дію. Дії залишаються разом у своєму порядку. Це потребує налаштування «Вибирати без відпускання» у розділі «Натискання клавіш», «Альтернативні клавіші».</string>
     <string name="layout_editor_action_position_subtitle">Їхнє місце серед альтернатив у спливаючому вікні</string>
     <string name="layout_editor_action_position_title">Де розміщувати дії</string>
-    <string name="layout_editor_action_reading_column_detail">Список прокрутки замість клавіші. Коли ви друкуєте на клавіатурі T9 pinyin, він показує склади, які можна утворити з ваших клавіш, щоб вибрати один; інакше він показує символи довгого натискання клавіші</string>
-    <string name="layout_editor_action_reading_column_title">Список складів піньїнь</string>
     <string name="layout_editor_action_row_title">Дія</string>
     <string name="layout_editor_action_sequence_detail">Виконує їх по черзі, наприклад: початок рядка, а потім сторінка вгору</string>
     <string name="layout_editor_action_sequence_title">Кілька дій редагування тексту</string>

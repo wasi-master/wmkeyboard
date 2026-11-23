@@ -5643,8 +5643,6 @@
     <string name="layout_editor_action_position_info">Tindakan biasanya muncul setelah semua alternatif. Letakkan setelah karakter dan tindakan tersebut menjadi geseran singkat dari tombol, sementara tekan dan tahan biasa tetap mengetik alternatif pertama. Letakkan di awal dan tekan dan tahan biasa akan menjalankan tindakan pertama. Tindakan tetap bersama, dalam urutannya sendiri. Ini memerlukan Pilih tanpa mengangkat, di bawah Tekan tombol, Tombol alternatif.</string>
     <string name="layout_editor_action_position_subtitle">Posisi mereka di antara alternatif dalam popup</string>
     <string name="layout_editor_action_position_title">Tempat tindakan diletakkan</string>
-    <string name="layout_editor_action_reading_column_detail">Daftar gulir sebagai pengganti tombol. Saat Anda mengetik pada pad pinyin T9, daftar ini menampilkan suku kata yang bisa dieja oleh tombol Anda untuk dipilih; jika tidak, daftar ini menampilkan karakter tekan lama tombol tersebut</string>
-    <string name="layout_editor_action_reading_column_title">Daftar suku kata Pinyin</string>
     <string name="layout_editor_action_row_title">Tindakan</string>
     <string name="layout_editor_action_sequence_detail">Menjalankan secara berurutan, seperti awal baris lalu naik satu halaman</string>
     <string name="layout_editor_action_sequence_title">Beberapa tindakan pengeditan teks</string>

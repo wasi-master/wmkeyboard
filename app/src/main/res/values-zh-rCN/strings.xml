@@ -5634,8 +5634,6 @@
     <string name="layout_editor_action_position_info">操作通常位于所有备选字符之后。将它们放在字符之后，只需从按键上短距离滑动即可触发，而普通的按住不放仍会输入第一个备选字符。将它们放在最前面，普通的按住不放则会运行第一个操作。操作会保持在一起，并按其顺序排列。这需要在“按键”下的“备选按键”中选择“不抬起手指进行选择”。</string>
     <string name="layout_editor_action_position_subtitle">它们在弹出窗口中备选项里的位置</string>
     <string name="layout_editor_action_position_title">操作栏位置</string>
-    <string name="layout_editor_action_reading_column_detail">代替按键的滚动列表。当您在 T9 拼音键盘上输入时，它会列出按键可能拼出的音节供您选择；否则，它会列出按键的长按字符</string>
-    <string name="layout_editor_action_reading_column_title">拼音音节列表</string>
     <string name="layout_editor_action_row_title">操作</string>
     <string name="layout_editor_action_sequence_detail">依次运行它们，例如先到行首然后向上翻页</string>
     <string name="layout_editor_action_sequence_title">多个文本编辑操作</string>

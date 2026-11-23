@@ -25555,19 +25555,24 @@ private fun KeyCell(
  * Painted as a key face so it sits in the grid like one, and taller than one
  * row as a rule ([Key.rowSpan]); each entry is three quarters of a row, so a
  * three-row column shows four and says by the cut-off fifth that there are more.
+ *
+ * A panel grid draws it too (issue #1526), with [readings] off: no reading is
+ * composed there, so it is only ever the key's own list, the Numpad's column of
+ * operators, say.
  */
 @Composable
-private fun ReadingColumnKey(
+internal fun ReadingColumnKey(
     visual: KeyVisual,
     settings: KeyboardSettings,
     modifier: Modifier,
     keyHeightDp: Int,
     onKey: (Key) -> Unit,
+    readings: Boolean = true,
 ) {
     val key = visual.key
-    val readings = LocalConversionReadings.current.value
-    val picking = readings.isNotEmpty()
-    val entries = if (picking) readings else key.longPress
+    val composing = LocalConversionReadings.current.value
+    val picking = readings && composing.isNotEmpty()
+    val entries = if (picking) composing else key.longPress
     val kb = LocalKbTheme.current
     val keyShape = kb.keyShape(bleedDp = keyGapH(settings).value, kind = visual.shapeKind, radiusDp = visual.cornerRadiusDp)
     val onPress = LocalKeyRoleFeedback.current

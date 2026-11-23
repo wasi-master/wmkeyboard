@@ -29,15 +29,16 @@ import com.wasimaster.wmkeyboard.language.R
 data class RepairedPanelLayout(val spec: PanelLayoutSpec, val repairNotes: List<LayoutMessage>)
 
 /**
- * Key actions a panel layout will not carry: the two that only make sense on
+ * Key actions a panel layout will not carry: the ones that only make sense on
  * the converted layout that authored them. A kana variant, a Hangul stroke and
- * a tense consonant all change a letter the typing grid just typed, a reading
- * column picks a syllable of the reading it is composing, and a Keyman key is
- * one of a Keyman layout's own
- * grid. Everything else a typing layout offers is a key here too.
+ * a tense consonant all change a letter the typing grid just typed, and a
+ * Keyman key is one of a Keyman layout's own grid. Everything else a typing
+ * layout offers is a key here too, a reading column included (issue #1526):
+ * on a panel it lists the key's own alternates, a scrolling column of
+ * operators down the side of the Numpad.
  */
 fun KeyAction.isAllowedOnPanel(): Boolean = when (this) {
-    KeyAction.KanaVariant, KeyAction.AddStroke, KeyAction.DoubleConsonant, KeyAction.ReadingColumn -> false
+    KeyAction.KanaVariant, KeyAction.AddStroke, KeyAction.DoubleConsonant -> false
     is KeyAction.KeymanKey -> false
     else -> true
 }

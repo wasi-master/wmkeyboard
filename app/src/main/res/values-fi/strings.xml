@@ -5640,8 +5640,6 @@
     <string name="layout_editor_action_position_info">Toiminnot sijoitetaan yleensä kaikkien vaihtoehtojen jälkeen. Aseta ne merkin jälkeen, niin ne ovat lyhyen pyyhkäisyn päässä näppäimestä, kun taas tavallinen painallus ja pito kirjoittaa edelleen ensimmäisen vaihtoehdon. Aseta ne ensin, niin tavallinen painallus ja pito suorittaa ensimmäisen toiminnon. Toiminnot pysyvät yhdessä omassa järjestyksessään. Tämä vaatii asetuksen \"Valitse nostamatta\" kohdassa \"Näppäimen painallus\", \"Vaihtoehtoiset näppäimet\".</string>
     <string name="layout_editor_action_position_subtitle">Niiden paikka ponnahdusikkunan vaihtoehtojen joukossa</string>
     <string name="layout_editor_action_position_title">Missä toiminnot sijaitsevat</string>
-    <string name="layout_editor_action_reading_column_detail">Vieritettävä luettelo näppäimen tilalla. Kun kirjoitat T9-pinyin-näppäimistöllä, se luettelee tavut, jotka näppäimesi voisivat muodostaa, jotta voit valita yhden; muuten se luettelee näppäimen pitkällä painalluksella saatavat merkit</string>
-    <string name="layout_editor_action_reading_column_title">Pinyin-tavuluettelo</string>
     <string name="layout_editor_action_row_title">Toiminto</string>
     <string name="layout_editor_action_sequence_detail">Suorittaa ne peräkkäin, kuten rivin alku ja sitten sivu ylös</string>
     <string name="layout_editor_action_sequence_title">Useita tekstinmuokkaustoimintoja</string>

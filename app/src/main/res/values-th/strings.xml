@@ -5638,8 +5638,6 @@
     <string name="layout_editor_action_position_info">โดยปกติแล้วการดำเนินการจะอยู่หลังตัวเลือกสำรองทั้งหมด หากวางไว้หลังอักขระ การดำเนินการจะเป็นการเลื่อนสั้นๆ จากปุ่ม ในขณะที่การกดค้างแบบปกติยังคงพิมพ์ตัวเลือกสำรองตัวแรก หากวางไว้เป็นตัวแรก การกดค้างแบบปกติจะเรียกใช้การดำเนินการแรก การดำเนินการจะอยู่ด้วยกันตามลำดับของตนเอง ซึ่งต้องเลือก \"เลือกโดยไม่ต้องยกนิ้ว\" ภายใต้ \"การกดปุ่ม\" และ \"ปุ่มสำรอง\"</string>
     <string name="layout_editor_action_position_subtitle">ตำแหน่งของปุ่มเหล่านั้นท่ามกลางตัวเลือกอื่นในป๊อปอัป</string>
     <string name="layout_editor_action_position_title">ตำแหน่งของปุ่มการทำงาน</string>
-    <string name="layout_editor_action_reading_column_detail">รายการแบบเลื่อนแทนที่ปุ่ม ในขณะที่คุณพิมพ์บนแป้นพินอิน T9 มันจะแสดงรายการพยางค์ที่ปุ่มของคุณสามารถสะกดได้เพื่อเลือกหนึ่งรายการ มิฉะนั้นมันจะแสดงรายการอักขระที่กดค้างไว้ของปุ่มนั้น</string>
-    <string name="layout_editor_action_reading_column_title">รายการพยางค์พินอิน</string>
     <string name="layout_editor_action_row_title">การดำเนินการ</string>
     <string name="layout_editor_action_sequence_detail">เรียกใช้งานตามลำดับ เช่น ไปที่ต้นบรรทัดแล้วเลื่อนหน้าขึ้น</string>
     <string name="layout_editor_action_sequence_title">การดำเนินการแก้ไขข้อความหลายรายการ</string>

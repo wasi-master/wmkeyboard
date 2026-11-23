@@ -5639,8 +5639,6 @@
     <string name="layout_editor_action_position_info">Aðgerðirnar fara venjulega á eftir öllum valkostum. Settu þær á eftir bókstaf og þær verða stutt rennsli frá lyklinum, á meðan venjuleg þrýstingur og hald skrifar samt fyrsta valkostinn. Settu þær fyrst og venjuleg þrýstingur og hald keyrir fyrstu aðgerðina. Aðgerðirnar haldast saman, í sinni eigin röð. Þetta krefst „Velja án þess að lyfta“ undir „Lyklaborðsþrýstingur“, „Aðrir lyklar“.</string>
     <string name="layout_editor_action_position_subtitle">Staða þeirra meðal valkosta í sprettiglugganum</string>
     <string name="layout_editor_action_position_title">Hvar aðgerðirnar fara</string>
-    <string name="layout_editor_action_reading_column_detail">Skrunanlegur listi í stað lykilsins. Á meðan þú skrifar á T9 pinyin-borð sýnir hann atkvæðin sem lyklarnir gætu myndað, svo þú getir valið eitt; annars sýnir hann stafi sem birtast við langa ýtingu á lykilinn</string>
-    <string name="layout_editor_action_reading_column_title">Listi yfir Pinyin-atkvæði</string>
     <string name="layout_editor_action_row_title">Aðgerð</string>
     <string name="layout_editor_action_sequence_detail">Keyrir þau í röð, svo sem upphafi línu og síðan blaðsíðu upp</string>
     <string name="layout_editor_action_sequence_title">Nokkrar textaritunaraðgerðir</string>

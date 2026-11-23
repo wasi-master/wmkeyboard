@@ -5653,8 +5653,6 @@
     <string name="layout_editor_action_position_info">क्रियाएं आमतौर पर सभी विकल्पों के बाद आती हैं। उन्हें एक वर्ण के बाद रखें और वे कुंजी से एक छोटी स्लाइड पर होती हैं, जबकि एक साधारण प्रेस और होल्ड अभी भी पहले विकल्प को टाइप करता है। उन्हें पहले रखें और एक साधारण प्रेस और होल्ड पहली क्रिया को चलाता है। क्रियाएं अपने क्रम में एक साथ रहती हैं। इसके लिए \'की प्रेस\', \'वैकल्पिक कुंजियाँ\' के अंतर्गत \'बिना उठाए चुनें\' की आवश्यकता होती है।</string>
     <string name="layout_editor_action_position_subtitle">पॉपअप में विकल्पों के बीच उनका स्थान</string>
     <string name="layout_editor_action_position_title">क्रियाएं कहां जाती हैं</string>
-    <string name="layout_editor_action_reading_column_detail">की के स्थान पर एक स्क्रॉलिंग सूची। जब आप T9 पिनयिन पैड पर टाइप करते हैं, तो यह उन शब्दांशों को सूचीबद्ध करता है जिन्हें आपकी कीज़ स्पेल कर सकती हैं, ताकि आप एक चुन सकें; अन्यथा यह की के लॉन्ग-प्रेस कैरेक्टर को सूचीबद्ध करता है</string>
-    <string name="layout_editor_action_reading_column_title">पिनयिन शब्दांश सूची</string>
     <string name="layout_editor_action_row_title">एक्शन</string>
     <string name="layout_editor_action_sequence_detail">उन्हें एक के बाद एक चलाता है, जैसे लाइन की शुरुआत और फिर पेज अप</string>
     <string name="layout_editor_action_sequence_title">कई पाठ संपादन क्रियाएँ</string>

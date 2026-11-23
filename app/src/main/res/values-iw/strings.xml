@@ -5645,8 +5645,6 @@
     <string name="layout_editor_action_position_info">הפעולות מופיעות בדרך כלל אחרי כל החלופות. הצב אותן אחרי תו והן יהיו החלקה קצרה מהמקש, בעוד לחיצה והחזקה רגילה עדיין תקליד את החלופה הראשונה. הצב אותן ראשונות ולחיצה והחזקה רגילה תפעיל את הפעולה הראשונה. הפעולות נשארות יחד, בסדר שלהן. זה דורש \'בחר ללא הרמה\', תחת \'לחיצת מקש\', \'מקשים חלופיים\'.</string>
     <string name="layout_editor_action_position_subtitle">מיקומם בין החלופות בחלון הקופץ</string>
     <string name="layout_editor_action_position_title">איפה הפעולות ממוקמות</string>
-    <string name="layout_editor_action_reading_column_detail">רשימה גלילה במקום המקש. בזמן ההקלדה בלוח פין-יין T9, היא מציגה את ההברות שהמקשים שלך יכולים ליצור, כדי לבחור אחת; אחרת היא מציגה את התווים של לחיצה ארוכה על המקש</string>
-    <string name="layout_editor_action_reading_column_title">רשימת הברות פין-יין</string>
     <string name="layout_editor_action_row_title">פעולה</string>
     <string name="layout_editor_action_sequence_detail">מפעיל אותם ברצף, כגון תחילת שורה ואז עמוד למעלה</string>
     <string name="layout_editor_action_sequence_title">מספר פעולות עריכת טקסט</string>

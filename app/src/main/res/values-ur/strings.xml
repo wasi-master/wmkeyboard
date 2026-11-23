@@ -5643,8 +5643,6 @@
     <string name="layout_editor_action_position_info">ایکشنز عام طور پر تمام متبادلات کے بعد آتے ہیں۔ انہیں کسی کریکٹر کے بعد رکھیں تو وہ کلید سے ایک مختصر سلائیڈ پر ہوتے ہیں، جبکہ سادہ پریس اور ہولڈ اب بھی پہلا متبادل ٹائپ کرتا ہے۔ انہیں پہلے رکھیں تو سادہ پریس اور ہولڈ پہلا ایکشن چلاتا ہے۔ ایکشنز اپنی ترتیب میں ایک ساتھ رہتے ہیں۔ اس کے لیے \'کلید دبانے\' (Key press) کے تحت \'متبادل کلیدیں\' (Alternate keys) میں \'بغیر اٹھائے منتخب کریں\' (Choose without lifting) کی ضرورت ہے۔</string>
     <string name="layout_editor_action_position_subtitle">پاپ اپ میں متبادل کے درمیان ان کی جگہ</string>
     <string name="layout_editor_action_position_title">جہاں ایکشنز جاتے ہیں</string>
-    <string name="layout_editor_action_reading_column_detail">کلید کی جگہ ایک اسکرولنگ لسٹ۔ جب آپ T9 پینین پیڈ پر ٹائپ کرتے ہیں تو یہ ان ہجوں کی فہرست دیتا ہے جو آپ کی کلیدیں بنا سکتی ہیں، تاکہ ایک کا انتخاب کیا جا سکے؛ بصورت دیگر یہ کلید کے لانگ پریس کریکٹرز کی فہرست دیتا ہے</string>
-    <string name="layout_editor_action_reading_column_title">پینین (Pinyin) سلیبل لسٹ</string>
     <string name="layout_editor_action_row_title">عمل</string>
     <string name="layout_editor_action_sequence_detail">انہیں باری باری چلاتا ہے، جیسے کہ لائن کا آغاز پھر پیج اپ</string>
     <string name="layout_editor_action_sequence_title">متعدد متن میں ترمیم کرنے کے اقدامات</string>

@@ -5647,8 +5647,6 @@
     <string name="layout_editor_action_position_info">ॲक्शन्स सहसा सर्व पर्यायांच्या नंतर येतात. त्यांना एका अक्षराच्या नंतर ठेवा आणि ते की पासून थोड्या अंतरावर स्लाइड होतील, तर साध्या प्रेस आणि होल्डमुळे पहिले पर्याय टाइप होईल. त्यांना आधी ठेवा आणि साध्या प्रेस आणि होल्डमुळे पहिली ॲक्शन रन होईल. ॲक्शन्स त्यांच्या स्वतःच्या क्रमाने एकत्र राहतात. यासाठी की प्रेस, अल्टरनेट की अंतर्गत \'Choose without lifting\' आवश्यक आहे.</string>
     <string name="layout_editor_action_position_subtitle">पॉपअपमधील पर्यायांमध्ये त्यांची जागा</string>
     <string name="layout_editor_action_position_title">क्रिया कुठे जातात</string>
-    <string name="layout_editor_action_reading_column_detail">कीच्या जागी एक स्क्रोलिंग सूची. जेव्हा तुम्ही T9 पिनयिन पॅडवर टाईप करता, तेव्हा ते तुमच्या कीजद्वारे तयार होऊ शकणारे शब्द दर्शवते, ज्यातून तुम्ही एक निवडू शकता; अन्यथा ते कीच्या लाँग-प्रेस अक्षरांची यादी दर्शवते</string>
-    <string name="layout_editor_action_reading_column_title">पिनयिन शब्दांश सूची</string>
     <string name="layout_editor_action_row_title">ॲक्शन</string>
     <string name="layout_editor_action_sequence_detail">त्यांना एकामागून एक चालवते, जसे की ओळीची सुरुवात नंतर पेज अप</string>
     <string name="layout_editor_action_sequence_title">अनेक मजकूर संपादने क्रिया</string>

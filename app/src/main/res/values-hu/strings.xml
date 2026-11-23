@@ -5639,8 +5639,6 @@
     <string name="layout_editor_action_position_info">A műveletek általában az összes alternatíva után következnek. Ha egy karakter után helyezi el őket, egy rövid csúsztatással érhetők el a billentyűről, míg az egyszerű lenyomás és tartás továbbra is az első alternatívát írja be. Ha előre helyezi őket, az egyszerű lenyomás és tartás az első műveletet hajtja végre. A műveletek együtt maradnak, a saját sorrendjükben. Ehhez a „Kiválasztás felemelés nélkül” beállítás szükséges a „Billentyűleütés”, „Alternatív billentyűk” alatt.</string>
     <string name="layout_editor_action_position_subtitle">Helyük a felugró ablakban lévő alternatívák között</string>
     <string name="layout_editor_action_position_title">A műveletek helye</string>
-    <string name="layout_editor_action_reading_column_detail">Görgethető lista a billentyű helyett. Amikor T9 pinyin billentyűzeten gépel, felsorolja a szótagokat, amelyeket a billentyűkkel írhat, így kiválaszthat egyet; egyébként a billentyű hosszan megnyomott karaktereit sorolja fel</string>
-    <string name="layout_editor_action_reading_column_title">Pinyin szótaglista</string>
     <string name="layout_editor_action_row_title">Művelet</string>
     <string name="layout_editor_action_sequence_detail">Egymás után futtatja őket, például először sor elejére, majd oldal fel</string>
     <string name="layout_editor_action_sequence_title">Szövegszerkesztési műveletek sorozata</string>

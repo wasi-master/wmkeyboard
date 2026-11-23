@@ -5649,8 +5649,6 @@
     <string name="layout_editor_action_position_info">Acțiunile apar de obicei după toate alternativele. Pune-le după un caracter și vor fi la o glisare scurtă de tastă, în timp ce o apăsare simplă și menținere va tasta în continuare prima alternativă. Pune-le primele și o apăsare simplă și menținere va rula prima acțiune. Acțiunile rămân împreună, în propria lor ordine. Aceasta necesită „Alege fără ridicare”, sub „Apăsare tastă”, „Taste alternative”.</string>
     <string name="layout_editor_action_position_subtitle">Locul lor printre alternative în fereastra pop-up</string>
     <string name="layout_editor_action_position_title">Unde merg acțiunile</string>
-    <string name="layout_editor_action_reading_column_detail">O listă derulantă în locul tastei. În timp ce tastați pe un pad T9 pinyin, aceasta listează silabele pe care tastele le-ar putea forma, pentru a alege una; în caz contrar, listează caracterele pentru apăsare lungă ale tastei</string>
-    <string name="layout_editor_action_reading_column_title">Listă de silabe Pinyin</string>
     <string name="layout_editor_action_row_title">Acțiune</string>
     <string name="layout_editor_action_sequence_detail">Le rulează pe rând, cum ar fi începutul rândului, apoi pagina în sus</string>
     <string name="layout_editor_action_sequence_title">Mai multe acțiuni de editare a textului</string>

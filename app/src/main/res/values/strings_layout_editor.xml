@@ -548,10 +548,10 @@
     <string name="layout_editor_action_double_consonant_title">Double consonant (쌍자음)</string>
     <!-- The Korean letters are examples and stay as they are. -->
     <string name="layout_editor_action_double_consonant_detail">Changes the last Korean consonant you typed to its double form and back: ㄱ to ㄲ, ㅂ to ㅃ</string>
-    <!-- A key action for Chinese T9 pinyin pads: a scrolling list in place of the key (issue #635). -->
-    <string name="layout_editor_action_reading_column_title">Pinyin syllable list</string>
+    <!-- A key action: a scrolling list of characters in place of the key, such as math symbols down the side of the number pad or the syllables of a T9 pinyin pad (issues #635, #1526). -->
+    <string name="layout_editor_action_scroll_list_title">Scrolling list</string>
     <!-- Detail line for the action above. -->
-    <string name="layout_editor_action_reading_column_detail">A scrolling list in place of the key. While you type on a T9 pinyin pad it lists the syllables your keys could spell, to pick one; otherwise it lists the key\'s long-press characters</string>
+    <string name="layout_editor_action_scroll_list_detail">A list in place of the key that you scroll, then tap a character to type it. The list is the key\'s long-press characters. Make the key cover a few rows to show more of it. On a T9 pinyin pad, it lists the syllables your keys could spell while you type</string>
     <!-- A key action that flips Chinese candidates between Simplified and Traditional characters (issue #962). -->
     <string name="layout_editor_action_han_script_title">Simplified / Traditional Chinese</string>
     <!-- Detail line for the action above. -->

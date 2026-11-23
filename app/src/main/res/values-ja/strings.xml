@@ -5641,8 +5641,6 @@
     <string name="layout_editor_action_position_info">アクションは通常、すべての代替キーの後に配置されます。文字の後に配置すると、キーから少しスライドさせるだけで入力でき、そのまま長押しすると最初の代替キーが入力されます。最初に配置すると、そのまま長押ししたときに最初のアクションが実行されます。アクションは独自の順序でまとめられます。「キーの押下」の「代替キー」設定で「指を離さずに選択」を選択する必要があります。</string>
     <string name="layout_editor_action_position_subtitle">ポップアップ内の代替キー間での位置</string>
     <string name="layout_editor_action_position_title">アクションの配置場所</string>
-    <string name="layout_editor_action_reading_column_detail">キーの代わりとなるスクロールリスト。T9ピンインパッドで入力中にキーが綴れる音節をリストアップして選択したり、それ以外の場合はキーの長押し文字をリストアップしたりします</string>
-    <string name="layout_editor_action_reading_column_title">ピンイン音節リスト</string>
     <string name="layout_editor_action_row_title">アクション</string>
     <string name="layout_editor_action_sequence_detail">行頭への移動やページアップなど、順番に実行します</string>
     <string name="layout_editor_action_sequence_title">いくつかのテキスト編集アクション</string>

@@ -5653,8 +5653,6 @@
     <string name="layout_editor_action_position_info">Izenzo ngokuvamile ziza ngemva kwazo zonke ezinye izinketho. Zibeke ngemva kohlamvu futhi zizoba ukuslayida okufushane ukusuka ekhiye, kuyilapho ukucindezela nokubamba okujwayelekile kusathayipha inketho yokuqala. Zibeke kuqala futhi ukucindezela nokubamba okujwayelekile kuzosebenzisa isenzo sokuqala. Izenzo zihlala ndawonye, ngokulandelana kwazo. Lokhu kudinga Khetha ngaphandle kokuphakamisa, ngaphansi kokucindezela okhiye, Okhiye abanye.</string>
     <string name="layout_editor_action_position_subtitle">Indawo yazo phakathi kwezinye izinketho ku-popup</string>
     <string name="layout_editor_action_position_title">Lapho izenzo ziya khona</string>
-    <string name="layout_editor_action_reading_column_detail">Uhlu oluskrolayo esikhundleni sokhiye. Ngenkathi uthayipha ku-pad ye-T9 pinyin, ibala ama-syllable okhiye bakho abangawapela, ukuze ukhethe owodwa; ngaphandle kwalokho ibala izinhlamvu zokhiye ezicindezelwe isikhathi eside</string>
-    <string name="layout_editor_action_reading_column_title">Uhlu lwezinhlamvu ze-Pinyin</string>
     <string name="layout_editor_action_row_title">Isenzo</string>
     <string name="layout_editor_action_sequence_detail">Iziqalisa ngokulandelana, njengokuqala komugqa bese kuba yikhasi phezulu</string>
     <string name="layout_editor_action_sequence_title">Izinyathelo eziningi zokuhlela umbhalo</string>

@@ -274,8 +274,9 @@ object LayoutJsonDocs {
         "action:add_stroke" to "Adds a stroke to the last Korean letter typed: ㄱ to ㅋ, ㄴ to ㄷ to ㅌ, ㅏ to ㅑ, and back.",
         "action:double_consonant" to "Changes the last Korean consonant typed to its double form and back: ㄱ to ㄲ, ㅂ to ㅃ.",
         "action:reading_column" to
-            "A scrolling list in place of the key. While a T9 pinyin reading is typed it lists the syllables " +
-            "the next keys could spell, to pick one. Otherwise it lists the key's longPress entries, to type one.",
+            "A scrolling list in place of the key. It lists the key's longPress entries, to type one, so a key " +
+            "with a rowSpan of 3 can hold a column of math symbols. While a T9 pinyin reading is typed it lists " +
+            "the syllables the next keys could spell instead. Allowed on panels such as the Numpad too.",
         "action:broadcast" to "Sends an Android broadcast, for an automation app like Tasker. It types nothing.",
         "action:broadcast.action" to "The intent action of the broadcast. An app must listen for this exact text.",
         "action:braille_dot" to

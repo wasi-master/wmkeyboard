@@ -5644,8 +5644,6 @@
     <string name="layout_editor_action_position_info">ક્રિયાઓ સામાન્ય રીતે તમામ વિકલ્પો પછી આવે છે. તેમને અક્ષર પછી મૂકો અને તે કીથી થોડી સ્લાઇડ દૂર હશે, જ્યારે સામાન્ય પ્રેસ અને હોલ્ડ હજુ પણ પ્રથમ વિકલ્પ ટાઈપ કરશે. તેમને પહેલા મૂકો અને સામાન્ય પ્રેસ અને હોલ્ડ પ્રથમ ક્રિયા ચલાવશે. ક્રિયાઓ તેમના પોતાના ક્રમમાં સાથે રહે છે. આ માટે કી પ્રેસ, અલ્ટરનેટ કી હેઠળ \'Choose without lifting\' ની જરૂર છે.</string>
     <string name="layout_editor_action_position_subtitle">પોપઅપમાં વિકલ્પો વચ્ચે તેમનું સ્થાન</string>
     <string name="layout_editor_action_position_title">ક્રિયાઓ ક્યાં જાય છે</string>
-    <string name="layout_editor_action_reading_column_detail">કીના સ્થાને સ્ક્રોલિંગ સૂચિ. જ્યારે તમે T9 પિનયિન પેડ પર ટાઇપ કરો છો, ત્યારે તે તે સિલેબલની સૂચિ આપે છે જે તમારી કી સ્પેલ કરી શકે છે, તેમાંથી એક પસંદ કરવા માટે; અન્યથા તે કીના લોંગ-પ્રેસ અક્ષરોની સૂચિ આપે છે</string>
-    <string name="layout_editor_action_reading_column_title">પિનયિન સિલેબલ સૂચિ</string>
     <string name="layout_editor_action_row_title">ક્રિયા</string>
     <string name="layout_editor_action_sequence_detail">તેમને ક્રમમાં ચલાવે છે, જેમ કે લાઇન શરૂ થાય પછી પેજ અપ</string>
     <string name="layout_editor_action_sequence_title">ઘણા ટેક્સ્ટ સંપાદન ક્રિયાઓ</string>

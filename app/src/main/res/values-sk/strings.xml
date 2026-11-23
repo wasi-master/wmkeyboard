@@ -5648,8 +5648,6 @@
     <string name="layout_editor_action_position_info">Akcie zvyčajne nasledujú po všetkých alternatívach. Umiestnite ich za znak a sú krátkym posunom od klávesu, zatiaľ čo jednoduché stlačenie a podržanie stále píše prvú alternatívu. Umiestnite ich na prvé miesto a jednoduché stlačenie a podržanie spustí prvú akciu. Akcie zostávajú spolu, vo svojom vlastnom poradí. Toto vyžaduje Výber bez zdvihnutia, pod Stlačenie klávesu, Alternatívne klávesy.</string>
     <string name="layout_editor_action_position_subtitle">Ich miesto medzi alternatívami vo vyskakovacom okne</string>
     <string name="layout_editor_action_position_title">Kam umiestniť akcie</string>
-    <string name="layout_editor_action_reading_column_detail">Posúvateľný zoznam namiesto klávesu. Keď píšete na T9 pinyin klávesnici, zobrazí slabiky, ktoré môžu vaše klávesy vytvoriť, aby ste si jednu vybrali; inak zobrazí znaky pri dlhom stlačení klávesu</string>
-    <string name="layout_editor_action_reading_column_title">Zoznam slabík Pinyin</string>
     <string name="layout_editor_action_row_title">Akcia</string>
     <string name="layout_editor_action_sequence_detail">Spustí ich postupne, napríklad začiatok riadku a potom o stránku vyššie</string>
     <string name="layout_editor_action_sequence_title">Niekoľko akcií úpravy textu</string>

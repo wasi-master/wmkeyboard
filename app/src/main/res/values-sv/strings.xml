@@ -5649,8 +5649,6 @@
     <string name="layout_editor_action_position_info">Åtgärderna placeras vanligtvis efter alla alternativ. Placera dem efter ett tecken så blir de ett kort svep från tangenten, medan ett vanligt långtryck fortfarande skriver det första alternativet. Placera dem först så kör ett vanligt långtryck den första åtgärden. Åtgärderna hålls samman i sin egen ordning. Detta kräver \"Välj utan att lyfta\" under \"Tangenttryckning\", \"Alternativa tangenter\".</string>
     <string name="layout_editor_action_position_subtitle">Deras plats bland alternativen i popup-fönstret</string>
     <string name="layout_editor_action_position_title">Var åtgärderna hamnar</string>
-    <string name="layout_editor_action_reading_column_detail">En rullningsbar lista istället för tangenten. När du skriver på en T9 pinyin-platta listar den stavelserna som dina tangenter kan stava, för att välja en; annars listar den tangentens långtryckstecken</string>
-    <string name="layout_editor_action_reading_column_title">Lista över Pinyin-stavelser</string>
     <string name="layout_editor_action_row_title">Åtgärd</string>
     <string name="layout_editor_action_sequence_detail">Kör dem efter varandra, till exempel början på raden och sedan föregående sida</string>
     <string name="layout_editor_action_sequence_title">Flera textredigeringsåtgärder</string>

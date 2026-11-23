@@ -5988,11 +5988,12 @@ internal val KeyActionCatalog: List<KeyActionOption> = listOf(
         R.string.layout_editor_action_double_consonant_detail,
         { KeyAction.DoubleConsonant }, { it == KeyAction.DoubleConsonant },
     ),
-    // The 九宫格 pinyin pad's left column (issue #635).
+    // The 九宫格 pinyin pad's left column (issue #635), and any column of
+    // characters to scroll through, the Numpad's operators say (#1526).
     KeyActionOption(
-        R.string.layout_editor_action_reading_column_title,
+        R.string.layout_editor_action_scroll_list_title,
         R.string.layout_editor_action_group_typing,
-        R.string.layout_editor_action_reading_column_detail,
+        R.string.layout_editor_action_scroll_list_detail,
         { KeyAction.ReadingColumn }, { it == KeyAction.ReadingColumn },
     ),
     // The Simplified/Traditional switch the Pinyin layout's '词 key holds (#962).

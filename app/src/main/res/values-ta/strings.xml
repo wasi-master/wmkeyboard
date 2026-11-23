@@ -5643,8 +5643,6 @@
     <string name="layout_editor_action_position_info">செயல்கள் பொதுவாக அனைத்து மாற்றுகளுக்கும் பிறகு செல்லும். அவற்றை ஒரு எழுத்துக்குப் பிறகு வைத்தால், அவை விசையிலிருந்து ஒரு சிறிய ஸ்லைடாக இருக்கும், அதே சமயம் சாதாரண அழுத்தம் மற்றும் பிடிப்பு இன்னும் முதல் மாற்றைத் தட்டச்சு செய்யும். அவற்றை முதலில் வைத்தால், சாதாரண அழுத்தம் மற்றும் பிடிப்பு முதல் செயலை இயக்கும். செயல்கள் அவற்றின் சொந்த வரிசையில் ஒன்றாக இருக்கும். இதற்கு Key press, Alternate keys என்பதன் கீழ் Choose without lifting தேவை.</string>
     <string name="layout_editor_action_position_subtitle">பாப்அப்பில் உள்ள மாற்றுகளில் அவற்றின் இடம்</string>
     <string name="layout_editor_action_position_title">செயல்கள் செல்லும் இடம்</string>
-    <string name="layout_editor_action_reading_column_detail">விசைக்கு பதிலாக ஒரு ஸ்க்ரோலிங் பட்டியல். நீங்கள் T9 பின்யின் பேடில் தட்டச்சு செய்யும்போது, உங்கள் விசைகள் உச்சரிக்கக்கூடிய எழுத்துக்களை இது பட்டியலிடுகிறது, ஒன்றைத் தேர்ந்தெடுக்க; இல்லையெனில் அது விசையின் நீண்ட அழுத்த எழுத்துக்களை பட்டியலிடுகிறது</string>
-    <string name="layout_editor_action_reading_column_title">பின்யின் அசை பட்டியல்</string>
     <string name="layout_editor_action_row_title">செயல்</string>
     <string name="layout_editor_action_sequence_detail">வரிகளின் தொடக்கம் மற்றும் பக்க மேல் போன்றவற்றை வரிசையாக இயக்குகிறது</string>
     <string name="layout_editor_action_sequence_title">பல உரை திருத்துதல் செயல்கள்</string>

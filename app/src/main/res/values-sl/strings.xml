@@ -5651,8 +5651,6 @@
     <string name="layout_editor_action_position_info">Dejanja se običajno postavijo za vse nadomestne znake. Če jih postavite za znak, so kratek poteg stran od tipke, medtem ko navaden pritisk in pridržanje še vedno vpišeta prvi nadomestni znak. Če jih postavite na prvo mesto, navaden pritisk in pridržanje sprožita prvo dejanje. Dejanja ostanejo skupaj v svojem vrstnem redu. To zahteva nastavitev »Izberi brez dviga« v razdelku »Pritisk tipke«, »Nadomestne tipke«.</string>
     <string name="layout_editor_action_position_subtitle">Njihovo mesto med alternativami v pojavnem oknu</string>
     <string name="layout_editor_action_position_title">Kam gredo dejanja</string>
-    <string name="layout_editor_action_reading_column_detail">Drsni seznam namesto tipke. Med tipkanjem na tipkovnici T9 pinyin navede zloge, ki jih lahko črkujete s tipkami, da izberete enega; sicer navede znake za dolg pritisk tipke</string>
-    <string name="layout_editor_action_reading_column_title">Seznam zlogov Pinyin</string>
     <string name="layout_editor_action_row_title">Dejanje</string>
     <string name="layout_editor_action_sequence_detail">Izvede jih zaporedoma, na primer začetek vrstice in nato stran navzgor</string>
     <string name="layout_editor_action_sequence_title">Več dejanj urejanja besedila</string>

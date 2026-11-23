@@ -5651,8 +5651,6 @@
     <string name="layout_editor_action_position_info">اقدامات معمولاً بعد از همه جایگزین‌ها قرار می‌گیرند. اگر آن‌ها را بعد از یک نویسه قرار دهید، با یک حرکت کوتاه از روی کلید اجرا می‌شوند، در حالی که فشار دادن و نگه داشتن ساده همچنان اولین جایگزین را تایپ می‌کند. اگر آن‌ها را در ابتدا قرار دهید، فشار دادن و نگه داشتن ساده اولین اقدام را اجرا می‌کند. اقدامات در کنار هم و به ترتیب خود باقی می‌مانند. این نیاز به «انتخاب بدون برداشتن انگشت» در بخش «فشار کلید»، «کلیدهای جایگزین» دارد.</string>
     <string name="layout_editor_action_position_subtitle">جایگاه آن‌ها در میان گزینه‌های جایگزین در پنجره بازشو</string>
     <string name="layout_editor_action_position_title">محل قرارگیری کنش‌ها</string>
-    <string name="layout_editor_action_reading_column_detail">یک لیست پیمایشی به جای کلید. هنگامی که روی پد پین‌یین T9 تایپ می‌کنید، هجاهایی که کلیدهای شما می‌توانند بنویسند را فهرست می‌کند تا یکی را انتخاب کنید؛ در غیر این صورت کاراکترهای فشار طولانی کلید را فهرست می‌کند</string>
-    <string name="layout_editor_action_reading_column_title">فهرست هجای پین‌یین</string>
     <string name="layout_editor_action_row_title">عمل</string>
     <string name="layout_editor_action_sequence_detail">آن‌ها را به‌نوبت اجرا می‌کند، مانند ابتدای خط و سپس صفحه بالا</string>
     <string name="layout_editor_action_sequence_title">چندین عمل ویرایش متن</string>

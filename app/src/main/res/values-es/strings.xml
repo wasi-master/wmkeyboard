@@ -5649,8 +5649,6 @@
     <string name="layout_editor_action_position_info">Las acciones suelen ir después de todos los alternativos. Ponlas después de un carácter y serán un deslizamiento corto desde la tecla, mientras que una pulsación larga normal sigue escribiendo el primer alternativo. Ponlas primero y una pulsación larga normal ejecuta la primera acción. Las acciones permanecen juntas, en su propio orden. Esto requiere Elegir sin levantar, bajo Pulsación de tecla, Teclas alternativas.</string>
     <string name="layout_editor_action_position_subtitle">Su lugar entre los alternativos en la ventana emergente</string>
     <string name="layout_editor_action_position_title">Dónde van las acciones</string>
-    <string name="layout_editor_action_reading_column_detail">Una lista desplazable en lugar de la tecla. Mientras escribes en un teclado T9 pinyin, enumera las sílabas que tus teclas podrían formar para que elijas una; de lo contrario, enumera los caracteres de pulsación larga de la tecla</string>
-    <string name="layout_editor_action_reading_column_title">Lista de sílabas Pinyin</string>
     <string name="layout_editor_action_row_title">Acción</string>
     <string name="layout_editor_action_sequence_detail">Los ejecuta en orden, como el inicio de línea y luego página arriba</string>
     <string name="layout_editor_action_sequence_title">Varias acciones de edición de texto</string>

@@ -5648,8 +5648,6 @@
     <string name="layout_editor_action_position_info">Handlingene kommer vanligvis etter alle alternativene. Plasserer du dem etter et tegn, er de et kort sveip fra tasten, mens et vanlig trykk og hold fortsatt skriver det første alternativet. Plasserer du dem først, vil et vanlig trykk og hold kjøre den første handlingen. Handlingene holder seg sammen i sin egen rekkefølge. Dette krever \"Velg uten å løfte\" under \"Tastetrykk\", \"Alternative taster\".</string>
     <string name="layout_editor_action_position_subtitle">Deres plass blant alternativene i popup-vinduet</string>
     <string name="layout_editor_action_position_title">Hvor handlingene plasseres</string>
-    <string name="layout_editor_action_reading_column_detail">En rullende liste i stedet for tasten. Mens du skriver på et T9 pinyin-tastatur, viser den stavelsene tastene dine kan stave, slik at du kan velge én; ellers viser den tastens langtrykk-tegn</string>
-    <string name="layout_editor_action_reading_column_title">Pinyin-stavelsesliste</string>
     <string name="layout_editor_action_row_title">Handling</string>
     <string name="layout_editor_action_sequence_detail">Kjører dem etter tur, for eksempel start på linje deretter side opp</string>
     <string name="layout_editor_action_sequence_title">Flere tekstredigeringshandlinger</string>

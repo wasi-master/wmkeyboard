@@ -5643,8 +5643,6 @@
     <string name="layout_editor_action_position_info">Οι ενέργειες συνήθως μπαίνουν μετά από όλες τις εναλλακτικές. Τοποθετήστε τις μετά από έναν χαρακτήρα και θα είναι μια μικρή ολίσθηση από το πλήκτρο, ενώ ένα απλό παρατεταμένο πάτημα εξακολουθεί να πληκτρολογεί την πρώτη εναλλακτική. Τοποθετήστε τις πρώτες και ένα απλό παρατεταμένο πάτημα εκτελεί την πρώτη ενέργεια. Οι ενέργειες παραμένουν μαζί, με τη δική τους σειρά. Αυτό απαιτεί την επιλογή «Επιλογή χωρίς ανασήκωμα» (Choose without lifting), κάτω από το «Πάτημα πλήκτρου» (Key press), «Εναλλακτικά πλήκτρα» (Alternate keys).</string>
     <string name="layout_editor_action_position_subtitle">Η θέση τους ανάμεσα στις εναλλακτικές στο αναδυόμενο παράθυρο</string>
     <string name="layout_editor_action_position_title">Πού τοποθετούνται οι ενέργειες</string>
-    <string name="layout_editor_action_reading_column_detail">Μια λίστα κύλισης στη θέση του πλήκτρου. Ενώ πληκτρολογείτε σε ένα πληκτρολόγιο T9 pinyin, παραθέτει τις συλλαβές που θα μπορούσαν να σχηματίσουν τα πλήκτρα σας, για να επιλέξετε μία· διαφορετικά παραθέτει τους χαρακτήρες παρατεταμένου πατήματος του πλήκτρου</string>
-    <string name="layout_editor_action_reading_column_title">Λίστα συλλαβών Pinyin</string>
     <string name="layout_editor_action_row_title">Ενέργεια</string>
     <string name="layout_editor_action_sequence_detail">Τα εκτελεί διαδοχικά, όπως αρχή γραμμής και μετά σελίδα επάνω</string>
     <string name="layout_editor_action_sequence_title">Διάφορες ενέργειες επεξεργασίας κειμένου</string>

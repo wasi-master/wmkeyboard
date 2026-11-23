@@ -347,6 +347,18 @@ private fun PanelKeyGrid(
                         animate = animate,
                         modifier = cell.padding(horizontal = gapH, vertical = gapV),
                     ) { fields(field) }
+                } else if (panelSlot.slot.key.action == KeyAction.ReadingColumn) {
+                    // A scrolling list of the key's alternates rather than a
+                    // key: taps per entry, so none of a key's press handling
+                    // applies (issue #1526).
+                    ReadingColumnKey(
+                        visual = panelSlot.visual!!,
+                        settings = settings,
+                        modifier = cell,
+                        keyHeightDp = rowHeightsDp[panelSlot.slot.row],
+                        onKey = onPanelKey,
+                        readings = false,
+                    )
                 } else {
                     KeyButton(
                         visual = panelSlot.visual!!,

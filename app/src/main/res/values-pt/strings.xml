@@ -5644,8 +5644,6 @@
     <string name="layout_editor_action_position_info">As ações geralmente vêm após todos os alternativos. Coloque-as após um caractere e elas ficam a um curto deslize da tecla, enquanto um toque simples e segurar ainda digita o primeiro alternativo. Coloque-as primeiro e um toque simples e segurar executa a primeira ação. As ações permanecem juntas, em sua própria ordem. Isso requer Escolher sem levantar, em Pressionar tecla, Teclas alternativas.</string>
     <string name="layout_editor_action_position_subtitle">O lugar deles entre as alternativas no pop-up</string>
     <string name="layout_editor_action_position_title">Onde as ações ficam</string>
-    <string name="layout_editor_action_reading_column_detail">Uma lista de rolagem no lugar da tecla. Enquanto você digita em um teclado pinyin T9, ele lista as sílabas que suas teclas poderiam soletrar, para escolher uma; caso contrário, ele lista os caracteres de pressão longa da tecla</string>
-    <string name="layout_editor_action_reading_column_title">Lista de sílabas Pinyin</string>
     <string name="layout_editor_action_row_title">Ação</string>
     <string name="layout_editor_action_sequence_detail">Executa-os em sequência, como início da linha e depois página para cima</string>
     <string name="layout_editor_action_sequence_title">Várias ações de edição de texto</string>

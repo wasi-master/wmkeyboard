@@ -5651,8 +5651,6 @@
     <string name="layout_editor_action_position_info">Действия обычно идут после всех альтернатив. Поместите их после символа, и они будут коротким свайпом от клавиши, в то время как обычное нажатие и удержание по-прежнему вводит первую альтернативу. Поместите их первыми, и обычное нажатие и удержание запустит первое действие. Действия остаются вместе, в своем собственном порядке. Это требует включения «Выбор без отрыва» в разделе «Нажатие клавиш», «Альтернативные клавиши».</string>
     <string name="layout_editor_action_position_subtitle">Их место среди альтернатив во всплывающем окне</string>
     <string name="layout_editor_action_position_title">Где располагаются действия</string>
-    <string name="layout_editor_action_reading_column_detail">Прокручиваемый список вместо клавиши. При вводе на T9 пиньинь-клавиатуре он показывает слоги, которые можно составить из клавиш, чтобы выбрать один из них; в противном случае он показывает символы долгого нажатия клавиши</string>
-    <string name="layout_editor_action_reading_column_title">Список слогов пиньинь</string>
     <string name="layout_editor_action_row_title">Действие</string>
     <string name="layout_editor_action_sequence_detail">Запускает их по очереди, например сначала начало строки, затем страницу вверх</string>
     <string name="layout_editor_action_sequence_title">Несколько действий по редактированию текста</string>

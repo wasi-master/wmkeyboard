@@ -5645,8 +5645,6 @@
     <string name="layout_editor_action_position_info">Handlinger placeres normalt efter alle alternativer. Placeres de efter et tegn, er de et kort svirp fra tasten, mens et almindeligt tryk-og-hold stadig skriver det første alternativ. Placeres de først, vil et almindeligt tryk-og-hold udføre den første handling. Handlingerne holdes samlet i deres egen rækkefølge. Dette kræver \"Vælg uden at slippe\" under \"Taste-tryk, alternative taster\".</string>
     <string name="layout_editor_action_position_subtitle">Deres placering blandt alternativerne i pop op-vinduet</string>
     <string name="layout_editor_action_position_title">Hvor handlingerne placeres</string>
-    <string name="layout_editor_action_reading_column_detail">En rullende liste i stedet for tasten. Mens du skriver på et T9 pinyin-tastatur, viser den de stavelser dine taster kan stave, så du kan vælge en; ellers viser den tastens langtryks-tegn</string>
-    <string name="layout_editor_action_reading_column_title">Pinyin-stavelsesliste</string>
     <string name="layout_editor_action_row_title">Handling</string>
     <string name="layout_editor_action_sequence_detail">Kører dem efter tur, såsom start på linje og derefter side op</string>
     <string name="layout_editor_action_sequence_title">Flere tekstredigeringshandlinger</string>

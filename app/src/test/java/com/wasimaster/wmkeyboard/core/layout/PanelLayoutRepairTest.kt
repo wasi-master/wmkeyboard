@@ -137,6 +137,26 @@ class PanelLayoutRepairTest {
     }
 
     @Test
+    fun `a three-row scrolling list of operators survives on the Numpad`() {
+        // Issue #1526: a column of math symbols down the side of the pad.
+        val column = Key(
+            "±",
+            action = KeyAction.ReadingColumn,
+            rowSpan = 3,
+            longPress = listOf("+", "−", "×", "÷", ","),
+        )
+        val digits = listOf("1", "2", "3").map { Key(it) }
+        val spec = PanelLayoutSpec(
+            PanelKind.NUMPAD,
+            LayerSpec(listOf(listOf(column) + digits, digits, digits)),
+        )
+        assertTrue(KeyAction.ReadingColumn.isAllowedOnPanel())
+        assertEquals(emptyList<LayoutFinding>(), validatePanelLayout(spec).blocking())
+        val repaired = spec.repair()
+        assertEquals(column, repaired.spec.grid.rows.first().first())
+    }
+
+    @Test
     fun `an empty grid is replaced by the shipped panel`() {
         val spec = emoji(emptyList())
         assertFalse(spec.canBeEnabled())

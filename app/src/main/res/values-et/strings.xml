@@ -5648,8 +5648,6 @@
     <string name="layout_editor_action_position_info">Toimingud asuvad tavaliselt pärast kõiki alternatiive. Asetage need pärast märki ja need on klahvist lühikese libistamise kaugusel, samas kui tavaline vajutus ja hoidmine sisestab endiselt esimese alternatiivi. Asetage need esimeseks ja tavaline vajutus ja hoidmine käivitab esimese toimingu. Toimingud püsivad koos, oma järjekorras. See nõuab sätet Vali ilma tõstmata, jaotises Klahvivajutus, Alternatiivsed klahvid.</string>
     <string name="layout_editor_action_position_subtitle">Nende koht hüpikakna alternatiivide seas</string>
     <string name="layout_editor_action_position_title">Kuhu toimingud paigutatakse</string>
-    <string name="layout_editor_action_reading_column_detail">Keritav loend klahvi asemel. Kui tippite T9 pinyin-klaviatuuril, loetleb see silbid, mida teie klahvid võiksid moodustada, et saaksite ühe valida; vastasel juhul loetleb see klahvi pika vajutuse märgid</string>
-    <string name="layout_editor_action_reading_column_title">Pinyini silpide loend</string>
     <string name="layout_editor_action_row_title">Toiming</string>
     <string name="layout_editor_action_sequence_detail">Käivitab need üksteise järel, näiteks rea algusesse ja siis lehekülg üles</string>
     <string name="layout_editor_action_sequence_title">Mitu tekstiredigeerimistoimingut</string>

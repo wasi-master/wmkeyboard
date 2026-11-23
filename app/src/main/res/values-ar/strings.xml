@@ -5649,8 +5649,6 @@
     <string name="layout_editor_action_position_info">تأتي الإجراءات عادةً بعد كل البدائل. ضعها بعد حرف وستكون انزلاقاً قصيراً من المفتاح، بينما لا يزال الضغط العادي مع الاستمرار يكتب البديل الأول. ضعها أولاً وسيقوم الضغط العادي مع الاستمرار بتنفيذ الإجراء الأول. تبقى الإجراءات معاً، بترتيبها الخاص. يتطلب هذا \'الاختيار بدون رفع الإصبع\'، تحت \'ضغط المفتاح\'، \'مفاتيح بديلة\'.</string>
     <string name="layout_editor_action_position_subtitle">مكانها بين البدائل في النافذة المنبثقة</string>
     <string name="layout_editor_action_position_title">مكان وضع الإجراءات</string>
-    <string name="layout_editor_action_reading_column_detail">قائمة تمرير بدلاً من المفتاح. أثناء الكتابة على لوحة بينيين T9، تسرد المقاطع التي يمكن لمفاتيحك تهجئتها، لاختيار واحد؛ وإلا فإنها تسرد أحرف الضغط المطول للمفتاح</string>
-    <string name="layout_editor_action_reading_column_title">قائمة مقاطع بينيين</string>
     <string name="layout_editor_action_row_title">إجراء</string>
     <string name="layout_editor_action_sequence_detail">يقوم بتشغيلها بالتتابع، مثل بداية السطر ثم الانتقال لصفحة لأعلى</string>
     <string name="layout_editor_action_sequence_title">إجراءات تحرير النصوص المتعددة</string>

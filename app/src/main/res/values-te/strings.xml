@@ -5650,8 +5650,6 @@
     <string name="layout_editor_action_position_info">చర్యలు సాధారణంగా అన్ని ప్రత్యామ్నాయాల తర్వాత వస్తాయి. వాటిని ఒక అక్షరం తర్వాత ఉంచితే, అవి కీ నుండి చిన్న స్లైడ్‌గా ఉంటాయి, అయితే సాధారణ ప్రెస్ మరియు హోల్డ్ మొదటి ప్రత్యామ్నాయాన్ని టైప్ చేస్తుంది. వాటిని మొదట ఉంచితే, సాధారణ ప్రెస్ మరియు హోల్డ్ మొదటి చర్యను రన్ చేస్తుంది. చర్యలు వాటి స్వంత క్రమంలో కలిసి ఉంటాయి. దీనికి కీ ప్రెస్, ఆల్టర్నేట్ కీస్ కింద \'లిఫ్టింగ్ లేకుండా ఎంచుకోండి\' అవసరం.</string>
     <string name="layout_editor_action_position_subtitle">పాపప్‌లోని ప్రత్యామ్నాయాల మధ్య వాటి స్థానం</string>
     <string name="layout_editor_action_position_title">యాక్షన్‌లు ఎక్కడికి వెళ్తాయి</string>
-    <string name="layout_editor_action_reading_column_detail">కీ స్థానంలో స్క్రోలింగ్ జాబితా. మీరు T9 పిన్యిన్ ప్యాడ్‌పై టైప్ చేస్తున్నప్పుడు, అది మీ కీలు స్పెల్ చేయగల అక్షరాలను జాబితా చేస్తుంది, ఒకదాన్ని ఎంచుకోవడానికి; లేకపోతే అది కీ యొక్క లాంగ్-ప్రెస్ అక్షరాలను జాబితా చేస్తుంది</string>
-    <string name="layout_editor_action_reading_column_title">పిన్యిన్ సిలబుల్ జాబితా</string>
     <string name="layout_editor_action_row_title">చర్య</string>
     <string name="layout_editor_action_sequence_detail">లైన్ ప్రారంభం మరియు పేజీ అప్ వంటి వాటిని వరుసగా రన్ చేస్తుంది</string>
     <string name="layout_editor_action_sequence_title">అనేక టెక్స్ట్ ఎడిటింగ్ చర్యలు</string>

@@ -5640,8 +5640,6 @@
     <string name="layout_editor_action_position_info">Akce se obvykle umisťují za všechny alternativy. Pokud je umístíte za znak, budou fungovat jako krátké posunutí z klávesy, zatímco běžné stisknutí a podržení stále napíše první alternativu. Pokud je umístíte na začátek, běžné stisknutí a podržení spustí první akci. Akce zůstávají pohromadě ve svém vlastním pořadí. Toto vyžaduje nastavení „Vybrat bez zvednutí“ v části „Stisknutí klávesy“, „Alternativní klávesy“.</string>
     <string name="layout_editor_action_position_subtitle">Jejich umístění mezi alternativami ve vyskakovacím okně</string>
     <string name="layout_editor_action_position_title">Kam umístit akce</string>
-    <string name="layout_editor_action_reading_column_detail">Posouvatelný seznam namísto klávesy. Zatímco píšete na T9 pinyin klávesnici, vypíše slabiky, které by vaše klávesy mohly hláskovat, abyste si jednu vybrali; jinak vypíše znaky pro dlouhé stisknutí klávesy</string>
-    <string name="layout_editor_action_reading_column_title">Seznam slabik Pinyin</string>
     <string name="layout_editor_action_row_title">Akce</string>
     <string name="layout_editor_action_sequence_detail">Spustí je postupně, například začátek řádku a pak o stránku výše</string>
     <string name="layout_editor_action_sequence_title">Několik akcí úpravy textu</string>

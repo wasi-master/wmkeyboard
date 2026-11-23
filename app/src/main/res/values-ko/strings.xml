@@ -5638,8 +5638,6 @@
     <string name="layout_editor_action_position_info">작업은 일반적으로 모든 대체 문자 뒤에 배치됩니다. 문자 뒤에 배치하면 키에서 짧게 밀어 실행할 수 있으며, 길게 누르면 첫 번째 대체 문자가 입력됩니다. 처음에 배치하면 길게 누를 때 첫 번째 작업이 실행됩니다. 작업은 자체 순서대로 함께 유지됩니다. 이 기능은 \'키 누르기\'의 \'대체 키\' 설정에서 \'떼지 않고 선택\'을 활성화해야 합니다.</string>
     <string name="layout_editor_action_position_subtitle">팝업 내 대체 항목들 사이에서의 위치</string>
     <string name="layout_editor_action_position_title">작업 위치</string>
-    <string name="layout_editor_action_reading_column_detail">키 대신 스크롤 가능한 목록입니다. T9 병음 패드에서 입력할 때 키가 철자할 수 있는 음절을 나열하여 하나를 선택할 수 있게 합니다. 그렇지 않으면 키의 길게 누르기 문자를 나열합니다.</string>
-    <string name="layout_editor_action_reading_column_title">병음 음절 목록</string>
     <string name="layout_editor_action_row_title">작업</string>
     <string name="layout_editor_action_sequence_detail">줄의 시작으로 이동한 후 페이지 업 등 순서대로 실행합니다.</string>
     <string name="layout_editor_action_sequence_title">여러 텍스트 편집 작업</string>

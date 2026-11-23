@@ -5646,8 +5646,6 @@
     <string name="layout_editor_action_position_info">De acties komen meestal na alle alternatieven. Plaats ze na een teken en ze zijn een korte schuifbeweging vanaf de toets, terwijl een gewone druk en vasthouden nog steeds het eerste alternatief typt. Plaats ze eerst en een gewone druk en vasthouden voert de eerste actie uit. De acties blijven bij elkaar, in hun eigen volgorde. Dit vereist Kiezen zonder loslaten, onder Toetsaanslag, Alternatieve toetsen.</string>
     <string name="layout_editor_action_position_subtitle">Hun plaats tussen de alternatieven in het pop-upvenster</string>
     <string name="layout_editor_action_position_title">Waar de acties komen te staan</string>
-    <string name="layout_editor_action_reading_column_detail">Een scrollende lijst in plaats van de toets. Terwijl je op een T9 pinyin-toetsenbord typt, worden de lettergrepen vermeld die je toetsen kunnen spellen, om er een te kiezen; anders worden de tekens voor lang indrukken van de toets vermeld</string>
-    <string name="layout_editor_action_reading_column_title">Pinyin-lettergrepenlijst</string>
     <string name="layout_editor_action_row_title">Actie</string>
     <string name="layout_editor_action_sequence_detail">Voert ze na elkaar uit, zoals eerst regelbegin en dan page-up</string>
     <string name="layout_editor_action_sequence_title">Verschillende bewerkingen voor tekst</string>

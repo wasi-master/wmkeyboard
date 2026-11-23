@@ -5664,8 +5664,6 @@
     <string name="layout_editor_action_position_info">অ্যাকশনগুলো সাধারণত সব বিকল্পের পরে থাকে। সেগুলোকে একটি অক্ষরের পরে রাখলে তা কি থেকে একটি ছোট স্লাইড হিসেবে কাজ করে, যেখানে সাধারণ প্রেস এবং হোল্ড করলে প্রথম বিকল্পটি টাইপ হয়। সেগুলোকে প্রথমে রাখলে সাধারণ প্রেস এবং হোল্ড করলে প্রথম অ্যাকশনটি রান হয়। অ্যাকশনগুলো তাদের নিজস্ব ক্রমে একসাথে থাকে। এর জন্য \'কী প্রেস\', \'অল্টারনেট কী\'-এর অধীনে \'উইদাউট লিফটিং\' নির্বাচন করতে হবে।</string>
     <string name="layout_editor_action_position_subtitle">পপআপে বিকল্পগুলোর মধ্যে তাদের অবস্থান</string>
     <string name="layout_editor_action_position_title">অ্যাকশনগুলো যেখানে যায়</string>
-    <string name="layout_editor_action_reading_column_detail">কী-এর পরিবর্তে একটি স্ক্রলিং তালিকা। আপনি যখন T9 পিনয়িন প্যাডে টাইপ করেন, তখন এটি আপনার কীগুলো দিয়ে যে সিলেবলগুলো তৈরি হতে পারে তার তালিকা দেখায়, যাতে আপনি একটি বেছে নিতে পারেন; অন্যথায় এটি কী-এর লং-প্রেস অক্ষরগুলো তালিকাভুক্ত করে</string>
-    <string name="layout_editor_action_reading_column_title">পিনয়িন সিলেবল তালিকা</string>
     <string name="layout_editor_action_row_title">অ্যাকশন</string>
     <string name="layout_editor_action_sequence_detail">এগুলোকে ক্রমানুসারে চালায়, যেমন লাইনের শুরু এবং তারপর পেজ আপ</string>
     <string name="layout_editor_action_sequence_title">বেশ কিছু পাঠ্য সম্পাদনা ক্রিয়া</string>

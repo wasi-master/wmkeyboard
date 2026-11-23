@@ -5655,8 +5655,6 @@
     <string name="layout_editor_action_position_info">Vitendo kwa kawaida huwekwa baada ya njia mbadala zote. Viweke baada ya herufi na vitakuwa slaidi fupi kutoka kwa ufunguo, wakati kubonyeza na kushikilia kawaida bado kutaandika njia mbadala ya kwanza. Viweke kwanza na kubonyeza na kushikilia kawaida kutaendesha kitendo cha kwanza. Vitendo vinakaa pamoja, kwa mpangilio wao wenyewe. Hii inahitaji Chagua bila kuinua, chini ya Bonyeza ufunguo, Funguo mbadala.</string>
     <string name="layout_editor_action_position_subtitle">Nafasi yao kati ya njia mbadala kwenye dirisha ibukizi</string>
     <string name="layout_editor_action_position_title">Mahali ambapo vitendo huenda</string>
-    <string name="layout_editor_action_reading_column_detail">Orodha inayotiririka badala ya kitufe. Unapoandika kwenye pedi ya T9 pinyin huorodhesha silabi ambazo vitufe vyako vinaweza kutamka, ili kuchagua moja; vinginevyo huorodhesha vibambo vya kubonyeza kwa muda mrefu vya kitufe</string>
-    <string name="layout_editor_action_reading_column_title">Orodha ya silabi za Pinyin</string>
     <string name="layout_editor_action_row_title">Kitendo</string>
     <string name="layout_editor_action_sequence_detail">Inaziendesha moja baada ya nyingine, kama vile mwanzo wa mstari kisha kurasa juu</string>
     <string name="layout_editor_action_sequence_title">Vitendo kadhaa vya kuhariri maandishi</string>

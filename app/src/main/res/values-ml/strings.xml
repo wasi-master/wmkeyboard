@@ -5654,8 +5654,6 @@
     <string name="layout_editor_action_position_info">ആക്ഷനുകൾ സാധാരണയായി എല്ലാ ബദൽ കീകൾക്കും ശേഷമാണ് വരുന്നത്. ഒരു അക്ഷരത്തിന് ശേഷം ഇവ സ്ഥാപിച്ചാൽ, കീയിൽ നിന്ന് ചെറുതായി സ്ലൈഡ് ചെയ്താൽ ഇവ ലഭ്യമാകും, അതേസമയം കീയിൽ ദീർഘനേരം അമർത്തിപ്പിടിക്കുന്നത് ആദ്യത്തെ ബദൽ കീ ടൈപ്പ് ചെയ്യും. ഇവ ആദ്യം വെച്ചാൽ, കീയിൽ ദീർഘനേരം അമർത്തിപ്പിടിക്കുന്നത് ആദ്യത്തെ ആക്ഷൻ പ്രവർത്തിപ്പിക്കും. ആക്ഷനുകൾ അവയുടെ ക്രമത്തിൽ ഒന്നിച്ച് നിൽക്കും. ഇതിനായി \'Key press\' -&gt; \'Alternate keys\' എന്നതിൻ കീഴിൽ \'Choose without lifting\' തിരഞ്ഞെടുക്കേണ്ടതുണ്ട്.</string>
     <string name="layout_editor_action_position_subtitle">പോപ്പപ്പിലെ ബദൽ ഓപ്ഷനുകൾക്കിടയിലുള്ള അവയുടെ സ്ഥാനം</string>
     <string name="layout_editor_action_position_title">പ്രവർത്തനങ്ങൾ എവിടെ പോകുന്നു</string>
-    <string name="layout_editor_action_reading_column_detail">കീക്ക് പകരമുള്ള ഒരു സ്ക്രോളിംഗ് ലിസ്റ്റ്. T9 പിൻയിൻ പാഡിൽ ടൈപ്പ് ചെയ്യുമ്പോൾ, നിങ്ങൾക്ക് തിരഞ്ഞെടുക്കാൻ സാധിക്കുന്ന അക്ഷരങ്ങൾ ഇത് കാണിക്കുന്നു; അല്ലാത്തപക്ഷം, കീയിൽ ദീർഘനേരം അമർത്തുമ്പോൾ ലഭിക്കുന്ന അക്ഷരങ്ങൾ ഇത് കാണിക്കുന്നു</string>
-    <string name="layout_editor_action_reading_column_title">പിൻയിൻ സിലബിൾ ലിസ്റ്റ്</string>
     <string name="layout_editor_action_row_title">പ്രവർത്തനം</string>
     <string name="layout_editor_action_sequence_detail">വരിയുടെ തുടക്കം, തുടർന്ന് പേജ് അപ്പ് എന്നിങ്ങനെ അവയെ ഒന്നിനുപുറകെ ഒന്നായി പ്രവർത്തിപ്പിക്കുന്നു</string>
     <string name="layout_editor_action_sequence_title">നിരവധി വാചക എഡിറ്റിംഗ് പ്രവർത്തനങ്ങൾ</string>

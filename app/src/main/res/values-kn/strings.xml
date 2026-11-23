@@ -5657,8 +5657,6 @@
     <string name="layout_editor_action_position_info">ಕ್ರಿಯೆಗಳು ಸಾಮಾನ್ಯವಾಗಿ ಎಲ್ಲಾ ಪರ್ಯಾಯಗಳ ನಂತರ ಬರುತ್ತವೆ. ಅವುಗಳನ್ನು ಅಕ್ಷರದ ನಂತರ ಇರಿಸಿ, ಆಗ ಅವು ಕೀಯಿಂದ ಸಣ್ಣ ಸ್ಲೈಡ್ ಆಗಿರುತ್ತವೆ, ಆದರೆ ಸಾಮಾನ್ಯ ಪ್ರೆಸ್ ಮತ್ತು ಹೋಲ್ಡ್ ಇನ್ನೂ ಮೊದಲ ಪರ್ಯಾಯವನ್ನು ಟೈಪ್ ಮಾಡುತ್ತದೆ. ಅವುಗಳನ್ನು ಮೊದಲು ಇರಿಸಿ ಮತ್ತು ಸಾಮಾನ್ಯ ಪ್ರೆಸ್ ಮತ್ತು ಹೋಲ್ಡ್ ಮೊದಲ ಕ್ರಿಯೆಯನ್ನು ಚಲಾಯಿಸುತ್ತದೆ. ಕ್ರಿಯೆಗಳು ತಮ್ಮದೇ ಆದ ಕ್ರಮದಲ್ಲಿ ಒಟ್ಟಿಗೆ ಇರುತ್ತವೆ. ಇದಕ್ಕೆ ಕೀ ಪ್ರೆಸ್, ಪರ್ಯಾಯ ಕೀಗಳ ಅಡಿಯಲ್ಲಿ \'ಎತ್ತದೆ ಆಯ್ಕೆಮಾಡಿ\' ಅಗತ್ಯವಿದೆ.</string>
     <string name="layout_editor_action_position_subtitle">ಪಾಪ್‌ಅಪ್‌ನಲ್ಲಿನ ಪರ್ಯಾಯಗಳ ನಡುವೆ ಅವುಗಳ ಸ್ಥಾನ</string>
     <string name="layout_editor_action_position_title">ಕ್ರಿಯೆಗಳು ಎಲ್ಲಿ ಹೋಗುತ್ತವೆ</string>
-    <string name="layout_editor_action_reading_column_detail">ಕೀಯ ಬದಲಿಗೆ ಸ್ಕ್ರೋಲಿಂಗ್ ಪಟ್ಟಿ. ನೀವು T9 ಪಿನ್ಯಿನ್ ಪ್ಯಾಡ್‌ನಲ್ಲಿ ಟೈಪ್ ಮಾಡುವಾಗ ಅದು ನಿಮ್ಮ ಕೀಲಿಗಳು ಉಚ್ಚರಿಸಬಹುದಾದ ಅಕ್ಷರಗಳನ್ನು ಪಟ್ಟಿ ಮಾಡುತ್ತದೆ, ಒಂದನ್ನು ಆಯ್ಕೆ ಮಾಡಲು; ಇಲ್ಲದಿದ್ದರೆ ಅದು ಕೀಯ ಲಾಂಗ್-ಪ್ರೆಸ್ ಅಕ್ಷರಗಳನ್ನು ಪಟ್ಟಿ ಮಾಡುತ್ತದೆ</string>
-    <string name="layout_editor_action_reading_column_title">ಪಿನ್ಯಿನ್ ಅಕ್ಷರಗಳ ಪಟ್ಟಿ</string>
     <string name="layout_editor_action_row_title">ಕ್ರಿಯೆ</string>
     <string name="layout_editor_action_sequence_detail">ಸಾಲಿನ ಆರಂಭ ಮತ್ತು ನಂತರ ಪುಟ ಮೇಲಕ್ಕೆ ಇತ್ಯಾದಿ ಕ್ರಮವಾಗಿ ಅವುಗಳನ್ನು ರನ್ ಮಾಡುತ್ತದೆ</string>
     <string name="layout_editor_action_sequence_title">ಹಲವಾರು ಪಠ್ಯ ಸಂಪಾದನೆ ಕ್ರಿಯೆಗಳು</string>

@@ -5652,8 +5652,6 @@
     <string name="layout_editor_action_position_info">Radnje se obično nalaze nakon svih alternativa. Postavite ih nakon znaka i bit će kratki klizni pokret od tipke, dok običan pritisak i držanje i dalje upisuje prvu alternativu. Postavite ih na prvo mjesto i običan pritisak i držanje pokreće prvu radnju. Radnje ostaju zajedno, u vlastitom redoslijedu. Ovo zahtijeva Odabir bez podizanja, pod Pritisak tipke, Alternativne tipke.</string>
     <string name="layout_editor_action_position_subtitle">Njihovo mjesto među alternativama u skočnom prozoru</string>
     <string name="layout_editor_action_position_title">Gdje idu radnje</string>
-    <string name="layout_editor_action_reading_column_detail">Pomični popis umjesto tipke. Dok tipkate na T9 pinyin tipkovnici, popisuje slogove koje vaše tipke mogu formirati kako biste odabrali jedan; inače popisuje znakove koji se pojavljuju dugim pritiskom na tipku</string>
-    <string name="layout_editor_action_reading_column_title">Popis Pinyin slogova</string>
     <string name="layout_editor_action_row_title">Radnja</string>
     <string name="layout_editor_action_sequence_detail">Izvodi ih redom, kao što je početak retka pa stranica gore</string>
     <string name="layout_editor_action_sequence_title">Nekoliko radnji uređivanja teksta</string>

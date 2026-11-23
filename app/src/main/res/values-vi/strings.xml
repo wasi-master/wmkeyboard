@@ -5639,8 +5639,6 @@
     <string name="layout_editor_action_position_info">Các hành động thường nằm sau tất cả các phím thay thế. Đặt chúng sau một ký tự và chúng sẽ là một thao tác trượt ngắn từ phím, trong khi nhấn và giữ thông thường vẫn nhập ký tự thay thế đầu tiên. Đặt chúng lên đầu và thao tác nhấn giữ thông thường sẽ chạy hành động đầu tiên. Các hành động nằm cùng nhau theo thứ tự riêng của chúng. Cần chọn \"Chọn không cần nhấc tay\" trong mục \"Khi nhấn phím\", \"Phím thay thế\".</string>
     <string name="layout_editor_action_position_subtitle">Vị trí của chúng trong số các lựa chọn thay thế trong cửa sổ bật lên</string>
     <string name="layout_editor_action_position_title">Vị trí các hành động</string>
-    <string name="layout_editor_action_reading_column_detail">Một danh sách cuộn thay thế cho phím. Khi bạn nhập trên bàn phím pinyin T9, nó sẽ liệt kê các âm tiết mà các phím của bạn có thể đánh vần để chọn một âm tiết; nếu không, nó sẽ liệt kê các ký tự nhấn giữ của phím</string>
-    <string name="layout_editor_action_reading_column_title">Danh sách âm tiết Pinyin</string>
     <string name="layout_editor_action_row_title">Hành động</string>
     <string name="layout_editor_action_sequence_detail">Chạy lần lượt, chẳng hạn như đầu dòng rồi đến trang lên</string>
     <string name="layout_editor_action_sequence_title">Một số thao tác chỉnh sửa văn bản</string>

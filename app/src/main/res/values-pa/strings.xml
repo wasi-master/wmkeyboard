@@ -5657,8 +5657,6 @@
     <string name="layout_editor_action_position_info">ਕਾਰਵਾਈਆਂ ਆਮ ਤੌਰ \'ਤੇ ਸਾਰੇ ਵਿਕਲਪਾਂ ਤੋਂ ਬਾਅਦ ਆਉਂਦੀਆਂ ਹਨ। ਉਹਨਾਂ ਨੂੰ ਇੱਕ ਅੱਖਰ ਤੋਂ ਬਾਅਦ ਰੱਖੋ ਅਤੇ ਉਹ ਕੁੰਜੀ ਤੋਂ ਇੱਕ ਛੋਟੀ ਸਲਾਈਡ ਹਨ, ਜਦੋਂ ਕਿ ਇੱਕ ਸਾਧਾਰਨ ਪ੍ਰੈਸ ਅਤੇ ਹੋਲਡ ਅਜੇ ਵੀ ਪਹਿਲੇ ਵਿਕਲਪ ਨੂੰ ਟਾਈਪ ਕਰਦਾ ਹੈ। ਉਹਨਾਂ ਨੂੰ ਪਹਿਲਾਂ ਰੱਖੋ ਅਤੇ ਇੱਕ ਸਾਧਾਰਨ ਪ੍ਰੈਸ ਅਤੇ ਹੋਲਡ ਪਹਿਲੀ ਕਾਰਵਾਈ ਨੂੰ ਚਲਾਉਂਦਾ ਹੈ। ਕਾਰਵਾਈਆਂ ਇਕੱਠੀਆਂ ਰਹਿੰਦੀਆਂ ਹਨ, ਆਪਣੇ ਕ੍ਰਮ ਵਿੱਚ। ਇਸ ਲਈ \'ਕੀ ਪ੍ਰੈਸ\' (Key press), \'ਅਲਟਰਨੇਟ ਕੀਜ਼\' (Alternate keys) ਦੇ ਅਧੀਨ \'ਬਿਨਾਂ ਚੁੱਕੇ ਚੁਣੋ\' (Choose without lifting) ਦੀ ਲੋੜ ਹੈ।</string>
     <string name="layout_editor_action_position_subtitle">ਪੌਪਅੱਪ ਵਿੱਚ ਬਦਲਵੇਂ ਵਿਕਲਪਾਂ ਵਿਚਕਾਰ ਉਹਨਾਂ ਦੀ ਜਗ੍ਹਾ</string>
     <string name="layout_editor_action_position_title">ਕਾਰਵਾਈਆਂ ਕਿੱਥੇ ਜਾਂਦੀਆਂ ਹਨ</string>
-    <string name="layout_editor_action_reading_column_detail">ਕੁੰਜੀ ਦੀ ਥਾਂ \'ਤੇ ਇੱਕ ਸਕ੍ਰੌਲਿੰਗ ਸੂਚੀ। ਜਦੋਂ ਤੁਸੀਂ T9 ਪਿਨਯਿਨ ਪੈਡ \'ਤੇ ਟਾਈਪ ਕਰਦੇ ਹੋ ਤਾਂ ਇਹ ਉਹਨਾਂ ਉਚਾਰਖੰਡਾਂ ਨੂੰ ਸੂਚੀਬੱਧ ਕਰਦਾ ਹੈ ਜੋ ਤੁਹਾਡੀਆਂ ਕੁੰਜੀਆਂ ਸਪੈਲ ਕਰ ਸਕਦੀਆਂ ਹਨ, ਇੱਕ ਚੁਣਨ ਲਈ; ਨਹੀਂ ਤਾਂ ਇਹ ਕੁੰਜੀ ਦੇ ਲੰਬੇ-ਦਬਾਉਣ ਵਾਲੇ ਅੱਖਰਾਂ ਨੂੰ ਸੂਚੀਬੱਧ ਕਰਦਾ ਹੈ</string>
-    <string name="layout_editor_action_reading_column_title">ਪਿਨਯਿਨ ਸਿਲੇਬਲ ਸੂਚੀ</string>
     <string name="layout_editor_action_row_title">ਐਕਸ਼ਨ</string>
     <string name="layout_editor_action_sequence_detail">ਉਹਨਾਂ ਨੂੰ ਵਾਰੀ-ਵਾਰੀ ਚਲਾਉਂਦਾ ਹੈ, ਜਿਵੇਂ ਕਿ ਲਾਈਨ ਦੀ ਸ਼ੁਰੂਆਤ ਫਿਰ ਪੇਜ ਅੱਪ</string>
     <string name="layout_editor_action_sequence_title">ਕਈ ਟੈਕਸਟ ਸੰਪਾਦਨ ਕਾਰਵਾਈਆਂ</string>

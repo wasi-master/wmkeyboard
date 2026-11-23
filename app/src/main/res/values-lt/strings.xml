@@ -5646,8 +5646,6 @@
     <string name="layout_editor_action_position_info">Veiksmai paprastai eina po visų alternatyvų. Padėkite juos po simbolio ir jie bus pasiekiami trumpu perbraukimu nuo klavišo, o paprastas paspaudimas ir palaikymas vis tiek įves pirmąją alternatyvą. Padėkite juos pirmoje vietoje ir paprastas paspaudimas bei palaikymas atliks pirmąjį veiksmą. Veiksmai išlieka kartu, savo tvarka. Tam reikia nustatymo „Pasirinkti neatkeliant piršto“, esančio skiltyje „Klavišo paspaudimas“, „Alternatyvūs klavišai“.</string>
     <string name="layout_editor_action_position_subtitle">Jų vieta tarp alternatyvų iššokančiajame lange</string>
     <string name="layout_editor_action_position_title">Kur išdėstyti veiksmus</string>
-    <string name="layout_editor_action_reading_column_detail">Slenkantis sąrašas vietoj klavišo. Kai rašote T9 pinyin klaviatūra, rodomi skiemenys, kuriuos galima sudaryti iš klavišų, kad galėtumėte pasirinkti vieną; kitu atveju rodomi klavišo ilgai spaudžiami simboliai</string>
-    <string name="layout_editor_action_reading_column_title">Pinyin skiemenų sąrašas</string>
     <string name="layout_editor_action_row_title">Veiksmas</string>
     <string name="layout_editor_action_sequence_detail">Vykdo juos paeiliui, pavyzdžiui, eilutės pradžia, tada puslapis aukštyn</string>
     <string name="layout_editor_action_sequence_title">Keli teksto redagavimo veiksmai</string>

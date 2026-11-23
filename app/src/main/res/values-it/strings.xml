@@ -5639,8 +5639,6 @@
     <string name="layout_editor_action_position_info">Le azioni solitamente vanno dopo tutte le alternative. Mettile dopo un carattere e saranno un breve scorrimento dal tasto, mentre una pressione prolungata semplice digita ancora la prima alternativa. Mettile per prime e una pressione prolungata semplice esegue la prima azione. Le azioni rimangono insieme, nel loro ordine. Questo richiede Scegli senza sollevare, sotto Pressione tasti, Tasti alternativi.</string>
     <string name="layout_editor_action_position_subtitle">La loro posizione tra le alternative nel popup</string>
     <string name="layout_editor_action_position_title">Posizione delle azioni</string>
-    <string name="layout_editor_action_reading_column_detail">Un elenco a scorrimento al posto del tasto. Mentre digiti su un tastierino T9 pinyin, elenca le sillabe che i tuoi tasti potrebbero comporre, per sceglierne una; altrimenti elenca i caratteri associati alla pressione prolungata del tasto</string>
-    <string name="layout_editor_action_reading_column_title">Elenco sillabe Pinyin</string>
     <string name="layout_editor_action_row_title">Azione</string>
     <string name="layout_editor_action_sequence_detail">Le esegue in sequenza, come inizio riga e poi pagina su</string>
     <string name="layout_editor_action_sequence_title">Diverse azioni di modifica del testo</string>

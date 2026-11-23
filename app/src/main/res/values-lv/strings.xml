@@ -5650,8 +5650,6 @@
     <string name="layout_editor_action_position_info">Darbības parasti tiek novietotas pēc visiem alternatīvajiem variantiem. Novietojiet tās pēc rakstzīmes, un tās būs īsa slīdiena attālumā no taustiņa, savukārt vienkārša nospiešana un turēšana joprojām ievadīs pirmo alternatīvo variantu. Novietojiet tās pirmajā vietā, un vienkārša nospiešana un turēšana izpildīs pirmo darbību. Darbības paliek kopā savā secībā. Tam ir nepieciešams iestatījums \"Izvēlēties bez atlaišanas\" sadaļā \"Taustiņa nospiešana\", \"Alternatīvie taustiņi\".</string>
     <string name="layout_editor_action_position_subtitle">To vieta starp alternatīvām uznirstošajā logā</string>
     <string name="layout_editor_action_position_title">Kur atrodas darbības</string>
-    <string name="layout_editor_action_reading_column_detail">Ritinošs saraksts taustiņa vietā. Kamēr rakstāt uz T9 pinyin tastatūras, tas uzskaita zilbes, kuras jūsu taustiņi varētu veidot, lai izvēlētos vienu; pretējā gadījumā tas uzskaita taustiņa garās nospiešanas rakstzīmes</string>
-    <string name="layout_editor_action_reading_column_title">Piņjiņa zilbju saraksts</string>
     <string name="layout_editor_action_row_title">Darbība</string>
     <string name="layout_editor_action_sequence_detail">Izpilda tās secīgi, piemēram, rindas sākumu un pēc tam lapu uz augšu</string>
     <string name="layout_editor_action_sequence_title">Vairākas teksta rediģēšanas darbības</string>

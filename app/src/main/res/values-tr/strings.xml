@@ -5640,8 +5640,6 @@
     <string name="layout_editor_action_position_info">Eylemler genellikle tüm alternatiflerden sonra gelir. Onları bir karakterden sonraya koyarsanız, tuştan kısa bir kaydırma ile erişilirler; düz bir basılı tutma ise hala ilk alternatifi yazar. Onları başa koyarsanız, düz bir basılı tutma ilk eylemi çalıştırır. Eylemler kendi sıralarında bir arada kalır. Bu, Tuş basımı, Alternatif tuşlar altında \'Kaldırmadan seç\' ayarını gerektirir.</string>
     <string name="layout_editor_action_position_subtitle">Açılır penceredeki alternatifler arasındaki yerleri</string>
     <string name="layout_editor_action_position_title">Eylemlerin konumu</string>
-    <string name="layout_editor_action_reading_column_detail">Tuş yerine geçen kaydırılabilir bir liste. T9 pinyin tuş takımında yazarken, seçebileceğiniz heceleri listeler; aksi takdirde tuşun uzun basma karakterlerini listeler.</string>
-    <string name="layout_editor_action_reading_column_title">Pinyin hece listesi</string>
     <string name="layout_editor_action_row_title">Eylem</string>
     <string name="layout_editor_action_sequence_detail">Satır başı ve sayfa yukarı gibi komutları sırayla çalıştırır</string>
     <string name="layout_editor_action_sequence_title">Çeşitli metin düzenleme eylemleri</string>
