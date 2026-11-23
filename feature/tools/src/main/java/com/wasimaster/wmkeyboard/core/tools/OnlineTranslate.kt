@@ -7,6 +7,7 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderEnvironment
 import com.wasimaster.wmkeyboard.core.providers.ProviderRunner
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
+import com.wasimaster.wmkeyboard.core.providers.SiblingTranslate
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
 import com.wasimaster.wmkeyboard.core.settings.TranslateEngine
@@ -144,6 +145,8 @@ object OnlineTranslate {
                 apiKey = row.apiKey,
                 sourceLang = from,
             )
+            // WM Translate's own providers; missing or switched off there, the next row is asked.
+            ProviderTypes.WM_TRANSLATE.id -> SiblingTranslate.translate(text, target, from.takeIf { it != TranslateClient.AUTO }.orEmpty(), isActive)
             // A plugin that answers nothing for this text hands it to the next row.
             ProviderTypes.PLUGIN.id -> PluginReplies.translation(
                 PluginProviders.call(row.key, PluginReplies.translateRequest(text, target, from), isActive),

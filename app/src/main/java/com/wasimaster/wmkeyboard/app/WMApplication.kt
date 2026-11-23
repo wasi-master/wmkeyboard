@@ -199,6 +199,8 @@ open class WMApplication : Application() {
         SyncWatcher.start(this, repository)
         // The installed plugins' providers, as rows of the provider lists.
         com.wasimaster.wmkeyboard.ime.PluginProviderBridge.start(this, repository)
+        // WM Translate as a row of the translate list, and the setup it may read when shared.
+        com.wasimaster.wmkeyboard.ime.wmtranslate.WmTranslateBridge.start(this, repository)
         // A Keyman layout that is on, however it got on, brings its grids down.
         KeymanLayoutPackWatcher.start(this, repository)
         // "Ask AI" in other apps' selection menus follows its switch and the

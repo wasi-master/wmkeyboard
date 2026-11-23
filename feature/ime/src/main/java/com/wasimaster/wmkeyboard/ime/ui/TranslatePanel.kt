@@ -103,6 +103,14 @@ import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.TranslateUi
 import com.wasimaster.wmkeyboard.ime.lookup.SearchCompletions
 import com.wasimaster.wmkeyboard.core.ui.DisabledReason
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.OpenInNew
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.BookmarkAdd
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bookmark
+import com.wasimaster.wmkeyboard.ime.wmtranslate.WmTranslateBridge
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * The translate panel's service callbacks, bundled into one [KeyboardScreen]
@@ -682,6 +690,7 @@ private fun TranslateResult(state: KeyboardUiState, modifier: Modifier, callback
                         onWordTap = callbacks.onLookUp.takeIf { speakable },
                     )
                     if (speakable) {
+                        WmTranslateButtons(state, Modifier.align(Alignment.BottomEnd))
                         val speak = stringResource(R.string.ime_translate_speak_desc)
                         IconHint(speak, modifier = Modifier.align(Alignment.TopEnd)) {
                             Icon(
@@ -698,6 +707,53 @@ private fun TranslateResult(state: KeyboardUiState, modifier: Modifier, callback
                     }
                 }
             }
+        }
+    }
+}
+
+/**
+ * Open in WM Translate and Save to its history, at the result's foot, when the app is on the
+ * phone. Both carry the text, its translation and the languages; Save is a call, Open starts
+ * the app.
+ */
+@Composable
+private fun WmTranslateButtons(state: KeyboardUiState, modifier: Modifier) {
+    val context = LocalContext.current
+    val installed = remember { WmTranslateBridge.installed(context) }
+    if (!installed) return
+    val kb = LocalKbTheme.current
+    val translate = state.translate
+    val scope = rememberCoroutineScope()
+    val target = state.settings.translateTargetLang
+    var saved by remember(translate.translated) { mutableStateOf(false) }
+    Row(modifier) {
+        val open = stringResource(R.string.ime_translate_open_app_desc)
+        IconHint(open) {
+            Icon(
+                Icons.AutoMirrored.Outlined.OpenInNew,
+                contentDescription = open,
+                tint = kb.secondaryText,
+                modifier = Modifier.size(TranslateSpeakSize).clip(CircleShape)
+                    .clickable { WmTranslateBridge.open(context, translate.sourceText, translate.translated, translate.detectedSource, target) }
+                    .padding(5.dp),
+            )
+        }
+        val save = stringResource(R.string.ime_translate_save_app_desc)
+        IconHint(save) {
+            Icon(
+                if (saved) Icons.Outlined.Bookmark else Icons.Outlined.BookmarkAdd,
+                contentDescription = save,
+                tint = if (saved) kb.accent else kb.secondaryText,
+                modifier = Modifier.size(TranslateSpeakSize).clip(CircleShape)
+                    .clickable(enabled = !saved) {
+                        scope.launch {
+                            saved = withContext(Dispatchers.IO) {
+                                WmTranslateBridge.save(context, translate.sourceText, translate.translated, translate.detectedSource, target)
+                            }
+                        }
+                    }
+                    .padding(5.dp),
+            )
         }
     }
 }

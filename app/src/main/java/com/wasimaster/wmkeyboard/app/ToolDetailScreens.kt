@@ -2635,6 +2635,7 @@ internal fun ToolDetailSettings(
                 )
             }
             val manualTranslate = settings.watch { it.translate.manual }
+            WmTranslateLinkGroup()
             SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
                 item { TranslateLanguageSetting(repository, settings) }
                 item {

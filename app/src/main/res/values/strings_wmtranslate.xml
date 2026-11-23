@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tooldetail_wmtranslate_group" translatable="false">WM Translate</string>
+    <string name="tooldetail_wmtranslate_share_title">Share with WM Translate</string>
+    <string name="tooldetail_wmtranslate_share_subtitle">Lets the WM Translate app take this tool\'s providers, with their keys, and the language you translate into.</string>
+    <string name="tooldetail_wmtranslate_share_info">Off, WM Translate gets nothing from the keyboard. Once, it may take the setup the next time you ask it to, and then sharing turns off again. Keep in step, it takes the setup and reads it again whenever you change a provider here. Only the real WM Translate is answered: its signing certificate is checked on every call. Sharing stays on this phone; it is not in backups.</string>
+    <string name="tooldetail_wmtranslate_share_off">Off</string>
+    <string name="tooldetail_wmtranslate_share_once">Once</string>
+    <string name="tooldetail_wmtranslate_share_follow">Keep in step</string>
+    <string name="tooldetail_wmtranslate_missing">WM Translate is not installed. With it, the translate list can have a WM Translate row that uses its providers and glossaries.</string>
+</resources>

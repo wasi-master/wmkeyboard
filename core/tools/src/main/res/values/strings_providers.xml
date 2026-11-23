@@ -58,6 +58,8 @@
     <string name="core_tools_provider_mozhi_desc">A Mozhi server: a free front end to Google, DeepL, DuckDuckGo, Yandex and Reverso. Choose the engine. DeepL and Reverso need a source language.</string>
     <string name="core_tools_provider_simplytranslate" translatable="false">SimplyTranslate</string>
     <string name="core_tools_provider_simplytranslate_desc">A SimplyTranslate server: a free front end to Google and other engines.</string>
+    <string name="core_tools_provider_wmtranslate" translatable="false">WM Translate</string>
+    <string name="core_tools_provider_wmtranslate_desc">The WM Translate app on this phone, with the providers, glossaries and settings you have there. Needs WM Translate installed.</string>
     <string name="core_tools_provider_lingva" translatable="false">Lingva</string>
     <string name="core_tools_provider_lingva_desc">A Lingva server: a free front end to Google Translate.</string>
     <string name="core_tools_provider_translite" translatable="false">Translite</string>

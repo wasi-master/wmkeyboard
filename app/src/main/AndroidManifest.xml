@@ -289,6 +289,9 @@
         <!-- The password manager the WM Pass tool types logins from. Its certificate is checked. -->
         <package android:name="com.wasimaster.wmpass" />
         <provider android:authorities="com.wasimaster.wmpass.keyboard" />
+        <!-- WM Translate, which the translate list's WM Translate row asks. Its certificate is checked. -->
+        <package android:name="com.wasimaster.wmtranslate" />
+        <provider android:authorities="com.wasimaster.wmtranslate.keyboard" />
         <!-- AnkiDroid, its provider and its note editor, for the Look up card's
              Add to Anki (#765). -->
         <package android:name="com.ichi2.anki" />
@@ -1681,6 +1684,14 @@
              the way it reads a pick from Android's picker. Not exported, and it
              grants nothing: only this process can reach it. LocalFilesProvider
              says why, and src/play removes it. -->
+        <!-- WM Translate's way in: call() only, from the real WM Translate (its certificate is
+             checked on every call), and the translate setup only once the person shares it in
+             the Translate tool's settings. -->
+        <provider
+            android:name="com.wasimaster.wmkeyboard.ime.wmtranslate.TranslateBridgeProvider"
+            android:authorities="${applicationId}.translate"
+            android:exported="true" />
+
         <provider
             android:name="com.wasimaster.wmkeyboard.core.files.LocalFilesProvider"
             android:authorities="${applicationId}.localfiles"

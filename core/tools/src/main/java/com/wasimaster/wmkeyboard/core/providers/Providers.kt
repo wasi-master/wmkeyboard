@@ -411,6 +411,17 @@ object ProviderTypes {
         R.string.core_tools_provider_lingva, R.string.core_tools_provider_lingva_desc,
         CredentialSpec(url = Need.REQUIRED), multiInstance = true, freeSoftware = true,
     )
+    /**
+     * WM Translate, the family's translation app, when it is installed: the
+     * text goes to it and its own providers answer, with its glossaries and
+     * its guard on personal details ([SiblingTranslate]). An online kind on
+     * purpose, so it never joins a saved list by itself; without the app
+     * installed it does not answer and the next row is asked.
+     */
+    val WM_TRANSLATE = ProviderType(
+        "wmtranslate", setOf(ProviderTool.TRANSLATE),
+        R.string.core_tools_provider_wmtranslate, R.string.core_tools_provider_wmtranslate_desc,
+    )
     val TRANSLITE = ProviderType(
         "translite", setOf(ProviderTool.TRANSLATE),
         R.string.core_tools_provider_translite, R.string.core_tools_provider_translite_desc,
@@ -1057,7 +1068,7 @@ object ProviderTypes {
 
     val all: List<ProviderType> = listOf(
         KLIPY, GIPHY, COMMONS, GIFCITIES, OFFLINE_GIFS, STICKER_PACKS,
-        ML_KIT, BERGAMOT, NLLB, TRANSLATE_SERVER, DEEPL, LIBRETRANSLATE, MOZHI, SIMPLYTRANSLATE, LINGVA, TRANSLITE, GOOGLE_TRANSLATE,
+        ML_KIT, BERGAMOT, NLLB, TRANSLATE_SERVER, DEEPL, LIBRETRANSLATE, MOZHI, SIMPLYTRANSLATE, LINGVA, TRANSLITE, GOOGLE_TRANSLATE, WM_TRANSLATE,
         VOCAB_PACKS, WIKTIONARY, WIKTIONARY_REST, DICTIONARY_API, OFFLINE_WIKTIONARY, OFFLINE_WORDNET, OFFLINE_BENGALI, OFFLINE_LANGUAGES,
         IMPORTED_DICTIONARIES, URBAN_DICTIONARY,
         DATAMUSE, SIMILAR_WORDS,

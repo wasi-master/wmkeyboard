@@ -29,4 +29,6 @@
     <exclude domain="file" path="learning/glide_shapes.bin.bak" />
     <exclude domain="file" path="learning/glide_shapes.bin.corrupt" />
     <exclude domain="file" path="learning/glide_shapes.bin.part" />
+    <!-- Whether WM Translate may read the translate setup, keys included: this phone's choice. -->
+    <exclude domain="sharedpref" path="wm_translate_link.xml" />
 </full-backup-content>

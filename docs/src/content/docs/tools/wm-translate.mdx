@@ -1,0 +1,36 @@
+---
+title: "WM Translate"
+description: "WM Translate, the translation app from the same author, linked to the keyboard: a WM Translate row in the translate list that uses the app's providers and glossaries, buttons in the panel to open a translation there or save it to its history, and the keyboard's translate setup shared with the app when you choose."
+sidebar:
+  order: 17.9
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+[WM Translate](https://github.com/wasi-master/wm-translate) is a translation app from the same author. The keyboard works without it. With it installed, the two can share work in three ways, and each one checks the other app's signing certificate on every call, so an app that only borrows the name is refused.
+
+## A WM Translate row in the translate list
+
+In <SettingsPath path="Tools / Translate / Providers" />, **Add a provider** offers **WM Translate**. The text in the panel's box goes to the app, which translates it with its own providers in their own order, applies its glossaries and its guard on personal details, and sends the translation back. Nothing it sends is kept in WM Translate's history unless you press **Save**.
+
+The row is an online one: it never joins your list by itself, and it does not answer when WM Translate is missing, when **Let WM Keyboard translate through this app** is off in WM Translate, when the app has no provider that can do it, or when it answers in another language than the one asked for (a language it does not list). Then the next row in your list is asked, as with any other provider.
+
+- **Sent, precisely:** the text in the panel's box (at most 10,000 characters), the target language code, the source language code if you picked one, and a random id for the request. It goes from the keyboard to WM Translate on the phone; where it goes from there is up to the providers you set up in WM Translate.
+- Closing the panel stops a translation in flight, in WM Translate too.
+
+## Open and Save in the panel
+
+With WM Translate installed, a translation in the panel has two more buttons at its foot:
+
+- **Open in WM Translate** opens the app with the text, its translation and the languages, to work on it there: alternatives, the back-translation check, explanations, and the rest.
+- **Save to WM Translate's history** keeps the text and its translation in the app's history, where it can be searched and starred. Nothing is kept while WM Translate's incognito is on or its history is off.
+
+## Sharing the translate setup
+
+<SettingsPath path="Tools / Translate" /> has a **WM Translate** group with **Share with WM Translate**:
+
+- **Off** (the start): WM Translate gets nothing from the keyboard.
+- **Once**: the next time you ask WM Translate to take the keyboard's providers, it gets them, and sharing turns off again.
+- **Keep in step**: WM Translate takes the setup and reads it again whenever you change a provider here.
+
+What is shared is the Translate tool's provider list, the setups that list uses (with their keys), the language you translate into and your recent languages. The AI provider list and its keys are not shared. A WM Translate row is left out, so the two apps never send text back and forth. The choice is kept on this phone only and is not part of [backups](/privacy/backup/), so restoring a backup elsewhere never starts sending keys to another app.
