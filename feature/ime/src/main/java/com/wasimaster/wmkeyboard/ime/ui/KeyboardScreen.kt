@@ -239,6 +239,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
 import com.wasimaster.wmkeyboard.core.input.composer.KanaGlide
 import com.wasimaster.wmkeyboard.core.input.composer.MoakeyComposer
+import com.wasimaster.wmkeyboard.core.input.composer.NoComposer
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Stable
@@ -26926,6 +26927,18 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
         } else {
             emptySet()
         }
+    // The same letters added where the popup lacks them: ã and õ on the a and
+    // o of a QWERTY borrowed for Portuguese, which hold only the accents
+    // English lists, so nobody has to turn on every language's accents for
+    // one tilde. Keyed by the letter they are typed from. Not on a composer's
+    // board, where Telex and the like spell the marks with letters, and not
+    // with the accents turned off.
+    val languageLetters =
+        if (lettersLayer && !noAccents && state.composer === NoComposer) {
+            NativeLetters.byBase(state.language.localeTag)
+        } else {
+            emptyMap()
+        }
     // Issue #108: each letter key's shifted form joins its popup, so a capital
     // can be typed from a hold — including from the hold a layer peek opens,
     // where the shift key is on the layer the finger has left behind. Every
@@ -27028,7 +27041,7 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
         clipboardKeys.isEmpty() && fieldKey == null && domainAlternates.isEmpty() &&
         currencyKeys.isEmpty() && !allAccents && !noAccents && !shiftedKeys && fullStop == null &&
         !newlineAlternate && !emojiAlternate && holdActions.isEmpty() && spaceHoldKeys.isEmpty() &&
-        punctuationAlternates.isEmpty() && !kanaVariantKeys && nativeLetters.isEmpty() &&
+        punctuationAlternates.isEmpty() && !kanaVariantKeys && nativeLetters.isEmpty() && languageLetters.isEmpty() &&
         questionMark == null && questionSwap == null && periodAlternates.isEmpty() &&
         !reorderAlternates && !numpadOnHold && !fancyDigits &&
         currencyOnHolds == null && currencyOnKey == null && alternatePicks == null
@@ -27226,6 +27239,19 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
                     LatinAccents[letter.lowercase().first()]?.let { extra ->
                         mapped = mapped.copy(longPress = (mapped.longPress + extra).distinct())
                     }
+                }
+            }
+            // Appended, so entry 0 and the order the layout wrote stay as
+            // they were; the pass below can still move them to the front.
+            // Only on a key that already opens a popup: one left empty is
+            // somebody's choice, and an ambiguous grid's key is its letters.
+            if (languageLetters.isNotEmpty() && mapped.action == KeyAction.Text &&
+                mapped.letters == null && mapped.longPress.isNotEmpty()
+            ) {
+                (mapped.output ?: mapped.label).lowercase().singleOrNull()?.let(languageLetters::get)?.let { own ->
+                    val held = mapped.longPress.mapTo(HashSet()) { it.lowercase() }
+                    val missing = own.filter { it !in held }
+                    if (missing.isNotEmpty()) mapped = mapped.copy(longPress = mapped.longPress + missing)
                 }
             }
             if (noAccents && mapped.action == KeyAction.Text) {

@@ -2,6 +2,8 @@ package com.wasimaster.wmkeyboard.ime.ui
 
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
+import com.wasimaster.wmkeyboard.core.settings.LatinAccents
+import java.text.Normalizer
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -23,6 +25,26 @@ internal object NativeLetters {
             ?: NativeLetterTable.entries.firstOrNull { it.key.substringBefore('-') == primary }?.value
             ?: ""
         letters.map { it.toString() }.toSet()
+    }
+
+    private val byBaseCache = ConcurrentHashMap<String, Map<Char, List<String>>>()
+
+    /**
+     * [of], grouped by the a-z key each letter is typed from: Portuguese's ã,
+     * á, à and â under a, ç under c. The base is the letter the accent sits
+     * on, or for a letter that does not come apart that way (ß, æ, ı) the
+     * key [LatinAccents] already lists it under. A letter with neither is
+     * left out, since there is no key to hang it on.
+     */
+    fun byBase(localeTag: String): Map<Char, List<String>> = byBaseCache.getOrPut(localeTag) {
+        of(localeTag).mapNotNull { letter -> baseOf(letter)?.let { it to letter } }
+            .groupBy({ it.first }, { it.second })
+    }
+
+    private fun baseOf(letter: String): Char? {
+        val bare = Normalizer.normalize(letter, Normalizer.Form.NFD).firstOrNull()
+        if (bare != null && bare in 'a'..'z') return bare
+        return LatinAccents.entries.firstOrNull { (_, accents) -> letter in accents }?.key
     }
 }
 

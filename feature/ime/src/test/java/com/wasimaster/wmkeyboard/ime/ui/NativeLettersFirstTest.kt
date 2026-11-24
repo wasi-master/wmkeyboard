@@ -69,4 +69,15 @@ class NativeLettersFirstTest {
         // A regional tag the table does not list finds its language by subtag.
         assertEquals(german, NativeLetters.of("de-CH"))
     }
+
+    @Test
+    fun `brazilian portuguese letters are grouped under the key they are typed from`() {
+        val byBase = NativeLetters.byBase("pt-BR")
+        assertEquals(listOf("á", "à", "â", "ã"), byBase['a'])
+        assertEquals(listOf("ç"), byBase['c'])
+        assertEquals(listOf("ó", "ò", "ô", "õ"), byBase['o'])
+        // ß does not come apart, and lands under s by the accent table.
+        assertEquals(listOf("ß"), NativeLetters.byBase("de-DE")['s'])
+        assertEquals(emptyMap<Char, List<String>>(), NativeLetters.byBase("en-US"))
+    }
 }
