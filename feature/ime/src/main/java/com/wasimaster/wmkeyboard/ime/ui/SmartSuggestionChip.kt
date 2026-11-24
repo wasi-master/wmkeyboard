@@ -137,14 +137,26 @@ internal fun SmartSuggestionChip(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Box(
-                modifier = Modifier
-                    .size(22.dp)
-                    .clip(CircleShape)
-                    .background(tint.copy(alpha = 0.22f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(13.dp))
+            val swatch = hit.swatch
+            if (swatch != null) {
+                // A colour chip shows the colour itself where the tool's icon would be.
+                Box(
+                    modifier = Modifier
+                        .size(22.dp)
+                        .clip(CircleShape)
+                        .background(Color(swatch))
+                        .border(1.dp, kb.secondaryText.copy(alpha = 0.4f), CircleShape),
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(22.dp)
+                        .clip(CircleShape)
+                        .background(tint.copy(alpha = 0.22f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(13.dp))
+                }
             }
             if (keyword) {
                 Text(

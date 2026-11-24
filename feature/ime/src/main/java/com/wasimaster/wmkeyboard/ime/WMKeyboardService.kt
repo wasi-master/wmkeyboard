@@ -10735,6 +10735,10 @@ open class WMKeyboardService : InputMethodService() {
         if (musicToolDelegate.isInitialized()) musicTool.onKeyboardShown()
         // And WM Pass, back from its fingerprint prompt, or a fill on its way to the password box.
         if (wmPassToolDelegate.isInitialized()) wmPassTool.onKeyboardShown()
+        // And a colour picked from the screen in WM Chroma, waiting to be typed.
+        if (chromaToolDelegate.isInitialized() || com.wasimaster.wmkeyboard.ime.wmchroma.WmChromaBridge.pickPending(this)) {
+            chromaTool.onKeyboardShown()
+        }
         // And a calendar grant, which may have a Save or a Delete waiting on it.
         if (calendarToolDelegate.isInitialized()) calendarTool.onKeyboardShown()
         // And a Home Assistant sign-in that came back from the browser.
@@ -29568,7 +29572,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var dateFormatStep = 0
 
-    /** The smart chip held: a date chip with several formats shows the next. */
+    /** The smart chip held: a date or colour chip with several formats shows the next. */
     fun onSmartChipHeld() {
         if (_uiState.value.smart?.moreFormats != true) return
         vibrate()
@@ -29655,9 +29659,18 @@ open class WMKeyboardService : InputMethodService() {
             // runs beside the read that fetched the text.
             val ctx = smartContext(_uiState.value)
             val muted = smartMutedAfter
+            val formatStep = dateFormatStep
             val detected = withContext(Dispatchers.Default) {
                 val before = ic.getTextBeforeCursor(smartLookbehind(), 0)?.toString().orEmpty()
-                before to if (before == muted) null else SmartSuggest.detect(before, ctx)
+                val found = if (before == muted) null else SmartSuggest.detect(before, ctx)
+                // A colour code is only recognised here; WM Chroma writes the answer.
+                before to if (found?.kind == SmartSuggest.Kind.COLOUR) {
+                    withContext(Dispatchers.IO) {
+                        com.wasimaster.wmkeyboard.ime.wmchroma.ColourChip.fill(this@WMKeyboardService, found, formatStep)
+                    }
+                } else {
+                    found
+                }
             }
             if (detected.first == smartMutedAfter) {
                 clearSmartChip()
@@ -29684,7 +29697,7 @@ open class WMKeyboardService : InputMethodService() {
                 hit = null
             }
             retireIntentChip(hit)
-            if (hit?.kind != SmartSuggest.Kind.DATE) dateFormatStep = 0
+            if (hit?.kind != SmartSuggest.Kind.DATE && hit?.kind != SmartSuggest.Kind.COLOUR) dateFormatStep = 0
             if (hit != _uiState.value.smart) _uiState.update { it.copy(smart = hit) }
             // Recognised but missing data: fetch it, and the completion
             // redraws the chip. With weather.autoFetch or rateSources.autoFetch
@@ -30036,6 +30049,7 @@ open class WMKeyboardService : InputMethodService() {
 
     private fun smartContext(state: KeyboardUiState): SmartSuggest.Context =
         SmartSuggest.Context(
+            colourChips = state.settings.smartChips.colours && !state.fieldKind.isNumericPad,
             calcEnabled = state.settings.smartCalc,
             currencyEnabled = state.settings.smartCurrency,
             unitsEnabled = state.settings.smartUnits,
@@ -38732,6 +38746,7 @@ open class WMKeyboardService : InputMethodService() {
             PanelMode.MUSIC_ID -> musicTool.onPanelOpen()
             PanelMode.TODO -> todoTool.onPanelOpen()
             PanelMode.WM_PASS -> wmPassTool.onPanelOpen()
+            PanelMode.WM_CHROMA -> chromaTool.onPanelOpen()
             // A "next friday" chip lands on its day; "Add to calendar" on a
             // selection opens the composer filled in.
             PanelMode.CALENDAR -> {
@@ -52818,6 +52833,7 @@ open class WMKeyboardService : InputMethodService() {
             vault = vaultTool.callbacks,
             send = sendTool.callbacks,
             wmPass = wmPassTool.callbacks,
+            chroma = chromaTool.callbacks,
             aiSuggest = com.wasimaster.wmkeyboard.ime.ui.AiSuggestCallbacks(
                 onTap = ::onAiSuggestTapped,
                 onHold = ::onAiSuggestSuppressed,
@@ -53055,6 +53071,20 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
     private val wmPassTool by wmPassToolDelegate
+
+    /** The WM Chroma tool. Built on first use, like [musicTool]. */
+    private val chromaToolDelegate = lazy {
+        com.wasimaster.wmkeyboard.ime.wmchroma.ChromaController(
+            context = this,
+            scope = serviceScope,
+            insertText = ::onToolTextInsert,
+            haptic = { vibrate() },
+            panelOpen = { _uiState.value.panel == PanelMode.WM_CHROMA },
+            closePanel = { if (_uiState.value.panel == PanelMode.WM_CHROMA) onPanelChange(PanelMode.WM_CHROMA) },
+            openToolSettings = { openToolSettings(ToolbarTool.WM_CHROMA) },
+        )
+    }
+    private val chromaTool by chromaToolDelegate
 
     /**
      * A fill typed the username: on to the password box, by the field's own

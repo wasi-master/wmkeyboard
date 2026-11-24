@@ -230,6 +230,10 @@ enum class ToolbarTool {
     SYSTEM_BACK,
     SYSTEM_HOME,
     SYSTEM_RECENTS,
+    // Palettes, recent colours and a pick from the screen from the separate WM
+    // Chroma app, typed into the field. The colours and the colour maths stay in
+    // that app; the keyboard only asks.
+    WM_CHROMA,
 }
 
 /** The tools that press one of Android's own buttons (#1521), each with its button. */
@@ -498,7 +502,7 @@ private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.LANGUAGE,
     ToolbarTool.FLOATING, ToolbarTool.PERSISTENT, ToolbarTool.RESIZE, ToolbarTool.INCOGNITO, ToolbarTool.PRIVACY_SHADE,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.SOUND_HAPTICS,
-    ToolbarTool.EMOJI_MIX, ToolbarTool.MUSIC_ID, ToolbarTool.FILES, ToolbarTool.TIMESTAMP,
+    ToolbarTool.EMOJI_MIX, ToolbarTool.MUSIC_ID, ToolbarTool.FILES, ToolbarTool.WM_CHROMA, ToolbarTool.TIMESTAMP,
     ToolbarTool.QR_SCAN, ToolbarTool.QR_GEN, ToolbarTool.TEXT_REPEAT, ToolbarTool.READ_BACK, ToolbarTool.DOC_SCAN, ToolbarTool.CAMERA,
     ToolbarTool.FLASHLIGHT, ToolbarTool.SCREENSHOT, ToolbarTool.COMPASS, ToolbarTool.LEVEL, ToolbarTool.MOON_PHASE,
     ToolbarTool.SYSTEM_BACK, ToolbarTool.SYSTEM_HOME, ToolbarTool.SYSTEM_RECENTS,

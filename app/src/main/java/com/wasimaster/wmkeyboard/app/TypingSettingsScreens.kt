@@ -2060,6 +2060,7 @@ internal fun TypingSmartChipsSettings(
     val intentsOn = settings.watch { it.smartChips.intents }
     val gifsOn = settings.watch { it.smartChips.gifs }
     val numbersOn = settings.watch { it.smartChips.numbers }
+    val coloursOn = settings.watch { it.smartChips.colours }
     val repeatsOn = settings.watch { it.smartChips.repeats }
     val contactsOn = settings.watch { it.smartChips.contacts }
     // The keyboard gates on the usable set, so the banners ask the same one.
@@ -2190,6 +2191,15 @@ internal fun TypingSmartChipsSettings(
                 ) { scope.launch { repository.setSmartChipNumbers(it) } }
             }
             chipToolsOffItem(SmartSuggest.Family.NUMBERS, numbersOn, usable, repository)
+            item(level = SettingLevel.ADVANCED) {
+                ToggleSetting(
+                    R.string.typing_smart_colours_title,
+                    stringResource(R.string.typing_smart_colours_subtitle),
+                    coloursOn,
+                    info = stringResource(R.string.typing_smart_colours_info),
+                    default = SettingsDefaults.smartChips.colours,
+                ) { scope.launch { repository.setSmartChipColours(it) } }
+            }
             item(visible = numbersOn, level = SettingLevel.ADVANCED) {
                 ChoiceSetting(
                     R.string.typing_smart_number_grouping_title,

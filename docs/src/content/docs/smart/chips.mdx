@@ -73,6 +73,14 @@ A number typed in Bangla digits comes back in Bangla digits, and a decimal point
 
 This chip is deliberately hard to trigger, since most long digit runs are not amounts. See [Why a chip stays quiet](#why-a-chip-stays-quiet) for the rules.
 
+## Colour codes
+
+With [WM Chroma](/tools/wm-chroma/) installed, a colour code typed at the end of your text gets a chip of its own: a hex code with its `#` (`#3b82f6`, `#fff`, `#3b82f6cc`) or a CSS colour such as `rgb(59 130 246)`, `hsl(…)` or `oklch(…)`. The chip shows the colour as a swatch, its name, and the same colour written another way. Tap it and that version replaces the code you typed. Press and hold it to step through the other formats.
+
+The keyboard only spots the code. WM Chroma reads it, names it and writes the other formats, using the formats and the name list chosen in its own settings, so the chip offers what WM Chroma's colour sheet shows. The gear opens the [WM Chroma tool](/tools/wm-chroma/).
+
+Hex made only of letters reads as a hashtag, not a colour: `#bad`, `#cafe` and `#facade` get no chip. Letters that repeat the way colours do, such as `#fff` or `#aabbcc`, still count. Without WM Chroma, or with its **Work with WM Keyboard** switch off, the chip never shows.
+
 ## Keyword chips open a tool
 
 Type a tool's keyword on its own (`wiki`, `calc`, and so on) and a narrower chip offers to open that tool, dropping the word you typed. The text-editing tool is the one exception: `edit` stays in the field, since that tool works on the text that's already there. This chip stays narrow instead of filling the strip, because the word you're typing might be meant as that word, and word candidates keep the rest of the row.
@@ -209,7 +217,7 @@ Each detector has guards against the shapes of text that look like a trigger but
   <Shot id="smart/options" alt="Smart chips settings under Typing: master switch and the four per-family toggles." />
 </PhoneFrame>
 
-- **Smart chips**: the master switch, default **on**. Turn it off and all twelve chip families below go at once.
+- **Smart chips**: the master switch, default **on**. Turn it off and all thirteen chip families below go at once.
 - **Calculate as you type**: default **on**.
 - **Convert currencies**: default **on**.
 - **Convert units**: default **on**.
@@ -221,6 +229,7 @@ Each detector has guards against the shapes of text that look like a trigger but
 - **GIFs for celebrations**: default **on**.
 - **Group long numbers**: default **on**.
 - **Grouping style**: **Automatic**, **Thousands** or **Lakh and crore**, default **Automatic**, which follows the language you're typing in.
+- **Convert colour codes**: default **on**. Needs WM Chroma. See [Colour codes](#colour-codes).
 - **Call or text a contact**: default **off**. Needs the contacts permission. See [Calling or texting a contact](#calling-or-texting-a-contact).
 - **Open an app by name**: default **off**. See [Opening an app by name](#opening-an-app-by-name).
 - **Message with**: default **Messages (SMS)**. Only shown while Call or text a contact is on. Messages (SMS), WhatsApp, Telegram, Signal or Ask every time.

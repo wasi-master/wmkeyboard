@@ -67,6 +67,7 @@ import com.wasimaster.wmkeyboard.core.tools.TextRepeat
 import com.wasimaster.wmkeyboard.core.tools.CurrencyLabel
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Download
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lock
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Settings
@@ -3974,6 +3975,28 @@ internal fun ToolDetailSettings(
                             stringResource(R.string.tooldetail_wmpass_get_subtitle),
                             icon = Icons.Outlined.Download,
                         ) { com.wasimaster.wmkeyboard.ime.wmpass.WmPassBridge.openStore(context) }
+                    }
+                }
+            }
+        }
+        ToolbarTool.WM_CHROMA -> {
+            // The palettes and the link's switch are WM Chroma's; here is only the way there.
+            val context = LocalContext.current
+            val installed = remember { com.wasimaster.wmkeyboard.ime.wmchroma.WmChromaBridge.installed(context) }
+            SettingsGroup {
+                item {
+                    if (installed) {
+                        NavRow(
+                            R.string.tooldetail_wmchroma_open_title,
+                            stringResource(R.string.tooldetail_wmchroma_open_subtitle),
+                            icon = Icons.Outlined.OpenInNew,
+                        ) { com.wasimaster.wmkeyboard.ime.wmchroma.WmChromaBridge.open(context) }
+                    } else {
+                        NavRow(
+                            R.string.tooldetail_wmchroma_get_title,
+                            stringResource(R.string.tooldetail_wmchroma_get_subtitle),
+                            icon = Icons.Outlined.Download,
+                        ) { com.wasimaster.wmkeyboard.ime.wmchroma.WmChromaBridge.openStore(context) }
                     }
                 }
             }

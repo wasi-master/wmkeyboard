@@ -10091,6 +10091,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.NOTES -> R.string.ime_tool_notes
     ToolbarTool.TODO -> R.string.ime_tool_todo
     ToolbarTool.WM_PASS -> R.string.ime_tool_wm_pass
+    ToolbarTool.WM_CHROMA -> R.string.ime_tool_wm_chroma
     ToolbarTool.LOCATION -> R.string.ime_tool_location
     ToolbarTool.CLOCK -> R.string.ime_tool_clock
     ToolbarTool.MUSIC_ID -> R.string.ime_tool_music_id
@@ -10204,6 +10205,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.NOTES -> state.panel == PanelMode.NOTES || state.panel == PanelMode.NOTES_VAULT
     ToolbarTool.TODO -> state.panel == PanelMode.TODO
     ToolbarTool.WM_PASS -> state.panel == PanelMode.WM_PASS
+    ToolbarTool.WM_CHROMA -> state.panel == PanelMode.WM_CHROMA
     ToolbarTool.QUICK_NOTE -> state.panel == PanelMode.NOTES && state.notes.quick
     ToolbarTool.LOCATION -> state.panel == PanelMode.LOCATION
     ToolbarTool.CLOCK -> state.panel == PanelMode.CLOCK
@@ -15782,7 +15784,7 @@ private val FullBleedPanels = setOf(
     PanelMode.AI_REPLY, PanelMode.LOCATION, PanelMode.CLOCK, PanelMode.TODO, PanelMode.WM_PASS,
     PanelMode.GALLERY, PanelMode.HOME_ASSISTANT, PanelMode.MUSIC_ID,
     PanelMode.GALLERY, PanelMode.SEND_FILES, PanelMode.SHARE, PanelMode.FILES,
-    PanelMode.SPEED_TEST, PanelMode.NOTES_VAULT,
+    PanelMode.SPEED_TEST, PanelMode.NOTES_VAULT, PanelMode.WM_CHROMA,
 )
 
 /**
@@ -17193,6 +17195,11 @@ private fun KeyboardBody(
                     state = state,
                     callbacks = toolHold.wmPass,
                     onClose = { onPanelChange(PanelMode.WM_PASS) },
+                )
+                PanelMode.WM_CHROMA -> com.wasimaster.wmkeyboard.ime.ui.wmchroma.ChromaPanel(
+                    state = state,
+                    callbacks = toolHold.chroma,
+                    onClose = { onPanelChange(PanelMode.WM_CHROMA) },
                 )
                 PanelMode.HOME_ASSISTANT -> com.wasimaster.wmkeyboard.ime.ui.homeassistant.HaPanel(
                     state = state,
@@ -36421,6 +36428,8 @@ data class ToolHoldCallbacks(
     val send: com.wasimaster.wmkeyboard.ime.send.SendCallbacks = com.wasimaster.wmkeyboard.ime.send.SendCallbacks(),
     /** The WM Pass tool (#1077); its state is the controller's, like [send]. */
     val wmPass: com.wasimaster.wmkeyboard.ime.wmpass.WmPassCallbacks = com.wasimaster.wmkeyboard.ime.wmpass.WmPassCallbacks(),
+    /** The WM Chroma panel; its state is the controller's, like [music]. */
+    val chroma: com.wasimaster.wmkeyboard.ime.wmchroma.ChromaCallbacks = com.wasimaster.wmkeyboard.ime.wmchroma.ChromaCallbacks(),
     /** The strip's AI continuation chip (#944); here for the same reason as [dictionaryBar]. */
     val aiSuggest: AiSuggestCallbacks = AiSuggestCallbacks(),
     val gallery: com.wasimaster.wmkeyboard.ime.gallery.GalleryCallbacks = com.wasimaster.wmkeyboard.ime.gallery.GalleryCallbacks(),

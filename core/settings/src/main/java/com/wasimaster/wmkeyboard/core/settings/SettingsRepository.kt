@@ -6706,6 +6706,8 @@ data class SmartChipSettings(
     val gifs: Boolean = true,
     /** "1234567" → the same digits grouped, "1,234,567". */
     val numbers: Boolean = true,
+    /** "#3b82f6" → its name and the same colour in another format, asked of WM Chroma. Silent without it. */
+    val colours: Boolean = true,
     /** Which grouping the number chip offers; Auto follows the typed language. */
     val numberGrouping: NumberGrouping = NumberGrouping.AUTO,
     /**
@@ -14684,6 +14686,7 @@ class SettingsRepository(private val context: Context) {
         private val SMART_CHIP_INTENTS = booleanPreferencesKey("smart_chip_intents")
         private val SMART_CHIP_GIFS = booleanPreferencesKey("smart_chip_gifs")
         private val SMART_CHIP_NUMBERS = booleanPreferencesKey("smart_chip_numbers")
+        private val SMART_CHIP_COLOURS = booleanPreferencesKey("smart_chip_colours")
         private val SMART_CHIP_NUMBER_GROUPING = stringPreferencesKey("smart_chip_number_grouping")
         private val SMART_CHIP_CONTACTS = booleanPreferencesKey("smart_chip_contacts")
         private val SMART_CHIP_APPS = booleanPreferencesKey("smart_chip_apps")
@@ -17567,6 +17570,7 @@ class SettingsRepository(private val context: Context) {
             intents = p[SMART_CHIP_INTENTS] ?: defaults.smartChips.intents,
             gifs = p[SMART_CHIP_GIFS] ?: defaults.smartChips.gifs,
             numbers = p[SMART_CHIP_NUMBERS] ?: defaults.smartChips.numbers,
+            colours = p[SMART_CHIP_COLOURS] ?: defaults.smartChips.colours,
             numberGrouping = p[SMART_CHIP_NUMBER_GROUPING]
                 ?.let { runCatching { NumberGrouping.valueOf(it) }.getOrNull() }
                 ?: defaults.smartChips.numberGrouping,
@@ -28177,6 +28181,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSmartChipNumbers(value: Boolean) =
         editPrefs { it[SMART_CHIP_NUMBERS] = value }
+
+    suspend fun setSmartChipColours(value: Boolean) =
+        editPrefs { it[SMART_CHIP_COLOURS] = value }
 
     suspend fun setSmartChipContacts(value: Boolean) =
         editPrefs { it[SMART_CHIP_CONTACTS] = value }

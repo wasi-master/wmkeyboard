@@ -1597,6 +1597,10 @@
     <!-- The WM Pass tool's page while WM Pass is not on the phone. -->
     <string name="tooldetail_wmpass_get_title">Get WM Pass</string>
     <string name="tooldetail_wmpass_get_subtitle">This tool is built on WM Pass, a separate password manager, which is not installed. Opens its page on Google Play</string>
+    <string name="tooldetail_wmchroma_open_title">Open WM Chroma</string>
+    <string name="tooldetail_wmchroma_open_subtitle">The palettes, recent colours and screen picks come from WM Chroma. Its Work with WM Keyboard switch, under Settings, System, turns the link on and off</string>
+    <string name="tooldetail_wmchroma_get_title">Get WM Chroma</string>
+    <string name="tooldetail_wmchroma_get_subtitle">This tool is built on WM Chroma, a separate colour picker, which is not installed</string>
 
     <!-- Tools / Privacy shade (#1242): a cover over the app above the keyboard. -->
     <string name="tooldetail_privacy_shade_group">Privacy shade</string>

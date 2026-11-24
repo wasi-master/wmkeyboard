@@ -260,6 +260,7 @@
     <string name="search_kw_typing_space_swipe_up">touchpad trackpad numpad number pad action tool gesture</string>
     <string name="search_kw_typing_space_swipe_slot">gesture action tool shortcut text editing cursor language</string>
     <string name="search_kw_typing_smart_repeats">repeating spam duplicate again hahaha</string>
+    <string name="search_kw_typing_smart_colours">color hex rgb hsl css chroma palette</string>
     <string name="search_kw_typing_smart_numbers">thousands separator comma</string>
     <string name="search_kw_typing_smart_replies">canned responses</string>
     <string name="search_kw_typing_typed_numbers">phone recent history</string>

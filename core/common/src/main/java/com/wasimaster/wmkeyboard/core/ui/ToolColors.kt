@@ -86,6 +86,8 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     // A ticked-box green, apart from the notes' yellow beside it.
     ToolbarTool.TODO -> Color(0xFF43A047)
     ToolbarTool.WM_PASS -> Color(0xFF0D9488)
+    // WM Chroma's own terracotta.
+    ToolbarTool.WM_CHROMA -> Color(0xFFC4532F)
     ToolbarTool.MEDIA_CONTROL -> Color(0xFFAB47BC)
     // KDE's own blue.
     ToolbarTool.KDE_CONNECT -> Color(0xFF1D99F3)

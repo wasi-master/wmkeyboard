@@ -1,0 +1,37 @@
+---
+title: "WM Chroma"
+description: "WM Chroma, the colour picker from the same author, linked to the keyboard: type a colour from its palettes, pick one from the screen and have it typed, and get a chip that writes a typed colour code another way."
+sidebar:
+  order: 17.97
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+WM Chroma is a colour picker from the same author. The keyboard works without it. With it installed, the **WM Chroma** tool types colours from it, and a [smart chip](/smart/chips/#colour-codes) rewrites a colour code you type. Every call to WM Chroma checks its signing certificate, so an app that only borrows the name is refused. The palettes, the colour maths and the names stay in WM Chroma; the keyboard asks for what it shows and keeps nothing.
+
+WM Chroma decides whether the keyboard may ask at all. Its **Work with WM Keyboard** switch, under Settings, System in WM Chroma, is on from the start. Turn it off and the tool says so, and the chip stops.
+
+## The tool
+
+Open **WM Chroma** from the toolbar or the toolbox. The panel lists, as rows of swatches:
+
+- **Recent**: the last colours picked or edited in WM Chroma, newest first.
+- **Tray**: the colours on WM Chroma's tray.
+- Each saved palette, pinned ones first, in WM Chroma's own order.
+
+Tap a swatch to type it in WM Chroma's copy format, the one a tap on a swatch copies there (hex unless you changed it). Press and hold a swatch to see it in every format WM Chroma's colour sheet shows, and tap one to type that instead.
+
+The panel reads WM Chroma each time it opens, so a palette saved there a moment ago is already in the list.
+
+## Picking from the screen
+
+**Pick from screen** in the panel's header opens WM Chroma's screen picker over the app you are typing in.
+
+- On Android 17 and later, that is Android's own eyedropper. Pick a point and you are back in the app, with the colour typed.
+- On older Android versions, WM Chroma takes a picture of the screen and opens it. Tap the picture to drop a pin, then tap the pin's colour in the strip below. WM Chroma steps aside and the colour is typed when the keyboard comes back.
+
+A pick waits ten minutes for the keyboard to collect it. Leave without picking and nothing is typed. The colour also goes into WM Chroma's history, as any screen pick does.
+
+## Without WM Chroma
+
+Without WM Chroma installed, the panel says so and offers to get it, and <SettingsPath path="Tools / WM Chroma" /> holds only that link. The colour chip never shows.

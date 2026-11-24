@@ -563,6 +563,9 @@
     <string name="typing_smart_repeat_after_info">How many times in a row you type the same thing before the strip offers the Text repeat tool as a chip.</string>
     <string name="typing_smart_numbers_title">Group long numbers</string>
     <string name="typing_smart_numbers_subtitle">Type 1234567 and the strip offers it grouped. One press types the grouped number</string>
+    <string name="typing_smart_colours_title">Convert colour codes</string>
+    <string name="typing_smart_colours_subtitle">Type #3b82f6 and the strip offers it in another format, named. Needs WM Chroma</string>
+    <string name="typing_smart_colours_info">A hex code with a #, or a CSS colour such as rgb() or oklch(), typed at the end of what you wrote, is sent to WM Chroma, which names it and writes it in the formats you chose there. A tap types the first one in place of the code, and a press and hold shows the next. Hex made only of letters, like #bad or #cafe, is read as a hashtag. Nothing happens without WM Chroma installed and its Work with WM Keyboard switch on.</string>
     <string name="typing_smart_numbers_info">A number of five digits or more, typed on its own, is offered back with separators. Numbers that start with a zero are left alone, and so is anything joined to a letter, a dash or a slash, because those are phone numbers, dates and codes rather than amounts.</string>
     <string name="typing_smart_number_grouping_title">Grouping style</string>
     <string name="typing_smart_number_grouping_subtitle">Where the separators fall</string>

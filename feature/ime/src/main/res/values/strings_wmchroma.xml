@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The WM Chroma tool and its colour chip. WM Chroma is the separate colour picker app. -->
+    <string name="ime_tool_wm_chroma">WM Chroma</string>
+    <string name="ime_wmchroma_pick">Pick from screen</string>
+    <string name="ime_wmchroma_open">Open WM Chroma</string>
+    <string name="ime_wmchroma_get">Get WM Chroma</string>
+    <string name="ime_wmchroma_retry">Try again</string>
+    <string name="ime_wmchroma_settings_desc">WM Chroma tool settings</string>
+    <string name="ime_wmchroma_recent">Recent</string>
+    <string name="ime_wmchroma_tray">Tray</string>
+    <string name="ime_wmchroma_close_formats">Done</string>
+    <string name="ime_wmchroma_missing_title">WM Chroma isn\'t installed</string>
+    <string name="ime_wmchroma_missing_body">This tool shows the palettes and colours you keep in WM Chroma, a separate colour picker.</string>
+    <string name="ime_wmchroma_off_title">Turned off in WM Chroma</string>
+    <string name="ime_wmchroma_off_body">Turn on Work with WM Keyboard in WM Chroma, under Settings, System.</string>
+    <string name="ime_wmchroma_failed_title">WM Chroma didn\'t answer</string>
+    <string name="ime_wmchroma_failed_body">Open WM Chroma once, then try again.</string>
+    <string name="ime_wmchroma_empty_title">No colours yet</string>
+    <string name="ime_wmchroma_empty_body">Pick one from the screen, or save a palette in WM Chroma.</string>
+    <string name="ime_wmchroma_not_released">WM Chroma isn\'t out yet. This tool starts working once it is released and installed.</string>
+</resources>

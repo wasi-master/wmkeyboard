@@ -111,8 +111,10 @@ object SmartSuggest {
      * the word candidates. [CONTACT] (a saved contact's name) is narrow too,
      * with a call face and a message button, and so is [REPEAT] (the same
      * text typed several times over), which opens the Text repeat tool.
+     * [COLOUR] is an answer too: a colour code written in another format by
+     * WM Chroma, which the keyboard asks once the code is recognised here.
      */
-    enum class Kind { CALC, CURRENCY, UNIT, NUMBER, DATE, WEATHER, TOOL, LOOKUP, INTENT, VOCAB, CONTACT, REPEAT, SEND_LINK, SEARCH, APP }
+    enum class Kind { CALC, CURRENCY, UNIT, NUMBER, DATE, WEATHER, TOOL, LOOKUP, INTENT, VOCAB, CONTACT, REPEAT, SEND_LINK, SEARCH, APP, COLOUR }
 
     /** The kinds that only claim the space their label needs. */
     val narrowKinds: Set<Kind> =
@@ -220,10 +222,14 @@ object SmartSuggest {
         val tiers: List<ChipTier> = emptyList(),
         /** A date chip with more than one of the user's formats: a hold shows the next (#1089). */
         val moreFormats: Boolean = false,
+        /** A colour chip's colour, as ARGB, drawn where the tool's icon would be. */
+        val swatch: Int? = null,
     )
 
     /** Everything [detect] needs from settings and live tool state. */
     data class Context(
+        /** `#3b82f6`, `rgb(…)` and the other CSS colours → the same colour in another format (WM Chroma). */
+        val colourChips: Boolean = false,
         val calcEnabled: Boolean = true,
         val currencyEnabled: Boolean = true,
         val unitsEnabled: Boolean = true,
@@ -381,6 +387,34 @@ object SmartSuggest {
      * a bare number is tried after all three because a number that means
      * something is worth more than a number that is merely long.
      */
+    /**
+     * A colour code just typed: `#` and 3, 4, 6 or 8 hex digits, or a CSS colour function.
+     * Unanswered here: [SmartHit.result] stays null until the keyboard has asked WM Chroma.
+     *
+     * A hashtag is not a colour, so hex made only of letters counts only when it repeats like
+     * one (`#fff`, `#aabbcc`): `#bad`, `#cafe` and `#facade` stay words.
+     */
+    internal fun detectColour(tail: String): SmartHit? {
+        val code = (COLOUR_HEX.find(tail) ?: COLOUR_FUNCTION.find(tail))?.groupValues?.get(1) ?: return null
+        if (code.startsWith("#") && !hexLooksLikeColour(code.substring(1))) return null
+        return SmartHit(
+            kind = Kind.COLOUR, query = code, result = null, insert = null, replaceSpan = code.length,
+            tool = ToolbarTool.WM_CHROMA, prefill = null,
+        )
+    }
+
+    internal fun hexLooksLikeColour(hex: String): Boolean {
+        val h = hex.lowercase()
+        return h.any { it.isDigit() } || h.toSet().size == 1 ||
+            (h.length % 2 == 0 && h.chunked(2).all { it[0] == it[1] })
+    }
+
+    private val COLOUR_HEX = Regex("""(?:^|[\s(:,;="'`])(#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4}))$""")
+    private val COLOUR_FUNCTION = Regex(
+        """(?:^|[\s(:,;="'`])((?:rgba?|hsla?|hwb|oklch|oklab|lab|lch|color)\([^()\n]{1,80}\))$""",
+        RegexOption.IGNORE_CASE,
+    )
+
     fun detect(text: String, ctx: Context): SmartHit? {
         if (text.isEmpty()) return null
         // A share link is recognised anywhere in the window, not only at its tail.
@@ -389,6 +423,8 @@ object SmartSuggest {
         if (ctx.searchTriggers.isNotEmpty()) detectSearch(text, ctx)?.let { return it }
         if (ctx.pluginKeywords.isNotEmpty()) detectPluginKeyword(text, ctx)?.let { return it }
         val tail = text.takeLast(LOOKBEHIND)
+        // A colour code says what it is: nothing below reads "#3b82f6" or "rgb(…)" as anything else.
+        if (ctx.colourChips) detectColour(tail)?.let { return it }
         // Ahead of currency and units: "5 ft + 30 cm" ends in "30 cm", which
         // the unit chip would answer alone, and the sum is what was meant.
         if (ctx.calcEnabled && ctx.numbat != null) detectNumbat(tail, ctx, ctx.numbat, text)?.let { return it }
@@ -2273,6 +2309,7 @@ object SmartSuggest {
         ToolbarTool.FIND_REPLACE to listOf("replace", "查找替换", "尋找取代", "検索置換", "찾기바꾸기"),
         ToolbarTool.NOTES to listOf("note", "notes", "笔记", "筆記", "备忘录", "備忘錄", "メモ", "ノート", "메모"),
         ToolbarTool.WM_PASS to listOf("wm pass", "wmpass", "vault", "password manager"),
+        ToolbarTool.WM_CHROMA to listOf("wm chroma", "wmchroma", "colour picker", "color picker", "palette"),
         ToolbarTool.TODO to listOf("todo", "todos", "tasks", "待办", "待辦", "待办事项", "待辦事項", "やること", "할일"),
         ToolbarTool.TRACKPAD to listOf("trackpad", "触控板", "觸控板", "トラックパッド", "트랙패드"),
         // Not "send" alone: it is the commonest verb in a chat. The compound forms are meant.

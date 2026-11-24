@@ -224,6 +224,7 @@ object IconDefaults {
         ToolbarTool.NOTES -> Icons.AutoMirrored.Outlined.StickyNote2
         ToolbarTool.TODO -> Icons.Outlined.Checklist
         ToolbarTool.WM_PASS -> Icons.Outlined.Key
+        ToolbarTool.WM_CHROMA -> Icons.Outlined.Palette
         ToolbarTool.LOCATION -> Icons.Outlined.LocationOn
         ToolbarTool.CLOCK -> Icons.Outlined.Schedule
         ToolbarTool.HOME_ASSISTANT -> Icons.Outlined.HomeIotDevice

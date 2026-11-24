@@ -877,6 +877,9 @@ enum class PanelMode {
     TODO,
     WM_PASS,
 
+    /** The WM Chroma tool: palettes from the WM Chroma app. Its state is `ime.wmchroma.ChromaController`'s. */
+    WM_CHROMA,
+
     /**
      * The Home Assistant tool: the house's entities as tiles, live from the
      * server, and a typed Assist bar. Its state is the controller's, see
@@ -1125,6 +1128,8 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     // The task rows; the header's chips are touch, and typing reaches the box.
     PanelMode.TODO -> listOf(FocusRegion.RESULTS)
     PanelMode.WM_PASS -> listOf(FocusRegion.RESULTS)
+    // Swatches are touch only.
+    PanelMode.WM_CHROMA -> emptyList()
     // The room tabs, the tiles, then the open tile's controls.
     PanelMode.HOME_ASSISTANT -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     // The album and filter chips, the grid, then the send bar.

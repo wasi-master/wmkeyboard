@@ -295,6 +295,9 @@
         <!-- WM Calendar, which the Calendar tool can read and add to. Its certificate is checked. -->
         <package android:name="com.wasimaster.wmcalendar" />
         <provider android:authorities="com.wasimaster.wmcalendar.keyboard" />
+        <!-- WM Chroma, the colour picker the WM Chroma tool and the colour chip ask. Its certificate is checked. -->
+        <package android:name="com.wasimaster.wmchroma" />
+        <provider android:authorities="com.wasimaster.wmchroma.keyboard" />
         <!-- AnkiDroid, its provider and its note editor, for the Look up card's
              Add to Anki (#765). -->
         <package android:name="com.ichi2.anki" />
