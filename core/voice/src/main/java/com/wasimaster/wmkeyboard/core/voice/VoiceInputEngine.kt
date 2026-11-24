@@ -89,6 +89,17 @@ class VoiceInputEngine(private val context: Context) {
     private val deaf = mutableSetOf<Pair<VoiceRoute, String>>()
 
     /**
+     * Language tag asked for → the tag the on-device recognizer has that
+     * language installed under, when the two differ only in region: Spanish
+     * is asked for as es-ES, and a phone in Latin America has es-US. Learned
+     * by [checkOnDeviceModel], which already counts such a model as
+     * installed; without this the on-device recognizer was then asked for a
+     * region it did not have, and offline dictation failed in a language
+     * whose model was on the phone. Only the on-device route uses it.
+     */
+    private val onDeviceTags = mutableMapOf<String, String>()
+
+    /**
      * The recognizer's own number for the error the listener was last told of
      * (`SpeechRecognizer.ERROR_*`), and 0 when there was none. [ErrorKind.OTHER]
      * covers a dozen different failures; the number is what tells them apart
@@ -438,11 +449,14 @@ class VoiceInputEngine(private val context: Context) {
 
             override fun onEvent(eventType: Int, params: Bundle?) {}
         })
+        // The on-device recognizer is asked for the region it has the
+        // language installed under; every other route gets the tag as asked.
+        val tag = if (onDevice) onDeviceTags[ask.languageTag] ?: ask.languageTag else ask.languageTag
         session.startListening(
             if (ask.bare) {
-                bareRecognizerIntent(ask.languageTag)
+                bareRecognizerIntent(tag)
             } else {
-                recognizerIntent(ask.languageTag, ask.formatting, ask.bias, ask.alsoListenFor, ask.maskOffensive, ask.segmented)
+                recognizerIntent(tag, ask.formatting, ask.bias, ask.alsoListenFor, ask.maskOffensive, ask.segmented)
             },
         )
     }
@@ -562,6 +576,18 @@ class VoiceInputEngine(private val context: Context) {
             object : RecognitionSupportCallback {
                 override fun onSupportResult(recognitionSupport: RecognitionSupport) {
                     checker.destroy()
+                    // Installed under another region only: ask for that
+                    // region from now on, and give the on-device recognizer
+                    // back a language it was written off for after being
+                    // asked for the region it did not have.
+                    val installed = recognitionSupport.installedOnDeviceLanguages.matchTag(languageTag)
+                    if (installed != null && !installed.equals(languageTag, ignoreCase = true)) {
+                        if (onDeviceTags.put(languageTag, installed) != installed) {
+                            deaf -= VoiceRoute.OnDevice to languageTag
+                        }
+                    } else {
+                        onDeviceTags -= languageTag
+                    }
                     onResult(
                         when {
                             recognitionSupport.installedOnDeviceLanguages
@@ -631,12 +657,17 @@ class VoiceInputEngine(private val context: Context) {
     }
 
     /** Locale-tag membership, tolerating region differences (bn ~ bn-BD). */
-    private fun List<String>.containsTag(tag: String): Boolean {
+    private fun List<String>.containsTag(tag: String): Boolean = matchTag(tag) != null
+
+    /**
+     * The listed tag for [tag]'s language: [tag] itself when it is listed,
+     * else the first one of the same language in another region (es-US for
+     * es-ES), else null.
+     */
+    private fun List<String>.matchTag(tag: String): String? {
+        firstOrNull { it.equals(tag, ignoreCase = true) }?.let { return it }
         val language = tag.substringBefore('-')
-        return any {
-            it.equals(tag, ignoreCase = true) ||
-                it.substringBefore('-').equals(language, ignoreCase = true)
-        }
+        return firstOrNull { it.substringBefore('-').equals(language, ignoreCase = true) }
     }
 
     /** Stop capturing and let the recognizer deliver its final result. */
