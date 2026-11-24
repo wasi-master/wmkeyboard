@@ -166,6 +166,8 @@
     <!-- Handwriting on the keys, from the keyboard service. -->
     <string name="ime_service_handwriting_need_model_toast">Download a handwriting model to write on the keyboard. The download is in Settings, under Handwriting.</string>
     <string name="ime_service_handwriting_download_error">The download did not work. Check your connection and try again.</string>
+    <!-- The model is on the phone, but the recogniser failed to read the ink (it did not start, or a library would not load). -->
+    <string name="ime_service_handwriting_recognize_error">The handwriting recogniser did not start on this phone. Try again.</string>
 
     <!-- Toolbar switches: what the keyboard says after a tap. -->
     <string name="ime_service_incognito_field_toast">This field is always incognito</string>

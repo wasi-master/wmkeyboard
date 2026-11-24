@@ -160,6 +160,7 @@ Whatever the Recognition pause slider is set to, handwriting in these languages 
 
 - **Palm rejection** happens automatically and isn't a setting: once the canvas sees a stylus point, it ignores finger touches for 800 ms afterward.
 - There's no hover preview, no air-gesture support, and no S Pen side-button handling. The stylus-specific behaviors are palm rejection and the **Stylus** full-screen mode.
+- If the recogniser fails to read your ink while its model is on the phone, the panel says so and shows **Retry** in place of the canvas. A failed reading no longer leaves the canvas taking strokes that never turn into text.
 - Switching between the panel and full screen throws away ink that hasn't been recognised yet: it was drawn on the other canvas, at another size.
 - Auto-capitalization at the start of a sentence applies when you're writing in American English through ML Kit, or in a Latin, Cyrillic or Greek script through PaddleOCR, with Auto-capitalize on, and never in a password or other secure field. Bangla and other languages without letter case are skipped entirely.
 - ML Kit's recognizer only sees the last 20 characters of text before your cursor as context (a limit set by ML Kit itself, not WM Keyboard). PaddleOCR's reader sees the word just before the cursor, for its dictionary step. zinnia sees none.

@@ -42748,9 +42748,16 @@ open class WMKeyboardService : InputMethodService() {
             ) {
                 if (!hwModelHintShown) {
                     hwModelHintShown = true
+                    // A recogniser that failed with its model on the phone
+                    // needs no download: say what did happen.
+                    val recognizeError = getString(R.string.ime_service_handwriting_recognize_error)
                     Toast.makeText(
                         this,
-                        getString(R.string.ime_service_handwriting_need_model_toast),
+                        if (state.handwriting.errorMessage == recognizeError) {
+                            recognizeError
+                        } else {
+                            getString(R.string.ime_service_handwriting_need_model_toast)
+                        },
                         Toast.LENGTH_LONG,
                     ).show()
                 }
@@ -43018,9 +43025,30 @@ open class WMKeyboardService : InputMethodService() {
 
         val candidates = result.getOrNull()
         if (candidates == null) {
-            // Model gone mid-session (deleted from settings) or ML Kit
-            // failure: re-check instead of silently eating ink forever.
-            refreshHandwritingStatus()
+            // Model gone mid-session (deleted from settings): re-check, which
+            // offers the download again. With the model still here the
+            // recogniser itself failed (a library that would not load, as with
+            // a firmware copy of libdigitalink.so, #1531); a re-check would
+            // report READY and every stroke after it would vanish the same
+            // way, so say so and offer a retry instead.
+            if (HandwritingModels.isDownloaded(tag)) {
+                DebugLog.w("ime", "handwriting recognition failed for $tag: ${result.exceptionOrNull()}")
+                hwRecognizer.close()
+                hwStylusInk = false
+                _uiState.update {
+                    if (it.handwriting.languageTag != tag) return@update it
+                    it.copy(
+                        handwriting = it.handwriting.copy(
+                            status = HandwritingStatus.ERROR,
+                            strokes = emptyList(),
+                            recognizing = false,
+                            errorMessage = getString(R.string.ime_service_handwriting_recognize_error),
+                        ),
+                    )
+                }
+            } else {
+                refreshHandwritingStatus()
+            }
             return
         }
         if (candidates.isEmpty()) {
