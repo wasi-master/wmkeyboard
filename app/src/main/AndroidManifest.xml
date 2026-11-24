@@ -292,6 +292,9 @@
         <!-- WM Translate, which the translate list's WM Translate row asks. Its certificate is checked. -->
         <package android:name="com.wasimaster.wmtranslate" />
         <provider android:authorities="com.wasimaster.wmtranslate.keyboard" />
+        <!-- WM Calendar, which the Calendar tool can read and add to. Its certificate is checked. -->
+        <package android:name="com.wasimaster.wmcalendar" />
+        <provider android:authorities="com.wasimaster.wmcalendar.keyboard" />
         <!-- AnkiDroid, its provider and its note editor, for the Look up card's
              Add to Anki (#765). -->
         <package android:name="com.ichi2.anki" />
@@ -1684,6 +1687,14 @@
              the way it reads a pick from Android's picker. Not exported, and it
              grants nothing: only this process can reach it. LocalFilesProvider
              says why, and src/play removes it. -->
+        <!-- WM Calendar's way in: call("ai_config") only, from the real WM Calendar (its certificate
+             is checked on every call), and the AI setup only once the person shares it in the
+             Calendar tool's settings. -->
+        <provider
+            android:name="com.wasimaster.wmkeyboard.ime.wmcalendar.CalendarBridgeProvider"
+            android:authorities="${applicationId}.calendar"
+            android:exported="true" />
+
         <!-- WM Translate's way in: call() only, from the real WM Translate (its certificate is
              checked on every call), and the translate setup only once the person shares it in
              the Translate tool's settings. -->

@@ -31,4 +31,6 @@
     <exclude domain="file" path="learning/glide_shapes.bin.part" />
     <!-- Whether WM Translate may read the translate setup, keys included: this phone's choice. -->
     <exclude domain="sharedpref" path="wm_translate_link.xml" />
+    <!-- Whether WM Calendar may read the AI setup, keys included, and which calendar the tool uses: this phone's choice. -->
+    <exclude domain="sharedpref" path="wm_calendar_link.xml" />
 </full-backup-content>

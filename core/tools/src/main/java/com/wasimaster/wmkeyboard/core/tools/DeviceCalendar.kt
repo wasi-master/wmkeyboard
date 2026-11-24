@@ -161,24 +161,7 @@ object DeviceCalendar {
         val from = first.timeInMillis
         val days = first.getActualMaximum(Calendar.DAY_OF_MONTH)
         val until = (first.clone() as Calendar).apply { add(Calendar.MONTH, 1) }.timeInMillis
-        val out = HashSet<Int>()
-        for (e in eventsBetween(context, from, until)) {
-            val begin = if (e.allDay) localMidnightOf(e.begin) else e.begin
-            // An end is exclusive: an event to midnight does not mark the next day.
-            val end = (if (e.allDay) localMidnightOf(e.end) else e.end).coerceAtLeast(begin + 1) - 1
-            val day = Calendar.getInstance()
-            day.timeInMillis = begin.coerceAtLeast(from)
-            while (day.timeInMillis <= end && day.timeInMillis < until) {
-                out.add(day.get(Calendar.DAY_OF_MONTH))
-                if (out.size >= days) return out
-                day.add(Calendar.DAY_OF_MONTH, 1)
-                day.set(Calendar.HOUR_OF_DAY, 0)
-                day.set(Calendar.MINUTE, 0)
-                day.set(Calendar.SECOND, 0)
-                day.set(Calendar.MILLISECOND, 0)
-            }
-        }
-        return out
+        return com.wasimaster.wmkeyboard.core.tools.calendar.CalendarDays.busyDays(eventsBetween(context, from, until), from, until, days)
     }
 
     /**

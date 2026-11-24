@@ -79,6 +79,8 @@
         <!-- Whether WM Translate may read the translate setup, keys included: this
              phone's choice. Restored elsewhere it would start handing keys to another app. -->
         <exclude domain="sharedpref" path="wm_translate_link.xml" />
+        <!-- Whether WM Calendar may read the AI setup, keys included: this phone's choice. -->
+        <exclude domain="sharedpref" path="wm_calendar_link.xml" />
     </cloud-backup>
 
     <device-transfer>
@@ -115,5 +117,7 @@
         <exclude domain="file" path="learning/glide_shapes.bin.part" />
         <!-- Whether WM Translate may read the translate setup, keys included: this phone's choice. -->
         <exclude domain="sharedpref" path="wm_translate_link.xml" />
+        <!-- Whether WM Calendar may read the AI setup, keys included: this phone's choice. -->
+        <exclude domain="sharedpref" path="wm_calendar_link.xml" />
     </device-transfer>
 </data-extraction-rules>

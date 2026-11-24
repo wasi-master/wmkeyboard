@@ -1323,6 +1323,7 @@ internal fun ToolDetailSettings(
                 }
             }
             CalendarNewEventRows(repository, settings)
+            WmCalendarLinkGroup()
             // The forecast is fetched, so the offline build leaves the group out.
             if (!OfflineBuild.isThisBuild) SettingsGroup(stringResource(R.string.tooldetail_calendar_weather_group), level = SettingLevel.STANDARD) {
                 item {

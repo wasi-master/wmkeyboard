@@ -16,9 +16,13 @@ import com.wasimaster.wmkeyboard.core.tools.DeviceCalendar
 import com.wasimaster.wmkeyboard.core.tools.DeviceCalendarEvent
 import com.wasimaster.wmkeyboard.core.tools.DeviceCalendarInfo
 import com.wasimaster.wmkeyboard.core.tools.DeviceCalendarWrite
+import com.wasimaster.wmkeyboard.core.tools.CalendarWriteResult
 import com.wasimaster.wmkeyboard.core.tools.EventWeatherRules
 import com.wasimaster.wmkeyboard.core.tools.StoredEvent
 import com.wasimaster.wmkeyboard.core.tools.ToolPrefill
+import com.wasimaster.wmkeyboard.core.tools.calendar.Availability
+import com.wasimaster.wmkeyboard.core.tools.calendar.CalendarBackend
+import com.wasimaster.wmkeyboard.core.tools.calendar.DeviceCalendarBackend
 import com.wasimaster.wmkeyboard.core.tools.calendar.CalendarOp
 import com.wasimaster.wmkeyboard.core.tools.calendar.EditScope
 import com.wasimaster.wmkeyboard.core.tools.calendar.EventDate
@@ -32,6 +36,7 @@ import com.wasimaster.wmkeyboard.core.tools.calendar.SeriesInfo
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.calendar.invite.InviteFlow
 import com.wasimaster.wmkeyboard.ime.calendar.invite.InviteNet
+import com.wasimaster.wmkeyboard.ime.wmcalendar.WmCalendarLink
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -49,11 +54,14 @@ import java.util.TimeZone
  * The keyboard half of the Calendar tool: the month view's data, the event
  * detail sheet, and the composer that adds and changes events.
  *
- * Reads and writes go through [DeviceCalendar] and [DeviceCalendarWrite] on
- * the IO dispatcher; what to write is decided by the pure [EventWrites], so
- * splitting a series is the tested code path, not this one. Owned by the
- * service and built on first use; nothing queries the provider until the
- * panel opens.
+ * Events are read, and new ones added, through a [CalendarBackend]: the
+ * phone's calendar provider, or WM Calendar when it is chosen and installed
+ * ([WmCalendarLink.backend]). Changing and deleting an event stay with the
+ * phone's provider through [DeviceCalendarWrite]; WM Calendar's events are
+ * changed in WM Calendar. Everything runs on the IO dispatcher; what to write
+ * is decided by the pure [EventWrites], so splitting a series is the tested
+ * code path, not this one. Owned by the service and built on first use;
+ * nothing queries a calendar until the panel opens.
  */
 @Suppress("detekt.LargeClass", "detekt.TooManyFunctions")
 internal class CalendarController(
@@ -114,6 +122,9 @@ internal class CalendarController(
     private var conflictJob: Job? = null
     private var guestJob: Job? = null
     private var observer: ContentObserver? = null
+
+    /** Where events come from, picked again each time the panel opens or the keyboard comes back. */
+    private var backend: CalendarBackend = DeviceCalendarBackend
 
     /** A write waiting on the grant the trampoline is asking for. */
     private var pending: Pending? = null
@@ -177,11 +188,19 @@ internal class CalendarController(
     }
 
     private fun refreshGrants() {
-        val read = DeviceCalendar.canRead(app)
+        val next = WmCalendarLink.backend(app)
+        if (next.id != backend.id) {
+            // Another calendar: its own calendar list, and its own way of telling about changes.
+            unwatch()
+            backend = next
+            _state.update { it.copy(calendars = emptyList(), busyDays = emptySet(), dayEvents = emptyList()) }
+            if (open) watch()
+        }
+        val read = backend.canRead(app)
         _state.update {
             it.copy(
                 canRead = read,
-                canWrite = DeviceCalendar.canWrite(app),
+                canWrite = backend.canWrite(app),
                 contactsAllowed = ContextCompat.checkSelfPermission(app, android.Manifest.permission.READ_CONTACTS) ==
                     android.content.pm.PackageManager.PERMISSION_GRANTED,
             )
@@ -191,7 +210,7 @@ internal class CalendarController(
 
     private fun finishPending() {
         val waiting = pending ?: return
-        if (!DeviceCalendar.canWrite(app)) {
+        if (!backend.canWrite(app)) {
             pending = null
             _state.update { it.copy(error = CalendarError.NO_ACCESS) }
             return
@@ -206,7 +225,8 @@ internal class CalendarController(
 
     /** Outside changes (a sync, the calendar app) show while the panel is open. */
     private fun watch() {
-        if (observer != null || !DeviceCalendar.canRead(app)) return
+        // WM Calendar's bridge tells of no changes; its events are read again as the panel opens.
+        if (observer != null || backend.id != CalendarBackend.DEVICE || !DeviceCalendar.canRead(app)) return
         val o = object : ContentObserver(Handler(Looper.getMainLooper())) {
             override fun onChange(selfChange: Boolean) {
                 reloadMonth()
@@ -496,11 +516,12 @@ internal class CalendarController(
     }
 
     private fun reloadMonth() {
-        if (!DeviceCalendar.canRead(app)) return
+        val source = backend
+        if (!source.canRead(app)) return
         val s = _state.value
         monthJob?.cancel()
         monthJob = scope.launch {
-            val days = withContext(Dispatchers.IO) { DeviceCalendar.busyDays(app, s.shownYear, s.shownMonth) }
+            val days = withContext(Dispatchers.IO) { source.busyDays(app, s.shownYear, s.shownMonth) }
             if (_state.value.shownYear == s.shownYear && _state.value.shownMonth == s.shownMonth) {
                 _state.update { it.copy(busyDays = days) }
             }
@@ -508,14 +529,15 @@ internal class CalendarController(
     }
 
     private fun reloadDay() {
-        if (!DeviceCalendar.canRead(app)) {
+        val source = backend
+        if (!source.canRead(app)) {
             _state.update { it.copy(dayEvents = emptyList()) }
             return
         }
         val day = _state.value.selected
         dayJob?.cancel()
         dayJob = scope.launch {
-            val events = withContext(Dispatchers.IO) { DeviceCalendar.eventsForDay(app, day.year, day.month, day.day) }
+            val events = withContext(Dispatchers.IO) { source.eventsForDay(app, day) }
             if (_state.value.selected == day) {
                 _state.update { it.copy(dayEvents = events) }
                 loadWeather(events)
@@ -695,7 +717,9 @@ internal class CalendarController(
 
     private fun loadCalendars() {
         scope.launch {
-            val list = withContext(Dispatchers.IO) { DeviceCalendar.writableCalendars(app) }
+            val source = backend
+            val list = withContext(Dispatchers.IO) { source.calendars(app) }
+            if (source.id != backend.id) return@launch
             _state.update { s ->
                 // A draft started before the list arrived gets its calendar now.
                 val d = s.draft?.takeIf { it.calendarId < 0 }?.copy(calendarId = defaultCalendar(list)?.id ?: -1L)
@@ -706,8 +730,13 @@ internal class CalendarController(
 
     private fun openEvent(event: DeviceCalendarEvent) {
         scope.launch {
-            val stored = withContext(Dispatchers.IO) { DeviceCalendarWrite.load(app, event.id, event.begin, event.end) } ?: return@launch
-            val series = withContext(Dispatchers.IO) { DeviceCalendarWrite.series(app, stored) }
+            val inPlace = backend.editsInPlace
+            val stored = if (inPlace) {
+                withContext(Dispatchers.IO) { DeviceCalendarWrite.load(app, event.id, event.begin, event.end) } ?: return@launch
+            } else {
+                readOnly(event)
+            }
+            val series = if (inPlace) withContext(Dispatchers.IO) { DeviceCalendarWrite.series(app, stored) } else null
             val kept = _state.value.weather[weatherKey(event)]
             _state.update {
                 it.copy(view = CalendarView.DETAIL, detail = stored, series = series, undo = null, detailWeather = kept, detailEvent = event)
@@ -778,7 +807,7 @@ internal class CalendarController(
                 conflicts = emptyList(),
             )
         }
-        if (_state.value.calendars.isEmpty() && DeviceCalendar.canRead(app)) loadCalendars()
+        if (_state.value.calendars.isEmpty() && backend.canRead(app)) loadCalendars()
         checkConflicts()
         // A new event starts with its title box open, so the keys can type straight away.
         if (draft.eventId == null && draft.title.isEmpty()) startText(CalendarTextField.TITLE)
@@ -804,13 +833,14 @@ internal class CalendarController(
     private fun checkConflicts() {
         conflictJob?.cancel()
         val d = _state.value.draft
-        if (d == null || d.allDay || !DeviceCalendar.canRead(app) || d.endsBeforeStart) {
+        val source = backend
+        if (d == null || d.allDay || !source.canRead(app) || d.endsBeforeStart) {
             _state.update { it.copy(conflicts = emptyList()) }
             return
         }
         conflictJob = scope.launch {
             delay(CONFLICT_DEBOUNCE_MS)
-            val found = withContext(Dispatchers.IO) { DeviceCalendar.eventsBetween(app, d.startMillis, d.endMillis) }
+            val found = withContext(Dispatchers.IO) { source.eventsBetween(app, d.startMillis, d.endMillis) }
                 .filter { e ->
                     !e.allDay && e.begin < d.endMillis && e.end > d.startMillis &&
                         e.id != d.eventId && e.id != _state.value.series?.masterId
@@ -831,12 +861,16 @@ internal class CalendarController(
             if (openDraftInApp(d)) _state.update { it.copy(view = CalendarView.MONTH, draft = null, draftBase = null) }
             return
         }
-        if (!DeviceCalendar.canWrite(app)) {
+        if (!backend.canWrite(app)) {
+            if (backend.id != CalendarBackend.DEVICE) {
+                _state.update { it.copy(error = CalendarError.NO_ACCESS) }
+                return
+            }
             pending = Pending.Save
             launch(trampoline(com.wasimaster.wmkeyboard.app.CalendarWritePermissionActivity::class.java))
             return
         }
-        val calendars = _state.value.calendars.ifEmpty { DeviceCalendar.writableCalendars(app) }
+        val calendars = _state.value.calendars.ifEmpty { backend.calendars(app) }
         val calendarId = d.calendarId.takeIf { id -> calendars.any { it.id == id } } ?: defaultCalendar(calendars)?.id
         if (calendarId == null) {
             _state.update { it.copy(error = CalendarError.NO_CALENDAR, calendars = calendars) }
@@ -861,7 +895,7 @@ internal class CalendarController(
      * asks which occurrences first and the move can be undone.
      */
     private fun moveEvent(event: DeviceCalendarEvent, minutes: Int) {
-        if (minutes == 0 || event.allDay || !event.canModify) return
+        if (minutes == 0 || event.allDay || !event.canModify || !backend.editsInPlace) return
         if (!DeviceCalendar.canWrite(app)) {
             pending = Pending.Move(event, minutes)
             launch(trampoline(com.wasimaster.wmkeyboard.app.CalendarWritePermissionActivity::class.java))
@@ -890,11 +924,16 @@ internal class CalendarController(
         val series = _state.value.series
         val base = _state.value.draftBase
         _state.update { it.copy(busy = true) }
+        val source = backend
         scope.launch {
             val (result, undoOps) = withContext(Dispatchers.IO) {
-                val ops = if (d.eventId == null) {
-                    EventWrites.create(d)
-                } else {
+                if (d.eventId == null) {
+                    // A new event goes to the backend in use; only the phone's can be taken back here.
+                    val id = source.save(app, d)
+                    val undo = if (source.id == CalendarBackend.DEVICE) id?.let { CalendarUndo(CalendarUndo.Kind.ADDED, listOf(CalendarOp.Delete(it))) } else null
+                    return@withContext CalendarWriteResult(id != null, id) to undo
+                }
+                val ops = run {
                     val s = editScope ?: EditScope.ALL
                     val before = if (s == EditScope.FOLLOWING && series != null && RRule.count(series.rule) != null) {
                         DeviceCalendarWrite.occurrencesBefore(app, series.masterId, series.masterStart, series.originalInstanceTime)
@@ -1025,6 +1064,12 @@ internal class CalendarController(
     // ---- Out of the keyboard ---------------------------------------------
 
     private fun openInApp(event: StoredEvent) {
+        if (!backend.editsInPlace) {
+            // WM Calendar's ids are its own: it opens on its own screen, where the event is changed.
+            val intent = app.packageManager.getLaunchIntentForPackage(WmCalendarLink.APP_PACKAGE)?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            if (intent == null || runCatching { app.startActivity(intent) }.isFailure) _state.update { it.copy(error = CalendarError.NO_APP) }
+            return
+        }
         val intent = Intent(Intent.ACTION_VIEW, ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, event.id))
             .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, event.instanceBegin)
             .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, event.instanceEnd)
@@ -1089,9 +1134,37 @@ internal class CalendarController(
     // ---- Helpers -------------------------------------------------------
 
     private fun defaultCalendar(list: List<DeviceCalendarInfo>): DeviceCalendarInfo? {
+        // The setting names one of the phone's calendars; WM Calendar puts its own default first.
+        if (backend.id != CalendarBackend.DEVICE) return list.firstOrNull { it.primary } ?: list.firstOrNull()
         val wanted = settings().defaultCalendarId
         return list.firstOrNull { it.id == wanted } ?: list.firstOrNull()
     }
+
+    /** An event of a backend the keyboard does not change in place, as the detail sheet shows it. */
+    private fun readOnly(event: DeviceCalendarEvent): StoredEvent = StoredEvent(
+        id = event.id,
+        calendarId = event.calendarId,
+        calendarName = _state.value.calendars.firstOrNull { it.id == event.calendarId }?.name.orEmpty(),
+        color = event.color,
+        title = event.title,
+        location = event.location.orEmpty(),
+        notes = "",
+        dtStart = event.begin,
+        dtEnd = event.end,
+        duration = null,
+        rrule = null,
+        allDay = event.allDay,
+        timezone = if (event.allDay) "UTC" else TimeZone.getDefault().id,
+        availability = Availability.BUSY,
+        originalId = null,
+        originalInstanceTime = null,
+        reminders = emptyList(),
+        guests = emptyList(),
+        ownerAccount = "",
+        canModify = false,
+        instanceBegin = event.begin,
+        instanceEnd = event.end,
+    )
 
     private fun localMidnight(date: EventDate): Long = EventTimes.millis(date, 0, TimeZone.getDefault())
 

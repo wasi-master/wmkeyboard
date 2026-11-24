@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tooldetail_wmcalendar_group" translatable="false">WM Calendar</string>
+    <string name="tooldetail_wmcalendar_backend_title">Events from</string>
+    <string name="tooldetail_wmcalendar_backend_subtitle">Which calendar the tool shows and adds new events to.</string>
+    <string name="tooldetail_wmcalendar_backend_info">The phone\'s calendar is every calendar your accounts sync to the phone, and needs calendar access. WM Calendar needs no access here: the keyboard asks the app, which answers only the real WM Keyboard. Events from WM Calendar are changed and deleted in WM Calendar; Open in app takes you there. If WM Calendar is removed, the tool goes back to the phone\'s calendar.</string>
+    <string name="tooldetail_wmcalendar_backend_device">The phone\'s calendar</string>
+    <string name="tooldetail_wmcalendar_backend_app">WM Calendar</string>
+    <string name="tooldetail_wmcalendar_share_title">Share AI with WM Calendar</string>
+    <string name="tooldetail_wmcalendar_share_subtitle">Lets WM Calendar\'s quick add use the AI providers set up here, with their keys.</string>
+    <string name="tooldetail_wmcalendar_share_info">Off, WM Calendar gets nothing from the keyboard. Once, it may take the AI setup the next time it asks, and then sharing turns off again. Keep in step, it reads the current setup each time it asks. Only the AI list is shared, the provider in use first; the model on the phone and every other tool\'s keys stay here. Only the real WM Calendar is answered: its signing certificate is checked on every call. Sharing stays on this phone; it is not in backups.</string>
+    <string name="tooldetail_wmcalendar_share_off">Off</string>
+    <string name="tooldetail_wmcalendar_share_once">Once</string>
+    <string name="tooldetail_wmcalendar_share_follow">Keep in step</string>
+    <string name="tooldetail_wmcalendar_images_title">Read pictures for WM Calendar</string>
+    <string name="tooldetail_wmcalendar_images_subtitle">Lets WM Calendar turn a screenshot or photo into quick-add text with the keyboard\'s text reader.</string>
+    <string name="tooldetail_wmcalendar_images_info">The picture is read on the phone, by the engine the OCR tool would use for your first keyboard language that one can read: ML Kit, PaddleOCR or a Tesseract pack. An online reader is never asked, and nothing is downloaded for it: without an engine ready on the phone, WM Calendar is told the read failed. Only the real WM Calendar is answered, and only for a picture it shares from its own files.</string>
+    <string name="tooldetail_wmcalendar_missing">WM Calendar is not installed. With it, the Calendar tool can show and add its events, and its quick add can use the AI set up here.</string>
+</resources>

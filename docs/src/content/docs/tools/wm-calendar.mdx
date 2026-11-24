@@ -1,0 +1,49 @@
+---
+title: "WM Calendar"
+description: "WM Calendar, the calendar app from the same author, linked to the keyboard: the Calendar tool can show WM Calendar's events and add new ones to it, and WM Calendar's quick add can use the AI providers set up in the keyboard and its on-device text reader when you allow it."
+sidebar:
+  order: 17.95
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+WM Calendar is a calendar app from the same author. The keyboard works without it. With it installed, <SettingsPath path="Tools / Calendar" /> has a **WM Calendar** group with three settings. Every call between the two apps checks the other app's signing certificate, so an app that only borrows the name is refused. Without WM Calendar, the group says it is not installed and the [Calendar tool](/tools/calendar/) reads the phone's calendar as usual.
+
+## Events from
+
+**Events from** picks the calendar the Calendar tool shows and adds new events to:
+
+- **The phone's calendar** (the start): every calendar your accounts sync to the phone, through Android's calendar provider. It needs [calendar access](/tools/calendar/#calendar-permission).
+- **WM Calendar**: the month, the day and the agenda show WM Calendar's events, and **Save** adds a new event to WM Calendar, in the calendar you pick in the composer (WM Calendar's default calendar to start with). No calendar access is needed, because the keyboard asks WM Calendar and WM Calendar answers only the real WM Keyboard.
+
+With WM Calendar, a few things work differently:
+
+- WM Calendar's events are changed and deleted in WM Calendar, which keeps their history and its own undo. Their detail sheet has no **Edit** or **Delete**, and they cannot be dragged in the day view; **Open in app** opens WM Calendar.
+- A new event's guests stay in the keyboard: WM Calendar's bridge does not take them. Its title, times, place, notes, repeat rule and reminders all go across. Times are written in the phone's time zone, so an event set in another zone keeps its moment but shows in local time in WM Calendar.
+- **Undo** after Save is not offered; delete the event in WM Calendar instead.
+- Changes made in WM Calendar while the panel is open show the next time you open it.
+- If WM Calendar is removed, or a copy that is not signed like the keyboard takes its place, the tool goes back to the phone's calendar by itself.
+
+The choice is kept on this phone only and is not part of [backups](/privacy/backup/).
+
+## Sharing the AI setup
+
+WM Calendar's quick add can ask an AI model to read what you type. Instead of setting a model up twice, it can use the one set up in the keyboard. **Share AI with WM Calendar** decides whether it may:
+
+- **Off** (the start): WM Calendar gets nothing from the keyboard, and its AI screen says sharing is off.
+- **Once**: the next time WM Calendar asks, it gets the setup, and sharing turns off again.
+- **Keep in step**: WM Calendar gets the current setup each time it asks, so a provider or key changed here is the one it uses next.
+
+What is shared is the [AI provider list](/tools/ai/): the providers that are on and set up, the one in use first, each with its key, address and model. WM Calendar uses the first one it knows (Anthropic, OpenAI, Gemini, xAI, DeepSeek, Ollama, LM Studio, or an OpenAI-compatible server). The model that runs on the phone is left out, since it runs only inside the keyboard, and no other tool's list or key is shared. What WM Calendar then sends to that provider is its own business; see its privacy notes.
+
+The choice is kept on this phone only and is not part of [backups](/privacy/backup/), so restoring a backup elsewhere never starts sending keys to another app.
+
+## Reading pictures
+
+WM Calendar's quick add can take a screenshot or a photo of a poster, a ticket or a message and make an event from its text. **Read pictures for WM Calendar** (off to start) lets it use the keyboard's [text reader](/tools/scanner/) for that.
+
+- WM Calendar shares one picture at a time from its own files, for that one read, and the keyboard reads only pictures shared that way.
+- The picture is read on the phone, by the engine the OCR tool would use for your first keyboard language that one can read: ML Kit, PaddleOCR or a Tesseract pack you have downloaded. The online readers on the OCR list are never asked, so the picture does not leave the phone, and nothing is downloaded for it. Without an engine ready, WM Calendar is told the read failed.
+- Only the text goes back to WM Calendar, line by line. The keyboard keeps neither the picture nor the text.
+
+The switch is kept on this phone only and is not part of [backups](/privacy/backup/).
