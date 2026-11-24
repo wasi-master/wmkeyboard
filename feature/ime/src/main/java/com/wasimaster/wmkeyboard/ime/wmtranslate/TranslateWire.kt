@@ -31,6 +31,8 @@ object TranslateWire {
     /** Delegated translation: the keyboard runs one of its own rows (a plugin, ML Kit) for WM Translate. */
     const val ROWS = "rows"
     const val RUN = "run"
+    /** The other app's AI actions, in WM Keyboard's own format, for importing. */
+    const val ACTIONS = "actions"
 
     // Keys.
     const val STATE = "state"
@@ -81,7 +83,7 @@ object TranslateWire {
     /** Every name above in order, for the golden-vector test both repos run. */
     val GOLDEN: String = listOf(
         VERSION.toString(), APP_AUTHORITY, KEYBOARD_AUTHORITY, APP_PACKAGE, KEYBOARD_PACKAGE,
-        STATUS, TRANSLATE, CANCEL, SAVE, CONFIG, MODELS, ROWS, RUN,
+        STATUS, TRANSLATE, CANCEL, SAVE, CONFIG, MODELS, ROWS, RUN, ACTIONS,
         STATE, V, ERROR, CODE, ID, TEXT, FROM, TO, RESULT, DETECTED, PROVIDER, NET, INCOGNITO, ORIGIN, HOPS, VALUES, SHARE, READY, PATH, ROW,
         OK, OFF, BOOT, NET_ALLOW, NET_DENY, SHARE_NONE, SHARE_ONCE, SHARE_FOLLOW,
         UNKNOWN_CALL, FAILED, LOOP, NO_TEXT, TOO_LONG, NOT_SHARED, NO_ROW, MAX_TEXT.toString(),

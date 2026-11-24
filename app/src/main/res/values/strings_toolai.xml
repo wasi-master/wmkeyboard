@@ -767,4 +767,13 @@
         <item quantity="one">%1$d memory saved</item>
         <item quantity="other">%1$d memories saved</item>
     </plurals>
+    <string name="toolai_ai_actions_import_group">From other apps</string>
+    <string name="toolai_ai_actions_import_wmtranslate">Import from WM Translate</string>
+    <string name="toolai_ai_actions_import_wmtranslate_desc">Brings over WM Translate\'s actions. Importing again updates them.</string>
+    <string name="toolai_ai_actions_import_wmtranslate_off">WM Translate did not answer. Update it, or turn on its WM Keyboard connection.</string>
+    <string name="toolai_ai_actions_import_wmtranslate_none">WM Translate has no actions to share.</string>
+    <plurals name="toolai_ai_actions_imported">
+        <item quantity="one">Imported %1$d action from WM Translate.</item>
+        <item quantity="other">Imported %1$d actions from WM Translate.</item>
+    </plurals>
 </resources>

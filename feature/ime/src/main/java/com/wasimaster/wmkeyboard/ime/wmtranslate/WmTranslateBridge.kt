@@ -12,7 +12,11 @@ import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.providerChain
 import com.wasimaster.wmkeyboard.core.settings.providerCredentials
+import com.wasimaster.wmkeyboard.core.tools.AiActionCodec
+import com.wasimaster.wmkeyboard.core.tools.AiActionSpec
+import com.wasimaster.wmkeyboard.core.tools.AiActionSurface
 import com.wasimaster.wmkeyboard.core.tools.Translation
+import com.wasimaster.wmkeyboard.core.tools.orderedAiActions
 import com.wasimaster.wmkeyboard.ime.suite.SuiteTrust
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -67,6 +71,20 @@ object WmTranslateBridge {
     }
 
     fun installed(context: Context): Boolean = SuiteTrust.trusted(context, TranslateWire.APP_PACKAGE) == true
+
+    /**
+     * WM Translate's AI actions, in this keyboard's own format, under ids that start
+     * `wmtranslate_` so importing again replaces rather than adds. Null when the app is
+     * missing, untrusted, too old to share them, or has the keyboard cut off. Blocks.
+     */
+    fun actions(context: Context): List<AiActionSpec>? {
+        if (!installed(context)) return null
+        val reply = call(context, TranslateWire.ACTIONS, null) ?: return null
+        if (reply.getString(TranslateWire.STATE) != TranslateWire.OK) return null
+        return AiActionCodec.decodeList(reply.getString(TranslateWire.VALUES).orEmpty())
+            .filter { it.id.isNotBlank() && it.name.isNotBlank() && it.task.isNotBlank() }
+            .map { it.copy(surface = AiActionSurface.TRANSFORM) }
+    }
 
     private fun call(context: Context, method: String, extras: Bundle?): Bundle? = try {
         context.contentResolver.call(APP, method, null, extras)
@@ -172,6 +190,9 @@ object WmTranslateBridge {
             put("provider_chains", ProviderCodec.encodeChains(chains))
             put("translate_target_lang", s.translateTargetLang)
             put("translate_recent_langs", JsonPrimitive(s.translateRecentLangs.joinToString(",")))
+            // The AI tool's actions, shipped and the user's own, for WM Translate to import.
+            // Prompts only: the AI list's providers and keys stay here.
+            put("ai_actions", AiActionCodec.encodeList(orderedAiActions(s.ai.customActions, s.ai.actionOrder, AiActionSurface.TRANSFORM)))
         }.toString()
     }
 

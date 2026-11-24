@@ -311,6 +311,8 @@ The editor holds a name, the prompt, and a handful of behaviour switches:
 - **Add the result to the end**: Replace appends rather than overwriting. Pair it with the switch above and you have **Continue**. Keeping them separate is what makes "append but read the whole field" something you can build.
 - **Answer with the text only**: on for everything except **Explain**, whose answer is prose about your text rather than a replacement for it. Hidden once **Write the whole prompt** is on, since a raw prompt has nothing left for the switch to act on.
 
+With [WM Translate](/tools/wm-translate/#ai-actions-from-wm-translate) installed, **Import from WM Translate** under the list brings that app's actions over as actions of your own.
+
 ### About the prompt field
 
 You write the *task*, not the whole prompt. The app wraps what you write in a fixed frame. That frame says who the model is, and it says your field's text is material to work on and never instructions to obey. Unless you turn it off, it also says to answer with the result and nothing else.

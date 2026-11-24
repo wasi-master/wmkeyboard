@@ -55,6 +55,7 @@ import com.wasimaster.wmkeyboard.core.tools.BuiltInAiActions
 import com.wasimaster.wmkeyboard.core.tools.orderedAiActions
 import com.wasimaster.wmkeyboard.core.tools.visibleAiActions
 import androidx.compose.ui.platform.LocalContext
+import com.wasimaster.wmkeyboard.ime.wmtranslate.WmTranslateBridge
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.AiProviders
@@ -953,6 +954,7 @@ internal fun AiActionsSettings(
             }
         }
     }
+    if (!replies && !reordering) ImportFromWmTranslate(repository)
     RegisterAddFab(stringResource(if (replies) R.string.toolai_reply_tone_new else R.string.toolai_ai_action_new_title)) {
         val prefix = if (replies) BuiltInAiReplyTones.CUSTOM_PREFIX else BuiltInAiActions.CUSTOM_PREFIX
         onNavigate("ai_action_edit/" + prefix + System.currentTimeMillis())
@@ -1206,5 +1208,40 @@ internal fun AiActionEditor(
                 onDone()
             },
         ) { Text(stringResource(CommonR.string.common_save)) }
+    }
+}
+
+/**
+ * WM Translate's AI actions brought into this list, when the app is here and trusted. They come
+ * under ids of their own, so a second import updates them instead of adding copies.
+ */
+@Composable
+private fun ImportFromWmTranslate(repository: SettingsRepository) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val here = remember { WmTranslateBridge.installed(context) }
+    if (!here) return
+    var said by remember { mutableStateOf<String?>(null) }
+    val res = context.resources
+    SettingsGroup(stringResource(R.string.toolai_ai_actions_import_group)) {
+        item {
+            WmRow(
+                title = stringResource(R.string.toolai_ai_actions_import_wmtranslate),
+                supporting = { Text(said ?: stringResource(R.string.toolai_ai_actions_import_wmtranslate_desc)) },
+                onClick = {
+                    scope.launch {
+                        val got = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { runCatching { WmTranslateBridge.actions(context) }.getOrNull() }
+                        said = when {
+                            got == null -> res.getString(R.string.toolai_ai_actions_import_wmtranslate_off)
+                            got.isEmpty() -> res.getString(R.string.toolai_ai_actions_import_wmtranslate_none)
+                            else -> {
+                                got.forEach { repository.upsertAiAction(it) }
+                                res.getQuantityString(R.plurals.toolai_ai_actions_imported, got.size, got.size)
+                            }
+                        }
+                    }
+                },
+            )
+        }
     }
 }
