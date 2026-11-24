@@ -77,7 +77,8 @@ object ZipRangeReader {
             val nameLength = cd.getShort(p + 28).toInt() and 0xFFFF
             val extraLength = cd.getShort(p + 30).toInt() and 0xFFFF
             val commentLength = cd.getShort(p + 32).toInt() and 0xFFFF
-            val nameBytes = ByteArray(nameLength).also { cd.get(p + CENTRAL_FIXED, it) }
+            // ByteBuffer.get(int, byte[]) requires API 34; minSdk is 24.
+            val nameBytes = ByteArray(nameLength) { cd.get(p + CENTRAL_FIXED + it) }
             out += Entry(
                 name = String(nameBytes, Charsets.UTF_8),
                 method = cd.getShort(p + 10).toInt() and 0xFFFF,
