@@ -55,8 +55,14 @@ object FieldWire {
     /** A Wi-Fi network's **Pick a network saved on this phone**. */
     const val WIFI_SAVED = "wifi_saved"
 
+    /**
+     * WM Translate's **Fill from WM Pass**, in a provider's key field. WM Translate's fields carry
+     * the same tag as WM Pass's, and the keyboard asks WM Translate's provider for the tap.
+     */
+    const val PASS_KEY = "pass_key"
+
     /** The ids this side has words for, in the order their chips stand. */
-    val ACTIONS = listOf(CARD_SCAN, WIFI_QR, WIFI_SAVED)
+    val ACTIONS = listOf(CARD_SCAN, WIFI_QR, WIFI_SAVED, PASS_KEY)
 
     private val TOKEN_SHAPE = Regex("[A-Za-z0-9_-]{8,64}")
     private val ACTION_SHAPE = Regex("[a-z0-9_]{1,32}")

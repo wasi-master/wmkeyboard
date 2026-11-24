@@ -11,6 +11,8 @@ import android.os.Build
 import android.os.Bundle
 import com.wasimaster.wmkeyboard.core.otp.NotificationOtp
 import com.wasimaster.wmkeyboard.core.otp.NotificationOtpBus
+import com.wasimaster.wmkeyboard.ime.suite.SuiteTrust
+import com.wasimaster.wmkeyboard.ime.wmtranslate.TranslateWire
 import java.security.MessageDigest
 import org.json.JSONArray
 
@@ -281,15 +283,35 @@ object WmPassBridge {
      * none. Call away from the main thread: it checks the certificate.
      */
     fun fieldTag(context: Context, packageName: String?, privateImeOptions: String?): FieldWire.Tag? {
-        if (packageName != PACKAGE) return null
+        if (!taggable(packageName)) return null
         val tag = FieldWire.parse(privateImeOptions) ?: return null
-        return tag.takeIf { trusted(context) == true }
+        // WM Translate's fields carry the same tag, for its key fields' Fill from WM Pass.
+        val ok = if (packageName == PACKAGE) trusted(context) == true else SuiteTrust.trusted(context, TranslateWire.APP_PACKAGE) == true
+        return tag.takeIf { ok }
     }
 
-    /** Asks WM Pass to press the button [action] on the screen called [token]. Call away from the main thread. */
-    fun runAction(context: Context, action: String, token: String): Boolean {
-        if (action !in FieldWire.ACTIONS || trusted(context) != true) return false
+    /** Whether fields of [packageName] may offer chips at all: WM Pass's and WM Translate's. */
+    fun taggable(packageName: String?): Boolean = packageName == PACKAGE || packageName == TranslateWire.APP_PACKAGE
+
+    /**
+     * Asks the app the field belongs to, [owner], to press the button [action] on the screen
+     * called [token]. Call away from the main thread.
+     */
+    fun runAction(context: Context, action: String, token: String, owner: String = PACKAGE): Boolean {
+        if (action !in FieldWire.ACTIONS) return false
         val extras = Bundle().apply { putString(FieldWire.TOKEN, token) }
+        if (owner == TranslateWire.APP_PACKAGE) {
+            if (SuiteTrust.trusted(context, TranslateWire.APP_PACKAGE) != true) return false
+            val reply = try {
+                context.contentResolver.call(android.net.Uri.parse("content://${TranslateWire.APP_AUTHORITY}"), FieldWire.ACTION_CALL, action, extras)
+            } catch (_: IllegalArgumentException) {
+                null
+            } catch (_: SecurityException) {
+                null
+            }
+            return reply?.getBoolean(FieldWire.DONE) == true
+        }
+        if (trusted(context) != true) return false
         return ask(context, FieldWire.ACTION_CALL, action, extras)?.getBoolean(FieldWire.DONE) == true
     }
 

@@ -26,6 +26,11 @@ object TranslateWire {
     const val CANCEL = "cancel"
     const val SAVE = "save"
     const val CONFIG = "config"
+    /** The keyboard's downloaded model files, for WM Translate to copy instead of downloading again. */
+    const val MODELS = "models"
+    /** Delegated translation: the keyboard runs one of its own rows (a plugin, ML Kit) for WM Translate. */
+    const val ROWS = "rows"
+    const val RUN = "run"
 
     // Keys.
     const val STATE = "state"
@@ -46,6 +51,8 @@ object TranslateWire {
     const val VALUES = "values"
     const val SHARE = "share"
     const val READY = "ready"
+    const val PATH = "path"
+    const val ROW = "row"
 
     // States.
     const val OK = "ok"
@@ -66,6 +73,7 @@ object TranslateWire {
     const val NO_TEXT = "no_text"
     const val TOO_LONG = "too_long"
     const val NOT_SHARED = "not_shared"
+    const val NO_ROW = "no_row"
 
     /** At most this much text per translate call. */
     const val MAX_TEXT = 10_000
@@ -73,9 +81,9 @@ object TranslateWire {
     /** Every name above in order, for the golden-vector test both repos run. */
     val GOLDEN: String = listOf(
         VERSION.toString(), APP_AUTHORITY, KEYBOARD_AUTHORITY, APP_PACKAGE, KEYBOARD_PACKAGE,
-        STATUS, TRANSLATE, CANCEL, SAVE, CONFIG,
-        STATE, V, ERROR, CODE, ID, TEXT, FROM, TO, RESULT, DETECTED, PROVIDER, NET, INCOGNITO, ORIGIN, HOPS, VALUES, SHARE, READY,
+        STATUS, TRANSLATE, CANCEL, SAVE, CONFIG, MODELS, ROWS, RUN,
+        STATE, V, ERROR, CODE, ID, TEXT, FROM, TO, RESULT, DETECTED, PROVIDER, NET, INCOGNITO, ORIGIN, HOPS, VALUES, SHARE, READY, PATH, ROW,
         OK, OFF, BOOT, NET_ALLOW, NET_DENY, SHARE_NONE, SHARE_ONCE, SHARE_FOLLOW,
-        UNKNOWN_CALL, FAILED, LOOP, NO_TEXT, TOO_LONG, NOT_SHARED, MAX_TEXT.toString(),
+        UNKNOWN_CALL, FAILED, LOOP, NO_TEXT, TOO_LONG, NOT_SHARED, NO_ROW, MAX_TEXT.toString(),
     ).joinToString("|")
 }

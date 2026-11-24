@@ -572,6 +572,7 @@
     <string name="ime_wmpass_chip_scan_card">Scan the card</string>
     <string name="ime_wmpass_chip_wifi_code">Fill in from a QR code</string>
     <string name="ime_wmpass_chip_wifi_saved">Pick a network saved on this phone</string>
+    <string name="ime_wmpass_chip_pass_key">Fill from WM Pass</string>
     <string name="ime_wmpass_no_vault">WM Pass has no vault yet. Make one there first.</string>
     <string name="ime_wmpass_off">To use this, turn on Let WM Keyboard fill in WM Pass, under Settings, Security.</string>
     <string name="ime_wmpass_get">Get WM Pass</string>

@@ -53092,6 +53092,9 @@ open class WMKeyboardService : InputMethodService() {
     /** Which field's tag the strip's WM Pass chips belong to, so a slow check for an old field changes nothing. */
     private var wmPassChipField = 0
 
+    /** The app whose field the chips are for: WM Pass, or WM Translate for its key fields. */
+    @Volatile private var wmPassChipOwner: String? = null
+
     /**
      * A field of WM Pass's own names the buttons beside it, and the strip
      * offers them ([com.wasimaster.wmkeyboard.ime.wmpass.FieldWire]). Read only
@@ -53102,7 +53105,7 @@ open class WMKeyboardService : InputMethodService() {
         val field = ++wmPassChipField
         val pkg = attribute?.packageName
         val options = attribute?.privateImeOptions
-        val tagged = pkg == com.wasimaster.wmkeyboard.ime.wmpass.WmPassBridge.PACKAGE &&
+        val tagged = com.wasimaster.wmkeyboard.ime.wmpass.WmPassBridge.taggable(pkg) &&
             com.wasimaster.wmkeyboard.ime.wmpass.FieldWire.parse(options) != null
         if (!tagged) {
             if (_uiState.value.wmPassChips != null) _uiState.update { it.copy(wmPassChips = null) }
@@ -53113,7 +53116,10 @@ open class WMKeyboardService : InputMethodService() {
             val tag = withContext(Dispatchers.IO) {
                 com.wasimaster.wmkeyboard.ime.wmpass.WmPassBridge.fieldTag(this@WMKeyboardService, pkg, options)
             }
-            if (field == wmPassChipField) _uiState.update { it.copy(wmPassChips = tag) }
+            if (field == wmPassChipField) {
+                wmPassChipOwner = pkg
+                _uiState.update { it.copy(wmPassChips = tag) }
+            }
         }
     }
 
@@ -53122,7 +53128,10 @@ open class WMKeyboardService : InputMethodService() {
         val tag = _uiState.value.wmPassChips ?: return
         vibrate()
         serviceScope.launch(Dispatchers.IO) {
-            com.wasimaster.wmkeyboard.ime.wmpass.WmPassBridge.runAction(this@WMKeyboardService, action, tag.token)
+            com.wasimaster.wmkeyboard.ime.wmpass.WmPassBridge.runAction(
+                this@WMKeyboardService, action, tag.token,
+                wmPassChipOwner ?: com.wasimaster.wmkeyboard.ime.wmpass.WmPassBridge.PACKAGE,
+            )
         }
     }
 

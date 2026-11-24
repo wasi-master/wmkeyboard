@@ -1,13 +1,13 @@
 ---
 title: "WM Translate"
-description: "WM Translate, the translation app from the same author, linked to the keyboard: a WM Translate row in the translate list that uses the app's providers and glossaries, buttons in the panel to open a translation there or save it to its history, and the keyboard's translate setup shared with the app when you choose."
+description: "WM Translate, the translation app from the same author, linked to the keyboard: a WM Translate row in the translate list, buttons to open or save a translation there, the translate setup and plugin providers shared when you choose, downloaded models copied instead of downloaded twice, and a Fill from WM Pass chip in the app's key fields."
 sidebar:
   order: 17.9
 ---
 
 import SettingsPath from '@components/SettingsPath.astro';
 
-[WM Translate](https://github.com/wasi-master/wm-translate) is a translation app from the same author. The keyboard works without it. With it installed, the two can share work in three ways, and each one checks the other app's signing certificate on every call, so an app that only borrows the name is refused.
+[WM Translate](https://github.com/wasi-master/wm-translate) is a translation app from the same author. The keyboard works without it. With it installed, the two can share work in the ways below, and each one checks the other app's signing certificate on every call, so an app that only borrows the name is refused.
 
 ## A WM Translate row in the translate list
 
@@ -34,3 +34,18 @@ With WM Translate installed, a translation in the panel has two more buttons at 
 - **Keep in step**: WM Translate takes the setup and reads it again whenever you change a provider here.
 
 What is shared is the Translate tool's provider list, the setups that list uses (with their keys), the language you translate into and your recent languages. The AI provider list and its keys are not shared. A WM Translate row is left out, so the two apps never send text back and forth. The choice is kept on this phone only and is not part of [backups](/privacy/backup/), so restoring a backup elsewhere never starts sending keys to another app.
+
+## Plugin providers in WM Translate
+
+While **Share with WM Translate** is **Once** or **Keep in step**, WM Translate can also use the translate providers your [plugins](/plugins/overview/) add. There they appear as a **WM Keyboard plugin** provider, off until you add it, with your plugins' translate providers to pick from. The text goes from WM Translate to the keyboard, which asks the plugin exactly as it does for its own translate list and hands the answer back. When the plugin is uninstalled or turned off, or sharing is **Off**, WM Translate is told so and asks its next provider. A plugin row in the keyboard's list arrives in WM Translate as one of these when it takes the shared setup.
+
+- **Sent, precisely:** the text (at most 10,000 characters), the target language and the source language if one was picked, from WM Translate to the keyboard on the phone; where the plugin sends it is up to the plugin.
+
+## Models WM Translate can copy
+
+WM Translate runs several of the same engines on the phone: Firefox Translations, NLLB-200, Whisper, live dictation, Meta's MMS voices, AI models and Tesseract. Rather than download a model this keyboard already has, it can copy it. The keyboard tells WM Translate the names and sizes of the files in those engines' download folders and nothing else in its storage (clipboard history, notes, snippets and the rest are never listed), and lets it read a listed file, read-only. WM Translate keeps a copy only when it matches the checksum it pins for that model, so a copy is never trusted more than a download. Copying needs no connection, so it also works under WM Translate's offline lock.
+
+## Fill from WM Pass in WM Translate's key fields
+
+While you type an API key into one of WM Translate's providers, the strip offers **Fill from WM Pass**, like the [chips in WM Pass's own fields](/tools/wm-pass/). A tap has WM Translate open its WM Pass picker, the same one as the button under the field. The field tells the keyboard only which button it has; the key itself never passes through the keyboard.
+

@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Key
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoCamera
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QrCodeScanner
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Wifi
@@ -52,6 +53,7 @@ internal fun WmPassStripChips(tag: FieldWire.Tag, modifier: Modifier = Modifier)
             val (label, icon) = when (action) {
                 FieldWire.CARD_SCAN -> R.string.ime_wmpass_chip_scan_card to Icons.Outlined.PhotoCamera
                 FieldWire.WIFI_QR -> R.string.ime_wmpass_chip_wifi_code to Icons.Outlined.QrCodeScanner
+                FieldWire.PASS_KEY -> R.string.ime_wmpass_chip_pass_key to Icons.Outlined.Key
                 else -> R.string.ime_wmpass_chip_wifi_saved to Icons.Outlined.Wifi
             }
             StripChip(stringResource(label), icon, Modifier.weight(1f)) { WmPassChipActions.handler(action) }
