@@ -1490,6 +1490,7 @@ internal object SettingsRowIcons {
         put(R.string.clipboard_view_title) { Icons.Outlined.GridView }
         put(R.string.clipboard_columns_title) { Icons.Outlined.ViewWeek }
         put(R.string.clipboard_grid_rows_title) { Icons.Outlined.TableRows }
+        put(R.string.clipboard_keep_deleted_places_title) { Icons.Outlined.DeleteSweep }
         put(R.string.clipboard_lines_title) { Icons.Outlined.TextFields }
         put(R.string.clipboard_time_title) { Icons.Outlined.Schedule }
         put(R.string.clipboard_max_chars_title) { Icons.Outlined.Straighten }

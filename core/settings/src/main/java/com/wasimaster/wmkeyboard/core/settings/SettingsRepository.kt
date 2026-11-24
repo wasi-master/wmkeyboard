@@ -9218,6 +9218,12 @@ data class ClipboardSettings(
      * the packed grid, by default.
      */
     val gridRows: Boolean = false,
+    /**
+     * A clip deleted from the packed grid leaves a box of its height saying
+     * Deleted until the panel closes or the view changes (#612, #1354), so no
+     * card around it moves. Off by default: the clips after it close up.
+     */
+    val keepDeletedPlaces: Boolean = false,
     /** The time each clip shows: none, when it was copied, or when it expires. */
     val timeLabel: ClipTimeLabel = ClipTimeLabel.OFF,
     /**
@@ -13837,6 +13843,7 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_PREVIEW_LINES = intPreferencesKey("clipboard_preview_lines")
         private val CLIPBOARD_GRID_COLUMNS = intPreferencesKey("clipboard_grid_columns")
         private val CLIPBOARD_GRID_ROWS = booleanPreferencesKey("clipboard_grid_rows")
+        private val CLIPBOARD_KEEP_DELETED_PLACES = booleanPreferencesKey("clipboard_keep_deleted_places")
         private val CLIPBOARD_TIME_LABEL = stringPreferencesKey("clipboard_time_label")
         private val CLIPBOARD_MAX_TEXT_CHARS = intPreferencesKey("clipboard_max_text_chars")
         private val CLIPBOARD_CLEAR_BUTTON = booleanPreferencesKey("clipboard_clear_button")
@@ -16174,6 +16181,7 @@ class SettingsRepository(private val context: Context) {
             gridColumns = p[CLIPBOARD_GRID_COLUMNS]?.coerceIn(ClipGridColumnsRange)
                 ?: defaults.clipboard.gridColumns,
             gridRows = p[CLIPBOARD_GRID_ROWS] ?: defaults.clipboard.gridRows,
+            keepDeletedPlaces = p[CLIPBOARD_KEEP_DELETED_PLACES] ?: defaults.clipboard.keepDeletedPlaces,
             timeLabel = p[CLIPBOARD_TIME_LABEL]
                 ?.let { runCatching { ClipTimeLabel.valueOf(it) }.getOrNull() }
                 ?: defaults.clipboard.timeLabel,
@@ -26713,6 +26721,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardGridRows(value: Boolean) =
         editPrefs { it[CLIPBOARD_GRID_ROWS] = value }
+
+    suspend fun setClipboardKeepDeletedPlaces(value: Boolean) =
+        editPrefs { it[CLIPBOARD_KEEP_DELETED_PLACES] = value }
 
     suspend fun setClipboardTimeLabel(value: ClipTimeLabel) =
         editPrefs { it[CLIPBOARD_TIME_LABEL] = value.name }

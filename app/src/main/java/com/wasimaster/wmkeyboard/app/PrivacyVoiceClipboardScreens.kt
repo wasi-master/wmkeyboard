@@ -859,6 +859,7 @@ internal fun ClipboardSettings(
     val swipeToDelete = settings.watch { it.clipboard.swipeToDelete }
     val clipSearch = settings.watch { it.clipboard.search }
     val clipView = settings.watch { it.clipboard.view }
+    val clipRows = settings.watch { it.clipboard.gridRows }
     // The slider readouts are plain lambdas, so their format strings are
     // resolved here and captured. The format also puts the number through the
     // locale, which is what gives Bengali or Arabic digits.
@@ -982,6 +983,15 @@ internal fun ClipboardSettings(
                 info = stringResource(R.string.clipboard_grid_rows_info),
                 default = SettingsDefaults.clipboard.gridRows,
             ) { scope.launch { repository.setClipboardGridRows(it) } }
+        }
+        item(visible = clipView == ClipboardView.GRID && !clipRows) {
+            ToggleSetting(
+                R.string.clipboard_keep_deleted_places_title,
+                stringResource(R.string.clipboard_keep_deleted_places_subtitle),
+                settings.watch { it.clipboard.keepDeletedPlaces },
+                info = stringResource(R.string.clipboard_keep_deleted_places_info),
+                default = SettingsDefaults.clipboard.keepDeletedPlaces,
+            ) { scope.launch { repository.setClipboardKeepDeletedPlaces(it) } }
         }
         item {
             val auto = stringResource(R.string.clipboard_lines_auto)

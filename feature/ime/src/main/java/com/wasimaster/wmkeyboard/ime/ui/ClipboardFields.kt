@@ -936,9 +936,13 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     val gridMemory = remember(active, tab.value, query, oldest.value, searching, tabbed, folders.isEmpty()) { ClipGridMemory() }
     val live = remember(state.clipboardItems) { state.clipboardItems.mapTo(HashSet()) { it.id } }
     // In rows (#1354) a delete reflows only the clips after it, so nothing
-    // above moves and no slot is needed; the slots are for the packed grid.
+    // above moves and no slot is needed; the slots are for the packed grid,
+    // and only when asked for: by default a deleted card goes and the clips
+    // after it slide up into its place.
     val inRows = state.settings.clipboard.gridRows && state.settings.clipboard.view != ClipboardView.LIST
-    val gridItems = if (inRows) shownItems else withDeletedSlots(gridMemory.drawn, shownItems, live)
+    val keepPlaces = state.settings.clipboard.keepDeletedPlaces && !inRows &&
+        state.settings.clipboard.view == ClipboardView.GRID
+    val gridItems = if (keepPlaces) withDeletedSlots(gridMemory.drawn, shownItems, live) else shownItems
     androidx.compose.runtime.SideEffect { gridMemory.drawn = gridItems }
     val emptySlots = if (gridItems === shownItems) emptySet() else gridItems.mapNotNullTo(HashSet()) { it.id.takeIf { id -> id !in live } }
     // A picked clip that has gone, by a delete or its timer, is no longer picked.
