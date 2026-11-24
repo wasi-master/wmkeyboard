@@ -140,6 +140,10 @@ internal fun WelcomePage(
         restored && !setup.ready -> CaptionText(stringResource(R.string.onboarding_restored_info))
         !setup.ready -> CaptionText(stringResource(R.string.onboarding_welcome_required))
     }
+    // Said before anything else is asked: a keyboard whose settings mention
+    // AI, voice models and API keys reads as one that cannot type without
+    // them, and a store review asked exactly that.
+    OnboardingNotice(stringResource(R.string.onboarding_welcome_offline_info))
     if (canRestore) RestoreBackupButton(repository, onRestored)
 }
 
