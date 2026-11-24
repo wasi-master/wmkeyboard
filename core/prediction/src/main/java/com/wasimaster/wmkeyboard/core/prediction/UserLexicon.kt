@@ -114,18 +114,30 @@ class UserLexicon(private val storageFile: File?) {
      * learn-after threshold ([isEstablished]), and compaction evicts it last.
      * With [caseEvidence] its spelling is settled outright, and [pinCase]
      * keeps it past every later vote (#100).
+     *
+     * [langId] is the language the word was added while typing, from the
+     * keyboard's own Add. A word with no language yet is filed under it, as
+     * [setLanguage] files it, so an Arabic word added on the Arabic keyboard
+     * stays Arabic instead of joining every language's list, English's
+     * included. A word already filed somewhere keeps its place, and a blank
+     * [langId] (the settings screen, an import) leaves it under every
+     * language as before.
      */
     fun addWord(
         word: String,
         boost: Int = 1,
         caseEvidence: Boolean = true,
         pinCase: Boolean = caseEvidence,
+        langId: String = "",
     ) {
         val trimmed = word.trim()
         val key = WordKey.of(trimmed)
         if (key.isEmpty() || key.length > MAX_WORD_LENGTH || boost <= 0) return
         val surface = WordKey.surface(trimmed).takeIf { WordKey.of(it) == key }
         PredictionNative.lexAddWord(native, key, caseEvidence, surface, boost, pinCase)
+        if (langId.isNotBlank() && PredictionNative.lexLanguageOf(native, key) == null) {
+            PredictionNative.lexSetLanguage(native, key, langId)
+        }
     }
 
     /** Whether the user put [word] in themselves (#164); see [addWord]. */

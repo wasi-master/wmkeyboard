@@ -25311,7 +25311,9 @@ open class WMKeyboardService : InputMethodService() {
         // Answered by hand, so the commit that finishes the word adds nothing
         // to it — see [handAddedWord] (#115).
         handAddedWord = WordKey.of(word)
-        userLexicon.addWord(spelling, caseEvidence = trusted)
+        // Filed under the language being typed, so a word added on the Arabic
+        // keyboard is not offered as an English one too.
+        userLexicon.addWord(spelling, caseEvidence = trusted, langId = learnLanguageId(word, _uiState.value))
         if (_uiState.value.settings.addWordsToSystemDictionary) {
             serviceScope.launch(Dispatchers.IO) {
                 SystemUserDictionary.add(applicationContext, spelling)
@@ -59823,7 +59825,7 @@ open class WMKeyboardService : InputMethodService() {
         // this same answer, not a use to be counted on top of it (#115). A
         // selected word has no space coming.
         if (composing) handAddedWord = WordKey.of(word)
-        userLexicon.addWord(word, caseEvidence = true)
+        userLexicon.addWord(word, caseEvidence = true, langId = learnLanguageId(word, _uiState.value))
         val state = _uiState.value
         if (state.settings.suggestionSources.blacklistedAnywhere(word)) {
             serviceScope.launch { settingsRepository.removeSuggestionBlacklistWordEverywhere(word) }
