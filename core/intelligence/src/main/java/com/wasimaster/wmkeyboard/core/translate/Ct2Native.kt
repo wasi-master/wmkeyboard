@@ -70,4 +70,11 @@ object Ct2Native {
      * both FLORES-200 codes (`ben_Beng`), in order. [beam] 1 is greedy search.
      */
     external fun nativeTranslate(handle: Long, texts: Array<ByteArray>, source: String, target: String, beam: Int): Array<ByteArray>
+
+    /**
+     * For a T5 model such as MADLAD-400, which WM Translate runs on this library: [prefix]
+     * (`<2de>`) before each text, decoding from the model's own start token over the whole
+     * vocabulary. The keyboard does not call it.
+     */
+    external fun nativeTranslatePrefixed(handle: Long, texts: Array<ByteArray>, prefix: String, beam: Int): Array<ByteArray>
 }

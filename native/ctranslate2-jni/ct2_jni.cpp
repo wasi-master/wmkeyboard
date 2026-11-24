@@ -270,15 +270,20 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM*, void*) {
     return JNI_VERSION_1_6;
 }
 
-// modelDir holds CTranslate2's model.bin, config.json and
-// shared_vocabulary.txt plus NLLB's sentencepiece.bpe.model. threads is how
-// many cores one translation may use.
+// modelDir holds CTranslate2's model.bin, config.json and its shared
+// vocabulary, plus the SentencePiece model under the name its conversion
+// gave it: NLLB's sentencepiece.bpe.model, or T5's spiece.model (MADLAD-400).
+// threads is how many cores one translation may use.
 JNIEXPORT jlong JNICALL
 Java_com_wasimaster_wmkeyboard_core_translate_Ct2Native_nativeLoad(JNIEnv* env, jobject, jstring modelDir, jint threads) {
     try {
         const std::string dir = string(env, modelDir);
         auto loaded = std::make_unique<Engine>();
-        const auto status = loaded->pieces.Load(dir + "/sentencepiece.bpe.model");
+        auto status = loaded->pieces.Load(dir + "/sentencepiece.bpe.model");
+        for (const char* other : {"/spiece.model", "/sentencepiece.model"}) {
+            if (status.ok()) break;
+            status = loaded->pieces.Load(dir + other);
+        }
         if (!status.ok()) throw std::runtime_error(status.ToString());
         ctranslate2::ReplicaPoolConfig config;
         config.num_threads_per_replica = static_cast<size_t>(std::max(1, static_cast<int>(threads)));
@@ -347,6 +352,53 @@ Java_com_wasimaster_wmkeyboard_core_translate_Ct2Native_nativeTranslate(
         throwJava(env, e.what());
     } catch (...) {
         throwJava(env, "NLLB translation failed");
+    }
+    return nullptr;
+}
+
+// For a model told the target on the source side and decoding from its own
+// start token, as T5 models like MADLAD-400 are: each of texts becomes
+// [prefix] + SentencePiece pieces + "</s>", and the whole vocabulary is
+// scored. beam 1 is greedy search.
+JNIEXPORT jobjectArray JNICALL
+Java_com_wasimaster_wmkeyboard_core_translate_Ct2Native_nativeTranslatePrefixed(
+        JNIEnv* env, jobject, jlong handle, jobjectArray texts, jstring prefixTag, jint beam) {
+    try {
+        Engine* e = engine(handle);
+        const std::string prefix = string(env, prefixTag);
+        const std::vector<std::string> inputs = utf8(env, texts);
+        std::vector<std::vector<std::string>> batch;
+        size_t longest = 0;
+        batch.reserve(inputs.size());
+        for (const std::string& text : inputs) {
+            std::vector<std::string> tokens{prefix};
+            std::vector<std::string> pieces;
+            const auto status = e->pieces.Encode(text, &pieces);
+            if (!status.ok()) throw std::runtime_error(status.ToString());
+            tokens.insert(tokens.end(), pieces.begin(), pieces.end());
+            tokens.push_back("</s>");
+            longest = std::max(longest, tokens.size());
+            batch.push_back(std::move(tokens));
+        }
+        ctranslate2::TranslationOptions options;
+        options.beam_size = static_cast<size_t>(std::max(1, static_cast<int>(beam)));
+        options.max_decoding_length = std::min(kMaxDecoding, longest * 2 + 10);
+        const auto results = e->translator->translate_batch(batch, options);
+        std::vector<std::string> out;
+        out.reserve(results.size());
+        for (const auto& result : results) {
+            std::string text;
+            if (!result.hypotheses.empty()) {
+                const auto status = e->pieces.Decode(result.hypotheses[0], &text);
+                if (!status.ok()) throw std::runtime_error(status.ToString());
+            }
+            out.push_back(std::move(text));
+        }
+        return toJava(env, out);
+    } catch (const std::exception& e) {
+        throwJava(env, e.what());
+    } catch (...) {
+        throwJava(env, "Translation failed");
     }
     return nullptr;
 }
