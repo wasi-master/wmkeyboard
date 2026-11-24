@@ -458,6 +458,7 @@ object AssetLayouts {
     const val AS_INSCRIPT_ID = "asset_as_inscript"
     const val BEM_QWERTY_ID = "asset_bem_qwerty"
     const val BG_BDS_ID = "asset_bg_bds"
+    const val BG_BEKL_ID = "asset_bg_bekl"
     const val BN_BAISHAKHI_ID = "asset_bn_baishakhi"
     const val BN_BORNONA_ID = "asset_bn_bornona"
     const val BN_INSCRIPT_ID = "asset_bn_inscript"

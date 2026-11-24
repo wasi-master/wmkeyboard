@@ -380,6 +380,7 @@ object LanguageRegistry {
             layoutIds = listOf(
                 AssetLayouts.BG_PHONETIC_ID,
                 AssetLayouts.BG_BDS_ID,
+                AssetLayouts.BG_BEKL_ID,
                 AssetLayouts.BG_DVORAK_ID,
                 AssetLayouts.BG_T9_ID,
             ),
