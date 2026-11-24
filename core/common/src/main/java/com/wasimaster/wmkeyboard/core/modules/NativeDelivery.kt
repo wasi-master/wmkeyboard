@@ -45,7 +45,7 @@ object NativeDelivery {
     private const val TAG = "NativeDelivery"
 
     /** The libraries [preload] also hands to `System.load`: checked to carry no JNI_OnLoad. */
-    private val REGISTERED_WITH_ART = setOf("tensorflowlite_jni", "litertlm_jni")
+    private val REGISTERED_WITH_ART = setOf("tensorflowlite_jni", "litertlm_jni", "digitalink")
 
     @Volatile
     var active: Boolean = false
@@ -145,12 +145,12 @@ object NativeDelivery {
             }
             // Registered with ART as well, so the dependency's native methods
             // resolve whatever its own System.loadLibrary finds. The class
-            // loader's search also walks /system/lib64, and a phone that ships
-            // a libtensorflowlite_jni.so of its own (Samsung) hands LiteRT that
-            // path, which the app may not open: the soname lookup the dlopen
-            // above sets up is never asked, and LiteRT failed to load (#994).
-            // Only libraries with no JNI_OnLoad, which a second load by another
-            // name would run twice.
+            // loader's search also walks /system/lib64, and a device that ships
+            // its own copy there (Samsung's libtensorflowlite_jni.so in #994,
+            // BOOX's libdigitalink.so) hands the library that path, which the
+            // app may not open: the soname lookup the dlopen above sets up is
+            // never asked, and loading fails. Only libraries with no
+            // JNI_OnLoad, which a second load by another name would run twice.
             if (name in REGISTERED_WITH_ART) {
                 runCatching { System.load(file.path) }
                     .onFailure { DebugLog.w(TAG, "System.load lib$name.so failed: $it") }
