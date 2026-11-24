@@ -10,10 +10,6 @@
     <!-- Shown under the setup card while the keyboard is not yet turned on and
          selected. The Next button waits for both. -->
     <string name="onboarding_welcome_required">Press Skip at the top to do this later.</string>
-    <!-- Notice on the welcome page, under the setup card. Answers the worry
-         that the keyboard needs the internet, a large download or an API key
-         before it can type. -->
-    <string name="onboarding_welcome_offline_info">Typing works offline. You do not have to download or set up anything first. AI tools, voice models and API keys are optional, and you can add them later.</string>
     <!-- The welcome page's restore button, and the line under it. A restore
          skips the rest of the wizard. -->
     <string name="onboarding_restore_action">Restore a backup</string>
@@ -164,10 +160,10 @@
     <string name="onboarding_discover_fancy_pitch">Write in script, bubble, bold and more styles that work in any app.</string>
     <string name="onboarding_discover_ai_title">AI writing tools</string>
     <string name="onboarding_discover_ai_pitch">Rewrite, translate or chat with an AI, right from the keyboard.</string>
-    <string name="onboarding_discover_ai_hint">Optional. Use a model on the phone or your own API key. Set it up later in Tools, then AI.</string>
+    <string name="onboarding_discover_ai_hint">Bring your own API key. Finish setup later in Tools, then AI.</string>
     <string name="onboarding_discover_whisper_title">Offline dictation</string>
     <string name="onboarding_discover_whisper_pitch">Voice typing that runs fully on the phone. No internet needed.</string>
-    <string name="onboarding_discover_whisper_hint">Optional. Download a model later in the voice tool’s settings.</string>
+    <string name="onboarding_discover_whisper_hint">Download a model in the voice tool’s settings.</string>
     <string name="onboarding_discover_modes_title">Per-app keyboards</string>
     <string name="onboarding_discover_modes_pitch">A different keyboard for each app: its own layout, theme and tools.</string>
     <string name="onboarding_discover_modes_hint">Build them in Settings, then Modes.</string>

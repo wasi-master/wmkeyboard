@@ -283,8 +283,12 @@
 -dontwarn javax.naming.**
 -dontwarn org.bouncycastle.jsse.**
 
-# PairDrop: libjingle calls back into these by name.
+# PairDrop: libjingle calls back into these by name. That includes jni_zero's
+# JniInit, whose private init() nothing in Java calls: without the rule R8
+# drops the class, the library's FindClass fails and aborts the process the
+# first time the Send files panel starts PairDrop with the library installed.
 -keep class org.webrtc.** { *; }
+-keep class org.jni_zero.** { *; }
 
 # Korean spacing: libKiwiJava binds to these classes and their fields by name.
 -keep class kr.pe.bab2min.** { *; }
