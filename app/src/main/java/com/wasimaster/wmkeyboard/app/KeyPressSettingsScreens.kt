@@ -1051,6 +1051,15 @@ internal fun KeyPressDeleteSettings(
         }
         item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
+                R.string.typing_shift_backspace_forward_title,
+                stringResource(R.string.typing_shift_backspace_forward_subtitle),
+                settings.watch { it.textEditing.shiftBackspaceForwardDelete },
+                info = stringResource(R.string.typing_shift_backspace_forward_info),
+                default = SettingsDefaults.textEditing.shiftBackspaceForwardDelete,
+            ) { scope.launch { repository.setShiftBackspaceForwardDelete(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
                 R.string.typing_modifier_drag_title,
                 stringResource(R.string.typing_modifier_drag_subtitle),
                 settings.watch { it.layoutBehavior.modifierDrag },

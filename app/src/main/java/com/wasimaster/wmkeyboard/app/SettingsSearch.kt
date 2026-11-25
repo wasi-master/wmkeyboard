@@ -946,6 +946,7 @@ private fun SearchStrings.keypressDeleteRows(): List<SettingsSearchEntry> {
         row(R.string.typing_backspace_lines_up_title, R.string.typing_backspace_lines_up_subtitle),
         row(R.string.typing_backspace_lines_down_title, R.string.typing_backspace_lines_down_subtitle),
         row(R.string.typing_forward_delete_swipe_title, R.string.typing_forward_delete_swipe_subtitle),
+        row(R.string.typing_shift_backspace_forward_title, R.string.typing_shift_backspace_forward_subtitle),
         row(R.string.typing_modifier_drag_title, R.string.typing_modifier_drag_subtitle),
         row(R.string.typing_web_backspace_key_title, R.string.typing_web_backspace_key_subtitle),
     )

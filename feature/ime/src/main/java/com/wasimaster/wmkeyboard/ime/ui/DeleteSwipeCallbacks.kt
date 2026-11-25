@@ -60,6 +60,12 @@ class DeleteSwipeCallbacks(
     val onCommit: () -> Unit = {},
     /** The gesture ended with nothing selected: drop the preview, delete nothing. */
     val onCancel: () -> Unit = {},
+    /**
+     * Asked as backspace goes down, with Shift + Backspace on (#1524): true
+     * when a shift the user put up turns this press into a forward delete,
+     * and that shift is then spent on it. False leaves the press a backspace.
+     */
+    val onShiftForward: () -> Boolean = { false },
 )
 
 /**

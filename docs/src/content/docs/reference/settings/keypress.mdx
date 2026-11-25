@@ -152,6 +152,7 @@ A decoration: what you type floats up out of the keyboard and fades. **Correctio
 | Swipe up deletes lines | Toggle | On | Swipe up or down to delete lines on |
 | Swipe down deletes lines | Toggle | On | Swipe up or down to delete lines on |
 | Swipe on forward delete | Toggle | On | always |
+| Shift + Backspace deletes forward | Toggle | Off | always |
 | Drag from Shift and Ctrl | Toggle | On | always |
 | Backspace as a key press on web pages | Toggle | On | always |
 
@@ -162,6 +163,8 @@ A leftward drag on <KeyCap>⌫</KeyCap> deletes more than the one character a pr
 **Swipe up or down to delete lines** makes a swipe up on <KeyCap>⌫</KeyCap> delete back to the start of the line, or the whole line above when the cursor is at a line's start, and a swipe down delete to the end of the line, then the line below. Held out, it repeats a line at a time, at four times the **Word delete interval** (0.4 seconds at the fastest). **Swipe up deletes lines** and **Swipe down deletes lines** turn either direction off on its own. **Swipe up to clear all** keeps the swipe up when both are on.
 
 **Swipe on forward delete** gives <KeyCap>⌦</KeyCap> the same drag pointed the other way: rightward, over the text after the cursor. It has its own on/off switch and then borrows every other row above, so the two delete keys cannot end up tuned differently. No built-in layout carries a <KeyCap>⌦</KeyCap> key; add one in the [layout editor](/languages/custom-layouts/). Full writeup: [Gestures](/typing/gestures/#deleting-more-than-a-character-with-backspace). This group moved here from the [Typing](/reference/settings/typing/) screen: what a key does under a swipe is a key-press matter.
+
+**Shift + Backspace deletes forward** (since 0.6.8) turns a <KeyCap>⌫</KeyCap> pressed after you tap Shift into a forward delete: a tap takes the character after the cursor, and a hold keeps deleting forward until you lift. The press uses the Shift up, so the next <KeyCap>⌫</KeyCap> goes back as usual. Only a Shift you tapped counts; caps lock, and the capital the keyboard turns on at the start of a sentence, leave <KeyCap>⌫</KeyCap> alone.
 
 **Backspace as a key press on web pages** sends <KeyCap>⌫</KeyCap> to a text box on a web page, in a browser or inside an app, the way a physical keyboard sends it instead of deleting the text directly. Code editors on a page, such as Violentmonkey's script editor, only delete when they see that key press and put back text deleted any other way. The browser then decides how much one press removes. A language set to delete whole conjuncts keeps the direct delete. Turn it off if backspace misbehaves on a site.
 

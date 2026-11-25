@@ -8137,6 +8137,13 @@ data class TextEditingSettings(
      */
     val forwardDeleteSwipe: Boolean = true,
     /**
+     * Backspace pressed under a one-shot shift the user put up deletes
+     * forward instead, tap and hold alike, and spends the shift (#1524). Off
+     * by default: a shift left up by mistake would otherwise turn the next
+     * backspace round.
+     */
+    val shiftBackspaceForwardDelete: Boolean = false,
+    /**
      * Swiping up on backspace clears the whole field: it selects everything
      * first, deletes it on the lift, and gives it back if the finger comes
      * back down before lifting.
@@ -14430,6 +14437,7 @@ class SettingsRepository(private val context: Context) {
         private val BACKSPACE_CHAR_STEP_DP = intPreferencesKey("backspace_char_step_dp")
         private val DELETE_HOLD_DELETES_WORDS = booleanPreferencesKey("delete_hold_deletes_words")
         private val FORWARD_DELETE_SWIPE = booleanPreferencesKey("forward_delete_swipe")
+        private val SHIFT_BACKSPACE_FORWARD_DELETE = booleanPreferencesKey("shift_backspace_forward_delete")
         private val BACKSPACE_SWIPE_UP_CLEARS = booleanPreferencesKey("backspace_swipe_up_clears")
         private val BACKSPACE_SWIPE_LINES = booleanPreferencesKey("backspace_swipe_lines")
         private val BACKSPACE_SWIPE_LINES_UP = booleanPreferencesKey("backspace_swipe_lines_up")
@@ -17424,6 +17432,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.textEditing.deleteWordWholeAddresses,
             forwardDeleteSwipe = p[FORWARD_DELETE_SWIPE]
                 ?: defaults.textEditing.forwardDeleteSwipe,
+            shiftBackspaceForwardDelete = p[SHIFT_BACKSPACE_FORWARD_DELETE]
+                ?: defaults.textEditing.shiftBackspaceForwardDelete,
             backspaceSwipeUpClears = p[BACKSPACE_SWIPE_UP_CLEARS]
                 ?: defaults.textEditing.backspaceSwipeUpClears,
             deleteLineSwipes = p[BACKSPACE_SWIPE_LINES]
@@ -19546,6 +19556,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setForwardDeleteSwipe(value: Boolean) =
         editPrefs { it[FORWARD_DELETE_SWIPE] = value }
+
+    suspend fun setShiftBackspaceForwardDelete(value: Boolean) =
+        editPrefs { it[SHIFT_BACKSPACE_FORWARD_DELETE] = value }
 
     suspend fun setBackspaceSwipeUpClears(value: Boolean) =
         editPrefs { it[BACKSPACE_SWIPE_UP_CLEARS] = value }

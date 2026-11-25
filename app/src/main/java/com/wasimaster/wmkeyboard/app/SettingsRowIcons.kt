@@ -1439,6 +1439,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_backspace_lines_up_title) { Icons.Outlined.DeleteSweep }
         put(R.string.typing_backspace_lines_down_title) { Icons.Outlined.DeleteSweep }
         put(R.string.typing_forward_delete_swipe_title) { Icons.Outlined.KeyboardTab }
+        put(R.string.typing_shift_backspace_forward_title) { Icons.Outlined.KeyboardTab }
         put(R.string.typing_web_backspace_key_title) { Icons.Outlined.Public }
         put(R.string.typing_backspace_step_title) { Icons.AutoMirrored.Outlined.Backspace }
         put(R.string.typing_backspace_char_step_title) { Icons.Outlined.Speed }

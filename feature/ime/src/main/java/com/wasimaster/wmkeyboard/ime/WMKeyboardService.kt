@@ -20659,6 +20659,21 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * Shift + Backspace (#1524), asked as backspace goes down: true, and the
+     * shift is spent, when the user put a one-shot shift up and the setting
+     * is on, which makes the press a forward delete. Not under caps lock,
+     * where every backspace would go forward, and not for a shift that
+     * auto-capitalize put up at a sentence start, which nobody pressed.
+     */
+    fun onDeleteShiftForward(): Boolean {
+        val state = _uiState.value
+        if (!state.settings.textEditing.shiftBackspaceForwardDelete) return false
+        if (state.shiftState != ShiftState.ON || !state.shiftPressedByUser) return false
+        consumeShift()
+        return true
+    }
+
+    /**
      * One tick of a held delete key that clears words (issue #216): a word at
      * the word stops, an address included, never a whole address in one go
      * (#1296), as the tick comes on a timer rather than a finger's say-so.
@@ -45413,6 +45428,7 @@ open class WMKeyboardService : InputMethodService() {
             onSelectLines = ::onDeleteSwipeSelectLines,
             onCommit = ::onDeleteSwipeCommit,
             onCancel = ::onDeleteSwipeCancel,
+            onShiftForward = ::onDeleteShiftForward,
         )
     }
 

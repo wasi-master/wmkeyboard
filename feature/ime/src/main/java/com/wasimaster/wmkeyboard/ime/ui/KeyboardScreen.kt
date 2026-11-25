@@ -34319,6 +34319,9 @@ private fun Modifier.pointerInputKey(
         (key.action.deletesBackward() && backspaceSwipeDelete) ||
         (key.action.deletesBackward() && textEditing.backspaceSwipeUpClears) ||
         (key.action.deletesBackward() && textEditing.deleteLineSwipes) ||
+        // Shift + Backspace deletes forward (#1524): decided per press, which
+        // only this machine knows the start and end of.
+        (key.action.deletesBackward() && textEditing.shiftBackspaceForwardDelete) ||
         (key.action.deletesForward() && textEditing.forwardDeleteSwipe) ||
         // A delete key given flick arms (#769) runs this machine too, swipe
         // or no swipe: the arms live in it, beside the repeat.
@@ -34416,6 +34419,14 @@ private fun Modifier.pointerInputKey(
                 val down = awaitFirstDown()
                 setPressed(true)
                 onKeyPress()
+                // Backspace pressed under a shift the user put up deletes
+                // forward instead (#1524): its tap is a forward delete and its
+                // hold repeats one. Asked once, at the down, as the shift goes
+                // with the press: a hold's later ticks keep going forward
+                // after the field has moved on from it.
+                val shiftForward = !forward && textEditing.shiftBackspaceForwardDelete &&
+                    deleteSwipe.onShiftForward()
+                val pressKey = if (shiftForward) key.copy(action = KeyAction.ForwardDelete) else key
                 var swiping = false
                 // An upward swipe, and whether the whole field is selected for it.
                 var clearing = false
@@ -34446,12 +34457,12 @@ private fun Modifier.pointerInputKey(
                 val repeat = scope.launch {
                     delay(keyRepeat.startDelayMs.toLong())
                     longPressFired = true
-                    while (canDeleteHere()) {
+                    while (if (shiftForward) canForwardDelete() else canDeleteHere()) {
                         repeatFeedback(vibrateOnRepeat, soundOnRepeat, onKeyPress, onKeySound, onKeyHaptic)
                         // Through the swipe's own delete rather than the key's:
                         // a word clear is the swipe's one-step call, and going
                         // by the key would repeat a single character.
-                        if (holdWords) deleteSwipe.onHoldWord(forward) else onKeyRepeat(key)
+                        if (holdWords) deleteSwipe.onHoldWord(forward || shiftForward) else onKeyRepeat(pressKey)
                         delay(repeatMs)
                     }
                 }
@@ -34688,7 +34699,7 @@ private fun Modifier.pointerInputKey(
                     swiping && previewing -> deleteSwipe.onCancel()
                     // The swipe already did the deleting.
                     swiping -> Unit
-                    !longPressFired -> onKey(key)
+                    !longPressFired -> onKey(pressKey)
                     hapticOnLongPressRelease -> onKeyPress()
                 }
             }

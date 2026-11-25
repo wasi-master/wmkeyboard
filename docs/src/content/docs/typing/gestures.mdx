@@ -274,6 +274,8 @@ The words come off exactly as a swipe step takes them, so the whitespace next to
 
 <KeyCap>⌦</KeyCap> is not on any built-in typing layout. Add one to a row, to a key's press-and-hold alternates, or to the [text-editing pad](/tools/text-editing/) in the [layout editor](/languages/custom-layouts/), and it gets the same three gestures backspace has, each pointed the other way: a press deletes the character *after* the cursor, a hold repeats, and **Swipe on forward delete** (on by default) lets a rightward drag take whole words or characters ahead of the cursor.
 
+Without a <KeyCap>⌦</KeyCap> key, turn on **Shift + Backspace deletes forward** (off by default, since 0.6.8) under Key press › Delete keys. Then tap Shift and press <KeyCap>⌫</KeyCap>, and it deletes the character after the cursor instead; hold it and it goes on deleting forward. The Shift is used up by that press. Caps lock and a capital the keyboard turned on by itself don't count, so <KeyCap>⌫</KeyCap> only turns round when you asked for it.
+
 The finger travels the way the deletion travels, which is the only difference in the gesture. Everything that shapes it is shared with backspace rather than doubled: **Swipe deletes**, **Show what you will delete**, **Word delete distance** and **Character delete distance** all govern both keys, so tuning the pull on one tunes it on the other. **Holding delete clears words** covers <KeyCap>⌦</KeyCap> too, clearing the words after the cursor.
 
 Where you put a delete key does not change what it is. The text-editing pad's own <KeyCap>⌫</KeyCap> and <KeyCap>⌦</KeyCap> are these keys, not a weaker copy of them: the swipe, the preview, the word-clearing hold and the delete repeat interval all apply there exactly as they do on the letters row.
@@ -521,6 +523,7 @@ A printable table of every gesture on one page lives at [Gesture cheat sheet](/r
 | Word delete distance | 72&nbsp;dp (32–120&nbsp;dp) |
 | Character delete distance | 20&nbsp;dp (8–48&nbsp;dp) |
 | Swipe on forward delete | On |
+| Shift + Backspace deletes forward | Off |
 | Holding delete clears words | Off |
 | Word delete interval | 140&nbsp;ms (60–500&nbsp;ms) |
 | Volume keys move the cursor | Off |
