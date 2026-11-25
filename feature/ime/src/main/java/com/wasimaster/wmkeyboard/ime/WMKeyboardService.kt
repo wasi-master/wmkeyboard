@@ -4545,6 +4545,35 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * A text clip copied here, to the copy of the keyboard in the other
+     * profile at once (#1556): only with Send each copy at once on in the
+     * Other profile sync location, and only while the link is up. Without
+     * the link the next sync pass carries the history, as it always did.
+     */
+    private fun pushClipToOtherProfile(state: KeyboardUiState, text: String) {
+        val auto = state.settings.autoBackup
+        if (!auto.sync.enabled || text.isBlank()) return
+        val on = auto.locations.any {
+            it.type == com.wasimaster.wmkeyboard.core.settings.BackupDestination.PROFILE && it.profileClips
+        }
+        if (!on) return
+        serviceScope.launch(Dispatchers.IO) { com.wasimaster.wmkeyboard.core.settings.sink.ProfileLink.sendClip(text) }
+    }
+
+    /**
+     * A clip the copy in the other profile pushed (#1556): into the history
+     * as a copy would go, unless the history is off or held back here. Not
+     * onto the system clipboard, and never sent back.
+     */
+    private fun receiveProfileClip(text: String) {
+        val state = _uiState.value
+        if (!userUnlocked || !state.settings.clipboard.history || clipCapturePaused(state) || text.isBlank()) return
+        clipboardStore.add(text, sourceApp = getString(R.string.ime_clip_from_other_profile)) ?: return
+        saveClipboardSoon()
+        _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
+    }
+
+    /**
      * Whether a copy [clipCapturePaused] holds back only because a password
      * field has focus goes into the history anyway. A password generated for
      * that box is the copy most worth having back, and dropping it left the
@@ -4772,6 +4801,8 @@ open class WMKeyboardService : InputMethodService() {
         // the history too, under every handling: see [forgetClearedSecret].
         clipboardStore.systemClipChanged(added, secret = wipeable)
         if (added != null) ClipboardDiagnostics.onStoredText()
+        // To the copy in the other profile at once, when asked for (#1556).
+        if (added != null && !sensitive) pushClipToOtherProfile(state, added.text)
         saveClipboardSoon()
         _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
         // "Send every copy to the board" (#1201): onto the shared board as well.
@@ -6289,6 +6320,10 @@ open class WMKeyboardService : InputMethodService() {
 
         (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
             .addPrimaryClipChangedListener(clipboardListener)
+        // Clips the copy in the other profile pushes (#1556) land here.
+        com.wasimaster.wmkeyboard.core.settings.sink.ProfileLink.clipReceiver = { text ->
+            serviceScope.launch { receiveProfileClip(text) }
+        }
 
         // A code arriving while the keyboard is up raises its chip live — the
         // field the user is staring at is usually the one the code is for.
@@ -12264,6 +12299,7 @@ open class WMKeyboardService : InputMethodService() {
         ResidentModels.keyboardRelease = null
         (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
             .removePrimaryClipChangedListener(clipboardListener)
+        com.wasimaster.wmkeyboard.core.settings.sink.ProfileLink.clipReceiver = null
         KeyboardClipboard.isPrivate = false
         KeyboardClipboard.onPrivateCopy = null
         if (unlockReceiverRegistered) {

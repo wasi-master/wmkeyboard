@@ -76,6 +76,12 @@ data class BackupLocation(
      * [com.wasimaster.wmkeyboard.core.settings.sink.ProfileCode].
      */
     val profileCode: String = "",
+    /**
+     * [BackupDestination.PROFILE]: every text clip copied here goes to the
+     * copy in the other profile at once, over the link, rather than with the
+     * next sync pass (#1556). Off by default.
+     */
+    val profileClips: Boolean = false,
     val box: BoxConfig = BoxConfig(),
     val pcloud: PCloudConfig = PCloudConfig(),
     /** [BackupDestination.SYNOLOGY] and [BackupDestination.QNAP] both. */
@@ -279,6 +285,7 @@ data class BackupLocation(
                 refreshToken = o.str("refreshToken"),
                 nearbyDeviceId = o.str("nearbyDeviceId"),
                 profileCode = o.str("profileCode"),
+                profileClips = o.str("profileClips") == "true",
                 box = o.serialized("box", BoxConfig.serializer(), BoxConfig()),
                 pcloud = o.serialized("pcloud", PCloudConfig.serializer(), PCloudConfig()),
                 nas = o.serialized("nas", NasConfig.serializer(), NasConfig()),
@@ -442,7 +449,10 @@ data class BackupLocation(
                 BackupDestination.ICLOUD -> put("icloud", sections.encodeToJsonElement(ICloudConfig.serializer(), l.icloud))
                 BackupDestination.PROTON -> put("proton", sections.encodeToJsonElement(ProtonConfig.serializer(), l.proton))
                 BackupDestination.NEARBY -> put("nearbyDeviceId", JsonPrimitive(l.nearbyDeviceId))
-                BackupDestination.PROFILE -> put("profileCode", JsonPrimitive(l.profileCode))
+                BackupDestination.PROFILE -> {
+                    put("profileCode", JsonPrimitive(l.profileCode))
+                    if (l.profileClips) put("profileClips", JsonPrimitive(true))
+                }
                 BackupDestination.DRIVE -> {
                     put("driveSpace", JsonPrimitive(l.driveSpace.id))
                     if (l.driveSpace == DriveSpace.FOLDER) put("driveFolder", JsonPrimitive(l.driveFolder))

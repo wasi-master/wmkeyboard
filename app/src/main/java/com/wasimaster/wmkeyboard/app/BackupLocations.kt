@@ -18,6 +18,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.Switch
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -958,6 +961,24 @@ private fun ProfilePart(draft: BackupLocation, onChange: (BackupLocation) -> Uni
             pasteFailed = pasted == null
             if (pasted != null) onChange(draft.copy(profileCode = ProfileCode.format(pasted)))
         }) { Text(stringResource(R.string.backup_profile_paste)) }
+    }
+    // Each copy at once (#1556), rather than with the next sync pass.
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .toggleable(value = draft.profileClips, role = Role.Switch) { onChange(draft.copy(profileClips = it)) }
+            .padding(horizontal = 20.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(stringResource(R.string.backup_profile_clips_title), style = MaterialTheme.typography.bodyLarge)
+            Text(
+                stringResource(R.string.backup_profile_clips_subtitle),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Switch(checked = draft.profileClips, onCheckedChange = null)
     }
     if (code != null) {
         Text(

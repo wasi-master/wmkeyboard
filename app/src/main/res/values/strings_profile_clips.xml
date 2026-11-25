@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Other profile (#1556): each copy goes to the other profile at once. -->
+    <string name="backup_profile_clips_title">Send each copy at once</string>
+    <string name="backup_profile_clips_subtitle">Every text you copy here goes into the clipboard of WM Keyboard in the other profile right away, while the two are linked. Passwords and other hidden clips never go. Without it, clips go with the next sync, when Clipboard is ticked under What syncs.</string>
+</resources>

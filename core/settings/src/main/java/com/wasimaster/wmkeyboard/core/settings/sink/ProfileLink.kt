@@ -275,6 +275,8 @@ class ProfileLinkEngine(
     private val onArrived: suspend () -> Unit,
     private val onLinked: (Boolean) -> Unit = {},
     private val log: (String, Throwable?) -> Unit = { _, _ -> },
+    /** A text clip the other copy pushed (#1556), straight from the link. */
+    private val onClip: (String) -> Unit = {},
 ) {
     private val key = ProfileCode.key(code)
     private val port = ProfileCode.port(code)
@@ -325,6 +327,20 @@ class ProfileLinkEngine(
     /** Sends this copy's sync file to every copy linked now. A file still waiting to go is replaced. */
     fun send(name: String, bytes: ByteArray) {
         sessions.forEach { it.offer(name, bytes) }
+    }
+
+    /**
+     * One text clip to every copy linked now (#1556), as its own message
+     * beside the sync files: queued in order, never in place of a file. A
+     * copy of an older build reads the name as no sync file of its own and
+     * leaves it. Returns whether a copy was linked to take it.
+     */
+    fun sendClip(text: String): Boolean {
+        val bytes = text.toByteArray(Charsets.UTF_8)
+        if (bytes.size > ProfileWire.MAX_FILE) return false
+        val linkedNow = sessions.toList()
+        linkedNow.forEach { it.offerClip(bytes) }
+        return linkedNow.isNotEmpty()
     }
 
     /** Tries to link now rather than when the current wait ends. */
@@ -439,6 +455,7 @@ class ProfileLinkEngine(
             ownFile()?.let { (name, bytes) -> session.offer(name, bytes) }
             coroutineScope {
                 launch { session.drain() }
+                launch { session.drainClips() }
                 session.read { name, bytes -> arrive(name, bytes) }
                 // Closed first: a write still in flight to a frozen peer
                 // would otherwise hold this scope open for good.
@@ -462,6 +479,12 @@ class ProfileLinkEngine(
 
     /** The other copy's file: into the mailbox in place of its older ones, then a pass. */
     private fun arrive(name: String, bytes: ByteArray) {
+        // A clip the other copy pushed (#1556): text for its clipboard, never a file.
+        if (name == CLIP_MESSAGE) {
+            runCatching { onClip(bytes.toString(Charsets.UTF_8)) }
+                .onFailure { log("profile link: could not take a clip", it) }
+            return
+        }
         // A sync file's own name only: nothing that walks out of the mailbox,
         // and nothing that would replace this copy's own file.
         if (name.contains('/') || name.contains('\\') || name.contains("..") || !SyncNaming.isOurs(name)) return
@@ -488,8 +511,29 @@ class ProfileLinkEngine(
     private class Session(private val socket: Socket, private val wire: ProfileWire.Link) {
         private val outbox = Channel<Pair<String, ByteArray>>(Channel.CONFLATED)
 
+        /** Clips pushed one by one (#1556): every one in order, the oldest dropped past [CLIP_QUEUE]. */
+        private val clipbox = Channel<ByteArray>(CLIP_QUEUE, kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST)
+
+        /** The wire takes one frame at a time; the file and the clip senders take turns. */
+        private val sending = Any()
+
         fun offer(name: String, bytes: ByteArray) {
             outbox.trySend(name to bytes)
+        }
+
+        fun offerClip(bytes: ByteArray) {
+            clipbox.trySend(bytes)
+        }
+
+        suspend fun drainClips() {
+            for (bytes in clipbox) {
+                try {
+                    synchronized(sending) { wire.send(CLIP_MESSAGE, bytes) }
+                } catch (e: Exception) {
+                    close()
+                    return
+                }
+            }
         }
 
         suspend fun drain() {
@@ -498,7 +542,7 @@ class ProfileLinkEngine(
                 // it, which would only send it again on the next one.
                 if (bytes.size > ProfileWire.MAX_FILE) continue
                 try {
-                    wire.send(name, bytes)
+                    synchronized(sending) { wire.send(name, bytes) }
                 } catch (e: Exception) {
                     // Gone: the link ends here, and the next one sends the
                     // file again.
@@ -524,6 +568,7 @@ class ProfileLinkEngine(
 
         fun close() {
             outbox.close()
+            clipbox.close()
             runCatching { socket.close() }
         }
     }
@@ -539,6 +584,12 @@ class ProfileLinkEngine(
         private const val STEADY_MS = 10_000L
 
         private const val PART = ".part"
+
+        /** What a pushed clip is called on the wire (#1556): no sync file is ever named this. */
+        internal const val CLIP_MESSAGE = "wmkeyboard-clip"
+
+        /** Clips waiting for a slow link before the oldest is dropped. */
+        private const val CLIP_QUEUE = 64
 
         /**
          * Whether a copy holding [code] answers now, with one connection
@@ -629,8 +680,50 @@ object ProfileLink {
             onArrived = onArrived,
             onLinked = { up -> if (up) _linked.value = code else _linked.compareAndSet(code, null) },
             log = { message, failure -> BackupLog.w(message, failure) },
+            onClip = ::clipArrived,
         ).also { it.start() }
     }
+
+    /**
+     * Who takes a clip the other copy pushes (#1556): the keyboard, which puts
+     * it in its history as a copy. Null while it is not running; clips that
+     * come then wait in [waiting] for it, a few at most.
+     */
+    @Volatile
+    var clipReceiver: ((String) -> Unit)? = null
+        set(value) {
+            field = value
+            if (value != null) drainWaiting(value)
+        }
+
+    private val waiting = ArrayDeque<String>()
+
+    private fun clipArrived(text: String) {
+        val receiver = clipReceiver
+        if (receiver != null) {
+            receiver(text)
+            return
+        }
+        synchronized(waiting) {
+            waiting.addLast(text)
+            while (waiting.size > WAITING_MAX) waiting.removeFirst()
+        }
+    }
+
+    private fun drainWaiting(receiver: (String) -> Unit) {
+        val held = synchronized(waiting) { waiting.toList().also { waiting.clear() } }
+        held.forEach(receiver)
+    }
+
+    /** Most pushed clips kept for a keyboard that is not running yet. */
+    private const val WAITING_MAX = 50
+
+    /**
+     * Pushes one text clip to the copy in the other profile (#1556), at once,
+     * when the link is up. Returns whether it went; when it did not, the next
+     * sync pass carries the history as it always did.
+     */
+    fun sendClip(text: String): Boolean = engine?.sendClip(text) == true
 
     /** Sends this copy's sync file across, when the other copy is linked. */
     fun send(name: String, bytes: ByteArray) {

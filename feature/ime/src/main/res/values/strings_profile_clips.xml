@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Where a clip pushed from the copy in the other profile came from (#1556). -->
+    <string name="ime_clip_from_other_profile">Other profile</string>
+</resources>
