@@ -659,6 +659,9 @@ class SuggestionEngine(
         // Marked only now: a refresh that ran before the sentence caught up
         // with the commit must not use up the one reading.
         if (back == 1) recheckedCommit = judged else recheckedCommit2 = judged
+        // A word the user vouched for, or one only another of their languages
+        // holds, is no slip on a second look either ([standsAsTyped]).
+        if (standsAsTyped(taps.typed) || judgedWords.any(::standsAsTyped)) return null
         val before = sentence.dropLast(tailSize).takeLast(WHOLE_READING_CONTEXT).map { WordKey.of(it) }
         val call = decoderCall(taps.timingMultiplier) ?: return null
         val model = touchModelField ?: return null
@@ -724,6 +727,9 @@ class SuggestionEngine(
         // Only where a half reads as no word as typed: under three letters,
         // or in no list.
         if (listOf(taps1.typed, taps2.typed).none { it.length < 3 || !inDictionaries(it) }) return null
+        // Nor where either half is a word [standsAsTyped]: an added `abt` is
+        // in no list, and is still no broken word.
+        if ((words1 + words2 + taps1.typed + taps2.typed).any(::standsAsTyped)) return null
         val before = sentence.dropLast(tailSize).takeLast(WHOLE_READING_CONTEXT).map { WordKey.of(it) }
         val call = decoderCall(taps2.timingMultiplier) ?: return null
         val model = touchModelField ?: return null
@@ -773,6 +779,7 @@ class SuggestionEngine(
         if (word.isEmpty() || ' ' in word || word.any { !WordContext.isWordChar(it) }) return null
         val sentence = sentence
         if (sentence.isEmpty() || WordKey.of(sentence.last()) != WordKey.of(word)) return null
+        if (standsAsTyped(taps.typed) || standsAsTyped(WordKey.of(word))) return null
         val model = touchModelField ?: return null
         val call = decoderCall(taps.timingMultiplier) ?: return null
         val before = sentence.dropLast(1).takeLast(WHOLE_READING_CONTEXT).map { WordKey.of(it) }
@@ -7251,8 +7258,9 @@ class SuggestionEngine(
      *
      * The taps are kept for [recheckPrevious] either way, so "I live on
      * London" can still become "in" once "London" lands. Never a texting
-     * form ([TEXTING_SHORT_FORMS]), a contact or app name, or a word only the
-     * user's own dictionary holds. Null when the decoder does not run.
+     * form ([TEXTING_SHORT_FORMS]) or a word that [standsAsTyped]: Indonesian
+     * `ia` beside English `is`, or a `bg` the user added for "background".
+     * Null when the decoder does not run.
      */
     private fun shortWholeReading(
         word: String,
@@ -7262,8 +7270,7 @@ class SuggestionEngine(
     ): CorrectionDecision? {
         if (!readWholePhrases || lower.isEmpty() || !lower.all(WordContext::isWordChar)) return null
         noteTaps(lower, touch, timingMultiplier)
-        if (lower in TEXTING_SHORT_FORMS || contacts.contains(lower) || apps.contains(lower)) return null
-        if (!inDictionaries(lower) && userLexicon.isEstablished(lower, learnedWordMinCount)) return null
+        if (lower in TEXTING_SHORT_FORMS || standsAsTyped(lower)) return null
         val whole = wholeReading(lower, touch, timingMultiplier) ?: return null
         whole.apply?.let { fixed ->
             return CorrectionDecision(
@@ -7273,6 +7280,36 @@ class SuggestionEngine(
             )
         }
         return whole.offer?.let { CorrectionDecision(offer = matchCase(word, it)) }
+    }
+
+    /**
+     * Whether [lower] is a word the decoder must leave as typed, at the space
+     * ([wholeReading]) and on a second look ([recheckPrevious],
+     * [rejoinPrevious], [edgeLetter]).
+     *
+     * Always so for a word the user vouched for: one added by hand or put in
+     * Android's personal dictionary, a contact, an app, a word of a clip or
+     * note they asked to have suggested. The decoder weighs a word by its
+     * counts, so an `abt` the user added lost to `bat`, a swap away and far
+     * commoner, though the one-word rules never touch an added word.
+     *
+     * And so for a word the primary language's lists do not hold but the user
+     * has learned, or another of their languages holds: Indonesian `ia` typed
+     * beside English is a word, not `is` with a slip, as the one-word rules
+     * have always treated it. The decoder reads every list alike and weighs
+     * the words around it on English pairs, so on its own it read such words
+     * as English slips. A word the primary's lists hold is still read, at the
+     * higher bar for a listed word: real words typed for others (`on` for
+     * `in`) are what it is there to catch.
+     */
+    private fun standsAsTyped(lower: String): Boolean {
+        if (lower.isEmpty()) return false
+        if (userLexicon.isAddedByHand(lower) || systemDictionary.contains(lower)) return true
+        if (contacts.contains(lower) || apps.contains(lower) || passages.contains(lower)) return true
+        if (activeDictionary.contains(lower) || customDictionary.contains(lower)) return false
+        return userLexicon.isEstablished(lower, learnedWordMinCount) ||
+            secondaryDictionaries.any { it.source.contains(lower) } ||
+            (englishAsSecondary && !englishSources && dictionary.contains(lower))
     }
 
     /**
@@ -7319,14 +7356,15 @@ class SuggestionEngine(
      * without the long-press. Under the ratio both spellings are words people
      * mean: Polish `ze` and `że`, Spanish `mas` and `más`.
      *
-     * A word in Android's personal dictionary was put there by the user, and
-     * is never shadowed. [customDictionary] earns no such exemption: for every
+     * A word in Android's personal dictionary, or one added by hand to the
+     * keyboard's own, was put there by the user, and is never shadowed.
+     * [customDictionary] earns no such exemption: for every
      * language but English and Bengali it is where the *downloaded* list
      * lives, beside anything imported, so exempting it exempted the very list
      * that holds `juz`.
      */
     private fun accentShadowed(lower: String, touch: List<TouchPoint?>?): Boolean {
-        if (systemDictionary.contains(lower) || curatedHolds(lower)) return false
+        if (systemDictionary.contains(lower) || userLexicon.isAddedByHand(lower) || curatedHolds(lower)) return false
         // A word typed with marks of its own was typed by someone who writes
         // them: Vietnamese `đen` (black) is not `đến` (to arrive) with its
         // tone left off, however much commoner `đến` is.
@@ -7359,8 +7397,10 @@ class SuggestionEngine(
      *
      * A spelling is such a typo when it ranks below [TYPO_SHADOW_MIN_RANK] in
      * every list that holds it and a one-edit fix outscores it
-     * [TYPO_SHADOW_RATIO] times over. A word in Android's personal dictionary
-     * was put there by the user, and is never shadowed.
+     * [TYPO_SHADOW_RATIO] times over. A word in Android's personal dictionary,
+     * or one added by hand to the keyboard's own, was put there by the user,
+     * and is never shadowed: an `abt` the user added stays `abt` even on a
+     * list that counts it as a slip.
      */
     private fun typoShadowed(
         lower: String,
@@ -7368,7 +7408,7 @@ class SuggestionEngine(
         keys: KeySets? = null,
         ratio: Double = TYPO_SHADOW_RATIO,
     ): Boolean {
-        if (systemDictionary.contains(lower) || curatedHolds(lower)) return false
+        if (systemDictionary.contains(lower) || userLexicon.isAddedByHand(lower) || curatedHolds(lower)) return false
         var typed = Double.NEGATIVE_INFINITY
         val holders = ArrayList<Pair<TrieWalker, Int>>(2)
         for (src in walkSources()) {
@@ -8135,10 +8175,11 @@ class SuggestionEngine(
             val rare = rareSpellingFix(word, lower, touch, keys)
             // A listed word is read whole too, held to the decoder's far higher
             // bar for a word a list holds: the last word of a message has no
-            // next word to give it away. Never a word only the user's own
-            // dictionary, contacts or apps know, and never one with digits.
+            // next word to give it away. Never a word the user vouched for or
+            // only another of their languages holds ([standsAsTyped]), and
+            // never one with digits.
             if (rare == null && readWholePhrases && inDictionaries(lower) && lower.none { it.isDigit() } &&
-                !contacts.contains(lower) && !apps.contains(lower)
+                !standsAsTyped(lower)
             ) {
                 val listed = wholeReading(lower, touch, timingMultiplier)
                 listed?.apply?.let { fixed ->

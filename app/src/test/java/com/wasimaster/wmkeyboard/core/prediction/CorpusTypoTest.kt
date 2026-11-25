@@ -21,7 +21,11 @@ class CorpusTypoTest {
      * 2,000 ([RankScale.anchored]); a filler all at one count put that
      * anchor two decades low and squeezed `where` against `whee`.
      */
-    private fun engine(vararg words: Pair<String, Int>, filler: Int = 60_000): SuggestionEngine {
+    private fun engine(
+        vararg words: Pair<String, Int>,
+        filler: Int = 60_000,
+        lexicon: UserLexicon = UserLexicon(null),
+    ): SuggestionEngine {
         val entries = ArrayList<Pair<String, Int>>(filler + words.size)
         for (i in 0 until filler) {
             var n = i
@@ -33,7 +37,7 @@ class CorpusTypoTest {
             entries.add(sb.toString() to maxOf(1_000, 22_761_659 / (i + 2)))
         }
         entries.addAll(words)
-        return SuggestionEngine(PackedTrie.of(entries), BengaliPhoneticIndex(emptyList()), UserLexicon(null))
+        return SuggestionEngine(PackedTrie.of(entries), BengaliPhoneticIndex(emptyList()), lexicon)
     }
 
     private val common = arrayOf(
@@ -69,5 +73,15 @@ class CorpusTypoTest {
         val e = engine(*common, "wheee" to 60)
         e.systemDictionary = PackedTrie.of(listOf("wheee" to 1))
         assertNull(e.shouldAutocorrect("wheee"))
+    }
+
+    @Test fun aWordAddedByHandIsNeverATypo() {
+        // Telegram 11234/11538: an `abt` added to the keyboard's own personal
+        // dictionary was still turned into `bat` once a list counted it.
+        val lexicon = UserLexicon(null)
+        lexicon.addWord("wheee")
+        val e = engine(*common, "wheee" to 60, lexicon = lexicon)
+        assertNull(e.shouldAutocorrect("wheee"))
+        assertNull(e.decideCorrection("wheee").offer)
     }
 }
