@@ -1155,22 +1155,6 @@ def noto_svg(stem, offline):
         return f.read()
 
 
-
-def type_first(value):
-    """[value] with every object's keys sorted, but "ty" first.
-
-    Lottie Android reads a shape item as a stream and skips every key until
-    it meets "ty"; whatever came before it (the path, the colour, a group's
-    items) is lost and the drawing comes out empty. Sorted keys put "ty"
-    last, so it is pulled to the front.
-    """
-    if isinstance(value, dict):
-        keys = sorted(value, key=lambda k: (k != "ty", k))
-        return {k: type_first(value[k]) for k in keys}
-    if isinstance(value, list):
-        return [type_first(v) for v in value]
-    return value
-
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     ap.add_argument("--out", default=OUT)
@@ -1207,7 +1191,7 @@ def main(argv=None):
         print(json.dumps(library, separators=(",", ":"))[:2000])
         return
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
-    text = json.dumps(type_first(library), separators=(",", ":"), ensure_ascii=False)
+    text = json.dumps(library, separators=(",", ":"), sort_keys=True, ensure_ascii=False)
     with open(args.out + ".part", "w", encoding="utf-8") as f:
         f.write(text)
         f.write("\n")

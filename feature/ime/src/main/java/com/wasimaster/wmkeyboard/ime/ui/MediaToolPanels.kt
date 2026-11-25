@@ -2052,11 +2052,6 @@ private fun GifCell(
             // this only letterboxes the few whose ratio the cell clamped.
             contentScale = ContentScale.Fit,
         )
-        // A text sticker plays over its still, drawn from the template as it
-        // goes (nothing is encoded for it), like the GIFs around it.
-        if (item.source == GifSource.DYNAMIC) {
-            com.wasimaster.wmkeyboard.ime.dynstickers.DynLivePlayer(item, Modifier.matchParentSize())
-        }
         if (downloadingId == item.id) MediaDownloadOverlay(progress)
         if (queuePosition > 0) MediaQueueBadge(queuePosition)
     }

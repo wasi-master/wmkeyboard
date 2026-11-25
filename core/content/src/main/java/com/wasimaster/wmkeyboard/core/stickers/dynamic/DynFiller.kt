@@ -90,20 +90,6 @@ object DynFiller {
                 planned[name] = Planned(DynText.applyCase(lines.getOrElse(i) { "" }, case, locale), slot.rule(i))
             }
         }
-        if (engine == Engine.LOTTIE) {
-            // Words no slot takes, a heading or a label such as "Nobody:", are
-            // the template's own and keep their font and colour; but Lottie
-            // would draw them at their largest from the top of their box, so
-            // they are fitted and placed like the rest.
-            val slotted = template.slots.flatMapTo(HashSet()) { it.layers }
-            for ((name, info) in docs) {
-                if (name in planned || name in slotted || !info.doc.hasBox) continue
-                val own = info.doc.text.trim()
-                if (own.isEmpty()) continue
-                val case = if (info.doc.allCaps) TextCase.UPPER else null
-                planned[name] = Planned(DynText.applyCase(own, case, locale), LineRule(), fixed = true)
-            }
-        }
         if (planned.isEmpty() && fill.fontOverride == null) return Result(root, emptyMap())
 
         val filled = HashMap<String, FilledLayer>()
@@ -111,17 +97,16 @@ object DynFiller {
             val name = layer.string("nm") ?: return@mapLayers layer
             val plan = planned[name] ?: return@mapLayers layer
             val info = docs[name] ?: return@mapLayers layer
-            val own = if (plan.fixed) fill.copy(fontOverride = null, textColor = null) else fill
-            val font = own.fontOverride ?: info.doc.font
+            val font = fill.fontOverride ?: info.doc.font
             val result = if (engine == Engine.EXACT) {
-                FilledLayer(name, info.doc, listOf(plan.text), info.doc.size, font, colorOf(info.doc, own), 0f)
+                FilledLayer(name, info.doc, listOf(plan.text), info.doc.size, font, colorOf(info.doc, fill), 0f)
             } else {
                 val fitted = TextFit.fit(plan.text, info.doc, plan.rule, measurer, font)
                 val shift = verticalShift(info.doc, fitted, measurer.capHeight(font, fitted.size))
-                FilledLayer(name, info.doc, fitted.lines, fitted.size, font, colorOf(info.doc, own), shift)
+                FilledLayer(name, info.doc, fitted.lines, fitted.size, font, colorOf(info.doc, fill), shift)
             }
             filled[name] = result
-            LottieDoc.mapDocs(layer) { doc -> edited(doc, result, engine, own) }
+            LottieDoc.mapDocs(layer) { doc -> edited(doc, result, engine, fill) }
         }
         fill.fontOverride?.let { document = withFont(document, it) }
         return Result(document, filled)
@@ -149,8 +134,7 @@ object DynFiller {
         return StickerKeywords.clusters(text).any(DynText::isPictographic)
     }
 
-    /** [fixed]: the template's own words in a layer no slot takes, which keep their own font and colour. */
-    private class Planned(val text: String, val rule: LineRule, val fixed: Boolean = false)
+    private class Planned(val text: String, val rule: LineRule)
 
     /** [words] over [count] lines as evenly as can be, when no split meets the lines' rules. */
     private fun spread(words: List<String>, count: Int): List<String> {

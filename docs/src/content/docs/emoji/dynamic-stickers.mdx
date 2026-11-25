@@ -30,7 +30,7 @@ What counts as suiting the message is yours to choose:
 
 ## In the stickers panel
 
-The stickers panel has a **Text** chip beside **My stickers**. It fills every template that is switched on with the words in the panel's search box, the ones that match your words first. With the box empty it uses the message you were typing, when **Start the panel from your message** is on, and otherwise shows each template with its own words. Templates that move play in their cells, drawn from the template itself while they are on screen.
+The stickers panel has a **Text** chip beside **My stickers**. It fills every template that is switched on with the words in the panel's search box, the ones that match your words first. With the box empty it uses the message you were typing, when **Start the panel from your message** is on, and otherwise shows each template with its own words.
 
 The row of chips under it narrows the grid: **All**, **Stickers** or **Memes**, **Favourites**, and one chip per pack once you have two. The sparkle at its start opens the builder on a new template.
 
@@ -46,7 +46,7 @@ Tap a cell to send it. A template with a photo slot opens its fill sheet instead
 
 ## Sending
 
-Stickers go out at 512 × 512 pixels, the size WhatsApp takes as a sticker. A still one is a WebP. A moving one is made for the app you are typing in: WhatsApp gets an animated WebP sticker kept under its 500 KB limit (made at a few qualities at once, and at a lower frame rate only when none of them fits), and an app that takes GIFs, such as Telegram, gets a GIF, because those apps show only one frame of an animated WebP. A moving sticker takes a few seconds to draw: the cell you tapped, or the bar under **Send** in the fill sheet, shows how far it has got. It starts on its finished frame, so a chat that shows only the first frame of an animated sticker still shows the whole sticker. The same sticker sent again goes out at once, without being drawn again. A meme with a photo in it goes out as a picture, PNG or JPEG, since it is a picture rather than a sticker. **Send them moving** off sends every template as its still.
+Stickers go out as WebP at 512 × 512 pixels, the size WhatsApp takes as a sticker, and moving ones as animated WebP. A moving sticker takes a few seconds to draw: the cell you tapped, or the bar under **Send** in the fill sheet, shows how far it has got. It starts on its finished frame, so a chat that shows only the first frame of an animated sticker still shows the whole sticker. An app that takes GIFs but not animated WebP gets a GIF. A meme with a photo in it goes out as a picture, PNG or JPEG, since it is a picture rather than a sticker. **Send them moving** off sends every template as its still.
 
 **One font for every template** draws them all in one face instead of each template's own: DynaPuff, Anton, a bold or serif face of the phone's own, or any font in your [font library](/themes/fonts/).
 
@@ -58,7 +58,7 @@ The built-in templates are drawn in DynaPuff, and the memes in Anton. Both are f
 
 ## Packs
 
-Templates come in packs. The **Packs** group lists the built-in pack, the packs you made or imported, and the packs your feeds downloaded, each with a switch. Tap a pack to see its templates, each with its own words, or drawn with any words you type into **Try it with**. Tap a template to switch it off, star it, open it in the builder, or copy it into your own templates. In a pack of your own you can also move templates up, delete them, add templates from a file, rename the pack, export it, or delete it.
+Templates come in packs. The **Packs** group lists the built-in pack, the packs you made or imported, and the packs your feeds downloaded, each with a switch. Tap a pack to see its templates drawn with any words you type into **Try it with**. Tap a template to switch it off, star it, open it in the builder, or copy it into your own templates. In a pack of your own you can also move templates up, delete them, add templates from a file, rename the pack, export it, or delete it.
 
 **Import a file** takes:
 
@@ -77,7 +77,7 @@ Tap a feed to refresh it, open its packs, or remove it along with its packs. A f
 
 ## The builder
 
-The builder makes a template from layers on a square canvas. The canvas stays at the top of the screen while the settings under it scroll; drag its bottom corners to make it smaller, or double-tap a corner to bring it back to full size. Under it are undo and redo, play and pause, a row with every layer in the list's order, each drawn on its own, and **Save**. Tap a layer in the row to select it, and tap the selected one to jump to its settings.
+The builder makes a template from layers on a square canvas. The canvas stays at the top of the screen while the settings under it scroll; drag its bottom corners to make it smaller, or double-tap a corner to bring it back to full size. Under it are undo and redo, play and pause, the layer you are editing (tap it to jump to that layer's settings), and **Save**.
 
 **Add a layer** opens a list of the kinds of layer, each with a line on what it is for:
 
@@ -88,13 +88,13 @@ The builder makes a template from layers on a square canvas. The canvas stays at
 - **Picture**: an image from your phone, kept in the pack.
 - **Photo slot**: a picture the sender picks when they send the template, which makes it a meme.
 
-Tap a layer on the canvas, or in the **Layers** list, to select it, and drag it on the canvas to move it; dragging a layer that is not selected picks it up. Each row in the list shows the layer drawn on its own, cropped to what it draws and on a light or dark square to match it, what kind it is, arrows to move it up or down the stack, and a menu to duplicate or delete it. While you drag, the canvas shows the finished frame, so nothing is hidden by an animation that has not started yet. For the selected layer you set its place, size, rotation and opacity; its colour, a second colour for a gradient, an outline and a shadow; and for words, the font, chosen from a searchable list of the fonts the sticker already uses, the sticker faces (DynaPuff in four weights and Anton), the fonts installed in the app, the downloadable ones and the phone's own, letter case, alignment, how many lines it may take and the smallest and largest size it may be drawn at. The words are fitted to their box: long text shrinks, short text grows up to its largest size, and a message too long for the template's lines is not offered it.
+Tap a layer on the canvas, or in the **Layers** list, to select it, and drag it on the canvas to move it; dragging a layer that is not selected picks it up. Each row in the list shows the layer drawn on its own, what kind it is, arrows to move it up or down the stack, and a menu to duplicate or delete it. While you drag, the canvas shows the finished frame, so nothing is hidden by an animation that has not started yet. For the selected layer you set its place, size, rotation and opacity; its colour, a second colour for a gradient, an outline and a shadow; and for words, the font (any installed font, by name), letter case, alignment, how many lines it may take and the smallest and largest size it may be drawn at. The words are fitted to their box: long text shrinks, short text grows up to its largest size, and a message too long for the template's lines is not offered it.
 
 Each layer can have any number of animations: pop in, fade in, zoom in, drop in, slide in, bounce, wiggle, float, spin, pulse, shake, twinkle, heartbeat, swing, jelly, rainbow, typewriter, blink and fade out, each with when it starts, how long it lasts, how strong it is and whether it repeats.
 
-**The template** sets its name, whether it is a sticker or a meme, the messages it is offered for (any language), the feelings and things it is about, whether it takes any words, its length and frame rate or that it is a still, where its still is taken, a background, and a description for screen readers. Changing the frame rate keeps every motion at the same speed, so only the smoothness changes. **Still taken at** shows a row of the template's frames to pick from. A row of choices, such as the fonts, opens with the one in use in the middle.
+**The template** sets its name, whether it is a sticker or a meme, the messages it is offered for (any language), the feelings and things it is about, whether it takes any words, its length and frame rate or that it is a still, where its still is taken, a background, and a description for screen readers.
 
-Each section (Layers, the selected layer, Motion, The template, Lottie JSON) folds away under its heading, and stays the way you left it. The canvas plays the template as the keyboard will draw it, with its own words, or with the words in **Try it with** once you type some. **Save** writes it to its pack; a template that came from the built-in pack, a feed or the addon store is saved as a copy in your own. **Copy the JSON** gives you the Lottie document it is drawn from, with its rules in `metadata.customProps`, and **Edit the JSON** opens the document in the app's code editor, indented and coloured, with its own undo, and saves it for what the builder has no control for. A template saved that way opens as JSON from then on.
+Each section (Layers, the selected layer, Motion, The template, Lottie JSON) folds away under its heading, and stays the way you left it. The canvas plays the template as the keyboard will draw it, with the words in **Try it with**. **Save** writes it to its pack; a template that came from the built-in pack, a feed or the addon store is saved as a copy in your own. **Copy the JSON** gives you the Lottie document it is drawn from, with its rules in `metadata.customProps`, and **Edit the JSON** opens the document in the app's code editor, indented and coloured, with its own undo, and saves it for what the builder has no control for. A template saved that way opens as JSON from then on.
 
 ## Backup and storage
 

@@ -5864,8 +5864,9 @@ data class AiReplySettings(
      * A Reply chip beside a message just copied in a chat's field (a Send
      * key, or the Chat mode's apps), which opens this panel with the copy in
      * it. Only while an AI is set up; it sends nothing until a tone is picked.
+     * Off by default: it popped up unasked after every copy in a chat.
      */
-    val stripChip: Boolean = true,
+    val stripChip: Boolean = false,
 )
 
 /** The range of [AiSettings.stripSuggestChars]: a clause at least, never a document. */

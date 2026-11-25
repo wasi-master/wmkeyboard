@@ -68,9 +68,6 @@ internal class DynStickerController(
         /** Sends a finished render the way the sticker panel sends (its own send mode). */
         fun send(output: DynEncoder.Output)
 
-        /** What a moving sticker should be made as for the field the keyboard is in now. */
-        fun stickerFormat(): DynEncoder.Format
-
         /** Spins the cell [id] while it renders, and stops. */
         fun startRender(id: String)
 
@@ -295,26 +292,23 @@ internal class DynStickerController(
         }
     }
 
-    /** The registry id behind a cell of this panel, or null for any other cell. */
-    fun liveId(item: GifItem): String? = if (item.source == GifSource.DYNAMIC) item.id.removePrefix(ITEM_PREFIX) else null
-
-    /**
-     * [id]'s template filled and ready to draw frame by frame, for a cell
-     * that plays it in place: nothing is encoded, the cell draws each frame
-     * itself. Null when it does not move (the cell keeps its still). The
-     * caller closes it. Suspends while two others are being prepared.
-     */
-    suspend fun livePrepared(id: String): DynRenderer.Prepared? {
+    /** A small animated WebP of [id], for "animate in the row". Cached on disk. */
+    suspend fun animatedThumb(id: String, px: Int): ByteArray? {
         val entry = entry(id) ?: return null
         val template = store.template(entry.templateKey) ?: return null
-        if (template.meta.stillOnly || template.meta.photos.isNotEmpty()) return null
+        val size = px.coerceIn(MIN_THUMB, ANIMATED_THUMB)
+        val cached = File(thumbDir(), "$id-$size.webp")
+        if (cached.isFile) return runCatching { cached.readBytes() }.getOrNull()
         return renders.withPermit {
             withContext(Dispatchers.Default) {
-                val prepared = runCatching { renderer.prepare(template, withOverride(entry.fill), policy()) }.getOrNull()
-                prepared?.takeIf { it.animated } ?: run {
-                    prepared?.close()
-                    null
-                }
+                val fill = withOverride(entry.fill)
+                renderer.prepare(template, fill, policy())?.use { prepared ->
+                    if (!prepared.animated) return@use null
+                    val sink = DynEncoder.animatedEncoder.create(size, THUMB_QUALITY)
+                    var ok = true
+                    prepared.forEachFrame(size, THUMB_FPS, THUMB_FRAMES) { frame, ms -> if (ok && !sink.add(frame, ms)) ok = false }
+                    sink.finish()?.takeIf { ok }
+                }?.also { bytes -> runCatching { cached.writeBytes(bytes) } }
             }
         }
     }
@@ -322,45 +316,27 @@ internal class DynStickerController(
     /**
      * [item] rendered for sending: a sticker (animated when it moves, the
      * setting allows and [still] does not say otherwise), or for a meme with a
-     * photo, a picture. A moving one is made as [format] (by default what
-     * the field in front takes). Blocking; call on an IO dispatcher.
-     * [onProgress] hears how far an animated one has got.
+     * photo, a picture. Blocking; call on an IO dispatcher. [onProgress]
+     * hears each frame of an animated one as it is drawn.
      */
     fun render(
         item: GifItem,
         still: Boolean = false,
-        format: DynEncoder.Format = host.stickerFormat(),
         onProgress: (done: Int, total: Int) -> Unit = { _, _ -> },
     ): DynEncoder.Output? {
         val entry = entryOf(item) ?: return null
         val template = store.template(entry.templateKey) ?: return null
         val fill = withOverride(entry.fill)
-        val photo = template.kind == DynKind.MEME && template.meta.photos.isNotEmpty()
-        val animated = host.settings.sendAnimated && !still
-        // Named for everything that decides what the file holds, so the same
-        // sticker sent again goes out at once instead of being made again. A
-        // meme's photo can change behind the same address, so those are
-        // always made afresh.
-        val made = CRC32().apply {
-            update(listOf(template.key, fill.cacheKey, store.revision.value, animated, format, policy()).joinToString("\u0000").toByteArray())
-        }.value.toString(Character.MAX_RADIX)
-        val target = File(sendDir(), "${template.meta.id.take(NAME_CHARS)}-$made")
-        if (!photo) {
-            sentBefore(target)?.let { out ->
-                out.file.setLastModified(System.currentTimeMillis())
-                store.noteSent(template.key)
-                return out
-            }
-        }
         val photoMaps = photoBitmaps(fill)
         try {
             val prepared = renderer.prepare(template, fill, policy(), photoMaps) ?: return null
             return prepared.use {
                 sweepSent()
-                val out = if (photo) {
+                val target = File(sendDir(), "${template.meta.id.take(NAME_CHARS)}-${item.id.takeLast(ID_CHARS)}")
+                val out = if (template.kind == DynKind.MEME && template.meta.photos.isNotEmpty()) {
                     DynEncoder.image(it, target)
                 } else {
-                    DynEncoder.sticker(it, target, animated = animated, format = format, onProgress = onProgress)
+                    DynEncoder.sticker(it, target, animated = host.settings.sendAnimated && !still, onProgress = onProgress)
                 }
                 if (out != null) store.noteSent(template.key)
                 out
@@ -368,15 +344,6 @@ internal class DynStickerController(
         } finally {
             photoMaps.values.forEach(Bitmap::recycle)
         }
-    }
-
-    /** The file a send named [target] already made, when there is one. */
-    private fun sentBefore(target: File): DynEncoder.Output? {
-        for ((extension, mime) in SENT_TYPES) {
-            val file = File(target.parentFile, "${target.name}.$extension")
-            if (file.isFile && file.length() > 0L) return DynEncoder.Output(file, mime, animated = mime == MediaMime.GIF)
-        }
-        return null
     }
 
     private fun thumbDir(): File = File(context.cacheDir, "$CACHE_DIR/thumbs").apply { mkdirs() }
@@ -507,13 +474,11 @@ internal class DynStickerController(
         val item = sheet.preview
         _ui.update { it.copy(sheet = it.sheet?.copy(busy = true, progress = null)) }
         sheetJob?.cancel()
-        // Asked here, on the main thread, about the field the sheet was opened over.
-        val format = host.stickerFormat()
         sheetJob = scope.launch {
             host.startRender(item.id)
             val output = withContext(Dispatchers.IO) {
                 runCatching {
-                    render(item, still, format) { done, total ->
+                    render(item, still) { done, total ->
                         host.renderProgress(done, total)
                         val fraction = done.toFloat() / total.coerceAtLeast(1)
                         _ui.update { it.copy(sheet = it.sheet?.copy(progress = fraction)) }
@@ -536,8 +501,7 @@ internal class DynStickerController(
         host.haptic()
         _ui.update { it.copy(sheet = null) }
         scope.launch {
-            // Kept as a WebP sticker, the one shape every send of it later can use.
-            val output = withContext(Dispatchers.IO) { runCatching { render(item, format = DynEncoder.Format.WEBP_STICKER) }.getOrNull() }
+            val output = withContext(Dispatchers.IO) { runCatching { render(item) }.getOrNull() }
             if (output == null) {
                 host.toast(com.wasimaster.wmkeyboard.ime.R.string.ime_dynsticker_render_failed)
                 return@launch
@@ -551,7 +515,7 @@ internal class DynStickerController(
     fun copy(item: GifItem) {
         scope.launch {
             host.startRender(item.id)
-            val output = withContext(Dispatchers.IO) { runCatching { render(item, format = DynEncoder.Format.WEBP_STICKER) }.getOrNull() }
+            val output = withContext(Dispatchers.IO) { runCatching { render(item) }.getOrNull() }
             host.endRender()
             if (output == null) {
                 host.toast(com.wasimaster.wmkeyboard.ime.R.string.ime_dynsticker_render_failed)
@@ -588,11 +552,15 @@ internal class DynStickerController(
         private const val PANEL_LIMIT = 200
         private const val MIN_THUMB = 96
         private const val MAX_THUMB = 512
+        private const val ANIMATED_THUMB = 256
+        private const val THUMB_QUALITY = 60
+        private const val THUMB_FPS = 12f
+        private const val THUMB_FRAMES = 48
         private const val PHOTO_EDGE = 1024
         private const val KEEP_SENT = 12
         private const val KEEP_THUMBS = 120
         private const val NAME_CHARS = 24
-        private val SENT_TYPES = listOf("webp" to MediaMime.WEBP, "gif" to MediaMime.GIF)
+        private const val ID_CHARS = 10
         private const val PNG_QUALITY = 100
         private const val MIN_CONCEPT_WORD = 3
         private const val CONCEPT_EMOJI = 2

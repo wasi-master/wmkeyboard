@@ -282,24 +282,6 @@ object LottieDoc {
 
     internal fun num(value: Number): JsonPrimitive = JsonPrimitive(value)
 
-    /**
-     * [value] with `"ty"` moved to the front of every object in it. Lottie
-     * Android reads a shape item as a stream and skips every key until it
-     * meets `"ty"`, so whatever comes before it (a path's points, a fill's
-     * colour, a group's items) is lost and the shape draws nothing. Other
-     * players read the whole object, so a drawing can look right everywhere
-     * else and be empty here.
-     */
-    fun typeFirst(value: JsonElement): JsonElement = when (value) {
-        is JsonObject -> {
-            val type = value["ty"]
-            val rest = value.filterKeys { it != "ty" }.mapValues { typeFirst(it.value) }
-            JsonObject(if (type == null) rest else linkedMapOf<String, JsonElement>("ty" to type).apply { putAll(rest) })
-        }
-        is JsonArray -> JsonArray(value.map(::typeFirst))
-        else -> value
-    }
-
     internal fun nums(vararg values: Number): JsonArray = JsonArray(values.map { JsonPrimitive(it) })
 
     private const val DEFAULT_SIZE = 512

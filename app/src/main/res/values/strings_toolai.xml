@@ -715,7 +715,7 @@
     <string name="toolai_ai_fallback_info">When the service in use can\'t be reached, turns the key down or answers with an error before it has written anything, the same request goes to the next service in the list, and on down the list. Your phone\'s own model is never asked this way. Off by default, because it sends your text to a service you did not pick for that request.</string>
     <string name="toolai_reply_strip_chip_title">Reply chip on the strip</string>
     <string name="toolai_reply_strip_chip_subtitle">After you copy a message in a chat, a Reply chip beside the copy opens this panel with it</string>
-    <string name="toolai_reply_strip_chip_info">After you copy a message in a chat, a Reply chip shows on the strip beside the copy. A tap opens the reply panel with that message. This setting is on by default.</string>
+    <string name="toolai_reply_strip_chip_info">After you copy a message in a chat, a Reply chip shows on the strip beside the copy. A tap opens the reply panel with that message. This setting is off by default.</string>
     <string name="toolai_reply_provider_nav_subtitle">Replies use the provider, key and model set up for the AI tool</string>
     <!-- AI screen, opened from the settings home screen. It collects the AI tools, the chat and the history. -->
     <string name="toolai_hub_tools_title">On the keyboard</string>
