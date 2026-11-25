@@ -10337,6 +10337,15 @@ private class ToolDragController : AppCarry {
      */
     var boxMerge by mutableStateOf<ToolboxCell?>(null)
         private set
+    /**
+     * The id of the folder pinned on the toolbar (#1562) whose middle a
+     * dragged tool is held over, or null. Letting go there files the tool in
+     * that folder, the way the middle of a folder's cell in the grid does.
+     * While it is set [barSlot] holds still, so the bar does not reflow and
+     * slide the folder out from under the finger.
+     */
+    var barMerge by mutableStateOf<String?>(null)
+        private set
     /** Over the open folder's header (#709), where a drop takes the tool out of it. */
     var overFolderExit by mutableStateOf(false)
         private set
@@ -10707,13 +10716,22 @@ private class ToolDragController : AppCarry {
         // sit right against it: a finger inside the second row's own box is
         // the second row's, whatever the bar's margin says.
         val onSecond = !exit && secondBounds?.contains(at) == true
-        val bar = if (exit || onSecond) null else slotAt(at)
-        val second = if (exit || bar != null) null else secondSlotAt(at)
-        val merge = if (exit || bar != null || second != null) null else mergeAt(at)
-        val box = if (exit || bar != null || second != null || merge != null) null else toolboxSlotAt(at)
+        // The middle of a folder on the bar (#1562): the bar keeps the slot it
+        // last previewed, so nothing moves under the finger while it is there.
+        val barFolder = if (exit || onSecond) null else barFolderAt(at)
+        val bar = when {
+            exit || onSecond -> null
+            barFolder != null -> barSlot
+            else -> slotAt(at)
+        }
+        val onBar = bar != null || barFolder != null
+        val second = if (exit || onBar) null else secondSlotAt(at)
+        val merge = if (exit || onBar || second != null) null else mergeAt(at)
+        val box = if (exit || onBar || second != null || merge != null) null else toolboxSlotAt(at)
         val changed = bar != barSlot || second != secondSlot || box != boxSlot ||
-            merge?.key != boxMerge?.key || exit != overFolderExit
+            merge?.key != boxMerge?.key || exit != overFolderExit || barFolder != barMerge
         barSlot = bar
+        barMerge = barFolder
         secondSlot = second
         boxSlot = box
         boxMerge = merge
@@ -10725,6 +10743,7 @@ private class ToolDragController : AppCarry {
         dragging = null
         draggingFolder = null
         barSlot = null
+        barMerge = null
         secondSlot = null
         boxSlot = null
         boxMerge = null
@@ -10737,6 +10756,7 @@ private class ToolDragController : AppCarry {
         if (folder == null && tool == null) return
         retarget(position)
         val bar = barSlot
+        val barFolder = barMerge
         val second = secondSlot
         val box = boxSlot
         val merge = boxMerge
@@ -10769,6 +10789,12 @@ private class ToolDragController : AppCarry {
         val view = folderView
         if (exit) {
             toolbox.onTakeOut(tool)
+        } else if (barFolder != null) {
+            // Onto a folder on the bar (#1562): off the row it came from and
+            // into that folder, from the bar, the second toolbar, the grid or
+            // another folder alike.
+            leaveRows(tool)
+            toolbox.onAddToFolder(tool, barFolder)
         } else if (second != null) {
             // Onto the second toolbar (#1217): off the bar first when that is
             // where it came from, so a tool moves between the rows rather
@@ -10867,6 +10893,30 @@ private class ToolDragController : AppCarry {
         return ((travel / bar.width) * (without.size + 1))
             .toInt()
             .coerceIn(0, without.size)
+    }
+
+    /**
+     * The id of the pinned folder on the bar whose middle [at] is over, or
+     * null (#1562). Only a tool can go into a folder, and only one the toolbox
+     * would draw there: a tool hidden from the grid would vanish into it.
+     * The middle is [ToolboxMergeZone] of the folder's cell, as in the grid,
+     * so the rest of the cell still reorders.
+     */
+    private fun barFolderAt(at: Offset): String? {
+        val tool = dragging ?: return null
+        if (tool is ToolKey.Folder || tool in toolboxHidden) return null
+        val bar = toolbarBounds?.inflate(30f) ?: return null
+        if (!bar.contains(at)) return null
+        val centres = if (barVertical) columnCentres else rowCentres
+        val along = if (barVertical) at.y else at.x
+        for (key in visibleTools) {
+            if (key !is ToolKey.Folder) continue
+            val span = centres.span(key) ?: continue
+            val length = span.endInclusive - span.start
+            if (length <= 0f) continue
+            if ((along - span.start) / length in ToolboxMergeZone) return key.id
+        }
+        return null
     }
 
     /**
@@ -11037,6 +11087,13 @@ private class CellCentres(private val vertical: Boolean) {
         val coords = cells[tool]?.takeIf { it.isAttached } ?: return null
         val at = coords.positionInRoot()
         return if (vertical) at.y + coords.size.height / 2f else at.x + coords.size.width / 2f
+    }
+
+    /** Where [tool]'s cell starts and ends along the row's axis, in root coordinates, or null when it is not laid out. */
+    fun span(tool: ToolKey): ClosedFloatingPointRange<Float>? {
+        val coords = cells[tool]?.takeIf { it.isAttached } ?: return null
+        val at = coords.positionInRoot()
+        return if (vertical) at.y..(at.y + coords.size.height) else at.x..(at.x + coords.size.width)
     }
 
     /** The centres of [tools] that are laid out. */
@@ -11334,6 +11391,14 @@ private fun DraggableTool(
     /** Whether this is a second-toolbar button (#1217): a pick-up then comes off that row, not the bar. */
     fromSecondRow: Boolean = false,
     /**
+     * Whether a hold that opens the settings page waits for the lift, as it
+     * does in the toolbox grid, instead of opening while the finger is still
+     * down (#1353). True while the toolbox is open (#1562): a hold there is
+     * for arranging, and a finger that paused before setting off to file the
+     * tool in a folder was taken to the settings page instead.
+     */
+    settingsOnLift: Boolean = false,
+    /**
      * A swipe up that starts before the hold registers (#1378): the tool
      * floats. Null where a swipe up means nothing, so travel is a scroll as
      * it always was.
@@ -11370,7 +11435,7 @@ private fun DraggableTool(
             // than the lambda above, which is why that one goes through a holder.
             .pointerInput(
                 enabled, tool, holdRepeatMs, holdArms, holdPanel, holdMenu, dragEnabled, holdDelayMs,
-                swipeUpArmed, swipeDownArmed,
+                swipeUpArmed, swipeDownArmed, settingsOnLift,
             ) {
                 if (!enabled) return@pointerInput
                 // Raw press-and-hold, mirroring the key rows' handler, instead
@@ -11440,7 +11505,7 @@ private fun DraggableTool(
                                 tapAction()
                                 delay(holdRepeatMs)
                             }
-                        } else if (opensSettings) {
+                        } else if (opensSettings && !settingsOnLift) {
                             // The settings page opens once the hold is held,
                             // not on the lift (#1353): no guessing how long is
                             // long enough. A moment's grace first while the
@@ -14035,6 +14100,7 @@ private fun PinnedToolCell(
             onHoldMenu = { voiceMenuOpen = true },
             holdDelayMs = state.settings.toolbarBehavior.holdDelayMs,
             fromSecondRow = secondRow,
+            settingsOnLift = customizing,
         ) { dragModifier ->
             val paint = if (pinnedColors) toolAccentPaint(tool, state.settings) else null
             ToolCircle(
@@ -15071,7 +15137,7 @@ private const val ToolboxAppearMaxDelayMs = 180L
 private fun Modifier.ghostMergeShrink(drag: ToolDragController): Modifier {
     val motion = LocalKbTheme.current.motion.any
     val scale by animateFloatAsState(
-        if (drag.boxMerge != null) 0.78f else 1f,
+        if (drag.boxMerge != null || drag.barMerge != null) 0.78f else 1f,
         animationSpec = if (motion) {
             spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)
         } else {
@@ -15541,6 +15607,14 @@ private fun PinnedFolderCell(
     val motion = !state.settings.reduceMotion
     val dpadRing = LocalDpadRing.current
     val customizing = state.panel == PanelMode.TOOLBOX
+    // A tool held over its middle (#1562) is about to be filed in it: it
+    // swells and lights to meet it, as a folder's cell in the grid does.
+    val merging = drag.barMerge == folder.id
+    val mergeScale by animateFloatAsState(
+        if (merging) ToolboxMergeScale else 1f,
+        animationSpec = if (motion) spring(dampingRatio = Spring.DampingRatioMediumBouncy) else snap(),
+        label = "barFolderMerge",
+    )
     Box(cell, contentAlignment = Alignment.Center) {
         DraggableTool(
             tool,
@@ -15551,15 +15625,20 @@ private fun PinnedFolderCell(
             dragEnabled = state.settings.toolbarBehavior.dragToRearrange,
             holdDelayMs = state.settings.toolbarBehavior.holdDelayMs,
             fromSecondRow = secondRow,
+            settingsOnLift = customizing,
         ) { dragModifier ->
             PinnedFolderButton(
                 folder = folder,
                 state = state,
-                open = customizing && state.toolboxView.folderOpen == folder.id,
+                open = merging || customizing && state.toolboxView.folderOpen == folder.id,
                 // Washed out where it will land while it is the one in flight,
                 // as a dragged tool's own cell is.
                 ghost = tool == drag.dragging || (tool == drag.draggingKey && drag.barSlot != null),
                 modifier = dragModifier
+                    .graphicsLayer {
+                        scaleX = mergeScale
+                        scaleY = mergeScale
+                    }
                     .panelOrigin()
                     .then(
                         if (dpadRing) Modifier.dpadTarget(tool) { drag.tap(tool, onToolTap) } else Modifier,
