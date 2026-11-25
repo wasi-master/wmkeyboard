@@ -1198,6 +1198,7 @@
 		"lookup_settings_keep_recordings_title": "0.6.6",
 		"lookup_settings_recordings_title": "0.6.6",
 		"models_whisper_compute_title": "0.6.3",
+		"models_whisper_npu_title": "0.6.8",
 		"modes_add_app_title": "0.5.3",
 		"modes_autocapitalize_title": "0.5.3",
 		"modes_autocorrect_title": "0.5.3",
