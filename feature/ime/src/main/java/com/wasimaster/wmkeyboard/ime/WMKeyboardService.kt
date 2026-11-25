@@ -45334,8 +45334,15 @@ open class WMKeyboardService : InputMethodService() {
     private val converterCallbacks by lazy {
         com.wasimaster.wmkeyboard.ime.ui.ConverterCallbacks(
             onCalcEdit = ::onCalcExpressionChange,
+            onCalcType = { text -> padEdit(CaptureTarget.CALC) { it.typed(text) } },
+            onCalcBackspace = { padEdit(CaptureTarget.CALC) { it.deletedBackward() } },
             onCalcToggleDegrees = ::onCalcDegreesToggle,
             onConverterEdit = ::onConverterValueChange,
+            onConverterType = { text ->
+                // Nothing typed (a second point, a full field) leaves a selection standing.
+                padEdit(CaptureTarget.CONVERTER) { converterInsert(it, text).ifEmpty { null }?.let(it::typed) ?: it }
+            },
+            onConverterBackspace = { padEdit(CaptureTarget.CONVERTER) { it.deletedBackward() } },
             // Selection memory, not a user action — persist silently.
             onUnitSelection = { selection ->
                 serviceScope.launch { settingsRepository.setUnitConvertLast(selection) }
@@ -45393,6 +45400,30 @@ open class WMKeyboardService : InputMethodService() {
 
     fun onConverterValueChange(value: String) {
         converterEdit { value }
+    }
+
+    /**
+     * A key of the calculator's or a converter's own keypad (#1536), applied
+     * at the field's caret: the edit a physical key makes there, less the
+     * typing rules a keypad has no use for. With the keys sent to the app's
+     * field (#665) the keypad still edits here, at the caret it left; in the
+     * floating box, where the field has no caret, at the end.
+     */
+    private fun padEdit(target: CaptureTarget, edit: (CaretText) -> CaretText) {
+        val state = _uiState.value
+        if (state.captureTarget() == target) {
+            val before = state.captureCaretText() ?: return
+            captureWrite(target, before, edit(before))
+            return
+        }
+        val text = if (target == CaptureTarget.CALC) state.calcExpression else state.converterValue
+        val kept = state.captureCaret?.takeIf { it.key == target.name && it.text == text }
+        val before = if (kept != null) CaretText(text, kept.at, kept.anchor) else CaretText(text)
+        val after = edit(before)
+        if (target == CaptureTarget.CALC) calcEdit { after.text } else converterEdit { after.text }
+        if (kept != null) {
+            _uiState.update { it.copy(captureCaret = CaptureCaret(target.name, after.at, after.text, after.anchorAt)) }
+        }
     }
 
     /** Enter in the calculator is the `=` key: collapse to the result. */

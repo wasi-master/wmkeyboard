@@ -222,6 +222,13 @@ internal fun SearchQueryText(
      * shows text it is about to type over.
      */
     selectedAll: Boolean = false,
+    /**
+     * The text sits at the field's right end, the way a calculator's display
+     * reads (#1536); the empty field's placeholder with it.
+     */
+    alignEnd: Boolean = false,
+    /** False where the panel draws the [FieldFocusSwitch] somewhere of its own. */
+    focusSwitch: Boolean = true,
 ) {
     val handle = LocalCaptureCaret.current
     // The focus switch sent this field's keys to the app's field (#665): no
@@ -253,10 +260,11 @@ internal fun SearchQueryText(
             caretBar = caretBar,
             setCaretBar = { caretBar = it },
             selectedAll = selectedAll,
+            alignEnd = alignEnd,
         )
         // Only on the field that has the keys, or had them until the switch
         // sent them to the app: one switch on screen, beside its field.
-        if (active) FieldFocusSwitch(handle)
+        if (active && focusSwitch) FieldFocusSwitch(handle)
     }
 }
 
@@ -278,6 +286,7 @@ private fun RowScope.SearchQueryLine(
     caretBar: Boolean,
     setCaretBar: (Boolean) -> Unit,
     selectedAll: Boolean = false,
+    alignEnd: Boolean = false,
 ) {
     val line = Modifier.weight(1f)
     Row(
@@ -297,6 +306,7 @@ private fun RowScope.SearchQueryLine(
                 }
             else -> line
         },
+        horizontalArrangement = if (alignEnd) Arrangement.End else Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         PublishFieldSelection(

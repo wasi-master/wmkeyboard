@@ -98,6 +98,7 @@ import androidx.compose.ui.graphics.Color
 import com.wasimaster.wmkeyboard.core.tools.ToolPrefill
 import com.wasimaster.wmkeyboard.core.tools.UnitConvert
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.ime.CaptureTarget
 import com.wasimaster.wmkeyboard.ime.CurrencyUi
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
@@ -673,8 +674,19 @@ data class ConverterCallbacks(
     /** The calculator expression changed — soft keypad edits route here. */
     val onCalcEdit: (String) -> Unit = {},
     val onCalcToggleDegrees: () -> Unit = {},
+    /**
+     * A key of the calculator's keypad (#1536): typed at the expression's
+     * caret, over a selection if there is one, as a physical key would be.
+     */
+    val onCalcType: (String) -> Unit = {},
+    /** The keypad's backspace: the character before the caret, or the selection. */
+    val onCalcBackspace: () -> Unit = {},
     /** The converters' typed amount changed. */
     val onConverterEdit: (String) -> Unit = {},
+    /** A digit or the point from the converters' keypad, typed at the amount's caret (#1536). */
+    val onConverterType: (String) -> Unit = {},
+    /** The converters' backspace, at the amount's caret. */
+    val onConverterBackspace: () -> Unit = {},
     val onUnitSelection: (String) -> Unit = {},
     val onCurrencyPairChange: (String, String) -> Unit = { _, _ -> },
     val onCurrencyRefresh: () -> Unit = {},
@@ -736,8 +748,10 @@ internal fun CalculatorPanel(
         }
     }
 
+    // Every key goes in at the caret (#1536), the same caret a tap on the
+    // display, the arrow keys or a physical keyboard moves.
     fun append(text: String) {
-        callbacks.onCalcEdit(expression + text)
+        callbacks.onCalcType(text)
     }
 
     // The keypad has no focus region on purpose — physical keys type the
@@ -786,15 +800,21 @@ internal fun CalculatorPanel(
             // into the app's field while it is on; this keypad still edits here.
             val caretHandle = LocalCaptureCaret.current
             FieldFocusSwitch(caretHandle, Modifier.padding(end = 6.dp))
-            Column(Modifier.weight(1f).then(if (caretHandle.toApp) Modifier.alpha(FieldToAppAlpha) else Modifier)) {
-                Text(
-                    expression.ifEmpty { "0" },
-                    color = kb.chipText,
+            Column(Modifier.weight(1f)) {
+                // The expression with its caret (#1536): a tap puts the caret
+                // between two characters, so a digit early in a long sum can be
+                // fixed without deleting back to it. Only while this is the
+                // field with the keys; the floating box's copy just appends.
+                SearchQueryText(
+                    query = expression,
+                    placeholder = "0",
+                    active = state.panelFieldTarget() == CaptureTarget.CALC,
+                    textColor = kb.chipText,
+                    placeholderColor = kb.chipText,
                     fontSize = 16.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.End,
                     modifier = Modifier.fillMaxWidth(),
+                    alignEnd = true,
+                    focusSwitch = false,
                 )
                 // The engine reports a failure as a string resource plus the
                 // piece of the expression it names, so the wording follows the
@@ -817,7 +837,9 @@ internal fun CalculatorPanel(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.End,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .then(if (caretHandle.toApp) Modifier.alpha(FieldToAppAlpha) else Modifier),
                 )
             }
             if (result?.isSuccess == true) {
@@ -862,7 +884,7 @@ internal fun CalculatorPanel(
                                 accent = label == "=",
                             ) {
                                 when (label) {
-                                    "⌫" -> callbacks.onCalcEdit(expression.dropLast(1))
+                                    "⌫" -> callbacks.onCalcBackspace()
                                     "=" -> result?.onSuccess { callbacks.onCalcEdit(it) }
                                     else -> append(label)
                                 }
@@ -954,8 +976,7 @@ private const val CalcFunctionsWeight = 0.8f
 @Composable
 private fun ConverterKeypad(
     modifier: Modifier = Modifier,
-    onChange: (String) -> Unit,
-    value: String,
+    callbacks: ConverterCallbacks,
 ) {
     val rows = listOf(
         listOf("7", "8", "9"),
@@ -973,15 +994,45 @@ private fun ConverterKeypad(
                             .weight(1f)
                             .fillMaxHeight(),
                     ) {
+                        // At the amount's caret (#1536). The service keeps the
+                        // rules: one point, and no more than the field holds.
                         when (label) {
-                            "⌫" -> onChange(value.dropLast(1))
-                            "." -> if ('.' !in value) onChange(value + ".")
-                            else -> onChange((value + label).take(14))
+                            "⌫" -> callbacks.onConverterBackspace()
+                            else -> callbacks.onConverterType(label)
                         }
                     }
                 }
             }
         }
+    }
+}
+
+/**
+ * The converters' typed amount and its unit (#1536): the amount with a caret
+ * that a tap places, so one digit of it can be changed without retyping the
+ * rest; the unit after it, outside the field, since it is not typed.
+ */
+@Composable
+private fun ConverterAmount(state: KeyboardUiState, value: String, unit: String, modifier: Modifier = Modifier) {
+    val kb = LocalKbTheme.current
+    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+        SearchQueryText(
+            query = value,
+            placeholder = "",
+            active = state.panelFieldTarget() == CaptureTarget.CONVERTER,
+            textColor = kb.modifierKeyText,
+            placeholderColor = kb.secondaryText,
+            fontSize = 14.sp,
+            modifier = Modifier.weight(1f),
+            alignEnd = true,
+            focusSwitch = false,
+        )
+        Text(
+            " $unit",
+            color = kb.modifierKeyText,
+            fontSize = 14.sp,
+            maxLines = 1,
+        )
     }
 }
 
@@ -1144,15 +1195,7 @@ internal fun UnitConverterPanel(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             FieldFocusSwitch(LocalCaptureCaret.current)
-            Text(
-                "$value ${from.symbol}",
-                color = kb.modifierKeyText,
-                fontSize = 14.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
-                textAlign = TextAlign.End,
-            )
+            ConverterAmount(state, value, from.symbol, Modifier.weight(1f))
             IconHint(stringResource(R.string.ime_units_swap_desc)) {
                 IconButton(
                     onClick = { val tmp = fromIndex; fromIndex = toIndex; toIndex = tmp },
@@ -1190,8 +1233,7 @@ internal fun UnitConverterPanel(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth(),
-            onChange = callbacks.onConverterEdit,
-            value = value,
+            callbacks = callbacks,
         )
     }
 }
@@ -1379,14 +1421,7 @@ internal fun CurrencyPanel(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     FieldFocusSwitch(LocalCaptureCaret.current)
-                    Text(
-                        "$amountText $fromCode",
-                        color = kb.modifierKeyText,
-                        fontSize = 14.sp,
-                        maxLines = 1,
-                        modifier = Modifier.weight(1f),
-                        textAlign = TextAlign.End,
-                    )
+                    ConverterAmount(state, amountText, fromCode, Modifier.weight(1f))
                     IconHint(stringResource(R.string.ime_currency_swap_desc)) {
                         IconButton(
                             onClick = { onPairChange(toCode, fromCode) },
@@ -1445,8 +1480,7 @@ internal fun CurrencyPanel(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth(),
-                    onChange = callbacks.onConverterEdit,
-                    value = amountText,
+                    callbacks = callbacks,
                 )
             }
         }

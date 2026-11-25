@@ -32,6 +32,8 @@ The panel evaluates your expression live as you type. It takes `+ - × ÷ * / mo
 
 The custom keypad (`7 8 9 ÷ ⌫`, `4 5 6 × (`, `1 2 3 − )`, `0 . % + =`, or `1 2 3` on top with **Phone layout**) replaces the letter rows entirely while the panel is open. There's nothing to type past what the calculator itself accepts.
 
+The expression has a caret. Tap between two characters to put it there, and the next key, function or backspace works at that spot, so a wrong digit early in a long sum can be fixed without deleting back to it. A hardware keyboard's arrow keys move it too, and a long press selects, so the next key replaces the selection. `C` and `=` still work on the whole expression. Added in 0.6.8 (#1536).
+
 On a phone turned sideways there's no room for a row of chips over the keypad, so the functions move beside it instead: `C`, the eleven functions and the **deg**/**rad** toggle become keys, four to a row, to the keypad's left.
 
 ### Sums with units
@@ -56,7 +58,7 @@ Plain arithmetic never goes near Numbat: anything the calculator could already w
 
 ## Converting units and currencies
 
-**Unit converter** and **Currency converter** share a layout: category or currency chips up top, a swap icon between the two sides, a live result, and the same digit keypad. Only one of them touches the network. That keypad is simpler than Calculator's, just digits, a decimal point and backspace, because neither converter evaluates an expression.
+**Unit converter** and **Currency converter** share a layout: category or currency chips up top, a swap icon between the two sides, a live result, and the same digit keypad. Only one of them touches the network. That keypad is simpler than Calculator's, just digits, a decimal point and backspace, because neither converter evaluates an expression. The amount has a caret like the calculator's: tap inside it to change one digit and leave the rest.
 
 <PhoneFrame side caption="The Unit converter panel: category chips, From/To unit rows, the swap icon, and the shared digit keypad.">
   <Shot id="tools/unit-converter-panel" alt="The Unit converter panel: category chips, From/To unit rows, the swap icon, and the shared digit keypad." />
