@@ -46,6 +46,15 @@ class ImeNavigationBars {
         private set
 
     /**
+     * The bottom of the system's mandatory gesture zone: where a swipe up goes
+     * home whatever the window under it wants. Usually no taller than the
+     * navigation bar, but on phones that hide the gesture line the navigation
+     * bar inset is zero while the zone is still there (Telegram 11891).
+     */
+    var gesturesBottom by mutableIntStateOf(0)
+        private set
+
+    /**
      * True while the system's keyboard bar (hide chevron and switch button) is
      * there to be drawn in this window but has been hidden at the keyboard's
      * request (#582, #681). The automatic bottom padding is sized to clear
@@ -73,8 +82,9 @@ class ImeNavigationBars {
         right = bars.right
         val captionBar = hiddenKeyboardBarHeight(insets)
         keyboardBarHidden = captionBar > 0
+        val gestures = compat.getInsets(WindowInsetsCompat.Type.mandatorySystemGestures()).bottom
+        gesturesBottom = gestures
         bottom = if (captionBar > 0) {
-            val gestures = compat.getInsets(WindowInsetsCompat.Type.mandatorySystemGestures()).bottom
             maxOf(bars.bottom - captionBar, gestures).coerceAtMost(bars.bottom)
         } else {
             bars.bottom
@@ -104,5 +114,22 @@ fun navigationBarInsets(): WindowInsets {
     val top = bars.top
     val right = bars.right
     val bottom = bars.bottom
+    return remember(left, top, right, bottom) { WindowInsets(left, top, right, bottom) }
+}
+
+/**
+ * What the floating panel keeps clear of: the navigation bar, and at the
+ * bottom the home gesture zone as well. A panel dragged to the bottom edge
+ * put its handle bar in that zone on a phone with the gesture line hidden,
+ * where the navigation bar inset is zero, and a drag on the handle then went
+ * home instead of moving the panel, so it could never be moved again.
+ */
+@Composable
+fun floatingPanelInsets(): WindowInsets {
+    val bars = LocalImeNavigationBars.current ?: return WindowInsets.navigationBars
+    val left = bars.left
+    val top = bars.top
+    val right = bars.right
+    val bottom = maxOf(bars.bottom, bars.gesturesBottom)
     return remember(left, top, right, bottom) { WindowInsets(left, top, right, bottom) }
 }

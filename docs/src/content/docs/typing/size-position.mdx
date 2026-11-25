@@ -213,7 +213,7 @@ Floating mode replaces the normal layout logic rather than combining with it. Wh
 - Keyboard width, keyboard position and bottom padding from the sections above don't apply either. The panel's size and position come entirely from its own width slider, drag position and resize grip.
 - **Split keyboard still works while floating.** The two features aren't mutually exclusive, since split rendering happens inside the same keyboard body the floating panel wraps. The exception is **Split only on wide screens**: with it on, the floating panel never splits, because the panel is narrow however wide the screen is.
 
-Touches outside the panel pass straight through to the app underneath, and the keyboard forces full-screen (extract) mode off for as long as it's floating. The panel also keeps clear of the navigation bar, so a handle bar parked at the bottom of the screen never sits on the gesture strip. Pin the **Floating** tool to your toolbar and tapping it toggles floating on or off for the orientation you're in.
+Touches outside the panel pass straight through to the app underneath, and the keyboard forces full-screen (extract) mode off for as long as it's floating. The panel also keeps clear of the navigation bar and of the strip at the bottom edge where a swipe up goes home, so a handle bar parked at the bottom of the screen can always be dragged again. That holds on phones that hide the gesture line too, where the strip is still there but the navigation bar takes no room. Pin the **Floating** tool to your toolbar and tapping it toggles floating on or off for the orientation you're in.
 
 ## Keeping the keyboard on screen
 

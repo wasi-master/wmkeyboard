@@ -3385,8 +3385,9 @@ private fun FloatingKeyboardFrame(
             // the panel's bottom edge (#584) a panel parked at the bottom put
             // the drag pill on the gesture strip, where a drag goes home
             // instead; held clear of it, the bar and the bottom keys both stay
-            // the panel's.
-            .windowInsetsPadding(navigationBarInsets())
+            // the panel's. Clear of the home gesture zone too, which outlives
+            // the bar's inset on a phone with the gesture line hidden.
+            .windowInsetsPadding(floatingPanelInsets())
             .onGloballyPositioned {
                 frameOrigin = it.positionInRoot()
                 frameSize = it.size
