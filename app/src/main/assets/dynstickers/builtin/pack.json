@@ -6,7 +6,7 @@
   "name": "Built-in",
   "author": "WM Keyboard",
   "version": "1",
-  "license": "Templates: GPL-3.0 with the app. Art: Noto Emoji (Apache-2.0) and WM Keyboard's own drawings.",
+  "license": "Templates and our own drawings: MIT, like the app. Noto Emoji art: Apache-2.0.",
   "description": "Stickers that write your words, and meme formats",
   "templates": [
    {
