@@ -83,6 +83,9 @@
     <!-- :feature:zxing, the zxing-cpp barcode reader the QR scanner uses
          where ML Kit's is missing or not picked. -->
     <string name="zxing_module_title">QR and barcode reader</string>
+    <!-- :feature:skottie, the Skottie player that draws imported sticker
+         templates whose text fits itself to its box. -->
+    <string name="skottie_module_title">Sticker template player</string>
     <!-- :feature:imagegen, the sticker generator's runtime (MNN, and the NPU runner). -->
     <string name="imagegen_module_title">Sticker generator</string>
     <!-- The same for :feature:npu, the runtime behind Compute = NPU for

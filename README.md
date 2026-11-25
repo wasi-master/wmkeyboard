@@ -476,6 +476,7 @@ the same files.
 - [librime](https://github.com/rime/librime), [Mozc](https://github.com/google/mozc) and [libchewing](https://github.com/chewing/libchewing) for the optional Chinese, Japanese and Zhuyin engines.
 - [vidyut-lipi](https://github.com/ambuda-org/vidyut) for converting between Indic scripts and IAST, ITRANS and the other romanisations.
 - [Hunspell](https://hunspell.github.io/), [divvunspell](https://github.com/divvun/divvunspell) and [Voikko](https://voikko.puimula.org/) for spell checking with imported dictionaries.
+- [libwebp](https://chromium.googlesource.com/webm/libwebp) for encoding animated stickers, and [Skia](https://skia.org)'s Skottie with [HarfBuzz](https://github.com/harfbuzz/harfbuzz) and [FreeType](https://freetype.org) for drawing sticker templates.
 - [Gemoji](https://github.com/github/gemoji), [KEmoji](https://invent.kde.org/libraries/kemoji) and Unicode CLDR for emoji names and keywords. [Noto](https://notofonts.github.io/) for fonts and animated emoji.
 - [Keyman](https://keyman.com) for the keyboard import format, and [Khipro](https://khipro.khiproteam.com/) for the Bangla layout of the same name.
 - [LuaJ](https://github.com/luaj/luaj) for the plugin sandbox. [Bouncy Castle](https://www.bouncycastle.org/) for backup encryption.

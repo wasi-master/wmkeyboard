@@ -303,6 +303,28 @@ rank) > exact token (100) > curated synonym expansion (60) > keyword prefix
 tokens. The search field lives inside the keyboard: while it is active, letter
 keys feed the query instead of the app.
 
+### Animated stickers: libwebp and Skottie
+
+Animated stickers are encoded by libwebp's own animation encoder
+(`WebPAnimEncoder` in `libwmwebp`, `native/webp-jni`, wrapped by
+`AnimatedWebpEncoder` in `:core:content`), which every build carries in its
+base APK because it is about 300 KB. It stores each frame as the rectangle
+that changed since the one before, so a sticker whose text moves over a still
+picture costs little more than the picture: a two-second test sticker came
+out at 57 KB, against 425 KB as whole still frames, with WhatsApp's limit for
+animated stickers at 500 KB.
+`AnimatedWebpWriter`, which wraps whole frames that the platform encodes,
+remains the fallback for a build whose library failed to load. Lottie
+(airbnb) draws every animation by default. Imported sticker templates whose
+text layers use Skottie's own text extensions (`rs` resize to fit, `mf` and
+`xf` minimum and maximum size, `xl` maximum lines, `vj` vertical alignment)
+are drawn by Skia's Skottie instead: `libwmskottie` (`native/skottie-jni`,
+`SkottieNative` and `SkottieAnimation`) is a CPU-only Skia with HarfBuzz
+shaping, FreeType and the PNG, JPEG and WebP decoders, 4.6 MB on arm64, so
+it is the on-demand `skottie` gate rather than part of the base APK. Each
+library's README gives its pinned upstream, its build options and the
+desktop test it passed.
+
 ### Persistence
 
 - **Settings** use Preferences DataStore, exposed as a
@@ -506,6 +528,11 @@ An entry has:
   of them (`npu-V79`).
 - `google`, `enabledBy`, `neverPackaged`: built on a Google SDK (left out of
   F-Droid's build), switched on by a flag, never packaged into an APK.
+
+A library every build ships in its base APK (the text engines, liblouis,
+libwebp's encoder) goes in the table's `base` list instead, with the same
+`name`, `dir`, `fdroidBuild` and `keep` fields, so F-Droid builds it and R8
+keeps its JNI class.
 
 Then give the library a directory of its own (`src/<id>/jniLibs` in the core
 module that loads it) so that its Play split carries nothing else. A

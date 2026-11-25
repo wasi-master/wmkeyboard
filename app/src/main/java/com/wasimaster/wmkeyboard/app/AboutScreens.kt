@@ -535,6 +535,56 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://sourceforge.net/projects/libzueci/",
         ),
     )
+    // The animated sticker encoder, in every build's base APK; see
+    // native/webp-jni.
+    add(
+        Attribution(
+            "libwebp",
+            R.string.about_bundled_libwebp_used,
+            "Copyright (c) 2010, Google Inc.",
+            "BSD-3-Clause", "bsd-3-clause-libwebp.txt",
+            "https://chromium.googlesource.com/webm/libwebp",
+        ),
+    )
+    // The sticker template player, in every build: packaged, pinned for
+    // download, or a Play split. Skia's CPU raster with Skottie and the
+    // libraries it compiles in; see native/skottie-jni.
+    add(
+        Attribution(
+            "Skia (Skottie)",
+            R.string.about_bundled_skia_used,
+            "Copyright (c) 2011 Google Inc. and the Skia authors",
+            "BSD-3-Clause", "skottie-third-party.txt",
+            "https://skia.org",
+        ),
+    )
+    add(
+        Attribution(
+            "HarfBuzz",
+            R.string.about_bundled_harfbuzz_used,
+            "Copyright the HarfBuzz authors (Behdad Esfahbod, Google, Red Hat and others)",
+            "MIT", "skottie-third-party.txt",
+            "https://github.com/harfbuzz/harfbuzz",
+        ),
+    )
+    add(
+        Attribution(
+            "FreeType",
+            R.string.about_bundled_freetype_used,
+            "Portions of this software are copyright (C) 2026 The FreeType Project (www.freetype.org). All rights reserved.",
+            "FTL", "skottie-third-party.txt",
+            "https://freetype.org",
+        ),
+    )
+    add(
+        Attribution(
+            "libgrapheme, ICU, libpng, libjpeg-turbo, zlib, Expat",
+            R.string.about_bundled_skia_deps_used,
+            "Copyright their authors. This software is based in part on the work of the Independent JPEG Group.",
+            "ISC / Unicode-3.0 / libpng / BSD-3-Clause / IJG / zlib / MIT", "skottie-third-party.txt",
+            "https://skia.org",
+        ),
+    )
     if (BuildConfig.ENABLE_ML_KIT_SCANNERS) {
         // Compiled into one native library for the text scanner; see
         // native/tesseract-jni.

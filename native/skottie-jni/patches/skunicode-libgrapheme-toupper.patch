@@ -1,0 +1,24 @@
+diff --git a/modules/skunicode/src/SkUnicode_libgrapheme.cpp b/modules/skunicode/src/SkUnicode_libgrapheme.cpp
+index 50c6ce7..7b185f4 100644
+--- a/modules/skunicode/src/SkUnicode_libgrapheme.cpp
++++ b/modules/skunicode/src/SkUnicode_libgrapheme.cpp
+@@ -219,8 +219,17 @@ public:
+     }
+ 
+     SkString toUpper(const SkString& str, const char* locale) override {
+-        SkString res(" ", str.size());
+-        grapheme_to_uppercase_utf8(str.data(), str.size(), res.data(), res.size());
++        // libgrapheme always NUL-terminates inside destlen and returns the
++        // whole result's length, which upper-casing can make longer than the
++        // input (U+00DF becomes "SS"). So measure first, then give it room
++        // for the terminator: a buffer of exactly str.size() bytes lost the
++        // last byte of every string.
++        const size_t len = grapheme_to_uppercase_utf8(str.data(), str.size(), nullptr, 0);
++        if (len == 0) {
++            return SkString();  // SkString(0) shares one static empty buffer
++        }
++        SkString res(len);
++        grapheme_to_uppercase_utf8(str.data(), str.size(), res.data(), len + 1);
+         return res;
+     }
+ 

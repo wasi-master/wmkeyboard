@@ -11,6 +11,12 @@
       "name": "libwmlouis.so",
       "dir": "core/language/src/main/jniLibs",
       "fdroidBuild": "native/louis-jni/build.sh"
+    },
+    {
+      "name": "libwmwebp.so",
+      "dir": "core/content/src/main/jniLibs",
+      "fdroidBuild": "native/webp-jni/build.sh",
+      "keep": ["com.wasimaster.wmkeyboard.core.media.WebpAnimNative"]
     }
   ],
   "gates": [
@@ -359,6 +365,15 @@
       "play": "split",
       "libraries": [
         { "name": "libwmzxing.so", "dir": "core/intelligence/src/zxing/jniLibs", "fdroidBuild": "native/zxingcpp-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.barcode.ZxingNative"] }
+      ]
+    },
+    {
+      "id": "skottie",
+      "property": "skottie",
+      "doc": "`:feature:skottie`: Skia's Skottie Lottie player (`libwmskottie`, `native/skottie-jni`, `:core:content`), CPU raster only, with HarfBuzz shaping, FreeType and the PNG, JPEG and WebP decoders. Draws imported sticker templates whose text layers use Skottie's own auto-fit extensions (resize to fit, minimum and maximum size, maximum lines, vertical alignment) exactly as they were made. Lottie (airbnb) stays the default renderer; only such a template asks for this gate.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmskottie.so", "dir": "core/content/src/skottie/jniLibs", "fdroidBuild": "native/skottie-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.media.skottie.SkottieNative"] }
       ]
     },
     {

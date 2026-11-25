@@ -8,6 +8,7 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.drawable.AnimatedImageDrawable
 import android.os.Build
+import com.wasimaster.wmkeyboard.core.media.AnimatedWebpEncoder
 import com.wasimaster.wmkeyboard.core.media.AnimatedWebpWriter
 import com.wasimaster.wmkeyboard.core.media.MediaMime
 import com.wasimaster.wmkeyboard.core.stickers.telegram.TgsFrames
@@ -32,9 +33,10 @@ import java.io.ByteArrayOutputStream
  * GIF can only ever be sent as an image.
  *
  * An animated PNG is the exception, because nothing on Android plays one and
- * no app takes one as a sticker. Its frames are read with [ApngFrames], each
- * is encoded as a still WebP by the platform, and [AnimatedWebpWriter] wraps
- * those into one animated WebP, which is both.
+ * no app takes one as a sticker. Its frames are read with [ApngFrames] and
+ * encoded into one animated WebP, which is both: by libwebp's animation
+ * encoder ([AnimatedWebpEncoder]), or, when its library failed to load, as
+ * stills by the platform that [AnimatedWebpWriter] wraps.
  *
  * Telegram's two animated kinds go the same way: a `.tgs` (a gzipped Lottie
  * animation) is drawn frame by frame with [TgsFrames], and a `.webm` video
@@ -218,8 +220,38 @@ object StickerImage {
         }
     }
 
-    /** One pass over [frames] at [quality]. Null when any frame fails. */
+    /**
+     * One pass over [frames] at [quality]. Null when any frame fails.
+     *
+     * libwebp's animation encoder ([AnimatedWebpEncoder]) when its library is
+     * loaded: it stores only what changed between frames, so a sticker comes
+     * out several times smaller than [AnimatedWebpWriter]'s whole frames,
+     * which remain the fallback.
+     */
     private fun encodeFramesAt(frames: FrameSource, quality: Int): ByteArray? {
+        if (AnimatedWebpEncoder.available) {
+            encodeFramesWithLibwebp(frames, quality)?.let { return it }
+        }
+        return encodeFramesAsStills(frames, quality)
+    }
+
+    private fun encodeFramesWithLibwebp(frames: FrameSource, quality: Int): ByteArray? =
+        AnimatedWebpEncoder(TARGET_SIZE, TARGET_SIZE, quality = quality.toFloat()).use { encoder ->
+            var failed = false
+            var added = 0
+            var timestampMs = 0
+            val delivered = frames.forEach { frame, durationMs ->
+                if (failed) return@forEach
+                // As below: only a canvas made here is this function's to recycle.
+                val canvas = square(frame)
+                if (encoder.addFrame(canvas, timestampMs)) added++ else failed = true
+                if (canvas !== frame) canvas.recycle()
+                timestampMs += durationMs.coerceAtLeast(0)
+            }
+            if (failed || delivered < 2 || added != delivered) null else encoder.finish(timestampMs)
+        }
+
+    private fun encodeFramesAsStills(frames: FrameSource, quality: Int): ByteArray? {
         val writer = AnimatedWebpWriter(TARGET_SIZE, TARGET_SIZE)
         var failed = false
         val delivered = frames.forEach { frame, durationMs ->

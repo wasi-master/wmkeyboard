@@ -2,6 +2,10 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.library)
+    // This module's jniLibs of on-demand gates, per channel (native/gates.json):
+    // Skottie's in src/skottie/jniLibs. libwmwebp in src/main/jniLibs is in the
+    // table's `base` list, so every build packages it.
+    id("wmkeyboard.native-libs")
     id("wmkeyboard.detekt")
     alias(libs.plugins.kotlin.compose)
     id("wmkeyboard.compose-metrics")

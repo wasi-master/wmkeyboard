@@ -195,6 +195,11 @@
     <string name="about_bundled_libphonenumber_used">Tells real phone numbers, and mobiles, from other digit runs in every country</string>
     <string name="about_bundled_zxingcpp_used">Reads QR codes and barcodes on the device without Google services (native library)</string>
     <string name="about_bundled_zueci_used">Converts the character sets codes are written in, inside the zxing-cpp reader (native library)</string>
+    <string name="about_bundled_libwebp_used">Encodes animated stickers, storing only what changes between frames (native library)</string>
+    <string name="about_bundled_skia_used">Draws imported sticker templates whose text fits itself to its box (native library)</string>
+    <string name="about_bundled_harfbuzz_used">Shapes the text of sticker templates, so Bengali, Arabic and other scripts join correctly (native library)</string>
+    <string name="about_bundled_freetype_used">Reads the fonts that sticker template text is drawn with (native library)</string>
+    <string name="about_bundled_skia_deps_used">Break text into lines and decode the pictures in sticker templates, inside the Skia library (native library)</string>
     <string name="about_bundled_pymini_plugins">The Python interpreter, ported to Rust, that runs plugins and Clink actions</string>
     <string name="about_bundled_kleidi_used">Faster matrix and image arithmetic on newer ARM processors for on-device AI, dictation and the document scanner (native library)</string>
     <string name="about_bundled_divvun_runtime_used">Runs GiellaLT\'s grammar checkers for the Sámi languages and Faroese (native library, GPL-3.0)</string>
