@@ -8,6 +8,8 @@ import com.wasimaster.wmkeyboard.core.media.GifEncoder
 import com.wasimaster.wmkeyboard.core.media.MediaMime
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.util.concurrent.Executors
+import java.util.concurrent.Future
 import kotlin.math.exp
 import kotlin.math.pow
 
@@ -51,10 +53,22 @@ object DynEncoder {
         Step(25f, 80), Step(25f, 66), Step(20f, 60), Step(16f, 55),
         Step(12f, 50), Step(12f, 42), Step(10f, 34), Step(8f, 26),
     )
-    private const val MAX_ATTEMPTS = 3
+    /** What the first pass tries at once, best first: a quality, and every how many frames it takes. */
+    private class Candidate(val quality: Int, val every: Int = 1)
 
-    /** Each pass's share of the progress bar: the first most of it. */
-    private val SLICES = floatArrayOf(0f, 0.6f, 0.9f, 1f)
+    private val FIRST_PASS = listOf(Candidate(80), Candidate(60), Candidate(50, every = 2))
+
+    /** Passes after the first, one encoder each, when none of the first pass's fit. */
+    private const val LATER_PASSES = 2
+
+    /** The first pass's share of the progress bar, and each later pass's share of what is left. */
+    private const val FIRST_SHARE = 0.8f
+    private const val LATER_SHARE = 0.7f
+
+    /** Threads the first pass's encoders run on, one each. */
+    private val encoders by lazy {
+        Executors.newFixedThreadPool(FIRST_PASS.size) { task -> Thread(task, "dynsticker-encode").apply { isDaemon = true } }
+    }
 
     /** Aim this far under the budget, since the estimate is rough. */
     private const val SAFETY = 0.85f
@@ -64,6 +78,10 @@ object DynEncoder {
     /** Takes frames and returns the animated file. */
     interface FrameSink {
         fun add(frame: Bitmap, durationMs: Int): Boolean
+
+        /** Keeps the last frame added on screen [durationMs] longer; false when this sink cannot. */
+        fun hold(durationMs: Int): Boolean = false
+
         fun finish(): ByteArray?
     }
 
@@ -147,13 +165,13 @@ object DynEncoder {
             if (format == Format.GIF) {
                 encodeGif(prepared, progress)?.let { bytes ->
                     val file = File(target.parentFile, target.nameWithoutExtension + ".gif")
-                    file.writeBytes(bytes)
+                    write(file, bytes)
                     return Output(file, MediaMime.GIF, animated = true)
                 }
             }
             encodeAnimated(prepared, if (format == Format.GIF) Format.WEBP.budget else format.budget, progress)?.let { bytes ->
                 val file = File(target.parentFile, target.nameWithoutExtension + ".webp")
-                file.writeBytes(bytes)
+                write(file, bytes)
                 return Output(file, MediaMime.WEBP, animated = true)
             }
         }
@@ -161,7 +179,7 @@ object DynEncoder {
         try {
             val bytes = webp(frame, STILL_BUDGET) ?: return null
             val file = File(target.parentFile, target.nameWithoutExtension + ".webp")
-            file.writeBytes(bytes)
+            write(file, bytes)
             return Output(file, MediaMime.WEBP, animated = false)
         } finally {
             frame.recycle()
@@ -178,7 +196,7 @@ object DynEncoder {
             val png = ByteArrayOutputStream().also { frame.compress(Bitmap.CompressFormat.PNG, 100, it) }.toByteArray()
             if (png.size <= PNG_LIMIT) {
                 val file = File(target.parentFile, target.nameWithoutExtension + ".png")
-                file.writeBytes(png)
+                write(file, png)
                 return Output(file, MediaMime.PNG, animated = false)
             }
             val flat = Bitmap.createBitmap(frame.width, frame.height, Bitmap.Config.ARGB_8888)
@@ -189,10 +207,24 @@ object DynEncoder {
             val jpeg = ByteArrayOutputStream().also { flat.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, it) }.toByteArray()
             flat.recycle()
             val file = File(target.parentFile, target.nameWithoutExtension + ".jpg")
-            file.writeBytes(jpeg)
+            write(file, jpeg)
             return Output(file, MediaMime.JPEG, animated = false)
         } finally {
             frame.recycle()
+        }
+    }
+
+    /**
+     * Writes [bytes] to [file] by way of a temporary file, so a file found
+     * under [file]'s name (the controller sends one again without remaking
+     * it) is always a whole one.
+     */
+    private fun write(file: File, bytes: ByteArray) {
+        val part = File(file.parentFile, file.name + ".part")
+        part.writeBytes(bytes)
+        if (!part.renameTo(file)) {
+            part.delete()
+            file.writeBytes(bytes)
         }
     }
 
@@ -207,50 +239,85 @@ object DynEncoder {
     }
 
     /**
-     * The animated WebP, under [budget] when it can be: at most
-     * [MAX_ATTEMPTS] passes. The first is at the full rate and a good
-     * quality; when that comes out too big, its size says roughly what the
-     * next one will weigh at a lower rate and quality ([estimate]), and the
-     * next pass goes straight to the first step expected to fit, instead of
-     * walking down one quality at a time. Each pass fills its own share of
-     * the progress, so the bar keeps going forwards.
+     * The animated WebP, under [budget] when it can be.
+     *
+     * The first pass draws each frame once and hands it to several encoders
+     * at once, each on a thread of its own ([FIRST_PASS]: a good quality, a
+     * lower one, and a lower one at half the frame rate), so trying three
+     * ways costs about the time of one. The first of them that fits is the
+     * answer, which it nearly always is. Only when none does is there a
+     * second pass: the smallest one's size says roughly what a lower rate
+     * and quality will weigh ([estimate]), and that pass goes straight to the
+     * first step expected to fit. Each pass fills its own share of the
+     * progress, so the bar keeps going forwards.
      */
     private fun encodeAnimated(prepared: DynRenderer.Prepared, budget: Int, onProgress: (Float) -> Unit): ByteArray? {
-        val steps = STEPS.filter { it.fps <= animatedFps }.ifEmpty { listOf(Step(animatedFps, STEPS.first().quality)) }
-        var index = 0
-        var best: ByteArray? = null
-        for (attempt in 0 until MAX_ATTEMPTS) {
-            val step = steps[index]
-            val from = SLICES[attempt]
-            val to = SLICES[attempt + 1]
-            val bytes = encodeWebpPass(prepared, step) { f -> onProgress(from + (to - from) * f) } ?: break
-            if (best == null || bytes.size < best.size) best = bytes
+        val fps = animatedFps
+        val results = pass(prepared, fps, FIRST_PASS) { onProgress(it * FIRST_SHARE) }
+        results.firstOrNull { it != null && it.size <= budget }?.let { return it }
+        val smallest = FIRST_PASS.indices.filter { results[it] != null }.minByOrNull { results[it]!!.size } ?: return null
+        var best = results[smallest]!!
+        var measured = Step(fps / FIRST_PASS[smallest].every, FIRST_PASS[smallest].quality)
+        val steps = STEPS.filter { it.fps <= fps }
+        var start = FIRST_SHARE
+        for (attempt in 0 until LATER_PASSES) {
+            val frames = prepared.frameCount(measured.fps, animatedMaxFrames)
+            val next = steps.firstOrNull { step ->
+                step.fps <= measured.fps && step.quality <= measured.quality && step != measured &&
+                    estimate(best.size, measured, frames, step, prepared.frameCount(step.fps, animatedMaxFrames)) <= budget * SAFETY
+            } ?: steps.lastOrNull()?.takeIf { it != measured } ?: break
+            val end = if (attempt == LATER_PASSES - 1) 1f else start + (1f - start) * LATER_SHARE
+            val from = start
+            val bytes = pass(prepared, next.fps, listOf(Candidate(next.quality))) { onProgress(from + (end - from) * it) }.single() ?: break
+            if (bytes.size < best.size) best = bytes
             if (bytes.size <= budget) return bytes
-            val frames = prepared.frameCount(step.fps, animatedMaxFrames)
-            val next = (index + 1 until steps.size).firstOrNull { i ->
-                estimate(bytes.size, step, frames, steps[i], prepared.frameCount(steps[i].fps, animatedMaxFrames)) <= budget * SAFETY
-            } ?: steps.lastIndex
-            if (next == index) break
-            index = next
+            measured = next
+            start = end
         }
-        return best?.takeIf { it.size <= budget * 2 }
+        return best.takeIf { it.size <= budget * 2 }
     }
 
-    /** One pass at [step]'s rate and quality; [onProgress] goes 0 to 1 over its frames. */
-    private fun encodeWebpPass(prepared: DynRenderer.Prepared, step: Step, onProgress: (Float) -> Unit): ByteArray? {
-        val sink = runCatching { animatedEncoder.create(STICKER_SIZE, step.quality) }.getOrNull() ?: return null
-        val total = prepared.frameCount(step.fps, animatedMaxFrames).coerceAtLeast(1)
-        var done = 0
-        var failed = false
+    /**
+     * One drawing of [prepared]'s frames at [fps], fed to one encoder per
+     * [candidates] entry, in parallel; each gets every [Candidate.every]th
+     * frame, held for the frames it skips. The results in the same order,
+     * null where one failed. [onProgress] goes 0 to 1 over the frames.
+     */
+    private fun pass(
+        prepared: DynRenderer.Prepared,
+        fps: Float,
+        candidates: List<Candidate>,
+        onProgress: (Float) -> Unit,
+    ): List<ByteArray?> {
+        val sinks = candidates.map { runCatching { animatedEncoder.create(STICKER_SIZE, it.quality) }.getOrNull() }
+        val failed = BooleanArray(sinks.size) { sinks[it] == null }
+        val total = prepared.frameCount(fps, animatedMaxFrames).coerceAtLeast(1)
+        var index = 0
         // Started on the still: a chat that shows an animated sticker's
         // first frame before it plays (or instead of playing it) shows the
         // finished sticker, not the empty frame before anything pops in.
         // The loop itself is the same, only entered at another point.
-        val count = prepared.forEachFrame(STICKER_SIZE, step.fps, animatedMaxFrames, startAt = prepared.posterProgress) { frame, durationMs ->
-            if (!failed && !sink.add(frame, durationMs)) failed = true
-            onProgress(++done / total.toFloat())
+        val count = prepared.forEachFrame(STICKER_SIZE, fps, animatedMaxFrames, startAt = prepared.posterProgress) { frame, durationMs ->
+            val jobs = ArrayList<Future<*>>(sinks.size)
+            for (i in sinks.indices) {
+                val sink = sinks[i] ?: continue
+                if (failed[i]) continue
+                if (index % candidates[i].every == 0) {
+                    // Each encoder copies the frame during its call, so the
+                    // bitmap is free again once every call has returned.
+                    jobs += encoders.submit(Runnable { if (!sink.add(frame, durationMs)) failed[i] = true })
+                } else if (!sink.hold(durationMs)) {
+                    failed[i] = true
+                }
+            }
+            for (job in jobs) job.get()
+            index++
+            onProgress(index / total.toFloat())
         }
-        return if (failed || count < 2) null else sink.finish()
+        return sinks.mapIndexed { i, sink ->
+            val bytes = sink?.finish()
+            bytes.takeIf { !failed[i] && count >= 2 }
+        }
     }
 
     /** An animated GIF of [prepared] in one pass, or null when it cannot be made (no native encoder). */
@@ -304,6 +371,13 @@ object DynEncoder {
             if (!encoder.addFrame(frame, timestamp)) return false
             timestamp += durationMs
             frames++
+            return true
+        }
+
+        // A frame lasts until the next one's timestamp, so holding is moving the clock on.
+        override fun hold(durationMs: Int): Boolean {
+            if (frames == 0) return false
+            timestamp += durationMs
             return true
         }
 

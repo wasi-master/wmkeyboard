@@ -332,16 +332,32 @@ internal class DynStickerController(
         val entry = entryOf(item) ?: return null
         val template = store.template(entry.templateKey) ?: return null
         val fill = withOverride(entry.fill)
+        val photo = template.kind == DynKind.MEME && template.meta.photos.isNotEmpty()
+        val animated = host.settings.sendAnimated && !still
+        // Named for everything that decides what the file holds, so the same
+        // sticker sent again goes out at once instead of being made again. A
+        // meme's photo can change behind the same address, so those are
+        // always made afresh.
+        val made = CRC32().apply {
+            update(listOf(template.key, fill.cacheKey, store.revision.value, animated, format, policy()).joinToString("\u0000").toByteArray())
+        }.value.toString(Character.MAX_RADIX)
+        val target = File(sendDir(), "${template.meta.id.take(NAME_CHARS)}-$made")
+        if (!photo) {
+            sentBefore(target)?.let { out ->
+                out.file.setLastModified(System.currentTimeMillis())
+                store.noteSent(template.key)
+                return out
+            }
+        }
         val photoMaps = photoBitmaps(fill)
         try {
             val prepared = renderer.prepare(template, fill, policy(), photoMaps) ?: return null
             return prepared.use {
                 sweepSent()
-                val target = File(sendDir(), "${template.meta.id.take(NAME_CHARS)}-${item.id.takeLast(ID_CHARS)}")
-                val out = if (template.kind == DynKind.MEME && template.meta.photos.isNotEmpty()) {
+                val out = if (photo) {
                     DynEncoder.image(it, target)
                 } else {
-                    DynEncoder.sticker(it, target, animated = host.settings.sendAnimated && !still, format = format, onProgress = onProgress)
+                    DynEncoder.sticker(it, target, animated = animated, format = format, onProgress = onProgress)
                 }
                 if (out != null) store.noteSent(template.key)
                 out
@@ -349,6 +365,15 @@ internal class DynStickerController(
         } finally {
             photoMaps.values.forEach(Bitmap::recycle)
         }
+    }
+
+    /** The file a send named [target] already made, when there is one. */
+    private fun sentBefore(target: File): DynEncoder.Output? {
+        for ((extension, mime) in SENT_TYPES) {
+            val file = File(target.parentFile, "${target.name}.$extension")
+            if (file.isFile && file.length() > 0L) return DynEncoder.Output(file, mime, animated = mime == MediaMime.GIF)
+        }
+        return null
     }
 
     private fun thumbDir(): File = File(context.cacheDir, "$CACHE_DIR/thumbs").apply { mkdirs() }
@@ -568,7 +593,7 @@ internal class DynStickerController(
         private const val KEEP_SENT = 12
         private const val KEEP_THUMBS = 120
         private const val NAME_CHARS = 24
-        private const val ID_CHARS = 10
+        private val SENT_TYPES = listOf("webp" to MediaMime.WEBP, "gif" to MediaMime.GIF)
         private const val PNG_QUALITY = 100
         private const val MIN_CONCEPT_WORD = 3
         private const val CONCEPT_EMOJI = 2
