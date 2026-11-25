@@ -39,9 +39,12 @@ jobs:
     if: >-
       github.event.sender.type != 'Bot' &&
       (
-        github.event_name == 'issues' ||
+        (github.event_name == 'issues' &&
+          (contains(github.event.issue.body, 'SourceFile:') ||
+           contains(github.event.issue.body, 'dex-id-'))) ||
         startsWith(github.event.comment.body, '/retrace') ||
-        contains(github.event.comment.body, 'SourceFile:')
+        contains(github.event.comment.body, 'SourceFile:') ||
+        contains(github.event.comment.body, 'dex-id-')
       )
     steps:
       - uses: actions/checkout@v7

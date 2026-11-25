@@ -36,6 +36,15 @@ body:
     validations:
       required: false
 
+  - type: input
+    id: device
+    attributes:
+      label: Phone and Android version (optional)
+      description: Brand, model and Android version, for example "Samsung Galaxy S24, Android 16". Diagnostics below carry it too, so skip this if you paste them.
+      placeholder: "Pixel 8, Android 16"
+    validations:
+      required: false
+
   - type: textarea
     id: bug-description
     attributes:
