@@ -101,4 +101,62 @@ class FileStoreTest {
         file("a.txt")
         assertTrue(FileStore.search(temp.root, "   ").isEmpty())
     }
+
+    @Test
+    fun theFastListingMatchesThePlainOne() {
+        file("b.txt", bytes = 5, modified = 5_000L)
+        file("a.png", bytes = 3, modified = 2_000L)
+        File(temp.root, "dir").mkdir()
+        val plain = FileStore.list(temp.root, mimeOf = mimeOf)
+        val fast = FileStore.list(temp.root, mimeOf = mimeOf, fast = true)
+        assertEquals(plain, fast)
+    }
+
+    @Test
+    fun foldersCanSortAmongTheFiles() {
+        file("b.txt")
+        File(temp.root, "a").mkdir()
+        file("c.txt")
+        assertEquals(listOf("a", "b.txt", "c.txt"), FileStore.list(temp.root, foldersFirst = false)?.map { it.name })
+        assertEquals(listOf("c.txt", "b.txt", "a"), FileStore.list(temp.root, descending = true, foldersFirst = false)?.map { it.name })
+    }
+
+    @Test
+    fun aSearchNarrowsByKindSizeAndDate() = runBlocking {
+        file("docs/report.pdf", bytes = 2_000, modified = 10_000L)
+        file("docs/report.png", bytes = 2_000, modified = 10_000L)
+        file("docs/report old.pdf", bytes = 2_000, modified = 1_000L)
+        file("docs/report tiny.pdf", bytes = 10, modified = 10_000L)
+        val query = FileQuery("report", kinds = setOf(FileKind.PDF), minSize = 1_000, after = 5_000L)
+        val names = FileStore.search(temp.root, query, mimeOf = mimeOf).map { it.name }
+        assertEquals(listOf("report.pdf"), names)
+    }
+
+    @Test
+    fun aSearchInContentsReadsTextFiles() = runBlocking {
+        File(temp.root, "notes").mkdirs()
+        File(temp.root, "notes/a.txt").writeText("The invoice number is 42")
+        File(temp.root, "notes/b.txt").writeText("Nothing here")
+        File(temp.root, "notes/c.bin").writeText("invoice")
+        val inside = FileStore.search(temp.root, FileQuery("INVOICE", inContents = true)).map { it.name }
+        assertEquals(listOf("a.txt"), inside)
+        assertTrue(FileStore.search(temp.root, FileQuery("invoice")).isEmpty())
+    }
+
+    @Test
+    fun aSearchHandsOverWhatItFoundAsItGoes() = runBlocking {
+        repeat(5) { file("d$it/match$it.txt") }
+        val batches = ArrayList<Int>()
+        var now = 0L
+        val found = FileStore.search(temp.root, FileQuery("match"), onBatch = { batches += it.size }, clock = { now += 1_000; now })
+        assertEquals(5, found.size)
+        assertEquals(5, batches.last())
+        assertTrue(batches.size > 1)
+    }
+
+    @Test
+    fun anEmptyQueryFindsNothing() = runBlocking {
+        file("a.txt")
+        assertTrue(FileStore.search(temp.root, FileQuery("  ")).isEmpty())
+    }
 }

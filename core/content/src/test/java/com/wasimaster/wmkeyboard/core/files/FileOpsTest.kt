@@ -220,4 +220,83 @@ class FileOpsTest {
         assertNull(LocalFilePaths.resolve(sibling.path, listOf(volume)))
         assertFalse(FileOps.isInside(volume, sibling))
     }
+
+    @Test
+    fun clashesNameWhatIsAlreadyThereButNotTheThingItself() {
+        val a = file("from/a.txt")
+        val b = file("from/b.txt")
+        val target = dir("to")
+        File(target, "a.txt").writeText("old")
+        assertEquals(listOf(a), FileOps.clashes(listOf(a, b), target))
+        assertTrue(FileOps.clashes(listOf(a), a.parentFile!!).isEmpty())
+    }
+
+    @Test
+    fun skipLeavesATakenNameAlone() = runBlocking {
+        val a = file("from/a.txt", "new")
+        val target = dir("to")
+        File(target, "a.txt").writeText("old")
+        val result = FileOps.copy(listOf(a), target, clash = Clash.SKIP)
+        assertEquals(1, result.skipped)
+        assertEquals(0, result.done)
+        assertEquals("old", File(target, "a.txt").readText())
+        assertEquals(listOf("a.txt"), target.list()?.toList())
+    }
+
+    @Test
+    fun replaceSwapsTheOldOneForTheNewOne() = runBlocking {
+        val a = file("from/a.txt", "new")
+        val target = dir("to")
+        File(target, "a.txt").writeText("old")
+        val result = FileOps.copy(listOf(a), target, clash = Clash.REPLACE)
+        assertEquals(1, result.done)
+        assertEquals("new", File(target, "a.txt").readText())
+        assertEquals(listOf("a.txt"), target.list()?.toList())
+        assertEquals(listOf(File(target, "a.txt").path), result.made)
+    }
+
+    @Test
+    fun replaceOnAMoveLeavesOneFileUnderTheName() = runBlocking {
+        val a = file("from/a.txt", "new")
+        val target = dir("to")
+        File(target, "a.txt").writeText("old")
+        val result = FileOps.move(listOf(a), target, clash = Clash.REPLACE)
+        assertEquals(1, result.done)
+        assertFalse(a.exists())
+        assertEquals("new", File(target, "a.txt").readText())
+        assertEquals(listOf(a.path to File(target, "a.txt").path), result.moves)
+    }
+
+    @Test
+    fun aCopyBesideItselfIsADuplicate() = runBlocking {
+        val a = file("d/a.txt", "x")
+        val result = FileOps.copy(listOf(a), a.parentFile!!, clash = Clash.SKIP)
+        assertEquals(1, result.done)
+        assertEquals("x", File(a.parentFile, "a (1).txt").readText())
+    }
+
+    @Test
+    fun progressCountsBytesUpToTheTotal() = runBlocking {
+        val a = file("from/a.bin", "x".repeat(200_000))
+        val b = file("from/b.bin", "y".repeat(100_000))
+        val target = dir("to")
+        val seen = ArrayList<FileOpProgress>()
+        FileOps.copy(listOf(a, b), target, onProgress = { seen += it })
+        val last = seen.last()
+        assertEquals(300_000L, last.bytesTotal)
+        assertEquals(300_000L, last.bytesDone)
+        assertTrue(seen.zipWithNext().all { (x, y) -> y.bytesDone >= x.bytesDone })
+    }
+
+    @Test
+    fun aMoveSaysWhereEachThingWent() = runBlocking {
+        val a = file("from/a.txt")
+        val target = dir("to")
+        val result = FileOps.move(listOf(a), target)
+        assertEquals(listOf(a.path to File(target, "a.txt").path), result.moves)
+        // Taken back the same way, it is where it was.
+        val back = FileOps.move(listOf(File(target, "a.txt")), a.parentFile!!)
+        assertEquals(1, back.done)
+        assertTrue(a.exists())
+    }
 }
