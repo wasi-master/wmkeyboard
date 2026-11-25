@@ -1,0 +1,7116 @@
+{
+ "format": "wmkeyboard-dynstickers",
+ "version": 1,
+ "pack": {
+  "id": "builtin",
+  "name": "Built-in",
+  "author": "WM Keyboard",
+  "version": "1",
+  "license": "Templates: GPL-3.0 with the app. Art: Noto Emoji (Apache-2.0) and WM Keyboard's own drawings.",
+  "description": "Stickers that write your words, and meme formats",
+  "templates": [
+   {
+    "id": "thanks_burst",
+    "name": "Thanks",
+    "scene": "scenes/thanks_burst.json",
+    "match": {
+     "phrases": [
+      "thanks",
+      "thank you",
+      "thank u",
+      "thanks a lot",
+      "thanks so much",
+      "thank you so much",
+      "thx",
+      "ty",
+      "tysm",
+      "tnx",
+      "thanx",
+      "many thanks",
+      "thankyou",
+      "ধন্যবাদ",
+      "dhonnobad",
+      "dhonnobaad",
+      "dhonyobad",
+      "thanks re",
+      "অনেক ধন্যবাদ",
+      "onek dhonnobad"
+     ],
+     "concepts": [
+      "heart",
+      "pleading_face"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Thanks"
+     }
+    ],
+    "altText": "Thanks in bubble letters on a spinning burst"
+   },
+   {
+    "id": "thanks_pray",
+    "name": "Thank you, hands together",
+    "scene": "scenes/thanks_pray.json",
+    "match": {
+     "phrases": [
+      "thanks",
+      "thank you",
+      "thank u",
+      "thanks a lot",
+      "thanks so much",
+      "thank you so much",
+      "thx",
+      "ty",
+      "tysm",
+      "tnx",
+      "thanx",
+      "many thanks",
+      "thankyou",
+      "ধন্যবাদ",
+      "dhonnobad",
+      "dhonnobaad",
+      "dhonyobad",
+      "thanks re",
+      "অনেক ধন্যবাদ",
+      "onek dhonnobad"
+     ],
+     "concepts": [
+      "pleading_face"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Thank you"
+     }
+    ],
+    "altText": "Thank you under praying hands"
+   },
+   {
+    "id": "thanks_flowers",
+    "name": "Thank you, flowers",
+    "scene": "scenes/thanks_flowers.json",
+    "match": {
+     "phrases": [
+      "thanks",
+      "thank you",
+      "thank u",
+      "thanks a lot",
+      "thanks so much",
+      "thank you so much",
+      "thx",
+      "ty",
+      "tysm",
+      "tnx",
+      "thanx",
+      "many thanks",
+      "thankyou",
+      "ধন্যবাদ",
+      "dhonnobad",
+      "dhonnobaad",
+      "dhonyobad",
+      "thanks re",
+      "অনেক ধন্যবাদ",
+      "onek dhonnobad"
+     ],
+     "concepts": [
+      "flower",
+      "rose"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Thank you"
+     }
+    ],
+    "altText": "Thank you under a bouquet"
+   },
+   {
+    "id": "thank_you_hearts",
+    "name": "Thank you, hearts",
+    "scene": "scenes/thank_you_hearts.json",
+    "match": {
+     "phrases": [
+      "thank you",
+      "thank u",
+      "thanks a lot",
+      "thanks so much",
+      "thank you so much",
+      "many thanks",
+      "thanks re",
+      "অনেক ধন্যবাদ",
+      "onek dhonnobad"
+     ],
+     "concepts": [
+      "heart"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0",
+       "_txt_1"
+      ],
+      "lines": [
+       {
+        "maxChars": 16,
+        "minFont": 30,
+        "maxFont": 120
+       },
+       {
+        "maxChars": 16,
+        "minFont": 30,
+        "maxFont": 120
+       }
+      ],
+      "case": "upper",
+      "sample": "Thank you"
+     }
+    ],
+    "altText": "Thank you on a beating heart"
+   },
+   {
+    "id": "thanks_banner",
+    "name": "Thanks banner",
+    "scene": "scenes/thanks_banner.json",
+    "match": {
+     "phrases": [
+      "thanks",
+      "thank you",
+      "thank u",
+      "thanks a lot",
+      "thanks so much",
+      "thank you so much",
+      "thx",
+      "ty",
+      "tysm",
+      "tnx",
+      "thanx",
+      "many thanks",
+      "thankyou",
+      "ধন্যবাদ",
+      "dhonnobad",
+      "dhonnobaad",
+      "dhonyobad",
+      "thanks re",
+      "অনেক ধন্যবাদ",
+      "onek dhonnobad"
+     ],
+     "concepts": [
+      "celebration"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 24,
+        "minFont": 24,
+        "maxFont": 86
+       }
+      ],
+      "case": "upper",
+      "sample": "Thank you"
+     }
+    ],
+    "altText": "Thank you on a ribbon banner with confetti"
+   },
+   {
+    "id": "thanks_stack",
+    "name": "Thank you so much",
+    "scene": "scenes/thanks_stack.json",
+    "match": {
+     "phrases": [
+      "thank you so much",
+      "thanks so much",
+      "thank you very much",
+      "thanks a lot"
+     ],
+     "concepts": [
+      "heart"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0",
+       "_txt_1",
+       "_txt_2"
+      ],
+      "lines": [
+       {
+        "maxChars": 16,
+        "minFont": 30,
+        "maxFont": 110
+       },
+       {
+        "maxChars": 16,
+        "minFont": 30,
+        "maxFont": 110
+       },
+       {
+        "maxChars": 16,
+        "minFont": 30,
+        "maxFont": 110
+       }
+      ],
+      "case": "upper",
+      "sample": "Thank you so much"
+     }
+    ],
+    "altText": "Thank you so much, a line at a time"
+   },
+   {
+    "id": "thanks_neon",
+    "name": "Thanks, neon",
+    "scene": "scenes/thanks_neon.json",
+    "match": {
+     "phrases": [
+      "thanks",
+      "thank you",
+      "thank u",
+      "thanks a lot",
+      "thanks so much",
+      "thank you so much",
+      "thx",
+      "ty",
+      "tysm",
+      "tnx",
+      "thanx",
+      "many thanks",
+      "thankyou",
+      "ধন্যবাদ",
+      "dhonnobad",
+      "dhonnobaad",
+      "dhonyobad",
+      "thanks re",
+      "অনেক ধন্যবাদ",
+      "onek dhonnobad"
+     ],
+     "concepts": [
+      "awesome"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 30,
+        "minFont": 28,
+        "maxFont": 120
+       }
+      ],
+      "case": "upper",
+      "sample": "Thanks"
+     }
+    ],
+    "altText": "Thanks in neon lights"
+   },
+   {
+    "id": "welcome_pill",
+    "name": "You're welcome",
+    "scene": "scenes/welcome_pill.json",
+    "match": {
+     "phrases": [
+      "youre welcome",
+      "you are welcome",
+      "welcome",
+      "anytime",
+      "my pleasure",
+      "ur welcome",
+      "yw"
+     ],
+     "concepts": [
+      "smiling_blush"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 28,
+        "minFont": 24,
+        "maxFont": 96
+       }
+      ],
+      "case": "upper",
+      "sample": "You're welcome"
+     }
+    ],
+    "altText": "You're welcome on a mint pill"
+   },
+   {
+    "id": "welcome_bubble",
+    "name": "Anytime",
+    "scene": "scenes/welcome_bubble.json",
+    "match": {
+     "phrases": [
+      "youre welcome",
+      "you are welcome",
+      "welcome",
+      "anytime",
+      "my pleasure",
+      "ur welcome",
+      "yw"
+     ],
+     "concepts": [
+      "smiling_blush"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Anytime!"
+     }
+    ],
+    "altText": "Anytime in a speech bubble"
+   },
+   {
+    "id": "morning_sunrise",
+    "name": "Good morning sun",
+    "scene": "scenes/morning_sunrise.json",
+    "match": {
+     "phrases": [
+      "good morning",
+      "morning",
+      "gm",
+      "good mrng",
+      "gud morning",
+      "goodmorning",
+      "শুভ সকাল",
+      "shubho shokal",
+      "subho sokal",
+      "suprobhat",
+      "সুপ্রভাত",
+      "rise and shine"
+     ],
+     "concepts": [
+      "sun"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Good morning"
+     }
+    ],
+    "altText": "Good morning under a smiling sun with turning rays"
+   },
+   {
+    "id": "morning_mug",
+    "name": "Good morning mug",
+    "scene": "scenes/morning_mug.json",
+    "match": {
+     "phrases": [
+      "good morning",
+      "morning",
+      "gm",
+      "good mrng",
+      "gud morning",
+      "goodmorning",
+      "শুভ সকাল",
+      "shubho shokal",
+      "subho sokal",
+      "suprobhat",
+      "সুপ্রভাত",
+      "rise and shine"
+     ],
+     "concepts": [
+      "coffee",
+      "sun"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 24,
+        "minFont": 20,
+        "maxFont": 88
+       }
+      ],
+      "case": "upper",
+      "sample": "Good morning"
+     }
+    ],
+    "altText": "Good morning written on a steaming mug"
+   },
+   {
+    "id": "morning_flower",
+    "name": "Good morning flower",
+    "scene": "scenes/morning_flower.json",
+    "match": {
+     "phrases": [
+      "good morning",
+      "good mrng",
+      "gud morning",
+      "শুভ সকাল",
+      "shubho shokal",
+      "subho sokal",
+      "rise and shine"
+     ],
+     "concepts": [
+      "sun",
+      "flower"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0",
+       "_txt_1"
+      ],
+      "lines": [
+       {
+        "maxChars": 16,
+        "minFont": 30,
+        "maxFont": 120
+       },
+       {
+        "maxChars": 16,
+        "minFont": 30,
+        "maxFont": 120
+       }
+      ],
+      "case": "upper",
+      "sample": "Good morning"
+     }
+    ],
+    "altText": "Good morning in two bright lines"
+   },
+   {
+    "id": "morning_sunflower",
+    "name": "Morning sunflower",
+    "scene": "scenes/morning_sunflower.json",
+    "match": {
+     "phrases": [
+      "good morning",
+      "morning",
+      "gm",
+      "good mrng",
+      "gud morning",
+      "goodmorning",
+      "শুভ সকাল",
+      "shubho shokal",
+      "subho sokal",
+      "suprobhat",
+      "সুপ্রভাত",
+      "rise and shine"
+     ],
+     "concepts": [
+      "sun",
+      "flower"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Morning!"
+     }
+    ],
+    "altText": "Morning under a sunflower"
+   },
+   {
+    "id": "morning_coffee_corners",
+    "name": "Rise and shine",
+    "scene": "scenes/morning_coffee_corners.json",
+    "match": {
+     "phrases": [
+      "good morning",
+      "morning",
+      "gm",
+      "good mrng",
+      "gud morning",
+      "goodmorning",
+      "শুভ সকাল",
+      "shubho shokal",
+      "subho sokal",
+      "suprobhat",
+      "সুপ্রভাত",
+      "rise and shine"
+     ],
+     "concepts": [
+      "sun",
+      "coffee"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Good morning"
+     }
+    ],
+    "altText": "Good morning between a sun and a coffee"
+   },
+   {
+    "id": "afternoon",
+    "name": "Good afternoon",
+    "scene": "scenes/afternoon.json",
+    "match": {
+     "phrases": [
+      "good afternoon",
+      "afternoon",
+      "শুভ দুপুর",
+      "shubho dupur"
+     ],
+     "concepts": [
+      "sun"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Good afternoon"
+     }
+    ],
+    "altText": "Good afternoon under a sun behind a cloud"
+   },
+   {
+    "id": "evening_sky",
+    "name": "Good evening",
+    "scene": "scenes/evening_sky.json",
+    "match": {
+     "phrases": [
+      "good evening",
+      "evening",
+      "শুভ সন্ধ্যা",
+      "shubho shondha",
+      "subho sondhya"
+     ],
+     "concepts": [
+      "relieved"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Good evening"
+     }
+    ],
+    "altText": "Good evening under the crescent moon"
+   },
+   {
+    "id": "evening_tea",
+    "name": "Evening tea",
+    "scene": "scenes/evening_tea.json",
+    "match": {
+     "phrases": [
+      "good evening",
+      "evening",
+      "শুভ সন্ধ্যা",
+      "shubho shondha",
+      "subho sondhya"
+     ],
+     "concepts": [
+      "coffee"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Good evening"
+     }
+    ],
+    "altText": "Good evening between tea and a cookie"
+   },
+   {
+    "id": "night_moon",
+    "name": "Good night moon",
+    "scene": "scenes/night_moon.json",
+    "match": {
+     "phrases": [
+      "good night",
+      "goodnight",
+      "gn",
+      "night night",
+      "nighty night",
+      "gud night",
+      "শুভ রাত্রি",
+      "shubho ratri",
+      "subho ratri",
+      "শুভ রাত",
+      "shubho raat"
+     ],
+     "concepts": [
+      "sigh"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Good night"
+     }
+    ],
+    "altText": "Good night under a moon and twinkling stars"
+   },
+   {
+    "id": "night_sleepy",
+    "name": "Good night, sleepy",
+    "scene": "scenes/night_sleepy.json",
+    "match": {
+     "phrases": [
+      "good night",
+      "goodnight",
+      "gn",
+      "night night",
+      "nighty night",
+      "gud night",
+      "শুভ রাত্রি",
+      "shubho ratri",
+      "subho ratri",
+      "শুভ রাত",
+      "shubho raat"
+     ],
+     "concepts": [
+      "sigh"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Good night"
+     }
+    ],
+    "altText": "Good night with a sleeping face"
+   },
+   {
+    "id": "night_two_lines",
+    "name": "Good night stars",
+    "scene": "scenes/night_two_lines.json",
+    "match": {
+     "phrases": [
+      "good night",
+      "night night",
+      "nighty night",
+      "gud night",
+      "শুভ রাত্রি",
+      "shubho ratri",
+      "subho ratri",
+      "শুভ রাত",
+      "shubho raat"
+     ],
+     "concepts": [
+      "sigh"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0",
+       "_txt_1"
+      ],
+      "lines": [
+       {
+        "maxChars": 16,
+        "minFont": 30,
+        "maxFont": 130
+       },
+       {
+        "maxChars": 16,
+        "minFont": 30,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Good night"
+     }
+    ],
+    "altText": "Good night in two lines with stars"
+   },
+   {
+    "id": "night_cloud",
+    "name": "Night cloud",
+    "scene": "scenes/night_cloud.json",
+    "match": {
+     "phrases": [
+      "good night",
+      "goodnight",
+      "gn",
+      "night night",
+      "nighty night",
+      "gud night",
+      "শুভ রাত্রি",
+      "shubho ratri",
+      "subho ratri",
+      "শুভ রাত",
+      "shubho raat"
+     ],
+     "concepts": [
+      "sigh"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Good night"
+     }
+    ],
+    "altText": "Good night on a floating cloud"
+   },
+   {
+    "id": "sleep_well",
+    "name": "Sleep well",
+    "scene": "scenes/sleep_well.json",
+    "match": {
+     "phrases": [
+      "sleep well",
+      "sweet dreams",
+      "sleep tight",
+      "nighty night",
+      "go to sleep",
+      "ঘুমাও",
+      "ghumao"
+     ],
+     "concepts": [
+      "sigh"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Sleep well"
+     }
+    ],
+    "altText": "Sleep well under the moon"
+   },
+   {
+    "id": "sweet_dreams",
+    "name": "Sweet dreams",
+    "scene": "scenes/sweet_dreams.json",
+    "match": {
+     "phrases": [
+      "sleep well",
+      "sweet dreams",
+      "sleep tight",
+      "nighty night",
+      "go to sleep",
+      "ঘুমাও",
+      "ghumao"
+     ],
+     "concepts": [
+      "sigh"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Sweet dreams"
+     }
+    ],
+    "altText": "Sweet dreams on a cloud"
+   },
+   {
+    "id": "bday_cake",
+    "name": "Birthday cake",
+    "scene": "scenes/bday_cake.json",
+    "match": {
+     "phrases": [
+      "happy birthday",
+      "hbd",
+      "happy bday",
+      "happy birthday to you",
+      "bday",
+      "birthday",
+      "শুভ জন্মদিন",
+      "shubho jonmodin",
+      "subho jonmodin",
+      "shuvo jonmodin",
+      "many happy returns",
+      "hb"
+     ],
+     "concepts": [
+      "birthday",
+      "cake",
+      "celebration"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Happy birthday"
+     }
+    ],
+    "altText": "Happy birthday under a cake and balloons"
+   },
+   {
+    "id": "bday_balloons",
+    "name": "Birthday balloons",
+    "scene": "scenes/bday_balloons.json",
+    "match": {
+     "phrases": [
+      "happy birthday",
+      "hbd",
+      "happy bday",
+      "happy birthday to you",
+      "bday",
+      "birthday",
+      "শুভ জন্মদিন",
+      "shubho jonmodin",
+      "subho jonmodin",
+      "shuvo jonmodin",
+      "many happy returns",
+      "hb"
+     ],
+     "concepts": [
+      "birthday",
+      "balloon"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Happy birthday"
+     }
+    ],
+    "altText": "Happy birthday under three balloons"
+   },
+   {
+    "id": "bday_banner",
+    "name": "Birthday banner",
+    "scene": "scenes/bday_banner.json",
+    "match": {
+     "phrases": [
+      "happy birthday",
+      "hbd",
+      "happy bday",
+      "happy birthday to you",
+      "bday",
+      "birthday",
+      "শুভ জন্মদিন",
+      "shubho jonmodin",
+      "subho jonmodin",
+      "shuvo jonmodin",
+      "many happy returns",
+      "hb"
+     ],
+     "concepts": [
+      "birthday",
+      "celebration"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 24,
+        "minFont": 24,
+        "maxFont": 86
+       }
+      ],
+      "case": "upper",
+      "sample": "Happy birthday"
+     }
+    ],
+    "altText": "Happy birthday on a ribbon banner under a cake"
+   },
+   {
+    "id": "bday_confetti",
+    "name": "Birthday confetti",
+    "scene": "scenes/bday_confetti.json",
+    "match": {
+     "phrases": [
+      "happy birthday",
+      "happy bday",
+      "happy birthday to you",
+      "শুভ জন্মদিন",
+      "shubho jonmodin",
+      "subho jonmodin",
+      "shuvo jonmodin",
+      "many happy returns"
+     ],
+     "concepts": [
+      "birthday",
+      "celebration"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0",
+       "_txt_1"
+      ],
+      "lines": [
+       {
+        "maxChars": 16,
+        "minFont": 30,
+        "maxFont": 120
+       },
+       {
+        "maxChars": 16,
+        "minFont": 30,
+        "maxFont": 120
+       }
+      ],
+      "case": "upper",
+      "sample": "Happy birthday"
+     }
+    ],
+    "altText": "Happy birthday with party poppers and confetti"
+   },
+   {
+    "id": "bday_party_face",
+    "name": "Birthday party face",
+    "scene": "scenes/bday_party_face.json",
+    "match": {
+     "phrases": [
+      "happy birthday",
+      "hbd",
+      "happy bday",
+      "happy birthday to you",
+      "bday",
+      "birthday",
+      "শুভ জন্মদিন",
+      "shubho jonmodin",
+      "subho jonmodin",
+      "shuvo jonmodin",
+      "many happy returns",
+      "hb"
+     ],
+     "concepts": [
+      "birthday",
+      "celebration"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Happy birthday!"
+     }
+    ],
+    "altText": "Happy birthday with a party face"
+   },
+   {
+    "id": "bday_gift",
+    "name": "Birthday gift",
+    "scene": "scenes/bday_gift.json",
+    "match": {
+     "phrases": [
+      "happy birthday",
+      "hbd",
+      "happy bday",
+      "happy birthday to you",
+      "bday",
+      "birthday",
+      "শুভ জন্মদিন",
+      "shubho jonmodin",
+      "subho jonmodin",
+      "shuvo jonmodin",
+      "many happy returns",
+      "hb"
+     ],
+     "concepts": [
+      "birthday",
+      "gift"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Happy birthday"
+     }
+    ],
+    "altText": "Happy birthday between a gift and a balloon"
+   },
+   {
+    "id": "anniversary_ring",
+    "name": "Anniversary",
+    "scene": "scenes/anniversary_ring.json",
+    "match": {
+     "phrases": [
+      "happy anniversary",
+      "anniversary",
+      "শুভ বিবাহবার্ষিকী",
+      "shubho bibaho barshiki"
+     ],
+     "concepts": [
+      "heart",
+      "celebration"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Happy anniversary"
+     }
+    ],
+    "altText": "Happy anniversary in a ring of hearts"
+   },
+   {
+    "id": "anniversary_cheers",
+    "name": "Anniversary cheers",
+    "scene": "scenes/anniversary_cheers.json",
+    "match": {
+     "phrases": [
+      "happy anniversary",
+      "anniversary",
+      "শুভ বিবাহবার্ষিকী",
+      "shubho bibaho barshiki"
+     ],
+     "concepts": [
+      "celebration"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Happy anniversary"
+     }
+    ],
+    "altText": "Happy anniversary under clinking glasses"
+   },
+   {
+    "id": "day_monday",
+    "name": "Monday",
+    "scene": "scenes/day_monday.json",
+    "match": {
+     "phrases": [
+      "monday",
+      "happy monday",
+      "monday mood",
+      "সোমবার",
+      "shombar"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 24,
+        "minFont": 24,
+        "maxFont": 110
+       }
+      ],
+      "case": "upper",
+      "sample": "Happy Monday"
+     }
+    ],
+    "altText": "Happy Monday on a calendar page"
+   },
+   {
+    "id": "day_tuesday",
+    "name": "Tuesday",
+    "scene": "scenes/day_tuesday.json",
+    "match": {
+     "phrases": [
+      "tuesday",
+      "happy tuesday",
+      "মঙ্গলবার",
+      "mongolbar"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 24,
+        "minFont": 24,
+        "maxFont": 110
+       }
+      ],
+      "case": "upper",
+      "sample": "Happy Tuesday"
+     }
+    ],
+    "altText": "Happy Tuesday on a calendar page"
+   },
+   {
+    "id": "day_wednesday",
+    "name": "Wednesday",
+    "scene": "scenes/day_wednesday.json",
+    "match": {
+     "phrases": [
+      "wednesday",
+      "happy wednesday",
+      "hump day",
+      "বুধবার",
+      "budhbar"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 24,
+        "minFont": 24,
+        "maxFont": 110
+       }
+      ],
+      "case": "upper",
+      "sample": "Happy Wednesday"
+     }
+    ],
+    "altText": "Happy Wednesday on a calendar page"
+   },
+   {
+    "id": "day_thursday",
+    "name": "Thursday",
+    "scene": "scenes/day_thursday.json",
+    "match": {
+     "phrases": [
+      "thursday",
+      "happy thursday",
+      "বৃহস্পতিবার",
+      "brihoshpotibar"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 24,
+        "minFont": 24,
+        "maxFont": 110
+       }
+      ],
+      "case": "upper",
+      "sample": "Happy Thursday"
+     }
+    ],
+    "altText": "Happy Thursday on a calendar page"
+   },
+   {
+    "id": "day_friday",
+    "name": "Friday",
+    "scene": "scenes/day_friday.json",
+    "match": {
+     "phrases": [
+      "friday",
+      "happy friday",
+      "tgif",
+      "jumma mubarak",
+      "শুক্রবার",
+      "shukrobar"
+     ],
+     "concepts": [
+      "celebration"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 24,
+        "minFont": 24,
+        "maxFont": 110
+       }
+      ],
+      "case": "upper",
+      "sample": "Happy Friday"
+     }
+    ],
+    "altText": "Happy Friday on a calendar page"
+   },
+   {
+    "id": "day_saturday",
+    "name": "Saturday",
+    "scene": "scenes/day_saturday.json",
+    "match": {
+     "phrases": [
+      "saturday",
+      "happy saturday",
+      "শনিবার",
+      "shonibar"
+     ],
+     "concepts": [
+      "celebration"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 24,
+        "minFont": 24,
+        "maxFont": 110
+       }
+      ],
+      "case": "upper",
+      "sample": "Happy Saturday"
+     }
+    ],
+    "altText": "Happy Saturday on a calendar page"
+   },
+   {
+    "id": "day_sunday",
+    "name": "Sunday",
+    "scene": "scenes/day_sunday.json",
+    "match": {
+     "phrases": [
+      "sunday",
+      "happy sunday",
+      "sunday funday",
+      "রবিবার",
+      "robibar"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 24,
+        "minFont": 24,
+        "maxFont": 110
+       }
+      ],
+      "case": "upper",
+      "sample": "Happy Sunday"
+     }
+    ],
+    "altText": "Happy Sunday on a calendar page"
+   },
+   {
+    "id": "weekend_vibes",
+    "name": "Weekend",
+    "scene": "scenes/weekend_vibes.json",
+    "match": {
+     "phrases": [
+      "weekend",
+      "happy weekend",
+      "its the weekend",
+      "weekend vibes",
+      "weekend mode"
+     ],
+     "concepts": [
+      "celebration",
+      "cool"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Weekend!"
+     }
+    ],
+    "altText": "Weekend under a beach"
+   },
+   {
+    "id": "weekend_dance",
+    "name": "Weekend dance",
+    "scene": "scenes/weekend_dance.json",
+    "match": {
+     "phrases": [
+      "weekend",
+      "happy weekend",
+      "its the weekend",
+      "weekend vibes",
+      "weekend mode"
+     ],
+     "concepts": [
+      "celebration"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Happy weekend"
+     }
+    ],
+    "altText": "Happy weekend with a dancer"
+   },
+   {
+    "id": "love_heart",
+    "name": "Love you heart",
+    "scene": "scenes/love_heart.json",
+    "match": {
+     "phrases": [
+      "love you",
+      "i love you",
+      "ily",
+      "love u",
+      "luv u",
+      "luv you",
+      "i love u",
+      "love ya",
+      "ভালোবাসি",
+      "bhalobashi",
+      "valobashi",
+      "valobasi",
+      "ami tomake bhalobashi",
+      "আমি তোমাকে ভালোবাসি"
+     ],
+     "concepts": [
+      "heart",
+      "heart_eyes"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Love you"
+     }
+    ],
+    "altText": "Love you on a beating heart"
+   },
+   {
+    "id": "love_eyes",
+    "name": "Love you, heart eyes",
+    "scene": "scenes/love_eyes.json",
+    "match": {
+     "phrases": [
+      "love you",
+      "i love you",
+      "ily",
+      "love u",
+      "luv u",
+      "luv you",
+      "i love u",
+      "love ya",
+      "ভালোবাসি",
+      "bhalobashi",
+      "valobashi",
+      "valobasi",
+      "ami tomake bhalobashi",
+      "আমি তোমাকে ভালোবাসি"
+     ],
+     "concepts": [
+      "heart_eyes",
+      "heart"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Love you"
+     }
+    ],
+    "altText": "Love you with a heart-eyed face"
+   },
+   {
+    "id": "love_three_lines",
+    "name": "I love you",
+    "scene": "scenes/love_three_lines.json",
+    "match": {
+     "phrases": [
+      "i love you",
+      "i love u",
+      "ami tomake bhalobashi"
+     ],
+     "concepts": [
+      "heart"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0",
+       "_txt_1",
+       "_txt_2"
+      ],
+      "lines": [
+       {
+        "maxChars": 16,
+        "minFont": 30,
+        "maxFont": 120
+       },
+       {
+        "maxChars": 16,
+        "minFont": 30,
+        "maxFont": 120
+       },
+       {
+        "maxChars": 16,
+        "minFont": 30,
+        "maxFont": 120
+       }
+      ],
+      "case": "upper",
+      "sample": "I love you"
+     }
+    ],
+    "altText": "I love you, a word at a time"
+   },
+   {
+    "id": "love_hearts_ring",
+    "name": "Love you ring",
+    "scene": "scenes/love_hearts_ring.json",
+    "match": {
+     "phrases": [
+      "love you",
+      "i love you",
+      "ily",
+      "love u",
+      "luv u",
+      "luv you",
+      "i love u",
+      "love ya",
+      "ভালোবাসি",
+      "bhalobashi",
+      "valobashi",
+      "valobasi",
+      "ami tomake bhalobashi",
+      "আমি তোমাকে ভালোবাসি"
+     ],
+     "concepts": [
+      "heart"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Love you"
+     }
+    ],
+    "altText": "Love you in a ring of hearts"
+   },
+   {
+    "id": "love_doodle",
+    "name": "Love you doodle",
+    "scene": "scenes/love_doodle.json",
+    "match": {
+     "phrases": [
+      "love you",
+      "i love you",
+      "ily",
+      "love u",
+      "luv u",
+      "luv you",
+      "i love u",
+      "love ya",
+      "ভালোবাসি",
+      "bhalobashi",
+      "valobashi",
+      "valobasi",
+      "ami tomake bhalobashi",
+      "আমি তোমাকে ভালোবাসি"
+     ],
+     "concepts": [
+      "heart"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 28,
+        "minFont": 30,
+        "maxFont": 130
+       }
+      ],
+      "case": "keep",
+      "sample": "love you"
+     }
+    ],
+    "altText": "Love you handwritten with a doodled heart",
+    "stillOnly": true
+   },
+   {
+    "id": "love_you_too",
+    "name": "Love you too",
+    "scene": "scenes/love_you_too.json",
+    "match": {
+     "phrases": [
+      "love you too",
+      "love u too",
+      "i love you too",
+      "ily too",
+      "ily2",
+      "me too",
+      "আমিও ভালোবাসি",
+      "amio bhalobashi"
+     ],
+     "concepts": [
+      "heart"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Love you too"
+     }
+    ],
+    "altText": "Love you too under two hearts"
+   },
+   {
+    "id": "miss_you_cloud",
+    "name": "Miss you",
+    "scene": "scenes/miss_you_cloud.json",
+    "match": {
+     "phrases": [
+      "miss you",
+      "i miss you",
+      "miss u",
+      "missing you",
+      "miss ya",
+      "তোমাকে মিস করছি",
+      "miss korchi",
+      "mone porche"
+     ],
+     "concepts": [
+      "pleading_face",
+      "heart"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Miss you"
+     }
+    ],
+    "altText": "Miss you on a cloud with a pleading face"
+   },
+   {
+    "id": "miss_you_heart",
+    "name": "Miss you heart",
+    "scene": "scenes/miss_you_heart.json",
+    "match": {
+     "phrases": [
+      "miss you",
+      "i miss you",
+      "miss u",
+      "missing you",
+      "miss ya",
+      "তোমাকে মিস করছি",
+      "miss korchi",
+      "mone porche"
+     ],
+     "concepts": [
+      "heart",
+      "crying"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Miss you"
+     }
+    ],
+    "altText": "Miss you under a heart with an arrow"
+   },
+   {
+    "id": "hugs_face",
+    "name": "Hugs",
+    "scene": "scenes/hugs_face.json",
+    "match": {
+     "phrases": [
+      "hugs",
+      "hug",
+      "sending hugs",
+      "big hug",
+      "virtual hug",
+      "hugs and kisses"
+     ],
+     "concepts": [
+      "hug"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Hugs!"
+     }
+    ],
+    "altText": "Hugs with a hugging face"
+   },
+   {
+    "id": "hugs_bear",
+    "name": "Bear hug",
+    "scene": "scenes/hugs_bear.json",
+    "match": {
+     "phrases": [
+      "hugs",
+      "hug",
+      "sending hugs",
+      "big hug",
+      "virtual hug",
+      "hugs and kisses"
+     ],
+     "concepts": [
+      "hug",
+      "heart"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Sending hugs"
+     }
+    ],
+    "altText": "Sending hugs under a teddy bear"
+   },
+   {
+    "id": "kisses",
+    "name": "Kisses",
+    "scene": "scenes/kisses.json",
+    "match": {
+     "phrases": [
+      "kisses",
+      "kiss",
+      "xoxo",
+      "mwah",
+      "muah",
+      "kisses for you"
+     ],
+     "concepts": [
+      "blow_kiss",
+      "heart"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Kisses"
+     }
+    ],
+    "altText": "Kisses between kiss marks"
+   },
+   {
+    "id": "sorry_pleading",
+    "name": "Sorry",
+    "scene": "scenes/sorry_pleading.json",
+    "match": {
+     "phrases": [
+      "sorry",
+      "im sorry",
+      "so sorry",
+      "my bad",
+      "i am sorry",
+      "sry",
+      "soz",
+      "apologies",
+      "দুঃখিত",
+      "dukkhito",
+      "sorry re",
+      "maaf koro",
+      "মাফ করো"
+     ],
+     "concepts": [
+      "pleading_face",
+      "displeasure"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Sorry"
+     }
+    ],
+    "altText": "Sorry with a pleading face"
+   },
+   {
+    "id": "sorry_rain",
+    "name": "Sorry cloud",
+    "scene": "scenes/sorry_rain.json",
+    "match": {
+     "phrases": [
+      "sorry",
+      "im sorry",
+      "so sorry",
+      "my bad",
+      "i am sorry",
+      "sry",
+      "soz",
+      "apologies",
+      "দুঃখিত",
+      "dukkhito",
+      "sorry re",
+      "maaf koro",
+      "মাফ করো"
+     ],
+     "concepts": [
+      "crying",
+      "displeasure"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "I'm sorry"
+     }
+    ],
+    "altText": "I'm sorry on a raining cloud"
+   },
+   {
+    "id": "sorry_flowers",
+    "name": "Sorry flowers",
+    "scene": "scenes/sorry_flowers.json",
+    "match": {
+     "phrases": [
+      "sorry",
+      "im sorry",
+      "so sorry",
+      "my bad",
+      "i am sorry",
+      "sry",
+      "soz",
+      "apologies",
+      "দুঃখিত",
+      "dukkhito",
+      "sorry re",
+      "maaf koro",
+      "মাফ করো"
+     ],
+     "concepts": [
+      "flower",
+      "pleading_face"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Sorry"
+     }
+    ],
+    "altText": "Sorry under a tulip"
+   },
+   {
+    "id": "my_bad",
+    "name": "My bad",
+    "scene": "scenes/my_bad.json",
+    "match": {
+     "phrases": [
+      "my bad",
+      "my mistake",
+      "oops my bad",
+      "sorry my bad"
+     ],
+     "concepts": [
+      "facepalm"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 28,
+        "minFont": 30,
+        "maxFont": 130
+       }
+      ],
+      "case": "keep",
+      "sample": "my bad"
+     }
+    ],
+    "altText": "My bad handwritten with a sweat drop",
+    "stillOnly": true
+   },
+   {
+    "id": "congrats_trophy",
+    "name": "Congrats trophy",
+    "scene": "scenes/congrats_trophy.json",
+    "match": {
+     "phrases": [
+      "congrats",
+      "congratulations",
+      "congratz",
+      "congrats to you",
+      "অভিনন্দন",
+      "ovinondon",
+      "abhinandan",
+      "obhinondon",
+      "well deserved"
+     ],
+     "concepts": [
+      "congratulations",
+      "celebration"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Congrats!"
+     }
+    ],
+    "altText": "Congrats under a trophy in a laurel wreath"
+   },
+   {
+    "id": "congrats_confetti",
+    "name": "Congratulations",
+    "scene": "scenes/congrats_confetti.json",
+    "match": {
+     "phrases": [
+      "congrats",
+      "congratulations",
+      "congratz",
+      "congrats to you",
+      "অভিনন্দন",
+      "ovinondon",
+      "abhinandan",
+      "obhinondon",
+      "well deserved"
+     ],
+     "concepts": [
+      "congratulations",
+      "celebration"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 28,
+        "maxFont": 120
+       }
+      ],
+      "case": "upper",
+      "sample": "Congratulations!"
+     }
+    ],
+    "altText": "Congratulations with party poppers and confetti"
+   },
+   {
+    "id": "congrats_banner",
+    "name": "Congrats banner",
+    "scene": "scenes/congrats_banner.json",
+    "match": {
+     "phrases": [
+      "congrats",
+      "congratulations",
+      "congratz",
+      "congrats to you",
+      "অভিনন্দন",
+      "ovinondon",
+      "abhinandan",
+      "obhinondon",
+      "well deserved"
+     ],
+     "concepts": [
+      "congratulations"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 24,
+        "minFont": 24,
+        "maxFont": 86
+       }
+      ],
+      "case": "upper",
+      "sample": "Congrats"
+     }
+    ],
+    "altText": "Congrats on a ribbon with a medal"
+   },
+   {
+    "id": "proud_of_you",
+    "name": "Proud of you",
+    "scene": "scenes/proud_of_you.json",
+    "match": {
+     "phrases": [
+      "proud of you",
+      "so proud of you",
+      "im proud of you",
+      "so proud",
+      "proud"
+     ],
+     "concepts": [
+      "congratulations",
+      "heart"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Proud of you"
+     }
+    ],
+    "altText": "Proud of you under a rosette"
+   },
+   {
+    "id": "good_job_thumbs",
+    "name": "Good job",
+    "scene": "scenes/good_job_thumbs.json",
+    "match": {
+     "phrases": [
+      "good job",
+      "great job",
+      "well done",
+      "nice work",
+      "good work",
+      "nicely done",
+      "bravo",
+      "শাবাশ",
+      "shabash"
+     ],
+     "concepts": [
+      "congratulations",
+      "awesome"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Good job!"
+     }
+    ],
+    "altText": "Good job under a thumbs up"
+   },
+   {
+    "id": "well_done_clap",
+    "name": "Well done",
+    "scene": "scenes/well_done_clap.json",
+    "match": {
+     "phrases": [
+      "good job",
+      "great job",
+      "well done",
+      "nice work",
+      "good work",
+      "nicely done",
+      "bravo",
+      "শাবাশ",
+      "shabash"
+     ],
+     "concepts": [
+      "congratulations"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Well done"
+     }
+    ],
+    "altText": "Well done with clapping hands"
+   },
+   {
+    "id": "good_luck_clover",
+    "name": "Good luck clover",
+    "scene": "scenes/good_luck_clover.json",
+    "match": {
+     "phrases": [
+      "good luck",
+      "best of luck",
+      "all the best",
+      "fingers crossed",
+      "শুভকামনা",
+      "shubhokamona",
+      "best wishes"
+     ],
+     "concepts": [
+      "good_luck"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Good luck"
+     }
+    ],
+    "altText": "Good luck under a four-leaf clover"
+   },
+   {
+    "id": "good_luck_fingers",
+    "name": "Fingers crossed",
+    "scene": "scenes/good_luck_fingers.json",
+    "match": {
+     "phrases": [
+      "good luck",
+      "best of luck",
+      "all the best",
+      "fingers crossed",
+      "শুভকামনা",
+      "shubhokamona",
+      "best wishes"
+     ],
+     "concepts": [
+      "good_luck"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Good luck!"
+     }
+    ],
+    "altText": "Good luck between crossed fingers and a star"
+   },
+   {
+    "id": "omw_car",
+    "name": "On my way",
+    "scene": "scenes/omw_car.json",
+    "match": {
+     "phrases": [
+      "on my way",
+      "omw",
+      "coming",
+      "on the way",
+      "be right there",
+      "আসছি",
+      "ashchi",
+      "aschi",
+      "asteci"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "On my way"
+     }
+    ],
+    "altText": "On my way under a car"
+   },
+   {
+    "id": "omw_runner",
+    "name": "On my way, running",
+    "scene": "scenes/omw_runner.json",
+    "match": {
+     "phrases": [
+      "on my way",
+      "omw",
+      "coming",
+      "on the way",
+      "be right there",
+      "আসছি",
+      "ashchi",
+      "aschi",
+      "asteci"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Coming!"
+     }
+    ],
+    "altText": "Coming with a runner and speed lines"
+   },
+   {
+    "id": "call_me",
+    "name": "Call me",
+    "scene": "scenes/call_me.json",
+    "match": {
+     "phrases": [
+      "call me",
+      "call me back",
+      "give me a call",
+      "ring me",
+      "ফোন দাও",
+      "phone dao",
+      "call dio"
+     ],
+     "concepts": [
+      "waving"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Call me"
+     }
+    ],
+    "altText": "Call me between two phones"
+   },
+   {
+    "id": "where_are_you",
+    "name": "Where are you",
+    "scene": "scenes/where_are_you.json",
+    "match": {
+     "phrases": [
+      "where are you",
+      "where r u",
+      "wya",
+      "where you at",
+      "kothay tumi",
+      "কোথায় তুমি",
+      "koi tumi",
+      "kothay"
+     ],
+     "concepts": [
+      "thinking"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Where are you?"
+     }
+    ],
+    "altText": "Where are you in a speech bubble with a pin"
+   },
+   {
+    "id": "im_here",
+    "name": "I'm here",
+    "scene": "scenes/im_here.json",
+    "match": {
+     "phrases": [
+      "im here",
+      "i am here",
+      "here",
+      "im outside",
+      "here now",
+      "পৌঁছে গেছি",
+      "pouche gechi"
+     ],
+     "concepts": [
+      "waving"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "I'm here!"
+     }
+    ],
+    "altText": "I'm here under a map pin"
+   },
+   {
+    "id": "lol_joy",
+    "name": "LOL",
+    "scene": "scenes/lol_joy.json",
+    "match": {
+     "phrases": [
+      "lol",
+      "lmao",
+      "lmfao",
+      "rofl",
+      "haha",
+      "hahaha",
+      "hehe",
+      "lolol",
+      "so funny",
+      "হাহা",
+      "hasi pacche"
+     ],
+     "concepts": [
+      "laugh",
+      "laughing_crying"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "LOL"
+     }
+    ],
+    "altText": "LOL with a face crying with laughter"
+   },
+   {
+    "id": "lol_rofl",
+    "name": "Rolling laughing",
+    "scene": "scenes/lol_rofl.json",
+    "match": {
+     "phrases": [
+      "lol",
+      "lmao",
+      "lmfao",
+      "rofl",
+      "haha",
+      "hahaha",
+      "hehe",
+      "lolol",
+      "so funny",
+      "হাহা",
+      "hasi pacche"
+     ],
+     "concepts": [
+      "laugh",
+      "laughing_crying"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Hahaha"
+     }
+    ],
+    "altText": "Hahaha with a face rolling on the floor"
+   },
+   {
+    "id": "lol_comic",
+    "name": "LOL comic",
+    "scene": "scenes/lol_comic.json",
+    "match": {
+     "phrases": [
+      "lol",
+      "lmao",
+      "lmfao",
+      "rofl",
+      "haha",
+      "hahaha",
+      "hehe",
+      "lolol",
+      "so funny",
+      "হাহা",
+      "hasi pacche"
+     ],
+     "concepts": [
+      "laugh"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "LOL"
+     }
+    ],
+    "altText": "LOL on a comic burst"
+   },
+   {
+    "id": "lmao_cat",
+    "name": "LMAO cat",
+    "scene": "scenes/lmao_cat.json",
+    "match": {
+     "phrases": [
+      "lol",
+      "lmao",
+      "lmfao",
+      "rofl",
+      "haha",
+      "hahaha",
+      "hehe",
+      "lolol",
+      "so funny",
+      "হাহা",
+      "hasi pacche"
+     ],
+     "concepts": [
+      "laugh"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "LMAO"
+     }
+    ],
+    "altText": "LMAO with a cat crying with laughter"
+   },
+   {
+    "id": "omg_comic",
+    "name": "OMG",
+    "scene": "scenes/omg_comic.json",
+    "match": {
+     "phrases": [
+      "omg",
+      "oh my god",
+      "oh my",
+      "omfg",
+      "oh my gosh",
+      "oh no",
+      "হায় আল্লাহ",
+      "hay allah",
+      "omg omg"
+     ],
+     "concepts": [
+      "explosion",
+      "embarrassed"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "OMG"
+     }
+    ],
+    "altText": "OMG on a red comic burst"
+   },
+   {
+    "id": "omg_lightning",
+    "name": "OMG lightning",
+    "scene": "scenes/omg_lightning.json",
+    "match": {
+     "phrases": [
+      "omg",
+      "oh my god",
+      "oh my",
+      "omfg",
+      "oh my gosh",
+      "oh no",
+      "হায় আল্লাহ",
+      "hay allah",
+      "omg omg"
+     ],
+     "concepts": [
+      "explosion"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "OMG!"
+     }
+    ],
+    "altText": "OMG between lightning bolts"
+   },
+   {
+    "id": "wow_stars",
+    "name": "Wow",
+    "scene": "scenes/wow_stars.json",
+    "match": {
+     "phrases": [
+      "wow",
+      "woah",
+      "whoa",
+      "wowww",
+      "wow wow",
+      "অসাধারণ",
+      "oshadharon"
+     ],
+     "concepts": [
+      "starstruck",
+      "awesome"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "WOW"
+     }
+    ],
+    "altText": "Wow with a star-struck face"
+   },
+   {
+    "id": "wow_comic",
+    "name": "Wow comic",
+    "scene": "scenes/wow_comic.json",
+    "match": {
+     "phrases": [
+      "wow",
+      "woah",
+      "whoa",
+      "wowww",
+      "wow wow",
+      "অসাধারণ",
+      "oshadharon"
+     ],
+     "concepts": [
+      "starstruck"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "WOW!"
+     }
+    ],
+    "altText": "Wow on a comic burst"
+   },
+   {
+    "id": "yay_party",
+    "name": "Yay",
+    "scene": "scenes/yay_party.json",
+    "match": {
+     "phrases": [
+      "yay",
+      "yaay",
+      "woohoo",
+      "hooray",
+      "yippee",
+      "lets go",
+      "yayy"
+     ],
+     "concepts": [
+      "celebration"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Yay!"
+     }
+    ],
+    "altText": "Yay with party poppers and confetti"
+   },
+   {
+    "id": "yay_hands",
+    "name": "Hooray",
+    "scene": "scenes/yay_hands.json",
+    "match": {
+     "phrases": [
+      "yay",
+      "yaay",
+      "woohoo",
+      "hooray",
+      "yippee",
+      "lets go",
+      "yayy"
+     ],
+     "concepts": [
+      "celebration",
+      "awesome"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Hooray!"
+     }
+    ],
+    "altText": "Hooray under raised hands"
+   },
+   {
+    "id": "yikes",
+    "name": "Yikes",
+    "scene": "scenes/yikes.json",
+    "match": {
+     "phrases": [
+      "yikes",
+      "eek",
+      "eep",
+      "awkward",
+      "cringe"
+     ],
+     "concepts": [
+      "embarrassed"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Yikes"
+     }
+    ],
+    "altText": "Yikes with a grimacing face"
+   },
+   {
+    "id": "oops",
+    "name": "Oops",
+    "scene": "scenes/oops.json",
+    "match": {
+     "phrases": [
+      "oops",
+      "whoops",
+      "oopsie",
+      "oopsies",
+      "my mistake"
+     ],
+     "concepts": [
+      "embarrassed",
+      "quiet"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Oops!"
+     }
+    ],
+    "altText": "Oops with a hand over the mouth"
+   },
+   {
+    "id": "ugh",
+    "name": "Ugh",
+    "scene": "scenes/ugh.json",
+    "match": {
+     "phrases": [
+      "ugh",
+      "ughh",
+      "ugh fine",
+      "so annoying",
+      "annoying"
+     ],
+     "concepts": [
+      "annoyed",
+      "sigh"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Ugh"
+     }
+    ],
+    "altText": "Ugh with a weary face"
+   },
+   {
+    "id": "meh",
+    "name": "Meh",
+    "scene": "scenes/meh.json",
+    "match": {
+     "phrases": [
+      "meh",
+      "whatever",
+      "idc",
+      "i dont care",
+      "if you say so"
+     ],
+     "concepts": [
+      "whatever",
+      "eye_roll"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 28,
+        "minFont": 30,
+        "maxFont": 130
+       }
+      ],
+      "case": "keep",
+      "sample": "meh"
+     }
+    ],
+    "altText": "Meh handwritten with a neutral face",
+    "stillOnly": true
+   },
+   {
+    "id": "hmm",
+    "name": "Hmm",
+    "scene": "scenes/hmm.json",
+    "match": {
+     "phrases": [
+      "hmm",
+      "hmmm",
+      "let me think",
+      "thinking",
+      "interesting",
+      "hm"
+     ],
+     "concepts": [
+      "thinking"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Hmm..."
+     }
+    ],
+    "altText": "Hmm with a thinking face"
+   },
+   {
+    "id": "same",
+    "name": "Same",
+    "scene": "scenes/same.json",
+    "match": {
+     "phrases": [
+      "same",
+      "me too",
+      "same here",
+      "relatable",
+      "mood"
+     ],
+     "concepts": [
+      "relieved"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 28,
+        "minFont": 30,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "SAME"
+     }
+    ],
+    "altText": "Same, underlined",
+    "stillOnly": true
+   },
+   {
+    "id": "ditto",
+    "name": "Ditto",
+    "scene": "scenes/ditto.json",
+    "match": {
+     "phrases": [
+      "ditto",
+      "agreed",
+      "true",
+      "exactly",
+      "facts"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 18,
+        "minFont": 24,
+        "maxFont": 140
+       }
+      ],
+      "case": "upper",
+      "sample": "DITTO"
+     }
+    ],
+    "altText": "Ditto stamped",
+    "stillOnly": true
+   },
+   {
+    "id": "nice",
+    "name": "Nice",
+    "scene": "scenes/nice.json",
+    "match": {
+     "phrases": [
+      "nice",
+      "noice",
+      "very nice",
+      "nice one",
+      "niiice"
+     ],
+     "concepts": [
+      "awesome",
+      "cool"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Nice!"
+     }
+    ],
+    "altText": "Nice under an OK hand"
+   },
+   {
+    "id": "cool_shades",
+    "name": "Cool",
+    "scene": "scenes/cool_shades.json",
+    "match": {
+     "phrases": [
+      "cool",
+      "very cool",
+      "cool cool",
+      "so cool",
+      "kool",
+      "chill"
+     ],
+     "concepts": [
+      "cool"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Cool"
+     }
+    ],
+    "altText": "Cool with a face in sunglasses"
+   },
+   {
+    "id": "cool_ice",
+    "name": "Cool cool",
+    "scene": "scenes/cool_ice.json",
+    "match": {
+     "phrases": [
+      "cool",
+      "very cool",
+      "cool cool",
+      "so cool",
+      "kool",
+      "chill"
+     ],
+     "concepts": [
+      "cool"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 28,
+        "minFont": 24,
+        "maxFont": 96
+       }
+      ],
+      "case": "upper",
+      "sample": "Cool cool cool"
+     }
+    ],
+    "altText": "Cool cool cool on a pill with a snowflake"
+   },
+   {
+    "id": "awesome_fire",
+    "name": "Awesome",
+    "scene": "scenes/awesome_fire.json",
+    "match": {
+     "phrases": [
+      "awesome",
+      "epic",
+      "lit",
+      "fire",
+      "so good",
+      "dope",
+      "darun",
+      "দারুণ"
+     ],
+     "concepts": [
+      "awesome"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Awesome!"
+     }
+    ],
+    "altText": "Awesome under a flame"
+   },
+   {
+    "id": "awesome_100",
+    "name": "100",
+    "scene": "scenes/awesome_100.json",
+    "match": {
+     "phrases": [
+      "awesome",
+      "epic",
+      "lit",
+      "fire",
+      "so good",
+      "dope",
+      "darun",
+      "দারুণ"
+     ],
+     "concepts": [
+      "awesome"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Awesome"
+     }
+    ],
+    "altText": "Awesome on a burst with a hundred points"
+   },
+   {
+    "id": "amazing",
+    "name": "Amazing",
+    "scene": "scenes/amazing.json",
+    "match": {
+     "phrases": [
+      "amazing",
+      "incredible",
+      "fantastic",
+      "brilliant",
+      "unbelievable",
+      "অসাধারণ"
+     ],
+     "concepts": [
+      "starstruck",
+      "awesome"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Amazing"
+     }
+    ],
+    "altText": "Amazing under a rainbow"
+   },
+   {
+    "id": "perfect",
+    "name": "Perfect",
+    "scene": "scenes/perfect.json",
+    "match": {
+     "phrases": [
+      "perfect",
+      "flawless",
+      "spot on",
+      "just right",
+      "chef's kiss"
+     ],
+     "concepts": [
+      "awesome"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Perfect"
+     }
+    ],
+    "altText": "Perfect under an OK hand"
+   },
+   {
+    "id": "great_thumbs",
+    "name": "Great",
+    "scene": "scenes/great_thumbs.json",
+    "match": {
+     "phrases": [
+      "great",
+      "thats great",
+      "sounds great",
+      "sounds good",
+      "good",
+      "excellent",
+      "bhalo",
+      "ভালো"
+     ],
+     "concepts": [
+      "awesome"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Great!"
+     }
+    ],
+    "altText": "Great with a thumbs up"
+   },
+   {
+    "id": "yes_check",
+    "name": "Yes",
+    "scene": "scenes/yes_check.json",
+    "match": {
+     "phrases": [
+      "yes",
+      "yep",
+      "yeah",
+      "yup",
+      "yas",
+      "yesss",
+      "absolutely",
+      "হ্যাঁ",
+      "ha",
+      "hae",
+      "ji"
+     ],
+     "concepts": [
+      "awesome"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "YES!"
+     }
+    ],
+    "altText": "Yes under a check mark"
+   },
+   {
+    "id": "yes_stamp",
+    "name": "Yes stamp",
+    "scene": "scenes/yes_stamp.json",
+    "match": {
+     "phrases": [
+      "yes",
+      "yep",
+      "yeah",
+      "yup",
+      "yas",
+      "yesss",
+      "absolutely",
+      "হ্যাঁ",
+      "ha",
+      "hae",
+      "ji"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 18,
+        "minFont": 24,
+        "maxFont": 140
+       }
+      ],
+      "case": "upper",
+      "sample": "YES"
+     }
+    ],
+    "altText": "Yes stamped in green",
+    "stillOnly": true
+   },
+   {
+    "id": "no_cross",
+    "name": "No",
+    "scene": "scenes/no_cross.json",
+    "match": {
+     "phrases": [
+      "no",
+      "nope",
+      "nah",
+      "no thanks",
+      "never",
+      "না",
+      "na",
+      "nah bro"
+     ],
+     "concepts": [
+      "displeasure"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "NO"
+     }
+    ],
+    "altText": "No under a cross mark"
+   },
+   {
+    "id": "nope_stamp",
+    "name": "Nope",
+    "scene": "scenes/nope_stamp.json",
+    "match": {
+     "phrases": [
+      "no",
+      "nope",
+      "nah",
+      "no thanks",
+      "never",
+      "না",
+      "na",
+      "nah bro"
+     ],
+     "concepts": [
+      "displeasure"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 18,
+        "minFont": 24,
+        "maxFont": 140
+       }
+      ],
+      "case": "upper",
+      "sample": "NOPE"
+     }
+    ],
+    "altText": "Nope stamped in red",
+    "stillOnly": true
+   },
+   {
+    "id": "maybe",
+    "name": "Maybe",
+    "scene": "scenes/maybe.json",
+    "match": {
+     "phrases": [
+      "maybe",
+      "perhaps",
+      "possibly",
+      "we will see",
+      "might",
+      "hoyto",
+      "হয়তো"
+     ],
+     "concepts": [
+      "thinking"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Maybe?"
+     }
+    ],
+    "altText": "Maybe with a raised eyebrow"
+   },
+   {
+    "id": "sure",
+    "name": "Sure",
+    "scene": "scenes/sure.json",
+    "match": {
+     "phrases": [
+      "sure",
+      "of course",
+      "ofc",
+      "sure thing",
+      "definitely",
+      "obviously",
+      "obossoi",
+      "অবশ্যই"
+     ],
+     "concepts": [
+      "awesome"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 28,
+        "minFont": 24,
+        "maxFont": 96
+       }
+      ],
+      "case": "upper",
+      "sample": "Sure!"
+     }
+    ],
+    "altText": "Sure on a blue pill with a thumbs up"
+   },
+   {
+    "id": "okay_hand",
+    "name": "Okay",
+    "scene": "scenes/okay_hand.json",
+    "match": {
+     "phrases": [
+      "okay",
+      "ok",
+      "okie",
+      "okk",
+      "okay okay",
+      "alright",
+      "aight",
+      "ঠিক আছে",
+      "thik ache",
+      "thik ase",
+      "accha",
+      "আচ্ছা"
+     ],
+     "concepts": [
+      "awesome"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Okay"
+     }
+    ],
+    "altText": "Okay under an OK hand"
+   },
+   {
+    "id": "okay_bubble",
+    "name": "OK bubble",
+    "scene": "scenes/okay_bubble.json",
+    "match": {
+     "phrases": [
+      "okay",
+      "ok",
+      "okie",
+      "okk",
+      "okay okay",
+      "alright",
+      "aight",
+      "ঠিক আছে",
+      "thik ache",
+      "thik ase",
+      "accha",
+      "আচ্ছা"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "OK!"
+     }
+    ],
+    "altText": "OK in a speech bubble"
+   },
+   {
+    "id": "k",
+    "name": "K",
+    "scene": "scenes/k.json",
+    "match": {
+     "phrases": [
+      "k",
+      "kk",
+      "kay",
+      "mk"
+     ],
+     "concepts": [
+      "whatever"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 18,
+        "minFont": 24,
+        "maxFont": 140
+       }
+      ],
+      "case": "upper",
+      "sample": "K."
+     }
+    ],
+    "altText": "K stamped in black",
+    "stillOnly": true
+   },
+   {
+    "id": "no_worries",
+    "name": "No worries",
+    "scene": "scenes/no_worries.json",
+    "match": {
+     "phrases": [
+      "no worries",
+      "dont worry",
+      "its fine",
+      "all good",
+      "its okay",
+      "chinta koro na",
+      "চিন্তা করো না"
+     ],
+     "concepts": [
+      "relieved"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "No worries"
+     }
+    ],
+    "altText": "No worries on a cloud"
+   },
+   {
+    "id": "no_problem",
+    "name": "No problem",
+    "scene": "scenes/no_problem.json",
+    "match": {
+     "phrases": [
+      "no problem",
+      "np",
+      "no prob",
+      "no probs",
+      "সমস্যা নেই",
+      "shomossha nei",
+      "problem nai"
+     ],
+     "concepts": [
+      "relieved"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 28,
+        "minFont": 24,
+        "maxFont": 96
+       }
+      ],
+      "case": "upper",
+      "sample": "No problem"
+     }
+    ],
+    "altText": "No problem on a green pill"
+   },
+   {
+    "id": "cheers",
+    "name": "Cheers",
+    "scene": "scenes/cheers.json",
+    "match": {
+     "phrases": [
+      "cheers",
+      "cheers mate",
+      "bottoms up",
+      "toast",
+      "to us"
+     ],
+     "concepts": [
+      "celebration"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Cheers!"
+     }
+    ],
+    "altText": "Cheers under clinking glasses"
+   },
+   {
+    "id": "cheers_beer",
+    "name": "Cheers mugs",
+    "scene": "scenes/cheers_beer.json",
+    "match": {
+     "phrases": [
+      "cheers",
+      "cheers mate",
+      "bottoms up",
+      "toast",
+      "to us"
+     ],
+     "concepts": [
+      "celebration"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Cheers"
+     }
+    ],
+    "altText": "Cheers between drinks"
+   },
+   {
+    "id": "feel_better",
+    "name": "Feel better",
+    "scene": "scenes/feel_better.json",
+    "match": {
+     "phrases": [
+      "feel better",
+      "get well soon",
+      "get well",
+      "feel better soon",
+      "take rest",
+      "সুস্থ হয়ে ওঠো",
+      "shustho hoye otho"
+     ],
+     "concepts": [
+      "hug",
+      "heart"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Feel better soon"
+     }
+    ],
+    "altText": "Feel better soon under a bandaged face"
+   },
+   {
+    "id": "get_well",
+    "name": "Get well soon",
+    "scene": "scenes/get_well.json",
+    "match": {
+     "phrases": [
+      "feel better",
+      "get well soon",
+      "get well",
+      "feel better soon",
+      "take rest",
+      "সুস্থ হয়ে ওঠো",
+      "shustho hoye otho"
+     ],
+     "concepts": [
+      "flower",
+      "heart"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Get well soon"
+     }
+    ],
+    "altText": "Get well soon under a bouquet"
+   },
+   {
+    "id": "cant_wait",
+    "name": "Can't wait",
+    "scene": "scenes/cant_wait.json",
+    "match": {
+     "phrases": [
+      "cant wait",
+      "can not wait",
+      "so excited",
+      "counting down"
+     ],
+     "concepts": [
+      "celebration",
+      "starstruck"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0",
+       "_txt_1"
+      ],
+      "lines": [
+       {
+        "maxChars": 16,
+        "minFont": 30,
+        "maxFont": 130
+       },
+       {
+        "maxChars": 16,
+        "minFont": 30,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Can't wait!"
+     }
+    ],
+    "altText": "Can't wait in two jumping lines"
+   },
+   {
+    "id": "hungry_pizza",
+    "name": "Hungry",
+    "scene": "scenes/hungry_pizza.json",
+    "match": {
+     "phrases": [
+      "hungry",
+      "im hungry",
+      "starving",
+      "so hungry",
+      "lets eat",
+      "খিদে পেয়েছে",
+      "khide peyeche",
+      "khida lagse"
+     ],
+     "concepts": [
+      "yum"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Hungry!"
+     }
+    ],
+    "altText": "Hungry with a slice of pizza"
+   },
+   {
+    "id": "hungry_drool",
+    "name": "Starving",
+    "scene": "scenes/hungry_drool.json",
+    "match": {
+     "phrases": [
+      "hungry",
+      "im hungry",
+      "starving",
+      "so hungry",
+      "lets eat",
+      "খিদে পেয়েছে",
+      "khide peyeche",
+      "khida lagse"
+     ],
+     "concepts": [
+      "yum"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Starving"
+     }
+    ],
+    "altText": "Starving between a burger and a drooling face"
+   },
+   {
+    "id": "coffee_time",
+    "name": "Coffee time",
+    "scene": "scenes/coffee_time.json",
+    "match": {
+     "phrases": [
+      "coffee",
+      "coffee time",
+      "need coffee",
+      "but first coffee",
+      "coffee break",
+      "tea time",
+      "cha",
+      "চা"
+     ],
+     "concepts": [
+      "coffee"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 24,
+        "minFont": 20,
+        "maxFont": 88
+       }
+      ],
+      "case": "upper",
+      "sample": "Coffee time"
+     }
+    ],
+    "altText": "Coffee time on a steaming mug"
+   },
+   {
+    "id": "coffee_first",
+    "name": "But first, coffee",
+    "scene": "scenes/coffee_first.json",
+    "match": {
+     "phrases": [
+      "coffee",
+      "coffee time",
+      "need coffee",
+      "but first coffee",
+      "coffee break",
+      "tea time",
+      "cha",
+      "চা"
+     ],
+     "concepts": [
+      "coffee"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "But first, coffee"
+     }
+    ],
+    "altText": "But first, coffee under a coffee cup"
+   },
+   {
+    "id": "breakfast",
+    "name": "Breakfast",
+    "scene": "scenes/breakfast.json",
+    "match": {
+     "phrases": [
+      "breakfast",
+      "brunch",
+      "breakfast time",
+      "nasta",
+      "নাস্তা"
+     ],
+     "concepts": [
+      "yum"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Breakfast!"
+     }
+    ],
+    "altText": "Breakfast between pancakes and a fried egg"
+   },
+   {
+    "id": "dinner",
+    "name": "Dinner time",
+    "scene": "scenes/dinner.json",
+    "match": {
+     "phrases": [
+      "dinner",
+      "lunch",
+      "dinner time",
+      "lunch time",
+      "food",
+      "khabar",
+      "খাবার"
+     ],
+     "concepts": [
+      "yum"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Dinner time"
+     }
+    ],
+    "altText": "Dinner time under a plate"
+   },
+   {
+    "id": "busy",
+    "name": "Busy",
+    "scene": "scenes/busy.json",
+    "match": {
+     "phrases": [
+      "busy",
+      "so busy",
+      "in a meeting",
+      "cant talk",
+      "working",
+      "busy rn",
+      "ব্যস্ত",
+      "bebosto"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 30,
+        "minFont": 24,
+        "maxFont": 96
+       }
+      ],
+      "case": "upper",
+      "sample": "Busy"
+     }
+    ],
+    "altText": "Busy on a wooden sign"
+   },
+   {
+    "id": "bored",
+    "name": "Bored",
+    "scene": "scenes/bored.json",
+    "match": {
+     "phrases": [
+      "bored",
+      "so bored",
+      "im bored",
+      "boring",
+      "nothing to do"
+     ],
+     "concepts": [
+      "sigh",
+      "whatever"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "So bored"
+     }
+    ],
+    "altText": "So bored with a yawning face"
+   },
+   {
+    "id": "wait_what",
+    "name": "Wait what",
+    "scene": "scenes/wait_what.json",
+    "match": {
+     "phrases": [
+      "wait what",
+      "what",
+      "wut",
+      "huh",
+      "excuse me",
+      "ki",
+      "কি"
+     ],
+     "concepts": [
+      "thinking",
+      "explosion"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Wait, what?"
+     }
+    ],
+    "altText": "Wait, what? with a raised eyebrow"
+   },
+   {
+    "id": "no_way",
+    "name": "No way",
+    "scene": "scenes/no_way.json",
+    "match": {
+     "phrases": [
+      "no way",
+      "nooo",
+      "no way bro",
+      "impossible",
+      "shut up"
+     ],
+     "concepts": [
+      "explosion",
+      "starstruck"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "No way!"
+     }
+    ],
+    "altText": "No way on a comic burst"
+   },
+   {
+    "id": "for_real",
+    "name": "For real",
+    "scene": "scenes/for_real.json",
+    "match": {
+     "phrases": [
+      "for real",
+      "fr",
+      "seriously",
+      "srsly",
+      "deadass",
+      "for real tho",
+      "sotti",
+      "সত্যি"
+     ],
+     "concepts": [
+      "thinking"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "For real?"
+     }
+    ],
+    "altText": "For real? with a face with a raised eyebrow"
+   },
+   {
+    "id": "really",
+    "name": "Really?",
+    "scene": "scenes/really.json",
+    "match": {
+     "phrases": [
+      "really",
+      "rly",
+      "really really",
+      "are you serious",
+      "sotti naki",
+      "সত্যি নাকি"
+     ],
+     "concepts": [
+      "thinking",
+      "eye_roll"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Really?!"
+     }
+    ],
+    "altText": "Really?! in a speech bubble"
+   },
+   {
+    "id": "hi_wave",
+    "name": "Hi",
+    "scene": "scenes/hi_wave.json",
+    "match": {
+     "phrases": [
+      "hi",
+      "hello",
+      "hey",
+      "hii",
+      "heyy",
+      "hey there",
+      "hiya",
+      "hola",
+      "হ্যালো",
+      "assalamualaikum",
+      "salam"
+     ],
+     "concepts": [
+      "waving"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Hi!"
+     }
+    ],
+    "altText": "Hi under a waving hand"
+   },
+   {
+    "id": "hello_bubble",
+    "name": "Hello",
+    "scene": "scenes/hello_bubble.json",
+    "match": {
+     "phrases": [
+      "hi",
+      "hello",
+      "hey",
+      "hii",
+      "heyy",
+      "hey there",
+      "hiya",
+      "hola",
+      "হ্যালো",
+      "assalamualaikum",
+      "salam"
+     ],
+     "concepts": [
+      "waving",
+      "grinning"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Hello!"
+     }
+    ],
+    "altText": "Hello in a speech bubble"
+   },
+   {
+    "id": "hey_neon",
+    "name": "Hey neon",
+    "scene": "scenes/hey_neon.json",
+    "match": {
+     "phrases": [
+      "hi",
+      "hello",
+      "hey",
+      "hii",
+      "heyy",
+      "hey there",
+      "hiya",
+      "hola",
+      "হ্যালো",
+      "assalamualaikum",
+      "salam"
+     ],
+     "concepts": [
+      "waving"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 30,
+        "minFont": 28,
+        "maxFont": 120
+       }
+      ],
+      "case": "upper",
+      "sample": "Hey!"
+     }
+    ],
+    "altText": "Hey in neon lights"
+   },
+   {
+    "id": "bye_wave",
+    "name": "Bye",
+    "scene": "scenes/bye_wave.json",
+    "match": {
+     "phrases": [
+      "bye",
+      "goodbye",
+      "see you",
+      "see ya",
+      "cya",
+      "bye bye",
+      "later",
+      "বিদায়",
+      "biday",
+      "take care bye"
+     ],
+     "concepts": [
+      "waving"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Bye!"
+     }
+    ],
+    "altText": "Bye with a waving hand"
+   },
+   {
+    "id": "see_you",
+    "name": "See you",
+    "scene": "scenes/see_you.json",
+    "match": {
+     "phrases": [
+      "bye",
+      "goodbye",
+      "see you",
+      "see ya",
+      "cya",
+      "bye bye",
+      "later",
+      "বিদায়",
+      "biday",
+      "take care bye"
+     ],
+     "concepts": [
+      "waving"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "See you soon"
+     }
+    ],
+    "altText": "See you soon under a paper plane"
+   },
+   {
+    "id": "new_year",
+    "name": "Happy new year",
+    "scene": "scenes/new_year.json",
+    "match": {
+     "phrases": [
+      "happy new year",
+      "new year",
+      "hny",
+      "শুভ নববর্ষ",
+      "shubho noboborsho",
+      "subho noboborsho"
+     ],
+     "concepts": [
+      "celebration"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Happy new year"
+     }
+    ],
+    "altText": "Happy new year with poppers and confetti"
+   },
+   {
+    "id": "eid_mubarak",
+    "name": "Eid Mubarak",
+    "scene": "scenes/eid_mubarak.json",
+    "match": {
+     "phrases": [
+      "eid mubarak",
+      "ঈদ মোবারক",
+      "eid mobarak",
+      "happy eid"
+     ],
+     "concepts": [
+      "celebration"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Eid Mubarak"
+     }
+    ],
+    "altText": "Eid Mubarak under a crescent moon and stars"
+   },
+   {
+    "id": "noboborsho",
+    "name": "Shubho Noboborsho",
+    "scene": "scenes/noboborsho.json",
+    "match": {
+     "phrases": [
+      "happy new year",
+      "new year",
+      "hny",
+      "শুভ নববর্ষ",
+      "shubho noboborsho",
+      "subho noboborsho"
+     ],
+     "concepts": [
+      "celebration",
+      "flower"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Shubho Noboborsho"
+     }
+    ],
+    "altText": "Shubho Noboborsho under hibiscus"
+   },
+   {
+    "id": "take_care",
+    "name": "Take care",
+    "scene": "scenes/take_care.json",
+    "match": {
+     "phrases": [
+      "take care",
+      "stay safe",
+      "be safe",
+      "নিজের যত্ন নিও",
+      "take care of yourself"
+     ],
+     "concepts": [
+      "heart",
+      "hug"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Take care"
+     }
+    ],
+    "altText": "Take care on a heart"
+   },
+   {
+    "id": "please",
+    "name": "Please",
+    "scene": "scenes/please.json",
+    "match": {
+     "phrases": [
+      "please",
+      "pls",
+      "plz",
+      "pretty please",
+      "pleaseee",
+      "please please"
+     ],
+     "concepts": [
+      "pleading_face"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Please?"
+     }
+    ],
+    "altText": "Please with a pleading face"
+   },
+   {
+    "id": "you_got_this",
+    "name": "You got this",
+    "scene": "scenes/you_got_this.json",
+    "match": {
+     "phrases": [
+      "you got this",
+      "you can do it",
+      "believe in yourself",
+      "go for it",
+      "keep going"
+     ],
+     "concepts": [
+      "awesome",
+      "good_luck"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "You got this!"
+     }
+    ],
+    "altText": "You got this under a flexed arm"
+   },
+   {
+    "id": "brb",
+    "name": "BRB",
+    "scene": "scenes/brb.json",
+    "match": {
+     "phrases": [
+      "brb",
+      "ttyl",
+      "talk later",
+      "be right back",
+      "talk to you later",
+      "pore kotha bolbo"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "BRB"
+     }
+    ],
+    "altText": "BRB typed into a speech bubble"
+   },
+   {
+    "id": "lets_go",
+    "name": "Let's go",
+    "scene": "scenes/lets_go.json",
+    "match": {
+     "phrases": [
+      "lets go",
+      "lets gooo",
+      "lesgo",
+      "lfg",
+      "here we go",
+      "cholo",
+      "চলো"
+     ],
+     "concepts": [
+      "celebration",
+      "awesome"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Let's go!"
+     }
+    ],
+    "altText": "Let's go under a rocket"
+   },
+   {
+    "id": "bff",
+    "name": "BFF",
+    "scene": "scenes/bff.json",
+    "match": {
+     "phrases": [
+      "bff",
+      "best friend",
+      "besties",
+      "bestie",
+      "friends forever",
+      "dost",
+      "বন্ধু",
+      "bondhu"
+     ],
+     "concepts": [
+      "heart",
+      "hug"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "BFF"
+     }
+    ],
+    "altText": "BFF in a ring of hearts"
+   },
+   {
+    "id": "you_rock",
+    "name": "You rock",
+    "scene": "scenes/you_rock.json",
+    "match": {
+     "phrases": [
+      "you rock",
+      "you're the best",
+      "youre the best",
+      "legend",
+      "you rule"
+     ],
+     "concepts": [
+      "awesome",
+      "cool"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "You rock!"
+     }
+    ],
+    "altText": "You rock under a rock-on hand"
+   },
+   {
+    "id": "slay_crown",
+    "name": "Slay",
+    "scene": "scenes/slay_crown.json",
+    "match": {
+     "phrases": [
+      "slay",
+      "queen",
+      "king",
+      "iconic",
+      "slayed"
+     ],
+     "concepts": [
+      "crown",
+      "awesome"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Slay"
+     }
+    ],
+    "altText": "Slay under a crown"
+   },
+   {
+    "id": "bruh",
+    "name": "Bruh",
+    "scene": "scenes/bruh.json",
+    "match": {
+     "phrases": [
+      "bruh",
+      "bro",
+      "dude",
+      "bruh moment",
+      "bhai",
+      "ভাই"
+     ],
+     "concepts": [
+      "facepalm",
+      "whatever"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Bruh"
+     }
+    ],
+    "altText": "Bruh with someone facepalming"
+   },
+   {
+    "id": "thanks_sticky",
+    "name": "Thanks note",
+    "scene": "scenes/thanks_sticky.json",
+    "match": {
+     "phrases": [
+      "thanks",
+      "thank you",
+      "thank u",
+      "thanks a lot",
+      "thanks so much",
+      "thank you so much",
+      "thx",
+      "ty",
+      "tysm",
+      "tnx",
+      "thanx",
+      "many thanks",
+      "thankyou",
+      "ধন্যবাদ",
+      "dhonnobad",
+      "dhonnobaad",
+      "dhonyobad",
+      "thanks re",
+      "অনেক ধন্যবাদ",
+      "onek dhonnobad"
+     ],
+     "concepts": [
+      "heart"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "minFont": 26,
+        "maxFont": 92
+       }
+      ],
+      "case": "keep",
+      "sample": "Thank you!"
+     }
+    ],
+    "altText": "Thank you written on a sticky note",
+    "stillOnly": true
+   },
+   {
+    "id": "morning_sticky",
+    "name": "Morning note",
+    "scene": "scenes/morning_sticky.json",
+    "match": {
+     "phrases": [
+      "good morning",
+      "morning",
+      "gm",
+      "good mrng",
+      "gud morning",
+      "goodmorning",
+      "শুভ সকাল",
+      "shubho shokal",
+      "subho sokal",
+      "suprobhat",
+      "সুপ্রভাত",
+      "rise and shine"
+     ],
+     "concepts": [
+      "sun"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "minFont": 26,
+        "maxFont": 92
+       }
+      ],
+      "case": "keep",
+      "sample": "Good morning!"
+     }
+    ],
+    "altText": "Good morning on a sticky note",
+    "stillOnly": true
+   },
+   {
+    "id": "love_neon",
+    "name": "Love neon",
+    "scene": "scenes/love_neon.json",
+    "match": {
+     "phrases": [
+      "love you",
+      "i love you",
+      "ily",
+      "love u",
+      "luv u",
+      "luv you",
+      "i love u",
+      "love ya",
+      "ভালোবাসি",
+      "bhalobashi",
+      "valobashi",
+      "valobasi",
+      "ami tomake bhalobashi",
+      "আমি তোমাকে ভালোবাসি"
+     ],
+     "concepts": [
+      "heart"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 30,
+        "minFont": 28,
+        "maxFont": 120
+       }
+      ],
+      "case": "upper",
+      "sample": "Love you"
+     }
+    ],
+    "altText": "Love you in pink neon"
+   },
+   {
+    "id": "night_neon",
+    "name": "Good night neon",
+    "scene": "scenes/night_neon.json",
+    "match": {
+     "phrases": [
+      "good night",
+      "goodnight",
+      "gn",
+      "night night",
+      "nighty night",
+      "gud night",
+      "শুভ রাত্রি",
+      "shubho ratri",
+      "subho ratri",
+      "শুভ রাত",
+      "shubho raat"
+     ],
+     "concepts": [
+      "sigh"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 30,
+        "minFont": 28,
+        "maxFont": 120
+       }
+      ],
+      "case": "upper",
+      "sample": "Good night"
+     }
+    ],
+    "altText": "Good night in blue neon"
+   },
+   {
+    "id": "bday_neon",
+    "name": "Birthday neon",
+    "scene": "scenes/bday_neon.json",
+    "match": {
+     "phrases": [
+      "happy birthday",
+      "hbd",
+      "happy bday",
+      "happy birthday to you",
+      "bday",
+      "birthday",
+      "শুভ জন্মদিন",
+      "shubho jonmodin",
+      "subho jonmodin",
+      "shuvo jonmodin",
+      "many happy returns",
+      "hb"
+     ],
+     "concepts": [
+      "birthday"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 30,
+        "minFont": 28,
+        "maxFont": 120
+       }
+      ],
+      "case": "upper",
+      "sample": "Happy birthday"
+     }
+    ],
+    "altText": "Happy birthday in neon lights"
+   },
+   {
+    "id": "congrats_pill",
+    "name": "Congrats pill",
+    "scene": "scenes/congrats_pill.json",
+    "match": {
+     "phrases": [
+      "congrats",
+      "congratulations",
+      "congratz",
+      "congrats to you",
+      "অভিনন্দন",
+      "ovinondon",
+      "abhinandan",
+      "obhinondon",
+      "well deserved"
+     ],
+     "concepts": [
+      "congratulations"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 28,
+        "minFont": 24,
+        "maxFont": 96
+       }
+      ],
+      "case": "upper",
+      "sample": "Congrats!"
+     }
+    ],
+    "altText": "Congrats on a gold pill with a party popper"
+   },
+   {
+    "id": "sorry_sticky",
+    "name": "Sorry note",
+    "scene": "scenes/sorry_sticky.json",
+    "match": {
+     "phrases": [
+      "sorry",
+      "im sorry",
+      "so sorry",
+      "my bad",
+      "i am sorry",
+      "sry",
+      "soz",
+      "apologies",
+      "দুঃখিত",
+      "dukkhito",
+      "sorry re",
+      "maaf koro",
+      "মাফ করো"
+     ],
+     "concepts": [
+      "pleading_face"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "minFont": 26,
+        "maxFont": 92
+       }
+      ],
+      "case": "keep",
+      "sample": "I'm sorry"
+     }
+    ],
+    "altText": "I'm sorry on a blue sticky note",
+    "stillOnly": true
+   },
+   {
+    "id": "lol_stack",
+    "name": "Hahaha lines",
+    "scene": "scenes/lol_stack.json",
+    "match": {
+     "phrases": [
+      "ha ha ha",
+      "lol lol lol",
+      "haha haha haha"
+     ],
+     "concepts": [
+      "laugh"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0",
+       "_txt_1",
+       "_txt_2"
+      ],
+      "lines": [
+       {
+        "maxChars": 16,
+        "minFont": 30,
+        "maxFont": 120
+       },
+       {
+        "maxChars": 16,
+        "minFont": 30,
+        "maxFont": 120
+       },
+       {
+        "maxChars": 16,
+        "minFont": 30,
+        "maxFont": 120
+       }
+      ],
+      "case": "upper",
+      "sample": "Ha ha ha"
+     }
+    ],
+    "altText": "Ha ha ha in three bouncing lines"
+   },
+   {
+    "id": "ok_sign",
+    "name": "OK sign",
+    "scene": "scenes/ok_sign.json",
+    "match": {
+     "phrases": [
+      "okay",
+      "ok",
+      "okie",
+      "okk",
+      "okay okay",
+      "alright",
+      "aight",
+      "ঠিক আছে",
+      "thik ache",
+      "thik ase",
+      "accha",
+      "আচ্ছা"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 30,
+        "minFont": 24,
+        "maxFont": 96
+       }
+      ],
+      "case": "upper",
+      "sample": "OK"
+     }
+    ],
+    "altText": "OK on a wooden sign"
+   },
+   {
+    "id": "miss_you_letter",
+    "name": "Miss you letter",
+    "scene": "scenes/miss_you_letter.json",
+    "match": {
+     "phrases": [
+      "miss you",
+      "i miss you",
+      "miss u",
+      "missing you",
+      "miss ya",
+      "তোমাকে মিস করছি",
+      "miss korchi",
+      "mone porche"
+     ],
+     "concepts": [
+      "heart"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Miss you"
+     }
+    ],
+    "altText": "Miss you between a love letter and a heart"
+   },
+   {
+    "id": "hi_bubble_cat",
+    "name": "Hey cat",
+    "scene": "scenes/hi_bubble_cat.json",
+    "match": {
+     "phrases": [
+      "hi",
+      "hello",
+      "hey",
+      "hii",
+      "heyy",
+      "hey there",
+      "hiya",
+      "hola",
+      "হ্যালো",
+      "assalamualaikum",
+      "salam"
+     ],
+     "concepts": [
+      "waving"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Hey!"
+     }
+    ],
+    "altText": "Hey in a speech bubble with a cat"
+   },
+   {
+    "id": "yes_burst",
+    "name": "Yes burst",
+    "scene": "scenes/yes_burst.json",
+    "match": {
+     "phrases": [
+      "yes",
+      "yep",
+      "yeah",
+      "yup",
+      "yas",
+      "yesss",
+      "absolutely",
+      "হ্যাঁ",
+      "ha",
+      "hae",
+      "ji"
+     ],
+     "concepts": [
+      "awesome"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Yes!"
+     }
+    ],
+    "altText": "Yes on a spinning burst"
+   },
+   {
+    "id": "wow_rainbow",
+    "name": "Wow rainbow",
+    "scene": "scenes/wow_rainbow.json",
+    "match": {
+     "phrases": [
+      "wow",
+      "woah",
+      "whoa",
+      "wowww",
+      "wow wow",
+      "অসাধারণ",
+      "oshadharon"
+     ],
+     "concepts": [
+      "starstruck"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Wow!"
+     }
+    ],
+    "altText": "Wow under a rainbow"
+   },
+   {
+    "id": "cool_corners",
+    "name": "Cool shades",
+    "scene": "scenes/cool_corners.json",
+    "match": {
+     "phrases": [
+      "cool",
+      "very cool",
+      "cool cool",
+      "so cool",
+      "kool",
+      "chill"
+     ],
+     "concepts": [
+      "cool"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "So cool"
+     }
+    ],
+    "altText": "So cool between sunglasses and ice cream"
+   },
+   {
+    "id": "good_night_bear",
+    "name": "Night bear",
+    "scene": "scenes/good_night_bear.json",
+    "match": {
+     "phrases": [
+      "good night",
+      "goodnight",
+      "gn",
+      "night night",
+      "nighty night",
+      "gud night",
+      "শুভ রাত্রি",
+      "shubho ratri",
+      "subho ratri",
+      "শুভ রাত",
+      "shubho raat"
+     ],
+     "concepts": [
+      "sigh"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Good night"
+     }
+    ],
+    "altText": "Good night under a teddy bear"
+   },
+   {
+    "id": "hbd_short",
+    "name": "HBD",
+    "scene": "scenes/hbd_short.json",
+    "match": {
+     "phrases": [
+      "hbd",
+      "happy bday",
+      "bday"
+     ],
+     "concepts": [
+      "birthday"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "HBD!"
+     }
+    ],
+    "altText": "HBD on a spinning burst"
+   },
+   {
+    "id": "love_you_sign",
+    "name": "Love sign",
+    "scene": "scenes/love_you_sign.json",
+    "match": {
+     "phrases": [
+      "love you",
+      "i love you",
+      "ily",
+      "love u",
+      "luv u",
+      "luv you",
+      "i love u",
+      "love ya",
+      "ভালোবাসি",
+      "bhalobashi",
+      "valobashi",
+      "valobasi",
+      "ami tomake bhalobashi",
+      "আমি তোমাকে ভালোবাসি"
+     ],
+     "concepts": [
+      "heart"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 30,
+        "minFont": 24,
+        "maxFont": 96
+       }
+      ],
+      "case": "upper",
+      "sample": "Love you"
+     }
+    ],
+    "altText": "Love you on a wooden sign"
+   },
+   {
+    "id": "thanks_comic",
+    "name": "Thanks comic",
+    "scene": "scenes/thanks_comic.json",
+    "match": {
+     "phrases": [
+      "thanks",
+      "thank you",
+      "thank u",
+      "thanks a lot",
+      "thanks so much",
+      "thank you so much",
+      "thx",
+      "ty",
+      "tysm",
+      "tnx",
+      "thanx",
+      "many thanks",
+      "thankyou",
+      "ধন্যবাদ",
+      "dhonnobad",
+      "dhonnobaad",
+      "dhonyobad",
+      "thanks re",
+      "অনেক ধন্যবাদ",
+      "onek dhonnobad"
+     ],
+     "concepts": [
+      "awesome"
+     ]
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 32,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Thanks!"
+     }
+    ],
+    "altText": "Thanks on a comic burst"
+   },
+   {
+    "id": "any_pill",
+    "name": "Pill",
+    "scene": "scenes/any_pill.json",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 28,
+        "minFont": 24,
+        "maxFont": 96
+       }
+      ],
+      "case": "upper",
+      "sample": "Your text"
+     }
+    ],
+    "altText": "Any text on a gradient pill",
+    "stillOnly": true
+   },
+   {
+    "id": "any_burst",
+    "name": "Bubble letters",
+    "scene": "scenes/any_burst.json",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 40,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Your text"
+     }
+    ],
+    "altText": "Any text in bubble letters on a spinning burst"
+   },
+   {
+    "id": "any_bubble",
+    "name": "Speech bubble",
+    "scene": "scenes/any_bubble.json",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 48,
+        "minFont": 34,
+        "maxFont": 130
+       }
+      ],
+      "case": "upper",
+      "sample": "Your text"
+     }
+    ],
+    "altText": "Any text in a speech bubble"
+   },
+   {
+    "id": "any_rainbow",
+    "name": "Rainbow letters",
+    "scene": "scenes/any_rainbow.json",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 40,
+        "minFont": 30,
+        "maxFont": 140
+       }
+      ],
+      "case": "upper",
+      "sample": "Your text"
+     }
+    ],
+    "altText": "Any text in colour-changing letters"
+   },
+   {
+    "id": "any_sticky",
+    "name": "Sticky note",
+    "scene": "scenes/any_sticky.json",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "minFont": 26,
+        "maxFont": 92
+       }
+      ],
+      "case": "keep",
+      "sample": "Your text"
+     }
+    ],
+    "altText": "Any text written on a sticky note",
+    "stillOnly": true
+   },
+   {
+    "id": "any_neon",
+    "name": "Neon",
+    "scene": "scenes/any_neon.json",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 36,
+        "minFont": 28,
+        "maxFont": 120
+       }
+      ],
+      "case": "upper",
+      "sample": "Your text"
+     }
+    ],
+    "altText": "Any text in neon lights"
+   },
+   {
+    "id": "meme_impact",
+    "name": "Top and bottom",
+    "scene": "scenes/meme_impact.json",
+    "kind": "meme",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 80,
+        "minFont": 22,
+        "maxFont": 72
+       }
+      ],
+      "case": "upper",
+      "label": "Top text",
+      "sample": "Top text"
+     },
+     {
+      "id": "bottom",
+      "layers": [
+       "bottom"
+      ],
+      "lines": [
+       {
+        "maxChars": 80,
+        "minFont": 22,
+        "maxFont": 72
+       }
+      ],
+      "case": "upper",
+      "role": "bottom",
+      "label": "Bottom text"
+     }
+    ],
+    "photos": [
+     {
+      "id": "photo",
+      "asset": "photo_photo",
+      "label": "Photo"
+     }
+    ],
+    "altText": "A photo with white outlined words at the top and bottom",
+    "stillOnly": true
+   },
+   {
+    "id": "meme_caption_above",
+    "name": "Caption above",
+    "scene": "scenes/meme_caption_above.json",
+    "kind": "meme",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 80,
+        "minFont": 18,
+        "maxFont": 48
+       }
+      ],
+      "case": "keep",
+      "label": "Caption",
+      "sample": "When the caption goes above"
+     }
+    ],
+    "photos": [
+     {
+      "id": "photo",
+      "asset": "photo_photo",
+      "label": "Photo"
+     }
+    ],
+    "altText": "A white caption bar above a photo",
+    "stillOnly": true
+   },
+   {
+    "id": "meme_caption_below",
+    "name": "Caption below",
+    "scene": "scenes/meme_caption_below.json",
+    "kind": "meme",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 80,
+        "minFont": 18,
+        "maxFont": 48
+       }
+      ],
+      "case": "keep",
+      "label": "Caption",
+      "sample": "And the caption below"
+     }
+    ],
+    "photos": [
+     {
+      "id": "photo",
+      "asset": "photo_photo",
+      "label": "Photo"
+     }
+    ],
+    "altText": "A photo with a white caption bar below it",
+    "stillOnly": true
+   },
+   {
+    "id": "meme_labels",
+    "name": "Labels",
+    "scene": "scenes/meme_labels.json",
+    "kind": "meme",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 80,
+        "minFont": 18,
+        "maxFont": 56
+       }
+      ],
+      "case": "upper",
+      "label": "First label",
+      "sample": "This"
+     },
+     {
+      "id": "label2",
+      "layers": [
+       "label2"
+      ],
+      "lines": [
+       {
+        "maxChars": 80,
+        "minFont": 18,
+        "maxFont": 56
+       }
+      ],
+      "case": "upper",
+      "role": "label",
+      "label": "Second label",
+      "sample": "That"
+     },
+     {
+      "id": "label3",
+      "layers": [
+       "label3"
+      ],
+      "lines": [
+       {
+        "maxChars": 80,
+        "minFont": 18,
+        "maxFont": 56
+       }
+      ],
+      "case": "upper",
+      "role": "label",
+      "label": "Third label",
+      "sample": "Me"
+     }
+    ],
+    "photos": [
+     {
+      "id": "photo",
+      "asset": "photo_photo",
+      "label": "Photo"
+     }
+    ],
+    "altText": "A photo with three labels placed over it",
+    "stillOnly": true
+   },
+   {
+    "id": "meme_pov",
+    "name": "POV",
+    "scene": "scenes/meme_pov.json",
+    "kind": "meme",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 80,
+        "minFont": 18,
+        "maxFont": 44
+       }
+      ],
+      "case": "keep",
+      "label": "Caption",
+      "sample": "you open the group chat"
+     }
+    ],
+    "photos": [
+     {
+      "id": "photo",
+      "asset": "photo_photo",
+      "label": "Photo"
+     }
+    ],
+    "altText": "A POV caption above a photo",
+    "stillOnly": true
+   },
+   {
+    "id": "meme_before_after",
+    "name": "Before and after",
+    "scene": "scenes/meme_before_after.json",
+    "kind": "meme",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 80,
+        "minFont": 18,
+        "maxFont": 54
+       }
+      ],
+      "case": "upper",
+      "label": "Left",
+      "sample": "Before"
+     },
+     {
+      "id": "after_label",
+      "layers": [
+       "after_label"
+      ],
+      "lines": [
+       {
+        "maxChars": 80,
+        "minFont": 18,
+        "maxFont": 54
+       }
+      ],
+      "case": "upper",
+      "role": "label",
+      "label": "Right",
+      "sample": "After"
+     }
+    ],
+    "photos": [
+     {
+      "id": "before",
+      "asset": "photo_before",
+      "label": "Before"
+     },
+     {
+      "id": "after",
+      "asset": "photo_after",
+      "label": "After"
+     }
+    ],
+    "altText": "Two photos side by side under Before and After",
+    "stillOnly": true
+   },
+   {
+    "id": "meme_two_panel",
+    "name": "Two panels",
+    "scene": "scenes/meme_two_panel.json",
+    "kind": "meme",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 80,
+        "minFont": 18,
+        "maxFont": 54
+       }
+      ],
+      "case": "keep",
+      "label": "Top text",
+      "sample": "Not this"
+     },
+     {
+      "id": "bottom",
+      "layers": [
+       "bottom"
+      ],
+      "lines": [
+       {
+        "maxChars": 80,
+        "minFont": 18,
+        "maxFont": 54
+       }
+      ],
+      "case": "keep",
+      "role": "bottom",
+      "label": "Bottom text",
+      "sample": "This"
+     }
+    ],
+    "photos": [
+     {
+      "id": "top_photo",
+      "asset": "photo_top_photo",
+      "label": "Top photo"
+     },
+     {
+      "id": "bottom_photo",
+      "asset": "photo_bottom_photo",
+      "label": "Bottom photo"
+     }
+    ],
+    "altText": "Two photos stacked, each with words beside it",
+    "stillOnly": true
+   },
+   {
+    "id": "meme_me_also_me",
+    "name": "Me / also me",
+    "scene": "scenes/meme_me_also_me.json",
+    "kind": "meme",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 80,
+        "minFont": 18,
+        "maxFont": 48
+       }
+      ],
+      "case": "keep",
+      "label": "Left",
+      "sample": "Me"
+     },
+     {
+      "id": "right_label",
+      "layers": [
+       "right_label"
+      ],
+      "lines": [
+       {
+        "maxChars": 80,
+        "minFont": 18,
+        "maxFont": 48
+       }
+      ],
+      "case": "keep",
+      "role": "label",
+      "label": "Right",
+      "sample": "Also me"
+     }
+    ],
+    "photos": [
+     {
+      "id": "left",
+      "asset": "photo_left",
+      "label": "Left photo"
+     },
+     {
+      "id": "right",
+      "asset": "photo_right",
+      "label": "Right photo"
+     }
+    ],
+    "altText": "Two photos labelled Me and Also me",
+    "stillOnly": true
+   },
+   {
+    "id": "meme_polaroid",
+    "name": "Polaroid",
+    "scene": "scenes/meme_polaroid.json",
+    "kind": "meme",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 80,
+        "minFont": 18,
+        "maxFont": 52
+       }
+      ],
+      "case": "keep",
+      "label": "Caption",
+      "sample": "best day ever"
+     }
+    ],
+    "photos": [
+     {
+      "id": "photo",
+      "asset": "photo_photo",
+      "label": "Photo"
+     }
+    ],
+    "altText": "A photo in an instant-print frame with a handwritten caption",
+    "stillOnly": true
+   },
+   {
+    "id": "text_post",
+    "name": "Post card",
+    "scene": "scenes/text_post.json",
+    "kind": "meme",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "name",
+      "layers": [
+       "name"
+      ],
+      "lines": [
+       {
+        "maxChars": 30,
+        "minFont": 16,
+        "maxFont": 36
+       }
+      ],
+      "case": "keep",
+      "role": "name",
+      "label": "Name",
+      "sample": "Your Name"
+     },
+     {
+      "id": "handle",
+      "layers": [
+       "handle"
+      ],
+      "lines": [
+       {
+        "maxChars": 30,
+        "minFont": 14,
+        "maxFont": 28
+       }
+      ],
+      "case": "keep",
+      "role": "label",
+      "label": "Handle",
+      "sample": "@yourhandle"
+     },
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 200,
+        "minFont": 18,
+        "maxFont": 56
+       }
+      ],
+      "case": "keep",
+      "label": "Post",
+      "sample": "just typed this and it already looks like a post"
+     }
+    ],
+    "altText": "A social post card with a name, handle and the text",
+    "stillOnly": true
+   },
+   {
+    "id": "text_quote",
+    "name": "Quote card",
+    "scene": "scenes/text_quote.json",
+    "kind": "meme",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 160,
+        "minFont": 22,
+        "maxFont": 56
+       }
+      ],
+      "case": "keep",
+      "label": "Quote",
+      "sample": "Every day is a fresh start"
+     },
+     {
+      "id": "name",
+      "layers": [
+       "name"
+      ],
+      "lines": [
+       {
+        "maxChars": 40,
+        "minFont": 14,
+        "maxFont": 30
+       }
+      ],
+      "case": "keep",
+      "role": "name",
+      "label": "Who said it",
+      "sample": "— Someone wise"
+     }
+    ],
+    "altText": "A quote in white on a purple card with its author",
+    "stillOnly": true
+   },
+   {
+    "id": "text_chat",
+    "name": "Chat bubbles",
+    "scene": "scenes/text_chat.json",
+    "kind": "meme",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "them",
+      "layers": [
+       "them"
+      ],
+      "lines": [
+       {
+        "maxChars": 80,
+        "minFont": 18,
+        "maxFont": 60
+       }
+      ],
+      "case": "keep",
+      "role": "label",
+      "label": "Their message",
+      "sample": "you up?"
+     },
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 80,
+        "minFont": 18,
+        "maxFont": 60
+       }
+      ],
+      "case": "keep",
+      "label": "Your reply",
+      "sample": "no"
+     }
+    ],
+    "altText": "A message and a reply in chat bubbles",
+    "stillOnly": true
+   },
+   {
+    "id": "text_news",
+    "name": "News headline",
+    "scene": "scenes/text_news.json",
+    "kind": "meme",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 90,
+        "minFont": 20,
+        "maxFont": 60
+       }
+      ],
+      "case": "upper",
+      "label": "Headline",
+      "sample": "Local person types a message"
+     }
+    ],
+    "altText": "Your words as a breaking news headline",
+    "stillOnly": true
+   },
+   {
+    "id": "text_nobody_me",
+    "name": "Nobody / me",
+    "scene": "scenes/text_nobody_me.json",
+    "kind": "meme",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 90,
+        "minFont": 16,
+        "maxFont": 44
+       }
+      ],
+      "case": "keep",
+      "label": "Me",
+      "sample": "typing this at 3am"
+     }
+    ],
+    "altText": "Nobody: and Me: with your words",
+    "stillOnly": true
+   },
+   {
+    "id": "text_top3",
+    "name": "Top 3",
+    "scene": "scenes/text_top3.json",
+    "kind": "meme",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 40,
+        "minFont": 20,
+        "maxFont": 56
+       }
+      ],
+      "case": "upper",
+      "label": "Title",
+      "sample": "Top 3 things"
+     },
+     {
+      "id": "item1",
+      "layers": [
+       "item1"
+      ],
+      "lines": [
+       {
+        "maxChars": 50,
+        "minFont": 16,
+        "maxFont": 44
+       }
+      ],
+      "case": "keep",
+      "role": "label",
+      "label": "Number 1",
+      "sample": "Coffee"
+     },
+     {
+      "id": "item2",
+      "layers": [
+       "item2"
+      ],
+      "lines": [
+       {
+        "maxChars": 50,
+        "minFont": 16,
+        "maxFont": 44
+       }
+      ],
+      "case": "keep",
+      "role": "label",
+      "label": "Number 2",
+      "sample": "Naps"
+     },
+     {
+      "id": "item3",
+      "layers": [
+       "item3"
+      ],
+      "lines": [
+       {
+        "maxChars": 50,
+        "minFont": 16,
+        "maxFont": 44
+       }
+      ],
+      "case": "keep",
+      "role": "label",
+      "label": "Number 3",
+      "sample": "Memes"
+     }
+    ],
+    "altText": "A top three list with a title",
+    "stillOnly": true
+   },
+   {
+    "id": "text_expectation",
+    "name": "Expectation / reality",
+    "scene": "scenes/text_expectation.json",
+    "kind": "meme",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 70,
+        "minFont": 16,
+        "maxFont": 48
+       }
+      ],
+      "case": "keep",
+      "label": "Expectation",
+      "sample": "Productive day"
+     },
+     {
+      "id": "reality",
+      "layers": [
+       "reality"
+      ],
+      "lines": [
+       {
+        "maxChars": 70,
+        "minFont": 16,
+        "maxFont": 48
+       }
+      ],
+      "case": "keep",
+      "role": "bottom",
+      "label": "Reality",
+      "sample": "Nap"
+     }
+    ],
+    "altText": "Expectation and reality side by side",
+    "stillOnly": true
+   },
+   {
+    "id": "text_warning",
+    "name": "Warning sign",
+    "scene": "scenes/text_warning.json",
+    "kind": "meme",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 90,
+        "minFont": 16,
+        "maxFont": 48
+       }
+      ],
+      "case": "upper",
+      "label": "Warning",
+      "sample": "May start talking about cats at any moment"
+     }
+    ],
+    "altText": "A warning sign with your words",
+    "stillOnly": true
+   },
+   {
+    "id": "text_certificate",
+    "name": "Certificate",
+    "scene": "scenes/text_certificate.json",
+    "kind": "meme",
+    "match": {
+     "generic": true
+    },
+    "slots": [
+     {
+      "id": "name",
+      "layers": [
+       "name"
+      ],
+      "lines": [
+       {
+        "maxChars": 30,
+        "minFont": 18,
+        "maxFont": 52
+       }
+      ],
+      "case": "keep",
+      "role": "name",
+      "label": "Name",
+      "sample": "Your Name"
+     },
+     {
+      "id": "main",
+      "layers": [
+       "_txt_0"
+      ],
+      "lines": [
+       {
+        "maxChars": 80,
+        "minFont": 14,
+        "maxFont": 32
+       }
+      ],
+      "case": "keep",
+      "label": "For",
+      "sample": "for replying within a minute"
+     }
+    ],
+    "altText": "A certificate of achievement with a name and what it is for",
+    "stillOnly": true
+   }
+  ]
+ }
+}

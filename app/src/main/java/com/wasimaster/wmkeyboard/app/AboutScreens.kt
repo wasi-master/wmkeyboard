@@ -1215,6 +1215,18 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/rsms/inter",
         ),
     )
+    // The dynamic sticker templates' art library (assets/dynstickers/art/
+    // art.json): Noto Emoji's colour SVGs converted to Lottie shapes by
+    // tools/dynstickers/svg_to_lottie_shapes.py, beside drawings of our own.
+    add(
+        Attribution(
+            "Noto Emoji",
+            R.string.about_bundled_noto_emoji_art_used,
+            "Copyright Google LLC",
+            "Apache-2.0", "apache-2.0.txt",
+            "https://github.com/googlefonts/noto-emoji",
+        ),
+    )
 }
 
 /**
