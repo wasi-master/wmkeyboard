@@ -8484,7 +8484,7 @@ open class WMKeyboardService : InputMethodService() {
                 delay(wait)
                 if (!summonedNow() || summonHeld || isInputViewShown) return@launch
                 forcedShowUp = true
-                requestShowSelf(summonShowFlags())
+                showSelf(summonShowFlags())
             }
         }
     }
@@ -8498,6 +8498,22 @@ open class WMKeyboardService : InputMethodService() {
      */
     @Suppress("DEPRECATION")
     private fun summonShowFlags(): Int = InputMethodManager.SHOW_FORCED
+
+    /**
+     * [requestShowSelf], which Android only has from 9 on. Before that the
+     * same request goes through the input method manager with the keyboard
+     * window's token, which is what [requestShowSelf] does inside; calling it
+     * directly there was a NoSuchMethodError on Android 7 and 8 (#1534).
+     */
+    private fun showSelf(flags: Int) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            requestShowSelf(flags)
+            return
+        }
+        val token = window?.window?.attributes?.token ?: return
+        @Suppress("DEPRECATION")
+        getSystemService(InputMethodManager::class.java)?.showSoftInputFromInputMethod(token, flags)
+    }
 
     /**
      * A forced show of ours is what keeps the window up. Android holds on to
@@ -9745,9 +9761,9 @@ open class WMKeyboardService : InputMethodService() {
             pinReshowStreak++
             if (summonedNow()) {
                 forcedShowUp = true
-                requestShowSelf(summonShowFlags())
+                showSelf(summonShowFlags())
             } else {
-                requestShowSelf(0)
+                showSelf(0)
             }
         }
     }
@@ -41932,7 +41948,10 @@ open class WMKeyboardService : InputMethodService() {
         val chain = (resume || (!userStopped && voiceChains())) && !voiceStopRequested && voiceSessionAlive()
         voiceSilentRetries = 0
         val old = draft.text
-        val rewritten = VoiceTidy.land(old, VoiceCasing.apply(romanizedVoiceText(text), sentenceStart = draft.sentenceStart))
+        val rewritten = VoiceTidy.land(
+            old,
+            VoiceCasing.apply(romanizedVoiceText(text), sentenceStart = draft.sentenceStart, everyWord = voiceCapsEveryWord()),
+        )
         if (rewritten != old) {
             ic.beginBatchEdit()
             ic.deleteSurroundingText(old.length, 0)
@@ -42353,7 +42372,10 @@ open class WMKeyboardService : InputMethodService() {
         val old = landed.text
         if (ic.getTextBeforeCursor(old.length, 0)?.toString() != old) return null
         if (!ic.getSelectedText(0).isNullOrEmpty()) return null
-        val replacement = VoiceTidy.land(old, VoiceCasing.apply(tidied, sentenceStart = landed.sentenceStart))
+        val replacement = VoiceTidy.land(
+            old,
+            VoiceCasing.apply(tidied, sentenceStart = landed.sentenceStart, everyWord = voiceCapsEveryWord()),
+        )
         ic.beginBatchEdit()
         ic.deleteSurroundingText(old.length, 0)
         ic.commitText(replacement, 1)
@@ -42374,7 +42396,21 @@ open class WMKeyboardService : InputMethodService() {
      * recognizer left it off, which plain voice typing does not ask for.
      */
     private fun casedVoiceText(text: String, raise: Boolean): String =
-        VoiceCasing.apply(text, sentenceStart = voiceSentenceStart, raise = raise)
+        VoiceCasing.apply(text, sentenceStart = voiceSentenceStart, raise = raise, everyWord = raise && voiceCapsEveryWord())
+
+    /**
+     * Whether dictation opens every word with a capital (#1534): Capitalize
+     * every word is on, and the field is one where the shift key would do that
+     * for typed words ([capsModeFlags] asks it for word capitals). Plain voice
+     * typing keeps the words as they were said.
+     */
+    private fun voiceCapsEveryWord(): Boolean {
+        val autoText = _uiState.value.settings.autoText
+        if (!autoText.capitalize || !autoText.capitalizeWords || plainVoice()) return false
+        val inputType = currentInputEditorInfo?.inputType ?: return false
+        if (inputType and InputType.TYPE_MASK_CLASS != InputType.TYPE_CLASS_TEXT) return false
+        return capsModeFlags(inputType) and InputType.TYPE_TEXT_FLAG_CAP_WORDS != 0
+    }
 
     /**
      * [text] with the space [AutoTextSettings.spaceAfterPunctuation] types

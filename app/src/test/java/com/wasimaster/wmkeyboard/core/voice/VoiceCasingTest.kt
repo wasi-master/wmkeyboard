@@ -154,4 +154,13 @@ class VoiceCasingTest {
         val sentenceStart = VoiceCasing.startsSentence("")
         assertEquals("Hello world", VoiceCasing.apply("Hello world", sentenceStart))
     }
+
+    @Test
+    fun `every word opens with a capital for Capitalize every word (#1534)`() {
+        assertEquals("New York City", VoiceCasing.apply("new york city", sentenceStart = false, everyWord = true))
+        assertEquals(
+            "\"Hello\" (World) iPhone",
+            VoiceCasing.apply("\"hello\" (world) iPhone", sentenceStart = true, everyWord = true),
+        )
+    }
 }

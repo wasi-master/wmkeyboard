@@ -51,8 +51,46 @@ object VoiceCasing {
      * nothing hand over lower case, and the phrase after a dictated full stop
      * then went in as "Done. and then".
      */
-    fun apply(text: String, sentenceStart: Boolean, raise: Boolean = true): String =
-        capitalizeInnerSentences(openingCase(text, sentenceStart, raise))
+    fun apply(text: String, sentenceStart: Boolean, raise: Boolean = true, everyWord: Boolean = false): String =
+        if (everyWord) raisedWords(text) else capitalizeInnerSentences(openingCase(text, sentenceStart, raise))
+
+    /**
+     * [text] with every word opened with a capital, for Capitalize every word
+     * (#1534): what the shift key does for each typed word in that mode, so a
+     * dictated "new york city" lands as "New York City" too. Only a small first
+     * letter is raised, behind any opening quote or bracket, and not in a word
+     * spelled with a capital further in (iPhone); the rest of each word is the
+     * recognizer's to case.
+     */
+    private fun raisedWords(text: String): String {
+        var out: StringBuilder? = null
+        var atStart = true
+        for (i in text.indices) {
+            val c = text[i]
+            when {
+                c.isWhitespace() -> atStart = true
+                atStart && c in OPENERS -> Unit
+                else -> {
+                    if (atStart && c.isLowerCase() && !innerCapital(text, i)) {
+                        val sb = out ?: StringBuilder(text).also { out = it }
+                        sb.setCharAt(i, c.titlecaseChar())
+                    }
+                    atStart = false
+                }
+            }
+        }
+        return out?.toString() ?: text
+    }
+
+    /** Whether the word starting at [start] has a capital after its first letter. */
+    private fun innerCapital(text: String, start: Int): Boolean {
+        var i = start + 1
+        while (i < text.length && !text[i].isWhitespace()) {
+            if (text[i].isUpperCase()) return true
+            i++
+        }
+        return false
+    }
 
     /** [text] with only its opening capital judged against [sentenceStart]. */
     private fun openingCase(text: String, sentenceStart: Boolean, raise: Boolean): String {
@@ -174,6 +212,9 @@ object VoiceCasing {
         ScriptRegistry.all.forEach { def -> def.fullStop.lastOrNull()?.let { add(it) } }
         addAll(listOf('!', '?', '…', '！', '？'))
     }
+
+    /** Opens a quote or a bracket, and so can stand in front of a word's first letter. */
+    private val OPENERS = setOf('"', '\'', '“', '‘', '«', '‹', '(', '[', '{', '¿', '¡')
 
     /** Closes a quote or a bracket, and so can stand between the terminator and the caret. */
     private val CLOSERS = setOf('"', '\'', '”', '’', '»', '›', ')', ']', '}')
