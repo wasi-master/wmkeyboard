@@ -27,6 +27,10 @@ import java.io.Closeable
  * @param loopCount 0 for for ever.
  * @param minimizeSize try every way of storing each frame and keep the
  *   smallest. Slower; also turns off key-frame insertion.
+ * @param method libwebp's speed/size trade-off for each frame, 0 (fast) to 6 (small).
+ * @param keyFrames let libwebp store a frame whole where that is smaller than
+ *   storing what changed. Every frame is then encoded both ways; without it,
+ *   once. A looping sticker never seeks, so it loses nothing but a few bytes.
  */
 class AnimatedWebpEncoder(
     private val width: Int,
@@ -35,6 +39,8 @@ class AnimatedWebpEncoder(
     private val lossless: Boolean = false,
     loopCount: Int = 0,
     minimizeSize: Boolean = true,
+    private val method: Int = METHOD,
+    keyFrames: Boolean = true,
 ) : Closeable {
 
     companion object {
@@ -46,6 +52,9 @@ class AnimatedWebpEncoder(
 
         /** Negative: libwebp's own key-frame spacing. */
         private const val LIBRARY_DEFAULT = -1
+
+        /** A key-frame spacing of 0: libwebp inserts none. */
+        private const val NO_KEY_FRAMES = 0
     }
 
     private var handle: Long = 0
@@ -60,8 +69,8 @@ class AnimatedWebpEncoder(
                 loopCount,
                 minimizeSize,
                 false,
-                LIBRARY_DEFAULT,
-                LIBRARY_DEFAULT,
+                if (keyFrames) LIBRARY_DEFAULT else NO_KEY_FRAMES,
+                if (keyFrames) LIBRARY_DEFAULT else NO_KEY_FRAMES,
             )
         }
     }
@@ -75,11 +84,11 @@ class AnimatedWebpEncoder(
     fun addFrame(bitmap: Bitmap, timestampMs: Int): Boolean {
         if (!open() || bitmap.width != width || bitmap.height != height) return false
         if (bitmap.config == Bitmap.Config.ARGB_8888) {
-            return WebpAnimNative.nativeAddBitmap(handle, bitmap, timestampMs, quality, lossless, METHOD)
+            return WebpAnimNative.nativeAddBitmap(handle, bitmap, timestampMs, quality, lossless, method)
         }
         val copy = bitmap.copy(Bitmap.Config.ARGB_8888, false) ?: return false
         return try {
-            WebpAnimNative.nativeAddBitmap(handle, copy, timestampMs, quality, lossless, METHOD)
+            WebpAnimNative.nativeAddBitmap(handle, copy, timestampMs, quality, lossless, method)
         } finally {
             copy.recycle()
         }
@@ -92,7 +101,7 @@ class AnimatedWebpEncoder(
     @Synchronized
     fun addFrame(argb: IntArray, timestampMs: Int): Boolean {
         if (!open() || argb.size != width * height) return false
-        return WebpAnimNative.nativeAddArgb(handle, argb, timestampMs, quality, lossless, METHOD)
+        return WebpAnimNative.nativeAddArgb(handle, argb, timestampMs, quality, lossless, method)
     }
 
     /**

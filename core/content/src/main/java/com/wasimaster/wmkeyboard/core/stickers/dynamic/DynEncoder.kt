@@ -1,6 +1,10 @@
 package com.wasimaster.wmkeyboard.core.stickers.dynamic
 
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
 import android.os.Build
 import com.wasimaster.wmkeyboard.core.media.AnimatedWebpEncoder
 import com.wasimaster.wmkeyboard.core.media.AnimatedWebpWriter
@@ -297,22 +301,35 @@ object DynEncoder {
         // first frame before it plays (or instead of playing it) shows the
         // finished sticker, not the empty frame before anything pops in.
         // The loop itself is the same, only entered at another point.
-        val count = prepared.forEachFrame(STICKER_SIZE, fps, animatedMaxFrames, startAt = prepared.posterProgress) { frame, durationMs ->
-            val jobs = ArrayList<Future<*>>(sinks.size)
-            for (i in sinks.indices) {
-                val sink = sinks[i] ?: continue
-                if (failed[i]) continue
-                if (index % candidates[i].every == 0) {
-                    // Each encoder copies the frame during its call, so the
-                    // bitmap is free again once every call has returned.
-                    jobs += encoders.submit(Runnable { if (!sink.add(frame, durationMs)) failed[i] = true })
-                } else if (!sink.hold(durationMs)) {
-                    failed[i] = true
+        // The frame is copied out for the encoders, so the next one is drawn
+        // while they work on this one; they are waited on only before the
+        // copy is overwritten, a frame later.
+        val staged = Bitmap.createBitmap(STICKER_SIZE, STICKER_SIZE, Bitmap.Config.ARGB_8888)
+        val copy = Canvas(staged)
+        val replace = Paint().apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC) }
+        var pending: List<Future<*>> = emptyList()
+        val count = try {
+            prepared.forEachFrame(STICKER_SIZE, fps, animatedMaxFrames, startAt = prepared.posterProgress) { frame, durationMs ->
+                for (job in pending) job.get()
+                copy.drawBitmap(frame, 0f, 0f, replace)
+                val jobs = ArrayList<Future<*>>(sinks.size)
+                for (i in sinks.indices) {
+                    val sink = sinks[i] ?: continue
+                    if (failed[i]) continue
+                    if (index % candidates[i].every == 0) {
+                        // Each encoder copies the frame during its call.
+                        jobs += encoders.submit(Runnable { if (!sink.add(staged, durationMs)) failed[i] = true })
+                    } else if (!sink.hold(durationMs)) {
+                        failed[i] = true
+                    }
                 }
+                pending = jobs
+                index++
+                onProgress(index / total.toFloat())
             }
-            for (job in jobs) job.get()
-            index++
-            onProgress(index / total.toFloat())
+        } finally {
+            for (job in pending) runCatching { job.get() }
+            staged.recycle()
         }
         return sinks.mapIndexed { i, sink ->
             val bytes = sink?.finish()
@@ -361,9 +378,19 @@ object DynEncoder {
 
     /** libwebp's animation encoder: each frame stored as what changed since the one before. */
     private class LibwebpSink(size: Int, quality: Int) : FrameSink {
-        // minimizeSize tries every way of storing each frame: several times
-        // slower for a few per cent, and the user is waiting on the send.
-        private val encoder = AnimatedWebpEncoder(size, size, quality = quality.toFloat(), minimizeSize = false)
+        // minimizeSize tries every way of storing each frame, and key frames
+        // encode each frame twice: several times slower for a few per cent,
+        // and the user is waiting on the send. A lighter method than
+        // libwebp's own default does the same: the first pass tries three
+        // qualities at once, which covers the few per cent it costs.
+        private val encoder = AnimatedWebpEncoder(
+            size,
+            size,
+            quality = quality.toFloat(),
+            minimizeSize = false,
+            method = SEND_METHOD,
+            keyFrames = false,
+        )
         private var timestamp = 0
         private var frames = 0
 
@@ -395,6 +422,9 @@ object DynEncoder {
 
         override fun finish(): ByteArray? = if (writer.frameCount >= 2) writer.build() else null
     }
+
+    /** libwebp's method for a sent sticker: 2 of 0 (fast) to 6 (small); its own default is 4. */
+    private const val SEND_METHOD = 2
 
     private const val WRAPPED_FPS = 12f
     private const val FULL_FPS = 25f
