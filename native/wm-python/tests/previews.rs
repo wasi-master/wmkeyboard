@@ -306,3 +306,17 @@ def render():
         assert_eq!(r["host"]["thumbnails"], json!(["b"]));
     });
 }
+
+#[test]
+fn lines_split_windows_and_old_mac_line_ends() {
+    big(|| {
+        // The interpreter's splitlines() keeps a "\r\n" cluster whole, so
+        // lines() splits on the line ends itself.
+        let src = "from wm import plugin, ui\n\n@plugin.preview('txt')\ndef show(file):\n    ui.label('|'.join(file.lines()))\n    ui.label(str(len(file.lines(2))))\n";
+        let mut s = session(&["previews"], src);
+        let r: Json = serde_json::from_str(&s.preview(&request("txt", "a.txt", 14, false), b"a\r\nb\rc\n\nd\r\n")).unwrap();
+        assert_eq!(r["ok"], true, "{r:#}");
+        assert_eq!(first(&r)["text"], "a|b|c||d");
+        assert_eq!(r["ui"]["root"][1]["text"], "2");
+    });
+}

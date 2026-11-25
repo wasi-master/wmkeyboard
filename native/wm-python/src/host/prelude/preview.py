@@ -50,8 +50,11 @@ class PreviewFile:
         return self._text
 
     def lines(self, limit=None):
-        """The text's lines, the first [limit] of them when given."""
-        all_lines = self.text().splitlines()
+        """The text's lines, the first [limit] of them when given. Windows
+        and old Mac line ends count too: splitlines() keeps "\\r\\n" whole."""
+        all_lines = self.text().replace("\r\n", "\n").replace("\r", "\n").split("\n")
+        if all_lines and all_lines[-1] == "":
+            all_lines.pop()
         return all_lines if limit is None else all_lines[:limit]
 
     def json(self):
