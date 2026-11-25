@@ -98,8 +98,8 @@ class QnnSpeechTest {
     @Test
     fun `every NPU build is one pinned tar from k2-fsa's releases, in a folder of its own`() {
         val npu = EtCatalog.models.filter { it.npu != null }
-        // Parakeet v3, v2 and 110M at 10 and 30 s, Moonshine Tiny and Base at 10 s, on four chips.
-        assertEquals(32, npu.size)
+        // Parakeet v3, v2, 110M and Japanese at 10 and 30 s, Moonshine Tiny and Base at 10 s, on four chips.
+        assertEquals(40, npu.size)
         assertEquals(setOf("SM8550", "SM8650", "SM8750", "SM8850"), npu.mapNotNull { it.npu }.toSet())
         for (m in npu) {
             val f = m.files.single()
@@ -109,8 +109,8 @@ class QnnSpeechTest {
             assertTrue(m.id, m.npuSeconds == 10 || m.npuSeconds == 30)
             m.cpuTwin?.let { assertNotNull(m.id, EtCatalog.byId(it)) }
         }
-        // A model with no CPU build of its own is English only, like the engine's English builds.
-        assertTrue(npu.filter { it.cpuTwin == null }.all { it.languages == setOf("en") || it.engine == EtEngine.MOONSHINE })
+        // A model with no CPU build of its own names its one language, or is Moonshine's English.
+        assertTrue(npu.filter { it.cpuTwin == null }.all { it.languages?.size == 1 || it.engine == EtEngine.MOONSHINE })
         for (engine in listOf(EtEngine.PARAKEET, EtEngine.MOONSHINE)) {
             val dirs = EtCatalog.models.filter { it.engine == engine }.map { it.dirName }
             assertEquals(dirs.size, dirs.toSet().size)
@@ -121,5 +121,24 @@ class QnnSpeechTest {
     fun `no chip in a unit test, so no NPU build is offered`() {
         assertTrue(EtCatalog.forEngine(EtEngine.PARAKEET).none { it.npu != null })
         assertTrue(EtCatalog.forEngine(EtEngine.MOONSHINE).none { it.npu != null })
+    }
+
+    @Test
+    fun `Japanese is Parakeet's only where its NPU build is offered`() {
+        val ja = EtCatalog.byId("parakeet-ja-npu-sm8750-10s")!!
+        assertTrue(ja.supports("ja"))
+        assertTrue(!ja.supports("en"))
+        // No chip here, so the engine's list is the same as before.
+        assertTrue(!EtEngine.PARAKEET.supports("ja"))
+        assertTrue(EtEngine.PARAKEET.supports("de"))
+        assertTrue(!EtEngine.MOONSHINE.supports("ja"))
+    }
+
+    @Test
+    fun `pieces of Japanese join without a space, others with one`() {
+        assertEquals("今日は晴れです", QnnSpeech.join("今日は", "晴れです"))
+        assertEquals("終わり。次へ", QnnSpeech.join("終わり。", "次へ"))
+        assertEquals("hello world", QnnSpeech.join("hello", "world"))
+        assertEquals("world", QnnSpeech.join("", "world"))
     }
 }

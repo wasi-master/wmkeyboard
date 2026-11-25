@@ -74,7 +74,27 @@ object QnnSpeech {
         return cuts(pcm, n, bucket.npuSamples).mapNotNull { range ->
             val piece = if (range.first == 0 && range.last == pcm.size - 1) pcm else pcm.copyOfRange(range.first, range.last + 1)
             SherpaQnnNative.nativeDecode(handle, piece, piece.size)?.toString(Charsets.UTF_8)?.trim()
-        }.filter { it.isNotEmpty() }.joinToString(" ")
+        }.filter { it.isNotEmpty() }.fold("") { text, piece -> join(text, piece) }
+    }
+
+    /**
+     * Two pieces of one clip, with a space between them unless either side
+     * is in a script written without spaces (Japanese, from Parakeet's
+     * Japanese build). Pure, for a test.
+     */
+    internal fun join(before: String, after: String): String = when {
+        before.isEmpty() -> after
+        after.isEmpty() -> before
+        unspaced(before.last()) || unspaced(after.first()) -> before + after
+        else -> "$before $after"
+    }
+
+    private fun unspaced(c: Char): Boolean = when (Character.UnicodeScript.of(c.code)) {
+        Character.UnicodeScript.HAN,
+        Character.UnicodeScript.HIRAGANA,
+        Character.UnicodeScript.KATAKANA,
+        -> true
+        else -> c in '\u3000'..'\u303f' || c in '\uff00'..'\uffef'
     }
 
     /** Closes the open recognizer. On [EtNative.dispatcher] only, so never under a running decode. */

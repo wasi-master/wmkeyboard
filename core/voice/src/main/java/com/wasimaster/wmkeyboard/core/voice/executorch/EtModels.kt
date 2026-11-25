@@ -104,10 +104,16 @@ enum class EtEngine(val id: String, val dirName: String, val languages: Set<Stri
             else -> EtNative.dispatcher
         }
 
-    /** Whether [languageId] (a keyboard language id such as `en_GB` or `de`) is one this engine transcribes. */
+    /**
+     * Whether [languageId] (a keyboard language id such as `en_GB` or `de`) is
+     * one this engine transcribes on this phone: one of [languages], one a
+     * custom model brings, or one only an NPU build offered on this phone's
+     * chip brings (Parakeet's Japanese, on a Snapdragon with a build for it).
+     */
     fun supports(languageId: String): Boolean =
         languageId.trim().lowercase().substringBefore('-').substringBefore('_') in languages ||
-            (takesCustomModels && EtCustomModels.models.any { it.engine == this && it.supports(languageId) })
+            (takesCustomModels && EtCustomModels.models.any { it.engine == this && it.supports(languageId) }) ||
+            EtCatalog.forEngine(this).any { it.npu != null && it.supports(languageId) }
 
     companion object {
         fun byId(id: String): EtEngine? = entries.firstOrNull { it.id == id }
@@ -326,6 +332,17 @@ object EtCatalog {
         languages = setOf("en"),
     )
 
+    /**
+     * NVIDIA's Parakeet TDT-CTC 0.6B Japanese (CC-BY-4.0), its transducer
+     * half; the same files. Japanese is a Parakeet language only on a phone
+     * offered one of these ([EtEngine.supports]).
+     */
+    private fun parakeetJaNpu(soc: String, seconds: Int, bytes: Long, sha256: String): EtModel = qnnBuild(
+        EtEngine.PARAKEET, "asr-models-qnn-binary-2", "parakeet-tdt_ctc-0.6b-ja-${seconds}s-transducer",
+        "parakeet-ja", "tdt-ctc-0.6b-ja", "Parakeet TDT-CTC 0.6B Japanese", 600, soc, seconds, bytes, sha256,
+        languages = setOf("ja"),
+    )
+
     /** Moonshine Tiny English, from asr-models-qnn-binary-3: encoder.bin, decoder.bin and tokens.txt. */
     private fun moonshineNpu(soc: String, seconds: Int, bytes: Long, sha256: String): EtModel = qnnBuild(
         EtEngine.MOONSHINE, "asr-models-qnn-binary-3", "moonshine-tiny-en-${seconds}s",
@@ -493,16 +510,17 @@ object EtCatalog {
                 ),
             ),
         ),
-        // k2-fsa's QNN context binaries of the two models above, and of three
+        // k2-fsa's QNN context binaries of the two models above, of three
         // English models with no CPU build here (Parakeet TDT 0.6B v2,
-        // Parakeet TDT-CTC 110M, Moonshine Base), for the Snapdragon chips
+        // Parakeet TDT-CTC 110M, Moonshine Base) and of Parakeet TDT-CTC 0.6B
+        // Japanese, for the Snapdragon chips
         // the `npu` gate has a runtime for (8 Gen 2, 8 Gen 3, 8 Elite, 8 Elite
         // Gen 5), each offered only on its own chip. Parakeet for 10 s and
         // 30 s clips (k2-fsa compiles 3 to 30 s), Moonshine for 10 s, the
         // longest they compile it for. Their other builds take engines this
         // app does not have (SenseVoice, Paraformer, Zipformer CTC, Whisper,
-        // Nemotron streaming) or languages Parakeet and Moonshine are not
-        // offered for here.
+        // Nemotron streaming), or are Moonshine's other languages, which are
+        // not MIT-licensed.
         parakeetNpu("SM8550", 10, 441_099_774L, "439843adb24406bfc620381750a48be9aee6cf0d253f8870a0c46f04aa174814"),
         parakeetNpu("SM8550", 30, 451_431_213L, "925a05f17d090e4f7ed2023531617dd2e322b2d0988d8235ba05b4d11b0c4d91"),
         parakeetNpu("SM8650", 10, 441_106_642L, "78342bad3ca5d380d5a7d34b730fefd58e1bd8fa55d133fec0e3256eaf056263"),
@@ -527,6 +545,14 @@ object EtCatalog {
         parakeet110mNpu("SM8750", 30, 95_513_715L, "77f319e45646cd63d1948925dad6532815c8ec8fd29b4205d5b35d3eb6c9f939"),
         parakeet110mNpu("SM8850", 10, 92_421_720L, "9f54b0eb0dfc3416f6e4705a9cda671988a038ab19a5ab4099d48267ce71fb90"),
         parakeet110mNpu("SM8850", 30, 96_017_730L, "cd399fdb530fada8afb94d935b7458a314b9b7cd2c063e5b46d97b399b7881d4"),
+        parakeetJaNpu("SM8550", 10, 452_599_839L, "c4f603a439242cf47cf2a72db3791afc209159906db0831ea7bcb1b18f47e2f2"),
+        parakeetJaNpu("SM8550", 30, 460_030_026L, "3aa3ca43680f9ed1e6c9f6408298ec7c8b1c4e8cdad421760455c6bacfa51fca"),
+        parakeetJaNpu("SM8650", 10, 452_389_543L, "9080dc6d4e263542cdebcb886c81df4d017eaa348fb5aa26c01cb41ef10dcbb3"),
+        parakeetJaNpu("SM8650", 30, 460_098_007L, "74845a9e6f71856588104c1f97c23a63e4e11480bf38ced6439bb716aa172e6f"),
+        parakeetJaNpu("SM8750", 10, 452_098_262L, "6f5b8e1784242ac0ce8e04727f3fc04c71d259084fd9588c764c5cde2a81d0e5"),
+        parakeetJaNpu("SM8750", 30, 460_301_371L, "2051a97119900d841f1b8a4e00267c13e94bb018b3f3d212c97d363ad3841636"),
+        parakeetJaNpu("SM8850", 10, 452_316_824L, "d33a0358c4ee66717792606a848a5ccb44306e8f072a611ddc675b4136bd4ddd"),
+        parakeetJaNpu("SM8850", 30, 460_424_832L, "2f4edcd3a8c5206059ac0f77c99cfa1afa3aedc53cc49085f35b0bb638657287"),
         moonshineNpu("SM8550", 10, 57_745_688L, "514d2c9317f47494ad8f629b771490c3aeb97b87342d0d79ba822e050bbffd41"),
         moonshineNpu("SM8650", 10, 57_759_597L, "f092d5c95eeaf8b06866a4e124a39956aa311ec585dec1ecd64cc342a244786f"),
         moonshineNpu("SM8750", 10, 57_726_276L, "8657f68fab42978040b5979ffa560699cac427645b1dcbc573457362d2943524"),

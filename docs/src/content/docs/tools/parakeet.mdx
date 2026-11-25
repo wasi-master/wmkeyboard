@@ -34,14 +34,15 @@ A standard build of the same size wins over a GPU one, so a GPU build dictates o
 
 On a phone with a Snapdragon 8 Gen 2, 8 Gen 3, 8 Elite or 8 Elite Gen 5, the list also has **Parakeet TDT 0.6B v3 (NPU, 10 s)** and **Parakeet TDT 0.6B v3 (NPU, 30 s)**: v3 compiled ahead of time for that chip's NPU by the [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) project, which publishes one build per chip. Each is one archive of about 440 MB from sherpa-onnx's GitHub releases, checked against its SHA-256 and unpacked on the phone. A phone with another chip, including older Snapdragons that sherpa-onnx also builds for, does not list them, since the keyboard carries Qualcomm's NPU libraries for those four chips only. There is no NPU build of Ultra.
 
-The same chips also get two English-only Parakeets that have no standard build here, each at 10 and 30 seconds:
+The same chips also get three Parakeets that have no standard build here, each at 10 and 30 seconds:
 
 | Model | Download | Languages |
 |---|---|---|
 | **Parakeet TDT 0.6B v2 (NPU)** | about 435 MB | English |
 | **Parakeet TDT-CTC 110M (NPU)** | about 93 MB | English |
+| **Parakeet TDT-CTC 0.6B Japanese (NPU)** | about 455 MB | Japanese |
 
-v2 is NVIDIA's English model from before v3; for English it is the more accurate of the two, so with both on the phone English dictation uses v2 and every other language keeps v3. The 110M model is a fifth of the size, for a phone short on storage. Neither has a standard build to fall back on, so until the NPU library and runtime are on the phone they report the model as not loading. Both are NVIDIA's, under CC-BY-4.0, and credited in the app's About screen.
+v2 is NVIDIA's English model from before v3; for English it is the more accurate of the two, so with both on the phone English dictation uses v2 and every other language keeps v3. The 110M model is a fifth of the size, for a phone short on storage. The Japanese model is what makes Japanese a Parakeet language, and only on these four chips: on any other phone, or in a build without the NPU libraries, Parakeet is not offered for Japanese at all. Its pieces of a long phrase are joined without spaces. None of the three has a standard build to fall back on, so until the NPU library and runtime are on the phone they report the model as not loading. All three are NVIDIA's, under CC-BY-4.0, and credited in the app's About screen.
 
 An NPU build is compiled for clips of one length, 10 or 30 seconds. A shorter phrase is padded with silence to that length, so on the NPU a two-second phrase costs as much as a full one; a longer phrase is cut at its quietest moments into pieces that fit, and the pieces are transcribed one after another. With both downloaded, each phrase goes to the shorter build while it fits and moves to the 30-second one as it grows; the 10-second build alone cuts more often. A cut can land inside a word on fast continuous speech, which is the reason to keep the 30-second build for long dictation.
 
@@ -77,7 +78,7 @@ The pause finder is Ultra's own head with a copy of the model's first layers, ex
 
 ## Details & edge cases
 
-**Several languages at once.** A dictation that listens for several languages (see [Language and engine](/tools/voice/#language-and-engine)) is Parakeet's when every one of them is among its 25; it tells them apart on its own.
+**Several languages at once.** A dictation that listens for several languages (see [Language and engine](/tools/voice/#language-and-engine)) is Parakeet's when every one of them is among its 25; it tells them apart on its own. Japanese comes from a model of its own, so it never shares a dictation with another language.
 
 **No words to listen for.** Parakeet has no way to take a list of names or terms, so **Words to listen for** does not show while it is the engine.
 
