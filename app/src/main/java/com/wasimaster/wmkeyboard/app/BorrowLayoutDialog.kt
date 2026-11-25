@@ -41,8 +41,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * A shipped layout of another language, offered to [LanguageDef] on its detail
- * screen (#464): QWERTZ for English, AZERTY for Dutch, Colemak for German.
+ * A layout of another language, offered to [LanguageDef] on its detail
+ * screen (#464): QWERTZ for English, AZERTY for Dutch, Colemak for German, or
+ * a layout the user made for another language.
  */
 internal class BorrowableLayout(val id: String, val name: String, val language: LanguageDef) {
     /** Layout name, language endonym and English name, lowercased once for the search box. */
@@ -50,8 +51,16 @@ internal class BorrowableLayout(val id: String, val name: String, val language: 
 }
 
 /**
- * Every shipped layout [target] could type on, from the other languages that
- * write its script, in shipped order.
+ * Every layout [target] could type on, from the other languages that write its
+ * script: the user's own layouts first, from [custom], then the shipped ones in
+ * shipped order.
+ *
+ * A layout belongs to one language, since its language is what picks the
+ * dictionary, so a layout of one's own wanted for English and Portuguese both
+ * is two copies; this list is how the second one is made in one pick rather
+ * than by duplicating it in the editor and changing its language there.
+ * Edited shipped layouts are left to their shipped entry, which already copies
+ * the edit (see [borrowLayout]).
  *
  * Same script only: the language picks the dictionary, autocorrect and shift
  * rules, and an English dictionary on a Cyrillic grid predicts nothing. Keyman
@@ -62,15 +71,21 @@ internal class BorrowableLayout(val id: String, val name: String, val language: 
  *
  * Reads only the index for the asset layouts, so building the list parses nothing.
  */
-internal fun borrowableLayouts(target: LanguageDef): List<BorrowableLayout> {
+internal fun borrowableLayouts(target: LanguageDef, custom: List<LayoutSpec> = emptyList()): List<BorrowableLayout> {
     val own = target.layoutIds.toSet()
+    val mine = custom
+        .filter {
+            !isShippedLayoutId(it.id) && !it.secondary && it.composer == null && it.keyman == null &&
+                it.inputMethod == null && it.name.isNotEmpty() && it.langId.isNotEmpty()
+        }
+        .map { Triple(it.id, it.name, it.langId) }
     val builtIns = BuiltInLayouts.all
         .filter { !it.secondary && it.composer == null && it.keyman == null }
         .map { Triple(it.id, it.name, it.langId) }
     val assets = AssetLayouts.index
         .filter { it.keyman == null && it.name.isNotEmpty() }
         .map { Triple(it.id, it.name, it.langId) }
-    return (builtIns + assets).mapNotNull { (id, name, langId) ->
+    return (mine + builtIns + assets).mapNotNull { (id, name, langId) ->
         if (langId == target.id || id in own) return@mapNotNull null
         val language = LanguageRegistry.byId(langId)
         if (language.id == target.id || language.script != target.script) return@mapNotNull null
@@ -129,13 +144,14 @@ internal fun borrowLayout(
 @Composable
 internal fun BorrowLayoutDialog(
     target: LanguageDef,
+    custom: List<LayoutSpec>,
     onPick: (BorrowableLayout) -> Unit,
     onDismiss: () -> Unit,
 ) {
     var query by remember { mutableStateOf("") }
     // Keyed on the generation too: before the asset index is read the list
     // holds only the built-ins, and must not stay that way.
-    val all = remember(target, AssetLayouts.generation) { borrowableLayouts(target) }
+    val all = remember(target, custom, AssetLayouts.generation) { borrowableLayouts(target, custom) }
     val needle = query.trim().lowercase()
     val shown = remember(all, needle) {
         if (needle.isEmpty()) all else all.filter { needle in it.searchKey }

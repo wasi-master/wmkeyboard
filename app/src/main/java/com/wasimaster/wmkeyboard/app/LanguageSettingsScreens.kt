@@ -1018,6 +1018,7 @@ private fun LayoutsGroup(
     if (borrowing) {
         BorrowLayoutDialog(
             target = lang,
+            custom = settings.value.customLayouts,
             onDismiss = { borrowing = false },
             onPick = { picked ->
                 borrowing = false
