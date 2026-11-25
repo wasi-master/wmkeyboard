@@ -653,10 +653,13 @@ private fun packSummary(pack: DynPackMeta): String {
 }
 
 @Composable
-private fun feedSummary(feed: DynStickerFeed): String = when {
-    feed.error != null -> stringResource(R.string.dynsticker_feed_failed, feed.error)
-    feed.refreshedAt == 0L -> stringResource(R.string.dynsticker_feed_not_fetched)
-    else -> pluralStringResource(R.plurals.dynsticker_feed_packs, feed.packIds.size, feed.packIds.size)
+private fun feedSummary(feed: DynStickerFeed): String {
+    val error = feed.error
+    return when {
+        error != null -> stringResource(R.string.dynsticker_feed_failed, error)
+        feed.refreshedAt == 0L -> stringResource(R.string.dynsticker_feed_not_fetched)
+        else -> pluralStringResource(R.plurals.dynsticker_feed_packs, feed.packIds.size, feed.packIds.size)
+    }
 }
 
 private fun fontOverrideLabel(context: Context, id: String): String = when {

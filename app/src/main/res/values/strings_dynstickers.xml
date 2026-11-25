@@ -83,6 +83,9 @@
     <string name="dynsticker_import_none">No templates in that file: a template is a Lottie animation with text in it.</string>
     <string name="dynsticker_import_too_many">That would be more templates than the keyboard keeps.</string>
     <string name="dynsticker_import_failed">The templates could not be saved.</string>
+    <!-- The dialog when a dynamic sticker pack or Lottie file is opened from another app. -->
+    <string name="import_dynstickers_title">Import dynamic stickers?</string>
+    <string name="import_dynstickers_body">The app adds the templates to your dynamic stickers as a pack of their own. Nothing in them is sent anywhere.</string>
     <string name="dynsticker_my_templates">My templates</string>
     <string name="dynsticker_name_label">Name</string>
 
