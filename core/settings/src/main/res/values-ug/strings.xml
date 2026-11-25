@@ -1,0 +1,14 @@
+<resources>
+    <string name="core_settings_ai_backend_cpu_label">CPU</string>
+    <string name="core_settings_ai_backend_gpu_label">GPU</string>
+    <string name="core_settings_ai_backend_npu_label">NPU</string>
+    <string name="core_settings_ai_provider_anthropic_label">Claude</string>
+    <string name="core_settings_ai_provider_deepseek_label">DeepSeek</string>
+    <string name="core_settings_ai_provider_gemini_label">Gemini</string>
+    <string name="core_settings_ai_provider_openai_label">OpenAI</string>
+    <string name="core_settings_clip_shortcut_qr_label">QR code</string>
+    <string name="core_settings_data_saver_trigger_system_label">Android\&amp;apos;s Data Saver is on</string>
+    <string name="core_settings_glide_engine_futo_label">FUTO Swipe (English, QWERTY)</string>
+    <string name="core_settings_glide_engine_google_label">Google\&amp;apos;s gesture library (imported)</string>
+    <string name="core_settings_power_saving_trigger_system_saver_label">Android\&amp;apos;s battery saver is on</string>
+</resources>
