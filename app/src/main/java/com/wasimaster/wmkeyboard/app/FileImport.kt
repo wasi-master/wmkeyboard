@@ -405,6 +405,13 @@ object WMFileTypes {
         data object Stickers : Opened
         data object Icons : Opened
 
+        /**
+         * A zip of theme files, as Export selected writes it: no manifest, a
+         * `.wmtheme.json` per theme. Read again from the uri on import, a
+         * theme at a time ([ThemeBundles]).
+         */
+        data object ThemeBundle : Opened
+
         /** A pack of dynamic sticker templates, `.wmdynstickers`: its manifest's tag says so. */
         data object DynamicStickers : Opened
 
@@ -1002,6 +1009,12 @@ object WMFileTypes {
      * because a ZIP of pictures with no such file is any ZIP of pictures.
      */
     private fun identifyManifestless(context: android.content.Context, uri: Uri, names: List<String>): Opened {
+        // A zip of theme files: Export selected writes a theme file first, and
+        // nothing but theme files. Opened from a file manager it was nobody's
+        // (Telegram 13613), though the theme screen's import took it.
+        if (names.firstOrNull()?.endsWith(".${ThemeCodec.FILE_EXTENSION}", ignoreCase = true) == true) {
+            return Opened.ThemeBundle
+        }
         // A FUTO theme: no manifest, only its settings file beside the
         // pictures. `theme.txt` is a common name, so the read has to find
         // FUTO's colours before the file counts as one.
@@ -2577,6 +2590,24 @@ private fun rememberProposal(
                     }.getOrDefault(com.wasimaster.wmkeyboard.core.stickers.dynamic.DynStickerStore.ImportResult.Failed)
                 }
                 dynImportMessage(context, result)
+            },
+        )
+
+        WMFileTypes.Opened.ThemeBundle -> ImportProposal(
+            titleRes = R.string.import_theme_bundle_title,
+            body = context.getString(R.string.import_theme_bundle_body),
+            apply = {
+                val read = withContext(Dispatchers.IO) {
+                    ThemeBundles.read(context, uri, "custom_${System.currentTimeMillis()}")
+                }
+                if (read.isEmpty()) {
+                    context.getString(R.string.theme_import_wrong_file_error)
+                } else {
+                    // One write for the whole zip, as the theme screen's import
+                    // does; none of them is switched to.
+                    repository.replaceCustomThemes(emptyList(), read)
+                    context.resources.getQuantityString(R.plurals.pick_import_summary, read.size, read.size)
+                }
             },
         )
 
