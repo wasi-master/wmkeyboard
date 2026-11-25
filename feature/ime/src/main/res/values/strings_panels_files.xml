@@ -318,4 +318,10 @@
     </plurals>
     <string name="ime_files_info_space">What takes the space</string>
     <string name="ime_files_info_details">Details</string>
+    <!-- Shown in the file preview when a video will not play inside the keyboard. -->
+    <string name="ime_files_video_failed">This video can\'t play here. Open it in its app.</string>
+    <!-- Description of the video preview's mute button while the sound is off: tapping turns it on. -->
+    <string name="ime_files_sound_on">Sound on</string>
+    <!-- Description of the video preview's mute button while the sound is on: tapping turns it off. -->
+    <string name="ime_files_sound_off">Sound off</string>
 </resources>

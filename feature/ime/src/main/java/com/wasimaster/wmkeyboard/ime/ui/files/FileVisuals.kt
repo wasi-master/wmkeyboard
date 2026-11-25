@@ -176,6 +176,14 @@ internal fun KindTile(
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
+                thumbnails && com.wasimaster.wmkeyboard.ime.files.FileThumbs.covers(entry) -> BuiltInThumb(entry, kind) {
+                    // A plugin's picture where the keyboard has none (a recording with no cover art).
+                    if (plugins != null && plugins.thumbnailFor(entry) != null) {
+                        PluginThumb(entry, plugins) { Icon(kindIcon(kind), contentDescription = null, tint = colour, modifier = Modifier.size(side * iconScale)) }
+                    } else {
+                        Icon(kindIcon(kind), contentDescription = null, tint = colour, modifier = Modifier.size(side * iconScale))
+                    }
+                }
                 thumbnails && plugins != null && !entry.isDirectory && plugins.thumbnailFor(entry) != null ->
                     PluginThumb(entry, plugins) { Icon(kindIcon(kind), contentDescription = null, tint = colour, modifier = Modifier.size(side * iconScale)) }
                 else -> Icon(kindIcon(kind), contentDescription = null, tint = colour, modifier = Modifier.size(side * iconScale))
@@ -237,6 +245,29 @@ internal const val THUMB_PX = 192
 
 /** What plugins add to the file manager, while plugins are on; see [FilePlugins]. */
 internal val LocalFilePlugins = androidx.compose.runtime.staticCompositionLocalOf<com.wasimaster.wmkeyboard.ime.files.FilePlugins?> { null }
+
+/**
+ * The keyboard's own picture of a PDF, recording, app package, text file or
+ * zip ([com.wasimaster.wmkeyboard.ime.files.FileThumbs]), made in the
+ * background; [placeholder] until it is ready, and for good when the file
+ * has none.
+ */
+@Composable
+private fun BuiltInThumb(entry: FileEntry, kind: FileKind, placeholder: @Composable () -> Unit) {
+    val context = LocalContext.current
+    val picture by androidx.compose.runtime.produceState<androidx.compose.ui.graphics.ImageBitmap?>(null, entry.path, entry.modifiedMs) {
+        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            com.wasimaster.wmkeyboard.ime.files.FileThumbs.thumbnail(context, entry, THUMB_PX)?.asImageBitmap()
+        }
+    }
+    val shown = picture
+    when {
+        shown == null -> placeholder()
+        // An app's icon sits whole inside the tile; a page or a cover fills it from the top.
+        kind == FileKind.APK -> androidx.compose.foundation.Image(shown, contentDescription = null, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize().padding(6.dp))
+        else -> androidx.compose.foundation.Image(shown, contentDescription = null, contentScale = ContentScale.Crop, alignment = Alignment.TopCenter, modifier = Modifier.fillMaxSize())
+    }
+}
 
 /**
  * A plugin's picture for [entry], made off the main thread and kept: the

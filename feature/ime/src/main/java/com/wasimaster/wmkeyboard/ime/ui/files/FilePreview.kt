@@ -1,7 +1,6 @@
 package com.wasimaster.wmkeyboard.ime.ui.files
 
 import android.media.MediaPlayer
-import android.widget.VideoView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -58,7 +57,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.graphics.drawable.toBitmap
 import coil3.compose.AsyncImage
 import com.wasimaster.wmkeyboard.core.files.DocFiles
@@ -100,6 +98,7 @@ import com.wasimaster.wmkeyboard.ime.ui.gallery.rememberGalleryImageLoader
 import com.wasimaster.wmkeyboard.ime.ui.gallery.zoomAndPan
 import com.wasimaster.wmkeyboard.ime.ui.highlight
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 /**
@@ -136,7 +135,8 @@ internal fun PreviewFace(ui: FileManagerUi, preview: PreviewUi, act: (FileAction
                 when {
                     preview.byPlugin -> PluginBody(preview, act)
                     preview.kind == FileKind.IMAGE -> ImageBody(preview.entry)
-                    preview.kind == FileKind.VIDEO -> VideoBody(preview.entry)
+                    // One player per file: swiping to the next clip starts afresh.
+                    preview.kind == FileKind.VIDEO -> androidx.compose.runtime.key(preview.entry.path) { VideoBody(preview.entry) }
                     preview.kind == FileKind.AUDIO -> AudioBody(preview)
                     preview.loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(Modifier.size(24.dp), color = LocalKbTheme.current.secondaryText, strokeWidth = 2.dp)
@@ -242,36 +242,6 @@ private fun ImageBody(entry: FileEntry) {
     }
 }
 
-/** A video plays at once, a tap pauses it; the keyboard's own window, so no system controls. */
-@Composable
-private fun VideoBody(entry: FileEntry) {
-    val context = LocalContext.current
-    var view by remember(entry.path) { mutableStateOf<VideoView?>(null) }
-    var playing by remember(entry.path) { mutableStateOf(true) }
-    DisposableEffect(entry.path) { onDispose { runCatching { view?.stopPlayback() } } }
-    Box(Modifier.fillMaxSize().background(PhotoBackdrop).clickable {
-        val v = view ?: return@clickable
-        if (v.isPlaying) v.pause() else v.start()
-        playing = v.isPlaying
-    }, contentAlignment = Alignment.Center) {
-        AndroidView(
-            factory = { ctx ->
-                VideoView(ctx).apply {
-                    setVideoURI(DocFiles.uriOf(context, entry.path))
-                    setOnPreparedListener { it.isLooping = true; start() }
-                    view = this
-                }
-            },
-            modifier = Modifier.fillMaxSize(),
-        )
-        if (!playing) {
-            Box(Modifier.size(56.dp).clip(CircleShape).background(Color.Black.copy(alpha = 0.5f)), contentAlignment = Alignment.Center) {
-                Icon(Icons.Outlined.PlayArrow, contentDescription = null, tint = OnPhoto, modifier = Modifier.size(34.dp))
-            }
-        }
-    }
-}
-
 /** A recording: its title and artist where it has them, play and pause, and how far it has got. */
 @Composable
 private fun AudioBody(preview: PreviewUi) {
@@ -283,16 +253,34 @@ private fun AudioBody(preview: PreviewUi) {
     var position by remember(entry.path) { mutableIntStateOf(0) }
     var length by remember(entry.path) { mutableIntStateOf((preview.facts.durationMs ?: 0L).toInt()) }
     DisposableEffect(entry.path) {
-        val p = runCatching {
-            MediaPlayer().apply {
-                setDataSource(context, DocFiles.uriOf(context, entry.path))
-                setOnPreparedListener { length = it.duration }
-                setOnCompletionListener { playing = false }
-                prepareAsync()
+        // Opened off the main thread: a document can take a while to open.
+        // Released by whichever side finishes last, never from the main
+        // thread while it is still opening (that would wait on it).
+        var gone = false
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            var made: MediaPlayer? = null
+            val p = runCatching {
+                MediaPlayer().also { mp ->
+                    made = mp
+                    mp.setDataSource(context.applicationContext, DocFiles.uriOf(context, entry.path))
+                    mp.setOnCompletionListener { playing = false }
+                    mp.prepare()
+                }
+            }.onFailure { runCatching { made?.release() } }.getOrNull() ?: return@launch
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                if (gone) {
+                    runCatching { p.release() }
+                } else {
+                    length = p.duration
+                    player = p
+                }
             }
-        }.getOrNull()
-        player = p
-        onDispose { runCatching { p?.release() } }
+        }
+        onDispose {
+            gone = true
+            runCatching { player?.release() }
+            player = null
+        }
     }
     LaunchedEffect(playing) {
         while (playing) {
@@ -307,7 +295,17 @@ private fun AudioBody(preview: PreviewUi) {
         val by = listOfNotNull(preview.facts.artist, preview.facts.album).joinToString(" · ")
         if (by.isNotEmpty()) Text(by, color = kb.secondaryText, fontSize = 12.sp, maxLines = 1)
         Spacer(Modifier.height(16.dp))
-        MeterBar(if (length > 0) position.toFloat() / length else 0f, kb.accent, Modifier.fillMaxWidth(), height = 4.dp)
+        SeekBar(
+            fraction = if (length > 0) position.toFloat() / length else 0f,
+            colour = kb.accent,
+            track = kb.chip,
+            modifier = Modifier.fillMaxWidth(),
+        ) { f ->
+            val p = player ?: return@SeekBar
+            if (length <= 0) return@SeekBar
+            position = (f.coerceIn(0f, 1f) * length).toInt()
+            runCatching { p.seekTo(position) }
+        }
         Row(Modifier.fillMaxWidth().padding(top = 4.dp)) {
             Text(clock(position), color = kb.secondaryText, fontSize = 11.sp, modifier = Modifier.weight(1f))
             Text(clock(length), color = kb.secondaryText, fontSize = 11.sp)
@@ -326,10 +324,7 @@ private fun AudioBody(preview: PreviewUi) {
     }
 }
 
-private fun clock(ms: Int): String {
-    val s = ms / 1000
-    return "%d:%02d".format(s / 60, s % 60)
-}
+private fun clock(ms: Int): String = clockOf(ms)
 
 /** Text and code (4B): line numbers, the code's colours, the keyboard's monospace face. */
 @Composable
