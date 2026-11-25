@@ -179,6 +179,12 @@
     <string name="dynsticker_builder_slot_id_hint">Layers sharing a slot are its lines, in order. “top | bottom” in the search box fills slots in turn.</string>
     <string name="dynsticker_builder_font">Font</string>
     <string name="dynsticker_builder_font_name">Font name</string>
+    <string name="dynsticker_builder_fonts_search">Search fonts</string>
+    <string name="dynsticker_builder_fonts_in_sticker">In this sticker</string>
+    <string name="dynsticker_builder_fonts_sticker">Sticker fonts</string>
+    <string name="dynsticker_builder_fonts_installed">Your fonts</string>
+    <string name="dynsticker_builder_fonts_downloadable">Downloadable</string>
+    <string name="dynsticker_builder_fonts_phone">The phone\'s own</string>
     <string name="dynsticker_builder_case">Letters</string>
     <string name="dynsticker_builder_case_keep">As typed</string>
     <string name="dynsticker_builder_align">Align</string>

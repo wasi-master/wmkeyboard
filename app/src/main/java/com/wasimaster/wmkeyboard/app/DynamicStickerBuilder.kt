@@ -27,6 +27,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.CircleShape
@@ -73,6 +75,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -80,6 +83,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.fonts.FontStore
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Redo
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Undo
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
@@ -122,7 +126,9 @@ import com.wasimaster.wmkeyboard.core.stickers.dynamic.TemplateMeta
 import com.wasimaster.wmkeyboard.core.stickers.dynamic.TemplateProps
 import com.wasimaster.wmkeyboard.core.stickers.dynamic.TextCase
 import com.wasimaster.wmkeyboard.core.ui.ScalablePreview
+import com.wasimaster.wmkeyboard.core.util.PlayServices
 import com.wasimaster.wmkeyboard.ime.dynstickers.DynRoutes
+import com.wasimaster.wmkeyboard.ime.ui.KeyboardFonts
 import com.wasimaster.wmkeyboard.ime.ui.rememberCentredRow
 import java.util.UUID
 import kotlin.math.roundToInt
@@ -519,8 +525,9 @@ private fun SceneBuilder(start: BuilderStart, store: DynStickerStore, onBack: ()
                     canUndo = history.canUndo,
                     canRedo = history.canRedo,
                     playing = playing,
-                    current = current,
-                    currentPicture = { element, modifier -> LayerThumb(element, scene, previewPack, store, modifier) },
+                    layers = scene.elements.asReversed(),
+                    selected = selected,
+                    layerPicture = { element, modifier -> LayerThumb(element, scene, previewPack, store, modifier) },
                     // One word, so the layer chip beside it keeps its name; the toast
                     // says when it went in as a copy.
                     saveLabel = stringResource(R.string.dynsticker_builder_save),
@@ -528,7 +535,9 @@ private fun SceneBuilder(start: BuilderStart, store: DynStickerStore, onBack: ()
                     onUndo = history::undo,
                     onRedo = history::redo,
                     onPlay = { playing = !playing },
-                    onCurrent = { scope.launch { editorAnchor.bringIntoView() } },
+                    onLayer = { id ->
+                        if (id == selected) scope.launch { editorAnchor.bringIntoView() } else selected = id
+                    },
                     onSave = ::save,
                 )
             }
@@ -599,6 +608,7 @@ private fun SceneBuilder(start: BuilderStart, store: DynStickerStore, onBack: ()
         if (current != null) {
             ElementEditor(
                 element = current,
+                sceneFonts = scene.elements.filter { it.type == ElementType.TEXT }.map { it.font },
                 frames = scene.frames,
                 artIds = remember { store.artIds() },
                 onChange = { change -> update(current.id, "edit", change) },
@@ -694,59 +704,76 @@ private fun SceneBuilder(start: BuilderStart, store: DynStickerStore, onBack: ()
     }
 }
 
-/** Under the pinned sticker: undo, redo, play, the layer being edited, and save. */
+/**
+ * Under the pinned sticker: undo, redo and play close together, then every
+ * layer as a chip in the list's order (topmost first), and save. The chip of
+ * the layer being edited stays in the middle; a tap on another chip selects
+ * that layer, and a tap on the selected one goes to its settings.
+ */
 @Composable
 @Suppress("LongParameterList")
 private fun BuilderToolbar(
     canUndo: Boolean,
     canRedo: Boolean,
     playing: Boolean,
-    current: SceneElement?,
-    currentPicture: @Composable (SceneElement, Modifier) -> Unit,
+    layers: List<SceneElement>,
+    selected: String?,
+    layerPicture: @Composable (SceneElement, Modifier) -> Unit,
     saveLabel: String,
     saving: Boolean,
     onUndo: () -> Unit,
     onRedo: () -> Unit,
     onPlay: () -> Unit,
-    onCurrent: () -> Unit,
+    onLayer: (String) -> Unit,
     onSave: () -> Unit,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 2.dp),
+        modifier = Modifier.fillMaxWidth().padding(start = 2.dp, end = 8.dp, top = 2.dp, bottom = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onUndo, enabled = canUndo) {
+        IconButton(onClick = onUndo, enabled = canUndo, modifier = Modifier.size(TOOLBAR_BUTTON_SIZE)) {
             Icon(Icons.AutoMirrored.Outlined.Undo, contentDescription = stringResource(CommonR.string.common_undo))
         }
-        IconButton(onClick = onRedo, enabled = canRedo) {
+        IconButton(onClick = onRedo, enabled = canRedo, modifier = Modifier.size(TOOLBAR_BUTTON_SIZE)) {
             Icon(Icons.AutoMirrored.Outlined.Redo, contentDescription = stringResource(R.string.code_redo_desc))
         }
-        IconButton(onClick = onPlay) {
+        IconButton(onClick = onPlay, modifier = Modifier.size(TOOLBAR_BUTTON_SIZE)) {
             Icon(
                 if (playing) Icons.Outlined.Pause else Icons.Outlined.PlayArrow,
                 contentDescription = stringResource(if (playing) R.string.dynsticker_builder_pause else R.string.dynsticker_builder_play),
             )
         }
-        // The layer being edited, always in sight: a tap goes to its settings.
-        Box(modifier = Modifier.weight(1f).padding(horizontal = 4.dp)) {
-            if (current != null) {
+        val row = rememberCentredRow(selected)
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 4.dp)
+                .then(row.viewport)
+                .horizontalScroll(row.scroll),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            for (layer in layers) {
+                val on = layer.id == selected
                 Surface(
                     shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.secondaryContainer,
-                    modifier = Modifier.clip(RoundedCornerShape(10.dp)).clickable(onClick = onCurrent),
+                    color = if (on) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                    modifier = (if (on) row.selected else Modifier)
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable { onLayer(layer.id) },
                 ) {
                     Row(
                         modifier = Modifier.padding(start = 4.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        // The layer itself, drawn alone, the way its row in the list shows it.
-                        currentPicture(current, Modifier.size(TOOLBAR_THUMB_SIZE))
+                        layerPicture(layer, Modifier.size(TOOLBAR_THUMB_SIZE))
                         Text(
-                            layerName(current).ifBlank { layerKindLabel(current) },
+                            layerName(layer).ifBlank { layerKindLabel(layer) },
                             style = MaterialTheme.typography.labelLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.widthIn(max = TOOLBAR_CHIP_TEXT_MAX),
                         )
                     }
                 }
@@ -860,11 +887,21 @@ private fun LayerRow(
     }
 }
 
-/** [element] drawn on its own, still and whole (no motion), as the keyboard would draw it. */
+/** A layer's picture: cropped to what it draws, and whether that is mostly light. */
+private class LayerPicture(val image: ImageBitmap, val light: Boolean)
+
+/**
+ * [element] drawn on its own, still and whole (no motion), as the keyboard
+ * would draw it, cropped to what it draws so a small layer (a line of words,
+ * a rule) fills its square instead of sitting as a speck in a whole canvas.
+ * It sits on a dark square when it is mostly light, and on a light one when
+ * it is mostly dark, whatever the app's own theme: white words on a dark
+ * card read either way.
+ */
 @Composable
 private fun LayerThumb(element: SceneElement, scene: DynScene, previewPack: String, store: DynStickerStore, modifier: Modifier) {
     val context = LocalContext.current
-    val image by produceState<ImageBitmap?>(null, element, scene.width, scene.height, previewPack) {
+    val picture by produceState<LayerPicture?>(null, element, scene.width, scene.height, previewPack) {
         value = withContext(Dispatchers.Default) {
             runCatching {
                 val alone = scene.copy(elements = listOf(element.copy(animations = emptyList())), background = null, frames = 1)
@@ -877,24 +914,87 @@ private fun LayerThumb(element: SceneElement, scene: DynScene, previewPack: Stri
                     emptyList(),
                 )
                 DynAppRender.renderer(context).prepareDocument(compiled.document, template, DynFill(emptyMap()))?.use { prepared ->
-                    prepared.render(prepared.posterProgress, LAYER_THUMB_PX).asImageBitmap()
+                    val whole = prepared.render(prepared.posterProgress, LAYER_RENDER_PX)
+                    try {
+                        layerPicture(whole)
+                    } finally {
+                        whole.recycle()
+                    }
                 }
             }.getOrNull()
         }
     }
+    val current = picture
     Box(
-        modifier = modifier.clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant),
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(
+                when {
+                    current == null -> MaterialTheme.colorScheme.surfaceVariant
+                    current.light -> LAYER_DARK_BACKDROP
+                    else -> LAYER_LIGHT_BACKDROP
+                },
+            ),
         contentAlignment = Alignment.Center,
     ) {
-        image?.let { Image(it, contentDescription = null, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize()) }
+        current?.let { Image(it.image, contentDescription = null, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize().padding(3.dp)) }
     }
+}
+
+/** [whole] cropped to its drawn pixels (a little margin, kept square), and how light they are. */
+private fun layerPicture(whole: Bitmap): LayerPicture? {
+    val w = whole.width
+    val h = whole.height
+    val pixels = IntArray(w * h)
+    whole.getPixels(pixels, 0, w, 0, 0, w, h)
+    var left = w
+    var top = h
+    var right = -1
+    var bottom = -1
+    var light = 0.0
+    var weight = 0.0
+    for (y in 0 until h) {
+        for (x in 0 until w) {
+            val c = pixels[y * w + x]
+            val alpha = c ushr 24
+            if (alpha < LAYER_ALPHA_FLOOR) continue
+            if (x < left) left = x
+            if (x > right) right = x
+            if (y < top) top = y
+            if (y > bottom) bottom = y
+            val luma = (0.299 * ((c shr 16) and 0xFF) + 0.587 * ((c shr 8) and 0xFF) + 0.114 * (c and 0xFF)) / 255.0
+            light += luma * alpha
+            weight += alpha
+        }
+    }
+    if (right < left || bottom < top) return null
+    // Square around the middle of what is drawn, so the picture keeps its shape.
+    val side = (maxOf(right - left, bottom - top) + 1 + LAYER_CROP_MARGIN * 2).coerceAtMost(maxOf(w, h))
+    val cx = (left + right) / 2
+    val cy = (top + bottom) / 2
+    val x0 = (cx - side / 2).coerceIn(0, maxOf(0, w - side))
+    val y0 = (cy - side / 2).coerceIn(0, maxOf(0, h - side))
+    val crop = Bitmap.createBitmap(whole, x0, y0, minOf(side, w - x0), minOf(side, h - y0))
+    val scaled = Bitmap.createScaledBitmap(crop, LAYER_THUMB_PX, LAYER_THUMB_PX * crop.height / crop.width.coerceAtLeast(1), true)
+    if (scaled !== crop) crop.recycle()
+    return LayerPicture(scaled.asImageBitmap(), light = weight > 0 && light / weight > LAYER_LIGHT_LUMA)
 }
 
 private val LAYER_THUMB_SIZE = 44.dp
 private val TOOLBAR_THUMB_SIZE = 28.dp
+private val TOOLBAR_BUTTON_SIZE = 40.dp
+private val TOOLBAR_CHIP_TEXT_MAX = 120.dp
 private val LAYER_BUTTON_SIZE = 36.dp
 private val PREVIEW_MAX_WIDTH = 420.dp
 private const val LAYER_THUMB_PX = 128
+
+/** The canvas size a layer is drawn at before it is cropped to itself. */
+private const val LAYER_RENDER_PX = 384
+private const val LAYER_CROP_MARGIN = 8
+private const val LAYER_ALPHA_FLOOR = 24
+private const val LAYER_LIGHT_LUMA = 0.6
+private val LAYER_DARK_BACKDROP = Color(0xFF2E3035)
+private val LAYER_LIGHT_BACKDROP = Color(0xFFF1F1F3)
 private const val EDITOR_SCROLL_DELAY_MS = 120L
 
 private fun freshId(name: String): String {
@@ -1098,11 +1198,142 @@ private const val DEFAULT_STROKE = 6f
 private const val DEFAULT_SHADOW = 5f
 
 /** The fonts the builder offers by name; any installed font can be typed in too. */
-private val BuilderFonts = listOf("DynaPuff", "Anton", "sans-serif-black", "sans-serif", "serif", "monospace", "cursive")
+/** The faces made for stickers: DynaPuff by weight (one variable font) and Anton. */
+private val StickerFonts = listOf("DynaPuff", "DynaPuff-Medium", "DynaPuff-SemiBold", "DynaPuff-Bold", "Anton")
+
+/** The phone's own families, which every phone draws. */
+private val PhoneFonts = listOf(
+    "sans-serif", "sans-serif-medium", "sans-serif-black", "sans-serif-condensed", "sans-serif-light",
+    "serif", "monospace", "serif-monospace", "casual", "cursive", "sans-serif-smallcaps",
+)
+
+/** How a font id reads in the builder: an installed font by its name, a downloadable one without its prefix. */
+private fun fontLabel(context: Context, id: String): String {
+    FontStore.storeIdOf(id)?.let { storeId -> return FontStore.get(context).font(storeId)?.name ?: id }
+    return id.removePrefix(GOOGLE_FONT_PREFIX).removePrefix("system:")
+}
+
+private const val GOOGLE_FONT_PREFIX = "google:"
+
+/** One font in the picker: what is stored, and what is shown. */
+private class FontChoice(val id: String, val label: String)
+
+/**
+ * The selected words' font: its name, drawn in it. A tap opens the whole list
+ * ([FontPickerDialog]): the fonts this sticker already uses, the sticker faces,
+ * the fonts installed in the app, the downloadable ones, and the phone's own.
+ */
+@Composable
+private fun FontLine(font: String, inSticker: List<String>, onPick: (String) -> Unit) {
+    val context = LocalContext.current
+    var open by remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).clickable { open = true }.padding(vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(stringResource(R.string.dynsticker_builder_font), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+        FontSample(font, fontLabel(context, font), MaterialTheme.typography.titleMedium)
+    }
+    if (open) {
+        FontPickerDialog(
+            current = font,
+            inSticker = inSticker,
+            onDismiss = { open = false },
+            onPick = {
+                open = false
+                onPick(it)
+            },
+        )
+    }
+}
+
+/** [text] in the face [font] names, once it is loaded (a downloadable one may take a moment). */
+@Composable
+private fun FontSample(font: String, text: String, style: androidx.compose.ui.text.TextStyle, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val family by produceState<FontFamily?>(null, font) {
+        value = withContext(Dispatchers.IO) {
+            runCatching { FontFamily(DynAppRender.typeface(context, font)) }.getOrNull()
+        }
+    }
+    Text(text, style = style, fontFamily = family, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = modifier)
+}
+
+/** Every font a sticker can be drawn in, in sections, with a search over their names. */
+@Composable
+private fun FontPickerDialog(current: String, inSticker: List<String>, onDismiss: () -> Unit, onPick: (String) -> Unit) {
+    val context = LocalContext.current
+    var query by remember { mutableStateOf("") }
+    val sections = remember(inSticker) {
+        val installed = FontStore.get(context).textFonts().map { FontChoice(FontStore.fontIdFor(it.id), it.name) }
+        val downloadable = if (PlayServices.hasFontProvider(context)) {
+            KeyboardFonts.googleFonts.map { FontChoice(GOOGLE_FONT_PREFIX + it, it) }
+        } else {
+            emptyList()
+        }
+        listOf(
+            R.string.dynsticker_builder_fonts_in_sticker to inSticker.distinct().map { FontChoice(it, fontLabel(context, it)) },
+            R.string.dynsticker_builder_fonts_sticker to StickerFonts.map { FontChoice(it, it) },
+            R.string.dynsticker_builder_fonts_installed to installed,
+            R.string.dynsticker_builder_fonts_downloadable to downloadable,
+            R.string.dynsticker_builder_fonts_phone to PhoneFonts.map { FontChoice(it, it) },
+        )
+    }
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
+    ) {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
+            Column(modifier = Modifier.fillMaxSize().systemBarsPadding().imePadding()) {
+                Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Outlined.Close, contentDescription = stringResource(CommonR.string.common_cancel))
+                    }
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        singleLine = true,
+                        placeholder = { Text(stringResource(R.string.dynsticker_builder_fonts_search)) },
+                        modifier = Modifier.weight(1f).padding(end = 12.dp, top = 4.dp, bottom = 4.dp),
+                    )
+                }
+                val needle = query.trim()
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    for ((title, choices) in sections) {
+                        val shown = choices.filter { needle.isEmpty() || it.label.contains(needle, ignoreCase = true) }
+                        if (shown.isEmpty()) continue
+                        item(key = "h$title") {
+                            Text(
+                                stringResource(title),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 4.dp),
+                            )
+                        }
+                        items(shown, key = { "$title/${it.id}" }) { choice ->
+                            val on = choice.id == current
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(if (on) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)
+                                    .clickable { onPick(choice.id) }
+                                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                FontSample(choice.id, choice.label, MaterialTheme.typography.titleMedium, Modifier.weight(1f))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 @Composable
 private fun ElementEditor(
     element: SceneElement,
+    sceneFonts: List<String>,
     frames: Int,
     artIds: List<String>,
     onChange: ((SceneElement) -> SceneElement) -> Unit,
@@ -1147,7 +1378,7 @@ private fun ElementEditor(
             }
             item {
                 FieldBlock {
-                    ChipLine(stringResource(R.string.dynsticker_builder_font), BuilderFonts.map { it to it }, element.font) { f -> onChange { it.copy(font = f) } }
+                    FontLine(element.font, sceneFonts) { f -> onChange { it.copy(font = f) } }
                     OutlinedTextField(
                         value = element.font,
                         onValueChange = { v -> onChange { it.copy(font = v) } },

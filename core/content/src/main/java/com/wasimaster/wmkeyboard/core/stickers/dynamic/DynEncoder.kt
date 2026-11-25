@@ -6,6 +6,8 @@ import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import android.os.Build
+import android.os.SystemClock
+import android.util.Log
 import com.wasimaster.wmkeyboard.core.media.AnimatedWebpEncoder
 import com.wasimaster.wmkeyboard.core.media.AnimatedWebpWriter
 import com.wasimaster.wmkeyboard.core.media.GifEncoder
@@ -158,6 +160,7 @@ object DynEncoder {
         onProgress: (done: Int, total: Int) -> Unit = { _, _ -> },
     ): Output? {
         if (animated && prepared.animated) {
+            val began = SystemClock.elapsedRealtime()
             var reported = 0
             val progress: (Float) -> Unit = { fraction ->
                 val done = (fraction.coerceIn(0f, 1f) * PROGRESS_TOTAL).toInt()
@@ -168,12 +171,14 @@ object DynEncoder {
             }
             if (format == Format.GIF) {
                 encodeGif(prepared, progress)?.let { bytes ->
+                    Log.i(TAG, "gif ${bytes.size} B in ${SystemClock.elapsedRealtime() - began} ms")
                     val file = File(target.parentFile, target.nameWithoutExtension + ".gif")
                     write(file, bytes)
                     return Output(file, MediaMime.GIF, animated = true)
                 }
             }
             encodeAnimated(prepared, if (format == Format.GIF) Format.WEBP.budget else format.budget, progress)?.let { bytes ->
+                Log.i(TAG, "$format ${bytes.size} B in ${SystemClock.elapsedRealtime() - began} ms")
                 val file = File(target.parentFile, target.nameWithoutExtension + ".webp")
                 write(file, bytes)
                 return Output(file, MediaMime.WEBP, animated = true)
@@ -304,6 +309,7 @@ object DynEncoder {
         // The frame is copied out for the encoders, so the next one is drawn
         // while they work on this one; they are waited on only before the
         // copy is overwritten, a frame later.
+        val began = SystemClock.elapsedRealtime()
         val staged = Bitmap.createBitmap(STICKER_SIZE, STICKER_SIZE, Bitmap.Config.ARGB_8888)
         val copy = Canvas(staged)
         val replace = Paint().apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC) }
@@ -331,10 +337,18 @@ object DynEncoder {
             for (job in pending) runCatching { job.get() }
             staged.recycle()
         }
-        return sinks.mapIndexed { i, sink ->
+        val out = sinks.mapIndexed { i, sink ->
             val bytes = sink?.finish()
             bytes.takeIf { !failed[i] && count >= 2 }
         }
+        // One line a pass, for timing sends on a phone: what was tried, how
+        // long it took, and what each came to.
+        Log.i(
+            TAG,
+            "pass ${fps}fps $count frames in ${SystemClock.elapsedRealtime() - began} ms: " +
+                candidates.indices.joinToString { i -> "q${candidates[i].quality}/${candidates[i].every}=${out[i]?.size ?: "-"}" },
+        )
+        return out
     }
 
     /** An animated GIF of [prepared] in one pass, or null when it cannot be made (no native encoder). */
@@ -426,6 +440,7 @@ object DynEncoder {
     /** libwebp's method for a sent sticker: 2 of 0 (fast) to 6 (small); its own default is 4. */
     private const val SEND_METHOD = 2
 
+    private const val TAG = "DynEncoder"
     private const val WRAPPED_FPS = 12f
     private const val FULL_FPS = 25f
     private const val MEME_SIZE = 1024

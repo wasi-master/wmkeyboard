@@ -112,6 +112,9 @@ internal object DynAppRender {
 
     fun renderer(context: Context): DynRenderer = get(context).second
 
+    /** The face a sticker names [font] by, as the renderer finds it. Blocking: a downloadable one may wait. */
+    fun typeface(context: Context, font: String): android.graphics.Typeface = get(context).first.typeface(null, font)
+
     /** After a font was installed: faces are looked up again. */
     fun fontsChanged(context: Context) = get(context).first.clear()
 }

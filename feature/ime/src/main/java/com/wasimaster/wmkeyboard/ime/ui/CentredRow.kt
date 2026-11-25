@@ -19,13 +19,14 @@ import androidx.compose.ui.layout.positionInParent
  * A sideways-scrolling row of choices that opens with the chosen one in the
  * middle, so a long row (fonts, frames) does not open at its start with the
  * choice somewhere out of sight. Only the first showing is moved: after that
- * the row stays where the user scrolled it.
+ * the row stays where the user scrolled it, until the [rememberCentredRow]
+ * key changes (another choice made elsewhere), which glides it to the new one.
  *
  * Put [viewport] on the row before its `horizontalScroll(scroll)`, and
  * [selected] on the chosen item.
  */
 @Stable
-class CentredRow internal constructor(val scroll: ScrollState) {
+class CentredRow internal constructor(val scroll: ScrollState, private val smooth: Boolean) {
     private var width by mutableIntStateOf(0)
     private var start by mutableIntStateOf(-1)
     private var end by mutableIntStateOf(-1)
@@ -42,17 +43,22 @@ class CentredRow internal constructor(val scroll: ScrollState) {
     internal suspend fun centre() {
         if (done || width == 0 || start < 0) return
         done = true
-        scroll.scrollTo(((start + end) / 2 - width / 2).coerceAtLeast(0))
+        val target = ((start + end) / 2 - width / 2).coerceAtLeast(0)
+        if (smooth) scroll.animateScrollTo(target) else scroll.scrollTo(target)
     }
 
     internal val ready: Boolean get() = width > 0 && start >= 0
 }
 
-/** A [CentredRow] remembered here, centred once its row has been laid out. */
+/**
+ * A [CentredRow] remembered here, centred once its row has been laid out, and
+ * again whenever [key] changes.
+ */
 @Composable
-fun rememberCentredRow(): CentredRow {
+fun rememberCentredRow(key: Any? = null): CentredRow {
     val scroll = rememberScrollState()
-    val row = remember(scroll) { CentredRow(scroll) }
+    val made = remember { intArrayOf(0) }
+    val row = remember(scroll, key) { CentredRow(scroll, smooth = made[0]++ > 0) }
     val ready by remember(row) { derivedStateOf { row.ready } }
     LaunchedEffect(row, ready) { if (ready) row.centre() }
     return row
