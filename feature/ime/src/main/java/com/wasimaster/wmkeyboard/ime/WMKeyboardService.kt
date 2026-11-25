@@ -659,6 +659,7 @@ import com.wasimaster.wmkeyboard.core.aihistory.AiHistoryGuard
 import com.wasimaster.wmkeyboard.core.aihistory.AiHistoryStore
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.AiProviders
+import com.wasimaster.wmkeyboard.core.settings.AiSettings
 import com.wasimaster.wmkeyboard.core.settings.aiRows
 import com.wasimaster.wmkeyboard.core.settings.through
 import com.wasimaster.wmkeyboard.core.tools.AiActionSpec
@@ -42536,18 +42537,21 @@ open class WMKeyboardService : InputMethodService() {
         if (voiceEngine() == VoiceChoices.GEMINI) return false
         if (!VoiceTidy.worthTidying(text)) return false
         if (voiceTidyOnDevice(settings)) {
-            return BuildConfig.ENABLE_LOCAL_LLM && effectiveLocalModelFile(settings) != null
+            return BuildConfig.ENABLE_LOCAL_LLM && effectiveLocalModelFile(settings.copy(ai = voiceTidyAi(settings))) != null
         }
-        return AiClient.isConfigured(settings.ai) &&
+        return AiClient.isConfigured(voiceTidyAi(settings)) &&
             dataSaverStatus.decide(MeteredFeature.CLOUD_AI) == MeteredDecision.ALLOWED
     }
+
+    /** The provider that tidies dictation: the row picked for it (Telegram 13473), else the AI tool's. */
+    private fun voiceTidyAi(settings: KeyboardSettings): AiSettings = settings.ai.voiceTidyVia ?: settings.ai
 
     /**
      * The tidy runs on the downloaded model: it is the AI tool's provider, or
      * it stands in for a server there is no connection to reach (#452).
      */
     private fun voiceTidyOnDevice(settings: KeyboardSettings): Boolean =
-        settings.ai.provider == AiProvider.ON_DEVICE ||
+        voiceTidyAi(settings).provider == AiProvider.ON_DEVICE ||
             (aiOfflineStandIn(settings) && !networkWatcher.state.value.online)
 
     /**
@@ -42564,22 +42568,23 @@ open class WMKeyboardService : InputMethodService() {
         val system = AiPrompts.dictationPrompt(romanized)
         val deadline = SystemClock.uptimeMillis() + VOICE_TIDY_TIMEOUT_MS
         val alive = { generation == voiceGeneration && SystemClock.uptimeMillis() < deadline }
+        val ai = voiceTidyAi(settings)
         val answer = if (voiceTidyOnDevice(settings)) {
-            val modelFile = effectiveLocalModelFile(settings) ?: return null
+            val modelFile = effectiveLocalModelFile(settings.copy(ai = ai)) ?: return null
             LocalLlmEngine.generate(
                 context = applicationContext,
                 modelFile = modelFile,
-                backend = settings.ai.localBackend,
-                contextTokens = settings.ai.localContextTokens,
+                backend = ai.localBackend,
+                contextTokens = ai.localContextTokens,
                 system = system,
                 user = heard,
             )
         } else {
             AiClient.completeStreaming(
-                config = AiClient.config(settings.ai),
+                config = AiClient.config(ai),
                 system = system,
                 user = heard,
-                maxTokens = AiClient.effectiveMaxTokens(settings.ai),
+                maxTokens = AiClient.effectiveMaxTokens(ai),
                 onPhase = {},
                 onPartial = {},
                 isActive = alive,

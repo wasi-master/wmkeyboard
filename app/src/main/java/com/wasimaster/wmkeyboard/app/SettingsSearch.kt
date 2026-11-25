@@ -1711,6 +1711,7 @@ private fun SearchStrings.voiceRows(): List<SettingsSearchEntry> {
         row(R.string.voice_punctuation_custom_add_title, R.string.voice_punctuation_custom_add_subtitle),
         row(R.string.voice_auto_punctuation_title, R.string.voice_auto_punctuation_subtitle),
         row(R.string.voice_ai_tidy_title, R.string.voice_ai_tidy_subtitle),
+        row(R.string.voice_ai_tidy_provider_title, R.string.voice_ai_tidy_provider_subtitle),
         row(R.string.voice_send_after_title, R.string.voice_send_after_subtitle),
         row(R.string.voice_mask_swearing_title, R.string.voice_mask_swearing_subtitle),
         row(R.string.voice_suppress_symbols_title, R.string.voice_suppress_symbols_subtitle),

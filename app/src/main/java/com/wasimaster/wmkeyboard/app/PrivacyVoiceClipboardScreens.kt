@@ -22,6 +22,7 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.VoiceChoiceRef
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
+import com.wasimaster.wmkeyboard.core.settings.aiRows
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
@@ -385,6 +386,9 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
     // the keyboard no longer does, so it goes; the values stay stored.
     val voiceOn = settings.watch { it.voiceBar.enabled }
     val micSwitchOn = settings.watch { it.voiceBar.micSwitch }
+    // The AI providers rows the tidy can be sent to (Telegram 13473).
+    val tidyOn = settings.watch { it.voiceBar.aiTidy }
+    val aiProviderRows = settings.watch { it.aiRows() }
     val systemInputOn = settings.watch { it.voiceBar.systemInput }
     SettingsGroup {
         item {
@@ -579,6 +583,25 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 info = stringResource(R.string.voice_ai_tidy_info),
                 default = SettingsDefaults.voiceBar.aiTidy,
             ) { scope.launch { repository.setVoiceAiTidy(it) } }
+        }
+        // Which model tidies, when there is more than one to pick from.
+        if (typingMode != com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.TYPING_PLAIN &&
+            tidyOn && aiProviderRows.size > 1
+        ) {
+            item {
+                val context = LocalContext.current
+                ChoiceSetting(
+                    R.string.voice_ai_tidy_provider_title,
+                    subtitle = stringResource(R.string.voice_ai_tidy_provider_subtitle),
+                    options = listOf("" to stringResource(R.string.toolai_strip_suggest_provider_same)) +
+                        aiProviderRows.map { it.key to providerTitle(context, it) },
+                    selected = settings.watch { s ->
+                        s.ai.voiceTidyProvider.takeIf { key -> aiProviderRows.any { it.key == key } }.orEmpty()
+                    },
+                    default = "",
+                    info = stringResource(R.string.voice_ai_tidy_provider_info),
+                ) { key -> scope.launch { repository.setAiVoiceTidyProvider(key) } }
+            }
         }
         item {
             ToggleSetting(

@@ -910,14 +910,27 @@ fun KeyboardSettings.withProviderChoices(env: ProviderEnv = choiceEnv()): Keyboa
     // removed since falls back to the AI tool's.
     val stripRow = stored.ai.stripSuggestProvider.takeIf { it.isNotBlank() }
         ?.let { key -> stored.aiRows(env).firstOrNull { it.key == key } }
-    val stripVia = stripRow?.let { stored.ai.through(it).copy(fallbacks = emptyList(), stripSuggestVia = null) }
+    val stripVia = stripRow?.let {
+        stored.ai.through(it).copy(fallbacks = emptyList(), stripSuggestVia = null, voiceTidyVia = null)
+    }
+    // Dictation's tidy the same way (Telegram 13473).
+    val tidyRow = stored.ai.voiceTidyProvider.takeIf { it.isNotBlank() }
+        ?.let { key -> stored.aiRows(env).firstOrNull { it.key == key } }
+    val tidyVia = tidyRow?.let {
+        stored.ai.through(it).copy(fallbacks = emptyList(), stripSuggestVia = null, voiceTidyVia = null)
+    }
     val ai = if (choice != null) {
-        stored.ai.through(choice).copy(fallbacks = stored.aiFallbacks(env, choice, stored.ai), stripSuggestVia = stripVia)
+        stored.ai.through(choice).copy(
+            fallbacks = stored.aiFallbacks(env, choice, stored.ai),
+            stripSuggestVia = stripVia,
+            voiceTidyVia = tidyVia,
+        )
     } else {
         stored.ai.copy(
             listed = false,
             provider = if (stored.ai.provider == AiProvider.ON_DEVICE) AiProvider.ANTHROPIC else stored.ai.provider,
             stripSuggestVia = stripVia,
+            voiceTidyVia = tidyVia,
         )
     }
     val voices = stored.voiceRows(env)

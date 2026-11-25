@@ -6186,6 +6186,18 @@ data class AiSettings(
      */
     val stripSuggestVia: AiSettings? = null,
     /**
+     * The row of the AI providers list that tidies dictation
+     * ([VoiceBarSettings.aiTidy]), by its key; blank uses the one the AI
+     * tool uses (Telegram 13473). A cloud row of the user's own, or the
+     * on-device model, whatever the panel answers with.
+     */
+    val voiceTidyProvider: String = "",
+    /**
+     * [voiceTidyProvider]'s row worked out, or null for the AI tool's own.
+     * Not stored: `withProviderChoices` fills it in.
+     */
+    val voiceTidyVia: AiSettings? = null,
+    /**
      * The model that looks at a picture for a model that cannot: its
      * `AiChatController.ModelChoice.key`, a downloaded on-device model that
      * sees or an AI providers row whose model does. Blank for none, which
@@ -15006,6 +15018,7 @@ class SettingsRepository(private val context: Context) {
         private val AI_STRIP_SUGGEST_PROMPT = stringPreferencesKey("ai_strip_suggest_prompt")
         private val AI_STRIP_SUGGEST_OFF_LANGUAGES = stringSetPreferencesKey("ai_strip_suggest_off_languages")
         private val AI_STRIP_SUGGEST_PROVIDER = stringPreferencesKey("ai_strip_suggest_provider")
+        private val AI_VOICE_TIDY_PROVIDER = stringPreferencesKey("ai_voice_tidy_provider")
         private val AI_PICTURE_DESCRIBER = stringPreferencesKey("ai_picture_describer")
         private val AI_DIFF_VIEW = booleanPreferencesKey("ai_diff_view")
         private val AI_TOOL_WEB_SEARCH = booleanPreferencesKey("ai_tool_web_search")
@@ -17991,6 +18004,7 @@ class SettingsRepository(private val context: Context) {
             stripSuggestPrompt = p[AI_STRIP_SUGGEST_PROMPT] ?: defaults.ai.stripSuggestPrompt,
             stripSuggestOffLanguages = p[AI_STRIP_SUGGEST_OFF_LANGUAGES] ?: defaults.ai.stripSuggestOffLanguages,
             stripSuggestProvider = p[AI_STRIP_SUGGEST_PROVIDER] ?: defaults.ai.stripSuggestProvider,
+            voiceTidyProvider = p[AI_VOICE_TIDY_PROVIDER] ?: defaults.ai.voiceTidyProvider,
             pictureDescriber = p[AI_PICTURE_DESCRIBER] ?: defaults.ai.pictureDescriber,
             toolWebSearch = p[AI_TOOL_WEB_SEARCH] ?: defaults.ai.toolWebSearch,
             toolWebFetch = p[AI_TOOL_WEB_FETCH] ?: defaults.ai.toolWebFetch,
@@ -25108,6 +25122,10 @@ class SettingsRepository(private val context: Context) {
     /** The AI providers row the strip asks, by key; blank for the AI tool's own. */
     suspend fun setAiStripSuggestProvider(key: String) =
         editPrefs { if (key.isBlank()) it.remove(AI_STRIP_SUGGEST_PROVIDER) else it[AI_STRIP_SUGGEST_PROVIDER] = key }
+
+    /** [AiSettings.voiceTidyProvider]; blank for the AI tool's own. */
+    suspend fun setAiVoiceTidyProvider(key: String) =
+        editPrefs { if (key.isBlank()) it.remove(AI_VOICE_TIDY_PROVIDER) else it[AI_VOICE_TIDY_PROVIDER] = key }
 
     /** The model that looks at pictures for one that cannot, by its choice key; blank for none. */
     suspend fun setAiPictureDescriber(key: String) =
