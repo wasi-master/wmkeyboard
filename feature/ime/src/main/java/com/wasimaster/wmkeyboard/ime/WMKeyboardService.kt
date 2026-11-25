@@ -38929,6 +38929,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.NOTES -> onPanelChange(PanelMode.NOTES)
             ToolbarTool.TODO -> onPanelChange(PanelMode.TODO)
             ToolbarTool.WM_PASS -> onPanelChange(PanelMode.WM_PASS)
+            ToolbarTool.WM_CHROMA -> onPanelChange(PanelMode.WM_CHROMA)
             ToolbarTool.LOCATION -> onPanelChange(PanelMode.LOCATION)
             ToolbarTool.CLOCK -> onPanelChange(PanelMode.CLOCK)
             ToolbarTool.MUSIC_ID -> onPanelChange(PanelMode.MUSIC_ID)
