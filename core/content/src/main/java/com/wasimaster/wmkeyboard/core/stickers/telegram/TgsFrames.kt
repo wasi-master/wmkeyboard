@@ -53,7 +53,8 @@ object TgsFrames {
          * `Animatable`) when the view it is in goes away.
          */
         fun drawable(): Drawable = LottieDrawable().apply {
-            setComposition(composition)
+            // Qualified: a bare `composition` here is the drawable's own, still null.
+            setComposition(this@Animation.composition)
             repeatCount = LottieDrawable.INFINITE
             playAnimation()
         }

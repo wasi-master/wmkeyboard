@@ -75,8 +75,16 @@ class DynRenderer(
 
     /** A template ready to draw, with one fill. Close it to free its pictures. */
     abstract class Prepared(val info: LottieDoc.Info, val template: DynTemplate) : Closeable {
-        /** Where the still is taken. */
-        val posterProgress: Float get() = template.meta.poster.takeIf { it in 0f..1f } ?: 1f
+        /**
+         * Where the still is taken: the template's choice, or its last frame.
+         * Never the out point itself: a layer is hidden from its out point on,
+         * so progress 1 draws an empty frame.
+         */
+        val posterProgress: Float
+            get() {
+                val last = if (info.frames <= 1f) 0f else (info.frames - 1f) / info.frames
+                return template.meta.poster.takeIf { it in 0f..1f }?.coerceAtMost(last) ?: last
+            }
 
         val animated: Boolean get() = info.animated && !template.meta.stillOnly
 
@@ -186,7 +194,7 @@ class DynRenderer(
     }
 
     private fun prepareLottie(root: JsonObject, template: DynTemplate, fill: DynFill, photos: Map<String, Bitmap>): Prepared? {
-        val filled = DynFiller.fill(root, template, fill, DynFiller.Engine.LOTTIE, fonts.measurer(template.packId))
+        val filled = DynFiller.fill(root, template, fill, DynFiller.Engine.LOTTIE, fonts.measurer(template.packId, perCharacter = true))
         var document = filled.document
         val images = HashMap<String, Bitmap>()
         // Layers Lottie would draw a character at a time, mangling the script,
@@ -219,10 +227,31 @@ class DynRenderer(
 
         private val drawable: LottieDrawable by lazy { newDrawable() }
 
+        /**
+         * Every face the document names. A drawable that is not in a view has
+         * no context to look fonts up with, so without this map Lottie skips
+         * every text layer. Lottie tries the family, then the name, then
+         * "family-style"; a family is keyed only when one font has it, so the
+         * bold and regular faces of one family do not collide.
+         */
+        private fun fontMap(): Map<String, Typeface> {
+            val all = composition.fonts.values
+            val perFamily = all.groupingBy { it.family }.eachCount()
+            val map = HashMap<String, Typeface>()
+            for (font in all) {
+                val face = fonts.typeface(packId, font.name.ifBlank { font.family }, font.style)
+                map[font.name] = face
+                map["${font.family}-${font.style}"] = face
+                if (perFamily[font.family] == 1) map[font.family] = face
+            }
+            return map
+        }
+
         private fun newDrawable(): LottieDrawable = LottieDrawable().apply {
             // Progress is set by hand and drawn straight after; an update on
             // Lottie's own thread would race the draw.
             asyncUpdates = AsyncUpdates.DISABLED
+            setFontMap(this@LottiePrepared.fontMap())
             setImageAssetDelegate { asset -> images[asset.id] }
             setFontAssetDelegate(object : FontAssetDelegate() {
                 override fun fetchFont(fontFamily: String, fontStyle: String, fontName: String): Typeface =
@@ -230,7 +259,9 @@ class DynRenderer(
 
                 override fun fetchFont(fontFamily: String): Typeface = fonts.typeface(packId, fontFamily)
             })
-            setComposition(composition)
+            // Qualified: inside apply, a bare `composition` is the drawable's
+            // own (still null), and setComposition(null) draws nothing.
+            setComposition(this@LottiePrepared.composition)
         }
 
         @Synchronized

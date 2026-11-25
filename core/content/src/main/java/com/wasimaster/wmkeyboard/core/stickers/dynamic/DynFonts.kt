@@ -5,6 +5,7 @@ import android.graphics.Paint
 import android.graphics.Typeface
 import android.os.Build
 import com.wasimaster.wmkeyboard.core.fonts.FontStore
+import com.wasimaster.wmkeyboard.core.stickers.StickerKeywords
 import java.io.File
 
 /**
@@ -58,14 +59,34 @@ class DynFonts(
     fun clear() = cache.clear()
 
     /** A measurer over [typeface], for [TextFit]. */
-    fun measurer(packId: String?): TextFit.TextMeasurer {
+    /**
+     * Measures text in [packId]'s fonts. [perCharacter] sums each
+     * character's own advance, the way Lottie lays text out (it draws one
+     * character at a time, so kerned pairs come out wider than the platform
+     * measures the whole word): fitting for Lottie with the word's width would
+     * let a word through that Lottie then breaks in the middle.
+     */
+    fun measurer(packId: String?, perCharacter: Boolean = false): TextFit.TextMeasurer {
         val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-        return TextFit.TextMeasurer { text, font, size, tracking ->
-            synchronized(paint) {
+        val bounds = android.graphics.Rect()
+        return object : TextFit.TextMeasurer {
+            override fun width(text: String, font: String, sizePx: Float, tracking: Float): Float = synchronized(paint) {
                 paint.typeface = typeface(packId, font)
-                paint.textSize = size
+                paint.textSize = sizePx
                 paint.letterSpacing = tracking / TRACKING_UNITS
-                paint.measureText(text)
+                if (perCharacter) {
+                    StickerKeywords.clusters(text).sumOf { paint.measureText(it).toDouble() }.toFloat()
+                } else {
+                    paint.measureText(text)
+                }
+            }
+
+            override fun capHeight(font: String, sizePx: Float): Float = synchronized(paint) {
+                paint.typeface = typeface(packId, font)
+                paint.textSize = sizePx
+                paint.letterSpacing = 0f
+                paint.getTextBounds(CAP_SAMPLE, 0, CAP_SAMPLE.length, bounds)
+                (-bounds.top).toFloat().takeIf { it > 0f } ?: (sizePx * TextFit.CAP_SHARE)
             }
         }
     }
@@ -125,6 +146,7 @@ class DynFonts(
     companion object {
         /** Lottie's tracking is in thousandths of an em; Paint's letter spacing in ems. */
         const val TRACKING_UNITS = 1000f
+        private const val CAP_SAMPLE = "H"
 
         private const val THIN = 100
         private const val LIGHT = 300

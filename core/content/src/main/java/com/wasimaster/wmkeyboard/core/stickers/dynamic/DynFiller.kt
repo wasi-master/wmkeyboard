@@ -88,7 +88,7 @@ object DynFiller {
                 FilledLayer(name, info.doc, listOf(plan.text), info.doc.size, font, colorOf(info.doc, fill), 0f)
             } else {
                 val fitted = TextFit.fit(plan.text, info.doc, plan.rule, measurer, font)
-                val shift = verticalShift(info.doc, fitted)
+                val shift = verticalShift(info.doc, fitted, measurer.capHeight(font, fitted.size))
                 FilledLayer(name, info.doc, fitted.lines, fitted.size, font, colorOf(info.doc, fill), shift)
             }
             filled[name] = result
@@ -130,20 +130,27 @@ object DynFiller {
     }
 
     /**
-     * How far to move a box down so text shorter than it sits where the
-     * document's `vj` says: Lottie lays box text from the top.
+     * How far to move a box down (or up, when negative) so its text sits
+     * where the document's `vj` says. Lottie puts the first line's baseline
+     * one line height below the top of the box and each further line a line
+     * height lower, so what it draws runs from a capital's height above the
+     * first baseline to the last baseline; that block is what is placed. A
+     * box with no `vj` is left as Lottie lays it out, as its maker saw it.
      */
-    private fun verticalShift(doc: LottieDoc.TextDoc, fitted: TextFit.Fitted): Float {
+    private fun verticalShift(doc: LottieDoc.TextDoc, fitted: TextFit.Fitted, capHeight: Float): Float {
         if (!doc.hasBox) return 0f
         val boxH = doc.boxHeight ?: return 0f
-        val ratio = doc.lineHeight / doc.size.coerceAtLeast(1f)
-        val textH = fitted.size * (1f + (fitted.lines.size - 1) * ratio)
-        val spare = (boxH - textH).coerceAtLeast(0f)
-        return when (doc.verticalAlign?.coerceIn(0, 2)) {
-            1 -> spare / 2f
-            2 -> spare
+        val align = doc.verticalAlign?.coerceIn(0, 2) ?: return 0f
+        val lineHeight = doc.lineHeight * (fitted.size / doc.size.coerceAtLeast(1f))
+        val drawnH = (fitted.lines.size - 1) * lineHeight + capHeight
+        // Where Lottie puts the top of the capitals, from the top of the box.
+        val drawnTop = lineHeight - capHeight
+        val wantedTop = when (align) {
+            1 -> (boxH - drawnH) / 2f
+            2 -> boxH - drawnH
             else -> 0f
         }
+        return wantedTop - drawnTop
     }
 
     private fun edited(doc: JsonObject, layer: FilledLayer, engine: Engine, fill: DynFill): JsonObject {

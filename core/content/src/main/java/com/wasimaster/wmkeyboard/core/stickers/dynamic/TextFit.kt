@@ -26,6 +26,9 @@ object TextFit {
          * [sizePx], with [tracking] in thousandths of an em between letters.
          */
         fun width(text: String, font: String, sizePx: Float, tracking: Float): Float
+
+        /** How far a capital rises above the baseline in [font] at [sizePx]. */
+        fun capHeight(font: String, sizePx: Float): Float = sizePx * CAP_SHARE
     }
 
     /**
@@ -267,4 +270,7 @@ object TextFit {
 
     /** Average advance as a share of the size, for a document with no text to measure against. */
     private const val FALLBACK_ADVANCE = 0.6f
+
+    /** A capital's height as a share of the font size, for a measurer that cannot tell. */
+    const val CAP_SHARE = 0.72f
 }
