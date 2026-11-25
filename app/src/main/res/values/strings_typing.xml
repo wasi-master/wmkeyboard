@@ -288,6 +288,9 @@
     <string name="typing_shift_recase_caret_info">Put the cursor right after a word and press shift. The word steps through lowercase, Title Case and UPPERCASE, and the cursor stays where it is. The shift key follows the word: Title Case puts shift on, and UPPERCASE is caps lock. This works as on SwiftKey.\n\nA word that only starts at the cursor does not change. While you type a word, shift is still for the next letter. When the cursor touches no word, shift works as usual.</string>
     <string name="typing_shift_recase_inside_title">Shift changes the case of the word around the cursor</string>
     <string name="typing_shift_recase_inside_subtitle">With nothing selected, shift changes the word the cursor is inside</string>
+    <string name="typing_shift_recase_title_first_title">Title Case first</string>
+    <string name="typing_shift_recase_title_first_subtitle">The first shift press on a selection gives Title Case</string>
+    <string name="typing_shift_recase_title_first_info">With this on, the first press of shift on a selection turns it into Title Case, whatever case it was in. The presses after that go on to UPPERCASE and lowercase as usual. With it off, text in a mix of cases goes to lowercase first and reaches Title Case on the next press.\n\nTitle Case leaves names written in a mix of cases (iPhone, YouTube) and words in capitals (SMS) as they were, and does not raise the letter after a digit (2nd) or after an apostrophe inside a word (don\'t).</string>
     <string name="typing_shift_recase_inside_info">Put the cursor inside a word, as in \"cur|sor\", and press shift. The whole word steps through lowercase, Title Case and UPPERCASE, the same as for the word before the cursor.\n\nTurn this off to keep shift for a capital letter in the middle of a word.</string>
 
     <!-- ==== Typing settings: suggestions ==== -->

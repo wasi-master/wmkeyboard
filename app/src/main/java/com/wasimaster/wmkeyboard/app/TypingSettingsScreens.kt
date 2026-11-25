@@ -868,6 +868,16 @@ internal fun TypingWritingSettings(
                 default = SettingsDefaults.textEditing.shiftRecasesWordAroundCaret,
             ) { scope.launch { repository.setShiftRecasesWordAroundCaret(it) } }
         }
+        // The cycle's order, for whoever reaches for Title Case most (#1555).
+        item(visible = recaseOn, level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_shift_recase_title_first_title,
+                stringResource(R.string.typing_shift_recase_title_first_subtitle),
+                settings.watch { it.textEditing.recaseTitleFirst },
+                info = stringResource(R.string.typing_shift_recase_title_first_info),
+                default = SettingsDefaults.textEditing.recaseTitleFirst,
+            ) { scope.launch { repository.setRecaseTitleFirst(it) } }
+        }
     }
     // Apps whose own capitals are overruled (#1341).
     if (capitalizeOn) CapitalsAppsGroup(repository, settings)

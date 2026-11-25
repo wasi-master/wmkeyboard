@@ -7894,6 +7894,12 @@ data class TextEditingSettings(
      * other thing shift can mean.
      */
     val shiftRecasesWordAroundCaret: Boolean = false,
+    /**
+     * The first shift press on a selection goes to Title Case whatever case
+     * it was in, then on through UPPER and lower (#1555). Off keeps the plain
+     * cycle, where text in mixed case goes to lowercase first.
+     */
+    val recaseTitleFirst: Boolean = false,
     /** See [CursorWordSteps]. The app's own word moves by default. */
     val cursorWordSteps: CursorWordSteps = CursorWordSteps.APP,
     /**
@@ -14425,6 +14431,7 @@ class SettingsRepository(private val context: Context) {
         private val DELETE_WORD_STOPS_AT_CAPITALS = booleanPreferencesKey("delete_word_stops_at_capitals")
         private val SHIFT_RECASES_WORD_AT_CARET = booleanPreferencesKey("shift_recases_word_at_caret")
         private val SHIFT_RECASES_WORD_AROUND_CARET = booleanPreferencesKey("shift_recases_word_around_caret")
+        private val RECASE_TITLE_FIRST = booleanPreferencesKey("recase_title_first")
         private val DELETE_WORD_STOPS_AT_DIGITS = booleanPreferencesKey("delete_word_stops_at_digits")
         private val DELETE_WORD_WHOLE_ADDRESSES = booleanPreferencesKey("delete_word_whole_addresses")
         private val CURSOR_WORD_STOPS_AT_DIGITS = booleanPreferencesKey("cursor_word_stops_at_digits")
@@ -17354,6 +17361,7 @@ class SettingsRepository(private val context: Context) {
             shiftRecasesWordAroundCaret = p[SHIFT_RECASES_WORD_AROUND_CARET]
                 ?: p[SHIFT_RECASES_WORD_AT_CARET]
                 ?: defaults.textEditing.shiftRecasesWordAroundCaret,
+            recaseTitleFirst = p[RECASE_TITLE_FIRST] ?: defaults.textEditing.recaseTitleFirst,
             cursorWordSteps = p[CURSOR_WORD_STEPS]
                 ?.let { runCatching { CursorWordSteps.valueOf(it) }.getOrNull() }
                 ?: defaults.textEditing.cursorWordSteps,
@@ -19556,6 +19564,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setShiftRecasesWordAroundCaret(value: Boolean) =
         editPrefs { it[SHIFT_RECASES_WORD_AROUND_CARET] = value }
+
+    suspend fun setRecaseTitleFirst(value: Boolean) =
+        editPrefs { it[RECASE_TITLE_FIRST] = value }
 
     suspend fun setDeleteWordStopsAtDigits(value: Boolean) =
         editPrefs { it[DELETE_WORD_STOPS_AT_DIGITS] = value }

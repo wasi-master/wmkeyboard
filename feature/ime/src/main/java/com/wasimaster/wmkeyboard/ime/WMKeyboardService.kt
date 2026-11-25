@@ -17712,7 +17712,7 @@ open class WMKeyboardService : InputMethodService() {
      * for the keys to show, so the state is left alone.
      */
     private fun syncShiftToCase(text: String) {
-        val next = shiftStateForCase(text) ?: return
+        val next = shiftStateForCase(text, recaseOrigin.takeIf { text == recaseLast }) ?: return
         shiftFromRecase = next
         _uiState.update {
             if (it.shiftState == next) {
@@ -17733,19 +17733,32 @@ open class WMKeyboardService : InputMethodService() {
     private var shiftFromRecase: ShiftState? = null
 
     /**
-     * Advances [s] one step through lower → Title → UPPER → lower. Every form
-     * keeps the spelling, so `ß` steps to `ẞ` and back rather than to `SS` (#715).
+     * The text a run of shift presses started from, and the form the last
+     * press wrote ([nextCaseForm]). A press on exactly that form goes on with
+     * the same run; anything else starts a new one.
+     */
+    private var recaseOrigin: String? = null
+    private var recaseLast: String? = null
+
+    /**
+     * Advances [s] one step through lower → Title → UPPER → lower
+     * ([recaseStep]). Every form keeps the spelling, so `ß` steps to `ẞ` and
+     * back rather than to `SS` (#715). Title Case is taken from the text the
+     * run started from, so `iPhone` and `SMS` come back as they were written
+     * after a trip through lowercase (#1555).
      */
     private fun nextCaseForm(s: String): String {
-        val lower = s.lowercaseKeepingLength()
-        val upper = s.uppercaseKeepingLength()
-        val title = toTitleCase(s)
-        return when {
-            s == lower -> title
-            s == title && title != upper -> upper
-            s == upper -> lower
-            else -> lower // mixed case → normalize to lower to restart the cycle
-        }
+        val running = recaseOrigin?.takeIf { s == recaseLast && it.length == s.length }
+        val from = running ?: s
+        val next = recaseStep(
+            s,
+            origin = from,
+            firstPress = running == null,
+            titleFirst = _uiState.value.settings.textEditing.recaseTitleFirst,
+        )
+        recaseOrigin = from
+        recaseLast = next
+        return next
     }
 
     private fun onDelete() {
@@ -67675,17 +67688,6 @@ internal fun revisionKind(replacesOrigin: WordOrigin, originalKnown: () -> Boole
         CorrectionMemory.Kind.PAIR_ONLY
     }
 
-/** "hELLO wORLD" → "Hello World": first letter of each word up, rest down. */
-internal fun toTitleCase(s: String): String {
-    val sb = StringBuilder(s.length)
-    var prevLetter = false
-    for (c in s) {
-        sb.append(if (!prevLetter && c.isLetter()) c.uppercaseChar() else c.lowercaseChar())
-        prevLetter = c.isLetter()
-    }
-    return sb.toString()
-}
-
 /**
  * The keyboard case that matches [text]'s own, or null when there is none to
  * show: a caseless script (Bengali), and the mixed forms the re-case cycle
@@ -67695,13 +67697,14 @@ internal fun toTitleCase(s: String): String {
  * each of them would have typed. A single capital letter reads as the one-shot
  * shift, not the lock: its own cycle is only `a` and `A`.
  */
-internal fun shiftStateForCase(text: String): ShiftState? {
+internal fun shiftStateForCase(text: String, reference: String? = null): ShiftState? {
     val lower = text.lowercaseKeepingLength()
     val upper = text.uppercaseKeepingLength()
     if (lower == upper) return null
     return when (text) {
         lower -> ShiftState.OFF
-        toTitleCase(text) -> ShiftState.ON
+        // The Title Case the re-case cycle wrote, names kept ([toTitleCase]).
+        toTitleCase(text, reference) -> ShiftState.ON
         upper -> ShiftState.CAPS_LOCK
         else -> null
     }

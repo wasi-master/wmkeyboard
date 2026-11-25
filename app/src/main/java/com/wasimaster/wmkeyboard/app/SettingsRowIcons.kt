@@ -2571,6 +2571,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_retype_button_title) { Icons.Outlined.Replay }
         put(R.string.typing_shift_recase_caret_title) { SymbolIcons.Shift }
         put(R.string.typing_shift_recase_inside_title) { SymbolIcons.Shift }
+        put(R.string.typing_shift_recase_title_first_title) { SymbolIcons.Shift }
         put(R.string.typing_smart_keep_text_title) { Icons.AutoMirrored.Outlined.ShortText }
         put(R.string.typing_glide_shape_seeding_title) { Icons.Outlined.Gesture }
         put(R.string.typing_symbol_chord_row_title) { Icons.Outlined.Tag }

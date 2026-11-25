@@ -471,6 +471,7 @@ private fun SearchStrings.typingWritingRows(): List<SettingsSearchEntry> {
         row(R.string.typing_shift_recase_title, R.string.typing_shift_recase_subtitle),
         row(R.string.typing_shift_recase_caret_title, R.string.typing_shift_recase_caret_subtitle),
         row(R.string.typing_shift_recase_inside_title, R.string.typing_shift_recase_inside_subtitle),
+        row(R.string.typing_shift_recase_title_first_title, R.string.typing_shift_recase_title_first_subtitle),
         row(R.string.typing_double_space_title, R.string.typing_double_space_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.typing_double_space_window_title, R.string.typing_double_space_window_subtitle),
         row(R.string.typing_auto_space_punctuation_title, R.string.typing_auto_space_punctuation_subtitle),
