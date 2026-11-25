@@ -97,6 +97,15 @@ class ItalianElisionTest {
         }
     }
 
+    @Test fun ceIsNeverRewrittenToCe() {
+        // `ce` is a word of its own (`ce la faccio`): however a list counts
+        // it against *è*, *c'è* is only offered behind it (#1520).
+        assertTrue(Elisions.rulesFor("it")!!.isWordToo("ce"))
+        val e = italian()
+        assertNull(e.elide("ce"))
+        assertTrue("c'è" in e.suggest("ce", previousWord = null))
+    }
+
     @Test fun aRealWordFarCommonerThanItsRestIsNotEvenOffered() {
         val e = italian()
         // `dire` outnumbers *ire* 3,000 to one and `loro` outnumbers *oro* 14

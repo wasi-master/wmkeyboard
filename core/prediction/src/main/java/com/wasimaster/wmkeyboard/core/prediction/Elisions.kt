@@ -405,6 +405,9 @@ object Elisions {
         ),
         // *duomo* is a cathedral, and 1,300 times rarer than *uomo*.
         never = setOf("duomo"),
+        // *ce* is a word of its own (`ce l'ho`, `ce n'è`), and rewriting it to
+        // *c'è* turned `ce la faccio` into `c'è la faccio` (#1520).
+        wordsToo = setOf("ce"),
     )
 
     /**
