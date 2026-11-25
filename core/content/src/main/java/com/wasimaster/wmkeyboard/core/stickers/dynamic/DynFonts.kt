@@ -75,7 +75,10 @@ class DynFonts(
                 paint.textSize = sizePx
                 paint.letterSpacing = tracking / TRACKING_UNITS
                 if (perCharacter) {
-                    StickerKeywords.clusters(text).sumOf { paint.measureText(it).toDouble() }.toFloat()
+                    // Lottie measures at the screen's scale, where hinting rounds
+                    // each advance differently: a word that fits to the pixel here
+                    // can come out a little wider there and be broken.
+                    StickerKeywords.clusters(text).sumOf { paint.measureText(it).toDouble() }.toFloat() * LOTTIE_WIDTH_MARGIN
                 } else {
                     paint.measureText(text)
                 }
@@ -147,6 +150,7 @@ class DynFonts(
         /** Lottie's tracking is in thousandths of an em; Paint's letter spacing in ems. */
         const val TRACKING_UNITS = 1000f
         private const val CAP_SAMPLE = "H"
+        private const val LOTTIE_WIDTH_MARGIN = 1.03f
 
         private const val THIN = 100
         private const val LIGHT = 300

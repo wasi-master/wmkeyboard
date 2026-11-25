@@ -61,9 +61,23 @@ object DynFiller {
         val docs = LottieDoc.textLayers(root).associateBy { it.name }
         val planned = HashMap<String, Planned>()
         for (slot in template.slots) {
-            val typed = fill.texts[slot.id]?.let(DynText::display)?.takeIf { it.isNotEmpty() } ?: continue
             val layers = slot.layers.filter { it in docs }
             if (layers.isEmpty()) continue
+            val typed = fill.texts[slot.id]?.let(DynText::display)?.takeIf { it.isNotEmpty() }
+            if (typed == null) {
+                // Lottie ignores the auto-fit fields, so a template showing its
+                // own words is fitted here too, or they draw at their largest.
+                if (engine == Engine.LOTTIE) {
+                    layers.forEachIndexed { i, name ->
+                        val info = docs.getValue(name)
+                        val own = LottieDoc.splitLines(info.doc.text).joinToString(" ").trim()
+                        if (own.isEmpty()) return@forEachIndexed
+                        val case = slot.case ?: if (info.doc.allCaps) TextCase.UPPER else null
+                        planned[name] = Planned(DynText.applyCase(own, case, locale), slot.rule(i))
+                    }
+                }
+                continue
+            }
             val lines = if (layers.size == 1) {
                 listOf(typed)
             } else {
