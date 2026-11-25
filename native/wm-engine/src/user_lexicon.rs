@@ -854,6 +854,13 @@ impl UserLexicon {
         for (word, &count) in &self.words {
             fresh.insert(word, count);
         }
+        // Growth leaves every child list at four slots (most nodes have one
+        // child) and the node array at up to twice its length: about half the
+        // trie's memory, given back once the trie is built.
+        fresh.nodes.shrink_to_fit();
+        for node in &mut fresh.nodes {
+            node.children.shrink_to_fit();
+        }
         self.trie = fresh;
         self.trie_version += 1;
     }
