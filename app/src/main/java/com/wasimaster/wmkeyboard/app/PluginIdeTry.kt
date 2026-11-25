@@ -76,7 +76,9 @@ private val pretty = Json { prettyPrint = true }
 internal fun TryPane(
     draftId: String,
     manifest: PluginManifest,
-    script: () -> String,
+    current: () -> String,
+    /** The entry script and the other modules a call uses, given the open file as typed. */
+    inputs: (String) -> DraftRunInputs,
     workspace: PluginWorkspace,
     runner: PluginTryRunner,
 ) {
@@ -129,7 +131,7 @@ internal fun TryPane(
             Button(
                 enabled = !busy,
                 onClick = {
-                    val source = script()
+                    val source = current()
                     val sent = input
                     if (chosen is TryTarget.Provider && runCatching { Json.parseToJsonElement(sent) as JsonObject }.isFailure) {
                         outcome = PluginTryRunner.Outcome(null, context.getString(R.string.plugin_ide_try_bad_json), null, emptyList(), 0)
@@ -138,12 +140,14 @@ internal fun TryPane(
                     busy = true
                     scope.launch {
                         outcome = withContext(Dispatchers.IO) {
+                            val run = inputs(source)
                             runner.call(
                                 plugin = PluginPreviewSession.draftPlugin(draftId, manifest),
-                                script = source,
+                                script = run.script,
                                 actionId = chosen.key,
                                 input = sent,
                                 storagePath = workspace.previewStorageFile(draftId)?.path,
+                                modules = run.modules,
                             )
                         }
                         busy = false

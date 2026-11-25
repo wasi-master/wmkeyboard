@@ -20,6 +20,12 @@ data class PluginDraft(
     /** When it was last published into the store, or 0 if it never was. */
     val publishedAt: Long = 0L,
     val publishedVersion: String = "",
+    /**
+     * [PluginWorkspace.FILES_LAYOUT] once the draft holds its plugin's other
+     * files. A draft of an installed plugin made before drafts had them is 1,
+     * and gets the installed files copied in the first time it opens.
+     */
+    val layout: Int = 1,
 )
 
 /** A saved copy of a draft's script, kept so a phone author can step back across sessions. */
@@ -57,6 +63,8 @@ enum class SnapshotReason(val wire: String) {
  * └── <draftId>/
  *     ├── plugin.json          the draft manifest, which may be invalid mid-edit
  *     ├── main.py              the draft script, autosaved
+ *     ├── files/               every other file, by its name in a .wmplugin:
+ *     │                        helpers.py, assets/logo.png, locales/fr.json
  *     ├── preview/             wm.storage and the log for preview runs only
  *     └── history/             index.json and one <snapshotId>.py per snapshot
  * ```
@@ -70,6 +78,9 @@ enum class SnapshotReason(val wire: String) {
  * A draft id is generated, not the plugin id. Renaming the plugin moves no
  * directory, two drafts may aim at one plugin, and a draft whose manifest id is
  * not valid yet still has somewhere to live.
+ *
+ * Only the entry script has history. The other files are saved as typed and
+ * go with the script on Install, Save as a file and every preview run.
  *
  * Same shape and reasons as [PluginStore]: one per process, every mutator
  * writes immediately and atomically, [revision] is how Compose notices, and a
@@ -128,6 +139,33 @@ class PluginWorkspace(private var baseDir: File?) {
 
         const val MANIFEST_FILE = "plugin.json"
         const val SCRIPT_FILE = "main.py"
+
+        /** Where a draft keeps its files besides the manifest and the entry script. */
+        const val FILES_DIR = "files"
+
+        /** [PluginDraft.layout] of a draft that holds its other files. */
+        const val FILES_LAYOUT = 2
+
+        /** Files besides the manifest and the entry, so an export stays inside [PluginFile.MAX_ENTRIES]. */
+        const val MAX_FILES = PluginFile.MAX_ENTRIES - 2
+
+        /**
+         * Whether [path] can be one of a draft's other files: a module `import`
+         * reaches, an asset, or a translation, named as in a `.wmplugin`. Each
+         * rule allows no `..` and no leading slash, so a path never leaves the
+         * draft's folder.
+         */
+        fun isFilePath(path: String): Boolean = path != SCRIPT_FILE && (
+            PluginFile.isModuleName(path) ||
+                (path.startsWith(PluginFile.ASSETS_PREFIX) && PluginFile.isAssetName(path.removePrefix(PluginFile.ASSETS_PREFIX))) ||
+                PluginLocales.tagOf(path) != null
+            )
+
+        /** Whether [path] holds text the editor can open: everything but pictures. */
+        fun isTextFile(path: String): Boolean =
+            !path.startsWith(PluginFile.ASSETS_PREFIX) || path.substringAfterLast('.') in TEXT_ASSET_EXTENSIONS
+
+        private val TEXT_ASSET_EXTENSIONS = setOf("json", "txt", "svg")
 
         private const val LUA_SCRIPT_FILE = "main.lua"
         private const val SNAPSHOT_EXT = ".py"
@@ -193,28 +231,38 @@ class PluginWorkspace(private var baseDir: File?) {
 
     /** Starts a draft from [manifest] and [script]. Null when the workspace is full or cannot be written. */
     @Synchronized
-    fun create(manifest: PluginManifest, script: String, origin: String, now: Long = System.currentTimeMillis()): PluginDraft? {
+    fun create(
+        manifest: PluginManifest,
+        script: String,
+        origin: String,
+        now: Long = System.currentTimeMillis(),
+        files: Map<String, ByteArray> = emptyMap(),
+    ): PluginDraft? {
         if (baseDir == null || draftList.size >= MAX_DRAFTS) return null
         val draftId = newId("d", now) { id -> draftList.any { it.draftId == id } || dirFor(id)?.exists() == true }
         val dir = dirFor(draftId) ?: return null
         val written = writeAtomically(File(dir, MANIFEST_FILE), PluginManifestCodec.encode(manifest)) &&
-            writeAtomically(File(dir, SCRIPT_FILE), script)
+            writeAtomically(File(dir, SCRIPT_FILE), script) &&
+            files.entries.filter { isFilePath(it.key) }.take(MAX_FILES).all { (path, bytes) ->
+                writeBytesAtomically(File(File(dir, FILES_DIR), path), bytes)
+            }
         if (!written) {
             runCatching { dir.deleteRecursively() }
             return null
         }
-        val draft = PluginDraft(draftId = draftId, createdAt = now, updatedAt = now, origin = origin)
+        val draft = PluginDraft(draftId = draftId, createdAt = now, updatedAt = now, origin = origin, layout = FILES_LAYOUT)
         draftList += draft
         save()
         return draft
     }
 
-    /** A new draft with the same manifest and script. History and preview data are not copied. */
+    /** A new draft with the same manifest, script and files. History and preview data are not copied. */
     @Synchronized
     fun duplicate(draftId: String, now: Long = System.currentTimeMillis()): PluginDraft? {
         val manifest = manifest(draftId) ?: return null
         val script = script(draftId) ?: return null
-        return create(manifest, script, "duplicate:$draftId", now)
+        val files = files(draftId).mapNotNull { path -> fileBytes(draftId, path)?.let { path to it } }.toMap()
+        return create(manifest, script, "duplicate:$draftId", now, files)
     }
 
     /** Removes the draft and everything it owns: its history and its preview data. */
@@ -264,6 +312,127 @@ class PluginWorkspace(private var baseDir: File?) {
         draftList.removeAll(gone.toSet())
         save()
         return true
+    }
+
+    // ---- other files ---------------------------------------------------
+
+    /** The draft's files besides the manifest and the entry script: modules, then assets, then translations, each by name. */
+    fun files(draftId: String): List<String> {
+        val root = filesDir(draftId)?.takeIf { it.isDirectory } ?: return emptyList()
+        return root.walkTopDown()
+            .filter { it.isFile && !it.name.endsWith(".part") }
+            .map { it.relativeTo(root).invariantSeparatorsPath }
+            .filter(::isFilePath)
+            .sortedWith(compareBy({ fileGroup(it) }, { it }))
+            .toList()
+    }
+
+    fun fileBytes(draftId: String, path: String): ByteArray? {
+        val file = fileOf(draftId, path)?.takeIf { it.isFile } ?: return null
+        return runCatching { file.readBytes() }.getOrNull()
+    }
+
+    /** The file as text, or null when it is missing, a picture, or not UTF-8. */
+    fun fileText(draftId: String, path: String): String? {
+        if (!isTextFile(path)) return null
+        val bytes = fileBytes(draftId, path) ?: return null
+        return runCatching { bytes.decodeToString(throwOnInvalidSequence = true) }.getOrNull()
+    }
+
+    /** Writes [text] as [path], making the file when it is new. False when the path is not one a plugin can hold, or the draft is full. */
+    @Synchronized
+    fun writeFile(draftId: String, path: String, text: String, now: Long = System.currentTimeMillis()): Boolean {
+        if (draft(draftId) == null || !isTextFile(path)) return false
+        val file = fileOf(draftId, path) ?: return false
+        if (!file.isFile && files(draftId).size >= MAX_FILES) return false
+        if (!writeAtomically(file, text)) return false
+        touch(draftId, now)
+        return true
+    }
+
+    @Synchronized
+    fun deleteFile(draftId: String, path: String, now: Long = System.currentTimeMillis()): Boolean {
+        if (draft(draftId) == null) return false
+        val file = fileOf(draftId, path)?.takeIf { it.isFile } ?: return false
+        if (!runCatching { file.delete() }.getOrDefault(false)) return false
+        pruneEmptyFolders(draftId, file.parentFile)
+        touch(draftId, now)
+        return true
+    }
+
+    /** Moves [from] to [to]. False when [to] is taken or is not a name a plugin file can have. */
+    @Synchronized
+    fun renameFile(draftId: String, from: String, to: String, now: Long = System.currentTimeMillis()): Boolean {
+        if (draft(draftId) == null || from == to) return false
+        val source = fileOf(draftId, from)?.takeIf { it.isFile } ?: return false
+        val target = fileOf(draftId, to)?.takeIf { !it.exists() } ?: return false
+        val bytes = runCatching { source.readBytes() }.getOrNull() ?: return false
+        if (!writeBytesAtomically(target, bytes)) return false
+        runCatching { source.delete() }
+        pruneEmptyFolders(draftId, source.parentFile)
+        touch(draftId, now)
+        return true
+    }
+
+    /** The draft's `.py` files besides the entry, as [PluginStore.adopt] and the runtime take them. */
+    fun modules(draftId: String): Map<String, String> =
+        files(draftId).filter { it.endsWith(".py") }.mapNotNull { path -> fileText(draftId, path)?.let { path to it } }.toMap()
+
+    /** The draft's assets, by their names after `assets/`. */
+    fun assets(draftId: String): Map<String, ByteArray> =
+        files(draftId).filter { it.startsWith(PluginFile.ASSETS_PREFIX) }
+            .mapNotNull { path -> fileBytes(draftId, path)?.let { path.removePrefix(PluginFile.ASSETS_PREFIX) to it } }
+            .toMap()
+
+    /** The draft's translations, by language tag. */
+    fun locales(draftId: String): Map<String, String> =
+        files(draftId).mapNotNull { path ->
+            val tag = PluginLocales.tagOf(path) ?: return@mapNotNull null
+            fileText(draftId, path)?.let { tag to it }
+        }.toMap()
+
+    /**
+     * Gives a draft made before drafts held files the files of the plugin it
+     * was opened from, and marks it so it is never done twice: a file the
+     * author deletes afterwards stays deleted. False when the draft needed
+     * nothing or the copy failed.
+     */
+    @Synchronized
+    fun adoptFiles(draftId: String, files: Map<String, ByteArray>): Boolean {
+        val index = draftList.indexOfFirst { it.draftId == draftId }
+        if (index < 0 || draftList[index].layout >= FILES_LAYOUT) return false
+        val root = filesDir(draftId) ?: return false
+        val copied = files.entries.filter { isFilePath(it.key) }.take(MAX_FILES).all { (path, bytes) ->
+            val file = File(root, path)
+            file.isFile || writeBytesAtomically(file, bytes)
+        }
+        if (!copied) return false
+        draftList[index] = draftList[index].copy(layout = FILES_LAYOUT)
+        save()
+        return files.isNotEmpty()
+    }
+
+    private fun filesDir(draftId: String): File? = dirFor(draftId)?.let { File(it, FILES_DIR) }
+
+    private fun fileOf(draftId: String, path: String): File? {
+        if (!isFilePath(path)) return null
+        return filesDir(draftId)?.let { File(it, path) }
+    }
+
+    private fun fileGroup(path: String): Int = when {
+        path.endsWith(".py") -> 0
+        path.startsWith(PluginFile.ASSETS_PREFIX) -> 1
+        else -> 2
+    }
+
+    /** Removes the folders a delete or a move left empty, up to the files folder itself. */
+    private fun pruneEmptyFolders(draftId: String, from: File?) {
+        val root = filesDir(draftId) ?: return
+        var folder = from
+        while (folder != null && folder != root && folder.path.startsWith(root.path)) {
+            if (folder.list()?.isEmpty() != true || !folder.delete()) return
+            folder = folder.parentFile
+        }
     }
 
     // ---- history -------------------------------------------------------
@@ -437,10 +606,12 @@ class PluginWorkspace(private var baseDir: File?) {
         }
     }
 
-    private fun writeAtomically(file: File, text: String): Boolean = runCatching {
+    private fun writeAtomically(file: File, text: String): Boolean = writeBytesAtomically(file, text.toByteArray())
+
+    private fun writeBytesAtomically(file: File, bytes: ByteArray): Boolean = runCatching {
         file.parentFile?.mkdirs()
         val part = File(file.parentFile, file.name + ".part")
-        part.writeText(text)
+        part.writeBytes(bytes)
         part.renameTo(file) || run {
             file.delete()
             part.renameTo(file)

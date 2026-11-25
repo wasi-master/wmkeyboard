@@ -33,6 +33,15 @@ after the plugin and its version, like `Cipher Tool-1.0.0.wmplugin`. This
 tutorial still walks through the manual path below, since it's the clearest way
 to see how the pieces fit together.
 
+A plugin made of several files opens with a row of them above the code: the
+script, its other modules, its assets and its translations. Tap one to edit
+it. **New file** in the menu adds a module such as `helpers.py`, a translation
+such as `locales/fr.json` or a text asset under `assets/`, and the open file
+can be renamed or deleted from the same menu. Pictures are listed but can't be
+edited in the app. The preview, **Install** and **Save as a file** take every
+file along with the script. Files besides the script need plugin API 5: turn
+on **Use API 5 (the wm package)** under **Name and permissions** in the menu.
+
 The editor colours Python as you type. A long file, such as Math Mode's
 1,700 lines, is coloured around the part on screen, and the colours follow
 when you stop scrolling, so typing stays quick however big the file gets.

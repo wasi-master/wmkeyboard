@@ -73,6 +73,17 @@ object PluginLocales {
             .toMap()
 
     /**
+     * The script's strings for [preferred] out of [locales] (tag to file text):
+     * the file [pick] chooses, whole, with `@lang` naming it so `ngettext` picks
+     * that language's plural rules. Empty when none fits and English stands.
+     */
+    fun strings(locales: Map<String, String>, preferred: List<Locale> = preferred()): JsonObject {
+        val tag = pick(locales.keys, preferred) ?: return JsonObject(emptyMap())
+        val parsed = locales[tag]?.let(::parse) ?: return JsonObject(emptyMap())
+        return JsonObject(parsed + ("@lang" to JsonPrimitive(tag)))
+    }
+
+    /**
      * The tag in [available] that best fits [preferred], in order: the whole
      * tag (`pt-BR`), then the language (`pt`), then any tag of that language.
      * Null when none fits, and the plugin's English stands.

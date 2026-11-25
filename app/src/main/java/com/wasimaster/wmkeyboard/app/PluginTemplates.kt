@@ -6,6 +6,7 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.plugins.PluginActionSpec
 import com.wasimaster.wmkeyboard.core.plugins.PluginDraft
 import com.wasimaster.wmkeyboard.core.plugins.PluginFile
+import com.wasimaster.wmkeyboard.core.plugins.PluginLocales
 import com.wasimaster.wmkeyboard.core.plugins.PluginManifest
 import com.wasimaster.wmkeyboard.core.plugins.PluginManifestCodec
 import com.wasimaster.wmkeyboard.core.plugins.PluginPermission
@@ -134,6 +135,13 @@ internal fun newDraftFromTemplate(
     return workspace.create(manifest, template.script(context), "template:${template.name.lowercase()}")
 }
 
+/** Every file of the archive besides plugin.json and the entry script, by its name in the archive, as a draft keeps them. */
+internal fun PluginReadResult.Ok.files(): Map<String, ByteArray> = buildMap {
+    for ((name, source) in modules) put(name, source.toByteArray())
+    for ((name, bytes) in assets) put(PluginFile.ASSETS_PREFIX + name, bytes)
+    for ((tag, text) in locales) put(PluginLocales.PREFIX + tag + PluginLocales.SUFFIX, text.toByteArray())
+}
+
 /** What opening a plugin file as a draft came to. */
 internal sealed interface DraftImport {
     data class Created(val draft: PluginDraft) : DraftImport
@@ -154,7 +162,7 @@ internal sealed interface DraftImport {
  */
 internal fun importDraft(workspace: PluginWorkspace, input: InputStream): DraftImport =
     when (val read = PluginFile.read(input)) {
-        is PluginReadResult.Ok -> workspace.create(read.manifest, read.script, "import")?.let { draft ->
+        is PluginReadResult.Ok -> workspace.create(read.manifest, read.script, "import", files = read.files())?.let { draft ->
             workspace.snapshot(draft.draftId, SnapshotReason.IMPORT)
             DraftImport.Created(draft)
         } ?: DraftImport.Failed

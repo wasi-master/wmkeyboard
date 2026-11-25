@@ -568,6 +568,39 @@ class PluginStore(
         return runCatching { json.decodeFromString<Map<String, String>>(file.readText()) }.getOrDefault(emptyMap())
     }
 
+    /** Every bundled asset, by its name after `assets/`; empty when it has none. */
+    fun assets(id: String): Map<String, ByteArray> {
+        val root = dirFor(id)?.let { File(it, ASSETS_DIR) }?.takeIf { it.isDirectory } ?: return emptyMap()
+        return root.walkTopDown()
+            .filter { it.isFile }
+            .mapNotNull { file ->
+                val name = file.relativeTo(root).invariantSeparatorsPath
+                if (!PluginFile.isAssetName(name)) return@mapNotNull null
+                runCatching { name to file.readBytes() }.getOrNull()
+            }
+            .toMap()
+    }
+
+    /** Every translation file, by language tag; empty when it has none. */
+    fun locales(id: String): Map<String, String> {
+        val dir = dirFor(id) ?: return emptyMap()
+        return localeTags(id).mapNotNull { tag ->
+            val file = File(File(dir, PluginLocales.DIR), tag + PluginLocales.SUFFIX)
+            runCatching { tag to file.readText() }.getOrNull()
+        }.toMap()
+    }
+
+    /**
+     * Everything installed besides the manifest and the entry script, by its
+     * name in a `.wmplugin`: `helpers.py`, `assets/logo.png`, `locales/fr.json`.
+     * What the plugin editor copies into a draft of this plugin.
+     */
+    fun files(id: String): Map<String, ByteArray> = buildMap {
+        for ((name, source) in modules(id)) put(name, source.toByteArray())
+        for ((name, bytes) in assets(id)) put(PluginFile.ASSETS_PREFIX + name, bytes)
+        for ((tag, text) in locales(id)) put(PluginLocales.PREFIX + tag + PluginLocales.SUFFIX, text.toByteArray())
+    }
+
     /** One bundled asset's bytes, or null. [name] is the part after `assets/`. */
     fun asset(id: String, name: String): ByteArray? {
         if (!PluginFile.isAssetName(name)) return null
@@ -810,16 +843,7 @@ class PluginStore(
         val manifestText = runCatching { File(dir, MANIFEST_FILE).readText() }.getOrNull() ?: return false
         val manifest = (PluginManifestCodec.read(manifestText) as? PluginManifestResult.Ok)?.manifest ?: return false
         val script = script(id) ?: return false
-        val assetsRoot = File(dir, ASSETS_DIR)
-        val assets = assetsRoot.walkTopDown()
-            .filter { it.isFile }
-            .associate { it.relativeTo(assetsRoot).invariantSeparatorsPath to it.readBytes() }
-            .filterKeys(PluginFile::isAssetName)
-        val locales = localeTags(id).mapNotNull { tag ->
-            val file = File(File(dir, PluginLocales.DIR), tag + PluginLocales.SUFFIX)
-            runCatching { tag to file.readText() }.getOrNull()
-        }.toMap()
-        return runCatching { PluginFile.write(out, manifest, script, modules(id), assets, locales) }.isSuccess
+        return runCatching { PluginFile.write(out, manifest, script, modules(id), assets(id), locales(id)) }.isSuccess
     }
 
     /** Plugin [id]'s secrets, `wm.secrets` and its secret settings rows; null without a folder. */

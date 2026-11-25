@@ -52,6 +52,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoFixHigh
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.BookmarkAdd
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DataObject
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DriveFileRenameOutline
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FindReplace
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatListNumbered
@@ -97,6 +98,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -360,8 +362,25 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
         MissingDraft(onBack)
         return
     }
-    val ide = remember(draftId) { PluginIdeState(draftId, WorkspaceIdePorts(workspace, store, draftId)) }
-    val editor = rememberCodeEditorState(draftId, rules = PythonSmartRules, keepHistory = true) { ide.savedText }
+    val ide = remember(draftId) {
+        // A draft of a plugin with several files, made before drafts held them, gets them now.
+        adoptInstalledFiles(workspace, store, draftId)
+        PluginIdeState(draftId, WorkspaceIdePorts(workspace, store, draftId))
+    }
+    // One editor a file: switching files starts the other file's own undo history.
+    val editor = rememberCodeEditorState(
+        "$draftId/${ide.file}",
+        rules = if (ide.onPython) PythonSmartRules else CodeSmartRules.Json,
+        keepHistory = true,
+    ) { ide.savedText }
+    // The file [editor] holds, read in the same composition, so every save names
+    // the file its text came from even when a switch lands before the next frame.
+    val textPath = ide.file
+    // The effects that outlive a file switch read the editor of the file open now.
+    val liveEditor by rememberUpdatedState(editor)
+    val livePath by rememberUpdatedState(textPath)
+    val language = draftFileLanguage(ide.file)
+    val python = ide.onPython
     val scope = rememberCoroutineScope()
     // The draft's http and AI reach what its manifest allows, as an installed plugin's do.
     val editorServices = remember { PluginProviderBridge.editorServices(context) }
@@ -393,6 +412,10 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
     var lineOpen by rememberSaveable { mutableStateOf(false) }
     var renamePlan by remember { mutableStateOf<RenamePlan?>(null) }
     var versions by remember { mutableStateOf<List<PluginSnapshot>?>(null) }
+    var newFileOpen by rememberSaveable { mutableStateOf(false) }
+    var renameFileOpen by rememberSaveable { mutableStateOf(false) }
+    var deleteFileOpen by rememberSaveable { mutableStateOf(false) }
+    var fileError by remember { mutableStateOf<String?>(null) }
     var comparing by remember { mutableStateOf<PluginSnapshot?>(null) }
     var comparison by remember { mutableStateOf<List<DiffRow>?>(null) }
     val historyContext = LocalContext.current
@@ -400,10 +423,16 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(PluginFile.MIME_TYPE)) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         val manifest = ide.manifest
-        val script = editor.text
+        val current = editor.text
+        val path = textPath
         scope.launch {
             val saved = withContext(Dispatchers.IO) {
-                runCatching { files.contentResolver.requireOutputStream(uri).use { PluginFile.write(it, manifest, script) } }.isSuccess
+                val parts = ide.archive(current, path)
+                runCatching {
+                    files.contentResolver.requireOutputStream(uri).use {
+                        PluginFile.write(it, manifest, parts.script, parts.modules, parts.assets, parts.locales)
+                    }
+                }.isSuccess
             }
             snackbar.showSnackbar(files.getString(if (saved) R.string.plugin_ide_export_saved_message else R.string.plugin_ide_export_failed_error))
         }
@@ -412,26 +441,33 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
     val text = editor.text
     // The draft on disk is the save point: written after a pause in typing, and
     // again as the screen goes, so leaving never loses a character.
-    LaunchedEffect(text) {
+    LaunchedEffect(text, textPath) {
         delay(AUTOSAVE_MS)
-        withContext(Dispatchers.IO) { ide.save(text) }
+        withContext(Dispatchers.IO) { ide.save(text, textPath) }
     }
     // A version every few minutes while the screen is open. The workspace refuses
     // to keep the same text twice, so an editor left idle keeps nothing.
     LaunchedEffect(draftId) {
         while (true) {
             delay(PERIODIC_VERSION_MS)
-            val current = editor.text
-            withContext(Dispatchers.IO) { ide.keepWhileWorking(current) }
+            val current = liveEditor.text
+            val path = livePath
+            withContext(Dispatchers.IO) { ide.keepWhileWorking(current, path) }
         }
+    }
+    // A run takes the entry script and every other file, the open one as typed.
+    val runDraft: suspend (String) -> Unit = { current ->
+        val path = textPath
+        val inputs = withContext(Dispatchers.IO) { ide.runInputs(current, path) }
+        preview.run(draftId, inputs.script, ide.manifest, inputs.modules, inputs.strings)
     }
     LaunchedEffect(text, autoRun) {
         if (!autoRun) return@LaunchedEffect
         delay(AUTO_RUN_MS)
-        val parses = withContext(Dispatchers.Default) { PythonCode.parses(text) }
+        val parses = withContext(Dispatchers.Default) { !python || PythonCode.parses(text) }
         if (shouldRunAsTyped(autoRun, text, lastRun, parses)) {
             lastRun = text
-            preview.run(draftId, text, ide.manifest)
+            runDraft(text)
         }
     }
     val renderUsage = previewState.usage[PluginRuntime.Phase.RENDER]
@@ -441,12 +477,12 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
         while (renderHistory.size > MAX_BUDGET_HISTORY) renderHistory.removeAt(0)
     }
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
-        ide.save(editor.text)
+        ide.save(liveEditor.text, livePath)
         preview.stop()
     }
     DisposableEffect(preview) {
         onDispose {
-            ide.save(editor.text)
+            ide.save(liveEditor.text, livePath)
             preview.shutdown()
         }
     }
@@ -455,12 +491,12 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
     val caretNow = editor.value.selection.end
     val positionLine = lineOf(lineStarts, caretNow.coerceIn(0, text.length))
     val positionColumn = caretNow.coerceIn(0, text.length) - lineStarts[positionLine]
-    val host = remember(ide.manifest) { PyHostShape.of(ide.manifest) }
+    val host = remember(ide.manifest, ide.files) { PyHostShape.of(ide.manifest, ide.moduleNames) }
     // Suggestions read plugin.json as it is now, not as it was saved.
     SideEffect { PythonCode.host = host }
     DisposableEffect(Unit) { onDispose { PythonCode.host = null } }
-    val helpHere by produceState<IdeHelp?>(null, text, caretNow, host) {
-        value = withContext(Dispatchers.Default) { ideHelpAt(text, caretNow, host) }
+    val helpHere by produceState<IdeHelp?>(null, text, caretNow, host, python) {
+        value = if (python) withContext(Dispatchers.Default) { ideHelpAt(text, caretNow, host) } else null
     }
     // The events from runs before this one, taken as it starts, for the Events tab to send again.
     val replayable = remember(previewState.runs) { preview.recordedEvents() }
@@ -477,7 +513,11 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
     // module is asked for as the editor opens.
     val toolingState by PythonNative.moduleState.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { if (!PythonTooling.ready) PythonNative.requestModule() }
-    val inspection by produceState(IdeInspection.None, text, host, toolingState) {
+    val inspection by produceState(IdeInspection.None, text, host, toolingState, python) {
+        if (!python) {
+            value = IdeInspection.None
+            return@produceState
+        }
         delay(250)
         val previous = value
         value = withContext(Dispatchers.Default) {
@@ -487,7 +527,7 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
         }
     }
     val diagnostics = inspection.diagnostics
-    val failureLine = previewState.failure?.takeIf { it.chunk == PluginRuntime.SCRIPT_CHUNK }?.line?.minus(1)
+    val failureLine = previewState.failure?.takeIf { ide.onEntry && it.chunk == PluginRuntime.SCRIPT_CHUNK }?.line?.minus(1)
     val matches by produceState(emptyList<TextRange>(), text, find.query, find.options, findOpen) {
         if (!findOpen || find.query.isEmpty()) {
             value = emptyList()
@@ -529,9 +569,29 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
         findFocusRequests++
     }
     val runPlugin: () -> Unit = {
-        lastRun = editor.text
-        preview.run(draftId, editor.text, ide.manifest)
+        val current = editor.text
+        lastRun = current
+        scope.launch { runDraft(current) }
         if (panel == IdePanel.CLOSED) panel = IdePanel.PREVIEW
+    }
+    val formatNow: () -> Unit = { language.format(editor.text)?.let(editor::replace) }
+    val openFile: (String) -> Unit = openFile@{ path ->
+        if (path != PluginIdeState.ENTRY && !PluginWorkspace.isTextFile(path)) {
+            scope.launch { snackbar.showSnackbar(context.getString(R.string.plugin_ide_files_picture_message, path)) }
+            return@openFile
+        }
+        if (!ide.open(path, editor.text, textPath)) {
+            scope.launch { snackbar.showSnackbar(context.getString(R.string.plugin_ide_files_open_failed_error, path)) }
+        }
+    }
+    val fileChangeError: (FileChange) -> String? = { change ->
+        when (change) {
+            FileChange.Done -> null
+            FileChange.BadName -> context.getString(R.string.plugin_ide_files_name_invalid)
+            is FileChange.Taken -> context.getString(R.string.plugin_ide_files_name_taken, change.path)
+            FileChange.Full -> context.getString(R.string.plugin_ide_files_too_many, PluginWorkspace.MAX_FILES)
+            FileChange.Failed -> context.getString(R.string.plugin_ide_files_failed_error)
+        }
     }
     val goToDefinition: () -> Unit = {
         val source = editor.text
@@ -588,7 +648,7 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
             CodeCommand.GO_TO_DEFINITION -> goToDefinition()
             CodeCommand.RENAME -> startRename()
             CodeCommand.GO_TO_SYMBOL -> panel = IdePanel.OUTLINE
-            CodeCommand.FORMAT -> editor.replace(PythonCode.format(editor.text))
+            CodeCommand.FORMAT -> formatNow()
             CodeCommand.TOGGLE_WRAP -> wrap = !wrap
             CodeCommand.ZOOM_IN -> textSize = (textSize + 1).coerceAtMost(MAX_TEXT_SIZE)
             CodeCommand.ZOOM_OUT -> textSize = (textSize - 1).coerceAtLeast(MIN_TEXT_SIZE)
@@ -596,8 +656,9 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
             // The draft saves itself after a pause; Ctrl+S saves it now and says so.
             CodeCommand.SAVE -> {
                 val current = editor.text
+                val path = textPath
                 scope.launch {
-                    withContext(Dispatchers.IO) { ide.save(current) }
+                    withContext(Dispatchers.IO) { ide.save(current, path) }
                     snackbar.showSnackbar(context.getString(R.string.plugin_ide_saved_message))
                 }
             }
@@ -645,8 +706,10 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
                         )
                     }
                     IconButton(onClick = {
+                        val current = editor.text
+                        val path = textPath
                         scope.launch {
-                            val outcome = withContext(Dispatchers.IO) { ide.publish(editor.text) }
+                            val outcome = withContext(Dispatchers.IO) { ide.publish(current, path) }
                             snackbar.showSnackbar(publishMessage(context, outcome))
                         }
                     }) {
@@ -706,14 +769,45 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
                                 },
                             )
                             DropdownMenuItem(
+                                text = { Text(stringResource(R.string.plugin_ide_files_new_action)) },
+                                leadingIcon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                                onClick = {
+                                    menuOpen = false
+                                    fileError = null
+                                    newFileOpen = true
+                                },
+                            )
+                            if (!ide.onEntry) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.plugin_ide_files_rename_action)) },
+                                    leadingIcon = { Icon(Icons.Outlined.DriveFileRenameOutline, contentDescription = null) },
+                                    onClick = {
+                                        menuOpen = false
+                                        fileError = null
+                                        renameFileOpen = true
+                                    },
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.plugin_ide_files_delete_action)) },
+                                    leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
+                                    onClick = {
+                                        menuOpen = false
+                                        deleteFileOpen = true
+                                    },
+                                )
+                            }
+                            // Versions keep the entry script, so they are offered while it is open.
+                            DropdownMenuItem(
                                 text = { Text(stringResource(R.string.plugin_ide_versions_action)) },
                                 leadingIcon = { Icon(Icons.Outlined.History, contentDescription = null) },
+                                enabled = ide.onEntry,
                                 onClick = {
                                     menuOpen = false
                                     val current = editor.text
+                                    val path = textPath
                                     scope.launch {
                                         versions = withContext(Dispatchers.IO) {
-                                            ide.save(current)
+                                            ide.save(current, path)
                                             ide.versions()
                                         }
                                     }
@@ -748,7 +842,7 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
                                 trailingIcon = shortcutSlot(keyboard, CodeCommand.FOLD_ALL),
                                 onClick = {
                                     menuOpen = false
-                                    editor.foldAll(PythonCode.foldRegions(editor.text).map { it.min })
+                                    editor.foldAll(language.foldRegions(editor.text).map { it.min })
                                 },
                             )
                             DropdownMenuItem(
@@ -775,7 +869,7 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
                                 trailingIcon = shortcutSlot(keyboard, CodeCommand.FORMAT),
                                 onClick = {
                                     menuOpen = false
-                                    editor.replace(PythonCode.format(editor.text))
+                                    formatNow()
                                 },
                             )
                             DropdownMenuItem(
@@ -789,10 +883,13 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.plugin_ide_version_action)) },
                                 leadingIcon = { Icon(Icons.Outlined.BookmarkAdd, contentDescription = null) },
+                                enabled = ide.onEntry,
                                 onClick = {
                                     menuOpen = false
+                                    val current = editor.text
+                                    val path = textPath
                                     scope.launch {
-                                        val kept = withContext(Dispatchers.IO) { ide.saveVersion(editor.text) }
+                                        val kept = withContext(Dispatchers.IO) { ide.saveVersion(current, path) }
                                         snackbar.showSnackbar(
                                             context.getString(
                                                 if (kept == null) R.string.plugin_ide_version_same_message else R.string.plugin_ide_version_saved_message,
@@ -867,9 +964,21 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
                     focusRequests = findFocusRequests,
                 )
             }
+            if (ide.files.isNotEmpty()) {
+                DraftFileStrip(
+                    entry = ide.manifest.entry.ifBlank { PluginManifestCodec.DEFAULT_ENTRY },
+                    files = ide.files,
+                    open = ide.file,
+                    onOpen = openFile,
+                    onAdd = {
+                        fileError = null
+                        newFileOpen = true
+                    },
+                )
+            }
             CodeSurface(
                 state = editor,
-                language = PythonCode,
+                language = language,
                 modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 8.dp, vertical = 4.dp),
                 lineStarts = lineStarts,
                 decorations = decorations,
@@ -910,13 +1019,21 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
                     when (panel) {
                         IdePanel.PREVIEW -> PreviewPane(preview, previewState, autoRun, { autoRun = it }, renderHistory)
                         IdePanel.CONSOLE -> ConsolePane(preview, previewState.consoleRevision) { line ->
-                            editor.moveTo(offsetOfLine(editor.text, line - 1))
+                            // Lines the console names are the entry script's.
+                            if (ide.onEntry) editor.moveTo(offsetOfLine(editor.text, line - 1))
                         }
                         IdePanel.PROBLEMS -> ProblemsPane(diagnostics, lineStarts, onFix = applyFix) { range -> editor.select(range) }
                         IdePanel.OUTLINE -> OutlinePane(inspection.outline, lineStarts) { range -> editor.select(range) }
                         IdePanel.EVENTS -> EventsPane(previewState.targets, replayable, preview::send)
                         IdePanel.STORAGE -> StoragePane(preview.storageOf(draftId), declared = storage, busy = previewState.busy, installed = installedStorage)
-                        IdePanel.TRY -> TryPane(draftId, ide.manifest, { editor.text }, workspace, tryRunner)
+                        IdePanel.TRY -> TryPane(
+                            draftId,
+                            ide.manifest,
+                            { editor.text },
+                            { source -> ide.runInputs(source, textPath) },
+                            workspace,
+                            tryRunner,
+                        )
                         IdePanel.CLOSED -> Unit
                     }
                 }
@@ -927,12 +1044,14 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
                 CodeAccessoryRow(
                     state = editor,
                     colors = rememberCodeColors(),
-                    lineComment = PythonCode.lineComment,
+                    lineComment = language.lineComment,
                     onFind = { findOpen = true },
-                    onFormat = { editor.replace(PythonCode.format(editor.text)) },
+                    onFormat = formatNow,
                     onSuggest = { suggestRequests++ },
-                    blocks = PythonCode::foldRegions,
-                    keys = remember(keyOrder, hiddenKeys) { arrangeKeys(PythonAccessoryKeys, keyOrder, hiddenKeys) },
+                    blocks = language::foldRegions,
+                    keys = remember(keyOrder, hiddenKeys, python) {
+                        arrangeKeys(if (python) PythonAccessoryKeys else JsonAccessoryKeys, keyOrder, hiddenKeys)
+                    },
                     suggestionBar = suggestionBar,
                 )
             }
@@ -1004,6 +1123,57 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
         )
     }
 
+
+    if (newFileOpen) {
+        DraftFileNameDialog(
+            title = stringResource(R.string.plugin_ide_files_new_action),
+            initial = "",
+            confirm = stringResource(R.string.plugin_ide_new_action),
+            error = fileError,
+            onDismiss = { newFileOpen = false },
+            onConfirm = { name ->
+                fileError = if (ide.manifest.apiVersion < PluginManifestCodec.PACKAGE_API) {
+                    context.getString(
+                        R.string.plugin_ide_files_needs_api,
+                        ide.manifest.entry.ifBlank { PluginManifestCodec.DEFAULT_ENTRY },
+                        PluginManifestCodec.PACKAGE_API,
+                    )
+                } else {
+                    fileChangeError(ide.addFile(name, editor.text, textPath))
+                }
+                if (fileError == null) newFileOpen = false
+            },
+        )
+    }
+    if (renameFileOpen && !ide.onEntry) {
+        DraftFileNameDialog(
+            title = stringResource(R.string.plugin_ide_files_rename_title),
+            initial = ide.file,
+            confirm = stringResource(R.string.plugin_ide_rename_action),
+            error = fileError,
+            onDismiss = { renameFileOpen = false },
+            onConfirm = { name ->
+                fileError = fileChangeError(ide.renameFile(name, editor.text))
+                if (fileError == null) renameFileOpen = false
+            },
+        )
+    }
+    if (deleteFileOpen && !ide.onEntry) {
+        AlertDialog(
+            onDismissRequest = { deleteFileOpen = false },
+            title = { Text(stringResource(R.string.plugin_ide_files_delete_title, ide.file)) },
+            text = { Text(stringResource(R.string.plugin_ide_files_delete_body)) },
+            confirmButton = {
+                TextButton({
+                    deleteFileOpen = false
+                    fileChangeError(ide.deleteFile())?.let { message -> scope.launch { snackbar.showSnackbar(message) } }
+                }) { Text(stringResource(CommonR.string.common_delete)) }
+            },
+            dismissButton = {
+                TextButton({ deleteFileOpen = false }) { Text(stringResource(CommonR.string.common_cancel)) }
+            },
+        )
+    }
 
     if (keysOpen) {
         CodeKeysDialog(

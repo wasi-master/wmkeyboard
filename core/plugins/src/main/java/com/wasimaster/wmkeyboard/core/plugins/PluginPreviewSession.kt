@@ -128,8 +128,18 @@ class PluginPreviewSession(
 
     // ---- control ---------------------------------------------------------
 
-    /** Runs [source] as the draft [draftId] with [manifest], replacing any run in flight. */
-    fun run(draftId: String, source: String, manifest: PluginManifest, modules: Map<String, String> = emptyMap()) {
+    /**
+     * Runs [source] as the draft [draftId] with [manifest], replacing any run in
+     * flight. [modules] are its other `.py` files and [strings] its translation
+     * for the user's language, as an installed plugin gets them.
+     */
+    fun run(
+        draftId: String,
+        source: String,
+        manifest: PluginManifest,
+        modules: Map<String, String> = emptyMap(),
+        strings: kotlinx.serialization.json.JsonObject = kotlinx.serialization.json.JsonObject(emptyMap()),
+    ) {
         val plugin = draftPlugin(draftId, manifest)
         // The files live in the draft's preview folder whether or not the
         // manifest asks for them; the permissions decide what the script reaches.
@@ -149,7 +159,15 @@ class PluginPreviewSession(
         }
         append(ConsoleEntry(0, ConsoleEntry.Kind.STARTED))
         runtime.open(
-            PluginRuntime.Draft(plugin, source, PluginLog(workspace.previewLogFile(draftId)), storage, reminders = reminders, modules = modules),
+            PluginRuntime.Draft(
+                plugin,
+                source,
+                PluginLog(workspace.previewLogFile(draftId)),
+                storage,
+                reminders = reminders,
+                modules = modules,
+                strings = strings,
+            ),
         )
         // The inspectors read the same files the run writes.
         storageOf(draftId)

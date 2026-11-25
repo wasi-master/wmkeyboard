@@ -184,6 +184,21 @@
     <!-- ================================================================== -->
 
     <string name="plugin_ide_versions_action">Versions</string>
+    <string name="plugin_ide_files_new_action">New file</string>
+    <string name="plugin_ide_files_rename_action">Rename file</string>
+    <string name="plugin_ide_files_delete_action">Delete file</string>
+    <string name="plugin_ide_files_rename_title">Rename file</string>
+    <string name="plugin_ide_files_name_hint">File name</string>
+    <string name="plugin_ide_files_name_help">A module such as helpers.py, a translation such as locales/fr.json, or a text asset such as assets/words.txt</string>
+    <string name="plugin_ide_files_name_invalid">A plugin file can’t have that name. A module is letters, digits and _ ending in .py, a translation is locales/ and a language code ending in .json, and an asset is a lowercase name under assets/ ending in .json, .txt or .svg.</string>
+    <string name="plugin_ide_files_name_taken">There is already a file called %1$s.</string>
+    <string name="plugin_ide_files_too_many">A plugin holds at most %1$d files besides plugin.json and its script.</string>
+    <string name="plugin_ide_files_needs_api">Files besides %1$s need plugin API %2$d or later. Turn on Use API 5 under Name and permissions.</string>
+    <string name="plugin_ide_files_delete_title">Delete %1$s?</string>
+    <string name="plugin_ide_files_delete_body">The file goes from this draft. The installed plugin keeps it until you install the draft again.</string>
+    <string name="plugin_ide_files_failed_error">Couldn’t change the file.</string>
+    <string name="plugin_ide_files_open_failed_error">Couldn’t open %1$s.</string>
+    <string name="plugin_ide_files_picture_message">%1$s is a picture, so it can’t be edited here. It stays in the plugin and is installed with it.</string>
     <string name="plugin_ide_versions_title">Versions</string>
     <string name="plugin_ide_versions_empty">No versions yet. The editor keeps one when you save a version, when you install, and every few minutes while you work.</string>
     <string name="plugin_ide_version_reason_manual">Saved by you</string>
