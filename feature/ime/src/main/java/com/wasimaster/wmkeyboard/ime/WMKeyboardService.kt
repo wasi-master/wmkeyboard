@@ -8632,7 +8632,10 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
-    private fun hideWithoutSuspending() = super.requestHideSelf(0)
+    private fun hideWithoutSuspending() {
+        markOwnHide()
+        super.requestHideSelf(0)
+    }
 
     /** Ends a summon: the user put the keyboard away, or a field took it over. */
     private fun clearSummon() {
@@ -9854,7 +9857,60 @@ open class WMKeyboardService : InputMethodService() {
         // with it rather than waiting to come back in this app (#1352).
         userHidTool = true
         clearSummon()
+        markOwnHide()
         super.requestHideSelf(flags)
+    }
+
+    /**
+     * When the keyboard last asked to be hidden itself, so the hide that
+     * comes back to it through the system is never held by [hideGrace].
+     */
+    private var ownHideAt = 0L
+
+    private fun markOwnHide() {
+        ownHideAt = android.os.SystemClock.uptimeMillis()
+    }
+
+    private fun ownHideRecent(): Boolean =
+        ownHideAt != 0L && android.os.SystemClock.uptimeMillis() - ownHideAt < OWN_HIDE_WINDOW_MS
+
+    /** App hides that are about to be undone by the app itself (Messenger's edit). */
+    private val hideGrace = HideGrace(
+        schedule = { delayMs, block -> mainHandler.postDelayed(block, delayMs) },
+        unschedule = { block -> mainHandler.removeCallbacks(block) },
+        hide = { if (isInputViewShown) hideWithoutSuspending() },
+    )
+
+    private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+
+    /**
+     * The platform's own input method interface, with an app's hide passing
+     * through [hideGrace] first. Overriding this is deprecated but still the
+     * only place a keyboard sees an app's hide before Android animates it.
+     */
+    @Deprecated("Deprecated in Java")
+    @Suppress("DEPRECATION")
+    override fun onCreateInputMethodInterface(): android.inputmethodservice.AbstractInputMethodService.AbstractInputMethodImpl =
+        HoldingInputMethod()
+
+    private inner class HoldingInputMethod : InputMethodImpl() {
+        override fun hideSoftInput(flags: Int, resultReceiver: android.os.ResultReceiver?) {
+            val app = currentInputEditorInfo?.packageName
+            if (app != null && isInputViewShown && !ownHideRecent() && HideGrace.applies(app)) {
+                hideGrace.hold(app, resultReceiver?.let { receiver -> { result: Int -> receiver.send(result, null) } })
+                DebugLog.i("ime", "holding $app's hide for the show it sends next")
+                return
+            }
+            ownHideAt = 0L
+            hideGrace.hiddenAnyway()
+            super.hideSoftInput(flags, resultReceiver)
+        }
+
+        override fun showSoftInput(flags: Int, resultReceiver: android.os.ResultReceiver?) {
+            if (hideGrace.holding) DebugLog.i("ime", "held hide undone by a show")
+            hideGrace.shown()
+            super.showSoftInput(flags, resultReceiver)
+        }
     }
 
     /**
@@ -10057,6 +10113,9 @@ open class WMKeyboardService : InputMethodService() {
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
         inputStarts++
+        // A held app hide (Messenger's edit box replacing its composer): the
+        // new field's show is on its way.
+        hideGrace.fieldStarted(attribute?.packageName)
         // #1511: a computer typing into a hidden keyboard keeps to the field
         // that keyboard was shown for; any other field ends it.
         val kdeTyping = kdeCanType()
@@ -12242,6 +12301,7 @@ open class WMKeyboardService : InputMethodService() {
 
     override fun onDestroy() {
         DebugLog.i("ime", "service destroyed")
+        hideGrace.cancel()
         com.wasimaster.wmkeyboard.ime.files.FilePicks.panel = null
         com.wasimaster.wmkeyboard.ime.files.FilePicks.panelReady = { false }
         holdMediaFocus(false)
@@ -64682,6 +64742,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         // The plain hide Back is about to do is the user's, pinned or not;
         // see [onPinnedBack] for why the framework's own path misses it.
+        if (keyCode == KeyEvent.KEYCODE_BACK && isInputViewShown) markOwnHide()
         if (keyCode == KeyEvent.KEYCODE_BACK && isInputViewShown &&
             _uiState.value.settings.persistentKeyboard
         ) {
@@ -67629,6 +67690,13 @@ open class WMKeyboardService : InputMethodService() {
          * app gets to take the keyboard down before it wins the argument.
          */
         private const val PIN_RESHOW_DELAY_MS = 250L
+
+        /**
+         * How long after the keyboard asks to hide itself the hide it gets
+         * back still counts as its own ([ownHideRecent]): a binder round trip,
+         * with room for a busy main thread.
+         */
+        private const val OWN_HIDE_WINDOW_MS = 1_000L
         private const val PIN_RESHOW_LIMIT = 4
         private const val PIN_RESHOW_BURST = 6
         private const val PIN_RESHOW_BURST_MS = 5_000L

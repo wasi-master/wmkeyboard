@@ -54,6 +54,14 @@ If words you type seem to vanish, or the field seems to jump back to what it sai
 
 Turn off **Blur behind the keyboard** in the theme editor's Frosted glass section, or pick a theme without it. The glass keeps working over your wallpaper or the board colour. See [Frosted glass](/themes/glass/) for what the setting does.
 
+## The keyboard drops and comes back up in an app
+
+Some apps ask for the keyboard to be hidden and then ask for it again a fraction of a second later, so the keyboard dips and slides back up. Messenger does it when you edit a sent message: picking **Edit** swaps the message box for an edit box, and for a moment the app has no box to type in.
+
+On Android 15 and older, WM Keyboard catches that in Messenger. A hide the app asks for waits a split second for the box that comes next, and when that box asks for the keyboard, the keyboard simply stays where it is. If nothing asks, the keyboard goes down about a tenth of a second later than it otherwise would. Your own hides (Back, the hide button, swiping the toolbar down) are never held. Android 16 moves the keyboard before telling it about the hide, so there's nothing to catch there. There's no setting for this.
+
+If another app does the same thing, [file it](#filing-a-useful-bug-report) with the app's name and what you tapped.
+
 ## The settings app is slow to open screens
 
 On a slower phone, turn off <SettingsPath path="Accessibility / Settings app / Screen transitions" />. Screens then open with a plain slide instead of moving the setting's icon and name into the new screen's heading, and each one skips a second layout pass. The keyboard isn't affected. See [Faster settings screens](/accessibility/overview/#faster-settings-screens).
