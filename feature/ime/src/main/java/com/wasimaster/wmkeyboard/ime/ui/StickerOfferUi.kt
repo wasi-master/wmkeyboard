@@ -83,6 +83,8 @@ import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.StickerOffer
 import com.wasimaster.wmkeyboard.ime.StickerOfferItem
+import com.wasimaster.wmkeyboard.ime.dynstickers.DynLivePlayer
+import com.wasimaster.wmkeyboard.ime.dynstickers.DynThumbs
 import kotlinx.coroutines.launch
 import kotlin.math.PI
 import kotlin.math.sin
@@ -354,13 +356,16 @@ private fun MagnifiedStickerPopup(magnified: Magnified, loader: ImageLoader) {
                 .padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            AsyncImage(
-                model = magnified.pick.item.previewUrl,
-                contentDescription = null,
-                imageLoader = loader,
-                modifier = Modifier.size(MagnifiedSticker),
-                contentScale = ContentScale.Fit,
-            )
+            Box(contentAlignment = Alignment.Center) {
+                AsyncImage(
+                    model = magnified.pick.item.previewUrl,
+                    contentDescription = null,
+                    imageLoader = loader,
+                    modifier = Modifier.size(MagnifiedSticker),
+                    contentScale = ContentScale.Fit,
+                )
+                if (DynThumbs.live(magnified.pick.item.previewUrl)) DynLivePlayer(magnified.pick.item, Modifier.size(MagnifiedSticker))
+            }
             if (title.isNotBlank()) {
                 Text(
                     text = title,
@@ -600,5 +605,7 @@ private fun StickerThumb(
                 .padding(2.dp),
             contentScale = ContentScale.Fit,
         )
+        // "Moving in the row": a text sticker plays over its still.
+        if (DynThumbs.live(pick.item.previewUrl)) DynLivePlayer(pick.item, Modifier.size(size).padding(2.dp))
     }
 }

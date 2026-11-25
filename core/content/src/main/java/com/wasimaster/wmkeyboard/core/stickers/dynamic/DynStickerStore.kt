@@ -227,7 +227,8 @@ class DynStickerStore(
             val w = (item["w"] as? kotlinx.serialization.json.JsonPrimitive)?.content?.toFloatOrNull() ?: continue
             val h = (item["h"] as? kotlinx.serialization.json.JsonPrimitive)?.content?.toFloatOrNull() ?: continue
             val shapes = item["shapes"] as? JsonArray ?: continue
-            out[id] = SceneToLottie.Art(w, h, shapes)
+            // "ty" first, or Lottie Android drops everything before it and draws nothing.
+            out[id] = SceneToLottie.Art(w, h, LottieDoc.typeFirst(shapes) as JsonArray)
         }
         return out
     }

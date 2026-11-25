@@ -1176,9 +1176,13 @@ def build_memes():
 
     sc = Scene(1)
     sc.shape("rect", 0.5, 0.5, 0.98, 0.7, fill=WHITE, corner=28.0, stroke=c("#E5E5E5"), sw=3.0)
-    sc.words("Nobody:", 0.3, 0.27, 0.46, 0.1, font=SANS_MEDIUM, fill=c("#111111"), case="keep", size=(16, 44), align=0)
-    sc.words("Me:", 0.17, 0.5, 0.2, 0.1, font=SANS_MEDIUM, fill=c("#111111"), case="keep", size=(16, 44), align=0)
-    meme_text(sc, "typing this at 3am", 0.58, 0.58, 0.62, 0.3, slot="text", role="main", label="Me", font=SANS_MEDIUM,
+    # Every row hangs from the top of its box, so "Me:" and the first line of
+    # the words beside it share a top whatever the words' length.
+    sc.words("Nobody:", 0.3, 0.27, 0.46, 0.1, font=SANS_MEDIUM, fill=c("#111111"), case="keep", size=(16, 44), align=0,
+             valign=0)
+    sc.words("Me:", 0.17, 0.5, 0.2, 0.1, font=SANS_MEDIUM, fill=c("#111111"), case="keep", size=(16, 44), align=0,
+             valign=0)
+    meme_text(sc, "typing this at 3am", 0.58, 0.58, 0.62, 0.26, slot="text", role="main", label="Me", font=SANS_MEDIUM,
               fill=c("#111111"), stroke=None, sw=0, case="keep", size=(16, 44), lines=4, align=0, valign=0, chars=(1, 90))
     meme("text_nobody_me", "Nobody / me", sc, "Nobody: and Me: with your words")
 

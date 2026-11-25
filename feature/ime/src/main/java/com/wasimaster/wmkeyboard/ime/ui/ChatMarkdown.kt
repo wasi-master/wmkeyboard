@@ -36,6 +36,7 @@ import androidx.compose.runtime.setValue
 import android.graphics.Typeface
 import coil3.compose.AsyncImage
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
+import com.wasimaster.wmkeyboard.core.plugins.PluginSyntax.Kind
 import com.wasimaster.wmkeyboard.core.tools.CodeHighlight
 import java.io.File
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckBox
@@ -662,17 +663,18 @@ internal fun highlightTokens(code: String, tokens: List<com.wasimaster.wmkeyboar
 }
 
 private fun pluginSpan(kind: com.wasimaster.wmkeyboard.core.plugins.PluginSyntax.Kind, palette: Array<Color>): SpanStyle {
-    val k = com.wasimaster.wmkeyboard.core.plugins.PluginSyntax.Kind
+    // Named through the import: a val holding the enum class itself is its
+    // companion object, which has no entries.
     return when (kind) {
-        k.COMMENT -> SpanStyle(color = palette[0], fontStyle = FontStyle.Italic)
-        k.STRING -> SpanStyle(color = palette[1])
-        k.NUMBER, k.CONSTANT, k.ATTRIBUTE -> SpanStyle(color = palette[2])
-        k.KEYWORD, k.TAG, k.OPERATOR -> SpanStyle(color = palette[3])
-        k.TYPE, k.FUNCTION -> SpanStyle(color = palette[4])
-        k.HEADING -> SpanStyle(color = palette[3], fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-        k.LINK -> SpanStyle(color = palette[1], textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline)
-        k.EMPHASIS -> SpanStyle(fontStyle = FontStyle.Italic)
-        k.PUNCTUATION -> SpanStyle(color = palette[0])
+        Kind.COMMENT -> SpanStyle(color = palette[0], fontStyle = FontStyle.Italic)
+        Kind.STRING -> SpanStyle(color = palette[1])
+        Kind.NUMBER, Kind.CONSTANT, Kind.ATTRIBUTE -> SpanStyle(color = palette[2])
+        Kind.KEYWORD, Kind.TAG, Kind.OPERATOR -> SpanStyle(color = palette[3])
+        Kind.TYPE, Kind.FUNCTION -> SpanStyle(color = palette[4])
+        Kind.HEADING -> SpanStyle(color = palette[3], fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+        Kind.LINK -> SpanStyle(color = palette[1], textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline)
+        Kind.EMPHASIS -> SpanStyle(fontStyle = FontStyle.Italic)
+        Kind.PUNCTUATION -> SpanStyle(color = palette[0])
     }
 }
 

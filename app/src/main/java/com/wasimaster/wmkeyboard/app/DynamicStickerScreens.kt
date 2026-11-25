@@ -112,6 +112,9 @@ internal object DynAppRender {
 
     fun renderer(context: Context): DynRenderer = get(context).second
 
+    /** The face a sticker names [font] by, as the renderer finds it. Blocking: a downloadable one may wait. */
+    fun typeface(context: Context, font: String): android.graphics.Typeface = get(context).first.typeface(null, font)
+
     /** After a font was installed: faces are looked up again. */
     fun fontsChanged(context: Context) = get(context).first.clear()
 }
@@ -840,7 +843,8 @@ internal fun DynamicStickerPackScreen(packId: String, onNavigate: (String) -> Un
     val pack = remember(revision) { store.pack(packId) }
     val templates = remember(revision) { store.allTemplates().filter { it.packId == packId } }
     val state = remember(revision) { store.state() }
-    var testText by remember { mutableStateOf(context.getString(R.string.dynsticker_test_text_default)) }
+    // Empty: each template shows its own words until something is typed here.
+    var testText by remember { mutableStateOf("") }
     var open by remember { mutableStateOf<String?>(null) }
     var renaming by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf(false) }
@@ -886,6 +890,7 @@ internal fun DynamicStickerPackScreen(packId: String, onNavigate: (String) -> Un
                 onValueChange = { testText = it },
                 singleLine = true,
                 label = { Text(stringResource(R.string.dynsticker_test_text_label)) },
+                placeholder = { Text(stringResource(R.string.dynsticker_test_text_placeholder)) },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             )
         }
