@@ -468,6 +468,7 @@ internal fun insertFormatLabel(format: InsertFormat): Int = when (format) {
     InsertFormat.TIME -> ImeR.string.ime_clock_format_time
     InsertFormat.DATE_TIME -> ImeR.string.ime_clock_format_date_time
     InsertFormat.DATE_LONG -> ImeR.string.ime_clock_format_date_long
+    InsertFormat.HIJRI -> ImeR.string.ime_clock_format_hijri
     InsertFormat.TIME_PLACE -> ImeR.string.ime_clock_format_time_place
     InsertFormat.ISO -> ImeR.string.ime_clock_format_iso
     InsertFormat.RELATIVE -> ImeR.string.ime_clock_format_relative
