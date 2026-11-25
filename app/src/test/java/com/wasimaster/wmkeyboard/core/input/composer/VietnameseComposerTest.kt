@@ -57,6 +57,30 @@ class VietnameseComposerTest {
     }
 
     @Test
+    fun telexWHornsTheUOfAnOpenUa() {
+        val c = VietnameseTelexComposer
+        // #1561: an open `ua` has no ă to spell, so `w` horns the u, as Unikey does.
+        assertEquals("mưa", c.composeBuffer("muaw"))
+        assertEquals("ưa", c.composeBuffer("uaw"))
+        assertEquals("cửa", c.composeBuffer("cuawr"))
+        assertEquals("cửa", c.composeBuffer("cuarw"))
+        assertEquals("giữa", c.composeBuffer("giuawx"))
+        assertEquals("Mưa", c.composeBuffer("Muaw"))
+        // A second w gives the letters back.
+        assertEquals("muaw", c.composeBuffer("muaww"))
+        // Behind a qu glide the breve stays: quăng.
+        assertEquals("quă", c.composeBuffer("quaw"))
+        assertEquals("quăng", c.composeBuffer("quawng"))
+        // The neighbours are untouched.
+        assertEquals("ă", c.composeBuffer("aw"))
+        assertEquals("ơ", c.composeBuffer("ow"))
+        assertEquals("ư", c.composeBuffer("uw"))
+        assertEquals("ưa", c.composeBuffer("uwa"))
+        assertEquals("hương", c.composeBuffer("huowng"))
+        assertEquals("huơ", c.composeBuffer("huow"))
+    }
+
+    @Test
     fun telexBareWUndoTakesTheLetterWithIt() {
         val c = VietnameseTelexComposer
         // A bare w is ư, but the u it is spelled with was never typed. Undoing

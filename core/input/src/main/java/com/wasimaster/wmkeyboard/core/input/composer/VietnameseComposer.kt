@@ -346,6 +346,21 @@ internal object VietnameseEngine {
         return true
     }
 
+    /**
+     * Whether the word ends in a bare `ua` whose `u` is a letter of the
+     * nucleus rather than a `qu` glide: the pair a Telex `w` horns into `ưa`
+     * (#1561). Bare on both letters, so a `uâ` or a `ưa` already spelled is
+     * not this case.
+     */
+    private fun openUaPair(letters: List<VLetter>): Boolean {
+        if (letters.size < 2) return false
+        val a = letters[letters.lastIndex]
+        val u = letters[letters.lastIndex - 1]
+        return a.base == 'a' && a.mark == VMark.NONE &&
+            u.base == 'u' && u.mark == VMark.NONE &&
+            !isQuGlide(letters, letters.lastIndex - 1)
+    }
+
     private fun applyMark(letters: List<VLetter>, targets: String, mark: VMark): Boolean {
         for (i in letters.indices.reversed()) {
             if (letters[i].base in targets) {
@@ -668,6 +683,17 @@ internal object VietnameseEngine {
                             if (taken) letters.removeAt(marked)
                             else letters[marked].mark = VMark.NONE
                             letters.add(VLetter('w', VMark.NONE, replacementUpper))
+                        } else if (openUaPair(letters)) {
+                            // `muaw` is `mưa` (#1561), the way Unikey and
+                            // bamboo read it: an open `ua` has no `ă` in it to
+                            // spell, `ă` never closing a syllable, and `ưa` is
+                            // the open pair (mưa, cửa, lửa, thưa). The breve
+                            // the plain branch below puts on the `a` is only
+                            // right behind a `qu` glide (`quaw` is `quă`, on
+                            // its way to `quăng`) or with a coda already
+                            // typed. The second w takes the horn back off in
+                            // the `marked` branch above, so `muaww` is `muaw`.
+                            letters[letters.lastIndex - 1].mark = VMark.HORN
                         } else {
                             val applied = applyMark(letters, "a", VMark.BREVE) ||
                                 applyMark(letters, "ou", VMark.HORN)
