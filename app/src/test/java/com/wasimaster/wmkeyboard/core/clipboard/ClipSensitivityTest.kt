@@ -48,4 +48,13 @@ class ClipSensitivityTest {
         assertFalse(ClipSensitivity.looksSensitive("PLEASE"))
         assertFalse(ClipSensitivity.looksSensitive("HTTPS"))
     }
+
+    @Test fun bareNumbersStayInTheHistory() {
+        // A number copied out of a game, an order code: kept like any clip.
+        assertFalse(ClipSensitivity.looksSecretToKeepOut("483920"))
+        assertFalse(ClipSensitivity.looksSecretToKeepOut("12345678"))
+        assertFalse(ClipSensitivity.looksSecretToKeepOut("SAVE20"))
+        assertTrue(ClipSensitivity.looksSecretToKeepOut("Tr0ub4dor&3xz"))
+        assertFalse(ClipSensitivity.looksSecretToKeepOut("Your code is 483920"))
+    }
 }

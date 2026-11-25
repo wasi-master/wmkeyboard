@@ -49,6 +49,25 @@ object ClipSensitivity {
     }
 
     /**
+     * Whether a copy of [text] is kept out of, or hidden in, the clipboard
+     * history by "Let the keyboard find them": [looksSensitive] without the
+     * bare code.
+     *
+     * A bare code is the same shape as everything else people copy on its
+     * own: a game's ID, an order number, an amount, a promo code. Treated as
+     * a secret, the default "Never save it" dropped every one of them and
+     * the history never showed the copy (Telegram, a number copied out of a
+     * game). A one-time code is dead within minutes anyway, so it is kept
+     * like any other clip; the strip and the typing still treat it as a code
+     * through [isBareCode].
+     */
+    fun looksSecretToKeepOut(text: String): Boolean {
+        val token = text.trim()
+        if (token.isEmpty() || token.any { it.isWhitespace() }) return false
+        return isGeneratedSecret(token)
+    }
+
+    /**
      * `483920`, `G4K7QP` — a short all-caps/digit run with nothing around it.
      *
      * Public because the shape is also what decides how a clip is *typed*: a

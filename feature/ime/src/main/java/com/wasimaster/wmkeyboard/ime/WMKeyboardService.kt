@@ -4717,10 +4717,11 @@ open class WMKeyboardService : InputMethodService() {
         val text = cleaned ?: ruled
         val tidied = text != copied
         // Our own read of the text, for the password managers that predate the
-        // flag and the codes copied by hand out of a message.
-        val looksSecret = handling != SensitiveClipHandling.KEEP &&
-            state.settings.clipboard.detectSensitive &&
-            ClipSensitivity.looksSensitive(text)
+        // flag. Not a bare code: a number copied out of a game or an order
+        // code is that shape too, and "Never save it" dropped every one
+        // (Telegram); a one-time code is kept like any clip.
+        val detecting = handling != SensitiveClipHandling.KEEP && state.settings.clipboard.detectSensitive
+        val looksSecret = detecting && ClipSensitivity.looksSecretToKeepOut(text)
         val sensitive = flaggedSensitive || looksSecret
         if (tidied && text.isNotBlank() && (state.settings.clipboard.copyRulesToSystem || cleaned != null)) {
             // Back onto the system clipboard as changed, so the app's own paste
@@ -4770,8 +4771,11 @@ open class WMKeyboardService : InputMethodService() {
         // message being gathered (#234).
         if (added != null) noteClipForReply(added)
         if (added != null && added.id != spentChipClipId) spentChipClipId = null
+        // A bare code the detector once hid reaches the strip only the way
+        // "Suggest copied codes" says, as it did while it was hidden.
+        val codeByRule = detecting && added != null && added.kind.isTextual && ClipSensitivity.isBareCode(added.text.trim())
         if (added != null && added.id != spentChipClipId && added.kind.isTextual && !added.sensitive && !secureKept &&
-            state.settings.clipboard.suggestRecent
+            !codeByRule && state.settings.clipboard.suggestRecent
         ) {
             showClipboardSuggestion(added)
         } else if (added != null) {
