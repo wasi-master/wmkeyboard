@@ -107,6 +107,16 @@
 -keep interface org.tensorflow.lite.** { *; }
 -dontwarn org.tensorflow.lite.**
 
+# --- LiteRT 2 CompiledModel (the NPU builds of Whisper Tiny and search by
+# meaning) ------------------------------------------------------------------
+# liblitert_jni.so builds TensorBufferRequirements, TensorType, LiteRtException
+# and the enums from native code by name. ModelProvider, ModelSelector and
+# AiPackModelProvider reach Play's AI packs (ai-delivery, excluded where
+# litert is added) and are never used.
+-keep class com.google.ai.edge.litert.** { *; }
+-dontwarn com.google.ai.edge.litert.**
+-dontwarn com.google.android.play.core.aipacks.**
+
 # --- AndroidX WorkManager & Room (transitive ML Kit dependency) --------------
 # Room database implementations (e.g. WorkDatabase_Impl) are instantiated reflectively
 # by androidx.startup during app launch.

@@ -45,7 +45,7 @@ object NativeDelivery {
     private const val TAG = "NativeDelivery"
 
     /** The libraries [preload] also hands to `System.load`: checked to carry no JNI_OnLoad. */
-    private val REGISTERED_WITH_ART = setOf("tensorflowlite_jni", "litertlm_jni", "digitalink")
+    private val REGISTERED_WITH_ART = setOf("LiteRt", "litert_jni", "litertlm_jni", "digitalink")
 
     @Volatile
     var active: Boolean = false
@@ -159,6 +159,13 @@ object NativeDelivery {
             return true
         }
     }
+
+    /**
+     * [preload] for LiteRT: libLiteRt.so (the runtime, and the classic
+     * interpreter's JNI) first, then liblitert_jni.so, CompiledModel's JNI,
+     * which opens libLiteRt.so by name and so finds the one loaded here.
+     */
+    fun preloadLitert(): Boolean = preload("LiteRt") && preload("litert_jni")
 
     /**
      * A directory holding every library of [gates] under its own name, for a

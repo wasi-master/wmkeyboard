@@ -52,7 +52,7 @@ object WhisperEngine {
         return try {
             // A build with native delivery fetched LiteRT's library rather
             // than shipping it; LiteRT loads it by name, so it goes in first.
-            check(NativeDelivery.preload("tensorflowlite_jni")) { "libtensorflowlite_jni.so would not load" }
+            check(NativeDelivery.preloadLitert()) { "libLiteRt.so would not load" }
             FeatureModules.load<WhisperRuntime>(WhisperModule.BRIDGE_CLASS, WhisperEngine::class.java.classLoader!!)
                 .also { runtime = it }
         } catch (e: Throwable) {

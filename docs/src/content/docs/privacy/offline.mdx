@@ -57,7 +57,7 @@ The libraries come from two places:
 | What it adds | Files |
 |---|---|
 | On-device AI with LiteRT-LM models (`.task`, `.litertlm`) | `liblitertlm_jni.so` |
-| The LiteRT Whisper models for offline voice typing, and the sticker editor's background remover | `libtensorflowlite_jni.so` |
+| LiteRT: the LiteRT Whisper models for offline voice typing, the sticker editor's background remover, the text scanner's PaddleOCR reader and search by meaning, with their NPU builds | `libLiteRt.so` (in the `litert` package), `liblitert_jni.so` (in the `litert-api` package) |
 | Google's handwriting recognition (ML Kit) | `libdigitalink.so` |
 | whisper.cpp Whisper models, the Whistle engine and voice noise reduction | `libwmwhispercpp.so`, `libwmwhispercpp_v82.so`, `libwmwhispercpp_i8mm.so`, `libwmwhispercpp_opencl.so`, `libwmwhistle.so`, `libwmdenoise.so` |
 | whisper.cpp on Mali, Xclipse and PowerVR GPUs | `libwmwhispercpp_vulkan.so` |

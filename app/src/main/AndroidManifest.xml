@@ -222,6 +222,12 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- LiteRT 2's litert-api AAR declares a data-sync foreground service
+         permission for Play's AI pack downloads, which this app does not use
+         (ai-delivery is excluded where litert is added). -->
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"
+        tools:node="remove" />
     <!-- Move to phone's clock (#1144): an alarm handed to the phone's own
          clock app through AlarmClock.ACTION_SET_ALARM, which the clock app
          checks this for. Install-time, never asked; used only on that tap. -->

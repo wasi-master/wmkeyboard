@@ -10,7 +10,14 @@
      bundletool merges this split back in and behaves like the sideload build.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:dist="http://schemas.android.com/apk/distribution">
+    xmlns:dist="http://schemas.android.com/apk/distribution"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- LiteRT 2's litert-api declares this for Play's AI pack downloads,
+         which nothing here uses; see :app's manifest. -->
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"
+        tools:node="remove" />
 
     <dist:module
         dist:instant="false"

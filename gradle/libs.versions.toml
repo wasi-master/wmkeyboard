@@ -119,10 +119,16 @@ litertlm = "0.18.1"
 litertNpu = "2.3.2"
 # Qualcomm's own licence, so full Play and sideload builds only.
 qnnRuntime = "2.51.0"
-# 2.x splits into litert + litert-api sharing one namespace, which AGP's
-# manifest merger rejects; 1.4.2 is the last single-artifact classic runtime
-# (org.tensorflow.lite.Interpreter + signature runners).
-litert = "1.4.2"
+# 2.x splits into litert (libLiteRt.so and org.tensorflow.lite.Interpreter)
+# and litert-api (CompiledModel and liblitert_jni.so). Up to 2.2.0 both AARs
+# declared the namespace com.google.ai.edge.litert (2.1.6 and 2.2.0 checked),
+# which AGP rejects; at 2.3.2 litert's is com.google.ai.edge.litert.impl
+# (read from both AARs' manifests, 2026-11-26). Kept equal to litertNpu: CompiledModel opens the
+# same dispatch libraries Compute = NPU unpacks for LiteRT-LM. litert-api
+# pulls in Play's ai-delivery (asset-delivery's services and the
+# FOREGROUND_SERVICE_DATA_SYNC permission) for a model provider never used
+# here, so every `implementation(libs.litert)` excludes it.
+litert = "2.3.2"
 # Microsoft's ONNX Runtime behind Offline Sherpa, never a dependency: its
 # libonnxruntime.so is pinned and read out of the AAR on Maven Central
 # (wmkeyboard.native-pins), or copied into the APK or :feature:onnx by the

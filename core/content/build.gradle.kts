@@ -125,7 +125,12 @@ dependencies {
     // :core:voice links for Whisper, so this adds nothing to the APK. Play
     // builds get it from the :feature:litert module instead.
     if (!playStoreChannel && googleSdks) {
-        implementation(libs.litert)
+        implementation(libs.litert) {
+            // Play's AI pack delivery, for a model provider this app never uses:
+            // it brings asset-delivery's services and a data-sync foreground
+            // service permission. See the litert entry in libs.versions.toml.
+            exclude(group = "com.google.android.play", module = "ai-delivery")
+        }
     }
     testImplementation(libs.junit)
 }

@@ -178,7 +178,12 @@ dependencies {
         // The scanner's PaddleOCR reader and search by meaning. The same
         // interpreter :core:voice links for Whisper, so this adds nothing to
         // the APK.
-        implementation(libs.litert)
+        implementation(libs.litert) {
+            // Play's AI pack delivery, for a model provider this app never uses:
+            // it brings asset-delivery's services and a data-sync foreground
+            // service permission. See the litert entry in libs.versions.toml.
+            exclude(group = "com.google.android.play", module = "ai-delivery")
+        }
     }
     // Always, whatever the channel: OnDeviceTranslatorCatalogueTest pins the
     // hand-written language table to the library's own, and the table is

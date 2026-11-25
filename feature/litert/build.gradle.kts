@@ -13,11 +13,13 @@ plugins {
 // exactly like :feature:translate beside it. The module has no sources of its
 // own: it compiles the four shared bridge directories, one
 // class each, which the base app reaches by reflection, plus the litert
-// dependency. libtensorflowlite_jni.so is about 4 MB per ABI, and all three
-// things that use it are off by default: offline Whisper dictation is an
+// dependency. libLiteRt.so (the runtime and the interpreter) and
+// liblitert_jni.so (CompiledModel, which runs the NPU builds) are about 6 MB
+// per ABI on arm64, and everything that uses them is off by default: offline Whisper dictation is an
 // engine the user picks, and the sticker editor's own background remover and
 // the scanner's PaddleOCR reader only run where Play services cannot supply
-// Google's, so an install that never touches any of them should not carry it.
+// Google's, and search by meaning is a download of its own, so an install
+// that never touches any of them should not carry it.
 android {
     namespace = "com.wasimaster.wmkeyboard.litertfeature"
     compileSdk {
@@ -75,5 +77,10 @@ dependencies {
     implementation(project(":core:voice"))
     implementation(project(":core:content"))
     implementation(project(":core:intelligence"))
-    implementation(libs.litert)
+    implementation(libs.litert) {
+        // Play's AI pack delivery, for a model provider this app never uses:
+        // it brings asset-delivery's services and a data-sync foreground
+        // service permission. See the litert entry in libs.versions.toml.
+        exclude(group = "com.google.android.play", module = "ai-delivery")
+    }
 }

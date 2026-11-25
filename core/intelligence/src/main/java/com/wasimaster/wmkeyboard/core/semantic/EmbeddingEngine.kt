@@ -86,7 +86,7 @@ internal class EmbeddingEngine(private val context: Context) : Closeable {
         check(SemanticModels.isDownloaded(dir, SemanticModels.Pack.TEXT)) { "the text model is not downloaded" }
         check(FeatureModules.litert.installed) { "the LiteRT module is not installed" }
         // LiteRT loads its library by name; a delivered one goes in first.
-        check(NativeDelivery.preload("tensorflowlite_jni")) { "libtensorflowlite_jni.so would not load" }
+        check(NativeDelivery.preloadLitert()) { "libLiteRt.so would not load" }
         val bridge = FeatureModules.load<EmbeddingRuntime>(SemanticModule.BRIDGE_CLASS, context.classLoader)
         try {
             tokenizer = GemmaTokenizer.read(SemanticModels.file(dir, SemanticModels.Part.TOKENIZER))

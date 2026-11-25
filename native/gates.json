@@ -40,11 +40,12 @@
     {
       "id": "litert",
       "property": "litert",
-      "doc": "`:feature:litert`: the LiteRT interpreter, shared by offline Whisper dictation (`:core:voice`) and the sticker editor's own background remover (`:core:content`).",
+      "doc": "`:feature:litert`: LiteRT, shared by offline Whisper dictation (`:core:voice`), the sticker editor's own background remover (`:core:content`), the scanner's PaddleOCR reader and search by meaning (`:core:intelligence`). libLiteRt.so is the runtime and the classic interpreter; liblitert_jni.so is CompiledModel's JNI, which opens libLiteRt.so by name and runs the NPU builds through the `npu` gates' dispatch libraries.",
       "play": "module",
       "google": true,
       "maven": [
-        { "name": "libtensorflowlite_jni.so", "module": "com.google.ai.edge.litert:litert" }
+        { "name": "libLiteRt.so", "module": "com.google.ai.edge.litert:litert" },
+        { "name": "liblitert_jni.so", "module": "com.google.ai.edge.litert:litert-api" }
       ]
     },
     {

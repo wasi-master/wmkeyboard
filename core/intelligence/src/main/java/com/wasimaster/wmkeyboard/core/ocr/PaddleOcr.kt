@@ -140,8 +140,8 @@ object PaddleOcr {
     /** LiteRT's bridge, by reflection: on Play it arrives in `:feature:litert`. */
     private fun litert(context: Context): PaddleRuntime {
         // LiteRT loads its library by name; a delivered one goes in first.
-        if (!NativeDelivery.preload("tensorflowlite_jni")) {
-            throw TesseractException(TesseractException.Reason.UNAVAILABLE, "libtensorflowlite_jni.so would not load")
+        if (!NativeDelivery.preloadLitert()) {
+            throw TesseractException(TesseractException.Reason.UNAVAILABLE, "libLiteRt.so would not load")
         }
         return runCatching {
             FeatureModules.load<PaddleRuntime>(PaddleModule.BRIDGE_CLASS, context.classLoader)

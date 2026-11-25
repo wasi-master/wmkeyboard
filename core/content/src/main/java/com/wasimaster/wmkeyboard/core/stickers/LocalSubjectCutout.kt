@@ -79,7 +79,7 @@ internal object LocalSubjectCutout {
         runtime?.let { return it }
         if (!FeatureModules.litert.installed) return null
         // LiteRT loads its library by name; a delivered one goes in first.
-        if (!NativeDelivery.preload("tensorflowlite_jni")) return null
+        if (!NativeDelivery.preloadLitert()) return null
         return runCancellable {
             FeatureModules.load<CutoutRuntime>(CutoutModule.BRIDGE_CLASS, context.classLoader)
         }.onSuccess { runtime = it }.getOrNull()
