@@ -142,6 +142,7 @@ import com.wasimaster.wmkeyboard.core.settings.aiThrough
 import com.wasimaster.wmkeyboard.core.tools.AiToolActivity
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatController
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatController.ModelChoice
+import com.wasimaster.wmkeyboard.core.aicore.GeminiNano
 import com.wasimaster.wmkeyboard.ime.ui.ChatMarkdown
 import com.wasimaster.wmkeyboard.ime.ui.ChatMarkdownColors
 import com.wasimaster.wmkeyboard.ime.ui.ChatChain
@@ -507,7 +508,12 @@ internal fun AiChatScreen(
     // download sees the new model.
     val ai = settings.watch { it.ai }
     val providers = settings.watch { it.providers }
-    val choices = remember(version, ai, providers) { AiChatController.choices(context, settings.value) }
+    // Gemini Nano joins them where AICore says this phone has it (asked
+    // as the screen opens): this screen is in front while it answers, which
+    // is the only time AICore answers an app at all.
+    val nanoStatus by GeminiNano.status.collectAsState()
+    LaunchedEffect(Unit) { GeminiNano.refresh(context) }
+    val choices = remember(version, ai, providers, nanoStatus) { AiChatController.appChoices(context, settings.value) }
     var choice by remember(choices) {
         mutableStateOf(AiChatController.initialChoice(store, choices))
     }
@@ -1308,7 +1314,9 @@ private fun ModelChips(
                 onClick = { onPick(option) },
                 label = {
                     Text(
-                        if (option.provider == AiProvider.ON_DEVICE) {
+                        if (option.isNano) {
+                            stringResource(ImeR.string.ime_ai_nano_label)
+                        } else if (option.provider == AiProvider.ON_DEVICE) {
                             AiChatController.localModelLabel(option.localModelId)
                         } else {
                             option.name.ifEmpty { stringResource(option.provider.labelRes) }
@@ -1549,7 +1557,7 @@ private fun StreamingBubble(run: AiChatController.ChatRun) {
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    stringResource(run.phase.labelRes),
+                    run.note.ifEmpty { stringResource(run.phase.labelRes) },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

@@ -6,6 +6,7 @@ import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.core.aichat.AiChatConversation
+import com.wasimaster.wmkeyboard.core.aicore.GeminiNano
 import com.wasimaster.wmkeyboard.core.aichat.AiChatFile
 import com.wasimaster.wmkeyboard.core.aichat.AiChatMessage
 import com.wasimaster.wmkeyboard.core.aichat.AiChatStore
@@ -110,6 +111,14 @@ object AiChatController {
                 rowKey.isEmpty() || rowKey == AiProviders.type(provider).id -> provider.name
                 else -> rowKey
             }
+
+        /**
+         * Gemini Nano through Android AICore: an on-device choice whose model
+         * is the phone's, not a file of ours. Only the app's screens offer it
+         * ([appChoices]).
+         */
+        val isNano: Boolean
+            get() = provider == AiProvider.ON_DEVICE && localModelId == GeminiNano.MODEL_ID
     }
 
     /**
@@ -130,6 +139,19 @@ object AiChatController {
         }
     }
 
+    /** Gemini Nano as a picker choice; see [ModelChoice.isNano]. */
+    val NANO_CHOICE = ModelChoice(AiProvider.ON_DEVICE, GeminiNano.MODEL_ID, rowKey = GeminiNano.MODEL_ID)
+
+    /**
+     * [choices] for the app's own screens, the AI chat and the Settings
+     * assistant: Gemini Nano last, when AICore says this phone has it or can
+     * fetch it ([GeminiNano.refresh]). Never the keyboard's: AICore answers
+     * only an app that is in front, and the keyboard is always over another
+     * app, so its panels keep to [choices].
+     */
+    fun appChoices(context: Context, settings: KeyboardSettings): List<ModelChoice> =
+        choices(context, settings) + listOfNotNull(NANO_CHOICE.takeIf { GeminiNano.offered })
+
     /** The model to preselect: last used if still available, else the first. */
     fun initialChoice(store: AiChatStore, available: List<ModelChoice>): ModelChoice? {
         val lastKey = store.lastModelKey()
@@ -138,7 +160,7 @@ object AiChatController {
 
     /** A local model's name as a picker shows it. */
     fun localModelLabel(id: String): String =
-        LocalLlmCatalog.byId(id)?.displayName
+        if (id == GeminiNano.MODEL_ID) GeminiNano.LABEL else LocalLlmCatalog.byId(id)?.displayName
             ?: id.removePrefix(LocalLlmStore.CUSTOM_PREFIX).substringBeforeLast('.')
 
     /** One in-flight generation, as the screen renders it. */
@@ -160,6 +182,11 @@ object AiChatController {
         val tools: List<AiToolActivity> = emptyList(),
         /** What the message being answered asked for: a research run draws its plan, for one. */
         val mode: AiChatMode = AiChatMode.CHAT,
+        /**
+         * A line that says what is happening before the model is asked, shown
+         * in place of [phase]'s: Gemini Nano downloading through AICore.
+         */
+        val note: String = "",
     )
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -538,6 +565,7 @@ object AiChatController {
                 val pages = if (links.isEmpty()) "" else readLinks(links, seq, choice.provider == AiProvider.ON_DEVICE)
                 when {
                     mode == AiChatMode.RESEARCH -> runResearch(appContext, settings, conversationId, choice, seq)
+                    choice.isNano -> runNano(appContext, settings, conversationId, joined(user, pages), seq, privateChat)
                     choice.provider == AiProvider.ON_DEVICE ->
                         runOnDevice(appContext, settings, conversationId, choice, joined(user, pages), seq, privateChat)
                     else -> runRemote(appContext, settings, conversationId, choice, user, seq, privateChat, pages)
@@ -569,7 +597,13 @@ object AiChatController {
             "\n\nAssistant:\n" + kept[1].content.take(TITLE_INPUT_CHARS)
         scope.launch {
             val raw = runCatching {
-                if (choice.provider == AiProvider.ON_DEVICE) {
+                if (choice.isNano) {
+                    // One request at a time is what AICore's quota likes.
+                    if (isGenerating) return@runCatching ""
+                    GeminiNano.generateBlocking(
+                        context, AiPrompts.chatTitlePrompt(), listOf(GeminiNano.Turn(fromUser = true, text = exchange)),
+                    )
+                } else if (choice.provider == AiProvider.ON_DEVICE) {
                     // One model on the phone: a message sent meanwhile goes
                     // first, and the title is not worth making it wait.
                     if (isGenerating) return@runCatching ""
@@ -631,7 +665,9 @@ object AiChatController {
     fun stop(context: Context) {
         val current = _run.value ?: return
         runSeq++
-        if (current.choice.provider == AiProvider.ON_DEVICE) LocalLlmEngine.stop()
+        // Gemini Nano stops by itself once its run is retired; the engine
+        // here may be busy with something of the keyboard's.
+        if (current.choice.provider == AiProvider.ON_DEVICE && !current.choice.isNano) LocalLlmEngine.stop()
         val store = store(context.applicationContext)
         val parts = AiThinking.parts(current.partial, current.implicitThink)
         store.appendMessage(
@@ -801,6 +837,76 @@ object AiChatController {
             sessionKey = key
         }
         fresh
+    }
+
+    /**
+     * One answer from Gemini Nano through AICore. Stateless: each message
+     * sends the conversation again, laid out as one prompt and cut to
+     * AICore's token limit by [GeminiNano]. No tools, since there is no room
+     * for their protocol in a window this size, but the AI memory goes with
+     * it as it does with any model on the phone. The model is downloaded
+     * first if AICore does not have it yet, with the progress on the run.
+     */
+    private fun runNano(
+        context: Context,
+        settings: KeyboardSettings,
+        conversationId: Long,
+        user: String,
+        seq: Int,
+        privateChat: Boolean,
+    ): String {
+        val conversation = store(context).get(conversationId) ?: return ""
+        val kept = conversation.messages.withIndex().filter { !it.value.failed }
+        val newestUser = kept.lastOrNull { it.value.role == AiChatMessage.ROLE_USER }?.index
+        val turns = kept.map { (index, message) ->
+            GeminiNano.Turn(
+                fromUser = message.role == AiChatMessage.ROLE_USER,
+                text = if (index == newestUser) user else promptAt(conversation, index),
+            )
+        }
+        val memoryPart = memoryTail(
+            context, settings, conversationId,
+            onDevice = true, privateChat = privateChat, user = user, withTools = false,
+        )
+        prepareNano(context, seq)
+        postPhase(seq, AiPhase.WAITING)
+        var lastPartialAt = 0L
+        return GeminiNano.generateBlocking(
+            context,
+            system = AiPrompts.chatPrompt() + memoryPart + if (settings.ai.chatFollowUps) AiFollowUps.RULE else "",
+            turns = turns,
+            onPartial = { partial ->
+                val now = System.currentTimeMillis()
+                if (seq == runSeq && now - lastPartialAt >= AI_PARTIAL_INTERVAL_MS) {
+                    lastPartialAt = now
+                    postPartial(seq, partial)
+                }
+            },
+            isActive = { seq == runSeq },
+        )
+    }
+
+    /** Gemini Nano on the phone before it is asked, its download's progress on the run meanwhile. */
+    private fun prepareNano(context: Context, seq: Int) {
+        GeminiNano.prepareBlocking(context, isActive = { seq == runSeq }) { done, total ->
+            postNote(
+                seq,
+                if (total > 0) {
+                    context.getString(
+                        R.string.ime_ai_nano_downloading_progress,
+                        android.text.format.Formatter.formatShortFileSize(context, done),
+                        android.text.format.Formatter.formatShortFileSize(context, total),
+                    )
+                } else {
+                    context.getString(R.string.ime_ai_nano_downloading)
+                },
+            )
+        }
+        postNote(seq, "")
+    }
+
+    private fun postNote(seq: Int, note: String) {
+        _run.update { run -> if (run == null || run.seq != seq || seq != runSeq) run else run.copy(note = note) }
     }
 
     /**
@@ -1141,7 +1247,11 @@ object AiChatController {
         val limits = AiResearch.limits(
             settings.ai.research.depth,
             dataSaver = settings.dataSaver.appliesTo(network),
-            contextTokens = if (onDevice) settings.ai.localContextTokens.takeIf { it > 0 } ?: ON_DEVICE_DEFAULT_CONTEXT else 0,
+            contextTokens = when {
+                choice.isNano -> GeminiNano.tokenLimit
+                onDevice -> settings.ai.localContextTokens.takeIf { it > 0 } ?: ON_DEVICE_DEFAULT_CONTEXT
+                else -> 0
+            },
         )
         val approver = if (settings.ai.research.reviewPlan) toolApprover(seq) else null
         val listener = object : AiResearch.Listener {
@@ -1176,6 +1286,17 @@ object AiChatController {
         choice: ModelChoice,
         seq: Int,
     ): AiResearch.Model {
+        if (choice.isNano) {
+            prepareNano(context, seq)
+            return AiResearch.Model { system, user, stream, onPartial ->
+                if (stream) postPhase(seq, AiPhase.WAITING)
+                GeminiNano.generateBlocking(
+                    context, system, listOf(GeminiNano.Turn(fromUser = true, text = user)),
+                    onPartial = if (stream) onPartial else null,
+                    isActive = { seq == runSeq },
+                )
+            }
+        }
         val modelFile = LocalLlmStore.selectedModelFile(context.filesDir, choice.localModelId)
             ?: throw java.io.IOException(context.getString(R.string.ime_ai_chat_error_no_model))
         return AiResearch.Model { system, user, stream, onPartial ->
@@ -1318,7 +1439,7 @@ object AiChatController {
         if (seq != runSeq) {
             // Retired by Stop (or a newer send). Keep the session's mirror
             // faithful to what the KV cache holds of the answer.
-            if (raw != null && choice.provider == AiProvider.ON_DEVICE) {
+            if (raw != null && choice.provider == AiProvider.ON_DEVICE && !choice.isNano) {
                 synchronized(this) { session }
                     ?.takeIf { sessionKey?.startsWith("$conversationId|") == true }
                     ?.recordStoppedTurn(user, raw)

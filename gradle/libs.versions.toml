@@ -48,6 +48,9 @@ mlkitLanguageId = "17.0.6"
 mlkitDynamicFeatureSupport = "16.0.0-beta2"
 mlkitTextRecognition = "16.0.1"
 mlkitBarcode = "17.3.0"
+# Gemini Nano through Android AICore (the Prompt API), for the app's own AI
+# screens only: AICore refuses an app that is not in front, so never the keyboard.
+mlkitGenaiPrompt = "1.0.0-beta5"
 # Unbundled twins of the two bundled ML Kit artifacts above, used by
 # Play-channel builds only (see :feature:ime): Play services downloads the
 # models on demand, so ~18 MB per ABI of pipeline .so + model assets stay out
@@ -253,6 +256,7 @@ androidx-camera-view = { group = "androidx.camera", name = "camera-view", versio
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serializationJson" }
 mlkit-digital-ink = { group = "com.google.mlkit", name = "digital-ink-recognition", version.ref = "mlkitDigitalInk" }
 mlkit-common = { group = "com.google.mlkit", name = "common", version.ref = "mlkitCommon" }
+mlkit-genai-prompt = { group = "com.google.mlkit", name = "genai-prompt", version.ref = "mlkitGenaiPrompt" }
 # What digital-ink 19.0.0 declares; see the Play block in app/build.gradle.kts.
 androidx-work-runtime = { group = "androidx.work", name = "work-runtime", version = "2.7.0" }
 mlkit-translate = { group = "com.google.mlkit", name = "translate", version.ref = "mlkitTranslate" }

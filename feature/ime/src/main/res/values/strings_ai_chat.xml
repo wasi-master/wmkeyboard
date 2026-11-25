@@ -20,6 +20,11 @@
     <string name="ime_ai_chat_setup_button">Open the AI tool settings</string>
     <string name="ime_ai_chat_error_no_model">The selected model is not on your device any more. Pick another model.</string>
     <string name="ime_ai_chat_error_generic">The model did not answer. Try again.</string>
+    <!-- Gemini Nano (AICore) being fetched before the chat's first answer from it; the sizes are formatted file sizes. -->
+    <!-- Gemini Nano (Google's model in Android AICore) in the app's model pickers. Only the app's own screens offer it. -->
+    <string name="ime_ai_nano_label">Gemini Nano (on this phone)</string>
+    <string name="ime_ai_nano_downloading">Downloading Gemini Nano through Android AICore…</string>
+    <string name="ime_ai_nano_downloading_progress">Downloading Gemini Nano through Android AICore: %1$s of %2$s</string>
 
     <!-- The two modes of the keyboard's AI panel, on its header. -->
     <string name="ime_ai_mode_actions">Actions</string>

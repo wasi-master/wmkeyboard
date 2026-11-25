@@ -172,4 +172,18 @@
     <string name="core_intel_languagetool_error_too_long">The text is too long for this LanguageTool server (HTTP <xliff:g id="status" example="413">%1$d</xliff:g>).</string>
     <string name="core_intel_languagetool_error_rate_limit">The LanguageTool server has had as many checks from this phone as it takes in a minute. Edit the text in a moment to check again (HTTP <xliff:g id="status" example="429">%1$d</xliff:g>).</string>
 
+    <!-- ================================================================== -->
+    <!-- Gemini Nano through Android AICore (GeminiNano.kt): why it could   -->
+    <!-- not answer, shown in the app's AI chat and Settings assistant.     -->
+    <!-- ================================================================== -->
+
+    <string name="core_intel_nano_error_unavailable">Gemini Nano is not available on this phone.</string>
+    <string name="core_intel_nano_error_busy">Gemini Nano is busy. Try again in a moment.</string>
+    <string name="core_intel_nano_error_quota">Android has limited how much Gemini Nano answers this app for now. Try again later.</string>
+    <string name="core_intel_nano_error_background">Gemini Nano only answers while a WM Keyboard screen is open in front. Stay on this screen until the answer is done.</string>
+    <string name="core_intel_nano_error_update">Gemini Nano needs a newer Android AICore. Update AICore from the Play Store and try again.</string>
+    <string name="core_intel_nano_error_space">There is not enough free space to download Gemini Nano.</string>
+    <string name="core_intel_nano_error_too_large">This message is too long for Gemini Nano. Shorten it or start a new chat.</string>
+    <string name="core_intel_nano_error_other">Gemini Nano could not answer (AICore error <xliff:g id="code" example="15">%1$d</xliff:g>).</string>
+
 </resources>

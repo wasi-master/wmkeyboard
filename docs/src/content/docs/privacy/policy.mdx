@@ -149,7 +149,7 @@ removed on request.
 
 ## Google components inside the app
 
-Three Google components the app uses report to Google on their own,
+Four Google components the app uses report to Google on their own,
 without going through any code here. They cannot see what you type, and this
 project receives nothing from them. None of them can be switched off from
 inside the app either, so your only choice is whether to use the feature.
@@ -166,6 +166,14 @@ inside the app either, so your only choice is whether to use the feature.
   describes it as diagnostics and usage analytics, encrypted in transit and
   not passed to third parties. The content of the image, ink or document is
   not part of it.
+- **Android AICore**, on phones that have it, runs Gemini Nano when you pick
+  **Gemini Nano (on this phone)** in the app's AI chat or Settings assistant.
+  The conversation goes to AICore, a system service on the phone, and is
+  answered there; this app sends it nowhere else. AICore downloads and updates
+  the model itself, and its use comes under Google's terms for AICore and
+  Gemini Nano. The app talks to it through ML Kit's GenAI library, which
+  reports its diagnostics as described above. Nothing reaches AICore unless
+  you pick Gemini Nano and send a message.
 - **Downloadable fonts.** Some scripts' default keyboard font, and every
   Google font in the theme editor, are fetched by Google Play services' font
   provider. It receives the font name and this app's package name.
@@ -176,8 +184,9 @@ inside the app either, so your only choice is whether to use the feature.
 Connecting Google Drive as a backup destination adds a Google sign-in and
 ordinary Drive API calls, and only if you connect it.
 
-The first and the third are specific to this edition: the F-Droid build has no
-ML Kit, no Play libraries and no Google sign-in compiled into it at all.
+ML Kit, AICore and the Play libraries are specific to this edition: the
+F-Droid build has no ML Kit, no Play libraries and no Google sign-in compiled
+into it at all, so it never talks to AICore.
 Downloadable fonts are the exception, since that request goes to a system
 provider rather than to code the app bundles, so the F-Droid build makes it too.
 See [Privacy policy (F-Droid edition)](/privacy/policy-fdroid/).

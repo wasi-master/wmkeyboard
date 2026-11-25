@@ -99,6 +99,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DeleteSweep
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandMore
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Shuffle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Stop
+import com.wasimaster.wmkeyboard.core.aicore.GeminiNano
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.extensionsResolved
@@ -155,7 +156,10 @@ internal fun SettingsAssistantScreen(
     val ai = settings.watch { it.ai }
     val providers = settings.watch { it.providers }
     val storeVersion by AiChatController.storeVersion.collectAsState()
-    val choices = remember(ai, providers, storeVersion) { SettingsAssistantSession.choices(context, settings.value) }
+    // Gemini Nano is offered where AICore has it, asked as the screen opens.
+    val nanoStatus by GeminiNano.status.collectAsState()
+    LaunchedEffect(Unit) { GeminiNano.refresh(context) }
+    val choices = remember(ai, providers, storeVersion, nanoStatus) { SettingsAssistantSession.choices(context, settings.value) }
     val choice = remember(choices, chosenKey) { SettingsAssistantSession.current(choices, settings.value) }
     val noProvider = stringResource(R.string.settings_assistant_no_provider)
     val title = stringResource(R.string.settings_assistant_title)
@@ -508,7 +512,9 @@ private fun ModelPicker(
  */
 @Composable
 private fun choiceLabel(choice: ModelChoice): String =
-    if (choice.provider == AiProvider.ON_DEVICE) {
+    if (choice.isNano) {
+        stringResource(com.wasimaster.wmkeyboard.ime.R.string.ime_ai_nano_label)
+    } else if (choice.provider == AiProvider.ON_DEVICE) {
         AiChatController.localModelLabel(choice.localModelId)
     } else {
         choice.name.ifEmpty { stringResource(choice.provider.labelRes) }

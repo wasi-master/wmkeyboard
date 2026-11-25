@@ -7,6 +7,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Gemini Nano through AICore: ML Kit's GenAI AARs say minSdk 26, and
+         GeminiNano checks the version before it calls them. -->
+    <uses-sdk tools:overrideLibrary="com.google.mlkit.genai.prompt,com.google.mlkit.genai.common" />
+
     <!-- WMFullApplication starts WorkManager on first use (ML Kit's ink model
          downloads), so its androidx.startup initializer is taken out of every
          process start, the keyboard's included. -->

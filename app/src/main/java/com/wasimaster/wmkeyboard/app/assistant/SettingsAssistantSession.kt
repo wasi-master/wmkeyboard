@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.app.assistant
 
 import android.content.Context
 import com.wasimaster.wmkeyboard.app.SettingsSearchEntry
+import com.wasimaster.wmkeyboard.core.aicore.GeminiNano
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmEngine
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmStore
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
@@ -125,10 +126,11 @@ internal object SettingsAssistantSession {
     /**
      * What the model menu offers: the same list the AI chat's chips draw, so
      * the downloaded on-device models when the AI list has that row, then
-     * every other row that can answer.
+     * every other row that can answer, then Gemini Nano where AICore has it
+     * (this screen is in front while it answers, which AICore requires).
      */
     fun choices(context: Context, settings: KeyboardSettings): List<ModelChoice> =
-        AiChatController.choices(context, settings)
+        AiChatController.appChoices(context, settings)
 
     /** The model a remote [choice] answers with, as its row names it; blank for an on-device one. */
     fun modelOf(settings: KeyboardSettings, choice: ModelChoice): String =
@@ -438,8 +440,48 @@ internal object SettingsAssistantSession {
         turns: List<AiClient.ChatTurn>,
         live: () -> Boolean,
     ): String {
-        val modelFile = LocalLlmStore.selectedModelFile(context.filesDir, choice.localModelId)
-            ?: throw IOException(context.getString(com.wasimaster.wmkeyboard.ime.R.string.ime_ai_chat_error_no_model))
+        // Gemini Nano (AICore) answers each round the same way as a model
+        // file would, once AICore has it; a download shows as the partial.
+        val ask: (String, List<AiClient.ChatTurn>, (String) -> Unit) -> String
+        if (choice.isNano) {
+            GeminiNano.prepareBlocking(context, live) { done, total ->
+                if (live()) {
+                    _partial.value = if (total > 0) {
+                        context.getString(
+                            com.wasimaster.wmkeyboard.ime.R.string.ime_ai_nano_downloading_progress,
+                            android.text.format.Formatter.formatShortFileSize(context, done),
+                            android.text.format.Formatter.formatShortFileSize(context, total),
+                        )
+                    } else {
+                        context.getString(com.wasimaster.wmkeyboard.ime.R.string.ime_ai_nano_downloading)
+                    }
+                }
+            }
+            if (live()) _partial.value = ""
+            ask = { system, roundTurns, onPartial ->
+                GeminiNano.generateBlocking(
+                    context,
+                    system,
+                    listOf(GeminiNano.Turn(fromUser = true, text = AiClient.foldedPrompt("", roundTurns))),
+                    onPartial = onPartial,
+                    isActive = live,
+                )
+            }
+        } else {
+            val modelFile = LocalLlmStore.selectedModelFile(context.filesDir, choice.localModelId)
+                ?: throw IOException(context.getString(com.wasimaster.wmkeyboard.ime.R.string.ime_ai_chat_error_no_model))
+            ask = { system, roundTurns, onPartial ->
+                LocalLlmEngine.generate(
+                    context = context,
+                    modelFile = modelFile,
+                    backend = current.ai.localBackend,
+                    contextTokens = current.ai.localContextTokens,
+                    system = system,
+                    user = AiClient.foldedPrompt("", roundTurns),
+                    onPartial = onPartial,
+                )
+            }
+        }
         val question = turns.lastOrNull { it.role == AiClient.ChatRole.USER }?.text.orEmpty()
         val hits = tools.lookup(question).take(LOCAL_HINTS)
         val system = buildString {
@@ -460,17 +502,7 @@ internal object SettingsAssistantSession {
             onPartial = { partial -> if (live()) _partial.value = AiThinking.stripped(partial) },
             isActive = live,
         ) { roundSystem, roundTurns, _, roundPartial ->
-            AiClient.Completion(
-                LocalLlmEngine.generate(
-                    context = context,
-                    modelFile = modelFile,
-                    backend = current.ai.localBackend,
-                    contextTokens = current.ai.localContextTokens,
-                    system = roundSystem,
-                    user = AiClient.foldedPrompt("", roundTurns),
-                    onPartial = roundPartial,
-                ),
-            )
+            AiClient.Completion(ask(roundSystem, roundTurns, roundPartial))
         }
         val answer = AiThinking.stripped(completion.text)
         val pointed = SettingRefs.LINK_SCHEME in answer ||

@@ -155,7 +155,7 @@ For a question a settings row can't answer, such as which dictionary files Chine
 
 For a short list of common settings it can also propose a change: autocorrect, suggestions, automatic capitals, the automatic space after punctuation and after a picked suggestion, glide typing, two-thumb typing, the number row, key vibration, key sound, typing speed on the spacebar and the long-press delay. A proposal is a card in the conversation with the setting's current and proposed value, and nothing changes until you press **Apply**. Apply checks the saved setting again first, and if it has changed since the proposal was made, it refuses and asks you to ask again. If the setting can't be saved, the card says so and keeps its **Apply**. Each proposal applies once. **Undo** on an applied card puts the old value back, unless you have changed the setting by hand in the meantime, in which case it leaves your change alone. Anything else it can only open, for you to change yourself.
 
-It runs on any model the [AI chat](#picking-the-model) can use: a cloud or self-hosted provider you have set up under AI, or an on-device model you have downloaded. The one answering is shown under the title; tap it to pick another, or to set up a new provider. Like the chat's model chips, that choice is the assistant's alone and leaves the keyboard's own provider as it is, and it lasts until the app is closed. Until you pick, it prefers the keyboard's own provider when that is a cloud or self-hosted one, then the first of those, and only then an on-device model, since a cloud model calls the assistant's tools far more dependably.
+It runs on any model the [AI chat](#picking-the-model) can use: a cloud or self-hosted provider you have set up under AI, an on-device model you have downloaded, or [Gemini Nano](#gemini-nano-on-this-phone) where the phone has it. The one answering is shown under the title; tap it to pick another, or to set up a new provider. Like the chat's model chips, that choice is the assistant's alone and leaves the keyboard's own provider as it is, and it lasts until the app is closed. Until you pick, it prefers the keyboard's own provider when that is a cloud or self-hosted one, then the first of those, and only then an on-device model, since a cloud model calls the assistant's tools far more dependably.
 
 On an on-device model the assistant searches the settings for your question itself before the model starts, so the model has the matching rows in front of it even if it never asks for a search, and it skips the documentation search. If its answer still names no setting, the closest match is shown as a card anyway. Answers are slower than on a cloud model, since each one is worked out on the phone, but nothing leaves it.
 
@@ -270,6 +270,24 @@ Two things worth knowing about that row:
 
 Your pick is remembered for next time, and each conversation also remembers the last model that answered in it.
 
+## Gemini Nano on this phone
+
+<Flavor edition="google" />
+
+Some phones come with Gemini Nano, Google's small model, kept by Android's own AICore service. On those, the app's chat and the [Settings assistant](#the-settings-assistant) offer one more chip, **Gemini Nano (on this phone)**, at the end of the row. Nothing has to be set up or downloaded by the keyboard, and you don't need a key. The chip only appears where AICore says the phone has the model or can fetch it, which is the case on some recent Pixels and Galaxy flagships, such as the Pixel 10 and Galaxy S26 series. Google keeps the list and it changes with AICore's updates, so the app goes by AICore's answer rather than by the phone's name, asking each time the screen opens.
+
+It answers only in the app, never on the keyboard. AICore runs Gemini Nano for an app only while that app is in front, and turns down every other request. The keyboard always sits over another app, so AICore would refuse every answer there; the keyboard's chat, its AI actions, the suggestions in the strip, AI replies and tidied dictation don't offer it at all. Leave the chat while an answer is still coming in and AICore may refuse the rest; the chat then says why, and **Retry** asks again once you are back.
+
+The first time you send to it, AICore may still have to download the model. The answer bubble shows the download's progress until it is done, and the download is AICore's, so it stays on the phone for other apps too.
+
+What it can do is smaller than an on-device model you download:
+
+- **No tools and no pictures.** It can't look things up, use the keyboard's tools or read a picture you send. Pictures and files reach it only as their marks in the message. [Memory](#memory) does go with it, as with any model on the phone.
+- **A short window.** A request has to fit in about 4,000 tokens, roughly 3,000 English words. The chat sends the conversation again with every message and leaves out the oldest turns once it doesn't fit, so in a long chat it forgets the start.
+- **Android limits how much it answers.** AICore keeps a quota per app. When it says it is busy, the chat waits as long as AICore asks and tries again, up to three times. When the longer, daily quota runs out, the chat says so and you can try later or pick another model.
+
+Gemini Nano is not offered in the F-Droid build, which carries none of Google's libraries, nor in the [offline build](/privacy/offline/#the-offline-build). It needs Android 8 or later.
+
 ## Sending, stopping, retrying
 
 Type in the box and hit send. The app's message box is laid out like the keyboard's: what you write at the top, with the **Reasoning** switch, **+** and send along its bottom edge. While the answer streams, the send button becomes **Stop**.
@@ -351,6 +369,7 @@ Deleting a conversation from the list removes it for good. There's no undo, whic
 Exactly what the AI tool sends, and only when you hit send:
 
 - **An on-device model** sends nothing. The whole conversation stays on the phone.
+- **Gemini Nano** runs on the phone too: the conversation goes to Android's AICore service, which answers on the device. Using it comes under Google's terms for AICore and Gemini Nano, and AICore, not this app, decides when to download or update the model. See [Gemini Nano on this phone](#gemini-nano-on-this-phone).
 - **Any other provider** gets the conversation so far, because that's what makes a reply follow on from the last one. Your saved [AI memory](/tools/ai-memory/) goes with it only if you've turned on **Use with cloud models**. Pictures you sent go with your newest message, to a provider that takes them. That includes any field text you attached with the paperclip, and only the text you attached: the keyboard's chat never reads the field on its own. A fixed instruction rides along with it: answer in plain text, and keep it as short as the question allows. Your API keys stay on the device.
 - **Deep research and Summarize** also go to the web. Deep research sends the searches its plan made to your [search provider](/tools/search/), then fetches each page it reads straight from its site, and the pages' text goes to your AI provider with your question. Summarize fetches the links in your message the same way. Nothing goes to a page but an ordinary request for it.
 - **The assistant's menu** reads the screen's text only when Android sends it, and keeps it on the phone until you send a message that carries it. Its **Ask by voice** hears with your voice typing engine, which keeps the audio on the phone or sends it where that engine sends it.

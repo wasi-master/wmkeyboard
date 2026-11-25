@@ -17,7 +17,15 @@
      libOpenCL.so the same way. A phone without one fails that load, and
      LlamaNative loads a CPU build instead.
 -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- ML Kit's GenAI AARs (Gemini Nano through AICore) say minSdk 26 and
+         this module says 24. GeminiNano checks the version before it calls
+         them, so on Android 7 they are only never used. Here as well as in
+         :app's own manifest so the unit-test manifests of the modules above
+         this one merge too. -->
+    <uses-sdk tools:overrideLibrary="com.google.mlkit.genai.prompt,com.google.mlkit.genai.common" />
 
     <application>
         <uses-native-library

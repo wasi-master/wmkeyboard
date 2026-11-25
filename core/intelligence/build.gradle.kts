@@ -153,6 +153,11 @@ dependencies {
     // on Play none of the libraries below that used to bring it along are in
     // the base any more.
     if (googleSdks) implementation(libs.mlkit.common)
+    // Gemini Nano through Android AICore (GeminiNano.kt): only a client
+    // that binds AICore's service, so it is in the base on every channel
+    // with Google's SDKs. Its AARs say minSdk 26; the manifest overrides
+    // that and GeminiNano checks the version before calling in.
+    if (googleSdks) implementation(libs.mlkit.genai.prompt)
     // InkPackImports serves imported handwriting packs to ML Kit's own OkHttp
     // client, so it speaks OkHttp's interceptor API.
     implementation(libs.okhttp)

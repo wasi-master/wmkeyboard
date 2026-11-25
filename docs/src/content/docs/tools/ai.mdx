@@ -323,6 +323,12 @@ With **NPU** selected, **Download** on a row with a build for your chip fetches 
 
 A **Context size** row sets how much text the model is loaded with, prompt and answer together, in tokens. It defaults to the model's own value, or 4,096 tokens for a GGUF model, whose own value is often far more than a phone can hold. This is the only length lever on-device. Unlike a cloud API there's no per-response ceiling to set, so the window is what bounds an answer. A larger window costs memory, and changing it reloads the model.
 
+### Gemini Nano, in the app only
+
+<Flavor edition="google" />
+
+On a phone whose Android AICore service has Gemini Nano (recent Pixels and Galaxy flagships, among others), the app's [AI chat](/tools/ai-chat/#gemini-nano-on-this-phone) and Settings assistant offer it as one more model, with nothing to download or set up. It is not a provider on this list and the keyboard never uses it: AICore answers an app only while that app is in front, and the keyboard always runs over another app. So the panel's actions, the chat on the keyboard, suggestions in the strip, AI replies and tidied dictation keep to the providers here.
+
 ## Your own actions
 
 <SettingsPath path="Tools / AI writing tools / Actions on the panel" />
@@ -706,6 +712,7 @@ Ollama had never been sent a limit at all before this. It gets one now, and **Pr
 The panel itself sends nothing until you actually tap an action chip: opening the tool, or typing in the field behind it, sends nothing anywhere on its own.
 
 - **On-device**: the text you run an action on never leaves the phone. Response length is bounded by the local model's own context window instead of a server-side limit.
+- **Gemini Nano**, in the app's chat and Settings assistant only: the conversation goes to Android's AICore service, which answers on the phone, under Google's terms for AICore.
 - **Privatemode**: the text is encrypted on your phone before it's sent, or by your own proxy. See [Privatemode](#privatemode) for what the phone does and doesn't check.
 - **Any other provider** (cloud or self-hosted): the text you run an action on is sent to that provider, only at the moment you tap the action. API keys and server addresses are stored on the device, not in any WM Keyboard service. See [Privacy at a glance](/privacy/overview/) for how this fits the keyboard's broader per-tool approach to anything that leaves the device.
 - **AI suggestions, when [Suggestions in the strip](#suggestions-in-the-strip) is on**: every time you stop typing after a word, the last 120 characters before the cursor (or the number you set, or only the last word) go to the same provider, with no tap. Never from a password field, a field that turns suggestions off, or incognito. Off by default, and an on-device model keeps it on the phone.
