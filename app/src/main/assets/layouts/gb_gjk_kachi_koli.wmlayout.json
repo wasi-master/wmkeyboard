@@ -621,12 +621,18 @@
               ]
             },
             {
-              "label": "{",
-              "output": "}"
+              "label": "<",
+              "output": ">",
+              "longPress": [
+                "≥"
+              ]
             },
             {
-              "label": "}",
-              "output": "{"
+              "label": ">",
+              "output": "<",
+              "longPress": [
+                "≤"
+              ]
             },
             {
               "label": "\\"
@@ -662,11 +668,17 @@
             },
             {
               "label": "[",
-              "output": "]"
+              "output": "]",
+              "longPress": [
+                "}"
+              ]
             },
             {
               "label": "]",
-              "output": "["
+              "output": "[",
+              "longPress": [
+                "{"
+              ]
             },
             {
               "label": "⌫",

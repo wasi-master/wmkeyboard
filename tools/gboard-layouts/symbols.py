@@ -16,7 +16,11 @@ layers:
 - Gboard's =\\< and ?123 keys flip between the two pages;
 - its two bottom rows give way to the house symbols bottom row
   (ABC , 🌐 space . ⏎), which the keyboard rearranges by the user's settings;
-- a key's long-press data is kept, its separate long-press labels are not.
+- a key's long-press data is kept, its separate long-press labels are not;
+- Gboard keeps < and > on its second page's bottom row, which the house row
+  replaces, so they take the second page's { and } keys instead, and { and }
+  move to the holds of [ and ] (#1560): the page the =\\< key opens has to
+  carry them.
 
 Where several of Gboard's keyboards produce the file's variant for the same
 language with different pages, the commonest rendering wins.
@@ -181,7 +185,44 @@ def house_page(rows, second):
         if keys:
             out.append(keys)
     out.append(HOUSE_BOTTOM)
-    return {"rows": out}
+    page = {"rows": out}
+    if second:
+        angle_brackets(page)
+    return page
+
+
+def angle_brackets(page):
+    """[page] with < and > on its { and } keys when it shows neither (#1560).
+
+    The braces stay one hold away: on [ and ] when the page has them, on the
+    new < and > when it does not. A right-to-left page draws { and types }
+    (and the like) so the field shows it the right way round; the swap keeps
+    that pairing. Returns whether anything changed.
+    """
+    keys = [k for row in page["rows"] for k in row]
+    shown = {k.get("output") or k.get("label") for k in keys}
+    if "<" in shown and ">" in shown:
+        return False
+    by_label = {k.get("label"): k for k in keys}
+    if "{" not in by_label or "}" not in by_label:
+        return False
+    angle = {"{": "<", "}": ">"}
+    compare = {"<": "≤", ">": "≥"}
+    for brace, square in (("{", "["), ("}", "]")):
+        key = by_label[brace]
+        typed = key.get("output") or brace
+        new_typed = angle[typed]
+        held = [v for v in key.get("longPress") or [] if v not in ("<", ">", "≤", "≥", typed)]
+        key["label"] = angle[brace]
+        if key.get("output"):
+            key["output"] = new_typed
+        home = by_label.get(square)
+        if home is not None:
+            key["longPress"] = [compare[new_typed]] + held
+            home["longPress"] = [typed] + [v for v in home.get("longPress") or [] if v != typed]
+        else:
+            key["longPress"] = [compare[new_typed], typed] + held
+    return True
 
 
 def render(entry):

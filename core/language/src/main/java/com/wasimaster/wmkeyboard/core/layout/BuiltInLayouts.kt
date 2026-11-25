@@ -1453,7 +1453,10 @@ private val symbolsShiftedRows = listOf(
     listOf(
         Key("৳"), Key("€"), Key("£", longPress = listOf("₺")), Key("¥"), Key("₹"),
         Key("^", longPress = listOf("↑", "↓", "←", "→")), Key("°", longPress = listOf("′", "″")),
-        Key("{"), Key("}"), Key("\\"),
+        // The key that opens this page is labelled =\<, so < and > are on it
+        // (#1560), not only at the end of the first page's ( and ) holds.
+        // { and } stay a hold away on [ and ] below, and on ( and ).
+        Key("<", longPress = listOf("≤")), Key(">", longPress = listOf("≥")), Key("\\"),
         // Dead-key accents: tap one, then a letter, and the pair fuses (´ then
         // e → é). The label shows the accent on a dotted circle; the output is
         // the bare combining mark, which is what marks a key as a dead key.

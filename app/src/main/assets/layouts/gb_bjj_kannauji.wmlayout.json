@@ -792,14 +792,16 @@
               ]
             },
             {
-              "label": "{",
+              "label": "<",
               "longPress": [
+                "≤",
                 "("
               ]
             },
             {
-              "label": "}",
+              "label": ">",
               "longPress": [
+                "≥",
                 ")"
               ]
             },
@@ -835,10 +837,16 @@
               "label": "✓"
             },
             {
-              "label": "["
+              "label": "[",
+              "longPress": [
+                "{"
+              ]
             },
             {
-              "label": "]"
+              "label": "]",
+              "longPress": [
+                "}"
+              ]
             },
             {
               "label": "⌫",
