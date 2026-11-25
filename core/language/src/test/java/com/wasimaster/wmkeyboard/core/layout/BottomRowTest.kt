@@ -100,16 +100,51 @@ class BottomRowTest {
     }
 
     @Test
-    fun `a layer laid out by hand is left alone by every rule`() {
+    fun `a layer laid out by hand is left alone by every rule but the hidden globe`() {
         val layout = builtIn(laidOut = true)
         val every = BottomRowRules(
-            hideGlobe = true,
             globeInOnePlace = true,
             swapCommaAndGlobe = true,
             globeAsEmoji = true,
             commaAsEmoji = true,
         )
         val arranged = layout.arrangedBy(every)
+        assertSame(layout, arranged.layout)
+        assertTrue(arranged.applied.isEmpty())
+    }
+
+    /** A 12-key pad's columns are the layout, so the hidden 🌐 key's seat stays and opens emoji (Telegram 11205). */
+    @Test
+    fun `a laid-out row's hidden globe becomes the emoji key in its own seat`() {
+        val layout = builtIn(laidOut = true)
+        val arranged = layout.arrangedBy(BottomRowRules(hideGlobe = true, globeInOnePlace = true, swapCommaAndGlobe = true))
+        val row = arranged.bottom()
+        assertEquals(
+            listOf(KeyAction.Symbols, KeyAction.Text, KeyAction.Emoji, KeyAction.Space, KeyAction.Text, KeyAction.Enter),
+            row.map { it.action },
+        )
+        assertEquals(layout.rows.last().map { it.width }, row.map { it.width })
+        assertEquals(setOf(BottomRowRule.HIDE_GLOBE), arranged.applied)
+        assertEquals(2, arranged.sourceColumn(1, 2))
+        assertTrue("the emoji key", arranged.rewritten(1, 2))
+        assertFalse("the spacebar", arranged.rewritten(1, 3))
+        assertSame("the letters", layout.rows.first(), arranged.layout.rows.first())
+    }
+
+    @Test
+    fun `a laid-out row with its own emoji key gets a comma in the globe's seat`() {
+        val emoji = Key("☺", action = KeyAction.Emoji)
+        val layout = grid(symbols, emoji, globe, space, period, enter, laidOut = true)
+        val row = layout.arrangedBy(BottomRowRules(hideGlobe = true)).bottom()
+        assertEquals(KeyRole.Comma, row[2].role)
+        assertEquals(",", row[2].label)
+        assertEquals(1, row.count { it.action == KeyAction.Emoji })
+    }
+
+    @Test
+    fun `a laid-out row with no globe is left alone`() {
+        val layout = grid(symbols, comma, space, period, enter, laidOut = true)
+        val arranged = layout.arrangedBy(BottomRowRules(hideGlobe = true))
         assertSame(layout, arranged.layout)
         assertTrue(arranged.applied.isEmpty())
     }

@@ -328,7 +328,7 @@
     <string name="layout_globe_in_one_place_info">Some layouts put the 🌐 key in a different place, for example at the far left, or directly after the ?123 key. This moves it to the place the built-in layouts use, so your thumb finds it in the same place in every language. The keys to its left get wider or narrower to make room, and the spacebar changes to fit. A layout where that would make keys too small is left as it is, and so is a second layout you open from a key. Turn this off to see every layout as its author made it.</string>
     <string name="layout_swap_comma_globe_info">The two keys on each side of the spacebar change places. If one of them is an emoji key, it moves to the outer position and the comma stays next to the spacebar. Turn this off to get the usual order.</string>
     <!-- 🌐 is the globe key that changes the language. Keep the emoji. -->
-    <string name="layout_show_globe_title">Show the 🌐 key</string>
+    <string name="layout_show_globe_title">Show the 🌐 language key</string>
     <string name="layout_show_globe_subtitle">Turn off to give its space to the spacebar</string>
     <!-- "Emoji key instead of 🌐" is the name of the setting under this one, and
          "Language" is the name of a spacebar swipe action. Translate them the

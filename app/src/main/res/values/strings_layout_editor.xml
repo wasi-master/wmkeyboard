@@ -674,7 +674,7 @@
          Translate it the same way. A list of setting names follows the caption. -->
     <string name="layout_editor_bottom_row_caption">The keyboard shows the bottom row of this layer differently, because of these Bottom row keys settings. The grid above shows the row as the keyboard does:</string>
     <!-- A setting name, then its state. For example: "Show the 🌐 key: off". -->
-    <string name="layout_editor_bottom_row_setting_off"><xliff:g id="setting" example="Show the 🌐 key">%1$s</xliff:g>: off</string>
+    <string name="layout_editor_bottom_row_setting_off"><xliff:g id="setting" example="Show the 🌐 language key">%1$s</xliff:g>: off</string>
     <string name="layout_editor_bottom_row_laid_out_title">Keep this bottom row as it is here</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Moving or changing a key that the settings changed turns this on</string>
     <string name="layout_editor_bottom_row_laid_out_on_subtitle">The Bottom row keys settings do not change this layer</string>

@@ -119,11 +119,13 @@ private const val FRESH_SEAT = -1
  * swap, already leaves the comma after the key, so the swap is not run on a
  * row it has placed; swapping again would undo it. The emoji keys come last, because they are found by what the keys were.
  *
- * A grid with [KeyboardLayout.bottomRowAsLaidOut] set comes back untouched.
+ * A grid with [KeyboardLayout.bottomRowAsLaidOut] set comes back untouched,
+ * but for [BottomRowRules.hideGlobe]: see [laidOutWithoutGlobe].
  */
 fun KeyboardLayout.arrangedBy(rules: BottomRowRules): ArrangedGrid {
     val untouched = ArrangedGrid(this, this, rows.map { it.indices.toList() }, emptySet())
-    if (bottomRowAsLaidOut || rows.isEmpty()) return untouched
+    if (rows.isEmpty()) return untouched
+    if (bottomRowAsLaidOut) return if (rules.hideGlobe) laidOutWithoutGlobe(untouched) else untouched
     val applied = mutableSetOf<BottomRowRule>()
     var seats = rows.map { row -> row.mapIndexed { i, key -> Seat(key, i) } }
     val lastRow = seats.lastIndex
@@ -210,6 +212,40 @@ fun KeyboardLayout.arrangedBy(rules: BottomRowRules): ArrangedGrid {
 }
 
 /**
+ * A laid-out grid ([KeyboardLayout.bottomRowAsLaidOut]) with "Show the 🌐 language key"
+ * off: the 🌐 key on its bottom row turns into the emoji key in its own seat,
+ * at its own width, the way Gboard and iOS fill that seat when there is no
+ * language to switch to. Taking it out instead would slide the keys after it
+ * out of their columns, and on a 12-key pad (the Japanese flick pad, Telegram
+ * 11205) the columns are the layout. Every other key stays as laid out.
+ *
+ * A row with an emoji key of its own gets a comma there instead, and one with
+ * both keeps the emoji key twice rather than move anything.
+ */
+private fun KeyboardLayout.laidOutWithoutGlobe(untouched: ArrangedGrid): ArrangedGrid {
+    val lastRow = rows.lastIndex
+    val bottom = rows[lastRow]
+    if (bottom.none { it.action == KeyAction.LanguageSwitch }) return untouched
+    val hasEmoji = bottom.any { it.action == KeyAction.Emoji }
+    val hasComma = bottom.any { it.roleIn(lastRow, lastRow) == KeyRole.Comma }
+    val asComma = hasEmoji && !hasComma
+    val row = bottom.map { key ->
+        when {
+            key.action != KeyAction.LanguageSwitch -> key
+            asComma -> PresetComma.copy(width = key.width, rowSpan = key.rowSpan)
+            else -> key.asEmojiKey()
+        }
+    }
+    return ArrangedGrid(
+        layout = copy(rows = rows.dropLast(1) + listOf(row)),
+        source = this,
+        columns = rows.map { it.indices.toList() },
+        applied = setOf(BottomRowRule.HIDE_GLOBE),
+        ownEmojiKey = !asComma,
+    )
+}
+
+/**
  * The bottom row [preset] draws in place of the authored one, built from the
  * authored keys wherever the row has them, or null when the row is not one a
  * preset can stand in for (competitor gap list item 15).
@@ -263,7 +299,7 @@ private fun seatsForPreset(rows: List<List<Seat>>, preset: BottomRowPreset): Lis
         // The 🌐 key is seated whether or not the layout drew one, the way
         // the iPhone row does: the row promises "?123 ☺ , 🌐 ␣ . ⏎", and a
         // layout without one lost its only language key to it (Telegram
-        // 10139/10165). "Show the 🌐 key" off still takes it away, after this.
+        // 10139/10165). "Show the 🌐 language key" off still takes it away, after this.
         BottomRowPreset.WITH_EMOJI -> listOf(
             symbols to 1.5f,
             (emoji ?: Seat(PresetEmoji, FRESH_SEAT)) to 1f,
