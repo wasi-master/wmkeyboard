@@ -582,6 +582,15 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
         }
         item {
             ToggleSetting(
+                R.string.voice_send_after_title,
+                stringResource(R.string.voice_send_after_subtitle),
+                settings.watch { it.voiceBar.sendAfter },
+                info = stringResource(R.string.voice_send_after_info),
+                default = SettingsDefaults.voiceBar.sendAfter,
+            ) { scope.launch { repository.setVoiceSendAfter(it) } }
+        }
+        item {
+            ToggleSetting(
                 R.string.voice_mask_swearing_title,
                 stringResource(R.string.voice_mask_swearing_subtitle),
                 settings.watch { it.voiceBar.maskSwearing },

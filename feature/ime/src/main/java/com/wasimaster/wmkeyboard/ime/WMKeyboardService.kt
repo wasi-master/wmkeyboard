@@ -21536,6 +21536,8 @@ open class WMKeyboardService : InputMethodService() {
         }
         if (action != null) {
             ic.performEditorAction(action)
+            // Sent by hand: a dictation ending later owes no second Send.
+            voiceSendArmed = false
             // The action is the app's to answer, and a message box answers it by
             // emptying itself. Neither the cached caret nor the words the
             // pattern gate remembers survive that, and an app that empties the
@@ -40259,7 +40261,11 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     private fun openVoiceSession() {
+        // The next phrase of the same dictation keeps the Send it is owed
+        // ([voiceSendArmed]); a start after an error owes none.
+        val armed = voiceSendArmed && _uiState.value.voice.status != VoiceStatus.ERROR
         cancelVoice()
+        voiceSendArmed = armed
         // The last gate for every way in (#578): with voice typing switched
         // off the microphone never opens, whatever surface asked.
         if (!_uiState.value.settings.voiceBar.enabled) return
@@ -40277,6 +40283,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         val tag = voiceTagOf(languageIds.first())
         fun fail(status: VoiceStatus, message: String? = null) {
+            voiceSendArmed = false
             _uiState.update {
                 it.copy(
                     voice = it.voice.copy(
@@ -40523,6 +40530,7 @@ open class WMKeyboardService : InputMethodService() {
                     voiceGeneration++
                     micBlockWatcher.stop()
                     val landed = commitVoiceUtterance(text, tag)
+                    if (landed != null) voiceSendArmed = true
                     voiceSilentRetries = 0
                     tidyVoiceThen(landed) { afterVoiceFinal() }
                 }
@@ -40533,7 +40541,7 @@ open class WMKeyboardService : InputMethodService() {
                     // field the way a final result goes, with the microphone
                     // left open for the next. [voiceSegmented] keeps the
                     // rewrites that hold the next phrase back out of these.
-                    commitVoiceUtterance(text, tag)
+                    if (commitVoiceUtterance(text, tag) != null) voiceSendArmed = true
                     voiceSilentRetries = 0
                     // The next phrase's listening time, for the statistics.
                     voiceListenStartedAt = SystemClock.uptimeMillis()
@@ -40573,6 +40581,7 @@ open class WMKeyboardService : InputMethodService() {
                                 ),
                             )
                         }
+                        sendAfterVoice()
                         settleVoiceToolEnding()
                     }
                 }
@@ -40623,6 +40632,13 @@ open class WMKeyboardService : InputMethodService() {
                                 partial = "", level = 0f, lastResort = lastResort,
                             ),
                         )
+                    }
+                    // Nothing heard after the last phrase is how a continuous
+                    // dictation usually ends; an error sends nothing.
+                    if (status == VoiceStatus.IDLE) {
+                        sendAfterVoice()
+                    } else {
+                        voiceSendArmed = false
                     }
                     // Nothing heard after the tool's stop is still a finished
                     // session; a real error keeps the surface up to say so.
@@ -41501,6 +41517,7 @@ open class WMKeyboardService : InputMethodService() {
             voiceResumeAfterClip = false
             typeVoiceKeysAfterClip()
             _uiState.update { it.copy(voice = it.voice.copy(status = VoiceStatus.IDLE, level = 0f, clipHeard = false)) }
+            sendAfterVoice()
             settleVoiceToolEnding()
             return
         }
@@ -42074,12 +42091,14 @@ open class WMKeyboardService : InputMethodService() {
             } else {
                 dropCarriedMic()
                 _uiState.update { it.copy(voice = it.voice.copy(status = VoiceStatus.IDLE, partial = "", level = 0f)) }
+                sendAfterVoice()
                 settleVoiceToolEnding()
             }
             return
         }
         voiceSilentRetries = 0
         val landed = commitVoiceUtterance(text, tag, symbolsSettled)
+        if (landed != null) voiceSendArmed = true
         onLanded?.invoke(landed)
         tidyVoiceThen(landed) {
             typeVoiceKeysAfterClip()
@@ -42118,8 +42137,39 @@ open class WMKeyboardService : InputMethodService() {
                     voice = it.voice.copy(status = VoiceStatus.IDLE, partial = "", level = 0f, canUndo = !voiceSessionForField),
                 )
             }
+            sendAfterVoice()
             settleVoiceToolEnding()
         }
+    }
+
+    /**
+     * Whether a phrase of the dictation running now went into the app's field,
+     * so its end owes the field a Send when [VoiceBarSettings.sendAfter] is on.
+     * Kept across the phrases of a continuous dictation, so the Send still
+     * comes when the last thing heard is silence; dropped by an abandoned or
+     * failed session.
+     */
+    private var voiceSendArmed = false
+
+    /**
+     * A dictation came to rest with words in the field: with "Send after
+     * dictating" on (Telegram 13471), press the field's Send for them, the
+     * action the Enter key would fire. Only where that action is Send, so a
+     * search box, a form or a note is never submitted by surprise.
+     */
+    private fun sendAfterVoice() {
+        val armed = voiceSendArmed
+        voiceSendArmed = false
+        if (!armed || voiceSessionForField || !_uiState.value.settings.voiceBar.sendAfter) return
+        val ic = currentInputConnection ?: return
+        val action = appEnterAction ?: currentInputEditorInfo.editorActionId()
+        if (action != EditorInfo.IME_ACTION_SEND) return
+        ic.performEditorAction(action)
+        // The box empties itself, as after a Send pressed by hand: nothing
+        // remembered about its text holds, and there is no phrase to undo.
+        invalidateExpectedSelection()
+        invalidateRecentWords()
+        _uiState.update { it.copy(voice = it.voice.copy(canUndo = false)) }
     }
 
     /**
@@ -42703,8 +42753,9 @@ open class WMKeyboardService : InputMethodService() {
         val voice = _uiState.value.voice
         // Replaces the partial, which is the composing region, before the
         // cancel below would settle that as it stands.
-        commitVoiceUtterance(voice.partial, voice.languageTag)
+        val armed = commitVoiceUtterance(voice.partial, voice.languageTag) != null || voiceSendArmed
         cancelVoice()
+        voiceSendArmed = armed
         voiceRailKeyInFlight = true
         try {
             onKey(key)
@@ -42803,6 +42854,8 @@ open class WMKeyboardService : InputMethodService() {
         val status = _uiState.value.voice.status
         // Bumping first invalidates any in-flight Whisper transcription.
         voiceGeneration++
+        // An abandoned dictation sends nothing ([sendAfterVoice]).
+        voiceSendArmed = false
         // An abandoned session has no landing for the tool's stop to wait on.
         voiceToolEnding = false
         // Nor do keys that were waiting to go in after a clip's words: the

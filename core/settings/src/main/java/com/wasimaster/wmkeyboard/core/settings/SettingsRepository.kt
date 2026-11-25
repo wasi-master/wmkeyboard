@@ -7379,6 +7379,13 @@ data class VoiceBarSettings(
      */
     val pauseMedia: Boolean = false,
     /**
+     * When a dictation ends with words put in, press the field's Send action
+     * for them (Telegram 13471): only in a field whose Enter key is Send, the
+     * way a chat box declares it, never in the keyboard's own boxes. Off by
+     * default, since a message sent by itself cannot be taken back.
+     */
+    val sendAfter: Boolean = false,
+    /**
      * A sound of the user's own when the microphone opens (#1260): the
      * content address of a sound picked in Android's sound picker, or empty
      * for none, the default. Played once a session, not between the phrases
@@ -14352,6 +14359,7 @@ class SettingsRepository(private val context: Context) {
         private val VOICE_SYSTEM_INPUT = booleanPreferencesKey("voice_system_input")
         private val VOICE_RESUME_ON_SHOW = booleanPreferencesKey("voice_resume_on_show")
         private val VOICE_PAUSE_MEDIA = booleanPreferencesKey("voice_pause_media")
+        private val VOICE_SEND_AFTER = booleanPreferencesKey("voice_send_after")
         private val VOICE_START_SOUND = stringPreferencesKey("voice_start_sound")
         private val VOICE_STRIP_LANGUAGE_CHIP = booleanPreferencesKey("voice_strip_language_chip")
         private val VOICE_MIC = stringPreferencesKey("voice_mic")
@@ -17267,6 +17275,7 @@ class SettingsRepository(private val context: Context) {
             systemInput = p[VOICE_SYSTEM_INPUT] ?: defaults.voiceBar.systemInput,
             resumeOnShow = p[VOICE_RESUME_ON_SHOW] ?: defaults.voiceBar.resumeOnShow,
             pauseMedia = p[VOICE_PAUSE_MEDIA] ?: defaults.voiceBar.pauseMedia,
+            sendAfter = p[VOICE_SEND_AFTER] ?: defaults.voiceBar.sendAfter,
             startSound = p[VOICE_START_SOUND] ?: defaults.voiceBar.startSound,
             stripLanguageChip = p[VOICE_STRIP_LANGUAGE_CHIP] ?: defaults.voiceBar.stripLanguageChip,
             mic = p[VOICE_MIC]?.takeIf { it in VoiceBarSettings.MICS } ?: defaults.voiceBar.mic,
@@ -19260,6 +19269,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setVoicePauseMedia(value: Boolean) =
         editPrefs { it[VOICE_PAUSE_MEDIA] = value }
+
+    /** [VoiceBarSettings.sendAfter]. */
+    suspend fun setVoiceSendAfter(value: Boolean) =
+        editPrefs { it[VOICE_SEND_AFTER] = value }
 
     /** [VoiceBarSettings.startSound]; empty for none. */
     suspend fun setVoiceStartSound(value: String) =

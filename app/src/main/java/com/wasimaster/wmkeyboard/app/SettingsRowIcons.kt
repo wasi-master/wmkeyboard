@@ -1873,6 +1873,7 @@ internal object SettingsRowIcons {
         put(R.string.voice_system_on_device_title) { Icons.Outlined.Memory }
         put(R.string.voice_engine_languages_title) { Icons.Outlined.Translate }
         put(R.string.voice_ai_tidy_title) { Icons.Outlined.AutoAwesome }
+        put(R.string.voice_send_after_title) { Icons.AutoMirrored.Outlined.Send }
         put(R.string.voice_mask_swearing_title) { Icons.Outlined.VisibilityOff }
         put(R.string.voice_suppress_symbols_title) { Icons.Outlined.Block }
         put(R.string.voice_continuous_title) { Icons.Outlined.MicNone }
