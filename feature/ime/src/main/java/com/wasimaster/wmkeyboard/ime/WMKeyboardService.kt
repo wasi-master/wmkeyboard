@@ -64326,9 +64326,19 @@ open class WMKeyboardService : InputMethodService() {
         panelFocus.keyGrid.alternatesOpen ||
             ((
                 state.panel != PanelMode.NONE || state.voice.strip || state.toolText.snippetAsk != null ||
-                    state.toolText.clipWrite != null || backLeavesLayer(state)
+                    state.toolText.clipWrite != null || backLeavesLayer(state) || boxHasTheKeys(state)
                 ) &&
                 topLayerDismissal(state, fromBack = true) != null)
+
+    /**
+     * The floating box's text box has the keys (#1155): a note being written
+     * in the box, with no panel of the keyboard's open. Back then closes the
+     * box's editor first, as it does for the same tool in the keyboard;
+     * before, nothing claimed it there, so Back only put the keyboard away
+     * and left the note open behind it (Telegram, floating Notes and To-do).
+     */
+    private fun boxHasTheKeys(state: KeyboardUiState): Boolean =
+        state.panel == PanelMode.NONE && state.appletPanel != null && state.captureTarget() != null
 
     /**
      * Back on ?123 or Fn goes to the letters (#1352), with the switch on. Only
