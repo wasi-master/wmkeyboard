@@ -23,6 +23,7 @@ internal data class AssetName(
     val flavor: String,
     val abi: String,
     val languages: String = ReleaseAssets.LANGUAGES_EN,
+    val onyxPen: Boolean = false,
 )
 
 /** An update this device could actually install, with everything needed to do it. */
@@ -78,7 +79,7 @@ internal object ReleaseAssets {
      * which is also why the x86_64 APKs older releases carried no longer parse.
      */
     private val ASSET = Regex(
-        """^wmkeyboard-(.+?)-vc(\d+)-(full|lite)(?:-(intl|en))?-(arm64-v8a|armeabi-v7a|universal)\.apk$""",
+        """^wmkeyboard-(.+?)-vc(\d+)-(full|lite)(?:-(intl|en))?(-boox)?-(arm64-v8a|armeabi-v7a|universal)\.apk$""",
     )
 
     private val SHA256 = Regex("""^[0-9a-f]{64}$""")
@@ -105,9 +106,9 @@ internal object ReleaseAssets {
     /** What [name] says about itself, or null when it is not one of our APKs. */
     fun parseAssetName(name: String): AssetName? {
         val match = ASSET.matchEntire(name) ?: return null
-        val (versionName, versionCode, flavor, languages, abi) = match.destructured
+        val (versionName, versionCode, flavor, languages, boox, abi) = match.destructured
         val code = versionCode.toIntOrNull() ?: return null
-        return AssetName(versionName, code, flavor, abi, languages.ifEmpty { LANGUAGES_EN })
+        return AssetName(versionName, code, flavor, abi, languages.ifEmpty { LANGUAGES_EN }, boox.isNotEmpty())
     }
 
     /** What a dex metadata name says about itself, or null when it is not one of ours. */
@@ -129,6 +130,8 @@ internal object ReleaseAssets {
      */
     fun dexMetadataName(apkAssetName: String, sdkInt: Int): String? {
         val apk = parseAssetName(apkAssetName) ?: return null
+        // The BOOX release publishes no standard dex metadata of its own.
+        if (apk.onyxPen) return null
         val api = DEX_METADATA_MIN_APIS.firstOrNull { sdkInt >= it } ?: return null
         return "wmkeyboard-${apk.versionName}-vc${apk.versionCode}-${apk.flavor}-${apk.languages}-api$api.dm"
     }
@@ -157,16 +160,19 @@ internal object ReleaseAssets {
      *
      * [flavor] is the edition token, [STANDARD_FLAVOR] for this app, and
      * [languages] the `languages` flavour (`BuildConfig.FLAVOR`, the only dimension).
+     * [onyxPen] selects the BOOX update track. BOOX and standard APKs never
+     * substitute for one another: without its own match, either says Up to date.
      */
     fun pickAsset(
         release: GithubRelease,
         flavor: String,
         supportedAbis: List<String>,
         languages: String = LANGUAGES_EN,
+        onyxPen: Boolean = false,
     ): GithubAsset? {
         fun matching(wantFlavor: String, wantLanguages: String) = release.assets.mapNotNull { asset ->
             parseAssetName(asset.name)
-                ?.takeIf { it.flavor == wantFlavor && it.languages == wantLanguages }
+                ?.takeIf { it.flavor == wantFlavor && it.languages == wantLanguages && it.onyxPen == onyxPen }
                 ?.let { it to asset }
         }
         // From 0.6.3 there is no lite build on GitHub: a lite install moves
@@ -205,12 +211,13 @@ internal object ReleaseAssets {
         includePrereleases: Boolean,
         languages: String = LANGUAGES_EN,
         allowSameVersion: Boolean = false,
+        onyxPen: Boolean = false,
     ): UpdateCandidate? = releases
         .asSequence()
         .filterNot { it.draft }
         .filter { includePrereleases || !it.prerelease }
         .mapNotNull { release ->
-            val asset = pickAsset(release, flavor, supportedAbis, languages) ?: return@mapNotNull null
+            val asset = pickAsset(release, flavor, supportedAbis, languages, onyxPen) ?: return@mapNotNull null
             val parsed = parseAssetName(asset.name) ?: return@mapNotNull null
             UpdateCandidate(
                 versionCode = parsed.versionCode,

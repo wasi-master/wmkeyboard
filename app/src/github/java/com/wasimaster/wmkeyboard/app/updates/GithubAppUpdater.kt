@@ -28,11 +28,6 @@ import kotlinx.coroutines.flow.StateFlow
  */
 @Composable
 internal fun rememberAppUpdater(): AppUpdater {
-    // The release's ordinary APK must never replace the BOOX build and take its
-    // raw ink away. Until the asset picker understands the BOOX variant, this
-    // build updates manually from the same GitHub release page.
-    if (BuildConfig.ENABLE_ONYX_PEN) return NoAppUpdater
-
     val context = LocalContext.current
     val activity = context.findActivity()
     val updater = remember(context) { GithubAppUpdater(context.applicationContext) }
@@ -112,9 +107,10 @@ internal class GithubAppUpdater(
     override val switchingToAllLanguages: StateFlow<Boolean> = GithubUpdateManager.switching
 
     // The standard build too: on Android 7 to 10 it cannot load a language
-    // pack, and the release carries the all-languages build again.
+    // pack, and the release carries the all-languages build again. BOOX has no
+    // all-languages build; it takes language packs like the English base.
     override val canSwitchToAllLanguages: Boolean =
-        BuildConfig.FLAVOR == ReleaseAssets.LANGUAGES_EN
+        !BuildConfig.ENABLE_ONYX_PEN && BuildConfig.FLAVOR == ReleaseAssets.LANGUAGES_EN
 
     override val sourceNameRes: Int = R.string.update_source_github
 

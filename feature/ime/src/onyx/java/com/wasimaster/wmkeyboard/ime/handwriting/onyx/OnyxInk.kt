@@ -318,7 +318,7 @@ internal class OnyxRawInkView(context: Context) : View(context) {
     private fun isInactive(): Boolean = disposed || lifecycleSuspended || failureReported
 
     private fun canEnableRawDrawing(): Boolean {
-        if (isInactive() || clearPending || inputState.fallbackStylusActive) return false
+        if (isInactive() || clearPending) return false
         return isAttachedToWindow && windowVisibility == VISIBLE && width > 0 && height > 0
     }
 
@@ -360,7 +360,6 @@ internal class OnyxRawInkView(context: Context) : View(context) {
                 return
             }
             rawEnabled = true
-            inputState.rawCaptureActive = true
         }
     }
 
@@ -372,7 +371,6 @@ internal class OnyxRawInkView(context: Context) : View(context) {
             helper?.setRawDrawingEnabled(false)
         }
         rawEnabled = false
-        inputState.rawCaptureActive = false
     }
 
     private fun closeHelper() {
@@ -383,7 +381,6 @@ internal class OnyxRawInkView(context: Context) : View(context) {
         runCatching { helper?.closeRawDrawing() }
         helper = null
         rawEnabled = false
-        inputState.rawCaptureActive = false
     }
 
     private fun flushAndClearHardwareInk() {

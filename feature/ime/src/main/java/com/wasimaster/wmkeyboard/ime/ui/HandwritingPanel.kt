@@ -465,15 +465,12 @@ internal fun WritingCanvas(
                     val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
                     val isStylus = down.type == PointerType.Stylus
                     if (isStylus) onyxInput.lastStylusUptimeMs = down.uptimeMillis
-                    // Raw input owns the stylus while available. Consuming it
-                    // here as well would recognize every stroke twice.
-                    if (isStylus && onyxRequestedState.value && onyxInput.rawCaptureActive) {
-                        return@awaitEachGesture
-                    }
+                    // Raw input owns the stylus whenever requested. Consuming
+                    // it here as well would recognize every stroke twice.
+                    if (isStylus && onyxRequestedState.value) return@awaitEachGesture
                     val rejectFinger = !isStylus &&
                         (stylusOnly || down.uptimeMillis - onyxInput.lastStylusUptimeMs < STYLUS_PRIORITY_MS)
                     if (rejectFinger) return@awaitEachGesture
-                    if (isStylus) onyxInput.fallbackStylusActive = true
                     hwControls.onStrokeStart()
                     down.consume()
                     val points = ArrayList<HwPoint>()
@@ -500,7 +497,6 @@ internal fun WritingCanvas(
                         // the recognizer a two-point stroke so it registers.
                         points.add(points.first().copy(t = points.first().t + 1))
                     }
-                    if (isStylus) onyxInput.fallbackStylusActive = false
                     onStroke(HwStroke(points.toList()), canvasSize)
                     activeStroke = emptyList()
                 }

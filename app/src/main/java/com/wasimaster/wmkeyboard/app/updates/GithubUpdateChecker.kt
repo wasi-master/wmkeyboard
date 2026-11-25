@@ -74,6 +74,7 @@ internal class GithubUpdateChecker(
         onEtag: (String?) -> Unit,
         languages: String = ReleaseAssets.LANGUAGES_EN,
         allowSameVersion: Boolean = false,
+        onyxPen: Boolean = false,
     ): CheckOutcome {
         val sent = UpdateCheckGate.etagToSend(storedEtag, cache.exists())
         val body = when (val result = fetcher.fetch(sent)) {
@@ -94,7 +95,7 @@ internal class GithubUpdateChecker(
         }
         return decide(
             body, installedVersionCode, flavor, supportedAbis, includePrereleases,
-            languages, allowSameVersion,
+            languages, allowSameVersion, onyxPen,
         )
     }
 
@@ -110,9 +111,10 @@ internal class GithubUpdateChecker(
         supportedAbis: List<String>,
         includePrereleases: Boolean,
         languages: String = ReleaseAssets.LANGUAGES_EN,
+        onyxPen: Boolean = false,
     ): CheckOutcome {
         val body = cache.read() ?: return CheckOutcome.Failed
-        return decide(body, installedVersionCode, flavor, supportedAbis, includePrereleases, languages, false)
+        return decide(body, installedVersionCode, flavor, supportedAbis, includePrereleases, languages, false, onyxPen)
     }
 
     @Suppress("LongParameterList")
@@ -124,6 +126,7 @@ internal class GithubUpdateChecker(
         includePrereleases: Boolean,
         languages: String,
         allowSameVersion: Boolean,
+        onyxPen: Boolean,
     ): CheckOutcome {
         // A body that will not decode is not a reason to keep answering from
         // it forever, so it goes.
@@ -139,6 +142,7 @@ internal class GithubUpdateChecker(
             includePrereleases = includePrereleases,
             languages = languages,
             allowSameVersion = allowSameVersion,
+            onyxPen = onyxPen,
         )
         return if (candidate == null) CheckOutcome.UpToDate else CheckOutcome.Available(candidate)
     }

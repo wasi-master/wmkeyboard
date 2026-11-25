@@ -68,8 +68,8 @@ cat <<EOF
 > [!WARNING]
 > **This is a pre-release**, a test version of the next release for people who
 > want the new things early and are happy to report what breaks. It is not on
-> Google Play or F-Droid. The standard GitHub build updates itself to later
-> pre-releases and to the finished release when **Settings › About › Updates ›
+> Google Play or F-Droid. GitHub builds update themselves to later pre-releases
+> and to the finished release when **Settings › About › Updates ›
 > Include pre-releases** is on. Report problems on
 > [GitHub](https://github.com/${repo}/issues) or in the Telegram group's beta
 > testing topic.
@@ -225,9 +225,9 @@ on another device can be imported instead
 EOF
 fi
 
-# The BOOX build, from the `boox` job. It is a separate update variant: the
-# ordinary updater must never select it, and the BOOX build updates by hand so
-# an ordinary APK cannot silently take its raw ink away.
+# The BOOX build, from the optional `boox` job. It is a separate update track:
+# the ordinary updater never selects it, and the BOOX updater selects only this
+# asset so an ordinary APK cannot silently take raw ink away.
 boox="${prefix}-full-en-boox-arm64-v8a.apk"
 if [ -f "$dist/$boox" ]; then
 cat <<EOF
@@ -242,8 +242,8 @@ to the ordinary renderer.
 
 This APK has the same package name and signing key as the other GitHub builds,
 so installing it by hand over another one preserves your settings. Its in-app
-updater is disabled to keep a standard APK from replacing it and removing BOOX
-ink: come back to this page for later BOOX versions.
+updater offers later releases that carry a BOOX APK. It never installs a
+standard build, and the standard updater never installs this one.
 
 | | arm64-v8a |
 |:---|:---|

@@ -14,10 +14,8 @@ internal data class OnyxChromeRegions(
     val fullScreenButton: Boolean = false,
 )
 
-/** Directly readable at gesture boundaries; changing input ownership is not a UI update. */
+/** Shared with raw callbacks and Compose gestures at gesture boundaries. */
 internal class OnyxInputState {
-    var rawCaptureActive = false
-    var fallbackStylusActive = false
     var lastStylusUptimeMs = 0L
 }
 

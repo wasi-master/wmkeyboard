@@ -45,7 +45,7 @@ flavor drive all of it, so nothing here needs a branch or a patched source tree.
 | OpenCV (the built-in document scanner) | committed prebuilt library, pinned and downloaded on demand | compiled from source by the recipe | the same prebuilt library, in the on-demand `:feature:docscan` module |
 | MNN (the sticker generator) and its NPU runner | committed prebuilt libraries, pinned and downloaded on demand | MNN compiled from source by the recipe; no NPU runner | the same prebuilt libraries, in the on-demand `:feature:imagegen` module |
 | Whistle, Tesseract (Whistle dictation, the scanner's offline reader) | committed prebuilt libraries, pinned and downloaded on demand | Tesseract absent; Whistle's prebuilt library deleted by the recipe, pinned from `native/gates.json` and fetched after the opt-in | the same prebuilt libraries, in the on-demand `:feature:speech` (Whistle, arm64 only) and `:feature:ocr` (Tesseract) modules |
-| In-app updates | standard GitHub releases, downloads and installs; BOOX updates manually from the release page | checks F-Droid, links out | Play In-App Updates |
+| In-app updates | GitHub releases, downloads and installs; the BOOX track takes only later BOOX APKs | checks F-Droid, links out | Play In-App Updates |
 | Native libraries in the APK | uncompressed and page-aligned | uncompressed and page-aligned | uncompressed and page-aligned; Play compresses the download itself |
 | Bundled layouts | JSON compacted at build time | same | same |
 
@@ -184,20 +184,23 @@ update. Every other input matches the `apks` job, so R8 should rename each the
 same way as its regular build; the publish job attaches a mapping only when the
 two differ, and warns when they do.
 
-The `boox` job builds the standard online English configuration with
+The optional `boox` job builds the standard online English configuration with
 `wmkb.enableOnyxPen=true`, the only release job that sets it. Its signed
 `full-en-boox-arm64-v8a.apk` contains the proprietary Onyx Pen SDK and its raw
 ink backend; ordinary, Play and F-Droid jobs still neither register the BOOX
 repository nor resolve the SDK. BOOX keeps native delivery and the download
 layout pack, so the job collects the libraries its APK pins. It takes the
 standard English build's stable resource IDs as an input, since Onyx's SDK adds
-resources, and `pack-ids` verifies that BOOX and offline IDs both match before
-language packs ship beside them. Content-addressed native assets shared with
-another build upload only once. The `-boox-` asset suffix keeps the ordinary
-updater from selecting it. The BOOX build disables its own updater and takes
-later versions manually
-from the release page, so an ordinary APK cannot replace it and remove raw ink.
-It has no standard dex-metadata asset and has no all-languages switch.
+resources. The BOOX job checks that every standard ID stays unchanged while
+allowing its own dependencies' additional IDs; `pack-ids` still requires the
+offline IDs to match exactly, so language packs cannot load the wrong strings.
+The job is `continue-on-error`: a failure in the BOOX repository, build or checks
+leaves the BOOX APK out of the release instead of blocking every other build.
+Content-addressed native assets shared with another build upload only once. The
+`-boox-` asset suffix puts BOOX on its own updater track: the ordinary updater
+never selects it, and the BOOX updater takes only releases carrying a BOOX APK
+rather than replacing it with a standard build and removing raw ink. It has no
+standard dex-metadata asset and has no all-languages switch.
 
 The release also carries the files you need to read a crash report from those
 APKs. The `*-mapping.txt.gz` files are the R8 mappings: `full-en` for the

@@ -719,10 +719,18 @@ jobs:
   # backend. Its project-wide flag needs a separate Gradle invocation and
   # runner, just like no-internet. The BOOX repository and proprietary SDK are
   # confined to this job; no other release job sets wmkb.enableOnyxPen.
+  #
+  # The BOOX APK is an optional release asset: a failure in its repository,
+  # build or checks leaves it out of the release instead of holding back every
+  # other build. `ready` is what tells the publish job whether artifacts exist;
+  # job-level continue-on-error alone would also report failed builds as usable.
   boox:
     name: BOOX APK
     needs: [verify, apks]
     if: needs.verify.outputs.buildable == 'true'
+    continue-on-error: true
+    outputs:
+      ready: ${{ steps.collect.outcome }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -738,12 +746,13 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       # Onyx's SDK adds resources. Seed aapt2 with the standard English IDs so
-      # the interface language packs cut against that build fit this one too;
-      # pack-ids still compares the resulting file before anything is published.
+      # the interface language packs cut against that build fit this one too.
+      # Keep the input: `collect` verifies that every standard ID survived,
+      # while allowing the new IDs Onyx and EasyPermissions add at the end.
       - uses: actions/download-artifact@v8
         with:
           name: resource-ids-standard
-          path: build
+          path: standard-ids
 
       - name: Restore keystore
         env:
@@ -756,6 +765,7 @@ jobs:
           echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
 
       - name: Build the BOOX APK
+        id: build
         env:
           RELEASE_STORE_FILE: release.keystore
           RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
@@ -779,7 +789,7 @@ jobs:
           WMKB_SMARTTHINGS_CLIENT_SECRET: ${{ secrets.WMKB_SMARTTHINGS_CLIENT_SECRET }}
         run: |
           ./gradlew assembleEnRelease -Pwmkb.enableOnyxPen=true \
-            "-Pwmkb.stableResourceIds=$PWD/build/resource-ids.txt" \
+            "-Pwmkb.stableResourceIds=$PWD/standard-ids/resource-ids.txt" \
             -Pkotlin.daemon.jvmargs=-Xmx4g --stacktrace
 
       - name: Wipe keystore
@@ -790,10 +800,12 @@ jobs:
       # backend was exercised on. The other splits stay in build outputs rather
       # than becoming advertised artifacts without device coverage.
       #
-      # `-boox-` keeps ReleaseAssets' anchored standard-build pattern from
-      # offering this APK as an update for ordinary installations. The BOOX
-      # build itself updates manually for the same channel-separation reason.
+      # `-boox-` keeps ordinary installations on the standard update track.
+      # BOOX installations select this asset, and never fall back to a standard
+      # APK when a release leaves this optional job out.
       - name: Collect and check
+        id: collect
+        if: steps.build.outcome == 'success'
         run: |
           version=$(grep '^wmkb.versionName=' gradle.properties | cut -d= -f2)
           code=$(grep '^wmkb.versionCode=' gradle.properties | cut -d= -f2)
@@ -817,6 +829,17 @@ jobs:
           [ -f "$ids" ] || { echo "::error::No BOOX resource IDs at $ids"; exit 1; }
           cp "$ids" build/resource-ids.txt
 
+          # Byte-for-byte equality cannot hold here: Onyx and EasyPermissions
+          # append their own resources. Equality matters only for the IDs the
+          # language packs name, all of which must still match the standard set.
+          missing=$(comm -23 <(sort standard-ids/resource-ids.txt) <(sort build/resource-ids.txt))
+          if [ -n "$missing" ]; then
+            echo "::error::The BOOX build changed or dropped standard resource IDs, so this release's language packs would not fit it"
+            printf '%s\n' "$missing" | head -40
+            exit 1
+          fi
+          echo "All $(wc -l < standard-ids/resource-ids.txt) standard resource IDs match; BOOX adds $(($(wc -l < build/resource-ids.txt) - $(wc -l < standard-ids/resource-ids.txt))) dependency IDs"
+
           # Its native pins must have published files too. Identical standard
           # and BOOX libraries hash to the same data-repository asset, so the
           # publish step deduplicates them without assuming the pins match.
@@ -824,33 +847,36 @@ jobs:
           ls -l dist
 
       - uses: actions/upload-artifact@v7
+        if: steps.collect.outcome == 'success'
         with:
           name: boox-apks
           path: dist/
           retention-days: 30
 
       - uses: actions/upload-artifact@v7
+        if: steps.collect.outcome == 'success'
         with:
           name: natives-boox
           path: natives/
           retention-days: 30
 
       - uses: actions/upload-artifact@v7
+        if: steps.collect.outcome == 'success'
         with:
           name: resource-ids-boox
           path: build/resource-ids.txt
           retention-days: 30
 
   # The language packs are cut from the `apks` job's all-languages build,
-  # compiled with the standard English build's resource IDs. The offline and
-  # BOOX English builds are separate compiles on other runners, so they take
-  # the same packs only if aapt2 gave them the same IDs. Checked for both,
-  # rather than assumed, in dry runs too: a mismatch would load every pack's
-  # strings under the wrong names. BOOX also takes the standard IDs as its aapt2
-  # input because Onyx's dependencies add resources.
+  # compiled with the standard English build's resource IDs. The offline
+  # English build is a separate compile on another runner, so it takes the
+  # same packs only if aapt2 gave it the same IDs. Checked here rather than
+  # assumed, in dry runs too, because a mismatch would load every pack's
+  # strings under the wrong names. BOOX makes its own inclusion check above,
+  # since its SDK adds IDs and byte-for-byte equality cannot hold there.
   pack-ids:
-    name: Language packs fit the offline and BOOX builds
-    needs: [apks, offline, boox]
+    name: Language packs fit the offline build
+    needs: [apks, offline]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v8
@@ -861,19 +887,13 @@ jobs:
         with:
           name: resource-ids-offline
           path: offline
-      - uses: actions/download-artifact@v8
-        with:
-          name: resource-ids-boox
-          path: boox
       - run: |
-          for variant in offline boox; do
-            if ! cmp -s standard/resource-ids.txt "$variant/resource-ids.txt"; then
-              echo "::error::The $variant English build's resource IDs differ from the standard build's, so this release's language packs would not fit it"
-              diff standard/resource-ids.txt "$variant/resource-ids.txt" | head -40
-              exit 1
-            fi
-          done
-          echo "Standard, offline and BOOX resource IDs match ($(wc -l < standard/resource-ids.txt) resources)"
+          if ! cmp -s standard/resource-ids.txt offline/resource-ids.txt; then
+            echo "::error::The offline English build's resource IDs differ from the standard build's, so this release's language packs would not fit it"
+            diff standard/resource-ids.txt offline/resource-ids.txt | head -40
+            exit 1
+          fi
+          echo "Standard and offline resource IDs match ($(wc -l < standard/resource-ids.txt) resources)"
 
   bundle:
     name: Play bundle (artifact only)
@@ -1041,8 +1061,10 @@ jobs:
     # both jobs carry the same `buildable` gate, so nothing that used to
     # publish is held back by waiting for it. `fdroid` because F-Droid fetches
     # its reference APK from this release, and a release without it fails their
-    # build of this version. `offline` and `boox` for their APKs, and
-    # `pack-ids` so they never ship beside language packs that do not fit.
+    # build of this version. `offline` and `pack-ids` so offline never ships
+    # beside language packs that do not fit. `boox` is here so a successful
+    # BOOX build lands before publishing; its continue-on-error makes the APK
+    # optional rather than something `repo.boox.com` can hold the release for.
     needs: [verify, apks, bundle, fdroid, offline, boox, pack-ids]
     if: github.ref_type == 'tag' && !inputs.dry_run
     runs-on: ubuntu-latest
@@ -1077,6 +1099,9 @@ jobs:
           path: dist
 
       - uses: actions/download-artifact@v8
+        # The BOOX job is optional. No artifact is expected when it did not
+        # build, and its own resource-ID and native checks did not pass.
+        if: needs.boox.outputs.ready == 'success'
         with:
           name: boox-apks
           path: dist
