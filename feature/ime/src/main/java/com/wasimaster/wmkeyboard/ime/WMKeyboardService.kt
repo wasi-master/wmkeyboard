@@ -12686,8 +12686,9 @@ open class WMKeyboardService : InputMethodService() {
         }
         // Dynamic stickers' parsed templates and art library: tens of
         // megabytes of JSON tree after one scroll of the panel, read again
-        // from the pack files by the next sticker drawn.
-        if (panel != PanelMode.STICKER) com.wasimaster.wmkeyboard.core.stickers.dynamic.DynStickerStore.releaseShared()
+        // from the pack files by the next sticker drawn. Off the main thread:
+        // the store's lock is held through a whole pack import.
+        if (panel != PanelMode.STICKER) releaseDynamicStickers()
         // The Unicode name index: tens of megabytes of character names, built
         // the first time somebody searched the emoji panel for one. Rebuilt by
         // the next such search.
@@ -12743,6 +12744,17 @@ open class WMKeyboardService : InputMethodService() {
             if (_uiState.value.panel != PanelMode.NONE) return@launch
             trimMediaImageMemory()
             com.wasimaster.wmkeyboard.ime.ui.gallery.trimGalleryImageMemory()
+            releaseDynamicStickers()
+        }
+    }
+
+    /**
+     * [com.wasimaster.wmkeyboard.core.stickers.dynamic.DynStickerStore.releaseShared],
+     * on a background thread: the store holds its lock for as long as an
+     * import from the settings app takes, seconds for a big pack.
+     */
+    private fun releaseDynamicStickers() {
+        serviceScope.launch(Dispatchers.Default) {
             com.wasimaster.wmkeyboard.core.stickers.dynamic.DynStickerStore.releaseShared()
         }
     }
