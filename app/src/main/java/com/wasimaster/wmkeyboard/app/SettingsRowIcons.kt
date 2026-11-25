@@ -2390,6 +2390,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_notes_assist_related_title) { Icons.Outlined.Hub }
         put(R.string.tooldetail_notes_assist_decks_title) { Icons.Outlined.School }
         put(R.string.tooldetail_notes_assist_organise_title) { Icons.Outlined.FormatListBulleted }
+        put(R.string.tooldetail_notes_assist_tags_title) { Icons.Outlined.Sell }
         put(R.string.tooldetail_todo_list_title) { Icons.Outlined.Checklist }
 
         // ---- Music, speed test, location ----

@@ -516,6 +516,7 @@ private fun filterChips(notes: NotesPanelUi): List<NotesFilterChip> {
     return buildList {
         add(NotesFilterChip(NotesFilter.All, stringResource(R.string.ime_notes_filter_all), null))
         add(NotesFilterChip(NotesFilter.Pinned, counted(R.string.ime_notes_filter_pinned, notes.counts.pinned), null))
+        if (notes.comingUpOffered) add(NotesFilterChip(NotesFilter.ComingUp, stringResource(R.string.ime_notes_filter_coming_up), null))
         for (tag in notes.tags) add(NotesFilterChip(NotesFilter.Tag(tag.name), tag.name, tag.colour))
         add(NotesFilterChip(NotesFilter.Archived, counted(R.string.ime_notes_filter_archived, notes.counts.archived), null))
         add(NotesFilterChip(NotesFilter.Trash, counted(R.string.ime_notes_filter_trash, notes.counts.trash), null))
@@ -567,15 +568,18 @@ private fun NotesList(state: KeyboardUiState, callbacks: NotesCallbacks, onOpenR
         if (index < chips.size) callbacks.onFilter(chips[index].filter) else onOpenRoute(NOTES_TAGS_ROUTE)
     }
     val timeline = state.settings.notes.panelLayout == NotesPanelLayout.TIMELINE
+    // Coming up (#1540) lists the notes in the order the service gave, soonest first.
+    val comingUp = notes.filter == NotesFilter.ComingUp
     // The shelf keeps pinned notes on their own row while the list is one
     // that mixes them with the rest; under Pinned every note is pinned, and
     // the archive and the trash keep their pins as a memory, so there the
     // grid takes them all.
-    val shelfPinned = !timeline && (notes.filter == NotesFilter.All || notes.filter is NotesFilter.Tag)
+    val shelfPinned = !timeline && !comingUp && (notes.filter == NotesFilter.All || notes.filter is NotesFilter.Tag)
     val sort = state.settings.notes.sort
     val carousel = remember(notes.items, shelfPinned) { if (shelfPinned) notes.items.filter { it.pinned } else emptyList() }
-    val rest = remember(notes.items, carousel, timeline, sort) {
+    val rest = remember(notes.items, carousel, timeline, sort, comingUp) {
         when {
+            comingUp -> notes.items
             timeline -> timelineOrder(notes.items, sort)
             carousel.isEmpty() -> notes.items
             else -> notes.items.filterNot { it.pinned }
@@ -608,7 +612,9 @@ private fun NotesList(state: KeyboardUiState, callbacks: NotesCallbacks, onOpenR
         val now = System.currentTimeMillis()
         val tagColours = remember(notes.tags) { notes.tags.associate { it.name.lowercase() to it.colour } }
         Box(Modifier.weight(1f).fillMaxWidth()) {
-            if (timeline) {
+            if (comingUp) {
+                ComingUpBody(state, notes.passages, rest, focusedRow, now, tagColours, callbacks, onOpenRoute)
+            } else if (timeline) {
                 TimelineBody(state, notes.passages, rest, focusedRow, now, tagColours, callbacks, onOpenRoute)
             } else {
                 ShelfBody(state, notes.passages, carousel, rest, focusedRow, now, tagColours, callbacks, onOpenRoute)
@@ -712,6 +718,9 @@ private fun NotesEmpty(state: KeyboardUiState, callbacks: NotesCallbacks) {
             callbacks.onNew(null)
         }
         NotesFilter.Pinned -> NotesMessage(stringResource(R.string.ime_notes_empty_pinned))
+        NotesFilter.ComingUp -> NotesMessage(
+            stringResource(if (notes.comingUpPending) R.string.ime_notes_coming_up_reading else R.string.ime_notes_empty_coming_up),
+        )
         is NotesFilter.Tag -> NotesMessage(
             stringResource(R.string.ime_notes_empty_tag, filter.name),
             stringResource(R.string.ime_notes_new_tagged_action, filter.name),
@@ -1287,6 +1296,93 @@ private fun TimelineBody(
     }
 }
 
+/**
+ * The Coming up list (#1540): the timeline's rail and rows, with each note
+ * under the day of its soonest reminder rather than the day it was edited,
+ * soonest first, and the time and line of the reminder in the row.
+ */
+@Composable
+private fun ComingUpBody(
+    state: KeyboardUiState,
+    passages: List<NotePassageHit>,
+    rows: List<Note>,
+    focusedRow: Int?,
+    now: Long,
+    tagColours: Map<String, Int>,
+    callbacks: NotesCallbacks,
+    onOpenRoute: (String) -> Unit,
+) {
+    val notes = state.notes
+    val context = LocalContext.current
+    val listState = rememberLazyListState()
+    val lead = passageItemCount(passages).let { if (it > 0) it + 1 else 0 }
+    val p = passages.size
+    ScrollFocusIntoView(focusedRow) { listState.animateScrollToItem(if (it < p) 1 + it else lead + it - p) }
+    val today = remember(now) { dayStart(now) }
+    val days = remember(rows, notes.comingUp) { rows.map { note -> notes.comingUp[note.id]?.let { dayStart(it.startMillis) } ?: today } }
+    LazyColumn(
+        state = listState,
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(
+            start = 12.dp,
+            top = 4.dp,
+            end = 12.dp,
+            bottom = if (notes.undo != null) UndoBarClearance else FabClearance,
+        ),
+    ) {
+        if (passages.isNotEmpty()) {
+            item(key = "passages-label") {
+                ShelfLabel(Icons.Outlined.FormatQuote, stringResource(R.string.ime_notes_passages_section))
+            }
+            items(count = passages.size, key = { passageKey(passages, it) }) { index ->
+                PassageRow(passages[index], index, callbacks, Modifier.padding(top = 6.dp), focused = focusedRow == index)
+            }
+            item(key = "passages-gap") { Spacer(Modifier.height(10.dp)) }
+        }
+        items(count = rows.size, key = { rows[it].id }) { index ->
+            val note = rows[index]
+            val day = days[index]
+            val reminder = notes.comingUp[note.id]
+            val label = if (index == 0 || days[index - 1] != day) comingUpDayLabel(day, today) else null
+            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                TimelineRail(
+                    label = label,
+                    today = day == today,
+                    first = index == 0,
+                    last = index == rows.lastIndex,
+                    modifier = Modifier.width(RailWidth).fillMaxHeight(),
+                )
+                Spacer(Modifier.width(8.dp))
+                TimelineRow(
+                    state = state,
+                    note = note,
+                    now = now,
+                    today = today,
+                    tagColours = tagColours,
+                    index = index,
+                    focused = focusedRow == p + index,
+                    held = notes.held == note.id,
+                    callbacks = callbacks,
+                    onOpenRoute = onOpenRoute,
+                    modifier = Modifier.weight(1f).padding(bottom = 6.dp),
+                    whenOverride = reminder?.takeIf { !it.allDay }?.let {
+                        DateUtils.formatDateTime(context, it.startMillis, DateUtils.FORMAT_SHOW_TIME)
+                    }.orEmpty(),
+                    previewOverride = reminder?.title,
+                )
+            }
+        }
+    }
+}
+
+/** Today and Tomorrow by name, then the date without its year. */
+@Composable
+private fun comingUpDayLabel(day: Long, today: Long): String = when (day) {
+    today -> stringResource(R.string.ime_notes_day_today)
+    dayStart(today + DateUtils.DAY_IN_MILLIS * 3 / 2) -> stringResource(R.string.ime_notes_day_tomorrow)
+    else -> DateUtils.formatDateTime(LocalContext.current, day, DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_ABBREV_MONTH or DateUtils.FORMAT_NO_YEAR)
+}
+
 /** The thin line down the rail, broken by a day's label where a day starts. */
 @Composable
 private fun TimelineRail(label: String?, today: Boolean, first: Boolean, last: Boolean, modifier: Modifier = Modifier) {
@@ -1338,12 +1434,16 @@ private fun TimelineRow(
     callbacks: NotesCallbacks,
     onOpenRoute: (String) -> Unit,
     modifier: Modifier = Modifier,
+    /** In place of when the note was edited: the Coming up list's time (#1540). */
+    whenOverride: String? = null,
+    /** In place of the note's first line: the line its reminder was found on. */
+    previewOverride: String? = null,
 ) {
     val kb = LocalKbTheme.current
     val look = rememberNoteLook(state, note, now, tagColours, previewLines = 1)
     val stamp = timelineStamp(note)
-    val whenText = timelineWhen(LocalContext.current, stamp, now, today)
-    val preview = buildString {
+    val whenText = whenOverride ?: timelineWhen(LocalContext.current, stamp, now, today)
+    val preview = previewOverride ?: buildString {
         look.progress?.let { append(stringResource(R.string.ime_notes_tasks_done_of, it.done, it.total)) }
         if (look.preview.isNotEmpty()) {
             if (isNotEmpty()) append(" · ")

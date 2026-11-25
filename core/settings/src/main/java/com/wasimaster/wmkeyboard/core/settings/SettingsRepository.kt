@@ -14485,6 +14485,7 @@ class SettingsRepository(private val context: Context) {
         private val NOTES_ASSIST_RELATED = booleanPreferencesKey("notes_assist_related")
         private val NOTES_ASSIST_DECKS = booleanPreferencesKey("notes_assist_decks")
         private val NOTES_ASSIST_ORGANISE = booleanPreferencesKey("notes_assist_organise")
+        private val NOTES_ASSIST_TAGS = booleanPreferencesKey("notes_assist_tags")
         private val NOTES_VERSION = intPreferencesKey("notes_version")
         private val DOUBLE_SPACE_WINDOW_MS = intPreferencesKey("double_space_window_ms")
         private val HIDE_COMPOSING_UNDERLINE = booleanPreferencesKey("hide_composing_underline")
@@ -17574,6 +17575,7 @@ class SettingsRepository(private val context: Context) {
                 related = p[NOTES_ASSIST_RELATED] ?: defaults.notes.assist.related,
                 decks = p[NOTES_ASSIST_DECKS] ?: defaults.notes.assist.decks,
                 organise = p[NOTES_ASSIST_ORGANISE] ?: defaults.notes.assist.organise,
+                tags = p[NOTES_ASSIST_TAGS] ?: defaults.notes.assist.tags,
             ),
             version = p[NOTES_VERSION] ?: defaults.notes.version,
         )
@@ -19814,6 +19816,7 @@ class SettingsRepository(private val context: Context) {
             related = p[NOTES_ASSIST_RELATED] ?: defaults.related,
             decks = p[NOTES_ASSIST_DECKS] ?: defaults.decks,
             organise = p[NOTES_ASSIST_ORGANISE] ?: defaults.organise,
+            tags = p[NOTES_ASSIST_TAGS] ?: defaults.tags,
         )
         val new = change(old)
         if (new.enabled != old.enabled) p[NOTES_ASSIST] = new.enabled
@@ -19827,6 +19830,7 @@ class SettingsRepository(private val context: Context) {
         if (new.related != old.related) p[NOTES_ASSIST_RELATED] = new.related
         if (new.decks != old.decks) p[NOTES_ASSIST_DECKS] = new.decks
         if (new.organise != old.organise) p[NOTES_ASSIST_ORGANISE] = new.organise
+        if (new.tags != old.tags) p[NOTES_ASSIST_TAGS] = new.tags
     }
 
     /**

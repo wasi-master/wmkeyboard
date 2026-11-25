@@ -50,6 +50,7 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.core.clipboard.ClipboardStore
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Cake
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Call
@@ -76,6 +77,7 @@ import com.wasimaster.wmkeyboard.core.notes.assist.NoteRelated
 import com.wasimaster.wmkeyboard.core.notes.assist.NoteReminder
 import com.wasimaster.wmkeyboard.core.notes.assist.NoteReminders
 import com.wasimaster.wmkeyboard.core.notes.assist.NoteStudyCards
+import com.wasimaster.wmkeyboard.core.notes.assist.NoteTagSuggestions
 import com.wasimaster.wmkeyboard.core.notes.assist.RelatedHit
 import com.wasimaster.wmkeyboard.core.notes.assist.RelatedKind
 import com.wasimaster.wmkeyboard.core.notes.assist.RelatedSource
@@ -218,6 +220,15 @@ internal fun NotesAssistSettingsGroup(repository: SettingsRepository, settings: 
                     info = stringResource(R.string.tooldetail_notes_assist_organise_info),
                 ) { on -> change { it.copy(organise = on) } }
             }
+            item {
+                ToggleSetting(
+                    R.string.tooldetail_notes_assist_tags_title,
+                    stringResource(R.string.tooldetail_notes_assist_tags_subtitle),
+                    assist.tags,
+                    default = d.tags,
+                    info = stringResource(R.string.tooldetail_notes_assist_tags_info),
+                ) { on -> change { it.copy(tags = on) } }
+            }
         }
     }
     // Off forgets what the model wrote: the answers are copies of the notes.
@@ -241,6 +252,8 @@ private class RuleFindings(
     val reminders: List<NoteReminder> = emptyList(),
     val related: List<RelatedHit> = emptyList(),
     val cards: List<FlashcardImport.Card> = emptyList(),
+    /** Tags offered for the note (#1540). */
+    val tags: List<String> = emptyList(),
 )
 
 /**
@@ -265,6 +278,10 @@ internal fun NoteAssistCard(
     onUseHeading: (String) -> Unit,
     onOpenNote: (Long) -> Unit,
     onNavigate: (String) -> Unit,
+    /** The tags the editor holds for the note now, for the offered ones to leave out (#1540). */
+    tags: List<String> = emptyList(),
+    /** An offered tag tapped: it goes on the note in the editor. */
+    onAddTag: (String) -> Unit = {},
 ) {
     if (!assist.enabled || locked) return
     val context = LocalContext.current
@@ -272,7 +289,7 @@ internal fun NoteAssistCard(
     val cache = remember { NoteAssistCache(NoteAssistCache.fileIn(context.noBackupFilesDir)) }
     val model = remember(ai.localModelId) { noteModel(context, ai.localModelId) }
     // The note as the model and the rules read it: the draft, not the stored copy.
-    val note = Note(id = noteId, body = body, title = title, updatedAt = updatedAt)
+    val note = Note(id = noteId, body = body, title = title, tags = tags, updatedAt = updatedAt)
     var heading by remember(noteId) { mutableStateOf<String?>(null) }
     var summary by remember(noteId) { mutableStateOf<String?>(null) }
     var headingBusy by remember { mutableStateOf(false) }
@@ -280,7 +297,7 @@ internal fun NoteAssistCard(
     var error by remember { mutableStateOf<String?>(null) }
     var deckOpen by remember { mutableStateOf(false) }
 
-    val findings by produceState(RuleFindings(), body, title, assist, state.active) {
+    val findings by produceState(RuleFindings(), body, title, assist, state.active, tags) {
         // The typing settles before the rules run again.
         delay(RULES_DEBOUNCE_MS)
         value = withContext(Dispatchers.Default) { ruleFindings(context, note, assist, state) }
@@ -394,6 +411,20 @@ internal fun NoteAssistCard(
                             leadingIcon = {
                                 Icon(if (reminder.kind == NoteHighlightKind.BIRTHDAY) Icons.Outlined.Cake else Icons.Outlined.Event, contentDescription = null, modifier = Modifier.size(AssistChipDefaults.IconSize))
                             },
+                        )
+                    }
+                }
+            }
+            // Offered, never put on by themselves (#1540): a tap adds the tag in the editor.
+            val offered = findings.tags.filter { name -> tags.none { it.equals(name, ignoreCase = true) } }
+            if (assist.tags && offered.isNotEmpty()) {
+                SectionLabel(stringResource(R.string.notes_assist_tags_label))
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    for (name in offered) {
+                        AssistChip(
+                            onClick = { onAddTag(name) },
+                            label = { Text(name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                            leadingIcon = { Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(AssistChipDefaults.IconSize)) },
                         )
                     }
                 }
@@ -577,6 +608,7 @@ private fun ruleFindings(context: Context, note: Note, assist: NotesAssistSettin
         reminders = if (assist.reminders) NoteReminders.upcoming(found, now, zone) else emptyList(),
         related = related,
         cards = if (assist.decks) NoteStudyCards.fromText(note.body) else emptyList(),
+        tags = if (assist.tags) NoteTagSuggestions.suggest(note, state.active, state.tags.map { it.name }) else emptyList(),
     )
 }
 

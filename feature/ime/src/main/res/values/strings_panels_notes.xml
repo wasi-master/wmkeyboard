@@ -11,6 +11,7 @@
     <string name="ime_notes_new_tagged_action">New note tagged <xliff:g id="tag" example="Work">%1$s</xliff:g></string>
     <string name="ime_notes_filter_all">All</string>
     <string name="ime_notes_filter_pinned">Pinned</string>
+    <string name="ime_notes_filter_coming_up">Coming up</string>
     <string name="ime_notes_filter_archived">Archived</string>
     <string name="ime_notes_filter_trash">Trash</string>
     <!-- A filter chip with how many notes it holds, e.g. "Trash (3)". -->
@@ -30,6 +31,8 @@
     <string name="ime_notes_archived_badge">Archived</string>
     <string name="ime_notes_empty_all">No notes yet. Tap + to write one, or select text anywhere and tap Save as note.</string>
     <string name="ime_notes_empty_pinned">Pin a note to keep it at the top.</string>
+    <string name="ime_notes_empty_coming_up">No note has a deadline, a birthday or a timed plan ahead.</string>
+    <string name="ime_notes_coming_up_reading">Reading your notes for dates…</string>
     <!-- %1$s is a tag name. -->
     <string name="ime_notes_empty_tag">No notes tagged <xliff:g id="tag" example="Work">%1$s</xliff:g>.</string>
     <string name="ime_notes_empty_archived">Archived notes stay out of the way but still turn up in search.</string>
@@ -73,6 +76,7 @@
     <!-- The timeline layout's day labels. -->
     <string name="ime_notes_day_today">Today</string>
     <string name="ime_notes_day_yesterday">Yesterday</string>
+    <string name="ime_notes_day_tomorrow">Tomorrow</string>
     <string name="ime_notes_expand_desc">Make the note taller</string>
     <string name="ime_notes_collapse_desc">Back to keyboard height</string>
     <string name="ime_notes_title_hint">Title</string>
@@ -118,6 +122,7 @@
     <string name="ime_notes_assist_reminders_label">Coming up</string>
     <string name="ime_notes_assist_remind_chip">Remind me: %1$s · %2$s</string>
     <string name="ime_notes_assist_details_label">Key details</string>
+    <string name="ime_notes_assist_tags_label">Suggested tags</string>
     <string name="ime_notes_assist_related_label">Related</string>
     <string name="ime_notes_assist_deck_action">Make a study deck</string>
     <!-- #1453: Organise, the model rewriting a note under headings and lists, shown before it is kept. -->

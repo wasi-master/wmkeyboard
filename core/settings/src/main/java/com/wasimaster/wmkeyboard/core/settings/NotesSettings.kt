@@ -95,7 +95,10 @@ data class NotesAssistSettings(
     val summaryWords: Int = DEFAULT_SUMMARY_WORDS,
     /** Deadlines, dates, amounts, numbers and links picked out of a note (rules). */
     val highlights: Boolean = true,
-    /** "Remind me" for deadlines and birthdays in notes and pinned clips (rules). */
+    /**
+     * "Remind me" for deadlines, birthdays and timed plans in notes and pinned
+     * clips, and the notes list's Coming up chip (#1540) (rules).
+     */
     val reminders: Boolean = true,
     /** Notes and pinned clips that belong with the open note, wherever they are in the list. */
     val related: Boolean = true,
@@ -107,6 +110,12 @@ data class NotesAssistSettings(
      * of notes under [summaryWords] ride on [summaries].
      */
     val organise: Boolean = true,
+    /**
+     * Tags offered for a note (#1540): the user's tags it names, the tags of
+     * notes like it, and its own telling words. Offered as chips, never put
+     * on by themselves (rules).
+     */
+    val tags: Boolean = true,
 ) {
     /** Whether [part] runs: the master switch and its own. */
     fun on(part: Boolean): Boolean = enabled && part

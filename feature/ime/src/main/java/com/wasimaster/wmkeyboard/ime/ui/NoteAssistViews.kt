@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Subject
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Undo
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bolt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Cake
@@ -50,6 +51,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PushPin
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Schedule
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.School
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Sell
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.StickyNote2
 import com.wasimaster.wmkeyboard.core.notes.Note
 import com.wasimaster.wmkeyboard.core.notes.assist.NoteHighlightKind
@@ -128,6 +130,15 @@ internal fun NoteAssistSection(state: KeyboardUiState, note: Note, assist: NoteA
                         icon = if (reminder.kind == NoteHighlightKind.BIRTHDAY) Icons.Outlined.Cake else Icons.Outlined.Event,
                         strong = true,
                     ) { callbacks.onAssistRemind(reminder) }
+                }
+            }
+        }
+        // Offered, never put on by themselves (#1540): a tap puts the tag on the note.
+        val offered = assist.tags.filter { !note.hasTag(it) }
+        if (settings.tags && offered.isNotEmpty()) {
+            AssistRow(Icons.Outlined.Sell, stringResource(R.string.ime_notes_assist_tags_label)) {
+                for (name in offered) {
+                    AssistPill(label = name, icon = Icons.Outlined.Add) { callbacks.onTagToggle(note.id, name, 0) }
                 }
             }
         }

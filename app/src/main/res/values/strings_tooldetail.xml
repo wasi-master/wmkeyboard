@@ -1370,8 +1370,8 @@
     <string name="tooldetail_notes_assist_highlights_subtitle">Deadlines, dates, amounts, numbers and links picked out of a note</string>
     <string name="tooldetail_notes_assist_highlights_info">The assistant picks the deadlines, dates, amounts, numbers and links out of a note and shows them together, so the facts of a long note are quick to find.</string>
     <string name="tooldetail_notes_assist_reminders_title">Reminders</string>
-    <string name="tooldetail_notes_assist_reminders_subtitle">\"Remind me\" for deadlines and birthdays in notes and pinned clips</string>
-    <string name="tooldetail_notes_assist_reminders_info">When a note or a pinned clip holds a deadline or a birthday, the assistant offers a Remind me button for it. A tap sets the reminder.</string>
+    <string name="tooldetail_notes_assist_reminders_subtitle">\"Remind me\" for deadlines, birthdays and timed plans, and the Coming up list</string>
+    <string name="tooldetail_notes_assist_reminders_info">When a note or a pinned clip holds a deadline, a birthday, or a date with a time that is still ahead, the assistant offers a Remind me button for it. A tap sets the reminder. The notes list also gets a Coming up chip, which lists every note with a reminder ahead, soonest first, under the day it falls on.</string>
     <string name="tooldetail_notes_assist_related_title">Related notes and clips</string>
     <string name="tooldetail_notes_assist_related_subtitle">Notes and pinned clips about the same thing, wherever they are in the list</string>
     <string name="tooldetail_notes_assist_related_info">Two notes are related when they share their unusual words, or the same phone number, address or link. With search by meaning on (AI › Search by meaning), notes about the same thing in different words are found too.</string>
@@ -1381,6 +1381,9 @@
     <string name="tooldetail_notes_assist_organise_title">Organise</string>
     <string name="tooldetail_notes_assist_organise_subtitle">Rewrite a note under headings and lists, shown before it is kept</string>
     <string name="tooldetail_notes_assist_organise_info">Organise asks the on-device model to rewrite an open note so it is quick to read: the main point first, related lines under headings, points as lists, tasks as task boxes. The rewrite shows at the top of the note first. Replace the note puts it in place of the text, and Put the old text back undoes that. Keep as a new note saves it beside the old one. A rewrite that leaves part of the note out is not shown. Notes too long for the model to read whole are not offered. The note never leaves the phone.</string>
+    <string name="tooldetail_notes_assist_tags_title">Suggest tags</string>
+    <string name="tooldetail_notes_assist_tags_subtitle">Tags a note might want, offered as chips</string>
+    <string name="tooldetail_notes_assist_tags_info">The assistant offers tags for an open note: your own tags whose words the note uses, the tags on notes about the same thing, and one or two of the note\'s own telling words as new tags. A tag goes on the note only when you tap it. Words for days and months, numbers and short words are never offered.</string>
     <string name="tooldetail_notes_markdown_subtitle">Show headings, lists and checklists formatted in the keyboard and in previews. Off, every note is plain text.</string>
     <string name="tooldetail_notes_panel_start_title">The keyboard panel opens on</string>
     <string name="tooldetail_notes_panel_start_subtitle">What you see when you tap the tool</string>

@@ -23,6 +23,12 @@ import com.wasimaster.wmkeyboard.core.tools.AiMarkdownBlocks
 sealed interface NotesFilter {
     data object All : NotesFilter
     data object Pinned : NotesFilter
+
+    /**
+     * The notes with a reminder ahead, soonest first, under the day each
+     * falls on (#1540). Offered only while the assistant's reminders are on.
+     */
+    data object ComingUp : NotesFilter
     data class Tag(val name: String) : NotesFilter
     data object Archived : NotesFilter
     data object Trash : NotesFilter
@@ -30,7 +36,7 @@ sealed interface NotesFilter {
     /** The store's view of this filter: which shelf, and which tag. */
     val storeFilter: NoteFilter
         get() = when (this) {
-            All, Pinned -> NoteFilter(NoteShelf.ACTIVE)
+            All, Pinned, ComingUp -> NoteFilter(NoteShelf.ACTIVE)
             is Tag -> NoteFilter(NoteShelf.ACTIVE, tag = name)
             Archived -> NoteFilter(NoteShelf.ARCHIVED)
             Trash -> NoteFilter(NoteShelf.TRASH)
@@ -160,6 +166,12 @@ data class NotesPanelUi(
      * its [NoteAssistUi.noteId] is the open note's.
      */
     val assist: NoteAssistUi? = null,
+    /** The Coming up chip is offered: the assistant and its reminders are on (#1540). */
+    val comingUpOffered: Boolean = false,
+    /** Under [NotesFilter.ComingUp], each listed note's soonest reminder, by note id. */
+    val comingUp: Map<Long, com.wasimaster.wmkeyboard.core.notes.assist.NoteReminder> = emptyMap(),
+    /** Under [NotesFilter.ComingUp], some note's dates are still being found. */
+    val comingUpPending: Boolean = false,
 ) {
     /** The open note, as the list currently has it, or null when it is not in view. */
     fun openNote(): Note? = open?.let { id -> items.firstOrNull { it.id == id } }

@@ -21,6 +21,9 @@
     <string name="notes_filter_pinned">Pinned</string>
     <string name="notes_filter_archived">Archived</string>
     <string name="notes_filter_untagged">No tag</string>
+    <string name="notes_filter_coming_up">Coming up</string>
+    <string name="notes_empty_coming_up">No note has a deadline, a birthday or a timed plan ahead.</string>
+    <string name="notes_coming_up_reading">Reading your notes for dates…</string>
     <string name="notes_sort_desc">Sort</string>
     <string name="notes_add_action">New note</string>
     <string name="notes_untitled">Untitled</string>
@@ -174,6 +177,7 @@
     <string name="notes_assist_reminders_label">Coming up</string>
     <string name="notes_assist_remind_chip">Remind me: %1$s · %2$s</string>
     <string name="notes_assist_details_label">Key details</string>
+    <string name="notes_assist_tags_label">Suggested tags</string>
     <string name="notes_assist_related_label">Related notes and pinned clips</string>
     <string name="notes_assist_deck_action">Make a study deck</string>
     <plurals name="notes_assist_deck_action_count">

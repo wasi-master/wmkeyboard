@@ -55243,22 +55243,33 @@ open class WMKeyboardService : InputMethodService() {
             // trash's timer, has nothing left to show.
             val open = notes.open?.takeIf { noteStore.item(it) != null }
             val sort = state.settings.notes.sort
+            // Coming up (#1540) rides on the assistant's reminders; with them off it is All.
+            val assist = state.settings.notes.assist
+            val comingUpOffered = assist.on(assist.reminders)
+            val filter = if (notes.filter == NotesFilter.ComingUp && !comingUpOffered) NotesFilter.All else notes.filter
             val byWords = NotesLogic.visible(
-                noteStore, notes.filter, notes.query, sort, deviceLocked,
+                noteStore, filter, notes.query, sort, deviceLocked,
                 languageTag = _uiState.value.language.localeTag,
             )
+            // Each note's dates are found once per edit, off the main thread
+            // (fillComingUp); until every one is, the list waits.
+            val comingUp = if (filter == NotesFilter.ComingUp) noteComingUp.entries(byWords, System.currentTimeMillis()) else null
             // Then the notes only search by meaning found, from the same shelf.
             val meaningIds = state.meaning.notes.forQuery(notes.query)
-            val items = if (meaningIds.isEmpty()) {
-                byWords
-            } else {
-                MeaningHits.append(byWords, NotesLogic.visible(noteStore, notes.filter, "", sort, deviceLocked), meaningIds) { it.id.toString() }
+            val items = when {
+                filter == NotesFilter.ComingUp -> comingUp?.map { it.note }.orEmpty()
+                meaningIds.isEmpty() -> byWords
+                else -> MeaningHits.append(byWords, NotesLogic.visible(noteStore, filter, "", sort, deviceLocked), meaningIds) { it.id.toString() }
             }
             state.copy(
                 notes = notes.copy(
                     available = userUnlocked,
+                    filter = filter,
+                    comingUpOffered = comingUpOffered,
+                    comingUp = comingUp?.associate { it.note.id to it.reminder }.orEmpty(),
+                    comingUpPending = filter == NotesFilter.ComingUp && comingUp == null,
                     items = items,
-                    passages = NotesLogic.passages(byWords, notes.query),
+                    passages = NotesLogic.passages(if (filter == NotesFilter.ComingUp) items else byWords, notes.query),
                     tags = noteStore.tags(),
                     counts = NotesLogic.counts(noteStore, deviceLocked),
                     open = open,
@@ -55268,7 +55279,26 @@ open class WMKeyboardService : InputMethodService() {
                 clipboardNotes = noteStore.items(com.wasimaster.wmkeyboard.core.notes.NoteFilter(includeLocked = false)).filterNot { it.locked },
             )
         }
+        if (_uiState.value.notes.comingUpPending) fillComingUp()
         syncNoteAssist()
+    }
+
+    /** The Coming up list's dates, per note and per edit (#1540); see [fillComingUp]. */
+    private val noteComingUp = com.wasimaster.wmkeyboard.core.notes.assist.NoteComingUp()
+    private var noteComingUpJob: Job? = null
+
+    /**
+     * Reads the dates of the notes the Coming up list has not seen in their
+     * current version, off the main thread, then lists them. Each note is read
+     * once per edit, so after the first visit only an edited note costs anything.
+     */
+    private fun fillComingUp() {
+        if (noteComingUpJob?.isActive == true) return
+        val notes = noteStore.items(com.wasimaster.wmkeyboard.core.notes.NoteFilter(includeLocked = false)).filterNot { it.locked }
+        noteComingUpJob = serviceScope.launch {
+            withContext(Dispatchers.Default) { noteComingUp.fill(notes, prune = true) }
+            if (_uiState.value.notes.filter == NotesFilter.ComingUp) publishNotes()
+        }
     }
 
     /** The assistant catches up with the note open to read; nothing is made while its switch is off. */
@@ -55922,6 +55952,8 @@ open class WMKeyboardService : InputMethodService() {
 
         override fun readableNotes(): List<Note> =
             noteStore.items(com.wasimaster.wmkeyboard.core.notes.NoteFilter(includeLocked = false)).filterNot { it.locked }
+
+        override fun tagNames(): List<String> = noteStore.tags().map { it.name }
 
         override fun pinnedClips(): List<com.wasimaster.wmkeyboard.core.clipboard.ClipItem> =
             _uiState.value.clipboardItems.filter { it.pinned && !it.sensitive && it.kind.isTextual && it.text.isNotBlank() }

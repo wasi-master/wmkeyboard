@@ -183,8 +183,12 @@ private const val DAY_MS = 24L * 60 * 60 * 1000
 /** The folder an Obsidian export keeps to, so it never writes among the vault's own notes. */
 private const val VAULT_FOLDER = "WM Keyboard"
 
-/** Which notes the list screen shows, besides the tag filter. */
-private enum class NotesView { ALL, PINNED, ARCHIVED, UNTAGGED }
+/**
+ * Which notes the list screen shows, besides the tag filter. [COMING_UP] is
+ * the notes with a reminder ahead, soonest first (#1540), there only while
+ * the assistant's reminders are on.
+ */
+private enum class NotesView { ALL, PINNED, COMING_UP, ARCHIVED, UNTAGGED }
 
 /**
  * Opens [note], asking for the fingerprint first when it is locked and the
@@ -252,10 +256,22 @@ internal fun NotesListScreen(
     // The alarm on a note with a deadline or birthday ahead (#1293).
     val reminderMarks = settings.watch { it.notes.assist.enabled && it.notes.assist.reminders }
     val tagColours = remember(state.tags) { state.tags.associate { it.name.lowercase(Locale.ROOT) to it.colour } }
+    // Coming up (#1540) rides on the assistant's reminders; with them off it is All.
+    val shownView = if (view == NotesView.COMING_UP && !reminderMarks) NotesView.ALL else view
+    // Each note's dates are found once per edit, off the main thread; the
+    // reminders they make are worked out again each time, since they hang on the clock.
+    val comingUpIndex = remember { com.wasimaster.wmkeyboard.core.notes.assist.NoteComingUp() }
+    val comingUp by produceState<List<com.wasimaster.wmkeyboard.core.notes.assist.ComingUpEntry>?>(null, shownView, state.active) {
+        value = if (shownView == NotesView.COMING_UP) {
+            withContext(Dispatchers.Default) { comingUpIndex.entriesNow(state.active, System.currentTimeMillis()) }
+        } else {
+            null
+        }
+    }
 
-    val shown = remember(state.active, state.archived, view, tagFilter, query, sort) {
-        val base = when (view) {
-            NotesView.ALL -> state.active
+    val shown = remember(state.active, state.archived, shownView, tagFilter, query, sort) {
+        val base = when (shownView) {
+            NotesView.ALL, NotesView.COMING_UP -> state.active
             NotesView.PINNED -> state.active.filter { it.pinned }
             NotesView.ARCHIVED -> state.archived
             NotesView.UNTAGGED -> state.active.filter { it.tags.isEmpty() }
@@ -350,8 +366,9 @@ internal fun NotesListScreen(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     for (v in NotesView.entries) {
+                        if (v == NotesView.COMING_UP && !reminderMarks) continue
                         FilterChip(
-                            selected = view == v,
+                            selected = shownView == v,
                             onClick = { view = v },
                             label = { Text(stringResource(v.labelRes())) },
                         )
@@ -408,40 +425,67 @@ internal fun NotesListScreen(
         }
     }
 
-    if (shown.isEmpty()) {
+    val noteRow: @Composable (Note, String?) -> Unit = { note, dueText ->
+        NoteListRow(
+            note = note,
+            tagColours = tagColours,
+            reminderMark = reminderMarks,
+            selecting = selecting,
+            checked = note.id in selected,
+            onClick = {
+                if (selecting) selected = selected.toggle(note.id) else openNote(note)
+            },
+            onLongClick = { selected = selected.toggle(note.id) },
+            onPin = { scope.launch { state.mutate { s -> s.setPinned(note.id, !note.pinned) } } },
+            onArchive = { scope.launch { state.mutate { s -> s.setArchived(note.id, !note.archived) } } },
+            onTrash = {
+                scope.launch { state.mutate { s -> s.trash(note.id) } }
+                snackbar?.undo(
+                    context.resources.getQuantityString(R.plurals.notes_trashed_count_snackbar, 1, 1),
+                    context.getString(CommonR.string.common_undo),
+                ) { scope.launch { state.mutate { s -> s.restore(note.id) } } }
+            },
+            dueText = dueText,
+        )
+    }
+    val upcoming = comingUp
+    if (shownView == NotesView.COMING_UP) {
+        // Soonest first, under the day each falls on (#1540), narrowed by the tag and the search.
+        val ids = remember(shown) { shown.mapTo(HashSet()) { it.id } }
+        val entries = upcoming?.filter { it.note.id in ids }
+        when {
+            entries == null -> CaptionText(stringResource(R.string.notes_coming_up_reading))
+            entries.isEmpty() -> CaptionText(
+                if (query.isNotBlank()) stringResource(R.string.notes_empty_search, query.trim()) else stringResource(R.string.notes_empty_coming_up),
+            )
+            else -> {
+                val zone = java.util.TimeZone.getDefault()
+                val now = System.currentTimeMillis()
+                val byDay = remember(entries) {
+                    entries.groupBy { com.wasimaster.wmkeyboard.core.notes.assist.NoteReminders.dayStart(it.reminder.startMillis, zone) }
+                }
+                for ((day, dayEntries) in byDay) {
+                    SettingsGroup(comingUpDayTitle(context, day, now, zone)) {
+                        for (entry in dayEntries) {
+                            item(key = entry.note.id) { noteRow(entry.note, comingUpLine(context, entry.reminder)) }
+                        }
+                    }
+                }
+            }
+        }
+    } else if (shown.isEmpty()) {
         CaptionText(
             when {
                 query.isNotBlank() -> stringResource(R.string.notes_empty_search, query.trim())
-                view == NotesView.ARCHIVED -> stringResource(R.string.notes_empty_archived)
-                tagFilter != null || view != NotesView.ALL -> stringResource(R.string.notes_empty_filter)
+                shownView == NotesView.ARCHIVED -> stringResource(R.string.notes_empty_archived)
+                tagFilter != null || shownView != NotesView.ALL -> stringResource(R.string.notes_empty_filter)
                 else -> stringResource(R.string.notes_empty)
             },
         )
     } else {
         SettingsGroup {
             for (note in shown) {
-                item(key = note.id) {
-                    NoteListRow(
-                        note = note,
-                        tagColours = tagColours,
-                        reminderMark = reminderMarks,
-                        selecting = selecting,
-                        checked = note.id in selected,
-                        onClick = {
-                            if (selecting) selected = selected.toggle(note.id) else openNote(note)
-                        },
-                        onLongClick = { selected = selected.toggle(note.id) },
-                        onPin = { scope.launch { state.mutate { s -> s.setPinned(note.id, !note.pinned) } } },
-                        onArchive = { scope.launch { state.mutate { s -> s.setArchived(note.id, !note.archived) } } },
-                        onTrash = {
-                            scope.launch { state.mutate { s -> s.trash(note.id) } }
-                            snackbar?.undo(
-                                context.resources.getQuantityString(R.plurals.notes_trashed_count_snackbar, 1, 1),
-                                context.getString(CommonR.string.common_undo),
-                            ) { scope.launch { state.mutate { s -> s.restore(note.id) } } }
-                        },
-                    )
-                }
+                item(key = note.id) { noteRow(note, null) }
             }
         }
     }
@@ -516,9 +560,34 @@ private fun noteComparator(sort: NoteSort): Comparator<Note> {
     }
 }
 
+/** A Coming up day's heading (#1540): Today and Tomorrow by name, then the weekday and date. */
+private fun comingUpDayTitle(context: android.content.Context, day: Long, now: Long, zone: java.util.TimeZone): String {
+    val today = com.wasimaster.wmkeyboard.core.notes.assist.NoteReminders.dayStart(now, zone)
+    val tomorrow = com.wasimaster.wmkeyboard.core.notes.assist.NoteReminders.dayStart(today + DAY_MS + DAY_MS / 2, zone)
+    return if (day == today || day == tomorrow) {
+        android.text.format.DateUtils.getRelativeTimeSpanString(day, today, android.text.format.DateUtils.DAY_IN_MILLIS).toString()
+    } else {
+        android.text.format.DateUtils.formatDateTime(
+            context,
+            day,
+            android.text.format.DateUtils.FORMAT_SHOW_WEEKDAY or android.text.format.DateUtils.FORMAT_ABBREV_WEEKDAY or
+                android.text.format.DateUtils.FORMAT_SHOW_DATE or android.text.format.DateUtils.FORMAT_ABBREV_MONTH,
+        )
+    }
+}
+
+/** Under a Coming up row: the time, when the note gave one, and the line the date is on. */
+private fun comingUpLine(context: android.content.Context, reminder: com.wasimaster.wmkeyboard.core.notes.assist.NoteReminder): String =
+    if (reminder.allDay) {
+        reminder.title
+    } else {
+        android.text.format.DateUtils.formatDateTime(context, reminder.startMillis, android.text.format.DateUtils.FORMAT_SHOW_TIME) + " · " + reminder.title
+    }
+
 private fun NotesView.labelRes(): Int = when (this) {
     NotesView.ALL -> R.string.notes_filter_all
     NotesView.PINNED -> R.string.notes_filter_pinned
+    NotesView.COMING_UP -> R.string.notes_filter_coming_up
     NotesView.ARCHIVED -> R.string.notes_filter_archived
     NotesView.UNTAGGED -> R.string.notes_filter_untagged
 }
@@ -621,6 +690,8 @@ private fun NoteListRow(
     onPin: () -> Unit,
     onArchive: () -> Unit,
     onTrash: () -> Unit,
+    /** Shown in place of when the note was edited: the Coming up list's time and line (#1540). */
+    dueText: String? = null,
 ) {
     val title = note.displayTitle().ifEmpty { stringResource(R.string.notes_untitled) }
     // The same three things the selection bar does to many notes, for one.
@@ -680,9 +751,12 @@ private fun NoteListRow(
                         }
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
                             Text(
-                                relativeTime(note.updatedAt),
+                                dueText ?: relativeTime(note.updatedAt),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = if (dueText != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = if (dueText != null) Modifier.weight(1f, fill = false) else Modifier,
                             )
                             if (note.tags.isNotEmpty()) {
                                 Spacer(Modifier.width(8.dp))

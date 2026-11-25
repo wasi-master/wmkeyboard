@@ -324,6 +324,8 @@ private fun NoteEditorForm(
             onUseHeading = { heading -> title = heading.take(NoteStore.MAX_TITLE_LENGTH) },
             onOpenNote = onOpenNote,
             onNavigate = onNavigate,
+            tags = tags,
+            onAddTag = { name -> if (tags.none { it.equals(name, ignoreCase = true) }) tags = tags + name },
         )
         if (mode == NoteEditorMode.PREVIEW && renderMarkdown) {
             Surface(tonalElevation = 1.dp, shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth()) {

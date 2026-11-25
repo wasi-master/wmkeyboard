@@ -59,6 +59,8 @@ data class NoteAssistUi(
     val organised: String? = null,
     /** The note was replaced by its rewrite here, and the old text can be put back. */
     val restorable: Boolean = false,
+    /** Tags offered for the note (#1540); a tap puts one on, nothing is put on by itself. */
+    val tags: List<String> = emptyList(),
 )
 
 /**
@@ -88,6 +90,9 @@ internal class NoteAssistController(
 
         /** The live notes the assistant may read: no locked or trashed ones. */
         fun readableNotes(): List<Note>
+
+        /** Every tag the user has, by name, for the tags offered (#1540). */
+        fun tagNames(): List<String> = readableNotes().flatMap { it.tags }.distinct()
 
         /** Pinned text clips that are not masked as secrets. */
         fun pinnedClips(): List<ClipItem>
@@ -171,6 +176,7 @@ internal class NoteAssistController(
             reminders = current?.takeIf { it.noteId == note.id }?.reminders.orEmpty(),
             related = current?.takeIf { it.noteId == note.id }?.related.orEmpty(),
             deckCards = current?.takeIf { it.noteId == note.id }?.deckCards ?: 0,
+            tags = current?.takeIf { it.noteId == note.id }?.tags.orEmpty(),
             canSummarise = settings.summaries && NoteAssistRules.readable(note) &&
                 NoteAssistRules.hasWords(note.body, NoteAssistPrompts.MIN_ON_DEMAND_SUMMARY_WORDS),
             canOrganise = settings.organise && NoteAssistRules.canOrganise(note),
@@ -181,7 +187,9 @@ internal class NoteAssistController(
         rulesJob?.cancel()
         rulesJob = scope.launch {
             val worked = withContext(Dispatchers.Default) { rules(note, settings) }
-            update(note.id) { it.copy(highlights = worked.highlights, reminders = worked.reminders, related = worked.related, deckCards = worked.deckCards) }
+            update(note.id) {
+                it.copy(highlights = worked.highlights, reminders = worked.reminders, related = worked.related, deckCards = worked.deckCards, tags = worked.tags)
+            }
             if (settings.related) mergeMeaning(note)
         }
         if (modelReady) runModel(note, settings, force = false)
@@ -192,6 +200,7 @@ internal class NoteAssistController(
         val reminders: List<NoteReminder>,
         val related: List<RelatedHit>,
         val deckCards: Int,
+        val tags: List<String>,
     )
 
     private fun rules(note: Note, settings: NotesAssistSettings): Worked {
@@ -214,6 +223,11 @@ internal class NoteAssistController(
             reminders = if (settings.reminders) NoteReminders.upcoming(found, now, zone) else emptyList(),
             related = related,
             deckCards = if (settings.decks) com.wasimaster.wmkeyboard.core.notes.assist.NoteStudyCards.fromText(note.body).size else 0,
+            tags = if (settings.tags) {
+                com.wasimaster.wmkeyboard.core.notes.assist.NoteTagSuggestions.suggest(note, host.readableNotes(), host.tagNames())
+            } else {
+                emptyList()
+            },
         )
     }
 
