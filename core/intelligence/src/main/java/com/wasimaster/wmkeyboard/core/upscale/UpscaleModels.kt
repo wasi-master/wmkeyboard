@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.upscale
 
 import com.wasimaster.wmkeyboard.core.imagegen.ImageGenModels
+import com.wasimaster.wmkeyboard.core.localllm.NpuSupport
 import java.io.File
 
 /** What a picture is, which decides the network that enlarges it. */
@@ -36,6 +37,15 @@ enum class UpscaleKind {
  *
  * Every file is checked against its SHA-256 before it is used: a network that
  * loads but is not the expected one would draw nonsense rather than fail.
+ *
+ * On a Snapdragon with an NPU the same two networks can run on its Hexagon
+ * tensor processor instead ([NPU_BUILDS]): the same weights, compiled by
+ * Qualcomm's QAIRT for one chip each (tools/qnn-context), run by the sticker
+ * generator's QNN runner. Qualcomm AI Hub publishes no per-chip build of any
+ * upscaler, only chip-independent ones that the phone would have to compile
+ * itself, and its upscalers measured worse than these on photos (Real-ESRGAN
+ * General x4v3 against UpConv7 photo, six photos, 2026-11-26: 24.1 to 29.2 dB
+ * against 24.5 to 34.5 dB, often under plain bicubic).
  */
 object UpscaleModels {
 
@@ -91,6 +101,41 @@ object UpscaleModels {
     /** The network's input and output, as the export names them. */
     const val INPUT = "image"
     const val OUTPUT = "upscaled"
+
+    /**
+     * One network compiled for one Snapdragon's NPU: a QNN context binary
+     * whose graph takes one [NPU_INPUT] square, channels last, float16, and
+     * answers twice its tile. A data repository `models` release asset like
+     * the `.mnn` files.
+     */
+    class NpuBuild(val kind: UpscaleKind, val soc: String, val part: ImageGenModels.Part)
+
+    /**
+     * The pinned NPU builds, from tools/qnn-context's pins.txt. A kind and chip
+     * with no entry here run on the CPU, as everything did before.
+     */
+    val NPU_BUILDS: List<NpuBuild> = listOf(
+        // None published yet: .github/workflows/qnn-context.yml makes them.
+    )
+
+    /** An [NPU_BUILDS] entry: the file name follows from the kind and the chip. */
+    fun npu(kind: UpscaleKind, soc: String, bytes: Long, sha256: String) = NpuBuild(
+        kind,
+        soc,
+        ImageGenModels.Part("sr-waifu2x-upconv7-${kind.name.lowercase()}-${soc.lowercase()}.bin", bytes, sha256),
+    )
+
+    /** [kind]'s NPU build for [soc] (this phone's Snapdragon), or null. */
+    fun npuBuild(kind: UpscaleKind, soc: String? = NpuSupport.qnnSoc): NpuBuild? =
+        soc?.let { s -> NPU_BUILDS.firstOrNull { it.kind == kind && it.soc == s && it.part.sha256.isNotEmpty() } }
+
+    /** The NPU graph's input side: a [TILE] tile and its [CONTEXT] on each side. */
+    const val NPU_INPUT = TILE + 2 * CONTEXT
+
+    fun npuFile(noBackupFilesDir: File, build: NpuBuild): File = File(dir(noBackupFilesDir), build.part.fileName)
+
+    fun isDownloaded(noBackupFilesDir: File, build: NpuBuild): Boolean =
+        npuFile(noBackupFilesDir, build).let { it.isFile && it.length() == build.part.bytes }
 
     /** The factors on offer. */
     val FACTORS = intArrayOf(2, 4)

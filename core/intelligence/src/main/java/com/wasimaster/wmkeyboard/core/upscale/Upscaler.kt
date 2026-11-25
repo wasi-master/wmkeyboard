@@ -6,6 +6,8 @@ import android.graphics.BitmapFactory
 import com.wasimaster.wmkeyboard.core.imagegen.ImageGen
 import com.wasimaster.wmkeyboard.core.imagegen.ImageGenDownloads
 import com.wasimaster.wmkeyboard.core.imagegen.ImageGenEvent
+import com.wasimaster.wmkeyboard.core.localllm.NpuRuntime
+import com.wasimaster.wmkeyboard.core.localllm.NpuSupport
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules.awaitInstalled
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
@@ -50,8 +52,24 @@ object Upscaler {
 
     /** What a first run of [kind] downloads, in bytes, not counting the runtime library. */
     fun downloadBytes(context: Context, kind: UpscaleKind): Long {
+        val noBackup = context.noBackupFilesDir
         val model = UpscaleModels.Model.of(kind)
-        return if (UpscaleModels.isDownloaded(context.noBackupFilesDir, model)) 0L else model.part.bytes
+        val cpu = if (UpscaleModels.isDownloaded(noBackup, model)) 0L else model.part.bytes
+        val npu = npuToFetch(context, kind)?.part?.bytes ?: 0L
+        return cpu + npu
+    }
+
+    /**
+     * [kind]'s NPU build when it should be fetched now: there is one for this
+     * phone's Snapdragon, Qualcomm's runtime is already here (the upscaler
+     * never fetches that on its own), and the build is not on disk yet. The
+     * CPU network is fetched as well, which is what runs if the NPU fails.
+     */
+    private fun npuToFetch(context: Context, kind: UpscaleKind): UpscaleModels.NpuBuild? {
+        val soc = NpuSupport.qnnSoc ?: return null
+        val build = UpscaleModels.npuBuild(kind, soc) ?: return null
+        if (UpscaleModels.isDownloaded(context.noBackupFilesDir, build) || !NpuRuntime.installed(soc)) return null
+        return build
     }
 
     /**
@@ -130,7 +148,7 @@ object Upscaler {
     /** Where pictures wait for the upscaler and come back from it. */
     fun workDir(context: Context): File = File(context.cacheDir, WORK_DIR).apply { mkdirs() }
 
-    /** Fetches the runtime library and [kind]'s network when either is missing. */
+    /** Fetches the runtime library and [kind]'s network when either is missing, and its NPU build where it would run. */
     private suspend fun ensure(context: Context, kind: UpscaleKind, onBytes: suspend (Long, Long) -> Unit) {
         val model = UpscaleModels.Model.of(kind)
         val noBackup = context.noBackupFilesDir
@@ -141,16 +159,23 @@ object Upscaler {
                 onBytes(last.first, last.second)
                 if (!here) throw IOException("the upscaler's runtime could not be installed")
             }
-            if (UpscaleModels.isDownloaded(noBackup, model)) return
-            val target = UpscaleModels.file(noBackup, model)
-            target.parentFile?.mkdirs()
-            val total = model.part.bytes
-            onBytes(0L, total)
-            var written = 0L
-            withContext(Dispatchers.IO) {
-                ImageGenDownloads.fetchVerified(model.part, target, NetSource.DOWNLOAD_UPSCALE) { written = it }
+            val parts = buildList {
+                if (!UpscaleModels.isDownloaded(noBackup, model)) add(model.part to UpscaleModels.file(noBackup, model))
+                npuToFetch(context, kind)?.let { add(it.part to UpscaleModels.npuFile(noBackup, it)) }
             }
-            onBytes(written.coerceAtLeast(total), total)
+            if (parts.isEmpty()) return
+            val total = parts.sumOf { it.first.bytes }
+            var before = 0L
+            onBytes(0L, total)
+            for ((part, target) in parts) {
+                target.parentFile?.mkdirs()
+                var written = 0L
+                withContext(Dispatchers.IO) {
+                    ImageGenDownloads.fetchVerified(part, target, NetSource.DOWNLOAD_UPSCALE) { written = it }
+                }
+                before += written.coerceAtLeast(part.bytes)
+                onBytes(before, total)
+            }
         }
     }
 

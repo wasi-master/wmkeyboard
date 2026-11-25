@@ -1,0 +1,79 @@
+name: Upscaler NPU builds
+
+# Compiles the upscaler's waifu2x networks into QNN context binaries for the
+# Snapdragons the app's NPU runtime covers (tools/qnn-context/build.sh says
+# how). Qualcomm AI Hub publishes no per-chip build of any upscaler, and
+# QAIRT's compiler runs on Linux x86-64 only, so it runs here. Run by hand
+# after changing the networks or the QNN runtime version; upload the .bin
+# files to the data repository's `models` release as `<sha256>-<name>` and
+# paste pins.txt's Kotlin lines into UpscaleModels.NPU_BUILDS.
+#
+# Running this downloads Qualcomm's QAIRT SDK, which is under Qualcomm's own
+# "AI Stack" licence (LICENSE.pdf in the SDK): whoever starts the run accepts
+# it. Never part of F-Droid's build.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    env:
+      # The release the app's QNN runtime is (gradle/libs.versions.toml qnnRuntime).
+      QAIRT_VERSION: 2.51.0.260929
+      # Qualcomm publishes no checksum for the zip; its length is pinned instead.
+      QAIRT_BYTES: '2971497940'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+
+      - name: QAIRT SDK
+        run: |
+          url="https://softwarecenter.qualcomm.com/api/download/software/sdks/Qualcomm_AI_Runtime_Community/All/$QAIRT_VERSION/v$QAIRT_VERSION.zip"
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/qairt.zip" "$url"
+          got=$(stat -c %s "$RUNNER_TEMP/qairt.zip")
+          [ "$got" = "$QAIRT_BYTES" ] || { echo "QAIRT zip is $got bytes, expected $QAIRT_BYTES"; exit 1; }
+          unzip -q "$RUNNER_TEMP/qairt.zip" "qairt/$QAIRT_VERSION/bin/*" "qairt/$QAIRT_VERSION/lib/x86_64-linux-clang/*" \
+            "qairt/$QAIRT_VERSION/lib/python/*" "qairt/$QAIRT_VERSION/LICENSE.pdf" -d "$RUNNER_TEMP"
+          rm "$RUNNER_TEMP/qairt.zip"
+          echo "QAIRT_SDK_ROOT=$RUNNER_TEMP/qairt/$QAIRT_VERSION" >> "$GITHUB_ENV"
+
+      - name: Python packages
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libc++1 libc++abi1 > /dev/null || true
+          pip install -q numpy onnx onnxruntime pyyaml packaging pandas protobuf
+          # QAIRT's own list for its converters; it installs what is missing.
+          if [ -x "$QAIRT_SDK_ROOT/bin/check-python-dependency" ]; then
+            "$QAIRT_SDK_ROOT/bin/check-python-dependency" || true
+          fi
+          ldd "$QAIRT_SDK_ROOT/bin/x86_64-linux-clang/qnn-context-binary-generator" | grep 'not found' || true
+
+      - name: Build
+        run: tools/qnn-context/build.sh out
+
+      - name: Summary
+        run: |
+          {
+            echo '```'
+            cat out/pins.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: upscaler-npu-context-binaries
+          path: |
+            out/*.bin
+            out/*.json
+            out/pins.txt
+          compression-level: 0

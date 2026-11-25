@@ -69,6 +69,21 @@ object NpuRuntime {
         return said + " " + context.getString(R.string.core_intel_llm_engine_error_npu_standard_hint)
     }
 
+    /**
+     * Whether [soc]'s runtime is already on the phone, asking for nothing: for
+     * a feature the NPU only speeds up (the upscaler), which uses the runtime
+     * when another feature brought it and never fetches it or asks for
+     * Qualcomm's licence on its own. [directory] may still answer null.
+     */
+    fun installed(soc: String): Boolean {
+        if (NpuSupport.runtimeLibraries(soc).isEmpty()) return false
+        if (NativeDelivery.gate(DELIVERED_GATE) != null) {
+            val gates = NpuSupport.deliveryGates(soc)
+            return gates.isNotEmpty() && gates.all { NativeDelivery.gate(it)?.installed == true }
+        }
+        return FeatureModules.npu.installed
+    }
+
     fun directory(context: Context, soc: String): File? {
         val names = NpuSupport.runtimeLibraries(soc).takeIf { it.isNotEmpty() } ?: return null
         if (NativeDelivery.gate(DELIVERED_GATE) != null) return delivered(soc, names)

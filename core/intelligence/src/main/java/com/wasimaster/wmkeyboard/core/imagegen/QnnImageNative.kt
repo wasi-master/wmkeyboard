@@ -5,9 +5,10 @@ import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.GatedLibrary
 
 /**
- * JNI surface of libwmimagegen_qnn.so (native/imagegen-qnn): Qualcomm AI
- * Hub's Stable Diffusion context binaries on the Hexagon NPU, through the QNN
- * runtime NpuRuntime unpacks for Compute = NPU. It rides the `npu` gate with
+ * JNI surface of libwmimagegen_qnn.so (native/imagegen-qnn): QNN context
+ * binaries on the Hexagon NPU (Qualcomm AI Hub's Stable Diffusion, the
+ * upscaler's own builds), through the QNN runtime NpuRuntime unpacks for
+ * Compute = NPU. [QnnGraph] and [QnnRuntime] are the way to use it. It rides the `npu` gate with
  * that runtime: arm64 only, never in F-Droid's build.
  */
 object QnnImageNative {

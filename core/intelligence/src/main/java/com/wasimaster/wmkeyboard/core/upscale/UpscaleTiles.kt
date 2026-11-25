@@ -71,6 +71,65 @@ object UpscaleTiles {
     }
 
     /**
+     * [pass] for the NPU's build of the network: a graph fixed at one input,
+     * [UpscaleModels.NPU_INPUT] square, channels last (H × W × RGB) in and out.
+     * Every tile is [UpscaleModels.TILE] with its context, whatever the
+     * picture's size; a tile past the picture's edge reads the edge repeated,
+     * and only the part of the answer that is picture is kept.
+     */
+    fun passChannelsLast(
+        pixels: IntArray,
+        width: Int,
+        height: Int,
+        network: (input: FloatArray) -> FloatArray,
+        cancelled: () -> Boolean,
+        put: (x: Int, y: Int, w: Int, h: Int, rgb: IntArray) -> Unit,
+    ): Boolean {
+        val side = UpscaleModels.TILE
+        val context = UpscaleModels.CONTEXT
+        val scale = UpscaleModels.SCALE
+        val inSide = UpscaleModels.NPU_INPUT
+        val input = FloatArray(3 * inSide * inSide)
+        for (tile in tiles(width, height, side)) {
+            if (cancelled()) return false
+            inputChannelsLast(pixels, width, height, tile.x - context, tile.y - context, inSide, input)
+            val rgb = outputChannelsLast(network(input), side * scale, tile)
+            put(tile.x * scale, tile.y * scale, tile.width * scale, tile.height * scale, rgb)
+        }
+        return true
+    }
+
+    /** [input], channels last: (row × inSide + col) × 3 + channel. */
+    fun inputChannelsLast(pixels: IntArray, width: Int, height: Int, x0: Int, y0: Int, inSide: Int, out: FloatArray) {
+        var i = 0
+        for (row in 0 until inSide) {
+            val sy = (y0 + row).coerceIn(0, height - 1) * width
+            for (col in 0 until inSide) {
+                val p = pixels[sy + (x0 + col).coerceIn(0, width - 1)]
+                out[i++] = ((p shr 16) and 0xFF) / 255f
+                out[i++] = ((p shr 8) and 0xFF) / 255f
+                out[i++] = (p and 0xFF) / 255f
+            }
+        }
+    }
+
+    /** [output] for a channels-last answer (outSide × outSide × RGB). */
+    fun outputChannelsLast(output: FloatArray, outSide: Int, tile: Tile): IntArray {
+        val w = tile.width * UpscaleModels.SCALE
+        val h = tile.height * UpscaleModels.SCALE
+        val out = IntArray(w * h)
+        for (y in 0 until h) {
+            var i = y * outSide * 3
+            for (x in 0 until w) {
+                out[y * w + x] = OPAQUE or (channel(output[i]) shl 16) or
+                    (channel(output[i + 1]) shl 8) or channel(output[i + 2])
+                i += 3
+            }
+        }
+        return out
+    }
+
+    /**
      * The network's input for the square at ([x0], [y0]) of side [inSide] in
      * a [width] by [height] picture, into [out] (3 × inSide × inSide). Places
      * outside the picture take the nearest edge pixel.

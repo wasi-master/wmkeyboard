@@ -2,7 +2,9 @@
 
 `libwmimagegen_qnn.so` runs Qualcomm AI Hub's Stable Diffusion 1.5 context
 binaries (w8a16, one zip per Snapdragon) on the Hexagon NPU. `QnnImageNative`
-in `core/intelligence/.../imagegen/` is its Kotlin side.
+in `core/intelligence/.../imagegen/` is its Kotlin side, and `QnnGraph` beside it
+runs any one-graph binary, which is how the upscaler's NPU builds
+(`tools/qnn-context`) run on it too.
 
 It links nothing of Qualcomm's. `nativeInit` opens `libQnnHtp.so` and
 `libQnnSystem.so` by path from the directory `NpuRuntime` unpacked them into

@@ -69,6 +69,57 @@ class UpscaleTilesTest {
         }
     }
 
+    /** [nearest] for the NPU's graph: fixed NPU_INPUT square, channels last in and out. */
+    private fun nearestChannelsLast(input: FloatArray): FloatArray {
+        val c = UpscaleModels.CONTEXT
+        val inSide = UpscaleModels.NPU_INPUT
+        val outSide = UpscaleModels.TILE * 2
+        val out = FloatArray(3 * outSide * outSide)
+        for (y in 0 until outSide) {
+            for (x in 0 until outSide) {
+                for (ch in 0 until 3) {
+                    out[(y * outSide + x) * 3 + ch] = input[((c + y / 2) * inSide + (c + x / 2)) * 3 + ch]
+                }
+            }
+        }
+        return out
+    }
+
+    @Test
+    fun channelsLastPassDoublesThePictureExactly() {
+        // Smaller than one tile on one side, more than two on the other.
+        val w = 300
+        val h = 45
+        val pixels = IntArray(w * h) { i -> argb(255, i % 251, (i / 7) % 253, (i * 13) % 255) }
+        val out = IntArray(4 * w * h)
+        var tiles = 0
+        val done = UpscaleTiles.passChannelsLast(pixels, w, h, ::nearestChannelsLast, { false }) { x, y, tw, th, rgb ->
+            tiles++
+            for (row in 0 until th) System.arraycopy(rgb, row * tw, out, (y + row) * 2 * w + x, tw)
+        }
+        assertTrue(done)
+        assertEquals(3, tiles)
+        for (y in 0 until 2 * h) {
+            for (x in 0 until 2 * w) {
+                assertEquals("($x, $y)", pixels[(y / 2) * w + x / 2], out[y * 2 * w + x])
+            }
+        }
+    }
+
+    @Test
+    fun channelsLastInputMatchesTheChannelsFirstOne() {
+        val w = 20
+        val h = 9
+        val pixels = IntArray(w * h) { i -> argb(255, i % 251, (i * 3) % 253, (i * 7) % 255) }
+        val side = 12
+        val first = FloatArray(3 * side * side)
+        val last = FloatArray(3 * side * side)
+        UpscaleTiles.input(pixels, w, h, -3, -2, side, first)
+        UpscaleTiles.inputChannelsLast(pixels, w, h, -3, -2, side, last)
+        val plane = side * side
+        for (i in 0 until plane) for (ch in 0 until 3) assertEquals(first[ch * plane + i], last[i * 3 + ch], 0f)
+    }
+
     @Test
     fun inputRepeatsTheEdgePastTheBorder() {
         val w = 3
