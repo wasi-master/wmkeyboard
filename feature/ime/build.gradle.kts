@@ -166,6 +166,8 @@ dependencies {
     api(project(":core:intelligence"))
     api(project(":core:shell"))
     api(project(":feature:tools"))
+    // The Files tool offers plugins from the add-on repositories (PluginOffers).
+    implementation(project(":feature:addons"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.android)
     // Named sections in system traces (ImeTrace). A native flag check when

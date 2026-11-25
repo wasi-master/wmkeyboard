@@ -141,6 +141,7 @@ problem with your manifest.
 | `variants` | | Other builds of the same addon for the user to choose between, such as an emoji font in 3D, flat and high-contrast styles. See [Addons with variants](#addons-with-variants). Ignored for the per-language types, whose choices are `localizations`. |
 | `variantName` | | What the entry's own payload is called among its `variants`, such as `"3D"`. Defaults to "Standard". |
 | `requires` | | Ids of other entries **in this same manifest** the addon was designed with, such as a theme naming its font and sound. Soft: the install screen offers to download them together, and skipping them still installs a working addon that falls back to the user's global choices. Ids that don't resolve in the manifest are ignored. Only the addon the user actually tapped is offered as something to switch to afterwards. Its dependencies install quietly, and the theme is what turns them on. |
+| `fileTypes`, `fileNames` | *plugin* | The file extensions (lower case, no dot) and whole file names a plugin shows or colours in the Files tool. When someone opens such a file and nothing installed draws it, the Files tool offers the plugin with a **Get** button that opens its page here. Derive them from the plugin's own `previews` and `syntax` rather than writing them by hand; the official repository's `build_index.py` does. |
 
 ### Licensing
 

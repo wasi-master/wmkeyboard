@@ -147,6 +147,17 @@ data class AddonEntry(
      * submission; the detail page credits the original. Informational only.
      */
     val basedOn: String? = null,
+    /**
+     * For a plugin: the file extensions it shows or colours in the keyboard's
+     * file manager, lower case and without the dot (`docx`, `tar.gz`). The
+     * Files tool reads them to offer the plugin when someone opens such a file
+     * and nothing installed draws it. The addon repository's `build_index.py`
+     * derives them from the plugin's own `previews` and `syntax`, so they
+     * never drift from what the plugin really declares.
+     */
+    val fileTypes: List<String> = emptyList(),
+    /** Whole file names a plugin shows or colours (`Dockerfile`, `.gitignore`), as [fileTypes]. */
+    val fileNames: List<String> = emptyList(),
 ) {
     /** `"<repoId>/<addonId>"` — how an install is tracked in [AddonStore]. */
     fun key(repoId: String): String = "$repoId/$id"

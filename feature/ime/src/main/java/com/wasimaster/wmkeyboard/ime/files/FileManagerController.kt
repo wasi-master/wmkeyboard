@@ -122,6 +122,8 @@ internal class FileManagerController(
     private var undoJob: Job? = null
     private var placesJob: Job? = null
     private var previewJob: Job? = null
+    private var offerJob: Job? = null
+    private val offers = PluginOffers(app)
     private var infoJob: Job? = null
 
     /** The last folder for each kind of pick, so picking again starts where the last one ended. */
@@ -182,6 +184,8 @@ internal class FileManagerController(
         open = true
         refreshAccess()
         loadAll()
+        // So a file nothing here draws can be met with the plugin that would.
+        scope.launch(Dispatchers.IO) { offers.refreshIfStale() }
     }
 
     fun onPanelClose() {
@@ -1330,11 +1334,41 @@ internal class FileManagerController(
         val remembered = FilePins.previewChoice(app, extensionOf(entry))?.takeIf { key -> choices.any { it.key == key } }
         val choice = remembered ?: choices.firstOrNull()?.key ?: PreviewChoice.BUILT_IN
         _state.update { it.copy(preview = PreviewUi(entry, kind, index, count, choices = choices, choice = choice), expanded = true) }
+        if (plugins.isEmpty()) findOffer(entry)
         if (choice != PreviewChoice.BUILT_IN) {
             runPlugin(entry, choice)
             return
         }
         loadBuiltIn(entry, kind, index, count)
+    }
+
+    /**
+     * A plugin from the add-on repositories that would draw [entry], when no
+     * installed plugin does: shown above the preview with Get. Looked up off
+     * the main thread, since the first look reads the cached manifests.
+     */
+    private fun findOffer(entry: FileEntry) {
+        offerJob?.cancel()
+        offerJob = scope.launch {
+            val offer = withContext(Dispatchers.IO) {
+                // A plugin already colouring a text file is drawing it too.
+                if (host.filePlugins()?.grammarFor(entry.name) != null) null else offers.offerFor(entry.name)
+            } ?: return@launch
+            _state.update { s -> s.preview?.takeIf { it.entry.path == entry.path }?.let { s.copy(preview = it.copy(offer = offer)) } ?: s }
+        }
+    }
+
+    private fun getPlugin() {
+        val offer = _state.value.preview?.offer ?: return
+        host.haptic()
+        if (!offers.open(offer)) notice(FileNotice.Kind.NO_APP)
+    }
+
+    private fun dismissOffer() {
+        val preview = _state.value.preview ?: return
+        host.haptic()
+        offers.dismiss(preview.entry.name)
+        _state.update { s -> s.copy(preview = s.preview?.copy(offer = null)) }
     }
 
     /** "View with": [key] draws the file now, and next time for its type. */
@@ -1402,7 +1436,7 @@ internal class FileManagerController(
             }
             _state.update { s ->
                 val current = s.preview?.takeIf { it.entry.path == entry.path && !it.byPlugin } ?: return@update s
-                s.copy(preview = loaded.copy(choices = current.choices, choice = current.choice))
+                s.copy(preview = loaded.copy(choices = current.choices, choice = current.choice, offer = current.offer))
             }
         }
     }
@@ -1430,6 +1464,7 @@ internal class FileManagerController(
 
     private fun closePreview() {
         previewJob?.cancel()
+        offerJob?.cancel()
         host.filePlugins()?.runner?.cancel()
         _state.update { it.copy(preview = null, expanded = if (it.info == null) false else it.expanded) }
     }
@@ -1602,6 +1637,8 @@ internal class FileManagerController(
             }
             is FileAction.Preview -> openPreview(action.entry)
             is FileAction.PreviewWith -> previewWith(action.key)
+            FileAction.GetPlugin -> getPlugin()
+            FileAction.DismissOffer -> dismissOffer()
             FileAction.PreviewPicked -> _state.value.selection.singleOrNull()?.let { path ->
                 _state.value.panes.flatMap { it.entries }.firstOrNull { it.path == path && !it.isDirectory }?.let(::openPreview)
             }

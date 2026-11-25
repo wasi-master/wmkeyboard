@@ -250,6 +250,8 @@ data class PreviewUi(
     val pluginError: com.wasimaster.wmkeyboard.core.plugins.PluginText? = null,
     /** A plugin grammar's colours for [text], when one reads this file. */
     val syntax: List<com.wasimaster.wmkeyboard.core.plugins.PluginSyntax.Token>? = null,
+    /** A plugin from the add-on repositories that would draw this file, when none installed does. */
+    val offer: PluginOffer? = null,
 ) {
     val byPlugin: Boolean get() = choice != PreviewChoice.BUILT_IN
 }
@@ -402,6 +404,12 @@ sealed interface FileAction {
 
     /** A plugin preview's text to the clipboard. */
     data class CopyPluginText(val text: String) : FileAction
+
+    /** The offered plugin's page in the add-on store, to install it there. */
+    data object GetPlugin : FileAction
+
+    /** "Not now" to offered plugins for files of the previewed one's type. */
+    data object DismissOffer : FileAction
 
     /** "View with": draw the previewed file with [key] instead, and keep that choice for its type. */
     data class PreviewWith(val key: String) : FileAction

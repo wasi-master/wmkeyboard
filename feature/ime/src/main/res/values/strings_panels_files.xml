@@ -118,6 +118,12 @@
     <string name="ime_files_open_with">Open with</string>
     <string name="ime_files_preview">Preview</string>
     <string name="ime_files_view_with">View with</string>
+    <!-- A plugin from the add-on repositories that can preview the file being looked at. %1$s is the plugin's name, such as "Office Viewer". -->
+    <string name="ime_files_offer_title">%1$s can show this file</string>
+    <!-- Opens the offered plugin's page in the add-on store, where it installs. -->
+    <string name="ime_files_offer_get">Get</string>
+    <!-- Stops offering plugins for files of this type. -->
+    <string name="ime_files_offer_not_now">Not now</string>
     <string name="ime_files_view_built_in">Built-in</string>
     <string name="ime_files_preview_by">Shown by %1$s</string>
     <string name="ime_files_notice_no_app">No app here opens this kind of file</string>

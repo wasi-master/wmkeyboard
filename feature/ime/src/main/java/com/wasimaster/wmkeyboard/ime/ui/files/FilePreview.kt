@@ -66,6 +66,8 @@ import com.wasimaster.wmkeyboard.core.files.FileEntry
 import com.wasimaster.wmkeyboard.core.files.FileKind
 import com.wasimaster.wmkeyboard.core.files.FileKinds
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ChevronLeft
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Download
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ChevronRight
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Folder
@@ -115,6 +117,7 @@ internal fun PreviewFace(ui: FileManagerUi, preview: PreviewUi, act: (FileAction
         Column(Modifier.fillMaxSize()) {
             if (media) MediaTop(preview, act) else CardTop(preview, act)
             if (preview.choices.size > 1) ViewWith(preview, act)
+            preview.offer?.let { OfferBanner(it, act) }
             Box(
                 Modifier
                     .weight(1f)
@@ -494,6 +497,52 @@ private fun ViewWith(preview: PreviewUi, act: (FileAction) -> Unit) {
                 choice.label ?: stringResource(R.string.ime_files_view_built_in),
                 selected = choice.key == preview.choice,
             ) { act(FileAction.PreviewWith(choice.key)) }
+        }
+    }
+}
+
+/**
+ * A plugin from the add-on repositories that would draw this file: its name,
+ * what it does, Get (its page in the add-on store, where it installs after
+ * its permissions show) and Not now, which stops offering it for this type.
+ */
+@Composable
+private fun OfferBanner(offer: com.wasimaster.wmkeyboard.ime.files.PluginOffer, act: (FileAction) -> Unit) {
+    val kb = LocalKbTheme.current
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .background(kb.popup)
+            .padding(start = 12.dp, end = 6.dp, bottom = 8.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(kb.accent.copy(alpha = 0.12f))
+            .padding(start = 12.dp, top = 8.dp, bottom = 8.dp, end = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(
+                stringResource(R.string.ime_files_offer_title, offer.name),
+                color = kb.popupText,
+                fontSize = 13.sp,
+                maxLines = 1,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            )
+            if (offer.description.isNotBlank()) {
+                Text(
+                    offer.description,
+                    color = kb.secondaryText,
+                    fontSize = 11.5.sp,
+                    maxLines = 2,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                )
+            }
+        }
+        PillButton(stringResource(R.string.ime_files_offer_get), icon = Icons.Outlined.Download, primary = true, height = 32.dp) {
+            act(FileAction.GetPlugin)
+        }
+        RoundButton(icon = Icons.Outlined.Close, description = stringResource(R.string.ime_files_offer_not_now), size = 32.dp) {
+            act(FileAction.DismissOffer)
         }
     }
 }

@@ -84,5 +84,18 @@ object FilePins {
         prefs(context).edit().putString(CHOICE_PREFIX + extension.lowercase(), choice).apply()
     }
 
+    /**
+     * Whether the user said "Not now" to the plugin the Files tool offered for
+     * files of type [key] (an extension, or `name:<file name>`).
+     */
+    fun offerDismissed(context: Context, key: String): Boolean =
+        prefs(context).getBoolean(OFFER_PREFIX + key.lowercase(), false)
+
+    fun dismissOffer(context: Context, key: String) {
+        if (key.isEmpty()) return
+        prefs(context).edit().putBoolean(OFFER_PREFIX + key.lowercase(), true).apply()
+    }
+
     private const val CHOICE_PREFIX = "preview_choice."
+    private const val OFFER_PREFIX = "plugin_offer_dismissed."
 }
