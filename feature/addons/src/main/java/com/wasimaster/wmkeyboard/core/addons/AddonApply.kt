@@ -54,9 +54,10 @@ object AddonApply {
         // A text font goes in one of several pickers and guessing wrong is
         // worse than letting the user choose; a dictionary, a keyword pack, a
         // snippet pack and a sticker pack are live the moment they are
-        // installed.
+        // installed. A dynamic sticker pack joins the others, switched on.
         AddonType.Font, AddonType.Dictionary, AddonType.EmojiKeywords, AddonType.Vocabulary,
-        AddonType.Snippets, AddonType.Espanso, AddonType.Stickers, AddonType.Unknown,
+        AddonType.Snippets, AddonType.Espanso, AddonType.Stickers, AddonType.DynamicStickers,
+        AddonType.Unknown,
         -> null
     }
 
@@ -67,7 +68,8 @@ object AddonApply {
         AddonType.Theme, AddonType.IconPack, AddonType.EmojiFont, AddonType.Sound,
         AddonType.SoundPack,
         AddonType.Font, AddonType.Dictionary, AddonType.EmojiKeywords, AddonType.Vocabulary,
-        AddonType.Snippets, AddonType.Espanso, AddonType.Stickers, AddonType.Unknown,
+        AddonType.Snippets, AddonType.Espanso, AddonType.Stickers, AddonType.DynamicStickers,
+        AddonType.Unknown,
         -> R.string.faddons_apply_switch_action
     }
 
@@ -102,7 +104,7 @@ object AddonApply {
             // in.
             AddonType.Plugin, AddonType.Font, AddonType.Dictionary,
             AddonType.EmojiKeywords, AddonType.Vocabulary, AddonType.Snippets, AddonType.Espanso,
-            AddonType.Stickers, AddonType.Unknown,
+            AddonType.Stickers, AddonType.DynamicStickers, AddonType.Unknown,
             -> false
         }
     }
@@ -132,7 +134,8 @@ object AddonApply {
             // Nothing to point anywhere: a text font waits in the picker, and a
             // dictionary, snippet pack or sticker pack is already in use.
             AddonType.Font, AddonType.Dictionary, AddonType.EmojiKeywords, AddonType.Vocabulary,
-            AddonType.Snippets, AddonType.Espanso, AddonType.Stickers, AddonType.Unknown,
+            AddonType.Snippets, AddonType.Espanso, AddonType.Stickers, AddonType.DynamicStickers,
+            AddonType.Unknown,
             -> Unit
         }
     }

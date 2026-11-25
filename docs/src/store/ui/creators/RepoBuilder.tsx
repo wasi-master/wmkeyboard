@@ -9,7 +9,7 @@ import { validateManifestText, type Finding } from '../../lib/check';
 import { decodeManifest } from '../../lib/decode';
 import { LANGUAGES } from '../../lib/languages';
 import { fetchText, fmtBytes, MAX_MANIFEST_BYTES } from '../../lib/net';
-import { readIconPack, readLayout, readPlugin, readSnippets, readSoundPack, readStickerPack, readTheme } from '../../lib/payloads';
+import { readDynStickerPack, readIconPack, readLayout, readPlugin, readSnippets, readSoundPack, readStickerPack, readTheme } from '../../lib/payloads';
 import { ICON_SLOT_IDS } from '../../lib/icon-slots';
 import { resolveManifestUrl } from '../../lib/resolve';
 import { ADDON_TYPES, REPO_FORMAT, typeInfo, type AddonType } from '../../lib/types';
@@ -50,7 +50,7 @@ interface Draft {
 
 const DIRS: Record<AddonType, string> = {
 	theme: 'themes', layout: 'layouts', dictionary: 'dictionaries', emoji_keywords: 'emoji', snippets: 'snippets', espanso: 'snippets',
-	stickers: 'stickers', icon_pack: 'icons', font: 'fonts', emoji_font: 'fonts', sound: 'sounds', sound_pack: 'packs', plugin: 'plugins', vocabulary: 'vocab',
+	stickers: 'stickers', dynamic_stickers: 'dynstickers', icon_pack: 'icons', font: 'fonts', emoji_font: 'fonts', sound: 'sounds', sound_pack: 'packs', plugin: 'plugins', vocabulary: 'vocab',
 };
 
 const SCHEMA_URL = 'https://wmkeyboard.pages.dev/schemas/wmkeyboard-repo.schema.json';
@@ -67,7 +67,7 @@ function newEntry(partial: Partial<Entry> = {}): Entry {
 async function sniff(file: PickedFile): Promise<Partial<Entry>> {
 	const n = file.name.toLowerCase();
 	const text = () => new TextDecoder('utf-8').decode(file.bytes);
-	const base = file.name.replace(/\.(wmtheme\.json|wmlayout\.json|wmsnippets\.json|wmvocab\.json(\.gz)?|wmstickers|wmicons|wmsoundpack|wmplugin|ttf|otf|mp3|ogg|wav|txt|txt\.gz|tsv|tsv\.gz|ya?ml|json)$/i, '');
+	const base = file.name.replace(/\.(wmtheme\.json|wmlayout\.json|wmsnippets\.json|wmvocab\.json(\.gz)?|wmstickers|wmdynstickers|wmicons|wmsoundpack|wmplugin|ttf|otf|mp3|ogg|wav|txt|txt\.gz|tsv|tsv\.gz|ya?ml|json)$/i, '');
 	const out: Partial<Entry> = { id: slugify(base), name: base, sha256: await sha256Hex(file.bytes), sizeBytes: file.bytes.byteLength, fileName: file.name };
 	try {
 		if (n.endsWith('.wmtheme.json')) { const t = readTheme(text()); return { ...out, type: 'theme', id: slugify(t.spec.id || base), name: t.spec.name || base }; }
@@ -75,6 +75,7 @@ async function sniff(file: PickedFile): Promise<Partial<Entry>> {
 		if (n.endsWith('.wmsnippets.json')) { readSnippets(text()); return { ...out, type: 'snippets' }; }
 		if (n.endsWith('.wmvocab.json') || n.endsWith('.wmvocab.json.gz')) return { ...out, type: 'vocabulary' };
 		if (n.endsWith('.wmstickers')) { const p = readStickerPack(file.bytes); return { ...out, type: 'stickers', id: slugify(p.id || base), name: p.name || base, author: p.author, description: p.description }; }
+		if (n.endsWith('.wmdynstickers')) { const p = readDynStickerPack(file.bytes); return { ...out, type: 'dynamic_stickers', id: slugify(p.id || base), name: p.name || base, author: p.author, description: p.description, version: /^\d+\.\d+\.\d+/.test(p.version) ? p.version : '1.0.0', license: p.license }; }
 		if (n.endsWith('.wmicons')) { const p = readIconPack(file.bytes, ICON_SLOT_IDS); return { ...out, type: 'icon_pack', id: slugify(p.id || base), name: p.name || base, author: p.author, description: p.description, version: /^\d+\.\d+\.\d+/.test(p.version) ? p.version : '1.0.0' }; }
 		if (n.endsWith('.wmsoundpack')) { const p = readSoundPack(file.bytes); return { ...out, type: 'sound_pack', id: slugify(p.id || base), name: p.name || base, author: p.author, description: p.description, version: p.packVersion }; }
 		if (n.endsWith('.wmplugin')) { const p = readPlugin(file.bytes); return { ...out, type: 'plugin', id: slugify(p.manifest.id || base), name: p.manifest.name || base, author: p.manifest.author, description: p.manifest.description, version: /^\d+\.\d+\.\d+/.test(p.manifest.pluginVersion) ? p.manifest.pluginVersion : '1.0.0' }; }
@@ -205,7 +206,7 @@ export function RepoBuilder() {
 				</Section>
 
 				<Section title={`Addons (${d.entries.length})`}>
-					<DropZone onFiles={addFiles}>Drop addon files: .wmtheme.json, .wmlayout.json, .wmsnippets.json, .wmstickers, .wmicons, .wmsoundpack, .wmplugin, fonts, sounds, word lists…</DropZone>
+					<DropZone onFiles={addFiles}>Drop addon files: .wmtheme.json, .wmlayout.json, .wmsnippets.json, .wmstickers, .wmdynstickers, .wmicons, .wmsoundpack, .wmplugin, fonts, sounds, word lists…</DropZone>
 					{busy && <span class="st-small st-muted"><span class="st-spinner" /> Hashing…</span>}
 					<div class="st-entry-list">
 						{d.entries.map((e) => (

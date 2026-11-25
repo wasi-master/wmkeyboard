@@ -123,7 +123,7 @@ problem with your manifest.
 | Field | Req | Notes |
 |---|---|---|
 | `id` | ✔ | Unique within the repo. |
-| `type` | ✔ | `theme` \| `layout` \| `dictionary` \| `emoji_keywords` \| `snippets` \| `espanso` \| `stickers` \| `icon_pack` \| `font` \| `emoji_font` \| `sound` \| `sound_pack` \| `plugin` \| `vocabulary`. |
+| `type` | ✔ | `theme` \| `layout` \| `dictionary` \| `emoji_keywords` \| `snippets` \| `espanso` \| `stickers` \| `dynamic_stickers` \| `icon_pack` \| `font` \| `emoji_font` \| `sound` \| `sound_pack` \| `plugin` \| `vocabulary`. |
 | `name` | ✔ | Display name. |
 | `version` | ✔ | **Semver** string. Bump it to offer an update. |
 | `path` | ✔ | Payload location, either relative to the manifest or an absolute `https` URL (§4). |
@@ -320,6 +320,7 @@ into your repo.
 | `snippets` | `*.wmsnippets.json` | `{ "format":"wmkeyboard-snippets", "version":1, "snippets":[ { "id":1, "label":"…", "text":"…", "trigger":"…"?, "triggerPattern":"…"?, "triggerWords":3?, "confirm":true? }, … ] }`. Ids are reassigned on import. `trigger` is one exact word. `triggerPattern` is an anchored regular expression over the last `triggerWords` words before the cursor (default 3, max 8), whose captures reach `text` as `$1`…`$9`. See [Snippets](/tools/snippets/#pattern-triggers). A snippet carrying both keeps the word. `confirm` makes the trigger offer itself as a suggestion-bar chip instead of rewriting what the user typed, which is what a pack of canned replies should do. See [Ask before it expands](/tools/snippets/#ask-before-it-expands). `triggerPattern`, `triggerWords` and `confirm` are written only when set, so a pack of plain snippets looks exactly as it always did. Installing a pack puts every one of its snippets into a [folder](/tools/snippets/#folders) named after the addon's `name`, so the user can silence or find the whole pack in one gesture. The envelope's own optional `folders` array is honoured on a hand-imported file but flattened into the pack folder on install, because folders are one level deep. Pick a `name` that reads well as a folder. |
 | `espanso` | `*.yml`, `*.yaml`, `*.zip` | A match file or a package archive in [Espanso](https://espanso.org)'s own format, converted on the way in. A match file is YAML with a top-level `matches:` list; an archive holds `package.yml` and `_manifest.yml`, in either the layout the Espanso Hub publishes or the one you get by zipping a package directory. Serve a Hub package as it stands, with no conversion step. It installs into a folder exactly as `snippets` does, and uninstalls by the same rules. What the format cannot carry across is listed in [Importing from Espanso](/reference/importing-from-espanso/), and the app shows that list in the preview before the install button rather than after. `shell` and `script` variables are dropped and never run. The two types are deliberately separate so a mistyped entry is a clear rejection rather than a guess; a `.yml` filed as `snippets` is refused. To a user both browse under Snippets. |
 | `stickers` | `*.wmstickers` | ZIP archive containing a `pack.json` envelope (`"format":"wmkeyboard-stickers"`, `"version":1`, `pack` metadata with its `stickers[]`) and the image files under `stickers/`. See [Sticker packs](#sticker-packs). |
+| `dynamic_stickers` | `*.wmdynstickers` | ZIP archive containing a `pack.json` envelope (`"format":"wmkeyboard-dynstickers"`, `"version":1`, `pack` metadata with its `templates[]`) and the templates under `templates/`: Lottie animations whose text layers take the words the user types. Fonts and pictures the templates use travel beside them. See [Dynamic sticker packs](#dynamic-sticker-packs). |
 | `icon_pack` | `*.wmicons` | ZIP archive containing a `pack.json` envelope (`"format":"wmkeyboard-icons"`, `"version":1`, `pack` metadata) and one icon per replaced slot under `icons/`, named for its slot: an SVG, or a PNG, WebP, JPEG or GIF. See [Icon packs](#icon-packs). |
 | `font` | `*.ttf`, `*.otf` | Standard TrueType or OpenType font file used for keyboard key labels and text typography. Declare `langIds` when the face only covers some scripts. |
 | `emoji_font` | `*.ttf`, `*.otf` | A font whose glyphs are emoji, like Twemoji or OpenMoji. Same file format as `font`, kept a separate type because it is chosen in a different place (Emoji settings, not the key-label pickers) and because a colour emoji font on the key labels is not a choice anyone makes on purpose. Colour builds (`COLR`/`CBDT`) draw in colour on Android 8+. A monochrome outline build takes the keyboard's text colour. There is exactly one emoji slot, and the app offers to fill it once the font is installed. Up to 256 MB (64 MB for a `font`); apps before version code 46 take 64 MB, so give a larger build `"minAppVersion": 46`. |
@@ -432,6 +433,118 @@ so any common raster format works. Limits: at most 500 entries and 64 MB per arc
 
 `appVersion` / `appVersionName` record the app build that wrote the file. They are
 informational and import ignores them. Both are optional in a hand-built pack.
+
+### Dynamic sticker packs
+
+A dynamic sticker is drawn on the spot from a template and the words the user
+is typing. A template is a [Lottie](https://lottiefiles.github.io/lottie-docs/)
+animation (an After Effects export as JSON) with at least one text layer for
+those words to go into, plus rules for which messages it suits.
+
+<FileTree>
+
+- everyday.wmdynstickers a ZIP, renamed
+  - pack.json the manifest
+  - templates/
+    - thanks.json a Lottie document
+    - congrats.json
+  - scenes/ optional, the in-app builder's sources
+  - fonts/
+    - DynaPuff-Black.ttf fonts the documents name
+  - images/ pictures the documents use
+
+</FileTree>
+
+```json title="pack.json"
+{
+  "format": "wmkeyboard-dynstickers",
+  "version": 1,
+  "pack": {
+    "id": "everyday",
+    "name": "Everyday Text Stickers",
+    "author": "Some Creator",
+    "version": "1.0.0",
+    "license": "CC0-1.0",
+    "description": "Thanks, congratulations and good morning.",
+    "templates": [
+      {
+        "id": "thanks",
+        "name": "Thanks",
+        "file": "templates/thanks.json",
+        "kind": "sticker",
+        "match": { "phrases": ["thank you", "thanks"], "concepts": ["grateful"] },
+        "altText": "Bouncing thank-you lettering"
+      },
+      {
+        "id": "any",
+        "name": "Speech bubble",
+        "file": "templates/bubble.json",
+        "match": { "generic": true, "maxWords": 4 }
+      }
+    ],
+    "fonts": [{ "family": "DynaPuff", "file": "fonts/DynaPuff-Black.ttf" }]
+  }
+}
+```
+
+Each template entry:
+
+| Field | Notes |
+|---|---|
+| `id` | Unique within the pack. Favourites, the recently sent list and switched-off templates are all kept against `<pack id>/<template id>`, so keep it the same from one version to the next. |
+| `name` | Shown in the panel and read out by a screen reader. Falls back to `id`. |
+| `file` | The Lottie document, a path inside the archive. |
+| `kind` | `sticker` (default) or `meme`. Memes sit apart in the panel and stay out of the suggestion row unless the user asks for them. |
+| `match.phrases` | Messages it is offered for, in any language, matched on the whole message or inside it. |
+| `match.concepts` | Feelings and things (`heart`, `birthday`, `laugh`) matched from the emoji and words around the message. |
+| `match.generic` | Takes any short text. Offered after the templates that matched by meaning. |
+| `match.maxWords` | This template's own cap on words; `0` leaves it to the user's setting. |
+| `slots` | Optional. Leave it out and the slots are read off the document (below). |
+| `altText` | A short description of what the sticker shows. |
+| `poster` | Where the still and the panel picture are taken, as progress `0`…`1`. Below `0` (the default) means the last frame. |
+| `stillOnly` | Sent as a still even though it moves, for a template whose motion is only an entrance. |
+| `renderer` | `auto` (default), `lottie` or `exact`. `auto` lets the user's own setting pick the engine. |
+
+A document needs no manifest entry to say where its text goes. Text layers named
+`_txt_0`, `_txt_1`, … are one slot, and the words are split over them one line each,
+in order. Every other named text layer becomes a slot of its own that the fill sheet
+can reach. Image assets whose `id` starts with `photo` are photo slots, which make
+the template a meme that asks for a picture. A document can carry its own rules in
+`metadata.customProps`, the way template sets made for text stickers do:
+`keyword-map` (phrases, `;`-separated, `*` for any text), `concept-map`,
+`required-lines` (how many `_txt_N` layers the words are split over),
+`lineN-char-min`/`lineN-char-max` and `lineN-font-min`/`lineN-font-max` per line, and
+`alt-text`. An entry that leaves `slots` out has them read off the document, and its
+`match` too when it leaves that out as well. The auto-fit
+fields of a text document (`sz` box, `rs`, `mf`, `xf`) are honoured by both engines.
+
+A document's text finds its font in `fonts[]` by the family it asks for, matched
+against `family` and then against the font file's own name. A family the pack does not
+carry falls back to the user's installed fonts and then to the system's. Pictures are
+looked up by file name under `images/`.
+
+Installing it adds the pack switched on. There is nothing to switch to, so the app asks
+no question afterwards. The pack's id is `pack.id`, lowercased and cut down to
+`a`–`z`, `0`–`9`, `_` and `-` (48 characters at most); a device that already has a pack
+of that id from somewhere else gets the addon's under a suffix. Two addons whose packs
+share an id replace each other, so give each of a pack's `variants` an id of its own. An update is imported
+over the installed pack under the same id, so the user's favourites and switched-off
+templates survive it, and a failed update leaves the old version working. Uninstalling
+removes the pack and everything kept against it.
+
+Two other shapes install as well, because they are how template sets are often
+published. A ZIP with no `pack.json` is read document by document: every `.json` in
+it (gzipped or not) with a text layer is a template, named by its first phrase or its
+file name, and `.ttf`/`.otf` files come along as its fonts, by the family a
+`fonts.xml` beside them names. A dotLottie file is read the same way. A template whose
+file is missing, or a document with no text layer, is left out, and the install says
+how many.
+
+Limits: at most 500 files and 64 MB per archive, 12 MB per file, 600 templates per
+pack and 200 packs on a device. No path in the manifest is ever used outside the
+pack's own folder: one that would land outside it (`..`, an absolute path) is refused.
+The store's [builder](/addons/new/?type=dynamic_stickers) makes a pack from Lottie
+files in the browser.
 
 ### Icon packs
 

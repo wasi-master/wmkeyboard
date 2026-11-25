@@ -3,6 +3,7 @@
  * app's own importer accepts (see the codec noted on each). They return a
  * plain description of the content; rendering lives in ui/previews.
  */
+import { gunzipSync } from 'fflate';
 import { gunzipMaybe } from './net';
 import { readZip, textOf, zipFind, mimeFor, blobUrl, type ZipEntry } from './zip';
 
@@ -469,6 +470,319 @@ export function readStickerPack(bytes: Uint8Array): StickerPackRead {
 	if (!stickers.length) problems.push('The pack lists no stickers the archive contains.');
 	if (entries.length > 500) problems.push(`${entries.length} archive entries; the app caps at 500.`);
 	return { id: String(pack.id ?? ''), name: String(pack.name ?? ''), author: String(pack.author ?? ''), description: String(pack.description ?? ''), stickers, problems, totalBytes: total };
+}
+
+/* ---------- dynamic stickers (.wmdynstickers zip) ---------- */
+
+/** A text layer of a Lottie document: where typed words can go. */
+export interface LottieTextLayer {
+	name: string;
+	text: string;
+	/** Its name is `_txt_N`: one line of the template's main text. */
+	line: number | null;
+}
+
+export interface DynTemplateInfo {
+	id: string;
+	name: string;
+	/** The document's path inside the archive, when it has one. */
+	file: string;
+	kind: 'sticker' | 'meme';
+	phrases: string[];
+	concepts: string[];
+	generic: boolean;
+	maxWords: number;
+	altText: string;
+	/** The parsed Lottie document, or null when the archive does not carry it. */
+	doc: Record<string, unknown> | null;
+	textLayers: LottieTextLayer[];
+	/** Image asset ids starting with `photo`: places the user's own picture goes. */
+	photos: string[];
+	/** The manifest entry as written, so a builder can carry unknown fields across. */
+	raw: Record<string, unknown>;
+}
+
+export interface DynPackRead {
+	id: string;
+	name: string;
+	author: string;
+	version: string;
+	license: string;
+	description: string;
+	/** Templates the app would install, in pack order. */
+	templates: DynTemplateInfo[];
+	fonts: { family: string; file: string; bytes: Uint8Array | null }[];
+	/** `images/` files, by bare name. */
+	images: Map<string, Uint8Array>;
+	/** No `pack.json` of ours: read document by document, as the importer does. */
+	loose: boolean;
+	problems: string[];
+	totalBytes: number;
+}
+
+export const DYN_FORMAT = 'wmkeyboard-dynstickers';
+/** DynStickerStore.MAX_TEMPLATES. */
+export const DYN_MAX_TEMPLATES = 600;
+/** StickerArchive caps every pack archive the app reads. */
+export const DYN_MAX_ENTRIES = 500;
+export const DYN_MAX_FILE_BYTES = 12 * 1024 * 1024;
+export const DYN_MAX_TOTAL_BYTES = 64 * 1024 * 1024;
+
+/** `_txt_N` (LottieDoc.LINE_LAYER). */
+const LINE_LAYER = /_txt_(\d+)/;
+
+/** DynStickerStore.templateId: what the app makes of a pack or template id. */
+export function dynId(raw: string): string {
+	return raw.trim().toLowerCase().replace(/ /g, '_').replace(/[^a-z0-9_-]/g, '').slice(0, 48);
+}
+
+/** Every text layer, top level first and then each precomp's; the first of a repeated name wins (LottieDoc.textLayers). */
+export function lottieTextLayers(doc: Record<string, unknown>): LottieTextLayer[] {
+	const out: LottieTextLayer[] = [];
+	const seen = new Set<string>();
+	const scan = (layers: unknown) => {
+		if (!Array.isArray(layers)) return;
+		for (const l of layers as Record<string, unknown>[]) {
+			if (!l || typeof l !== 'object' || l.ty !== 5 || typeof l.nm !== 'string') continue;
+			const k = ((l.t as { d?: { k?: unknown } } | undefined)?.d?.k);
+			const first = Array.isArray(k) ? (k[0] as { s?: { t?: unknown } } | undefined)?.s : undefined;
+			if (!first || typeof first !== 'object') continue;
+			if (seen.has(l.nm)) continue;
+			seen.add(l.nm);
+			const m = LINE_LAYER.exec(l.nm);
+			out.push({ name: l.nm, text: String(first.t ?? '').replace(/\r/g, ' ').trim(), line: m && m[0] === l.nm ? Number(m[1]) : null });
+		}
+	};
+	scan(doc.layers);
+	if (Array.isArray(doc.assets)) for (const a of doc.assets as Record<string, unknown>[]) scan(a?.layers);
+	return out;
+}
+
+/** A Lottie document, or null when it is not JSON or has no layers (LottieDoc.parse). */
+export function parseLottie(bytes: Uint8Array): Record<string, unknown> | null {
+	let data = bytes;
+	if (bytes[0] === 0x1f && bytes[1] === 0x8b) {
+		try {
+			data = gunzipSync(bytes);
+		} catch {
+			return null;
+		}
+	}
+	try {
+		const doc = JSON.parse(new TextDecoder('utf-8').decode(data));
+		return doc && typeof doc === 'object' && Array.isArray(doc.layers) ? doc : null;
+	} catch {
+		return null;
+	}
+}
+
+/**
+ * Why the app's manifest decoder would refuse [pack], or null when it reads.
+ * The fields below have no default in DynModel.kt, so one missing anywhere
+ * fails the whole manifest, and the app then reads the zip as loose files.
+ */
+function dynManifestFault(pack: Record<string, unknown>): string | null {
+	const str = (v: unknown) => typeof v === 'string';
+	const objs = (v: unknown) => (Array.isArray(v) ? (v as unknown[]) : v == null ? [] : null);
+	if (!str(pack.id)) return 'the pack has no "id"';
+	const templates = objs(pack.templates);
+	if (!templates) return '"templates" is not a list';
+	for (const [i, t] of templates.entries()) {
+		const tt = t as Record<string, unknown> | null;
+		if (!tt || typeof tt !== 'object' || !str(tt.id)) return `templates[${i}] has no "id"`;
+		for (const [j, slot] of (objs(tt.slots) ?? []).entries()) {
+			const ss = slot as Record<string, unknown> | null;
+			if (!ss || !str(ss.id) || !Array.isArray(ss.layers)) return `templates[${i}].slots[${j}] needs an "id" and a "layers" list`;
+		}
+		for (const [j, photo] of (objs(tt.photos) ?? []).entries()) {
+			const pp = photo as Record<string, unknown> | null;
+			if (!pp || !str(pp.id) || !str(pp.asset)) return `templates[${i}].photos[${j}] needs an "id" and an "asset"`;
+		}
+	}
+	const fonts = objs(pack.fonts);
+	if (!fonts) return '"fonts" is not a list';
+	for (const [i, f] of fonts.entries()) {
+		const ff = f as Record<string, unknown> | null;
+		if (!ff || !str(ff.family) || !str(ff.file)) return `fonts[${i}] needs a "family" and a "file"`;
+	}
+	return null;
+}
+
+/**
+ * The rules a document carries in `metadata.customProps` (TemplateProps.read):
+ * keys are matched with stray spaces and underscores forgiven, lists are
+ * `;`-separated strings or arrays, and `*` means any text.
+ */
+export function lottieProps(doc: Record<string, unknown>): { phrases: string[]; concepts: string[]; generic: boolean; altText: string } | null {
+	const raw = (doc.metadata as { customProps?: unknown } | undefined)?.customProps;
+	if (!raw || typeof raw !== 'object') return null;
+	const props = new Map<string, unknown>();
+	for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+		const clean = key.trim().toLowerCase().replace(/_/g, '-');
+		if (!props.has(clean) || key === clean) props.set(clean, value);
+	}
+	const list = (v: unknown): string[] => {
+		const items = Array.isArray(v) ? v.map((x) => (x == null ? '' : String(x))) : typeof v === 'string' ? v.split(/[;\n]/) : [];
+		return [...new Set(items.map((x) => x.trim()).filter(Boolean))];
+	};
+	const keywords = list(props.get('keyword-map'));
+	return {
+		phrases: keywords.filter((k) => k !== '*'),
+		concepts: list(props.get('concept-map')).filter((c) => c !== 'default' && c !== '*'),
+		generic: keywords.includes('*'),
+		altText: typeof props.get('alt-text') === 'string' ? (props.get('alt-text') as string) : '',
+	};
+}
+
+function photoAssets(doc: Record<string, unknown>): string[] {
+	if (!Array.isArray(doc.assets)) return [];
+	return (doc.assets as Record<string, unknown>[])
+		.filter((a) => a && typeof a.id === 'string' && typeof a.p === 'string' && !String(a.p).startsWith('data:') && String(a.id).startsWith('photo'))
+		.map((a) => String(a.id));
+}
+
+const titleCase = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/**
+ * Reads a `.wmdynstickers` the way DynStickerStore.importArchive does: our
+ * manifest when the zip has one, otherwise every `.json` document with a
+ * text layer is a template. Missing files and documents without text are
+ * problems, not failures, because the app drops them and installs the rest.
+ */
+export function readDynStickerPack(bytes: Uint8Array): DynPackRead {
+	const all = readZip(bytes, DYN_MAX_TEMPLATES + DYN_MAX_ENTRIES);
+	const problems: string[] = [];
+	if (all.length > DYN_MAX_ENTRIES) problems.push(`${all.length} archive entries; the app reads the first ${DYN_MAX_ENTRIES} and ignores the rest.`);
+	const entries = all.slice(0, DYN_MAX_ENTRIES);
+	const totalBytes = entries.reduce((n, e) => n + e.data.byteLength, 0);
+	if (totalBytes > DYN_MAX_TOTAL_BYTES) problems.push(`${Math.round(totalBytes / 1024 / 1024)} MB unpacked; the app stops reading at 64 MB.`);
+	for (const e of entries) if (e.data.byteLength > DYN_MAX_FILE_BYTES) problems.push(`${e.name} is over 12 MB; the app skips it.`);
+	const tail = (n: string) => n.split('/').pop() ?? n;
+	// DynStickerStore.lookup: the path, the path under a folder, or the file name.
+	const lookup = (path: string | undefined | null): ZipEntry | undefined => {
+		if (!path) return undefined;
+		return entries.find((e) => e.name === path) ?? entries.find((e) => e.name.endsWith('/' + path)) ?? entries.find((e) => tail(e.name) === tail(path));
+	};
+	const images = new Map<string, Uint8Array>();
+	for (const e of entries) if (/^(.*\/)?images\/[^/]+$/.test(e.name) || /\.(png|jpe?g|webp)$/i.test(e.name)) images.set(tail(e.name), e.data);
+
+	const manifestEntry = zipFind(entries, 'pack.json');
+	let raw: Record<string, unknown> | null = null;
+	if (manifestEntry) {
+		try {
+			raw = JSON.parse(textOf(manifestEntry));
+		} catch {
+			problems.push('pack.json is not valid JSON, so the app reads the archive as loose Lottie files.');
+		}
+	}
+	const fault = raw?.format !== DYN_FORMAT ? `"format" is not "${DYN_FORMAT}"` : !raw.pack || typeof raw.pack !== 'object' ? 'it has no "pack"' : dynManifestFault(raw.pack as Record<string, unknown>);
+	const ours = raw != null && fault == null;
+	if (raw && !ours) problems.push(`pack.json does not read as a dynamic sticker manifest (${fault}), so the app reads the archive as loose Lottie files.`);
+
+	if (!ours) {
+		const templates: DynTemplateInfo[] = [];
+		const taken = new Set<string>();
+		const fonts: DynPackRead['fonts'] = [];
+		for (const e of entries) {
+			const lower = tail(e.name).toLowerCase();
+			if (/\.(ttf|otf)$/.test(lower)) {
+				const stem = tail(e.name).replace(/\.[^.]+$/, '');
+				fonts.push({ family: stem.split('-')[0] ?? stem, file: `fonts/${tail(e.name)}`, bytes: e.data });
+				continue;
+			}
+			if (!lower.endsWith('.json') || lower === 'manifest.json') continue;
+			if (templates.length >= DYN_MAX_TEMPLATES) {
+				problems.push(`${e.name}: past the ${DYN_MAX_TEMPLATES}-template limit.`);
+				continue;
+			}
+			const doc = parseLottie(e.data);
+			const layers = doc ? lottieTextLayers(doc) : [];
+			if (!doc || !layers.length) {
+				if (lower !== 'pack.json') problems.push(`${e.name} ${doc ? 'has no text layer' : 'is not a Lottie document'}, so it is left out.`);
+				continue;
+			}
+			const stem = tail(e.name).replace(/\.[^.]+$/, '');
+			let id = dynId(stem) || 'template';
+			for (let n = 2; taken.has(id); n++) id = `${dynId(stem)}_${n}`;
+			taken.add(id);
+			const props = lottieProps(doc);
+			const photos = photoAssets(doc);
+			templates.push({
+				id,
+				name: props?.phrases[0] ? titleCase(props.phrases[0]) : titleCase(id.replace(/(_still)?_v?\d+$/, '').replace(/_/g, ' ')),
+				file: `templates/${id}.json`,
+				kind: photos.length ? 'meme' : 'sticker',
+				phrases: props?.phrases ?? [],
+				concepts: props?.concepts ?? [],
+				generic: props?.generic ?? false,
+				maxWords: 0,
+				altText: props?.altText ?? '',
+				doc,
+				textLayers: layers,
+				photos,
+				raw: {},
+			});
+		}
+		if (!templates.length) problems.push('No template in the archive: the app needs at least one Lottie document with a text layer, and refuses the file.');
+		return { id: '', name: '', author: '', version: '', license: '', description: '', templates, fonts, images, loose: true, problems, totalBytes };
+	}
+
+	const pack = (raw as { pack: Record<string, unknown> }).pack;
+	const id = String(pack.id);
+	if (dynId(id) !== id) problems.push(`The pack id "${id}" is installed as "${dynId(id) || 'pack'}": lowercase letters, digits, "_" and "-" only, 48 at most.`);
+	const list = Array.isArray(pack.templates) ? (pack.templates as Record<string, unknown>[]) : [];
+	if (list.length > DYN_MAX_TEMPLATES) problems.push(`${list.length} templates; the app takes the first ${DYN_MAX_TEMPLATES}.`);
+	const templates: DynTemplateInfo[] = [];
+	const ids = new Set<string>();
+	for (const t of list.slice(0, DYN_MAX_TEMPLATES)) {
+		const tid = t.id as string;
+		if (ids.has(tid)) problems.push(`Two templates share the id "${tid}"; favourites and switched-off templates are kept by id, so give each its own.`);
+		ids.add(tid);
+		if (!/^[a-z0-9_-]{1,48}$/.test(tid)) problems.push(`Template id "${tid}": keep to lowercase letters, digits, "_" and "-".`);
+		const file = typeof t.file === 'string' ? t.file : '';
+		const docEntry = lookup(file);
+		const hasScene = typeof t.scene === 'string' && lookup(t.scene) != null;
+		if (!docEntry && !hasScene) {
+			problems.push(`Template "${tid}" names ${file || '(no file)'}, which the archive does not hold, so it is left out.`);
+			continue;
+		}
+		const doc = docEntry ? parseLottie(docEntry.data) : null;
+		const layers = doc ? lottieTextLayers(doc) : [];
+		const slots = Array.isArray(t.slots) ? t.slots : [];
+		if (docEntry && !doc) problems.push(`Template "${tid}": ${file} is not a Lottie document.`);
+		else if (doc && !layers.length && !slots.length) problems.push(`Template "${tid}" has no text layer, so the keyboard never offers it.`);
+		const match = (t.match && typeof t.match === 'object' ? t.match : {}) as Record<string, unknown>;
+		const props = doc ? lottieProps(doc) : null;
+		// AdoptOurs reads the document's rules only when the entry leaves both out.
+		const own = Array.isArray(match.phrases) || Array.isArray(match.concepts) || match.generic === true || typeof match.maxWords === 'number';
+		const derive = !slots.length && !own && props != null;
+		const photos = doc ? photoAssets(doc) : [];
+		templates.push({
+			id: tid,
+			name: typeof t.name === 'string' && t.name ? t.name : tid,
+			file,
+			kind: t.kind === 'meme' ? 'meme' : 'sticker',
+			phrases: derive ? props!.phrases : Array.isArray(match.phrases) ? match.phrases.map(String) : [],
+			concepts: derive ? props!.concepts : Array.isArray(match.concepts) ? match.concepts.map(String) : [],
+			generic: derive ? props!.generic : match.generic === true,
+			maxWords: typeof match.maxWords === 'number' ? match.maxWords : 0,
+			altText: typeof t.altText === 'string' && t.altText ? t.altText : props?.altText ?? '',
+			doc,
+			textLayers: layers,
+			photos,
+			raw: t,
+		});
+	}
+	const fonts: DynPackRead['fonts'] = [];
+	for (const f of Array.isArray(pack.fonts) ? (pack.fonts as Record<string, unknown>[]) : []) {
+		const file = typeof f?.file === 'string' ? f.file : '';
+		const entry = lookup(file);
+		if (!entry) problems.push(`Font ${file || '(no file)'} is not in the archive.`);
+		fonts.push({ family: String(f?.family ?? ''), file, bytes: entry?.data ?? null });
+	}
+	if (!templates.length) problems.push('No template has its file in the archive, so the app refuses the pack.');
+	const str = (v: unknown) => (typeof v === 'string' ? v : '');
+	return { id, name: str(pack.name), author: str(pack.author), version: str(pack.version), license: str(pack.license), description: str(pack.description), templates, fonts, images, loose: false, problems, totalBytes };
 }
 
 /* ---------- sound pack (.wmsoundpack zip) ---------- */

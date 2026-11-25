@@ -330,6 +330,7 @@ enum class AddonType {
     @SerialName("snippets") Snippets,
     @SerialName("espanso") Espanso,
     @SerialName("stickers") Stickers,
+    @SerialName("dynamic_stickers") DynamicStickers,
     @SerialName("icon_pack") IconPack,
     @SerialName("font") Font,
     @SerialName("emoji_font") EmojiFont,
@@ -351,6 +352,7 @@ enum class AddonType {
             Snippets -> R.string.core_addons_type_snippets_label
             Espanso -> R.string.core_addons_type_espanso_label
             Stickers -> R.string.core_addons_type_stickers_label
+            DynamicStickers -> R.string.core_addons_type_dynamic_stickers_label
             IconPack -> R.string.core_addons_type_icon_pack_label
             Font -> R.string.core_addons_type_font_label
             EmojiFont -> R.string.core_addons_type_emoji_font_label
@@ -378,6 +380,7 @@ enum class AddonType {
             Snippets -> R.string.core_addons_type_snippets_singular_label
             Espanso -> R.string.core_addons_type_espanso_singular_label
             Stickers -> R.string.core_addons_type_stickers_singular_label
+            DynamicStickers -> R.string.core_addons_type_dynamic_stickers_singular_label
             IconPack -> R.string.core_addons_type_icon_pack_singular_label
             Font -> R.string.core_addons_type_font_singular_label
             EmojiFont -> R.string.core_addons_type_emoji_font_singular_label
@@ -405,6 +408,9 @@ enum class AddonType {
             EmojiKeywords -> 8L * 1024 * 1024
             IconPack -> 8L * 1024 * 1024
             Stickers -> 64L * 1024 * 1024
+            // Lottie documents are small; the fonts and pictures a template set
+            // carries beside them are what fill a pack.
+            DynamicStickers -> 64L * 1024 * 1024
             Font -> 64L * 1024 * 1024
             // A colour emoji font carries thousands of bitmap glyphs, and a
             // large-picture build (Noto 3D at 128 px) runs to 150 MB. Same cap
@@ -436,7 +442,9 @@ enum class AddonType {
      */
     val previewable: Boolean
         get() = when (this) {
-            Snippets, Espanso, Dictionary, EmojiKeywords, Sound, SoundPack, Stickers, Plugin, Vocabulary -> true
+            Snippets, Espanso, Dictionary, EmojiKeywords, Sound, SoundPack, Stickers, DynamicStickers,
+            Plugin, Vocabulary,
+            -> true
             else -> false
         }
 

@@ -12,6 +12,7 @@ import { payloadFileName, payloadUrl } from '../../lib/util';
 import { sha256Hex } from '../../lib/util';
 import {
 	readDictionary,
+	readDynStickerPack,
 	readEmojiKeywords,
 	readEspanso,
 	readFont,
@@ -30,6 +31,7 @@ import { Notice, Spinner } from '../common';
 import { IconCheck, IconDownload, IconWarn } from '../icons';
 import { ThemeMock, LayoutViewer } from './KeyboardMock';
 import { FontPreview, IconPackPreview, SoundPackPreview, SoundPreview, StickerPreview } from './Media';
+import { DynStickerPreview } from './DynStickers';
 import { DictionaryPreview, EmojiKeywordPreview, EspansoPreview, PluginPreview, SnippetPreview, VocabularyPreview } from './Tables';
 
 type State =
@@ -169,6 +171,7 @@ function PayloadView({ entry, bytes, sample }: { entry: AddonEntry; bytes: Uint8
 					case 'snippets': out = <SnippetPreview read={readSnippets(text())} />; break;
 					case 'espanso': out = <EspansoPreview read={readEspanso(text())} />; break;
 					case 'stickers': out = <StickerPreview read={readStickerPack(bytes)} />; break;
+					case 'dynamic_stickers': out = <DynStickerPreview read={readDynStickerPack(bytes)} sample={sample} />; break;
 					case 'sound_pack': out = <SoundPackPreview read={readSoundPack(bytes)} />; break;
 					case 'sound': out = <SoundPreview read={readSound(bytes, name)} />; break;
 					case 'icon_pack': out = <IconPackPreview read={readIconPack(bytes, ICON_SLOT_IDS)} />; break;

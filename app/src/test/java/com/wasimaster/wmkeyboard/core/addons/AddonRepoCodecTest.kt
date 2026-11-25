@@ -150,6 +150,9 @@ class AddonRepoCodecTest {
                 // cannot answer it.
                 AddonType.SoundPack,
                 AddonType.Stickers,
+                // A dynamic sticker pack is judged by which messages it answers:
+                // its templates by name, with the phrases each is offered for.
+                AddonType.DynamicStickers,
                 // A plugin previews for a different reason -- not "is this any
                 // good" but "should I let this run at all", which is why the
                 // preview shows its capabilities rather than its content.

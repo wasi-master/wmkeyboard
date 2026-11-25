@@ -219,6 +219,7 @@ private val AddonType.icon
         AddonType.Snippets -> Icons.Outlined.Description
         AddonType.Espanso -> Icons.Outlined.Bolt
         AddonType.Stickers -> SymbolIcons.Sticker
+        AddonType.DynamicStickers -> SymbolIcons.AnimatedImages
         AddonType.IconPack -> Icons.Outlined.Category
         AddonType.Font -> Icons.Outlined.TextFields
         AddonType.EmojiFont -> Icons.Outlined.Mood
@@ -244,6 +245,9 @@ private val AddonType.seed: Color
         AddonType.EmojiKeywords -> Color(0xFF0EA5E9)
         AddonType.Snippets, AddonType.Espanso -> Color(0xFFF59E0B)
         AddonType.Stickers -> Color(0xFFEC4899)
+        // Sticker pink's neighbour, for the same reason Sound's and Sound
+        // pack's are neighbours: two kinds of sticker, told apart at a glance.
+        AddonType.DynamicStickers -> Color(0xFFD946EF)
         AddonType.IconPack -> Color(0xFF22A559)
         AddonType.Font -> Color(0xFF6366F1)
         AddonType.EmojiFont -> Color(0xFFEAB308)
@@ -1577,6 +1581,7 @@ private val AddonType.settingsRoute: String
         AddonType.EmojiKeywords -> "emojikeywords"
         AddonType.Snippets, AddonType.Espanso -> "expander"
         AddonType.Stickers -> "sticker_packs"
+        AddonType.DynamicStickers -> "dynamic_stickers"
         AddonType.IconPack -> "icons"
         AddonType.Font -> "fonts"
         AddonType.EmojiFont -> "emoji"
@@ -1609,6 +1614,9 @@ private val AddonType.settingsAnchor: Int
         AddonType.EmojiKeywords -> 0
         AddonType.Snippets, AddonType.Espanso -> 0
         AddonType.Stickers -> R.string.import_sticker_packs_section_title
+        // The screen's pack rows are keyed by pack id, which is the localRef,
+        // so the installed pack itself is what flashes.
+        AddonType.DynamicStickers -> 0
         AddonType.IconPack -> R.string.plugins_icons_pack_title
         AddonType.Font -> R.string.fonts_installed_header
         AddonType.EmojiFont -> R.string.langemoji_emoji_font_title
@@ -1666,6 +1674,7 @@ private val AddonType.useLabelRes: Int
         AddonType.EmojiKeywords -> R.string.addon_use_target_emoji_keywords_label
         AddonType.Snippets, AddonType.Espanso -> ImeR.string.ime_tool_snippets
         AddonType.Stickers -> R.string.addon_use_target_stickers_label
+        AddonType.DynamicStickers -> R.string.addon_use_target_dynamic_stickers_label
         AddonType.IconPack -> R.string.addon_use_target_icons_label
         AddonType.Font -> R.string.addon_use_target_font_label
         AddonType.EmojiFont -> ImeR.string.ime_tool_emoji
@@ -2924,6 +2933,56 @@ private fun AddonPreviewSection(manifestUrl: String, entry: AddonEntry) {
                             .clip(RoundedCornerShape(10.dp)),
                     )
                 }
+            }
+        }
+
+        is AddonPreviewContent.DynamicStickers -> SettingsGroup(previewTitle) {
+            item {
+                val count = pluralStringResource(R.plurals.addon_preview_dyn_template_count, shown.total, shown.total)
+                CaptionText(
+                    if (shown.fonts > 0) {
+                        count + " · " + pluralStringResource(R.plurals.addon_preview_dyn_font_count, shown.fonts, shown.fonts)
+                    } else {
+                        count
+                    },
+                )
+            }
+            for (template in shown.templates) {
+                item {
+                    // The phrases are the pack author's text; quoted so a
+                    // phrase reads as a message and not as part of the line.
+                    val phrases = template.phrases.joinToString(", ") { "“$it”" }
+                    val lines = listOfNotNull(
+                        phrases.takeIf { it.isNotEmpty() }
+                            ?.let { stringResource(R.string.addon_preview_dyn_phrases, it) },
+                        stringResource(R.string.addon_preview_dyn_any_text).takeIf { template.generic },
+                    )
+                    WmRow(
+                        title = template.name,
+                        supporting = lines.takeIf { it.isNotEmpty() }?.let {
+                            {
+                                Text(
+                                    it.joinToString("\n"),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    maxLines = 3,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        },
+                        trailing = template.takeIf { it.meme }?.let {
+                            {
+                                Text(
+                                    stringResource(R.string.addon_preview_dyn_meme),
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            }
+                        },
+                    )
+                }
+            }
+            item(visible = shown.total > shown.templates.size) {
+                val more = shown.total - shown.templates.size
+                CaptionText(pluralStringResource(R.plurals.addon_preview_more_count, more, more))
             }
         }
 

@@ -7,7 +7,14 @@ import com.wasimaster.wmkeyboard.core.plugins.PluginManifestResult
 import com.wasimaster.wmkeyboard.core.plugins.PluginPermission
 import com.wasimaster.wmkeyboard.core.snippets.SnippetPayload
 import com.wasimaster.wmkeyboard.core.feedback.SoundPackFile
+import com.wasimaster.wmkeyboard.core.stickers.dynamic.DynKind
+import com.wasimaster.wmkeyboard.core.stickers.dynamic.DynPackFile
+import com.wasimaster.wmkeyboard.core.stickers.dynamic.LottieDoc
+import com.wasimaster.wmkeyboard.core.stickers.dynamic.TemplateMeta
+import com.wasimaster.wmkeyboard.core.stickers.dynamic.TemplateProps
+import java.io.ByteArrayInputStream
 import java.io.File
+import java.io.InputStream
 import java.util.zip.GZIPInputStream
 import java.util.zip.ZipInputStream
 
@@ -118,6 +125,36 @@ sealed interface AddonPreviewContent {
     ) : AddonPreviewContent
 
     /**
+     * What a dynamic sticker pack holds, read off its manifest.
+     *
+     * Nothing is drawn. Drawing a template takes the animation engine and the
+     * pack's fonts, and the question a pack raises before installing is
+     * mostly "which messages would it offer stickers for": its templates by
+     * name, with the phrases each one answers.
+     */
+    data class DynamicStickers(
+        /** The pack's own name, or the addon's when the file gives none. */
+        val name: String,
+        val author: String,
+        /** Templates whose files are in the archive, which is what installs. */
+        val total: Int,
+        /** The first few of those, in pack order. */
+        val templates: List<Template>,
+        /** Fonts the pack carries for its templates. */
+        val fonts: Int,
+    ) : AddonPreviewContent {
+        data class Template(
+            val name: String,
+            /** The phrases it is offered for, first few only. */
+            val phrases: List<String>,
+            /** Offered for any short text, after the ones that match. */
+            val generic: Boolean,
+            /** A meme (top and bottom text, or a photo) rather than a sticker. */
+            val meme: Boolean,
+        )
+    }
+
+    /**
      * What a plugin says about itself, and what it would be allowed to do.
      *
      * The odd one out: every other preview answers "is this content any good?",
@@ -167,6 +204,21 @@ object AddonPreviewReader {
 
     private const val MAX_STICKER_IMAGES = 24
 
+    /** Template rows on the panel; the count says how many more there are. */
+    private const val MAX_DYN_TEMPLATES = 24
+
+    /** Phrases shown under one template. */
+    private const val MAX_DYN_PHRASES = 4
+
+    /** A manifest past this is not a pack anyone wrote by hand or by tool. */
+    private const val MAX_DYN_MANIFEST_BYTES = 1L * 1024 * 1024
+
+    /**
+     * Loose documents read to find out whether they are templates, for a zip
+     * with no manifest. The store's own ceiling for one pack.
+     */
+    private const val MAX_DYN_LOOSE = 600
+
     /** Enough variants to hear the variation; nobody taps a ninth. */
     private const val MAX_PACK_VARIANTS = 8
 
@@ -183,6 +235,7 @@ object AddonPreviewReader {
         AddonType.Sound -> AddonPreviewContent.Sound(payload)
         AddonType.SoundPack -> readSoundPack(payload)
         AddonType.Stickers -> readStickers(payload)
+        AddonType.DynamicStickers -> readDynamicStickers(entry, payload)
         AddonType.Plugin -> readPlugin(payload)
         AddonType.Vocabulary -> readVocabulary(payload)
         // Screenshots already answer the question these raise, and [Unknown] is
@@ -488,6 +541,135 @@ object AddonPreviewReader {
         }
         return AddonPreviewContent.Stickers(images = images, total = total)
     }
+
+    /**
+     * Reads a dynamic sticker pack without installing it.
+     *
+     * Two shapes, the two the importer takes. A `.wmdynstickers` file is read
+     * off its `pack.json`, counting only the templates whose document or
+     * scene is in the archive, since a missing one is dropped on install. A
+     * zip without one (a template set's own zip, a dotLottie file) is read the
+     * way the importer reads it: every `.json` document with a text layer is
+     * a template.
+     */
+    fun readDynamicStickers(entry: AddonEntry, payload: File): AddonPreviewContent {
+        val names = HashSet<String>()
+        var manifestText: String? = null
+        var ours = false
+        val loose = ArrayList<AddonPreviewContent.DynamicStickers.Template>()
+        var looseTotal = 0
+        var looseSeen = 0
+        val ok = runCatching {
+            ZipInputStream(payload.inputStream().buffered()).use { zip ->
+                while (true) {
+                    val zipEntry = zip.nextEntry ?: break
+                    if (zipEntry.isDirectory) {
+                        zip.closeEntry()
+                        continue
+                    }
+                    val name = zipEntry.name.removePrefix("./")
+                    names += name
+                    val tail = name.substringAfterLast('/').lowercase()
+                    when {
+                        tail == DynPackFile.MANIFEST && manifestText == null -> {
+                            manifestText = readBounded(zip, MAX_DYN_MANIFEST_BYTES)?.decodeToString()
+                            ours = manifestText?.let(DynPackFile::isManifest) == true
+                        }
+                        // Once the manifest is known to be ours, loose documents
+                        // are its templates and need no reading here.
+                        !ours && tail.endsWith(".json") && tail != DOTLOTTIE_MANIFEST &&
+                            !name.startsWith(DynPackFile.SCENES_DIR + "/") && looseSeen < MAX_DYN_LOOSE -> {
+                            looseSeen++
+                            looseTemplate(zip, tail.substringBeforeLast('.'))?.let { template ->
+                                looseTotal++
+                                if (loose.size < MAX_DYN_TEMPLATES) loose += template
+                            }
+                        }
+                    }
+                    zip.closeEntry()
+                }
+            }
+        }.isSuccess
+        if (!ok) {
+            return AddonPreviewContent.Unreadable(AddonText.of(R.string.faddons_preview_error_dyn_pack_unreadable))
+        }
+        val fallbackName = entry.name.ifBlank { entry.id }
+        val manifest = manifestText?.let(DynPackFile::readManifest)
+        if (manifest == null) {
+            if (looseTotal == 0) {
+                return AddonPreviewContent.Unreadable(AddonText.of(R.string.faddons_preview_error_dyn_pack_unreadable))
+            }
+            val fonts = names.count { it.lowercase().endsWith(".ttf") || it.lowercase().endsWith(".otf") }
+            return AddonPreviewContent.DynamicStickers(fallbackName, entry.author, looseTotal, loose, fonts)
+        }
+
+        // The importer's lookup: the path itself, the path under a folder the
+        // zip was made from, or the file name alone.
+        val tails = names.mapTo(HashSet()) { it.substringAfterLast('/') }
+        fun present(path: String?): Boolean = !path.isNullOrBlank() &&
+            (path in names || names.any { it.endsWith("/$path") } || path.substringAfterLast('/') in tails)
+        val kept = manifest.templates.filter { present(it.file) || present(it.scene) }
+        if (kept.isEmpty()) {
+            return AddonPreviewContent.Unreadable(AddonText.of(R.string.faddons_preview_error_dyn_pack_unreadable))
+        }
+        return AddonPreviewContent.DynamicStickers(
+            name = manifest.name.ifBlank { fallbackName },
+            author = manifest.author.ifBlank { entry.author },
+            total = kept.size,
+            templates = kept.take(MAX_DYN_TEMPLATES).map(::templateRow),
+            fonts = manifest.fonts.map { it.file }.distinct().count { present(it) },
+        )
+    }
+
+    private fun templateRow(meta: TemplateMeta) = AddonPreviewContent.DynamicStickers.Template(
+        name = meta.name.ifBlank { meta.id },
+        phrases = meta.match.phrases.take(MAX_DYN_PHRASES),
+        generic = meta.match.generic,
+        meme = meta.kind == DynKind.MEME || meta.photos.isNotEmpty(),
+    )
+
+    /**
+     * One loose document as a template row, or null when it is not one: not
+     * Lottie, too big, or without a text layer for the words to go into.
+     * Named the way the importer names it, by its first phrase or its file.
+     */
+    private fun looseTemplate(zip: InputStream, stem: String): AddonPreviewContent.DynamicStickers.Template? {
+        val bytes = readBounded(zip, MAX_IMAGE_BYTES) ?: return null
+        val raw = if (bytes.size > 2 && bytes[0] == GZIP_0 && bytes[1] == GZIP_1) {
+            runCatching { GZIPInputStream(ByteArrayInputStream(bytes)).use { readBounded(it, MAX_IMAGE_BYTES) } }
+                .getOrNull() ?: return null
+        } else {
+            bytes
+        }
+        val doc = LottieDoc.parse(raw.decodeToString()) ?: return null
+        val props = TemplateProps.read(doc)
+        if (TemplateProps.slots(doc, props).isEmpty()) return null
+        val phrases = props?.match?.phrases.orEmpty()
+        return AddonPreviewContent.DynamicStickers.Template(
+            name = phrases.firstOrNull()?.replaceFirstChar { it.titlecase() }
+                ?: stem.replace('_', ' ').replaceFirstChar { it.titlecase() },
+            phrases = phrases.take(MAX_DYN_PHRASES),
+            generic = props?.match?.generic == true,
+            meme = TemplateProps.photos(doc).isNotEmpty(),
+        )
+    }
+
+    /** The rest of [input], or null past [limit] bytes. */
+    private fun readBounded(input: InputStream, limit: Long): ByteArray? = runCatching {
+        val out = java.io.ByteArrayOutputStream()
+        val buffer = ByteArray(64 * 1024)
+        while (true) {
+            val read = input.read(buffer)
+            if (read <= 0) break
+            if (out.size() + read > limit) return null
+            out.write(buffer, 0, read)
+        }
+        out.toByteArray()
+    }.getOrNull()
+
+    private const val DOTLOTTIE_MANIFEST = "manifest.json"
+    private const val GZIP_0: Byte = 0x1F
+    private const val GZIP_1: Byte = -0x75
 
     private fun copyBounded(input: java.io.InputStream, target: File): Boolean = runCatching {
         var written = 0L

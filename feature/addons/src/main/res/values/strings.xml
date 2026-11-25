@@ -97,6 +97,19 @@
     <string name="faddons_install_error_too_many_sticker_packs">You have reached the maximum number of sticker packs.</string>
     <string name="faddons_install_error_sticker_pack_unreadable">The app could not read the sticker pack.</string>
 
+    <!-- A dynamic sticker template is a Lottie animation with a text layer
+         that the typed words go into. Lottie is a file format; do not
+         translate it. -->
+    <string name="faddons_install_error_no_dyn_templates">That file has no dynamic sticker templates in it. A template is a Lottie animation with a text layer.</string>
+    <string name="faddons_install_error_too_many_dyn_packs">You have reached the maximum number of dynamic sticker packs.</string>
+    <string name="faddons_install_error_dyn_pack_failed">The app could not save the dynamic sticker pack.</string>
+    <!-- Shown after a pack installed with some of its templates left out.
+         %1$d is how many. -->
+    <plurals name="faddons_install_dyn_templates_skipped">
+        <item quantity="one">%1$d template was left out. Its file is missing from the pack or has no text layer.</item>
+        <item quantity="other">%1$d templates were left out. Their files are missing from the pack or have no text layer.</item>
+    </plurals>
+
     <string name="faddons_install_error_not_an_icon_pack">That file is not an icon pack.</string>
     <string name="faddons_install_error_too_many_icon_packs">You have reached the maximum number of icon packs.</string>
     <string name="faddons_install_error_icon_pack_unreadable">The app could not read the icon pack.</string>
@@ -118,6 +131,7 @@
     <string name="faddons_preview_error_not_snippet_pack">That file is not a snippet pack.</string>
     <string name="faddons_preview_error_not_espanso_pack">That file is not an Espanso package or match file.</string>
     <string name="faddons_preview_error_stickers_unreadable">The app could not read the sticker images.</string>
+    <string name="faddons_preview_error_dyn_pack_unreadable">That file is not a dynamic sticker pack.</string>
     <string name="faddons_preview_error_sound_pack_unreadable">The app could not read the sounds in this pack.</string>
 
     <!-- ================================================================== -->

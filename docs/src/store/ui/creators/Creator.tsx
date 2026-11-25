@@ -6,6 +6,7 @@ import { lazyView } from '../lazy';
 const RepoBuilder = lazyView(() => import('./RepoBuilder').then((m) => m.RepoBuilder));
 const SnippetsBuilder = lazyView(() => import('./SnippetsBuilder').then((m) => m.SnippetsBuilder));
 const StickersBuilder = lazyView(() => import('./StickersBuilder').then((m) => m.StickersBuilder));
+const DynamicStickersBuilder = lazyView(() => import('./DynamicStickersBuilder').then((m) => m.DynamicStickersBuilder));
 const SoundPackBuilder = lazyView(() => import('./SoundPackBuilder').then((m) => m.SoundPackBuilder));
 const IconPackBuilder = lazyView(() => import('./IconPackBuilder').then((m) => m.IconPackBuilder));
 const ThemeEditor = lazyView(() => import('./ThemeEditor').then((m) => m.ThemeEditor));
@@ -24,6 +25,7 @@ const BUILDERS: { type: string; title: string; blurb: string; hue: string; icon:
 	{ type: 'layout', title: 'Layout', blurb: 'Key rows and layers, edited on the keyboard itself.', hue: '3B82F6', icon: 'layout' },
 	{ type: 'snippets', title: 'Snippet pack', blurb: 'Triggers, expansions, patterns and folders.', hue: 'F59E0B', icon: 'snippets' },
 	{ type: 'stickers', title: 'Sticker pack', blurb: 'Drop images, name them, get a .wmstickers.', hue: 'EC4899', icon: 'stickers' },
+	{ type: 'dynamic_stickers', title: 'Dynamic stickers', blurb: 'Lottie templates that draw what you type, with the phrases each one answers.', hue: 'D946EF', icon: 'dynamic_stickers' },
 	{ type: 'sound_pack', title: 'Sound pack', blurb: 'Press and release samples per key role.', hue: 'F97316', icon: 'sound_pack' },
 	{ type: 'icon_pack', title: 'Icon pack', blurb: 'One SVG per slot, every tool and key the app draws.', hue: '22A559', icon: 'icon_pack' },
 	{ type: 'plugin', title: 'Plugin', blurb: 'The app\'s plugin editor on the web: the same Python checks, suggestions, preview and console.', hue: '06B6D4', icon: 'plugin' },
@@ -50,6 +52,7 @@ export function Creator({ type }: { type?: string }) {
 				{type === 'layout' && <LayoutEditor />}
 				{type === 'snippets' && <SnippetsBuilder />}
 				{type === 'stickers' && <StickersBuilder />}
+				{type === 'dynamic_stickers' && <DynamicStickersBuilder />}
 				{type === 'sound_pack' && <SoundPackBuilder />}
 				{type === 'icon_pack' && <IconPackBuilder />}
 				{type === 'plugin' && <PluginBuilder />}

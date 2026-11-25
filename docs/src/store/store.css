@@ -1373,6 +1373,43 @@ html[data-wm-store] .main-frame {
 	aspect-ratio: 1;
 	object-fit: contain;
 }
+.st-dyn-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+	gap: 0.8rem;
+	padding: 0.9rem;
+}
+.st-dyn-grid figure {
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+	font-size: 0.8rem;
+	text-align: center;
+}
+.st-dyn-stage {
+	position: relative;
+	aspect-ratio: 1;
+	border-radius: var(--st-radius-sm);
+	background: repeating-conic-gradient(color-mix(in srgb, var(--st-text) 6%, transparent) 0 25%, transparent 0 50%) 0 0 / 1rem 1rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+}
+.st-dyn-canvas {
+	position: absolute;
+	inset: 0;
+}
+.st-dyn-list {
+	list-style: none;
+	margin: 0;
+	padding: 0 0.9rem 0.9rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.45rem;
+	font-size: 0.85rem;
+}
 .st-icon-grid .st-svg {
 	width: 2rem;
 	height: 2rem;

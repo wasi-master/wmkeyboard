@@ -197,6 +197,26 @@
         <item quantity="one">%1$d sticker</item>
         <item quantity="other">%1$d stickers</item>
     </plurals>
+    <!-- How many templates a dynamic sticker pack holds. A template turns the
+         words you type into a sticker. %1$d is the count. -->
+    <plurals name="addon_preview_dyn_template_count">
+        <item quantity="one">%1$d template</item>
+        <item quantity="other">%1$d templates</item>
+    </plurals>
+    <!-- After the template count: how many fonts the pack brings for its
+         templates. %1$d is the count. -->
+    <plurals name="addon_preview_dyn_font_count">
+        <item quantity="one">%1$d font included</item>
+        <item quantity="other">%1$d fonts included</item>
+    </plurals>
+    <!-- Under a template that is offered for any short message, not only
+         for the phrases it names. -->
+    <string name="addon_preview_dyn_any_text">Takes any short text</string>
+    <!-- Marks a template that makes a meme rather than a sticker. -->
+    <string name="addon_preview_dyn_meme">Meme</string>
+    <!-- Under a template: the messages it is offered for. %1$s is a list of
+         phrases from the pack, such as “thank you”, “thanks”. -->
+    <string name="addon_preview_dyn_phrases">For %1$s</string>
     <string name="addon_preview_play_sound_title">Play the sound</string>
     <!-- How many different recordings a sound pack holds. %1$d is the count. -->
     <plurals name="addon_preview_pack_variant_count">
@@ -265,6 +285,7 @@
     <string name="addon_use_target_dictionary_label">Custom dictionaries</string>
     <string name="addon_use_target_emoji_keywords_label">Emoji keywords</string>
     <string name="addon_use_target_stickers_label">Sticker packs</string>
+    <string name="addon_use_target_dynamic_stickers_label">Dynamic stickers</string>
     <string name="addon_use_target_icons_label">Icons</string>
     <string name="addon_use_target_font_label">Fonts</string>
     <string name="addon_use_target_sound_label">Key press</string>

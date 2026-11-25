@@ -94,12 +94,14 @@
             "snippets",
             "espanso",
             "stickers",
+            "dynamic_stickers",
             "icon_pack",
             "font",
             "emoji_font",
             "sound",
             "sound_pack",
-            "plugin"
+            "plugin",
+            "vocabulary"
           ],
           "description": "Addon kind. Determines which native import path installs it."
         },
@@ -180,7 +182,8 @@
               "type": {
                 "enum": [
                   "dictionary",
-                  "emoji_keywords"
+                  "emoji_keywords",
+                  "vocabulary"
                 ]
               }
             }

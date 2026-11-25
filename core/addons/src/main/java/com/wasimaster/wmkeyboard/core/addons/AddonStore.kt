@@ -8,6 +8,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonObject
 import java.io.File
 
 /**
@@ -103,10 +108,15 @@ class AddonStore(private var baseDir: File?) {
         val forgeToken: String = "",
     )
 
+    /**
+     * `installed.json` as it is written. Read field by field rather than as
+     * this class (see [reload]): one record of a type this build does not
+     * know must not cost the others.
+     */
     @Serializable
     private data class InstalledSnapshot(
         val version: Int = FORMAT_VERSION,
-        val installed: Map<String, InstalledAddon> = emptyMap(),
+        val installed: Map<String, JsonElement> = emptyMap(),
     )
 
     private val repoList = ArrayList<AddonRepoRef>()
@@ -114,7 +124,22 @@ class AddonStore(private var baseDir: File?) {
     private var unmeteredRefresh = false
     private var token = ""
     private val installedMap = LinkedHashMap<String, InstalledAddon>()
-    private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+
+    /**
+     * Records this build cannot interpret, kept exactly as they were read and
+     * written back on every [save].
+     *
+     * A record's type is an enum, and a build older than the type that wrote
+     * it has no value to decode it into. Before this, the whole file failed
+     * to decode, the installed list came up empty, and the next save wrote it
+     * out empty: going back one version forgot every install. Coercing the
+     * type to [AddonType.Unknown] would keep the record but lose its real
+     * type on the next save, so it would stay unusable after upgrading again.
+     * Kept verbatim instead, and left out of [installed]: nothing here can
+     * uninstall, update or open one, and a newer build reads it as it was.
+     */
+    private val foreignRecords = LinkedHashMap<String, JsonElement>()
+    private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true; coerceInputValues = true }
 
     private val _revision = MutableStateFlow(0)
 
@@ -396,6 +421,7 @@ class AddonStore(private var baseDir: File?) {
         // process, and a half-tracked install is worse than an untracked one.
         if (baseDir == null) return
         installedMap[key] = record
+        foreignRecords.remove(key)
         save()
     }
 
@@ -438,9 +464,11 @@ class AddonStore(private var baseDir: File?) {
                     ),
                 ),
             )
+            val records = LinkedHashMap<String, JsonElement>(foreignRecords)
+            installedMap.forEach { (key, record) -> records[key] = json.encodeToJsonElement(record) }
             writeAtomically(
                 File(dir, INSTALLED_FILE),
-                json.encodeToString(InstalledSnapshot(installed = LinkedHashMap(installedMap))),
+                json.encodeToString(InstalledSnapshot(installed = records)),
             )
         }
         _revision.value++
@@ -454,6 +482,25 @@ class AddonStore(private var baseDir: File?) {
             if (!part.renameTo(file)) {
                 file.delete()
                 part.renameTo(file)
+            }
+        }
+    }
+
+    /**
+     * Fills [installedMap] from `installed.json`, one record at a time. A
+     * record whose type this build does not know goes to [foreignRecords]
+     * untouched, and one that does not decode at all is skipped, so neither
+     * takes the rest of the list with it.
+     */
+    private fun readInstalled(text: String) {
+        val root = json.parseToJsonElement(text).jsonObject
+        val records = root["installed"] as? JsonObject ?: return
+        for ((key, raw) in records) {
+            val record = runCatching { json.decodeFromJsonElement<InstalledAddon>(raw) }.getOrNull() ?: continue
+            if (record.type == AddonType.Unknown) {
+                foreignRecords[key] = raw
+            } else {
+                installedMap[key] = record
             }
         }
     }
@@ -473,6 +520,7 @@ class AddonStore(private var baseDir: File?) {
         unmeteredRefresh = false
         token = ""
         installedMap.clear()
+        foreignRecords.clear()
         val dir = baseDir ?: run { _revision.value++; return }
 
         val reposFile = File(dir, REPOS_FILE)
@@ -488,10 +536,7 @@ class AddonStore(private var baseDir: File?) {
 
         val installedFile = File(dir, INSTALLED_FILE)
         if (installedFile.exists()) {
-            runCatching {
-                val snapshot = json.decodeFromString<InstalledSnapshot>(installedFile.readText())
-                installedMap.putAll(snapshot.installed)
-            }
+            runCatching { readInstalled(installedFile.readText()) }
         }
 
         _revision.value++

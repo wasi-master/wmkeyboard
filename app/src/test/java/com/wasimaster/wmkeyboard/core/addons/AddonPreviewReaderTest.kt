@@ -342,6 +342,94 @@ class AddonPreviewReaderTest {
         )
     }
 
+    // ---- dynamic stickers -------------------------------------------------
+
+    /** A Lottie document with a text layer per name: a template. */
+    private fun lottie(vararg layers: String, props: String = "{}"): String {
+        val texts = layers.joinToString(",") { name ->
+            """{"ty":5,"nm":"$name","t":{"d":{"k":[{"s":{"s":60,"f":"Sans","t":"HI","j":2},"t":0}]}}}"""
+        }
+        return """{"v":"5.7.14","fr":30,"ip":0,"op":60,"w":512,"h":512,"assets":[],"layers":[$texts],""" +
+            """"metadata":{"customProps":$props}}"""
+    }
+
+    private fun zip(name: String, vararg entries: Pair<String, ByteArray>): File {
+        val payload = temp.newFile(name)
+        ZipOutputStream(payload.outputStream()).use { zip ->
+            for ((path, bytes) in entries) {
+                zip.putNextEntry(ZipEntry(path))
+                zip.write(bytes)
+                zip.closeEntry()
+            }
+        }
+        return payload
+    }
+
+    private val dynManifest = """
+        {"format":"wmkeyboard-dynstickers","version":1,"pack":{"id":"hello","name":"Hello pack","author":"Ann",
+         "templates":[
+           {"id":"thanks","name":"Thanks","file":"templates/thanks.json","match":{"phrases":["thank you","thanks"]}},
+           {"id":"any","name":"Any text","file":"templates/any.json","match":{"generic":true}},
+           {"id":"drake","name":"Drake","file":"templates/drake.json","kind":"meme"},
+           {"id":"gone","name":"Gone","file":"templates/gone.json"}
+         ],
+         "fonts":[{"family":"Sans","file":"fonts/Sans.ttf"},{"family":"Gone","file":"fonts/Gone.ttf"}]}}
+    """.trimIndent()
+
+    @Test
+    fun `reads a dynamic sticker pack off its manifest`() {
+        val payload = zip(
+            "p.wmdynstickers",
+            "pack.json" to dynManifest.toByteArray(),
+            "templates/thanks.json" to lottie("_txt_0").toByteArray(),
+            "templates/any.json" to lottie("_txt_0").toByteArray(),
+            "templates/drake.json" to lottie("top", "bottom").toByteArray(),
+            "fonts/Sans.ttf" to ByteArray(16),
+        )
+        val pack = AddonPreviewReader.read(entry(AddonType.DynamicStickers), payload)
+            as AddonPreviewContent.DynamicStickers
+        assertEquals("Hello pack", pack.name)
+        assertEquals("Ann", pack.author)
+        // "gone" names a file the archive does not have, so it would not install.
+        assertEquals(3, pack.total)
+        assertEquals(listOf("Thanks", "Any text", "Drake"), pack.templates.map { it.name })
+        assertEquals(listOf("thank you", "thanks"), pack.templates[0].phrases)
+        assertTrue(pack.templates[1].generic)
+        assertTrue(pack.templates[2].meme)
+        // Only the font that is really in the archive.
+        assertEquals(1, pack.fonts)
+    }
+
+    @Test
+    fun `a zip without a manifest counts the documents that have text`() {
+        val payload = zip(
+            "set.zip",
+            "love_v2.json" to lottie("_txt_0", "_txt_1", props = """{"keyword-map":"i love you;love you"}""").toByteArray(),
+            // An animation with no text layer is not a template.
+            "confetti.json" to """{"v":"5.7.14","layers":[{"ty":4,"nm":"shape"}]}""".toByteArray(),
+            "plain_text.json" to lottie("Title").toByteArray(),
+        )
+        val pack = AddonPreviewReader.read(entry(AddonType.DynamicStickers), payload)
+            as AddonPreviewContent.DynamicStickers
+        assertEquals(2, pack.total)
+        // Named by its first phrase, as the importer names it.
+        assertEquals("I love you", pack.templates[0].name)
+        assertEquals("Plain text", pack.templates[1].name)
+        assertEquals("X", pack.name)
+    }
+
+    @Test
+    fun `a dynamic sticker pack with nothing to install is unreadable`() {
+        val empty = zip("e.wmdynstickers", "pack.json" to dynManifest.toByteArray())
+        assertTrue(
+            AddonPreviewReader.read(entry(AddonType.DynamicStickers), empty) is AddonPreviewContent.Unreadable,
+        )
+        val notZip = file("n.wmdynstickers", "plain text, definitely not a zip")
+        assertTrue(
+            AddonPreviewReader.read(entry(AddonType.DynamicStickers), notZip) is AddonPreviewContent.Unreadable,
+        )
+    }
+
     // ---- the types that deliberately have no preview ---------------------
 
     @Test

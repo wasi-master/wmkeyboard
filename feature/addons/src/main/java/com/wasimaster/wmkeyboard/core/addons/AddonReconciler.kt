@@ -9,6 +9,7 @@ import com.wasimaster.wmkeyboard.core.plugins.PluginStore
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
+import com.wasimaster.wmkeyboard.core.stickers.dynamic.DynStickerStore
 import kotlinx.coroutines.flow.first
 import java.io.File
 
@@ -58,6 +59,7 @@ object AddonReconciler {
                     .mapNotNull { it.trim().toLongOrNull() }
                     .any { it in snippetIds }
                 AddonType.Stickers -> StickerPackStore.get(app).pack(record.localRef) != null
+                AddonType.DynamicStickers -> DynStickerStore.get(app).pack(record.localRef) != null
                 AddonType.IconPack -> IconPackStore.get(app).pack(record.localRef) != null
                 AddonType.Font, AddonType.EmojiFont ->
                     FontStore.get(app).font(record.localRef) != null

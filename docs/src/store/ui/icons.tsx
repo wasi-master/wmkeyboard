@@ -71,6 +71,8 @@ const TYPE_PATHS: Record<string, string[]> = {
 	snippets: ['M6 3h8l5 5v13H6z', 'M14 3v5h5', 'M9 12h6', 'M9 16h6'],
 	espanso: ['m13 2-9 12h7l-1 8 9-12h-7z'],
 	stickers: ['M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z', 'M9 10h.01', 'M15 10h.01', 'M8.5 14.5c1 1.2 2.2 1.8 3.5 1.8s2.5-.6 3.5-1.8'],
+	// A speech bubble with lines of text: a sticker drawn from what you type.
+	dynamic_stickers: ['M4 5h16v11h-9l-5 4v-4H4z', 'M8 9h8', 'M8 12h5', 'M19 2.5v2', 'M18 3.5h2'],
 	icon_pack: ['M4 4h7v7H4z', 'M13 4h7v7h-7z', 'M4 13h7v7H4z', 'M16.5 13.5v7', 'M13 17h7'],
 	font: ['M5 20 12 4l7 16', 'M8 14h8'],
 	emoji_font: ['M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z', 'M8.5 14.5c1 1.2 2.2 1.8 3.5 1.8s2.5-.6 3.5-1.8', 'M9 10h.01', 'M15 10h.01'],

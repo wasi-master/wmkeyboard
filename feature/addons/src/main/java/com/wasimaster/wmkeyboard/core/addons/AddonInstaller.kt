@@ -36,6 +36,8 @@ import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
 import com.wasimaster.wmkeyboard.core.stickers.StickerImportResult
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackFile
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
+import com.wasimaster.wmkeyboard.core.stickers.dynamic.DynStickerStore
+import com.wasimaster.wmkeyboard.core.stickers.dynamic.PackSource
 import com.wasimaster.wmkeyboard.core.feedback.ClinkSoundPack
 import com.wasimaster.wmkeyboard.core.layout.ClinkLayouts
 import com.wasimaster.wmkeyboard.core.theme.ClinkTheme
@@ -168,18 +170,43 @@ object AddonInstaller {
      * [credit] names the repository addon being installed. A theme or layout
      * keeps it as `basedOn`, so a copy edited from it later still credits it
      * when published.
+     *
+     * [replacing] is the install this one updates, for a type that
+     * [updatesInPlace]; the caller has left it in place. Null for a fresh
+     * install, and for every other type, whose old copy the caller removes
+     * first.
      */
-    suspend fun install(context: Context, entry: AddonEntry, payload: File, credit: RemixCredit? = null): Outcome {
-        val outcome = installPayload(context, entry, payload, credit)
+    suspend fun install(
+        context: Context,
+        entry: AddonEntry,
+        payload: File,
+        credit: RemixCredit? = null,
+        replacing: InstalledAddon? = null,
+    ): Outcome {
+        val outcome = installPayload(context, entry, payload, credit, replacing)
         if (outcome is Outcome.Installed) notifyContentChanged(context, entry.type)
         return outcome
     }
+
+    /**
+     * Whether an update of this type is imported over the installed copy,
+     * keeping its local id, instead of uninstalling it and installing afresh.
+     *
+     * Only for a store that can replace a pack under the same id and keys
+     * the user's own choices to it. A dynamic sticker pack's favourites,
+     * recently sent list and switched-off templates are all
+     * `"<packId>/<templateId>"`; uninstalling first would clear them, and a
+     * fresh id would orphan them. A failed import also leaves the old pack
+     * working, which the uninstall-first path cannot promise.
+     */
+    fun updatesInPlace(type: AddonType): Boolean = type == AddonType.DynamicStickers
 
     private suspend fun installPayload(
         context: Context,
         entry: AddonEntry,
         payload: File,
         credit: RemixCredit?,
+        replacing: InstalledAddon?,
     ): Outcome =
         when (entry.type) {
             AddonType.Theme -> installTheme(context, payload, credit)
@@ -189,6 +216,7 @@ object AddonInstaller {
             AddonType.Snippets -> installSnippets(context, entry, payload)
             AddonType.Espanso -> installEspanso(context, entry, payload)
             AddonType.Stickers -> installStickers(context, entry, payload)
+            AddonType.DynamicStickers -> installDynamicStickers(context, entry, payload, replacing)
             AddonType.IconPack -> installIconPack(context, entry, payload)
             AddonType.Font -> installFont(context, entry, payload, emoji = false)
             AddonType.EmojiFont -> installFont(context, entry, payload, emoji = true)
@@ -217,6 +245,8 @@ object AddonInstaller {
             AddonType.Vocabulary -> VocabPacks.remove(File(record.localRef))
             AddonType.Snippets, AddonType.Espanso -> removeSnippets(context, record.localRef)
             AddonType.Stickers -> StickerPackStore.get(context).deletePack(record.localRef)
+            // Takes the pack's favourites, recents and switched-off templates with it.
+            AddonType.DynamicStickers -> DynStickerStore.get(context).deletePack(record.localRef)
             AddonType.IconPack -> uninstallIconPack(context, record.localRef)
             AddonType.Font -> uninstallFont(context, record.localRef)
             AddonType.EmojiFont -> uninstallEmojiFont(context, record.localRef)
@@ -249,6 +279,9 @@ object AddonInstaller {
             AddonType.Theme, AddonType.Layout, AddonType.Snippets, AddonType.Espanso,
             AddonType.Stickers, AddonType.IconPack, AddonType.Font,
             AddonType.EmojiFont, AddonType.Sound, AddonType.SoundPack, AddonType.Plugin,
+            // The keyboard reads the same in-process store, which bumps its
+            // revision on import.
+            AddonType.DynamicStickers,
             // The keyboard re-reads the pack folder by file token on its next focus.
             AddonType.Vocabulary,
             AddonType.Unknown,
@@ -581,6 +614,60 @@ object AddonInstaller {
             )
             StickerImportResult.Failed -> Outcome.Rejected(
                 AddonText.of(R.string.faddons_install_error_sticker_pack_unreadable),
+            )
+        }
+    }
+
+    /**
+     * Installs a `.wmdynstickers` pack of templates, or any zip the dynamic
+     * sticker importer reads (a template set's own zip, a dotLottie file).
+     *
+     * Lands as a pack of its own, from an addon, switched on: like a sticker
+     * pack it has no slot to fill, so there is nothing for [AddonApply] to
+     * ask. An update ([replacing]) is imported over the installed pack under
+     * its id; see [updatesInPlace].
+     */
+    private fun installDynamicStickers(
+        context: Context,
+        entry: AddonEntry,
+        payload: File,
+        replacing: InstalledAddon?,
+    ): Outcome {
+        val store = DynStickerStore.get(context)
+        // The built-in pack is never an addon's to overwrite, whatever a
+        // record says.
+        val replaceId = replacing?.localRef?.takeIf { it.isNotBlank() && it != DynStickerStore.BUILTIN_ID }
+        val result = payload.inputStream().buffered().use {
+            store.importArchive(
+                input = it,
+                source = PackSource.ADDON,
+                // Names a pack whose own file gives no name, as the other packs do.
+                fallbackName = entry.name.ifBlank { entry.id },
+                replaceId = replaceId,
+            )
+        }
+        return when (result) {
+            is DynStickerStore.ImportResult.Imported -> Outcome.Installed(
+                result.pack.id,
+                if (result.skipped > 0) {
+                    listOf(
+                        context.resources.getQuantityString(
+                            R.plurals.faddons_install_dyn_templates_skipped,
+                            result.skipped,
+                            result.skipped,
+                        ),
+                    )
+                } else {
+                    emptyList()
+                },
+            )
+            DynStickerStore.ImportResult.NoTemplates ->
+                Outcome.Rejected(AddonText.of(R.string.faddons_install_error_no_dyn_templates))
+            DynStickerStore.ImportResult.TooMany -> Outcome.Rejected(
+                AddonText.of(R.string.faddons_install_error_too_many_dyn_packs),
+            )
+            DynStickerStore.ImportResult.Failed -> Outcome.Rejected(
+                AddonText.of(R.string.faddons_install_error_dyn_pack_failed),
             )
         }
     }

@@ -364,6 +364,22 @@
       "licenseFile": "stickers/UNDRAW-LICENSE.txt"
     },
     {
+      "id": "everyday-text-stickers",
+      "type": "dynamic_stickers",
+      "name": "Everyday Text Stickers",
+      "version": "1.0.0",
+      "author": "Wasi Master",
+      "description": "Animated templates that draw what you type into a sticker: thanks, congratulations, good morning, and any short message.",
+      "tags": [
+        "stickers",
+        "text",
+        "animated",
+        "lottie"
+      ],
+      "path": "dynstickers/everyday-text-stickers.wmdynstickers",
+      "license": "CC0-1.0"
+    },
+    {
       "id": "typewriter",
       "type": "sound",
       "name": "Typewriter",

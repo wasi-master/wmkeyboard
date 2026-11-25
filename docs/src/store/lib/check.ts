@@ -23,6 +23,7 @@ import {
 	readSound,
 	readSoundPack,
 	readStickerPack,
+	readDynStickerPack,
 	readTheme,
 	readVocabulary,
 } from './payloads';
@@ -132,6 +133,7 @@ function staticFindings(url: string, text: string, manifest: Manifest, rawDroppe
 			layout: /\.wmlayout\.json$/,
 			snippets: /\.wmsnippets\.json$/,
 			stickers: /\.wmstickers$/,
+			dynamic_stickers: /\.(wmdynstickers|zip|lottie)$/,
 			icon_pack: /\.wmicons$/,
 			sound_pack: /\.wmsoundpack$/,
 			plugin: /\.wmplugin$/,
@@ -154,6 +156,7 @@ async function parsePayload(a: AddonEntry, bytes: Uint8Array): Promise<string[]>
 		case 'layout': return readLayout(text()).problems;
 		case 'snippets': return readSnippets(text()).problems;
 		case 'stickers': return readStickerPack(bytes).problems;
+		case 'dynamic_stickers': return readDynStickerPack(bytes).problems;
 		case 'sound_pack': return readSoundPack(bytes).problems;
 		case 'icon_pack': return readIconPack(bytes, ICON_SLOT_IDS).problems;
 		case 'plugin': return readPlugin(bytes).problems;

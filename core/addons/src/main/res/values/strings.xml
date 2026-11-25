@@ -30,6 +30,9 @@
          format. -->
     <string name="core_addons_type_espanso_label">Espanso packs</string>
     <string name="core_addons_type_stickers_label">Sticker packs</string>
+    <!-- Packs of sticker templates that draw the words you type into an
+         animated sticker or a meme. -->
+    <string name="core_addons_type_dynamic_stickers_label">Dynamic stickers</string>
     <string name="core_addons_type_icon_pack_label">Icon packs</string>
     <string name="core_addons_type_font_label">Fonts</string>
     <string name="core_addons_type_emoji_font_label">Emoji fonts</string>
@@ -55,6 +58,8 @@
          can tell which of the two formats they are looking at. -->
     <string name="core_addons_type_espanso_singular_label">Espanso pack</string>
     <string name="core_addons_type_stickers_singular_label">Sticker pack</string>
+    <!-- The name for one pack of dynamic sticker templates. -->
+    <string name="core_addons_type_dynamic_stickers_singular_label">Dynamic sticker pack</string>
     <string name="core_addons_type_icon_pack_singular_label">Icon pack</string>
     <string name="core_addons_type_font_singular_label">Font</string>
     <string name="core_addons_type_emoji_font_singular_label">Emoji font</string>

@@ -451,11 +451,16 @@ object AddonDownloadManager {
                 // payload is downloaded and verified, so a failed update leaves
                 // the working version in place.
                 val previous = store.installed(key)
+                // A type whose store replaces a pack under its own id is
+                // imported over the old copy instead, and the old copy stays
+                // until the new one is in. See AddonInstaller.updatesInPlace.
+                val inPlace = previous != null && previous.type == current.type &&
+                    AddonInstaller.updatesInPlace(current.type)
                 // Asked before the old copy is removed: every importer mints a
                 // fresh local id, so after the swap there is nothing left to
                 // compare the user's active theme (or sound, or layout) against.
                 val wasActive = previous != null && AddonApply.isActive(appContext, previous)
-                if (previous != null) {
+                if (previous != null && !inPlace) {
                     AddonInstaller.uninstall(appContext, previous)
                 }
 
@@ -464,6 +469,7 @@ object AddonDownloadManager {
                     current,
                     part,
                     RemixCredit(key, current.name, current.author),
+                    replacing = previous.takeIf { inPlace },
                 )
 
                 when (outcome) {
@@ -504,7 +510,8 @@ object AddonDownloadManager {
                         // The old version was already removed above, so the
                         // record has to go too — claiming it is still installed
                         // would offer an Update for something that is gone.
-                        if (previous != null) store.markUninstalled(key)
+                        // Updated in place, the old version is still there.
+                        if (previous != null && !inPlace) store.markUninstalled(key)
                         set(key, AddonStatus.Failed(FailReason.REJECTED, outcome.text))
                     }
                 }
