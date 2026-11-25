@@ -1473,6 +1473,23 @@ class SuggestionEngineTest {
         assertEquals(listOf("is", "issue", "us"), e.suggest("is", previousWord = null, limit = 3))
     }
 
+    @Test fun `a slip stays on the chips shown when the pages ask for more words`() {
+        // Telegram 12025: with a swipe for more suggestions on, the service
+        // asks for the whole page pool, and the slip went to its end, off a
+        // strip of three chips.
+        val dictionary = Trie().apply {
+            insert("is", 9_000)
+            insert("issue", 6_000)
+            insert("island", 5_000)
+            insert("isle", 4_000)
+            insert("isolate", 3_000)
+            insert("us", 8_000)
+        }
+        val e = SuggestionEngine(dictionary, BengaliPhoneticIndex(emptyList()), UserLexicon(null))
+        val s = e.suggest("is", previousWord = null, limit = 20, phoneticSlots = 3)
+        assertEquals("us", s[2])
+    }
+
     @Test fun `a rare known word still offers its slip when completions crowd the walk`() {
         // `tnr` is listed (the Full English download keeps it twice), but the
         // walk's top ranks fill with `tr…` completions after dropping its `n`,
