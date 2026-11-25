@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.core.tools
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoint
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoints
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.GifContentFilter
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -14,12 +15,51 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
 /**
+ * GIPHY answered 429 to the key the build ships with. Every user who has not
+ * added a key of their own shares that one, so its hourly quota runs out on
+ * busy days; the panel says so and points at [rowKey]'s provider page, where
+ * a free key of the user's own lifts the limit. Still a 429 to
+ * `ProviderRunner`, so the row cools down as for any other.
+ */
+class GiphySharedKeyLimited(cause: ToolHttpException, val rowKey: String) :
+    ToolHttpException(cause.messageRes, cause.status, cause.apiMessage, cause.headers) {
+    init {
+        initCause(cause)
+    }
+}
+
+/**
  * Minimal GIPHY v1 client — the second GIF/sticker provider next to
  * [KlipyClient]. Same shape: blank query returns trending, stickers are a
  * separate endpoint with transparent results. Requires a (free) GIPHY API
  * key. The shared [GifContentFilter] maps onto GIPHY's MPAA-style rating.
  */
 object GiphyClient {
+
+    /**
+     * [search], with a 429 on the build's own key turned into
+     * [GiphySharedKeyLimited] for row [rowKey]. A key the user pasted keeps
+     * the plain error: the limit is theirs, and no other key would help.
+     */
+    fun searchRow(
+        rowKey: String,
+        query: String,
+        apiKey: String,
+        stickers: Boolean,
+        filter: GifContentFilter,
+        limit: Int = 24,
+    ): List<GifItem> = try {
+        search(query, apiKey, stickers, filter, limit)
+    } catch (e: ToolHttpException) {
+        val builtIn = ProviderTypes.GIPHY.builtInKey
+        throw if (e.status == HTTP_TOO_MANY_REQUESTS && builtIn.isNotBlank() && apiKey == builtIn) {
+            GiphySharedKeyLimited(e, rowKey)
+        } else {
+            e
+        }
+    }
+
+    private const val HTTP_TOO_MANY_REQUESTS = 429
 
     /** Blocking; call on an IO dispatcher. Empty [query] returns trending. */
     fun search(

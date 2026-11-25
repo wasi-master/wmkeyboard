@@ -254,6 +254,9 @@
     <!-- Bar over the grid when the text field takes no pictures. -->
     <string name="ime_gif_unsupported_field_notice">This field does not accept GIFs. Try a chat app or a notes app.</string>
     <string name="ime_sticker_unsupported_field_notice">This field does not accept stickers. Try a chat app or a notes app.</string>
+    <!-- GIPHY is a service name. Shown when GIPHY refuses requests made with the key that ships in the app. -->
+    <string name="ime_media_giphy_shared_key_limited">GIPHY has hit its limit for now. Without a key of your own, the keyboard uses the developer\'s key, which everyone in the same position shares. A free GIPHY key of your own gets past the limit.</string>
+    <string name="ime_media_add_own_key_action">Add your own key</string>
     <string name="ime_gif_need_key_body">The GIF tool needs an API key from KLIPY or GIPHY. Both keys are free. Add a key in the settings for this tool.</string>
     <string name="ime_sticker_need_key_body">The sticker tool needs an API key from KLIPY or GIPHY. Both keys are free. Add a key in the settings for this tool.</string>
     <string name="ime_media_trending_empty">No trending results now</string>

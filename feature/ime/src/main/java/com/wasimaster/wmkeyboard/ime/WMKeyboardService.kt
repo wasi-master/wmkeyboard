@@ -632,6 +632,7 @@ import com.wasimaster.wmkeyboard.core.tools.TavilySearchClient
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
 import com.wasimaster.wmkeyboard.core.settings.deeplLive
 import com.wasimaster.wmkeyboard.core.tools.GiphyClient
+import com.wasimaster.wmkeyboard.core.tools.GiphySharedKeyLimited
 import com.wasimaster.wmkeyboard.core.tools.ReverseImageClient
 import com.wasimaster.wmkeyboard.core.tools.ImageResult
 import com.wasimaster.wmkeyboard.core.tools.KlipyClient
@@ -51445,10 +51446,7 @@ open class WMKeyboardService : InputMethodService() {
                     when (outcome) {
                         is ProviderRunner.Outcome.Found -> MediaUi.Ready(outcome.value.take(settings.gif.resultLimit), query)
                         ProviderRunner.Outcome.NotFound -> MediaUi.Ready(emptyList(), query)
-                        is ProviderRunner.Outcome.Failed -> MediaUi.Error(
-                            outcome.error?.let { ToolHttp.friendlyMessage(this@WMKeyboardService, it) }
-                                ?: getString(R.string.ime_service_media_fetch_error),
-                        )
+                        is ProviderRunner.Outcome.Failed -> mediaError(outcome.error, sticker)
                     },
                 )
                 return@launch
@@ -51460,11 +51458,9 @@ open class WMKeyboardService : InputMethodService() {
             val successes = results.mapNotNull { it.getOrNull() }
             setUi(
                 if (successes.isEmpty()) {
-                    MediaUi.Error(
-                        results.firstNotNullOfOrNull { it.exceptionOrNull() }
-                            ?.let { ToolHttp.friendlyMessage(this@WMKeyboardService, it) }
-                            ?: getString(R.string.ime_service_media_fetch_error),
-                    )
+                    results.mapNotNull { it.exceptionOrNull() }.let { errors ->
+                        mediaError(errors.firstOrNull { it is GiphySharedKeyLimited } ?: errors.firstOrNull(), sticker)
+                    }
                 } else {
                     val merged = GifSources.interleave(successes)
                     // The limit is per fetch: in mixed mode each provider
@@ -51486,6 +51482,24 @@ open class WMKeyboardService : InputMethodService() {
      * key of the same kind, kept as one provider) hands the query to the next
      * of them when it fails or has nothing.
      */
+    /**
+     * The panel's error for a failed fetch. GIPHY limiting the build's shared
+     * key gets its own message and a way to the provider's page.
+     */
+    private fun mediaError(error: Throwable?, sticker: Boolean): MediaUi.Error {
+        if (error is GiphySharedKeyLimited) {
+            val tool = if (sticker) ProviderTool.STICKER else ProviderTool.GIF
+            return MediaUi.Error(
+                getString(R.string.ime_media_giphy_shared_key_limited),
+                keyRoute = "provider/${tool.id}/${java.net.URLEncoder.encode(error.rowKey, "UTF-8")}",
+            )
+        }
+        return MediaUi.Error(
+            error?.let { ToolHttp.friendlyMessage(this@WMKeyboardService, it) }
+                ?: getString(R.string.ime_service_media_fetch_error),
+        )
+    }
+
     private fun fetchGifs(
         target: MediaTarget,
         query: String,
@@ -51516,8 +51530,8 @@ open class WMKeyboardService : InputMethodService() {
             query, target.apiKey, sticker, settings.gif.contentFilter,
             limit = settings.gif.resultLimit,
         )
-        GifSource.GIPHY -> GiphyClient.search(
-            query, target.apiKey, sticker, settings.gif.contentFilter,
+        GifSource.GIPHY -> GiphyClient.searchRow(
+            target.key, query, target.apiKey, sticker, settings.gif.contentFilter,
             limit = settings.gif.resultLimit,
         )
         GifSource.LOCAL ->

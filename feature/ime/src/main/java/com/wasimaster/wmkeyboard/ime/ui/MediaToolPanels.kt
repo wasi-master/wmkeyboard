@@ -789,12 +789,17 @@ private fun MediaSearchBar(
     }
 }
 
-/** Centered message with an optional action chip, in panel theme colors. */
+/**
+ * Centered message with an optional action chip, in panel theme colors.
+ * [secondaryLabel] adds a second chip beside the first.
+ */
 @Composable
 private fun PanelNotice(
     message: String,
     actionLabel: String? = null,
     onAction: () -> Unit = {},
+    secondaryLabel: String? = null,
+    onSecondary: () -> Unit = {},
 ) {
     val kb = LocalKbTheme.current
     Column(
@@ -811,21 +816,30 @@ private fun PanelNotice(
         )
         if (actionLabel != null) {
             Spacer(Modifier.height(10.dp))
-            Text(
-                actionLabel,
-                color = kb.chipActiveText,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier
-                    .clip(kb.chipShape())
-                    .frostGlass(kb, kb.chipShape(), FrostSurface.CHIPS)
-                    .background(kb.chipActive)
-                    .chipBorder(kb, kb.chipShape())
-                    .clickable { onAction() }
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                PanelNoticeChip(actionLabel, active = true, onClick = onAction)
+                if (secondaryLabel != null) PanelNoticeChip(secondaryLabel, active = false, onClick = onSecondary)
+            }
         }
     }
+}
+
+@Composable
+private fun PanelNoticeChip(label: String, active: Boolean, onClick: () -> Unit) {
+    val kb = LocalKbTheme.current
+    Text(
+        label,
+        color = if (active) kb.chipActiveText else kb.chipText,
+        fontSize = 13.sp,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier
+            .clip(kb.chipShape())
+            .frostGlass(kb, kb.chipShape(), FrostSurface.CHIPS)
+            .background(if (active) kb.chipActive else kb.chip)
+            .chipBorder(kb, kb.chipShape())
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+    )
 }
 
 /**
@@ -1290,11 +1304,27 @@ internal fun GifPanel(
                         onAction = { onOpenToolSettings(tool) },
                     )
                     MediaUi.Loading -> PanelSpinner()
-                    is MediaUi.Error -> PanelNotice(
-                        ui.message,
-                        actionLabel = stringResource(CommonR.string.common_retry),
-                        onAction = onRetry,
-                    )
+                    is MediaUi.Error -> {
+                        val keyRoute = ui.keyRoute
+                        if (keyRoute != null) {
+                            // GIPHY limited the build's shared key: the way out is a
+                            // key of the user's own, so that is the chip, with Retry
+                            // beside it for when the hour turns over.
+                            PanelNotice(
+                                ui.message,
+                                actionLabel = stringResource(R.string.ime_media_add_own_key_action),
+                                onAction = { onOpenRoute(keyRoute) },
+                                secondaryLabel = stringResource(CommonR.string.common_retry),
+                                onSecondary = onRetry,
+                            )
+                        } else {
+                            PanelNotice(
+                                ui.message,
+                                actionLabel = stringResource(CommonR.string.common_retry),
+                                onAction = onRetry,
+                            )
+                        }
+                    }
                     is MediaUi.Metered -> MeteredNotice(ui.canAllow, onRetry)
                     is MediaUi.Ready -> {
                         if (ui.items.isEmpty() && textGrid) {

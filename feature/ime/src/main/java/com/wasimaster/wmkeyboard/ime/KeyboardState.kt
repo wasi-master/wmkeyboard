@@ -1700,7 +1700,13 @@ sealed interface MediaUi {
     /** No GIF-provider key in the build and none pasted into settings. */
     data object NeedKey : MediaUi
     data object Loading : MediaUi
-    data class Error(val message: String) : MediaUi
+
+    /**
+     * [keyRoute] is set when the failure was GIPHY limiting the key the build
+     * ships with: the settings route of that provider, where the user can add
+     * a key of their own.
+     */
+    data class Error(val message: String, val keyRoute: String? = null) : MediaUi
 
     /**
      * Held back by data saving. [canAllow] is the difference between the two

@@ -38,7 +38,7 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
  * Telling a rate-limited user their key was rejected sends them off to replace a
  * key that was fine.
  */
-class ToolHttpException(
+open class ToolHttpException(
     @StringRes val messageRes: Int,
     val status: Int = 0,
     val apiMessage: String? = null,

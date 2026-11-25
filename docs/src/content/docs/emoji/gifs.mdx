@@ -140,6 +140,7 @@ You only need one working provider for the tool to work: a KLIPY or GIPHY key, C
 <SettingsPath path="Tools / GIFs / Providers" /> is the list of services the panel asks. It works like every other [provider list](/tools/providers/): drag to reorder, switch a row off to skip it, and use **Add a provider** for another one.
 
 - **KLIPY** and **GIPHY** need an API key, unless the build carries one. Paste a free key from `partner.klipy.com` or `developers.giphy.com` in the provider's setup. KLIPY replaced Tenor after Google retired Tenor's third-party API in mid-2026. The keys are shared with the sticker tool.
+  When a build carries a GIPHY key, everyone who hasn't added their own shares that one developer key, and GIPHY caps how many requests it answers an hour. Once the cap is reached, the panel says so and offers **Add your own key**, which opens GIPHY's page in the provider list. A free key of your own from `developers.giphy.com` has its own limit, so GIPHY works again straight away. **Retry** sits beside it for when the cap resets.
 - **Wikimedia Commons** needs no key. Its GIFs are mostly educational rather than reactions. Add it again with an address to search another MediaWiki as well.
 - **GifCities** needs no key. See [GifCities](#gifcities).
 - **Offline GIF packs** is the packs you imported. Its screen lists them, each with a Delete, and the row that imports more.
