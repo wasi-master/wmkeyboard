@@ -10154,6 +10154,8 @@ open class WMKeyboardService : InputMethodService() {
         // A tap in another field, or before the keyboard went away, is not the
         // tap before this one.
         multitap.end()
+        // Nor is a glide preview the last field was left showing.
+        retireStaleGlidePreview()
         // The keyboard is up, by the system's hand or ours; a hide that
         // suspended pinning has run its course.
         pinSuspended = false
@@ -11935,6 +11937,8 @@ open class WMKeyboardService : InputMethodService() {
         // No finger outlives the window it was on (#743).
         keysTouched = false
         barsTouched = 0
+        // Nor does a glide preview a stroke left on the strip.
+        retireStaleGlidePreview()
         // Nor does a space a letter could take back, or the band over its pause (#747).
         allUpSpace = null
         if (_uiState.value.allUpCountdown != null) _uiState.update { it.copy(allUpCountdown = null) }
@@ -36601,6 +36605,33 @@ open class WMKeyboardService : InputMethodService() {
         refreshSuggestions()
     }
 
+    /**
+     * A stroke lifted that cannot be glided after all: the field stopped
+     * taking glides, or the language its previews were read in stopped being
+     * glidable, while the finger was down. Its previews are still on screen
+     * and only a lift retires them, so they go the way a cancel's do.
+     */
+    private fun retireUnglidedStroke(state: KeyboardUiState) {
+        if (state.glideWord != null || state.glideChoices.isNotEmpty() || previewChain.isNotEmpty()) cancelGlide()
+    }
+
+    /**
+     * A field opening or closing. Whatever a stroke left
+     * on screen is about the field before, and a stroke the window took away
+     * mid-air never lifted to retire it: under "One word on the strip" its
+     * word stood in for the whole strip in the next app. Previews still being
+     * decoded are retired with it. Not while a thumb is down on the keys under
+     * two-thumb typing, whose word in progress is shown the same way; a
+     * one-finger stroke still drawing just puts its next preview back up.
+     */
+    private fun retireStaleGlidePreview() {
+        val state = _uiState.value
+        if (keysTouched) return
+        if (state.glideWord == null && state.glideChoices.isEmpty() && previewChain.isEmpty()) return
+        gestureGeneration.incrementAndGet()
+        clearGlidePreview()
+    }
+
     // ---- words built from several gestures (#638 two thumbs, #595 typed + swipe) ----
 
     /**
@@ -37657,8 +37688,10 @@ open class WMKeyboardService : InputMethodService() {
         points.firstOrNull()?.let { liveDuetStrokes.remove(it.t) }
         stopVoiceForManualInput()
         val state = _uiState.value
-        if (!glideAllowed(state)) return
-        if (keys.isEmpty()) return
+        if (!glideAllowed(state) || keys.isEmpty()) {
+            retireUnglidedStroke(state)
+            return
+        }
         syncGlideTriggers(state)
         // Lifted well above the keys: the way out of a wrong word (#1310).
         // Not a lift on a suggestion, which names its word (#1386).
@@ -38336,8 +38369,10 @@ open class WMKeyboardService : InputMethodService() {
     ) {
         stopVoiceForManualInput()
         val state = _uiState.value
-        if (!glideAllowed(state)) return
-        if (keys.isEmpty() || segments.isEmpty()) return
+        if (!glideAllowed(state) || keys.isEmpty() || segments.isEmpty()) {
+            retireUnglidedStroke(state)
+            return
+        }
         syncGlideTriggers(state)
         if (verdict is GlideVerdict.Cancel || verdict !is GlideVerdict.Word &&
             com.wasimaster.wmkeyboard.core.gesture.GlideOverhang.escaped(

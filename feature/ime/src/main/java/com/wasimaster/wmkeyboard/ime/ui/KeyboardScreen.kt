@@ -22787,8 +22787,20 @@ private fun KeyRows(
                     )
                     return@pointerInput
                 }
+                // The letter grid of a stroke whose previews are on screen and
+                // whose lift has not answered for them yet. The loop only ever
+                // ends by cancellation (its keys changed, or the board left the
+                // screen) and that can only land while it waits for the finger,
+                // so a stroke caught mid-air owes the service the cancel its
+                // lift would have sent: without it the preview's word stays on
+                // the strip, alone under "One word on the strip", until the
+                // next glide happens to clear it.
+                val owedCancel = arrayOfNulls<List<KeyCenter>>(1)
+                // Not re-indented, so the loop below reads as it did.
+                try {
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                    owedCancel[0] = null
                     // A pad a cancelled stroke left up goes with the next touch.
                     picker.letters.close()
                     // A drag off a modifier key is a chord (issue #67) and one
@@ -23126,9 +23138,11 @@ private fun KeyRows(
                             picker.close()
                             pad.close()
                             trail.clear()
-                            if (previewedSeg) {
-                                keyList?.let { onGesture(seg, it, keyWidth.value, GlideVerdict.Cancel) }
-                            }
+                            // Every preview the stroke sent, not only this
+                            // segment's: words chained across the spacebar
+                            // and a word run into delete are on screen too.
+                            owedCancel[0]?.let { onGesture(seg, it, keyWidth.value, GlideVerdict.Cancel) }
+                            owedCancel[0] = null
                             return@awaitEachGesture
                         }
                         if (!change.pressed) {
@@ -23293,6 +23307,7 @@ private fun KeyRows(
                                 previewedSeg = false
                                 if (dropped != null) {
                                     if (hapticOn.value) pickerHaptic()
+                                    owedCancel[0] = keyList
                                     onGesturePreview(emptyList(), emptyList(), dropped, GlideCase.None)
                                 }
                             }
@@ -23313,7 +23328,10 @@ private fun KeyRows(
                                     // takes the finished word into the phrase
                                     // the preview shows.
                                     if (hapticOn.value) pickerHaptic()
-                                    keyList?.let { keys -> onGesturePreview(points, keys, -keyWidth.value, case) }
+                                    keyList?.let { keys ->
+                                        owedCancel[0] = keys
+                                        onGesturePreview(points, keys, -keyWidth.value, case)
+                                    }
                                 }
                                 SpacebarCrossings.Step.HELD -> Unit
                                 SpacebarCrossings.Step.KEEP -> if (!overShift && !overDelete) seg.add(point)
@@ -23360,6 +23378,7 @@ private fun KeyRows(
                                 lastPreviewMs = change.uptimeMillis
                                 keyList?.let { keys ->
                                     previewedSeg = true
+                                    owedCancel[0] = keys
                                     val (points, case) = glideSegment(
                                         crossings.withHeld(seg), shiftCuts, shiftCenter, keyWidth.value,
                                         letterGlide.value, endedOnShift = wasOverShift, picks = picks,
@@ -23374,6 +23393,11 @@ private fun KeyRows(
                     }
                     // A lift while letters were up picks none of them.
                     pad.close()
+                    // From here to the end of the stroke nothing suspends, so
+                    // the lift answers for every preview below and the loop
+                    // can no longer be cancelled owing one.
+                    val previewed = owedCancel[0] != null
+                    owedCancel[0] = null
                     if (isGesture) {
                         // A short flick down off the key it began on is its hint,
                         // not a word (#178). Asked before the picker's verdict and
@@ -23396,7 +23420,7 @@ private fun KeyRows(
                             )
                         ) {
                             trail.release()
-                            if (previewedSeg) {
+                            if (previewed) {
                                 keyList?.let { onGesture(seg, it, keyWidth.value, GlideVerdict.Cancel) }
                             }
                             stampedOnText(hintTarget.first.longPress.first())
@@ -23420,7 +23444,7 @@ private fun KeyRows(
                             )
                         ) {
                             trail.release()
-                            if (previewedSeg) {
+                            if (previewed) {
                                 keyList?.let { onGesture(seg, it, keyWidth.value, GlideVerdict.Cancel) }
                             }
                             stampedOnText(capitalTarget.first)
@@ -23445,7 +23469,7 @@ private fun KeyRows(
                             (slipped || glideStrokeIsTap(reachPx, seg.size, keyWidth.value))
                         ) {
                             trail.clear()
-                            if (previewedSeg) {
+                            if (previewed) {
                                 keyList?.let { onGesture(seg, it, keyWidth.value, GlideVerdict.Cancel) }
                             }
                             strayTap.value(downKey, down.id)
@@ -23527,12 +23551,27 @@ private fun KeyRows(
                             // Every segment fell under the floor, but the
                             // stroke crossed: end what its previews began.
                             onGesture(segments.first(), keys, keyWidth.value, GlideVerdict.Cancel)
-                        } else if (keys != null) {
-                            // Everything drawn went into the delete key (#1386):
-                            // nothing to type, but its previews are retired.
-                            droppedPoints?.let { onGesture(it, keys, keyWidth.value, GlideVerdict.Cancel) }
+                        } else if (keys != null && previewed) {
+                            // Nothing reached the floor, yet previews went up:
+                            // everything drawn went into the delete key
+                            // (#1386), the finger lifted on the sample the
+                            // first preview went out on (a preview needs three,
+                            // a lift four), or a lift on the strip cut the climb
+                            // off below the floor. Nothing to type, but the
+                            // previews are retired, or the strip keeps the
+                            // stroke's word for good.
+                            onGesture(droppedPoints ?: seg, keys, keyWidth.value, GlideVerdict.Cancel)
                         }
                         trail.release()
+                    }
+                }
+                } finally {
+                    owedCancel[0]?.let { keys ->
+                        owedCancel[0] = null
+                        picker.close()
+                        picker.letters.close()
+                        trail.clear()
+                        onGesture(emptyList(), keys, keyWidth.value, GlideVerdict.Cancel)
                     }
                 }
             }
