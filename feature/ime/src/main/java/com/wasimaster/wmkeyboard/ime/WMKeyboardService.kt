@@ -20189,11 +20189,26 @@ open class WMKeyboardService : InputMethodService() {
             deleteSwipeText = (
                 if (forward) ic.getTextAfterCursor(DELETE_LINE_LOOKBACK, 0) else ic.getTextBeforeCursor(DELETE_LINE_LOOKBACK, 0)
                 ) ?: ""
-            requestDeleteSwipeWraps(ic, forward)
+            deleteSwipeWrapsPending = requestDeleteSwipeWraps(ic, forward)
+            if (deleteSwipeWrapsPending) {
+                val ask = deleteSwipeWrapsAsk
+                deleteSwipeWrapsWait = serviceScope.launch {
+                    delay(DELETE_SWIPE_WRAPS_WAIT_MS)
+                    if (ask == deleteSwipeWrapsAsk && deleteSwipeWrapsPending) settleDeleteSwipeWraps(emptyList(), forward)
+                }
+            }
         }
         val reach = DeleteLines.reach(deleteSwipeText, lines, forward, deleteSwipeWraps)
         val covered = reach.size
         if (covered == deleteSwipeUnits) return covered
+        // Until the editor says where it wrapped the text, the count is kept
+        // and nothing is selected (#1549). Selected in hard lines first, a
+        // wrapped paragraph lit up whole for a frame, then shrank to its last
+        // drawn line when the answer came.
+        if (deleteSwipeWrapsPending) {
+            deleteSwipeUnits = covered
+            return covered
+        }
         val length = reach.lastOrNull() ?: 0
         val start = if (forward) deleteSwipeBase else (deleteSwipeBase - length).coerceAtLeast(0)
         val end = if (forward) deleteSwipeEnd + length else deleteSwipeEnd
@@ -20565,6 +20580,14 @@ open class WMKeyboardService : InputMethodService() {
     private var deleteSwipeWrapsAsk = 0
 
     /**
+     * A delete-line preview is waiting on the editor's answer about its drawn
+     * lines before it selects anything (#1549), and [deleteSwipeWrapsWait]
+     * stops it waiting for an editor that is slow to give one.
+     */
+    private var deleteSwipeWrapsPending = false
+    private var deleteSwipeWrapsWait: Job? = null
+
+    /**
      * Asks the editor where it drew the lines on screen (Android 14's
      * `requestTextBoundsInfo`) and, when it answers, reads the line starts
      * that fall inside [deleteSwipeText] into [deleteSwipeWraps] and selects
@@ -20572,36 +20595,53 @@ open class WMKeyboardService : InputMethodService() {
      * about: the caret's line and its neighbours are what a swipe reaches, and
      * lines scrolled out of view fall back to hard lines. An editor that does
      * not answer, or answers with nothing, leaves hard lines as they were.
+     *
+     * True when the question went out and an answer can still come, which is
+     * what the preview waits for before it selects anything (#1549).
      */
-    private fun requestDeleteSwipeWraps(ic: InputConnection, forward: Boolean) {
+    private fun requestDeleteSwipeWraps(ic: InputConnection, forward: Boolean): Boolean {
         deleteSwipeWraps = emptyList()
         val ask = ++deleteSwipeWrapsAsk
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return false
         val metrics = resources.displayMetrics
         val screen = android.graphics.RectF(0f, 0f, metrics.widthPixels.toFloat(), metrics.heightPixels.toFloat())
         val length = deleteSwipeText.length
         val textStart = if (forward) deleteSwipeEnd else deleteSwipeBase - length
-        if (textStart < 0 || length == 0) return
-        runCatching {
+        if (textStart < 0 || length == 0) return false
+        return runCatching {
             ic.requestTextBoundsInfo(screen, mainExecutor) { result ->
                 if (ask != deleteSwipeWrapsAsk || !deleteSwipeActive || deleteSwipeForward != forward) {
                     return@requestTextBoundsInfo
                 }
                 val info = result.textBoundsInfo
-                if (result.resultCode != android.view.inputmethod.TextBoundsInfoResult.CODE_SUCCESS || info == null) {
-                    return@requestTextBoundsInfo
+                val wraps = if (result.resultCode == android.view.inputmethod.TextBoundsInfoResult.CODE_SUCCESS &&
+                    info != null
+                ) {
+                    drawnLineStarts(info, textStart, length)
+                } else {
+                    emptyList()
                 }
-                val wraps = drawnLineStarts(info, textStart, length)
-                if (wraps.isEmpty()) return@requestTextBoundsInfo
-                deleteSwipeWraps = wraps
-                // The preview up now was measured in hard lines: the same
-                // number of drawn lines takes its place.
-                val shown = deleteSwipeUnits
-                if (shown > 0) {
-                    deleteSwipeUnits = -1
-                    onDeleteSwipeSelectLines(shown, forward)
-                }
+                settleDeleteSwipeWraps(wraps, forward)
             }
+        }.isSuccess
+    }
+
+    /**
+     * The editor answered where it drew the lines, or was given up on: [wraps]
+     * are the drawn-line starts, empty for hard lines. A preview that waited
+     * for this selects now (#1549); one already up in hard lines is selected
+     * again in as many drawn lines.
+     */
+    private fun settleDeleteSwipeWraps(wraps: List<Int>, forward: Boolean) {
+        val waited = deleteSwipeWrapsPending
+        deleteSwipeWrapsPending = false
+        deleteSwipeWrapsWait?.cancel()
+        deleteSwipeWrapsWait = null
+        if (wraps.isNotEmpty()) deleteSwipeWraps = wraps
+        val shown = deleteSwipeUnits
+        if (shown > 0 && (waited || wraps.isNotEmpty())) {
+            deleteSwipeUnits = -1
+            onDeleteSwipeSelectLines(shown, forward)
         }
     }
 
@@ -20752,6 +20792,10 @@ open class WMKeyboardService : InputMethodService() {
             resetDeleteSwipe()
             return
         }
+        // A lift before the editor said where it wrapped the lines: what the
+        // count covers in hard lines is selected now, so the lift has
+        // something to delete (#1549).
+        if (deleteSwipeWrapsPending) settleDeleteSwipeWraps(emptyList(), deleteSwipeForward)
         val ic = currentInputConnection
         if (!deleteSwipeActive || ic == null || deleteSwipeUnits <= 0) {
             resetDeleteSwipe()
@@ -20944,6 +20988,9 @@ open class WMKeyboardService : InputMethodService() {
         deleteSwipeSteps.clear()
         deleteSwipeWraps = emptyList()
         deleteSwipeWrapsAsk++
+        deleteSwipeWrapsPending = false
+        deleteSwipeWrapsWait?.cancel()
+        deleteSwipeWrapsWait = null
     }
 
     /**
@@ -66942,6 +66989,12 @@ open class WMKeyboardService : InputMethodService() {
         /** The most [clearWholeField] reads either side of the caret in one tap. */
         /** Most drawn lines a delete-line swipe reads back from the editor: far past a screenful. */
         private const val MAX_DRAWN_LINES = 400
+
+        /**
+         * How long a delete-line preview waits for the editor to say where it
+         * wrapped the text before it selects in hard lines anyway (#1549).
+         */
+        private const val DELETE_SWIPE_WRAPS_WAIT_MS = 200L
 
         private const val CLEAR_FIELD_MAX_CHARS = 200_000
 

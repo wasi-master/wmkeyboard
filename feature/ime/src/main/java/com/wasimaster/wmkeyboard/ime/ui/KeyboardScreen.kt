@@ -34521,15 +34521,29 @@ private fun Modifier.pointerInputKey(
                                             )
                                             armRepeated = true
                                             while (true) {
-                                                repeatFeedback(vibrateOnRepeat, soundOnRepeat, onKeyPress, onKeySound, onKeyHaptic)
                                                 if (linesShown > 0 && lineForward != null) {
-                                                    // Held out, the preview takes one more line a tick.
+                                                    // Held out, the preview takes one more line a tick,
+                                                    // and buzzes only for a tick that took one: once
+                                                    // every line in reach was selected, the hold went
+                                                    // on buzzing with nothing changing (#1548).
                                                     val more = deleteSwipe.onSelectLines(linesShown + 1, lineForward)
-                                                    if (more > linesShown) linesShown = more
+                                                    if (more > linesShown) {
+                                                        linesShown = more
+                                                        repeatFeedback(vibrateOnRepeat, soundOnRepeat, onKeyPress, onKeySound, onKeyHaptic)
+                                                    }
                                                 } else if (words) {
+                                                    repeatFeedback(vibrateOnRepeat, soundOnRepeat, onKeyPress, onKeySound, onKeyHaptic)
                                                     // Words, as a held delete key takes them (#1296).
                                                     deleteSwipe.onHoldWord(armKey.action.deletesForward())
                                                 } else {
+                                                    // A line arm with no preview deletes as it goes,
+                                                    // and is as quiet once there is nothing left.
+                                                    val more = when (lineForward) {
+                                                        null -> true
+                                                        true -> canForwardDelete()
+                                                        false -> canDelete()
+                                                    }
+                                                    if (more) repeatFeedback(vibrateOnRepeat, soundOnRepeat, onKeyPress, onKeySound, onKeyHaptic)
                                                     onKeyRepeat(armKey)
                                                 }
                                                 // A caret move steps at the caret's pace, a delete at the delete's.
