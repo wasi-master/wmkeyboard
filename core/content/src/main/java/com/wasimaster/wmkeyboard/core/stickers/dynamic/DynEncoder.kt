@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.core.stickers.dynamic
 
 import android.graphics.Bitmap
 import android.os.Build
+import com.wasimaster.wmkeyboard.core.media.AnimatedWebpEncoder
 import com.wasimaster.wmkeyboard.core.media.AnimatedWebpWriter
 import com.wasimaster.wmkeyboard.core.media.MediaMime
 import java.io.ByteArrayOutputStream
@@ -47,16 +48,24 @@ object DynEncoder {
         fun create(size: Int, quality: Int): FrameSink
     }
 
-    /** The encoder; the frame rate it can afford is [animatedFps]. Swapped by the app at start-up. */
+    /**
+     * The encoder: libwebp's animation encoder when its library is loaded,
+     * else the whole-frame fallback. The frame rate it can afford is
+     * [animatedFps].
+     */
     @Volatile
-    var animatedEncoder: AnimatedEncoderFactory = AnimatedEncoderFactory { size, quality -> WrappedSink(size, quality) }
+    var animatedEncoder: AnimatedEncoderFactory = if (AnimatedWebpEncoder.available) {
+        AnimatedEncoderFactory { size, quality -> LibwebpSink(size, quality) }
+    } else {
+        AnimatedEncoderFactory { size, quality -> WrappedSink(size, quality) }
+    }
 
     /** Frames a second the current encoder is given: fewer for the whole-frame fallback. */
     @Volatile
-    var animatedFps: Float = WRAPPED_FPS
+    var animatedFps: Float = if (AnimatedWebpEncoder.available) FULL_FPS else WRAPPED_FPS
 
     @Volatile
-    var animatedMaxFrames: Int = MAX_FRAMES_WRAPPED
+    var animatedMaxFrames: Int = if (AnimatedWebpEncoder.available) MAX_FRAMES_FULL else MAX_FRAMES_WRAPPED
 
     /** Marks [animatedEncoder] as the libwebp one, which can take the full rate. */
     fun useFullEncoder(factory: AnimatedEncoderFactory) {
@@ -70,11 +79,18 @@ object DynEncoder {
     /**
      * Writes [prepared] as a sticker to [target] (the extension is set
      * here): animated when it moves and [animated] allows, else the poster
-     * frame. Null when encoding failed.
+     * frame. Null when encoding failed. [onProgress] hears each animated
+     * frame drawn, out of how many there are; a step down in quality starts
+     * the count again.
      */
-    fun sticker(prepared: DynRenderer.Prepared, target: File, animated: Boolean): Output? {
+    fun sticker(
+        prepared: DynRenderer.Prepared,
+        target: File,
+        animated: Boolean,
+        onProgress: (done: Int, total: Int) -> Unit = { _, _ -> },
+    ): Output? {
         if (animated && prepared.animated) {
-            encodeAnimated(prepared)?.let { bytes ->
+            encodeAnimated(prepared, onProgress)?.let { bytes ->
                 val file = File(target.parentFile, target.nameWithoutExtension + ".webp")
                 file.writeBytes(bytes)
                 return Output(file, MediaMime.WEBP, animated = true)
@@ -129,13 +145,20 @@ object DynEncoder {
         return last
     }
 
-    private fun encodeAnimated(prepared: DynRenderer.Prepared): ByteArray? {
+    private fun encodeAnimated(prepared: DynRenderer.Prepared, onProgress: (Int, Int) -> Unit): ByteArray? {
         var best: ByteArray? = null
+        val total = prepared.frameCount(animatedFps, animatedMaxFrames)
         for (quality in ANIMATED_LADDER) {
+            var done = 0
             val sink = runCatching { animatedEncoder.create(STICKER_SIZE, quality) }.getOrNull() ?: return best
             var failed = false
-            val count = prepared.forEachFrame(STICKER_SIZE, animatedFps, animatedMaxFrames) { frame, durationMs ->
+            // Started on the still: a chat that shows an animated sticker's
+            // first frame before it plays (or instead of playing it) shows the
+            // finished sticker, not the empty frame before anything pops in.
+            // The loop itself is the same, only entered at another point.
+            val count = prepared.forEachFrame(STICKER_SIZE, animatedFps, animatedMaxFrames, startAt = prepared.posterProgress) { frame, durationMs ->
                 if (!failed && !sink.add(frame, durationMs)) failed = true
+                onProgress(++done, total)
             }
             val bytes = if (failed || count < 2) null else sink.finish()
             if (bytes == null) return best
@@ -150,6 +173,24 @@ object DynEncoder {
         val format = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) Bitmap.CompressFormat.WEBP_LOSSY else Bitmap.CompressFormat.WEBP
         val out = ByteArrayOutputStream()
         return if (bitmap.compress(format, quality, out)) out.toByteArray() else null
+    }
+
+    /** libwebp's animation encoder: each frame stored as what changed since the one before. */
+    private class LibwebpSink(size: Int, quality: Int) : FrameSink {
+        // minimizeSize tries every way of storing each frame: several times
+        // slower for a few per cent, and the user is waiting on the send.
+        private val encoder = AnimatedWebpEncoder(size, size, quality = quality.toFloat(), minimizeSize = false)
+        private var timestamp = 0
+        private var frames = 0
+
+        override fun add(frame: Bitmap, durationMs: Int): Boolean {
+            if (!encoder.addFrame(frame, timestamp)) return false
+            timestamp += durationMs
+            frames++
+            return true
+        }
+
+        override fun finish(): ByteArray? = encoder.use { if (frames >= 2) it.finish(timestamp) else null }
     }
 
     /** The whole-frame fallback: each frame a still WebP, wrapped into one animation. */

@@ -101,22 +101,37 @@ class DynRenderer(
         /**
          * Calls [onFrame] with every frame at up to [fps], drawn into one
          * reused [size]-square bitmap, and how long each shows. At most
-         * [maxFrames]: a longer animation is sampled more sparsely.
+         * [maxFrames]: a longer animation is sampled more sparsely. [startAt]
+         * (0..1) is where the loop is entered; the frames before it come last.
          */
-        fun forEachFrame(size: Int, fps: Float, maxFrames: Int, onFrame: (Bitmap, Int) -> Unit): Int {
+        /** How many frames [forEachFrame] draws at [fps], at most [maxFrames]. */
+        fun frameCount(fps: Float, maxFrames: Int): Int =
+            minOf(maxFrames, ceil(info.frames / frameStep(fps, maxFrames)).toInt()).coerceAtLeast(1)
+
+        private fun frameStep(fps: Float, maxFrames: Int): Float =
+            max(1f, max(info.frameRate.coerceAtLeast(1f) / fps, info.frames / maxFrames))
+
+        fun forEachFrame(size: Int, fps: Float, maxFrames: Int, startAt: Float = 0f, onFrame: (Bitmap, Int) -> Unit): Int {
             val sourceFps = info.frameRate.coerceAtLeast(1f)
             val span = info.frames
-            val step = max(1f, max(sourceFps / fps, span / maxFrames))
+            val step = frameStep(fps, maxFrames)
             val durationMs = (step * MS_PER_SECOND / sourceFps).toInt().coerceAtLeast(MIN_FRAME_MS)
+            val samples = ArrayList<Float>()
+            var at = 0f
+            while (at < span && samples.size < maxFrames) {
+                samples += at
+                at += step
+            }
+            // The same loop entered at [startAt]: the sample nearest it first.
+            val first = samples.indices.minByOrNull { kotlin.math.abs(samples[it] / span - startAt) } ?: 0
             val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
             var count = 0
             try {
-                var frame = 0f
-                while (frame < span && count < maxFrames) {
+                for (i in samples.indices) {
+                    val frame = samples[(first + i) % samples.size]
                     draw((frame / span).coerceIn(0f, 1f), bitmap)
                     onFrame(bitmap, durationMs)
                     count++
-                    frame += step
                 }
             } finally {
                 bitmap.recycle()

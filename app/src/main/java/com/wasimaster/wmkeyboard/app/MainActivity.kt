@@ -4178,6 +4178,12 @@ internal fun SettingsGroup(
      * drawn open regardless of what is remembered.
      */
     foldKey: String? = null,
+    /**
+     * A fold that starts open and remembers being closed instead: for an
+     * editor's sections, where the one being worked in should be there on
+     * arrival and the others can be put away. Ignored without [foldKey].
+     */
+    foldOpenByDefault: Boolean = false,
     /** The section's explanation, behind the heading's "?" — see [SectionHeader]. */
     info: String? = null,
     /**
@@ -4320,7 +4326,14 @@ internal fun SettingsGroup(
     // A group folded by its level is named by its title: two such groups on
     // one screen must not share a remembered state.
     val foldId = (foldKey ?: if (foldsWhole) "level:$title" else null)?.let { "$route/$it" }
-    val open = foldId == null || (depthReveal?.holdsOpen(foldId) ?: highlighted) || (folds?.isOpen(foldId) ?: false)
+    // A fold open by default stores the opposite: that it was closed.
+    val closedId = foldId?.takeIf { foldOpenByDefault }?.let { it + AdvancedFolds.CLOSED_FOLD_SUFFIX }
+    val remembered = when {
+        foldId == null || folds == null -> false
+        closedId != null -> !folds.isOpen(closedId)
+        else -> folds.isOpen(foldId)
+    }
+    val open = foldId == null || (depthReveal?.holdsOpen(foldId) ?: highlighted) || remembered
     // A limit on open folds closes only the ones the reader can see here.
     if (foldId != null && folds != null) {
         DisposableEffect(folds, foldId) {
@@ -4346,7 +4359,7 @@ internal fun SettingsGroup(
                 summary = if (open) null else foldSummary?.invoke(),
             ) {
                 depthReveal?.letGo(foldId)
-                folds?.setOpen(foldId, route, !open)
+                if (closedId != null) folds?.toggle(closedId, open) else folds?.setOpen(foldId, route, !open)
             }
         } else if (title != null) {
             SectionHeader(title, info = info, action = action, modifier = GroupHeadingPadding, linkable = true)

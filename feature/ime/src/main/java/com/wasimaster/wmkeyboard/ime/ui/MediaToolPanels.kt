@@ -1975,9 +1975,11 @@ private fun GifGrid(
                     )
                 }
                 // Weights hand a sparse row the full width, which would blow
-                // its height up; pad thin rows out to the target instead.
+                // its height up; pad thin rows out to the target instead. A
+                // full row fills the width: three squares fall just short of
+                // the target and would leave a gap down the right-hand side.
                 val sum = row.fold(0f) { acc, item -> acc + GifSources.cellRatio(item) }
-                if (sum < target) {
+                if (sum < target && row.size < perRow) {
                     Spacer(Modifier.weight(target - sum))
                 }
             }

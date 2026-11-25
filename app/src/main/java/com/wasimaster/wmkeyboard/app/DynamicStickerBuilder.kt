@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Bitmap
+import android.os.SystemClock
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,15 +22,23 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -40,30 +49,55 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameMillis
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Redo
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Undo
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ArrowDownward
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ArrowUpward
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Category
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EmojiEmotions
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreVert
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Pause
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoCamera
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PlayArrow
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFields
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Title
 import com.wasimaster.wmkeyboard.core.stickers.dynamic.AnimPreset
 import com.wasimaster.wmkeyboard.core.stickers.dynamic.DynFill
 import com.wasimaster.wmkeyboard.core.stickers.dynamic.DynKind
@@ -88,16 +122,18 @@ import com.wasimaster.wmkeyboard.core.stickers.dynamic.SlotRole
 import com.wasimaster.wmkeyboard.core.stickers.dynamic.TemplateMeta
 import com.wasimaster.wmkeyboard.core.stickers.dynamic.TemplateProps
 import com.wasimaster.wmkeyboard.core.stickers.dynamic.TextCase
+import com.wasimaster.wmkeyboard.core.ui.ScalablePreview
 import com.wasimaster.wmkeyboard.ime.dynstickers.DynRoutes
+import java.util.UUID
+import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
-import java.util.UUID
-import kotlin.math.roundToInt
 
 /** What the builder opened on, read off its route argument. */
 private data class BuilderStart(
@@ -187,12 +223,123 @@ private fun starterScene(sample: String) = DynScene(
     ),
 )
 
+/** One step of the builder's history: the scene and the template's rules as they were. */
+private data class BuilderSnapshot(val scene: DynScene, val meta: TemplateMeta)
+
+/**
+ * Undo and redo for the builder. A run of changes to the same thing (a slider
+ * dragged, words typed, a layer dragged across the canvas) with less than
+ * [MERGE_MS] between them is one step, so undo takes back the whole drag
+ * rather than its last pixel.
+ */
+@Stable
+private class BuilderHistory(first: BuilderSnapshot) {
+    var current by mutableStateOf(first)
+        private set
+    private val undoStack = mutableStateListOf<BuilderSnapshot>()
+    private val redoStack = mutableStateListOf<BuilderSnapshot>()
+    private var lastKey: String? = null
+    private var lastAt = 0L
+
+    val canUndo: Boolean get() = undoStack.isNotEmpty()
+    val canRedo: Boolean get() = redoStack.isNotEmpty()
+
+    /** Moves to [next]; [key] names what changed, so a run of the same change is one step. */
+    fun set(next: BuilderSnapshot, key: String?) {
+        if (next == current) return
+        val now = SystemClock.uptimeMillis()
+        val merge = key != null && key == lastKey && now - lastAt < MERGE_MS
+        if (!merge) {
+            undoStack += current
+            if (undoStack.size > HISTORY_LIMIT) undoStack.removeAt(0)
+        }
+        redoStack.clear()
+        current = next
+        lastKey = key
+        lastAt = now
+    }
+
+    fun undo() {
+        val previous = undoStack.removeLastOrNull() ?: return
+        redoStack += current
+        current = previous
+        lastKey = null
+    }
+
+    fun redo() {
+        val next = redoStack.removeLastOrNull() ?: return
+        undoStack += current
+        current = next
+        lastKey = null
+    }
+
+    private companion object {
+        const val MERGE_MS = 900L
+        const val HISTORY_LIMIT = 100
+    }
+}
+
+private fun compileSnapshot(store: DynStickerStore, snapshot: BuilderSnapshot): SceneToLottie.Compiled? =
+    runCatching {
+        SceneToLottie.compile(snapshot.scene, snapshot.meta.name, snapshot.meta.match, snapshot.meta.altText, store::artFor)
+    }.getOrNull()
+
+/** The kinds of layer the Add menu offers, with what each one is for. */
+private enum class LayerKind(val type: ElementType, val title: Int, val description: Int) {
+    SLOT(ElementType.TEXT, R.string.dynsticker_builder_add_text, R.string.dynsticker_builder_add_text_desc),
+    WORDS(ElementType.TEXT, R.string.dynsticker_builder_add_words, R.string.dynsticker_builder_add_words_desc),
+    SHAPE(ElementType.SHAPE, R.string.dynsticker_builder_add_shape, R.string.dynsticker_builder_add_shape_desc),
+    ART(ElementType.ART, R.string.dynsticker_builder_add_art, R.string.dynsticker_builder_add_art_desc),
+    IMAGE(ElementType.IMAGE, R.string.dynsticker_builder_add_image, R.string.dynsticker_builder_add_image_desc),
+    PHOTO(ElementType.PHOTO, R.string.dynsticker_builder_add_photo, R.string.dynsticker_builder_add_photo_desc),
+}
+
+private fun layerIcon(element: SceneElement): ImageVector = when (element.type) {
+    ElementType.TEXT -> if (element.slot != null) Icons.Outlined.TextFields else Icons.Outlined.Title
+    ElementType.SHAPE -> Icons.Outlined.Category
+    ElementType.ART -> Icons.Outlined.EmojiEmotions
+    ElementType.IMAGE -> Icons.Outlined.Image
+    ElementType.PHOTO -> Icons.Outlined.PhotoCamera
+}
+
+private fun layerKindIcon(kind: LayerKind): ImageVector = when (kind) {
+    LayerKind.SLOT -> Icons.Outlined.TextFields
+    LayerKind.WORDS -> Icons.Outlined.Title
+    LayerKind.SHAPE -> Icons.Outlined.Category
+    LayerKind.ART -> Icons.Outlined.EmojiEmotions
+    LayerKind.IMAGE -> Icons.Outlined.Image
+    LayerKind.PHOTO -> Icons.Outlined.PhotoCamera
+}
+
+/** What kind of layer [element] is, in a word or two. */
+@Composable
+private fun layerKindLabel(element: SceneElement): String = stringResource(
+    when (element.type) {
+        ElementType.TEXT -> if (element.slot != null) R.string.dynsticker_builder_add_text else R.string.dynsticker_builder_add_words
+        ElementType.SHAPE -> R.string.dynsticker_builder_add_shape
+        ElementType.ART -> R.string.dynsticker_builder_add_art
+        ElementType.IMAGE -> R.string.dynsticker_builder_add_image
+        ElementType.PHOTO -> R.string.dynsticker_builder_add_photo
+    },
+)
+
+/** The layer's own name: its words, its shape, its drawing or its photo's label. */
+@Composable
+private fun layerName(element: SceneElement): String = when (element.type) {
+    ElementType.TEXT -> element.text.ifBlank { element.slot.orEmpty() }
+    ElementType.SHAPE -> element.shape?.name?.lowercase()?.replace('_', ' ')?.replaceFirstChar(Char::uppercase).orEmpty()
+    ElementType.ART -> element.art.orEmpty().replace('_', ' ')
+    ElementType.IMAGE -> stringResource(R.string.dynsticker_builder_el_image)
+    ElementType.PHOTO -> element.label.ifBlank { element.slot.orEmpty() }
+}
+
 @Composable
 private fun SceneBuilder(start: BuilderStart, store: DynStickerStore, onBack: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var scene by remember { mutableStateOf(checkNotNull(start.scene)) }
-    var meta by remember { mutableStateOf(start.meta) }
+    val history = remember { BuilderHistory(BuilderSnapshot(checkNotNull(start.scene), start.meta)) }
+    val scene = history.current.scene
+    val meta = history.current.meta
     var selected by remember { mutableStateOf(scene.elements.lastOrNull { it.slot != null }?.id ?: scene.elements.lastOrNull()?.id) }
     var testText by remember { mutableStateOf(context.getString(R.string.dynsticker_test_text_default)) }
     var playing by remember { mutableStateOf(true) }
@@ -202,9 +349,15 @@ private fun SceneBuilder(start: BuilderStart, store: DynStickerStore, onBack: ()
     var editingJson by remember { mutableStateOf(false) }
     var saving by remember { mutableStateOf(false) }
     var nextId by remember { mutableIntStateOf((scene.elements.mapNotNull { it.id.removePrefix("e").toIntOrNull() }.maxOrNull() ?: 0) + 1) }
+    val previewScale = rememberPreviewScale(PreviewScaleSlot.DYNSTICKER_BUILDER)
+    val editorAnchor = remember { BringIntoViewRequester() }
 
-    val compiled = remember(scene, meta) {
-        runCatching { SceneToLottie.compile(scene, meta.name, meta.match, meta.altText, store::artFor) }.getOrNull()
+    // Compiled off the main thread, the latest change only: a drag across the
+    // canvas changes the scene sixty times a second, and compiling each of
+    // those on the main thread is what made dragging stutter.
+    val firstCompile = remember { compileSnapshot(store, history.current) }
+    val compiled by produceState(firstCompile, scene, meta) {
+        value = withContext(Dispatchers.Default) { compileSnapshot(store, BuilderSnapshot(scene, meta)) }
     }
     val template = remember(compiled, meta, previewPack) {
         compiled?.let {
@@ -218,14 +371,32 @@ private fun SceneBuilder(start: BuilderStart, store: DynStickerStore, onBack: ()
         }
     }
 
-    fun update(id: String, change: (SceneElement) -> SceneElement) {
-        scene = scene.copy(elements = scene.elements.map { if (it.id == id) change(it) else it })
+    fun setScene(next: DynScene, key: String? = null) = history.set(history.current.copy(scene = next), key)
+
+    fun setMeta(next: TemplateMeta) = history.set(history.current.copy(meta = next), "meta")
+
+    fun update(id: String, key: String, change: (SceneElement) -> SceneElement) {
+        val now = history.current.scene
+        setScene(now.copy(elements = now.elements.map { if (it.id == id) change(it) else it }), "$key:$id")
     }
 
-    fun add(element: SceneElement) {
-        scene = scene.copy(elements = scene.elements + element)
+    fun showEditor() {
+        scope.launch {
+            // After the new layer's editor is laid out.
+            delay(EDITOR_SCROLL_DELAY_MS)
+            editorAnchor.bringIntoView()
+        }
+    }
+
+    fun add(element: SceneElement, kind: DynKind? = null) {
+        val now = history.current
+        history.set(
+            now.copy(scene = now.scene.copy(elements = now.scene.elements + element), meta = kind?.let { now.meta.copy(kind = it) } ?: now.meta),
+            null,
+        )
         selected = element.id
         nextId++
+        showEditor()
     }
 
     val pickImage = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -245,6 +416,32 @@ private fun SceneBuilder(start: BuilderStart, store: DynStickerStore, onBack: ()
             ownPack = added.first
             previewPack = added.first
             add(SceneElement(id = "e$nextId", type = ElementType.IMAGE, image = added.second, w = 0.6f, h = 0.6f, fit = PhotoFit.CONTAIN))
+        }
+    }
+
+    fun addLayer(kind: LayerKind) {
+        val id = "e$nextId"
+        when (kind) {
+            LayerKind.SLOT -> {
+                val taken = scene.elements.mapNotNull { it.slot }.toSet()
+                val (slot, role) = if (TemplateProps.MAIN_SLOT !in taken) TemplateProps.MAIN_SLOT to SlotRole.MAIN else "label$nextId" to SlotRole.LABEL
+                add(SceneElement(id = id, type = ElementType.TEXT, slot = slot, role = role, text = testText, h = 0.25f, stroke = 0xFF000000L, strokeWidth = 6f))
+            }
+            LayerKind.WORDS -> add(
+                SceneElement(id = id, type = ElementType.TEXT, text = context.getString(R.string.dynsticker_builder_words_sample), y = 0.2f, h = 0.15f, case = TextCase.KEEP),
+            )
+            LayerKind.SHAPE -> add(SceneElement(id = id, type = ElementType.SHAPE, shape = ShapeKind.STAR, w = 0.3f, h = 0.3f, fill = 0xFFFFD60AL, x = 0.8f, y = 0.2f))
+            LayerKind.ART -> store.artIds().firstOrNull()?.let { art ->
+                add(SceneElement(id = id, type = ElementType.ART, art = art, w = 0.35f, h = 0.35f, x = 0.2f, y = 0.2f))
+            }
+            LayerKind.IMAGE -> pickImage.launch(arrayOf("image/*"))
+            LayerKind.PHOTO -> {
+                val n = scene.elements.count { it.type == ElementType.PHOTO } + 1
+                add(
+                    SceneElement(id = id, type = ElementType.PHOTO, slot = "photo$n", w = 0.9f, h = 0.6f, label = context.getString(R.string.dynsticker_builder_photo_label)),
+                    kind = DynKind.MEME,
+                )
+            }
         }
     }
 
@@ -269,126 +466,151 @@ private fun SceneBuilder(start: BuilderStart, store: DynStickerStore, onBack: ()
         }
     }
 
-    SettingsGroup {
-        item {
-            Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (template != null && compiled != null) {
-                    SceneCanvas(
-                        document = compiled.document,
-                        template = template,
-                        text = testText,
-                        playing = playing,
-                        scene = scene,
-                        selected = selected,
-                        onSelect = { selected = it },
-                        onMove = { dx, dy -> selected?.let { id -> update(id) { e -> e.copy(x = (e.x + dx).coerceIn(-0.2f, 1.2f), y = (e.y + dy).coerceIn(-0.2f, 1.2f)) } } },
-                    )
-                } else {
-                    Text(stringResource(R.string.dynsticker_builder_compile_failed), color = MaterialTheme.colorScheme.error)
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedTextField(
-                        value = testText,
-                        onValueChange = { testText = it },
-                        singleLine = true,
-                        label = { Text(stringResource(R.string.dynsticker_test_text_label)) },
-                        modifier = Modifier.weight(1f),
-                    )
-                    OutlinedButton(onClick = { playing = !playing }) {
-                        Text(stringResource(if (playing) R.string.dynsticker_builder_pause else R.string.dynsticker_builder_play))
+    val current = scene.elements.firstOrNull { it.id == selected }
+
+    // The sticker stays in sight while the sections under it scroll, the way
+    // the theme and layout editors keep their keyboard, and its corners make
+    // it smaller for a phone that needs the room.
+    RegisterHidingHeader()
+    RegisterPinned {
+        Surface(color = MaterialTheme.colorScheme.surface) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                val c = compiled
+                val t = template
+                if (c != null && t != null) {
+                    ScalablePreview(
+                        scale = previewScale.floatValue,
+                        onScale = { previewScale.floatValue = it },
+                        onScaleSettled = {
+                            previewScale.floatValue = it
+                            storePreviewScale(context, PreviewScaleSlot.DYNSTICKER_BUILDER, it)
+                        },
+                        modifier = Modifier.padding(top = 4.dp),
+                    ) {
+                        SceneCanvas(
+                            document = c.document,
+                            template = t,
+                            text = testText,
+                            playing = playing,
+                            scene = scene,
+                            selected = selected,
+                            onSelect = { selected = it },
+                            onMove = { dx, dy ->
+                                selected?.let { id ->
+                                    update(id, "move") { e -> e.copy(x = (e.x + dx).coerceIn(-0.2f, 1.2f), y = (e.y + dy).coerceIn(-0.2f, 1.2f)) }
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(previewScale.floatValue).widthIn(max = PREVIEW_MAX_WIDTH),
+                        )
                     }
+                } else {
+                    Text(
+                        stringResource(R.string.dynsticker_builder_compile_failed),
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(16.dp),
+                    )
                 }
-                Button(onClick = ::save, enabled = !saving && compiled != null, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(if (start.ownPack != null) R.string.dynsticker_builder_save else R.string.dynsticker_builder_save_copy))
-                }
+                BuilderToolbar(
+                    canUndo = history.canUndo,
+                    canRedo = history.canRedo,
+                    playing = playing,
+                    current = current,
+                    saveLabel = stringResource(if (start.ownPack != null) R.string.dynsticker_builder_save else R.string.dynsticker_builder_save_copy),
+                    saving = saving || compiled == null,
+                    onUndo = history::undo,
+                    onRedo = history::redo,
+                    onPlay = { playing = !playing },
+                    onCurrent = { scope.launch { editorAnchor.bringIntoView() } },
+                    onSave = ::save,
+                )
             }
         }
     }
 
-    SettingsGroup(stringResource(R.string.dynsticker_builder_elements_title)) {
+    SettingsGroup {
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                OutlinedButton(onClick = {
-                    val taken = scene.elements.mapNotNull { it.slot }.toSet()
-                    val (slot, role) = if (TemplateProps.MAIN_SLOT !in taken) TemplateProps.MAIN_SLOT to SlotRole.MAIN else "label${nextId}" to SlotRole.LABEL
-                    add(SceneElement(id = "e$nextId", type = ElementType.TEXT, slot = slot, role = role, text = testText, h = 0.25f, stroke = 0xFF000000L, strokeWidth = 6f))
-                }) { Text(stringResource(R.string.dynsticker_builder_add_text)) }
-                OutlinedButton(onClick = {
-                    add(SceneElement(id = "e$nextId", type = ElementType.TEXT, text = context.getString(R.string.dynsticker_builder_words_sample), y = 0.2f, h = 0.15f, case = TextCase.KEEP))
-                }) { Text(stringResource(R.string.dynsticker_builder_add_words)) }
-                OutlinedButton(onClick = {
-                    add(SceneElement(id = "e$nextId", type = ElementType.SHAPE, shape = ShapeKind.STAR, w = 0.3f, h = 0.3f, fill = 0xFFFFD60AL, x = 0.8f, y = 0.2f))
-                }) { Text(stringResource(R.string.dynsticker_builder_add_shape)) }
-                val art = remember { store.artIds() }
-                if (art.isNotEmpty()) {
-                    OutlinedButton(onClick = {
-                        add(SceneElement(id = "e$nextId", type = ElementType.ART, art = art.first(), w = 0.35f, h = 0.35f, x = 0.2f, y = 0.2f))
-                    }) { Text(stringResource(R.string.dynsticker_builder_add_art)) }
-                }
-                OutlinedButton(onClick = { pickImage.launch(arrayOf("image/*")) }) { Text(stringResource(R.string.dynsticker_builder_add_image)) }
-                OutlinedButton(onClick = {
-                    val n = scene.elements.count { it.type == ElementType.PHOTO } + 1
-                    add(SceneElement(id = "e$nextId", type = ElementType.PHOTO, slot = "photo$n", w = 0.9f, h = 0.6f, label = context.getString(R.string.dynsticker_builder_photo_label)))
-                    meta = meta.copy(kind = DynKind.MEME)
-                }) { Text(stringResource(R.string.dynsticker_builder_add_photo)) }
+            FieldBlock {
+                OutlinedTextField(
+                    value = testText,
+                    onValueChange = { testText = it },
+                    singleLine = true,
+                    label = { Text(stringResource(R.string.dynsticker_test_text_label)) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
         }
+    }
+
+    SettingsGroup(stringResource(R.string.dynsticker_builder_elements_title), foldKey = "dynbuilder/layers", foldOpenByDefault = true) {
+        item { AddLayerButton(hasArt = remember { store.artIds().isNotEmpty() }, onAdd = ::addLayer) }
         // Topmost first, which is how a layer list reads.
-        for (element in scene.elements.asReversed()) {
+        val elements = scene.elements
+        for (element in elements.asReversed()) {
             item(key = element.id) {
-                ElementRow(
+                val at = elements.indexOfFirst { it.id == element.id }
+                LayerRow(
                     element = element,
+                    scene = scene,
+                    previewPack = previewPack,
+                    store = store,
                     selected = element.id == selected,
-                    onSelect = { selected = element.id },
+                    canUp = at < elements.lastIndex,
+                    canDown = at > 0,
+                    onSelect = {
+                        selected = element.id
+                        showEditor()
+                    },
                     onUp = {
-                        val list = scene.elements.toMutableList()
-                        val at = list.indexOfFirst { it.id == element.id }
-                        if (at < list.lastIndex) {
-                            list.add(at + 1, list.removeAt(at))
-                            scene = scene.copy(elements = list)
+                        val list = history.current.scene.elements.toMutableList()
+                        val i = list.indexOfFirst { it.id == element.id }
+                        if (i in 0 until list.lastIndex) {
+                            list.add(i + 1, list.removeAt(i))
+                            setScene(history.current.scene.copy(elements = list))
                         }
                     },
                     onDown = {
-                        val list = scene.elements.toMutableList()
-                        val at = list.indexOfFirst { it.id == element.id }
-                        if (at > 0) {
-                            list.add(at - 1, list.removeAt(at))
-                            scene = scene.copy(elements = list)
+                        val list = history.current.scene.elements.toMutableList()
+                        val i = list.indexOfFirst { it.id == element.id }
+                        if (i > 0) {
+                            list.add(i - 1, list.removeAt(i))
+                            setScene(history.current.scene.copy(elements = list))
                         }
                     },
                     onDuplicate = { add(element.copy(id = "e$nextId", x = (element.x + 0.05f).coerceAtMost(1f), y = (element.y + 0.05f).coerceAtMost(1f))) },
                     onDelete = {
-                        scene = scene.copy(elements = scene.elements.filter { it.id != element.id })
-                        if (selected == element.id) selected = scene.elements.lastOrNull()?.id
+                        setScene(history.current.scene.copy(elements = history.current.scene.elements.filter { it.id != element.id }))
+                        if (selected == element.id) selected = history.current.scene.elements.lastOrNull()?.id
                     },
                 )
             }
         }
     }
 
-    val current = scene.elements.firstOrNull { it.id == selected }
-    if (current != null) {
-        ElementEditor(
-            element = current,
-            frames = scene.frames,
-            artIds = remember { store.artIds() },
-            onChange = { change -> update(current.id, change) },
-            onColor = { picking = it },
-        )
+    Column(modifier = Modifier.bringIntoViewRequester(editorAnchor)) {
+        if (current != null) {
+            ElementEditor(
+                element = current,
+                frames = scene.frames,
+                artIds = remember { store.artIds() },
+                onChange = { change -> update(current.id, "edit", change) },
+                onColor = { picking = it },
+            )
+        }
     }
 
     TemplateRules(
         meta = meta,
-        onMeta = { meta = it },
+        onMeta = ::setMeta,
         scene = scene,
-        onScene = { scene = it },
+        onScene = { setScene(it, "scene") },
         onColor = { picking = it },
     )
 
-    SettingsGroup(stringResource(R.string.dynsticker_builder_json_title), info = stringResource(R.string.dynsticker_builder_json_info)) {
+    SettingsGroup(
+        stringResource(R.string.dynsticker_builder_json_title),
+        info = stringResource(R.string.dynsticker_builder_json_info),
+        foldKey = "dynbuilder/json",
+    ) {
         item {
             val json = remember(compiled) { compiled?.let { LottieDoc.encode(it.document) }.orEmpty() }
             NavRow(
@@ -420,26 +642,26 @@ private fun SceneBuilder(start: BuilderStart, store: DynStickerStore, onBack: ()
             showReset = target.field.clearable,
             onPick = { argb ->
                 picking = null
-                applyColor(target, argb, scene)?.let { scene = it }
+                applyColor(target, argb, history.current.scene)?.let { setScene(it) }
             },
             onReset = {
                 picking = null
-                applyColor(target, null, scene)?.let { scene = it }
+                applyColor(target, null, history.current.scene)?.let { setScene(it) }
             },
             onDismiss = { picking = null },
         )
     }
     if (editingJson) {
-        JsonDialog(
+        JsonEditorDialog(
             initial = compiled?.let { LottieDoc.encode(it.document) }.orEmpty(),
             detaches = true,
             onDismiss = { editingJson = false },
             onUse = { text ->
-                editingJson = false
                 val doc = LottieDoc.parse(text)
                 if (doc == null) {
                     Toast.makeText(context, R.string.dynsticker_builder_json_invalid, Toast.LENGTH_LONG).show()
                 } else {
+                    editingJson = false
                     scope.launch {
                         val saved = withContext(Dispatchers.IO) {
                             val pack = ownPack ?: myTemplatesPack(context, store) ?: return@withContext null
@@ -461,6 +683,206 @@ private fun SceneBuilder(start: BuilderStart, store: DynStickerStore, onBack: ()
     }
 }
 
+/** Under the pinned sticker: undo, redo, play, the layer being edited, and save. */
+@Composable
+@Suppress("LongParameterList")
+private fun BuilderToolbar(
+    canUndo: Boolean,
+    canRedo: Boolean,
+    playing: Boolean,
+    current: SceneElement?,
+    saveLabel: String,
+    saving: Boolean,
+    onUndo: () -> Unit,
+    onRedo: () -> Unit,
+    onPlay: () -> Unit,
+    onCurrent: () -> Unit,
+    onSave: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(onClick = onUndo, enabled = canUndo) {
+            Icon(Icons.AutoMirrored.Outlined.Undo, contentDescription = stringResource(CommonR.string.common_undo))
+        }
+        IconButton(onClick = onRedo, enabled = canRedo) {
+            Icon(Icons.AutoMirrored.Outlined.Redo, contentDescription = stringResource(R.string.code_redo_desc))
+        }
+        IconButton(onClick = onPlay) {
+            Icon(
+                if (playing) Icons.Outlined.Pause else Icons.Outlined.PlayArrow,
+                contentDescription = stringResource(if (playing) R.string.dynsticker_builder_pause else R.string.dynsticker_builder_play),
+            )
+        }
+        // The layer being edited, always in sight: a tap goes to its settings.
+        Box(modifier = Modifier.weight(1f).padding(horizontal = 4.dp)) {
+            if (current != null) {
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    modifier = Modifier.clip(RoundedCornerShape(10.dp)).clickable(onClick = onCurrent),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Icon(layerIcon(current), contentDescription = null, modifier = Modifier.size(18.dp))
+                        Text(
+                            layerName(current).ifBlank { layerKindLabel(current) },
+                            style = MaterialTheme.typography.labelLarge,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+            }
+        }
+        FilledTonalButton(onClick = onSave, enabled = !saving) { Text(saveLabel, maxLines = 1) }
+    }
+}
+
+/** Add a layer: one button, and a menu that says what each kind of layer is. */
+@Composable
+private fun AddLayerButton(hasArt: Boolean, onAdd: (LayerKind) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)) {
+        OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+            Text(stringResource(R.string.dynsticker_builder_add_layer), modifier = Modifier.padding(start = 8.dp))
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            for (kind in LayerKind.entries) {
+                if (kind == LayerKind.ART && !hasArt) continue
+                DropdownMenuItem(
+                    leadingIcon = { Icon(layerKindIcon(kind), contentDescription = null) },
+                    text = {
+                        Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                            Text(stringResource(kind.title), style = MaterialTheme.typography.bodyLarge)
+                            Text(
+                                stringResource(kind.description),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    },
+                    onClick = {
+                        open = false
+                        onAdd(kind)
+                    },
+                )
+            }
+        }
+    }
+}
+
+/** One layer in the list: a picture of it alone, what it is, and its order and menu. */
+@Composable
+@Suppress("LongParameterList")
+private fun LayerRow(
+    element: SceneElement,
+    scene: DynScene,
+    previewPack: String,
+    store: DynStickerStore,
+    selected: Boolean,
+    canUp: Boolean,
+    canDown: Boolean,
+    onSelect: () -> Unit,
+    onUp: () -> Unit,
+    onDown: () -> Unit,
+    onDuplicate: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    var menu by remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)
+            .clickable(onClick = onSelect)
+            .padding(start = 10.dp, top = 6.dp, bottom = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        LayerThumb(element, scene, previewPack, store, Modifier.size(LAYER_THUMB_SIZE))
+        Column(modifier = Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Icon(layerIcon(element), contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(layerKindLabel(element), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            val name = layerName(element)
+            if (name.isNotBlank()) {
+                Text(name, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            }
+        }
+        IconButton(onClick = onUp, enabled = canUp, modifier = Modifier.size(LAYER_BUTTON_SIZE)) {
+            Icon(Icons.Outlined.ArrowUpward, contentDescription = stringResource(R.string.dynsticker_builder_layer_up), modifier = Modifier.size(20.dp))
+        }
+        IconButton(onClick = onDown, enabled = canDown, modifier = Modifier.size(LAYER_BUTTON_SIZE)) {
+            Icon(Icons.Outlined.ArrowDownward, contentDescription = stringResource(R.string.dynsticker_builder_layer_down), modifier = Modifier.size(20.dp))
+        }
+        Box {
+            IconButton(onClick = { menu = true }, modifier = Modifier.size(LAYER_BUTTON_SIZE)) {
+                Icon(Icons.Outlined.MoreVert, contentDescription = stringResource(R.string.dynsticker_builder_layer_more), modifier = Modifier.size(20.dp))
+            }
+            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                DropdownMenuItem(
+                    leadingIcon = { Icon(Icons.Outlined.ContentCopy, contentDescription = null) },
+                    text = { Text(stringResource(R.string.dynsticker_builder_layer_duplicate)) },
+                    onClick = {
+                        menu = false
+                        onDuplicate()
+                    },
+                )
+                DropdownMenuItem(
+                    leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
+                    text = { Text(stringResource(CommonR.string.common_delete)) },
+                    onClick = {
+                        menu = false
+                        onDelete()
+                    },
+                )
+            }
+        }
+    }
+}
+
+/** [element] drawn on its own, still and whole (no motion), as the keyboard would draw it. */
+@Composable
+private fun LayerThumb(element: SceneElement, scene: DynScene, previewPack: String, store: DynStickerStore, modifier: Modifier) {
+    val context = LocalContext.current
+    val image by produceState<ImageBitmap?>(null, element, scene.width, scene.height, previewPack) {
+        value = withContext(Dispatchers.Default) {
+            runCatching {
+                val alone = scene.copy(elements = listOf(element.copy(animations = emptyList())), background = null, frames = 1)
+                val compiled = SceneToLottie.compile(alone, "", DynMatch(), "", store::artFor) ?: return@runCatching null
+                val template = DynTemplate(
+                    previewPack,
+                    TemplateMeta(id = "layer", name = "", slots = compiled.slots, photos = compiled.photos),
+                    compiled.slots,
+                    PackSource.USER,
+                    emptyList(),
+                )
+                DynAppRender.renderer(context).prepareDocument(compiled.document, template, DynFill(emptyMap()))?.use { prepared ->
+                    prepared.render(prepared.posterProgress, LAYER_THUMB_PX).asImageBitmap()
+                }
+            }.getOrNull()
+        }
+    }
+    Box(
+        modifier = modifier.clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant),
+        contentAlignment = Alignment.Center,
+    ) {
+        image?.let { Image(it, contentDescription = null, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize()) }
+    }
+}
+
+private val LAYER_THUMB_SIZE = 44.dp
+private val LAYER_BUTTON_SIZE = 36.dp
+private val PREVIEW_MAX_WIDTH = 420.dp
+private const val LAYER_THUMB_PX = 128
+private const val EDITOR_SCROLL_DELAY_MS = 120L
+
 private fun freshId(name: String): String {
     val slug = name.lowercase().replace(Regex("[^a-z0-9]+"), "_").trim('_').take(24).ifBlank { "t" }
     return slug + "_" + UUID.randomUUID().toString().take(4)
@@ -472,7 +894,16 @@ private fun copyText(context: Context, text: String) {
     Toast.makeText(context, R.string.dynsticker_builder_json_copied, Toast.LENGTH_SHORT).show()
 }
 
-/** The preview: drawn by the keyboard's own renderer, playing, with the selected element framed and draggable. */
+/**
+ * The preview: drawn by the keyboard's own renderer, with the selected
+ * element framed and draggable.
+ *
+ * Playback runs on a clock of its own, so a change to the scene (a new
+ * document) carries on from the same moment instead of starting over on the
+ * empty first frame. While a layer is dragged it shows the still, where
+ * everything is in place. Frames are drawn off the main thread, the latest
+ * one only, so a slow frame never queues the ones behind it.
+ */
 @Composable
 @Suppress("LongParameterList")
 private fun SceneCanvas(
@@ -484,6 +915,7 @@ private fun SceneCanvas(
     selected: String?,
     onSelect: (String?) -> Unit,
     onMove: (Float, Float) -> Unit,
+    modifier: Modifier = Modifier.fillMaxWidth().widthIn(max = PREVIEW_MAX_WIDTH),
 ) {
     val context = LocalContext.current
     val lock = remember { Mutex() }
@@ -500,50 +932,88 @@ private fun SceneCanvas(
     var shown by remember { mutableStateOf<Bitmap?>(null) }
     var frameNo by remember { mutableIntStateOf(0) }
     var progress by remember { mutableFloatStateOf(1f) }
-    LaunchedEffect(prepared, playing) {
-        val p = prepared ?: return@LaunchedEffect
-        if (!playing || !p.animated) {
-            progress = p.posterProgress
+    var dragging by remember { mutableStateOf(false) }
+    // How far the finger has moved the layer since the scene was last told.
+    var pending by remember { mutableStateOf(Offset.Zero) }
+    val clockStart = remember { System.nanoTime() }
+    val durationMs = prepared?.info?.durationMs
+    val moving = prepared?.animated == true
+    val poster = prepared?.posterProgress ?: 1f
+    LaunchedEffect(playing, dragging, durationMs, moving, poster) {
+        if (!playing || dragging || !moving || durationMs == null) {
+            progress = poster
             return@LaunchedEffect
         }
-        val length = p.info.durationMs.coerceAtLeast(1).toLong()
-        val began = withFrameMillis { it }
+        val length = durationMs.coerceAtLeast(1).toLong()
         while (true) {
-            val now = withFrameMillis { it }
-            progress = ((now - began) % length) / length.toFloat()
+            val nowMs = withFrameNanos { it } / NANOS_PER_MS
+            progress = ((nowMs - clockStart / NANOS_PER_MS).mod(length)) / length.toFloat()
             delay(FRAME_MS)
         }
     }
-    LaunchedEffect(prepared, progress) {
+    LaunchedEffect(prepared) {
         val p = prepared ?: return@LaunchedEffect
-        val index = frameNo % 2
-        val target = buffers[index] ?: Bitmap.createBitmap(PREVIEW_PX, PREVIEW_PX, Bitmap.Config.ARGB_8888).also { buffers[index] = it }
-        withContext(Dispatchers.Default) { lock.withLock { runCatching { p.draw(progress, target) } } }
-        shown = target
-        frameNo++
+        snapshotFlow { progress }.conflate().collect { at ->
+            val index = frameNo % 2
+            val target = buffers[index] ?: Bitmap.createBitmap(PREVIEW_PX, PREVIEW_PX, Bitmap.Config.ARGB_8888).also { buffers[index] = it }
+            val drawn = withContext(Dispatchers.Default) { lock.withLock { runCatching { p.draw(at, target) }.isSuccess } }
+            if (drawn) {
+                shown = target
+                frameNo++
+            }
+        }
     }
+    val elements by rememberUpdatedState(scene.elements)
+    val currentSelected by rememberUpdatedState(selected)
+    val select by rememberUpdatedState(onSelect)
+    val move by rememberUpdatedState(onMove)
     val outline = MaterialTheme.colorScheme.primary
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .widthIn(max = 420.dp)
+        modifier = modifier
             .aspectRatio(scene.width.toFloat() / scene.height.coerceAtLeast(1))
             .clip(RoundedCornerShape(12.dp))
             .background(Checker)
-            .pointerInput(scene.elements, selected) {
-                detectTapGestures { offset ->
+            .pointerInput(Unit) {
+                fun hit(offset: Offset): SceneElement? {
                     val fx = offset.x / size.width
                     val fy = offset.y / size.height
-                    val hit = scene.elements.lastOrNull { e ->
-                        fx in (e.x - e.w / 2)..(e.x + e.w / 2) && fy in (e.y - e.h / 2)..(e.y + e.h / 2)
-                    }
-                    onSelect(hit?.id)
+                    return elements.lastOrNull { e -> fx in (e.x - e.w / 2)..(e.x + e.w / 2) && fy in (e.y - e.h / 2)..(e.y + e.h / 2) }
                 }
+                detectTapGestures { offset -> select(hit(offset)?.id) }
             }
-            .pointerInput(selected) {
-                detectDragGestures { change, amount ->
+            .pointerInput(Unit) {
+                var lastFlush = 0L
+                fun flush() {
+                    val delta = pending
+                    if (delta != Offset.Zero) {
+                        pending = Offset.Zero
+                        move(delta.x, delta.y)
+                    }
+                    lastFlush = SystemClock.uptimeMillis()
+                }
+                detectDragGestures(
+                    onDragStart = { offset ->
+                        // Dragging a layer that isn't selected picks it up.
+                        val fx = offset.x / size.width
+                        val fy = offset.y / size.height
+                        val hit = elements.lastOrNull { e -> fx in (e.x - e.w / 2)..(e.x + e.w / 2) && fy in (e.y - e.h / 2)..(e.y + e.h / 2) }
+                        if (hit != null && hit.id != currentSelected) select(hit.id)
+                        dragging = true
+                    },
+                    onDragEnd = {
+                        flush()
+                        dragging = false
+                    },
+                    onDragCancel = {
+                        flush()
+                        dragging = false
+                    },
+                ) { change, amount ->
                     change.consume()
-                    onMove(amount.x / size.width, amount.y / size.height)
+                    pending += Offset(amount.x / size.width, amount.y / size.height)
+                    // The frame follows the finger at once; the scene, which
+                    // recompiles the whole sticker, hears of it a few times a second.
+                    if (SystemClock.uptimeMillis() - lastFlush >= MOVE_FLUSH_MS) flush()
                 }
             },
     ) {
@@ -553,9 +1023,11 @@ private fun SceneCanvas(
         }
         scene.elements.firstOrNull { it.id == selected }?.let { e ->
             androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
+                val x = e.x + pending.x
+                val y = e.y + pending.y
                 Box(
                     modifier = Modifier
-                        .padding(start = maxWidth * (e.x - e.w / 2).coerceIn(0f, 1f), top = maxHeight * (e.y - e.h / 2).coerceIn(0f, 1f))
+                        .padding(start = maxWidth * (x - e.w / 2).coerceIn(0f, 1f), top = maxHeight * (y - e.h / 2).coerceIn(0f, 1f))
                         .size(maxWidth * e.w.coerceIn(0.02f, 1f), maxHeight * e.h.coerceIn(0.02f, 1f))
                         .border(1.5.dp, outline, RoundedCornerShape(4.dp)),
                 )
@@ -567,43 +1039,8 @@ private fun SceneCanvas(
 private val Checker = Color(0x14808080)
 private const val PREVIEW_PX = 512
 private const val FRAME_MS = 33L
-
-@Composable
-private fun ElementRow(
-    element: SceneElement,
-    selected: Boolean,
-    onSelect: () -> Unit,
-    onUp: () -> Unit,
-    onDown: () -> Unit,
-    onDuplicate: () -> Unit,
-    onDelete: () -> Unit,
-) {
-    val label = when (element.type) {
-        ElementType.TEXT -> if (element.slot != null) {
-            stringResource(R.string.dynsticker_builder_el_slot, element.text.ifBlank { element.slot.orEmpty() })
-        } else {
-            stringResource(R.string.dynsticker_builder_el_words, element.text)
-        }
-        ElementType.SHAPE -> stringResource(R.string.dynsticker_builder_el_shape, element.shape?.name?.lowercase().orEmpty())
-        ElementType.ART -> stringResource(R.string.dynsticker_builder_el_art, element.art.orEmpty())
-        ElementType.IMAGE -> stringResource(R.string.dynsticker_builder_el_image)
-        ElementType.PHOTO -> stringResource(R.string.dynsticker_builder_el_photo, element.label.ifBlank { element.slot.orEmpty() })
-    }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)
-            .clickable(onClick = onSelect)
-            .padding(horizontal = 12.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-        TextButton(onClick = onUp) { Text("↑") }
-        TextButton(onClick = onDown) { Text("↓") }
-        TextButton(onClick = onDuplicate) { Text(stringResource(R.string.dynsticker_builder_copy_short)) }
-        TextButton(onClick = onDelete) { Text(stringResource(CommonR.string.common_delete)) }
-    }
-}
+private const val MOVE_FLUSH_MS = 90L
+private const val NANOS_PER_MS = 1_000_000L
 
 /** Which colour of what the picker is choosing. */
 private data class ColorTarget(val elementId: String?, val field: ColorField)
@@ -658,7 +1095,7 @@ private fun ElementEditor(
     onColor: (ColorTarget) -> Unit,
 ) {
     val isText = element.type == ElementType.TEXT
-    SettingsGroup(stringResource(R.string.dynsticker_builder_selected_title)) {
+    SettingsGroup(stringResource(R.string.dynsticker_builder_selected_title), foldKey = "dynbuilder/selected", foldOpenByDefault = true) {
         if (isText) {
             item {
                 FieldBlock {
@@ -833,7 +1270,7 @@ private fun ElementEditor(
             }
         }
     }
-    SettingsGroup(stringResource(R.string.dynsticker_builder_motion_title)) {
+    SettingsGroup(stringResource(R.string.dynsticker_builder_motion_title), foldKey = "dynbuilder/motion", foldOpenByDefault = true) {
         element.animations.forEachIndexed { index, animation ->
             item(key = "${element.id}_$index") {
                 FieldBlock {
@@ -899,7 +1336,7 @@ private fun TemplateRules(
     onScene: (DynScene) -> Unit,
     onColor: (ColorTarget) -> Unit,
 ) {
-    SettingsGroup(stringResource(R.string.dynsticker_builder_rules_title)) {
+    SettingsGroup(stringResource(R.string.dynsticker_builder_rules_title), foldKey = "dynbuilder/rules") {
         item {
             FieldBlock {
                 OutlinedTextField(
@@ -1045,7 +1482,7 @@ private fun DocumentTemplateEditor(start: BuilderStart, store: DynStickerStore, 
         }
     }
     if (editingJson) {
-        JsonDialog(
+        JsonEditorDialog(
             initial = document?.let(LottieDoc::encode).orEmpty(),
             detaches = false,
             onDismiss = { editingJson = false },
@@ -1063,26 +1500,58 @@ private fun DocumentTemplateEditor(start: BuilderStart, store: DynStickerStore, 
     }
 }
 
+/**
+ * The template's Lottie JSON in the app's code editor, full screen: coloured,
+ * indented, bracket-matched, with its own undo. [detaches] warns that a scene
+ * saved as JSON leaves its layers behind.
+ */
 @Composable
-private fun JsonDialog(initial: String, detaches: Boolean, onDismiss: () -> Unit, onUse: (String) -> Unit) {
-    var text by remember { mutableStateOf(initial) }
-    AlertDialog(
+private fun JsonEditorDialog(initial: String, detaches: Boolean, onDismiss: () -> Unit, onUse: (String) -> Unit) {
+    // Indented for reading: the stored document is one line.
+    val editor = rememberCodeEditorState(initial, keepHistory = true) { JsonCode.format(initial) ?: initial }
+    val colors = rememberCodeColors()
+    Dialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.dynsticker_builder_json_edit)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (detaches) Text(stringResource(R.string.dynsticker_builder_json_detach_warning), style = MaterialTheme.typography.bodySmall)
-                OutlinedTextField(
-                    value = text,
-                    onValueChange = { text = it },
-                    textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace, fontSize = 11.sp),
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp, max = 420.dp),
+        properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
+    ) {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
+            Column(modifier = Modifier.fillMaxSize().systemBarsPadding().imePadding()) {
+                Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Outlined.Close, contentDescription = stringResource(CommonR.string.common_cancel))
+                    }
+                    Text(
+                        stringResource(R.string.dynsticker_builder_json_edit),
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    IconButton(onClick = { editor.undo() }, enabled = editor.canUndo) {
+                        Icon(Icons.AutoMirrored.Outlined.Undo, contentDescription = stringResource(CommonR.string.common_undo))
+                    }
+                    IconButton(onClick = { editor.redo() }, enabled = editor.canRedo) {
+                        Icon(Icons.AutoMirrored.Outlined.Redo, contentDescription = stringResource(R.string.code_redo_desc))
+                    }
+                    TextButton(onClick = { onUse(editor.text) }) { Text(stringResource(R.string.dynsticker_builder_json_use)) }
+                }
+                if (detaches) {
+                    Text(
+                        stringResource(R.string.dynsticker_builder_json_detach_warning),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    )
+                }
+                CodeSurface(
+                    state = editor,
+                    language = JsonCode,
+                    modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 8.dp, vertical = 4.dp),
+                    colors = colors,
                 )
             }
-        },
-        confirmButton = { TextButton(onClick = { onUse(text) }) { Text(stringResource(R.string.dynsticker_builder_json_use)) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) } },
-    )
+        }
+    }
 }
 
 // ---- small editing parts ---------------------------------------------------

@@ -14,9 +14,12 @@ import com.wasimaster.wmkeyboard.core.ui.PreviewScaleMin
  * this device only. A view preference of the editor, like the scroll position,
  * so it stays out of the keyboard's settings.
  */
-internal enum class PreviewScaleSlot(val key: String) {
+internal enum class PreviewScaleSlot(val key: String, val default: Float = 1f) {
     THEME_EDITOR("theme_editor"),
     LAYOUT_EDITOR("layout_editor"),
+
+    /** A square sticker at full width is most of a phone's height: it starts smaller. */
+    DYNSTICKER_BUILDER("dynsticker_builder", default = 0.62f),
 }
 
 /** The slot's stored scale, read once; [storePreviewScale] writes it back. */
@@ -24,7 +27,7 @@ internal enum class PreviewScaleSlot(val key: String) {
 internal fun rememberPreviewScale(slot: PreviewScaleSlot): MutableFloatState {
     val context = LocalContext.current
     return remember(slot) {
-        val stored = prefs(context).getFloat(slot.key, 1f)
+        val stored = prefs(context).getFloat(slot.key, slot.default)
         mutableFloatStateOf(stored.coerceIn(PreviewScaleMin, 1f))
     }
 }

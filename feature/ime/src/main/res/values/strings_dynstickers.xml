@@ -41,4 +41,6 @@
     <string name="ime_dynsticker_colour_label">Text colour</string>
     <string name="ime_dynsticker_send">Send</string>
     <string name="ime_dynsticker_send_still">Send still</string>
+    <!-- Under the fill sheet's Send buttons while the sticker is drawn and encoded. -->
+    <string name="ime_dynsticker_drawing">Drawing the sticker…</string>
 </resources>

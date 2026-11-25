@@ -70,6 +70,9 @@ internal class DynStickerController(
 
         /** Spins the cell [id] while it renders, and stops. */
         fun startRender(id: String)
+
+        /** How far the render [startRender] named has got: [done] frames of [total]. */
+        fun renderProgress(done: Int, total: Int)
         fun endRender()
         fun toast(message: Int)
         fun copy(file: File)
@@ -313,9 +316,14 @@ internal class DynStickerController(
     /**
      * [item] rendered for sending: a sticker (animated when it moves, the
      * setting allows and [still] does not say otherwise), or for a meme with a
-     * photo, a picture. Blocking; call on an IO dispatcher.
+     * photo, a picture. Blocking; call on an IO dispatcher. [onProgress]
+     * hears each frame of an animated one as it is drawn.
      */
-    fun render(item: GifItem, still: Boolean = false): DynEncoder.Output? {
+    fun render(
+        item: GifItem,
+        still: Boolean = false,
+        onProgress: (done: Int, total: Int) -> Unit = { _, _ -> },
+    ): DynEncoder.Output? {
         val entry = entryOf(item) ?: return null
         val template = store.template(entry.templateKey) ?: return null
         val fill = withOverride(entry.fill)
@@ -328,7 +336,7 @@ internal class DynStickerController(
                 val out = if (template.kind == DynKind.MEME && template.meta.photos.isNotEmpty()) {
                     DynEncoder.image(it, target)
                 } else {
-                    DynEncoder.sticker(it, target, animated = host.settings.sendAnimated && !still)
+                    DynEncoder.sticker(it, target, animated = host.settings.sendAnimated && !still, onProgress = onProgress)
                 }
                 if (out != null) store.noteSent(template.key)
                 out
@@ -464,14 +472,22 @@ internal class DynStickerController(
             return
         }
         val item = sheet.preview
-        _ui.update { it.copy(sheet = it.sheet?.copy(busy = true)) }
+        _ui.update { it.copy(sheet = it.sheet?.copy(busy = true, progress = null)) }
         sheetJob?.cancel()
         sheetJob = scope.launch {
             host.startRender(item.id)
-            val output = withContext(Dispatchers.IO) { runCatching { render(item, still) }.getOrNull() }
+            val output = withContext(Dispatchers.IO) {
+                runCatching {
+                    render(item, still) { done, total ->
+                        host.renderProgress(done, total)
+                        val fraction = done.toFloat() / total.coerceAtLeast(1)
+                        _ui.update { it.copy(sheet = it.sheet?.copy(progress = fraction)) }
+                    }
+                }.getOrNull()
+            }
             host.endRender()
             if (output == null) {
-                _ui.update { it.copy(sheet = it.sheet?.copy(busy = false)) }
+                _ui.update { it.copy(sheet = it.sheet?.copy(busy = false, progress = null)) }
                 host.toast(com.wasimaster.wmkeyboard.ime.R.string.ime_dynsticker_render_failed)
                 return@launch
             }
@@ -595,6 +611,8 @@ data class DynSheet(
     /** The cell as it is now filled: what the preview draws and Send sends. */
     val preview: GifItem,
     val busy: Boolean = false,
+    /** How far an animated send has drawn, 0..1; null before the first frame or for a still. */
+    val progress: Float? = null,
 )
 
 /** The Text grid's own state beside the panel's: its filter, its packs, and the sheet. */

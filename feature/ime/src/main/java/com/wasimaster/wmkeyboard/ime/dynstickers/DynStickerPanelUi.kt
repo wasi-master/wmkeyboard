@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -315,6 +316,18 @@ internal fun DynFillSheet(
                         onClick = { onAction(DynAction.Send(still = true)) },
                         modifier = Modifier.weight(1f),
                     )
+                }
+            }
+            if (sheet.busy) {
+                // An animated sticker takes a few seconds to draw: say so, and how far.
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(stringResource(R.string.ime_dynsticker_drawing), color = kb.secondaryText, fontSize = 12.sp)
+                    val progress = sheet.progress
+                    if (progress == null) {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), color = kb.accent, trackColor = kb.chip)
+                    } else {
+                        LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth(), color = kb.accent, trackColor = kb.chip)
+                    }
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

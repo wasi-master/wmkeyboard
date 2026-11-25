@@ -637,7 +637,7 @@ internal class AdvancedFolds(
             return
         }
         val others = settings.value.appUi.advancedOpen.filter {
-            it != id && it in onScreen && it.startsWith("$route/") && !it.endsWith(MORE_FOLD_SUFFIX)
+            it != id && it in onScreen && it.startsWith("$route/") && !it.endsWith(MORE_FOLD_SUFFIX) && !it.endsWith(CLOSED_FOLD_SUFFIX)
         }
         val close = others.sortedBy { used[it] ?: 0L }.take((others.size - (limit - 1)).coerceAtLeast(0))
         if (close.isEmpty()) toggle(id, true) else openClosing(id, close)
@@ -646,6 +646,9 @@ internal class AdvancedFolds(
     companion object {
         /** What ends the id of a group's "more settings" fold. */
         const val MORE_FOLD_SUFFIX = "#more"
+
+        /** What ends the stored id of a fold that is open by default and was closed. */
+        const val CLOSED_FOLD_SUFFIX = "#closed"
     }
 }
 

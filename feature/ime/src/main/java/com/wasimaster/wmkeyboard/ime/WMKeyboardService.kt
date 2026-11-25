@@ -52099,7 +52099,11 @@ open class WMKeyboardService : InputMethodService() {
                 } else if (item.source == GifSource.DYNAMIC) {
                     // Drawn and encoded here rather than downloaded.
                     startMediaDownload(item.id)
-                    val output = withContext(Dispatchers.IO) { runCatching { dynStickerTool.render(item) }.getOrNull() }
+                    val output = withContext(Dispatchers.IO) {
+                        runCatching {
+                            dynStickerTool.render(item) { done, total -> publishMediaProgress(done.toLong(), total.toLong()) }
+                        }.getOrNull()
+                    }
                     endMediaDownload()
                     if (output == null) {
                         Toast.makeText(this@WMKeyboardService, getString(R.string.ime_dynsticker_render_failed), Toast.LENGTH_SHORT).show()
@@ -54745,6 +54749,7 @@ open class WMKeyboardService : InputMethodService() {
                     refreshSuggestions()
                 }
                 override fun startRender(id: String) = startMediaDownload(id)
+                override fun renderProgress(done: Int, total: Int) = publishMediaProgress(done.toLong(), total.toLong())
                 override fun endRender() = endMediaDownload()
                 override fun toast(message: Int) {
                     Toast.makeText(this@WMKeyboardService, getString(message), Toast.LENGTH_SHORT).show()
