@@ -1,0 +1,3 @@
+<resources>
+    <string name="core_icons_repair_svg_unreadable">The app dropped \&amp;quot;%1$s\&amp;quot;. Its file is not an SVG or a picture the app can read.</string>
+</resources>
