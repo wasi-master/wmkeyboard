@@ -7,6 +7,7 @@ import android.os.SystemClock
 import android.util.Log
 import android.view.View
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.IntSize
@@ -31,11 +32,11 @@ object OnyxInkSupport {
             it.equals("onyx", ignoreCase = true) || it.contains("boox", ignoreCase = true)
         }
     }
-    private var sessionFailed = false
-    val runtimeAvailable: Boolean get() = deviceSupported && !sessionFailed
+    private val sessionFailed = mutableStateOf(false)
+    val runtimeAvailable: Boolean get() = deviceSupported && !sessionFailed.value
 
     internal fun failForSession() {
-        sessionFailed = true
+        sessionFailed.value = true
     }
 }
 
@@ -78,15 +79,14 @@ private object OnyxSdkInitialization {
     private var ready = false
 
     @Synchronized
-    fun initialize(context: Context): Boolean {
-        if (ready) return true
+    fun initialize(context: Context) {
+        if (ready) return
         val app = context.applicationContext
         // The pen/base SDKs reflect into framework APIs on Android 11+.
         HiddenApi.exempt()
         ResManager.init(app)
         RxBaseAction.init(app)
         ready = true
-        return true
     }
 }
 
@@ -101,8 +101,6 @@ internal fun OnyxInkCanvas(
     onStrokeStart: () -> Unit,
     onStrokeCancel: () -> Unit,
     onStroke: (HwStroke, IntSize) -> Unit,
-    onStylusActivity: (Long) -> Unit,
-    onFailure: () -> Unit,
 ) {
     AndroidView(
         factory = { context -> OnyxRawInkView(context) },
@@ -117,8 +115,6 @@ internal fun OnyxInkCanvas(
                 onStrokeStart = onStrokeStart,
                 onStrokeCancel = onStrokeCancel,
                 onStroke = onStroke,
-                onStylusActivity = onStylusActivity,
-                onFailure = onFailure,
             )
         },
     )
@@ -148,8 +144,6 @@ internal class OnyxRawInkView(context: Context) : View(context) {
     private var onStrokeStart: () -> Unit = {}
     private var onStrokeCancel: () -> Unit = {}
     private var onStroke: (HwStroke, IntSize) -> Unit = { _, _ -> }
-    private var onStylusActivity: (Long) -> Unit = {}
-    private var onFailure: () -> Unit = {}
     private val collector = OnyxStrokeCollector()
 
     private val finishClear = Runnable {
@@ -237,15 +231,11 @@ internal class OnyxRawInkView(context: Context) : View(context) {
         onStrokeStart: () -> Unit,
         onStrokeCancel: () -> Unit,
         onStroke: (HwStroke, IntSize) -> Unit,
-        onStylusActivity: (Long) -> Unit,
-        onFailure: () -> Unit,
     ) {
         this.inputState = inputState
         this.onStrokeStart = onStrokeStart
         this.onStrokeCancel = onStrokeCancel
         this.onStroke = onStroke
-        this.onStylusActivity = onStylusActivity
-        this.onFailure = onFailure
         if (currentStyle != style) {
             currentStyle = style
             applyStyle()
@@ -335,14 +325,13 @@ internal class OnyxRawInkView(context: Context) : View(context) {
     private fun enableRawDrawing() {
         if (!canEnableRawDrawing()) return
         removeCallbacks(finishClear)
-        val initialized = runCatching {
-            OnyxInkSupport.runtimeAvailable && OnyxSdkInitialization.initialize(context)
+        runCatching {
+            if (!OnyxInkSupport.runtimeAvailable) {
+                throw IllegalStateException("Onyx pen SDK is unavailable on this device")
+            }
+            OnyxSdkInitialization.initialize(context)
         }.getOrElse {
             fail(it)
-            return
-        }
-        if (!initialized) {
-            fail(IllegalStateException("Onyx pen SDK is unavailable on this device"))
             return
         }
         if (helper == null) {
@@ -437,18 +426,15 @@ internal class OnyxRawInkView(context: Context) : View(context) {
         // Raw firmware timestamps are millisecond-scale but their epoch is not
         // contractual. Recognition keeps repaired deltas; palm rejection needs uptime.
         val uptime = if (rawTimestamp in 1..now + UPTIME_SKEW_MS) rawTimestamp else now
-        onStylusActivity(uptime)
+        inputState.lastStylusUptimeMs = uptime
     }
 
     private fun fail(error: Throwable) {
         Log.w(TAG, "Disabling Onyx raw ink; falling back to Compose", error)
+        failureReported = true
         OnyxInkSupport.failForSession()
         pauseRawDrawing()
         closeHelper()
-        if (!failureReported) {
-            failureReported = true
-            post { onFailure() }
-        }
     }
 
     companion object {

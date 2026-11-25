@@ -29,6 +29,4 @@ internal fun OnyxInkCanvas(
     onStrokeStart: () -> Unit,
     onStrokeCancel: () -> Unit,
     onStroke: (HwStroke, IntSize) -> Unit,
-    onStylusActivity: (Long) -> Unit,
-    onFailure: () -> Unit,
 ) = Unit

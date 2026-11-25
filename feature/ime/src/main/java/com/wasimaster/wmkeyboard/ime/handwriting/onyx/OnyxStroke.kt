@@ -18,6 +18,7 @@ internal data class OnyxChromeRegions(
 internal class OnyxInputState {
     var rawCaptureActive = false
     var fallbackStylusActive = false
+    var lastStylusUptimeMs = 0L
 }
 
 /**
