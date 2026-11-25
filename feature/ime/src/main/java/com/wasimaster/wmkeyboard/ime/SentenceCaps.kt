@@ -72,3 +72,24 @@ internal fun sentenceEndInsidePair(before: CharSequence): Boolean {
     }
     return true
 }
+
+/**
+ * Every mark that already ends a sentence for the double-space full stop:
+ * the Latin ones plus the script terminators the period key can type
+ * (danda, Armenian, Khmer, Myanmar, Ethiopic, Tibetan, Ol Chiki, Meetei
+ * Mayek, the CJK full-width ones and the Arabic-script question mark and
+ * full stop).
+ */
+private const val DOUBLE_SPACE_STOP_MARKS = ".!?…‽।॥։។။።།᱾꯫。！？؟۔"
+
+/**
+ * Whether [before], the text in front of the first of two spaces, already
+ * ends on a sentence mark, past any closing quotes or brackets after it
+ * (`test.`, `“Go!”`, `(see above.)`). A double space there must not add a
+ * second stop (#1559).
+ */
+internal fun endsWithSentenceMark(before: CharSequence): Boolean {
+    var i = before.length
+    while (i > 0 && before[i - 1] in PAIR_OPENER_OF) i--
+    return i > 0 && before[i - 1] in DOUBLE_SPACE_STOP_MARKS
+}

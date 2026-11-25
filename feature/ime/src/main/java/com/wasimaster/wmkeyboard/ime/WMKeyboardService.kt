@@ -21203,6 +21203,16 @@ open class WMKeyboardService : InputMethodService() {
             state.fieldKind == FieldKind.TEXT && now - lastSpaceTime < doubleSpaceWindow
         ) {
             val before = ic.getTextBeforeCursor(2, 0)?.toString().orEmpty()
+            // The sentence already has its mark ("test. ", "Why? ", "“Go!” "):
+            // a second stop would make "test.. ", so the second space is
+            // spent and the one space stays (#1559).
+            if (before.length == 2 && before[1] == ' ' &&
+                endsWithSentenceMark(ic.getTextBeforeCursor(PERIOD_SLIP_LOOKBACK, 0)?.toString().orEmpty().dropLast(1))
+            ) {
+                if (batched) ic.endBatchEdit()
+                lastSpaceTime = 0
+                return
+            }
             if (before.endsWith(" ") && before.length == 2 && !before[0].isWhitespace()) {
                 // The word the stop lands after, in case the two spaces were
                 // two missed letters (#1107): the next word may join it.
