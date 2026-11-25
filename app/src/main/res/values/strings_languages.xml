@@ -447,6 +447,7 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
     <!-- Under the word list of a language that ships one in the app. -->
     <string name="languages_words_builtin">Built-in list</string>
     <string name="languages_words_builtin_more">Built-in list. A bigger list is available.</string>
+    <string name="languages_words_stands_in">In use: this language is set to your own word lists, and none are imported or turned on, so the keyboard reads this list until you add one.</string>
     <string name="languages_words_missing">For suggestions, autocorrect and glide typing</string>
     <!-- Dialog that opens from Download on the word list. -->
     <string name="languages_words_download_title">Download a word list</string>

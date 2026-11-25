@@ -97,6 +97,21 @@ object CustomDictionaries {
             ?.sortedBy { it.name }
             .orEmpty()
 
+    /**
+     * Whether [langId] reads its imported lists alone: it is in
+     * [importedOnlyLangs] ("Use only my word lists", #28) and has a list
+     * switched on here to read. With none, the language reads its bundled or
+     * downloaded list as if the option were off, rather than going without
+     * words: a settings backup restored without its lists, a reinstall, or
+     * every list switched off left English with nothing to suggest and glide
+     * typing silently off. The option itself is kept, and applies again once
+     * a list is imported or switched back on.
+     *
+     * A locked boot cannot read the lists, so it counts as having none.
+     */
+    fun readsImportedOnly(filesDir: File, langId: String, importedOnlyLangs: Set<String>): Boolean =
+        langId in importedOnlyLangs && lists(filesDir, langId).isNotEmpty()
+
     /** Every imported list for one language, switched on or not. */
     fun allLists(filesDir: File, langId: String): List<File> =
         languageDir(filesDir, langId)

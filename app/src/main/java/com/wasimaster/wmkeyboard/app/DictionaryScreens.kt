@@ -357,7 +357,10 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
         val ids = enabledLanguages.map { it.id }
         val candidates = words.map { it.first }
         listed = withContext(Dispatchers.IO) {
-            wordsTheListsHold(context, candidates, langs, ids, pinned, listCapitals) { it !in importedOnly }
+            wordsTheListsHold(context, candidates, langs, ids, pinned, listCapitals) {
+                // A language set to its lists with none to read keeps its own (#28).
+                !CustomDictionaries.readsImportedOnly(context.filesDir, it, importedOnly)
+            }
         }
     }
     RegisterAddFab(stringResource(R.string.backup_add_word_action)) { showAdd = true }

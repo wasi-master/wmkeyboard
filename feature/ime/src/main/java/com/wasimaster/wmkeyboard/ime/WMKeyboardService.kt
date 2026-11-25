@@ -3459,17 +3459,29 @@ open class WMKeyboardService : InputMethodService() {
         }.getOrDefault(emptySet())
     }
 
-    /** Languages reading the user's imported lists alone (issue #28). */
+    /**
+     * Languages reading the user's imported lists alone (issue #28), as far as
+     * they have a list switched on to read ([CustomDictionaries.readsImportedOnly]).
+     * Compared against [loadedImportedOnly] on each settings pass, so a list
+     * imported, deleted or switched under the option rebuilds the word sources
+     * the way flipping the option does.
+     */
     private fun importedOnly(): Set<String> =
         _uiState.value.settings.suggestionStrip.importedOnlyLangs
+            .filterTo(HashSet()) { userUnlocked && CustomDictionaries.lists(filesDir, it).isNotEmpty() }
 
     /**
      * Whether [langId] still reads the vocabulary that ships with the app and
      * the one the user downloaded, as opposed to their own imported lists
-     * alone (issue #28).
+     * alone (issue #28). A language set to its lists with none to read keeps
+     * its own (Telegram, msgs 11723-11788): a backup restored without its
+     * lists left English with no words, and glide typing went off without a
+     * word on screen, since coverage measured over nothing is nothing.
      */
     private fun shippedDictionaryEnabled(langId: String): Boolean =
-        _uiState.value.settings.suggestionStrip.shippedDictionaryEnabledFor(langId)
+        !(userUnlocked && CustomDictionaries.readsImportedOnly(
+            filesDir, langId, _uiState.value.settings.suggestionStrip.importedOnlyLangs,
+        ))
 
     /** Whether any enabled language routes through the Bengali machinery. */
     private fun bengaliEnabled(): Boolean =

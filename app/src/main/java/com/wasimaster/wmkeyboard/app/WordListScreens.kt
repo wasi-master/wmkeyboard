@@ -412,10 +412,9 @@ internal fun CustomDictionarySettings(
                     ) { onNavigate("languages") }
                 }
             } else {
-                // Only where there is a list to fall back on: switching a
-                // language to "my lists only" with nothing imported leaves it
-                // with no words at all, and a row that can do that is not worth
-                // offering next to an empty group (#28).
+                // Only where there is a list to read: with nothing imported the
+                // keyboard keeps the language's own list whatever the switch
+                // says (#28), so a row here would change nothing.
                 if (entries.isNotEmpty()) {
                     item {
                         ToggleSetting(
@@ -432,10 +431,9 @@ internal fun CustomDictionarySettings(
                             }
                         }
                     }
-                    // Said out loud rather than quietly ignored: the setting is
-                    // honoured exactly as asked, so a language whose every list
-                    // is switched off really does go silent, and the reason has
-                    // to be on the screen that caused it.
+                    // Said out loud: with every list switched off the setting
+                    // stands down and the language's own list is read again,
+                    // which this screen would otherwise not show.
                     if (!shipped && entries.none { CustomDictionaries.isEnabled(it.file) }) {
                         item { StateBanner(stringResource(R.string.customdict_only_my_lists_empty)) }
                     }

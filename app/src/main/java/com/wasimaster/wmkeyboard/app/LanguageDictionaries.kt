@@ -57,6 +57,7 @@ import com.wasimaster.wmkeyboard.core.dictionaries.WordlistDownloadManager
 import com.wasimaster.wmkeyboard.core.emoji.EmojiDictCatalog
 import com.wasimaster.wmkeyboard.core.emoji.EmojiDictDownloadManager
 import com.wasimaster.wmkeyboard.core.emoji.EmojiKeywordPacks
+import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
 import com.wasimaster.wmkeyboard.core.script.LanguageDef
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
@@ -136,6 +137,11 @@ internal fun DictionariesGroup(
         EmojiKeywordPacks.packs(filesDir, langId).isNotEmpty()
     }
     val hasHunspell = rememberHasHunspell(langId)
+    // "Use only my word lists" with no imported list switched on (#28): the
+    // keyboard reads this list anyway, and its row says why. Re-read when an
+    // import, a delete or a list's switch bumps the lists' version.
+    val listVersion = settings.watch { it.customDictVersion }
+    val noImportedLists = remember(langId, listVersion) { CustomDictionaries.lists(filesDir, langId).isEmpty() }
 
     // Sizes the Download all on the heading, so it is read here.
     val size = settings.watch { it.appUi.defaultWordlistSize }
@@ -194,6 +200,7 @@ internal fun DictionariesGroup(
                     alternatives = wordlists.size > 1,
                     status = wordStatus,
                     checked = settings.watch { it.suggestionStrip.shippedDictionaryEnabledFor(langId) },
+                    standsIn = noImportedLists,
                     onChecked = { scope.launch { repository.setShippedDictionaryEnabled(langId, it) } },
                     onDownload = {
                         dialogIsResize = false
@@ -417,6 +424,12 @@ private fun WordListRow(
     alternatives: Boolean,
     status: WordlistDownloadManager.DownloadStatus,
     checked: Boolean,
+    /**
+     * Unchecked ("Use only my word lists") but with no imported list to read,
+     * so the keyboard reads this one regardless. Only meaningful with
+     * [checked] false.
+     */
+    standsIn: Boolean,
     onChecked: (Boolean) -> Unit,
     onDownload: () -> Unit,
     onResize: () -> Unit,
@@ -449,6 +462,13 @@ private fun WordListRow(
             else -> stringResource(R.string.languages_words_missing)
         }
     }
+    // Said on the row the switch is on, since the option looks honoured from
+    // here and the keyboard is in fact typing from this list.
+    val note = if (!checked && standsIn && onDevice && status !is WordlistDownloadManager.DownloadStatus.Failed) {
+        stringResource(R.string.languages_words_stands_in)
+    } else {
+        null
+    }
     // A failure that kept the old list keeps its furniture too: the error says
     // the new size did not arrive, and the list already there is still the
     // one in use.
@@ -456,7 +476,7 @@ private fun WordListRow(
     val deleteLabel = stringResource(R.string.languages_wordlist_delete_desc)
     DictionaryItemRow(
         title = title,
-        supporting = supporting,
+        supporting = note ?: supporting,
         checked = if (onDevice) checked else null,
         onChecked = onChecked,
         error = status is WordlistDownloadManager.DownloadStatus.Failed,
