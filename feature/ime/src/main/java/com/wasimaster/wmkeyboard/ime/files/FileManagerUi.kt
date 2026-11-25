@@ -108,7 +108,7 @@ data class FileOpUi(val kind: FileOpKind, val done: Int, val total: Int)
 enum class FileOpKind { COPY, MOVE, DELETE }
 
 data class FileNotice(val kind: Kind, val count: Int = 0) {
-    enum class Kind { COPIED, MOVED, DELETED, FAILED, LIMIT, BAD_NAME, TREE_REMOVED }
+    enum class Kind { COPIED, MOVED, DELETED, FAILED, LIMIT, BAD_NAME, TREE_REMOVED, NO_APP }
 }
 
 /** One step of the breadcrumb: where it goes, and what it is called. */
@@ -177,6 +177,9 @@ sealed interface FileAction {
     data class AnswerDelete(val yes: Boolean) : FileAction
     data object CancelOp : FileAction
     data object Rename : FileAction
+
+    /** The one picked file to another app, asking which. */
+    data object OpenWith : FileAction
     data object NewFolder : FileAction
     data object SearchFocus : FileAction
     data object ClearSearch : FileAction

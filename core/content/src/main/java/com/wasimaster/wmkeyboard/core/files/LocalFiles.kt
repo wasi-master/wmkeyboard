@@ -37,10 +37,13 @@ object LocalFilePaths {
  * URI answers nothing when asked for its name, size or type. This answers those
  * three and opens the file to read, and nothing else.
  *
- * Not exported, and it grants nothing: the keyboard's own process is the only
- * caller there can be, and what reaches another app is always a prepared copy
- * or the bytes, never one of these. Declared in the main manifest and removed
- * from Play's with the permission it depends on.
+ * Not exported. The one way out is the Files tool's tap and Open with: a View
+ * intent carrying a read grant for that single file, so the app the user
+ * picked can show it (Telegram asked for it). No other app can reach a path
+ * through it without such a grant, the file must sit on shared storage, and
+ * nothing is ever written. The tools' own picks still reach another app as a
+ * prepared copy or the bytes. Declared in the main manifest and removed from
+ * Play's with the permission it depends on.
  */
 class LocalFilesProvider : ContentProvider() {
 

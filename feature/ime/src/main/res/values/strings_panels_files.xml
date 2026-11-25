@@ -115,4 +115,6 @@
     <string name="ime_files_remove_tree_body">The folder and its files stay where they are. You can add it again at any time.</string>
     <string name="ime_files_remove_tree_yes">Take off</string>
     <string name="ime_files_notice_tree_removed">Folder taken off the list</string>
+    <string name="ime_files_open_with">Open with</string>
+    <string name="ime_files_notice_no_app">No app here opens this kind of file</string>
 </resources>

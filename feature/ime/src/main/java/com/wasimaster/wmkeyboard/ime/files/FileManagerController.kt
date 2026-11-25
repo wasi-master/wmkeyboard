@@ -387,8 +387,10 @@ internal class FileManagerController(
         when {
             s.selecting -> toggle(entry)
             entry.isDirectory -> openEntry(entry)
-            // The tool on its own: a file is something to act on, so a tap selects it.
-            s.browsing -> toggle(entry)
+            // The tool on its own: a tap opens the file in the app for it, a
+            // photo in the gallery, a video in the player (Telegram); a hold
+            // picks it to act on.
+            s.browsing -> open(entry.path, entry.mime, choose = false)
             s.request?.limit == 1 -> deliver(listOf(entry.path))
             else -> toggle(entry)
         }
@@ -412,6 +414,27 @@ internal class FileManagerController(
         _state.update {
             it.copy(selection = next, selectedFolders = folders, selecting = it.selecting && next.isNotEmpty())
         }
+    }
+
+    /**
+     * Hands the file at [path] to the app that shows it, through Android's
+     * View intent with a read grant for that one file: [choose] asks which
+     * app every time, else the default one opens it (Android asks when there
+     * is none). A document folder's file goes as its own document URI, one
+     * by path through [com.wasimaster.wmkeyboard.core.files.LocalFilesProvider].
+     */
+    private fun open(path: String, mime: String, choose: Boolean) {
+        host.haptic()
+        val uri = DocFiles.uriOf(app, path)
+        val type = mime.ifEmpty { null }
+            ?: runCatching { app.contentResolver.getType(uri) }.getOrNull()
+            ?: "*/*"
+        val view = Intent(Intent.ACTION_VIEW)
+            .setDataAndType(uri, type)
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        // The chooser carries the grant over to the app picked from it.
+        val intent = (if (choose) Intent.createChooser(view, null) else view).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (runCatching { app.startActivity(intent) }.isFailure) notice(FileNotice.Kind.NO_APP)
     }
 
     private fun clearSelection() =
@@ -665,6 +688,10 @@ internal class FileManagerController(
                 val name = _state.value.panes.flatMap { it.entries }.firstOrNull { it.path == path }?.name
                     ?: if (DocFiles.isDoc(path)) "" else File(path).name
                 host.beginText(FilesTextEntry(FilesTextField.RENAME, name))
+            }
+            FileAction.OpenWith -> _state.value.selection.singleOrNull()?.let { path ->
+                val mime = _state.value.panes.flatMap { it.entries }.firstOrNull { it.path == path }?.mime.orEmpty()
+                open(path, mime, choose = true)
             }
             FileAction.NewFolder -> if (_state.value.folder != null) {
                 host.beginText(FilesTextEntry(FilesTextField.NEW_FOLDER))

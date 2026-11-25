@@ -1700,9 +1700,10 @@
         </provider>
 
         <!-- What the keyboard's file manager picks, read by the tool that asked
-             the way it reads a pick from Android's picker. Not exported, and it
-             grants nothing: only this process can reach it. LocalFilesProvider
-             says why, and src/play removes it. -->
+             the way it reads a pick from Android's picker. Not exported. It
+             grants one file, read only, to the app the Files tool's Open with
+             hands it to, and nothing else. LocalFilesProvider says why, and
+             src/play removes it. -->
         <!-- WM Calendar's way in: call("ai_config") only, from the real WM Calendar (its certificate
              is checked on every call), and the AI setup only once the person shares it in the
              Calendar tool's settings. -->
@@ -1722,7 +1723,8 @@
         <provider
             android:name="com.wasimaster.wmkeyboard.core.files.LocalFilesProvider"
             android:authorities="${applicationId}.localfiles"
-            android:exported="false" />
+            android:exported="false"
+            android:grantUriPermissions="true" />
 
         <!-- Same trampoline pattern for the file manager's storage pair, on
              Android 7 to 10. From Android 11 it asks through SpecialAccessActivity. -->

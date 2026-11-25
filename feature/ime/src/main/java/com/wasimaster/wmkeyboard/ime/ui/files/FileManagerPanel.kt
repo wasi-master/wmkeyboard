@@ -725,6 +725,9 @@ private fun SelectionBar(ui: FileManagerUi, act: (FileAction) -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            if (ui.selection.size == 1 && ui.selectedFolders.isEmpty()) {
+                ToolPanelChip(stringResource(R.string.ime_files_open_with)) { act(FileAction.OpenWith) }
+            }
             if (ui.selection.size == 1) {
                 ToolPanelChip(stringResource(R.string.ime_files_rename_desc)) { act(FileAction.Rename) }
             }
@@ -944,6 +947,7 @@ private fun noticeText(n: FileNotice): String = when (n.kind) {
     FileNotice.Kind.LIMIT -> pluralStringResource(R.plurals.ime_files_notice_limit, n.count, n.count)
     FileNotice.Kind.BAD_NAME -> stringResource(R.string.ime_files_notice_bad_name)
     FileNotice.Kind.TREE_REMOVED -> stringResource(R.string.ime_files_notice_tree_removed)
+    FileNotice.Kind.NO_APP -> stringResource(R.string.ime_files_notice_no_app)
 }
 
 private const val THUMB_PX = 128
