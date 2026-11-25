@@ -9470,6 +9470,7 @@ open class WMKeyboardService : InputMethodService() {
     private fun pressSystemButton(button: com.wasimaster.wmkeyboard.core.settings.SystemButton) {
         if (!button.available) return
         val service = SystemButtonsService.current
+        if (service == null && pressSystemButtonByShell(button)) return
         if (service == null) {
             runCatching {
                 startActivity(
@@ -9484,6 +9485,47 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * The `input keyevent` name [button] is pressed with through Shizuku or
+     * root; null for a button with no key of its own.
+     */
+    private fun shellKeyFor(button: com.wasimaster.wmkeyboard.core.settings.SystemButton): String? = when (button) {
+        com.wasimaster.wmkeyboard.core.settings.SystemButton.BACK -> "KEYCODE_BACK"
+        com.wasimaster.wmkeyboard.core.settings.SystemButton.HOME -> "KEYCODE_HOME"
+        com.wasimaster.wmkeyboard.core.settings.SystemButton.RECENTS -> "KEYCODE_APP_SWITCH"
+        else -> null
+    }
+
+    /**
+     * Whether Shizuku or root can press the system buttons now: a build that
+     * offers the shell, with the keyboard allowed in Shizuku or **Use root**
+     * on. Either is the user's yes to the shell, as for the floating
+     * button's phone controls.
+     */
+    private fun shellButtonsOpen(): Boolean {
+        if (!com.wasimaster.wmkeyboard.core.shell.ShellFeatures.offered) return false
+        syncShellAccess()
+        com.wasimaster.wmkeyboard.core.shell.ShellAccess.refresh()
+        return com.wasimaster.wmkeyboard.core.shell.ShellAccess.available
+    }
+
+    /**
+     * Back, Home or Recent apps through Shizuku or root, while the system
+     * buttons service is off: with Shizuku granted, the tools still sent
+     * people to turn on an accessibility service they did not need
+     * (Telegram). False when the shell cannot press [button], for the
+     * caller to fall back on the service.
+     */
+    private fun pressSystemButtonByShell(button: com.wasimaster.wmkeyboard.core.settings.SystemButton): Boolean {
+        val key = shellKeyFor(button) ?: return false
+        if (!shellButtonsOpen()) return false
+        serviceScope.launch {
+            val done = com.wasimaster.wmkeyboard.core.shell.ShellAccess.exec(this@WMKeyboardService, "input keyevent $key")?.ok == true
+            if (!done) Toast.makeText(this@WMKeyboardService, R.string.ime_floating_system_failed, Toast.LENGTH_SHORT).show()
+        }
+        return true
+    }
+
+    /**
      * The Back tool (#1521), from the toolbar, a key or a gesture: Android's
      * own Back, for the app behind the keyboard, a browser's history or a
      * chat's menus. With the keyboard up, Back would only put the keyboard
@@ -9493,7 +9535,8 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun pressBackFromTool() {
         val button = com.wasimaster.wmkeyboard.core.settings.SystemButton.BACK
-        if (SystemButtonsService.current == null || !windowOnScreen) {
+        val canPress = SystemButtonsService.current != null || shellKeyFor(button)?.let { shellButtonsOpen() } == true
+        if (!canPress || !windowOnScreen) {
             pressSystemButton(button)
             return
         }
