@@ -113,6 +113,14 @@ Set an alarm or start a timer in the keyboard's own Clock. The keyboard says
 so on screen each time, naming your plugin, and the alarm or timer is the
 user's from then on. Your plugin never sees the user's alarms.
 
+### `previews` (API 5)
+
+Show files in the keyboard's [file manager](/tools/files/). Your plugin reads
+the one file the user opens with it, and draws it. It never sees the file's
+path, its folder or any other file, and each call starts from nothing. Needed
+exactly when the manifest lists `previews`.
+[Showing files](/plugins/guides/file-previews/) explains how.
+
 ## Risky permissions
 
 Each of these is off after install. The user turns it on, one plugin at a time,

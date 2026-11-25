@@ -130,6 +130,11 @@ codes! {
     ProviderNotDeclared = "provider_not_declared", Warning, "plugin.json's providers list no {0} provider “{1}”, so nothing asks this.";
     ProviderUnanswered = "provider_unanswered", Warning, "plugin.json declares the {0} provider “{1}”, but no @plugin.provider answers it.";
     ActionUnanswered = "action_unanswered", Warning, "plugin.json lists the action “{0}”, but no @plugin.action answers it.";
+    UnknownPreview = "unknown_preview", Warning, "plugin.json's previews list no “{0}”, so the file manager never asks this.";
+    PreviewTypo = "preview_typo", Warning, "plugin.json's previews list no “{0}”. Did you mean “{1}”?";
+    PreviewUnanswered = "preview_unanswered", Warning, "plugin.json lists the preview “{0}”, but no @plugin.preview draws it.";
+    ThumbnailNotDeclared = "thumbnail_not_declared", Warning, "plugin.json's preview “{0}” does not set \"thumbnails\": true, so this never runs.";
+    ThumbnailUnanswered = "thumbnail_unanswered", Warning, "plugin.json's preview “{0}” has thumbnails, but no @plugin.thumbnail makes them.";
     KeywordNotDeclared = "keyword_not_declared", Warning, "plugin.json's tool.keyword is not “{0}”, so this never runs.";
     UnknownSetting = "unknown_setting", Warning, "plugin.json has no setting “{0}”.";
     SettingTypo = "setting_typo", Warning, "plugin.json has no setting “{0}”. Did you mean “{1}”?";

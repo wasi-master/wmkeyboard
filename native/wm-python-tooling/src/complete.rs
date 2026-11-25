@@ -167,6 +167,8 @@ const DECORATORS: &[(&str, &str)] = &[
     ("action", "action(\"|\")"),
     ("provider", "provider(\"|\")"),
     ("keyword", "keyword(\"|\")"),
+    ("preview", "preview(\"|\")"),
+    ("thumbnail", "thumbnail(\"|\")"),
     ("command", "command(\"|\")"),
     ("every", "every(minutes=|)"),
     ("on_open", "on_open|"),
@@ -910,6 +912,8 @@ impl<'a> Context<'a> {
                 plain(h.providers.iter().flatten().filter(|(t, _)| tool.as_deref().is_none_or(|x| x == t)).map(|(_, id)| id.clone()).collect())
             }
             ("plugin.action", "id") => plain(h.actions.clone().unwrap_or_default()),
+            ("plugin.preview", "id") => plain(h.previews.iter().flatten().map(|(id, _)| id.clone()).collect()),
+            ("plugin.thumbnail", "id") => plain(h.previews.iter().flatten().filter(|(_, thumbs)| *thumbs).map(|(id, _)| id.clone()).collect()),
             ("plugin.keyword", "word") => plain(h.keyword.iter().filter(|k| !k.is_empty()).cloned().collect()),
             ("plugin.setting_changed", "key") | ("plugin.settings.get", "name") | ("plugin.settings.set", "key") | ("plugin.settings.reset", "key") => {
                 Some(h.settings.iter().flatten().map(|s| (s.key.clone(), Some(s.kind.clone()))).collect())

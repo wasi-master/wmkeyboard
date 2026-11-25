@@ -103,6 +103,17 @@ impl PySession {
         self.inner.transform(text, action_id)
     }
 
+    /// A file preview from the plugin's `@plugin.preview(id)`: [request] is
+    /// `{"id", "name", "extension", "mime", "size", "modified", "truncated"}`.
+    pub fn preview(&mut self, request: &str, data: &[u8]) -> String {
+        self.inner.preview(request, data)
+    }
+
+    /// A grid thumbnail: `value` is the picture in base64, or null.
+    pub fn thumbnail(&mut self, request: &str, data: &[u8]) -> String {
+        self.inner.thumbnail(request, data)
+    }
+
     /// Where API 5 host calls go: `(op, argsJson) => replyJson`, or null for none.
     #[wasm_bindgen(js_name = setBridge)]
     pub fn set_bridge(&mut self, bridge: Option<js_sys::Function>) {

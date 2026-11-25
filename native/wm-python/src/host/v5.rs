@@ -42,12 +42,15 @@
 //! | `share.text` `share.open` `share.visit` | share |
 //! | `notify.show` `notify.cancel` | notifications |
 //! | `secrets.get` `secrets.set` `secrets.remove` | storage |
+//! | `preview.read` | previews |
 //! | `ui.toast` `ui.dialog` `plugin.close` `plugin.refresh` `plugin.open_settings` `keyboard.use` `keyboard.restore` `time.zone` | none |
 //!
 //! `field.selection`, `field.before`, `field.after`, `clipboard.get`,
 //! `plugin.open_settings` and `share.visit` (`share.open(url, ask=False)`) are refused outside an event the user caused in the panel (a click, a change,
 //! a submit, a choice, a tap, a hold, a key, a keyword or a header command), and
-//! every `field.*` op outside a panel.
+//! every `field.*` op outside a panel. `preview.read` answers only while the
+//! session draws a preview or thumbnail (`Session::preview`), and reads
+//! only the file it was asked for.
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -80,12 +83,14 @@ pub const PRELUDE: &[(&str, &str, bool)] = &[
     ("wm.device", include_str!("prelude/device.py"), false),
     ("wm.field", include_str!("prelude/field.py"), false),
     ("wm.files", include_str!("prelude/files.py"), false),
+    ("wm.formats", include_str!("prelude/formats.py"), false),
     ("wm.http", include_str!("prelude/http.py"), false),
     ("wm.i18n", include_str!("prelude/i18n.py"), false),
     ("wm.keyboard", include_str!("prelude/keyboard.py"), false),
     ("wm.location", include_str!("prelude/location.py"), false),
     ("wm.notify", include_str!("prelude/notify.py"), false),
     ("wm.plugin", include_str!("prelude/plugin.py"), false),
+    ("wm.preview", include_str!("prelude/preview.py"), false),
     ("wm.reminders", include_str!("prelude/reminders.py"), false),
     ("wm.scan", include_str!("prelude/scan.py"), false),
     ("wm.secrets", include_str!("prelude/secrets.py"), false),
@@ -140,6 +145,7 @@ pub fn permission_for(op: &str) -> Option<Option<&'static str>> {
         ("share", "text" | "open" | "visit") => Some("share"),
         ("notify", "show" | "cancel") => Some("notifications"),
         ("secrets", "get" | "set" | "remove") => Some("storage"),
+        ("preview", "read") => Some("previews"),
         ("ui", "toast" | "dialog") | ("plugin", "close" | "refresh" | "open_settings") | ("keyboard", "use" | "restore") | ("time", "zone") => None,
         // plugin.settings.set: the plugin's own rows; the keyboard refuses host rows.
         ("settings", "set") => None,
@@ -310,6 +316,8 @@ pub(crate) fn install(
             Ok(reminder_list(&s))
         });
 
+        super::formats::install(m);
+
         let s = state.clone();
         m.define("call", move |call| host_call(&s, &info, &bridge, call));
     });
@@ -347,6 +355,9 @@ fn host_call(state: &Rc<RefCell<HostState>>, info: &PluginInfo, bridge: &SharedB
     }
     if op.starts_with("field.") && !info.panel {
         return Err(PyError::new(format!("{op} works only from the plugin's panel"), "PermissionError"));
+    }
+    if op.starts_with("preview.") && !state.borrow().preview {
+        return Err(PyError::new(format!("{op} works only while the plugin draws a file preview"), "PermissionError"));
     }
     if USER_ONLY.contains(&op.as_str()) && !state.borrow().user_event {
         return Err(PyError::new(

@@ -63,6 +63,18 @@ fn fix_for(doc: &Document, d: &Diagnostic) -> Option<Fix> {
             let stub = keyboard::provider_stub(&plugin, &arg(d, 0), &arg(d, 1), "");
             append(doc, &stub)
         }
+        Code::PreviewUnanswered | Code::ThumbnailUnanswered => {
+            let plugin = keyboard::local_name(&doc.analysis, "plugin").unwrap_or_else(|| "plugin".into());
+            let ui = keyboard::local_name(&doc.analysis, "ui").unwrap_or_else(|| "ui".into());
+            let id = arg(d, 0);
+            let name = keyboard::stub_name(&id, &id);
+            let stub = if d.code == Code::PreviewUnanswered {
+                format!("@{plugin}.preview(\"{id}\")\ndef {name}(file):\n    {ui}.code(file.text())")
+            } else {
+                format!("@{plugin}.thumbnail(\"{id}\")\ndef {name}_thumbnail(file):\n    return None")
+            };
+            append(doc, &stub)
+        }
         Code::ActionUnanswered => {
             let plugin = keyboard::local_name(&doc.analysis, "plugin").unwrap_or_else(|| "plugin".into());
             let id = arg(d, 0);

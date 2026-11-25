@@ -57,6 +57,9 @@ pub struct HostState {
     pub needs: Vec<String>,
     /// API 5: the call in flight answers something the user did in the panel.
     pub user_event: bool,
+    /// API 5: the call in flight draws a file preview or thumbnail, so
+    /// `preview.read` may read the file it was asked for.
+    pub preview: bool,
 }
 
 impl HostState {
@@ -84,6 +87,7 @@ impl HostState {
             calls: Vec::new(),
             needs: Vec::new(),
             user_event: false,
+            preview: false,
         }
     }
 }

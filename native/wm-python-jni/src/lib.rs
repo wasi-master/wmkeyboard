@@ -5,7 +5,7 @@
 //! call takes and returns plain strings (JSON where structured), and no Java
 //! object is held across calls. The one callback into the JVM is an API 5
 //! plugin's host call: while `nativeLoad`, `nativeRender`, `nativeEvent` or
-//! `nativeTransform` runs, `wm` asks the keyboard to act through the static
+//! `nativeTransform`, `nativePreview` or `nativeThumbnail` runs, `wm` asks the keyboard to act through the static
 //! `PythonNative.hostCall(handle, op, argsJson): String`, on the same thread
 //! (see `wm_python::host::v5` for the JSON).
 //!
@@ -23,7 +23,7 @@ use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
-use jni::objects::{JClass, JString, JValue};
+use jni::objects::{JByteArray, JClass, JString, JValue};
 use jni::sys::{jboolean, jint, jintArray, jlong, jstring, JNI_TRUE};
 use jni::JNIEnv;
 use serde_json::{json, Value};
@@ -93,6 +93,13 @@ fn text(env: &mut JNIEnv, value: &JString) -> String {
         return String::new();
     }
     env.get_string(value).map(Into::into).unwrap_or_default()
+}
+
+fn bytes(env: &mut JNIEnv, value: &JByteArray) -> Vec<u8> {
+    if value.is_null() {
+        return Vec::new();
+    }
+    env.convert_byte_array(value).unwrap_or_default()
 }
 
 fn out(env: &mut JNIEnv, value: &str) -> jstring {
@@ -242,6 +249,37 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_plugins_PythonNative_
     let input = text(&mut env, &input);
     let action_id = text(&mut env, &action_id);
     let result = bridged(&mut env, handle, |s| s.transform(&input, &action_id));
+    out(&mut env, &result)
+}
+
+/// A file preview: [request] is `{"id", "name", "extension", "mime", "size",
+/// "modified", "truncated"}` and [data] the file's first bytes.
+#[no_mangle]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_plugins_PythonNative_nativePreview(
+    mut env: JNIEnv,
+    _class: JClass,
+    handle: jlong,
+    request: JString,
+    data: JByteArray,
+) -> jstring {
+    let request = text(&mut env, &request);
+    let data = bytes(&mut env, &data);
+    let result = bridged(&mut env, handle, |s| s.preview(&request, &data));
+    out(&mut env, &result)
+}
+
+/// A grid thumbnail: as [nativePreview], answering `value` (base64) instead of `ui`.
+#[no_mangle]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_plugins_PythonNative_nativeThumbnail(
+    mut env: JNIEnv,
+    _class: JClass,
+    handle: jlong,
+    request: JString,
+    data: JByteArray,
+) -> jstring {
+    let request = text(&mut env, &request);
+    let data = bytes(&mut env, &data);
+    let result = bridged(&mut env, handle, |s| s.thumbnail(&request, &data));
     out(&mut env, &result)
 }
 

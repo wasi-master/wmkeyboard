@@ -18,6 +18,10 @@ tell the keyboard what it offers.
     @plugin.provider("search", "ddg")
     def ddg(request):
         return [{"title": "...", "url": "...", "snippet": "..."}]
+
+    @plugin.preview("csv")
+    def show(file):
+        return ui.table(formats.csv(file.text()))
 """
 
 import json
@@ -40,6 +44,8 @@ _timers = {}
 _actions = {}
 _keywords = {}
 _providers = {}
+_previews = {}
+_thumbnails = {}
 _commands = {}
 _setting_hooks = {}
 _states = []
@@ -256,6 +262,29 @@ def provider(tool, id=None):
 
     def wrap(fn):
         _providers[key] = fn
+        return fn
+    return wrap
+
+
+def preview(id):
+    """Draws a file in the keyboard's file manager. [fn] receives a
+    wm.preview.PreviewFile and returns widgets, as render() does; nothing
+    it draws can be clicked. The manifest's `previews` lists the same id with
+    the extensions and MIME types it reads, and the plugin needs the
+    `previews` permission."""
+    def wrap(fn):
+        _previews[str(id)] = fn
+        return fn
+    return wrap
+
+
+def thumbnail(id):
+    """The picture the file manager's grid shows for a file the manifest's
+    preview [id] reads (with "thumbnails": true). [fn] receives the same
+    PreviewFile and returns PNG, JPEG or WebP bytes, or None for the plain
+    icon."""
+    def wrap(fn):
+        _thumbnails[str(id)] = fn
         return fn
     return wrap
 

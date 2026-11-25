@@ -51,6 +51,15 @@
 //!   `transform(text)` when it takes fewer than two parameters. In action
 //!   mode every call starts a fresh interpreter and loading the source shares
 //!   the one `action` allowance with the call. Missing → `no_transform`.
+//! * `preview(request, data)` / `thumbnail(request, data)` (API 5): a file
+//!   preview or grid thumbnail from the plugin's `@plugin.preview(id)` or
+//!   `@plugin.thumbnail(id)` function, in a fresh interpreter whose strings
+//!   may reach 16M characters. [request] is `{"id", "name", "extension",
+//!   "mime", "size", "modified", "truncated"}` and [data] the file's first
+//!   bytes. A preview answers `ui` (the tree as [`codec::encode_preview`]
+//!   finishes it); a thumbnail answers `value`, the picture's bytes in base64,
+//!   or null. A missing function → `no_preview`. Phases `preview` and
+//!   `thumbnail`, defaults 20M/5000 and 3M/1500.
 //! * `cancel_handle()`: an `Arc<AtomicBool>` to hold outside any lock; set it
 //!   from any thread to stop the call in flight. Each call clears it when it
 //!   starts.
@@ -61,6 +70,7 @@
 pub mod api;
 pub mod codec;
 pub mod files;
+pub mod formats;
 pub mod v5;
 
 use std::cell::RefCell;
@@ -89,6 +99,8 @@ pub struct PhaseLimits {
     pub event: PhaseLimit,
     pub render: PhaseLimit,
     pub action: PhaseLimit,
+    pub preview: PhaseLimit,
+    pub thumbnail: PhaseLimit,
 }
 
 impl Default for PhaseLimits {
@@ -98,6 +110,8 @@ impl Default for PhaseLimits {
             event: PhaseLimit { steps: 6_000_000, millis: 2_000 },
             render: PhaseLimit { steps: 1_200_000, millis: 500 },
             action: PhaseLimit { steps: 9_000_000, millis: 3_000 },
+            preview: PhaseLimit { steps: 20_000_000, millis: 5_000 },
+            thumbnail: PhaseLimit { steps: 3_000_000, millis: 1_500 },
         }
     }
 }
@@ -142,6 +156,8 @@ impl SessionConfig {
                 ("event", &mut limits.event),
                 ("render", &mut limits.render),
                 ("action", &mut limits.action),
+                ("preview", &mut limits.preview),
+                ("thumbnail", &mut limits.thumbnail),
             ] {
                 if let Some(p) = l.get(name) {
                     if let Some(steps) = p.get("steps").and_then(Json::as_u64) {
@@ -185,6 +201,8 @@ enum Phase {
     Event,
     Render,
     Action,
+    Preview,
+    Thumbnail,
 }
 
 impl Phase {
@@ -194,6 +212,8 @@ impl Phase {
             Phase::Event => "event",
             Phase::Render => "render",
             Phase::Action => "action",
+            Phase::Preview => "preview",
+            Phase::Thumbnail => "thumbnail",
         }
     }
 }
@@ -222,6 +242,7 @@ enum Failure {
     Script(PyError),
     NoRender,
     NoTransform,
+    NoPreview,
     Internal(String),
 }
 
@@ -242,6 +263,7 @@ impl Failure {
             Failure::Script(e) => py("runtime", e),
             Failure::NoRender => plain("no_render", ""),
             Failure::NoTransform => plain("no_transform", ""),
+            Failure::NoPreview => plain("no_preview", ""),
             Failure::Internal(m) => plain("internal", m),
         }
     }
@@ -374,9 +396,13 @@ impl Session {
     }
 
     fn fresh_runtime(&mut self) {
+        self.fresh_runtime_with(Limits::default());
+    }
+
+    fn fresh_runtime_with(&mut self, limits: Limits) {
         // Give the files back from the previous interpreter's host state.
         self.reclaim_files();
-        let mut rt = Runtime::with_clock(Limits::default(), STANDARD_MODULES, self.clock.clone());
+        let mut rt = Runtime::with_clock(limits, STANDARD_MODULES, self.clock.clone());
         rt.set_cancel_handle(self.cancel.clone());
         let (storage, reminders) = {
             let mut f = self.files.borrow_mut();
@@ -634,6 +660,75 @@ impl Session {
         }
     }
 }
+
+impl Session {
+    /// Draw a file preview. See the module docs.
+    pub fn preview(&mut self, request_json: &str, data: &[u8]) -> String {
+        self.preview_call(request_json, data, false)
+    }
+
+    /// Make a grid thumbnail. See the module docs.
+    pub fn thumbnail(&mut self, request_json: &str, data: &[u8]) -> String {
+        self.preview_call(request_json, data, true)
+    }
+
+    fn preview_call(&mut self, request_json: &str, data: &[u8], thumb: bool) -> String {
+        self.begin();
+        let value = if thumb { Some(None) } else { None };
+        let Some(source) = self.source.clone() else {
+            return self.result(Err(Failure::Internal("preview() before load()".into())), value);
+        };
+        if !self.config.is_v5() {
+            return self.result(Err(Failure::Internal("file previews need apiVersion 5".into())), value);
+        }
+        let request: Json = match serde_json::from_str(request_json) {
+            Ok(r @ Json::Object(_)) => r,
+            _ => return self.result(Err(Failure::Internal("the preview request is not a JSON object".into())), value),
+        };
+        let id = request.get("id").and_then(Json::as_str).unwrap_or("").to_string();
+        self.fresh_runtime_with(PREVIEW_LIMITS);
+        if let Some(s) = &self.state {
+            s.borrow_mut().preview = true;
+        }
+        let (phase, limit, entry) = if thumb {
+            (Phase::Thumbnail, self.config.limits.thumbnail, "thumbnail")
+        } else {
+            (Phase::Preview, self.config.limits.preview, "preview")
+        };
+        let meta = json_to_value(&request);
+        let bytes = Value::bytes(data);
+        let r = self.phase(phase, limit, |rt| {
+            load_v5(rt, &source)?;
+            rt.call_member("wm._host", entry, vec![Value::str(&id), meta, bytes])
+        });
+        if let Some(s) = &self.state {
+            s.borrow_mut().preview = false;
+        }
+        let missing = |e: &PyError| e.kind == "NotImplementedError" && (e.message == format!("no preview {id}") || e.message == format!("no thumbnail {id}"));
+        match r {
+            Err(e) if missing(&e) => self.result(Err(Failure::NoPreview), value),
+            Err(e) => self.result(Err(Failure::Script(e)), value),
+            Ok(v) if thumb => match v {
+                Value::Bytes(b) if b.len() > MAX_THUMBNAIL_BYTES => {
+                    let e = PyError::new(format!("a thumbnail can be {} KB at most", MAX_THUMBNAIL_BYTES / 1024), "ValueError");
+                    self.result(Err(Failure::Script(e)), value)
+                }
+                Value::Bytes(b) => {
+                    use base64::Engine;
+                    let text = base64::engine::general_purpose::STANDARD.encode(&b);
+                    self.result(Ok(None), Some(Some(text)))
+                }
+                _ => self.result(Ok(None), Some(None)),
+            },
+            Ok(v) => self.result(Ok(Some(codec::encode_preview(&v))), None),
+        }
+    }
+}
+
+/// A preview reads whole files: strings and containers as big as one.
+const PREVIEW_LIMITS: Limits = Limits { steps: 2_000_000, container_items: 200_000, string_length: 16 << 20 };
+/// The largest picture a thumbnail may return.
+pub const MAX_THUMBNAIL_BYTES: usize = 512 * 1024;
 
 /// Run an API 5 plugin's top level after the `wm` package, then tell
 /// `wm._host` which of its functions are `render`, `on_event` and `transform`.

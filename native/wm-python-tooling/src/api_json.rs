@@ -147,6 +147,13 @@ pub fn host_of_manifest(m: &Value) -> Host {
         })
         .collect();
     let keyword = m.get("tool").and_then(|t| text(t, "keyword")).unwrap_or_default();
+    let previews: Vec<(String, bool)> = list("previews")
+        .iter()
+        .filter_map(|p| {
+            let id = text(p, "id").filter(|s| !s.is_empty())?;
+            Some((id, p.get("thumbnails").and_then(Value::as_bool).unwrap_or(false)))
+        })
+        .collect();
     Host {
         storage: Some(has("storage")),
         reminders: Some(has("reminders")),
@@ -161,6 +168,7 @@ pub fn host_of_manifest(m: &Value) -> Host {
         providers: Some(providers),
         settings: Some(settings),
         keyword: Some(keyword),
+        previews: Some(previews),
     }
 }
 

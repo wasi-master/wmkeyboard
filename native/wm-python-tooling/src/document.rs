@@ -74,6 +74,8 @@ pub struct Host {
     pub settings: Option<Vec<SettingSpec>>,
     /// `tool.keyword`, empty when the plugin has none.
     pub keyword: Option<String>,
+    /// The manifest's file previews, as `(id, thumbnails)`.
+    pub previews: Option<Vec<(String, bool)>>,
 }
 
 /// One row of the manifest's settings page.

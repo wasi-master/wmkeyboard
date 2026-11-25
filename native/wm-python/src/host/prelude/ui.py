@@ -313,7 +313,7 @@ def image(src, alt=None, height=None, insertable=False, on_click=None, key=None)
     """A picture: a file bundled in the plugin ("assets/logo.png"), an https
     address the plugin is allowed to reach, or bytes."""
     if isinstance(src, bytes):
-        src = "data:" + _core._wm.b64(src)
+        src = _core._wm.data_uri(src)
     return Widget("image", id=key, src=src, alt=alt, height=height, insertable=insertable, on_click=on_click)
 
 
@@ -345,6 +345,38 @@ def chart(data, kind="line", labels=None, height=None, key=None):
     else:
         series = [{"name": "", "values": [float(x) for x in data]}]
     return Widget("chart", id=key, kind=kind, series=series, labels=[str(l) for l in (labels or [])], height=height)
+
+
+# MARK: - tables, code and fonts
+
+def table(rows, header=None, align=None, key=None):
+    """A grid of text, scrolled sideways when it is wide: `rows` is a list of
+    rows, each a list of cells (any value, shown as str()). `header` is the
+    first row, drawn bold and kept in view. `align` gives each column
+    "start", "center" or "end". The keyboard shows 500 rows of 30 columns."""
+    shown = [[_cell(c) for c in r] for r in rows]
+    head = None if header is None else [_cell(c) for c in header]
+    return Widget("table", id=key, rows=shown, header=head, align=None if align is None else [str(a) for a in align])
+
+
+def _cell(c):
+    if c is None:
+        return ""
+    return c if isinstance(c, str) else str(c)
+
+
+def code(text, language=None, line_numbers=True, key=None):
+    """Source text in a fixed-width font, coloured by the keyboard's
+    highlighter for [language] (a file extension such as "py" or "json", or
+    one a plugin's `syntax` grammar adds)."""
+    return Widget("code", id=key, text=text, language=language, line_numbers=bool(line_numbers))
+
+
+def font_sample(text=None, sizes=None):
+    """In a file preview of a font, sample text drawn in that font itself, at
+    each of [sizes] (sp). Only the keyboard can load the font, so this works
+    only in a preview of the font file."""
+    return Widget("font_sample", text=text, sizes=[int(s) for s in (sizes or [14, 20, 32])])
 
 
 # MARK: - drawing

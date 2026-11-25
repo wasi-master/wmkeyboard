@@ -1,0 +1,316 @@
+---
+title: "Showing files"
+description: "Make your plugin show files in the keyboard's file manager: previews for any file type, pictures in the grid, and syntax colours for code and config files."
+sidebar:
+  label: "Showing files"
+  order: 5.047
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+The keyboard's [file manager](/tools/files/) shows pictures, videos, recordings,
+text, code, PDFs, app packages and zips itself. A plugin can show the rest: a
+Word document, a spreadsheet, an e-book, a calendar file, a subtitle track, a
+font. It can also draw the grid's picture for those files, and colour the text
+of file types the keyboard does not know.
+
+There are three parts, and a plugin may offer any of them:
+
+| | What the user sees | You write |
+|---|---|---|
+| A preview | The file drawn in the file manager, under a **View with** chip | `@plugin.preview(id)`, which returns widgets |
+| A thumbnail | The file's picture in the grid | `@plugin.thumbnail(id)`, which returns PNG, JPEG or WebP bytes |
+| Syntax | Colours on a code or config file's text | a grammar in `plugin.json`, no Python |
+
+One plugin can cover as many file types as it likes: a preview lists every
+extension it reads, and a plugin can declare up to 16 previews and 16 grammars.
+
+## Declaring a preview
+
+List each preview in `plugin.json` with the file types it reads, ask for the
+`previews` permission, and draw the file with `@plugin.preview(id)`:
+
+```json title="plugin.json"
+{
+  "format": "wmkeyboard-plugin",
+  "id": "com.example.tables",
+  "name": "Tables",
+  "pluginVersion": "1.0.0",
+  "apiVersion": 5,
+  "panel": false,
+  "permissions": ["previews"],
+  "previews": [
+    {"id": "csv", "name": "Table", "extensions": ["csv", "tsv"], "mimes": ["text/csv"], "thumbnails": false}
+  ]
+}
+```
+
+```python title="main.py"
+from wm import plugin, ui, formats
+
+
+@plugin.preview("csv")
+def show(file):
+    rows = formats.csv(file.text())
+    if not rows:
+        ui.empty("This file is empty.")
+        return
+    ui.caption(f"{len(rows) - 1} rows")
+    ui.table(rows[1:], header=rows[0])
+```
+
+| Field | |
+|---|---|
+| `id` | Unique in the plugin: `a-z 0-9 _ -`, up to 32. The decorator names the same id. |
+| `name` | What the chip says, up to 24 characters. Your plugin's name when left out. |
+| `extensions` | Without the dot, up to 64: `["docx", "tar.gz"]`. |
+| `names` | Whole file names, for files known by name, up to 16: `["Dockerfile", ".gitignore"]`. |
+| `mimes` | MIME types, up to 16. A trailing `*` takes a family: `"application/vnd.ms-*"`. |
+| `maxBytes` | How much of the file your function gets at once. 4 MB unless you say, 16 MB at most. |
+| `thumbnails` | `true` if you also draw the grid's pictures. |
+
+Each preview needs at least one extension, name or type. `panel: false` is
+right for a plugin that only shows files; give it a panel as well if it has
+one.
+
+## What the user sees
+
+When the user previews a file in the Files tool (with **Tap a file to preview
+it** on, or **Preview** in the selection's ⋮ menu), the keyboard looks for
+previews that read it: an exact name first, then the longest matching
+extension, then the type.
+
+- For a type the keyboard shows itself, such as a text file, its own view comes
+  first and your preview is a **View with** chip beside **Built-in**.
+- For a type it does not show, such as `.docx`, your preview opens straight
+  away.
+- With several plugins for one type, each has a chip. The user's last choice
+  for an extension is kept, so a person who prefers your view of `.json` files
+  gets it every time.
+
+Your widgets are drawn in the keyboard's theme, with the file's name in the
+header and **Send**, **Share** and **Open with** under it. Nothing in a
+preview can be pressed except **Copy** and **Type** on a `ui.output`, which the
+keyboard handles. If your function fails, the panel shows the message with
+**Built-in** (where there is one) and **Open with**.
+
+## The file you get
+
+Your function receives a `PreviewFile`:
+
+| | |
+|---|---|
+| `file.name` | `"Report.docx"` |
+| `file.extension` | `"docx"`: lower case, no dot, `""` for none |
+| `file.mime` | The type Android reports, or `"application/octet-stream"` |
+| `file.size` | Bytes on disk |
+| `file.modified` | Seconds since 1970, or `None` |
+| `file.data` | The first `maxBytes` bytes: the whole file unless `file.truncated` |
+| `file.truncated` | `True` when the file is bigger than `maxBytes` |
+
+And these methods:
+
+| | |
+|---|---|
+| `file.text(encoding=None)` | The bytes as text. A byte-order mark decides first; then UTF-8, UTF-16 when the bytes look like it, else Windows-1252. Name one to force it: `"utf-8"`, `"utf-16"`, `"latin-1"`, `"cp1252"`. |
+| `file.lines(limit=None)` | The text's lines. |
+| `file.json()` | The text read as JSON. |
+| `file.read(offset, length)` | Bytes from anywhere in the file, up to 1 MB a call. Past `data` this asks the keyboard. |
+| `file.zip()` | A zip's entries: `[{"name", "size", "compressed", "folder", "encrypted", "modified"}]`. |
+| `file.zip_names()` | Just the names. |
+| `file.zip_read(name, max=4194304)` | One entry's bytes, inflated. |
+| `file.zip_text(name)` | One entry as text. |
+| `file.xml()` | The file parsed as XML. |
+
+`zip()` and its friends need the whole file in `data`, so raise `maxBytes`
+for formats that are zips. Word, Excel, PowerPoint, OpenDocument, EPUB, comic
+book (`.cbz`), Java and Android archives are all zips.
+
+Your plugin never sees the file's path, its folder or any other file. The
+call runs in a fresh interpreter that is thrown away afterwards, so nothing
+from one file reaches the next unless you write it to `storage` yourself.
+
+## Reading formats
+
+`wm.preview` and `wm.formats` hold the helpers formats need most. The heavy
+ones run in the keyboard, so a 10 MB file does not spend your step allowance.
+
+```python
+from wm.preview import xml, inflate, zip_list, zip_read
+from wm import formats
+```
+
+| | |
+|---|---|
+| `xml(source, max_nodes=20000)` | Parses XML or XHTML (text or bytes) into an `Element`. It forgives what a browser would: unclosed tags, unknown entities. |
+| `zip_list(data)`, `zip_read(data, name, max=…)` | The same as the `file` methods, on bytes you hold: a zip inside a zip. |
+| `inflate(data, raw=False, max=16777216)` | gzip, zlib, or bare deflate with `raw=True`. |
+| `formats.csv(text, delimiter=None, max_rows=None)` | Rows of strings. The delimiter is guessed from the first line when you give none: comma, semicolon, tab or bar. |
+| `formats.unpack(fmt, data, offset=0)` | Python's `struct.unpack_from`, for binary headers: codes `x c b B ? h H i I l L q Q e f d s`, little-endian unless `fmt` starts with `>`. `formats.calcsize(fmt)` gives the size. |
+| `formats.ini(text)` | INI, `.desktop` and `.properties` files: `{section: {key: value}}`. |
+| `formats.bencode(data)` | A `.torrent`'s dicts, lists, ints and bytes. |
+| `formats.tar(data)` | A tar's entries, `[{"name", "size", "offset", "folder", "modified"}]`; an entry is `data[offset:offset + size]`. Use `inflate` first for `.tar.gz`. |
+
+An `Element` has `tag` (`"w:p"`), `name` without the prefix (`"p"`), `attrs`,
+`text` (the text directly inside), `children`, and `nodes` (children and text
+in order). `find(tag)`, `findall(tag)`, `first(tag)` (anywhere inside) and
+`iter(tag)` match either the full tag or the name, and `get(attr)` reads an
+attribute with or without its prefix. `all_text()` joins every piece of text
+inside.
+
+### A Word document
+
+```python
+from wm import plugin, ui
+from wm.preview import xml
+
+
+@plugin.preview("docx")
+def show(file):
+    body = xml(file.zip_read("word/document.xml")).first("body")
+    for p in body.findall("p"):
+        text = p.all_text().strip()
+        if not text:
+            continue
+        style = p.first("pStyle")
+        heading = style is not None and style.get("val", "").startswith("Heading")
+        ui.label(text, style="title" if heading else None)
+```
+
+With `"maxBytes": 16777216` in its manifest entry, so the whole zip arrives.
+
+## Widgets for previews
+
+Everything in [`ui`](/plugins/wm-package/#ui) works in a preview, and three
+widgets are made for it:
+
+| | |
+|---|---|
+| `ui.table(rows, header=None, align=None)` | A grid of text. `header` stays bold on top; `align` gives each column `"start"`, `"center"` or `"end"`. Wide tables scroll sideways. 500 rows of 30 columns are shown. |
+| `ui.code(text, language=None, line_numbers=True)` | Source in a fixed-width font, coloured for `language` (an extension such as `"py"`), plugin grammars included. Holding it copies the text. |
+| `ui.font_sample(text=None, sizes=None)` | Sample text drawn in the previewed font file itself, at each size in `sizes` (sp). Only in a preview of a font. |
+
+A preview may draw 4,096 widgets and a million characters of text, and
+`ui.code` holds up to 512K characters. Pictures may be bytes:
+`ui.image(cover_bytes)` shows a JPEG or PNG you read out of the file.
+
+## Thumbnails
+
+With `"thumbnails": true`, the grid asks for a picture of each of those files
+that comes into view. Return the bytes of a PNG, JPEG or WebP picture (512 KB
+at most), or `None` to keep the plain icon:
+
+```python
+@plugin.thumbnail("epub")
+def cover(file):
+    for name in file.zip_names():
+        lower = name.lower()
+        if "cover" in lower and lower.endswith((".jpg", ".jpeg", ".png")):
+            return file.zip_read(name, max=524288)
+    return None
+```
+
+Thumbnails are kept on the phone and made again only when the file or your
+plugin's version changes. They have a smaller allowance than a preview (3M
+steps and 1.5 seconds), run two at a time while the grid scrolls, and a plugin
+whose thumbnails fail three times in a row draws no more of them until the
+keyboard restarts. Make them cheap: read a picture that is already in the
+file rather than drawing one.
+
+## Syntax colours
+
+Colouring needs no Python and no permission: the keyboard runs a grammar you
+declare, so a 256 KB file colours as fast as one it knows itself. The grammar
+goes inline, or in an asset:
+
+```json title="plugin.json"
+{
+  "syntax": [
+    {"id": "toml", "name": "TOML", "extensions": ["toml"], "grammar": "assets/toml.json"},
+    {"id": "docker", "name": "Dockerfile", "names": ["Dockerfile", "Containerfile"],
+     "grammar": {"lineComment": "#", "strings": ["\"", "'"], "caseInsensitive": true,
+                 "keywords": ["from", "run", "cmd", "copy", "add", "env", "arg", "workdir", "entrypoint", "expose", "user", "label", "volume"]}}
+  ]
+}
+```
+
+```json title="assets/toml.json"
+{
+  "rules": [
+    {"match": "^\\s*\\[\\[?[^\\]\\n]*\\]\\]?", "kind": "heading", "flags": "m"},
+    {"match": "^\\s*[A-Za-z0-9_.-]+(?=\\s*=)", "kind": "attribute", "flags": "m"},
+    {"match": "\\d{4}-\\d{2}-\\d{2}([Tt ][\\d:.]+)?(Z|[+-]\\d{2}:\\d{2})?", "kind": "constant"}
+  ],
+  "lineComment": "#",
+  "strings": ["\"\"\"", "'''", "\"", "'"],
+  "constants": ["true", "false", "inf", "nan"]
+}
+```
+
+At each place in the text the keyboard tries your `rules` in order, then
+block and line comments, strings, a number, and a word, which is coloured when
+one of your lists holds it:
+
+| Key | |
+|---|---|
+| `rules` | Up to 200 `{"match", "kind", "flags"}`. `match` is a regular expression tried where the text stands, `flags` any of `i` (any case), `m` (`^` and `$` at each line) and `s` (`.` takes newlines). |
+| `keywords`, `types`, `constants` | Words, up to 2,000 each. |
+| `lineComment` | A marker, or a list: `"#"`, `["//", "#"]`. |
+| `blockComment` | `["/*", "*/"]`, or a list of pairs. |
+| `strings` | Quote marks: `["\"\"\"", "\""]`. A one-character quote ends at the line's end. |
+| `escape` | The escape character inside strings, `\` unless you say. |
+| `numbers` | `false` to leave numbers plain. |
+| `calls` | `true` colours a word followed by `(` as a function. |
+| `caseInsensitive` | Words and rules match in any case. |
+
+A rule's `kind` is one of `comment`, `string`, `number`, `keyword`, `type`,
+`function`, `operator`, `tag`, `attribute`, `heading`, `link`, `emphasis`,
+`constant` or `punctuation`. The keyboard maps them onto its theme's code
+colours.
+
+The expressions are checked when the plugin is installed, with Android's own
+engine, and a grammar with one that does not compile is refused. Android is
+stricter than Python's `re` about a few things, a lone `}` among them. Colouring
+stops after about 50 ms for each 64 KB and leaves the rest plain, so an
+expression that backtracks badly costs colour, never a frozen preview.
+
+A grammar colours the file manager's text view and `ui.code` blocks in any
+plugin's preview whose `language` is one of its extensions.
+
+## Limits
+
+| | |
+|---|---|
+| Previews and grammars | 16 each per plugin |
+| A preview call | 20M steps and 5 seconds, its load included |
+| A thumbnail call | 3M steps and 1.5 seconds; 512 KB of picture |
+| `data` | `maxBytes`, 4 MB unless you say, 16 MB at most |
+| `read()` | 1 MB a call |
+| Strings, lists | 16M characters, 200,000 items |
+| A zip entry, an inflate | 4 MB and 16 MB unless you pass `max`, 64 MB at most |
+| XML | 20,000 nodes unless you pass `max_nodes`, 200,000 at most |
+
+A preview that runs away earns a strike, as a selection action does; two
+switch the plugin off.
+
+## Testing
+
+In the [web editor](/plugins/guides/testing/#trying-a-provider-or-an-action),
+**Try** lists each preview: pick a file from your computer and see what your
+plugin draws, and what its thumbnail would be.
+
+With the command-line tool, `plugin_test.preview(id, file)` runs a preview on
+a file in your plugin's folder, the way the file manager runs it:
+
+```python title="test.py"
+r = plugin_test.preview("csv", "tests/sales.csv")
+assert r["ok"], r["error"]
+table = r["ui"]["root"][1]
+assert table["type"] == "table" and table["header"] == ["name", "sum"]
+
+t = plugin_test.thumbnail("epub", "tests/book.epub")
+assert t["value"] is not None   # base64 of the picture
+```
+
+The first `maxBytes` of the file are its `data`, and `file.read()` answers
+from the rest. See [Testing](/plugins/guides/testing/#automatic-tests).

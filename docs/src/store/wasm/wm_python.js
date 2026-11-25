@@ -76,6 +76,36 @@ export class PySession {
         return this;
     }
     /**
+     * A file preview from the plugin's `@plugin.preview(id)`: [request] is
+     * `{"id", "name", "extension", "mime", "size", "modified", "truncated"}`.
+     * @param {string} request
+     * @param {Uint8Array | number[]} data
+     * @returns {string}
+     */
+    preview(request, data) {
+        let deferred3_0;
+        let deferred3_1;
+        try {
+            let ptr0, len0, ptr1, len1;
+            try {
+                ptr0 = passStringToWasm0(request, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+                len0 = WASM_VECTOR_LEN;
+                ptr1 = passArray8ToWasm0(data, wasm.__wbindgen_malloc);
+                len1 = WASM_VECTOR_LEN;
+            } catch (e) {
+                if (ptr1) { wasm.__wbindgen_free(ptr1, len1 * 1, 1); }
+                if (ptr0) { wasm.__wbindgen_free(ptr0, len0 * 1, 1); }
+                throw e;
+            }
+            const ret = wasm.pysession_preview(this.__wbg_ptr, ptr0, len0, ptr1, len1);
+            deferred3_0 = ret[0];
+            deferred3_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+        }
+    }
+    /**
      * Render the panel again.
      * @returns {string}
      */
@@ -148,6 +178,35 @@ export class PySession {
             return getStringFromWasm0(ret[0], ret[1]);
         } finally {
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+    /**
+     * A grid thumbnail: `value` is the picture in base64, or null.
+     * @param {string} request
+     * @param {Uint8Array | number[]} data
+     * @returns {string}
+     */
+    thumbnail(request, data) {
+        let deferred3_0;
+        let deferred3_1;
+        try {
+            let ptr0, len0, ptr1, len1;
+            try {
+                ptr0 = passStringToWasm0(request, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+                len0 = WASM_VECTOR_LEN;
+                ptr1 = passArray8ToWasm0(data, wasm.__wbindgen_malloc);
+                len1 = WASM_VECTOR_LEN;
+            } catch (e) {
+                if (ptr1) { wasm.__wbindgen_free(ptr1, len1 * 1, 1); }
+                if (ptr0) { wasm.__wbindgen_free(ptr0, len0 * 1, 1); }
+                throw e;
+            }
+            const ret = wasm.pysession_thumbnail(this.__wbg_ptr, ptr0, len0, ptr1, len1);
+            deferred3_0 = ret[0];
+            deferred3_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
         }
     }
     /**
@@ -658,6 +717,13 @@ function handleError(f, args) {
 
 function isLikeNone(x) {
     return x === undefined || x === null;
+}
+
+function passArray8ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 1, 1) >>> 0;
+    getUint8ArrayMemory0().set(arg, ptr / 1);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
 }
 
 function passStringToWasm0(arg, malloc, realloc) {

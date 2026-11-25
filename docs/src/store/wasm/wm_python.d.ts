@@ -24,6 +24,11 @@ export class PySession {
     load(source: string): string;
     constructor(config_json: string);
     /**
+     * A file preview from the plugin's `@plugin.preview(id)`: [request] is
+     * `{"id", "name", "extension", "mime", "size", "modified", "truncated"}`.
+     */
+    preview(request: string, data: Uint8Array | number[]): string;
+    /**
      * Render the panel again.
      */
     render(): string;
@@ -42,6 +47,10 @@ export class PySession {
      * `{}` without the storage permission.
      */
     storage(): string;
+    /**
+     * A grid thumbnail: `value` is the picture in base64, or null.
+     */
+    thumbnail(request: string, data: Uint8Array | number[]): string;
     /**
      * Run the plugin's `transform` on a selection.
      */
@@ -120,11 +129,13 @@ export interface InitOutput {
     readonly pysession_event: (a: number, b: number, c: number) => [number, number];
     readonly pysession_load: (a: number, b: number, c: number) => [number, number];
     readonly pysession_new: (a: number, b: number) => [number, number, number];
+    readonly pysession_preview: (a: number, b: number, c: number, d: number, e: number) => [number, number];
     readonly pysession_render: (a: number) => [number, number];
     readonly pysession_setBridge: (a: number, b: number) => void;
     readonly pysession_storage: (a: number) => [number, number];
     readonly pysession_storageRemove: (a: number, b: number, c: number) => void;
     readonly pysession_storageSet: (a: number, b: number, c: number, d: number, e: number) => [number, number];
+    readonly pysession_thumbnail: (a: number, b: number, c: number, d: number, e: number) => [number, number];
     readonly pysession_transform: (a: number, b: number, c: number, d: number, e: number) => [number, number];
     readonly pysession_usage: (a: number) => [number, number];
     readonly references: (a: number, b: number, c: number) => [number, number];

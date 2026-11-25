@@ -24,7 +24,8 @@ The editors complete these names as you type and show what each one does.
 [`ai`](#ai) · [`field`](#field) · [`clipboard`](#clipboard) ·
 [`device`](#device) · [`share`](#share) · [`notify`](#notify) ·
 [`reminders`](#reminders) · [`clock`](#clock) · [`scan`](#scan) · [`sensors`](#sensors) ·
-[`location`](#location) · [`files`](#files) · [`calendar`](#calendar) ·
+[`location`](#location) · [`files`](#files) · [`preview`](#preview) ·
+[`formats`](#formats) · [`calendar`](#calendar) ·
 [`todo`](#todo) · [`keyboard`](#keyboard) · [translations](#translations) ·
 [`wm` itself](#wm-itself) · [errors](#errors) · [limits](#limits)
 
@@ -65,7 +66,9 @@ The editors complete these names as you type and show what each one does.
 | `settings` | no | Rows on the plugin's settings page, up to 24. A `host` setting adds the server the user types to `hosts`. [More](/plugins/guides/saving-and-settings/#a-settings-page). |
 | `actions` | with `selection` | Buttons over selected text, up to 16. [More](/plugins/guides/text-and-selection/#buttons-over-selected-text). |
 | `providers` | no | Rows for the keyboard's provider lists, such as web search or translate, up to 8. [More](/plugins/guides/providers/). |
-| `panel` | no | `false` for a plugin made only of selection actions or providers. |
+| `previews` | with `previews` | File types the plugin shows in the file manager, up to 16: `id`, `name`, `extensions`, `names`, `mimes`, `maxBytes`, `thumbnails`. [More](/plugins/guides/file-previews/). |
+| `syntax` | no | Grammars that colour file types, up to 16: `id`, `name`, `extensions`, `names`, `grammar` (inline, or `"assets/name.json"`). [More](/plugins/guides/file-previews/#syntax-colours). |
+| `panel` | no | `false` for a plugin made only of selection actions, providers, previews or grammars. |
 
 A manifest the app does not fully understand, such as one with an unknown
 permission, is refused at install rather than half-installed.
@@ -130,7 +133,7 @@ has more detail on the built-in modules, strings and dicts.
 | `plugin.permissions` | The declared permissions, as a tuple. |
 | `plugin.locale` | The user's language, such as `"bn-BD"`. |
 | `plugin.dark` | `True` in a dark theme. |
-| `plugin.surface` | `"panel"` in the keyboard, `"float"` in the floating box. |
+| `plugin.surface` | `"panel"` in the keyboard, `"float"` in the floating box, `"preview"` while showing a file. |
 
 ### Decorators
 
@@ -142,6 +145,8 @@ has more detail on the built-in modules, strings and dicts.
 | `@plugin.action(id)` | for the selection action `id` with the selected text; returns the replacement, or `None` |
 | `@plugin.keyword(word)` | with the text after `@word` when the user presses your chip |
 | `@plugin.provider(tool, id=None)` | when a provider list the user added you to asks; gets the request as a dict and returns the reply. [More](/plugins/guides/providers/) |
+| `@plugin.preview(id)` | when the file manager shows a file the preview `id` reads; gets a [`PreviewFile`](#preview) and draws it with widgets. [More](/plugins/guides/file-previews/) |
+| `@plugin.thumbnail(id)` | for the grid's picture of such a file; gets the same `PreviewFile` and returns PNG, JPEG or WebP bytes, or `None` |
 | `@plugin.command(label, icon=None, id=None)` | when the user presses this button in the panel's header (three at most) |
 | `@plugin.setting_changed(key)` | with the new value when the user changes that setting |
 
@@ -219,7 +224,10 @@ Most widgets take `key=`, a stable id for when two widgets would look alike.
 
 | Widget | |
 |---|---|
-| `ui.image(src, alt=None, height=None, insertable=False, on_click=None)` | `src` is `"assets/name.png"`, a `data:` address, or bytes. A web address shows the `alt` text. |
+| `ui.image(src, alt=None, height=None, insertable=False, on_click=None)` | `src` is `"assets/name.png"`, a `data:` address, or bytes up to 512 KB. A web address shows the `alt` text. |
+| `ui.table(rows, header=None, align=None)` | a grid of text, scrolled sideways when wide; `align` per column is `"start"`, `"center"` or `"end"`. 500 rows of 30 columns |
+| `ui.code(text, language=None, line_numbers=True)` | source in a fixed-width font, coloured for `language` (an extension); holding it copies |
+| `ui.font_sample(text=None, sizes=None)` | in a [file preview](/plugins/guides/file-previews/#widgets-for-previews) of a font, sample text in that font |
 | `ui.icon(name, size=None, color=None)` | a [Material Symbols](https://fonts.google.com/icons) icon |
 | `ui.qr(text, size=None)` | a QR code |
 | `ui.stat(label, value, caption=None)` | one big number |
@@ -401,6 +409,39 @@ shape, as a JPEG. `files.save(name, data, mime=None, then=None, on_error=None)`
 lets the user pick where, and `then` gets the name saved under. Both give `None`
 when the user backs out; files are up to 4 MB.
 
+## preview
+
+`from wm.preview import PreviewFile, xml, inflate, zip_list, zip_read`. What a
+[file preview](/plugins/guides/file-previews/) gets, and readers for the
+containers most formats come in. Reading the previewed file past its first
+`maxBytes` needs `previews`; everything else works in any plugin, on bytes it
+already holds.
+
+| | |
+|---|---|
+| `file.name`, `file.extension`, `file.mime`, `file.size`, `file.modified` | the file's facts; `extension` is lower case without the dot |
+| `file.data`, `file.truncated` | the first `maxBytes` bytes, and whether there is more |
+| `file.text(encoding=None)`, `file.lines(limit=None)`, `file.json()` | the bytes as text: a byte-order mark first, then UTF-8, UTF-16 or Windows-1252 |
+| `file.read(offset, length)` | bytes from anywhere in the file, 1 MB a call |
+| `file.zip()`, `file.zip_names()`, `file.zip_read(name, max=4194304)`, `file.zip_text(name)` | a zip's entries and one entry's bytes or text |
+| `file.xml()` | the file parsed as XML |
+| `xml(source, max_nodes=20000)` | XML or XHTML into an `Element`: `tag`, `name`, `attrs`, `text`, `children`, `nodes`, `find`, `findall`, `first`, `iter`, `get`, `all_text` |
+| `zip_list(data)`, `zip_read(data, name, max=4194304)` | the same on bytes you hold |
+| `inflate(data, raw=False, max=16777216)` | gzip, zlib, or bare deflate |
+
+## formats
+
+`from wm import formats`. Readers that need no permission.
+
+| | |
+|---|---|
+| `formats.csv(text, delimiter=None, max_rows=None)` | rows of strings; the delimiter is guessed from the first line |
+| `formats.guess_delimiter(text)` | the delimiter `csv` would pick |
+| `formats.unpack(fmt, data, offset=0)`, `formats.calcsize(fmt)` | `struct.unpack_from` for `x c b B ? h H i I l L q Q e f d s` |
+| `formats.ini(text)` | `{section: {key: value}}` |
+| `formats.bencode(data)` | a `.torrent`'s values |
+| `formats.tar(data)` | a tar's entries, `[{"name", "size", "offset", "folder", "modified"}]` |
+
 ## calendar
 
 `from wm import calendar`. Needs the risky `calendar`. The first call without
@@ -502,3 +543,4 @@ With `then=`, every failure goes to `on_error` instead, if you gave one.
 | Steps | 9M to load, 6M an event, 1.2M a draw, 9M a selection action |
 | Time | 3 s to load, 2 s an event, 0.5 s a draw; waiting on the keyboard does not count |
 | Lists, strings, recursion | 10,000 items, 100,000 characters, 300 calls deep |
+| File previews | 20M steps and 5 s a preview, 3M and 1.5 s a thumbnail; 4,096 widgets and 1M characters; strings of 16M characters and lists of 200,000 items. [More](/plugins/guides/file-previews/#limits) |

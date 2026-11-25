@@ -31,6 +31,8 @@ def _meta():
         "actions": sorted(plugin._actions.keys()),
         "keywords": sorted(plugin._keywords.keys()),
         "providers": sorted(plugin._providers.keys()),
+        "previews": sorted(plugin._previews.keys()),
+        "thumbnails": sorted(plugin._thumbnails.keys()),
         "pending": len(_core._pending),
     }
 
@@ -200,3 +202,39 @@ def transform(text, action_id):
     if _wm.arity(fn) >= 2 or _wm.arity(fn) < 0:
         return fn(text, action_id)
     return fn(text)
+
+
+def preview(key, meta, data):
+    """A file preview: the @plugin.preview function for [key] draws the file
+    [meta] describes, whose first bytes are [data]. Returns the widgets."""
+    fn = plugin._previews.get(key)
+    if fn is None:
+        raise NotImplementedError("no preview " + key)
+    from wm.preview import PreviewFile
+    f = PreviewFile(meta, data)
+    ui._begin()
+    try:
+        returned = fn(f)
+        collected = ui._end()
+    except BaseException:
+        ui._end()
+        raise
+    tree = returned if returned is not None else collected
+    if not isinstance(tree, (list, tuple)):
+        tree = [tree]
+    ui._finish(tree)
+    return tree
+
+
+def thumbnail(key, meta, data):
+    """A grid thumbnail: bytes of a picture, or None."""
+    fn = plugin._thumbnails.get(key)
+    if fn is None:
+        raise NotImplementedError("no thumbnail " + key)
+    from wm.preview import PreviewFile
+    picture = fn(PreviewFile(meta, data))
+    if picture is None:
+        return None
+    if not isinstance(picture, bytes):
+        raise TypeError("a thumbnail is the bytes of a PNG, JPEG or WebP picture, not " + type(picture).__name__)
+    return picture

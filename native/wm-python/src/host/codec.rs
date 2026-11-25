@@ -65,6 +65,21 @@
 //! {"type":"progress","value":0..1|null}
 //! {"type":"chart","id":s,"kind":"line"|"bar"|"spark","series":[{"name":s,"values":[num]}],"labels":[s],"height":int|null}
 //! {"type":"canvas","id":s,"width":num,"height":num,"shapes":[shape],"tappable":b,"draggable":b,"holdable":b,"dragAfterHold":b}
+//! {"type":"table","id":s,"header":[s]|null,"rows":[[s]],"align":["start"|"center"|"end"]|null}
+//! {"type":"code","id":s,"text":s,"language":s,"lineNumbers":b}
+//! ```
+//!
+//! Tables hold 500 rows of 30 columns, each cell up to 512 characters. A
+//! code block holds 64K characters, or 512K in a preview.
+//!
+//! # File previews
+//!
+//! [`encode_preview`] finishes a `@plugin.preview` tree: 4,096 nodes, 1M of
+//! text in all, and one more widget, which only a preview may draw since the
+//! keyboard loads the previewed font file for it:
+//!
+//! ```text
+//! {"type":"font_sample","text":s,"sizes":[int]}      sizes 6..96, at most 6
 //! ```
 //!
 //! A role is one of primary, secondary, muted, danger, success, warning,
@@ -115,18 +130,34 @@ pub const MAX_POINTS: usize = 500;
 pub const MAX_OPTIONS: usize = 64;
 pub const COLOR_ROLES: &[&str] = &["primary", "secondary", "muted", "danger", "success", "warning", "accent"];
 
+/// API 5 tables.
+pub const MAX_TABLE_ROWS: usize = 500;
+pub const MAX_TABLE_COLUMNS: usize = 30;
+const MAX_CELL: usize = 512;
+/// UTF-16 units in a code block, in a panel and in a preview.
+pub const MAX_CODE: usize = 64 * 1024;
+pub const MAX_CODE_PREVIEW: usize = 512 * 1024;
+/// A preview's nodes and text.
+pub const MAX_NODES_PREVIEW: usize = 4096;
+pub const MAX_TOTAL_TEXT_PREVIEW: usize = 1024 * 1024;
+
 /// Turn a `render()` result into the finished tree.
 pub fn encode(value: &Value) -> Json {
-    run(value, false)
+    run(value, false, false)
 }
 
 /// Turn an API 5 render (the `wm.ui` widgets) into the finished tree.
 pub fn encode_v5(value: &Value) -> Json {
-    run(value, true)
+    run(value, true, false)
 }
 
-fn run(value: &Value, v5: bool) -> Json {
-    let mut walk = Walk { repairs: Vec::new(), nodes: 0, total_text: 0, v5 };
+/// Turn a file preview's widgets into the finished tree.
+pub fn encode_preview(value: &Value) -> Json {
+    run(value, true, true)
+}
+
+fn run(value: &Value, v5: bool, preview: bool) -> Json {
+    let mut walk = Walk { repairs: Vec::new(), nodes: 0, total_text: 0, v5, preview };
     let root = walk.children(value, 0);
     let repairs: Vec<Json> = walk.repairs.into_iter().map(|(code, arg)| json!({"code": code, "arg": arg})).collect();
     json!({"root": root, "repairs": repairs})
@@ -137,6 +168,7 @@ struct Walk {
     nodes: usize,
     total_text: usize,
     v5: bool,
+    preview: bool,
 }
 
 fn field(d: &Value, key: &str) -> Value {
@@ -235,7 +267,9 @@ impl Walk {
     }
 
     fn max_nodes(&self) -> usize {
-        if self.v5 {
+        if self.preview {
+            MAX_NODES_PREVIEW
+        } else if self.v5 {
             MAX_NODES_V5
         } else {
             MAX_NODES
@@ -341,13 +375,24 @@ impl Walk {
     }
 
     fn budgeted(&mut self, value: &str) -> String {
-        let total = if self.v5 { MAX_TOTAL_TEXT_V5 } else { MAX_TOTAL_TEXT };
+        self.budgeted_up_to(value, MAX_TEXT)
+    }
+
+    /// [value] up to [max] UTF-16 units, within the tree's budget.
+    fn budgeted_up_to(&mut self, value: &str, max: usize) -> String {
+        let total = if self.preview {
+            MAX_TOTAL_TEXT_PREVIEW
+        } else if self.v5 {
+            MAX_TOTAL_TEXT_V5
+        } else {
+            MAX_TOTAL_TEXT
+        };
         let remaining = total.saturating_sub(self.total_text);
         if remaining == 0 {
             self.repair("TEXT_BUDGET", None);
             return String::new();
         }
-        let capped = take_utf16(value, MAX_TEXT.min(remaining));
+        let capped = take_utf16(value, max.min(remaining));
         if capped.len() < value.len() {
             self.repair("TEXT_SHORTENED", None);
         }
@@ -518,6 +563,25 @@ impl Walk {
             }
             "chart" => self.chart(d),
             "canvas" => self.canvas(d),
+            "table" => self.table(d),
+            "code" => {
+                let text = scalar_text(&field(d, "text")).unwrap_or_default();
+                let max = if self.preview { MAX_CODE_PREVIEW } else { MAX_CODE };
+                let text = self.budgeted_up_to(&text, max);
+                json!({
+                    "type": "code", "id": id(d), "text": text, "language": short(&field(d, "language"), 32).to_ascii_lowercase(),
+                    "lineNumbers": flag(d, "line_numbers", true),
+                })
+            }
+            "font_sample" if !self.preview => {
+                self.repair("PREVIEW_ONLY", Some("font_sample".into()));
+                return Some(None);
+            }
+            "font_sample" => {
+                let sizes: Vec<i64> = field(d, "sizes").as_items().unwrap_or_default().iter().take(6).filter_map(number).map(|n| (n as i64).clamp(6, 96)).collect();
+                let sizes = if sizes.is_empty() { vec![14, 20, 32] } else { sizes };
+                json!({"type": "font_sample", "text": self.text(d, "text"), "sizes": sizes})
+            }
             _ => return None,
         };
         Some(Some(w))
@@ -543,6 +607,38 @@ impl Walk {
         }
         let labels: Vec<String> = field(d, "labels").as_items().unwrap_or_default().iter().take(MAX_POINTS).map(|l| short(l, 32)).collect();
         json!({"type": "chart", "id": id(d), "kind": kind, "series": series, "labels": labels, "height": opt_int(d, "height", 40, 600)})
+    }
+
+    fn table(&mut self, d: &Value) -> Json {
+        let row_of = |w: &mut Walk, r: &Value| -> Vec<String> {
+            let cells = r.as_items().unwrap_or_default();
+            if cells.len() > MAX_TABLE_COLUMNS {
+                w.repair("TOO_MANY_COLUMNS", Some(MAX_TABLE_COLUMNS.to_string()));
+            }
+            cells.iter().take(MAX_TABLE_COLUMNS).map(|c| {
+                let t = scalar_text(c).unwrap_or_default();
+                w.budgeted_up_to(&t, MAX_CELL)
+            }).collect()
+        };
+        let all = field(d, "rows").as_items().unwrap_or_default();
+        if all.len() > MAX_TABLE_ROWS {
+            self.repair("TOO_MANY_ROWS", Some(MAX_TABLE_ROWS.to_string()));
+        }
+        let rows: Vec<Json> = all.iter().take(MAX_TABLE_ROWS).map(|r| json!(row_of(self, r))).collect();
+        let header = match field(d, "header") {
+            Value::None => Json::Null,
+            h => json!(row_of(self, &h)),
+        };
+        let align = field(d, "align").as_items().map(|a| {
+            a.iter()
+                .take(MAX_TABLE_COLUMNS)
+                .map(|x| match x.as_str() {
+                    Some(s @ ("center" | "end")) => s.to_string(),
+                    _ => "start".to_string(),
+                })
+                .collect::<Vec<_>>()
+        });
+        json!({"type": "table", "id": id(d), "header": header, "rows": rows, "align": align})
     }
 
     fn canvas(&mut self, d: &Value) -> Json {

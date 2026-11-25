@@ -525,6 +525,16 @@ impl<'a> Checks<'a> {
                 self.add(Code::ProviderUnanswered, anchor, &[tool, id]);
             }
         }
+        let drawn = |what: &str| -> HashSet<&str> { decorated.iter().filter(|d| d.what == what).filter_map(|d| d.literal(0, "id").map(|(v, _)| v)).collect() };
+        let (previews, thumbnails) = (drawn("plugin.preview"), drawn("plugin.thumbnail"));
+        for (id, thumbs) in h.previews.iter().flatten() {
+            if !previews.contains(id.as_str()) {
+                self.add(Code::PreviewUnanswered, anchor, &[id]);
+            }
+            if *thumbs && !thumbnails.contains(id.as_str()) {
+                self.add(Code::ThumbnailUnanswered, anchor, &[id]);
+            }
+        }
         if a.module_symbol("transform").is_none() {
             let actions: HashSet<&str> = decorated.iter().filter(|d| d.what == "plugin.action").filter_map(|d| d.literal(0, "id").map(|(v, _)| v)).collect();
             for id in h.actions.iter().flatten() {
@@ -698,6 +708,17 @@ impl<'a> Checks<'a> {
                         Some(near) => self.add(Code::ActionTypo, span, &[id, &near]),
                         None => self.add(Code::UnknownAction, span, &[id]),
                     }
+                }
+            }
+            "plugin.preview" | "plugin.thumbnail" => {
+                let (Some((id, span)), Some(previews)) = (d.literal(0, "id"), &h.previews) else { return };
+                match previews.iter().find(|(p, _)| p == id) {
+                    None => match closest(id, previews.iter().map(|(p, _)| p.as_str())) {
+                        Some(near) => self.add(Code::PreviewTypo, span, &[id, &near]),
+                        None => self.add(Code::UnknownPreview, span, &[id]),
+                    },
+                    Some((_, false)) if d.what == "plugin.thumbnail" => self.add(Code::ThumbnailNotDeclared, span, &[id]),
+                    _ => {}
                 }
             }
             "plugin.keyword" => {

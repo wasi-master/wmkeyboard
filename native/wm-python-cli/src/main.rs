@@ -33,6 +33,14 @@
 //!   plus `storage()`, `calls()` (every host call so far, `{"op", "args"}`)
 //!   and `settle()`, which answers each waiting `then=` call from the mock as
 //!   its `result` event, round after round until none waits.
+//! * `plugin_test.preview(id, file, mock=None, name=None, mime=None)` and
+//!   `plugin_test.thumbnail(...)`: the plugin's `@plugin.preview(id)` or
+//!   `@plugin.thumbnail(id)` run on [file] (a file name inside the plugin
+//!   folder, or bytes) as the file manager runs it, each in a fresh session.
+//!   The first `maxBytes` of the manifest's preview [id] (4 MB by default)
+//!   are the file's data; `preview.read` answers from the rest. The result
+//!   is a dict as `session()`'s calls return, `ui` for a preview and
+//!   `value` (base64, or None) for a thumbnail.
 //!
 //! A test fails by raising. Its budget is generous (500M steps, 10 minutes)
 //! because one run drives a whole corpus of cases.
@@ -80,7 +88,12 @@ struct Manifest {
     api: i64,
     /// False for a plugin made of selection actions alone (`"panel": false`).
     panel: bool,
+    /// Each `previews` entry's id and `maxBytes`.
+    previews: Vec<(String, usize)>,
 }
+
+/// A preview's `maxBytes` when the manifest gives none.
+const DEFAULT_PREVIEW_BYTES: usize = 4 << 20;
 
 fn manifest(dir: &Path) -> Result<Manifest, String> {
     let path = dir.join("plugin.json");
@@ -99,6 +112,19 @@ fn manifest(dir: &Path) -> Result<Manifest, String> {
             .unwrap_or_default(),
         api: v.get("apiVersion").and_then(|x| x.as_i64()).unwrap_or(4),
         panel: v.get("panel").and_then(|x| x.as_bool()).unwrap_or(true),
+        previews: v
+            .get("previews")
+            .and_then(|p| p.as_array())
+            .map(|a| {
+                a.iter()
+                    .filter_map(|p| {
+                        let id = p.get("id")?.as_str()?.to_string();
+                        let max = p.get("maxBytes").and_then(|m| m.as_u64()).map_or(DEFAULT_PREVIEW_BYTES, |m| m as usize);
+                        Some((id, max))
+                    })
+                    .collect()
+            })
+            .unwrap_or_default(),
     })
 }
 
@@ -279,6 +305,7 @@ fn test(dir: &Path) -> u8 {
         permissions: Vec::new(),
         api: 4,
         panel: true,
+        previews: Vec::new(),
     });
     let manifest_for_sessions = manifest(dir).ok();
     let mut rt = Runtime::new(Limits { steps: 500_000_000, container_items: 200_000, string_length: 1_000_000 }, STANDARD_MODULES);
@@ -302,6 +329,8 @@ fn test(dir: &Path) -> u8 {
     rt.set_on_print(Some(Box::new(|line| println!("{line}"))));
     rt.set_deadline(Some(std::time::Instant::now() + std::time::Duration::from_secs(600)));
     let (d1, d2, d3) = (dir.to_path_buf(), dir.to_path_buf(), dir.to_path_buf());
+    let (d4, d5) = (dir.to_path_buf(), dir.to_path_buf());
+    let (m4, m5) = (manifest(dir).ok(), manifest(dir).ok());
     rt.define_module("plugin_test", move |module| {
         module.define("session", move |call| {
             let Some(m) = manifest_for_sessions.as_ref() else {
@@ -318,6 +347,8 @@ fn test(dir: &Path) -> u8 {
             }
             Ok(session_value(session, source, mock))
         });
+        module.define("preview", move |call| preview_call(call, &d4, m4.as_ref(), false));
+        module.define("thumbnail", move |call| preview_call(call, &d5, m5.as_ref(), true));
         module.define("read", move |call| {
             let name: String = call.arg(0, Some("name"))?;
             read_inside(&d1, &name).map(Value::from)
@@ -338,6 +369,69 @@ fn test(dir: &Path) -> u8 {
             1
         }
     }
+}
+
+/// `plugin_test.preview(id, file, mock=None, name=None, mime=None)`, and
+/// `thumbnail` with the same arguments.
+fn preview_call(call: &mut wm_python::interp::Call, dir: &Path, m: Option<&Manifest>, thumb: bool) -> Result<Value, PyError> {
+    let Some(m) = m else {
+        return Err(PyError::new("preview() needs a plugin.json", "ValueError"));
+    };
+    let id: String = call.arg(0, Some("id"))?;
+    let (data, file_name) = match call.value(1, Some("file")) {
+        Some(Value::Bytes(b)) => (b.to_vec(), "file".to_string()),
+        Some(Value::Str(name)) => {
+            let path = inside(dir, name).map_err(|e| PyError::new(e, "ValueError"))?;
+            let data = std::fs::read(&path).map_err(|e| PyError::new(format!("cannot read '{name}': {e}"), "ValueError"))?;
+            let base = name.rsplit('/').next().unwrap_or(name).to_string();
+            (data, base)
+        }
+        _ => return Err(PyError::new("preview() needs a file name inside the plugin folder, or bytes", "TypeError")),
+    };
+    let mock = call.value(2, Some("mock")).map(|v| wm_python::host::v5::to_json(v, 0)).unwrap_or(serde_json::Value::Null);
+    let name = match call.value(3, Some("name")) {
+        Some(Value::Str(n)) => n.to_string(),
+        _ => file_name,
+    };
+    let mime = match call.value(4, Some("mime")) {
+        Some(Value::Str(t)) => t.to_string(),
+        _ => "application/octet-stream".to_string(),
+    };
+    let max = m.previews.iter().find(|(p, _)| *p == id).map_or(DEFAULT_PREVIEW_BYTES, |(_, b)| *b);
+    let head = data[..data.len().min(max)].to_vec();
+    let extension = name.rsplit_once('.').map(|(_, e)| e.to_ascii_lowercase()).unwrap_or_default();
+    let request = serde_json::json!({
+        "id": id, "name": name, "extension": extension, "mime": mime, "size": data.len(),
+        "modified": null, "truncated": data.len() > max,
+    });
+    let source = read_inside(dir, &m.entry)?;
+    let mut config = session_config(dir, m, serde_json::Value::Null);
+    config["mode"] = serde_json::Value::from("action");
+    let mut session = Session::new(&config.to_string()).map_err(|e| PyError::new(e, "ValueError"))?;
+    let _ = session.load(&source);
+    // preview.read answers from the whole file; everything else from the mock.
+    let mock = (!mock.is_null()).then(|| Mock::new(mock));
+    let whole = Rc::new(data);
+    let mut answer = mock.as_ref().map(|m| m.bridge());
+    session.set_bridge(Some(Box::new(move |op: &str, args: &str| {
+        if op == "preview.read" {
+            let a: serde_json::Value = serde_json::from_str(args).unwrap_or_default();
+            let offset = a["offset"].as_u64().unwrap_or(0) as usize;
+            let length = (a["length"].as_u64().unwrap_or(0) as usize).min(1 << 20);
+            let from = offset.min(whole.len());
+            let to = offset.saturating_add(length).min(whole.len());
+            use base64::Engine;
+            let text = base64::engine::general_purpose::STANDARD.encode(&whole[from..to]);
+            return serde_json::json!({"value": text}).to_string();
+        }
+        match answer.as_mut() {
+            Some(f) => f(op, args),
+            None => serde_json::json!({"error": {"kind": "NotImplementedError", "message": format!("no mock reply for {op}")}}).to_string(),
+        }
+    })));
+    let result = if thumb { session.thumbnail(&request.to_string(), &head) } else { session.preview(&request.to_string(), &head) };
+    let json: serde_json::Value = serde_json::from_str(&result).map_err(|e| PyError::new(e.to_string(), "ValueError"))?;
+    Ok(wm_python::host::json_to_value(&json))
 }
 
 /// Most rounds [settle](session_value) answers before giving up: a plugin

@@ -62,8 +62,9 @@ and checks are about this plugin and this keyboard, not Python in general.
 
 ### Trying a provider or an action
 
-**Try** lists the providers and selection actions your `plugin.json`
-declares. Pick one and press **Try it**. A provider gets the request its list
+**Try** lists the providers, selection actions and file previews your
+`plugin.json` declares. A preview asks for a file from your computer and
+shows what your plugin draws for it, and its thumbnail when it has one. Pick one and press **Try it**. A provider gets the request its list
 sends, filled in with an example you can edit; an action gets a line of
 text. The pane shows the reply, what `print()` wrote, how long the call took,
 and, for a provider, whether the list can read the reply and how many results
@@ -172,6 +173,12 @@ runs it:
 
 Each gives back a dict: `ok`, the drawn `ui`, any `error`, and the `host`
 block (timers, header buttons, how many `then=` answers are waiting).
+
+`plugin_test.preview(id, file, mock=None, name=None, mime=None)` runs a
+[file preview](/plugins/guides/file-previews/) on `file`, a file in your
+plugin's folder or bytes, the way the file manager runs it, and gives back the
+same kind of dict with the preview's `ui`. `plugin_test.thumbnail(...)` takes
+the same arguments and gives the picture as base64 in `value`.
 
 Events look like this. A widget's id is its type and text, such as
 `"button:Look up"` or `"input:Word"`, unless you passed `key=`:

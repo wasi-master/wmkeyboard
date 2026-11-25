@@ -68,6 +68,11 @@
     <string name="py_diag_provider_not_declared">plugin.json\'s providers list no %1$s provider “%2$s”, so nothing asks this.</string>
     <string name="py_diag_provider_unanswered">plugin.json declares the %1$s provider “%2$s”, but no @plugin.provider answers it.</string>
     <string name="py_diag_action_unanswered">plugin.json lists the action “%1$s”, but no @plugin.action answers it.</string>
+    <string name="py_diag_unknown_preview">plugin.json\'s previews list no “%1$s”, so the file manager never asks this.</string>
+    <string name="py_diag_preview_typo">plugin.json\'s previews list no “%1$s”. Did you mean “%2$s”?</string>
+    <string name="py_diag_preview_unanswered">plugin.json lists the preview “%1$s”, but no @plugin.preview draws it.</string>
+    <string name="py_diag_thumbnail_not_declared">plugin.json\'s preview “%1$s” does not set "thumbnails": true, so this never runs.</string>
+    <string name="py_diag_thumbnail_unanswered">plugin.json\'s preview “%1$s” has thumbnails, but no @plugin.thumbnail makes them.</string>
     <string name="py_diag_keyword_not_declared">plugin.json\'s tool.keyword is not “%1$s”, so this never runs.</string>
     <string name="py_diag_unknown_setting">plugin.json has no setting “%1$s”.</string>
     <string name="py_diag_setting_typo">plugin.json has no setting “%1$s”. Did you mean “%2$s”?</string>

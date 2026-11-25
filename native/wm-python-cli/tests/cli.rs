@@ -160,3 +160,24 @@ fn an_api_5_test_imports_the_plugins_own_modules() {
     let (code, out, err) = cli(&["test", dir.to_str().unwrap()]);
     assert_eq!((code, out.as_str(), err.as_str()), (0, "ok\n", ""));
 }
+
+#[test]
+fn previews_and_thumbnails_run_on_files_in_the_folder() {
+    let manifest = r#"{"id": "com.example.tsv", "version": "1.0.0", "apiVersion": 5, "panel": false, "permissions": ["previews"],
+        "previews": [{"id": "tsv", "name": "Tables", "extensions": ["tsv"], "maxBytes": 8, "thumbnails": true}]}"#;
+    let main = "from wm import plugin, ui, formats\n\n\
+@plugin.preview('tsv')\n\
+def show(file):\n    ui.label(str(file.truncated) + ' ' + file.extension)\n    ui.label(file.read(8, 3).decode())\n\n\
+@plugin.thumbnail('tsv')\n\
+def thumb(file):\n    return file.data[:2]\n";
+    let test = "r = plugin_test.preview('tsv', 'rows.tsv')\n\
+if not r['ok']:\n    raise ValueError(str(r['error']))\n\
+texts = [w['text'] for w in r['ui']['root']]\n\
+if texts != ['True tsv', 'c\\td']:\n    raise ValueError(str(texts))\n\
+t = plugin_test.thumbnail('tsv', b'xyz', name='a.tsv')\n\
+if t['value'] != 'eHk=':\n    raise ValueError(str(t))\n\
+print('ok')\n";
+    let dir = plugin("preview", &[("plugin.json", manifest), ("main.py", main), ("test.py", test), ("rows.tsv", "a\tb\n1\t2\nc\td\n")]);
+    let (code, out, err) = cli(&["test", dir.to_str().unwrap()]);
+    assert_eq!((code, out.as_str(), err.as_str()), (0, "ok\n", ""));
+}

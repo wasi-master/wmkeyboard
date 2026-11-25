@@ -56,6 +56,20 @@ fn provider(tool: &str, id: &str) -> String {
     format!("from wm import plugin\n\n\n@plugin.provider({args})\ndef answer(request):\n    return request\n")
 }
 
+/// A plugin drawing the file preview [id].
+fn preview(id: &str) -> String {
+    format!("from wm import plugin\n\n\n@plugin.preview(\"{id}\")\ndef show(file):\n    return None\n")
+}
+
+/// The preview "csv" with a thumbnail too.
+fn thumbnail() -> String {
+    format!("{}\n\n@plugin.thumbnail(\"csv\")\ndef thumb(file):\n    return None\n", preview("csv"))
+}
+
+fn previews(thumbnails: bool) -> Host {
+    manifest(|h| h.previews = Some(vec![("csv".into(), thumbnails)]))
+}
+
 /// A case whose near miss needs a different manifest than its earning script.
 trait WithMiss {
     fn with_miss(self, f: impl FnOnce(&mut Host)) -> Host;
@@ -148,6 +162,11 @@ fn cases() -> Vec<(&'static str, String, String, Host)> {
         ("provider_not_declared", s(&provider("search", "ddg")), s(&provider("search", "")), declared(&[("search", "search")])),
         ("provider_unanswered", s("from wm import plugin\n\nx = plugin.id\n"), s(&provider("search", "")), declared(&[("search", "search")])),
         ("action_unanswered", s("from wm import plugin\n\nx = plugin.id\n"), s("from wm import plugin\n\n\n@plugin.action(\"shout\")\ndef shout(text):\n    return text\n"), manifest(|h| h.actions = Some(vec!["shout".into()]))),
+        ("unknown_preview", preview("zzzzzzzz"), preview("csv"), previews(false)),
+        ("preview_typo", preview("cvs"), preview("csv"), previews(false)),
+        ("preview_unanswered", s("from wm import plugin\n\nx = plugin.id\n"), preview("csv"), previews(false)),
+        ("thumbnail_not_declared", thumbnail(), thumbnail(), previews(false).with_miss(|h| h.previews = Some(vec![("csv".into(), true)]))),
+        ("thumbnail_unanswered", preview("csv"), thumbnail(), previews(true)),
         ("keyword_not_declared", s("from wm import plugin\n\n\n@plugin.keyword(\"define\")\ndef f(text):\n    return text\n"), s("from wm import plugin\n\n\n@plugin.keyword(\"define\")\ndef f(text):\n    return text\n"), manifest(|h| h.keyword = Some(String::new())).with_miss(|h| h.keyword = Some("define".into()))),
         ("unknown_setting", s("from wm import plugin\n\nx = plugin.settings.zzzzzzzz\n"), s("from wm import plugin\n\nx = plugin.settings.units\n"), units()),
         ("setting_typo", s("from wm import plugin\n\nx = plugin.settings.unit\n"), s("from wm import plugin\n\nx = plugin.settings.units\n"), units()),

@@ -889,8 +889,17 @@ impl Interp {
             }
             "find" | "index" => {
                 let sub = self.arg_bytes(args, 0, name)?;
-                match find_bytes(b, &sub) {
-                    Some(i) => Ok(Value::Int(i as i64)),
+                // find(sub, start, end), with negative bounds counted from the end.
+                let len = b.len() as i64;
+                let bound = |v: Option<&Value>, default: i64| match v.and_then(Value::as_int) {
+                    Some(i) if i < 0 => (len + i).max(0),
+                    Some(i) => i.min(len),
+                    None => default,
+                };
+                let start = bound(args.get(1), 0) as usize;
+                let end = (bound(args.get(2), len) as usize).max(start);
+                match find_bytes(&b[start..end], &sub) {
+                    Some(i) => Ok(Value::Int((start + i) as i64)),
                     None if name == "find" => Ok(Value::Int(-1)),
                     None => Err(self.error("subsection not found", "ValueError")),
                 }
