@@ -27,12 +27,19 @@ internal object LlamaHexagon {
     /**
      * Chip -> its Hexagon tensor processor generation, the skel's suffix.
      * The chips the skels are built for (native/llamacpp-jni/build.sh) that
-     * this build can name: Snapdragon 8 Gen 2, 8 Gen 3, 8 Elite, 8 Elite Gen 5.
+     * this build can name: Snapdragon 8 Gen 2, 8 Gen 3, 8 Elite, 8 Gen 5 and
+     * 8 Elite Gen 5. The 8 Gen 5 (SM8845, QNN SoC id 97, as ExecuTorch's
+     * qc_schema lists it) shares the 8 Elite Gen 5's V81 generation. ggml's
+     * skel is code for the generation, not a model compiled for one chip, so
+     * it serves both; the 8 Gen 5 is not in [NpuSupport] at all, since
+     * no one publishes LiteRT, sherpa-onnx or AI Hub builds for it, and an
+     * SM8850 context binary does not load on it (LiteRT issue 7516).
      */
     private val ARCH = mapOf(
         "SM8550" to "v73",
         "SM8650" to "v75",
         "SM8750" to "v79",
+        "SM8845" to "v81",
         "SM8850" to "v81",
     )
 

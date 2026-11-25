@@ -341,9 +341,11 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier.padding(horizontal = 16.dp),
     ) {
-        // NPU only where this build has a runtime for this phone's chip.
+        // NPU only where this build has a runtime for this phone's chip: a
+        // LiteRT one (npuSoc), or llama.cpp's Hexagon one alone, as on a
+        // Snapdragon 8 Gen 5, where only GGUF models reach the NPU.
         for (backend in LocalLlmBackend.entries) {
-            if (backend == LocalLlmBackend.NPU && npuSoc == null) continue
+            if (backend == LocalLlmBackend.NPU && npuSoc == null && LlamaCpp.npuGateId == null) continue
             FilterChip(
                 selected = selectedBackend == backend,
                 onClick = {
@@ -359,7 +361,7 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
                     }
                     // On Play the runtime is its own download; start it now
                     // rather than at the first answer.
-                    if (backend == LocalLlmBackend.NPU) FeatureModules.npu.requestInstall()
+                    if (backend == LocalLlmBackend.NPU && npuSoc != null) FeatureModules.npu.requestInstall()
                     // GGUF models get llama.cpp's GPU build, or its NPU
                     // build on a Snapdragon with Compute on NPU, a download
                     // of its own: started here too, when there is a GGUF
