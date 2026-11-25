@@ -357,6 +357,18 @@ object SnippetMatcher {
         var i = 0
         while (i < text.length) {
             val c = text[i]
+            // A `{= … }` sum (#1550) is taken whole, before its `$1` could be
+            // spliced in as text: the capture goes into the sum as a number.
+            // One that cannot be worked out falls through and stays as written.
+            val math = if (c == '{') SnippetMath.spanAt(text, i) else null
+            val sum = math?.let { SnippetMath.evaluate(it.body, group) }
+            if (math != null && sum != null) {
+                flush()
+                if (firstRef < 0 && '$' in math.body) firstRef = out.length
+                out.append(sum)
+                i = math.end
+                continue
+            }
             if (c != '$') {
                 literal.append(c)
                 i++

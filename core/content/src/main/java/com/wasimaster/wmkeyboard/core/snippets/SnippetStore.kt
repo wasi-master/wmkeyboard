@@ -1412,6 +1412,10 @@ class SnippetStore(private val storageFile: File?) {
             // other token. It is the only variable whose value is more template.
             var out = RANDOM.replace(text) { pickRandom(it.groupValues[1]) }
 
+            // Sums (#1550) next, so an alternative may hold one and nothing
+            // later can leave a `{=` that looks like a variable.
+            out = SnippetMath.expandAll(out)
+
             // Then {date...}, so a literal pattern can't be eaten by {date}.
             out = CUSTOM_DATE.replace(out) { match ->
                 val shift = match.groupValues[1].toLongOrNull() ?: 0L

@@ -289,6 +289,57 @@ class SnippetMatcherTest {
     private fun expand(pattern: String, text: String, window: String): String? =
         index(snip(pattern, text)).matchPattern(window, atFieldStart = true)?.text
 
+    // ---- sums (#1550) ----
+
+    @Test
+    fun `a sum works a capture out and rounds to the places asked for`() {
+        val pattern = "^ate (\\d+(?:\\.\\d+)?) g of peanuts$"
+        val text = "{= 0.2365 * \$1 : 2} g Protein"
+        val peanuts = snip(pattern, text, words = 5)
+        fun ate(window: String) = index(peanuts).matchPattern(window, atFieldStart = true)?.text
+        assertEquals("23.65 g Protein", ate("ate 100 g of peanuts"))
+        assertEquals("29.56 g Protein", ate("ate 125 g of peanuts"))
+        assertEquals("35.48 g Protein", ate("ate 150 g of peanuts"))
+        // Places are kept, not trimmed.
+        assertEquals("47.30 g Protein", ate("ate 200 g of peanuts"))
+        assertEquals("2.96 g Protein", ate("ate 12.5 g of peanuts"))
+    }
+
+    @Test
+    fun `a sum without places uses the calculator's short form`() {
+        assertEquals("7.5", expand("^half (\\d+)$", "{= \$1 / 2}", "half 15"))
+        assertEquals("16", expand("^sum (\\d+) (\\d+)$", "{=(\$1 + \$2) * 2}", "sum 3 5"))
+        assertEquals("0", expand("^neg (\\d+)$", "{= -\$1 / 1000 : 0}", "neg 1"))
+    }
+
+    @Test
+    fun `a capture that is not a number leaves the sum as written`() {
+        assertEquals(
+            "{= 2 * abc}",
+            expand("^dbl (\\S+)$", "{= 2 * \$1}", "dbl abc"),
+        )
+        // A comma is read as a decimal mark.
+        assertEquals("25", expand("^dbl (\\S+)$", "{= 2 * \$1}", "dbl 12,5"))
+    }
+
+    @Test
+    fun `a sum that cannot be worked out stays as written`() {
+        assertEquals("{= 1 / 0}", SnippetStore.expand("{= 1 / 0}"))
+        assertEquals("{= 2 * : x}", SnippetStore.expand("{= 2 * : x}"))
+    }
+
+    @Test
+    fun `a sum needs no capture`() {
+        assertEquals("Total: 12.00", SnippetStore.expand("Total: {= 3 * 4 : 2}"))
+    }
+
+    @Test
+    fun `a panel tap leaves a blank where a sum needed a capture`() {
+        val blank = SnippetMatcher.blankTemplate("{= 0.2365 * \$1 : 2} g")
+        assertEquals(" g", blank.text)
+        assertEquals(0, blank.blankCaret)
+    }
+
     // ---- panel insertion ----
 
     @Test

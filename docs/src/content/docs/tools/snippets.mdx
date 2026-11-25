@@ -95,6 +95,22 @@ A word trigger matches one fixed word. A **pattern** trigger matches the last fe
 
 Each pair of brackets in the pattern is a capture, and `$1` to `$9` put those captures into the text. `$0` is everything the pattern matched. Four transforms are available when you want the capture reshaped: `${1:upper}`, `${1:lower}`, `${1:title}` and `${1:trim}`. A literal dollar sign is `$$`.
 
+#### Sums
+
+`{= … }` works out a sum when the snippet expands, and captures can go into it. Put `: N` before the closing brace to round to N decimal places:
+
+| Pattern | Snippet text | You type | You get |
+|---|---|---|---|
+| `^ate (\d+(?:\.\d+)?) g of peanuts$` | `{= 0.2365 * $1 : 2} g protein` | `ate 125 g of peanuts` + space | 29.56 g protein |
+| `^tip (\d+(?:\.\d+)?)$` | `Tip: {= $1 * 0.15 : 2}` | `tip 40` + space | Tip: 6.00 |
+| `^(\d+) ?km$` | `$1 km is {= $1 / 1.609 : 1} miles` | `10 km` + space | 10 km is 6.2 miles |
+
+The sum is read by the same engine as the [calculator](/tools/utilities/#doing-the-math): `+`, `-`, `*`, `/`, `^`, `%`, brackets, decimals and its functions such as `sqrt(…)` or `round(…)`. It runs on the phone and never needs the internet. With `: 2` the result always has two places (`47.30`); without a count it is written as short as it can be (`47.3`). The decimal mark in the result is always a full stop.
+
+Inside the braces a capture only ever stands for a number. It may have a sign and one decimal mark, a full stop or a comma (`12,5` counts as twelve and a half). If a capture holds anything else, or the sum can't be worked out (a division by zero, a typo), the placeholder is left in the text as you wrote it so the mistake is easy to spot. Tapping such a snippet in the panel leaves a blank where the sum would go, the same as a bare `$1`. A sum also works in a snippet with no pattern at all: `{= 365 * 24}` gives 8760.
+
+Remember **Words to match** (below): `ate 125 g of peanuts` is five words, so that snippet needs the cap raised to at least five.
+
 Some details:
 
 - **Matching is case-insensitive** by default, so `HELLO John` works too. Start the pattern with `(?-i)` if you want it to care.
