@@ -2,6 +2,8 @@ package com.wasimaster.wmkeyboard.ime
 
 import android.app.AlarmManager
 import android.content.Context
+import android.content.Intent
+import android.provider.AlarmClock
 import com.wasimaster.wmkeyboard.core.clock.AlarmMath
 import com.wasimaster.wmkeyboard.core.clock.ClockData
 import com.wasimaster.wmkeyboard.core.clock.ClockStore
@@ -111,6 +113,9 @@ internal class StatusIconSource(private val context: Context) {
     /** The alarm next in line, whether or not it is in its window yet; set by [alarm]. */
     private var upcomingAlarm: Long? = null
 
+    /** Whether a package answers Android's alarm intents, by package, as [isClockApp] found. */
+    private val clockApps = HashMap<String, Boolean>()
+
     /**
      * Everything going on now, and when the next alarm rings (in its window
      * or not), for the refresh that waits for it. [notes] is the readable
@@ -140,8 +145,14 @@ internal class StatusIconSource(private val context: Context) {
     /** The soonest alarm ringing within [windowMs], the Clock tool's or the phone clock app's. */
     private fun alarm(clock: ClockData?, windowMs: Long, now: Long): StatusItem? {
         val own = clock?.takeIf { it.ringing.isEmpty() }?.let { AlarmMath.nextOfAll(it.alarms, now) }
+        // Only a clock app's: any app may book its wake-up as an "alarm
+        // clock" (a calendar, a sleep tracker, a system service on some
+        // phones), and the chip then showed an alarm nobody set (Telegram).
         val info = runCatching { context.getSystemService(AlarmManager::class.java)?.nextAlarmClock }.getOrNull()
-            ?.takeIf { it.showIntent?.creatorPackage != context.packageName }
+            ?.takeIf { next ->
+                val owner = next.showIntent?.creatorPackage
+                owner != null && owner != context.packageName && isClockApp(owner)
+            }
         val ownAt = own?.second
         val otherAt = info?.triggerTime
         upcomingAlarm = listOfNotNull(ownAt, otherAt).minOrNull()
@@ -151,6 +162,18 @@ internal class StatusIconSource(private val context: Context) {
                 StatusItem(StatusKind.ALARM, own.first.label, ownAt, own.first.id)
             otherAt != null && inWindow(otherAt) -> StatusItem(StatusKind.ALARM, "", otherAt, foreign = true)
             else -> null
+        }
+    }
+
+    /**
+     * Whether [pkg] is a clock app: one with a screen for Android's Show
+     * alarms or Set alarm intent. Remembered per package; a refresh runs
+     * often, and an app rarely changes what it is.
+     */
+    private fun isClockApp(pkg: String): Boolean = clockApps.getOrPut(pkg) {
+        val pm = context.packageManager
+        listOf(AlarmClock.ACTION_SHOW_ALARMS, AlarmClock.ACTION_SET_ALARM).any { action ->
+            runCatching { pm.queryIntentActivities(Intent(action).setPackage(pkg), 0).isNotEmpty() }.getOrDefault(false)
         }
     }
 
