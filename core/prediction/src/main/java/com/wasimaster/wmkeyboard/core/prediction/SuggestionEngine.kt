@@ -3811,6 +3811,11 @@ class SuggestionEngine(
          */
         private const val ACCENT_SHADOW_RATIO = 20.0
 
+        /** The languages whose `е` may be a `ё` written without its dots; see [yoFix]. */
+        private val YO_LANGUAGES = setOf("ru", "be")
+        private const val CYRILLIC_IE = 'е'
+        private const val CYRILLIC_IO = 'ё'
+
         /**
          * How many times the best one-edit fix must outscore a listed spelling,
          * edit cost included, before that spelling counts as a typo the corpus
@@ -6982,6 +6987,7 @@ class SuggestionEngine(
         } else if (word == lower) {
             dictionaryCapital(lower)?.let { return it }
         }
+        yoFix(word, lower)?.let { return it }
         // An all-caps word is a deliberate acronym or shout, not a typo of a
         // lowercase word — don't "correct" it away when the user asked us not to.
         if (lower.length < 3) {
@@ -7356,6 +7362,44 @@ class SuggestionEngine(
     }
 
     /**
+     * [word] with the `ё` its `е` stands for put back, in Russian and
+     * Belarusian (#1541): `еще` is *ещё*, `ее` is *её*. Most people never type
+     * `ё`, it hides on a long press, and a list that only writes the word
+     * with it left the typed spelling unknown, or corrected it to something
+     * else a key away.
+     *
+     * Only for those two languages. [Accents] stays Latin and Greek, and the
+     * walk with it, because elsewhere in Cyrillic a letter with a mark is a
+     * letter of its own (`й` is not `и`). Applied the way an accent twin is:
+     * when the typed spelling is no word of its own, or only a rare stand-in
+     * for the `ё` spelling ([ACCENT_SHADOW_RATIO]); a word both ways that is
+     * common as typed (`все` and `всё`) stands. A word the user added, one in
+     * Android's dictionary or one a hand-made list holds is theirs as typed.
+     * Null when there is nothing to put back.
+     */
+    private fun yoFix(word: String, lower: String): CorrectionDecision? {
+        if (baseLanguage(primaryLanguageId) !in YO_LANGUAGES || CYRILLIC_IE !in lower || CYRILLIC_IO in lower) {
+            return null
+        }
+        val (twin, twinScore) = accentedLookup(lower, twin = { label, expected ->
+            label == CYRILLIC_IO && expected == CYRILLIC_IE
+        }) ?: return null
+        if (twin == lower || suppressed(twin)) return null
+        val typed = dictionaryScore(lower)
+        val known = typed != Double.NEGATIVE_INFINITY || userLexicon.isEstablished(lower, learnedWordMinCount)
+        if (known) {
+            if (systemDictionary.contains(lower) || userLexicon.isAddedByHand(lower) || curatedHolds(lower)) return null
+            if (typed == Double.NEGATIVE_INFINITY || twinScore - typed < ln(ACCENT_SHADOW_RATIO)) return null
+        }
+        val fixed = matchCase(word, twin)
+        return when (correctionStats.penalty(lower, twin)) {
+            CorrectionStats.Penalty.NONE -> CorrectionDecision(apply = fixed, certainty = 1.0)
+            CorrectionStats.Penalty.BLOCKED -> null
+            else -> CorrectionDecision(offer = fixed)
+        }
+    }
+
+    /**
      * Whether the word lists hold [lower] only as the accentless spelling of a
      * far commoner word (#200).
      *
@@ -7646,6 +7690,8 @@ class SuggestionEngine(
         lower: String,
         sources: List<FuzzyBeamSearch.WalkSource> = walkSources(),
         ranked: Boolean = false,
+        /** Whether the list's letter `label` may stand where `expected` was typed; see [yoFix]. */
+        twin: (label: Char, expected: Char) -> Boolean = Accents::isAccentOf,
     ): Pair<String, Double>? {
         var bestWord: String? = null
         var best = Double.NEGATIVE_INFINITY
@@ -7672,7 +7718,7 @@ class SuggestionEngine(
                 var next: ArrayList<Pair<Char, Int>>? = null
                 for (i in 0 until count) {
                     val label = children.labels[i]
-                    if (label != expected && !Accents.isAccentOf(label, expected)) continue
+                    if (label != expected && !twin(label, expected)) continue
                     (next ?: ArrayList<Pair<Char, Int>>(2).also { next = it }).add(label to children.nodes[i])
                 }
                 for ((label, child) in next ?: return) {
