@@ -1,0 +1,16 @@
+<resources>
+    <string name="core_lang_layout_empty_row_warning">%2$s قاتلىمىنىڭ %1$d-قۇرى بوش.</string>
+    <string name="core_lang_layout_key_no_width_error">%2$s قاتلىمىنىڭ %1$d-قۇرىدا كەڭلىكى يوق بىر كۇنۇپكا بار.</string>
+    <string name="core_lang_layout_no_shift_warning">بۇ تىزىلىشتا Shift كۇنۇپكىسى يوق. چوڭ ھەرپ يېزىش ئۈچۈن، كۇنۇپكىنى بېسىپ تۇرۇڭ.</string>
+    <string name="core_lang_layout_no_way_back_error">%1$s قاتلىمىدا ھەرپلەرگە قايتىدىغان كۇنۇپكا يوق. بۇ قاتلامدىن چېكىنەلمەيسىز.</string>
+    <string name="core_lang_layout_persistent_warning">%1$s قاتلىمى كۇنۇپكا تاختىسى تاقالغاندا ئوچۇق تۇرىدۇ. بۇ تىزىلىشتىن چېكىنىش يولى بارلىقىغا كاپالەتلىك قىلىڭ.</string>
+    <string name="core_lang_layout_secondary_no_way_out_warning">بۇ تىزىلىشتا ئۇنى تاشلاپ چىقىدىغان كۇنۇپكا يوق. بۇ تىزىلىشتىن چېكىنىش يولى بارلىقىغا كاپالەتلىك قىلىڭ: ABC كۇنۇپكىسى، بەلگىلەر كۇنۇپكىسى ياكى قوراللار بالدىقىدىكى ئىككىنچى تىزىلىش قورالى.</string>
+    <plurals name="core_lang_layout_too_many_keys_error">
+        <item quantity="one">%2$s قاتلىمىنىڭ %1$d-قۇرىدا %3$d كۇنۇپكا بار. پەقەت %4$d كۇنۇپكىلا بېسىشقا يېتەرلىك چوڭ بولۇپ قالىدۇ.</item>
+        <item quantity="other">%2$s قاتلىمىنىڭ %1$d-قۇرىدا %3$d كۇنۇپكا بار. پەقەت %4$d كۇنۇپكىلا بېسىشقا يېتەرلىك چوڭ بولۇپ قالىدۇ.</item>
+    </plurals>
+    <plurals name="core_lang_layout_too_many_rows_error">
+        <item quantity="one">%1$s قاتلىمىدا %2$d قۇر بار. پەقەت %3$d قۇر سىغىدۇ.</item>
+        <item quantity="other">%1$s قاتلىمىدا %2$d قۇر بار. پەقەت %3$d قۇر سىغىدۇ.</item>
+    </plurals>
+</resources>
