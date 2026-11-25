@@ -1438,6 +1438,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_backspace_swipe_title) { Icons.AutoMirrored.Outlined.Backspace }
         put(R.string.typing_backspace_unit_title) { Icons.AutoMirrored.Outlined.Backspace }
         put(R.string.typing_backspace_preview_title) { Icons.Outlined.Visibility }
+        put(R.string.typing_backspace_selects_title) { Icons.Outlined.SelectAll }
         put(R.string.typing_backspace_up_clears_title) { Icons.Outlined.DeleteSweep }
         put(R.string.typing_backspace_lines_title) { Icons.Outlined.DeleteSweep }
         put(R.string.typing_backspace_lines_up_title) { Icons.Outlined.DeleteSweep }

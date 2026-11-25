@@ -20997,6 +20997,24 @@ open class WMKeyboardService : InputMethodService() {
         resetDeleteSwipe()
     }
 
+    /**
+     * The finger lifted from a swipe that only selects: the swipe is over and
+     * its selection stays, so the next Backspace deletes it and a letter
+     * types over it, as with any selection.
+     */
+    fun onDeleteSwipeKeep() {
+        if (captureSwipeStart != null) {
+            captureSwipeStart = null
+            resetDeleteSwipe()
+            return
+        }
+        val kept = deleteSwipeActive && deleteSwipeUnits > 0
+        resetDeleteSwipe()
+        // The editor's echo of the selection may have come while the swipe
+        // still owned it, so the selection bar is asked again now.
+        if (kept) refreshSelectionMacros()
+    }
+
     /** The swipe ended with nothing selected: put the field back, delete nothing. */
     fun onDeleteSwipeCancel() {
         captureSwipeStart?.let { start ->
@@ -45726,6 +45744,7 @@ open class WMKeyboardService : InputMethodService() {
             onSelectAll = ::onDeleteSwipeSelectAll,
             onSelectLines = ::onDeleteSwipeSelectLines,
             onCommit = ::onDeleteSwipeCommit,
+            onKeep = ::onDeleteSwipeKeep,
             onCancel = ::onDeleteSwipeCancel,
             onShiftForward = ::onDeleteShiftForward,
         )

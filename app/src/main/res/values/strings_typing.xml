@@ -1195,6 +1195,9 @@
 
     <string name="typing_backspace_preview_title">Show what you will delete</string>
     <string name="typing_backspace_preview_subtitle">Select the text as you swipe, and delete it when you lift your finger</string>
+    <string name="typing_backspace_selects_title">Swipe selects instead of deleting</string>
+    <string name="typing_backspace_selects_subtitle">The swipe highlights text, and Backspace then deletes it</string>
+    <string name="typing_backspace_selects_info">With this on, swiping left on Backspace selects text back from the cursor, a word or a character at a time, and lifting your finger leaves it selected instead of deleting it. Swipe back to the right to select less. Then press Backspace to delete the selection, type to replace it, or use the selection tools on it. The swipe on the forward delete key selects ahead of the cursor the same way. In a field that can\'t show a selection the swipe does nothing. Off by default.</string>
     <string name="typing_backspace_preview_info">The swipe highlights the text it is about to delete instead of deleting as it goes, so you can see how far you have got. Swipe back to the right to give text back, and lift your finger to delete what is left highlighted. Turn this off to delete each word or character the moment you swipe past it.</string>
 
     <string name="typing_backspace_up_clears_title">Swipe up to clear all</string>

@@ -58,6 +58,12 @@ class DeleteSwipeCallbacks(
     val onSelectLines: (lines: Int, forward: Boolean) -> Int = { _, _ -> -1 },
     /** The finger lifted with a preview up: delete what it selected. */
     val onCommit: () -> Unit = {},
+    /**
+     * The finger lifted from a swipe that only selects (**Swipe selects
+     * instead of deleting**): end the swipe and leave its selection in the
+     * field, for Backspace to delete or a letter to replace.
+     */
+    val onKeep: () -> Unit = {},
     /** The gesture ended with nothing selected: drop the preview, delete nothing. */
     val onCancel: () -> Unit = {},
     /**

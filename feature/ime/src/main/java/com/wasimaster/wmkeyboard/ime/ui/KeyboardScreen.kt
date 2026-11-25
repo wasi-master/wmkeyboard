@@ -34466,6 +34466,11 @@ private fun Modifier.pointerInputKey(
             }
             val slopPx = 10.dp.toPx()
             val byWord = textEditing.backspaceSwipeUnit == BackspaceSwipeUnit.WORD
+            // The swipe selects and the lift leaves the selection standing, for
+            // the next key to act on: Backspace deletes it, a letter replaces it.
+            // Nothing is deleted by the swipe itself, so where no selection can
+            // be shown it does nothing rather than deleting as it goes.
+            val selectsOnly = textEditing.backspaceSwipeSelects
             // ⌦ runs the identical machine pointed the other way (issue #226):
             // the finger travels the way the deletion travels, so every step is
             // measured along [dir] and nothing else about the gesture forks.
@@ -34559,7 +34564,9 @@ private fun Modifier.pointerInputKey(
                 // Whether the field is showing what the release will delete.
                 // Starts as the setting and can only be given up, when an
                 // editor turns out not to be able to hold a selection.
-                var previewing = textEditing.backspaceSwipePreview
+                var previewing = textEditing.backspaceSwipePreview || selectsOnly
+                // A select-only swipe in a field that cannot hold a selection.
+                var selectRefused = false
                 // X the next step is measured from: the press point until the
                 // first unit goes, then walked one step at a time.
                 var anchorX = down.position.x
@@ -34728,7 +34735,7 @@ private fun Modifier.pointerInputKey(
                             // How far the finger has gone *the way the deletion
                             // goes* since the anchor; negative is a drag back.
                             fun travelled(): Float = (change.position.x - anchorX) * dir
-                            while (travelled() >= stepPx(taken)) {
+                            while (!selectRefused && travelled() >= stepPx(taken)) {
                                 // Held over the whole iteration: the anchor only
                                 // walks for a step that was actually taken, so a
                                 // swipe stopped by the start of the text does not
@@ -34750,7 +34757,12 @@ private fun Modifier.pointerInputKey(
                                     // No preview to be had here (a panel search owns
                                     // backspace, or the editor will not say where its
                                     // cursor is). Bank what is already selected and
-                                    // delete outright from here on.
+                                    // delete outright from here on; a swipe that only
+                                    // selects stops where it is instead.
+                                    if (selectsOnly) {
+                                        selectRefused = true
+                                        break
+                                    }
                                     if (taken > 0) deleteSwipe.onCommit()
                                     previewing = false
                                     taken = 0
@@ -34812,6 +34824,7 @@ private fun Modifier.pointerInputKey(
                     clearing -> Unit
                     // The lift is what deletes, once the finger has had the
                     // whole drag to change its mind.
+                    swiping && previewing && taken > 0 && selectsOnly -> deleteSwipe.onKeep()
                     swiping && previewing && taken > 0 -> deleteSwipe.onCommit()
                     // Dragged out and all the way back: the field goes back to
                     // how the swipe found it, and nothing is deleted.

@@ -145,6 +145,7 @@ A decoration: what you type floats up out of the keyboard and fades. **Correctio
 | Swipe to delete | Toggle | On | always |
 | Swipe deletes | Words / Characters | Words | Swipe to delete on |
 | Show what you will delete | Toggle | On | Swipe to delete on |
+| Swipe selects instead of deleting | Toggle | Off | Swipe to delete on |
 | Word delete distance | Slider, 32–120 dp | 72 dp | Swipe deletes = Words |
 | Character delete distance | Slider, 8–48 dp | 20 dp | Swipe deletes = Characters |
 | Swipe up to clear all | Toggle | Off | always |
@@ -156,7 +157,7 @@ A decoration: what you type floats up out of the keyboard and fades. **Correctio
 | Drag from Shift and Ctrl | Toggle | On | always |
 | Backspace as a key press on web pages | Toggle | On | always |
 
-A leftward drag on <KeyCap>⌫</KeyCap> deletes more than the one character a press does, and **Swipe deletes** sets what one step of it takes off. **Word delete distance** is how far you drag before the first word goes, with later words coming off faster on a fixed curve, so that one number tunes the whole gesture; **Character delete distance** is the flat cost of one character, with no curve. **Show what you will delete** makes the swipe select the text and delete it when you lift your finger, so a swipe that went too far can be dragged back.
+A leftward drag on <KeyCap>⌫</KeyCap> deletes more than the one character a press does, and **Swipe deletes** sets what one step of it takes off. **Word delete distance** is how far you drag before the first word goes, with later words coming off faster on a fixed curve, so that one number tunes the whole gesture; **Character delete distance** is the flat cost of one character, with no curve. **Show what you will delete** makes the swipe select the text and delete it when you lift your finger, so a swipe that went too far can be dragged back. **Swipe selects instead of deleting** (since 0.6.8) keeps the selection when you lift instead of deleting it: press <KeyCap>⌫</KeyCap> to delete it, type over it, or use the selection tools on it.
 
 **Swipe up to clear all** selects everything in the text box when you swipe straight up on <KeyCap>⌫</KeyCap>, and deletes it when you lift. Bring your finger back down first and nothing is deleted. See [Swiping up to clear everything](/typing/gestures/#swiping-up-to-clear-everything).
 

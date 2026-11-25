@@ -8124,6 +8124,13 @@ data class TextEditingSettings(
      */
     val backspaceSwipePreview: Boolean = true,
     /**
+     * The swipe only selects: it grows a selection back from the cursor as
+     * the preview does, and the lift leaves it there instead of deleting it,
+     * for Backspace to delete or a letter to replace. Off by default, which
+     * keeps the swipe a delete gesture.
+     */
+    val backspaceSwipeSelects: Boolean = false,
+    /**
      * How far a backspace swipe drags per character, when
      * [backspaceSwipeUnit] is [BackspaceSwipeUnit.CHARACTER].
      *
@@ -14516,6 +14523,7 @@ class SettingsRepository(private val context: Context) {
         private val BACKSPACE_WORD_STEP_DP = intPreferencesKey("backspace_word_step_dp")
         private val BACKSPACE_SWIPE_UNIT = stringPreferencesKey("backspace_swipe_unit")
         private val BACKSPACE_SWIPE_PREVIEW = booleanPreferencesKey("backspace_swipe_preview")
+        private val BACKSPACE_SWIPE_SELECTS = booleanPreferencesKey("backspace_swipe_selects")
         private val BACKSPACE_CHAR_STEP_DP = intPreferencesKey("backspace_char_step_dp")
         private val DELETE_HOLD_DELETES_WORDS = booleanPreferencesKey("delete_hold_deletes_words")
         private val FORWARD_DELETE_SWIPE = booleanPreferencesKey("forward_delete_swipe")
@@ -17513,6 +17521,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.textEditing.backspaceSwipeUnit,
             backspaceSwipePreview = p[BACKSPACE_SWIPE_PREVIEW]
                 ?: defaults.textEditing.backspaceSwipePreview,
+            backspaceSwipeSelects = p[BACKSPACE_SWIPE_SELECTS]
+                ?: defaults.textEditing.backspaceSwipeSelects,
             backspaceCharStepDp = p[BACKSPACE_CHAR_STEP_DP]
                 ?: defaults.textEditing.backspaceCharStepDp,
             deleteHoldDeletesWords = p[DELETE_HOLD_DELETES_WORDS]
@@ -19650,6 +19660,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setBackspaceSwipePreview(value: Boolean) =
         editPrefs { it[BACKSPACE_SWIPE_PREVIEW] = value }
+
+    suspend fun setBackspaceSwipeSelects(value: Boolean) =
+        editPrefs { it[BACKSPACE_SWIPE_SELECTS] = value }
 
     suspend fun setDeleteHoldDeletesWords(value: Boolean) =
         editPrefs { it[DELETE_HOLD_DELETES_WORDS] = value }

@@ -971,6 +971,15 @@ internal fun KeyPressDeleteSettings(
                     default = SettingsDefaults.textEditing.backspaceSwipePreview,
                 ) { scope.launch { repository.setBackspaceSwipePreview(it) } }
             }
+            item(level = SettingLevel.ADVANCED) {
+                ToggleSetting(
+                    R.string.typing_backspace_selects_title,
+                    stringResource(R.string.typing_backspace_selects_subtitle),
+                    settings.watch { it.textEditing.backspaceSwipeSelects },
+                    info = stringResource(R.string.typing_backspace_selects_info),
+                    default = SettingsDefaults.textEditing.backspaceSwipeSelects,
+                ) { scope.launch { repository.setBackspaceSwipeSelects(it) } }
+            }
             if (swipeUnit == BackspaceSwipeUnit.WORD) {
                 item(level = SettingLevel.ADVANCED) {
                     SliderSetting(

@@ -941,6 +941,7 @@ private fun SearchStrings.keypressDeleteRows(): List<SettingsSearchEntry> {
         row(R.string.typing_backspace_swipe_title, R.string.typing_backspace_swipe_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.typing_backspace_unit_title, R.string.typing_backspace_unit_subtitle),
         row(R.string.typing_backspace_preview_title, R.string.typing_backspace_preview_subtitle),
+        row(R.string.typing_backspace_selects_title, R.string.typing_backspace_selects_subtitle),
         row(R.string.typing_backspace_step_title, R.string.typing_backspace_step_subtitle),
         row(R.string.typing_backspace_char_step_title, R.string.typing_backspace_char_step_subtitle),
         row(R.string.typing_backspace_up_clears_title, R.string.typing_backspace_up_clears_subtitle),

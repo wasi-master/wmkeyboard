@@ -248,6 +248,10 @@ The same goes for <KeyCap>⌦</KeyCap>'s swipe, which before 0.6.7 deleted as it
 
 Turn the setting off to get the older behaviour, where each word or character goes the moment the swipe passes it. Deleted text cannot be given back, so dragging right only re-anchors the gesture, and the next word costs the full first-word distance again instead of picking up where the shrinking curve left off. A few editors cannot hold a selection while the keyboard drives it, and a search box drawn by the keyboard itself (emoji search, for one) has no cursor to select with. The swipe falls back to deleting as it goes in both cases, with no setting to change. It does the same over a word that is still being converted, such as pinyin or Vietnamese Telex, so what is left of the word is still read as one.
 
+### Selecting with the swipe instead of deleting
+
+**Swipe selects instead of deleting** (off by default, since 0.6.8) makes the same swipe a way to select text. It grows the highlight back from the cursor a word or a character at a time, exactly as **Show what you will delete** does, and dragging back to the right selects less. When you lift your finger the text stays selected and nothing is deleted. Press <KeyCap>⌫</KeyCap> to delete it, type to replace it, or use the selection actions bar on it: copy, cut, translate and the rest. The swipe on <KeyCap>⌦</KeyCap> selects ahead of the cursor the same way. In a box that can't show a selection, such as emoji search, the swipe does nothing while this is on, since deleting there is what you turned off.
+
 ### Swiping up to clear everything
 
 **Swipe up to clear all** (off by default) empties the whole text box from a swipe straight up on <KeyCap>⌫</KeyCap>. Once your finger has gone as far up as the first word of a sideways swipe costs (the **Word delete distance**, 72&nbsp;dp by default), every bit of text in the box is selected, and lifting deletes it. Bring your finger back down below halfway before you lift and the selection goes away with nothing deleted. The text is always selected first, whatever **Show what you will delete** is set to, because a whole message is a lot to lose to a stray flick.
@@ -520,6 +524,7 @@ A printable table of every gesture on one page lives at [Gesture cheat sheet](/r
 | Swipe to delete (backspace) | On |
 | Swipe deletes | Words |
 | Show what you will delete | On |
+| Swipe selects instead of deleting | Off |
 | Word delete distance | 72&nbsp;dp (32–120&nbsp;dp) |
 | Character delete distance | 20&nbsp;dp (8–48&nbsp;dp) |
 | Swipe on forward delete | On |
