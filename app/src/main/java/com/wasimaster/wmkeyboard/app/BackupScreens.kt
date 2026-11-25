@@ -782,8 +782,31 @@ internal fun SettingsGroupScope.sectionRows(
     @StringRes secretsSubtitle: Int = R.string.backup_include_secrets_subtitle,
     /** Only the sections sync may carry: for the sync list. */
     syncOnly: Boolean = false,
+    /**
+     * Ticks every section, or none (#1529), from one button above the list.
+     * The API-key switch is not one of them: keys go in only when asked for.
+     */
+    onSetAll: ((Set<ConfigBackup.Section>) -> Unit)? = null,
     onToggle: (ConfigBackup.Section, Boolean) -> Unit,
 ) {
+    if (onSetAll != null) {
+        val offered = SECTION_ROWS.filter { !syncOnly || it.section.syncable }.mapTo(LinkedHashSet()) { it.section }
+        item {
+            val allTicked = settings.watch { s -> sections(s).containsAll(offered) }
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                TextButton(onClick = { onSetAll(if (allTicked) emptySet() else offered) }) {
+                    Text(
+                        stringResource(
+                            if (allTicked) R.string.backup_android_select_none_action else R.string.backup_android_select_all_action,
+                        ),
+                    )
+                }
+            }
+        }
+    }
     for (row in SECTION_ROWS) {
         if (syncOnly && !row.section.syncable) continue
         item {
@@ -2050,6 +2073,7 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
             } else {
                 R.string.backup_secrets_unprotected_subtitle
             },
+            onSetAll = { all -> scope.launch { repository.setAutoBackupSections(all) } },
         ) { section, on ->
             scope.launch {
                 val current = repository.settings.first().autoBackup.sectionSet
@@ -2277,6 +2301,7 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
             defaults = SyncSettings.DEFAULT_SECTIONS,
             secrets = null,
             syncOnly = true,
+            onSetAll = { all -> scope.launch { repository.setSyncSections(all) } },
         ) { section, on ->
             scope.launch {
                 val current = repository.settings.first().autoBackup.sync.sectionSet
@@ -2408,6 +2433,7 @@ internal fun BackupContentsSettings(repository: SettingsRepository, settings: Li
             secrets = { s: KeyboardSettings -> s.autoBackup.includeSecrets } to
                 { on -> scope.launch { repository.setAutoBackupIncludeSecrets(on) } },
             settingsIncluded = settingsIncluded,
+            onSetAll = { all -> scope.launch { repository.setExportSections(all) } },
         ) { section, on ->
             scope.launch {
                 val current = repository.settings.first().autoBackup.exportSectionSet

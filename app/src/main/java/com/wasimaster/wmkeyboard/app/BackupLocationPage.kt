@@ -257,6 +257,7 @@ internal fun BackupLocationSettings(repository: SettingsRepository, settings: Li
                 } else {
                     R.string.backup_secrets_unprotected_subtitle
                 },
+                onSetAll = { all -> contents { c -> c.copy(sections = all.mapTo(LinkedHashSet()) { it.id }) } },
             ) { section, on ->
                 contents { c ->
                     val ids = if (on) c.sections + section.id else c.sections - section.id
