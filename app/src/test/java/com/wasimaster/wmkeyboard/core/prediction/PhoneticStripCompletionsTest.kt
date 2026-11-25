@@ -48,6 +48,30 @@ class PhoneticStripCompletionsTest {
         assertFalse("বাংলাদেশ" in engine(flat).strip("bangl"))
     }
 
+    /** #1557: দারুণ typed again and again completes from "dar", list or no list. */
+    @Test
+    fun `a word the user keeps typing completes right after the head`() {
+        val index = BengaliPhoneticIndex(listOf("দার" to 4000, "দারা" to 3000, "দারি" to 2000))
+        val lexicon = UserLexicon(null).apply { learnWord("দারুণ", count = 3, langId = "bn") }
+        val engine = SuggestionEngine(Trie(), index, lexicon).apply {
+            primaryLanguageId = "bn"
+            englishSources = false
+        }
+        val strip = engine.strip("dar")
+        assertEquals(strip.toString(), 1, strip.indexOf("দারুণ"))
+    }
+
+    @Test
+    fun `the user's own words complete on a flat list too`() {
+        val flat = BengaliPhoneticIndex(listOf("বাংলা" to 1, "বাংলাদেশ" to 1))
+        val lexicon = UserLexicon(null).apply { learnWord("বাংলাদেশ", count = 2, langId = "bn") }
+        val engine = SuggestionEngine(Trie(), flat, lexicon).apply {
+            primaryLanguageId = "bn"
+            englishSources = false
+        }
+        assertTrue("বাংলাদেশ" in engine.strip("bangl"))
+    }
+
     @Test
     fun `off when asked for none`() {
         val engine = engine(bangla).apply { phoneticCompletionCount = 0 }

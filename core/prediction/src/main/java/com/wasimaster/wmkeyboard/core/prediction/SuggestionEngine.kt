@@ -3972,6 +3972,13 @@ class SuggestionEngine(
         /** How many words the buffer is the start of a phonetic strip offers. */
         private const val PHONETIC_COMPLETIONS = 2
 
+        /**
+         * Uses that make a learned word the user's own on a phonetic strip
+         * (#1557): typed twice, or added by hand, and it completes right after
+         * the head. Once is every word ever committed.
+         */
+        private const val PHONETIC_OWN_WORD_MIN_COUNT = 2
+
         /** Keys typed before a phonetic strip offers words the buffer begins. */
         private const val PHONETIC_COMPLETION_MIN_KEYS = 2
 
@@ -6000,7 +6007,14 @@ class SuggestionEngine(
         if (phoneticCandidateLists[backend.scheme.languageId] != PhoneticCandidateList.STRIP) {
             val completions = phoneticCompletions(backend, composing, ours, previousWord, previousWord2)
             if (completions.isEmpty()) return ours
-            return (ours.take(1) + byFrequency(backend.index, ours.drop(1), completions)).distinct().take(limit)
+            // #1557: a word the user has typed again and again (or added by
+            // hand) comes straight after the head, the way a learned English
+            // word completes from its first letters. Ranked by the list
+            // alone it waited behind every reading of the buffer, and a word
+            // the list lacks never got past them at all.
+            val own = completions.filter { userLexicon.isEstablished(it, PHONETIC_OWN_WORD_MIN_COUNT) }
+            val rest = if (own.isEmpty()) completions else completions.filterNot { it in own }
+            return (ours.take(1) + own + byFrequency(backend.index, ours.drop(1), rest)).distinct().take(limit)
         }
         val depth = maxOf(limit, PHONETIC_CANDIDATE_STRIP_DEPTH)
         val avro = PhoneticCandidates.build(backend, composing, depth, avroDesktop, ::suppressed)
@@ -6030,8 +6044,9 @@ class SuggestionEngine(
         if (count <= 0 || readings.isEmpty() || composing.length < PHONETIC_COMPLETION_MIN_KEYS) return emptyList()
         val index = backend.index
         // A flat list (every word at one count) has nothing to rank by: its
-        // completions would come in word order, a guess, not an offer.
-        if (index.maxFrequency <= 1) return emptyList()
+        // completions would come in word order, a guess, not an offer. The
+        // user's own words still have their counts (#1557).
+        val listRanked = index.maxFrequency > 1
         val prefixes = LinkedHashSet<String>()
         prefixes.add(backend.scheme.transliterate(composing))
         prefixes.add(readings.first())
@@ -6042,9 +6057,11 @@ class SuggestionEngine(
             if (prefix.length < PHONETIC_COMPLETION_MIN_LETTERS) continue
             // A list may hold ড় ঢ় য় either way; ask with both.
             for (form in listOf(prefix, bengaliPrecomposed(prefix), bengaliDecomposed(prefix)).distinct()) {
-                for (word in index.completions(form, NATIVE_COMPLETION_POOL)) {
-                    if (word.length <= form.length) continue
-                    scores.merge(word, ln(1.0 + index.frequencyOf(word)) / scale, ::maxOf)
+                if (listRanked) {
+                    for (word in index.completions(form, NATIVE_COMPLETION_POOL)) {
+                        if (word.length <= form.length) continue
+                        scores.merge(word, ln(1.0 + index.frequencyOf(word)) / scale, ::maxOf)
+                    }
                 }
                 for (learned in userLexicon.complete(WordKey.of(form), NATIVE_COMPLETION_POOL)) {
                     if (learned.word.length <= form.length) continue
