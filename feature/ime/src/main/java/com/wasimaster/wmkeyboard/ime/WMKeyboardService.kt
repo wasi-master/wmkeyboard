@@ -7370,6 +7370,7 @@ open class WMKeyboardService : InputMethodService() {
                 com.wasimaster.wmkeyboard.ime.ui.LocalSplitGapReport provides ::onSplitGaps,
                 com.wasimaster.wmkeyboard.ime.ui.LocalClipChipDelete provides ::onClipChipDelete,
                 com.wasimaster.wmkeyboard.ime.ui.LocalClipStripActions provides clipStripActions,
+                com.wasimaster.wmkeyboard.ime.ui.LocalTuckedClips provides tuckedClips,
                 com.wasimaster.wmkeyboard.ime.ui.LocalScreenCapture provides ::onCaptureScreen,
                 com.wasimaster.wmkeyboard.ime.ui.LocalDocScanPages provides ::onDocScanPages,
                 com.wasimaster.wmkeyboard.ime.ui.LocalSearchActions provides searchActions,
@@ -62081,8 +62082,36 @@ open class WMKeyboardService : InputMethodService() {
         val ttlSeconds = _uiState.value.settings.clipboard.pasteChipSeconds
         clipboardSuggestionJob = if (ttlSeconds <= 0) null else serviceScope.launch {
             delay(ttlSeconds * 1000L)
+            val expired = _uiState.value.clipboardSuggestion
             _uiState.update { it.copy(clipboardSuggestion = null) }
+            // Run out rather than pasted or dismissed: tucked at the strip's
+            // end when the user asked for that (#1565).
+            if (expired != null && expired.id == item.id) tuckClip(expired)
         }
+    }
+
+    /** Expired paste chips waiting at the strip's end (#1565); see [com.wasimaster.wmkeyboard.ime.ui.TuckedClips]. */
+    private val tuckedClips by lazy { com.wasimaster.wmkeyboard.ime.ui.TuckedClips(onRestore = ::onTuckedClipRestore) }
+
+    /** Tucks [clip] at the strip's end, with the setting on; never a password or a code. */
+    private fun tuckClip(clip: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
+        val settings = _uiState.value.settings.clipboard
+        if (!settings.tuckExpiredChip || !settings.suggestRecent || clip.sensitive) return
+        tuckedClips.tuck(clip)
+    }
+
+    /**
+     * A tucked clip tapped (#1565): back on the strip as the paste chip, with
+     * a fresh timer, and the chip it replaces tucked in its place. One no
+     * longer in the history just leaves the stack.
+     */
+    private fun onTuckedClipRestore(clip: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
+        tuckedClips.remove(clip.id)
+        if (!isClipboardAccessible()) return
+        val live = clipboardStore.items().firstOrNull { it.id == clip.id } ?: return
+        vibrate()
+        _uiState.value.clipboardSuggestion?.takeIf { it.id != live.id }?.let(::tuckClip)
+        showClipboardSuggestion(live)
     }
 
     /**

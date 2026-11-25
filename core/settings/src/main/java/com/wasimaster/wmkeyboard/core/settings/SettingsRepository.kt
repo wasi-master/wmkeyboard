@@ -9418,6 +9418,12 @@ data class ClipboardSettings(
      */
     val compactPasteChip: Boolean = false,
     /**
+     * A paste chip whose time runs out is tucked into a small icon at the
+     * strip's end instead of going (#1565): a tap brings it back. Several
+     * stack up, newest on top. Off by default.
+     */
+    val tuckExpiredChip: Boolean = false,
+    /**
      * The fragments strip over the history is folded away (#612), by the ✕ on
      * its caption; a scissors button beside the search brings it back. Kept,
      * so the strip stays away until it is asked for. Off by default.
@@ -14039,6 +14045,7 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_PLAIN_LETTERS = booleanPreferencesKey("clipboard_plain_letters")
         private val CLIPBOARD_RECENT_CHIPS = intPreferencesKey("clipboard_recent_chips")
         private val CLIPBOARD_COMPACT_PASTE_CHIP = booleanPreferencesKey("clipboard_compact_paste_chip")
+        private val CLIPBOARD_TUCK_EXPIRED_CHIP = booleanPreferencesKey("clipboard_tuck_expired_chip")
         private val CLIPBOARD_PANEL_EXTRA_HEIGHT_DP = intPreferencesKey("clipboard_panel_extra_height_dp")
         private val OTP_CHIP_ENABLED = booleanPreferencesKey("otp_chip_enabled")
         // Stored under its old name: the test behind it grew from "number
@@ -16430,6 +16437,7 @@ class SettingsRepository(private val context: Context) {
             recentChips = p[CLIPBOARD_RECENT_CHIPS]?.coerceIn(1, ClipRecentChipsMax)
                 ?: defaults.clipboard.recentChips,
             compactPasteChip = p[CLIPBOARD_COMPACT_PASTE_CHIP] ?: defaults.clipboard.compactPasteChip,
+            tuckExpiredChip = p[CLIPBOARD_TUCK_EXPIRED_CHIP] ?: defaults.clipboard.tuckExpiredChip,
             panelExtraHeightDp = p[CLIPBOARD_PANEL_EXTRA_HEIGHT_DP]?.coerceIn(ClipPanelExtraHeightRange)
                 ?: defaults.clipboard.panelExtraHeightDp,
         )
@@ -27397,6 +27405,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardCompactPasteChip(value: Boolean) =
         editPrefs { it[CLIPBOARD_COMPACT_PASTE_CHIP] = value }
+
+    suspend fun setClipboardTuckExpiredChip(value: Boolean) =
+        editPrefs { it[CLIPBOARD_TUCK_EXPIRED_CHIP] = value }
 
     suspend fun setClipboardPanelExtraHeightDp(value: Int) =
         editPrefs { it[CLIPBOARD_PANEL_EXTRA_HEIGHT_DP] = value.coerceIn(ClipPanelExtraHeightRange) }

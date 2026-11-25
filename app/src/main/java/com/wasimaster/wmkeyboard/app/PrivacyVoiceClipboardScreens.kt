@@ -1615,6 +1615,16 @@ internal fun ClipboardChipsSettings(
             ) { scope.launch { repository.setClipboardCompactPasteChip(it) } }
         }
         item(visible = suggestRecent, level = SettingLevel.STANDARD) {
+            // #1565: a chip whose time ran out waits at the strip's end.
+            ToggleSetting(
+                R.string.clipboard_tuck_expired_chip_title,
+                stringResource(R.string.clipboard_tuck_expired_chip_subtitle),
+                settings.watch { it.clipboard.tuckExpiredChip },
+                info = stringResource(R.string.clipboard_tuck_expired_chip_info),
+                default = SettingsDefaults.clipboard.tuckExpiredChip,
+            ) { scope.launch { repository.setClipboardTuckExpiredChip(it) } }
+        }
+        item(visible = suggestRecent, level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.clipboard_suggest_codes_title,
                 subtitle = stringResource(R.string.clipboard_suggest_codes_subtitle),

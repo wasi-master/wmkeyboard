@@ -317,6 +317,9 @@
     <string name="ime_clip_chip_code_badge">Code</string>
     <string name="ime_clip_chip_screenshot">Screenshot</string>
     <string name="ime_clip_chip_image">Copied image</string>
+    <string name="ime_tucked_clip_desc">Bring back the copy: %1$s</string>
+    <string name="ime_tucked_clip_picture">Picture</string>
+    <string name="ime_tucked_clip_file">File</string>
     <string name="ime_clip_chip_item">Copied item</string>
     <string name="ime_clip_chip_dismiss_desc">Hide the copied text</string>
     <!-- Accessibility label of a press and hold on a copy's chip on the strip (#612). -->

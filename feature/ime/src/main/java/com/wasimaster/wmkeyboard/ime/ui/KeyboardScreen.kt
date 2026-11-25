@@ -5006,6 +5006,8 @@ private fun TopBar(
                     if (aiAfterWords) aiChip()
                 }
             }
+            // Paste chips whose time ran out, waiting at the strip's end (#1565).
+            TuckedClipsStack(state)
             // The buttons the user put at the strip's far end, after the words.
             StripTools(state, toolsRowVisible, drag, onToolTap, onPinnedTools, atEnd = true) {
                 onPanelChange(PanelMode.TOOLBOX)
