@@ -8935,8 +8935,8 @@ class SuggestionEngine(
         // The list's commonest spelling, before anything the user's own case
         // memory says: in such a language a capital is a letter, and the one
         // vote the memory keeps per key cannot tell two words apart.
-        if (caseExact) caseSpellings(key).firstOrNull()?.let { return it }
-        userLexicon.displayOf(key)?.let { return it }
+        if (caseExact) caseSpellings(key).firstOrNull()?.let { return own }
+        userLexicon.displayOf(key)?.let { own -> if (!shoutedEverydayWord(key, own)) return own }
         // Pinned with no spelling on file is pinned in small letters: the
         // store keeps no shape for "ok", so nothing else may give it one (#1043).
         if (userLexicon.isCasePinned(key)) return word
@@ -8957,6 +8957,23 @@ class SuggestionEngine(
      * a name added on purpose ("Wasi", "Boston") is no list's word and keeps
      * its capital.
      */
+    /**
+     * Whether [own], the personal dictionary's spelling of [key], is a word
+     * the lists write in small letters held in capitals throughout ("FOR"),
+     * with nobody having kept those capitals on purpose (#1433).
+     *
+     * A shout is never a spelling of an everyday word: it is caps lock, a
+     * heading, or a stroke drawn twice through shift, and every glide and
+     * suggestion of the word then came out shouted, mid-sentence or not. The
+     * card's Keep these capitals switch turned off left it there for good,
+     * since a glide casts no vote to wear it down. So it is only honoured
+     * pinned; an acronym the lists know ("FBI") is the lists' capital, read
+     * after this, and a name of the user's own is no list's word.
+     */
+    private fun shoutedEverydayWord(key: String, own: String): Boolean =
+        own.codePointCount(0, own.length) > 1 && lettersAllUpper(own) &&
+            !userLexicon.isCasePinned(key) && spellsInLowerCase(key)
+
     private fun platformCapital(key: String, listed: String?): String? =
         systemWordCases[key]?.takeIf { it == listed || !inDictionaries(key, includePlatform = false) }
 

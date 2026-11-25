@@ -17592,6 +17592,7 @@ open class WMKeyboardService : InputMethodService() {
         if (end != null) ic.setSelection((end - next.length).coerceAtLeast(0), end)
         ic.endBatchEdit()
         syncShiftToCase(next)
+        forgetCapitalsLowered(next)
         return true
     }
 
@@ -17651,7 +17652,29 @@ open class WMKeyboardService : InputMethodService() {
         ic.endBatchEdit()
         invalidateExpectedSelection()
         syncShiftToCase(next)
+        forgetCapitalsLowered(next)
         return true
+    }
+
+    /**
+     * A word the user has just put into small letters by hand, with Shift
+     * (#1433): the capitals the personal dictionary had remembered for it are
+     * dropped, so the next glide or suggestion of the word comes out the way
+     * it was just corrected. One trusted lower-case sighting was a single vote
+     * against as many as eight, and a glide casts none, so a remembered
+     * "FOR" outlived every correction. A spelling the user pinned is theirs
+     * and stays; a word the dictionary does not hold has nothing to forget.
+     */
+    private fun forgetCapitalsLowered(word: String) {
+        if (!::userLexicon.isInitialized) return
+        if (word.isEmpty() || word != word.lowercase() || !word.all { isComposingWordChar(it) }) return
+        val stored = userLexicon.displayOf(word) ?: return
+        if (stored == word || userLexicon.isCasePinned(word)) return
+        // A case-only respelling settles the spelling and pins it; released
+        // straight after, the word is back under the vote, starting from
+        // small letters.
+        if (userLexicon.rename(stored, word)) userLexicon.pinCase(word, false)
+        refreshSuggestions()
     }
 
     /**
