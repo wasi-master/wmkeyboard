@@ -4,16 +4,21 @@ import android.graphics.Bitmap
 import android.os.Build
 import com.wasimaster.wmkeyboard.core.media.AnimatedWebpEncoder
 import com.wasimaster.wmkeyboard.core.media.AnimatedWebpWriter
+import com.wasimaster.wmkeyboard.core.media.GifEncoder
 import com.wasimaster.wmkeyboard.core.media.MediaMime
 import java.io.ByteArrayOutputStream
 import java.io.File
+import kotlin.math.exp
+import kotlin.math.pow
 
 /**
  * Turns a [DynRenderer.Prepared] into the file that is sent.
  *
- * Stickers go out as WebP on the 512 px square WhatsApp asks for: a still
- * under 100 KB, an animation under 500 KB, which is what lets them travel as
- * `image/webp.wasticker` and show as stickers rather than photos. Memes with
+ * Stickers go out on the 512 px square WhatsApp asks for. A still is a WebP
+ * under 100 KB. A moving one is made as the field's [Format] says: for
+ * WhatsApp an animated WebP under 500 KB, which is what lets it travel as
+ * `image/webp.wasticker` and show as a sticker rather than a photo; for an
+ * app that only plays GIFs, a GIF, with no size to meet. Memes with
  * a photo in them go out as plain images (PNG, or JPEG when large), since
  * they are pictures rather than stickers.
  *
@@ -34,8 +39,27 @@ object DynEncoder {
     private const val MAX_FRAMES_FULL = 150
     private const val MAX_FRAMES_WRAPPED = 75
 
+    /** An animated WebP for a field with no limit of its own still has to travel. */
+    const val LOOSE_BUDGET = 1024 * 1024
+
+    /** What [sticker]'s progress counts up to. */
+    const val PROGRESS_TOTAL = 1000
+
     private val STILL_LADDER = intArrayOf(92, 82, 70, 55, 40)
-    private val ANIMATED_LADDER = intArrayOf(80, 62, 45, 30)
+
+    private val STEPS = listOf(
+        Step(25f, 80), Step(25f, 66), Step(20f, 60), Step(16f, 55),
+        Step(12f, 50), Step(12f, 42), Step(10f, 34), Step(8f, 26),
+    )
+    private const val MAX_ATTEMPTS = 3
+
+    /** Each pass's share of the progress bar: the first most of it. */
+    private val SLICES = floatArrayOf(0f, 0.6f, 0.9f, 1f)
+
+    /** Aim this far under the budget, since the estimate is rough. */
+    private const val SAFETY = 0.85f
+    private const val FRAME_EXPONENT = 0.8f
+    private const val QUALITY_SLOPE = 0.02f
 
     /** Takes frames and returns the animated file. */
     interface FrameSink {
@@ -77,20 +101,57 @@ object DynEncoder {
     data class Output(val file: File, val mime: String, val animated: Boolean)
 
     /**
+     * What a moving sticker is written as, which depends on the field it is
+     * going to (the keyboard works that out from what the field takes).
+     * A still one is a still WebP whichever this is.
+     */
+    enum class Format(val budget: Int) {
+        /** WhatsApp's sticker type: animated WebP, under its 500 KB. */
+        WEBP_STICKER(ANIMATED_BUDGET),
+
+        /** Plain animated WebP, for a field that takes WebP but no GIF. */
+        WEBP(LOOSE_BUDGET),
+
+        /**
+         * A GIF, for a field that takes one and not WhatsApp's type. Telegram
+         * and Messenger take `image/webp` and show one frame of an animated
+         * one; a GIF moves in both. Made straight from the frames in one pass,
+         * with no size to aim for: those apps take big GIFs.
+         */
+        GIF(0),
+    }
+
+    /**
      * Writes [prepared] as a sticker to [target] (the extension is set
-     * here): animated when it moves and [animated] allows, else the poster
-     * frame. Null when encoding failed. [onProgress] hears each animated
-     * frame drawn, out of how many there are; a step down in quality starts
-     * the count again.
+     * here): animated when it moves and [animated] allows, as [format] says,
+     * else the poster frame. Null when encoding failed. [onProgress] hears
+     * how far it has got out of [PROGRESS_TOTAL], only ever forwards, even
+     * when a WebP is made again smaller.
      */
     fun sticker(
         prepared: DynRenderer.Prepared,
         target: File,
         animated: Boolean,
+        format: Format = Format.WEBP_STICKER,
         onProgress: (done: Int, total: Int) -> Unit = { _, _ -> },
     ): Output? {
         if (animated && prepared.animated) {
-            encodeAnimated(prepared, onProgress)?.let { bytes ->
+            var reported = 0
+            val progress: (Float) -> Unit = { fraction ->
+                val done = (fraction.coerceIn(0f, 1f) * PROGRESS_TOTAL).toInt()
+                if (done > reported) {
+                    reported = done
+                    onProgress(done, PROGRESS_TOTAL)
+                }
+            }
+            if (format == Format.GIF) {
+                encodeGif(prepared, progress)?.let { bytes ->
+                    val file = File(target.parentFile, target.nameWithoutExtension + ".gif")
+                    file.writeBytes(bytes)
+                    return Output(file, MediaMime.GIF, animated = true)
+                }
+            }
+            encodeAnimated(prepared, if (format == Format.GIF) Format.WEBP.budget else format.budget, progress)?.let { bytes ->
                 val file = File(target.parentFile, target.nameWithoutExtension + ".webp")
                 file.writeBytes(bytes)
                 return Output(file, MediaMime.WEBP, animated = true)
@@ -145,28 +206,84 @@ object DynEncoder {
         return last
     }
 
-    private fun encodeAnimated(prepared: DynRenderer.Prepared, onProgress: (Int, Int) -> Unit): ByteArray? {
+    /**
+     * The animated WebP, under [budget] when it can be: at most
+     * [MAX_ATTEMPTS] passes. The first is at the full rate and a good
+     * quality; when that comes out too big, its size says roughly what the
+     * next one will weigh at a lower rate and quality ([estimate]), and the
+     * next pass goes straight to the first step expected to fit, instead of
+     * walking down one quality at a time. Each pass fills its own share of
+     * the progress, so the bar keeps going forwards.
+     */
+    private fun encodeAnimated(prepared: DynRenderer.Prepared, budget: Int, onProgress: (Float) -> Unit): ByteArray? {
+        val steps = STEPS.filter { it.fps <= animatedFps }.ifEmpty { listOf(Step(animatedFps, STEPS.first().quality)) }
+        var index = 0
         var best: ByteArray? = null
-        val total = prepared.frameCount(animatedFps, animatedMaxFrames)
-        for (quality in ANIMATED_LADDER) {
-            var done = 0
-            val sink = runCatching { animatedEncoder.create(STICKER_SIZE, quality) }.getOrNull() ?: return best
-            var failed = false
-            // Started on the still: a chat that shows an animated sticker's
-            // first frame before it plays (or instead of playing it) shows the
-            // finished sticker, not the empty frame before anything pops in.
-            // The loop itself is the same, only entered at another point.
-            val count = prepared.forEachFrame(STICKER_SIZE, animatedFps, animatedMaxFrames, startAt = prepared.posterProgress) { frame, durationMs ->
-                if (!failed && !sink.add(frame, durationMs)) failed = true
-                onProgress(++done, total)
-            }
-            val bytes = if (failed || count < 2) null else sink.finish()
-            if (bytes == null) return best
-            best = bytes
-            if (bytes.size <= ANIMATED_BUDGET) return bytes
+        for (attempt in 0 until MAX_ATTEMPTS) {
+            val step = steps[index]
+            val from = SLICES[attempt]
+            val to = SLICES[attempt + 1]
+            val bytes = encodeWebpPass(prepared, step) { f -> onProgress(from + (to - from) * f) } ?: break
+            if (best == null || bytes.size < best.size) best = bytes
+            if (bytes.size <= budget) return bytes
+            val frames = prepared.frameCount(step.fps, animatedMaxFrames)
+            val next = (index + 1 until steps.size).firstOrNull { i ->
+                estimate(bytes.size, step, frames, steps[i], prepared.frameCount(steps[i].fps, animatedMaxFrames)) <= budget * SAFETY
+            } ?: steps.lastIndex
+            if (next == index) break
+            index = next
         }
-        return best?.takeIf { it.size <= ANIMATED_BUDGET * 2 }
+        return best?.takeIf { it.size <= budget * 2 }
     }
+
+    /** One pass at [step]'s rate and quality; [onProgress] goes 0 to 1 over its frames. */
+    private fun encodeWebpPass(prepared: DynRenderer.Prepared, step: Step, onProgress: (Float) -> Unit): ByteArray? {
+        val sink = runCatching { animatedEncoder.create(STICKER_SIZE, step.quality) }.getOrNull() ?: return null
+        val total = prepared.frameCount(step.fps, animatedMaxFrames).coerceAtLeast(1)
+        var done = 0
+        var failed = false
+        // Started on the still: a chat that shows an animated sticker's
+        // first frame before it plays (or instead of playing it) shows the
+        // finished sticker, not the empty frame before anything pops in.
+        // The loop itself is the same, only entered at another point.
+        val count = prepared.forEachFrame(STICKER_SIZE, step.fps, animatedMaxFrames, startAt = prepared.posterProgress) { frame, durationMs ->
+            if (!failed && !sink.add(frame, durationMs)) failed = true
+            onProgress(++done / total.toFloat())
+        }
+        return if (failed || count < 2) null else sink.finish()
+    }
+
+    /** An animated GIF of [prepared] in one pass, or null when it cannot be made (no native encoder). */
+    private fun encodeGif(prepared: DynRenderer.Prepared, onProgress: (Float) -> Unit): ByteArray? = runCatching {
+        val out = ByteArrayOutputStream()
+        val encoder = GifEncoder(out, STICKER_SIZE, STICKER_SIZE)
+        val pixels = IntArray(STICKER_SIZE * STICKER_SIZE)
+        val fps = minOf(animatedFps, FULL_FPS)
+        val total = prepared.frameCount(fps, MAX_FRAMES_FULL).coerceAtLeast(1)
+        var done = 0
+        val count = prepared.forEachFrame(STICKER_SIZE, fps, MAX_FRAMES_FULL, startAt = prepared.posterProgress) { frame, durationMs ->
+            frame.getPixels(pixels, 0, STICKER_SIZE, 0, 0, STICKER_SIZE, STICKER_SIZE)
+            encoder.addFrame(pixels, durationMs)
+            onProgress(++done / total.toFloat())
+        }
+        encoder.finish()
+        out.toByteArray().takeIf { count >= 2 }
+    }.getOrNull()
+
+    /**
+     * Roughly what a pass at [next] ([nextFrames] frames) weighs, from one at
+     * [measured] that came to [size]. Fewer frames save a little less than
+     * their share (each stored change is bigger), and a WebP's size falls
+     * about exponentially with its quality.
+     */
+    private fun estimate(size: Int, measured: Step, frames: Int, next: Step, nextFrames: Int): Float {
+        val frameShare = (nextFrames.toFloat() / frames.coerceAtLeast(1)).pow(FRAME_EXPONENT)
+        val qualityShare = exp(QUALITY_SLOPE * (next.quality - measured.quality))
+        return size * frameShare * qualityShare
+    }
+
+    /** A rate and quality an animated WebP is tried at, from the best down. */
+    private data class Step(val fps: Float, val quality: Int)
 
     private fun encodeWebp(bitmap: Bitmap, quality: Int): ByteArray? {
         @Suppress("DEPRECATION")

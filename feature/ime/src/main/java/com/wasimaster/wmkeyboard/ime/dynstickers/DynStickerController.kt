@@ -68,6 +68,9 @@ internal class DynStickerController(
         /** Sends a finished render the way the sticker panel sends (its own send mode). */
         fun send(output: DynEncoder.Output)
 
+        /** What a moving sticker should be made as for the field the keyboard is in now. */
+        fun stickerFormat(): DynEncoder.Format
+
         /** Spins the cell [id] while it renders, and stops. */
         fun startRender(id: String)
 
@@ -316,12 +319,14 @@ internal class DynStickerController(
     /**
      * [item] rendered for sending: a sticker (animated when it moves, the
      * setting allows and [still] does not say otherwise), or for a meme with a
-     * photo, a picture. Blocking; call on an IO dispatcher. [onProgress]
-     * hears each frame of an animated one as it is drawn.
+     * photo, a picture. A moving one is made as [format] (by default what
+     * the field in front takes). Blocking; call on an IO dispatcher.
+     * [onProgress] hears how far an animated one has got.
      */
     fun render(
         item: GifItem,
         still: Boolean = false,
+        format: DynEncoder.Format = host.stickerFormat(),
         onProgress: (done: Int, total: Int) -> Unit = { _, _ -> },
     ): DynEncoder.Output? {
         val entry = entryOf(item) ?: return null
@@ -336,7 +341,7 @@ internal class DynStickerController(
                 val out = if (template.kind == DynKind.MEME && template.meta.photos.isNotEmpty()) {
                     DynEncoder.image(it, target)
                 } else {
-                    DynEncoder.sticker(it, target, animated = host.settings.sendAnimated && !still, onProgress = onProgress)
+                    DynEncoder.sticker(it, target, animated = host.settings.sendAnimated && !still, format = format, onProgress = onProgress)
                 }
                 if (out != null) store.noteSent(template.key)
                 out
@@ -474,11 +479,13 @@ internal class DynStickerController(
         val item = sheet.preview
         _ui.update { it.copy(sheet = it.sheet?.copy(busy = true, progress = null)) }
         sheetJob?.cancel()
+        // Asked here, on the main thread, about the field the sheet was opened over.
+        val format = host.stickerFormat()
         sheetJob = scope.launch {
             host.startRender(item.id)
             val output = withContext(Dispatchers.IO) {
                 runCatching {
-                    render(item, still) { done, total ->
+                    render(item, still, format) { done, total ->
                         host.renderProgress(done, total)
                         val fraction = done.toFloat() / total.coerceAtLeast(1)
                         _ui.update { it.copy(sheet = it.sheet?.copy(progress = fraction)) }
@@ -501,7 +508,8 @@ internal class DynStickerController(
         host.haptic()
         _ui.update { it.copy(sheet = null) }
         scope.launch {
-            val output = withContext(Dispatchers.IO) { runCatching { render(item) }.getOrNull() }
+            // Kept as a WebP sticker, the one shape every send of it later can use.
+            val output = withContext(Dispatchers.IO) { runCatching { render(item, format = DynEncoder.Format.WEBP_STICKER) }.getOrNull() }
             if (output == null) {
                 host.toast(com.wasimaster.wmkeyboard.ime.R.string.ime_dynsticker_render_failed)
                 return@launch
@@ -515,7 +523,7 @@ internal class DynStickerController(
     fun copy(item: GifItem) {
         scope.launch {
             host.startRender(item.id)
-            val output = withContext(Dispatchers.IO) { runCatching { render(item) }.getOrNull() }
+            val output = withContext(Dispatchers.IO) { runCatching { render(item, format = DynEncoder.Format.WEBP_STICKER) }.getOrNull() }
             host.endRender()
             if (output == null) {
                 host.toast(com.wasimaster.wmkeyboard.ime.R.string.ime_dynsticker_render_failed)

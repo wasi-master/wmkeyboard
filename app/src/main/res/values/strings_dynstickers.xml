@@ -111,6 +111,7 @@
     <!-- One pack. -->
     <string name="dynsticker_test_text_label">Try it with</string>
     <string name="dynsticker_test_text_default">Thank you</string>
+    <string name="dynsticker_test_text_placeholder">Each template\'s own words</string>
     <string name="dynsticker_pack_empty">No templates in this pack yet.</string>
     <string name="dynsticker_template_off">Off</string>
     <string name="dynsticker_template_on">Offered</string>

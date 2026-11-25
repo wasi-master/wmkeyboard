@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -124,6 +123,7 @@ import com.wasimaster.wmkeyboard.core.stickers.dynamic.TemplateProps
 import com.wasimaster.wmkeyboard.core.stickers.dynamic.TextCase
 import com.wasimaster.wmkeyboard.core.ui.ScalablePreview
 import com.wasimaster.wmkeyboard.ime.dynstickers.DynRoutes
+import com.wasimaster.wmkeyboard.ime.ui.rememberCentredRow
 import java.util.UUID
 import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
@@ -341,7 +341,8 @@ private fun SceneBuilder(start: BuilderStart, store: DynStickerStore, onBack: ()
     val scene = history.current.scene
     val meta = history.current.meta
     var selected by remember { mutableStateOf(scene.elements.lastOrNull { it.slot != null }?.id ?: scene.elements.lastOrNull()?.id) }
-    var testText by remember { mutableStateOf(context.getString(R.string.dynsticker_test_text_default)) }
+    // Empty: the preview shows the template's own words until something is typed here.
+    var testText by remember { mutableStateOf("") }
     var playing by remember { mutableStateOf(true) }
     var previewPack by remember { mutableStateOf(start.previewPack) }
     var ownPack by remember { mutableStateOf(start.ownPack) }
@@ -425,7 +426,7 @@ private fun SceneBuilder(start: BuilderStart, store: DynStickerStore, onBack: ()
             LayerKind.SLOT -> {
                 val taken = scene.elements.mapNotNull { it.slot }.toSet()
                 val (slot, role) = if (TemplateProps.MAIN_SLOT !in taken) TemplateProps.MAIN_SLOT to SlotRole.MAIN else "label$nextId" to SlotRole.LABEL
-                add(SceneElement(id = id, type = ElementType.TEXT, slot = slot, role = role, text = testText, h = 0.25f, stroke = 0xFF000000L, strokeWidth = 6f))
+                add(SceneElement(id = id, type = ElementType.TEXT, slot = slot, role = role, text = testText.ifBlank { context.getString(R.string.dynsticker_test_text_default) }, h = 0.25f, stroke = 0xFF000000L, strokeWidth = 6f))
             }
             LayerKind.WORDS -> add(
                 SceneElement(id = id, type = ElementType.TEXT, text = context.getString(R.string.dynsticker_builder_words_sample), y = 0.2f, h = 0.15f, case = TextCase.KEEP),
@@ -519,6 +520,7 @@ private fun SceneBuilder(start: BuilderStart, store: DynStickerStore, onBack: ()
                     canRedo = history.canRedo,
                     playing = playing,
                     current = current,
+                    currentPicture = { element, modifier -> LayerThumb(element, scene, previewPack, store, modifier) },
                     // One word, so the layer chip beside it keeps its name; the toast
                     // says when it went in as a copy.
                     saveLabel = stringResource(R.string.dynsticker_builder_save),
@@ -541,6 +543,7 @@ private fun SceneBuilder(start: BuilderStart, store: DynStickerStore, onBack: ()
                     onValueChange = { testText = it },
                     singleLine = true,
                     label = { Text(stringResource(R.string.dynsticker_test_text_label)) },
+                    placeholder = { Text(stringResource(R.string.dynsticker_test_text_placeholder)) },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -607,6 +610,8 @@ private fun SceneBuilder(start: BuilderStart, store: DynStickerStore, onBack: ()
     TemplateRules(
         meta = meta,
         onMeta = ::setMeta,
+        document = compiled?.document,
+        template = template,
         scene = scene,
         onScene = { setScene(it, "scene") },
         onColor = { picking = it },
@@ -697,6 +702,7 @@ private fun BuilderToolbar(
     canRedo: Boolean,
     playing: Boolean,
     current: SceneElement?,
+    currentPicture: @Composable (SceneElement, Modifier) -> Unit,
     saveLabel: String,
     saving: Boolean,
     onUndo: () -> Unit,
@@ -730,11 +736,12 @@ private fun BuilderToolbar(
                     modifier = Modifier.clip(RoundedCornerShape(10.dp)).clickable(onClick = onCurrent),
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                        modifier = Modifier.padding(start = 4.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        Icon(layerIcon(current), contentDescription = null, modifier = Modifier.size(18.dp))
+                        // The layer itself, drawn alone, the way its row in the list shows it.
+                        currentPicture(current, Modifier.size(TOOLBAR_THUMB_SIZE))
                         Text(
                             layerName(current).ifBlank { layerKindLabel(current) },
                             style = MaterialTheme.typography.labelLarge,
@@ -884,6 +891,7 @@ private fun LayerThumb(element: SceneElement, scene: DynScene, previewPack: Stri
 }
 
 private val LAYER_THUMB_SIZE = 44.dp
+private val TOOLBAR_THUMB_SIZE = 28.dp
 private val LAYER_BUTTON_SIZE = 36.dp
 private val PREVIEW_MAX_WIDTH = 420.dp
 private const val LAYER_THUMB_PX = 128
@@ -1328,6 +1336,27 @@ private fun sizeLabel(value: Float): String = if (value <= 0.5f) "auto" else val
 
 private fun percent(value: Float): String = "${(value * 100).roundToInt()}%"
 
+/**
+ * [scene] at [fps] frames a second, running at the same speed: its length
+ * and every motion's start and length are counted in frames, so each is
+ * scaled with the rate and stays the same number of seconds.
+ */
+private fun atFrameRate(scene: DynScene, fps: Int): DynScene {
+    val ratio = fps / scene.fps.coerceAtLeast(1).toFloat()
+    fun frames(count: Int) = (count * ratio).roundToInt()
+    return scene.copy(
+        fps = fps,
+        frames = frames(scene.frames).coerceAtLeast(2),
+        elements = scene.elements.map { element ->
+            if (element.animations.isEmpty()) {
+                element
+            } else {
+                element.copy(animations = element.animations.map { it.copy(delay = frames(it.delay), duration = frames(it.duration).coerceAtLeast(1)) })
+            }
+        },
+    )
+}
+
 private fun frameLabel(frames: Float): String = "${frames.roundToInt()}f"
 
 @Composable
@@ -1338,6 +1367,8 @@ private fun presetLabel(preset: AnimPreset): String = preset.name.lowercase().re
 private fun TemplateRules(
     meta: TemplateMeta,
     onMeta: (TemplateMeta) -> Unit,
+    document: JsonObject? = null,
+    template: DynTemplate? = null,
     scene: DynScene?,
     onScene: (DynScene) -> Unit,
     onColor: (ColorTarget) -> Unit,
@@ -1390,16 +1421,13 @@ private fun TemplateRules(
                             format = { "%.1f s".format(it) },
                         ) { seconds -> onScene(scene.copy(frames = (seconds * scene.fps).roundToInt().coerceAtLeast(2))) }
                         ChipLine(stringResource(R.string.dynsticker_builder_fps), listOf(24, 25, 30, 60).map { it to "$it" }, scene.fps) { fps ->
-                            val seconds = scene.frames / scene.fps.coerceAtLeast(1).toFloat()
-                            onScene(scene.copy(fps = fps, frames = (seconds * fps).roundToInt().coerceAtLeast(2)))
+                            onScene(atFrameRate(scene, fps))
                         }
                         SwitchLine(stringResource(R.string.dynsticker_builder_still_only), meta.stillOnly) { onMeta(meta.copy(stillOnly = it)) }
+                        if (document != null && template != null) {
+                            PosterPicker(document, template, meta.poster) { onMeta(meta.copy(poster = it)) }
+                        }
                     }
-                    SliderLine(
-                        stringResource(R.string.dynsticker_builder_poster),
-                        if (meta.poster < 0f) 1f else meta.poster, 0f..1f,
-                        format = ::percent,
-                    ) { onMeta(meta.copy(poster = if (it >= 0.995f) -1f else it)) }
                     ColorLine(stringResource(R.string.dynsticker_builder_background), scene.background?.color) {
                         onColor(ColorTarget(null, ColorField.BACKGROUND))
                     }
@@ -1421,7 +1449,8 @@ private fun DocumentTemplateEditor(start: BuilderStart, store: DynStickerStore, 
     val scope = rememberCoroutineScope()
     var meta by remember { mutableStateOf(start.meta) }
     var document by remember { mutableStateOf(start.document) }
-    var testText by remember { mutableStateOf(context.getString(R.string.dynsticker_test_text_default)) }
+    // Empty: the preview shows the template's own words until something is typed here.
+    var testText by remember { mutableStateOf("") }
     var editingJson by remember { mutableStateOf(false) }
 
     val template = remember(document, meta) {
@@ -1470,6 +1499,7 @@ private fun DocumentTemplateEditor(start: BuilderStart, store: DynStickerStore, 
                     onValueChange = { testText = it },
                     singleLine = true,
                     label = { Text(stringResource(R.string.dynsticker_test_text_label)) },
+                    placeholder = { Text(stringResource(R.string.dynsticker_test_text_placeholder)) },
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Button(onClick = ::save, enabled = document != null, modifier = Modifier.fillMaxWidth()) {
@@ -1562,6 +1592,67 @@ private fun JsonEditorDialog(initial: String, detaches: Boolean, onDismiss: () -
 
 // ---- small editing parts ---------------------------------------------------
 
+/**
+ * Where the still is taken, picked by looking: a row of the sticker's frames
+ * across its length, the chosen one framed. The last is "the end", stored as
+ * -1 so it stays the last frame when the length changes.
+ */
+@Composable
+private fun PosterPicker(document: JsonObject, template: DynTemplate, poster: Float, onPick: (Float) -> Unit) {
+    val context = LocalContext.current
+    val frames by produceState<List<ImageBitmap>?>(null, document, template) {
+        // After a pause: a drag or a typed word makes a new document many times a second.
+        delay(POSTER_PAUSE_MS)
+        value = withContext(Dispatchers.Default) {
+            runCatching {
+                DynAppRender.renderer(context).prepareDocument(document, template, DynFill(emptyMap()))?.use { prepared ->
+                    POSTER_STOPS.map { prepared.render(it, POSTER_THUMB_PX).asImageBitmap() }
+                }
+            }.getOrNull()
+        }
+    }
+    val chosen = if (poster < 0f) POSTER_STOPS.lastIndex else POSTER_STOPS.indices.minBy { kotlin.math.abs(POSTER_STOPS[it] - poster) }
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.dynsticker_builder_poster), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+            Text(
+                percent(if (poster < 0f) 1f else poster),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        val row = rememberCentredRow()
+        Row(modifier = row.viewport.horizontalScroll(row.scroll), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            POSTER_STOPS.forEachIndexed { index, stop ->
+                val on = index == chosen
+                val shape = RoundedCornerShape(8.dp)
+                Box(
+                    modifier = (if (on) row.selected else Modifier)
+                        .size(POSTER_THUMB_SIZE)
+                        .clip(shape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .border(
+                            if (on) 3.dp else 1.dp,
+                            if (on) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                            shape,
+                        )
+                        .clickable { onPick(if (index == POSTER_STOPS.lastIndex) -1f else stop) },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    frames?.getOrNull(index)?.let {
+                        Image(it, contentDescription = percent(stop), contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize())
+                    }
+                }
+            }
+        }
+    }
+}
+
+private val POSTER_STOPS = List(11) { it / 10f }
+private val POSTER_THUMB_SIZE = 56.dp
+private const val POSTER_THUMB_PX = 112
+private const val POSTER_PAUSE_MS = 300L
+
 @Composable
 private fun FieldBlock(content: @Composable () -> Unit) {
     Column(
@@ -1600,8 +1691,11 @@ private fun SwitchLine(label: String, checked: Boolean, onChange: (Boolean) -> U
 private fun <T> ChipLine(label: String, options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(label, style = MaterialTheme.typography.bodyMedium)
+        // Opens with the chosen chip in the middle: a long row (fonts, art)
+        // would otherwise open at its start with the choice out of sight.
+        val row = rememberCentredRow()
         Row(
-            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            modifier = row.viewport.horizontalScroll(row.scroll),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             for ((value, text) in options) {
@@ -1609,7 +1703,7 @@ private fun <T> ChipLine(label: String, options: List<Pair<T, String>>, selected
                 Surface(
                     shape = RoundedCornerShape(8.dp),
                     color = if (on) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                    modifier = Modifier.clickable { onSelect(value) },
+                    modifier = (if (on) row.selected else Modifier).clickable { onSelect(value) },
                 ) {
                     Text(text, style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp))
                 }

@@ -31262,9 +31262,10 @@ open class WMKeyboardService : InputMethodService() {
             com.wasimaster.wmkeyboard.core.settings.StickerTriggerAction.DELETE
         stickerMutedAfter = currentInputConnection?.getTextBeforeCursor(StickerTriggerIndex.LOOKBEHIND, 0)?.toString()
         clearStickerOffer()
+        val format = dynStickerFormat(state.settings.stickerSendMode)
         serviceScope.launch {
             startMediaDownload(pick.item.id)
-            val output = withContext(Dispatchers.IO) { runCatching { dynStickerTool.render(pick.item) }.getOrNull() }
+            val output = withContext(Dispatchers.IO) { runCatching { dynStickerTool.render(pick.item, format = format) }.getOrNull() }
             endMediaDownload()
             if (output == null) {
                 Toast.makeText(this@WMKeyboardService, getString(R.string.ime_dynsticker_render_failed), Toast.LENGTH_SHORT).show()
@@ -52111,11 +52112,14 @@ open class WMKeyboardService : InputMethodService() {
                 if (item.source == GifSource.LOCAL) {
                     insertLocalSticker(item, next.sendMode)
                 } else if (item.source == GifSource.DYNAMIC) {
-                    // Drawn and encoded here rather than downloaded.
+                    // Drawn and encoded here rather than downloaded, as what
+                    // this field will play: asked before the work moves off
+                    // the main thread.
+                    val format = dynStickerFormat(next.sendMode)
                     startMediaDownload(item.id)
                     val output = withContext(Dispatchers.IO) {
                         runCatching {
-                            dynStickerTool.render(item) { done, total -> publishMediaProgress(done.toLong(), total.toLong()) }
+                            dynStickerTool.render(item, format = format) { done, total -> publishMediaProgress(done.toLong(), total.toLong()) }
                         }.getOrNull()
                     }
                     endMediaDownload()
@@ -54762,6 +54766,7 @@ open class WMKeyboardService : InputMethodService() {
                     commitImageFile(output.file, output.mime, _uiState.value.settings.stickerSendMode)
                     refreshSuggestions()
                 }
+                override fun stickerFormat() = dynStickerFormat(_uiState.value.settings.stickerSendMode)
                 override fun startRender(id: String) = startMediaDownload(id)
                 override fun renderProgress(done: Int, total: Int) = publishMediaProgress(done.toLong(), total.toLong())
                 override fun endRender() = endMediaDownload()
@@ -62593,6 +62598,27 @@ open class WMKeyboardService : InputMethodService() {
      * only then fall back to [refused], the system clipboard unless the caller
      * says otherwise.
      */
+    /**
+     * What a moving text sticker is made as for the field in front, by the
+     * same choice [commitImageFile] makes for an animated WebP: WhatsApp's
+     * sticker type when the field takes it, else a GIF where one is taken
+     * (an app that takes plain WebP draws one frame of an animated one), else
+     * plain WebP. Made as that from the start, a sticker is neither squeezed
+     * under WhatsApp's 500 KB for an app that has no such limit nor turned
+     * into a GIF a second time after it is made.
+     */
+    private fun dynStickerFormat(sendMode: MediaSendMode): com.wasimaster.wmkeyboard.core.stickers.dynamic.DynEncoder.Format {
+        val accepted = currentInputEditorInfo?.let { EditorInfoCompat.getContentMimeTypes(it).toList() }.orEmpty()
+        fun takes(mime: String) = accepted.any { ClipDescription.compareMimeTypes(mime, it) }
+        val chosen = MediaMime.candidates(MediaMime.WEBP, sendMode).firstOrNull(::takes)
+        return when {
+            chosen == MediaMime.WHATSAPP_STICKER -> com.wasimaster.wmkeyboard.core.stickers.dynamic.DynEncoder.Format.WEBP_STICKER
+            MediaMime.animatedGoesAsGif(chosen, fieldTakesGif = takes(MediaMime.GIF)) ->
+                com.wasimaster.wmkeyboard.core.stickers.dynamic.DynEncoder.Format.GIF
+            else -> com.wasimaster.wmkeyboard.core.stickers.dynamic.DynEncoder.Format.WEBP
+        }
+    }
+
     private fun commitImageFile(
         file: File,
         mimeType: String,

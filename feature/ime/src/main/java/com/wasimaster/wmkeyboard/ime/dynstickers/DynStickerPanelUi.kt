@@ -51,6 +51,7 @@ import com.wasimaster.wmkeyboard.ime.ui.PermissionRecheck
 import com.wasimaster.wmkeyboard.ime.ui.chipBorder
 import com.wasimaster.wmkeyboard.ime.ui.chipShape
 import com.wasimaster.wmkeyboard.ime.ui.frostGlass
+import com.wasimaster.wmkeyboard.ime.ui.rememberCentredRow
 
 /**
  * The Text grid's filter row: All, stickers or memes, favourites, one chip a
@@ -70,10 +71,12 @@ internal fun DynFilterRow(ui: DynPanelUi, onAction: (DynAction) -> Unit) {
         if (ui.packs.size > 1) ui.packs.forEach { add(DynStickerController.FILTER_PACK + it.id to it.name) }
     }
     val kb = LocalKbTheme.current
+    val centred = rememberCentredRow()
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
+            .then(centred.viewport)
+            .horizontalScroll(centred.scroll)
             .padding(horizontal = 8.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -106,6 +109,7 @@ internal fun DynFilterRow(ui: DynPanelUi, onAction: (DynAction) -> Unit) {
                 fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
                 maxLines = 1,
                 modifier = Modifier
+                    .then(if (active) centred.selected else Modifier)
                     .clip(shape)
                     .frostGlass(kb, shape, FrostSurface.CHIPS)
                     .background(if (active) kb.chipActive else kb.chip)
@@ -259,8 +263,9 @@ internal fun DynFillSheet(
                 )
             }
             Text(stringResource(R.string.ime_dynsticker_font_label), color = kb.secondaryText, fontSize = 11.sp)
+            val fontRow = rememberCentredRow()
             Row(
-                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                modifier = fontRow.viewport.horizontalScroll(fontRow.scroll),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 val shape = kb.chipShape()
@@ -273,6 +278,7 @@ internal fun DynFillSheet(
                         fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
                         maxLines = 1,
                         modifier = Modifier
+                            .then(if (active) fontRow.selected else Modifier)
                             .clip(shape)
                             .background(if (active) kb.chipActive else kb.chip)
                             .chipBorder(kb, shape)
@@ -282,14 +288,16 @@ internal fun DynFillSheet(
                 }
             }
             Text(stringResource(R.string.ime_dynsticker_colour_label), color = kb.secondaryText, fontSize = 11.sp)
+            val colourRow = rememberCentredRow()
             Row(
-                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                modifier = colourRow.viewport.horizontalScroll(colourRow.scroll),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 for (colour in SheetColours) {
                     val active = sheet.textColor == colour
                     Box(
                         modifier = Modifier
+                            .then(if (active) colourRow.selected else Modifier)
                             .size(28.dp)
                             .clip(CircleShape)
                             .background(colour?.let { Color(it.toInt()) } ?: kb.chip)
