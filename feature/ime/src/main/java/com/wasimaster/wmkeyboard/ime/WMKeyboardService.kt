@@ -11337,7 +11337,11 @@ open class WMKeyboardService : InputMethodService() {
         val caretAfterLetter = composedNow.isNotEmpty() && newSelStart == newSelEnd &&
             candidatesEnd >= 0 && newSelEnd == candidatesEnd &&
             Character.isLetterOrDigit(composedNow.codePointBefore(composedNow.length))
-        refreshShiftForContext(caretAfterLetter, knownCaps = if (ownSpaceEcho) ownSpaceCaps else null)
+        refreshShiftForContext(
+            caretAfterLetter,
+            knownCaps = if (ownSpaceEcho) ownSpaceCaps else null,
+            caretMoved = oldSelStart != newSelStart || oldSelEnd != newSelEnd,
+        )
         refreshKarContext()
         // Tool chips and the word strip both read the text around the cursor, so
         // they have to be re-derived after a cursor jump or an edit made from
@@ -66057,7 +66061,11 @@ open class WMKeyboardService : InputMethodService() {
      * changed: turns shift on at a sentence start, off when no longer at
      * one. Caps lock is never touched.
      */
-    private fun refreshShiftForContext(caretAfterLetter: Boolean = false, knownCaps: Int? = null) {
+    private fun refreshShiftForContext(
+        caretAfterLetter: Boolean = false,
+        knownCaps: Int? = null,
+        caretMoved: Boolean = true,
+    ) {
         // Both of these end in "leave the shift alone", so the target is worked
         // out and thrown away — and working it out costs
         // [InputConnection.getCursorCapsMode], a blocking round-trip into the
@@ -66069,6 +66077,15 @@ open class WMKeyboardService : InputMethodService() {
         val state = _uiState.value
         if (!state.settings.autoText.capitalize) return
         if (state.shiftState == ShiftState.CAPS_LOCK) return
+        // Nor is one the user pressed, while the caret has not moved: only the
+        // composing region changed, which is the keyboard letting go of a word
+        // ahead of a caret key (#1543). A spacebar selection started right to
+        // left from a word's end finished that word first, and its echo, the
+        // caret where it was and after a letter, took the shift down, so the
+        // second step moved the caret instead of growing the selection. Caps
+        // lock was spared by the line above, and a drag started anywhere but
+        // a word's end had no word to finish.
+        if (state.shiftPressedByUser && !caretMoved) return
         // A shift the user pressed themselves, with a range selection live, is a
         // shift being held to extend that selection (see
         // [KeyboardUiState.shiftSelectsText]). Auto-capitalize must not pull it
