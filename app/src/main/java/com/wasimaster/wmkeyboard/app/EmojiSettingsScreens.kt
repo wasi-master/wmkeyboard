@@ -525,6 +525,15 @@ internal fun EmojiPanelSettings(
             ) { scope.launch { repository.setEmojiContinuousScroll(it) } }
         }
         item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.langemoji_emoji_suggested_tab_title,
+                stringResource(R.string.langemoji_emoji_suggested_tab_subtitle),
+                settings.watch { it.emoji.suggestedTab },
+                info = stringResource(R.string.langemoji_emoji_suggested_tab_info),
+                default = SettingsDefaults.emoji.suggestedTab,
+            ) { scope.launch { repository.setEmojiSuggestedTab(it) } }
+        }
+        item(level = SettingLevel.STANDARD) {
             val none = stringResource(R.string.langemoji_panel_height_none)
             val taller = stringResource(R.string.langemoji_panel_height_value)
             SliderSetting(

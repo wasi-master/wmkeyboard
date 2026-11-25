@@ -9697,6 +9697,13 @@ data class EmojiSettings(
      */
     val continuousScroll: Boolean = false,
     /**
+     * A Suggested tab at the front of the emoji panel (#1554): the emoji for
+     * the words written before the caret, matched the way the suggestion
+     * strip matches a word. There only while it has something to show. Off
+     * by default, so the panel opens where it always has.
+     */
+    val suggestedTab: Boolean = false,
+    /**
      * How much taller than the keyboard the emoji, GIF and sticker panels open,
      * in dp (#537); the letters stay as compact as they are. One value for the
      * three, so switching between them never changes the height. See
@@ -14162,6 +14169,7 @@ class SettingsRepository(private val context: Context) {
         private val EMOJI_MEDIA_SWITCHER = stringPreferencesKey("emoji_media_switcher")
         private val EMOJI_REMEMBER_MEDIA_TAB = booleanPreferencesKey("emoji_remember_media_tab")
         private val EMOJI_CONTINUOUS_SCROLL = booleanPreferencesKey("emoji_continuous_scroll")
+        private val EMOJI_SUGGESTED_TAB = booleanPreferencesKey("emoji_suggested_tab")
         private val EMOJI_PANEL_EXTRA_HEIGHT_DP = intPreferencesKey("emoji_panel_extra_height_dp")
         private val EMOJI_AUTO_DOWNLOAD_KEYWORDS =
             booleanPreferencesKey("emoji_auto_download_keywords")
@@ -17007,6 +17015,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.emoji.mediaSwitcher,
             rememberMediaTab = p[EMOJI_REMEMBER_MEDIA_TAB] ?: defaults.emoji.rememberMediaTab,
             continuousScroll = p[EMOJI_CONTINUOUS_SCROLL] ?: defaults.emoji.continuousScroll,
+            suggestedTab = p[EMOJI_SUGGESTED_TAB] ?: defaults.emoji.suggestedTab,
             panelExtraHeightDp = p[EMOJI_PANEL_EXTRA_HEIGHT_DP]?.coerceIn(MediaPanelExtraHeightRange)
                 ?: defaults.emoji.panelExtraHeightDp,
             kaomoji = readKaomoji(p, defaults.emoji.kaomoji),
@@ -23773,6 +23782,10 @@ class SettingsRepository(private val context: Context) {
     /** See [EmojiSettings.continuousScroll]. */
     suspend fun setEmojiContinuousScroll(value: Boolean) =
         editPrefs { it[EMOJI_CONTINUOUS_SCROLL] = value }
+
+    /** See [EmojiSettings.suggestedTab]. */
+    suspend fun setEmojiSuggestedTab(value: Boolean) =
+        editPrefs { it[EMOJI_SUGGESTED_TAB] = value }
 
     /** See [EmojiSettings.panelExtraHeightDp]. */
     suspend fun setMediaPanelExtraHeightDp(value: Int) =

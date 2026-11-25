@@ -61,6 +61,23 @@ class EmojiSuggester(
     }
 
     /**
+     * Emoji for the words of [text], the text before the caret, for the emoji
+     * panel's Suggested tab (#1554): each of the last [maxWords] words through
+     * [suggest], the same lookup the strip makes for one word, the last word
+     * first, since what was written last is most likely what the emoji is
+     * for. "time is ticking" gives the clocks before anything else.
+     */
+    fun suggestForText(text: String, maxWords: Int = MAX_TEXT_WORDS, limit: Int = MAX_TEXT_EMOJI): List<String> {
+        val words = WORD.findAll(text).map { it.value }.toList().takeLast(maxWords)
+        val results = LinkedHashSet<String>()
+        for (i in words.indices.reversed()) {
+            results.addAll(suggest(words[i], words.getOrElse(i - 1) { "" }, limit = PER_WORD))
+            if (results.size >= limit) break
+        }
+        return results.take(limit)
+    }
+
+    /**
      * Most of what only the shortcode table names is two words joined by an
      * underscore — `alarm_clock`, `crossed_fingers`, `jack_o_lantern` — which
      * a one-word lookup can never reach.
@@ -92,6 +109,18 @@ class EmojiSuggester(
 
         /** Shortest word that may match a shortcode. See [addLayers]. */
         private const val MIN_SHORTCODE_LENGTH = 3
+
+        /** How far back [suggestForText] reads: about a sentence. */
+        const val MAX_TEXT_WORDS = 12
+
+        /** The most emoji [suggestForText] gives: a few rows of the panel. */
+        const val MAX_TEXT_EMOJI = 48
+
+        /** Emoji per word in [suggestForText]: more than the strip's four, since the panel has room. */
+        private const val PER_WORD = 8
+
+        /** A word for [suggestForText]: letters, marks and digits, an apostrophe inside. */
+        private val WORD = Regex("[\\p{L}\\p{M}\\p{N}]+(?:['’][\\p{L}\\p{M}]+)*")
 
         /**
          * Curated word → emoji triggers; listed emojis always come first.

@@ -1004,6 +1004,7 @@
     <string name="ime_kaomoji_empty_recent">The faces you use show up here.</string>
     <string name="ime_emoji_tab_most_used">Most used</string>
     <string name="ime_emoji_tab_recent">Recent</string>
+    <string name="ime_emoji_tab_suggested">Suggested</string>
     <string name="ime_emoji_clear_recents">Clear recents</string>
     <string name="ime_emoji_favourite">Favourite</string>
     <string name="ime_emoji_favourited">Favourited</string>

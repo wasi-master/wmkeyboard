@@ -1649,6 +1649,7 @@ private fun SearchStrings.emojiPanelRows(): List<SettingsSearchEntry> {
         row(R.string.langemoji_media_switcher_title, R.string.langemoji_media_switcher_subtitle),
         row(R.string.langemoji_media_remember_title, R.string.langemoji_media_remember_subtitle),
         row(R.string.langemoji_emoji_continuous_title, R.string.langemoji_emoji_continuous_subtitle),
+        row(R.string.langemoji_emoji_suggested_tab_title, R.string.langemoji_emoji_suggested_tab_subtitle),
         row(R.string.langemoji_panel_height_title, R.string.langemoji_panel_height_subtitle),
     )
 }

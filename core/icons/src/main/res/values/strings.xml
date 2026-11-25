@@ -78,6 +78,7 @@
 
     <string name="core_icons_slot_emoji_recent_label">Recent</string>
     <string name="core_icons_slot_emoji_most_used_label">Most used</string>
+    <string name="core_icons_slot_emoji_suggested_label">Suggested</string>
     <string name="core_icons_slot_emoji_smileys_label">Smileys</string>
     <string name="core_icons_slot_emoji_people_label">People</string>
     <string name="core_icons_slot_emoji_animals_label">Animals</string>

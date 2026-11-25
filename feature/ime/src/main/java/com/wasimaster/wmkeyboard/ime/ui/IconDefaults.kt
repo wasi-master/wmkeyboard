@@ -370,6 +370,7 @@ object IconDefaults {
         put(IconSlots.EMOJI_TAB_SEARCH, Icons.Outlined.Search)
         put(IconSlots.EMOJI_TAB_RECENT, Icons.Outlined.Schedule)
         put(IconSlots.EMOJI_TAB_MOST_USED, Icons.Outlined.BarChart)
+        put(IconSlots.EMOJI_TAB_SUGGESTED, Icons.Outlined.AutoAwesome)
         for (category in IconSlots.EMOJI_CATEGORIES) {
             put(IconSlots.forEmojiCategory(category), forEmojiCategory(category))
         }

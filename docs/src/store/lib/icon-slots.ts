@@ -50,7 +50,7 @@ const CHROME: [string, string][] = [
 ];
 
 const EMOJI_TABS: [string, string][] = [
-	['emoji_tab.search', 'Search'], ['emoji_tab.recent', 'Recent'], ['emoji_tab.most_used', 'Most used'],
+	['emoji_tab.search', 'Search'], ['emoji_tab.recent', 'Recent'], ['emoji_tab.most_used', 'Most used'], ['emoji_tab.suggested', 'Suggested'],
 	...['smileys', 'people', 'animals', 'nature', 'food', 'travel', 'activities', 'objects', 'symbols', 'flags'].map(
 		(c): [string, string] => [`emoji_tab.${c}`, c.charAt(0).toUpperCase() + c.slice(1)]
 	),

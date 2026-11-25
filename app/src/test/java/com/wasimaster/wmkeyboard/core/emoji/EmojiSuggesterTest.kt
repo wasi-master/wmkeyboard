@@ -34,6 +34,25 @@ class EmojiSuggesterTest {
         assertEquals(listOf("🎂", "🎉", "🥳", "🎁"), suggester.suggest("birthday"))
     }
 
+    /** The emoji panel's Suggested tab (#1554): every word of the text, the last one first. */
+    @Test fun textGivesEachWordsEmojiLastWordFirst() {
+        val found = suggester.suggestForText("happy birthday, want coffee")
+        assertEquals("☕", found.first())
+        assertTrue("🎂" in found)
+        assertTrue(found.indexOf("☕") < found.indexOf("🎂"))
+        assertEquals(found.size, found.toSet().size)
+    }
+
+    @Test fun textReadsOnlyItsLastWords() {
+        val found = suggester.suggestForText("coffee " + "x ".repeat(20) + "pizza", maxWords = 5)
+        assertTrue("🍕" in found)
+        assertTrue("☕" !in found)
+    }
+
+    @Test fun textWithNoWordsGivesNothing() {
+        assertTrue(suggester.suggestForText("  ...  ").isEmpty())
+    }
+
     @Test fun coffeeSuggestsTheCup() {
         assertEquals("☕", suggester.suggest("coffee").first())
     }

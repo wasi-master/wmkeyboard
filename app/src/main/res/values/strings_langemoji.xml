@@ -149,6 +149,9 @@
     <string name="langemoji_media_switcher_bottom">Bottom</string>
     <string name="langemoji_emoji_continuous_title">One long list</string>
     <string name="langemoji_emoji_continuous_subtitle">Scroll through all the emoji, with a heading over each category</string>
+    <string name="langemoji_emoji_suggested_tab_title">Suggested tab</string>
+    <string name="langemoji_emoji_suggested_tab_subtitle">Emoji for what you just wrote, in a tab before Recent</string>
+    <string name="langemoji_emoji_suggested_tab_info">When this is on, the emoji panel opens on a Suggested tab that shows emoji for the words before the cursor, the same way the suggestion strip finds an emoji for a word. If you wrote \"time is ticking\", the tab shows hourglasses and clocks. The tab is only there when the words match some emoji. Nothing is read in a password field or in a field that asks for no suggestions.</string>
     <string name="langemoji_emoji_continuous_info">When this is on, the emoji panel is one list that you scroll from top to bottom. Each category starts with its name, and you go from one category to the next without a stop. The category tabs jump to a category and show the category that you are in. When this is off, each category is a page, and you swipe left or right to go to the next one.</string>
     <string name="langemoji_panel_height_title">Panel height</string>
     <string name="langemoji_panel_height_subtitle">How much taller than the keyboard the emoji, GIF and sticker panels open</string>

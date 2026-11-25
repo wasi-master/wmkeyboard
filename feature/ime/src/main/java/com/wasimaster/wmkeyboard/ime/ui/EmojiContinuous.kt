@@ -108,6 +108,8 @@ internal class EmojiSections(val items: List<EmojiListItem>, val starts: IntArra
             catalog: List<EmojiEntry>,
             emojiOrder: Map<String, List<String>>,
             hidden: Set<String>,
+            /** The Suggested tab's emoji (#1554). */
+            suggested: List<String> = emptyList(),
             /** A text-art tab's rows; see [kaomojiListItems]. */
             textArt: (String) -> List<EmojiListItem> = { emptyList() },
         ): EmojiSections {
@@ -120,6 +122,7 @@ internal class EmojiSections(val items: List<EmojiListItem>, val starts: IntArra
                 items += EmojiListItem.Header(tab, index)
                 when (tab) {
                     RECENT_TAB -> history.distinct().forEach { items += EmojiListItem.Emoji(tab, it, history = true) }
+                    SUGGESTED_TAB -> suggested.distinct().forEach { items += EmojiListItem.Emoji(tab, it, history = false) }
                     KAOMOJI_TAB, EMOTICON_TAB -> items += textArt(tab)
                     else -> layout[tab].orEmpty()
                         .forEach { items += EmojiListItem.Emoji(tab, it, history = false) }
@@ -301,6 +304,7 @@ private val SectionHeaderHeight = 28.dp
 /** A tab's spoken name, which the continuous list also prints as the section's heading. */
 @Composable
 internal fun emojiTabTitle(tab: String, mostUsed: Boolean): String = when (tab) {
+    SUGGESTED_TAB -> stringResource(R.string.ime_emoji_tab_suggested)
     KAOMOJI_TAB -> stringResource(R.string.ime_emoji_tab_kaomoji)
     EMOTICON_TAB -> stringResource(R.string.ime_emoji_tab_emoticons)
     RECENT_TAB -> stringResource(

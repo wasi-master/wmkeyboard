@@ -119,6 +119,9 @@ object IconSlots {
     const val EMOJI_TAB_RECENT = "emoji_tab.recent"
     const val EMOJI_TAB_MOST_USED = "emoji_tab.most_used"
 
+    /** The Suggested tab (#1554): emoji for the words before the caret. */
+    const val EMOJI_TAB_SUGGESTED = "emoji_tab.suggested"
+
     /**
      * `emoji_tab.<category>` for a catalog category name. Unknown categories
      * get an id too — the resolver falls back to the smiley for them, exactly
@@ -192,6 +195,7 @@ object IconSlots {
         add(IconSlot(EMOJI_TAB_SEARCH, IconSlotGroup.EMOJI_TAB, CommonR.string.common_search))
         add(IconSlot(EMOJI_TAB_RECENT, IconSlotGroup.EMOJI_TAB, R.string.core_icons_slot_emoji_recent_label))
         add(IconSlot(EMOJI_TAB_MOST_USED, IconSlotGroup.EMOJI_TAB, R.string.core_icons_slot_emoji_most_used_label))
+        add(IconSlot(EMOJI_TAB_SUGGESTED, IconSlotGroup.EMOJI_TAB, R.string.core_icons_slot_emoji_suggested_label))
         for ((category, labelRes) in emojiCategoryLabels) {
             add(IconSlot(forEmojiCategory(category), IconSlotGroup.EMOJI_TAB, labelRes))
         }

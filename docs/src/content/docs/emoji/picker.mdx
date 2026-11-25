@@ -143,6 +143,14 @@ Long-pressing a cell on the history tab specifically also offers **Remove from r
 
 Off by default. Turn it on to add a "Clear recents" button to the Recent tab. It only appears on the Recent view, not Most used, since a frequency ranking isn't something a single tap should wipe.
 
+### Emoji for what you wrote
+
+<SettingsPath path="Emoji / Emoji panel / Suggested tab" />
+
+Off by default. Turn it on and the panel opens on a **Suggested** tab, before your history, with emoji for the words you wrote before the cursor. It reads back about a sentence, up to twelve words, and matches each word the way the [suggestion strip](/smart/suggestions/) finds an emoji for the word you type, so `time is ticking` brings up hourglasses, a watch and clocks. The last word's emoji come first. The words are read once, when the panel opens.
+
+The tab is only there when the words match some emoji, so a panel opened on an empty field looks as it always has. Nothing is read in a password field or in a field that asks for no suggestions, and nothing read is kept. With **One long list** on, the suggestions are the first section of the list. Added in 0.6.8 (#1554).
+
 ## Reordering the tabs and the emoji
 
 <SettingsPath path="Emoji / Emoji panel / Emoji categories" />

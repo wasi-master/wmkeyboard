@@ -4059,6 +4059,11 @@ data class KeyboardUiState(
     val emojiQuery: String = "",
     val emojiSearchActive: Boolean = false,
     val emojiResults: List<EmojiEntry> = emptyList(),
+    /**
+     * The emoji panel's Suggested tab (#1554): emoji for the words before the
+     * caret, read once as the panel opens. Empty with the tab turned off.
+     */
+    val emojiSuggested: List<String> = emptyList(),
     val emojiRecents: List<String> = emptyList(),
     val emojiFrequents: List<String> = emptyList(),
     val emojiFavourites: List<String> = emptyList(),

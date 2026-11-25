@@ -75,6 +75,12 @@ import kotlin.math.roundToInt
  * be one `EmojiPanel` composable, cut at the seams the layout can now move.
  */
 
+/**
+ * Sentinel tab id for the Suggested tab (#1554): emoji for the words before
+ * the caret. ★ keeps it clear of the catalog's category names, as [RECENT_TAB].
+ */
+internal const val SUGGESTED_TAB = "★suggested"
+
 /** Everything the emoji components call back into the service with. */
 @Immutable
 internal class EmojiFieldCallbacks(
@@ -116,6 +122,8 @@ internal class EmojiPanelSession(
     /** Gender/role variants (🏃‍♀️, 👨‍⚕️…) collapsed under their base emoji. */
     val variantChildren: Map<String, List<String>>,
     val history: List<String>,
+    /** The Suggested tab's emoji (#1554); empty when the tab is not shown. */
+    val suggested: List<String>,
     val historyMode: EmojiTabMode,
     /** The user-sized grid cell; never smaller than the glyph plus its padding. */
     val gridCell: Dp,
@@ -170,8 +178,13 @@ internal fun rememberEmojiPanelSession(state: KeyboardUiState, kaomoji: KaomojiU
     val textArtTabs = state.settings.emoji.kaomojiTabs
     val kaomojiSettings = state.settings.emoji.kaomoji
     val splitEmoticons = kaomojiSettings.splitEmoticons
-    val tabs = remember(categories, hasHistory, textArtTabs, splitEmoticons) {
+    // First when it has anything (#1554): the emoji for what was just written
+    // are the likeliest pick, so the panel opens on them.
+    val suggested = if (state.settings.emoji.suggestedTab) state.emojiSuggested else emptyList()
+    val hasSuggested = suggested.isNotEmpty()
+    val tabs = remember(categories, hasHistory, hasSuggested, textArtTabs, splitEmoticons) {
         buildList {
+            if (hasSuggested) add(SUGGESTED_TAB)
             if (hasHistory) add(RECENT_TAB)
             addAll(categories)
             if (textArtTabs) {
@@ -189,8 +202,8 @@ internal fun rememberEmojiPanelSession(state: KeyboardUiState, kaomoji: KaomojiU
     // every emoji tap emits fresh state, and this must not run per tap.
     val continuous = state.settings.emoji.continuousScroll
     val sections = if (continuous) {
-        remember(tabs, history, state.emojiCatalog, emojiOrder, state.hiddenEmoji, kaomoji.library, kaomoji.views, kaomojiSettings) {
-            EmojiSections.build(tabs, history, state.emojiCatalog, emojiOrder, state.hiddenEmoji) { tab ->
+        remember(tabs, history, suggested, state.emojiCatalog, emojiOrder, state.hiddenEmoji, kaomoji.library, kaomoji.views, kaomojiSettings) {
+            EmojiSections.build(tabs, history, state.emojiCatalog, emojiOrder, state.hiddenEmoji, suggested) { tab ->
                 kaomojiListItems(tab, kaomoji, kaomojiSettings)
             }
         }
@@ -205,9 +218,9 @@ internal fun rememberEmojiPanelSession(state: KeyboardUiState, kaomoji: KaomojiU
     // The reorder flag lives on the session object, which a new history list
     // replaces; it is held outside so the sheet survives a favourite landing.
     val reorderOpen = remember { mutableStateOf(false) }
-    return remember(tabs, pagerState, listState, sections, variantChildren, history, historyMode, gridCell, columns) {
+    return remember(tabs, pagerState, listState, sections, variantChildren, history, suggested, historyMode, gridCell, columns) {
         EmojiPanelSession(
-            tabs, pagerState, listState, sections, variantChildren, history, historyMode, gridCell, columns, reorderOpen,
+            tabs, pagerState, listState, sections, variantChildren, history, suggested, historyMode, gridCell, columns, reorderOpen,
         )
     }
 }
@@ -289,7 +302,7 @@ private fun EmojiTabsField(state: KeyboardUiState, session: EmojiPanelSession) {
         ) {
             tabs.forEachIndexed { index, tab ->
                 EmojiTab(
-                    slot = emojiTabSlot(tab, mostUsed),
+                    slot = if (tab == SUGGESTED_TAB) IconSlots.EMOJI_TAB_SUGGESTED else emojiTabSlot(tab, mostUsed),
                     description = emojiTabTitle(tab, mostUsed),
                     label = textArtTabLabel(tab),
                     selected = index == selected,
@@ -629,8 +642,13 @@ internal fun EmojiGridField(
             }
         } else {
             val emojiOrder = state.settings.emoji.categoryEmojiOrder
-            val emojis = remember(state.emojiCatalog, tab, state.hiddenEmoji, emojiOrder) {
-                EmojiOrder.emoji(state.emojiCatalog, tab, emojiOrder, state.hiddenEmoji)
+            // The Suggested tab (#1554) is a category page of its own list.
+            val emojis = if (tab == SUGGESTED_TAB) {
+                session.suggested
+            } else {
+                remember(state.emojiCatalog, tab, state.hiddenEmoji, emojiOrder) {
+                    EmojiOrder.emoji(state.emojiCatalog, tab, emojiOrder, state.hiddenEmoji)
+                }
             }
             val categoryGrid = rememberLazyGridState()
             val focusedEmoji = state.focusedIndex().takeIf { page == pagerState.currentPage }

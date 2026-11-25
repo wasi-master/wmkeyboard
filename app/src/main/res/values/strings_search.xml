@@ -145,6 +145,7 @@
     <string name="search_kw_langemoji_media_switcher">tabs jump unified media</string>
     <string name="search_kw_langemoji_media_remember">tab remember reopen unified</string>
     <string name="search_kw_langemoji_emoji_continuous">continuous vertical sections pages headers</string>
+    <string name="search_kw_langemoji_emoji_suggested_tab">suggestions predict context words matching recommended</string>
     <string name="search_kw_langemoji_panel_height">size expand bigger grow</string>
     <string name="search_kw_langemoji_emoji_skin_tone">fitzpatrick diversity complexion</string>
     <string name="search_kw_langemoji_emoji_gender">female male sex feminine masculine neutral</string>

@@ -27207,6 +27207,21 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * The emoji panel's Suggested tab (#1554): [EmojiSuggester.suggestForText]
+     * on the text before the caret, so "time is ticking" offers the clocks.
+     * Nothing with the tab off, in a password field, or where the field asks
+     * for no suggestions, the same fields the strip leaves alone.
+     */
+    private fun emojiSuggestedForPanel(state: KeyboardUiState): List<String> {
+        if (!state.settings.emoji.suggestedTab) return emptyList()
+        if (state.secureField || !state.allowsTypingIntelligence || state.fieldNoSuggestions) return emptyList()
+        val suggester = emojiSuggester ?: return emptyList()
+        val before = currentInputConnection?.getTextBeforeCursor(EMOJI_SUGGESTED_CONTEXT, 0)?.toString()
+            ?: return emptyList()
+        return suggester.suggestForText(before).filterNot { it in state.hiddenEmoji }
+    }
+
+    /**
      * Word→emoji chips for an idle strip. The word just committed keeps
      * offering its emoji after the space, so "happy birthday " still shows 🎂
      * — before this the chip died the moment the word was no longer being
@@ -38784,6 +38799,12 @@ open class WMKeyboardService : InputMethodService() {
             translateCarry.also { translateCarry = null }?.takeIf { it.panel == panel }
         } else {
             null
+        }
+        // The emoji panel's Suggested tab (#1554), read off the text as the panel
+        // opens, before it is drawn, so the tab is there on the first frame.
+        if (panel == PanelMode.EMOJI && _uiState.value.panel != PanelMode.EMOJI) {
+            val suggested = emojiSuggestedForPanel(_uiState.value)
+            _uiState.update { it.copy(emojiSuggested = suggested) }
         }
         _uiState.update {
             val closing = it.panel == panel
@@ -66674,6 +66695,9 @@ open class WMKeyboardService : InputMethodService() {
 
         /** Cap on the converters' typed amount — mirrors their soft keypad. */
         private const val CONVERTER_VALUE_MAX = 14
+
+        /** How much text before the caret the emoji panel's Suggested tab reads (#1554). */
+        private const val EMOJI_SUGGESTED_CONTEXT = 300
 
         /** The KDE Connect panel's address box: an IPv6 literal with a zone, or a host name, and no more. */
         private const val KDE_HOST_MAX = 64
