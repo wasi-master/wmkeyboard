@@ -4759,11 +4759,16 @@ open class WMKeyboardService : InputMethodService() {
         val text = cleaned ?: ruled
         val tidied = text != copied
         // Our own read of the text, for the password managers that predate the
-        // flag. Not a bare code: a number copied out of a game or an order
-        // code is that shape too, and "Never save it" dropped every one
-        // (Telegram); a one-time code is kept like any clip.
+        // flag, and for a bare code only when a notification brought that very
+        // code in the last few minutes: a number copied out of a game or an
+        // order code is the same shape, and "Never save it" dropped every one
+        // (Telegram). With notification access off, nothing matches.
         val detecting = handling != SensitiveClipHandling.KEEP && state.settings.clipboard.detectSensitive
-        val looksSecret = detecting && ClipSensitivity.looksSecretToKeepOut(text)
+        val looksSecret = detecting && (
+            ClipSensitivity.looksSecretToKeepOut(text) ||
+                ClipSensitivity.isBareCode(text.trim()) &&
+                com.wasimaster.wmkeyboard.core.otp.NotificationOtpBus.seenWithin(text.trim(), System.currentTimeMillis())
+            )
         val sensitive = flaggedSensitive || looksSecret
         if (tidied && text.isNotBlank() && (state.settings.clipboard.copyRulesToSystem || cleaned != null)) {
             // Back onto the system clipboard as changed, so the app's own paste

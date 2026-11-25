@@ -89,6 +89,27 @@ object NotificationOtpBus {
         _latest.value = if (seen < otp.postedAt) otp.copy(postedAt = seen) else otp
     }
 
+    /** How long after its notification a copied code still counts as that code: see [seenWithin]. */
+    const val COPY_MATCH_WINDOW_MS = 10 * 60_000L
+
+    /**
+     * Whether [code] arrived in a notification within [windowMs] before
+     * [now], used, closed or still waiting. The clipboard asks this of a copied
+     * bare code: one a notification just brought is a one-time code, and
+     * "Never save it" keeps it out of the history; any other bare number (a
+     * game's ID, an order number) is an ordinary clip. Only what the listener
+     * read, so with notification access off nothing matches.
+     */
+    fun seenWithin(code: String, now: Long, windowMs: Long = COPY_MATCH_WINDOW_MS): Boolean {
+        val wanted = code.trim()
+        if (wanted.isEmpty()) return false
+        return synchronized(firstSeen) {
+            firstSeen.entries.any { (key, at) ->
+                key.substringAfter('\u0000').equals(wanted, ignoreCase = true) && now - at in 0..windowMs
+            }
+        }
+    }
+
     /** The code was used, dismissed, or expired — drop it everywhere at once. */
     fun clear() {
         _latest.value?.let { otp ->
