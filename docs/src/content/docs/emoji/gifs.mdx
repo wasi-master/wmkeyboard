@@ -78,11 +78,20 @@ Animated GIFs can never actually become stickers. Android has no animated-WebP e
 
 ## Offline GIF packs
 
-The panel can also show GIFs kept on the phone, which need no key and no connection: [CleverKeys' offline GIF packs](https://github.com/tribixbite/CleverKeys/releases/tag/CleverKeys-GIF). Download a pack in your browser, then under <SettingsPath path="Tools / GIFs / Providers" /> press **Offline GIF packs** to open its screen, press **Import** and pick the zip. **Get the files** on the same row opens the release page.
+The panel can also show GIFs kept on the phone, which need no key and no connection: [CleverKeys' offline GIF packs](https://github.com/tribixbite/CleverKeys/releases/tag/CleverKeys-GIF), or [your own GIF files](#your-own-gifs). Download a pack in your browser, then under <SettingsPath path="Tools / GIFs / Providers" /> press **Offline GIF packs** to open its screen, press **Import** and pick the zip. **Get the files** on the same row opens the release page.
 
 Once a pack is installed the panel gains an **Offline** chip. It is a grid of its own in every provider mode, never mixed in with online results, and like the user's own sticker packs it never asks about [mobile data](/privacy/data-saver/). Search matches the words each GIF is tagged with; the category chips are the packs' own (Funny, Love, Sad and the rest), and one searches for everything filed under it. A search lists up to 240 GIFs. Tapping one sends it as any other result is sent, without a download.
 
 Only the **Discord community** packs (about 100 MB each, around 900 animated GIFs) carry GIFs to send. The **thumbnail** packs hold 80-pixel still previews and nothing else, so the import refuses them and says so. Each pack installed is listed with its size and a Delete. Importing a pack again replaces it.
+
+### Your own GIFs
+
+A pack can also be your own pictures, with nothing to convert first. On the Offline GIF packs screen press **Import** and pick either of these:
+
+- **A zip of `.gif` or animated `.webp` files.** It becomes a pack named after the zip (`Funny reactions.zip` is the pack Funny reactions). Each folder in the zip becomes a category chip, and each file's name gives the words a search finds it by: `cat_dance.gif` comes up for "cat" and for "dance". Other files in the zip are passed over. Importing a zip with the same name again replaces its pack.
+- **GIF or WebP files on their own.** Pick as many as you like at once. They join a pack called **My GIFs**, and every later pick adds to it.
+
+A GIF is sent as a GIF (`image/gif`) and a WebP as a WebP, each the file you imported. A file that does not open as a picture is left out, and the report says how many were added. A zip of nothing but `.gif` files opened from a file manager or a chat app is offered as a GIF pack too. A zip of WebP pictures opened that way is not, since sticker packs come as those; import it from the Offline GIF packs screen instead.
 
 Everything about getting files onto a phone that cannot download is on [Using it without internet](/privacy/offline/).
 

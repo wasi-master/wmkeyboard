@@ -80,8 +80,10 @@ import java.util.zip.ZipFile
  * opened and every file in it looked at the same way, whatever folders it
  * keeps them in, so a language pack (`wmkb-lang-de.zip`, holding the
  * language's word list, word pairs and emoji names) installs in one go. The
- * exception is a CleverKeys GIF pack, which is a zip that is itself the
- * thing installed ([OfflineGifPacks]), a Yomichan dictionary, and a RIME
+ * exception is a GIF pack, which is a zip that is itself the thing
+ * installed ([OfflineGifPacks]): CleverKeys' format, or a zip of nothing but
+ * `.gif` files (and, from the GIF pack screen, any zip of GIF and WebP
+ * pictures, or loose ones picked together), a Yomichan dictionary, and a RIME
  * schema zip of the user's own: any zip holding a `*.schema.yaml` that is
  * not one of the published packs, unpacked whole for the RIME engine.
  *
@@ -124,7 +126,7 @@ object OfflineImport {
         /** An offline dictionary or a Yomichan dictionary, for the Dictionary tool. */
         DICTIONARY(R.string.import_offline_dictionary_title, R.string.import_offline_dictionary_body),
 
-        /** A CleverKeys GIF pack. */
+        /** A GIF pack: CleverKeys' format, or a zip of `.gif` files. */
         GIF_PACK(R.string.import_offline_gif_title, R.string.import_offline_gif_body),
 
         /** A zip of RIME schemas. */
@@ -259,6 +261,10 @@ object OfflineImport {
         if (OfflineGifPacks.MANIFEST_NAME in leaves && OfflineGifPacks.DATABASE_NAME in leaves) return Kind.GIF_PACK
         if (YomichanDictionaries.looksLikeDictionary(entryNames) || StarDictArchive.holdsBook(entryNames)) return Kind.DICTIONARY
         if (leaves.any { it.endsWith(RIME_SCHEMA_SUFFIX) }) return Kind.RIME_SCHEMAS
+        // A zip of nothing but GIFs, the user's own: clearly no other kind.
+        // WebP pictures are left to the sticker importers, unless the GIF
+        // pack screen is the one importing ([run]'s gifPictures).
+        if (OfflineGifPacks.isImageArchive(entryNames, lenient = false)) return Kind.GIF_PACK
         val kinds = leaves.mapNotNullTo(HashSet(), ::kindOf)
         return when (kinds.size) {
             0 -> null
@@ -274,18 +280,23 @@ object OfflineImport {
      * [choose] asks which list to install when the files hold more than one
      * for a language (English's US and UK lists), returning null to install
      * none. Blocking between choices: call it off the main thread.
+     * [gifPictures] is the GIF pack screen importing: a zip with any GIF or
+     * WebP pictures in it becomes a pack of the user's own, named after the
+     * zip, and loose pictures picked together join the My GIFs pack.
      */
     suspend fun run(
         context: Context,
         uris: List<Uri>,
         wordlistSize: DictionaryCatalog.DictionarySize,
         choose: suspend (langId: String, options: List<DictionaryEntry>) -> DictionaryEntry?,
+        gifPictures: Boolean = false,
         onFile: (String) -> Unit = {},
     ): List<Outcome> {
         val staging = File(context.cacheDir, "offline_import").apply { deleteRecursively(); mkdirs() }
         try {
             val outcomes = ArrayList<Outcome>()
             val files = ArrayList<File>()
+            val pictures = ArrayList<File>()
             uris.forEachIndexed { index, uri ->
                 val name = displayName(context, uri)
                 onFile(name)
@@ -314,13 +325,29 @@ object OfflineImport {
                 // a dictation model that comes as one zip (Vosk's, #1246): it
                 // is pinned by its size and digest as a whole, and opened here
                 // its graph and config files were each nobody's.
-                if (!isZip(staged) || keptWhole(name) || InkPackImports.isPack(context, staged) ||
+                val zipped = isZip(staged)
+                if (gifPictures && !zipped && OfflineGifPacks.isImageName(name)) {
+                    pictures += staged
+                    return@forEachIndexed
+                }
+                if (!zipped || keptWhole(name) || InkPackImports.isPack(context, staged) ||
                     EtImport.sizeMatches(staged.length())
                 ) {
                     files += staged
                     return@forEachIndexed
                 }
                 val isGifPack = runCatching { ZipFile(staged).use { OfflineGifPacks.isPack(it) } }.getOrDefault(false)
+                val isOwnGifs = !isGifPack && runCatching {
+                    ZipFile(staged).use { zip ->
+                        OfflineGifPacks.isImageArchive(zip.entries().asSequence().map { it.name }.toList(), lenient = gifPictures)
+                    }
+                }.getOrDefault(false)
+                if (isOwnGifs) {
+                    onFile(name)
+                    outcomes += installOwnGifs(name) { OfflineGifPacks.importImageZip(context.filesDir, staged, packNameOf(name)) }
+                    staged.delete()
+                    return@forEachIndexed
+                }
                 val isYomichan = !isGifPack &&
                     runCatching { ZipFile(staged).use { YomichanDictionaries.isDictionary(it) } }.getOrDefault(false)
                 val isStarDict = !isGifPack && !isYomichan && runCatching {
@@ -354,6 +381,20 @@ object OfflineImport {
                     }
                         .onFailure { outcomes += Outcome(name, false, R.string.offline_import_unreadable_zip) }
                     staged.delete()
+                }
+            }
+            if (pictures.isNotEmpty()) {
+                val label = pictures.joinToString(", ") { it.name }
+                onFile(label)
+                val packName = context.getString(R.string.offline_gifs_own_pack_name)
+                outcomes += installOwnGifs(label) {
+                    OfflineGifPacks.importImages(
+                        context.filesDir,
+                        OWN_GIFS_ID,
+                        packName,
+                        pictures.map { file -> OfflineGifPacks.ImageSource(file.name, file.length()) { file.inputStream() } },
+                        append = true,
+                    )
                 }
             }
             val (ink, rest) = files.partition { InkPackImports.isPack(context, it) }
@@ -907,9 +948,34 @@ object OfflineImport {
             is OfflineGifPacks.ImportResult.PreviewsOnly ->
                 Outcome(name, false, R.string.offline_import_gif_previews_only, listOf(result.name))
             OfflineGifPacks.ImportResult.NoSpace -> Outcome(name, false, R.string.offline_import_no_space)
-            OfflineGifPacks.ImportResult.NotAPack -> Outcome(name, false, R.string.offline_import_unknown)
+            OfflineGifPacks.ImportResult.NotAPack, OfflineGifPacks.ImportResult.NoPictures ->
+                Outcome(name, false, R.string.offline_import_unknown)
         }
     }
+
+    /**
+     * A pack of the user's own pictures, made by [build]: a line saying how
+     * many GIFs it took and what the pack is called.
+     */
+    private inline fun installOwnGifs(label: String, build: () -> OfflineGifPacks.ImportResult): Outcome = attempt(label) {
+        when (val result = build()) {
+            is OfflineGifPacks.ImportResult.Imported -> Outcome(
+                label, true, R.string.offline_import_own_gifs_done,
+                listOf(count(result.added), result.pack.name),
+            )
+            OfflineGifPacks.ImportResult.NoSpace -> Outcome(label, false, R.string.offline_import_no_space)
+            OfflineGifPacks.ImportResult.NoPictures -> Outcome(label, false, R.string.offline_import_own_gifs_none)
+            is OfflineGifPacks.ImportResult.PreviewsOnly, OfflineGifPacks.ImportResult.NotAPack ->
+                Outcome(label, false, R.string.offline_import_unknown)
+        }
+    }
+
+    /** The pack a zip of pictures makes is called what the zip is, without its extension. */
+    private fun packNameOf(zipName: String): String =
+        zipName.substringBeforeLast('.').replace('_', ' ').trim().ifEmpty { zipName }
+
+    /** Where loose pictures picked on the GIF pack screen gather. */
+    private const val OWN_GIFS_ID = "picked-gifs"
 
     /**
      * Runs one install, turning whatever it throws into a line of the report.

@@ -15,6 +15,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.GraphicsMode
 import org.robolectric.shadows.ShadowStatFs
 
 /**
@@ -24,7 +25,10 @@ import org.robolectric.shadows.ShadowStatFs
  * fields, the three tables' columns, the `full/<id / 1000>/<id>.webp` layout),
  * never taken from a real pack.
  */
+// Native graphics, so BitmapFactory reads a picture's real size and refuses
+// bytes that are not one, as it does on a phone.
 @RunWith(RobolectricTestRunner::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 class OfflineGifPacksTest {
 
     private lateinit var filesDir: File
@@ -177,6 +181,86 @@ class OfflineGifPacksTest {
         }
         assertFalse(ZipFile(zip).use { OfflineGifPacks.isPack(it) })
         assertEquals(OfflineGifPacks.ImportResult.NotAPack, OfflineGifPacks.import(filesDir, zip))
+    }
+
+    /** A 2 x 1 GIF89a: the header is all the import reads of it. */
+    private val tinyGif = byteArrayOf(
+        0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x02, 0x00, 0x01, 0x00, 0x80.toByte(), 0x00, 0x00,
+        0x00, 0x00, 0x00, 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(),
+        0x2C, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01, 0x00, 0x00, 0x02, 0x02, 0x44, 0x01, 0x00, 0x3B,
+    )
+
+    private fun pictureZip(name: String, entries: Map<String, ByteArray>): File {
+        val zip = File(work, name)
+        ZipOutputStream(zip.outputStream()).use { out ->
+            for ((entry, bytes) in entries) {
+                out.putNextEntry(ZipEntry(entry))
+                out.write(bytes)
+            }
+        }
+        return zip
+    }
+
+    @Test
+    fun `a zip of plain GIF files becomes a pack, with folders as categories`() {
+        val zip = pictureZip(
+            "Reactions.zip",
+            mapOf(
+                "Reactions/Happy/cat_dance.gif" to tinyGif,
+                "Reactions/Sad/rainyDay.gif" to tinyGif,
+                "Reactions/notes.txt" to byteArrayOf(1),
+                "Reactions/broken.gif" to byteArrayOf(1, 2, 3),
+            ),
+        )
+        val result = OfflineGifPacks.importImageZip(filesDir, zip, "Reactions")
+        assertTrue(result is OfflineGifPacks.ImportResult.Imported)
+        val pack = (result as OfflineGifPacks.ImportResult.Imported).pack
+        assertEquals("Reactions", pack.name)
+        assertEquals(2, pack.gifCount)
+        val item = OfflineGifPacks.search("dance", 10).single()
+        assertEquals("image/gif", item.mime)
+        assertEquals(2f, item.aspectRatio)
+        assertTrue(item.fullUrl.endsWith(".gif"))
+        assertEquals(tinyGif.toList(), File(java.net.URI(item.fullUrl)).readBytes().toList())
+        assertEquals(1, OfflineGifPacks.search("rainy day", 10).size)
+        assertEquals(listOf("happy", "sad"), OfflineGifPacks.categories().map { it.term })
+    }
+
+    @Test
+    fun `loose pictures added to a pack join it`() {
+        fun source(name: String) = OfflineGifPacks.ImageSource(name, tinyGif.size.toLong()) { tinyGif.inputStream() }
+        OfflineGifPacks.importImages(filesDir, "own-mine", "Mine", listOf(source("one.gif")), append = true)
+        val second = OfflineGifPacks.importImages(filesDir, "own-mine", "Mine", listOf(source("two.gif")), append = true)
+        assertEquals(1, (second as OfflineGifPacks.ImportResult.Imported).added)
+        assertEquals(2, second.pack.gifCount)
+        assertEquals(listOf(1L, 2L), ids(OfflineGifPacks.search("", 10)))
+    }
+
+    @Test
+    fun `only a zip of nothing but GIFs counts outside the GIF screen`() {
+        assertTrue(OfflineGifPacks.isImageArchive(listOf("a/", "a/x.gif", "__MACOSX/a/._x.gif", ".DS_Store"), lenient = false))
+        assertFalse(OfflineGifPacks.isImageArchive(listOf("x.webp", "title.txt"), lenient = false))
+        assertFalse(OfflineGifPacks.isImageArchive(listOf("x.gif", "contents.json"), lenient = false))
+        assertTrue(OfflineGifPacks.isImageArchive(listOf("x.webp", "contents.json"), lenient = true))
+        assertFalse(OfflineGifPacks.isImageArchive(listOf("x.png"), lenient = true))
+    }
+
+    @Test
+    fun `a gif in a CleverKeys pack is kept`() {
+        val zip = pack("discord-gif", listOf(Row(7, "wave", null, animated = false)))
+        val withGif = File(work, "discord-gif-2.zip")
+        ZipOutputStream(withGif.outputStream()).use { out ->
+            ZipFile(zip).use { source ->
+                for (entry in source.entries()) {
+                    out.putNextEntry(ZipEntry(entry.name))
+                    source.getInputStream(entry).use { it.copyTo(out) }
+                }
+            }
+            out.putNextEntry(ZipEntry("full/000/000007.gif"))
+            out.write(tinyGif)
+        }
+        assertTrue(OfflineGifPacks.import(filesDir, withGif) is OfflineGifPacks.ImportResult.Imported)
+        assertEquals("image/gif", OfflineGifPacks.search("wave", 10).single().mime)
     }
 
     private fun ids(items: List<com.wasimaster.wmkeyboard.core.tools.GifItem>) =

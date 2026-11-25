@@ -89,10 +89,12 @@ internal fun OfflineImportRow(
     title: String = stringResource(R.string.offline_import_row_title),
     /** Said under the links' explanation, for files with something of their own to know about where they come from. */
     linksNote: String? = null,
+    /** The GIF pack screen's row: zips and loose files of GIF and WebP pictures make packs ([OfflineImport.run]). */
+    gifPictures: Boolean = false,
     onImported: () -> Unit = {},
 ) {
     var showLinks by remember { mutableStateOf(false) }
-    val runner = rememberOfflineImport(wordlistSize, onImported)
+    val runner = rememberOfflineImport(wordlistSize, onImported, gifPictures = gifPictures)
     WmRow(
         title = title,
         supporting = { Text(subtitle) },
@@ -138,6 +140,7 @@ internal fun rememberOfflineImport(
     wordlistSize: DictionaryCatalog.DictionarySize = DictionaryCatalog.DictionarySize.LARGE,
     onImported: () -> Unit = {},
     onReportDismissed: () -> Unit = {},
+    gifPictures: Boolean = false,
 ): OfflineImportRunner {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -157,6 +160,7 @@ internal fun rememberOfflineImport(
                         withContext(Dispatchers.Main) { choice = WordlistChoice(langId, options, answer) }
                         answer.await()
                     },
+                    gifPictures = gifPictures,
                 ) { name ->
                     scope.launch { working = name }
                 }

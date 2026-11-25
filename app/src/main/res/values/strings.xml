@@ -218,6 +218,9 @@
     <string name="offline_import_llm_done">AI model %1$s</string>
     <string name="offline_import_yomichan_done">Dictionary %1$s, %2$s entries, for the Dictionary tool and Look up</string>
     <string name="offline_import_gif_done">GIF pack %1$s, %2$s GIFs</string>
+    <string name="offline_import_own_gifs_done">%1$s GIFs added to %2$s</string>
+    <string name="offline_import_own_gifs_none">No GIF or WebP picture in it could be read</string>
+    <string name="offline_gifs_own_pack_name">My GIFs</string>
     <string name="offline_import_gif_previews_only">%1$s holds only still previews, with no GIFs to send. The Discord community packs carry the animated ones.</string>
     <string name="offline_import_no_space">Not enough free space</string>
     <string name="offline_import_unknown">Not a file the keyboard uses</string>
@@ -239,14 +242,14 @@
     <string name="offline_import_storage_title">Import downloaded files</string>
     <string name="offline_import_storage_subtitle">Language packs, interface languages, feature libraries, voice and AI models, text recognition data and GIF packs, fetched on another device</string>
     <string name="offline_gifs_group">Offline GIF packs</string>
-    <string name="offline_gifs_info">GIF packs kept on the phone and shown under Offline in the GIF panel. They need no internet and no API key. They are CleverKeys\' offline GIF packs: the Discord community packs carry animated GIFs, while the thumbnail packs hold only still previews and are not imported.</string>
+    <string name="offline_gifs_info">GIF packs kept on the phone and shown under Offline in the GIF panel. They need no internet and no API key. A pack can be one of CleverKeys\' offline GIF packs (the Discord community packs carry animated GIFs; the thumbnail packs hold only still previews and are not imported), or your own GIF and WebP files: import a zip of them and it becomes a pack named after the zip, with each folder in it as a category. GIF files picked on their own join a pack called My GIFs.</string>
     <plurals name="offline_gifs_pack_detail">
         <item quantity="one">%1$d GIF, %2$s</item>
         <item quantity="other">%1$d GIFs, %2$s</item>
     </plurals>
     <string name="offline_gifs_delete_desc">Delete %1$s</string>
     <string name="offline_gifs_import_title">Add GIF packs</string>
-    <string name="offline_gifs_import_subtitle">Download a pack in your browser, then import the zip</string>
+    <string name="offline_gifs_import_subtitle">A CleverKeys pack, a zip of your own GIFs, or GIF files</string>
     <string name="offline_gifs_link_label">CleverKeys offline GIF packs</string>
     <string name="storage_gif_packs_title">GIF packs</string>
     <string name="storage_yomichan_title">Imported dictionaries</string>

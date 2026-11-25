@@ -20,10 +20,11 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks
 
 /**
- * The GIF tool's packs on the device: CleverKeys' offline GIF packs, which the
- * panel offers under **Offline** with no network and no API key. Each pack
- * installed has a Delete; the row under them fetches more (in the browser)
- * and imports them.
+ * The GIF tool's packs on the device: CleverKeys' offline GIF packs and packs
+ * of the user's own GIF and WebP files, which the panel offers under
+ * **Offline** with no network and no API key. Each pack installed has a
+ * Delete; the row under them fetches more (in the browser) and imports them,
+ * a zip of pictures or loose pictures included.
  */
 @Composable
 internal fun OfflineGifPacksGroup() {
@@ -75,6 +76,7 @@ internal fun OfflineGifPacksGroup() {
                 links = listOf(
                     OfflineLink(stringResource(R.string.offline_gifs_link_label), OfflineGifPacks.PACKS_PAGE),
                 ),
+                gifPictures = true,
                 onImported = { packs = OfflineGifPacks.packs() },
             )
         }

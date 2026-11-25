@@ -119,7 +119,7 @@ Each screen that downloads something has an import row with two buttons, one abo
 | PaddleOCR's handwriting models for other scripts | The same row | The model and its character list, such as `ppocrv5-ink-latin.mnn` and `ppocrv5-ink-latin-keys.txt` |
 | Text recognition data | <SettingsPath path="Tools / Text scan (OCR) / Language data" />, below the languages | `<language>.traineddata`, or PaddleOCR's `ocr_det_fp16.tflite`, `ocr_rec_fp16.tflite` and `keys_v5.txt` for Chinese and Japanese. The F-Droid build has no `.traineddata` languages, and its PaddleOCR files are `ppocrv5-det.mnn`, `ppocrv5-rec.mnn` and `keys_v5.txt` |
 | Firefox Translations models | <SettingsPath path="Tools / Translate / Providers / On device (Firefox Translations)" />, below each list of directions | Each direction's model, lexical table and vocabulary files. Told by size and checksum, packed as published or unpacked |
-| GIF packs | <SettingsPath path="Tools / GIFs / Providers" />, on the Offline GIF packs screen | A CleverKeys GIF pack zip |
+| GIF packs | <SettingsPath path="Tools / GIFs / Providers" />, on the Offline GIF packs screen | A CleverKeys GIF pack zip, a zip of your own `.gif` and `.webp` files, or the files themselves |
 | Offline dictionaries for the Dictionary tool | <SettingsPath path="Tools / Dictionary / Dictionary sources" />, on each offline dictionary's screen | `wiktionary.wmdict.gz` or `oewn.wmdict.gz` |
 | Google's gesture library, which you bring yourself (not in the Google Play version) | <SettingsPath path="Typing / Gestures / Gesture library" /> | `libjni_latinime.so` or `libjni_latinimegoogle.so`, only the [pinned builds](/typing/glide-typing/#googles-gesture-library), told by name or by checksum |
 | Feature libraries (offline build) | <SettingsPath path="Privacy / Downloads / Feature libraries" />, and the banner of each feature that needs one | `<sha256>-<library>.so` from the data repository's `natives` release, or a vendor's `.aar` |
@@ -159,7 +159,7 @@ The links go to WM Keyboard's copy of Mozilla's files, the `translations` releas
 
 ## GIF packs
 
-The GIF panel can show packs of GIFs kept on the phone, with no key and no connection. It reads [CleverKeys' offline GIF packs](https://github.com/tribixbite/CleverKeys/releases/tag/CleverKeys-GIF): download one in the browser and import it under <SettingsPath path="Tools / GIFs / Offline GIF packs" />. Once a pack is installed, the GIF panel gains an **Offline** chip beside any online source, with its own grid, search and category chips. See [GIFs](/emoji/gifs/#offline-gif-packs).
+The GIF panel can show packs of GIFs kept on the phone, with no key and no connection. It reads [CleverKeys' offline GIF packs](https://github.com/tribixbite/CleverKeys/releases/tag/CleverKeys-GIF): download one in the browser and import it under <SettingsPath path="Tools / GIFs / Offline GIF packs" />. A zip of your own GIF files imports there too, and so do the files themselves (see [Your own GIFs](/emoji/gifs/#your-own-gifs)). Once a pack is installed, the GIF panel gains an **Offline** chip beside any online source, with its own grid, search and category chips. See [GIFs](/emoji/gifs/#offline-gif-packs).
 
 Only the **Discord community** packs carry animated GIFs. The **thumbnail** packs hold 80-pixel stills, previews with nothing behind them to send, so the import refuses them and says why.
 

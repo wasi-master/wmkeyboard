@@ -378,7 +378,7 @@
     <string name="import_offline_dictionary_title">Install this dictionary?</string>
     <string name="import_offline_dictionary_body"><xliff:g id="file_name" example="jmdict.zip">%1$s</xliff:g> is a dictionary of word meanings. Import adds it to the Dictionary tool.</string>
     <string name="import_offline_gif_title">Install this GIF pack?</string>
-    <string name="import_offline_gif_body"><xliff:g id="file_name" example="reactions.zip">%1$s</xliff:g> is a GIF pack from CleverKeys. Import adds its GIFs to the GIF panel, for use with no internet.</string>
+    <string name="import_offline_gif_body"><xliff:g id="file_name" example="reactions.zip">%1$s</xliff:g> is a GIF pack. Import adds its GIFs to the GIF panel, for use with no internet.</string>
     <string name="import_offline_rime_title">Install RIME schemas?</string>
     <string name="import_offline_rime_body"><xliff:g id="file_name" example="my-schemas.zip">%1$s</xliff:g> holds RIME input schemas. Import adds them, and the RIME engine compiles them the next time the RIME screen is open.</string>
     <string name="import_offline_app_language_title">Install an interface language?</string>
