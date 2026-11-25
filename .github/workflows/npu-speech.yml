@@ -1,0 +1,211 @@
+name: NPU speech export
+
+# Exports Parakeet's and Moonshine's encoders for the phone NPUs the app's
+# ExecuTorch builds can drive (tools/npu-speech/export_npu.py says how):
+# Qualcomm QNN for Snapdragon chips, MediaTek NeuroPilot for the Dimensity
+# 9300 and 9400. Run by hand. Every chip and clip length is one job; the
+# programs and their manifests (sizes, SHA-256, test transcripts) come out
+# as artifacts, to be uploaded to the data repository's `models` release as
+# `<sha256>-<name>` and pinned in EtNpuModels.kt.
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: parakeet-aux (CPU parts, once), parakeet or moonshine (an NPU encoder)
+        type: choice
+        options: [parakeet, moonshine, parakeet-aux]
+        default: parakeet
+      delegate:
+        description: qnn (Snapdragon) or neuron (Dimensity)
+        type: choice
+        options: [qnn, neuron]
+        default: neuron
+      socs:
+        description: Comma-separated chips (SM8550,SM8650,SM8750,SM8850 or MT6989,MT6991)
+        default: MT6989,MT6991
+      seconds:
+        description: Comma-separated clip lengths the encoder is compiled for
+        default: '10,30'
+      precision:
+        description: Empty for the default (16a8w / a16w8 for Parakeet, fp16 for Moonshine)
+        default: ''
+      qnn_version:
+        description: QAIRT SDK version; empty = 2.37.0.250724 (ExecuTorch's pin), 2.40.0.251030 for SM8850
+        default: ''
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      socs: ${{ steps.plan.outputs.socs }}
+      seconds: ${{ steps.plan.outputs.seconds }}
+    steps:
+      - id: plan
+        env:
+          MODEL: ${{ inputs.model }}
+          SOCS: ${{ inputs.socs }}
+          SECONDS_LIST: ${{ inputs.seconds }}
+        run: |
+          json() { python3 -c 'import json, sys; print(json.dumps([s.strip() for s in sys.argv[1].split(",") if s.strip()]))' "$1"; }
+          if [ "$MODEL" = parakeet-aux ]; then
+            echo 'socs=["-"]' >> "$GITHUB_OUTPUT"
+            echo 'seconds=["0"]' >> "$GITHUB_OUTPUT"
+          else
+            echo "socs=$(json "$SOCS")" >> "$GITHUB_OUTPUT"
+            echo "seconds=$(json "$SECONDS_LIST")" >> "$GITHUB_OUTPUT"
+          fi
+
+  export:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        soc: ${{ fromJSON(needs.plan.outputs.socs) }}
+        seconds: ${{ fromJSON(needs.plan.outputs.seconds) }}
+    env:
+      # The ExecuTorch release the app's runtime is built from
+      # (native/executorch-jni/build.sh); a newer exporter can write a
+      # program that runtime cannot load.
+      ET_VERSION: 1.5.1
+      ET_COMMIT: 3b60683923245cf472b7323426920e15623ba361
+      TORCH_VERSION: 2.14.0
+      HF_HUB_DISABLE_PROGRESS_BARS: '1'
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+            /usr/local/.ghcup /usr/share/swift /usr/local/share/powershell /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      # Parakeet's fp32 encoder, its calibration copies and the QNN compile's peak.
+      - name: Swap
+        run: |
+          sudo swapoff -a || true
+          dir=/mnt; [ -d "$dir" ] || dir=/
+          sudo fallocate -l 16G "$dir/wmkb.swap"
+          sudo chmod 600 "$dir/wmkb.swap"
+          sudo mkswap "$dir/wmkb.swap" > /dev/null
+          sudo swapon "$dir/wmkb.swap"
+
+      # MediaTek's converter wheel is built for CPython 3.10 alone.
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+
+      - name: Python environment
+        env:
+          MODEL: ${{ inputs.model }}
+        run: |
+          python -m venv /opt/et
+          . /opt/et/bin/activate
+          pip install -q --upgrade pip
+          pip install -q "torch==$TORCH_VERSION" --index-url https://download.pytorch.org/whl/cpu
+          echo "torch==$TORCH_VERSION" > /tmp/constraints.txt
+          pip install -q -c /tmp/constraints.txt "executorch==$ET_VERSION" soundfile scipy safetensors \
+            huggingface_hub graphviz pydot tabulate
+          if [ "$MODEL" = moonshine ]; then
+            pip install -q -c /tmp/constraints.txt "transformers==4.57.6"
+          else
+            pip install -q -c /tmp/constraints.txt "nemo_toolkit[asr]==2.7.3"
+          fi
+          python -c "import torch, executorch; print(torch.__version__, executorch.__version__)"
+
+      - name: ExecuTorch's Parakeet export script
+        if: inputs.model != 'moonshine'
+        run: |
+          curl -fsSL -o /tmp/export_parakeet_tdt.py \
+            "https://raw.githubusercontent.com/pytorch/executorch/$ET_COMMIT/examples/models/parakeet/export_parakeet_tdt.py"
+
+      # Qualcomm's public QAIRT SDK; its x86_64 libraries compile the HTP
+      # context binaries. 2.37 has no Hexagon V81, so the 8 Elite Gen 5 uses
+      # 2.40, the release sherpa-onnx's own QNN builds came from.
+      - name: QAIRT SDK version
+        id: qnn
+        if: inputs.delegate == 'qnn' && inputs.model != 'parakeet-aux'
+        env:
+          WANT: ${{ inputs.qnn_version }}
+          SOC: ${{ matrix.soc }}
+        run: |
+          v=$WANT
+          if [ -z "$v" ]; then
+            if [ "$SOC" = SM8850 ]; then v=2.40.0.251030; else v=2.37.0.250724; fi
+          fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v5
+        if: steps.qnn.outputs.version != ''
+        with:
+          path: /opt/qairt/${{ steps.qnn.outputs.version }}
+          key: qairt-${{ steps.qnn.outputs.version }}
+
+      - name: QAIRT SDK
+        if: steps.qnn.outputs.version != ''
+        env:
+          V: ${{ steps.qnn.outputs.version }}
+        run: |
+          if [ ! -d "/opt/qairt/$V/lib/x86_64-linux-clang" ]; then
+            curl -fsSL --retry 5 -o /tmp/qairt.zip \
+              "https://softwarecenter.qualcomm.com/api/download/software/sdks/Qualcomm_AI_Runtime_Community/All/$V/v$V.zip"
+            sudo mkdir -p /opt/qairt && sudo chown "$USER" /opt/qairt
+            unzip -q /tmp/qairt.zip "qairt/$V/*" -d /opt
+            rm /tmp/qairt.zip
+          fi
+          echo "QNN_SDK_ROOT=/opt/qairt/$V" >> "$GITHUB_ENV"
+          echo "LD_LIBRARY_PATH=/opt/qairt/$V/lib/x86_64-linux-clang" >> "$GITHUB_ENV"
+
+      # MediaTek publishes mtk_converter and mtk_neuron only behind the
+      # NeuroPilot portal's sign-in, so the owner keeps a zip of the two
+      # wheels somewhere private and names it in these secrets.
+      - name: NeuroPilot wheels
+        if: inputs.delegate == 'neuron' && inputs.model != 'parakeet-aux'
+        env:
+          URL: ${{ secrets.NEUROPILOT_WHEELS_URL }}
+          TOKEN: ${{ secrets.NEUROPILOT_WHEELS_TOKEN }}
+        run: |
+          [ -n "$URL" ] || { echo "Set the NEUROPILOT_WHEELS_URL secret to a zip of mtk_converter and mtk_neuron wheels" >&2; exit 1; }
+          mkdir -p /tmp/np
+          if [ -n "$TOKEN" ]; then
+            curl -fsSL -H "Authorization: Bearer $TOKEN" -H "Accept: application/octet-stream" -o /tmp/np/wheels.zip "$URL"
+          else
+            curl -fsSL -o /tmp/np/wheels.zip "$URL"
+          fi
+          unzip -q -j /tmp/np/wheels.zip '*.whl' -d /tmp/np
+          . /opt/et/bin/activate
+          pip install -q -c /tmp/constraints.txt /tmp/np/*.whl
+          python -c "import mtk_converter, mtk_neuron; print('NeuroPilot', mtk_neuron.__version__ if hasattr(mtk_neuron, '__version__') else '')"
+
+      - name: Export
+        env:
+          MODEL: ${{ inputs.model }}
+          DELEGATE: ${{ inputs.delegate }}
+          SOC: ${{ matrix.soc }}
+          SECONDS_ONE: ${{ matrix.seconds }}
+          PRECISION: ${{ inputs.precision }}
+        run: |
+          . /opt/et/bin/activate
+          args=(--model "$MODEL" --output-dir out)
+          if [ "$MODEL" != moonshine ]; then args+=(--export-script /tmp/export_parakeet_tdt.py); fi
+          if [ "$MODEL" != parakeet-aux ]; then args+=(--delegate "$DELEGATE" --soc "$SOC" --seconds "$SECONDS_ONE"); fi
+          if [ -n "$PRECISION" ]; then args+=(--precision "$PRECISION"); fi
+          python tools/npu-speech/export_npu.py "${args[@]}"
+          ls -la out
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo '```json'
+            cat out/manifest-*.json 2>/dev/null || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: npu-speech-${{ inputs.model }}-${{ inputs.delegate }}-${{ matrix.soc }}-${{ matrix.seconds }}s
+          path: out/
+          compression-level: 0

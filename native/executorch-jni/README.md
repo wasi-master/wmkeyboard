@@ -81,6 +81,12 @@ revision, every file checked against the SHA-256 in `EtCatalog`:
   `nvidia/parakeet-tdt-0.6b-v3`, CC-BY-4.0.
 - Moonshine: `software-mansion/react-native-executorch-moonshine-tiny`, the
   XNNPACK encoder and decoder of Useful Sensors' Moonshine Tiny, MIT.
+- NPU builds of Parakeet and Moonshine for `libwmexecutorch_qnn` and
+  `libwmexecutorch_neuron`: their encoders compiled for one chip and clip
+  length, and Parakeet's CPU parts in a program of their own, made by
+  `tools/npu-speech/export_npu.py` and published on the data repository's
+  `models` release (`EtNpuCatalog`; hidden until each file's size and hash
+  are filled in).
 - FUTO Swipe: `futo-org/futo-swipe`, the fp32 encoder
   (`honorable_sturgeon`) and English QWERTY decoder (`magic_macaw`), under
   the FUTO Model Weights License 1.0, which asks for a visible "powered by

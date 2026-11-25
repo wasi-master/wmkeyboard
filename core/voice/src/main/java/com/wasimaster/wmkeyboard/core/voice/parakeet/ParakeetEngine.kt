@@ -4,6 +4,7 @@ import com.wasimaster.wmkeyboard.core.voice.executorch.EtCatalog
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtModel
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtNative
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtNpu
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtRunner
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
 import com.wasimaster.wmkeyboard.core.voice.executorch.PieceVocab
@@ -26,7 +27,9 @@ import java.io.File
  * defaults for those. Every call runs on [EtNative.dispatcher].
  *
  * An NPU build ([EtModel.npu], k2-fsa's QNN context binaries for one
- * Snapdragon chip) runs through [QnnSpeech] instead, on the same thread.
+ * Snapdragon chip) runs through [QnnSpeech] instead, on the same thread, and
+ * an ExecuTorch NPU build ([EtModel.etNpu], for a Snapdragon or a Dimensity)
+ * through [ParakeetNpu], falling back to the CPU build when it fails.
  */
 object ParakeetEngine {
 
@@ -71,6 +74,7 @@ object ParakeetEngine {
     fun warm(filesDir: File, model: EtModel) {
         require(model.engine == EtEngine.PARAKEET)
         val runs = runnable(filesDir, model)
+        if (runs.etNpu != null) return EtNpu.orCpuTwin(filesDir, runs, { ParakeetNpu.warm(filesDir, runs) }) { warm(filesDir, it) }
         if (runs.npu != null) return QnnSpeech.warm(filesDir, runs)
         open(filesDir, runs)
         vocabFor(filesDir, runs)
@@ -125,6 +129,12 @@ object ParakeetEngine {
     /** [pcm] (16 kHz mono, in [-1, 1]) as text. On [EtNative.dispatcher] only. */
     fun transcribe(filesDir: File, chosen: EtModel, pcm: FloatArray): String {
         val model = runnable(filesDir, chosen)
+        if (model.etNpu != null) {
+            return EtNpu.orCpuTwin(
+                filesDir, model,
+                { ParakeetNpu.transcribe(filesDir, model, pcm, minOf(pcm.size, MAX_CLIP_SECONDS * 16_000)) },
+            ) { transcribe(filesDir, it, pcm) }
+        }
         if (model.npu != null) return QnnSpeech.transcribe(filesDir, model, pcm, minOf(pcm.size, MAX_CLIP_SECONDS * 16_000))
         val (program, head) = open(filesDir, model)
         val blank = program.constant("blank_id")?.toInt() ?: DEFAULT_BLANK
@@ -155,6 +165,19 @@ object ParakeetEngine {
     fun newStream(filesDir: File, chosen: EtModel): ParakeetStream {
         require(chosen.engine == EtEngine.PARAKEET)
         val model = runnable(filesDir, chosen)
+        if (model.etNpu != null) {
+            return EtNpu.orCpuTwin(filesDir, model, {
+                ParakeetNpu.warm(filesDir, model)
+                // Each pass pads to its bucket, as with sherpa-onnx's builds
+                // below. A pass that fails is remembered and handed to the
+                // CPU build, which the next pass then keeps open.
+                ParakeetStream(MAX_CLIP_SECONDS * 16_000, transcribe = { pcm, count ->
+                    EtNpu.orCpuTwin(filesDir, model, { ParakeetNpu.transcribe(filesDir, model, pcm, count) }) { twin ->
+                        transcribe(filesDir, twin, if (count == pcm.size) pcm else pcm.copyOf(count))
+                    }
+                })
+            }) { newStream(filesDir, it) }
+        }
         if (model.npu != null) {
             QnnSpeech.warm(filesDir, model)
             // Each pass pads to the bucket it lands in, so a pass costs the
@@ -196,14 +219,22 @@ object ParakeetEngine {
      */
     internal fun cpuIfNeeded(filesDir: File, model: EtModel): EtModel {
         val runsNow = when {
+            model.etNpu != null -> EtNpu.runsNow(filesDir, model)
             model.npu != null -> QnnSpeech.usable()
             model.gpu -> EtNative.delegate == "vulkan" || run { EtNative.requestVulkan(); false }
             else -> true
         }
         if (runsNow) return model
         val twin = model.cpuTwin?.let(EtCatalog::byId)?.takeIf { EtStore.isDownloaded(filesDir, it) }
-        val needs = if (model.npu != null) "sherpa-onnx's NPU library and this phone's NPU runtime" else "ExecuTorch's Vulkan build"
-        return twin ?: error("${model.label} needs $needs, which is not loaded")
+        if (twin != null) return twin
+        val why = when {
+            model.etNpu != null && EtNpu.failed(filesDir, model) -> "did not run on this phone's NPU"
+            model.etNpu == EtNpu.QNN -> "needs ExecuTorch's QNN build and this phone's NPU runtime, which are not loaded"
+            model.etNpu == EtNpu.NEURON -> "needs ExecuTorch's NeuroPilot build, which is not loaded"
+            model.npu != null -> "needs sherpa-onnx's NPU library and this phone's NPU runtime, which is not loaded"
+            else -> "needs ExecuTorch's Vulkan build, which is not loaded"
+        }
+        error("${model.label} $why")
     }
 
     /** The longest clip the preprocessor takes, in samples; 50 s for v3. */
@@ -223,10 +254,15 @@ object ParakeetEngine {
         val mel = proc[0]
         val melLength = proc[1].scalar
         val enc = runner.run("encoder", listOf(mel, Tensor.long(melLength)))
-        val frames = enc[0].floats
-        val frameCount = enc[1].scalar.toInt()
-        val dim = enc[0].shape.last().toInt()
+        return walk(runner, enc[0].floats, enc[1].scalar.toInt(), enc[0].shape.last().toInt(), blank)
+    }
 
+    /**
+     * Greedy TDT decoding over the first [frameCount] of the encoder's
+     * [frames] (each [dim] wide), through [runner]'s `decoder_step` and
+     * `joint`. Shared with [ParakeetNpu], whose encoder is another program.
+     */
+    internal fun walk(runner: EtRunner, frames: FloatArray, frameCount: Int, dim: Int, blank: Int): List<Int> {
         val step = runner.shape("decoder_step") ?: error("program has no decoder_step")
         var h = Tensor.zeros(step.inputs[1])
         var c = Tensor.zeros(step.inputs[2])
@@ -269,7 +305,7 @@ object ParakeetEngine {
         return out
     }
 
-    private fun vocabFor(filesDir: File, model: EtModel): PieceVocab {
+    internal fun vocabFor(filesDir: File, model: EtModel): PieceVocab {
         val file = EtStore.file(filesDir, model, TOKENIZER)
         vocab?.let { if (vocabPath == file.path) return it }
         return PieceVocab.fromSentencePiece(file.readBytes()).also {

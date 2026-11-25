@@ -205,8 +205,20 @@ class EtModel(
      * one into pieces no longer than it.
      */
     val npuSeconds: Int = 0,
+    /**
+     * For an ExecuTorch program set exported for an NPU delegate rather than
+     * k2-fsa's sherpa-onnx binaries: [EtNpu.QNN] (a Snapdragon, through
+     * `libwmexecutorch_qnn`) or [EtNpu.NEURON] (a Dimensity 9300 or 9400,
+     * through `libwmexecutorch_neuron`), with [npu] naming the chip and
+     * [npuSeconds] the clip length its encoder was compiled for. Null for
+     * every other model. See [EtNpuCatalog].
+     */
+    val etNpu: String? = null,
 ) {
     val bytes: Long get() = files.sumOf { it.bytes }
+
+    /** An NPU build that runs on sherpa-onnx's QNN library ([com.wasimaster.wmkeyboard.core.voice.sherpa.QnnSpeech]). */
+    val sherpaNpu: Boolean get() = npu != null && etNpu == null
 
     /** Whether an engine runs this rather than [other] when both are on the device. */
     fun outranks(other: EtModel): Boolean = ORDER.compare(this, other) > 0
@@ -246,12 +258,14 @@ class EtModel(
          * CPU one wins unless the user picks the GPU one), then a CPU build
          * before an NPU one (a downloaded NPU build is used, being several
          * times faster, even over a post-trained CPU model such as Parakeet
-         * Ultra), then the one superseded first, then the NPU build for the
-         * longer clip first.
+         * Ultra), then of two NPU builds an ExecuTorch one before sherpa-onnx's
+         * (which runs the same weights and was there first), then the one
+         * superseded first, then the NPU build for the longer clip first.
          */
         val ORDER: Comparator<EtModel> = compareBy<EtModel> { it.millions }
             .thenBy { !it.gpu }
             .thenBy { it.npu != null }
+            .thenBy { it.etNpu == null }
             .thenBy { it.supersedes != null }
             .thenByDescending { it.npuSeconds }
     }
@@ -957,7 +971,7 @@ object EtCatalog {
             "vi", "Vosk Vietnamese", 34, "vosk-model-small-vn-0.4", 33_656_337L,
             "efe5c8494212110471a79befc48c79da679e5b1fc52a4ffb500222ff86d622e5", "vi",
         ),
-    )
+    ) + EtNpuCatalog.models
 
     fun byId(id: String): EtModel? = models.firstOrNull { it.id == id } ?: EtCustomModels.models.firstOrNull { it.id == id }
 
@@ -967,13 +981,16 @@ object EtCatalog {
     /**
      * [engine]'s models this phone can run: a GPU build only where the GPU
      * speaks Vulkan 1.1, an NPU build only on its own chip in a build that
-     * has sherpa-onnx's QNN library.
+     * has the library that runs it (sherpa-onnx's QNN library, or the
+     * ExecuTorch build with that NPU's delegate).
      */
     fun forEngine(engine: EtEngine): List<EtModel> =
         models.filter {
-            it.engine == engine && (!it.gpu || EtNative.vulkanPossible()) &&
-                (it.npu == null || (it.npu == EtNative.qnnSoc() && SherpaQnnNative.shipped))
+            it.engine == engine && (!it.gpu || EtNative.vulkanPossible()) && (it.npu == null || npuOffered(it))
         }
+
+    private fun npuOffered(model: EtModel): Boolean =
+        if (model.etNpu != null) EtNpu.offered(model) else model.npu == EtNative.qnnSoc() && SherpaQnnNative.shipped
 }
 
 /**

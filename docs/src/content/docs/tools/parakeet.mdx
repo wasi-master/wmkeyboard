@@ -48,6 +48,16 @@ An NPU build is compiled for clips of one length, 10 or 30 seconds. A shorter ph
 
 A downloaded NPU build is used over the standard builds, Ultra included. The first time, dictation also fetches sherpa-onnx's NPU library (a few MB) and the phone's NPU runtime, Qualcomm's QNN libraries, the same ones [on-device AI](/tools/ai/) uses on the NPU; the GitHub edition asks you to accept Qualcomm's licence before fetching them. Until both are on the phone, dictation uses the standard v3 if that is downloaded, and otherwise reports the model as not loading. The NPU builds have not been measured on a phone yet: the phone this was built on has a MediaTek chip, so how much faster they are, or whether a given phone's Qualcomm drivers accept them, is still open.
 
+### NPU builds through ExecuTorch
+
+A second kind of NPU build runs on ExecuTorch, the runtime the standard builds already use, in a build of it with the NPU's own delegate. It covers the Dimensity 9300 and 9400, which sherpa-onnx has no build for, as well as the four Snapdragons above: **Parakeet TDT 0.6B v3 (NPU, ExecuTorch, 10 s)** and **Parakeet TDT 0.6B v3 (NPU, ExecuTorch, 30 s)**, each for one chip, listed only on that chip. Only the encoder, the large part that reads the clip, is compiled for the NPU, for 10- or 30-second clips like the builds above, so the same padding and cutting apply. The preprocessor and the transducer that walks through the encoder's output run on the CPU as in the standard build, from a small program every chip shares. Each build is three files: the encoder for your chip and that shared program from the project's data repository, and v3's tokenizer from Hugging Face, each checked against its SHA-256.
+
+These builds appear in the list once their files are published, and until then the list doesn't show them. Making them takes Qualcomm's and MediaTek's model compilers, which run only on Linux; the export is in `tools/npu-speech` in the source.
+
+Downloading one also fetches ExecuTorch's build with that NPU's delegate. On a Dimensity it is one library that talks to the phone's own MediaTek NPU drivers; on a Snapdragon it is the QNN build, and dictation also fetches Qualcomm's NPU runtime, after you accept Qualcomm's licence on the GitHub edition. The delegate build loads with the keyboard, so the first time it can take a restart of the keyboard; until then dictation uses the standard v3 if that is downloaded, and otherwise reports the model as not loading.
+
+A downloaded ExecuTorch NPU build is used over the standard builds, Ultra included. On a Snapdragon with both kinds of NPU build on the phone, sherpa-onnx's is used. If an ExecuTorch NPU build fails to load or to run, that phrase goes to the standard v3, and the phone keeps using v3 until the system is updated or the NPU build is downloaded again; without v3 on the phone, the model reports that it did not run on the NPU. None of these builds has been measured on a phone yet.
+
 ## How it works
 
 Parakeet doesn't write its answer a word at a time: an encoder reads a whole clip, and a small transducer then walks through it, writing a word piece where it hears one and skipping ahead where the model's own duration head says nothing more is coming. That is most of why it's quick for its size. A phrase can run to 50 seconds. The first phrase after the keyboard starts takes a few seconds longer while the model's weights are prepared.
@@ -82,6 +92,6 @@ The pause finder is Ultra's own head with a copy of the model's first layers, ex
 
 **No words to listen for.** Parakeet has no way to take a list of names or terms, so **Words to listen for** does not show while it is the engine.
 
-**Every build.** The runtime, [ExecuTorch](https://github.com/pytorch/executorch) built for the keyboard's models alone, is in every build; F-Droid compiles it from source. A build made without it does not offer the engine. The NPU builds need Qualcomm's libraries, so the F-Droid build does not offer them.
+**Every build.** The runtime, [ExecuTorch](https://github.com/pytorch/executorch) built for the keyboard's models alone, is in every build; F-Droid compiles it from source. A build made without it does not offer the engine. The NPU builds need Qualcomm's libraries or MediaTek's NPU interface, which the F-Droid build doesn't carry, so it doesn't offer them.
 
 **The licence.** Both models are under CC-BY-4.0: v3 is NVIDIA's, and Ultra is Moondream's, built on it. Both are credited in the app's About screen.

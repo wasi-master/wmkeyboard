@@ -3,6 +3,8 @@ package com.wasimaster.wmkeyboard.core.voice.moonshine
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtModel
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtNative
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtNpu
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtNpuCatalog
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtRunner
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
 import com.wasimaster.wmkeyboard.core.voice.executorch.PieceVocab
@@ -25,7 +27,11 @@ import kotlin.math.ceil
  *
  * An NPU build ([EtModel.npu], k2-fsa's QNN context binaries for one
  * Snapdragon chip, compiled for 10 s clips) runs through [QnnSpeech] instead,
- * on the same thread; a longer clip is decoded in pieces.
+ * on the same thread; a longer clip is decoded in pieces. An ExecuTorch NPU
+ * build ([EtModel.etNpu], for a Snapdragon or a Dimensity) is the encoder
+ * alone, compiled for one clip length, beside the CPU build's decoder: each
+ * piece is padded with silence to that length, and a failure hands the clip
+ * to the CPU build and is remembered ([EtNpu.orCpuTwin]).
  */
 object MoonshineEngine {
 
@@ -46,13 +52,22 @@ object MoonshineEngine {
     private var vocab: PieceVocab? = null
     private var vocabPath: String? = null
 
-    private fun files(filesDir: File, model: EtModel) =
-        listOf(EtStore.file(filesDir, model, ENCODER), EtStore.file(filesDir, model, DECODER))
+    private fun files(filesDir: File, model: EtModel) = listOf(
+        EtStore.file(filesDir, model, if (model.etNpu != null) EtNpuCatalog.ENCODER_FILE else ENCODER),
+        EtStore.file(filesDir, model, DECODER),
+    )
 
     /** Opens [model] ahead of a clip. On [EtNative.dispatcher] only. Throws when it will not load. */
     fun warm(filesDir: File, model: EtModel) {
         require(model.engine == EtEngine.MOONSHINE)
         val runs = ParakeetEngine.cpuIfNeeded(filesDir, model)
+        if (runs.etNpu != null) {
+            return EtNpu.orCpuTwin(filesDir, runs, {
+                EtNpu.programs(runs, files(filesDir, runs))
+                vocabFor(filesDir, runs)
+                Unit
+            }) { warm(filesDir, it) }
+        }
         if (runs.npu != null) return QnnSpeech.warm(filesDir, runs)
         EtNative.programs(files(filesDir, runs))
         vocabFor(filesDir, runs)
@@ -61,6 +76,9 @@ object MoonshineEngine {
     /** [pcm] (16 kHz mono, in [-1, 1]) as text. On [EtNative.dispatcher] only. */
     fun transcribe(filesDir: File, chosen: EtModel, pcm: FloatArray): String {
         val model = ParakeetEngine.cpuIfNeeded(filesDir, chosen)
+        if (model.etNpu != null) {
+            return EtNpu.orCpuTwin(filesDir, model, { transcribeNpu(filesDir, model, pcm) }) { transcribe(filesDir, it, pcm) }
+        }
         if (model.npu != null) return QnnSpeech.transcribe(filesDir, model, pcm)
         val (encoder, decoder) = EtNative.programs(files(filesDir, model))
         return vocabFor(filesDir, model).decode(decode(encoder, decoder, pcm)).trim()
@@ -70,12 +88,30 @@ object MoonshineEngine {
     fun maxSamples(encoder: EtRunner): Int =
         encoder.shape("forward")?.inputs?.firstOrNull()?.dims?.lastOrNull()?.toInt() ?: 16_000 * 30
 
-    /** The decoder's token ids for [pcm], without the start and end tokens. */
-    internal fun decode(encoder: EtRunner, decoder: EtRunner, pcm: FloatArray): List<Int> {
-        val n = minOf(pcm.size, maxSamples(encoder))
+    /**
+     * An ExecuTorch NPU build: the clip in pieces no longer than the
+     * encoder's fixed length, cut at their quietest moments, each padded.
+     */
+    private fun transcribeNpu(filesDir: File, model: EtModel, pcm: FloatArray): String {
+        val (encoder, decoder) = EtNpu.programs(model, files(filesDir, model))
+        val vocab = vocabFor(filesDir, model)
+        return QnnSpeech.cuts(pcm, pcm.size, maxSamples(encoder)).map { range ->
+            vocab.decode(decode(encoder, decoder, pcm.copyOfRange(range.first, range.last + 1), padded = true)).trim()
+        }.filter { it.isNotEmpty() }.joinToString(" ")
+    }
+
+    /**
+     * The decoder's token ids for [pcm], without the start and end tokens.
+     * [padded]: the encoder takes one fixed length (an NPU build), so [pcm]
+     * is padded with silence to it; the token budget still follows [pcm].
+     */
+    internal fun decode(encoder: EtRunner, decoder: EtRunner, pcm: FloatArray, padded: Boolean = false): List<Int> {
+        val max = maxSamples(encoder)
+        val n = minOf(pcm.size, max)
         if (n == 0) return emptyList()
-        val audio = if (n == pcm.size) pcm else pcm.copyOf(n)
-        val hidden = encoder.run("forward", listOf(Tensor(longArrayOf(1, n.toLong()), audio)))[0]
+        val length = if (padded) max else n
+        val audio = if (length == pcm.size) pcm else pcm.copyOf(length)
+        val hidden = encoder.run("forward", listOf(Tensor(longArrayOf(1, length.toLong()), audio)))[0]
         val limit = decoder.shape("forward_cached")?.inputs?.firstOrNull()?.dims?.lastOrNull()?.toInt() ?: 178
         val budget = minOf(limit, ceil(n / 16_000.0 * TOKENS_PER_SECOND).toInt() + 2)
         val tokens = ArrayList<Long>().apply { add(START) }

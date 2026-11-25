@@ -25,6 +25,12 @@ On a phone with a Snapdragon 8 Gen 2, 8 Gen 3, 8 Elite or 8 Elite Gen 5, the mod
 
 The same chips also get **Moonshine Base (NPU, 10 s)**, a 112 MB archive of Moonshine's larger English model (61 million parameters to Tiny's 27), which has no standard build here. With both downloaded, Base is used. It has no standard build to fall back on, so until the NPU library and runtime are on the phone it reports the model as not loading. The F-Droid build offers neither.
 
+## On a Dimensity or Snapdragon NPU, through ExecuTorch
+
+On a phone with a Dimensity 9300 or 9400, or one of the Snapdragons above, the list can also have **Moonshine Tiny (NPU, ExecuTorch, 10 s)**: Moonshine Tiny's encoder compiled for that chip's NPU, run by ExecuTorch's build with the NPU's own delegate. The encoder is compiled for 10-second clips, padded and cut as above. The decoder, which writes the words one at a time, stays on the CPU: it is the standard build's own file. So the download is the encoder for your chip from the project's data repository, plus the standard build's decoder and tokenizer (120 MB) from Hugging Face, each checked against its SHA-256.
+
+It appears in the list once its files are published, and until then the list doesn't show it. Downloading it also fetches ExecuTorch's build with the NPU's delegate (on a Snapdragon, also Qualcomm's NPU runtime, after you accept Qualcomm's licence on the GitHub edition). That build loads with the keyboard, so the first time it can take a restart of the keyboard; until then dictation uses the standard build if that is downloaded. Once it runs it is used over the standard build; on a Snapdragon with sherpa-onnx's build on the phone too, sherpa-onnx's is used. If it fails to load or to run, that phrase goes to the standard build, and the phone keeps using that until the system is updated or the NPU build is downloaded again. It has not been measured on a phone yet. The F-Droid build doesn't offer it.
+
 ## Moonshine, Asr4All or Whisper
 
 For English, [Asr4All](/tools/asr4all/) shows the words while you speak, and the [whisper.cpp Whisper models](/tools/whisper/) take your own words as hints and run to two minutes. Moonshine is the small, quick one: the least to download among them for its accuracy, and the fastest to answer a short phrase.

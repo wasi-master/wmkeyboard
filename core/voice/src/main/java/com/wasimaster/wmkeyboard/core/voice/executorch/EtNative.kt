@@ -2,6 +2,9 @@ package com.wasimaster.wmkeyboard.core.voice.executorch
 
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.GatedLibrary
+import com.wasimaster.wmkeyboard.core.modules.LibraryFault
+import com.wasimaster.wmkeyboard.core.modules.ModuleGate
+import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import java.io.File
 import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineDispatcher
@@ -67,6 +70,24 @@ object EtNative {
     private val NEURON_SOCS = setOf("MT6989", "MT6991")
 
     /**
+     * This phone's Dimensity chip (`MT6989`) when the NeuroPilot build can
+     * serve it ([neuronPossible]), else null: what picks the NeuroPilot
+     * builds of Parakeet and Moonshine to offer ([EtModel.etNpu]).
+     */
+    fun neuronSoc(): String? = if (neuronPossible()) android.os.Build.SOC_MODEL.uppercase() else null
+
+    /** Whether this build can have the QNN build, its module fetched or not; never F-Droid's. */
+    val qnnShipped: Boolean get() = inBuild(FeatureModules.executorchQnn)
+
+    /** Whether this build can have the NeuroPilot build, its module fetched or not; never F-Droid's. */
+    val neuronShipped: Boolean get() = inBuild(FeatureModules.executorchNeuron)
+
+    private fun inBuild(gate: ModuleGate): Boolean =
+        !com.wasimaster.wmkeyboard.config.BuildConfig.ENABLE_FDROID &&
+            (gate.installed || gate.onDemand) &&
+            (gate.state.value as? ModuleState.Missing)?.fault != LibraryFault.NOT_IN_BUILD
+
+    /**
      * The delegate the loaded build carries: `qnn`, `neuron`, `vulkan`, or
      * empty for the plain build. Loads the library.
      */
@@ -113,6 +134,20 @@ object EtNative {
     /** Asks for the QNN build's gate, ahead of a program exported for the NPU. */
     fun requestQnn() {
         if (qnnPossible() && !FeatureModules.executorchQnn.installed) FeatureModules.executorchQnn.requestInstall()
+    }
+
+    /**
+     * Readies the loaded QNN build for a program exported with the Qualcomm
+     * delegate: the chip's QNN runtime loaded and the DSP pointed at its
+     * skel. False when this build or phone cannot (the plain build loaded, no
+     * runtime yet, which is then asked for). Unpacks the runtime the first
+     * time, so never on the main thread.
+     */
+    fun prepareQnn(): Boolean {
+        if (!qnn) return false
+        val dir = qnnRuntime() ?: return false
+        nativeSetQnnDirectory(dir.absolutePath)
+        return true
     }
 
     /** Whether the runtime is loaded on this device and build. */
@@ -192,15 +227,18 @@ object EtNative {
 
     /**
      * The programs for [files], opened if they are not the set already open,
-     * which is closed first. On [dispatcher] only. Throws when one will not load.
+     * which is closed first. [beforeOpen] runs only when they are opened, after
+     * the last set is closed: where an NPU program readies its runtime. On
+     * [dispatcher] only. Throws when one will not load.
      */
-    fun programs(files: List<File>): List<Program> {
+    fun programs(files: List<File>, beforeOpen: (() -> Unit)? = null): List<Program> {
         val paths = files.map { it.absolutePath }
         if (paths == openFiles && openPrograms.isNotEmpty()) return openPrograms
         release()
         // An NPU build open on sherpa-onnx's QNN library goes back too: one
         // dictation model in memory at a time.
         com.wasimaster.wmkeyboard.core.voice.sherpa.QnnSpeech.release()
+        beforeOpen?.invoke()
         val opened = ArrayList<Program>(files.size)
         try {
             for (f in files) opened += open(f) ?: error("${f.name} did not load")

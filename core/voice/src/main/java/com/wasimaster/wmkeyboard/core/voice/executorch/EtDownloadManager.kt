@@ -72,6 +72,8 @@ object EtDownloadManager {
         if (isBusy || EtStore.isDownloaded(filesDir, model)) return
         // A GPU build needs ExecuTorch's Vulkan build, a download of its own.
         if (model.gpu) EtNative.requestVulkan()
+        // An ExecuTorch NPU build needs the build with its delegate, likewise.
+        EtNpu.request(model)
         activeId = model.id
         set(model, Status.Downloading(EtStore.bytesOnDisk(filesDir, model), model.bytes))
         job = scope.launch {

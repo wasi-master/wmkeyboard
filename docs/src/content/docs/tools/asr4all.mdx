@@ -59,6 +59,8 @@ On a desktop, its output matched the model makers' own reference decoder word fo
 
 **The runtime is built in.** Asr4All runs on [ExecuTorch](https://github.com/pytorch/executorch), built for these models alone, so it adds about 3.8 MB on a 64-bit ARM phone, shared with [Parakeet](/tools/parakeet/) and [Moonshine](/tools/moonshine/), where the general-purpose library would add over 10 MB.
 
+**No NPU build.** Parakeet and Moonshine have builds for Snapdragon and Dimensity NPUs; Asr4All doesn't. FUTO publish its ready-made programs but not the code that makes them, so there is nothing to compile for an NPU from.
+
 **The licence.** The model weights come with their own licence, which allows dictation and personal use and forbids surveillance, profiling and similar uses. Its text is in the app's About screen, with the other credits.
 
 **Every build.** The runtime is in every build; F-Droid compiles it from source. A build made without it does not offer the engine.
