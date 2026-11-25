@@ -33635,6 +33635,11 @@ open class WMKeyboardService : InputMethodService() {
         // picked on its own), wherever it lands: it belongs to the letter
         // before it, and the word it is part of goes on after it.
         val pickState = _uiState.value
+        // A next word picked with the caret still against the word before it
+        // (a glide or a pick that left no space after itself) goes in after a
+        // space rather than glued on: "this" then "session" (#1533). Read
+        // before the No space arm is spent below.
+        val lead = if (replacedWord == null) pickLeadingSpace(ic, suggestion) else ""
         val after = ic.getTextAfterCursor(1, 0)
         // Thai, Lao, Khmer and Burmese put no space between words: the pick
         // ends the word on its own, and the next one starts against it.
@@ -33669,7 +33674,7 @@ open class WMKeyboardService : InputMethodService() {
                 cased
             }
         }
-        ic.commitText(committed + tail, pickCaretOffset(spaced))
+        ic.commitText(lead + committed + tail, pickCaretOffset(spaced))
         wordEndedByPick = tail.isEmpty() && !spaced
         // That space is the keyboard's, so a mark typed next takes it back and
         // hugs the word — "word:" and not "word :" (issue #34). Same one-shot a
@@ -33755,6 +33760,30 @@ open class WMKeyboardService : InputMethodService() {
         }
         maybeAutoCapitalize()
         refreshSuggestions()
+    }
+
+    /**
+     * The space a word picked with nothing composing needs in front of it:
+     * one when the caret sits straight after a word, as it does after a glide
+     * or a pick with no space after it (#1533). Without it a next-word
+     * prediction was glued to the word before ("thissession").
+     *
+     * None while a word is being typed (the pick finishes that word), when No
+     * space was asked for so the pick joins on, for a pick that is not a word
+     * (a mark, a lone vowel sign), in the scripts written without spaces, and
+     * wherever a glided word would not be spaced either ([spacesBeforeGlidedWord]:
+     * an address being typed, an opening bracket or quote).
+     */
+    private fun pickLeadingSpace(ic: InputConnection, word: String): String {
+        if (composing.isNotEmpty() || glueNextWord || _uiState.value.noSpaceArmed) return ""
+        val first = word.firstOrNull() ?: return ""
+        if (!Character.isLetterOrDigit(first) && !Character.isHighSurrogate(first)) return ""
+        if (isLoneSign(word) || WordSegments.isSegmentedScript(word.codePointAt(0))) return ""
+        val before = ic.getTextBeforeCursor(QUOTE_CONTEXT_CHARS, 0)?.toString().orEmpty()
+        val last = before.lastOrNull() ?: return ""
+        if (!WordContext.isWordChar(last) && !last.isDigit()) return ""
+        if (WordSegments.isSegmentedScript(before.codePointBefore(before.length))) return ""
+        return if (spacesBeforeGlidedWord(before, _uiState.value.fieldKind)) " " else ""
     }
 
     /**
@@ -33897,6 +33926,9 @@ open class WMKeyboardService : InputMethodService() {
         stopVoiceForManualInput()
         vibrate()
         val state = _uiState.value
+        // A next word flicked off a key right after a glide that left no
+        // space goes in after one, as a strip pick does (#1533).
+        val lead = pickLeadingSpace(ic, word)
         val after = ic.getTextAfterCursor(1, 0)
         // A lone sign, or a word finished in the middle of another, is a piece
         // of that word: no space after it, as on the strip (#986).
@@ -33912,7 +33944,7 @@ open class WMKeyboardService : InputMethodService() {
         } else {
             displayCaseForShift(word, state.shiftState)
         }
-        ic.commitText(committed + tail, pickCaretOffset(spaced))
+        ic.commitText(lead + committed + tail, pickCaretOffset(spaced))
         if (tail.isNotEmpty()) {
             // The keyboard's own space, so a mark typed next takes it back and
             // hugs the word (#34); the guard keeps the commit's selection echo
