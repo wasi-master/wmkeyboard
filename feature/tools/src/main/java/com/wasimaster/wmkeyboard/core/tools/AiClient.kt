@@ -75,12 +75,19 @@ object AiClient {
          */
         val backups: List<Config> = emptyList(),
         /**
-         * Sampling temperature, or null for the service's own default. Set by
-         * the suggestion strip's Creativity (#1048); the panel and the chat
-         * leave it to the service. Left out where the model refuses one: a
-         * reasoning model, or Anthropic's with thinking on.
+         * Sampling temperature, or null for the service's own default. Set on
+         * the provider's row (Telegram 13475), and by the suggestion strip's
+         * Creativity (#1048) for its own requests. Left out where the model
+         * refuses one: a reasoning model, or Anthropic's with thinking on.
          */
         val temperature: Double? = null,
+        /**
+         * Nucleus sampling, 0 to 1, or null for the service's default. Set on
+         * the provider's row; left out wherever [temperature] would be, and on
+         * Anthropic whenever a temperature is sent, since its newer models
+         * refuse the two together.
+         */
+        val topP: Double? = null,
     )
 
     /** The placeholder a header value can use for [Config.sessionId]. */
@@ -343,7 +350,12 @@ object AiClient {
         withHeaders(settings).copy(backups = settings.fallbacks.mapNotNull { runCatching { withHeaders(it) }.getOrNull() })
 
     private fun withHeaders(settings: AiSettings): Config =
-        baseConfig(settings).copy(headers = settings.providerHeaders[settings.provider.name].orEmpty())
+        baseConfig(settings).copy(
+            headers = settings.providerHeaders[settings.provider.name].orEmpty(),
+            // The row's own sampling (Telegram 13475); null leaves the service's.
+            temperature = settings.temperature,
+            topP = settings.topP,
+        )
 
     private fun baseConfig(settings: AiSettings): Config = when (settings.provider) {
         AiProvider.ANTHROPIC -> Config(
@@ -1307,14 +1319,18 @@ object AiClient {
     /** The smallest thinking budget Anthropic accepts on a pre-4.6 model. */
     private const val CLAUDE_MIN_THINKING_BUDGET = 1024
 
-    private fun JsonObjectBuilder.putClaudeThinking(model: String, on: Boolean, maxTokens: Int) {
+    /**
+     * Whether a Claude model takes a temperature or top_p at all: one that
+     * always thinks refuses them, whatever the request says about thinking.
+     */
+    private fun claudeTakesSampling(model: String): Boolean = claudeThinkingKind(model) != ClaudeThinking.ALWAYS_ON
+
+    private fun claudeThinkingKind(model: String): ClaudeThinking {
         val name = model.lowercase()
         val match = CLAUDE_VERSION.find(name)
-        // 4.5 is 45, 5 is 50: the minor digit is absent on whole versions and
-        // a date suffix (claude-sonnet-4-20250514) is not a minor at all.
         val version = match?.let { it.groupValues[2].toInt() * 10 + (it.groupValues[3].toIntOrNull() ?: 0) }
         val tier = match?.groupValues?.get(1)
-        val kind = when {
+        return when {
             "fable" in name || "mythos" in name -> ClaudeThinking.ALWAYS_ON
             name.startsWith("claude-3") -> ClaudeThinking.BUDGET
             version == null -> ClaudeThinking.ADAPTIVE
@@ -1323,6 +1339,15 @@ object AiClient {
             tier == "sonnet" && version >= 55 -> ClaudeThinking.BETWEEN_TOOLS
             else -> ClaudeThinking.ADAPTIVE
         }
+    }
+
+    private fun JsonObjectBuilder.putClaudeThinking(model: String, on: Boolean, maxTokens: Int) {
+        val name = model.lowercase()
+        val match = CLAUDE_VERSION.find(name)
+        // 4.5 is 45, 5 is 50: the minor digit is absent on whole versions and
+        // a date suffix (claude-sonnet-4-20250514) is not a minor at all.
+        val version = match?.let { it.groupValues[2].toInt() * 10 + (it.groupValues[3].toIntOrNull() ?: 0) }
+        val kind = claudeThinkingKind(model)
         if (on) {
             if (kind == ClaudeThinking.BUDGET) {
                 // The budget comes out of max_tokens and must stay below it.
@@ -1361,7 +1386,16 @@ object AiClient {
         put("max_tokens", maxTokens)
         put("system", system)
         put("stream", true)
-        if (config.reasoning != true) config.temperature?.let { put("temperature", it.coerceIn(0.0, 1.0)) }
+        // Thinking takes neither, and Claude from 4.1 on refuses both at once:
+        // the temperature when there is one, else top_p.
+        if (config.reasoning != true && claudeTakesSampling(config.model)) {
+            val temperature = config.temperature
+            if (temperature != null) {
+                put("temperature", temperature.coerceIn(0.0, 1.0))
+            } else {
+                config.topP?.let { put("top_p", it.coerceIn(0.0, 1.0)) }
+            }
+        }
         // The chat's Reasoning switch (#882), in the shape the model accepts.
         config.reasoning?.takeIf { controlsReasoning(config.provider, config.model) }
             ?.let { on -> putClaudeThinking(config.model, on, maxTokens) }
@@ -1558,7 +1592,10 @@ object AiClient {
         // service then applies its own default, which is what the user asked
         // for. Sending a huge number instead would be rejected by some.
         if (maxTokens != null) put(outputCeilingField(config), maxTokens)
-        if (takesTemperature(config)) config.temperature?.let { put("temperature", it) }
+        if (takesTemperature(config)) {
+            config.temperature?.let { put("temperature", it) }
+            config.topP?.let { put("top_p", it) }
+        }
         put("stream", true)
         // Asks for the token totals on the last chunk, where the service is
         // known to take the field; another server might refuse it (#1135).
@@ -1797,6 +1834,7 @@ object AiClient {
         reasoning: Boolean? = null,
         model: String = "",
         temperature: Double? = null,
+        topP: Double? = null,
     ): String = buildJsonObject {
         putJsonObject("system_instruction") {
             put("parts", buildJsonArray { add(buildJsonObject { put("text", system) }) })
@@ -1829,10 +1867,11 @@ object AiClient {
         // Left out entirely for "provider maximum", so Gemini writes up to
         // the model's own output limit. This is the setting that used to cut
         // a long answer off in the middle with nothing to say so.
-        if (maxTokens != null || reasoning != null || temperature != null) {
+        if (maxTokens != null || reasoning != null || temperature != null || topP != null) {
             putJsonObject("generationConfig") {
                 if (maxTokens != null) put("maxOutputTokens", maxTokens)
                 if (temperature != null) put("temperature", temperature)
+                if (topP != null) put("topP", topP)
                 if (reasoning != null) put("thinkingConfig", geminiThinking(model, reasoning))
             }
         }
@@ -1917,6 +1956,7 @@ object AiClient {
             system, turns, maxTokens, tools,
             config.reasoning?.takeIf { controlsReasoning(config.provider, config.model) }, config.model,
             config.temperature,
+            config.topP,
         )
         return runStream(
             source = config.netSource,
@@ -2003,10 +2043,11 @@ object AiClient {
         // rather than at the top level. Left out for "provider maximum",
         // which is what this request always did before the setting reached
         // it at all.
-        if (maxTokens != null || config.temperature != null) {
+        if (maxTokens != null || config.temperature != null || config.topP != null) {
             putJsonObject("options") {
                 if (maxTokens != null) put("num_predict", maxTokens)
                 config.temperature?.let { put("temperature", it) }
+                config.topP?.let { put("top_p", it) }
             }
         }
         put("messages", buildJsonArray {

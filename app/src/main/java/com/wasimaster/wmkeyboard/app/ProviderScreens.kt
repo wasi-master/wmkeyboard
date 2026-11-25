@@ -1172,6 +1172,9 @@ internal fun ProviderEditorSheet(
         draft = next
         testResult = null
     }
+    // An AI row's own temperature and top_p (Telegram 13475); Brave answers
+    // with its own research and takes neither.
+    val sampling = AiProviders.of(type.id).let { it != null && it != AiProvider.BRAVE }
     // What WM Pass calls this key: the kind, and the nickname when there are two of it.
     val label = stringResource(type.labelRes)
     val keyTitle = draft.name.trim().let { name ->
@@ -1334,6 +1337,30 @@ internal fun ProviderEditorSheet(
                     ModelListButton(provider, draft) { model -> edit(draft.copy(model = model)) }
                 }
             }
+            if (sampling) {
+                SamplingField(
+                    label = stringResource(R.string.providers_field_temperature),
+                    hint = stringResource(R.string.providers_field_temperature_hint),
+                    key = CredentialSpec.TEMPERATURE,
+                    max = CredentialSpec.MAX_TEMPERATURE,
+                    draft = draft,
+                    onDraft = ::edit,
+                )
+                SamplingField(
+                    label = stringResource(R.string.providers_field_top_p),
+                    hint = stringResource(R.string.providers_field_top_p_hint),
+                    key = CredentialSpec.TOP_P,
+                    max = 1.0,
+                    draft = draft,
+                    onDraft = ::edit,
+                )
+                Text(
+                    stringResource(R.string.providers_field_sampling_skipped),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                )
+            }
             if (type === ProviderTypes.LANGUAGETOOL) LanguageToolExtras(draft, ::edit)
             if (home) {
                 HomeProviderExtras(
@@ -1428,7 +1455,7 @@ internal fun ProviderEditorSheet(
                 }
                 Spacer(Modifier.weight(1f))
                 // A kind with nothing to set up only has its description and Remove here.
-                if (spec.none) {
+                if (spec.none && !sampling) {
                     TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_close)) }
                 } else {
                     TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
@@ -1439,6 +1466,33 @@ internal fun ProviderEditorSheet(
             }
             Spacer(Modifier.height(16.dp))
         }
+    }
+}
+
+/**
+ * One of an AI row's sampling values, kept in [ProviderCredential.extra]
+ * under [key] as typed; blank takes it out, so the provider's default goes.
+ * A value out of 0..[max] says so under the field and is not sent.
+ */
+@Composable
+private fun SamplingField(
+    label: String,
+    hint: String,
+    key: String,
+    max: Double,
+    draft: ProviderCredential,
+    onDraft: (ProviderCredential) -> Unit,
+) {
+    val value = draft.extra[key].orEmpty()
+    val bad = value.isNotBlank() && CredentialSpec.samplingValue(draft.extra, key, max) == null
+    StoredTextField(
+        label = label,
+        value = value,
+        supporting = if (bad) stringResource(R.string.providers_field_sampling_bad) else hint,
+        keyboardType = KeyboardType.Decimal,
+        isError = bad,
+    ) { typed ->
+        onDraft(draft.copy(extra = if (typed.isBlank()) draft.extra - key else draft.extra + (key to typed.trim())))
     }
 }
 

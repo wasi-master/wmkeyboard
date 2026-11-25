@@ -797,7 +797,14 @@ fun KeyboardSettings.aiChoice(env: ProviderEnv = choiceEnv()): ResolvedProvider?
  */
 fun AiSettings.through(row: ResolvedProvider): AiSettings {
     val provider = AiProviders.of(row.typeId) ?: return this
-    val base = copy(provider = provider, providerKey = row.key, listed = true)
+    val extra = row.credential?.extra.orEmpty()
+    val base = copy(
+        provider = provider,
+        providerKey = row.key,
+        listed = true,
+        temperature = CredentialSpec.samplingValue(extra, CredentialSpec.TEMPERATURE, CredentialSpec.MAX_TEMPERATURE),
+        topP = CredentialSpec.samplingValue(extra, CredentialSpec.TOP_P, 1.0),
+    )
     return when (provider) {
         AiProvider.ANTHROPIC -> base.copy(anthropicKey = row.apiKey, anthropicModel = row.model)
         AiProvider.OPENAI -> base.copy(openAiKey = row.apiKey, openAiModel = row.model)

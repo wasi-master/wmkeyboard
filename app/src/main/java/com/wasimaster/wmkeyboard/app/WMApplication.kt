@@ -197,6 +197,8 @@ open class WMApplication : Application() {
         com.wasimaster.wmkeyboard.core.layout.KeymanLayoutPack.attach(this)
         val repository = SettingsRepository(this)
         SyncWatcher.start(this, repository)
+        // The On-device AI row's temperature and top_p, for both runtimes.
+        com.wasimaster.wmkeyboard.core.localllm.LocalLlmSampling.start(repository)
         // The installed plugins' providers, as rows of the provider lists.
         com.wasimaster.wmkeyboard.ime.PluginProviderBridge.start(this, repository)
         // WM Translate as a row of the translate list, and the setup it may read when shared.

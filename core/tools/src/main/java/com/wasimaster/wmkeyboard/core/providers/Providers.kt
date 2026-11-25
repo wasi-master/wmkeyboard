@@ -217,6 +217,25 @@ data class CredentialSpec(
 
         /** The [ProviderCredential.extra] key a [secret] is kept under. */
         const val SECRET = "secret"
+
+        /**
+         * The [ProviderCredential.extra] keys an AI row's own sampling is kept
+         * under (Telegram 13475), as typed; absent for the service's default.
+         * See [samplingValue].
+         */
+        const val TEMPERATURE = "temperature"
+        const val TOP_P = "top_p"
+
+        /** The highest temperature a row may ask for: what OpenAI and Gemini take. */
+        const val MAX_TEMPERATURE = 2.0
+
+        /**
+         * [extra]'s [key] as a sampling value: a number from 0 to [max], or
+         * null for the service's own default. A comma counts as the decimal
+         * point, as many keyboards type it.
+         */
+        fun samplingValue(extra: Map<String, String>, key: String, max: Double): Double? =
+            extra[key]?.trim()?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 && it <= max }
     }
 }
 

@@ -144,6 +144,20 @@ internal class LlamaSession(
         LlamaNative.nativeSetSampler(handle, temperature, topK, topP, minP, seed)
 
     /**
+     * The temperature and top_p the sampler chain was last built with. The
+     * native session starts on [LocalLlmSampling]'s defaults.
+     */
+    private var sampling: Pair<Double, Double> = LocalLlmSampling.DEFAULT_TEMPERATURE to LocalLlmSampling.DEFAULT_TOP_P
+
+    /** Rebuilds the sampler when the On-device AI row's values changed (Telegram 13475). */
+    private fun syncSampling() {
+        val wanted = LocalLlmSampling.temperature to LocalLlmSampling.topP
+        if (wanted == sampling) return
+        setSampler(wanted.first.toFloat(), topP = wanted.second.toFloat())
+        sampling = wanted
+    }
+
+    /**
      * Renders [messages] with the model's own chat template and loads them,
      * ending on the assistant's turn. Returns the prompt's length in tokens.
      * Throws [LlamaPromptException] when the prompt does not fit, the
@@ -205,6 +219,7 @@ internal class LlamaSession(
      * the cache, so the next turn's prompt reuses them.
      */
     fun generate(maxTokens: Int, onPartial: ((String) -> Unit)? = null): LlamaAnswer {
+        syncSampling()
         val text = StringBuilder()
         var count = 0
         while (true) {

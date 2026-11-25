@@ -210,6 +210,12 @@
     <string name="providers_field_key_automatic1111_hint">Optional. user:password when the web UI was started with --api-auth.</string>
     <string name="providers_field_account">Account ID</string>
     <string name="providers_field_account_hint">On the Cloudflare dashboard: Workers AI, then Use REST API.</string>
+    <string name="providers_field_temperature">Temperature</string>
+    <string name="providers_field_temperature_hint">From 0 to 2. Lower is steadier, higher more varied. Blank uses the provider\'s default.</string>
+    <string name="providers_field_top_p">Top P</string>
+    <string name="providers_field_top_p_hint">From 0 to 1. Lower keeps to the likeliest words. Blank uses the provider\'s default.</string>
+    <string name="providers_field_sampling_bad">Not a number in range, so the provider\'s default is used.</string>
+    <string name="providers_field_sampling_skipped">Models that refuse these are sent neither: thinking models, OpenAI\'s reasoning models, and on Claude top_p whenever a temperature is set.</string>
     <string name="providers_field_secret">Access secret</string>
     <string name="providers_field_secret_hint">The project\'s access secret from the ACRCloud console. Signs each request together with the key.</string>
     <string name="providers_field_path">Endpoint path</string>

@@ -163,6 +163,19 @@ Some services want more in a request than a key. OpenCode Go, for one, reads a s
 - A name with a space or other character a header can't hold, or a value with a line break, is left out of the request rather than failing it.
 - A backup without secrets leaves the headers out, the same as API keys.
 
+### Temperature and top P
+
+Each AI row's setup sheet, opened by pressing its row on the AI providers list, has a **Temperature** and a **Top P** field below the model, both blank to start (since 0.6.8). Blank leaves the value to the service, which is how every request went before. A lower temperature keeps answers steady and repeatable, and a higher one makes them more varied, from 0 to 2. Top P, from 0 to 1, keeps sampling to the likeliest words that add up to that share, so 0.9 drops the long tail. A value out of range is marked under the field and isn't sent.
+
+The values go with every request through that row: the panel's actions, the [chat](/tools/ai-chat/), [Tidy dictation with AI](/tools/voice/#tidying-dictation-with-ai) and the rest. Some models refuse them, so they're left out there rather than failing the request:
+
+- Claude takes one of the two: the temperature when there is one, else top P. A Claude model that always thinks, and any Claude request with thinking on, takes neither.
+- OpenAI's reasoning models (o-series, GPT-5) take neither.
+- Gemini, Ollama, LM Studio, DeepSeek, xAI and other OpenAI-compatible services take both.
+- Brave's answers take neither, so its sheet has no fields for them.
+
+The **On-device AI** row's values go to the model on your phone, for llama.cpp and LiteRT-LM alike. Blank there means 0.7 and 0.95, what the phone's model always used. The strip's [Creativity](#suggestions-in-the-strip) setting, when it isn't **Service default**, still decides the temperature of the strip's own requests.
+
 ### Pictures, and models that can't see them
 
 Whether a model reads pictures is decided model by model, not only by its service. A service with somewhere to put a picture (Claude, OpenAI, Gemini, Grok, Ollama, LM Studio, an OpenAI-compatible service) is sent one unless the keyboard knows its model can't read it. It finds out three ways:
@@ -566,7 +579,7 @@ Since 0.6.8 there's more to tune under the same group:
 
 - **Only when the keyboard is unsure** (off by default) asks only where the keyboard has little of its own: after a word, when the strip has no next-word prediction; mid-word, when no dictionary word carries on what you typed; on a reading, when it can be written more than one way. Far fewer requests, and the chip turns up where it helps.
 - **Provider for suggestions** picks a row from the AI providers list for the strip alone, so a fast, cheap model can answer here while a better one serves the panel and the chat. **Same as the AI tool** is the default. A row removed later falls back to the tool's own.
-- **Creativity** sets the sampling temperature: **Service default**, **Focused** (0.2), **Balanced** (0.7) or **Varied** (1.0). A model that refuses a temperature, such as OpenAI's reasoning models, is sent none. It applies to cloud services; a model on your phone keeps its own.
+- **Creativity** sets the sampling temperature: **Service default**, **Focused** (0.2), **Balanced** (0.7) or **Varied** (1.0). **Service default** uses the row's own [temperature](#temperature-and-top-p) when it has one. A model that refuses a temperature, such as OpenAI's reasoning models, is sent none. It applies to cloud services; a model on your phone keeps the On-device AI row's.
 - **Instructions** replaces the built-in request with your own words: a tone, a register, a subject. The rules on what comes back (one short line, no quotes) are added after yours whatever they say, since an answer outside them never shows. Leave it blank for the built-in one. A reading's conversion always uses the built-in request.
 - **Suggestions by language**, with more than one keyboard language, has a switch per language. A language turned off sends nothing while its keyboard is in use.
 

@@ -61,6 +61,39 @@ class AiClientChatBodyTest {
     }
 
     @Test
+    fun `top_p goes with the temperature, except on Claude where one of them goes`() {
+        fun parse(text: String) = json.parseToJsonElement(text).jsonObject
+        val claudeBoth = parse(
+            AiClient.anthropicBody(config(AiProvider.ANTHROPIC).copy(temperature = 0.3, topP = 0.8), "s", chat, 10),
+        )
+        assertEquals("0.3", claudeBoth["temperature"]?.jsonPrimitive?.content)
+        assertNull(claudeBoth["top_p"])
+        val claudeTopP = parse(AiClient.anthropicBody(config(AiProvider.ANTHROPIC).copy(topP = 0.8), "s", chat, 10))
+        assertEquals("0.8", claudeTopP["top_p"]?.jsonPrimitive?.content)
+        // A Claude that always thinks takes neither.
+        val alwaysThinks = parse(
+            AiClient.anthropicBody(
+                AiClient.Config(AiProvider.ANTHROPIC, "k", "claude-opus-5-5", "").copy(temperature = 0.3, topP = 0.8),
+                "s", chat, 10,
+            ),
+        )
+        assertNull(alwaysThinks["temperature"])
+        assertNull(alwaysThinks["top_p"])
+        val compatible = parse(
+            AiClient.openAiCompatibleBody(config(AiProvider.OPENAI_COMPATIBLE).copy(topP = 0.8), "s", chat, 10),
+        )
+        assertEquals("0.8", compatible["top_p"]?.jsonPrimitive?.content)
+        val o3 = parse(
+            AiClient.openAiCompatibleBody(AiClient.Config(AiProvider.OPENAI, "k", "o3-mini", "").copy(topP = 0.8), "s", chat, 10),
+        )
+        assertNull(o3["top_p"])
+        val gemini = parse(AiClient.geminiBody("s", chat, null, topP = 0.8))
+        assertEquals("0.8", gemini["generationConfig"]!!.jsonObject["topP"]?.jsonPrimitive?.content)
+        val ollama = parse(AiClient.ollamaBody(config(AiProvider.OLLAMA).copy(topP = 0.8), "s", chat, null))
+        assertEquals("0.8", ollama["options"]!!.jsonObject["top_p"]?.jsonPrimitive?.content)
+    }
+
+    @Test
     fun `anthropic sends user and assistant roles with system on top`() {
         val body = json.parseToJsonElement(
             AiClient.anthropicBody(config(AiProvider.ANTHROPIC), "sys", chat, 1000),

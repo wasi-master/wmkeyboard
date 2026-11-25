@@ -15,6 +15,7 @@ import com.google.ai.edge.litertlm.SamplerConfig
 import com.wasimaster.wmkeyboard.core.localllm.AcceleratorVerdicts
 import com.wasimaster.wmkeyboard.core.localllm.ChatReplay
 import com.wasimaster.wmkeyboard.core.localllm.LlmRuntime
+import com.wasimaster.wmkeyboard.core.localllm.LocalLlmSampling
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmStore
 import com.wasimaster.wmkeyboard.core.localllm.NpuRouting
 import com.wasimaster.wmkeyboard.core.localllm.NpuRuntime
@@ -480,7 +481,8 @@ class LitertLmRuntime : LlmRuntime {
         drainRetired()
         val config = ConversationConfig(
             systemInstruction = Contents.of(system),
-            samplerConfig = SamplerConfig(topK = 40, topP = 0.95, temperature = 0.7),
+            // The On-device AI row's own values, else 0.95 and 0.7 (Telegram 13475).
+            samplerConfig = SamplerConfig(topK = 40, topP = LocalLlmSampling.topP, temperature = LocalLlmSampling.temperature),
         )
         return activeEngine.createConversation(config)
     }

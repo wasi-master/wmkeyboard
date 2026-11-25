@@ -30250,7 +30250,8 @@ open class WMKeyboardService : InputMethodService() {
                 // A few words do not need a model to think first.
                 config = AiClient.config(ai).copy(
                     reasoning = false,
-                    temperature = ai.stripSuggestTemperature.takeIf { it >= 0f }?.toDouble(),
+                    // The strip's Creativity, else the row's own temperature.
+                    temperature = ai.stripSuggestTemperature.takeIf { it >= 0f }?.toDouble() ?: ai.temperature,
                 ),
                 system = system,
                 user = user,

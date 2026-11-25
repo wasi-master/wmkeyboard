@@ -6198,6 +6198,13 @@ data class AiSettings(
      */
     val voiceTidyVia: AiSettings? = null,
     /**
+     * The sampling temperature and top_p of the AI providers row these
+     * settings go through, or null for the service's own default (Telegram
+     * 13475). Not stored here: the row keeps them, and `through` copies them.
+     */
+    val temperature: Double? = null,
+    val topP: Double? = null,
+    /**
      * The model that looks at a picture for a model that cannot: its
      * `AiChatController.ModelChoice.key`, a downloaded on-device model that
      * sees or an AI providers row whose model does. Blank for none, which
