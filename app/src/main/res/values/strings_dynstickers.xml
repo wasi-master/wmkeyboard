@@ -144,6 +144,7 @@
     <string name="dynsticker_builder_save">Save</string>
     <string name="dynsticker_builder_save_copy">Save as my own</string>
     <string name="dynsticker_builder_saved">Saved</string>
+    <string name="dynsticker_builder_saved_copy">Saved as your own copy, in My templates</string>
     <string name="dynsticker_builder_save_failed">Couldn’t save the template</string>
     <string name="dynsticker_builder_compile_failed">This scene can’t be drawn. Undo the last change.</string>
     <string name="dynsticker_builder_image_failed">Couldn’t add that picture</string>

@@ -460,7 +460,11 @@ private fun SceneBuilder(start: BuilderStart, store: DynStickerStore, onBack: ()
             if (saved == null) {
                 Toast.makeText(context, R.string.dynsticker_builder_save_failed, Toast.LENGTH_LONG).show()
             } else {
-                Toast.makeText(context, R.string.dynsticker_builder_saved, Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    if (start.ownPack != null) R.string.dynsticker_builder_saved else R.string.dynsticker_builder_saved_copy,
+                    Toast.LENGTH_SHORT,
+                ).show()
                 onBack()
             }
         }
@@ -515,7 +519,9 @@ private fun SceneBuilder(start: BuilderStart, store: DynStickerStore, onBack: ()
                     canRedo = history.canRedo,
                     playing = playing,
                     current = current,
-                    saveLabel = stringResource(if (start.ownPack != null) R.string.dynsticker_builder_save else R.string.dynsticker_builder_save_copy),
+                    // One word, so the layer chip beside it keeps its name; the toast
+                    // says when it went in as a copy.
+                    saveLabel = stringResource(R.string.dynsticker_builder_save),
                     saving = saving || compiled == null,
                     onUndo = history::undo,
                     onRedo = history::redo,
