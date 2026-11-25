@@ -280,6 +280,8 @@
     <string name="search_kw_translate_server">openai compatible selfhosted hosted local llm ai model ollama llama studio vllm localai chat completions mozhi simplytranslate simply lingva translite libretranslate front end frontend privacy</string>
     <string name="search_kw_deepl">rephrase rewrite improve polish style tone translation</string>
     <string name="search_kw_sticker_suggest">suggestions suggest tray prediction autocomplete</string>
+    <string name="search_kw_dynstickers">meme memes caption text sticker word art typed stickers lottie template expressive</string>
+    <string name="search_kw_dynsticker_builder">maker editor design create animation</string>
     <string name="search_kw_sticker_suggest_magnify">magnify zoom enlarge preview peek long press</string>
     <string name="search_kw_translate_engine">offline private internet airplane local device ml kit google model download cloud</string>
     <string name="search_kw_translate_models">offline translation model download delete storage ml kit google</string>

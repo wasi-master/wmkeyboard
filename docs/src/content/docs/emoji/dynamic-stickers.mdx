@@ -1,0 +1,122 @@
+---
+title: "Dynamic stickers"
+description: "Your words drawn into sticker and meme templates on the phone: offered while you type, under the Text chip in the stickers panel, and made your own in the builder."
+sidebar:
+  order: 5
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+A dynamic sticker is a template drawn with the words you type. Type "thank you" and the sticker row can offer a burst of colour with THANK YOU across it, a balloon, a ribbon; type a caption into a meme template and it comes out with your words in its font, sized to fit. Everything is drawn on your phone. Nothing you type is sent anywhere to make them.
+
+<SettingsPath path="Emoji / Dynamic stickers" />
+
+They are on by default and need a field that takes pictures, the same as your own [stickers](/emoji/stickers/). Password fields never get them.
+
+## While you type
+
+When the whole message before the cursor is short and a template suits it, the sticker row shows that template drawn with your message. Tap one to send it. With **After you send one** set to **Remove the typed text** on the [sticker settings](/emoji/stickers/#stickers-as-you-type), the message leaves the text box once the sticker has gone out. Nothing is taken out until the sticker is drawn, so one that fails leaves your words alone. Text after the cursor means you are not at the end of a message, so nothing is offered then.
+
+What counts as suiting the message is yours to choose:
+
+- **Templates for the whole message** are made for exactly what you typed: a "Thank you" template for "thank you", "thanks" or "thx".
+- **Templates for part of it** find the same template inside a longer message, such as "thank you so much".
+- **Templates for what it means** read the emoji in the message, and the words that an emoji stands for, against the feelings and things templates are about. 😂 finds the laughing ones, "pizza" the ones about food.
+- **Templates for any words** suit any text. **After a match** (the default) adds them to the row only when something above matched first. **Always** offers them for every short message, and **Never** leaves them in the panel.
+
+**Longest message** (6 words by default) and **How many to offer** (8) cap the row. Memes stay out of it unless **Memes in the row too** is on, and a meme with a photo in it never shows there, since it needs a photo first. **Moving in the row** plays the animated templates where they sit instead of showing their still.
+
+**How the row looks** has the same three choices as your own stickers: on the strip beside the words, one chip, or a row of their own over the keys. **Beside your own stickers** decides the order when your own stickers or [emoji mixes](/emoji/mixes/) match too: after them in the same row, first, or only when nothing else matches.
+
+## In the stickers panel
+
+The stickers panel has a **Text** chip beside **My stickers**. It fills every template that is switched on with the words in the panel's search box, the ones that match your words first. With the box empty it uses the message you were typing, when **Start the panel from your message** is on, and otherwise shows each template with its own words.
+
+The row of chips under it narrows the grid: **All**, **Stickers** or **Memes**, **Favourites**, and one chip per pack once you have two. The sparkle at its start opens the builder on a new template.
+
+A template with several texts, such as a meme with a top and a bottom line, takes them in turn from the search box: type `when it's monday | me` and the first part goes to the top, the second to the bottom.
+
+Tap a cell to send it. A template with a photo slot opens its fill sheet instead, since it needs a picture first. Long-press a cell for its menu:
+
+- **Change font, colour or photo** opens the fill sheet: the template large, which words go where, a photo button for each photo slot, a row of fonts and a row of text colours. **Send** sends it, and **Send still** sends a moving template as its still.
+- **Add to favourites** stars it, so it comes first in the grid and in the row.
+- **Save to my stickers** puts the sticker as drawn into a pack named Text stickers, with your words as its keyword.
+- **Edit in the builder** opens the template in the builder. A template that is not yours opens as a copy.
+- **Copy** puts the picture on the clipboard.
+
+## Sending
+
+Stickers go out as WebP at 512 × 512 pixels, the size WhatsApp takes as a sticker, and moving ones as animated WebP. An app that takes GIFs but not animated WebP gets a GIF. A meme with a photo in it goes out as a picture, PNG or JPEG, since it is a picture rather than a sticker. **Send them moving** off sends every template as its still.
+
+**One font for every template** draws them all in one face instead of each template's own: DynaPuff, Anton, a bold or serif face of the phone's own, or any font in your [font library](/themes/fonts/).
+
+Text in a script a template's font lacks, such as Bengali or Arabic, is drawn with the phone's own text engine in a font that has it, so letters join and lines break the way they should.
+
+## Fonts
+
+The built-in templates are drawn in DynaPuff, and the memes in Anton. Both are free fonts under the SIL Open Font License. They are not part of the app: the **Fonts** group downloads each one once, about 200 KB, into your font library, where every template finds it by name. Until then templates use a bold font of the phone's own.
+
+## Packs
+
+Templates come in packs. The **Packs** group lists the built-in pack, the packs you made or imported, and the packs your feeds downloaded, each with a switch. Tap a pack to see its templates drawn with any words you type into **Try it with**. Tap a template to switch it off, star it, open it in the builder, or copy it into your own templates. In a pack of your own you can also move templates up, delete them, add templates from a file, rename the pack, export it, or delete it.
+
+**Import a file** takes:
+
+- a `.wmdynstickers` pack, the format the builder exports (see [File formats](/reference/file-formats/));
+- a Lottie animation, `.json` or gzipped, as a pack of one template;
+- a dotLottie file;
+- a template set's zip, a set of Lottie documents and a zip of fonts with a `fonts.xml`.
+
+A Lottie document with text in it is enough to be a template. Its text layers become the parts your words go into. When it carries rules in `metadata.customProps` (a keyword map, line counts, the size range of each line), the keyboard reads them, so an imported template is offered for the same messages its maker meant it for. You can open a `.wmdynstickers` file from a file manager or a chat app too.
+
+## Feeds
+
+A feed is a link to a list of packs. **Add a feed** takes one link or several, one per line, `https://` only. Two kinds are read: a Dynamic stickers feed, which lists our own packs, and the zip-set manifest some template sets are published with, which names a base address and the zips that make up one set. The keyboard downloads what the feed lists, checks each file against the checksum the feed gives, and installs it. None is added for you.
+
+Tap a feed to refresh it, open its packs, or remove it along with its packs. A feed's packs are replaced whenever it is refreshed, so make changes to a copy. **Check feeds every week** looks at each feed once it is a week old, on Wi-Fi only. Downloads show in the [network activity log](/privacy/network-activity/) as Dynamic sticker feeds, and wait for your say-so while [data saver](/privacy/data-saver/) holds downloads.
+
+## The builder
+
+The builder makes a template from layers on a square canvas:
+
+- **Your words**: where the typed text goes. Layers sharing a slot are its lines; a second slot is a second text, such as a meme's bottom line.
+- **Fixed words**: words that are part of the picture.
+- **Shape**: rectangles, ellipses, stars, sparkles, hearts, bursts, rays, confetti, rainbows, clouds, speech bubbles, banners and more.
+- **Art**: drawings from the built-in art library.
+- **Picture**: an image from your phone, kept in the pack.
+- **Photo slot**: a picture the sender picks when they send the template, which makes it a meme.
+
+Tap a layer on the canvas, or in the list under it, to select it, and drag it to move it. For the selected layer you set its place, size, rotation and opacity; its colour, a second colour for a gradient, an outline and a shadow; and for words, the font (any installed font, by name), letter case, alignment, how many lines it may take and the smallest and largest size it may be drawn at. The words are fitted to their box: long text shrinks, short text grows up to its largest size, and a message too long for the template's lines is not offered it.
+
+Each layer can have any number of animations: pop in, fade in, zoom in, drop in, slide in, bounce, wiggle, float, spin, pulse, shake, twinkle, heartbeat, swing, jelly, rainbow, typewriter, blink and fade out, each with when it starts, how long it lasts, how strong it is and whether it repeats.
+
+**The template** sets its name, whether it is a sticker or a meme, the messages it is offered for (any language), the feelings and things it is about, whether it takes any words, its length and frame rate or that it is a still, where its still is taken, a background, and a description for screen readers.
+
+The canvas plays the template as the keyboard will draw it, with the words in **Try it with**. **Save** writes it to its pack; a template that came from the built-in pack, a feed or the addon store is saved as a copy in your own. **Copy the JSON** gives you the Lottie document it is drawn from, with its rules in `metadata.customProps`, and **Edit the JSON** saves an edited document for what the builder has no control for. A template saved that way opens as JSON from then on.
+
+## Backup and storage
+
+Your own packs travel in a [backup](/privacy/backup/) as the **Dynamic sticker templates** section, with which templates are switched off and starred. Packs from feeds and the addon store stay out, since they download again. **Storage** lists each pack under Dynamic sticker templates, and **Clear drawn stickers** on this screen empties what was drawn for sending.
+
+## Settings
+
+Dynamic stickers are part of the **Stickers, GIFs and emoji mixes** bundle on [Extensions](/reference/settings/extensions/).
+
+| Setting | Default | What it does |
+|---|---|---|
+| Dynamic stickers | On | The Text chip, and stickers offered for what you type. |
+| Offer them while typing | On | Templates in the sticker row for a short message. |
+| Templates for the whole message | On | Templates made for exactly what you typed. |
+| Templates for part of it | On | The same templates inside a longer message. |
+| Templates for what it means | On | Templates found from the message's emoji and words. |
+| Templates for any words | After a match | Never, After a match, or Always. |
+| Longest message | 6 words | Longer messages get no offer in the row (1 to 20). |
+| How many to offer | 8 | The most the row shows (1 to 30). |
+| Memes in the row too | Off | Text-only memes join the row. |
+| Moving in the row | Off | Animated templates play in the row. |
+| How the row looks | A row of their own | On the strip, A chip, or A row of their own. |
+| Beside your own stickers | After them | After them, First, or Only when nothing else. |
+| Send them moving | On | Animated stickers where the template moves. |
+| Start the panel from your message | On | The Text grid uses what you typed while its box is empty. |
+| One font for every template | Each template's own | A face for every template. |
+| Check feeds every week | On | The weekly feed refresh, on Wi-Fi only. |

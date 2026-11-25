@@ -319,6 +319,13 @@ class FileImportSniffTest {
             WMFileTypes.Opened.Icons,
             WMFileTypes.archiveKindFor("""{"format":"${IconPackFile.FORMAT}"}"""),
         )
+        // Dynamic sticker packs share pack.json with the sticker packs; only the tag tells them apart.
+        assertEquals(
+            WMFileTypes.Opened.DynamicStickers,
+            WMFileTypes.archiveKindFor(
+                """{"format":"${com.wasimaster.wmkeyboard.core.stickers.dynamic.DynPackFile.FORMAT}","version":1}""",
+            ),
+        )
         assertEquals(
             WMFileTypes.Opened.Stickers,
             WMFileTypes.archiveKindFor("""{"format":"${StickerPackFile.FORMAT}"}"""),

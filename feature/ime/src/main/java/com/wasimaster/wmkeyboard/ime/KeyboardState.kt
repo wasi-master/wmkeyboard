@@ -3469,6 +3469,13 @@ data class StickerOffer(
      * one was picked in the panel. [trigger] is then the emoji themselves.
      */
     val mix: Boolean = false,
+    /**
+     * Led by dynamic stickers (the message drawn into templates), so it is
+     * drawn in their style. Their cells can also follow the user's own
+     * stickers or mixes in an offer that is not; each cell says what it is
+     * by its source.
+     */
+    val dynamic: Boolean = false,
 )
 
 /**

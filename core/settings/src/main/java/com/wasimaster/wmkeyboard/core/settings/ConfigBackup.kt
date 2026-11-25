@@ -158,6 +158,15 @@ object ConfigBackup {
          * [AI_MEMORY] for the reason given on [VOCAB].
          */
         TODO("todo"),
+
+        /**
+         * Dynamic sticker templates the user made or imported: every file of
+         * each pack of their own, and which templates are on, starred and
+         * recent. Packs from a feed or the addon store stay out (they
+         * download again), as does the built-in pack. Appended after [TODO]
+         * for the reason given on [VOCAB].
+         */
+        DYNAMIC_STICKERS("dynamic_stickers"),
         ;
 
         /**

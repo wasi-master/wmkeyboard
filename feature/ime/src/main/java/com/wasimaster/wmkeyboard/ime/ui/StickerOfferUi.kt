@@ -145,9 +145,12 @@ internal fun stickerTrayShows(state: KeyboardUiState): Boolean {
     }
 }
 
-/** How [offer] is drawn on the strip: the sticker setting's style, or the mixes' own for a mix offer. */
-internal fun offerStyle(state: KeyboardUiState, offer: StickerOffer): StickerSuggestStyle =
-    if (offer.mix) state.settings.emoji.mix.suggestStyle else state.settings.gif.stickerSuggestStyle
+/** How [offer] is drawn on the strip: the sticker setting's style, or the mixes' or dynamic stickers' own. */
+internal fun offerStyle(state: KeyboardUiState, offer: StickerOffer): StickerSuggestStyle = when {
+    offer.dynamic -> state.settings.gif.dynamic.style
+    offer.mix -> state.settings.emoji.mix.suggestStyle
+    else -> state.settings.gif.stickerSuggestStyle
+}
 
 /** Whether the suggestion strip draws the offer: the two narrow styles, on the keys. */
 internal fun stickerStripShows(state: KeyboardUiState): Boolean {

@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.tools
 
 import com.wasimaster.wmkeyboard.core.tools.GifSource.COMMONS
+import com.wasimaster.wmkeyboard.core.tools.GifSource.DYNAMIC
 import com.wasimaster.wmkeyboard.core.tools.GifSource.GIPHY
 import com.wasimaster.wmkeyboard.core.tools.GifSource.KLIPY
 import com.wasimaster.wmkeyboard.core.tools.GifSource.LOCAL
@@ -81,7 +82,18 @@ class GifSourcesOnDeviceTest {
     }
 
     @Test
-    fun `only the files on the device count as on-device`() {
-        assertEquals(setOf(LOCAL, OFFLINE), GifSource.entries.filter { it.onDevice }.toSet())
+    fun `only what is on the device counts as on-device`() {
+        assertEquals(setOf(LOCAL, OFFLINE, DYNAMIC), GifSource.entries.filter { it.onDevice }.toSet())
+    }
+
+    @Test
+    fun `an extra chip gives a single provider a chip to switch from`() {
+        val chips = GifSources.chips(
+            listOf(MediaTarget(LOCAL)),
+            com.wasimaster.wmkeyboard.core.providers.ChainMode.TABS,
+            extra = listOf(GifSources.dynamicChip("dynamic")),
+        )
+        assertEquals(listOf(LOCAL, DYNAMIC), chips.map { it.source })
+        assertEquals(1, GifSources.selectedChip(chips, "dynamic", listOf(MediaTarget(LOCAL)), com.wasimaster.wmkeyboard.core.providers.ChainMode.TABS))
     }
 }

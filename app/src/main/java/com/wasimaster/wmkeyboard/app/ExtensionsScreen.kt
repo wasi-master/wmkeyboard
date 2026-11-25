@@ -177,6 +177,7 @@ internal fun extensionScreens(extension: Extension): List<Pair<String, Int>> = w
     Extension.STICKERS -> listOf(
         "sticker_packs" to R.string.home_screen_sticker_packs_title,
         "emoji/mixes" to R.string.emojimix_row_title,
+        "dynamic_stickers" to R.string.dynsticker_screen_title,
     )
     Extension.NOTES -> listOf("notes" to R.string.notes_title)
     Extension.VOCABULARY -> listOf("vocab/packs" to R.string.vocab_packs_title, "vocab/lists" to R.string.vocab_lists_title)

@@ -778,6 +778,10 @@
                 <data android:pathPattern=".*\\..*\\.wmstickers" />
                 <data android:pathPattern=".*\\..*\\..*\\.wmstickers" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\.wmstickers" />
+                <data android:pathPattern=".*\\.wmdynstickers" />
+                <data android:pathPattern=".*\\..*\\.wmdynstickers" />
+                <data android:pathPattern=".*\\..*\\..*\\.wmdynstickers" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.wmdynstickers" />
                 <data android:pathPattern=".*\\.wmicons" />
                 <data android:pathPattern=".*\\..*\\.wmicons" />
                 <data android:pathPattern=".*\\..*\\..*\\.wmicons" />
@@ -861,6 +865,10 @@
                 <data android:pathPattern=".*\\..*\\.wmstickers" />
                 <data android:pathPattern=".*\\..*\\..*\\.wmstickers" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\.wmstickers" />
+                <data android:pathPattern=".*\\.wmdynstickers" />
+                <data android:pathPattern=".*\\..*\\.wmdynstickers" />
+                <data android:pathPattern=".*\\..*\\..*\\.wmdynstickers" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.wmdynstickers" />
                 <data android:pathPattern=".*\\.wmicons" />
                 <data android:pathPattern=".*\\..*\\.wmicons" />
                 <data android:pathPattern=".*\\..*\\..*\\.wmicons" />

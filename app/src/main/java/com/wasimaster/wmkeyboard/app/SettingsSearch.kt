@@ -1594,6 +1594,36 @@ private fun SearchStrings.emojiMixRows(): List<SettingsSearchEntry> {
     )
 }
 
+/** Rows on the dynamic_stickers page, in screen order. */
+private fun SearchStrings.dynamicStickerRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.dynsticker_screen_title, "dynamic_stickers", screenParent = R.string.home_emoji_title,
+    )
+    return listOf(
+        row(R.string.dynsticker_new_template_title, R.string.dynsticker_new_template_subtitle),
+        row(R.string.dynsticker_in_tray_title, R.string.dynsticker_in_tray_subtitle),
+        row(R.string.dynsticker_match_phrase_title, R.string.dynsticker_match_phrase_subtitle),
+        row(R.string.dynsticker_match_inside_title, R.string.dynsticker_match_inside_subtitle),
+        row(R.string.dynsticker_match_feelings_title, R.string.dynsticker_match_feelings_subtitle),
+        row(R.string.dynsticker_generic_title),
+        row(R.string.dynsticker_max_words_title),
+        row(R.string.dynsticker_max_in_tray_title),
+        row(R.string.dynsticker_memes_in_tray_title, R.string.dynsticker_memes_in_tray_subtitle),
+        row(R.string.dynsticker_animate_in_tray_title, R.string.dynsticker_animate_in_tray_subtitle),
+        row(R.string.dynsticker_style_title),
+        row(R.string.dynsticker_order_title),
+        row(R.string.dynsticker_send_animated_title, R.string.dynsticker_send_animated_subtitle),
+        row(R.string.dynsticker_panel_typed_title, R.string.dynsticker_panel_typed_subtitle),
+        row(R.string.dynsticker_font_override_title, R.string.dynsticker_font_override_subtitle),
+        row(R.string.dynsticker_fonts_title),
+        row(R.string.dynsticker_packs_title),
+        row(R.string.dynsticker_import_action),
+        row(R.string.dynsticker_add_feed_title, R.string.dynsticker_add_feed_subtitle),
+        row(R.string.dynsticker_auto_refresh_title, R.string.dynsticker_auto_refresh_subtitle),
+        row(R.string.dynsticker_clear_cache_title, R.string.dynsticker_clear_cache_subtitle),
+    )
+}
+
 /** Rows on the emoji/panel page, in screen order. */
 private fun SearchStrings.emojiPanelRows(): List<SettingsSearchEntry> {
     fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, weight: EntryWeight = EntryWeight.NORMAL) = entry(
@@ -3478,6 +3508,7 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
             R.string.home_emoji_title, "emoji/panel",
         ),
         under(R.string.emojimix_row_title, R.string.emojimix_row_subtitle, R.string.home_emoji_title, "emoji/mixes"),
+        under(R.string.dynsticker_screen_title, R.string.dynsticker_row_subtitle, R.string.home_emoji_title, "dynamic_stickers"),
         // The buttons that import something, so a search for the word finds each (#970).
         under(R.string.emojimix_import_file_action, 0, R.string.emojimix_row_title, "emoji/mixes"),
         under(R.string.fonts_import_action, 0, R.string.tooldetail_appearance_fonts_nav_title, "fonts"),
@@ -3928,7 +3959,7 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
         appearanceToolboxRows() + photoRows() + layoutRows() +
         layoutSizeRows() +
         layoutOnehandedRows() + floatingButtonRows() + shareSheetRows() + languageRows() + emojiRows() +
-        emojiPanelRows() + emojiMixRows() + kaomojiRows() +
+        emojiPanelRows() + emojiMixRows() + dynamicStickerRows() + kaomojiRows() +
         voiceRows() + clipboardRows() + clipboardHistoryRows() + clipboardChipsRows() + clipboardRulesRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + galleryRows() + sendRows() + vocabRows() + notesRows() + todoRows() + storageRows() + otherRows()
     val offline = OfflineBuild.isThisBuild
     // A provider's screen goes with the tool page its list is on.

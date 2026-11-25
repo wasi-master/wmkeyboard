@@ -695,6 +695,24 @@ class DynStickerStore(
                 writePack(into, into.meta.copy(fonts = into.meta.fonts + font))
             }
         }
+        // And the pictures it draws: the scene's own, and the document's.
+        val pictures = LinkedHashSet<String>()
+        sceneText?.let { text ->
+            runCatching { DynPackFile.json.decodeFromString(DynScene.serializer(), text) }.getOrNull()
+                ?.elements?.mapNotNullTo(pictures) { it.image }
+        }
+        docText?.let(LottieDoc::parse)?.let { doc -> LottieDoc.imageAssets(doc).mapNotNullTo(pictures) { it.file } }
+        val intoDir = into.dir
+        if (intoDir != null) {
+            for (name in pictures) {
+                val clean = name.substringAfterLast('/')
+                val target = DynPackFile.resolve(intoDir, "${DynPackFile.IMAGES_DIR}/$clean") ?: continue
+                if (target.exists()) continue
+                val bytes = readBytes(from, "${DynPackFile.IMAGES_DIR}/$clean") ?: continue
+                target.parentFile?.mkdirs()
+                runCatching { target.writeBytes(bytes) }
+            }
+        }
         val copy = template.meta.copy(id = id, name = template.name + " (copy)", file = "", scene = null)
         return saveTemplateInternal(intoPackId, copy, docText, sceneText)
     }

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dynamic stickers in the keyboard: the stickers panel's Text chip, its fill sheet, and the sticker row. -->
+<resources>
+    <string name="ime_dynsticker_search_hint">Type the words for your stickers</string>
+    <string name="ime_dynsticker_filter_all">All</string>
+    <string name="ime_dynsticker_filter_stickers">Stickers</string>
+    <string name="ime_dynsticker_filter_memes">Memes</string>
+    <string name="ime_dynsticker_filter_favourites">Favourites</string>
+    <string name="ime_dynsticker_create_desc">Make a template of your own</string>
+    <string name="ime_dynsticker_empty">No templates are switched on. Turn some on or get more in Dynamic stickers settings.</string>
+    <string name="ime_dynsticker_empty_filtered">Nothing here takes these words. Try fewer words, or another chip.</string>
+    <string name="ime_dynsticker_empty_action">Dynamic stickers settings</string>
+    <string name="ime_dynsticker_render_failed">Couldn’t draw that sticker</string>
+    <!-- The stickers panel's long-press menu on a Text cell. -->
+    <string name="ime_dynsticker_customize_action">Change font, colour or photo</string>
+    <string name="ime_dynsticker_favourite_add">Add to favourites</string>
+    <string name="ime_dynsticker_favourite_remove">Remove from favourites</string>
+    <string name="ime_dynsticker_save_to_stickers">Save to my stickers</string>
+    <string name="ime_dynsticker_edit">Edit in the builder</string>
+    <!-- The pack a dynamic sticker saved to "My stickers" goes into. -->
+    <string name="ime_dynsticker_pack_name">Text stickers</string>
+    <!-- The fill sheet. -->
+    <string name="ime_dynsticker_sheet_close">Close</string>
+    <string name="ime_dynsticker_slot_main">Text</string>
+    <string name="ime_dynsticker_slot_top">Top text</string>
+    <string name="ime_dynsticker_slot_bottom">Bottom text</string>
+    <string name="ime_dynsticker_slot_label">Label</string>
+    <string name="ime_dynsticker_slot_caption">Caption</string>
+    <string name="ime_dynsticker_slot_name">Name</string>
+    <string name="ime_dynsticker_slot_empty">(the template’s own words)</string>
+    <string name="ime_dynsticker_slots_hint">Type “top | bottom” in the search box to fill each line in turn.</string>
+    <string name="ime_dynsticker_photo">photo</string>
+    <string name="ime_dynsticker_photo_pick">Pick a %1$s</string>
+    <string name="ime_dynsticker_photo_change">Change the %1$s</string>
+    <string name="ime_dynsticker_font_label">Font</string>
+    <string name="ime_dynsticker_font_own">Its own</string>
+    <string name="ime_dynsticker_font_bold">Bold</string>
+    <string name="ime_dynsticker_font_serif">Serif</string>
+    <string name="ime_dynsticker_font_mono">Mono</string>
+    <string name="ime_dynsticker_font_script">Script</string>
+    <string name="ime_dynsticker_colour_label">Text colour</string>
+    <string name="ime_dynsticker_send">Send</string>
+    <string name="ime_dynsticker_send_still">Send still</string>
+</resources>

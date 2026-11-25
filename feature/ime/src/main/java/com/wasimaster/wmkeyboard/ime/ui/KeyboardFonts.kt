@@ -611,6 +611,23 @@ object KeyboardFonts {
     /** Whether [id] is a font on this device, not a Google face the provider has to serve. */
     fun isLocal(id: String): Boolean = !id.startsWith(GOOGLE_PREFIX)
 
+    /**
+     * [id] as a plain [Typeface], for drawing outside Compose (dynamic
+     * stickers): the imported or installed file, or on Android 10 and up the
+     * provider's file for a `google:` id. Blocking, since a `google:` id may
+     * wait on the provider. Null for the system default and for anything that
+     * cannot be read, which leaves the caller its own fallback.
+     */
+    fun typeface(context: Context, id: String): Typeface? {
+        if (id.isBlank() || id == DEFAULT_ID) return null
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val font = platformFont(context, id) ?: return null
+            return runCatching { Typeface.CustomFallbackBuilder(PlatformFontFamily.Builder(font).build()).build() }.getOrNull()
+        }
+        if (id.startsWith(GOOGLE_PREFIX)) return null
+        return fontFile(context, id)?.let { runCatching { Typeface.createFromFile(it) }.getOrNull() }
+    }
+
     /** [latinFirstFamily] if it has already been built, without building it. */
     fun cachedLatinFirstFamily(
         latinId: String,

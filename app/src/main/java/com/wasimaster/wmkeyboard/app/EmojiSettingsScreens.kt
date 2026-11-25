@@ -134,6 +134,17 @@ internal fun EmojiSettings(
                 onNavigate("emoji/mixes")
             }
         }
+        // The words typed, drawn into sticker and meme templates: pictures
+        // sent from the stickers panel and the row over the keys.
+        item(visible = Extension.STICKERS in extensions, level = SettingLevel.STANDARD) {
+            NavRow(
+                R.string.dynsticker_screen_title,
+                stringResource(R.string.dynsticker_row_subtitle),
+                route = "dynamic_stickers",
+            ) {
+                onNavigate("dynamic_stickers")
+            }
+        }
     }
     SettingsGroup(stringResource(R.string.langemoji_emoji_suggestions_title)) {
         item {

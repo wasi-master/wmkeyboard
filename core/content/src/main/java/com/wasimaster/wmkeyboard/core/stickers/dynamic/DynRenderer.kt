@@ -53,7 +53,7 @@ class DynRenderer(
     private val fonts: DynFonts,
 ) {
 
-    /** The exact engine, when its library is installed. */
+    /** The exact engine, when its library is installed; [installedExact] otherwise. */
     @Volatile
     var exactEngine: ExactEngine? = null
 
@@ -132,7 +132,22 @@ class DynRenderer(
         photos: Map<String, Bitmap> = emptyMap(),
     ): Prepared? {
         val root = store.document(template) ?: return null
-        val exact = exactEngine?.takeIf { useExact(template, policy) }
+        return prepareDocument(root, template, fill, policy, photos)
+    }
+
+    /**
+     * [prepare] for a document that is not in the store yet: what the
+     * builder previews while a template is being made. [template] carries
+     * its slots, photos and pack, for fonts and pictures.
+     */
+    fun prepareDocument(
+        root: JsonObject,
+        template: DynTemplate,
+        fill: DynFill,
+        policy: ExactPolicy = ExactPolicy.IMPORTED,
+        photos: Map<String, Bitmap> = emptyMap(),
+    ): Prepared? {
+        val exact = (exactEngine ?: installedExact)?.takeIf { useExact(template, policy) }
         if (exact != null) prepareExact(exact, root, template, fill, photos)?.let { return it }
         return prepareLottie(root, template, fill, photos)
     }
@@ -426,6 +441,13 @@ class DynRenderer(
     }
 
     companion object {
+        /**
+         * The exact engine once its library is loaded, for every renderer
+         * in the process; the settings screen shows its choice only then.
+         */
+        @Volatile
+        var installedExact: ExactEngine? = null
+
         private const val MS_PER_SECOND = 1000f
         private const val MIN_FRAME_MS = 10
         private const val MAX_ASSET = 2048

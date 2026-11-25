@@ -35,6 +35,7 @@ enum class Extension(
         routes = setOf(
             "sticker_packs", "signal_stickers", "whatsapp_stickers", "telegram_stickers",
             "sticker_generator", "sticker_pack/{packId}", "sticker_pack/{packId}/add", "sticker_pack/{packId}/edit/{stickerId}", "emoji/mixes",
+            "dynamic_stickers", "dynamic_sticker_pack/{packId}", "dynamic_sticker_builder/{template}",
         ),
     ),
 

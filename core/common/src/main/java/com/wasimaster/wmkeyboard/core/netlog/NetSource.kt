@@ -39,6 +39,9 @@ enum class NetSource(
 
     /** An emoji mix: its image, or a source's index of them. Only ever a host the user added. */
     EMOJI_MIX("emoji_mix", ToolbarTool.EMOJI_MIX),
+
+    /** A dynamic sticker feed the user added: its index, and the template packs it lists. */
+    DYNAMIC_STICKERS("dynamic_stickers", ToolbarTool.STICKER),
     WEB_SEARCH("web_search", ToolbarTool.WEB_SEARCH),
     IMAGE_SEARCH("image_search", ToolbarTool.IMAGE_SEARCH),
 

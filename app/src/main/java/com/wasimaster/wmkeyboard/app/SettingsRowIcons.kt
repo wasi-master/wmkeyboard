@@ -630,6 +630,7 @@ internal object SettingsRowIcons {
         put(R.string.backup_section_themes_label) { Icons.Outlined.Palette }
         put(R.string.backup_section_icons_label) { Icons.Outlined.Category }
         put(R.string.backup_section_stickers_label) { SymbolIcons.Sticker }
+        put(R.string.backup_section_dynstickers_label) { Icons.Outlined.TextFields }
         put(R.string.backup_section_addons_label) { Icons.Outlined.Extension }
         put(R.string.backup_section_emoji_label) { Icons.Outlined.History }
         put(R.string.backup_section_statistics_label) { Icons.Outlined.QueryStats }
@@ -2427,6 +2428,35 @@ internal object SettingsRowIcons {
         put(R.string.ha_cache_title) { Icons.Outlined.Storage }
         put(R.string.ha_ai_tools_title) { Icons.Outlined.AutoAwesome }
         put(R.string.ha_smart_chip_title) { Icons.Outlined.Lightbulb }
+
+        // ---- Dynamic stickers ----
+        put(R.string.dynsticker_screen_title) { Icons.Outlined.TextFields }
+        put(R.string.dynsticker_enabled_title) { Icons.Outlined.TextFields }
+        put(R.string.dynsticker_new_template_title) { Icons.Outlined.Brush }
+        put(R.string.dynsticker_in_tray_title) { Icons.Outlined.Lightbulb }
+        put(R.string.dynsticker_match_phrase_title) { Icons.Outlined.Title }
+        put(R.string.dynsticker_match_inside_title) { Icons.Outlined.Search }
+        put(R.string.dynsticker_match_feelings_title) { Icons.Outlined.EmojiEmotions }
+        put(R.string.dynsticker_generic_title) { Icons.Outlined.AllInclusive }
+        put(R.string.dynsticker_max_words_title) { Icons.Outlined.Numbers }
+        put(R.string.dynsticker_max_in_tray_title) { Icons.Outlined.ViewCarousel }
+        put(R.string.dynsticker_memes_in_tray_title) { Icons.Outlined.Image }
+        put(R.string.dynsticker_animate_in_tray_title) { Icons.Outlined.Animation }
+        put(R.string.dynsticker_style_title) { Icons.Outlined.Style }
+        put(R.string.dynsticker_order_title) { Icons.AutoMirrored.Outlined.Sort }
+        put(R.string.dynsticker_send_animated_title) { Icons.Outlined.PlayArrow }
+        put(R.string.dynsticker_panel_typed_title) { Icons.Outlined.Keyboard }
+        put(R.string.dynsticker_font_override_title) { Icons.Outlined.FontDownload }
+        put(R.string.dynsticker_exact_title) { Icons.Outlined.AutoFixHigh }
+        put(R.string.dynsticker_add_feed_title) { Icons.Outlined.Link }
+        put(R.string.dynsticker_auto_refresh_title) { Icons.Outlined.Sync }
+        put(R.string.dynsticker_clear_cache_title) { Icons.Outlined.CleaningServices }
+        put(R.string.dynsticker_import_into_title) { Icons.Outlined.FileOpen }
+        put(R.string.dynsticker_rename_title) { Icons.Outlined.DriveFileRenameOutline }
+        put(R.string.dynsticker_export_title) { Icons.Outlined.Upload }
+        put(R.string.dynsticker_delete_pack_title) { Icons.Outlined.Delete }
+        put(R.string.dynsticker_builder_json_copy) { Icons.Outlined.ContentCopy }
+        put(R.string.dynsticker_builder_json_edit) { Icons.Outlined.DataObject }
 
         // ---- Emoji mixes, added emoji, kaomoji ----
         put(R.string.emojimix_row_title) { Icons.Outlined.Interests }

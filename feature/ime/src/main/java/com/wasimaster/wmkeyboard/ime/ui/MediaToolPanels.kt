@@ -118,6 +118,13 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderTypes as UsageTypes
 import com.wasimaster.wmkeyboard.core.settings.providerCredential
 import com.wasimaster.wmkeyboard.core.tools.GifSource
 import com.wasimaster.wmkeyboard.core.tools.GifSources
+import com.wasimaster.wmkeyboard.ime.dynstickers.DynAction
+import com.wasimaster.wmkeyboard.ime.dynstickers.DynEmptyNotice
+import com.wasimaster.wmkeyboard.ime.dynstickers.DynFillSheet
+import com.wasimaster.wmkeyboard.ime.dynstickers.DynFilterRow
+import com.wasimaster.wmkeyboard.ime.dynstickers.DynStickerCallbacks
+import com.wasimaster.wmkeyboard.ime.dynstickers.DynStickerController
+import com.wasimaster.wmkeyboard.ime.dynstickers.DynThumbFetcher
 import com.wasimaster.wmkeyboard.core.tools.MediaCategories
 import com.wasimaster.wmkeyboard.core.tools.MediaCategory
 import com.wasimaster.wmkeyboard.core.tools.SearchBackend
@@ -543,6 +550,8 @@ fun mediaImageLoader(context: Context): ImageLoader =
                 } else {
                     add(GifDecoder.Factory())
                 }
+                // Dynamic stickers' cells: drawn on the device when a cell asks.
+                add(DynThumbFetcher.Factory())
             }
             // Below Coil's 20% default: a bloated keyboard is a visible jank
             // source, and three screens of thumbnails is all the scrollback
@@ -895,6 +904,7 @@ private fun PanelSpinner() {
  */
 @Composable
 private fun gifSearchHint(state: KeyboardUiState, stickers: Boolean): String {
+    if (dynamicGrid(state, stickers)) return stringResource(R.string.ime_dynsticker_search_hint)
     val brand = gifBrand(state, stickers)
     if (brand != null) {
         return stringResource(R.string.ime_media_search_provider, stringResource(GifSources.displayNameRes(brand)))
@@ -908,7 +918,8 @@ private fun gifSearchHint(state: KeyboardUiState, stickers: Boolean): String {
  */
 @Composable
 private fun gifAttribution(state: KeyboardUiState, stickers: Boolean = false): String? {
-    // Nothing to credit for packs on the device.
+    // Nothing to credit for packs on the device, or for stickers drawn on it.
+    if (dynamicGrid(state, stickers)) return null
     val credited = gifTargets(state, stickers).filter { !it.onDevice && it.source !in BRANDED_SOURCES }
     if (credited.isEmpty()) return null
     val names = StringBuilder()
@@ -925,7 +936,15 @@ private fun gifAttribution(state: KeyboardUiState, stickers: Boolean = false): S
  * ([GifSource.ownGrid]), so a grid has at most one of the two.
  */
 private fun gifBrand(state: KeyboardUiState, stickers: Boolean): GifSource? =
-    gifTargets(state, stickers).firstOrNull { it.source in BRANDED_SOURCES }?.source
+    if (dynamicGrid(state, stickers)) null else gifTargets(state, stickers).firstOrNull { it.source in BRANDED_SOURCES }?.source
+
+/** Whether the stickers panel is on its Text chip: dynamic stickers, drawn from the words in the search box. */
+internal fun dynamicGrid(state: KeyboardUiState, stickers: Boolean): Boolean =
+    stickers && state.settings.gif.dynamic.enabled && state.mediaProvider == DynStickerController.CHIP_KEY
+
+/** The Text chip after the providers' own, on the stickers panel with dynamic stickers on. */
+private fun extraChips(state: KeyboardUiState, stickers: Boolean): List<com.wasimaster.wmkeyboard.core.tools.SourceChip> =
+    if (stickers && state.settings.gif.dynamic.enabled) listOf(GifSources.dynamicChip(DynStickerController.CHIP_KEY)) else emptyList()
 
 private fun gifTargets(state: KeyboardUiState, stickers: Boolean): List<MediaTarget> = GifSources.targets(
     gifSourcesFor(state, stickers),
@@ -1087,13 +1106,18 @@ internal fun GifPanel(
     switcher: (@Composable () -> Unit)? = null,
     inGrid: Boolean = false,
     onQueryClear: (() -> Unit)? = null,
+    /** The Text chip's grid (dynamic stickers): its filter, its fill sheet and its menu rows. */
+    dynamic: DynStickerCallbacks = DynStickerCallbacks(),
 ) {
     val ui = if (stickers) state.sticker else state.gif
     val tool = if (stickers) ToolbarTool.STICKER else ToolbarTool.GIF
     val sources = gifSourcesFor(state, stickers)
     val mode = MediaProviders.mode(state.settings, stickers)
-    val chips = GifSources.chips(sources, mode)
-    val localGrid = GifSources.targets(sources, state.mediaProvider, mode).map { it.source } == listOf(GifSource.LOCAL)
+    val chips = GifSources.chips(sources, mode, extraChips(state, stickers))
+    val textGrid = dynamicGrid(state, stickers)
+    val dynUi by dynamic.state.collectAsState()
+    val localGrid = !textGrid &&
+        GifSources.targets(sources, state.mediaProvider, mode).map { it.source } == listOf(GifSource.LOCAL)
     val sizing = if (fullBleed || inGrid) {
         Modifier.fillMaxSize()
     } else {
@@ -1127,7 +1151,7 @@ internal fun GifPanel(
     BoxWithConstraints(modifier = sizing) {
         // In a layout cell the keys around it have taken some of the key area.
         val available = if (inGrid) maxHeight else null
-        val categoryRow = showMediaCategories(state, localGrid, fullBleed, state.acceptsRichMedia, available)
+        val categoryRow = showMediaCategories(state, localGrid || textGrid, fullBleed, state.acceptsRichMedia, available)
         // The favourites live on the category row, which a short panel, or a
         // field that takes no images, does not draw. A star in the search bar
         // is then their way in, and costs no height (#597).
@@ -1194,6 +1218,8 @@ internal fun GifPanel(
                 }
                 // The pack filter, from two packs up; with no source chips to sit
                 // beside, the add chip leads it, alone for a single pack.
+                // The Text grid's own row: all, stickers or memes, favourites, packs.
+                if (textGrid && !state.mediaSearchActive) DynFilterRow(dynUi, dynamic.onAction)
                 if (canAdd && (chips.isEmpty() || state.stickerPacks.size > 1)) {
                     StickerPackChips(
                         packs = state.stickerPacks,
@@ -1261,7 +1287,9 @@ internal fun GifPanel(
                     )
                     is MediaUi.Metered -> MeteredNotice(ui.canAllow, onRetry)
                     is MediaUi.Ready -> {
-                        if (ui.items.isEmpty()) {
+                        if (ui.items.isEmpty() && textGrid) {
+                            DynEmptyNotice(filtered = dynUi.filter != null || ui.query.isNotBlank(), onAction = dynamic.onAction)
+                        } else if (ui.items.isEmpty()) {
                             LocalStickerEmptyNotice(
                                 category = state.mediaCategory,
                                 localGrid = localGrid,
@@ -1319,8 +1347,12 @@ internal fun GifPanel(
                 onReport = onReport,
                 onOpenRoute = onOpenRoute,
                 onDismiss = onDismissAction,
+                dynamic = dynamic,
             )
         }
+        // The fill sheet over the Text grid: several texts, a photo, a face or a colour.
+        val sheet = dynUi.sheet
+        if (stickers && sheet != null) DynFillSheet(sheet, rememberMediaImageLoader(), dynamic.onAction)
     }
 }
 
@@ -1641,6 +1673,7 @@ private fun MediaActionSheet(
     onReport: (GifItem) -> Unit,
     onOpenRoute: (String) -> Unit,
     onDismiss: () -> Unit,
+    dynamic: DynStickerCallbacks = DynStickerCallbacks(),
 ) {
     val kb = LocalKbTheme.current
     Box(
@@ -1697,7 +1730,22 @@ private fun MediaActionSheet(
                 )
             }
             val local = item.source == GifSource.LOCAL
-            if (stickers) {
+            if (item.source == GifSource.DYNAMIC) {
+                // A template filled with the words: a look of its own, a star,
+                // a copy among the user's stickers, or the builder.
+                fun act(action: DynAction) {
+                    onDismiss()
+                    dynamic.onAction(action)
+                }
+                MediaActionRow(stringResource(R.string.ime_dynsticker_customize_action)) { act(DynAction.Customize(item)) }
+                MediaActionRow(
+                    stringResource(
+                        if (dynamic.isFavourite(item)) R.string.ime_dynsticker_favourite_remove else R.string.ime_dynsticker_favourite_add,
+                    ),
+                ) { act(DynAction.Favourite(item)) }
+                MediaActionRow(stringResource(R.string.ime_dynsticker_save_to_stickers)) { act(DynAction.SaveToStickers(item)) }
+                MediaActionRow(stringResource(R.string.ime_dynsticker_edit)) { act(DynAction.Edit(item)) }
+            } else if (stickers) {
                 if (local) {
                     // Its title and keywords, straight to the editor (#1157).
                     if (own != null) {

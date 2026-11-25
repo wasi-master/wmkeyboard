@@ -2630,6 +2630,35 @@ private fun SettingsNavGraph(
                 EmojiMixSettings(repository, settings)
             }
         }
+        composable("dynamic_stickers") {
+            SettingsScreen(
+                stringResource(R.string.dynsticker_screen_title),
+                { navController.popBackStack() },
+                route = "dynamic_stickers",
+            ) {
+                DynamicStickersScreen(repository, settings) { navController.navigate(it) }
+            }
+        }
+        composable("dynamic_sticker_pack/{packId}") { backStackEntry ->
+            val packId = backStackEntry.arguments?.getString("packId").orEmpty()
+            SettingsScreen(
+                stringResource(R.string.dynsticker_pack_screen_title),
+                { navController.popBackStack() },
+                route = com.wasimaster.wmkeyboard.ime.dynstickers.DynRoutes.pack(packId),
+            ) {
+                DynamicStickerPackScreen(packId, onNavigate = { navController.navigate(it) }) { navController.popBackStack() }
+            }
+        }
+        composable("dynamic_sticker_builder/{template}") { backStackEntry ->
+            val template = backStackEntry.arguments?.getString("template").orEmpty()
+            SettingsScreen(
+                stringResource(R.string.dynsticker_builder_title),
+                { navController.popBackStack() },
+                route = com.wasimaster.wmkeyboard.ime.dynstickers.DynRoutes.builder(template),
+            ) {
+                DynamicStickerBuilderScreen(template, onNavigate = { navController.navigate(it) }) { navController.popBackStack() }
+            }
+        }
         composable("kaomoji") {
             SettingsScreen(
                 stringResource(R.string.langemoji_kaomoji_title),

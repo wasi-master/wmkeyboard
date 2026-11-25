@@ -15,6 +15,8 @@
     <!-- Emoji mixes: images fetched from a source, and the pictures in an imported pack. -->
     <cache-path name="emoji_mix" path="emoji_mix/" />
     <files-path name="emoji_mix_packs" path="emoji_mix/" />
+    <!-- Dynamic stickers: what was drawn for sending, and the moving thumbnails. -->
+    <cache-path name="dyn_stickers" path="dynstickers/" />
     <!-- A note shared as a .md or .txt file from the Notes screen. -->
     <!-- The Send files tool: field text saved as a file to upload, and copies made for sending. -->
     <cache-path name="send" path="send/" />

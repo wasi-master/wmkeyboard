@@ -224,6 +224,8 @@ object WMFileTypes {
         ConfigBackup.FILE_EXTENSION,
         ConfigBackup.ENCRYPTED_FILE_EXTENSION,
         StickerPackFile.FILE_EXTENSION,
+        // A pack of dynamic sticker templates (Lottie documents with their rules), the builder's export.
+        com.wasimaster.wmkeyboard.core.stickers.dynamic.DynPackFile.FILE_EXTENSION,
         IconPackFile.FILE_EXTENSION,
         SnippetFile.FILE_EXTENSION,
         PluginFile.FILE_EXTENSION,
@@ -402,6 +404,9 @@ object WMFileTypes {
          */
         data object Stickers : Opened
         data object Icons : Opened
+
+        /** A pack of dynamic sticker templates, `.wmdynstickers`: its manifest's tag says so. */
+        data object DynamicStickers : Opened
 
         /**
          * A WhatsApp sticker pack, the `.wastickers` the sticker-maker apps
@@ -1063,6 +1068,7 @@ object WMFileTypes {
      */
     internal fun archiveKindFor(manifest: String): Opened = when {
         manifest.contains("\"${IconPackFile.FORMAT}\"") -> Opened.Icons
+        manifest.contains("\"${com.wasimaster.wmkeyboard.core.stickers.dynamic.DynPackFile.FORMAT}\"") -> Opened.DynamicStickers
         manifest.contains("\"${StickerPackFile.FORMAT}\"") -> Opened.Stickers
         manifest.contains("\"${PluginFile.FORMAT}\"") -> Opened.Plugin
         SoundPackFile.recognises(manifest) -> Opened.SoundPack
@@ -2555,6 +2561,23 @@ private fun rememberProposal(
         WMFileTypes.Opened.Stickers, is WMFileTypes.Opened.WhatsAppStickers -> ImportProposal(
             titleRes = R.string.import_stickers_title,
             body = context.getString(R.string.import_stickers_body),
+        )
+
+        WMFileTypes.Opened.DynamicStickers -> ImportProposal(
+            titleRes = R.string.import_dynstickers_title,
+            body = context.getString(R.string.import_dynstickers_body),
+            apply = {
+                val store = com.wasimaster.wmkeyboard.core.stickers.dynamic.DynStickerStore.get(context)
+                val name = WMFileTypes.displayName(context, uri).substringBeforeLast('.')
+                val result = withContext(Dispatchers.IO) {
+                    runCatching {
+                        context.contentResolver.requireInputStream(uri).use {
+                            store.importArchive(it, com.wasimaster.wmkeyboard.core.stickers.dynamic.PackSource.USER, name)
+                        }
+                    }.getOrDefault(com.wasimaster.wmkeyboard.core.stickers.dynamic.DynStickerStore.ImportResult.Failed)
+                }
+                dynImportMessage(context, result)
+            },
         )
 
         WMFileTypes.Opened.Icons -> ImportProposal(

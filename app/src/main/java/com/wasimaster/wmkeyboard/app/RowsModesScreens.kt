@@ -242,11 +242,15 @@ private fun barRowShown(row: BarRow, settings: KeyboardSettings): Boolean = when
     BarRow.DICTIONARY -> settings.rows.dictionaryBarEnabled
     BarRow.MACROS -> settings.selectionMacros.enabled &&
         settings.selectionMacros.placement == SelectionMacroPlacement.OWN_ROW
-    BarRow.STICKERS -> settings.gif.stickerSuggest
+    BarRow.STICKERS -> stickerRowInUse(settings)
     BarRow.RECENT -> settings.suggestionStrip.recentWordBar
     BarRow.SECOND_TOOLBAR -> settings.toolbarBehavior.secondRow
     BarRow.KEYBOARD -> true
 }
+
+/** Whether anything offers stickers while typing: the user's own, or dynamic stickers. */
+private fun stickerRowInUse(settings: KeyboardSettings): Boolean =
+    settings.gif.stickerSuggest || (settings.gif.dynamic.enabled && settings.gif.dynamic.inTray)
 
 /**
  * The rows the order list offers, out of the stored order.
@@ -261,7 +265,7 @@ internal fun barRowsListed(order: List<BarRow>, settings: KeyboardSettings): Lis
     order.filter { row ->
         when (row) {
             BarRow.TOOLS -> settings.toolbarBehavior.placement.isOwnRow
-            BarRow.STICKERS -> settings.gif.stickerSuggest
+            BarRow.STICKERS -> stickerRowInUse(settings)
             // Inline they are part of the strip's entry, as the tools are.
             BarRow.RECENT -> settings.rows.recentWordPlacement == RecentWordPlacement.OWN_ROW
             // A row that is switched off on the Toolbar page (#1217).

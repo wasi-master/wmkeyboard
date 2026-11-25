@@ -427,6 +427,7 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "emoji" to Color(0xFFFFB300),
     "emoji/panel" to Color(0xFFFFB300),
     "emoji/mixes" to Color(0xFFFFCA28),
+    "dynamic_stickers" to Color(0xFFBA68C8),
     "voice" to Color(0xFF7E57C2),
     "clipboard" to Color(0xFF42A5F5),
     "clipboard/history" to Color(0xFF42A5F5),

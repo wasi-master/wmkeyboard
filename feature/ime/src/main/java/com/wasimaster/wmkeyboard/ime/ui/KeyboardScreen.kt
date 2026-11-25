@@ -17496,6 +17496,7 @@ private fun KeyboardBody(
                             onOpenRoute = onOpenRoute,
                             switcher = switcher,
                             inGrid = inGrid,
+                            dynamic = toolHold.dynStickers,
                         )
                     }
                 }
@@ -36387,6 +36388,9 @@ data class ToolHoldCallbacks(
     val stickerOffer: StickerOfferCallbacks = StickerOfferCallbacks(),
     /** The emoji mixes panel; here for the same reason as [dictionaryBar]. */
     val emojiMix: EmojiMixCallbacks = EmojiMixCallbacks(),
+    /** The stickers panel's Text chip (dynamic stickers); here for the same reason as [dictionaryBar]. */
+    val dynStickers: com.wasimaster.wmkeyboard.ime.dynstickers.DynStickerCallbacks =
+        com.wasimaster.wmkeyboard.ime.dynstickers.DynStickerCallbacks(),
     /** The toolbox's search and folders (#687, #709); here for the same reason as [dictionaryBar]. */
     val toolbox: ToolboxCallbacks = ToolboxCallbacks(),
     /** The apps on the toolbar (#1159): their faces, and opening one. */

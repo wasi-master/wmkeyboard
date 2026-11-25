@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.app
 
 import com.wasimaster.wmkeyboard.core.settings.BarRow
 import com.wasimaster.wmkeyboard.core.settings.DefaultBarOrder
+import com.wasimaster.wmkeyboard.core.settings.DynamicStickerSettings
 import com.wasimaster.wmkeyboard.core.settings.GifSettings
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.RecentWordPlacement
@@ -60,7 +61,10 @@ class BarRowListTest {
     fun `sticker row is listed only while stickers are offered as you type`() {
         val on = KeyboardSettings()
         assertEquals(BarRow.STICKERS, barRowsListed(DefaultBarOrder, on).first())
-        val off = KeyboardSettings(gif = GifSettings(stickerSuggest = false))
+        // Dynamic stickers in the row keep it listed on their own.
+        val dynamicOnly = KeyboardSettings(gif = GifSettings(stickerSuggest = false))
+        assertEquals(true, BarRow.STICKERS in barRowsListed(DefaultBarOrder, dynamicOnly))
+        val off = KeyboardSettings(gif = GifSettings(stickerSuggest = false, dynamic = DynamicStickerSettings(inTray = false)))
         val listed = barRowsListed(DefaultBarOrder, off)
         assertEquals(false, BarRow.STICKERS in listed)
         // Moved while hidden, it keeps the place it was stored at.

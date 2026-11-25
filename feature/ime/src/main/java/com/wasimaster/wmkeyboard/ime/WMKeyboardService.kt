@@ -7252,6 +7252,8 @@ open class WMKeyboardService : InputMethodService() {
             }
             maybeRefreshEmojiMixIndexes(mix)
         }
+        // Dynamic sticker feeds: the weekly check, when there are any.
+        if (settings.gif.dynamic.feeds.isNotEmpty()) maybeRefreshDynStickerFeeds(settings.gif.dynamic)
         // The strip's faces need the library before the tab is ever opened.
         if (settings.emoji.kaomojiTabs || settings.emoji.kaomoji.suggest) kaomojiTool.ensureLoaded()
         noteStore.trashRetentionMillis = settings.notes.trashDays * DAY_MS
@@ -30745,7 +30747,7 @@ open class WMKeyboardService : InputMethodService() {
         val state = _uiState.value
         val ic = currentInputConnection
         val stickersOn = stickerOffersAllowed(state) && !stickerPackStore.isEmpty()
-        if (ic == null || (!stickersOn && !mixOffersAllowed(state))) {
+        if (ic == null || (!stickersOn && !mixOffersAllowed(state) && !dynOffersAllowed(state))) {
             clearStickerOffer()
             return
         }
@@ -30767,7 +30769,8 @@ open class WMKeyboardService : InputMethodService() {
             val still = _uiState.value
             val stickersNow = stickerOffersAllowed(still) && !stickerPackStore.isEmpty()
             val mixesNow = mixOffersAllowed(still)
-            if (!stickersNow && !mixesNow) {
+            val dynamicNow = dynOffersAllowed(still)
+            if (!stickersNow && !mixesNow && !dynamicNow) {
                 if (still.stickerOffer != null) _uiState.update { it.copy(stickerOffer = null) }
                 return@launch
             }
@@ -30810,9 +30813,132 @@ open class WMKeyboardService : InputMethodService() {
             } else {
                 null
             }
-            if (match == null && mixOffer == null) stickerMutedAfter = null
-            val shown = offer ?: mixOffer
+            // Dynamic stickers: the whole message drawn into templates, beside
+            // or instead of the above as the user ordered them.
+            val dynamicHit = if (dynamicNow) {
+                withContext(Dispatchers.Default) { dynamicMessageOffer(ic) }
+            } else {
+                null
+            }
+            if (match == null && mixOffer == null && dynamicHit == null) stickerMutedAfter = null
+            val shown = withDynamicOffer(
+                base = offer ?: mixOffer,
+                dynamic = dynamicHit?.takeIf { before != stickerMutedAfter },
+                order = still.settings.gif.dynamic.order,
+            )
             if (shown != _uiState.value.stickerOffer) _uiState.update { it.copy(stickerOffer = shown) }
+        }
+    }
+
+    /**
+     * Whether dynamic stickers may be offered while typing: the feature and
+     * its row on, a field that takes images and is not a password box, and
+     * the keys up (the panel's Text chip is the other way to them).
+     */
+    private fun dynOffersAllowed(state: KeyboardUiState): Boolean {
+        val dynamic = state.settings.gif.dynamic
+        return dynamic.enabled && dynamic.inTray && state.acceptsRichMedia && !state.secureField &&
+            state.panel == PanelMode.NONE
+    }
+
+    /**
+     * The templates the message before the cursor suits, with the message,
+     * or null when none do. Only a message that is the whole of what the
+     * field holds after the cursor counts: text after it means the words
+     * before are not the message on their own. Blocking.
+     */
+    private fun dynamicMessageOffer(ic: android.view.inputmethod.InputConnection): Pair<String, List<GifItem>>? {
+        val after = ic.getTextAfterCursor(1, 0)?.toString().orEmpty()
+        if (after.isNotBlank()) return null
+        val message = ic.getTextBeforeCursor(
+            com.wasimaster.wmkeyboard.ime.dynstickers.DynStickerController.MESSAGE_LOOKBEHIND, 0,
+        )?.toString().orEmpty().trim()
+        if (message.isEmpty()) return null
+        val items = runCatching { dynStickerTool.offerFor(message) }.getOrDefault(emptyList())
+        return if (items.isEmpty()) null else message to items
+    }
+
+    /**
+     * [base] (the user's own stickers or the mixes) and the dynamic stickers
+     * for the message, in the user's [order]: after them in the same row,
+     * first in it, or only when [base] has nothing.
+     */
+    private fun withDynamicOffer(
+        base: com.wasimaster.wmkeyboard.ime.StickerOffer?,
+        dynamic: Pair<String, List<GifItem>>?,
+        order: com.wasimaster.wmkeyboard.core.settings.DynOfferOrder,
+    ): com.wasimaster.wmkeyboard.ime.StickerOffer? {
+        if (dynamic == null) return base
+        val (message, items) = dynamic
+        val picks = items.map { com.wasimaster.wmkeyboard.ime.StickerOfferItem(it, message.length) }
+        val previous = _uiState.value.stickerOffer
+        fun alone() = com.wasimaster.wmkeyboard.ime.StickerOffer(
+            trigger = message,
+            stickers = picks,
+            expanded = previous?.expanded == true && previous.dynamic && previous.trigger == message,
+            dynamic = true,
+        )
+        return when (order) {
+            com.wasimaster.wmkeyboard.core.settings.DynOfferOrder.ONLY_WHEN_NOTHING_ELSE -> base ?: alone()
+            com.wasimaster.wmkeyboard.core.settings.DynOfferOrder.AFTER_OWN ->
+                base?.copy(stickers = (base.stickers + picks).distinctBy { it.item.id }) ?: alone()
+            com.wasimaster.wmkeyboard.core.settings.DynOfferOrder.FIRST ->
+                base?.copy(stickers = (picks + base.stickers).distinctBy { it.item.id }, dynamic = true) ?: alone()
+        }
+    }
+
+    /**
+     * A dynamic sticker from the row was tapped: drawn and encoded first, and
+     * only once it is in hand is the message taken back out (when the setting
+     * says so), so a failed render costs the text nothing. The message is
+     * matched again against the text as it is then, as a sticker's trigger is.
+     */
+    private fun onDynamicOfferPick(offer: com.wasimaster.wmkeyboard.ime.StickerOffer, pick: com.wasimaster.wmkeyboard.ime.StickerOfferItem) {
+        val state = _uiState.value
+        if (!state.acceptsRichMedia) {
+            vibrate()
+            return
+        }
+        stopVoiceForManualInput()
+        vibrate()
+        val editor = currentInputEditorInfo
+        val packageName = editor?.packageName
+        val fieldId = editor?.fieldId
+        val takeBack = state.settings.gif.stickerSuggestTrigger ==
+            com.wasimaster.wmkeyboard.core.settings.StickerTriggerAction.DELETE
+        stickerMutedAfter = currentInputConnection?.getTextBeforeCursor(StickerTriggerIndex.LOOKBEHIND, 0)?.toString()
+        clearStickerOffer()
+        serviceScope.launch {
+            startMediaDownload(pick.item.id)
+            val output = withContext(Dispatchers.IO) { runCatching { dynStickerTool.render(pick.item) }.getOrNull() }
+            endMediaDownload()
+            if (output == null) {
+                Toast.makeText(this@WMKeyboardService, getString(R.string.ime_dynsticker_render_failed), Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            if (!isSameField(packageName, fieldId)) return@launch
+            val ic = currentInputConnection
+            if (takeBack && ic != null) {
+                val before = ic.getTextBeforeCursor(
+                    com.wasimaster.wmkeyboard.ime.dynstickers.DynStickerController.MESSAGE_LOOKBEHIND, 0,
+                )?.toString().orEmpty()
+                val tail = before.trimEnd()
+                if (offer.trigger.isNotEmpty() && tail.endsWith(offer.trigger)) {
+                    ic.beginBatchEdit()
+                    commitComposing(ic, autocorrect = false)
+                    ic.deleteSurroundingText(before.length - tail.length + offer.trigger.length, 0)
+                    ic.endBatchEdit()
+                    revision = null
+                    composing = StringBuilder()
+                    lastGestureWord = null
+                    _uiState.update {
+                        it.copy(composingPreview = "", suggestions = emptyList(), emojiSuggestions = emptyList(), octopus = emptyMap())
+                    }
+                }
+            }
+            stickerMutedAfter = currentInputConnection?.getTextBeforeCursor(StickerTriggerIndex.LOOKBEHIND, 0)?.toString()
+            commitImageFile(output.file, output.mime, _uiState.value.settings.stickerSendMode)
+            refreshSuggestions()
         }
     }
 
@@ -30908,11 +31034,39 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
-    /** Puts a fetched mix into the user's own stickers, in a pack of mixes, tagged with its two emoji. */
-    private fun addEmojiMixToStickers(file: File, keywords: List<String>) {
+    /** The weekly feed check has been considered in this process. */
+    private var dynFeedsAutoRefreshed = false
+
+    /**
+     * The weekly refresh of the dynamic sticker feeds, when the setting asks
+     * for it: once per keyboard process, only on a connection that is not
+     * metered, and only for a feed a week or more old.
+     */
+    private fun maybeRefreshDynStickerFeeds(dynamic: com.wasimaster.wmkeyboard.core.settings.DynamicStickerSettings) {
+        if (!dynamic.enabled || !dynamic.autoRefresh || dynFeedsAutoRefreshed) return
+        val network = networkWatcher.state.value
+        if (!network.online || network.metered) return
+        dynFeedsAutoRefreshed = true
+        val stale = com.wasimaster.wmkeyboard.ime.dynstickers.DynStickerFeeds.stale(dynamic.feeds, System.currentTimeMillis())
+        if (stale.isEmpty()) return
+        serviceScope.launch(Dispatchers.IO) {
+            val store = com.wasimaster.wmkeyboard.core.stickers.dynamic.DynStickerStore.get(this@WMKeyboardService)
+            for (feed in stale) {
+                settingsRepository.updateDynStickerFeed(
+                    com.wasimaster.wmkeyboard.ime.dynstickers.DynStickerFeeds.refresh(this@WMKeyboardService, store, feed),
+                )
+            }
+        }
+    }
+
+    /**
+     * Puts a fetched mix into the user's own stickers, in a pack of mixes, tagged with its two emoji.
+     * Dynamic stickers come this way too, into a pack named by [packName].
+     */
+    private fun addEmojiMixToStickers(file: File, keywords: List<String>, packName: Int = R.string.ime_emoji_mix_pack_name) {
         serviceScope.launch {
             val result = withContext(Dispatchers.IO) {
-                val name = getString(R.string.ime_emoji_mix_pack_name)
+                val name = getString(packName)
                 val target = stickerPackStore.packs().firstOrNull { it.name == name }?.id
                     ?: stickerPackStore.createPack(name)?.id
                     ?: return@withContext null
@@ -30945,6 +31099,12 @@ open class WMKeyboardService : InputMethodService() {
     fun onStickerOfferPick(pick: com.wasimaster.wmkeyboard.ime.StickerOfferItem) {
         val state = _uiState.value
         val offer = state.stickerOffer ?: return
+        // Each cell says what it is: dynamic stickers can follow the user's
+        // own or the mixes in one row.
+        if (pick.item.source == GifSource.DYNAMIC) {
+            onDynamicOfferPick(offer, pick)
+            return
+        }
         if (offer.mix) {
             onEmojiMixOfferPick(offer, pick.item)
             return
@@ -50595,6 +50755,15 @@ open class WMKeyboardService : InputMethodService() {
             _uiState.update { if (sticker) it.copy(sticker = ui) else it.copy(gif = ui) }
         }
         val settings = state.settings
+        // The Text chip: dynamic stickers, drawn on the device from the words
+        // in the search box (or the message, when it is empty). No provider,
+        // so this comes before the provider list is even read.
+        if (sticker && settings.gif.dynamic.enabled &&
+            state.mediaProvider == com.wasimaster.wmkeyboard.ime.dynstickers.DynStickerController.CHIP_KEY
+        ) {
+            showDynamicStickers(query, setUi)
+            return
+        }
         // The favourites and recent chips (#597) are the panel's own lists:
         // no provider, no key and no network to ask. A typed query ends them
         // (see updateQuery), so a blank one is the only one they see here.
@@ -50766,6 +50935,39 @@ open class WMKeyboardService : InputMethodService() {
             ),
             target.key,
         )
+        // Never a provider row: the Text chip is answered before any fetch.
+        GifSource.DYNAMIC -> emptyList()
+    }
+
+    /**
+     * The Text chip's grid: every template switched on, filled with [query],
+     * or with the message being typed when the box is empty and the setting
+     * says so. The cells draw themselves as they come into view.
+     */
+    private fun showDynamicStickers(query: String, setUi: (MediaUi) -> Unit) {
+        mediaFetchJob?.cancel()
+        val state = _uiState.value
+        val panel = state.panel
+        val typed = if (query.isBlank() && state.settings.gif.dynamic.panelUsesTyped) typedMessage() else ""
+        // Typing in the box refills the grid it is already showing, without a spinner between.
+        if (state.sticker !is MediaUi.Ready) setUi(MediaUi.Loading)
+        mediaFetchJob = serviceScope.launch {
+            val items = withContext(Dispatchers.Default) {
+                runCatching { dynStickerTool.panelItems(query.ifBlank { typed }) }.getOrDefault(emptyList())
+            }
+            if (_uiState.value.panel != panel) return@launch
+            setUi(MediaUi.Ready(items, query))
+        }
+    }
+
+    /** The message in the field before the cursor: its last line, when it is short enough to be one. */
+    private fun typedMessage(): String {
+        val before = currentInputConnection
+            ?.getTextBeforeCursor(com.wasimaster.wmkeyboard.ime.dynstickers.DynStickerController.MESSAGE_LOOKBEHIND, 0)
+            ?.toString()
+            .orEmpty()
+        val line = before.substringAfterLast('\n').trim()
+        return if (com.wasimaster.wmkeyboard.core.stickers.dynamic.DynText.wordCount(line) <= DYNAMIC_TYPED_WORDS) line else ""
     }
 
     /** Provider chip on the GIF/sticker panel; [key] is the provider row's. */
@@ -50795,6 +50997,17 @@ open class WMKeyboardService : InputMethodService() {
         val sticker = state.panel == PanelMode.STICKER
         if (!sticker && state.panel != PanelMode.GIF) return
         val settings = state.settings
+        // The Text chip has a filter row of its own and nothing to ask.
+        if (sticker && settings.gif.dynamic.enabled &&
+            state.mediaProvider == com.wasimaster.wmkeyboard.ime.dynstickers.DynStickerController.CHIP_KEY
+        ) {
+            mediaCategoryJob?.cancel()
+            if (dynStickerToolDelegate.isInitialized()) {
+                dynStickerTool.onAction(com.wasimaster.wmkeyboard.ime.dynstickers.DynAction.CloseSheet)
+            }
+            _uiState.update { it.copy(mediaCategories = emptyList(), mediaCategory = null) }
+            return
+        }
         val sources = MediaProviders.targets(settings, sticker)
         val mode = MediaProviders.mode(settings, sticker)
         // One provider, not every target: two taxonomies interleaved are a
@@ -50845,6 +51058,7 @@ open class WMKeyboardService : InputMethodService() {
         // No categories either; the bundled row stands in.
         GifSource.GIFCITIES -> emptyList()
         GifSource.PLUGIN -> emptyList()
+        GifSource.DYNAMIC -> emptyList()
         GifSource.OFFLINE -> com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks.categories()
     }
 
@@ -51184,6 +51398,11 @@ open class WMKeyboardService : InputMethodService() {
             vibrate()
             return
         }
+        // A template with a photo slot needs its photo first: the fill sheet.
+        if (item.source == GifSource.DYNAMIC && dynStickerTool.needsSheet(item)) {
+            dynStickerTool.onAction(com.wasimaster.wmkeyboard.ime.dynstickers.DynAction.Customize(item))
+            return
+        }
         // The one on its way can't be called back; a second tap on it is a slip.
         if (mediaSending?.item?.id == item.id) return
         vibrate()
@@ -51263,6 +51482,19 @@ open class WMKeyboardService : InputMethodService() {
                 val item = next.item
                 if (item.source == GifSource.LOCAL) {
                     insertLocalSticker(item, next.sendMode)
+                } else if (item.source == GifSource.DYNAMIC) {
+                    // Drawn and encoded here rather than downloaded.
+                    startMediaDownload(item.id)
+                    val output = withContext(Dispatchers.IO) { runCatching { dynStickerTool.render(item) }.getOrNull() }
+                    endMediaDownload()
+                    if (output == null) {
+                        Toast.makeText(this@WMKeyboardService, getString(R.string.ime_dynsticker_render_failed), Toast.LENGTH_SHORT).show()
+                    } else if (isSameField(next.packageName, next.fieldId)) {
+                        commitImageFile(output.file, output.mime, next.sendMode)
+                    } else {
+                        clearMediaQueue()
+                        break
+                    }
                 } else {
                     startMediaDownload(item.id)
                     val file = withContext(Dispatchers.IO) {
@@ -51360,6 +51592,10 @@ open class WMKeyboardService : InputMethodService() {
         if (_uiState.value.mediaDownloadingId != null) return
         vibrate()
         _uiState.update { it.copy(mediaAction = null) }
+        if (item.source == GifSource.DYNAMIC) {
+            dynStickerTool.copy(item)
+            return
+        }
         if (item.source == GifSource.LOCAL) {
             val found = stickerPackStore.findByItemId(item.id)
             val file = found?.let { (pack, sticker) -> stickerPackStore.fileFor(pack.id, sticker) }
@@ -53169,6 +53405,7 @@ open class WMKeyboardService : InputMethodService() {
                 onOpenMixes = ::onEmojiMixOpenFrom,
             ),
             emojiMix = emojiMixCallbacks(),
+            dynStickers = dynStickerTool.callbacks,
             selection = com.wasimaster.wmkeyboard.ime.ui.SelectionMacroCallbacks(
                 onMacro = ::onSelectionMacro,
                 onPick = ::onSelectionPick,
@@ -53865,6 +54102,50 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
     private val emojiMixTool by emojiMixToolDelegate
+
+    /**
+     * Dynamic stickers: the sticker row's templates for the message, the
+     * stickers panel's Text chip, and the fill sheet. Made the first time
+     * either asks.
+     */
+    private val dynStickerToolDelegate = lazy {
+        com.wasimaster.wmkeyboard.ime.dynstickers.DynStickerController(
+            context = this,
+            scope = serviceScope,
+            host = object : com.wasimaster.wmkeyboard.ime.dynstickers.DynStickerController.Host {
+                override val settings: com.wasimaster.wmkeyboard.core.settings.DynamicStickerSettings
+                    get() = _uiState.value.settings.gif.dynamic
+                override fun typeface(id: String) = com.wasimaster.wmkeyboard.ime.ui.KeyboardFonts.typeface(this@WMKeyboardService, id)
+                override fun emojiFor(word: String) = emojiSearch?.search(word).orEmpty().map { it.emoji }
+                override fun haptic() = vibrate()
+                override fun send(output: com.wasimaster.wmkeyboard.core.stickers.dynamic.DynEncoder.Output) {
+                    commitImageFile(output.file, output.mime, _uiState.value.settings.stickerSendMode)
+                    refreshSuggestions()
+                }
+                override fun startRender(id: String) = startMediaDownload(id)
+                override fun endRender() = endMediaDownload()
+                override fun toast(message: Int) {
+                    Toast.makeText(this@WMKeyboardService, getString(message), Toast.LENGTH_SHORT).show()
+                }
+                override fun copy(file: File) = copyImageFileToClipboard(file)
+                override fun addToStickers(file: File, keywords: List<String>) =
+                    addEmojiMixToStickers(file, keywords, R.string.ime_dynsticker_pack_name)
+                override fun openRoute(route: String) = this@WMKeyboardService.openRoute(route)
+                override fun pickPhoto() {
+                    runCatching { startActivity(com.wasimaster.wmkeyboard.app.GalleryPickActivity.dynStickerIntent(this@WMKeyboardService)) }
+                }
+                override fun refreshGrid() {
+                    val state = _uiState.value
+                    if (state.panel == PanelMode.STICKER &&
+                        state.mediaProvider == com.wasimaster.wmkeyboard.ime.dynstickers.DynStickerController.CHIP_KEY
+                    ) {
+                        refreshMedia(state.mediaQuery.trim())
+                    }
+                }
+            },
+        )
+    }
+    private val dynStickerTool by dynStickerToolDelegate
 
     /**
      * The speed test tool, made the first time its panel opens. Its host is
@@ -66205,6 +66486,9 @@ open class WMKeyboardService : InputMethodService() {
          * many animated cells to lay out.
          */
         private const val OFFLINE_GIF_LIMIT = 240
+
+        /** The longest message the Text grid starts from when its box is empty. */
+        private const val DYNAMIC_TYPED_WORDS = 40
 
         /**
          * How long the sticker grid waits for search by meaning's answer. Enough

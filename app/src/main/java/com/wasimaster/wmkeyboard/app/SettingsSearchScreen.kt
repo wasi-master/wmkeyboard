@@ -892,6 +892,7 @@ internal object SettingsRouteIcons {
         "emoji" to { Icons.Outlined.EmojiEmotions },
         "emoji/panel" to { Icons.Outlined.GridView },
         "emoji/mixes" to { Icons.Outlined.Interests },
+        "dynamic_stickers" to { Icons.Outlined.TextFields },
         "kaomoji" to { Icons.Outlined.SentimentSatisfied },
         "kaomoji/faces" to { Icons.Outlined.SentimentSatisfied },
         "kaomoji/tags" to { Icons.Outlined.Label },

@@ -21,15 +21,22 @@ import com.wasimaster.wmkeyboard.tools.R
  * needs no key, so any build can offer it, but only once the user turns it
  * on: the corpus is a curiosity rather than a reaction-GIF catalogue, and it
  * carries no content rating.
+ *
+ * [DYNAMIC] is dynamic stickers: templates filled with the words typed, drawn
+ * on the device. Never a provider row (a stored provider list would not gain
+ * it); the stickers panel adds its chip itself when the feature is on.
  */
 enum class GifSource {
     KLIPY, GIPHY, LOCAL, COMMONS, OFFLINE, GIFCITIES,
 
     /** A plugin's provider ([PluginProviders]); which one is the target's key. */
-    PLUGIN;
+    PLUGIN,
+
+    /** Dynamic stickers, drawn on the device from templates. */
+    DYNAMIC;
 
     /** Files on the device rather than a provider: its own grid, never interleaved, never metered. */
-    val onDevice: Boolean get() = this == LOCAL || this == OFFLINE
+    val onDevice: Boolean get() = this == LOCAL || this == OFFLINE || this == DYNAMIC
 
     /**
      * Always a grid of its own, never interleaved in mixed mode. True of the
@@ -114,6 +121,7 @@ object GifSources {
         GifSource.OFFLINE -> R.string.core_tools_gif_source_offline
         GifSource.GIFCITIES -> R.string.core_tools_gif_source_gifcities
         GifSource.PLUGIN -> R.string.core_tools_provider_plugin
+        GifSource.DYNAMIC -> R.string.core_tools_gif_source_dynamic
     }
 
     /** The client a provider type is asked through, or null for a type that is not a GIF or sticker source. */
@@ -157,20 +165,31 @@ object GifSources {
      * "Online" chip (or the provider's own name, when it is alone), and the
      * providers with a grid of their own still get a chip each.
      */
-    fun chips(providers: List<MediaTarget>, mode: ChainMode): List<SourceChip> {
+    fun chips(providers: List<MediaTarget>, mode: ChainMode): List<SourceChip> = chips(providers, mode, extra = emptyList())
+
+    /**
+     * [chips] with [extra] chips of the panel's own after the providers'
+     * (the stickers panel's Text chip). A single provider shows its chip when
+     * an extra one gives it something to switch to.
+     */
+    fun chips(providers: List<MediaTarget>, mode: ChainMode, extra: List<SourceChip>): List<SourceChip> {
         fun chip(target: MediaTarget) = SourceChip(displayNameRes(target.source), target.source, target.key, target.name)
-        if (mode == ChainMode.TABS) {
-            return if (providers.size > 1) providers.map(::chip) else emptyList()
-        }
-        val lead = providers.filterNot { ownChip(it, mode) }
-        val leadChip = when (lead.size) {
-            0 -> emptyList()
-            1 -> listOf(chip(lead[0]))
-            else -> listOf(SourceChip(R.string.core_tools_gif_source_online, lead[0].source, lead[0].key))
-        }
-        val chips = leadChip + providers.filter { ownChip(it, mode) }.map(::chip)
+        val chips = if (mode == ChainMode.TABS) {
+            providers.map(::chip)
+        } else {
+            val lead = providers.filterNot { ownChip(it, mode) }
+            val leadChip = when (lead.size) {
+                0 -> emptyList()
+                1 -> listOf(chip(lead[0]))
+                else -> listOf(SourceChip(R.string.core_tools_gif_source_online, lead[0].source, lead[0].key))
+            }
+            leadChip + providers.filter { ownChip(it, mode) }.map(::chip)
+        } + extra
         return if (chips.size > 1) chips else emptyList()
     }
+
+    /** The stickers panel's chip for dynamic stickers, keyed [key]. */
+    fun dynamicChip(key: String): SourceChip = SourceChip(R.string.core_tools_gif_source_dynamic, GifSource.DYNAMIC, key)
 
     /** Index of the active chip in [chips], falling back to the lead group's, then the first. */
     fun selectedChip(chips: List<SourceChip>, selected: String, providers: List<MediaTarget>, mode: ChainMode): Int {

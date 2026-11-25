@@ -2783,6 +2783,15 @@ internal fun ToolDetailSettings(
                             onClick = { onNavigate("sticker_packs") },
                         )
                     }
+                    // Templates the words typed are drawn into: the panel's Text chip.
+                    item {
+                        NavRow(
+                            R.string.dynsticker_screen_title,
+                            stringResource(R.string.dynsticker_row_subtitle),
+                            route = "dynamic_stickers",
+                            onClick = { onNavigate("dynamic_stickers") },
+                        )
+                    }
                 }
                 // Your own stickers offered while you type their title, a
                 // keyword or an emoji (#329). Only the sticker page: the GIF

@@ -278,6 +278,8 @@
     <string name="core_tools_photo_source_commons">Wikimedia Commons</string>
     <!-- The Internet Archive's GeoCities GIF search. A proper name. -->
     <string name="core_tools_gif_source_gifcities" translatable="false">GifCities</string>
+    <!-- The stickers panel's chip for dynamic stickers: the words typed, drawn into sticker and meme templates. -->
+    <string name="core_tools_gif_source_dynamic">Text</string>
 
     <!-- ================================================================== -->
     <!-- Synonyms (#321): the places a held word's synonyms come from, as   -->

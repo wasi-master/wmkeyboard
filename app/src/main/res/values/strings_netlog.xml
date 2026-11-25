@@ -150,6 +150,7 @@
     <string name="netlog_source_sticker">Stickers</string>
     <string name="netlog_source_image_gen">Sticker generator</string>
     <string name="netlog_source_emoji_mix">Emoji mixes</string>
+    <string name="netlog_source_dynamic_stickers">Dynamic sticker feeds</string>
     <string name="netlog_source_web_search">Web search</string>
     <string name="netlog_source_image_search">Image search</string>
     <string name="netlog_source_photo_search">Search by photo</string>
@@ -232,6 +233,7 @@
     <string name="netlog_sent_sticker">Your search words and the content filter, or nothing for the trending list.</string>
     <string name="netlog_sent_image_gen">Your prompt in English with the style\'s words, the picture size, the seed and how many pictures, to the image service you picked. Then the pictures are fetched back.</string>
     <string name="netlog_sent_emoji_mix">The two emoji of the mix, as its address names them. It goes only to a source you added.</string>
+    <string name="netlog_sent_dynamic_stickers">Nothing of yours: the feed’s index and the template packs it lists are downloaded from the link you added. What you type into the templates never leaves the phone.</string>
     <string name="netlog_sent_web_search">The search you submitted.</string>
     <string name="netlog_sent_image_search">The search you submitted.</string>
     <string name="netlog_sent_photo_search">The photo you pressed Search on.</string>

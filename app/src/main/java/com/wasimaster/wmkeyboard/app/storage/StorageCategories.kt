@@ -1266,6 +1266,38 @@ internal object StorageCategories {
                 emptyOut(CutoutModel.dir(env.roots.files))
             },
         ),
+        // Dynamic sticker template packs: the user's own, and those feeds and
+        // the addon store installed. The built-in pack is in the app itself.
+        StorageCategory(
+            id = "dynamic_stickers",
+            title = R.string.storage_dynstickers_title,
+            subtitle = R.string.storage_dynstickers_subtitle,
+            icon = SymbolIcons.Sticker,
+            accent = Color(0xFFBA68C8),
+            group = StorageGroup.LOOKS,
+            danger = Danger.PERSONAL,
+            manageRoute = "dynamic_stickers",
+            pathsOf = { listOf(File(it.files, com.wasimaster.wmkeyboard.core.stickers.dynamic.DynStickerStore.DIR_NAME)) },
+            itemsOf = { env ->
+                val store = com.wasimaster.wmkeyboard.core.stickers.dynamic.DynStickerStore.get(env.context)
+                store.packs().mapNotNull { pack ->
+                    val dir = store.packDir(pack.id) ?: return@mapNotNull null
+                    StorageItem(
+                        id = pack.id,
+                        label = pack.name.ifBlank { pack.id },
+                        bytes = diskUsage(dir, env.roots.blockSize),
+                        files = listOf(dir),
+                    )
+                }
+            },
+            deleteOne = { env, item ->
+                com.wasimaster.wmkeyboard.core.stickers.dynamic.DynStickerStore.get(env.context).deletePack(item.id)
+            },
+            clearOf = { env ->
+                val store = com.wasimaster.wmkeyboard.core.stickers.dynamic.DynStickerStore.get(env.context)
+                store.packs().forEach { store.deletePack(it.id) }
+            },
+        ),
         StorageCategory(
             id = "icon_packs",
             title = R.string.storage_icon_packs_title,
@@ -1694,7 +1726,7 @@ internal object StorageCategories {
         "keysounds", "diagnostics", "layout-previews", "rboard", "gboard_preview",
         "telegram_stickers", "signal_stickers", "notes", "send", "remote-restore",
         "keyman-rules", "import_preview", "link-import", "offline_import", "emotic-import",
-        "upscale", "imagegen",
+        "upscale", "imagegen", "dynstickers",
     ).map { File(roots.cache, it) } + childrenOf(roots.cache).filter { it.isFile }
 
     // ---- the rest ----

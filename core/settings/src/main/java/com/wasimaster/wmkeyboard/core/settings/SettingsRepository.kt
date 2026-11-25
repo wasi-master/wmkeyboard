@@ -3986,6 +3986,8 @@ data class GifSettings(
      * nothing until it is pressed. Set on KLIPY's own provider page.
      */
     val klipyMemes: Boolean = true,
+    /** Dynamic stickers: typed words drawn into sticker and meme templates. See [DynamicStickerSettings]. */
+    val dynamic: DynamicStickerSettings = DynamicStickerSettings(),
 )
 
 /** Bounds for [GifSettings.gifPerRow] and [GifSettings.stickerPerRow]; the settings sliders share them. */
@@ -5388,6 +5390,8 @@ data class AutoBackupSettings(
             ConfigBackup.Section.KAOMOJI.id,
             // Typed by hand like notes, and nothing else brings a task back.
             ConfigBackup.Section.TODO.id,
+            // Templates made in the builder: nothing re-downloads them.
+            ConfigBackup.Section.DYNAMIC_STICKERS.id,
         )
     }
 }
@@ -14554,6 +14558,24 @@ class SettingsRepository(private val context: Context) {
         private val STICKER_SUGGEST_STYLE = stringPreferencesKey("sticker_suggest_style")
         private val STICKER_SUGGEST_TRIGGER = stringPreferencesKey("sticker_suggest_trigger")
         private val STICKER_SUGGEST_MAGNIFY = booleanPreferencesKey("sticker_suggest_magnify")
+        private val DYNSTICKER_ENABLED = booleanPreferencesKey("dynsticker_enabled")
+        private val DYNSTICKER_IN_TRAY = booleanPreferencesKey("dynsticker_in_tray")
+        private val DYNSTICKER_MATCH_PHRASE = booleanPreferencesKey("dynsticker_match_phrase")
+        private val DYNSTICKER_MATCH_INSIDE = booleanPreferencesKey("dynsticker_match_inside")
+        private val DYNSTICKER_MATCH_FEELINGS = booleanPreferencesKey("dynsticker_match_feelings")
+        private val DYNSTICKER_GENERIC = stringPreferencesKey("dynsticker_generic")
+        private val DYNSTICKER_MAX_WORDS = intPreferencesKey("dynsticker_max_words")
+        private val DYNSTICKER_MAX_IN_TRAY = intPreferencesKey("dynsticker_max_in_tray")
+        private val DYNSTICKER_MEMES_IN_TRAY = booleanPreferencesKey("dynsticker_memes_in_tray")
+        private val DYNSTICKER_ANIMATE_IN_TRAY = booleanPreferencesKey("dynsticker_animate_in_tray")
+        private val DYNSTICKER_STYLE = stringPreferencesKey("dynsticker_style")
+        private val DYNSTICKER_ORDER = stringPreferencesKey("dynsticker_order")
+        private val DYNSTICKER_SEND_ANIMATED = booleanPreferencesKey("dynsticker_send_animated")
+        private val DYNSTICKER_FONT = stringPreferencesKey("dynsticker_font")
+        private val DYNSTICKER_EXACT = stringPreferencesKey("dynsticker_exact")
+        private val DYNSTICKER_PANEL_TYPED = booleanPreferencesKey("dynsticker_panel_typed")
+        private val DYNSTICKER_FEEDS = stringPreferencesKey("dynsticker_feeds")
+        private val DYNSTICKER_AUTO_REFRESH = booleanPreferencesKey("dynsticker_auto_refresh")
         private val GIF_PER_ROW = intPreferencesKey("gif_per_row")
         private val STICKER_PER_ROW = intPreferencesKey("sticker_per_row")
         private val MEDIA_GRID_SPACING = intPreferencesKey("media_grid_spacing")
@@ -17253,6 +17275,29 @@ class SettingsRepository(private val context: Context) {
             klipyMemes = p[GIF_KLIPY_MEMES] ?: defaults.gif.klipyMemes,
             favouritesOffline = p[GIF_FAVOURITES_OFFLINE] ?: defaults.gif.favouritesOffline,
             gifCities = p[GIF_CITIES] ?: defaults.gif.gifCities,
+            dynamic = readDynamicStickers(p, defaults.gif.dynamic),
+        )
+
+    private fun readDynamicStickers(p: Preferences, d: DynamicStickerSettings) =
+        DynamicStickerSettings(
+            enabled = p[DYNSTICKER_ENABLED] ?: d.enabled,
+            inTray = p[DYNSTICKER_IN_TRAY] ?: d.inTray,
+            matchPhrase = p[DYNSTICKER_MATCH_PHRASE] ?: d.matchPhrase,
+            matchInside = p[DYNSTICKER_MATCH_INSIDE] ?: d.matchInside,
+            matchFeelings = p[DYNSTICKER_MATCH_FEELINGS] ?: d.matchFeelings,
+            generic = p[DYNSTICKER_GENERIC]?.let { runCatching { DynGenericMode.valueOf(it) }.getOrNull() } ?: d.generic,
+            maxWords = p[DYNSTICKER_MAX_WORDS]?.coerceIn(DynMaxWordsRange) ?: d.maxWords,
+            maxInTray = p[DYNSTICKER_MAX_IN_TRAY]?.coerceIn(DynMaxInTrayRange) ?: d.maxInTray,
+            memesInTray = p[DYNSTICKER_MEMES_IN_TRAY] ?: d.memesInTray,
+            animateInTray = p[DYNSTICKER_ANIMATE_IN_TRAY] ?: d.animateInTray,
+            style = p[DYNSTICKER_STYLE]?.let { runCatching { StickerSuggestStyle.valueOf(it) }.getOrNull() } ?: d.style,
+            order = p[DYNSTICKER_ORDER]?.let { runCatching { DynOfferOrder.valueOf(it) }.getOrNull() } ?: d.order,
+            sendAnimated = p[DYNSTICKER_SEND_ANIMATED] ?: d.sendAnimated,
+            fontOverride = p[DYNSTICKER_FONT] ?: d.fontOverride,
+            exactEngine = p[DYNSTICKER_EXACT]?.let { runCatching { DynExactMode.valueOf(it) }.getOrNull() } ?: d.exactEngine,
+            panelUsesTyped = p[DYNSTICKER_PANEL_TYPED] ?: d.panelUsesTyped,
+            feeds = p[DYNSTICKER_FEEDS]?.let(::decodeDynStickerFeeds) ?: d.feeds,
+            autoRefresh = p[DYNSTICKER_AUTO_REFRESH] ?: d.autoRefresh,
         )
 
     private fun readTextEditing(p: Preferences, defaults: KeyboardSettings) =
@@ -22507,6 +22552,74 @@ class SettingsRepository(private val context: Context) {
         }.getOrDefault(false)
     }
 
+    /** The user's own dynamic sticker packs on disk: every pack directory whose manifest says it is theirs. */
+    private fun ownDynStickerPackDirs(): List<File> {
+        val store = com.wasimaster.wmkeyboard.core.stickers.dynamic.DynStickerStore.get(context)
+        return store.packs()
+            .filter { it.source == com.wasimaster.wmkeyboard.core.stickers.dynamic.PackSource.USER }
+            .mapNotNull { store.packDir(it.id) }
+    }
+
+    /**
+     * The user's own dynamic sticker packs as `{files, state}`: every file of
+     * each pack base64'd under `<pack>/<path>`, and the store's state (what is
+     * switched off, starred, recent) as it is.
+     */
+    private fun dynStickerSection(): JsonElement? {
+        val dirs = ownDynStickerPackDirs()
+        if (dirs.isEmpty()) return null
+        val files = buildJsonObject {
+            for (dir in dirs) {
+                dir.walkTopDown().filter { it.isFile }.forEach { file ->
+                    val relative = file.relativeTo(dir).invariantSeparatorsPath
+                    val bytes = runCatching { file.readBytes() }.getOrNull() ?: return@forEach
+                    put("${dir.name}/$relative", JsonPrimitive(Base64.encodeToString(bytes, Base64.NO_WRAP)))
+                }
+            }
+        }
+        val stateFile = File(context.filesDir, "${com.wasimaster.wmkeyboard.core.stickers.dynamic.DynStickerStore.DIR_NAME}/state.json")
+        val state = stateFile.takeIf { it.isFile }?.let { runCatching { Json.parseToJsonElement(it.readText()) }.getOrNull() }
+        return buildJsonObject {
+            put("files", files)
+            state?.let { put("state", it) }
+        }
+    }
+
+    /**
+     * Puts a bundle's dynamic sticker packs back, replacing packs of the same
+     * id and leaving every other pack alone. Each path is checked segment by
+     * segment and against the canonical path, as the sticker restore does.
+     */
+    private fun restoreDynStickers(section: JsonObject): Boolean {
+        val files = section["files"] as? JsonObject ?: return false
+        val root = File(context.filesDir, "${com.wasimaster.wmkeyboard.core.stickers.dynamic.DynStickerStore.DIR_NAME}/packs")
+        return runCatching {
+            root.mkdirs()
+            val rootPath = root.canonicalPath
+            val packIds = files.keys.map { it.substringBefore('/') }.filter { SAFE_STICKER_NAME.matches(it) }.toSet()
+            for (packId in packIds) File(root, packId).deleteRecursively()
+            for ((path, value) in files) {
+                val parts = path.split('/')
+                if (parts.size !in 2..DYN_STICKER_PATH_DEPTH || parts.any { !SAFE_STICKER_NAME.matches(it) }) continue
+                val target = File(root, parts.joinToString(File.separator))
+                if (!target.canonicalPath.startsWith(rootPath + File.separator + parts[0] + File.separator)) continue
+                val bytes = (value as? JsonPrimitive)?.contentOrNull
+                    ?.let { runCatching { Base64.decode(it, Base64.DEFAULT) }.getOrNull() }
+                    ?: continue
+                target.parentFile?.mkdirs()
+                target.writeBytes(bytes)
+            }
+            (section["state"] as? JsonObject)?.let { state ->
+                File(root.parentFile, "state.json").writeText(state.toString())
+            }
+            com.wasimaster.wmkeyboard.core.stickers.dynamic.DynStickerStore.get(context).reload()
+            true
+        }.getOrDefault(false)
+    }
+
+    /** A pack file's path inside its pack: `templates/x.json`, at most a folder or two deep. */
+    private val DYN_STICKER_PATH_DEPTH = 4
+
     /** The key picture snippets' files ride under inside the snippets section. */
     private val SNIPPET_IMAGES_KEY = "images"
 
@@ -23023,6 +23136,9 @@ class SettingsRepository(private val context: Context) {
         if (ConfigBackup.Section.WORDLISTS in sections) {
             onDisk += bytesUnder(CustomDictionaries.root(context.filesDir))
         }
+        if (ConfigBackup.Section.DYNAMIC_STICKERS in sections) {
+            onDisk += ownDynStickerPackDirs().sumOf { bytesUnder(it) }
+        }
         return onDisk * 4 / 3
     }
 
@@ -23051,6 +23167,11 @@ class SettingsRepository(private val context: Context) {
             val store = IconPackStore.get(context)
             out[ConfigBackup.Section.ICONS] = store.packs().sumOf { pack ->
                 pack.slots.sumOf { size(store.fileFor(pack.id, it)) }
+            }
+        }
+        if (ConfigBackup.Section.DYNAMIC_STICKERS in sections) {
+            out[ConfigBackup.Section.DYNAMIC_STICKERS] = ownDynStickerPackDirs().sumOf { dir ->
+                dir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
             }
         }
         if (ConfigBackup.Section.WORDLISTS in sections) {
@@ -23220,6 +23341,9 @@ class SettingsRepository(private val context: Context) {
             // names rows of this phone's task app (see TodoProviderSync).
             readStore(TodoStore.FILE_PATH)?.let { out[ConfigBackup.Section.TODO] = it }
         }
+        if (ConfigBackup.Section.DYNAMIC_STICKERS in sections) {
+            dynStickerSection()?.let { out[ConfigBackup.Section.DYNAMIC_STICKERS] = it }
+        }
         return out
     }
 
@@ -23260,6 +23384,9 @@ class SettingsRepository(private val context: Context) {
                     ConfigBackup.Section.AI_MEMORY -> element.jsonObject["memories"]?.jsonArray?.size ?: 0
                     // Tasks and their steps alike.
                     ConfigBackup.Section.TODO -> element.jsonObject["tasks"]?.jsonArray?.size ?: 0
+                    // Packs, by the directories their files sit in.
+                    ConfigBackup.Section.DYNAMIC_STICKERS ->
+                        element.jsonObject["files"]?.jsonObject?.keys?.mapTo(HashSet()) { it.substringBefore('/') }?.size ?: 0
                 }
             }.getOrDefault(0)
             counts[section] = count
@@ -23511,6 +23638,9 @@ class SettingsRepository(private val context: Context) {
                 // saves its own list over the one just restored.
                 bumpNotesVersion()
             }
+        }
+        (parsed.sections[ConfigBackup.Section.DYNAMIC_STICKERS] as? JsonObject)?.let { obj ->
+            if (restoreDynStickers(obj)) restored.add(ConfigBackup.Section.DYNAMIC_STICKERS)
         }
         (parsed.sections[ConfigBackup.Section.TODO] as? JsonObject)?.let { obj ->
             if (writeStore(TodoStore.FILE_PATH, obj)) {
@@ -27764,6 +27894,57 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setStickerSuggestMagnify(value: Boolean) =
         editPrefs { it[STICKER_SUGGEST_MAGNIFY] = value }
+
+    // ---- dynamic stickers ----------------------------------------------
+
+    suspend fun setDynStickersEnabled(value: Boolean) = editPrefs { it[DYNSTICKER_ENABLED] = value }
+
+    suspend fun setDynStickersInTray(value: Boolean) = editPrefs { it[DYNSTICKER_IN_TRAY] = value }
+
+    suspend fun setDynStickersMatchPhrase(value: Boolean) = editPrefs { it[DYNSTICKER_MATCH_PHRASE] = value }
+
+    suspend fun setDynStickersMatchInside(value: Boolean) = editPrefs { it[DYNSTICKER_MATCH_INSIDE] = value }
+
+    suspend fun setDynStickersMatchFeelings(value: Boolean) = editPrefs { it[DYNSTICKER_MATCH_FEELINGS] = value }
+
+    suspend fun setDynStickersGeneric(value: DynGenericMode) = editPrefs { it[DYNSTICKER_GENERIC] = value.name }
+
+    suspend fun setDynStickersMaxWords(value: Int) =
+        editPrefs { it[DYNSTICKER_MAX_WORDS] = value.coerceIn(DynMaxWordsRange) }
+
+    suspend fun setDynStickersMaxInTray(value: Int) =
+        editPrefs { it[DYNSTICKER_MAX_IN_TRAY] = value.coerceIn(DynMaxInTrayRange) }
+
+    suspend fun setDynStickersMemesInTray(value: Boolean) = editPrefs { it[DYNSTICKER_MEMES_IN_TRAY] = value }
+
+    suspend fun setDynStickersAnimateInTray(value: Boolean) = editPrefs { it[DYNSTICKER_ANIMATE_IN_TRAY] = value }
+
+    suspend fun setDynStickersStyle(value: StickerSuggestStyle) = editPrefs { it[DYNSTICKER_STYLE] = value.name }
+
+    suspend fun setDynStickersOrder(value: DynOfferOrder) = editPrefs { it[DYNSTICKER_ORDER] = value.name }
+
+    suspend fun setDynStickersSendAnimated(value: Boolean) = editPrefs { it[DYNSTICKER_SEND_ANIMATED] = value }
+
+    suspend fun setDynStickersFont(value: String) = editPrefs { it[DYNSTICKER_FONT] = value }
+
+    suspend fun setDynStickersExact(value: DynExactMode) = editPrefs { it[DYNSTICKER_EXACT] = value.name }
+
+    suspend fun setDynStickersPanelUsesTyped(value: Boolean) = editPrefs { it[DYNSTICKER_PANEL_TYPED] = value }
+
+    suspend fun setDynStickersAutoRefresh(value: Boolean) = editPrefs { it[DYNSTICKER_AUTO_REFRESH] = value }
+
+    suspend fun setDynStickerFeeds(value: List<DynStickerFeed>) =
+        editPrefs { it[DYNSTICKER_FEEDS] = encodeDynStickerFeeds(value) }
+
+    /** Replaces the feed with [feed]'s id, keeping the list's order; adds it when new. */
+    /** Writes back a refreshed [feed]; one removed while it refreshed stays removed. */
+    suspend fun updateDynStickerFeed(feed: DynStickerFeed) = editPrefs { prefs ->
+        val list = decodeDynStickerFeeds(prefs[DYNSTICKER_FEEDS])
+        if (list.any { it.id == feed.id }) {
+            // Its switch is the user's: flipped while it refreshed, it stays flipped.
+            prefs[DYNSTICKER_FEEDS] = encodeDynStickerFeeds(list.map { if (it.id == feed.id) feed.copy(enabled = it.enabled) else it })
+        }
+    }
 
     suspend fun setGifPerRow(value: Int) =
         editPrefs { it[GIF_PER_ROW] = value.coerceIn(MediaPerRowRange) }
