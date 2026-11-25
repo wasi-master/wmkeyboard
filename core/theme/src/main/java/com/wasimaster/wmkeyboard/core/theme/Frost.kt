@@ -192,7 +192,7 @@ enum class FrostStyle { FROSTED, LIQUID }
 
 /** Bounds the editor's sliders and the renderer hold the glass fields to. */
 val WINDOW_BLUR_RADIUS_RANGE = 4..64
-val FROST_FALLBACK_OPACITY_RANGE = 0.5f..1f
+val FROST_FALLBACK_OPACITY_RANGE = 0.25f..1f
 val FROST_BACKDROP_BLUR_RANGE = 0f..25f
 val FROST_SATURATION_RANGE = 0.5f..2f
 val FROST_BRIGHTNESS_RANGE = -0.3f..0.3f
