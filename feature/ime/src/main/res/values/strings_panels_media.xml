@@ -147,6 +147,7 @@
     <string name="ime_voice_engine_qwen3" translatable="false">Qwen3-ASR</string>
     <string name="ime_voice_engine_vosk" translatable="false">Vosk</string>
     <string name="ime_voice_engine_server">Server</string>
+    <string name="ime_voice_engine_gemini">Gemini</string>
     <!-- The bar's expand button: go back to the surface it replaced. -->
     <string name="ime_voice_bar_expand_panel_desc">Open the voice panel</string>
     <string name="ime_voice_bar_expand_strip_desc">Open the bar over the keys</string>

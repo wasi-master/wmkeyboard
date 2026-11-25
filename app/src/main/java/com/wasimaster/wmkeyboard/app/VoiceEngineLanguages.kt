@@ -32,6 +32,7 @@ import com.wasimaster.wmkeyboard.core.script.RomanizedSpeech
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.VoiceChoiceRef
 import com.wasimaster.wmkeyboard.core.settings.isWhisperEnabled
+import com.wasimaster.wmkeyboard.core.settings.geminiVoice
 import com.wasimaster.wmkeyboard.core.settings.serverFor
 import com.wasimaster.wmkeyboard.core.voice.VoiceChoice
 import com.wasimaster.wmkeyboard.core.voice.VoiceChoices
@@ -84,6 +85,7 @@ internal fun VoiceEngineLanguagesRow(repository: SettingsRepository, settings: L
             byLang = byLang,
             globalEngine = settings.value.whisper.engine,
             serverConfigured = { id -> settings.value.whisper.serverFor(id).url.isNotBlank() },
+            geminiConfigured = settings.value.geminiVoice() != null,
             onPick = { id, choice -> scope.launch { repository.setVoiceForLanguage(id, choice) } },
             onDismiss = { open = false },
         )
@@ -100,6 +102,7 @@ private fun VoiceEngineLanguagesDialog(
     byLang: Map<String, String>,
     globalEngine: String,
     serverConfigured: (String) -> Boolean,
+    geminiConfigured: Boolean,
     onPick: (String, String) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -153,6 +156,7 @@ private fun VoiceEngineLanguagesDialog(
                             context.filesDir, id,
                             whisperEnabled = isWhisperEnabled(),
                             serverConfigured = serverConfigured(id),
+                            geminiConfigured = geminiConfigured,
                         )
                     }
                     val current = byLang[id].orEmpty()
@@ -221,6 +225,7 @@ private fun voiceEngineLabel(engine: String): String = stringResource(
         "qwen3" -> R.string.voice_engine_qwen3
         "vosk" -> R.string.voice_engine_vosk
         "server" -> R.string.voice_engine_server
+        "gemini" -> R.string.voice_engine_gemini
         else -> R.string.voice_engine_system
     },
 )

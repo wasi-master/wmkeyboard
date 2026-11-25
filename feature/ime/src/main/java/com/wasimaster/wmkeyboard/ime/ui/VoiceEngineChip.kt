@@ -253,6 +253,7 @@ internal fun voiceEngineName(engine: String): String = stringResource(
         "qwen3" -> R.string.ime_voice_engine_qwen3
         "vosk" -> R.string.ime_voice_engine_vosk
         "server" -> R.string.ime_voice_engine_server
+        "gemini" -> R.string.ime_voice_engine_gemini
         else -> R.string.ime_voice_engine_system
     },
 )

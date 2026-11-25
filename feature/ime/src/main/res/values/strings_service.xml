@@ -144,6 +144,7 @@
     <!-- Data saver held an AI request back. Retry is the panel's own action, and it means yes. -->
     <string name="ime_ai_error_metered_ask">Data saver is on. Retry to send this over mobile data.</string>
     <string name="ime_ai_error_metered_blocked">AI is turned off while you are on mobile data. You can change this in Settings, under Data saver.</string>
+    <string name="ime_voice_gemini_needs_key">Gemini voice typing needs a Gemini API key. Add one to its row on the voice list, or to Gemini on the AI list.</string>
     <string name="ime_voice_server_metered_ask">Data saver is on. Press the microphone again to send your voice over mobile data.</string>
     <string name="ime_voice_server_metered_blocked">The transcription server is turned off while you are on mobile data. You can change this in Settings, under Data saver.</string>
     <string name="ime_ai_error_only_reasoning">The model used the whole response to reason. Try again, or turn on “Show reasoning” in the settings.</string>

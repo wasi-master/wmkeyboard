@@ -33,25 +33,31 @@ object VoiceChoices {
     const val WHISPER = "whisper"
     const val SERVER = "server"
 
+    /** Gemini 3.5 Transcribe through the user's Gemini key (`GeminiTranscribe`). */
+    const val GEMINI = "gemini"
+
     /** The order engines are offered in, everywhere they are listed. */
-    val ENGINE_ORDER: List<String> = listOf(SYSTEM, WHISTLE, WHISPER) + EtEngine.entries.map { it.id } + SERVER
+    val ENGINE_ORDER: List<String> = listOf(SYSTEM, WHISTLE, WHISPER) + EtEngine.entries.map { it.id } + SERVER + GEMINI
 
     /**
      * The choices for [languageId] on this device. [whisperEnabled] is the
      * build's own switch for offline Whisper; [serverConfigured] is whether the
-     * transcription server has an address.
+     * transcription server has an address; [geminiConfigured] whether the
+     * voice list's Gemini row is on and has a key.
      */
     fun choices(
         filesDir: File,
         languageId: String,
         whisperEnabled: Boolean,
         serverConfigured: Boolean,
+        geminiConfigured: Boolean = false,
     ): List<VoiceChoice> = forLanguage(
         languageId = languageId,
         whistleReady = WhistleEngine.shipped && WhistleModelStore.isDownloaded(filesDir),
         whisperModels = if (whisperEnabled) WhisperStore.downloadedModels(filesDir) else emptyList(),
         etModels = EtEngine.entries.filter { it.runtimeShipped }.flatMap { EtStore.downloaded(filesDir, it) },
         serverConfigured = serverConfigured,
+        geminiConfigured = geminiConfigured,
     )
 
     /** [choices] over an already-known set of downloads. */
@@ -61,6 +67,7 @@ object VoiceChoices {
         whisperModels: List<WhisperModel>,
         etModels: List<EtModel>,
         serverConfigured: Boolean,
+        geminiConfigured: Boolean = false,
     ): List<VoiceChoice> = buildList {
         add(VoiceChoice(SYSTEM))
         if (whistleReady && WhistleLanguages.supports(languageId)) add(VoiceChoice(WHISTLE))
@@ -76,5 +83,8 @@ object VoiceChoices {
                 .forEach { add(VoiceChoice(engine.id, it.id, it.label)) }
         }
         if (serverConfigured) add(VoiceChoice(SERVER))
+        // Every language: the model tells some 80 apart itself, and a request
+        // naming one it does not list is sent again naming none.
+        if (geminiConfigured) add(VoiceChoice(GEMINI))
     }
 }

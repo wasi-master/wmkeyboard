@@ -422,6 +422,8 @@ import com.wasimaster.wmkeyboard.core.settings.withoutTool
 import com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings
 import com.wasimaster.wmkeyboard.core.settings.interactiveTyping
 import com.wasimaster.wmkeyboard.core.settings.plainTyping
+import com.wasimaster.wmkeyboard.core.settings.GeminiVoice
+import com.wasimaster.wmkeyboard.core.settings.geminiVoice
 import com.wasimaster.wmkeyboard.core.settings.serverFor
 import com.wasimaster.wmkeyboard.core.settings.dictationLanguages
 import com.wasimaster.wmkeyboard.core.settings.VoiceChoiceRef
@@ -733,6 +735,7 @@ import com.wasimaster.wmkeyboard.tools.R as ToolsR
 import java.util.Locale
 import java.util.TimeZone
 import com.wasimaster.wmkeyboard.core.tools.ToolHttp
+import com.wasimaster.wmkeyboard.core.tools.GeminiTranscribe
 import com.wasimaster.wmkeyboard.core.tools.TranscriptionClient
 import com.wasimaster.wmkeyboard.core.tools.ToolHttpException
 import com.wasimaster.wmkeyboard.core.tools.CharState
@@ -4381,6 +4384,19 @@ open class WMKeyboardService : InputMethodService() {
      * any other capture. Pinned for the same reason as [whisperCapture].
      */
     private var serverCapture: String? = null
+    /**
+     * The Gemini side of the clip in [whisperRecorder], when it is for Gemini
+     * (a [serverCapture] too): the row asked, the dictated text it may edit,
+     * and the live stream when the row's model is a live one.
+     */
+    private var geminiClip: GeminiClip? = null
+    /**
+     * What Gemini's phrases put into the field since the dictation in it
+     * began, exactly as it sits in front of the caret: the text the next
+     * phrase is sent as its source, so "make that more formal" or "delete
+     * the last sentence" can act on it ([landGeminiResult]).
+     */
+    private var geminiDraft: GeminiDraft? = null
     /**
      * Every language the clip in [whisperRecorder] was started to listen for
      * (#416), the first being the one in [whisperCapture] or [serverCapture].
@@ -39559,6 +39575,7 @@ open class WMKeyboardService : InputMethodService() {
                 filesDir, languageId,
                 whisperEnabled = isWhisperEnabled(),
                 serverConfigured = s.whisper.serverFor(languageId).url.isNotBlank(),
+                geminiConfigured = s.geminiVoice() != null,
             ).filter { it.engine !in s.voiceBar.hiddenEngines } // the engines left out on purpose (#1477)
         } else {
             emptyList()
@@ -39843,8 +39860,14 @@ open class WMKeyboardService : InputMethodService() {
             fail(VoiceStatus.NEED_PERMISSION)
             return
         }
-        var server = serverVoiceSelected()
-        if (server && _uiState.value.settings.whisper.serverFor(languageIds.first()).url.isBlank()) {
+        // Gemini is a clip engine like the server, with a key for an address.
+        val gemini = voiceEngine() == VoiceChoices.GEMINI
+        if (gemini && _uiState.value.settings.geminiVoice() == null) {
+            fail(VoiceStatus.ERROR, getString(R.string.ime_voice_gemini_needs_key))
+            return
+        }
+        var server = serverVoiceSelected() || gemini
+        if (server && !gemini && _uiState.value.settings.whisper.serverFor(languageIds.first()).url.isBlank()) {
             // The server engine is chosen but has no address: say so, with the
             // same way out the missing Whisper model gets.
             _uiState.update {
@@ -40810,6 +40833,9 @@ open class WMKeyboardService : InputMethodService() {
         }
         whisperRecorder = recorder
         captureSetup = setup
+        // Gemini's clip, and its stream when the row's model is a live one.
+        dropGeminiClip()
+        if (model == null && voiceEngine() == VoiceChoices.GEMINI) geminiClip = startGeminiClip(recorder, generation, languages)
         // The carried clip filled, or the microphone went, while the last one
         // was transcribed: what it holds goes to be transcribed now, and the
         // phrase after it gets a microphone of its own.
@@ -40957,6 +40983,7 @@ open class WMKeyboardService : InputMethodService() {
             whisperRecorder = null
             whisperCapture = null
             serverCapture = null
+            dropGeminiClip()
             micBlockWatcher.stop()
             dropCarriedMic()
             serviceScope.launch(Dispatchers.IO) { runCatching { recorder.stop() } }
@@ -41169,6 +41196,11 @@ open class WMKeyboardService : InputMethodService() {
      * failure lands as the panel's error line.
      */
     private fun finishServerClip(recorder: WhisperRecorder, held: FloatArray?, languageId: String, userStopped: Boolean) {
+        geminiClip?.let { clip ->
+            geminiClip = null
+            finishGeminiClip(clip, recorder, held, languageId, userStopped)
+            return
+        }
         val gen = voiceGeneration
         val tag = _uiState.value.voice.languageTag
         val server = _uiState.value.settings.whisper
@@ -41284,6 +41316,279 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * The Gemini side of one clip ([geminiClip]). [draft] is the dictated
+     * text the phrase is sent to edit, when it still sits in front of the
+     * caret as it went in; [live] the stream a live model hears the clip on,
+     * fed by [job] from the recorder.
+     */
+    private class GeminiClip(
+        val target: GeminiVoice,
+        val languages: List<String>,
+        val smart: Boolean,
+        val draft: GeminiDraft?,
+    ) {
+        @Volatile var vocabulary: List<String>? = null
+        @Volatile var live: GeminiTranscribe.LiveSession? = null
+        @Volatile var fed = 0
+        @Volatile var dropped = false
+        var job: Job? = null
+
+        fun request(vocabulary: List<String>) =
+            GeminiTranscribe.Request(languages, vocabulary, smart, draft?.text?.trim().orEmpty())
+
+        /** Shuts the stream; a stream opened after this is shut as it opens. */
+        fun close() {
+            dropped = true
+            live?.close()
+            live = null
+        }
+    }
+
+    /**
+     * Text Gemini's phrases put into the field [field], [text] exactly as it
+     * sits in front of the caret, spaces included, and whether the caret
+     * stood at a sentence start where it begins.
+     */
+    private data class GeminiDraft(val text: String, val sentenceStart: Boolean, val field: String)
+
+    /** The clip being recorded for Gemini goes, with its stream. */
+    private fun dropGeminiClip() {
+        val clip = geminiClip ?: return
+        geminiClip = null
+        clip.job?.cancel()
+        serviceScope.launch(Dispatchers.IO) { clip.close() }
+    }
+
+    /** Which field a [GeminiDraft] belongs to. */
+    private fun geminiFieldKey(): String =
+        currentInputEditorInfo?.let { "${it.packageName}/${it.fieldId}/${it.inputType}" }.orEmpty()
+
+    private fun geminiDraftInFront(ic: InputConnection, draft: GeminiDraft): Boolean =
+        draft.field == geminiFieldKey() &&
+            ic.getTextBeforeCursor(draft.text.length, 0)?.toString() == draft.text &&
+            ic.getSelectedText(0).isNullOrEmpty()
+
+    /**
+     * [geminiDraft] when the next phrase may edit it: in this field, still
+     * exactly in front of the caret. Typing after it, deleting into it,
+     * moving the caret or another field all start the next phrase afresh.
+     */
+    private fun geminiDraftNow(): GeminiDraft? {
+        val draft = geminiDraft ?: return null
+        val ic = currentInputConnection
+        if (ic == null || !geminiDraftInFront(ic, draft)) {
+            geminiDraft = null
+            return null
+        }
+        return draft
+    }
+
+    /**
+     * The words Gemini is told to listen for: the user's own list first,
+     * then their learned words, as the server is sent. Blocking; call off
+     * the main thread.
+     */
+    private fun geminiVocabulary(): List<String> {
+        val whisper = _uiState.value.settings.whisper
+        val personal = if (whisper.biasPersonalWords) {
+            runCatching { personalVoiceWords(GeminiTranscribe.MAX_VOCABULARY) }.getOrDefault(emptyList())
+        } else {
+            emptyList()
+        }
+        return VoiceBias.select(VoiceBias.parseList(whisper.biasWords), personal, GeminiTranscribe.MAX_VOCABULARY)
+    }
+
+    /**
+     * Sets up the Gemini side of the clip [recorder] has just started.
+     * Plain voice typing asks for the words verbatim and edits nothing; the
+     * keyboard's own boxes (#353) get cleaned words but no draft, since a
+     * search is never edited by voice. With a live model, a stream opens at
+     * once and is fed the clip as it grows, and what it hears goes on the
+     * line under the microphone. Never into the field: the finished phrase
+     * may rewrite the text before the caret, which composing text would sit
+     * in the way of.
+     */
+    private fun startGeminiClip(recorder: WhisperRecorder, generation: Int, languages: List<String>): GeminiClip? {
+        val target = _uiState.value.settings.geminiVoice() ?: return null
+        val plain = plainVoice()
+        val clip = GeminiClip(
+            target = target,
+            languages = languages.map(::voiceTagOf),
+            smart = !plain,
+            draft = if (plain || voiceSessionForField) null else geminiDraftNow(),
+        )
+        if (!GeminiTranscribe.isLive(target.model)) return clip
+        clip.job = serviceScope.launch(Dispatchers.IO) {
+            val vocabulary = geminiVocabulary().also { clip.vocabulary = it }
+            val session = runCatching {
+                GeminiTranscribe.LiveSession.open(target.apiKey, target.model, clip.request(vocabulary)) { interim ->
+                    val shown = romanizedVoiceText(interim)
+                    serviceScope.launch(Dispatchers.Main) {
+                        if (generation == voiceGeneration && _uiState.value.voice.status == VoiceStatus.LISTENING) {
+                            _uiState.update { it.copy(voice = it.voice.copy(partial = shown)) }
+                        }
+                    }
+                }
+            }.getOrNull() ?: return@launch
+            clip.live = session
+            if (clip.dropped) {
+                clip.close()
+                return@launch
+            }
+            while (isActive && generation == voiceGeneration && whisperRecorder === recorder) {
+                val count = recorder.sampleCount
+                if (count > clip.fed) {
+                    session.send(recorder.samples(clip.fed, count))
+                    clip.fed = count
+                }
+                delay(VOICE_PARTIAL_POLL_MS)
+            }
+        }
+        return clip
+    }
+
+    /**
+     * Sends a finished clip to Gemini and lands what comes back
+     * ([landGeminiResult]). A live stream is given the rest of the clip and
+     * asked for its finished text; a stream that failed or did not answer in
+     * [GEMINI_LIVE_FINISH_MS], and every clip of a whole-clip model, goes in
+     * one request instead. Otherwise as [finishServerClip]: a silent clip is
+     * never sent, and with no connection a model on the phone may stand in
+     * (#452).
+     */
+    private fun finishGeminiClip(
+        clip: GeminiClip,
+        recorder: WhisperRecorder,
+        held: FloatArray?,
+        languageId: String,
+        userStopped: Boolean,
+    ) {
+        val gen = voiceGeneration
+        val tag = _uiState.value.voice.languageTag
+        val languages = captureLanguages.ifEmpty { listOf(languageId) }
+        _uiState.update {
+            it.copy(voice = it.voice.copy(status = VoiceStatus.TRANSCRIBING, partial = "", level = 0f, clipHeard = false))
+        }
+        serviceScope.launch(Dispatchers.IO) {
+            val pcm = held ?: runCatching { recorder.stop() }.getOrDefault(FloatArray(0))
+            // The feeding loop is done with the stream before the rest goes in.
+            clip.job?.cancelAndJoin()
+            if (gen != voiceGeneration) {
+                clip.close()
+                return@launch
+            }
+            val faint = VoiceClipGate.isFaint(pcm)
+            val result = if (!VoiceClipGate.hasSpeech(pcm)) {
+                clip.close()
+                Result.success("")
+            } else {
+                runCatching {
+                    val streamed = clip.live?.let { session ->
+                        if (pcm.size > clip.fed) session.send(pcm.copyOfRange(clip.fed, pcm.size))
+                        session.finish(GEMINI_LIVE_FINISH_MS)
+                    }
+                    clip.close()
+                    streamed ?: GeminiTranscribe.transcribe(
+                        clip.target.apiKey,
+                        clip.target.model,
+                        pcm,
+                        clip.request(clip.vocabulary ?: geminiVocabulary()),
+                    )
+                }
+            }
+            val failure = result.exceptionOrNull()
+            val local = if (failure != null && ToolHttp.isUnreachable(failure) &&
+                _uiState.value.settings.dataSaver.offlineFallback
+            ) {
+                fallbackOnDeviceVoice()
+            } else {
+                null
+            }
+            val heard = if (local != null) runCatching { transcribeOnDevice(local, pcm, languages, tag) } else result
+            val punctuated = (local as? OnDeviceVoice.Et)?.model?.let(::voicePunctuates) == true
+            withContext(Dispatchers.Main) {
+                if (gen != voiceGeneration) return@withContext
+                if (local != null || heard.isSuccess) noteOfflineFallback(OFFLINE_FALLBACK_VOICE, local != null)
+                heard
+                    .map { VoiceClipGate.clean(it, faint) }
+                    .map { if (punctuated) withListCapitals(it) else it }
+                    .onSuccess { text ->
+                        // The phone's model heard it in Gemini's place: no draft
+                        // was sent, so the words are new ones.
+                        if (local != null) {
+                            commitWhisperResult(text, tag, userStopped, symbolsSettled = punctuated)
+                        } else {
+                            landGeminiResult(text, clip.draft, tag, userStopped)
+                        }
+                    }
+                    .onFailure { e ->
+                        dropCarriedMic()
+                        typeVoiceKeysAfterClip()
+                        _uiState.update {
+                            it.copy(
+                                voice = it.voice.copy(
+                                    status = VoiceStatus.ERROR, partial = "", level = 0f,
+                                    errorMessage = ToolHttp.friendlyMessage(this@WMKeyboardService, e),
+                                ),
+                            )
+                        }
+                    }
+            }
+        }
+    }
+
+    /**
+     * Puts Gemini's answer to a phrase into the field. Sent with a [draft],
+     * the answer is the whole draft again, edited and with the new words
+     * ([GeminiTranscribe]), and replaces the draft where it still sits in
+     * front of the caret. Where it no longer does (the user typed or moved
+     * meanwhile), only the words the answer adds go in at the caret; and an
+     * answer that does not read as the whole draft again is taken as only new
+     * words, so nothing dictated before is ever replaced by less of it.
+     * Without a draft the phrase lands as any clip's does, and becomes the
+     * draft the next phrase may edit.
+     */
+    private fun landGeminiResult(text: String, draft: GeminiDraft?, tag: String, userStopped: Boolean) {
+        val ic = currentInputConnection
+        if (draft == null || text.isBlank() || ic == null) {
+            commitGeminiPhrase(text, tag, userStopped)
+            return
+        }
+        if (!geminiDraftInFront(ic, draft) || !GeminiTranscribe.rewritesWhole(draft.text, text)) {
+            commitGeminiPhrase(GeminiTranscribe.addedPart(draft.text, text), tag, userStopped)
+            return
+        }
+        val resume = voiceResumeAfterClip
+        voiceResumeAfterClip = false
+        val chain = (resume || (!userStopped && voiceChains())) && !voiceStopRequested && voiceSessionAlive()
+        voiceSilentRetries = 0
+        val old = draft.text
+        val rewritten = VoiceTidy.land(old, VoiceCasing.apply(romanizedVoiceText(text), sentenceStart = draft.sentenceStart))
+        if (rewritten != old) {
+            ic.beginBatchEdit()
+            ic.deleteSurroundingText(old.length, 0)
+            ic.commitText(rewritten, 1)
+            ic.endBatchEdit()
+            GeminiTranscribe.addedPart(old, rewritten).takeIf { it.isNotBlank() }?.let { learn(it) }
+            lastVoiceCommit = rewritten
+            refreshShiftForContext()
+            refreshVoiceContext()
+        }
+        geminiDraft = draft.copy(text = rewritten).takeIf { rewritten.length <= GEMINI_DRAFT_MAX }
+        typeVoiceKeysAfterClip()
+        afterWhisperCommit(chain)
+    }
+
+    /** One Gemini phrase in at the caret as any clip's goes, kept as the draft the next one may edit. */
+    private fun commitGeminiPhrase(text: String, tag: String, userStopped: Boolean) {
+        commitWhisperResult(text, tag, userStopped) { landed ->
+            geminiDraft = landed
+                ?.takeIf { !plainVoice() && it.text.length <= GEMINI_DRAFT_MAX }
+                ?.let { GeminiDraft(it.text, it.sentenceStart, geminiFieldKey()) }
+        }
+    }
+
+    /**
      * The error line for a server prompt over the server's limit: how long it
      * is against the limit, where the characters come from, and the setting
      * that would make it fit, the user's own prompt text first since only it
@@ -41303,7 +41608,13 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /** Commits a finished Whisper transcription and continues or ends the session. */
-    private fun commitWhisperResult(text: String, tag: String, userStopped: Boolean, symbolsSettled: Boolean = false) {
+    private fun commitWhisperResult(
+        text: String,
+        tag: String,
+        userStopped: Boolean,
+        symbolsSettled: Boolean = false,
+        onLanded: ((VoiceLanding?) -> Unit)? = null,
+    ) {
         val resume = voiceResumeAfterClip
         voiceResumeAfterClip = false
         val chain = (resume || (!userStopped && voiceChains())) &&
@@ -41334,6 +41645,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         voiceSilentRetries = 0
         val landed = commitVoiceUtterance(text, tag, symbolsSettled)
+        onLanded?.invoke(landed)
         tidyVoiceThen(landed) {
             typeVoiceKeysAfterClip()
             afterWhisperCommit(chain)
@@ -41602,6 +41914,8 @@ open class WMKeyboardService : InputMethodService() {
     private fun voiceTidyApplies(settings: KeyboardSettings, text: String): Boolean {
         if (!settings.voiceBar.aiTidy || settings.voiceBar.plainTyping()) return false
         if (voiceSessionForField || _uiState.value.secureField) return false
+        // Gemini's smart transcription has done the tidying already.
+        if (voiceEngine() == VoiceChoices.GEMINI) return false
         if (!VoiceTidy.worthTidying(text)) return false
         if (voiceTidyOnDevice(settings)) {
             return BuildConfig.ENABLE_LOCAL_LLM && effectiveLocalModelFile(settings) != null
@@ -42010,6 +42324,7 @@ open class WMKeyboardService : InputMethodService() {
         voiceGeneration++
         whisperCapture = null
         serverCapture = null
+        dropGeminiClip()
         whisperRecorder?.let { rec ->
             whisperRecorder = null
             serviceScope.launch(Dispatchers.IO) { runCatching { rec.stop() } }
@@ -42055,6 +42370,8 @@ open class WMKeyboardService : InputMethodService() {
         if (status == VoiceStatus.TRANSCRIBING) WhisperCpp.abort()
         asr4allJob?.cancel()
         asr4allJob = null
+        // Gemini's stream is a socket held open for the phrase.
+        dropGeminiClip()
         // Sherpa's, Omnilingual's and Vosk's streams hold native memory; asr4all's is the heap's.
         dropLiveCapture(asr4allCapture)
         asr4allCapture = null
@@ -65929,6 +66246,12 @@ open class WMKeyboardService : InputMethodService() {
 
         /** How often the line under the microphone reads whisper.cpp's decoding so far. */
         private const val VOICE_PARTIAL_POLL_MS = 200L
+
+        /** How long a Gemini live stream gets for its finished text before the clip goes whole instead. */
+        private const val GEMINI_LIVE_FINISH_MS = 8_000L
+
+        /** The longest dictated text a Gemini phrase is sent to edit; past it the next phrase starts afresh. */
+        private const val GEMINI_DRAFT_MAX = 4_000
 
         /** How much before the caret a mode's text conditions read. */
         private const val MODE_TEXT_READ = 64

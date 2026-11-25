@@ -176,6 +176,8 @@
     <string name="core_tools_provider_qwen3_desc">Alibaba\'s model for 30 languages and 22 Chinese dialects, with punctuation of its own, on the phone. A large model for recent phones. Each phrase arrives at the pause after it.</string>
     <string name="core_tools_provider_omnilingual_desc">Meta\'s one model for 1,600 languages, hundreds of them with no other voice typing, on the phone. Each phrase arrives at the pause after it.</string>
     <string name="core_tools_provider_transcription_server">Transcription server</string>
+    <string name="core_tools_provider_gemini_transcribe">Gemini Transcribe</string>
+    <string name="core_tools_provider_gemini_transcribe_desc">Google\'s Gemini 3.5 Transcribe with your own Gemini API key, or the one the AI tool uses when this row has none. It takes out filler words and the corrections you say aloud, and edits what you just dictated when you tell it to. Leave the model blank to send each clip when you stop, or enter gemini-3.5-transcribe-live to see the words as you speak. Your voice goes to Google.</string>
     <string name="core_tools_provider_transcription_server_desc">A server that speaks OpenAI\'s audio transcription API: speaches, whisper.cpp\'s server, LocalAI, Groq or OpenAI. Each clip is sent to it when you stop speaking.</string>
 
     <!-- Grammar as a provider list -->

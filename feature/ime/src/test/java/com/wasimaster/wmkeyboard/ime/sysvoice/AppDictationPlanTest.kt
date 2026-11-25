@@ -12,7 +12,15 @@ class AppDictationPlanTest {
         fallback: Boolean = false,
         server: Boolean = false,
         forward: Boolean = false,
-    ) = AppDictationPlan.route(engine, onDevice, fallback, server, forward)
+        gemini: Boolean = false,
+    ) = AppDictationPlan.route(engine, onDevice, fallback, server, forward, gemini)
+
+    @Test
+    fun `Gemini goes the way the server does, and never to the server's address`() {
+        assertEquals(Route.SERVER, route("gemini", gemini = true, fallback = true))
+        assertEquals(Route.ON_DEVICE, route("gemini", server = true, fallback = true, forward = true))
+        assertEquals(Route.NONE, route("gemini", server = true, forward = true))
+    }
 
     @Test
     fun `an on-device engine with its model runs on the phone`() {

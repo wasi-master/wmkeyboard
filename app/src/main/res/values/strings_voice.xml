@@ -41,6 +41,7 @@
     <!-- Vosk is the toolkit's name and is not translated. -->
     <string name="voice_engine_vosk">Offline Vosk</string>
     <string name="voice_engine_server">Transcription server</string>
+    <string name="voice_engine_gemini">Gemini Transcribe</string>
     <string name="voice_engine_server_desc">Sends each phrase to a server you run, which saves battery. Each phrase arrives after you stop</string>
     <string name="voice_dictation_group">Dictation</string>
     <string name="voice_ui_title">Voice typing view</string>

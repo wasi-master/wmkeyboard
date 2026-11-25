@@ -26,6 +26,7 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.isWhisperEnabled
+import com.wasimaster.wmkeyboard.core.settings.geminiVoice
 import com.wasimaster.wmkeyboard.core.settings.serverFor
 import com.wasimaster.wmkeyboard.core.voice.VoiceChoices
 import kotlinx.coroutines.launch
@@ -63,6 +64,7 @@ internal fun VoiceEnginesShownRow(repository: SettingsRepository, settings: Live
                 context.filesDir, id,
                 whisperEnabled = isWhisperEnabled(),
                 serverConfigured = settings.value.whisper.serverFor(id).url.isNotBlank(),
+                geminiConfigured = settings.value.geminiVoice() != null,
             ).map { it.engine }
         }.toSet() + hidden
         VoiceChoices.ENGINE_ORDER.filter { it in offered } + (offered - VoiceChoices.ENGINE_ORDER.toSet())

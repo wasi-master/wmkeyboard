@@ -13,9 +13,11 @@ import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.script.RomanizedSpeech
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings
+import com.wasimaster.wmkeyboard.core.settings.geminiVoice
 import com.wasimaster.wmkeyboard.core.settings.isWhisperEnabled
 import com.wasimaster.wmkeyboard.core.settings.serverFor
 import com.wasimaster.wmkeyboard.core.settings.voiceFor
+import com.wasimaster.wmkeyboard.core.tools.GeminiTranscribe
 import com.wasimaster.wmkeyboard.core.tools.ToolHttp
 import com.wasimaster.wmkeyboard.core.tools.TranscriptionClient
 import com.wasimaster.wmkeyboard.core.voice.VoiceBias
@@ -222,6 +224,7 @@ class AppDictation(
             fallbackReady = fallback != null,
             serverReady = !forwardOnly && settings.whisper.serverFor(languageIds.first()).url.isNotBlank(),
             forwardReady = forwardTo != null || onDeviceRecognizer,
+            geminiReady = !forwardOnly && settings.geminiVoice() != null,
         )
         when (route) {
             AppDictationPlan.Route.ON_DEVICE -> (local ?: fallback)?.let { startCapture(it) } ?: fail(Error.NO_ENGINE)
@@ -626,6 +629,21 @@ class AppDictation(
     private suspend fun transcribeOnServer(pcm: FloatArray): String = withContext(Dispatchers.IO) {
         val whisper = settings.whisper
         val languageId = languageIds.first()
+        // Gemini takes the clip in place of the server, cleaned unless the
+        // typing mode is plain; there is no text of the app's to edit.
+        val gemini = settings.geminiVoice()
+        if (gemini != null && whisper.voiceFor(languageId).engine == AppDictationPlan.ENGINE_GEMINI) {
+            return@withContext GeminiTranscribe.transcribe(
+                gemini.apiKey,
+                gemini.model,
+                pcm,
+                GeminiTranscribe.Request(
+                    languages = languageIds.map { LanguageRegistry.byId(it).localeTag },
+                    vocabulary = biasWords(GeminiTranscribe.MAX_VOCABULARY),
+                    smart = !plain,
+                ),
+            )
+        }
         // The server detects the language itself when told nothing, and one
         // request can name one language only.
         val language = if (whisper.serverSendLanguage && languageIds.size == 1) {

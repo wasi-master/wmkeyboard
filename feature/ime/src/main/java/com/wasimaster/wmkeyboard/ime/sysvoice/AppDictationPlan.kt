@@ -27,7 +27,8 @@ internal object AppDictationPlan {
      * an on-device engine's id), given what is ready: the engine's own model
      * ([onDeviceReady]), any other model on the phone ([fallbackReady]), a
      * server address ([serverReady]) and another app's recognizer
-     * ([forwardReady]).
+     * ([forwardReady]). Gemini ([ENGINE_GEMINI]) goes the way the server
+     * does, when its row has a key ([geminiReady]).
      *
      * Audio only ever goes where the user sent it, or stays on the phone. An
      * on-device pick without its model takes another model on the phone, and
@@ -42,7 +43,13 @@ internal object AppDictationPlan {
         fallbackReady: Boolean,
         serverReady: Boolean,
         forwardReady: Boolean,
+        geminiReady: Boolean = false,
     ): Route = when (engine) {
+        ENGINE_GEMINI -> when {
+            geminiReady -> Route.SERVER
+            fallbackReady -> Route.ON_DEVICE
+            else -> Route.NONE
+        }
         ENGINE_SERVER -> when {
             serverReady -> Route.SERVER
             fallbackReady -> Route.ON_DEVICE
@@ -109,4 +116,5 @@ internal object AppDictationPlan {
 
     const val ENGINE_SYSTEM = "system"
     const val ENGINE_SERVER = "server"
+    const val ENGINE_GEMINI = "gemini"
 }

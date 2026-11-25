@@ -10,6 +10,7 @@ import com.wasimaster.wmkeyboard.core.settings.AiSettings
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
 import com.wasimaster.wmkeyboard.core.settings.through
 import com.wasimaster.wmkeyboard.core.tools.AiClient
+import com.wasimaster.wmkeyboard.core.tools.GeminiTranscribe
 import com.wasimaster.wmkeyboard.core.tools.TranscriptionClient
 import com.wasimaster.wmkeyboard.core.grammar.GrammarProviders
 import com.wasimaster.wmkeyboard.core.grammar.LanguageToolClient
@@ -93,6 +94,23 @@ internal object ProviderProbes {
                             ProviderEntry(type.id, credential.id), type, credential,
                             apiKey = asked, url = credential.url, model = credential.model, problem = null,
                         ),
+                    )
+                }
+            }
+        }
+        // Gemini voice typing: a second of silence sent the way dictation sends a clip.
+        // It transcribes to nothing, so an answer at all proves the key and the model.
+        if (type === ProviderTypes.GEMINI_TRANSCRIBE) {
+            return {
+                withContext(Dispatchers.IO) {
+                    // A blank key borrows the one typed for Gemini on the AI list, as dictation would.
+                    val asked = key.ifBlank {
+                        type.keyFrom?.let { from ->
+                            SettingsRepository(context.applicationContext).settings.first().providerCredential(from)?.apiKey?.trim()
+                        }.orEmpty()
+                    }
+                    GeminiTranscribe.transcribe(
+                        asked, credential.model, FloatArray(WhisperMel.SAMPLE_RATE), GeminiTranscribe.Request(),
                     )
                 }
             }

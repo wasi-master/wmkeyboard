@@ -745,6 +745,8 @@ object AiProviders {
 fun availableVoiceEngines(): Set<String> = buildSet {
     add(ProviderTypes.ENGINE_SYSTEM)
     add(ProviderTypes.ENGINE_SERVER)
+    // A key and the network, like the server: nothing to download.
+    add(ProviderTypes.ENGINE_GEMINI)
     if (isWhisperEnabled()) add("whisper")
     // No library off arm64 or where F-Droid stripped it (#548).
     if (com.wasimaster.wmkeyboard.core.voice.whistle.WhistleEngine.shipped) add("whistle")
@@ -838,6 +840,17 @@ fun KeyboardSettings.voiceServerName(languageId: String, env: ProviderEnv = choi
     if (!whisper.serverByLang[languageId]?.url.isNullOrBlank()) return ""
     return voiceRows(env).firstOrNull { it.typeId == ProviderTypes.TRANSCRIPTION_SERVER.id }?.customName.orEmpty()
 }
+
+/** What dictation asks Gemini with: the key of the voice list's Gemini row (its own, else the AI tool's) and its model. */
+data class GeminiVoice(val apiKey: String, val model: String)
+
+/**
+ * The voice list's Gemini row (`ProviderTypes.GEMINI_TRANSCRIBE`) when it is
+ * on and has a key to ask with, its own or the one typed for Gemini on the AI
+ * list; null otherwise, which dictation says rather than guessing.
+ */
+fun KeyboardSettings.geminiVoice(env: ProviderEnv = choiceEnv()): GeminiVoice? =
+    voiceRows(env).firstOrNull { it.typeId == ProviderTypes.GEMINI_TRANSCRIBE.id }?.let { GeminiVoice(it.apiKey, it.model) }
 
 /** The OCR list's row for [engine], or null for [OcrEngine.ONLINE], which is the online rows. */
 fun ocrEngineType(engine: OcrEngine): ProviderType? = when (engine) {

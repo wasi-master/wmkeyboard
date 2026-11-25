@@ -50,6 +50,8 @@ dependencies {
     implementation(project(":core:send"))
     // Speech out: the speaker buttons read with a downloaded MMS voice first.
     implementation(project(":core:voice"))
+    // The Live API's WebSocket, for Gemini voice typing ([GeminiTranscribe]).
+    implementation(libs.okhttp)
     api(project(":core:common"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.android)

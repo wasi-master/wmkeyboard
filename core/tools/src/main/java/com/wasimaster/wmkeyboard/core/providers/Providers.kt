@@ -851,6 +851,18 @@ object ProviderTypes {
         CredentialSpec(key = Need.OPTIONAL, url = Need.REQUIRED, model = true, path = true), multiInstance = true, selfHosted = true,
     )
 
+    /**
+     * Google's Gemini 3.5 Transcribe (`GeminiTranscribe`): smart transcription
+     * that takes out filler words and spoken corrections, and edits what was
+     * just dictated when told to. The model field picks a whole clip at a
+     * time (blank, `gemini-3.5-transcribe`) or the words as they are said
+     * (`gemini-3.5-transcribe-live`). Borrows the AI tool's Gemini key.
+     */
+    val GEMINI_TRANSCRIBE = ProviderType(
+        "gemini_transcribe", VOICE, R.string.core_tools_provider_gemini_transcribe, R.string.core_tools_provider_gemini_transcribe_desc,
+        CredentialSpec(key = Need.OPTIONAL, model = true), keyFrom = "gemini",
+    )
+
     // ---- Grammar.
 
     private val GRAMMAR = setOf(ProviderTool.GRAMMAR)
@@ -1052,6 +1064,7 @@ object ProviderTypes {
             QWEN3.id to "qwen3",
             VOSK.id to "vosk",
             TRANSCRIPTION_SERVER.id to ENGINE_SERVER,
+            GEMINI_TRANSCRIBE.id to ENGINE_GEMINI,
             // A plugin's voice row is asked the way a server is: the clip,
             // whole, after the user stops ([TranscriptionClient]). After the
             // server, so the server is what "server" means to voiceType.
@@ -1061,6 +1074,9 @@ object ProviderTypes {
 
     const val ENGINE_SYSTEM = "system"
     const val ENGINE_SERVER = "server"
+
+    /** Gemini 3.5 Transcribe, the voice list's [GEMINI_TRANSCRIBE] row. */
+    const val ENGINE_GEMINI = "gemini"
 
     /** The voice type that runs [engine], or null for an engine id this build does not know. */
     fun voiceType(engine: String): ProviderType? =
@@ -1079,7 +1095,7 @@ object ProviderTypes {
         OCR_ON_DEVICE, OCR_ML_KIT, OCR_TESSERACT, VISION_OCR, RENS,
         ANTHROPIC, OPENAI, GEMINI, XAI, DEEPSEEK, BRAVE_ANSWERS, PRIVATEMODE, OLLAMA, LM_STUDIO, OPENAI_COMPATIBLE, ON_DEVICE_AI,
         SYSTEM_RECOGNIZER, WHISTLE, WHISPER, ASR4ALL, PARAKEET, MOONSHINE, SHERPA, OMNILINGUAL, QWEN3, VOSK,
-        TRANSCRIPTION_SERVER,
+        TRANSCRIPTION_SERVER, GEMINI_TRANSCRIBE,
         HARPER, LANGUAGETOOL,
         ON_DEVICE_IMAGE, POLLINATIONS, AI_HORDE, OPENAI_IMAGE, GEMINI_IMAGE, XAI_IMAGE, STABILITY, BFL, RECRAFT,
         REPLICATE, FAL, TOGETHER, HUGGING_FACE, CLOUDFLARE_AI, AUTOMATIC1111, COMFYUI, OPENAI_COMPATIBLE_IMAGE,

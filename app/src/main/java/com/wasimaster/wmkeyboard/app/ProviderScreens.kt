@@ -979,6 +979,7 @@ internal fun providerAccent(type: ProviderType?): Color = when (type?.id) {
     ProviderTypes.PRIVATEMODE.id -> Color(0xFF2F6F5E)
     ProviderTypes.OPENAI_IMAGE.id -> Color(0xFF10A37F)
     ProviderTypes.GEMINI_IMAGE.id -> Color(0xFF4285F4)
+    ProviderTypes.GEMINI_TRANSCRIBE.id -> Color(0xFF4285F4)
     ProviderTypes.XAI_IMAGE.id -> Color(0xFF111111)
     ProviderTypes.POLLINATIONS.id -> Color(0xFF1B1B1B)
     ProviderTypes.AI_HORDE.id -> Color(0xFF7E57C2)
