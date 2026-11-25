@@ -49,8 +49,10 @@ object NoteReminders {
      * [NoteHighlightKind.DEADLINE] from the start of today up to
      * [horizonDays] ahead, and each [NoteHighlightKind.BIRTHDAY]'s next
      * occurrence, whatever year the text gave (the year a person was born is
-     * in the past by definition). Plain dates are not offered: a date in a
-     * note is as often a record of the past as a plan.
+     * in the past by definition). A plain date is offered only with a time and
+     * only while that time is still ahead (#1540): "car service next friday at
+     * 10am" is a plan, where a bare date in a note is as often a record of the
+     * past as one.
      */
     fun upcoming(
         highlights: List<NoteHighlight>,
@@ -73,6 +75,10 @@ object NoteReminders {
                 NoteHighlightKind.BIRTHDAY -> {
                     val next = nextYearly(at, nowMillis, eventZone)
                     out += NoteReminder(h.kind, title(h), next, allDay = true, zoneId = eventZone.id, yearly = true, phrase = h.text)
+                }
+                NoteHighlightKind.DATE -> {
+                    if (!h.hasTime || at < nowMillis || at > horizon) continue
+                    out += NoteReminder(h.kind, title(h), at, allDay = false, zoneId = eventZone.id, yearly = false, phrase = h.text)
                 }
                 else -> continue
             }

@@ -51,6 +51,21 @@ class NoteRemindersTest {
     }
 
     @Test
+    fun `a plain date with a time still ahead is a plan, offered at that time (#1540)`() {
+        // The anchor is a Friday: "next friday" is a week on.
+        val reminder = upcoming("Car service next friday at 5pm").single()
+        assertEquals(NoteHighlightKind.DATE, reminder.kind)
+        assertEquals(at(2026, 11, 20, 17), reminder.startMillis)
+        assertFalse(reminder.allDay)
+        assertFalse(reminder.yearly)
+    }
+
+    @Test
+    fun `a plain date with a time already past asks for nothing`() {
+        assertTrue(upcoming("Met Ana on 1 Nov 2026 at 5pm").isEmpty())
+    }
+
+    @Test
     fun `a leap-day birthday comes round on the 28th in a year without one`() {
         assertEquals(at(2027, 2, 28), NoteReminders.nextYearly(at(2024, 2, 29), now, zone))
         assertEquals(at(2028, 2, 29), NoteReminders.nextYearly(at(2024, 2, 29), at(2027, 3, 1), zone))
