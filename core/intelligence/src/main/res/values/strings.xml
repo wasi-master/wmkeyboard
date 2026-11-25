@@ -54,6 +54,12 @@
     <string name="core_intel_llm_model_gguf_qwen3_vl_2b_subtitle">A smaller Qwen3-VL. It reads pictures and screenshots on a mid-range device.</string>
     <string name="core_intel_llm_model_gguf_lfm25_12b_subtitle">Liquid AI\'s model built for phones. It answers quickly and writes well for its size.</string>
     <string name="core_intel_llm_model_gguf_minicpm_v47_1b_subtitle">A small model that reads pictures, the text in screenshots too. Its picture reader is a large download of its own.</string>
+    <!-- What a GGUF model's file format means, beside the choice of version.
+         Q4_0, Q4_K_M, Q8_0, NPU, CPU and GPU stay as written. -->
+    <string name="core_intel_llm_quant_q4_0_info">Q4_0: 4-bit, in the simplest layout. It is the 4-bit file a Snapdragon NPU can run. On the CPU or GPU it writes a little worse than Q4_K_M, which is about the same size.</string>
+    <string name="core_intel_llm_quant_q4_0_qad_info">Q4_0, trained by Liquid AI for this format, so it keeps more of the model\'s quality than a plain Q4_0. It is the 4-bit file a Snapdragon NPU can run.</string>
+    <string name="core_intel_llm_quant_q4_k_m_info">Q4_K_M: 4-bit, with more detail kept where it matters most. The best quality for its size on the CPU and GPU, and the usual choice. With Compute on NPU it runs on the CPU.</string>
+    <string name="core_intel_llm_quant_q8_0_info">Q8_0: 8-bit, close to the original model. About twice the size of a 4-bit file, and slower on the CPU. A Snapdragon NPU can run it.</string>
     <string name="core_intel_llm_model_gguf_lfm25_350m_subtitle">Liquid AI\'s smallest model. It is fast on a basic device and good for short rewrites.</string>
 
     <!-- ================================================================== -->

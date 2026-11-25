@@ -15,6 +15,9 @@ class LocalLlmCatalogVisionTest {
                 "gemma4-e2b", "gemma4-e4b",
                 "gguf-qwen3-vl-4b", "gguf-ministral3-3b", "gguf-qwen2.5-vl-3b", "gguf-qwen3-vl-2b",
                 "gguf-minicpm-v4.7-1b", "gguf-smolvlm-500m",
+                // Their other versions read pictures through the same projector.
+                "gguf-qwen3-vl-4b-q8-0", "gguf-ministral3-3b-q8-0", "gguf-qwen2.5-vl-3b-q8-0",
+                "gguf-qwen3-vl-2b-q8-0", "gguf-minicpm-v4.7-1b-q4-0", "gguf-minicpm-v4.7-1b-q8-0",
             ),
             seeing,
         )

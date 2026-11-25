@@ -143,7 +143,7 @@
     <!-- The second list of models, run by llama.cpp. GGUF is the file format
          and llama.cpp the engine; both stay in Latin letters. -->
     <string name="models_llm_gguf_title">GGUF models (llama.cpp)</string>
-    <string name="models_llm_gguf_info">These models run on llama.cpp, a second engine that runs any GGUF file. With Compute set to GPU, they use the GPU on a phone with a Snapdragon chip (an Adreno GPU), and the CPU on other phones. The models that read pictures download a second file, the projector, with them. The models above, which run on LiteRT-LM, stay the default. Each file is checked against the one the catalogue names before you can use it.</string>
+    <string name="models_llm_gguf_info">These models run on llama.cpp, a second engine that runs any GGUF file. Most come in versions: Q4_K_M is the usual choice, Q8_0 is closer to the original model but twice the size, and Q4_0 and Q8_0 are the ones a Snapdragon NPU runs. With Compute set to GPU, they use the phone\'s GPU. The models that read pictures download a second file, the projector, with them. The models above, which run on LiteRT-LM, stay the default. Each file is checked against the one the catalogue names before you can use it.</string>
     <!-- Under a model row. %1$s is the engine name, llama.cpp. -->
     <string name="models_llm_runtime_label">Runs on <xliff:g id="runtime" example="llama.cpp">%1$s</xliff:g></string>
     <string name="models_llm_llama_module_missing_info">llama.cpp is an extra part of the keyboard that downloads when you first need it. Download it to use GGUF models.</string>
@@ -169,6 +169,15 @@
     <!-- Under a model row when its NPU build is on the phone. -->
     <string name="models_llm_reads_pictures">Reads pictures</string>
     <string name="models_llm_npu_build_label">NPU build on this phone</string>
+    <!-- Above the choice of a GGUF model's file format (Q4_0, Q4_K_M, Q8_0). -->
+    <string name="models_llm_versions_label">Version</string>
+    <!-- Added to a version chip whose format runs on the NPU. Stays as written. -->
+    <string name="models_llm_version_npu_tag">NPU</string>
+    <!-- Under a GGUF model with Compute on NPU, on a Snapdragon whose NPU runs GGUF files. -->
+    <string name="models_llm_npu_ready_label">Runs on the NPU</string>
+    <!-- %1$s is the file's format, for example Q4_K_M. -->
+    <string name="models_llm_npu_cpu_warning">A <xliff:g id="format" example="Q4_K_M">%1$s</xliff:g> file does not run on the NPU, so this model runs on the CPU. Download one of its versions marked NPU to use the NPU.</string>
+    <string name="models_llm_npu_cpu_warning_custom">A <xliff:g id="format" example="Q4_K_M">%1$s</xliff:g> file does not run on the NPU, so this model runs on the CPU. Import a Q4_0 or Q8_0 file of it to use the NPU.</string>
 
     <!-- Model storage. %1$s is how much space the models use. -->
     <string name="models_llm_storage_info">Models use <xliff:g id="size" example="2.6 GB">%1$s</xliff:g> of storage on your device. The app keeps them in private app storage. A download continues from where it stopped if you cancel it or lose the connection.</string>

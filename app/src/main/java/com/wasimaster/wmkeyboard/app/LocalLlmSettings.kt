@@ -39,6 +39,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -55,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.localllm.GgufFile
+import com.wasimaster.wmkeyboard.core.localllm.GgufQuant
 import com.wasimaster.wmkeyboard.core.localllm.LlamaCpp
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmCatalog
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmDownloadManager
@@ -108,6 +110,11 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
     // a model can have one, the other or both, and a row offers the missing
     // one when the Compute choice wants it.
     var builds by remember { mutableStateOf<Map<String, Pair<Boolean, Boolean>>>(emptyMap()) }
+    // How each imported GGUF stores its weights, read from its header: with
+    // Compute on NPU only Q4_0 and Q8_0 reach the NPU, so the row says so.
+    var customQuants by remember { mutableStateOf<Map<String, GgufQuant?>>(emptyMap()) }
+    // The version a GGUF family's row shows, by family, once the user picks one.
+    val pickedVersion = remember { mutableStateMapOf<String, String>() }
 
     LaunchedEffect(Unit) { LocalLlmDownloadManager.refresh(filesDir) }
     LaunchedEffect(states, customModels, importing) {
@@ -115,6 +122,9 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
         withContext(Dispatchers.IO) { LocalLlmStore.pruneEngineCache(filesDir, context.cacheDir) }
         storageUsed = withContext(Dispatchers.IO) { LocalLlmStore.totalBytesUsed(filesDir) }
         orphanBytes = withContext(Dispatchers.IO) { LocalLlmStore.orphanBytes(filesDir) }
+        customQuants = withContext(Dispatchers.IO) {
+            customModels.filter(GgufFile::runsOnLlamaCpp).associate { it.name to GgufFile.quantization(it) }
+        }
         builds = withContext(Dispatchers.IO) {
             LocalLlmCatalog.models.associate { model ->
                 val npuOnDisk = LocalLlmStore.npuFile(filesDir, model, npuSoc) != null
@@ -209,6 +219,20 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
     val availableGguf = if (LlamaCpp.shipped) available.filter { it.runtime == LocalLlmRuntime.LLAMA_CPP } else emptyList()
 
     val selectedBackend = settings.watch { it.ai.localBackend }
+    // Compute on NPU on a Snapdragon whose NPU llama.cpp can use: only then
+    // does a GGUF file's format decide where it runs.
+    val ggufOnNpu = selectedBackend == LocalLlmBackend.NPU && LlamaCpp.npuGateId != null
+
+    /** What Compute on NPU does with a GGUF of [quant]: a note, and whether it is a warning. */
+    @Composable
+    fun npuNote(quant: GgufQuant?, custom: Boolean): Pair<String, Boolean>? = when {
+        !ggufOnNpu || quant == null -> null
+        quant.npu -> stringResource(R.string.models_llm_npu_ready_label) to false
+        else -> stringResource(
+            if (custom) R.string.models_llm_npu_cpu_warning_custom else R.string.models_llm_npu_cpu_warning,
+            quant.tag,
+        ) to true
+    }
 
     @Composable
     fun catalogRow(model: LocalLlmModel) {
@@ -232,6 +256,7 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
         }
         CatalogModelRow(
             model = model,
+            npuNote = npuNote(model.quant, custom = false),
             sizeBytes = if (wantsNpu) npuBuild!!.sizeBytes else model.downloadBytes,
             npuBuildOnDisk = hasNpu,
             secondBuild = secondBuild,
@@ -275,6 +300,7 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
                 val id = LocalLlmStore.CUSTOM_PREFIX + file.name
                 CustomModelRow(
                     file = file,
+                    npuNote = npuNote(customQuants[file.name], custom = true),
                     tooBigForRam = customModelRamMb(file.length()) > totalRamMb,
                     selected = settings.watch { it.ai.localModelId == id },
                     onSelect = { scope.launch { repository.setAiLocalModelId(id) } },
@@ -305,7 +331,27 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
             stringResource(R.string.models_llm_gguf_title),
             info = stringResource(R.string.models_llm_gguf_info),
         ) {
-            for (model in availableGguf) item { catalogRow(model) }
+            // One row per model, with a choice of its versions (Q4_0, Q4_K_M,
+            // Q8_0) that are not on the phone yet; a version on the phone has
+            // a row of its own above, under its own name.
+            for ((family, versions) in availableGguf.groupBy { it.family ?: it.id }) {
+                item(key = family) {
+                    val shown = versions.firstOrNull { it.id == pickedVersion[family] }
+                        // With Compute on NPU the version the NPU runs; else the family's first row.
+                        ?: versions.firstOrNull { ggufOnNpu && it.quant?.npu == true }
+                        ?: versions.firstOrNull { it.id == family }
+                        ?: versions.first()
+                    Column {
+                        catalogRow(shown)
+                        VersionPicker(
+                            versions = versions.sortedBy { it.sizeBytes },
+                            shown = shown,
+                            markNpu = LlamaCpp.npuGateId != null,
+                            onPick = { pickedVersion[family] = it.id },
+                        )
+                    }
+                }
+            }
         }
         LlamaModuleBanner(settings)
     }
@@ -377,6 +423,18 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
             )
         }
     }
+    // The model in use, when it is a GGUF the NPU leaves on the CPU: said
+    // here too, where NPU is picked, not only on the model's row.
+    if (ggufOnNpu) {
+        val selectedQuant = if (selectedId.startsWith(LocalLlmStore.CUSTOM_PREFIX)) {
+            customQuants[selectedId.removePrefix(LocalLlmStore.CUSTOM_PREFIX)]
+        } else {
+            LocalLlmCatalog.byId(selectedId)?.quant
+        }
+        npuNote(selectedQuant, custom = selectedId.startsWith(LocalLlmStore.CUSTOM_PREFIX))
+            ?.takeIf { (_, warning) -> warning }
+            ?.let { (text, _) -> CaptionText(text, error = true) }
+    }
     if (npuSoc != null) {
         val withBuilds = LocalLlmCatalog.models.filter { LocalLlmCatalog.npuBuild(it, npuSoc) != null }
         CaptionText(
@@ -430,6 +488,8 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
 @Composable
 private fun CatalogModelRow(
     model: LocalLlmModel,
+    /** What Compute on NPU does with this GGUF, and whether that is a warning; null when it does not apply. */
+    npuNote: Pair<String, Boolean>?,
     /** The size of the build a download fetches now (#804). */
     sizeBytes: Long,
     /** Whether the NPU build is among the files on disk. */
@@ -497,6 +557,7 @@ private fun CatalogModelRow(
                     }
                     Text(subtitle)
                     if (model.runtime == LocalLlmRuntime.LLAMA_CPP) RuntimeLabel(model.runtime)
+                    npuNote?.let { (text, warning) -> NpuNote(text, warning) }
                     if (downloaded && npuBuildOnDisk) {
                         Text(
                             stringResource(R.string.models_llm_npu_build_label),
@@ -628,6 +689,67 @@ private fun CatalogModelRow(
 }
 
 /**
+ * Where a GGUF runs with Compute on NPU, under its row: on the NPU for a Q4_0
+ * or Q8_0 file, and a warning for any other format, which llama.cpp's Hexagon
+ * code leaves on the CPU.
+ */
+@Composable
+private fun NpuNote(text: String, warning: Boolean) {
+    Text(
+        text,
+        style = MaterialTheme.typography.labelMedium,
+        color = if (warning) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+    )
+}
+
+/**
+ * The versions of a GGUF model not on the phone yet, under its row: one chip
+ * each, with its size, and what the one shown means. Nothing to choose with
+ * one version, so then only its meaning shows.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun VersionPicker(
+    versions: List<LocalLlmModel>,
+    shown: LocalLlmModel,
+    /** Whether this phone's NPU runs GGUF files, so the formats it runs say so. */
+    markNpu: Boolean,
+    onPick: (LocalLlmModel) -> Unit,
+) {
+    Column(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp)) {
+        if (versions.size > 1) {
+            Text(
+                stringResource(R.string.models_llm_versions_label),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            val npuTag = stringResource(R.string.models_llm_version_npu_tag)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                for (version in versions) {
+                    val quant = version.quant ?: continue
+                    val label = buildString {
+                        append(quant.tag).append(" · ").append(formatBytes(version.downloadBytes))
+                        if (markNpu && quant.npu) append(" · ").append(npuTag)
+                    }
+                    FilterChip(
+                        selected = version.id == shown.id,
+                        onClick = { onPick(version) },
+                        label = { Text(label) },
+                    )
+                }
+            }
+        }
+        shown.versionInfoRes?.let { info ->
+            Text(
+                stringResource(info),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+/**
  * Which engine runs a model, under its row, for the llama.cpp ones: LiteRT-LM
  * is the default and goes unsaid.
  */
@@ -689,6 +811,8 @@ private fun LlamaModuleBanner(settings: LiveSettings) {
 @Composable
 private fun CustomModelRow(
     file: File,
+    /** What Compute on NPU does with this GGUF, and whether that is a warning; null when it does not apply. */
+    npuNote: Pair<String, Boolean>?,
     tooBigForRam: Boolean,
     selected: Boolean,
     onSelect: () -> Unit,
@@ -713,6 +837,7 @@ private fun CustomModelRow(
                     if (file.extension.equals(ModelFormat.GGUF.extension, ignoreCase = true)) {
                         RuntimeLabel(LocalLlmRuntime.LLAMA_CPP)
                     }
+                    npuNote?.let { (text, warning) -> NpuNote(text, warning) }
                     // A model of your own is judged the way the catalog's are
                     // (#1425): one too big for the phone's memory slows the
                     // keyboard to a crawl and can bring it down mid-word.

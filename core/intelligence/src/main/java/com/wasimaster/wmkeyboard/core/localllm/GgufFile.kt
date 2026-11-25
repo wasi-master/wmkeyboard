@@ -74,6 +74,51 @@ object GgufFile {
         return null
     }
 
+    /**
+     * How [file] stores its weights: `general.file_type` from its header, or,
+     * in a file whose header has no such key, what its name says. Null when it
+     * is no GGUF, or names a format this reader does not know (an old
+     * repacked `Q4_0_4_4` is not a Q4_0). Reads only the header: the
+     * tokenizer's lists are skipped, never loaded.
+     */
+    fun quantization(file: File): GgufQuant? {
+        val read = runCatching { file.inputStream().buffered().use { fileType(it) } }.getOrNull()
+        return when (read) {
+            null -> null
+            NO_FILE_TYPE -> GgufQuant.ofName(file.name)
+            else -> GgufQuant.ofFileType(read)
+        }
+    }
+
+    /**
+     * `general.file_type` from a stream at the start of a GGUF, [NO_FILE_TYPE]
+     * when the header has none, or null when it is no GGUF a reader can walk.
+     */
+    internal fun fileType(input: InputStream): Int? {
+        val data = DataInputStream(input)
+        val magic = ByteArray(MAGIC.size)
+        data.readFully(magic)
+        if (!hasMagic(magic)) return null
+        if (data.readLittleInt() < 2) return null
+        data.readLittleLong() // tensors
+        val pairs = data.readLittleLong()
+        for (i in 0 until minOf(pairs, MAX_KEYS_SCANNED)) {
+            val key = data.readGgufString(MAX_KEY_BYTES) ?: return null
+            val type = data.readLittleInt()
+            if (key == "general.file_type") {
+                return when (type) {
+                    TYPE_UINT32, TYPE_INT32 -> data.readLittleInt()
+                    else -> null
+                }
+            }
+            if (!data.skipValue(type)) return null
+        }
+        return NO_FILE_TYPE
+    }
+
+    /** [fileType]'s answer for a GGUF whose header has no `general.file_type`. */
+    internal const val NO_FILE_TYPE = -1
+
     /** Whether [file] is a projector: its name says `mmproj`, or its header says `clip`. */
     fun isProjector(file: File): Boolean =
         file.name.contains("mmproj", ignoreCase = true) || architecture(file) == PROJECTOR_ARCHITECTURE
@@ -117,8 +162,13 @@ object GgufFile {
     private val QUANT_TAG = Regex("""[-_.](i?q\d[a-z0-9_]*|bf16|f16|f32|fp16|model)(?=$|[-_.])""")
 
     private const val MAX_KEYS_READ = 64L
+
+    /** Every key a real header has: [fileType] walks past the tokenizer's to find its own. */
+    private const val MAX_KEYS_SCANNED = 1024L
     private const val MAX_KEY_BYTES = 256L
     private const val MAX_VALUE_BYTES = 4096L
+    private const val TYPE_UINT32 = 4
+    private const val TYPE_INT32 = 5
     private const val TYPE_STRING = 8
     private const val TYPE_ARRAY = 9
 
