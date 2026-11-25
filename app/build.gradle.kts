@@ -124,9 +124,10 @@ val fdroidChannel = flag("wmkb.enableFdroid", "WMKB_ENABLE_FDROID")
 val playServicesSourceDir = if (playStoreChannel) "src/play/java" else "src/noplay/java"
 
 // Seam two: which updater a non-Play build gets. Play needs no second
-// directory, its driver is already in src/play/java. F-Droid signs its own
-// builds, so an APK from our GitHub release can never install over an F-Droid
-// install; that channel gets a checker that links out and downloads nothing.
+// directory, its driver is already in src/play/java. F-Droid's client installs
+// F-Droid builds, and installs up to 0.5.9 carry F-Droid's key rather than
+// ours (from 0.5.10 F-Droid publishes our reproducible build with our
+// signature); that channel gets a checker that links out and downloads nothing.
 val updaterSourceDir: String? = when {
     playStoreChannel -> null
     fdroidChannel -> "src/fdroid/java"

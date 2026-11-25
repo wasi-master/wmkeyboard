@@ -26,13 +26,14 @@ flavor drive all of it, so nothing here needs a branch or a patched source tree.
 | Automation `TYPE_TEXT` | offered | offered | left out |
 | Artifact | the standard build (`full-en`), one APK per ABI, plus one signed language pack per interface language (`-lang-<locale>.apk`), R8 mappings, native symbols, the all-languages build (`full-intl`), one APK per ABI, the baseline profile as dex metadata (`*-api31.dm` and `*-api28.dm`, which the in-app updater installs with the APK); the `offline` job adds `full-en-nointernet` in `arm64-v8a` and `universal` and `full-intl-nointernet` in `universal`. The feature libraries go to the data repository's `natives` release | one APK per ABI from 0.6.2, built by F-Droid, each carrying our signature once it matches the release's `-vc<code>-fdroid.apk` for that ABI | one AAB, with its R8 mapping and native symbols inside |
 | Manifest `versionCode` (from 0.6.2) | `wmkb.versionCode × 10` plus 1 for `armeabi-v7a`, 2 for `arm64-v8a`, 0 for `universal` (3 was `x86_64`'s until it was dropped, and is not reused) | the same two digits, one APK each | `× 10`, digit 0 |
-| ML Kit | bundled in the APK | absent | unbundled, fetched from Play services |
-| Local LLM | bundled | absent | on-demand `:feature:llm` module |
-| On-device translation (ML Kit) | bundled | absent | on-demand `:feature:translate` module |
-| LiteRT interpreter (offline Whisper, the sticker editor's own background remover) | bundled | absent | on-demand `:feature:litert` module |
-| Handwriting recognition (ML Kit) | bundled | absent | on-demand `:feature:handwriting` module |
+| ML Kit text recognition and barcodes | the bundled artifacts: their Java in the APK, their two native libraries (`libmlkit_google_ocr_pipeline.so`, `libbarhopper_v3.so`) pinned and read on demand out of Google's Maven (the `scanner` gate) | absent | unbundled, models fetched from Play services |
+| ML Kit through Play services (the Chinese, Japanese, Korean and Devanagari text recognisers, the document scanner, subject segmentation) | linked; Play services fetches each model | absent | the same |
+| Local LLM (LiteRT-LM) | Java in the APK; `liblitertlm_jni.so` pinned and read on demand out of Google's Maven | absent | on-demand `:feature:llm` module |
+| On-device translation (ML Kit) | Java in the APK; its two native libraries pinned and read on demand out of Google's Maven | absent | on-demand `:feature:translate` module |
+| LiteRT interpreter (offline Whisper, the sticker editor's own background remover, the scanner's PaddleOCR reader, search by meaning) | Java in the APK; `libLiteRt.so` and `liblitert_jni.so` pinned and read on demand out of Google's Maven | absent | on-demand `:feature:litert` module |
+| Handwriting recognition (ML Kit) | Java in the APK; `libdigitalink.so` pinned and read on demand out of Google's Maven | absent | on-demand `:feature:handwriting` module |
 | Text engines (Avro, Khipro, Bijoy, Hindi, Urdu, the Indic languages) | committed prebuilt library | compiled from source by the recipe | the same prebuilt library, in the base module |
-| Harper, whisper.cpp, ExecuTorch (grammar, Offline Whisper, Asr4All, Parakeet, Moonshine, the FUTO Swipe glide engine) | committed prebuilt libraries | compiled from source by the recipe | the same prebuilt libraries, in the on-demand `:feature:speech` (whisper.cpp), `:feature:executorch` (ExecuTorch) and `:feature:grammar` (Harper) modules |
+| Harper, whisper.cpp, ExecuTorch (grammar, Offline Whisper, Asr4All, Parakeet, Moonshine, the FUTO Swipe glide engine) | committed prebuilt libraries, pinned and downloaded on demand | compiled from source by the recipe | the same prebuilt libraries, in the on-demand `:feature:speech` (whisper.cpp), `:feature:executorch` (ExecuTorch) and `:feature:grammar` (Harper) modules |
 | Hunspell (spell checking against an imported `.aff`/`.dic`) | committed prebuilt library, pinned and downloaded on demand | compiled from source by the recipe | the same prebuilt library, in the on-demand `:feature:spell` module |
 | divvunspell (GiellaLT spellers, beside Hunspell) | committed prebuilt library, pinned and downloaded on demand with Hunspell's | compiled from source by the recipe | the same prebuilt library, in the `:feature:spell` module with Hunspell's |
 | Voikko (Finnish spell checking) | committed prebuilt library outside every module, pinned and downloaded on demand with Hunspell's; never in the APK | compiled from source by the recipe, pinned the same way | the same prebuilt library, in the `:feature:spell` module with Hunspell's |
@@ -42,7 +43,7 @@ flavor drive all of it, so nothing here needs a branch or a patched source tree.
 | zinnia (Chinese and Japanese handwriting without ML Kit) | committed prebuilt library, pinned and downloaded on demand | compiled from source by the recipe | the same prebuilt library, in the on-demand `:feature:zinnia` module |
 | OpenCV (the built-in document scanner) | committed prebuilt library, pinned and downloaded on demand | compiled from source by the recipe | the same prebuilt library, in the on-demand `:feature:docscan` module |
 | MNN (the sticker generator) and its NPU runner | committed prebuilt libraries, pinned and downloaded on demand | MNN compiled from source by the recipe; no NPU runner | the same prebuilt libraries, in the on-demand `:feature:imagegen` module |
-| Whistle, Tesseract (Whistle dictation, the scanner's offline reader) | committed prebuilt libraries, full only | absent | the same prebuilt libraries, in the on-demand `:feature:speech` (Whistle, arm64 only) and `:feature:ocr` (Tesseract) modules |
+| Whistle, Tesseract (Whistle dictation, the scanner's offline reader) | committed prebuilt libraries, pinned and downloaded on demand | Tesseract absent; Whistle's prebuilt library deleted by the recipe, pinned from `native/gates.json` and fetched after the opt-in | the same prebuilt libraries, in the on-demand `:feature:speech` (Whistle, arm64 only) and `:feature:ocr` (Tesseract) modules |
 | In-app updates | GitHub releases, downloads and installs | checks F-Droid, links out | Play In-App Updates |
 | Native libraries in the APK | uncompressed and page-aligned | uncompressed and page-aligned | uncompressed and page-aligned; Play compresses the download itself |
 | Bundled layouts | JSON compacted at build time | same | same |
@@ -53,11 +54,21 @@ lane or CI override a developer machine's `local.properties`. A clean checkout
 has no `local.properties` at all, which is why an F-Droid builder gets the
 right answer without being told.
 
-`wmkb.enableFdroid` is the odd one out: it changes no dependency, only the
-channel line on bug reports and diagnostics, and it hides the "get it on
-F-Droid" row in About that would otherwise send an F-Droid user to their own
-install. The F-Droid recipe sets it explicitly, since `false` is the default
-everywhere else.
+`wmkb.enableFdroid` changes the most. It takes every Google artifact out of
+the build: ML Kit (its Play services halves included), LiteRT, LiteRT-LM, the
+Google Home APIs, and every gate `native/gates.json` marks `google`. Each
+module compiles its `src/nogoogle` stand-ins in place of `src/google`. It also
+picks the F-Droid updater, turns on the download opt-in F-Droid's inclusion
+policy asks for, marks bug reports and diagnostics with the channel, and hides
+About's "Share the Play Store link" row. The F-Droid recipe sets it
+explicitly, since `false` is the default everywhere else.
+
+In the F-Droid column, "compiled from source by the recipe" means the bytes
+the APK pins, not what it packages. Every library in the table but the text
+engines stays out of the F-Droid APK the way it stays out of GitHub's: the
+`fdroid` job publishes the ones F-Droid's build compiled to the `natives`
+release, and a phone fetches each from there once the user has allowed
+feature library downloads under Privacy.
 
 :::caution[Keep the flags matched to the channel]
 The flags pick the updater, and the wrong updater is worse than none.
