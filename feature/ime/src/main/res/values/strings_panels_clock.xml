@@ -44,6 +44,8 @@
     <string name="ime_clock_format_time">Time</string>
     <string name="ime_clock_format_date_time">Date and time</string>
     <string name="ime_clock_format_date_long">Full date</string>
+    <!-- The date in the Islamic (Hijri) calendar. -->
+    <string name="ime_clock_format_hijri">Hijri date</string>
     <string name="ime_clock_format_time_place">Time and place</string>
     <string name="ime_clock_format_iso">ISO 8601</string>
     <string name="ime_clock_format_relative">Relative</string>

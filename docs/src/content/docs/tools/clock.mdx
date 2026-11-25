@@ -34,10 +34,13 @@ Tap your own clock or any city tile, and a row of chips opens under it (under th
 | Time | `14:05` or `2:05 PM` |
 | Date and time | `Wed 14 Oct, 14:05` |
 | Full date | `Wednesday, 14 October 2026` |
+| Hijri date | `3 Jumada I 1448 AH`, the date in the Umm al-Qura calendar most phones show |
 | Time and place (the default) | `14:05 Tokyo (UTC+9)` |
 | ISO 8601 | `2026-10-14T14:05:00+09:00` |
 | Relative | `in 3 hours`, `2 days ago` |
 | Unix time | `1791000000` |
+
+The Hijri date turns over at midnight, as the phone's calendar does, not at sunset, and its month names come in the phone's language. For another calendar, or the Hijri date in a pattern of your own, use a [snippet](/tools/snippets/#template-variables) such as `{date@hijri:d MMMM y}` or `{date@persian}`.
 
 Under those is a row for Discord timestamps. Discord turns `<t:1791000000:F>` into a time in each reader's own time zone and language, so one message works for everyone in the server. Every style Discord has gets a chip, showing roughly what readers will see:
 

@@ -18,6 +18,9 @@ enum class InsertFormat(val id: String) {
     /** "Wednesday, 14 October 2026". */
     DATE_LONG("date_long"),
 
+    /** "3 Jumada I 1448 AH": the date in the Hijri (Umm al-Qura) calendar (Telegram 12043). */
+    HIJRI("hijri"),
+
     /** "14:05 Tokyo (UTC+9)": the time with the place it belongs to. */
     TIME_PLACE("time_place"),
 
@@ -114,6 +117,18 @@ object ClockFormats {
     fun longDate(at: Long, zone: TimeZone, locale: Locale = Locale.getDefault()): String =
         DateFormat.getDateInstance(DateFormat.FULL, locale).apply { timeZone = zone }.format(Date(at))
 
+    /**
+     * The date at [at] in [zone] in the Hijri calendar, Umm al-Qura's tables
+     * as most phones show it, in the locale's long style. The snippets'
+     * `{date@hijri:…}` reads the same calendar. Empty off the device, where
+     * there is no ICU.
+     */
+    fun hijriDate(at: Long, zone: TimeZone, locale: Locale = Locale.getDefault()): String = runCatching {
+        val hijri = android.icu.util.ULocale.forLocale(locale).setKeywordValue("calendar", "islamic-umalqura")
+        val calendar = android.icu.util.Calendar.getInstance(android.icu.util.TimeZone.getTimeZone(zone.id), hijri)
+        android.icu.text.DateFormat.getDateInstance(calendar, android.icu.text.DateFormat.LONG, hijri).format(Date(at))
+    }.getOrDefault("")
+
     fun weekday(at: Long, zone: TimeZone, locale: Locale = Locale.getDefault()): String =
         fmt("EEE", locale, zone).format(Date(at))
 
@@ -192,6 +207,7 @@ object ClockFormats {
         InsertFormat.TIME -> time(at, zone, hour24, locale)
         InsertFormat.DATE_TIME -> "${shortDate(at, zone, locale)}, ${time(at, zone, hour24, locale)}"
         InsertFormat.DATE_LONG -> longDate(at, zone, locale)
+        InsertFormat.HIJRI -> hijriDate(at, zone, locale)
         InsertFormat.TIME_PLACE ->
             "${time(at, zone, hour24, locale)} $place (${utcOffsetLabel(zone.getOffset(at) / 60_000)})"
         InsertFormat.ISO -> iso(at, zone)
