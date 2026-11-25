@@ -18,11 +18,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -153,6 +155,7 @@ internal fun KindTile(
 ) {
     val kb = LocalKbTheme.current
     val context = LocalContext.current
+    val plugins = LocalFilePlugins.current
     val kind = FileKinds.of(entry)
     val colour = kindColour(kind)
     val shape = RoundedCornerShape(corner)
@@ -173,6 +176,8 @@ internal fun KindTile(
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
+                thumbnails && plugins != null && !entry.isDirectory && plugins.thumbnailFor(entry) != null ->
+                    PluginThumb(entry, plugins) { Icon(kindIcon(kind), contentDescription = null, tint = colour, modifier = Modifier.size(side * iconScale)) }
                 else -> Icon(kindIcon(kind), contentDescription = null, tint = colour, modifier = Modifier.size(side * iconScale))
             }
         }
@@ -229,3 +234,26 @@ internal fun MeterBar(fraction: Float, colour: Color, modifier: Modifier = Modif
 }
 
 internal const val THUMB_PX = 192
+
+/** What plugins add to the file manager, while plugins are on; see [FilePlugins]. */
+internal val LocalFilePlugins = androidx.compose.runtime.staticCompositionLocalOf<com.wasimaster.wmkeyboard.ime.files.FilePlugins?> { null }
+
+/**
+ * A plugin's picture for [entry], made off the main thread and kept: the
+ * kind's icon ([placeholder]) until it is ready, and for good when the
+ * plugin draws none.
+ */
+@Composable
+private fun PluginThumb(entry: FileEntry, plugins: com.wasimaster.wmkeyboard.ime.files.FilePlugins, placeholder: @Composable () -> Unit) {
+    val picture by androidx.compose.runtime.produceState<androidx.compose.ui.graphics.ImageBitmap?>(null, entry.path, entry.modifiedMs) {
+        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            plugins.thumbnail(entry, THUMB_PX)?.asImageBitmap()
+        }
+    }
+    val shown = picture
+    if (shown == null) {
+        placeholder()
+    } else {
+        androidx.compose.foundation.Image(shown, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+    }
+}

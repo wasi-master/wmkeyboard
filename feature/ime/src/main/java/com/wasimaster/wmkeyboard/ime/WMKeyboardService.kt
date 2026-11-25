@@ -12286,6 +12286,7 @@ open class WMKeyboardService : InputMethodService() {
         pluginRuntime?.shutdown()
         pluginRuntime = null
         pluginActionRunner?.shutdown()
+        filePlugins?.runner?.shutdown()
         pluginActionRunner = null
         pluginServicesOrNull?.shutdown()
         pluginServicesOrNull = null
@@ -55118,6 +55119,7 @@ open class WMKeyboardService : InputMethodService() {
                 override fun commitFile(file: File, mime: String) = commitGalleryFile(file, mime)
                 override fun insertText(text: String) = onToolTextInsert(text)
                 override fun secureField() = currentInputEditorInfo.isSecureField()
+                override fun filePlugins() = filePluginsOrNull()
             },
         )
     }
@@ -57527,6 +57529,24 @@ open class WMKeyboardService : InputMethodService() {
      * action tapped while a panel is open must not close it.
      */
     private var pluginActionRunner: PluginActionRunner? = null
+
+    /** Plugin file previews, thumbnails and grammars for the Files tool; built the first time the tool asks with plugins on. */
+    private var filePlugins: com.wasimaster.wmkeyboard.ime.files.FilePlugins? = null
+
+    private fun filePluginsOrNull(): com.wasimaster.wmkeyboard.ime.files.FilePlugins? {
+        val store = PluginStore.get(this)
+        if (!store.subsystemEnabled()) return null
+        return filePlugins ?: com.wasimaster.wmkeyboard.ime.files.FilePlugins(
+            context = this,
+            store = store,
+            runner = com.wasimaster.wmkeyboard.core.plugins.PluginPreviewRunner(
+                store = store,
+                post = { body -> serviceScope.launch { body() } },
+                services = pluginServices(),
+                cacheDir = cacheDir,
+            ),
+        ).also { filePlugins = it }
+    }
 
     private fun requirePluginActionRunner(): PluginActionRunner =
         pluginActionRunner ?: PluginActionRunner(

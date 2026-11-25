@@ -643,6 +643,40 @@ internal fun highlight(code: String, language: String, dark: Boolean): Annotated
 }
 
 /**
+ * [code] coloured by a plugin's [grammar] when there is one, else by the
+ * keyboard's own tokenizer for [language]. The grammar's richer kinds share
+ * the five colours: tags and keywords alike, attributes and constants as
+ * numbers, functions as types, headings bold, links underlined.
+ */
+internal fun highlightWith(code: String, language: String, dark: Boolean, grammar: com.wasimaster.wmkeyboard.core.plugins.PluginSyntax.Grammar?): AnnotatedString =
+    if (grammar == null) highlight(code, language, dark) else highlightTokens(code, com.wasimaster.wmkeyboard.core.plugins.PluginSyntax.tokens(code, grammar), dark)
+
+/** [code] with a plugin grammar's [tokens] coloured. */
+internal fun highlightTokens(code: String, tokens: List<com.wasimaster.wmkeyboard.core.plugins.PluginSyntax.Token>, dark: Boolean): AnnotatedString = buildAnnotatedString {
+    append(code)
+    val palette = if (dark) SYNTAX_DARK else SYNTAX_LIGHT
+    for (token in tokens) {
+        if (token.start < 0 || token.end > code.length || token.start >= token.end) continue
+        addStyle(pluginSpan(token.kind, palette), token.start, token.end)
+    }
+}
+
+private fun pluginSpan(kind: com.wasimaster.wmkeyboard.core.plugins.PluginSyntax.Kind, palette: Array<Color>): SpanStyle {
+    val k = com.wasimaster.wmkeyboard.core.plugins.PluginSyntax.Kind
+    return when (kind) {
+        k.COMMENT -> SpanStyle(color = palette[0], fontStyle = FontStyle.Italic)
+        k.STRING -> SpanStyle(color = palette[1])
+        k.NUMBER, k.CONSTANT, k.ATTRIBUTE -> SpanStyle(color = palette[2])
+        k.KEYWORD, k.TAG, k.OPERATOR -> SpanStyle(color = palette[3])
+        k.TYPE, k.FUNCTION -> SpanStyle(color = palette[4])
+        k.HEADING -> SpanStyle(color = palette[3], fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+        k.LINK -> SpanStyle(color = palette[1], textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline)
+        k.EMPHASIS -> SpanStyle(fontStyle = FontStyle.Italic)
+        k.PUNCTUATION -> SpanStyle(color = palette[0])
+    }
+}
+
+/**
  * A monospace face that stays monospace. Some skins (ColorOS among them) point
  * the `monospace` family at their own proportional system font when a font
  * theme is on, so code would lose its columns; the file underneath is still

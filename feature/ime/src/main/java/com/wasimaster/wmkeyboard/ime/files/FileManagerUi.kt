@@ -240,7 +240,26 @@ data class PreviewUi(
     val appIcon: Drawable? = null,
     /** The Type choices are showing. */
     val typeMenu: Boolean = false,
-)
+    /** What can draw this file: the built-in view, where there is one, then the plugins that read it. */
+    val choices: List<PreviewChoice> = emptyList(),
+    /** The one drawing it: [PreviewChoice.BUILT_IN] or a plugin preview's key. */
+    val choice: String = PreviewChoice.BUILT_IN,
+    /** What the chosen plugin drew. */
+    val pluginUi: com.wasimaster.wmkeyboard.core.plugins.RenderedUi? = null,
+    /** Why the chosen plugin drew nothing. */
+    val pluginError: com.wasimaster.wmkeyboard.core.plugins.PluginText? = null,
+    /** A plugin grammar's colours for [text], when one reads this file. */
+    val syntax: List<com.wasimaster.wmkeyboard.core.plugins.PluginSyntax.Token>? = null,
+) {
+    val byPlugin: Boolean get() = choice != PreviewChoice.BUILT_IN
+}
+
+/** One way to draw a previewed file: the keyboard's own, or a plugin's ([label] its name). */
+data class PreviewChoice(val key: String, val label: String?) {
+    companion object {
+        const val BUILT_IN = "builtin"
+    }
+}
 
 /** The Properties card: a file's facts, or a folder's tally as it is counted. */
 data class InfoUi(
@@ -374,6 +393,18 @@ sealed interface FileAction {
     data object NewFolder : FileAction
 
     data class Preview(val entry: FileEntry) : FileAction
+
+    /** The one picked file, previewed: the selection menu's Preview. */
+    data object PreviewPicked : FileAction
+
+    /** A plugin preview's text into the field, from its output card's Type button. */
+    data class InsertPluginText(val text: String) : FileAction
+
+    /** A plugin preview's text to the clipboard. */
+    data class CopyPluginText(val text: String) : FileAction
+
+    /** "View with": draw the previewed file with [key] instead, and keep that choice for its type. */
+    data class PreviewWith(val key: String) : FileAction
     data class PreviewStep(val delta: Int) : FileAction
     data class PdfStep(val delta: Int) : FileAction
     data object ToggleTypeMenu : FileAction
@@ -403,4 +434,6 @@ sealed interface FileAction {
 data class FileManagerCallbacks(
     val state: StateFlow<FileManagerUi> = MutableStateFlow(FileManagerUi()),
     val onAction: (FileAction) -> Unit = {},
+    /** What plugins add, while plugins are on: thumbnails for the grid, grammars for code. */
+    val plugins: () -> FilePlugins? = { null },
 )

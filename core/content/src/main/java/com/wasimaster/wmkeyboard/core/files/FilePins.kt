@@ -70,4 +70,19 @@ object FilePins {
     fun forgetSearch(context: Context, text: String) {
         write(context, SEARCHES, searches(context).filterNot { it == text }.map { FilePin(it, it) })
     }
+
+    /**
+     * The "View with" choice last made for files ending in [extension] (lower
+     * case, no dot): the built-in view, or a plugin preview's key. Null when
+     * none was made. Kept on this device only.
+     */
+    fun previewChoice(context: Context, extension: String): String? =
+        prefs(context).getString(CHOICE_PREFIX + extension.lowercase(), null)
+
+    fun setPreviewChoice(context: Context, extension: String, choice: String) {
+        if (extension.isEmpty()) return
+        prefs(context).edit().putString(CHOICE_PREFIX + extension.lowercase(), choice).apply()
+    }
+
+    private const val CHOICE_PREFIX = "preview_choice."
 }

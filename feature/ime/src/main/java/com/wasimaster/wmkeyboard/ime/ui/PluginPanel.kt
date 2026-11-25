@@ -750,7 +750,15 @@ internal fun PluginHeaderActions(panel: PluginPanelUi.Running, onEvent: (PluginE
 private const val MAX_COMMANDS = 3
 
 /** The style the running panel remembers, built without a composition so a test can check each colour's source. */
-internal fun keyboardPluginStyle(kb: KbTheme, pluginId: String? = null, store: PluginStore? = null): PluginPanelStyle =
+internal fun keyboardPluginStyle(
+    kb: KbTheme,
+    pluginId: String? = null,
+    store: PluginStore? = null,
+    /** Plugin grammars for `ui.code`, on top of the keyboard's own colours. */
+    grammars: ((String) -> com.wasimaster.wmkeyboard.core.plugins.PluginSyntax.Grammar?)? = null,
+    /** The font a file preview of a font file draws `ui.font_sample` in. */
+    previewFont: androidx.compose.ui.text.font.FontFamily? = null,
+): PluginPanelStyle =
     PluginPanelStyle(
         text = kb.keyText,
         secondaryText = kb.secondaryText,
@@ -770,6 +778,8 @@ internal fun keyboardPluginStyle(kb: KbTheme, pluginId: String? = null, store: P
         icon = { name, tint, size -> Icon(pluginActionIcon(name), contentDescription = null, tint = tint, modifier = Modifier.size(size)) },
         image = { src, alt, modifier -> PluginAssetImage(src, alt, modifier, pluginId, store, kb.secondaryText) },
         qr = { value, size -> QrImage(value, Modifier.size(size)) },
+        highlight = { code, language -> highlightWith(code, language, kb.dark, grammars?.invoke(language)) },
+        previewFont = previewFont,
     )
 
 /**

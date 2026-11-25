@@ -103,13 +103,16 @@ internal class FileManagerController(
 
         /** A password field: nothing from here is typed into it. */
         fun secureField(): Boolean
+
+        /** What plugins add to previews, thumbnails and colouring; null while plugins are off. */
+        fun filePlugins(): FilePlugins? = null
     }
 
     private val app = context.applicationContext
     private val _state = MutableStateFlow(FileManagerUi())
     val state: StateFlow<FileManagerUi> = _state
 
-    val callbacks = FileManagerCallbacks(state = state, onAction = ::dispatch)
+    val callbacks = FileManagerCallbacks(state = state, onAction = ::dispatch, plugins = { host.filePlugins() })
 
     private var returnPanel = PanelMode.NONE
     private var open = false
@@ -1301,16 +1304,87 @@ internal class FileManagerController(
         showPreview(entry, index, files.size)
     }
 
+    /**
+     * Whether the keyboard draws [entry] itself: pictures, video, audio,
+     * text and code, PDFs, app packages and zips. Anything else is a plugin's
+     * to draw, or the "no preview" card.
+     */
+    private fun builtIn(entry: FileEntry, kind: FileKind): Boolean =
+        kind == FileKind.IMAGE || kind == FileKind.VIDEO || kind == FileKind.AUDIO || kind == FileKind.PDF ||
+            kind == FileKind.APK || FileKinds.isTextual(kind) || FileKinds.isZip(entry.name)
+
+    private fun extensionOf(entry: FileEntry): String = entry.name.substringAfterLast('.', "").lowercase()
+
     private fun showPreview(entry: FileEntry, index: Int, count: Int) {
         val kind = FileKinds.of(entry)
         previewJob?.cancel()
-        _state.update { it.copy(preview = PreviewUi(entry, kind, index, count), expanded = true) }
+        host.filePlugins()?.runner?.cancel()
+        val plugins = host.filePlugins()?.previewsFor(entry.name, entry.mime).orEmpty()
+        val own = builtIn(entry, kind)
+        val choices = buildList {
+            if (own) add(PreviewChoice(PreviewChoice.BUILT_IN, null))
+            for (ref in plugins) add(PreviewChoice(ref.key, ref.name))
+        }
+        // The choice made last for this type, while it is still on offer; else
+        // the keyboard's own, else the closest plugin.
+        val remembered = FilePins.previewChoice(app, extensionOf(entry))?.takeIf { key -> choices.any { it.key == key } }
+        val choice = remembered ?: choices.firstOrNull()?.key ?: PreviewChoice.BUILT_IN
+        _state.update { it.copy(preview = PreviewUi(entry, kind, index, count, choices = choices, choice = choice), expanded = true) }
+        if (choice != PreviewChoice.BUILT_IN) {
+            runPlugin(entry, choice)
+            return
+        }
+        loadBuiltIn(entry, kind, index, count)
+    }
+
+    /** "View with": [key] draws the file now, and next time for its type. */
+    private fun previewWith(key: String) {
+        val preview = _state.value.preview ?: return
+        if (preview.choice == key || preview.choices.none { it.key == key }) return
+        host.haptic()
+        FilePins.setPreviewChoice(app, extensionOf(preview.entry), key)
+        previewJob?.cancel()
+        host.filePlugins()?.runner?.cancel()
+        val reset = preview.copy(choice = key, loading = true, pluginUi = null, pluginError = null)
+        _state.update { it.copy(preview = reset) }
+        if (key == PreviewChoice.BUILT_IN) {
+            loadBuiltIn(preview.entry, preview.kind, preview.index, preview.count)
+        } else {
+            runPlugin(preview.entry, key)
+        }
+    }
+
+    private fun runPlugin(entry: FileEntry, key: String) {
+        val plugins = host.filePlugins()
+        val ref = plugins?.preview(key)
+        if (plugins == null || ref == null) {
+            _state.update { s ->
+                s.copy(preview = s.preview?.takeIf { it.entry.path == entry.path }?.copy(loading = false, pluginError = com.wasimaster.wmkeyboard.core.plugins.PluginText.of(com.wasimaster.wmkeyboard.plugins.R.string.core_plugins_error_turned_off)) ?: s.preview)
+            }
+            return
+        }
+        plugins.runner.preview(ref, plugins.source(entry)) { result ->
+            _state.update { s ->
+                val current = s.preview?.takeIf { it.entry.path == entry.path && it.choice == key } ?: return@update s
+                val next = when (result) {
+                    is com.wasimaster.wmkeyboard.core.plugins.PluginPreviewResult.Shown -> current.copy(loading = false, pluginUi = result.ui, pluginError = null)
+                    is com.wasimaster.wmkeyboard.core.plugins.PluginPreviewResult.Failed -> current.copy(loading = false, pluginError = result.message)
+                    is com.wasimaster.wmkeyboard.core.plugins.PluginPreviewResult.Stopped -> current.copy(loading = false, pluginError = result.message)
+                }
+                s.copy(preview = next)
+            }
+        }
+    }
+
+    private fun loadBuiltIn(entry: FileEntry, kind: FileKind, index: Int, count: Int) {
         previewJob = scope.launch {
             val loaded = withContext(Dispatchers.IO) {
                 when {
                     FileKinds.isTextual(kind) -> {
                         val text = DocFiles.readText(app, entry.path, PREVIEW_TEXT_MAX)
-                        PreviewUi(entry, kind, index, count, loading = false, text = text, textCut = entry.size > PREVIEW_TEXT_MAX)
+                        val grammar = host.filePlugins()?.grammarFor(entry.name)
+                        val syntax = if (text != null && grammar != null) com.wasimaster.wmkeyboard.core.plugins.PluginSyntax.tokens(text, grammar) else null
+                        PreviewUi(entry, kind, index, count, loading = false, text = text, textCut = entry.size > PREVIEW_TEXT_MAX, syntax = syntax)
                     }
                     kind == FileKind.PDF -> {
                         val page = FileDetails.pdfPage(app, entry.path, 0, PDF_PX)
@@ -1326,7 +1400,10 @@ internal class FileManagerController(
                     else -> PreviewUi(entry, kind, index, count, loading = false, facts = FileDetails.facts(app, entry.path, kind))
                 }
             }
-            _state.update { if (it.preview?.entry?.path == entry.path) it.copy(preview = loaded) else it }
+            _state.update { s ->
+                val current = s.preview?.takeIf { it.entry.path == entry.path && !it.byPlugin } ?: return@update s
+                s.copy(preview = loaded.copy(choices = current.choices, choice = current.choice))
+            }
         }
     }
 
@@ -1353,6 +1430,7 @@ internal class FileManagerController(
 
     private fun closePreview() {
         previewJob?.cancel()
+        host.filePlugins()?.runner?.cancel()
         _state.update { it.copy(preview = null, expanded = if (it.info == null) false else it.expanded) }
     }
 
@@ -1523,6 +1601,20 @@ internal class FileManagerController(
                 host.beginText(FilesTextEntry(FilesTextField.NEW_FOLDER))
             }
             is FileAction.Preview -> openPreview(action.entry)
+            is FileAction.PreviewWith -> previewWith(action.key)
+            FileAction.PreviewPicked -> _state.value.selection.singleOrNull()?.let { path ->
+                _state.value.panes.flatMap { it.entries }.firstOrNull { it.path == path && !it.isDirectory }?.let(::openPreview)
+            }
+            is FileAction.InsertPluginText -> if (host.secureField()) {
+                notice(FileNotice.Kind.FIELD_REFUSED)
+            } else {
+                host.insertText(action.text)
+                host.haptic()
+            }
+            is FileAction.CopyPluginText -> {
+                copyToClipboard(action.text)
+                notice(FileNotice.Kind.TEXT_COPIED)
+            }
             is FileAction.PreviewStep -> previewStep(action.delta)
             is FileAction.PdfStep -> pdfStep(action.delta)
             FileAction.ToggleTypeMenu -> _state.update { s -> s.copy(preview = s.preview?.let { it.copy(typeMenu = !it.typeMenu) }) }

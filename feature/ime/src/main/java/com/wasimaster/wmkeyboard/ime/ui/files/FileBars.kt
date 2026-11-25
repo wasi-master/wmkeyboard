@@ -62,6 +62,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.LibraryAdd
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreVert
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenWith
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Preview
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PushPin
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Replay
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SelectAll
@@ -325,6 +326,7 @@ internal fun SelectionMenu(ui: FileManagerUi, modifier: Modifier, pick: (FileAct
         if (one) MenuRow(Icons.Outlined.DriveFileRenameOutline, stringResource(R.string.ime_files_rename_desc)) { pick(FileAction.Rename) }
         if (ui.request == null && ui.folder != null) MenuRow(Icons.Outlined.LibraryAdd, stringResource(R.string.ime_files_duplicate)) { pick(FileAction.Duplicate) }
         if (zip && ui.request == null) MenuRow(Icons.Outlined.FolderOpen, stringResource(R.string.ime_files_unzip)) { pick(FileAction.Unzip) }
+        if (oneFile && ui.request == null) MenuRow(Icons.Outlined.Preview, stringResource(R.string.ime_files_preview)) { pick(FileAction.PreviewPicked) }
         if (oneFile) MenuRow(Icons.Outlined.OpenInNew, stringResource(R.string.ime_files_open_with)) { pick(FileAction.OpenWith) }
         if (one) MenuRow(Icons.Outlined.Info, stringResource(R.string.ime_files_info)) { pick(FileAction.Info) }
         if (one) MenuRow(Icons.Outlined.Link, stringResource(R.string.ime_files_copy_path)) { pick(FileAction.CopyPath) }

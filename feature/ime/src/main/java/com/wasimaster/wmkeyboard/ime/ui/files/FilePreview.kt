@@ -78,6 +78,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PlayArrow
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Send
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Share
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFields
+import com.wasimaster.wmkeyboard.core.plugins.resolve
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.files.FileAction
 import com.wasimaster.wmkeyboard.ime.files.FileManagerUi
@@ -109,10 +110,11 @@ import kotlin.math.abs
  */
 @Composable
 internal fun PreviewFace(ui: FileManagerUi, preview: PreviewUi, act: (FileAction) -> Unit) {
-    val media = preview.kind == FileKind.IMAGE || preview.kind == FileKind.VIDEO || preview.kind == FileKind.AUDIO
+    val media = !preview.byPlugin && (preview.kind == FileKind.IMAGE || preview.kind == FileKind.VIDEO || preview.kind == FileKind.AUDIO)
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
             if (media) MediaTop(preview, act) else CardTop(preview, act)
+            if (preview.choices.size > 1) ViewWith(preview, act)
             Box(
                 Modifier
                     .weight(1f)
@@ -129,6 +131,7 @@ internal fun PreviewFace(ui: FileManagerUi, preview: PreviewUi, act: (FileAction
                     },
             ) {
                 when {
+                    preview.byPlugin -> PluginBody(preview, act)
                     preview.kind == FileKind.IMAGE -> ImageBody(preview.entry)
                     preview.kind == FileKind.VIDEO -> VideoBody(preview.entry)
                     preview.kind == FileKind.AUDIO -> AudioBody(preview)
@@ -186,9 +189,10 @@ private fun CardTop(preview: PreviewUi, act: (FileAction) -> Unit) {
         KindTile(preview.entry, 40.dp, picked = false, thumbnails = false)
         Column(Modifier.weight(1f).padding(horizontal = 10.dp)) {
             Text(preview.entry.name, color = kb.popupText, fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.MiddleEllipsis)
-            val lines = preview.text?.let { t -> t.count { it == '\n' } + 1 }
+            val lines = preview.text?.takeIf { !preview.byPlugin }?.let { t -> t.count { it == '\n' } + 1 }
+            val by = preview.choices.firstOrNull { it.key == preview.choice && preview.byPlugin }?.label
             val parts = listOfNotNull(
-                stringResource(kindName(preview.kind)),
+                by?.let { stringResource(R.string.ime_files_preview_by, it) } ?: stringResource(kindName(preview.kind)),
                 bytes(context, preview.entry.size),
                 lines?.let { pluralStringResource(R.plurals.ime_files_lines, it, it) },
                 preview.pdfCount.takeIf { it > 0 }?.let { pluralStringResource(R.plurals.ime_files_pages, it, it) },
@@ -330,8 +334,13 @@ private fun TextBody(preview: PreviewUi) {
     val kb = LocalKbTheme.current
     val text = preview.text.orEmpty()
     val code = preview.kind == FileKind.CODE
-    val styled = remember(preview.entry.path, text) {
-        if (code) highlight(text, FileKinds.codeLanguage(preview.entry.name), kb.dark) else androidx.compose.ui.text.AnnotatedString(text)
+    val styled = remember(preview.entry.path, text, preview.syntax) {
+        val syntax = preview.syntax
+        when {
+            syntax != null -> com.wasimaster.wmkeyboard.ime.ui.highlightTokens(text, syntax, kb.dark)
+            code -> highlight(text, FileKinds.codeLanguage(preview.entry.name), kb.dark)
+            else -> androidx.compose.ui.text.AnnotatedString(text)
+        }
     }
     val lines = remember(text) { text.count { it == '\n' } + 1 }
     val numbers = remember(lines) { (1..lines).joinToString("\n") }
@@ -467,6 +476,136 @@ private fun ZipBody(preview: PreviewUi, act: (FileAction) -> Unit) {
     }
 }
 
+/**
+ * "View with": the keyboard's own view and each plugin that reads this type,
+ * as chips under the header. The one picked is kept for files of this type.
+ */
+@Composable
+private fun ViewWith(preview: PreviewUi, act: (FileAction) -> Unit) {
+    val kb = LocalKbTheme.current
+    Row(
+        Modifier.fillMaxWidth().background(kb.popup).horizontalScroll(rememberScrollState()).padding(start = 12.dp, end = 12.dp, bottom = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(stringResource(R.string.ime_files_view_with), color = kb.secondaryText, fontSize = 11.5.sp)
+        for (choice in preview.choices) {
+            com.wasimaster.wmkeyboard.ime.ui.ToolPanelChip(
+                choice.label ?: stringResource(R.string.ime_files_view_built_in),
+                selected = choice.key == preview.choice,
+            ) { act(FileAction.PreviewWith(choice.key)) }
+        }
+    }
+}
+
+/**
+ * What a plugin drew, in the keyboard's theme, with nothing to tap but the
+ * host's own copy and type buttons; or why it drew nothing, with the way back
+ * to the built-in view or another app.
+ */
+@Composable
+private fun PluginBody(preview: PreviewUi, act: (FileAction) -> Unit) {
+    val kb = LocalKbTheme.current
+    val context = LocalContext.current
+    val ui = preview.pluginUi
+    val error = preview.pluginError
+    when {
+        preview.loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(Modifier.size(24.dp), color = kb.secondaryText, strokeWidth = 2.dp)
+        }
+        error != null || ui == null -> Column(
+            Modifier.fillMaxSize().padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            KindTile(preview.entry, 64.dp, picked = false, thumbnails = false, corner = 16.dp)
+            Spacer(Modifier.height(12.dp))
+            Text(
+                error?.resolve(context) ?: stringResource(R.string.ime_files_no_preview),
+                color = kb.secondaryText,
+                fontSize = 13.sp,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(14.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (preview.choices.any { it.key == com.wasimaster.wmkeyboard.ime.files.PreviewChoice.BUILT_IN }) {
+                    PillButton(stringResource(R.string.ime_files_view_built_in), height = 34.dp) {
+                        act(FileAction.PreviewWith(com.wasimaster.wmkeyboard.ime.files.PreviewChoice.BUILT_IN))
+                    }
+                }
+                PillButton(stringResource(R.string.ime_files_open_with), icon = Icons.Outlined.OpenInNew, height = 34.dp) { act(FileAction.OpenWith) }
+            }
+        }
+        else -> {
+            val plugins = LocalFilePlugins.current
+            val pluginId = com.wasimaster.wmkeyboard.core.plugins.PluginPreviewRef.parse(preview.choice)?.first
+            val font = rememberPreviewFont(preview)
+            val store = remember { com.wasimaster.wmkeyboard.core.plugins.PluginStore.get(context) }
+            val style = remember(kb, pluginId, font, plugins) {
+                com.wasimaster.wmkeyboard.ime.ui.keyboardPluginStyle(
+                    kb,
+                    pluginId,
+                    store,
+                    grammars = plugins?.let { p -> { language: String -> p.grammarForLanguage(language) } },
+                    previewFont = font,
+                )
+            }
+            androidx.compose.runtime.CompositionLocalProvider(com.wasimaster.wmkeyboard.core.plugins.ui.LocalPluginPanelStyle provides style) {
+                Column(
+                    Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    com.wasimaster.wmkeyboard.core.plugins.ui.PluginWidgetList(
+                        widgets = ui.root,
+                        host = StillInputs,
+                        onEvent = {},
+                        onInsert = { text -> act(FileAction.InsertPluginText(text)) },
+                        onCopy = { text -> act(FileAction.CopyPluginText(text)) },
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** A preview has no text boxes the keys can reach: every one stays as drawn. */
+private object StillInputs : com.wasimaster.wmkeyboard.core.plugins.ui.PluginInputHost {
+    override fun value(id: String): String = ""
+    override fun isFocused(id: String): Boolean = false
+    override fun onFocus(id: String) = Unit
+    override fun onPaste(id: String) = Unit
+    override val onValueChange: ((String, String) -> Unit)? = null
+}
+
+/**
+ * The previewed file's own font, for `ui.font_sample`: loaded when the file
+ * is a font Android can read, else null and the sample is drawn in the
+ * panel's font.
+ */
+@Composable
+private fun rememberPreviewFont(preview: PreviewUi): androidx.compose.ui.text.font.FontFamily? {
+    val context = LocalContext.current
+    val path = preview.entry.path
+    val font by androidx.compose.runtime.produceState<androidx.compose.ui.text.font.FontFamily?>(null, path) {
+        if (preview.kind != FileKind.FONT) return@produceState
+        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            runCatching {
+                val typeface = if (!DocFiles.isDoc(path)) {
+                    android.graphics.Typeface.createFromFile(path)
+                } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    context.contentResolver.openFileDescriptor(DocFiles.uriOf(context, path), "r")?.use { fd ->
+                        android.graphics.Typeface.Builder(fd.fileDescriptor).build()
+                    }
+                } else {
+                    null
+                }
+                typeface?.takeIf { it != android.graphics.Typeface.DEFAULT }?.let { androidx.compose.ui.text.font.FontFamily(it) }
+            }.getOrNull()
+        }
+    }
+    return font
+}
+
 @Composable
 private fun NoPreview(preview: PreviewUi) {
     val kb = LocalKbTheme.current
@@ -520,8 +659,8 @@ private fun Filmstrip(ui: FileManagerUi, preview: PreviewUi, act: (FileAction) -
 @Composable
 private fun PreviewActions(ui: FileManagerUi, preview: PreviewUi, act: (FileAction) -> Unit) {
     val kb = LocalKbTheme.current
-    val textual = FileKinds.isTextual(preview.kind)
-    val media = preview.kind == FileKind.IMAGE || preview.kind == FileKind.VIDEO || preview.kind == FileKind.AUDIO
+    val textual = FileKinds.isTextual(preview.kind) && !preview.byPlugin
+    val media = !preview.byPlugin && (preview.kind == FileKind.IMAGE || preview.kind == FileKind.VIDEO || preview.kind == FileKind.AUDIO)
     if (media) {
         Row(
             Modifier.fillMaxWidth().background(PhotoBackdrop).padding(horizontal = 12.dp, vertical = 8.dp),

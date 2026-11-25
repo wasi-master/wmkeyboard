@@ -116,6 +116,10 @@
     <string name="ime_files_remove_tree_yes">Take off</string>
     <string name="ime_files_notice_tree_removed">Folder taken off the list</string>
     <string name="ime_files_open_with">Open with</string>
+    <string name="ime_files_preview">Preview</string>
+    <string name="ime_files_view_with">View with</string>
+    <string name="ime_files_view_built_in">Built-in</string>
+    <string name="ime_files_preview_by">Shown by %1$s</string>
     <string name="ime_files_notice_no_app">No app here opens this kind of file</string>
     <!-- The Files tool revamp (2026-11-26). -->
     <string name="ime_files_cat_images">Images</string>

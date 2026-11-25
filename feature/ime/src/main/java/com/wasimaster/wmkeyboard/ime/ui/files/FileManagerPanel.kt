@@ -127,88 +127,90 @@ internal fun FileManagerPanel(
     // A pick with no way in at all yet: what the grant is, and the picker that needs none.
     val noWayIn = ui.request != null && !ui.access && ui.trees.isEmpty()
 
-    FullBleedTool(
-        state = state,
-        title = "",
-        onClose = onClose,
-        extraHeight = if (ui.expanded || faceOpen) screen else 0.dp,
-        compact = typing != null,
-        compactHeight = if (typing?.field == FilesTextField.SEARCH) 300.dp else 240.dp,
-        headerActions = {
-            when {
-                typing != null -> TypingHeader(
-                    text = typing.text,
-                    placeholder = stringResource(
-                        when (typing.field) {
-                            FilesTextField.SEARCH -> R.string.ime_files_search_hint
-                            FilesTextField.RENAME -> R.string.ime_files_rename_hint
-                            FilesTextField.NEW_FOLDER -> R.string.ime_files_new_folder_hint
-                            FilesTextField.ZIP_NAME -> R.string.ime_files_zip_name_hint
-                        },
-                    ),
-                    pending = ui.searching,
-                    act = act,
-                )
-                ui.selection.isNotEmpty() && !faceOpen -> SelectionHeader(ui, act) { selectionMenu = !selectionMenu }
-                else -> Header(ui, browsable = !ui.locked && !noWayIn, act) { overflow = !overflow }
-            }
-        },
-    ) {
-        Box(Modifier.fillMaxSize()) {
-            val info = ui.info
-            val preview = ui.preview
-            when {
-                ui.locked -> EmptyState(
-                    icon = Icons.Outlined.Lock,
-                    title = stringResource(R.string.ime_files_locked_title),
-                    body = stringResource(R.string.ime_files_locked_body),
-                )
-                noWayIn -> NoAccess(act)
-                info != null -> InfoFace(info, act)
-                preview != null -> PreviewFace(ui, preview, act)
-                else -> Column(Modifier.fillMaxSize()) {
-                    if (searchMode) SearchFiltersRow(ui.filters, act)
-                    if (historyOpen) {
-                        Box(Modifier.weight(1f).fillMaxWidth()) { RecentSearches(ui.searches, act) }
-                    } else if (ui.twoPanes) {
-                        Row(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 4.dp, vertical = 2.dp)) {
-                            ui.panes.forEachIndexed { index, pane ->
-                                if (index > 0) Spacer(Modifier.width(4.dp))
-                                PaneColumn(ui, index, pane, focusedRow, act, Modifier.weight(1f))
+    androidx.compose.runtime.CompositionLocalProvider(LocalFilePlugins provides callbacks.plugins()) {
+        FullBleedTool(
+            state = state,
+            title = "",
+            onClose = onClose,
+            extraHeight = if (ui.expanded || faceOpen) screen else 0.dp,
+            compact = typing != null,
+            compactHeight = if (typing?.field == FilesTextField.SEARCH) 300.dp else 240.dp,
+            headerActions = {
+                when {
+                    typing != null -> TypingHeader(
+                        text = typing.text,
+                        placeholder = stringResource(
+                            when (typing.field) {
+                                FilesTextField.SEARCH -> R.string.ime_files_search_hint
+                                FilesTextField.RENAME -> R.string.ime_files_rename_hint
+                                FilesTextField.NEW_FOLDER -> R.string.ime_files_new_folder_hint
+                                FilesTextField.ZIP_NAME -> R.string.ime_files_zip_name_hint
+                            },
+                        ),
+                        pending = ui.searching,
+                        act = act,
+                    )
+                    ui.selection.isNotEmpty() && !faceOpen -> SelectionHeader(ui, act) { selectionMenu = !selectionMenu }
+                    else -> Header(ui, browsable = !ui.locked && !noWayIn, act) { overflow = !overflow }
+                }
+            },
+        ) {
+            Box(Modifier.fillMaxSize()) {
+                val info = ui.info
+                val preview = ui.preview
+                when {
+                    ui.locked -> EmptyState(
+                        icon = Icons.Outlined.Lock,
+                        title = stringResource(R.string.ime_files_locked_title),
+                        body = stringResource(R.string.ime_files_locked_body),
+                    )
+                    noWayIn -> NoAccess(act)
+                    info != null -> InfoFace(info, act)
+                    preview != null -> PreviewFace(ui, preview, act)
+                    else -> Column(Modifier.fillMaxSize()) {
+                        if (searchMode) SearchFiltersRow(ui.filters, act)
+                        if (historyOpen) {
+                            Box(Modifier.weight(1f).fillMaxWidth()) { RecentSearches(ui.searches, act) }
+                        } else if (ui.twoPanes) {
+                            Row(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 4.dp, vertical = 2.dp)) {
+                                ui.panes.forEachIndexed { index, pane ->
+                                    if (index > 0) Spacer(Modifier.width(4.dp))
+                                    PaneColumn(ui, index, pane, focusedRow, act, Modifier.weight(1f))
+                                }
+                            }
+                        } else {
+                            Crumbs(ui, ui.pane, active = true, act)
+                            Box(Modifier.weight(1f).fillMaxWidth()) {
+                                Listing(ui, ui.pane, active = true, compact = false, focusedRow = focusedRow, act = act)
                             }
                         }
-                    } else {
-                        Crumbs(ui, ui.pane, active = true, act)
-                        Box(Modifier.weight(1f).fillMaxWidth()) {
-                            Listing(ui, ui.pane, active = true, compact = false, focusedRow = focusedRow, act = act)
-                        }
+                        BottomBar(ui, act)
                     }
-                    BottomBar(ui, act)
                 }
-            }
 
-            Scrimmed(overflow && !faceOpen, onDismiss = { overflow = false }) {
-                OverflowMenu(ui, Modifier.align(Alignment.TopEnd).padding(end = 6.dp, top = 2.dp)) { action ->
-                    overflow = false
-                    act(action)
+                Scrimmed(overflow && !faceOpen, onDismiss = { overflow = false }) {
+                    OverflowMenu(ui, Modifier.align(Alignment.TopEnd).padding(end = 6.dp, top = 2.dp)) { action ->
+                        overflow = false
+                        act(action)
+                    }
                 }
-            }
-            Scrimmed(selectionMenu && ui.selection.isNotEmpty() && !faceOpen, onDismiss = { selectionMenu = false }) {
-                SelectionMenu(ui, Modifier.align(Alignment.TopEnd).padding(end = 6.dp, top = 2.dp)) { action ->
-                    selectionMenu = false
-                    act(action)
+                Scrimmed(selectionMenu && ui.selection.isNotEmpty() && !faceOpen, onDismiss = { selectionMenu = false }) {
+                    SelectionMenu(ui, Modifier.align(Alignment.TopEnd).padding(end = 6.dp, top = 2.dp)) { action ->
+                        selectionMenu = false
+                        act(action)
+                    }
                 }
+                Scrimmed(ui.confirmDelete, onDismiss = { act(FileAction.AnswerDelete(false)) }) {
+                    DeleteCard(ui.selection.size, Modifier.align(Alignment.Center), act)
+                }
+                Scrimmed(ui.confirmRemoveTree != null, onDismiss = { act(FileAction.AnswerRemoveTree(false)) }) {
+                    ui.confirmRemoveTree?.let { RemoveTreeCard(it.label, Modifier.align(Alignment.Center), act) }
+                }
+                Scrimmed(ui.clash != null, onDismiss = { act(FileAction.CancelClash) }) {
+                    ui.clash?.let { ClashCard(it, Modifier.align(Alignment.Center), act) }
+                }
+                NoticeLine(ui.notice, ui.undo, Modifier.align(Alignment.TopCenter).padding(top = 8.dp), act)
             }
-            Scrimmed(ui.confirmDelete, onDismiss = { act(FileAction.AnswerDelete(false)) }) {
-                DeleteCard(ui.selection.size, Modifier.align(Alignment.Center), act)
-            }
-            Scrimmed(ui.confirmRemoveTree != null, onDismiss = { act(FileAction.AnswerRemoveTree(false)) }) {
-                ui.confirmRemoveTree?.let { RemoveTreeCard(it.label, Modifier.align(Alignment.Center), act) }
-            }
-            Scrimmed(ui.clash != null, onDismiss = { act(FileAction.CancelClash) }) {
-                ui.clash?.let { ClashCard(it, Modifier.align(Alignment.Center), act) }
-            }
-            NoticeLine(ui.notice, ui.undo, Modifier.align(Alignment.TopCenter).padding(top = 8.dp), act)
         }
     }
 }
