@@ -1,0 +1,4 @@
+<resources>
+    <string name="core_feedback_pack_reject_too_large">A sound pack must be smaller than %1$s MB.</string>
+    <string name="core_feedback_sound_import_too_large_error">A key sound must be smaller than %1$s MB.</string>
+</resources>
