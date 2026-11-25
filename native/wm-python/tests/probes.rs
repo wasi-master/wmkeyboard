@@ -38,6 +38,11 @@ const DIVERGES: &[(&str, &str)] = &[
     ("049-escapes.py", concat!(r##"['a\tb', '\\', 'A', 'é', '\\q', '\\n', "it's", 'say "hi"', True]"##, "\n")),
     ("081-recursion.py", concat!(r##"[610, 2432902008176640000, 1.5511210043330986e+25]"##, "\n")),
     ("113-re-unicode.py", concat!(r##"[['café', 'naïve', '中文'], '--', (3, 4)]"##, "\n")),
+    // 2026-11-26: call and division errors in CPython's words, which count
+    // and name every missing argument and say which division it was.
+    ("026-zero-mod.py", "ERROR: Line 1: ZeroDivisionError: integer modulo by zero\n"),
+    ("078-functions-errors.py", "ERROR: Line 3: TypeError: f() takes 1 positional argument but 2 were given\n"),
+    ("080-functions-missing.py", "ERROR: Line 3: TypeError: f() missing 1 required positional argument: 'b'\n"),
     ("137-is-identity.py", concat!(r##"[True, True, False, False, True, False]"##, "\n")),
     ("163-edge-predicates-unicode.py", concat!(r##"[True, True, False, True, True, True, False, True, True]"##, "\n")),
     ("164-edge-strip-graphemes.py", concat!(r##"['éxé', 'x', 'a', 'x']"##, "\n")),

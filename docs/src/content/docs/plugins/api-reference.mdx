@@ -375,7 +375,8 @@ and `**kwargs`, `lambda`, decorators, `class` with single inheritance,
 (`first, *rest = items`), `*` and `**` spreads in calls and displays, chained
 comparisons, `b"…"` bytes literals, type annotations (read and ignored) and
 `import`. An exception raised with `raise … from cause` keeps the cause as
-`__cause__`.
+`__cause__`. A call with too many or too few arguments raises the `TypeError`
+CPython would, naming every missing argument.
 
 **Classes** work the way Python's do for everyday code: `__init__`, methods,
 class attributes, and the operator methods `__str__`, `__repr__`, `__eq__`,
@@ -404,7 +405,8 @@ float. Integers compare exactly too, so `2 ** 53 + 1 > 2 ** 53`, and nothing
 is less than, greater than or equal to `float("nan")`. `1 is True` is false, as
 in Python. `int()` reads text as Python does: `_` between digits, digits of
 any script (`int("৩")` is 3), and with base 0 a `0x`, `0o` or `0b` prefix.
-Format specs take `#` for that prefix: `f"{255:#x}"` is `"0xff"`.
+Format specs take `#` for that prefix: `f"{255:#x}"` is `"0xff"`. Dividing by
+zero raises `ZeroDivisionError` in CPython's words, and so does `0 ** -1`.
 
 **Built-in functions:** `abs`, `all`, `any`, `bin`, `bool`, `callable`, `chr`,
 `classmethod`, `delattr`, `dict`, `divmod`, `enumerate`, `filter`, `float`,

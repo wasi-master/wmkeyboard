@@ -11,6 +11,27 @@ you from their annotated fields.
 MISSING = object()
 
 
+def _arg_names(names):
+    quoted = ["'" + n + "'" for n in names]
+    if len(quoted) < 3:
+        return " and ".join(quoted)
+    return ", ".join(quoted[:-1]) + ", and " + quoted[-1]
+
+
+def _missing_error(who, names):
+    noun = "argument" if len(names) == 1 else "arguments"
+    return TypeError(f"{who} missing {len(names)} required positional {noun}: {_arg_names(names)}")
+
+
+def _too_many_error(who, least, most, given):
+    # Counts take in self, as CPython's do.
+    if least == most:
+        takes = f"{most} positional argument" + ("" if most == 1 else "s")
+    else:
+        takes = f"from {least} to {most} positional arguments"
+    return TypeError(f"{who} takes {takes} but {given} {'was' if given == 1 else 'were'} given")
+
+
 class FrozenInstanceError(AttributeError):
     pass
 
@@ -64,14 +85,17 @@ def _collect(cls):
 def _make_init(fields, frozen):
     init_fields = [f for f in fields if f.init]
     other_fields = [f for f in fields if not f.init]
+    required = len([f for f in init_fields if f.default is MISSING and f.default_factory is None])
 
     def __init__(self, *args, **kwargs):
+        who = type(self).__name__ + ".__init__()"
         if len(args) > len(init_fields):
-            raise TypeError(f"__init__() takes {len(init_fields)} positional arguments but {len(args)} were given")
+            raise _too_many_error(who, 1 + required, 1 + len(init_fields), 1 + len(args))
+        missing = []
         for i, f in enumerate(init_fields):
             if i < len(args):
                 if f.name in kwargs:
-                    raise TypeError(f"__init__() got multiple values for argument '{f.name}'")
+                    raise TypeError(f"{who} got multiple values for argument '{f.name}'")
                 value = args[i]
             elif f.name in kwargs:
                 value = kwargs.pop(f.name)
@@ -80,10 +104,13 @@ def _make_init(fields, frozen):
             elif f.default_factory is not None:
                 value = f.default_factory()
             else:
-                raise TypeError(f"__init__() missing required argument '{f.name}'")
+                missing.append(f.name)
+                continue
             object.__setattr__(self, f.name, value)
+        if missing:
+            raise _missing_error(who, missing)
         if kwargs:
-            raise TypeError(f"__init__() got an unexpected keyword argument '{list(kwargs)[0]}'")
+            raise TypeError(f"{who} got an unexpected keyword argument '{list(kwargs)[0]}'")
         for f in other_fields:
             if f.default is not MISSING:
                 object.__setattr__(self, f.name, f.default)

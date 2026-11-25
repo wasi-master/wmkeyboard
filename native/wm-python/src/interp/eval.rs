@@ -1713,10 +1713,13 @@ impl Interp {
         let sig = f.signature();
         let params = &sig.positional;
         if sig.variadic.is_none() && args.len() > params.len() {
-            return Err(self.error(
-                format!("{}() takes {} arguments but {} were given", f.name, params.len(), args.len()),
-                "TypeError",
-            ));
+            // CPython's words: "takes 2 positional arguments but 3 were
+            // given", "takes from 1 to 2 …" when some have defaults.
+            let max = params.len();
+            let min = (0..max).filter(|&i| f.defaults.get(i).is_none_or(Option::is_none)).count();
+            let takes = if min == max { plural(max, "positional argument") } else { format!("from {min} to {max} positional arguments") };
+            let was = if args.len() == 1 { "was" } else { "were" };
+            return Err(self.error(format!("{}() takes {takes} but {} {was} given", call_name(f), args.len()), "TypeError"));
         }
         // The scope starts with room for every name the last call bound, so
         // a call allocates it once and never grows it.
@@ -1741,23 +1744,32 @@ impl Interp {
         for (k, v) in kwargs {
             if params.iter().any(|p| p.name == k) || sig.keyword_only.iter().any(|p| p.name == k) {
                 if vars.contains_key(&k) {
-                    return Err(self.error(format!("{}() got multiple values for argument '{k}'", f.name), "TypeError"));
+                    return Err(self.error(format!("{}() got multiple values for argument '{k}'", call_name(f)), "TypeError"));
                 }
                 vars.insert(k, v);
             } else if sig.kwargs.is_some() {
                 extra.insert(HKey::Str(k), v);
             } else {
-                return Err(self.error(format!("{}() got an unexpected keyword argument '{k}'", f.name), "TypeError"));
+                return Err(self.error(format!("{}() got an unexpected keyword argument '{k}'", call_name(f)), "TypeError"));
             }
         }
+        // Every missing one is named at once, positional ones first, as CPython does.
+        let mut missing: Vec<&str> = Vec::new();
+        let mut missing_keyword: Vec<&str> = Vec::new();
         for (i, p) in params.iter().chain(sig.keyword_only.iter()).enumerate().skip(positional) {
             if by_keyword && vars.contains_key(&p.name) {
                 continue;
             }
-            let Some(v) = f.defaults.get(i).cloned().flatten() else {
-                return Err(self.error(format!("{}() missing required argument '{}'", f.name, p.name), "TypeError"));
-            };
-            vars.insert(p.name.clone(), v);
+            match f.defaults.get(i).cloned().flatten() {
+                Some(v) => vars.insert(p.name.clone(), v),
+                None if i < params.len() => missing.push(&p.name),
+                None => missing_keyword.push(&p.name),
+            }
+        }
+        if !missing.is_empty() || !missing_keyword.is_empty() {
+            let (names, kind) = if missing.is_empty() { (missing_keyword, "keyword-only") } else { (missing, "positional") };
+            let what = plural(names.len(), &format!("required {kind} argument"));
+            return Err(self.error(format!("{}() missing {what}: {}", call_name(f), name_list(&names)), "TypeError"));
         }
         if let Some(k) = &sig.kwargs {
             vars.insert(k.clone(), Value::new_dict(extra));
@@ -1984,28 +1996,34 @@ impl Interp {
             ));
         };
         let both_int = a.as_int().is_some() && b.as_int().is_some();
+        // CPython says which kind of division it was.
+        let by_zero = |int: &'static str, float: &'static str| if both_int { int } else { float };
         Ok(match op {
             BinOp::Add => numeric(x + y, both_int),
             BinOp::Sub => numeric(x - y, both_int),
             BinOp::Mul => numeric(x * y, both_int),
             BinOp::Div => {
                 if y == 0.0 {
-                    return Err(self.error("division by zero", "ZeroDivisionError"));
+                    return Err(self.error(by_zero("division by zero", "float division by zero"), "ZeroDivisionError"));
                 }
                 Value::Float(x / y)
             }
             BinOp::FloorDiv => {
                 if y == 0.0 {
-                    return Err(self.error("integer division or modulo by zero", "ZeroDivisionError"));
+                    let message = by_zero("integer division or modulo by zero", "float floor division by zero");
+                    return Err(self.error(message, "ZeroDivisionError"));
                 }
                 numeric((x / y).floor(), both_int)
             }
             BinOp::Mod => {
                 if y == 0.0 {
-                    return Err(self.error("integer division or modulo by zero", "ZeroDivisionError"));
+                    return Err(self.error(by_zero("integer modulo by zero", "float modulo by zero"), "ZeroDivisionError"));
                 }
                 // Python's modulo takes the sign of the divisor.
                 numeric(x - (x / y).floor() * y, both_int)
+            }
+            BinOp::Pow if x == 0.0 && y < 0.0 => {
+                return Err(self.error("0.0 cannot be raised to a negative power", "ZeroDivisionError"));
             }
             BinOp::Pow => numeric(x.powf(y), both_int && y >= 0.0),
             _ => return Err(self.error(format!("unsupported operand type(s) for {}", op_symbol(op)), "TypeError")),
@@ -2028,7 +2046,7 @@ impl Interp {
             }
             BinOp::Mod => {
                 if y == 0 {
-                    return Err(self.error(zero(), "ZeroDivisionError"));
+                    return Err(self.error("integer modulo by zero", "ZeroDivisionError"));
                 }
                 // Python's modulo takes the sign of the divisor.
                 x.checked_rem(y).map(|r| Value::Int(if r != 0 && ((r < 0) != (y < 0)) { r + y } else { r }))
@@ -2569,6 +2587,33 @@ pub(crate) fn exception_matches(clause: &str, kind: &str) -> bool {
         "OSError" => matches!(kind, "PermissionError" | "TimeoutError" | "ConnectionError" | "FileNotFoundError"),
         "RuntimeError" => kind == "NotImplementedError",
         _ => false,
+    }
+}
+
+/// How a call error names [f]: `C.m` for a method defined in a class body,
+/// as CPython's qualified name does, or its own name.
+fn call_name(f: &Function) -> String {
+    if let Some(Value::Str(q)) = f.attrs.borrow().get("__qualname__") {
+        return q.to_string();
+    }
+    match f.owner.borrow().as_ref().and_then(|w| w.upgrade()) {
+        Some(class) => format!("{}.{}", class.name, f.name),
+        None => f.name.to_string(),
+    }
+}
+
+/// "1 positional argument", "2 positional arguments".
+fn plural(n: usize, noun: &str) -> String {
+    format!("{n} {noun}{}", if n == 1 { "" } else { "s" })
+}
+
+/// 'a'; 'a' and 'b'; 'a', 'b', and 'c': how CPython lists missing arguments.
+fn name_list(names: &[&str]) -> String {
+    let quoted: Vec<String> = names.iter().map(|n| format!("'{n}'")).collect();
+    match quoted.len() {
+        0 | 1 => quoted.concat(),
+        2 => format!("{} and {}", quoted[0], quoted[1]),
+        n => format!("{}, and {}", quoted[..n - 1].join(", "), quoted[n - 1]),
     }
 }
 

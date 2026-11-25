@@ -128,8 +128,8 @@ fn decorators_on_functions_and_classes() {
 #[test]
 fn keyword_only_parameters_and_kwargs() {
     assert_eq!("1 2 {'c': 3}", run("def f(a, *, b, **rest):\n    return f'{a} {b} {rest}'\nf(1, b=2, c=3)"));
-    assert!(error("def f(a, *, b):\n    pass\nf(1, 2)").contains("takes 1 arguments but 2 were given"));
-    assert!(error("def f(a, *, b):\n    pass\nf(1)").contains("missing required argument 'b'"));
+    assert!(error("def f(a, *, b):\n    pass\nf(1, 2)").contains("f() takes 1 positional argument but 2 were given"));
+    assert!(error("def f(a, *, b):\n    pass\nf(1)").contains("f() missing 1 required keyword-only argument: 'b'"));
     assert_eq!("3", run("def f(a, b):\n    return a + b\nf(**{'a': 1, 'b': 2})"));
     assert_eq!("[1, 2, 3, 4]", run("a = [1, 2]\n[*a, *[3, 4]]"));
     assert_eq!("{'x': 1, 'y': 2}", run("a = {'x': 1}\n{**a, 'y': 2}"));
@@ -195,7 +195,7 @@ fn dataclasses_write_init_repr_and_eq() {
     assert_eq!("True", run(&format!("{src}Item('a', True) == Item('a', done=True)")));
     assert_eq!("{'name': 'a', 'done': True, 'tags': ['x']}", run(&format!("{src}asdict(Item('a', True, ['x']))")));
     assert_eq!("Item(name='b', done=False, tags=[])", run(&format!("{src}replace(Item('a'), name='b')")));
-    assert!(error(&format!("{src}Item()")).contains("missing required argument 'name'"));
+    assert!(error(&format!("{src}Item()")).contains("missing 1 required positional argument: 'name'"));
     assert!(error("from dataclasses import dataclass\n@dataclass(frozen=True)\nclass P:\n    x: int\np = P(1)\np.x = 2").contains("cannot assign to field 'x'"));
     assert_eq!("[P(x=1), P(x=2)]", run("from dataclasses import dataclass\n@dataclass(order=True)\nclass P:\n    x: int\nsorted([P(2), P(1)])"));
 }

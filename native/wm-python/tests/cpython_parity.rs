@@ -4,7 +4,8 @@
 //! frozenset and bytearray, keyword arguments of builtins, slice and starred
 //! assignment, `raise … from`, `re.compile` and lookaround, json options,
 //! int literals, `#` formats, the math, str and itertools additions, whitespace
-//! splits, exact integer comparisons, and `range` loops past the container cap.
+//! splits, exact integer comparisons, `range` loops past the container cap, and
+//! the wording of call and division errors.
 
 mod common;
 use common::big_stack;
@@ -411,6 +412,71 @@ fn integer_comparisons_are_exact() {
         py(r#"nan = float('nan')
 repr((2**53 + 1 == 2**53, 2**62 + 1 > 2**62, sorted([2**60, 2**60 - 1, 3]), max(2**60 - 1, 2**60), nan <= 1, 1 >= nan, nan == nan, 1 < 2.5, True < 2, 3 == 3.0))"#),
         r#"(False, True, [3, 1152921504606846975, 1152921504606846976], 1152921504606846976, False, False, False, True, True, True)"#
+    );
+}
+
+#[test]
+fn call_and_division_errors() {
+    assert_eq!(
+        py(r#"from dataclasses import dataclass
+from collections import namedtuple
+from typing import NamedTuple
+def g(x, y):
+    pass
+def f(a, b=2):
+    pass
+def k(a, *, c, d):
+    pass
+class C:
+    def m(self, x):
+        pass
+@dataclass
+class Item:
+    name: str
+    done: bool = False
+Q = namedtuple('Q', 'a b')
+class P(NamedTuple):
+    x: int
+    y: int = 0
+calls = [lambda: g(1), lambda: g(), lambda: g(1, 2, 3), lambda: f(1, 2, 3), lambda: f(), lambda: k(1), lambda: k(1, c=2),
+         lambda: C().m(), lambda: C().m(1, 2), lambda: Item(), lambda: Item(1, 2, 3), lambda: Item(1, name=2), lambda: Q(),
+         lambda: Q(1, 2, 3), lambda: Q(1, a=2), lambda: P(), lambda: P(1, 2, 3), lambda: 1 / 0, lambda: 1.0 / 0,
+         lambda: 1 // 0, lambda: 1.0 // 0, lambda: 1 % 0, lambda: 1.0 % 0, lambda: divmod(1, 0), lambda: divmod(1.0, 0),
+         lambda: 0 ** -1]
+out = []
+for call in calls:
+    try:
+        call()
+        out.append('no error')
+    except (TypeError, ZeroDivisionError) as e:
+        out.append(str(e))
+'\n'.join(out)"#),
+        r#"g() missing 1 required positional argument: 'y'
+g() missing 2 required positional arguments: 'x' and 'y'
+g() takes 2 positional arguments but 3 were given
+f() takes from 1 to 2 positional arguments but 3 were given
+f() missing 1 required positional argument: 'a'
+k() missing 2 required keyword-only arguments: 'c' and 'd'
+k() missing 1 required keyword-only argument: 'd'
+C.m() missing 1 required positional argument: 'x'
+C.m() takes 2 positional arguments but 3 were given
+Item.__init__() missing 1 required positional argument: 'name'
+Item.__init__() takes from 2 to 3 positional arguments but 4 were given
+Item.__init__() got multiple values for argument 'name'
+Q.__new__() missing 2 required positional arguments: 'a' and 'b'
+Q.__new__() takes 3 positional arguments but 4 were given
+Q.__new__() got multiple values for argument 'a'
+P.__new__() missing 1 required positional argument: 'x'
+P.__new__() takes from 2 to 3 positional arguments but 4 were given
+division by zero
+float division by zero
+integer division or modulo by zero
+float floor division by zero
+integer modulo by zero
+float modulo by zero
+integer division or modulo by zero
+float divmod()
+0.0 cannot be raised to a negative power"#
     );
 }
 

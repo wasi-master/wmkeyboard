@@ -239,6 +239,41 @@ repr((s.split(), s.split(None, 1), s.split(None, 0), s.rsplit(None, 1), s.rsplit
 nan = float('nan')
 repr((2**53 + 1 == 2**53, 2**62 + 1 > 2**62, sorted([2**60, 2**60 - 1, 3]), max(2**60 - 1, 2**60), nan <= 1, 1 >= nan, nan == nan, 1 < 2.5, True < 2, 3 == 3.0))
 '''),
+    ("call_and_division_errors", "errors", r'''
+from dataclasses import dataclass
+from collections import namedtuple
+from typing import NamedTuple
+def g(x, y):
+    pass
+def f(a, b=2):
+    pass
+def k(a, *, c, d):
+    pass
+class C:
+    def m(self, x):
+        pass
+@dataclass
+class Item:
+    name: str
+    done: bool = False
+Q = namedtuple('Q', 'a b')
+class P(NamedTuple):
+    x: int
+    y: int = 0
+calls = [lambda: g(1), lambda: g(), lambda: g(1, 2, 3), lambda: f(1, 2, 3), lambda: f(), lambda: k(1), lambda: k(1, c=2),
+         lambda: C().m(), lambda: C().m(1, 2), lambda: Item(), lambda: Item(1, 2, 3), lambda: Item(1, name=2), lambda: Q(),
+         lambda: Q(1, 2, 3), lambda: Q(1, a=2), lambda: P(), lambda: P(1, 2, 3), lambda: 1 / 0, lambda: 1.0 / 0,
+         lambda: 1 // 0, lambda: 1.0 // 0, lambda: 1 % 0, lambda: 1.0 % 0, lambda: divmod(1, 0), lambda: divmod(1.0, 0),
+         lambda: 0 ** -1]
+out = []
+for call in calls:
+    try:
+        call()
+        out.append('no error')
+    except (TypeError, ZeroDivisionError) as e:
+        out.append(str(e))
+'\n'.join(out)
+'''),
     ("range_loops_count_past_the_container_cap", "loops", r'''
 t = 0
 for i in range(25000):
@@ -276,7 +311,8 @@ out = ['''//! What Python itself does, where PyMini did otherwise or had nothing
 //! frozenset and bytearray, keyword arguments of builtins, slice and starred
 //! assignment, `raise … from`, `re.compile` and lookaround, json options,
 //! int literals, `#` formats, the math, str and itertools additions, whitespace
-//! splits, exact integer comparisons, and `range` loops past the container cap.
+//! splits, exact integer comparisons, `range` loops past the container cap, and
+//! the wording of call and division errors.
 
 mod common;
 use common::big_stack;

@@ -61,6 +61,27 @@ def get_type_hints(obj):
     return dict(getattr(obj, "__annotations__", {}))
 
 
+def _arg_names(names):
+    quoted = ["'" + n + "'" for n in names]
+    if len(quoted) < 3:
+        return " and ".join(quoted)
+    return ", ".join(quoted[:-1]) + ", and " + quoted[-1]
+
+
+def _missing_error(who, names):
+    noun = "argument" if len(names) == 1 else "arguments"
+    return TypeError(f"{who} missing {len(names)} required positional {noun}: {_arg_names(names)}")
+
+
+def _too_many_error(who, least, most, given):
+    # Counts take in self, as CPython's do.
+    if least == most:
+        takes = f"{most} positional argument" + ("" if most == 1 else "s")
+    else:
+        takes = f"from {least} to {most} positional arguments"
+    return TypeError(f"{who} takes {takes} but {given} {'was' if given == 1 else 'were'} given")
+
+
 class Generic:
     def __class_getitem__(cls, item):
         return cls
@@ -85,18 +106,26 @@ class NamedTuple:
     def __init__(self, *args, **kwargs):
         cls = type(self)
         names = cls._fields
+        who = cls.__name__ + ".__new__()"
         if len(args) > len(names):
-            raise TypeError(f"{cls.__name__}() takes {len(names)} arguments but {len(args)} were given")
+            least = 1 + len([n for n in names if n not in cls._field_defaults])
+            raise _too_many_error(who, least, 1 + len(names), 1 + len(args))
+        for name in names[:len(args)]:
+            if name in kwargs:
+                raise TypeError(f"{who} got multiple values for argument '{name}'")
         values = list(args)
+        missing = []
         for name in names[len(args):]:
             if name in kwargs:
                 values.append(kwargs.pop(name))
             elif name in cls._field_defaults:
                 values.append(cls._field_defaults[name])
             else:
-                raise TypeError(f"{cls.__name__}() missing required argument '{name}'")
+                missing.append(name)
+        if missing:
+            raise _missing_error(who, missing)
         if kwargs:
-            raise TypeError(f"{cls.__name__}() got an unexpected keyword argument '{list(kwargs)[0]}'")
+            raise TypeError(f"{who} got an unexpected keyword argument '{list(kwargs)[0]}'")
         object.__setattr__(self, "_values", tuple(values))
         for name, value in zip(names, values):
             object.__setattr__(self, name, value)

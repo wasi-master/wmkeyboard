@@ -245,6 +245,27 @@ class deque:
         return f"deque({self._items!r}, maxlen={self.maxlen})"
 
 
+def _arg_names(names):
+    quoted = ["'" + n + "'" for n in names]
+    if len(quoted) < 3:
+        return " and ".join(quoted)
+    return ", ".join(quoted[:-1]) + ", and " + quoted[-1]
+
+
+def _missing_error(who, names):
+    noun = "argument" if len(names) == 1 else "arguments"
+    return TypeError(f"{who} missing {len(names)} required positional {noun}: {_arg_names(names)}")
+
+
+def _too_many_error(who, least, most, given):
+    # Counts take in self, as CPython's do.
+    if least == most:
+        takes = f"{most} positional argument" + ("" if most == 1 else "s")
+    else:
+        takes = f"from {least} to {most} positional arguments"
+    return TypeError(f"{who} takes {takes} but {given} {'was' if given == 1 else 'were'} given")
+
+
 def namedtuple(typename, field_names, defaults=None):
     if isinstance(field_names, str):
         field_names = field_names.replace(",", " ").split()
@@ -256,9 +277,14 @@ def namedtuple(typename, field_names, defaults=None):
         _fields = fields
 
         def __init__(self, *args, **kwargs):
+            who = typename + ".__new__()"
             if len(args) > len(fields):
-                raise TypeError(f"{typename}() takes {len(fields)} arguments but {len(args)} were given")
+                raise _too_many_error(who, 1 + first_default, 1 + len(fields), 1 + len(args))
+            for name in fields[:len(args)]:
+                if name in kwargs:
+                    raise TypeError(f"{who} got multiple values for argument '{name}'")
             values = list(args)
+            missing = []
             for i in range(len(args), len(fields)):
                 name = fields[i]
                 if name in kwargs:
@@ -266,9 +292,11 @@ def namedtuple(typename, field_names, defaults=None):
                 elif i >= first_default:
                     values.append(defaults[i - first_default])
                 else:
-                    raise TypeError(f"{typename}() missing required argument '{name}'")
+                    missing.append(name)
+            if missing:
+                raise _missing_error(who, missing)
             if kwargs:
-                raise TypeError(f"{typename}() got an unexpected keyword argument '{list(kwargs)[0]}'")
+                raise TypeError(f"{who} got an unexpected keyword argument '{list(kwargs)[0]}'")
             object.__setattr__(self, "_values", tuple(values))
             for name, value in zip(fields, values):
                 object.__setattr__(self, name, value)

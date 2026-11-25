@@ -301,6 +301,15 @@ impl Interp {
             }
             "divmod" => {
                 self.arity(name, &args, 2)?;
+                // One message for both halves, as CPython gives.
+                if args[1].as_float() == Some(0.0) && args[0].as_float().is_some() {
+                    let message = if matches!(args[0], Value::Float(_)) || matches!(args[1], Value::Float(_)) {
+                        "float divmod()"
+                    } else {
+                        "integer division or modulo by zero"
+                    };
+                    return Err(self.error(message, "ZeroDivisionError"));
+                }
                 let q = self.binary_op(BinOp::FloorDiv, &args[0], &args[1])?;
                 let r = self.binary_op(BinOp::Mod, &args[0], &args[1])?;
                 Ok(Value::tuple(vec![q, r]))
