@@ -1,0 +1,20 @@
+<resources>
+    <string name="core_input_chewing_pack_subtitle">libchewing-data\&amp;apos;s characters and phrases, about 4.5 MB. The Chewing engine converts with this; the built-in engine does not use it.</string>
+    <string name="core_input_cjk_pack_furigana_subtitle">كانجىلىق سۆزلەرنىڭ ئوقۇلۇشلىرى، تاللانغان ياپونچە تېكىستكە furigana قوشۇش ئۈچۈن.</string>
+    <string name="core_input_cjk_pack_furigana_title">Furigana ئوقۇلۇشلىرى</string>
+    <string name="core_input_cjk_pack_hanja_subtitle">Hangul سۆزلىرى ۋە ئۇلارنىڭ Hanja يېزىلىشى، 300,000 تۈر. كۇنۇپكا تاختىسى تەكلىپ بەلبېغىدا Hanja تەكلىپ قىلىش ئۈچۈن بۇ بوغچىنى تەلەپ قىلىدۇ.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell، شۇڭا سۆز ئالدى-كەينى قوشۇمچىلىرى بىلەن بىرگە تونۇلىدۇ ۋە ئۇنىڭدىكى خاتا يېزىلىش تۈزىتىلىدۇ.</string>
+    <string name="core_input_cjk_pack_ja_kana_subtitle">Kana readings from mozc, 1.08 million entries, about 42 MB. The keyboard needs this pack for Japanese conversion.</string>
+    <string name="core_input_cjk_pack_kiwi_subtitle">What Fix spacing reads Korean with. Takes about 100 MB once unpacked.</string>
+    <string name="core_input_cjk_pack_ru_yo_subtitle">«ё نى قايتۇرۇش» ئوقۇيدىغان تىزىملىك، تاللانغان رۇسچە تېكىستتە ё نى ئەسلىگە قايتۇرۇش ئۈچۈن.</string>
+    <string name="core_input_cjk_pack_ru_yo_title">ё بار سۆزلەر</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">Phrases from OpenCC, 50,000 entries, about 1 MB. With Traditional characters on, the keyboard uses it to write the correct form for the word, such as 頭髮 and not 頭發.</string>
+    <string name="core_input_cjk_pack_wubi_subtitle">Wubi كودلىرىنى خەنزۇ يېزىقلىرى ۋە ئىبارىلەرگە ئايلاندۇرىدىغان جەدۋەل، 93,000 قۇر. كۇنۇپكا تاختىسى Wubi تەرتىپى ئۈچۈن بۇ بوغچىنى تەلەپ قىلىدۇ.</string>
+    <string name="core_input_mozc_pack_subtitle">Mozc\&amp;apos;s own system dictionary, with its connection costs, segmenter and suggestion filter. The Mozc engine converts with this; the built-in engine does not use it.</string>
+    <string name="core_input_mozc_pack_title">Mozc dictionary</string>
+    <string name="core_input_rime_pack_base_subtitle">Punctuation, symbols, the word-frequency table and the Simplified and Traditional conversion every RIME schema uses. Downloaded with the first schema.</string>
+    <string name="core_input_rime_pack_base_title">RIME essentials</string>
+    <string name="core_input_rime_pack_bopomofo_subtitle">RIME\&amp;apos;s Zhuyin schema on the standard Dachen key map, with Terra Pinyin\&amp;apos;s dictionary.</string>
+    <string name="core_input_rime_pack_cangjie5_subtitle">RIME\&amp;apos;s fifth-generation Cangjie schema, characters and phrases.</string>
+    <string name="core_input_rime_pack_luna_pinyin_subtitle">RIME\&amp;apos;s own Pinyin schema, with the stroke schema it looks characters up by.</string>
+</resources>
