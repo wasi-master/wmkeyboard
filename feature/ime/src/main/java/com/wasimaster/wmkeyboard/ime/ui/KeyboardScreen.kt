@@ -12647,7 +12647,14 @@ private fun StripTools(
     val drawn: List<Any?> = order + customIds.map { StripCustomEntry(it) }
     for (entry in if (stripToolsHeldLtr(state)) drawn.asReversed() else drawn) {
         when (entry) {
-            null -> key("§toolbox") { StripToolboxButton(state, drag, onPinnedTools, onToolbox) }
+            null -> key("§toolbox") {
+                StripToolboxButton(state, drag, onPinnedTools, onToolbox)
+                // The toolbox's search lives on the tools' bar, and with the
+                // tools on a row of their own that is closed (A button, most
+                // of all with the arrow off) the toolbox opened from here had
+                // no search at all (Telegram 11406). It sits by this button then.
+                if (stripToolboxSearchShown(state, toolsRowVisible)) StripToolboxSearchButton(state, drag)
+            }
             is StripCustomEntry -> key("§custom:${entry.id}") { StripCustomButton(state, entry.id, drag) }
             is ToolbarTool -> {
                 // Only the switch added by itself is a step down in size.
@@ -12749,6 +12756,33 @@ private fun StripToolboxButton(
         widthDp = behavior.stripToolWidthDp.takeIf { behavior.stripOwnSize },
         iconSizeDp = behavior.stripIconSizeDp.takeIf { behavior.stripOwnSize },
     ) { onToolbox() }
+}
+
+/**
+ * Whether the toolbox's search button goes beside the strip's toolbox button:
+ * the toolbox is open and no bar with the search on it is on screen, which is
+ * a row of its own left closed. The shared strip never needs it, since an open
+ * panel puts the toolbar in its place.
+ */
+private fun stripToolboxSearchShown(state: KeyboardUiState, toolsRowVisible: Boolean): Boolean =
+    state.panel == PanelMode.TOOLBOX && !toolsRowVisible &&
+        state.settings.toolbox.searchButton && !state.toolboxView.searchActive
+
+/** The toolbox's search beside the strip's toolbox button; see [stripToolboxSearchShown]. */
+@Composable
+private fun StripToolboxSearchButton(state: KeyboardUiState, drag: ToolDragController) {
+    val behavior = state.settings.toolbarBehavior
+    val label = stringResource(R.string.ime_toolbox_search_desc)
+    ToolCircle(
+        slot = IconSlots.CHROME_TOOLBOX_SEARCH,
+        description = label,
+        active = false,
+        modifier = Modifier.stripToolGap(behavior),
+        longPressLabel = label,
+        wide = true,
+        widthDp = behavior.stripToolWidthDp.takeIf { behavior.stripOwnSize },
+        iconSizeDp = behavior.stripIconSizeDp.takeIf { behavior.stripOwnSize },
+    ) { drag.toolbox.onSearchToggle() }
 }
 
 /**
@@ -16697,9 +16731,12 @@ private fun KeyboardBody(
             // open/closed flag lives out here where both can reach it. It resets
             // whenever the placement changes, or a row opened under one
             // arrangement would still be open under another that has no way to
-            // close it.
+            // close it. The same when Arrow to the tools is turned off or on:
+            // a row the arrow opened stayed open with no arrow left to close
+            // it, a second bar of tools over the strip (Telegram 11411).
             val placement = state.settings.toolbarBehavior.placement
-            var toolsRowOpen by remember(placement) { mutableStateOf(false) }
+            val toolsArrow = state.settings.toolbarBehavior.toolsArrow
+            var toolsRowOpen by remember(placement, toolsArrow) { mutableStateOf(false) }
             // Sideways, the tools may stand in a column beside the keys
             // instead (#970), drawn around this column rather than in it.
             val toolsColumn = toolsColumnSide(state) != null
