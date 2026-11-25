@@ -103,6 +103,8 @@
     <string name="core_voice_library_consent">Offline voice typing needs a feature library, and feature library downloads are off. Turn them on in Settings › Privacy › Feature libraries, then try again.</string>
     <string name="core_voice_library_import">This offline build cannot download the voice typing library. Get it and import it in Settings › Privacy › Feature libraries.</string>
     <string name="core_voice_library_licence">Offline voice typing needs a library whose licence you have not accepted yet. Open Settings › Voice typing to accept it, then try again.</string>
+    <!-- Said when the download of the offline voice typing part failed and the connection is the likely reason. -->
+    <string name="core_voice_library_failed_online">The offline voice typing part of the keyboard did not download. Check the connection, then try again.</string>
     <string name="core_voice_whisper_module_restart">The offline voice typing part just finished installing. Close and reopen the keyboard to use it.</string>
     <string name="core_voice_whisper_runtime_load_error">The LiteRT voice library did not load, so the model file is not at fault. Pick a Whisper model without LiteRT in its name.</string>
     <string name="core_voice_whisper_transcribe_error">Voice typing did not work. Try again, or select a smaller model.</string>

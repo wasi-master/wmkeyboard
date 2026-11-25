@@ -100,6 +100,7 @@ import com.wasimaster.wmkeyboard.core.media.MediaMime
 import com.wasimaster.wmkeyboard.core.media.MediaScrub
 import com.wasimaster.wmkeyboard.core.media.gallery.MediaPrep
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.ModuleFailure
 import com.wasimaster.wmkeyboard.core.modules.ModuleGate
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
@@ -40142,18 +40143,56 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * What to say when an offline engine's runtime [gate] is not here. Only
-     * Play is ever fetching it; on F-Droid before the opt-in, on the offline
-     * build, or with a licence still to accept, nothing is on its way and
-     * "downloading" would send the user waiting for nothing.
+     * What to say when an offline engine's runtime [gate] is not here. On
+     * F-Droid before the opt-in, on the offline build, or with a licence
+     * still to accept, nothing is on its way and "downloading" would send the
+     * user waiting for nothing. [before] is the gate's state from before this
+     * try asked for the part again: a fetch that failed (Play refusing the
+     * install with error -15, say) says so and why ([ModuleFailure]), where
+     * the retry used to turn it back into "downloading" before anything read
+     * it, on every try (Telegram 12443).
      */
-    private fun voiceModuleMissing(gate: ModuleGate): String =
-        when ((gate.state.value as? ModuleState.Missing)?.consent) {
-            null -> getString(VoiceR.string.core_voice_whisper_module_downloading)
-            NativeConsent.DOWNLOADS -> getString(VoiceR.string.core_voice_library_consent)
-            NativeConsent.IMPORT -> getString(VoiceR.string.core_voice_library_import)
-            else -> getString(VoiceR.string.core_voice_library_licence)
+    private fun voiceModuleMissing(gate: ModuleGate, before: ModuleState? = gate.state.value): String {
+        val missing = before as? ModuleState.Missing ?: gate.state.value as? ModuleState.Missing
+        when (missing?.consent) {
+            null -> Unit
+            NativeConsent.DOWNLOADS -> return getString(VoiceR.string.core_voice_library_consent)
+            NativeConsent.IMPORT -> return getString(VoiceR.string.core_voice_library_import)
+            else -> return getString(VoiceR.string.core_voice_library_licence)
         }
+        if (missing?.failed == true) {
+            val reason = ModuleFailure.message(missing, VoiceR.string.core_voice_library_failed_online)
+            return if (reason.arg.isEmpty()) getString(reason.res) else getString(reason.res, reason.arg)
+        }
+        return getString(VoiceR.string.core_voice_whisper_module_downloading)
+    }
+
+    /** Waits for the part a "downloading" voice error is about; see [voiceModuleNotHere]. */
+    private var voiceModuleWatch: Job? = null
+
+    /**
+     * Asks for [gate]'s part with [request] (unless data saving holds
+     * downloads back) and returns what the voice error says. When that is
+     * "downloading", a fetch that fails a moment later, as Play's refusals
+     * do, replaces it with the reason while it is still on show, so even the
+     * first try says why rather than leaving the user waiting.
+     */
+    private fun voiceModuleNotHere(gate: ModuleGate, request: () -> Unit = gate::requestInstall): String {
+        val before = gate.state.value
+        if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) request()
+        val text = voiceModuleMissing(gate, before)
+        voiceModuleWatch?.cancel()
+        if (text != getString(VoiceR.string.core_voice_whisper_module_downloading)) return text
+        voiceModuleWatch = serviceScope.launch {
+            val settled = withTimeoutOrNull(VOICE_MODULE_WATCH_MS) {
+                gate.state.first { it == ModuleState.Installed || (it is ModuleState.Missing && it.failed) }
+            } as? ModuleState.Missing ?: return@launch
+            val shown = _uiState.value.voice
+            if (shown.status != VoiceStatus.ERROR || shown.errorMessage != text) return@launch
+            _uiState.update { it.copy(voice = it.voice.copy(errorMessage = voiceModuleMissing(gate, settled))) }
+        }
+        return text
+    }
 
     private fun openVoiceSession() {
         cancelVoice()
@@ -40278,8 +40317,7 @@ open class WMKeyboardService : InputMethodService() {
             // yet. Said now rather than after the phrase, which would be
             // recorded for nothing. Data saver holding downloads leaves the
             // fetch to the settings screen, which asks properly.
-            if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) WhisperEngine.requestModule()
-            fail(VoiceStatus.ERROR, voiceModuleMissing(FeatureModules.litert))
+            fail(VoiceStatus.ERROR, voiceModuleNotHere(FeatureModules.litert, WhisperEngine::requestModule))
             return
         }
         val sherpa = (onDevice as? OnDeviceVoice.Et)?.model?.engine?.onnx == true
@@ -40287,37 +40325,32 @@ open class WMKeyboardService : InputMethodService() {
         // Whistle's library has a gate of its own on F-Droid's build, and is
         // part of :feature:speech everywhere else ([WhistleEngine.gate]).
         if (onDevice == OnDeviceVoice.Whistle && !WhistleEngine.gate.installed) {
-            if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) WhistleEngine.gate.requestInstall()
-            fail(VoiceStatus.ERROR, voiceModuleMissing(WhistleEngine.gate))
+            fail(VoiceStatus.ERROR, voiceModuleNotHere(WhistleEngine.gate))
             return
         }
         if (needsSpeechLibs && !WhisperCpp.moduleReady) {
             // The same way where the libraries are fetched rather than
             // carried: whisper.cpp's and Whistle's are the :feature:speech part.
-            if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) WhisperCpp.requestModule()
-            fail(VoiceStatus.ERROR, voiceModuleMissing(FeatureModules.speech))
+            fail(VoiceStatus.ERROR, voiceModuleNotHere(FeatureModules.speech, WhisperCpp::requestModule))
             return
         }
         if (sherpa && !SherpaNative.moduleReady) {
             // Sherpa's and Omnilingual's runtime is its own part, ONNX Runtime
             // and the bridge (:feature:onnx on Play, the onnx gate elsewhere).
-            if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) SherpaNative.requestModule()
-            fail(VoiceStatus.ERROR, voiceModuleMissing(FeatureModules.onnx))
+            fail(VoiceStatus.ERROR, voiceModuleNotHere(FeatureModules.onnx, SherpaNative::requestModule))
             return
         }
         val vosk = (onDevice as? OnDeviceVoice.Et)?.model?.engine == EtEngine.VOSK
         if (vosk && !VoskNative.moduleReady) {
             // Vosk's library and its bridge are their own part (#1165):
             // :feature:vosk on Play, the vosk gate elsewhere.
-            if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) VoskNative.requestModule()
-            fail(VoiceStatus.ERROR, voiceModuleMissing(FeatureModules.vosk))
+            fail(VoiceStatus.ERROR, voiceModuleNotHere(FeatureModules.vosk, VoskNative::requestModule))
             return
         }
         if (onDevice is OnDeviceVoice.Et && !sherpa && !vosk && !FeatureModules.executorch.installed) {
             // ExecuTorch is its own part (:feature:executorch), shared with
             // the FUTO Swipe glide engine.
-            if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) FeatureModules.executorch.requestInstall()
-            fail(VoiceStatus.ERROR, voiceModuleMissing(FeatureModules.executorch))
+            fail(VoiceStatus.ERROR, voiceModuleNotHere(FeatureModules.executorch))
             return
         }
         if (!voiceSessionForField) {
@@ -66751,6 +66784,9 @@ open class WMKeyboardService : InputMethodService() {
 
         /** How often the line under the microphone reads whisper.cpp's decoding so far. */
         private const val VOICE_PARTIAL_POLL_MS = 200L
+
+        /** How long a "downloading" voice error waits to learn the part's fetch failed instead (Telegram 12443). */
+        private const val VOICE_MODULE_WATCH_MS = 15_000L
 
         /** How long a Gemini live stream gets for its finished text before the clip goes whole instead. */
         private const val GEMINI_LIVE_FINISH_MS = 8_000L
