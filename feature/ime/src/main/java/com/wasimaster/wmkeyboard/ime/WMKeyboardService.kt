@@ -8165,9 +8165,22 @@ open class WMKeyboardService : InputMethodService() {
      * attached to window manager" and takes the process down. The size is
      * kept on the window's attributes before the throw and applied when it is
      * added again, so dropping that one dispatch loses nothing.
+     *
+     * Not while the window is hiding. The platform's `hideWindow` ends by
+     * re-evaluating fullscreen mode with the input no longer requested, which
+     * calls this as "candidates only" and, in the base class, makes the
+     * window WRAP_CONTENT. On the phones where the hide animation is still
+     * running at that point, a full-height window, or the landscape extract
+     * editor's full-screen one, was resized under it: one frame drew the board
+     * at the top of the screen, or the editor's white bar half-way down, before
+     * the slide out (Telegram 10897, 13277). The window keeps its size through
+     * the hide; the next show configures it afresh. Only where the board is
+     * held at the window's bottom, so a fullscreen window losing its extract
+     * area during the hide still shows the keys where they were.
      */
     override fun onConfigureWindow(win: android.view.Window, isFullscreen: Boolean, isCandidatesOnly: Boolean) {
         try {
+            if (hidingWindow && boardAtWindowBottom(win)) return
             super.onConfigureWindow(win, isFullscreen, isCandidatesOnly)
             UnclampedImeTouches.install(win)
             imeWindowPlatformSized = isFullscreen || isCandidatesOnly
@@ -8175,6 +8188,18 @@ open class WMKeyboardService : InputMethodService() {
             if (::settingsRepository.isInitialized) updatePrivacyShade(_uiState.value.settings)
         } catch (detached: IllegalArgumentException) {
             DebugLog.w("ime", "IME window not attached while configuring it: ${detached.message}")
+        }
+    }
+
+    /** Inside the platform's [hideWindow]; see [onConfigureWindow]. */
+    private var hidingWindow = false
+
+    override fun hideWindow() {
+        hidingWindow = true
+        try {
+            super.hideWindow()
+        } finally {
+            hidingWindow = false
         }
     }
 
