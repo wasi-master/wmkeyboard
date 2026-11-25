@@ -432,7 +432,11 @@ private fun MediaButton(
                 .clickable(enabled = enabled) { onClick() },
             contentAlignment = Alignment.Center,
         ) {
-            val tint = if (accent) kb.toolCircleActiveIcon else kb.toolbarIcon
+            // On the accent, black or white by the accent's own lightness: the
+            // active-tool icon colour is made for the active tool's circle, and
+            // on a pale accent it left a pale glyph on a pale circle (Telegram,
+            // the KDE Connect player).
+            val tint = if (accent) maxContrastOn(kb.accent) else kb.toolbarIcon
             if (LocalKbTheme.current.motion.any) {
                 // Play turning into pause shrinks one glyph out as the other grows
                 // in; the button itself, and its tap, never move.
@@ -490,7 +494,7 @@ private fun AccessPrompt(kb: KbTheme, onRequestAccess: () -> Unit, focused: Bool
         ) {
             Text(
                 stringResource(R.string.ime_media_control_access_action),
-                color = kb.toolCircleActiveIcon,
+                color = maxContrastOn(kb.accent),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
             )
