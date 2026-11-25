@@ -9030,7 +9030,7 @@ class SuggestionEngine(
         // The list's commonest spelling, before anything the user's own case
         // memory says: in such a language a capital is a letter, and the one
         // vote the memory keeps per key cannot tell two words apart.
-        if (caseExact) caseSpellings(key).firstOrNull()?.let { return own }
+        if (caseExact) caseSpellings(key).firstOrNull()?.let { return it }
         userLexicon.displayOf(key)?.let { own -> if (!shoutedEverydayWord(key, own)) return own }
         // Pinned with no spelling on file is pinned in small letters: the
         // store keeps no shape for "ok", so nothing else may give it one (#1043).
