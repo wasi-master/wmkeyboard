@@ -42442,6 +42442,8 @@ open class WMKeyboardService : InputMethodService() {
         if (!plain) refreshShiftForContext()
         learn(cased)
         lastVoiceCommit = spaced
+        // Pattern snippets fire on a dictated phrase as on typed words (#1550).
+        expandVoicePatterns(ic, spaced)
         // Counted beside the typing, never in it (#761).
         val listened = voiceListenStartedAt.takeIf { it > 0L }?.let { SystemClock.uptimeMillis() - it } ?: 0L
         voiceListenStartedAt = 0L
@@ -42461,6 +42463,57 @@ open class WMKeyboardService : InputMethodService() {
      * romanized spelling still to be checked by [respellVoiceThen], else null.
      */
     private class VoiceLanding(val text: String, val sentenceStart: Boolean, val heard: String? = null)
+
+    /**
+     * Pattern snippets over a phrase just dictated (#1550), the way typed
+     * words meet them at the space. The phrase is tried whole first
+     * ([SnippetStore.matchUtterance]), so a pattern written for what is said
+     * in one go, `^ate (\d+) g of peanuts$`, fits however many words it has;
+     * then the words at its end, exactly as a typed window is tried. The
+     * space dictation puts after the phrase stays after the expansion. Only
+     * the patterns that expand on their own, never in a password field, and
+     * only while [committed] is still what stands in front of the caret.
+     */
+    private fun expandVoicePatterns(ic: InputConnection, committed: String): Boolean {
+        val state = _uiState.value
+        if (!snippetStore.hasAutoPatterns() || snippetChipsBarred(state)) return false
+        val core = committed.trimEnd()
+        if (core.isBlank()) return false
+        val trailing = committed.substring(core.length)
+        val reach = SnippetMatcher.MAX_WINDOW + trailing.length
+        val before = ic.getTextBeforeCursor(reach, 0)?.toString() ?: return false
+        if (!before.endsWith(committed)) return false
+        val context = snippetContext(ic, withSelection = false)
+        val hit = snippetStore.matchUtterance(core.trim(), context = context, isName = ::readsAsName)
+            ?: snippetStore.matchPattern(
+                window = before.dropLast(trailing.length),
+                atFieldStart = before.length < reach,
+                context = context,
+                isName = ::readsAsName,
+            )
+            ?: return false
+        val taken = takeOverSnippet(
+            ic,
+            hit.snippet.image,
+            SnippetStore.Companion.Expanded(hit.text, hit.cursorOffset),
+            hit.consumedText,
+            deleteChars = hit.consumedChars + trailing.length,
+        )
+        if (taken) return true
+        ic.beginBatchEdit()
+        ic.finishComposingText()
+        revision = null
+        composing = StringBuilder()
+        ic.deleteSurroundingText(hit.consumedChars + trailing.length, 0)
+        commitSplitAtCaret(ic, hit.text + trailing, hit.cursorOffset)
+        ic.endBatchEdit()
+        afterSnippetExpansion(
+            inserted = hit.text,
+            original = hit.consumedText,
+            caretParked = hit.cursorOffset < hit.text.length,
+        )
+        return true
+    }
 
     /**
      * Runs [then] once the phrase that just [landed] has been tidied by the AI

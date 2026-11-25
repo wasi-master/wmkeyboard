@@ -334,6 +334,19 @@ class SnippetMatcherTest {
     }
 
     @Test
+    fun `a dictated phrase matches a pattern whole, past the word cap and its full stop`() {
+        val peanuts = snip("^ate (\\d+(?:\\.\\d+)?) g of peanuts$", "{= 0.2365 * \$1 : 2} g Protein")
+        val index = index(peanuts)
+        // Three words by default: a typed window could not reach this far back.
+        assertNull(index.matchPattern("ate 125 g of peanuts", atFieldStart = true))
+        val hit = index.matchUtterance("Ate 125 g of peanuts.")!!
+        assertEquals("29.56 g Protein", hit.text)
+        assertEquals("Ate 125 g of peanuts.".length, hit.consumedChars)
+        assertEquals("Ate 125 g of peanuts.", hit.consumedText)
+        assertNull(index.matchUtterance("I ate 125 g of peanuts"))
+    }
+
+    @Test
     fun `a panel tap leaves a blank where a sum needed a capture`() {
         val blank = SnippetMatcher.blankTemplate("{= 0.2365 * \$1 : 2} g")
         assertEquals(" g", blank.text)

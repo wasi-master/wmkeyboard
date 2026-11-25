@@ -1057,6 +1057,14 @@ class SnippetStore(private val storageFile: File?) {
         isName: ((String) -> Boolean)? = null,
     ): SnippetMatch? = index().matchPattern(window, atFieldStart, now, context, confirm, isName)
 
+    /** A dictated phrase against the patterns, whole (#1550). See [SnippetIndex.matchUtterance]. */
+    fun matchUtterance(
+        phrase: String,
+        now: Long = System.currentTimeMillis(),
+        context: Companion.Context = Companion.Context(),
+        isName: ((String) -> Boolean)? = null,
+    ): SnippetMatch? = index().matchUtterance(phrase, now, context, isName)
+
     /** True when any snippet carries a pattern, so the keyboard need not look. */
     fun hasPatterns(): Boolean = index().hasPatterns
 

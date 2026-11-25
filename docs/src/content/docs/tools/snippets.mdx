@@ -109,7 +109,7 @@ The sum is read by the same engine as the [calculator](/tools/utilities/#doing-t
 
 Inside the braces a capture only ever stands for a number. It may have a sign and one decimal mark, a full stop or a comma (`12,5` counts as twelve and a half). If a capture holds anything else, or the sum can't be worked out (a division by zero, a typo), the placeholder is left in the text as you wrote it so the mistake is easy to spot. Tapping such a snippet in the panel leaves a blank where the sum would go, the same as a bare `$1`. A sum also works in a snippet with no pattern at all: `{= 365 * 24}` gives 8760.
 
-Remember **Words to match** (below): `ate 125 g of peanuts` is five words, so that snippet needs the cap raised to at least five.
+Remember **Words to match** (below) when you type it: `ate 125 g of peanuts` is five words, so typed, that snippet needs the cap raised to at least five. Said with [voice typing](/tools/voice/) it works as it is, as the next part explains.
 
 Some details:
 
@@ -120,6 +120,7 @@ Some details:
 - **A pattern never reaches across a line break**, so a snippet can't swallow the paragraph above the one you're writing.
 - **The shortest match wins.** If two patterns both fit, the one that eats fewer of your words is the one that runs. A plain word trigger always beats a pattern.
 - **A pattern can start on the space in front of a word.** `\s+([.,?!:;])` with the text `$1` pulls a stray space back out from in front of a full stop or a comma. The space and the word after it count as one word for the words-to-match cap.
+- **Dictation counts too.** A phrase you dictate is tried against your patterns the moment it lands. First the whole phrase, whatever **Words to match** says, since it is one thing you said: `^ate (\d+) g of peanuts$` fits "ate 125 g of peanuts" as a phrase, and a full stop the recognizer put at its end is taken with it. Then the words at its end, as when you type them. The space dictation leaves after a phrase stays after what the snippet writes.
 - **Backspace takes it back.** One press right after an expansion restores exactly what you typed, spacing and capitals included, and the pattern won't fire again on that same text.
 
 Patterns run on every space you type, so the keyboard is careful about what they cost. Start a pattern with a plain word (`^hello `, `^/gh `) and it can be skipped entirely unless that word is actually behind your cursor, which is nearly always. A pattern that starts with something variable instead, like `^(.+)$` or `^\d+`, has to be tried after every word. The editor says so when you write one. A pattern that turns out to be pathologically slow is stopped rather than allowed to stall your typing.

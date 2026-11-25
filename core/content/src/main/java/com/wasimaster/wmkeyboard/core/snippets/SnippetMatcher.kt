@@ -839,6 +839,45 @@ class SnippetIndex private constructor(
     }
 
     /**
+     * A dictated phrase (#1550) against the patterns that expand on their
+     * own, as one whole: the phrase is one thing the user said, so the words
+     * to match that bound a typed window do not apply, and a pattern written
+     * for the whole sentence (`^ate (\d+) g of peanuts$`) fits it however
+     * many words it has. Tried as said, then without the one closing mark
+     * the recognizer or spoken punctuation put at its end ("Ate 125 g of
+     * peanuts."), which the match still takes with it. Null when no pattern
+     * fits; the caller then tries the words at its end, as typing does.
+     */
+    fun matchUtterance(
+        phrase: String,
+        now: Long = System.currentTimeMillis(),
+        context: SnippetStore.Companion.Context = SnippetStore.Companion.Context(),
+        isName: ((String) -> Boolean)? = null,
+    ): SnippetMatch? {
+        if (!hasAutoPatterns) return null
+        val text = phrase.trim()
+        if (text.isEmpty() || text.length > SnippetMatcher.MAX_WINDOW || '\n' in text) return null
+        val bare = text.trimEnd('.', '!', '?', '\u3002', '\uFF01', '\uFF1F').trimEnd()
+        val tries = if (bare.isNotEmpty() && bare != text) listOf(text, bare) else listOf(text)
+        var attempts = 0
+        for (candidate in tries) {
+            val gated = byHead[candidate[0].lowercaseChar()].orEmpty()
+            for (pass in 0..1) {
+                for (compiled in if (pass == 0) gated else ungated) {
+                    if (asks(compiled.snippet)) continue
+                    if (compiled.snippet.id in stopped) continue
+                    val head = compiled.head
+                    if (head != null && !candidate.regionMatches(0, head, 0, head.length, ignoreCase = true)) continue
+                    if (attempts++ >= SnippetMatcher.MAX_ATTEMPTS) return null
+                    val hit = run(compiled, candidate, text.length, now, context, isName) ?: continue
+                    return hit.copy(consumedText = text)
+                }
+            }
+        }
+        return null
+    }
+
+    /**
      * Where a candidate span may start in [w], nearest to the cursor first:
      * each word's first character, then the first space of the run in front
      * of it (when there is one). [SpanStart.back] is how many words the span
