@@ -255,14 +255,19 @@ fun KeyboardSettings.resolvedFor(variant: ScreenVariant): KeyboardSettings {
     // shape: the user set one switch each, and this decides whether the
     // current screen honours it (#611). The answer is folded into the plain
     // fields, so the frame never learns there are gates.
-    val splitHere = splitKeyboard && splitAllowedOn(variant)
+    // Floating is remembered per orientation (#584): the field downstream reads
+    // is set to the answer for this one, so the frame never learns there are two.
+    val floatingHere = floatingFor(variant.isLandscape)
+    // "Split only on wide screens" asks for room, and a floating panel is a
+    // few hundred dp wide however wide the screen is: a phone floated sideways
+    // came out as two narrow halves (Telegram 11888). Without the rule, split
+    // still applies to the floating panel as it always has.
+    val splitHere = splitKeyboard && splitAllowedOn(variant) &&
+        !(floatingHere && layoutBehavior.splitOnlyOnLargeScreens)
     val oneHandedHere = if (oneHandedAllowedOn(variant)) oneHandedMode else OneHandedMode.OFF
     // "Portrait only" is already answered above, and a shape that allows
     // one-handed sideways must not have it taken back by oneHandedModeFor.
     val oneHandedSettings = if (oneHanded.portraitOnly) oneHanded.copy(portraitOnly = false) else oneHanded
-    // Floating is remembered per orientation (#584): the field downstream reads
-    // is set to the answer for this one, so the frame never learns there are two.
-    val floatingHere = floatingFor(variant.isLandscape)
     val override = sizingOverrides[variant]
     if (override == null || override.isEmpty) {
         return if (

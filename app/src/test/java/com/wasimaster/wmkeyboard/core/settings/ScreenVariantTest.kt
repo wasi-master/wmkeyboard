@@ -279,6 +279,26 @@ class ScreenVariantTest {
     }
 
     /**
+     * "Split only on wide screens" never splits a floating panel, which is
+     * narrow on any screen (Telegram 11888); plain split still does.
+     */
+    @Test fun wideScreenSplitLeavesAFloatingPanelWhole() {
+        val wideOnly = KeyboardSettings(
+            splitKeyboard = true,
+            floatingKeyboard = false,
+            floatingKeyboardLandscape = true,
+            layoutBehavior = KeyboardSettings().layoutBehavior.copy(splitOnlyOnLargeScreens = true),
+        )
+        assertFalse(wideOnly.resolvedFor(ScreenVariant.LANDSCAPE).splitKeyboard)
+        assertTrue(wideOnly.resolvedFor(ScreenVariant.PORTRAIT_UNFOLDED).splitKeyboard)
+
+        val always = wideOnly.copy(
+            layoutBehavior = wideOnly.layoutBehavior.copy(splitOnlyOnLargeScreens = false),
+        )
+        assertTrue(always.resolvedFor(ScreenVariant.LANDSCAPE).splitKeyboard)
+    }
+
+    /**
      * The tablet-style bars (Telegram group, 2026-11-05): a shape can turn the
      * full-width toolbar on for itself and size the toolbar row, and a shape
      * that says nothing keeps the base answer.

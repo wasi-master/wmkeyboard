@@ -175,7 +175,7 @@ Pin the **One-handed** tool to your toolbar and tapping it toggles one-handed on
 
 **See-through gap**, off by default, opens the gap up. The app behind shows between the two halves, and a tap there goes to the app, the way a tap above the keyboard does, so on a tablet the middle of the screen stays usable while you type. The suggestion strip, the toolbar and the other rows over the keys split around it too, so the gap runs from the top of the keyboard to the bottom: the suggestions and the spread-out toolbar buttons fall either side of it, never half on each. An open panel has no gap and still runs the whole width. A spacebar kept whole across the gap stays a key. The floating keyboard keeps a solid gap.
 
-**Split only on wide screens** is the second one, off by default. Split is a single global switch, so turning it on in landscape leaves the keyboard split after you rotate back, where half a phone-width keyboard is close to unusable. Turn this on and the split only happens in landscape or on an unfolded screen. Portrait on an ordinary phone stays whole.
+**Split only on wide screens** is the second one, off by default. Split is a single global switch, so turning it on in landscape leaves the keyboard split after you rotate back, where half a phone-width keyboard is close to unusable. Turn this on and the split only happens in landscape or on an unfolded screen. Portrait on an ordinary phone stays whole, and so does the [floating keyboard](#floating-the-keyboard) on any screen.
 
 Both of these are shared rules. For a finer answer, each shape under [per-screen sizing](#sizing-each-screen-shape) has its own **One-handed mode on this screen** and **Split keyboard on this screen** toggles. On a foldable, turning split off for **Portrait, unfolded** means the opened screen held upright gets one-handed mode alone instead of a one-handed split keyboard, while both landscape shapes stay split.
 
@@ -211,7 +211,7 @@ Floating mode replaces the normal layout logic rather than combining with it. Wh
 
 - The one-handed rail and edge-docking don't render. Your one-handed setting is untouched but has nothing to apply to.
 - Keyboard width, keyboard position and bottom padding from the sections above don't apply either. The panel's size and position come entirely from its own width slider, drag position and resize grip.
-- **Split keyboard still works while floating.** The two features aren't mutually exclusive, since split rendering happens inside the same keyboard body the floating panel wraps.
+- **Split keyboard still works while floating.** The two features aren't mutually exclusive, since split rendering happens inside the same keyboard body the floating panel wraps. The exception is **Split only on wide screens**: with it on, the floating panel never splits, because the panel is narrow however wide the screen is.
 
 Touches outside the panel pass straight through to the app underneath, and the keyboard forces full-screen (extract) mode off for as long as it's floating. The panel also keeps clear of the navigation bar, so a handle bar parked at the bottom of the screen never sits on the gesture strip. Pin the **Floating** tool to your toolbar and tapping it toggles floating on or off for the orientation you're in.
 
