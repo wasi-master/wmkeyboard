@@ -62,6 +62,21 @@ class NativeLettersFirstTest {
         assertSame(key, nativeLettersFirst(key, german))
     }
 
+    /** Issue #1558: Persian has no table, so its own script's letters count. */
+    @Test
+    fun `a persian alef leads with its own forms ahead of the filled-in symbol`() {
+        val alef = Key("ا", longPress = listOf("-", "آ", "أ", "إ", "ٱ", "ء"))
+        assertEquals(
+            listOf("آ", "أ", "إ", "ٱ", "ء", "-"),
+            nativeLettersFirst(alef, emptySet(), scriptLetters = true).longPress,
+        )
+        // Off, it is left as it was.
+        assertSame(alef, nativeLettersFirst(alef, emptySet()))
+        // A Latin key is still the language's table's business.
+        val u = qwertz("u")
+        assertSame(u, nativeLettersFirst(u, english, scriptLetters = true))
+    }
+
     @Test
     fun `the table knows german and leaves english empty`() {
         assertEquals(setOf("ä", "ö", "ü", "ß"), german)

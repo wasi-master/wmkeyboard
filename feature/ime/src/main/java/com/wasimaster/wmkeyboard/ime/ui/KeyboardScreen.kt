@@ -421,6 +421,7 @@ import com.wasimaster.wmkeyboard.core.emoji.EmojiNames
 import com.wasimaster.wmkeyboard.core.emoji.EmojiVariantIndex
 import com.wasimaster.wmkeyboard.core.emoji.KaomojiLibrary
 import com.wasimaster.wmkeyboard.core.text.EmojiGraphemes
+import com.wasimaster.wmkeyboard.core.text.Graphemes
 import com.wasimaster.wmkeyboard.core.gesture.GesturePoint
 import com.wasimaster.wmkeyboard.core.gesture.GlideCase
 import com.wasimaster.wmkeyboard.core.gesture.GlideShiftDetour
@@ -26876,6 +26877,12 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     // key that would type "?", on every layer, the symbols pages included.
     // ASCII "?" leads that key's hold, for URLs and code.
     val questionSwap = state.script.questionMark.takeIf { it != "?" }
+    // Issue #1558: the script's own comma and semicolon, the same way, on the
+    // letters and symbols pages of an ordinary text field. A number pad and an
+    // address or email box keep ASCII: that is where numbers and addresses go.
+    val punctuationSwaps = state.script.punctuationSwaps.takeIf {
+        it.isNotEmpty() && state.fieldKind == FieldKind.TEXT && (lettersLayer || symbolsPage) && !grid.digitPad
+    }.orEmpty()
     // Issue #606: the Arabic harakat at the end of the period key's hold.
     // Issue #972: unless the language opts out, as Sorani does.
     val periodAlternates = if (lettersLayer) {
@@ -26952,6 +26959,11 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
         } else {
             emptySet()
         }
+    // Issue #1558: the same for a non-Latin script, which has no table: the
+    // key's own script's letters ahead of the filled-in symbol, so a hold on
+    // the Persian ا types آ rather than `-`.
+    val scriptLettersFirst = state.settings.layoutBehavior.nativeLettersFirst && lettersLayer &&
+        !state.composer.isClusterShaping && state.script.id in ScriptLettersFirst
     // The same letters added where the popup lacks them: ã and õ on the a and
     // o of a QWERTY borrowed for Portuguese, which hold only the accents
     // English lists, so nobody has to turn on every language's accents for
@@ -27066,8 +27078,9 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
         clipboardKeys.isEmpty() && fieldKey == null && domainAlternates.isEmpty() &&
         currencyKeys.isEmpty() && !allAccents && !noAccents && !shiftedKeys && fullStop == null &&
         !newlineAlternate && !emojiAlternate && holdActions.isEmpty() && spaceHoldKeys.isEmpty() &&
-        punctuationAlternates.isEmpty() && !kanaVariantKeys && nativeLetters.isEmpty() && languageLetters.isEmpty() &&
-        questionMark == null && questionSwap == null && periodAlternates.isEmpty() &&
+        punctuationAlternates.isEmpty() && !kanaVariantKeys && nativeLetters.isEmpty() && !scriptLettersFirst &&
+        languageLetters.isEmpty() &&
+        questionMark == null && questionSwap == null && punctuationSwaps.isEmpty() && periodAlternates.isEmpty() &&
         !reorderAlternates && !numpadOnHold && !fancyDigits &&
         currencyOnHolds == null && currencyOnKey == null && alternatePicks == null
     ) {
@@ -27093,6 +27106,24 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
                 )
             } else {
                 rowKey
+            }.let { k ->
+                // Issue #1558: see punctuationSwaps. Beside the question swap
+                // and for the same reason: the passes below see what it types.
+                val own = if (k.action == KeyAction.Text && role != KeyRole.Plain) {
+                    punctuationSwaps[k.output ?: k.label]
+                } else {
+                    null
+                }
+                if (own == null) {
+                    k
+                } else {
+                    val ascii = k.output ?: k.label
+                    k.copy(
+                        label = own,
+                        output = null,
+                        longPress = listOf(ascii) + k.longPress.filterNot { it == own || it == ascii },
+                    )
+                }
             }
             // Ahead of the field/emoji rewrites below, which may replace the
             // period key outright or hang domain endings off it — the script's
@@ -27289,7 +27320,7 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
             // and before the capital below, which belongs at the end. A popup
             // the user wrote themselves keeps their order (issue #622).
             if (rowKey !in state.layouts.authoredHolds) {
-                mapped = nativeLettersFirst(mapped, nativeLetters)
+                mapped = nativeLettersFirst(mapped, nativeLetters, scriptLettersFirst)
             }
             // Issue #108: the shifted form last of all, so it sits after the
             // accents and after whatever the layout itself listed — the first
@@ -32178,6 +32209,12 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                 // layout whether it overflowed is script-agnostic, costs the
                 // ordinary one-glyph key nothing, and settles in a frame or two.
                 val fit = remember(text, baseSize, fontScale) { LabelFit() }
+                // One letter is never worth an ellipsis (#1558): a Persian ض
+                // that met a narrow key at its smallest step drew `…`, which
+                // says nothing about the key. It still shrinks like any label;
+                // only what is left over at the floor draws past the edge
+                // instead of being swapped for dots.
+                val singleGlyph = remember(text) { Graphemes.firstLength(text) == text.length }
                 // Arms drawn on the face (issue #410) take the edges, so the
                 // label is held in from whichever edges carry one and the
                 // overflow rule below shrinks it clear of them. The corners
@@ -32244,7 +32281,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     color = contentColor,
                     maxLines = 1,
                     softWrap = false,
-                    overflow = if (strip) TextOverflow.Visible else TextOverflow.Ellipsis,
+                    overflow = if (strip || singleGlyph) TextOverflow.Visible else TextOverflow.Ellipsis,
                     onTextLayout = { if (!strip) fit.onLayout(it) },
                 )
             }

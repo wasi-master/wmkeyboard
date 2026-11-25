@@ -854,6 +854,24 @@ class CurrentLayoutTest {
         assertEquals("?", asked.longPress.first())
     }
 
+    /** Issue #1558: the symbols page's comma and semicolon are the script's own. */
+    @Test
+    fun `an arabic-script symbols page types its own comma and semicolon`() {
+        val s = state(settings = plain())
+            .copy(script = ScriptRegistry[ScriptId.ARABIC], layoutMode = LayoutMode.SYMBOLS)
+        val keys = currentLayout(s).keys()
+        assertEquals(",", keys.first { (it.output ?: it.label) == "،" }.longPress.first())
+        assertEquals(";", keys.first { (it.output ?: it.label) == "؛" }.longPress.first())
+    }
+
+    /** An address field keeps ASCII: the comma there is a URL's. */
+    @Test
+    fun `an arabic-script address field keeps the ascii comma`() {
+        val s = state(fieldKind = FieldKind.URI, settings = plain())
+            .copy(script = ScriptRegistry[ScriptId.ARABIC], layoutMode = LayoutMode.SYMBOLS)
+        assertTrue(currentLayout(s).keys().any { (it.output ?: it.label) == "," })
+    }
+
     /** A letters key that typed ? counts as ؟ to hand, so nothing is lifted. */
     @Test
     fun `a swapped question key keeps the period popup as laid out`() {

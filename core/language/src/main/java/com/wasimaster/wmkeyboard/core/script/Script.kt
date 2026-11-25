@@ -364,6 +364,19 @@ data class ScriptDef(
      */
     val questionMark: String = "?",
     /**
+     * ASCII marks this script writes with marks of its own, keyed by the ASCII
+     * one: every key that would type the key types the value instead, on the
+     * letters page and the symbols pages, with the ASCII mark leading the
+     * hold. [questionMark] is the same rule for "?", kept apart because a
+     * letters grid lifts it onto the period key as well.
+     *
+     * Issue #1558: an Arabic-script symbols page typed `,` and `;` where
+     * Persian, Arabic and Urdu write ، and ؛ (Gboard's pages type them). A
+     * number pad and the address and email fields keep ASCII, being where
+     * numbers and addresses are typed.
+     */
+    val punctuationSwaps: Map<String, String> = emptyMap(),
+    /**
      * Marks appended to the letters page's period key popup, after whatever
      * the layout put there itself.
      *
@@ -440,6 +453,15 @@ object ScriptRegistry {
             unicodeRange = 0x0600..0x06FF,
             // Persian, Urdu, Pashto, Sorani, Sindhi and Arabic alike.
             questionMark = "؟",
+            punctuationSwaps = mapOf("," to "،", ";" to "؛"),
+            // Guillemets on the quote key, tatweel on the hyphen and the rial
+            // sign on the dollar (#1558): Gboard's Persian symbols page has
+            // all three, and no key of the shared grid types them.
+            punctuationAlternates = mapOf(
+                "\"" to listOf("«", "»"),
+                "-" to listOf("ـ"),
+                "$" to listOf("﷼"),
+            ),
             // Fatha, damma, kasra, sukun, shadda, the three tanwin, then the
             // rarer marks: dagger alef, maddah, hamza above and below, and
             // the subscript alef Urdu writes. FlorisBoard's Persian set.

@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.ime.ui
 
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
+import com.wasimaster.wmkeyboard.core.script.ScriptId
 import com.wasimaster.wmkeyboard.core.settings.LatinAccents
 import java.text.Normalizer
 import java.util.concurrent.ConcurrentHashMap
@@ -64,16 +65,46 @@ internal object NativeLetters {
  * the layout already chose what comes first — and so are the keys of an
  * ambiguous grid, whose leading digit is the keypad's own.
  */
-internal fun nativeLettersFirst(key: Key, native: Set<String>): Key {
-    if (native.isEmpty() || key.action != KeyAction.Text || key.letters != null) return key
+internal fun nativeLettersFirst(key: Key, native: Set<String>, scriptLetters: Boolean = false): Key {
+    if ((native.isEmpty() && !scriptLetters) || key.action != KeyAction.Text || key.letters != null) return key
     val lead = key.longPress.firstOrNull() ?: return key
     if (!lead.isHintGlyph()) return key
     val own = (key.output ?: key.label).lowercase()
+    // Issue #1558: a script with no CLDR table here (Persian, Russian, Greek)
+    // counts the letters of the key's own script as its own: a hold on the
+    // Persian ا led with the `-` [DigitHints] filled in, ahead of آ أ إ.
+    val script = if (scriptLetters) own.letterScript() else null
     val (mine, rest) = key.longPress.partition {
         val letter = it.lowercase()
-        letter != own && letter in native
+        letter != own && (letter in native || (script != null && letter.letterScript() == script))
     }
     return if (mine.isEmpty()) key else key.copy(longPress = mine + rest)
+}
+
+/**
+ * The alphabets whose holds are the key's own letter variants (hamza forms,
+ * ё, tonos vowels, Hebrew finals), so [nativeLettersFirst] may lift them by
+ * script (#1558). Not Thai, the Indic scripts or the CJK ones, whose holds
+ * carry other letters of the page rather than forms of the key's own.
+ */
+internal val ScriptLettersFirst: Set<ScriptId> = setOf(
+    ScriptId.ARABIC, ScriptId.CYRILLIC, ScriptId.GREEK, ScriptId.ARMENIAN,
+    ScriptId.GEORGIAN, ScriptId.HEBREW, ScriptId.SYRIAC, ScriptId.THAANA,
+)
+
+/**
+ * The script of the letter [this] starts with, or null for a hint, a mark, or
+ * a Latin letter: Latin goes by the language's own table, since a Latin key's
+ * popup also holds other languages' accents.
+ */
+private fun String.letterScript(): Character.UnicodeScript? {
+    if (isEmpty()) return null
+    val cp = codePointAt(0)
+    if (!Character.isLetter(cp)) return null
+    return Character.UnicodeScript.of(cp).takeIf {
+        it != Character.UnicodeScript.LATIN && it != Character.UnicodeScript.COMMON &&
+            it != Character.UnicodeScript.INHERITED
+    }
 }
 
 /**
