@@ -16,9 +16,10 @@
     <string name="clipboard_search_all_subtitle">The panel\'s search finds clips in all your clipboards, not only the open one</string>
     <string name="clipboard_search_all_info">On, a search in the clipboard panel and its filters look through every clipboard at once, and each clip from another clipboard says which one it is in. Off, they look only in the clipboard that is open. On by default.</string>
     <string name="clipboard_named_import_title">Import into a new clipboard</string>
-    <string name="clipboard_named_import_subtitle">Clips from a config file or a text file, one clip a line, kept apart from your own</string>
+    <string name="clipboard_named_import_subtitle">The clipboard history in a HeliBoard, LeanType, FUTO, FlorisBoard or CleverKeys backup, a config file, or a text file with one clip a line, kept apart from your own clips</string>
+    <string name="clipboard_named_order_title">Order of clipboards</string>
     <string name="clipboard_named_import_default_name">Imported</string>
-    <string name="clipboard_named_import_failed">Nothing to import: the file had no clips, or you have as many clipboards as the panel can list</string>
+    <string name="clipboard_named_import_failed">Nothing to import: the file had no clips this app can read, or you have as many clipboards as the panel can list</string>
     <plurals name="clipboard_named_import_done">
         <item quantity="one">%1$d clip imported into %2$s</item>
         <item quantity="other">%1$d clips imported into %2$s</item>

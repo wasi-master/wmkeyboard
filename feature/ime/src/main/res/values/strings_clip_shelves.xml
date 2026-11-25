@@ -7,4 +7,6 @@
     <string name="ime_clip_move_to_clipboard">Move to clipboard</string>
     <string name="ime_clip_shelf_empty">Nothing in this clipboard yet. Hold a clip in another clipboard and choose Move to clipboard.</string>
     <string name="ime_clip_moved_toast">Moved to %1$s</string>
+    <string name="ime_clip_shelf_section_fold_desc">%1$s, fold</string>
+    <string name="ime_clip_shelf_section_open_desc">%1$s, folded, open</string>
 </resources>

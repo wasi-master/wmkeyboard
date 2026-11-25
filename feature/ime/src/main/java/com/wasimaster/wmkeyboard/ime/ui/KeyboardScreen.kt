@@ -552,6 +552,7 @@ import com.wasimaster.wmkeyboard.core.settings.customButtonById
 import com.wasimaster.wmkeyboard.core.settings.ClipRecentChipsMax
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VerticalAlignTop
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Inventory2
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Sell
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Reorder
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Checklist
@@ -37616,6 +37617,8 @@ internal fun ClipInfoPopup(
     onReorder: (() -> Unit)? = null,
     /** First in its group, nothing pasted (#970). */
     onMoveTop: (() -> Unit)? = null,
+    /** Into another of the user's clipboards (#1542); null while there is only one. */
+    onMoveTo: (() -> Unit)? = null,
     /** Show in history: the clip among its neighbours (#612); null outside a search or a filter. */
     onJump: (() -> Unit)? = null,
     /** The clip's tags, in the editor (#612). */
@@ -37730,6 +37733,9 @@ internal fun ClipInfoPopup(
                                 }
                                 onMoveTop?.let {
                                     ClipTextActionIcon(Icons.Outlined.VerticalAlignTop, stringResource(R.string.ime_clip_move_top), tint, it)
+                                }
+                                onMoveTo?.let {
+                                    ClipTextActionIcon(Icons.Outlined.Inventory2, stringResource(R.string.ime_clip_move_to_clipboard), tint, it)
                                 }
                                 onTags?.let {
                                     ClipTextActionIcon(Icons.Outlined.Sell, stringResource(R.string.ime_clip_tags), tint, it)

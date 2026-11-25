@@ -21,10 +21,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -39,6 +41,8 @@ import androidx.compose.ui.window.Popup
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandMore
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Settings
+import com.wasimaster.wmkeyboard.core.clipboard.ClipItem
+import com.wasimaster.wmkeyboard.core.clipboard.shelfAmong
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.R
 
@@ -248,4 +252,93 @@ internal fun ClipShelfLabel(name: String, modifier: Modifier = Modifier) {
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = modifier.widthIn(max = 96.dp),
     )
+}
+
+/**
+ * One clipboard's run in a search through all of them (#1542): its [name],
+ * where its clips start in the list the grid draws and how many are drawn
+ * there ([count], 0 while [collapsed]), and how many it found in all.
+ */
+@Immutable
+internal class ClipShelfSection(
+    val id: String,
+    val name: String,
+    val start: Int,
+    val count: Int,
+    val total: Int,
+    val collapsed: Boolean,
+)
+
+/**
+ * [items], a search's results, as clipboard sections (#1542): the open
+ * clipboard's first, then the others in the switcher's order, each keeping
+ * the order the search gave it, and a folded one's clips left out. Null when
+ * everything it found is in one clipboard, which needs no headings.
+ */
+internal fun clipShelfSections(
+    items: List<ClipItem>,
+    choices: List<Pair<String, String>>,
+    known: Set<String>,
+    open: String,
+    collapsed: Set<String>,
+): Pair<List<ClipItem>, List<ClipShelfSection>>? {
+    val byShelf = items.groupBy { it.shelfAmong(known) }
+    if (byShelf.size < 2) return null
+    val order = listOf(open) + choices.map { it.first }.filter { it != open }
+    val shown = ArrayList<ClipItem>(items.size)
+    val sections = ArrayList<ClipShelfSection>()
+    for (id in order) {
+        val clips = byShelf[id] ?: continue
+        val folded = id in collapsed
+        val name = choices.firstOrNull { it.first == id }?.second ?: continue
+        sections += ClipShelfSection(id, name, shown.size, if (folded) 0 else clips.size, clips.size, folded)
+        if (!folded) shown += clips
+    }
+    return shown to sections
+}
+
+/** A clipboard's heading over its clips in a search through all of them (#1542); a tap folds or opens it. */
+@Composable
+internal fun ClipShelfSectionHeader(section: ClipShelfSection, onToggle: () -> Unit, modifier: Modifier = Modifier) {
+    val description = stringResource(
+        if (section.collapsed) R.string.ime_clip_shelf_section_open_desc else R.string.ime_clip_shelf_section_fold_desc,
+        section.name,
+    )
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+                contentDescription = description
+            }
+            .clickable(onClick = onToggle)
+            .padding(horizontal = 6.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            section.name.uppercase(),
+            fontSize = 11.sp,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = 0.6.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f, fill = false),
+        )
+        Text(
+            section.total.toString(),
+            fontSize = 11.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            modifier = Modifier.padding(start = 6.dp),
+        )
+        Spacer(Modifier.weight(1f))
+        Icon(
+            Icons.Outlined.ExpandMore,
+            contentDescription = null,
+            modifier = Modifier
+                .size(18.dp)
+                .rotate(if (section.collapsed) -90f else 0f),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
 }

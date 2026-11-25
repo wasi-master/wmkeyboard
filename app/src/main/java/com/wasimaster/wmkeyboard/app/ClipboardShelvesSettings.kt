@@ -18,11 +18,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.Icons
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Reorder
 import com.wasimaster.wmkeyboard.core.settings.NAMED_CLIPBOARDS_MAX
 import com.wasimaster.wmkeyboard.core.settings.NAMED_CLIPBOARD_NAME_MAX
 import com.wasimaster.wmkeyboard.core.settings.NamedClipboard
@@ -48,22 +50,17 @@ internal fun ClipboardShelvesGroup(
     var adding by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<NamedClipboard?>(null) }
     val context = LocalContext.current
-    // Import into a new clipboard: a config file this app exported, or text
-    // with one clip a line. The clipboard is named after the file.
+    // Import into a new clipboard: another keyboard's backup or clipboard
+    // export, a config file this app exported, or text with one clip a line.
+    // The clipboard is named after the file.
     val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         val app = context.applicationContext
         scope.launch {
-            val read = withContext(Dispatchers.IO) {
-                runCatching {
-                    app.contentResolver.openInputStream(uri)?.use { input ->
-                        // A clipboard file, not a book: a few megabytes at most.
-                        String(input.readNBytesCompat(CLIP_IMPORT_MAX_BYTES), Charsets.UTF_8)
-                    }
-                }.getOrNull()
+            val name = withContext(Dispatchers.IO) {
+                clipImportName(app, uri, app.getString(R.string.clipboard_named_import_default_name))
             }
-            val name = clipImportName(app, uri, app.getString(R.string.clipboard_named_import_default_name))
-            val count = read?.let { repository.importClipsAsClipboard(name, it) }
+            val count = repository.importClipsAsClipboard(name, { app.contentResolver.openInputStream(uri) })
             Toast.makeText(
                 app,
                 if (count == null) {
@@ -101,9 +98,19 @@ internal fun ClipboardShelvesGroup(
                 stringResource(R.string.clipboard_named_import_subtitle),
             ) {
                 if (shelves.size < NAMED_CLIPBOARDS_MAX) {
-                    importLauncher.launch(arrayOf("text/plain", "application/json", "application/octet-stream"))
+                    importLauncher.launch(arrayOf("*/*"))
                 }
             }
+        }
+        // The order the switcher lists them in, after the main clipboard.
+        item(visible = shelves.size > 1) {
+            ReorderSetting(
+                title = stringResource(R.string.clipboard_named_order_title),
+                dialogTitle = stringResource(R.string.clipboard_named_order_title),
+                items = shelves,
+                label = { it.name },
+                icon = Icons.Outlined.Reorder,
+            ) { order -> scope.launch { repository.setNamedClipboardOrder(order.map { it.id }) } }
         }
         item(visible = shelves.isNotEmpty()) {
             ToggleSetting(
@@ -194,21 +201,6 @@ private fun ClipboardNameDialog(
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) } },
     )
-}
-
-/** Largest file Import into a new clipboard reads (#1542). */
-private const val CLIP_IMPORT_MAX_BYTES = 8 * 1024 * 1024
-
-/** Up to [max] bytes of this stream, whatever the Android version's InputStream offers. */
-private fun java.io.InputStream.readNBytesCompat(max: Int): ByteArray {
-    val out = java.io.ByteArrayOutputStream()
-    val buffer = ByteArray(64 * 1024)
-    while (out.size() < max) {
-        val read = read(buffer, 0, minOf(buffer.size, max - out.size()))
-        if (read < 0) break
-        out.write(buffer, 0, read)
-    }
-    return out.toByteArray()
 }
 
 /** The new clipboard's name: the file's, without its extension, or [fallback]. */

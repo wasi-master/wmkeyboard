@@ -821,6 +821,13 @@ internal class ClipboardPanelSession(
     val shelvesOpen: MutableState<Boolean> = mutableStateOf(false),
     /** The open clipboard is a named one with nothing in it yet. */
     val shelfEmpty: Boolean = false,
+    /**
+     * A search through every clipboard, split by clipboard (#1542): each
+     * one's run in [shownItems], empty when the results are not split.
+     */
+    val shelfSections: List<ClipShelfSection> = emptyList(),
+    /** The clipboards whose section is folded, for this visit. */
+    val shelfCollapsed: MutableState<Set<String>> = mutableStateOf(emptySet()),
 ) {
     /** The name [shelf] or another clipboard goes by, for a clip's card; null when there is no second clipboard. */
     fun shelfName(id: String): String? = shelfChoices.firstOrNull { it.first == id }?.second
@@ -959,11 +966,24 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
         meaningIds.isEmpty() -> found
         else -> com.wasimaster.wmkeyboard.ime.semantic.MeaningHits.append(found, ordered, meaningIds) { it.id.toString() }
     }
-    val shownItems = if (oldest.value) {
+    val unsectioned = if (oldest.value) {
         remember(matched, searching) { if (searching) matched.reversed() else oldestFirst(matched) }
     } else {
         matched
     }
+    // A search through every clipboard (#1542) lists what it found clipboard
+    // by clipboard, the open one first, each under a heading that folds it.
+    val shelfCollapsed = remember { mutableStateOf<Set<String>>(emptySet()) }
+    val crossShelf = named.isNotEmpty() && searching && state.settings.clipboard.searchAllClipboards
+    val sectioned = if (crossShelf) {
+        remember(unsectioned, shelfChoices, shelfIds, openShelf, shelfCollapsed.value) {
+            clipShelfSections(unsectioned, shelfChoices, shelfIds, openShelf, shelfCollapsed.value)
+        }
+    } else {
+        null
+    }
+    val shownItems = sectioned?.first ?: unsectioned
+    val shelfSections = sectioned?.second.orEmpty()
     // The notes' passages that hold the query (#1104), under the same regex
     // switch and tag filters as the clips. A kind filter other than text
     // leaves them out: a note is never a link, a picture or a pin.
@@ -990,7 +1010,7 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     // after it slide up into its place.
     val inRows = state.settings.clipboard.gridRows && state.settings.clipboard.view != ClipboardView.LIST
     val keepPlaces = state.settings.clipboard.keepDeletedPlaces && !inRows &&
-        state.settings.clipboard.view == ClipboardView.GRID
+        state.settings.clipboard.view == ClipboardView.GRID && shelfSections.isEmpty()
     val gridItems = if (keepPlaces) withDeletedSlots(gridMemory.drawn, shownItems, live) else shownItems
     androidx.compose.runtime.SideEffect { gridMemory.drawn = gridItems }
     val emptySlots = if (gridItems === shownItems) emptySet() else gridItems.mapNotNullTo(HashSet()) { it.id.takeIf { id -> id !in live } }
@@ -1114,7 +1134,7 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
         shownItems, entities, showSearch, query, gridState, list, numbers,
         tabbed, pinnedCount, unpinnedCount, showClear, ocr, perClip, entityIcons, confirmPinned,
         hiddenFragments, regexSearch, tidy, pinsInPlace, allTags, gridItems, folders, inFolder, notePassages, active, reminders,
-        openShelf, shelfChoices, shelfCounts, shelfIds, shelfEmpty,
+        openShelf, shelfChoices, shelfCounts, shelfIds, shelfEmpty, shelfSections,
     ) {
         ClipboardPanelSession(
             shownItems, entities, showSearch, query, gridState, list, numbers,
@@ -1150,6 +1170,8 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
             shelfIds = shelfIds,
             shelvesOpen = shelvesOpen,
             shelfEmpty = shelfEmpty,
+            shelfSections = shelfSections,
+            shelfCollapsed = shelfCollapsed,
         )
     }
 }
@@ -2861,10 +2883,13 @@ private fun ClipboardHistory(
                 }
             }
         }
-        if (inRows) {
+        // The clips from [from] up to [until] in [gridItems]: all of them, or
+        // one clipboard's when a search through every clipboard is split
+        // into sections (#1542).
+        fun clipRange(from: Int, until: Int) = if (inRows) {
             // One lazy item a row, so the row lines up and moves as one.
-            val rowCount = (gridItems.size + columns - 1) / columns
-            items(rowCount, key = { row -> "row-" + gridItems[row * columns].id }, span = { StaggeredGridItemSpan.FullLine }) { row ->
+            val rowCount = (until - from + columns - 1) / columns
+            items(rowCount, key = { row -> "row-" + gridItems[from + row * columns].id }, span = { StaggeredGridItemSpan.FullLine }) { row ->
                 Row(
                     modifier = if (state.settings.reduceMotion) Modifier else Modifier.animateItem(
                         fadeInSpec = tween(160),
@@ -2877,8 +2902,8 @@ private fun ClipboardHistory(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     for (cell in 0 until columns) {
-                        val index = row * columns + cell
-                        val item = gridItems.getOrNull(index)
+                        val index = from + row * columns + cell
+                        val item = gridItems.getOrNull(index)?.takeIf { index < until }
                         Box(Modifier.weight(1f)) {
                             if (item != null) {
                                 androidx.compose.runtime.key(item.id) {
@@ -2890,7 +2915,8 @@ private fun ClipboardHistory(
                 }
             }
         } else {
-            itemsIndexed(gridItems, key = { _, item -> item.id }) { index, item ->
+            itemsIndexed(gridItems.subList(from, until), key = { _, item -> item.id }) { local, item ->
+                val index = from + local
                 // A deleted clip's place (#1354): as tall as its card was, saying
                 // Deleted, until the clipboard closes or the view changes, so
                 // no clip around it moves.
@@ -2915,6 +2941,24 @@ private fun ClipboardHistory(
                         )
                     },
                 )
+            }
+        }
+        val sections = session.shelfSections
+        if (sections.isEmpty()) {
+            clipRange(0, gridItems.size)
+        } else {
+            for (section in sections) {
+                item(key = "shelf-" + section.id, span = StaggeredGridItemSpan.FullLine) {
+                    ClipShelfSectionHeader(
+                        section,
+                        onToggle = {
+                            val folded = session.shelfCollapsed.value
+                            session.shelfCollapsed.value = if (section.id in folded) folded - section.id else folded + section.id
+                        },
+                        modifier = Modifier.padding(bottom = ClipItemGap),
+                    )
+                }
+                if (!section.collapsed) clipRange(section.start, section.start + section.count)
             }
         }
     }
@@ -3423,6 +3467,7 @@ private fun ClipHoldPopup(
         onPick = onPick,
         onReorder = onReorder,
         onMoveTop = moveTop,
+        onMoveTo = moveTo,
         onJump = hold.onJump?.let { jump -> { onDismiss(); jump() } },
         onTags = if (hold.picked == null) {
             { onDismiss(); callbacks.actions.onTags(item) }

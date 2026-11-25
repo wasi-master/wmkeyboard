@@ -12985,8 +12985,11 @@ private fun decodeTrackerNames(raw: String): List<String> =
  * line (#612). A pattern is one line; a line break in one is kept as `\n`,
  * which a pattern reads the same way.
  */
-/** Most clips one plain-text file brings into a new clipboard (#1542). */
-private const val IMPORTED_CLIPS_MAX = 5_000
+/** Most clips one file brings into a new clipboard (#1542). */
+private const val IMPORTED_CLIPS_MAX = 20_000
+
+/** Largest text file Import into a new clipboard reads (#1542). */
+private const val IMPORT_TEXT_MAX_BYTES = 16 * 1024 * 1024
 
 private fun encodeSavedPatterns(patterns: List<String>): String =
     patterns.map { it.replace("\n", "\\n") }.filter { it.isNotBlank() }.distinct().joinToString("\n")
@@ -22606,38 +22609,62 @@ class SettingsRepository(private val context: Context) {
     /**
      * Clips from a file into a new named clipboard called [name] (#1542), so
      * a history brought from another keyboard does not land among the clips
-     * copied here. [text] is a config file this app exported, whose Clipboard
-     * section is read with the same checks a restore makes, or plain text,
-     * one clip a line, the first line on top. Returns how many clips went
-     * in, or null when the file held none or there is no room for another
-     * clipboard.
+     * copied here. [open] opens the file, and is called more than once. It may
+     * be another keyboard's backup ZIP or clipboard export, read by
+     * [com.wasimaster.wmkeyboard.core.settings.foreign.ForeignClipboard]; a
+     * config file this app exported, whose Clipboard section is read with the
+     * same checks a restore makes; or plain text, one clip a line, the first
+     * line on top. Returns how many clips went in, or null when the file held
+     * none or there is no room for another clipboard.
      *
      * The file is written before the name is added: the keyboard re-reads
      * its history when a clipboard it has not seen appears.
      */
-    suspend fun importClipsAsClipboard(name: String, text: String, now: Long = System.currentTimeMillis()): Int? {
+    suspend fun importClipsAsClipboard(
+        name: String,
+        open: () -> java.io.InputStream?,
+        now: Long = System.currentTimeMillis(),
+    ): Int? {
         if (!namedClipboardRoom()) return null
-        val bundle = ConfigBackup.decode(text)
-        val incoming: List<JsonObject> = if (bundle != null) {
-            val section = bundle.sections[ConfigBackup.Section.CLIPBOARD] ?: return null
-            (ClipboardSyncSanitizer.sanitize(section)["items"] as? JsonArray).orEmpty().mapNotNull { it as? JsonObject }
-        } else {
-            text.lineSequence()
+        val incoming: List<JsonObject> = withContext(Dispatchers.IO) {
+            val zip = runCatching {
+                open()?.use { input ->
+                    val head = ByteArray(2)
+                    input.read(head) == 2 && head[0] == 'P'.code.toByte() && head[1] == 'K'.code.toByte()
+                }
+            }.getOrNull() ?: return@withContext emptyList()
+            if (zip) {
+                val clips = runCatching {
+                    open()?.use { input ->
+                        com.wasimaster.wmkeyboard.core.settings.foreign.ForeignClipboard.readZip(
+                            input,
+                            sqlite = com.wasimaster.wmkeyboard.core.settings.foreign.ForeignClipboard::readHeliDatabase,
+                            scratch = context.cacheDir,
+                        )
+                    }
+                }.getOrNull()
+                return@withContext foreignClipItems(clips.orEmpty(), now)
+            }
+            val text = runCatching { open()?.use { input -> readImportText(input) } }.getOrNull()
+                ?: return@withContext emptyList()
+            val bundle = ConfigBackup.decode(text)
+            if (bundle != null) {
+                val section = bundle.sections[ConfigBackup.Section.CLIPBOARD] ?: return@withContext emptyList()
+                return@withContext (ClipboardSyncSanitizer.sanitize(section)["items"] as? JsonArray).orEmpty()
+                    .mapNotNull { it as? JsonObject }
+            }
+            com.wasimaster.wmkeyboard.core.settings.foreign.ForeignClipboard.fromJson(text)
+                ?.let { return@withContext foreignClipItems(it, now) }
+            val lines = text.lineSequence()
                 .map { it.trim() }
                 .filter { it.isNotEmpty() }
                 .distinct()
                 .take(IMPORTED_CLIPS_MAX)
                 .toList()
-                .mapIndexed { index, line ->
-                    val clip = com.wasimaster.wmkeyboard.core.clipboard.capClipText(line, ClipboardStore.HARD_MAX_TEXT_CHARS)
-                    val link = com.wasimaster.wmkeyboard.core.clipboard.ClipLinks.asUrl(clip) != null
-                    buildJsonObject {
-                        put("id", JsonPrimitive(index + 1L))
-                        put("text", JsonPrimitive(clip))
-                        put("timestamp", JsonPrimitive(now - index))
-                        if (link) put("kind", JsonPrimitive("LINK"))
-                    }
-                }
+            foreignClipItems(
+                lines.map { com.wasimaster.wmkeyboard.core.settings.foreign.ForeignClip(it, null, false) },
+                now,
+            )
         }
         if (incoming.isEmpty()) return null
         val stored = context.dataStore.data.first()
@@ -22653,6 +22680,43 @@ class SettingsRepository(private val context: Context) {
         }
         addNamedClipboard(name, id) ?: return null
         return tagged.size
+    }
+
+    /**
+     * [clips] as the history file's items (#1542), in the order given, the
+     * first on top: one with no time of its own is stamped just under the
+     * one before it, so the order holds. Text is cut to the store's cap, and
+     * a bare address is a link clip, as a copy of it would be.
+     */
+    private fun foreignClipItems(
+        clips: List<com.wasimaster.wmkeyboard.core.settings.foreign.ForeignClip>,
+        now: Long,
+    ): List<JsonObject> {
+        var last = now
+        return clips.take(IMPORTED_CLIPS_MAX).mapIndexed { index, clip ->
+            val time = (clip.timestamp ?: (last - 1)).also { last = it }
+            val text = com.wasimaster.wmkeyboard.core.clipboard.capClipText(clip.text, ClipboardStore.HARD_MAX_TEXT_CHARS)
+            val link = com.wasimaster.wmkeyboard.core.clipboard.ClipLinks.asUrl(text) != null
+            buildJsonObject {
+                put("id", JsonPrimitive(index + 1L))
+                put("text", JsonPrimitive(text))
+                put("timestamp", JsonPrimitive(time))
+                if (clip.pinned) put("pinned", JsonPrimitive(true))
+                if (link) put("kind", JsonPrimitive("LINK"))
+            }
+        }
+    }
+
+    /** A text file to import clips from, up to 16 MB of it. */
+    private fun readImportText(input: java.io.InputStream): String {
+        val out = java.io.ByteArrayOutputStream()
+        val buffer = ByteArray(64 * 1024)
+        while (out.size() < IMPORT_TEXT_MAX_BYTES) {
+            val n = input.read(buffer, 0, minOf(buffer.size, IMPORT_TEXT_MAX_BYTES - out.size()))
+            if (n < 0) break
+            out.write(buffer, 0, n)
+        }
+        return out.toString(Charsets.UTF_8.name())
     }
 
     /**
@@ -27085,6 +27149,13 @@ class SettingsRepository(private val context: Context) {
         val dropped = prefs[CLIPBOARD_NAMED_DROPPED]?.split('\n').orEmpty().filter { it.isNotBlank() }
         prefs[CLIPBOARD_NAMED_DROPPED] = (dropped + id).distinct().joinToString("\n")
         if (prefs[CLIPBOARD_ACTIVE] == id) prefs[CLIPBOARD_ACTIVE] = ""
+    }
+
+    /** The named clipboards in a new order (#1542); one [order] leaves out goes last. */
+    suspend fun setNamedClipboardOrder(order: List<String>) = editPrefs { prefs ->
+        val list = prefs[CLIPBOARD_NAMED]?.let(::decodeNamedClipboards).orEmpty()
+        val place = order.withIndex().associate { (index, id) -> id to index }
+        prefs[CLIPBOARD_NAMED] = encodeNamedClipboards(list.sortedBy { place[it.id] ?: Int.MAX_VALUE })
     }
 
     /** The clipboard the panel shows (#1542), "" for the main one. */

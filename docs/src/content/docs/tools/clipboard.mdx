@@ -140,13 +140,20 @@ Everything you copy goes into one clipboard, and for most people that is all the
 With a second clipboard, the panel's header starts with the open clipboard's name and a ▾. Tap it to see your clipboards, each with how many clips it holds, and pick one to show it. **Manage clipboards** at the bottom of that list opens the settings rows. The panel remembers which clipboard was open.
 
 - **New copies** always go into the main clipboard, called **Clipboard** in the list, whichever one is open. So does text you write yourself. A clip you make with **Combine** goes into the clipboard you combined in.
-- **Moving clips**: hold a text clip and press **Move to clipboard** (the box icon) in its row of icons, then pick where it goes. For several clips at once, or for pictures and files, [pick them](#picking-several-clips) and press the box icon in the bar. A moved clip goes to the top of its new clipboard, keeping its pin, tags and edits.
+- **Moving clips**: hold a clip and press **Move to clipboard** (the box icon) in its row of icons, then pick where it goes. Pictures and files have it too. For several clips at once, [pick them](#picking-several-clips) and press the box icon in the bar. A moved clip goes to the top of its new clipboard, keeping its pin, tags and edits.
 - **Keeping**: a clip in a clipboard you added is kept until you delete it, like a pinned one. [Expiry and the entry cap](#expiry-and-the-entry-cap) only apply to the main clipboard.
-- **Searching**: with **Search every clipboard** on, the default, the search and its filters look through all your clipboards at once, and a clip from another clipboard shows that clipboard's name beside its time. Turn it off to search only the open one.
+- **Searching**: with **Search every clipboard** on, the default, the search and its filters look through all your clipboards at once. When the results come from more than one clipboard they are split under a heading for each, the open clipboard first, with how many clips each one found. Tap a heading to fold that clipboard's results away, and again to bring them back. Turn the setting off to search only the open one.
 - **Clearing**: the clear button deletes the unpinned clips of the open clipboard only.
 - **Renaming and deleting**: tap a clipboard's row under **Clipboards** in settings. Deleting a clipboard deletes its clips, pinned ones too, so move any you want to keep first.
+- **Order**: **Order of clipboards**, there once you have two, sets the order the ▾ lists them in. The main clipboard is always first.
 
-To bring a whole history in at once, use **Import into a new clipboard** under **Clipboards**. It takes a config file WM Keyboard exported with its Clipboard section ticked, or a plain text file with one clip a line, the first line on top. The new clipboard is named after the file and can be renamed afterwards. Your own clips and their order are left alone.
+To bring a whole history in at once, use **Import into a new clipboard** under **Clipboards** and pick the file. It reads:
+
+- **Another keyboard's backup**: the clipboard history in a backup from HeliBoard, LeanType, FUTO Keyboard, FlorisBoard or CleverKeys, the same `.zip` the [import from other keyboards](/reference/importing-other-keyboards/) takes. Only the clipboard is read; the rest of the backup is that import's job. CleverKeys' own clipboard export (`.json`) works too.
+- **A WM Keyboard config file** exported with its Clipboard section ticked.
+- **A plain text file**, one clip a line, the first line on top.
+
+Text clips come across with their pins and the time they were copied. Pictures, videos and files stay behind, since their bytes aren't in a form this history can keep, and so do clips the other keyboard marked as sensitive. The new clipboard is named after the file and can be renamed afterwards. Your own clips and their order are left alone.
 
 Which clipboard a clip is in travels with it in a [config export](#backups-and-exports) and with [Sync devices](/privacy/backup/), and the names of your clipboards travel with the settings. A clip whose clipboard isn't known on a phone shows in the main clipboard there.
 
