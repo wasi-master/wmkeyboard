@@ -1,6 +1,6 @@
 ---
 title: "File manager"
-description: "Browse, rename, copy, move and delete files from the keyboard with the Files tool, in one list or two side by side, and pick a file for a tool without leaving the app you are typing in."
+description: "Browse files by folder or by kind, preview them, send them into the chat you are typing in, zip and unzip, rename, copy, move and delete from the keyboard, and pick a file for a tool without leaving the app."
 sidebar:
   order: 16.6
 ---
@@ -9,17 +9,24 @@ import SettingsPath from '@components/SettingsPath.astro';
 
 The keyboard has its own file manager. It opens in a panel over the keys, in the keyboard's theme, so the app you are typing in stays where it is. You reach it two ways:
 
-- The **Files** tool in the toolbox, for looking through your files and changing them.
+- The **Files** tool in the toolbox, for looking through your files, sending them and changing them.
 - A tool that wants a file, such as the Gallery or Send files. The manager opens for that pick and goes back to the tool once you have picked.
 
-## Where it can look
+## Places
 
-**Places** is the top of the list. What it holds depends on what you have allowed:
+**Places** is where the manager opens. From the top:
 
-- **Recent**, each storage volume (the phone, an SD card, a USB drive) and shortcuts such as Downloads and Pictures. These need Android's **All files access**, which the Google Play build cannot ask for.
-- **Folders you add.** **Add a folder** opens Android's folder picker. Pick a folder on the phone, the top of a USB drive or SD card, or a folder that another app offers there, such as a network share or a cloud drive whose app shows up in the picker. The keyboard keeps a grant for that folder only, so it needs no All files access, and this works in every build, Play included.
+- A card for each storage volume (the phone, an SD card, a USB drive) with a bar showing how full it is. Tap a card to open the volume.
+- Eight tiles: **Images**, **Videos**, **Audio**, **Documents**, **APKs**, **Archives**, **Downloads** and **Large files**. A tile lists every file of that kind on the phone, whatever folder it is in, from Android's media index, so it needs no walk through the storage. Large files are those over 50 MB, biggest first.
+- **Pinned** folders as chips. Pin any folder with the pin at the end of its path row, or from its Properties card. Press and hold a chip to take it off.
+- **Recent**: the newest files on the phone, and the folders you opened last.
+- **Added folders**, and **Add a folder** to add another (see below).
 
-Press and hold an added folder to take it off the list. The folder and its files stay where they are.
+The storage cards, the tiles and Recent need Android's **All files access**, which the Google Play build cannot ask for.
+
+### Folders from other places
+
+**Add a folder** opens Android's folder picker. Pick a folder on the phone, the top of a USB drive or SD card, or a folder that another app offers there, such as a network share or a cloud drive whose app shows up in the picker. The keyboard keeps a grant for that folder only, so it needs no All files access, and this works in every build, Play included. Press and hold an added folder to take it off the list. The folder and its files stay where they are.
 
 How fast an added folder answers depends on the app behind it. A network share or a cloud folder is read over the network, a folder at a time.
 
@@ -31,26 +38,74 @@ A tool's pick with no grant and no added folder shows a screen of its own: **All
 
 ## Moving around
 
-The row above the list shows where you are, and any step in it is a tap away. Back goes up a folder, and out of the top back to the keys (or to the tool that asked). The expand button makes the panel nearly as tall as the screen.
+Folders show as a grid of thumbnails: photos and videos show themselves, and every other file shows an icon in the colour of its kind with its extension as a badge. The view button in the header switches to a list, with each file's size and date. The choice is kept.
 
-The search button looks through file names in the open folder, or everywhere on the phone from **Places**. The ⋮ menu has **New folder**, **Add a folder**, sorting by name, date or size (choose the same one again to reverse it) and hidden files.
+The row above the files shows where you are, and any step in it is a tap away. Back returns to the place you came from (a tile, a pinned folder, the folder above), then up a folder, and out of the top back to the keys (or to the tool that asked). A folder you opened before shows at once while the keyboard reads it again. A folder with thousands of files says how many it has read so far. The expand button makes the panel nearly as tall as the screen.
+
+The ⋮ menu has **New folder**, **Properties** for the open folder, **Add a folder**, sorting by name, date, size or type (choose the same one again to reverse it) and hidden files.
+
+## Searching
+
+The search button looks through the open folder, or everywhere from **Places**, including the folders you added. Results appear while the search goes on, each with the folder it is in, and the line above them says where it is looking. Under the search box:
+
+- **Any type** narrows to images, videos, audio, documents, APKs or archives.
+- **Any size** narrows to under 1 MB, 1 to 100 MB, or over 100 MB.
+- **Any time** narrows to today, this week, this month or this year.
+- **In contents** also looks for the words inside text and code files up to 2 MB.
+
+A filter searches on its own, so you can list every PDF from this month without typing a word. While the box is empty it shows your recent searches; tap one to search again, or the cross to forget it.
+
+## Opening and previewing a file
+
+In the Files tool, a tap on a file opens it in the app for it, a photo in your gallery app or a video in your player, and Android asks which app when you have not picked one. Turn on **Tap a file to preview it** on the tool's page (<SettingsPath path="Tools / Files / Tap a file to preview it" />) to see it in the keyboard instead:
+
+- Pictures fill the panel. Pinch or double-tap to zoom, and the folder's other pictures and videos run along the bottom.
+- Videos play, and a tap pauses them. Recordings play with their title and artist.
+- Text and code show with line numbers, code in colour. Up to the first 256 KB is shown.
+- PDFs show a page at a time.
+- An app package (APK) shows its icon, name, package name, version and the oldest Android it runs on.
+- A zip shows what it holds, with **Extract here**.
+
+Swipe sideways for the next or previous file. Every preview has the same actions: **Send to chat**, **Type**, **Share**, **Open with** and **Properties** (the i button). Text files also have **Copy text**.
+
+## Into the chat you are typing in
+
+**Send** (in a preview, or in the bar with files selected) puts the files into the field you are typing in as attachments, the way the Gallery and stickers do. This works where the app's field takes files of that kind, as most chat apps do for pictures and many do for any file. A field that takes no files says so, and **Share** is the other way.
+
+**Type** puts text into the field instead: the file's name, its path, or for a text file of up to 64 KB, the words in it. Type is not offered in a password field.
+
+The copies made for sending go in the keyboard's own cache and are deleted a day later.
+
+## Selecting and changing files
+
+Press and hold a file or folder to start a selection; taps then pick and unpick. Hold and slide to pick everything you pass, and the list scrolls when you near its edge. In the grid, picked files show a tick; in the list, a ticked tile. The header shows how many are picked and how big they are, with **Select all**, **Invert** and a ⋮ menu. The bar along the bottom offers:
+
+- **Send** and **Share**, for files.
+- **Copy** and **Move**, which carry the selection until you open a folder and press **Copy here** or **Move here**.
+- **Zip**, which asks for a name and packs the selection into one zip in the open folder.
+- **Delete**, which asks first. It is permanent: Android has no recycle bin for files. A folder goes with everything in it.
+
+The ⋮ menu has **Rename**, **Duplicate**, **Unzip** for a zip, **Open with**, **Properties**, **Copy path** and, for a folder, **Pin to Places**.
+
+When a name is already taken where you copy or move to, the keyboard asks: **Skip**, **Replace** or **Keep both** (which adds a number to the new one's name). **Same answer for all of them** is on at first; turn it off to answer for each name. Replace removes the old file only once the new one has arrived whole.
+
+Unzip makes a new folder named after the zip beside it, so nothing already there is touched. An entry in a zip that would land outside that folder is skipped.
+
+Copies, moves, zips and deletes work between any two places, the phone to a USB drive or a network share to Downloads among them. Between two folders of the phone's own storage a move is a rename where it can be; anywhere else a move copies first and deletes the original only once the copy is whole. They run in the background, one after another: the bar shows the bytes done, the speed and the time left, with a **Stop** button and what waits next. A copy you stop takes back the part it had made.
+
+After a copy, move, rename, duplicate, new folder, zip or unzip, an **Undo** button shows for a few seconds and takes the change back. A delete has no Undo.
+
+Android keeps `Android/data` and `Android/obb` closed even with All files access, so those folders look empty.
+
+## Properties
+
+**Properties** shows what a file or folder is. For a file: where it is (with a button to copy the path), when it changed, its exact size, its type, a picture's size in pixels, camera and exposure, a recording's length, artist and album, a PDF's page count, an app package's name and version, and its SHA-256 when you ask for it.
+
+For a folder: its total size, how many files and folders are inside, and a bar for each kind of file showing what takes the space, filled in while the folder is counted. **Copy path** and **Pin to Places** sit along the bottom.
 
 ## Two lists side by side
 
-The two-column button in the header splits the panel into two lists, each with its own folder and its own path row. The one with the coloured outline is the one you are working in; touch the other to switch. With two lists, **Copy** and **Move** become **Copy to** and **Move to** the other list's folder, and do it at once. The choice is remembered, and the Files tool's page in settings has the same switch (<SettingsPath path="Tools / Files / Two lists side by side" />).
-
-## Changing files
-
-In the Files tool, a tap on a file opens it in the app for it, a photo in your gallery app or a video in your player, and Android asks which app when you have not picked one. Before 0.6.8 a tap selected the file. A tap on a folder opens it. Press and hold a file or a folder to start a selection, where taps then pick and unpick. The bar along the bottom offers:
-
-- **Open with**, with one file selected: asks which app to open it in, every time.
-- **Rename**, with one thing selected.
-- **Copy** and **Move**, which carry the selection until you open a folder and press **Copy here** or **Move here**. A name already taken there gets a number after it, so nothing is overwritten.
-- **Delete**, which asks first. It is permanent: Android has no recycle bin for files. A folder goes with everything in it.
-
-Copies and moves work between any two places, the phone to a USB drive or a network share to Downloads among them. Between two folders of the phone's own storage a move is a rename where it can be; anywhere else a move copies first and deletes the original only once the copy is whole. They run in the background with a **Stop** button. A copy you stop takes back the part it had made.
-
-Android keeps `Android/data` and `Android/obb` closed even with All files access, so those folders look empty.
+The two-column button in the header splits the panel into two lists, each with its own folder and its own path row. The one with the coloured outline is the one you are working in; touch the other to switch, and the swap button trades them. With two lists, **Copy** and **Move** become **Copy to** and **Move to** the other list's folder, and do it at once. The choice is remembered.
 
 ## Picking for a tool
 
@@ -62,11 +117,22 @@ The manager opens for these, in builds that have All files access:
 - **Files…** in [KDE Connect](/tools/kde-connect/).
 - The picture button in the [QR scanner and the text scanner](/tools/scanner/), and in the [camera](/tools/camera/).
 
-Only files the tool can take are listed. The QR scanner shows pictures, for example. A tool that takes one file gets it at the first tap. For a tool that takes several, each tap adds a file, you can move between folders while you pick, and **Add** hands them over. Files in added folders can be picked too.
+Only files the tool can take are listed. The QR scanner shows pictures, for example. A tool that takes one file gets it at the first tap. For a tool that takes several, each tap adds a file, you can move between folders and tiles while you pick, and **Add** hands them over. Files in added folders can be picked too.
 
 For anything else, the header's file button opens Android's picker for this pick. Settings screens keep Android's picker, since you have already left the app you were in by then.
 
 The Play build has no built-in picker, so these tools open Android's picker there. The Files tool still works there, with added folders.
+
+## Settings
+
+The Files tool's page (<SettingsPath path="Tools / Files" />) has:
+
+- **Two lists side by side**, off by default.
+- **Show files as a grid**, on by default. Off shows a list.
+- **Tap a file to preview it**, off by default.
+- **Thumbnails**, on by default. Off shows an icon for every file, which is quicker on a slow drive or network share.
+- **Folders first**, on by default. Off sorts folders among the files.
+- **Show hidden files**, off by default: names that start with a dot.
 
 ## Turning it off
 

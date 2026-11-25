@@ -162,6 +162,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Flag
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FlashlightOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Flip
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Folder
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FolderOpen
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FontDownload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatBold
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwipeRight
@@ -2833,6 +2834,11 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_translate_manual_title) { Icons.Outlined.Translate }
         put(R.string.tooldetail_translate_live_delay_title) { Icons.Outlined.Timer }
         put(R.string.files_tool_two_panes_title) { Icons.Outlined.VerticalSplit }
+        put(R.string.files_tool_grid_title) { Icons.Outlined.GridView }
+        put(R.string.files_tool_tap_previews_title) { Icons.Outlined.Preview }
+        put(R.string.files_tool_thumbnails_title) { Icons.Outlined.PhotoLibrary }
+        put(R.string.files_tool_folders_first_title) { Icons.Outlined.FolderOpen }
+        put(R.string.files_tool_show_hidden_title) { Icons.Outlined.Visibility }
         put(R.string.tooldetail_float_on_tap_title) { Icons.Outlined.PictureInPictureAlt }
         put(R.string.tooldetail_box_close_outside_title) { Icons.Outlined.PictureInPictureAlt }
         put(R.string.tools_box_gestures_title) { Icons.Outlined.Gesture }

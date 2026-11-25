@@ -1,8 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- The Files tool (#1267). -->
-    <string name="files_tool_desc">The keyboard\'s file manager as a tool: rename, copy, move and delete files and folders, one list or two side by side, on the phone and in folders you add, such as a USB drive or a network share</string>
+    <string name="files_tool_desc">The keyboard\'s file manager as a tool: browse by folder or by kind, preview files, send them into the chat you are typing in, zip, rename, copy, move and delete, one list or two side by side, on the phone and in folders you add, such as a USB drive or a network share</string>
     <string name="files_tool_two_panes_title">Two lists side by side</string>
     <string name="files_tool_two_panes_subtitle">Copy and Move go straight from one list to the other</string>
     <string name="files_tool_two_panes_info">Shows two lists of files side by side. Copy and Move then go straight from one list to the other. This setting is off by default.</string>
+    <string name="files_tool_grid_title">Show files as a grid</string>
+    <string name="files_tool_grid_subtitle">Thumbnails in rows of four; off shows a list with names and sizes</string>
+    <string name="files_tool_grid_info">Shows files and folders as a grid of thumbnails. Turn it off for a list with each name, size and date. The view button in the panel\'s header switches it too. This setting is on by default.</string>
+    <string name="files_tool_tap_previews_title">Tap a file to preview it</string>
+    <string name="files_tool_tap_previews_subtitle">Opens the file in the keyboard rather than in its app</string>
+    <string name="files_tool_tap_previews_info">A tap on a file shows it in the keyboard: a picture, a video, a PDF, text, an app package or what a zip holds. Open with is a button there. Off, a tap opens the file in the app for it. This setting is off by default.</string>
+    <string name="files_tool_thumbnails_title">Thumbnails</string>
+    <string name="files_tool_thumbnails_subtitle">Pictures and videos show themselves rather than an icon</string>
+    <string name="files_tool_thumbnails_info">Shows a small picture of each photo and video. Off, every file shows an icon for its kind, which is quicker on a slow drive or network share. This setting is on by default.</string>
+    <string name="files_tool_folders_first_title">Folders first</string>
+    <string name="files_tool_folders_first_subtitle">Folders come before files whatever the sort</string>
+    <string name="files_tool_folders_first_info">Lists folders above files. Off, folders sort among the files by name, date or size. This setting is on by default.</string>
+    <string name="files_tool_show_hidden_title">Show hidden files</string>
+    <string name="files_tool_show_hidden_subtitle">Files and folders whose names start with a dot</string>
+    <string name="files_tool_show_hidden_info">Lists files and folders whose names start with a dot, which apps use for their own settings and caches. The panel\'s ⋮ menu switches it too. This setting is off by default.</string>
 </resources>

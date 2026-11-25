@@ -4123,10 +4123,55 @@ internal fun ToolDetailSettings(
                 ToggleSetting(
                     R.string.files_tool_two_panes_title,
                     stringResource(R.string.files_tool_two_panes_subtitle),
-                    settings.watch { it.filesTwoPanes },
-                    default = SettingsDefaults.filesTwoPanes,
+                    settings.watch { it.filesTool.twoPanes },
+                    default = SettingsDefaults.filesTool.twoPanes,
                     info = stringResource(R.string.files_tool_two_panes_info),
                 ) { scope.launch { repository.setFilesTwoPanes(it) } }
+            }
+            item {
+                ToggleSetting(
+                    R.string.files_tool_grid_title,
+                    stringResource(R.string.files_tool_grid_subtitle),
+                    settings.watch { it.filesTool.grid },
+                    default = SettingsDefaults.filesTool.grid,
+                    info = stringResource(R.string.files_tool_grid_info),
+                ) { scope.launch { repository.setFilesGrid(it) } }
+            }
+            item {
+                ToggleSetting(
+                    R.string.files_tool_tap_previews_title,
+                    stringResource(R.string.files_tool_tap_previews_subtitle),
+                    settings.watch { it.filesTool.tapPreviews },
+                    default = SettingsDefaults.filesTool.tapPreviews,
+                    info = stringResource(R.string.files_tool_tap_previews_info),
+                ) { scope.launch { repository.setFilesTapPreviews(it) } }
+            }
+            item {
+                ToggleSetting(
+                    R.string.files_tool_thumbnails_title,
+                    stringResource(R.string.files_tool_thumbnails_subtitle),
+                    settings.watch { it.filesTool.thumbnails },
+                    default = SettingsDefaults.filesTool.thumbnails,
+                    info = stringResource(R.string.files_tool_thumbnails_info),
+                ) { scope.launch { repository.setFilesThumbnails(it) } }
+            }
+            item {
+                ToggleSetting(
+                    R.string.files_tool_folders_first_title,
+                    stringResource(R.string.files_tool_folders_first_subtitle),
+                    settings.watch { it.filesTool.foldersFirst },
+                    default = SettingsDefaults.filesTool.foldersFirst,
+                    info = stringResource(R.string.files_tool_folders_first_info),
+                ) { scope.launch { repository.setFilesFoldersFirst(it) } }
+            }
+            item {
+                ToggleSetting(
+                    R.string.files_tool_show_hidden_title,
+                    stringResource(R.string.files_tool_show_hidden_subtitle),
+                    settings.watch { it.filesTool.showHidden },
+                    default = SettingsDefaults.filesTool.showHidden,
+                    info = stringResource(R.string.files_tool_show_hidden_info),
+                ) { scope.launch { repository.setFilesShowHidden(it) } }
             }
         }
         ToolbarTool.SEND_FILES -> com.wasimaster.wmkeyboard.app.send.SendToolSettings(repository, settings, onNavigate)

@@ -55088,10 +55088,31 @@ open class WMKeyboardService : InputMethodService() {
                     serviceScope.launch { settingsRepository.setBuiltInFileManager(false) }
                 }
                 override fun kdeSendFailed() = kdeNotice(getString(R.string.ime_files_kde_unreadable))
-                override fun twoPanes() = _uiState.value.settings.filesTwoPanes
+                override fun twoPanes() = _uiState.value.settings.filesTool.twoPanes
                 override fun setTwoPanes(on: Boolean) {
                     serviceScope.launch { settingsRepository.setFilesTwoPanes(on) }
                 }
+                override fun prefs(): com.wasimaster.wmkeyboard.ime.files.FilePrefs {
+                    val files = _uiState.value.settings.filesTool
+                    return com.wasimaster.wmkeyboard.ime.files.FilePrefs(
+                        grid = files.grid,
+                        tapPreviews = files.tapPreviews,
+                        thumbnails = files.thumbnails,
+                        showHidden = files.showHidden,
+                        foldersFirst = files.foldersFirst,
+                    )
+                }
+                override fun setGrid(on: Boolean) {
+                    serviceScope.launch { settingsRepository.setFilesGrid(on) }
+                }
+                override fun setShowHidden(on: Boolean) {
+                    serviceScope.launch { settingsRepository.setFilesShowHidden(on) }
+                }
+                // Through the gallery's own path: a FileProvider copy and a
+                // grant to the field's app, when the field takes the type.
+                override fun commitFile(file: File, mime: String) = commitGalleryFile(file, mime)
+                override fun insertText(text: String) = onToolTextInsert(text)
+                override fun secureField() = currentInputEditorInfo.isSecureField()
             },
         )
     }

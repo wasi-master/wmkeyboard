@@ -117,4 +117,195 @@
     <string name="ime_files_notice_tree_removed">Folder taken off the list</string>
     <string name="ime_files_open_with">Open with</string>
     <string name="ime_files_notice_no_app">No app here opens this kind of file</string>
+    <!-- The Files tool revamp (2026-11-26). -->
+    <string name="ime_files_cat_images">Images</string>
+    <string name="ime_files_cat_videos">Videos</string>
+    <string name="ime_files_cat_audio">Audio</string>
+    <string name="ime_files_cat_documents">Documents</string>
+    <string name="ime_files_cat_apks">APKs</string>
+    <string name="ime_files_cat_archives">Archives</string>
+    <string name="ime_files_cat_large">Large files</string>
+    <string name="ime_files_section_pinned">Pinned</string>
+    <string name="ime_files_section_folders">Folders</string>
+    <string name="ime_files_section_recent">Recent</string>
+    <string name="ime_files_section_added">Added folders</string>
+    <string name="ime_files_section_searches">Recent searches</string>
+    <string name="ime_files_recent_files">Recent files</string>
+    <string name="ime_files_space">%1$s of %2$s</string>
+    <string name="ime_files_pin_desc">Pin to Places</string>
+    <string name="ime_files_unpin_desc">Take off Places</string>
+    <string name="ime_files_grid_view_desc">Show as a grid</string>
+    <string name="ime_files_list_view_desc">Show as a list</string>
+    <string name="ime_files_swap_desc">Swap the two lists</string>
+    <string name="ime_files_sort_type">Sort by type</string>
+
+    <plurals name="ime_files_reading">
+        <item quantity="one">Reading %d item…</item>
+        <item quantity="other">Reading %d items…</item>
+    </plurals>
+    <plurals name="ime_files_found">
+        <item quantity="one">%d found</item>
+        <item quantity="other">%d found</item>
+    </plurals>
+    <string name="ime_files_searching_in">Searching %s…</string>
+    <string name="ime_files_search_done">Search finished</string>
+    <string name="ime_files_search_start">Type a name, or pick a filter</string>
+    <string name="ime_files_search_forget">Remove from recent searches</string>
+    <string name="ime_files_filter_any_type">Any type</string>
+    <string name="ime_files_filter_any_size">Any size</string>
+    <string name="ime_files_filter_small">Under 1 MB</string>
+    <string name="ime_files_filter_medium">1 to 100 MB</string>
+    <string name="ime_files_filter_large">Over 100 MB</string>
+    <string name="ime_files_filter_any_time">Any time</string>
+    <string name="ime_files_filter_today">Today</string>
+    <string name="ime_files_filter_week">This week</string>
+    <string name="ime_files_filter_month">This month</string>
+    <string name="ime_files_filter_year">This year</string>
+    <string name="ime_files_filter_contents">In contents</string>
+
+    <string name="ime_files_select_all">Select all</string>
+    <string name="ime_files_invert">Invert the selection</string>
+    <string name="ime_files_send">Send</string>
+    <string name="ime_files_send_to_chat">Send to chat</string>
+    <string name="ime_files_share">Share</string>
+    <string name="ime_files_zip">Zip</string>
+    <string name="ime_files_unzip">Unzip</string>
+    <string name="ime_files_extract_here">Extract here</string>
+    <string name="ime_files_zip_name_hint">Zip name</string>
+    <string name="ime_files_duplicate">Duplicate</string>
+    <string name="ime_files_copy_path">Copy path</string>
+    <string name="ime_files_copy_text">Copy text</string>
+    <string name="ime_files_info">Properties</string>
+    <string name="ime_files_undo">Undo</string>
+    <string name="ime_files_type">Type</string>
+    <string name="ime_files_type_name">Type the name</string>
+    <string name="ime_files_type_path">Type the path</string>
+    <string name="ime_files_type_contents">Type the text in it</string>
+
+    <string name="ime_files_op_zip">Zipping %1$d of %2$d</string>
+    <string name="ime_files_op_unzip">Unzipping %1$d of %2$d</string>
+    <string name="ime_files_op_send">Sending %1$d of %2$d</string>
+    <string name="ime_files_op_bytes">%1$s of %2$s</string>
+    <string name="ime_files_op_speed">%s/s</string>
+    <string name="ime_files_op_next">Next: %s</string>
+    <plurals name="ime_files_seconds_left">
+        <item quantity="one">%d second left</item>
+        <item quantity="other">%d seconds left</item>
+    </plurals>
+    <plurals name="ime_files_minutes_left">
+        <item quantity="one">%d minute left</item>
+        <item quantity="other">%d minutes left</item>
+    </plurals>
+
+    <plurals name="ime_files_clash_title">
+        <item quantity="one">%1$d name is already in %2$s</item>
+        <item quantity="other">%1$d names are already in %2$s</item>
+    </plurals>
+    <string name="ime_files_clash_one">“%1$s” is already there (%2$d of %3$d)</string>
+    <string name="ime_files_clash_body">What should happen to the ones already there?</string>
+    <string name="ime_files_clash_more">and %d more</string>
+    <string name="ime_files_clash_all">Same answer for all of them</string>
+    <string name="ime_files_clash_skip">Skip</string>
+    <string name="ime_files_clash_replace">Replace</string>
+    <string name="ime_files_clash_keep">Keep both</string>
+
+    <plurals name="ime_files_notice_zipped">
+        <item quantity="one">Zipped %d item</item>
+        <item quantity="other">Zipped %d items</item>
+    </plurals>
+    <string name="ime_files_notice_zipped_one">Zip made</string>
+    <string name="ime_files_notice_unzipped">Unzipped into a new folder</string>
+    <string name="ime_files_notice_zip_failed">The zip could not be made or read</string>
+    <plurals name="ime_files_notice_skipped">
+        <item quantity="one">Skipped %d item</item>
+        <item quantity="other">Skipped %d items</item>
+    </plurals>
+    <plurals name="ime_files_notice_duplicated">
+        <item quantity="one">Made %d copy</item>
+        <item quantity="other">Made %d copies</item>
+    </plurals>
+    <plurals name="ime_files_notice_sent">
+        <item quantity="one">Sent %d file</item>
+        <item quantity="other">Sent %d files</item>
+    </plurals>
+    <string name="ime_files_notice_renamed">Renamed</string>
+    <string name="ime_files_notice_folder_made">Folder made</string>
+    <string name="ime_files_notice_undone">Undone</string>
+    <string name="ime_files_notice_undo_failed">Some of it could not be undone</string>
+    <string name="ime_files_notice_path_copied">Path copied</string>
+    <string name="ime_files_notice_text_copied">Text copied</string>
+    <string name="ime_files_notice_pinned">Pinned to Places</string>
+    <string name="ime_files_notice_unpinned">Taken off Places</string>
+    <string name="ime_files_notice_field_refused">This field does not take files. Use Share instead.</string>
+    <string name="ime_files_notice_too_big">Only text files up to 64 KB can be typed</string>
+    <string name="ime_files_notice_queued">Waiting for the change under way</string>
+
+    <string name="ime_files_preview_back">Back to the list</string>
+    <string name="ime_files_preview_position">%1$d of %2$d</string>
+    <string name="ime_files_preview_cut">The file goes on; this shows its first 256 KB.</string>
+    <string name="ime_files_no_preview">No preview for this kind of file. Open it in its app with the button below.</string>
+    <string name="ime_files_page_of">Page %1$d of %2$d</string>
+    <string name="ime_files_page_previous">Previous page</string>
+    <string name="ime_files_page_next">Next page</string>
+    <string name="ime_files_play">Play</string>
+    <string name="ime_files_pause">Pause</string>
+    <plurals name="ime_files_lines">
+        <item quantity="one">%d line</item>
+        <item quantity="other">%d lines</item>
+    </plurals>
+    <plurals name="ime_files_pages">
+        <item quantity="one">%d page</item>
+        <item quantity="other">%d pages</item>
+    </plurals>
+    <plurals name="ime_files_zip_items">
+        <item quantity="one">%d item inside</item>
+        <item quantity="other">%d items inside</item>
+    </plurals>
+    <string name="ime_files_app_version">Version</string>
+    <string name="ime_files_app_min_sdk">Needs Android API</string>
+    <string name="ime_files_app_entries">Files inside</string>
+    <string name="ime_files_app_unreadable">Android could not read this package. It may be split into parts or damaged.</string>
+
+    <string name="ime_files_kind_folder">Folder</string>
+    <string name="ime_files_kind_image">Picture</string>
+    <string name="ime_files_kind_video">Video</string>
+    <string name="ime_files_kind_audio">Audio</string>
+    <string name="ime_files_kind_pdf">PDF</string>
+    <string name="ime_files_kind_doc">Document</string>
+    <string name="ime_files_kind_sheet">Spreadsheet</string>
+    <string name="ime_files_kind_slides">Slides</string>
+    <string name="ime_files_kind_text">Text</string>
+    <string name="ime_files_kind_code">Code</string>
+    <string name="ime_files_kind_archive">Archive</string>
+    <string name="ime_files_kind_apk">App package</string>
+    <string name="ime_files_kind_ebook">E-book</string>
+    <string name="ime_files_kind_font">Font</string>
+    <string name="ime_files_kind_other">File</string>
+
+    <string name="ime_files_info_location">Location</string>
+    <string name="ime_files_info_modified">Changed</string>
+    <string name="ime_files_info_size">Size</string>
+    <string name="ime_files_info_bytes">%s bytes</string>
+    <string name="ime_files_info_dimensions">Size in pixels</string>
+    <string name="ime_files_info_length">Length</string>
+    <string name="ime_files_info_camera">Camera</string>
+    <string name="ime_files_info_taken">Taken</string>
+    <string name="ime_files_info_artist">Artist</string>
+    <string name="ime_files_info_album">Album</string>
+    <string name="ime_files_info_pages">Pages</string>
+    <string name="ime_files_info_package">Package</string>
+    <string name="ime_files_info_type">Type</string>
+    <string name="ime_files_info_hash">Work it out</string>
+    <string name="ime_files_info_hash_failed">The file could not be read</string>
+    <string name="ime_files_info_counting">counting…</string>
+    <string name="ime_files_info_in_all">in all</string>
+    <string name="ime_files_info_inside">Inside</string>
+    <string name="ime_files_info_folders">Folders</string>
+    <string name="ime_files_info_below">below</string>
+    <plurals name="ime_files_files_word">
+        <item quantity="one">file</item>
+        <item quantity="other">files</item>
+    </plurals>
+    <string name="ime_files_info_space">What takes the space</string>
+    <string name="ime_files_info_details">Details</string>
 </resources>
