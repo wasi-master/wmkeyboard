@@ -77,6 +77,7 @@ pub(crate) fn tokenize(source: &str) -> Result<Vec<Token>, PyError> {
         bracket_depth: 0,
         tokens: Vec::new(),
         at_line_start: true,
+        names: std::collections::HashMap::new(),
     };
     lexer.run()?;
     Ok(lexer.tokens)
@@ -90,6 +91,10 @@ struct Lexer<'a> {
     bracket_depth: usize,
     tokens: Vec<Token>,
     at_line_start: bool,
+    /// One shared string per identifier, so a name the parser hands the
+    /// interpreter in two places is the same pointer: a scope finds it by
+    /// address before comparing text.
+    names: std::collections::HashMap<String, Rc<str>>,
 }
 
 /// Split one placeholder's raw text into expression, `!conversion` and `:spec`.
@@ -728,7 +733,14 @@ impl<'a> Lexer<'a> {
         }
         let kind = match keyword(&s) {
             Some(k) => Tok::Keyword(k),
-            None => Tok::Name(Rc::from(s)),
+            None => Tok::Name(match self.names.get(&s) {
+                Some(n) => n.clone(),
+                None => {
+                    let n: Rc<str> = Rc::from(s.as_str());
+                    self.names.insert(s, n.clone());
+                    n
+                }
+            }),
         };
         self.push(kind, self.line);
     }

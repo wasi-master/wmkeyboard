@@ -17,26 +17,32 @@ use std::sync::Arc;
 use indexmap::{IndexMap, IndexSet};
 
 use super::ast::*;
-use super::builtins::BUILTIN_NAMES;
+use super::builtins::is_builtin_name;
 use super::error::{AbortKind, Exc, PyError, R};
 use super::format::py_format;
 use super::host::{Call, HostFunction, HostModule};
 use super::modules::{self, Clock};
 use super::text::{boundaries, grapheme_count, longer_than, str_compare};
+use super::fxhash::FxBuild;
+use super::scope::Scope;
 use super::value::*;
 
 /// Deeper than this and a native stack is at risk; PyMini has no limit.
 pub const MAX_CALL_DEPTH: u32 = 300;
 
+/// How often, in steps, the cancel flag and the deadline are read.
+const POLL_EVERY: u64 = 256;
+
 const PRINTF_TYPES: &[&str] = &["s", "r", "a", "d", "i", "u", "f", "F", "g", "G", "e", "E", "x", "X", "o", "c"];
 
 /// A lexical scope. Functions capture the one they were defined in.
 pub(crate) struct Env {
-    pub vars: RefCell<IndexMap<Rc<str>, Value>>,
-    /// Names this scope declared `global`, so assigning them writes to the module.
-    pub global_names: RefCell<HashSet<Rc<str>>>,
+    pub vars: RefCell<Scope>,
+    /// Names this scope declared `global`, so assigning them writes to the
+    /// module. A list: a scope declares a handful at most, usually none.
+    pub global_names: RefCell<Vec<Rc<str>>>,
     /// Names this scope declared `nonlocal`, so assigning them writes to the enclosing function's.
-    pub nonlocal_names: RefCell<HashSet<Rc<str>>>,
+    pub nonlocal_names: RefCell<Vec<Rc<str>>>,
     pub parent: Option<Rc<Env>>,
     /// A class body: its names are not visible to the functions defined in it.
     pub class_scope: bool,
@@ -44,10 +50,15 @@ pub(crate) struct Env {
 
 impl Env {
     pub fn new(parent: Option<Rc<Env>>) -> Rc<Env> {
+        Env::with_vars(parent, Scope::with_capacity(0))
+    }
+
+    /// A function's scope, with its parameters already bound.
+    pub fn with_vars(parent: Option<Rc<Env>>, vars: Scope) -> Rc<Env> {
         Rc::new(Env {
-            vars: RefCell::new(IndexMap::new()),
-            global_names: RefCell::new(HashSet::new()),
-            nonlocal_names: RefCell::new(HashSet::new()),
+            vars: RefCell::new(vars),
+            global_names: RefCell::new(Vec::new()),
+            nonlocal_names: RefCell::new(Vec::new()),
             parent,
             class_scope: false,
         })
@@ -55,9 +66,9 @@ impl Env {
 
     pub fn class_body(parent: Rc<Env>) -> Rc<Env> {
         Rc::new(Env {
-            vars: RefCell::new(IndexMap::new()),
-            global_names: RefCell::new(HashSet::new()),
-            nonlocal_names: RefCell::new(HashSet::new()),
+            vars: RefCell::new(Scope::with_capacity(0)),
+            global_names: RefCell::new(Vec::new()),
+            nonlocal_names: RefCell::new(Vec::new()),
             parent: Some(parent),
             class_scope: true,
         })
@@ -71,9 +82,10 @@ impl Env {
         e
     }
 
+    #[inline]
     fn is_global(&self, name: &str) -> bool {
         let g = self.global_names.borrow();
-        !g.is_empty() && g.contains(name)
+        !g.is_empty() && g.iter().any(|n| n.as_ref() == name)
     }
 
     pub fn get(self: &Rc<Env>, name: &str) -> Option<Value> {
@@ -109,9 +121,10 @@ impl Env {
         self.vars.borrow_mut().insert(name.clone(), value);
     }
 
+    #[inline]
     fn is_nonlocal(&self, name: &str) -> bool {
         let n = self.nonlocal_names.borrow();
-        !n.is_empty() && n.contains(name)
+        !n.is_empty() && n.iter().any(|x| x.as_ref() == name)
     }
 
     /// The nearest enclosing function scope that binds [name], or the nearest
@@ -180,13 +193,16 @@ pub(crate) struct Interp {
     pub globals: Rc<Env>,
     pub max_steps: u64,
     pub steps: u64,
+    /// The step at which [tick] next looks past its counter: at the budget,
+    /// or sooner to poll the cancel flag and the deadline.
+    poll_at: u64,
     pub current_line: u32,
     pub printed: Vec<String>,
     pub on_print: Option<Box<dyn FnMut(&str)>>,
     active_exception: Option<Rc<ExceptionValue>>,
     pub random_state: u64,
     pub enabled_modules: Vec<&'static str>,
-    pub host_functions: HashMap<String, Rc<HostFunction>>,
+    pub host_functions: HashMap<String, Rc<HostFunction>, FxBuild>,
     pub host_modules: HashMap<String, Rc<HostModule>>,
     pub max_container: usize,
     pub max_string: usize,
@@ -224,6 +240,8 @@ pub(crate) struct Interp {
     pub(crate) hash_buckets: HashMap<i64, Vec<Weak<Instance>>>,
     /// What `print(..., end="")` wrote that no line end has closed yet.
     pub(crate) print_partial: String,
+    /// What [ascii_char] hands out, made on first use.
+    ascii_chars: Vec<Value>,
 }
 
 impl Drop for Interp {
@@ -269,13 +287,14 @@ impl Interp {
             globals: Env::new(None),
             max_steps: limits.steps,
             steps: 0,
+            poll_at: 0,
             current_line: 0,
             printed: Vec::new(),
             on_print: None,
             active_exception: None,
             random_state: modules::random_seed(),
             enabled_modules: enabled,
-            host_functions: HashMap::new(),
+            host_functions: HashMap::default(),
             host_modules: HashMap::new(),
             max_container: limits.container_items,
             max_string: limits.string_length,
@@ -300,7 +319,17 @@ impl Interp {
             plain_object: None,
             hash_buckets: HashMap::new(),
             print_partial: String::new(),
+            ascii_chars: Vec::new(),
         }
+    }
+
+    /// A one-character string, shared: iterating or indexing ASCII text
+    /// hands out these rather than allocating a string per character.
+    pub(crate) fn ascii_char(&mut self, b: u8) -> Value {
+        if self.ascii_chars.is_empty() {
+            self.ascii_chars = (0u8..128).map(|c| Value::str((c as char).encode_utf8(&mut [0; 4]))).collect();
+        }
+        self.ascii_chars[b as usize & 0x7F].clone()
     }
 
     /// The grapheme cluster boundaries of [s], which is what PyMini's `Array(s)` gives.
@@ -344,7 +373,14 @@ impl Interp {
 
     pub fn reset_budget(&mut self) {
         self.steps = 0;
+        self.poll_at = 0;
         self.call_depth = 0;
+    }
+
+    /// A new step budget, which the next step checks against.
+    pub fn set_max_steps(&mut self, steps: u64) {
+        self.max_steps = steps;
+        self.poll_at = 0;
     }
 
     pub fn emit(&mut self, line: String) {
@@ -364,8 +400,21 @@ impl Interp {
 
     // MARK: - Step budget
 
+    /// One step. Every statement and expression takes one, so this is the
+    /// hottest call there is: a counter compare, with the budget, the cancel
+    /// flag and the deadline looked at only every [POLL_EVERY] steps.
+    #[inline(always)]
     pub fn tick(&mut self) -> Result<(), PyError> {
         self.steps += 1;
+        if self.steps < self.poll_at {
+            return Ok(());
+        }
+        self.poll()
+    }
+
+    #[cold]
+    #[inline(never)]
+    fn poll(&mut self) -> Result<(), PyError> {
         if self.steps > self.max_steps {
             return Err(self.abort(AbortKind::Steps, "script exceeded its step budget (possible infinite loop)"));
         }
@@ -373,13 +422,13 @@ impl Interp {
             return Err(self.abort(AbortKind::Cancelled, "script was cancelled"));
         }
         #[cfg(not(target_arch = "wasm32"))]
-        if self.steps & 31 == 0 {
-            if let Some(d) = self.deadline {
-                if std::time::Instant::now() > d {
-                    return Err(self.abort(AbortKind::Deadline, "script ran out of time"));
-                }
+        if let Some(d) = self.deadline {
+            if std::time::Instant::now() > d {
+                return Err(self.abort(AbortKind::Deadline, "script ran out of time"));
             }
         }
+        // Past the budget by exactly one step is where it stops.
+        self.poll_at = (self.steps + POLL_EVERY).min(self.max_steps.saturating_add(1));
         Ok(())
     }
 
@@ -432,7 +481,9 @@ impl Interp {
             StmtKind::Nonlocal(names) => {
                 let mut n = env.nonlocal_names.borrow_mut();
                 for name in names {
-                    n.insert(name.clone());
+                    if !n.contains(name) {
+                        n.push(name.clone());
+                    }
                 }
                 Ok(())
             }
@@ -446,7 +497,9 @@ impl Interp {
             StmtKind::Global(names) => {
                 let mut g = env.global_names.borrow_mut();
                 for n in names {
-                    g.insert(n.clone());
+                    if !g.contains(n) {
+                        g.push(n.clone());
+                    }
                 }
                 Ok(())
             }
@@ -551,9 +604,7 @@ impl Interp {
 
     #[inline(never)]
     fn exec_for(&mut self, target: &Expr, iterable: &Expr, body: &[Stmt], else_body: Option<&[Stmt]>, env: &Rc<Env>) -> R<()> {
-        let it = self.eval(iterable, env)?;
-        let seq = self.iterate(&it)?;
-        for item in seq {
+        for item in self.loop_items(iterable, env)? {
             self.tick()?;
             self.assign(target, item, env)?;
             match self.exec_block(body, env) {
@@ -1147,7 +1198,7 @@ impl Interp {
         if let Some(f) = self.host_functions.get(n.as_ref()) {
             return Ok(Value::HostFunction(f.clone()));
         }
-        if BUILTIN_NAMES.contains(&n.as_ref()) {
+        if is_builtin_name(n) {
             return Ok(Value::Builtin(n.clone()));
         }
         if super::builtins::PYTHON_BUILTINS.contains(&n.as_ref()) {
@@ -1298,7 +1349,8 @@ impl Interp {
 
     #[inline(never)]
     fn eval_call(&mut self, callee: &Expr, args: &[Expr], kwargs: &[(Rc<str>, Expr)], env: &Rc<Env>) -> R<Value> {
-        let mut a = Vec::with_capacity(args.len());
+        // One spare slot: a method call puts its receiver in front.
+        let mut a = Vec::with_capacity(args.len() + 1);
         for arg in args {
             if let Expr::Starred(inner) = arg {
                 let v = self.eval(inner, env)?;
@@ -1364,7 +1416,15 @@ impl Interp {
                                 out.push_str(&py_format(&converted, &spec)?);
                             }
                         }
-                        None => out.push_str(&self.to_str(&converted)?),
+                        // A string or an int goes in as it is, with no string made for it.
+                        None => match &converted {
+                            Value::Str(s) => out.push_str(s),
+                            Value::Int(i) => {
+                                use std::fmt::Write;
+                                let _ = write!(out, "{i}");
+                            }
+                            other => out.push_str(&self.to_str(other)?),
+                        },
                     }
                 }
             }
@@ -1420,8 +1480,7 @@ impl Interp {
             return Ok(());
         }
         let clause = &c.clauses[i];
-        let it = self.eval(&clause.iterable, scope)?;
-        for item in self.iterate(&it)? {
+        for item in self.loop_items(&clause.iterable, scope)? {
             self.tick()?;
             self.assign(&clause.target, item, scope)?;
             let mut keep = true;
@@ -1547,7 +1606,7 @@ impl Interp {
                 _ => Err(self.error(format!("Match has no attribute '{name}'"), "AttributeError")),
             },
             Value::Dict(d) => {
-                if let Some(v) = d.borrow().get(&HKey::str(name)) {
+                if let Some(v) = d.borrow().get(&StrKey(name)) {
                     return Ok(v.clone());
                 }
                 if super::methods::has_builtin_method(obj, name) {
@@ -1651,7 +1710,6 @@ impl Interp {
 
     #[inline(never)]
     pub fn call_function(&mut self, f: &Rc<Function>, args: Vec<Value>, kwargs: Vec<(Rc<str>, Value)>) -> R<Value> {
-        let env = Env::new(Some(f.closure.clone()));
         let sig = f.signature();
         let params = &sig.positional;
         if sig.variadic.is_none() && args.len() > params.len() {
@@ -1660,50 +1718,66 @@ impl Interp {
                 "TypeError",
             ));
         }
-        let mut bound: HashSet<Rc<str>> = HashSet::new();
-        let nargs = args.len();
+        // The scope starts with room for every name the last call bound, so
+        // a call allocates it once and never grows it.
+        let hint = match &f.body {
+            FnBody::Def(d) => d.locals_hint.get(),
+            FnBody::Lambda(..) => 0,
+        };
+        let declared = params.len() + sig.keyword_only.len() + sig.variadic.is_some() as usize + sig.kwargs.is_some() as usize;
+        let mut vars = Scope::with_capacity(hint.max(declared));
+        // Positional arguments fill the first parameters: those are bound,
+        // and a keyword naming one of them again is an error.
+        let positional = args.len().min(params.len());
         let mut args = args.into_iter();
-        for p in params.iter().take(nargs) {
-            env.define(&p.name, args.next().unwrap());
-            bound.insert(p.name.clone());
+        for p in &params[..positional] {
+            vars.insert(p.name.clone(), args.next().unwrap());
         }
         if let Some(v) = &sig.variadic {
-            env.define(v, Value::tuple(args.collect()));
+            vars.insert(v.clone(), Value::tuple(args.collect()));
         }
+        let by_keyword = !kwargs.is_empty();
         let mut extra: IndexMap<HKey, Value> = IndexMap::new();
         for (k, v) in kwargs {
             if params.iter().any(|p| p.name == k) || sig.keyword_only.iter().any(|p| p.name == k) {
-                if bound.contains(&k) {
+                if vars.contains_key(&k) {
                     return Err(self.error(format!("{}() got multiple values for argument '{k}'", f.name), "TypeError"));
                 }
-                env.define(&k, v);
-                bound.insert(k);
+                vars.insert(k, v);
             } else if sig.kwargs.is_some() {
                 extra.insert(HKey::Str(k), v);
             } else {
                 return Err(self.error(format!("{}() got an unexpected keyword argument '{k}'", f.name), "TypeError"));
             }
         }
-        for (i, p) in params.iter().chain(sig.keyword_only.iter()).enumerate() {
-            if bound.contains(&p.name) {
+        for (i, p) in params.iter().chain(sig.keyword_only.iter()).enumerate().skip(positional) {
+            if by_keyword && vars.contains_key(&p.name) {
                 continue;
             }
             let Some(v) = f.defaults.get(i).cloned().flatten() else {
                 return Err(self.error(format!("{}() missing required argument '{}'", f.name, p.name), "TypeError"));
             };
-            env.define(&p.name, v);
+            vars.insert(p.name.clone(), v);
         }
         if let Some(k) = &sig.kwargs {
-            env.define(k, Value::new_dict(extra));
+            vars.insert(k.clone(), Value::new_dict(extra));
         }
         if self.call_depth >= MAX_CALL_DEPTH {
             return Err(self.abort(AbortKind::Recursion, "maximum recursion depth exceeded").into());
         }
+        let env = Env::with_vars(Some(f.closure.clone()), vars);
         self.call_depth += 1;
         self.frames.push((f.clone(), env.clone()));
         let caller_line = self.current_line;
         let result = match &f.body {
-            FnBody::Def(d) => self.exec_block(&d.body, &env),
+            FnBody::Def(d) => {
+                let r = self.exec_block(&d.body, &env);
+                let bound = env.vars.borrow().len();
+                if bound > d.locals_hint.get() {
+                    d.locals_hint.set(bound);
+                }
+                r
+            }
             FnBody::Lambda(l, line) => match self.tick() {
                 Err(e) => Err(e.into()),
                 Ok(()) => {
@@ -1766,6 +1840,30 @@ impl Interp {
     }
 
     pub fn binary_op(&mut self, op: BinOp, a: &Value, b: &Value) -> R<Value> {
+        // Two ints or two floats, the bulk of all arithmetic, go straight to
+        // the answer; the general path below gives the same one.
+        match (a, b) {
+            (Value::Int(x), Value::Int(y)) => match op {
+                BinOp::BitAnd => return Ok(Value::Int(x & y)),
+                BinOp::BitOr => return Ok(Value::Int(x | y)),
+                BinOp::BitXor => return Ok(Value::Int(x ^ y)),
+                BinOp::Div if *y != 0 => return Ok(Value::Float(*x as f64 / *y as f64)),
+                BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::FloorDiv | BinOp::Mod | BinOp::Pow => {
+                    if let Some(v) = self.int_op(op, *x, *y)? {
+                        return Ok(v);
+                    }
+                }
+                _ => {}
+            },
+            (Value::Float(x), Value::Float(y)) => match op {
+                BinOp::Add => return Ok(Value::Float(x + y)),
+                BinOp::Sub => return Ok(Value::Float(x - y)),
+                BinOp::Mul => return Ok(Value::Float(x * y)),
+                BinOp::Div if *y != 0.0 => return Ok(Value::Float(x / y)),
+                _ => {}
+            },
+            _ => {}
+        }
         if matches!(a, Value::Instance(_)) || matches!(b, Value::Instance(_)) {
             return self.instance_binary(op, a, b);
         }
@@ -2050,6 +2148,30 @@ impl Interp {
     }
 
     fn compare_op(&mut self, op: CmpOp, a: &Value, b: &Value) -> R<bool> {
+        // Numbers compare directly: ints exactly across the whole 64-bit
+        // range, and anything against NaN is false, as in Python.
+        if let (Some(x), Some(y)) = (a.as_int(), b.as_int()) {
+            match op {
+                CmpOp::Eq => return Ok(x == y),
+                CmpOp::Ne => return Ok(x != y),
+                CmpOp::Lt => return Ok(x < y),
+                CmpOp::Le => return Ok(x <= y),
+                CmpOp::Gt => return Ok(x > y),
+                CmpOp::Ge => return Ok(x >= y),
+                _ => {}
+            }
+        } else if let (Value::Int(_) | Value::Float(_) | Value::Bool(_), Value::Int(_) | Value::Float(_) | Value::Bool(_)) = (a, b) {
+            let (x, y) = (a.as_float().unwrap_or(0.0), b.as_float().unwrap_or(0.0));
+            match op {
+                CmpOp::Eq => return Ok(x == y),
+                CmpOp::Ne => return Ok(x != y),
+                CmpOp::Lt => return Ok(x < y),
+                CmpOp::Le => return Ok(x <= y),
+                CmpOp::Gt => return Ok(x > y),
+                CmpOp::Ge => return Ok(x >= y),
+                _ => {}
+            }
+        }
         let instances = matches!(a, Value::Instance(_)) || matches!(b, Value::Instance(_));
         if instances {
             match op {
@@ -2095,6 +2217,9 @@ impl Interp {
                 return Ok(-1);
             }
             return Ok(if self.instance_compare(CmpOp::Lt, b, a)? { 1 } else { 0 });
+        }
+        if let (Some(x), Some(y)) = (a.as_int(), b.as_int()) {
+            return Ok(x.cmp(&y) as i32);
         }
         if let (Some(x), Some(y)) = (a.as_float(), b.as_float()) {
             return Ok(if x < y {
@@ -2201,6 +2326,7 @@ impl Interp {
 
     pub fn iterate(&mut self, value: &Value) -> R<Vec<Value>> {
         Ok(match value {
+            Value::Str(s) if plain_ascii(s) => s.bytes().map(|b| self.ascii_char(b)).collect(),
             Value::Str(s) => {
                 let b = self.chars(s);
                 (0..b.len() - 1).map(|i| Value::str(&s[b[i] as usize..b[i + 1] as usize])).collect()
@@ -2221,6 +2347,60 @@ impl Interp {
             },
             _ => return Err(self.error(format!("'{}' object is not iterable", value.type_name()), "TypeError")),
         })
+    }
+
+    /// What a `for` loop or a comprehension clause walks over [iterable].
+    /// `range(...)` written in place, with `range` the builtin, counts
+    /// without building a list, so such a loop is not held to the container
+    /// cap; anything else is iterated as `iterate` does, without copying a
+    /// list or tuple nothing else holds.
+    fn loop_items(&mut self, iterable: &Expr, env: &Rc<Env>) -> R<LoopItems> {
+        if let Some((start, stop, step)) = self.loop_range(iterable, env)? {
+            return Ok(LoopItems::Range { next: Some(start), stop, step });
+        }
+        let it = self.eval(iterable, env)?;
+        let items = match it {
+            Value::List(l) => match Rc::try_unwrap(l) {
+                Ok(cell) => cell.into_inner(),
+                Err(l) => l.borrow().clone(),
+            },
+            Value::Tuple(t) => Rc::try_unwrap(t).unwrap_or_else(|t| t.as_ref().clone()),
+            other => self.iterate(&other)?,
+        };
+        Ok(LoopItems::Items(items.into_iter()))
+    }
+
+    /// The (start, stop, step) of `range(...)` when [iterable] is a call of
+    /// the builtin range, charged the steps evaluating the call would be.
+    fn loop_range(&mut self, iterable: &Expr, env: &Rc<Env>) -> R<Option<(i64, i64, i64)>> {
+        let Expr::Call(callee, args, kwargs) = iterable else { return Ok(None) };
+        let Expr::Name(n) = callee.as_ref() else { return Ok(None) };
+        if n.as_ref() != "range" || !kwargs.is_empty() || !(1..=3).contains(&args.len()) || args.iter().any(|a| matches!(a, Expr::Starred(_))) {
+            return Ok(None);
+        }
+        match self.eval_name(n, env)? {
+            Value::Builtin(b) if b.as_ref() == "range" => {}
+            _ => return Ok(None),
+        }
+        self.tick()?;
+        self.tick()?;
+        let mut values = Vec::with_capacity(args.len());
+        for a in args {
+            values.push(self.eval(a, env)?);
+        }
+        let mut nums = [0i64; 3];
+        for (slot, v) in nums.iter_mut().zip(&values) {
+            *slot = v.as_int().ok_or_else(|| self.error("range() argument must be an integer", "TypeError"))?;
+        }
+        let (start, stop, step) = match args.len() {
+            1 => (0, nums[0], 1),
+            2 => (nums[0], nums[1], 1),
+            _ => (nums[0], nums[1], nums[2]),
+        };
+        if step == 0 {
+            return Err(self.error("range() step must not be zero", "ValueError"));
+        }
+        Ok(Some((start, stop, step)))
     }
 
     pub fn list_index(&self, idx: &Value, count: usize) -> R<usize> {
@@ -2250,6 +2430,10 @@ impl Interp {
             }
         }
         match base {
+            Value::Str(s) if s.len() < 64 && plain_ascii(s) => {
+                let i = self.seq_index(idx, s.len(), "string")?;
+                Ok(self.ascii_char(s.as_bytes()[i]))
+            }
             Value::Str(s) => {
                 let b = self.chars(s);
                 let i = self.seq_index(idx, b.len() - 1, "string")?;
@@ -2301,6 +2485,12 @@ impl Interp {
         let h = hi.and_then(Value::as_int);
         let indices = |n: usize| slice_indices(n as i64, l, h, step);
         Ok(match base {
+            Value::Str(s) if plain_ascii(s) => {
+                let bytes = s.as_bytes();
+                let picked: Vec<u8> = indices(bytes.len()).into_iter().map(|i| bytes[i]).collect();
+                // ASCII bytes are their own characters.
+                Value::str(std::str::from_utf8(&picked).unwrap_or_default())
+            }
             Value::Str(s) => {
                 let b = self.chars(s);
                 let idx = indices(b.len() - 1);
@@ -2335,6 +2525,32 @@ impl Interp {
     }
 }
 
+/// The items a loop hands out, one at a time.
+enum LoopItems {
+    Range { next: Option<i64>, stop: i64, step: i64 },
+    Items(std::vec::IntoIter<Value>),
+}
+
+impl Iterator for LoopItems {
+    type Item = Value;
+
+    fn next(&mut self) -> Option<Value> {
+        match self {
+            LoopItems::Range { next, stop, step } => {
+                let i = (*next)?;
+                if (*step > 0 && i < *stop) || (*step < 0 && i > *stop) {
+                    // Past i64 the count stops, as the list range() builds does.
+                    *next = i.checked_add(*step);
+                    Some(Value::Int(i))
+                } else {
+                    None
+                }
+            }
+            LoopItems::Items(items) => items.next(),
+        }
+    }
+}
+
 struct CompAcc {
     list: Vec<Value>,
     dict: IndexMap<HKey, Value>,
@@ -2354,6 +2570,12 @@ pub(crate) fn exception_matches(clause: &str, kind: &str) -> bool {
         "RuntimeError" => kind == "NotImplementedError",
         _ => false,
     }
+}
+
+/// ASCII with no carriage return: each byte is one grapheme cluster
+/// (`\r\n` is one cluster of two bytes).
+pub(crate) fn plain_ascii(s: &str) -> bool {
+    s.is_ascii() && !s.as_bytes().contains(&b'\r')
 }
 
 fn numeric(d: f64, as_int: bool) -> Value {

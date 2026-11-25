@@ -400,10 +400,11 @@ refused with an error: write the character itself, or `\u2022`.
 and `~` and their `<<=`-style assignments; `int.from_bytes`, `n.to_bytes` and
 `n.bit_length()` read and write binary fields. There are no big integers, so a
 result past 64 bits, such as `2 ** 64` or `math.factorial(25)`, carries on as a
-float. `1 is True` is false, as in Python. `int()` reads text as Python does:
-`_` between digits, digits of any script (`int("৩")` is 3), and with base 0 a
-`0x`, `0o` or `0b` prefix. Format specs take `#` for that prefix:
-`f"{255:#x}"` is `"0xff"`.
+float. Integers compare exactly too, so `2 ** 53 + 1 > 2 ** 53`, and nothing
+is less than, greater than or equal to `float("nan")`. `1 is True` is false, as
+in Python. `int()` reads text as Python does: `_` between digits, digits of
+any script (`int("৩")` is 3), and with base 0 a `0x`, `0o` or `0b` prefix.
+Format specs take `#` for that prefix: `f"{255:#x}"` is `"0xff"`.
 
 **Built-in functions:** `abs`, `all`, `any`, `bin`, `bool`, `callable`, `chr`,
 `classmethod`, `delattr`, `dict`, `divmod`, `enumerate`, `filter`, `float`,
@@ -484,7 +485,10 @@ the panel saying what had to be dropped. Two are quiet, and the table says which
 
 A step is one statement, one turn of a loop, or one step of a regular
 expression's matching. Going past the container, string or recursion limit
-stops the call with an error that `try` cannot catch.
+stops the call with an error that `try` cannot catch. A `for` loop or a
+comprehension written over `range(…)` counts without building the list, so it
+can go past 10,000 turns; only the step budget bounds it. `list(range(…))`
+still builds one, and is held to the cap.
 
 A plugin that runs out of steps or time is stopped, the user is told, and it
 takes a strike. So does one the watchdog has to abandon for going unresponsive.

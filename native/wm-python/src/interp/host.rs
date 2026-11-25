@@ -237,7 +237,7 @@ impl Call<'_> {
         let names = names.into_iter().map(|(k, v)| (Rc::from(k), v)).collect();
         let r = self.interp.exec_module(&program, names);
         let env = flow_to_error(r, self.interp.current_line)?;
-        let mut pairs: Vec<(String, Value)> = env.vars.borrow().iter().map(|(k, v)| (k.to_string(), v.clone())).collect();
+        let mut pairs: Vec<(String, Value)> = env.vars.borrow().pairs().into_iter().map(|(k, v)| (k.to_string(), v)).collect();
         pairs.sort_by(|a, b| a.0.cmp(&b.0));
         Ok(Value::dict(pairs))
     }

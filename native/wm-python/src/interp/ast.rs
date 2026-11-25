@@ -111,6 +111,9 @@ pub(crate) struct FuncDef {
     pub body: Vec<Stmt>,
     /// `@decorator` lines, top first. Applied bottom up.
     pub decorators: Vec<Expr>,
+    /// How many names a call of it has ended up binding, at most so far: the
+    /// room its next call's scope starts with.
+    pub locals_hint: std::cell::Cell<usize>,
 }
 
 /// A `lambda`.

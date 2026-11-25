@@ -34,6 +34,7 @@ mod datefmt;
 mod error;
 mod eval;
 mod format;
+mod fxhash;
 mod host;
 mod json;
 mod lexer;
@@ -41,6 +42,7 @@ mod methods;
 mod modules;
 mod parser;
 mod regex;
+mod scope;
 mod stdlib;
 mod text;
 mod value;
@@ -146,7 +148,7 @@ impl Runtime {
         self.interp.cancel = flag;
     }
 
-    /// When the running call must stop. Polled every 32 steps; host calls push it out by their own duration.
+    /// When the running call must stop. Polled every 64 steps; host calls push it out by their own duration.
     #[cfg(not(target_arch = "wasm32"))]
     pub fn set_deadline(&mut self, deadline: Option<std::time::Instant>) {
         self.interp.deadline = deadline;
@@ -154,7 +156,7 @@ impl Runtime {
 
     /// The step budget for each following call.
     pub fn set_step_limit(&mut self, steps: u64) {
-        self.interp.max_steps = steps;
+        self.interp.set_max_steps(steps);
     }
 
     pub fn step_limit(&self) -> u64 {

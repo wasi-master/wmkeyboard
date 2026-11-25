@@ -56,6 +56,13 @@ pub(crate) const BUILTIN_NAMES: &[&str] = &[
     "TimeoutError", "ConnectionError", "FileNotFoundError", "slice", "ascii",
 ];
 
+/// Whether [name] is one of [BUILTIN_NAMES], by a hash lookup rather than a
+/// walk down the list: every builtin a script names goes through here.
+pub(crate) fn is_builtin_name(name: &str) -> bool {
+    static SET: std::sync::OnceLock<std::collections::HashSet<&'static str, super::fxhash::FxBuild>> = std::sync::OnceLock::new();
+    SET.get_or_init(|| BUILTIN_NAMES.iter().copied().collect()).contains(name)
+}
+
 /// Builtins written in Python (`src/stdlib/_builtins.py`), loaded the first
 /// time a script names one.
 pub(crate) const PYTHON_BUILTINS: &[&str] = &["frozenset", "bytearray"];
@@ -81,7 +88,8 @@ impl Interp {
             let path = path.to_string();
             return self.call_type_member(&path, args, kwargs);
         }
-        if EXCEPTION_KINDS.contains(&name) {
+        // Every exception name is capitalised, and no other builtin is.
+        if name.as_bytes().first().is_some_and(u8::is_ascii_uppercase) && EXCEPTION_KINDS.contains(&name) {
             // What str(e) gives, as CPython has it: nothing, the one argument
             // (a KeyError's in quotes), or the tuple of them all.
             let message = match args.len() {
@@ -92,9 +100,7 @@ impl Interp {
             };
             return Ok(Value::Exception(Rc::new(ExceptionValue { kind: name.to_string(), message, args, cause: None })));
         }
-        if let Some(v) = self.class_builtin(name, &args, &kwargs)? {
-            return Ok(v);
-        }
+        // The common builtins first; the ones classes brought after.
         match name {
             "len" => {
                 self.arity(name, &args, 1)?;
@@ -384,7 +390,10 @@ impl Interp {
                 };
                 Ok(Value::Object(Rc::new(Object::Slice(a, b, c))))
             }
-            _ => Err(self.error(format!("name '{name}' is not defined"), "NameError")),
+            _ => match self.class_builtin(name, &args, &kwargs)? {
+                Some(v) => Ok(v),
+                None => Err(self.error(format!("name '{name}' is not defined"), "NameError")),
+            },
         }
     }
 
@@ -397,6 +406,9 @@ impl Interp {
 
     pub(crate) fn length(&mut self, v: &Value) -> R<usize> {
         Ok(match v {
+            // A short string is counted in place; a long one through the
+            // cache, so a loop asking `len(text)` again does not walk it again.
+            Value::Str(s) if s.len() < 64 => grapheme_count(s),
             Value::Str(s) => self.chars(s).len() - 1,
             Value::List(l) => l.borrow().len(),
             Value::Tuple(t) => t.len(),

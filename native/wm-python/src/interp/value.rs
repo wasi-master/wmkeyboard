@@ -19,6 +19,8 @@ use indexmap::{IndexMap, IndexSet};
 
 use super::ast::{FuncDef, LambdaDef, Params};
 use super::eval::Env;
+pub use super::fxhash::NameMap;
+use super::fxhash::name_map;
 use super::host::HostFunction;
 use super::regex::Match;
 use super::text::{c_fixed, c_general, str_eq, str_hash};
@@ -72,7 +74,7 @@ pub struct Class {
     /// The built-in exception this class descends from, like `ValueError`,
     /// which makes its instances raisable. None for plain classes.
     pub exception_root: Option<Rc<str>>,
-    pub attrs: RefCell<IndexMap<Rc<str>, Value>>,
+    pub attrs: RefCell<NameMap>,
 }
 
 impl Class {
@@ -81,12 +83,12 @@ impl Class {
         if let Some(v) = self.attrs.borrow().get(name) {
             return Some(v.clone());
         }
-        let mut c = self.base.clone();
+        let mut c = self.base.as_deref();
         while let Some(k) = c {
             if let Some(v) = k.attrs.borrow().get(name) {
                 return Some(v.clone());
             }
-            c = k.base.clone();
+            c = k.base.as_deref();
         }
         None
     }
@@ -118,7 +120,7 @@ impl Class {
 /// An instance of a [Class], with its own attributes.
 pub struct Instance {
     pub class: Rc<Class>,
-    pub attrs: RefCell<IndexMap<Rc<str>, Value>>,
+    pub attrs: RefCell<NameMap>,
 }
 
 /// The callable and descriptor shapes classes need.
@@ -203,12 +205,12 @@ pub struct Function {
     pub(crate) defaults: Vec<Option<Value>>,
     /// Attributes set on the function, `f.cache = {}` or the `__name__`
     /// `functools.wraps` copies over.
-    pub(crate) attrs: RefCell<IndexMap<Rc<str>, Value>>,
+    pub(crate) attrs: RefCell<NameMap>,
 }
 
 impl Function {
     pub(crate) fn new(name: Rc<str>, body: FnBody, closure: Rc<Env>, defaults: Vec<Option<Value>>) -> Function {
-        Function { name, body, closure, owner: RefCell::new(None), defaults, attrs: RefCell::new(IndexMap::new()) }
+        Function { name, body, closure, owner: RefCell::new(None), defaults, attrs: RefCell::new(name_map(0)) }
     }
 
     /// The name it shows: a `__qualname__` or `__name__` set on it, or the one it was defined with.
@@ -360,6 +362,24 @@ impl Hash for HKey {
     }
 }
 
+/// A string to look a key up by without making an [HKey] of it: it hashes
+/// and compares as `HKey::Str` does. What a dict's method and attribute
+/// lookups use, which happen on every `d.get(...)`.
+pub(crate) struct StrKey<'a>(pub &'a str);
+
+impl Hash for StrKey<'_> {
+    fn hash<H: Hasher>(&self, h: &mut H) {
+        4u8.hash(h);
+        str_hash(self.0, h)
+    }
+}
+
+impl indexmap::Equivalent<HKey> for StrKey<'_> {
+    fn equivalent(&self, key: &HKey) -> bool {
+        matches!(key, HKey::Str(s) if str_eq(s, self.0))
+    }
+}
+
 impl HKey {
     /// The hashable form of [v], or None for lists, dicts, sets and functions.
     pub fn from_value(v: &Value) -> Option<HKey> {
@@ -487,7 +507,7 @@ impl Value {
     /// A dict's value under a string key.
     pub fn get_key(&self, key: &str) -> Option<Value> {
         match self {
-            Value::Dict(d) => d.borrow().get(&HKey::str(key)).cloned(),
+            Value::Dict(d) => d.borrow().get(&StrKey(key)).cloned(),
             _ => None,
         }
     }

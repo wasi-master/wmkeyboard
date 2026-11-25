@@ -108,7 +108,7 @@ impl Interp {
                 // works on a hand-built stand-in and `e.type` on an event.
                 // A key holding data does not hide the method of the same name:
                 // `fields.items()` on a dict with an "items" key.
-                let entry = d.borrow().get(&HKey::str(name)).cloned();
+                let entry = d.borrow().get(&StrKey(name)).cloned();
                 match entry {
                     Some(v) if !(DICT_METHODS.contains(&name) && !is_callable(&v)) => self.call_value(&v, args, kwargs),
                     _ => self.dict_method(d, name, &args, &kwargs),
@@ -135,10 +135,9 @@ impl Interp {
                 let own = inst.attrs.borrow().get(name).cloned();
                 if own.is_none() {
                     if let Some(Value::Function(f)) = inst.class.lookup(name) {
-                        let mut all = Vec::with_capacity(args.len() + 1);
-                        all.push(obj.clone());
-                        all.extend(args);
-                        return self.call_function(&f, all, kwargs);
+                        let mut args = args;
+                        args.insert(0, obj.clone());
+                        return self.call_function(&f, args, kwargs);
                     }
                 }
                 let m = self.attribute(obj, name)?;
@@ -280,9 +279,10 @@ impl Interp {
         }
     }
 
-    fn clusters_of(&mut self, s: &Rc<str>) -> Vec<String> {
+    /// The grapheme clusters of [s], as slices of it.
+    fn clusters_of<'a>(&mut self, s: &'a Rc<str>) -> Vec<&'a str> {
         let b = self.chars(s);
-        (0..b.len() - 1).map(|i| s[b[i] as usize..b[i + 1] as usize].to_string()).collect()
+        (0..b.len() - 1).map(|i| &s[b[i] as usize..b[i + 1] as usize]).collect()
     }
 
     // MARK: - str
@@ -300,15 +300,15 @@ impl Interp {
                 if cs.is_empty() {
                     return st(String::new());
                 }
-                st(swift_upper(&cs[0]) + &swift_lower(&cs[1..].concat()))
+                st(swift_upper(cs[0]) + &swift_lower(&cs[1..].concat()))
             }
             "swapcase" => {
                 let cs = self.clusters_of(s);
                 st(cs.iter().map(|c| if char_is_uppercase(c) { swift_lower(c) } else { swift_upper(c) }).collect())
             }
-            "strip" => st(self.trim(s, &args, true, true)),
-            "lstrip" => st(self.trim(s, &args, true, false)),
-            "rstrip" => st(self.trim(s, &args, false, true)),
+            "strip" => Ok(self.trim(s, &args, true, true)),
+            "lstrip" => Ok(self.trim(s, &args, true, false)),
+            "rstrip" => Ok(self.trim(s, &args, false, true)),
             "replace" => {
                 let from = self.arg_str(&args, 0, "replace")?;
                 let to = self.arg_str(&args, 1, "replace")?;
@@ -331,16 +331,16 @@ impl Interp {
                 let mut cur = String::new();
                 for c in self.clusters_of(s) {
                     let ends = matches!(
-                        c.as_str(),
+                        c,
                         "\n" | "\r" | "\r\n" | "\u{0b}" | "\u{0c}" | "\u{1c}" | "\u{1d}" | "\u{1e}" | "\u{85}" | "\u{2028}" | "\u{2029}"
                     );
                     if ends {
                         if keep {
-                            cur.push_str(&c);
+                            cur.push_str(c);
                         }
                         out.push(Value::str(std::mem::take(&mut cur)));
                     } else {
-                        cur.push_str(&c);
+                        cur.push_str(c);
                     }
                 }
                 if !cur.is_empty() {
@@ -350,20 +350,19 @@ impl Interp {
             }
             "join" => {
                 let it = args.first().ok_or_else(|| self.error("join() needs an iterable", "TypeError"))?;
-                let mut parts = Vec::new();
-                for v in self.iterate(it)? {
-                    match v {
-                        Value::Str(p) => parts.push(p),
-                        other => {
-                            return Err(self.error(
-                                format!("join() requires str items, found '{}'", other.type_name()),
-                                "TypeError",
-                            ))
-                        }
+                // A list or tuple is joined where it lies, not copied first.
+                let joined = match it {
+                    Value::List(l) => join_strs(s, &l.borrow()),
+                    Value::Tuple(t) => join_strs(s, t),
+                    other => {
+                        let items = self.iterate(other)?;
+                        join_strs(s, &items)
                     }
+                };
+                match joined {
+                    Ok(text) => st(text),
+                    Err(ty) => Err(self.error(format!("join() requires str items, found '{ty}'"), "TypeError")),
                 }
-                let joined = parts.iter().map(|p| p.as_ref()).collect::<Vec<_>>().join(s);
-                st(joined)
             }
             "startswith" => Ok(Value::Bool(self.prefix_test(s, &args, false)?)),
             "endswith" => Ok(Value::Bool(self.prefix_test(s, &args, true)?)),
@@ -414,7 +413,7 @@ impl Interp {
                     return Ok(Value::Str(s.clone()));
                 }
                 let pad = "0".repeat((width - cs.len() as i64) as usize);
-                match cs.first().map(String::as_str) {
+                match cs.first().copied() {
                     Some(f @ ("-" | "+")) => st(format!("{f}{pad}{}", cs[1..].concat())),
                     _ => st(format!("{pad}{s}")),
                 }
@@ -496,7 +495,7 @@ impl Interp {
                 let mut out = String::new();
                 let mut column = 0usize;
                 for c in self.clusters_of(s) {
-                    match c.as_str() {
+                    match c {
                         "\t" => {
                             if size > 0 {
                                 let pad = size - column % size;
@@ -505,11 +504,11 @@ impl Interp {
                             }
                         }
                         "\n" | "\r" | "\r\n" => {
-                            out.push_str(&c);
+                            out.push_str(c);
                             column = 0;
                         }
                         _ => {
-                            out.push_str(&c);
+                            out.push_str(c);
                             column += 1;
                         }
                     }
@@ -583,7 +582,32 @@ impl Interp {
         }
     }
 
-    fn trim(&mut self, s: &Rc<str>, args: &[Value], left: bool, right: bool) -> String {
+    fn trim(&mut self, s: &Rc<str>, args: &[Value], left: bool, right: bool) -> Value {
+        // ASCII text cut by ASCII characters (by default space, tab and line
+        // feed: there is no carriage return in it) trims byte by byte.
+        let custom = match args.first() {
+            Some(Value::Str(c)) => Some(c.clone()),
+            _ => None,
+        };
+        if super::eval::plain_ascii(s) && custom.as_deref().is_none_or(super::eval::plain_ascii) {
+            let cut = |b: u8| match &custom {
+                Some(c) => c.as_bytes().contains(&b),
+                None => matches!(b, b' ' | b'\t' | b'\n'),
+            };
+            let bytes = s.as_bytes();
+            let (mut from, mut to) = (0, bytes.len());
+            if left {
+                while from < to && cut(bytes[from]) {
+                    from += 1;
+                }
+            }
+            if right {
+                while to > from && cut(bytes[to - 1]) {
+                    to -= 1;
+                }
+            }
+            return if (from, to) == (0, bytes.len()) { Value::Str(s.clone()) } else { Value::str(&s[from..to]) };
+        }
         let cut: Vec<String> = match args.first() {
             Some(Value::Str(c)) => graphemes(c).into_iter().map(String::from).collect(),
             _ => vec![" ".into(), "\t".into(), "\n".into(), "\r".into()],
@@ -602,7 +626,7 @@ impl Interp {
                 to -= 1;
             }
         }
-        cs[from..to].concat()
+        Value::str(cs[from..to].concat())
     }
 
     fn pad(&mut self, s: &Rc<str>, args: &[Value], align: char) -> String {
@@ -634,6 +658,9 @@ impl Interp {
             if sep.is_empty() {
                 return Err(self.error("empty separator", "ValueError"));
             }
+            if limit < 0 {
+                return Ok(Value::list(s.split(sep.as_ref()).map(Value::str).collect()));
+            }
             let mut parts: Vec<String> = s.split(sep.as_ref()).map(String::from).collect();
             if limit >= 0 && parts.len() as i64 > limit + 1 {
                 // Re-join the parts beyond the limit, from whichever end asked.
@@ -651,46 +678,55 @@ impl Interp {
             return Ok(Value::list(parts.into_iter().map(Value::from).collect()));
         }
         // No separator: split on runs of whitespace, dropping empties. With a
-        // limit, the rest after the last split stays whole, as Python keeps it.
-        let mut cs = self.clusters_of(s);
+        // limit, what is left after the last split stays whole, as Python
+        // keeps it: leading whitespace dropped, trailing kept.
+        let b = self.chars(s);
+        let n = b.len() - 1;
+        let ws = |i: usize| char_is_whitespace(&s[b[i] as usize..b[i + 1] as usize]);
+        let full = |ranges: &Vec<(usize, usize)>| limit >= 0 && ranges.len() as i64 == limit;
+        // Cluster index ranges of the pieces.
+        let mut ranges: Vec<(usize, usize)> = Vec::new();
         if from_end {
-            cs.reverse();
-        }
-        // Pieces as runs of clusters, so a reversed rsplit puts them back exactly.
-        let mut pieces: Vec<Vec<String>> = Vec::new();
-        let mut cur: Vec<String> = Vec::new();
-        let mut i = 0;
-        while i < cs.len() {
-            if char_is_whitespace(&cs[i]) {
-                if !cur.is_empty() {
-                    pieces.push(std::mem::take(&mut cur));
-                    if limit >= 0 && pieces.len() as i64 == limit {
-                        // Skip the run of whitespace, then keep the rest as one piece.
-                        while i < cs.len() && char_is_whitespace(&cs[i]) {
-                            i += 1;
-                        }
-                        if i < cs.len() {
-                            pieces.push(cs[i..].to_vec());
-                        }
-                        break;
-                    }
+            let mut j = n;
+            loop {
+                while j > 0 && ws(j - 1) {
+                    j -= 1;
                 }
-            } else {
-                cur.push(cs[i].clone());
+                if j == 0 {
+                    break;
+                }
+                if full(&ranges) {
+                    ranges.push((0, j));
+                    break;
+                }
+                let end = j;
+                while j > 0 && !ws(j - 1) {
+                    j -= 1;
+                }
+                ranges.push((j, end));
             }
-            i += 1;
-        }
-        if !cur.is_empty() {
-            pieces.push(cur);
-        }
-        if from_end {
-            pieces.reverse();
-            for piece in &mut pieces {
-                piece.reverse();
+            ranges.reverse();
+        } else {
+            let mut i = 0;
+            loop {
+                while i < n && ws(i) {
+                    i += 1;
+                }
+                if i >= n {
+                    break;
+                }
+                if full(&ranges) {
+                    ranges.push((i, n));
+                    break;
+                }
+                let start = i;
+                while i < n && !ws(i) {
+                    i += 1;
+                }
+                ranges.push((start, i));
             }
         }
-        let parts: Vec<String> = pieces.into_iter().map(|p| p.concat()).collect();
-        Ok(Value::list(parts.into_iter().map(Value::from).collect()))
+        Ok(Value::list(ranges.into_iter().map(|(a, e)| Value::str(&s[b[a] as usize..b[e] as usize])).collect()))
     }
 
     /// `str.format`: positional `{}` and `{0}`, named `{name}`, and the f-string spec grammar.
@@ -700,7 +736,7 @@ impl Interp {
         let cs = self.clusters_of(s);
         let mut i = 0;
         while i < cs.len() {
-            let c = cs[i].as_str();
+            let c = cs[i];
             if c == "{" {
                 if i + 1 < cs.len() && cs[i + 1] == "{" {
                     out.push('{');
@@ -720,7 +756,7 @@ impl Interp {
                             break;
                         }
                     }
-                    inner.push_str(&cs[i]);
+                    inner.push_str(cs[i]);
                     i += 1;
                 }
                 if i >= cs.len() {
@@ -1304,4 +1340,25 @@ fn find_bytes(hay: &[u8], needle: &[u8]) -> Option<usize> {
         return None;
     }
     hay.windows(needle.len()).position(|w| w == needle)
+}
+
+/// [items] joined by [sep], or the type name of the first item that is not a str.
+fn join_strs(sep: &str, items: &[Value]) -> Result<String, String> {
+    let mut size = sep.len() * items.len().saturating_sub(1);
+    for v in items {
+        match v {
+            Value::Str(p) => size += p.len(),
+            other => return Err(other.type_name()),
+        }
+    }
+    let mut out = String::with_capacity(size);
+    for (i, v) in items.iter().enumerate() {
+        if i > 0 {
+            out.push_str(sep);
+        }
+        if let Value::Str(p) = v {
+            out.push_str(p);
+        }
+    }
+    Ok(out)
 }

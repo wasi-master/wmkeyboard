@@ -231,6 +231,24 @@ p = Pt(1)
 a, b = p
 repr((p, p.x, a + b, p._replace(y=5), p == (1, 0), p[1], len(p), Pt._fields))
 '''),
+    ("whitespace_split_and_strip", "strings", r'''
+s = '  a  b c  '
+repr((s.split(), s.split(None, 1), s.split(None, 0), s.rsplit(None, 1), s.rsplit(None, 0), 'a\tb\nc'.split(), 'héllo  wörld '.split(), ''.split(), 'a,,b'.split(','), 'a,b,c'.split(',', 1), '  hi \n'.strip(), 'xxhixx'.strip('x'), 'ümlaut  '.rstrip(), '  hi'.lstrip(), 'abc'[1], 'abc'[-1], 'abcdef'[1:5:2], list('héé')))
+'''),
+    ("integer_comparisons_are_exact", "numbers", r'''
+nan = float('nan')
+repr((2**53 + 1 == 2**53, 2**62 + 1 > 2**62, sorted([2**60, 2**60 - 1, 3]), max(2**60 - 1, 2**60), nan <= 1, 1 >= nan, nan == nan, 1 < 2.5, True < 2, 3 == 3.0))
+'''),
+    ("range_loops_count_past_the_container_cap", "loops", r'''
+t = 0
+for i in range(25000):
+    t += i
+k = 0
+for j in range(30, 0, -7):
+    k += j
+n = len([i for i in range(12000) if i % 2])
+repr((t, k, n, [i for i in range(-3, 9, 4)]))
+'''),
 ]
 
 
@@ -257,7 +275,8 @@ out = ['''//! What Python itself does, where PyMini did otherwise or had nothing
 //! `tests/cpython_parity_gen.py`; edit the cases there, not here. Sorting, dict keys,
 //! frozenset and bytearray, keyword arguments of builtins, slice and starred
 //! assignment, `raise … from`, `re.compile` and lookaround, json options,
-//! int literals, `#` formats, the math, str and itertools additions.
+//! int literals, `#` formats, the math, str and itertools additions, whitespace
+//! splits, exact integer comparisons, and `range` loops past the container cap.
 
 mod common;
 use common::big_stack;

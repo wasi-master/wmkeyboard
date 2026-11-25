@@ -406,7 +406,7 @@ impl Parser {
             self.parse_expr()?;
         }
         let body = self.parse_block()?;
-        Ok(Stmt { line, kind: StmtKind::FuncDef(Rc::new(FuncDef { name, params, body, decorators })) })
+        Ok(Stmt { line, kind: StmtKind::FuncDef(Rc::new(FuncDef { name, params, body, decorators, locals_hint: Default::default() })) })
     }
 
     fn parse_class(&mut self, decorators: Vec<Expr>) -> P<Stmt> {

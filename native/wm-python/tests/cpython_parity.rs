@@ -3,7 +3,8 @@
 //! `tests/cpython_parity_gen.py`; edit the cases there, not here. Sorting, dict keys,
 //! frozenset and bytearray, keyword arguments of builtins, slice and starred
 //! assignment, `raise … from`, `re.compile` and lookaround, json options,
-//! int literals, `#` formats, the math, str and itertools additions.
+//! int literals, `#` formats, the math, str and itertools additions, whitespace
+//! splits, exact integer comparisons, and `range` loops past the container cap.
 
 mod common;
 use common::big_stack;
@@ -392,6 +393,39 @@ p = Pt(1)
 a, b = p
 repr((p, p.x, a + b, p._replace(y=5), p == (1, 0), p[1], len(p), Pt._fields))"#),
         r#"(Pt(x=1, y=0), 1, 1, Pt(x=1, y=5), True, 0, 2, ('x', 'y'))"#
+    );
+}
+
+#[test]
+fn whitespace_split_and_strip() {
+    assert_eq!(
+        py(r#"s = '  a  b c  '
+repr((s.split(), s.split(None, 1), s.split(None, 0), s.rsplit(None, 1), s.rsplit(None, 0), 'a\tb\nc'.split(), 'héllo  wörld '.split(), ''.split(), 'a,,b'.split(','), 'a,b,c'.split(',', 1), '  hi \n'.strip(), 'xxhixx'.strip('x'), 'ümlaut  '.rstrip(), '  hi'.lstrip(), 'abc'[1], 'abc'[-1], 'abcdef'[1:5:2], list('héé')))"#),
+        r#"(['a', 'b', 'c'], ['a', 'b c  '], ['a  b c  '], ['  a  b', 'c'], ['  a  b c'], ['a', 'b', 'c'], ['héllo', 'wörld'], [], ['a', '', 'b'], ['a', 'b,c'], 'hi', 'hi', 'ümlaut', 'hi', 'b', 'c', 'bd', ['h', 'é', 'é'])"#
+    );
+}
+
+#[test]
+fn integer_comparisons_are_exact() {
+    assert_eq!(
+        py(r#"nan = float('nan')
+repr((2**53 + 1 == 2**53, 2**62 + 1 > 2**62, sorted([2**60, 2**60 - 1, 3]), max(2**60 - 1, 2**60), nan <= 1, 1 >= nan, nan == nan, 1 < 2.5, True < 2, 3 == 3.0))"#),
+        r#"(False, True, [3, 1152921504606846975, 1152921504606846976], 1152921504606846976, False, False, False, True, True, True)"#
+    );
+}
+
+#[test]
+fn range_loops_count_past_the_container_cap() {
+    assert_eq!(
+        py(r#"t = 0
+for i in range(25000):
+    t += i
+k = 0
+for j in range(30, 0, -7):
+    k += j
+n = len([i for i in range(12000) if i % 2])
+repr((t, k, n, [i for i in range(-3, 9, 4)]))"#),
+        r#"(312487500, 80, 6000, [-3, 1, 5])"#
     );
 }
 

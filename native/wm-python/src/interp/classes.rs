@@ -19,6 +19,7 @@ use super::ast::*;
 use super::builtins::EXCEPTION_KINDS;
 use super::error::{Exc, PyError, R};
 use super::eval::{exception_matches, Env, Interp};
+use super::fxhash::name_map;
 use super::parser::parse;
 use super::value::*;
 
@@ -99,8 +100,8 @@ impl Interp {
         let scope = Env::class_body(env.clone());
         scope.define(&Rc::from("__qualname__"), Value::Str(def.name.clone()));
         self.exec_block(&def.body, &scope)?;
-        let mut attrs: IndexMap<Rc<str>, Value> = IndexMap::new();
-        for (k, v) in scope.vars.borrow_mut().drain(..) {
+        let mut attrs = name_map(0);
+        for (k, v) in scope.vars.borrow_mut().take_all() {
             attrs.insert(k, v);
         }
         if attrs.len() > self.max_container {
@@ -261,7 +262,7 @@ impl Interp {
             }
             return Ok(made);
         }
-        let inst = Rc::new(Instance { class: class.clone(), attrs: RefCell::new(IndexMap::new()) });
+        let inst = Rc::new(Instance { class: class.clone(), attrs: RefCell::new(name_map(0)) });
         self.track_instance(&inst);
         let value = Value::Instance(inst.clone());
         if class.exception_root.is_some() {
@@ -796,7 +797,7 @@ impl Interp {
         if let Some(class) = self.exception_classes.get(error.kind.as_str()).cloned() {
             // Raised by name from the host (a PermissionError, an HTTPError):
             // make it an instance of the class the script can match on.
-            let inst = Rc::new(Instance { class, attrs: RefCell::new(IndexMap::new()) });
+            let inst = Rc::new(Instance { class, attrs: RefCell::new(name_map(0)) });
             inst.attrs.borrow_mut().insert(Rc::from("args"), Value::tuple(vec![Value::str(&error.message)]));
             self.track_instance(&inst);
             return Value::Instance(inst);
@@ -1078,7 +1079,7 @@ impl Interp {
                 let Some(Value::Class(c)) = arg(0) else {
                     return Err(self.error("object.__new__(X): X is not a class", "TypeError"));
                 };
-                let inst = Rc::new(Instance { class: c.clone(), attrs: RefCell::new(IndexMap::new()) });
+                let inst = Rc::new(Instance { class: c.clone(), attrs: RefCell::new(name_map(0)) });
                 self.track_instance(&inst);
                 Value::Instance(inst)
             }
@@ -1138,7 +1139,7 @@ impl Interp {
         if let Some(c) = &self.plain_object {
             return c.clone();
         }
-        let c = Rc::new(Class { name: Rc::from("object"), base: None, exception_root: None, attrs: RefCell::new(IndexMap::new()) });
+        let c = Rc::new(Class { name: Rc::from("object"), base: None, exception_root: None, attrs: RefCell::new(name_map(0)) });
         self.plain_object = Some(c.clone());
         c
     }
