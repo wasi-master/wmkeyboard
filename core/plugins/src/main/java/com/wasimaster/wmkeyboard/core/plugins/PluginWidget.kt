@@ -230,6 +230,22 @@ sealed interface PluginWidget {
         val height: Int?,
     ) : PluginWidget
 
+    /** A grid of text, scrolled sideways when it is wide; see [PluginTable]. */
+    data class Table(val table: PluginTable) : PluginWidget
+
+    /**
+     * Source text in a fixed-width font, coloured for [language] (a file
+     * extension) by the host's highlighter, plugin grammars included.
+     */
+    data class Code(val id: String, val text: String, val language: String, val lineNumbers: Boolean) : PluginWidget
+
+    /**
+     * In a file preview of a font: [text] drawn in that font at each of
+     * [sizes] sp. The host loads the previewed file; anywhere else it draws
+     * in the panel's own font.
+     */
+    data class FontSample(val text: String, val sizes: List<Int>) : PluginWidget
+
     /** A drawing [width] by [height] units, scaled to the panel's width. */
     data class Canvas(
         val id: String,
@@ -256,6 +272,12 @@ sealed interface PluginWidget {
         }
     }
 }
+
+/**
+ * A grid of text: [header] (bold, kept in view) and [rows], scrolled sideways
+ * when wide. [align] gives each column "start", "center" or "end".
+ */
+data class PluginTable(val id: String, val header: List<String>?, val rows: List<List<String>>, val align: List<String>?)
 
 /** The widgets [widget] holds directly, for walks that look inside containers. */
 fun PluginWidget.childWidgets(): List<PluginWidget> = when (this) {
@@ -312,6 +334,9 @@ enum class PluginRepair {
     TOO_MANY_POINTS,
     TOO_MANY_SHAPES,
     BAD_SHAPE,
+    TOO_MANY_ROWS,
+    TOO_MANY_COLUMNS,
+    PREVIEW_ONLY,
 }
 
 /** Everything that can happen to a plugin's UI. All of it user-initiated. */
@@ -409,6 +434,9 @@ fun RenderedUi.inputIds(): Set<String> {
                 is PluginWidget.Ring,
                 is PluginWidget.Chart,
                 is PluginWidget.Canvas,
+                is PluginWidget.Table,
+                is PluginWidget.Code,
+                is PluginWidget.FontSample,
                 -> Unit
             }
         }
@@ -493,6 +521,9 @@ fun RenderedUi.targets(): PluginTargets {
                 is PluginWidget.Ring,
                 is PluginWidget.Chart,
                 is PluginWidget.Canvas,
+                is PluginWidget.Table,
+                is PluginWidget.Code,
+                is PluginWidget.FontSample,
                 -> Unit
             }
         }

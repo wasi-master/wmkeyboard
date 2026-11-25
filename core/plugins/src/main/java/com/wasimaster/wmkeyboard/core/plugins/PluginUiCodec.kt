@@ -63,9 +63,27 @@ object PluginUiCodec {
     private const val MIN_SECONDS = -62_135_596_800L
     private const val MAX_SECONDS = 253_402_300_799L
 
+    /** API 5 tables. */
+    const val MAX_TABLE_ROWS = 500
+    const val MAX_TABLE_COLUMNS = 30
+    private const val MAX_CELL = 512
+
+    /** A code block's text, in a panel and in a file preview. */
+    const val MAX_CODE = 64 * 1024
+    const val MAX_CODE_PREVIEW = 512 * 1024
+
+    /** A file preview's nodes and text, which may be a whole document. */
+    const val MAX_NODES_PREVIEW = 4096
+    const val MAX_TOTAL_TEXT_PREVIEW = 1024 * 1024
+
     /** `{root: [...], repairs: [{code, arg}]}` as the library writes it. */
-    fun fromJson(ui: JsonObject): RenderedUi {
-        val walk = Walk()
+    fun fromJson(ui: JsonObject): RenderedUi = read(ui, preview = false)
+
+    /** A file preview's tree, read under the preview's larger caps. */
+    fun fromPreviewJson(ui: JsonObject): RenderedUi = read(ui, preview = true)
+
+    private fun read(ui: JsonObject, preview: Boolean): RenderedUi {
+        val walk = Walk(preview)
         val root = walk.children(ui["root"], depth = 0)
         val repairs = (ui["repairs"] as? JsonArray).orEmpty()
         for (entry in repairs) {
@@ -94,9 +112,15 @@ object PluginUiCodec {
         PluginRepair.TOO_MANY_POINTS -> PluginText.of(R.string.core_plugins_ui_repair_too_many_points, MAX_POINTS)
         PluginRepair.TOO_MANY_SHAPES -> PluginText.of(R.string.core_plugins_ui_repair_too_many_shapes, MAX_SHAPES)
         PluginRepair.BAD_SHAPE -> PluginText.of(R.string.core_plugins_ui_repair_bad_shape)
+        PluginRepair.TOO_MANY_ROWS -> PluginText.of(R.string.core_plugins_ui_repair_too_many_rows, MAX_TABLE_ROWS)
+        PluginRepair.TOO_MANY_COLUMNS -> PluginText.of(R.string.core_plugins_ui_repair_too_many_columns, MAX_TABLE_COLUMNS)
+        PluginRepair.PREVIEW_ONLY -> PluginText.of(R.string.core_plugins_ui_repair_preview_only, arg.orEmpty().take(24))
     }
 
-    private class Walk {
+    private class Walk(val preview: Boolean = false) {
+        val maxNodes = if (preview) MAX_NODES_PREVIEW else MAX_NODES
+        val maxTotalText = if (preview) MAX_TOTAL_TEXT_PREVIEW else MAX_TOTAL_TEXT
+
         val repairs = ArrayList<PluginText>()
 
         /** Parallel to [repairs]: the kind of each, for the plugin editor. */
@@ -123,7 +147,7 @@ object PluginUiCodec {
                 repair(PluginRepair.TOO_DEEP)
                 return null
             }
-            if (++nodes > MAX_NODES) {
+            if (++nodes > maxNodes) {
                 repair(PluginRepair.TOO_MANY_WIDGETS)
                 return null
             }
@@ -240,6 +264,24 @@ object PluginUiCodec {
                 "ring" -> PluginWidget.Ring(id(node), (node.float("value") ?: 0f).coerceIn(0f, 1f), text(node, "label"), text(node, "caption"))
                 "chart" -> chart(node)
                 "canvas" -> canvas(node)
+                "table" -> table(node)
+                "code" -> PluginWidget.Code(
+                    id = id(node),
+                    text = text(node, "text", if (preview) MAX_CODE_PREVIEW else MAX_CODE),
+                    language = node.string("language").orEmpty().lowercase().take(MAX_LANGUAGE),
+                    lineNumbers = node.bool("lineNumbers") ?: true,
+                )
+                "font_sample" -> if (preview) {
+                    PluginWidget.FontSample(
+                        text(node, "text"),
+                        (node["sizes"] as? JsonArray).orEmpty().take(MAX_FONT_SIZES)
+                            .mapNotNull { (it as? JsonPrimitive)?.intOrNull?.coerceIn(MIN_FONT_SIZE, MAX_FONT_SIZE) }
+                            .ifEmpty { listOf(14, 20, 32) },
+                    )
+                } else {
+                    repair(PluginRepair.PREVIEW_ONLY, type)
+                    null
+                }
                 null, "" -> {
                     repair(PluginRepair.NO_TYPE)
                     null
@@ -262,6 +304,29 @@ object PluginUiCodec {
                 return null
             }
             return PluginWidget.Tabs(id(node), pages)
+        }
+
+        private fun table(node: JsonObject): PluginWidget {
+            fun row(element: JsonElement?): List<String> {
+                val cells = (element as? JsonArray).orEmpty()
+                if (cells.size > MAX_TABLE_COLUMNS) repair(PluginRepair.TOO_MANY_COLUMNS)
+                return cells.take(MAX_TABLE_COLUMNS).map { cell ->
+                    val value = (cell as? JsonPrimitive)?.contentOrNull.orEmpty()
+                    budgeted(value, MAX_CELL)
+                }
+            }
+            val rows = (node["rows"] as? JsonArray).orEmpty()
+            if (rows.size > MAX_TABLE_ROWS) repair(PluginRepair.TOO_MANY_ROWS)
+            return PluginWidget.Table(
+                PluginTable(
+                    id = id(node),
+                    header = (node["header"] as? JsonArray)?.let { row(it) },
+                    rows = rows.take(MAX_TABLE_ROWS).map { row(it) },
+                    align = (node["align"] as? JsonArray)?.take(MAX_TABLE_COLUMNS)?.map { a ->
+                        (a as? JsonPrimitive)?.contentOrNull?.takeIf { it == "center" || it == "end" } ?: "start"
+                    },
+                ),
+            )
         }
 
         private fun slider(node: JsonObject, stepper: Boolean): PluginWidget.Slider {
@@ -373,14 +438,18 @@ object PluginUiCodec {
         private fun id(node: JsonObject): String = node.string("id").orEmpty().take(MAX_ID)
 
         /** One string field, capped per node and against the whole tree. */
-        private fun text(node: JsonObject, key: String): String {
+        private fun text(node: JsonObject, key: String, max: Int = MAX_TEXT): String {
             val value = node.string(key) ?: return ""
-            val remaining = (MAX_TOTAL_TEXT - totalText).coerceAtLeast(0)
+            return budgeted(value, max)
+        }
+
+        private fun budgeted(value: String, max: Int): String {
+            val remaining = (maxTotalText - totalText).coerceAtLeast(0)
             if (remaining == 0 && value.isNotEmpty()) {
                 repair(PluginRepair.TEXT_BUDGET)
                 return ""
             }
-            val capped = value.take(minOf(MAX_TEXT, remaining))
+            val capped = value.take(minOf(max, remaining))
             if (capped.length < value.length) repair(PluginRepair.TEXT_SHORTENED)
             totalText += capped.length
             return capped
@@ -408,4 +477,8 @@ object PluginUiCodec {
     private const val MAX_IMAGE_DATA = 700_000
     private const val MAX_ICON = 48
     private const val MAX_CHART_LABEL = 32
+    private const val MAX_LANGUAGE = 32
+    private const val MAX_FONT_SIZES = 6
+    private const val MIN_FONT_SIZE = 6
+    private const val MAX_FONT_SIZE = 96
 }

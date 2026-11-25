@@ -132,6 +132,11 @@
     <!-- A header over permissions the plugin cannot use until the user turns them on. -->
     <string name="plugins_install_risky_intro">If you turn them on later, it can also:</string>
     <!-- Heading over the buttons a plugin adds to the bar over selected text. -->
+    <string name="plugins_file_types_title">Files</string>
+    <string name="plugins_file_types_info">File types this plugin shows in the keyboard\'s file manager, and file types it colours. Open a file of one of these types in the Files tool and tap its name under View with.</string>
+    <string name="plugins_file_types_preview">Shows %1$s</string>
+    <string name="plugins_file_types_preview_thumbnails">Shows %1$s, with pictures in the grid</string>
+    <string name="plugins_file_types_syntax">Colours %1$s</string>
     <string name="plugins_providers_title">Providers</string>
     <string name="plugins_providers_info">Lists this plugin can answer for, such as web search or translate. A provider is only asked once you add it to its list, and then only when the providers above it do not answer. What the list asks, like a search or a word, goes to the plugin, and on to the websites it lists.</string>
     <!-- %1$s is a provider list's name, such as Web search. -->

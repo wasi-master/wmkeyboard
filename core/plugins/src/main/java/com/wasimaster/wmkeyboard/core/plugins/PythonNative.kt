@@ -129,6 +129,16 @@ object PythonNative {
     /** Calls `transform(text, action)`. Result JSON with `value`. */
     @JvmStatic external fun nativeTransform(handle: Long, text: String, actionId: String): String
 
+    /**
+     * A file preview from the plugin's `@plugin.preview(id)`: [request] is
+     * `{"id", "name", "extension", "mime", "size", "modified", "truncated"}`
+     * and [data] the file's first bytes. Result JSON with `ui`.
+     */
+    @JvmStatic external fun nativePreview(handle: Long, request: String, data: ByteArray): String
+
+    /** A grid thumbnail, as [nativePreview]: result JSON with `value`, the picture in base64, or null. */
+    @JvmStatic external fun nativeThumbnail(handle: Long, request: String, data: ByteArray): String
+
     /** Steps and time the last call used, against its limits. JSON. */
     @JvmStatic external fun nativeUsage(handle: Long): String
 

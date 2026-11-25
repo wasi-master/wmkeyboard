@@ -66,6 +66,10 @@ data class InstalledPlugin(
     val labels: Map<String, Map<String, String>> = emptyMap(),
     /** The providers it declared, copied here so the provider lists can name them without reading `plugin.json`. */
     val providers: List<PluginProviderSpec> = emptyList(),
+    /** The file previews it declared, for the file manager to match files against. */
+    val previews: List<PluginPreviewSpec> = emptyList(),
+    /** Its grammars, each read in from its asset at install, so colouring never opens the plugin's folder. */
+    val syntax: List<PluginSyntaxSpec> = emptyList(),
 ) {
     val isPython: Boolean
         get() = language == PluginManifestCodec.LANGUAGE_PYTHON
@@ -525,6 +529,33 @@ class PluginStore(
     fun providers(): List<PluginProviderRef> =
         pluginList.flatMap { plugin -> plugin.providers.map { PluginProviderRef(plugin, it) } }
 
+    /**
+     * Every file preview that may run right now, in install order: the
+     * subsystem is on, the plugin is on and declares `previews` (a listed
+     * permission, so declaring is granting).
+     */
+    @Synchronized
+    fun previews(): List<PluginPreviewRef> {
+        if (!subsystem) return emptyList()
+        return pluginList
+            .filter { it.enabled && it.grants(PluginPermission.Previews) }
+            .flatMap { plugin -> plugin.previews.map { PluginPreviewRef(plugin, it) } }
+    }
+
+    /** The preview [key] names when it may run right now. */
+    @Synchronized
+    fun runnablePreview(key: String): PluginPreviewRef? {
+        val (pluginId, previewId) = PluginPreviewRef.parse(key) ?: return null
+        return previews().firstOrNull { it.plugin.id == pluginId && it.preview.id == previewId }
+    }
+
+    /** Every grammar of every plugin that is on, in install order. */
+    @Synchronized
+    fun syntaxes(): List<PluginSyntaxRef> {
+        if (!subsystem) return emptyList()
+        return pluginList.filter { it.enabled }.flatMap { plugin -> plugin.syntax.map { PluginSyntaxRef(plugin, it) } }
+    }
+
     /** The provider [key] names when it may run right now: subsystem on, plugin on. */
     @Synchronized
     fun runnableProvider(key: String): PluginProviderRef? {
@@ -723,6 +754,8 @@ class PluginStore(
             settingValues = existing?.settingValues.orEmpty().filterKeys { key -> manifest.settings.any { it.key == key } },
             newSinceUpdate = added,
             providers = manifest.providers,
+            previews = manifest.previews,
+            syntax = manifest.syntax.map { spec -> inlineGrammar(spec, assets) },
             labels = locales.mapNotNull { (tag, text) ->
                 PluginLocales.parse(text)?.let { tag to PluginLocales.labels(it) }?.takeIf { it.second.isNotEmpty() }
             }.toMap(),
@@ -753,6 +786,19 @@ class PluginStore(
         val added = risky.filter { it !in existing.permissions || (it == PluginPermission.Network.wire && newHosts.isNotEmpty()) } +
             newHosts
         return kept to added.distinct()
+    }
+
+    /**
+     * [spec] with its grammar read in from `assets/` when it names a file
+     * there. A file that is missing or is not a JSON object leaves no grammar,
+     * and the type stays uncoloured.
+     */
+    private fun inlineGrammar(spec: PluginSyntaxSpec, assets: Map<String, ByteArray>): PluginSyntaxSpec {
+        val asset = spec.grammarAsset ?: return spec
+        val parsed = assets[asset]?.let { bytes ->
+            runCatching { json.parseToJsonElement(bytes.decodeToString()) as? kotlinx.serialization.json.JsonObject }.getOrNull()
+        }
+        return spec.copy(grammar = parsed ?: kotlinx.serialization.json.JsonNull)
     }
 
     /** `modules.json`, or none for a one-file plugin. */

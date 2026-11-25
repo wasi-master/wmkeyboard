@@ -71,6 +71,17 @@ data class PluginLimit(val instructions: Long, val wallMillis: Long) {
 
         /** Building the widget tree. Runs after every event, so it is kept tight. */
         val RENDER = PluginLimit(instructions = 1_200_000, wallMillis = 500)
+
+        /**
+         * Drawing one file in the file manager: a fresh interpreter, the
+         * script, and the preview, on one allowance. Larger than an action
+         * because it reads a whole document, and the user is waiting on a
+         * spinner rather than a keystroke.
+         */
+        val PREVIEW = PluginLimit(instructions = 20_000_000, wallMillis = 5_000)
+
+        /** One grid thumbnail. Many of these run while a folder scrolls, so it is kept small. */
+        val THUMBNAIL = PluginLimit(instructions = 3_000_000, wallMillis = 1_500)
     }
 }
 

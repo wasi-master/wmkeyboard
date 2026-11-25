@@ -124,6 +124,13 @@ data class PluginManifest(
      * user may add to that list. The script answers with `@plugin.provider`.
      */
     val providers: List<PluginProviderSpec> = emptyList(),
+    /**
+     * API 5: file types the plugin draws in the keyboard's file manager, with
+     * `@plugin.preview` (and `@plugin.thumbnail`). Needs `previews`.
+     */
+    val previews: List<PluginPreviewSpec> = emptyList(),
+    /** API 5: syntax colouring for file types, as grammars the keyboard runs. */
+    val syntax: List<PluginSyntaxSpec> = emptyList(),
 )
 
 /**
@@ -434,7 +441,7 @@ object PluginManifestCodec {
     fun encode(manifest: PluginManifest): String = json.encodeToString(manifest)
 
     /** The manifest fields a form edits, in the order [read] checks them. */
-    enum class Field { API_VERSION, ID, NAME, VERSION, AUTHOR, DESCRIPTION, ENTRY, PERMISSIONS, ACTIONS, HOSTS, TOOL, SETTINGS, PROVIDERS }
+    enum class Field { API_VERSION, ID, NAME, VERSION, AUTHOR, DESCRIPTION, ENTRY, PERMISSIONS, ACTIONS, HOSTS, TOOL, SETTINGS, PROVIDERS, PREVIEWS, SYNTAX }
 
     /** One thing wrong with one field, in the same words [read] refuses with. */
     data class Problem(val field: Field, val text: PluginText)
@@ -480,6 +487,8 @@ object PluginManifestCodec {
             ),
             settings = raw.settings.map { sanitiseSetting(it) },
             providers = raw.providers.map { sanitiseProvider(it) },
+            previews = raw.previews.map(PluginPreviewRules::sanitisePreview),
+            syntax = raw.syntax.map(PluginPreviewRules::sanitiseSyntax),
         )
         return PluginManifestResult.Ok(manifest, permissions)
     }
@@ -563,15 +572,28 @@ object PluginManifestCodec {
             providers.map { it.key }.toSet().size != providers.size ||
             providers.any { it.tool !in PluginProviderSpec.TOOLS || !ACTION_ID.matches(it.providerId) }
         if (badProvider) out += Problem(Field.PROVIDERS, PluginText.of(R.string.core_plugins_reject_bad_provider, name))
+        if (!PluginPreviewRules.previewsOk(manifest.previews)) {
+            out += Problem(Field.PREVIEWS, PluginText.of(R.string.core_plugins_reject_bad_preview, name))
+        }
+        val declaresPreviews = PluginPermission.Previews in permissions
+        if (manifest.previews.isNotEmpty() && !declaresPreviews) {
+            out += Problem(Field.PERMISSIONS, PluginText.of(R.string.core_plugins_reject_previews_need_permission, name))
+        } else if (manifest.previews.isEmpty() && declaresPreviews) {
+            out += Problem(Field.PREVIEWS, PluginText.of(R.string.core_plugins_reject_previews_permission_unused, name))
+        }
+        if (!PluginPreviewRules.syntaxOk(manifest.syntax)) {
+            out += Problem(Field.SYNTAX, PluginText.of(R.string.core_plugins_reject_bad_syntax, name))
+        }
         // A symbol name for the icon, its colour and full-bleed are the tool
         // fields older plugins may carry: they only change how the keyboard
         // draws them, and need nothing from the wm package. An SVG icon is a
         // file in `assets/`, which only API 5 archives ship.
         val iconOnly = tool.copy(icon = "", color = "", fullBleed = false) == PluginToolSpec() && !tool.icon.trim().startsWith("assets/")
         val usesPackageFields = hosts.isNotEmpty() || settings.isNotEmpty() || providers.isNotEmpty() ||
+            manifest.previews.isNotEmpty() || manifest.syntax.isNotEmpty() ||
             (tool != PluginToolSpec() && !iconOnly)
         if (usesPackageFields && level < PACKAGE_API) {
-            out += Problem(Field.API_VERSION, PluginText.of(R.string.core_plugins_reject_permission_needs_api_5, "hosts/tool/settings/providers", name))
+            out += Problem(Field.API_VERSION, PluginText.of(R.string.core_plugins_reject_permission_needs_api_5, "hosts/tool/settings/providers/previews/syntax", name))
         }
         return out
     }
@@ -687,7 +709,7 @@ object PluginManifestCodec {
                 problem(Field.PERMISSIONS, R.string.core_plugins_reject_actions_need_selection)
             actions.isEmpty() && declaresSelection ->
                 problem(Field.ACTIONS, R.string.core_plugins_reject_selection_without_actions)
-            actions.isEmpty() && manifest.providers.isEmpty() && !manifest.panel ->
+            actions.isEmpty() && manifest.providers.isEmpty() && manifest.previews.isEmpty() && manifest.syntax.isEmpty() && !manifest.panel ->
                 problem(Field.ACTIONS, R.string.core_plugins_reject_nothing_to_show)
             actions.size > MAX_ACTIONS -> problem(Field.ACTIONS, R.string.core_plugins_reject_too_many_actions)
         }
@@ -740,7 +762,9 @@ object PluginManifestCodec {
         Field.AUTHOR -> displayText(raw, MAX_AUTHOR)
         Field.DESCRIPTION -> displayText(raw, MAX_DESCRIPTION)
         Field.ENTRY -> displayText(raw, MAX_ENTRY).ifEmpty { DEFAULT_ENTRY }
-        Field.API_VERSION, Field.PERMISSIONS, Field.ACTIONS, Field.HOSTS, Field.TOOL, Field.SETTINGS, Field.PROVIDERS -> raw.trim()
+        Field.API_VERSION, Field.PERMISSIONS, Field.ACTIONS, Field.HOSTS, Field.TOOL, Field.SETTINGS, Field.PROVIDERS,
+        Field.PREVIEWS, Field.SYNTAX,
+        -> raw.trim()
     }
 
     /**

@@ -49,12 +49,14 @@ class PythonSession private constructor(@Volatile private var handle: Long, priv
         val event: PluginLimit = PluginLimit.EVENT,
         val render: PluginLimit = PluginLimit.RENDER,
         val action: PluginLimit = PluginLimit.ACTION,
+        val preview: PluginLimit = PluginLimit.PREVIEW,
+        val thumbnail: PluginLimit = PluginLimit.THUMBNAIL,
         /** API 5: the plugin's other modules, `{"helpers.py": source}`. */
         val modules: Map<String, String> = emptyMap(),
         /** API 5: what `plugin.locale`, `plugin.theme` and `plugin.surface` say. */
         val locale: String = java.util.Locale.getDefault().toLanguageTag(),
         val dark: Boolean = false,
-        /** "panel", "float" or "action". */
+        /** "panel", "float", "action" or "preview". */
         val surface: String = mode,
         /** API 5: the plugin's translations for the user's language, as `_()` reads them. */
         val strings: JsonObject = JsonObject(emptyMap()),
@@ -90,6 +92,8 @@ class PythonSession private constructor(@Volatile private var handle: Long, priv
                     put("event", limit(event))
                     put("render", limit(render))
                     put("action", limit(action))
+                    put("preview", limit(preview))
+                    put("thumbnail", limit(thumbnail))
                 },
             )
         }.toString()
@@ -113,6 +117,7 @@ class PythonSession private constructor(@Volatile private var handle: Long, priv
             const val ABORT = "abort"
             const val NO_RENDER = "no_render"
             const val NO_TRANSFORM = "no_transform"
+            const val NO_PREVIEW = "no_preview"
             const val INTERNAL = "internal"
         }
     }
@@ -164,6 +169,14 @@ class PythonSession private constructor(@Volatile private var handle: Long, priv
     @Synchronized
     fun transform(text: String, actionId: String): Result = call { PythonNative.nativeTransform(it, text, actionId) }
 
+    /** Draws a file with the plugin's `@plugin.preview`; see [PythonNative.nativePreview]. */
+    @Synchronized
+    fun preview(request: String, data: ByteArray): Result = call(preview = true) { PythonNative.nativePreview(it, request, data) }
+
+    /** A grid thumbnail; the result's [Result.value] is the picture in base64, or null. */
+    @Synchronized
+    fun thumbnail(request: String, data: ByteArray): Result = call { PythonNative.nativeThumbnail(it, request, data) }
+
     /** Stops the call in flight at its next step. Any thread, and never waits on the session's lock. */
     fun cancel() {
         synchronized(handleLock) {
@@ -181,10 +194,10 @@ class PythonSession private constructor(@Volatile private var handle: Long, priv
         if (current != 0L) PythonNative.nativeClose(current)
     }
 
-    private inline fun call(body: (Long) -> String): Result {
+    private inline fun call(preview: Boolean = false, body: (Long) -> String): Result {
         val current = handle
         if (current == 0L) return Result(ok = false, error = Error(Error.INTERNAL, "session closed", null, null))
-        return decode(body(current))
+        return decode(body(current), preview)
     }
 
     companion object {
@@ -337,12 +350,12 @@ class PythonSession private constructor(@Volatile private var handle: Long, priv
         }.toString()
 
         /** A result as the library wrote it. Anything unreadable is an internal error rather than a crash. */
-        fun decode(text: String): Result {
+        fun decode(text: String, preview: Boolean = false): Result {
             val root = runCatching { json.parseToJsonElement(text) as? JsonObject }.getOrNull()
                 ?: return Result(ok = false, error = Error(Error.INTERNAL, "unreadable result", null, null))
             return Result(
                 ok = root.bool("ok") ?: false,
-                ui = (root["ui"] as? JsonObject)?.let(PluginUiCodec::fromJson),
+                ui = (root["ui"] as? JsonObject)?.let { if (preview) PluginUiCodec.fromPreviewJson(it) else PluginUiCodec.fromJson(it) },
                 value = (root["value"] as? JsonPrimitive)?.takeIf { it.isString }?.content,
                 error = (root["error"] as? JsonObject)?.let { error ->
                     Error(

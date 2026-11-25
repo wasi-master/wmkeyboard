@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -298,6 +299,23 @@ internal fun PackageWidgetView(
         is PluginWidget.Chart -> ChartWidget(widget)
 
         is PluginWidget.Canvas -> CanvasWidget(widget, onEvent)
+
+        is PluginWidget.Table -> TableWidget(widget.table)
+
+        is PluginWidget.Code -> CodeWidget(widget, onCopy)
+
+        is PluginWidget.FontSample -> Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            val sample = widget.text.ifEmpty { FONT_SAMPLE }
+            for (size in widget.sizes) {
+                Text(
+                    sample,
+                    color = style.text,
+                    fontSize = size.sp,
+                    fontFamily = style.previewFont,
+                    lineHeight = (size * 1.25f).sp,
+                )
+            }
+        }
 
         else -> Unit
     }
@@ -766,6 +784,102 @@ private fun CanvasWidget(widget: PluginWidget.Canvas, onEvent: (PluginEvent) -> 
 }
 
 /** Headings (`#`), bullets (`-`), and inline `**bold**`, `*italic*` and `` `code` ``. Links show as text. */
+/**
+ * A table: the header bold on a tinted band, rows on alternating fills, every
+ * column as wide as its widest cell up to [MAX_COLUMN_WIDTH], and the whole
+ * grid scrolling sideways when it is wider than the panel. Cells wrap to three
+ * lines; selecting text works as anywhere else in a preview.
+ */
+@Composable
+private fun TableWidget(table: com.wasimaster.wmkeyboard.core.plugins.PluginTable) {
+    val style = LocalPluginPanelStyle.current
+    val columns = maxOf(table.header?.size ?: 0, table.rows.maxOfOrNull { it.size } ?: 0)
+    if (columns == 0) return
+    fun alignOf(column: Int) = when (table.align?.getOrNull(column)) {
+        "center" -> androidx.compose.ui.text.style.TextAlign.Center
+        "end" -> androidx.compose.ui.text.style.TextAlign.End
+        else -> androidx.compose.ui.text.style.TextAlign.Start
+    }
+    // A width per column from its longest cell, in characters: measuring every
+    // cell would cost a layout pass per cell on a 500-row table.
+    val widths = (0 until columns).map { c ->
+        val longest = maxOf(
+            table.header?.getOrNull(c)?.length ?: 0,
+            table.rows.asSequence().take(WIDTH_SAMPLE_ROWS).maxOfOrNull { it.getOrNull(c)?.length ?: 0 } ?: 0,
+        )
+        (longest * CHAR_WIDTH + CELL_PADDING).coerceIn(MIN_COLUMN_WIDTH, MAX_COLUMN_WIDTH).dp
+    }
+    Box(Modifier.fillMaxWidth().clip(style.cardShape).background(style.surface).horizontalScroll(rememberScrollState())) {
+        Column {
+            table.header?.let { header ->
+                Row(Modifier.background(style.accent.copy(alpha = HEADER_ALPHA))) {
+                    for (c in 0 until columns) {
+                        Text(
+                            header.getOrNull(c).orEmpty(),
+                            color = style.onSurface,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            textAlign = alignOf(c),
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.width(widths[c]).padding(horizontal = 8.dp, vertical = 6.dp),
+                        )
+                    }
+                }
+            }
+            table.rows.forEachIndexed { r, row ->
+                Row(Modifier.background(if (r % 2 == 1) style.secondaryText.copy(alpha = STRIPE_ALPHA) else Color.Transparent)) {
+                    for (c in 0 until columns) {
+                        Text(
+                            row.getOrNull(c).orEmpty(),
+                            color = style.onSurface,
+                            fontSize = 13.sp,
+                            textAlign = alignOf(c),
+                            maxLines = 3,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.width(widths[c]).padding(horizontal = 8.dp, vertical = 5.dp),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Source text with line numbers, coloured by the host, scrolled sideways rather than wrapped. */
+@Composable
+private fun CodeWidget(widget: PluginWidget.Code, onCopy: (String) -> Unit) {
+    val style = LocalPluginPanelStyle.current
+    val coloured = androidx.compose.runtime.remember(widget.text, widget.language) { style.highlight(widget.text, widget.language) }
+    val lines = androidx.compose.runtime.remember(widget.text) { widget.text.count { it == '\n' } + 1 }
+    Box(Modifier.fillMaxWidth().clip(style.cardShape).background(style.surface)) {
+        Row(Modifier.padding(vertical = 8.dp)) {
+            if (widget.lineNumbers) {
+                Text(
+                    (1..lines).joinToString("\n"),
+                    color = style.secondaryText,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 12.sp,
+                    lineHeight = 17.sp,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.End,
+                    modifier = Modifier.padding(start = 8.dp, end = 8.dp),
+                )
+            }
+            Box(Modifier.horizontalScroll(rememberScrollState())) {
+                Text(
+                    coloured,
+                    color = style.onSurface,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 12.sp,
+                    lineHeight = 17.sp,
+                    softWrap = false,
+                    modifier = Modifier.padding(end = 12.dp).combinedClickable(onClick = {}, onLongClick = { onCopy(widget.text) }),
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun MarkdownText(source: String) {
     val style = LocalPluginPanelStyle.current
@@ -815,6 +929,14 @@ private fun inline(text: String): AnnotatedString = buildAnnotatedString {
     }
 }
 
+private const val FONT_SAMPLE = "The quick brown fox jumps over the lazy dog 0123456789"
+private const val WIDTH_SAMPLE_ROWS = 100
+private const val CHAR_WIDTH = 7.5f
+private const val CELL_PADDING = 16f
+private const val MIN_COLUMN_WIDTH = 48f
+private const val MAX_COLUMN_WIDTH = 260f
+private const val HEADER_ALPHA = 0.18f
+private const val STRIPE_ALPHA = 0.06f
 private const val DEFAULT_SCROLL = 240
 private const val DEFAULT_ICON = 24
 private const val DEFAULT_QR = 160

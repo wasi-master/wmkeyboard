@@ -13,6 +13,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowF
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Block
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Code
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Preview
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DeleteSweep
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Handyman
@@ -698,6 +699,45 @@ private fun PluginProvidersGroup(plugin: InstalledPlugin, repository: SettingsRe
     }
 }
 
+/**
+ * The file types this plugin shows in the keyboard's file manager, and the
+ * ones it colours. Nothing to switch: a preview is offered as a "View with"
+ * chip on a file of its type, and a grammar colours that type's text.
+ */
+@Composable
+private fun PluginFileTypesGroup(plugin: InstalledPlugin) {
+    fun types(extensions: List<String>, names: List<String>, mimes: List<String> = emptyList()): String =
+        (extensions.map { ".$it" } + names + mimes).take(MAX_LISTED_TYPES).joinToString(", ") +
+            if (extensions.size + names.size + mimes.size > MAX_LISTED_TYPES) " …" else ""
+    SettingsGroup(stringResource(R.string.plugins_file_types_title), info = stringResource(R.string.plugins_file_types_info)) {
+        for (preview in plugin.previews) {
+            item(key = "preview:${preview.id}") {
+                val kinds = types(preview.extensions, preview.names, preview.mimes)
+                WmRow(
+                    title = preview.name.ifBlank { plugin.displayName },
+                    subtitle = if (preview.thumbnails) {
+                        stringResource(R.string.plugins_file_types_preview_thumbnails, kinds)
+                    } else {
+                        stringResource(R.string.plugins_file_types_preview, kinds)
+                    },
+                    icon = Icons.Outlined.Preview,
+                )
+            }
+        }
+        for (syntax in plugin.syntax) {
+            item(key = "syntax:${syntax.id}") {
+                WmRow(
+                    title = syntax.name.ifBlank { syntax.id },
+                    subtitle = stringResource(R.string.plugins_file_types_syntax, types(syntax.extensions, syntax.names)),
+                    icon = Icons.Outlined.Code,
+                )
+            }
+        }
+    }
+}
+
+private const val MAX_LISTED_TYPES = 12
+
 /** One plugin: what it may do, what it has stored, its log, and how to remove it. */
 @Composable
 internal fun PluginDetailScreen(
@@ -840,6 +880,8 @@ internal fun PluginDetailScreen(
     }
 
     if (plugin.providers.isNotEmpty()) PluginProvidersGroup(plugin, repository, settings)
+
+    if (plugin.previews.isNotEmpty() || plugin.syntax.isNotEmpty()) PluginFileTypesGroup(plugin)
 
     SettingsGroup(stringResource(R.string.plugins_storage_title), level = SettingLevel.STANDARD) {
         item {

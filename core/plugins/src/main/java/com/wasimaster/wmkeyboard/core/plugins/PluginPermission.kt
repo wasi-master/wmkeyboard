@@ -183,6 +183,14 @@ sealed class PluginPermission(
      */
     data object Clock : PluginPermission("clock", R.string.core_plugins_permission_clock_label, Tier.LISTED, sinceApi = 5)
 
+    /**
+     * File previews: the plugin reads the one file the user opens in the
+     * keyboard's file manager with it, and draws it. It never sees a path, a
+     * folder or any other file, and the call runs in a fresh interpreter that
+     * keeps nothing afterwards but what the plugin writes to its own storage.
+     */
+    data object Previews : PluginPermission("previews", R.string.core_plugins_permission_previews_label, Tier.LISTED, sinceApi = 5)
+
     val isRisky: Boolean get() = tier == Tier.RISKY
 
     companion object {
@@ -190,7 +198,7 @@ sealed class PluginPermission(
         val all: List<PluginPermission> by lazy {
             listOf(
                 Storage, Reminders, SelectedText, FieldWrite, ClipboardWrite, Sensors, Scan, Device, Share,
-                Notifications, Clock, Network, NetworkLocal, Ai, FieldRead, ClipboardRead, Location, Files, Calendar, Todo,
+                Notifications, Clock, Previews, Network, NetworkLocal, Ai, FieldRead, ClipboardRead, Location, Files, Calendar, Todo,
             )
         }
 
@@ -230,6 +238,7 @@ sealed class PluginPermission(
             "notify" -> Notifications
             "clock" -> Clock
             "secrets" -> Storage
+            "preview" -> Previews
             else -> null
         }
 

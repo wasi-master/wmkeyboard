@@ -60,6 +60,7 @@
     <string name="core_plugins_permission_share_label">Share text and open links, after you confirm</string>
     <string name="core_plugins_permission_notifications_label">Show notifications</string>
     <string name="core_plugins_permission_clock_label">Set alarms and timers in the keyboard\'s Clock</string>
+    <string name="core_plugins_permission_previews_label">Read a file you open with it in the keyboard\'s file manager, to show it</string>
     <!-- Shown under the permission list when a plugin can both read something
          of the user's and send data away. %1$s is a list of websites. -->
     <string name="core_plugins_permission_combination_warning">This plugin can read text or files you give it and send them to %1$s.</string>
@@ -104,6 +105,10 @@
     <!-- %1$s is the name of the plugin. -->
     <string name="core_plugins_reject_bad_setting">“%1$s” has a setting that is missing its key or label, repeats a key, or has a type this version cannot draw.</string>
     <string name="core_plugins_reject_bad_provider">“%1$s” offers a provider for a list this version does not know, repeats one, or offers more than eight.</string>
+    <string name="core_plugins_reject_bad_preview">“%1$s” lists a file preview without an id or file types, repeats one, or lists more than 16.</string>
+    <string name="core_plugins_reject_previews_need_permission">“%1$s” shows file previews but does not ask for the previews permission.</string>
+    <string name="core_plugins_reject_previews_permission_unused">“%1$s” asks for the previews permission but lists no file previews.</string>
+    <string name="core_plugins_reject_bad_syntax">“%1$s” adds syntax colouring this version cannot read: a grammar without file types, an expression that does not compile, or more than 16.</string>
     <!-- %1$s is the name of the plugin. -->
     <string name="core_plugins_reject_bad_tool">“%1$s” has a tool keyword that is not valid. A keyword is up to 16 lowercase letters and numbers.</string>
     <!-- %1$s is the name of the plugin. -->
@@ -141,6 +146,8 @@
     <string name="core_plugins_error_script_failed">The script failed.</string>
     <!-- transform() is the name of the function a plugin writes for its selection actions. It stays in English. -->
     <string name="core_plugins_error_no_transform">This plugin has no transform() function.</string>
+    <string name="core_plugins_error_no_preview">This plugin can\'t show this file.</string>
+    <string name="core_plugins_error_preview_unreadable">The file could not be read.</string>
     <string name="core_plugins_error_action_missing">That plugin no longer has that action.</string>
     <!-- A plugin asked for something its permission covers, but the user has
          not turned that permission on. %1$s is the permission's line. -->
@@ -201,6 +208,9 @@
     <!-- %1$d is the largest number. -->
     <string name="core_plugins_ui_repair_too_many_shapes" tools:ignore="PluralsCandidate">A drawing had too many shapes. Only the first %1$d are drawn.</string>
     <string name="core_plugins_ui_repair_bad_shape">A drawing had a shape the app cannot draw.</string>
+    <string name="core_plugins_ui_repair_too_many_rows" tools:ignore="PluralsCandidate">A table had more rows than the %1$d shown.</string>
+    <string name="core_plugins_ui_repair_too_many_columns" tools:ignore="PluralsCandidate">A table had more columns than the %1$d shown.</string>
+    <string name="core_plugins_ui_repair_preview_only">“%1$s” works only in a file preview.</string>
 
     <!-- The name of a tab the plugin gave no title. %1$d is its position,
          counted from 1. -->

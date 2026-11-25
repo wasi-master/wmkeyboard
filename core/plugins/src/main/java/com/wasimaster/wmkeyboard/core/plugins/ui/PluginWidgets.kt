@@ -146,6 +146,13 @@ class PluginPanelStyle(
      * The keyboard's glass themes blur the board through it; elsewhere nothing.
      */
     val glass: @Composable (Modifier, Shape) -> Modifier = { modifier, _ -> modifier },
+    /**
+     * Colours source text for a language (a file extension): the keyboard's
+     * highlighter, with the grammars plugins add. The default leaves it plain.
+     */
+    val highlight: (String, String) -> androidx.compose.ui.text.AnnotatedString = { code, _ -> androidx.compose.ui.text.AnnotatedString(code) },
+    /** In a file preview of a font, that font; elsewhere null, and `ui.font_sample` draws in the panel's own. */
+    val previewFont: FontFamily? = null,
 )
 
 /** The style [PluginWidgetList] draws with. A host must provide one. */
