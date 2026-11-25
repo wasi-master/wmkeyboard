@@ -2049,7 +2049,19 @@ private fun rememberProposal(
     context: android.content.Context,
     uri: Uri,
     onImported: () -> Unit,
-): ImportProposal = remember(state) {
+): ImportProposal = remember(state) { proposalFor(state, repository, context, uri, onImported) }
+
+/**
+ * The proposal itself, outside composition: the dialog remembers it, and the
+ * keyboard's file preview words a file with it ([describeForKeyboard]).
+ */
+private fun proposalFor(
+    state: WMFileTypes.Opened,
+    repository: SettingsRepository,
+    context: android.content.Context,
+    uri: Uri,
+    onImported: () -> Unit,
+): ImportProposal = run {
     when (state) {
         is WMFileTypes.Opened.Theme -> {
             val themeName = state.theme.name
@@ -3378,3 +3390,67 @@ private fun configProposal(
         }
     },
 )
+
+/**
+ * What the Files tool's preview shows for a file this app imports: the
+ * dialog's own heading, wording, notes and picture of the contents, read the
+ * way opening the file from a file manager reads it. Null for anything the
+ * dialog would only open in the editor, turn down, or (a recording) offer as
+ * a key sound. Blocking; the keyboard calls it off the main thread.
+ */
+internal fun describeForKeyboard(
+    context: android.content.Context,
+    uri: Uri,
+    name: String,
+): com.wasimaster.wmkeyboard.ime.files.ImportableFiles.Found? {
+    val state = WMFileTypes.identify(context, uri, name)
+    when (state) {
+        WMFileTypes.Opened.Text,
+        WMFileTypes.Opened.Unrecognized,
+        WMFileTypes.Opened.Unreadable,
+        WMFileTypes.Opened.KeySound,
+        WMFileTypes.Opened.ClinkProtected,
+        -> return null
+        else -> Unit
+    }
+    // Another keyboard's backup is a list to tick in a dialog of its own, so
+    // its placeholder proposal says nothing: the keyboard and what is in it.
+    if (state is WMFileTypes.Opened.ForeignBackupFile) {
+        val backup = state.backup
+        val parts = listOf(
+            R.string.foreign_backup_section_layouts to backup.layouts.size,
+            R.string.foreign_backup_section_themes to backup.themes.size,
+            R.string.foreign_backup_section_languages to backup.languages.size,
+            R.string.foreign_backup_section_words to backup.dictionaries.size + backup.personalWords.size,
+            R.string.foreign_backup_section_settings to backup.settings.size,
+        ).filter { it.second > 0 }.map { (res, n) -> "${context.getString(res)}: $n" }
+        return com.wasimaster.wmkeyboard.ime.files.ImportableFiles.Found(
+            title = context.getString(R.string.foreign_backup_title, keyboardName(context, backup.keyboard)),
+            body = context.getString(R.string.foreign_backup_intro),
+            notes = parts,
+            visual = null,
+        )
+    }
+    // Only the wording is used: the work in it runs in the import dialog,
+    // which reads the file again when Import opens it.
+    val proposal = proposalFor(state, SettingsRepository(context.applicationContext), context, uri) {}
+    // Sticker packs and the download screens' files open dialogs of their
+    // own, so their proposals carry no work; any other proposal without
+    // work is a file that would only be turned down.
+    val ownDialog = state == WMFileTypes.Opened.Stickers || state is WMFileTypes.Opened.WhatsAppStickers ||
+        state is WMFileTypes.Opened.OfflineFiles
+    if (!proposal.actionable && !ownDialog) return null
+    val title = when {
+        proposal.titlePluralRes != 0 ->
+            context.resources.getQuantityString(proposal.titlePluralRes, proposal.titleQuantity, proposal.titleQuantity)
+        proposal.titleArg != null -> context.getString(proposal.titleRes, proposal.titleArg)
+        else -> context.getString(proposal.titleRes)
+    }
+    return com.wasimaster.wmkeyboard.ime.files.ImportableFiles.Found(
+        title = title,
+        body = proposal.body,
+        notes = proposal.repairs,
+        visual = { ImportFilePreview(state, uri) },
+    )
+}
+

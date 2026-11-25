@@ -106,6 +106,10 @@ internal fun FileManagerPanel(
     val places = ui.view == FileView.Places && ui.query == null
     val targets = if (places) placeTargets(ui) else emptyList()
     val faceOpen = ui.preview != null || ui.info != null
+    val scrolls = remember { ListScrolls() }
+    // Read by the lists as they leave and come back; see ListScrolls.
+    scrolls.covered = faceOpen
+    ui.preview?.entry?.path?.let { scrolls.lastPreviewed = it }
     val historyOpen = typing?.field == FilesTextField.SEARCH && typing.text.isBlank() && ui.query == null && !ui.filters.any
     PanelFocusTarget(
         panel = PanelMode.FILES,
@@ -127,7 +131,7 @@ internal fun FileManagerPanel(
     // A pick with no way in at all yet: what the grant is, and the picker that needs none.
     val noWayIn = ui.request != null && !ui.access && ui.trees.isEmpty()
 
-    androidx.compose.runtime.CompositionLocalProvider(LocalFilePlugins provides callbacks.plugins()) {
+    androidx.compose.runtime.CompositionLocalProvider(LocalFilePlugins provides callbacks.plugins(), LocalListScrolls provides scrolls) {
         FullBleedTool(
             state = state,
             title = "",

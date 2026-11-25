@@ -117,8 +117,8 @@ data class FileManagerUi(
 data class FilePrefs(
     /** Thumbnails in a grid rather than rows (the default since the revamp). */
     val grid: Boolean = true,
-    /** A tap on a file previews it in the keyboard rather than opening its app. */
-    val tapPreviews: Boolean = false,
+    /** A tap on a file previews it in the keyboard rather than opening its app (the default). */
+    val tapPreviews: Boolean = true,
     val thumbnails: Boolean = true,
     val showHidden: Boolean = false,
     val foldersFirst: Boolean = true,
@@ -252,14 +252,22 @@ data class PreviewUi(
     val syntax: List<com.wasimaster.wmkeyboard.core.plugins.PluginSyntax.Token>? = null,
     /** A plugin from the add-on repositories that would draw this file, when none installed does. */
     val offer: PluginOffer? = null,
+    /** What the app would import this file as, when it is one of the files the app imports. */
+    val importable: ImportableFiles.Found? = null,
+    /** The file is still being read for an import. */
+    val importChecking: Boolean = false,
 ) {
-    val byPlugin: Boolean get() = choice != PreviewChoice.BUILT_IN
+    val byImport: Boolean get() = choice == PreviewChoice.IMPORT && importable != null
+    val byPlugin: Boolean get() = choice != PreviewChoice.BUILT_IN && choice != PreviewChoice.IMPORT
 }
 
 /** One way to draw a previewed file: the keyboard's own, or a plugin's ([label] its name). */
 data class PreviewChoice(val key: String, val label: String?) {
     companion object {
         const val BUILT_IN = "builtin"
+
+        /** What the app would import the file as, with Import. */
+        const val IMPORT = "import"
     }
 }
 
@@ -410,6 +418,9 @@ sealed interface FileAction {
 
     /** "Not now" to offered plugins for files of the previewed one's type. */
     data object DismissOffer : FileAction
+
+    /** The previewed file into the app's import dialog. */
+    data object Import : FileAction
 
     /** "View with": draw the previewed file with [key] instead, and keep that choice for its type. */
     data class PreviewWith(val key: String) : FileAction

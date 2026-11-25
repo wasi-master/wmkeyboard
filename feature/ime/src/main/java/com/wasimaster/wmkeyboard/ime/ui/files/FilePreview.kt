@@ -71,6 +71,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Folder
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FolderOpen
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Info
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.InstallMobile
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardArrowDown
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Pause
@@ -133,6 +134,7 @@ internal fun PreviewFace(ui: FileManagerUi, preview: PreviewUi, act: (FileAction
                     },
             ) {
                 when {
+                    preview.byImport -> ImportBody(preview, act)
                     preview.byPlugin -> PluginBody(preview, act)
                     preview.kind == FileKind.IMAGE -> ImageBody(preview.entry)
                     // One player per file: swiping to the next clip starts afresh.
@@ -489,7 +491,9 @@ private fun ViewWith(preview: PreviewUi, act: (FileAction) -> Unit) {
         Text(stringResource(R.string.ime_files_view_with), color = kb.secondaryText, fontSize = 11.5.sp)
         for (choice in preview.choices) {
             com.wasimaster.wmkeyboard.ime.ui.ToolPanelChip(
-                choice.label ?: stringResource(R.string.ime_files_view_built_in),
+                choice.label ?: stringResource(
+                    if (choice.key == com.wasimaster.wmkeyboard.ime.files.PreviewChoice.IMPORT) R.string.ime_files_view_import else R.string.ime_files_view_built_in,
+                ),
                 selected = choice.key == preview.choice,
             ) { act(FileAction.PreviewWith(choice.key)) }
         }
@@ -612,6 +616,40 @@ private fun PluginBody(preview: PreviewUi, act: (FileAction) -> Unit) {
     }
 }
 
+/**
+ * A file the app imports, as its import dialog would put it: the dialog's
+ * picture of the contents (a theme's miniature, a layout's grid, a pack's
+ * stickers), what importing it does, what will not come across, and Import,
+ * which opens that dialog to ask anything left to ask and do it.
+ */
+@Composable
+private fun ImportBody(preview: PreviewUi, act: (FileAction) -> Unit) {
+    val kb = LocalKbTheme.current
+    val found = preview.importable ?: return
+    Column(
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 14.dp),
+    ) {
+        found.visual?.let { visual ->
+            androidx.compose.runtime.CompositionLocalProvider(androidx.compose.material3.LocalContentColor provides kb.suggestionText) {
+                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))) { visual() }
+            }
+        }
+        Text(found.title, color = kb.suggestionText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+        if (found.body.isNotBlank()) {
+            Spacer(Modifier.height(6.dp))
+            Text(found.body, color = kb.secondaryText, fontSize = 13.sp, lineHeight = 18.sp)
+        }
+        if (found.notes.isNotEmpty()) {
+            Spacer(Modifier.height(10.dp))
+            for (note in found.notes) {
+                Text("• $note", color = kb.secondaryText, fontSize = 12.5.sp, lineHeight = 17.sp, modifier = Modifier.padding(bottom = 2.dp))
+            }
+        }
+        Spacer(Modifier.height(16.dp))
+        PillButton(stringResource(R.string.ime_files_import), icon = Icons.Outlined.InstallMobile, primary = true, height = 38.dp) { act(FileAction.Import) }
+    }
+}
+
 /** A preview has no text boxes the keys can reach: every one stays as drawn. */
 private object StillInputs : com.wasimaster.wmkeyboard.core.plugins.ui.PluginInputHost {
     override fun value(id: String): String = ""
@@ -653,6 +691,13 @@ private fun rememberPreviewFont(preview: PreviewUi): androidx.compose.ui.text.fo
 @Composable
 private fun NoPreview(preview: PreviewUi) {
     val kb = LocalKbTheme.current
+    // Still being read for an import: a moment more, rather than "no preview" and then one.
+    if (preview.importChecking) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(Modifier.size(24.dp), color = kb.secondaryText, strokeWidth = 2.dp)
+        }
+        return
+    }
     Column(Modifier.fillMaxSize().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         KindTile(preview.entry, 72.dp, picked = false, thumbnails = false, corner = 18.dp)
         Spacer(Modifier.height(12.dp))
@@ -717,9 +762,12 @@ private fun PreviewActions(ui: FileManagerUi, preview: PreviewUi, act: (FileActi
             RoundButton(icon = Icons.Outlined.OpenInNew, description = stringResource(R.string.ime_files_open_with), size = 36.dp) { act(FileAction.OpenWith) }
         }
     } else {
+        val importable = preview.importable != null
         ActionStrip(
             buildList {
-                add(BarAction(Icons.Outlined.Send, stringResource(R.string.ime_files_send), primary = true) { act(FileAction.Send) })
+                // A file the app imports leads with Import, the one thing most people open it for.
+                if (importable) add(BarAction(Icons.Outlined.InstallMobile, stringResource(R.string.ime_files_import), primary = true) { act(FileAction.Import) })
+                add(BarAction(Icons.Outlined.Send, stringResource(R.string.ime_files_send), primary = !importable) { act(FileAction.Send) })
                 if (!ui.secureField) add(BarAction(Icons.Outlined.KeyboardArrowDown, stringResource(R.string.ime_files_type)) { act(FileAction.ToggleTypeMenu) })
                 if (textual && preview.text != null) add(BarAction(Icons.Outlined.ContentCopy, stringResource(R.string.ime_files_copy_text)) { act(FileAction.CopyText) })
                 add(BarAction(Icons.Outlined.Share, stringResource(R.string.ime_files_share)) { act(FileAction.Share) })

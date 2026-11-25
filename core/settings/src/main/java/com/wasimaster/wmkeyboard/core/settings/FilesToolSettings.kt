@@ -13,8 +13,8 @@ data class FilesToolSettings(
     val twoPanes: Boolean = false,
     /** Thumbnails in a grid rather than rows; the header's view button switches it too. */
     val grid: Boolean = true,
-    /** A tap on a file previews it in the keyboard rather than opening the app for it. */
-    val tapPreviews: Boolean = false,
+    /** A tap on a file previews it in the keyboard rather than opening the app for it; Open with is a button there. */
+    val tapPreviews: Boolean = true,
     /** Pictures and videos show their own thumbnails rather than a kind icon. */
     val thumbnails: Boolean = true,
     /** Files and folders whose names start with a dot are listed. */

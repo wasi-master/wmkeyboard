@@ -23,7 +23,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,6 +32,10 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
@@ -76,6 +80,7 @@ import com.wasimaster.wmkeyboard.ime.ui.LocalKbTheme
 import com.wasimaster.wmkeyboard.ime.ui.maxContrastOn
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.File
@@ -245,7 +250,23 @@ private fun EntryGrid(
     focusedRow: Int?,
     act: (FileAction) -> Unit,
 ) {
-    val state = rememberLazyGridState()
+    // Back from a preview or Properties at the rows it left, the file last
+    // looked at in view; a folder opened afresh still starts at its top.
+    val scrolls = LocalListScrolls.current
+    val scrollKey = "${pane.view}|$search|${ui.query.orEmpty()}"
+    val state = remember(scrollKey) {
+        scrolls.take(scrollKey)?.let { (index, offset) -> LazyGridState(index, offset) } ?: LazyGridState()
+    }
+    DisposableEffect(scrollKey, state) {
+        onDispose { scrolls.leave(scrollKey, state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset) }
+    }
+    LaunchedEffect(scrollKey) {
+        val path = scrolls.takeLastPreviewed() ?: return@LaunchedEffect
+        val at = pane.entries.indexOfFirst { it.path == path }
+        if (at < 0) return@LaunchedEffect
+        val visible = snapshotFlow { state.layoutInfo.visibleItemsInfo }.first { it.isNotEmpty() }
+        if (visible.none { it.index == at }) state.scrollToItem(at)
+    }
     val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
     val density = LocalDensity.current
@@ -429,3 +450,29 @@ private fun EntryRow(ui: FileManagerUi, entry: FileEntry, picked: Boolean, focus
 
 private val EDGE = 48.dp
 private const val EDGE_SPEED = 0.35f
+
+/**
+ * Where each list stood when a preview or Properties covered it, so closing
+ * them returns to the same rows rather than the top. Held by the panel; only
+ * a covered list is remembered, since a folder opened again starts at its top.
+ */
+internal class ListScrolls {
+    private val at = HashMap<String, Pair<Int, Int>>()
+
+    /** A preview or Properties is up; set by the panel as it draws. */
+    var covered: Boolean = false
+
+    /** The file the preview showed last, to bring into view on the way back. */
+    var lastPreviewed: String? = null
+
+    fun leave(key: String, index: Int, offset: Int) {
+        if (covered) at[key] = index to offset else at.remove(key)
+    }
+
+    fun take(key: String): Pair<Int, Int>? = at.remove(key)
+
+    fun takeLastPreviewed(): String? = lastPreviewed.also { lastPreviewed = null }
+}
+
+internal val LocalListScrolls = staticCompositionLocalOf { ListScrolls() }
+

@@ -123,6 +123,7 @@ internal class FileManagerController(
     private var placesJob: Job? = null
     private var previewJob: Job? = null
     private var offerJob: Job? = null
+    private var importJob: Job? = null
     private val offers = PluginOffers(app)
     private var infoJob: Job? = null
 
@@ -1333,8 +1334,10 @@ internal class FileManagerController(
         // the keyboard's own, else the closest plugin.
         val remembered = FilePins.previewChoice(app, extensionOf(entry))?.takeIf { key -> choices.any { it.key == key } }
         val choice = remembered ?: choices.firstOrNull()?.key ?: PreviewChoice.BUILT_IN
-        _state.update { it.copy(preview = PreviewUi(entry, kind, index, count, choices = choices, choice = choice), expanded = true) }
+        val checking = ImportableFiles.candidate(entry)
+        _state.update { it.copy(preview = PreviewUi(entry, kind, index, count, choices = choices, choice = choice, importChecking = checking), expanded = true) }
         if (plugins.isEmpty()) findOffer(entry)
+        if (checking) findImport(entry) else importJob?.cancel()
         if (choice != PreviewChoice.BUILT_IN) {
             runPlugin(entry, choice)
             return
@@ -1358,6 +1361,36 @@ internal class FileManagerController(
         }
     }
 
+    /**
+     * Whether [entry] is a file the app imports (a theme, a backup, another
+     * keyboard's layout): read in the background while the usual preview
+     * loads. When it is, its import view joins the choices, and shows first
+     * unless the user picked another view for files of its type.
+     */
+    private fun findImport(entry: FileEntry) {
+        importJob?.cancel()
+        importJob = scope.launch {
+            val found = withContext(Dispatchers.IO) { ImportableFiles.read(app, entry) }
+            val remembered = FilePins.previewChoice(app, extensionOf(entry))
+            _state.update { s ->
+                val current = s.preview?.takeIf { it.entry.path == entry.path } ?: return@update s
+                if (found == null) return@update s.copy(preview = current.copy(importChecking = false))
+                val choices = listOf(PreviewChoice(PreviewChoice.IMPORT, null)) + current.choices.filterNot { it.key == PreviewChoice.IMPORT }
+                val first = remembered == null || remembered == PreviewChoice.IMPORT || choices.none { it.key == remembered }
+                val choice = if (first) PreviewChoice.IMPORT else current.choice
+                if (choice == PreviewChoice.IMPORT && current.byPlugin) host.filePlugins()?.runner?.cancel()
+                s.copy(preview = current.copy(importable = found, importChecking = false, choices = choices, choice = choice, offer = if (first) null else current.offer))
+            }
+        }
+    }
+
+    /** The previewed file into the app's import dialog, which asks what it needs and reports. */
+    private fun importFile() {
+        val entry = _state.value.preview?.entry ?: return
+        host.haptic()
+        if (!ImportableFiles.open(app, entry)) notice(FileNotice.Kind.NO_APP)
+    }
+
     private fun getPlugin() {
         val offer = _state.value.preview?.offer ?: return
         host.haptic()
@@ -1379,6 +1412,12 @@ internal class FileManagerController(
         FilePins.setPreviewChoice(app, extensionOf(preview.entry), key)
         previewJob?.cancel()
         host.filePlugins()?.runner?.cancel()
+        if (key == PreviewChoice.IMPORT) {
+            // Drawn from what was read already; the built-in view stays loaded behind it.
+            host.filePlugins()?.runner?.cancel()
+            _state.update { it.copy(preview = preview.copy(choice = key)) }
+            return
+        }
         val reset = preview.copy(choice = key, loading = true, pluginUi = null, pluginError = null)
         _state.update { it.copy(preview = reset) }
         if (key == PreviewChoice.BUILT_IN) {
@@ -1436,7 +1475,15 @@ internal class FileManagerController(
             }
             _state.update { s ->
                 val current = s.preview?.takeIf { it.entry.path == entry.path && !it.byPlugin } ?: return@update s
-                s.copy(preview = loaded.copy(choices = current.choices, choice = current.choice, offer = current.offer))
+                s.copy(
+                    preview = loaded.copy(
+                        choices = current.choices,
+                        choice = current.choice,
+                        offer = current.offer,
+                        importable = current.importable,
+                        importChecking = current.importChecking,
+                    ),
+                )
             }
         }
     }
@@ -1465,6 +1512,7 @@ internal class FileManagerController(
     private fun closePreview() {
         previewJob?.cancel()
         offerJob?.cancel()
+        importJob?.cancel()
         host.filePlugins()?.runner?.cancel()
         _state.update { it.copy(preview = null, expanded = if (it.info == null) false else it.expanded) }
     }
@@ -1639,6 +1687,7 @@ internal class FileManagerController(
             is FileAction.PreviewWith -> previewWith(action.key)
             FileAction.GetPlugin -> getPlugin()
             FileAction.DismissOffer -> dismissOffer()
+            FileAction.Import -> importFile()
             FileAction.PreviewPicked -> _state.value.selection.singleOrNull()?.let { path ->
                 _state.value.panes.flatMap { it.entries }.firstOrNull { it.path == path && !it.isDirectory }?.let(::openPreview)
             }

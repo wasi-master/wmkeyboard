@@ -125,6 +125,10 @@
     <!-- Stops offering plugins for files of this type. -->
     <string name="ime_files_offer_not_now">Not now</string>
     <string name="ime_files_view_built_in">Built-in</string>
+    <!-- A "View with" choice: the file as WM Keyboard would import it (a theme, a layout, another keyboard's backup). -->
+    <string name="ime_files_view_import">Import</string>
+    <!-- Button in a file's preview: opens WM Keyboard's import for the file (a theme, a backup, a layout). -->
+    <string name="ime_files_import">Import</string>
     <string name="ime_files_preview_by">Shown by %1$s</string>
     <string name="ime_files_notice_no_app">No app here opens this kind of file</string>
     <!-- The Files tool revamp (2026-11-26). -->

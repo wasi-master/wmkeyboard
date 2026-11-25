@@ -57,7 +57,7 @@ A filter searches on its own, so you can list every PDF from this month without 
 
 ## Opening and previewing a file
 
-In the Files tool, a tap on a file opens it in the app for it, a photo in your gallery app or a video in your player, and Android asks which app when you have not picked one. Turn on **Tap a file to preview it** on the tool's page (<SettingsPath path="Tools / Files / Tap a file to preview it" />) to see it in the keyboard instead:
+In the Files tool, a tap on a file shows it in the keyboard. **Open with** in the preview hands it to another app. To have a tap open the file in its app straight away, a photo in your gallery app or a video in your player, turn off **Tap a file to preview it** on the tool's page (<SettingsPath path="Tools / Files / Tap a file to preview it" />). The keyboard shows:
 
 - Pictures fill the panel. Pinch or double-tap to zoom, and the folder's other pictures and videos run along the bottom.
 - Videos wait for a tap to play, with their first frame showing. A tap plays or pauses and brings back the controls, which fade while it plays: drag the bar to jump, and the speaker button turns the sound off or on.
@@ -66,8 +66,13 @@ In the Files tool, a tap on a file opens it in the app for it, a photo in your g
 - PDFs show a page at a time.
 - An app package (APK) shows its icon, name, package name, version and the oldest Android it runs on.
 - A zip shows what it holds, with **Extract here**.
+- A file WM Keyboard can import shows what it holds and what importing it does. That covers its own exports (a theme, a layout, a backup, snippets, a sticker, icon or sound pack, a plugin) and other apps' files it converts: another keyboard's backup, theme or layout, a Keyman package, a Gboard dictionary, a font, a word list.
+
+When you go back from a preview, the list is where you left it, with the last file you looked at in view.
 
 Swipe sideways for the next or previous file. Every preview has the same actions: **Send to chat**, **Type**, **Share**, **Open with** and **Properties** (the i button). Text files also have **Copy text**.
+
+A file WM Keyboard can import also has **Import**, first in the row and under its description. It opens the same import window as opening the file from a file manager, over the app you are in, which asks anything still to ask (a layout's language, a backup's password, which parts of another keyboard's backup to bring over) and then imports it. When the file has another view too, such as a theme's text, **View with** switches between **Import** and **Built-in**.
 
 With the Tap setting off, **Preview** in the selection's ⋮ menu shows the one file you picked.
 
@@ -143,7 +148,7 @@ The Files tool's page (<SettingsPath path="Tools / Files" />) has:
 
 - **Two lists side by side**, off by default.
 - **Show files as a grid**, on by default. Off shows a list.
-- **Tap a file to preview it**, off by default.
+- **Tap a file to preview it**, on by default. Off opens a file in its app.
 - **Thumbnails**, on by default. Off shows an icon for every file, which is quicker on a slow drive or network share.
 - **Folders first**, on by default. Off sorts folders among the files.
 - **Show hidden files**, off by default: names that start with a dot.

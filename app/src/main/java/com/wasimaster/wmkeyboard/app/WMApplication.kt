@@ -218,6 +218,9 @@ open class WMApplication : Application() {
         com.wasimaster.wmkeyboard.ime.wmcalendar.WmCalendarLink.start(repository)
         // A Keyman layout that is on, however it got on, brings its grids down.
         KeymanLayoutPackWatcher.start(this, repository)
+        // The Files tool's preview tells a theme, a backup or another
+        // keyboard's file by the import dialog's own reading of it.
+        com.wasimaster.wmkeyboard.ime.files.ImportableFiles.reader = ::describeForKeyboard
         // "Ask AI" in other apps' selection menus follows its switch and the
         // AI tool's, wherever either is changed from (#897).
         AskAiSelectionMenu.start(this, repository)
