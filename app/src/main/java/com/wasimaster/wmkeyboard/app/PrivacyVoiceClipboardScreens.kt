@@ -1262,6 +1262,8 @@ internal fun ClipboardSettings(
             ) { scope.launch { repository.setToastOnCopy(it) } }
         }
     }
+    // Named clipboards (#1542): a group of their own, the Add row alone until one is made.
+    ClipboardShelvesGroup(repository, settings)
     // The shared board (#1201) lives with the places it uses, on Backup &
     // restore; this row at the bottom only points there.
     val boardOn = settings.watch { s ->
@@ -1813,6 +1815,7 @@ private fun clipHoldActionLabels(): Map<ClipHoldAction, String> = ClipHoldAction
             ClipHoldAction.PASTE_NEXT -> ImeR.string.ime_clip_paste_next
             ClipHoldAction.COLLECT -> ImeR.string.ime_clip_collect
             ClipHoldAction.SEND_TO_BOARD -> ImeR.string.ime_clip_send_to_board
+            ClipHoldAction.MOVE_TO_CLIPBOARD -> ImeR.string.ime_clip_move_to_clipboard
             ClipHoldAction.SELECT -> ImeR.string.ime_clip_select
             ClipHoldAction.REORDER -> ImeR.string.ime_clip_reorder
             ClipHoldAction.MOVE_TOP -> ImeR.string.ime_clip_move_top

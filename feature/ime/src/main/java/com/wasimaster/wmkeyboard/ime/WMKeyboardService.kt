@@ -11611,7 +11611,27 @@ open class WMKeyboardService : InputMethodService() {
             settings.clipboard.sensitiveHandling == SensitiveClipHandling.SHORT_LIVED
         // A secret an earlier version wrote to the file comes off the disk now.
         if (userUnlocked && clipboardStore.holdsSecretsOnDisk()) saveClipboardSoon()
+        // A named clipboard this keyboard has not seen yet (#1542) may come
+        // with clips the settings app wrote into the file (an import): read
+        // the file again before a save of the list held here goes over them.
+        val shelves = settings.clipboard.clipboards.mapTo(HashSet()) { it.id }
+        val seen = knownClipShelves
+        knownClipShelves = shelves
+        if (userUnlocked && seen != null && !seen.containsAll(shelves)) {
+            clipboardStore.reload()
+            _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
+        }
+        // The clips of a named clipboard the user deleted (#1542) go with it,
+        // and so does one a sync or a restore brings back later.
+        val dropped = settings.clipboard.droppedClipboards
+        if (userUnlocked && dropped.isNotEmpty() && clipboardStore.dropShelves(dropped).isNotEmpty()) {
+            saveClipboardSoon()
+            _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
+        }
     }
+
+    /** The named clipboards [configureClipboardStore] last saw (#1542); null before the first settings. */
+    private var knownClipShelves: Set<String>? = null
 
     /** When a key last typed into the field, for the 🌐 guard: see [globeTapGuarded]. */
     private var lastTypedKeyAt = 0L
@@ -62524,17 +62544,22 @@ open class WMKeyboardService : InputMethodService() {
     fun onClipboardClearUnpinned() {
         if (!isClipboardAccessible()) return
         vibrate()
+        // Only the open clipboard's clips (#1542). With a named clipboard
+        // about, the system clipboard is let go clip by clip, since its copy
+        // may still stand in another one.
+        val shown = inOpenClipboard()
+        val whole = _uiState.value.settings.clipboard.clipboards.isEmpty()
         if (!_uiState.value.settings.clipboard.undoDelete) {
-            val removed = clipboardStore.items().filter { !it.pinned }
-            clipboardStore.clearUnpinned()
-            clearSystemClipAfterDelete(removed, clearAll = true)
+            val removed = clipboardStore.items().filter { !it.pinned && shown(it) }
+            clipboardStore.clearUnpinned(shown)
+            clearSystemClipAfterDelete(removed, clearAll = whole)
             saveClipboardSoon()
             _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
             return
         }
-        val removed = clipboardStore.detachUnpinned()
+        val removed = clipboardStore.detachUnpinned(where = shown)
         if (removed.isEmpty()) return
-        clearSystemClipAfterDelete(removed, clearAll = true)
+        clearSystemClipAfterDelete(removed, clearAll = whole)
         offerClipUndo(removed)
     }
 
@@ -62727,6 +62752,9 @@ open class WMKeyboardService : InputMethodService() {
             clipBoardTool.sendClip(item, quiet = true)
             toast(R.string.ime_clip_sent_to_board_toast)
         },
+        onShelfPick = ::onClipboardShelfPick,
+        onMoveToShelf = ::onClipboardMoveToShelf,
+        onShelfManage = { openSetting("clipboard_named_title") },
         board = clipBoardTool.callbacks,
     )
 
@@ -62738,6 +62766,48 @@ open class WMKeyboardService : InputMethodService() {
     fun onClipboardKeysToggle() {
         vibrate()
         _uiState.update { it.copy(clipboardWithKeys = !it.clipboardWithKeys, panelFocus = null) }
+    }
+
+    /**
+     * The clips the panel shows (#1542): the open clipboard's, or every clip
+     * while there is no named clipboard. What the clear button clears.
+     */
+    private fun inOpenClipboard(): (com.wasimaster.wmkeyboard.core.clipboard.ClipItem) -> Boolean {
+        val clip = _uiState.value.settings.clipboard
+        if (clip.clipboards.isEmpty()) return { true }
+        val ids = clip.clipboards.mapTo(HashSet()) { it.id }
+        val open = clip.activeClipboard.takeIf { it in ids }.orEmpty()
+        // A clip whose clipboard is not known here shows with the main one's
+        // (core.clipboard.shelfAmong).
+        return { item -> (if (item.shelf.isEmpty() || item.shelf in ids) item.shelf else "") == open }
+    }
+
+    /** The named clipboard the panel has open (#1542), or "" for the main one. */
+    private fun openClipboardId(): String {
+        val clip = _uiState.value.settings.clipboard
+        return clip.activeClipboard.takeIf { open -> clip.clipboards.any { it.id == open } }.orEmpty()
+    }
+
+    /** The clipboard switcher's pick (#1542): the panel shows that clipboard from now on. */
+    fun onClipboardShelfPick(id: String) {
+        val clip = _uiState.value.settings.clipboard
+        val open = id.takeIf { shelf -> clip.clipboards.any { it.id == shelf } }.orEmpty()
+        if (open == clip.activeClipboard) return
+        vibrate()
+        serviceScope.launch { settingsRepository.setActiveClipboard(open) }
+    }
+
+    /** Move to clipboard (#1542): [ids] into the clipboard [shelf], "" for the main one. */
+    fun onClipboardMoveToShelf(ids: List<Long>, shelf: String) {
+        if (!isClipboardAccessible()) return
+        val clip = _uiState.value.settings.clipboard
+        if (shelf.isNotEmpty() && clip.clipboards.none { it.id == shelf }) return
+        if (clipboardStore.moveToShelf(ids, shelf) == 0) return
+        vibrate()
+        saveClipboardSoon()
+        _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
+        val name = clip.clipboards.firstOrNull { it.id == shelf }?.name ?: getString(R.string.ime_clip_shelf_main)
+        toast(getString(R.string.ime_clip_moved_toast, name))
     }
 
     /**
@@ -63560,6 +63630,8 @@ open class WMKeyboardService : InputMethodService() {
         if (added != null) {
             if (tags.isNotEmpty()) clipboardStore.setTags(added.id, tags)
             if (pinned && !added.pinned) clipboardStore.setPinned(added.id, true)
+            // Into the clipboard the panel has open (#1542), with the clips it joined.
+            openClipboardId().takeIf { it.isNotEmpty() }?.let { clipboardStore.moveToShelf(listOf(added.id), it) }
         }
         saveClipboardSoon()
         _uiState.update { backToClipSearch(it.copy(clipCombine = null, clipboardItems = clipboardStore.items()), combine.returnQuery) }

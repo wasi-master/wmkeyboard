@@ -61,6 +61,7 @@ import com.wasimaster.wmkeyboard.core.tools.CodeSniff
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.OpenInNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.filled.PushPin
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudUpload
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Inventory2
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.LibraryAdd
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Checklist
@@ -178,6 +179,7 @@ import com.wasimaster.wmkeyboard.core.clipboard.clipQueryMatcher
 import com.wasimaster.wmkeyboard.core.transliteration.Zawgyi
 import com.wasimaster.wmkeyboard.core.clipboard.expiresAt
 import com.wasimaster.wmkeyboard.core.clipboard.orderKey
+import com.wasimaster.wmkeyboard.core.clipboard.shelfAmong
 import com.wasimaster.wmkeyboard.core.layout.PanelFieldKind
 import com.wasimaster.wmkeyboard.core.settings.ClipCardShortcut
 import com.wasimaster.wmkeyboard.core.settings.ClipHoldAction
@@ -290,6 +292,12 @@ data class ClipboardPanelActions(
     val onCollect: (ClipItem) -> Unit = {},
     /** Send to board (#1201): this clip onto the shared board; null where there is no board. */
     val onSendToBoard: ((ClipItem) -> Unit)? = null,
+    /** The clipboard switcher's pick (#1542): the clipboard the panel shows, "" for the main one. */
+    val onShelfPick: (String) -> Unit = {},
+    /** Move to clipboard (#1542): these clips into that clipboard, "" for the main one. */
+    val onMoveToShelf: (List<Long>, String) -> Unit = { _, _ -> },
+    /** The switcher's Manage clipboards (#1542): the settings rows that add, rename and delete them. */
+    val onShelfManage: () -> Unit = {},
     /** A text clip searched for (#914): on Wikipedia when true, else the web search tool. */
     val onSearch: (ClipItem, Boolean) -> Unit = { _, _ -> },
     /** A note's passage the search found (#1104), tapped: typed into the field, as the note has it. */
@@ -798,7 +806,25 @@ internal class ClipboardPanelSession(
     val reminders: List<com.wasimaster.wmkeyboard.core.notes.assist.NoteReminder> = emptyList(),
     /** Each card's height as last drawn, for the place a deleted clip keeps (#1354). */
     private val heights: ClipHeights = ClipHeights(),
+    /** The clipboard the panel shows (#1542): a named one's id, or "" for the main one. */
+    val shelf: String = "",
+    /**
+     * Every clipboard as (id, name), the main one first (#1542); empty while
+     * the user has no named clipboard, so nothing about them is drawn.
+     */
+    val shelfChoices: List<Pair<String, String>> = emptyList(),
+    /** How many clips each clipboard holds, by id, for the switcher. */
+    val shelfCounts: Map<String, Int> = emptyMap(),
+    /** The ids [com.wasimaster.wmkeyboard.core.clipboard.shelfAmong] reads a clip's clipboard against. */
+    val shelfIds: Set<String> = emptySet(),
+    /** The switcher's menu is open. */
+    val shelvesOpen: MutableState<Boolean> = mutableStateOf(false),
+    /** The open clipboard is a named one with nothing in it yet. */
+    val shelfEmpty: Boolean = false,
 ) {
+    /** The name [shelf] or another clipboard goes by, for a clip's card; null when there is no second clipboard. */
+    fun shelfName(id: String): String? = shelfChoices.firstOrNull { it.first == id }?.second
+
     /** [id]'s card's last drawn height in pixels, or 0 for one never drawn. */
     fun heightOf(id: Long): Int = heights.px[id] ?: 0
 
@@ -827,19 +853,42 @@ internal fun ClipboardBoxHistory(state: KeyboardUiState, callbacks: ClipboardFie
 
 @Composable
 internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPanelSession {
-    val showSearch = state.settings.clipboard.search && state.clipboardItems.isNotEmpty()
+    // Named clipboards (#1542): the panel shows the open one, and a search
+    // looks through all of them when the setting says so. Without a named
+    // clipboard every clip is the main one's, and this is the whole history.
+    val named = state.settings.clipboard.clipboards
+    val shelfIds = remember(named) { named.mapTo(HashSet()) { it.id } }
+    val openShelf = state.settings.clipboard.activeClipboard.takeIf { it in shelfIds }.orEmpty()
+    val everyShelf = named.isEmpty() || (state.clipboardSearchActive && state.settings.clipboard.searchAllClipboards)
+    val clipItems = if (everyShelf) {
+        state.clipboardItems
+    } else {
+        remember(state.clipboardItems, shelfIds, openShelf) {
+            state.clipboardItems.filter { it.shelfAmong(shelfIds) == openShelf }
+        }
+    }
+    val mainShelfName = stringResource(R.string.ime_clip_shelf_main)
+    val shelfChoices = remember(named, mainShelfName) { clipShelfChoices(named, mainShelfName) }
+    val shelfCounts = if (named.isEmpty()) {
+        emptyMap()
+    } else {
+        remember(state.clipboardItems, shelfIds) { state.clipboardItems.groupingBy { it.shelfAmong(shelfIds) }.eachCount() }
+    }
+    val shelvesOpen = remember { mutableStateOf(false) }
+    val shelfEmpty = named.isNotEmpty() && !everyShelf && clipItems.isEmpty()
+    val showSearch = state.settings.clipboard.search && clipItems.isNotEmpty()
     val query = state.clipboardQuery.trim()
     val tab = remember { mutableStateOf(ClipTab.UNPINNED) }
     val pinsInPlace = state.settings.clipboard.pinnedInPlace
     val tabbed = state.settings.clipboard.pinnedTabs && !state.clipboardSearchActive &&
-        !pinsInPlace && state.clipboardItems.isNotEmpty()
-    val pinnedCount = state.clipboardItems.count { it.pinned }
-    val unpinnedCount = state.clipboardItems.size - pinnedCount
+        !pinsInPlace && clipItems.isNotEmpty()
+    val pinnedCount = clipItems.count { it.pinned }
+    val unpinnedCount = clipItems.size - pinnedCount
     val inTab = if (tabbed) {
         val pinned = tab.value == ClipTab.PINNED
-        state.clipboardItems.filter { it.pinned == pinned }
+        clipItems.filter { it.pinned == pinned }
     } else {
-        state.clipboardItems
+        clipItems
     }
     val regexSearch = state.settings.clipboard.searchRegex
     // Match the whole clip (#612): a pattern must match all of a clip's text.
@@ -853,7 +902,7 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     val filters = remember { mutableStateOf(ClipPanelMemory.filters) }
     val oldest = remember { mutableStateOf(ClipPanelMemory.oldest) }
     val tagOrder = state.settings.clipboard.tagOrder
-    val clipTags = remember(state.clipboardItems, tagOrder) { clipTagsIn(state.clipboardItems, tagOrder) }
+    val clipTags = remember(clipItems, tagOrder) { clipTagsIn(clipItems, tagOrder) }
     // The search looks inside the notes too (#1104), so their tags join the
     // clips' in the filter row: a note tagged Quotes is a chip like a clip's.
     val notesSearched = state.clipboardSearchActive && state.settings.clipboard.searchNotes && state.clipboardNotes.isNotEmpty()
@@ -885,7 +934,7 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     val pinnedPage = !tabbed || tab.value == ClipTab.PINNED
     val foldersOn = state.settings.clipboard.pinnedFolders && !state.clipboardSearchActive && pinnedPage
     val folders = if (foldersOn && !active.hasTag) {
-        remember(state.clipboardItems) { pinnedClipFolders(state.clipboardItems) }
+        remember(clipItems) { pinnedClipFolders(clipItems) }
     } else {
         emptyList()
     }
@@ -976,7 +1025,7 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     val detect = state.settings.clipboard.detectEntities
     val entityIcons = detect && state.settings.clipboard.entityIcons
     val allEntities = if (detect && !entityIcons) {
-        remember(state.clipboardItems, phoneMasks) { ClipEntities.entitiesIn(state.clipboardItems, phoneMasks) }
+        remember(clipItems, phoneMasks) { ClipEntities.entitiesIn(clipItems, phoneMasks) }
     } else {
         emptyList()
     }
@@ -985,7 +1034,7 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     val stripHidden = state.settings.clipboard.entityStripHidden
     val hiddenFragments = if (stripHidden) allEntities.size else 0
     val perClip = if (detect) {
-        remember(state.clipboardItems, phoneMasks) { ClipEntities.byClip(state.clipboardItems, phoneMasks) }
+        remember(clipItems, phoneMasks) { ClipEntities.byClip(clipItems, phoneMasks) }
     } else {
         emptyMap()
     }
@@ -999,9 +1048,9 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     // The notes assistant's reminders for pinned clips (#1293): rules only, so no model is needed.
     val assist = state.settings.notes.assist
     val reminders = if (assist.on(assist.reminders) && !state.clipboardSearchActive) {
-        remember(state.clipboardItems) {
+        remember(clipItems) {
             com.wasimaster.wmkeyboard.core.notes.assist.NoteReminders.forTexts(
-                state.clipboardItems
+                clipItems
                     .filter { it.pinned && !it.sensitive && it.kind.isTextual && it.text.isNotBlank() }
                     .map { it.text to it.timestamp },
                 System.currentTimeMillis(),
@@ -1054,17 +1103,18 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     val showNumbers = state.settings.clipboard.showNumbers
     // With the tabs on, each tab counts its own clips (#612).
     val perTab = state.settings.clipboard.pinnedTabs
-    val numbers = remember(state.clipboardItems, showNumbers, perTab) {
+    val numbers = remember(clipItems, showNumbers, perTab) {
         when {
             !showNumbers -> emptyMap()
-            perTab -> clipNumbersPerTab(state.clipboardItems)
-            else -> clipNumbers(state.clipboardItems)
+            perTab -> clipNumbersPerTab(clipItems)
+            else -> clipNumbers(clipItems)
         }
     }
     return remember(
         shownItems, entities, showSearch, query, gridState, list, numbers,
         tabbed, pinnedCount, unpinnedCount, showClear, ocr, perClip, entityIcons, confirmPinned,
         hiddenFragments, regexSearch, tidy, pinsInPlace, allTags, gridItems, folders, inFolder, notePassages, active, reminders,
+        openShelf, shelfChoices, shelfCounts, shelfIds, shelfEmpty,
     ) {
         ClipboardPanelSession(
             shownItems, entities, showSearch, query, gridState, list, numbers,
@@ -1094,6 +1144,12 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
             notePassages = notePassages,
             reminders = reminders,
             heights = heights,
+            shelf = openShelf,
+            shelfChoices = shelfChoices,
+            shelfCounts = shelfCounts,
+            shelfIds = shelfIds,
+            shelvesOpen = shelvesOpen,
+            shelfEmpty = shelfEmpty,
         )
     }
 }
@@ -1140,6 +1196,7 @@ private fun ClipboardSearchFieldCell(
         columns = parts.size.coerceAtLeast(1),
         onActivate = { index ->
             when (parts.getOrNull(index)) {
+                ClipSearchPart.SHELF -> session.shelvesOpen.value = !session.shelvesOpen.value
                 ClipSearchPart.PILL -> callbacks.onSearchToggle()
                 ClipSearchPart.REGEX -> callbacks.actions.onRegexToggle()
                 ClipSearchPart.PATTERNS -> session.patternsOpen.value = !session.patternsOpen.value
@@ -1160,6 +1217,19 @@ private fun ClipboardSearchFieldCell(
         modifier = Modifier.fillMaxSize(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        // The switcher (#1542), first, where the panel's title would be.
+        if (session.shelfChoices.isNotEmpty()) {
+            ClipShelfButton(
+                choices = session.shelfChoices,
+                open = session.shelf,
+                counts = session.shelfCounts,
+                menuOpen = session.shelvesOpen,
+                focused = focused == parts.indexOf(ClipSearchPart.SHELF),
+                onPick = callbacks.actions.onShelfPick,
+                onManage = callbacks.actions.onShelfManage,
+                modifier = Modifier.padding(start = 4.dp),
+            )
+        }
         if (session.showSearch) {
             ClipboardSearchField(
                 state = state,
@@ -1212,10 +1282,11 @@ private fun ClipboardSearchFieldCell(
 }
 
 /** What the search cell holds; see [clipSearchCellParts]. */
-internal enum class ClipSearchPart { PILL, REGEX, PATTERNS, CLEAR, FRAGMENTS }
+internal enum class ClipSearchPart { SHELF, PILL, REGEX, PATTERNS, CLEAR, FRAGMENTS }
 
 /** The search cell's parts, in the order they are drawn and the focus ring walks them. */
 internal fun clipSearchCellParts(session: ClipboardPanelSession): List<ClipSearchPart> = buildList {
+    if (session.shelfChoices.isNotEmpty()) add(ClipSearchPart.SHELF)
     if (session.showSearch) {
         add(ClipSearchPart.PILL)
         add(ClipSearchPart.REGEX)
@@ -1444,7 +1515,7 @@ private fun ClipPatternsMenu(
 
 /** Puts a clipboard popup where Back closes it first (#612), for as long as it is up. */
 @Composable
-private fun ClipPopupRegistration(onDismiss: () -> Unit) {
+internal fun ClipPopupRegistration(onDismiss: () -> Unit) {
     val latest by rememberUpdatedState(onDismiss)
     val handle = remember { { latest() } }
     androidx.compose.runtime.DisposableEffect(handle) {
@@ -1725,6 +1796,12 @@ private fun ClipboardListField(
                         session.selection.value = null
                         callbacks.actions.onZawgyi(selection)
                     },
+                    // Move to clipboard (#1542), once there is a second clipboard.
+                    moveTargets = session.shelfChoices,
+                    onMoveTo = { id ->
+                        session.selection.value = null
+                        callbacks.actions.onMoveToShelf(selection, id)
+                    },
                 )
                 session.tabbed -> Box(
                     modifier = Modifier.swipeTabs(session.tab.value.ordinal, ClipTab.entries.size) {
@@ -1904,8 +1981,13 @@ private fun ClipSelectionBar(
     onTidy: (() -> Unit)? = null,
     /** Converts the picked clips between Zawgyi and Unicode; shown while one holds Burmese. */
     onZawgyi: (() -> Unit)? = null,
+    /** Every clipboard as (id, name) (#1542); the Move to button is there while it is not empty. */
+    moveTargets: List<Pair<String, String>> = emptyList(),
+    /** The picked clips into the clipboard with this id. */
+    onMoveTo: (String) -> Unit = {},
 ) {
     val kb = LocalKbTheme.current
+    var moveMenu by remember { mutableStateOf(false) }
     val textual = remember(picked, items) {
         val byId = items.associateBy { it.id }
         picked.count { byId[it]?.kind?.isTextual == true }
@@ -1978,6 +2060,35 @@ private fun ClipSelectionBar(
         if (onZawgyi != null && burmese) {
             TextButton(onClick = onZawgyi) {
                 Text(stringResource(R.string.ime_clip_zawgyi))
+            }
+        }
+        if (moveTargets.isNotEmpty()) {
+            val move = stringResource(R.string.ime_clip_move_to_clipboard)
+            Box {
+                IconHint(move) {
+                    IconButton(onClick = { moveMenu = true }, enabled = picked.isNotEmpty(), modifier = Modifier.size(36.dp)) {
+                        Icon(
+                            Icons.Outlined.Inventory2,
+                            contentDescription = move,
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                if (moveMenu) {
+                    ClipShelfMenu(
+                        choices = moveTargets,
+                        current = null,
+                        counts = emptyMap(),
+                        onPick = { id ->
+                            moveMenu = false
+                            onMoveTo(id)
+                        },
+                        onManage = null,
+                        onDismiss = { moveMenu = false },
+                        title = move,
+                    )
+                }
             }
         }
         IconHint(
@@ -2575,11 +2686,14 @@ private fun ClipboardHistory(
             }
         },
     )
-    if (state.clipboardItems.isEmpty()) {
+    if (state.clipboardItems.isEmpty() || session.shelfEmpty) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
-                stringResource(R.string.ime_clipboard_empty),
+                // A named clipboard says how clips get into it (#1542).
+                stringResource(if (session.shelfEmpty) R.string.ime_clip_shelf_empty else R.string.ime_clipboard_empty),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 16.dp),
             )
         }
         return
@@ -2676,6 +2790,13 @@ private fun ClipboardHistory(
                 holdActions = clipboard.holdActions.filterNot { it in clipboard.holdHidden },
                 holdPaste = clipboard.holdPaste,
                 onTagTap = { tag -> session.filters.value = session.active.tappedTag(tag) },
+                shelfName = if (session.shelfChoices.isEmpty()) null else {
+                    item.shelfAmong(session.shelfIds).takeIf { it != session.shelf }?.let(session::shelfName)
+                },
+                moveTargets = if (session.shelfChoices.isEmpty()) emptyList() else {
+                    val own = item.shelfAmong(session.shelfIds)
+                    session.shelfChoices.filter { it.first != own }
+                },
             )
             val outlined = clipboard.outlinePinned && item.pinned
             // The clip Show in history went to, and a picked one (#612), wear
@@ -3092,6 +3213,10 @@ private class ClipHold(
     val wikipedia: Boolean = false,
     /** A tag on the card tapped (#612): the history filtered to it; null where there is no filter. */
     val onTagTap: ((String) -> Unit)? = null,
+    /** The clipboard this clip is in, when that is not the open one (#1542): a search through all of them. */
+    val shelfName: String? = null,
+    /** The clipboards Move to clipboard offers this clip, (id, name), its own left out (#1542); empty for none. */
+    val moveTargets: List<Pair<String, String>> = emptyList(),
 )
 
 /**
@@ -3143,6 +3268,8 @@ private fun ClipHoldPopup(
     val textual = item.kind.isTextual && !item.sensitive && item.text.isNotEmpty()
     var fullText by remember { mutableStateOf(textual) }
     var extracting by remember { mutableStateOf(false) }
+    // Move to clipboard's list (#1542) in the popup's place.
+    var moving by remember { mutableStateOf(false) }
     // Back closes this before the search or the clipboard (#612).
     ClipPopupRegistration(onDismiss)
     // Move to top (#970): first in its group, without pasting it.
@@ -3166,6 +3293,22 @@ private fun ClipHoldPopup(
         ClipExtractPopup(hold.entities, onPick = { onDismiss(); callbacks.onEntity(it) }, onDismiss = onDismiss)
         return
     }
+    if (moving) {
+        ClipShelfMenu(
+            choices = hold.moveTargets,
+            current = null,
+            counts = emptyMap(),
+            onPick = { id -> onDismiss(); callbacks.actions.onMoveToShelf(listOf(item.id), id) },
+            onManage = null,
+            onDismiss = onDismiss,
+            title = stringResource(R.string.ime_clip_move_to_clipboard),
+        )
+        return
+    }
+    // Move to clipboard (#1542): while there is another clipboard to move it to.
+    val moveTo: (() -> Unit)? = if (hold.picked == null && hold.moveTargets.isNotEmpty()) {
+        { moving = true }
+    } else null
     // Paste next (#1178): text that is not a secret, or a picture while the
     // clipboard is not private, since the private copy holds text alone.
     val pasteNext: (() -> Unit)? = if (
@@ -3203,6 +3346,7 @@ private fun ClipHoldPopup(
                 onPasteNext = pasteNext,
                 onCollect = collect,
                 onSendToBoard = sendToBoard,
+                onMoveTo = moveTo,
                 onPick = onPick,
                 onReorder = onReorder,
                 onMoveTop = moveTop,
@@ -3305,6 +3449,8 @@ private class ClipTextActions(
     val onCollect: (() -> Unit)? = null,
     /** Onto the shared board (#1201). */
     val onSendToBoard: (() -> Unit)? = null,
+    /** Into another clipboard (#1542). */
+    val onMoveTo: (() -> Unit)? = null,
     /** Start picking clips, with this one (#612). */
     val onPick: (() -> Unit)? = null,
     /** The Reorder view (#612). */
@@ -3531,6 +3677,9 @@ private fun ClipTextActionButton(action: ClipHoldAction, item: ClipItem, actions
         }
         ClipHoldAction.SEND_TO_BOARD -> actions.onSendToBoard?.let {
             ClipTextActionIcon(Icons.Outlined.CloudUpload, stringResource(R.string.ime_clip_send_to_board), tint, it)
+        }
+        ClipHoldAction.MOVE_TO_CLIPBOARD -> actions.onMoveTo?.let {
+            ClipTextActionIcon(Icons.Outlined.Inventory2, stringResource(R.string.ime_clip_move_to_clipboard), tint, it)
         }
         ClipHoldAction.SELECT -> actions.onPick?.let {
             ClipTextActionIcon(Icons.Outlined.Checklist, stringResource(R.string.ime_clip_select), tint, it)
@@ -3939,7 +4088,8 @@ private fun ClipCard(
             val shortcut = clipShortcut(item, hold)
             // The app it was copied from, as that app's icon (#970).
             val appIcon = rememberFloatingAppIcon(item.sourcePackage, ClipSourceIconDp)
-            val footer = buttons || number != null || time != null || tag || icons || shortcut || appIcon != null
+            val footer = buttons || number != null || time != null || tag || icons || shortcut || appIcon != null ||
+                hold.shelfName != null
             if (footer) Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -3949,6 +4099,7 @@ private fun ClipCard(
             ) {
                 if (number != null) ClipNumberBadge(number)
                 if (appIcon != null) ClipSourceIcon(appIcon, item.sourceApp)
+                hold.shelfName?.let { ClipShelfLabel(it, Modifier.weight(1f, fill = false)) }
                 if (tag) {
                     Text(
                         stringResource(R.string.ime_clip_type_rich_text),
@@ -4161,6 +4312,7 @@ private fun ClipRow(
         hold.picked?.let { ClipPickMark(it) }
         if (number != null) ClipNumberBadge(number)
         rememberFloatingAppIcon(item.sourcePackage, ClipSourceIconDp)?.let { ClipSourceIcon(it, item.sourceApp) }
+        hold.shelfName?.let { ClipShelfLabel(it) }
         if (visual) {
             // Width-bound, so the picture keeps its own shape at thumbnail
             // size, and height-capped so a portrait shot stays a row.

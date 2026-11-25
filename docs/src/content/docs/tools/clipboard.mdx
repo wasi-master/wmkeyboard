@@ -133,6 +133,23 @@ Press and hold a clip and tap **Reorder**. The history turns into a list of the 
 
 A clip you moved stays where you put it. One you dragged to the top stays there even as you copy new things, which land just under it, so the clips you always want first stay first. Copying the same text again doesn't move a clip you placed. A clip you send to the top is also what the keyboard's paste keys and paste chip give next, whether or not the clipboard is [kept private](/privacy/incognito/#keeping-copies-off-the-system-clipboard).
 
+### More than one clipboard
+
+Everything you copy goes into one clipboard, and for most people that is all there is. If you want to keep some clips apart, such as the history you brought over from another keyboard or the clips for one project, add a clipboard of your own under **Settings › Clipboard › Clipboards › Add a clipboard** and give it a name. Nothing about the panel changes until you do.
+
+With a second clipboard, the panel's header starts with the open clipboard's name and a ▾. Tap it to see your clipboards, each with how many clips it holds, and pick one to show it. **Manage clipboards** at the bottom of that list opens the settings rows. The panel remembers which clipboard was open.
+
+- **New copies** always go into the main clipboard, called **Clipboard** in the list, whichever one is open. So does text you write yourself. A clip you make with **Combine** goes into the clipboard you combined in.
+- **Moving clips**: hold a text clip and press **Move to clipboard** (the box icon) in its row of icons, then pick where it goes. For several clips at once, or for pictures and files, [pick them](#picking-several-clips) and press the box icon in the bar. A moved clip goes to the top of its new clipboard, keeping its pin, tags and edits.
+- **Keeping**: a clip in a clipboard you added is kept until you delete it, like a pinned one. [Expiry and the entry cap](#expiry-and-the-entry-cap) only apply to the main clipboard.
+- **Searching**: with **Search every clipboard** on, the default, the search and its filters look through all your clipboards at once, and a clip from another clipboard shows that clipboard's name beside its time. Turn it off to search only the open one.
+- **Clearing**: the clear button deletes the unpinned clips of the open clipboard only.
+- **Renaming and deleting**: tap a clipboard's row under **Clipboards** in settings. Deleting a clipboard deletes its clips, pinned ones too, so move any you want to keep first.
+
+To bring a whole history in at once, use **Import into a new clipboard** under **Clipboards**. It takes a config file WM Keyboard exported with its Clipboard section ticked, or a plain text file with one clip a line, the first line on top. The new clipboard is named after the file and can be renamed afterwards. Your own clips and their order are left alone.
+
+Which clipboard a clip is in travels with it in a [config export](#backups-and-exports) and with [Sync devices](/privacy/backup/), and the names of your clipboards travel with the settings. A clip whose clipboard isn't known on a phone shows in the main clipboard there.
+
 <PhoneFrame caption="Long-pressing a clip: the info popup shows when it was copied, its type and its size.">
   <Shot id="tools/clipboard-info-popup" alt="Long-pressing a clip: the info popup shows when it was copied, its type and its size." />
 </PhoneFrame>

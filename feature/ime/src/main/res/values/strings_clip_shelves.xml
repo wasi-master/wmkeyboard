@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Named clipboards (#1542) in the clipboard panel. -->
+    <string name="ime_clip_shelf_main">Clipboard</string>
+    <string name="ime_clip_shelf_switch_desc">%1$s, switch clipboard</string>
+    <string name="ime_clip_shelf_manage">Manage clipboards</string>
+    <string name="ime_clip_move_to_clipboard">Move to clipboard</string>
+    <string name="ime_clip_shelf_empty">Nothing in this clipboard yet. Hold a clip in another clipboard and choose Move to clipboard.</string>
+    <string name="ime_clip_moved_toast">Moved to %1$s</string>
+</resources>

@@ -570,7 +570,8 @@ private fun ClipboardHistoryPage(
                                 // and so is the clear button with the pill hidden.
                                 val cell = when {
                                     kind != PanelFieldKind.CLIPBOARD_SEARCH -> Modifier.width(HeaderToggleWidth)
-                                    session.showSearch -> Modifier.weight(key.width)
+                                    // The clipboard switcher (#1542) needs room for a name.
+                                    session.showSearch || session.shelfChoices.isNotEmpty() -> Modifier.weight(key.width)
                                     // The bin and the fragments button with no
                                     // pill: a square for each (#612).
                                     else -> Modifier.width(HeaderToggleWidth * clipSearchCellParts(session).size)

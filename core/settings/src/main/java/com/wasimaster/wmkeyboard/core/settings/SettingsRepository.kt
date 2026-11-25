@@ -8899,6 +8899,9 @@ enum class ClipHoldAction {
 
     /** Onto the shared board (#1201), while one is set up. */
     SEND_TO_BOARD,
+
+    /** Into another of the user's clipboards (#1542), while there is more than one. */
+    MOVE_TO_CLIPBOARD,
     SELECT,
     REORDER,
 
@@ -9452,6 +9455,26 @@ data class ClipboardSettings(
      * row and under the tags editor; tags not in it follow, most used first.
      */
     val tagOrder: List<String> = emptyList(),
+    /**
+     * The user's named clipboards (#1542), beside the main one every copy
+     * lands in. Empty, the default, is the clipboard as it always was: no
+     * switcher in the panel and no Move to in a clip's hold.
+     */
+    val clipboards: List<NamedClipboard> = emptyList(),
+    /**
+     * Named clipboards the user deleted (#1542), by id. The keyboard deletes
+     * their clips wherever it meets them, so a clip that comes back from a
+     * sync or a backup made before the delete goes too.
+     */
+    val droppedClipboards: Set<String> = emptySet(),
+    /** The clipboard the panel shows (#1542): a [NamedClipboard.id], or "" for the main one. */
+    val activeClipboard: String = "",
+    /**
+     * The search, its filters and Select look through every clipboard rather
+     * than the one that is open (#1542). On by default; only matters once
+     * there is a second clipboard.
+     */
+    val searchAllClipboards: Boolean = true,
     /**
      * How much taller than the keyboard the clipboard panel opens, in dp
      * (#414), set by dragging the bar on top of the panel. 0, the default, is
@@ -12925,6 +12948,9 @@ private fun decodeTrackerNames(raw: String): List<String> =
  * line (#612). A pattern is one line; a line break in one is kept as `\n`,
  * which a pattern reads the same way.
  */
+/** Most clips one plain-text file brings into a new clipboard (#1542). */
+private const val IMPORTED_CLIPS_MAX = 5_000
+
 private fun encodeSavedPatterns(patterns: List<String>): String =
     patterns.map { it.replace("\n", "\\n") }.filter { it.isNotBlank() }.distinct().joinToString("\n")
 
@@ -13927,6 +13953,10 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_SAVED_PATTERNS = stringPreferencesKey("clipboard_saved_patterns")
         private val CLIPBOARD_OPEN_LINKS_IN_APP = booleanPreferencesKey("clipboard_open_links_in_app")
         private val CLIPBOARD_TAG_ORDER = stringPreferencesKey("clipboard_tag_order")
+        private val CLIPBOARD_NAMED = stringPreferencesKey("clipboard_named")
+        private val CLIPBOARD_NAMED_DROPPED = stringPreferencesKey("clipboard_named_dropped")
+        private val CLIPBOARD_ACTIVE = stringPreferencesKey("clipboard_active")
+        private val CLIPBOARD_SEARCH_ALL = booleanPreferencesKey("clipboard_search_all")
         private val CLIPBOARD_CLEAN_COPIED_LINKS = booleanPreferencesKey("clipboard_clean_copied_links")
         private val CLIPBOARD_EXTRA_TRACKERS = stringPreferencesKey("clipboard_extra_trackers")
         private val CLIPBOARD_LINK_REWRITES = stringPreferencesKey("clipboard_link_rewrites")
@@ -16309,6 +16339,12 @@ class SettingsRepository(private val context: Context) {
             savedPatterns = p[CLIPBOARD_SAVED_PATTERNS]?.let(::decodeSavedPatterns) ?: defaults.clipboard.savedPatterns,
             openLinksInApp = p[CLIPBOARD_OPEN_LINKS_IN_APP] ?: defaults.clipboard.openLinksInApp,
             tagOrder = p[CLIPBOARD_TAG_ORDER]?.let(::decodeTrackerNames) ?: defaults.clipboard.tagOrder,
+            clipboards = p[CLIPBOARD_NAMED]?.let(::decodeNamedClipboards) ?: defaults.clipboard.clipboards,
+            droppedClipboards = p[CLIPBOARD_NAMED_DROPPED]
+                ?.split('\n')?.map { it.trim() }?.filterTo(LinkedHashSet()) { it.isNotEmpty() }
+                ?: defaults.clipboard.droppedClipboards,
+            activeClipboard = p[CLIPBOARD_ACTIVE] ?: defaults.clipboard.activeClipboard,
+            searchAllClipboards = p[CLIPBOARD_SEARCH_ALL] ?: defaults.clipboard.searchAllClipboards,
             pinnedInPlace = p[CLIPBOARD_PINNED_IN_PLACE] ?: defaults.clipboard.pinnedInPlace,
             pinnedFolders = p[CLIPBOARD_PINNED_FOLDERS] ?: defaults.clipboard.pinnedFolders,
             cardShortcut = p[CLIPBOARD_CARD_SHORTCUT]
@@ -22503,6 +22539,58 @@ class SettingsRepository(private val context: Context) {
         ClipboardSyncSanitizer.sanitize(element)
 
     /**
+     * Clips from a file into a new named clipboard called [name] (#1542), so
+     * a history brought from another keyboard does not land among the clips
+     * copied here. [text] is a config file this app exported, whose Clipboard
+     * section is read with the same checks a restore makes, or plain text,
+     * one clip a line, the first line on top. Returns how many clips went
+     * in, or null when the file held none or there is no room for another
+     * clipboard.
+     *
+     * The file is written before the name is added: the keyboard re-reads
+     * its history when a clipboard it has not seen appears.
+     */
+    suspend fun importClipsAsClipboard(name: String, text: String, now: Long = System.currentTimeMillis()): Int? {
+        if (!namedClipboardRoom()) return null
+        val bundle = ConfigBackup.decode(text)
+        val incoming: List<JsonObject> = if (bundle != null) {
+            val section = bundle.sections[ConfigBackup.Section.CLIPBOARD] ?: return null
+            (ClipboardSyncSanitizer.sanitize(section)["items"] as? JsonArray).orEmpty().mapNotNull { it as? JsonObject }
+        } else {
+            text.lineSequence()
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .distinct()
+                .take(IMPORTED_CLIPS_MAX)
+                .toList()
+                .mapIndexed { index, line ->
+                    val clip = com.wasimaster.wmkeyboard.core.clipboard.capClipText(line, ClipboardStore.HARD_MAX_TEXT_CHARS)
+                    val link = com.wasimaster.wmkeyboard.core.clipboard.ClipLinks.asUrl(clip) != null
+                    buildJsonObject {
+                        put("id", JsonPrimitive(index + 1L))
+                        put("text", JsonPrimitive(clip))
+                        put("timestamp", JsonPrimitive(now - index))
+                        if (link) put("kind", JsonPrimitive("LINK"))
+                    }
+                }
+        }
+        if (incoming.isEmpty()) return null
+        val stored = context.dataStore.data.first()
+        val taken = stored[CLIPBOARD_NAMED]?.let(::decodeNamedClipboards).orEmpty().map { it.id } +
+            stored[CLIPBOARD_NAMED_DROPPED]?.split('\n').orEmpty()
+        val id = newClipboardId(taken)
+        val path = "clipboard/history.json"
+        val local = readStore(path) as? JsonObject ?: JsonObject(emptyMap())
+        val localItems = (local["items"] as? JsonArray).orEmpty()
+        val tagged = incoming.map { JsonObject(it + ("shelf" to JsonPrimitive(id))) }
+        if (!writeStore(path, JsonObject(local + ("items" to JsonArray(ClipboardSyncSanitizer.deconflictIds(tagged, localItems)))))) {
+            return null
+        }
+        addNamedClipboard(name, id) ?: return null
+        return tagged.size
+    }
+
+    /**
      * Takes synced clipboard [portable] (text clips only, the same view
      * [portableClipboard] exports) into this phone's history without losing
      * what never syncs: image, file and sensitive clips stay, and so does
@@ -26879,6 +26967,60 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardOpenLinksInApp(value: Boolean) =
         editPrefs { it[CLIPBOARD_OPEN_LINKS_IN_APP] = value }
+
+    /**
+     * A new named clipboard (#1542), last in the list; returns its id, or
+     * null when the name is blank or the list is full.
+     */
+    suspend fun addNamedClipboard(name: String, id: String? = null): String? {
+        val clean = cleanClipboardName(name)
+        if (clean.isEmpty()) return null
+        var made: String? = null
+        editPrefs { prefs ->
+            val list = prefs[CLIPBOARD_NAMED]?.let(::decodeNamedClipboards).orEmpty()
+            if (list.size >= NAMED_CLIPBOARDS_MAX) return@editPrefs
+            val dropped = prefs[CLIPBOARD_NAMED_DROPPED]?.split('\n').orEmpty()
+            val taken = list.map { it.id } + dropped
+            val chosen = id?.takeIf { it.isNotBlank() && it !in taken } ?: newClipboardId(taken)
+            prefs[CLIPBOARD_NAMED] = encodeNamedClipboards(list + NamedClipboard(chosen, clean))
+            made = chosen
+        }
+        return made
+    }
+
+    /** Whether another named clipboard fits (#1542). */
+    suspend fun namedClipboardRoom(): Boolean =
+        (context.dataStore.data.first()[CLIPBOARD_NAMED]?.let(::decodeNamedClipboards).orEmpty()).size < NAMED_CLIPBOARDS_MAX
+
+    /** A named clipboard called something else (#1542); its clips stay where they are. */
+    suspend fun renameNamedClipboard(id: String, name: String) {
+        val clean = cleanClipboardName(name)
+        if (clean.isEmpty()) return
+        editPrefs { prefs ->
+            val list = prefs[CLIPBOARD_NAMED]?.let(::decodeNamedClipboards).orEmpty()
+            prefs[CLIPBOARD_NAMED] = encodeNamedClipboards(list.map { if (it.id == id) it.copy(name = clean) else it })
+        }
+    }
+
+    /**
+     * Deletes a named clipboard (#1542). Its id is remembered as dropped, for
+     * the keyboard to delete its clips; the panel goes back to the main
+     * clipboard if this one was open.
+     */
+    suspend fun removeNamedClipboard(id: String) = editPrefs { prefs ->
+        val list = prefs[CLIPBOARD_NAMED]?.let(::decodeNamedClipboards).orEmpty()
+        prefs[CLIPBOARD_NAMED] = encodeNamedClipboards(list.filter { it.id != id })
+        val dropped = prefs[CLIPBOARD_NAMED_DROPPED]?.split('\n').orEmpty().filter { it.isNotBlank() }
+        prefs[CLIPBOARD_NAMED_DROPPED] = (dropped + id).distinct().joinToString("\n")
+        if (prefs[CLIPBOARD_ACTIVE] == id) prefs[CLIPBOARD_ACTIVE] = ""
+    }
+
+    /** The clipboard the panel shows (#1542), "" for the main one. */
+    suspend fun setActiveClipboard(id: String) =
+        editPrefs { it[CLIPBOARD_ACTIVE] = id }
+
+    suspend fun setClipboardSearchAll(value: Boolean) =
+        editPrefs { it[CLIPBOARD_SEARCH_ALL] = value }
 
     /** The tag chips' dragged order (#612), one tag a line. */
     suspend fun setClipboardTagOrder(order: List<String>) =

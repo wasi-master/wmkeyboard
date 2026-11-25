@@ -110,7 +110,25 @@ data class ClipItem(
      * restarts until it is asked back.
      */
     val expanded: Boolean = false,
+    /**
+     * Which of the user's named clipboards holds this clip (#1542), by its
+     * id; empty for the main one, which is where every copy lands. A clip in
+     * a named clipboard was put there on purpose, so like a pinned one it
+     * never expires and never counts towards the history's caps. Left out
+     * of the file while empty, so a history that never had a second
+     * clipboard is written exactly as before.
+     */
+    val shelf: String = "",
 )
+
+/**
+ * The clipboard [this] clip is shown in (#1542): its own named one when
+ * [known] still lists it, else the main one (""). A clip whose clipboard is
+ * not known here, restored from a backup without its settings for one, is
+ * not lost: it shows with the main clipboard's clips until its name is back.
+ */
+fun ClipItem.shelfAmong(known: Collection<String>): String =
+    if (shelf.isEmpty() || shelf in known) shelf else ""
 
 /**
  * [raw], a list of tags as typed (#612), made into the list a clip keeps:
@@ -584,7 +602,7 @@ class ClipboardStore(
     ): ClipItem? {
         if (uriString.isBlank()) return null
         // Re-copying the same file moves it to the top instead of duplicating.
-        items.firstOrNull { it.uriString == uriString }?.let { existing ->
+        items.firstOrNull { it.uriString == uriString && it.shelf.isEmpty() }?.let { existing ->
             items.remove(existing)
             val refreshed = existing.copy(
                 timestamp = now,
@@ -635,7 +653,9 @@ class ClipboardStore(
         val html = html?.takeIf { keepRichText && trimmed.length == whole.length && it.fitsHtmlCap() }
         val isLink = html == null && ClipLinks.asUrl(trimmed) != null
         // Re-copying an existing item moves it to the top instead of duplicating.
-        val existing = items.firstOrNull { it.kind.isTextual && it.text == trimmed }
+        // Only in the main clipboard, where copies land (#1542): the same text
+        // kept in a named clipboard stays there.
+        val existing = items.firstOrNull { it.kind.isTextual && it.text == trimmed && it.shelf.isEmpty() }
         if (existing != null) {
             items.remove(existing)
             val refreshed = existing.copy(
@@ -704,7 +724,9 @@ class ClipboardStore(
     fun move(id: Long, toIndex: Int, now: Long = System.currentTimeMillis()): Boolean {
         val listed = items(now)
         val item = listed.firstOrNull { it.id == id } ?: return false
-        val group = if (pinnedInPlace) listed else listed.filter { it.pinned == item.pinned }
+        // Within the clip's own clipboard (#1542), the one the panel shows.
+        val group = (if (pinnedInPlace) listed else listed.filter { it.pinned == item.pinned })
+            .filter { it.shelf == item.shelf }
         val from = group.indexOf(item)
         val others = group - item
         val to = toIndex.coerceIn(0, others.size)
@@ -866,7 +888,7 @@ class ClipboardStore(
         if (trimmed.isEmpty()) return null
         // Saved without a change: nothing to lose, so rich text keeps its markup.
         if (trimmed == item.text) return item
-        val duplicate = items.firstOrNull { it.id != id && it.kind.isTextual && it.text == trimmed }
+        val duplicate = items.firstOrNull { it.id != id && it.kind.isTextual && it.text == trimmed && it.shelf == item.shelf }
         val edited = item.copy(
             text = trimmed,
             kind = if (ClipLinks.asUrl(trimmed) != null) ClipKind.LINK else ClipKind.TEXT,
@@ -948,8 +970,10 @@ class ClipboardStore(
         val held = detached.firstOrNull { it.id == item.id } ?: return null
         detached.remove(held)
         val copiedAgain = items.any {
-            (held.kind.isTextual && it.kind.isTextual && it.text == held.text) ||
-                (held.uriString != null && it.uriString == held.uriString)
+            it.shelf == held.shelf && (
+                (held.kind.isTextual && it.kind.isTextual && it.text == held.text) ||
+                    (held.uriString != null && it.uriString == held.uriString)
+                )
         }
         if (copiedAgain || (held.kind == ClipKind.IMAGE && held.imagePath?.let { File(it).exists() } != true)) {
             held.imagePath?.let { File(it).delete() }
@@ -969,9 +993,10 @@ class ClipboardStore(
         held.imagePath?.let { File(it).delete() }
     }
 
+    /** Deletes every unpinned clip [where] says, by default all of them. */
     @Synchronized
-    fun clearUnpinned() {
-        removeWhere { !it.pinned }
+    fun clearUnpinned(where: (ClipItem) -> Boolean = { true }) {
+        removeWhere { !it.pinned && where(it) }
     }
 
     /**
@@ -980,12 +1005,51 @@ class ClipboardStore(
      * [discard]. Returns them, newest first; empty when every clip is pinned.
      */
     @Synchronized
-    fun detachUnpinned(now: Long = System.currentTimeMillis()): List<ClipItem> {
+    fun detachUnpinned(
+        now: Long = System.currentTimeMillis(),
+        where: (ClipItem) -> Boolean = { true },
+    ): List<ClipItem> {
         prune(now)
-        val unpinned = items.filter { !it.pinned }.sortedByDescending { it.timestamp }
-        items.removeAll { !it.pinned }
+        val unpinned = items.filter { !it.pinned && where(it) }.sortedByDescending { it.timestamp }
+        val going = unpinned.mapTo(HashSet()) { it.id }
+        items.removeAll { it.id in going }
         detached.addAll(unpinned)
         return unpinned
+    }
+
+    /**
+     * Moves the clips [ids] into the clipboard [shelf] (#1542), "" for the
+     * main one. They go to the top of it in the order they stood, as fresh
+     * copies would: a clip moved into the main clipboard with the time it was
+     * first copied would sort under a year of others, and expire at once
+     * under a one-day history. A place one was dragged to is let go for the
+     * same reason. Pins, tags and edits stay. Returns how many moved.
+     */
+    @Synchronized
+    fun moveToShelf(ids: Collection<Long>, shelf: String, now: Long = System.currentTimeMillis()): Int {
+        val wanted = ids.toHashSet()
+        val moving = items.filter { it.id in wanted && it.shelf != shelf }.sortedBy { it.orderKey }
+        if (moving.isEmpty()) return 0
+        val stamp = moving.withIndex().associate { (index, item) -> item.id to now - (moving.size - 1 - index) }
+        for (index in items.indices) {
+            val item = items[index]
+            val time = stamp[item.id] ?: continue
+            items[index] = item.copy(shelf = shelf, timestamp = time, position = null)
+        }
+        return moving.size
+    }
+
+    /**
+     * Deletes every clip in the clipboards [shelves] (#1542), for a named
+     * clipboard the user deleted. Returns the clips that went.
+     */
+    @Synchronized
+    fun dropShelves(shelves: Set<String>): List<ClipItem> {
+        if (shelves.isEmpty()) return emptyList()
+        val going = items.filter { it.shelf.isNotEmpty() && it.shelf in shelves }
+        if (going.isEmpty()) return emptyList()
+        removeWhere { it.shelf.isNotEmpty() && it.shelf in shelves }
+        return going
     }
 
     @Synchronized
@@ -1029,19 +1093,25 @@ class ClipboardStore(
         // 0 is no cap (#414): the expiry above is then the only bound.
         val cap = maxItems.takeIf { it > 0 }
         if (cap != null) {
-            while (items.count { !it.pinned } > cap) {
-                val oldest = items.filter { !it.pinned }.minByOrNull { it.timestamp } ?: break
+            while (items.count { it.capped } > cap) {
+                val oldest = items.filter { it.capped }.minByOrNull { it.timestamp } ?: break
                 removeWhere { it === oldest }
             }
         }
         // And a size bound whatever the caps say (#1215).
-        var held = items.sumOf { if (it.pinned) 0L else it.heldChars() }
+        var held = items.sumOf { if (it.capped) it.heldChars() else 0L }
         while (held > HARD_MAX_HISTORY_CHARS) {
-            val oldest = items.filter { !it.pinned }.minByOrNull { it.timestamp } ?: break
+            val oldest = items.filter { it.capped }.minByOrNull { it.timestamp } ?: break
             held -= oldest.heldChars()
             removeWhere { it === oldest }
         }
     }
+
+    /**
+     * Whether the history's caps count this clip: an unpinned one in the main
+     * clipboard. A named clipboard's clips were put there on purpose (#1542).
+     */
+    private val ClipItem.capped: Boolean get() = !pinned && shelf.isEmpty()
 
     /** What one clip holds in memory and in the file, in characters. */
     private fun ClipItem.heldChars(): Long = text.length.toLong() + (htmlText?.length ?: 0)
@@ -1061,7 +1131,8 @@ class ClipboardStore(
  * "expires in" label reads, so the two cannot disagree.
  */
 fun ClipItem.expiresAt(expiryMillis: Long, sensitiveExpiryMillis: Long): Long? {
-    if (pinned) return null
+    // A clip in a named clipboard (#1542) is kept the way a pinned one is.
+    if (pinned || shelf.isNotEmpty()) return null
     val history = if (expiryMillis > 0) timestamp + expiryMillis else null
     val leash = if (sensitive && sensitiveExpiryMillis > 0) timestamp + sensitiveExpiryMillis else null
     return listOfNotNull(history, leash).minOrNull()
