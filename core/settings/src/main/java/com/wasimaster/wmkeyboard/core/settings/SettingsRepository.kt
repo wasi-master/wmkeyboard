@@ -2395,6 +2395,19 @@ data class ToolbarBehavior(
      */
     val swipeUpFloats: Boolean = true,
     /**
+     * What a swipe up on a pinned tool runs, per tool (#1525), in the hold's
+     * vocabulary. Absent is today's swipe: [swipeUpFloats] on a tool that
+     * floats, nothing on any other. A binding wins over the float for that
+     * tool only. Toolbar and second toolbar only, as the hold is.
+     */
+    val swipeUpActions: Map<ToolbarTool, ToolHoldAction> = emptyMap(),
+    /**
+     * What a swipe down on a pinned tool runs, per tool (#1525). Absent leaves
+     * the swipe to the bar, where Swipe down to hide answers it; a binding
+     * takes it for that tool only.
+     */
+    val swipeDownActions: Map<ToolbarTool, ToolHoldAction> = emptyMap(),
+    /**
      * How long, in ms, a tool takes to rise out of the keyboard into its
      * floating box and to drop back into its button (#1378). 0 opens and
      * closes the box at once, as reduce motion does. See [FloatMotionRange].
@@ -14082,6 +14095,8 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBAR_HOLD_ACTIONS = stringPreferencesKey("toolbar_hold_actions")
         private val TOOLBAR_FLOAT_ON_TAP = stringPreferencesKey("toolbar_float_on_tap")
         private val TOOLBAR_SWIPE_UP_FLOATS = booleanPreferencesKey("toolbar_swipe_up_floats")
+        private val TOOLBAR_SWIPE_UP_ACTIONS = stringPreferencesKey("toolbar_swipe_up_actions")
+        private val TOOLBAR_SWIPE_DOWN_ACTIONS = stringPreferencesKey("toolbar_swipe_down_actions")
         private val TOOLBAR_FLOAT_MOTION_MS = intPreferencesKey("toolbar_float_motion_ms")
         private val TOOLBAR_BOX_OUTSIDE_FLIPPED = stringPreferencesKey("toolbar_box_outside_flipped")
         /** The single tool #462 stored, before the strip took a list. Read as a one-tool list. */
@@ -16932,6 +16947,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.toolbarBehavior.landscapeColumn,
             holdActions = ToolHoldActions.decode(p[TOOLBAR_HOLD_ACTIONS]),
             swipeUpFloats = p[TOOLBAR_SWIPE_UP_FLOATS] ?: defaults.toolbarBehavior.swipeUpFloats,
+            swipeUpActions = ToolHoldActions.decode(p[TOOLBAR_SWIPE_UP_ACTIONS]),
+            swipeDownActions = ToolHoldActions.decode(p[TOOLBAR_SWIPE_DOWN_ACTIONS]),
             floatMotionMs = p[TOOLBAR_FLOAT_MOTION_MS]?.coerceIn(FloatMotionRange)
                 ?: defaults.toolbarBehavior.floatMotionMs,
             floatOnTap = p[TOOLBAR_FLOAT_ON_TAP]
@@ -20376,6 +20393,20 @@ class SettingsRepository(private val context: Context) {
      * to its default ([holdActionOf]); [ToolHoldAction.None] makes the hold do
      * nothing at all, and [ToolHoldAction.OpenSettings] opens the tool's page.
      */
+    /**
+     * What a swipe [up] or down on [tool] runs (#1525); null puts the swipe
+     * back to what it did before. A tool swiping to itself is kept out, as a
+     * hold to itself is: it is only a tap.
+     */
+    suspend fun setToolSwipeAction(tool: ToolbarTool, up: Boolean, action: ToolHoldAction?) =
+        editPrefs { prefs ->
+            val key = if (up) TOOLBAR_SWIPE_UP_ACTIONS else TOOLBAR_SWIPE_DOWN_ACTIONS
+            val current = ToolHoldActions.decode(prefs[key]).toMutableMap()
+            val selfBound = action is ToolHoldAction.Run && action.tool == tool
+            if (action == null || selfBound) current.remove(tool) else current[tool] = action
+            if (current.isEmpty()) prefs.remove(key) else prefs[key] = ToolHoldActions.encode(current)
+        }
+
     suspend fun setToolHoldAction(tool: ToolbarTool, action: ToolHoldAction?) =
         editPrefs { prefs ->
             val current = ToolHoldActions.decode(prefs[TOOLBAR_HOLD_ACTIONS]).toMutableMap()

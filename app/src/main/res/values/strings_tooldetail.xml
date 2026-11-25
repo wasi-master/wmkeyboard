@@ -1593,6 +1593,16 @@
     <string name="tooldetail_float_on_tap_title">Open in a floating box</string>
     <string name="tooldetail_float_on_tap_subtitle">A tap on the tool\'s button opens it in a box over the app instead of in the keyboard</string>
     <string name="tooldetail_float_on_tap_info">A tap on this tool\'s button opens the tool in a box that floats over the app, in place of the keys. You can keep typing with the keyboard while the box is open.</string>
+    <string name="tooldetail_swipe_up_title">Swipe up on the toolbar</string>
+    <string name="tooldetail_swipe_down_title">Swipe down on the toolbar</string>
+    <string name="tooldetail_swipe_subtitle">One more thing this button can do, on the toolbar and the second toolbar</string>
+    <string name="tooldetail_swipe_up_pick_title">Swipe up on <xliff:g id="tool" example="Select all">%1$s</xliff:g></string>
+    <string name="tooldetail_swipe_down_pick_title">Swipe down on <xliff:g id="tool" example="Select all">%1$s</xliff:g></string>
+    <string name="tooldetail_swipe_up_default_subtitle">Nothing of its own, as before</string>
+    <string name="tooldetail_swipe_up_default_float_subtitle">Opens the tool in its floating box while Swipe up to float is on, as before</string>
+    <string name="tooldetail_swipe_down_default_subtitle">Left to the toolbar, which hides the keyboard while Swipe down to hide is on</string>
+    <string name="tooldetail_swipe_nothing_subtitle">The swipe only vibrates, and the toolbar\'s own swipe stands aside on this button</string>
+    <string name="tooldetail_swipe_settings_subtitle">Opens the settings of this tool</string>
     <string name="tooldetail_hold_settings_subtitle">Opens the settings of this tool, as the hold did before</string>
     <!-- The WM Pass tool's page while WM Pass is not on the phone. -->
     <string name="tooldetail_wmpass_get_title">Get WM Pass</string>

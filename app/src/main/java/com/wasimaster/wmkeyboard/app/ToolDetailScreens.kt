@@ -310,6 +310,77 @@ private fun ToolHoldRow(
     }
 }
 /**
+ * What a swipe up or down on this tool does while it is pinned to the
+ * toolbar or the second toolbar (#1525), with the hold's own picker. Unset is
+ * the swipe as it was: up floats a tool that floats (with Swipe up to float
+ * on), down is the bar's, where Swipe down to hide answers it. A binding takes
+ * that direction on this tool only.
+ */
+@Composable
+private fun ToolSwipeRow(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+    tool: ToolbarTool,
+    up: Boolean,
+) {
+    val scope = rememberCoroutineScope()
+    var editing by remember { mutableStateOf(false) }
+    val bound = settings.watch {
+        if (up) it.toolbarBehavior.swipeUpActions[tool] else it.toolbarBehavior.swipeDownActions[tool]
+    }
+    val title = if (up) R.string.tooldetail_swipe_up_title else R.string.tooldetail_swipe_down_title
+    fun bind(action: ToolHoldAction?) {
+        editing = false
+        scope.launch { repository.setToolSwipeAction(tool, up, action) }
+    }
+    NavRow(
+        title = title,
+        subtitle = stringResource(R.string.tooldetail_swipe_subtitle),
+        value = when (bound) {
+            null -> stringResource(R.string.tooldetail_hold_default_title)
+            ToolHoldAction.OpenSettings -> stringResource(R.string.tooldetail_hold_settings_value)
+            ToolHoldAction.None -> stringResource(R.string.tooldetail_hold_nothing_value)
+            ToolHoldAction.Floating -> stringResource(R.string.tooldetail_hold_floating_title)
+            is ToolHoldAction.Run -> stringResource(toolTitle(bound.tool))
+            is ToolHoldAction.RunCustom -> customButtonName(bound.id)
+        },
+    ) { editing = true }
+    if (editing) {
+        ToolPickerDialog(
+            title = stringResource(
+                if (up) R.string.tooldetail_swipe_up_pick_title else R.string.tooldetail_swipe_down_pick_title,
+                stringResource(toolTitle(tool)),
+            ),
+            current = (bound as? ToolHoldAction.Run)?.tool,
+            // Every tool but this one: a swipe that runs the tool itself is a tap.
+            options = ToolbarTool.entries.filter { isSupportedTool(it) && it != tool },
+            noneTitle = stringResource(R.string.tooldetail_hold_default_title),
+            noneSubtitle = stringResource(
+                when {
+                    !up -> R.string.tooldetail_swipe_down_default_subtitle
+                    tool.floats -> R.string.tooldetail_swipe_up_default_float_subtitle
+                    else -> R.string.tooldetail_swipe_up_default_subtitle
+                },
+            ),
+            nothingSubtitle = stringResource(R.string.tooldetail_swipe_nothing_subtitle),
+            nothingSelected = bound == ToolHoldAction.None,
+            settingsSubtitle = stringResource(R.string.tooldetail_swipe_settings_subtitle),
+            settingsSelected = bound == ToolHoldAction.OpenSettings,
+            onPickSettings = { bind(ToolHoldAction.OpenSettings) },
+            floatingSubtitle = if (tool.floats) stringResource(R.string.tooldetail_hold_floating_subtitle) else null,
+            floatingSelected = bound == ToolHoldAction.Floating,
+            onPickFloating = { bind(ToolHoldAction.Floating) },
+            onDismiss = { editing = false },
+            onPick = { picked -> bind(picked?.let(ToolHoldAction::Run)) },
+            onPickNothing = { bind(ToolHoldAction.None) },
+            customCurrent = (bound as? ToolHoldAction.RunCustom)?.id,
+            onPickCustom = { id -> bind(ToolHoldAction.RunCustom(id)) },
+            memoryKey = "tool-hold",
+        )
+    }
+}
+
+/**
  * Picks one tool out of every tool, or none. Its own dialog rather than a
  * [ChoiceSetting] because the list is forty entries long and has to scroll.
  *
@@ -4118,6 +4189,9 @@ internal fun ToolDetailSettings(
             }
         }
         item { ToolHoldRow(repository, settings, tool) }
+        // Two more gestures on the same button (#1525), off unless set.
+        item { ToolSwipeRow(repository, settings, tool, up = true) }
+        item { ToolSwipeRow(repository, settings, tool, up = false) }
         // A tap that opens the tool in its floating box (#1259), for a tool that has one.
         item(visible = tool.floats) {
             ToggleSetting(

@@ -1366,6 +1366,8 @@ internal object SettingsRowIcons {
         put(R.string.appearance_second_toolbar_tools_title) { Icons.Outlined.ContentPaste }
         put(R.string.appearance_second_toolbar_height_title) { Icons.Outlined.Height }
         put(R.string.tooldetail_hold_title) { Icons.Outlined.TouchApp }
+        put(R.string.tooldetail_swipe_up_title) { Icons.Outlined.SwipeUp }
+        put(R.string.tooldetail_swipe_down_title) { Icons.Outlined.SwipeDown }
         put(R.string.tooldetail_show_in_toolbox_title) { Icons.Outlined.Apps }
         put(R.string.tooldetail_icon_colour_title) { Icons.Outlined.Colorize }
         put(R.string.tooldetail_icon_colour_start_title) { Icons.Outlined.Colorize }

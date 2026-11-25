@@ -11335,6 +11335,12 @@ private fun DraggableTool(
      * it always was.
      */
     onSwipeUp: (() -> Unit)? = null,
+    /**
+     * A swipe down that starts before the hold registers: the action the user
+     * bound to it (#1525). Null leaves the swipe to the bar, as it always was,
+     * where Swipe down to hide answers it.
+     */
+    onSwipeDown: (() -> Unit)? = null,
     content: @Composable (Modifier) -> Unit,
 ) {
     // Read when the finger moves rather than written on every frame the bar
@@ -11350,13 +11356,18 @@ private fun DraggableTool(
     val menuAction by rememberUpdatedState(onHoldMenu)
     val swipeUpAction by rememberUpdatedState(onSwipeUp)
     val swipeUpArmed = onSwipeUp != null
+    val swipeDownAction by rememberUpdatedState(onSwipeDown)
+    val swipeDownArmed = onSwipeDown != null
     content(
         Modifier
             .onPlaced { placed[0] = it }
             // Keyed on the interval too: it comes from a setting, so the handler
             // has to be rebuilt when it changes. A Long changes far more rarely
             // than the lambda above, which is why that one goes through a holder.
-            .pointerInput(enabled, tool, holdRepeatMs, holdArms, holdPanel, holdMenu, dragEnabled, holdDelayMs, swipeUpArmed) {
+            .pointerInput(
+                enabled, tool, holdRepeatMs, holdArms, holdPanel, holdMenu, dragEnabled, holdDelayMs,
+                swipeUpArmed, swipeDownArmed,
+            ) {
                 if (!enabled) return@pointerInput
                 // Raw press-and-hold, mirroring the key rows' handler, instead
                 // of detectDragGesturesAfterLongPress: its long-press never
@@ -11381,6 +11392,8 @@ private fun DraggableTool(
                     // it has gone far enough to float the tool.
                     var swiping = false
                     var swiped = false
+                    // Which way the swipe went: down to a bound action (#1525), else up.
+                    var swipeDown = false
                     // Whether selection mode is on because of *this* hold, so
                     // the release turns off exactly what the press turned on.
                     var armed = false
@@ -11454,10 +11467,11 @@ private fun DraggableTool(
                             if (swiping) {
                                 // The swipe owns the rest of the gesture.
                                 change.consume()
-                                if (!swiped && downRoot.y - rootPos.y >= swipeUpPx) {
+                                val reach = if (swipeDown) rootPos.y - downRoot.y else downRoot.y - rootPos.y
+                                if (!swiped && reach >= swipeUpPx) {
                                     swiped = true
                                     feedback()
-                                    swipeUpAction?.invoke()
+                                    if (swipeDown) swipeDownAction?.invoke() else swipeUpAction?.invoke()
                                 }
                             } else if (!longPressed) {
                                 // Real drift before the hold registers is a
@@ -11469,6 +11483,17 @@ private fun DraggableTool(
                                     val across = kotlin.math.abs(rootPos.x - downRoot.x)
                                     if (swipeUpAction != null && lift > across) {
                                         swiping = true
+                                        timer.cancel()
+                                        change.consume()
+                                        continue
+                                    }
+                                    // Down, on a tool with a swipe down bound
+                                    // (#1525). Consumed here, so the bar's own
+                                    // swipe down (hide the keyboard) stands aside
+                                    // for this tool only.
+                                    if (swipeDownAction != null && -lift > across) {
+                                        swiping = true
+                                        swipeDown = true
                                         timer.cancel()
                                         change.consume()
                                         continue
@@ -13917,6 +13942,19 @@ private fun PinnedToolCell(
         return coords.positionInRoot() + Offset(coords.size.width / 2f, coords.size.height / 2f)
     }
     val swipeFloats = floatTool != null && state.settings.toolbarBehavior.swipeUpFloats
+    // The swipes the user bound on this tool (#1525). Along a row only: down a
+    // column a vertical swipe is the column's own scroll.
+    val swipeUpBound = tool.tool?.takeIf { inRow }?.let { state.settings.toolbarBehavior.swipeUpActions[it] }
+    val swipeDownBound = tool.tool?.takeIf { inRow }?.let { state.settings.toolbarBehavior.swipeDownActions[it] }
+    fun runSwipe(bound: ToolHoldAction) {
+        when (bound) {
+            ToolHoldAction.OpenSettings -> drag.openSettings(tool)
+            ToolHoldAction.None -> Unit
+            is ToolHoldAction.Run -> drag.onHoldAction(bound.tool)
+            is ToolHoldAction.RunCustom -> drag.custom.onTap(bound.id)
+            ToolHoldAction.Floating -> if (floatTool != null && !floatingNow) drag.swipeFloat(floatTool, cellCentre())
+        }
+    }
     Box(cell.onPlaced { cellPlaced[0] = it }, contentAlignment = Alignment.Center) {
         // Drag is always live: hold-and-drag reorders the bar
         // (or unpins into an open toolbox); a hold that never
@@ -13935,11 +13973,15 @@ private fun PinnedToolCell(
                 if (floatingNow && floatTool != null) drag.dockFlight(floatTool, cellCentre())
                 drag.tap(tool, onToolTap)
             },
-            onSwipeUp = if (swipeFloats && floatTool != null && !floatingNow) {
+            // A bound swipe up wins over floating, for this tool only (#1525).
+            onSwipeUp = if (swipeUpBound != null) {
+                { runSwipe(swipeUpBound) }
+            } else if (swipeFloats && floatTool != null && !floatingNow) {
                 { drag.swipeFloat(floatTool, cellCentre()) }
             } else {
                 null
             },
+            onSwipeDown = swipeDownBound?.let { bound -> { runSwipe(bound) } },
             holdRepeatMs = holdRepeatMs(tool, state),
             holdAction = holdActionFor(tool, fromToolbar = true, state = state),
             dragEnabled = state.settings.toolbarBehavior.dragToRearrange,
