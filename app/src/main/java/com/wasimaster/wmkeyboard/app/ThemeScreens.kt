@@ -1421,41 +1421,37 @@ fun ThemesScreen(
             message = themeBatchSummary(context, saved, failed)
         }
     }
-    suspend fun importWmTheme(uri: android.net.Uri, id: String, alone: Boolean): ThemeFileOutcome {
+    /**
+     * One theme file, or a zip of them. [into] is a batch of picked files
+     * gathering its themes for one write at the end ([importWmThemeFiles]):
+     * the themes go there instead of into the store, and the progress count
+     * runs on from what the batch already has.
+     */
+    suspend fun importWmTheme(
+        uri: android.net.Uri,
+        id: String,
+        alone: Boolean,
+        into: MutableList<ThemeSpec>? = null,
+    ): ThemeFileOutcome {
         // A zip of theme files, as Export selected writes: every theme in it,
         // none switched to, the way a batch of files comes in.
-        if (withContext(Dispatchers.IO) { PackBundle.isBundle(context, uri, ThemeCodec.FILE_EXTENSION) }) {
-            val dir = withContext(Dispatchers.IO) { themeImagesDir(context) }
-            bundleRead = 0
+        if (withContext(Dispatchers.IO) { ThemeBundles.isBundle(context, uri) }) {
+            val base = into?.size ?: 0
+            if (into == null) bundleRead = 0
             val read = try {
-                withContext(Dispatchers.IO) {
-                    val themes = ArrayList<ThemeSpec>()
-                    runCatching {
-                        // One theme at a time: its pictures go to files as it
-                        // is read, so what is kept is the theme without them.
-                        PackBundle.forEachPack(context, uri, ThemeCodec.FILE_EXTENSION) { _, input ->
-                            val parsed = input?.use { it.readBytes().decodeToString() }?.let(ThemeCodec::decode)
-                            if (parsed != null) {
-                                themes += parsed.withFreshIds("${id}_z${themes.size}").withExtractedImages(dir)
-                                bundleRead = themes.size
-                            }
-                        }
-                    }
-                    themes
-                }
+                withContext(Dispatchers.IO) { ThemeBundles.read(context, uri, id) { bundleRead = base + it } }
             } finally {
-                bundleRead = null
+                if (into == null) bundleRead = null
             }
             if (read.isEmpty()) {
                 return ThemeFileOutcome.failed(context.getString(R.string.theme_import_wrong_file_error))
             }
-            // One write for the whole zip. A write per theme rewrote the whole
-            // settings store and re-encoded the growing theme library each
-            // time, and every write was an emission that the settings screens
-            // and the keyboard rebuilt their settings from and decoded that
-            // library again: for a zip of 193 themes, hundreds of copies of a
-            // library megabytes long in a burst, which a phone with a small
-            // heap did not survive. The ids are fresh, so nothing is replaced.
+            if (into != null) {
+                into += read
+                return ThemeFileOutcome(read.size, null)
+            }
+            // One write for the whole zip, never one per theme: see ThemeBundles.
+            // The ids are fresh, so nothing is replaced.
             repository.replaceCustomThemes(emptyList(), read)
             return ThemeFileOutcome(
                 read.size,
@@ -1484,6 +1480,10 @@ fun ThemesScreen(
         val stored = withContext(Dispatchers.IO) {
             parsed.withFreshIds(id).withExtractedImages(themeImagesDir(context))
         }
+        if (into != null) {
+            into += stored
+            return ThemeFileOutcome(1, null)
+        }
         repository.upsertCustomTheme(stored)
         // One file is applied, as it always was. A batch is not: switching to
         // each in turn would land on whichever file came last, which is not a
@@ -1491,9 +1491,42 @@ fun ThemesScreen(
         if (alone) repository.setKeyboardThemeId(id)
         return ThemeFileOutcome(1, context.getString(R.string.theme_import_done_message, stored.name))
     }
+    /**
+     * Theme files picked together, zips of them included: read one at a time
+     * with the progress dialog counting, then saved in one write, as a zip's
+     * themes are. A file at a time had each one rewrite the whole settings
+     * store and the theme library (see ThemeBundles). One file goes the way
+     * it always went, switched to.
+     */
+    fun importWmThemeFiles(uris: List<android.net.Uri>) {
+        if (uris.size <= 1) {
+            importThemeFiles(uris) { uri, id, alone -> importWmTheme(uri, id, alone) }
+            return
+        }
+        scope.launch {
+            val stamp = System.currentTimeMillis()
+            val gathered = ArrayList<ThemeSpec>()
+            val failed = ArrayList<String>()
+            bundleRead = 0
+            try {
+                uris.forEachIndexed { index, uri ->
+                    val before = gathered.size
+                    importWmTheme(uri, "custom_${stamp}_b$index", alone = false, into = gathered)
+                    if (gathered.size == before) {
+                        failed += withContext(Dispatchers.IO) { WMFileTypes.displayName(context, uri) }
+                    }
+                    bundleRead = gathered.size
+                }
+                if (gathered.isNotEmpty()) repository.replaceCustomThemes(emptyList(), gathered)
+            } finally {
+                bundleRead = null
+            }
+            message = themeBatchSummary(context, gathered.size, failed)
+        }
+    }
     val importLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenMultipleDocuments()
-    ) { uris -> importThemeFiles(uris) { uri, id, alone -> importWmTheme(uri, id, alone) } }
+    ) { uris -> importWmThemeFiles(uris) }
     suspend fun importFlorisTheme(uri: android.net.Uri, base: String): ThemeFileOutcome {
         val result = withContext(Dispatchers.IO) {
             runCatching {
