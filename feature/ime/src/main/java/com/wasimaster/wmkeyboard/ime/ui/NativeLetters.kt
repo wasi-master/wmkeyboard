@@ -42,6 +42,28 @@ internal object NativeLetters {
             .groupBy({ it.first }, { it.second })
     }
 
+    private val mergedCache = ConcurrentHashMap<List<String>, Map<Char, List<String>>>()
+
+    /**
+     * [byBase] for [localeTag], then the letters of each of [others] the
+     * typing language lacks, in their order: an English QWERTY with French
+     * and Turkish enabled holds ç on c and ğ on g. The typing language's
+     * letters stay first, so [nativeLettersFirst] still lifts only its own.
+     */
+    fun byBase(localeTag: String, others: List<String>): Map<Char, List<String>> {
+        if (others.isEmpty()) return byBase(localeTag)
+        return mergedCache.getOrPut(listOf(localeTag) + others) {
+            val merged = LinkedHashMap<Char, MutableList<String>>()
+            for (tag in listOf(localeTag) + others) {
+                for ((base, letters) in byBase(tag)) {
+                    val into = merged.getOrPut(base) { mutableListOf() }
+                    letters.filterTo(into) { it !in into }
+                }
+            }
+            merged
+        }
+    }
+
     private fun baseOf(letter: String): Char? {
         val bare = Normalizer.normalize(letter, Normalizer.Form.NFD).firstOrNull()
         if (bare != null && bare in 'a'..'z') return bare

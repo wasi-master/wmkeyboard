@@ -1988,6 +1988,16 @@ internal fun KeyPressShortcutsSettings(
             ) { scope.launch { repository.setNativeLettersFirst(it) } }
         }
         item(level = SettingLevel.ADVANCED) {
+            // ç on an English QWERTY's c once French is enabled, as Gboard does.
+            ToggleSetting(
+                R.string.keypress_other_languages_letters_title,
+                stringResource(R.string.keypress_other_languages_letters_subtitle),
+                settings.watch { it.layoutBehavior.otherLanguagesLetters },
+                info = stringResource(R.string.keypress_other_languages_letters_info),
+                default = SettingsDefaults.layoutBehavior.otherLanguagesLetters,
+            ) { scope.launch { repository.setOtherLanguagesLetters(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
             // Issue #108: the capital of every letter joins its popup, which is
             // where a layer peek has to reach one from.
             ToggleSetting(

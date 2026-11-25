@@ -613,6 +613,30 @@ class CurrentLayoutTest {
         assertTrue(c.opensAlternatesPopup())
     }
 
+    /**
+     * Gboard-style multilingual holds: with Turkish enabled next to English,
+     * the English QWERTY's g holds ğ and its s holds ş, appended after what the
+     * layout already listed, so the hint in front stays put. Off, nothing joins.
+     */
+    @Test
+    fun `other enabled languages add their letters to the holds`() {
+        val languages = listOf(LanguageRegistry.byId("en"), LanguageRegistry.byId("tr"))
+        fun hold(on: Boolean, label: String) = currentLayout(
+            state(
+                settings = KeyboardSettings(enabledLanguages = languages).let {
+                    it.copy(layoutBehavior = it.layoutBehavior.copy(otherLanguagesLetters = on))
+                },
+            ),
+        ).keys().first { it.label == label }.longPress
+
+        val g = hold(true, "g")
+        assertEquals("&", g.first())
+        assertTrue(g.contains("ğ"))
+        assertTrue(hold(true, "s").contains("ş"))
+        assertTrue(hold(true, "i").contains("ı"))
+        assertTrue(!hold(false, "g").contains("ğ"))
+    }
+
     /** Each toggle lands its action on the matching key, including Z/Y. */
     @Test
     fun `enabled clipboard shortcuts land on a c v x z y`() {

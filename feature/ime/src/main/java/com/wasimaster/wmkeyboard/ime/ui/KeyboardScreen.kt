@@ -27181,9 +27181,20 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     // one tilde. Keyed by the letter they are typed from. Not on a composer's
     // board, where Telex and the like spell the marks with letters, and not
     // with the accents turned off.
+    // With "Letters from your other languages" on, the other enabled Latin
+    // languages' letters join after the typing language's own: ç on the c of
+    // an English QWERTY once French is enabled, the way Gboard does it. Only
+    // on a Latin board, which is the only kind whose keys are a-z.
     val languageLetters =
         if (lettersLayer && !noAccents && state.composer === NoComposer) {
-            NativeLetters.byBase(state.language.localeTag)
+            val others = if (state.settings.layoutBehavior.otherLanguagesLetters &&
+                state.script.id == ScriptId.LATIN
+            ) {
+                state.settings.enabledLanguages.map { it.localeTag }.filter { it != state.language.localeTag }
+            } else {
+                emptyList()
+            }
+            NativeLetters.byBase(state.language.localeTag, others)
         } else {
             emptyMap()
         }

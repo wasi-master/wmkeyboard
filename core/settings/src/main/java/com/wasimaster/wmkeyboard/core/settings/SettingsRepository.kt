@@ -11464,6 +11464,15 @@ data class LayoutBehaviorSettings(
      */
     val nativeLettersFirst: Boolean = true,
     /**
+     * Add the letters of the other enabled languages to the long-press popups
+     * of the layout in use: with French and Turkish enabled, an English QWERTY
+     * holds ç on c and ğ on g without switching layouts, the way Gboard and
+     * FUTO offer them. Only letters the popup lacks are appended, after the
+     * typing language's own, so entry 0 and the corner hint stay as they were.
+     * On by default: it only ever adds, and only for languages already chosen.
+     */
+    val otherLanguagesLetters: Boolean = true,
+    /**
      * Add each letter key's shifted form to its long-press popup — `A` under
      * `a` — so a capital can be typed without arming shift.
      *
@@ -13690,6 +13699,7 @@ class SettingsRepository(private val context: Context) {
         private val HOLD_SYMBOLS = stringPreferencesKey("hold_symbols")
         private val NUMBER_ROW_HOLD_SYMBOLS = stringPreferencesKey("hold_symbols_number_row")
         private val NATIVE_LETTERS_FIRST = booleanPreferencesKey("native_letters_first")
+        private val OTHER_LANGUAGES_LETTERS = booleanPreferencesKey("other_languages_letters")
         private val SHIFTED_POPUP_KEYS = booleanPreferencesKey("shifted_popup_keys")
         private val CURRENCY_KEYS = stringPreferencesKey("currency_keys")
         private val SPACE_HOLD_KEYS = stringPreferencesKey("space_hold_keys")
@@ -16989,6 +16999,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.layoutBehavior.numberRowHoldSymbols,
             nativeLettersFirst = p[NATIVE_LETTERS_FIRST]
                 ?: defaults.layoutBehavior.nativeLettersFirst,
+            otherLanguagesLetters = p[OTHER_LANGUAGES_LETTERS]
+                ?: defaults.layoutBehavior.otherLanguagesLetters,
             shiftedPopupKeys = p[SHIFTED_POPUP_KEYS]
                 ?: defaults.layoutBehavior.shiftedPopupKeys,
             currencyKeys = p[CURRENCY_KEYS]
@@ -25316,6 +25328,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setNativeLettersFirst(value: Boolean) =
         editPrefs { it[NATIVE_LETTERS_FIRST] = value }
+
+    suspend fun setOtherLanguagesLetters(value: Boolean) =
+        editPrefs { it[OTHER_LANGUAGES_LETTERS] = value }
 
     suspend fun setShiftedPopupKeys(value: Boolean) =
         editPrefs { it[SHIFTED_POPUP_KEYS] = value }

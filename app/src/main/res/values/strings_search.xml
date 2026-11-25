@@ -112,6 +112,7 @@
     <string name="search_kw_ime_tool_wikipedia">encyclopedia wiki article</string>
     <string name="search_kw_keypress_all_accents">diacritics umlaut tilde cedilla circumflex</string>
     <string name="search_kw_keypress_native_letters">umlaut accent diacritics order long press german</string>
+    <string name="search_kw_keypress_other_languages_letters">multilingual accents cedilla long press second language letters</string>
     <string name="search_kw_keypress_top_row_holds">digits numbers symbols long qwerty number shortcuts hint</string>
     <string name="search_kw_keypress_ctrl_raw">termux ssh vim emacs</string>
     <string name="search_kw_keypress_currency_keys">dollar euro pound rupee yen</string>

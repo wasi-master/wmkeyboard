@@ -1057,6 +1057,7 @@ private fun SearchStrings.keypressShortcutsRows(): List<SettingsSearchEntry> {
         row(R.string.keypress_top_row_holds_title, R.string.keypress_top_row_holds_subtitle),
         row(R.string.keypress_hold_symbols_title, R.string.keypress_hold_symbols_subtitle),
         row(R.string.keypress_native_letters_title, R.string.keypress_native_letters_subtitle),
+        row(R.string.keypress_other_languages_letters_title, R.string.keypress_other_languages_letters_subtitle),
         row(R.string.keypress_shifted_popup_title, R.string.keypress_shifted_popup_subtitle),
         row(R.string.keypress_symbols_numpad_title, R.string.keypress_symbols_numpad_subtitle),
         row(R.string.keypress_enter_emoji_title, R.string.keypress_enter_emoji_subtitle),
