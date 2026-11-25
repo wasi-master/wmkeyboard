@@ -24,6 +24,28 @@ const DIVERGES: &[(&str, &str)] = &[
     ("154-lambda-default-closure.py", "[10, 11, 12]\n"),
     ("192-edge-default-eval-time.py", "1\n"),
     ("193-edge-variadic-kw-collision.py", "ERROR: Line 3: TypeError: f() got multiple values for argument 'a'\n"),
+    // 2026-11-26: integers are exact 64-bit (PyMini computed them in doubles
+    // and lost precision past 2^53), `1 is 1.0` is False, `split(None, n)`
+    // keeps the rest whole, splitlines() splits "\r\n" and drops the empty
+    // line after a final line end, and string literals decode \x, \u, \U and
+    // octal escapes. With escapes decoded, the grapheme probes now show the
+    // port's grapheme model (len("\r\n") == 1, "e\u0301" == "é") instead of
+    // an undecoded backslash.
+    ("022-ints-via-double.py", concat!(r##"[9007199254740992, 9007199254740993, 4611686018427387904, 1e+20, 3, -4, -2, 2, 0.25, 9007199254740993, 2, 2]"##, "\n")),
+    ("027-bitwise.py", "[1, 7, 6, 1, 0]\n"),
+    ("034-strings-split.py", concat!(r##"[['a', 'b', 'c'], ['a', 'b', '', 'c'], ['a', 'b,c'], ['a,b', 'c'], ['', 'a', '', 'b', ''], ['a', 'b', 'c'], ['a', 'b c']]"##, "\n")),
+    ("045-strings-graphemes.py", concat!(r##"[2, ['é', 'x'], True, 1, '🇫🇷', 1, ['e', 'f', 'é']]"##, "\n")),
+    ("049-escapes.py", concat!(r##"['a\tb', '\\', 'A', 'é', '\\q', '\\n', 'it\'s', 'say "hi"', True]"##, "\n")),
+    ("081-recursion.py", concat!(r##"[610, 2432902008176640000, 1.5511210043330986e+25]"##, "\n")),
+    ("113-re-unicode.py", concat!(r##"[['café', 'naïve', '中文'], '--', (3, 4)]"##, "\n")),
+    ("137-is-identity.py", concat!(r##"[True, True, False, False, True, False]"##, "\n")),
+    ("163-edge-predicates-unicode.py", concat!(r##"[True, True, False, True, True, True, False, True, True]"##, "\n")),
+    ("164-edge-strip-graphemes.py", concat!(r##"['éxé', 'x', 'a', 'x']"##, "\n")),
+    ("165-edge-find-graphemes.py", concat!(r##"[1, 2, 1, 3, -1, 1]"##, "\n")),
+    ("166-edge-split-unicode.py", concat!(r##"[['a', 'b', 'c'], ['a​b'], ['x\r', 'y'], ['', '', 'a']]"##, "\n")),
+    ("182-edge-json-unicode.py", concat!(r##"['"😀é\\u0001\\u0008"', 0, 'é\n', '{"a": 1.0, "b": 1e+20, "c": -0.0}', 100.0, 0, 0]"##, "\n")),
+    ("202-edge-large-ints.py", concat!(r##"[9007199254740992, 18014398509481982, 121932631112635269, 1.8446744073709552e+19, -9.223372036854776e+18, 1000000000000001, 1.2157665459056929e+19]"##, "\n")),
+    ("205-edge-tuple-key-nfc.py", concat!(r##"['x', True, True]"##, "\n")),
 ];
 
 fn run_like_the_oracle(src: String) -> String {

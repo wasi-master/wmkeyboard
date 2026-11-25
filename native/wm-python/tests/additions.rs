@@ -197,3 +197,91 @@ fn a_data_key_does_not_hide_a_dict_method() {
 fn type_names_read_back_through_dunder_name() {
     assert_eq!("int", evaluate("type(3).__name__"));
 }
+
+#[test]
+fn shifts_and_bitwise_assignment() {
+    assert_eq!("1024", evaluate("1 << 10"));
+    assert_eq!("-4", evaluate("-16 >> 2"));
+    assert_eq!("0", evaluate("5 >> 70"));
+    assert_eq!("-1", evaluate("-5 >> 70"));
+    // Shifts bind looser than + and tighter than &, as in Python.
+    assert_eq!("16", evaluate("1 << 2 + 2"));
+    assert_eq!("4", evaluate("4 & 1 << 2"));
+    assert_eq!("[12, 3, 1, 7, 48]", output("a = [3]\nfor x in range(4):\n    a.append(a[-1])\na[0] <<= 2\na[1] >>= 0\na[2] &= 1\na[3] |= 4 + 2\na[4] ^= 51\nresult = a"));
+    assert!(failure("1 << -1").contains("negative shift count"));
+}
+
+#[test]
+fn integers_stay_exact_across_64_bits() {
+    assert_eq!("72057594037927935", evaluate("2 ** 56 - 1"));
+    assert_eq!("int", evaluate("type(2 ** 60)"));
+    assert_eq!("9223372036854775807", evaluate("2 ** 62 - 1 + 2 ** 62"));
+    assert_eq!("-9223372036854775808", evaluate("-(2 ** 62) * 2"));
+    assert_eq!("12345678901234567", evaluate("12345678901234566 + 1"));
+    assert_eq!("-4", evaluate("-7 // 2"));
+    assert_eq!("3", evaluate("-7 % 5"));
+    assert_eq!("-2", evaluate("7 % -3"));
+    assert_eq!("0.25", evaluate("2 ** -2"));
+    // Past 64 bits there is no big integer: the answer goes on as a float.
+    assert_eq!("float", evaluate("type(2 ** 64)"));
+}
+
+#[test]
+fn identity_keeps_bool_int_and_float_apart() {
+    assert_eq!("False", evaluate("1 is True"));
+    assert_eq!("False", evaluate("0 is False"));
+    assert_eq!("True", evaluate("True is True"));
+    assert_eq!("False", evaluate("1 is 1.0"));
+    assert_eq!("True", evaluate("None is None"));
+}
+
+#[test]
+fn splitlines_knows_every_line_end() {
+    assert_eq!("['a', 'b', 'c', '', 'd']", evaluate(r#""a\r\nb\rc\n\nd\r\n".splitlines()"#));
+    assert_eq!("['a\\r\\n', 'b\\n']", evaluate(r#""a\r\nb\n".splitlines(True)"#));
+    assert_eq!("[]", evaluate(r#""".splitlines()"#));
+    assert_eq!("['x']", evaluate(r#""x".splitlines()"#));
+}
+
+#[test]
+fn bytes_rfind_and_one_sided_strip() {
+    assert_eq!("4", evaluate(r#"b"abcabc".rfind(b"bc")"#));
+    assert_eq!("-1", evaluate(r#"b"abc".rfind(b"z")"#));
+    assert_eq!("1", evaluate(r#"b"abcabc".rindex(b"bc", 0, 4)"#));
+    assert_eq!("b'ab  '", evaluate(r#"b"  ab  ".lstrip()"#));
+    assert_eq!("b'\\x00ab'", evaluate(r#"b"\x00ab\x00\x00".rstrip(b"\x00")"#));
+}
+
+#[test]
+fn int_bytes_round_trip() {
+    assert_eq!("258", evaluate(r#"int.from_bytes(b"\x01\x02", "big")"#));
+    assert_eq!("513", evaluate(r#"int.from_bytes(b"\x01\x02", byteorder="little")"#));
+    assert_eq!("-2", evaluate(r#"int.from_bytes(b"\xff\xfe", "big", signed=True)"#));
+    assert_eq!("-1", evaluate(r#"int.from_bytes(b"\xff" * 8, "big", signed=True)"#));
+    assert_eq!("b'\\x01\\x02'", evaluate("(258).to_bytes(2, 'big')"));
+    assert_eq!("b'\\xfe\\xff'", evaluate("(-2).to_bytes(2, 'little', signed=True)"));
+    assert_eq!("9", evaluate("(256).bit_length()"));
+    assert!(failure("(256).to_bytes(1, 'big')").contains("too big"));
+}
+
+#[test]
+fn whitespace_split_keeps_the_rest_whole() {
+    assert_eq!("['a', 'b  c']", evaluate(r#""a b  c".split(None, 1)"#));
+    assert_eq!("['a', 'b c ']", evaluate(r#"" a b c ".split(None, 1)"#));
+    assert_eq!("[' a b', 'c']", evaluate(r#"" a b c ".rsplit(None, 1)"#));
+    assert_eq!("['a', 'b', 'c']", evaluate(r#""a b c".rsplit()"#));
+    assert_eq!("[]", evaluate(r#""   ".split(None, 1)"#));
+}
+
+#[test]
+fn string_escapes() {
+    assert_eq!("['A', 'é', '😀', '\\x07\\x08\\x0c\\x0b', 'A', '\\x00', '\\\\q', '\\\\xZZ']",
+        evaluate(r#"["\x41", "é", "\U0001F600", "\a\b\f\v", "\101", "\0", "\q", "\xZZ"]"#));
+}
+
+#[test]
+fn bitwise_not() {
+    assert_eq!("-6", evaluate("~5"));
+    assert_eq!("0", evaluate("~-1"));
+    assert_eq!("255", evaluate("~0 & 0xFF"));
+}

@@ -387,9 +387,16 @@ are no metaclasses, no multiple inheritance, and the built-in types (`dict`,
 
 **Not there:** `yield` and generators, `async` and `await`, `match`, and the
 walrus `:=`. A script that uses one is refused with a message that names it,
-not a vague syntax error. String escapes are PyMini's: `\n`, `\t`, `\r`,
-`\0`, `\\` and the quotes. Write other characters directly; `"é"` is six
-characters, not `é`.
+not a vague syntax error. String escapes are Python's: `\n`, `\t`, `\r`,
+`\a`, `\b`, `\f`, `\v`, octal `\101`, `\x41`, `\u00e9`, `\U0001F600`,
+`\\` and the quotes. An escape Python does not know, such as `\q`, keeps its
+backslash.
+
+**Numbers:** integers are exact across 64 bits, with `<<`, `>>`, `&`, `|`, `^`
+and `~` and their `<<=`-style assignments; `int.from_bytes`, `n.to_bytes` and
+`n.bit_length()` read and write binary fields. There are no big integers, so a
+result past 64 bits, such as `2 ** 64`, carries on as a float. `1 is True` is
+false, as in Python.
 
 **Built-in functions:** `abs`, `all`, `any`, `bin`, `bool`, `callable`, `chr`,
 `classmethod`, `delattr`, `dict`, `divmod`, `enumerate`, `filter`, `float`,
@@ -407,7 +414,8 @@ does, and the class itself for an instance of a class, so
 **Strings** count characters as you see them, so an emoji with a skin tone or a
 letter with a combining accent is one character to `len`, indexing and `for`.
 Two strings that look the same compare equal even when one spells an accent as a
-separate mark.
+separate mark. A Windows line end, `"\r\n"`, is one character too, but
+`splitlines()` splits there as Python does.
 
 **Dicts answer attribute reads.** `d.name` is `d["name"]` when the key is
 there, and otherwise a dict method such as `d.get`. That is why `e.type` works

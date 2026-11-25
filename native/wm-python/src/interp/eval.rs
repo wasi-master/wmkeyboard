@@ -1388,6 +1388,7 @@ impl Interp {
                 UnOp::Not => return Ok(Value::Bool(!self.truth(v)?)),
                 UnOp::Neg => "__neg__",
                 UnOp::Pos => "__pos__",
+                UnOp::Invert => "__invert__",
             };
             return match self.dunder(v, name, Vec::new())? {
                 Some(r) => Ok(r),
@@ -1396,6 +1397,10 @@ impl Interp {
         }
         Ok(match op {
             UnOp::Not => Value::Bool(!v.truthy()),
+            UnOp::Invert => match v.as_int() {
+                Some(i) => Value::Int(!i),
+                None => return Err(self.error(format!("bad operand type for unary ~: '{}'", v.type_name()), "TypeError")),
+            },
             UnOp::Pos => {
                 if v.as_float().is_some() {
                     v.clone()
@@ -1404,7 +1409,7 @@ impl Interp {
                 }
             }
             UnOp::Neg => match v {
-                Value::Int(i) => Value::Int(i.wrapping_neg()),
+                Value::Int(i) => i.checked_neg().map_or(Value::Float(-(*i as f64)), Value::Int),
                 Value::Bool(b) => Value::Int(if *b { -1 } else { 0 }),
                 Value::Float(f) => Value::Float(-f),
                 _ => return Err(self.error(format!("bad operand type for unary -: '{}'", v.type_name()), "TypeError")),
@@ -1476,7 +1481,7 @@ impl Interp {
                 return Ok(Value::str(self.printf_style(s, b)?));
             }
         }
-        if matches!(op, BinOp::BitAnd | BinOp::BitOr | BinOp::BitXor) {
+        if matches!(op, BinOp::BitAnd | BinOp::BitOr | BinOp::BitXor | BinOp::LShift | BinOp::RShift) {
             let (Some(x), Some(y)) = (a.as_int(), b.as_int()) else {
                 return Err(self.error(
                     format!(
@@ -1488,11 +1493,26 @@ impl Interp {
                     "TypeError",
                 ));
             };
-            return Ok(Value::Int(match op {
-                BinOp::BitAnd => x & y,
-                BinOp::BitOr => x | y,
-                _ => x ^ y,
-            }));
+            return Ok(match op {
+                BinOp::BitAnd => Value::Int(x & y),
+                BinOp::BitOr => Value::Int(x | y),
+                BinOp::BitXor => Value::Int(x ^ y),
+                _ if y < 0 => return Err(self.error("negative shift count", "ValueError")),
+                BinOp::RShift => Value::Int(if y >= 64 { if x < 0 { -1 } else { 0 } } else { x >> y }),
+                // Past 64 bits Python grows a big integer; this one has none, so
+                // it goes on as a float rather than wrapping.
+                _ => match (y < 63).then(|| x.checked_mul(1i64 << y)).flatten() {
+                    Some(v) => Value::Int(v),
+                    None => Value::Float(x as f64 * 2f64.powi(y.min(2000) as i32)),
+                },
+            });
+        }
+        // Two integers stay exact across the whole 64-bit range, as Python's
+        // do; only past it does the result become a float.
+        if let (Some(x), Some(y)) = (a.as_int(), b.as_int()) {
+            if let Some(v) = self.int_op(op, x, y)? {
+                return Ok(v);
+            }
         }
         let (Some(x), Some(y)) = (a.as_float(), b.as_float()) else {
             return Err(self.error(
@@ -1526,6 +1546,32 @@ impl Interp {
             }
             BinOp::Pow => numeric(x.powf(y), both_int && y >= 0.0),
             _ => return Err(self.error(format!("unsupported operand type(s) for {}", op_symbol(op)), "TypeError")),
+        })
+    }
+
+    /// [op] on two integers with Python's results, or None when the answer
+    /// leaves 64 bits and the float path should give it instead.
+    fn int_op(&mut self, op: BinOp, x: i64, y: i64) -> R<Option<Value>> {
+        let zero = || "integer division or modulo by zero";
+        Ok(match op {
+            BinOp::Add => x.checked_add(y).map(Value::Int),
+            BinOp::Sub => x.checked_sub(y).map(Value::Int),
+            BinOp::Mul => x.checked_mul(y).map(Value::Int),
+            BinOp::FloorDiv => {
+                if y == 0 {
+                    return Err(self.error(zero(), "ZeroDivisionError"));
+                }
+                x.checked_div(y).map(|q| Value::Int(if (x % y != 0) && ((x < 0) != (y < 0)) { q - 1 } else { q }))
+            }
+            BinOp::Mod => {
+                if y == 0 {
+                    return Err(self.error(zero(), "ZeroDivisionError"));
+                }
+                // Python's modulo takes the sign of the divisor.
+                x.checked_rem(y).map(|r| Value::Int(if r != 0 && ((r < 0) != (y < 0)) { r + y } else { r }))
+            }
+            BinOp::Pow if y >= 0 => u32::try_from(y).ok().and_then(|e| x.checked_pow(e)).map(Value::Int),
+            _ => None,
         })
     }
 
@@ -1589,6 +1635,12 @@ impl Interp {
                     return Err(self.string_abort());
                 }
                 Value::str(s.repeat(times as usize))
+            }
+            Value::Bytes(b) => {
+                if (b.len() as u64).saturating_mul(times) > self.max_string as u64 {
+                    return Err(self.string_abort());
+                }
+                Value::bytes(&b.repeat(times as usize))
             }
             Value::List(l) => {
                 let items = l.borrow().clone();
@@ -1907,6 +1959,8 @@ fn op_symbol(op: BinOp) -> &'static str {
         BinOp::BitAnd => "&",
         BinOp::BitOr => "|",
         BinOp::BitXor => "^",
+        BinOp::LShift => "<<",
+        BinOp::RShift => ">>",
     }
 }
 

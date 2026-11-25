@@ -37,6 +37,7 @@ pub(crate) const SET_METHODS: &[&str] = &[
 pub(crate) const DICT_METHODS: &[&str] = &["keys", "values", "items", "get", "pop", "popitem", "setdefault", "update", "clear", "copy"];
 pub(crate) const BYTES_METHODS: &[&str] = &[
     "decode", "hex", "find", "count", "startswith", "endswith", "split", "strip", "replace", "upper", "lower", "join", "index",
+    "rfind", "rindex", "lstrip", "rstrip",
 ];
 /// The builtin name a method taken as a value calls through.
 pub(crate) const METHOD_PREFIX: &str = "__method__:";
@@ -93,6 +94,8 @@ impl Interp {
                 self.call_module(&m, name, args, kwargs)
             }
             Value::Bytes(b) => self.bytes_method(b, name, &args, &kwargs),
+            Value::Builtin(b) if b.as_ref() == "int" && name == "from_bytes" => self.int_from_bytes(&args, &kwargs),
+            Value::Int(_) | Value::Bool(_) if matches!(name, "to_bytes" | "bit_length") => self.int_method(obj, name, &args, &kwargs),
             Value::Builtin(b) if b.as_ref() == "bytes" && name == "fromhex" => {
                 let s = self.arg_str(&args, 0, "fromhex")?;
                 match from_hex(&s) {
@@ -181,17 +184,28 @@ impl Interp {
             "split" => self.split_method(s, &args, false),
             "rsplit" => self.split_method(s, &args, true),
             "splitlines" => {
-                // Swift splits on the "\n" Character, so a "\r\n" cluster stays whole.
+                // Python's line ends: "\r\n" (one cluster here), "\n", "\r" and the
+                // rarer ones. No empty line after a final line end.
+                let keep = args.first().or_else(|| kwarg(&kwargs, "keepends")).is_some_and(Value::truthy);
                 let mut out = Vec::new();
                 let mut cur = String::new();
                 for c in self.clusters_of(s) {
-                    if c == "\n" {
+                    let ends = matches!(
+                        c.as_str(),
+                        "\n" | "\r" | "\r\n" | "\u{0b}" | "\u{0c}" | "\u{1c}" | "\u{1d}" | "\u{1e}" | "\u{85}" | "\u{2028}" | "\u{2029}"
+                    );
+                    if ends {
+                        if keep {
+                            cur.push_str(&c);
+                        }
                         out.push(Value::str(std::mem::take(&mut cur)));
                     } else {
                         cur.push_str(&c);
                     }
                 }
-                out.push(Value::str(cur));
+                if !cur.is_empty() {
+                    out.push(Value::str(cur));
+                }
                 Ok(Value::list(out))
             }
             "join" => {
@@ -422,24 +436,46 @@ impl Interp {
             }
             return Ok(Value::list(parts.into_iter().map(Value::from).collect()));
         }
-        // No separator: split on runs of whitespace, dropping empties.
-        let mut parts = Vec::new();
-        let mut cur = String::new();
-        for c in self.clusters_of(s) {
-            if char_is_whitespace(&c) {
+        // No separator: split on runs of whitespace, dropping empties. With a
+        // limit, the rest after the last split stays whole, as Python keeps it.
+        let mut cs = self.clusters_of(s);
+        if from_end {
+            cs.reverse();
+        }
+        // Pieces as runs of clusters, so a reversed rsplit puts them back exactly.
+        let mut pieces: Vec<Vec<String>> = Vec::new();
+        let mut cur: Vec<String> = Vec::new();
+        let mut i = 0;
+        while i < cs.len() {
+            if char_is_whitespace(&cs[i]) {
                 if !cur.is_empty() {
-                    parts.push(std::mem::take(&mut cur));
+                    pieces.push(std::mem::take(&mut cur));
+                    if limit >= 0 && pieces.len() as i64 == limit {
+                        // Skip the run of whitespace, then keep the rest as one piece.
+                        while i < cs.len() && char_is_whitespace(&cs[i]) {
+                            i += 1;
+                        }
+                        if i < cs.len() {
+                            pieces.push(cs[i..].to_vec());
+                        }
+                        break;
+                    }
                 }
             } else {
-                cur.push_str(&c);
+                cur.push(cs[i].clone());
             }
+            i += 1;
         }
         if !cur.is_empty() {
-            parts.push(cur);
+            pieces.push(cur);
         }
-        if limit >= 0 && parts.len() as i64 > limit + 1 {
-            parts.truncate((limit + 1) as usize);
+        if from_end {
+            pieces.reverse();
+            for piece in &mut pieces {
+                piece.reverse();
+            }
         }
+        let parts: Vec<String> = pieces.into_iter().map(|p| p.concat()).collect();
         Ok(Value::list(parts.into_iter().map(Value::from).collect()))
     }
 
@@ -887,7 +923,7 @@ impl Interp {
                 let sub = self.arg_bytes(args, 0, name)?;
                 Ok(Value::Bool(if name == "startswith" { b.starts_with(&sub) } else { b.ends_with(&sub) }))
             }
-            "find" | "index" => {
+            "find" | "index" | "rfind" | "rindex" => {
                 let sub = self.arg_bytes(args, 0, name)?;
                 // find(sub, start, end), with negative bounds counted from the end.
                 let len = b.len() as i64;
@@ -898,9 +934,10 @@ impl Interp {
                 };
                 let start = bound(args.get(1), 0) as usize;
                 let end = (bound(args.get(2), len) as usize).max(start);
-                match find_bytes(&b[start..end], &sub) {
+                let found = if name.starts_with('r') { rfind_bytes(&b[start..end], &sub) } else { find_bytes(&b[start..end], &sub) };
+                match found {
                     Some(i) => Ok(Value::Int((start + i) as i64)),
-                    None if name == "find" => Ok(Value::Int(-1)),
+                    None if name.ends_with("find") => Ok(Value::Int(-1)),
                     None => Err(self.error("subsection not found", "ValueError")),
                 }
             }
@@ -951,19 +988,69 @@ impl Interp {
                 };
                 Ok(Value::list(pieces.into_iter().map(|p| Value::Bytes(Rc::from(p))).collect()))
             }
-            "strip" => {
+            "strip" | "lstrip" | "rstrip" => {
                 let chars: Vec<u8> = match args.first() {
                     None | Some(Value::None) => b" \t\n\r\x0b\x0c".to_vec(),
                     Some(_) => self.arg_bytes(args, 0, name)?,
                 };
-                let start = b.iter().position(|c| !chars.contains(c)).unwrap_or(b.len());
-                let end = b.iter().rposition(|c| !chars.contains(c)).map_or(start, |i| i + 1);
+                let start = if name == "rstrip" { 0 } else { b.iter().position(|c| !chars.contains(c)).unwrap_or(b.len()) };
+                let end = if name == "lstrip" { b.len() } else { b.iter().rposition(|c| !chars.contains(c)).map_or(start, |i| i + 1) };
                 Ok(Value::Bytes(Rc::from(&b[start..end.max(start)])))
             }
             "upper" => Ok(Value::Bytes(Rc::from(b.to_ascii_uppercase()))),
             "lower" => Ok(Value::Bytes(Rc::from(b.to_ascii_lowercase()))),
             _ => Err(self.error(format!("'bytes' object has no method '{name}'"), "AttributeError")),
         }
+    }
+
+    /// `int.from_bytes(data, byteorder="big", signed=False)`, up to 8 bytes.
+    fn int_from_bytes(&mut self, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
+        let data = self.arg_bytes(args, 0, "from_bytes")?;
+        let little = byte_order(self, args.get(1).or_else(|| kwarg(kwargs, "byteorder")))?;
+        let signed = args.get(2).or_else(|| kwarg(kwargs, "signed")).is_some_and(Value::truthy);
+        let mut bytes = data;
+        if little {
+            bytes.reverse();
+        }
+        // Leading zero (or, signed, 0xFF sign) bytes past the eighth change nothing.
+        while bytes.len() > 8 && (bytes[0] == 0 || (signed && bytes[0] == 0xFF && bytes[1] >= 0x80)) {
+            bytes.remove(0);
+        }
+        if bytes.len() > 8 || (!signed && bytes.len() == 8 && bytes[0] >= 0x80) {
+            return Err(self.error("int too large: this interpreter's integers are 64-bit", "OverflowError"));
+        }
+        let negative = signed && bytes.first().is_some_and(|b| *b >= 0x80);
+        let mut v: i64 = if negative { -1 } else { 0 };
+        for b in bytes {
+            v = (v << 8) | b as i64;
+        }
+        Ok(Value::Int(v))
+    }
+
+    /// `n.to_bytes(length, byteorder="big", signed=False)` and `n.bit_length()`.
+    fn int_method(&mut self, target: &Value, name: &str, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
+        let n = target.as_int().unwrap_or(0);
+        if name == "bit_length" {
+            return Ok(Value::Int(64 - n.unsigned_abs().leading_zeros() as i64));
+        }
+        let length = args.first().or_else(|| kwarg(kwargs, "length")).and_then(Value::as_int).unwrap_or(1);
+        let little = byte_order(self, args.get(1).or_else(|| kwarg(kwargs, "byteorder")))?;
+        let signed = args.get(2).or_else(|| kwarg(kwargs, "signed")).is_some_and(Value::truthy);
+        if !(0..=4096).contains(&length) {
+            return Err(self.error("to_bytes() length must be 0 to 4096", "ValueError"));
+        }
+        if n < 0 && !signed {
+            return Err(self.error("can't convert negative int to unsigned", "OverflowError"));
+        }
+        let bits = if signed { 65 - (if n < 0 { !n } else { n }).leading_zeros() as i64 } else { 64 - (n as u64).leading_zeros() as i64 };
+        if bits > length * 8 {
+            return Err(self.error("int too big to convert", "OverflowError"));
+        }
+        let mut out: Vec<u8> = (0..length).map(|i| if i < 8 { (n >> (8 * i)) as u8 } else if n < 0 { 0xFF } else { 0 }).collect();
+        if !little {
+            out.reverse();
+        }
+        Ok(Value::bytes(&out))
     }
 
     fn arg_bytes(&self, args: &[Value], i: usize, method: &str) -> R<Vec<u8>> {
@@ -973,6 +1060,27 @@ impl Interp {
             None => Err(self.error(format!("{method}() is missing an argument"), "TypeError")),
         }
     }
+}
+
+/// `byteorder`: "big" (the default) or "little"; true for little.
+fn byte_order(interp: &Interp, v: Option<&Value>) -> R<bool> {
+    match v {
+        None => Ok(false),
+        Some(Value::Str(s)) if s.as_ref() == "big" => Ok(false),
+        Some(Value::Str(s)) if s.as_ref() == "little" => Ok(true),
+        Some(_) => Err(interp.error("byteorder must be either 'little' or 'big'", "ValueError")),
+    }
+}
+
+/// Where [needle] last occurs in [hay].
+fn rfind_bytes(hay: &[u8], needle: &[u8]) -> Option<usize> {
+    if needle.is_empty() {
+        return Some(hay.len());
+    }
+    if needle.len() > hay.len() {
+        return None;
+    }
+    hay.windows(needle.len()).rposition(|w| w == needle)
 }
 
 /// Where [needle] first occurs in [hay].

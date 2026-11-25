@@ -154,13 +154,14 @@ fn case_mapping_follows_swift_and_foundation() {
 
 #[test]
 fn numbers_print_like_pymini() {
-    // PyMini: ints run through Double, so 10**20 is a float.
+    // Ints are exact 64-bit; past that there is no big integer, so 10**20
+    // goes on as a float.
     assert_eq!("1e+20", evaluate("10**20"));
     assert_eq!("0.30000000000000004", evaluate("0.1+0.2"));
     assert_eq!("1e+16", evaluate("1e16"));
     assert_eq!("1e-05", evaluate("1e-5"));
     assert_eq!("-0.0", evaluate("-0.0"));
-    assert_eq!("9007199254740992.0", evaluate("2**53+1"));
+    assert_eq!("9007199254740993", evaluate("2**53+1"));
     assert_eq!("3", evaluate("int(\"3.5\")"));
     assert_eq!("100,000,000,000,000,000,000.00", evaluate("f\"{1e20:,.2f}\""));
     assert_eq!("1.2e+04", evaluate("\"%5.1e\" % 12345.678"));

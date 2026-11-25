@@ -15,6 +15,8 @@ pub(crate) enum BinOp {
     BitAnd,
     BitOr,
     BitXor,
+    LShift,
+    RShift,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -36,6 +38,7 @@ pub(crate) enum UnOp {
     Neg,
     Pos,
     Not,
+    Invert,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

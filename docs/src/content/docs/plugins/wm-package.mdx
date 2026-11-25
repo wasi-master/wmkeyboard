@@ -87,6 +87,10 @@ needs:
 - list, dict and set comprehensions, f-strings, slicing, unpacking, type
   annotations (read and ignored)
 - your own exceptions: `class NotFound(Exception): pass`
+- exact 64-bit integers with `<<`, `>>` and the other bit operators,
+  `int.from_bytes` and `n.to_bytes` for binary formats; past 64 bits a result
+  becomes a float, since there are no big integers
+- Python's string escapes, `\x41`, `\u00e9` and `\U0001F600` included
 
 Not there: `yield` and generators, `async` and `await`, `match`, the walrus
 `:=`, `eval`, `exec`, `compile`, `open` and `__import__`. A script that uses

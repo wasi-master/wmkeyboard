@@ -47,7 +47,9 @@ const KEYWORDS: &[&str] = &[
 ];
 
 // Longest first, so `**=` and `//=` beat `**` and `//`.
-const MULTI_OPS: &[&str] = &["**=", "//=", "**", "//", "==", "!=", "<=", ">=", "+=", "-=", "*=", "/=", "%=", "->"];
+const MULTI_OPS: &[&str] = &[
+    "**=", "//=", "<<=", ">>=", "**", "//", "<<", ">>", "==", "!=", "<=", ">=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "->",
+];
 const SINGLE_OPS: &[&str] =
     &["+", "-", "*", "/", "%", "<", ">", "=", "(", ")", ",", ":", ".", "[", "]", "{", "}", "&", "|", "^", "~", ";", "@"];
 
@@ -507,12 +509,56 @@ impl<'a> Lexer<'a> {
             "n" => "\n".into(),
             "t" => "\t".into(),
             "r" => "\r".into(),
-            "0" => "\0".into(),
             "\\" => "\\".into(),
             "'" => "'".into(),
             "\"" => "\"".into(),
+            "a" => "\u{07}".into(),
+            "b" => "\u{08}".into(),
+            "f" => "\u{0c}".into(),
+            "v" => "\u{0b}".into(),
+            // \xNN, \uNNNN and \UNNNNNNNN; written wrong, they stay as written.
+            "x" | "u" | "U" => {
+                let digits = match c {
+                    "x" => 2,
+                    "u" => 4,
+                    _ => 8,
+                };
+                match self.hex_scalar(digits) {
+                    Some(ch) => ch.to_string(),
+                    None => format!("\\{c}"),
+                }
+            }
+            // Octal: \0, \12, \101 (at most three digits).
+            _ if c.len() == 1 && ("0".."8").contains(&c) => {
+                let mut value = c.as_bytes()[0] as u32 - b'0' as u32;
+                for _ in 0..2 {
+                    match self.chars.get(self.pos) {
+                        Some(d) if d.len() == 1 && ("0".."8").contains(d) => {
+                            value = value * 8 + (d.as_bytes()[0] - b'0') as u32;
+                            self.pos += 1;
+                        }
+                        _ => break,
+                    }
+                }
+                char::from_u32(value).map(String::from).unwrap_or_default()
+            }
             _ => format!("\\{c}"),
         }
+    }
+
+    /// The character [digits] hex digits after the escape letter name, past them.
+    fn hex_scalar(&mut self, digits: usize) -> Option<char> {
+        let mut value = 0u32;
+        for i in 0..digits {
+            let d = self.chars.get(self.pos + i)?;
+            if d.len() != 1 {
+                return None;
+            }
+            value = value * 16 + (d.as_bytes()[0] as char).to_digit(16)?;
+        }
+        let ch = char::from_u32(value)?;
+        self.pos += digits;
+        Some(ch)
     }
 
     fn lex_string(&mut self, raw: bool) -> Result<(), PyError> {

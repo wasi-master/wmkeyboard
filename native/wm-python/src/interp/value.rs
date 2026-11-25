@@ -618,6 +618,9 @@ pub(crate) fn str_repr(s: &str) -> String {
             '\'' => out.push_str("\\'"),
             '\n' => out.push_str("\\n"),
             '\t' => out.push_str("\\t"),
+            '\r' => out.push_str("\\r"),
+            // Other control characters as Python writes them.
+            c if (c as u32) < 0x20 || (0x7F..0xA0).contains(&(c as u32)) => out.push_str(&format!("\\x{:02x}", c as u32)),
             c => out.push(c),
         }
     }
@@ -769,6 +772,11 @@ pub(crate) fn py_identical(a: &Value, b: &Value) -> bool {
         (Value::List(_) | Value::Dict(_) | Value::Set(_), _) | (_, Value::List(_) | Value::Dict(_) | Value::Set(_)) => {
             false
         }
+        // `1 is True` and `1 is 1.0` are False: equal values of different types.
+        (Value::Bool(x), Value::Bool(y)) => x == y,
+        (Value::Bool(_), _) | (_, Value::Bool(_)) => false,
+        (Value::Int(x), Value::Int(y)) => x == y,
+        (Value::Int(_), Value::Float(_)) | (Value::Float(_), Value::Int(_)) => false,
         _ => py_equals(a, b),
     }
 }

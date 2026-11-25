@@ -184,6 +184,21 @@ pub fn module_name(file: &str) -> Option<(String, bool)> {
     (valid && !reserved).then_some((name, package))
 }
 
+/// [rt] set up as an API 5 plugin's own interpreter, for a test runner:
+/// the standard library, the `wm` package and [files] (the plugin's
+/// modules, its entry among them), with no keyboard answering host calls.
+pub fn install_for_tests(
+    rt: &mut Runtime,
+    info: &PluginInfo,
+    files: Vec<(String, String)>,
+    storage: Option<Storage>,
+    reminders: Option<Reminders>,
+    clock: Rc<dyn Clock>,
+) {
+    let extras = Extras { files, settings: Json::Null, context: Json::Null, strings: Json::Null };
+    install(rt, info, &extras, storage, reminders, clock, Rc::new(RefCell::new(None)));
+}
+
 /// Give [rt] the standard library, the `wm` package, the plugin's own
 /// modules and `_wm`, and return the state the host functions write to.
 pub(crate) fn install(

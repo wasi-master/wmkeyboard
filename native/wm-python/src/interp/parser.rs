@@ -43,6 +43,11 @@ fn aug_op(s: &str) -> Option<BinOp> {
         "%=" => BinOp::Mod,
         "//=" => BinOp::FloorDiv,
         "**=" => BinOp::Pow,
+        "&=" => BinOp::BitAnd,
+        "|=" => BinOp::BitOr,
+        "^=" => BinOp::BitXor,
+        "<<=" => BinOp::LShift,
+        ">>=" => BinOp::RShift,
         _ => return None,
     })
 }
@@ -919,9 +924,25 @@ impl Parser {
     }
 
     fn parse_bit_and(&mut self) -> P<Expr> {
-        let mut left = self.parse_add()?;
+        let mut left = self.parse_shift()?;
         while self.match_op("&") {
-            left = Expr::Binary(BinOp::BitAnd, Box::new(left), Box::new(self.parse_add()?));
+            left = Expr::Binary(BinOp::BitAnd, Box::new(left), Box::new(self.parse_shift()?));
+        }
+        Ok(left)
+    }
+
+    // `<<` and `>>`, between `&` and `+` as in Python.
+    fn parse_shift(&mut self) -> P<Expr> {
+        let mut left = self.parse_add()?;
+        loop {
+            let op = if self.match_op("<<") {
+                BinOp::LShift
+            } else if self.match_op(">>") {
+                BinOp::RShift
+            } else {
+                break;
+            };
+            left = Expr::Binary(op, Box::new(left), Box::new(self.parse_add()?));
         }
         Ok(left)
     }
@@ -964,6 +985,8 @@ impl Parser {
             UnOp::Neg
         } else if self.match_op("+") {
             UnOp::Pos
+        } else if self.match_op("~") {
+            UnOp::Invert
         } else {
             return self.parse_power();
         };

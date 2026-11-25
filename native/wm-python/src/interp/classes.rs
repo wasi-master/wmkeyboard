@@ -49,6 +49,8 @@ fn operator_methods(op: BinOp) -> (&'static str, &'static str) {
         BinOp::BitAnd => ("__and__", "__rand__"),
         BinOp::BitOr => ("__or__", "__ror__"),
         BinOp::BitXor => ("__xor__", "__rxor__"),
+        BinOp::LShift => ("__lshift__", "__rlshift__"),
+        BinOp::RShift => ("__rshift__", "__rrshift__"),
     }
 }
 

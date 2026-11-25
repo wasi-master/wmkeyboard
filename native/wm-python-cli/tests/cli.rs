@@ -162,6 +162,18 @@ fn an_api_5_test_imports_the_plugins_own_modules() {
 }
 
 #[test]
+fn an_api_5_test_runs_with_the_plugins_python() {
+    // The entry, the standard library and the wm package, as in the keyboard.
+    let manifest = r#"{"id": "com.example.bits", "pluginVersion": "1.0.0", "apiVersion": 5, "panel": false}"#;
+    let main = "import base64\nfrom wm import formats\ndef word(data):\n    return formats.unpack('>H', data)[0]\n";
+    let fields = "import hashlib\ndef tag(data):\n    return hashlib.sha1(data).hexdigest()[:4]\n";
+    let test = "import main, fields, datetime\nprint(main.word(b'\\x01\\x02'), fields.tag(b'x'), callable(ui.label), 1 << 40)\n";
+    let dir = plugin("python", &[("plugin.json", manifest), ("main.py", main), ("fields.py", fields), ("test.py", test)]);
+    let (code, out, err) = cli(&["test", dir.to_str().unwrap()]);
+    assert_eq!((code, out.as_str(), err.as_str()), (0, "258 11f6 True 1099511627776\n", ""));
+}
+
+#[test]
 fn previews_and_thumbnails_run_on_files_in_the_folder() {
     let manifest = r#"{"id": "com.example.tsv", "version": "1.0.0", "apiVersion": 5, "panel": false, "permissions": ["previews"],
         "previews": [{"id": "tsv", "name": "Tables", "extensions": ["tsv"], "maxBytes": 8, "thumbnails": true}]}"#;

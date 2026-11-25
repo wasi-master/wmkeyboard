@@ -249,14 +249,21 @@ assert json.loads(posts[0]["body"]) == {"amount": 2}
 handy for a long mock reply kept in its own file. Files under `tests/` stay
 out of the plugin's archive, so that is a good place for them.
 
-An API 5 plugin's other `.py` files are modules `test.py` can import, to
-test them on their own without a session:
+An API 5 plugin's `.py` files, `main.py` among them, are modules `test.py`
+can import, to test them on their own without a session. The test runs with
+what the plugin has, so those files can import `wm` and Python's own modules
+(`base64`, `datetime`, `hashlib` and the rest):
 
 ```python
 import fares          # fares.py beside main.py
+import main
 
 assert fares.total([2.9, 1.0]) == 3.9
+assert main.label_for(3) == "3 stops"
 ```
+
+A call to the keyboard from there, such as `wm.http`, has nothing to answer it
+and raises; test those through `plugin_test.session(mock=...)`.
 
 ## Reading an error
 

@@ -315,15 +315,31 @@ fn test(dir: &Path) -> u8 {
         permissions: vec!["storage".into(), "reminders".into()],
         panel: true,
     };
-    api::install(&mut rt, &info, Some(Storage::new(None)), Some(Reminders::new(None)), Rc::new(SystemClock::default()));
     if m.api >= 5 {
-        // An API 5 plugin's other modules, so the test (and files it loads)
-        // can `import helpers` to test them on their own.
-        for (file, text) in modules(dir, &m.entry) {
-            if let (Some((name, package)), Some(text)) = (wm_python::host::v5::module_name(&file), text.as_str()) {
-                rt.add_source_module(&name, text, package);
+        // An API 5 test runs where the plugin does: the standard library, the
+        // `wm` package, and the plugin's modules, its entry included, so the
+        // test can `import helpers` or `import main` and call them directly.
+        let mut files: Vec<(String, String)> = modules(dir, &m.entry)
+            .into_iter()
+            .filter_map(|(file, text)| text.as_str().map(|t| (file, t.to_string())))
+            .collect();
+        files.sort();
+        wm_python::host::v5::install_for_tests(&mut rt, &info, files, Some(Storage::new(None)), Some(Reminders::new(None)), Rc::new(SystemClock::default()));
+        // The entry is never a module inside the plugin (the keyboard runs it
+        // as the script), but a test may import it to reach its functions.
+        if let (Some(stem), Ok(text)) = (m.entry.strip_suffix(".py"), std::fs::read_to_string(dir.join(&m.entry))) {
+            if !stem.contains('/') {
+                rt.add_source_module(stem, &text, false);
             }
         }
+        // `wm` and `ui` as globals too, as the API 4 runner gave them, so a
+        // test can hand them to `plugin_test.load(name, wm, ui)`.
+        if let Err(e) = rt.load("import wm\nfrom wm import ui\n") {
+            report(&e);
+            return 2;
+        }
+    } else {
+        api::install(&mut rt, &info, Some(Storage::new(None)), Some(Reminders::new(None)), Rc::new(SystemClock::default()));
     }
     // The test's output goes straight to stdout, wm.log and print alike.
     rt.set_on_print(Some(Box::new(|line| println!("{line}"))));
