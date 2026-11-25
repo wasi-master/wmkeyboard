@@ -109,6 +109,9 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
 ) {
     guarded(&mut env, (), |_| {
         DICTS.remove(handle);
+        // The decoder's rank table for it is dead weight now; left, it stayed
+        // until 48 had piled up (a dictionary is reopened at every reload).
+        crate::decoder::forget_ranks(handle);
         Some(())
     })
 }

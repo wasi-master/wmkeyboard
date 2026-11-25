@@ -263,80 +263,101 @@ impl Walker for UserTrie {
 
 // ---- Followers ---------------------------------------------------------------
 
-/// A word's followers, with a cached count-descending order.
+/// A word's followers and their counts, kept in the order they rank in:
+/// count descending, then UTF-16 order (the Kotlin store's `ordered`).
+///
+/// A small vector rather than a map with a sorted copy beside it: a head has
+/// at most [`MAX_FOLLOWERS`] followers when learned, and the map's table plus
+/// the copy came to most of the 8.6 MB this store held at startup on a
+/// CPH2481 (heapprofd, 2026-11-26). Kept in order, the ranking needs no copy
+/// and the follower that ranks last, the one dropped past the cap, is the
+/// last entry.
 #[derive(Clone, Default, Debug)]
 struct Followers {
-    counts: HashMap<String, i32>,
-    sorted: Option<Vec<String>>,
+    entries: Vec<(Box<str>, i32)>,
 }
 
 impl Followers {
+    /// `counts` as the file holds them, in ranking order. No cap: a file
+    /// keeps what it was saved with, as the map did.
+    fn from_counts<'a>(counts: impl Iterator<Item = (&'a String, i32)>) -> Followers {
+        let mut f = Followers { entries: counts.map(|(k, v)| (k.as_str().into(), v)).collect() };
+        f.entries.shrink_to_fit();
+        f.rank();
+        f
+    }
+
+    fn rank(&mut self) {
+        sort::by(&mut self.entries, |a, b| b.1.cmp(&a.1).then_with(|| cmp_utf16(&a.0, &b.0)));
+    }
+
+    fn get(&self, next: &str) -> Option<i32> {
+        self.entries.iter().find(|(k, _)| &**k == next).map(|&(_, c)| c)
+    }
+
+    /// Adds `count` to `next`'s, taking it in at 0 when it is new.
+    fn add(&mut self, next: &str, count: i32) {
+        match self.entries.iter_mut().find(|(k, _)| &**k == next) {
+            Some((_, c)) => *c = c.wrapping_add(count),
+            None => self.entries.push((next.into(), 0i32.wrapping_add(count))),
+        }
+    }
+
     fn bump(&mut self, next: &str) {
-        let c = self.counts.entry(next.to_string()).or_insert(0);
-        *c = c.wrapping_add(1);
-        self.sorted = None;
-        if self.counts.len() > MAX_FOLLOWERS {
+        self.add(next, 1);
+        self.rank();
+        if self.entries.len() > MAX_FOLLOWERS {
             self.drop_last();
         }
     }
 
-    /// Drops the follower ranking last in [`Followers::ordered`]: the lowest
-    /// count, then the word that sorts last.
+    /// Drops the follower ranking last: the lowest count, then the word that
+    /// sorts last.
     fn drop_last(&mut self) {
-        let last = self
-            .counts
-            .iter()
-            .min_by(|a, b| a.1.cmp(b.1).then_with(|| cmp_utf16(b.0, a.0)))
-            .map(|(k, _)| k.clone());
-        if let Some(last) = last {
-            self.counts.remove(&last);
-        }
+        self.entries.pop();
     }
 
     fn rename(&mut self, old: &str, new: &str) {
-        let Some(moved) = self.counts.remove(old) else { return };
-        let c = self.counts.entry(new.to_string()).or_insert(0);
-        *c = c.wrapping_add(moved);
-        self.sorted = None;
+        let Some(moved) = self.remove(old) else { return };
+        self.add(new, moved);
+        self.rank();
     }
 
     fn absorb(&mut self, other: &Followers) {
-        // Kotlin iterates the other map; the cap is applied after the sum, and
-        // the sums do not depend on the order.
-        for (next, &count) in &other.counts {
-            let c = self.counts.entry(next.clone()).or_insert(0);
-            *c = c.wrapping_add(count);
+        // The cap is applied after the sum, and the sums do not depend on
+        // the order.
+        for (next, count) in &other.entries {
+            self.add(next, *count);
         }
-        self.sorted = None;
-        while self.counts.len() > MAX_FOLLOWERS {
-            self.drop_last();
-        }
+        self.rank();
+        self.entries.truncate(MAX_FOLLOWERS);
     }
 
-    fn ordered(&mut self) -> &[String] {
-        if self.sorted.is_none() {
-            let mut all: Vec<(&String, &i32)> = self.counts.iter().collect();
-            sort::by(&mut all, |a, b| b.1.cmp(a.1).then_with(|| cmp_utf16(a.0, b.0)));
-            self.sorted = Some(all.into_iter().map(|(k, _)| k.clone()).collect());
-        }
-        self.sorted.as_deref().unwrap_or(&[])
+    /// The first `limit` followers, best first.
+    fn top(&self, limit: usize) -> Vec<String> {
+        self.entries.iter().take(limit).map(|(k, _)| k.to_string()).collect()
     }
 
     fn total(&self) -> i32 {
-        self.counts.values().fold(0i32, |a, &b| a.wrapping_add(b))
+        self.entries.iter().fold(0i32, |a, &(_, b)| a.wrapping_add(b))
+    }
+
+    /// Takes `next` out, returning its count.
+    fn remove(&mut self, next: &str) -> Option<i32> {
+        let at = self.entries.iter().position(|(k, _)| &**k == next)?;
+        Some(self.entries.remove(at).1)
     }
 
     fn remove_all(&mut self, keys: &HashSet<String>) {
-        let before = self.counts.len();
-        self.counts.retain(|k, _| !keys.contains(k));
-        if self.counts.len() != before {
-            self.sorted = None;
-        }
+        self.entries.retain(|(k, _)| !keys.contains(&**k));
     }
-}
 
-fn take(list: &[String], limit: usize) -> Vec<String> {
-    list.iter().take(limit).cloned().collect()
+    /// The counts in UTF-16 order of the words, as the file writes them.
+    fn by_word(&self) -> Vec<(&str, i32)> {
+        let mut all: Vec<(&str, i32)> = self.entries.iter().map(|(k, c)| (&**k, *c)).collect();
+        sort::by(&mut all, |a, b| cmp_utf16(a.0, b.0));
+        all
+    }
 }
 
 // ---- The store ---------------------------------------------------------------
@@ -672,7 +693,7 @@ impl UserLexicon {
     }
 
     pub fn next_words(&mut self, prev: &str, limit: usize) -> Vec<String> {
-        self.bigrams.get_mut(prev).map_or_else(Vec::new, |f| take(f.ordered(), limit))
+        self.bigrams.get_mut(prev).map_or_else(Vec::new, |f| f.top(limit))
     }
 
     pub fn learn_trigram(&mut self, a: &str, b: &str, c: &str) {
@@ -684,11 +705,11 @@ impl UserLexicon {
     }
 
     pub fn next_words_after(&mut self, a: &str, b: &str, limit: usize) -> Vec<String> {
-        self.trigrams.get_mut(&trigram_key(a, b)).map_or_else(Vec::new, |f| take(f.ordered(), limit))
+        self.trigrams.get_mut(&trigram_key(a, b)).map_or_else(Vec::new, |f| f.top(limit))
     }
 
     pub fn trigram_count(&self, a: &str, b: &str, c: &str) -> i32 {
-        self.trigrams.get(&trigram_key(a, b)).and_then(|f| f.counts.get(c)).copied().unwrap_or(0)
+        self.trigrams.get(&trigram_key(a, b)).and_then(|f| f.get(c)).unwrap_or(0)
     }
 
     pub fn learn_skip1gram(&mut self, prev2: &str, next: &str) {
@@ -700,15 +721,15 @@ impl UserLexicon {
     }
 
     pub fn skip1gram_count(&self, prev2: &str, next: &str) -> i32 {
-        self.skip1grams.get(prev2).and_then(|f| f.counts.get(next)).copied().unwrap_or(0)
+        self.skip1grams.get(prev2).and_then(|f| f.get(next)).unwrap_or(0)
     }
 
     pub fn skip1_followers(&mut self, prev2: &str, limit: usize) -> Vec<String> {
-        self.skip1grams.get_mut(prev2).map_or_else(Vec::new, |f| take(f.ordered(), limit))
+        self.skip1grams.get_mut(prev2).map_or_else(Vec::new, |f| f.top(limit))
     }
 
     pub fn skip2_followers(&mut self, prev3: &str, limit: usize) -> Vec<String> {
-        self.skip2grams.get_mut(prev3).map_or_else(Vec::new, |f| take(f.ordered(), limit))
+        self.skip2grams.get_mut(prev3).map_or_else(Vec::new, |f| f.top(limit))
     }
 
     pub fn learn_skip2gram(&mut self, prev3: &str, next: &str) {
@@ -720,11 +741,11 @@ impl UserLexicon {
     }
 
     pub fn skip2gram_count(&self, prev3: &str, next: &str) -> i32 {
-        self.skip2grams.get(prev3).and_then(|f| f.counts.get(next)).copied().unwrap_or(0)
+        self.skip2grams.get(prev3).and_then(|f| f.get(next)).unwrap_or(0)
     }
 
     pub fn bigram_count(&self, prev: &str, next: &str) -> i32 {
-        self.bigrams.get(prev).and_then(|f| f.counts.get(next)).copied().unwrap_or(0)
+        self.bigrams.get(prev).and_then(|f| f.get(next)).unwrap_or(0)
     }
 
     /// `followerCounts`: the pair counts after `prev`, in UTF-16 order.
@@ -732,7 +753,7 @@ impl UserLexicon {
         let mut out: Vec<(String, i32)> = self
             .bigrams
             .get(prev)
-            .map(|f| f.counts.iter().map(|(k, v)| (k.clone(), *v)).collect())
+            .map(|f| f.entries.iter().map(|(k, v)| (k.to_string(), *v)).collect())
             .unwrap_or_default();
         sort::by(&mut out, |a, b| cmp_utf16(&a.0, &b.0));
         out
@@ -884,9 +905,7 @@ impl UserLexicon {
                 for store in [&mut self.bigrams, &mut self.skip1grams, &mut self.skip2grams] {
                     store.remove(&word);
                     for followers in store.values_mut() {
-                        if followers.counts.remove(&word).is_some() {
-                            followers.sorted = None;
-                        }
+                        followers.remove(&word);
                     }
                 }
             }
@@ -934,7 +953,11 @@ impl UserLexicon {
         fn nested(map: &HashMap<String, Followers>) -> Value {
             let mut out = Map::new();
             for (k, f) in sorted(map) {
-                out.insert(k.clone(), object(&f.counts));
+                let mut counts = Map::new();
+                for (word, count) in f.by_word() {
+                    counts.insert(word.to_string(), count.into());
+                }
+                out.insert(k.clone(), Value::Object(counts));
             }
             Value::Object(out)
         }
@@ -1021,10 +1044,7 @@ impl UserLexicon {
         if self.words.len() != before {
             self.dirty = true;
         }
-        let followers = |map: &HashMap<String, i32>| Followers {
-            counts: map.iter().filter(|(k, _)| !junk(k)).map(|(k, v)| (k.clone(), *v)).collect(),
-            sorted: None,
-        };
+        let followers = |map: &HashMap<String, i32>| Followers::from_counts(map.iter().filter(|(k, _)| !junk(k)).map(|(k, v)| (k, *v)));
         for (prev, map) in &snapshot.bigrams {
             if junk(prev) {
                 continue;

@@ -140,6 +140,7 @@ pub mod urdu;
 pub mod urdu_index;
 pub mod urdu_romanizer;
 pub mod user_lexicon;
+mod vocab;
 pub mod wmdict;
 pub mod word_key;
 pub mod wmng;

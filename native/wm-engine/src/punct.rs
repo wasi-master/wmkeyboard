@@ -26,7 +26,8 @@
 //! call is one pass, a couple of milliseconds, off the keystroke's thread.
 
 use crate::kernels::dot::dot_i8;
-use crate::lm::{f32s, gelu, layer_norm, pad4, pieces_greedy, quantize, token_key, u32_at, I8Matrix, PIECE_CONT, PIECE_START};
+use crate::lm::{f32s, gelu, layer_norm, pad4, pieces_greedy, quantize, token_key, u32_at, I8Matrix};
+use crate::vocab::Vocab;
 use std::collections::HashMap;
 
 pub const MAGIC: &[u8; 4] = b"WMPT";
@@ -79,14 +80,12 @@ pub struct Punct<B: AsRef<[u8]> = Vec<u8>> {
     /// The language ids the model was trained on, for the catalogue and
     /// the Resources screen; it reads any of them without being told which.
     pub langs: Vec<String>,
-    vocab_len: usize,
-    ids: HashMap<String, u32>,
+    /// Words and pieces, read in place; see [`Vocab`].
+    vocab: Vocab,
     /// `<lang:xx>` tokens by language id; empty in a model without them.
     lang_ids: HashMap<String, u32>,
     /// `<lang:?>`, when the model has language tokens.
     lang_unknown: Option<u32>,
-    start_pieces: HashMap<String, u32>,
-    cont_pieces: HashMap<String, u32>,
     emb: I8Matrix,
     proj: I8Matrix,
     proj_b: Vec<f32>,
@@ -144,28 +143,18 @@ impl<B: AsRef<[u8]>> Punct<B> {
             return None;
         }
         at += 4;
-        let mut ids = HashMap::with_capacity(count * 2);
         let mut lang_ids = HashMap::new();
         let mut lang_unknown = None;
-        let mut start_pieces = HashMap::new();
-        let mut cont_pieces = HashMap::new();
-        for i in 0..count {
-            let len = u16::from_le_bytes(b.get(at..at + 2)?.try_into().ok()?) as usize;
-            at += 2;
-            let word = std::str::from_utf8(b.get(at..at + len)?).ok()?;
-            at += len;
-            if let Some(rest) = word.strip_prefix(PIECE_START) {
-                start_pieces.insert(rest.to_string(), i as u32);
-            } else if let Some(rest) = word.strip_prefix(PIECE_CONT) {
-                cont_pieces.insert(rest.to_string(), i as u32);
-            } else if word == LANG_UNKNOWN {
-                lang_unknown = Some(i as u32);
+        let (vocab, at) = Vocab::read(b, at, count, |id, word| {
+            if word == LANG_UNKNOWN {
+                lang_unknown = Some(id);
             } else if let Some(lang) = word.strip_prefix(LANG_PREFIX).and_then(|r| r.strip_suffix('>')) {
-                lang_ids.insert(lang.to_string(), i as u32);
+                lang_ids.insert(lang.to_string(), id);
             } else {
-                ids.entry(word.to_string()).or_insert(i as u32);
+                return false;
             }
-        }
+            true
+        })?;
         if lang_unknown.is_none() {
             lang_ids.clear();
         }
@@ -237,12 +226,9 @@ impl<B: AsRef<[u8]>> Punct<B> {
             classes,
             name,
             langs,
-            vocab_len,
-            ids,
+            vocab,
             lang_ids,
             lang_unknown,
-            start_pieces,
-            cont_pieces,
             emb,
             proj,
             proj_b,
@@ -256,7 +242,7 @@ impl<B: AsRef<[u8]>> Punct<B> {
     }
 
     pub fn vocab_size(&self) -> usize {
-        self.vocab_len
+        self.vocab.len()
     }
 
     /// Whether the model reads a language token after `<s>`.
@@ -283,7 +269,7 @@ impl<B: AsRef<[u8]>> Punct<B> {
 
     /// Whether the vocabulary holds `word` as one token.
     pub fn knows(&self, word: &str) -> bool {
-        token_key(word).and_then(|k| self.ids.get(&k)).is_some()
+        token_key(word).and_then(|k| self.vocab.word_id(self.bytes.as_ref(), &k)).is_some()
     }
 
     /// The tokens a word becomes: its own id, `<num>` for a number, its
@@ -293,10 +279,11 @@ impl<B: AsRef<[u8]>> Punct<B> {
         if key == "<num>" {
             return vec![NUM];
         }
-        if let Some(&id) = self.ids.get(key.as_str()) {
+        let b = self.bytes.as_ref();
+        if let Some(id) = self.vocab.word_id(b, &key) {
             return vec![id];
         }
-        pieces_greedy(&self.start_pieces, &self.cont_pieces, &key).unwrap_or_else(|| vec![UNK])
+        pieces_greedy(&self.vocab, b, &key).unwrap_or_else(|| vec![UNK])
     }
 
     /// The tokens a sentence so far is read as: `<s>`, the language token

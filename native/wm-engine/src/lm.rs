@@ -32,6 +32,7 @@
 //! it diverged.
 
 use crate::kernels::dot::dot_i8;
+use crate::vocab::Vocab;
 use crate::word_key;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -116,15 +117,11 @@ pub struct Lm<B: AsRef<[u8]> = Vec<u8>> {
     pub name: String,
     /// The language ids the model's `<lang:n>` tokens stand for.
     pub langs: Vec<String>,
-    vocab: Vec<String>,
-    ids: HashMap<String, u32>,
-    /// Subword pieces for words the vocabulary lacks (`tools/wmlm/common.py`'s
-    /// `Pieces`): a word is one start piece then continuation pieces, greedy
-    /// longest match. Empty in a model without pieces, where such a word is
-    /// `<unk>`.
-    start_pieces: HashMap<String, u32>,
-    cont_pieces: HashMap<String, u32>,
-    is_piece: Vec<bool>,
+    /// The words and, for words the vocabulary lacks, subword pieces
+    /// (`tools/wmlm/common.py`'s `Pieces`): a word is one start piece then
+    /// continuation pieces, greedy longest match. A model without pieces
+    /// reads such a word as `<unk>`. Read in place; see [`Vocab`].
+    vocab: Vocab,
     emb: I8Matrix,
     pos: Vec<f32>,
     out_bias: Vec<f32>,
@@ -177,27 +174,7 @@ impl<B: AsRef<[u8]>> Lm<B> {
             return None;
         }
         at += 4;
-        let mut vocab = Vec::with_capacity(count);
-        let mut ids = HashMap::with_capacity(count * 2);
-        let mut start_pieces = HashMap::new();
-        let mut cont_pieces = HashMap::new();
-        let mut is_piece = vec![false; count];
-        for i in 0..count {
-            let len = u16::from_le_bytes(b.get(at..at + 2)?.try_into().ok()?) as usize;
-            at += 2;
-            let word = std::str::from_utf8(b.get(at..at + len)?).ok()?.to_string();
-            at += len;
-            if let Some(rest) = word.strip_prefix(PIECE_START) {
-                start_pieces.insert(rest.to_string(), i as u32);
-                is_piece[i] = true;
-            } else if let Some(rest) = word.strip_prefix(PIECE_CONT) {
-                cont_pieces.insert(rest.to_string(), i as u32);
-                is_piece[i] = true;
-            } else {
-                ids.entry(word.clone()).or_insert(i as u32);
-            }
-            vocab.push(word);
-        }
+        let (vocab, at) = Vocab::read(b, at, count, |_, _| false)?;
         let data_start = pad4(at);
 
         // The tensors, by name.
@@ -253,7 +230,7 @@ impl<B: AsRef<[u8]>> Lm<B> {
         }
         let ln_w = f32_tensor("ln.w", d)?;
         let ln_b = f32_tensor("ln.b", d)?;
-        Some(Lm { bytes, d, layers, heads, ff, ctx, name, langs, vocab, ids, start_pieces, cont_pieces, is_piece, emb, pos, out_bias, blocks, ln_w, ln_b })
+        Some(Lm { bytes, d, layers, heads, ff, ctx, name, langs, vocab, emb, pos, out_bias, blocks, ln_w, ln_b })
     }
 
     pub fn vocab_size(&self) -> usize {
@@ -262,13 +239,13 @@ impl<B: AsRef<[u8]>> Lm<B> {
 
     /// The word token `id` stands for.
     pub fn word(&self, id: u32) -> Option<&str> {
-        self.vocab.get(id as usize).map(String::as_str)
+        self.vocab.text(self.bytes.as_ref(), id)
     }
 
     /// The id of exactly `key` (a word as [`token_key`] leaves it), if the
     /// vocabulary holds it.
     pub fn id_of(&self, key: &str) -> Option<u32> {
-        self.ids.get(key).copied()
+        self.vocab.word_id(self.bytes.as_ref(), key)
     }
 
     /// The token a word before the caret becomes: its id, `<num>` for a
@@ -276,7 +253,7 @@ impl<B: AsRef<[u8]>> Lm<B> {
     pub fn token_of(&self, word: &str) -> u32 {
         match token_key(word) {
             None => UNK,
-            Some(key) => self.ids.get(key.as_str()).copied().unwrap_or(UNK),
+            Some(key) => self.id_of(&key).unwrap_or(UNK),
         }
     }
 
@@ -284,7 +261,7 @@ impl<B: AsRef<[u8]>> Lm<B> {
     /// has them and can spell it, else `<unk>`.
     pub fn tokens_of(&self, word: &str) -> Vec<u32> {
         let Some(key) = token_key(word) else { return vec![UNK] };
-        if let Some(&id) = self.ids.get(key.as_str()) {
+        if let Some(id) = self.id_of(&key) {
             return vec![id];
         }
         self.pieces_of(&key).unwrap_or_else(|| vec![UNK])
@@ -293,16 +270,16 @@ impl<B: AsRef<[u8]>> Lm<B> {
     /// `key` spelled in pieces, greedy longest match from the left, or
     /// `None` when a letter has no piece (or the model has none).
     pub fn pieces_of(&self, key: &str) -> Option<Vec<u32>> {
-        pieces_greedy(&self.start_pieces, &self.cont_pieces, key)
+        pieces_greedy(&self.vocab, self.bytes.as_ref(), key)
     }
 
     /// Whether token `id` is a subword piece rather than a word.
     pub fn is_piece(&self, id: u32) -> bool {
-        self.is_piece.get(id as usize).copied().unwrap_or(false)
+        self.vocab.is_piece(self.bytes.as_ref(), id)
     }
 
     pub fn has_pieces(&self) -> bool {
-        !self.start_pieces.is_empty()
+        self.vocab.has_pieces()
     }
 
     /// How many tokens of context the model reads: everything after the
@@ -340,23 +317,24 @@ impl<B: AsRef<[u8]>> Lm<B> {
     }
 }
 
-/// `key` spelled in pieces out of the two tables, greedy longest match from
-/// the left (`tools/wmlm/common.py`'s `Pieces.encode`), or `None` when a
-/// letter has no piece or the model has none. Shared with the punctuation
-/// model's reader (`punct.rs`), which carries the same two tables.
-pub(crate) fn pieces_greedy(start: &HashMap<String, u32>, cont: &HashMap<String, u32>, key: &str) -> Option<Vec<u32>> {
-    if start.is_empty() || key == "<num>" {
+/// `key` spelled in `vocab`'s pieces, greedy longest match from the left
+/// (`tools/wmlm/common.py`'s `Pieces.encode`), or `None` when a letter has
+/// no piece or the model has none. Shared with the punctuation model's reader
+/// (`punct.rs`), whose vocabulary carries the same two kinds of piece.
+pub(crate) fn pieces_greedy(vocab: &Vocab, b: &[u8], key: &str) -> Option<Vec<u32>> {
+    if !vocab.has_pieces() || key == "<num>" {
         return None;
     }
-    let chars: Vec<char> = key.chars().collect();
+    // Where each character starts, and the end: a piece is a run of whole
+    // characters, sliced out of `key` without a copy.
+    let bounds: Vec<usize> = key.char_indices().map(|(at, _)| at).chain(std::iter::once(key.len())).collect();
+    let chars = bounds.len() - 1;
     let mut out = Vec::new();
     let mut i = 0;
-    while i < chars.len() {
-        let table = if i == 0 { start } else { cont };
+    while i < chars {
         let mut taken = 0;
-        for j in (i + 1..=chars.len().min(i + MAX_PIECE)).rev() {
-            let piece: String = chars[i..j].iter().collect();
-            if let Some(&id) = table.get(&piece) {
+        for j in (i + 1..=chars.min(i + MAX_PIECE)).rev() {
+            if let Some(id) = vocab.piece_id(b, i == 0, &key[bounds[i]..bounds[j]]) {
                 out.push(id);
                 taken = j;
                 break;

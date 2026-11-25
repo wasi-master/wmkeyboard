@@ -105,12 +105,34 @@ adb pull /data/misc/perfetto-traces/wm.hprof.pftrace
 
 Open it in the Perfetto UI's heap graph, or query it with the `perfetto` Python package: `include perfetto module android.memory.heap_graph.dominator_tree` gives each object's retained size (`dominated_size_bytes`, and `dominated_native_size_bytes` for bitmaps), so the biggest owners are one `ORDER BY` away. Bitmap pixels count as native, against the `android.graphics.Bitmap` that owns them.
 
+The rest of the native heap needs heapprofd, which only sees allocations made while it is attached. Most of the keyboard's native memory is allocated as it starts, so start a session that names the process before the process exists, then let it start (an install does it):
+
+```sh
+cat > /tmp/heapprofd.cfg <<'CFG'
+buffers { size_kb: 262144 fill_policy: DISCARD }
+data_sources { config { name: "android.heapprofd" heapprofd_config {
+  sampling_interval_bytes: 16384
+  process_cmdline: "com.wasimaster.wmkeyboard"
+  shmem_size_bytes: 16777216
+  continuous_dump_config { dump_phase_ms: 30000 dump_interval_ms: 60000 }
+} } }
+write_into_file: true
+duration_ms: 2400000
+CFG
+adb push /tmp/heapprofd.cfg /data/local/tmp/heapprofd.cfg
+adb shell 'cat /data/local/tmp/heapprofd.cfg | perfetto --txt -c - -o /data/misc/perfetto-traces/native.pftrace --detach=wm'
+# ...the keyboard starts and is used for a minute or two...
+adb shell perfetto --attach=wm --stop
+```
+
+Each dump in `heap_profile_allocation` holds what changed since the one before, so sum every dump of the process to get what it holds. Our libraries are loaded straight from the APK, so their frames map to `base.apk` with no names; walk up each callstack to the first Java frame to see which call into the engine made the allocation. On a CPH2481 in November 2026 the engine's share at startup was about 21 MB: the learned words (`UserLexicon.load`), the punctuation and context models' vocabularies, and the decoder's rank tables. The rest was the GPU driver (`libGLES_mali.so`, 18 MB) and HWUI (12 MB).
+
 What the keyboard gives back, and when:
 
 - **About 20 seconds after a panel closes**, if the keyboard is back to plain typing: the media loader's and the gallery's thumbnail caches, and dynamic stickers' parsed documents and art library (`schedulePanelTrim` in `WMKeyboardService`). A picture still on screen keeps its own bitmap; emptying a Coil cache only drops the cache's reference.
 - **Two minutes after the keyboard hides**, and on trim-memory: `releaseHeavyEngines`, which unloads the models, decoded app icons, thumbnails, dynamic stickers, the search boxes' stem cache, background photos and theme card pictures.
 
-Caches are bounded by bytes, not by entries, wherever the entries vary in size. Dynamic stickers' documents are an example: a compiled built-in scene is some 400 KB of JSON tree and an imported Lottie file can be fifty times that, so `DynStickerStore` weighs each one and keeps 4 MB of them. The art library is the other half of that store: 2.4 MB of JSON that parsed whole came to 28 MB of heap, so `ArtLibrary` keeps the bytes and parses one drawing when a scene asks for it. Coil's two loaders keep a twentieth of the app's heap class each.
+Caches are bounded by bytes, not by entries, wherever the entries vary in size. Dynamic stickers' documents are an example: a compiled built-in scene is some 400 KB of JSON tree and an imported Lottie file can be fifty times that, so `DynStickerStore` weighs each one and keeps 4 MB of them. The art library is the other half of that store: 2.4 MB of JSON that parsed whole came to 28 MB of heap, so `ArtLibrary` keeps the bytes and parses one drawing when a scene asks for it. Coil's two loaders keep a twentieth of the app's heap class each. In the engine, the `.wmlm` and `.wmpt` readers look words up in the mapped file (`vocab.rs`) instead of copying the vocabulary into hash maps, which took 3.4 MB and 5.1 MB of native heap, and the learned words keep each word's followers in a small ranked vector rather than a map with a sorted copy.
 
 ## Macrobenchmarks and the baseline profile
 

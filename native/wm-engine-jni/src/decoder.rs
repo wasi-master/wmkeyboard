@@ -41,6 +41,11 @@ use crate::sources::{with_walkers_and_lexicons, KIND_DICTIONARY, KIND_LEXICON};
 static RANKS: LazyLock<Mutex<HashMap<i64, Arc<Ranks>>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 const RANK_CACHE: usize = 48;
 
+/// Drops the rank table of dictionary `handle`, which is closing.
+pub(crate) fn forget_ranks(handle: i64) {
+    RANKS.lock().unwrap_or_else(|e| e.into_inner()).remove(&handle);
+}
+
 fn strings(env: &mut JNIEnv, array: &JObjectArray) -> Option<Vec<String>> {
     let len = env.get_array_length(array).ok()?;
     let mut out = Vec::with_capacity(len as usize);
