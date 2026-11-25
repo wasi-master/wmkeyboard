@@ -18,6 +18,7 @@ import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.semantic.SemanticDownloads
 import com.wasimaster.wmkeyboard.core.semantic.SemanticModels
+import com.wasimaster.wmkeyboard.core.semantic.SemanticNpu
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.settings.SemanticSearchMode
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
@@ -123,6 +124,22 @@ internal fun SemanticSearchGroup(repository: SettingsRepository, settings: LiveS
                         onAction = { download(pack) },
                     )
                 }
+            }
+        }
+        // This chip's NPU build of the text encoder, once the text pack it
+        // reads tokens from is here.
+        val npuBuild = SemanticNpu.build()
+        if (pack != null && npuBuild != null && SemanticModels.isDownloaded(context.noBackupFilesDir, SemanticModels.Pack.TEXT)) {
+            item(level = SettingLevel.ADVANCED) {
+                val target = SemanticNpu.file(context.noBackupFilesDir, npuBuild.soc)
+                NpuBuildChoice(
+                    title = R.string.semantic_npu_title,
+                    info = stringResource(R.string.semantic_npu_info),
+                    build = npuBuild,
+                    target = target,
+                    failed = remember(states) { SemanticNpu.failedHere(context) },
+                    settings = settings,
+                ) { SemanticNpu.start(context) }
             }
         }
         if (mode == SemanticSearchMode.TEXT_AND_PICTURES) {

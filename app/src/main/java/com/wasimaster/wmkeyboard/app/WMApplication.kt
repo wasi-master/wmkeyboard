@@ -190,6 +190,17 @@ open class WMApplication : Application() {
         com.wasimaster.wmkeyboard.core.voice.executorch.EtNative.qnnSoc = {
             com.wasimaster.wmkeyboard.core.localllm.NpuSupport.qnnSoc
         }
+        // And the NPU builds of the single LiteRT models (Whisper Tiny in
+        // :core:voice), on the runtime Compute = NPU unpacks for on-device AI.
+        com.wasimaster.wmkeyboard.core.modules.LitertNpu.attach(
+            this,
+            soc = { com.wasimaster.wmkeyboard.core.localllm.NpuSupport.soc },
+            runtime = {
+                com.wasimaster.wmkeyboard.core.localllm.NpuSupport.soc?.let {
+                    com.wasimaster.wmkeyboard.core.localllm.NpuRuntime.directory(this, it)
+                }
+            },
+        )
         // Sync between devices: keeps its jobs in step with the settings and
         // pushes shortly after a synced setting changes. Here because the
         // keyboard and the settings app share this process, and either may be

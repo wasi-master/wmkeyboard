@@ -3230,6 +3230,12 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
             .takeIf { com.wasimaster.wmkeyboard.core.semantic.SemanticModels.SUPPORTED },
         entry(R.string.semantic_delete_title, R.string.semantic_group_title, R.string.home_ai_title, "ai")
             .takeIf { com.wasimaster.wmkeyboard.core.semantic.SemanticModels.SUPPORTED },
+        // Only where this phone's chip has an NPU build of the text model.
+        entry(R.string.semantic_npu_title, R.string.semantic_npu_subtitle, R.string.home_ai_title, "ai")
+            .takeIf {
+                com.wasimaster.wmkeyboard.core.semantic.SemanticModels.SUPPORTED &&
+                    com.wasimaster.wmkeyboard.core.semantic.SemanticNpu.build() != null
+            },
         access(R.string.accessibility_talkback_title, R.string.accessibility_talkback_subtitle),
         access(R.string.accessibility_passthrough_service_title).takeIf { ChannelFeatures.GESTURE_PASSTHROUGH },
         access(R.string.accessibility_debounce_title, R.string.accessibility_debounce_subtitle_off),

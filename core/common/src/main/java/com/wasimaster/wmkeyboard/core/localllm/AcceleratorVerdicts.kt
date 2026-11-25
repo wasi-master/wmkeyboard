@@ -13,9 +13,11 @@ import java.io.File
  * catch runs, so the only trace it leaves is that file still being there when
  * the next process [load]s the verdicts.
  *
- * Shared by both runtimes, each with files of its own: LiteRT-LM's GPU and
- * NPU, llama.cpp's GPU. Not thread-safe: every call with the owning
- * runtime's lock held.
+ * Shared by every runtime, each with files of its own: LiteRT-LM's GPU and
+ * NPU, llama.cpp's GPU, and the NPU builds of Whisper Tiny and of search by
+ * meaning's text encoder (`LitertNpu`). In :core:common, under the package
+ * it was written in, so :core:voice reaches it too. Not thread-safe: every
+ * call with the owning runtime's lock held.
  */
 class AcceleratorVerdicts(
     private val failedFileName: String,
@@ -106,6 +108,18 @@ class AcceleratorVerdicts(
             }.getOrDefault(0L).also { installStamp = it }
             return "${Build.FINGERPRINT}|$installed|"
         }
+
+        /**
+         * The keys stored in [failedFileName], for a settings screen that says
+         * whether a model failed on its accelerator. Reads the file only: the
+         * attempt file belongs to the process running the model, which may be
+         * in the middle of one.
+         */
+        fun storedFailures(context: Context, failedFileName: String): Set<String> =
+            runCatching { File(context.noBackupFilesDir, failedFileName).readLines() }.getOrNull()
+                ?.filter { it.isNotBlank() }
+                ?.toSet()
+                .orEmpty()
 
         /**
          * This process's graphics memory in KB, as the system counts it

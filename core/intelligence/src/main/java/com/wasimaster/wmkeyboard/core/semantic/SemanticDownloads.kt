@@ -119,9 +119,14 @@ object SemanticDownloads {
         synchronized(jobs) { jobs[pack]?.cancel() }
     }
 
-    /** Deletes [pack]'s files; the text pack takes the pictures with it, which cannot work alone. */
+    /**
+     * Deletes [pack]'s files; the text pack takes the pictures with it, which
+     * cannot work alone, and the NPU encoder ([SemanticNpu]), which needs its
+     * token table.
+     */
     fun delete(context: Context, pack: SemanticModels.Pack) {
         val dir = context.noBackupFilesDir
+        if (pack == SemanticModels.Pack.TEXT) SemanticNpu.delete(context)
         val packs = if (pack == SemanticModels.Pack.TEXT) SemanticModels.Pack.entries else listOf(pack)
         for (p in packs) {
             cancel(p)

@@ -25,6 +25,16 @@ interface EmbeddingRuntime : Closeable {
     fun openText(encoder: File, threads: Int)
 
     /**
+     * Loads an NPU build of the text encoder ([SemanticNpu]) in place of the
+     * CPU one, on LiteRT's CompiledModel with the dispatch libraries in
+     * [dispatchDir]. [encode] then runs on it. Throws when it will not load;
+     * [openText] puts the CPU encoder back.
+     */
+    fun openTextNpu(encoder: File, dispatchDir: File) {
+        throw UnsupportedOperationException("no NPU in this runtime")
+    }
+
+    /**
      * Runs the encoder on [embeddings], [length] rows of
      * [EmbeddingInput.WIDTH] floats, through the `encoder_1x<n>` signature
      * that fits them, into [out] ([EmbeddingInput.DIMENSIONS] floats, not

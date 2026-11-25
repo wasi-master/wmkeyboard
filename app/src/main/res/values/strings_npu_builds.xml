@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- Compute for a single LiteRT model with an NPU build for this phone's
+         chip (Whisper Tiny, search by meaning): CPU or NPU, the NPU choice
+         being a download of that chip's build. -->
+    <string name="npu_build_cpu">CPU</string>
+    <!-- %1$s is the download size, for example "113 MB". -->
+    <string name="npu_build_npu">NPU (<xliff:g id="size" example="113 MB">%1$s</xliff:g>)</string>
+    <string name="npu_build_subtitle_cpu">Runs on the CPU</string>
+    <!-- %1$s is the chip the build is for, for example "SM8750". -->
+    <string name="npu_build_subtitle_npu">Runs on the NPU, with the build for <xliff:g id="chip" example="SM8750">%1$s</xliff:g></string>
+    <string name="npu_build_subtitle_failed">The NPU build did not run on this phone, so the CPU runs it. The NPU gets another try after the next app or system update.</string>
+    <!-- %1$s and %2$s are byte counts, for example "40 MB" and "113 MB". -->
+    <string name="npu_build_downloading">Downloading the NPU build: <xliff:g id="done" example="40 MB">%1$s</xliff:g> of <xliff:g id="total" example="188 MB">%2$s</xliff:g></string>
+    <!-- %1$s is the download size, for example "188 MB". -->
+    <string name="npu_build_metered_body">The NPU build is a <xliff:g id="size" example="188 MB">%1$s</xliff:g> download.</string>
+
+    <string name="semantic_npu_title">Compute</string>
+    <string name="semantic_npu_subtitle">Where the search model reads text</string>
+    <string name="semantic_npu_info">NPU downloads a build of the text model made for this phone\'s chip, from Google\'s EmbeddingGemma 2 releases on Hugging Face, and runs it on the NPU, the chip\'s part for machine learning. It puts texts in the same places as the CPU model, so nothing is read again. The NPU uses the same runtime files as on-device AI with Compute set to NPU, and they download with it when they are missing. On a Snapdragon, a build that downloads them asks you to accept Qualcomm\'s licence first.\n\nPictures are always read on the CPU. If the NPU build does not load or stops, the CPU model takes over and stays in use on this phone until the next app or system update. CPU deletes the NPU build. CPU is the default.</string>
+
+    <string name="models_whisper_npu_title">Whisper Tiny on the NPU</string>
+    <string name="models_whisper_npu_subtitle">Where Whisper Tiny reads speech</string>
+    <string name="models_whisper_npu_info">NPU downloads a build of Whisper Tiny made for this phone\'s chip, from litert-community on Hugging Face, and runs it on the NPU, the chip\'s part for machine learning. It is the same Whisper Tiny model, converted for the NPU, and the Whisper Tiny you downloaded stays on the phone. The NPU uses the same runtime files as on-device AI with Compute set to NPU, and they download with it when they are missing. On a Snapdragon, a build that downloads them asks you to accept Qualcomm\'s licence first.\n\nIf the NPU build does not load or stops during a phrase, the phrase goes to the CPU, and the CPU runs Whisper Tiny on this phone until the next app or system update. Other Whisper models are not affected. CPU deletes the NPU build. CPU is the default.</string>
+</resources>

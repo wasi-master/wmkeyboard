@@ -2,6 +2,10 @@ package com.wasimaster.wmkeyboard.core.semantic
 
 import android.content.Context
 import android.graphics.Bitmap
+import com.wasimaster.wmkeyboard.core.debug.DebugLog
+import com.wasimaster.wmkeyboard.core.localllm.AcceleratorVerdicts
+import com.wasimaster.wmkeyboard.core.localllm.NpuRuntime
+import com.wasimaster.wmkeyboard.core.localllm.NpuSupport
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
 import com.wasimaster.wmkeyboard.core.text.GemmaTokenizer
@@ -17,6 +21,12 @@ import java.io.Closeable
  * Opens what it needs on first use and keeps it until [close]: the vision
  * tower only for pictures, and it can be let go alone with [closeVision].
  * Not thread-safe; the service runs it on one thread.
+ *
+ * The text encoder runs on the NPU when this phone's build of it
+ * ([SemanticNpu]) is downloaded, the NPU runtime is here and the build has
+ * not failed on this phone before; otherwise on the CPU. A build that will
+ * not load or answer is marked failed in [SemanticNpu.verdicts] and the CPU
+ * encoder takes the same text, so a search never comes back empty for it.
  */
 internal class EmbeddingEngine(private val context: Context) : Closeable {
 
@@ -24,6 +34,9 @@ internal class EmbeddingEngine(private val context: Context) : Closeable {
     private var table: TokenTable? = null
     private var runtime: EmbeddingRuntime? = null
     private var visionOpen = false
+
+    /** The [AcceleratorVerdicts.key] of the NPU encoder while it is the one open. */
+    private var npuKey: String? = null
     private var imageEnd: FloatArray? = null
 
     private val threads = Runtime.getRuntime().availableProcessors().coerceIn(2, 4)
@@ -67,7 +80,7 @@ internal class EmbeddingEngine(private val context: Context) : Closeable {
         System.arraycopy(checkNotNull(imageEnd), 0, rows, (tokens + 2) * width, width)
         table.row(tokenizer.eosId, rows, (tokens + 3) * width)
         val out = FloatArray(EmbeddingInput.DIMENSIONS)
-        checkNotNull(runtime).encode(rows, length, out)
+        run(rows, length, out)
         return EmbeddingInput.normalize(out)
     }
 
@@ -77,8 +90,51 @@ internal class EmbeddingEngine(private val context: Context) : Closeable {
         val rows = FloatArray(ids.size * width)
         for ((k, id) in ids.withIndex()) table.row(id, rows, k * width)
         val out = FloatArray(EmbeddingInput.DIMENSIONS)
-        checkNotNull(runtime).encode(rows, ids.size, out)
+        run(rows, ids.size, out)
         return EmbeddingInput.normalize(out)
+    }
+
+    /** The encoder, on the NPU while that holds, else on the CPU, which then keeps it. */
+    private fun run(rows: FloatArray, length: Int, out: FloatArray) {
+        val bridge = checkNotNull(runtime)
+        val key = npuKey ?: return bridge.encode(rows, length, out)
+        try {
+            bridge.encode(rows, length, out)
+            SemanticNpu.verdicts.confirm()
+            return
+        } catch (t: Throwable) {
+            DebugLog.w(TAG, "the NPU encoder failed: ${t.javaClass.simpleName}: ${t.message}")
+            SemanticNpu.verdicts.markFailed(context, key)
+            npuKey = null
+        }
+        bridge.openText(SemanticModels.file(dir, SemanticModels.Part.TEXT_ENCODER), threads)
+        bridge.encode(rows, length, out)
+    }
+
+    /**
+     * Opens this phone's NPU encoder on [bridge] when it can: downloaded, the
+     * runtime here, no failure on record. False leaves [bridge] for the CPU.
+     */
+    private fun openNpu(bridge: EmbeddingRuntime): Boolean {
+        val soc = NpuSupport.soc ?: return false
+        val file = SemanticNpu.downloadedFile(dir, soc) ?: return false
+        val verdicts = SemanticNpu.verdicts
+        verdicts.load(context)
+        val key = AcceleratorVerdicts.key(context, file)
+        if (key in verdicts) return false
+        // Not here yet (still downloading, or Qualcomm's licence not accepted):
+        // no verdict on the build, the CPU this time.
+        val dispatch = NpuRuntime.directory(context, soc) ?: return false
+        verdicts.begin(context, key)
+        return try {
+            bridge.openTextNpu(file, dispatch)
+            npuKey = key
+            true
+        } catch (t: Throwable) {
+            DebugLog.w(TAG, "the NPU encoder did not load: ${t.javaClass.simpleName}: ${t.message}")
+            verdicts.markFailed(context, key)
+            false
+        }
     }
 
     private fun openText() {
@@ -91,7 +147,7 @@ internal class EmbeddingEngine(private val context: Context) : Closeable {
         try {
             tokenizer = GemmaTokenizer.read(SemanticModels.file(dir, SemanticModels.Part.TOKENIZER))
             table = TokenTable.open(SemanticModels.file(dir, SemanticModels.Part.TOKENS))
-            bridge.openText(SemanticModels.file(dir, SemanticModels.Part.TEXT_ENCODER), threads)
+            if (!openNpu(bridge)) bridge.openText(SemanticModels.file(dir, SemanticModels.Part.TEXT_ENCODER), threads)
         } catch (t: Throwable) {
             runCatching { bridge.close() }
             table?.close()
@@ -125,6 +181,9 @@ internal class EmbeddingEngine(private val context: Context) : Closeable {
 
     override fun close() {
         closeVision()
+        // Let go of in an orderly way: nothing for the next process to blame on the NPU.
+        if (npuKey != null) SemanticNpu.verdicts.confirm()
+        npuKey = null
         runCatching { runtime?.close() }
         runtime = null
         table?.close()
@@ -133,6 +192,8 @@ internal class EmbeddingEngine(private val context: Context) : Closeable {
     }
 
     private companion object {
+        const val TAG = "EmbeddingEngine"
+
         /** The token that opens a picture in the sequence. */
         const val IMAGE_START = "<|image>"
     }

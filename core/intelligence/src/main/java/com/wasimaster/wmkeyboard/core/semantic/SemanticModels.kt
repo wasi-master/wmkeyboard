@@ -88,9 +88,10 @@ object SemanticModels {
     fun isDownloaded(noBackupFilesDir: File, part: Part): Boolean =
         file(noBackupFilesDir, part).let { it.isFile && it.length() == part.bytes }
 
-    /** Every byte of both packs on disk now, for the storage screen. */
+    /** Every byte of both packs on disk now, and of the NPU encoder ([SemanticNpu]), for the storage screen. */
     fun bytesOnDisk(noBackupFilesDir: File): Long =
-        Part.entries.sumOf { file(noBackupFilesDir, it).takeIf(File::isFile)?.length() ?: 0L }
+        Part.entries.sumOf { file(noBackupFilesDir, it).takeIf(File::isFile)?.length() ?: 0L } +
+            SemanticNpu.bytesOnDisk(noBackupFilesDir)
 
     /** The release asset for [part], or null when the data repository is not on GitHub. */
     fun url(part: Part): String? {

@@ -25,6 +25,19 @@ Picking Text or Text and pictures starts the download. On mobile data it asks fi
 
 On the GitHub edition the first download also fetches the LiteRT interpreter the model runs on, unless offline voice typing or the background remover already did. The Play Store edition gets the interpreter from Play. The F-Droid edition has no LiteRT interpreter, so it has no search by meaning and the choice is not shown.
 
+## On the NPU
+
+<SettingsPath path="AI / Search by meaning / Compute" />
+
+On a phone with a Snapdragon 8 Gen 2, 8 Gen 3, 8 Elite or 8 Elite Gen 5, a Dimensity 9400 or 9500, or a Tensor G5 or G6, a **Compute** row appears once the text model is downloaded. It has two choices:
+
+- **CPU** (the default). The text model runs on the phone's processor, as described below.
+- **NPU**. The keyboard downloads Google's build of the same text model made for your phone's chip and reads text with it on the NPU, the part of the chip made for machine learning. The download is a 166 to 416 MB file from Google's [EmbeddingGemma 2 releases on Hugging Face](https://huggingface.co/litert-community/embeddinggemma-2-text-270m-litert-lm), checked against its SHA-256 before it is used. Only the text model part of the file is kept, between 91 and 341 MB depending on the chip. It places texts where the CPU model does, so nothing you already have is read again.
+
+The NPU needs the same runtime files as [on-device AI](/tools/ai/) with Compute set to NPU, and they download with the build when they are missing. On a Snapdragon, a build that downloads them asks you to accept Qualcomm's licence first, and the Play Store edition gets them from Play. Pictures are always read on the CPU.
+
+If the NPU build does not load, or stops while reading, the CPU model reads the same text and keeps doing so on this phone until the next app or system update, and the row says so. Picking **CPU** deletes the NPU build. **Delete the model** deletes it too.
+
 ## Where it works
 
 Every match by meaning is listed after the matches by letters, best first, and only while the box still holds the words it was found for.
@@ -45,7 +58,7 @@ With **Text and pictures**, **Tag my stickers** (on by default) also gives each 
 
 The model is [EmbeddingGemma 2](https://huggingface.co/google/embeddinggemma-2) by Google, released under the Apache 2.0 licence. It turns a piece of text, or a picture, into a list of numbers that places it among everything else by meaning, so texts and pictures about the same thing land close together whatever their language. The keyboard compares your query's numbers with each item's and lists the ones that stand out.
 
-- **Everything stays on the phone.** The model runs on the phone's processor. Your queries, your clips, notes, snippets and pictures, and the numbers made from them are never sent anywhere. The only network request is the download of the model itself.
+- **Everything stays on the phone.** The model runs on the phone's processor, or its NPU with Compute set to NPU. Your queries, your clips, notes, snippets and pictures, and the numbers made from them are never sent anywhere. The only network request is the download of the model itself.
 - **It learns in the background.** When you open the clipboard, notes, snippets, sticker or gallery panel, the keyboard works through what is new or changed since the last time, a few hundred texts or a few dozen pictures at a time, on a low-priority thread. The gallery keeps going a few dozen photos at a time for as long as its panel stays open, newest first. Until an item has been read, it is found by letters only, and the AI tool does not find it. Emoji come ready, because their numbers are part of the download.
 - **It keeps out of the keyboard's way.** The model runs in a process of its own and needs about 350 MB of memory while it is loaded. It lets that memory go a few minutes after the last search, and if Android needs the memory sooner it stops that process. Typing never waits for it.
 - **A query waits for you to pause.** The model reads your words a moment after you stop typing, so the matches by meaning arrive a little after the matches by letters. The first search after the model has been let go takes a few seconds more, while it loads.
@@ -59,4 +72,4 @@ The model is [EmbeddingGemma 2](https://huggingface.co/google/embeddinggemma-2) 
 - **Nothing that stands out, nothing listed.** Every text is a little like every other to the model, so an item is listed only when it is clearly closer to your query than the rest are. A query about something you have nothing on finds nothing by meaning.
 - **Long texts are read by their start.** Only about the first 200 words of a long note or clip are read.
 - **Animated stickers** are read by their first frame.
-- **Checked downloads.** Each file is checked against a SHA-256 digest built into the app before it is used, so the download address can be a mirror. The files are published as the `models` release of the project's data repository, repackaged from Google's LiteRT files without changing a weight. See [Network](/privacy/network/#downloads-dictionaries-models-and-addons).
+- **Checked downloads.** Each file is checked against a SHA-256 digest built into the app before it is used, so the download address can be a mirror. The files are published as the `models` release of the project's data repository, repackaged from Google's LiteRT files without changing a weight. The NPU builds come straight from Google's files on Hugging Face, pinned to one revision. See [Network](/privacy/network/#downloads-dictionaries-models-and-addons).

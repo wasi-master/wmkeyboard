@@ -1,5 +1,9 @@
 package com.wasimaster.wmkeyboard.core.semantic.bridge
 
+import com.google.ai.edge.litert.Accelerator
+import com.google.ai.edge.litert.CompiledModel
+import com.google.ai.edge.litert.Environment
+import com.google.ai.edge.litert.TensorBuffer
 import com.wasimaster.wmkeyboard.core.semantic.EmbeddingInput
 import com.wasimaster.wmkeyboard.core.semantic.EmbeddingRuntime
 import java.io.File
@@ -19,11 +23,23 @@ import org.tensorflow.lite.Interpreter
  * the repackaging made the 128-token one; the longer two are prepared the
  * first time a text needs them.
  *
+ * The NPU build of the encoder ([openTextNpu]) runs on LiteRT's
+ * CompiledModel instead, with the same signatures and tensor names; the
+ * vision graphs always run on the interpreter.
+ *
  * Public with a public no-arg constructor, both for `newInstance()`.
  */
 class LitertEmbeddingRuntime : EmbeddingRuntime {
 
     private var text: Interpreter? = null
+
+    /** The NPU encoder, when [openTextNpu] loaded one, and the environment that holds its dispatch library. */
+    private var npu: CompiledModel? = null
+    private var npuEnvironment: Environment? = null
+
+    /** Per signature length: the NPU encoder's embeddings, mask and output buffers. */
+    private val npuBuffers = HashMap<Int, Array<TensorBuffer>>()
+
     private var vision: Interpreter? = null
     private var adapter: Interpreter? = null
 
@@ -32,12 +48,29 @@ class LitertEmbeddingRuntime : EmbeddingRuntime {
     private var visionBuffers: Array<ByteBuffer>? = null
 
     override fun openText(encoder: File, threads: Int) {
-        text?.close()
-        textBuffers.clear()
+        closeText()
         text = Interpreter(encoder, Interpreter.Options().apply { numThreads = threads })
     }
 
+    override fun openTextNpu(encoder: File, dispatchDir: File) {
+        closeText()
+        val environment = Environment.create(mapOf(Environment.Option.DispatchLibraryDir to dispatchDir.path))
+        // The CPU beside the NPU takes whatever the compiler left outside the
+        // dispatch op: the MediaTek builds keep a few reshapes there.
+        npu = try {
+            CompiledModel.create(encoder.path, CompiledModel.Options(Accelerator.NPU, Accelerator.CPU), environment)
+        } catch (t: Throwable) {
+            environment.close()
+            throw t
+        }
+        npuEnvironment = environment
+    }
+
     override fun encode(embeddings: FloatArray, length: Int, out: FloatArray) {
+        npu?.let { model ->
+            encodeNpu(model, embeddings, length, out)
+            return
+        }
         val interpreter = checkNotNull(text) { "the text encoder is not open" }
         val sequence = EmbeddingInput.sequenceLength(length)
         val rows = minOf(length, sequence)
@@ -65,6 +98,27 @@ class LitertEmbeddingRuntime : EmbeddingRuntime {
         )
         output.rewind()
         output.asFloatBuffer().get(out, 0, EmbeddingInput.DIMENSIONS)
+    }
+
+    /** [encode] on the NPU build: the same signature and names, through TensorBuffers. */
+    private fun encodeNpu(model: CompiledModel, embeddings: FloatArray, length: Int, out: FloatArray) {
+        val sequence = EmbeddingInput.sequenceLength(length)
+        val rows = minOf(length, sequence)
+        val signature = "encoder_1x$sequence"
+        val (input, mask, output) = npuBuffers.getOrPut(sequence) {
+            arrayOf(
+                model.createInputBuffer("embeddings", signature),
+                model.createInputBuffer("input_mask", signature),
+                model.createOutputBuffer("encodings", signature),
+            )
+        }
+        val padded = FloatArray(sequence * EmbeddingInput.WIDTH)
+        System.arraycopy(embeddings, 0, padded, 0, rows * EmbeddingInput.WIDTH)
+        input.writeFloat(padded)
+        mask.writeFloat(FloatArray(sequence) { if (it < rows) 1f else 0f })
+        model.run(mapOf("embeddings" to input, "input_mask" to mask), mapOf("encodings" to output), signature)
+        val encodings = output.readFloat()
+        System.arraycopy(encodings, 0, out, 0, EmbeddingInput.DIMENSIONS)
     }
 
     override fun openVision(encoder: File, adapter: File, threads: Int) {
@@ -128,9 +182,19 @@ class LitertEmbeddingRuntime : EmbeddingRuntime {
 
     override fun close() {
         closeVision()
+        closeText()
+    }
+
+    private fun closeText() {
         text?.close()
         text = null
         textBuffers.clear()
+        for (buffers in npuBuffers.values) buffers.forEach { runCatching { it.close() } }
+        npuBuffers.clear()
+        runCatching { npu?.close() }
+        npu = null
+        runCatching { npuEnvironment?.close() }
+        npuEnvironment = null
     }
 
     private fun direct(bytes: Int): ByteBuffer = ByteBuffer.allocateDirect(bytes).order(ByteOrder.nativeOrder())

@@ -1900,6 +1900,8 @@ internal object SettingsRowIcons {
         put(R.string.voice_hold_title) { Icons.Outlined.TouchApp }
         put(R.string.models_whisper_fallback_title) { Icons.Outlined.Memory }
         put(R.string.models_whisper_compute_title) { Icons.Outlined.Speed }
+        put(R.string.models_whisper_npu_title) { Icons.Outlined.Speed }
+        put(R.string.semantic_npu_title) { Icons.Outlined.Speed }
         put(R.string.tooldetail_grammar_dialect_title) { Icons.Outlined.Language }
         put(R.string.tooldetail_grammar_debounce_title) { Icons.Outlined.Timer }
         put(R.string.tooldetail_grammar_system_title) { Icons.Outlined.Public }
