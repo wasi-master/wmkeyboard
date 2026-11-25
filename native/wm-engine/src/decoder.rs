@@ -1365,6 +1365,7 @@ impl Gate {
     /// slider's `confidence` times [`GATE_CONFIDENCE_SCALE`], offers it at the
     /// offer threshold of the same.
     pub fn verdict(decoded: &Decoded, typed: &str, confidence: f64) -> Verdict {
+        let slider = confidence;
         let modelled = Gate::features(decoded, typed).is_some_and(|(_, f)| f[7] > 0.5);
         let confidence = confidence * if modelled { GATE_CONFIDENCE_SCALE } else { GATE_PLAIN_CONFIDENCE_SCALE };
         let Some((i, f)) = Gate::features(decoded, typed) else {
@@ -1374,7 +1375,7 @@ impl Gate {
         let p = Gate::probability(&f);
         let text = decoded.readings[i].text.clone();
         let lead = f[0];
-        if p >= crate::confidence::apply_threshold(confidence) {
+        if p >= crate::confidence::apply_threshold(confidence) || Gate::plain_slip(decoded, typed, lead, slider) {
             Verdict { apply: Some(text), offer: None, lead }
         } else if p >= crate::confidence::offer_threshold(confidence) {
             Verdict { apply: None, offer: Some(text), lead }
@@ -1383,6 +1384,50 @@ impl Gate {
         }
     }
 }
+
+impl Gate {
+    /// Whether the best reading is one plain slip of a listed word, far
+    /// enough ahead to apply whatever the fitted probability says: a word no
+    /// list holds, read as one letter left out, added, swapped or hit next
+    /// door (`proerly` → *properly*, `correctes` → *corrected*), leading the
+    /// letters as typed by [`PLAIN_SLIP_LEAD`] nats at the default slider
+    /// (scaled with it as the fixed bars are) and the next reading by
+    /// [`PLAIN_SLIP_GAP`].
+    ///
+    /// The gate was fitted with a large share of the list held out as new
+    /// words, so it learned that an unlisted spelling one edit from a listed
+    /// word is about as often a word of its own as a typo, and held back
+    /// even everyday typos: on one-edit typos of listed words typed with a
+    /// 0.27-key scatter it applied 30% of the fixes. This rule took that to
+    /// 45%, more than dropping the slider to ×2 did (37%), for fewer new
+    /// words rewritten than that drop (975 against 949 of 1,856 held-out
+    /// words, where the gate alone rewrote 846; the held-out words there are
+    /// mostly inflections of listed words, which the AOSP list holds on the
+    /// phone).
+    pub fn plain_slip(decoded: &Decoded, typed: &str, lead: f64, slider: f64) -> bool {
+        if decoded.literal_listed || slider <= 1.0 {
+            return false;
+        }
+        let typed = letters_of(typed);
+        let Some(best) = decoded.readings.first().filter(|r| r.text != typed) else {
+            return false;
+        };
+        if best.spaces != 0 || best.edge != 0 || best.edits + best.slips > 1 {
+            return false;
+        }
+        let gap = decoded.readings.iter().skip(1).find(|r| r.text != typed).map_or(GATE_GAP_CAP, |r| best.score - r.score);
+        let scale = slider.ln() / 4f64.ln();
+        lead >= PLAIN_SLIP_LEAD * scale && gap >= PLAIN_SLIP_GAP
+    }
+}
+
+/// How far a plain one-edit reading must lead the letters as typed at the
+/// default slider ([`Gate::plain_slip`]). Swept 2.5..5 on one-edit typos of
+/// listed words against held-out words typed right: 3.5 kept the wrong fixes
+/// near the gate's own (231 against 188 of 2,310) for 335 more right ones.
+pub const PLAIN_SLIP_LEAD: f64 = 3.5;
+/// How far it must lead the reading behind it: a near tie is a guess.
+pub const PLAIN_SLIP_GAP: f64 = 1.0;
 
 /// One hidden layer of tanh on standardised features, a logistic out.
 fn net<const N: usize>(

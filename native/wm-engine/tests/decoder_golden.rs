@@ -103,3 +103,42 @@ fn reported_cases() {
     }
     assert!(failed.is_empty(), "{}", failed.join("\n"));
 }
+
+/// The verdict the phone asks for under the learned gate (the default),
+/// without the context model: plain one-edit typos of listed words are put
+/// right, as the fixed bars put them right, and correctly typed words stay.
+#[test]
+fn gated_plain_typos() {
+    let (main, aosp) = lists();
+    let (r1, r2) = (Ranks::of(main.dict()), Ranks::of(aosp.dict()));
+    let g = geometry();
+    let p1 = |f: i32| r1.prior(f);
+    let p2 = |f: i32| r2.prior(f);
+    let sources = [Source { walker: main.dict(), prior: &p1 }, Source { walker: aosp.dict(), prior: &p2 }];
+    let gated = |spec: &str| {
+        let (typed, taps) = taps(spec, &g);
+        let d = decoder::decode(&taps, &g, &sources, &NoContext, &[], &Params::default(), &|_, _| false, 6);
+        (typed.clone(), decoder::decide(&d, &typed, 4.0, decoder::APPLY_MARGIN, decoder::KNOWN_MARGIN, decoder::ACCENT_MARGIN).apply)
+    };
+    let mut failed = Vec::new();
+    // A Discord report: "proerly" and "correctes" were left as typed.
+    for (spec, want) in [("proerly", "properly"), ("correctes", "corrected"), ("wnat", "want"), ("abot", "about"), ("teh", "the")] {
+        let (typed, got) = gated(spec);
+        if got.as_deref() != Some(want) {
+            failed.push(format!("{typed}: want {want}, got {got:?}"));
+        }
+    }
+    for spec in ["config", "inbox", "miui", "hello", "people", "swamps", "catnip", "reliably", "properly", "corrected"] {
+        let (typed, got) = gated(spec);
+        if let Some(g) = got {
+            failed.push(format!("{typed}: must stay, got {g}"));
+        }
+    }
+    // The slider still decides: at its strictest the same typo waits for the chip.
+    let (typed, taps) = taps("proerly", &g);
+    let d = decoder::decode(&taps, &g, &sources, &NoContext, &[], &Params::default(), &|_, _| false, 6);
+    if decoder::Gate::verdict(&d, &typed, 10.0).apply.is_some() {
+        failed.push("proerly applied at the strictest slider".into());
+    }
+    assert!(failed.is_empty(), "{}", failed.join("\n"));
+}
