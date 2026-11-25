@@ -5019,6 +5019,16 @@ private fun ThemeEditorContent(
             ) { on -> update { t -> t.copy(honeycomb = on) } }
         }
         item {
+            // The hexagons as 0.6.7 drew them, before their corners followed
+            // the key radius (#1563). Shown whether or not the switch above is
+            // on: a layout's own honeycomb is drawn by this theme too.
+            ToggleSetting(
+                R.string.theme_honeycomb_pointed_title,
+                stringResource(R.string.theme_honeycomb_pointed_subtitle),
+                checked = look.watch { it.honeycombPointed },
+            ) { on -> update { t -> t.copy(honeycombPointed = on) } }
+        }
+        item {
             ColorRow(
                 R.string.theme_letter_keys_title,
                 look.watch { it.keyBackground },

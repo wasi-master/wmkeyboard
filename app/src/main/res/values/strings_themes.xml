@@ -321,6 +321,8 @@
     <string name="theme_number_row_height_title">Number row height</string>
     <string name="theme_honeycomb_title">Honeycomb grid</string>
     <string name="theme_honeycomb_subtitle">Draw the keys of every layout as hexagons, every other row half a key over, with the rows fitted into each other</string>
+    <string name="theme_honeycomb_pointed_title">Pointed honeycomb corners</string>
+    <string name="theme_honeycomb_pointed_subtitle">Keep the hexagons\' corners pointed whatever the key shape and corner radius, as before 0.6.8</string>
     <string name="theme_honeycomb_info">Draws every layout\'s keys as a honeycomb while this theme is on, the same as turning on Honeycomb grid for each layout in the layout editor. The corner radius rounds the hexagons\' corners; pick the Sharp shape to keep them pointed.</string>
     <string name="theme_key_caps_art_section_title">Key caps art</string>
     <string name="theme_key_caps_art_section_body">A picture shown on the keys themselves rather than behind them. Picture on the keys cuts the theme\'s background image into pieces, one on each key, and an animated one keeps playing there. The image blur slider under Board blurs the pieces too.</string>

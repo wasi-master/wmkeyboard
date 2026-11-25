@@ -350,6 +350,13 @@ data class ThemeSpec(
      */
     val honeycomb: Boolean = false,
     /**
+     * Keep a honeycomb's hexagons pointed whatever the key radius and shape
+     * (#1563): how 0.6.7 drew them, before the corners followed the radius
+     * (#1392). Applies to every honeycomb this theme draws, the layouts' own
+     * as well as [honeycomb]'s.
+     */
+    val honeycombPointed: Boolean = false,
+    /**
      * Absolute path of an image drawn on every letter key, clipped to the key
      * shape, over the key colour. Never set in exports — the bytes travel in
      * [assets] under `"keyTexture"`. The class-specific slots below fall back

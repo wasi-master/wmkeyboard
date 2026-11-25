@@ -20271,12 +20271,20 @@ internal fun KbTheme.keyPalette(): KeyPalette = KeyPalette(
     honeycomb = honeycomb,
     // Rounded by the board's radius whatever the shape, but Sharp, which is
     // the theme saying pointed; Pill and Circle round as far as an edge goes.
-    hexCornerRadiusDp = when (keyShapeKind) {
-        KeyShapeKind.SHARP -> 0f
-        KeyShapeKind.PILL, KeyShapeKind.CIRCLE -> HexFullRoundDp
-        else -> keyRadiusDp.toFloat()
+    // Pointed corners (#1563) keep the 0.6.7 hexagons under any shape.
+    hexCornerRadiusDp = when {
+        honeycombPointed -> 0f
+        else -> hexCornerRadiusFor(keyShapeKind, keyRadiusDp)
     },
 )
+
+/** How round a honeycomb's corners are under [shape] at [radiusDp]; see [KeyPalette.hexCornerRadiusDp]. */
+private fun hexCornerRadiusFor(shape: KeyShapeKind, radiusDp: Int): Float =
+    when (shape) {
+        KeyShapeKind.SHARP -> 0f
+        KeyShapeKind.PILL, KeyShapeKind.CIRCLE -> HexFullRoundDp
+        else -> radiusDp.toFloat()
+    }
 
 /** A corner radius past any honeycomb edge's half, so the corner rounds as far as it can. */
 private const val HexFullRoundDp = 999f

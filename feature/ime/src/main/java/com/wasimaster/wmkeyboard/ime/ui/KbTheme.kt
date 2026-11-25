@@ -408,6 +408,8 @@ data class KbTheme(
     val boardEffectStill: Boolean = false,
     /** Every layout drawn as a honeycomb; see [ThemeSpec.honeycomb]. */
     val honeycomb: Boolean = false,
+    /** A honeycomb's corners kept pointed; see [ThemeSpec.honeycombPointed]. */
+    val honeycombPointed: Boolean = false,
 )
 
 /** A [BoardEffectSpec] with its kind known, its colours chosen and its ranges enforced. */
@@ -1320,6 +1322,7 @@ private fun specKbTheme(spec: ThemeSpec, settings: KeyboardSettings): KbTheme {
         clipChipText = spec.clipboardChipText?.let(::colorOf),
         keyRadiusDp = spec.keyCornerRadiusDp ?: settings.keyCornerRadiusDp,
         honeycomb = spec.honeycomb,
+        honeycombPointed = spec.honeycombPointed,
         modifierKeyRadiusDp = spec.modifierKeyCornerRadiusDp?.coerceIn(KEY_OVERRIDE_RADIUS_RANGE),
         actionKeyRadiusDp = spec.actionKeyCornerRadiusDp?.coerceIn(KEY_OVERRIDE_RADIUS_RANGE),
         popupRadiusDp = spec.popupCornerRadiusDp ?: settings.popup.cornerRadiusDp,
@@ -2322,6 +2325,7 @@ private fun lerpKbTheme(a: KbTheme, b: KbTheme, t: Float): KbTheme {
         oneHandedPanelIcon = lerp(a.oneHandedPanelIcon, b.oneHandedPanelIcon, t),
         keyRadiusDp = lerpI(a.keyRadiusDp, b.keyRadiusDp, t),
         honeycomb = if (past) b.honeycomb else a.honeycomb,
+        honeycombPointed = if (past) b.honeycombPointed else a.honeycombPointed,
         modifierKeyRadiusDp = lerpI(a.modifierKeyRadiusDp ?: a.keyRadiusDp, b.modifierKeyRadiusDp ?: b.keyRadiusDp, t)
             .takeIf { a.modifierKeyRadiusDp != null || b.modifierKeyRadiusDp != null },
         actionKeyRadiusDp = lerpI(a.actionKeyRadiusDp ?: a.keyRadiusDp, b.actionKeyRadiusDp ?: b.keyRadiusDp, t)
