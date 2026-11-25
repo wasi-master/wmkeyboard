@@ -7852,149 +7852,151 @@ private fun ClipboardSuggestionChip(
         }
     }
 
-    Row(
-        modifier = modifier
-            .fillMaxHeight()
-            .padding(vertical = 5.dp)
-            .clip(RoundedCornerShape(50))
-            .background(fill)
-            .then(
-                if (otp != null) {
-                    Modifier.dashedOutline(tint.copy(alpha = 0.6f), 50.dp)
-                } else {
-                    Modifier.border(1.dp, tint.copy(alpha = 0.32f), RoundedCornerShape(50))
-                },
-            ),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
+    StripChipFrame(modifier) { m ->
         Row(
             modifier = Modifier
-                .weight(1f, fill = false)
                 .fillMaxHeight()
-                .combinedClickable(
-                    onLongClickLabel = onDelete?.let { stringResource(R.string.ime_clip_chip_delete_desc) },
-                    onLongClick = onDelete?.let { { feedback(); asking = true } },
-                ) {
-                    feedback()
-                    onPaste()
-                }
-                .padding(horizontal = 6.dp),
+                .padding(vertical = m.padding)
+                .clip(RoundedCornerShape(50))
+                .background(fill)
+                .then(
+                    if (otp != null) {
+                        Modifier.dashedOutline(tint.copy(alpha = 0.6f), 50.dp)
+                    } else {
+                        Modifier.border(1.dp, tint.copy(alpha = 0.32f), RoundedCornerShape(50))
+                    },
+                ),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            val clipBitmap = bitmap
-            if (clip.kind == ClipKind.IMAGE && clipBitmap != null) {
-                Image(
-                    bitmap = clipBitmap,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(22.dp)
-                        .clip(CircleShape)
-                        .background(tint.copy(alpha = 0.22f)),
-                    contentScale = ContentScale.Crop,
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(22.dp)
-                        .clip(CircleShape)
-                        .background(tint.copy(alpha = 0.22f)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        when {
-                            otp != null -> clipEntityIcon(otp.kind)
-                            clip.kind == ClipKind.IMAGE -> Icons.Outlined.Image
-                            else -> Icons.Outlined.ContentPaste
-                        },
+            Row(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .fillMaxHeight()
+                    .combinedClickable(
+                        onLongClickLabel = onDelete?.let { stringResource(R.string.ime_clip_chip_delete_desc) },
+                        onLongClick = onDelete?.let { { feedback(); asking = true } },
+                    ) {
+                        feedback()
+                        onPaste()
+                    }
+                    .padding(horizontal = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                val clipBitmap = bitmap
+                if (clip.kind == ClipKind.IMAGE && clipBitmap != null) {
+                    Image(
+                        bitmap = clipBitmap,
                         contentDescription = null,
-                        tint = tint,
-                        modifier = Modifier.size(13.dp),
+                        modifier = Modifier
+                            .size(m.badge)
+                            .clip(CircleShape)
+                            .background(tint.copy(alpha = 0.22f)),
+                        contentScale = ContentScale.Crop,
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(m.badge)
+                            .clip(CircleShape)
+                            .background(tint.copy(alpha = 0.22f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            when {
+                                otp != null -> clipEntityIcon(otp.kind)
+                                clip.kind == ClipKind.IMAGE -> Icons.Outlined.Image
+                                else -> Icons.Outlined.ContentPaste
+                            },
+                            contentDescription = null,
+                            tint = tint,
+                            modifier = Modifier.size(m.glyph),
+                        )
+                    }
+                }
+                if (otp != null) {
+                    // "CODE" earns its space here: without it the chip is a bare
+                    // number, and the user has no way to tell it was lifted out of
+                    // the message rather than being the whole copy.
+                    Text(
+                        text = stringResource(
+                            if (otp.kind == ClipEntityKind.OTP) R.string.ime_clip_chip_code_badge else otp.kind.tagRes,
+                        ),
+                        color = tint.copy(alpha = 0.85f),
+                        fontSize = 9.sp,
+                        letterSpacing = 0.8.sp,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
                     )
                 }
-            }
-            if (otp != null) {
-                // "CODE" earns its space here: without it the chip is a bare
-                // number, and the user has no way to tell it was lifted out of
-                // the message rather than being the whole copy.
+                val textToDisplay = when {
+                    otp != null -> otp.value
+                    clip.kind == ClipKind.IMAGE -> stringResource(
+                        // "System UI" is the package label Android gives a
+                        // screenshot, not wording anyone reads.
+                        if (clip.sourceApp == "System UI") {
+                            R.string.ime_clip_chip_screenshot
+                        } else {
+                            R.string.ime_clip_chip_image
+                        },
+                    )
+                    // A password offered in a password field (#1109) is dots: the
+                    // field hides what is typed, and the chip must not undo that.
+                    clip.sensitive && !ClipSensitivity.isBareCode(clip.text.trim()) -> SecretChipDots
+                    // One line is all the chip shows; the rest is not laid out.
+                    clip.text.isNotBlank() -> clipPreviewText(clip.text, lines = 1)
+                    else -> stringResource(R.string.ime_clip_chip_item)
+                }
                 Text(
-                    text = stringResource(
-                        if (otp.kind == ClipEntityKind.OTP) R.string.ime_clip_chip_code_badge else otp.kind.tagRes,
-                    ),
-                    color = tint.copy(alpha = 0.85f),
-                    fontSize = 9.sp,
-                    letterSpacing = 0.8.sp,
-                    fontWeight = FontWeight.Medium,
+                    text = textToDisplay,
+                    // suggestionText, not keyText: this chip sits on the strip,
+                    // over the board. A theme whose keys invert the board — dark
+                    // letters on cream caps over a near-black board — draws the
+                    // key colour invisible here.
+                    color = kb.clipChipText ?: kb.suggestionText,
+                    fontSize = (13f * m.textScale).sp,
+                    fontWeight = if (otp != null) FontWeight.Medium else FontWeight.Normal,
                     maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
                 )
             }
-            val textToDisplay = when {
-                otp != null -> otp.value
-                clip.kind == ClipKind.IMAGE -> stringResource(
-                    // "System UI" is the package label Android gives a
-                    // screenshot, not wording anyone reads.
-                    if (clip.sourceApp == "System UI") {
-                        R.string.ime_clip_chip_screenshot
-                    } else {
-                        R.string.ime_clip_chip_image
-                    },
+            if (onMore != null) Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .clip(CircleShape)
+                    .clickable {
+                        feedback()
+                        onMore()
+                    }
+                    .padding(start = 6.dp, end = if (dismissible) 0.dp else 8.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Outlined.History,
+                    contentDescription = stringResource(R.string.ime_clip_chip_more_desc),
+                    tint = tint.copy(alpha = 0.85f),
+                    modifier = Modifier.size(m.close + 1.dp),
                 )
-                // A password offered in a password field (#1109) is dots: the
-                // field hides what is typed, and the chip must not undo that.
-                clip.sensitive && !ClipSensitivity.isBareCode(clip.text.trim()) -> SecretChipDots
-                // One line is all the chip shows; the rest is not laid out.
-                clip.text.isNotBlank() -> clipPreviewText(clip.text, lines = 1)
-                else -> stringResource(R.string.ime_clip_chip_item)
             }
-            Text(
-                text = textToDisplay,
-                // suggestionText, not keyText: this chip sits on the strip,
-                // over the board. A theme whose keys invert the board — dark
-                // letters on cream caps over a near-black board — draws the
-                // key colour invisible here.
-                color = kb.clipChipText ?: kb.suggestionText,
-                fontSize = 13.sp,
-                fontWeight = if (otp != null) FontWeight.Medium else FontWeight.Normal,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f, fill = false),
-            )
-        }
-        if (onMore != null) Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .clip(CircleShape)
-                .clickable {
-                    feedback()
-                    onMore()
-                }
-                .padding(start = 6.dp, end = if (dismissible) 0.dp else 8.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                Icons.Outlined.History,
-                contentDescription = stringResource(R.string.ime_clip_chip_more_desc),
-                tint = tint.copy(alpha = 0.85f),
-                modifier = Modifier.size(16.dp),
-            )
-        }
-        if (dismissible) Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .clip(CircleShape)
-                .clickable {
-                    feedback()
-                    onDismiss()
-                }
-                .padding(horizontal = 8.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                Icons.Outlined.Close,
-                contentDescription = stringResource(R.string.ime_clip_chip_dismiss_desc),
-                tint = tint.copy(alpha = 0.7f),
-                modifier = Modifier.size(15.dp),
-            )
+            if (dismissible) Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .clip(CircleShape)
+                    .clickable {
+                        feedback()
+                        onDismiss()
+                    }
+                    .padding(horizontal = 8.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Outlined.Close,
+                    contentDescription = stringResource(R.string.ime_clip_chip_dismiss_desc),
+                    tint = tint.copy(alpha = 0.7f),
+                    modifier = Modifier.size(m.close),
+                )
+            }
         }
     }
 }

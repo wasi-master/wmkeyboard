@@ -27,6 +27,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -48,6 +50,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardArrowRight
@@ -108,185 +111,249 @@ internal fun SmartSuggestionChip(
     // so the colours stay accent-based; only the outline follows the theme's
     // chip shape.
     val shape = kb.chipShape()
-    Row(
-        modifier = modifier
-            .fillMaxHeight()
-            .padding(vertical = 5.dp)
-            .graphicsLayer {
-                scaleX = appear.value
-                scaleY = appear.value
-                alpha = appear.value
-            }
-            .clip(shape)
-            .background(fill)
-            .border(1.dp, tint.copy(alpha = 0.32f), shape),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
+    StripChipFrame(modifier) { m ->
+        // Text sizes follow the strip's height below the default (see [StripChipMetrics]).
+        fun sized(sp: Float) = (sp * m.textScale).sp
         Row(
             modifier = Modifier
-                .then(if (keyword) Modifier else Modifier.weight(1f))
                 .fillMaxHeight()
-                .combinedClickable(
-                    onClick = {
-                        feedback()
-                        onAccept()
-                    },
-                    onLongClick = onLongPress?.let { hold -> { feedback(); hold() } },
-                )
-                .padding(start = 6.dp, end = if (keyword) 10.dp else 6.dp),
+                .padding(vertical = m.padding)
+                .graphicsLayer {
+                    scaleX = appear.value
+                    scaleY = appear.value
+                    alpha = appear.value
+                }
+                .clip(shape)
+                .background(fill)
+                .border(1.dp, tint.copy(alpha = 0.32f), shape),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            val swatch = hit.swatch
-            if (swatch != null) {
-                // A colour chip shows the colour itself where the tool's icon would be.
-                Box(
-                    modifier = Modifier
-                        .size(22.dp)
-                        .clip(CircleShape)
-                        .background(Color(swatch))
-                        .border(1.dp, kb.secondaryText.copy(alpha = 0.4f), CircleShape),
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(22.dp)
-                        .clip(CircleShape)
-                        .background(tint.copy(alpha = 0.22f)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(13.dp))
-                }
-            }
-            if (keyword) {
-                Text(
-                    text = narrowChipLabel(hit),
-                    color = tint,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.widthIn(max = 220.dp),
-                )
-                if (repeat) RepeatCountPill(hit.result.orEmpty(), tint, reduceMotion)
-                if (!contact) {
-                    Icon(
-                        Icons.AutoMirrored.Outlined.KeyboardArrowRight,
-                        contentDescription = null,
-                        tint = tint.copy(alpha = 0.7f),
-                        modifier = Modifier.size(15.dp),
+            Row(
+                modifier = Modifier
+                    .then(if (keyword) Modifier else Modifier.weight(1f))
+                    .fillMaxHeight()
+                    .combinedClickable(
+                        onClick = {
+                            feedback()
+                            onAccept()
+                        },
+                        onLongClick = onLongPress?.let { hold -> { feedback(); hold() } },
                     )
+                    .padding(start = 6.dp, end = if (keyword) 10.dp else 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                val swatch = hit.swatch
+                if (swatch != null) {
+                    // A colour chip shows the colour itself where the tool's icon would be.
+                    Box(
+                        modifier = Modifier
+                            .size(m.badge)
+                            .clip(CircleShape)
+                            .background(Color(swatch))
+                            .border(1.dp, kb.secondaryText.copy(alpha = 0.4f), CircleShape),
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(m.badge)
+                            .clip(CircleShape)
+                            .background(tint.copy(alpha = 0.22f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(m.glyph))
+                    }
                 }
-            } else if (hit.result == null) {
-                // Rates or a forecast still missing. The chip is already up so
-                // the strip does not jump when the answer lands. It spins while
-                // that is fetched, or asks for the tap that fetches it.
-                Text(
-                    text = hit.query,
-                    color = kb.secondaryText,
-                    fontSize = 13.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.widthIn(max = 160.dp),
-                )
-                Text("→", color = kb.secondaryText, fontSize = 12.sp)
-                if (hit.awaitingTap) {
+                if (keyword) {
                     Text(
-                        text = stringResource(
-                            if (hit.kind == SmartSuggest.Kind.WEATHER) {
-                                R.string.ime_smart_weather_tap
-                            } else {
-                                R.string.ime_smart_rates_tap
-                            },
-                        ),
+                        text = narrowChipLabel(hit),
                         color = tint,
-                        fontSize = 13.sp,
+                        fontSize = sized(13f),
                         fontWeight = FontWeight.Medium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.widthIn(max = 220.dp),
                     )
-                } else {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(13.dp),
-                        strokeWidth = 1.5.dp,
-                        color = tint,
-                    )
-                }
-            } else {
-                // The hit carries its text in tiers, widest first. Measure
-                // each against the space the row actually has and show the
-                // richest one that fits — degrading the strings first, then
-                // the font, then the spelled-out amount (see ChipTier).
-                BoxWithConstraints(
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                    contentAlignment = Alignment.CenterStart,
-                ) {
-                    val measurer = rememberTextMeasurer()
-                    val density = LocalDensity.current
-                    val tiers = remember(hit) {
-                        hit.tiers.ifEmpty { listOf(SmartSuggest.ChipTier(hit.query, hit.result.orEmpty())) }
-                    }
-                    val (tier, small) = remember(tiers, maxWidth) {
-                        chooseTier(tiers, measurer, density, maxWidth)
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        Text(
-                            text = tier.query,
-                            color = kb.secondaryText,
-                            fontSize = if (small) 11.sp else 13.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.widthIn(max = 160.dp),
+                    if (repeat) RepeatCountPill(hit.result.orEmpty(), tint, reduceMotion)
+                    if (!contact) {
+                        Icon(
+                            Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                            contentDescription = null,
+                            tint = tint.copy(alpha = 0.7f),
+                            modifier = Modifier.size(m.close),
                         )
-                        Text("→", color = kb.secondaryText, fontSize = if (small) 10.sp else 12.sp)
+                    }
+                } else if (hit.result == null) {
+                    // Rates or a forecast still missing. The chip is already up so
+                    // the strip does not jump when the answer lands. It spins while
+                    // that is fetched, or asks for the tap that fetches it.
+                    Text(
+                        text = hit.query,
+                        color = kb.secondaryText,
+                        fontSize = sized(13f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.widthIn(max = 160.dp),
+                    )
+                    Text("→", color = kb.secondaryText, fontSize = sized(12f))
+                    if (hit.awaitingTap) {
                         Text(
-                            text = tier.result,
+                            text = stringResource(
+                                if (hit.kind == SmartSuggest.Kind.WEATHER) {
+                                    R.string.ime_smart_weather_tap
+                                } else {
+                                    R.string.ime_smart_rates_tap
+                                },
+                            ),
                             color = tint,
-                            fontSize = if (small) 13.sp else 15.sp,
-                            fontWeight = FontWeight.SemiBold,
+                            fontSize = sized(13f),
+                            fontWeight = FontWeight.Medium,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f, fill = false),
                         )
+                    } else {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(13.dp),
+                            strokeWidth = 1.5.dp,
+                            color = tint,
+                        )
+                    }
+                } else {
+                    // The hit carries its text in tiers, widest first. Measure
+                    // each against the space the row actually has and show the
+                    // richest one that fits — degrading the strings first, then
+                    // the font, then the spelled-out amount (see ChipTier).
+                    BoxWithConstraints(
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        contentAlignment = Alignment.CenterStart,
+                    ) {
+                        val measurer = rememberTextMeasurer()
+                        val density = LocalDensity.current
+                        val tiers = remember(hit) {
+                            hit.tiers.ifEmpty { listOf(SmartSuggest.ChipTier(hit.query, hit.result.orEmpty())) }
+                        }
+                        val (tier, small) = remember(tiers, maxWidth) {
+                            chooseTier(tiers, measurer, density, maxWidth)
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Text(
+                                text = tier.query,
+                                color = kb.secondaryText,
+                                fontSize = sized(if (small) 11f else 13f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.widthIn(max = 160.dp),
+                            )
+                            Text("→", color = kb.secondaryText, fontSize = sized(if (small) 10f else 12f))
+                            Text(
+                                text = tier.result,
+                                color = tint,
+                                fontSize = sized(if (small) 13f else 15f),
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false),
+                            )
+                        }
                     }
                 }
             }
-        }
-        if ((!keyword || contact) && canOpen) {
-            Box(
-                modifier = Modifier
-                    .width(1.dp)
-                    .fillMaxHeight()
-                    .padding(vertical = 7.dp)
-                    .background(tint.copy(alpha = 0.28f)),
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .clickable {
-                        feedback()
-                        onOpen()
-                    }
-                    .padding(horizontal = 9.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    if (contact) Icons.Outlined.Sms else Icons.Outlined.Tune,
-                    contentDescription = if (contact) {
-                        stringResource(R.string.ime_smart_contact_message, hit.query)
-                    } else {
-                        stringResource(R.string.ime_smart_open_tool, toolLabel(hit.tool))
-                    },
-                    tint = tint.copy(alpha = 0.85f),
-                    modifier = Modifier.size(17.dp),
+            if ((!keyword || contact) && canOpen) {
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .fillMaxHeight()
+                        .padding(vertical = 7.dp)
+                        .background(tint.copy(alpha = 0.28f)),
                 )
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .clickable {
+                            feedback()
+                            onOpen()
+                        }
+                        .padding(horizontal = 9.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        if (contact) Icons.Outlined.Sms else Icons.Outlined.Tune,
+                        contentDescription = if (contact) {
+                            stringResource(R.string.ime_smart_contact_message, hit.query)
+                        } else {
+                            stringResource(R.string.ime_smart_open_tool, toolLabel(hit.tool))
+                        },
+                        tint = tint.copy(alpha = 0.85f),
+                        modifier = Modifier.size(m.close + 2.dp),
+                    )
+                }
             }
         }
     }
 }
+
+/**
+ * Sizes for a chip on the suggestion strip, worked out from the height the
+ * strip gives it (Telegram 10558). The chips were drawn at fixed sizes, a
+ * 22dp badge and 13sp text inside 5dp of padding, and a strip made short
+ * (the toolbar height setting, or landscape, which takes it down to 70%) cut
+ * them off top and bottom: the text sank under the toolbar row. At the
+ * default 44dp strip, and anything taller than 40dp, every value is the one
+ * the chips always had; below that the padding gives way first, then the
+ * badge, then the text, which stops at 77% of its size.
+ */
+internal class StripChipMetrics(
+    val padding: Dp,
+    /** The round badge the icon sits in. */
+    val badge: Dp,
+    /** The icon inside [badge]. */
+    val glyph: Dp,
+    /** The trailing ✕ or arrow. */
+    val close: Dp,
+    /** What the chip's text sizes are multiplied by. */
+    val textScale: Float,
+    /** Lines held to their text: the theme's taller line would not fit. */
+    val compactLines: Boolean,
+)
+
+internal fun stripChipMetrics(height: Dp): StripChipMetrics {
+    val h = height.value
+    val pad = ((h - 30f) / 2f).coerceIn(2f, 5f)
+    val inner = h - 2f * pad
+    val badge = (inner - 2f).coerceIn(14f, 22f)
+    return StripChipMetrics(
+        padding = pad.dp,
+        badge = badge.dp,
+        glyph = (badge * 13f / 22f).dp,
+        close = (inner * 0.75f).coerceIn(10f, 15f).dp,
+        textScale = (inner / 18f).coerceIn(0.77f, 1f),
+        compactLines = inner < 26f,
+    )
+}
+
+/**
+ * Hands [content] the [StripChipMetrics] for the height it is given. The
+ * caller's modifier goes on the frame, and the frame passes its minimum size
+ * on, so a chip told to fill the row's width still does.
+ */
+@Composable
+internal fun StripChipFrame(modifier: Modifier, content: @Composable (StripChipMetrics) -> Unit) {
+    BoxWithConstraints(modifier.fillMaxHeight(), propagateMinConstraints = true) {
+        val height = if (constraints.hasBoundedHeight) maxHeight else StripChipRoomyHeight
+        val metrics = remember(height) { stripChipMetrics(height) }
+        if (metrics.compactLines) {
+            ProvideTextStyle(LocalTextStyle.current.copy(lineHeight = 1.15.em)) { content(metrics) }
+        } else {
+            content(metrics)
+        }
+    }
+}
+
+/** A strip of the default height, for a chip measured with no height limit. */
+private val StripChipRoomyHeight = 44.dp
 
 /**
  * What a narrow chip says. A keyword chip names the tool it opens; a lookup
