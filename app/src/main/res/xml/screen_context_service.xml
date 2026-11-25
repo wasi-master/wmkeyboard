@@ -4,10 +4,15 @@
      content, which is the one thing it exists for, and only reads it when the
      floating button's Ask AI is pressed (ScreenContextService.read) or its
      Look up is used and a word tapped (ScreenContextService.textAt, which also
-     asks the tapped text for its characters' boxes). It subscribes to window
-     changes only because some platforms keep no window tree for a service that
-     subscribes to nothing; the events themselves are ignored. No gestures, no
-     key filtering, no touch exploration, no actions.
+     asks the tapped text for its characters' boxes). At rest it subscribes to
+     no events and asks for no window list (#1462): Chromium browsers size
+     their own accessibility work to what the enabled services listen to, and
+     a service listening to window changes all day kept Brave's engine running
+     in every tab. ScreenReader widens its service info to window-state events
+     and the interactive window list only while a read runs (some platforms
+     keep no window tree for a service that subscribes to nothing), then
+     narrows it again; the events themselves are ignored. No gestures, no key
+     filtering, no touch exploration, no actions.
 
      Not an accessibility tool (isAccessibilityTool is false): it helps the
      user ask about the screen, not use the device with a disability, and the
@@ -15,9 +20,7 @@
 -->
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:accessibilityEventTypes="typeWindowStateChanged"
     android:accessibilityFeedbackType="feedbackGeneric"
-    android:accessibilityFlags="flagRetrieveInteractiveWindows"
     android:canRetrieveWindowContent="true"
     android:description="@string/screen_context_service_description"
     android:isAccessibilityTool="false"

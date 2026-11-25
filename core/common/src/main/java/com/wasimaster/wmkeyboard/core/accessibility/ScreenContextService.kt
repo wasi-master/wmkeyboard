@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.accessibility
 
 import android.accessibilityservice.AccessibilityService
+import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Context
 import android.graphics.Rect
 import android.graphics.RectF
@@ -88,6 +89,13 @@ class ScreenContextService : AccessibilityService() {
         internal const val MAX_NODES = 4_000
 
         /**
+         * Looks for the app's window right after the service widened itself,
+         * while the platform may still be building the window list it asked for.
+         */
+        internal const val ROOT_TRIES = 6
+        internal const val ROOT_WAIT_MS = 50L
+
+        /**
          * The connected reader, from this service or the combined
          * [WMAccessibilityService], or null while neither is on.
          */
@@ -109,6 +117,46 @@ class ScreenContextService : AccessibilityService() {
 class ScreenReader internal constructor(private val host: AccessibilityService) {
 
     /**
+     * Whether this reader narrows its host between reads (#1462). Only the
+     * separate [ScreenContextService]: the combined service's other parts
+     * (the split screen wait) need its events and window list all the time.
+     */
+    private val narrows: Boolean get() = host is ScreenContextService
+
+    private val reachLock = Any()
+
+    /** Reads in flight; the host is widened while this is above zero. */
+    private var reads = 0
+
+    /**
+     * [block] with the host listening to window changes and keeping the
+     * interactive window list, narrowed back to nothing once the last read
+     * in flight is done. Chromium browsers (Brave in #1462) size their own
+     * accessibility work to what the enabled services listen to, so a
+     * service that listened all day kept every tab's engine running for a
+     * button pressed now and then.
+     */
+    private fun <T> widened(block: () -> T): T {
+        if (!narrows) return block()
+        synchronized(reachLock) { if (reads++ == 0) setReach(wide = true) }
+        try {
+            return block()
+        } finally {
+            synchronized(reachLock) { if (--reads == 0) setReach(wide = false) }
+        }
+    }
+
+    private fun setReach(wide: Boolean) {
+        runCatching {
+            val info = host.serviceInfo ?: return
+            val interactive = AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
+            info.eventTypes = if (wide) AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED else 0
+            info.flags = if (wide) info.flags or interactive else info.flags and interactive.inv()
+            host.serviceInfo = info
+        }
+    }
+
+    /**
      * The app in front, as its package and its visible text in reading order,
      * or null when there is no app window to read. The keyboard's own window
      * and its floating buttons are skipped: the question is about the app.
@@ -119,7 +167,9 @@ class ScreenReader internal constructor(private val host: AccessibilityService) 
      * main thread. A page of empty boxes never reaches [ScreenContextService.MAX_CHARS], so the
      * walk also stops at [MAX_NODES].
      */
-    fun read(): ScreenContextService.Screen? {
+    fun read(): ScreenContextService.Screen? = widened { readWidened() }
+
+    private fun readWidened(): ScreenContextService.Screen? {
         val root = appRoot() ?: return null
         val packageName = root.packageName?.toString().orEmpty()
         val lines = ArrayList<String>()
@@ -153,6 +203,16 @@ class ScreenReader internal constructor(private val host: AccessibilityService) 
      * focus; the window list is the fallback for the moments it is not.
      */
     private fun appRoot(): AccessibilityNodeInfo? {
+        repeat(ScreenContextService.ROOT_TRIES) { attempt ->
+            findAppRoot()?.let { return it }
+            // Only a reader that just widened itself waits for the window list.
+            if (!narrows || attempt == ScreenContextService.ROOT_TRIES - 1) return null
+            Thread.sleep(ScreenContextService.ROOT_WAIT_MS)
+        }
+        return null
+    }
+
+    private fun findAppRoot(): AccessibilityNodeInfo? {
         host.rootInActiveWindow?.takeIf { it.packageName?.toString() != host.packageName }?.let { return it }
         return runCatching {
             host.windows.asSequence()
@@ -173,7 +233,9 @@ class ScreenReader internal constructor(private val host: AccessibilityService) 
      * round it for the card to mark the word. Without them the offset is -1
      * and the card lets the user pick the word from the text.
      */
-    fun textAt(x: Int, y: Int): ScreenContextService.Tap? {
+    fun textAt(x: Int, y: Int): ScreenContextService.Tap? = widened { textAtWidened(x, y) }
+
+    private fun textAtWidened(x: Int, y: Int): ScreenContextService.Tap? {
         val root = appRoot() ?: return null
         val node = nodeAt(root, x, y) ?: return null
         val full = node.text?.toString() ?: node.contentDescription?.toString() ?: return null
