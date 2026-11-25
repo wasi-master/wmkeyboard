@@ -66,6 +66,14 @@ class SnippetVariableTest {
         assertEquals("", expand("{date:'unterminated}"))
     }
 
+    @Test fun calendarDateIsReadAsOneToken() {
+        // ICU's calendars are Android's; on the JVM every one reads as unknown,
+        // which expands to nothing rather than leaving the token or a
+        // Gregorian date behind.
+        assertEquals("[]", expand("[{date@nope:yyyy}]"))
+        assertEquals("[]", expand("[{date+1d@hijri}]"))
+    }
+
     @Test fun uuidIsWellFormed() {
         val uuid = expand("{uuid}")
         assertTrue(uuid, Regex("[0-9a-f-]{36}").matches(uuid))

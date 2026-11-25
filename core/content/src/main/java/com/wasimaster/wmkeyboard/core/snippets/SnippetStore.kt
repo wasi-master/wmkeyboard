@@ -1341,13 +1341,24 @@ class SnippetStore(private val storageFile: File?) {
         data class Expanded(val text: String, val cursorOffset: Int)
 
         /**
-         * `{date}`, `{date:pattern}`, `{date+3600}` and `{date-86400:pattern}`.
+         * `{date}`, `{date:pattern}`, `{date+3600}` and `{date-86400:pattern}`,
+         * and `{date@islamic:d MMMM y}` in another calendar.
          *
          * The offset sits before the colon so it can never be mistaken for part
          * of a `SimpleDateFormat` pattern, which may contain almost anything.
          * It is in seconds, which is the unit Espanso's `date` extension uses.
+         * The calendar goes there too, after the offset: one of ICU's calendar
+         * types, or an alias from [CALENDAR_ALIASES].
          */
-        private val CUSTOM_DATE = Regex("""\{date(?:([+-]\d{1,9})([smhdwMy])?)?(?::([^}\n]{1,40}))?\}""")
+        private val CUSTOM_DATE =
+            Regex("""\{date(?:([+-]\d{1,9})([smhdwMy])?)?(?:@([A-Za-z][A-Za-z-]{1,23}))?(?::([^}\n]{1,40}))?\}""")
+
+        /**
+         * Names people use for a calendar that ICU calls something else. The
+         * Hijri date as Saudi Arabia's Umm al-Qura tables give it, which is
+         * the one most phones and sites show (Telegram 12043).
+         */
+        private val CALENDAR_ALIASES = mapOf("hijri" to "islamic-umalqura", "jalali" to "persian")
 
         /** `{location}` or `{location:link}`. */
         private val LOCATION = Regex("""\{location(?::([a-z_]{1,20}))?\}""")
@@ -1419,8 +1430,13 @@ class SnippetStore(private val storageFile: File?) {
             // Then {date...}, so a literal pattern can't be eaten by {date}.
             out = CUSTOM_DATE.replace(out) { match ->
                 val shift = match.groupValues[1].toLongOrNull() ?: 0L
-                val pattern = match.groupValues[3].ifEmpty { DEFAULT_DATE }
-                format(pattern, shifted(now, shift, match.groupValues[2]))
+                val pattern = match.groupValues[4].ifEmpty { DEFAULT_DATE }
+                val calendar = match.groupValues[3].lowercase()
+                if (calendar.isEmpty()) {
+                    format(pattern, shifted(now, shift, match.groupValues[2]))
+                } else {
+                    formatIn(calendar, pattern, now, shift, match.groupValues[2])
+                }
             }
             // Lists before {cursor} is resolved, so they can tell whether the
             // snippet already chose where the caret goes.
@@ -1711,6 +1727,45 @@ class SnippetStore(private val storageFile: File?) {
         private fun format(pattern: String, at: Long): String =
             runCatching { SimpleDateFormat(pattern, Locale.getDefault()).format(Date(at)) }
                 .getOrDefault("")
+
+        /**
+         * [pattern] for [now] moved by [amount] of [unit], in [calendar]: an
+         * ICU calendar type such as `islamic-umalqura`, `persian` or `hebrew`,
+         * or an alias. The shift counts in that calendar, so
+         * `{date+1M@hijri:MMMM}` is next Hijri month. The pattern letters are
+         * the same; `y` is the year and `MMMM` the month's name in that
+         * calendar. An unknown calendar expands to nothing, like a bad pattern.
+         */
+        private fun formatIn(calendar: String, pattern: String, now: Long, amount: Long, unit: String): String =
+            runCatching {
+                val type = CALENDAR_ALIASES[calendar] ?: calendar
+                val known = android.icu.util.Calendar.getKeywordValuesForLocale(
+                    "calendar",
+                    android.icu.util.ULocale.ROOT,
+                    false,
+                )
+                if (type !in known) return@runCatching ""
+                val locale = android.icu.util.ULocale.forLocale(Locale.getDefault()).setKeywordValue("calendar", type)
+                val cal = android.icu.util.Calendar.getInstance(locale)
+                cal.timeInMillis = now
+                val field = when (unit) {
+                    "m" -> android.icu.util.Calendar.MINUTE
+                    "h" -> android.icu.util.Calendar.HOUR_OF_DAY
+                    "d" -> android.icu.util.Calendar.DAY_OF_MONTH
+                    "w" -> android.icu.util.Calendar.WEEK_OF_YEAR
+                    "M" -> android.icu.util.Calendar.MONTH
+                    "y" -> android.icu.util.Calendar.YEAR
+                    else -> null
+                }
+                if (field != null) {
+                    cal.add(field, amount.coerceIn(Int.MIN_VALUE.toLong(), Int.MAX_VALUE.toLong()).toInt())
+                } else {
+                    cal.timeInMillis = now + amount * 1000L
+                }
+                val formatter = android.icu.text.SimpleDateFormat(pattern, locale)
+                formatter.calendar = android.icu.util.Calendar.getInstance(locale)
+                formatter.format(Date(cal.timeInMillis))
+            }.getOrDefault("")
 
         /**
          * One of the pipe-separated alternatives in [body], or the whole of it

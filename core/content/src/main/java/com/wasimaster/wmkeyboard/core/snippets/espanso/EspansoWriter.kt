@@ -283,7 +283,8 @@ object EspansoWriter {
         SnippetVariable.LANGUAGE,
     )
 
-    private val CUSTOM_DATE = Regex("""\{date(?:([+-]\d{1,9})([smhdwMy])?)?(?::([^}\n]{1,40}))?\}""")
+    private val CUSTOM_DATE =
+        Regex("""\{date(?:([+-]\d{1,9})([smhdwMy])?)?(?:@([A-Za-z][A-Za-z-]{1,23}))?(?::([^}\n]{1,40}))?\}""")
     private val RANDOM = Regex("""\{random:([^}\n]{1,400})\}""")
 
     /** Seconds in each unit a `{date±n…}` shift can name; a month and a year are approximate. */
@@ -320,9 +321,11 @@ object EspansoWriter {
             // nearest whole number of days, and noted as not exact.
             val unit = match.groupValues[2]
             val offset = match.groupValues[1].toLongOrNull()?.let { it * (OFFSET_SECONDS[unit] ?: 1L) }
-            val pattern2 = match.groupValues[3].ifEmpty { "d MMM yyyy" }
+            val pattern2 = match.groupValues[4].ifEmpty { "d MMM yyyy" }
             val strftime = EspansoDate.toStrftime(pattern2)
-            notes.addIf(strftime.dropped.isNotEmpty() || unit == "M" || unit == "y", EspansoNote.DATE)
+            // Espanso writes the Gregorian date only: `{date@hijri:…}` goes as one.
+            val calendar = match.groupValues[3].isNotEmpty()
+            notes.addIf(strftime.dropped.isNotEmpty() || unit == "M" || unit == "y" || calendar, EspansoNote.DATE)
             vars += dateVariable(name, strftime.value, offset)
             "{{$name}}"
         }
