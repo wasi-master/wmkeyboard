@@ -229,9 +229,10 @@ val translatedLocales: String = run {
 // splits as conflicting ways of saying the same thing.
 val splitApks = flag("wmkb.splitApks", "WMKB_SPLIT_APKS")
 
-// Private BOOX/debug builds only; :feature:ime resolves the SDK with the same
-// channel constraints. Keep its packaging conflict out of every other build.
+// Opt-in BOOX builds only; :feature:ime resolves the SDK with the same channel
+// constraints. Keep its packaging conflict out of every other build.
 val onyxPen = flag("wmkb.enableOnyxPen", "WMKB_ENABLE_ONYX_PEN") && !playStoreChannel
+val edition = if (noInternet) "Offline" else if (onyxPen) "BOOX" else "Standard"
 
 // The ABIs a release ships, and the last digit each gives the versionCode.
 // Every APK and bundle carries `wmkb.versionCode * 10 + digit` in its manifest
@@ -327,9 +328,10 @@ android {
         // once here so they cannot disagree about the boolean algebra.
         buildConfigField("Boolean", "ENABLE_GITHUB_UPDATES", "$githubChannel")
         buildConfigField("Boolean", "ENABLE_GMS", "$gmsChannel")
-        // What About calls this build: the standard one, or the one with no
-        // internet permission. Shown as is, like a version name.
-        buildConfigField("String", "EDITION", "\"${if (noInternet) "Offline" else "Standard"}\"")
+        buildConfigField("Boolean", "ENABLE_ONYX_PEN", "$onyxPen")
+        // What About calls this build: standard, offline, or BOOX. Shown as is,
+        // like a version name.
+        buildConfigField("String", "EDITION", "\"$edition\"")
         // This module's copies of :core:config's feature flags, for the
         // app-package screens: off in F-Droid's build, which has none of
         // Google's SDKs. Grammar is Harper, in every build.

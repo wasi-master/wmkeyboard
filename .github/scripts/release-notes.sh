@@ -68,9 +68,9 @@ cat <<EOF
 > [!WARNING]
 > **This is a pre-release**, a test version of the next release for people who
 > want the new things early and are happy to report what breaks. It is not on
-> Google Play or F-Droid. The GitHub build updates itself to later pre-releases
-> and to the finished release when **Settings › About › Updates › Include
-> pre-releases** is on. Report problems on
+> Google Play or F-Droid. The standard GitHub build updates itself to later
+> pre-releases and to the finished release when **Settings › About › Updates ›
+> Include pre-releases** is on. Report problems on
 > [GitHub](https://github.com/${repo}/issues) or in the Telegram group's beta
 > testing topic.
 
@@ -225,6 +225,35 @@ on another device can be imported instead
 EOF
 fi
 
+# The BOOX build, from the `boox` job. It is a separate update variant: the
+# ordinary updater must never select it, and the BOOX build updates by hand so
+# an ordinary APK cannot silently take its raw ink away.
+boox="${prefix}-full-en-boox-arm64-v8a.apk"
+if [ -f "$dist/$boox" ]; then
+cat <<EOF
+<details>
+<summary><b>Onyx BOOX</b> (low-latency stylus ink)</summary>
+
+The standard GitHub build with Onyx's proprietary Pen SDK and low-latency raw
+stylus rendering for the docked handwriting panel. For ARM64 BOOX devices,
+including the Note Max. It is off by default: turn on **Settings › Handwriting
+› Advanced › BOOX low-latency ink** to use it. Initialization failures fall back
+to the ordinary renderer.
+
+This APK has the same package name and signing key as the other GitHub builds,
+so installing it by hand over another one preserves your settings. Its in-app
+updater is disabled to keep a standard APK from replacing it and removing BOOX
+ink: come back to this page for later BOOX versions.
+
+| | arm64-v8a |
+|:---|:---|
+| **BOOX** | $(cell "$boox") |
+
+</details>
+
+EOF
+fi
+
 # The English-only F-Droid build (#1290), from the `fdroid` job's arm64 run.
 # Only when this release has it: its build is allowed to fail on its own.
 fdroid_en="wmkeyboard-${version}-vc$((code * 10 + 2))-fdroid-en.apk"
@@ -337,6 +366,7 @@ row "${prefix}-full-en-mapping.txt.gz" 'R8 mapping, **standard build**. Retraces
 row "${prefix}-full-intl-mapping.txt.gz" 'R8 mapping, **all-languages build**, which the language packs are cut from. Also fits the offline all-languages build, which it is apart from its manifest'
 row "${prefix}-full-en-nointernet-mapping.txt.gz" 'R8 mapping, **offline build**. Only attached when it differs from the standard build'"'"'s, which otherwise serves both'
 row "${prefix}-full-intl-nointernet-mapping.txt.gz" 'R8 mapping, **offline all-languages build**. Only attached when it differs from the all-languages one, which otherwise serves both'
+row "${prefix}-full-en-boox-mapping.txt.gz" 'R8 mapping, **BOOX build**. The Onyx backend makes this a different R8 run from the standard build'
 row "${prefix}-play-mapping.txt.gz" 'R8 mapping, **Play build**. The Play channel flags change what R8 renames, so this is the only one that reads a crash from a Play install'
 fdroid_map_row() { # <abi> <digit>
   row "wmkeyboard-${version}-vc$((code * 10 + $2))-fdroid-mapping.txt.gz" "R8 mapping, **F-Droid build for $1**. F-Droid serves that same APK, so this reads a crash from an F-Droid install"
@@ -346,6 +376,7 @@ fdroid_map_row armeabi-v7a 1
 row "wmkeyboard-${version}-vc$((code * 10 + 2))-fdroid-en-mapping.txt.gz" 'R8 mapping, **English-only F-Droid build** (arm64-v8a). Its own R8 run, so the all-languages F-Droid mapping does not fit it'
 row "${prefix}-full-intl-native-symbols.zip" 'Native debug symbols, **all-languages build**'
 row "${prefix}-full-en-native-symbols.zip" 'Native debug symbols, **standard build**'
+row "${prefix}-full-en-boox-native-symbols.zip" 'Native debug symbols, **BOOX build**'
 
 if [ -n "$extras" ]; then
   # Name only what is in the block. Mappings and symbols were first attached in

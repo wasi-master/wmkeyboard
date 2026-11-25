@@ -8346,7 +8346,7 @@ val HandwritingPenWidthRange = 1f..12f
 /** The handwriting canvas's look and size (#1038). */
 data class HandwritingInkSettings(
     val penWidthDp: Float = 4f,
-    /** Device-local Onyx raw-ink prototype; compiled only in BOOX builds. */
+    /** Device-local Onyx raw ink; compiled only in BOOX builds. */
     val onyxPen: Boolean = false,
     /** ARGB, or null for the theme's accent. */
     val penColor: Long? = null,

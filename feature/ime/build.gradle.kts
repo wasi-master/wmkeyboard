@@ -70,8 +70,8 @@ val playStoreChannel = run {
         ?: "false").toBoolean()
 }
 
-// Private BOOX/debug builds only. The proprietary pen SDK and every class
-// that imports it stay out of ordinary, Play and F-Droid classpaths.
+// Opt-in BOOX builds only. The proprietary pen SDK and every class that
+// imports it stay out of ordinary, Play and F-Droid classpaths.
 val onyxPen: Boolean = run {
     val localProperties = Properties().apply {
         val file = rootProject.file("local.properties")

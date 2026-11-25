@@ -28,7 +28,7 @@ fun wmkbFlag(name: String, env: String, default: Boolean): Boolean =
         ?: System.getenv(env)
         ?: default.toString()).toBoolean()
 
-// The BOOX repository is present only for the explicit non-Play prototype
+// The BOOX repository is present only for an explicitly enabled non-Play
 // build; ordinary and F-Droid resolution never contacts it.
 val onyxPen = wmkbFlag("wmkb.enableOnyxPen", "WMKB_ENABLE_ONYX_PEN", default = false) &&
     !wmkbFlag("wmkb.enablePlayStore", "WMKB_ENABLE_PLAY_STORE", default = false)

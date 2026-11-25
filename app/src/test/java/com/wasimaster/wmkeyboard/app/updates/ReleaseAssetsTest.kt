@@ -87,6 +87,11 @@ class ReleaseAssetsTest {
     }
 
     @Test
+    fun `never reads the BOOX build as an update for a regular one`() {
+        assertNull(ReleaseAssets.parseAssetName("wmkeyboard-0.6.8-vc400-full-en-boox-arm64-v8a.apk"))
+    }
+
+    @Test
     fun `takes the first ABI the device prefers`() {
         val picked = ReleaseAssets.pickAsset(
             release = release(),

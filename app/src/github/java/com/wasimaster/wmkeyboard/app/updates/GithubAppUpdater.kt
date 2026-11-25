@@ -28,6 +28,11 @@ import kotlinx.coroutines.flow.StateFlow
  */
 @Composable
 internal fun rememberAppUpdater(): AppUpdater {
+    // The release's ordinary APK must never replace the BOOX build and take its
+    // raw ink away. Until the asset picker understands the BOOX variant, this
+    // build updates manually from the same GitHub release page.
+    if (BuildConfig.ENABLE_ONYX_PEN) return NoAppUpdater
+
     val context = LocalContext.current
     val activity = context.findActivity()
     val updater = remember(context) { GithubAppUpdater(context.applicationContext) }
