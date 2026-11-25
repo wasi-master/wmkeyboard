@@ -22373,17 +22373,38 @@ open class WMKeyboardService : InputMethodService() {
      * Anything that stops the switch — a blank id, a keyboard that has since
      * been disabled or uninstalled, a platform that refuses — ends at the
      * system picker instead, so the key still gets the user to another
-     * keyboard. `switchInputMethod` is API 28; below that the picker is the
-     * only way, which is also what an unset key does.
+     * keyboard. Below Android 9 the switch goes through [switchToSubtype]'s
+     * older route.
      */
     private fun switchToInputMethod(id: String) {
         val enabled = getSystemService(InputMethodManager::class.java)
             ?.enabledInputMethodList.orEmpty().any { it.id == id }
-        if (id.isNotBlank() && enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        if (id.isNotBlank() && enabled) {
             currentInputConnection?.let { commitComposing(it, autocorrect = false) }
-            if (runCatching { switchInputMethod(id) }.isSuccess) return
+            if (runCatching { switchToSubtype(id, null) }.getOrDefault(false)) return
         }
         showInputMethodPicker()
+    }
+
+    /**
+     * Switches to keyboard [id], at [subtype] when one is given.
+     * `InputMethodService.switchInputMethod` only exists from Android 9; on
+     * 7 and 8 the same request goes through [InputMethodManager] with the
+     * keyboard window's token, which is what the service method does inside
+     * (#1534). Before this the language and keyboard switches that needed it
+     * were simply skipped there. False when there is no window to name the
+     * request with.
+     */
+    private fun switchToSubtype(id: String, subtype: InputMethodSubtype?): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            if (subtype == null) switchInputMethod(id) else switchInputMethod(id, subtype)
+            return true
+        }
+        val token = window?.window?.attributes?.token ?: return false
+        val imm = getSystemService(InputMethodManager::class.java) ?: return false
+        @Suppress("DEPRECATION")
+        if (subtype == null) imm.setInputMethod(token, id) else imm.setInputMethodAndSubtype(token, id, subtype)
+        return true
     }
 
     private fun showInputMethodPicker() {
@@ -22975,8 +22996,8 @@ open class WMKeyboardService : InputMethodService() {
                 enableSubtypes(imm, subtypes.map { it.hashCode() }.toIntArray())
                 // Make it the current one rather than wait for the framework to
                 // notice the old one is gone. The echo is ignored while off.
-                if (languageOnly != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    runCatching { switchInputMethod(imeId, languageOnly) }
+                if (languageOnly != null) {
+                    runCatching { switchToSubtype(imeId, languageOnly) }
                 }
             }
     }
@@ -23011,16 +23032,15 @@ open class WMKeyboardService : InputMethodService() {
     /**
      * Best-effort nudge of the OS switcher to match an in-app language switch so
      * the system UI's current subtype stays in sync. Skipped when the switcher
-     * is turned off. API 28+ only; on 24–27 the OS→app direction still works, we
-     * just don't push the other way. Swallowed: the subtype may not be
+     * is turned off. On 24–27 it goes through [switchToSubtype]'s older route
+     * (#1534). Swallowed: the subtype may not be
      * registered yet on a cold switch, and this is cosmetic — [onLayoutSelected]
      * has already moved the keyboard.
      */
     private fun mirrorSubtypeToOs(spec: LayoutSpec) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return
         val settings = _uiState.value.settings
         if (!settings.osLanguageSwitcher) return
-        runCatching { switchInputMethod(imeId, subtypeFor(spec, subtypeNameResId(settings))) }
+        runCatching { switchToSubtype(imeId, subtypeFor(spec, subtypeNameResId(settings))) }
     }
 
     /**
@@ -40650,12 +40670,11 @@ open class WMKeyboardService : InputMethodService() {
         when (resort.kind) {
             VoiceLastResort.Kind.OTHER_KEYBOARD -> {
                 val imm = getSystemService(InputMethodManager::class.java) ?: return
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return
                 val info = imm.enabledInputMethodList.firstOrNull { it.id == resort.target } ?: return
                 val subtype = imm.getEnabledInputMethodSubtypeList(info, true).firstOrNull { it.hashCode() == resort.subtype }
                 // Its voice typing hands the keyboard back when it is done,
                 // as Gboard's does from its own close button.
-                runCatching { switchInputMethod(resort.target, subtype) }
+                runCatching { switchToSubtype(resort.target, subtype) }
             }
             VoiceLastResort.Kind.VOICE_WINDOW -> {
                 val window = ComponentName.unflattenFromString(resort.target) ?: return
