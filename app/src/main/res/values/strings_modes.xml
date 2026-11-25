@@ -263,5 +263,11 @@
     <string name="modes_two_thumb_info">Off types each swipe as a word of its own, and a pause no longer ends a tapped word with a space you did not press. A word you are in the middle of is typed as it stands when the mode turns this off.</string>
     <string name="modes_layout_title">Layout</string>
     <string name="modes_layout_subtitle">Which layout this mode types on</string>
+    <string name="modes_start_on_title">Opens on</string>
+    <string name="modes_start_on_subtitle">The keys a new text box starts on while this mode is on</string>
+    <string name="modes_start_on_info">Each text box you open while the mode is on starts on these keys. Number pad opens the same number pad as the 1234 key, so an app where you only type numbers needs no layout of its own. Close the pad like any tool to get the letters. Symbols starts on the first symbols page. Letters is the usual start. Coming back to the same text box keeps whatever you moved to.</string>
+    <string name="modes_start_on_letters">Letters</string>
+    <string name="modes_start_on_symbols">Symbols</string>
+    <string name="modes_start_on_number_pad">Number pad</string>
     <string name="modes_layout_info">The mode wears this layout while it is on, whichever layout you were using before. Your own layout comes back when the mode ends, and the spacebar swipe order is not changed. Only layouts you have switched on are offered here; if you later switch one off, a mode that used it goes back to inheriting.</string>
 </resources>

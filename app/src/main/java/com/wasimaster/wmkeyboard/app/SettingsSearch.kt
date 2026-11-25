@@ -3141,6 +3141,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         mode(R.string.modes_autocapitalize_title, weight = EntryWeight.DETAIL),
         mode(R.string.modes_suggestions_title, weight = EntryWeight.DETAIL),
         mode(R.string.modes_layout_title, R.string.modes_layout_subtitle, EntryWeight.DETAIL),
+        mode(R.string.modes_start_on_title, R.string.modes_start_on_subtitle),
         mode(R.string.modes_theme_title, R.string.modes_theme_inherit_subtitle, EntryWeight.DETAIL),
         mode(R.string.modes_pinned_tools_title, R.string.modes_pinned_tools_subtitle),
         mode(R.string.modes_pinned_behaviour_title, R.string.modes_pinned_behaviour_append_subtitle),

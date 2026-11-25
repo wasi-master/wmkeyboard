@@ -117,6 +117,7 @@ import com.wasimaster.wmkeyboard.core.settings.stripHidden
 import com.wasimaster.wmkeyboard.core.settings.AppGroup
 import com.wasimaster.wmkeyboard.core.settings.ModeField
 import com.wasimaster.wmkeyboard.core.settings.ModeOrientation
+import com.wasimaster.wmkeyboard.core.settings.ModeStartOn
 import com.wasimaster.wmkeyboard.core.settings.ModeScreenSize
 import com.wasimaster.wmkeyboard.core.settings.OneHandedMode
 import com.wasimaster.wmkeyboard.core.tools.BuiltInSymbolSets
@@ -2154,6 +2155,21 @@ internal fun ModeEditor(
                 info = stringResource(R.string.modes_layout_info),
                 detail = inheritDetail(),
             ) { save(current().copy(layoutId = it)) }
+        }
+        // The page a new field opens on (#1546): the number pad for an app
+        // that only ever takes numbers, without a layout of digits for it.
+        item {
+            ChoiceSetting(
+                title = R.string.modes_start_on_title,
+                subtitle = stringResource(R.string.modes_start_on_subtitle),
+                options = listOf(
+                    null to stringResource(R.string.modes_start_on_letters),
+                    ModeStartOn.SYMBOLS to stringResource(R.string.modes_start_on_symbols),
+                    ModeStartOn.NUMBER_PAD to stringResource(R.string.modes_start_on_number_pad),
+                ),
+                selected = settings.watch { modeIn(it).startOn },
+                info = stringResource(R.string.modes_start_on_info),
+            ) { save(current().copy(startOn = it)) }
         }
         item {
             var themePickerOpen by remember { mutableStateOf(false) }

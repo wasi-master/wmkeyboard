@@ -372,6 +372,7 @@ import com.wasimaster.wmkeyboard.ime.floating.FloatingApplet
 import com.wasimaster.wmkeyboard.ime.floating.FloatingButton
 import com.wasimaster.wmkeyboard.core.theme.BackgroundBitmapCache
 import com.wasimaster.wmkeyboard.core.settings.ModeField
+import com.wasimaster.wmkeyboard.core.settings.ModeStartOn
 import com.wasimaster.wmkeyboard.core.settings.OctopusDuringGlide
 import com.wasimaster.wmkeyboard.core.settings.OneHandedMode
 import com.wasimaster.wmkeyboard.core.settings.OneHandedSide
@@ -10551,17 +10552,23 @@ open class WMKeyboardService : InputMethodService() {
                 // address" buttons. Closing the panel there took the clipboard
                 // down under the user's finger. The panel stays, and so does
                 // whatever was half done in it.
-                panel = if (restarting || panelLayoutPersists(it) || floatingToolJustOpened()) it.panel else PanelMode.NONE,
+                // Or the number pad, for a mode set to open on it (#1546).
+                panel = when {
+                    restarting || panelLayoutPersists(it) || floatingToolJustOpened() -> it.panel
+                    activeMode?.startOn == ModeStartOn.NUMBER_PAD -> PanelMode.NUMPAD
+                    else -> PanelMode.NONE
+                },
                 // A fresh field starts on the letter layer; a restart of the
                 // same field keeps whatever layer the user was on. So does a
                 // layer its author marked persistent (issue #60): that one
                 // stays until a key or a tool takes the user off it, and a
                 // close-and-reopen or a change of app is neither. Judged on
                 // the grid that *was* showing, before the set is swapped.
-                layoutMode = if (restarting || currentLayout(it).persistent) {
-                    it.layoutMode
-                } else {
-                    LayoutMode.LETTERS
+                // A mode set to open on the symbols does that instead (#1546).
+                layoutMode = when {
+                    restarting || currentLayout(it).persistent -> it.layoutMode
+                    activeMode?.startOn == ModeStartOn.SYMBOLS -> LayoutMode.SYMBOLS
+                    else -> LayoutMode.LETTERS
                 },
                 // Selection mode belongs to the text it was armed over. A
                 // restart is the same field reporting itself (a programmatic

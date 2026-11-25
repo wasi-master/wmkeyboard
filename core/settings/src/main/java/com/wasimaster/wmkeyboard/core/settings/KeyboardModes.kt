@@ -170,6 +170,9 @@ enum class AppGroup(val packages: Set<String>) {
 /** Which way up the screen has to be for a mode (#1025). */
 enum class ModeOrientation { PORTRAIT, LANDSCAPE }
 
+/** Where a mode opens the keys in a new field, past the letters (#1546). */
+enum class ModeStartOn { SYMBOLS, NUMBER_PAD }
+
 /**
  * How wide the screen has to be for a mode (#1025). This is how a foldable shows:
  * open it reads as a tablet, shut as a phone. Android tells a keyboard nothing
@@ -432,6 +435,14 @@ data class KeyboardMode(
      * the same thing null means.
      */
     val layoutId: String? = null,
+    /**
+     * The page the keys open on in each new field while this mode is active
+     * (#1546); null is the letters, as without a mode. [ModeStartOn.NUMBER_PAD]
+     * opens the number pad the 1234 key opens, so an app that only ever takes
+     * numbers needs no layout of digits of its own. Only on a new field: the
+     * same field reporting itself again keeps whatever the user moved to.
+     */
+    val startOn: ModeStartOn? = null,
     /** Package names this mode activates for automatically. */
     val apps: List<String> = emptyList(),
     /** Kinds of app this mode activates for, on the same terms as [apps] (#1025). */

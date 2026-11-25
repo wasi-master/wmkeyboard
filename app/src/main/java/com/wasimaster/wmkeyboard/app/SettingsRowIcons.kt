@@ -1028,6 +1028,7 @@ internal object SettingsRowIcons {
         put(R.string.modes_key_haptics_title) { Icons.Outlined.Vibration }
         put(R.string.modes_enter_newline_title) { Icons.Outlined.TouchApp }
         put(R.string.modes_layout_title) { Icons.Outlined.Keyboard }
+        put(R.string.modes_start_on_title) { Icons.Outlined.Dialpad }
         put(R.string.rows_symbol_row_title) { Icons.Outlined.Tag }
         put(R.string.rows_fancy_title) { Icons.Outlined.TextFormat }
         put(R.string.rows_dictionary_bar_title) { SymbolIcons.Dictionary }
