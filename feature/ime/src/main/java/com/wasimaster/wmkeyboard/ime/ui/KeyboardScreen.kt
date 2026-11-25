@@ -30825,6 +30825,7 @@ private fun AlternateAction(
     val action = alternate.action
     val tool = (action as? KeyAction.Tool)?.tool
     val editOp = (action as? KeyAction.Edit)?.op
+    val faceLabel = alternate.faceLabel()
     // The icon slot an action draws from on the board, so an alternate wears
     // the same face the key would (#156). `fallbackLabel` returns "" for every
     // one of these — on the board their icon branches run first — and a popup
@@ -30848,7 +30849,7 @@ private fun AlternateAction(
         is KeyAction.Tool -> action.custom?.let(::customToolSlot) ?: IconSlots.forTool(action.tool)
         is KeyAction.SendKey -> arrowKeySlot(action.keyCode)
         else -> null
-    }?.takeIf { alternate.label.isBlank() }
+    }?.takeIf { faceLabel.isBlank() }
     // Named, so both branches below can speak the entry rather than going silent
     // on an icon: the label the author gave it, else the tool's own name, else
     // what the same key on the board would be read out as.
@@ -30861,11 +30862,11 @@ private fun AlternateAction(
     // A text-editing alternate (Page Up on a held Home) draws its operation's
     // icon, exactly as the key it would be on its own.
     val namedIcon = KeyIcons.byName(alternate.icon)
-        ?: editOp?.takeIf { alternate.label.isBlank() }?.let { textEditIcon(it) }
+        ?: editOp?.takeIf { faceLabel.isBlank() }?.let { textEditIcon(it) }
         // The ▦ ▤ ⚡ ⌨ an unlabelled layout, layer, broadcast or key-send entry
         // used to draw as text. Only where no slot answers, so an icon pack
         // still dresses an arrow or Tab entry the way it dresses the key.
-        ?: action.takeIf { slot == null && alternate.label.isBlank() }?.let(KeyIcons::forAction)
+        ?: action.takeIf { slot == null && faceLabel.isBlank() }?.let(KeyIcons::forAction)
     Box(
         modifier = Modifier
             .clickable(onClick = onClick)
@@ -30929,6 +30930,16 @@ private fun AlternateActionEntry(
         onClick = onClick,
     )
 }
+
+/**
+ * The label an action alternate wears as its face, where an icon would
+ * otherwise go: the author's label, except on a switch to a named keyboard.
+ * Its picker writes that keyboard's name into the label so the entry can be
+ * spoken and told apart, and drawn it filled the popup cell with the name
+ * (#1535). That entry wears the keyboard icon the key itself does, and the
+ * name stays its spoken label.
+ */
+private fun KeyAlternate.faceLabel(): String = if (action is KeyAction.SwitchInputMethod) "" else label
 
 /** What an unlabelled space alternate draws: the keycap legend for the space bar. */
 private const val AlternateSpaceGlyph = "␣"
@@ -32450,6 +32461,9 @@ private fun flickArmIcon(alternate: KeyAlternate): ImageVector? {
     return KeyIcons.byName(alternate.icon)
         ?: (action as? KeyAction.Edit)?.takeIf { alternate.label.isBlank() }?.let { textEditIcon(it.op) }
         ?: (action as? KeyAction.Tool)?.takeIf { alternate.label.isBlank() }?.let { IconDefaults.forTool(it.tool) }
+        // A named keyboard's arm, as in the popup (#1535): its label is the
+        // keyboard's name, so it wears the keyboard icon rather than the name.
+        ?: (action as? KeyAction.SwitchInputMethod)?.let { IconDefaults.forSlot(IconSlots.KEY_INPUT_METHOD_PICKER) }
         ?: action.takeIf { alternate.label.isBlank() }?.let(KeyIcons::forAction)
 }
 
