@@ -5212,239 +5212,242 @@ private fun ThemeEditorContent(
                 info = stringResource(R.string.theme_glass_info),
             ) { on -> updateFrost { it.copy(enabled = on) } }
         }
-        if (!frostOn) return@SettingsGroup
-        item {
-            // A preset writes ordinary fields: the glass sliders and, where a
-            // fill is still opaque, its opacity. Nothing remembers the pick.
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+        // Listed while the glass is off, not left out: a link or a search
+        // naming one of these rows then still finds it, greyed in (#1538).
+        dependsOn(frostOn) {
+            item {
+                // A preset writes ordinary fields: the glass sliders and, where a
+                // fill is still opaque, its opacity. Nothing remembers the pick.
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+                    Text(
+                        stringResource(R.string.theme_glass_preset_label),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Row(
+                        modifier = Modifier.horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        FrostPreset.entries.forEach { preset ->
+                            AssistChip(
+                                onClick = { update { t -> t.dressedForGlass(preset) } },
+                                label = { Text(stringResource(frostPresetLabelRes(preset))) },
+                            )
+                        }
+                    }
+                    Text(
+                        stringResource(R.string.theme_glass_preset_body),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
+            }
+            item(level = SettingLevel.STANDARD) {
+                ChoiceControl(
+                    options = FrostStyle.entries.map { it to stringResource(frostStyleLabelRes(it)) },
+                    selected = frost.glassStyle,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    label = stringResource(R.string.theme_glass_style_label),
+                    detail = { style -> ChoiceDetail(stringResource(frostStyleDescRes(style))) },
+                ) { style -> updateFrost { f -> f.copy(style = style.name) } }
+            }
+            item(visible = frost.glassStyle == FrostStyle.LIQUID, level = SettingLevel.ADVANCED) {
+                SliderRow(
+                    R.string.theme_glass_refraction_title,
+                    value = frost.refraction,
+                    range = FROST_REFRACTION_RANGE,
+                    display = { if (it < 0.005f) offLabel else "${(it * 100).roundToInt()}%" },
+                    info = stringResource(R.string.theme_glass_refraction_body),
+                ) { updateFrost { f -> f.copy(refraction = (it * 100).roundToInt() / 100f) } }
+            }
+            item(visible = frost.glassStyle == FrostStyle.LIQUID, level = SettingLevel.ADVANCED) {
+                SliderRow(
+                    R.string.theme_glass_dispersion_title,
+                    value = frost.dispersion,
+                    range = FROST_DISPERSION_RANGE,
+                    display = { if (it < 0.005f) offLabel else "${(it * 100).roundToInt()}%" },
+                    info = stringResource(R.string.theme_glass_dispersion_body),
+                ) { updateFrost { f -> f.copy(dispersion = (it * 100).roundToInt() / 100f) } }
+            }
+            // Standard, not advanced: this is the switch that decides whether the
+            // app shows through the keyboard at all, and with it hidden a user
+            // who wanted a solid board could reach the blur's strength but not
+            // its off switch (#1222).
+            item(level = SettingLevel.STANDARD) {
+                ToggleSetting(
+                    R.string.theme_glass_window_blur_title,
+                    stringResource(R.string.theme_glass_window_blur_subtitle),
+                    checked = frost.windowBlur,
+                    info = stringResource(R.string.theme_glass_window_blur_info),
+                ) { on -> updateFrost { it.copy(windowBlur = on) } }
+            }
+            // A phone with its blur off, or none to offer (some skins dropped the
+            // switch), never blurs the app: the glass shows the wallpaper instead,
+            // which does not change from app to app. Said here, where the switch
+            // that cannot work is (Telegram group).
+            item(visible = frost.windowBlur && !blursWindows, level = SettingLevel.ADVANCED) {
                 Text(
-                    stringResource(R.string.theme_glass_preset_label),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    stringResource(R.string.theme_glass_window_blur_unavailable),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                 )
-                Row(
-                    modifier = Modifier.horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    FrostPreset.entries.forEach { preset ->
-                        AssistChip(
-                            onClick = { update { t -> t.dressedForGlass(preset) } },
-                            label = { Text(stringResource(frostPresetLabelRes(preset))) },
-                        )
+            }
+            item(visible = frost.windowBlur, level = SettingLevel.STANDARD) {
+                SliderRow(
+                    R.string.theme_glass_blur_strength_title,
+                    value = frost.windowBlurRadiusDp.toFloat(),
+                    range = WINDOW_BLUR_RADIUS_RANGE.first.toFloat()..WINDOW_BLUR_RADIUS_RANGE.last.toFloat(),
+                    display = { "${it.roundToInt()} dp" },
+                    info = stringResource(R.string.theme_glass_blur_strength_body),
+                ) { updateFrost { f -> f.copy(windowBlurRadiusDp = it.roundToInt()) } }
+            }
+            item(visible = frost.windowBlur, level = SettingLevel.ADVANCED) {
+                SliderRow(
+                    R.string.theme_glass_fallback_title,
+                    value = frost.fallbackOpacity,
+                    range = FROST_FALLBACK_OPACITY_RANGE,
+                    display = { "${(it * 100).roundToInt()}%" },
+                    info = stringResource(R.string.theme_glass_fallback_body),
+                ) { updateFrost { f -> f.copy(fallbackOpacity = (it * 100).roundToInt() / 100f) } }
+            }
+            item(level = SettingLevel.ADVANCED) {
+                val selected = frost.surfaceSet
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+                    Text(
+                        stringResource(R.string.theme_glass_surfaces_label),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FrostSurface.entries.forEach { surface ->
+                            val on = surface in selected
+                            FilterChip(
+                                selected = on,
+                                onClick = {
+                                    updateFrost { f ->
+                                        val next = if (on) f.surfaceSet - surface else f.surfaceSet + surface
+                                        f.copy(surfaces = next.sortedBy { it.ordinal }.map { it.name })
+                                    }
+                                },
+                                label = { Text(stringResource(frostSurfaceLabelRes(surface))) },
+                            )
+                        }
                     }
                 }
+            }
+            item(level = SettingLevel.STANDARD) {
+                ChoiceControl(
+                    options = FrostBackdropSource.entries.map { it to stringResource(frostBackdropLabelRes(it)) },
+                    selected = frost.backdropSource,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    label = stringResource(R.string.theme_glass_backdrop_label),
+                    detail = { source -> ChoiceDetail(stringResource(frostBackdropDescRes(source))) },
+                ) { source -> updateFrost { f -> f.copy(backdrop = source.name) } }
+            }
+            item(visible = usesWallpaper, level = SettingLevel.ADVANCED) {
+                ChoiceControl(
+                    options = WallpaperBand.entries.map { it to stringResource(wallpaperBandLabelRes(it)) },
+                    selected = frost.band,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    label = stringResource(R.string.theme_glass_wallpaper_band_label),
+                ) { band -> updateFrost { f -> f.copy(wallpaperBand = band.name) } }
+            }
+            item(visible = usesWallpaper && wallpaperPixelsPossible && !wallpaperReadable) {
+                // Android 12 and below read the wallpaper's pixels with the
+                // storage permission; without it the glass paints the
+                // wallpaper's colours instead, which is also all Android 13 allows.
+                NavRow(
+                    R.string.theme_glass_wallpaper_permission_title,
+                    subtitle = stringResource(R.string.theme_glass_wallpaper_permission_subtitle),
+                ) { wallpaperPermission.launch(Manifest.permission.READ_EXTERNAL_STORAGE) }
+            }
+            item(visible = usesWallpaper && !wallpaperPixelsPossible) {
                 Text(
-                    stringResource(R.string.theme_glass_preset_body),
+                    stringResource(R.string.theme_glass_wallpaper_colours_body),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                 )
             }
-        }
-        item(level = SettingLevel.STANDARD) {
-            ChoiceControl(
-                options = FrostStyle.entries.map { it to stringResource(frostStyleLabelRes(it)) },
-                selected = frost.glassStyle,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                label = stringResource(R.string.theme_glass_style_label),
-                detail = { style -> ChoiceDetail(stringResource(frostStyleDescRes(style))) },
-            ) { style -> updateFrost { f -> f.copy(style = style.name) } }
-        }
-        item(visible = frost.glassStyle == FrostStyle.LIQUID, level = SettingLevel.ADVANCED) {
-            SliderRow(
-                R.string.theme_glass_refraction_title,
-                value = frost.refraction,
-                range = FROST_REFRACTION_RANGE,
-                display = { if (it < 0.005f) offLabel else "${(it * 100).roundToInt()}%" },
-                info = stringResource(R.string.theme_glass_refraction_body),
-            ) { updateFrost { f -> f.copy(refraction = (it * 100).roundToInt() / 100f) } }
-        }
-        item(visible = frost.glassStyle == FrostStyle.LIQUID, level = SettingLevel.ADVANCED) {
-            SliderRow(
-                R.string.theme_glass_dispersion_title,
-                value = frost.dispersion,
-                range = FROST_DISPERSION_RANGE,
-                display = { if (it < 0.005f) offLabel else "${(it * 100).roundToInt()}%" },
-                info = stringResource(R.string.theme_glass_dispersion_body),
-            ) { updateFrost { f -> f.copy(dispersion = (it * 100).roundToInt() / 100f) } }
-        }
-        // Standard, not advanced: this is the switch that decides whether the
-        // app shows through the keyboard at all, and with it hidden a user
-        // who wanted a solid board could reach the blur's strength but not
-        // its off switch (#1222).
-        item(level = SettingLevel.STANDARD) {
-            ToggleSetting(
-                R.string.theme_glass_window_blur_title,
-                stringResource(R.string.theme_glass_window_blur_subtitle),
-                checked = frost.windowBlur,
-                info = stringResource(R.string.theme_glass_window_blur_info),
-            ) { on -> updateFrost { it.copy(windowBlur = on) } }
-        }
-        // A phone with its blur off, or none to offer (some skins dropped the
-        // switch), never blurs the app: the glass shows the wallpaper instead,
-        // which does not change from app to app. Said here, where the switch
-        // that cannot work is (Telegram group).
-        item(visible = frost.windowBlur && !blursWindows, level = SettingLevel.ADVANCED) {
-            Text(
-                stringResource(R.string.theme_glass_window_blur_unavailable),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-            )
-        }
-        item(visible = frost.windowBlur, level = SettingLevel.STANDARD) {
-            SliderRow(
-                R.string.theme_glass_blur_strength_title,
-                value = frost.windowBlurRadiusDp.toFloat(),
-                range = WINDOW_BLUR_RADIUS_RANGE.first.toFloat()..WINDOW_BLUR_RADIUS_RANGE.last.toFloat(),
-                display = { "${it.roundToInt()} dp" },
-                info = stringResource(R.string.theme_glass_blur_strength_body),
-            ) { updateFrost { f -> f.copy(windowBlurRadiusDp = it.roundToInt()) } }
-        }
-        item(visible = frost.windowBlur, level = SettingLevel.ADVANCED) {
-            SliderRow(
-                R.string.theme_glass_fallback_title,
-                value = frost.fallbackOpacity,
-                range = FROST_FALLBACK_OPACITY_RANGE,
-                display = { "${(it * 100).roundToInt()}%" },
-                info = stringResource(R.string.theme_glass_fallback_body),
-            ) { updateFrost { f -> f.copy(fallbackOpacity = (it * 100).roundToInt() / 100f) } }
-        }
-        item(level = SettingLevel.ADVANCED) {
-            val selected = frost.surfaceSet
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+            item(visible = followsByRole, level = SettingLevel.STANDARD) {
+                ToggleSetting(
+                    R.string.theme_glass_accent_board_title,
+                    stringResource(R.string.theme_glass_accent_board_subtitle),
+                    checked = frost.accentBoard,
+                    info = stringResource(R.string.theme_glass_accent_board_info),
+                ) { on -> updateFrost { it.copy(accentBoard = on) } }
+            }
+            item(visible = hasImage && frost.backdropSource != FrostBackdropSource.WALLPAPER &&
+                frost.backdropSource != FrostBackdropSource.NONE
+            ) {
+                ToggleSetting(
+                    R.string.theme_glass_blur_board_title,
+                    stringResource(R.string.theme_glass_blur_board_subtitle),
+                    checked = frost.blurBoard,
+                    info = stringResource(R.string.theme_glass_blur_board_info),
+                ) { on -> updateFrost { it.copy(blurBoard = on) } }
+            }
+            item(visible = !hasBackdrop) {
                 Text(
-                    stringResource(R.string.theme_glass_surfaces_label),
-                    style = MaterialTheme.typography.labelMedium,
+                    stringResource(R.string.theme_glass_no_image_body),
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                 )
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FrostSurface.entries.forEach { surface ->
-                        val on = surface in selected
-                        FilterChip(
-                            selected = on,
-                            onClick = {
-                                updateFrost { f ->
-                                    val next = if (on) f.surfaceSet - surface else f.surfaceSet + surface
-                                    f.copy(surfaces = next.sortedBy { it.ordinal }.map { it.name })
-                                }
-                            },
-                            label = { Text(stringResource(frostSurfaceLabelRes(surface))) },
-                        )
-                    }
-                }
             }
-        }
-        item(level = SettingLevel.STANDARD) {
-            ChoiceControl(
-                options = FrostBackdropSource.entries.map { it to stringResource(frostBackdropLabelRes(it)) },
-                selected = frost.backdropSource,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                label = stringResource(R.string.theme_glass_backdrop_label),
-                detail = { source -> ChoiceDetail(stringResource(frostBackdropDescRes(source))) },
-            ) { source -> updateFrost { f -> f.copy(backdrop = source.name) } }
-        }
-        item(visible = usesWallpaper, level = SettingLevel.ADVANCED) {
-            ChoiceControl(
-                options = WallpaperBand.entries.map { it to stringResource(wallpaperBandLabelRes(it)) },
-                selected = frost.band,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                label = stringResource(R.string.theme_glass_wallpaper_band_label),
-            ) { band -> updateFrost { f -> f.copy(wallpaperBand = band.name) } }
-        }
-        item(visible = usesWallpaper && wallpaperPixelsPossible && !wallpaperReadable) {
-            // Android 12 and below read the wallpaper's pixels with the
-            // storage permission; without it the glass paints the
-            // wallpaper's colours instead, which is also all Android 13 allows.
-            NavRow(
-                R.string.theme_glass_wallpaper_permission_title,
-                subtitle = stringResource(R.string.theme_glass_wallpaper_permission_subtitle),
-            ) { wallpaperPermission.launch(Manifest.permission.READ_EXTERNAL_STORAGE) }
-        }
-        item(visible = usesWallpaper && !wallpaperPixelsPossible) {
-            Text(
-                stringResource(R.string.theme_glass_wallpaper_colours_body),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-            )
-        }
-        item(visible = followsByRole, level = SettingLevel.STANDARD) {
-            ToggleSetting(
-                R.string.theme_glass_accent_board_title,
-                stringResource(R.string.theme_glass_accent_board_subtitle),
-                checked = frost.accentBoard,
-                info = stringResource(R.string.theme_glass_accent_board_info),
-            ) { on -> updateFrost { it.copy(accentBoard = on) } }
-        }
-        item(visible = hasImage && frost.backdropSource != FrostBackdropSource.WALLPAPER &&
-            frost.backdropSource != FrostBackdropSource.NONE
-        ) {
-            ToggleSetting(
-                R.string.theme_glass_blur_board_title,
-                stringResource(R.string.theme_glass_blur_board_subtitle),
-                checked = frost.blurBoard,
-                info = stringResource(R.string.theme_glass_blur_board_info),
-            ) { on -> updateFrost { it.copy(blurBoard = on) } }
-        }
-        item(visible = !hasBackdrop) {
-            Text(
-                stringResource(R.string.theme_glass_no_image_body),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-            )
-        }
-        item(visible = hasBackdrop, level = SettingLevel.STANDARD) {
-            SliderRow(
-                R.string.theme_glass_backdrop_blur_title,
-                value = frost.backdropBlur,
-                range = FROST_BACKDROP_BLUR_RANGE,
-                display = { if (it < 0.5f) offLabel else it.toInt().toString() },
-                info = stringResource(R.string.theme_glass_backdrop_blur_body),
-            ) { updateFrost { f -> f.copy(backdropBlur = it.roundToInt().toFloat()) } }
-        }
-        item(visible = hasBackdrop, level = SettingLevel.ADVANCED) {
-            SliderRow(
-                R.string.theme_glass_saturation_title,
-                value = frost.saturation,
-                range = FROST_SATURATION_RANGE,
-                display = { "%.2f×".format(it) },
-            ) { updateFrost { f -> f.copy(saturation = (it * 20).roundToInt() / 20f) } }
-        }
-        item(visible = hasBackdrop, level = SettingLevel.ADVANCED) {
-            SliderRow(
-                R.string.theme_glass_brightness_title,
-                value = frost.brightness,
-                range = FROST_BRIGHTNESS_RANGE,
-                display = { "%+d%%".format((it * 100).roundToInt()) },
-            ) { updateFrost { f -> f.copy(brightness = (it * 100).roundToInt() / 100f) } }
-        }
-        item(level = SettingLevel.ADVANCED) {
-            SliderRow(
-                R.string.theme_glass_rim_title,
-                value = frost.rim,
-                range = FROST_RIM_RANGE,
-                display = { if (it < 0.005f) offLabel else "${(it * 100).roundToInt()}%" },
-                info = stringResource(R.string.theme_glass_rim_body),
-            ) { updateFrost { f -> f.copy(rim = (it * 100).roundToInt() / 100f) } }
-        }
-        item(visible = frost.rim > 0f, level = SettingLevel.ADVANCED) {
-            NullableColorRow(
-                R.string.theme_glass_rim_color_title,
-                frost.rimColor,
-                fallback = if (lookDark) 0xB3FFFFFF else 0xE6FFFFFF,
-                supportsAlpha = true,
-                onChange = { updateFrost { f -> f.copy(rimColor = it) } },
-            )
-        }
-        item(level = SettingLevel.ADVANCED) {
-            SliderRow(
-                R.string.theme_glass_grain_title,
-                value = frost.grain,
-                range = FROST_GRAIN_RANGE,
-                display = { if (it < 0.005f) offLabel else "${(it * 100).roundToInt()}%" },
-            ) { updateFrost { f -> f.copy(grain = (it * 100).roundToInt() / 100f) } }
+            item(visible = hasBackdrop, level = SettingLevel.STANDARD) {
+                SliderRow(
+                    R.string.theme_glass_backdrop_blur_title,
+                    value = frost.backdropBlur,
+                    range = FROST_BACKDROP_BLUR_RANGE,
+                    display = { if (it < 0.5f) offLabel else it.toInt().toString() },
+                    info = stringResource(R.string.theme_glass_backdrop_blur_body),
+                ) { updateFrost { f -> f.copy(backdropBlur = it.roundToInt().toFloat()) } }
+            }
+            item(visible = hasBackdrop, level = SettingLevel.ADVANCED) {
+                SliderRow(
+                    R.string.theme_glass_saturation_title,
+                    value = frost.saturation,
+                    range = FROST_SATURATION_RANGE,
+                    display = { "%.2f×".format(it) },
+                ) { updateFrost { f -> f.copy(saturation = (it * 20).roundToInt() / 20f) } }
+            }
+            item(visible = hasBackdrop, level = SettingLevel.ADVANCED) {
+                SliderRow(
+                    R.string.theme_glass_brightness_title,
+                    value = frost.brightness,
+                    range = FROST_BRIGHTNESS_RANGE,
+                    display = { "%+d%%".format((it * 100).roundToInt()) },
+                ) { updateFrost { f -> f.copy(brightness = (it * 100).roundToInt() / 100f) } }
+            }
+            item(level = SettingLevel.ADVANCED) {
+                SliderRow(
+                    R.string.theme_glass_rim_title,
+                    value = frost.rim,
+                    range = FROST_RIM_RANGE,
+                    display = { if (it < 0.005f) offLabel else "${(it * 100).roundToInt()}%" },
+                    info = stringResource(R.string.theme_glass_rim_body),
+                ) { updateFrost { f -> f.copy(rim = (it * 100).roundToInt() / 100f) } }
+            }
+            item(visible = frost.rim > 0f, level = SettingLevel.ADVANCED) {
+                NullableColorRow(
+                    R.string.theme_glass_rim_color_title,
+                    frost.rimColor,
+                    fallback = if (lookDark) 0xB3FFFFFF else 0xE6FFFFFF,
+                    supportsAlpha = true,
+                    onChange = { updateFrost { f -> f.copy(rimColor = it) } },
+                )
+            }
+            item(level = SettingLevel.ADVANCED) {
+                SliderRow(
+                    R.string.theme_glass_grain_title,
+                    value = frost.grain,
+                    range = FROST_GRAIN_RANGE,
+                    display = { if (it < 0.005f) offLabel else "${(it * 100).roundToInt()}%" },
+                ) { updateFrost { f -> f.copy(grain = (it * 100).roundToInt() / 100f) } }
+            }
         }
     }
 
@@ -6264,29 +6267,30 @@ private fun ThemeEditorContent(
         foldKey = "theme/animation",
         info = stringResource(R.string.theme_animation_section_body),
     ) {
-        if (reduceMotion) return@SettingsGroup
-        item {
-            ChoiceControl(
-                options = ThemeAnimation.entries.map { anim ->
-                    anim to when (anim) {
-                        ThemeAnimation.NONE -> stringResource(CommonR.string.common_none)
-                        ThemeAnimation.FLOW -> stringResource(R.string.theme_animation_flow_label)
-                        ThemeAnimation.HUE_CYCLE ->
-                            stringResource(R.string.theme_animation_hue_cycle_label)
-                    }
-                },
-                selected = look.watch { it.animation },
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                detail = { anim -> ChoiceDetail(stringResource(themeAnimationDescRes(anim))) },
-            ) { anim -> update { t -> t.copy(animation = anim) } }
-        }
-        item(visible = themeAnimates, level = SettingLevel.ADVANCED) {
-            SliderRow(
-                R.string.theme_animation_speed_title,
-                value = look.watch { it.animationSpeed },
-                range = 0.25f..3f,
-                display = { "%.2f×".format(it) },
-            ) { update { t -> t.copy(animationSpeed = (it * 20).toInt() / 20f) } }
+        dependsOn(!reduceMotion) {
+            item {
+                ChoiceControl(
+                    options = ThemeAnimation.entries.map { anim ->
+                        anim to when (anim) {
+                            ThemeAnimation.NONE -> stringResource(CommonR.string.common_none)
+                            ThemeAnimation.FLOW -> stringResource(R.string.theme_animation_flow_label)
+                            ThemeAnimation.HUE_CYCLE ->
+                                stringResource(R.string.theme_animation_hue_cycle_label)
+                        }
+                    },
+                    selected = look.watch { it.animation },
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    detail = { anim -> ChoiceDetail(stringResource(themeAnimationDescRes(anim))) },
+                ) { anim -> update { t -> t.copy(animation = anim) } }
+            }
+            item(visible = themeAnimates, level = SettingLevel.ADVANCED) {
+                SliderRow(
+                    R.string.theme_animation_speed_title,
+                    value = look.watch { it.animationSpeed },
+                    range = 0.25f..3f,
+                    display = { "%.2f×".format(it) },
+                ) { update { t -> t.copy(animationSpeed = (it * 20).toInt() / 20f) } }
+            }
         }
     }
 
@@ -6320,216 +6324,217 @@ private fun ThemeEditorContent(
         info = listOfNotNull(stringResource(R.string.theme_effect_section_body), effectImagesNote)
             .joinToString("\n\n"),
     ) {
-        if (reduceMotion) return@SettingsGroup
-        item {
-            val current = effectKind
-            ChoiceControl(
-                options = listOf<KeyEffectKind?>(null).plus(KeyEffectKind.entries).map { kind ->
-                    kind to when (kind) {
-                        null -> stringResource(CommonR.string.common_none)
-                        KeyEffectKind.STARS -> stringResource(R.string.theme_effect_stars_label)
-                        KeyEffectKind.HEARTS -> stringResource(R.string.theme_effect_hearts_label)
-                        KeyEffectKind.SPARKLE ->
-                            stringResource(R.string.theme_effect_sparkle_label)
-                        KeyEffectKind.CONFETTI ->
-                            stringResource(R.string.theme_effect_confetti_label)
-                        KeyEffectKind.EMOJI -> stringResource(R.string.theme_effect_emoji_label)
-                        KeyEffectKind.CUSTOM_IMAGE ->
-                            stringResource(R.string.theme_effect_images_label)
-                    }
-                },
-                selected = current,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            ) { kind -> update { t -> t.copy(keyEffect = kind?.name) } }
-        }
-        item(visible = effectKind == KeyEffectKind.EMOJI) {
-            // Local state is the source of truth while typing: a field
-            // bound straight to the async theme write scrambles input when
-            // the DataStore emission echoes back mid-edit.
-            val storedParam = look.watch { it.keyEffectParam }
-            var emojiParam by remember(lookId, history.restores) {
-                mutableStateOf(storedParam.orEmpty())
-            }
-            OutlinedTextField(
-                value = emojiParam,
-                onValueChange = { text ->
-                    val clipped = text.take(16)
-                    emojiParam = clipped
-                    update { t -> t.copy(keyEffectParam = clipped) }
-                },
-                singleLine = true,
-                label = { Text(stringResource(R.string.theme_effect_emoji_field_label)) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-            )
-        }
-        if (effectKind == KeyEffectKind.CUSTOM_IMAGE) {
-            effectImages.forEachIndexed { index, path ->
-                item(key = path) {
-                    WmRow(
-                        title = stringResource(
-                            R.string.theme_effect_image_item_label,
-                            index + 1,
-                        ),
-                        leading = { ImageThumb(path) },
-                        swipeActions = listOf(
-                            deleteSwipeAction(stringResource(CommonR.string.common_remove)) {
-                                update { t ->
-                                    File(path).delete()
-                                    t.copy(keyEffectImages = t.keyEffectImages.filterIndexed { i, _ -> i != index })
-                                }
-                            },
-                        ),
-                        trailing = {
-                            IconButton(
-                                onClick = {
-                                    update { t ->
-                                        File(path).delete()
-                                        t.copy(
-                                            keyEffectImages =
-                                                t.keyEffectImages.filterIndexed { i, _ ->
-                                                    i != index
-                                                },
-                                        )
-                                    }
-                                },
-                            ) {
-                                Icon(
-                                    Icons.Outlined.Delete,
-                                    contentDescription =
-                                        stringResource(CommonR.string.common_remove),
-                                )
-                            }
-                        },
-                    )
-                }
-            }
-            item(visible = effectImages.size < MAX_EFFECT_IMAGES) {
-                OutlinedButton(
-                    onClick = {
-                        effectImagePicker.launch(
-                            PickVisualMediaRequest(
-                                ActivityResultContracts.PickVisualMedia.ImageOnly,
-                            ),
-                        )
-                    },
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                ) { Text(stringResource(R.string.theme_effect_image_add_action)) }
-            }
-        }
-        if (effectKind != null) {
-            item(level = SettingLevel.ADVANCED) {
-                SliderRow(
-                    R.string.theme_effect_intensity_title,
-                    value = look.watch { it.keyEffectIntensity },
-                    range = 0.4f..2.4f,
-                    display = { "%.1f×".format(it) },
-                ) { update { t -> t.copy(keyEffectIntensity = (it * 10).toInt() / 10f) } }
-            }
-            item(level = SettingLevel.STANDARD) {
-                val mode = look.watch { keyEffectColorMode(it.keyEffectColor) }
-                val keyText = look.watch { it.keyText }
-                val accent = look.watch { it.accent }
-                val trail = look.watch { it.gestureTrailColor ?: it.accent }
-                val customColour = look.watch { it.keyEffectCustomColor ?: it.accent }
-                // A swatch per option, since every one of these is a colour and
-                // the words for them ("Trail", "Accent") name where the colour
-                // comes from rather than what it looks like on this theme.
-                val colourDetail = mapOf(
-                    KeyEffectColorMode.NATURAL to
-                        ChoiceDetail(stringResource(R.string.theme_effect_color_natural_desc)),
-                    KeyEffectColorMode.KEY_TEXT to
-                        ChoiceDetail(stringResource(R.string.theme_effect_color_key_text_desc)) {
-                            Swatch(keyText)
-                        },
-                    KeyEffectColorMode.ACCENT to
-                        ChoiceDetail(stringResource(R.string.theme_effect_color_accent_desc)) {
-                            Swatch(accent)
-                        },
-                    KeyEffectColorMode.GESTURE_TRAIL to
-                        ChoiceDetail(stringResource(R.string.theme_effect_color_trail_desc)) {
-                            Swatch(trail)
-                        },
-                    KeyEffectColorMode.CUSTOM to
-                        ChoiceDetail(stringResource(R.string.theme_effect_color_custom_desc)) {
-                            Swatch(customColour)
-                        },
-                    KeyEffectColorMode.RANDOM to
-                        ChoiceDetail(stringResource(R.string.theme_effect_color_random_desc)),
-                )
-                ChoiceSetting(
-                    title = R.string.theme_effect_color_title,
-                    info = stringResource(R.string.theme_effect_color_body),
-                    detail = { colourDetail[it] },
-                    options = KeyEffectColorMode.entries.map { option ->
-                        option to when (option) {
-                            KeyEffectColorMode.NATURAL ->
-                                stringResource(R.string.theme_effect_color_natural_label)
-                            KeyEffectColorMode.KEY_TEXT ->
-                                stringResource(R.string.theme_effect_color_key_text_label)
-                            KeyEffectColorMode.ACCENT ->
-                                stringResource(R.string.theme_effect_color_accent_label)
-                            KeyEffectColorMode.GESTURE_TRAIL ->
-                                stringResource(R.string.theme_effect_color_trail_label)
-                            KeyEffectColorMode.CUSTOM ->
-                                stringResource(R.string.theme_effect_color_custom_label)
-                            KeyEffectColorMode.RANDOM ->
-                                stringResource(R.string.theme_effect_color_random_label)
+        dependsOn(!reduceMotion) {
+            item {
+                val current = effectKind
+                ChoiceControl(
+                    options = listOf<KeyEffectKind?>(null).plus(KeyEffectKind.entries).map { kind ->
+                        kind to when (kind) {
+                            null -> stringResource(CommonR.string.common_none)
+                            KeyEffectKind.STARS -> stringResource(R.string.theme_effect_stars_label)
+                            KeyEffectKind.HEARTS -> stringResource(R.string.theme_effect_hearts_label)
+                            KeyEffectKind.SPARKLE ->
+                                stringResource(R.string.theme_effect_sparkle_label)
+                            KeyEffectKind.CONFETTI ->
+                                stringResource(R.string.theme_effect_confetti_label)
+                            KeyEffectKind.EMOJI -> stringResource(R.string.theme_effect_emoji_label)
+                            KeyEffectKind.CUSTOM_IMAGE ->
+                                stringResource(R.string.theme_effect_images_label)
                         }
                     },
-                    selected = mode,
-                ) { picked -> update { t -> t.copy(keyEffectColor = picked.name) } }
+                    selected = current,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                ) { kind -> update { t -> t.copy(keyEffect = kind?.name) } }
             }
-            item(visible = effectColourCustom, level = SettingLevel.ADVANCED) {
-                NullableColorRow(
-                    R.string.theme_effect_color_custom_label,
-                    look.watch { it.keyEffectCustomColor }, fallback = look.watch { it.accent },
-                    onChange = { update { t -> t.copy(keyEffectCustomColor = it) } },
+            item(visible = effectKind == KeyEffectKind.EMOJI) {
+                // Local state is the source of truth while typing: a field
+                // bound straight to the async theme write scrambles input when
+                // the DataStore emission echoes back mid-edit.
+                val storedParam = look.watch { it.keyEffectParam }
+                var emojiParam by remember(lookId, history.restores) {
+                    mutableStateOf(storedParam.orEmpty())
+                }
+                OutlinedTextField(
+                    value = emojiParam,
+                    onValueChange = { text ->
+                        val clipped = text.take(16)
+                        emojiParam = clipped
+                        update { t -> t.copy(keyEffectParam = clipped) }
+                    },
+                    singleLine = true,
+                    label = { Text(stringResource(R.string.theme_effect_emoji_field_label)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
                 )
             }
-            item(level = SettingLevel.ADVANCED) {
-                SliderRow(
-                    R.string.theme_effect_size_title,
-                    value = look.watch { it.keyEffectSize },
-                    range = EFFECT_SIZE_RANGE,
-                    display = { "%.1f×".format(it) },
-                ) { update { t -> t.copy(keyEffectSize = (it * 10).toInt() / 10f) } }
+            if (effectKind == KeyEffectKind.CUSTOM_IMAGE) {
+                effectImages.forEachIndexed { index, path ->
+                    item(key = path) {
+                        WmRow(
+                            title = stringResource(
+                                R.string.theme_effect_image_item_label,
+                                index + 1,
+                            ),
+                            leading = { ImageThumb(path) },
+                            swipeActions = listOf(
+                                deleteSwipeAction(stringResource(CommonR.string.common_remove)) {
+                                    update { t ->
+                                        File(path).delete()
+                                        t.copy(keyEffectImages = t.keyEffectImages.filterIndexed { i, _ -> i != index })
+                                    }
+                                },
+                            ),
+                            trailing = {
+                                IconButton(
+                                    onClick = {
+                                        update { t ->
+                                            File(path).delete()
+                                            t.copy(
+                                                keyEffectImages =
+                                                    t.keyEffectImages.filterIndexed { i, _ ->
+                                                        i != index
+                                                    },
+                                            )
+                                        }
+                                    },
+                                ) {
+                                    Icon(
+                                        Icons.Outlined.Delete,
+                                        contentDescription =
+                                            stringResource(CommonR.string.common_remove),
+                                    )
+                                }
+                            },
+                        )
+                    }
+                }
+                item(visible = effectImages.size < MAX_EFFECT_IMAGES) {
+                    OutlinedButton(
+                        onClick = {
+                            effectImagePicker.launch(
+                                PickVisualMediaRequest(
+                                    ActivityResultContracts.PickVisualMedia.ImageOnly,
+                                ),
+                            )
+                        },
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    ) { Text(stringResource(R.string.theme_effect_image_add_action)) }
+                }
             }
-            item(level = SettingLevel.ADVANCED) {
-                SliderRow(
-                    R.string.theme_effect_speed_title,
-                    value = look.watch { it.keyEffectSpeed },
-                    range = EFFECT_SPEED_RANGE,
-                    display = { "%.1f×".format(it) },
-                ) { update { t -> t.copy(keyEffectSpeed = (it * 10).toInt() / 10f) } }
-            }
-            item(level = SettingLevel.ADVANCED) {
-                SliderRow(
-                    R.string.theme_effect_spread_title,
-                    value = look.watch { it.keyEffectSpread },
-                    range = EFFECT_SPREAD_RANGE,
-                    display = { "%d%%".format((it * 100).roundToInt()) },
-                ) { update { t -> t.copy(keyEffectSpread = (it * 20).toInt() / 20f) } }
-            }
-            item(level = SettingLevel.ADVANCED) {
-                SliderRow(
-                    R.string.theme_effect_gravity_title,
-                    value = look.watch { it.keyEffectGravity },
-                    range = EFFECT_GRAVITY_RANGE,
-                    display = { "%.1f×".format(it) },
-                    info = stringResource(R.string.theme_effect_gravity_body),
-                ) { update { t -> t.copy(keyEffectGravity = (it * 10).toInt() / 10f) } }
-            }
-            item(level = SettingLevel.ADVANCED) {
-                SliderRow(
-                    R.string.theme_effect_duration_title,
-                    value = look.watch { it.keyEffectDurationMs }.toFloat(),
-                    range = EFFECT_DURATION_RANGE.first.toFloat()..
-                        EFFECT_DURATION_RANGE.last.toFloat(),
-                    display = { "%d ms".format(it.roundToInt()) },
-                ) { ms ->
-                    update { t -> t.copy(keyEffectDurationMs = (ms / 50).roundToInt() * 50) }
+            if (effectKind != null) {
+                item(level = SettingLevel.ADVANCED) {
+                    SliderRow(
+                        R.string.theme_effect_intensity_title,
+                        value = look.watch { it.keyEffectIntensity },
+                        range = 0.4f..2.4f,
+                        display = { "%.1f×".format(it) },
+                    ) { update { t -> t.copy(keyEffectIntensity = (it * 10).toInt() / 10f) } }
+                }
+                item(level = SettingLevel.STANDARD) {
+                    val mode = look.watch { keyEffectColorMode(it.keyEffectColor) }
+                    val keyText = look.watch { it.keyText }
+                    val accent = look.watch { it.accent }
+                    val trail = look.watch { it.gestureTrailColor ?: it.accent }
+                    val customColour = look.watch { it.keyEffectCustomColor ?: it.accent }
+                    // A swatch per option, since every one of these is a colour and
+                    // the words for them ("Trail", "Accent") name where the colour
+                    // comes from rather than what it looks like on this theme.
+                    val colourDetail = mapOf(
+                        KeyEffectColorMode.NATURAL to
+                            ChoiceDetail(stringResource(R.string.theme_effect_color_natural_desc)),
+                        KeyEffectColorMode.KEY_TEXT to
+                            ChoiceDetail(stringResource(R.string.theme_effect_color_key_text_desc)) {
+                                Swatch(keyText)
+                            },
+                        KeyEffectColorMode.ACCENT to
+                            ChoiceDetail(stringResource(R.string.theme_effect_color_accent_desc)) {
+                                Swatch(accent)
+                            },
+                        KeyEffectColorMode.GESTURE_TRAIL to
+                            ChoiceDetail(stringResource(R.string.theme_effect_color_trail_desc)) {
+                                Swatch(trail)
+                            },
+                        KeyEffectColorMode.CUSTOM to
+                            ChoiceDetail(stringResource(R.string.theme_effect_color_custom_desc)) {
+                                Swatch(customColour)
+                            },
+                        KeyEffectColorMode.RANDOM to
+                            ChoiceDetail(stringResource(R.string.theme_effect_color_random_desc)),
+                    )
+                    ChoiceSetting(
+                        title = R.string.theme_effect_color_title,
+                        info = stringResource(R.string.theme_effect_color_body),
+                        detail = { colourDetail[it] },
+                        options = KeyEffectColorMode.entries.map { option ->
+                            option to when (option) {
+                                KeyEffectColorMode.NATURAL ->
+                                    stringResource(R.string.theme_effect_color_natural_label)
+                                KeyEffectColorMode.KEY_TEXT ->
+                                    stringResource(R.string.theme_effect_color_key_text_label)
+                                KeyEffectColorMode.ACCENT ->
+                                    stringResource(R.string.theme_effect_color_accent_label)
+                                KeyEffectColorMode.GESTURE_TRAIL ->
+                                    stringResource(R.string.theme_effect_color_trail_label)
+                                KeyEffectColorMode.CUSTOM ->
+                                    stringResource(R.string.theme_effect_color_custom_label)
+                                KeyEffectColorMode.RANDOM ->
+                                    stringResource(R.string.theme_effect_color_random_label)
+                            }
+                        },
+                        selected = mode,
+                    ) { picked -> update { t -> t.copy(keyEffectColor = picked.name) } }
+                }
+                item(visible = effectColourCustom, level = SettingLevel.ADVANCED) {
+                    NullableColorRow(
+                        R.string.theme_effect_color_custom_label,
+                        look.watch { it.keyEffectCustomColor }, fallback = look.watch { it.accent },
+                        onChange = { update { t -> t.copy(keyEffectCustomColor = it) } },
+                    )
+                }
+                item(level = SettingLevel.ADVANCED) {
+                    SliderRow(
+                        R.string.theme_effect_size_title,
+                        value = look.watch { it.keyEffectSize },
+                        range = EFFECT_SIZE_RANGE,
+                        display = { "%.1f×".format(it) },
+                    ) { update { t -> t.copy(keyEffectSize = (it * 10).toInt() / 10f) } }
+                }
+                item(level = SettingLevel.ADVANCED) {
+                    SliderRow(
+                        R.string.theme_effect_speed_title,
+                        value = look.watch { it.keyEffectSpeed },
+                        range = EFFECT_SPEED_RANGE,
+                        display = { "%.1f×".format(it) },
+                    ) { update { t -> t.copy(keyEffectSpeed = (it * 10).toInt() / 10f) } }
+                }
+                item(level = SettingLevel.ADVANCED) {
+                    SliderRow(
+                        R.string.theme_effect_spread_title,
+                        value = look.watch { it.keyEffectSpread },
+                        range = EFFECT_SPREAD_RANGE,
+                        display = { "%d%%".format((it * 100).roundToInt()) },
+                    ) { update { t -> t.copy(keyEffectSpread = (it * 20).toInt() / 20f) } }
+                }
+                item(level = SettingLevel.ADVANCED) {
+                    SliderRow(
+                        R.string.theme_effect_gravity_title,
+                        value = look.watch { it.keyEffectGravity },
+                        range = EFFECT_GRAVITY_RANGE,
+                        display = { "%.1f×".format(it) },
+                        info = stringResource(R.string.theme_effect_gravity_body),
+                    ) { update { t -> t.copy(keyEffectGravity = (it * 10).toInt() / 10f) } }
+                }
+                item(level = SettingLevel.ADVANCED) {
+                    SliderRow(
+                        R.string.theme_effect_duration_title,
+                        value = look.watch { it.keyEffectDurationMs }.toFloat(),
+                        range = EFFECT_DURATION_RANGE.first.toFloat()..
+                            EFFECT_DURATION_RANGE.last.toFloat(),
+                        display = { "%d ms".format(it.roundToInt()) },
+                    ) { ms ->
+                        update { t -> t.copy(keyEffectDurationMs = (ms / 50).roundToInt() * 50) }
+                    }
                 }
             }
         }

@@ -85,60 +85,61 @@ internal fun DataSaverSettingsScreen(
     // groups vanish together rather than listing a dozen dead answers.
     val active = settings.watch { it.dataSaver.manual || it.dataSaver.trigger != DataSaverTrigger.OFF }
     SettingsGroup(stringResource(R.string.datasaver_background_group), level = SettingLevel.STANDARD) {
-        if (!active) return@SettingsGroup
-        item {
-            policyRow(
-                R.string.datasaver_link_previews_title,
-                R.string.datasaver_link_previews_subtitle,
-                settings.watch { it.dataSaver.linkPreviews },
-                SettingsDefaults.dataSaver.linkPreviews,
-                background = true,
-            ) { scope.launch { repository.setDataSaverLinkPreviews(it) } }
-        }
-        item {
-            policyRow(
-                R.string.datasaver_dictionary_title,
-                R.string.datasaver_dictionary_subtitle,
-                settings.watch { it.dataSaver.dictionaryLookup },
-                SettingsDefaults.dataSaver.dictionaryLookup,
-                background = true,
-            ) { scope.launch { repository.setDataSaverDictionaryLookup(it) } }
-        }
-        item {
-            policyRow(
-                R.string.datasaver_photos_title,
-                R.string.datasaver_photos_subtitle,
-                settings.watch { it.dataSaver.photoBackgrounds },
-                SettingsDefaults.dataSaver.photoBackgrounds,
-                background = true,
-            ) { scope.launch { repository.setDataSaverPhotoBackgrounds(it) } }
-        }
-        item {
-            policyRow(
-                R.string.datasaver_weather_title,
-                R.string.datasaver_weather_subtitle,
-                settings.watch { it.dataSaver.weatherChip },
-                SettingsDefaults.dataSaver.weatherChip,
-                background = true,
-            ) { scope.launch { repository.setDataSaverWeatherChip(it) } }
-        }
-        item {
-            policyRow(
-                R.string.datasaver_rates_title,
-                R.string.datasaver_rates_subtitle,
-                settings.watch { it.dataSaver.currencyRates },
-                SettingsDefaults.dataSaver.currencyRates,
-                background = true,
-            ) { scope.launch { repository.setDataSaverCurrencyRates(it) } }
-        }
-        item {
-            policyRow(
-                R.string.datasaver_addons_title,
-                R.string.datasaver_addons_subtitle,
-                settings.watch { it.dataSaver.addonRefresh },
-                SettingsDefaults.dataSaver.addonRefresh,
-                background = true,
-            ) { scope.launch { repository.setDataSaverAddonRefresh(it) } }
+        dependsOn(active) {
+            item {
+                policyRow(
+                    R.string.datasaver_link_previews_title,
+                    R.string.datasaver_link_previews_subtitle,
+                    settings.watch { it.dataSaver.linkPreviews },
+                    SettingsDefaults.dataSaver.linkPreviews,
+                    background = true,
+                ) { scope.launch { repository.setDataSaverLinkPreviews(it) } }
+            }
+            item {
+                policyRow(
+                    R.string.datasaver_dictionary_title,
+                    R.string.datasaver_dictionary_subtitle,
+                    settings.watch { it.dataSaver.dictionaryLookup },
+                    SettingsDefaults.dataSaver.dictionaryLookup,
+                    background = true,
+                ) { scope.launch { repository.setDataSaverDictionaryLookup(it) } }
+            }
+            item {
+                policyRow(
+                    R.string.datasaver_photos_title,
+                    R.string.datasaver_photos_subtitle,
+                    settings.watch { it.dataSaver.photoBackgrounds },
+                    SettingsDefaults.dataSaver.photoBackgrounds,
+                    background = true,
+                ) { scope.launch { repository.setDataSaverPhotoBackgrounds(it) } }
+            }
+            item {
+                policyRow(
+                    R.string.datasaver_weather_title,
+                    R.string.datasaver_weather_subtitle,
+                    settings.watch { it.dataSaver.weatherChip },
+                    SettingsDefaults.dataSaver.weatherChip,
+                    background = true,
+                ) { scope.launch { repository.setDataSaverWeatherChip(it) } }
+            }
+            item {
+                policyRow(
+                    R.string.datasaver_rates_title,
+                    R.string.datasaver_rates_subtitle,
+                    settings.watch { it.dataSaver.currencyRates },
+                    SettingsDefaults.dataSaver.currencyRates,
+                    background = true,
+                ) { scope.launch { repository.setDataSaverCurrencyRates(it) } }
+            }
+            item {
+                policyRow(
+                    R.string.datasaver_addons_title,
+                    R.string.datasaver_addons_subtitle,
+                    settings.watch { it.dataSaver.addonRefresh },
+                    SettingsDefaults.dataSaver.addonRefresh,
+                    background = true,
+                ) { scope.launch { repository.setDataSaverAddonRefresh(it) } }
+            }
         }
     }
 
@@ -147,89 +148,90 @@ internal fun DataSaverSettingsScreen(
         info = stringResource(R.string.datasaver_info),
         level = SettingLevel.STANDARD,
     ) {
-        if (!active) return@SettingsGroup
-        item {
-            policyRow(
-                R.string.datasaver_media_title,
-                R.string.datasaver_media_subtitle,
-                settings.watch { it.dataSaver.mediaSearch },
-                SettingsDefaults.dataSaver.mediaSearch,
-            ) { scope.launch { repository.setDataSaverMediaSearch(it) } }
-        }
-        item {
-            policyRow(
-                R.string.datasaver_search_title,
-                R.string.datasaver_search_subtitle,
-                settings.watch { it.dataSaver.webSearch },
-                SettingsDefaults.dataSaver.webSearch,
-            ) { scope.launch { repository.setDataSaverWebSearch(it) } }
-        }
-        item {
-            policyRow(
-                R.string.datasaver_animated_emoji_title,
-                R.string.datasaver_animated_emoji_subtitle,
-                settings.watch { it.dataSaver.animatedEmoji },
-                SettingsDefaults.dataSaver.animatedEmoji,
-            ) { scope.launch { repository.setDataSaverAnimatedEmoji(it) } }
-        }
-        item {
-            policyRow(
-                R.string.datasaver_downloads_title,
-                R.string.datasaver_downloads_subtitle,
-                settings.watch { it.dataSaver.downloads },
-                SettingsDefaults.dataSaver.downloads,
-            ) { scope.launch { repository.setDataSaverDownloads(it) } }
-        }
-        item {
-            policyRow(
-                R.string.datasaver_ai_title,
-                R.string.datasaver_ai_subtitle,
-                settings.watch { it.dataSaver.cloudAi },
-                SettingsDefaults.dataSaver.cloudAi,
-            ) { scope.launch { repository.setDataSaverCloudAi(it) } }
-        }
-        item {
-            policyRow(
-                R.string.datasaver_voice_title,
-                R.string.datasaver_voice_subtitle,
-                settings.watch { it.dataSaver.cloudVoice },
-                SettingsDefaults.dataSaver.cloudVoice,
-            ) { scope.launch { repository.setDataSaverCloudVoice(it) } }
-        }
-        item {
-            // Two answers: a check runs on every pause in typing, with no one
-            // moment to ask at. See DataSaverSettings.cloudGrammar.
-            policyRow(
-                R.string.datasaver_grammar_title,
-                R.string.datasaver_grammar_subtitle,
-                settings.watch { it.dataSaver.cloudGrammar },
-                SettingsDefaults.dataSaver.cloudGrammar,
-                background = true,
-            ) { scope.launch { repository.setDataSaverCloudGrammar(it) } }
-        }
-        item {
-            policyRow(
-                R.string.datasaver_music_title,
-                R.string.datasaver_music_subtitle,
-                settings.watch { it.dataSaver.cloudMusic },
-                SettingsDefaults.dataSaver.cloudMusic,
-            ) { scope.launch { repository.setDataSaverCloudMusic(it) } }
-        }
-        item {
-            policyRow(
-                R.string.datasaver_speed_test_title,
-                R.string.datasaver_speed_test_subtitle,
-                settings.watch { it.dataSaver.speedTest },
-                SettingsDefaults.dataSaver.speedTest,
-            ) { scope.launch { repository.setDataSaverSpeedTest(it) } }
-        }
-        item {
-            policyRow(
-                R.string.datasaver_send_title,
-                R.string.datasaver_send_subtitle,
-                settings.watch { it.dataSaver.fileSend },
-                SettingsDefaults.dataSaver.fileSend,
-            ) { scope.launch { repository.setDataSaverFileSend(it) } }
+        dependsOn(active) {
+            item {
+                policyRow(
+                    R.string.datasaver_media_title,
+                    R.string.datasaver_media_subtitle,
+                    settings.watch { it.dataSaver.mediaSearch },
+                    SettingsDefaults.dataSaver.mediaSearch,
+                ) { scope.launch { repository.setDataSaverMediaSearch(it) } }
+            }
+            item {
+                policyRow(
+                    R.string.datasaver_search_title,
+                    R.string.datasaver_search_subtitle,
+                    settings.watch { it.dataSaver.webSearch },
+                    SettingsDefaults.dataSaver.webSearch,
+                ) { scope.launch { repository.setDataSaverWebSearch(it) } }
+            }
+            item {
+                policyRow(
+                    R.string.datasaver_animated_emoji_title,
+                    R.string.datasaver_animated_emoji_subtitle,
+                    settings.watch { it.dataSaver.animatedEmoji },
+                    SettingsDefaults.dataSaver.animatedEmoji,
+                ) { scope.launch { repository.setDataSaverAnimatedEmoji(it) } }
+            }
+            item {
+                policyRow(
+                    R.string.datasaver_downloads_title,
+                    R.string.datasaver_downloads_subtitle,
+                    settings.watch { it.dataSaver.downloads },
+                    SettingsDefaults.dataSaver.downloads,
+                ) { scope.launch { repository.setDataSaverDownloads(it) } }
+            }
+            item {
+                policyRow(
+                    R.string.datasaver_ai_title,
+                    R.string.datasaver_ai_subtitle,
+                    settings.watch { it.dataSaver.cloudAi },
+                    SettingsDefaults.dataSaver.cloudAi,
+                ) { scope.launch { repository.setDataSaverCloudAi(it) } }
+            }
+            item {
+                policyRow(
+                    R.string.datasaver_voice_title,
+                    R.string.datasaver_voice_subtitle,
+                    settings.watch { it.dataSaver.cloudVoice },
+                    SettingsDefaults.dataSaver.cloudVoice,
+                ) { scope.launch { repository.setDataSaverCloudVoice(it) } }
+            }
+            item {
+                // Two answers: a check runs on every pause in typing, with no one
+                // moment to ask at. See DataSaverSettings.cloudGrammar.
+                policyRow(
+                    R.string.datasaver_grammar_title,
+                    R.string.datasaver_grammar_subtitle,
+                    settings.watch { it.dataSaver.cloudGrammar },
+                    SettingsDefaults.dataSaver.cloudGrammar,
+                    background = true,
+                ) { scope.launch { repository.setDataSaverCloudGrammar(it) } }
+            }
+            item {
+                policyRow(
+                    R.string.datasaver_music_title,
+                    R.string.datasaver_music_subtitle,
+                    settings.watch { it.dataSaver.cloudMusic },
+                    SettingsDefaults.dataSaver.cloudMusic,
+                ) { scope.launch { repository.setDataSaverCloudMusic(it) } }
+            }
+            item {
+                policyRow(
+                    R.string.datasaver_speed_test_title,
+                    R.string.datasaver_speed_test_subtitle,
+                    settings.watch { it.dataSaver.speedTest },
+                    SettingsDefaults.dataSaver.speedTest,
+                ) { scope.launch { repository.setDataSaverSpeedTest(it) } }
+            }
+            item {
+                policyRow(
+                    R.string.datasaver_send_title,
+                    R.string.datasaver_send_subtitle,
+                    settings.watch { it.dataSaver.fileSend },
+                    SettingsDefaults.dataSaver.fileSend,
+                ) { scope.launch { repository.setDataSaverFileSend(it) } }
+            }
         }
     }
 

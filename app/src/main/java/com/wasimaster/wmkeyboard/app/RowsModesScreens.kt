@@ -1586,34 +1586,35 @@ internal fun ModesSettings(
         ) { scope.launch { repository.setModesEnabled(true) } }
     }
     SettingsGroup {
-        if (!modesOn) return@SettingsGroup
-        item(level = SettingLevel.STANDARD) {
-            ChoiceSetting(
-                R.string.modes_manual_duration_title,
-                subtitle = stringResource(R.string.modes_manual_duration_subtitle),
-                options = listOf(
-                    ManualModeDuration.UNTIL_APP_CHANGES to
-                        stringResource(R.string.modes_manual_duration_app_label),
-                    ManualModeDuration.UNTIL_CHANGED to
-                        stringResource(R.string.modes_manual_duration_changed_label),
-                    ManualModeDuration.FOR_EACH_APP to
-                        stringResource(R.string.modes_manual_duration_each_app_label),
-                ),
-                selected = settings.watch { it.rows.manualModeDuration },
-                info = stringResource(R.string.modes_manual_duration_info),
-                default = SettingsDefaults.rows.manualModeDuration,
-                detail = { duration ->
-                    ChoiceDetail(
-                        stringResource(
-                            when (duration) {
-                                ManualModeDuration.UNTIL_CHANGED -> R.string.modes_manual_duration_changed_desc
-                                ManualModeDuration.FOR_EACH_APP -> R.string.modes_manual_duration_each_app_desc
-                                ManualModeDuration.UNTIL_APP_CHANGES -> R.string.modes_manual_duration_app_desc
-                            },
-                        ),
-                    )
-                },
-            ) { scope.launch { repository.setManualModeDuration(it) } }
+        dependsOn(modesOn) {
+            item(level = SettingLevel.STANDARD) {
+                ChoiceSetting(
+                    R.string.modes_manual_duration_title,
+                    subtitle = stringResource(R.string.modes_manual_duration_subtitle),
+                    options = listOf(
+                        ManualModeDuration.UNTIL_APP_CHANGES to
+                            stringResource(R.string.modes_manual_duration_app_label),
+                        ManualModeDuration.UNTIL_CHANGED to
+                            stringResource(R.string.modes_manual_duration_changed_label),
+                        ManualModeDuration.FOR_EACH_APP to
+                            stringResource(R.string.modes_manual_duration_each_app_label),
+                    ),
+                    selected = settings.watch { it.rows.manualModeDuration },
+                    info = stringResource(R.string.modes_manual_duration_info),
+                    default = SettingsDefaults.rows.manualModeDuration,
+                    detail = { duration ->
+                        ChoiceDetail(
+                            stringResource(
+                                when (duration) {
+                                    ManualModeDuration.UNTIL_CHANGED -> R.string.modes_manual_duration_changed_desc
+                                    ManualModeDuration.FOR_EACH_APP -> R.string.modes_manual_duration_each_app_desc
+                                    ManualModeDuration.UNTIL_APP_CHANGES -> R.string.modes_manual_duration_app_desc
+                                },
+                            ),
+                        )
+                    },
+                ) { scope.launch { repository.setManualModeDuration(it) } }
+            }
         }
     }
     SettingsGroup(stringResource(R.string.modes_group_title)) {
@@ -1692,16 +1693,17 @@ internal fun ModesSettings(
         onNavigate(modeEditRoute("mode_custom_${System.currentTimeMillis()}"))
     }
     SettingsGroup(stringResource(R.string.modes_rearrange_group_title), level = SettingLevel.ADVANCED) {
-        if (!modesOn) return@SettingsGroup
-        item {
-            ToggleSetting(
-                R.string.modes_drag_edits_title,
-                stringResource(R.string.modes_drag_edits_subtitle),
-                settings.watch { it.modeToolOrderEdits },
-                info = stringResource(R.string.modes_drag_edits_info) + "\n\n" +
-                    stringResource(R.string.modes_tool_order_body),
-                default = SettingsDefaults.modeToolOrderEdits,
-            ) { scope.launch { repository.setModeToolOrderEdits(it) } }
+        dependsOn(modesOn) {
+            item {
+                ToggleSetting(
+                    R.string.modes_drag_edits_title,
+                    stringResource(R.string.modes_drag_edits_subtitle),
+                    settings.watch { it.modeToolOrderEdits },
+                    info = stringResource(R.string.modes_drag_edits_info) + "\n\n" +
+                        stringResource(R.string.modes_tool_order_body),
+                    default = SettingsDefaults.modeToolOrderEdits,
+                ) { scope.launch { repository.setModeToolOrderEdits(it) } }
+            }
         }
     }
     confirmDelete?.let { mode ->

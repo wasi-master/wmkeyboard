@@ -122,71 +122,73 @@ internal fun SelectionMacroSettingsScreen(
         }
     }
 
-    // The whole group goes with the switch above it — SettingsGroup draws
-    // nothing when its builder adds no rows, heading included.
+    // The whole group goes with the switch above it: SettingsGroup draws
+    // nothing when none of its rows is showing, heading included. The rows
+    // are still listed, so a link to one of them greys it in (#1538).
     val convertOn = settings.watch { SelectionMacro.CONVERT_SCRIPT in it.selectionMacros.macros }
     SettingsGroup(stringResource(R.string.selection_macros_actions_group)) {
-        if (!macrosOn) return@SettingsGroup
-        item(level = SettingLevel.STANDARD) {
-            ToggleSetting(
-                R.string.selection_macros_detect_title,
-                stringResource(R.string.selection_macros_detect_subtitle),
-                settings.watch { it.selectionMacros.detectEntities },
-                info = stringResource(R.string.selection_macros_detect_info),
-                default = SettingsDefaults.selectionMacros.detectEntities,
-            ) { scope.launch { repository.setSelectionMacroDetectEntities(it) } }
-        }
-        // Forty-odd actions are a screen, not a row of chips.
-        item {
-            NavRow(
-                R.string.selection_macros_actions_title,
-                subtitle = stringResource(R.string.selection_macros_actions_subtitle),
-                value = stringResource(
-                    R.string.selection_macros_actions_count,
-                    settings.watch { s -> s.selectionMacros.macros.count { it in SelectionMacros.configurable } },
-                    SelectionMacros.configurable.size,
-                ),
-                route = SelectionMacroActionsRoute,
-            ) { onNavigate(SelectionMacroActionsRoute) }
-        }
-        item(level = SettingLevel.ADVANCED) {
-            NavRow(
-                R.string.selection_macros_icons_title,
-                subtitle = stringResource(R.string.selection_macros_icons_subtitle),
-                value = settings.watch { s -> s.selectionMacros.iconOnly.count { it in s.selectionMacros.macros } }.toString(),
-                route = SelectionMacroIconsRoute,
-            ) { onNavigate(SelectionMacroIconsRoute) }
-        }
-        item(level = SettingLevel.STANDARD) {
-            NavRow(
-                R.string.selection_macros_ai_title,
-                subtitle = stringResource(R.string.selection_macros_ai_subtitle),
-                value = settings.watch { it.selectionMacros.aiDirectActions.size }.toString(),
-                route = SelectionMacroAiRoute,
-            ) { onNavigate(SelectionMacroAiRoute) }
-        }
-        item(level = SettingLevel.ADVANCED) {
-            NavRow(
-                R.string.selection_macros_zones_title,
-                subtitle = stringResource(R.string.selection_macros_zones_subtitle),
-                value = settings.watch {
-                    it.selectionMacros.effectiveTimeZones(java.util.TimeZone.getDefault().id).size
-                }.toString(),
-                route = SelectionMacroZonesRoute,
-            ) { onNavigate(SelectionMacroZonesRoute) }
-        }
-        // Convert script's library and its one question, only while it is on
-        // and the build can have the library at all.
-        item(visible = convertOn && Lipi.shipped, level = SettingLevel.STANDARD) { LipiLibraryRow() }
-        item(visible = convertOn, level = SettingLevel.ADVANCED) {
-            ChoiceSetting(
-                R.string.lipi_latin_input_title,
-                subtitle = stringResource(R.string.lipi_latin_input_subtitle),
-                info = stringResource(R.string.lipi_latin_input_info),
-                options = LipiPlainLetterOptions,
-                selected = settings.watch { ScriptConvert.plainLetters(it.selectionMacros.scriptLatinInput).native },
-                default = SettingsDefaults.selectionMacros.scriptLatinInput,
-            ) { scope.launch { repository.setSelectionMacrosScriptLatin(it) } }
+        dependsOn(macrosOn) {
+            item(level = SettingLevel.STANDARD) {
+                ToggleSetting(
+                    R.string.selection_macros_detect_title,
+                    stringResource(R.string.selection_macros_detect_subtitle),
+                    settings.watch { it.selectionMacros.detectEntities },
+                    info = stringResource(R.string.selection_macros_detect_info),
+                    default = SettingsDefaults.selectionMacros.detectEntities,
+                ) { scope.launch { repository.setSelectionMacroDetectEntities(it) } }
+            }
+            // Forty-odd actions are a screen, not a row of chips.
+            item {
+                NavRow(
+                    R.string.selection_macros_actions_title,
+                    subtitle = stringResource(R.string.selection_macros_actions_subtitle),
+                    value = stringResource(
+                        R.string.selection_macros_actions_count,
+                        settings.watch { s -> s.selectionMacros.macros.count { it in SelectionMacros.configurable } },
+                        SelectionMacros.configurable.size,
+                    ),
+                    route = SelectionMacroActionsRoute,
+                ) { onNavigate(SelectionMacroActionsRoute) }
+            }
+            item(level = SettingLevel.ADVANCED) {
+                NavRow(
+                    R.string.selection_macros_icons_title,
+                    subtitle = stringResource(R.string.selection_macros_icons_subtitle),
+                    value = settings.watch { s -> s.selectionMacros.iconOnly.count { it in s.selectionMacros.macros } }.toString(),
+                    route = SelectionMacroIconsRoute,
+                ) { onNavigate(SelectionMacroIconsRoute) }
+            }
+            item(level = SettingLevel.STANDARD) {
+                NavRow(
+                    R.string.selection_macros_ai_title,
+                    subtitle = stringResource(R.string.selection_macros_ai_subtitle),
+                    value = settings.watch { it.selectionMacros.aiDirectActions.size }.toString(),
+                    route = SelectionMacroAiRoute,
+                ) { onNavigate(SelectionMacroAiRoute) }
+            }
+            item(level = SettingLevel.ADVANCED) {
+                NavRow(
+                    R.string.selection_macros_zones_title,
+                    subtitle = stringResource(R.string.selection_macros_zones_subtitle),
+                    value = settings.watch {
+                        it.selectionMacros.effectiveTimeZones(java.util.TimeZone.getDefault().id).size
+                    }.toString(),
+                    route = SelectionMacroZonesRoute,
+                ) { onNavigate(SelectionMacroZonesRoute) }
+            }
+            // Convert script's library and its one question, only while it is on
+            // and the build can have the library at all.
+            item(visible = convertOn && Lipi.shipped, level = SettingLevel.STANDARD) { LipiLibraryRow() }
+            item(visible = convertOn, level = SettingLevel.ADVANCED) {
+                ChoiceSetting(
+                    R.string.lipi_latin_input_title,
+                    subtitle = stringResource(R.string.lipi_latin_input_subtitle),
+                    info = stringResource(R.string.lipi_latin_input_info),
+                    options = LipiPlainLetterOptions,
+                    selected = settings.watch { ScriptConvert.plainLetters(it.selectionMacros.scriptLatinInput).native },
+                    default = SettingsDefaults.selectionMacros.scriptLatinInput,
+                ) { scope.launch { repository.setSelectionMacrosScriptLatin(it) } }
+            }
         }
     }
 
