@@ -3,14 +3,11 @@ package com.wasimaster.wmkeyboard.ime.dynstickers
 import coil3.ImageLoader
 import coil3.asImage
 import coil3.decode.DataSource
-import coil3.decode.ImageSource
 import coil3.fetch.FetchResult
 import coil3.fetch.Fetcher
 import coil3.fetch.ImageFetchResult
-import coil3.fetch.SourceFetchResult
 import coil3.request.Options
 import coil3.size.pxOrElse
-import okio.Buffer
 
 /**
  * The `wmdyn:` addresses dynamic sticker cells carry, and who draws them.
@@ -26,28 +23,27 @@ internal object DynThumbs {
     @Volatile
     var source: DynStickerController? = null
 
-    fun uri(id: String, animated: Boolean): String = "$SCHEME://t/$id" + if (animated) "?a=1" else ""
+    fun uri(id: String, animated: Boolean): String = "$SCHEME://t/$id" + if (animated) LIVE_QUERY else ""
+
+    /** Whether a cell showing [url] should also play: a row with "Moving in the row" on. */
+    fun live(url: String): Boolean = url.endsWith(LIVE_QUERY)
+
+    private const val LIVE_QUERY = "?a=1"
 }
 
-/** Draws a `wmdyn:` cell for Coil: a still, or with `a=1` a small animated WebP. */
+/**
+ * Draws a `wmdyn:` cell's still for Coil. A cell marked `a=1` ([DynThumbs.live])
+ * plays as well, but that is [DynLivePlayer] drawing over this still, not a
+ * file made here.
+ */
 internal class DynThumbFetcher(
     private val id: String,
-    private val animated: Boolean,
     private val options: Options,
 ) : Fetcher {
 
     override suspend fun fetch(): FetchResult? {
         val controller = DynThumbs.source ?: return null
         val px = maxOf(options.size.width.pxOrElse { DEFAULT_PX }, options.size.height.pxOrElse { DEFAULT_PX })
-        if (animated) {
-            controller.animatedThumb(id, px)?.let { bytes ->
-                return SourceFetchResult(
-                    source = ImageSource(Buffer().write(bytes), options.fileSystem),
-                    mimeType = "image/webp",
-                    dataSource = DataSource.DISK,
-                )
-            }
-        }
         val bitmap = controller.thumb(id, px) ?: return null
         return ImageFetchResult(image = bitmap.asImage(), isSampled = false, dataSource = DataSource.MEMORY)
     }
@@ -56,7 +52,7 @@ internal class DynThumbFetcher(
         override fun create(data: coil3.Uri, options: Options, imageLoader: ImageLoader): Fetcher? {
             if (data.scheme != DynThumbs.SCHEME) return null
             val id = data.path?.trim('/')?.takeIf { it.isNotEmpty() } ?: return null
-            return DynThumbFetcher(id, animated = data.query?.contains("a=1") == true, options)
+            return DynThumbFetcher(id, options)
         }
     }
 

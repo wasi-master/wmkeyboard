@@ -295,23 +295,26 @@ internal class DynStickerController(
         }
     }
 
-    /** A small animated WebP of [id], for "animate in the row". Cached on disk. */
-    suspend fun animatedThumb(id: String, px: Int): ByteArray? {
+    /** The registry id behind a cell of this panel, or null for any other cell. */
+    fun liveId(item: GifItem): String? = if (item.source == GifSource.DYNAMIC) item.id.removePrefix(ITEM_PREFIX) else null
+
+    /**
+     * [id]'s template filled and ready to draw frame by frame, for a cell
+     * that plays it in place: nothing is encoded, the cell draws each frame
+     * itself. Null when it does not move (the cell keeps its still). The
+     * caller closes it. Suspends while two others are being prepared.
+     */
+    suspend fun livePrepared(id: String): DynRenderer.Prepared? {
         val entry = entry(id) ?: return null
         val template = store.template(entry.templateKey) ?: return null
-        val size = px.coerceIn(MIN_THUMB, ANIMATED_THUMB)
-        val cached = File(thumbDir(), "$id-$size.webp")
-        if (cached.isFile) return runCatching { cached.readBytes() }.getOrNull()
+        if (template.meta.stillOnly || template.meta.photos.isNotEmpty()) return null
         return renders.withPermit {
             withContext(Dispatchers.Default) {
-                val fill = withOverride(entry.fill)
-                renderer.prepare(template, fill, policy())?.use { prepared ->
-                    if (!prepared.animated) return@use null
-                    val sink = DynEncoder.animatedEncoder.create(size, THUMB_QUALITY)
-                    var ok = true
-                    prepared.forEachFrame(size, THUMB_FPS, THUMB_FRAMES) { frame, ms -> if (ok && !sink.add(frame, ms)) ok = false }
-                    sink.finish()?.takeIf { ok }
-                }?.also { bytes -> runCatching { cached.writeBytes(bytes) } }
+                val prepared = runCatching { renderer.prepare(template, withOverride(entry.fill), policy()) }.getOrNull()
+                prepared?.takeIf { it.animated } ?: run {
+                    prepared?.close()
+                    null
+                }
             }
         }
     }
@@ -585,10 +588,6 @@ internal class DynStickerController(
         private const val PANEL_LIMIT = 200
         private const val MIN_THUMB = 96
         private const val MAX_THUMB = 512
-        private const val ANIMATED_THUMB = 256
-        private const val THUMB_QUALITY = 60
-        private const val THUMB_FPS = 12f
-        private const val THUMB_FRAMES = 48
         private const val PHOTO_EDGE = 1024
         private const val KEEP_SENT = 12
         private const val KEEP_THUMBS = 120
