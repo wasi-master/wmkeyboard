@@ -4,6 +4,7 @@ import android.content.Context
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
 import com.wasimaster.wmkeyboard.core.modules.DownloadedModuleGate
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.ModuleFailure
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules.awaitInstalled
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
@@ -223,7 +224,10 @@ object BergamotTranslator {
         // The engine unpacks the files, so it is fetched first; its bytes are
         // its own row ([ENGINE_KEY]). F-Droid without the download opt-in stops here.
         watchEngine()
-        if (!FeatureModules.bergamot.awaitInstalled()) throw IOException("The Bergamot library could not be fetched")
+        // Why it did not come (Play's refusal, no space, the connection), not a bare "could not be fetched".
+        if (!FeatureModules.bergamot.awaitInstalled()) {
+            throw IOException(ModuleFailure.describe(context, FeatureModules.bergamot.state.value))
+        }
         if (!BergamotNative.available) throw IOException("The Bergamot library does not load on this phone")
         val dir = dirOf(context, direction)
         dir.mkdirs()

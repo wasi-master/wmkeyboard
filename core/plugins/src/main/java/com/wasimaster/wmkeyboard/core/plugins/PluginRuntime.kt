@@ -339,7 +339,7 @@ class PluginRuntime(
             ),
         )
         if (python == null) {
-            val message = PluginText.of(R.string.core_plugins_error_not_ready)
+            val message = PythonNative.notReady()
             deliver(current) { listener.onError(current.plugin.id, message) }
             return
         }

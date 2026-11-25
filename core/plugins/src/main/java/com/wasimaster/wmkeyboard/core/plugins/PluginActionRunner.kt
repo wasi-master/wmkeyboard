@@ -129,7 +129,7 @@ class PluginActionRunner(
             !plugin.grants(PluginPermission.SelectedText) || plugin.actions.none { it.id == actionId } ->
                 PluginText.of(R.string.core_plugins_error_action_missing)
             store.script(pluginId) == null -> PluginText.of(R.string.core_plugins_error_script_missing)
-            !PythonNative.available -> PluginText.of(R.string.core_plugins_error_not_ready)
+            !PythonNative.available -> PythonNative.notReady()
             else -> null
         }
     }
@@ -165,7 +165,7 @@ class PluginActionRunner(
                 modules = store.modules(plugin.id),
                 strings = store.strings(plugin.id),
             ),
-        ) ?: return PluginActionResult.Failed(PluginText.of(R.string.core_plugins_error_not_ready))
+        ) ?: return PluginActionResult.Failed(PythonNative.notReady())
         call.python = python
         // A cancel that came between the check in run() and the session existing.
         if (call.cancelled) python.cancel()

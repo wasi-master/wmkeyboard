@@ -2,7 +2,10 @@ package com.wasimaster.wmkeyboard.core.localllm
 
 import android.content.Context
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.ModuleFailure
+import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
+import com.wasimaster.wmkeyboard.intelligence.R
 import java.io.File
 import java.io.InputStream
 import java.util.zip.ZipFile
@@ -47,6 +50,25 @@ object NpuRuntime {
      * never on the main thread.
      */
     @Synchronized
+    /**
+     * Why the NPU runtime for [soc] did not arrive, as a sentence, with how to
+     * run the model meanwhile; null while it is on its way or nothing failed.
+     * Read for the message instead of "if it is downloading" (Telegram 12443).
+     */
+    fun failure(context: Context, soc: String): String? {
+        val gates = if (NativeDelivery.gate(DELIVERED_GATE) != null) {
+            NpuSupport.deliveryGates(soc).mapNotNull { NativeDelivery.gate(it) }
+        } else {
+            listOf(FeatureModules.npu)
+        }
+        val failed = gates.firstNotNullOfOrNull { gate ->
+            (gate.state.value as? ModuleState.Missing)?.takeIf { it.failed || it.consent != null }
+        } ?: return null
+        val reason = ModuleFailure.message(failed, R.string.core_intel_npu_runtime_failed_online)
+        val said = if (reason.arg.isEmpty()) context.getString(reason.res) else context.getString(reason.res, reason.arg)
+        return said + " " + context.getString(R.string.core_intel_llm_engine_error_npu_standard_hint)
+    }
+
     fun directory(context: Context, soc: String): File? {
         val names = NpuSupport.runtimeLibraries(soc).takeIf { it.isNotEmpty() } ?: return null
         if (NativeDelivery.gate(DELIVERED_GATE) != null) return delivered(soc, names)

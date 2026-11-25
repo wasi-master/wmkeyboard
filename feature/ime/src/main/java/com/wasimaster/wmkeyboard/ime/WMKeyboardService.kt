@@ -1,7 +1,6 @@
 package com.wasimaster.wmkeyboard.ime
 
 import androidx.annotation.StringRes
-import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.settings.fiatRateProviders
 import com.wasimaster.wmkeyboard.core.settings.cryptoRateProviders
 import com.wasimaster.wmkeyboard.core.tools.AppNames as ChipAppNames
@@ -103,6 +102,7 @@ import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.ModuleFailure
 import com.wasimaster.wmkeyboard.core.modules.ModuleGate
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
+import com.wasimaster.wmkeyboard.core.modules.askAgain
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
 import com.wasimaster.wmkeyboard.core.net.InternetGate
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
@@ -40407,8 +40407,7 @@ open class WMKeyboardService : InputMethodService() {
             else -> return getString(VoiceR.string.core_voice_library_licence)
         }
         if (missing?.failed == true) {
-            val reason = ModuleFailure.message(missing, VoiceR.string.core_voice_library_failed_online)
-            return if (reason.arg.isEmpty()) getString(reason.res) else getString(reason.res, reason.arg)
+            return moduleText(ModuleFailure.message(missing, VoiceR.string.core_voice_library_failed_online))
         }
         return getString(VoiceR.string.core_voice_whisper_module_downloading)
     }
@@ -53356,8 +53355,13 @@ open class WMKeyboardService : InputMethodService() {
             _uiState.update { it.copy(grammar = GrammarUi(moduleHint = R.string.ime_grammar_module_data_saver_info)) }
             return
         }
-        _uiState.update {
-            it.copy(grammar = GrammarUi(checking = true, moduleHint = R.string.ime_grammar_module_installing_info))
+        // A fetch that already failed in a way Play will only repeat says
+        // why at once, never "downloading" first (Telegram 12443).
+        val failed = (GrammarChecker.moduleState.value as? ModuleState.Missing)?.takeIf { it.failed || it.consent != null }
+        if (failed == null) {
+            _uiState.update {
+                it.copy(grammar = GrammarUi(checking = true, moduleHint = R.string.ime_grammar_module_installing_info))
+            }
         }
         val here = GrammarChecker.awaitModule()
         if (_uiState.value.panel != PanelMode.GRAMMAR) return
@@ -53365,7 +53369,10 @@ open class WMKeyboardService : InputMethodService() {
             _uiState.update { it.copy(grammar = GrammarUi()) }
             scheduleGrammarCheck(immediate = true)
         } else {
-            _uiState.update { it.copy(grammar = GrammarUi(moduleHint = OfflineBuild.library(R.string.ime_grammar_module_failed_info))) }
+            // The reason the part did not come: Play's refusal, no space, the
+            // connection ([ModuleFailure]), in place of the issues.
+            val reason = moduleText(ModuleFailure.message(GrammarChecker.moduleState.value, R.string.ime_grammar_module_failed_info))
+            _uiState.update { it.copy(grammar = GrammarUi(notice = reason)) }
         }
     }
 
@@ -58331,9 +58338,14 @@ open class WMKeyboardService : InputMethodService() {
         // a LanguageTool server first on the list checks the selection itself.
         if (grammarPlan().steps.firstOrNull() == GrammarStep.Harper) {
             if (!GrammarChecker.moduleReady) {
-                // Play, before the library's part is here.
-                if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) GrammarChecker.requestModule()
-                toast(R.string.ime_grammar_module_installing_toast)
+                // Play, before the library's part is here: "downloading", or
+                // why it is not, read before the request hides it.
+                val state = if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) {
+                    FeatureModules.grammar.askAgain()
+                } else {
+                    GrammarChecker.moduleState.value
+                }
+                toast(moduleText(ModuleFailure.notHere(state, R.string.ime_grammar_module_installing_toast, R.string.ime_grammar_module_failed_info)))
                 return
             }
             if (!GrammarChecker.available && grammarProbePending()) return
@@ -58352,7 +58364,15 @@ open class WMKeyboardService : InputMethodService() {
                     Toast.makeText(this@WMKeyboardService, outcome.notice, Toast.LENGTH_SHORT).show()
                     return@launch
                 }
-                GrammarOutcome.HarperPending -> return@launch toast(R.string.ime_grammar_module_installing_toast)
+                GrammarOutcome.HarperPending -> return@launch toast(
+                    moduleText(
+                        ModuleFailure.notHere(
+                            GrammarChecker.moduleState.value,
+                            R.string.ime_grammar_module_installing_toast,
+                            R.string.ime_grammar_module_failed_info,
+                        ),
+                    ),
+                )
                 GrammarOutcome.HarperMissing -> return@launch toast(R.string.ime_selection_macro_grammar_unavailable_toast)
             }
             val fixed = GrammarChecker.applyAll(offer.text, lints)
@@ -58738,6 +58758,10 @@ open class WMKeyboardService : InputMethodService() {
     /** Whether an async macro's result still describes what is selected. */
     private fun offerStillLive(offer: SelectionMacroOffer, seq: Int): Boolean =
         seq == macroSeq && _uiState.value.selectionMacros?.let { it.text == offer.text && it.kind == offer.kind } == true
+
+    /** A [ModuleFailure.Message] as text, its argument filled in. */
+    private fun moduleText(message: ModuleFailure.Message): String =
+        if (message.arg.isEmpty()) getString(message.res) else getString(message.res, message.arg)
 
     private fun toast(@StringRes id: Int) {
         Toast.makeText(this, getString(id), Toast.LENGTH_SHORT).show()

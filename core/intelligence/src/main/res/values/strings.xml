@@ -89,6 +89,10 @@
          the CPU or GPU. -->
     <string name="core_intel_llm_engine_error_npu">The model failed on the NPU. The next try uses the GPU or the CPU. A long text can be too much for the NPU build of a model.</string>
     <string name="core_intel_llm_engine_error_npu_build_only">Only the NPU build of this model is on your phone, and only the NPU can run it. Set Compute to NPU, or download the standard build of the model in settings.</string>
+    <!-- The NPU runtime's download failed and the connection is the likely reason. -->
+    <string name="core_intel_npu_runtime_failed_online">The NPU part of the keyboard did not download. Check the connection, then try again.</string>
+    <!-- Follows the reason the NPU part is missing. -->
+    <string name="core_intel_llm_engine_error_npu_standard_hint">To use the GPU or the CPU now, download the standard build of the model in settings.</string>
     <string name="core_intel_llm_engine_error_npu_runtime_missing">The NPU part of the keyboard is not ready. If it is downloading, try again in a moment. To use the GPU or the CPU now, download the standard build of the model in settings.</string>
     <!-- llama.cpp runs GGUF models. The prompt and the answer share one
          window of tokens; Context size is the setting that sets it. -->

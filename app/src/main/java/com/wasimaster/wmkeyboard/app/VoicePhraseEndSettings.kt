@@ -331,6 +331,18 @@ private fun CustomVadRow() {
             }
         },
     )
-    // Nothing to download says the runtime is still on its way, so say it here.
-    if (kind != null && !SherpaNative.moduleReady) CaptionText(stringResource(R.string.voice_vad_runtime_pending))
+    // Nothing to download says the runtime is still on its way, so say it
+    // here, or why it is not coming when its fetch failed (Telegram 12443).
+    if (kind != null && !SherpaNative.moduleReady) {
+        val runtime by SherpaNative.moduleState.collectAsState()
+        val failed = (runtime as? com.wasimaster.wmkeyboard.core.modules.ModuleState.Missing)
+            ?.let { it.failed || it.consent != null } == true
+        CaptionText(
+            if (failed) {
+                moduleFailedText(runtime, R.string.voice_vad_runtime_failed_online)
+            } else {
+                stringResource(R.string.voice_vad_runtime_pending)
+            },
+        )
+    }
 }

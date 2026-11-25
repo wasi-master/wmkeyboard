@@ -140,6 +140,8 @@
     <string name="voice_vad_custom_too_large">That file is too large to be a VAD model</string>
     <string name="voice_vad_custom_no_runtime">ONNX Runtime is not on the phone yet, so the file cannot be checked. Try again once it has downloaded</string>
     <string name="voice_vad_custom_failed">The file could not be read</string>
+    <!-- ONNX Runtime's download failed and the connection is the likely reason. -->
+    <string name="voice_vad_runtime_failed_online">ONNX Runtime did not download. Check the connection, then try again. Until it is here, Auto decides</string>
     <string name="voice_vad_runtime_pending">ONNX Runtime is still downloading. Until it is here, Auto decides</string>
     <string name="voice_vad_threshold_title">Speech threshold</string>
     <string name="voice_vad_threshold_subtitle">Lower hears softer speech, higher stops sooner in noise</string>

@@ -103,8 +103,19 @@
     <string name="common_module_failed_play_confirm">Google Play wants your OK before it downloads the part this needs. Open WM Keyboard\'s settings and it will ask.</string>
     <!-- %1$s: Google Play's error code, such as -2. -->
     <string name="common_module_failed_play_unavailable">Google Play will not download the part this needs to this install (error %1$s). This happens when the app did not come from the Play Store, Play is missing or signed out, or Play does not count the install as yours, as with a sandboxed Play on GrapheneOS. Reinstall from the Play Store, or install the GitHub build, which needs no Play.</string>
+    <!-- %1$s: Google Play's error code, -15 (APP_NOT_OWNED). -->
+    <string name="common_module_failed_play_not_owned">Google Play does not count this copy of WM Keyboard as installed from the Play Store (error %1$s), so it will not download the part this needs. This happens after installing it from another store, a backup or a phone transfer, or with a sandboxed Play on GrapheneOS. Uninstall it and install it again from the Play Store, or install the GitHub build, which downloads the part without Play.</string>
+    <!-- %1$s: Google Play's error code, -5 or -14. -->
+    <string name="common_module_failed_play_store_old">The Play Store on this phone is missing, turned off or too old to download the part this needs (error %1$s). Update the Play Store app and sign in, or install the GitHub build, which needs no Play.</string>
+    <!-- %1$s: Google Play's error code, -2 or -3. -->
+    <string name="common_module_failed_play_module">Google Play has no copy of the part this needs for this version on this phone (error %1$s), so trying again will not help. Update WM Keyboard from the Play Store, or install the GitHub build.</string>
+    <!-- %1$s: Google Play's error code, -1 or -8. -->
+    <string name="common_module_failed_play_busy">Google Play is busy with another download for WM Keyboard (error %1$s). Try again once it finishes; Settings › About › Storage › Play Store modules shows what it has.</string>
+    <!-- %1$s: Google Play's error code, -7. -->
+    <string name="common_module_failed_play_denied">Google Play refused the download from here (error %1$s). Open WM Keyboard\'s settings and try again from there, where Play allows it.</string>
     <!-- %1$s: Google Play's error code. -->
     <string name="common_module_failed_play">Google Play could not download the part this needs (error %1$s). Try again later; if it keeps failing, the GitHub build downloads it without Play.</string>
+    <string name="common_module_failed_online">The part this needs did not download. Check the connection, then try again.</string>
     <string name="common_module_failed_no_space">The phone ran out of space downloading the part this needs. Free some space, then try again.</string>
     <!-- %1$s: the HTTP status, such as 404. -->
     <string name="common_module_failed_not_on_server">The part this needs is not on the server for this version (HTTP %1$s), so trying again will not help. Update the app, and report it if the newest version does the same.</string>

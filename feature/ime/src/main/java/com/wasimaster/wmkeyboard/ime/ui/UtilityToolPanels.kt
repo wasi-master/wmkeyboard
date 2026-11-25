@@ -86,6 +86,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.tools.CalcEngine
 import com.wasimaster.wmkeyboard.core.tools.CalcRouting
+import com.wasimaster.wmkeyboard.core.modules.ModuleFailure
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.tools.R as ToolsR
 import com.wasimaster.wmkeyboard.core.tools.Numbat
@@ -717,11 +718,20 @@ internal fun CalculatorPanel(
     val route = remember(expression, degrees) { CalcRouting.route(expression, degrees) }
     val numbatState by Numbat.gate.state.collectAsState()
     val rates = (state.currency as? CurrencyUi.Ready)?.rates
+    // The sum the library was last asked for; see below. Not state: nothing redraws on it.
+    val numbatAskedFor = remember { arrayOfNulls<String>(1) }
     val numbatOutcome by produceState<Numbat.Outcome?>(null, route, expression, numbatState, rates) {
         value = null
         if (route != CalcRouting.Route.NUMBAT) return@produceState
         if (numbatState != ModuleState.Installed) {
-            Numbat.requestLibrary()
+            // Not asked again on the failure it ends in: that would turn the
+            // reason back into "getting the library" and ask on and on
+            // (Telegram 12443). The next change to the sum asks afresh.
+            val failed = (numbatState as? ModuleState.Missing)?.failed == true
+            if (!failed || numbatAskedFor[0] != expression) {
+                numbatAskedFor[0] = expression
+                Numbat.requestLibrary()
+            }
             return@produceState
         }
         value = withContext(Dispatchers.Default) {
@@ -737,8 +747,10 @@ internal fun CalculatorPanel(
             is Numbat.Outcome.Failure -> Numbat.error(outcome)?.let { Result.failure(it) } ?: calc
             null -> when (val module = numbatState) {
                 is ModuleState.Installing -> Result.failure(CalcEngine.CalcException(ToolsR.string.core_tools_calc_error_units_fetching))
-                is ModuleState.Missing -> if (module.failed) {
-                    Result.failure(CalcEngine.CalcException(ToolsR.string.core_tools_calc_error_units_missing))
+                is ModuleState.Missing -> if (module.failed || module.consent != null) {
+                    // Why it did not come: Play's refusal, no space, the connection.
+                    val reason = ModuleFailure.message(module, ToolsR.string.core_tools_calc_error_units_missing)
+                    Result.failure(CalcEngine.CalcException(reason.res, reason.arg))
                 } else {
                     calc
                 }

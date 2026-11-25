@@ -55,7 +55,7 @@ class PluginProviderRunner(
     fun call(key: String, request: JsonObject, isActive: () -> Boolean = { true }): JsonElement {
         val ref = store.runnableProvider(key) ?: throw refused(R.string.core_plugins_error_turned_off)
         val script = store.script(ref.plugin.id) ?: throw refused(R.string.core_plugins_error_script_missing)
-        if (!PythonNative.available) throw refused(R.string.core_plugins_error_not_ready)
+        if (!PythonNative.available) throw ProviderException(words(PythonNative.notReady()))
         val call = Call(ref)
         val thread = Thread(
             null,
@@ -111,7 +111,7 @@ class PluginProviderRunner(
                     modules = store.modules(plugin.id),
                     strings = store.strings(plugin.id),
                 ),
-            ) ?: throw refused(R.string.core_plugins_error_not_ready)
+            ) ?: throw ProviderException(words(PythonNative.notReady()))
             call.python = python
             // A provider answers for a list the user asked, not for something
             // they did in the plugin's panel: the user-only ops stay closed.

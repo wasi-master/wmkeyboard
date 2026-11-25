@@ -3,7 +3,10 @@ package com.wasimaster.wmkeyboard.core.plugins
 import androidx.annotation.Keep
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.GatedLibrary
+import com.wasimaster.wmkeyboard.core.modules.ModuleFailure
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
+import com.wasimaster.wmkeyboard.core.modules.askAgain
+import com.wasimaster.wmkeyboard.plugins.R
 import kotlinx.coroutines.flow.StateFlow
 import java.io.File
 
@@ -40,8 +43,25 @@ object PythonNative {
     /** Where the `plugins` module stands, for the screens that wait on it. */
     val moduleState: StateFlow<ModuleState> get() = FeatureModules.plugins.state
 
+    /** What the last [requestModule] found: a failure it was retrying, else the state it left. */
+    @Volatile
+    private var asked: ModuleState? = null
+
     /** Asks for the module. Idempotent. */
-    fun requestModule() = FeatureModules.plugins.requestInstall()
+    fun requestModule() {
+        asked = FeatureModules.plugins.askAgain()
+    }
+
+    /**
+     * What a plugin says while the runtime is not here: still downloading,
+     * or why it is not, as Play or the download gave it, never "downloading"
+     * for a fetch that failed (Telegram 12443).
+     */
+    fun notReady(): PluginText {
+        val state = asked?.takeIf { !FeatureModules.plugins.installed } ?: moduleState.value
+        val message = ModuleFailure.notHere(state, R.string.core_plugins_error_not_ready, R.string.core_plugins_error_runtime_failed_online)
+        return if (message.arg.isEmpty()) PluginText.of(message.res) else PluginText.of(message.res, message.arg)
+    }
 
     // ART reports itself as Dalvik; Robolectric and plain JUnit run on a desktop JVM.
     private val onJvm: Boolean = System.getProperty("java.vm.name") != "Dalvik"

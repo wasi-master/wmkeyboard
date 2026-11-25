@@ -49,15 +49,61 @@ object ModuleFailure {
     data class Message(@StringRes val res: Int, val arg: String = "")
 
     // SplitInstallErrorCode values, copied so this module needs no Play library.
-    private const val PLAY_API_NOT_AVAILABLE = -5
+    private const val PLAY_ACTIVE_SESSIONS_LIMIT = -1
     private const val PLAY_MODULE_UNAVAILABLE = -2
+    private const val PLAY_INVALID_REQUEST = -3
+    private const val PLAY_SESSION_NOT_FOUND = -4
+    private const val PLAY_API_NOT_AVAILABLE = -5
     private const val PLAY_NETWORK_ERROR = -6
     private const val PLAY_ACCESS_DENIED = -7
+    private const val PLAY_INCOMPATIBLE_SESSION = -8
+    private const val PLAY_SERVICE_DIED = -9
     private const val PLAY_INSUFFICIENT_STORAGE = -10
     private const val PLAY_STORE_NOT_FOUND = -14
 
     /** Play does not count this install as owned: sideloaded, or a sandboxed Play such as GrapheneOS's (#1455). */
     private const val PLAY_APP_NOT_OWNED = -15
+
+    /** SplitInstallErrorCode.INTERNAL_ERROR, and what a refusal with no code of its own is filed as. */
+    const val PLAY_INTERNAL_ERROR = -100
+
+    /**
+     * Play errors that asking again will only repeat, whatever the moment:
+     * Play will not serve this install, is missing or too old, or has no
+     * such part for it. A gate keeps such a failure as it is when it asks
+     * again, rather than turning it back into "downloading" before anything
+     * has read it (Telegram 12443: error -15 read "downloading" for good).
+     */
+    fun playWillRefuseAgain(code: Int?): Boolean = code != null && code in PLAY_REFUSES_AGAIN
+
+    /**
+     * Play errors that a moment later may well not repeat: the connection,
+     * Play's own service restarting, too many downloads at once. A gate
+     * retries these by itself a few times, waiting longer each time, before
+     * it reports them.
+     */
+    fun playRetrySoon(code: Int?): Boolean = code != null && code in PLAY_RETRY_SOON
+
+    private val PLAY_REFUSES_AGAIN = setOf(
+        PLAY_MODULE_UNAVAILABLE, PLAY_INVALID_REQUEST, PLAY_API_NOT_AVAILABLE,
+        PLAY_INCOMPATIBLE_SESSION, PLAY_STORE_NOT_FOUND, PLAY_APP_NOT_OWNED,
+    )
+
+    private val PLAY_RETRY_SOON = setOf(
+        PLAY_ACTIVE_SESSIONS_LIMIT, PLAY_SESSION_NOT_FOUND, PLAY_NETWORK_ERROR, PLAY_SERVICE_DIED, PLAY_INTERNAL_ERROR,
+    )
+
+    /**
+     * What a feature says while [state]'s part is not here: [downloading],
+     * its own "on its way" sentence, while nothing has gone wrong, else the
+     * reason ([message], with [online] for a connection failure). [state]
+     * must be read before the caller asks for the part again, or a retry
+     * hides the failure it is retrying (see [ModuleGate.askAgain]).
+     */
+    fun notHere(state: ModuleState?, @StringRes downloading: Int, @StringRes online: Int): Message {
+        val missing = state as? ModuleState.Missing ?: return Message(downloading)
+        return if (missing.failed || missing.consent != null || missing.confirm) message(missing, online) else Message(downloading)
+    }
 
     /**
      * The message for [state], the gate's state after its fetch failed.
@@ -76,10 +122,14 @@ object ModuleFailure {
             return when (code) {
                 PLAY_NETWORK_ERROR -> Message(online)
                 PLAY_INSUFFICIENT_STORAGE -> Message(R.string.common_module_failed_no_space)
-                PLAY_MODULE_UNAVAILABLE, PLAY_ACCESS_DENIED, PLAY_API_NOT_AVAILABLE, PLAY_STORE_NOT_FOUND,
-                PLAY_APP_NOT_OWNED,
-                ->
-                    Message(R.string.common_module_failed_play_unavailable, code.toString())
+                PLAY_APP_NOT_OWNED -> Message(R.string.common_module_failed_play_not_owned, code.toString())
+                PLAY_API_NOT_AVAILABLE, PLAY_STORE_NOT_FOUND ->
+                    Message(R.string.common_module_failed_play_store_old, code.toString())
+                PLAY_MODULE_UNAVAILABLE, PLAY_INVALID_REQUEST ->
+                    Message(R.string.common_module_failed_play_module, code.toString())
+                PLAY_ACTIVE_SESSIONS_LIMIT, PLAY_INCOMPATIBLE_SESSION ->
+                    Message(R.string.common_module_failed_play_busy, code.toString())
+                PLAY_ACCESS_DENIED -> Message(R.string.common_module_failed_play_denied, code.toString())
                 else -> Message(R.string.common_module_failed_play, code.toString())
             }
         }
@@ -93,6 +143,16 @@ object ModuleFailure {
             LibraryFault.DATA_SAVING -> Message(R.string.common_module_failed_data_saving)
             LibraryFault.NOT_IN_BUILD -> Message(R.string.common_module_failed_not_in_build)
         }
+    }
+
+    /** [message] as text, for a caller that throws or toasts it; [online] defaults to the generic sentence. */
+    fun describe(
+        context: android.content.Context,
+        state: ModuleState?,
+        @StringRes online: Int = R.string.common_module_failed_online,
+    ): String {
+        val said = message(state, online)
+        return if (said.arg.isEmpty()) context.getString(said.res) else context.getString(said.res, said.arg)
     }
 
     private val HTTP_STATUS = Regex("""HTTP (\d{3})""")

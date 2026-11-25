@@ -167,6 +167,8 @@
     <string name="core_plugins_error_provider_too_long">The plugin\'s answer was too long.</string>
     <string name="core_plugins_error_provider_unreadable">The plugin\'s answer could not be read.</string>
     <string name="core_plugins_error_not_ready">Plugins are still downloading. Try again in a moment.</string>
+    <!-- The plugin runtime's download failed and the connection is the likely reason. -->
+    <string name="core_plugins_error_runtime_failed_online">The plugin runtime did not download. Check the connection, then try again.</string>
     <string name="core_plugins_stopped_unexpected">This plugin stopped unexpectedly.</string>
     <string name="core_plugins_stopped_not_responding">This plugin stopped responding. The app closed it.</string>
     <string name="core_plugins_stopped_not_responding_disabled">This plugin stopped responding again. The app turned it off.</string>

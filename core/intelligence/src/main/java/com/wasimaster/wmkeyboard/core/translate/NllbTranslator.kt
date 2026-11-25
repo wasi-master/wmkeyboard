@@ -4,6 +4,7 @@ import android.content.Context
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
 import com.wasimaster.wmkeyboard.core.modules.DownloadedModuleGate
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.ModuleFailure
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules.awaitInstalled
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
@@ -237,7 +238,10 @@ object NllbTranslator {
         // The library comes with the model, as its own row ([ENGINE_KEY]):
         // six hundred megabytes nothing on the phone can read would be a waste.
         watchEngine()
-        if (!FeatureModules.ct2.awaitInstalled()) throw IOException("The CTranslate2 library could not be fetched")
+        // Why it did not come (Play's refusal, no space, the connection), not a bare "could not be fetched".
+        if (!FeatureModules.ct2.awaitInstalled()) {
+            throw IOException(ModuleFailure.describe(context, FeatureModules.ct2.state.value))
+        }
         val dir = dir(context)
         dir.mkdirs()
         File(dir, COMPLETE).delete()

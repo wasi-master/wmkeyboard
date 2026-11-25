@@ -3,15 +3,14 @@ package com.wasimaster.wmkeyboard.app.modules
 import android.app.Activity
 import android.app.Application
 import com.google.android.play.core.splitcompat.SplitCompat
-import com.google.android.play.core.splitinstall.SplitInstallException
 import com.google.android.play.core.splitinstall.SplitInstallHelper
 import com.google.android.play.core.splitinstall.SplitInstallManager
 import com.google.android.play.core.splitinstall.SplitInstallManagerFactory
-import com.google.android.play.core.splitinstall.SplitInstallRequest
 import com.google.android.play.core.splitinstall.SplitInstallSessionState
 import com.google.android.play.core.splitinstall.model.SplitInstallSessionStatus
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.ModuleFailure
 import com.wasimaster.wmkeyboard.core.modules.ModuleGate
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
@@ -118,7 +117,10 @@ private class PlayModuleGate(
             SplitInstallSessionStatus.INSTALLING,
             -> ModuleState.Installing(session.bytesDownloaded(), session.totalBytesToDownload())
 
-            SplitInstallSessionStatus.INSTALLED -> ModuleState.Installed
+            SplitInstallSessionStatus.INSTALLED -> {
+                PlayRequests.installed(module)
+                ModuleState.Installed
+            }
 
             // Play wants the user to confirm (an install Play did not make,
             // or a large download on mobile data). A keyboard has no activity
@@ -131,9 +133,14 @@ private class PlayModuleGate(
             }
             // Play's own reason, in the diagnostics a report carries (#1091):
             // without it a refused module reads only as "could not be fetched".
+            // One that may pass by itself is asked again first ([PlayRequests]).
             SplitInstallSessionStatus.FAILED -> {
                 DebugLog.w(TAG, "$module: Play install failed, error ${session.errorCode()}")
-                ModuleState.Missing(failed = true, error = session.errorCode())
+                if (PlayRequests.failed(manager, module, session.errorCode(), ::refused)) {
+                    ModuleState.Installing()
+                } else {
+                    ModuleState.Missing(failed = true, error = session.errorCode())
+                }
             }
 
             SplitInstallSessionStatus.CANCELING,
@@ -151,24 +158,21 @@ private class PlayModuleGate(
         }
         if (mutableState.value is ModuleState.Installing) return
         // A download Play holds for the user's yes still is after another
-        // request, which only returns the same session: the state keeps
-        // saying so rather than turning back into "downloading".
-        val confirming = (mutableState.value as? ModuleState.Missing)?.confirm == true
-        if (!confirming) mutableState.value = ModuleState.Installing()
-        // Re-requesting the module of an active session just returns that
-        // session. A failure that never becomes a session (no Play Store,
-        // no network) only reaches the failure listener, so it is mapped
-        // there as well as in onSession.
-        manager.startInstall(SplitInstallRequest.newBuilder().addModule(module).build())
-            .addOnFailureListener { e ->
-                val code = (e as? SplitInstallException)?.errorCode
-                DebugLog.w(TAG, "$module: Play refused the install, error ${code ?: e.javaClass.simpleName}")
-                mutableState.value = ModuleState.Missing(failed = true, error = code ?: PLAY_ERROR_UNKNOWN)
-            }
+        // request, which only returns the same session; and a refusal Play
+        // will only repeat (error -15, an install Play does not own) still is
+        // too. Either keeps saying why rather than turning back into
+        // "downloading" before anything has read it (Telegram 12443). Play is
+        // asked all the same: a session it does start moves the state on.
+        val last = mutableState.value as? ModuleState.Missing
+        val confirming = last?.confirm == true
+        val refusedForGood = last?.failed == true && ModuleFailure.playWillRefuseAgain(last.error)
+        if (!confirming && !refusedForGood) mutableState.value = ModuleState.Installing()
+        PlayRequests.request(manager, module, ::refused)
+    }
+
+    private fun refused(code: Int) {
+        mutableState.value = ModuleState.Missing(failed = true, error = code)
     }
 }
 
 private const val TAG = "modules"
-
-/** Play's SplitInstallErrorCode.INTERNAL_ERROR, for a refusal that carried no code of its own. */
-internal const val PLAY_ERROR_UNKNOWN = -100

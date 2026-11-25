@@ -757,7 +757,8 @@ class LitertLmRuntime : LlmRuntime {
         }
 
         val file = standard ?: throw NpuBuildOnlyException(
-            context.getString(
+            // A runtime whose fetch failed says why, not "if it is downloading".
+            soc?.takeIf { backend == LocalLlmBackend.NPU && npuRuntimeMissing }?.let { NpuRuntime.failure(context, it) } ?: context.getString(
                 when {
                     backend != LocalLlmBackend.NPU || soc == null -> R.string.core_intel_llm_engine_error_npu_build_only
                     npuRuntimeMissing -> R.string.core_intel_llm_engine_error_npu_runtime_missing

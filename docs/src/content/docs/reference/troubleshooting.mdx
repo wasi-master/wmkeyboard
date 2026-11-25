@@ -111,7 +111,9 @@ See [The toolbar](/tools/overview/#panels-and-captured-keys) for the full explan
 
 ## A feature says its download did not finish
 
-Several features run on a feature library, native code the app fetches the first time you use them: search by meaning, offline voice typing, the scanners, translation, on-device AI and more. When that fetch fails, the warning names the reason, so a retry is worth it only when the connection was the problem. The same reason shows on the library's row in [About / Feature libraries](/privacy/offline/#feature-libraries) and, for handwriting, on the language's row under Recognition models, where both used to say only that the download did not finish (since 0.6.8). Dictating from the keyboard with an offline voice model gives the same reason, where it used to say that the voice typing part was downloading on every try, even after Google Play had refused it (since 0.6.8).
+Several features run on a feature library, native code the app fetches the first time you use them: search by meaning, offline voice typing, the scanners, translation, on-device AI and more. When that fetch fails, the warning names the reason, so a retry is worth it only when the connection was the problem. The same reason shows on the library's row in [About / Feature libraries](/privacy/offline/#feature-libraries) and, for handwriting, on the language's row under Recognition models, where both used to say only that the download did not finish (since 0.6.8). Dictating from the keyboard with an offline voice model gives the same reason, where it used to say that the voice typing part was downloading on every try, even after Google Play had refused it (since 0.6.8). So do the grammar checker, plugins, sums with units in the calculator, the on-device AI's NPU part, offline translation, the phrase end detector's note and every other part the Play edition downloads.
+
+On the Play edition, a refusal that can pass by itself (the connection dropping, Play's service restarting, too many downloads at once) is asked again three times, after 2, 8 and 30 seconds, before the warning shows. A refusal Play would only repeat, such as error -15, keeps its warning when you try again rather than turning back into "downloading"; the request still goes to Play, in case something changed. An interface language Play won't download says why over the settings screen, and a large one waits for your OK there.
 
 | The warning says | What to do |
 |---|---|
@@ -119,8 +121,12 @@ Several features run on a feature library, native code the app fetches the first
 | Downloads of feature libraries are off | F-Droid edition only. Turn on **Download feature libraries** in [Privacy › Downloads](/privacy/network/). |
 | A licence has not been accepted yet | Accept it in Privacy › Downloads (Qualcomm's, for the NPU). |
 | Google Play wants your OK | Open WM Keyboard's settings. Play asks there, never from the keyboard. |
-| Google Play will not download it to this install | The Play edition was installed some other way than the Play Store, or Play is missing or signed out. Error -15 means Play does not count the install as yours, which also happens with a sandboxed Play such as GrapheneOS's. Reinstall from the Play Store, or use the GitHub edition. |
-| Google Play could not download it (error N) | Play's own failure. Try later. The GitHub edition fetches the same part without Play. |
+| Google Play does not count this copy as installed from the Play Store (error -15) | It came from another store, a backup or a phone transfer, or Play is a sandboxed one such as GrapheneOS's. Uninstall WM Keyboard and install it again from the Play Store, or use the GitHub edition. |
+| The Play Store is missing, turned off or too old (error -5 or -14) | Update the Play Store app and sign in, or use the GitHub edition. |
+| Google Play has no copy of the part for this version (error -2 or -3) | Retrying won't help. Update WM Keyboard from the Play Store, or use the GitHub edition. |
+| Google Play is busy with another download (error -1 or -8) | Wait for the other download, which About › Storage › Play Store modules lists, then try again. |
+| Google Play refused the download from here (error -7) | Open WM Keyboard's settings and try again from there. |
+| Google Play could not download it (error N) | Play's own failure, after the keyboard tried again. Try later. The GitHub edition fetches the same part without Play. |
 | The phone ran out of space | Free some space and try again. |
 | It is not on the server for this version (HTTP 404) | Retrying will not help. Update the app, and report it if the newest version says the same. |
 | The server answered with an error (HTTP N) | Try again in a while. Clear any **GitHub mirror** you set in Privacy › Downloads. |

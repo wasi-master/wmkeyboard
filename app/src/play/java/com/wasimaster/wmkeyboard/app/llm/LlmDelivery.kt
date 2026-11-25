@@ -3,12 +3,10 @@ package com.wasimaster.wmkeyboard.app.llm
 import android.app.Application
 import android.content.Context
 import com.google.android.play.core.splitcompat.SplitCompat
-import com.google.android.play.core.splitinstall.SplitInstallException
 import com.google.android.play.core.splitinstall.SplitInstallManagerFactory
-import com.google.android.play.core.splitinstall.SplitInstallRequest
 import com.google.android.play.core.splitinstall.SplitInstallSessionState
 import com.google.android.play.core.splitinstall.model.SplitInstallSessionStatus
-import com.wasimaster.wmkeyboard.app.modules.PLAY_ERROR_UNKNOWN
+import com.wasimaster.wmkeyboard.app.modules.PlayRequests
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
 import com.wasimaster.wmkeyboard.core.localllm.LlmModule
 import com.wasimaster.wmkeyboard.core.localllm.LlmModuleGate
@@ -44,7 +42,17 @@ fun installLlmDelivery(app: Application) {
     manager.registerListener { session: SplitInstallSessionState ->
         if (LLM_MODULE !in session.moduleNames()) return@registerListener
         waiting = session.status() == SplitInstallSessionStatus.REQUIRES_USER_CONFIRMATION
-        failure = if (session.status() == SplitInstallSessionStatus.FAILED) session.errorCode() else null
+        failure = when (session.status()) {
+            // One that may pass by itself is asked again first, and reads as
+            // still downloading meanwhile ([PlayRequests]).
+            SplitInstallSessionStatus.FAILED ->
+                session.errorCode().takeUnless { PlayRequests.failed(manager, LLM_MODULE, it) { code -> failure = code } }
+            SplitInstallSessionStatus.INSTALLED -> {
+                PlayRequests.installed(LLM_MODULE)
+                null
+            }
+            else -> null
+        }
         when (session.status()) {
             SplitInstallSessionStatus.REQUIRES_USER_CONFIRMATION ->
                 DebugLog.w(TAG, "$LLM_MODULE: Play asks the user to confirm the download")
@@ -59,17 +67,10 @@ fun installLlmDelivery(app: Application) {
 
         override fun requestInstall() {
             if (installed()) return
-            // Re-requesting the module of an active session just returns that
-            // session. A failure (no network, no space) leaves
-            // installedModules unchanged, so the next attempt retries rather
-            // than wedging; the reason goes to the diagnostics.
-            manager.startInstall(
-                SplitInstallRequest.newBuilder().addModule(LLM_MODULE).build(),
-            ).addOnFailureListener { e ->
-                val code = (e as? SplitInstallException)?.errorCode
-                DebugLog.w(TAG, "$LLM_MODULE: Play refused the install, error ${code ?: e.javaClass.simpleName}")
-                failure = code ?: PLAY_ERROR_UNKNOWN
-            }
+            // The last failure stays until Play reports something new, so
+            // LocalLlmEngine reads its reason rather than "downloading".
+            // A refusal that may pass is retried with backoff first.
+            PlayRequests.request(manager, LLM_MODULE) { code -> failure = code }
         }
 
         override fun waitingForConfirmation() = waiting && !installed()

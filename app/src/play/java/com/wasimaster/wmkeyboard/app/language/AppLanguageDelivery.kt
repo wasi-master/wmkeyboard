@@ -2,11 +2,17 @@ package com.wasimaster.wmkeyboard.app.language
 
 import android.app.Activity
 import android.os.Build
+import android.widget.Toast
 import com.google.android.play.core.splitcompat.SplitCompat
+import com.google.android.play.core.splitinstall.SplitInstallException
 import com.google.android.play.core.splitinstall.SplitInstallManagerFactory
 import com.google.android.play.core.splitinstall.SplitInstallRequest
 import com.google.android.play.core.splitinstall.SplitInstallStateUpdatedListener
 import com.google.android.play.core.splitinstall.model.SplitInstallSessionStatus
+import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.debug.DebugLog
+import com.wasimaster.wmkeyboard.core.modules.ModuleFailure
+import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import java.util.Locale
 
 /**
@@ -46,18 +52,38 @@ fun fetchAppLanguage(activity: Activity, tag: String?, onReady: () -> Unit) {
             onReady()
         }
     }
+    // Why Play would not bring the language, said over the screen that
+    // asked, where it used to fall back to English without a word.
+    val refused = { code: Int ->
+        DebugLog.w(TAG, "language $tag: Play refused the install, error $code")
+        val reason = ModuleFailure.message(ModuleState.Missing(failed = true, error = code), CommonR.string.common_error_network)
+        val text = if (reason.arg.isEmpty()) activity.getString(reason.res) else activity.getString(reason.res, reason.arg)
+        if (!activity.isFinishing) Toast.makeText(activity, text, Toast.LENGTH_LONG).show()
+        finish()
+    }
     listener = SplitInstallStateUpdatedListener { state ->
         if (locale.language !in state.languages()) return@SplitInstallStateUpdatedListener
         when (state.status()) {
             SplitInstallSessionStatus.INSTALLED,
-            SplitInstallSessionStatus.FAILED,
             SplitInstallSessionStatus.CANCELED,
-            SplitInstallSessionStatus.REQUIRES_USER_CONFIRMATION,
             -> finish()
+            SplitInstallSessionStatus.FAILED -> refused(state.errorCode())
+            // A large download or mobile data: there is a screen to ask on
+            // here, so Play's own question goes up, and its answer arrives
+            // as the next state of this session.
+            SplitInstallSessionStatus.REQUIRES_USER_CONFIRMATION -> {
+                val asked = runCatching { manager.startConfirmationDialogForResult(state, activity, CONFIRM_LANGUAGE) }
+                if (asked.isFailure) finish()
+            }
             else -> Unit
         }
     }
     manager.registerListener(listener)
     manager.startInstall(SplitInstallRequest.newBuilder().addLanguage(locale).build())
-        .addOnFailureListener { finish() }
+        .addOnFailureListener { e -> refused((e as? SplitInstallException)?.errorCode ?: ModuleFailure.PLAY_INTERNAL_ERROR) }
 }
+
+/** Any code: the session's own updates say what the user chose. */
+private const val CONFIRM_LANGUAGE = 4531
+
+private const val TAG = "modules"

@@ -86,6 +86,21 @@ interface ModuleGate {
     val bytesToFetch: Long get() = 0L
 }
 
+/**
+ * Asks for this gate's part again and returns the state a message should be
+ * chosen from: the failure the last fetch ended in, when there was one,
+ * else the state the request leaves. Reading the state after the request
+ * instead used to read "downloading" every time, since the request turns a
+ * failure back into a download before anything looks at it (Telegram 12443).
+ * Every "the part is not here yet" message goes through this, or reads the
+ * state itself before it asks.
+ */
+fun ModuleGate.askAgain(): ModuleState {
+    val before = state.value
+    requestInstall()
+    return before.takeIf { it is ModuleState.Missing && (it.failed || it.consent != null) } ?: state.value
+}
+
 /** The gate of every channel that compiles its runtimes into the base APK. */
 object AlwaysInstalled : ModuleGate {
     override val state: StateFlow<ModuleState> = MutableStateFlow(ModuleState.Installed)
