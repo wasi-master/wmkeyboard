@@ -32,6 +32,7 @@ import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeDistanceRange
 import com.wasimaster.wmkeyboard.core.settings.FlickReachRange
 import com.wasimaster.wmkeyboard.core.settings.LM_STRENGTH_MAX
 import com.wasimaster.wmkeyboard.core.settings.MAX_STOP_AFTER_DECLINES
+import com.wasimaster.wmkeyboard.core.settings.MAX_TYPO_PERCENT
 import com.wasimaster.wmkeyboard.core.settings.NextWordAmount
 import com.wasimaster.wmkeyboard.core.settings.NextWordSuggestions
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
@@ -453,6 +454,29 @@ internal fun TypingCorrectionsSettings(
                     info = stringResource(R.string.typing_whole_phrases_info),
                     default = SettingsDefaults.correction.readWholePhrases,
                 ) { scope.launch { repository.setAutocorrectWholePhrases(it) } }
+            }
+            item(level = SettingLevel.ADVANCED) {
+                ToggleSetting(
+                    R.string.typing_two_letter_words_title,
+                    stringResource(R.string.typing_two_letter_words_subtitle),
+                    settings.watch { it.correction.twoLetterWords },
+                    info = stringResource(R.string.typing_two_letter_words_info),
+                    default = SettingsDefaults.correction.twoLetterWords,
+                ) { scope.launch { repository.setAutocorrectTwoLetterWords(it) } }
+            }
+            item(level = SettingLevel.ADVANCED) {
+                val auto = stringResource(R.string.typing_typo_percent_auto)
+                val percentFormat = stringResource(R.string.typing_value_percent)
+                SliderSetting(
+                    R.string.typing_typo_percent_title,
+                    subtitle = stringResource(R.string.typing_typo_percent_subtitle),
+                    value = settings.watch { it.correction.typoPercent }.toFloat(),
+                    range = 0f..MAX_TYPO_PERCENT.toFloat(),
+                    steps = MAX_TYPO_PERCENT / 5 - 1,
+                    display = { if (it.toInt() <= 0) auto else percentFormat.format(it.toInt()) },
+                    info = stringResource(R.string.typing_typo_percent_info),
+                    default = SettingsDefaults.correction.typoPercent.toFloat(),
+                ) { scope.launch { repository.setAutocorrectTypoPercent(it.toInt()) } }
             }
             item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(

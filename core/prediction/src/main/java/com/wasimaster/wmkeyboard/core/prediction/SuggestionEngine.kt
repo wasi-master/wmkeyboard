@@ -451,6 +451,35 @@ class SuggestionEngine(
     var readWholePhrases: Boolean = false
 
     /**
+     * Whether a two-letter word goes through the ordinary correction rules
+     * once the short-word readings ([shortWholeReading], [shortAccentFix])
+     * find nothing (#1541). Off, as always before: two letters are as often a
+     * whole word as a slip of one. From the user's setting.
+     */
+    @Volatile
+    var correctTwoLetterWords: Boolean = false
+
+    /**
+     * How many typos a correction may fix, as a percentage of the typed
+     * word's length (#1541): 25 lets an eight-letter word have two and a
+     * twelve-letter one three, never fewer than one or more than
+     * [MAX_TYPO_EDITS]. 0, the default, keeps the classic shapes: one edit,
+     * two below [TWO_EDIT_FIXES_BELOW]. From the user's setting.
+     */
+    @Volatile
+    var typoPercent: Int = 0
+        set(value) {
+            if (field == value) return
+            field = value
+            // The cached walk was made under the old edit budget.
+            rankedWalk = null
+        }
+
+    /** The edit budget [typoPercent] gives a [length]-letter word, or 0 when it is off. */
+    private fun typoAllowance(length: Int): Int =
+        if (typoPercent <= 0) 0 else (length * typoPercent / 100).coerceIn(1, MAX_TYPO_EDITS)
+
+    /**
      * English words [wholeReading] may read a buffer as besides the walk's
      * own lists: the bundled AOSP list (160k words), which knows the plurals,
      * verb forms and everyday words the 17k list leaves out. Read only there,
@@ -2912,6 +2941,7 @@ class SuggestionEngine(
         // k / 2 makes that exactly k.
         val walked = beam.search(
             walkSources(), lower, proximity, k / 2, beamWorkspace.get(),
+            maxEdits = maxOf(FuzzyBeamSearch.defaultMaxEdits(lower.length), typoAllowance(lower.length)),
             touch = scoring, habits = editHabitsField, keys = keys,
         )
         val ranked = dampMismatchedLanguages(walked)
@@ -3684,6 +3714,9 @@ class SuggestionEngine(
 
         /** Below this the slider also lets a two-edit word fire, for hands that often miss twice (#1055). */
         private const val TWO_EDIT_FIXES_BELOW = 1.5
+
+        /** The most typos [typoPercent] lets one correction fix, whatever the word's length. */
+        const val MAX_TYPO_EDITS = 3
 
         /**
          * How much rarer than the strip's best word a swapped-back word may be
@@ -6941,7 +6974,11 @@ class SuggestionEngine(
             if (whole?.apply != null) return whole
             val accent = shortAccentFix(word, lower, touch)
             if (accent.apply != null || accent.offer != null) return accent
-            return whole ?: accent
+            // Two letters may go on to the ordinary rules when the user asked
+            // for it (#1541): Russian `yf` for *на*, `ub` for *но*.
+            if (!correctTwoLetterWords || lower.codePointCount(0, lower.length) != 2 || whole?.offer != null) {
+                return whole ?: accent
+            }
         }
         if (skipAllCapsAutocorrect && isAllCaps(word)) return NO_CORRECTION
         val ordinary = keepHead(lower, decideOrdinary(word, lower, touch, timingMultiplier, keys, fastTyping))
@@ -8160,6 +8197,7 @@ class SuggestionEngine(
         // silent-replacement decision stays on the same top-8 it has always
         // judged: a rank-20 word must never fire as a correction, nor may it
         // appear as the runner-up that tightens (or loosens) the gate.
+        val typos = typoAllowance(lower.length)
         val shaped = rankedFor(
             lower, FuzzyBeamSearch.AUTOCORRECT_K / 2, touch, keys,
         ).take(FuzzyBeamSearch.AUTOCORRECT_K).filter { c ->
@@ -8189,7 +8227,7 @@ class SuggestionEngine(
             val correctionShaped = if (digitFix) {
                 true
             } else if (c.slips > 0) {
-                c.completedChars == 0 && c.edits - c.slips <= 1 &&
+                c.completedChars == 0 && c.edits - c.slips <= maxOf(1, typos) &&
                     (slipFixes == SlipFixes.EAGER || !mixesSlips(c)) && slipsLean(lower, c, touch)
             } else when (c.edits) {
                 // The typed word with its accents put back is a fix in place:
@@ -8200,8 +8238,13 @@ class SuggestionEngine(
                     c.completedChars == 1 && c.word != lower
                 }
                 1 -> c.completedChars == 0
-                2 -> c.completedChars == 0 && autocorrectConfidence < TWO_EDIT_FIXES_BELOW
-                else -> false
+                // A typo budget from the user's setting replaces the classic
+                // two-edit rule outright (#1541).
+                else -> c.completedChars == 0 && if (typos > 0) {
+                    c.edits <= typos
+                } else {
+                    c.edits == 2 && autocorrectConfidence < TWO_EDIT_FIXES_BELOW
+                }
             }
             // A digit-carrying word is only ever fixed in place: same length,
             // letters untouched, the digit swapped for a letter. A deletion

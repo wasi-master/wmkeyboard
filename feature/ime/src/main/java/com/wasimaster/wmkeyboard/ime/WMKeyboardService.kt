@@ -6059,6 +6059,8 @@ open class WMKeyboardService : InputMethodService() {
                 suggestionEngine?.adaptiveConfidence = settings.correction.adaptive
                 suggestionEngine?.learnedGate = settings.correction.learnedGate
                 suggestionEngine?.readWholePhrases = settings.correction.readWholePhrases
+                suggestionEngine?.correctTwoLetterWords = settings.correction.twoLetterWords
+                suggestionEngine?.typoPercent = settings.correction.typoPercent
                 refreshContextModel()
                 refreshPunctuationModel()
                 correctionStats.memory = settings.correction.undoMemory
@@ -6746,6 +6748,8 @@ open class WMKeyboardService : InputMethodService() {
                 )
                 learnedGate = _uiState.value.settings.correction.learnedGate
                 readWholePhrases = _uiState.value.settings.correction.readWholePhrases
+                correctTwoLetterWords = _uiState.value.settings.correction.twoLetterWords
+                typoPercent = _uiState.value.settings.correction.typoPercent
                 contextAdapter = this@WMKeyboardService.contextAdapter
                 reranker = resolveReranker(_uiState.value.settings)
             }

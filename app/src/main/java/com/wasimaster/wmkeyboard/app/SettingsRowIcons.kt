@@ -1172,6 +1172,8 @@ internal object SettingsRowIcons {
         put(R.string.typing_context_revision_title) { Icons.Outlined.History }
         put(R.string.typing_phrase_completion_title) { Icons.AutoMirrored.Outlined.ShortText }
         put(R.string.typing_whole_phrases_title) { Icons.Outlined.Spellcheck }
+        put(R.string.typing_two_letter_words_title) { Icons.Outlined.Spellcheck }
+        put(R.string.typing_typo_percent_title) { Icons.Outlined.Tune }
         put(R.string.typing_learned_gate_title) { Icons.Outlined.Tune }
         put(R.string.typing_learn_threshold_title) { Icons.Outlined.School }
         put(R.string.typing_new_word_sightings_title) { Icons.Outlined.LibraryAdd }

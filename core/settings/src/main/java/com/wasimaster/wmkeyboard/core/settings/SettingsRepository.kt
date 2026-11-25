@@ -3293,6 +3293,9 @@ const val ACTION_POSITION_MAX = 7
 /** The most declines [AutocorrectSettings.stopAfterDeclines] can ask for. */
 const val MAX_STOP_AFTER_DECLINES = 5
 
+/** The highest [AutocorrectSettings.typoPercent] the slider offers. */
+const val MAX_TYPO_PERCENT = 50
+
 /**
  * Whether the keyboard replaces a word it thinks is wrong, and how sure it has
  * to be first.
@@ -3355,6 +3358,18 @@ data class AutocorrectSettings(
      * one-word rules alone, as before 0.6.7.
      */
     val readWholePhrases: Boolean = true,
+    /**
+     * Whether a two-letter word is corrected by the ordinary rules too, once
+     * the short-word readings find nothing (#1541). Off, as before: two
+     * letters are as often a whole word as a slip of one.
+     */
+    val twoLetterWords: Boolean = false,
+    /**
+     * How many typos one correction may fix, as a percentage of the word's
+     * length, at least one and at most three (#1541). 0 keeps the built-in
+     * rule: one typo, two at the lowest confidence settings.
+     */
+    val typoPercent: Int = 0,
     /** Never autocorrect a word typed all in capitals (acronyms, shouting). */
     val skipAllCaps: Boolean = true,
     /**
@@ -13285,6 +13300,10 @@ class SettingsRepository(private val context: Context) {
             stringPreferencesKey("autocorrect_undo_memory")
         private val AUTOCORRECT_STOP_AFTER_DECLINES =
             intPreferencesKey("autocorrect_stop_after_declines")
+        private val AUTOCORRECT_TWO_LETTER_WORDS =
+            booleanPreferencesKey("autocorrect_two_letter_words")
+        private val AUTOCORRECT_TYPO_PERCENT =
+            intPreferencesKey("autocorrect_typo_percent")
         private val AUTOCORRECT_LEARNED_GATE = booleanPreferencesKey("autocorrect_learned_gate")
         private val AUTOCORRECT_WHOLE_PHRASES = booleanPreferencesKey("autocorrect_whole_phrases")
         private val REVERT_AUTOCORRECT_ON_BACKSPACE =
@@ -15821,6 +15840,9 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.correction.stopAfterDeclines,
             learnedGate = p[AUTOCORRECT_LEARNED_GATE] ?: defaults.correction.learnedGate,
             readWholePhrases = p[AUTOCORRECT_WHOLE_PHRASES] ?: defaults.correction.readWholePhrases,
+            twoLetterWords = p[AUTOCORRECT_TWO_LETTER_WORDS] ?: defaults.correction.twoLetterWords,
+            typoPercent = p[AUTOCORRECT_TYPO_PERCENT]?.coerceIn(0, MAX_TYPO_PERCENT)
+                ?: defaults.correction.typoPercent,
             skipAllCaps = p[AUTOCORRECT_SKIP_ALL_CAPS] ?: defaults.correction.skipAllCaps,
             onEnter = p[AUTOCORRECT_ON_ENTER] ?: defaults.correction.onEnter,
             markInField = p[AUTOCORRECT_MARK_IN_FIELD] ?: defaults.correction.markInField,
@@ -24414,6 +24436,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAutocorrectStopAfterDeclines(value: Int) =
         editPrefs { it[AUTOCORRECT_STOP_AFTER_DECLINES] = value.coerceIn(0, MAX_STOP_AFTER_DECLINES) }
+
+    suspend fun setAutocorrectTwoLetterWords(value: Boolean) =
+        editPrefs { it[AUTOCORRECT_TWO_LETTER_WORDS] = value }
+
+    suspend fun setAutocorrectTypoPercent(value: Int) =
+        editPrefs { it[AUTOCORRECT_TYPO_PERCENT] = value.coerceIn(0, MAX_TYPO_PERCENT) }
 
     suspend fun setAutocorrectLearnedGate(value: Boolean) =
         editPrefs { it[AUTOCORRECT_LEARNED_GATE] = value }
