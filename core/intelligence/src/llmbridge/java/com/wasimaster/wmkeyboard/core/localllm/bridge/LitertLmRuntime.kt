@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.localllm.bridge
 
 import android.content.Context
+import android.os.SystemClock
 import com.google.ai.edge.litertlm.Backend
 import com.google.ai.edge.litertlm.Content
 import com.google.ai.edge.litertlm.Contents
@@ -24,6 +25,9 @@ import com.wasimaster.wmkeyboard.intelligence.R
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
 
@@ -70,6 +74,25 @@ class LitertLmRuntime : LlmRuntime {
      */
     @Volatile
     private var releaseWanted = false
+
+    /**
+     * Frees an engine nothing has used for [IDLE_RELEASE_MS] (#1419), as
+     * llama.cpp's runtime does. The keyboard frees the model two minutes
+     * after it hides, but while it stays up (the strip's AI suggestions and
+     * voice tidy load the model as you type) and in the settings app's chat,
+     * nothing else did: the weights stayed in memory until trim-memory or
+     * Resources' Unload.
+     */
+    private val idleTimer = Executors.newSingleThreadScheduledExecutor { r ->
+        Thread(r, "litertlm-idle").apply { isDaemon = true }
+    }
+
+    /** The pending idle release; guarded by [lock]. */
+    private var idleRelease: ScheduledFuture<*>? = null
+
+    /** When the last request let go of the engine, in uptime ms. */
+    @Volatile
+    private var lastRunEnd = 0L
 
     /** The conversation answering right now, for [stop]; guarded by [runningLock]. */
     private var running: Conversation? = null
@@ -178,10 +201,34 @@ class LitertLmRuntime : LlmRuntime {
         }
     }
 
-    /** Ends a request: frees the engine if a [release] came meanwhile, then lets go of the lock. */
+    /**
+     * Ends a request: frees the engine if a [release] came meanwhile, else
+     * arms the idle release, then lets go of the lock.
+     */
     private fun finishRun() {
         try {
-            if (releaseWanted) releaseLocked()
+            if (releaseWanted) releaseLocked() else scheduleIdleRelease()
+        } finally {
+            lock.unlock()
+        }
+    }
+
+    /** Lock held. */
+    private fun scheduleIdleRelease() {
+        if (engine == null) return
+        lastRunEnd = SystemClock.uptimeMillis()
+        idleRelease?.cancel(false)
+        idleRelease = idleTimer.schedule({ releaseIfIdle() }, IDLE_RELEASE_MS, TimeUnit.MILLISECONDS)
+    }
+
+    /**
+     * The idle release. A request holding the engine right now skips it:
+     * that request arms a new one as it ends.
+     */
+    private fun releaseIfIdle() {
+        if (!lock.tryLock()) return
+        try {
+            if (engine != null && SystemClock.uptimeMillis() - lastRunEnd >= IDLE_RELEASE_MS) releaseLocked()
         } finally {
             lock.unlock()
         }
@@ -785,6 +832,9 @@ class LitertLmRuntime : LlmRuntime {
     )
 
     private companion object {
+        /** An engine unused for this long is freed; the same wait as llama.cpp's. */
+        const val IDLE_RELEASE_MS = 3 * 60 * 1000L
+
         /**
          * Pictures one turn may carry. A reply is usually one screenshot,
          * sometimes two of a long thread; every picture is hundreds of tokens
