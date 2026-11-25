@@ -202,9 +202,13 @@ object ImageGenImport {
      * Ordered: the 8 Elite Gen 5's name contains the plain 8 Elite's.
      */
     private val CHIPS = linkedMapOf(
+        "SM8550" to "SM8550",
         "SM8650" to "SM8650",
         "SM8750" to "SM8750",
         "SM8850" to "SM8850",
+        "SNAPDRAGON_8GEN2" to "SM8550",
+        // AI Hub builds the 8 Gen 2's binaries as the QCS8550 (Proxy): the same SoC model, 43.
+        "QCS8550" to "SM8550",
         "SNAPDRAGON_8GEN3" to "SM8650",
         "SNAPDRAGON_8_ELITE_GEN5" to "SM8850",
         "SNAPDRAGON_8_ELITE" to "SM8750",

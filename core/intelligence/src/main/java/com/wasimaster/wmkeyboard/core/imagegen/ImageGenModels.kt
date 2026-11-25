@@ -153,6 +153,13 @@ object ImageGenModels {
             // The tokenizer is CLIP's, the same file SDXS ships.
             parts = listOf(Part("sdxs-ds-merges.txt", 524_619L, "9fd691f7c8039210e0fced15865466c65820d09b63988b0174bfe25de299051a")),
             npuBuilds = listOf(
+                // AI Hub no longer builds for "snapdragon_8gen2"; its QCS8550
+                // (Proxy) target is the same SoC model (43) and Hexagon V73,
+                // and its metadata.json says so.
+                aiHub(
+                    "SM8550", "qcs8550_proxy", 709_806_250L,
+                    "ab0bb540c0b786fafac2a7c8d44fe39483c72e5259c210d67e9b563124f855e2",
+                ),
                 aiHub(
                     "SM8650", "snapdragon_8gen3", 709_724_514L,
                     "0e9299c8b3344ddb6463eefcc9ab7dad232312dff42990badba5a5b379b153f8",

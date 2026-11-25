@@ -77,16 +77,40 @@ class QnnSpeechTest {
     }
 
     @Test
+    fun `buckets are siblings only within one model on one chip`() {
+        assertEquals(ten.npuFamily, thirty.npuFamily)
+        val v2 = EtCatalog.byId("parakeet-v2-npu-sm8750-10s")!!
+        val small = EtCatalog.byId("parakeet-110m-npu-sm8750-10s")!!
+        val gen2 = EtCatalog.byId("parakeet-v3-npu-sm8550-10s")!!
+        assertTrue(listOf(v2, small, gen2).none { it.npuFamily == ten.npuFamily })
+        assertEquals(null, v3.npuFamily)
+    }
+
+    @Test
+    fun `for English v2 wins over v3 on the NPU, and v3 keeps the other languages`() {
+        val v2 = EtCatalog.byId("parakeet-v2-npu-sm8750-10s")!!
+        assertTrue(v2.outranks(ten))
+        assertTrue(v2.supports("en_US"))
+        assertTrue(!v2.supports("de"))
+        assertTrue(ten.supports("de"))
+    }
+
+    @Test
     fun `every NPU build is one pinned tar from k2-fsa's releases, in a folder of its own`() {
         val npu = EtCatalog.models.filter { it.npu != null }
-        assertEquals(9, npu.size)
+        // Parakeet v3, v2 and 110M at 10 and 30 s, Moonshine Tiny and Base at 10 s, on four chips.
+        assertEquals(32, npu.size)
+        assertEquals(setOf("SM8550", "SM8650", "SM8750", "SM8850"), npu.mapNotNull { it.npu }.toSet())
         for (m in npu) {
             val f = m.files.single()
             assertTrue(m.id, f.archive && f.name.endsWith(".tar.bz2") && f.sha256.length == 64)
             assertTrue(m.id, m.url(f).startsWith("https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models-qnn-binary-"))
+            assertTrue(m.id, f.name.startsWith("sherpa-onnx-qnn-${m.npu}-binary-"))
             assertTrue(m.id, m.npuSeconds == 10 || m.npuSeconds == 30)
-            assertNotNull(m.cpuTwin?.let(EtCatalog::byId))
+            m.cpuTwin?.let { assertNotNull(m.id, EtCatalog.byId(it)) }
         }
+        // A model with no CPU build of its own is English only, like the engine's English builds.
+        assertTrue(npu.filter { it.cpuTwin == null }.all { it.languages == setOf("en") || it.engine == EtEngine.MOONSHINE })
         for (engine in listOf(EtEngine.PARAKEET, EtEngine.MOONSHINE)) {
             val dirs = EtCatalog.models.filter { it.engine == engine }.map { it.dirName }
             assertEquals(dirs.size, dirs.toSet().size)

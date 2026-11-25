@@ -51,7 +51,7 @@ Two models come with the app's catalog. Neither is in the APK: the phone downloa
 | Model | Download | How it draws | Runs on |
 |---|---|---|---|
 | **SDXS Dreamshaper** | about 880 MB, plus the 87 MB picture filter | one step, at 384 × 384 or 512 × 512 | every phone, on the processor |
-| **Stable Diffusion 1.5 (NPU)** | about 710 MB from Qualcomm, plus the picture filter | 20 steps with guidance, at 512 × 512 | Snapdragon 8 Gen 3, 8 Elite and 8 Elite Gen 5, on the neural processor |
+| **Stable Diffusion 1.5 (NPU)** | about 710 MB from Qualcomm, plus the picture filter | 20 steps with guidance, at 512 × 512 | Snapdragon 8 Gen 2, 8 Gen 3, 8 Elite and 8 Elite Gen 5, on the neural processor |
 
 SDXS is the default everywhere. It was distilled to draw in a single step, and it draws clean, outlined cartoon subjects on a white background, which is what a sticker wants and what the background remover lifts cleanly. Measured on a computer and scaled to phones, one picture takes roughly:
 
@@ -63,7 +63,7 @@ SDXS is the default everywhere. It was distilled to draw in a single step, and i
 
 The first picture after the generator opens takes longer, because the model has to load. It then stays loaded for a few minutes, so the next prompts are fast. While loaded it takes one to two gigabytes of memory, in a process of its own: if Android needs that memory back it ends the generator, never the keyboard.
 
-**Stable Diffusion 1.5 (NPU)** is Qualcomm's own build of the original Stable Diffusion for each chip's neural processor, about 2.5 seconds a picture on an 8 Elite by Qualcomm's figures. It is offered only on the three chips above, and it uses the same Qualcomm runtime as [running AI models on the NPU](/tools/ai/#local-models). It is not better at stickers than SDXS. Choose it for what SDXS can't do: a negative prompt, a guidance strength and a step count. Its first picture also waits for the NPU runtime to download, if nothing has fetched it yet.
+**Stable Diffusion 1.5 (NPU)** is Qualcomm's own build of the original Stable Diffusion for each chip's neural processor, about 2.5 seconds a picture on an 8 Elite by Qualcomm's figures. It is offered only on the four chips above (for the 8 Gen 2, Qualcomm publishes the build under the name of its IoT twin, the QCS8550, which has the same NPU), and it uses the same Qualcomm runtime as [running AI models on the NPU](/tools/ai/#local-models). It is not better at stickers than SDXS. Choose it for what SDXS can't do: a negative prompt, a guidance strength and a step count. Its first picture also waits for the NPU runtime to download, if nothing has fetched it yet.
 
 The model rows show what is downloaded. The bin deletes a model; <SettingsPath path="About / Storage / Sticker generator" /> lists them too.
 

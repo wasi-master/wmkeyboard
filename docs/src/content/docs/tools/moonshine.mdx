@@ -21,7 +21,9 @@ Moonshine transcribes a phrase once you stop, and a phrase can run to 30 seconds
 
 ## On a Snapdragon NPU
 
-On a phone with a Snapdragon 8 Gen 3, 8 Elite or 8 Elite Gen 5, the model list also has **Moonshine Tiny (NPU, 10 s)**: the same model compiled for that chip's NPU by the [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) project, one 58 MB archive from its GitHub releases, checked against its SHA-256. It is compiled for 10-second clips: a shorter phrase is padded to 10 seconds, and a longer one is cut at its quietest moments and transcribed piece by piece. Once downloaded it is used over the standard build. The first time, dictation also fetches sherpa-onnx's NPU library and the phone's NPU runtime; until both are there it uses the standard build if that is downloaded. It has not been measured on a phone yet. The F-Droid build does not offer it.
+On a phone with a Snapdragon 8 Gen 2, 8 Gen 3, 8 Elite or 8 Elite Gen 5, the model list also has **Moonshine Tiny (NPU, 10 s)**: the same model compiled for that chip's NPU by the [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) project, one 58 MB archive from its GitHub releases, checked against its SHA-256. It is compiled for 10-second clips: a shorter phrase is padded to 10 seconds, and a longer one is cut at its quietest moments and transcribed piece by piece. Once downloaded it is used over the standard build. The first time, dictation also fetches sherpa-onnx's NPU library and the phone's NPU runtime; until both are there it uses the standard build if that is downloaded. It has not been measured on a phone yet.
+
+The same chips also get **Moonshine Base (NPU, 10 s)**, a 112 MB archive of Moonshine's larger English model (61 million parameters to Tiny's 27), which has no standard build here. With both downloaded, Base is used. It has no standard build to fall back on, so until the NPU library and runtime are on the phone it reports the model as not loading. The F-Droid build offers neither.
 
 ## Moonshine, Asr4All or Whisper
 
@@ -33,4 +35,4 @@ For English, [Asr4All](/tools/asr4all/) shows the words while you speak, and the
 
 **Every build.** The runtime, [ExecuTorch](https://github.com/pytorch/executorch) built for the keyboard's models alone, is in every build; F-Droid compiles it from source. A build made without it does not offer the engine.
 
-**The licence.** Moonshine is Useful Sensors' model, under the MIT licence; it is credited in the app's About screen.
+**The licence.** Moonshine Tiny and Base are Useful Sensors' models, under the MIT licence; it is credited in the app's About screen.

@@ -7,8 +7,8 @@ import com.wasimaster.wmkeyboard.core.modules.GatedLibrary
  * sherpa-onnx built with its QNN recognizers, through
  * `native/sherpa-onnx-jni/qnn_jni.cpp` (`libwmsherpa_qnn.so`, arm64 only):
  * the offline recognizer running k2-fsa's ready-made QNN context binaries of
- * Parakeet TDT 0.6B v3 and Moonshine Tiny on a Snapdragon NPU. Driven by
- * [QnnSpeech].
+ * Parakeet transducers (TDT 0.6B v3 and v2, TDT-CTC 110M) and Moonshine (Tiny
+ * and Base, English) on a Snapdragon NPU. Driven by [QnnSpeech].
  *
  * Its own gate, [FeatureModules.sherpaQnn] (`:feature:sherpaqnn` on Play,
  * never in F-Droid's build: it compiles against Qualcomm's QNN headers). It

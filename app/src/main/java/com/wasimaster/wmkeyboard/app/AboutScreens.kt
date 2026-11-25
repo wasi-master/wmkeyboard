@@ -785,6 +785,25 @@ private val bundledAttributions: List<Attribution> = buildList {
                 "https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3",
             ),
         )
+        // English-only Parakeets offered only as NPU builds, on a Snapdragon.
+        add(
+            Attribution(
+                "NVIDIA Parakeet TDT 0.6B v2",
+                R.string.about_bundled_parakeet_used,
+                "Copyright NVIDIA Corporation",
+                "CC-BY-4.0", "cc-by-4.0-parakeet.txt",
+                "https://huggingface.co/nvidia/parakeet-tdt-0.6b-v2",
+            ),
+        )
+        add(
+            Attribution(
+                "NVIDIA Parakeet TDT-CTC 110M",
+                R.string.about_bundled_parakeet_used,
+                "Copyright NVIDIA Corporation",
+                "CC-BY-4.0", "cc-by-4.0-parakeet.txt",
+                "https://huggingface.co/nvidia/parakeet-tdt_ctc-110m",
+            ),
+        )
         add(
             Attribution(
                 "Parakeet Ultra",

@@ -17,7 +17,7 @@
     <string name="stickergen_metered_blocked">Data saver keeps online AI off this connection, so only the phone\'s model can draw. Its Cloud AI row decides this.</string>
 
     <string name="stickergen_model_title">Model</string>
-    <string name="stickergen_model_info">The model runs on this phone, in a process of its own, and nothing you type leaves it unless the prompt needs an online translator. SDXS draws in one step on any phone. Stable Diffusion 1.5 (NPU) runs on the Snapdragon 8 Gen 3, 8 Elite and 8 Elite Gen 5 neural processors and takes a negative prompt and guidance.</string>
+    <string name="stickergen_model_info">The model runs on this phone, in a process of its own, and nothing you type leaves it unless the prompt needs an online translator. SDXS draws in one step on any phone. Stable Diffusion 1.5 (NPU) runs on the Snapdragon 8 Gen 2, 8 Gen 3, 8 Elite and 8 Elite Gen 5 neural processors and takes a negative prompt and guidance.</string>
     <string name="stickergen_model_sdxs">One step, every phone</string>
     <string name="stickergen_model_npu">20 steps on the NPU, negative prompts</string>
     <string name="stickergen_model_ready">%1$s · Downloaded</string>

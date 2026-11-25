@@ -208,6 +208,12 @@ class EtModel(
     /** For an [npu] model, the longest piece of audio one decode takes, in 16 kHz samples. */
     val npuSamples: Int get() = npuSeconds * 16_000
 
+    /**
+     * For an [npu] model, what every bucket of the same model for the same
+     * chip shares: its id without the clip length. Null for any other model.
+     */
+    val npuFamily: String? get() = npu?.let { id.removeSuffix("-${npuSeconds}s") }
+
     /** A Sherpa transducer has one; a Paraformer does not, and hears no hotwords. */
     val hasJoiner: Boolean get() = files.any { it.name.startsWith("joiner") }
 
@@ -252,39 +258,86 @@ object EtCatalog {
     private const val QNN_RELEASES = "https://github.com/k2-fsa/sherpa-onnx/releases/download"
 
     /**
-     * k2-fsa's QNN context binaries of Parakeet TDT 0.6B v3 for [soc]'s NPU,
-     * compiled for clips of [seconds] (release asr-models-qnn-binary-2, built
-     * with QAIRT 2.40.0.251030): one tar.bz2 of encoder.bin, decoder.bin,
-     * joiner.bin and tokens.txt, pinned by the SHA-256 GitHub lists for it.
+     * One set of k2-fsa's QNN context binaries for [soc]'s NPU, compiled for
+     * clips of [seconds]: the tar.bz2 `sherpa-onnx-qnn-<soc>-binary-<archive>`
+     * from [release], pinned by the size and SHA-256 GitHub lists for it.
+     * [id] and [dirName] get the chip and the clip length appended, so every
+     * bucket of a model has a folder of its own and they share [EtModel.npuFamily].
      */
-    private fun parakeetNpu(soc: String, seconds: Int, bytes: Long, sha256: String): EtModel {
-        val name = "sherpa-onnx-qnn-$soc-binary-parakeet-tdt-0.6b-v3-${seconds}s-transducer"
+    @Suppress("detekt.LongParameterList")
+    private fun qnnBuild(
+        engine: EtEngine,
+        release: String,
+        archive: String,
+        id: String,
+        dirName: String,
+        label: String,
+        millions: Int,
+        soc: String,
+        seconds: Int,
+        bytes: Long,
+        sha256: String,
+        cpuTwin: String? = null,
+        languages: Set<String>? = null,
+        supersedes: String? = null,
+    ): EtModel {
+        val name = "sherpa-onnx-qnn-$soc-binary-$archive"
         val tag = soc.lowercase()
         return EtModel(
-            "parakeet-v3-npu-$tag-${seconds}s", EtEngine.PARAKEET, "tdt-0.6b-v3-npu-$tag-${seconds}s",
-            "Parakeet TDT 0.6B v3 (NPU, $seconds s)", 600,
-            "github.com/k2-fsa/sherpa-onnx", "asr-models-qnn-binary-2",
-            listOf(EtFile("$name.tar.bz2", bytes, sha256, url = "$QNN_RELEASES/asr-models-qnn-binary-2/$name.tar.bz2", archive = true)),
-            cpuTwin = "parakeet-v3",
+            "$id-npu-$tag-${seconds}s", engine, "$dirName-npu-$tag-${seconds}s",
+            "$label (NPU, $seconds s)", millions,
+            "github.com/k2-fsa/sherpa-onnx", release,
+            listOf(EtFile("$name.tar.bz2", bytes, sha256, url = "$QNN_RELEASES/$release/$name.tar.bz2", archive = true)),
+            languages = languages,
+            supersedes = supersedes,
+            cpuTwin = cpuTwin,
             npu = soc,
             npuSeconds = seconds,
         )
     }
 
-    /** The same for Moonshine Tiny English, from asr-models-qnn-binary-3: encoder.bin, decoder.bin and tokens.txt. */
-    private fun moonshineNpu(soc: String, seconds: Int, bytes: Long, sha256: String): EtModel {
-        val name = "sherpa-onnx-qnn-$soc-binary-moonshine-tiny-en-${seconds}s"
-        val tag = soc.lowercase()
-        return EtModel(
-            "moonshine-tiny-npu-$tag-${seconds}s", EtEngine.MOONSHINE, "tiny-npu-$tag-${seconds}s",
-            "Moonshine Tiny (NPU, $seconds s)", 27,
-            "github.com/k2-fsa/sherpa-onnx", "asr-models-qnn-binary-3",
-            listOf(EtFile("$name.tar.bz2", bytes, sha256, url = "$QNN_RELEASES/asr-models-qnn-binary-3/$name.tar.bz2", archive = true)),
-            cpuTwin = "moonshine-tiny",
-            npu = soc,
-            npuSeconds = seconds,
-        )
-    }
+    /**
+     * Parakeet TDT 0.6B v3 (release asr-models-qnn-binary-2, built with
+     * QAIRT 2.40.0.251030): encoder.bin, decoder.bin, joiner.bin and tokens.txt.
+     */
+    private fun parakeetNpu(soc: String, seconds: Int, bytes: Long, sha256: String): EtModel = qnnBuild(
+        EtEngine.PARAKEET, "asr-models-qnn-binary-2", "parakeet-tdt-0.6b-v3-${seconds}s-transducer",
+        "parakeet-v3", "tdt-0.6b-v3", "Parakeet TDT 0.6B v3", 600, soc, seconds, bytes, sha256,
+        cpuTwin = "parakeet-v3",
+    )
+
+    /**
+     * NVIDIA's Parakeet TDT 0.6B v2 (CC-BY-4.0), English only, the same files
+     * from the same release. No CPU build of it here, so no twin. For English
+     * it is the more accurate of the two, so it is used over v3's NPU build
+     * when both are on the phone; v3 keeps every other language.
+     */
+    private fun parakeetV2Npu(soc: String, seconds: Int, bytes: Long, sha256: String): EtModel = qnnBuild(
+        EtEngine.PARAKEET, "asr-models-qnn-binary-2", "parakeet-tdt-0.6b-v2-${seconds}s-transducer",
+        "parakeet-v2", "tdt-0.6b-v2", "Parakeet TDT 0.6B v2", 600, soc, seconds, bytes, sha256,
+        languages = setOf("en"),
+        supersedes = "parakeet-v3",
+    )
+
+    /** NVIDIA's Parakeet TDT-CTC 110M (CC-BY-4.0), English only, its transducer half; the same files. */
+    private fun parakeet110mNpu(soc: String, seconds: Int, bytes: Long, sha256: String): EtModel = qnnBuild(
+        EtEngine.PARAKEET, "asr-models-qnn-binary-2", "parakeet-tdt_ctc-110m-${seconds}s-transducer",
+        "parakeet-110m", "tdt-ctc-110m", "Parakeet TDT-CTC 110M", 110, soc, seconds, bytes, sha256,
+        languages = setOf("en"),
+    )
+
+    /** Moonshine Tiny English, from asr-models-qnn-binary-3: encoder.bin, decoder.bin and tokens.txt. */
+    private fun moonshineNpu(soc: String, seconds: Int, bytes: Long, sha256: String): EtModel = qnnBuild(
+        EtEngine.MOONSHINE, "asr-models-qnn-binary-3", "moonshine-tiny-en-${seconds}s",
+        "moonshine-tiny", "tiny", "Moonshine Tiny", 27, soc, seconds, bytes, sha256,
+        cpuTwin = "moonshine-tiny",
+    )
+
+    /** Useful Sensors' Moonshine Base (MIT), English, the same files from the same release. No CPU build of it here. */
+    private fun moonshineBaseNpu(soc: String, seconds: Int, bytes: Long, sha256: String): EtModel = qnnBuild(
+        EtEngine.MOONSHINE, "asr-models-qnn-binary-3", "moonshine-base-${seconds}s",
+        "moonshine-base", "base", "Moonshine Base", 61, soc, seconds, bytes, sha256,
+    )
 
     /** Where Alpha Cephei keeps the Vosk models, each `<name>.zip`. */
     private const val VOSK_MODELS = "https://alphacephei.com/vosk/models"
@@ -440,20 +493,48 @@ object EtCatalog {
                 ),
             ),
         ),
-        // k2-fsa's QNN context binaries of the two models above, for the
-        // Snapdragon chips the `npu` gate has a runtime for (8 Gen 3, 8 Elite,
-        // 8 Elite Gen 5), each offered only on its own chip. Parakeet for 10 s
-        // and 30 s clips (k2-fsa compiles 3 to 30 s), Moonshine for 10 s, the
-        // longest they compile it for.
+        // k2-fsa's QNN context binaries of the two models above, and of three
+        // English models with no CPU build here (Parakeet TDT 0.6B v2,
+        // Parakeet TDT-CTC 110M, Moonshine Base), for the Snapdragon chips
+        // the `npu` gate has a runtime for (8 Gen 2, 8 Gen 3, 8 Elite, 8 Elite
+        // Gen 5), each offered only on its own chip. Parakeet for 10 s and
+        // 30 s clips (k2-fsa compiles 3 to 30 s), Moonshine for 10 s, the
+        // longest they compile it for. Their other builds take engines this
+        // app does not have (SenseVoice, Paraformer, Zipformer CTC, Whisper,
+        // Nemotron streaming) or languages Parakeet and Moonshine are not
+        // offered for here.
+        parakeetNpu("SM8550", 10, 441_099_774L, "439843adb24406bfc620381750a48be9aee6cf0d253f8870a0c46f04aa174814"),
+        parakeetNpu("SM8550", 30, 451_431_213L, "925a05f17d090e4f7ed2023531617dd2e322b2d0988d8235ba05b4d11b0c4d91"),
         parakeetNpu("SM8650", 10, 441_106_642L, "78342bad3ca5d380d5a7d34b730fefd58e1bd8fa55d133fec0e3256eaf056263"),
         parakeetNpu("SM8650", 30, 449_334_315L, "8ad2bb5902cbde3b922c53f4a119fcac47730b53e90ad1dff726b3ff0f7607df"),
         parakeetNpu("SM8750", 10, 440_771_028L, "48a8b6db3f5749697a2a6e5331aecd314ed092d3621b7e5b3c17bc49c78cafeb"),
         parakeetNpu("SM8750", 30, 449_456_731L, "2efa5ccd76b1b21d0b41310a21114eabbd8ed62d573333b74f7598bdc90c1fbb"),
         parakeetNpu("SM8850", 10, 440_901_766L, "ff072c4ef523d4af64766e75b6ad1f1b6a02315ead681b0f506f46edbe0704dc"),
         parakeetNpu("SM8850", 30, 449_680_863L, "604c9a55d66e0355cd475ecccbc581d5432b19e3d419eadafdd89d3664b60c36"),
+        parakeetV2Npu("SM8550", 10, 432_620_882L, "f53e36f3ed93f3e70d1305091d6a4e2221677521f5f9c8c9e561b1a96ab400ec"),
+        parakeetV2Npu("SM8550", 30, 444_187_280L, "68b0810d051377bb1f29ff4a5521c012f4b1d4e3988ec79636d003eaada35679"),
+        parakeetV2Npu("SM8650", 10, 432_629_307L, "4d2164e1a062f1921417f25875680fbff357c6db457c2fc7f46f4e7ddc353b36"),
+        parakeetV2Npu("SM8650", 30, 442_257_541L, "1ef5d147a00410ca8fbafae0daf24e2f4c0d61e551ea4a24bf6845f12a150bbb"),
+        parakeetV2Npu("SM8750", 10, 432_313_918L, "b68468a46beedb4557c7c68068c84992bfba0531b69e015c182ab9fb1e92cc29"),
+        parakeetV2Npu("SM8750", 30, 444_483_302L, "5c25c28f6aa8c63a3da1b3b87bf752ccdae52095bcadd4d81fe4f4096ec2b9b4"),
+        parakeetV2Npu("SM8850", 10, 432_453_011L, "554d2b2fd361f7e000870dfaffd93b43ce36d6bfde8f3705a8b198e75549b9c5"),
+        parakeetV2Npu("SM8850", 30, 442_868_556L, "b761763d824685c31eba0245f5e2d3c4b01258d37fae7f007a0ab06c4012146f"),
+        parakeet110mNpu("SM8550", 10, 92_452_121L, "358faae9f72908194069ce04fcd2075d73049083ec159291f29240106218408d"),
+        parakeet110mNpu("SM8550", 30, 95_542_938L, "9278ffec4174f8ec527019583e6b91e6b5edd753e2fc158463897e502258270b"),
+        parakeet110mNpu("SM8650", 10, 92_421_816L, "54a27a7bef3787d2c962b162afef60952c881d136777b8dcce7b1448f2de7581"),
+        parakeet110mNpu("SM8650", 30, 95_550_804L, "0fc230be7a9d05d747869d8961223b52374ce8228111e11960877e6dd8e5213d"),
+        parakeet110mNpu("SM8750", 10, 92_464_623L, "0105a65822e952416f0032da56a6b8e1346c045e5e08c809ed55f2fa98d5a498"),
+        parakeet110mNpu("SM8750", 30, 95_513_715L, "77f319e45646cd63d1948925dad6532815c8ec8fd29b4205d5b35d3eb6c9f939"),
+        parakeet110mNpu("SM8850", 10, 92_421_720L, "9f54b0eb0dfc3416f6e4705a9cda671988a038ab19a5ab4099d48267ce71fb90"),
+        parakeet110mNpu("SM8850", 30, 96_017_730L, "cd399fdb530fada8afb94d935b7458a314b9b7cd2c063e5b46d97b399b7881d4"),
+        moonshineNpu("SM8550", 10, 57_745_688L, "514d2c9317f47494ad8f629b771490c3aeb97b87342d0d79ba822e050bbffd41"),
         moonshineNpu("SM8650", 10, 57_759_597L, "f092d5c95eeaf8b06866a4e124a39956aa311ec585dec1ecd64cc342a244786f"),
         moonshineNpu("SM8750", 10, 57_726_276L, "8657f68fab42978040b5979ffa560699cac427645b1dcbc573457362d2943524"),
         moonshineNpu("SM8850", 10, 57_758_480L, "e40bd70eea0b7bc798c6565ce7fd9b8498c625bf948aba7b4047c5562022d7ae"),
+        moonshineBaseNpu("SM8550", 10, 112_110_655L, "8c95949235923773903f6b14682a591cf91cc1c81cf31dfe0a2e6991999e11bb"),
+        moonshineBaseNpu("SM8650", 10, 112_110_577L, "299d0de22ac5c862c7695dee42d4c99a7c7c04c73de98d193f323754cdf3b0a2"),
+        moonshineBaseNpu("SM8750", 10, 112_083_814L, "d49a2bfb6a1f35a9d04b700d498262ef3acd2fa3ad514eb4f0afad7ce748d723"),
+        moonshineBaseNpu("SM8850", 10, 112_165_690L, "1a750b0489608bf2b72dbbc18bd77e57b32faa74f1cc5f7b55a8744a5d7b4015"),
         // Sherpa (sherpa-onnx on ONNX Runtime): streaming Zipformer
         // transducers, one per language unless said otherwise. Each carries
         // its own copy of Silero VAD (2 MB), so a model is whole on its own.

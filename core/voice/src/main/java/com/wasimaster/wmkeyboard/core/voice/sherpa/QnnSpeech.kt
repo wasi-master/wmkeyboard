@@ -94,7 +94,7 @@ object QnnSpeech {
     private fun buckets(filesDir: File, model: EtModel): List<EtModel> {
         require(model.npu != null) { "${model.label} is not an NPU build" }
         val siblings = EtStore.downloaded(filesDir, model.engine)
-            .filter { it.npu == model.npu && it.cpuTwin == model.cpuTwin }
+            .filter { it.npuFamily == model.npuFamily }
         return (siblings + model).distinctBy { it.id }.sortedBy { it.npuSeconds }
     }
 

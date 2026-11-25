@@ -233,7 +233,7 @@
     <string name="about_pack_sdxs_used">The sticker generator\'s one-step model, downloaded on demand</string>
     <string name="about_pack_taesd_used">The small image decoder inside SDXS</string>
     <string name="about_pack_waifu2x_used">The upscaler\'s networks, which redraw stickers and photos at a larger size, downloaded on demand</string>
-    <string name="about_pack_sd15_npu_used">The sticker generator\'s NPU model on Snapdragon 8 Gen 3 and newer, downloaded on demand from Qualcomm</string>
+    <string name="about_pack_sd15_npu_used">The sticker generator\'s NPU model on Snapdragon 8 Gen 2 and newer, downloaded on demand from Qualcomm</string>
     <string name="about_pack_nsfw_used">The sticker generator\'s picture safety filter, downloaded with its first model</string>
     <string name="about_bundled_llama_cpp_used">The engine that runs GGUF models for on-device AI (native library)</string>
     <string name="about_bundled_whisper_cpp_used">The engine that runs the faster Offline Whisper models on your device, and those models</string>
