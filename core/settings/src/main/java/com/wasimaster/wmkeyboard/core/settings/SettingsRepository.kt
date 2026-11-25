@@ -9378,11 +9378,11 @@ data class ClipboardSettings(
      * or on the strip, and text a panel inserts whole: a kaomoji, a tool's
      * result. Only while the caret is still at the paste's end and nothing
      * was typed since; any other key, a caret move or a new field and
-     * Backspace deletes one character again. On by default, like
-     * [GestureSettings.backspaceUndoesGlide]: a paste in the wrong place is
-     * usually wrong as a whole.
+     * Backspace deletes one character again. Off by default: on in 0.6.7,
+     * it surprised people who pasted a line and only meant to delete its
+     * last character (Telegram 11986, 12342), and lost the whole paste.
      */
-    val backspaceUndoesPaste: Boolean = true,
+    val backspaceUndoesPaste: Boolean = false,
     /**
      * The small "Rich text" tag under a clip that carries formatting (#414).
      * On by default. Off, the tag goes, and with it the footer row of a card
