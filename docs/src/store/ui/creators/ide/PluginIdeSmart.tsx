@@ -9,7 +9,8 @@ import type { ComponentChildren } from 'preact';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import * as Py from '../../../lib/python';
 import type { PyDiagnostic, PyFix, PyHost } from '../../../lib/python';
-import { tryOnce, type PluginIdentity, type TryOutcome } from '../../../lib/plugin-runtime';
+import { tryOnce, tryPreview, type PluginIdentity, type PreviewOutcome, type TryOutcome } from '../../../lib/plugin-runtime';
+import { V5Widget } from './V5Widgets';
 import { PERMISSIONS, PACKAGE_API, type PluginManifest } from './ide-store';
 import * as E from './edits';
 import { S } from './strings';
@@ -150,10 +151,17 @@ export function FixStrip({ diagnostic, onFix }: { diagnostic: PyDiagnostic; onFi
 // The Try pane
 // ---------------------------------------------------------------------------
 
-type TryTarget = { kind: 'provider'; tool: string; id: string; name: string; key: string } | { kind: 'action'; id: string; name: string; key: string };
+type TryTarget =
+	| { kind: 'provider'; tool: string; id: string; name: string; key: string }
+	| { kind: 'action'; id: string; name: string; key: string }
+	| { kind: 'preview'; id: string; name: string; key: string; maxBytes: number; thumbnails: boolean };
 
 function targetsOf(m: PluginManifest): TryTarget[] {
 	return [
+		...(m.previews ?? []).map((p): TryTarget => ({
+			kind: 'preview', id: p.id, name: p.name?.trim() || p.id, key: `preview:${p.id}`,
+			maxBytes: Math.min(16 * 1024 * 1024, p.maxBytes && p.maxBytes > 0 ? p.maxBytes : 4 * 1024 * 1024), thumbnails: !!p.thumbnails,
+		})),
 		...(m.providers ?? []).map((p): TryTarget => {
 			const id = p.id?.trim() || p.tool;
 			return { kind: 'provider', tool: p.tool, id, name: p.name?.trim() || id, key: `provider:${p.tool}/${id}` };
@@ -162,7 +170,76 @@ function targetsOf(m: PluginManifest): TryTarget[] {
 	];
 }
 
-const sampleOf = (t: TryTarget) => (t.kind === 'provider' ? Py.providerTools().find((x) => x.tool === t.tool)?.sample ?? '{}' : 'Hello, world');
+const sampleOf = (t: TryTarget) => (t.kind === 'provider' ? Py.providerTools().find((x) => x.tool === t.tool)?.sample ?? '{}' : t.kind === 'action' ? 'Hello, world' : '');
+
+const FONT_FAMILY = 'wm-preview-font';
+
+/**
+ * A preview target: pick a file, see what the plugin draws for it and, when
+ * it makes them, its thumbnail. A font file is also loaded into the page, so
+ * ui.font_sample draws in it as the phone does.
+ */
+function PreviewTry({ target, identity, script, storage }: { target: Extract<TryTarget, { kind: 'preview' }>; identity: () => PluginIdentity; script: () => string; storage: () => Record<string, string> | null }) {
+	const [file, setFile] = useState<{ name: string; mime: string; bytes: Uint8Array } | null>(null);
+	const [shown, setShown] = useState<{ preview: PreviewOutcome; thumb: PreviewOutcome | null } | null>(null);
+	const pick = async (e: Event) => {
+		const f = (e.target as HTMLInputElement).files?.[0];
+		if (!f) return;
+		const bytes = new Uint8Array(await f.arrayBuffer());
+		setFile({ name: f.name, mime: f.type, bytes });
+		setShown(null);
+		if (/\.(ttf|otf|woff2?)$/i.test(f.name) && typeof FontFace !== 'undefined') {
+			try {
+				const face = new FontFace(FONT_FAMILY, bytes.slice().buffer);
+				await face.load();
+				(document.fonts as unknown as { add: (f: FontFace) => void }).add(face);
+			} catch {
+				/* not a font the browser reads */
+			}
+		}
+	};
+	const run = () => {
+		if (!file) return;
+		const preview = tryPreview(identity(), script(), target.id, file, target.maxBytes, false, storage());
+		const thumb = target.thumbnails ? tryPreview(identity(), script(), target.id, file, target.maxBytes, true, storage()) : null;
+		setShown({ preview, thumb });
+	};
+	const result = shown?.preview;
+	return (
+		<>
+			<label class="st-field">
+				<span>{S.tryFile}</span>
+				<input type="file" class="st-input" onChange={pick} />
+			</label>
+			{file && file.bytes.length > target.maxBytes && <div class="wm-caption">{S.tryTruncated(Math.round(target.maxBytes / 1024))}</div>}
+			<div class="wm-w-row">
+				<button type="button" class="st-btn st-btn-sm st-btn-primary" disabled={!file} onClick={run}>{S.tryRun}</button>
+				{!file && <span class="wm-caption">{S.tryNoFile}</span>}
+				{result && <span class="wm-caption">{S.tryTook(result.millis)}</span>}
+			</div>
+			{result?.error && <div class="wm-error-text">{result.line ? `${result.error} (line ${result.line})` : result.error}</div>}
+			{result?.ui && (
+				<div class="wm-w-column" style={{ fontFamily: undefined, ['--wm-preview-font' as string]: FONT_FAMILY }}>
+					{result.ui.repairs.map((r, i) => <div key={i} class="wm-caption">{r}</div>)}
+					{result.ui.root.map((w, i) => w.kind === 'v5' && <V5Widget key={i} w={w} onEvent={() => {}} onInsert={() => {}} onCopy={(t) => void navigator.clipboard?.writeText(t)} inputs={{}} still />)}
+				</div>
+			)}
+			{shown?.thumb && (
+				<>
+					<div class="wm-caption">{S.tryThumbnail}</div>
+					{shown.thumb.error && <div class="wm-error-text">{shown.thumb.error}</div>}
+					{!shown.thumb.error && (shown.thumb.picture ? <img src={shown.thumb.picture} alt="" style="width:96px;height:96px;object-fit:cover;border-radius:10px" /> : <div class="wm-caption">{S.tryNoThumbnail}</div>)}
+				</>
+			)}
+			{result && result.log.length > 0 && (
+				<>
+					<div class="wm-caption">{S.consoleLabel}</div>
+					<pre>{result.log.join('\n')}</pre>
+				</>
+			)}
+		</>
+	);
+}
 
 /** The reply inside the prelude's `{"value": …}` envelope. */
 function replyOf(value: string | null): unknown {
@@ -219,6 +296,23 @@ export function TryPane({ manifest, script, identity, storage }: { manifest: Plu
 	const [outcome, setOutcome] = useState<{ key: string; result: TryOutcome } | null>(null);
 	if (!chosen) return <div class="wm-pane-empty">{S.tryEmpty}</div>;
 	const input = inputs[chosen.key] ?? sampleOf(chosen);
+	const chips = (
+		<div class="wm-w-row" style="flex-wrap:wrap">
+			{targets.map((t) => (
+				<button key={t.key} type="button" class={`st-chip ${t.key === chosen.key ? 'st-chip-on' : ''}`} aria-pressed={t.key === chosen.key} onClick={() => setChosenKey(t.key)}>
+					{t.kind === 'provider' ? `${t.tool} · ${t.name}` : t.kind === 'preview' ? `.${t.id} · ${t.name}` : t.name}
+				</button>
+			))}
+		</div>
+	);
+	if (chosen.kind === 'preview') {
+		return (
+			<div class="wm-pane wm-try" style="display:flex;flex-direction:column;gap:6px">
+				{chips}
+				<PreviewTry key={chosen.key} target={chosen} identity={identity} script={script} storage={storage} />
+			</div>
+		);
+	}
 	const run = () => {
 		if (chosen.kind === 'provider') {
 			try {
@@ -234,13 +328,7 @@ export function TryPane({ manifest, script, identity, storage }: { manifest: Plu
 	const reply = result && !result.error ? (chosen.kind === 'provider' ? replyOf(result.value) : result.value) : null;
 	return (
 		<div class="wm-pane wm-try" style="display:flex;flex-direction:column;gap:6px">
-			<div class="wm-w-row" style="flex-wrap:wrap">
-				{targets.map((t) => (
-					<button key={t.key} type="button" class={`st-chip ${t.key === chosen.key ? 'st-chip-on' : ''}`} aria-pressed={t.key === chosen.key} onClick={() => setChosenKey(t.key)}>
-						{t.kind === 'provider' ? `${t.tool} · ${t.name}` : t.name}
-					</button>
-				))}
-			</div>
+			{chips}
 			<label class="st-field">
 				<span>{chosen.kind === 'provider' ? S.tryRequest : S.tryText}</span>
 				<textarea class="st-input" rows={chosen.kind === 'provider' ? 5 : 2} spellcheck={false} value={input} onInput={(e) => setInputs({ ...inputs, [chosen.key]: (e.target as HTMLTextAreaElement).value })} />
@@ -274,6 +362,9 @@ export function TryPane({ manifest, script, identity, storage }: { manifest: Plu
 const MAX_PROVIDERS = 8;
 const MAX_ACTIONS = 16;
 const MAX_SETTINGS = 24;
+const MAX_PREVIEWS = 16;
+const MAX_SYNTAX = 16;
+const listOf = (text: string) => text.split(/[\s,]+/).map((x) => x.trim().toLowerCase().replace(/^\./, '')).filter(Boolean);
 const SETTING_TYPES = ['text', 'switch', 'number', 'choice', 'host', 'secret'] as const;
 
 function Group({ title, canAdd, onAdd, children }: { title: string; canAdd: boolean; onAdd: () => void; children: ComponentChildren }) {
@@ -297,6 +388,8 @@ export function ManifestRows({ manifest, onChange }: { manifest: PluginManifest;
 	const providers = manifest.providers ?? [];
 	const actions = manifest.actions ?? [];
 	const settings = manifest.settings ?? [];
+	const previews = manifest.previews ?? [];
+	const syntax = manifest.syntax ?? [];
 	const setAt = <T,>(list: T[], i: number, item: T) => list.map((x, j) => (j === i ? item : x));
 	const without = <T,>(list: T[], i: number) => list.filter((_, j) => j !== i);
 	return (
@@ -341,6 +434,48 @@ export function ManifestRows({ manifest, onChange }: { manifest: PluginManifest;
 					</div>
 				))}
 			</Group>
+			{api5 && (
+				<Group title={S.detailsPreviews} canAdd={previews.length < MAX_PREVIEWS} onAdd={() => {
+					let n = previews.length + 1;
+					while (previews.some((p) => p.id === `preview${n}`)) n++;
+					const permissions = manifest.permissions.includes('previews') ? manifest.permissions : [...manifest.permissions, 'previews'];
+					onChange({ ...manifest, permissions, previews: [...previews, { id: `preview${n}`, extensions: [] }] });
+				}}>
+					{previews.map((p, i) => (
+						<div key={i} class="wm-rows-item">
+							<input class="st-input" style="font-family:var(--wmc-mono)" aria-label={S.detailsPreviewId} placeholder={S.detailsPreviewId} value={p.id} onInput={(e) => onChange({ ...manifest, previews: setAt(previews, i, { ...p, id: val(e) }) })} />
+							<input class="st-input" aria-label={S.detailsPreviewName} placeholder={S.detailsPreviewName} value={p.name ?? ''} onInput={(e) => onChange({ ...manifest, previews: setAt(previews, i, { ...p, name: val(e) || undefined }) })} />
+							<input class="st-input" style="font-family:var(--wmc-mono)" aria-label={S.detailsPreviewExtensions} placeholder={S.detailsPreviewExtensions} value={(p.extensions ?? []).join(', ')} onChange={(e) => onChange({ ...manifest, previews: setAt(previews, i, { ...p, extensions: listOf(val(e)) }) })} />
+							<label class="wm-w-toggle"><input type="checkbox" checked={!!p.thumbnails} onChange={(e) => onChange({ ...manifest, previews: setAt(previews, i, { ...p, thumbnails: (e.target as HTMLInputElement).checked || undefined }) })} /><span>{S.detailsPreviewThumbnails}</span></label>
+							<button type="button" class="st-btn st-btn-sm st-btn-ghost" aria-label={S.detailsRemove} onClick={() => {
+								const rest = without(previews, i);
+								const permissions = rest.length ? manifest.permissions : manifest.permissions.filter((x) => x !== 'previews');
+								onChange({ ...manifest, permissions, previews: rest });
+							}}>✕</button>
+						</div>
+					))}
+				</Group>
+			)}
+			{api5 && (
+				<Group title={S.detailsSyntax} canAdd={syntax.length < MAX_SYNTAX} onAdd={() => {
+					let n = syntax.length + 1;
+					while (syntax.some((s) => s.id === `syntax${n}`)) n++;
+					onChange({ ...manifest, syntax: [...syntax, { id: `syntax${n}`, extensions: [], grammar: `assets/syntax${n}.json` }] });
+				}}>
+					{syntax.map((s, i) => (
+						<div key={i} class="wm-rows-item">
+							<input class="st-input" style="font-family:var(--wmc-mono)" aria-label={S.detailsPreviewId} placeholder={S.detailsPreviewId} value={s.id} onInput={(e) => onChange({ ...manifest, syntax: setAt(syntax, i, { ...s, id: val(e) }) })} />
+							<input class="st-input" style="font-family:var(--wmc-mono)" aria-label={S.detailsPreviewExtensions} placeholder={S.detailsPreviewExtensions} value={(s.extensions ?? []).join(', ')} onChange={(e) => onChange({ ...manifest, syntax: setAt(syntax, i, { ...s, extensions: listOf(val(e)) }) })} />
+							{typeof s.grammar === 'string' || s.grammar === undefined ? (
+								<input class="st-input" style="font-family:var(--wmc-mono)" aria-label={S.detailsSyntaxGrammar} placeholder="assets/name.json" value={String(s.grammar ?? '')} onInput={(e) => onChange({ ...manifest, syntax: setAt(syntax, i, { ...s, grammar: val(e) }) })} />
+							) : (
+								<span class="wm-caption">{S.detailsSyntaxGrammar}: plugin.json</span>
+							)}
+							<button type="button" class="st-btn st-btn-sm st-btn-ghost" aria-label={S.detailsRemove} onClick={() => onChange({ ...manifest, syntax: without(syntax, i) })}>✕</button>
+						</div>
+					))}
+				</Group>
+			)}
 			{api5 && (
 				<Group title={S.detailsSettings} canAdd={settings.length < MAX_SETTINGS} onAdd={() => {
 					let n = settings.length + 1;

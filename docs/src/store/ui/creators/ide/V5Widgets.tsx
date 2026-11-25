@@ -530,6 +530,31 @@ export function V5Widget(props: Props) {
 		}
 		case 'date':
 			return <div class="wm-w-label-caption">{str(d, 'label')}: {typeof d.value === 'number' ? new Date(num(d, 'value') * 1000).toLocaleString() : '—'}</div>;
+		case 'table': {
+			const rows = (Array.isArray(d.rows) ? d.rows : []) as string[][];
+			const header = (Array.isArray(d.header) ? d.header : null) as string[] | null;
+			const align = (Array.isArray(d.align) ? d.align : []) as string[];
+			const cell = (c: number) => ({ textAlign: (align[c] === 'end' ? 'right' : align[c] === 'center' ? 'center' : 'left') as 'left' | 'right' | 'center', padding: '4px 8px', whiteSpace: 'pre-wrap' as const, maxWidth: '260px' });
+			return (
+				<div style="overflow-x:auto;border-radius:10px;background:var(--st-surface, rgba(127,127,127,.08))">
+					<table style="border-collapse:collapse;font-size:13px">
+						{header && <thead><tr>{header.map((h, c) => <th key={c} style={cell(c)}>{h}</th>)}</tr></thead>}
+						<tbody>{rows.map((r, i) => <tr key={i} style={i % 2 ? 'background:rgba(127,127,127,.06)' : undefined}>{r.map((v, c) => <td key={c} style={cell(c)}>{v}</td>)}</tr>)}</tbody>
+					</table>
+				</div>
+			);
+		}
+		case 'code':
+			return (
+				<pre style="overflow-x:auto;font-family:var(--wmc-mono, monospace);font-size:12px;border-radius:10px;padding:8px;background:var(--st-surface, rgba(127,127,127,.08))" title={str(d, 'language')} onContextMenu={(e) => { e.preventDefault(); onCopy(str(d, 'text')); }}>
+					{str(d, 'text')}
+				</pre>
+			);
+		case 'font_sample': {
+			const sizes = (Array.isArray(d.sizes) ? d.sizes : [14, 20, 32]) as number[];
+			const text = str(d, 'text') || 'The quick brown fox jumps over the lazy dog 0123456789';
+			return <div class="wm-w-column">{sizes.map((s, i) => <div key={i} style={{ fontFamily: 'wm-preview-font, inherit', fontSize: `${s}px`, lineHeight: 1.25 }}>{text}</div>)}</div>;
+		}
 		default:
 			return <div class="wm-w-label-caption">{w.type}</div>;
 	}

@@ -6,7 +6,7 @@
 import { signal, useSignal } from '@preact/signals';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
-import { PLUGIN_ICON_PATTERN, readPlugin } from '../../../lib/payloads';
+import { PLUGIN_ICON_PATTERN, pluginPreviewProblems, readPlugin } from '../../../lib/payloads';
 import { writeZip } from '../../../lib/zip';
 import { CopyButton } from '../../common';
 import { fmtBytes } from '../../../lib/net';
@@ -81,6 +81,8 @@ export function manifestProblems(m: PluginManifest): string[] {
 	else if (hosts.length > MAX_HOSTS) out.push(S.rejectTooManyHosts(name));
 	const tool = m.tool ?? {};
 	if ((tool.keyword?.trim() && !/^[a-z0-9]{1,16}$/.test(tool.keyword.trim())) || !PLUGIN_ICON_PATTERN.test((tool.icon ?? '').trim())) out.push(S.rejectBadTool(name));
+	// PluginPreviewRules: file previews and grammars, and the permission previews need.
+	out.push(...pluginPreviewProblems(m as unknown as Record<string, unknown>, m.permissions, m.apiVersion));
 	return out;
 }
 

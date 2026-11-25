@@ -328,11 +328,11 @@ interface WireResult {
 	ok: boolean;
 	ui?: { root: WireWidget[]; repairs: { code: RepairCode; arg: string | null }[] };
 	host?: HostMeta;
-	error?: { kind: 'compile' | 'runtime' | 'abort' | 'no_render' | 'no_transform' | 'internal'; message: string; line: number | null; abort: AbortWire | null; exception: string | null };
+	error?: { kind: 'compile' | 'runtime' | 'abort' | 'no_render' | 'no_transform' | 'no_preview' | 'internal'; message: string; line: number | null; abort: AbortWire | null; exception: string | null };
 	log: string[];
 	inputs: [string, string][];
 	remindersChanged: boolean;
-	phases: { phase: 'load' | 'event' | 'render' | 'action'; steps: number; stepsLimit: number; elapsedMicros: number; millisLimit: number }[];
+	phases: { phase: 'load' | 'event' | 'render' | 'action' | 'preview' | 'thumbnail'; steps: number; stepsLimit: number; elapsedMicros: number; millisLimit: number }[];
 }
 
 function configOf(plugin: PluginIdentity, storage: Record<string, string> | null, mode: 'panel' | 'action' = 'panel'): string {
@@ -689,6 +689,69 @@ export interface TryOutcome {
 	line: number | null;
 	log: string[];
 	millis: number;
+}
+
+/** What one file preview or thumbnail call came to. */
+export interface PreviewOutcome {
+	ui: RenderedUi | null;
+	/** A thumbnail's picture, as a `data:` address the page can show. */
+	picture: string | null;
+	error: string | null;
+	line: number | null;
+	log: string[];
+	millis: number;
+}
+
+/**
+ * Runs a draft's `@plugin.preview(id)` (or `@plugin.thumbnail(id)`) on a file
+ * the page holds, as the file manager would (PluginPreviewRunner.kt): a fresh
+ * session, the first [maxBytes] of the file as its data, and `preview.read`
+ * answered from the rest.
+ */
+export function tryPreview(plugin: PluginIdentity, script: string, previewId: string, file: { name: string; mime: string; bytes: Uint8Array }, maxBytes: number, thumbnail: boolean, storage: Record<string, string> | null): PreviewOutcome {
+	const started = performance.now();
+	const log: string[] = [];
+	let py: PySession | null = null;
+	const done = (ui: RenderedUi | null, picture: string | null, error: string | null, line: number | null = null): PreviewOutcome => ({ ui, picture, error, line, log, millis: Math.round(performance.now() - started) });
+	try {
+		py = new PySession(configOf(plugin, storage, 'action'));
+		const base = makeBridge({ hosts: plugin.hosts ?? [], settings: plugin.settingSpecs ?? [], deliver: () => {}, log: (text) => log.push(text) });
+		py.setBridge((op: string, args: string) => {
+			if (op !== 'preview.read') return base(op, args);
+			const a = JSON.parse(args) as { offset?: number; length?: number };
+			const from = Math.max(0, Math.min(file.bytes.length, a.offset ?? 0));
+			const to = Math.min(file.bytes.length, from + Math.min(1 << 20, Math.max(0, a.length ?? 0)));
+			let bin = '';
+			for (const b of file.bytes.subarray(from, to)) bin += String.fromCharCode(b);
+			return JSON.stringify({ value: btoa(bin) });
+		});
+		const loaded = JSON.parse(py.load(script)) as WireResult;
+		log.push(...loaded.log);
+		if (loaded.error) return done(null, null, loaded.error.message || loaded.error.kind, loaded.error.line);
+		const head = file.bytes.subarray(0, Math.min(file.bytes.length, maxBytes));
+		const dot = file.name.lastIndexOf('.');
+		const request = JSON.stringify({
+			id: previewId, name: file.name, extension: dot > 0 ? file.name.slice(dot + 1).toLowerCase() : '', mime: file.mime || null,
+			size: file.bytes.length, modified: null, truncated: file.bytes.length > head.length,
+		});
+		const raw = thumbnail ? py.thumbnail(request, head) : py.preview(request, head);
+		const result = JSON.parse(raw) as WireResult & { value?: string | null };
+		log.push(...result.log);
+		if (result.error) {
+			const message = result.error.kind === 'no_preview' ? `No @plugin.${thumbnail ? 'thumbnail' : 'preview'}("${previewId}") in the script.` : result.error.message || result.error.kind;
+			return done(null, null, message, result.error.line);
+		}
+		if (thumbnail) return done(null, result.value ? `data:image/*;base64,${result.value}` : null, null);
+		return done(result.ui ? uiOf(result.ui, true) : null, null, null);
+	} catch (e) {
+		return done(null, null, String((e as Error)?.message ?? e));
+	} finally {
+		try {
+			py?.free();
+		} catch {
+			/* trapped */
+		}
+	}
 }
 
 /**

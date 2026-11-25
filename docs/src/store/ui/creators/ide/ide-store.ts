@@ -28,6 +28,10 @@ export interface PluginManifest {
 	panel?: boolean;
 	/** API 5: the provider lists it answers (PluginProviderSpec). */
 	providers?: { tool: string; id?: string; name?: string; summary?: string; images?: boolean }[];
+	/** API 5: file types it shows in the file manager (PluginPreviewSpec). Needs "previews". */
+	previews?: { id: string; name?: string; extensions?: string[]; names?: string[]; mimes?: string[]; maxBytes?: number; thumbnails?: boolean }[];
+	/** API 5: grammars that colour file types (PluginSyntaxSpec): inline, or "assets/<name>.json". */
+	syntax?: { id: string; name?: string; extensions?: string[]; names?: string[]; grammar?: unknown }[];
 }
 
 export type SnapshotReason = 'manual' | 'periodic' | 'before_restore' | 'publish' | 'import';
@@ -62,7 +66,7 @@ export const REMINDERS_PERMISSION = 'reminders';
 /** Every permission the app knows, in the order the manifest form lists them (PluginPermission.all). */
 export const PERMISSIONS = [
 	STORAGE_PERMISSION, REMINDERS_PERMISSION, 'selection', 'field.write', 'clipboard.write', 'sensors', 'scan', 'device', 'share',
-	'notifications', 'clock', 'network', 'network.local', 'ai', 'field.read', 'clipboard.read', 'location', 'files', 'calendar', 'todo',
+	'notifications', 'clock', 'previews', 'network', 'network.local', 'ai', 'field.read', 'clipboard.read', 'location', 'files', 'calendar', 'todo',
 ];
 /** The ones API 4 knows; the rest need `"apiVersion": 5`. */
 export const API4_PERMISSIONS = [STORAGE_PERMISSION, REMINDERS_PERMISSION, 'selection'];

@@ -1006,7 +1006,7 @@ export const PLUGIN_LUA_REFUSAL = 'This plugin is written in Lua, which WM Keybo
 export const PLUGIN_PERMISSIONS = [
 	'storage', 'reminders', 'selection',
 	'network', 'network.local', 'ai', 'field.read', 'field.write', 'clipboard.read', 'clipboard.write',
-	'location', 'files', 'sensors', 'scan', 'device', 'share', 'notifications', 'calendar', 'todo', 'clock',
+	'location', 'files', 'sensors', 'scan', 'device', 'share', 'notifications', 'calendar', 'todo', 'clock', 'previews',
 ] as const;
 /** The permissions API 5 added (PluginPermission.sinceApi); a lower manifest may not declare them. */
 const PLUGIN_API_5_PERMISSIONS = new Set(PLUGIN_PERMISSIONS.slice(3));
@@ -1022,6 +1022,79 @@ const PLUGIN_PROVIDER_TOOLS = new Set([
 export const PLUGIN_ID_PATTERN = /^[a-z0-9][a-z0-9._-]{2,63}$/;
 /** PluginManifestCodec's ICON: a Material Symbols name, or an SVG under assets/. */
 export const PLUGIN_ICON_PATTERN = /^([a-z0-9_]{0,48}|assets\/[a-z0-9][a-z0-9_.-]{0,59}\.svg)$/;
+
+/** A grammar kind (PluginSyntax.Kind in the app). */
+export const PLUGIN_SYNTAX_KINDS = ['comment', 'string', 'number', 'keyword', 'type', 'function', 'operator', 'tag', 'attribute', 'heading', 'link', 'emphasis', 'constant', 'punctuation'] as const;
+const PREVIEW_EXTENSION = /^[a-z0-9][a-z0-9._+-]{0,15}$/;
+const PREVIEW_FILE_NAME = /^[A-Za-z0-9._+-]{1,40}$/;
+const PREVIEW_MIME = /^[a-z0-9][a-z0-9.+-]*\/([a-z0-9][a-z0-9.+_-]*\*?|\*)$/;
+
+/** Why an inline grammar would not compile, or null (PluginSyntax.problem). JS's engine stands in for Android's ICU. */
+export function pluginGrammarProblem(grammar: unknown): string | null {
+	if (!grammar || typeof grammar !== 'object' || Array.isArray(grammar)) return 'is not an object';
+	const g = grammar as Record<string, unknown>;
+	const rules = Array.isArray(g.rules) ? g.rules : [];
+	if (rules.length > 200) return `has ${rules.length} rules; at most 200`;
+	for (let i = 0; i < rules.length; i++) {
+		const r = rules[i] as Record<string, unknown>;
+		if (!r || typeof r !== 'object') return `rule ${i + 1} is not an object`;
+		const match = typeof r.match === 'string' ? r.match : '';
+		if (!match || match.length > 512) return `rule ${i + 1}: a match is 1 to 512 characters`;
+		if (!(PLUGIN_SYNTAX_KINDS as readonly string[]).includes(String(r.kind))) return `rule ${i + 1}: no kind ${JSON.stringify(r.kind)}`;
+		try {
+			new RegExp(match, 'u');
+		} catch (e) {
+			return `rule ${i + 1}: ${(e as Error).message}`;
+		}
+		// Android's ICU refuses a bare } that browsers and Python accept.
+		if (/(^|[^\\])\}/.test(match.replace(/\{[^{}]*\}/g, ''))) return `rule ${i + 1}: a lone "}" (Android needs "\\}")`;
+	}
+	for (const key of ['keywords', 'types', 'constants']) {
+		const list = g[key];
+		if (list !== undefined && (!Array.isArray(list) || list.length > 2000)) return `"${key}" is a list of up to 2,000 words`;
+	}
+	return null;
+}
+
+/** The manifest's `previews` and `syntax` (PluginPreviewRules in the app), in readPlugin's words. */
+export function pluginPreviewProblems(raw: Record<string, unknown>, permissions: string[], apiVersion: number, hasAsset?: (name: string) => boolean): string[] {
+	const problems: string[] = [];
+	const previews = Array.isArray(raw.previews) ? (raw.previews as Record<string, unknown>[]) : [];
+	const syntax = Array.isArray(raw.syntax) ? (raw.syntax as Record<string, unknown>[]) : [];
+	const list = (v: unknown, lower = true) => (Array.isArray(v) ? v.map((x) => String(x).trim()).map((x) => (lower ? x.toLowerCase().replace(/^\./, '') : x)) : []);
+	if ((previews.length || syntax.length) && apiVersion < 5) problems.push('"previews" and "syntax" need "apiVersion": 5.');
+	if (previews.length && !permissions.includes('previews')) problems.push('"previews" without the "previews" permission; the app refuses it.');
+	if (!previews.length && permissions.includes('previews')) problems.push('The "previews" permission without any "previews"; the app refuses it.');
+	if (previews.length > 16) problems.push(`${previews.length} previews; the app caps at 16.`);
+	const previewIds = previews.map((p) => String(p?.id ?? '').trim());
+	if (previewIds.some((id) => !PLUGIN_ACTION_ID.test(id)) || new Set(previewIds).size !== previewIds.length) problems.push(`Preview ids must be unique and match ${PLUGIN_ACTION_ID}.`);
+	for (const p of previews) {
+		const name = String(p?.id ?? '?');
+		const ext = list(p?.extensions), names = list(p?.names, false), mimes = list(p?.mimes);
+		if (!ext.length && !names.length && !mimes.length) problems.push(`Preview "${name}" lists no "extensions", "names" or "mimes".`);
+		if (ext.length > 64 || ext.some((e) => !PREVIEW_EXTENSION.test(e))) problems.push(`Preview "${name}": extensions are up to 64, lowercase, without the dot.`);
+		if (names.length > 16 || names.some((n) => !PREVIEW_FILE_NAME.test(n))) problems.push(`Preview "${name}": names are up to 16 plain file names.`);
+		if (mimes.length > 16 || mimes.some((m) => !PREVIEW_MIME.test(m))) problems.push(`Preview "${name}": mimes are up to 16 types such as "text/csv" or "application/vnd.ms-*".`);
+	}
+	if (syntax.length > 16) problems.push(`${syntax.length} grammars; the app caps at 16.`);
+	const syntaxIds = syntax.map((s) => String(s?.id ?? '').trim());
+	if (syntaxIds.some((id) => !PLUGIN_ACTION_ID.test(id)) || new Set(syntaxIds).size !== syntaxIds.length) problems.push(`Grammar ids must be unique and match ${PLUGIN_ACTION_ID}.`);
+	for (const s of syntax) {
+		const name = String(s?.id ?? '?');
+		const ext = list(s?.extensions), names = list(s?.names, false);
+		if (!ext.length && !names.length) problems.push(`Grammar "${name}" lists no "extensions" or "names".`);
+		if (ext.some((e) => !PREVIEW_EXTENSION.test(e)) || names.some((n) => !PREVIEW_FILE_NAME.test(n))) problems.push(`Grammar "${name}": an extension or name is not well formed.`);
+		const g = s?.grammar;
+		if (typeof g === 'string') {
+			if (!/^assets\/[a-z0-9][a-z0-9_.-]{0,59}\.json$/.test(g)) problems.push(`Grammar "${name}": "grammar" is an object, or "assets/<name>.json".`);
+			else if (hasAsset && !hasAsset(g)) problems.push(`Grammar "${name}" names ${g}, which is not in the archive; the type stays uncoloured.`);
+		} else {
+			const why = pluginGrammarProblem(g);
+			if (why) problems.push(`Grammar "${name}" ${why}; the app refuses it.`);
+		}
+	}
+	return problems;
+}
 
 export function readPlugin(bytes: Uint8Array): PluginRead {
 	const entries = readZip(bytes, 128);
@@ -1071,7 +1144,22 @@ export function readPlugin(bytes: Uint8Array): PluginRead {
 	});
 	if (providers.some((p) => !PLUGIN_PROVIDER_TOOLS.has(String(p?.tool ?? '').trim()))) problems.push(`A provider's "tool" is not one of ${[...PLUGIN_PROVIDER_TOOLS].join(', ')}; the app refuses it.`);
 	if (providerKeys.some((k) => !PLUGIN_ACTION_ID.test(k.split('/')[1])) || new Set(providerKeys).size !== providerKeys.length) problems.push(`Provider ids must be unique for their tool and match ${PLUGIN_ACTION_ID}.`);
-	if (!actions.length && !providers.length && raw.panel === false) problems.push('No panel, no actions and no providers; the app refuses it.');
+	const previewCount = (Array.isArray(raw.previews) ? raw.previews.length : 0) + (Array.isArray(raw.syntax) ? raw.syntax.length : 0);
+	if (!actions.length && !providers.length && !previewCount && raw.panel === false) problems.push('No panel, no actions, no providers and no previews; the app refuses it.');
+	problems.push(...pluginPreviewProblems(raw, permissions, apiVersion, (name) => entries.some((e) => e.name === name)));
+	for (const s of Array.isArray(raw.syntax) ? (raw.syntax as Record<string, unknown>[]) : []) {
+		const g = s?.grammar;
+		const asset = typeof g === 'string' ? entries.find((e) => e.name === g) : undefined;
+		if (asset) {
+			let why: string | null;
+			try {
+				why = pluginGrammarProblem(JSON.parse(textOf(asset)));
+			} catch {
+				why = 'is not JSON';
+			}
+			if (why) problems.push(`${g} ${why}; the app leaves that type uncoloured.`);
+		}
+	}
 	if (actions.length > 16) problems.push(`${actions.length} actions; the app caps at 16.`);
 	const actionIds = actions.map((a) => String(a?.id ?? '').trim());
 	if (actionIds.some((a) => !PLUGIN_ACTION_ID.test(a)) || new Set(actionIds).size !== actionIds.length) problems.push(`Action ids must be unique and match ${PLUGIN_ACTION_ID}.`);
