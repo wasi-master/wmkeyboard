@@ -9852,7 +9852,7 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
-    /** For the rest of the process's life, like [registerPackageChangeReceiver]. */
+    /** For the service's life, like [registerPackageChangeReceiver]; [onDestroy] drops it. */
     private fun registerKeyguardReceiver() {
         ContextCompat.registerReceiver(
             this, keyguardReceiver, IntentFilter(Intent.ACTION_USER_PRESENT),
@@ -12072,6 +12072,10 @@ open class WMKeyboardService : InputMethodService() {
         // in the new instance's dictionary and layout loading (#1506).
         TodoChipActions.handler = { _, _ -> }
         com.wasimaster.wmkeyboard.ime.wmpass.WmPassChipActions.handler = {}
+        // The status chips' and icons' slot, set on every status refresh: the
+        // same kind of hold, missed by the two above.
+        StatusActions.handler = { _, _ -> }
+        runCatching { unregisterReceiver(keyguardReceiver) }
         // The system keeps a registered observer, and this one is the
         // service's own inner object, so it held every instance it was
         // registered from for the rest of the process.
