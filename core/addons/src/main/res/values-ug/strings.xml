@@ -1,0 +1,32 @@
+<resources>
+    <string name="core_addons_type_dictionary_label">لۇغەتلەر</string>
+    <string name="core_addons_type_dictionary_singular_label">لۇغەت</string>
+    <string name="core_addons_type_emoji_font_label">ئېموجى خەت نۇسخىلىرى</string>
+    <string name="core_addons_type_emoji_font_singular_label">Emoji خەت نۇسخىسى</string>
+    <string name="core_addons_type_emoji_keywords_label">ئېموجى ئاچقۇچ سۆزلىرى</string>
+    <string name="core_addons_type_emoji_keywords_singular_label">ئېموجى ئاچقۇچلۇق سۆز توپلىمى</string>
+    <string name="core_addons_type_espanso_label">Espanso توپلاملىرى</string>
+    <string name="core_addons_type_espanso_singular_label">Espanso بوغچىسى</string>
+    <string name="core_addons_type_font_label">خەت نۇسخىلىرى</string>
+    <string name="core_addons_type_font_singular_label">خەت نۇسخىسى</string>
+    <string name="core_addons_type_icon_pack_label">سىنبەلگە توپلاملىرى</string>
+    <string name="core_addons_type_icon_pack_singular_label">سىنبەلگە بوغچىسى</string>
+    <string name="core_addons_type_layout_label">ئورۇنلاشتۇرۇشلار</string>
+    <string name="core_addons_type_layout_singular_label">ئورۇنلاشتۇرۇش</string>
+    <string name="core_addons_type_plugin_label">قىستۇرمىلار</string>
+    <string name="core_addons_type_plugin_singular_label">قىستۇرما</string>
+    <string name="core_addons_type_snippets_label">ئۈزۈندىلەر</string>
+    <string name="core_addons_type_snippets_singular_label">ئۈزۈندى بوغچىسى</string>
+    <string name="core_addons_type_sound_label">ئاۋازلار</string>
+    <string name="core_addons_type_sound_pack_label">ئاۋاز توپلاملىرى</string>
+    <string name="core_addons_type_sound_pack_singular_label">ئاۋاز بوغچىسى</string>
+    <string name="core_addons_type_sound_singular_label">كۇنۇپكا ئاۋازى</string>
+    <string name="core_addons_type_stickers_label">ئاستىرما توپلاملىرى</string>
+    <string name="core_addons_type_stickers_singular_label">چاپلاق بوغچىسى</string>
+    <string name="core_addons_type_theme_label">تېمىلار</string>
+    <string name="core_addons_type_theme_singular_label">تېما</string>
+    <string name="core_addons_type_unknown_label">باشقا</string>
+    <string name="core_addons_type_unknown_singular_label">قوشۇلما</string>
+    <string name="core_addons_type_vocabulary_label">سۆز بايلىقى</string>
+    <string name="core_addons_type_vocabulary_singular_label">سۆزلۈك بوغچىسى</string>
+</resources>
