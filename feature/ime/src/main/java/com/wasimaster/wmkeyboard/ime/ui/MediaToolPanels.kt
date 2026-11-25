@@ -563,10 +563,13 @@ fun mediaImageLoader(context: Context): ImageLoader =
                 // Dynamic stickers' cells: drawn on the device when a cell asks.
                 add(DynThumbFetcher.Factory())
             }
-            // Below Coil's 20% default: a bloated keyboard is a visible jank
-            // source, and three screens of thumbnails is all the scrollback
-            // anyone flicks through.
-            .memoryCache { MemoryCache.Builder().maxSizePercent(context, 0.12).build() }
+            // A twentieth of the app's heap class, a quarter of Coil's 20%
+            // default: some 19 MB on a 384 MB phone, two hundred grid cells.
+            // The cache only holds what has scrolled away; a cell on screen
+            // keeps its own picture whatever the cache lets go of. At 12% it
+            // was 46 MB of thumbnails in the process that draws the keyboard
+            // (CPH2481, 2026-11-26).
+            .memoryCache { MemoryCache.Builder().maxSizePercent(context, MEDIA_MEMORY_SHARE).build() }
             // Under cacheDir, so the system can reclaim it under storage
             // pressure — correct for content that is trivially fetched again.
             .diskCache {
@@ -584,8 +587,8 @@ fun mediaImageLoader(context: Context): ImageLoader =
  *
  * Coil 3.2 has no notion of "the UI is not on screen" — the background
  * trimming its 3.3 release added keys off a process lifecycle an input method
- * never drives — so nothing here ever gave these back on its own. Twelve
- * percent of the heap in GIF and sticker thumbnails is worth holding while the
+ * never drives — so nothing here ever gave these back on its own. A
+ * twentieth of the heap in GIF and sticker thumbnails is worth holding while the
  * panel is open and worth nothing at all once the keyboard is a text field's
  * keyboard again, and the disk cache behind it makes a re-scroll a decode
  * rather than a download. Deliberately does not touch the loader itself:
@@ -603,6 +606,9 @@ fun rememberMediaImageLoader(): ImageLoader {
 }
 
 private const val MEDIA_DISK_CACHE_BYTES = 64L * 1024 * 1024
+
+/** The media loader's memory cache, as a share of the app's heap class; see [mediaImageLoader]. */
+private const val MEDIA_MEMORY_SHARE = 0.05
 
 /**
  * Header-row variant of the media search field, for full-bleed panels: it

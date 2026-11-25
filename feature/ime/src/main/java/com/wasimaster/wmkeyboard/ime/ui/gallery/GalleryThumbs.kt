@@ -181,8 +181,12 @@ fun rememberGalleryImageLoader(): ImageLoader {
     return remember(context) { galleryImageLoader(context) }
 }
 
-/** A share of the heap: a few screens of thumbnails, the same budget as the media panels'. */
-private const val MEMORY_SHARE = 0.10
+/**
+ * A share of the heap: a few screens of thumbnails, the same budget as the
+ * media panels'. The cells on screen keep their own pictures; this is only
+ * what has scrolled away.
+ */
+private const val MEMORY_SHARE = 0.05
 
 /** A sticker file the editor places, decoded small enough for a tray cell or a layer. */
 fun decodeStickerFile(path: String, maxSide: Int = 512): Bitmap? = runCatching {

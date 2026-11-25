@@ -12674,9 +12674,20 @@ open class WMKeyboardService : InputMethodService() {
         if (panel != PanelMode.DICTIONARY) {
             com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanDictionaries.releaseDatabases()
         }
-        // Media thumbnails: a tenth of the heap, shared by every media panel,
-        // so they only go when none of them is the one on screen.
-        if (panel == null || panel == PanelMode.NONE) trimMediaImageMemory()
+        // Media thumbnails, and the gallery's and the file manager's: shared
+        // by every panel that shows pictures, so they only go when none of
+        // them is the one on screen.
+        if (panel == null || panel == PanelMode.NONE) {
+            trimMediaImageMemory()
+            com.wasimaster.wmkeyboard.ime.ui.gallery.trimGalleryImageMemory()
+            // The search boxes' stem cache: megabytes of clips', notes' and
+            // emoji names' stems, stemmed again by the next search.
+            com.wasimaster.wmkeyboard.core.engine.SearchStems.clear()
+        }
+        // Dynamic stickers' parsed templates and art library: tens of
+        // megabytes of JSON tree after one scroll of the panel, read again
+        // from the pack files by the next sticker drawn.
+        if (panel != PanelMode.STICKER) com.wasimaster.wmkeyboard.core.stickers.dynamic.DynStickerStore.releaseShared()
         // The Unicode name index: tens of megabytes of character names, built
         // the first time somebody searched the emoji panel for one. Rebuilt by
         // the next such search.
@@ -12703,6 +12714,37 @@ open class WMKeyboardService : InputMethodService() {
             }
         }
         if (!onScreen) BackgroundBitmapCache.evictAll()
+        // Theme card pictures, kept on disk too. Not while a settings screen
+        // is up: the theme gallery there may be what is showing them.
+        if (!onScreen && StartedActivities.count == 0) ThemePreviewCache.trim(ComponentCallbacks2.TRIM_MEMORY_COMPLETE)
+    }
+
+    /** Pending [schedulePanelTrim]'s trim. */
+    private var panelTrimJob: Job? = null
+
+    /**
+     * Lets go of what a panel the user has left decoded and parsed: the media
+     * loader's and the gallery's thumbnails, dynamic stickers' documents and
+     * art. Not at once, since a panel closed and opened again a moment later
+     * should come back as it was: [PANEL_TRIM_MS] later, and only if the
+     * keyboard is back to plain typing then. A picture still on screen, a
+     * sticker offered on the strip or a clip's thumbnail, keeps its own:
+     * emptying a cache only drops the cache's hold on it.
+     *
+     * The idle release did this before, and only that: two minutes after the
+     * keyboard went away. A keyboard kept up all day for typing held the last
+     * panel's pictures all day, 46 MB of thumbnails on a CPH2481 (measured
+     * 2026-11-26).
+     */
+    private fun schedulePanelTrim() {
+        panelTrimJob?.cancel()
+        panelTrimJob = serviceScope.launch {
+            delay(PANEL_TRIM_MS)
+            if (_uiState.value.panel != PanelMode.NONE) return@launch
+            trimMediaImageMemory()
+            com.wasimaster.wmkeyboard.ime.ui.gallery.trimGalleryImageMemory()
+            com.wasimaster.wmkeyboard.core.stickers.dynamic.DynStickerStore.releaseShared()
+        }
     }
 
     /** Pending [releaseHeavyEngines]; see [scheduleIdleRelease]. */
@@ -39195,6 +39237,9 @@ open class WMKeyboardService : InputMethodService() {
         }
         // Whatever the GIF/sticker panel was showing survives it closing.
         stashMediaSearch(_uiState.value)
+        // A panel being left, by closing it or opening another: what it drew
+        // is let go of once the keyboard has been back to typing a while.
+        if (_uiState.value.panel != PanelMode.NONE) schedulePanelTrim()
         // Translate in the floating box (#1155) shares the search box with
         // the keyboard's own panels: its text waits while one of them has it.
         // So do web search's and Wikipedia's (#1265).
@@ -68630,6 +68675,13 @@ fun compositionCannotPrecedeCaret(
  * down is not holding a language model.
  */
 private const val IDLE_RELEASE_MS = 120_000L
+
+/**
+ * How long after a panel closes its pictures and parsed stickers are let go
+ * of, if no panel is open by then: past a quick close and reopen, well short
+ * of a typing session.
+ */
+private const val PANEL_TRIM_MS = 20_000L
 
 /**
  * How long the keyboard stays hidden before a process holding stranded GPU

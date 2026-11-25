@@ -7,7 +7,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.InputStream
@@ -73,10 +75,22 @@ class DynStickerStore(
     private val packs = LinkedHashMap<String, Loaded>()
     private var state = State()
     private var resolved: List<DynTemplate>? = null
-    private val documents = object : LinkedHashMap<String, JsonObject>(DOC_CACHE, LOAD_FACTOR, true) {
-        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, JsonObject>?) = size > DOC_CACHE
-    }
-    private var art: Map<String, SceneToLottie.Art>? = null
+
+    /**
+     * Parsed documents, least recently used first, bounded by their estimated
+     * heap ([heapWeight]) rather than by count: a compiled built-in scene is
+     * some 400 KB of JSON tree and an imported document can be fifty times
+     * that, so the 64 entries this used to keep were 27 MB on a phone that
+     * had only scrolled the panel once.
+     */
+    private val documents = LinkedHashMap<String, CachedDocument>(DOC_INITIAL, LOAD_FACTOR, true)
+    private var documentBytes = 0L
+
+    private class CachedDocument(val doc: JsonObject, val weight: Long)
+
+    /** The art library, read when a scene first draws from it; see [ArtLibrary]. */
+    private var art: ArtLibrary? = null
+    private val artLock = Any()
 
     private val _revision = MutableStateFlow(0)
 
@@ -99,6 +113,14 @@ class DynStickerStore(
                 }.also { shared = it }
             }
 
+        /**
+         * Lets the shared store's parsed documents and art go, if the process
+         * has one; see [release]. Never builds the store just to empty it.
+         */
+        fun releaseShared() {
+            shared?.release()
+        }
+
         /** Re-points the shared store after a direct-boot unlock. */
         fun attach(context: android.content.Context) {
             get(context).attach(dirFor(context.applicationContext))
@@ -115,8 +137,26 @@ class DynStickerStore(
         private const val PACKS_DIR = "packs"
         private const val STATE_FILE = "state.json"
         private const val STAGING_PREFIX = ".staging_"
-        private const val DOC_CACHE = 64
+        private const val DOC_INITIAL = 16
         private const val LOAD_FACTOR = 0.75f
+
+        /**
+         * What the parsed documents may take of the heap together, as
+         * [heapWeight] estimates it (some 15% under the real thing, measured
+         * over the built-in pack). Small on purpose: a built-in scene compiles
+         * again in about a millisecond, a fraction of drawing it.
+         */
+        private const val DOC_BUDGET_BYTES = 4L * 1024 * 1024
+
+        // Rough heap costs of a kotlinx JSON tree on ART, for [heapWeight]:
+        // a JsonObject is its LinkedHashMap and table, each entry a node plus
+        // its key string, a JsonArray its ArrayList, a primitive its literal
+        // plus the content string (compact, a byte per Latin-1 character).
+        private const val OBJECT_BYTES = 96L
+        private const val ENTRY_BYTES = 64L
+        private const val ARRAY_BYTES = 48L
+        private const val SLOT_BYTES = 4L
+        private const val PRIMITIVE_BYTES = 48L
         private const val RECENTS = 24
         const val MAX_PACKS = 200
         const val MAX_TEMPLATES = 600
@@ -184,14 +224,51 @@ class DynStickerStore(
 
     private fun document(loaded: Loaded, meta: TemplateMeta): JsonObject? {
         val key = loaded.meta.id + "/" + meta.id
-        documents[key]?.let { return it }
+        documents[key]?.let { return it.doc }
         val doc = if (meta.file.isNotBlank()) {
             readText(loaded, meta.file)?.let(LottieDoc::parse)
         } else {
             meta.scene?.let { readText(loaded, it) }?.let { compileScene(it, meta)?.document }
         } ?: return null
-        documents[key] = doc
+        rememberDocument(key, doc)
         return doc
+    }
+
+    /** Keeps [doc] under [key], letting the least recently used go past the budget. One bigger than all of it is not kept. */
+    private fun rememberDocument(key: String, doc: JsonObject) {
+        val weight = heapWeight(doc)
+        if (weight > DOC_BUDGET_BYTES) return
+        documents.put(key, CachedDocument(doc, weight))?.let { documentBytes -= it.weight }
+        documentBytes += weight
+        // Entries, not keys and a lookup: a get on an access-ordered map is a
+        // modification, and would end the iteration.
+        val it = documents.entries.iterator()
+        while (documentBytes > DOC_BUDGET_BYTES && it.hasNext()) {
+            val eldest = it.next()
+            if (eldest.key == key) continue
+            documentBytes -= eldest.value.weight
+            it.remove()
+        }
+    }
+
+    /** Roughly what [element] takes on the heap as a parsed tree; shared subtrees count once per use. */
+    private fun heapWeight(element: JsonElement): Long = when (element) {
+        is JsonObject -> element.entries.fold(OBJECT_BYTES) { sum, (k, v) -> sum + ENTRY_BYTES + k.length + heapWeight(v) }
+        is JsonArray -> element.fold(ARRAY_BYTES) { sum, v -> sum + SLOT_BYTES + heapWeight(v) }
+        is JsonPrimitive -> PRIMITIVE_BYTES + element.content.length
+    }
+
+    /**
+     * Lets go of everything parsed: the documents and the art library. All of
+     * it is read again on demand, at the cost of a parse. The keyboard calls
+     * this once nothing on screen draws a dynamic sticker.
+     */
+    fun release() {
+        synchronized(this) {
+            documents.clear()
+            documentBytes = 0L
+        }
+        synchronized(artLock) { art = null }
     }
 
     /** The scene behind [template], for the builder, or null when it has none. */
@@ -210,27 +287,16 @@ class DynStickerStore(
     }
 
     /** A drawing from the built-in art library. */
-    fun artFor(id: String): SceneToLottie.Art? {
-        val library = art ?: loadArt().also { art = it }
-        return library[id]
-    }
+    fun artFor(id: String): SceneToLottie.Art? = synchronized(artLock) { artLibrary()?.get(id) }
 
     /** Every art id, for the builder's picker. */
-    fun artIds(): List<String> = (art ?: loadArt().also { art = it }).keys.sorted()
+    fun artIds(): List<String> = synchronized(artLock) { artLibrary()?.ids?.sorted().orEmpty() }
 
-    private fun loadArt(): Map<String, SceneToLottie.Art> {
-        val text = assets.open("$ART_DIR/art.json")?.use { it.readBytes().decodeToString() } ?: return emptyMap()
-        val root = runCatching { LottieDoc.json.parseToJsonElement(text) as? JsonObject }.getOrNull() ?: return emptyMap()
-        val out = HashMap<String, SceneToLottie.Art>()
-        for ((id, element) in root) {
-            val item = element as? JsonObject ?: continue
-            val w = (item["w"] as? kotlinx.serialization.json.JsonPrimitive)?.content?.toFloatOrNull() ?: continue
-            val h = (item["h"] as? kotlinx.serialization.json.JsonPrimitive)?.content?.toFloatOrNull() ?: continue
-            val shapes = item["shapes"] as? JsonArray ?: continue
-            // "ty" first, or Lottie Android drops everything before it and draws nothing.
-            out[id] = SceneToLottie.Art(w, h, LottieDoc.typeFirst(shapes) as JsonArray)
-        }
-        return out
+    /** Under [artLock]. */
+    private fun artLibrary(): ArtLibrary? {
+        art?.let { return it }
+        val bytes = assets.open("$ART_DIR/art.json")?.use { it.readBytes() } ?: return null
+        return ArtLibrary(bytes).also { art = it }
     }
 
     /** A font file a pack carries, by family or by file name; null when it carries none. */
@@ -775,7 +841,15 @@ class DynStickerStore(
 
     private fun invalidate(packId: String) {
         resolved = null
-        documents.keys.removeAll { it.startsWith("$packId/") }
+        val prefix = "$packId/"
+        val it = documents.entries.iterator()
+        while (it.hasNext()) {
+            val entry = it.next()
+            if (entry.key.startsWith(prefix)) {
+                documentBytes -= entry.value.weight
+                it.remove()
+            }
+        }
         bump()
     }
 
@@ -798,6 +872,7 @@ class DynStickerStore(
     fun reload() {
         packs.clear()
         documents.clear()
+        documentBytes = 0L
         resolved = null
         loadBuiltin()?.let { packs[BUILTIN_ID] = Loaded(it, null) }
         val base = baseDir

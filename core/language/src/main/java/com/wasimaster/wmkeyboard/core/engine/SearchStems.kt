@@ -87,7 +87,7 @@ object SearchStems {
         return { item -> cached(languageTag, texts(item))?.let { StemMatch.containsAll(queryStems, it) } == true }
     }
 
-    /** Drops every cached stem, for tests. */
+    /** Drops every cached stem: for tests, and for the keyboard once it has been idle a while. */
     fun clear() {
         synchronized(cache) {
             cache.clear()

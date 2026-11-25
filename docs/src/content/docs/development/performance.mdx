@@ -88,6 +88,30 @@ The script recompiles the modules you name with the Compose compiler's reports o
 
 Read the parameter lists, not the `skippable` flag. Under strong skipping every restartable composable is reported skippable. What actually decides whether one skips is an unstable parameter, which is compared by instance, arriving as a new object on every recomposition. The keyboard service publishes a fresh `KeyboardUiState` for every keystroke. That is why the key composables take a resolved `KeyVisual` instead of the state, and the [architecture tests](/development/testing/#architecture-rules) fail if one of them starts taking it again.
 
+## Where did the memory go?
+
+`adb shell dumpsys meminfo com.wasimaster.wmkeyboard` gives the totals by kind: the Java heap, the native heap (which holds bitmap pixels as well as the models), code, graphics. To see which objects hold the Java heap, take a heap dump with Perfetto. It works on the installed release build because of the profileable flag:
+
+```sh
+cat > /tmp/hprof.cfg <<'CFG'
+buffers { size_kb: 524288 fill_policy: DISCARD }
+data_sources { config { name: "android.java_hprof" java_hprof_config { pid: <pid> } } }
+duration_ms: 20000
+CFG
+adb push /tmp/hprof.cfg /data/local/tmp/hprof.cfg
+adb shell 'cat /data/local/tmp/hprof.cfg | perfetto --txt -c - -o /data/misc/perfetto-traces/wm.hprof.pftrace'
+adb pull /data/misc/perfetto-traces/wm.hprof.pftrace
+```
+
+Open it in the Perfetto UI's heap graph, or query it with the `perfetto` Python package: `include perfetto module android.memory.heap_graph.dominator_tree` gives each object's retained size (`dominated_size_bytes`, and `dominated_native_size_bytes` for bitmaps), so the biggest owners are one `ORDER BY` away. Bitmap pixels count as native, against the `android.graphics.Bitmap` that owns them.
+
+What the keyboard gives back, and when:
+
+- **About 20 seconds after a panel closes**, if the keyboard is back to plain typing: the media loader's and the gallery's thumbnail caches, and dynamic stickers' parsed documents and art library (`schedulePanelTrim` in `WMKeyboardService`). A picture still on screen keeps its own bitmap; emptying a Coil cache only drops the cache's reference.
+- **Two minutes after the keyboard hides**, and on trim-memory: `releaseHeavyEngines`, which unloads the models, decoded app icons, thumbnails, dynamic stickers, the search boxes' stem cache, background photos and theme card pictures.
+
+Caches are bounded by bytes, not by entries, wherever the entries vary in size. Dynamic stickers' documents are an example: a compiled built-in scene is some 400 KB of JSON tree and an imported Lottie file can be fifty times that, so `DynStickerStore` weighs each one and keeps 4 MB of them. The art library is the other half of that store: 2.4 MB of JSON that parsed whole came to 28 MB of heap, so `ArtLibrary` keeps the bytes and parses one drawing when a scene asks for it. Coil's two loaders keep a twentieth of the app's heap class each.
+
 ## Macrobenchmarks and the baseline profile
 
 The `:benchmark` module holds a baseline profile generator and three macrobenchmarks, run on a real device against a release-like build. It joins the build only with `-Pwmkb.benchmark=true`, for two reasons. Applying the baseline profile plugin adds two build types to every flavour pair of `:app`, which every other build would then pay for. And its tests install a build over the app on the connected device.
